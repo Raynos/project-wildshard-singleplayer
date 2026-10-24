@@ -1,7 +1,7 @@
 import { Vector3 } from 'three';
 import { serializeSnapshotData, serializeSnapshotDataSteps, decodeSnapshotData, finishSteps } from './snapshotData';
 import { byteArray } from './snapshotPhysics';
-import { createSimHost, SIM_API_VERSION, type SimHost, type SimLevel, type SimSlots, type SimValue } from '../sim';
+import { createSimHost, SIM_API_VERSION, type SimHost, type SimHostPorts, type SimLevel, type SimSlots, type SimValue } from '../sim';
 import { SHOVE_TIME } from '../player/shove';
 import type { DrivenMode } from '../player/modes';
 import type { AnimalSim } from '../entities/AnimalSim';
@@ -254,16 +254,53 @@ export function onSimHostRestored(host: SimHost, check: () => void): void {
   checks.push(check);
 }
 
-/** Boot a fresh matching level, reinstall scoped adapters, then restore every continuation before replay. */
-export function restoreSimHost(level: SimLevel, ports: { rapier: Rapier }, saved: SimSnapshot, install?: (host: SimHost) => void): SimHost {
+const restoringHosts = new WeakSet<SimHost>();
+/** True only during the unpublished native replacement transaction. */
+export function isSimHostRestoring(host: SimHost): boolean { return restoringHosts.has(host); }
+/** One fresh unpublished host may be retained or restored once, never restored after stepping. */
+export interface PreparedSimHostRestore {
+  readonly host: SimHost;
+  readonly keep: () => SimHost;
+  readonly restore: (saved: SimSnapshot, install?: (host: SimHost) => void) => SimHost;
+}
+/** Create the restore-check context before installing services; no live host can be supplied. */
+export function prepareSimHostRestore(level: SimLevel, ports: SimHostPorts): PreparedSimHostRestore {
+  if (ports.physics !== undefined || ports.player !== undefined) throw new Error('Restore target must own its world');
+  const host = createSimHost(level, ports), checks: (() => void)[] = [];
+  restoreChecks.set(host, checks);
+  let open = true;
+  const forget = host.scope.capture('disposers', () => { open = false; checks.length = 0; restoreChecks.delete(host); });
+  const consume = (): void => {
+    if (!open) throw new Error('Restore target already consumed or disposed');
+    open = false; forget();
+    if (host.state.tick !== 0 || host.scope.disposed || host.scope.disposing) {
+      restoreChecks.delete(host); checks.length = 0; host.dispose(); throw new Error('Restore target is no longer fresh');
+    }
+  };
+  return { host, keep: () => { consume(); restoreChecks.delete(host); checks.length = 0; return host; },
+    restore: (saved, install) => {
+      consume();
+      try { validateSnapshot(level, saved); }
+      catch (error) { restoreChecks.delete(host); checks.length = 0; host.dispose(); throw error; }
+      return restoreInstalledHost(host, ports, saved, checks, install);
+    } };
+}
+function validateSnapshot(level: SimLevel, saved: SimSnapshot): void {
   if (saved.version !== SIM_SNAPSHOT_VERSION || saved.apiVersion !== SIM_API_VERSION || saved.levelId !== level.id
     || saved.levelFingerprint !== fnv1a32(JSON.stringify(level)) || !Number.isSafeInteger(saved.state.tick) || saved.state.tick < 0
     || !Number.isFinite(saved.state.accumulator) || saved.state.accumulator < -Number.EPSILON
     || !Object.values(saved.state.timers).every((value) => Number.isFinite(value) && value >= 0)
     || saved.physics.length === 0 || saved.physics.some((byte) => !Number.isInteger(byte) || byte < 0 || byte > 255)) throw new RangeError('Incompatible simulation snapshot');
-  const host = createSimHost(level, ports);
-  const checks: (() => void)[] = [];
+}
+/** Boot a fresh matching level, reinstall scoped adapters, then restore every continuation before replay. */
+export function restoreSimHost(level: SimLevel, ports: { rapier: Rapier }, saved: SimSnapshot, install?: (host: SimHost) => void): SimHost {
+  validateSnapshot(level, saved);
+  const host = createSimHost(level, ports), checks: (() => void)[] = [];
   restoreChecks.set(host, checks);
+  return restoreInstalledHost(host, ports, saved, checks, install);
+}
+function restoreInstalledHost(host: SimHost, ports: { rapier: Rapier }, saved: SimSnapshot, checks: (() => void)[], install?: (host: SimHost) => void): SimHost {
+  restoringHosts.add(host);
   let replacement: Physics | null = null;
   try {
     install?.(host);
@@ -330,7 +367,7 @@ export function restoreSimHost(level: SimLevel, ports: { rapier: Rapier }, saved
     host.restoreAttackTargets(saved.targets);
     host.events.restore(saved.events, (value) => decode(value, host));
     replacement = new Physics(ports.rapier, new Uint8Array(saved.physics));
-    const playerMotor = new CharacterMotor(replacement, host.player.motor.opts, saved.player.motor);
+    const playerMotor = new CharacterMotor(replacement, host.playerMotorOptions(), saved.player.motor);
     const motors = new Map<string, CharacterMotor>();
     // under the physics body LOD the saved bodies hold motors by distance: each saved one reconnects in the page's capsule
     const lod = host.bodyBands?.physics === true;
@@ -340,7 +377,7 @@ export function restoreSimHost(level: SimLevel, ports: { rapier: Rapier }, saved
       if ((entry.motor === null) !== (motor === null)) throw new RangeError('Snapshot motor registrations do not match');
       if (motor !== null && entry.motor !== null) motors.set(entry.id, new CharacterMotor(replacement, motor.opts, entry.motor));
     }
-    host.player.motor.dispose(); for (const entity of host.entities.values()) entity.motor?.dispose(); host.physics.dispose();
+    if (host.hasPlayerMotor) host.player.motor.dispose(); for (const entity of host.entities.values()) entity.motor?.dispose(); host.physics.dispose();
     host.physics = replacement; replacement = null; host.player.motor = playerMotor;
     if (lod) for (const [id, entity] of host.entities) entity.motor = motors.get(id) ?? null;
     else for (const [id, motor] of motors) { const entity = host.entities.get(id); if (entity !== undefined) entity.motor = motor; }
@@ -354,5 +391,5 @@ export function restoreSimHost(level: SimLevel, ports: { rapier: Rapier }, saved
     for (const check of checks) check();
     return host;
   } catch (error) { replacement?.dispose(); host.dispose(); throw error; }
-  finally { restoreChecks.delete(host); }
+  finally { restoringHosts.delete(host); restoreChecks.delete(host); checks.length = 0; }
 }

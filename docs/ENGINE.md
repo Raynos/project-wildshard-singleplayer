@@ -3202,6 +3202,14 @@ the complete Rapier world and motor contacts, flags and quest progress, the four
 registered adapter. Actor and live-position references resolve by stable identity in the restored host.
 Restore boots a fresh matching level and invokes `install` to register its scoped callbacks and adapters;
 authored content and functions stay outside the snapshot. Engine, snapshot and level fingerprints must match.
+For a regional basis that needs a complete fresh installation first, `prepareSimHostRestore(level, ports)`
+creates one unpublished owned host and its restore-check context before services bind. Its one-use `keep()`
+retains the fresh/logically migrated target, or `restore(saved, install?)` applies the same exact transaction
+without reinstalling its services. Consumed, disposed, stepped and borrowed targets refuse; failure discards
+only the unpublished target. `isSimHostRestoring(host)` is true only during that native replacement.
+`SimHost.playerMotorOptions()` preserves the constructor capsule law for a bodyless regional restore target;
+the restored temporary motor is detached before the destination is published. The game-side
+`prepareShardfileSimRestore` uses this capability after the identical full authored/basis setup.
 Use the returned host for the recorded suffix and dispose it normally. The sim-level fight fixture proves
 identical hashes at five checkpoints after a JSON round trip, including pending damage and moving contacts.
 Logical memory and custom snapshot values preserve `Infinity` and `-Infinity` through the reserved transport object
@@ -11754,9 +11762,9 @@ requires no simulation tick or query-pipeline update. Disabled, sensor,
 dynamic and untagged colliders establish no ground readiness.
 
 `engine/sim/snapshot.onSimHostRestored(host, check)` registers a compiled
-service check only during `restoreSimHost` installation. Checks run once,
+service check during `restoreSimHost` installation or before a prepared fresh target is consumed. Checks run once,
 after physics, tags and adapters have restored and before the host returns.
-Calls outside that transaction refuse; a failed check disposes the host.
+Ordinary hosts refuse registration; keeping a fresh prepared target drops its pending checks. A failed check disposes the target.
 The native body capability uses this boundary for restored ground admission;
 fresh installation still requires actual ground before construction.
 

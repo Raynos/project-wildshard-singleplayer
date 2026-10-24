@@ -38,7 +38,7 @@ import type { PlayerHealth } from '@wildshard/engine/combat/health';
 import type { SaveStore } from '@wildshard/engine/saves/store';
 import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
 import type { SimHost } from '@wildshard/engine/sim';
-import { restoreSimHost, finishSimSteps } from '@wildshard/engine/sim/snapshot';
+import { finishSimSteps } from '@wildshard/engine/sim/snapshot';
 import { installStripCollider, PLATFORM_COLLIDER_OWNER } from '@wildshard/engine/physics/stripColliders';
 import { installEntrySockets } from '@wildshard/engine/physics/entrySockets';
 import { gridCreatureConstraint, installGridBorders } from '@wildshard/engine/physics/gridBorders';
@@ -63,7 +63,7 @@ import { gridRecovery, type GridRecoveryReason, type GridRecoveryRecord } from '
 import { RoadRecovery, onRoad, type RoadPoint, type RoadRecoveryCell } from './roadRecovery';
 import { GridCellWaitingError } from './refusal';
 import { scriptDisabledNotice, type ScriptNoticePorts } from '../shardfile/scriptNotice';
-import { bindShardfileSim, createShardfileSim, type ShardfileSimulation } from '../plugin/simulation';
+import { prepareShardfileSimRestore, type ShardfileSimulation } from '../plugin/simulation';
 import { withCopyLayout } from './copyLayout';
 import type { CollisionStrip } from './collisionStrips';
 import type { LocalSaveInstance } from '../instanceSaves';
@@ -623,7 +623,7 @@ export class LiveGridSession {
     // SF57: a reviewed per-sim reading (the generated ground and backstop inside it) replaces the declared ceiling
     const bytes = regionalDataCellBytes(cell.slug, source, findShard(cell.slug));
     const build = (saved: Parameters<LiveGridAdmission['create']>[0]): ReturnType<LiveGridAdmission['create']> => {
-      let sim: ShardfileSimulation = createShardfileSim(copySource, assets, { sections: outputDescriptor(source)?.sections, rapier, playerBody: false, quest, groundResolution, ...scriptPorts });
+      const prepared = prepareShardfileSimRestore(copySource, assets, { sections: outputDescriptor(source)?.sections, rapier, playerBody: false, quest, groundResolution, ...scriptPorts }), sim = prepared.simulation;
       let releaseBasis: () => void = () => undefined;
       let transfer: TransferWalls;
       try {
@@ -640,15 +640,11 @@ export class LiveGridSession {
         releaseBasis = () => { basisLease.release(); };
         savedRegion.setPhysicsBasis(basis);
         const prior = saved ?? savedRegion.read(true);
+        savedRegion.bind(sim.host, sim.colliders);
         if (prior !== undefined) {
-          const authored = sim.host.level; sim.dispose();
-          const host = restoreSimHost(authored, { rapier }, prior, (restored) => {
-            sim = bindShardfileSim(restored, copySource, assets, { sections: outputDescriptor(source)?.sections, rapier, restoring: true, quest, ...scriptPorts }); savedRegion.bind(restored, sim.colliders);
-            transfer = regionTransferWalls(restored, this.page.traveller.motor.opts.radius, true);
-          });
-          host.detachPlayerMotor(); // the restored world carries its strip duplicates already
+          prepared.restore(prior).detachPlayerMotor(); // the saved world carries its strip duplicates already
         } else {
-          savedRegion.bind(sim.host, sim.colliders);
+          prepared.keep();
           if (!savedRegion.restoreLogical(sim)) throw new Error('Regional logical migration was refused');
         }
         const region = sim, start = region.host.level.player, host = region.host, water = region.water;

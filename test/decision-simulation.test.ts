@@ -8,7 +8,7 @@ import { parseDecisionScripts } from '../src/format/decisionScripts';
 import { buildDecisionRegistries } from '../src/format/decisionBindings';
 import { parseActorMoves } from '../src/format/actorMoves';
 import { scriptV1Layout } from '../src/format/scriptAbiV1';
-import { createShardfileSim, bindShardfileSim, type ShardfileSimulation } from '../src/game/plugin/simulation';
+import { createShardfileSim, bindShardfileSim, prepareShardfileSimRestore, type ShardfileSimulation } from '../src/game/plugin/simulation';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { snapshotSimHost, restoreSimHost } from '../src/engine/sim/snapshot';
 import { DecisionModule } from '../src/engine/script/decisionModule';
@@ -528,4 +528,18 @@ test('a region re-entered after a revision keeps its decision clock in step', as
     for (let i = 0; i < 12; i++) fresh.host.step();
     expect(fresh.decisions?.host.snapshot().tick).toBe(21);
   } finally { fresh?.dispose(); first.dispose(); }
+});
+
+
+test('an unpublished installed decision owner restores without rebinding or rerunning author work',async()=>{
+  const f=fixture(),R=await rapier,first=createShardfileSim(f.source,f.assets,{...f.options,rapier:R});
+  for(let tick=0;tick<9;tick++)first.host.step();const saved=snapshotSimHost(first.host);
+  const target=prepareShardfileSimRestore(f.source,f.assets,{...f.options,rapier:R}),decisions=target.simulation.decisions;
+  const invoke=vi.spyOn(DecisionModule.prototype,'invoke');
+  try{
+    expect(decisions).toBeDefined();target.restore(saved);expect(invoke).not.toHaveBeenCalled();
+    expect(target.simulation.decisions).toBe(decisions);expect(snapshotSimHost(target.host)).toEqual(saved);
+    for(let tick=0;tick<18;tick++){first.host.step();target.host.step();}
+    expect(snapshotSimHost(target.host)).toEqual(snapshotSimHost(first.host));
+  }finally{invoke.mockRestore();target.host.dispose();first.dispose();}
 });

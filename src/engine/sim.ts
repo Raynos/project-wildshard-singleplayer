@@ -381,9 +381,17 @@ export class SimHost {
   }
   /** The player's capsule on the page's body law (PLAYER_BODY: ITEM bodies stop it and its 80 kg pushes them), a creature's
    * on the page's creature filter. */
-  private motor(group: 'PLAYER' | 'CREATURE', radius: number, height: number, owner: string): CharacterMotor {
+  private motorOptions(group: 'PLAYER' | 'CREATURE', radius: number, height: number, owner: string): MotorOptions {
     const law = group === 'PLAYER' ? PLAYER_BODY : { group, blockedBy: ['WORLD', 'PLAYER', 'CREATURE'] as const };
-    return new CharacterMotor(this.physics, { radius, height, step: 0.3, maxClimbDeg: 45, snap: 0.2, ...law, owner });
+    return { radius, height, step: 0.3, maxClimbDeg: 45, snap: 0.2, ...law, owner };
+  }
+  private motor(group: 'PLAYER' | 'CREATURE', radius: number, height: number, owner: string): CharacterMotor {
+    return new CharacterMotor(this.physics, this.motorOptions(group, radius, height, owner));
+  }
+  /** The original capsule law also reconstructs a saved motor for a bodyless restore target. */
+  playerMotorOptions(): MotorOptions {
+    if (this.embedded) throw new Error('Borrowed player motor belongs to its world owner');
+    return this.playerMotor?.opts ?? this.motorOptions('PLAYER', 0.35, 1.8, this.player.id);
   }
   /** Opt into the page's distance bands for every body (SimBodyBands), once, before the first step; the installer runs
    * it again on a restoring host, before restore. The physics body LOD drops the bodies' host motors at once. */

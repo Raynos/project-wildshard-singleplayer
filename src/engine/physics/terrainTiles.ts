@@ -15,6 +15,6 @@ export function addBakedTerrainCollider(physics: Physics, bytes: Uint8Array, sco
   const collider = withOwner(scope, () => physics.world.createCollider(physics.R.ColliderDesc.heightfield(r - 1, r - 1, heights, { x: data.size, y: 1, z: data.size })
     .setTranslation(data.x + data.size / 2, 0, data.z + data.size / 2).setCollisionGroups(groups('WORLD')).setFriction(0.9)));
   tagCollider(collider, 'ground');
-  scope.onDispose(() => { if (collider.isValid()) physics.world.removeCollider(collider, false); });
+  // Physics already owns the scoped handle and forgets its capture before freeing a replaced world.
   return collider;
 }

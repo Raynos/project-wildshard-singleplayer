@@ -25,7 +25,7 @@ import { GridAssembly } from '../grid/assembly';
 import { GridSimulation } from '../grid/simulation';
 import { ResidencyAllocator } from '../grid/allocator';
 import { CONTENT_CAPS } from '@wildshard/engine/core/config';
-import { restoreSimHost, snapshotSimHost, regionalContinuation, type SimSnapshot } from '@wildshard/engine/sim/snapshot';
+import { restoreSimHost, prepareSimHostRestore, isSimHostRestoring, snapshotSimHost, regionalContinuation, type SimSnapshot, type PreparedSimHostRestore } from '@wildshard/engine/sim/snapshot';
 import { SaveStore } from '@wildshard/engine/saves/store';
 import { Ledger } from '../ledger';
 import type { Material } from '@wildshard/engine/physics/surface';
@@ -348,7 +348,7 @@ export interface ShardfileSimulation {
   movers: MoverRuntime | undefined;
 }
 /** One declared simulation core, used by the normal browser loader and the headless author validator. */
-export function createShardfileSim(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, ports: ShardfileSimPorts): ShardfileSimulation {
+function shardfileSimInput(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, ports: ShardfileSimPorts): {level: SimLevel; ports: SimHostPorts} {
   if (shard.nativeGround !== null) throw new Error('Native ground retains its trusted runtime simulation; a flat declared proxy is forbidden');
   const portals = portalLinkEntries(shard.entryways), portalErrors = portalLinkRules(portals, shard);
   if (portalErrors.length > 0) throw new Error(portalErrors.join('; '));
@@ -361,11 +361,21 @@ export function createShardfileSim(shard: Shardfile, assets: ReadonlyMap<string,
   const heightAt = shard.meshCollision === null ? terrain === undefined ? () => 0 : (x: number, z: number) => terrainTileHeight(terrain, x, z)
     : clientGround(shard, assets).heightAt;
   const weapon = ports.weapon ?? HOST_PROBE;
-  const host = createSimHost({ version: SIM_API_VERSION, id: shard.identity.slug, seed: shard.identity.seed,
+  return {level: { version: SIM_API_VERSION, id: shard.identity.slug, seed: shard.identity.seed,
     ground: { size: 500, height: 0 }, player: { at: { x: shard.spawn.x, y: shard.spawn.y, z: shard.spawn.z }, yaw: shard.spawn.yaw, speed: Math.min(5, shard.authorCaps.speed) },
     entities: buildPlatformSpawns(shard.creatures.spawns, speciesResolver(shard.rows), simStrikes(shard.rows)), weapon, quests: [],
-  }, { ...ports, ground: ports.ground !== false && terrain === undefined && shard.meshCollision === null && shard.entryways.some(entry => (entry.kind ?? 'ground') === 'ground'), heightAt });
-  return bindShardfileSim(host, shard, assets, ports);
+  }, ports: { ...ports, ground: ports.ground !== false && terrain === undefined && shard.meshCollision === null && shard.entryways.some(entry => (entry.kind ?? 'ground') === 'ground'), heightAt }};
+}
+/** Install the ordinary native simulation once. */
+export function createShardfileSim(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, ports: ShardfileSimPorts): ShardfileSimulation {
+  const input = shardfileSimInput(shard, assets, ports);
+  return bindShardfileSim(createSimHost(input.level, input.ports), shard, assets, ports);
+}
+/** Install once before deciding exact versus logical/fresh continuation from the complete native basis. */
+export function prepareShardfileSimRestore(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, ports: ShardfileSimPorts): PreparedSimHostRestore & {readonly simulation: ShardfileSimulation} {
+  const input = shardfileSimInput(shard, assets, ports), target = prepareSimHostRestore(input.level, input.ports);
+  try { return { ...target, simulation: bindShardfileSim(target.host, shard, assets, ports) }; }
+  catch (error) { target.host.dispose(); throw error; }
 }
 /** Reinstall matching adapters into a fresh standalone restore host; restoring skips collider allocation and stepping. */
 export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, ports: ShardfileSimPorts): ShardfileSimulation {
@@ -421,10 +431,10 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
         }
         // The native snapshot replaces the constructor world after adapter.restore. Validate mesh geometry
         // and reconnect only after that replacement, against the actual saved world rather than its placeholder.
-        if (ports.restoring && shard.meshCollision !== null) pendingColliders = states;
+        if ((ports.restoring || isSimHostRestoring(host)) && shard.meshCollision !== null) pendingColliders = states;
         else for (const [id, state] of states) colliders.get(id)?.restore(state);
       },
-      ...(ports.restoring && shard.meshCollision !== null ? { physicsRestored: () => {
+      ...(shard.meshCollision !== null ? { physicsRestored: () => {
         if (pendingColliders === undefined) throw new Error('Missing declared mesh continuation');
         for (const [id, state] of pendingColliders) colliders.get(id)?.restore(state);
         pendingColliders = undefined;

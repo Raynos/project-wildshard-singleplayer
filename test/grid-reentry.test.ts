@@ -4,14 +4,16 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Trusted entries need absolute module URLs.
 import { pathToFileURL } from 'node:url';
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { snapshotSimHost, restoreSimHost, serializeSimSnapshot, decodeSimSnapshot } from '../src/engine/sim/snapshot';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { builtProduct } from './fixtures/builtProduct';
 import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
-import { createShardfileSim, bindShardfileSim } from '../src/game/plugin/simulation';
+import { createShardfileSim, bindShardfileSim, prepareShardfileSimRestore } from '../src/game/plugin/simulation';
 import { createTrustedHeadlessResident } from '../src/sdk/headlessRuntime';
+import { hasDeclaredClientPage } from '../src/format/runtimeBinds';
+import { ScriptHost } from '../src/engine/script/host';
 import { productHeadlessSections } from '../src/sdk/headlessSections';
 import { generateHeadlessModuleMap } from '../scripts/check-headless-assemblies.mjs';
 
@@ -78,3 +80,25 @@ for (const slug of shards) test(`${slug}: evict and re-enter with kit, held item
     for (const flag of saved.flags) expect(again.host.flags.has(flag)).toBe(true);
   } finally { again.dispose(); }
 }, 30_000);
+
+
+// DB1 exercises the actual generic grid data owner even when a product also has a headless-only plan.
+test('generic grid data destinations restore exact modules with one installation',async()=>{
+  const rapier=await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));let dataCells=0;
+  for(const slug of shards){
+    const directory=builtProduct(slug),product=await loadHeadlessProduct(directory),shard=product.shardfile;
+    if(shard.runtime!==null||hasDeclaredClientPage(shard))continue;
+    const descriptor=outputDescriptor(shard);if(descriptor===undefined)throw new Error('Missing admitted product inventory');
+    const assets=new Map(descriptor.index.files.map(file=>[file.commons===true?`commons:${file.hash}`:file.hash,Uint8Array.from(readFileSync(`${directory}/${file.path}`))]));
+    const sections=productHeadlessSections(product),install=vi.spyOn(ScriptHost.prototype,'install');
+    const first=createShardfileSim(shard,assets,{rapier,sections});
+    const installs=install.mock.calls.length;first.host.step();const saved=snapshotSimHost(first.host);first.dispose();install.mockClear();
+    const prepared=prepareShardfileSimRestore(shard,assets,{rapier,sections,playerBody:false});
+    try{
+      expect(install).toHaveBeenCalledTimes(installs);prepared.restore(saved);expect(install).toHaveBeenCalledTimes(installs);
+      expect(snapshotSimHost(prepared.host)).toEqual(saved);prepared.host.step();expect(prepared.host.state.tick).toBe(saved.state.tick+1);
+      prepared.host.detachPlayerMotor();expect(prepared.host.hasPlayerMotor).toBe(false);dataCells++;
+    }finally{prepared.host.dispose();install.mockRestore();}
+  }
+  expect(dataCells).toBeGreaterThan(0);
+},30000);
