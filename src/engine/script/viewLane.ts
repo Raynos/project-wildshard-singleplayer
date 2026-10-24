@@ -197,24 +197,31 @@ export class ViewLane {
     v.setUint32(io + 24, ++this.sequence, true); v.setInt32(io + 28, tick - origin, true); v.setFloat64(io + 104, origin, true);
     v.setUint32(io + 32, this.rows.bindings.length - this.frozen.size, true); v.setUint32(io + 64, 0, true);
     v.setUint32(io + 72, 0, true); v.setUint32(io + 76, 0, true); v.setFloat64(io + 80, dt, true); v.setFloat64(io + 88, alpha, true); v.setUint32(io + 112, this.sequence, true);
-    for (const kind of [TRANSFORMS, CHANNELS]) v.setUint32(io + HEADER + (kind - 1) * ENTRY + 16, 0, true);
+    v.setUint32(io + HEADER + (TRANSFORMS - 1) * ENTRY + 16, 0, true);
+    v.setUint32(io + HEADER + (CHANNELS - 1) * ENTRY + 16, 0, true);
     // arrays: each lent array's current values, f32, in declared order (a short or absent array is zero-filled)
     let word = 0;
-    for (const [i, length] of (this.rows.arrays ?? []).entries()) {
+    const lengths = this.rows.arrays;
+    for (let i = 0; i < (lengths?.length ?? 0); i++) {
+      const length = lengths?.[i]; if (length === undefined) throw new Error('Missing view array length');
       const values = arrays[i];
       for (let k = 0; k < length; k++) v.setFloat32(this.region(ARRAYS) + (word + k) * 4, values?.[k] ?? 0, true);
       word += length;
     }
     // batches: each record starts as its last landed total and no change (a frame that writes nothing keeps its draw)
     word = 0;
-    for (const [i, row] of (this.rows.batches ?? []).entries()) {
+    const batches = this.rows.batches;
+    for (let i = 0; i < (batches?.length ?? 0); i++) {
+      const row = batches?.[i]; if (row === undefined) throw new Error('Missing view batch');
       const at = this.region(BATCHES) + word * 4;
       v.setUint32(at, this.totals[i] ?? 0, true); v.setUint32(at + 4, 0, true); v.setUint32(at + 8, 0, true); v.setUint32(at + 12, 0, true);
       word += batchWords(row);
     }
     let column = this.region(SAMPLE_COLUMNS) / 8;
     const columns = this.columns, stamps = this.region(SAMPLE_DIRECTORY);
-    for (const [i, row] of this.rows.bindings.entries()) {
+    const bindings = this.rows.bindings;
+    for (let i = 0; i < bindings.length; i++) {
+      const row = bindings[i]; if (row === undefined) throw new Error('Missing view binding');
       const sample = samples[i], at = stamps + i * 32, n = row.columns;
       const binding = this.region(BINDINGS) + i * 64;
       v.setUint32(binding + 12, this.frozen.has(i) ? 0 : 3, true);
