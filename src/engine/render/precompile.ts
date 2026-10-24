@@ -131,6 +131,12 @@ function exclusiveMaterials(scene: THREE.Scene, excluded: ReadonlySet<THREE.Obje
 
 function exteriorJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, shadows: boolean, roots?: readonly THREE.Object3D[], per = 6,
   resolve?: ShadowDepthResolver, leaving: readonly THREE.Object3D[] = []): CompileJob[] {
+  const steps = exteriorJobSteps(scene, rt, shadows, roots, per, resolve, leaving);
+  for (;;) { const step = steps.next(); if (step.done) return step.value; }
+}
+
+function* exteriorJobSteps(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, shadows: boolean, roots?: readonly THREE.Object3D[], per = 6,
+  resolve?: ShadowDepthResolver, leaving: readonly THREE.Object3D[] = []): Generator<void, CompileJob[]> {
   const registered = exteriorLighting.get(scene);
   if (registered === undefined) return [];
   // `leaving`: content that goes with the entered frame's owner (its staged camera models) never draws outside either
@@ -141,17 +147,23 @@ function exteriorJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, sh
   // with none declared, the live page environment keys the exterior variant (G639: a null one keyed Driftwood's road
   // programs without the page PMREM, so they all linked on the first road frame)
   target.fog = scene.fog; target.environment = state.environment ?? scene.environment;
-  const visit = (object: THREE.Object3D): void => {
-    if (!object.visible || state.roots.has(object)) return;
+  const pending: THREE.Object3D[] = [scene];
+  while (pending.length > 0) {
+    const object = pending.pop();
+    if (object === undefined || !object.visible || state.roots.has(object)) continue;
     if (object instanceof THREE.Light) target.add(lights.copy(object));
-    for (const child of object.children) visit(child);
-  };
-  visit(scene);
-  const exterior = sceneJobs(scene, rt, roots === undefined ? per : 1, roots ?? [scene], state.roots).jobs;
-  const materials = new Set<THREE.Material>();
-  for (const job of exterior) job.root.traverse(object => { for (const material of materialsOf(object)) materials.add(material); });
+    for (let i = object.children.length - 1; i >= 0; i--) { const child = object.children[i]; if (child !== undefined) pending.push(child); }
+    yield;
+  }
+  const exterior = (yield* sceneJobSteps(scene, rt, roots === undefined ? per : 1, roots ?? [scene], state.roots)).jobs;
+  // Only whole-scene family preparation consumes this exclusion set. A root warm-up (a sky or clip variant) must
+  // not walk every parked resident just to discard its material inventory.
   const excludedMaterials = new Set<THREE.Material>();
-  for (const root of state.roots) root.traverse(object => { for (const material of materialsOf(object)) if (!materials.has(material)) excludedMaterials.add(material); });
+  if (roots === undefined) {
+    const materials = new Set<THREE.Material>();
+    for (const job of exterior) job.root.traverse(object => { for (const material of materialsOf(object)) materials.add(material); });
+    for (const root of state.roots) root.traverse(object => { for (const material of materialsOf(object)) if (!materials.has(material)) excludedMaterials.add(material); });
+  }
   const jobs = roots === undefined
     ? [...exterior, ...familyCompileJobs(scene, rt, per, excludedMaterials), ...(shadows ? shadowJobs(scene, rt, per, state.roots, resolve) : [])]
     : exterior;
@@ -164,7 +176,7 @@ function exteriorJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, sh
     const own = target.environment, height = (t: THREE.Texture | null): unknown => (t === null ? null : Reflect.get(t.image ?? {}, 'height'));
     for (const environment of pageEnvironments()) {
       if (height(environment) === height(own)) continue;
-      const lit = sceneJobs(scene, rt, 1, roots, state.roots).jobs;
+      const lit = (yield* sceneJobSteps(scene, rt, 1, roots, state.roots)).jobs;
       for (const job of lit) if (job.target === scene) { job.target = target; job.lights = lights; job.environment = environment; }
       jobs.push(...lit);
     }
@@ -340,13 +352,23 @@ function* sceneJobSteps(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, 
   return { jobs, materials: mats.size };
 }
 
-async function pacedSceneJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, per: number, roots: readonly THREE.Object3D[],
+function pacedSceneJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, per: number, roots: readonly THREE.Object3D[],
   excluded: ReadonlySet<THREE.Object3D> | undefined, current: () => boolean, owner: Scope, include?: (object: THREE.Object3D) => boolean): Promise<{ jobs: CompileJob[]; materials: number }> {
-  const steps = sceneJobSteps(scene, rt, per, roots, excluded, include), slice = workSlice(undefined, owner);
+  return pacedPreparation(sceneJobSteps(scene, rt, per, roots, excluded, include), current, owner);
+}
+
+/** Discovery shares the ordinary measured build budget. Live root callers retain their completed-draw barrier; cheap
+ * desktop discovery stays in one turn. No borrowed flags/materials are changed while an iterator is suspended. */
+async function pacedPreparation<T>(steps: Generator<void, T>, current: () => boolean, owner: Scope,
+  pause?: () => Promise<void>): Promise<T> {
+  let slice = workSlice(undefined, owner);
   for (;;) {
     if (!current()) throw new Error('Shader preparation owner left');
     const step = steps.next(); if (step.done) return step.value;
-    if (slice.due()) await slice.yield();
+    if (slice.due()) {
+      await (pause === undefined ? slice.yield() : pause());
+      slice = workSlice(undefined, owner);
+    }
   }
 }
 
@@ -369,15 +391,17 @@ export async function prepareSceneRoots(renderer: Renderer, camera: THREE.Camera
   await prepareSceneResources(roots, camera, current);
   // `scenePrograms` false: the roots' resources and exterior variants only (the boot's Shaders step builds what its first
   // frame draws, and the rest is warmed in play)
-  const { jobs, materials } = !scenePrograms ? { jobs: [], materials: 0 } : sceneJobs(scene, target, 1, roots);
+  const { jobs, materials } = !scenePrograms ? { jobs: [], materials: 0 } : pause === undefined
+    ? sceneJobs(scene, target, 1, roots)
+    : await pacedPreparation(sceneJobSteps(scene, target, 1, roots), current, pageScope, pause);
   // a parked region's content compiles against the lights its first visible frame has (G639: a Nalati clip variant made
   // during entry was prepared under the road's lights and linked again at its first lit draw, 134 ms)
   if (futureLighting !== undefined) includeFutureLights(jobs, scene, futureLighting);
-  // G639 frame floor: on a live page (a drawn-frame `pause`) the job building walks the scene (the exterior lights walk
-  // the whole page) and each step takes a drawn frame of its own, and the compiles run in live slices: a streamed root's
-  // or a clip variant's warm-up drew one 100 ms Nalati drive frame (job building, then a 12 ms-bound compile slice)
+  // Keep the existing discovery barriers. Within discovery, only a spent measured budget waits for a completed draw;
+  // cheap objects stay together. Exterior light collection never walks the excluded residents' material inventories.
   if (pause !== undefined) await pause();
-  jobs.push(...exteriorJobs(scene, target, false, roots));
+  jobs.push(...(pause === undefined ? exteriorJobs(scene, target, false, roots)
+    : await pacedPreparation(exteriorJobSteps(scene, target, false, roots), current, pageScope, pause)));
   if (pause !== undefined) await pause();
   await runPrecompile(renderer, camera, jobs, materials, undefined, undefined, current, pause !== undefined, pause, uploadBudget, undefined,
     pause === undefined ? undefined : LIVE_PRECOMPILE_SLICE_MS);
