@@ -89,7 +89,11 @@ export function lentLooksOf(id: string): LentLooks {
  *  whose lend compiles eagerly, are skipped. */
 export async function prepareLentLooks(ids: readonly string[]): Promise<void> {
   const held = new Map<LentLooks, string[]>();
-  for (const id of new Set(ids)) { const lend = holder(id); if (lend?.prepare !== undefined) held.set(lend, [...(held.get(lend) ?? []), id]); }
+  for (const id of new Set(ids)) {
+    const lend = holder(id); if (lend?.prepare === undefined) continue;
+    const owned = held.get(lend);
+    if (owned === undefined) held.set(lend, [id]); else owned.push(id);
+  }
   for (const [lend, owned] of held) await lend.prepare?.(owned);
 }
 
