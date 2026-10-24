@@ -174,3 +174,31 @@ test('validation checks every original wire kind without building a decoded reco
   expect(malformed).toStrictEqual(before);
  }
 });
+
+test('equivalent fresh rosters preserve metadata but keep each publication tied to its original row objects', () => {
+  const codec = new GroupBankV2(fields), scope = new Scope('fresh-reference-rosters');
+  const first = structuredClone([...roster, external]);
+  const bank = codec.encode(record(), 'first', first), before = bank.slice();
+  try {
+    for (let visit = 0; visit < 3; visit++) {
+      const current = structuredClone(first);
+      expect(codec.decode(bank, 'first', current)).toStrictEqual(record());
+      const ready = codec.prepare(bank, bank.slice(), 'first', current, scope);
+      const original = current[0]; if (original === undefined) throw new Error('Missing original loan');
+      current[0] = { ...original };
+      expect(() => ready.accept()).toThrow('Changed group reference loan');
+      expect(bank).toStrictEqual(before);
+    }
+    const changes = [{ group: 'foreign' }, { slot: 0 }, { identity: 'body:0' }, { wire: 'body:0' }, { handle: 1 }];
+    for (const change of changes) {
+      const current = structuredClone(first), last = current[15];
+      if (last === undefined) throw new Error('Missing changed loan');
+      current[15] = { ...last, ...change };
+      expect(() => codec.decode(bank, 'first', current)).toThrow();
+      expect(bank).toStrictEqual(before);
+    }
+    expect(codec.decode(bank, 'first', first)).toStrictEqual(record());
+    codec.prepare(bank, bank.slice(), 'first', first, scope).accept();
+    expect(Object.is(bank[bank.length - 1], -0)).toBe(true);
+  } finally { scope.dispose(); }
+});

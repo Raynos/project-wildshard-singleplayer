@@ -25,7 +25,7 @@ function references(input: readonly GroupBankReferenceV2[]): ReadonlyMap<number,
     if (row.group.length === 0 || row.identity.length === 0 || row.wire.length === 0
       || result.has(row.handle) || wires.has(row.wire) || identities.has(row.identity) || groupSlots.has(row.slot))
       throw new Error('Ambiguous group reference loan');
-    result.set(row.handle, Object.freeze({ ...row }));
+    result.set(row.handle, Object.freeze({ group: row.group, slot: row.slot, identity: row.identity, wire: row.wire, handle: row.handle }));
     wires.add(row.wire); identities.add(row.identity); groupSlots.add(row.slot);slots.set(row.group,groupSlots);
   }
   return result;
@@ -46,7 +46,7 @@ function ownValues(input: Readonly<Record<string, GroupBankValueV2>>, names: rea
 export class GroupBankV2 {
   private readonly fields: readonly GroupBankFieldV2[];
   readonly width: number;
-  private referenceLoan: {readonly source:readonly GroupBankReferenceV2[];readonly group:string;
+  private referenceLoan: {readonly group:string;
     readonly rows:readonly GroupBankReferenceV2[];readonly byHandle:ReadonlyMap<number,GroupBankReferenceV2>;readonly byWire:ReadonlyMap<string,GroupBankReferenceV2>} | undefined;
   private readonly offsets = new Map<string, {readonly row: GroupBankFieldV2; readonly offset: number}>();
   constructor(input: unknown) {
@@ -60,12 +60,13 @@ export class GroupBankV2 {
     readonly byWire: ReadonlyMap<string, GroupBankReferenceV2>;
   } {
     if (group.length === 0) throw new Error('Missing group identity');
+    // Only wire metadata is reusable; publication still pins this call's row objects.
     const prior=this.referenceLoan;
-    if(prior?.source===input&&prior.group===group&&prior.rows.length===input.length
+    if(prior?.group===group&&prior.rows.length===input.length
       &&prior.rows.every((pin,index)=>{const row=input[index];return row!==undefined&&row.group===pin.group&&row.slot===pin.slot
         &&row.identity===pin.identity&&row.wire===pin.wire&&row.handle===pin.handle;}))return prior;
     const byHandle=references(input),byWire=new Map([...byHandle.values()].map(row=>[row.wire,row]));
-    const loan={source:input,group,rows:[...byHandle.values()],byHandle,byWire};this.referenceLoan=loan;return loan;
+    const loan={group,rows:[...byHandle.values()],byHandle,byWire};this.referenceLoan=loan;return loan;
   }
   encode(input: Readonly<Record<string, GroupBankValueV2>>, group: string,
     roster: readonly GroupBankReferenceV2[]): Float64Array {
