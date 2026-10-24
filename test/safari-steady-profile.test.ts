@@ -113,10 +113,11 @@ test('steady Timeline refuses a missing frame clock and retires its watcher', as
   expect(f.stops).toBe(1); expect(f.timers.size).toBe(0);
 });
 
-test('steady Timeline accepts only one no-quiet grid target without other recorders', () => {
+test('steady Timeline accepts one Simulator target including official quiet without other recorders', () => {
   const command = ['--surface=sim', '--shards=grid', '--grid-scenario=all', '--webkit-timeline=tmp/timeline', '--webkit-steady=grid-nalati-interior'];
   expect(() => validateFrameFloorArgs(command)).not.toThrow();
-  for (const extra of ['--quiet', '--safari-profile=tmp/profile', '--wasm-constructors=tmp/native', '--gl-time', '--webkit-steady=grid-pine-interior'])
+  expect(() => validateFrameFloorArgs([...command, '--quiet'])).not.toThrow();
+  for (const extra of ['--safari-profile=tmp/profile', '--wasm-constructors=tmp/native', '--gl-time', '--webkit-steady=grid-pine-interior'])
     expect(() => validateFrameFloorArgs([...command, extra])).toThrow('Steady Timeline');
   for (const replacement of ['--webkit-steady=', '--webkit-steady=../escape'])
     expect(() => validateFrameFloorArgs([...command.slice(0, -1), replacement])).toThrow('Steady Timeline');

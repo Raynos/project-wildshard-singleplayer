@@ -235,7 +235,9 @@ existing timeline coverage or clock checks fail. Add
 window after the original standing sample. It keeps bounded drawn-frame intervals
 and passively observes full/partial GC; no drive recorder, ScriptProfiler, forced
 GC, snapshot or GL timers run. Every interval over 40 ms is attributed off-line;
-coverage/clock/drop refusals remain strict and it has no floor acceptance credit.
+coverage/clock/drop refusals remain strict and it has no floor acceptance credit. The
+official Simulator worker may take `--quiet` for this selected settled window too;
+parent/desktop/scratch callers still cannot own quiet.
 Add `--wasm-constructors=<existing scratch dir>`
 to retain bounded native Memory/Module/Instance durations and original frame-clock
 reads. It injects before app modules, collects stacks outside each native timed

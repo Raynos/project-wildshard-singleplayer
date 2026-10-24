@@ -26,14 +26,14 @@ export function validateFrameFloorArgs(args) {
     || !args.some(arg => arg.startsWith('--webkit-timeline=') && arg.length > '--webkit-timeline='.length)))
     throw new Error('Blank memory probe requires no-quiet Simulator, native constructors and Timeline');
   const timelineSteady = args.filter(arg => arg.startsWith('--webkit-steady='));
-  if (timelineSteady.length > 0 && (timelineSteady.length !== 1 || args.includes('--quiet')
+  if (timelineSteady.length > 0 && (timelineSteady.length !== 1
     || !/^--webkit-steady=grid-[a-zA-Z0-9_.-]{1,128}$/u.test(timelineSteady[0] ?? '')
     || !args.includes('--surface=sim') || !args.includes('--shards=grid')
     || !args.some(arg => arg.startsWith('--grid-scenario=') && arg !== '--grid-scenario=baseline')
     || !args.some(arg => arg.startsWith('--webkit-timeline=') && arg.length > '--webkit-timeline='.length)
     || args.some(arg => arg.startsWith('--safari-') || arg.startsWith('--wasm-constructors=') || arg.startsWith('--cpu-profile=') || arg.startsWith('--gpu-trace=') || arg.startsWith('--native-memory='))
     || ['--gl-time', '--gpu-bisect', '--frame-timeline', '--task-clock', '--wasm-memory-probe'].some(arg => args.includes(arg))))
-    throw new Error('Steady Timeline requires one no-quiet Simulator grid pose and --webkit-timeline, without other recorders');
+    throw new Error('Steady Timeline requires one Simulator grid pose and --webkit-timeline, without other recorders');
   const steady = args.filter(arg => arg.startsWith('--safari-steady='));
   const drive = args.filter(arg => arg.startsWith('--safari-drive='));
   const prefix = args.filter(arg => arg.startsWith('--safari-prefix='));
