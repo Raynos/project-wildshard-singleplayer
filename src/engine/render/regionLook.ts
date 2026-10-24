@@ -207,6 +207,9 @@ export function applyLookChunks(shader: Pick<ShaderSource, 'vertexShader' | 'fra
 }
 
 const isMaterial = (value: unknown): value is THREE.Material => value instanceof THREE.Material;
+/** a node with a `material` field (a mesh, points, a line, a sprite: whatever three draws) */
+type Drawn = THREE.Object3D & { readonly material: unknown };
+const carriesMaterial = (node: THREE.Object3D): node is Drawn => 'material' in node;
 
 /** What `scopeLookChunks` reads of the region. */
 export interface LookScopeOptions {
@@ -259,13 +262,14 @@ export function scopeLookChunks(root: THREE.Object3D, look: LookChunks, scope: S
   // (a swap shows as a new value; an array is read whole, in case it was edited in place), not the whole region: the
   // walk was 272 ms of a 6 s Nalati interior at phone 4x, most of it nodes with nothing to draw. Anything attached to or
   // detached from the region (three's childadded / childremoved, watched on every node of it) rebuilds the list first.
-  const nodes: THREE.Object3D[] = [], seen: unknown[] = [], watched = new WeakSet<THREE.Object3D>();
+  // read as a plain property: JavaScriptCore runs `Reflect.get` as a native call, not an inline cache (110 of 5980 samples
+  // of a steady Nalati Simulator profile)
+  const nodes: Drawn[] = [], seen: unknown[] = [], watched = new WeakSet<THREE.Object3D>();
   let changed = true;
   const onChange = (): void => { changed = true; };
   const collect = (node: THREE.Object3D): void => {
     if (!watched.has(node)) { watched.add(node); scope.listenEmitter(node, 'childadded', onChange); scope.listenEmitter(node, 'childremoved', onChange); }
-    const material: unknown = Reflect.get(node, 'material');
-    if (material !== undefined) { nodes.push(node); seen.push(material); visitValue(material); }
+    if (carriesMaterial(node) && node.material !== undefined) { nodes.push(node); seen.push(node.material); visitValue(node.material); }
     for (const child of node.children) collect(child);
   };
   const sweep = (): number => {
@@ -276,7 +280,7 @@ export function scopeLookChunks(root: THREE.Object3D, look: LookChunks, scope: S
     if (changed) { changed = false; nodes.length = 0; seen.length = 0; collect(root); return count - before; }
     for (let i = 0; i < nodes.length; i++) {
       const node = nodes[i]; if (node === undefined) break;
-      const material: unknown = Reflect.get(node, 'material');
+      const material = node.material;
       if (material !== seen[i] || Array.isArray(material)) { seen[i] = material; visitValue(material); }
     }
     return count - before;
