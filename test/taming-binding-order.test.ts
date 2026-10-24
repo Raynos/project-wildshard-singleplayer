@@ -23,6 +23,21 @@ test('due sampling draws three values even when the mounted actor was just lost'
   expect(f.binding.phase).toBe('wild');
 });
 
+test('a native mount callback can query taming without replacing the outer action loans', () => {
+  const expected=fixture(),actual=fixture();expected.allowMount();actual.allowMount();
+  const mount=actual.opts.mount.mount;let queries=0;
+  Object.defineProperty(actual.opts.mount,'mount',{value:(actor:TamingHorse,breaking?:boolean)=>{
+    const before=actual.binding.snapshot();actual.binding.canTame(actor);queries++;
+    expect(actual.binding.snapshot()).toBe(before);
+    return mount(actor,breaking);
+  }});
+  expected.binding.startBreaking();actual.binding.startBreaking();
+  expect(queries).toBe(1);expect(actual.events).toEqual(expected.events);
+  expect(actual.binding.snapshot()).toBe(expected.binding.snapshot());
+  for(const dt of [.04,.06,.1]){expected.binding.update(dt);actual.binding.update(dt);}
+  expect(actual.events).toEqual(expected.events);expect(actual.binding.snapshot()).toBe(expected.binding.snapshot());
+});
+
 test('a bond replaces the original companion in native allocation and publication order', () => {
   const f = fixture('bond'); f.allowMount(); f.binding.startBreaking();
   let previous = 0;

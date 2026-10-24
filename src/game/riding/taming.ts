@@ -25,11 +25,24 @@ function camel(key: string): string {
   if (named === undefined) { named = key.replaceAll(/_([A-Za-z0-9])/g, (_match, next: string) => next.toUpperCase()); if (camelKeys.size < 4096) camelKeys.set(key, named); }
   return named;
 }
+interface TamingRunWork<A> {
+  readonly frame:Record<string,number>;readonly fields:{key:string;seen:boolean}[];readonly fieldIndex:Map<string,{key:string;seen:boolean}>;
+  readonly actors:A[];readonly actorTargets:V2ActionTarget[];
+  readonly targets:Map<number,V2ActionTarget>;readonly bindings:Map<number,V2ActionBinding>;
+  readonly write:V2ActionBinding;readonly read:V2ActionBinding;targetCount:number;
+}
+function tamingRunWork<A>():TamingRunWork<A>{
+  const targets=new Map<number,V2ActionTarget>([[1,{identity:'service',kind:'taming'}],[2,{identity:'mount',kind:'mount'}]]);
+  for(let i=0;i<8;i++)targets.set(16+i,{identity:`herd:${String(i)}`,kind:'taming-herd'});
+  const base={identity:'taming',handle:1,targets,maxCommands:32,bounds:{coordinate:Number.MAX_VALUE,velocity:0}};
+  return {frame:{},fields:[],fieldIndex:new Map(),actors:[],actorTargets:[],targets,bindings:new Map(),write:{...base,operations:WRITES},read:{...base,operations:READ_ONLY},targetCount:0};
+}
 /** Native observations and historical continuation around the admitted taming
  * guest. Bodies, mounts, herds, entropy and scopes remain their actual owners. */
 export class TamingSession<A extends TamingHorse,H extends TamingHerd<A>> {
   phase:'wild'|'breaking'|'bonded'='wild'; bonded:string|null=null; upgraded=false; herd:number|null=null; stallion:string|null=null;
   private clock=0; private previous:[number,number,number]|null=null; private readonly drove=new Set<number>();
+  private readonly runWork:TamingRunWork<A>[]=[];
   private readonly actors=new Map<string,A>(); private state:Record<string,number>;private readonly program:ReturnProgram;private readonly project:NonNullable<ReturnProgram['prepareWorld']>;
   private readonly lenders:readonly unknown[];private readonly ear=new THREE.Vector3();private readonly direction=new THREE.Vector3();private readonly toward=new THREE.Vector3();
   private readonly visual={trust:-1,alert:0,ear:0,earOffset:0,round:-1,balance:0,danger:0,offer:0,radius:0,beaten:0,roll:0,shake:0};
@@ -59,16 +72,28 @@ export class TamingSession<A extends TamingHorse,H extends TamingHerd<A>> {
     return {frame,ids,herds,candidates:candidates.map(row=>Object.assign(row,{zz_h_downwind:((x-row.x)*wind.x+(z-row.z)*wind.z)/(Math.hypot(x-row.x,z-row.z)||1)}))};
   }
   private run(initialSignal:string,initialExtra:Readonly<Record<string,number>>={},initialCapture=0,readOnly=false):Readonly<Record<string,number>> {
+    const work=this.runWork.pop()??tamingRunWork<A>();
+    try{return this.runWithWork(work,initialSignal,initialExtra,initialCapture,readOnly);}
+    finally{work.actors.length=0;if(!this.scope.disposed&&!this.scope.disposing)this.runWork.push(work);}
+  }
+  private runWithWork(work:TamingRunWork<A>,initialSignal:string,initialExtra:Readonly<Record<string,number>>,initialCapture:number,readOnly:boolean):Readonly<Record<string,number>> {
+    work.bindings.set(1,readOnly?work.read:work.write);
     let signal=initialSignal,capture=initialCapture;const extra={...initialExtra};this.live();let present=false,result:Readonly<Record<string,number>>={},nativeAccepted=0,adopted:string|null=null;
     let observed={frame:{} as Record<string,number>,candidates:[] as Record<string,number>[],ids:[] as readonly (string|null)[],herds:[] as readonly H[]};
     for(let step=0;step<8;step++){
       this.live();if(capture===1||capture===2)observed=this.capture(capture===2);
       if(capture===3){const a=this.promptHorse;if(a===null)throw new Error('Missing taming actor');Object.assign(extra,{zz_adoptX:a.position.x,zz_adoptZ:a.position.z,zz_adoptYaw:a.yaw});}
-      const actors=[...this.actors.values()],id=(name:string|null):number=>name===null?0:actors.findIndex(a=>a.entityId===name)+1;
+      const actors=work.actors;actors.length=0;for(const actor of this.actors.values())actors.push(actor);
+      const id=(name:string|null):number=>name===null?0:actors.findIndex(a=>a.entityId===name)+1;
       if(actors.length>64)throw new Error('Taming owner capacity');
       // the guest's frame is built straight in its camelCase keys, in the order (and with the overwrites) of the
       // snake_case rows it was once spread from; no per-step snake object and re-keyed copy
-      const frame:Record<string,number>={},put=(key:string,value:number):void=>{frame[camel(key)]=value;},drove=[...this.drove],previous=this.previous;
+      const frame=work.frame;for(let i=0;i<work.fields.length;i++){const field=work.fields[i];if(field!==undefined)field.seen=false;}
+      const put=(key:string,value:number):void=>{
+        const name=camel(key);let field=work.fieldIndex.get(name);
+        if(field===undefined){field={key:name,seen:true};work.fieldIndex.set(name,field);work.fields.push(field);}else field.seen=true;
+        frame[name]=value;
+      },drove=[...this.drove],previous=this.previous;
       for(const [key,value] of Object.entries(observed.frame))put(key,value);
       put('zz_phase',['wild','breaking','bonded'].indexOf(this.phase));put('zz_bonded',id(this.bonded));put('zz_upgraded',Number(this.upgraded));put('zz_herd',this.herd??-1);put('zz_stallion',id(this.stallion));put('zz_clock',this.clock);
       put('zz_previous',Number(previous!==null));put('zz_prevX',previous?.[0]??0);put('zz_prevY',previous?.[1]??0);put('zz_prevZ',previous?.[2]??0);for(let i=0;i<8;i++)put(`zz_drove${String(i)}`,drove[i]??-1);
@@ -76,10 +101,22 @@ export class TamingSession<A extends TamingHorse,H extends TamingHerd<A>> {
       for(const [key,value] of Object.entries(this.opts.programs.initial))put(`zz_initial_${key}`,value);
       put('zz_mounted',id(this.opts.mount.horse?.entityId??null));put('zz_nativeAccepted',nativeAccepted);put('zz_adopted',id(adopted));put('zz_selectedYaw',this.promptHorse?.yaw??0);put('zz_candidateUpgraded',Number(this.promptHorse?.kind===this.opts.profile.upgradeKind));
       for(const [key,value] of Object.entries(extra))put(key,value);
+      let fields=0;for(let i=0;i<work.fields.length;i++){
+        const field=work.fields[i];if(field===undefined)throw new Error('Missing taming frame field');
+        if(field.seen)work.fields[fields++]=field;else{delete frame[field.key];work.fieldIndex.delete(field.key);}
+      }work.fields.length=fields;
       const candidates=observed.candidates.map((row,index)=>{const out:Record<string,number>={};for(const [key,value] of Object.entries(row))out[camel(key)]=value;out[camel('zz_h_actor')]=id(observed.ids[index]??null);return out;});
-      const targets=new Map<number,V2ActionTarget>([[1,{identity:'service',kind:'taming'}],[2,{identity:'mount',kind:'mount'}],...Array.from({length:8},(_,i):[number,V2ActionTarget]=>[16+i,{identity:`herd:${String(i)}`,kind:'taming-herd'}]),...actors.map((a,i):[number,V2ActionTarget]=>[64+i,{identity:a.entityId,kind:'taming-actor'}])]);
-      const binding:V2ActionBinding={identity:'taming',handle:1,targets,operations:readOnly?READ_ONLY:WRITES,maxCommands:32,bounds:{coordinate:Number.MAX_VALUE,velocity:0}};
-      const prepared:PreparedProjectionV2=this.project(camel(signal),frame,new Map([[1,binding]]),candidates);
+      for(let i=actors.length;i<work.targetCount;i++)work.targets.delete(64+i);
+      // Reserve the whole range before a live identity getter can throw. The
+      // next borrower must also remove targets from a partly built attempt.
+      work.targetCount=actors.length;
+      for(let i=0;i<actors.length;i++){
+        const actor=actors[i];if(actor===undefined)throw new Error('Missing taming actor');
+        const identity=actor.entityId;let target=work.actorTargets[i];
+        if(target===undefined||target.identity!==identity){target={identity,kind:'taming-actor'};work.actorTargets[i]=target;}
+        work.targets.set(64+i,target);
+      }
+      const prepared:PreparedProjectionV2=this.project(camel(signal),frame,work.bindings,candidates);
       result=prepared.values;const number=(key:string):number=>{const value=result[camel(`zz_${key}`)];if(value===undefined||!Number.isFinite(value))throw new Error('Missing taming continuation output');return value;};
       const bit=(key:string):number=>{const value=number(key);if(value!==0&&value!==1)throw new Error('Invalid taming flag');return value;};
       const nextSignal=number('next'),nextCapture=number('capture'),nextPresent=bit('present'),nextUpgrade=bit('upgrade');bit('accept');
