@@ -38,6 +38,7 @@ import { bindMaterialNodeFog } from './fogPatches';
 import type { Scope } from '../app/scope';
 import { captureFogUniforms } from '../world/Atmosphere';
 import { PATCH_ORDER, hasShaderPatch, patchShader, type ShaderSource } from './shaderPatches';
+import { guardObjectDraw, type DrawGuard } from './drawGuards';
 import type { FogModel, LightingRig, SkyDressing } from './look';
 
 /** A level look's chunk text and fog uniforms, as its installs would have left them on the page now. */
@@ -219,7 +220,8 @@ export interface LookScopeOptions {
 
 /** A region's scoped look: its material patches and its per-frame parts. */
 export interface ScopedLook {
-  /** patch the materials added since (call it each frame before the region draws, and once right away); keeps the origin */
+  /** patch what nodes attached since carry (call it each frame before the region draws, and once right away; a swap is
+   *  patched as it is drawn); keeps the origin */
   readonly sweep: () => number;
   readonly patched: () => number;
   /** the look's per-frame parts (its sky dressing's `update`, its `frame`): run only while the player is in the cell */
@@ -258,18 +260,34 @@ export function scopeLookChunks(root: THREE.Object3D, look: LookChunks, scope: S
     if (isMaterial(material)) visit(material);
     else if (Array.isArray(material)) { const list: readonly unknown[] = material; for (const m of list) if (isMaterial(m)) visit(m); }
   };
-  // The region's nodes that carry a material, and the value each had at the last sweep. A frame's sweep reads only those
-  // (a swap shows as a new value; an array is read whole, in case it was edited in place), not the whole region: the
-  // walk was 272 ms of a 6 s Nalati interior at phone 4x, most of it nodes with nothing to draw. Anything attached to or
-  // detached from the region (three's childadded / childremoved, watched on every node of it) rebuilds the list first.
-  // read as a plain property: JavaScriptCore runs `Reflect.get` as a native call, not an inline cache (110 of 5980 samples
-  // of a steady Nalati Simulator profile)
-  const nodes: Drawn[] = [], seen: unknown[] = [], watched = new WeakSet<THREE.Object3D>();
+  // The region's draws are patched as they are submitted: a guard on each node that carries a material (the engine's draw
+  // admission port, ahead of the program lookup) visits the material it draws, so a swap or an array edited in place is
+  // patched before its first program, with no per-frame read of every node (JavaScriptCore ran that read megamorphic: 120
+  // of 4940 samples of a steady Nalati Simulator profile on d587cf1c08). A node attached later is guarded when three's
+  // childadded / childremoved (watched on every node of the region) marks the region changed; the next sweep walks it once
+  // and patches what it carries now, before any warm-up compiles it. A shadow or override draw (another material than the
+  // node's own) and a node no longer under the region are left alone.
+  const watched = new WeakSet<THREE.Object3D>(), guarded = new WeakSet<THREE.Object3D>();
   let changed = true;
   const onChange = (): void => { changed = true; };
+  const under = (node: THREE.Object3D): boolean => { for (let at: THREE.Object3D | null = node; at !== null; at = at.parent) if (at === root) return true; return false; };
+  const ownMaterial = (node: Drawn, material: THREE.Material): boolean => {
+    const own = node.material;
+    if (own === material) return true;
+    if (!Array.isArray(own)) return false;
+    const list: readonly unknown[] = own;
+    return list.includes(material);
+  };
+  const admit: DrawGuard = (_camera, _scene, _geometry, material, object) => {
+    if (!done.has(material) && carriesMaterial(object) && ownMaterial(object, material) && under(object)) visit(material);
+    return true;
+  };
   const collect = (node: THREE.Object3D): void => {
     if (!watched.has(node)) { watched.add(node); scope.listenEmitter(node, 'childadded', onChange); scope.listenEmitter(node, 'childremoved', onChange); }
-    if (carriesMaterial(node) && node.material !== undefined) { nodes.push(node); seen.push(node.material); visitValue(node.material); }
+    if (carriesMaterial(node) && node.material !== undefined) {
+      visitValue(node.material);
+      if (!guarded.has(node)) { guarded.add(node); guardObjectDraw(node, admit, scope); }
+    }
     for (const child of node.children) collect(child);
   };
   const sweep = (): number => {
@@ -277,12 +295,7 @@ export function scopeLookChunks(root: THREE.Object3D, look: LookChunks, scope: S
     root.updateWorldMatrix(true, false);
     origin.value.setFromMatrixPosition(root.matrixWorld);
     const before = count;
-    if (changed) { changed = false; nodes.length = 0; seen.length = 0; collect(root); return count - before; }
-    for (let i = 0; i < nodes.length; i++) {
-      const node = nodes[i]; if (node === undefined) break;
-      const material = node.material;
-      if (material !== seen[i] || Array.isArray(material)) { seen[i] = material; visitValue(material); }
-    }
+    if (changed) { changed = false; collect(root); }
     return count - before;
   };
   const frame = (dt: number, t: number): void => {
