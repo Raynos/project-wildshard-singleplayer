@@ -28,11 +28,13 @@ Every row is decided work (Jake's G-rows); the refs are the brief.
 | T3 | Per-tile content: non-graphical placement buckets and retirement ownership; graphical ranges/render parity stay with Opus | tile-streaming-mini-plan.md:T3 | sp-x1 14:05 (in flight) |
 | T8/U1 | Uniform 64 L0 output contract: audit callers, refusal and empty-tile rules before producer edits; preserve T3 ownership | tile-streaming-mini-plan.md:T8/U1 | sp-x2 (in flight): 64-L0 emitter/catalogue `6fc5b91533` + Sky `9e0aee064b`; product census remains |
 | GR0 | Generators redesign: finish the generated-source ban and shrinking burn-down; preserve the existing generated-import rule | tooling-perf/generators-spike-mini-plan.md:GR0 | done (2026-10-24, sp-x1): exact output ratchet + staged/push/post-gen guards; 138 focused cases |
-| GR1 | Finish Template/Pastel source-only programs: map/boss and remaining producer calls, no job rows or generated shard-source files; preserve byte/admission parity | tooling-perf/generators-spike-mini-plan.md:GR1 | sp-x1 16:12 (in flight) |
+| GR1 | Finish Template/Pastel source-only programs: map/boss and remaining producer calls, no job rows or generated shard-source files; preserve byte/admission parity | tooling-perf/generators-spike-mini-plan.md:GR1 | done (sp-x1): `de4c2ed072` + `89dc5c0c07` + `ea96805666`; exact full preview 24 products / 165.42 s, both source folders unchanged |
 | GR2 | Generators redesign: app tables then per-shard build programs; converted projects bypass the legacy generator scheduler, with scoped `--shard=` support | tooling-perf/generators-spike-mini-plan.md:GR2 | done (2026-10-24, sp-x1): `326950c025` + `78681f7cf5`; 410 ready-related cases; exact generation 24 products |
 | GR-PATHS | Make check-paths green: remove stale deleted-file references and fix real fixture/layout misses; no widened allow lists; Vitest glob-cache CI repair stays with sp-x2 | generators redesign; sp-x1 181-failure census | done (2026-10-24, sp-x8): `0228d34c52` + `ac7db8225b` + `b7f3e18243`; 181 → 0, no new allowances |
 
 | TS-T2 | TypeScript: check src once through layers tsc -b; preserve test, script and composition-root coverage; coordinate Typecheck command with sp-x7 | tooling-perf/typescript-mini-plan.md:T2 | done (2026-10-24, sp-x8): `96fe07d0eb` + `5025374ca2`; full cold local check 24.968 s, CI timing pending |
+
+| T1-POST | Lifecycle only: dispose/reuse composer depth and Backdrop LUTs on retirement/re-entry; GPU-ledger regression, identical pixels; siteCatalogue geometry stays with sp-x9 | T1 retained794 diagnostic; coordinator 2026-10-24 | in flight (2026-10-24, sp-x8) |
 
 **G683 Codex order (Jake, 13:20):** finish extras in this order, taking the top open Codex row of the first plan that has one:
 (1) tile streaming (shard-platform/tile-streaming-mini-plan.md), (2) loading (loading-mini-plan.md), (3) core memory

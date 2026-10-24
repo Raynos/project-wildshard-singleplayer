@@ -1,7 +1,7 @@
 # Generators spike and redesign: mini plan (TOOLING-PERF, G648/G650)
 
-**State:** `in progress` 2026-10-24 — G654/G656 decided; GR0 and GR2 driver complete (sp-x1). GR1 has cached
-SDK primitives and Template source conversions, but its two-project acceptance remains open (Template still has map/boss jobs);
+**State:** `in progress` 2026-10-24 — G654/G656 decided; GR0–GR2 complete (sp-x1), including Template/Pastel's
+zero-catalogue, source-only product build acceptance on `ea96805666`;
 GR3–GR12 and GS1–GS5 remain open. Separate from the [gen speed plan](gen-mini-plan.md)
 (caching and timing), the [TypeScript plan](typescript-mini-plan.md) and [no binaries in JSON](no-binaries-in-json-mini-plan.md).
 
@@ -118,7 +118,7 @@ in `public/assets/<slug>/` as real `.glb` / `.png` / `.ktx2` / `.bin`. App-wide 
 | Row | What | Size | Done when |
 |---|---|---|---|
 | GR0 | done (2026-10-24, sp-x1): existing import ban `7d9ada1bbb` plus generated-source guard; exact-path output debt only shrinks, G656 app sources remain separately reviewed | S | staged/push Git checks and pre/post-gen + CI tree checks refuse new source outputs; 138 focused cases pass |
-| GR1 | in flight (2026-10-24, sp-x1): finish SDK `ctx.cached` / `ctx.asset` (§4 A key) and Template/Pastel source programs; cached keys enter product receipts, map/boss and remaining producer calls replace shard-source output files | M | `_template` and `pastel-plain` build with no job rows and no generated file under `src/` |
+| GR1 | done (2026-10-24, sp-x1): SDK `ctx.cached` / `ctx.asset`, in-memory boss metadata and Template/Pastel map/world programs; `de4c2ed072` + `89dc5c0c07` + `ea96805666` | M | Exact `ea96805666` full preview passes all 24 products in 165.42 s; both folders have zero job rows and no new file under `src/` after generation/build |
 | GR2 | done (2026-10-24, sp-x1): `326950c025` + `78681f7cf5`; app tables then the existing per-product build pool, heavy-lane, scoped `--shard=`; preparation-only CI preserved | S | fresh Node refuses any scheduler import for a fully converted folder; 29 focused + 410 ready-related cases pass; exact `78681` generation builds all 24 products |
 | GR3 | **Nine** (27 jobs): calls replace imports; `castHook` / `lightSpill` / `paintArray` become cached `.glb` / `.bin` (closes B4); atlases per D2; its tests call functions | L | 0 Nine rows in the catalogue, 0 `*.generated.*` under its folder, product validates, boot smoke green |
 | GR4 | **Sunscar** (23 jobs) | M | same bar |
@@ -156,6 +156,18 @@ working-tree run refused concurrent source movement during boot-table generation
 completed the new generation command with 24 products in 160 s, without borrowing the moving working tree.
 Its full preview also passed (227.87 s total) and was stopped. Full-preview and parity wrappers now explicitly prepare
 inputs before their own product phase; a real shell fixture reproduced duplicate product work before that correction.
+
+GR1's Template and Pastel programs now pass compiled behaviour/boss metadata and map pixels directly to their
+product. The SDK retains the original lossless map codec and charges its image; the existing public minimap URLs
+are published only from the verified product, without shard-source metadata. Both original terrain/GLB raster
+oracles are byte-identical; Pastel preserves its 167 file rows and 199,225-byte canonical declaration
+(`56c3f47c…b864d`). Six remaining catalogue rows, seven launchers and 511 untracked old outputs retire;
+the committed source art inputs remain unchanged. Final checks: 72 focused, 595 ready-related, named typed lint,
+check-paths and refreshed layer/root/scripts types pass. CF1's separate bounded related check deferred at 60 s;
+its warm-root check reported concurrent foreign assembly-fixture types, not a passing root result. The exact
+full preview validates Template in 11.2 s and Pastel in 9.2 s. Both served public maps match their admitted image
+hashes (5,438 / 5,822 bytes), and both built source folders contain exactly their committed files. The preview
+was stopped. The push gate passes through `ea96805666`; its dirty-input fast lint explicitly defers to CI.
 
 | Follow-up | What | Done when |
 |---|---|---|
