@@ -137,11 +137,12 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   if (ctx.grid !== null) startGridPrefetch(gridPrefetchOrder(ctx.grid.assembly, player.position));
   // the programs the first frame did not draw, a few a frame in play (the Shaders step built only the drawn ones)
   const levelScope = game.levelScope;
-  // An arrival straight into the Explorer's catalogue walks no world: the cards draw first, and the world's undrawn
+  // A page that opens straight into the Explorer walks no world: the cards draw first, and the world's undrawn
   // programs wait until the Explorer closes. On a software GPU (CI's SwiftShader, no parallel compile) each of them was a
   // synchronous link inside a frame, and the warm-up held Pine's first card past the smoke's deadline (127 s of 180).
   const afterExplorer = async (): Promise<void> => {
-    if (arrival?.mode !== 'explore') return;
+    // a title arrival (Explore ▸ another shard) or the page's own ?explore= route (ctx.startExplore)
+    if (arrival?.mode !== 'explore' && ctx.startExplore === undefined) return;
     let seen = false;
     for (let waited = 0; !levelScope.disposed; waited += EXPLORER_POLL_MS) {
       if (exploring()) seen = true;
