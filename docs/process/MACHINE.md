@@ -239,6 +239,10 @@ entered interior is then sampled for twenty seconds. Other sampling windows
 are suppressed. Replaced or paused controls refuse, and the frame watcher and
 deadline are released on completion or failure. Self/inclusive sample counts
 are attribution, not function milliseconds or frame-floor acceptance.
+Alternatively, `--safari-drive=pine-interior` selects only that original drive
+and extends its profile through twenty subsequent entered-play seconds. Its
+raw record retains separate drive and early-play page ranges; standing and
+other drive profiles are suppressed. The two selection flags are exclusive.
 
 Before CPU work, `python3 scripts/sim-quiet.py status` reports the active official
 reading. During it, **read and edit only**: no tests, typechecks, lint, builds,

@@ -67,5 +67,16 @@ test('steady selection requires one safe pose and a Simulator grid profile', () 
     [...args.filter(arg => !arg.startsWith('--safari-profile=')), '--safari-steady=one'],
     [...args.filter(arg => !arg.startsWith('--surface=')), '--surface=desktop', '--safari-steady=one'],
     [...args.filter(arg => !arg.startsWith('--grid-scenario=')), '--grid-scenario=baseline', '--safari-steady=one'],
-  ]) expect(() => validateFrameFloorArgs(invalid)).toThrow('requires one pose');
+  ]) expect(() => validateFrameFloorArgs(invalid)).toThrow('requires one pose or drive');
+});
+
+
+test('drive selection profiles one route plus early play and excludes a second selection', () => {
+  expect(() => validateFrameFloorArgs([...args, '--safari-drive=pine-interior'])).not.toThrow();
+  for (const invalid of [
+    [...args, '--safari-drive=../escape'], [...args, '--safari-drive='],
+    [...args, '--safari-drive=pine-interior', '--safari-drive=nalati-interior'],
+    [...args, '--safari-drive=pine-interior', '--safari-steady=grid-nalati-interior'],
+    [...args.filter(arg => !arg.startsWith('--safari-profile=')), '--safari-drive=pine-interior'],
+  ]) expect(() => validateFrameFloorArgs(invalid)).toThrow('requires one pose or drive');
 });
