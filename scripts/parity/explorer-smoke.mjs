@@ -45,6 +45,19 @@ export function explorerFailures(cards) {
   return failures;
 }
 
+/** Readiness only, at the existing polling cadence; pixel validation still runs after every card draws. */
+export function explorerState() {
+  const fatal=[...document.querySelectorAll('#wserr,.ws-load-error,.ws-game-dev-alert,[data-boot-fatal]')].map(node=>node.textContent);
+  const root=document.querySelector('.ws-x.show[data-mode="model"]');
+  const cards=root?.querySelectorAll('.ws-x-grid .ws-x-model');
+  const readyIds=cards===undefined?[]:[...cards].filter(card=>card.querySelector('canvas')!==null).map(card=>{
+    if(!(card instanceof HTMLElement))throw new Error('Invalid model card');
+    return card.dataset.id??'';
+  });
+  return {fatal,empty:root?.querySelector('.ws-x-empty-models.show')!==null && root!==null,
+    ready:cards!==undefined && cards.length>0 && readyIds.length===cards.length,readyIds};
+}
+
 /** @param {import('playwright').Browser} browser @param {string} base @param {string} slug @param {string} out */
 async function sweep(browser,base,slug,out){
   const context=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:2,isMobile:true,hasTouch:true,serviceWorkers:'block'});
@@ -57,6 +70,7 @@ async function sweep(browser,base,slug,out){
   page.on('console',message=>{if(message.type()==='error')faults.push(message.text());});
   page.on('response',response=>{if(response.status()>=400)faults.push(`HTTP ${response.status()}: ${response.url()}`);});
   const started=Date.now(),deadline=started+180000;
+  /** @type {Map<string,number>} */ const firstReady=new Map();
   try{
     const url=new URL(base);
     for(const [key,value]of Object.entries({chunk:slug,explore:'model',tier:'phone',touch:'1',mute:'1',nolock:'1',sw:'0'}))url.searchParams.set(key,value);
@@ -64,13 +78,8 @@ async function sweep(browser,base,slug,out){
     let empty=false,drawn=false;
     while(Date.now()<deadline){
       if(faults.length>0)throw new Error(faults.join('\n'));
-      const state=await page.evaluate(()=>{
-        const fatal=[...document.querySelectorAll('#wserr,.ws-load-error,.ws-game-dev-alert,[data-boot-fatal]')].map(node=>node.textContent);
-        const root=document.querySelector('.ws-x.show[data-mode="model"]');
-        const cards=root?.querySelectorAll('.ws-x-grid .ws-x-model');
-        return {fatal,empty:root?.querySelector('.ws-x-empty-models.show')!==null && root!==null,
-          ready:cards!==undefined && cards.length>0 && [...cards].every(card=>card.querySelector('canvas')!==null)};
-      });
+      const state=await page.evaluate(explorerState),observedMs=Date.now()-started;
+      for(const id of state.readyIds)if(!firstReady.has(id))firstReady.set(id,observedMs);
       if(state.fatal.length>0)throw new Error(`Explorer fatal: ${state.fatal.join('; ')}`);
       if(state.empty){empty=true;break;}
       if(state.ready){drawn=true;break;}
@@ -80,13 +89,13 @@ async function sweep(browser,base,slug,out){
     const cards=await page.evaluate(explorerCards),failures=explorerFailures(cards);
     if(!empty && cards.length===0)failures.push('Explorer catalogue disappeared');
     if(faults.length>0)failures.push(...faults);
-    const result={slug,elapsedMs:Date.now()-started,empty,cards,failures};
+    const result={slug,elapsedMs:Date.now()-started,empty,cards,failures,firstReadyMs:Object.fromEntries(firstReady)};
     writeFileSync(join(out,`${slug}.json`),`${JSON.stringify(result,null,2)}\n`);
     if(failures.length>0)throw new Error(`${slug}: ${failures.join('; ')}`);
     console.info(`Explorer ${slug}: ${empty?'explicit empty catalogue':`${cards.length} real thumbnails`} PASS`);
   }catch(error){
     await page.screenshot({path:join(out,`${slug}-failure.jpg`),type:'jpeg',quality:70}).catch(()=>undefined);
-    writeFileSync(join(out,`${slug}-failure.json`),`${JSON.stringify({slug,error:String(error),faults,cards:await page.evaluate(explorerCards).catch(()=>[])},null,2)}\n`);
+    writeFileSync(join(out,`${slug}-failure.json`),`${JSON.stringify({slug,elapsedMs:Date.now()-started,error:String(error),faults,cards:await page.evaluate(explorerCards).catch(()=>[]),firstReadyMs:Object.fromEntries(firstReady)},null,2)}\n`);
     throw error;
   }finally{await context.close();}
 }

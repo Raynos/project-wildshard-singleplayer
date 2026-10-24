@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
-import { explorerCards, explorerCases, explorerFailures } from '../scripts/parity/explorer-smoke.mjs';
+import { explorerCards, explorerCases, explorerFailures, explorerState } from '../scripts/parity/explorer-smoke.mjs';
 import { legacyDouble } from './fake/FakeGame';
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify the actual required workflow leg, without dispatching it.
 import { readFileSync } from 'node:fs';
@@ -13,6 +13,19 @@ const catalogue = [
   {slug:'open-plot-alien-plain',status:'hidden',legacy:false,shardSelect:false},
   {slug:'driftwood-isle-legacy',status:'live',legacy:true},
 ];
+
+test('progress records only appended canvases and still requires the whole displayed catalogue', () => {
+  document.body.innerHTML='<div class="ws-x show" data-mode="model"><div class="ws-x-grid"><button class="ws-x-model" data-id="first"><canvas></canvas></button><button class="ws-x-model" data-id="pending"></button></div></div>';
+  try {
+    expect(explorerState()).toEqual({fatal:[],empty:false,ready:false,readyIds:['first']});
+    const pending=document.querySelector('[data-id="pending"]');
+    if(pending===null)throw new Error('Missing pending card');
+    pending.append(document.createElement('canvas'));
+    expect(explorerState()).toEqual({fatal:[],empty:false,ready:true,readyIds:['first','pending']});
+    document.querySelector('.ws-x')?.classList.remove('show');
+    expect(explorerState()).toEqual({fatal:[],empty:false,ready:false,readyIds:[]});
+  } finally { document.body.replaceChildren(); }
+});
 
 test('the Explorer leg retains every primary, including Signal and Developer-only rows, once', () => {
   expect(explorerCases(catalogue)).toEqual(['driftwood-isle','nine-dragon-stack','sunscar-dunes','_template','open-plot-alien-plain']);
