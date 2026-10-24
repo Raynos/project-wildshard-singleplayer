@@ -293,7 +293,12 @@ export async function bootCase(browser, base, mode, out, shard = 'driftwood-isle
       gridNavigationIntent = true;
       phases.entryMs = Date.now() - started;
       deadline = Date.now() + 150000;
-      await page.locator('.ws-main-grid').click();
+      // Register before the tap: evaluating the old document while this expected
+      // navigation commits destroys its execution context. Keep the same bound.
+      await Promise.all([
+        page.waitForURL(destination => destination.searchParams.get('chunk') === shard, { waitUntil: 'domcontentloaded', timeout: Math.max(1, deadline - Date.now()) }),
+        page.locator('.ws-main-grid').click(),
+      ]);
     }
     let revealSkipped = false;
     const gameplay = async (/** @type {boolean} */ requireRings) => {
