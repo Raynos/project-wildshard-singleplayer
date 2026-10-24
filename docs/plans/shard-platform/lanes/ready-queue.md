@@ -16,7 +16,7 @@ Every row is decided work (Jake's G-rows); the refs are the brief.
 | CF3 | G691: product-free behaviour tests run before products; retain complete strict product coverage | ci-flow-mini-plan.md:CF3 | source done 1f76530a1d; coordinator CI reading open |
 | G693 | DELETE the progress ruler (a80ea662b5): ruler.mjs(+d.mts), progress/shard-platform/ruler/, gen-port-shares + portShares.*, the 'ruler' mirror slot (MACHINE.md, build-mirror), ruler-only tests, admin progress panel; KEEP check-closed-components + its census (zero lock) and core-memory C7 floor tools | Jake G693 | done 755f9f3712 + 75f7b87e96 + 964ec42bd2; F1 dd52fc84ea (sp-x8) |
 | G694 F1 | Freeze: lock C1-C9 on all six shards + 0 countable lines in every non-legacy shard folder (before/with G693's ruler deletion) | custom-code-freeze-mini-plan.md | done dd52fc84ea (sp-x8): all6x9 + every non-legacy source folder, 234 CF1 cases |
-| G694 F2 | Schema refusals (LegacyRuntimeSchema, entry.legacy/native, nativePlan, runtimeEntry) | same | in flight (2026-10-24, sp-x8) |
+| G694 F2 | Schema refusals (LegacyRuntimeSchema, entry.legacy/native, nativePlan, runtimeEntry) | same | wave 1 done `e5eb16f9f5` (sp-x8); RuntimeSchema / copied-runtime removal held for LD (wave 3) |
 | G694 D1 | Delete the trusted/native runtime entry (after F2; boot smoke) | same | sp-x6 (after T9 proof) |
 | G694 F3 | shard-layout loses runtime/legacy; hard rule wildshard/no-shard-runtime | same | sp-x9 (after T1 acceptance) |
 | G694 F4-F5 | Prune 1,824 stale ratchet allowances + refuse missing paths; custom sections shrink-only | same | done `b984db9194` + `194a455e2f` (sp-x2); G606 preserved |
