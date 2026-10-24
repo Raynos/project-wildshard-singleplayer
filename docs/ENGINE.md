@@ -2775,7 +2775,7 @@ act can answer an explicit script command. Cracks, walk-in pickups and pressure 
 `@wildshard/game/quest/dialogue` selects authored NPC entries and commits their flags only on completion;
 cancel and restore never raise flags. Its caller owns prompt eligibility, input guards and presentation.
 
-The game's quest wiring sits on the engine's quest core: `QuestState`, `QuestLine`, `lineFor`, `validateQuest`,
+The game's quest wiring sits on the engine's quest core: `QuestState`, `QuestLine`, `lineFor`,
 `CHIP_MAX`, `QuestDef`, `QuestStep`, `QuestMarker`, `NpcDef`, `DialogueEntry`, `QuestChip`, `NpcTalk` (load the quest views lazily with `import('@wildshard/engine/quest/view')`)
 (all `@wildshard/engine`). The template's quest:
 
@@ -7584,15 +7584,6 @@ G441's W3 match is Nalati `adventure.ts`'s ordered `CAMP_NPCS` / `NpcTalk`
 roster, shared dialogue USE routing and walk-away cancellation. W3 adopts that
 roster without inventing native saves or replacing its `DialogueBox`.
 
-### Placed geometry colliders
-
-`src/engine/models/colliders.ts#placedGeometryCollider(source,matrix,surface)`
-accepts `{kind:'trimesh',geometry}` or `{kind:'hull',points}`. It transforms
-fresh Float32 vertices relative to the matrix translation, retaining mesh
-index order (or sequential indices for a non-indexed mesh). Register the
-returned descriptor through the normal world physics registry. Nalati's
-W3 `world/solid.ts#hullAt` adopts the same hull projection (G441).
-
 ### Native species observations
 
 `game/plugin/brain.createNativeSpeciesContext` lends one native body its
@@ -8093,17 +8084,6 @@ physics service or random stream is replaced. G441's pending W3 adopter is
 Nalati `runtime/weapons/magazineFirearm.ts`: allocation, hitscan/ejection and
 final publication; its bloom, magazine/reload and callbacks stay local.
 
-### Baked hunting-ground queries
-
-`engine/ai/huntPattern.ts#bakedHuntGround(grid, ports)` binds the existing baked
-height/normal samplers to a hunting ground. The caller lends its terrain field,
-chunk half-size, tree query, treeless, wetness and sea predicates. Bounds stay
-inclusive after the requested margin; an absent stream returns null. Water
-level and pond remain live field reads. The helper neither registers physics
-nor changes terrain, species, placement or RNG policy. Pine uses it for native
-herds; W3 Nalati replaces `runtime/headlessCreatures.ts#nalatiHuntGround` with
-the same binding, retaining its river wetness and forest queries.
-
 **Memory-action cadence and callback binding.** The same `createMemoryActionBrain` accepts optional `cadence: "decision"`
 rows: one pending body action per successful decision. `snapshot()` and
 `restore()` preserve that boolean continuation; malformed values refuse.
@@ -8311,16 +8291,6 @@ policy, boss/elite/cosmetic flags, companion bonds and feat receipt identities.
 Legacy callbacks initialize optional companion records once. Subsequent reads,
 writes and checkpoints use the bound state and projected ledger only.
 
-**Creature swing envelopes (G441).** `game/plugin/animation.sampleCreatureSwing`
-samples a `CreatureSwingSpec` into caller-owned numeric scratch: bounded
-smooth wind, cut and recovery windows and up to 32 named channels, each
-holding rest, wind and impact values. Invalid windows, channels and output
-owners refuse before writes; inactive phases return rest. Sampling owns no
-clock, RNG, actor memory or save state and allocates nothing per frame.
-Driftwood captain and sailor poses consume it. Nalati
-`species/balbal.ts#animateBalbal` is the named W3 user of the same layered
-arm/body/knee envelope; emergence, grind and tremor remain caller-owned.
-
 `game/shardfile/homeKeeper.nativeCreatureRecipes(specs, duplicates?)` is the
 shared baked kind/variant registry and saved `runtime.actor.<id>` reader.
 Duplicate policy defaults to `last`; `first` keeps the earliest baked spec.
@@ -8330,19 +8300,6 @@ returning the decoded contract. It never spawns, draws RNG or mutates a
 roster. Pine uses first-match lookup across actors then parked recipes;
 the existing native creature intake retains last-match lookup. Each
 caller keeps its placement, hunt, pose and versioned continuation owners.
-
-**Creature leg stride (G441).** `game/plugin/animation.poseCreatureStride`
-poses six borrowed hip/knee/foot joints using a `CreatureStrideProfile`
-and the caller's phase, movement, brace, kneel and topple values. The
-profile holds numeric swing, spread and optional stance coefficients;
-an optional bend adds the existing attack knee bend. All scalars and
-required joints preflight before any write. No clock, RNG, actor memory,
-position or save state is owned, and no per-frame allocation is needed.
-Driftwood captain/sailor use the shared weighted stance. Nalati
-`species/balbal.ts#animateBalbal` is the G441 later user: its leg loop uses
-the same alternating swing and knee law with zero rest/brace terms,
-1.7 knee folding and caller-owned attack bend. The rest of its pose stays
-with the native caller.
 
 **Creature site selection (G441).** `game/plugin/brain.selectCreatureSites`
 ranks up to 1024 borrowed points or positioned actors. Range admission

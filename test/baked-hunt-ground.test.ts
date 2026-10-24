@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { bakedHuntGround } from '../src/engine/ai/huntPattern';
+import { bakedHuntGround } from './fixtures/bakedHuntGround';
 import type { BakedGrid } from '../src/format/bakedTerrainBytes';
 
 test('baked hunting ground keeps inclusive bounds and live water, wetness and forest authority', () => {

@@ -8,7 +8,7 @@ import * as v from 'valibot';
 import { expect, test } from 'vitest';
 import { Matrix4, type BufferGeometry } from 'three';
 import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
-import { placedGeometryCollider } from '../src/engine/models/colliders';
+import { placedGeometryCollider } from './fixtures/placedGeometryCollider';
 import { bakeCragSceneSources, caveShellRows } from '../src/shards/pine-hollow/generators/bake-crag-scenes.mjs';
 import layout from '../src/shards/pine-hollow/data/layout.generated.json';
 

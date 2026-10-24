@@ -1,7 +1,9 @@
 /** Frozen predecessor pose; do not update to follow the data implementation. */
 import type { AnimalRigContext, AnimalRigJoint } from '../../../src/engine/entities/animalRig';
 import { bump, clamp, lookAngles, smooth01, squashBody, step } from '../../../src/engine/entities/species/rigs';
-import { poseCreatureStride, sampleCreatureSwing, stepCreatureLift } from '../../../src/game/plugin/animation';
+import { stepCreatureLift } from '../../../src/game/plugin/animation';
+import { poseCreatureStride } from '../creatureStride';
+import { sampleCreatureSwing } from '../creatureSwing';
 
 type Side = 'L' | 'R';
 type SailorBones = Record<'body' | 'spine' | 'chest' | 'head' | `arm${Side}_${'sh' | 'el' | 'hand'}` | `leg${Side}_${'hip' | 'knee' | 'foot'}`, AnimalRigJoint>;

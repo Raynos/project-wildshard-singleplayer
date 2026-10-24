@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { sampleCreatureSwing, type CreatureSwingSpec } from '../src/game/plugin/animation';
+import { sampleCreatureSwing, type CreatureSwingSpec } from './fixtures/creatureSwing';
 
 test('swing winds, cuts and recovers in lent scratch, refusing malformed rows before writes', () => {
   const spec: CreatureSwingSpec<'arm' | 'body'> = { wind: [0, .4], cut: [.5, .7], recover: [.8, 1], channels: { arm: [.2, -2, 1], body: [0, -.3, .5] } };

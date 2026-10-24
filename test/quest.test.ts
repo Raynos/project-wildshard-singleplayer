@@ -4,7 +4,8 @@ import { describe, expect, it, vi } from 'vitest';
 import { Flags } from '../src/engine/world/interact/flags';
 import { flagsRaised } from '../src/engine/world/interact/types';
 import { DRIFTWOOD_INTERACT, SHARD_FLAGS } from '../src/shards/driftwood-isle/generators/interactables';
-import { QuestState, lineFor, validateQuest, type QuestDef, type QuestStep } from '../src/engine/quest/core';
+import { QuestState, lineFor, type QuestDef, type QuestStep } from '../src/engine/quest/core';
+import { validateQuest } from './fixtures/questValidation';
 import { CASTAWAY, DRIFTWOOD_QUEST, QUEST_EXTERNAL } from '../src/shards/driftwood-isle/generators/questStory';
 
 import { QUEST_DONE } from '../src/shards/driftwood-isle/generators/questConstants';

@@ -1,5 +1,6 @@
 /** Frozen predecessor pose; do not update to follow the data implementation. */
-import { poseCreatureStride, sampleCreatureSwing } from '../../../src/game/plugin/animation';
+import { poseCreatureStride } from '../creatureStride';
+import { sampleCreatureSwing } from '../creatureSwing';
 import type { AnimalRigContext, AnimalRigJoint } from '../../../src/engine/entities/animalRig';
 import { bump, clamp, lookAngles, smooth01, step } from '../../../src/engine/entities/species/rigs';
 
