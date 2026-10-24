@@ -24,7 +24,9 @@ function snapshotFrame(input: unknown): Readonly<Record<string,number>> {
   const prototype: unknown = Object.getPrototypeOf(input);
   if (prototype !== Object.prototype && prototype !== null) throw new Error('Invalid return observation frame');
   const values: Record<string,number> = {};
-  for (const key of Reflect.ownKeys(input)) {
+  const keys=Reflect.ownKeys(input);
+  for(let index=0;index<keys.length;index++){
+    const key=keys[index];if(key===undefined)throw new Error('Invalid return observation frame');
     const descriptor = Object.getOwnPropertyDescriptor(input,key);
     // a '__proto__' key would set the copy's prototype instead of a value
     if (typeof key !== 'string' || key === '__proto__' || descriptor === undefined || !Object.hasOwn(descriptor,'value')) throw new Error('Invalid return observation frame');
@@ -67,6 +69,7 @@ export class ReturnProjectionV2 {
   private readonly module: ScriptModuleV2;
   private readonly writeFrame: ReturnType<typeof createV2FrameWriter>;
   private emptyRng: ReturnType<typeof prepareV2Rng> | undefined;
+  private readonly emptyBindings: ReadonlyMap<number,V2ActionBinding> = new Map();
   private busy = false;
   private readonly groups:GroupStepV2|null=null;
   /** Only fixed ABI bytes are retained. Every call still captures its own numeric values. */
@@ -116,12 +119,14 @@ export class ReturnProjectionV2 {
   }
   /** Capture once. No RNG is changed until the caller has validated its retained
    * state as well as every channel. Traps and rejected candidates consume none. */
-  prepare(signal: string,observations: Readonly<Record<string,number>>,random?: Rng,candidates: readonly Readonly<Record<string,number>>[] = [],bindings:ReadonlyMap<number,V2ActionBinding>=new Map()): PreparedProjectionV2 {
+  prepare(signal: string,observations: Readonly<Record<string,number>>,random?: Rng,candidates: readonly Readonly<Record<string,number>>[] = [],bindings:ReadonlyMap<number,V2ActionBinding>=this.emptyBindings): PreparedProjectionV2 {
     this.live();
     if (this.busy) throw new Error('Reentrant return projection');
     const signalId = this.row.signals.indexOf(signal)+1;
     if (signalId === 0 || candidates.length > 8) throw new Error('Invalid return request');
-    const frames = [observations,...candidates].map(snapshotFrame);this.live();
+    const frames = [observations,...candidates];
+    for(let index=0;index<frames.length;index++)frames[index]=snapshotFrame(frames[index]);
+    this.live();
     const before = random?.snapshot(), layout = this.layout;
     this.live();
     // An empty bank carries no continuation and never leaves this instance.

@@ -118,3 +118,23 @@ test('alternating RNG presence and shapes keeps every retained input writer deta
     }
   }finally{project.mockRestore();}
 });
+
+test('candidate iteration completes before ordered descriptor capture and nested preparation stays independent',()=>{
+  const program=new ReturnProjectionV2(row),order:string[]=[],nested:Readonly<Record<string,number>>[]=[];
+  const original={a:-0,z:3},frame=new Proxy(original,{
+    ownKeys(target){order.push('keys');return Reflect.ownKeys(target);},
+    getOwnPropertyDescriptor(target,key){
+      order.push(`descriptor:${String(key)}`);
+      if(key==='a')nested.push(program.project('second',{a:9}));
+      return Reflect.getOwnPropertyDescriptor(target,key);
+    },
+  });
+  const candidates=[{a:2}];
+  Object.defineProperty(candidates,Symbol.iterator,{*value(){order.push('iterate');yield {a:2};order.push('done');}});
+  expect(program.project('first',frame,undefined,candidates)).toStrictEqual({value:-0,signal:1});
+  expect(nested).toStrictEqual([{value:9,signal:2}]);
+  expect(order).toEqual(['iterate','done','keys','descriptor:a','descriptor:z']);
+  expect(Object.is(original.a,-0)).toBe(true);
+  expect(()=>program.project('first',{a:1,unused:Number.NaN})).toThrow('Invalid return observation frame');
+  expect(()=>program.project('first',{a:1,[Symbol('unused')]:2})).toThrow('Invalid return observation frame');
+});
