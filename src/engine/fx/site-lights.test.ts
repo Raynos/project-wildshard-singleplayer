@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { Object3D, PointLight, Vector3 } from 'three';
-import { SiteLights } from '../src/engine/fx/SiteLights';
+import { SiteLights } from './SiteLights';
 
 test('Pine waystones and Sunscar braziers publish ignition before the shared pool visits', () => {
   for (const row of [{ color: 0xffb060, intensity: 9, distance: 12, kind: 'lamp' as const },

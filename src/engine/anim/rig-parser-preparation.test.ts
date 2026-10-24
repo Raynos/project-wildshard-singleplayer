@@ -2,10 +2,10 @@
 import { afterEach, expect, test, vi } from 'vitest';
 import { BoxGeometry, DefaultLoadingManager, Mesh, MeshStandardMaterial } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { prepareRigLoader, loadRigFile } from '../src/engine/anim/rig';
-import { DownloadAccounting, installDownloadAccounting } from '../src/engine/boot/download';
-import { loadGLTF } from '../src/engine/core/assets';
-import { loadGlbPart } from '../src/engine/models/glb';
+import { prepareRigLoader, loadRigFile } from './rig';
+import { DownloadAccounting, installDownloadAccounting } from '../boot/download';
+import { loadGLTF } from '../core/assets';
+import { loadGlbPart } from '../models/glb';
 
 let inventory: HTMLScriptElement | undefined;
 afterEach(() => { inventory?.remove(); inventory = undefined; vi.restoreAllMocks(); });

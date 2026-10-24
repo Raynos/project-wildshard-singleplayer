@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
-import { skyHorizonColor } from '../src/engine/boot/bakedApi';
+import { skyHorizonColor } from './bakedApi';
 
 /** an 8×4 RGBA sky, every texel `v` (half-float or float) */
 function sky(v: number, half: boolean): THREE.DataTexture {

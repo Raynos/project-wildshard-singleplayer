@@ -6,11 +6,11 @@ import { execFileSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the real fixture and installed runner without shell commands.
 import { resolve as resolvePath } from 'node:path';
-import { Scope } from '../src/engine/app/scope';
-import { AssetService } from '../src/engine/app/assets';
-import { ownSceneResource, ownSceneTree } from '../src/engine/app/sceneOwnership';
-import { UploadOwnership } from '../src/engine/render/uploadOwnership';
-import type { Renderer } from '../src/engine/render/renderer';
+import { Scope } from './scope';
+import { AssetService } from './assets';
+import { ownSceneResource, ownSceneTree } from './sceneOwnership';
+import { UploadOwnership } from '../render/uploadOwnership';
+import type { Renderer } from '../render/renderer';
 
 function rendererFor(texture: Texture): { properties: Renderer['properties']; renderBufferDirect: Renderer['renderBufferDirect']; render: Renderer['render'] } {
   const properties = { has: () => false, get: (object: unknown) => object, remove: () => undefined, update: () => undefined, dispose: () => undefined };
@@ -50,7 +50,7 @@ test('a retained sampler and renderer do not keep their last retired draw Scope 
     mkdirSync('tmp', { recursive: true });const directory = mkdtempSync(resolvePath('tmp/upload-owner-gc-'));
     try {
       const config = resolvePath(directory, 'vitest.config.mjs');
-      writeFileSync(config, `export default {root:${JSON.stringify(resolvePath('.'))},test:{include:['test/upload-ownership.test.ts'],setupFiles:[],pool:'forks',maxWorkers:1,execArgv:['--expose-gc']}};`);
+      writeFileSync(config, `export default {root:${JSON.stringify(resolvePath('.'))},test:{include:['src/engine/app/upload-ownership.test.ts'],setupFiles:[],pool:'forks',maxWorkers:1,execArgv:['--expose-gc']}};`);
       const output = execFileSync(process.execPath, ['--expose-gc', resolvePath('node_modules/vitest/vitest.mjs'), 'run', '--config', config], {
         env: { ...process.env, WS_UPLOAD_OWNER_GC: '1', NO_COLOR: '1' }, encoding: 'utf8', stdio: 'pipe', timeout: 20_000,
       });

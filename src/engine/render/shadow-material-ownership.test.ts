@@ -1,12 +1,12 @@
 import { expect, test, vi } from 'vitest';
 import { BufferGeometry, Group, Mesh, MeshBasicMaterial, MeshDepthMaterial, PerspectiveCamera, Scene } from 'three';
-import { Scope } from '../src/engine/app/scope';
-import { AssetService } from '../src/engine/app/assets';
-import { ownSceneTree, sceneResourceOwner } from '../src/engine/app/sceneOwnership';
-import { UploadOwnership } from '../src/engine/render/uploadOwnership';
-import { installShadowMaterialOwnership } from '../src/engine/render/shadowMaterialOwnership';
-import { guardObjectDraw } from '../src/engine/render/drawGuards';
-import type { Renderer } from '../src/engine/render/renderer';
+import { Scope } from '../app/scope';
+import { AssetService } from '../app/assets';
+import { ownSceneTree, sceneResourceOwner } from '../app/sceneOwnership';
+import { UploadOwnership } from './uploadOwnership';
+import { installShadowMaterialOwnership } from './shadowMaterialOwnership';
+import { guardObjectDraw } from './drawGuards';
+import type { Renderer } from './renderer';
 
 test('retiring a resident releases native shadow leases but never owns the shared depth cache', () => {
   const page = new Scope('renderer'), resident = new Scope('resident'), assets = new AssetService();

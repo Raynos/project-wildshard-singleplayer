@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import * as THREE from 'three';
-import { installSkinnedSortSpheres } from '../src/engine/render/skinnedSpheres';
+import { installSkinnedSortSpheres } from './skinnedSpheres';
 
 // an unculled skinned mesh's sphere is its bones' centroid with no bound (no CPU skinning); a culled one keeps three's
 test('unculled skinned meshes sort by their bones without skinning, culled ones keep the exact sphere', () => {

@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import * as THREE from 'three';
-import { Terrain } from '../src/engine/world/Terrain';
+import { Terrain } from './Terrain';
 
 // Tile streaming P2: once its tiles draw the ground, the whole terrain mesh is disposed (the slab, which no tile carries,
 // stays) and an empty invisible mesh stands in, so the canopy, punch and wear calls still find a mesh. Once.

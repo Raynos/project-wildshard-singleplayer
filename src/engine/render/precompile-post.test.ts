@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import { N8AOPostPass } from 'n8ao';
 import { BloomEffect, EffectPass, Pass, ToneMappingEffect, ToneMappingMode } from 'postprocessing';
 import { Mesh, OrthographicCamera, PerspectiveCamera, Scene, ShaderMaterial, WebGLRenderTarget, type Camera, type Object3D } from 'three';
-import { postJobs, warmPostJobs, type CompileJob } from '../src/engine/render/precompile';
+import { postJobs, warmPostJobs, type CompileJob } from './precompile';
 
 function preparedMaterials(jobs: readonly CompileJob[]): ShaderMaterial[] {
   return jobs.flatMap(job => job.root.children.flatMap(child => {

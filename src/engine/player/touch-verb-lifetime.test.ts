@@ -5,10 +5,10 @@ import { execFileSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the child runner without a shell.
 import { resolve as resolvePath } from 'node:path';
-import { Scope } from '../src/engine/app/scope';
-import { installBrowserScopeEnvironment } from '../src/engine/app/view/scopeEnvironment';
-import { TouchControls } from '../src/engine/player/TouchControls';
-import type { Action, TouchVerbSpec } from '../src/engine/input/InputService';
+import { Scope } from '../app/scope';
+import { installBrowserScopeEnvironment } from '../app/view/scopeEnvironment';
+import { TouchControls } from './TouchControls';
+import type { Action, TouchVerbSpec } from '../input/InputService';
 
 type Slot = 'verb.1' | 'verb.2';
 function fixture() {
@@ -38,7 +38,7 @@ test('hidden and absent slots drop retired regional verbs while the touch layer 
     mkdirSync('tmp', { recursive: true }); const directory = mkdtempSync(resolvePath('tmp/touch-verb-gc-'));
     try {
       const config = resolvePath(directory, 'vitest.config.mjs');
-      writeFileSync(config, `export default {root:${JSON.stringify(resolvePath('.'))},test:{include:['test/touch-verb-lifetime.test.ts'],environment:'happy-dom',setupFiles:[],pool:'forks',maxWorkers:1,execArgv:['--expose-gc']}};`);
+      writeFileSync(config, `export default {root:${JSON.stringify(resolvePath('.'))},test:{include:['src/engine/player/touch-verb-lifetime.test.ts'],environment:'happy-dom',setupFiles:[],pool:'forks',maxWorkers:1,execArgv:['--expose-gc']}};`);
       const output = execFileSync(process.execPath, ['--expose-gc', resolvePath('node_modules/vitest/vitest.mjs'), 'run', '--config', config], {
         env: { ...process.env, WS_TOUCH_VERB_GC: '1', NO_COLOR: '1' }, encoding: 'utf8', stdio: 'pipe', timeout: 30_000,
       }); expect(output).toContain('1 passed');

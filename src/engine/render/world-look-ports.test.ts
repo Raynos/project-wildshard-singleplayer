@@ -1,10 +1,10 @@
 import { expect, test, vi } from 'vitest';
 import { MeshBasicMaterial, WebGLRenderer } from 'three';
 import { MeshStandardNodeMaterial } from 'three/webgpu';
-import { Scope } from '../src/engine/app/scope';
-import { SkyRig } from '../src/engine/world/skyRig';
-import { bindLowPolyMaterial, lowPolyLookMaterial, lowPolyMaterial } from '../src/engine/world/lowpolyKit';
-import { prepareWorldLook, type LookStrategy } from '../src/engine/render/look';
+import { Scope } from '../app/scope';
+import { SkyRig } from '../world/skyRig';
+import { bindLowPolyMaterial, lowPolyLookMaterial, lowPolyMaterial } from '../world/lowpolyKit';
+import { prepareWorldLook, type LookStrategy } from './look';
 
 test('world preparation lends kit materials once, unwinds scopes and preserves the classic fallback', async () => {
   const sky: unknown = Object.create(SkyRig.prototype), renderer: unknown = Object.create(WebGLRenderer.prototype);

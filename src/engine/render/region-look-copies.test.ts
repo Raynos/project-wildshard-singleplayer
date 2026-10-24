@@ -1,9 +1,9 @@
 import { expect, test } from 'vitest';
 import * as THREE from 'three';
-import { Scope } from '../src/engine/app/scope';
-import { scopeLookChunks, type LookChunks } from '../src/engine/render/regionLook';
-import { copyShaderPatches } from '../src/engine/render/shaderPatches';
-import { admitObjectDraw } from '../src/engine/render/drawGuards';
+import { Scope } from '../app/scope';
+import { scopeLookChunks, type LookChunks } from './regionLook';
+import { copyShaderPatches } from './shaderPatches';
+import { admitObjectDraw } from './drawGuards';
 
 // A grid cell clip variant copies its source's patches (region look included); the region look's per-frame sweep then
 // reached the variant as a new material and patched it again: its key gained a second `|look:` and it linked again.

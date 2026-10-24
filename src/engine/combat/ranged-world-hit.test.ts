@@ -1,13 +1,13 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Real query behaviour uses the shipped Rapier binary.
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
-import { app } from '../src/engine/app/runtime';
-import { worldHit as pageHit } from '../src/engine/combat/view/ranged';
-import { Physics } from '../src/engine/physics/Physics';
-import { loadRapier } from '../src/engine/physics/rapier';
-import { addPiece } from '../src/engine/physics/pieces';
-import { castSegment, worldHit } from '../src/engine/physics/query';
-import { WorldRegistry } from '../src/engine/world/registry';
+import { app } from '../app/runtime';
+import { worldHit as pageHit } from './view/ranged';
+import { Physics } from '../physics/Physics';
+import { loadRapier } from '../physics/rapier';
+import { addPiece } from '../physics/pieces';
+import { castSegment, worldHit } from '../physics/query';
+import { WorldRegistry } from '../world/registry';
 
 test('page and native shot sweeps pass edge strips in order and return the same world contact', async () => {
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));

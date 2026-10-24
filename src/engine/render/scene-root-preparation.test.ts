@@ -1,8 +1,8 @@
 import {expect, test, vi} from 'vitest';
 import {BoxGeometry, DataTexture, DirectionalLight, Fog, Group, Mesh, MeshBasicMaterial, PerspectiveCamera, Scene, WebGLRenderer, type Object3D} from 'three';
-import {Scope} from '../src/engine/app/scope';
-import {prepareSceneRoots, registerExteriorLighting} from '../src/engine/render/precompile';
-import {noteEnvironment} from '../src/engine/render/drawnEnvironment';
+import {Scope} from '../app/scope';
+import {prepareSceneRoots, registerExteriorLighting} from './precompile';
+import {noteEnvironment} from './drawnEnvironment';
 
 function fixture() {
   const scope = new Scope('root-preparation'), scene = new Scene(), camera = new PerspectiveCamera();

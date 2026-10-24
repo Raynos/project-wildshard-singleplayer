@@ -1,7 +1,7 @@
 import { expect, test, vi } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
-import { fixedMemoryCensus } from '../src/engine/script/fixedMemory';
-import { ViewLane, type ViewLaneRows } from '../src/engine/script/viewLane';
+import { Scope } from '../app/scope';
+import { fixedMemoryCensus } from './fixedMemory';
+import { ViewLane, type ViewLaneRows } from './viewLane';
 
 // A hand-built SCRIPT-ABI v2 view module (no v2 compiler yet): IO at 1024; ws_view writes one changed transform (the
 // identity, translated by `alpha` on x) into the kind-17 region the host's directory names, traps when dt > 1, and

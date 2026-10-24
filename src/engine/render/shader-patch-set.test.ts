@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import * as THREE from 'three';
-import { patchShader, shaderPatchProgramKey, shaderPatchSet } from '../src/engine/render/shaderPatches';
+import { patchShader, shaderPatchProgramKey, shaderPatchSet } from './shaderPatches';
 
 // a kept node key is reused while its patch set is the same object: a patch added gives a new set, and a key function not
 // marked pure never gives a reusable one

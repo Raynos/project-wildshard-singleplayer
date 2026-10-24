@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
-import { disposalErrorMessages, Scope } from '../src/engine/app/scope';
-import { scopedTilePorts, type RingTile } from '../src/engine/world/tileStreamer';
+import { disposalErrorMessages, Scope } from '../app/scope';
+import { scopedTilePorts, type RingTile } from './tileStreamer';
 
 interface Prepared { readonly scope: Scope; readonly value: string }
 const tile: RingTile = { key: 'level:l0/0/0', instance: 'level', type: 'level', level: 'l0', x: 0, z: 0 };

@@ -1,11 +1,11 @@
 import { expect, test, vi } from 'vitest';
 import { BufferGeometry, Group, Mesh, MeshBasicMaterial, PerspectiveCamera, Scene, Texture } from 'three';
-import { Scope } from '../src/engine/app/scope';
-import { AssetService } from '../src/engine/app/assets';
-import { ownSceneTree } from '../src/engine/app/sceneOwnership';
-import { MemoryAttribution } from '../src/engine/core/memoryAttribution';
-import { ownPostSampler, UploadOwnership } from '../src/engine/render/uploadOwnership';
-import type { Renderer } from '../src/engine/render/renderer';
+import { Scope } from './scope';
+import { AssetService } from './assets';
+import { ownSceneTree } from './sceneOwnership';
+import { MemoryAttribution } from '../core/memoryAttribution';
+import { ownPostSampler, UploadOwnership } from '../render/uploadOwnership';
+import type { Renderer } from '../render/renderer';
 
 function fixture() {
   const page = new Scope('page'), assets = new AssetService(), ledger = new MemoryAttribution();

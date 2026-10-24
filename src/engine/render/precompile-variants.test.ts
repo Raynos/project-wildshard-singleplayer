@@ -1,9 +1,9 @@
 import { expect, test, vi } from 'vitest';
 import { Bone, BoxGeometry, InstancedMesh, Mesh, MeshBasicMaterial, MeshDepthMaterial, MeshStandardMaterial, PerspectiveCamera, Scene, Skeleton, SkinnedMesh, WebGLRenderer, type Material } from 'three';
-import { runPrecompile, sceneJobs, shadowJobs } from '../src/engine/render/precompile';
-import type { ProgramLike } from '../src/engine/boot/perflog';
-import { loadGraphBackend } from '../src/engine/render/graphBackend';
-import { noteFrameDrawn } from '../src/engine/core/framePacing';
+import { runPrecompile, sceneJobs, shadowJobs } from './precompile';
+import type { ProgramLike } from '../boot/perflog';
+import { loadGraphBackend } from './graphBackend';
+import { noteFrameDrawn } from '../core/framePacing';
 
 test('preparation retains both shadow-receiver variants of a shared material', () => {
   const scene = new Scene(), geometry = new BoxGeometry(), material = new MeshStandardMaterial();
