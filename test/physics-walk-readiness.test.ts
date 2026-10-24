@@ -50,6 +50,8 @@ test.each(['ready', 'blocked', 'save-failed'])('a %s crossing retains the origin
   const result = await f.result;
   expect(result.stuck).toHaveLength(1);
   expect(result.stuck[0]).toMatchObject({ x: 0, grid: { crossing: { phase } } });
+  expect(result).toMatchObject({ complete: false, timedOut: false });
+  expect(f.position.x).toBe(0); // No fallback teleport across the grid's readiness fence.
   expect(f.stopped()).toBe(true);
 });
 

@@ -25,17 +25,17 @@ export async function walkPhysicsLeg(legIn) {
   await new Promise((resolve) => {
     let stop = () => { /* assigned before the first simulation frame */ };
     let cancelDeadline = () => { /* assigned before the first simulation frame */ };
-    const finish = (finished) => {
+    const finish = (finished, expired = false) => {
       if (wi < 0) return;
-      complete = finished; timedOut = !finished;
+      complete = finished; timedOut = expired;
       w.game.app.input.clear(); if (legIn.start.hover === true) p.setHover(false);
       wi = -1; cancelDeadline(); stop(); resolve(undefined);
     };
     // A closed frame gate stops dt callbacks too; it must not strand the proof.
-    const deadline = setTimeout(() => { finish(false); }, (legIn.timeout ?? 60) * 1000);
+    const deadline = setTimeout(() => { finish(false, true); }, (legIn.timeout ?? 60) * 1000);
     cancelDeadline = () => { clearTimeout(deadline); };
     stop = w.game.watchFrames((dt) => {
-      if (wi >= legIn.waypoints.length || t > (legIn.timeout ?? 60)) { if (wi !== -1) finish(wi >= legIn.waypoints.length); return; }
+      if (wi >= legIn.waypoints.length || t > (legIn.timeout ?? 60)) { if (wi !== -1) finish(wi >= legIn.waypoints.length, wi < legIn.waypoints.length); return; }
       if (wi < 0) return;
       t += dt;
       const wp = legIn.waypoints[wi];
@@ -59,6 +59,10 @@ export async function walkPhysicsLeg(legIn) {
           // Read only on refusal, before the diagnostic fallback moves the player.
           grid,
           ground: owner !== null && typeof owner === 'object' && typeof owner.id === 'string' ? owner.id : null });
+        // A diagnostic teleport into another grid frame can close gameplay's
+        // readiness gate before its fixed-step interior event. Preserve the
+        // refusal at the real feet instead of manufacturing that activation.
+        if (grid !== undefined) { finish(false); return; }
         p.spawn(wp.x, wp.z, p.yaw); land(); wi++; lastProg = { t, d: Infinity }; return;
       }
       p.yaw = Math.atan2(-dx, -dz);
