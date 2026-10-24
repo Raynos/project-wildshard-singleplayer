@@ -72,3 +72,16 @@ test('a declared post look binds the manifest render and refuses a second look b
   expect(manifest.postLook).toBeUndefined();
   expect(() => defineShard(input,{ render: () => Promise.reject(new Error('unused')) })).toThrow('Conflicting manifest look bindings');
 });
+
+test('declared manifests refuse source runtime entries before getters or sample decoding', () => {
+  const read = vi.spyOn(channels, 'readScalarLattice'); read.mockClear();
+  for (const runtimeEntry of [undefined, 'runtime/hybrid.ts']) {
+    const input = { ...sampled(), runtimeEntry };
+    expect(() => defineShard(input, {})).toThrow('do not name runtime modules');
+  }
+  let calls = 0;
+  const accessor = sampled();
+  Object.defineProperty(accessor, 'runtimeEntry', { get() { calls++; return 'runtime/hybrid.ts'; } });
+  expect(() => defineShard(accessor, {})).toThrow('do not name runtime modules');
+  expect(calls).toBe(0); expect(read).not.toHaveBeenCalled();
+});

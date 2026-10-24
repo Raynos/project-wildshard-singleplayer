@@ -678,7 +678,6 @@ export type ShardManifestRows = Omit<ShardManifest, 'scalarBlocks' | 'load' | 'r
   readonly ground?: ShardManifest['ground'];
   readonly horizon?: { readonly rings: readonly HorizonRing[]; readonly cloudSea: boolean };
   readonly pois?: readonly ChunkPoi[];
-  readonly runtimeEntry?: TrustedRuntimeEntry['entry'];
   readonly poses?: Awaited<ReturnType<NonNullable<ShardManifest['dev']>['poses']>>;
   readonly groundColour?: readonly [number, number, number];
   /** Explicit finite recipes; all admit before the original ordered decodes. */
@@ -692,13 +691,14 @@ export type ShardManifestRows = Omit<ShardManifest, 'scalarBlocks' | 'load' | 'r
  * Native callbacks remain explicit bindings; declared tree/audio choices use existing product loaders. */
 export function defineShard(rows: ShardManifestRows,
   bindings: Pick<ShardManifest, 'load' | 'render' | 'roster' | 'ktx2' | 'dev'> & { readonly ground?: ShardManifest['ground'] }): ShardManifest {
+  if ('runtimeEntry' in rows) throw new Error('Declared manifests do not name runtime modules');
   for (const key of ['groundRows','groundColourSamples','surfaceSamples','forestMaskSamples','mapGroundSamples']) {
     const descriptor = Object.getOwnPropertyDescriptor(rows,key);
     if (key in rows && (descriptor === undefined || !descriptor.enumerable || !('value' in descriptor))) throw new Error('Manifest samples require own data fields');
   }
   if('scalarBlocks' in rows)throw new Error('Scalar intake is constructed by the manifest reader');
   const scalarBlocks=new ScalarLatticeBindings();
-  const { runtimeEntry,postLook,poses,groundColour,horizon,pois,minimap,groundRows,groundColourSamples,surfaceSamples,forestMaskSamples,mapGroundSamples,...data } = rows;
+  const { postLook,poses,groundColour,horizon,pois,minimap,groundRows,groundColourSamples,surfaceSamples,forestMaskSamples,mapGroundSamples,...data } = rows;
   if (postLook !== undefined && bindings.render !== undefined) throw new Error('Conflicting manifest look bindings');
   const nativeGround = bindings.ground ?? data.ground,{ palette,...mapFields } = minimap ?? {};
   if (groundRows !== undefined && nativeGround !== undefined || groundColourSamples !== undefined && groundColour !== undefined
@@ -743,7 +743,6 @@ export function defineShard(rows: ShardManifestRows,
   };
   scalarBlocks.seal();
   if(scalarBlocks.files.length>0)manifest.scalarBlocks=scalarBlocks;
-  if (runtimeEntry !== undefined) manifest.trustedRuntime = { get slug() { return manifest.slug; }, entry: runtimeEntry };
   if (postLook !== undefined) manifest.render = async (product) => (await import('../looks/postGraphLook')).postGraphLook(product, postLook);
   return manifest;
 }
