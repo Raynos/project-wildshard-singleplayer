@@ -4,8 +4,7 @@ import { markUnload } from '@wildshard/engine/boot/lastEnd';
 import { freshPageArrival, setTitleArrival } from '@wildshard/engine/boot/titleArrival';
 import type { SaveKeyDef, SaveSlot } from '@wildshard/engine/saves/store';
 import { findTitleManifest, titleManifests } from '../shard/titleList';
-import { shardEntry } from '../shard/entryMode';
-import { shardEntryManifest } from '../shard/legacy';
+import { resolveTravelEntry } from './entry';
 import type { ShardSlug } from '../shard/slugs.generated';
 import type { SpawnPose } from '../shard/manifest';
 import type { Inventory, ItemId } from '../Inventory';
@@ -72,7 +71,7 @@ const service = travelService({ source: () => running, slot: travelSlot(), now: 
 export function travel(request: TravelRequest): void {
   const manifest = findTitleManifest(request.to);
   if (manifest === undefined) return;
-  const target = request.mode === 'enter' ? shardEntryManifest(titleManifests(), request.to, shardEntry(manifest)) : manifest;
+  const target = request.mode === 'enter' ? resolveTravelEntry(titleManifests(), manifest) : manifest;
   if (target !== undefined) service.travel({ ...request, to: target.slug });
 }
 export function consumeTravelHandoff(to: ShardSlug): TravelHandoff | null { return service.consume(to); }
