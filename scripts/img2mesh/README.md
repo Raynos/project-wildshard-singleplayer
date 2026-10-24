@@ -179,10 +179,31 @@ Side by side: `art/driftwood-isle/round-8-assets/hunyuan-vs-trellis.jpg`.
   - **Which to use:** Hunyuan3D-2 and TRELLIS.2 are equally allowed for shipped game assets (the game ships in
     North and South America only, AGENTS.md). Run both where it matters and ship the better model.
 
+## 4b. Hi3D refine (opt-in, HI3D-REFINE, 2026-10-24)
+
+[Hi3D v1.0](https://github.com/hi3d-official/Hi3Dv1.0) refines a generation's mesh against its reference into ~1 M
+clean faces (geometry only). Runtime, numbers and traps: localai [`docs/hi3d.md`](../../../../localai/docs/hi3d.md).
+
+```bash
+L=~/projects/localai/bin/img2mesh/run-locked.sh
+$L ~/ml/img2mesh/logs/<job>-hi3d.log ~/ml/img2mesh/hi3d-mlx/.venv/bin/python -I scripts/img2mesh/hi3d_refine.py \
+  --res 1024 ~/ml/img2mesh/out/hi3d/<shard> <gen>/<ref>.glb <ref image> [<gen>/<ref>.glb <ref image> …]
+REFINE=~/ml/img2mesh/out/hi3d/<shard> python3 scripts/img2mesh/build_props.py <list>.json <out dir> <ref>   # or "refine": {"dir", "res"} in the list
+```
+
+- `hi3d_refine.py` turns each mesh to the reference's camera (`--turn auto`), refines, fits the result back onto the
+  GLB (bbox + ICP) and records time, memory and mesh health. `driftwood_post.py --geo` decimates the refined mesh and
+  bakes the normal map from it; colour still comes from the generation. Off by default: outputs rebuild byte-for-byte.
+- **Use it** for messy generator geometry (spikes, torn flaps, holes after decimation), faceted props and normal-mapped
+  heroes. **Not** for detail the generator only painted (it carves the reference's version under the old paint) or a
+  look without a normal map (no gain). `hi3d_paint.py` (Hunyuan repaint of the refined mesh) lost every test.
+- Boards: `art/hi3d-refine/round-1-heroes/`. Driftwood props built with `--simplifier blender` need `fqmr` under Hi3D
+  (the collapse stalls at ~10× the budget on 1 M faces).
+
 ## 5. Next
 
 - Wreck (V-M2): a hand retopo in Blender so the planks read as planks. The remeshed 3 k LOD0 is blobby next to the
-  reference.
+  reference. Hi3D does this at the same 3 k (HI3D-REFINE board-wreck): railings, ribs and planks read.
 - Emissive rune on the shrine: the atlas has the glowing diamond, and the vertex-colour build loses it.
 - Kitbash coconuts into the palms' crowns: the coconut-cluster asset exists, but TRELLIS dropped the nuts from palm-a.
 - Try TRELLIS.2 at `1024_cascade` with 20+ steps for the hut, and check a Hunyuan 2.1 PBR build against it.
