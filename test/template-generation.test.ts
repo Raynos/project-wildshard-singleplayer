@@ -1,5 +1,5 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare the retained terrain metadata and own only a scratch cache.
-import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Bound the cache to the fixture.
 import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Report measured generator timings independently of engine logging.
@@ -7,7 +7,8 @@ import process from 'node:process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Execute the same one-chunk author module as the CLI.
 import { Buffer } from 'node:buffer';
 import { expect, test } from 'vitest';
-import { build } from 'vite';
+import { build, parseSync } from 'vite';
+import { generatorImportViolation } from '../lint/shard-imports.mjs';
 import { generate } from '../src/shards/_template/shard.config';
 import { templateTerrain } from '../src/shards/_template/generators/terrain';
 import { TEMPLATE_BEHAVIOUR, TEMPLATE_BOSS } from './fixtures/templateSource';
@@ -61,4 +62,13 @@ test('the actual template build closure bundles and executes through the unchang
     expect(source.files.filter(file => assets.has(file.hash))).toHaveLength(assets.size - 1);
     expect(assets.size).toBeGreaterThan(0);
   } finally { rmSync(cache, { recursive: true, force: true }); }
+});
+
+
+test('Template boss and output sources use the unchanged SDK-only author import surface', () => {
+  for (const file of ['boss.ts', 'productOutput.ts']) {
+    const path = resolve('src/shards/_template/generators', file), parsed = parseSync(path, readFileSync(path, 'utf8'));
+    expect(parsed.errors).toEqual([]);
+    for (const node of parsed.program.body) if (node.type === 'ImportDeclaration') expect(generatorImportViolation(path, node.source.value), node.source.value).toBeNull();
+  }
 });

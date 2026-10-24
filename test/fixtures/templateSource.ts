@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import { resolve } from 'node:path';
 import { templateTerrain } from '../../src/shards/_template/generators/terrain';
 import { templateProduct } from '../../src/shards/_template/generators/product';
-import { compileDecisionScripts } from '../../src/sdk/buildDecisionScripts';
+import { compileDeclaredDecisionScripts as compileDecisionScripts } from '../../src/sdk/buildDecisionScripts';
 import { compileTemplateBoss, TEMPLATE_BOSS_INPUTS } from '../../src/shards/_template/generators/boss';
 import { compileScript } from '../../src/sdk/bake/compileScript';
 import { compileTemplateBehaviour, TEMPLATE_BEHAVIOUR_INPUTS, templateBehaviourMetadata } from '../../src/shards/_template/generators/behaviour';
