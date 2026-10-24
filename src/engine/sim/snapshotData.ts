@@ -194,7 +194,7 @@ function* packedPhysics(raw: Uint8Array, basis?: Uint8Array): Generator<undefine
   return { encoding: 'deflate-lz-base64-v1', length: raw.length, packedLength: references.length, chunks, checksum: hash,
     ...(basis === undefined ? {} : { basis: { length: basis.length, checksum: basisChecksum(basis) } }) };
 }
-function physicsBytes(packed: v.InferOutput<typeof packedSnapshot>['physics'], basis: Uint8Array | undefined, mismatch: () => Error): number[] {
+function physicsBytes(packed: v.InferOutput<typeof packedSnapshot>['physics'], basis: Uint8Array | undefined, mismatch: () => Error): number[] | Uint8Array {
   if (packed.encoding === 'base64') {
     const bytes = unpack(packed.data);
     if (bytes.length > maxPhysicsBytes || checksum(bytes) !== packed.checksum) throw new RangeError('Snapshot physics checksum or length mismatch');
@@ -215,7 +215,7 @@ function physicsBytes(packed: v.InferOutput<typeof packedSnapshot>['physics'], b
   if (packed.basis !== undefined && basis !== undefined && (basis.length !== packed.basis.length || basisChecksum(basis) !== packed.basis.checksum)) throw mismatch();
   const bytes = decodePhysicsReferences(references, packed.length, packed.basis === undefined ? undefined : basis);
   if (checksum(bytes) !== packed.checksum) throw new RangeError('Snapshot physics checksum mismatch');
-  return byteArray(bytes);
+  return bytes;
 }
 const health = v.strictObject({ version, attributes: v.pipe(v.record(v.string(), v.union([v.number(), v.undefined()])),
   v.check((attributes) => Number.isFinite(attributes['health']) && Number.isFinite(attributes['maxHealth']))),
@@ -283,6 +283,15 @@ export function serializeSnapshotData(input: SimSnapshot | SimSnapshotBytes, api
 }
 /** Internal strict wire parser; unknown static fields are refused at every nesting level. */
 export function decodeSnapshotData(input: unknown, apiVersion: number, physicsBasis?: Uint8Array, mismatch?: (levelId: string, tick: number) => Error): SimSnapshot {
+  const saved = readSnapshotData(input, apiVersion, physicsBasis, mismatch);
+  return { ...saved, physics: saved.physics instanceof Uint8Array ? byteArray(saved.physics) : saved.physics };
+}
+/** The same strict decoder with detached native bytes, avoiding a boxed per-byte transport round trip. */
+export function decodeSnapshotDataBytes(input: unknown, apiVersion: number, physicsBasis?: Uint8Array, mismatch?: (levelId: string, tick: number) => Error): SimSnapshotBytes {
+  const saved = readSnapshotData(input, apiVersion, physicsBasis, mismatch);
+  return { ...saved, physics: saved.physics instanceof Uint8Array ? saved.physics : Uint8Array.from(saved.physics) };
+}
+function readSnapshotData(input: unknown, apiVersion: number, physicsBasis: Uint8Array | undefined, mismatch: ((levelId: string, tick: number) => Error) | undefined): Omit<SimSnapshot, 'physics'> & { physics: number[] | Uint8Array } {
   const parsed: unknown = typeof input === 'string' ? JSON.parse(input) : input;
   jsonTree(parsed);
   const saved = v.parse(wire, parsed).snapshot;

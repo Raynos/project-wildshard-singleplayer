@@ -122,6 +122,13 @@ regional placement and the certification tolerances are identical to synchronous
 motor transfers. `@wildshard/game/grid/state` fingerprints authored continuation without global placement or
 platform colliders. See [GRID-SIMULATION.md](GRID-SIMULATION.md) for readiness, snapshot and client integration ports.
 
+`@wildshard/engine/sim/snapshot.decodeSimSnapshotBytes` validates the same exact continuation
+as `decodeSimSnapshot`, returning detached `Uint8Array` physics instead of a boxed byte array.
+Both restore entry points accept this existing `SimSnapshotBytes` shape; genuine native byte
+views need no numeric range scan, and replacement physics still receives a detached copy.
+Regional durability uses this decoder. Legacy decoded arrays, packed bytes, metadata, basis,
+checksum, registration and final restore checks keep their original contracts.
+
 `@wildshard/game/shardfile/skinLayers` declares independent numeric pose clocks in skin bindings.
 Each clock has a period, monotonic sample times and joint-local translation, Euler rotation, scale
 or quaternion deltas. Coupled clocks use bounded quaternion phase tables with their own phase period.

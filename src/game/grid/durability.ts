@@ -2,7 +2,7 @@ import * as v from 'valibot';
 import type { SaveStore, InstanceSaveSlot } from '@wildshard/engine/saves/store';
 import type { SimHost } from '@wildshard/engine/sim';
 import { fnv1a32 } from '@wildshard/engine/core/rng';
-import { serializeSimSnapshotSteps, finishSimSteps, decodeSimSnapshot, SnapshotBasisMismatchError, SIM_REGION_SNAPSHOT_CHAR_BUDGET, type SimSnapshot, type SimSnapshotBytes } from '@wildshard/engine/sim/snapshot';
+import { serializeSimSnapshotSteps, finishSimSteps, decodeSimSnapshotBytes, SnapshotBasisMismatchError, SIM_REGION_SNAPSHOT_CHAR_BUDGET, type SimSnapshot, type SimSnapshotBytes } from '@wildshard/engine/sim/snapshot';
 import { instanceSave, type LocalSaveInstance } from '../instanceSaves';
 import { Ledger, installLedgerEmitter, type LedgerCatalogueItem, type LedgerEmitter } from '../ledger';
 import type { QuestDataPorts } from '../quest/declared';
@@ -76,7 +76,7 @@ export class GridRegionDurability {
   state(): { mode: 'exact' | 'logical'; characters: number } | null { return this.receipt === null ? null : { ...this.receipt }; }
 
   /** Keep exact-revision engine state; an older revision reserves portable progress for a freshly admitted simulation. Future revisions remain untouched. */
-  read(allowLogical = false): SimSnapshot | undefined {
+  read(allowLogical = false): SimSnapshotBytes | undefined {
     this.pendingLogical = null;
     const value = this.saved.read();
     if (value === null) return undefined;
@@ -85,7 +85,7 @@ export class GridRegionDurability {
     if (value.revision < this.identity.revision) {
       if (!allowLogical) throw new Error('Regional continuation requires logical migration');
       if (value.logical === null && value.snapshot === null) throw new Error('Missing regional progress');
-      this.pendingLogical = value.logical ?? clientStateFromRegion(this.source, decodeSimSnapshot(value.snapshot, this.physicsBasis), value.revision, 1);
+      this.pendingLogical = value.logical ?? clientStateFromRegion(this.source, decodeSimSnapshotBytes(value.snapshot, this.physicsBasis), value.revision, 1);
       return undefined;
     }
     if (value.mode === 'logical') {
@@ -94,7 +94,7 @@ export class GridRegionDurability {
     }
     if (value.snapshot === null) throw new Error('Missing exact regional continuation');
     try {
-      const snapshot = decodeSimSnapshot(value.snapshot, this.physicsBasis);
+      const snapshot = decodeSimSnapshotBytes(value.snapshot, this.physicsBasis);
       if (snapshot.levelId !== this.identity.shard) throw new Error('Regional continuation belongs to another shard');
       return snapshot;
     } catch (error) {

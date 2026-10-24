@@ -1,5 +1,5 @@
 import { Vector3 } from 'three';
-import { serializeSnapshotData, serializeSnapshotDataSteps, decodeSnapshotData, finishSteps } from './snapshotData';
+import { serializeSnapshotData, serializeSnapshotDataSteps, decodeSnapshotData, decodeSnapshotDataBytes, finishSteps } from './snapshotData';
 import { byteArray } from './snapshotPhysics';
 import { createSimHost, SIM_API_VERSION, type SimHost, type SimHostPorts, type SimLevel, type SimSlots, type SimValue } from '../sim';
 import { SHOVE_TIME } from '../player/shove';
@@ -77,8 +77,8 @@ export interface SimSnapshot {
   boardColliders?: number[] | undefined;
 }
 
-/** A fresh native capture for encoding, without a boxed JavaScript array for each Rapier byte. The packed wire and
- *  decoded/restore API remain {@link SimSnapshot}; staged serialization freezes these bytes before its first pause. */
+/** Detached native physics bytes for capture, decoding and restore, without a boxed array per Rapier byte.
+ *  The legacy decoded array and packed wire stay unchanged; staged serialization freezes bytes before pausing. */
 export type SimSnapshotBytes = Omit<SimSnapshot, 'physics'> & { physics: Uint8Array };
 
 /** Serialize exact physics (≤32 MB) in bounded lossless blocks; optional immutable fresh-world bytes serve as a checked basis. */
@@ -95,6 +95,11 @@ export function finishSimSteps<T>(steps: Generator<undefined, T>): T { return fi
 /** Decode compressed/legacy JSON; a basis-referencing wire requires its exact checked basis. Never drops native geometry/state. */
 export function decodeSimSnapshot(input: unknown, physicsBasis?: Uint8Array): SimSnapshot {
   return decodeSnapshotData(input, SIM_API_VERSION, physicsBasis, (levelId, tick) => new SnapshotBasisMismatchError(levelId, tick));
+}
+/** Decode the same strict wire directly to detached native bytes. Restore still copies caller-owned bytes before
+ *  constructing replacement physics; metadata, framing, basis and checksum refusals match {@link decodeSimSnapshot}. */
+export function decodeSimSnapshotBytes(input: unknown, physicsBasis?: Uint8Array): SimSnapshotBytes {
+  return decodeSnapshotDataBytes(input, SIM_API_VERSION, physicsBasis, (levelId, tick) => new SnapshotBasisMismatchError(levelId, tick));
 }
 
 function encode(value: unknown, host: SimHost, parents = new Set<object>()): EventValue {
@@ -261,7 +266,7 @@ export function isSimHostRestoring(host: SimHost): boolean { return restoringHos
 export interface PreparedSimHostRestore {
   readonly host: SimHost;
   readonly keep: () => SimHost;
-  readonly restore: (saved: SimSnapshot, install?: (host: SimHost) => void) => SimHost;
+  readonly restore: (saved: SimSnapshot | SimSnapshotBytes, install?: (host: SimHost) => void) => SimHost;
 }
 /** Create the restore-check context before installing services; no live host can be supplied. */
 export function prepareSimHostRestore(level: SimLevel, ports: SimHostPorts): PreparedSimHostRestore {
@@ -285,21 +290,21 @@ export function prepareSimHostRestore(level: SimLevel, ports: SimHostPorts): Pre
       return restoreInstalledHost(host, ports, saved, checks, install);
     } };
 }
-function validateSnapshot(level: SimLevel, saved: SimSnapshot): void {
+function validateSnapshot(level: SimLevel, saved: SimSnapshot | SimSnapshotBytes): void {
   if (saved.version !== SIM_SNAPSHOT_VERSION || saved.apiVersion !== SIM_API_VERSION || saved.levelId !== level.id
     || saved.levelFingerprint !== fnv1a32(JSON.stringify(level)) || !Number.isSafeInteger(saved.state.tick) || saved.state.tick < 0
     || !Number.isFinite(saved.state.accumulator) || saved.state.accumulator < -Number.EPSILON
     || !Object.values(saved.state.timers).every((value) => Number.isFinite(value) && value >= 0)
-    || saved.physics.length === 0 || saved.physics.some((byte) => !Number.isInteger(byte) || byte < 0 || byte > 255)) throw new RangeError('Incompatible simulation snapshot');
+    || saved.physics.length === 0 || (!(saved.physics instanceof Uint8Array && ArrayBuffer.isView(saved.physics)) && saved.physics.some((byte) => !Number.isInteger(byte) || byte < 0 || byte > 255))) throw new RangeError('Incompatible simulation snapshot');
 }
 /** Boot a fresh matching level, reinstall scoped adapters, then restore every continuation before replay. */
-export function restoreSimHost(level: SimLevel, ports: { rapier: Rapier }, saved: SimSnapshot, install?: (host: SimHost) => void): SimHost {
+export function restoreSimHost(level: SimLevel, ports: { rapier: Rapier }, saved: SimSnapshot | SimSnapshotBytes, install?: (host: SimHost) => void): SimHost {
   validateSnapshot(level, saved);
   const host = createSimHost(level, ports), checks: (() => void)[] = [];
   restoreChecks.set(host, checks);
   return restoreInstalledHost(host, ports, saved, checks, install);
 }
-function restoreInstalledHost(host: SimHost, ports: { rapier: Rapier }, saved: SimSnapshot, checks: (() => void)[], install?: (host: SimHost) => void): SimHost {
+function restoreInstalledHost(host: SimHost, ports: { rapier: Rapier }, saved: SimSnapshot | SimSnapshotBytes, checks: (() => void)[], install?: (host: SimHost) => void): SimHost {
   restoringHosts.add(host);
   let replacement: Physics | null = null;
   try {
