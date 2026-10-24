@@ -24,6 +24,7 @@ import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import { hasSpecies, registerSpecies, speciesDef, type BoneDef, type SpeciesDef, type VariantDef } from '@wildshard/engine/entities/species/registry';
 import { roamingBossDamage } from '../boss/roamingProjection';
 import { limbAnimation } from '../animation/limbView';
+import type { Scope } from '@wildshard/engine/app/scope';
 
 /** Client-only hull projection on shared fauna or declared skeletons. The data
  * book owns coats and post-poses; the existing hull cache owns every asset. */
@@ -225,7 +226,8 @@ export function productHullBook(product: { readonly section: (name: 'look/hull-b
 export function productSpeciesCatalogue(product:Parameters<typeof productHullBook>[0],data:Pick<SpeciesPresentationRows,'lookBook'>,lookRows:unknown):SpeciesCatalogue{
   const book=productHullBook(product),rules=speciesBehaviour(data.lookBook),packed=book.packedLooks(lookRows),bodies=book.packed;
   const rows=rules.rows,looks=packed.all.map(look=>rules.look(look));
-  return {rows,looks,packed,program:kind=>{const projection=rules.projections.get(kind);if(projection===undefined)throw new Error('Missing actor projection');return projection.program();},preload:()=>bodies.preload(),
+  const projection = (kind: string): ActorProjectionV2 => { const value = rules.projections.get(kind); if (value === undefined) throw new Error('Missing actor projection'); return value; };
+  return {rows,looks,packed,program:kind=>projection(kind).program(),prepareMemory:(kind,scope)=>projection(kind).prepareMemory(scope),preload:()=>bodies.preload(),
     install:target=>{target.species(rows);target.speciesLook(looks);}};
 }
 
@@ -234,6 +236,7 @@ export function productSpeciesCatalogue(product:Parameters<typeof productHullBoo
 export interface SpeciesCatalogue {
   readonly rows: readonly SpeciesRow[]; readonly looks: readonly SpeciesLook[];
   program:(kind:string)=>ReturnType<ActorProjectionV2['program']>;
+  prepareMemory:(kind:string,scope:Scope)=>boolean;
   readonly packed: ReturnType<HullLookBook['packedLooks']>;
   preload: () => Promise<void>; install: (target: Pick<EngineRows, 'species' | 'speciesLook'>) => void;
 }

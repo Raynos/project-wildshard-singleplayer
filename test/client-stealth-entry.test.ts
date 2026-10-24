@@ -1,4 +1,6 @@
-import { expect, test } from 'vitest';
+// oxlint-disable-next-line import/no-nodejs-modules -- Read the shipped row without rebuilding the product.
+import { readFileSync } from 'node:fs';
+import { expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { App } from '../src/engine/app/app';
@@ -14,6 +16,11 @@ import type { clientWildlifeState } from '../src/game/population/wildlife';
 import { wildEnv } from '../src/game/population/pageGroups';
 import { bindStealthWeapons, installClientStealthEntry } from '../src/game/shardfile/clientStealthEntry';
 import { publishEntryOwner } from '../src/game/shardfile/entryOwners';
+import { CLIENT_FEATURES } from '../src/game/shardfile/clientPlan';
+import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { emptyShardfile } from '../src/sdk/author';
+import { ReturnProgram } from '../src/game/population/returnProgram';
+import { lendNalatiAdmission } from './fixtures/nalati-return-modules';
 import { legacyDouble } from './fake/FakeGame';
 
 const row: Extract<ClientFeatureRow, {kind: 'stealth.entry'}> = {
@@ -89,4 +96,22 @@ test('a missing world refuses before construction or publication', () => {
   const scope = new Scope('missing-stealth-world');
   try { expect(() => installClientStealthEntry(legacyDouble<ShardContext>({scope, game: legacyDouble<ShardContext['game']>({runtime: legacyDouble<ShardRuntime>({world: null, play: null})})}), row)).toThrow('live world and play'); }
   finally { scope.dispose(); }
+});
+
+
+test('world admission reserves only stealth memory; controller guest initialization remains at prepare-play', async () => {
+  const scope = new Scope('early-stealth'), rows: unknown = JSON.parse(readFileSync('src/shards/nalati-grasslands/data/stealth.generated.json', 'utf8'));
+  const product = createShardProduct({slug: 'orchard', revision: 1,
+    shardfile: emptyShardfile({slug: 'orchard', name: 'Orchard', author: 'Test', revision: 1, seed: 1}),
+    sections: new Map([['player/stealth', rows]]), files: new Map(), read: () => Promise.reject(new Error('Stealth needs no file read'))});
+  const ctx = legacyDouble<ShardContext>({scope, product}), feature = CLIENT_FEATURES['stealth.entry'];
+  lendNalatiAdmission(scope);
+  const memory = vi.spyOn(WebAssembly, 'Memory'), instance = vi.spyOn(WebAssembly, 'Instance');
+  try {
+    expect(feature.phase).toBe('prepare-play'); expect(feature.world?.rank).toBe(0);
+    await feature.world?.install(ctx, row, scope);
+    expect(memory).toHaveBeenCalledTimes(1); expect(instance).not.toHaveBeenCalled();
+    ReturnProgram.page(product.section('player/stealth').program, scope);
+    expect(memory).toHaveBeenCalledTimes(1); expect(instance).toHaveBeenCalledTimes(1);
+  } finally { scope.dispose(); memory.mockRestore(); instance.mockRestore(); }
 });

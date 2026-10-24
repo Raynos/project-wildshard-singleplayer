@@ -297,6 +297,7 @@ export async function installClientRiding(ctx: ShardContext, feature: ClientFeat
   available();
   const rows = v.parse(ClientRidingSessionSchema, await read.call(product, feature.file));
   available();
+  ReturnProgram.prepareMemory(rows.programs.approach, scope);
   const figure = rows.figure === undefined ? null : v.parse(MountedSpecimenSeatSchema, await read.call(product, rows.figure));
   available();
   const figureFiles=figure===null?new Map<string,Uint8Array>():await prepareSeatedFigure(product,figure,scope);available();

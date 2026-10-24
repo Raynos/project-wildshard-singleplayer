@@ -12,35 +12,15 @@
 import { readV2Module } from '@wildshard/format/scriptModuleV2';
 import { admitScriptV2 } from '@wildshard/format/scriptAdmissionV2';
 import type { Scope } from '../app/scope';
+import { prepareScriptMemory, consumeScriptMemory } from './moduleV2';
 
-/** A native, one-use reservation. Its memory stays private until the original
- * view instance consumes it; an unconsumed reservation ends with its owner. */
+/** A native reservation kept opaque until its original view slot binds. */
 export interface PreparedViewMemory { readonly pages: number }
-interface ViewMemoryReservation { readonly scope: Scope; readonly bytes: Uint8Array; readonly memory: WebAssembly.Memory; forget: () => void }
-const preparedMemories = new WeakMap<PreparedViewMemory, ViewMemoryReservation>();
-
-/** Admit and allocate a fresh view memory before its slot's owner binds. This
- * executes no guest and lends no targets. Each reservation belongs to this
- * exact scope and module, never a pool shared by instances or owners. */
+/** Admit the exact view pages before reserving its isolated memory. */
 export function prepareViewMemory(bytes: Uint8Array, pages: number, scope: Scope): PreparedViewMemory {
-  if (scope.disposed || scope.disposing) throw new Error('View memory owner has ended');
-  const source = Uint8Array.from(bytes), admitted = admitScriptV2(source, { lane: 'view' });
+  const admitted = admitScriptV2(bytes, { lane: 'view' });
   if (admitted.initialPages !== pages || admitted.maximumPages !== pages) throw new Error('View memory preparation pages differ');
-  const memory = scope.run(() => new WebAssembly.Memory({ initial: pages, maximum: pages }));
-  if (scope.disposed || scope.disposing) throw new Error('View memory owner has ended');
-  const token = Object.freeze({ pages });
-  const entry: ViewMemoryReservation = { scope, bytes: source, memory, forget: () => undefined };
-  preparedMemories.set(token, entry);
-  entry.forget = scope.capture('disposers', () => { preparedMemories.delete(token); });
-  return token;
-}
-
-function consumeViewMemory(token: PreparedViewMemory, bytes: Uint8Array, pages: number, scope: Scope): WebAssembly.Memory {
-  const entry = preparedMemories.get(token);
-  if (entry === undefined || entry.scope !== scope || scope.disposed || scope.disposing || token.pages !== pages
-    || entry.bytes.length !== bytes.length || !entry.bytes.every((value, index) => value === bytes[index])) throw new Error('View memory reservation differs or has ended');
-  preparedMemories.delete(token); entry.forget();
-  return entry.memory;
+  return prepareScriptMemory(bytes, scope);
 }
 
 /** Region kinds and strides (SCRIPT-ABI v2 "Header and region directory"); every kind is present, unused ones empty. */
@@ -123,7 +103,7 @@ export class ViewLane {
     if (read.pages !== pages || pages < 1 || pages > 4) throw new Error('View memory is its declared 1-4 fixed pages');
     const module = new WebAssembly.Module(Uint8Array.from(bytes));
     this.memory = prepared === undefined ? new WebAssembly.Memory({ initial: pages, maximum: pages })
-      : consumeViewMemory(prepared.memory, bytes, pages, prepared.scope);
+      : consumeScriptMemory(prepared.memory, bytes, pages, prepared.scope);
     this.instance = new WebAssembly.Instance(module, { env: { memory: this.memory } });
     if (this.call('ws_abi') !== 2) throw new Error('View module ABI major mismatch');
     this.io = this.call('ws_io');

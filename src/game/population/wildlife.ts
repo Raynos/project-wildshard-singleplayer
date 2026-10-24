@@ -1,5 +1,6 @@
 import type { Scope } from '@wildshard/engine/app/scope';
 import { macrotask } from '@wildshard/engine/boot/plan';
+import { buildYield } from '@wildshard/engine/core/workSlice';
 import { wind } from '@wildshard/engine/world/steppeWind';
 import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
 import type { ShardContext } from '../plugin/context';
@@ -136,6 +137,12 @@ export async function installClientWildlife(ctx: ShardContext, feature: ClientFe
   const runtime = ctx.game.runtime, world = runtime?.world;
   if (runtime === undefined || world === undefined || world === null || runtime.hooks.animalsBuilt !== undefined) throw new Error('Wildlife requires its unbound world animal stage');
   const rows = v.parse(WildlifePopulationSchema, await ctx.product.json(feature.file));
+  // Only programmes this population consumes, in the same two original scopes.
+  // Guest initialization stays at bindPageGroups / animalsBuilt below.
+  for (const [program, scope] of [[rows.groups.damage, ctx.scope], [rows.admission, world.game.levelScope], [rows.pasture, world.game.levelScope]] as const) {
+    if (ReturnProgram.prepareMemory(program, scope)) await buildYield(scope);
+    if (ctx.scope.disposed || ctx.scope.disposing || ctx.game.runtime !== runtime || runtime.world !== world) throw new Error('Wildlife owner left during memory preparation');
+  }
   bindPageGroups(ctx, rows.groups);
   const page = await ctx.product.json<SpeciesActorsFileRows>(feature.crowd.json);
   if (page.parts.length === 0 || page.parts.length !== page.pivots.length || page.radius <= 0 || page.draws.length !== 1) throw new Error('Invalid crowd body joints or bound');

@@ -3,6 +3,34 @@
 import { admitScriptV2 } from '@wildshard/format/scriptAdmissionV2';
 import { validateV2FloatColumns,type FloatColumnV2 } from '@wildshard/format/scriptMemoryV2';
 import { observeWasmMemory } from '../core/memoryResources';
+import type { Scope } from '../app/scope';
+
+/** A one-use native reservation, with no access to its fresh guest memory. */
+export interface PreparedScriptMemory { readonly pages: number }
+interface MemoryReservation { readonly scope: Scope; readonly bytes: Uint8Array; readonly memory: WebAssembly.Memory; forget: () => void }
+const reservations = new WeakMap<PreparedScriptMemory, MemoryReservation>();
+/** Allocate only after admission, for one exact module and its original owner.
+ * Instantiation and guest initialization still occur at the consumer's slot. */
+export function prepareScriptMemory(bytes: Uint8Array, scope: Scope): PreparedScriptMemory {
+  if (scope.disposed || scope.disposing) throw new Error('Script memory owner has ended');
+  const source = Uint8Array.from(bytes), admitted = admitScriptV2(source);
+  const memory = scope.run(() => new WebAssembly.Memory({ initial: admitted.initialPages, maximum: admitted.maximumPages }));
+  if (scope.disposed || scope.disposing) throw new Error('Script memory owner has ended');
+  if (admitted.lane !== 'view') observeWasmMemory(memory, { owner: 'engine/script', asset: 'v2/module' });
+  const token = Object.freeze({ pages: admitted.initialPages });
+  const entry: MemoryReservation = { scope, bytes: source, memory, forget: () => undefined };
+  reservations.set(token, entry);
+  entry.forget = scope.capture('disposers', () => { reservations.delete(token); });
+  return token;
+}
+/** Consume once, after the consumer has repeated its own full admission. */
+export function consumeScriptMemory(token: PreparedScriptMemory, bytes: Uint8Array, pages: number, scope: Scope): WebAssembly.Memory {
+  const entry = reservations.get(token);
+  if (entry === undefined || entry.scope !== scope || scope.disposed || scope.disposing || token.pages !== pages
+    || entry.bytes.length !== bytes.length || !entry.bytes.every((value, index) => value === bytes[index])) throw new Error('Script memory reservation differs or has ended');
+  reservations.delete(token); entry.forget();
+  return entry.memory;
+}
 
 const callable = (value: unknown): value is (...args: number[]) => unknown => typeof value === 'function';
 function budget(value: number): void { if (!Number.isInteger(value) || value < 0 || value > 0x7fffffff) throw new Error('Invalid v2 i32 fuel budget'); }
@@ -24,13 +52,16 @@ export class ScriptModuleV2 {
     readonly seed: readonly [number,number]; readonly initFuel: number;
     readonly output: readonly FloatColumnV2[]; readonly ioBytes?: number;
     readonly initialize?: (view: DataView,io: number) => void;
+    readonly prepared?: { readonly memory: PreparedScriptMemory; readonly scope: Scope };
   }) {
     budget(options.initFuel);
     if (options.seed.some(value => !Number.isInteger(value) || value < 0 || value > 0xffffffff)) throw new Error('Invalid v2 seed words');
     const source = Uint8Array.from(bytes), admitted = admitScriptV2(source,options.ioBytes === undefined ? {} : { ioBytes: options.ioBytes });
     if (admitted.lane === 'view') throw new Error('Stateless v2 host refuses the persistent view lane');
     this.source=source;this.ioBytes=admitted.ioBytes;
-    this.lane = admitted.lane; this.io = admitted.io; this.memory = new WebAssembly.Memory({ initial: admitted.initialPages,maximum: admitted.maximumPages });
+    this.lane = admitted.lane; this.io = admitted.io; this.memory = options.prepared === undefined
+      ? new WebAssembly.Memory({ initial: admitted.initialPages,maximum: admitted.maximumPages })
+      : consumeScriptMemory(options.prepared.memory, source, admitted.initialPages, options.prepared.scope);
     observeWasmMemory(this.memory,{ owner: 'engine/script',asset: 'v2/module' });
     this.instance = new WebAssembly.Instance(new WebAssembly.Module(source),{ env: { memory: this.memory } });
     this.columns = options.output.map(column => Object.freeze({ ...column }));

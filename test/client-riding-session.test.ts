@@ -9,6 +9,7 @@ import type { ShardContext } from '../src/game/plugin/context';
 import { legacyDouble } from './fake/FakeGame';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
+import { lendNalatiRiding } from './fixtures/nalati-return-modules';
 import { Scope } from '../src/engine/app/scope';
 
 test('client session rejects callback ports and admits an unrelated ride profile', () => {
@@ -50,6 +51,7 @@ test('declared frame publication borrows the same installed session and waits fo
     files: new Map([['orchard.json', { hash: 'a'.repeat(64), url: '/orchard.json' }]]),
     read: () => { reads++; return Promise.resolve(new TextEncoder().encode(JSON.stringify(rows))); } });
   const ctx = legacyDouble<ShardContext>({ scope, product });
+  lendNalatiRiding(scope);
   try {
     await installClientRiding(ctx, { kind: 'riding.session', file: 'orchard.json', owner: 'orchard.frame' });
     const owner = entryOwner(scope, 'world-frame', 'orchard.frame');

@@ -7,8 +7,17 @@ import { wildEnv } from '../population/pageGroups';
 import { enterClientRiding, type PageRidingView } from '../riding/client';
 import { StealthController } from '../stealth/controller';
 import { entryOwner, presentEntryOwner, publishEntryOwner } from './entryOwners';
+import { StealthRowsSchema } from '@wildshard/format/stealth';
+import { parse } from 'valibot';
+import { ReturnProgram } from '../population/returnProgram';
 
 type EntryRows = Extract<ClientFeatureRow, {kind: 'stealth.entry'}>;
+
+/** Reserve at world admission, before the original post-kit controller binds. */
+export function prepareClientStealthEntry(ctx: ShardContext): void {
+  const rows = parse(StealthRowsSchema, ctx.product.section('player/stealth'));
+  ReturnProgram.prepareMemory(rows.program, ctx.scope);
+}
 
 /** Keep the original multiplier receiver and shot/impact order. No replacement
  * weapon, creature roster, mount, clock or persistence owner is constructed. */

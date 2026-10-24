@@ -77,6 +77,8 @@ export class ActorProjectionV2 {
     }
     return this.programme.value;
   }
+  /** Preparation executes no guest or contact admission; those remain at program(). */
+  prepareMemory(scope: Scope): boolean { return ReturnProgram.prepareMemory(this.rows.program, scope); }
   private captureOwners<A extends AnimalSim>(actor:A,context:ActorProjectionContext<A>|undefined,hit?:Vector3,request?:DamageRequest,owner?:ActorProjectionOwner):V2ColumnOwners{
     const scope=owner?.scope??this.page?.levelScope;
     if(scope===undefined||scope===null||scope.disposed||scope.disposing)throw new Error('Actor projection owner disposed');

@@ -51,7 +51,7 @@ function fixture(retireOnRead = false) {
   const ctx = legacyDouble<ShardContext>({scope, product, game: legacyDouble<ShardContext['game']>({runtime: legacyDouble<ShardRuntime>({world})})});
   const draws: FixedDraws = {ready: true, load: () => Promise.resolve(), handle: id => legacyDouble<ReturnType<FixedDraws['handle']>>({copy() { copies.push(id); return figure.clone(); }})};
   publishEntryOwner(scope, 'fixed-draws', input.draws, draws);
-  publishEntryOwner(scope, 'species', input.species, legacyDouble<SpeciesCatalogue>({program(id) { expect(id).toBe(input.guest); return ReturnProgram.page(night.program); }}));
+  publishEntryOwner(scope, 'species', input.species, legacyDouble<SpeciesCatalogue>({prepareMemory(id, owner) { expect(id).toBe(input.guest); expect(owner).toBe(scope); return ReturnProgram.prepareMemory(night.program, scope); }, program(id) { expect(id).toBe(input.guest); return ReturnProgram.page(night.program); }}));
   clientNativeBook(ctx).presentations.set('quarry', new CueDirector(game, raw['cues'], scope));
   const clock = legacyDouble<DayCycleClock>({dayPhase: 'day'});
   const sky = legacyDouble<NonNullable<ForestWeatherRig['sky']>>({clock});

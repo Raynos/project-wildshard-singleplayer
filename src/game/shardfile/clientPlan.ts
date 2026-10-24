@@ -234,7 +234,7 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
     if (row.kind !== 'stealth.entry') throw new Error('Invalid stealth entry feature');
     const { installClientStealthEntry } = await import('./clientStealthEntry');
     installClientStealthEntry(ctx, row);
-  } },
+  }, world: { rank: 0, when: () => true, install: loadFeature(async () => (await import('./clientStealthEntry')).prepareClientStealthEntry) } },
   'elite.construct': { phase: 'world', rank: 75, lifetime: 'entered', needsWorldLooks: false, sections: [], install: async (ctx, row) => {
     if (row.kind !== 'elite.construct') throw new Error('Invalid elite construction feature');
     const { installClientEliteConstruction } = await import('./clientEliteConstruction');

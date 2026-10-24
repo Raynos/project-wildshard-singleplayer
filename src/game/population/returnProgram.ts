@@ -6,6 +6,7 @@ import { decisionScriptContract, parseDecisionScripts, SCRIPT_V1_REFERENCE_KINDS
 import type {V2ActionBinding} from '@wildshard/format/scriptActionsV2';
 import type { Rng } from '@wildshard/engine/core/rng';
 import type { GroupStepV2 } from '@wildshard/engine/script/groupStepV2';
+import type { PreparedScriptMemory } from '@wildshard/engine/script/moduleV2';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { SimHost } from '@wildshard/engine/sim';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
@@ -21,6 +22,7 @@ import {outputDescriptor} from '../shardfile/outputDescriptor';
 type RawReturnRow = ReturnModuleRow;
 interface ReturnOwnerBook {
   readonly instances: Map<string,{declaration:string;program:ReturnProgram}>;
+  readonly memories: Map<string,{declaration:string;memory:PreparedScriptMemory}>;
   loan?: {readonly assets:ReadonlyMap<string,Uint8Array>;readonly rows:ReadonlyMap<string,RawReturnRow>};
 }
 // One book, including loans and instances, retired by its original scope.
@@ -28,8 +30,8 @@ const scoped = new Map<Scope,ReturnOwnerBook>();
 function ownerBook(owner:Scope):ReturnOwnerBook {
   if(owner.disposed||owner.disposing)throw new Error('Return owner disposed');
   const previous=scoped.get(owner);if(previous!==undefined)return previous;
-  const book:ReturnOwnerBook={instances:new Map()};scoped.set(owner,book);
-  owner.onDispose(()=>{book.instances.clear();delete book.loan;scoped.delete(owner);});
+  const book:ReturnOwnerBook={instances:new Map(),memories:new Map()};scoped.set(owner,book);
+  owner.onDispose(()=>{book.instances.clear();book.memories.clear();delete book.loan;scoped.delete(owner);});
   return book;
 }
 function rawModule(owner:Scope|undefined,row:ReturnType<typeof readProgram>,witness=false):Uint8Array|undefined {
@@ -64,6 +66,27 @@ function readProgram(input: unknown): Omit<v.InferOutput<typeof ReturnProgramSch
   return {...row,script};
 }
 
+function admitReturn(row: ReturnType<typeof readProgram>, owner?: Scope, witness?: Uint8Array): Uint8Array {
+  if (row.script.state.length > 0 || row.script.tick !== null
+    || row.script.timers.length > 0 || row.script.on.length !== 1 || row.script.on[0] !== 'signal'
+    || row.script.commands.some(command => command !== 'channel')
+    || row.script.reads.some(read => !['field', 'random', 'groundHeight', 'radial'].includes(read))) throw new Error('Invalid return projection');
+  if(row.bytes===''&&witness===undefined)throw new Error('Missing admitted raw return module loan');
+  const bytes = witness ?? Uint8Array.from(atob(row.bytes), byte => byte.codePointAt(0) ?? 0);
+  if (`blobs/wasm/${sha256(bytes)}.wasm` !== row.script.module) throw new Error('Return module hash mismatch');
+  if (owner?.disposed === true || owner?.disposing === true) throw new Error('Return owner disposed');
+  admitScriptContract(bytes, { abi: 1, pages: row.script.pages });
+  return bytes;
+}
+function returnIdentity(row: ReturnType<typeof readProgram>) {
+  const script = row.script;
+  // Alias identity follows sorted names; property order is immaterial.
+  const named = Object.fromEntries([...SCRIPT_V1_REFERENCE_KINDS, 'params' as const].map(key =>
+    [key, Object.fromEntries(Object.entries(script[key] ?? {}).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0))]));
+  return {key: row.v2 === undefined ? `1:${script.module}` : `2:${row.v2.artifact.hash}`,
+    declaration: JSON.stringify({script: decisionScriptContract({...script, ...named}), bytes: row.bytes, ...(row.v2 === undefined ? {} : {v2: row.v2})})};
+}
+
 /** Event-only, stateless projections; only explicit v2 rows select ws_project.
  * The caller retains its queue, phase and
  * continuation; the guest can read numeric observations and publish channels.
@@ -88,23 +111,15 @@ export class ReturnProgram {
   /** The same immutable admitted descriptor used by this selected instance. */
   readonly groupBindings?:GroupGuestBindingsV2;
   readonly prepareGroup?:NonNullable<NumericProjection['prepareGroup']>;
-  private constructor(input: unknown, floor: (x: number, z: number) => number,private readonly owner?: Scope,raw?:Uint8Array,witness?:Uint8Array) {
+  private constructor(input: unknown, floor: (x: number, z: number) => number,private readonly owner?: Scope,raw?:Uint8Array,witness?:Uint8Array,prepared?:PreparedScriptMemory) {
     const row = readProgram(input),script = row.script;
     const freeze=(value:unknown):void=>{if(typeof value!=='object'||value===null||Object.isFrozen(value))return;for(const child of Object.values(value))freeze(child);Object.freeze(value);};
     freeze(row);this.declaration=row;
-    if (script.state.length > 0 || script.tick !== null
-      || script.timers.length > 0 || script.on.length !== 1 || script.on[0] !== 'signal'
-      || script.commands.some(command => command !== 'channel')
-      || script.reads.some(read => !['field', 'random', 'groundHeight', 'radial'].includes(read))) throw new Error('Invalid return projection');
+    const bytes = admitReturn(row, owner, witness);
     this.script = script;this.signalNames=row.v2?.signals??Object.values(script.signals).sort(); this.layout = scriptV1Layout(0, Object.keys(script.params).length);
     const fields = Object.values(script.fields).sort();
-    if(row.bytes===''&&witness===undefined)throw new Error('Missing admitted raw return module loan');
-    const bytes = witness ?? Uint8Array.from(atob(row.bytes), byte => byte.codePointAt(0) ?? 0);
-    if (`blobs/wasm/${sha256(bytes)}.wasm` !== script.module) throw new Error('Return module hash mismatch');
-    if (owner?.disposed === true || owner?.disposing === true) throw new Error('Return owner disposed');
-    admitScriptContract(bytes, { abi: 1, pages: script.pages });
     if (row.v2 !== undefined) {
-      const projection = new ReturnProjectionV2(row.v2,owner,raw);
+      const projection = new ReturnProjectionV2(row.v2,owner,raw,prepared);
       this.prepare = projection.prepare.bind(projection);
       if(projection.groupBindings!==undefined)this.groupBindings=projection.groupBindings;
       if(row.v2.groups!==undefined&&owner!==undefined)this.prepareGroup=projection.prepareGroup.bind(projection);
@@ -136,21 +151,36 @@ export class ReturnProgram {
   }
   private static owned(owner: Scope, input: unknown, floor: (x: number, z: number) => number): ReturnProgram {
     if (owner.disposed || owner.disposing) throw new Error('Return owner disposed');
-    const row = readProgram(input),script = row.script;
-    // Alias identity follows sorted names; wire object property order is immaterial.
-    const named = Object.fromEntries([...SCRIPT_V1_REFERENCE_KINDS, 'params' as const].map(key =>
-      [key, Object.fromEntries(Object.entries(script[key] ?? {}).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0))]));
-    const declaration = JSON.stringify({ script: decisionScriptContract({ ...script, ...named }), bytes: row.bytes,...(row.v2 === undefined ? {} : {v2:row.v2}) }), modules = ownerBook(owner).instances;
+    const row = readProgram(input);
+    const {key, declaration} = returnIdentity(row), book = ownerBook(owner), modules = book.instances;
     const raw=rawModule(owner,row),witness=rawModule(owner,row,true);
-    const key = row.v2 === undefined ? `1:${script.module}` : `2:${row.v2.artifact.hash}`;
     const previous = modules.get(key);
     if (previous !== undefined) {
       if (previous.declaration !== declaration) throw new Error('Shared return declaration changed');
       return previous.program;
     }
-    const program = owner.run(() => new ReturnProgram(row, floor,owner,raw,witness));
+    const prepared = book.memories.get(key);
+    if (prepared !== undefined && prepared.declaration !== declaration) throw new Error('Shared return declaration changed');
+    book.memories.delete(key);
+    const program = owner.run(() => new ReturnProgram(row, floor,owner,raw,witness,prepared?.memory));
     modules.set(key, { declaration, program });
     return program;
+  }
+  /** Prepare only a declared consumer, in its actual scope. The original
+   * cache consumes this fresh memory once when that consumer constructs. */
+  static prepareMemory(input: unknown, owner: Scope): boolean {
+    const row = readProgram(input), book = ownerBook(owner), {key, declaration} = returnIdentity(row);
+    if (row.v2 === undefined) return false;
+    const raw = rawModule(owner, row), witness = rawModule(owner, row, true);
+    admitReturn(row, owner, witness);
+    const previous = book.instances.get(key) ?? book.memories.get(key);
+    if (previous !== undefined) {
+      if (previous.declaration !== declaration) throw new Error('Shared return declaration changed');
+      return false;
+    }
+    const memory = ReturnProjectionV2.prepareMemory(row.v2, owner, raw);
+    book.memories.set(key, {declaration, memory});
+    return true;
   }
   /** Read selected modules and their direct declared dependencies into the
    * original asset map. Witness sidecars are data, never executable admissions. */

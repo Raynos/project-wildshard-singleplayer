@@ -8,7 +8,7 @@ import { createV2FrameWriter,validateV2Frame,type V2FrameAuthority } from '@wild
 import type { Rng,RngState } from '@wildshard/engine/core/rng';
 import { sha256 } from '../plugin/moduleHash';
 import { GroupStepV2 } from '@wildshard/engine/script/groupStepV2';
-import { ScriptModuleV2 } from '@wildshard/engine/script/moduleV2';
+import { ScriptModuleV2, prepareScriptMemory, type PreparedScriptMemory } from '@wildshard/engine/script/moduleV2';
 import { prepareV2Observations } from '@wildshard/engine/script/observationsV2';
 import {readV2WorldActions,type V2WorldAction,type V2ActionBinding} from '@wildshard/format/scriptActionsV2';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -47,6 +47,18 @@ interface ObservationShape {
   readonly signalAt: number;
   readonly fieldsAt: number;
 }
+/** The same detached byte, hash and layout admission for preparation and use. */
+function projectionSource(input: unknown, owner?: Scope, raw?: Uint8Array) {
+  if (owner?.disposed === true || owner?.disposing === true) throw new Error('Return owner disposed');
+  const row = parseReturnProjectionV2(input), layout = returnProjectionV2Layout(row.fields.length,row.artifact.pages,row.outputCapacity,row.groups);
+  if(raw!==undefined&&(row.bytes!==''||owner===undefined))throw new Error('Raw return module requires its original owner');
+  if(row.bytes===''&&raw===undefined)throw new Error('Missing admitted raw return module loan');
+  const bytes = raw===undefined?Uint8Array.from(atob(row.bytes),byte => byte.codePointAt(0) ?? 0):Uint8Array.from(raw);
+  if (sha256(bytes) !== row.artifact.hash) throw new Error('Return projection hash mismatch');
+  const admitted = admitScriptV2(bytes,{ lane: 'project',ioBytes: layout.bytes,compilerRevision: row.artifact.compilerRevision,admissionRevision: row.artifact.admissionRevision });
+  if (admitted.initialPages !== row.artifact.pages || admitted.io !== layout.io) throw new Error('Return projection layout mismatch');
+  return { row, layout, bytes };
+}
 export class ReturnProjectionV2 {
   private readonly row;
   private readonly layout;
@@ -56,16 +68,16 @@ export class ReturnProjectionV2 {
   private readonly groups:GroupStepV2|null=null;
   /** Only fixed ABI bytes are retained. Every call still captures its own numeric values. */
   private readonly columns: (ObservationShape | undefined)[] = [];
-  constructor(input: unknown,private readonly owner?: Scope,raw?:Uint8Array) {
-    this.live();
-    this.row = parseReturnProjectionV2(input);this.layout = returnProjectionV2Layout(this.row.fields.length,this.row.artifact.pages,this.row.outputCapacity,this.row.groups);
-    if(raw!==undefined&&(this.row.bytes!==''||owner===undefined))throw new Error('Raw return module requires its original owner');
-    if(this.row.bytes===''&&raw===undefined)throw new Error('Missing admitted raw return module loan');
-    const bytes = raw===undefined?Uint8Array.from(atob(this.row.bytes),byte => byte.codePointAt(0) ?? 0):Uint8Array.from(raw);
-    if (sha256(bytes) !== this.row.artifact.hash) throw new Error('Return projection hash mismatch');
-    const admitted = admitScriptV2(bytes,{ lane: 'project',ioBytes: this.layout.bytes,compilerRevision: this.row.artifact.compilerRevision,admissionRevision: this.row.artifact.admissionRevision });
-    if (admitted.initialPages !== this.row.artifact.pages || admitted.io !== this.layout.io) throw new Error('Return projection layout mismatch');
-    this.module = new ScriptModuleV2(bytes,{ seed: [0,0],initFuel: 400000,output: [],ioBytes: this.layout.bytes });
+  /** Reserve no instance or guest state, only this exact consumer's memory. */
+  static prepareMemory(input: unknown, owner: Scope, raw?: Uint8Array): PreparedScriptMemory {
+    const { bytes } = projectionSource(input, owner, raw);
+    return prepareScriptMemory(bytes, owner);
+  }
+  constructor(input: unknown,private readonly owner?: Scope,raw?:Uint8Array, prepared?: PreparedScriptMemory) {
+    const { row, layout, bytes } = projectionSource(input, owner, raw);
+    this.row = row; this.layout = layout;
+    if (prepared !== undefined && owner === undefined) throw new Error('Prepared return memory requires its original owner');
+    this.module = new ScriptModuleV2(bytes,{ seed: [0,0],initFuel: 400000,output: [],ioBytes: this.layout.bytes, ...(prepared === undefined || owner === undefined ? {} : {prepared: {memory: prepared, scope: owner}}) });
     if (this.module.io !== this.layout.io) throw new Error('Return projection IO mismatch');
     if(this.row.groups!==undefined&&owner!==undefined)this.groups=new GroupStepV2(bytes,this.row.groups,owner,{module:this.module,layout:this.layout});
     this.writeFrame = createV2FrameWriter(this.layout);

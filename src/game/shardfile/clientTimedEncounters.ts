@@ -4,6 +4,7 @@ import type { ShardContext } from '../plugin/context';
 import { TimedEncounters } from '../boss/timedEncounters';
 import { SceneDressing } from './sceneDressing';
 import { entryOwner, lateEntryOwner, presentEntryOwner, publishEntryOwner } from './entryOwners';
+import { buildYield } from '@wildshard/engine/core/workSlice';
 
 /** Keep two original figure copies, their shared storm alias, the existing
  * species programme and the late day clock; publish no replacement authority. */
@@ -28,6 +29,7 @@ export async function installClientTimedEncounters(ctx: ShardContext, input: unk
   };
   live();
   if (presentEntryOwner(scope, 'timed-encounters', row.owner) !== null || !draws.ready) throw new Error('Timed encounter owner already exists or draws are not ready');
+  if (species.prepareMemory(row.guest, construction)) { await buildYield(construction); live(); }
   const guest = species.program(row.guest), sites = row.sites === undefined ? null : SceneDressing.current(ctx).sites.get(row.sites)?.sites ?? null;
   const figures = {rider: construction.own(draws.handle(row.figures.rider).copy()), captain: construction.own(draws.handle(row.figures.captain).copy())};
   const night = await scope.run(() => TimedEncounters.install(ctx, {game, sky: world.sky, player: world.player, forest: world.forest, sites,

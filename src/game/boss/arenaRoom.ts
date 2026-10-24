@@ -1220,6 +1220,9 @@ async function buildOpenArenaEncounter(ports: {readonly scope:Scope;readonly wea
   };
   constructionLive();
   const data = await readArenaScriptData(product, stage.files); constructionLive();
+  for (const program of [data.programs.attack, data.programs.wind]) {
+    if (ReturnProgram.prepareMemory(program, owner)) { await buildYield(owner); constructionLive(); }
+  }
   // G639: the fight's programmes admit in their own build slices, into the same level-scope cache the encounter's
   // constructor reads (one Nalati world-hook frame held the read, both admissions and the views: 136 ms at phone 4x)
   for (const program of [data.programs.attack, data.programs.wind]) { await buildYield(owner); constructionLive(); ReturnProgram.page(program, owner); }
