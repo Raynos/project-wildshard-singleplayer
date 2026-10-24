@@ -17,6 +17,7 @@ const isTarget = (value: unknown): value is WebGLRenderTarget => value instanceo
 /** the GL handles three keeps in a resource's properties (the keys `/^__webgl(Texture|Depthbuffer|ColorRenderbuffer|DepthRenderbuffer)$/`) */
 const GL_HANDLES = ['__webglTexture', '__webglDepthbuffer', '__webglColorRenderbuffer', '__webglDepthRenderbuffer'] as const;
 const GL_ROLES = GL_HANDLES.map((key) => key.slice(7));
+const GL_HANDLE_KEY = /^__webgl(?:Texture|Depthbuffer|ColorRenderbuffer|DepthRenderbuffer)$/u;
 /**
  * SF57: the census walks the whole scene on every render and every draw. Its labels are now stable objects (interned per
  * parent label and role, cached per texture / draw / render target) and a source whose label, resolved label and identity
@@ -305,9 +306,12 @@ function drawLabel(object: Object3D, mat: Material): Label {
   drawLabels.set(object, { owner, own, generated, label });
   return label;
 }
-const censusFlushers = new WeakMap<Renderer, () => void>();
-/** Bridge Three resource identity to native uploads for the debugger and the independent census harness. */
-export function installGpuLabels(renderer: Renderer, developer: () => boolean = isDev): void {
+type LabelRenderer = Pick<Renderer, 'render' | 'compile' | 'compileAsync' | 'renderBufferDirect'> & {
+  readonly properties: Pick<Renderer['properties'], 'get' | 'has'>;
+};
+const censusFlushers = new WeakMap<LabelRenderer, () => void>();
+/** Developer/census-only upload labels; public property reads and draws bypass resource traversal. */
+export function installGpuLabels(renderer: LabelRenderer, developer: () => boolean = isDev): void {
   // Bone textures are allocated inside Three after the scene walk, including one-shot warm draws and pooled rigs.
   // Tag that allocation immediately: a later scene walk cannot recover models that already left the visible tree.
   if (!skeletonBridgeInstalled) {
@@ -316,7 +320,7 @@ export function installGpuLabels(renderer: Renderer, developer: () => boolean = 
     if (typeof compute !== 'function') throw new Error('Three Skeleton has no bone-texture allocator');
     Skeleton.prototype.computeBoneTexture = function computeBoneTexture() {
       Reflect.apply(compute, this, []);
-      if (this.boneTexture) markTexture(this.boneTexture, labels.get(this) ?? { owner: 'engine/skeleton', asset: 'generated/skeleton/bones', priority: 1 });
+      if (enabled() && this.boneTexture) markTexture(this.boneTexture, labels.get(this) ?? { owner: 'engine/skeleton', asset: 'generated/skeleton/bones', priority: 1 });
       return this;
     };
   }
@@ -345,7 +349,20 @@ export function installGpuLabels(renderer: Renderer, developer: () => boolean = 
   const proxies = new WeakMap<object, object>();
   const tags = new WeakMap<object, { owner: string; base: string; priority: number }>();
   const get = renderer.properties.get.bind(renderer.properties);
+  const tag = (resource: unknown, value: unknown, role: string): void => {
+    if (Array.isArray(value)) { for (let index = 0; index < value.length; index++) tag(resource, value[index], `${role}/${index}`); return; }
+    if (value === null || typeof value !== 'object') return;
+    const label = resourceLabel(resource);
+    // SF69: outside the census, a handle already tagged with this label is not re-tagged on every property read
+    const last = tags.get(value);
+    const same = last !== undefined && last.owner === label.owner && last.base === label.asset && last.priority === label.priority;
+    // the census hooks as this render read them (G639: two window lookups a tagged handle on every properties read)
+    if (same && (!drawCensus || drawSampled)) return;
+    if (!same) tags.set(value, { owner: label.owner, base: label.asset, priority: label.priority });
+    emit('__sc_label_gl', value, derive(label, role));
+  };
   renderer.properties.get = (resource) => {
+    if (!developer() && !census()) return get(resource);
     if (sampled && resource !== null && typeof resource === 'object' && !resourceSeen.has(resource)) { resourceSeen.add(resource); resourceRefs.add(new WeakRef(resource)); }
     if (isTarget(resource)) {
       const label = resourceLabel(resource);
@@ -354,36 +371,25 @@ export function installGpuLabels(renderer: Renderer, developer: () => boolean = 
     }
     const properties = get(resource);
     if (properties === null || typeof properties !== 'object') return properties;
-    const tag = (value: unknown, role: string): void => {
-      if (Array.isArray(value)) { for (let index = 0; index < value.length; index++) tag(value[index], `${role}/${index}`); return; }
-      if (value === null || typeof value !== 'object') return;
-      const label = resourceLabel(resource);
-      // SF69: outside the census, a handle already tagged with this label is not re-tagged on every property read
-      const last = tags.get(value);
-      const same = last !== undefined && last.owner === label.owner && last.base === label.asset && last.priority === label.priority;
-      // the census hooks as this render read them (G639: two window lookups a tagged handle on every properties read)
-      if (same && (!drawCensus || drawSampled)) return;
-      if (!same) tags.set(value, { owner: label.owner, base: label.asset, priority: label.priority });
-      emit('__sc_label_gl', value, derive(label, role));
-    };
-    const stamp = (value: unknown, role: string): unknown => {
-      if (Array.isArray(value)) {
-        tag(value, role);
-        return new Proxy(value, { set(target, key, item: unknown) { return Reflect.set(target, key, stamp(item, `${role}/${String(key)}`)); } });
-      }
-      tag(value, role);
-      return value;
-    };
     // Assets initialized before joining a scene acquire their authored identity later; update the existing GL tag.
     for (let index = 0; index < GL_HANDLES.length; index++) {
       const key = GL_HANDLES[index], role = GL_ROLES[index];
       const value: unknown = key === undefined ? undefined : Reflect.get(properties, key);
-      if (value !== undefined && role !== undefined) tag(value, role);
+      if (value !== undefined && role !== undefined) tag(resource, value, role);
     }
     const prior = proxies.get(properties);
     if (prior) return prior;
+    const stamp = (value: unknown, role: string): unknown => {
+      if (Array.isArray(value)) {
+        tag(resource, value, role);
+        return new Proxy(value, { set(target, key, item: unknown) { return Reflect.set(target, key, developer() || census() ? stamp(item, `${role}/${String(key)}`) : item); } });
+      }
+      tag(resource, value, role);
+      return value;
+    };
     const proxy = new Proxy(properties, { set(target, key, value: unknown) {
-      const tagged = typeof key === 'string' && /^__webgl(?:Texture|Depthbuffer|ColorRenderbuffer|DepthRenderbuffer)$/u.test(key) ? stamp(value, key.slice(7)) : value;
+      if (!developer() && !census()) return Reflect.set(target, key, value);
+      const tagged = typeof key === 'string' && GL_HANDLE_KEY.test(key) ? stamp(value, key.slice(7)) : value;
       return Reflect.set(target, key, tagged);
     } });
     proxies.set(properties, proxy);
@@ -406,6 +412,7 @@ export function installGpuLabels(renderer: Renderer, developer: () => boolean = 
   }
   const draw = renderer.renderBufferDirect.bind(renderer);
   renderer.renderBufferDirect = (camera, scene, geo, mat, object, group) => {
+    if (!developer() && !drawCensus) { draw(camera, scene, geo, mat, object, group); return; }
     // keyed on the object's own material (an array for multi-material meshes), not the group's: a per-group key flipped on
     // every draw of a multi-material mesh and re-marked it each time (SF69: ~1.2 MB / frame)
     const own: unknown = Reflect.get(object, 'material');
