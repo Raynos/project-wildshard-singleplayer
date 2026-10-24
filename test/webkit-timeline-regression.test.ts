@@ -1,4 +1,4 @@
-import {expect, test} from 'vitest';
+import {expect, test, vi} from 'vitest';
 import {startScriptProfile} from '../scripts/frame-floor-script-profile.mjs';
 import {ensureWebKitPageClock, startWebKitTimeline, timelineLongFrames, type TimelinePort} from '../scripts/frame-floor-webkit-timeline.mjs';
 
@@ -25,6 +25,30 @@ function fixture(frozen = false) {
   };
   return {inspector, evaluate, methods, listening: () => listeners.size > 0, emit: (method: string, params: unknown) => listeners.get(method)?.(params)};
 }
+
+test('flushes a final clock point buffered until Timeline.stop on a static page', async () => {
+  vi.useFakeTimers();
+  try {
+    const f = fixture();
+    let first = true, buffered = false;
+    const inspector: TimelinePort = { ...f.inspector, send: method => {
+      if (method === 'Timeline.stop' && buffered)
+        f.emit('Timeline.eventRecorded', {record: {type: 'TimeStamp', startTime: 1.2, data: {message: 'ff-anchor:1200'}}});
+      return f.inspector.send(method);
+    } };
+    const evaluate = (): Promise<unknown> => {
+      if (first) { first = false; return f.evaluate(); }
+      buffered = true;
+      return Promise.resolve(true);
+    };
+    const stop = await startWebKitTimeline(inspector, evaluate);
+    const stopped = (async () => { try { return {value: await stop()}; } catch (error) { return {error}; } })();
+    await vi.advanceTimersByTimeAsync(5001);
+    expect(await stopped).toMatchObject({value: {anchors: [[1.1, 1100], [1.2, 1200]]}});
+    expect(f.methods.filter(method => method === 'Timeline.stop')).toHaveLength(1);
+    expect(f.listening()).toBe(false);
+  } finally { vi.useRealTimers(); }
+});
 
 test('starts the real Inspector clock before taking timeline anchors', async () => {
   const f = fixture();

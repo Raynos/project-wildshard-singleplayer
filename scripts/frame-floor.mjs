@@ -862,7 +862,10 @@ async function worker() {
       if (!blank) throw new Error('Memory probe must run without application scripts');
       const stop = await driver.timeline.start();
       let probe, timeline;
-      try { probe = await driver.evaluate(`(${runWasmMemoryProbe.toString()})()`, 20000); }
+      try {
+        probe = await driver.evaluate(`(${runWasmMemoryProbe.toString()})()`, 20000);
+        writeFileSync(join(webkitTimelineDir, 'blank-memory-probe-checkpoint.json'), JSON.stringify({ diagnostic: true, finalClock: 'not-yet-validated', probe }));
+      }
       finally { timeline = await stop(); }
       const counts = await driver.evaluate(`(() => { const rows = window.__wasmDurationCensus.rows; return { dropped: window.__wasmDurationCensus.dropped, Memory: rows.filter(r => r.kind === 'Memory').length, Module: rows.filter(r => r.kind === 'Module').length, Instance: rows.filter(r => r.kind === 'Instance').length }; })()`);
       if (counts.dropped !== 0 || counts.Memory !== 46 || counts.Instance !== 46 || counts.Module !== 1) throw new Error('Blank native constructor counts differ from the protocol');

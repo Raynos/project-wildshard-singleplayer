@@ -44,7 +44,7 @@ test('constructs the exact imported-memory bank and checks weak targets only aft
       expect.objectContaining({ id: 43, phase: 'post-drop-probe', strongBefore: 0 }),
       expect.objectContaining({ id: 46, phase: 'post-drop-probe', strongBefore: 3 }),
     ]);
-  expect(result).toEqual(expect.objectContaining({ strongHeldAtCheckpoint: 4, weakAvailable: true, finalizationAvailable: true,
+  expect(result).toEqual(expect.objectContaining({ strongHeldAtCheckpoint: 4, strongBankVerifiedBeforeDrop: 42, weakAvailable: true, finalizationAvailable: true,
     constructions: expectedConstructions,
   }));
   const counts: unknown = runInContext(`(() => { const r = window.__wasmDurationCensus.rows; return [r.filter(v => v.kind === 'Memory').length, r.filter(v => v.kind === 'Instance').length, r.filter(v => v.kind === 'Module').length]; })()`, context);

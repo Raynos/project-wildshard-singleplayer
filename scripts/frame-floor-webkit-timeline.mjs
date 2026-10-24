@@ -77,7 +77,7 @@ export async function startWebKitTimeline(inspector, evaluate) {
       if (anchor !== undefined) receiveAnchor(anchor);
     }
   });
-  const stamp = async () => {
+  const stamp = async (flush = false) => {
     /** @type {ReturnType<typeof setTimeout> | undefined} */
     let timer;
     /** @type {Promise<[number, number]>} */
@@ -86,10 +86,14 @@ export async function startWebKitTimeline(inspector, evaluate) {
       timer = setTimeout(() => reject(new Error('WebKit Timeline clock anchor timed out')), 5000);
     });
     try {
-      // Listen before evaluation and await both replies: the event can arrive
-      // after Runtime.evaluate resolves. Both promises are observed at once.
+      // Listen before evaluation. A static page can buffer the final point
+      // until Timeline.stop; stop only after its evaluation has acknowledged,
+      // then await the recorded point too. Missing/zero anchors still refuse.
       const [, anchor] = await Promise.all([
-        evaluate("(console.timeStamp('ff-anchor:' + performance.now()), true)"), recorded,
+        evaluate("(console.timeStamp('ff-anchor:' + performance.now()), true)").then(async () => {
+          if (flush) { await inspector.send('Timeline.stop'); started = false; }
+          return true;
+        }), recorded,
       ]);
       if (!Number.isFinite(anchor[0]) || anchor[0] <= 0 || !Number.isFinite(anchor[1]))
         throw new Error('WebKit Timeline clock has a zero or invalid anchor');
@@ -115,8 +119,8 @@ export async function startWebKitTimeline(inspector, evaluate) {
     throw error;
   }
   return async () => {
-    try { await stamp(); }
-    finally { try { await inspector.send('Timeline.stop'); } finally { off(); offHeap(); } }
+    try { await stamp(true); }
+    finally { try { if (started) await inspector.send('Timeline.stop'); } finally { off(); offHeap(); } }
     return { records, anchors: timelineAnchors(records), dropped,
       garbageCollection: { available: heapAvailable, events: collections, dropped: collectionsDropped } };
   };

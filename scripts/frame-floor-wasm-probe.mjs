@@ -24,9 +24,16 @@ export async function runWasmMemoryProbe() {
     }
   };
   const release = () => { heldMemories.length = 0; heldInstances.length = 0; };
+  const verifyHeld = () => {
+    if (heldMemories.length !== 42 || heldInstances.length !== 42
+      || !heldMemories.every(memory => memory instanceof WebAssembly.Memory)
+      || !heldInstances.every(instance => instance instanceof WebAssembly.Instance)) throw new Error('Strong native bank differs before release');
+    return 42;
+  };
   try {
     for (let i = 0; i < 38; i++) { await pause(50); pair(i < 4 ? 'fresh-baseline' : 'hold-to-38', true); }
     for (let i = 0; i < 4; i++) { await pause(50); pair('retained-probe', true); }
+    const strongBankVerifiedBeforeDrop = verifyHeld(); // Future use of every target, outside native timings; no WeakRef read.
     const dropMs = performance.now();
     release(); // This helper returns before any yield or post-drop construction.
     await pause(200); await pause(0);
@@ -37,7 +44,7 @@ export async function runWasmMemoryProbe() {
     const reachability = weak.map(row => ({ id: row.id,
       memoryAlive: row.memory.deref() !== undefined, instanceAlive: row.instance.deref() !== undefined }));
     return { diagnostic: 'blank-fixed-one-page-memory', origin: performance.timeOrigin,
-      constructions, dropMs, checkpointMs: performance.now(), strongHeldAtCheckpoint: heldMemories.length,
+      constructions, dropMs, strongBankVerifiedBeforeDrop, checkpointMs: performance.now(), strongHeldAtCheckpoint: heldMemories.length,
       weakAvailable, finalizationAvailable: registry !== null, reachability, finalized: [...finalized],
       note: 'Controlled blank heap, not app retention or live-count proof. No forced GC, heap snapshot, rAF or game watcher. No collection means UNKNOWN.' };
   } finally { release(); }
