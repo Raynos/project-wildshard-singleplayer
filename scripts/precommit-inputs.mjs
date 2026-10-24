@@ -27,7 +27,7 @@ export function missingInventoryGeneration(root, guard) {
   return [...new Set(missing)];
 }
 
-/** Check staged text only; no mirror, generator, app build or related walk.
+/** Staged guards plus CF1 related tests; no mirror, generator or app build.
  * @param {string} [root] @param {string} [executable] */
 export async function precommitInputs(root = resolve(import.meta.dirname, '..'), executable = resolve(root, 'node_modules/.bin/oxlint')) {
   const started = performance.now(), deadline = started + 5_000;
@@ -151,6 +151,21 @@ export async function precommitInputs(root = resolve(import.meta.dirname, '..'),
     if (same && git(['diff', '--name-only', '--', ...files]).trim() !== '') throw new Error('Commit inputs changed during checks');
     if (failures.length > 0) throw new Error(failures.join('\n'));
     console.info(`pre-commit: parallel checks ${(performance.now() - started).toFixed(0)} ms`);
+    // Shared hooks execute loose source. Keep a new CF1 implementation inert
+    // until its defining helper has actually landed, never activate a draft.
+    try {
+      const relatedLanded = git(['ls-tree', '--name-only', 'HEAD', '--', 'scripts/precommit-related.mjs']).trim() === 'scripts/precommit-related.mjs';
+      if (!relatedLanded) console.info('CF1: inactive until the defining helper lands');
+      else {
+        const { commitRelated } = await import('./precommit-related.mjs');
+        await commitRelated(root, changed);
+        if (git(['ls-files', '--stage', '-z']) !== initial)
+          console.warn('CF1 DEFERRED TO CI: candidate index changed during related checks; no exact related proof');
+      }
+    } catch (error) {
+      if (error instanceof Error && error.name === 'CommitRelatedRefusalError') throw error;
+      console.warn(`CF1 DEFERRED TO CI: hook tooling: ${String(error)}`);
+    }
   } finally { await running; if (binaryTree !== undefined) rmSync(binaryTree, { recursive: true, force: true }); if (tree !== undefined) rmSync(tree, { recursive: true, force: true }); }
 }
 

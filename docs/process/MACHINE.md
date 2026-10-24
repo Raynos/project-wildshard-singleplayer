@@ -65,8 +65,12 @@ Local root TypeScript checks use `pnpm typecheck:root`. The compiler reuses
 `node_modules/.cache/ws-root.tsbuildinfo`; CI and GitHub Actions keep the plain
 no-emit check. The command propagates compiler failures, including cached ones.
 
-**Per slice (G568, G612): types, lint and focused tests must pass before landing.** No batch checks, exact-commit mirror checks or checks
-on unlanded commit objects. Land small source changes; the push gate, CI and exact-SHA boot smoke own the full gate.
+**Per slice (G568, G612, G689): `scripts/commit.sh` owns staged guards, lint,
+related tests and warm project types.** Related/types share a 60-second cap;
+executed test failures and staged TS6307 edges refuse, tooling failures or
+deadline exhaustion land with explicit CI deferral. No batch checks,
+exact-commit mirror checks or checks on unlanded commit objects. Land small
+source changes; the push gate, CI and exact-SHA boot smoke own the full gate.
 
 **G612/G670 mirror admission:** only commits reachable from `main` are accepted,
 including historical main commits for bisects. Bare trees and unlanded commits

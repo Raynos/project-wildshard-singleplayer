@@ -28,7 +28,7 @@ export function runCommitJobs(root, jobs, deadline, env = process.env) {
   })));
 }
 
-/** Related selection is push-only; fixture inventories have explicit inputs.
+/** Cheap fixture inventories have explicit inputs; CF1 owns the related walk.
  * @param {readonly string[]} changed @returns {string[]} */
 export function commitGuards(changed) {
   const touches = (/** @type {RegExp} */ pattern) => changed.some(file => pattern.test(file));

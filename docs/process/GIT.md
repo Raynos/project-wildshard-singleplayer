@@ -30,7 +30,7 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   to HEAD under the same lock and rejects undeclared paths. A declared working file whose bytes still
   equal the parent advances to the committed bytes under that lock; local edits stay untouched and are
   reported. Foreign shared stages stay untouched; a stage still equal to the parent advances under the
-  index lock, avoiding a staged revert of the patch. Stale patches refuse. Patched source differing from the working copy is checked at pre-push.
+  index lock, avoiding a staged revert of the patch. Stale patches refuse.
   Pre-commit runs storage policy, fast lint and staged guards in parallel under a soft five-second budget.
   The optional type-aware lint attempt stays within that cap (G636), without oxlint's `--type-check` (G657);
   `tsc` owns TypeScript diagnostics. Timeout warns and hands those exact staged blobs' typed lint to pre-push;
@@ -40,6 +40,18 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   type-only and star-export edges; loose files or loose export additions cannot
   satisfy them. Ambiguous star names refuse. Exact declared generated outputs
   retain their existing CI deferral; external package exports stay with tsc.
+  **CF1 (G689):** staged `src/`, `test/` and `scripts/` paths select
+  `vitest related --run`, alongside touched layer `tsc -p` checks when their
+  incremental metadata is warm. These share a separate **60-second wall cap**.
+  A per-file Vite override uses candidate-index bytes for differing tracked
+  modules, including peer edits; loose files and the index stay untouched.
+  An executed failing test refuses even if another test later times out.
+  Staged layer imports outside the project's includes and referenced projects
+  refuse as TS6307, including type imports. Collection/runner failures, missing
+  prerequisites, cold types and deadline exhaustion print **DEFERRED TO CI**
+  and land; warm working-tree type diagnostics also defer because they may
+  include peer WIP. Tool failure never becomes a passing proof. Each attempt
+  prints staged path count, collected suite count when available, and wall time.
   No mirror, generator, build or full suite runs at commit.
   Fix a refusal and retry. Message conventions and the existing lock/legacy policies remain.
 - **Commits are pushed by the scheduled loop (G568, Jake, 2026-10-21).** `scripts/push-loop.py` runs every
@@ -59,7 +71,8 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   Rules use the existing oxlint parser and rule implementations; policy vocabulary is read from static committed
   declarations in memory. Three small checker modules and temporary configuration are the only tool files copied;
   no checkout, generated asset, source tree, generator, build, mirror or persistent snapshot cache is prepared.
-  Typed lint and all test execution belong to CI, which remains the full gate. Under Jake's budget ruling,
+  The push gate defers typed lint and tests to CI; CF1 owns the bounded local
+  commit checks above. CI remains the full gate. Under Jake's budget ruling,
   only an observed check failure is red. A step exhausting the shared budget is marked `deferred`, and each
   unattempted check gets an explicit CI handoff. P3 records every phase in `.git/push.log`.
 - **A red commit is ejected back to its lane; the checked green prefix can still push.** The loop attributes the
@@ -208,7 +221,8 @@ rewrite still needs Jake's approval.
   was handed out twice that way).
 - **A clean tree needs `node scripts/gen.mjs`** before raw `tsc` / `oxlint`: `src/**/*.generated.*` is gitignored and
   CI's `pnpm run typecheck` / `lint` run `pnpm gen` first. Never export a
-  copy of the repo to run it; lanes land on types, lint and `vitest related` in the working tree (G612, G670).
+  copy of the repo to run it; CF1 selects local related tests and warm project
+  types automatically from the staged paths (G612, G670, G689).
 - **CI-only node checks:** `pnpm test`'s check-paths, audit-assets, check-model-sources and webgpu-inventory don't run
   in the pre-push gate (its tree drops paths they read). After moving fixtures or editing an allowlist, run
   `node scripts/check-paths.mjs` yourself.
