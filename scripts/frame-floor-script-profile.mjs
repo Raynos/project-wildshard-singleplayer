@@ -59,3 +59,36 @@ export async function startScriptProfile(inspector, waitMs = 10000) {
     finally { clearTimeout(timer); off(); }
   };
 }
+
+/** Sample the opening twenty seconds of a drive without changing its inputs,
+ * sampler or completion. Observe auto-stop failures immediately, then rethrow
+ * them when the original drive releases its profile. No page timer or watcher.
+ * @param {import('./frame-floor-script-profile.mjs').ScriptProfilePort} inspector
+ * @param {(expression: string) => Promise<unknown>} evaluate
+ * @param {(capture: {profile: unknown, pageRange: {startMs: number, endMs: number}}) => void} persist
+ */
+export async function startPrefixScriptProfile(inspector, evaluate, persist = () => undefined) {
+  const stop = await startScriptProfile(inspector);
+  let startMs;
+  try {
+    startMs = await evaluate('performance.now()');
+    if (typeof startMs !== 'number' || !Number.isFinite(startMs)) throw new Error('Prefix profile has no start clock');
+  } catch (error) { await stop().catch(() => undefined); throw error; }
+  let stopping;
+  const finish = async () => {
+    if (stopping === undefined) stopping = (async () => {
+      try {
+        const profile = await stop(), endMs = await evaluate('performance.now()');
+        if (typeof endMs !== 'number' || !Number.isFinite(endMs) || endMs < startMs) throw new Error('Prefix profile has no end clock');
+        const value = { profile, pageRange: { startMs, endMs } };
+        persist(value); // durable before the rest of the drive can fail
+        return { value };
+      } catch (error) { return { error }; }
+    })();
+    const result = await stopping;
+    if ('error' in result) throw result.error;
+    return result.value;
+  };
+  const timer = setTimeout(() => { void finish().catch(() => undefined); }, 20000);
+  return () => { clearTimeout(timer); return finish(); };
+}

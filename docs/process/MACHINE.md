@@ -259,6 +259,12 @@ only for a matching route and `grid-<route>` pose: this records the original
 drive and a separate twenty-second steady profile after its standing sample.
 The gap remains unprofiled; no zero Inspector timestamps are used to partition
 the two workloads.
+For the opening twenty seconds only, use `--safari-prefix=<grid-route>` with
+`--safari-profile`. It excludes steady/extended-drive selection. A bounded Node
+timer stops only the sampling recorder; the original drive, frame sampler and
+optional Timeline continue. Other sampling windows are suppressed. Its page
+range is retained, and an early drive failure stops the recorder once without
+replaying the drive or extending the window.
 
 Before CPU work, `python3 scripts/sim-quiet.py status` reports the active official
 reading. During it, **read and edit only**: no tests, typechecks, lint, builds,
