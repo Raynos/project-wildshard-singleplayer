@@ -47,9 +47,12 @@ function throughEntry(from: { x: number; y: number; z: number }, to: { x: number
 
 /** Is a world point on a road segment or junction of this grid (within the kerbs, inside the outer ring)? */
 export function onRoad(grid: RoadGrid, x: number, z: number): boolean {
-  const xs = grid.cells.map((c) => c.cell[0]), zs = grid.cells.map((c) => c.cell[1]), p = grid.pitch;
+  let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
+  for (const row of grid.cells) { const value = row.cell[0]; minX = Math.min(minX, value); maxX = Math.max(maxX, value); }
+  for (const row of grid.cells) { const value = row.cell[1]; minZ = Math.min(minZ, value); maxZ = Math.max(maxZ, value); }
+  const p = grid.pitch;
   const margin = p / 2 + ON_ROAD;
-  if (x < Math.min(...xs) * p - margin || x > Math.max(...xs) * p + margin || z < Math.min(...zs) * p - margin || z > Math.max(...zs) * p + margin) return false;
+  if (x < minX * p - margin || x > maxX * p + margin || z < minZ * p - margin || z > maxZ * p + margin) return false;
   return Math.abs(across(x, p)) <= ON_ROAD || Math.abs(across(z, p)) <= ON_ROAD;
 }
 
