@@ -329,19 +329,40 @@ function attachRoadCull(mesh: Mesh, plan: CullPlan, main?: () => Camera | undefi
   geometry.setIndex(drawn); geometry.setDrawRange(0, fine);
   mesh.frustumCulled = false;
   const frustum = new Frustum(), matrix = new Matrix4(), sphere = new Sphere(), eye = new Vector3();
-  let key = '', triangles = fine / 3, visible = plan.bins.length, rebuilds = 0;
+  // Views borrow the immutable plan's buffer; every draw reuses these selections.
+  const choices = plan.bins.map(bin => [bin, ...bin.levels].map(run => plan.source.subarray(run.start, run.start + run.count)));
+  const runs: Uint32Array[] = choices.map(row => row[0] ?? plan.source);
+  let ids = plan.bins.map(() => 0), previous = ids.slice(), previousCount = 0;
+  const update = { start: 0, count: 0 };
+  let triangles = fine / 3, visible = plan.bins.length, rebuilds = 0;
   mesh.onBeforeRender = (_renderer, _scene, camera) => {
     const view = main?.();
     if (view !== undefined && camera !== view) return;
-    const runs = visibleRuns(plan, mesh.matrixWorld, frustumOf(camera, frustum, matrix, true), sphere, eye.setFromMatrixPosition(camera.matrixWorld)), next = runs.map((r) => r.id).join(',');
-    if (next === key) return;
-    key = next; rebuilds++;
+    frustumOf(camera, frustum, matrix, true); eye.setFromMatrixPosition(camera.matrixWorld);
+    let count = 0, changed = false;
+    for (let k = 0; k < plan.bins.length; k++) {
+      const bin = plan.bins[k];
+      if (bin === undefined || !frustum.intersectsSphere(sphere.copy(bin.sphere).applyMatrix4(mesh.matrixWorld))) continue;
+      const d = sphere.distanceToPoint(eye);
+      let level = 0; while (level < plan.lod.length && d > (plan.lod[level] ?? Infinity)) level++;
+      const run = choices[k]?.[level] ?? choices[k]?.[0];
+      if (run === undefined) throw new Error('Missing road cull run');
+      const id = k * 4 + level;
+      runs[count] = run; ids[count] = id;
+      if (previous[count] !== id) changed = true;
+      count++;
+    }
+    if (!changed && count === previousCount) return;
+    const spare = previous; previous = ids; ids = spare; previousCount = count; rebuilds++;
     let at = 0;
-    for (const run of runs) { drawn.array.set(plan.source.subarray(run.start, run.start + run.count), at); at += run.count; }
+    for (let k = 0; k < count; k++) {
+      const run = runs[k]; if (run === undefined) throw new Error('Missing visible road cull run');
+      drawn.array.set(run, at); at += run.length;
+    }
     drawn.clearUpdateRanges();
-    if (at > 0) { drawn.addUpdateRange(0, at); drawn.needsUpdate = true; }
+    if (at > 0) { update.count = at; drawn.updateRanges.push(update); drawn.needsUpdate = true; }
     geometry.setDrawRange(0, at);
-    triangles = at / 3; visible = runs.length;
+    triangles = at / 3; visible = count;
   };
   return { plan, state: () => ({ bins: plan.bins.length, visible, triangles, rebuilds }) };
 }
