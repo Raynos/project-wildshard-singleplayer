@@ -3,7 +3,7 @@
 **Order (G639):** (1) live reds → (2) NALATI TO ZERO → (3) grid / frame floor. Extras: loading, core memory, TOOLING-PERF,
 Night Market, tile streaming, no-binaries.
 
-**(1) LIVE 4fc3160db2 (08:50Z; f62917679d 07:36Z, 68ac787e6b 06:31Z), each after full CI + all six exact smoke
+**(1) LIVE 29fbc87055 (09:49Z; 4fc3160db2 08:50Z, f62917679d 07:36Z), each after full CI + all six exact smoke
 legs; ff45 pin removed (692f9bd22e), hourly newest-CI-green deploys running (sp-x7). Six smoke reds + boot race fixed on the way.
 
 **(2) NALATI 0: every shard at zero, C1-C9 closed, M3 100 %, M2 10/10 (ruler 27dd969127).** R27 done (168a974f29).
@@ -12,8 +12,8 @@ Jake approves each), legacy deletion (G606).
 
 **(3) Frame floor.** Desktop (466c98bac7): ALL 24 shipped shards PASS standing (59.9 fps, max 16.8 ms); grid drives
 p95 16.8 but Pine max 1,117 ms (one 1.5 s gl.bufferData after pine-hollow:activate, sp-o3) and Nalati max 167 FAIL.
-Quiet iOS Sim p95 (889 → e472f34069): Pine drive 71 → 35 (max 85), interior 60 → 34; Nalati drive 53 → 47
-(max 320 between hooks), interior 59 → 46 (FAIL, bar 33); DW/template drives 35, settled 34. Cuts: shader-build churn (variants 566 → 20 MiB), variant token keys (select 241 → 2), page
+Quiet iOS Sim p95 (889 → 2e86e67846): Pine drive 71 → 35, interior 60 → 34; Nalati drive 53 → 43 (max 135, road
+spike 448 → 67 ms), settled 59 → 47 FAIL: 35/37 spikes overlap a full GC every ~0.6 s (1,184 MiB/20 s, objects + iterators, not buffers; 5 lanes cutting); DW/template 35/34. Cuts: shader-build churn (variants 566 → 20 MiB), variant token keys (select 241 → 2), page
 light budget 79fd45d18c, herd/Valibot/hash allocation. Wasm memory pool e472f34069: 33 hits / 0 misses, no fixed Memory built in play (each forced a 60-130 ms full GC).
 Road spike = growable Memory rebuilt by saved-state restore: virgin stock 45 (29fbc87055) + single-build restore DB1
 (54619d7a5f) -> 42 hits / 0 misses, zero Memory on the whole drive. Smoke red on 90ddf7d59f (WebKit context loss, sp-o3).
