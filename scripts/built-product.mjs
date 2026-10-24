@@ -80,15 +80,15 @@ export function readBuiltShardfile(sourceRoot, name, { cacheRoot = shardfileCach
   throw new Error(`Missing current product ${name}; run: node scripts/build-shardfiles.mjs --reuse --shard=${name}`);
 }
 
-/** Refuse selected product suites once, before workers load setup or tests.
+/** Classify selected suites once, before workers load setup or tests.
  * Uses the same exact-SHA/current-input admission as each suite's reader.
  * Never builds, restores source outputs or accepts an older cached product.
  * @param {string} root @param {readonly string[]} files
  * @param {{cacheRoot?:string,env?:NodeJS.ProcessEnv}} [options] */
-export function assertBuiltTestProducts(root, files, options = {}) {
+export function selectBuiltTestProducts(root, files, options = {}) {
   const registry = resolve(root, 'scripts/test-products.json');
-  if (!existsSync(registry)) return;
-  const products = v.parse(v.record(v.string(), v.array(v.string())), JSON.parse(readFileSync(registry, 'utf8')));
+  /** @type {Record<string,string[]>} */
+  const products = existsSync(registry) ? v.parse(v.record(v.string(), v.array(v.string())), JSON.parse(readFileSync(registry, 'utf8'))) : {};
   const selected = files.filter(file => (products[file]?.length ?? 0) > 0);
   /** @type {Set<string>} */
   const missing = new Set();
@@ -99,8 +99,16 @@ export function assertBuiltTestProducts(root, files, options = {}) {
       missing.add(name);
     }
   }
-  if (missing.size === 0) return;
   const names = [...missing].sort();
   const suites = selected.filter(file => products[file]?.some(name => missing.has(name))).sort();
-  throw new Error(`Missing current products ${names.join(', ')} (no verified product matches current inputs), required by ${suites.join(', ')}; run: node scripts/build-shardfiles.mjs --reuse --shard=${names.join(',')}`);
+  const blocked = new Set(suites);
+  return { ready: files.filter(file => !blocked.has(file)), blocked: suites, missing: names,
+    buildCommand: names.length === 0 ? undefined : `node scripts/build-shardfiles.mjs --reuse --shard=${names.join(',')}` };
+}
+/** Strict full/focused/CI preflight; no unavailable suite may disappear.
+ * @param {string} root @param {readonly string[]} files
+ * @param {{cacheRoot?:string,env?:NodeJS.ProcessEnv}} [options] */
+export function assertBuiltTestProducts(root, files, options = {}) {
+  const {missing,blocked,buildCommand}=selectBuiltTestProducts(root, files, options);
+  if(missing.length>0)throw new Error(`Missing current products ${missing.join(', ')} (no verified product matches current inputs), required by ${blocked.join(', ')}; run: ${buildCommand}`);
 }

@@ -39,6 +39,15 @@ now provide one full-test lease and three shared app-build leases (Jake, G620 su
   outside CI unless `WS_FULL_SUITE=1` (the coordinator); CI runs the full suite on every push, and the push gate runs
   only the tests related to the pushed change (GIT.md).
   Run your focused tests: `pnpm exec vitest run test/<file>.test.ts` or `pnpm exec vitest related --run <src files>`.
+  Local `related` runs every selected suite whose declared products have current
+  verified receipts. It names each skipped product suite and prints one exact
+  `python3 scripts/heavy-lane.py build -- node scripts/build-shardfiles.mjs --reuse --shard=…`
+  command to include them. No products are built automatically. If every selected
+  suite is blocked, the run refuses instead of reporting success. Explicit focused
+  runs, full runs and CI keep the strict product preflight and run all their suites.
+  A pinned preview's products need not match the shared working tree: shared
+  format/admission/boot/PWA edits change the validation-revision recipe, including
+  uncommitted edits. Existing cache directories alone do not prove freshness.
 - `python3 scripts/heavy-lane.py build -- <command…>` for a whole app build pipeline, including generation.
 - `python3 scripts/heavy-lane.py status` shows active owners, commands and FIFO tickets.
 

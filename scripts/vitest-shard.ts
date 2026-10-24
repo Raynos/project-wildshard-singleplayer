@@ -46,7 +46,20 @@ export class DurationSequencer extends BaseSequencer {
       const products = v.parse(v.record(v.string(), v.array(v.string())), JSON.parse(readFileSync(registry, 'utf8')));
       // Pure suites must not load the product reader's native image dependencies.
       if (selected.some(file => (products[file]?.length ?? 0) > 0)) {
-        const { assertBuiltTestProducts } = await import('./built-product.mjs');
+        const { assertBuiltTestProducts,selectBuiltTestProducts } = await import('./built-product.mjs');
+        const {CI:ci,GITHUB_ACTIONS:actions}=process.env;
+        // Only local dependency walks may defer unavailable product suites.
+        // Explicit file runs and CI retain the original strict preflight.
+        if((this.ctx.config.related?.length??0)>0&&!ci&&!actions){
+          const selection=selectBuiltTestProducts(root,selected);
+          if(selection.blocked.length>0){
+            console.warn(`Local related: skipping ${selection.blocked.length} product suites (CI still runs them): ${selection.blocked.join(', ')}. Missing current products: ${selection.missing.join(', ')}. Build: python3 scripts/heavy-lane.py build -- ${selection.buildCommand}`);
+            if(selection.ready.length===0)throw new Error('No runnable related suites; build the named products first');
+            const ready=new Set(selection.ready);
+            return super.sort(files.filter(spec=>ready.has(relative(root,spec.moduleId).replaceAll('\\','/'))));
+          }
+          return super.sort(files);
+        }
         assertBuiltTestProducts(root, selected);
       }
     }

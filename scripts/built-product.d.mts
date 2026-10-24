@@ -6,5 +6,7 @@ export function productFlags(root:string,output:string|undefined,map:{image:stri
 export function productRecipe(root:string,name:string,flags:string[],toolchain:string,cacheRoot:string):{normalized:string[];recipe:string[];receipts:string};
 /** Read an exact-SHA CI product or a matching sealed local product, retaining cache lifetime pins. Never generates or builds. */
 export function readBuiltShardfile(root:string,name:string,options?:{cacheRoot?:string;env?:NodeJS.ProcessEnv}):string;
+/** Partition suites by the same verified product intake, without building or admitting stale products. */
+export function selectBuiltTestProducts(root:string,files:readonly string[],options?:{cacheRoot?:string;env?:NodeJS.ProcessEnv}):{ready:string[];blocked:string[];missing:string[];buildCommand:string|undefined};
 /** Check only selected product suites before worker setup, without building or accepting stale products. */
 export function assertBuiltTestProducts(root:string,files:readonly string[],options?:{cacheRoot?:string;env?:NodeJS.ProcessEnv}):void;

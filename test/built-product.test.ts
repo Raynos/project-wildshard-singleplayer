@@ -5,9 +5,9 @@ import { dirname, resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Reproduce the builder's exact recipe namespace.
 import { createHash } from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- Prove refusal precedes worker setup in a tiny real Vitest run.
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { afterEach, expect, test } from 'vitest';
-import { assertBuiltTestProducts, readBuiltShardfile } from '../scripts/built-product.mjs';
+import { assertBuiltTestProducts, readBuiltShardfile, selectBuiltTestProducts } from '../scripts/built-product.mjs';
 import { captureProductInputs, productInputKey, productToolchainKey, publishProductInputs, recordBundle } from '../scripts/shardfile-inputs.mjs';
 import { InputHashMemo } from '../scripts/bake-input-hashes.mjs';
 import { shardfileValidationRevision } from '../scripts/shardfile-validation-revision.mjs';
@@ -101,6 +101,10 @@ test('selected suites reuse only current products and aggregate missing prerequi
     'test/current.test.ts': [f.name], 'test/other.test.ts': ['other', f.name], 'test/pure.test.ts': [],
   }));
   expect(() => assertBuiltTestProducts(f.root, ['test/current.test.ts', 'test/pure.test.ts'], f.options)).not.toThrow();
+  expect(selectBuiltTestProducts(f.root, ['test/current.test.ts', 'test/other.test.ts', 'test/pure.test.ts'], f.options)).toEqual({
+    ready: ['test/current.test.ts', 'test/pure.test.ts'], blocked: ['test/other.test.ts'], missing: ['other'],
+    buildCommand: 'node scripts/build-shardfiles.mjs --reuse --shard=other',
+  });
   write(f.root, f.source, 'export default {changed:true};');
   expect(() => assertBuiltTestProducts(f.root, ['test/pure.test.ts'], f.options)).not.toThrow();
   expect(() => assertBuiltTestProducts(f.root, ['test/current.test.ts', 'test/other.test.ts'], f.options)).toThrow(
@@ -128,4 +132,31 @@ test('real Vitest refuses missing products before loading worker setup or suite 
     cwd: f.root, env: { ...process.env, WILDSHARD_SHARDFILE_CACHE: f.cacheRoot, WS_TEST_PRODUCTS_SHA: '', VERCEL_GIT_COMMIT_SHA: '' }, stdio: 'pipe', timeout: 10_000, maxBuffer: 1_048_576,
   })).toThrow('Missing current products author');
   expect(existsSync(resolve(f.root, 'worker-started'))).toBe(false);
+});
+
+test.each(['local-related', 'ci-related', 'focused', 'all-blocked'] as const)('real Vitest product coverage: %s', async mode => {
+  const f=await fixture();
+  write(f.root,'scripts/test-products.json',JSON.stringify({'test/product.test.ts':[f.name]}));
+  write(f.root,f.source,'changed');
+  write(f.root,'source.ts','export const value=1;');write(f.root,'other.ts','export const value=1;');
+  write(f.root,'test/pure.test.ts',`import {test,expect} from 'vitest';import {value} from '../${mode==='all-blocked'?'other':'source'}';test('pure runs',()=>expect(value).toBe(1));`);
+  write(f.root,'test/product.test.ts',"import '../source';throw new Error('product suite must not load');");
+  write(f.root,'test/setup.mjs',"import fs from 'node:fs';fs.writeFileSync('worker-started','yes');");
+  write(f.root,'vitest.config.mts',`import {DurationSequencer} from ${JSON.stringify(resolve('scripts/vitest-shard.ts'))};export default {root:${JSON.stringify(f.root)},test:{include:['test/*.test.ts'],setupFiles:['test/setup.mjs'],sequence:{sequencer:DurationSequencer}}};`);
+  const args=mode==='focused'?['run','test/pure.test.ts','test/product.test.ts']:['related','--run','source.ts'];
+  const result=spawnSync(process.execPath,[resolve('node_modules/vitest/vitest.mjs'),...args,'--config',resolve(f.root,'vitest.config.mts')],{
+    cwd:f.root,env:{...process.env,CI:mode==='ci-related'?'1':'',GITHUB_ACTIONS:'',WILDSHARD_SHARDFILE_CACHE:f.cacheRoot,WS_TEST_PRODUCTS_SHA:'',VERCEL_GIT_COMMIT_SHA:'',NO_COLOR:'1'},
+    encoding:'utf8',stdio:'pipe',timeout:15_000,maxBuffer:1_048_576,
+  });
+  expect(result.error).toBeUndefined();
+  if(mode==='local-related'){
+    expect(result.status).toBe(0);expect(result.stdout).toContain('1 passed');
+    expect(result.stderr).toContain('skipping 1 product suites (CI still runs them): test/product.test.ts');
+    expect(result.stderr).toContain('python3 scripts/heavy-lane.py build -- node scripts/build-shardfiles.mjs --reuse --shard=author');
+    expect(existsSync(resolve(f.root,'worker-started'))).toBe(true);
+  }else{
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toContain(mode==='all-blocked'?'No runnable related suites':'Missing current products author');
+    expect(existsSync(resolve(f.root,'worker-started'))).toBe(false);
+  }
 });
