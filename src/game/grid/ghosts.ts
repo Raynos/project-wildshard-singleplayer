@@ -2,14 +2,15 @@ import { diagnosticNow } from '@wildshard/engine/core/clock';
 
 /** a retired region still alive this long after its retirement counts as a ghost */
 export const GHOST_AFTER_MS = 30_000;
-/** one retired region whose roots are not all collected yet */
+/** One retired owner's key and age, shared by independent region and tile registries. */
 export interface GhostRegion { readonly instance: string; readonly ageS: number }
 
 /**
  * M6 (G628, the memory strip's ghost-worlds counter): a retired region's roots (its runtime scope, its view root, its
  * world) should be collected soon after its disposal. A region with a root still alive GHOST_AFTER_MS after it retired
  * is a ghost world: memory a leak after unload keeps (O18: a closed region scope held through three's program cache,
- * keying the scope-keyed registries that hold its visit's world). Nothing here holds a root: the registry watches them.
+ * keying the scope-keyed registries that hold its visit's world). Tile owners use a separate registry keyed by tile.
+ * Nothing here holds a root: the registry watches them.
  */
 export class GhostWorlds {
   private next = 0;

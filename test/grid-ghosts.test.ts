@@ -8,8 +8,12 @@ import { resolve as resolvePath } from 'node:path';
 import { Group } from 'three';
 import { GHOST_AFTER_MS, GhostWorlds } from '../src/game/grid/ghosts';
 import { Scope } from '../src/engine/app/scope';
-import { TileStreamer, scopedTilePorts } from '../src/engine/world/tileStreamer';
+import { TileStreamer, scopedTilePorts, type RingPorts, type RingTile } from '../src/engine/world/tileStreamer';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
+import { clientRingPorts, type PreparedRingTile } from '../src/game/shardfile/tileContent';
+import { ClientAssets } from '../src/game/shardfile/clientAssets';
+import { emptyShardfile } from '../src/sdk/author';
+import { TileDecoder } from '../src/game/grid/tileDecoder';
 
 let childProved = false;
 function collectionRuntime(): (() => void) | null {
@@ -26,7 +30,7 @@ function collectionRuntime(): (() => void) | null {
       const output = execFileSync(process.execPath, ['--expose-gc', resolvePath('node_modules/vitest/vitest.mjs'), 'run', '--config', config], {
         env: { ...process.env, WS_GRID_GHOST_GC: '1', NO_COLOR: '1' }, encoding: 'utf8', stdio: 'pipe', timeout: 30_000,
       });
-      expect(output).toContain('3 passed'); childProved = true;
+      expect(output).toContain('4 passed'); childProved = true;
     } finally { rmSync(directory, { recursive: true, force: true }); }
   }
   expect(childProved).toBe(true);
@@ -42,6 +46,40 @@ test('a retired region counts as a ghost once it is still alive 30 s after retir
   expect(ghosts.count(1000 + GHOST_AFTER_MS - 1)).toBe(0);
   expect(ghosts.count(1000 + GHOST_AFTER_MS)).toBe(1);
   expect(roots).toHaveLength(2); // the counter itself holds no root
+});
+
+async function retireClientTile(ports: RingPorts<PreparedRingTile>, tile: RingTile): Promise<void> {
+  const prepared = await new Promise<PreparedRingTile | Error>(resolve => { ports.fetch(tile, resolve); });
+  if (prepared instanceof Error) throw prepared;
+  const view = ports.upload(tile, prepared); view.dispose(); view.dispose(); ports.cancel?.(tile);
+}
+
+test('the client retirement observer watches roots weakly through repeated publication and disposal', async () => {
+  const gc = collectionRuntime(); if (gc === null) return;
+  const source = emptyShardfile({ slug: 'tile-ghost', name: 'Tile', author: 'Test', revision: 1, seed: 1 });
+  const page = new Scope('client tile page'), root = new Group(), ghosts = new GhostWorlds(), decoder = new TileDecoder();
+  const assets = new ClientAssets(source, new Map(), { base: 'https://example.invalid/', offline: true, firstParty: true,
+    fetch: () => Promise.reject(new Error('No fixture network')), hash: () => Promise.reject(new Error('No fixture hashing')) });
+  const refs: WeakRef<object>[] = []; let retired = 0;
+  const ports = clientRingPorts(new Map([['home', { source, assets, root, views: {
+    terrain: () => { throw new Error('No fixture terrain'); }, props: () => Promise.resolve(null), panels: () => Promise.resolve(new Map()),
+  } }]]), { scope: page, decoder, retired: (tile, roots) => {
+    retired++; ghosts.retired(tile.key, roots, 0); for (const value of roots) refs.push(new WeakRef(value));
+  } });
+  const tile: RingTile = { key: 'home:l0/0/0', instance: 'home', type: 'level', level: 'l0', x: 0, z: 0 };
+  try {
+    for (let cycle = 0; cycle < 20; cycle++) {
+      await retireClientTile(ports, tile); expect(root.children).toHaveLength(0);
+    }
+    expect(retired).toBe(20); expect(refs).toHaveLength(40);
+    for (let turn = 0; turn < 40; turn++) {
+      await new Promise<void>(resolve => { setTimeout(resolve, 0); }); gc();
+      if (refs.every(ref => ref.deref() === undefined) && ghosts.count(GHOST_AFTER_MS) === 0) break;
+    }
+    expect(refs.every(ref => ref.deref() === undefined)).toBe(true);
+    expect(ghosts.regions(GHOST_AFTER_MS)).toEqual([]); expect(page.disposed).toBe(false);
+    await retireClientTile(ports, tile); expect(retired).toBe(21);
+  } finally { page.dispose(); decoder.dispose(); }
 });
 
 test('a region whose roots are all collected leaves the count', async () => {

@@ -13621,6 +13621,12 @@ clientWorld serial refresh queue and 150 m residency implementation are gone.
 The same module keeps pure placement buckets and scoped content contracts;
 collider and scene-content ownership remains with their existing builders.
 
+`clientRingPorts.retired(tile, roots)` optionally observes disposal; observers
+must retain the borrowed scope/group roots weakly. The grid readout exposes
+an independent `rings.ghosts` counter and retired tile keys, including far
+meshes. It uses the existing 30-second collection grace period and does not
+change region ghosts, streaming decisions or disposal ownership.
+
 ArenaWhirlsView.bindView lends its own records, objects and draw under the
 entered Scope. View rows name each field alias/object id and the values/draw/frame
 loans; admission checks the complete inventory before publication. The frame

@@ -244,7 +244,9 @@ export function clientRingCatalogue(instances: ReadonlyMap<string, { readonly so
 /** The rings' ports for these instances; every prepared tile's scope is a child of `scope`. */
 export function clientRingPorts(instances: ReadonlyMap<string, ClientRingInstance>, ports: { scope: Scope; decoder: TileDecoder;
   /** Prepare the detached, fully built tile before publication; rejection retires only this tile's scope. */
-  prepare?: (tile: PreparedRingTile) => Promise<void> }): RingPorts<PreparedRingTile> {
+  prepare?: (tile: PreparedRingTile) => Promise<void>;
+  /** Observe retirement only; collectors must retain these borrowed roots weakly. */
+  retired?: (tile: RingTile, roots: readonly object[]) => void }): RingPorts<PreparedRingTile> {
   const prepare = async (tile: RingTile, instance: ClientRingInstance, scope: Scope, group: Group): Promise<PreparedRingTile> => {
     const key = lodKey(tile); if (key === null) throw new Error('shardfile rings: far proxies are the far view\'s (SF23)');
     const { source, assets, views } = instance;
@@ -261,6 +263,8 @@ export function clientRingPorts(instances: ReadonlyMap<string, ClientRingInstanc
     const instance = instances.get(tile.instance); if (instance === undefined) throw new Error(`shardfile rings: unknown instance ${tile.instance}`);
     const group = new Group(); group.name = `ring:${tile.key}`;
     scope.onDispose(() => { group.removeFromParent(); });
+    const retired = ports.retired;
+    if (retired !== undefined) scope.onDispose(() => { retired(tile, [scope, group]); });
     const prepared = await prepare(tile, instance, scope, group);
     await ports.prepare?.(prepared);
     return prepared;

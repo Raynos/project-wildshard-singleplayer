@@ -51,7 +51,8 @@ import { gridCells, pageGridInstance } from '../plugin/context';
 import type { ResidencyAllocator } from './allocator';
 import type { PageResidency } from './pageResidency';
 import { PlatformRenderResidency } from './renderResidency';
-import { TileStreamer, levelPorts, type FarPlan, type LevelPrepared, type RingPorts, type RingWait } from '@wildshard/engine/world/tileStreamer';
+import { TileStreamer, levelPorts, type FarPlan, type LevelPrepared, type RingPorts, type RingTile, type RingWait } from '@wildshard/engine/world/tileStreamer';
+import { GhostWorlds, type GhostRegion } from './ghosts';
 import { farRingPorts, type FarPrepared, type FarProxyView } from './farView';
 import { decodeFarImpostor, farBandShare } from './farImpostorView';
 import { FarImpostorSchema, type FarImpostor } from '@wildshard/format/shardSections';
@@ -173,7 +174,8 @@ export interface GridSessionState {
   readonly residentMB: number; readonly playingMB: number;
   /** Exact category sum before engine base, overlap allowance or calibration factor; used by the soak harness. */
   readonly accountedBytes: number;
-  readonly rings: { readonly frame?: number; readonly far: number; readonly l1: number; readonly l0: number; readonly refused: number; readonly inFlight: number; readonly queued: number };
+  readonly rings: { readonly frame?: number; readonly far: number; readonly l1: number; readonly l0: number; readonly refused: number; readonly inFlight: number; readonly queued: number;
+    readonly ghosts: { readonly count: number; readonly tiles: readonly GhostRegion[] } };
   /** SF19a's one frame (null for a host with no frame: no camera / composer) */
   readonly frame: GridFrameState | null;
   /** step 2's live crossing (null until the page attaches its player) */
@@ -185,10 +187,10 @@ export interface GridSessionState {
 }
 
 /** The shardfile neighbours' L1 / L0 tiles (sources load late: until then the catalogue has no tile and the far proxy draws). */
-function neighbourTiles(scope: Scope, prepare: (tile: PreparedRingTile) => Promise<void>): { instances: Map<string, ClientRingInstance>; ports: RingPorts<PreparedRingTile> } {
+function neighbourTiles(scope: Scope, prepare: (tile: PreparedRingTile) => Promise<void>, retired: (tile: RingTile, roots: readonly object[]) => void): { instances: Map<string, ClientRingInstance>; ports: RingPorts<PreparedRingTile> } {
   const instances = new Map<string, ClientRingInstance>(), decoder = new TileDecoder();
   scope.onDispose(() => { decoder.dispose(); });
-  return { instances, ports: clientRingPorts(instances, { scope, decoder, prepare }) };
+  return { instances, ports: clientRingPorts(instances, { scope, decoder, prepare, retired }) };
 }
 
 /** The far proxy and its row, fetched from the shard's baked folder (`public/assets/baked/<slug>/far.*`). */
@@ -269,6 +271,7 @@ export class GridSession {
   readonly home: GridCell;
   readonly allocator: ResidencyAllocator;
   private readonly rings: TileStreamer<LevelPrepared<FarPrepared, PreparedRingTile>>;
+  private readonly tileGhosts = new GhostWorlds();
   private readonly neighbours: readonly GridCell[];
   private readonly clientTiles: ClientTileRegistration;
   private readonly costs = new Map<string, number>();
@@ -535,10 +538,15 @@ export class GridSession {
       ...(host.prepareView === undefined ? {} : { prepare: (view: FarProxyView, current: () => boolean) => host.prepareView?.(view.mesh, current) ?? Promise.resolve() }) });
     this.near = near;
     host.scope.onDispose(() => { near.dispose(); });
-    const farPorts = { ...framedPorts, upload: (tile: { instance: string }, data: FarPrepared) => {
+    const farPorts = { ...framedPorts, upload: (tile: RingTile, data: FarPrepared) => {
       const view: FarProxyView = framedPorts.upload(tile, data), dispose = view.dispose;
+      let retired = false;
       this.farViews.add(tile.instance); this.farMeshes.set(tile.instance, view);
-      view.dispose = () => { this.farViews.delete(tile.instance); if (this.farMeshes.get(tile.instance) === view) this.farMeshes.delete(tile.instance); dispose(); };
+      view.dispose = () => {
+        this.farViews.delete(tile.instance); if (this.farMeshes.get(tile.instance) === view) this.farMeshes.delete(tile.instance);
+        try { dispose(); }
+        finally { if (!retired) { retired = true; this.tileGhosts.retired(tile.key, [view.mesh]); } }
+      };
       const id = tile.instance, entry = { view, excluded: new Set<number>() as ReadonlySet<number> }, mask = view.mask, gone = view.dispose;
       drawnFar.set(id, entry);
       view.mask = (excluded) => { entry.excluded = excluded; mask(excluded); if (near.shows(id)) view.mesh.visible = false; near.remask(id); };
@@ -562,7 +570,8 @@ export class GridSession {
       }
     };
     host.frame?.onLate((dt) => { this.viewStep(); this.life.late(dt); this.panels.late(); bands(); frame?.frame(); });
-    const tiles = neighbourTiles(host.scope, async (tile) => { await host.prepareTile?.(tile); }), tileCost = clientRingCatalogue(tiles.instances);
+    const tiles = neighbourTiles(host.scope, async (tile) => { await host.prepareTile?.(tile); },
+      (tile, retiredRoots) => { this.tileGhosts.retired(tile.key, retiredRoots); }), tileCost = clientRingCatalogue(tiles.instances);
     // G342 round 3: a cell whose near view draws and carries its own world owns it whole (its dense
     // ground over the cell), so the rings stop refining it to its own L1 / L0 tiles, which would mask the near view near
     // the road (round 3's first A = B); a terrain-only near view (the template, its world in its tiles) keeps them; a cell
@@ -808,7 +817,8 @@ export class GridSession {
       strips: this.strips.length, road: this.road, seams: this.seams, softWalls: this.softWalls.state(), shimmer: this.shimmer.state(), cellLoading: this.cellLoading.open, ringsReady: this.rings.ready(), ringsWait: { cells: this.rings.waiting(), far: this.rings.farPlan() },
       residentMB: Math.round(cost.accounted / 1e4) / 100, playingMB: Math.round(cost.playing / 1e4) / 100,
       accountedBytes: cost.accounted,
-      rings: { frame: stats.frame, far: stats.resident.far, l1: stats.resident.l1, l0: stats.resident.l0, refused: stats.refused, inFlight: stats.inFlight, queued: stats.queued },
+      rings: { frame: stats.frame, far: stats.resident.far, l1: stats.resident.l1, l0: stats.resident.l0, refused: stats.refused, inFlight: stats.inFlight, queued: stats.queued,
+        ghosts: { count: this.tileGhosts.count(), tiles: this.tileGhosts.regions() } },
       frame: this.frame?.state() ?? null,
       live: this.live?.state() ?? null,
       life: this.life.state(),
