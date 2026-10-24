@@ -45,7 +45,7 @@ export interface EquipContext { scope: Scope; events?: Events }
 export abstract class Equipment {
   readonly attributes: AttributeSet = {};
   effectTags: readonly CombatTag[] = [];
-  abstract readonly id: WeaponId | ToolId;
+  abstract readonly id: keyof (EquipmentSlotMap & Record<ToolId, true>);
   abstract holster: number;
   abstract enabled: boolean;
   protected readonly blocks: BlockSet = {};

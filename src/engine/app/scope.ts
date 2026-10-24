@@ -47,7 +47,7 @@ export function scopeRegistrations(include: (scope: Scope) => boolean): NativeCe
 }
 export function registrationTimerIds(): { timeouts: number[]; intervals: number[] } {
   const ids = { timeouts: [] as number[], intervals: [] as number[] };
-  for (const r of registrations) if (r.timer !== undefined && (r.kind === 'timeouts' || r.kind === 'intervals')) ids[r.kind].push(Number(r.timer));
+  for (const r of registrations) if (r.timer !== undefined && (r.kind === 'timeouts' || r.kind === 'intervals')) ids[r.kind].push(r.timer);
   return ids;
 }
 /** Resources whose `dispose` event is being sent only to drop their GPU bindings (`rebindGeometry`), not to retire them. */
@@ -262,7 +262,7 @@ export class Scope {
   }
 
   private timerCancels: Map<ReturnType<typeof setTimeout>, () => void> | undefined;
-  cancelTimer(id: ReturnType<typeof setTimeout> | 0 | undefined): void { if (id !== 0 && id !== undefined) this.timerCancels?.get(id)?.(); }
+  cancelTimer(id: ReturnType<typeof setTimeout> | undefined): void { if (id !== 0 && id !== undefined) this.timerCancels?.get(id)?.(); }
 
   /** THREE-style subscription, released by its owner or the returned unsubscribe. */
   listenEmitter<K extends string, E>(target: {
@@ -288,7 +288,7 @@ export class Scope {
     forget = this.track('listeners', () => { target.removeEventListener(type, listener); forget(); });
   }
 
-  timeout(ms: number, fn: () => void): ReturnType<typeof setTimeout> | 0 {
+  timeout(ms: number, fn: () => void): ReturnType<typeof setTimeout> {
     if (this.closed) return 0;
     let forget = () => { /* Filled before the timer can fire. */ };
     const id = setTimeout(() => { forget(); this.timerCancels?.delete(id); if (!this.closed) withOwner(this, fn); }, ms);
@@ -296,7 +296,7 @@ export class Scope {
     forget = this.registration({ kind: 'timeouts', timer: id }, 'timers', cancel); (this.timerCancels ??= new Map()).set(id, cancel);
     return id;
   }
-  interval(ms: number, fn: () => void): ReturnType<typeof setInterval> | 0 {
+  interval(ms: number, fn: () => void): ReturnType<typeof setInterval> {
     if (this.closed) return 0;
     const id = setInterval(() => { if (!this.closed) withOwner(this, fn); }, ms);
     let forget = () => { /* Assigned after registration. */ };

@@ -10,11 +10,11 @@ import type { DiscSpot, TouchRelabel } from '../ui/hudSlots';
 export interface ActionMap {}
 /** Namespaced authored actions are admitted by the declaration loader and scoped context registrations. */
 export type DeclaredAction = `${string}.${string}`;
-export type Action = DeclaredAction | Extract<keyof ActionMap, string> | EquipmentAction | 'crouch' | 'crouch.hold' | 'sprint' | 'use'
+export type Action = Extract<keyof (ActionMap & Record<DeclaredAction | EquipmentAction | 'crouch' | 'crouch.hold' | 'sprint' | 'use'
   | 'move.forward' | 'move.back' | 'move.left' | 'move.right'
   | 'move' | 'look' | 'dodge' | 'pause' | 'map' | 'journal' | 'note' | 'confirm' | 'back' | 'nav.left' | 'nav.right' | 'tab'
   | 'dive' | 'surface' | 'fly.up' | 'fly.down' | 'fly.boost' | 'pane.1' | 'pane.2' | 'pane.3'
-  | 'skip' | 'focus' | 'quickNote' | 'help';
+  | 'skip' | 'focus' | 'quickNote' | 'help', true>), string>;
 export interface TouchVerb { action: Action; label: string; icon: string; hold?: boolean; element?: HTMLButtonElement; show?: () => boolean }
 export type TouchVerbSpec = Action | TouchVerb;
 /** Semantic input accepted by the host. UI gestures, interact and traversal all use this boundary. */
