@@ -362,8 +362,8 @@ jobs:
           if-no-files-found: ignore
           retention-days: 2
 
-  # Types and lint need generated inputs, while behaviour and web builds also
-  # need products. Publish the first dependency before compiling all products.
+  # Product-free behaviour, types and lint start with generated inputs.
+  # Only product readers and web builds wait for the complete products.
   generated-inputs:
     if: github.event_name == 'push' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
@@ -501,7 +501,7 @@ jobs:
           retention-days: 2
 
   behaviour:
-    needs: products
+    needs: generated-inputs
     if: github.event_name == 'push' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -548,17 +548,16 @@ jobs:
           restore-keys: native-witness-v1-${{ runner.os }}-${{ runner.arch }}-node24-${{ matrix.shard }}-
       - uses: actions/download-artifact@v4
         with:
-          name: test-products
-      - name: Verify and restore exact-run generated inputs and products
+          name: generated-inputs
+      - name: Verify and restore exact-run generated inputs
         run: |
-          zstd -d --rm test-products.tar.zst
-          python3 scripts/ci-products.py unpack
-      # The verified same-run producer built these exact products; hooks must
-      # not rebuild them inside every test file (CI always forces a rebuild).
+          zstd -d --rm generated-inputs.tar.zst
+          python3 scripts/ci-products.py unpack-generated
+      # CF3: all product-free suites start as soon as generated inputs are verified.
       - run: python3 scripts/ci-fail-fast.py -- python3 scripts/heavy-lane.py check -- pnpm exec vitest run --shard=${{ matrix.shard }}/16 --bail=1
         env:
           VERCEL_GIT_COMMIT_SHA: ${{ github.sha }}
-          WS_TEST_PRODUCTS_SHA: ${{ github.sha }}
+          WS_TEST_COHORT: product-free
 
       - name: Publish exact failure paths
         if: failure()
@@ -569,9 +568,79 @@ jobs:
           if-no-files-found: ignore
           retention-days: 2
 
+  behaviour-products:
+    needs: products
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      # G678/SW9: every shard reports its own first failure in this run.
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          filter: blob:none
+          sparse-checkout: |
+            /*
+            !/progress/
+            !/art/
+            !/sources/
+          sparse-checkout-cone-mode: false
+      - uses: pnpm/action-setup@v4
+        with: {version: 10}
+      - uses: actions/setup-node@v4
+        with: {node-version: 24, cache: pnpm}
+      - run: pnpm install --frozen-lockfile
+      # Transform bytes only: Vitest keys file contents, resolve/config and
+      # coverage, and checks the lockfile. Test bodies and setup still run.
+      - name: Restore Vitest transformed modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules/.vitest-cache
+          key: vitest-transform-products-v1-${{ runner.os }}-${{ runner.arch }}-node24-${{ hashFiles('pnpm-lock.yaml') }}-${{ matrix.shard }}-${{ github.sha }}
+          restore-keys: vitest-transform-products-v1-${{ runner.os }}-${{ runner.arch }}-node24-${{ hashFiles('pnpm-lock.yaml') }}-${{ matrix.shard }}-
+      # Cache native checkpoint bytes only. Every consumer still checks its
+      # source/host key, all payload hashes and the normal recorded outcome.
+      - name: Restore content-addressed native witnesses
+        uses: actions/cache@v4
+        with:
+          # Complete key directories; never transfer live lock/reader owners.
+          path: |
+            ~/.cache/wildshard/generate/witness-*/[0-9a-f]*
+            !~/.cache/wildshard/generate/witness-*/*.lock
+            !~/.cache/wildshard/generate/witness-*/*.readers
+            !~/.cache/wildshard/generate/witness-*/evicting-*
+          key: native-witness-products-v1-${{ runner.os }}-${{ runner.arch }}-node24-${{ matrix.shard }}-${{ github.sha }}
+          restore-keys: native-witness-products-v1-${{ runner.os }}-${{ runner.arch }}-node24-${{ matrix.shard }}-
+      - uses: actions/download-artifact@v4
+        with:
+          name: test-products
+      - name: Verify and restore exact-run generated inputs and products
+        run: |
+          zstd -d --rm test-products.tar.zst
+          python3 scripts/ci-products.py unpack
+      # The verified same-run producer built these exact products; hooks must
+      # not rebuild them inside every test file (CI always forces a rebuild).
+      - run: python3 scripts/ci-fail-fast.py -- python3 scripts/heavy-lane.py check -- pnpm exec vitest run --shard=${{ matrix.shard }}/4 --bail=1
+        env:
+          VERCEL_GIT_COMMIT_SHA: ${{ github.sha }}
+          WS_TEST_COHORT: products
+          WS_TEST_PRODUCTS_SHA: ${{ github.sha }}
+
+      - name: Publish exact failure paths
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-failures-behaviour-products-${{ matrix.shard }}
+          path: tmp/ci-failures/*.json
+          if-no-files-found: ignore
+          retention-days: 2
+
   dispatch-boot-smoke:
     # All push checks must pass; release/PR runs never create skipped smoke runs.
-    needs: [build-and-deploy, typecheck-lint, derived-docs, generated-inputs, products, behaviour]
+    needs: [build-and-deploy, typecheck-lint, derived-docs, generated-inputs, products, behaviour, behaviour-products]
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 5

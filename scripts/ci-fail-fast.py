@@ -138,7 +138,7 @@ def main():
     # their per-shard bail and diagnostics without stopping on another job.
     # Release jobs and local uses also retain their commands without peer IO.
     reader=peer_failure if os.environ.get('GITHUB_EVENT_NAME') in ('push','pull_request') \
-        and os.environ.get('GITHUB_JOB') != 'behaviour' else None
+        and os.environ.get('GITHUB_JOB') not in ('behaviour', 'behaviour-products') else None
     def interrupted(number, frame):
         raise SystemExit(128+number)
     for number in (signal.SIGTERM, signal.SIGINT):

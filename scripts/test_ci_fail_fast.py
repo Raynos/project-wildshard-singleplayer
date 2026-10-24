@@ -58,7 +58,7 @@ class FailFastTests(unittest.TestCase):
     def test_behaviour_finishes_its_own_failure_while_other_jobs_keep_peer_stop(self):
         main=API['main'];run=API['run']
         command=[sys.executable,'-c','import time;time.sleep(.2);print("FAIL test/own.test.ts > actual");raise SystemExit(7)']
-        for job, expected in [('behaviour',7),('products',1)]:
+        for job, expected in [('behaviour',7),('behaviour-products',7),('products',1)]:
             with self.subTest(job=job):
                 observations=[]
                 def peer():
@@ -71,7 +71,7 @@ class FailFastTests(unittest.TestCase):
                         self.assertRaises(SystemExit) as stopped:
                     main()
                 self.assertEqual(stopped.exception.code,expected)
-                if job=='behaviour':
+                if job in ('behaviour','behaviour-products'):
                     self.assertEqual(observations,[])
                     self.assertIn('::error file=test/own.test.ts',out.getvalue())
                     self.assertNotIn('Peer job',out.getvalue())
@@ -82,10 +82,11 @@ class FailFastTests(unittest.TestCase):
 
     def test_behaviour_matrix_keeps_independent_jobs_and_per_shard_bail(self):
         source=Path('.github/workflows/deploy.yml').read_text()
-        behaviour=source.split('\n  behaviour:\n',1)[1].split('\n  dispatch-boot-smoke:\n',1)[0]
-        self.assertIn('fail-fast: false',behaviour)
-        self.assertNotIn('fail-fast: true',behaviour)
-        self.assertIn('python3 scripts/ci-fail-fast.py -- python3 scripts/heavy-lane.py check -- pnpm exec vitest run --shard=${{ matrix.shard }}/16 --bail=1',behaviour)
+        for job, count in [('behaviour',16),('behaviour-products',4)]:
+            behaviour=source.split(f'\n  {job}:\n',1)[1].split('\n  dispatch-boot-smoke:\n',1)[0].split('\n  behaviour-products:\n',1)[0]
+            self.assertIn('fail-fast: false',behaviour)
+            self.assertNotIn('fail-fast: true',behaviour)
+            self.assertIn('python3 scripts/ci-fail-fast.py -- python3 scripts/heavy-lane.py check -- pnpm exec vitest run --shard=${{ matrix.shard }}/'+str(count)+' --bail=1',behaviour)
 
     def test_monitor_failure_is_named_once_without_retry_or_masking_check(self):
         calls=[]

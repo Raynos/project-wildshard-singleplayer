@@ -9,8 +9,9 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   `VERCEL_BUILD_TOKEN` is the team-scoped Actions secret used for `vercel pull`,
   `vercel build` and `vercel deploy`; the old project-scoped token cannot run the
   CLI account lookup; `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` name the project. No credentials belong in Git.
-- **Push / PR CI runs the whole vitest suite once**, in ten `behaviour` shards (`pnpm gen` then `vitest --shard=N/10`, **without
-  coverage**, Jake G287); `typecheck-lint` runs typecheck and lint; `build-and-deploy` runs the node checks and the
+- **Push / PR CI runs the whole vitest suite once**, in 16 product-free `behaviour` shards and four
+  `behaviour-products` shards (**without coverage**, Jake G287/G691); `typecheck-lint` runs typecheck and lint;
+  `build-and-deploy` runs the node checks and the
   vite build + chunk check in parallel (`scripts/ci-checks.mjs`), then the CSS check and the native build. **Coverage runs nightly and at
   milestones** (`.github/workflows/coverage.yml`: 09:23 UTC, or `gh workflow run coverage [-f sha=<candidate>]`): the
   same 8 shards under `--coverage`, merged with `scripts/coverage-merge.mjs` (the same numbers as one unsharded run),
@@ -22,13 +23,16 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   production. A historical pin without that CI proof still runs `pnpm test`. The reader reports `ci_green` separately
   from smoke and pin mode; a nearby commit or successful manual release cannot supply the test proof.
   **CI is the full backstop of the push gate** (Jake, 2026-10-15): the gate runs only the tests that import the changed
-  files (GIT.md). The `products` job generates inputs and builds all products once. Behaviour shards restore its
-  generated source/public files and `out/` from the same run's artifact, verifying the full SHA, run ID and archive
-  checksum. The four typecheck/lint jobs restore that verified preparation too, then run every type project and
-  their complete lint partition without repeating cold generation. Their 15-minute deadlines stay unchanged.
-  `WS_TEST_PRODUCTS_SHA` keeps test hooks on those exact products; missing or mismatched artifacts fail
-  instead of rebuilding. The `behaviour` shards run the whole suite on every code push, so a transitive
-  break shows up there first; fix it forward like any red run.
+  files (GIT.md). The `generated-inputs` job publishes exact-run source/public inputs first. The 16 product-free
+  behaviour shards restore and verify those inputs immediately, alongside types/lint/docs and the product build.
+  The `products` job builds all products once; only the four product-consuming behaviour shards and web build wait
+  for it. Both artifact readers verify the full SHA, run ID and archive checksum. Nonempty declarations in
+  `scripts/test-products.json` partition suites before duration packing (or hash fallback), so every discovered
+  file runs once across both cohorts. Without `WS_TEST_COHORT`, local/full/nightly selection stays complete.
+  `WS_TEST_PRODUCTS_SHA` is set only for the product cohort, keeping its exact-product preflight strict; missing or
+  mismatched artifacts fail instead of rebuilding. Both matrices keep `fail-fast: false` and each shard's own
+  first-failure bail; neither command wrapper stops for a peer failure. Exact-SHA smoke dispatch requires both
+  cohorts, every producer, types/lint, docs and the web build to pass.
 - **CI's vitest is Linux x64 (under coverage in the nightly): other floats, and ~2–2.5× a Mac's time** (ci-green, 2026-10-09; main was
   red for hours on both):
   - **A recorded digest never passes through V8's native transcendentals** (`Math.sin / cos / tan / exp / log / atan2 /

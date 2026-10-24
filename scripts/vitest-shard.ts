@@ -37,8 +37,26 @@ export function packShards(paths: readonly string[], durations: ReadonlyMap<stri
   return shards.map((shard) => shard.paths);
 }
 
+/** CF3: partition before packing/collection; no cohort keeps the complete local/nightly suite. */
+export function selectTestCohort(paths: readonly string[], products: Readonly<Record<string,readonly string[]>>, cohort: string | undefined): string[] {
+  if (cohort === undefined) return [...paths];
+  if (cohort !== 'product-free' && cohort !== 'products') throw new Error(`Unknown test cohort: ${cohort}`);
+  return paths.filter(path => ((products[path]?.length ?? 0) > 0) === (cohort === 'products'));
+}
+
 export class DurationSequencer extends BaseSequencer {
-  override async sort(files: TestSpecification[]): Promise<TestSpecification[]> {
+  private cohort(files: TestSpecification[]): TestSpecification[] {
+    const {WS_TEST_COHORT:cohort}=process.env;
+    if(cohort===undefined)return files;
+    const {root}=this.ctx.config;
+    // A missing/malformed registry must refuse, never move every test into the free cohort.
+    const products=v.parse(v.record(v.string(),v.array(v.string())),JSON.parse(readFileSync(resolve(root,'scripts/test-products.json'),'utf8')));
+    const key=(spec:TestSpecification):string=>relative(root,spec.moduleId).replaceAll('\\','/');
+    const selected=new Set(selectTestCohort(files.map(key),products,cohort));
+    return files.filter(spec=>selected.has(key(spec)));
+  }
+  override async sort(candidates: TestSpecification[]): Promise<TestSpecification[]> {
+    const files=this.cohort(candidates);
     const { root } = this.ctx.config;
     const registry = resolve(root, 'scripts/test-products.json');
     if (existsSync(registry)) {
@@ -65,7 +83,8 @@ export class DurationSequencer extends BaseSequencer {
     }
     return super.sort(files);
   }
-  override shard(files: TestSpecification[]): Promise<TestSpecification[]> {
+  override shard(candidates: TestSpecification[]): Promise<TestSpecification[]> {
+    const files=this.cohort(candidates);
     const { root, shard } = this.ctx.config;
     const durations = shard === undefined ? null : readDurations(root);
     if (shard === undefined || durations === null) return super.shard(files);

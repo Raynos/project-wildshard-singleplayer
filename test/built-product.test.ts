@@ -129,7 +129,7 @@ test('real Vitest refuses missing products before loading worker setup or suite 
   write(f.root, 'test/setup.mjs', "import fs from 'node:fs';fs.writeFileSync('worker-started','yes');");
   write(f.root, 'vitest.config.mts', `import {DurationSequencer} from ${JSON.stringify(resolve('scripts/vitest-shard.ts'))};export default {root:${JSON.stringify(f.root)},test:{include:['test/product.test.ts'],setupFiles:['test/setup.mjs'],sequence:{sequencer:DurationSequencer}}};`);
   expect(() => execFileSync(process.execPath, [resolve('node_modules/vitest/vitest.mjs'), 'run', '--config', resolve(f.root, 'vitest.config.mts')], {
-    cwd: f.root, env: { ...process.env, WILDSHARD_SHARDFILE_CACHE: f.cacheRoot, WS_TEST_PRODUCTS_SHA: '', VERCEL_GIT_COMMIT_SHA: '' }, stdio: 'pipe', timeout: 10_000, maxBuffer: 1_048_576,
+    cwd: f.root, env: { ...process.env, WS_TEST_COHORT:undefined, WILDSHARD_SHARDFILE_CACHE: f.cacheRoot, WS_TEST_PRODUCTS_SHA: '', VERCEL_GIT_COMMIT_SHA: '' }, stdio: 'pipe', timeout: 10_000, maxBuffer: 1_048_576,
   })).toThrow('Missing current products author');
   expect(existsSync(resolve(f.root, 'worker-started'))).toBe(false);
 });
@@ -145,7 +145,7 @@ test.each(['local-related', 'ci-related', 'focused', 'all-blocked'] as const)('r
   write(f.root,'vitest.config.mts',`import {DurationSequencer} from ${JSON.stringify(resolve('scripts/vitest-shard.ts'))};export default {root:${JSON.stringify(f.root)},test:{include:['test/*.test.ts'],setupFiles:['test/setup.mjs'],sequence:{sequencer:DurationSequencer}}};`);
   const args=mode==='focused'?['run','test/pure.test.ts','test/product.test.ts']:['related','--run','source.ts'];
   const result=spawnSync(process.execPath,[resolve('node_modules/vitest/vitest.mjs'),...args,'--config',resolve(f.root,'vitest.config.mts')],{
-    cwd:f.root,env:{...process.env,CI:mode==='ci-related'?'1':'',GITHUB_ACTIONS:'',WILDSHARD_SHARDFILE_CACHE:f.cacheRoot,WS_TEST_PRODUCTS_SHA:'',VERCEL_GIT_COMMIT_SHA:'',NO_COLOR:'1'},
+    cwd:f.root,env:{...process.env,WS_TEST_COHORT:undefined,CI:mode==='ci-related'?'1':'',GITHUB_ACTIONS:'',WILDSHARD_SHARDFILE_CACHE:f.cacheRoot,WS_TEST_PRODUCTS_SHA:'',VERCEL_GIT_COMMIT_SHA:'',NO_COLOR:'1'},
     encoding:'utf8',stdio:'pipe',timeout:15_000,maxBuffer:1_048_576,
   });
   expect(result.error).toBeUndefined();
@@ -159,4 +159,27 @@ test.each(['local-related', 'ci-related', 'focused', 'all-blocked'] as const)('r
     expect(result.stderr).toContain(mode==='all-blocked'?'No runnable related suites':'Missing current products author');
     expect(existsSync(resolve(f.root,'worker-started'))).toBe(false);
   }
+});
+
+// Real worker discovery proves filtering precedes packing and strict product
+// preflight, including the fallback when no durations have been recorded.
+test.each([
+  ['product-free',false],['product-free',true],['products',false],['products',true],
+] as const)('real CI cohort %s with recorded durations %s',async(cohort,measured)=>{
+  const f=await fixture();
+  write(f.root,'scripts/test-products.json',JSON.stringify({'test/product.test.ts':[f.name]}));
+  if(cohort==='product-free')write(f.root,f.source,'missing-current-product');
+  if(measured)write(f.root,'test/durations.json',JSON.stringify({'test/product.test.ts':50,'test/pure.test.ts':1}));
+  for(const name of ['pure','product'])write(f.root,`test/${name}.test.ts`,
+    `import {test} from 'vitest';import {writeFileSync} from 'node:fs';test('${name}',()=>writeFileSync('${name}-ran','yes'));`);
+  write(f.root,'vitest.config.mts',`import {DurationSequencer} from ${JSON.stringify(resolve('scripts/vitest-shard.ts'))};export default {root:${JSON.stringify(f.root)},test:{include:['test/*.test.ts'],sequence:{sequencer:DurationSequencer}}};`);
+  const result=spawnSync(process.execPath,[resolve('node_modules/vitest/vitest.mjs'),'run','--shard=1/1','--config',resolve(f.root,'vitest.config.mts')],{
+    cwd:f.root,env:{...process.env,CI:'1',WS_TEST_COHORT:cohort,WILDSHARD_SHARDFILE_CACHE:f.cacheRoot,WS_TEST_PRODUCTS_SHA:'',VERCEL_GIT_COMMIT_SHA:'',NO_COLOR:'1'},
+    encoding:'utf8',timeout:15_000,maxBuffer:1_048_576,
+  });
+  expect(result.error).toBeUndefined();
+  expect(result.status,result.stdout+result.stderr).toBe(0);
+  expect(result.stdout).toContain('1 passed');
+  expect(existsSync(resolve(f.root,'pure-ran'))).toBe(cohort==='product-free');
+  expect(existsSync(resolve(f.root,'product-ran'))).toBe(cohort==='products');
 });
