@@ -20,9 +20,11 @@ export function projectCompilerIdentity(): Promise<string> {
 }
 async function capture(): Promise<string> {
   // The CLI defines the SDK directory when executing its bundle as a data URL.
-  const compiler = createRequire(resolve(import.meta.dirname, 'package.json')).resolve('@wildshard/sdk/compileScript');
+  const require = createRequire(resolve(import.meta.dirname, 'package.json'));
+  const compiler = require.resolve('@wildshard/sdk/compileScript');
+  const decisions = require.resolve('@wildshard/sdk/buildDecisionScripts');
   const built = await build({ configFile: false, logLevel: 'silent', build: { write: false, minify: false,
-    lib: { entry: [compiler], formats: ['es'] },
+    lib: { entry: [compiler, decisions], formats: ['es'] },
     rolldownOptions: { external: [/^node:/u, ...external] } } });
   const result = Array.isArray(built) ? built[0] : built;
   if (result === undefined || !('output' in result)) throw new Error('Missing generation compiler identity');

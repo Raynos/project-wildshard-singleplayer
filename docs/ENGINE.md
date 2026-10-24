@@ -13631,3 +13631,22 @@ before binding or publishing anything. Room rows retain their three-argument
 bind. Distinct arena owners may each have one entry row; owner ids and
 publication ids are unique. The compiler binds open arenas before rooms,
 then orders each group by owner id, independent of product row order.
+
+
+### Source-only author generation
+
+A `shard.config.ts` build function receives `ProjectGenerationContext` from
+`@wildshard/sdk/projectGeneration`. Its `cached({id, inputs, native}, fn)`
+returns detached named bytes keyed by the bundled source closure, compiler
+identity, explicit input bytes and optional native host. Inputs are read on
+hits too; product receipts observe the step key. `asset(bytes)` publishes
+owned content-addressed bytes. `compileScript` and `compileDecisionScripts`
+are injected build capabilities, so the author module imports no compiler
+or filesystem service.
+
+A build function may return a shard declaration or `GeneratedProject`:
+`{shard, output}`. The latter carries `ProjectOutput` named files and platform
+sections produced by that same invocation. Root and sidecar output exports
+cannot compete with it. Both forms cross the same shard, decision, asset,
+source-budget and output admission checks; no intermediate metadata file is
+needed to pass a generated hash to its consumer.

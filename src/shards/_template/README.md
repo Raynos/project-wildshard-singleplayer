@@ -27,19 +27,20 @@ The first-party manifest keeps the canonical `_template` slug, grey picker art a
 The existing Game admits the product before its normal world/kit/play stages, sharing
 one player, physics world, fixed-step driver and HUD. There is no custom runtime chunk.
 `shard.config.ts` includes build-time `data/card.json` metadata;
-`generators/output.ts` declares named blobs and platform sections. Budgets live in `data/` too. Root
+`generators/productOutput.ts` declares named blobs and platform sections. Budgets live in `data/` too. Root
 `manifest.json` is a temporary discovery bridge only: P3 catalog activation
 removes it, together with the generated discovery module. Runtime code never
 imports `data/card.ts`. Keep bridge metadata synchronized until that switch.
 
 The T2 reference in `behaviour/boss.as` binds the `combat/encounters` row
-`template.boss` through the single `sim/scripts` row in `generators/output.ts`.
+`template.boss` through the single `sim/scripts` row in `generators/productOutput.ts`.
 `data/bossDecision.json` declares its capabilities, actor, move, strike, timers and
 durable state. The SDK compiler generates the typed bindings; no handwritten
 transport or runtime module is needed. It approaches, alternates timed strikes and moves,
 accelerates at the second-phase threshold, wins on death and resets on stop.
 The fixed-step engine owns the declared `actors/moves` and strike mechanics.
-`template-boss-decision` compiles one fixed Wasm page; the scenario at
+`generators/boss.ts` compiles one fixed Wasm page through the injected
+SDK compiler and immutable step cache, without writing boss metadata into source; the scenario at
 `test/scripts/_template-boss.test.ts` runs those built bytes through the real
 DecisionHost, including a logical save restored into a fresh host. The
 Template stays runtime-free. Event-only decisions run on the 60 Hz host's sixth

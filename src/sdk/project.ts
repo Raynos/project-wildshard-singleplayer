@@ -78,8 +78,17 @@ async function projectModule(project: string, decisionLegacyLines?: number, sele
   let declaration: unknown = selected === undefined ? loaded['generate'] ?? loaded['default'] : outputDeclaration(loaded, selected);
   let shard: Shardfile;
   const baked = new Map<string, Uint8Array>(), root = realpathSync(project);
-  if (isProjectGenerator(declaration)) declaration = await declaration(createProjectGeneration(project,
-    contentHash(new TextEncoder().encode(canonicalJson({ program: program.hash, output: selected ?? null }))), baked));
+  let generatedOutput: unknown;
+  if (isProjectGenerator(declaration)) {
+    declaration = await declaration(createProjectGeneration(project,
+      contentHash(new TextEncoder().encode(canonicalJson({ program: program.hash, output: selected ?? null }))), baked));
+    if (typeof declaration === 'object' && declaration !== null && 'shard' in declaration) {
+      if (!('output' in declaration) || Object.keys(declaration).some(key => key !== 'shard' && key !== 'output')) throw new Error('Generated project requires only shard and output');
+      generatedOutput = declaration.output;
+      if (generatedOutput === undefined) throw new Error('Generated project output is absent');
+      declaration = declaration.shard;
+    }
+  }
   const sourcePath = (path: string): string => {
     const resolved = realpathSync(resolve(root, path));
     if (!resolved.startsWith(`${root}${sep}`)) throw new Error('Authored source resolves outside the author project'); return resolved;
@@ -98,8 +107,9 @@ async function projectModule(project: string, decisionLegacyLines?: number, sele
   checkProjectRuntime(project, projectPerformancePolicy(project, shard));
   const sidecar = existsSync(resolve(project, 'generators/output.ts')) ? (await authorModule(project, 'generators/output.ts')).exports : undefined;
   if (sidecar !== undefined && ('output' in loaded || !('output' in sidecar))) throw new Error('Output sidecar requires one unambiguous output export');
+  if (generatedOutput !== undefined && (sidecar !== undefined || 'output' in loaded)) throw new Error('Generated project requires one unambiguous output declaration');
   shard = mergeProjectSections(shard, sidecar?.['sections']);
-  const output = await prepareProjectOutput(project, sidecar === undefined ? loaded['output'] : sidecar['output'], { source: shard, options: projectDecisionOptions(loaded['buildOptions'], projectDecisionBudget(project, decisionLegacyLines)) });
+  const output = await prepareProjectOutput(project, generatedOutput ?? (sidecar === undefined ? loaded['output'] : sidecar['output']), { source: shard, options: projectDecisionOptions(loaded['buildOptions'], projectDecisionBudget(project, decisionLegacyLines)) });
   // The CLI-only sidecar may declare the runtime/const.ts mirrors too (a browser config cannot import data/ values).
   if (sidecar !== undefined && 'mirrors' in loaded && 'mirrors' in sidecar) throw new Error('Runtime mirrors declared by both the config and its output sidecar');
   const mirrors = projectMirrors('mirrors' in loaded ? loaded['mirrors'] : sidecar !== undefined && 'mirrors' in sidecar ? sidecar['mirrors'] : undefined);

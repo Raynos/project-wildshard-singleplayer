@@ -10,7 +10,7 @@ import { expect, test } from 'vitest';
 import { build } from 'vite';
 import { generate } from '../src/shards/_template/shard.config';
 import { templateTerrain } from '../src/shards/_template/generators/terrain';
-import { TEMPLATE_BEHAVIOUR } from './fixtures/templateSource';
+import { TEMPLATE_BEHAVIOUR, TEMPLATE_BOSS } from './fixtures/templateSource';
 import { templateBehaviour } from '../src/shards/_template/generators/behaviour';
 import { templateProduct } from '../src/shards/_template/generators/product';
 import { templatePropRows } from '../src/shards/_template/generators/props';
@@ -26,8 +26,11 @@ test('template direct generation and a cache hit retain every original world row
     const assets = new Map<string, Uint8Array>(), root = resolve('src/shards/_template');
     const coldAt = performance.now(), cold = await generate(createProjectGeneration(root, 'c'.repeat(64), assets, cache)), coldMs = performance.now() - coldAt;
     const hitAt = performance.now(), hit = await generate(createProjectGeneration(root, 'c'.repeat(64), assets, cache)), hitMs = performance.now() - hitAt;
-    expect(JSON.stringify(cold)).toBe(JSON.stringify(templateProduct(rows, props, TEMPLATE_BEHAVIOUR))); expect(hit).toEqual(cold);
+    expect(JSON.stringify(cold.shard)).toBe(JSON.stringify(templateProduct(rows, props, TEMPLATE_BEHAVIOUR, TEMPLATE_BOSS))); expect(hit).toEqual(cold);
     const expected = new Map([...original, ...props.assets]);
+    const boss = assets.get(TEMPLATE_BOSS.hash); if (boss === undefined) throw new Error('Missing generated boss'); expected.set(TEMPLATE_BOSS.hash, boss);
+    expect(boss.length).toBe(6225);
+    expect(TEMPLATE_BOSS.hash).toBe('bf52a5e1751ebc1a668451fcb1bde2445d5caea4a4685def699531f8eab13a06');
     for (const row of Object.values(await templateBehaviour(createProjectGeneration(root, 'c'.repeat(64), assets, cache)))) {
       const bytes = assets.get(row.hash); if (bytes === undefined) throw new Error('Missing actual compiled module'); expected.set(row.hash, bytes);
     } expect([...assets.keys()].sort()).toEqual([...expected.keys()].sort());
@@ -51,9 +54,11 @@ test('the actual template build closure bundles and executes through the unchang
   if (typeof loaded !== 'object' || loaded === null || !('generate' in loaded) || !isProjectGenerator(loaded.generate)) throw new Error('Missing template build function');
   const cache = mkdtempSync(resolve('tmp', 'template-bundle-')), assets = new Map<string, Uint8Array>();
   try {
-    const source = parseShardfile(await loaded.generate(createProjectGeneration(resolve('src/shards/_template'), hashImmutableBytes(new TextEncoder().encode(chunk.code)), assets, cache)));
+    const generated = await loaded.generate(createProjectGeneration(resolve('src/shards/_template'), hashImmutableBytes(new TextEncoder().encode(chunk.code)), assets, cache));
+    if (typeof generated !== 'object' || generated === null || !('shard' in generated)) throw new Error('Missing generated declaration');
+    const source = parseShardfile(generated.shard);
     expect(source.identity.slug).toBe('template');
-    expect(source.files.filter(file => assets.has(file.hash))).toHaveLength(assets.size);
+    expect(source.files.filter(file => assets.has(file.hash))).toHaveLength(assets.size - 1);
     expect(assets.size).toBeGreaterThan(0);
   } finally { rmSync(cache, { recursive: true, force: true }); }
 });

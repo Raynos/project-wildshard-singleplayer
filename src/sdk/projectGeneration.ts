@@ -13,6 +13,9 @@ import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
 import { readBoundedFile } from './sourceReader';
 import { projectCompilerIdentity } from './projectCompilerIdentity';
 import { compileScript } from './bake/compileScript';
+import { compileDecisionScripts } from './buildDecisionScripts';
+import type { Shardfile } from './shardfile';
+import type { ProjectOutput } from './projectOutput';
 
 const hash = v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u));
 const Manifest = v.strictObject({ key: hash, files: v.pipe(v.array(v.strictObject({ name: v.string(), hash, bytes: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(256_000_000)) })), v.maxLength(4096)) });
@@ -25,11 +28,17 @@ export interface ProjectGenerationStep {
   readonly inputs?: readonly string[];
   readonly native?: boolean;
 }
+/** A build may return output metadata alongside the declaration it describes. Neither is written into source. */
+export interface GeneratedProject {
+  readonly shard: Shardfile;
+  readonly output: ProjectOutput;
+}
 /** Build-only capabilities. No cache filename or intermediate source file enters a product. */
 export interface ProjectGenerationContext {
   cached: (step: ProjectGenerationStep, generate: (inputs: ReadonlyMap<string, Uint8Array>) => ReadonlyMap<string, Uint8Array> | Promise<ReadonlyMap<string, Uint8Array>>) => Promise<ReadonlyMap<string, Uint8Array>>;
   asset: (bytes: Uint8Array) => string;
   compileScript: typeof compileScript;
+  compileDecisionScripts: typeof compileDecisionScripts;
 }
 /** Build entries are trusted functions; their returned declaration still crosses normal shardfile admission. */
 export function isProjectGenerator(input: unknown): input is (ctx: ProjectGenerationContext) => unknown { return typeof input === 'function'; }
@@ -50,7 +59,7 @@ export function createProjectGeneration(project: string, programHash: string, as
   v.parse(hash, programHash);
   const root = realpathSync(project), pending = new Map<string, Promise<ReadonlyMap<string, Uint8Array>>>();
   return {
-    compileScript,
+    compileScript, compileDecisionScripts,
     asset(bytes) {
       if (!(bytes instanceof Uint8Array) || bytes.byteLength > 256_000_000) throw new Error('Invalid generation asset bytes');
       const copy = new Uint8Array(bytes), key = hashImmutableBytes(copy); assets.set(key, copy); return key;

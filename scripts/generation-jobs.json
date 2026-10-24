@@ -13106,42 +13106,6 @@
       "catalogueDependencies": []
     },
     {
-      "id": "template-boss-decision",
-      "shard": "_template",
-      "entry": "src/shards/_template/generators/bake-boss.mjs",
-      "command": [
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/shards/_template/generators/bake-boss.mjs"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "src/format",
-        "src/sdk",
-        "src/shards/_template/data/bossDecision.json",
-        "src/shards/_template/data/moves.json",
-        "src/shards/_template/data/creatures.json",
-        "src/shards/_template/data/rows.json",
-        "src/shards/_template/behaviour",
-        "src/shards/_template/generators/buildOptions.ts",
-        "src/shards/_template/generators/bake-boss.mjs",
-        "src/sdk/decisionScriptBindings.ts",
-        "src/format/scriptAbiV1.ts",
-        "src/format/decisionScripts.ts"
-      ],
-      "outputs": [
-        "src/shards/_template/behaviour/boss.json",
-        "src/shards/_template/assets/bf52a5e1751ebc1a668451fcb1bde2445d5caea4a4685def699531f8eab13a06"
-      ],
-      "platform": "portable",
-      "buildTimeOutputs": [
-        "src/shards/_template/behaviour/boss.json",
-        "src/shards/_template/assets/bf52a5e1751ebc1a668451fcb1bde2445d5caea4a4685def699531f8eab13a06"
-      ]
-    },
-    {
       "id": "pastel-plain-data-map",
       "shard": "pastel-plain",
       "entry": "src/shards/pastel-plain/generators/bake-map.mjs",

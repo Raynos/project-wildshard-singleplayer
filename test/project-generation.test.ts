@@ -79,3 +79,19 @@ test('the project loader executes a build entry and admits its generated asset w
   await runWildshard(['build', root, output, '--product-only', '--no-placeholders', '--format=2']);
   expect((await loadHeadlessProduct(output)).shardfile.identity.slug).toBe('generated-fixture');
 });
+
+
+test('a build function returns its named bytes with its shard and refuses competing output declarations', async () => {
+  const { root } = fixture(), source = emptyShardfile({ slug: 'generated-output', name: 'Generated', author: 'Test', revision: 1, seed: 3 });
+  const config = `export default async function generate(ctx) {
+    const bytes=new Uint8Array([1,2,3]), hash=ctx.asset(bytes);
+    return {shard:${JSON.stringify(source)},output:{namedFiles:[{name:'generated/body',path:'blobs/bin/'+hash+'.bin',hash,kind:'bin',compressed:3,decoded:3,gpu:0,triangles:0,draws:0,dependencies:[],critical:false}],assets:new Map([[hash,bytes]])}};
+  }`;
+  writeFileSync(resolve(root, 'shard.config.ts'), config);
+  const loaded = await readProjectAssets(root);
+  expect(loaded.output.namedFiles?.map(file => file.name)).toEqual(['generated/body']);
+  expect(loaded.assets.get(hashImmutableBytes(new Uint8Array([1, 2, 3])))).toEqual(new Uint8Array([1, 2, 3]));
+  expect(readdirSync(root)).toEqual(['shard.config.ts']);
+  writeFileSync(resolve(root, 'shard.config.ts'), `${config}\nexport const output = {};`);
+  await expect(readProjectAssets(root)).rejects.toThrow('unambiguous');
+});

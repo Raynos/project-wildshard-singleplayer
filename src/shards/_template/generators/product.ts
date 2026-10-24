@@ -22,7 +22,6 @@ import ITEMS from '../data/items.json' with { type: 'json' };
 import targets from '../data/targets.json' with { type: 'json' };
 import skins from '../data/skins.json' with { type: 'json' };
 import CARD from '../data/card.json' with { type: 'json' };
-import boss from '../behaviour/boss.json' with { type: 'json' };
 import idle from '../data/clientScripts.json' with { type: 'json' };
 
 // Skin projections belong to this build-time declaration, with no runtime wrapper.
@@ -33,7 +32,7 @@ const TEMPLATE_SKIN_COST = TEMPLATE_SKIN_FILES.reduce((sum, file) => ({ resident
 // The idle reserve retains three pairs of Wasm pages and six particle slots.
 const TEMPLATE_ROWS = parseRows(rows);
 /** Assemble the original authored product from this build's terrain rows. */
-export function templateProduct(terrain: Omit<ReturnType<typeof templateTerrain>, 'assets'>, props: BakedProps, behaviour: TemplateBehaviour): Shardfile {
+export function templateProduct(terrain: Omit<ReturnType<typeof templateTerrain>, 'assets'>, props: BakedProps, behaviour: TemplateBehaviour, boss: { compressed: number }): Shardfile {
 const door = behaviour.door, itemModule = behaviour.items.hash;
 const CLIENT_IDLE_HASH = behaviour.idle.hash, CLIENT_IDLE_BYTES = behaviour.idle.compressed;
 const CLIENT_IDLE_RESIDENT = idle.module.resident - idle.module.bytes + CLIENT_IDLE_BYTES;

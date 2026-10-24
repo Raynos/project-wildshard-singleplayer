@@ -49,7 +49,6 @@
     "src/game/weapons/starterBowProfile.ts": 1,
     "src/identity.ts": 4,
     "src/shardList.ts": 1,
-    "src/shards/_template/generators/output.ts": 1,
     "src/shards/_template/generators/product.ts": 1,
     "src/shards/driftwood-isle-legacy/boot/lateReads.ts": 1,
     "src/shards/driftwood-isle-legacy/boot/sources.ts": 1,

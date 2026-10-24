@@ -10,7 +10,9 @@ import { emptyShardfile } from '../src/sdk/author';
 import { completionProjection, fmtPlayTime, installCompletion, type CompletionContext } from '../src/game/complete/declared';
 import { completeEntry } from '../src/game/complete/ShardComplete';
 import { completionRows, COMPLETE_CONTENT } from '../src/shards/driftwood-isle/generators/completion';
-import { output as template } from '../src/shards/_template/generators/output';
+import { templateOutput } from '../src/shards/_template/generators/productOutput';
+
+const template = templateOutput({ hash: '0'.repeat(64) });
 
 const policy = completionRows();
 function fixture(row = policy) {
@@ -68,8 +70,10 @@ test('reward handoff, saved seen flag, safe fallback and keep-exploring preserve
 });
 
 test('Template consumes an actual emitted second-user section and opens its minimal card once on quest completion', () => {
-  const descriptor = template.platform.sections.find(row => row.name === 'ui/completion');
-  const bytes = descriptor === undefined ? undefined : template.platform.files.get(descriptor.path);
+  const platform = template.platform;
+  if (platform === undefined) throw new Error('Template must declare completion sections');
+  const descriptor = platform.sections.find(row => row.name === 'ui/completion');
+  const bytes = descriptor === undefined ? undefined : platform.files.get(descriptor.path);
   if (bytes === undefined) throw new Error('Template must emit its completion policy');
   const rows = parseCompletion(JSON.parse(new TextDecoder().decode(bytes))), f = fixture(rows);
   f.enemy.alive = false;
