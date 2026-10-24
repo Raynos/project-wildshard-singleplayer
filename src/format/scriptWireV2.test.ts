@@ -54,3 +54,23 @@ test('view frame preparation clears dirty flags without erasing persistent matri
   expect(view.getUint32(1024+transform.offset+12,true)).toBe(0);expect(view.getFloat32(1024+transform.offset+16,true)).toBe(2);expect(view.getFloat64(1024+channels.offset,true)).toBe(8);
   expect(validateV2Frame(view,layout,authority)[17]).toBe(0);
 });
+
+test('input counts remain immutable in a subview and call authorities stay detached', () => {
+  const bytes = new Uint8Array(65536+32);bytes.fill(0xab);
+  const view = new DataView(bytes.buffer,32,65536), layout = layoutV2(1024,1,new Map(V2_REGION_STRIDES.map((_,index) => [index+1,2])));
+  const inputs = [1,2,4,5,6,7,8,9,12,13,14,15,16,19,21], counts = new Map(inputs.map(kind => [kind,1]));
+  const frame = { lane: 3,module: 1,sequence: 1,tick: 2**30+3,due: 1,dt: -0,alpha: -0,frame: 1 } as const;
+  for (const kind of inputs) {
+    const authority = writeV2Frame(view,layout,frame,counts);
+    expect(validateV2Frame(view,layout,authority)[kind-1]).toBe(1);
+    view.setUint32(layout.io+128+(kind-1)*24+16,0,true);
+    expect(() => validateV2Frame(view,layout,authority)).toThrow('region directory');
+  }
+  const authority = writeV2Frame(view,layout,frame,counts), header = authority.header.slice();
+  expect(Object.is(view.getFloat64(layout.io+80,true),-0)).toBe(true);
+  expect(Object.is(view.getFloat64(layout.io+88,true),-0)).toBe(true);
+  writeV2Frame(view,layout,{ ...frame,sequence: 2 },counts);
+  expect(authority.header).toEqual(header);expect(Object.isFrozen(authority.counts)).toBe(true);
+  expect(() => validateV2Frame(view,layout,authority)).toThrow('call envelope');
+  expect(bytes.subarray(0,32)).toEqual(new Uint8Array(32).fill(0xab));
+});

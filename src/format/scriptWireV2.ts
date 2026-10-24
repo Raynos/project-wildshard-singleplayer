@@ -33,7 +33,7 @@ export interface V2FrameAuthority { readonly header: Uint8Array; readonly counts
  * the host envelope for output validation; sim has no view clock/tier fields. */
 export function writeV2Frame(view: DataView,layout: V2Layout,frame: V2Frame,counts: ReadonlyMap<number,number>): V2FrameAuthority {
   if (view.byteLength !== layout.pages*65536 || !handle(frame.module) || !unsigned(frame.sequence) || !natural(frame.tick) || !natural(frame.due)) throw new Error('Invalid v2 call envelope');
-  if (![1,2,3].includes(frame.lane)) throw new Error('Unknown v2 lane');
+  if (frame.lane !== 1 && frame.lane !== 2 && frame.lane !== 3) throw new Error('Unknown v2 lane');
   for (const [kind,count] of counts) if (!Number.isInteger(kind) || kind < 1 || kind > 22 || !natural(count)) throw new Error('Unknown v2 input count');
   const actual = layout.regions.map(region => {
     const count = counts.get(region.kind) ?? (region.kind === 17 ? region.capacity : 0);
@@ -44,13 +44,15 @@ export function writeV2Frame(view: DataView,layout: V2Layout,frame: V2Frame,coun
   new Uint8Array(view.buffer,view.byteOffset+at,656).fill(0);
   view.setUint32(at,0x32565357,true); view.setUint16(at+4,2,true); view.setUint32(at+8,128,true); view.setUint32(at+12,layout.bytes,true);
   view.setUint32(at+16,frame.module,true); view.setUint32(at+20,frame.lane,true); view.setUint32(at+24,frame.sequence,true); view.setInt32(at+28,relativeTickV2(frame.tick,origin),true);
-  for (const [offset,kind] of [[36,7],[40,9],[44,8],[48,12],[52,19],[68,13]] as const) view.setUint32(at+offset,actual[kind-1] ?? 0,true);
+  view.setUint32(at+36,actual[6] ?? 0,true);view.setUint32(at+40,actual[8] ?? 0,true);view.setUint32(at+44,actual[7] ?? 0,true);
+  view.setUint32(at+48,actual[11] ?? 0,true);view.setUint32(at+52,actual[18] ?? 0,true);view.setUint32(at+68,actual[12] ?? 0,true);
   view.setUint32(at+32,frame.due,true); view.setUint32(at+96,22,true); view.setUint32(at+100,128,true); view.setFloat64(at+104,origin,true);
   if (frame.lane === 3) {
     if (!Number.isFinite(frame.dt) || frame.dt < 0 || !Number.isFinite(frame.alpha) || frame.alpha < 0 || frame.alpha > 1 || !unsigned(frame.frame)) throw new Error('Invalid v2 view clock');
     view.setFloat64(at+80,frame.dt,true); view.setFloat64(at+88,frame.alpha,true); view.setUint32(at+112,frame.frame,true);
   }
-  for (const [index,region] of layout.regions.entries()) {
+  for (let index = 0; index < layout.regions.length; index++) {
+    const region = layout.regions[index];if (region === undefined) throw new Error('Missing v2 region metadata');
     const entry = at+128+index*24;
     view.setUint32(entry,region.kind,true);view.setUint32(entry+4,region.offset,true);view.setUint32(entry+8,region.stride,true);
     view.setUint32(entry+12,region.capacity,true);view.setUint32(entry+16,actual[index] ?? 0,true);
@@ -66,7 +68,8 @@ export function validateV2Frame(view: DataView,layout: V2Layout,authority: V2Fra
   const header = new Uint8Array(view.buffer,view.byteOffset+at,128);
   for (let i = 0; i < 128; i++) if (!(i >= 56 && i < 68 || i >= 72 && i < 80) && header[i] !== authority.header[i]) throw new Error('Guest changed the v2 call envelope');
   const counts: number[] = [];
-  for (const [index,region] of layout.regions.entries()) {
+  for (let index = 0; index < layout.regions.length; index++) {
+    const region = layout.regions[index];if (region === undefined) throw new Error('Missing v2 region metadata');
     const entry = at+128+index*24, count = view.getUint32(entry+16,true);
     if (view.getUint32(entry,true) !== region.kind || view.getUint32(entry+4,true) !== region.offset || view.getUint32(entry+8,true) !== region.stride || view.getUint32(entry+12,true) !== region.capacity || view.getUint32(entry+20,true) !== 0 || count > region.capacity
       || (!outputKinds.has(region.kind) && count !== authority.counts[index])) throw new Error('Guest changed the v2 region directory'); counts.push(count);
