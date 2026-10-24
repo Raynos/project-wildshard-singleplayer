@@ -1,7 +1,8 @@
 import { expect, test } from 'vitest';
 import { DepthEffect, EffectComposer, EffectPass, RenderPass } from 'postprocessing';
-import { Texture, WebGLRenderTarget } from 'three';
+import { BufferGeometry, Mesh, Scene, ShaderMaterial, Texture, Uniform, WebGLRenderTarget } from 'three';
 import { ownComposerDepth } from './composerDepth';
+import { collectTextures, type CompileJob } from './precompile';
 import { MemoryAttribution } from '../core/memoryAttribution';
 
 const isTexture = (value: unknown): value is Texture => value instanceof Texture;
@@ -61,4 +62,47 @@ test('removing an unrelated pass keeps depth available to a remaining reader', (
     composer.removePass(unrelated); expect(disposals).toBe(0); expect(reader.getDepthTexture()).toBe(depth);
     composer.removePass(reader); expect(disposals).toBe(1);
   } finally { composer.dispose(); reader.dispose(); unrelated.dispose(); }
+});
+
+
+test('queued preparation does not recreate retired composer depth allocations', () => {
+  const composer = new EffectComposer(), ledger = new MemoryAttribution(); ownComposerDepth(composer);
+  const geometry = new BufferGeometry(), handles: object[] = [];
+  const upload = (texture: Texture): void => {
+    const native = {}; handles.push(native); ledger.allocation(native, 'gpu', 'texture', 4_380_192);
+    texture.addEventListener('dispose', () => { ledger.release(native, 'gpu'); });
+  };
+  try {
+    for (let visit = 0; visit < 5; visit++) {
+      const pass = new EffectPass(undefined, new DepthEffect()); pass.needsDepthTexture = true; composer.passes.push(pass);
+      createDepth(composer);
+      const depth = composer.inputBuffer.depthTexture;
+      if (depth === null) throw new Error('Composer input depth missing');
+      const material = new ShaderMaterial({ uniforms: { heldDepth: new Uniform(depth) } }), root = new Scene();
+      root.add(new Mesh(geometry, material));
+      const jobs: CompileJob[] = [{ label: 'captured post preparation', root, target: null, rt: composer.inputBuffer }];
+      upload(depth);
+      composer.removePass(pass); pass.dispose();
+      expect(ledger.summary().totals.gpu).toBe(0);
+      // A job captured before the pass retired can resume afterward. Only content
+      // images may be eagerly uploaded; generated depth belongs to its target.
+      for (const texture of collectTextures(jobs)) upload(texture);
+      expect(ledger.summary().totals.gpu).toBe(0);
+      material.dispose();
+    }
+    expect(handles).toHaveLength(5);
+  } finally { composer.dispose(); geometry.dispose(); }
+});
+
+test('depth attachments stay borrowed while content image preparation is unchanged', () => {
+  const composer = new EffectComposer(), target = new WebGLRenderTarget(8, 8), depth = createDepth(composer);
+  const content = new Texture(), material = new ShaderMaterial({ uniforms: {
+    generatedDepth: new Uniform(depth), generatedColour: new Uniform(target.texture), image: new Uniform(content),
+  } });
+  const root = new Scene(), geometry = new BufferGeometry(); root.add(new Mesh(geometry, material));
+  try {
+    expect(collectTextures([{ label: 'live post preparation', root, target: null, rt: target }])).toEqual([content]);
+    expect(material.uniforms['generatedDepth']?.value).toBe(depth);
+    expect(material.uniforms['image']?.value).toBe(content);
+  } finally { composer.dispose(); target.dispose(); depth.dispose(); content.dispose(); material.dispose(); geometry.dispose(); }
 });

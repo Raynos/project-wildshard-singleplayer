@@ -1,0 +1,155 @@
+{
+  "kind": "isolated real-Three/Metal GPU-ledger lifecycle kernel",
+  "viewport": [
+    40,
+    40
+  ],
+  "visits": 5,
+  "sourceBefore": "a2a2a9e86db587a7932c8556c8990235c79102f8121002463427eee0bd7a6d2d",
+  "sourceAfter": "883a4addafa9773baceb41351049e10d00f650fd1be102faeeda98ccef484e66",
+  "limits": [
+    "Not gameplay acceptance, FPS, native process footprint or a physical-device reading.",
+    "The queued-retired-uniform case models a captured preparation job resuming after composer depth retirement.",
+    "At 40x40, one revived depth allocation is 6400B; the live diagnostic row is 4380192B."
+  ],
+  "before": {
+    "errors": [],
+    "variants": [
+      {
+        "kind": "ordinary",
+        "retiredGpuBytes": [
+          7300,
+          7300,
+          7300,
+          7300,
+          7300
+        ],
+        "finalGpuBytes": 0
+      },
+      {
+        "kind": "slices",
+        "retiredGpuBytes": [
+          7300,
+          7300,
+          7300,
+          7300,
+          7300
+        ],
+        "finalGpuBytes": 0
+      },
+      {
+        "kind": "slices-drop",
+        "retiredGpuBytes": [
+          7300,
+          7300,
+          7300,
+          7300,
+          7300
+        ],
+        "finalGpuBytes": 0
+      },
+      {
+        "kind": "slices-preupload",
+        "retiredGpuBytes": [
+          7300,
+          7300,
+          7300,
+          7300,
+          7300
+        ],
+        "finalGpuBytes": 0
+      },
+      {
+        "kind": "slices-retired-prepare",
+        "retiredGpuBytes": [
+          13700,
+          20100,
+          26500,
+          32900,
+          39300
+        ],
+        "finalGpuBytes": 32000
+      }
+    ]
+  },
+  "after": {
+    "errors": [],
+    "variants": [
+      {
+        "kind": "ordinary",
+        "retiredGpuBytes": [
+          7300,
+          7300,
+          7300,
+          7300,
+          7300
+        ],
+        "finalGpuBytes": 0
+      },
+      {
+        "kind": "slices",
+        "retiredGpuBytes": [
+          7300,
+          7300,
+          7300,
+          7300,
+          7300
+        ],
+        "finalGpuBytes": 0
+      },
+      {
+        "kind": "slices-drop",
+        "retiredGpuBytes": [
+          7300,
+          7300,
+          7300,
+          7300,
+          7300
+        ],
+        "finalGpuBytes": 0
+      },
+      {
+        "kind": "slices-preupload",
+        "retiredGpuBytes": [
+          7300,
+          7300,
+          7300,
+          7300,
+          7300
+        ],
+        "finalGpuBytes": 0
+      },
+      {
+        "kind": "slices-retired-prepare",
+        "retiredGpuBytes": [
+          7300,
+          7300,
+          7300,
+          7300,
+          7300
+        ],
+        "finalGpuBytes": 0
+      }
+    ]
+  },
+  "verification": {
+    "focusedCases": 21,
+    "stableDriftwoodCases": 4,
+    "rootTypes": "pass",
+    "namedTypedLint": "pass",
+    "related": {
+      "passedCases": 1596,
+      "failedCases": 2,
+      "passedSuites": 314,
+      "failedSuites": 2,
+      "seconds": 267.13,
+      "failure": "DW scene/tile-bake fixtures collected temporary compressed outputs while T8 owner regenerated; both suites repeat green after owner restored outputs.",
+      "stableRepeat": {
+        "passedCases": 4,
+        "passedSuites": 2,
+        "seconds": 19.96
+      },
+      "productSuitesDeferred": 15
+    }
+  }
+}

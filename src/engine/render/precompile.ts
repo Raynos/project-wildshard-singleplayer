@@ -685,7 +685,10 @@ export async function warmPostJobs(renderer: Pick<Renderer, 'getRenderTarget' | 
 export function collectTextures(jobs: CompileJob[]): THREE.Texture[] {
   const out = new Set<THREE.Texture>();
   const isTexture = (v: unknown): v is THREE.Texture => typeof v === 'object' && v !== null && (v as { isTexture?: boolean }).isTexture === true;
-  const add = (v: unknown): void => { if (isTexture(v) && !v.isRenderTargetTexture) out.add(v); };
+  // Depth attachments are GPU-generated too, but Three does not mark them
+  // isRenderTargetTexture. Eager upload can revive a retired post uniform after
+  // its target released it; only the owning target may initialize that storage.
+  const add = (v: unknown): void => { if (isTexture(v) && !v.isRenderTargetTexture && !(v instanceof THREE.DepthTexture)) out.add(v); };
   const fromMaterial = (m: THREE.Material): void => {
     for (const v of Object.values(m)) add(v);
     for (const texture of shaderPatchTextures(m)) add(texture);
