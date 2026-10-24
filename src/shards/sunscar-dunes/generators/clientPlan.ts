@@ -1,6 +1,6 @@
 import { parseClientPlan } from '@wildshard/format/clientPlan';
 import { parsePersistedQuestPage } from '@wildshard/format/questStory';
-import page from '../data/questPage.generated.json' with { type: 'json' };
+import { SIGNAL_QUEST_PAGE as page } from './questPage';
 import { SIGNAL_PAGE_PROGRAM } from './rows/population';
 import { WHIP_ITEMS } from './rows/items';
 import { SIGNAL_SCENE_MOTION } from './clientMotion';
