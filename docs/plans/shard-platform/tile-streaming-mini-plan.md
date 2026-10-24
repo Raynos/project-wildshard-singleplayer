@@ -241,10 +241,35 @@ browsers and the owned preview are closed; no Sim was used.
 | T5 | Debug row "Tile residency: 3 × 3 / 5 × 5 / whole shard" (A/B/C, E451) and a Developer overlay (tile borders, resident colour, MB per tile) | Settings Debug, minimap | Opus | 0.5 d | Jake can feel it on Driftwood (first playable slice: T2 + T3 (DW only) + T4 + T5) | T4 |
 | T6 | Creatures, NPCs and figures by tile: presentation in resident tiles; brains global, dormant outside 5 × 5; patrols that cross tiles hand over | population, quest figures | Codex | 1.5 d | DW boar / captain fights unchanged; memory drops by its T0 share | T3 |
 | T7 | Crossings by tiles: neighbour region = small state; tiles by distance; the source evicts behind the player; delete whole-world `warmAhead` and the 4-world cap | `grid/live.ts`, `liveSession.ts`, `hybrid.ts` | Opus + Codex | 2.5 d | DW↔Sky ×5 on Chromium phone tier: peak ≤ 1.2 GB per shard, back to baseline ±20 MB, crossing < 5 s, worst frame ≤ 100 ms | T1, T4, T6 |
-| T8 | Every shard on tiles (Nalati, Pine, Nine, Sky, Sunscar, open plots, template): bake checks and DW cap work; preserve Jake’s B pick | shard generators | Codex (sp-x2) | 3 d | **in flight (2026-10-24):** 24-product 64-L0 / full-5×5 bake census done `7093891d97`; old four-tile split is **not done**. Current DW has 8 wire overruns (308,860–2,343,200 B) and tile 6/4 resident 4,673,742 B, retained under Jake’s B pick / exact exception. Splitting files cannot lower a row’s summed cost; no grid/cap change. Lossless partition/compression proposal is required before geometry writes; live grid-ready proof remains | T3 |
+| T8 | Every shard on tiles (Nalati, Pine, Nine, Sky, Sunscar, open plots, template): bake checks and DW cap work; preserve Jake’s B pick | shard generators | Codex (sp-x2) | 3 d | **in flight (2026-10-24):** 24-product 64-L0 / full-5×5 bake census done `7093891d97`; old four-tile split is **not done**. Current DW has 8 wire overruns (308,860–2,343,200 B) and tile 6/4 resident 4,673,742 B, retained under Jake’s B pick / exact exception. Splitting files cannot lower a row’s summed cost; no grid/cap change. Lossless meshopt audit below: 3/1 and 3/3 are held because delivered gzip grows; only 2/4 (-6,778 B delivered) merits a later slice. GC lifetime regression `0126cffe30` is landed; no producer, cap or policy change. Live grid-ready proof remains | T3 |
 | T9 | G638 picked A: 62.5 m gap, pitch 562.5; asphalt unchanged at 15 m, side strips 23.75 m, seams/junction/routes follow the lattice | strips, roadLook, roadLayout, config | Codex (sp-x6) | 2 d | **done** (2026-10-24): runtime `ae2dca27dc`; native 15/30 m/s peer routes each 4 crossings / 0 stuck; labelled phone road/junction witnesses; current-origin `57d1344dc1` EWNS held walks all complete / 0 stuck / gates open. [Compact receipts](../../../progress/shard-platform/tile-streaming/t9-lattice.md); T1 retirement and T10 broader milestone stay separate | T2 |
 | T10 | Milestone: M1 Simulator recording + soak; delete the whole-shard path when Jake picks; Jake's iPhone check (G558) | — | coordinator | — | Sim < 5 s warm / < 15 s cold; Jake's word | all |
 | T11 | Far landmarks survive the ring: authored landmarks beyond the N×N ring (Pine crag spires, waterfall) draw a coarse stand-in from their LOD / impostor in the coarse ring, evicted only at its edge (found by sp-o1 at 5 × 5, 10-23) | tile residency, landmark LODs | Opus sp-o1 | 0.5–1 d | Pine spawn view at 5 × 5 shows the spires and waterfall | T2 |
+
+**T8 lossless route audit (2026-10-24, sp-x2):** the existing decoder
+releases both the original wire and its copied encoded BIN/parser. With the
+decoded scenes held alive, the real-GC weak backing ledger retains exactly
+419,904 / 373,896 / 304,812 B for both raw and meshopt versions of 2/4,
+3/1 and 3/3. `0126cffe30` pins that lifetime; this is backing capacity,
+not a native resident-RAM measurement. The proposed +542,456 B conservative
+decode-peak declaration would remain intact, with no accounting discount.
+`ProductInputs.releaseUnused`, `ClientAssets.releaseTransport` and the whole
+geometry reader's release already retire transport through verified rereads.
+
+| B tile | Raw GLB B | Meshopt GLB B | Raw gzip-9 B | Meshopt gzip-9 B | Decision |
+|---|---:|---:|---:|---:|---|
+| 2/4 | 421,392 | 204,840 | 112,760 | 105,982 | Later compiler-output slice only; -6,778 B delivered |
+| 3/1 | 375,648 | 188,156 | 96,999 | 101,823 | Hold tested lossless route; +4,824 B delivered |
+| 3/3 | 308,860 | 156,748 | 83,325 | 97,667 | Hold tested lossless route; +14,342 B delivered |
+
+All decoded buffer views matched bitwise. Nevertheless, the existing named-blob
+compiler correctly keeps raw bytes for 3/1 and 3/3: lowering their unencoded
+wire debt with this candidate would worsen delivery. The three-tile route is
+held (+12,388 B gzip total). GR0 also forbids new generated `src` blob paths;
+any later 2/4 slice must return bytes through the compiler. All unlanded
+producer/metadata/policy candidates were removed and original registered
+outputs restored. Jake's B, the exact 6/4 exception, all eight wire debts,
+the grid and caps remain unchanged. U2 parent/decoder audit proceeds next.
 
 **T1 in flight (2026-10-24, sp-x9):** the [joint lifecycle cohort](../../../progress/shard-platform/tile-streaming/t1-retirement-fbb.json)
 on `fbb51b9602` completed 12 clean route legs / 205 observed tile lifetimes,
