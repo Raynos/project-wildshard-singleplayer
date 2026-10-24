@@ -42,7 +42,13 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   retain their existing CI deferral; external package exports stay with tsc.
   **CF1 (G689):** staged `src/`, `test/` and `scripts/` paths select
   `vitest related --run`, alongside touched layer `tsc -p` checks when their
-  incremental metadata is warm. These share a separate **60-second wall cap**.
+  incremental metadata is warm. Selections above **20 related suites** defer
+  before test execution; batches above 20 staged test files skip discovery too.
+  CI keeps the complete selection. A single **60-second allowance starts at
+  `commit.sh` entry**, including lock wait and earlier guards; CF1 never starts
+  a fresh allowance afterward. Mandatory serialized Git completion remains
+  safe and any total overrun is printed separately. Each invocation prints its
+  total wall time including the lock wait.
   A per-file Vite override uses candidate-index bytes for differing tracked
   modules, including peer edits; loose files and the index stay untouched.
   An executed failing test refuses even if another test later times out.
