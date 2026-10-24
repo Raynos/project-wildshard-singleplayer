@@ -513,7 +513,11 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
       member.self.group=binding.group;member.self.slot=slot;member.self.identity=actor.entityId;member.self.actor=actor;
       member.player.position=player;member.observed.clear();member.t=context?.t??0;member.dt=context?.dt??0;
       if(context===undefined)delete member.context;else member.context=context;
-      member.references.clear();for(const[name,reference]of named)member.references.set(name,reference);
+      member.references.clear();
+      for(let index=0;index<named.length;index++){
+        const entry=named[index];if(entry===undefined)throw new Error('Missing herd capture reference');
+        member.references.set(entry[0],entry[1]);
+      }
       member.references.set('self',references.find(row=>row.body===actor)??null);member.references.set('target',target);member.references.set('threat',threat);
       Object.assign(member.results,this.captureHerdGuestRoles(actor,member.results));member.results.reply=call.reply;
     }
