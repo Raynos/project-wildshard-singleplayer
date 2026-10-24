@@ -219,3 +219,28 @@ test('numeric observed identity preflight retains empty, distinct and duplicate 
   f.host.scope.dispose();expect(()=>reader.captureNumeric({...f.owners,observed:new Map()})).toThrow('Retired');
  }finally{f.host.dispose();}
 });
+
+test('numeric reference pins isolate nested queries, retain detached values and reset after refusal',async()=>{
+ const f=await fixture(),reader=new ObservationColumnsV2([
+  {id:1,name:'targetX',source:{kind:'reference',binding:'target',field:'x'}},
+  {id:2,name:'grass',source:{kind:'grass',at:'self'}},
+ ],f.host.scope);
+ const outerLoan={identity:f.actor.entityId,handle:10,body:f.actor},innerLoan={identity:f.other.entityId,handle:11,body:f.other};
+ const outer={...f.owners,references:new Map([['target',outerLoan]])},inner={...f.owners,references:new Map([['target',innerLoan]])};
+ let depth=0,nested:Float64Array|undefined;
+ f.other.position.x=9;
+ f.query.mockImplementation((x,z)=>{
+  if(depth===0){depth++;try{nested=reader.captureNumeric(inner);}finally{depth--;}}
+  return x+z;
+ });
+ try{
+  const first=reader.captureNumeric(outer);expect(first).toEqual(new Float64Array([4,11]));
+  expect(nested).toEqual(new Float64Array([9,11]));
+  f.actor.position.x=12;expect(reader.captureNumeric(outer)).toEqual(new Float64Array([12,19]));
+  expect(first).toEqual(new Float64Array([4,11]));
+  f.query.mockImplementationOnce(()=>{outerLoan.handle=12;return 1;});
+  expect(()=>reader.captureNumeric(outer)).toThrow('Retired observation owner');
+  outerLoan.handle=10;expect(reader.captureNumeric(outer)).toEqual(new Float64Array([12,19]));
+  f.host.scope.dispose();expect(()=>reader.captureNumeric(outer)).toThrow('Retired');
+ }finally{f.host.dispose();}
+});

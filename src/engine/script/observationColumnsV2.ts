@@ -76,6 +76,13 @@ function finite(value: number): number { if (!Number.isFinite(value)) throw new 
 function need<T>(value: T | undefined,kind: string): T { if (value === undefined) throw new Error(`Missing observation ${kind} owner`);return value; }
 
 type Immutable<T> = T extends object ? { readonly [Key in keyof T]: Immutable<T[Key]> } : T;
+interface NumericReferencePin {
+  readonly name: string;
+  loan: V2ReferenceColumn | null | undefined;
+  body: V2ReferenceColumn['body'] | undefined;
+  identity: string | undefined;
+  handle: number | undefined;
+}
 
 /** Compile common scalar and point readers once. Queries retain their native
  * receiver and per-capture fences; every reader samples the current owner. */
@@ -144,6 +151,7 @@ export class ObservationColumnsV2 {
   private readonly scope: Scope;
   private readonly scalars: readonly ((owners: V2ColumnOwners) => number)[] | undefined;
   private readonly referenceNames: readonly string[];
+  private numericPins: NumericReferencePin[] | undefined;
   private readonly environmentColumns: readonly { readonly index: number; readonly grass?: 'self' | 'player' }[];
   constructor(input: unknown,scope: Scope) {
     this.scope = scope;
@@ -193,12 +201,18 @@ export class ObservationColumnsV2 {
     }
     const owner=owners.references;
     if((owner?.size??0)>128)throw new Error('Observation reference capacity');
-    const refs=this.referenceNames.map(name=>{
-      const loan=need(need(owner,'reference').get(name),'reference binding');
+    // One inactive pin bank, never shared with a nested capture. All borrowed
+    // references are cleared even when a query or a final fence refuses.
+    const refs=this.numericPins??this.referenceNames.map(name=>({name,loan:undefined,body:undefined,identity:undefined,handle:undefined}));
+    this.numericPins=undefined;
+    try {
+    for(let index=0;index<refs.length;index++){
+      const pin=refs[index];if(pin===undefined)throw new Error('Missing observation reference pin');
+      const loan=need(need(owner,'reference').get(pin.name),'reference binding');
       if(loan!==null&&(loan.identity.length===0||!Number.isInteger(loan.handle)||loan.handle<1||loan.handle>0x7fffffff
         ||typeof loan.body.alive!=='boolean'))throw new Error('Invalid observation reference loan');
-      return {name,loan,body:loan?.body,identity:loan?.identity,handle:loan?.handle};
-    });
+      pin.loan=loan;pin.body=loan?.body;pin.identity=loan?.identity;pin.handle=loan?.handle;
+    }
     const values=new Float64Array(this.scalars.length);
     if(selected!==undefined)values.fill(Number.NaN);
     let index=0;
@@ -212,6 +226,12 @@ export class ObservationColumnsV2 {
       return loan!==pin.loan||loan?.body!==pin.body||loan?.identity!==pin.identity||loan?.handle!==pin.handle;
     }))throw new Error('Retired observation owner');
     return values;
+    } finally {
+      for(let index=0;index<refs.length;index++){
+        const pin=refs[index];if(pin!==undefined){pin.loan=undefined;pin.body=undefined;pin.identity=undefined;pin.handle=undefined;}
+      }
+      this.numericPins=refs;
+    }
   }
   capture(owners: V2ColumnOwners): readonly { readonly name: string; readonly id: number; readonly value: number }[] {
     if (owners.scope !== this.scope || this.scope.disposed || this.scope.disposing) throw new Error('Retired observation owner');
