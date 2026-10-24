@@ -1,10 +1,10 @@
 // @vitest-environment happy-dom
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
-import { Loading } from '../src/engine/ui/Loading';
-import type { ProgressView } from '../src/engine/boot/plan';
-import { declareDownloadFile, recordCachedDownload } from '../src/engine/boot/download';
-import { currentLoadingTimeline } from '../src/engine/boot/timeline';
-import { waitFor } from '../src/engine/boot/waits';
+import { Loading } from './Loading';
+import type { ProgressView } from '../boot/plan';
+import { declareDownloadFile, recordCachedDownload } from '../boot/download';
+import { currentLoadingTimeline } from '../boot/timeline';
+import { waitFor } from '../boot/waits';
 
 let now = 100;
 beforeEach(() => {

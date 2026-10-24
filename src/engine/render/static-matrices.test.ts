@@ -1,7 +1,7 @@
 import { Group } from 'three';
 import { expect, test, vi } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
-import { holdStaticMatrices } from '../src/engine/render/staticMatrices';
+import { Scope } from '../app/scope';
+import { holdStaticMatrices } from './staticMatrices';
 
 test('static pieces stop auto updates and a late mover recovers at the thirtieth check', () => {
   const root = new Group(), child = new Group(), alreadyStatic = new Group(), scope = new Scope('matrices');

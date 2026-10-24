@@ -1,12 +1,12 @@
 // @vitest-environment happy-dom
 import { afterEach, expect, test, vi } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
-import { activeLevel, bindLevelSelection } from '../src/engine/level/selection';
-import { openBootSettings } from '../src/engine/ui/BootSettings';
-import { savedSetting, setting } from '../src/engine/ui/Settings';
-import { authoredRows } from '../src/engine/ui/authoredDebugRows';
-import { buildDebugMenu } from '../src/engine/ui/DebugMenu';
-import { DEBUG_ROWS, type DebugRow } from '../src/engine/ui/debugOptions';
+import { Scope } from '../app/scope';
+import { activeLevel, bindLevelSelection } from '../level/selection';
+import { openBootSettings } from './BootSettings';
+import { savedSetting, setting } from './Settings';
+import { authoredRows } from './authoredDebugRows';
+import { buildDebugMenu } from './DebugMenu';
+import { DEBUG_ROWS, type DebugRow } from './debugOptions';
 
 const owners: Scope[] = [], rows: DebugRow[] = [];
 afterEach(() => { for (const scope of owners.splice(0)) scope.dispose(); for (const row of rows.splice(0)) authoredRows.delete(row); document.body.replaceChildren(); vi.unstubAllGlobals(); });

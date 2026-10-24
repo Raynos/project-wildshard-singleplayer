@@ -1,7 +1,7 @@
 import { BoxGeometry, BufferGeometry, Float32BufferAttribute, Matrix4 } from 'three';
 import { expect, test } from 'vitest';
-import { dropTriangles, hiddenTriangles } from '../src/engine/world/hiddenFaces';
-import { LowPolyKit } from '../src/engine/world/lowpolyKit';
+import { dropTriangles, hiddenTriangles } from './hiddenFaces';
+import { LowPolyKit } from './lowpolyKit';
 
 const box = (w: number, h: number, d: number, x = 0, y = 0, z = 0): BufferGeometry =>
   new BoxGeometry(w, h, d).toNonIndexed().applyMatrix4(new Matrix4().makeTranslation(x, y, z));

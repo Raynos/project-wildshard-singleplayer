@@ -1,9 +1,9 @@
 import { expect, test, vi } from 'vitest';
 import { BufferGeometry, MeshBasicMaterial } from 'three';
-import { Scope } from '../src/engine/app/scope';
-import { installScopeEnvironment, scopeEnvironment } from '../src/engine/app/scopeEnvironment';
-import { rebindGeometry } from '../src/engine/app/cachedAssets';
-import { ownSceneResource } from '../src/engine/app/sceneOwnership';
+import { Scope } from './scope';
+import { installScopeEnvironment, scopeEnvironment } from './scopeEnvironment';
+import { rebindGeometry } from './cachedAssets';
+import { ownSceneResource } from './sceneOwnership';
 
 test('O18 a scope forgets a resource disposed by anyone else, and never disposes it twice', () => {
   const page = new Scope('page'), material = new MeshBasicMaterial(), dispose = vi.spyOn(material, 'dispose');

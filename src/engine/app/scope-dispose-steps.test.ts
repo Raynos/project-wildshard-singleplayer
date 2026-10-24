@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
+import { Scope } from './scope';
 
 /** A scope tree whose cleanups log their names: a parent with an early and a late cleanup around one child scope. */
 function tree(log: string[]): { root: Scope; child: Scope } {

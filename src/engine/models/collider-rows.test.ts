@@ -1,5 +1,5 @@
 import { expect, test, vi } from 'vitest';
-import { readColliderRows } from '../src/engine/models/colliders';
+import { readColliderRows } from './colliders';
 
 test('collider rows retain primitive values, own nested lanes and enforce caller admission', () => {
   const box = { kind: 'box', x: 1, y: 2, z: 3, hx: 4, hy: 5, hz: 6, rot: { x: 0, y: 0.1, z: 0, w: 0.9 }, surface: 'rock' };

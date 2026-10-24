@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { installScopeEnvironment, scopeEnvironment, type ScopeEnvironment } from '../src/engine/app/scopeEnvironment';
-import { noteFrameDrawn } from '../src/engine/core/framePacing';
-import { pacedResolve } from '../src/engine/core/workSlice';
+import { installScopeEnvironment, scopeEnvironment, type ScopeEnvironment } from '../app/scopeEnvironment';
+import { noteFrameDrawn } from './framePacing';
+import { pacedResolve } from './workSlice';
 
 const original: ScopeEnvironment = scopeEnvironment();
 afterEach(() => { installScopeEnvironment(original); noteFrameDrawn(Number.NEGATIVE_INFINITY); Reflect.deleteProperty(globalThis, 'requestAnimationFrame'); });
