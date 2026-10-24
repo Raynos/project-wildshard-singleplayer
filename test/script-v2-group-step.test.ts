@@ -1,4 +1,4 @@
-import { beforeAll, expect, test, vi } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { AnimalSim } from '../src/engine/entities/AnimalSim';
 import { Scope } from '../src/engine/app/scope';
 import { Rng } from '../src/engine/core/rng';
@@ -22,9 +22,9 @@ const rows = parseGroupStepV2({ bank: [
   members: 16, signals: ['step', 'query', 'badAction', 'badState', 'random', 'badRef', 'badMember', 'rawActor', 'badReserved', 'unusedZero', 'unusedFinite', 'unusedNaN', 'unusedInfinity'],
   actions: [{ id: 1, words: 3, member: 0 }, { id: 2, words: 1, reference: { word: 0 } }],
   outputs: 4, pages: 1, fuel: 400000, queries: { pending: 4, scalars: 0 } });
-let bytes: Uint8Array;
-beforeAll(async () => {
-  bytes = await compileScriptV2(`import * as core from './sdk/as/wsV2';import * as group from './sdk/as/groupBankV2';import * as slots from './sdk/as/groupStepV2';
+// Compile this immutable real guest before collecting its runtime contracts.
+// The two cold AS passes are fixture preparation, not a 10 s lifecycle hook.
+const bytes = await compileScriptV2(`import * as core from './sdk/as/wsV2';import * as group from './sdk/as/groupBankV2';import * as slots from './sdk/as/groupStepV2';
     export function ws_abi():i32{return 2;}export function ws_io():i32{return 0;}
     export function ws_init(lo:i32,hi:i32,fuel:i32):i32{return fuel;}
     export function ws_project(fuel:i32):i32{core.beginState();assert(core.beginBinding(0));
@@ -46,7 +46,6 @@ beforeAll(async () => {
         if(signal==13)store<u64>(core.row(10,1)+56,0x7ff0000000000000);}
       core.endBinding();return fuel;}`, { lane: 'project', ioBytes: groupStepLayoutV2(rows).bytes,
     sources: { 'sdk/as/wsV2.ts': v2CoreSource(0), 'sdk/as/groupBankV2.ts': groupBankSourceV2(0, 5), 'sdk/as/groupStepV2.ts': groupStepSourceV2(2,16) } });
-});
 function actor(id: string): AnimalSim {
   return new AnimalSim({ kind: 'test', label: 'Test', variant: 'plain', rarity: 'common', hp: 20, aggressive: false,
     dims: { bodyY: .6, bodyHalfLen: .5, bodyRadius: .3, headRadius: .2, legLen: .5, feet: [], halfWidth: .3 },
