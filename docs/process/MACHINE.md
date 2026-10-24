@@ -74,8 +74,7 @@ source changes; the push gate, CI and exact-SHA boot smoke own the full gate.
 
 **G612/G670 mirror admission:** only commits reachable from `main` are accepted,
 including historical main commits for bisects. Bare trees and unlanded commits
-refuse before queueing. CLI `run` is private to serve-build re-execution; the
-ruler imports `openMirror`, borrowing its slot before its original build lease.
+refuse before queueing. CLI `run` is private to serve-build re-execution.
 Caller cwd and script paths under `tmp/` refuse. Use the working tree for types,
 lint and focused tests.
 
@@ -411,9 +410,9 @@ machine does not boot up cleanly because it has to delete millions of files in t
 attack."* On 2026-10-15 millions of leftover `git archive` export files in `/tmp` and `$TMPDIR` held the laptop at the
 login progress bar for hours: macOS empties both at boot, before login.
 - **One checkout.** No exports, clones, worktrees or copies of `public/` assets, ever.
-- **Five pooled check slots plus one ruler** (`./tmp/build-mirror`, G612): `check`, `check2`…`check5`
-  form one FIFO pool; no slot or any check-slot name takes the first free slot. `ruler` is reserved for the source
-  census. `gate` and `commit` are retired. Previews and ordinary builds use the pool, never the ruler.
+- **Five pooled check slots** (`./tmp/build-mirror`, G612): `check`, `check2`…`check5`
+  form one FIFO pool; no slot or any check-slot name takes the first free slot.
+  `ruler`, `gate` and `commit` are retired (G693). Previews and ordinary builds use the pool.
   Every mirror/lease/lock/queue wait fails at five minutes naming holders; no retry. Never a slot per lane,
   agent or subagent: each slot is a ~2 GB copy of the tree.
 - **Reuse one served build of HEAD**; rebuild only when your change needs it, and then with the fast path above. Focused tests and quick checks, no repeated
@@ -429,7 +428,7 @@ login progress bar for hours: macOS empties both at boot, before login.
 - **The generation cache (`~/.cache/wildshard/generate`) evicts itself** to the newest 3 entries per job and 20 GB
   (G430, GENERATION.md); it reached 376 GB without that.
 - **Pre-commit warns** (never refuses) through `scripts/boot-temp-warn.sh` when `/private/tmp` or `$TMPDIR` (two separate counts) passes 500,000
-  files or `./tmp/build-mirror` holds a slot outside the pool and ruler; `scripts/boot-temp-warn.sh --top` lists the biggest
+  files or `./tmp/build-mirror` holds a slot outside the pool; `scripts/boot-temp-warn.sh --top` lists the biggest
   folders. Delete your own; ask before touching another agent's.
 
 ## Scratchpads (Jake, 2026-10-02)

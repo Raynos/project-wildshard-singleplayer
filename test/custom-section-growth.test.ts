@@ -29,26 +29,26 @@ it('checks emitted products against committed base data and reuses exact receipt
   // The builder does not emit a product for a reviewed frozen predecessor.
   writeFileSync(join(root,'src/shards/demo-legacy/shard.config.ts'),'export default {};');
   const base=commit();
-  mkdirSync(join(root,'progress/shard-platform/ruler'),{recursive:true});
-  writeFileSync(join(root,'progress/shard-platform/ruler/ruler.json'),JSON.stringify({revision:base,
-   customSectionFailures:['demo: custom-section bytes 9 exceeds 8']}));
-  git('add','progress/shard-platform/ruler/ruler.json');
+  writeFileSync(join(root,'src/shards/demo/shard.config.ts'),'export default {}; // next revision');
   const revision=commit();
-  // Uncommitted ruler edits cannot grant a larger base; only git show is read.
-  writeFileSync(join(root,'progress/shard-platform/ruler/ruler.json'),'{}');
+  mkdirSync(receipts,{recursive:true});
+  writeFileSync(join(receipts,`${base}.json`),JSON.stringify({revision:base,shards:{demo:{count:1,bytes:9}}}));
   platformOutput(root,'demo',{}, {'custom/wind':'{"key":12}'});
   expect(checkCustomSectionGrowth(root,root,base,revision,receipts)).toEqual([
    'demo: custom-section bytes 10 exceeds budget 8 and pushed base 9',
   ]);
   expect(existsSync(join(receipts,`${revision}.json`))).toBe(false);
+  rmSync(join(receipts,`${base}.json`));
+  expect(()=>checkCustomSectionGrowth(root,root,base,revision,receipts)).toThrow('exact receipt required');
+  writeFileSync(join(receipts,`${base}.json`),JSON.stringify({revision:base,shards:{demo:{count:1,bytes:9}}}));
   platformOutput(root,'demo',{}, {'custom/wind':'{"key":1}'});
   expect(checkCustomSectionGrowth(root,root,base,revision,receipts)).toEqual([]);
   expect(JSON.parse(readFileSync(join(receipts,`${revision}.json`),'utf8'))).toEqual({revision,shards:{demo:{count:1,bytes:9}}});
-  // The next push needs no ruler refresh or predecessor rebuild.
+  // The next push reuses its exact receipt without a predecessor rebuild.
   expect(checkCustomSectionGrowth(root,root,revision,revision,receipts)).toEqual([]);
   rmSync(join(root,'out/demo/shard.json'));
   expect(()=>checkCustomSectionGrowth(root,root,revision,revision,receipts)).toThrow('section inventory missing');
-  // A new gate can admit in-budget products without any old ruler or receipt.
+  // A new gate can admit in-budget products without any historical receipt.
   platformOutput(root,'demo');
   expect(checkCustomSectionGrowth(root,root,base,base,receipts)).toEqual([]);
   expect(JSON.parse(readFileSync(join(receipts,`${base}.json`),'utf8'))).toEqual({revision:base,shards:{demo:{count:0,bytes:0}}});

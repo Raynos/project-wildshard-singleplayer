@@ -126,24 +126,23 @@ it('links workspace packages to the mirror sources, takes over a dead lock and q
   expect(() => openMirror(sha, { repo, env, slot: 'lane-x6' })).toThrow(/invalid slot/u);
   expect(() => openMirror(sha, { repo, env, slot: 'gate' })).toThrow(/invalid slot/u);
   expect(() => openMirror(sha, { repo, env, slot: 'commit' })).toThrow(/invalid slot/u);
-  for (const slot of ['ruler', 'check', 'check2', 'check3', 'check4', 'check5']) {
+  expect(() => openMirror(sha, { repo, env, slot: 'ruler' })).toThrow(/invalid slot/u);
+  for (const slot of ['check', 'check2', 'check3', 'check4', 'check5']) {
     const admitted = openMirror(sha, { repo, env, slot }); admitted.release();
   }
 });
 
-it('spreads check names across five slots and keeps ruler independent', () => {
+it('spreads every admitted check name across five slots', () => {
   const { repo, commit, env } = fixture();
   const sha = commit({ 'source.txt': 'fixture' });
   const held = ['check5', 'check4', 'check', 'check2', 'check3'].map(slot => openMirror(sha, { repo, env, slot }));
-  const ruler = openMirror(sha, { repo, env, slot: 'ruler' });
   try {
     expect(held.map(mirror => dirname(mirror.dir).split('/').at(-1))).toEqual(['check', 'check2', 'check3', 'check4', 'check5']);
-    expect(dirname(ruler.dir).split('/').at(-1)).toBe('ruler');
     held[2]?.release();
     const next = openMirror(sha, { repo, env, slot: 'check5' });
     expect(next.dir).toBe(held[2]?.dir);
     next.release();
-  } finally { for (const mirror of held) mirror.release(); ruler.release(); }
+  } finally { for (const mirror of held) mirror.release(); }
 });
 
 it('keeps whole generated jobs, invalidates partial jobs and prunes retired outputs', () => {

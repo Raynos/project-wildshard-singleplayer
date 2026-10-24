@@ -5,7 +5,7 @@ import {join} from 'node:path';
 import {spawnSync} from 'node:child_process';
 const args=process.argv.slice(2),root=process.env.FIXTURE_ROOT;
 if(root===undefined)throw new Error('Missing owned fixture root');
-const mirror=openMirror(args[1],{repo:join(root,'repo'),slot:process.env.FIXTURE_SLOT??'ruler',linkModules:false});
+const mirror=openMirror(args[1],{repo:join(root,'repo'),slot:process.env.FIXTURE_SLOT??'check',linkModules:false});
 try{
   const role=process.env.ROLE;
   if(role==='preview'||role==='pool'){

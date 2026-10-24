@@ -124,8 +124,8 @@ file in `docs/` is: [docs/README.md](docs/README.md).
   the git-ignored `./tmp/<task>`, deleted with `rm -rf` on its exact path when done. Never `/tmp`, `$TMPDIR` or the
   session scratchpad for anything big, and never `mv` trees to `/tmp/delete-me-*`: macOS empties those at boot before
   login, and millions of leftover export files held the laptop at the login progress bar for hours (2026-10-15).
-  **Five pooled check slots plus one ruler** (`check`, `check2`…`check5`, `ruler`; G612): any check-slot request
-  takes the first free pooled slot. The ruler is reserved for the source census; `gate` and `commit` are retired.
+  **Five pooled check slots** (`check`, `check2`…`check5`; G612/G693): any check-slot request
+  takes the first free pooled slot. `ruler`, `gate` and `commit` are retired.
   Every lock/queue wait fails at five minutes naming holders, with no retry. Reuse one served build of HEAD;
   Node's compile cache lives outside `$TMPDIR`. Pre-commit warns past 500k files in `/tmp` or `$TMPDIR`
   (each counted; `scripts/boot-temp-warn.sh`).

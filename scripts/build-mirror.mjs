@@ -2,14 +2,14 @@
 // One persistent, incrementally synced copy of a commit, for builds and gates that must not read the shared working
 // tree. It replaces every per-run `git archive | tar -x` export.
 //
-// The run command is private to serve-build re-execution; the ruler imports openMirror.
+// The run command is private to serve-build re-execution.
 //   node scripts/build-mirror.mjs status
 //
 // The mirror is a work tree with its own index (GIT_INDEX_FILE), so `read-tree -u` rewrites only the files that differ
 // from the commit it last held: a sync to a nearby commit writes kilobytes, never a fresh 23k-file export. It holds the
 // commit minus art/, progress/ and sources/ (what the exports always excluded; --full keeps them). There is one mirror
-// per slot under git-ignored ./tmp/build-mirror (G612: five pooled check slots and ruler;
-// six shared slots, never per-lane slots): never /tmp, $TMPDIR or a session scratchpad (macOS empties those
+// per slot under git-ignored ./tmp/build-mirror (G612: five pooled check slots;
+// five shared slots, never per-lane slots): never /tmp, $TMPDIR or a session scratchpad (macOS empties those
 // at boot, before login, and the piled-up exports stalled the boot for hours on 2026-10-15), and `du -sh tmp` shows
 // what this repo holds. A lock serializes users of a slot: the mirror cannot change under a running build.
 // node_modules is linked by link-node-modules.mjs (E432): @wildshard/* resolves to the mirror's own sources.
@@ -38,7 +38,7 @@ export function scratchCaller(path, repo = REPO) {
  * temporary Python/shell/Node caller. Output directories are not caller scripts. */
 export function assertMirrorCaller() {
   if (scratchCaller(process.cwd()) || process.argv[1] && scratchCaller(process.argv[1])) {
-    throw new Error('G612/G670: mirrors refuse callers under tmp/; run the official preview or ruler from the checkout');
+    throw new Error('G612/G670: mirrors refuse callers under tmp/; run the official preview from the checkout');
   }
   let pid = process.ppid;
   for (let depth = 0; pid > 1 && depth < 12; depth++) {
@@ -65,7 +65,7 @@ export function assertMirrorCaller() {
     }
     if (directory !== undefined && scratchCaller(directory)) throw new Error('G612/G670: mirrors refuse a caller cwd under tmp/');
     if (script !== undefined && scratchCaller(resolve(directory ?? process.cwd(), script))) {
-      throw new Error('G612/G670: mirrors refuse a caller script under tmp/; land the change and use the official preview or ruler');
+      throw new Error('G612/G670: mirrors refuse a caller script under tmp/; land the change and use the official preview');
     }
     pid = Number(match[1]);
   }
@@ -201,18 +201,18 @@ function sourceOverlay(git, generated) {
 }
 
 /** Lock the slot, bring its tree to `rev`, return { dir, sha, release }. The lock also releases at process exit. */
-/** Any check name requests the shared five-slot pool. Only ruler is reserved. */
+/** Any check name requests the shared five-slot pool. No reserved slots. */
 export function defaultSlot(env = process.env) {
   return env.WILDSHARD_MIRROR_SLOT ?? 'check';
 }
 
 const CHECK_SLOTS = ['check', 'check2', 'check3', 'check4', 'check5'];
-const MIRROR_SLOTS = new Set(['ruler', ...CHECK_SLOTS]);
+const MIRROR_SLOTS = new Set(CHECK_SLOTS);
 
 export function openMirror(rev, { repo = REPO, slot = 'check', full = false, env = process.env, linkModules = true } = {}) {
   assertMirrorCaller();
   const sha = mainMirrorRevision(rev, repo);
-  if (!MIRROR_SLOTS.has(slot)) throw new Error(`build-mirror: invalid slot ${slot}; use ruler or pooled check..check5`);
+  if (!MIRROR_SLOTS.has(slot)) throw new Error(`build-mirror: invalid slot ${slot}; use pooled check..check5`);
   // Unknown shell wrappers cannot be hoisted by heavy-lane. Refuse before queueing,
   // so an owner never waits for a mirror while consuming capacity its preview needs.
   if (env.WS_HEAVY_TOKEN) {
@@ -224,7 +224,7 @@ export function openMirror(rev, { repo = REPO, slot = 'check', full = false, env
       if (held) throw new Error('build-mirror: acquire the mirror slot before the heavy lease; run heavy-lane inside build-mirror');
     }
   }
-  const admitted = acquire(mirrorRoot(env, repo), slot === 'ruler' ? ['ruler'] : CHECK_SLOTS);
+  const admitted = acquire(mirrorRoot(env, repo), CHECK_SLOTS);
   const root = join(mirrorRoot(env, repo), admitted.slot);
   const dir = join(root, 'tree');
   // ./tmp ignores itself, so scratch there never shows up in `git status` or a commit.

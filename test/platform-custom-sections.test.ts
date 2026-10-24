@@ -8,7 +8,6 @@ import {tmpdir} from 'node:os';
 import {customSectionFailures} from '../scripts/shard-platform-sections.mjs';
 import {comparePlatformList} from '../scripts/check-platform-ratchets.mjs';
 import {compareCustomSections,customSectionGrowthFailures} from '../scripts/custom-section-policy.mjs';
-import {rulerSectionBase} from '../scripts/check-custom-section-growth.mjs';
 
 const growthBudgets={'custom-sections/demo/count':2,'custom-sections/demo/bytes':100};
 it('permits section growth up to both budgets',()=>{
@@ -25,12 +24,6 @@ it('refuses each over-budget metric only when it grows past the pushed base',()=
 it('permits an existing excess to shrink or hold independently',()=>{
  for(const after of [{count:3,bytes:110},{count:4,bytes:120},{count:4,bytes:110}])
   expect(customSectionGrowthFailures(growthBudgets,{demo:{count:4,bytes:120}},{demo:after})).toEqual([]);
-});
-it('bootstraps only an exact-base ruler and retains its measured excess',()=>{
- const report={revision:'base',customSectionFailures:['demo: custom-section bytes 110 exceeds 100']};
- expect(rulerSectionBase('base',growthBudgets,report)).toEqual({demo:{count:2,bytes:110,bounds:['count']}});
- expect(()=>rulerSectionBase('other',growthBudgets,report)).toThrow();
- expect(()=>rulerSectionBase('base',{...growthBudgets,'custom-sections/demo/bytes':99},report)).toThrow();
 });
 it('never treats a ruler upper bound as an exact measurement after a budget cut',()=>{
  const before={demo:{count:2,bytes:100,bounds:['count','bytes']}};

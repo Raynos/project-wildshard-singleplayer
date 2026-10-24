@@ -59,23 +59,24 @@ class LeaseOrderTests(unittest.TestCase):
     def mirror_command(self, child):
         return ['node', str(self.mirror), 'run', self.sha, '--slot', 'check', '--', *child]
 
-    def test_two_checks_wait_on_mirror_without_starving_its_preview(self):
-        preview = self.start(self.mirror_command([sys.executable, HEAVY, 'build', '--',
-            sys.executable, str(self.worker), 'preview']), ROLE='preview')
-        self.wait_for(lambda: (self.root / 'preview.locked').exists())
+    def test_two_checks_wait_on_full_pool_without_taking_heavy_capacity(self):
+        holders = [self.start(self.mirror_command([sys.executable, '-c', 'pass']),
+                              ROLE='pool') for _ in range(5)]
+        self.wait_for(lambda: len(list(self.root.glob('pool-*.locked'))) == 5)
         checks = [self.start([sys.executable, HEAVY, 'build', '--',
             *self.mirror_command([sys.executable, str(self.worker), name])]) for name in ('check-a', 'check-b')]
-        queue = self.root / 'mirrors/ruler.queue'
+        queue = self.root / 'mirrors/checks.queue'
         self.wait_for(lambda: queue.exists() and len(list(queue.iterdir())) == 2)
         state = json.loads(subprocess.check_output([sys.executable, HEAVY, 'status'], env=self.env))
         self.assertEqual(state['active'], [])
-        (self.root / 'preview.go').touch()
-        for process in [preview, *checks]:
+        (self.root / 'pool.go').touch()
+        for process in [*holders, *checks]:
             out, err = process.communicate(timeout=15)
             self.assertEqual(process.returncode, 0, out + err)
-        self.assertTrue(all((self.root / (name + '.built')).exists() for name in ('preview', 'check-a', 'check-b')))
+        self.assertTrue(all((self.root / (name + '.built')).exists() for name in ('check-a', 'check-b')))
         self.assertEqual(list(queue.iterdir()), [])
-        self.assertFalse((self.root / 'mirrors/ruler.lock').exists())
+        for slot in ('check', 'check2', 'check3', 'check4', 'check5'):
+            self.assertFalse((self.root / ('mirrors/' + slot + '.lock')).exists())
 
     def test_unknown_shell_wrapper_refuses_before_waiting_with_a_lease(self):
         preview = self.start(self.mirror_command([sys.executable, HEAVY, 'build', '--',

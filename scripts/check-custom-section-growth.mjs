@@ -12,35 +12,8 @@ const natural=v.pipe(v.number(),v.integer(),v.minValue(0));
 const measures=v.record(v.string(),v.strictObject({count:natural,bytes:natural}));
 const receipt=v.strictObject({revision:v.string(),shards:measures});
 
-/** Old gates did not retain measurements. The committed, exact-base ruler
- * reports every excess. For non-excess metrics its budget is an upper bound:
- * any candidate exceeding that bound necessarily grew. No approximation can
- * grant growth above a budget. Missing/stale reports refuse, never build.
- * @param {string} base @param {Record<string,number>} budgets @param {unknown} report
- * @returns {Record<string,{count:number;bytes:number;bounds?:string[]}>} */
-export function rulerSectionBase(base,budgets,report) {
-  const ruler=v.parse(v.object({revision:v.literal(base),customSectionFailures:v.array(v.string())}),report);
-  const shards={};
-  for(const [key,value]of Object.entries(budgets)) {
-    const match=/^custom-sections\/([^/]+)\/(count|bytes)$/u.exec(key);
-    if(match===null)continue;
-    const [,slug,unit]=match;
-    (shards[slug]??={})[unit]=value;
-  }
-  for(const failure of ruler.customSectionFailures) {
-    const match=/^([^:]+): custom-section (count|bytes) (\d+) exceeds (\d+)$/u.exec(failure);
-    if(match===null)throw new Error(`Cannot recover pushed-base sections: ${failure}`);
-    const [,slug,unit,value,budget]=match;
-    if(shards[slug]?.[unit]!==Number(budget))throw new Error(`Pushed-base ruler budget mismatch: ${failure}`);
-    shards[slug][unit]=Number(value);
-  }
-  return Object.fromEntries(Object.entries(v.parse(measures,shards)).map(([slug,pair])=>[slug,{...pair,
-    bounds:['count','bytes'].filter(unit=>pair[unit]===budgets[`custom-sections/${slug}/${unit}`])}]));
-}
-
 /** @param {string} root @param {string} repo @param {string} base @param {string} revision @param {string} receipts */
 export function checkCustomSectionGrowth(root,repo,base,revision,receipts) {
-  const gitJson=spec=>JSON.parse(execFileSync('git',['show',spec],{cwd:repo,encoding:'utf8',maxBuffer:16<<20}));
   const budgets=JSON.parse(readFileSync(resolve(root,'lint/ratchet.json'),'utf8')).budgets;
   const frozen=legacyInventory(root).shards;
   // Enumerate projects, not existing outputs: a missing product must refuse.
@@ -62,11 +35,7 @@ export function checkCustomSectionGrowth(root,repo,base,revision,receipts) {
     if(saved.revision!==base)throw new Error('Custom-section receipt does not match pushed base');
     before=saved.shards;
   } else {
-    // This fallback is only for migration from gates predating G518. Read the
-    // committed report (progress/ is deliberately excluded from build mirrors).
-    try {before=rulerSectionBase(base,gitJson(`${base}:lint/ratchet.json`).budgets,
-      gitJson(`${revision}:progress/shard-platform/ruler/ruler.json`));}
-    catch(error){throw new Error(`Missing custom-section measurement for pushed base ${base}: ${error instanceof Error?error.message:String(error)}`,{cause:error});}
+    throw new Error(`Missing custom-section measurement for pushed base ${base}; exact receipt required`);
   }
   const failures=customSectionGrowthFailures(budgets,before,after);
   if(failures.length===0) {
