@@ -1,0 +1,27 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "noEmit": false,
+    "emitDeclarationOnly": true,
+    "declaration": true,
+    "types": [
+      "vite/client",
+      "node"
+    ],
+    "rootDir": "../..",
+    "outDir": "../../.tsc-layers/format-tests",
+    "tsBuildInfoFile": "../../.tsc-layers/format-tests.tsbuildinfo"
+  },
+  "references": [
+    {
+      "path": "../../tsconfig.format.json"
+    }
+  ],
+  "include": [
+    "**/*.test.ts",
+    "**/*.d.ts",
+    "../../types/format-standards.d.ts"
+  ],
+  "exclude": []
+}

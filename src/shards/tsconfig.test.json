@@ -1,0 +1,40 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "noEmit": false,
+    "emitDeclarationOnly": true,
+    "declaration": true,
+    "types": [
+      "vite/client",
+      "node"
+    ],
+    "rootDir": "../..",
+    "outDir": "../../.tsc-layers/shards-tests",
+    "tsBuildInfoFile": "../../.tsc-layers/shards-tests.tsbuildinfo"
+  },
+  "references": [
+    {
+      "path": "../../tsconfig.engine.json"
+    },
+    {
+      "path": "../../tsconfig.game.json"
+    },
+    {
+      "path": "../../tsconfig.sdk.json"
+    },
+    {
+      "path": "../../tsconfig.commons.json"
+    },
+    {
+      "path": "../../tsconfig.shards.json"
+    }
+  ],
+  "include": [
+    "**/*.test.ts",
+    "**/*.d.ts",
+    "../engine/**/*.d.ts",
+    "../game/**/*.merge.d.ts"
+  ],
+  "exclude": []
+}
