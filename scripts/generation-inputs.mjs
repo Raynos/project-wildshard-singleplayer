@@ -6,6 +6,7 @@ import {dirname,isAbsolute,relative,resolve} from 'node:path';
 import * as v from 'valibot';
 import {generationCacheRoot,runGenerationJob} from './generation-cache.mjs';
 import {compilerCodeHash} from './compiler-code.mjs';
+import {generationDependencies} from './generation-dependencies.mjs';
 
 export const generationReadReceipt='.generation-reads.json';
 const digest=(/** @type {string|Uint8Array} */ text)=>createHash('sha256').update(text).digest('hex');
@@ -115,8 +116,9 @@ function stageProbeView(staged,outputs) {
   };
 }
 /** @param {string} root @param {v.InferOutput<typeof Trace>} trace @param {import('./generation-cache.mjs').GenerationJob} job
- * @param {readonly string[]|undefined} staged @param {string[]} inventory */
-function probeIdentity(root,trace,job,staged,inventory) {
+ * @param {readonly string[]|undefined} staged @param {string[]} inventory
+ * @param {ReturnType<typeof generationDependencies>} dependencies */
+function probeIdentity(root,trace,job,staged,inventory,dependencies) {
   const view=staged===undefined?undefined:stageProbeView(staged,job.outputs);
   /** @type {Map<string,{target:string,name:string}|undefined>} */
   const workspaces=new Map();
@@ -154,7 +156,7 @@ function probeIdentity(root,trace,job,staged,inventory) {
   for(const probe of [...probes].sort(order)) {
     const kind=probe.slice(0,1),file=probe.slice(2);
     if(kind==='P'&&positive.has(file))continue;
-    const value=view?.(kind,file)??(kind==='P'?workspace(file):undefined);
+    const value=view?.(kind,file)??(kind==='P'?workspace(file)??dependencies.probe(file):undefined);
     if(value===undefined){
       fallback=true;values[probe]='conservative';
       // Dependency exists/realpath probes still bind the COMPLETE filename
@@ -185,8 +187,9 @@ function upstreamHashes(job) {
  * @returns {Promise<import('./generation-cache.mjs').GenerationResult>} */
 export async function runObservedGeneration(root,inputJob,inputOptions,entry,catalogue,staged) {
   const links=generationWorkspaceIdentity(root),generate=inputOptions.generate;
-  const verifyLinks=()=>{if(generationWorkspaceIdentity(root)!==links)throw new Error('Generation workspace links changed');};
-  const job={...inputJob,tools:{...inputJob.tools,workspaceLinks:links}};
+  const dependencies=generationDependencies(root,inputJob.inputs['pnpm-lock.yaml']);
+  const verifyLinks=()=>{if(generationWorkspaceIdentity(root)!==links)throw new Error('Generation workspace links changed');dependencies.verify();};
+  const job={...inputJob,tools:{...inputJob.tools,workspaceLinks:links,installedPackages:dependencies.identity}};
   /** @type {import('./generation-cache.mjs').GenerationOptions} */
   const options={...inputOptions,generate:async directory=>{await generate(directory);verifyLinks();}};
   const catalog=catalogue??'scripts/generation-jobs.json';
@@ -209,14 +212,14 @@ export async function runObservedGeneration(root,inputJob,inputOptions,entry,cat
     }
     // The backend retains its nonempty-source contract even for tiny fixtures.
     const retained=Object.keys(inputs).length===0?job.inputs:inputs;
-    const probes=probeIdentity(root,trace,job,staged,inventory),used=new Set([...trace.files,...trace.execution]);
+    const probes=probeIdentity(root,trace,job,staged,inventory,dependencies),used=new Set([...trace.files,...trace.execution]);
     // Unknown byte reads keep ALL upstream hashes. Dependency namespace probes
     // retain every staged filename, consumed byte and package manifest; only
     // unread payload content leaves their identity. The full miss stage stays
     // unchanged, including every verified immutable upstream file.
     const tools=upstream===undefined?job.tools:{...job.tools,upstream:JSON.stringify(Object.fromEntries(Object.entries(upstream)
       .filter(([file])=>probes.conservativeBytes||used.has(file)||file==='package.json'||file.endsWith('/package.json')).sort(([a],[b])=>order(a,b))))};
-    return {...job,inputs:retained,tools:{...tools,readInventory:recipe,probeInventory:probes.identity,packageExports:JSON.stringify(packages),
+    return {...job,inputs:retained,tools:{...tools,readInventory:recipe,probeInventory:probes.identity,dependencyProbes:dependencies.observedIdentity(),packageExports:JSON.stringify(packages),
       execution:JSON.stringify(Object.fromEntries(Object.entries(executionInputs(trace)).map(([file,raw])=>[file,compilerCodeHash(file,raw,()=>readFileSync(resolve(root,file)))])))}};
   };
   /** Normalized execution and projected exports still validate current raw
@@ -242,7 +245,7 @@ export async function runObservedGeneration(root,inputJob,inputOptions,entry,cat
       catch(error) {if(error!==cacheMiss)throw error;}
     }
   }
-  const full=await runGenerationJob(root,job,options);
+  const full=await runGenerationJob(root,{...job,tools:{...job.tools,dependencyProbes:dependencies.observedIdentity()}},options);
   try {verifyLinks();}catch(error){full.release();throw error;}
   const trace=readTrace(resolve(full.directory,generationReadReceipt),entry);
   if(trace===undefined)return full;

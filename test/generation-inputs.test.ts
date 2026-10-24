@@ -8,6 +8,7 @@ import * as v from 'valibot';
 import {afterEach,expect,it} from 'vitest';
 import {generateShardJob,prepareGeneration,verifiedPreparedGeneration} from '../scripts/generate.mjs';
 import {runObservedGeneration,generationReadReceipt,generationWorkspaceIdentity} from '../scripts/generation-inputs.mjs';
+import {generationDependencies} from '../scripts/generation-dependencies.mjs';
 import type {GenerationPreparation,ShardGenerationJob} from '../scripts/generate.d.mts';
 
 const owned:string[]=[];
@@ -59,6 +60,104 @@ function upstreamFixture(source?:string,workspace=false) {
   };
   return {...row,upstream:run};
 }
+function thirdPartyFixture() {
+  const f=upstreamFixture("import {value} from 'fixture-dep';import fs from 'node:fs';fs.writeFileSync('src/shards/alpha/data/output.txt',String(value));");
+  put(f.root,'src/sdk/bake/source-loader.mjs',readFileSync('src/sdk/bake/source-loader.mjs','utf8'));
+  f.job.command=['--import','./src/sdk/bake/source-loader.mjs',f.entry];
+  const sri=(value:string)=>`sha512-${createHash('sha512').update(value).digest('base64')}`;
+  const lock=`lockfileVersion: '9.0'\n\npackages:\n\n  fixture-dep@1.0.0:\n    resolution: {integrity: ${sri('first registry archive')}}\n\n  fixture-dep@2.0.0:\n    resolution: {integrity: ${sri('second registry archive')}}\n\nsnapshots:\n`;
+  put(f.root,'pnpm-lock.yaml',lock);put(f.root,'node_modules/.pnpm/lock.yaml',lock);
+  const target=(version:string)=>`node_modules/.pnpm/fixture-dep@${version}/node_modules/fixture-dep`;
+  for(const[version,value]of [['1.0.0',7],['2.0.0',9]]) {
+    const pkg=target(String(version));
+    put(f.root,`${pkg}/package.json`,JSON.stringify({name:'fixture-dep',version,type:'module',exports:'./module.mjs'}));
+    put(f.root,`${pkg}/module.mjs`,`export const value=${String(value)};`);
+  }
+  const link=resolve(f.root,'node_modules/fixture-dep');symlinkSync(resolve(f.root,target('1.0.0')),link,'dir');
+  return {...f,link,target};
+}
+it('models verified third-party probes without unrelated source filename fences',async()=>{
+  const f=thirdPartyFixture(),first=await f.upstream({'unread.bin':'old'});expect(first.text).toBe('7');
+  put(f.root,'src/sdk/new-unread.ts','export const unused=1;');
+  expect(await f.upstream({'unread.bin':'new'})).toEqual({...first,hit:true});
+});
+it('models a verified dependency installed under a workspace package',async()=>{
+  const f=thirdPartyFixture();
+  put(f.root,f.entry,`import {value} from '../../../sdk/used.mjs';import fs from 'node:fs';fs.writeFileSync('${f.output}',String(value));`);
+  put(f.root,'src/sdk/used.mjs',"import {value} from 'fixture-dep';export {value};");
+  mkdirSync(resolve(f.root,'src/sdk/node_modules'),{recursive:true});symlinkSync(resolve(f.root,f.target('1.0.0')),resolve(f.root,'src/sdk/node_modules/fixture-dep'),'dir');unlinkSync(f.link);
+  const first=await f.upstream({'unread.bin':'old'});expect(first.text).toBe('7');
+  put(f.root,'src/sdk/new-unread.ts','export const unused=1;');
+  expect(await f.upstream({'unread.bin':'new'})).toEqual({...first,hit:true});
+});
+it('verifies scoped package names and store paths without a scope-wide exemption',()=>{
+  const f=thirdPartyFixture(),lock=readFileSync(resolve(f.root,'pnpm-lock.yaml'),'utf8').replaceAll('fixture-dep@',"'@fixture/dep@").replaceAll(':\n    resolution',"':\n    resolution");
+  put(f.root,'pnpm-lock.yaml',lock);put(f.root,'node_modules/.pnpm/lock.yaml',lock);
+  const pkg='node_modules/.pnpm/@fixture+dep@1.0.0/node_modules/@fixture/dep';
+  put(f.root,`${pkg}/package.json`,JSON.stringify({name:'@fixture/dep',version:'1.0.0'}));put(f.root,`${pkg}/module.mjs`,'export const value=7;');
+  mkdirSync(resolve(f.root,'node_modules/@fixture'));symlinkSync(resolve(f.root,pkg),resolve(f.root,'node_modules/@fixture/dep'),'dir');
+  const dependencies=generationDependencies(f.root,createHash('sha256').update(lock).digest('hex'));
+  expect(dependencies.probe('node_modules/@fixture/dep/module.mjs')).toContain('"name":"@fixture/dep"');
+  expect(dependencies.probe('node_modules/@fixture/unregistered/module.mjs')).toBeUndefined();
+});
+it('invalidates a retargeted third-party alias before returning full cache bytes',async()=>{
+  const f=thirdPartyFixture();expect(await f.upstream({'unread.bin':'old'})).toMatchObject({hit:false,text:'7'});
+  unlinkSync(f.link);symlinkSync(resolve(f.root,f.target('2.0.0')),f.link,'dir');
+  expect(await f.upstream({'unread.bin':'old'})).toMatchObject({hit:false,text:'9'});
+});
+it('invalidates changed installed file bytes even when the version and integrity are unchanged',async()=>{
+  const f=thirdPartyFixture();expect(await f.upstream({'unread.bin':'old'})).toMatchObject({hit:false,text:'7'});
+  put(f.root,`${f.target('1.0.0')}/module.mjs`,'export const value=11;');
+  expect(await f.upstream({'unread.bin':'old'})).toMatchObject({hit:false,text:'11'});
+});
+it('does not resurrect full cache bytes when an installed file link escapes its package',async()=>{
+  const f=thirdPartyFixture();expect(await f.upstream({'unread.bin':'old'})).toMatchObject({hit:false,text:'7'});
+  const module=resolve(f.root,f.target('1.0.0'),'module.mjs');unlinkSync(module);symlinkSync(resolve(f.root,f.target('2.0.0'),'module.mjs'),module);
+  expect(await f.upstream({'unread.bin':'old'})).toMatchObject({hit:false,text:'9'});
+  put(f.root,`${f.target('2.0.0')}/module.mjs`,'export const value=13;');
+  expect(await f.upstream({'unread.bin':'old'})).toMatchObject({hit:false,text:'13'});
+});
+it.each(['missing-lock','integrity','name','version','outside-store'])('keeps unverified third-party %s behind the complete fence',async kind=>{
+  const f=thirdPartyFixture();
+  if(kind==='missing-lock')rmSync(resolve(f.root,'pnpm-lock.yaml'));
+  else if(kind==='integrity')put(f.root,'node_modules/.pnpm/lock.yaml',readFileSync(resolve(f.root,'pnpm-lock.yaml'),'utf8').replace('sha512-','sha256-'));
+  else if(kind==='outside-store') {
+    put(f.root,'node_modules/loose-dep/package.json',JSON.stringify({name:'fixture-dep',version:'1.0.0',type:'module',exports:'./module.mjs'}));
+    put(f.root,'node_modules/loose-dep/module.mjs','export const value=7;');unlinkSync(f.link);symlinkSync(resolve(f.root,'node_modules/loose-dep'),f.link,'dir');
+  }else put(f.root,`${f.target('1.0.0')}/package.json`,JSON.stringify({name:kind==='name'?'other-dep':'fixture-dep',version:kind==='version'?'9.0.0':'1.0.0',type:'module',exports:'./module.mjs'}));
+  const first=await f.upstream({'unread.bin':'old'});expect(first.text).toBe('7');
+  put(f.root,'src/sdk/new-unread.ts','export const unused=1;');
+  expect(await f.upstream({'unread.bin':'old'})).toMatchObject({hit:false,text:'7'});
+});
+it('does not trust duplicated or unsupported package resolution records',()=>{
+  const f=thirdPartyFixture(),lock=readFileSync(resolve(f.root,'pnpm-lock.yaml'),'utf8');
+  const probe=()=>generationDependencies(f.root,createHash('sha256').update(readFileSync(resolve(f.root,'pnpm-lock.yaml'))).digest('hex')).probe('node_modules/fixture-dep/module.mjs');
+  expect(probe()).toBeDefined();
+  put(f.root,'pnpm-lock.yaml',lock.replace('snapshots:',`  fixture-dep@1.0.0:\n    resolution: {tarball: https://invalid.example/dependency.tgz}\n\nsnapshots:`));
+  expect(probe()).toBeUndefined();
+  put(f.root,'pnpm-lock.yaml',lock.replace('lockfileVersion: \'9.0\'','lockfileVersion: \'10.0\''));
+  expect(probe()).toBeUndefined();
+});
+it('binds missing package files and refuses escaping package symlinks',()=>{
+  const f=thirdPartyFixture(),lock=createHash('sha256').update(readFileSync(resolve(f.root,'pnpm-lock.yaml'))).digest('hex');
+  const before=generationDependencies(f.root,lock);expect(before.probe('node_modules/fixture-dep/optional.mjs')).toContain('absent');
+  put(f.root,`${f.target('1.0.0')}/optional.mjs`,'export const value=1;');
+  expect(()=>before.verify()).toThrow('Generation installed package probe changed');
+  symlinkSync(resolve(f.root,'src/sdk/used.mjs'),resolve(f.root,f.target('1.0.0'),'escape.mjs'));
+  expect(generationDependencies(f.root,lock).probe('node_modules/fixture-dep/escape.mjs')).toBeUndefined();
+});
+it('refuses publication when a producer retargets an installed third-party alias',async()=>{
+  const f=thirdPartyFixture();
+  put(f.root,f.entry,`import fs from 'node:fs';fs.unlinkSync(${JSON.stringify(f.link)});fs.symlinkSync(${JSON.stringify(resolve(f.root,f.target('2.0.0')))},${JSON.stringify(f.link)},'dir');fs.writeFileSync('${f.output}','changed');`);
+  await expect(f.upstream({'unread.bin':'old'})).rejects.toThrow('Generation installed packages changed');
+  expect(readdirSync(resolve(f.cacheDir,f.job.id)).filter(name=>/^[a-f0-9]{64}$/u.test(name))).toEqual([]);
+});
+it('invalidates a completed phase when an installed third-party alias changes',async()=>{
+  const f=thirdPartyFixture();
+  await prepareGeneration(f.root,{cacheDir:f.cacheDir});expect(verifiedPreparedGeneration(f.root)).toBe(true);
+  unlinkSync(f.link);symlinkSync(resolve(f.root,f.target('2.0.0')),f.link,'dir');
+  expect(verifiedPreparedGeneration(f.root)).toBe(false);
+});
 function optionalTablesFixture() {
   const f=upstreamFixture("import fs from 'node:fs';fs.writeFileSync('src/shards/alpha/data/output.txt',JSON.stringify({identity:globalThis.fixtureIdentity,tables:globalThis.fixtureTables,shards:globalThis.fixtureShards??[]}));");
   put(f.root,'scripts/bake-loader.mjs',readFileSync('scripts/bake-loader.mjs','utf8'));

@@ -12,6 +12,8 @@ export function generationWorkspaceIdentity(root:string):string;
  * staged metadata retains every upstream hash.
  * Verified mirrored workspace aliases bind their defining staged paths. Full
  * recipes bind the workspace-link layout; a mid-run change refuses publication.
+ * Installed package aliases require matching source/installed pnpm integrities,
+ * names, versions and store paths. Exact probes also fence full-cache lookups.
  * Immutable upstream bytes bind observed file/module reads, while the
  * observation recipe excludes their content values. */
 export function runObservedGeneration(root:string,job:GenerationJob,options:GenerationOptions,entry:string,catalogue?:string,staged?:readonly string[]):Promise<GenerationResult>;
