@@ -3,8 +3,8 @@
 **Order (G639):** (1) live reds → (2) NALATI TO ZERO → (3) grid / frame floor. Extras: loading, core memory, TOOLING-PERF,
 Night Market, tile streaming, no-binaries.
 
-**(1) LIVE 68ac787e6b (build 68ac787e6-mvm0spzb, 2026-10-24 06:31Z), released after full CI + all six exact smoke
-legs; ff45 pin removed (692f9bd22e), hourly newest-CI-green deploys resume (sp-x7). Fixed on the way: boot race
+**(1) LIVE f62917679d (2026-10-24 07:36Z; 68ac787e6b at 06:31Z before it), each after full CI + all six exact smoke
+legs; ff45 pin removed (692f9bd22e), hourly newest-CI-green deploys running (sp-x7). Fixed on the way: boot race
 (Safari <27 top-level await, 8198659879 + guard a0f26d2c27), worker 327cf572ca, Explorer warm 231aa398b9, six smoke
 reds; CI now runs Explorer cases one at a time (0a0524a286). Settings DR19 is live with it.
 
@@ -14,11 +14,10 @@ Jake approves each), legacy deletion (G606).
 
 **(3) Frame floor.** Desktop (466c98bac7): ALL 24 shipped shards PASS standing (59.9 fps, max 16.8 ms); grid drives
 p95 16.8 but Pine max 1,117 ms (one 1.5 s gl.bufferData after pine-hollow:activate, sp-o3) and Nalati max 167 FAIL.
-Quiet iOS Sim p95 (889 → 16fc6da351): Pine drive 71 → 35 (max 85), interior 60 → 34; Nalati drive 53 → 53
-(max 448 between hooks), interior 59 → 50 (FAIL, bar 33); DW/template drives 35, settled 34. Cuts: shader-build churn (variants 566 → 20 MiB), variant token keys (select 241 → 2), page
-light budget 79fd45d18c, herd/Valibot/hash allocation. Nalati drive long frames: each WebAssembly.Memory costs 62-117 ms on JSC
-(11 = 906 ms); all 11 now prepared before their consumer binds (01a399a3c8,
-62fc95fcfb; wildlife/arena/timed still inside admission hooks); 440 ms frame being attributed (sp-x1). JSON parse 160 → 6 ms (393a1c007f).
+Quiet iOS Sim p95 (889 → e472f34069): Pine drive 71 → 35 (max 85), interior 60 → 34; Nalati drive 53 → 47
+(max 320 between hooks), interior 59 → 46 (FAIL, bar 33); DW/template drives 35, settled 34. Cuts: shader-build churn (variants 566 → 20 MiB), variant token keys (select 241 → 2), page
+light budget 79fd45d18c, herd/Valibot/hash allocation. Wasm memory pool e472f34069: 33 hits / 0 misses, no fixed Memory built in play (each forced a 60-130 ms full GC).
+The road's 274-448 ms frame = growable Memory rebuilt by saved-state restore (626 -> 646); sp-x6 adds virgin growable stock. JSON parse 160 → 6 ms (393a1c007f).
 
 **Memory:** WebKit Sim floors menu ~166, T1 ~310-330 MiB vs M1's 50/100 (FAIL). Same source drifts ~10 MiB between
 cohorts; churn cuts don't move floors (they cut GC, not WebKit's dirty pages). M1's 50 MiB menu is below WebKit's own floor (framework 57 MiB): recommend re-basing
