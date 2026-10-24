@@ -528,11 +528,15 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     game.levelScope.onDispose(app.debug.scopedExpose('gridHud', { state: gridHud, minimap: () => { const o = blend(); return { baseAlpha: o.baseAlpha ?? 1, images: o.images.map((m) => ({ x: m.x, z: m.z, alpha: m.alpha })), labels: o.labels.map((l) => l.text) }; } }));
   }
   // ?explore=hub|world|model|sets[&cam=x,y,z,yaw,pitch][&model=id] — straight into the viewer (a shard with ShardManifest.explore — D4, E66; a note's "go there")
+  let startExplore: (() => void) | undefined;
   if (exploreParam !== null && chunk.explore !== undefined) {
     const cam = (params.get('cam') ?? '').split(',').filter((v) => v !== '').map(Number);
     const model = params.get('model');
     hud.onExplore = () => { hud.onExplore = () => { void openExplore('hub'); }; void openExplore(exploreMode, { ...(cam.length >= 3 ? { cam } : {}), ...(model !== null ? { model } : {}) }); };
-    hud.startExplore();
+    // The loader still has the shard's level.play hook to install. Opening
+    // Explore parks the player outside the bounded script world; defer that
+    // presentation move until finishStage has installed the gameplay owners.
+    startExplore = () => { hud.startExplore(); };
   }
   // the first gesture builds the AudioContext; on the title screen it also starts the title theme (synth, then the title stems)
   const firstGesture = () => { audio.resume(); if (!hud.entered && !music.isPlaying) music.play('theme'); };
@@ -691,7 +695,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   app.ui.bind(game.levelScope, () => hud.promptText);
   boot.runtime.play = { animals, weapons, primary: crossbow, rifle, secondary: longbow, inventory, owned, progress, hud, menu, fullMap, audio, music, skins, wearSkin, touchUi, nolock, disposeRifleDrop: () => { boot.runtime.hooks.disposeRifleDrop?.(); }, cues: combatCues, firstHints, minimap, bodyShadow };
   const getPlayground = (): Playground | null => playground;
-  return { ...ctx, grid, gridLive, leakPhysics, perf, audio, music, playerHealth, exploring, hands, windupWarn, resuming, continuingGridEntry, arrival, menuFirst, enter, getPlayground, minimap };
+  return { ...ctx, grid, gridLive, leakPhysics, perf, audio, music, playerHealth, exploring, hands, windupWarn, resuming, continuingGridEntry, arrival, menuFirst, enter, getPlayground, minimap, startExplore };
 }
 
 export const playStage: typeof buildPlay = buildPlay;
