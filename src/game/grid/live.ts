@@ -167,6 +167,7 @@ export class LiveGridHost {
   private fixedTick = 0;
   private previousFeet: GridPoint | undefined;
   private readonly candidateDistances = new Map<GridCell,number>();
+  private readonly approachWork:{candidates:GridCell[];nearby:GridCell[];boulevard:GridCell[];bounded:GridCell[]}[]=[];
   /** This host already owns the assembly and its frozen cells for its whole lifetime. */
   private targetCells: readonly GridCell[] | undefined;
   /** A refused speculative retirement remains charged until an explicit durability retry. */
@@ -415,16 +416,25 @@ export class LiveGridHost {
   beforeFixed(): void {
     if (this.disposed) return;
     this.fixedTick++;
+    const work=this.approachWork.pop()??{candidates:[],nearby:[],boulevard:[],bounded:[]};
+    try{this.beforeFixedWithWork(work);}
+    finally{work.candidates.length=0;work.nearby.length=0;work.boulevard.length=0;work.bounded.length=0;if(!this.disposed)this.approachWork.push(work);}
+  }
+  private beforeFixedWithWork(work:{candidates:GridCell[];nearby:GridCell[];boulevard:GridCell[];bounded:GridCell[]}):void{
     const feet = this.worldFeet(), previous = this.previousFeet;
     const travelled = previous !== undefined && Math.hypot(feet.x - previous.x, feet.z - previous.z) >= APPROACH_TRAVEL_METRES;
     if (previous === undefined || travelled) this.previousFeet = feet;
     // Prefetch the closest cells' products (never their worlds: G663). Unsupported far proxies do not consume the count
     // before enterable cells inside the cold readiness bound.
-    const candidates = this.assembly.cells.filter((cell) => cell.instance !== this.active && (this.ports.prefetchable?.(cell) ?? true));
+    const candidates=work.candidates,cells=this.assembly.cells;
+    for(let i=0,length=cells.length;i<length;i++){
+      const cell=cells[i];if(cell!==undefined&&cell.instance!==this.active&&(this.ports.prefetchable?.(cell)??true))candidates.push(cell);
+    }
     // Fixed cell poses and this tick's captured feet: avoid repeating hypot inside every sort comparison.
     for (const cell of candidates) this.candidateDistances.set(cell,this.distance(cell,feet));
     candidates.sort((a,b) => (this.candidateDistances.get(a) ?? Infinity) - (this.candidateDistances.get(b) ?? Infinity) || a.instance.localeCompare(b.instance));
-    const nearby = candidates.slice(0, NEARBY_PRODUCTS);
+    const nearby=work.nearby;
+    for(let i=0;i<candidates.length&&i<NEARBY_PRODUCTS;i++){const cell=candidates[i];if(cell!==undefined)nearby.push(cell);}
     // Active/prepared frames and recently nearby worlds remain protected without changing motor bands.
     this.retireColdRegions();
     for (const cell of nearby) {
@@ -439,18 +449,22 @@ export class LiveGridHost {
       const moving = !travelled ? undefined : candidates.find(cell => headsToEntry(cell, feet, previous)
         && this.distance(cell, feet) < this.distance(cell, previous) - 0.000001);
       const departed = this.transitions.at(-1)?.from;
-      const boulevard = !travelled || moving !== undefined ? [] : candidates.filter(cell => cell.instance !== departed
-        && (boulevardApproachDistance(cell, feet, previous, this.assembly.pitch) ?? Infinity)
-          <= readinessModel(this.ports.readiness.bundle(cell), this.ports.readiness.link).distance);
+      const boulevard=work.boulevard;
+      if(travelled&&moving===undefined)for(let i=0,length=candidates.length;i<length;i++){
+        const cell=candidates[i];if(cell!==undefined&&cell.instance!==departed
+          &&(boulevardApproachDistance(cell,feet,previous,this.assembly.pitch)??Infinity)
+            <=readinessModel(this.ports.readiness.bundle(cell),this.ports.readiness.link).distance)boulevard.push(cell);
+      }
       // Product metadata identifies bounded native alternatives even when the nearer opaque product filled
       // the radial prefetch count. This admits immutable products/modules, never their foundations.
       for (const cell of boulevard) if (!this.issues.has(cell.instance)) void background(cell.instance, this.prefetch([cell.instance]), () => !this.disposed);
       // A bodyless declarative cell is a bounded, charged preparation on an ambiguous boulevard;
       // opaque alternatives still stay module-only. Never choose among multiple native alternatives either.
-      const bounded = boulevard.length === 1 ? boulevard : boulevard.filter(cell => {
-        const product = this.products.get(cell.instance);
-        return product !== undefined && product.exclusiveRuntime !== true;
-      });
+      const bounded=boulevard.length===1?boulevard:work.bounded;
+      if(boulevard.length!==1)for(let i=0,length=boulevard.length;i<length;i++){
+        const cell=boulevard[i];if(cell===undefined)continue;const product=this.products.get(cell.instance);
+        if(product!==undefined&&product.exclusiveRuntime!==true)bounded.push(cell);
+      }
       // T7: a prediction never starts a neighbour's world hooks from the road; only a bodyless declarative cell builds
       // ahead, an opaque one waits for the traveller to head into its entry or reach its wall
       const predicted = bounded.length === 1 ? bounded[0] : undefined;
