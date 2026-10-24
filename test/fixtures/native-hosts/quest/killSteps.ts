@@ -1,9 +1,9 @@
 import * as v from 'valibot';
 import type { SimHost } from '@wildshard/engine/sim';
 import { parseQuestKillRows } from '@wildshard/format/questSteps';
-import { createAchievementCounters, type AchievementDef } from '../achievements';
-import { QuestStepRunner } from './steps';
-import { commitQuestEffects } from './effects';
+import { createAchievementCounters, type AchievementDef } from '../../../../src/game/achievements';
+import { QuestStepRunner } from '../../../../src/game/quest/steps';
+import { commitQuestEffects } from '../../../../src/game/quest/effects';
 
 /** Actor identity is borrowed; this observer never spawns, retires or saves actors. */
 export interface QuestKilledBody {

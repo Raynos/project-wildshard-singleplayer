@@ -4,7 +4,7 @@ import type { NativeQuestCompositionInput } from './native-hosts/quest/nativeCom
 import type { MixedPopulationInput } from '../../src/game/population/mixedRoster';
 import { installMixedPopulation } from '@wildshard/game/population/mixedRoster';
 import { installNativeChapterDirector } from '@wildshard/game/quest/nativeChapter';
-import { installQuestKillSteps } from '@wildshard/game/quest/killSteps';
+import { installQuestKillSteps } from './native-hosts/quest/killSteps';
 import { readNativeQuestSpots } from './native-hosts/quest/nativeComposition';
 import { installNativeQuestComposition } from './native-hosts/quest/nativeComposition';
 import { declaredWaterBody } from '@wildshard/engine/world/water/declared';

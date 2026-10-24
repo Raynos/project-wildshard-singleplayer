@@ -4,7 +4,7 @@ import { expect, test } from 'vitest';
 import { createSimHost } from '../src/engine/sim';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { installQuestGraph } from '../src/game/plugin/quests';
-import { prepareNativeQuestEntry } from '../src/game/quest/nativeEntry';
+import { prepareNativeQuestEntry } from './fixtures/native-hosts/quest/nativeEntry';
 import { registerNativeQuestInputs } from '../src/game/quest/nativeInputs';
 import { nativeInventorySchema } from '../src/game/inventoryLaw';
 import * as v from 'valibot';

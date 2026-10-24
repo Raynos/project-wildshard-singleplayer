@@ -1,11 +1,11 @@
 import type { GrappleMode } from '@wildshard/format/modes';
 import type { GrappleProfile } from '@wildshard/format/grapple';
 import type { SimHost } from '@wildshard/engine/sim';
-import { type GrappleBody, type GrapplePorts, GrappleSim, type GrappleView } from './sim';
+import { type GrappleBody, type GrapplePorts, GrappleSim, type GrappleView } from '../../../../src/game/grapple/sim';
 import * as v from 'valibot';
 import { PerspectiveCamera, Vector3 } from 'three';
 import { fovForAspect } from '@wildshard/engine/combat/blocks/melee';
-import { grappleCourse } from './course';
+import { grappleCourse } from '../../../../src/game/grapple/course';
 
 /** Standard tick services; content supplies profile rows, never authored handlers. */
 export interface GrappleTickContext {

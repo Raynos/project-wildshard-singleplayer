@@ -1,7 +1,7 @@
 import { isJsonData } from '@wildshard/format/json';
 import { parseNativeQuestComposition, type NativeQuestCompositionRows } from '@wildshard/format/nativeQuestComposition';
 import { nativeQuestChannels } from '../../../../src/game/quest/nativeInputs';
-import { prepareNativeQuestEntry } from '../../../../src/game/quest/nativeEntry';
+import { prepareNativeQuestEntry } from './nativeEntry';
 import { nativeStageLane, type readDirectorProduct } from '../../../../src/game/plugin/director';
 import { mixedPopulation } from '../../../../src/game/population/mixedRoster';
 import * as v from 'valibot';

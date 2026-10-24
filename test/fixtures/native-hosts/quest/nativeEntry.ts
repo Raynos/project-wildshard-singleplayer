@@ -1,12 +1,12 @@
 import type { SimHost, SimValue } from '@wildshard/engine/sim';
 import type { InteractTable } from '@wildshard/engine/world/interact/types';
 import type { Shardfile } from '@wildshard/format/shardSchema';
-import { NativeInventory } from '../inventoryLaw';
-import { ItemCatalogue } from '../loadout/itemCatalogue';
-import { bindQuestTableSpots } from '../plugin/quests';
-import { installDeclaredQuestHost, type QuestHostPorts } from '../plugin/simulation';
-import { nativeQuestInputs } from './nativeInputs';
-import { AchievementCounterBook, type AchievementCounterRows } from '../achievements';
+import { NativeInventory } from '../../../../src/game/inventoryLaw';
+import { ItemCatalogue } from '../../../../src/game/loadout/itemCatalogue';
+import { bindQuestTableSpots } from '../../../../src/game/plugin/quests';
+import { installDeclaredQuestHost, type QuestHostPorts } from '../../../../src/game/plugin/simulation';
+import { nativeQuestInputs } from '../../../../src/game/quest/nativeInputs';
+import { AchievementCounterBook, type AchievementCounterRows } from '../../../../src/game/achievements';
 import * as v from 'valibot';
 import { bindInteractionTransitions, type InteractionState, type InteractionTransitions } from '@wildshard/engine/world/interact/flags';
 import { plateOverlap } from '@wildshard/engine/world/interact/barrel';

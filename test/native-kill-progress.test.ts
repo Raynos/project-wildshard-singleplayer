@@ -5,7 +5,7 @@ import { Vector3 } from 'three';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { createSimHost } from '../src/engine/sim';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
-import { installQuestKillSteps } from '../src/game/quest/killSteps';
+import { installQuestKillSteps } from './fixtures/native-hosts/quest/killSteps';
 import rows from '../src/shards/driftwood-isle/data/questKillSteps.json' with { type: 'json' };
 import { DRIFTWOOD_FEATS } from '../src/shards/driftwood-isle/generators/questInventory';
 import { NativeInventory, creditNativeInventory, debitNativeInventory, type NativeInventoryProfile } from '../src/game/inventoryLaw';

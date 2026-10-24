@@ -20,7 +20,7 @@ import { PracticeCourse } from '@wildshard/game/practice/course';
 import { SWORD_WOOD } from '@wildshard/game/weapons/starterMeleeProfile';
 import { grappleNeedsLift, grappleLiftTo } from '@wildshard/game/grapple/sim';
 import { grappleCourse } from '@wildshard/game/grapple/course';
-import { installGrapple } from '@wildshard/game/grapple/headless';
+import { installGrapple } from './fixtures/native-hosts/grapple/headless';
 import { lendLooks } from '@wildshard/game/shardfile/lentLooks';
 import { Filament, Rope } from '../src/game/grapple/ribbon';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
