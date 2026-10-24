@@ -1,4 +1,4 @@
-const switches = new Set(['help', 'worker', 'quiet', 'devserver', 'gl-time', 'gpu-bisect', 'frame-timeline', 'task-clock', 'road-approach', 'entry-socket', 'wasm-memory-probe']);
+const switches = new Set(['help', 'worker', 'quiet', 'devserver', 'gl-time', 'gpu-bisect', 'frame-timeline', 'task-clock', 'road-approach', 'entry-socket', 'wasm-memory-probe', 'pause-ablation']);
 const values = new Set(['base', 'cpu-profile', 'deadline', 'developer', 'device', 'frames', 'gl-observer', 'gpu-trace',
   'grid-cell', 'grid-cell-pose', 'grid-routes', 'grid-scenario', 'regrade', 'rev', 'rising-islet', 'safari-profile', 'safari-steady', 'safari-drive', 'safari-prefix', 'safari-window',
   'settle', 'shards', 'surface', 'scratch-dir', 'worker-out', 'device-save', 'expect-system', 'setting', 'output-dir',
@@ -38,6 +38,10 @@ export function validateFrameFloorArgs(args) {
   if (args.some(arg => arg.startsWith('--native-pressure=')) && (timelineSteady.length !== 1
     || !args.some(arg => arg.startsWith('--native-pressure=') && arg.length > '--native-pressure='.length)))
     throw new Error('Native pressure probe requires a selected settled Timeline and an output directory');
+  if (args.includes('--pause-ablation') && (timelineSteady.length !== 1
+    || timelineSteady[0] !== '--webkit-steady=grid-nalati-interior'
+    || args.some(arg => arg.startsWith('--native-pressure='))))
+    throw new Error('Pause ablation requires only the selected Nalati steady Timeline');
   const steady = args.filter(arg => arg.startsWith('--safari-steady='));
   const drive = args.filter(arg => arg.startsWith('--safari-drive='));
   const prefix = args.filter(arg => arg.startsWith('--safari-prefix='));

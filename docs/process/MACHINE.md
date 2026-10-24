@@ -250,6 +250,22 @@ pre-window totals remain a positive control. Unsupported/unwrapped APIs and
 counter drops/errors remain explicit. Calls are requests, not GC cause proof;
 asynchronous promise rejections are not synchronous failures.
 
+`--pause-ablation` with only `--webkit-steady=grid-nalati-interior` records
+A: 20 seconds normal, B: the existing pause menu open, C: resumed normal with
+buffer instrumentation. It uses existing touch pause/resume actions, never a
+frame-gate or app-state override. Browser rAF and completed game frames are
+separate: a paused game has no drawn-frame p95. Tick/frame/menu counters verify
+that pause stops simulation and 3D rendering. The preboot buffer probe is inert
+until C; A/B retain native constructors/methods. C wraps all available typed-array,
+DataView and buffer constructors plus typed slice/subarray/map/filter/from/of and
+ArrayBuffer.slice, with zero size threshold. Per-second counts, backing bytes,
+existing-buffer views and bounded stack aggregates retain no buffer references.
+Nested species results deduplicate by weak identity; callback allocations remain
+visible. Errors/drops and
+unsupported APIs are explicit. Wrappers restore before serialization. C timing is
+perturbed and has no acceptance credit; worker/native-internal/Wasm allocations
+remain outside this page-realm probe.
+
 Add `--wasm-constructors=<existing scratch dir>`
 to retain bounded native Memory/Module/Instance durations and original frame-clock
 reads. It injects before app modules, collects stacks outside each native timed
