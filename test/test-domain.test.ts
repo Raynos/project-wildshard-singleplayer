@@ -15,8 +15,15 @@ test('colocated fixtures keep product guards in production and architecture guar
     ...Object.fromEntries(TEST_DOMAIN_RUNTIME_RULES.map(name => [`wildshard/${name}`, 'error'])),
     'wildshard/layer': 'error', 'wildshard/no-module-mock': 'error', 'wildshard/no-production-test-import': 'error',
   } }));
-  const run = (files: readonly string[]): ReturnType<typeof spawnSync> => spawnSync(resolve('node_modules/.bin/oxlint'),
-    ['--threads=1', '--no-ignore', '-c', config, '-f', 'json', ...files], { encoding: 'utf8', timeout: 10_000 });
+  const surfaces = put('surfaces.json', JSON.stringify({ jsPlugins: [resolve('lint/wildshard-plugin.js')], categories: { correctness: 'off' }, rules: {
+    'wildshard/engine-words': 'error', 'wildshard/no-inline-ui-string': 'error', 'wildshard/no-authored-html': 'error',
+    'wildshard/no-global-listener-patch': 'error', 'wildshard/no-raw-hud': 'error',
+  } }));
+  const boundaries = put('boundaries.json', JSON.stringify({ jsPlugins: [resolve('lint/wildshard-plugin.js')], categories: { correctness: 'off' }, rules: {
+    'wildshard/layer': 'error', 'wildshard/no-module-mock': 'error', 'wildshard/no-production-test-import': 'error',
+  } }));
+  const run = (files: readonly string[], selected = config): ReturnType<typeof spawnSync> => spawnSync(resolve('node_modules/.bin/oxlint'),
+    ['--threads=1', '--no-ignore', '-c', selected, '-f', 'json', ...files], { encoding: 'utf8', timeout: 10_000 });
   const code = 'const label = "Pine loot"; const node = document.createElement("div"); node.textContent = "Play now"; node.innerHTML = document.title; document.body.appendChild(node); export { label };';
   const rejected: { file: string; rules: readonly string[] }[] = [];
   const refuses = (path: string, source: string, rules: readonly string[]): void => { rejected.push({ file: put(path, source), rules }); };
@@ -31,12 +38,18 @@ test('colocated fixtures keep product guards in production and architecture guar
     const statements = ['import "./fixture.test";', 'export * from "./fixture.test.ts";', 'void import("./fixture.test.js");', 'export type Value = typeof import("./fixture.test");',
       'import "../test/helper";', 'export * from "../test/helper";', 'void import("../test/helper");', 'export type Helper = typeof import("../test/helper");'];
     statements.forEach((source, index) => { refuses(`src/engine/core/importer-${index}.ts`, source, ['no-production-test-import']); });
-    const result = run(rejected.map(row => row.file));
-    expect(result.status, String(result.error ?? '') + String(result.stdout) + String(result.stderr)).toBe(1);
-    const output = v.parse(v.object({ diagnostics: v.array(v.object({ filename: v.string(), code: v.string() })) }), JSON.parse(String(result.stdout)));
-    for (const row of rejected) {
-      const codes = output.diagnostics.filter(diagnostic => resolve(diagnostic.filename) === row.file).map(diagnostic => diagnostic.code);
-      for (const rule of row.rules) expect(codes, row.file).toContain(`wildshard(${rule})`);
+    for (const layer of ['engine', 'game', 'sdk']) {
+      refuses(`src/${layer}/fixture-consumer.ts`, 'import {FakeGame} from "@wildshard/engine/test/FakeGame"; export const value = FakeGame;', ['no-production-test-import']);
+    }
+    const production = rejected.slice(0, 1), architecture = rejected.slice(1);
+    for (const [rows, selected] of [[production, surfaces], [architecture, boundaries]] as const) {
+      const result = run(rows.map(row => row.file), selected);
+      expect(result.status, String(result.error ?? '') + String(result.stdout) + String(result.stderr)).toBe(1);
+      const output = v.parse(v.object({ diagnostics: v.array(v.object({ filename: v.string(), code: v.string() })) }), JSON.parse(String(result.stdout)));
+      for (const row of rows) {
+        const codes = output.diagnostics.filter(diagnostic => resolve(diagnostic.filename) === row.file).map(diagnostic => diagnostic.code);
+        for (const rule of row.rules) expect(codes, row.file).toContain(`wildshard(${rule})`);
+      }
     }
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
