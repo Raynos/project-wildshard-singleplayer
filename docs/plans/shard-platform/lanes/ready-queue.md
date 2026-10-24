@@ -18,7 +18,7 @@ Every row is decided work (Jake's G-rows); the refs are the brief.
 | G694 F1 | Freeze: lock C1-C9 on all six shards + 0 countable lines in every non-legacy shard folder (before/with G693's ruler deletion) | custom-code-freeze-mini-plan.md | done dd52fc84ea (sp-x8): all6x9 + every non-legacy source folder, 234 CF1 cases |
 | G694 F2 | Schema refusals (LegacyRuntimeSchema, entry.legacy/native, nativePlan, runtimeEntry) | same | wave 1 done `e5eb16f9f5` (sp-x8); RuntimeSchema / copied-runtime removal held for LD (wave 3) |
 | G694 D1 | Delete the trusted/native runtime entry (after F2; boot smoke) | same | sp-x6 (after T9 proof) |
-| G694 F3 | shard-layout loses runtime/legacy; hard rule wildshard/no-shard-runtime | same | sp-x9 (after T1 acceptance) |
+| G694 F3 | shard-layout loses runtime/legacy; hard rule wildshard/no-shard-runtime | same | done 2f6210f1b0 + c7445018a4 (sp-x9); exact registered legacy held for LD |
 | G694 F4-F5 | Prune 1,824 stale ratchet allowances + refuse missing paths; custom sections shrink-only | same | done `b984db9194` + `194a455e2f` + gate repair `b1b5c7a613` (sp-x2); G606 preserved |
 | G694 D2-D6 (wave 1) | Then in row order: delete-now D2-D6, but nothing a -legacy folder imports (such pieces move to wave 3; legacy must keep working for Jake's A/B). Wave 2 = Jake's phone QA with LEGACY A/B. Wave 3 after his word: LD5-LD8, A1 (ShardPlugin is legacy's API), A2, Z1 | custom-code-freeze-mini-plan.md | D2 done `67cd40190e` + `dcc0abf878` (sp-x8); D3 sp-x2; D4-D6 in flight (2026-10-24, sp-x8), in order |
 | L11 | Loading: section/schema reads use the trusted worker-verified transport (no second page hash), drop runtimeProduct Uint8Array.from | loading-mini-plan.md:675 | sp-x9 |
