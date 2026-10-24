@@ -9,6 +9,8 @@ function steadyScriptWindow(timeline = false) {
   if (!game || !world.hud.entered || world.hud.paused || !game.frameGate())
     throw new Error('Steady profile requires entered, unpaused controls');
   const startMs = performance.now(), firstFrame = game.frameCount;
+  const pressure = timeline ? window.__frameFloorNativePressure : undefined;
+  pressure?.begin();
   /** @type {number[][]} */
   const intervals = [];
   /** @type {number | null} */
@@ -25,10 +27,10 @@ function steadyScriptWindow(timeline = false) {
     const finish = (error) => {
       if (finished) return;
       finished = true; stop?.(); clearTimeout(timer);
+      const endMs = performance.now(), nativePressure = pressure?.take();
       if (error) { reject(error); return; }
-      const endMs = performance.now();
       resolve({ startMs, endMs, elapsedMs: endMs - startMs, frames: game.frameCount - firstFrame,
-        ...(timeline ? { intervals, dropped } : {}) });
+        ...(timeline ? { intervals, dropped, ...(nativePressure === undefined ? {} : { nativePressure }) } : {}) });
     };
     timer = setTimeout(() => finish(new Error('Steady profile received no completion frame within 30 seconds')), 30000);
     try {

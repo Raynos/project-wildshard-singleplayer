@@ -117,9 +117,29 @@ test('steady Timeline accepts one Simulator target including official quiet with
   const command = ['--surface=sim', '--shards=grid', '--grid-scenario=all', '--webkit-timeline=tmp/timeline', '--webkit-steady=grid-nalati-interior'];
   expect(() => validateFrameFloorArgs(command)).not.toThrow();
   expect(() => validateFrameFloorArgs([...command, '--quiet'])).not.toThrow();
+  expect(() => validateFrameFloorArgs([...command.slice(0, -1), '--webkit-steady=grid-template-return,grid-nalati-interior', '--native-pressure=tmp/probe', '--quiet'])).not.toThrow();
+  expect(() => validateFrameFloorArgs([...command.slice(0, -1), '--webkit-steady=grid-template-return,grid-template-return'])).toThrow('distinct');
+  expect(() => validateFrameFloorArgs([...command.slice(0, -1), '--webkit-steady=grid-template-return,grid-pine-interior,grid-nalati-interior'])).toThrow('Steady Timeline');
+  expect(() => validateFrameFloorArgs(['--native-pressure=tmp/probe'])).toThrow('selected settled Timeline');
+
   for (const extra of ['--safari-profile=tmp/profile', '--wasm-constructors=tmp/native', '--gl-time', '--webkit-steady=grid-pine-interior'])
     expect(() => validateFrameFloorArgs([...command, extra])).toThrow('Steady Timeline');
   for (const replacement of ['--webkit-steady=', '--webkit-steady=../escape'])
     expect(() => validateFrameFloorArgs([...command.slice(0, -1), replacement])).toThrow('Steady Timeline');
   expect(() => validateFrameFloorArgs(command.filter(arg => !arg.startsWith('--webkit-timeline=')))).toThrow('Steady Timeline');
+});
+
+
+test('steady native-pressure epoch freezes on success and also retires on control refusal', async () => {
+  for (const refuse of [false, true]) {
+    const f = fixture(); let begins = 0, ends = 0;
+    Reflect.set(f.context.window, '__frameFloorNativePressure', {begin: () => {begins++;}, take: () => {ends++; return {rows: [], dropped: 0};}});
+    const result = f.start(true);
+    if (refuse) f.world.hud.paused = true;
+    f.frame(20100);
+    await (refuse ? expect(result).rejects.toThrow('world or controls changed')
+      : expect(result).resolves.toMatchObject({nativePressure: {rows: [], dropped: 0}}));
+    expect(begins).toBe(1); expect(ends).toBe(1);
+    expect(f.stops).toBe(1); expect(f.timers.size).toBe(0);
+  }
 });

@@ -31,6 +31,7 @@ import { PROGRAM_NAMES_SCRIPT } from './frame-floor-programs.mjs';
 import { TASK_CLOCK_SCRIPT } from './frame-floor-task-clock.mjs';
 import { startScriptProfile, startPrefixScriptProfile, startDriveWindowScriptProfile, STEADY_SCRIPT_WINDOW, STEADY_TIMELINE_WINDOW } from './frame-floor-script-profile.mjs';
 import { startWebKitTimeline, timelineLongFrames } from './frame-floor-webkit-timeline.mjs';
+import { NATIVE_PRESSURE_SCRIPT } from './frame-floor-native-pressure.mjs';
 import { WASM_CONSTRUCTORS_SCRIPT, SCRIPT_MEMORY_POOL } from './frame-floor-wasm-constructors.mjs';
 import { runWasmMemoryProbe } from './frame-floor-wasm-probe.mjs';
 import { gpuBisect, settleTrace } from './frame-floor-gpu-bisect.mjs';
@@ -93,6 +94,10 @@ const safariWindow = parseSafariWindow(flag('safari-window', ''));
 if (safariProfileDir !== '' && (surface !== 'sim' || (gridScenario === 'baseline' && shards.includes('grid')) || !existsSync(safariProfileDir))) throw new Error('--safari-profile=<existing dir> samples Simulator standing and whole-drive windows (diagnostic, no timing credit)');
 const webkitTimelineDir = flag('webkit-timeline', '');
 const webkitSteadyPose = flag('webkit-steady', '');
+const webkitSteadyPoses = webkitSteadyPose === '' ? [] : webkitSteadyPose.split(',');
+const nativePressureDir = flag('native-pressure', '');
+if (nativePressureDir !== '' && !existsSync(nativePressureDir)) throw new Error('--native-pressure requires an existing directory');
+const NATIVE_PRESSURE = nativePressureDir === '' ? '' : NATIVE_PRESSURE_SCRIPT;
 if (webkitTimelineDir !== '' && (surface !== 'sim' || gridScenario === 'baseline' && !wasmMemoryProbe || !existsSync(webkitTimelineDir))) throw new Error('--webkit-timeline=<existing dir> captures Simulator grid drives only (diagnostic, no timing credit)');
 const wasmConstructorsDir = flag('wasm-constructors', '');
 if (wasmConstructorsDir !== '' && (surface !== 'sim' || gridScenario === 'baseline' && !wasmMemoryProbe || !existsSync(wasmConstructorsDir))) throw new Error('--wasm-constructors=<existing dir> observes native Simulator constructors (diagnostic, no timing credit)');
@@ -584,8 +589,8 @@ async function measureShard(driver, shard, deadline) {
           finally { steadyProfile = await stopSteady(); }
           rows.at(-1).steadyScriptProfile = await saveSafariProfile(`${safariSteadyPose}-steady20s`, steadyProfile, steadyWindow);
         }
-        if (webkitSteadyPose === `grid-${plan.name}`) {
-          if (!driver.timeline || rows.some(row => row.steadyTimeline)) throw new Error('Steady Timeline requires exactly one selected window');
+        if (webkitSteadyPoses.includes(`grid-${plan.name}`)) {
+          if (!driver.timeline || rows.some(row => row.pose.name === `grid-${plan.name}` && row.steadyTimeline)) throw new Error('Steady Timeline requires distinct selected windows');
           const stop = await driver.timeline.start();
           let window, steadyTimeline;
           try { window = await driver.evaluate(STEADY_TIMELINE_WINDOW, 35000); }
@@ -593,6 +598,11 @@ async function measureShard(driver, shard, deadline) {
           const longIntervals = window.intervals.filter(([, ms]) => ms > 40);
           const file = join(webkitTimelineDir, `${encodeURIComponent(plan.name)}-steady20s.json`);
           writeFileSync(file, JSON.stringify({ diagnostic: true, plan, window, timeline: steadyTimeline, frames: longIntervals }));
+          if (nativePressureDir !== '') {
+            writeFileSync(join(nativePressureDir, `${encodeURIComponent(plan.name)}.json`), JSON.stringify({ window, probe: window.nativePressure }));
+            if (!window.nativePressure || window.nativePressure.dropped !== 0 || window.nativePressure.observerErrors !== 0
+              || window.nativePressure.support.some(row => row.available && !row.wrapped)) throw new Error('Native pressure observer is missing or incomplete');
+          }
           if (window.dropped > 0) throw new Error('Steady Timeline frame intervals were truncated');
           rows.at(-1).steadyTimeline = { file, window, summary: timelineLongFrames(steadyTimeline, longIntervals) };
         }
@@ -614,7 +624,7 @@ async function measureShard(driver, shard, deadline) {
       const failures = publicGridWitnessFailures(meta.publicGridFinal, true);
       if (failures.length > 0) throw new Error(failures.join('; '));
     }
-    if (webkitSteadyPose !== '' && !rows.some(row => row.steadyTimeline)) throw new Error(`Selected steady Timeline pose was not reached: ${webkitSteadyPose}`);
+    if (webkitSteadyPoses.some(pose => !rows.some(row => row.pose.name === pose && row.steadyTimeline))) throw new Error(`Selected steady Timeline pose was not reached: ${webkitSteadyPose}`);
     if (safariSteadyPose !== '' && !rows.some(row => row.steadyScriptProfile)) throw new Error(`Selected steady profile pose was not reached: ${safariSteadyPose}`);
     if (safariDrive !== '' && !rows.some(row => row.pose.name === `grid-${safariDrive}-drive` && row.scriptProfile)) throw new Error(`Selected profile drive was not reached: ${safariDrive}`);
     if (safariPrefix !== '' && !rows.some(row => row.pose.name === `grid-${safariPrefix}-drive` && row.scriptProfile)) throw new Error(`Selected prefix drive was not reached: ${safariPrefix}`);
@@ -975,7 +985,7 @@ async function main() {
       const registry = readFileSync(join(process.env.HOME, '.dev-servers', new URL(base).port), 'utf8').trim().split(' ');
       const dist = join(registry[2], 'dist'), html = readFileSync(join(dist, 'index.html'), 'utf8');
       const helper = join(dist, 'frame-floor-safari.html');
-      writeFileSync(helper, html.replace('<head>', `<head><script>${WASM_CONSTRUCTORS}${fixture('phone')};window.__wildshardHarness=${HARNESS_PINS};${ERROR_SCRIPT}${CONSOLE_SCRIPT}${GL_TIME_SCRIPT}${TASK_CLOCK}${travelGl}</script>`));
+      writeFileSync(helper, html.replace('<head>', `<head><script>${NATIVE_PRESSURE}${WASM_CONSTRUCTORS}${fixture('phone')};window.__wildshardHarness=${HARNESS_PINS};${ERROR_SCRIPT}${CONSOLE_SCRIPT}${GL_TIME_SCRIPT}${TASK_CLOCK}${travelGl}</script>`));
     }
     for (const s of surface === 'both' ? ['desktop', 'sim'] : [surface]) {
       const out = join(scratch, `frame-floor-${s}-${sha.slice(0, 9)}.json`); temporary.push(out);
@@ -983,6 +993,7 @@ async function main() {
       if (nativeDirectory !== '') workerArgs.push(`--native-memory=${nativeDirectory}`);
       if (webkitTimelineDir !== '') workerArgs.push(`--webkit-timeline=${webkitTimelineDir}`);
       if (webkitSteadyPose !== '') workerArgs.push(`--webkit-steady=${webkitSteadyPose}`);
+      if (nativePressureDir !== '') workerArgs.push(`--native-pressure=${nativePressureDir}`);
       if (wasmConstructorsDir !== '') workerArgs.push(`--wasm-constructors=${wasmConstructorsDir}`);
       if (wasmMemoryProbe) workerArgs.push('--wasm-memory-probe');
       if (safariSteadyPose !== '') workerArgs.push(`--safari-steady=${safariSteadyPose}`);
@@ -1008,7 +1019,7 @@ async function main() {
     const complete = results.every((r) => r.rows.every((row) => row.complete));
     const pass = complete && elapsedSeconds < 600 && results.every((r) => r.rows.every((row) => row.pass));
     const record = grade({ schema: 2, sha, runId, device, when: new Date().toISOString(), elapsedSeconds, underTenMinutes: elapsedSeconds < 600,
-      frames, settleMs, standingPoses, shards, surface, developer, quiet: quietSample, ...(publicGrid ? {publicGrid:'public grid as it would ship once GRID_GATES_PASSED flips'} : {}), settings, deviceSaves, expectedSystems, gridScenario, gridRoutes, ...(gridCell === '' ? {} : { gridCell, gridCellPose }), build: devserverBuild ? 'devserver' : 'production', glObserver, travelGlCensus: travelGl !== '', glTime, frameTimeline, gpuBisect: gpuBisectOn, safariProfile: safariProfileDir !== '', ...(safariSteadyPose === '' ? {} : {safariSteady: {pose: safariSteadyPose, seconds: 20}}), ...(safariDrive === '' ? {} : {safariDrive: {route: safariDrive, ...(safariSteadyPose === '' ? {earlyPlaySeconds: 20} : {separateSteady: true})}}), ...(safariPrefix === '' ? {} : {safariPrefix: {route: safariPrefix, seconds: 20}}), ...(safariWindow === null ? {} : {safariWindow}), webkitTimeline: webkitTimelineDir !== '', ...(webkitSteadyPose === '' ? {} : {webkitSteady: {pose: webkitSteadyPose, seconds: 20}}), wasmConstructors: wasmConstructorsDir !== '', harnessRevision: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim(), complete, pass, desktopCap: 'Settings fps=auto: no game cap; display/vsync remains enabled',
+      frames, settleMs, standingPoses, shards, surface, developer, quiet: quietSample, ...(publicGrid ? {publicGrid:'public grid as it would ship once GRID_GATES_PASSED flips'} : {}), settings, deviceSaves, expectedSystems, gridScenario, gridRoutes, ...(gridCell === '' ? {} : { gridCell, gridCellPose }), build: devserverBuild ? 'devserver' : 'production', glObserver, travelGlCensus: travelGl !== '', glTime, frameTimeline, gpuBisect: gpuBisectOn, safariProfile: safariProfileDir !== '', ...(safariSteadyPose === '' ? {} : {safariSteady: {pose: safariSteadyPose, seconds: 20}}), ...(safariDrive === '' ? {} : {safariDrive: {route: safariDrive, ...(safariSteadyPose === '' ? {earlyPlaySeconds: 20} : {separateSteady: true})}}), ...(safariPrefix === '' ? {} : {safariPrefix: {route: safariPrefix, seconds: 20}}), ...(safariWindow === null ? {} : {safariWindow}), webkitTimeline: webkitTimelineDir !== '', ...(webkitSteadyPose === '' ? {} : {webkitSteady: {poses: webkitSteadyPoses, seconds: 20}}), wasmConstructors: wasmConstructorsDir !== '', nativePressure: nativePressureDir !== '', harnessRevision: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim(), complete, pass, desktopCap: 'Settings fps=auto: no game cap; display/vsync remains enabled',
       simulatorCap: `Shipped phone-tier 30 fps cap; Simulator Safari on ${device}`,
       measurement: 'Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.',
       limitations: [standingPoses.length === 0 ? 'Stationary spawn and two heaviest scanned standing parity cameras; this is a baseline, not proof of every gameplay moment.' : 'Stationary spawn and explicitly pinned authored standing cameras; this is a baseline, not proof of every gameplay moment.', 'Simulator readings measure Mac-backed Mobile Safari, not physical iPhone performance.', 'Safari helper HTML adds live harness pins; travel scenarios also install diagnostic WebGL allocation hooks before boot. Travel GL figures are API allocations, not native WebContent memory, and must not be added to the playing model as another claim.'], results });

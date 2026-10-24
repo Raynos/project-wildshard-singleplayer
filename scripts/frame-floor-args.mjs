@@ -2,7 +2,7 @@ const switches = new Set(['help', 'worker', 'quiet', 'devserver', 'gl-time', 'gp
 const values = new Set(['base', 'cpu-profile', 'deadline', 'developer', 'device', 'frames', 'gl-observer', 'gpu-trace',
   'grid-cell', 'grid-cell-pose', 'grid-routes', 'grid-scenario', 'regrade', 'rev', 'rising-islet', 'safari-profile', 'safari-steady', 'safari-drive', 'safari-prefix', 'safari-window',
   'settle', 'shards', 'surface', 'scratch-dir', 'worker-out', 'device-save', 'expect-system', 'setting', 'output-dir',
-  'textures', 'ktx2-probe', 'serve-shard', 'serve-base', 'standing-poses', 'native-memory', 'webkit-timeline', 'webkit-steady', 'wasm-constructors']);
+  'textures', 'ktx2-probe', 'serve-shard', 'serve-base', 'standing-poses', 'native-memory', 'webkit-timeline', 'webkit-steady', 'native-pressure', 'wasm-constructors']);
 
 /** Refuse misspelled or incomplete floor commands before a build, browser or Simulator lease is acquired.
  * @param {readonly string[]} args
@@ -27,13 +27,17 @@ export function validateFrameFloorArgs(args) {
     throw new Error('Blank memory probe requires no-quiet Simulator, native constructors and Timeline');
   const timelineSteady = args.filter(arg => arg.startsWith('--webkit-steady='));
   if (timelineSteady.length > 0 && (timelineSteady.length !== 1
-    || !/^--webkit-steady=grid-[a-zA-Z0-9_.-]{1,128}$/u.test(timelineSteady[0] ?? '')
+    || !/^--webkit-steady=grid-[a-zA-Z0-9_.-]{1,128}(?:,grid-[a-zA-Z0-9_.-]{1,128})?$/u.test(timelineSteady[0] ?? '')
+    || new Set((timelineSteady[0] ?? '').slice('--webkit-steady='.length).split(',')).size !== (timelineSteady[0] ?? '').split(',').length
     || !args.includes('--surface=sim') || !args.includes('--shards=grid')
     || !args.some(arg => arg.startsWith('--grid-scenario=') && arg !== '--grid-scenario=baseline')
     || !args.some(arg => arg.startsWith('--webkit-timeline=') && arg.length > '--webkit-timeline='.length)
     || args.some(arg => arg.startsWith('--safari-') || arg.startsWith('--wasm-constructors=') || arg.startsWith('--cpu-profile=') || arg.startsWith('--gpu-trace=') || arg.startsWith('--native-memory='))
     || ['--gl-time', '--gpu-bisect', '--frame-timeline', '--task-clock', '--wasm-memory-probe'].some(arg => args.includes(arg))))
-    throw new Error('Steady Timeline requires one Simulator grid pose and --webkit-timeline, without other recorders');
+    throw new Error('Steady Timeline requires one or two distinct Simulator grid poses and --webkit-timeline, without other recorders');
+  if (args.some(arg => arg.startsWith('--native-pressure=')) && (timelineSteady.length !== 1
+    || !args.some(arg => arg.startsWith('--native-pressure=') && arg.length > '--native-pressure='.length)))
+    throw new Error('Native pressure probe requires a selected settled Timeline and an output directory');
   const steady = args.filter(arg => arg.startsWith('--safari-steady='));
   const drive = args.filter(arg => arg.startsWith('--safari-drive='));
   const prefix = args.filter(arg => arg.startsWith('--safari-prefix='));

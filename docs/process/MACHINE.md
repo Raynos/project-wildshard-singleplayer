@@ -238,6 +238,18 @@ GC, snapshot or GL timers run. Every interval over 40 ms is attributed off-line;
 coverage/clock/drop refusals remain strict and it has no floor acceptance credit. The
 official Simulator worker may take `--quiet` for this selected settled window too;
 parent/desktop/scratch callers still cannot own quiet.
+
+A second distinct pose may share the visit, e.g.
+`--webkit-steady=grid-template-return,grid-nalati-interior`, retaining each
+20-second window separately. `--native-pressure=<existing dir>` optionally
+injects a bounded native-request probe before app modules: Wasm constructors,
+compile/instantiate/grow, buffers at least 1 MiB and bitmap/canvas factories.
+Per-API per-second counts and one sampled stack retain no arguments/results.
+Counters reset at each settled window and freeze before result serialization;
+pre-window totals remain a positive control. Unsupported/unwrapped APIs and
+counter drops/errors remain explicit. Calls are requests, not GC cause proof;
+asynchronous promise rejections are not synchronous failures.
+
 Add `--wasm-constructors=<existing scratch dir>`
 to retain bounded native Memory/Module/Instance durations and original frame-clock
 reads. It injects before app modules, collects stacks outside each native timed
