@@ -3,7 +3,7 @@
 **Order (G639):** (1) live reds → (2) NALATI TO ZERO → (3) grid / frame floor. Extras: loading, core memory, TOOLING-PERF,
 Night Market, tile streaming, no-binaries.
 
-**(1) LIVE fc9593f186 (15:04Z; ab381d04b9 14:04Z, ca07388a9c 13:12Z), each after full CI + all six exact smoke
+**(1) LIVE 34aa9d8137 (16:06Z; fc9593f186 15:04Z, ab381d04b9 14:04Z), each after full CI + all six exact smoke
 legs; ff45 pin removed (692f9bd22e), hourly newest-CI-green deploys running (sp-x7). Six smoke reds + boot race fixed on the way.
 
 **(2) NALATI 0: every shard at zero, C1-C9 closed, M3 100 %, M2 10/10 (ruler 27dd969127).** R27 done (168a974f29).
@@ -15,8 +15,8 @@ p95 16.8, max Pine 1,117 → 66.7, Nalati 167 → 50.1 ms (f7e74f576e).
 iOS Sim: road spike 448 → 67 ms (Wasm pool, DB1). Settled spikes were FULL GCs every 0.6 s because JSC's heap
 (incl. external memory) was large vs RAM (Mac WebKit forced to 3 GiB reproduced it). RETAINED memory was the lever: snapshot 601 -> 457 MiB on 6f0c0dbd15 (closed shard scopes 121 -> 0: observedIn, Pine
 residency, scope/audio/material keepers, raw+splat textures). Quiet Sim settled on f527: 36 FULL -> 1 full + 17 partial
-GCs, p95 48 -> 34. OFFICIAL quiet Sim floor (bar p95 <= 35, max <= 200, median 30): 9625ae97ec 13/15 PASS (b68f 12, 34aa 12/11),
-every median 30.3; misses: Template short travel 43, Nalati short travel 42 (sp-x1 diagnosing both).
+GCs, p95 48 -> 34. OFFICIAL quiet Sim floor (bar p95 <= 35, max <= 200, median 30): a3fe576d34 13/15 PASS (b68f 12, 34aa 12/11, 9625 13),
+every median 30.3; misses: Template short travel 36, Nalati short travel 38 (precompile fences; TB1 sp-x8).
 Desktop floor PASS: d6c530539b all 9 rows; interior-stop owner 4.0 ms on c2db00b25e (limit 4.17); frames 16.7 p95.
 
 **Memory:** WebKit Sim floors menu ~166, T1 ~310-330 MiB vs M1's 50/100 (FAIL). Same source drifts ~10 MiB between
