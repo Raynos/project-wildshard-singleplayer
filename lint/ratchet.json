@@ -951,7 +951,6 @@
   },
   "wildshard/sdk-no-facade": {
     "src/sdk/kit/bakedGeometry.ts": 7,
-    "src/sdk/looks/shaderFamily.ts": 14,
     "src/sdk/phasedBoss.ts": 9,
     "src/sdk/runtime/audio/combatCues.ts": 1,
     "src/sdk/runtime/audio/silentScore.ts": 1,

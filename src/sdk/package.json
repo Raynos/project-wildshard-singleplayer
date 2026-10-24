@@ -79,7 +79,6 @@
     "./runtime/audio/silentScore": "./runtime/audio/silentScore.ts",
     "./interactions": "./interactions.ts",
     "./questGraph": "./questGraph.ts",
-    "./looks/shaderFamily": "./looks/shaderFamily.ts",
     "./kit/geometryPack": "./kit/geometryPack.ts",
     "./looks/tileField": "./looks/tileField.ts",
     "./kit/bakedGeometry": "./kit/bakedGeometry.ts",
@@ -443,10 +442,6 @@
       "./questGraph": {
         "types": "./dist/types/sdk/questGraph.d.ts",
         "default": "./dist/questGraph.js"
-      },
-      "./looks/shaderFamily": {
-        "types": "./dist/types/sdk/looks/shaderFamily.d.ts",
-        "default": "./dist/looks/shaderFamily.js"
       },
       "./kit/geometryPack": {
         "types": "./dist/types/sdk/kit/geometryPack.d.ts",
