@@ -9,6 +9,7 @@ import type { InstancedMesh } from 'three';
 import { admitScriptV2 } from '@wildshard/format/scriptAdmissionV2';
 import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
 import { viewProgram, type ViewProgram, type ViewSlots, type ViewTell } from '@wildshard/engine/script/viewProgram';
+import { prepareViewMemory } from '@wildshard/engine/script/viewLane';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { speciesViewSlots } from '../population/speciesViewSlots';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -64,6 +65,13 @@ export function installViewProgram(ctx: ShardContext, row: Extract<ClientFeature
   if (world === undefined || world === null) throw new Error('View program requires its entered world');
   const bytes = Uint8Array.from(module);
   admitScriptV2(bytes, { lane: 'view', ioBytes: row.rows.budget.ioBytes });
+  const { system, slot } = row.rows;
+  if (slot !== undefined && (ctx.scope.disposed || ctx.scope.disposing || installedFrames.get(ctx.scope)?.has(slot) === true))
+    throw new Error(`View frame program cannot be lent: ${slot}`);
+  // Feature admission already yields between rows. Reserve a slot's fresh
+  // memory here instead of allocating several when its native owner binds.
+  const preparedMemory = slot !== undefined && !lentFrames.get(ctx.scope)?.has(slot)
+    ? prepareViewMemory(bytes, row.rows.budget.pages, ctx.scope) : undefined;
   // a pool group `species:<kind>` is every live actor of that kind (game/population/speciesViewSlots), one lender per group
   const species = new Map<string, ViewSlots>();
   const speciesPool = (group: string): ViewSlots | null => {
@@ -77,13 +85,13 @@ export function installViewProgram(ctx: ShardContext, row: Extract<ClientFeature
     return slots;
   };
   const build = (): ViewProgram | null => viewProgram(bytes, row.rows, { scope: ctx.scope, player: world.player, camera: world.game.camera,
+    ...(preparedMemory === undefined ? {} : { preparedMemory }),
     floor: piece => { const found = world.registry.get(piece); return found === undefined ? null : (x, z) => found.floor?.(x, z); },
     slots: group => lentSlots.get(ctx.scope)?.get(group) ?? speciesPool(group), values: source => lentValues.get(ctx.scope)?.get(source) ?? null, object: id => entryOwner(ctx.scope, 'object', id),
     cell: id => { const cell = lentCells.get(ctx.scope)?.get(id); if (cell === undefined) throw new Error(`View cell ${id} is not lent`); return cell; },
     tell: id => { const tell = lentTells.get(ctx.scope)?.get(id); if (tell === undefined) throw new Error(`View tell ${id} is not lent`); return tell; },
     array: id => { const read = lentArrays.get(ctx.scope)?.get(id); if (read === undefined) throw new Error(`View array ${id} is not lent`); return read; },
     draw: id => { const draw = lentDraws.get(ctx.scope)?.get(id); if (draw === undefined) throw new Error(`View draw ${id} is not lent`); return draw; }, look: (look, param, value) => { setLentParam(look, param, value); } });
-  const { system, slot } = row.rows;
   if (slot !== undefined) {
     lend(installedFrames, ctx.scope, slot, build, 'frame program');
     const lent = lentFrames.get(ctx.scope)?.get(slot); if (lent !== undefined) { lent.build = build; lent.program = build(); }

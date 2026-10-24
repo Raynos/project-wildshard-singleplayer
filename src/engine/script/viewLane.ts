@@ -10,6 +10,38 @@
  * under half the target. Nothing here is saved or reaches the sim.
  */
 import { readV2Module } from '@wildshard/format/scriptModuleV2';
+import { admitScriptV2 } from '@wildshard/format/scriptAdmissionV2';
+import type { Scope } from '../app/scope';
+
+/** A native, one-use reservation. Its memory stays private until the original
+ * view instance consumes it; an unconsumed reservation ends with its owner. */
+export interface PreparedViewMemory { readonly pages: number }
+interface ViewMemoryReservation { readonly scope: Scope; readonly bytes: Uint8Array; readonly memory: WebAssembly.Memory; forget: () => void }
+const preparedMemories = new WeakMap<PreparedViewMemory, ViewMemoryReservation>();
+
+/** Admit and allocate a fresh view memory before its slot's owner binds. This
+ * executes no guest and lends no targets. Each reservation belongs to this
+ * exact scope and module, never a pool shared by instances or owners. */
+export function prepareViewMemory(bytes: Uint8Array, pages: number, scope: Scope): PreparedViewMemory {
+  if (scope.disposed || scope.disposing) throw new Error('View memory owner has ended');
+  const source = Uint8Array.from(bytes), admitted = admitScriptV2(source, { lane: 'view' });
+  if (admitted.initialPages !== pages || admitted.maximumPages !== pages) throw new Error('View memory preparation pages differ');
+  const memory = scope.run(() => new WebAssembly.Memory({ initial: pages, maximum: pages }));
+  if (scope.disposed || scope.disposing) throw new Error('View memory owner has ended');
+  const token = Object.freeze({ pages });
+  const entry: ViewMemoryReservation = { scope, bytes: source, memory, forget: () => undefined };
+  preparedMemories.set(token, entry);
+  entry.forget = scope.capture('disposers', () => { preparedMemories.delete(token); });
+  return token;
+}
+
+function consumeViewMemory(token: PreparedViewMemory, bytes: Uint8Array, pages: number, scope: Scope): WebAssembly.Memory {
+  const entry = preparedMemories.get(token);
+  if (entry === undefined || entry.scope !== scope || scope.disposed || scope.disposing || token.pages !== pages
+    || entry.bytes.length !== bytes.length || !entry.bytes.every((value, index) => value === bytes[index])) throw new Error('View memory reservation differs or has ended');
+  preparedMemories.delete(token); entry.forget();
+  return entry.memory;
+}
 
 /** Region kinds and strides (SCRIPT-ABI v2 "Header and region directory"); every kind is present, unused ones empty. */
 const STRIDES = [64, 8, 8, 8, 96, 16, 80, 32, 56, 64, 80, 64, 8, 1, 32, 8, 80, 8, 48, 16, 64, 64, 4, 4] as const;
@@ -81,7 +113,8 @@ export class ViewLane {
   private readonly rows: ViewLaneRows;
   private readonly targets: ViewTargets;
 
-  constructor(bytes: Uint8Array, pages: number, rows: ViewLaneRows, targets: ViewTargets, seed: readonly [number, number] = [0, 0]) {
+  constructor(bytes: Uint8Array, pages: number, rows: ViewLaneRows, targets: ViewTargets, seed: readonly [number, number] = [0, 0],
+    prepared?: { readonly memory: PreparedViewMemory; readonly scope: Scope }) {
     this.rows = rows; this.targets = targets;
     // the v2 structural reader (memory the only import, fixed pages, no start / table / SIMD); H2's fuel and entry
     // admission joins it before any shipped module runs here
@@ -89,7 +122,8 @@ export class ViewLane {
     for (const name of ['ws_abi', 'ws_io', 'ws_init', 'ws_view']) if (read.exports.get(name)?.kind !== 0) throw new Error(`View module lacks ${name}`);
     if (read.pages !== pages || pages < 1 || pages > 4) throw new Error('View memory is its declared 1-4 fixed pages');
     const module = new WebAssembly.Module(Uint8Array.from(bytes));
-    this.memory = new WebAssembly.Memory({ initial: pages, maximum: pages });
+    this.memory = prepared === undefined ? new WebAssembly.Memory({ initial: pages, maximum: pages })
+      : consumeViewMemory(prepared.memory, bytes, pages, prepared.scope);
     this.instance = new WebAssembly.Instance(module, { env: { memory: this.memory } });
     if (this.call('ws_abi') !== 2) throw new Error('View module ABI major mismatch');
     this.io = this.call('ws_io');

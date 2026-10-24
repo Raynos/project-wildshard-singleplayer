@@ -2,6 +2,7 @@ import { expect, test, vi } from 'vitest';
 import { BoxGeometry, InstancedBufferAttribute, InstancedMesh, Matrix4, MeshBasicMaterial, PerspectiveCamera, Quaternion, Vector3 } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { viewProgram } from '../src/engine/script/viewProgram';
+import { prepareViewMemory } from '../src/engine/script/viewLane';
 import { ARENA_BURNT_PER_FRAME, ARENA_VIEW } from '../src/format/arenaView';
 import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
 import { nalatiTitanFireView } from '../src/shards/nalati-grasslands/generators/titanFireView';
@@ -19,7 +20,7 @@ const instanced = (copies: number): InstancedMesh => {
   const mesh = new InstancedMesh(geometry, new MeshBasicMaterial(), copies); mesh.count = 0; return mesh;
 };
 
-test('the fire module draws the original flames, rolls smoke, appends scorch and clears on a reset', async () => {
+test.each(['direct', 'prepared'] as const)('the fire module draws the original flames, rolls smoke, appends scorch and clears on a reset (%s memory)', async mode => {
   const rows = nalatiTitanFireView(), fire = ARENA_VIEW.fire, field = TITAN_FIRE_FIELD, cells = field.width * field.depth, look = fireView.cells;
   expect(fireView.flameCount).toBe(420); expect(Math.max(...fireView.smokeCount)).toBe(200);
   const module = await compileScriptV2(source, { lane: 'view', ioBytes: rows.budget.ioBytes, maximumPages: rows.budget.pages });
@@ -31,6 +32,7 @@ test('the fire module draws the original flames, rolls smoke, appends scorch and
   const arrays = new Map<string, ArrayLike<number>>([[fire.arrays.modes, modes], [fire.arrays.lifetimes, lifetimes], [fire.arrays.ground, ground], [fire.arrays.burnt, burnt]]);
   const scope = new Scope('titan-fire');
   const program = viewProgram(module, rows, { scope, player: { position: new Vector3(), velocity: new Vector3(), yaw: 0 }, camera: new PerspectiveCamera(),
+    ...(mode === 'prepared' ? { preparedMemory: prepareViewMemory(module, rows.budget.pages, scope) } : {}),
     values: id => id === fire.values ? name => values[name] ?? Number.NaN : null, floor: () => null, slots: () => null,
     object: () => { throw new Error('The fire lends no objects'); }, look: () => undefined,
     array: id => { const array = arrays.get(id); if (array === undefined) throw new Error(`No array ${id}`); return () => array; },

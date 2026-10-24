@@ -12,7 +12,7 @@ import { BufferAttribute, BufferGeometry, Color, InstancedMesh, InterleavedBuffe
   type Camera, type Object3D } from 'three';
 import { viewTellShape, type ViewProgramRows, type ViewTargetRef, type ViewTellShape } from '@wildshard/format/viewProgram';
 import type { Scope } from '../app/scope';
-import { ViewLane } from './viewLane';
+import { ViewLane, type PreparedViewMemory } from './viewLane';
 import { diagnosticNow } from '../core/clock';
 
 /** The actor bound to one slot: its identity (a new one starts uninterpolated), pose, life, the ground under it, its
@@ -36,6 +36,8 @@ export interface ViewSlots { refresh?: () => void; actor: (slot: number) => View
 /** What a program borrows from its owner. `floor` / `slots` are null for a piece / group the owner lacks. */
 export interface ViewProgramPorts {
   readonly scope: Scope;
+  /** An admitted slot may prepare its private memory before the native lender binds. */
+  readonly preparedMemory?: PreparedViewMemory;
   readonly player: { readonly position: Vector3; readonly velocity: Vector3; readonly yaw: number };
   readonly camera: Camera;
   /** a lent numeric snapshot by id: each named field read once a frame; null for one the owner lacks */
@@ -245,7 +247,7 @@ export function viewProgram(bytes: Uint8Array, rows: ViewProgramRows, ports: Vie
       if (live()) for (const index of dirty) { const matrix = staged[index]; if (matrix !== undefined) setters[index]?.(matrix); }
       dirty.clear();
     },
-  });
+  }, [0, 0], ports.preparedMemory === undefined ? undefined : { memory: ports.preparedMemory, scope });
   const camera = ports.camera, player = ports.player;
   let tick = 0;
   return { get frozen() { return lane.isFrozen; }, frame: (dt, time): boolean => {
