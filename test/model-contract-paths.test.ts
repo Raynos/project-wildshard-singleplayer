@@ -95,7 +95,6 @@ describe('model contract after client relocation', () => {
     ['src/game/boss/arenaFire.ts', 'new THREE.InstancedMesh();', 2],
     ['src/game/practice/course.ts', 'registry.add({ object });', 1],
     ['src/game/weapons/heldPolearm.ts', 'new THREE.InstancedMesh();', 1],
-    ['src/shards/nine-dragon-stack/world/casts.ts', 'new InstancedMesh();', 1],
     ['src/shards/driftwood-isle-legacy/creatures/Enemies.ts', 'new InstancedMesh();', 1],
     ['src/shards/nalati-grasslands-legacy/playground/HorsePlayground.ts', 'registry.add({ object });', 1],
     ['src/shards/nalati-grasslands-legacy/world/Bowl.ts', 'new InstancedMesh();', 2],
@@ -105,6 +104,11 @@ describe('model contract after client relocation', () => {
     expect(checkModels({ [file]: draw.repeat(ceiling) }).violations).toEqual([]);
     expect(checkModels({ [file]: draw.repeat(ceiling + 1) }).violations)
       .toEqual([expect.stringContaining(`${ceiling + 1} ×`)]);
+  });
+
+  it('refuses the removed primary Nine draw allowance', () => {
+    expect(checkModels({ 'src/shards/nine-dragon-stack/world/casts.ts': 'new InstancedMesh();' }).violations)
+      .toEqual([expect.stringContaining('1 × InstancedMesh')]);
   });
 
   it.each([

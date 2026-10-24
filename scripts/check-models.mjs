@@ -65,7 +65,7 @@ export const ON_CONTRACT = [
   'src/shards/nalati-grasslands-legacy/world/painted.ts',
   'src/shards/nalati-grasslands-legacy/world/places.ts',
   'src/shards/nalati-grasslands-legacy/world/Bowl.ts',
-  'src/shards/nalati-grasslands/world/view.ts', 'src/shards/nalati-grasslands-legacy/world/dressing/index.ts',
+  'src/shards/nalati-grasslands-legacy/world/dressing/index.ts',
   // e6b43b9aa retires the primary; its frozen copy keeps this contract.
   'src/shards/nalati-grasslands-legacy/cragRock.ts',
 ];
@@ -84,7 +84,6 @@ export const DONE = {
     'src/shards/driftwood-isle-legacy/world/Seabed.ts': { why: 'the reef weld: every coral / seaweed / starfish copy in one mesh (the models placed drawnInto it)', counts: { mergeGeometries: 1 } },
     'src/shards/driftwood-isle-legacy/world/Trailside.ts': { why: "the trail's weld: its ropes, rails and trestle stairs are world (piece `trailside`, their treads); its posts, signposts and steps are models drawnInto it", counts: { 'registry add with object': 1, mergeGeometries: 1 } },
     'src/shards/driftwood-isle-legacy/world/Wreck.ts': { why: "the wreck site's weld: the vessel and the cove's surroundings in one kit (the AO and the lanterns' light over all of it) and the reef rocks' smooth mesh — its models placed drawnInto them", counts: { mergeGeometries: 1 } },
-    'src/shards/driftwood-isle/world/build.ts': { why: 'the sea cave is welded into the crag (its floor cuts the physics terrain), the pools and the cascade are water: world (piece `cove`); its reef rocks are models drawnInto their baked smooth mesh', counts: { 'registry add with object': 1 } },
     'src/shards/driftwood-isle-legacy/world/Cove.ts': { why: 'the frozen sea cave retains its original world geometry weld and reef-rock merge; the primary Cove now admits baked geometry', counts: { 'registry add with object': 1, mergeGeometries: 2 } },
     'src/shards/driftwood-isle-legacy/world/GroundCover.ts': { why: 'Frozen ground cover retains the original scatter mesh; the primary composes the existing streamed-cover host from authored rows', counts: { InstancedMesh: 1 } },
     'src/shards/driftwood-isle-legacy/world/Gulls.ts': { why: 'the gulls are creatures (M5)', counts: { InstancedMesh: 1 } },
@@ -118,7 +117,6 @@ export const DONE = {
     // 7d0e103ec retires the primary; its frozen copy keeps this contract.
     'src/shards/nine-dragon-stack-legacy/world/install.ts': { why: 'the fragment\'s built fabric — the square, the towers, the Well, their kits — is one world piece (`nds-floors`) with its collision; its collider-only pieces are fabric too (the tower fronts, the crossings\' decks and rails, the Well\'s grapple guard). The balustrade over the Well and every gate\'s posts collide as their models (E346)', counts: { 'registry add with object': 1 } },
     'src/shards/nine-dragon-stack-legacy/world/facade/batch.ts': { why: 'the facade shell and its ~10 k window quads are the towers\' own fabric; its pieces are models', counts: { InstancedMesh: 1 } },
-    'src/shards/nine-dragon-stack/world/casts.ts': { why: 'The existing facade window draw restores prepared instance channels from the offline bake; original batch draw ceiling retained', counts: { InstancedMesh: 1 } },
     'src/shards/nine-dragon-stack-legacy/world/portals.ts': { why: 'G224: the portals are an effect, not a thing: five shader rings and swirl discs (instanced, animated on the GPU) with no collision, the ride is world/portalRide.ts', counts: { InstancedMesh: 2 } },
     // c1d8eb622 retires the primary; its frozen copy keeps this contract.
     'src/shards/nine-dragon-stack-legacy/world/hero/kitx.ts': { why: 'the kits\' curved-piece builder merges a region\'s geometry (world)', counts: { mergeGeometries: 1 } },
@@ -383,7 +381,7 @@ export function checkModels(files) {
       const want = inShardModels ? `${inShardModels[1]}/` : 'shared/';
       // Pine's unchanged deer specialization retains the defining shared model
       // identity and source; only its prepared species differs (a888b0ac1).
-      const sharedDeer = id === 'shared/deer' && ['src/shards/pine-hollow/roster.ts', 'src/shards/pine-hollow-legacy/models/creatures.ts'].includes(file)
+      const sharedDeer = id === 'shared/deer' && ['src/shards/pine-hollow-legacy/models/creatures.ts'].includes(file)
         && /defineModel(?:<[^(]*>)?\(\s*\{\s*id:\s*'shared\/deer',\s*file:\s*'src\/game\/models\/creatures.ts'/.test(code);
       if ((inShardModels || inShared) && !id.startsWith(want) && !sharedDeer) violations.push(`${file}: model id '${id}' must start with '${want}'`);
     }

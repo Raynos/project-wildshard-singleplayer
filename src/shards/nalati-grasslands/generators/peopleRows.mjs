@@ -28,6 +28,6 @@ export const peopleRows = {
       moving: motion.orbit !== undefined,
       atlas: { phone: atlas([id], true), desktop: atlas([id], false) } }];
   })),
-  pieces: { still: { id: 'nalati-camp-people', name: 'Camp people', category: 'people', file: 'src/shards/nalati-grasslands/models/people.ts', surface: 'flesh' },
-    moving: { id: 'nalati-camp-child', name: 'Camp child', category: 'people', file: 'src/shards/nalati-grasslands/models/people.ts', surface: 'flesh' } },
+  pieces: { still: { id: 'nalati-camp-people', name: 'Camp people', category: 'people', file: 'src/shards/nalati-grasslands/generators/peopleRows.mjs', surface: 'flesh' },
+    moving: { id: 'nalati-camp-child', name: 'Camp child', category: 'people', file: 'src/shards/nalati-grasslands/generators/peopleRows.mjs', surface: 'flesh' } },
 };
