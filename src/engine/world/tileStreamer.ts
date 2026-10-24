@@ -179,7 +179,11 @@ interface Slot<D> { tile: RingTile; readonly parent: string | null; state: State
 
 interface ReleaseRow<D> { slot: Slot<D> | undefined; distance: number }
 interface TileDistance { tile: RingTile; d: number }
-interface DesiredWork { readonly l0Rows: TileDistance[]; readonly l1Rows: TileDistance[]; readonly l0: TileDistance[]; readonly l1: TileDistance[] }
+interface DesiredWork {
+  readonly l0Rows: TileDistance[]; readonly l1Rows: TileDistance[]; readonly l0: TileDistance[]; readonly l1: TileDistance[];
+  readonly cellRows: { cell: LayoutCell; d: number }[]; readonly ranked: { cell: LayoutCell; d: number }[]; readonly fine: TileDistance[];
+  readonly want: Map<string, { tile: RingTile; distance: number }>; readonly wantRows: { tile: RingTile; distance: number }[];
+}
 function rankTile(rows: TileDistance[], index: number, tile: RingTile, distance: number): TileDistance {
   let row = rows[index];
   if (row === undefined) { row = { tile, d: distance }; rows.push(row); }
@@ -355,15 +359,23 @@ export class TileStreamer<D> {
     if (this.disposed) throw new Error('Render rings are disposed');
     if (![camera.x, camera.z, camera.vx, camera.vz, fullCentre.x, fullCentre.z].every(Number.isFinite)) throw new RangeError('Invalid ring camera');
     this.frame++;
-    const want = this.desired(camera, fullCentre);
-    // refresh eviction inputs; anything not wanted is cache
-    for (const [id, slot] of this.slots) { const d = want.get(id); slot.distance = d?.distance ?? this.distance(slot.tile, camera); slot.lease.update({ distance: slot.distance, needed: d !== undefined }); }
-    this.release(want, camera);
-    this.request(want);
-    this.drain();
-    this.release(want, camera); // this step's uploads may have pushed a level over its resident cap
-    this.remaskAll(camera);
-    this.resolveRequirements();
+    // Keep the desired map borrowed until every callback in this step has finished.
+    // Nested catalogue, lease and disposal calls receive another workspace.
+    const work = this.desiredWork.pop() ?? { l0Rows: [], l1Rows: [], l0: [], l1: [], cellRows: [], ranked: [], fine: [], want: new Map(), wantRows: [] };
+    try {
+      const want = this.planDesired(camera, fullCentre, work);
+      // refresh eviction inputs; anything not wanted is cache
+      for (const [id, slot] of this.slots) { const d = want.get(id); slot.distance = d?.distance ?? this.distance(slot.tile, camera); slot.lease.update({ distance: slot.distance, needed: d !== undefined }); }
+      this.release(want, camera);
+      this.request(want);
+      this.drain();
+      this.release(want, camera); // this step's uploads may have pushed a level over its resident cap
+      this.remaskAll(camera);
+      this.resolveRequirements();
+    } finally {
+      work.l0.length = 0; work.l1.length = 0; work.ranked.length = 0; work.fine.length = 0; work.want.clear();
+      if (!this.disposed) this.desiredWork.push(work);
+    }
   }
 
   /** Dispose every view and release every lease. */
@@ -412,21 +424,25 @@ export class TileStreamer<D> {
   }
 
   /** The wanted tiles with their distances, parents included. */
-  private desired(camera: RingCamera, fullCentre: { readonly x: number; readonly z: number }): Map<string, { tile: RingTile; distance: number }> {
-    const work = this.desiredWork.pop() ?? { l0Rows: [], l1Rows: [], l0: [], l1: [] };
-    try { return this.planDesired(camera, fullCentre, work); }
-    finally {
-      // Catalogue callbacks may nest or throw. Never lend an active workspace,
-      // retain its ordering arrays, or recycle it after disposal.
-      work.l0.length = 0; work.l1.length = 0;
-      if (!this.disposed) this.desiredWork.push(work);
-    }
-  }
   private planDesired(camera: RingCamera, fullCentre: { readonly x: number; readonly z: number }, work: DesiredWork): Map<string, { tile: RingTile; distance: number }> {
-    const want = new Map<string, { tile: RingTile; distance: number }>();
-    const add = (tile: RingTile, distance: number): void => { if (this.bytes(tile.instance, tile.level, tile.x, tile.z) !== null && !want.has(tile.key)) want.set(tile.key, { tile, distance }); };
+    const want = work.want; let wantedRows = 0;
+    const add = (tile: RingTile, distance: number): void => {
+      if (this.bytes(tile.instance, tile.level, tile.x, tile.z) === null || want.has(tile.key)) return;
+      let row = work.wantRows[wantedRows++];
+      if (row === undefined) { row = { tile, distance }; work.wantRows.push(row); }
+      else { row.tile = tile; row.distance = distance; }
+      want.set(tile.key, row);
+    };
     const cellDistance = (cell: LayoutCell): number => rectDistance(camera.x - cell.origin.x, camera.z - cell.origin.z, 'far', 0, 0, cell);
-    const ranked = this.cells.map((cell) => ({ cell, d: cellDistance(cell) })).sort((a, b) => a.d - b.d || a.cell.instance.localeCompare(b.cell.instance));
+    const ranked = work.ranked;
+    for (let i = 0; i < this.cells.length; i++) {
+      const cell = this.cells[i]; if (cell === undefined) throw new Error('Missing ring cell');
+      let row = work.cellRows[i];
+      if (row === undefined) { row = { cell, d: cellDistance(cell) }; work.cellRows.push(row); }
+      else { row.cell = cell; row.d = cellDistance(cell); }
+      ranked.push(row);
+    }
+    ranked.sort((a, b) => a.d - b.d || a.cell.instance.localeCompare(b.cell.instance));
     this.visibleCells = ranked.filter((r) => r.d <= this.options.viewDistance).map((r) => r.cell);
     // the far ring: nearest first while the proxies' own bytes fit its budget; a cell with no far proxy keeps the old
     // reach and slot count for its 16 L1 tiles (its coarse level), which the near L1 refinement shares
@@ -452,7 +468,8 @@ export class TileStreamer<D> {
     }
     const order = (a: { tile: RingTile; d: number }, b: { tile: RingTile; d: number }): number => a.d - b.d || a.tile.key.localeCompare(b.tile.key);
     l0.sort(order); l1.sort(order);
-    const fine = l0.slice(0, C.l0Count);
+    const fine = work.fine;
+    for (let i = 0; i < l0.length && i < C.l0Count; i++) { const row = l0[i]; if (row !== undefined) fine.push(row); }
     // lookahead along the heading, beyond the disc, until the L0 count cap
     const speed = Math.hypot(camera.vx, camera.vz), reach = speed * this.options.readinessSeconds;
     if (reach > 0) {
@@ -494,7 +511,7 @@ export class TileStreamer<D> {
         add(tile, this.distance(tile, camera));
       }
     }
-    for (const { tile, d } of l1.slice(0, C.l1Count)) add(tile, d);
+    for (let i = 0; i < l1.length && i < C.l1Count; i++) { const row = l1[i]; if (row !== undefined) add(row.tile, row.d); }
     // a wanted child always wants its parents (the cap never strands an L0 tile without its L1)
     for (const { tile, d } of fine) {
       const cell = this.cell(tile.instance), x = Math.floor(tile.x / 2), z = Math.floor(tile.z / 2);
