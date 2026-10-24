@@ -242,3 +242,38 @@ test('numeric read plans retain finite and bounded checks around variable-width 
  const bad=bank.slice();bad[4]=1;expect(()=>codec.decode(bad,'first',roster)).toThrow('Nonzero unused');
  expect(Object.is(codec.decode(bank,'first',roster)['free'],-0)).toBe(true);
 });
+
+test('reused update staging clears shorter reference tails and never publishes a refused prefix', () => {
+  const codec = new GroupBankV2(fields), loans = [...roster, external], bank = codec.encode(record(), 'first', loans);
+  codec.update(bank, { held: ['body:15', 'body:0'], strength: 10, time: 4.5 }, 'first', loans);
+  codec.update(bank, { held: ['body:3'] }, 'first', loans);
+  expect(codec.decode(bank, 'first', loans)).toStrictEqual({ ...record(), held: ['body:3'], strength: 10, time: 4.5 });
+  const before = bank.slice();
+  expect(() => codec.update(bank, { strength: 20, phase: 'unknown' }, 'first', loans)).toThrow('enum');
+  expect(bank).toStrictEqual(before);
+  codec.update(bank, { phase: 'rest' }, 'first', loans);
+  expect(codec.decode(bank, 'first', loans)).toStrictEqual({ ...record(), held: ['body:3'], strength: 10, time: 4.5, phase: 'rest' });
+  codec.update(bank, { strength: -0, time: null, held: [] }, 'first', loans);
+  expect(codec.decode(bank, 'first', loans)).toStrictEqual({ ...record(), held: [], phase: 'rest' });
+});
+
+test('a descriptor trap reentering update borrows independent staging and preserves both original banks', () => {
+  const codec = new GroupBankV2(fields), loans = [...roster, external];
+  const outer = codec.encode(record(), 'first', loans), inner = outer.slice();
+  for (let visit = 0; visit < 3; visit++) {
+    let nested = 0;
+    const changes = new Proxy({ strength: 37 + visit, phase: 'rest' }, {
+      getOwnPropertyDescriptor(target, key) {
+        if (key === 'phase') {
+          nested++;
+          codec.update(inner, { held: ['body:1'], strength: 4 + visit }, 'first', loans);
+        }
+        return Reflect.getOwnPropertyDescriptor(target, key);
+      },
+    });
+    codec.update(outer, changes, 'first', loans);
+    expect(nested).toBe(1);
+    expect(codec.decode(outer, 'first', loans)).toStrictEqual({ ...record(), strength: 37 + visit, phase: 'rest' });
+    expect(codec.decode(inner, 'first', loans)).toStrictEqual({ ...record(), held: ['body:1'], strength: 4 + visit });
+  }
+});

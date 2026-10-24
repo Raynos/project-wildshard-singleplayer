@@ -53,6 +53,8 @@ function referenceWire(handle: number, row: GroupBankFieldV2, group: string,
 export class GroupBankV2 {
   private readonly fields: readonly GroupBankFieldV2[];
   readonly width: number;
+  /** Numeric-only staging is lent to one synchronous update, never a candidate. */
+  private updates: {offset:number;width:number;values:number[]}[] | undefined;
   private referenceLoan: {readonly group:string;
     readonly rows:readonly GroupBankReferenceV2[];readonly byHandle:ReadonlyMap<number,GroupBankReferenceV2>;readonly byWire:ReadonlyMap<string,GroupBankReferenceV2>} | undefined;
   private readonly offsets = new Map<string, {readonly row: GroupBankFieldV2; readonly offset: number;readonly plainNumber:boolean}>();
@@ -141,40 +143,53 @@ export class GroupBankV2 {
     if(bank.length!==this.width)throw new Error('Group bank width mismatch');
     const prototype:unknown=Object.getPrototypeOf(changes);
     if(prototype!==Object.prototype&&prototype!==null)throw new Error('Invalid group bank record');
-    const {byWire}=this.loan(roster,group),next:{offset:number;values:number[]}[]=[];
-    for(const key of Reflect.ownKeys(changes)){
-      const plan=typeof key==='string'?this.offsets.get(key):undefined,descriptor=Object.getOwnPropertyDescriptor(changes,key);
-      if(plan===undefined||descriptor===undefined||!Object.hasOwn(descriptor,'value'))throw new Error('Unexpected group bank field or accessor');
-      const value:unknown=descriptor.value,row=plan.row,values:number[]=[];
-      const reference=(wire:string):number=>{
-        const loan=byWire.get(wire);
-        if(loan===undefined||(row.kind!=='reference'&&row.kind!=='references')||row.own===true&&loan.group!==group)throw new Error('Unresolved group reference');
-        return loan.handle;
-      };
-      switch(row.kind){
-        case 'number':
-          if(typeof value!=='number'||!Number.isFinite(value)||row.integer===true&&!Number.isInteger(value)
-            ||row.min!==undefined&&value<row.min||row.max!==undefined&&value>row.max)throw new Error('Group field outside bound');
-          values.push(value);break;
-        case 'boolean':if(typeof value!=='boolean')throw new Error('Invalid boolean group field');values.push(Number(value));break;
-        case 'enum':{
-          const index=typeof value==='string'?row.values.indexOf(value):-1;
-          if(index<0)throw new Error('Unknown group enum');values.push(index);break;
+    const {byWire}=this.loan(roster,group),next=this.updates??[];
+    this.updates=undefined;
+    let used=0;
+    try {
+      for(const key of Reflect.ownKeys(changes)){
+        const plan=typeof key==='string'?this.offsets.get(key):undefined,descriptor=Object.getOwnPropertyDescriptor(changes,key);
+        if(plan===undefined||descriptor===undefined||!Object.hasOwn(descriptor,'value'))throw new Error('Unexpected group bank field or accessor');
+        const value:unknown=descriptor.value,row=plan.row;
+        const entry=next[used]??={offset:0,width:0,values:[]};used++;
+        entry.offset=plan.offset;
+        const values=entry.values;let width=0;
+        const reference=(wire:string):number=>{
+          const loan=byWire.get(wire);
+          if(loan===undefined||(row.kind!=='reference'&&row.kind!=='references')||row.own===true&&loan.group!==group)throw new Error('Unresolved group reference');
+          return loan.handle;
+        };
+        switch(row.kind){
+          case 'number':
+            if(typeof value!=='number'||!Number.isFinite(value)||row.integer===true&&!Number.isInteger(value)
+              ||row.min!==undefined&&value<row.min||row.max!==undefined&&value>row.max)throw new Error('Group field outside bound');
+            values[width++]=value;break;
+          case 'boolean':if(typeof value!=='boolean')throw new Error('Invalid boolean group field');values[width++]=Number(value);break;
+          case 'enum':{
+            const index=typeof value==='string'?row.values.indexOf(value):-1;
+            if(index<0)throw new Error('Unknown group enum');values[width++]=index;break;
+          }
+          case 'reference':if(value!==null&&typeof value!=='string')throw new Error('Invalid group reference');values[width++]=value===null?0:reference(value);break;
+          case 'nullable-number':
+            if(value!==null&&typeof value!=='number')throw new Error('Invalid nullable group field');values[width++]=value===null?0:1;values[width++]=value===null?0:finite(value);break;
+          case 'references':{
+            if(!Array.isArray(value)||value.length>row.capacity||new Set(value).size!==value.length)throw new Error('Invalid ordered group references');
+            values[width++]=value.length;
+            for(const wire of value){if(typeof wire!=='string')throw new Error('Invalid ordered group reference');values[width++]=reference(wire);}
+            while(width<=row.capacity)values[width++]=0;break;
+          }
+          default:throw new Error('Unknown group bank field');
         }
-        case 'reference':if(value!==null&&typeof value!=='string')throw new Error('Invalid group reference');values.push(value===null?0:reference(value));break;
-        case 'nullable-number':
-          if(value!==null&&typeof value!=='number')throw new Error('Invalid nullable group field');values.push(value===null?0:1,value===null?0:finite(value));break;
-        case 'references':{
-          if(!Array.isArray(value)||value.length>row.capacity||new Set(value).size!==value.length)throw new Error('Invalid ordered group references');
-          values.push(value.length);
-          for(const wire of value){if(typeof wire!=='string')throw new Error('Invalid ordered group reference');values.push(reference(wire));}
-          while(values.length<=row.capacity)values.push(0);break;
-        }
-        default:throw new Error('Unknown group bank field');
+        entry.width=width;
       }
-      next.push({offset:plan.offset,values});
-    }
-    for(const {offset,values}of next)for(const[index,value]of values.entries())if(!Object.is(bank[offset+index],value))bank[offset+index]=value;
+      for(let index=0;index<used;index++){
+        const entry=next[index];if(entry===undefined)throw new Error('Missing group bank update');
+        for(let word=0;word<entry.width;word++){
+          const value=entry.values[word];if(value===undefined)throw new Error('Missing group bank update value');
+          if(!Object.is(bank[entry.offset+word],value))bank[entry.offset+word]=value;
+        }
+      }
+    } finally { this.updates=next; }
   }
   private read(bank: ArrayLike<number>, group: string, roster: readonly GroupBankReferenceV2[],
     result?: Record<string,GroupBankValueV2>): void {
