@@ -223,7 +223,10 @@ export function installMemorySaver(renderer: Renderer): void {
     draw(camera, scene, geometry, material, object, group);
     const frame = renderCount(renderer); // SF59: the engine's render count, not three's (node draws bump three's)
     if (frame !== lastFrame) { lastFrame = frame; settle(frame); }
-    if (seenGeometry.has(geometry) || object instanceof THREE.BatchedMesh) return;
+    // A rig's geometry stays whole: the far and shadow herds copy every attribute of it when a batch grows, and reading
+    // a released array back from the GPU (restore) stalled a desktop Pine drive 1.4 s in one frame (gl.isBuffer
+    // waiting on the GPU, then getBufferSubData)
+    if (seenGeometry.has(geometry) || object instanceof THREE.BatchedMesh || object instanceof THREE.SkinnedMesh) return;
     seenGeometry.add(geometry);
     queue.push({ geometry, at: frame, versions: versions(geometry), label: object.name || geometry.name || object.type });
   };
