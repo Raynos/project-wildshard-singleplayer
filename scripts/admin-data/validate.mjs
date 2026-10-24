@@ -1,6 +1,5 @@
 import { readFileSync } from 'node:fs';
 import { readMemoryReport } from '../memory-report-data.mjs';
-import { readRuler } from './ruler.mjs';
 
 /** @typedef {{type?:string;const?:unknown;enum?:unknown[];minimum?:number;maximum?:number;exclusiveMinimum?:number;pattern?:string;properties?:Record<string,Schema>;required?:string[];additionalProperties?:boolean;items?:Schema;anyOf?:Schema[];oneOf?:Schema[]}} Schema */
 /** @type {Schema} */
@@ -79,8 +78,6 @@ export function readAdminBundle(value){
   if(bundle.loading.status==='unavailable'&&bundle.loading.missing.length === 0)throw new Error('Missing loading evidence requires a reason');
   const paths=new Set(bundle.media.map(row=>row.path));
   if(paths.size!==bundle.media.length)throw new Error('Duplicate media path');
-  if(!paths.has(bundle.progress.chart))throw new Error(`Unknown ruler chart ${bundle.progress.chart}`);
-  readRuler(bundle.progress.ruler);
   for(const report of bundle.playtests){
     if(report.builds.length === 0&&report.missing.length === 0)throw new Error('Playtest requires build provenance or a missing reason');
     const ranks=new Set(report.findings.map(row=>row.rank));

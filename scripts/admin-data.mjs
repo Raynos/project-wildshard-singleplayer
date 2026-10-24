@@ -6,8 +6,7 @@ import { dirname,join,resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { PLAN,PLAN_PARTS,collectAdminData,safeSourcePath,stableJson } from './admin-data/collect.mjs';
 
-// progress/shard-platform/ruler: the Plan card's committed ruler file and chart (scripts/admin-data/ruler.mjs, G458)
-const REPORTS=['progress/memory','progress/loading/sf67','art/playtest','progress/shard-platform/ruler',PLAN,...PLAN_PARTS];
+const REPORTS=['progress/memory','progress/loading/sf67','art/playtest',PLAN,...PLAN_PARTS];
 /** Never observe the shared index/working tree. A single resolved commit pins all subsequent blob reads.
  * @param {string} root @param {string} rev @returns {import('./admin-data/collect.mjs').CommittedTree} */
 export function committedAdminTree(root,rev){

@@ -2,13 +2,13 @@
 // A pure mapping: no file reads, no inference. The memory rulers stay as the reports wrote them (measured / estimated /
 // unattributed); the plan's percentages are State's own; loading stays unavailable until SF67 commits a report.
 import type {
-  AdminBundle, ItemizedReport, Media, Plan, Playtest as AdminPlaytest, Progress,
+  AdminBundle, ItemizedReport, Media, Plan, Playtest as AdminPlaytest,
 } from '../../scripts/admin-data/types.mjs';
 import type { MemoryReport } from '../../scripts/memory-report-data.mjs';
 import {
   BUNDLE_SCHEMA, type Bundle, type Confidence, type Decision, type LoadingData, type MemBlock, type MemReport,
   type MemSituation, type Milestone, type PlanData, type PlanRow, type Playtest, type PlaytestItem, type PlaytestMedia,
-  type ProgressData, type RowStatus,
+  type RowStatus,
 } from '../src/bundle.ts';
 
 const CAP_BYTES = 1_000_000_000;
@@ -203,50 +203,7 @@ function playtest(p: AdminPlaytest, media: Map<string, Media>, posters: Readonly
 
 // ── plan ─────────────────────────────────────────────────────────────────────────────────────────────────────────
 
-/** The native shards (no frozen legacy, so no custom %): the card's footnote. */
-const NATIVE_NAMES: Record<string, string> = { _template: 'Template', 'blender-template': 'Blender Template', 'ink-cel-valley': 'Ink-Cel', 'pastel-plain': 'Pastel' };
-
-/** The ruler's grid-ready check names, as STATE words them. */
-const GRID_CHECKS: Record<string, string> = {
-  bakedTiles: 'baked tiles', edgeProfile: 'edge profile', fourEntryways: 'four entryways', memory: 'memory', hudAccent: 'HUD accent', oneFrameLooks: 'look/travel',
-};
-
-const round1 = (x: number): number => Math.round(x * 10) / 10;
-
-/** The committed ruler file (G458) → the SHARD-PLATFORM card. Each shard's change is against the previous measured commit. */
-export function progress(p: Progress, media: Map<string, Media>): ProgressData {
-  const r = p.ruler;
-  const prev = [...r.history].reverse().find((h) => h.revision !== r.revision) ?? null;
-  return {
-    revision: r.revision.slice(0, 9),
-    committedAt: r.committedAt,
-    measuredAt: r.measuredAt,
-    basis: r.basis,
-    plan: { lower: round1(r.plan.lower * 100), upper: round1(r.plan.upper * 100) },
-    m3: { pct:r.m3.fraction===null?null:round1(r.m3.fraction * 100), cut: r.m3.cut, mustGo: r.m3.mustGo },
-    m2: r.m2,
-    frameFloor: r.frameFloor??{ready:0,fail:0,unknown:r.shards.length,total:r.shards.length},
-    wave: { id: r.wave.id, label: r.wave.label, pct: r.wave.pct, until: r.wave.until },
-    shards: r.shards.map((s) => {
-      const before = prev?.shards[s.slug];
-      return {
-        slug: s.slug, name: s.name, wave: s.wave, goal: s.goal, pct: s.pct, custom: s.custom, legacy: s.legacy,
-        delta:before===undefined||s.pct===null?null:round1(s.pct-before),
-        ...(s.measurementError===undefined?{}:{measurementError:s.measurementError}),
-        grid: s.grid,
-        frameFloor:s.frameFloor?.verdict??'unknown',
-        gridOpen: Object.entries(s.criteria).filter(([, v]) => v !== 'pass').map(([k, v]) => `${GRID_CHECKS[k] ?? k} ${v}`),
-      };
-    }),
-    native: r.native.map((slug) => NATIVE_NAMES[slug] ?? slug),
-    previous: prev ? { revision: prev.revision.slice(0, 9), at: prev.at } : null,
-    events: r.events,
-    chart: media.get(p.chart)?.url ?? null,
-    source: p.source.path,
-  };
-}
-
-function plan(p: Plan, prog: ProgressData): PlanData {
+function plan(p: Plan): PlanData {
   const rows = p.rows.map((r): PlanRow => {
     // Row | Lane | What | Done when | Size, or with one more column before Done when (the systems table)
     const [id = r.id, lane = '', what = ''] = r.cells;
@@ -263,7 +220,6 @@ function plan(p: Plan, prog: ProgressData): PlanData {
   const ids = decisions.map((d) => Number(/^G(\d+)$/.exec(d.id)?.[1])).filter((n) => Number.isSafeInteger(n));
   const decisionRange = ids.length === 0 ? 'decisions' : `G${Math.min(...ids)}–G${Math.max(...ids)}`;
   return {
-    progress: prog,
     slug: source.slice(source.lastIndexOf('/') + 1).replace(/\.md$/, ''),
     title: plain(p.title.replace(/^Plan:\s*/, '')),
     state,
@@ -316,6 +272,6 @@ export function toView(admin: AdminBundle, builtAt: string, posters: ReadonlySet
     memory: { capBytes: CAP_BYTES, reports },
     loading,
     playtests: admin.playtests.map((p) => playtest(p, media, posters)).sort((a, b) => b.id.localeCompare(a.id, 'en', { numeric: true })),
-    plans: plan(admin.plan, progress(admin.progress, media)),
+    plans: plan(admin.plan),
   };
 }

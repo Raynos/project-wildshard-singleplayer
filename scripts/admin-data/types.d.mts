@@ -1,4 +1,3 @@
-import type { Ruler } from './ruler.mjs';
 import type { MemoryReport } from '../memory-report-data.mjs';
 
 export interface Source { path:string; sha256:string; bytes:number }
@@ -40,11 +39,9 @@ export interface LoadingRun {
   longTasks:{startMs:number;durationMs:number;owner:string}[];
 }
 export interface LoadingReport {schema:'loading-benchmark/1';pin:string;device:string;runs:LoadingRun[];missing:string[]}
-/** The Plan card's data (G458): the committed ruler file and its custom-vs-hours chart (a media path). */
-export interface Progress { ruler:Ruler; chart:string; source:Source }
 export interface AdminBundle {
   schema:'wildshard-admin/1';revision:string;
   memory:MemoryEntry[];
   loading:{status:'available'|'unavailable';reports:{source:Source;data:LoadingReport}[];missing:string[]};
-  playtests:Playtest[]; plan:Plan; progress:Progress; media:Media[];
+  playtests:Playtest[]; plan:Plan; media:Media[];
 }

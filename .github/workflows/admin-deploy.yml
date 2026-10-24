@@ -42,7 +42,7 @@ jobs:
             'scripts/memory-report*.mjs' scripts/shard-net-lines.mjs \
             progress/memory progress/loading/sf67 art/playtest \
             docs/plans/SHARD-PLATFORM.md docs/plans/shard-platform/rows.md \
-            docs/plans/shard-platform/decisions.md progress/shard-platform/ruler \
+            docs/plans/shard-platform/decisions.md \
             package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.json \
             .github/workflows/admin-deploy.yml; then
             echo 'changed=false' >> "$GITHUB_OUTPUT"

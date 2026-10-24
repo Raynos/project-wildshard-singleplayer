@@ -1,6 +1,5 @@
 {
  "admin/test/data.test.ts": 0,
- "admin/test/ruler.test.ts": 0.025,
  "admin/test/update.test.ts": 0.014,
  "api-tests/crossroads-telemetry.test.ts": 0,
  "api-tests/errors.test.ts": 0.1,
@@ -1651,7 +1650,7 @@
  "test/room-map.test.ts": 0,
  "test/row-data.test.ts": 0.4,
  "test/ruler-legacy-basis.test.ts": 0.089,
- "test/ruler-product-failure.test.ts": 3.586,
+ "test/product-report-failure.test.ts": 3.586,
  "test/runtime-actor-identity.test.ts": 0,
  "test/runtime-boss-identity.test.ts": 0,
  "test/runtime-bound-movers.test.ts": 0.032,

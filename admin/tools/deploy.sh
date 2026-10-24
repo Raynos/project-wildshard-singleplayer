@@ -35,9 +35,6 @@ if git cat-file -e "$full:progress/loading/sf67" 2>/dev/null; then reports+=(pro
 for part in docs/plans/shard-platform/rows.md docs/plans/shard-platform/decisions.md; do
   if git cat-file -e "$full:$part" 2>/dev/null; then reports+=("$part"); fi
 done
-# the Plan card (G458): the committed ruler file and its chart (scripts/admin-data/ruler.mjs refreshes them); the build
-# runs no ruler, so the export needs only the pipeline (scripts), the workspace sources node_modules links to, and these
-reports+=(progress/shard-platform/ruler)
 code=(scripts src pnpm-lock.yaml pnpm-workspace.yaml)
 git archive "$full" admin tsconfig.json package.json "${code[@]}" "${reports[@]}" | tar -x -C "$work"
 node scripts/link-node-modules.mjs "$repo" "$work"

@@ -72,7 +72,7 @@ export function sourceInputs(root, files) { return sourceWalker(root)(files); }
 const EXTERNAL_JOBS = new Set([
   'test/build-mirror.test.ts', 'test/heavy-lane.test.ts',
   'test/push-loop.test.ts', 'test/catalog-build.test.ts',
-  'test/ruler-product-failure.test.ts',
+  'test/product-report-failure.test.ts',
 ]);
 
 /** @typedef {{id?: string, entry?: string, inputRoots?: string[], outputs: string[], catalogueDependencies?: string[]}} GenerationJob */

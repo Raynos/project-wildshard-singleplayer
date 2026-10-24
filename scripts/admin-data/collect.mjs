@@ -2,7 +2,6 @@ import { createHash } from 'node:crypto';
 import { posix } from 'node:path';
 import { readMemoryReport } from '../memory-report-data.mjs';
 import { parsePlan,parsePlaytest } from './markdown.mjs';
-import { RULER_CHART,RULER_PATH,readRuler } from './ruler.mjs';
 import { readAdminBundle,readLoadingReport,readItemizedReport } from './validate.mjs';
 
 const MAX_TEXT_BYTES=32_000_000;
@@ -89,14 +88,9 @@ export function collectAdminData(tree){
     for(const asset of paths)if(asset.startsWith(directory)&&isMedia(asset)){addMedia(asset);own.push(media.at(-1));}
     const raw=text(path);return parsePlaytest(raw.text,raw.source,own.filter(row=>row!==undefined));
   });
-  // Progress (G458): the committed ruler file (scripts/admin-data/ruler.mjs refreshes it from the ruler) and its chart.
-  if(!paths.includes(RULER_PATH))throw new Error(`Missing committed ruler: ${RULER_PATH} (node scripts/admin-data/ruler.mjs)`);
-  if(!paths.includes(RULER_CHART))throw new Error(`Missing committed ruler chart: ${RULER_CHART}`);
-  const rawRuler=text(RULER_PATH),ruler=readRuler(JSON.parse(rawRuler.text));
-  if(!media.some(row=>row.path===RULER_CHART))addMedia(RULER_CHART);
   const rawPlan=text(PLAN);
   // G375: the plan's rows and decisions live in its folder once moved there; read each part the tree has.
   const planParts=PLAN_PARTS.filter(path=>paths.includes(path)).map(path=>{const raw=text(path);return {markdown:raw.text,source:raw.source};});
-  const bundle=readAdminBundle({schema:'wildshard-admin/1',revision:tree.revision,memory,loading:{status:loadingReports.length > 0?'available':'unavailable',reports:loadingReports,missing:loadingReports.length > 0?[]:['No committed SF67 loading-benchmark/1 report at progress/loading/sf67/**/report.json']},playtests,plan:parsePlan(rawPlan.text,rawPlan.source,planParts),progress:{ruler,chart:RULER_CHART,source:rawRuler.source},media:media.sort((left,right)=>left.path<right.path?-1:left.path>right.path?1:0)});
+  const bundle=readAdminBundle({schema:'wildshard-admin/1',revision:tree.revision,memory,loading:{status:loadingReports.length > 0?'available':'unavailable',reports:loadingReports,missing:loadingReports.length > 0?[]:['No committed SF67 loading-benchmark/1 report at progress/loading/sf67/**/report.json']},playtests,plan:parsePlan(rawPlan.text,rawPlan.source,planParts),media:media.sort((left,right)=>left.path<right.path?-1:left.path>right.path?1:0)});
   return {bundle,files};
 }

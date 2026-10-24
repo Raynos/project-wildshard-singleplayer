@@ -150,48 +150,7 @@ export interface Milestone {
   lines: string[];
 }
 
-/** One legacy shard on the ruler card (G458): custom lines as a % of its frozen legacy, lower is better. */
-export interface RulerShardView {
-  slug: string;
-  name: string;
-  wave: string;
-  /** Goal %: 20, or 10 for Sky Reach and Signal Dunes. */
-  goal: number;
-  pct: number | null;
-  custom: number | null;
-  measurementError?: string;
-  legacy: number;
-  /** Points since the previous measured commit (negative = custom code cut), or null without one. */
-  delta: number | null;
-  grid: 'pass' | 'fail' | 'unknown';
-  frameFloor?: 'pass' | 'fail' | 'unknown';
-  /** The grid-ready checks not passing, as "memory unknown". */
-  gridOpen: string[];
-}
-
-/** The SHARD-PLATFORM card: outcome-only (G458), from the committed ruler file. No effort, hours or projections. */
-export interface ProgressData {
-  revision: string;
-  committedAt: string;
-  measuredAt: string;
-  /** "source" until P4 moves the ruler to out/<slug>/runtime. */
-  basis: string;
-  /** Whole plan = 60 % M3 + 40 % M2, in %; lower ≠ upper while M2 has unknown checks. */
-  plan: { lower: number; upper: number };
-  m3: { pct: number | null; cut: number | null; mustGo: number | null };
-  m2: { ready: number; fail: number; unknown: number; total: number };
-  frameFloor?: { ready: number; fail: number; unknown: number; total: number };
-  wave: { id: string; label: string; pct: number | null; until: string | null };
-  shards: RulerShardView[];
-  native: string[];
-  previous: { revision: string; at: string } | null;
-  events: { at: string; label: string }[];
-  chart: string | null;
-  source: string;
-}
-
 export interface PlanData {
-  progress: ProgressData;
   slug: string;
   title: string;
   state: string;

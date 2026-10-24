@@ -1,6 +1,5 @@
 import {expect,it} from 'vitest';
 import {M2_GRID_SHARDS,M2_GRID_PLOTS,M2_GRID_PLOT_CELLS,MILESTONE_SHARDS,m3Progress,planProgress} from '../scripts/shard-milestones.mjs';
-import {nextRuler,readRuler} from '../scripts/admin-data/ruler.mjs';
 
 function rows():Parameters<typeof planProgress>[0] {
  const result:Parameters<typeof planProgress>[0]={};
@@ -37,19 +36,6 @@ it('keeps missing native evidence unknown and retains the six legacy M3 denomina
  expect(progress.m3.shards).toBe(6);
 });
 
-it('preserves complete M2 and frame-floor coverage in the admin ruler JSON',()=>{
- const input=rows(),native=input['pastel-plain'];
- if(native===undefined)throw new Error('Missing native fixture');
- input['pastel-plain']={...native,gridReady:{...native.gridReady,frameFloor:{verdict:'fail',evidence:'Measured slow frame'}}};
- const raw={...input,_summary:{progress:planProgress(input),netLines:[]}};
- const ruler=readRuler(nextRuler(raw,null,{revision:'b'.repeat(40),committedAt:'2026-10-21T12:00:00Z',now:'2026-10-21T12:01:00Z'}));
- expect(ruler.m2).toMatchObject({ready:10,fail:0,unknown:0,total:10,shards:M2_GRID_SHARDS,plots:15,
-  plotReadiness:{ready:0,fail:0,unknown:15,total:15}});
- expect(ruler.frameFloor).toEqual({ready:9,fail:1,unknown:0,total:10});
- expect(ruler.shards).toHaveLength(6);
- expect(()=>readRuler({...ruler,m2:{...ruler.m2,total:25}})).toThrow('M2 coverage');
-});
-
 it('reports each plot placement separately and retains per-product criterion evidence',()=>{
  const input=rows();
  const plots:Record<string,NonNullable<Parameters<typeof planProgress>[1]>[string]>={};
@@ -59,9 +45,7 @@ it('reports each plot placement separately and retains per-product criterion evi
  const progress=planProgress(input,plots);
  expect(progress.m2.plotReadiness).toEqual({ready:13,fail:2,unknown:0,total:15});
  expect(progress.m2.ready).toBe(10);
- const ruler=nextRuler({...input,_summary:{progress,netLines:[]}},null,{revision:'d'.repeat(40),committedAt:'2026-10-21T12:00:00Z',now:'2026-10-21T12:01:00Z'});
- expect(ruler.m2).toMatchObject({plotReadiness:{ready:13,fail:2,unknown:0,total:15},
-  readiness:{'open-plot-night-market':{verdict:'fail',criteria:{memory:{evidence:'Latched measured source'}}}}});
+
 });
 
 it('G567 measures the recorded baseline toward zero with the original 98,854 lines',()=>{
@@ -76,21 +60,11 @@ it('G567 measures the recorded baseline toward zero with the original 98,854 lin
   const original=input[slug];if(original===undefined)throw new Error('Missing grid fixture');
   input[slug]={...original,gridReady:{verdict:'fail',criteria:{}}};
  }
- const progress=planProgress(input),retired={...progress,m3:{...progress.m3,mustGo:80000,fraction:1.1},plan:{lower:.84,upper:.84}};
- const ruler=nextRuler({...input,_summary:{progress:retired,netLines:[]}},null,
-  {revision:'e'.repeat(40),committedAt:'2026-10-21T12:00:00Z',now:'2026-10-21T12:01:00Z'});
+ const progress=planProgress(input);
  expect(progress.m3).toMatchObject({cut:89880,mustGo:98854});
  expect(Number(((progress.m3.fraction??0)*100).toFixed(1))).toBe(90.9);
  expect(Number(((progress.plan?.lower??0)*100).toFixed(1))).toBe(78.6);
- expect(ruler.m3).toMatchObject({cut:89880,mustGo:98854,fraction:progress.m3.fraction});
- expect(ruler.plan).toEqual(progress.plan);
- expect(ruler.shards.every(shard=>shard.goal===0)).toBe(true);expect(ruler.wave.goal).toBe(0);
- // A wave that met the retired 20% target must reopen until its custom count is zero.
- const previous=structuredClone(ruler);
- for(const wave of previous.waves)wave.endedAt='2026-10-20T12:00:00Z';
- const next=nextRuler({...input,_summary:{progress,netLines:[]}},previous,
-  {revision:'f'.repeat(40),committedAt:'2026-10-21T12:02:00Z',now:'2026-10-21T12:03:00Z'});
- expect(next.wave.id).toBe('W2');expect(next.waves.find(wave=>wave.id==='W2')?.endedAt).toBeNull();
+
 });
 
 it('G567 does not cap the M3 contribution to the plan',()=>{

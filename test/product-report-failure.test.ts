@@ -14,7 +14,7 @@ import { outputSectionPayloads } from '../src/format/outputIndex';
 import { structuralGridEvidence } from '../src/format/gridReadiness';
 import { MILESTONE_SHARDS } from '../scripts/shard-milestones.mjs';
 import { buildShardfiles } from '../scripts/build-shardfiles.mjs';
-import { readRuler } from '../scripts/admin-data/ruler.mjs';
+import type { outputReport } from '../scripts/shard-output-report.mjs';
 import { platformOutput } from './fixtures/platformOutputs';
 
 const owned: string[] = [];
@@ -54,13 +54,12 @@ function fixture(): string {
   return root;
 }
 
-it('writes every ruler row and exits zero after one fixture product fails', () => {
+it('reports every product and exits zero after one fixture product fails', () => {
   const root = fixture();
   const program = `
     import {cpSync,writeFileSync} from 'node:fs';
     import {basename,resolve} from 'node:path';
     import {outputReport} from './scripts/shard-output-report.mjs';
-    import {nextRuler,readRuler} from './scripts/admin-data/ruler.mjs';
     const emit=console.log;console.log=console.error;console.info=console.error;
     const root=${JSON.stringify(root)},calls=[];
     const report=await outputReport(root,{reportOnly:true,sourceProgress:true,buildProduct:async args=>{
@@ -68,36 +67,26 @@ it('writes every ruler row and exits zero after one fixture product fails', () =
       if(slug==='driftwood-isle')throw new Error('Deliberate fixture product failure');
       cpSync(resolve(root,'prepared',slug),destination,{recursive:true});
     }});
-    const raw={...report.rows,_summary:{metric:'source-progress',progress:report.progress,netLines:report.netLines,
-      measurementError:report.measurementError,productFailures:report.productFailures}};
-    const ruler=readRuler(nextRuler(raw,null,{revision:'b'.repeat(40),committedAt:'2026-10-20T12:00:00Z',now:'2026-10-20T12:01:00Z'}));
-    writeFileSync(resolve(root,'ruler.json'),JSON.stringify(ruler));
-    emit(JSON.stringify({ruler,calls}));
+    emit(JSON.stringify({...report,calls}));
   `;
   const result = spawnSync(process.execPath, ['--input-type=module', '--eval', program], {
     cwd: resolve('.'), encoding: 'utf8', timeout: 60_000, env: { ...process.env, WILDSHARD_SHARDFILE_CACHE: resolve(root, 'cache') },
   });
   expect(result.status, result.stderr).toBe(0);
-  const written = readRuler(JSON.parse(readFileSync(resolve(root, 'ruler.json'), 'utf8')));
-  expect(written.shards).toHaveLength(6);
-  expect(written.productFailures).toEqual({ 'driftwood-isle': 'Deliberate fixture product failure' });
-  expect(written.m3).toEqual({ cut: null, mustGo: null, fraction: null });
-  expect(written.plan.upper).toBeGreaterThan(written.plan.lower);
-  expect(written.history.at(-1)?.shards).toEqual({});
-  expect(written.wave.pct).toBe(null);
-  expect(written.waves.every(wave => wave.endedAt === null)).toBe(true);
-  expect(() => readRuler({ ...written, m3: { cut: 0, mustGo: 1, fraction: 0 } })).toThrow('cannot grant M3 credit');
-  for (const row of written.shards) {
-    expect(row.custom).toBe(null); expect(row.pct).toBe(null);
+  const report = JSON.parse(result.stdout) as Awaited<ReturnType<typeof outputReport>> & { calls:string[] };
+  expect(Object.keys(report.rows)).toHaveLength(6);
+  expect(report.productFailures).toEqual({ 'driftwood-isle': 'Deliberate fixture product failure' });
+  for (const [slug,row] of Object.entries(report.rows)) {
+    expect(row.m3).toBe(null);
     expect(row.measurementError).toContain('driftwood-isle: Deliberate fixture product failure');
-    if (row.slug === 'driftwood-isle') {
-      expect(row.grid).toBe('fail'); expect(row.criteria['productBuild']).toBe('fail');
-      expect(row.frameFloor?.evidence).toContain('Deliberate fixture product failure');
-    } else expect(row.criteria['fourEntryways']).toBe('pass');
+    if (slug === 'driftwood-isle') {
+      expect(row.gridReady.verdict).toBe('fail');
+      expect(row.gridReady.criteria['productBuild']?.verdict).toBe('fail');
+      expect(row.gridReady.frameFloor?.evidence).toContain('Deliberate fixture product failure');
+    } else expect(row.gridReady.criteria['fourEntryways']?.verdict).toBe('pass');
   }
   expect(existsSync(resolve(root, 'out/driftwood-isle/shard.json'))).toBe(false);
-  const receipt = JSON.parse(result.stdout) as { calls: string[]; shares: { shares: Record<string, number> } };
-  expect(receipt.calls.sort()).toEqual([...MILESTONE_SHARDS].sort());
+  expect(report.calls.sort()).toEqual([...MILESTONE_SHARDS].sort());
 });
 
 it('keeps ordinary, strict and catalogue builds hard on failure', async () => {
