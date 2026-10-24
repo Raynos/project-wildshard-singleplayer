@@ -25,7 +25,7 @@ import { HORIZON_RADIUS as CONTENT_HORIZON_RADIUS } from '@wildshard/format/cont
  *   photoreal strips are drawn at infinity by PaintedHorizon (below), not by this class. Always on — the user locked it in (E78); the `?matte=0` switch is gone (E136).
  */
 import * as THREE from 'three';
-import { ktx2Texture, readTexturePixels, prepareCompressedTexture } from '../core/ktx2';
+import { ktx2Texture, readTexturePixelsAsync, prepareCompressedTexture } from '../core/ktx2';
 import type { SkyRig as Sky } from './skyRig';
 import { fogUniforms } from './Atmosphere';
 import { activeLevel } from '../level/selection';
@@ -312,7 +312,7 @@ export class PaintedHorizon {
     try {
       const [day, night] = await Promise.all([loadTexture(src.day), loadTexture(src.night)]);
       this.u.tDay.value = day; this.u.tNight.value = night;
-      floorOf(day, this.u.uFloorDay.value); floorOf(night, this.u.uFloorNight.value);
+      await Promise.all([floorOf(day, this.u.uFloorDay.value), floorOf(night, this.u.uFloorNight.value)]);
       this.ready = true;
     } catch (e) {
       console.warn('[painted-horizon] paintings not loaded; the haze band stays', e);
@@ -334,11 +334,12 @@ export class PaintedHorizon {
   }
 }
 
-/** the mean linear colour of a painting's bottom 4 % (a 32 × 4 canvas read, once at load) */
-function floorOf(tex: THREE.Texture, out: THREE.Color): void {
+/** the mean linear colour of a painting's bottom 4 % (a 32 × 4 canvas read, once at load; a compressed painting's is a GPU
+ *  read that waits on a fence, not the main thread) */
+async function floorOf(tex: THREE.Texture, out: THREE.Color): Promise<void> {
   let px: Uint8Array | Uint8ClampedArray;
   if (tex instanceof THREE.CompressedTexture) { // E157: no pixels to draw — read the bottom 4 % back through the GPU
-    const all = readTexturePixels(tex, 32, 100);
+    const all = await readTexturePixelsAsync(tex, 32, 100);
     if (!all) return;
     px = all.subarray(96 * 32 * 4);
   } else {

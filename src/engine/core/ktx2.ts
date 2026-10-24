@@ -404,6 +404,25 @@ export function layerArrayMips(layers: readonly ({ readonly format: THREE.Compre
  */
 export function readTexturePixels(tex: THREE.Texture, w: number, h: number, renderer = gameRenderer): Uint8Array | null {
   if (renderer === null) return null;
+  const read = drawForRead(tex, w, h, renderer);
+  try { renderer.readRenderTargetPixels(read.rt, 0, 0, w, h, read.out); } finally { read.dispose(); }
+  return topRowsFirst(read.out, w, h);
+}
+
+/**
+ * `readTexturePixels` without the stall: the read waits on a GPU fence instead of the main thread. A synchronous read
+ * waits for every draw queued before it: on a software GPU (CI's SwiftShader) the painted horizon's floor read held the
+ * Explorer's Pine page for 7-9 s behind the frames still rasterizing.
+ */
+export async function readTexturePixelsAsync(tex: THREE.Texture, w: number, h: number, renderer = gameRenderer): Promise<Uint8Array | null> {
+  if (renderer === null) return null;
+  const read = drawForRead(tex, w, h, renderer);
+  try { await renderer.readRenderTargetPixelsAsync(read.rt, 0, 0, w, h, read.out); } finally { read.dispose(); }
+  return topRowsFirst(read.out, w, h);
+}
+
+/** `tex` drawn to a w×h sRGB target (the render target and its scene are disposed with `dispose`) */
+function drawForRead(tex: THREE.Texture, w: number, h: number, renderer: Renderer): { readonly rt: THREE.WebGLRenderTarget; readonly out: Uint8Array; readonly dispose: () => void } {
   const rt = new THREE.WebGLRenderTarget(w, h, { depthBuffer: false });
   rt.texture.colorSpace = THREE.SRGBColorSpace;
   const mat = new THREE.MeshBasicMaterial({ map: tex, depthTest: false, depthWrite: false });
@@ -413,15 +432,18 @@ export function readTexturePixels(tex: THREE.Texture, w: number, h: number, rend
   const cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
   const prev = renderer.getRenderTarget();
   const out = new Uint8Array(w * h * 4);
+  const dispose = (): void => { rt.dispose(); mat.dispose(); quad.geometry.dispose(); };
   try {
     renderer.setRenderTarget(rt);
     renderer.render(scene, cam);
-    renderer.readRenderTargetPixels(rt, 0, 0, w, h, out);
-  } finally {
+  } catch (error) { dispose(); throw error; } finally {
     renderer.setRenderTarget(prev);
-    rt.dispose(); mat.dispose(); quad.geometry.dispose();
   }
-  // GL rows run bottom-up; with flipY-false data a plane's top row (uv v = 1) is the image's top
+  return { rt, out, dispose };
+}
+
+/** GL rows run bottom-up; with flipY-false data a plane's top row (uv v = 1) is the image's top */
+function topRowsFirst(out: Uint8Array, w: number, h: number): Uint8Array {
   const rows = new Uint8Array(out.length), stride = w * 4;
   for (let y = 0; y < h; y++) rows.set(out.subarray((h - 1 - y) * stride, (h - y) * stride), y * stride);
   return rows;
