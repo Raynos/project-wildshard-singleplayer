@@ -24,7 +24,9 @@ import type { TickWorkerAdapter } from '../../../src/sdk/tickWorkerLoop';
 
 import headlessAssembly from '../../../src/shards/nine-dragon-stack/data/headlessAssembly.json' with { type: 'json' };
 import grappleProfile from '../../../src/shards/nine-dragon-stack/data/grappleProfile.json' with { type: 'json' };
-import portalPlan from '../../../src/shards/nine-dragon-stack/world/portalPlan.generated.json' with { type: 'json' };
+import { portalPlanRows } from '../../../src/shards/nine-dragon-stack/generators/portalEntries';
+
+const portalPlan = portalPlanRows();
 
 const { aim: GRAPPLE_AIM, lock: GRAPPLE_LOCK, step: GRAPPLE_STEP } = grappleProfile.headless;
 

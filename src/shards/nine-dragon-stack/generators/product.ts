@@ -18,12 +18,13 @@ import { parseLedgerRules } from '@wildshard/sdk/ledger';
 import navigation from '../data/navigation.generated.json' with { type: 'json' };
 import world from '../data/world.generated.json' with { type: 'json' };
 import portalStages from '../data/portalStages.json' with { type: 'json' };
-import portalEntries from '../data/portalEntries.generated.json' with { type: 'json' };
-import portalFloors from '../data/portalFloors.generated.json' with { type: 'json' };
+import { portalEntryRows } from './portalEntries';
+import { portalFloorRows } from './portalFloors';
 import lookGraphs from '../data/lookGraphs.json' with { type: 'json' };
 import presentationGraphs from '../data/scrollGraph.json' with { type: 'json' };
 
 const NINE_LEDGER = parseLedgerRules(ledgerRows);
+const portalEntries = portalEntryRows(), portalFloors = portalFloorRows();
 
 // The trusted runtime preserves today's fragment geometry; audio is selected by its declared section. G285: its two feats
 // are ledger rows (data/ledger.ts) the runtime emits as they are played (world/feats.ts); the platform grants each once.

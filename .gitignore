@@ -813,7 +813,6 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 /src/shards/nine-dragon-stack/boot/metadata.generated.json
 
 # Nine portal frames are baked from the authored portal nodes.
-/src/shards/nine-dragon-stack/world/portalPlan.generated.json
 
 # Shared saved-quest pages compile from author-only recipes.
 /src/shards/far-reach/data/questPage.generated.json

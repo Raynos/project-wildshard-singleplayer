@@ -3,17 +3,17 @@ import { createPortalRide } from '../src/game/shardfile/walkInPortalRide';
 import type { PortalLinkEntry } from '../src/format/portalLinkAssets';
 import aim from '../src/shards/nine-dragon-stack/data/grapple.json' with { type: 'json' };
 import course from '../src/shards/nine-dragon-stack/data/grappleCourse.json' with { type: 'json' };
-import plan from '../src/shards/nine-dragon-stack/world/portalPlan.generated.json' with { type: 'json' };
 import before from './fixtures/nine-traversal.json' with { type: 'json' };
 import { portalEntryRows, portalPlanRows } from '../src/shards/nine-dragon-stack/generators/portalEntries';
 import portals from '../src/shards/nine-dragon-stack/data/portals.json' with { type: 'json' };
 import portalStages from '../src/shards/nine-dragon-stack/data/portalStages.json' with { type: 'json' };
 import { bindPortalRide as walkInRide, type PortalRider } from '../src/game/shardfile/portalRideBinding';
 
+const plan = portalPlanRows();
+
 // Recorded from executable authoring rows at a242b48db before removing their modules.
 test('JSON retains every grapple hint, course coordinate and portal frame', () => {
   expect({ aim, course, plan: { decks: plan.decks, square: plan.square, route: plan.route } }).toEqual(before);
-  expect(portalPlanRows()).toEqual(plan);
 });
 
 const entries = portalEntryRows().flatMap(row => row.portal === undefined ? [] : [{ edge: row.edge, portal: row.portal }]);

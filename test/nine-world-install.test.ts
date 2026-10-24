@@ -4,19 +4,20 @@ import { readFileSync } from 'node:fs';
 import * as v from 'valibot';
 import { expect, test } from 'vitest';
 import baked from '../src/shards/nine-dragon-stack/data/physics.generated.json' with { type: 'json' };
-import rows from '../src/shards/nine-dragon-stack/world/install.generated.json' with { type: 'json' };
-import caps from '../src/shards/nine-dragon-stack/data/deckCaps.generated.json' with { type: 'json' };
-import stair from '../src/shards/nine-dragon-stack/world/stairPlan.generated.json' with { type: 'json' };
+import { nineWorldInstallRows } from '../src/shards/nine-dragon-stack/generators/physicsPlacements';
+import { deckCapRows } from '../src/shards/nine-dragon-stack/generators/portalFloors';
 import { fragmentFloor as authoredFloor } from '../src/shards/nine-dragon-stack/generators/fragmentFloor';
 import { LayoutRowsSchema, WorldRowsSchema } from '../src/shards/nine-dragon-stack/generators/sections';
 import { reviveLayout } from '../src/shards/nine-dragon-stack/generators/layoutProjection';
 import { floorAtRects } from '../src/engine/physics/box';
-import { stairFloor } from '../src/shards/nine-dragon-stack/generators/stairPlan';
+import { stairFloor, stairPlanData } from '../src/shards/nine-dragon-stack/generators/stairPlan';
 import { BoxGeometry, InstancedMesh, MeshBasicMaterial, type Object3D, PerspectiveCamera } from 'three';
 import { defineModel, modelContext } from '../src/engine/models/model';
 import { place } from '../src/engine/models/place';
 import { compileGraph } from '../src/engine/render/graph/compile';
 import lookGraphs from '../src/shards/nine-dragon-stack/data/lookGraphs.json' with { type: 'json' };
+
+const rows = nineWorldInstallRows(), caps = deckCapRows(), stair = stairPlanData();
 
 const worldRows=v.parse(v.object({rows:WorldRowsSchema}),JSON.parse(readFileSync('src/shards/nine-dragon-stack/data/worldRows.generated.json','utf8')));
 const fragmentFloor = (x: number, z: number): number | undefined => floorAtRects(worldRows.rows.floors, x, z, 'first');

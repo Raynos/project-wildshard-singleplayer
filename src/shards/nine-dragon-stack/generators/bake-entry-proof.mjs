@@ -7,12 +7,13 @@ import { Physics } from '@wildshard/engine/physics/Physics';
 import { addBakedPieces } from '@wildshard/game/plugin/simulation';
 import { proveEntryways } from '@wildshard/game/bake/entryways';
 import { emptyShardfile } from '@wildshard/sdk/author';
-import entries from '../data/portalEntries.generated.json' with { type: 'json' };
-import floors from '../data/portalFloors.generated.json' with { type: 'json' };
+import { portalEntryRows } from './portalEntries.ts';
+import { portalFloorRows } from './portalFloors.ts';
 import { headlessConstants } from './headless.ts';
 import { byteWriter, jsonBytes } from '../../../../scripts/bake-output.mjs';
 
 const base = emptyShardfile({slug:'nine-dragon-stack',name:'Nine Dragon Stack',author:'Wildshard',revision:1,seed:0x9d2a});
+const entries = portalEntryRows(), floors = portalFloorRows();
 const source = {...base,entryways:entries,props:{...base.props,colliders:floors}};
 const binary = new URL('rapier_wasm3d_bg.wasm', import.meta.resolve('@dimforge/rapier3d-simd'));
 const rapier = await loadRapier(readFileSync(binary));

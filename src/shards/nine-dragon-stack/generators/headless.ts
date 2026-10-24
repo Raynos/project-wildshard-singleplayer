@@ -4,12 +4,13 @@ import type { Material } from '@wildshard/engine/physics/surface';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { treadBoxes } from '@wildshard/engine/physics/pieces';
 import { bakedColliderDesc, bakedColliderSchemas } from './bakedColliders';
-import capRows from '../data/deckCaps.generated.json' with { type: 'json' };
+import { deckCapRows } from './portalFloors';
 import portals from '../data/portals.json' with { type: 'json' };
 import plan from '../data/layoutPlan.json' with { type: 'json' };
 import baked from '../data/physics.generated.json' with { type: 'json' };
 
 const finite = v.pipe(v.number(), v.finite());
+const capRows = deckCapRows();
 const SURFACES: readonly Material[] = ['wood', 'metal', 'flesh', 'felt', 'stone', 'rock', 'sand'];
 const Vec = v.strictObject({ x: finite, y: finite, z: finite });
 /** One baked collider, strictly (@wildshard/sdk/props/bakedColliders): every engine `ColliderDesc` kind the page registered, an unknown field refuses the bake. */
@@ -29,7 +30,7 @@ const PRACTICE = 'src/engine/practice/';
 const FLOORS = 'nds-floors';
 /**
  * The cell as the grid builds it: a standalone page closes each deck's open end with its balustrade cap (plugin.ts world stage
- * `data/deckCaps.generated.json`), the grid leaves the decks open to the road. The headless cell is the grid's,
+ * `generators/portalFloors.ts`), the grid leaves the decks open to the road. The headless cell is the grid's,
  * so exactly those boxes leave the baked floors piece; each must be found, or the bake no longer matches the recipe.
  */
 function withoutCaps(colliders: readonly ColliderDesc[]): ColliderDesc[] {
