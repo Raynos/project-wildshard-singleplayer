@@ -1,3 +1,4 @@
+import { declareModuleGroups } from '../boot/download';
 import { uiScope, mountUi } from '../ui/ownership';
 import { engineString } from '../strings';
 import { app } from '../app/runtime';
@@ -17,7 +18,7 @@ import type { EquipmentService } from '../combat/EquipmentService';
 import { practiceActor } from './targets';
 import type { WorldRegistry, ColliderDesc } from '../world/registry';
 import { DummyMotion, DummyPose } from './DummyMotion';
-import { DummyClips, loadDummyClips } from './DummyClips';
+import type { DummyClips } from './DummyClips';
 import { applyDummyStudio } from './DummyStudio';
 import { DUMMY_JOINTS, DUMMY_VARIANTS, type DummyVariant, type TrainingDummyModel } from './TrainingDummy';
 import { ARENA_LINEUP } from './lineup';
@@ -111,6 +112,7 @@ export class TrainingTarget implements TargetAnimal {
 
   private async installClips(model: TrainingDummyModel): Promise<void> {
     try {
+      const { DummyClips, loadDummyClips } = await import('./DummyClips');
       const clips = await loadDummyClips(this.variant);
       if (this.model === model) this.clips = new DummyClips(model.root, clips, this.variant);
     } catch (error: unknown) { console.warn('Training dummy motion unavailable', error); }
@@ -341,7 +343,10 @@ export class TrainingArena {
    * them ahead of the room (G187 / SF47: they are not resident while the player is out in the world).
    */
   preload(): Promise<void> {
-    this.loadPromise ??= this.prepareModels();
+    if (this.loadPromise === null) {
+      declareModuleGroups(['practice.models']);
+      this.loadPromise = this.prepareModels();
+    }
     return this.loadPromise;
   }
 

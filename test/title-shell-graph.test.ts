@@ -73,8 +73,12 @@ test('selected catalogue and status bindings leave quest presentation cold', () 
   expect(files.filter(file => /src\/game\/(?:plugin\/ui|quest\/chapter)\.ts$/u.test(file))).toEqual([]);
 });
 
-
 test('item catalogue metadata does not import native item or projectile owners', () => {
   const files = titleGraph(['src/game/loadout/itemCatalogue.ts']);
   expect(files.filter(file => /src\/(?:game\/plugin\/(?:nativeItems|simulation)|engine\/combat\/)|^three(?:\/|$)/u.test(file))).toEqual([]);
+});
+
+test('the synchronous practice room leaves async model and motion preparation cold', () => {
+  const files = titleGraph(['src/engine/practice/TrainingArena.ts']);
+  expect(files.filter(file => /src\/engine\/practice\/(?:TrainingDummyAssets|DummyClips)\.ts$/u.test(file))).toEqual([]);
 });

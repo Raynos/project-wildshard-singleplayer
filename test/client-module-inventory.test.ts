@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { afterEach, expect, test } from 'vitest';
-import { DownloadAccounting, installDownloadAccounting } from '../src/engine/boot/download';
-import { declareClientModules, declareProductClientModules } from '../src/game/shardfile/clientModules';
+import { DownloadAccounting, installDownloadAccounting, declareModuleGroups } from '../src/engine/boot/download';
+import { declareProductClientModules } from '../src/game/shardfile/clientModules';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 
@@ -17,9 +17,9 @@ test('selected plan graphs reserve exact module bytes before imports without cre
     sections:new Map([['client/plan',{version:1,features:[{kind:'world.scenes'}]}]]),files:new Map(),read:()=>Promise.reject(new Error('No read expected'))});
   const accounting = new DownloadAccounting('https://fixture.invalid/'), dispose = installDownloadAccounting(accounting);
   try {
-    declareProductClientModules(product); declareClientModules(['world.scenes']);
+    declareProductClientModules(product); declareModuleGroups(['world.scenes']);
     expect(accounting.snapshot()).toMatchObject({declaredBytes:10,declaredFiles:2,networkBytes:0,cachedBytes:0});
-    declareClientModules(['world.meadow']);
+    declareModuleGroups(['world.meadow']);
     expect(accounting.snapshot()).toMatchObject({declaredBytes:18,declaredFiles:3,networkBytes:0});
   } finally { dispose(); }
 });
@@ -27,8 +27,8 @@ test('an invalid suffix or missing selected group publishes no prefix', () => {
   bank({files:[['/assets/first.js',4]],groups:{good:[0],bad:[1]}});
   const accounting = new DownloadAccounting('https://fixture.invalid/'), dispose = installDownloadAccounting(accounting);
   try {
-    expect(() => declareClientModules(['good','bad'])).toThrow('Missing selected client module file');
-    expect(() => declareClientModules(['good','absent'])).toThrow('Missing selected client module group');
+    expect(() => declareModuleGroups(['good','bad'])).toThrow('Missing selected client module file');
+    expect(() => declareModuleGroups(['good','absent'])).toThrow('Missing selected client module group');
     expect(accounting.snapshot()).toMatchObject({declaredBytes:0,declaredFiles:0,networkBytes:0});
   } finally { dispose(); }
 });
@@ -40,9 +40,9 @@ test('overlapping selected graphs publish their bounded file union once', () => 
   bank({files,groups:{...Object.fromEntries(kinds.map(kind => [kind,indices])),bad:[files.length]}});
   const accounting = new DownloadAccounting('https://fixture.invalid/'), dispose = installDownloadAccounting(accounting);
   try {
-    expect(() => declareClientModules([...kinds,'bad'])).toThrow('Missing selected client module file');
+    expect(() => declareModuleGroups([...kinds,'bad'])).toThrow('Missing selected client module file');
     expect(accounting.snapshot()).toMatchObject({declaredFiles:0,declaredBytes:0,networkBytes:0,cachedBytes:0});
-    declareClientModules(kinds);
+    declareModuleGroups(kinds);
     expect(accounting.snapshot()).toMatchObject({declaredFiles:1024,declaredBytes:524800,networkBytes:0,cachedBytes:0});
   } finally { dispose(); }
 });

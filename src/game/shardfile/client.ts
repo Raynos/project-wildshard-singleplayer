@@ -1,7 +1,7 @@
 import type * as ScriptPresentation from '../plugin/ui';
 import type * as LootPresentation from '../loot/runtime';
 import type * as CompendiumPresentation from '../compendium/install';
-import { declareClientModules } from './clientModules';
+import { declareModuleGroups } from '@wildshard/engine/boot/download';
 import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import { timeClientPreparation } from './preparationTiming';
 import { admitClientPlan, installClientPhase, type AdmittedClientPlan, type ClientPhase } from './clientPlan';
@@ -201,7 +201,7 @@ export class ShardfileClient {
     this.mode = bindings.runtimeStagesOnly === true ? splatGroundFiles(data).size > 0 ? 'presentation' : 'empty' : bindings.trustedRuntime !== true ? 'full'
       : emptyHybridData(data, bindings.audioOwner, bindings.worldOwner) ? 'empty'
       : emptyHybridData(withoutPresentation(data), bindings.audioOwner, bindings.worldOwner) ? 'presentation' : 'full';
-    if (this.mode === 'full' && !hasDeclaredClientPage(source)) declareClientModules([
+    if (this.mode === 'full' && !hasDeclaredClientPage(source)) declareModuleGroups([
       ...(data.clientScripts.bindings.length > 0 || data.quests.quests.length > 0 ? ['presentation'] : []),
       ...(data.rows.loot.some(row => 'gear' in row) ? ['loot'] : []),
       ...(data.rows.compendiums.length > 0 ? ['compendium'] : []),

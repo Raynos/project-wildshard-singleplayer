@@ -176,6 +176,17 @@ export function bootModulesPlugin(): Plugin {
         if (dependency === null || dependency.external !== false) throw new Error('Missing optional client presentation');
         featureRoots[kind].push(dependency.id);
       }
+      // Practice keeps its synchronous room; only arena arrivals await these existing lazy model/clip loaders.
+      const practice: string[] = [];
+      for (const file of ['src/engine/practice/TrainingArena.ts', 'src/engine/models/trainingDummy.ts']) {
+        const importer = resolve(root, file);
+        for (const request of sourceImports(importer)) {
+          const dependency = await this.resolve(request, importer);
+          if (dependency === null || dependency.external !== false) throw new Error('Missing practice model module');
+          practice.push(dependency.id);
+        }
+      }
+      featureRoots['practice.models'] = practice;
       const products = bootProductTotals(root), extras: Record<string, readonly [string, number, number, string]> = {};
       for (const prefix of Object.keys(products)) {
         const directory = prefix.split('/')[2];

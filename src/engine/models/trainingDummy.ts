@@ -13,7 +13,6 @@
 import * as THREE from 'three';
 import { applyDummyStudio } from '../practice/DummyStudio';
 import { buildTrainingDummy, DUMMY_VARIANTS, TRAINING_DUMMY_HEIGHT, type DummyVariant, type TrainingDummyModel } from '../practice/TrainingDummy';
-import { loadTrainingDummy } from '../practice/TrainingDummyAssets';
 import { defineModel } from './model';
 
 export interface TrainingDummyParams { readonly variant: DummyVariant }
@@ -25,7 +24,7 @@ const ID = 'shared/training-dummy';
  * copy fell back, in the warning). The arena's copies and the Explorer's specimen are both built by this.
  */
 export async function dummyFigure(variant: DummyVariant, who: string): Promise<TrainingDummyModel> {
-  try { return await loadTrainingDummy(variant); }
+  try { const { loadTrainingDummy } = await import('../practice/TrainingDummyAssets'); return await loadTrainingDummy(variant); }
   catch (error) {
     console.warn(`[practice] ${who}: ${variant} mesh unavailable; using procedural fallback`, error);
     return buildTrainingDummy(variant);

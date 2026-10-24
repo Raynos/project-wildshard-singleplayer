@@ -1,4 +1,5 @@
 import { declareProductClientModules } from '../shardfile/clientModules';
+import { declareModuleGroups } from '@wildshard/engine/boot/download';
 import { imagesFirstPlayingBytes } from '../grid/runtimeCost';
 import { consumeTravelHandoff } from '../travel/travel';
 import { type StepRunner, createBootPlan } from '@wildshard/engine/boot/plan';
@@ -14,6 +15,7 @@ import { bootFetches, prefetch, prefetchAfter, whenPrefetched } from '@wildshard
 import { useShardSteps } from '@wildshard/engine/boot/steps';
 import { startViewmodelTextures } from '@wildshard/engine/combat/view/ranged';
 import { TIER } from '@wildshard/engine/core/tier';
+import { isDev } from '@wildshard/engine/core/devMode';
 import { beginLoading } from '@wildshard/engine/ui/Loading';
 import { gridPrefetchStatus } from '../grid/prefetch';
 import { currentPageMode } from '../grid/pageMode';
@@ -28,6 +30,7 @@ async function buildData(ctx: SessionContext) {
   if (boot.handoff !== null) session.arrival = { slug: boot.handoff.to, mode: boot.handoff.mode };
   setTexturePolicy(manifest.tiers?.[TIER]?.textures, manifest.slug, imagesFirstPlayingBytes(manifest.runtimeCost));
   declareProductClientModules(ctx.product);
+  if (isDev() && session.arrival?.mode === 'arena') declareModuleGroups(['practice.models']);
   const loading = beginLoading({ id: manifest.slug, name: manifest.name, trace: manifest.boot?.phone?.trace === true });
   loading.setPrefetchSource(gridPrefetchStatus);
   loading.endAdmission();

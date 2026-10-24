@@ -229,3 +229,27 @@ export function recordCachedDownload(key: string, bytes: number, url?: string): 
 /** Actual body reads reset the stall timer without mislabelling decoded bytes as network transport. */
 export function noteDownloadRead(bytes: number): void { accountingTargets(accounting => { accounting.noteRead(bytes); }); }
 
+/** Reserve only selected compiler-owned graphs before their original imports.
+ * This publishes byte facts into the existing ledger and fetches nothing. */
+export function declareModuleGroups(kinds: readonly string[]): void {
+  if (typeof document === 'undefined' || kinds.length === 0) return;
+  const text = document.getElementById('boot-module-files')?.textContent;
+  if (text === undefined) return; // Source and isolated fixtures have no compiler inventory.
+  const input: unknown = JSON.parse(text);
+  if (typeof input !== 'object' || input === null) throw new Error('Missing client module inventory');
+  const bank: unknown = Reflect.get(input, 'optional');
+  if (typeof bank !== 'object' || bank === null) throw new Error('Missing optional client module inventory');
+  const files = readModuleFiles(Reflect.get(bank, 'files')), groups: unknown = Reflect.get(bank, 'groups');
+  if (typeof groups !== 'object' || groups === null) throw new Error('Missing client module groups');
+  const selected = new Map<number, readonly [string, number]>();
+  for (const kind of new Set(kinds)) {
+    const rows: unknown = Reflect.get(groups, kind);
+    if (!Object.hasOwn(groups, kind) || !Array.isArray(rows) || rows.length > 4096) throw new Error('Missing selected client module group');
+    for (const index of rows) {
+      if (typeof index !== 'number' || !Number.isSafeInteger(index)) throw new Error('Invalid selected client module index');
+      const file = files[index]; if (file === undefined) throw new Error('Missing selected client module file');
+      selected.set(index, file);
+    }
+  }
+  declareModuleFiles([...selected.values()]);
+}

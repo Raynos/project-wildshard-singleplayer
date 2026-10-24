@@ -1048,6 +1048,15 @@ renderer-selected pass total and closes that count only after its final draw.
 Admission rows include file counts and actual body bytes read; they are separate
 from the network-only download counter.
 
+`declareModuleGroups(names)` in `@wildshard/engine/boot/download` declares
+selected optional code from the compiler's existing module bank before its
+original import. Groups share one bounded file table; the whole selection
+validates and deduplicates before publishing bytes, without fetching code or
+crediting completion. Client features and asynchronous practice preparation use
+the same reader. An arena arrival declares practice code before loading starts;
+a later room entry declares it before model preparation. The room and its
+procedural stand-ins stay synchronous.
+
 The loader flags ten seconds without reported work progress in amber, naming
 the open dependency. Body-read activity (`noteDownloadRead(bytes)` in
 `@wildshard/engine/boot/download`) resets that timer without crediting decoded or

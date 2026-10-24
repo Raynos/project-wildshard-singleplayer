@@ -50,6 +50,8 @@ test('the actual Vite plugin emits exact module body sizes into the existing doc
     mkdirSync(resolve(root, 'src/game/shardfile'), { recursive: true });
     mkdirSync(resolve(root, 'src/game/grid'), { recursive: true });
     mkdirSync(resolve(root, 'src/game/session'), { recursive: true });
+    mkdirSync(resolve(root, 'src/engine/practice'), { recursive: true });
+    mkdirSync(resolve(root, 'src/engine/models'), { recursive: true });
     writeFileSync(resolve(root, 'index.html'), '<html><head></head><body><script type="module" src="/src/entry.ts"></script></body></html>');
     writeFileSync(resolve(root, 'src/entry.ts'), `
       window.optionalClient = () => import('./game/shardfile/client');
@@ -58,7 +60,11 @@ test('the actual Vite plugin emits exact module body sizes into the existing doc
       async function startSelected() { return (await import('./first')).value; }
       void startSelected().then(value => { window.value = value; });
     `);
-    writeFileSync(resolve(root, 'src/first.ts'), 'import "./main.css"; export const value = "π";');
+    writeFileSync(resolve(root, 'src/first.ts'), 'import "./main.css"; import {practice} from "./engine/practice/TrainingArena"; window.practice = practice; export const value = "π";');
+    writeFileSync(resolve(root, 'src/engine/practice/TrainingArena.ts'), 'import {dummyFigure} from "../models/trainingDummy"; export const practice=()=>Promise.all([import("./DummyClips"),dummyFigure()]);');
+    writeFileSync(resolve(root, 'src/engine/practice/DummyClips.ts'), 'export const clips = 1;');
+    writeFileSync(resolve(root, 'src/engine/models/trainingDummy.ts'), 'export const dummyFigure=()=>import("../practice/TrainingDummyAssets");');
+    writeFileSync(resolve(root, 'src/engine/practice/TrainingDummyAssets.ts'), 'export const model = 1;');
     writeFileSync(resolve(root, 'src/main.css'), 'body { color: red; }');
     writeFileSync(resolve(root, 'src/title.ts'), 'export const title = "optional title";');
     writeFileSync(resolve(root, 'src/game/shardfile/client.ts'), 'import {CLIENT_FEATURES} from "./clientPlan"; export const client = CLIENT_FEATURES;');
@@ -93,6 +99,11 @@ test('the actual Vite plugin emits exact module body sizes into the existing doc
     if (!Array.isArray(indices)) throw new Error('Missing first group');
     expect(indices.map(index => { if (typeof index !== 'number') throw new Error('Invalid group index'); return files[index]; })).toEqual(expected(['/optional-first-']));
     expect(rows.common).not.toEqual(expect.arrayContaining(expected(['/optional-first-'])));
+    const practice: unknown = Reflect.get(groups, 'practice.models');
+    if (!Array.isArray(practice)) throw new Error('Missing practice group');
+    const practiceFiles = practice.map(index => { if (typeof index !== 'number') throw new Error('Invalid practice index'); const file = files[index]; if (file === undefined) throw new Error('Missing practice file'); return file; });
+    expect(practiceFiles.sort(([left], [right]) => left.localeCompare(right))).toEqual(expected(['/DummyClips-', '/TrainingDummyAssets-']));
+    expect(rows.common).not.toEqual(expect.arrayContaining(practiceFiles));
     expect(JSON.stringify(rows)).not.toContain('/title-');
     expect(readFileSync(resolve(root, 'index.html'), 'utf8')).not.toContain('boot-module-files');
   } finally { rmSync(root, { recursive: true, force: true }); }
