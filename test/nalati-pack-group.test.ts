@@ -2,6 +2,7 @@ import {readDecisionSources} from '../src/sdk/buildDecisionScripts';
 import { Vector3 } from 'three';
 import { expect, test,vi } from 'vitest';
 import {GroupBankV2} from '../src/engine/script/groupBankV2';
+import type {V2ColumnOwners} from '../src/engine/script/observationColumnsV2';
 import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
 import { v2CoreSource } from '../src/sdk/as/wsV2';
 import { groupStepSourceV2 } from '../src/sdk/as/groupStepV2';
@@ -28,11 +29,13 @@ const PACK_ROWS={...profile,outputs:128,pages:1,fuel:400000};
 void profileId;
 class ScriptedPack extends PackBrain<AnimalSim>{
  segments=0;captures=0;readonly banks=new Set<Float64Array>();
- readonly resultOwners=new Set<Readonly<Record<string,number>>>();checkResults=false;resultMismatches=0;resultReplies=0;unsharedFrames=0;
+ readonly resultOwners=new Set<Readonly<Record<string,number>>>();
+ readonly memberOwners=new Set<V2ColumnOwners>();readonly selfOwners=new Set<V2ColumnOwners['self']>();checkResults=false;resultMismatches=0;resultReplies=0;unsharedFrames=0;
  protected override captureGuest(replies:readonly GroupStepNativeResultV2[]){
   this.captures++;const frame=super.captureGuest(replies),first=frame.input.members[0];
   if(first===undefined)throw new Error('Missing pack member');
   for(const[slot,member]of frame.input.members.entries()){
+   this.memberOwners.add(member);this.selfOwners.add(member.self);
    if(member.results!==undefined)this.resultOwners.add(member.results);
    if(member.player!==first.player||member.environment!==first.environment||member.observed!==first.observed)this.unsharedFrames++;
    if(this.checkResults)this.resultReplies+=replies.filter(reply=>reply.value!==0).length;
@@ -215,6 +218,10 @@ test('a nested native decision reuses its own depth bank and preserves later rea
   expect(round(guest.awareness)).toBe(round(oracle.awareness));
   expect(b.contextRng.snapshot()).toEqual(a.contextRng.snapshot());expect(guest.banks.size).toBe(2);
   expect(guest.resultOwners.size).toBe(b.wolves.length*2);
+  expect(guest.memberOwners.size).toBe(b.wolves.length*2);expect(guest.selfOwners.size).toBe(b.wolves.length*2);
+  expect([...guest.memberOwners].every(member=>member.self.actor===null&&member.self.identity===''
+    &&member.context?.calm===true&&member.context.playerSpeed===0&&member.references?.size===0&&Object.keys(member.results??{}).length===0
+    &&member.player.position.x===0&&member.player.position.z===0&&member.observed.size===0)).toBe(true);
  }finally{scope.dispose();}
 });
 
@@ -332,7 +339,11 @@ test('periodic full-pack ticks encode once and skip every duplicate member tick 
    expect({segments:pack.segments,captures:pack.captures}).toEqual(actual);
   }
   expect(encode).toHaveBeenCalledTimes(1);expect(pack.banks.size).toBe(1);
-  expect(pack.resultOwners.size).toBe(16);expect(pack.resultMismatches).toBe(0);expect(pack.resultReplies).toBeGreaterThan(0);expect(pack.unsharedFrames).toBe(0);
+  expect(pack.resultOwners.size).toBe(16);expect(pack.memberOwners.size).toBe(16);expect(pack.selfOwners.size).toBe(16);
+  expect([...pack.memberOwners].every(member=>member.self.actor===null&&member.self.identity===''
+    &&member.context?.calm===true&&member.context.playerSpeed===0&&member.references?.size===0&&Object.keys(member.results??{}).length===0
+    &&member.player.position.x===0&&member.player.position.z===0&&member.observed.size===0)).toBe(true);
+  expect(pack.resultMismatches).toBe(0);expect(pack.resultReplies).toBeGreaterThan(0);expect(pack.unsharedFrames).toBe(0);
  }finally{encode.mockRestore();scope.dispose();}
 });
 
@@ -366,6 +377,7 @@ test('a refused pack scalar getter releases preparation depth before the next ca
   const context=f.context0(.1,new Vector3(150,0,40));
   expect(()=>guest.drive(actor,context)).toThrow('scalar refusal');
   expect(guest.snapshot()).toBe(before);expect(f.contextRng.snapshot()).toEqual(random);
+  expect([...guest.memberOwners].every(member=>member.self.actor===null&&member.context?.calm===true&&member.context.playerSpeed===0&&member.player.position.x===0&&member.observed.size===0)).toBe(true);
   guest.drive(actor,context);expect(guest.banks.size).toBe(1);
   expect(f.wolves.every(wolf=>Number.isFinite(wolf.desiredSpeed))).toBe(true);
  }finally{scope.dispose();}
