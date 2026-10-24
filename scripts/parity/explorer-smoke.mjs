@@ -59,7 +59,7 @@ export function explorerState() {
 }
 
 /** @param {import('playwright').Browser} browser @param {string} base @param {string} slug @param {string} out */
-async function sweep(browser,base,slug,out){
+export async function sweepExplorer(browser,base,slug,out){
   const context=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:2,isMobile:true,hasTouch:true,serviceWorkers:'block'});
   await saveFixture(context,{scope:'device',key:'devMode',data:true});
   await context.route(new URL('/api/telemetry',base).href,route=>route.fulfill({status:204}));
@@ -76,17 +76,23 @@ async function sweep(browser,base,slug,out){
     for(const [key,value]of Object.entries({chunk:slug,explore:'model',tier:'phone',touch:'1',mute:'1',nolock:'1',sw:'0'}))url.searchParams.set(key,value);
     await page.goto(url.href,{waitUntil:'domcontentloaded',timeout:30000});
     let empty=false,drawn=false;
+    /** @type {ReturnType<typeof explorerCards>} */ let cards=[];
     while(Date.now()<deadline){
       if(faults.length>0)throw new Error(faults.join('\n'));
       const state=await page.evaluate(explorerState),observedMs=Date.now()-started;
       for(const id of state.readyIds)if(!firstReady.has(id))firstReady.set(id,observedMs);
       if(state.fatal.length>0)throw new Error(`Explorer fatal: ${state.fatal.join('; ')}`);
       if(state.empty){empty=true;break;}
-      if(state.ready){drawn=true;break;}
+      if(state.ready){
+        // A model-ready event can invalidate a thumbnail between these page
+        // tasks. Keep waiting for its replacement inside the same deadline.
+        const snapshot=await page.evaluate(explorerCards);
+        if(snapshot.length>0 && snapshot.every(card=>card.ready && card.pixels>0)){cards=snapshot;drawn=true;break;}
+      }
       await new Promise(_resolve=>{setTimeout(_resolve,250);});
     }
     if(!empty && !drawn)throw new Error('Explorer catalogue/thumbnail deadline');
-    const cards=await page.evaluate(explorerCards),failures=explorerFailures(cards);
+    const failures=explorerFailures(cards);
     if(!empty && cards.length===0)failures.push('Explorer catalogue disappeared');
     if(faults.length>0)failures.push(...faults);
     const result={slug,elapsedMs:Date.now()-started,empty,cards,failures,firstReadyMs:Object.fromEntries(firstReady)};
@@ -112,7 +118,7 @@ async function main(){
   try{
     const catalogue=await discoverCatalogue(await pool.browser(0),base),cases=explorerCases(catalogue);
     writeFileSync(join(out,'cases.json'),`${JSON.stringify({catalogue,cases},null,2)}\n`);
-    await parallel(cases,2,async(slug,index,slot)=>sweep(await pool.browser(slot),base,slug,out),slot=>pool.release(slot));
+    await parallel(cases,2,async(slug,index,slot)=>sweepExplorer(await pool.browser(slot),base,slug,out),slot=>pool.release(slot));
   }finally{try{await pool.close();}finally{preview?.close();}}
 }
 if(process.argv[1]&&pathToFileURL(resolve(process.argv[1])).href===import.meta.url)await main();

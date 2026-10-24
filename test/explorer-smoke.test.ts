@@ -1,9 +1,10 @@
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
-import { explorerCards, explorerCases, explorerFailures, explorerState } from '../scripts/parity/explorer-smoke.mjs';
+import { explorerCards, explorerCases, explorerFailures, explorerState, sweepExplorer } from '../scripts/parity/explorer-smoke.mjs';
+import type { Browser, BrowserContext, Page } from 'playwright';
 import { legacyDouble } from './fake/FakeGame';
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify the actual required workflow leg, without dispatching it.
-import { readFileSync } from 'node:fs';
+import { readFileSync, mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 
 const catalogue = [
   {slug:'driftwood-isle',status:'live',legacy:false},
@@ -56,4 +57,35 @@ test('the observation reads the ordinary already-drawn card canvas, including an
     expect(explorerFailures(rows)).toHaveLength(2);
     expect(getter).toHaveBeenCalledExactlyOnceWith('2d');
   } finally { getter.mockRestore();document.body.replaceChildren(); }
+});
+
+test('a model-ready invalidation between presence and pixels waits for the replacement canvas', async () => {
+  mkdirSync('tmp/sp-x7-live', { recursive: true });
+  const out = mkdtempSync('tmp/sp-x7-live/explorer-redraw-');
+  const evaluate = vi.fn<Page['evaluate']>();
+  const state = { fatal: [], empty: false, ready: true, readyIds: ['shared/training-dummy'] };
+  const missing = { id: 'shared/training-dummy', ready: false, pixels: 0, darkShare: 1 };
+  const drawn = { ...missing, ready: true, pixels: 100, darkShare: .2 };
+  evaluate.mockResolvedValueOnce(state).mockResolvedValueOnce([missing])
+    .mockResolvedValueOnce(state).mockResolvedValueOnce([drawn]);
+  const page: Page = legacyDouble<Page>({ evaluate, on: () => page,
+    goto: vi.fn<Page['goto']>().mockResolvedValue(null),
+    close: vi.fn<Page['close']>().mockResolvedValue(),
+    screenshot: vi.fn<Page['screenshot']>().mockRejectedValue(new Error('Unexpected failure capture')) });
+  const close = vi.fn<BrowserContext['close']>().mockResolvedValue(undefined);
+  const disposable = { dispose: (): Promise<void> => Promise.resolve(), [Symbol.asyncDispose]: (): Promise<void> => Promise.resolve() };
+  const context = legacyDouble<BrowserContext>({
+    addInitScript: vi.fn<BrowserContext['addInitScript']>().mockResolvedValue(disposable),
+    route: vi.fn<BrowserContext['route']>().mockResolvedValue(disposable),
+    newPage: vi.fn<BrowserContext['newPage']>().mockResolvedValue({ ...page }),
+    close,
+  });
+  const browser = legacyDouble<Browser>({ newContext: vi.fn<Browser['newContext']>().mockResolvedValue({ ...context }) });
+  try {
+    await sweepExplorer(browser, 'https://test.example/', 'fixture', out);
+    const receipt: unknown = JSON.parse(readFileSync(`${out}/fixture.json`, 'utf8'));
+    expect(receipt).toMatchObject({ cards: [drawn], failures: [] });
+    expect(evaluate).toHaveBeenCalledTimes(4);
+    expect(close).toHaveBeenCalledOnce();
+  } finally { rmSync(out, { recursive: true, force: true }); }
 });
