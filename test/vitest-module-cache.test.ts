@@ -50,3 +50,39 @@ test('executes current source and hoisted mock',async()=>{
   expect(run('29','other')).toContain('1 passed');
  }finally{rmSync(root,{recursive:true,force:true});}
 },30000);
+
+test('warm typed glob transforms follow file deletion, addition and raw edits',()=>{
+ const root=mkdtempSync(resolve('tmp','vitest-glob-cache-')),cache=resolve(root,'cache'),config=resolve(root,'vitest.config.mjs');
+ const guard=resolve('scripts/vitest-module-cache.ts');
+ const run=(names:string,value:string)=>{
+  const child=spawnSync(process.execPath,[resolve('node_modules/vitest/vitest.mjs'),'run','sample.test.ts','--config',config],{
+   cwd:root,encoding:'utf8',timeout:20000,env:{...process.env,DEBUG:'vitest:cache:fs',EXPECT_NAMES:names,EXPECT_RAW:value,TMPDIR:resolve(root,'temp'),NODE_COMPILE_CACHE:resolve(root,'compile')},stdio:['ignore','pipe','pipe'],
+  });
+  expect(child.status,child.stdout+child.stderr).toBe(0);return child.stdout+child.stderr;
+ };
+ try{
+  mkdirSync(resolve(root,'temp'));mkdirSync(resolve(root,'parts'));
+  writeFileSync(config,`import {vitestModuleCache} from ${JSON.stringify(guard)};
+export default {root:${JSON.stringify(root)},plugins:[vitestModuleCache()],test:{include:['sample.test.ts'],setupFiles:[],maxWorkers:1,fsModuleCache:true,fsModuleCachePath:${JSON.stringify(cache)}}};`);
+  writeFileSync(resolve(root,'stable.ts'),'export const stable = 17;');
+  writeFileSync(resolve(root,'parts/first.ts'),'export const first = 1;');
+  writeFileSync(resolve(root,'parts/other.ts'),'export const other = 2;');
+  writeFileSync(resolve(root,'sample.test.ts'),`import {test,expect} from 'vitest';
+import {stable} from './stable';
+const files = import.meta.glob<string>('./parts/*.ts',{eager:true,query:'?raw',import:'default'});
+test('enumerates current raw sources',()=>{
+ expect(stable).toBe(17);
+ expect(Object.keys(files).sort().join(',')).toBe(process.env.EXPECT_NAMES);
+ expect(files['./parts/first.ts']).toBe(process.env.EXPECT_RAW);
+});`);
+  const initial='./parts/first.ts,./parts/other.ts';
+  expect(run(initial,'export const first = 1;')).toContain('1 passed');
+  expect(run(initial,'export const first = 1;')).toContain('[read]');
+  rmSync(resolve(root,'parts/other.ts'));
+  expect(run('./parts/first.ts','export const first = 1;')).toContain('1 passed');
+  writeFileSync(resolve(root,'parts/third.ts'),'export const third = 3;');
+  expect(run('./parts/first.ts,./parts/third.ts','export const first = 1;')).toContain('1 passed');
+  writeFileSync(resolve(root,'parts/first.ts'),'export const first = 9;');
+  expect(run('./parts/first.ts,./parts/third.ts','export const first = 9;')).toContain('1 passed');
+ }finally{rmSync(root,{recursive:true,force:true});}
+},30000);
