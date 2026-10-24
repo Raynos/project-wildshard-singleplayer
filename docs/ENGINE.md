@@ -452,9 +452,10 @@ through those after an `await` ends with the resident. Anything else that reads 
 `app.assets.acquire(key)` and is released, never disposed (`AssetService`, `AssetCensus`, `AssetRecord`).
 `retainCachedResources` marks engine caches that survive a level.
 Fixed builds may register with `{ retain: true, cache: true, reusable: true }`.
-Their live acquisitions prevent eviction; after the last release their original
-CPU/GPU claims remain charged and ordinary allocator pressure can evict them in
-least-recently-used order. Resident caches retain their existing retirement rule.
+Their live acquisitions prevent eviction. Runtime retirement evicts a cache after
+its last live scope user and acquisition release it; re-entry reconstructs storage
+through the invalidated memo. Other idle CPU/GPU claims stay charged and ordinary
+allocator pressure can evict them in least-recently-used order.
 Every reusable memo invalidates on resource disposal with `cacheUntilDisposed`
 or `memoUntilDisposed`; it never reuses retired buffers or adds a page pin.
 World-scene buffered draws reuse geometry by admitted content URL, tier and every

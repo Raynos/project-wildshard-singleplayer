@@ -72,7 +72,8 @@ export class AssetResidencyBridge implements AssetPort {
   }
   private evictUnused(consumer: CacheConsumer): void {
     for (const user of consumer.users) if (user.disposed) consumer.users.delete(user);
-    if (!consumer.reusable && consumer.retired && consumer.users.size === 0) consumer.evict?.();
+    // Reuse spans live residents, not retired visits. Active acquisitions still protect shared storage.
+    if (consumer.retired && consumer.users.size === 0 && (!consumer.reusable || !consumer.active)) consumer.evict?.();
   }
   private prepareEviction(identity: object): ResidencyEviction | null {
     // G639: asked once per eviction candidate (a burst of idle builds on an entry over target): check the set in place and

@@ -26,21 +26,82 @@ const geometry = () => new BufferGeometry().setAttribute('position', new Float32
 const reusable = { retain: true, cache: true, reusable: true };
 const charged = (allocator: ResidencyAllocator) => allocator.entries().filter(row => row.category === 'commons').reduce((sum, row) => sum + row.accountedBytes, 0);
 
-test('idle reusable geometry survives its resident and stays charged until real eviction', () => {
+test('retiring a resident evicts idle reusable geometry and re-entry rebuilds its memo', () => {
   const f = fixture(), resident = new Scope('first-resident'), resource = geometry(), dispose = vi.spyOn(resource, 'dispose');
+  const memo = new Map<string, BufferGeometry>();
+  const claim = f.allocator.reserve({ id: 'sim:first', owner: 'first', category: 'sim', bytes: 100, needed: true, distance: 0 });
+  if (claim === null) throw new Error('Missing fixture runtime');
+  f.bridge.cover(resident, claim);
+  withOwner(resident, () => {
+    memoUntilDisposed(memo, 'content-hash', () => f.assets.register('fixed', resource, reusable));
+    f.assets.acquire('fixed');
+  });
+  resident.onDispose(() => { f.assets.release('fixed'); });
+  expect(charged(f.allocator)).toBe(0);
+  resident.dispose(); claim.release();
+  expect(f.assets.has('fixed')).toBe(false);
+  expect(dispose).toHaveBeenCalledTimes(1);
+  expect(memo.size).toBe(0);
+  expect(charged(f.allocator)).toBe(0);
+  const next = new Scope('re-entry'), nextClaim = f.allocator.reserve({ id: 'sim:first', owner: 'first', category: 'sim', bytes: 100, needed: true, distance: 0 });
+  if (nextClaim === null) throw new Error('Missing re-entry runtime');
+  f.bridge.cover(next, nextClaim);
+  const replacement = withOwner(next, () => memoUntilDisposed(memo, 'content-hash', () => f.assets.register('fixed', geometry(), reusable)));
+  expect(replacement).not.toBe(resource);
+  expect(replacement.getAttribute('position').array).toEqual(resource.getAttribute('position').array);
+  expect(f.assets.acquire('fixed')).toBe(replacement);
+  next.onDispose(() => { f.assets.release('fixed'); });
+  expect(charged(f.allocator)).toBe(0);
+  next.dispose(); nextClaim.release();
+  expect(memo.size).toBe(0); expect(f.assets.retained()).toEqual([]);
+  f.close();
+  expect(charged(f.allocator)).toBe(0);
+});
+
+test('retirement preserves an acquired reusable asset until its final release', () => {
+  const f = fixture(), resident = new Scope('resident'), resource = geometry(), dispose = vi.spyOn(resource, 'dispose');
+  const claim = f.allocator.reserve({ id: 'sim:first', owner: 'first', category: 'sim', bytes: 100, needed: true, distance: 0 });
+  if (claim === null) throw new Error('Missing fixture runtime');
+  f.bridge.cover(resident, claim);
+  withOwner(resident, () => { f.assets.register('shared', resource, reusable); f.assets.acquire('shared'); });
+  resident.dispose(); claim.release();
+  expect(f.assets.has('shared')).toBe(true); expect(dispose).not.toHaveBeenCalled();
+  expect(charged(f.allocator)).toBe(24);
+  f.assets.release('shared');
+  expect(f.assets.has('shared')).toBe(false); expect(dispose).toHaveBeenCalledTimes(1);
+  expect(charged(f.allocator)).toBe(0); f.close();
+});
+
+test('another live resident protects a shared cache until both owners retire', () => {
+  const f = fixture(), first = new Scope('first'), second = new Scope('second'), resource = geometry(), dispose = vi.spyOn(resource, 'dispose');
+  const a = f.allocator.reserve({ id: 'sim:first', owner: 'first', category: 'sim', bytes: 100, needed: true, distance: 0 });
+  const b = f.allocator.reserve({ id: 'sim:second', owner: 'second', category: 'sim', bytes: 100, needed: true, distance: 0 });
+  if (a === null || b === null) throw new Error('Missing fixture runtimes');
+  f.bridge.cover(first, a); f.bridge.cover(second, b);
+  withOwner(first, () => { f.assets.register('shared', resource, reusable); f.assets.acquire('shared'); });
+  f.assets.acquire('shared'); f.assets.observeResidency(resource, second);
+  first.onDispose(() => { f.assets.release('shared'); });
+  second.onDispose(() => { f.assets.release('shared'); });
+  first.dispose(); a.release();
+  expect(f.assets.has('shared')).toBe(true); expect(dispose).not.toHaveBeenCalled();
+  expect(f.assets.acquire('shared')).toBe(resource); f.assets.release('shared');
+  second.dispose(); b.release();
+  expect(f.assets.has('shared')).toBe(false); expect(dispose).toHaveBeenCalledTimes(1);
+  expect(charged(f.allocator)).toBe(0); f.close();
+});
+
+test('a failed retirement eviction retains the cache and charges for a later retry', () => {
+  const f = fixture(), resident = new Scope('resident'), resource = geometry();
   const claim = f.allocator.reserve({ id: 'sim:first', owner: 'first', category: 'sim', bytes: 100, needed: true, distance: 0 });
   if (claim === null) throw new Error('Missing fixture runtime');
   f.bridge.cover(resident, claim);
   withOwner(resident, () => { f.assets.register('fixed', resource, reusable); f.assets.acquire('fixed'); });
   resident.onDispose(() => { f.assets.release('fixed'); });
-  expect(charged(f.allocator)).toBe(0);
-  resident.dispose(); claim.release();
-  expect(f.assets.has('fixed')).toBe(true);
-  expect(dispose).not.toHaveBeenCalled();
-  expect(charged(f.allocator)).toBe(24);
-  expect(f.assets.acquire('fixed')).toBe(resource);
-  f.assets.release('fixed'); f.close();
-  expect(dispose).toHaveBeenCalledTimes(1);
+  const dispose = vi.spyOn(resource, 'dispose').mockImplementationOnce(() => { throw new Error('Native retirement failed'); });
+  expect(() => resident.dispose()).toThrow('Native retirement failed'); claim.release();
+  expect(f.assets.has('fixed')).toBe(true); expect(charged(f.allocator)).toBe(24);
+  expect(f.assets.evictCached('fixed')).toBe(true); expect(dispose).toHaveBeenCalledTimes(2);
+  expect(f.assets.retained()).toEqual([]); f.close();
   expect(charged(f.allocator)).toBe(0);
 });
 

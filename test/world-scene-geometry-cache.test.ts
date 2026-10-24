@@ -32,12 +32,33 @@ function fixture(limit = 10000) {
       { identity: attribute, bytes: attribute.array.byteLength, kind: 'gpu' }];
   });
   const detach = assets.bindResidency(bridge);
-  return { assets, product, allocator, bytes, close: () => {
+  return { assets, product, allocator, bridge, bytes, close: () => {
     for (const row of assets.retained()) assets.evictCached(row.key);
     detach(); bridge.dispose();
   } };
 }
 const row = { file: 'fixed.glb' };
+
+test('runtime retirement evicts its idle template and re-entry decodes fresh equal geometry', async () => {
+  const f = fixture(), first = new Scope('first-runtime'), second = new Scope('second-runtime');
+  const a = f.allocator.reserve({ id: 'sim:first', owner: 'first', category: 'sim', bytes: 100, needed: true, distance: 0 });
+  if (a === null) throw new Error('Missing first runtime');
+  f.bridge.cover(first, a);
+  const held = await readWorldSceneGeometry(first, f.product, row, f.assets), original = held.copy();
+  held.done(); first.dispose(); a.release();
+  expect(f.assets.retained()).toEqual([]); expect(f.allocator.cost().input.commons).toBe(0);
+  const b = f.allocator.reserve({ id: 'sim:second', owner: 'second', category: 'sim', bytes: 100, needed: true, distance: 0 });
+  if (b === null) throw new Error('Missing second runtime');
+  f.bridge.cover(second, b);
+  const next = await readWorldSceneGeometry(second, f.product, row, f.assets), replacement = next.copy();
+  expect(f.product.file).toHaveBeenCalledTimes(2);
+  expect(replacement.getAttribute('position').array).toEqual(original.getAttribute('position').array);
+  expect(replacement.getAttribute('position').array.buffer).not.toBe(original.getAttribute('position').array.buffer);
+  expect(replacement.getAttribute('normal').array).toEqual(original.getAttribute('normal').array);
+  next.done(); second.dispose(); b.release();
+  expect(f.assets.retained()).toEqual([]); expect(f.allocator.cost().input.commons).toBe(0);
+  original.dispose(); replacement.dispose(); f.close();
+});
 
 test('re-entry skips decoding but every consumer gets a private deep copy and its own lease', async () => {
   const f = fixture(), first = new Scope('first'), second = new Scope('second');
