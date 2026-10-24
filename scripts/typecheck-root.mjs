@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// QW3: local no-change checks reuse one root cache; CI always checks cold.
+// T2/QW3: tests consume layer declarations; local no-change checks reuse a cache.
 import { spawnSync } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
 import { resolve } from 'node:path';

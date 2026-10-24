@@ -36,5 +36,10 @@ test('staged project membership keeps includes, excludes, type imports and refer
     }
     put(file, 'import type {Own} from "./own.js";import type {Valid} from "../format/valid";'); git('add', file);
     expect(stagedProjectFailures(root, [file])).toEqual([]);
+    put('tsconfig.app.json', '{"extends":"./tsconfig.json","include":["src/*.ts"],"references":[{"path":"./tsconfig.format.json"}]}');
+    put('src/entry.ts', 'import type {Fake} from "../test/fake";'); git('add', '.');
+    expect(stagedProjectFailures(root, ['src/entry.ts'])).toHaveLength(1);
+    put('src/entry.ts', 'import type {Valid} from "./format/valid";'); git('add', 'src/entry.ts');
+    expect(stagedProjectFailures(root, ['src/entry.ts'])).toEqual([]);
   } finally { rmSync(root, { recursive: true, force: true }); }
 });

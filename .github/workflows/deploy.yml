@@ -292,14 +292,14 @@ jobs:
           zstd -d --rm generated-inputs.tar.zst
           python3 scripts/ci-products.py unpack-generated
       - name: Typecheck
-        # Run all projects once, independently of fast and typed lint.
+        # Build source once; tests consume its declarations. Keep all tool/site checks.
         if: matrix.shard == 'types'
         # Same complete checks as pnpm typecheck; inputs came from this run's
         # verified generation job, so do not regenerate them in every shard.
         run: |
           python3 scripts/ci-fail-fast.py -- bash -e -c '
-            pnpm exec tsc --noEmit
             pnpm exec tsc -b tsconfig.layers.json
+            pnpm exec tsc --noEmit
             pnpm exec tsc --noEmit -p api
             pnpm exec tsc --noEmit -p scripts
             pnpm exec tsc --noEmit -p drafts

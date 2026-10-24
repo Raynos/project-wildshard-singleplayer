@@ -1,0 +1,20 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "noEmit": false,
+    "emitDeclarationOnly": true,
+    "declaration": true,
+    "outDir": ".tsc-layers/app",
+    "tsBuildInfoFile": ".tsc-layers/app.tsbuildinfo"
+  },
+  "references": [
+    { "path": "./tsconfig.format.json" },
+    { "path": "./tsconfig.engine.json" },
+    { "path": "./tsconfig.game.json" },
+    { "path": "./tsconfig.sdk.json" },
+    { "path": "./tsconfig.commons.json" },
+    { "path": "./tsconfig.shards.json" }
+  ],
+  "include": ["src/*.ts", "src/*.json", "src/engine/**/*.d.ts", "src/game/**/*.merge.d.ts"]
+}

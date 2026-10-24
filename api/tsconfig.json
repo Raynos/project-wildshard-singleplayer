@@ -6,5 +6,6 @@
     "types": ["node"],
     "lib": ["ES2023"]
   },
+  "references": [{ "path": "../tsconfig.format.json" }],
   "include": [".", "../api-tests"]
 }

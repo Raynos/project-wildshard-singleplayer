@@ -1,0 +1,119 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- Exercise real compiler projects in an owned fixture.
+import { spawnSync } from 'node:child_process';
+// oxlint-disable-next-line import/no-nodejs-modules -- Own only small temporary compiler inputs and outputs.
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Resolve compiler and fixture paths without shell commands.
+import { dirname, relative, resolve } from 'node:path';
+// oxlint-disable-next-line import/no-nodejs-modules -- Use the current Node executable for the compiler.
+import { execPath } from 'node:process';
+import ts from '@typescript/typescript6';
+import { expect, test } from 'vitest';
+
+function project(file: string): ts.ParsedCommandLine {
+  const parsed = ts.getParsedCommandLineOfConfigFile(resolve(file), {}, {
+    ...ts.sys, onUnRecoverableConfigFileDiagnostic: diagnostic => { throw new Error(ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n')); },
+  });
+  if (parsed === undefined) throw new Error(`Cannot read ${file}`);
+  expect(parsed.errors).toEqual([]);
+  return parsed;
+}
+
+test('every source file has a layer owner, while the root covers all tests and ambient declarations', () => {
+  const pending = [resolve('tsconfig.layers.json')], seen = new Set<string>(), sources = new Set<string>();
+  while (pending.length > 0) {
+    const file = pending.pop();
+    if (file === undefined || seen.has(file)) continue;
+    seen.add(file);
+    const parsed = project(file);
+    for (const source of parsed.fileNames) sources.add(source);
+    for (const reference of parsed.projectReferences ?? []) pending.push(ts.resolveProjectReferencePath(reference));
+  }
+  const root = project('tsconfig.json'), roots = new Set(root.fileNames);
+  const original = ts.parseJsonConfigFileContent({ include: ['src', 'test'], exclude: ['node_modules', 'src/sdk/dist'] }, ts.sys, resolve('.'));
+  expect(original.errors).toEqual([]);
+  const missing = original.fileNames.filter(file => !sources.has(file) && !roots.has(file));
+  expect(missing.map(file => relative('.', file))).toEqual([]);
+  expect(root.fileNames.filter(file => file.includes('/src/') && !/\.d\.(?:[cm]?ts|[^/]+\.ts)$/u.test(file))).toEqual([]);
+  expect(root.options.disableSourceOfProjectReferenceRedirect).toBe(true);
+  expect(new Set(root.projectReferences?.map(reference => ts.resolveProjectReferencePath(reference)))).toEqual(
+    new Set([...seen].filter(file => file !== resolve('tsconfig.layers.json'))),
+  );
+  for (const file of ['api/tsconfig.json', 'scripts/tsconfig.json']) {
+    const references = project(file).projectReferences ?? [];
+    expect(references.length).toBeGreaterThan(0);
+    for (const reference of references) expect(seen.has(ts.resolveProjectReferencePath(reference))).toBe(true);
+  }
+  expect(project('scripts/tsconfig.json').options.checkJs).toBe(true);
+  expect(project('scripts/tsconfig.json').options.strict).toBe(true);
+  expect(project('scripts/tsconfig.json').options.skipLibCheck).toBe(true);
+});
+
+test('tests consume emitted declarations; source and test errors each still refuse', () => {
+  mkdirSync('tmp', { recursive: true });
+  const root = mkdtempSync(resolve('tmp/typecheck-projects-'));
+  const put = (file: string, contents: string): void => {
+    mkdirSync(dirname(resolve(root, file)), { recursive: true });
+    writeFileSync(resolve(root, file), contents);
+  };
+  const compiler = resolve('node_modules/typescript/bin/tsc');
+  const run = (...args: string[]): ReturnType<typeof spawnSync> => spawnSync(execPath, [compiler, ...args], {
+    cwd: root, encoding: 'utf8', timeout: 10_000,
+  });
+  const source = 'export const value: number = 1;\n';
+  try {
+    put('tsconfig.source.json', JSON.stringify({ compilerOptions: { strict: true, composite: true, declaration: true,
+      module: 'ESNext', moduleResolution: 'bundler', allowArbitraryExtensions: true,
+      emitDeclarationOnly: true, outDir: 'out', types: [], skipLibCheck: true }, include: ['src'] }));
+    put('tsconfig.json', JSON.stringify({ compilerOptions: { strict: true, noEmit: true, types: [], skipLibCheck: true,
+      module: 'ESNext', moduleResolution: 'bundler', allowArbitraryExtensions: true,
+      disableSourceOfProjectReferenceRedirect: true }, references: [{ path: './tsconfig.source.json' }], include: ['test'] }));
+    put('src/value.ts', source);
+    put('src/payload.d.json.ts', 'declare const payload: {label: string}; export default payload;\n');
+    put('test/value.ts', 'import { value } from "../src/value"; import data from "../src/payload.json"; const result: number = value; const label: string = data.label; export { result, label };\n');
+    const missing = run('--noEmit');
+    expect(missing.status).not.toBe(0);
+    expect(String(missing.stdout) + String(missing.stderr)).toContain('TS6305');
+    const built = run('-b', 'tsconfig.source.json');
+    expect(built.status, String(built.stdout) + String(built.stderr)).toBe(0);
+    const checked = run('--listFilesOnly');
+    expect(checked.status, String(checked.stdout) + String(checked.stderr)).toBe(0);
+    const files = String(checked.stdout).replaceAll('\\', '/').split('\n');
+    expect(files).toContain(`${root}/out/src/value.d.ts`);
+    expect(files).not.toContain(`${root}/src/value.ts`);
+    put('tsconfig.scripts.json', JSON.stringify({ compilerOptions: { strict: true, noEmit: true,
+      checkJs: true, allowJs: true, skipLibCheck: true, types: [], module: 'ESNext', moduleResolution: 'bundler' },
+      references: [{ path: './tsconfig.source.json' }], include: ['scripts'] }));
+    put('scripts/check.js', 'import {value} from "../src/value";\n/** @type {number} */\nexport const result = String(value);\n');
+    const badScript = run('--noEmit', '-p', 'tsconfig.scripts.json');
+    expect(badScript.status).not.toBe(0);
+    expect(String(badScript.stdout) + String(badScript.stderr)).toContain('TS2322');
+    put('test/value.ts', 'import data from "../src/payload.json"; const result: number = data.label; export { result };\n');
+    const badTest = run('--noEmit');
+    expect(badTest.status).not.toBe(0);
+    expect(String(badTest.stdout) + String(badTest.stderr)).toContain('TS2322');
+    put('src/value.ts', source.replace('= 1', '= "bad"'));
+    const badSource = run('-b', 'tsconfig.source.json');
+    expect(badSource.status).not.toBe(0);
+    expect(String(badSource.stdout) + String(badSource.stderr)).toContain('TS2322');
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test('CI and local checks build source before tests and retain every tool/site project', () => {
+  const manifest: unknown = JSON.parse(readFileSync('package.json', 'utf8'));
+  if (typeof manifest !== 'object' || manifest === null) throw new Error('Missing package manifest');
+  const scripts: unknown = Reflect.get(manifest, 'scripts');
+  if (typeof scripts !== 'object' || scripts === null) throw new Error('Missing package scripts');
+  const local: unknown = Reflect.get(scripts, 'typecheck');
+  if (typeof local !== 'string') throw new Error('Missing typecheck command');
+  const workflow = readFileSync('.github/workflows/deploy.yml', 'utf8');
+  const start = workflow.indexOf('      - name: Typecheck\n', workflow.indexOf('typecheck-lint:'));
+  expect(start).toBeGreaterThan(0);
+  const ci = workflow.slice(start, workflow.indexOf('      - name: Fast lint\n', start));
+  for (const command of [local, ci]) {
+    const layers = command.indexOf('tsc -b tsconfig.layers.json');
+    const tests = command.includes('typecheck:root') ? command.indexOf('typecheck:root') : command.indexOf('tsc --noEmit');
+    expect(layers).toBeGreaterThanOrEqual(0);
+    expect(tests).toBeGreaterThan(layers);
+    for (const path of ['api', 'scripts', 'drafts', 'drafts/tools', 'admin', 'admin/tools']) expect(command).toContain(`tsc --noEmit -p ${path}`);
+  }
+});

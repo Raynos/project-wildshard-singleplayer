@@ -33,8 +33,20 @@
     "forceConsistentCasingInFileNames": true,
 
     "isolatedModules": true,
-    "verbatimModuleSyntax": true
+    "verbatimModuleSyntax": true,
+    "disableSourceOfProjectReferenceRedirect": true
   },
-  "include": ["src", "test"],
+  // Source is checked and emitted once by the referenced layer projects.
+  // Tests consume those declarations; scripts and sites keep their own checks.
+  "references": [
+    { "path": "./tsconfig.format.json" },
+    { "path": "./tsconfig.engine.json" },
+    { "path": "./tsconfig.game.json" },
+    { "path": "./tsconfig.sdk.json" },
+    { "path": "./tsconfig.commons.json" },
+    { "path": "./tsconfig.shards.json" },
+    { "path": "./tsconfig.app.json" }
+  ],
+  "include": ["test", "src/**/*.d.ts", "src/**/*.d.mts", "src/**/*.d.*.ts"],
   "exclude": ["node_modules", "src/sdk/dist"]
 }
