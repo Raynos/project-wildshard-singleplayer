@@ -12205,6 +12205,11 @@ stagesOwner, plus the existing optional CSS styles. The generated loader
 calls declaredClientPlanEntry in game/shard/declaredEntry; it imports no
 shard constructor and exposes no trusted-module resolver. Frozen legacy entry metadata, explicit trusted loaders and the shared
 prepareHybridShard composite keep their existing wire and lifecycle until LD.
+Only a frozen manifest with `legacy: true` awaits `installLegacyKitSpecies`.
+Its original deer/elk definitions and procedural bodies live in
+`game/systems/species/legacy`, held for LD in wave 3. Modern boots keep
+`installKitSpecies` and their admitted hull rows; importing either installer
+does not register a service.
 
 The compiled constructor admits the product's client/plan before entering
 the same standalone or regional world, world-bindings, kit, prepare-play
