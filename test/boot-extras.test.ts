@@ -41,6 +41,16 @@ test('a real emitted image and admitted source produce only the selected home ba
     writeFileSync(resolve(root, 'index.html'), '<html><head></head><body><script type="module" src="/src/entry.ts"></script></body></html>');
     writeFileSync(resolve(root, 'src/shards/home/manifest.json'), JSON.stringify({ card: { thumb: '/src/card.svg', portrait: 'data:,', landscape: 'data:,' }, boot: {} }));
     writeFileSync(resolve(root, 'public/assets/model.glb'), new Uint8Array(11));
+    mkdirSync(resolve(root, 'src/game/data'), { recursive: true });
+    writeFileSync(resolve(root, 'public/assets/pickup.bin'), new Uint8Array(17));
+    const geometry = { attrs: [], count: 0, index: null, indexCount: 0, box: false, expand: false };
+    writeFileSync(resolve(root, 'src/game/data/pickupCatalogue.json'), JSON.stringify({
+      file: 'pickups', seed: 1, coin: 'coin', looks: [], geometries: [
+        { key: 'coin', seed: 1, geometry, file: '/assets/pickup.bin' },
+        { key: 'shared', seed: 1, geometry, file: '/assets/pickup.bin' },
+        { key: 'inline', seed: 1, geometry, data: 'inline' },
+      ],
+    }));
     writeFileSync(resolve(root, 'public/assets/early.webp'), new Uint8Array(5));
     writeFileSync(resolve(root, 'public/assets/late.webp'), new Uint8Array(7));
     writeFileSync(resolve(root, 'public/assets/physics/rapier.wasm'), new Uint8Array(13));
@@ -67,7 +77,7 @@ test('a real emitted image and admitted source produce only the selected home ba
     const rows = homeExtraFiles(root, 'home', bundle, 0);
     const image = result.output.find(file => file.type === 'asset' && file.fileName.endsWith('.svg'));
     if (image?.type !== 'asset') throw new Error('Missing emitted image');
-    expect(rows).toEqual([[`/${image.fileName}`, typeof image.source === 'string' ? Buffer.byteLength(image.source) : image.source.byteLength], ['/assets/model.glb', 11], ['/assets/physics/rapier.wasm', 13], ['/assets/early.webp', 5], ['/assets/late.webp', 7]].sort(([left], [right]) => String(left).localeCompare(String(right))));
+    expect(rows).toEqual([[`/${image.fileName}`, typeof image.source === 'string' ? Buffer.byteLength(image.source) : image.source.byteLength], ['/assets/model.glb', 11], ['/assets/pickup.bin', 17], ['/assets/physics/rapier.wasm', 13], ['/assets/early.webp', 5], ['/assets/late.webp', 7]].sort(([left], [right]) => String(left).localeCompare(String(right))));
     const metadata = result.output.find(file => file.type === 'asset' && /^assets\/boot-home-[a-f0-9]{8}\.json$/u.test(file.fileName));
     if (metadata?.type !== 'asset' || typeof metadata.source !== 'string') throw new Error('Missing per-home metadata');
     expect(JSON.parse(metadata.source)).toEqual(rows);

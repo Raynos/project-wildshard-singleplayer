@@ -3,6 +3,7 @@ import { resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import * as v from 'valibot';
 import { readProductDownloadIndex } from './bootProducts';
+import { PickupCatalogueSchema } from '../src/format/specimenCatalogue';
 
 interface Asset { readonly type: string; readonly originalFileNames?: readonly string[]; readonly source?: string | Uint8Array }
 type Bundle = Readonly<Record<string, Asset | undefined>>;
@@ -61,6 +62,13 @@ export function homeExtraFiles(root: string, directory: string, bundle: Bundle, 
   const manifestPath = resolve(root, 'src/shards', directory, 'manifest.json');
   if (!existsSync(manifestPath)) return null;
   const manifest = object(JSON.parse(readFileSync(manifestPath, 'utf8'))), urls: string[] = [];
+  // Entry prepares these shared sources on every playable boot, before control.
+  // Inline legacy geometry has no separate body; shared file URLs count once.
+  const pickups = resolve(root, 'src/game/data/pickupCatalogue.json');
+  if (existsSync(pickups)) {
+    const rows = v.parse(PickupCatalogueSchema, JSON.parse(readFileSync(pickups, 'utf8')));
+    for (const row of rows.geometries) if ('file' in row) urls.push(row.file);
+  }
   for (const url of Object.values(object(field(manifest, 'card')))) urls.push(text(url));
   if (field(manifest, 'explore') !== undefined) for (const url of Object.values(object(field(object(field(manifest, 'explore')), 'art') ?? {}))) urls.push(text(url));
   const boot = object(field(manifest, 'boot') ?? {});
