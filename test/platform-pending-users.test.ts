@@ -97,3 +97,20 @@ test('approval-only ledger entries require the exact decision and complete ordin
     put({ ...entry, approvedFeature: { ...entry.approvedFeature, name: 'made-up-host' } }); expect(() => pendingPlatformUsers(root)).toThrow('Unapproved');
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
+
+
+test('current pending receipts name live exports and missing exports still refuse', () => {
+  expect(pendingPlatformUsers(process.cwd()).length).toBeGreaterThan(0);
+  mkdirSync('tmp', { recursive: true });
+  const root = mkdtempSync('tmp/pending-export-test-');
+  try {
+    for (const dir of ['lint', 'src/game', 'docs/plans']) mkdirSync(join(root, dir), { recursive: true });
+    writeFileSync(join(root, 'src/game/fixture.ts'), 'export const kept = 1;');
+    writeFileSync(join(root, 'docs/API.md'), 'game/fixture');
+    writeFileSync(join(root, 'docs/plans/feature.md'), '| F1 | Nalati |');
+    const entry: PendingPlatformUser = { module: 'src/game/fixture.ts', export: 'removed', shard: 'nalati-grasslands',
+      plan: { path: 'docs/plans/feature.md', row: 'F1' }, documentation: 'docs/API.md', 'rechecked-by': 'end of W3' };
+    writeFileSync(join(root, 'lint/platform-pending-users.json'), JSON.stringify({ schema: 'platform-pending-users/1', entries: [entry] }));
+    expect(() => pendingPlatformUsers(root)).toThrow('Missing pending platform export: src/game/fixture.ts#removed');
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
