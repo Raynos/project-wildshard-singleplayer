@@ -2,7 +2,7 @@ const switches = new Set(['help', 'worker', 'quiet', 'devserver', 'gl-time', 'gp
 const values = new Set(['base', 'cpu-profile', 'deadline', 'developer', 'device', 'frames', 'gl-observer', 'gpu-trace',
   'grid-cell', 'grid-cell-pose', 'grid-routes', 'grid-scenario', 'regrade', 'rev', 'rising-islet', 'safari-profile', 'safari-steady', 'safari-drive', 'safari-prefix', 'safari-window',
   'settle', 'shards', 'surface', 'scratch-dir', 'worker-out', 'device-save', 'expect-system', 'setting', 'output-dir',
-  'textures', 'ktx2-probe', 'serve-shard', 'serve-base', 'standing-poses', 'native-memory', 'webkit-timeline', 'webkit-steady', 'native-pressure', 'wasm-constructors', 'jsc-gc-log']);
+  'textures', 'ktx2-probe', 'serve-shard', 'serve-base', 'standing-poses', 'native-memory', 'webkit-timeline', 'webkit-steady', 'native-pressure', 'wasm-constructors', 'jsc-gc-log', 'jsc-ram-size']);
 
 /** Refuse misspelled or incomplete floor commands before a build, browser or Simulator lease is acquired.
  * @param {readonly string[]} args
@@ -26,6 +26,11 @@ export function validateFrameFloorArgs(args) {
     || !args.some(arg => arg.startsWith('--webkit-timeline=') && arg.length > '--webkit-timeline='.length)))
     throw new Error('Blank memory probe requires no-quiet Simulator, native constructors and Timeline');
   const nativeGc = args.filter(arg => arg.startsWith('--jsc-gc-log='));
+  const nativeRam = args.filter(arg => arg.startsWith('--jsc-ram-size='));
+  if (nativeRam.length > 0 && (nativeRam.length !== 1 || nativeGc.length !== 1
+    || !/^--jsc-ram-size=[1-9]\d*$/u.test(nativeRam[0] ?? '')
+    || !Number.isSafeInteger(Number((nativeRam[0] ?? '').split('=')[1]))))
+    throw new Error('Native JSC RAM override requires one positive byte count and native GC logging');
   if (nativeGc.length > 0 && (nativeGc.length !== 1 || nativeGc[0] === '--jsc-gc-log='
     || !args.includes('--surface=sim') || !args.includes('--shards=grid')
     || !args.some(arg => arg.startsWith('--grid-scenario=') && arg !== '--grid-scenario=baseline')

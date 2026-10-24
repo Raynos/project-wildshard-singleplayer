@@ -102,3 +102,28 @@ exec(code)
     })).toBe('[456]\n');
   } finally { rmSync(scratch,{recursive:true,force:true}); }
 });
+
+test('explicit diagnostic RAM override is verified and removed with the log settings', async () => {
+  const f=fixture(), stop=await prepareJscGcEnvironment(f.port,6442450944);
+  expect(f.values.get('__XPC_JSC_forceRAMSize')).toBe('6442450944');
+  await stop();
+  expect(f.values.size).toBe(0);
+  expect(f.calls.slice(-4)).toEqual(['unset __XPC_JSC_forceRAMSize','unset __XPC_JSC_dumpOptions',
+    'unset __XPC_JSC_useOSLog','unset __XPC_JSC_logGC']);
+  const foreign=fixture();foreign.values.set('__XPC_JSC_forceRAMSize','123');
+  await expect(prepareJscGcEnvironment(foreign.port,6442450944)).rejects.toThrow('Refusing existing');
+  expect(foreign.calls).toEqual([]);
+});
+
+test('RAM override refuses malformed or standalone CLI values before starting native logging', async () => {
+  const args=['--surface=sim','--shards=grid','--grid-scenario=all','--jsc-gc-log=tmp/native'];
+  expect(()=>validateFrameFloorArgs([...args,'--jsc-ram-size=6442450944'])).not.toThrow();
+  for(const value of ['','0','-1','1.5','NaN','9007199254740992'])
+    expect(()=>validateFrameFloorArgs([...args,`--jsc-ram-size=${value}`])).toThrow('Native JSC RAM');
+  expect(()=>validateFrameFloorArgs(['--jsc-ram-size=6442450944'])).toThrow('Native JSC RAM');
+  expect(()=>validateFrameFloorArgs([...args,'--jsc-ram-size=1','--jsc-ram-size=2'])).toThrow('Native JSC RAM');
+  const f=fixture();
+  for(const value of [-1,Number.NaN,Number.POSITIVE_INFINITY,1.5])
+    await expect(prepareJscGcEnvironment(f.port,value)).rejects.toThrow('Invalid diagnostic');
+  expect(f.calls).toEqual([]);
+});

@@ -288,6 +288,11 @@ Inspector Heap/Timeline/profiler, allocation wrapper, snapshot or forced GC;
 other recorders cannot be combined. Missing native messages mean logging was not
 honored or observable with that setup, never invented heap/trigger fields. The
 same app and frame thresholds remain unchanged; no automatic retry is made.
+For an explicitly requested collector-policy diagnostic, add
+`--jsc-ram-size=<positive bytes>` to this native-log mode. It temporarily
+sets `__XPC_JSC_forceRAMSize`, records the setting and unsets/verifies it
+alongside the logging options. Ordinary Timeline/floor visits omit it;
+the altered collector policy has no ordinary frame-floor acceptance credit.
 
 Add `--wasm-constructors=<existing scratch dir>`
 to retain bounded native Memory/Module/Instance durations and original frame-clock

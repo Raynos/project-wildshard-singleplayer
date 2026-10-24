@@ -1,5 +1,5 @@
 // Native diagnostic only. Settings are temporary in this Simulator's launchd;
-// no JSC allocation/collector policy, page hook or forced collection is changed.
+// Collector policy changes only with the explicit diagnostic RAM override.
 import {spawn, spawnSync} from 'node:child_process';
 import {openSync, closeSync, writeSync, existsSync, writeFileSync} from 'node:fs';
 import {join} from 'node:path';
@@ -10,11 +10,19 @@ export const JSC_GC_SETTINGS = Object.freeze({
   __XPC_JSC_logGC: '2', __XPC_JSC_useOSLog: '1', __XPC_JSC_dumpOptions: '1',
 });
 
+/** @param {number} ramSizeBytes */
+function gcSettings(ramSizeBytes) {
+  if (!Number.isSafeInteger(ramSizeBytes) || ramSizeBytes < 0) throw new Error('Invalid diagnostic JSC RAM size');
+  return ramSizeBytes === 0 ? JSC_GC_SETTINGS : {...JSC_GC_SETTINGS, __XPC_JSC_forceRAMSize: String(ramSizeBytes)};
+}
+
 /** Refuse foreign settings; clean every successful set on partial setup/failure.
  * @param {import('./frame-floor-jsc-gc.mjs').EnvironmentPort} port
+ * @param {number} [ramSizeBytes]
  */
-export async function prepareJscGcEnvironment(port) {
-  const names = Object.keys(JSC_GC_SETTINGS), changed = [];
+export async function prepareJscGcEnvironment(port, ramSizeBytes = 0) {
+  const settings = gcSettings(ramSizeBytes);
+  const names = Object.keys(settings), changed = [];
   for (const name of names) if (await port.get(name) !== '') throw new Error(`Refusing existing Simulator setting: ${name}`);
   const cleanup = async () => {
     const failures = [];
@@ -25,7 +33,7 @@ export async function prepareJscGcEnvironment(port) {
     if (failures.length > 0) throw new Error(`Simulator GC settings cleanup failed: ${failures.join('; ')}`);
   };
   try { for (const name of names) {
-    changed.push(name); const value = Reflect.get(JSC_GC_SETTINGS, name);
+    changed.push(name); const value = Reflect.get(settings, name);
     await port.set(name, value);
     if (await port.get(name) !== value) throw new Error(`Simulator setting not retained: ${name}`);
   } }
@@ -37,8 +45,10 @@ export async function prepareJscGcEnvironment(port) {
  * remain bounded and separate from Inspector events and frame-floor grading.
  * @param {string} directory
  * @param {string} device
+ * @param {number} [ramSizeBytes]
  */
-export async function startJscGcLog(directory, device) {
+export async function startJscGcLog(directory, device, ramSizeBytes = 0) {
+  const settings = gcSettings(ramSizeBytes);
   const command = args => {
     const value = spawnSync('xcrun', ['simctl', 'spawn', device, 'launchctl', ...args], {encoding: 'utf8'});
     if (value.status !== 0 && !(args[0] === 'getenv' && value.status === 1)) throw new Error(`Simulator launchctl ${args[0]} failed: ${value.stderr}`);
@@ -54,7 +64,7 @@ export async function startJscGcLog(directory, device) {
     get: name => Promise.resolve(command(['getenv', name])),
     set: (name, value) => { command(['setenv', name, value]); return Promise.resolve(); },
     unset: name => { command(['unsetenv', name]); return Promise.resolve(); },
-  }); } catch (error) { closeSync(output); closeSync(errors); throw error; }
+  }, ramSizeBytes); } catch (error) { closeSync(output); closeSync(errors); throw error; }
   let bytes = 0, dropped = 0, streamError;
   const predicate = 'subsystem == "com.apple.JavaScriptCore" OR process CONTAINS[c] "WebContent"';
   const child = spawn('/usr/bin/log', ['stream', '--style', 'ndjson', '--level', 'debug', '--timeout', '590', '--predicate', predicate], {stdio: ['ignore','pipe','pipe']});
@@ -68,7 +78,7 @@ export async function startJscGcLog(directory, device) {
     else { dropped += value.length; child.kill('SIGTERM'); }
   });
   child.stderr.on('data', value => { try { writeSync(errors, value); } catch (error) { streamError = String(error); child.kill('SIGTERM'); } });
-  const metadata = {diagnostic: true, device, settings: JSC_GC_SETTINGS, launchdReadbackVerified: true, predicate, file, startedAt: Date.now()};
+  const metadata = {diagnostic: true, device, settings, launchdReadbackVerified: true, predicate, file, startedAt: Date.now()};
   try { writeFileSync(join(directory, 'config.json'), JSON.stringify(metadata)); }
   catch (error) { child.kill('SIGTERM'); await closed; closeSync(output); closeSync(errors); await restore(); throw error; }
   await sleep(300);
