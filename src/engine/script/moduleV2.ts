@@ -72,6 +72,7 @@ export class ScriptModuleV2 {
   private readonly source: Uint8Array;
   private readonly ioBytes: number;
   private image: Uint8Array;
+  private imageOffset = 0;
   private globals: readonly { global: WebAssembly.Global; value: number | bigint }[];
   private readonly columns: readonly FloatColumnV2[];
   private busy = false;
@@ -105,7 +106,13 @@ export class ScriptModuleV2 {
       options.initialize?.(new DataView(this.storage.value.buffer),this.io);
       this.invoke('ws_init',[options.seed[0],options.seed[1]],options.initFuel);
       validateV2FloatColumns(new DataView(this.storage.value.buffer),this.columns);
-      this.image = new Uint8Array(this.storage.value.buffer).slice();
+      const image = new Uint8Array(this.storage.value.buffer);
+      let first = 0, end = image.length;
+      while (first < end && image[first] === 0) first++;
+      while (end > first && image[end - 1] === 0) end--;
+      const sparse = end - first < image.length / 2;
+      this.imageOffset = sparse ? first : 0;
+      this.image = image.slice(this.imageOffset, sparse ? end : image.length);
       this.globals = admitted.globals.map(name => {
         const global = this.instance?.exports[name]; if (!(global instanceof WebAssembly.Global)) throw new Error('Missing v2 state global');
         const value: unknown = global.value;
@@ -122,7 +129,11 @@ export class ScriptModuleV2 {
       &&bytes.every((value,index)=>value===this.source[index]);
   }
   private rewind(): void {
-    new Uint8Array(this.storage.value.buffer).set(this.image);
+    const bytes = new Uint8Array(this.storage.value.buffer);
+    // Zero is part of the immutable initialized image, never a dirty-range hint.
+    // Dense images keep the single full copy; sparse ones still reset ALL bytes.
+    if (this.image.length < bytes.length) bytes.fill(0);
+    bytes.set(this.image, this.imageOffset);
     for (const entry of this.globals) entry.global.value = entry.value;
   }
   private invoke(name: string,args: number[],fuel: number): number {
