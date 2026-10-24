@@ -443,6 +443,7 @@ export class TouchControls {
       if (!visible) {
         if (button !== undefined) { button.style.display = 'none'; button.classList.remove('show'); }
         const held = this.heldVerbs.get(slot); if (held !== undefined) { this.heldVerbs.delete(slot); app.input.setHeld(held, false); }
+        delete this.verbActions[slot]; delete this.verbSpecs[slot];
         continue;
       }
       if (verb.element !== undefined) { button = verb.element; this.verbs.set(slot, button); }
