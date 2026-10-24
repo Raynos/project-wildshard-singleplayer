@@ -22,6 +22,8 @@ test('colocated fixtures keep product guards in production and architecture guar
     const refused = run(production), output = String(refused.stdout) + String(refused.stderr);
     expect(refused.status).not.toBe(0);
     for (const name of ['engine-words', 'no-inline-ui-string', 'no-authored-html', 'no-global-listener-patch', 'no-raw-hud']) expect(output).toContain(name);
+    const helper = run(put('src/engine/test/helper.ts', code));
+    expect(helper.status, String(helper.stdout) + String(helper.stderr)).toBe(0);
     const forbidden = put('src/engine/core/boundary.test.ts', 'import {value} from "../../game/value"; import {vi} from "vitest"; vi.mock("./value"); export {value};');
     const boundary = run(forbidden), messages = String(boundary.stdout) + String(boundary.stderr);
     expect(boundary.status).not.toBe(0); expect(messages).toContain('wildshard(layer)'); expect(messages).toContain('no-module-mock');
@@ -34,7 +36,8 @@ test('colocated fixtures keep product guards in production and architecture guar
     const formatUpward = run(put('src/format/upward.test.ts', 'import {value} from "../engine/value"; export {value};'));
     expect(formatUpward.status).not.toBe(0);
     expect(String(formatUpward.stdout) + String(formatUpward.stderr)).toContain('wildshard(layer)');
-    for (const statement of ['import "./fixture.test";', 'export * from "./fixture.test.ts";', 'void import("./fixture.test.js");', 'export type Value = typeof import("./fixture.test");']) {
+    for (const statement of ['import "./fixture.test";', 'export * from "./fixture.test.ts";', 'void import("./fixture.test.js");', 'export type Value = typeof import("./fixture.test");',
+      'import "../test/helper";', 'export * from "../test/helper";', 'void import("../test/helper");', 'export type Helper = typeof import("../test/helper");']) {
       const imports = run(put('src/engine/core/importer.ts', statement));
       expect(imports.status).not.toBe(0); expect(String(imports.stdout) + String(imports.stderr)).toContain('no-production-test-import');
     }

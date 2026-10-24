@@ -1127,12 +1127,15 @@ export const TEST_DOMAIN_RUNTIME_RULES = [
   'no-active-chunk', 'no-hook-chain', 'no-level-identity', 'sim-no-render',
   'runtime-performance', 'no-raw-random-time', 'no-runtime-generator',
 ];
-const testDomain = context => pathOf(context).endsWith('.test.ts');
+/** @param {string} path */
+const testModule = path => path.endsWith('.test.ts') || path.startsWith('src/engine/test/');
+const testDomain = context => testModule(pathOf(context));
 const noProductionTestImport = rule('Production cannot import a test module (G645)', context => {
   if (!pathOf(context).startsWith('src/') || testDomain(context)) return {};
   const check = node => {
     const source = importPrefix(node.source);
-    if (source !== null && /\.test(?:\.[cm]?[jt]s)?(?:[?#].*)?$/u.test(modulePath(context.filename, source)))
+    if (source !== null && (/\.test(?:\.[cm]?[jt]s)?(?:[?#].*)?$/u.test(modulePath(context.filename, source))
+      || modulePath(context.filename, source).startsWith('src/engine/test/')))
       report(context, node, 'Production cannot import or re-export a test module');
   };
   return { ...importsVisitor(check), TSImportType: check };

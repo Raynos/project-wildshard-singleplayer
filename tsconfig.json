@@ -45,7 +45,8 @@
     { "path": "./tsconfig.sdk.json" },
     { "path": "./tsconfig.commons.json" },
     { "path": "./tsconfig.shards.json" },
-    { "path": "./tsconfig.app.json" }
+    { "path": "./tsconfig.app.json" },
+    { "path": "./src/engine/tsconfig.test.json" }
   ],
   "include": ["test", "src/**/*.d.ts", "src/**/*.d.mts", "src/**/*.d.*.ts"],
   "exclude": ["node_modules", "src/sdk/dist"]

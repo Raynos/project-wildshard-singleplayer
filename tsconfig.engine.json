@@ -10,5 +10,5 @@
   },
   "references": [{ "path": "./tsconfig.format.json" }],
   "include": ["src/engine", "budgets/desktop-reference.json"],
-  "exclude": ["src/engine/**/*.test.ts"]
+  "exclude": ["src/engine/**/*.test.ts", "src/engine/test"]
 }

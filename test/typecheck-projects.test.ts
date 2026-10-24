@@ -35,9 +35,11 @@ test('every source file has a layer owner, while the root covers all tests and a
   expect(missing.map(file => relative('.', file))).toEqual([]);
   expect(root.fileNames.filter(file => file.includes('/src/') && !/\.d\.(?:[cm]?ts|[^/]+\.ts)$/u.test(file))).toEqual([]);
   expect(root.options.disableSourceOfProjectReferenceRedirect).not.toBe(true);
-  expect(new Set(root.projectReferences?.map(reference => ts.resolveProjectReferencePath(reference)))).toEqual(
+  expect(new Set(root.projectReferences?.map(reference => ts.resolveProjectReferencePath(reference))
+    .filter(file => !file.endsWith('/tsconfig.test.json')))).toEqual(
     new Set([...seen].filter(file => /^tsconfig\.(?:engine|format|game|sdk|commons|shards|app)\.json$/u.test(relative('.', file)))),
   );
+  for (const reference of root.projectReferences ?? []) expect(seen.has(ts.resolveProjectReferencePath(reference))).toBe(true);
   for (const file of ['api/tsconfig.json', 'scripts/tsconfig.json']) {
     const references = project(file).projectReferences ?? [];
     expect(references.length).toBeGreaterThan(0);

@@ -88,7 +88,8 @@ export function stagedProjectFailures(root, files) {
     const prefix = `src/${testWorkspace ?? config.slice('tsconfig.'.length, -'.json'.length)}/`;
     const selected = files.filter(file => (config === 'tsconfig.app.json' ? /^src\/[^/]+$/u.test(file) : file.startsWith(prefix))
       && /\.[cm]?tsx?$/u.test(file) && staged.read(file) !== undefined
-      && (testWorkspace === undefined ? !file.endsWith('.test.ts') || !projects.has(`${prefix}tsconfig.test.json`) : file.endsWith('.test.ts')));
+      && (testWorkspace === undefined ? !(file.endsWith('.test.ts') || file.startsWith(`${prefix}test/`)) || !projects.has(`${prefix}tsconfig.test.json`)
+        : file.endsWith('.test.ts') || file.startsWith(`${prefix}test/`)));
     if (selected.length === 0) continue;
     const allowed = new Set(parsed.fileNames.map(name)), visited = new Set([config]);
     const references = [...(parsed.projectReferences ?? [])];
