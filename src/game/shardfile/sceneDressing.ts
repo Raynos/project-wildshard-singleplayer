@@ -196,7 +196,7 @@ export class SceneDressing {
         let offset=0;if(source.kind==='baked'){let pending=addresses.get(source.address.file);if(pending===undefined){pending=ctx.product.file(source.address.file);addresses.set(source.address.file,pending);}offset=readSceneGeometryAddress(await pending,source.address.word);}
         if(offset+bakedGeometryBytes(source.row)>raw.byteLength)throw new Error('Scene geometry address exceeds its source');
         const decoded=readBakedGeometry(raw,offset,source.row);
-        shape=source.row.expand?await expandBakedGeometrySliced(decoded,workSlice()):decoded;
+        shape=source.row.expand?await expandBakedGeometrySliced(decoded,workSlice(undefined,ctx.scope)):decoded;
       }
       if((source.kind==='inline'||source.kind==='file')&&source.sphere!==undefined)shape.boundingSphere=new THREE.Sphere(new THREE.Vector3(...source.sphere.slice(0,3)),source.sphere[3]);
       geometry.set(key,shape);ctx.scope.own(shape);await pause();
