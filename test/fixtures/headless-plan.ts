@@ -1,5 +1,8 @@
 import type { ShardProduct } from '../../src/game/shardfile/shardProduct';
-import type { HeadlessRuntimePlan, HeadlessRuntimeInstallation } from '../../src/sdk/headlessRuntime';
+import type { HeadlessRuntimePreparation, HeadlessRuntimePlan, HeadlessRuntimeInstallation } from '../../src/sdk/headlessRuntime';
+import { ReturnProgram } from '../../src/game/population/returnProgram';
+import { ReturnModulesSchema } from '../../src/format/scriptContract';
+import { parse } from 'valibot';
 import { createSimHost, type SimHost } from '../../src/engine/sim';
 import type { Rapier } from '../../src/engine/physics/rapier';
 import { combatSpeedFactor } from '../../src/engine/player/combatMotion';
@@ -15,6 +18,12 @@ export async function readJson<T>(product: ShardProduct, name: string, fatal = t
 }
 /** Arguments are deliberately evaluated eagerly, including pickup-side effects. */
 export function coalesce<T,U>(first:T,second:U): NonNullable<T>|U { return first ?? second; }
+/** Retain full program admission before prepare and the original per-host module loan on install. */
+export async function prepareReturns(preparation: HeadlessRuntimePreparation): Promise<(host: SimHost) => void> {
+  const returns = preparation.product.has('actors/return-scripts') ? parse(ReturnModulesSchema, preparation.product.section('actors/return-scripts')) : [];
+  if (returns.length > 0) await ReturnProgram.prepareModules(preparation.product, preparation.assets, returns);
+  return host => { if (returns.length > 0) ReturnProgram.lendModules(host.scope, preparation.assets, returns); };
+}
 export function fresh(level: HeadlessRuntimePlan['level'], ports: NonNullable<HeadlessRuntimePlan['ports']>, rapier: Rapier,
   install: (host: SimHost) => void, prove: (host: SimHost) => ReturnType<NonNullable<HeadlessRuntimePlan['proveEntries']>>): ReturnType<NonNullable<HeadlessRuntimePlan['proveEntries']>> {
   const host = createSimHost(level, { ...ports, rapier });

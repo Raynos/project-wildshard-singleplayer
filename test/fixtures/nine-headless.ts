@@ -6,11 +6,15 @@ import { installGrapple } from '../../src/game/grapple/headless';
 import { parseGrappleProfile } from '../../src/format/grapple';
 import { installHostPortalRide } from '../../src/game/shardfile/portalRideBinding';
 import { installNativeItems } from '../../src/game/plugin/nativeItems';
-import assembly from '../../src/shards/nine-dragon-stack/data/headlessAssembly.json' with { type: 'json' };
+import type assembly from '../../src/shards/nine-dragon-stack/data/headlessAssembly.json';
+import { prepareReturns } from './headless-plan';
 
 /** Direct typed native calls retain the Nine gameplay witness without a declaration interpreter. */
-export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ product }) => {
+export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async preparation => {
+  const { product } = preparation;
   const shard = product.shardfile;
+  const { constants } = await product.json<{ constants: typeof assembly.constants }>('sim/headless-assembly.json');
+  const lendReturns = await prepareReturns(preparation);
   const payload = await product.json<{
     spawnY: number; pieces: unknown; entryProof: { lanes: number; steps: number; portalTransfers: number };
     portalRide: Parameters<typeof installHostPortalRide>[3];
@@ -23,12 +27,13 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ product }
     yaw: shard.spawn.yaw, speed: 5 }, { size: 500, height: 0 });
   return { level, ports: { ground: false, heightAt: () => 0 }, proveEntries: () => payload.entryProof,
     install: (host, context) => {
+      lendReturns(host);
       if (!context.restoring) addBakedPieces(host.physics, payload.pieces);
       const guard = context.restoring ? [] : host.physics.world.colliders.getAll().filter(collider => tagOf(collider)?.owner === 'nds-grapple-guard').map(collider => collider.handle);
       if (context.combat === undefined) throw new Error('Nine requires its native combat frame');
-      installNativeItems(host, context.combat, { kind: 'swept', items: shard.items.rows, policy: assembly.constants.jianPolicy });
+      installNativeItems(host, context.combat, { kind: 'swept', items: shard.items.rows, policy: constants.jianPolicy });
       const fact = (name: string, actorId: string): void => { context.emit({ kind: 'fact', name, actorId }); };
-      installHostPortalRide(host, assembly.constants.portalStep, shard, payload.portalRide, fact);
+      installHostPortalRide(host, constants.portalStep, shard, payload.portalRide, fact);
       installGrapple(host, { emit: context.emit, commands: () => context.commands().map(command => command.kind === 'script' ? command : { kind: command.kind, ...(command.kind === 'player' && command.jump !== undefined ? { jump: command.jump } : {}) }) }, parseGrappleProfile(payload.grappleProfile), grapple, payload.hooks, guard);
     } };
 };

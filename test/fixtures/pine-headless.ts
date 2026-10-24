@@ -35,11 +35,12 @@ import { installNativeEliteFeature } from '@wildshard/game/quest/eliteFeature';
 import { readEliteFeature } from '@wildshard/game/quest/eliteFeature';
 import { trustedLevel } from '../../src/game/plugin/simulation';
 import type { PrepareHeadlessRuntime } from '../../src/sdk/headlessRuntime';
-import { need, readJson, fresh, installCombatMotion, coalesce } from './headless-plan';
+import { need, readJson, fresh, installCombatMotion, coalesce, prepareReturns } from './headless-plan';
 /** Direct calls preserve the Pine gameplay recorder without executable JSON selectors. */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async preparation => {
 const { product, assets, rapier } = preparation, shard = product.shardfile;
 const {constants} = await product.json<{constants:{terrain:typeof TERRAIN,entries:typeof ENTRIES,environment:unknown}}>('sim/headless-assembly.json');
+const lendReturns = await prepareReturns(preparation);
 const storyPolicy = await readJson<NativeQuestCompositionInput["rows"]>(product,"quests/native-story.json");
 const storySpots = await readJson<NativeQuestCompositionInput["spots"]>(product,"quests/native-spots.json");
 const bossView = await product.section<{BOSS_ENCOUNTER:{profile:unknown}}>("custom/nativeView");
@@ -75,6 +76,7 @@ const heightAtEntry = heightAt;
 const level = trustedLevel(shard, {at:{x:shard.spawn.x,y:Math.max(shard.spawn.y,heightAtEntry(shard.spawn.x,shard.spawn.z)+0.1),z:shard.spawn.z},yaw:shard.spawn.yaw,speed:5},{size: 500,height: 0});
 const ports = {ground:false as const,heightAt:heightAtEntry};
 return {level,ports,proveEntries:()=>(fresh(level,ports,rapier,(freshHost)=>(installNativeCollision(freshHost,bake,{resolution: constants.terrain.res,provenance: {field: "pineWorldOwner",step: "pine.world-tags",fallback: "wood"},omit: ["edge"]})),(freshHost)=>(proveTerrainEntries(freshHost.physics,shard.entryways,heightAt,constants.entries)))), install:(host,context)=>{
+lendReturns(host);
 bindHeadlessCommands(context,host);
 const combat = need(context.combat,"Pine requires its native combat frame");
 nativeDecisionAuthority(shard,assets,host);
