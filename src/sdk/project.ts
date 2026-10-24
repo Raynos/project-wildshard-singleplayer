@@ -12,7 +12,7 @@ import { Buffer } from 'node:buffer';
 import process from 'node:process';
 import { build } from 'vite';
 import { parseShardfile, type Shardfile } from './shardfile';
-import { preflightAssetGraph, offlineMemoryAdmission } from "@wildshard/format/product";
+import { preflightAssetGraph, offlineMemoryAdmission, prepareAssetDecoders } from "@wildshard/format/product";
 import { preflightDeclaredCosts } from '@wildshard/format/assetAdmission';
 import { preflightShardfile } from '@wildshard/format/preflight';
 
@@ -49,6 +49,7 @@ export function validateProject(input: unknown, assets: ReadonlyMap<string, Uint
 }
 
 async function authorModule(project: string, file: string): Promise<{ exports: Record<string, unknown>; hash: string }> {
+  await prepareAssetDecoders();
   // The compiled declaration executes here; only its returned data is emitted.
   // Source-text inspection still enters the recorder's exact-content guard.
   const result = await build({ configFile: false, logLevel: 'silent', plugins: [{name:'wildshard-author-execution',api:{wildshardInputIdentity:'execution'}}], build: { write: false, minify: false, lib: { entry: resolve(project, file), formats: ['es'], fileName: 'config' }, rolldownOptions: { external: [/^node:/u, 'assemblyscript/dist/asc.js'], output: { codeSplitting: false } } } });

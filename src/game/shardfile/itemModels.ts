@@ -2,7 +2,7 @@ import { type Group, Mesh, SkinnedMesh, BufferGeometry, Material, type Object3D 
 import { prepareRigLoader } from '@wildshard/engine/anim/rig';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { ShardItems } from '@wildshard/format/items';
-import { parseGlb } from '@wildshard/format/product';
+import { parseGlb, prepareAssetDecoders } from '@wildshard/format/product';
 
 interface ModelLease { users: number; ready: Promise<Group> }
 const liveModels = new Map<string, ModelLease>();
@@ -23,6 +23,7 @@ function disposeModel(model: Group): void {
   for (const material of materials) material.dispose();
 }
 async function parseModel(bytes: Uint8Array): Promise<Group> {
+  await prepareAssetDecoders();
   parseGlb(bytes);
   const header = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   const doc: unknown = JSON.parse(new TextDecoder().decode(bytes.subarray(20, 20 + header.getUint32(12, true))));

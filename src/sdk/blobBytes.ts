@@ -1,9 +1,12 @@
-import { assetCost } from '@wildshard/format/product';
+import { assetCost, prepareAssetDecoders } from '@wildshard/format/product';
 import { parseImageAsset } from '@wildshard/format/stillImage';
 import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import { outputBlobPath } from '@wildshard/format/outputIndex';
 import { hashImmutableBytes, encodeCanonicalJson } from './immutable';
 import type { BlobOptions, NamedBlob, NamedBlobKind } from './blobs';
+
+// Author-only facade; browser admission prepares this codec at its async boundary.
+await prepareAssetDecoders();
 
 const MAX_BYTES = 25_000_000;
 const logicalName = /^(?:[A-Za-z0-9_-][A-Za-z0-9_.-]*\/)*[A-Za-z0-9_-][A-Za-z0-9_.-]*$/u;

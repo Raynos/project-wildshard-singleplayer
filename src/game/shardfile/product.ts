@@ -4,7 +4,7 @@ import { waitFor } from '@wildshard/engine/boot/waits';
 import { scriptAdmissionRows } from '@wildshard/format/scriptContract';
 import type { TextureTranscodeSupport } from '@wildshard/format/contentBounds';
 import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
-import { builtValidationReceipt, readValidationReceipt, validationRevision, validationSourceBytes, type ValidationReceipt, assertStateCompatibility, parseStateLineage, preflightAssetGraph, type MemoryAdmission } from "@wildshard/format/product";
+import { builtValidationReceipt, readValidationReceipt, validationRevision, validationSourceBytes, type ValidationReceipt, assertStateCompatibility, parseStateLineage, preflightAssetGraph, prepareAssetDecoders, type MemoryAdmission } from "@wildshard/format/product";
 import { SHARDFILE_VERSION, shardfileRevision } from '@wildshard/format/version';
 import { isOutputIndex } from '@wildshard/format/outputIndex';
 
@@ -241,6 +241,7 @@ async function cacheRows<T>(rows: readonly T[], batch: boolean, work: (row: T) =
   }
 }
 async function admitProductWork(input: unknown, options: ProductOptions): Promise<AdmittedProduct> {
+  await prepareAssetDecoders();
   const base = new URL('.', options.base).href;
   options.progress?.({ phase: 'cache-read', detail: 'Checking visited product', bytesRead: 0, bytesTotal: 0, filesDone: 0, filesTotal: 0 });
   const visited = await waitFor('Read visited product cache', Promise.resolve(options.cache?.product(base)), 'file');

@@ -8930,8 +8930,13 @@ triangle accounting against those decoded bytes. Compressed wire bytes
 and decoded resident costs remain distinct. The format layer's sole codec
 exception is this defining module importing the already-pinned
 `meshoptimizer/decoder` (1.2.0): server-safe pure Wasm needed for decoded-byte
-admission, not a schema bypass. Its initialization is awaited once; each
-view is decoded once per admission and reused by all subsequent checks.
+admission, not a schema bypass. `format/product.prepareAssetDecoders()`
+awaits codec readiness at asynchronous product admission and model-read
+boundaries, before synchronous compressed-byte validation. Author-only SDK
+facades prepare it before exposing their synchronous cost APIs. App module
+evaluation never awaits Wasm: Safari before 27 can publish overlapping
+dynamic imports before a top-level-await dependency initializes. Each view
+is decoded once per admission and reused by all subsequent checks.
 
 `admitScript(bytes, 1)` checks the v1 signatures and the same structural
 fuel/depth/finite guards as v0, with fixed memory of 1–4 pages and no

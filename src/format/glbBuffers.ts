@@ -1,7 +1,7 @@
 import { MeshoptDecoder } from 'meshoptimizer/decoder';
 
-// Admission is synchronous once this pure codec has initialized, in both Node and the browser.
-await MeshoptDecoder.ready;
+/** Await at the asynchronous asset boundary, never during module evaluation (Safari <27). */
+export function prepareGlbBuffers(): Promise<void> { return MeshoptDecoder.ready; }
 const MAX_BYTES = 25_000_000;
 const EXT = 'EXT_meshopt_compression';
 const record = (value: unknown): Record<string, unknown> => {

@@ -1,7 +1,8 @@
 import { MeshoptEncoder } from 'meshoptimizer/encoder';
-import { parseGlb } from '@wildshard/format/product';
+import { parseGlb, prepareAssetDecoders } from '@wildshard/format/product';
 
 await MeshoptEncoder.ready;
+await prepareAssetDecoders();
 const EXT = 'EXT_meshopt_compression';
 const object = (value: unknown): Record<string, unknown> => {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) throw new Error('GLB compression object required');

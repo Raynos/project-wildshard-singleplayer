@@ -1,7 +1,7 @@
 import { builtIndexHashes as readBuiltIndexHashes } from './builtIndexes';
 import { hasDeclaredClientPage } from './runtimeBinds';
 import { admitScriptContract, type ScriptContract } from './scriptContract';
-import { glbBuffers } from './glbBuffers';
+import { glbBuffers, prepareGlbBuffers } from './glbBuffers';
 import { textureMipBytes, type TextureTranscodeSupport } from './contentBounds';
 import { indexRecordingAac } from '@wildshard/format/aacIndex';
 import { bilinearTerrainSamplers, decodeTerrainTile, isTerrainTileData, terrainTileCost, terrainTileHeight } from "@wildshard/format/terrainTileBytes";
@@ -43,6 +43,8 @@ function json(bytes: Uint8Array): unknown { return JSON.parse(new TextDecoder('u
 
 /** Parse self-contained GLB 2 without following URLs or allocating accessor-sized arrays. */
 export function parseGlb(bytes: Uint8Array): AssetCost { return parseGlbData(bytes); }
+/** Prepare compressed-asset decoding before synchronous byte admission; importing schemas never waits for Wasm. */
+export function prepareAssetDecoders(): Promise<void> { return prepareGlbBuffers(); }
 /** Inspect exact static triangles only after the bounded GLB parser admits the complete payload. */
 export function visitGlbTriangles(bytes: Uint8Array, visit: (triangle: readonly GlbVertex[]) => void): void { parseGlbData(bytes, visit); }
 /** Shared byte-derived raster estimate; no author-supplied overdraw number is accepted. */
