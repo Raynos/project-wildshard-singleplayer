@@ -105,7 +105,12 @@ function compileNumericCreaturePose(row: poseSchema.InferOutput<typeof NumericPo
         if (prior !== undefined && JSON.stringify(prior) !== JSON.stringify(input)) throw new Error('Ambiguous creature pose input');
         inputs.set(input.input, input);
       }
-      detached = { table: programs.map(program => ({ ...program, numeric: { ...program.numeric, inputs: [] } })), inputs: [...inputs.values()] };
+      // NumericPoseProgramsSchema already checked every DAG and aggregate cap.
+      // Subsetting rows and removing their borrowed inputs preserves that proof;
+      // keep this private frozen table instead of parsing the whole DAG again.
+      const table = freeze(programs.map(program => ({ ...program, numeric: { ...program.numeric, inputs: [] } })));
+      tables.set(table, table);
+      detached = { table, inputs: [...inputs.values()] };
       detachedTables.set(key, detached);
     }
     return detached;

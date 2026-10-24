@@ -18,15 +18,19 @@ function actor(): AnimalSim {
   body.position.set(10, 0, 20); return body;
 }
 test('a book pose preserves native joint publication and checks untrusted books', () => {
-  const rows = creaturePoseRows({ group: 'pose', programs: numericChannelPrograms('head.pose', 'pose', [
-    { target: 'joint.head', path: ['position', 'x'], expr: b => b.constant(.75) },
-  ]) });
+  const rows = creaturePoseRows({ group: 'pose', programs: [
+    ...numericChannelPrograms('head.pose', 'pose', [{ target: 'joint.head', path: ['position', 'x'], expr: b => b.constant(.75) }]),
+    ...numericChannelPrograms('body.pose', 'pose', [{ target: 'joint.body', path: ['rotation', 'y'], expr: b => b.constant(.25) }]),
+    ...numericChannelPrograms('optional.pose', 'pose', [{ target: 'joint.optional', path: ['rotation', 'x'], expr: b => b.constant(1) }]),
+  ] });
   const book = parsePackedCreatureLooks({ poses: { head: rows }, rows: [] });
   const direct = new NativeCreaturePose(actor(), recipe, numericCreaturePose(rows));
   const borrowed = new NativeCreaturePose(actor(), recipe, numericCreaturePoseFromBook(book, 'head'));
   direct.advance(.1, 1, true); borrowed.advance(.1, 1, true);
   direct.publish(); borrowed.publish();
   expect(borrowed.bones['head']?.position.x).toBe(.75);
+  expect(borrowed.bones['body']?.rotation.y).toBe(.25);
+  expect(borrowed.bones['optional']).toBeUndefined();
   expect(borrowed.snapshot()).toBe(direct.snapshot());
   expect(() => numericCreaturePoseFromBook(book, 'absent')).toThrow('Missing packed creature joint pose');
   const changed = structuredClone(book);
