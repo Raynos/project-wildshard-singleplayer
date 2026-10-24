@@ -42,7 +42,11 @@ export function unshuffleLanes(lanes: Uint8Array, out = new Uint8Array(lanes.len
   const n = lanes.length / 4;
   if (out.length !== lanes.length || out.buffer === lanes.buffer || !Number.isSafeInteger(wordStart) || !Number.isSafeInteger(wordEnd)
     || wordStart < 0 || wordEnd < wordStart || wordEnd > n) throw new Error('unshuffleLanes: bad output/range');
-  for (let b = 0; b < 4; b++) for (let i = wordStart; i < wordEnd; i++) out[i * 4 + b] = lanes[b * n + i] ?? 0;
+  for (let i = wordStart; i < wordEnd; i++) {
+    const at = i * 4;
+    out[at] = lanes[i] ?? 0; out[at + 1] = lanes[n + i] ?? 0;
+    out[at + 2] = lanes[2 * n + i] ?? 0; out[at + 3] = lanes[3 * n + i] ?? 0;
+  }
   return out;
 }
 
