@@ -6,6 +6,15 @@ import layout from '../data/layout.generated.json' with { type: 'json' };
 
 /** One layout geometry's bounds as the layout bake measured them (bake-nine-layout.mjs): [x, y, z, radius], [min, max] */
 export interface LayoutBounds { readonly sphere: readonly number[]; readonly box: readonly number[] }
+/** Owned source rows or the retained wire adapter; signed-zero words are admitted at this boundary. */
+export interface NineLayoutInput {
+  readonly rows: unknown;
+  readonly records: readonly unknown[];
+  readonly count: number;
+  readonly bounds: readonly LayoutBounds[];
+}
+/** Fixed-kit hangers are supplied by the same source program as the layout. */
+export interface NineFixedLanterns { readonly lanterns: readonly (readonly (number | string)[])[] }
 
 /** The shortest decimal that rounds back to the same float32 (a float32 box word restores with Math.fround). */
 function shortFloat32(value: number): number {
@@ -15,7 +24,7 @@ function shortFloat32(value: number): number {
 }
 
 /** Decode the predecessor's mixed stream once at build time, retaining every double and signed zero. */
-export function layoutProjection(rows: LayoutRows, records: readonly number[], bounds: readonly LayoutBounds[]): LayoutProjection {
+export function layoutProjection(rows: LayoutRows, records: readonly number[], bounds: readonly LayoutBounds[], fixedRows: NineFixedLanterns = fixed): LayoutProjection {
   if (rows.kitxs.length > 0) throw new Error('Nine layout requires offline merged kits');
   const c = rows.counts;
   let at = (c.walkers + c.sitters) * 16;
@@ -47,7 +56,7 @@ export function layoutProjection(rows: LayoutRows, records: readonly number[], b
     return { id, box: row.box, s: [...box, radius] };
   }), kits: rows.kits.map(row => [row.name, row.geo]), alphaKits: rows.alphaKits.map(row => [row.name, row.geo]),
   farOf: rows.farOf, inKit: rows.inKit, shell: rows.shell, lanterns, acs, hooks, hookMounts, inst,
-  fixed: { lanterns: fixed.lanterns.map(row => row.map(Number)), drop: lantern.drop } });
+  fixed: { lanterns: fixedRows.lanterns.map(row => row.map(Number)), drop: lantern.drop } });
 }
 
 /** JSON keeps every double exactly but -0 and the non-finite: the bake writes those as strings */
@@ -55,14 +64,17 @@ export function reviveLayout(_key: string, value: unknown): unknown {
   return value === '-0' ? -0 : value === 'Infinity' ? Infinity : value === '-Infinity' ? -Infinity : value;
 }
 /** The offline layout bake's rows and float64 records (data/layout.generated.json), revived and checked once. */
-export function bakedLayout(): { readonly rows: LayoutRows; readonly records: number[] } {
-  const rows = v.parse(LayoutRowsSchema, JSON.parse(JSON.stringify(layout.rows), reviveLayout));
-  const records = layout.records.map(value => reviveLayout('', value));
-  if (records.length !== layout.count || records.some(value => typeof value !== 'number' || Number.isNaN(value))) throw new Error('Nine layout record inventory differs');
+export function bakedLayout(source: Pick<NineLayoutInput, 'rows' | 'records' | 'count'> = layout): { readonly rows: LayoutRows; readonly records: number[] } {
+  const rows = v.parse(LayoutRowsSchema, JSON.parse(JSON.stringify(source.rows, (_key, value: unknown) =>
+    typeof value === 'number' && Object.is(value, -0) ? '-0' : value === Infinity ? 'Infinity' : value === -Infinity ? '-Infinity' : value), reviveLayout));
+  const records = source.records.map(value => reviveLayout('', value));
+  if (records.length !== source.count || records.some(value => typeof value !== 'number' || Number.isNaN(value))) throw new Error('Nine layout record inventory differs');
   return { rows, records: v.parse(v.array(v.number()), records) };
 }
 /** The page's layout projection (geometry/layout-projection.json), from the bake. */
-export function bakedLayoutProjection(): LayoutProjection { const { rows, records } = bakedLayout(); return layoutProjection(rows, records, layout.bounds); }
+export function bakedLayoutProjection(source: NineLayoutInput = layout, fixedRows: NineFixedLanterns = fixed): LayoutProjection {
+  const { rows, records } = bakedLayout(source); return layoutProjection(rows, records, source.bounds, fixedRows);
+}
 
 /** JSON admission normalizes zero; restore explicitly declared negative-zero words for author proofs. */
 export function restoreLayoutZeros({ rows: source, negativeZeros }: { rows: LayoutRows; negativeZeros: readonly (readonly string[])[] }): LayoutRows {

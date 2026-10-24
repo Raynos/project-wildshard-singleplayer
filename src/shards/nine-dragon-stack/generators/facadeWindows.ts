@@ -1,12 +1,19 @@
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import layout from '../data/layout.generated.json' with { type: 'json' };
+import type { LayoutRows } from './sections';
+
+/** The original window packet depends only on these ordered layout counts and record words. */
+export interface NineWindowLayout {
+  readonly rows: { readonly counts: Pick<LayoutRows['counts'], 'walkers' | 'sitters' | 'lanterns' | 'acs' | 'hooks' | 'hookMounts' | 'steam' | 'pieces' | 'windows'> };
+  readonly records: readonly (number | string)[];
+}
 
 /** Unit quads keep their original instance bases for interior mapping.
  * Native float32 packets split the 9,912 windows below the host cap. */
-export function facadeWindowBlobs(): NamedBlob[] {
-  const c = layout.rows.counts, start = (c.walkers + c.sitters + c.lanterns + c.acs) * 16
+export function facadeWindowBlobs(source: NineWindowLayout = layout): NamedBlob[] {
+  const c = source.rows.counts, start = (c.walkers + c.sitters + c.lanterns + c.acs) * 16
     + c.hooks * 3 + c.hookMounts * 6 + c.steam * 3 + c.pieces * 19;
-  const records = layout.records.map(value => value === '-0' ? -0 : Number(value));
+  const records = source.records.map(value => value === '-0' ? -0 : Number(value));
   return Array.from({ length: Math.ceil(c.windows / 4096) }, (_, index) => {
     const first = index * 4096, count = Math.min(4096, c.windows - first);
     const packet = new Float32Array(count * 26);
