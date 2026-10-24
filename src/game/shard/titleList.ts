@@ -15,8 +15,12 @@ export function titleMetadata(row: TitleSource): TitleManifest {
 let title: readonly TitleManifest[] | null = null;
 const worldRows = new WeakMap<readonly ShardManifest[], readonly TitleManifest[]>();
 const indexes = new WeakMap<readonly TitleManifest[], ReadonlyMap<string, TitleManifest>>();
-/** The composition root installs generated data before recovery or title navigation. */
-export function installTitleManifests(rows: readonly TitleManifest[]): void { title = rows; }
+/** The composition root installs generated data before recovery or title navigation.
+ * Publish the same scalar rows for built-page catalogue inspection without loading worlds. */
+export function installTitleManifests(rows: readonly TitleManifest[]): void {
+  title = rows;
+  Reflect.set(globalThis, Symbol.for('game.titleManifests'), rows);
+}
 /** Loaded-world menus retain the full installed list when no title catalogue is supplied. */
 export function titleManifests(): readonly TitleManifest[] {
   if (title !== null) return title;

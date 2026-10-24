@@ -3800,6 +3800,12 @@ bank using the same discovered module paths and placement rows. Explicit legacy
 boots and desktop background prefetch retain full discovery; grid boot completes
 it immediately after consuming its original page intent, before product admission.
 
+`game/shard/titleList.installTitleManifests()` publishes the same complete
+generated scalar rows at `Symbol.for("game.titleManifests")` for built-page
+catalogue inspection. Boot and Explorer smoke read this data without preparing
+any world; historical titles retain their full prepared-list reader. An invalid
+installed scalar catalogue refuses instead of falling back to a partial world.
+
 `game/shard/titleList.catalogueManifests()` combines complete scalar title/save
 metadata with original prepared manifests. Prepared entries take precedence,
 including external products. Save cards, pack policies, completion links and boot

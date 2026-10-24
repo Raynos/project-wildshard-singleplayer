@@ -73,7 +73,10 @@ export function bootLifecycleDiagnostic(report, observedGridNavigation) {
 
 /** Read the actual built title's installed catalogue, without loading or injecting a world. */
 export function bootCatalogue() {
-  /** @type {unknown} */ const installed = Reflect.get(globalThis, Symbol.for('game.shards'));
+  // Cold titles install complete scalar metadata; selected discovery may contain
+  // only one world. Historical titles instead installed the full prepared list.
+  /** @type {unknown} */ const title = Reflect.get(globalThis, Symbol.for('game.titleManifests'));
+  /** @type {unknown} */ const installed = title === undefined ? Reflect.get(globalThis, Symbol.for('game.shards')) : title;
   if (!Array.isArray(installed) || installed.length === 0) throw new Error('Missing built title shard catalogue');
   return installed.map((/** @type {unknown} */ row) => {
     if (typeof row !== 'object' || row === null || !('slug' in row) || typeof row.slug !== 'string' ||
