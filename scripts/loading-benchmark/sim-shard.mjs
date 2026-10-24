@@ -20,7 +20,9 @@ export function requireCompiledEntry(href, shard, accuracy) {
 export function downloadEvidence(samples) {
   let previous, admission = false, changes = 0, drops = 0, maximumError = 0, measured = 0;
   for (const sample of samples) {
-    if (sample.step?.startsWith('admission.')) admission = true;
+    // Painted rows use the bare key; live subphase updates use the prefix.
+    // Module preparation precedes product admission and is not step two.
+    if (sample.step === 'admission' || sample.step?.startsWith('admission.') && sample.step !== 'admission.modules') admission = true;
     const total = Number(sample.declaredBytes), pending = Number(sample.pendingBytes), shown = Number(sample.downloadPercent);
     if ([sample.declaredBytes, sample.pendingBytes, sample.downloadPercent].some(value => value === undefined || value.trim() === '')
       || ![total, pending, shown].every(Number.isFinite) || total <= 0 || pending < 0 || pending > total || shown < 0 || shown > 100) continue;

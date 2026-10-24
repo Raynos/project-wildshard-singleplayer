@@ -42,6 +42,18 @@ test('download evidence retains regressions, denominator growth and missing meas
 });
 
 
+test('bare painted admission rows start the denominator boundary, while module subphases do not', () => {
+  const sample = (step: string, declaredBytes: string) => ({ step, declaredBytes, pendingBytes: '0', downloadPercent: '100' });
+  expect(downloadEvidence([sample('modules', '100'), sample('admission', '200'), sample('world', '250')]))
+    .toMatchObject({ denominatorChangesAfterAdmission: 2 });
+  expect(downloadEvidence([
+    sample('modules', '100'), sample('admission.modules', '150'),
+    sample('admission', '200'), sample('world', '250'),
+  ])).toMatchObject({ denominatorChangesAfterAdmission: 2, downloadDrops: 0, maxPercentError: 0 });
+  expect(downloadEvidence([sample('modules', '100'), sample('admission.modules', '150'), sample('world', '200')]))
+    .toMatchObject({ denominatorChangesAfterAdmission: 0 });
+});
+
 test('the reader refuses to conflate content, cached content and compressed traffic', () => {
   expect(transportEvidence([{ bodyBytes: 10, decodedBodyBytes: 100 }, { bodyBytes: 20, decodedBodyBytes: 20 }])).toMatchObject({
     wireBodyBytes: 30, networkContentBytes: 120, unknownContentResponses: 0, responses: 2 });
