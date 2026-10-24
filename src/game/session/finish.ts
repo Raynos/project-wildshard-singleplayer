@@ -20,6 +20,9 @@ import { registerBeforeReload } from '@wildshard/engine/boot/lastEnd';
 import { gridPrefetchOrder, startGridPrefetch } from '../grid/prefetch';
 import { enterSkyClock } from './clockSettings';
 
+/** how often the in-play warm-up asks whether an arrival's Explorer has closed, and how long it waits for one to open */
+const EXPLORER_POLL_MS = 1000, EXPLORER_OPEN_MS = 30_000;
+
 export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): Promise<BuiltWorld> {
   const { manifest, boot, slug, loading, audioProfile, files, bootSteps, plan, step, audioLoad, deferredAudio, world, game, sky, player, chunk, fragileBoot, failGpuBoot, onBootContextLost, edgeDressing, boundary, water, interactables, props, disableBootGpuGuard, level, animals, arena, crossbow, weapons, lockSys, hud, perf, audio, music, playerHealth, exploring, hands, windupWarn, resuming, arrival, menuFirst, enter, getPlayground, leakPhysics } = ctx;
   const warmGrid = ctx.gridLive?.bootProgramCell !== null && ctx.gridLive?.bootProgramCell !== undefined && ctx.session.ownedGridHome === true;
@@ -134,7 +137,20 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   if (ctx.grid !== null) startGridPrefetch(gridPrefetchOrder(ctx.grid.assembly, player.position));
   // the programs the first frame did not draw, a few a frame in play (the Shaders step built only the drawn ones)
   const levelScope = game.levelScope;
+  // An arrival straight into the Explorer's catalogue walks no world: the cards draw first, and the world's undrawn
+  // programs wait until the Explorer closes. On a software GPU (CI's SwiftShader, no parallel compile) each of them was a
+  // synchronous link inside a frame, and the warm-up held Pine's first card past the smoke's deadline (127 s of 180).
+  const afterExplorer = async (): Promise<void> => {
+    if (arrival?.mode !== 'explore') return;
+    let seen = false;
+    for (let waited = 0; !levelScope.disposed; waited += EXPLORER_POLL_MS) {
+      if (exploring()) seen = true;
+      else if (seen || waited >= EXPLORER_OPEN_MS) return; // closed, or never opened
+      await new Promise<void>((resolve) => { levelScope.timeout(EXPLORER_POLL_MS, resolve); });
+    }
+  };
   const warmRest = async (): Promise<void> => {
+    await afterExplorer();
     try { await precompileLevel(game, undefined, { sliceMs: 6, current: () => !levelScope.disposed }); }
     catch (error: unknown) { if (!levelScope.disposed) console.warn('[shaders] the in-play warm-up stopped:', error); }
   };
