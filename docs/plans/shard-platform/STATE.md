@@ -3,7 +3,7 @@
 **Order (G639):** (1) live reds → (2) NALATI TO ZERO → (3) grid / frame floor. Extras: loading, core memory, TOOLING-PERF,
 Night Market, tile streaming, no-binaries.
 
-**(1) LIVE a4cb1fc8f2 (18:40Z; after the TB1 hold; 9625ae97ec 16:58Z), each after full CI + all six exact smoke
+**(1) LIVE f42d192560 (19:36Z; a4cb1fc8f2 18:40Z), each after full CI + all six exact smoke
 legs; ff45 pin removed (692f9bd22e), hourly newest-CI-green deploys running (sp-x7). Six smoke reds + boot race fixed on the way.
 
 **(2) NALATI 0: every shard at zero, C1-C9 closed, M3 100 %, M2 10/10 (ruler 27dd969127).** R27 done (168a974f29).
@@ -18,16 +18,16 @@ residency, scope/audio/material keepers, raw+splat textures). Quiet Sim settled 
 GCs, p95 48 -> 34. OFFICIAL quiet Sim floor: Jake ACCEPTED it at 13/15 (G687, a3fe576d34 / 9625ae97ec); frame-floor lanes moved to extras (G683).
 Desktop floor PASS: d6c530539b all 9 rows; interior-stop owner 4.0 ms on c2db00b25e (limit 4.17); frames 16.7 p95.
 
-**Memory:** WebKit Sim floors menu ~166, T1 ~310-330 MiB vs M1's 50/100 (FAIL). Same source drifts ~10 MiB between
-cohorts; churn cuts don't move floors (they cut GC, not WebKit's dirty pages). M1's 50 MiB menu is below WebKit's own floor (framework 57 MiB): recommend re-basing
-M1 on menu → T1 growth. Lanes are off memory floors; render targets (49 MiB) parked.
+**Memory (G682 budgets: menu <= 148.5, Template <= 198.5 MiB):** f4465ac4ab menu 165 (+16), select 169 (+21), Template 317
+(+119), Template2 305 (+106). Template: JS 108, page 114, GPU render targets 40.4 (look call, parked), textures 52. Heap census (71b4a96c17): no leak, JS gap is code/JIT/page,
+not retained data; cuts left are < 1 MiB each, so the budgets need a structural call (less code at boot, post-chain RTs) from Jake.
 
 **Tooling:** DW tiles: wire 12.3 → 10.8 MB look-identical;
 pick for Jake: art/driftwood-isle/round-19-tile-lod (3af5687a53) A landed / B / C; only C gets 6,4 + 2,5 under 4 MB.
 
-**For wildshard-v:** G679 recorded 3cb15f3b32; G680 done (678e13894d, be5de70171); G681 and G685 need Opus (Tue); G686 -> sp-x9;
-G687 applied; CF1 -> sp-x2, CF2 + CF5 -> sp-x7, CF3 -> sp-x1 after G682; G683 tile rows: T0 sp-x8, T1 sp-x9, T9 sp-x6, T8/U1 sp-x2.
-Your grep PID 45432 still runs (55+ min, ~100 % CPU) during quiet runs; only you may stop it.
+**For wildshard-v:** G693 done (755f9f3712, 8688e2773a, 75f7b87e96, 964ec42bd2); G694 F1 done dd52fc84ea, F2 sp-x8, F3 sp-x9,
+F4-F5 sp-x2, D1 sp-x6; LD5-LD8 NOT built (your 15:00 correction; nothing legacy landed). G681/G685 wait for Opus. Memory: no leak;
+the budget gap is code/JIT/page + post RTs (structural call). Your grep PID 45432 still at ~100 % CPU.
 
 **Lanes:** Claude weekly 90 %: 0 Opus (sp-o3 stopped, G605); 5 Codex + sp-x7.
 
