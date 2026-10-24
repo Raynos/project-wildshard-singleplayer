@@ -2909,6 +2909,9 @@ bodies. `definition(kind)` returns the declared gameplay fields with a fresh
 rest-body copy, while `look(kind)` resolves the registered rig when requested.
 The ordered `looks` getter follows the authored rows. Pine and Driftwood use
 this product section without installing another body cache.
+`parsePackedCreatureLooks` checks unknown input and owns a detached, deeply frozen
+book. Only that private parsed output can be reused by the hull and packed-body
+readers; raw inputs and copies always run the complete schema again.
 
 `productSpeciesCatalogue(product, data, lookRows)` constructs the admitted behaviour
 and packed look rows in their original order. A species may declare

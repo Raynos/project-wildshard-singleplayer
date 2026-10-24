@@ -22,7 +22,7 @@ import type { SpeciesLook } from "@wildshard/engine/entities/species/look";
 import { NO_FUR } from "@wildshard/engine/entities/species/rigs";
 import { clipAnimate, stepCreatureLift, type SpeciesClips } from "./animation";
 import { numericCreaturePose } from './channelPrograms';
-import { PackedCreatureLooksSchema } from '@wildshard/format/speciesLooks';
+import { parsePackedCreatureLooks } from '@wildshard/format/speciesLooks';
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import type { NpcMotion, NpcRow } from "./quests";
 
@@ -1351,7 +1351,7 @@ export function packedCreatureBodies(input: unknown, decode: (bytes: Uint8Array)
       return loading;
     },
     looks: lookInput => {
-      const book = wholeV.parse(PackedCreatureLooksSchema, lookInput);
+      const book = parsePackedCreatureLooks(lookInput);
       if (new Set(book.rows.map(row => row.id)).size !== book.rows.length || new Set(book.rows.map(row => row.kind)).size !== book.rows.length) throw new Error('Duplicate packed creature look');
       const all = book.rows.map((row): SpeciesLook => {
         const family = row.family ?? row.kind;

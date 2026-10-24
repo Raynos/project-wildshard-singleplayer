@@ -15,7 +15,7 @@ import * as v from 'valibot';
 import { packedCreatureBodies,readBakedGeometry,type BakedGeometryRow } from '../plugin/geometry';
 import { Color, MeshBasicMaterial, SkinnedMesh, type BufferGeometry } from 'three';
 import { productRiggedHulls } from './riggedHulls';
-import { HullLookBookSchema, PackedCreatureLooksSchema, type CompactSpeciesBodiesRows, type LookFrameSchema } from '@wildshard/format/speciesLooks';
+import { HullLookBookSchema, parsePackedCreatureLooks, type CompactSpeciesBodiesRows, type LookFrameSchema } from '@wildshard/format/speciesLooks';
 import type { NativeSpeciesLookBookRows, SpeciesPresentationRows } from '@wildshard/format/speciesBookRows';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import type { EngineRows } from '@wildshard/engine/level/context';
@@ -91,7 +91,7 @@ export class HullLookBook {
    *  geometry of the book's product, read once as the look preloads or on its first frame, one self-lit skinned mesh per
    *  animal, put on once read). `pose` runs one of the rows' programmes over a borrowed rig. Rows only. */
   packedLooks(input: unknown): { readonly all: readonly SpeciesLook[]; get: (kind: string) => SpeciesLook; pose: (id: string, context: AnimalRigContext) => void } {
-    const book = v.parse(PackedCreatureLooksSchema, input), packed = this.packed, base = packed.looks(book);
+    const book = parsePackedCreatureLooks(input), packed = this.packed, base = packed.looks(book);
     const programmes = new Map(Object.entries(book.poses).map(([id, row]) => [id, numericCreaturePose(row)] as const));
     const frames = new Map(Object.entries(book.frames).map(([id, row]) => [id, channelFrame(row)] as const));
     const envelopes = new Map(book.rows.flatMap(row => row.postPose?.envelopes === undefined ? [] : [[row.postPose.alive, row.postPose.envelopes] as const]));

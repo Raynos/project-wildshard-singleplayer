@@ -86,6 +86,24 @@ export const PackedCreatureLooksSchema = v.pipe(v.unknown(), v.check(isJsonData)
       count: v.pipe(number, v.integer(), v.minValue(1)), index: v.literal('u32'), indexCount: v.pipe(number, v.integer(), v.minValue(3)), box: v.boolean() }) })), v.minLength(1), v.maxLength(4))),
   })), v.maxLength(256)),
 }));
+export type PackedCreatureLooksRows = v.InferOutput<typeof PackedCreatureLooksSchema>;
+const parsedLooks = new WeakMap<object, PackedCreatureLooksRows>();
+function freezeLookRows(value: unknown): void {
+  if (typeof value !== 'object' || value === null) return;
+  for (const child of Object.values(value)) freezeLookRows(child);
+  Object.freeze(value);
+}
+/** Share only this parser's detached, deeply frozen output. Raw inputs, including
+ * frozen authored objects and edited previous inputs, always cross the full schema. */
+export function parsePackedCreatureLooks(input: unknown): PackedCreatureLooksRows {
+  const known = typeof input === 'object' && input !== null ? parsedLooks.get(input) : undefined;
+  if (known !== undefined) return known;
+  const rows = v.parse(PackedCreatureLooksSchema, input);
+  freezeLookRows(rows);
+  parsedLooks.set(rows, rows);
+  return rows;
+}
+
 /** A product's creature install (G571): the perch body's poses file, the practice spawn its respawn needs, the packed
  *  and hull-book look kinds in install order, the lent graph bodies each look wears and the population projection. */
 export const CreatureInstallSchema = v.pipe(v.unknown(), v.check(isJsonData), v.strictObject({
