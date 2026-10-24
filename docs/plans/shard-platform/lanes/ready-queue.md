@@ -5,6 +5,16 @@ claims it with a one-line pathspec commit to this file (`<lane> <HH:MM>`), sends
 A brief sent by wildshard-new always wins over this queue. The coordinator keeps at least five open rows per type.
 Every row is decided work (Jake's G-rows); the refs are the brief.
 
+## 10-24 open rows (Jake's picks G679-G682, a2c1e9647b; SW10: one claimable row per live lane)
+
+| # | Task | Refs | Taken |
+|---|---|---|---|
+| G679 | HOST-AUDIT: accept all 114 groups as written (95 keep / 18 fold / 1 retire after legacy deletion) in ONE commit of listings + chargebacks; mark docs/reviews/host-audit-inventory.md read | docs/reviews/host-audit-inventory.md, scripts/platform-chargebacks.mjs | sp-x6 (brief) |
+| G680 | Driftwood tile LOD option B: apply variant-B.patch; tile 6,4 at 4.67 MB gets an exact storage pin | art/driftwood-isle/round-19-tile-lod | sp-x2 (brief) |
+| G681 | Night Market road option B: lower / see-through barrier at open-plot edges, as an open-plot layout row (Codex only if pure data, else waits for Opus) | art/grid/round-60-night-market-road-a, open-plots-mini-plan.md | |
+| G682 | Core memory: measure a hello-world WebKit floor (same Sim, same method) and set budgets menu <= floor + 50 MB, Template <= floor + 100 MB | core-memory-mini-plan.md | |
+| L11 | Loading: section/schema reads use the trusted worker-verified transport (no second page hash), drop runtimeProduct Uint8Array.from | loading-mini-plan.md:675 | sp-x9 |
+
 ## RED-LIVE and loading (Jake's phone, live 64d85dac0, 2026-10-21 07:46)
 
 | # | Task | Refs | Taken |
