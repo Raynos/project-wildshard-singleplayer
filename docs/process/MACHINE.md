@@ -221,6 +221,11 @@ The existing frame-floor reader can also take quiet with `--surface=sim --quiet`
 Only its exact official Sim worker may hold it, after the preview builds; desktop,
 parent orchestration and scratch callers refuse. It releases in worker cleanup,
 with the same ten-minute cap and no measurement or threshold changes.
+For a no-quiet attribution diagnostic, `--webkit-timeline=<existing scratch dir>`
+keeps the bounded raw Inspector timeline, page-clock anchors and hook/frame times
+for each grid drive. It uses no GL timer wrappers or CPU profiler; its timings
+have no frame-floor acceptance credit. Unknown gaps remain unproven when the
+existing timeline coverage or clock checks fail.
 
 Before CPU work, `python3 scripts/sim-quiet.py status` reports the active official
 reading. During it, **read and edit only**: no tests, typechecks, lint, builds,

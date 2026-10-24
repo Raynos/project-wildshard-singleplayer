@@ -14,6 +14,14 @@ test('quiet requires one explicit Simulator surface before any build', () => {
   expect(() => validateFrameFloorArgs(['--quiet=1', '--surface=sim'])).toThrow('Unknown');
 });
 
+test('raw WebKit capture requires an explicit Simulator surface', () => {
+  expect(() => validateFrameFloorArgs(['--surface=sim', '--webkit-timeline=tmp/trace'])).not.toThrow();
+  for (const surface of ['', '--surface=both', '--surface=desktop']) {
+    expect(() => validateFrameFloorArgs([...(surface === '' ? [] : [surface]), '--webkit-timeline=tmp/trace']))
+      .toThrow('require --surface=sim');
+  }
+});
+
 function storage(): Pick<Storage, 'getItem' | 'setItem'> {
   const data = new Map<string, string>();
   return { getItem: key => data.get(key) ?? null, setItem: (key, value) => { data.set(key, value); } };

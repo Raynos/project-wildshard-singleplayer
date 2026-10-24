@@ -2,7 +2,7 @@ const switches = new Set(['help', 'worker', 'quiet', 'devserver', 'gl-time', 'gp
 const values = new Set(['base', 'cpu-profile', 'deadline', 'developer', 'device', 'frames', 'gl-observer', 'gpu-trace',
   'grid-cell', 'grid-cell-pose', 'grid-routes', 'grid-scenario', 'regrade', 'rev', 'rising-islet', 'safari-profile',
   'settle', 'shards', 'surface', 'scratch-dir', 'worker-out', 'device-save', 'expect-system', 'setting', 'output-dir',
-  'textures', 'ktx2-probe', 'serve-shard', 'serve-base', 'standing-poses', 'native-memory']);
+  'textures', 'ktx2-probe', 'serve-shard', 'serve-base', 'standing-poses', 'native-memory', 'webkit-timeline']);
 
 /** Refuse misspelled or incomplete floor commands before a build, browser or Simulator lease is acquired.
  * @param {readonly string[]} args
@@ -17,4 +17,6 @@ export function validateFrameFloorArgs(args) {
     throw new Error('Milestone floor requires --devserver (the complete Developer catalogue includes Nine)');
   if (args.includes('--quiet') && (args.filter(arg => arg.startsWith('--surface=')).length !== 1 || !args.includes('--surface=sim')))
     throw new Error('Quiet frame floors require --surface=sim');
+  if (args.some(arg => arg.startsWith('--webkit-timeline=')) && !args.includes('--surface=sim'))
+    throw new Error('WebKit timelines require --surface=sim');
 }

@@ -9,6 +9,7 @@
 // Owns a clean, pinned HEAD preview, browser/simulator lanes and their cleanup. Exit 2 = floor misses;
 // exit 3 = incomplete measurement. --regrade=<baseline> reapplies current floor policy without rerendering.
 // --surface=sim --quiet: the official worker holds bounded quiet only while reading, after the build.
+// --webkit-timeline=<existing scratch directory>: raw per-drive Inspector records; diagnostic only, no GL timers.
 // Long-frame gate (Jake: 60-120 fps desktop / 30-60 fps Simulator "at all moments"): every row FAILS
 // when a frame exceeds 100 ms desktop / 200 ms Simulator. Whole drives include every build still running
 // after arrival, so a freeze that p95 never sees cannot pass.
@@ -81,6 +82,8 @@ const cpuProfileDir = flag('cpu-profile', '');
 if (cpuProfileDir !== '' && (surface !== 'desktop' || (gridScenario === 'baseline' && shards.includes('grid')) || !existsSync(cpuProfileDir))) throw new Error('--cpu-profile=<existing dir> profiles desktop grid travel legs and standalone standing poses only');
 const safariProfileDir = flag('safari-profile', '');
 if (safariProfileDir !== '' && (surface !== 'sim' || (gridScenario === 'baseline' && shards.includes('grid')) || !existsSync(safariProfileDir))) throw new Error('--safari-profile=<existing dir> samples Simulator standing and whole-drive windows (diagnostic, no timing credit)');
+const webkitTimelineDir = flag('webkit-timeline', '');
+if (webkitTimelineDir !== '' && (surface !== 'sim' || gridScenario === 'baseline' || !existsSync(webkitTimelineDir))) throw new Error('--webkit-timeline=<existing dir> captures Simulator grid drives only (diagnostic, no timing credit)');
 // sp-o3: `--gpu-bisect` measures each grid route's interior again with one post pass, the shadow update or one heavy
 // scene subtree switched off at a time (scripts/frame-floor-gpu-bisect.mjs): a render-shaped standing miss attributed
 // without GPU timer queries, which WebKit lacks. Diagnostic only, no timing credit; the graded interior row is taken first.
@@ -518,6 +521,10 @@ async function measureShard(driver, shard, deadline) {
         const travelTimeline = timeline === undefined ? timelineFailure : timelineLongFrames(timeline, motion.longFrames.at);
         rows.push({ pose: { name: `grid-${plan.name}-travel` }, ...motion, ...assess(motion, surface), ...(travelTimeline === undefined ? {} : { webkitTimeline: travelTimeline }) });
         const hookTimes = await driver.evaluate('window.__wildshard.shard.grid.state().live.runtimeTiming?.completed ?? []');
+        if (webkitTimelineDir !== '') writeFileSync(join(webkitTimelineDir, `${encodeURIComponent(plan.name)}.json`), JSON.stringify({
+          plan, timeline: timeline ?? timelineFailure, frames: whole.value.longFrames.at, hookTimes,
+          sampleRange: whole.value.sampleRange, diagnostic: true,
+        }));
         const { glFrames, ...wholeValue } = whole.value;
         const builds = nodeBuildsByHook(await driver.evaluate('(window.__wildshard.world.game.nodeBuilds?.log ?? []).filter(row => row.at >= window.__frameFloorBuildsFrom)'), hookTimes);
         const driveRow = { pose: { name: `grid-${plan.name}-drive` }, window: 'whole-drive', ...wholeValue, longFrameHooks: longFrameHooks(whole.value.longFrames.at, hookTimes), nodeBuilds: builds,
@@ -804,7 +811,7 @@ async function worker() {
         // the tap's fresh document (same helper page, so the pins stay): reconnect to whatever page the helper path now holds
         followed: async () => { await sleep(1500); await connect(`${base}frame-floor-safari.html`); },
         scriptProfile: safariProfileDir === '' ? null : { start: () => startScriptProfile(inspector) },
-        timeline: glTime ? { start: () => startWebKitTimeline(inspector, (expression) => retryEvaluate(expression)) } : null,
+        timeline: glTime || webkitTimelineDir !== '' ? { start: () => startWebKitTimeline(inspector, (expression) => retryEvaluate(expression)) } : null,
       };
     }
     for (const shard of shards) { lastRoute = null; evaluationOriginDriftMaxMs = 0; rows.push(await measureShard(driver, shard, deadline)); }
@@ -867,6 +874,7 @@ async function main() {
       const out = join(scratch, `frame-floor-${s}-${sha.slice(0, 9)}.json`); temporary.push(out);
       const workerArgs = [SCRIPT, '--worker', ...(devserverBuild ? ['--devserver'] : []), `--surface=${s}`, `--developer=${developer}`, `--standing-poses=${standingPoses.join(',')}`, `--base=${base}`, `--shards=${shards.join(',')}`, `--grid-scenario=${gridScenario}`, ...(gridRoutes.length === 0 ? [] : [`--grid-routes=${gridRoutes.join(',')}`]), ...(gridCell === '' ? [] : [`--grid-cell=${gridCell}`]), ...(roadApproach ? ['--road-approach'] : []), ...(entrySocket ? ['--entry-socket'] : []), ...(risingIslet === '' ? [] : [`--rising-islet=${risingIslet}`]), ...(gridCellPoseArg === '' ? [] : [`--grid-cell-pose=${gridCellPoseArg}`]), `--gl-observer=${glObserver}`, ...(texturesPin === '' ? [] : [`--textures=${texturesPin}`]), ...(ktx2ProbePin === '' ? [] : [`--ktx2-probe=${ktx2ProbePin}`]), ...(glTime ? ['--gl-time'] : []), ...(gpuBisectOn ? ['--gpu-bisect'] : []), ...(frameTimeline ? ['--frame-timeline'] : []), ...(taskClock ? ['--task-clock'] : []), ...(cpuProfileDir === '' ? [] : [`--cpu-profile=${cpuProfileDir}`]), ...(safariProfileDir === '' ? [] : [`--safari-profile=${safariProfileDir}`]), ...(gpuTraceDir === '' ? [] : [`--gpu-trace=${gpuTraceDir}`]), `--frames=${frames}`, `--settle=${settleMs / 1000}`, `--deadline=${start + 600000}`, `--worker-out=${out}`, ...settingArgs, ...deviceSaveArgs, ...systemArgs];
       if (nativeDirectory !== '') workerArgs.push(`--native-memory=${nativeDirectory}`);
+      if (webkitTimelineDir !== '') workerArgs.push(`--webkit-timeline=${webkitTimelineDir}`);
       if (quietSample) workerArgs.push('--quiet');
       const lane = s === 'desktop' ? ['--max', '10', process.execPath, ...workerArgs] : ['run', '--max', '10', device, process.execPath, ...workerArgs];
       await run(join(ROOT, `scripts/${s === 'desktop' ? 'browser' : 'sim'}-lane.sh`), lane, { cwd: quietSample ? ROOT : scratch, echo: true });
@@ -876,7 +884,7 @@ async function main() {
     const complete = results.every((r) => r.rows.every((row) => row.complete));
     const pass = complete && elapsedSeconds < 600 && results.every((r) => r.rows.every((row) => row.pass));
     const record = grade({ schema: 2, sha, runId, device, when: new Date().toISOString(), elapsedSeconds, underTenMinutes: elapsedSeconds < 600,
-      frames, settleMs, standingPoses, shards, surface, developer, quiet: quietSample, ...(publicGrid ? {publicGrid:'public grid as it would ship once GRID_GATES_PASSED flips'} : {}), settings, deviceSaves, expectedSystems, gridScenario, gridRoutes, ...(gridCell === '' ? {} : { gridCell, gridCellPose }), build: devserverBuild ? 'devserver' : 'production', glObserver, travelGlCensus: travelGl !== '', glTime, frameTimeline, gpuBisect: gpuBisectOn, safariProfile: safariProfileDir !== '', harnessRevision: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim(), complete, pass, desktopCap: 'Settings fps=auto: no game cap; display/vsync remains enabled',
+      frames, settleMs, standingPoses, shards, surface, developer, quiet: quietSample, ...(publicGrid ? {publicGrid:'public grid as it would ship once GRID_GATES_PASSED flips'} : {}), settings, deviceSaves, expectedSystems, gridScenario, gridRoutes, ...(gridCell === '' ? {} : { gridCell, gridCellPose }), build: devserverBuild ? 'devserver' : 'production', glObserver, travelGlCensus: travelGl !== '', glTime, frameTimeline, gpuBisect: gpuBisectOn, safariProfile: safariProfileDir !== '', webkitTimeline: webkitTimelineDir !== '', harnessRevision: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim(), complete, pass, desktopCap: 'Settings fps=auto: no game cap; display/vsync remains enabled',
       simulatorCap: `Shipped phone-tier 30 fps cap; Simulator Safari on ${device}`,
       measurement: 'Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.',
       limitations: [standingPoses.length === 0 ? 'Stationary spawn and two heaviest scanned standing parity cameras; this is a baseline, not proof of every gameplay moment.' : 'Stationary spawn and explicitly pinned authored standing cameras; this is a baseline, not proof of every gameplay moment.', 'Simulator readings measure Mac-backed Mobile Safari, not physical iPhone performance.', 'Safari helper HTML adds live harness pins; travel scenarios also install diagnostic WebGL allocation hooks before boot. Travel GL figures are API allocations, not native WebContent memory, and must not be added to the playing model as another claim.'], results });
