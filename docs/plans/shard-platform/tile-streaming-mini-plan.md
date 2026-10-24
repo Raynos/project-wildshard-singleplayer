@@ -246,6 +246,18 @@ browsers and the owned preview are closed; no Sim was used.
 | T10 | Milestone: M1 Simulator recording + soak; delete the whole-shard path when Jake picks; Jake's iPhone check (G558) | — | coordinator | — | Sim < 5 s warm / < 15 s cold; Jake's word | all |
 | T11 | Far landmarks survive the ring: authored landmarks beyond the N×N ring (Pine crag spires, waterfall) draw a coarse stand-in from their LOD / impostor in the coarse ring, evicted only at its edge (found by sp-o1 at 5 × 5, 10-23) | tile residency, landmark LODs | Opus sp-o1 | 0.5–1 d | Pine spawn view at 5 × 5 shows the spires and waterfall | T2 |
 
+**T1 in flight (2026-10-24, sp-x9):** `7941053755` releases hidden touch-verb
+callbacks that kept the retired Far Reach runtime/world/view scopes alive;
+mandatory real-GC coverage passes. The [five-return receipt](../../../progress/shard-platform/tile-streaming/t1-retirement-794.json)
+completed 12 clean route legs and 205 observed tile lifetimes, with no runtime
+errors. Baseline and returns 1/3/4/5 have zero tile/region ghosts; return 2 has
+seven Template tile ghosts and one Driftwood region ghost, gone by return 3.
+Renderer + GPU private footprint remains +36.0/+77.7/+57.0/+65.9/+102.5 MB above
+the warm baseline. The strict zero-ghost and ±20 MB acceptance remains open;
+the next authorized diagnostic records resource/owner/heap counters on the same
+source. No Simulator, physical-device or persistent-holder claim from these
+Chromium counters.
+
 Order: T0 + T1 + T2 at once → T3 (DW) + T4 + T5 = **the first playable slice on Driftwood (SHARD SELECT, then the grid
 home)** → T6, T7 (the memory fix on crossings) → T8 → T9 → T10.
 
