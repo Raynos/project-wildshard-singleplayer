@@ -30,6 +30,7 @@ test('diagnostic snapshots stay detached across lease and coverage changes', () 
   if (parent === null || child === null) throw new Error('Fixture admission failed');
   const initial = ledger.entries(), oldParent = initial.find(row => row.id === 'parent');
   expect(initial.map(row => row.id)).toEqual(['child', 'parent']);
+  expect(ledger.entries()).not.toBe(initial);
   expect(ledger.entries()[0]).toBe(initial[0]);
   const shared = ledger.reserve(claim), unhold = parent.hold();
   parent.update({ needed: false, distance: 30 });

@@ -193,17 +193,19 @@ export class ResidencyAllocator {
    * unchanged rows reuse their frozen snapshot, without retaining departed claims. */
   entries(): readonly ResidencyEntry[] {
     const ordered = this.orderedEntries ??= [...this.entries_.values()].sort((a, b) => a.id.localeCompare(b.id));
-    return ordered.map(entry => {
+    const snapshots: ResidencyEntry[] = [];
+    for (const entry of ordered) {
       const before = this.entrySnapshots.get(entry), accountedBytes = this.effectiveBytes(entry);
       if (before !== undefined && before.bytes === entry.bytes && before.distance === entry.distance
         && before.needed === entry.needed && before.refs === entry.refs && before.holds === entry.holds
-        && before.coveredBy === entry.coveredBy && before.accountedBytes === accountedBytes) return before;
+        && before.coveredBy === entry.coveredBy && before.accountedBytes === accountedBytes) { snapshots.push(before); continue; }
       const snapshot = Object.freeze({ id: entry.id, category: entry.category, bytes: entry.bytes, owner: entry.owner,
         distance: entry.distance, needed: entry.needed, refs: entry.refs, holds: entry.holds, accountedBytes,
         ...(entry.coveredBy === undefined ? {} : { coveredBy: entry.coveredBy }) });
       this.entrySnapshots.set(entry, snapshot);
-      return snapshot;
-    });
+      snapshots.push(snapshot);
+    }
+    return snapshots;
   }
 
   /** SF57 / G258: mark a live sim claim as a reviewed measured whole-page reading or matched pre-entry runtime
