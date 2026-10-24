@@ -5220,7 +5220,9 @@ compiles keep their synchronous contract without retaining mesh/texture/Wasm
 inputs. That JSON subset and commons remain resident and charged.
 `preparationAdmission` keeps cached regional metadata page-owned; prefetch ends
 its input borrow, and every world creation (including re-entry) reacquires
-verified inputs before synchronous consumers. A cancelled in-flight build
+verified inputs before synchronous consumers. Metadata preparation never creates,
+replaces or cancels a regional durability owner: same-cell prefetch can overlap
+a world construction, and only that world registers and retires its save ports. A cancelled in-flight build
 keeps its inputs until it settles, disposes any unpublished world, then releases
 the borrow. Active regional worlds retain inputs through their original
 retirement boundary. Decoder releases cannot shrink the product charge while

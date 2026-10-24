@@ -57,7 +57,7 @@ import { installGridHoverSpeed, installGridTravellerCombat } from './rules';
 import { gridHomeSim, gridCells, type GridHomeSimulation, prepareTrustedRuntime, manifestRuntimeEntry, type TrustedRuntimeEntry } from '../plugin/context';
 import { findShard } from '../shard/registry';
 import { gridPostCosts, gridShardfileProduct, prioritizeGridProduct } from './products';
-import { preparationAdmission } from './preparationAdmission';
+import { preparationAdmission, type GridAdmissionMetadata } from './preparationAdmission';
 import { gridPostPairRefusal } from './postPairs';
 import { postStackCost } from '@wildshard/format/postStack';
 import { gridRecovery, type GridRecoveryReason, type GridRecoveryRecord } from './recovery';
@@ -594,10 +594,12 @@ export class LiveGridSession {
 
   /** Shardfile cells admit a bodyless regional host with their strip duplicates; every other cell waits for M3. */
   private admit(cell: GridCell): Promise<LiveGridAdmission> {
-    return preparationAdmission(metadata => this.prepareAdmission(cell, metadata));
+    return preparationAdmission(() => this.prepareAdmission(cell, true), () => this.prepareAdmission(cell, false));
   }
 
-  private async prepareAdmission(cell: GridCell, metadata: boolean): Promise<LiveGridAdmission> {
+  private prepareAdmission(cell: GridCell, metadata: true): Promise<GridAdmissionMetadata>;
+  private prepareAdmission(cell: GridCell, metadata: false): Promise<LiveGridAdmission>;
+  private async prepareAdmission(cell: GridCell, metadata: boolean): Promise<GridAdmissionMetadata | LiveGridAdmission> {
     const pending = gridShardfileProduct(cell.slug, { allocator: this.ports.allocator, scope: this.ports.scope });
     if (pending === null) throw new GridCellWaitingError(`${cell.slug} is not a shardfile shard (it stays a far proxy until M3)`);
     const product = await pending;
@@ -606,7 +608,7 @@ export class LiveGridSession {
       catch (error) { console.warn('[grid] metadata input release:', error); }
     };
     const retained = metadata ? { ...product, release: () => { void releaseInputs(); } } : product;
-    const finish = (admission: LiveGridAdmission): LiveGridAdmission => {
+    const finish = <T extends GridAdmissionMetadata>(admission: T): T => {
       // The cached admission still holds source/JSON metadata; only its input
       // borrow ends at prefetch. Keep that metadata's original charge page-owned.
       if (metadata) this.ports.scope.onDispose(product.release);
@@ -622,7 +624,11 @@ export class LiveGridSession {
       const pair = gridPostPairRefusal(this.ports.assembly, cell, own, (slug) => costs.get(slug));
       if (pair !== null) throw new Error(pair);
     }
-    if (source.runtime !== null || hasDeclaredClientPage(source)) return finish(await this.admitRuntime(cell, retained));
+    if (source.runtime !== null || hasDeclaredClientPage(source)) {
+      return finish(await (metadata ? this.admitRuntime(cell, retained, true) : this.admitRuntime(cell, retained, false)));
+    }
+    const bytes = regionalDataCellBytes(cell.slug, source, findShard(cell.slug));
+    if (metadata) return finish({ bytes, reloadsCheckpoint: true, cancel: retained.release });
     let durability = this.durability.get(cell.instance);
     if (durability === undefined) {
       durability = new GridRegionDurability(this.page.saves, { id: cell.instance, shard: cell.slug }, source, this.page.catalogue);
@@ -641,7 +647,6 @@ export class LiveGridSession {
     const scriptPorts = notices === undefined ? {} : { scriptDisabled: scriptDisabledNotice(notices) };
     // Four native creature-only walls and their shape/query adapters belong to this regional claim.
     // SF57: a reviewed per-sim reading (the generated ground and backstop inside it) replaces the declared ceiling
-    const bytes = regionalDataCellBytes(cell.slug, source, findShard(cell.slug));
     const build = (saved: Parameters<LiveGridAdmission['create']>[0]): ReturnType<LiveGridAdmission['create']> => {
       const prepared = prepareShardfileSimRestore(copySource, assets, { sections: outputDescriptor(source)?.sections, rapier, playerBody: false, quest, groundResolution, ...scriptPorts }), sim = prepared.simulation;
       let releaseBasis: () => void = () => undefined;
@@ -704,7 +709,7 @@ export class LiveGridSession {
         throw error;
       }
     };
-    return finish({ bytes, reloadsCheckpoint: true, cancel: releaseProduct, create: async (saved) => {
+    return finish({ bytes, reloadsCheckpoint: true, cancel: releaseProduct, create: async (saved: Parameters<LiveGridAdmission['create']>[0]) => {
       // SF88e: each declared script module's WebAssembly.Memory is a synchronous full GC on iOS JSC (40-80 ms each);
       // lease them one drawn frame apart under the owner the script host installs in, so entry draws no 250 ms frame
       const owner = constructionOwner() ?? currentOwner();
@@ -717,7 +722,9 @@ export class LiveGridSession {
     } catch (error) { try { releaseProduct(); } finally { product.release(); } throw error; }
   }
 
-  private async admitRuntime(cell: GridCell, retained: Awaited<NonNullable<ReturnType<typeof gridShardfileProduct>>>): Promise<LiveGridAdmission> {
+  private admitRuntime(cell: GridCell, retained: Awaited<NonNullable<ReturnType<typeof gridShardfileProduct>>>, metadata: true): Promise<GridAdmissionMetadata>;
+  private admitRuntime(cell: GridCell, retained: Awaited<NonNullable<ReturnType<typeof gridShardfileProduct>>>, metadata: false): Promise<LiveGridAdmission>;
+  private async admitRuntime(cell: GridCell, retained: Awaited<NonNullable<ReturnType<typeof gridShardfileProduct>>>, metadata: boolean): Promise<GridAdmissionMetadata | LiveGridAdmission> {
     const manifest = findShard(cell.slug), declaration = retained.admitted.source.runtime;
     const dataPage = hasDeclaredClientPage(retained.admitted.source);
     if (manifest === undefined || !dataPage && (declaration === null || 'entry' in declaration && manifest.trustedRuntime === undefined)) throw new GridCellWaitingError('Missing declared regional page owner');
@@ -739,6 +746,7 @@ export class LiveGridSession {
       if (!this.runtimeEntries.some(row => { const { slug: registeredIdentity } = row; return registeredIdentity === identity && row.entry === entry.entry; })) this.runtimeEntries.push(entry);
     };
     await prepareEntry();
+    if (metadata) return { bytes, exclusiveRuntime: true, reloadsCheckpoint: true, cancel: retained.release, prepareRuntime: prepareEntry };
     const saved = new GridRegionDurability(this.page.saves, { id: cell.instance, shard: cell.slug }, retained.admitted.source, this.page.catalogue);
     this.durability.set(cell.instance, saved);
     let closed = false;

@@ -1,8 +1,11 @@
 import type { LiveGridAdmission } from './live';
 
+/** Prefetch has no world constructor and owns no regional durability registration. */
+export type GridAdmissionMetadata = Pick<LiveGridAdmission, 'bytes' | 'exclusiveRuntime' | 'reloadsCheckpoint' | 'prepareRuntime' | 'cancel'>;
+
 /** Cached admission keeps metadata only; every world, including re-entry, borrows verified preparation inputs anew. */
-export async function preparationAdmission(prepare: (metadata: boolean) => Promise<LiveGridAdmission>): Promise<LiveGridAdmission> {
-  const first = await prepare(true);
+export async function preparationAdmission(metadata: () => Promise<GridAdmissionMetadata>, prepare: () => Promise<LiveGridAdmission>): Promise<LiveGridAdmission> {
+  const first = await metadata();
   first.cancel?.();
   let generation = 0;
   return {
@@ -15,7 +18,7 @@ export async function preparationAdmission(prepare: (metadata: boolean) => Promi
       const current = generation;
       const cancelled = (): boolean => current !== generation || signal?.aborted === true;
       if (cancelled()) throw new Error('Regional preparation cancelled');
-      const admission = await prepare(false);
+      const admission = await prepare();
       try {
         if (cancelled()) throw new Error('Regional preparation cancelled');
         const region = await admission.create(saved, claim, signal);

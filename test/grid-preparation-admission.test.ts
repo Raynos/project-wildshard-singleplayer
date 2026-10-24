@@ -4,6 +4,9 @@ import type { LiveGridAdmission, LiveGridRegion } from '../src/game/grid/live';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { legacyDouble } from './fake/FakeGame';
 import type { SimHost } from '@wildshard/engine/sim';
+import { GridCrossing } from '../src/game/grid/crossing';
+
+function prepareFixture(prepare: () => Promise<LiveGridAdmission>) { return preparationAdmission(prepare, prepare); }
 
 function region(dispose: () => void): LiveGridRegion { return { host: legacyDouble<SimHost>({}), dispose }; }
 
@@ -29,7 +32,7 @@ test('prefetch releases its input lease and cached admission reacquires on every
         return Promise.resolve(region(cancel));
       } });
   };
-  const admitted = await preparationAdmission(prepare), lease = claim();
+  const admitted = await preparationAdmission(() => prepare(true), () => prepare(false)), lease = claim();
   try {
     expect(events).toEqual(['acquire:1', 'release:1']);
     expect(admitted.bytes).toBe(42); expect(admitted.reloadsCheckpoint).toBe(true); expect(admitted.exclusiveRuntime).toBe(true);
@@ -43,7 +46,7 @@ test('prefetch releases its input lease and cached admission reacquires on every
 
 test('failed verified reacquisition never starts a world', async () => {
   const create = vi.fn<LiveGridAdmission['create']>(), cancel = vi.fn<() => void>(); let calls = 0;
-  const admitted = await preparationAdmission(() => {
+  const admitted = await prepareFixture(() => {
     if (++calls > 1) return Promise.reject(new Error('hash mismatch'));
     return Promise.resolve({ bytes: 1, cancel, create });
   });
@@ -55,7 +58,7 @@ test('failed verified reacquisition never starts a world', async () => {
 test('cancellation during reacquisition releases the fresh lease without constructing', async () => {
   let resume: ((value: LiveGridAdmission) => void) | undefined;
   const cancel = vi.fn<() => void>(), create = vi.fn<LiveGridAdmission['create']>(); let calls = 0;
-  const admitted = await preparationAdmission(() => ++calls === 1 ? Promise.resolve({ bytes: 1, create }) : new Promise<LiveGridAdmission>(resolve => { resume = resolve; }));
+  const admitted = await prepareFixture(() => ++calls === 1 ? Promise.resolve({ bytes: 1, create }) : new Promise<LiveGridAdmission>(resolve => { resume = resolve; }));
   const lease = claim();
   try {
     const pending = admitted.create(undefined, lease); admitted.cancel?.();
@@ -67,7 +70,7 @@ test('cancellation during reacquisition releases the fresh lease without constru
 test('cancellation keeps inputs pinned until a running build settles, then disposes the unpublished world', async () => {
   let finish: ((value: LiveGridRegion) => void) | undefined;
   const cancel = vi.fn<() => void>(), dispose = vi.fn<() => void>(); let calls = 0;
-  const admitted = await preparationAdmission(() => Promise.resolve({ bytes: 1, cancel: ++calls === 1 ? () => undefined : cancel,
+  const admitted = await prepareFixture(() => Promise.resolve({ bytes: 1, cancel: ++calls === 1 ? () => undefined : cancel,
     create: () => new Promise<LiveGridRegion>(resolve => { finish = resolve; }) }));
   const lease = claim();
   try {
@@ -75,5 +78,38 @@ test('cancellation keeps inputs pinned until a running build settles, then dispo
     admitted.cancel?.(); expect(cancel).not.toHaveBeenCalled();
     if (finish === undefined) throw new Error('Missing build gate'); finish(region(dispose));
     await expect(pending).rejects.toThrow('cancelled'); expect(dispose).toHaveBeenCalledOnce(); expect(cancel).toHaveBeenCalledOnce();
+  } finally { lease.release(); }
+});
+
+test('same-cell metadata prefetch during construction preserves the checkpoint owner at departure', async () => {
+  const owners = new Map<string, object>(), owner = {}, id = 'template-2';
+  let finish: ((value: LiveGridRegion) => void) | undefined;
+  const releaseInput = vi.fn<() => void>(), metadata = vi.fn(() => Promise.resolve({ bytes: 1, cancel: releaseInput }));
+  const prepareWorld = vi.fn((): Promise<LiveGridAdmission> => {
+    owners.set(id, owner);
+    return Promise.resolve({ bytes: 1, cancel: () => { if (owners.get(id) === owner) owners.delete(id); },
+      create: () => new Promise<LiveGridRegion>(resolve => { finish = resolve; }) });
+  });
+  const admitted = await preparationAdmission(metadata, prepareWorld), lease = claim();
+  try {
+    expect(prepareWorld).not.toHaveBeenCalled();
+    const building = admitted.create(undefined, lease); await Promise.resolve(); await Promise.resolve();
+    expect(owners.get(id)).toBe(owner);
+    // LiveGridHost drops its product entry before awaiting create; radial
+    // prefetch may therefore prepare the same cell while this world is pending.
+    await preparationAdmission(metadata, prepareWorld);
+    expect(prepareWorld).toHaveBeenCalledOnce(); expect(owners.get(id)).toBe(owner);
+    if (finish === undefined) throw new Error('Missing world construction gate');
+    finish(region(() => { owners.delete(id); })); const world = await building;
+    const checkpoint = (): boolean => {
+      if (!owners.has(id)) throw new Error('Regional durability was not admitted');
+      return true;
+    };
+    const crossing = new GridCrossing(id, { prepare: () => Promise.resolve({ commit: () => undefined, cancel: () => undefined }),
+      ready: () => true, checkpoint, stow: () => undefined, interior: () => undefined, changed: () => undefined });
+    try {
+      crossing.request(null); await Promise.resolve(); await Promise.resolve();
+      expect(checkpoint()).toBe(true); expect(crossing.step(false)).toBe(true); expect(crossing.state().phase).toBe('settled');
+    } finally { crossing.dispose(); world.dispose(); }
   } finally { lease.release(); }
 });
