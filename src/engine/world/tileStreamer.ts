@@ -178,6 +178,14 @@ type State = 'fetching' | 'queued' | 'uploaded';
 interface Slot<D> { tile: RingTile; readonly parent: string | null; state: State; lease: TileStreamLease; unholdParent: () => void; view: RingView | null; data: D | null; bytes: number; distance: number; masked: string; shadow: boolean }
 
 interface ReleaseRow<D> { slot: Slot<D> | undefined; distance: number }
+interface TileDistance { tile: RingTile; d: number }
+interface DesiredWork { readonly l0Rows: TileDistance[]; readonly l1Rows: TileDistance[]; readonly l0: TileDistance[]; readonly l1: TileDistance[] }
+function rankTile(rows: TileDistance[], index: number, tile: RingTile, distance: number): TileDistance {
+  let row = rows[index];
+  if (row === undefined) { row = { tile, d: distance }; rows.push(row); }
+  else { row.tile = tile; row.d = distance; }
+  return row;
+}
 
 function key(instance: string, level: RingLevel, x: number, z: number): string { return level === 'far' ? `${instance}:far` : `${instance}:${level}/${x}/${z}`; }
 /** Distance from a cell-local point to a tile's square (0 inside). */
@@ -197,6 +205,7 @@ function parentOf(tile: { instance: string; level: RingLevel; x: number; z: numb
 export class TileStreamer<D> {
   private readonly slots = new Map<string, Slot<D>>();
   private readonly releaseWork: { rows: ReleaseRow<D>[]; order: ReleaseRow<D>[] }[] = [];
+  private readonly desiredWork: DesiredWork[] = [];
   private readonly pins = new Map<string, { readonly tile: RingTile; refs: number }>();
   private readonly requirements = new Set<Requirement>();
   private readonly fullRings = new Map<string, { radius: number; x: number | null; z: number | null }>();
@@ -362,6 +371,7 @@ export class TileStreamer<D> {
     if (this.disposed) return; this.disposed = true;
     for (const requirement of this.requirements) this.unpin(requirement, new Error('Tile streamer disposed'));
     this.fullRings.clear();
+    this.desiredWork.length = 0;
     for (const cell of this.cells) this.tilePlans.delete(cell);
     const order = [...this.slots.values()].sort((a, b) => LEVEL_RANK[b.tile.level] - LEVEL_RANK[a.tile.level]);
     const errors: unknown[] = [];
@@ -403,6 +413,16 @@ export class TileStreamer<D> {
 
   /** The wanted tiles with their distances, parents included. */
   private desired(camera: RingCamera, fullCentre: { readonly x: number; readonly z: number }): Map<string, { tile: RingTile; distance: number }> {
+    const work = this.desiredWork.pop() ?? { l0Rows: [], l1Rows: [], l0: [], l1: [] };
+    try { return this.planDesired(camera, fullCentre, work); }
+    finally {
+      // Catalogue callbacks may nest or throw. Never lend an active workspace,
+      // retain its ordering arrays, or recycle it after disposal.
+      work.l0.length = 0; work.l1.length = 0;
+      if (!this.disposed) this.desiredWork.push(work);
+    }
+  }
+  private planDesired(camera: RingCamera, fullCentre: { readonly x: number; readonly z: number }, work: DesiredWork): Map<string, { tile: RingTile; distance: number }> {
     const want = new Map<string, { tile: RingTile; distance: number }>();
     const add = (tile: RingTile, distance: number): void => { if (this.bytes(tile.instance, tile.level, tile.x, tile.z) !== null && !want.has(tile.key)) want.set(tile.key, { tile, distance }); };
     const cellDistance = (cell: LayoutCell): number => rectDistance(camera.x - cell.origin.x, camera.z - cell.origin.z, 'far', 0, 0, cell);
@@ -423,12 +443,12 @@ export class TileStreamer<D> {
       for (let z = 0; z < cell.rows.l1; z++) for (let x = 0; x < cell.columns.l1; x++) add(this.tile(cell.instance, 'l1', x, z), rectDistance(camera.x - cell.origin.x, camera.z - cell.origin.z, 'l1', x, z, cell));
     }
     this.farPlanned = { budget: this.farBudget(), charged: farBytes, wanted, omitted };
-    const l1: { tile: RingTile; d: number }[] = [], l0: { tile: RingTile; d: number }[] = [];
+    const { l1, l0 } = work;
     for (const { cell, d } of ranked) {
       if (d > L1_RADIUS) continue;
       const lx = camera.x - cell.origin.x, lz = camera.z - cell.origin.z;
-      for (let z = 0; z < cell.rows.l1; z++) for (let x = 0; x < cell.columns.l1; x++) { const td = rectDistance(lx, lz, 'l1', x, z, cell); if (td <= L1_RADIUS) l1.push({ tile: this.tile(cell.instance, 'l1', x, z), d: td }); }
-      if (!this.fullRings.has(cell.instance)) for (let z = 0; z < cell.rows.l0; z++) for (let x = 0; x < cell.columns.l0; x++) { const td = rectDistance(lx, lz, 'l0', x, z, cell); if (td <= L0_RADIUS) l0.push({ tile: this.tile(cell.instance, 'l0', x, z), d: td }); }
+      for (let z = 0; z < cell.rows.l1; z++) for (let x = 0; x < cell.columns.l1; x++) { const td = rectDistance(lx, lz, 'l1', x, z, cell); if (td <= L1_RADIUS) l1.push(rankTile(work.l1Rows, l1.length, this.tile(cell.instance, 'l1', x, z), td)); }
+      if (!this.fullRings.has(cell.instance)) for (let z = 0; z < cell.rows.l0; z++) for (let x = 0; x < cell.columns.l0; x++) { const td = rectDistance(lx, lz, 'l0', x, z, cell); if (td <= L0_RADIUS) l0.push(rankTile(work.l0Rows, l0.length, this.tile(cell.instance, 'l0', x, z), td)); }
     }
     const order = (a: { tile: RingTile; d: number }, b: { tile: RingTile; d: number }): number => a.d - b.d || a.tile.key.localeCompare(b.tile.key);
     l0.sort(order); l1.sort(order);

@@ -191,3 +191,40 @@ test('required zero keys retain the original Set coordinate canonicalization', a
     positive.release();
   } finally { streamer.dispose(); }
 });
+
+test.each([
+  { action: 'nested', digest: '0af03ed23942915d7ab190502c0c4e3a6192a70cdb9d0bebbfbfc4f80f8c016c' },
+  { action: 'throw', digest: '390f141d7dcab30fafb01a5e0df698c641a7656f810412e51231af9bbe6e26fa' },
+] as const)('catalogue $action preserves the original planning trace', ({ action, digest }) => {
+  // Both digests come from the prior scheduler: masks, native claims, request
+  // order and the next successful plan remain part of the oracle.
+  const allocator = new ResidencyAllocator(), events: string[] = [], rows: unknown[] = [];
+  let armed = false, runNested = (): void => undefined;
+  const cells = [{ instance: 'west', origin: { x: 0, z: 0 } }, { instance: 'east', origin: { x: 555, z: 0 } }];
+  const ports: RingPorts<string> = {
+    fetch: (tile, done) => { events.push(`fetch:${tile.key}`); done(tile.key); },
+    upload: tile => { events.push(`upload:${tile.key}`); return {
+      mask: excluded => { events.push(`mask:${tile.key}:${[...excluded].join(',')}`); }, shadow: () => undefined,
+      dispose: () => { events.push(`dispose:${tile.key}`); },
+    }; },
+    cancel: tile => { events.push(`cancel:${tile.key}`); },
+  };
+  const streamer = new TileStreamer(cells, { reserve: claim => allocator.reserve(claim), now: () => 0 }, (_instance, level) => {
+    if (armed && level === 'l1') { armed = false; if (action === 'throw') throw new Error('Catalogue failed'); runNested(); }
+    return level === 'far' ? 8000 : level === 'l1' ? 2000 : 1000;
+  }, ports);
+  runNested = () => { streamer.step({ x: 555, z: 0, vx: 0, vz: 0 }); };
+  try {
+    for (let frame = 0; frame < 16; frame++) {
+      if (frame === 3) armed = true;
+      try { streamer.step({ x: frame * 17, z: frame % 2 === 1 ? 11 : -11, vx: 17, vz: 0 }); }
+      catch (error) {
+        if (action !== 'throw' || !(error instanceof Error) || error.message !== 'Catalogue failed') throw error;
+        events.push('caught');
+      }
+      rows.push({ resident: streamer.resident(), stats: streamer.stats(), claims: allocator.entries(), events: events.splice(0) });
+    }
+    expect(hashImmutableBytes(new TextEncoder().encode(JSON.stringify(rows)))).toBe(digest);
+  } finally { streamer.dispose(); }
+  expect(allocator.entries()).toEqual([]);
+});
