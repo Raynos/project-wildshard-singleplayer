@@ -14,6 +14,7 @@ interface NativePastureFields { readonly n: number; readonly alive: number; read
 const pastureFinite = v.pipe(v.number(), v.finite()), pastureCount = v.pipe(pastureFinite, v.integer(), v.minValue(0));
 const PastureState = v.object({ raidT: pastureFinite, pendingT: pastureFinite, raiding: v.picklist([0, 1]), raids: pastureCount, taken: pastureCount, drivenOff: pastureCount,
   cracks: pastureCount, cracksNow: pastureCount, spawned: v.pipe(pastureCount, v.maxValue(2)), crackCd: pastureFinite, restT: pastureFinite, patrolA: pastureFinite });
+const PasturePatch = v.partial(PastureState);
 const pastureIndexSchema = v.pipe(pastureFinite, v.integer(), v.minValue(-1));
 const PastureSaved = v.strictObject({ version: v.literal(3), state: PastureState, elapsed: v.pipe(pastureFinite, v.minValue(0), v.maxValue(.1)), pack: pastureIndexSchema, raiders: pastureIndexSchema, prey: pastureIndexSchema });
 
@@ -44,7 +45,7 @@ export class NativePastureRaid<A extends AnimalSim, P extends NativeRaidPackPoli
   get cracks(): number { return this.state.cracks; }
   private project(signal: string, observations: Readonly<Record<string, number>>): Readonly<Record<string, number>> {
     const result = this.program.project(signal, { ...this.state, ...observations }, this.random);
-    Object.assign(this.state, v.parse(v.partial(PastureState), result)); return result;
+    Object.assign(this.state, v.parse(PasturePatch, result)); return result;
   }
   start(force = false, player = this.player): boolean {
     const f = this.flock, plan = this.project('raidStart', { force: Number(force), blocked: Number(this.blocked),
