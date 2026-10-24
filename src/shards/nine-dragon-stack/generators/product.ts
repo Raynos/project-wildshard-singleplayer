@@ -11,7 +11,7 @@ import { ND_AUDIO } from './audio';
 import NINE_MODES from '../data/modes.json' with { type: 'json' };
 import NINE_DRAGON_RUNTIME_COST from '../data/runtimeCost.json' with { type: 'json' };
 import { emptyShardfile } from '@wildshard/sdk/author';
-import { parseShardfile } from '@wildshard/sdk/shardfile';
+import { parseShardfile, type Shardfile } from '@wildshard/sdk/shardfile';
 import NINE_ITEMS from '../data/items.json' with { type: 'json' };
 import ledgerRows from '../data/ledger.json' with { type: 'json' };
 import { parseLedgerRules } from '@wildshard/sdk/ledger';
@@ -33,16 +33,17 @@ const portalEntries = portalEntryRows(), portalFloors = portalFloorRows();
 // road portal on its deck, the square's arrival, the square's exit bound back to that road, and the walked route between
 // (world/portalPlan.ts `portalLinks`). The floors they bind are this file's `props.colliders` (the generated portal-floor rows: each whole deck, `deck.<edge>`, and the square's slab, `square`), the very boxes the trusted runtime
 // installs under those ids (world/install.ts), so its ride (world/portalRide.ts) is the format's checked transfer.
+/** Assemble the declaration from this build's fixed-page view contract. */
+export function nineProduct(movers: { readonly pages: number } = moversModule): Shardfile {
 const base = emptyShardfile({ slug: 'nine-dragon-stack', name: 'Nine Dragon Stack', author: 'Wildshard', revision: 1, seed: 0x9d2a });
 const library = new Set([...world.shardfile.library, ...heldGraphFiles.library]), charged = [...world.shardfile.files.filter(file => library.has(file.hash)), ...heldGraphFiles.files];
 const courseBytes=courseProgram.compiled.bytes, courseMemory=courseBytes+courseProgram.script.pages*65536*2;
 const navigationResident = navigation.files.reduce((sum, file) => sum + file.decoded, 0);
 // the movers view module's memory (behaviour/movers.as, its pages twice: the client lane's image and its rewind copy)
-const viewMemory = moversModule.pages * 65536 * 2;
+const viewMemory = movers.pages * 65536 * 2;
 const budgets = { ...base.budgets, sim: { resident: navigationResident+courseMemory, compressed: navigation.files.reduce((sum, file) => sum + file.compressed, 0)+courseBytes }, library: { compressed: charged.reduce((sum, file) => sum + file.compressed, 0), resident: charged.reduce((sum, file) => sum + file.decoded + file.gpu, 0) + viewMemory } };
 // parseShardfile admits each link against the format's PortalLink schema (strict nodes, bound links, the walked route)
-// oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
-export default parseShardfile({ ...base, plumbing, budgets, navigation: navigation.navigation, critical: navigation.critical,
+return parseShardfile({ ...base, plumbing, budgets, navigation: navigation.navigation, critical: navigation.critical,
   serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + navigationResident+courseMemory },
   files: [...world.shardfile.files, ...navigation.files, ...heldGraphFiles.files].sort((a, b) => a.hash.localeCompare(b.hash)), tiles: world.shardfile.tiles, library: [...library],
   accent: 'iris', runtime: { kind: 'client-plan', binds: ['props', 'items', 'ledger', 'modes'], cost: NINE_DRAGON_RUNTIME_COST }, audio: ND_AUDIO, modes: NINE_MODES, items: NINE_ITEMS, ledger: NINE_LEDGER, spawn: { x: 0.95, y: 125, z: 7.5, yaw: -12 * (Math.PI / 180) },
@@ -50,3 +51,7 @@ export default parseShardfile({ ...base, plumbing, budgets, navigation: navigati
   // the look.materials graphs (data/lookGraphs.json: the sky, the Well's silk sheets, the steam), lent by plugin.ts
   look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries({ ...lookGraphs, ...presentationGraphs, ...architectureGraphs(), 'nine-streaks': streakGraph(), 'nine-halo': haloGraph(), 'nine-filament': filamentGraph(), ...burstGraphs() }).map(([id, graph]) => [id, { family: 'graph' as const, graph }])), ...heldGraphFiles.materials } },
   props: { ...world.props, wholeLibrary: world.shardfile.library, colliders: portalFloors } });
+}
+
+// oxlint-disable-next-line import/no-default-export -- Retained adapter until the source entry supplies its build inputs.
+export default nineProduct();
