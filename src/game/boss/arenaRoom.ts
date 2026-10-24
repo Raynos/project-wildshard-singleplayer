@@ -38,6 +38,7 @@ import { parsePrivateScene } from '@wildshard/format/clientChannels';
 import { Rng } from '@wildshard/engine/core/rng';
 import { macrotask } from '@wildshard/engine/boot/plan';
 import { buildYield } from '@wildshard/engine/core/workSlice';
+import { gpuOnlyAttributes } from '@wildshard/engine/core/gpuOnly';
 import { listenPage } from '@wildshard/engine/input/dom';
 import type { ArenaScriptData,ArenaScriptRows,ArenaScriptFightFile } from '@wildshard/format/arenaScriptRows';
 import type { TargetAnimal, TargetHit } from '@wildshard/engine/combat/types';
@@ -1186,7 +1187,13 @@ export function buildArenaRoomEncounter(ctx:ShardContext|{readonly kind:'open';r
   if (draws===undefined||!draws.ready) throw new Error('Arena build requires its loaded fixed draws');
   const handles = arenaRoomGeometryIds(room).map(id => [id, draws.handle(id)] as const);
   const geometry = new Map(handles.map(([id, handle]) => [id, handle.copy()]));
-  return new ArenaRoomEncounter(new BossArenaRoom(room,geometry),encounter,entrance).buildSliced({ scene: world.game.scene,registry: ctx.app.registry });
+  const dungeon = new BossArenaRoom(room,geometry);
+  const sand = parsePrivateScene(dungeon.rows.view.scene).nodes.find(node => node.id === dungeon.rows.sand);
+  if (sand?.kind !== 'mesh') throw new Error('Missing chamber sand geometry');
+  // These are private draw copies, never the rebuild templates. Sand rewrites
+  // positions/colours; the other shapes only move or change material uniforms.
+  for (const [id, shape] of geometry) if (id !== sand.geometry) gpuOnlyAttributes(shape, 'arena.room');
+  return new ArenaRoomEncounter(dungeon,encounter,entrance).buildSliced({ scene: world.game.scene,registry: ctx.app.registry });
 }
 
 async function buildOpenArenaEncounter(ports: {readonly scope:Scope;readonly weatherContext?:ShardContext;readonly context:Pick<ModelContext,'sky'>}, stage:{readonly id:string;readonly files:{readonly fight:string;readonly geometry:string};readonly weather:string;readonly anchor:string}):Promise<ArenaRoomEncounter> {
