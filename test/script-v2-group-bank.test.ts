@@ -354,3 +354,90 @@ test('discard during a setter getter cannot lend the in-progress acceptance pair
     expect(ready.values['value']).toBe(11);expect(() => ready.accept()).toThrow('Retired');
   } finally { scope.dispose(); }
 });
+
+test('repeated scalar validation checks changed words and current reference authority', () => {
+  const codec = new GroupBankV2([
+    { name: 'bounded', kind: 'number', integer: true, min: 0, max: 10 },
+    { name: 'flag', kind: 'boolean' },
+    { name: 'phase', kind: 'enum', values: ['rest', 'go'] },
+    { name: 'owner', kind: 'reference', own: true },
+    { name: 'free', kind: 'number' },
+  ]);
+  const input = { bounded: 2, flag: true, phase: 'go', owner: 'body:0', free: -0 };
+  const bank = codec.encode(input, 'first', roster);
+  for (let visit = 0; visit < 3; visit++) codec.validate(bank, 'first', roster);
+  const invalid: readonly (readonly [number, number])[] = [
+    [0, .5], [0, 11], [1, 2], [2, -1], [2, 2], [3, 99],
+    [4, Number.NaN], [4, Infinity], [4, -Infinity],
+  ];
+  for (const [offset, value] of invalid) {
+    const previous = bank[offset];
+    if (previous === undefined) throw new Error('Missing scalar word');
+    bank[offset] = value;
+    expect(() => codec.validate(bank, 'first', roster)).toThrow();
+    bank[offset] = previous;
+    codec.validate(bank, 'first', roster);
+  }
+  const foreign = structuredClone(roster);
+  const first = foreign[0];
+  if (first === undefined) throw new Error('Missing reference');
+  first.group = 'foreign';
+  expect(() => codec.validate(bank, 'first', foreign)).toThrow('reference');
+  codec.validate(bank, 'first', roster);
+  const one = codec.decode(bank, 'first', roster), two = codec.decode(bank, 'first', roster);
+  expect(one).toStrictEqual(input);
+  expect(two).toStrictEqual(input);
+  expect(one).not.toBe(two);
+  expect(Object.isFrozen(one)).toBe(true);
+  expect(Object.is(one['free'], -0)).toBe(true);
+  bank[4] = 0;
+  codec.validate(bank, 'first', roster);
+  expect(Object.is(codec.decode(bank, 'first', roster)['free'], 0)).toBe(true);
+});
+
+test('failed scalar reads cannot prime a later invalid bank', () => {
+  const codec = new GroupBankV2([
+    { name: 'first', kind: 'number', min: 0, max: 5 },
+    { name: 'last', kind: 'boolean' },
+  ]);
+  const bank = Float64Array.of(1, 0);
+  codec.validate(bank, 'first', roster);
+  bank[0] = 2; bank[1] = 2;
+  expect(() => codec.validate(bank, 'first', roster)).toThrow();
+  bank[0] = 6; bank[1] = 0;
+  expect(() => codec.validate(bank, 'first', roster)).toThrow('bound');
+  bank[0] = 2;
+  codec.validate(bank, 'first', roster);
+});
+
+test('ArrayLike getters retain order and nested validation after native reads', () => {
+  const codec = new GroupBankV2([
+    { name: 'first', kind: 'number' }, { name: 'last', kind: 'boolean' },
+  ]);
+  codec.validate(Float64Array.of(1, 0), 'first', roster);
+  const reads: string[] = [];
+  const input = {
+    get length() { reads.push('length'); return 2; },
+    get 0() {
+      reads.push('first');
+      codec.validate(Float64Array.of(4, 1), 'first', roster);
+      return 2;
+    },
+    get 1() { reads.push('last'); return 2; },
+  };
+  expect(() => codec.validate(input, 'first', roster)).toThrow();
+  expect(reads).toStrictEqual(['length', 'first', 'last']);
+  codec.validate(Float64Array.of(2, 0), 'first', roster);
+});
+
+test('native validation does not trust detached or shared mutable views', () => {
+  const codec = new GroupBankV2([{ name: 'flag', kind: 'boolean' }]);
+  const bank = Float64Array.of(1);
+  codec.validate(bank, 'first', roster);
+  structuredClone(bank.buffer, { transfer: [bank.buffer] });
+  expect(() => codec.validate(bank, 'first', roster)).toThrow('width');
+  const shared = new Float64Array(new SharedArrayBuffer(8));
+  codec.validate(shared, 'first', roster);
+  shared[0] = 2;
+  expect(() => codec.validate(shared, 'first', roster)).toThrow();
+});

@@ -51,6 +51,14 @@ function referenceWire(handle: number, row: GroupBankFieldV2, group: string,
 const snapshotSlice:unknown=Reflect.get(Float64Array.prototype,'slice');
 const snapshotIterator:unknown=Reflect.get(Float64Array.prototype,Symbol.iterator);
 const snapshotSet:unknown=Reflect.get(Float64Array.prototype,'set');
+// Native brand getters exclude shared backing without reading caller accessors.
+const typedBuffer:unknown=Reflect.getOwnPropertyDescriptor(Object.getPrototypeOf(Float64Array.prototype),'buffer')?.get;
+const bufferBytes:unknown=Reflect.getOwnPropertyDescriptor(ArrayBuffer.prototype,'byteLength')?.get;
+const noArguments:readonly never[]=Object.freeze([]);
+function unsharedNumbers(bank:ArrayLike<number>):boolean {
+  if(!ArrayBuffer.isView(bank)||Object.getPrototypeOf(bank)!==Float64Array.prototype||typeof typedBuffer!=='function'||typeof bufferBytes!=='function')return false;
+  try{Reflect.apply(bufferBytes,Reflect.apply(typedBuffer,bank,noArguments),noArguments);return true;}catch{return false;}
+}
 interface SnapshotPair { readonly before:Float64Array; readonly next:Float64Array }
 function ordinarySnapshot(value:ArrayLike<number>,method:'slice'|typeof Symbol.iterator):boolean {
   return ArrayBuffer.isView(value)&&Object.getPrototypeOf(value)===Float64Array.prototype
@@ -64,6 +72,13 @@ export class GroupBankV2 {
   /** At most two inactive numeric pairs; pending publications own their pair. */
   private readonly snapshots:SnapshotPair[]=[];
   readonly width: number;
+  /** Last fully checked scalar words, never a decoded/publication authority. */
+  private readonly scalarWords:Float64Array|undefined;
+  private scalarGroup='';
+  private scalarHandles:ReadonlyMap<number,GroupBankReferenceV2>|undefined;
+  private scalarBusy=false;
+  /** Only immutable native backing kind is memoized; words are always reread. */
+  private readonly scalarBanks=new WeakSet<ArrayLike<number>>();
   /** Numeric-only staging is lent to one synchronous update, never a candidate. */
   private updates: {offset:number;width:number;values:number[]}[] | undefined;
   private referenceLoan: {readonly group:string;
@@ -76,6 +91,7 @@ export class GroupBankV2 {
     let width=0;
     for(const row of this.fields){this.offsets.set(row.name,{row,offset:width,plainNumber:row.kind==='number'&&row.integer!==true&&row.min===undefined&&row.max===undefined});width+=groupBankWidthV2(row);}
     this.width=width;this.ordered=Array.from(this.offsets.values());
+    this.scalarWords=this.fields.every(row=>row.kind!=='nullable-number'&&row.kind!=='references')?new Float64Array(width):undefined;
   }
   private loan(input: readonly GroupBankReferenceV2[], group: string): {
     readonly byHandle: ReadonlyMap<number, GroupBankReferenceV2>;
@@ -202,7 +218,43 @@ export class GroupBankV2 {
       }
     } finally { this.updates=next; }
   }
-  private read(bank: ArrayLike<number>, group: string, roster: readonly GroupBankReferenceV2[],
+  private validateScalars(bank:ArrayLike<number>,group:string,byHandle:ReadonlyMap<number,GroupBankReferenceV2>,previous:Float64Array):void {
+    const known=this.scalarGroup===group&&this.scalarHandles===byHandle;
+    // A failed prefix must not make any partially checked cache authoritative.
+    this.scalarHandles=undefined;this.scalarBusy=true;
+    try{
+      for(let index=0;index<this.width;index++){
+        const value=bank[index];
+        if(value===undefined)throw new Error('Missing group bank value');
+        if(known&&Object.is(value,previous[index]))continue;
+        const plan=this.ordered[index];if(plan===undefined)throw new Error('Missing group bank read plan');
+        const row=plan.row;finite(value);
+        if(!plan.plainNumber)switch(row.kind){
+          case 'number':
+            if(row.integer===true&&!Number.isInteger(value)||row.min!==undefined&&value<row.min||row.max!==undefined&&value>row.max)throw new Error('Group field outside bound');
+            break;
+          case 'boolean':integer(value,0,1);break;
+          case 'enum':
+            if(row.values[integer(value,0,row.values.length-1)]===undefined)throw new Error('Missing group enum');
+            break;
+          case 'reference':if(value!==0)referenceWire(value,row,group,byHandle);break;
+          case 'nullable-number':case 'references':throw new Error('Variable-width scalar read plan');
+          default:throw new Error('Unknown group bank field');
+        }
+        previous[index]=value;
+      }
+      this.scalarGroup=group;this.scalarHandles=byHandle;
+    }finally{this.scalarBusy=false;}
+  }
+  private read(bank:ArrayLike<number>,group:string,roster:readonly GroupBankReferenceV2[],result?:Record<string,GroupBankValueV2>):void {
+    if(result===undefined&&this.scalarWords!==undefined&&!this.scalarBusy&&(this.scalarBanks.has(bank)||unsharedNumbers(bank))){
+      if(bank.length!==this.width)throw new Error('Group bank width mismatch');
+      const {byHandle}=this.loan(roster,group);this.scalarBanks.add(bank);
+      this.validateScalars(bank,group,byHandle,this.scalarWords);return;
+    }
+    this.readFull(bank,group,roster,result);
+  }
+  private readFull(bank: ArrayLike<number>, group: string, roster: readonly GroupBankReferenceV2[],
     result?: Record<string,GroupBankValueV2>): void {
     if (bank.length !== this.width) throw new Error('Group bank width mismatch');
     const { byHandle } = this.loan(roster, group);
