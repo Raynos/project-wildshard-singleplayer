@@ -14,10 +14,7 @@ import { simPlayerCommand, type HeadlessCommand, type HeadlessEffect } from './t
 import type { TickWorkerAdapter } from './tickWorkerLoop';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import { prepareProductRuntimePlan } from '@wildshard/game/shardfile/nativePlan';
-import { prepareHeadlessAssembly, type HeadlessAssemblyModules } from './headlessAssembly';
 
-/** Explicit trusted-code entry, chosen by the caller, never taken from an authored shardfile or asset URL. */
-export interface TrustedHeadlessRuntime { module: string }
 /** The same admitted bytes and native physics implementation used by the ordinary headless worker. */
 export interface HeadlessRuntimePreparation { shard: Shardfile; assets: ReadonlyMap<string, Uint8Array>; rapier: Rapier; readonly product: ShardProduct }
 /** Build workers carry verified native sections before any output exists.
@@ -91,26 +88,11 @@ export interface HeadlessRuntimePlan {
   install: (host: SimHost, context: HeadlessRuntimeInstallation) => void;
   proveEntries?: (host: SimHost) => { lanes: number; steps: number; liftRides?: number; liftCalls?: number; portalTransfers?: number };
 }
-/** Export this named factory from the explicitly selected trusted entry. No browser globals or renderer imports. */
+/** Direct typed legacy/proof factory contract; the public worker accepts only admitted data plans. */
 export type PrepareHeadlessRuntime = (context: HeadlessRuntimePreparation) => HeadlessRuntimePlan | Promise<HeadlessRuntimePlan>;
 
-/** Restrict trusted code selection to a concrete local ESM entry; data-only clients never invoke this path. */
-export function trustedHeadlessModule(input: string): string {
-  const url = new URL(input);
-  if (url.protocol !== 'file:' || url.search !== '' || url.hash !== '') throw new Error('Trusted runtime requires a local file module URL');
-  return url.href;
-}
-function hasFactory(value: unknown): value is { prepareHeadlessRuntime: PrepareHeadlessRuntime } {
-  return typeof value === 'object' && value !== null && 'prepareHeadlessRuntime' in value && typeof value.prepareHeadlessRuntime === 'function';
-}
-function hasAssemblyModules(value: unknown): value is { headlessModules: HeadlessAssemblyModules } {
-  if (value === null || typeof value !== 'object' || !('headlessModules' in value)) return false;
-  const modules: unknown = value.headlessModules;
-  return modules !== null && typeof modules === 'object' && !Array.isArray(modules)
-    && Object.values(modules).every((module: unknown) => module !== null && typeof module === 'object' && !Array.isArray(module));
-}
 /**
- * One owned, renderer-free trusted world: the explicitly selected entry's plan installed into one native host. The worker's
+ * One owned, renderer-free native world: the admitted data plan installed into one native host. The worker's
  * tick adapter (`createTrustedHeadlessAdapter`) and the grid's server-side admission (a `GridSimulation` `load` port,
  * `test/proof/<slug>/grid-ready.mjs`) both compose exactly this, so an admitted region runs the same runtime, controllers
  * and continuation as the worker.
@@ -129,14 +111,13 @@ export interface TrustedHeadlessResident {
   proveEntries: () => ReturnType<NonNullable<HeadlessRuntimePlan['proveEntries']>>;
   dispose: () => void;
 }
-/** Resolve the built native plan when entry is absent. An explicitly supplied
- * legacy entry keeps its existing local-module law; missing declarations never
- * fall back to a shard source path. Both paths verify product/level identity. */
-export async function prepareNativeRuntime(provided: HeadlessRuntimeInput, entry?: TrustedHeadlessRuntime): Promise<HeadlessRuntimePlan> {
+/** Resolve only the admitted native data plan. Missing declarations never
+ * fall back to a shard source path; product and level identities must agree. */
+export async function prepareNativeRuntime(provided: HeadlessRuntimeInput): Promise<HeadlessRuntimePlan> {
   if (!/^[a-z0-9][a-z0-9-]*$/u.test(provided.shard.identity.slug)) throw new Error('Invalid native product identity');
   await prepareAssetDecoders();
   let plan: HeadlessRuntimePlan, source = provided.shard;
-  if (entry === undefined && provided.sections !== undefined) {
+  if (provided.sections !== undefined) {
     const declaration = parseNativeRuntimePlan(provided.sections.get('sim/runtime-plan'));
     plan = await prepareRuntimePlan(source, provided.assets, declaration.baked, declaration.recipe, provided.sections);
   } else {
@@ -147,14 +128,8 @@ export async function prepareNativeRuntime(provided: HeadlessRuntimeInput, entry
     }
     const { slug: actualIdentity } = product, { slug: expectedIdentity } = provided.shard.identity;
     if (actualIdentity !== expectedIdentity || product.revision !== provided.shard.identity.revision) throw new Error('Native product and trusted identity differ');
-    const preparation: HeadlessRuntimePreparation = { ...provided, product };
     source = product.shardfile;
-    plan = entry === undefined ? await prepareProductRuntimePlan(product, provided.assets) : await (async () => {
-      const loaded: unknown = await import(/* @vite-ignore */ trustedHeadlessModule(entry.module));
-      if (hasFactory(loaded)) return loaded.prepareHeadlessRuntime(preparation);
-      if (hasAssemblyModules(loaded)) return prepareHeadlessAssembly(preparation, loaded.headlessModules);
-      throw new Error('Trusted runtime must export prepareHeadlessRuntime or headlessModules');
-    })();
+    plan = await prepareProductRuntimePlan(product, provided.assets);
   }
   const identity = { id: source.identity.slug, seed: source.identity.seed };
   if (plan.level.id !== identity.id || plan.level.seed !== identity.seed) throw new Error('Trusted runtime simulation identity mismatch');
@@ -181,8 +156,8 @@ export async function prepareNativeRuntime(provided: HeadlessRuntimeInput, entry
 }
 /** Install the selected plan into one fresh or strictly restored native host.
  * A failed install disposes its world; installation may emit no gameplay effects. */
-export async function createTrustedHeadlessResident(preparation: HeadlessRuntimeInput, entry?: TrustedHeadlessRuntime, snapshot?: string | Readonly<SimSnapshot>): Promise<TrustedHeadlessResident> {
-  const plan = await prepareNativeRuntime(preparation, entry);
+export async function createTrustedHeadlessResident(preparation: HeadlessRuntimeInput, snapshot?: string | Readonly<SimSnapshot>): Promise<TrustedHeadlessResident> {
+  const plan = await prepareNativeRuntime(preparation);
   let commands: readonly HeadlessCommand[] = [], effects: HeadlessEffect[] = [];
   const saved = snapshot === undefined ? undefined : decodeSimSnapshot(typeof snapshot === 'string' ? snapshot : serializeSimSnapshot(snapshot));
   const combat = createNativeCombatFrame();
@@ -218,8 +193,8 @@ export async function createTrustedHeadlessResident(preparation: HeadlessRuntime
   };
 }
 /** Worker-side composition only: owns one trusted resident (its real SimHost, native continuation and scoped installers). */
-export async function createTrustedHeadlessAdapter(preparation: HeadlessRuntimeInput, entry?: TrustedHeadlessRuntime, snapshot?: string): Promise<TickWorkerAdapter> {
-  const resident = await createTrustedHeadlessResident(preparation, entry, snapshot), { host } = resident;
+export async function createTrustedHeadlessAdapter(preparation: HeadlessRuntimeInput, snapshot?: string): Promise<TickWorkerAdapter> {
+  const resident = await createTrustedHeadlessResident(preparation, snapshot), { host } = resident;
   return {
     step: input => { resident.step(input); },
     commit: () => ({ tick: host.state.tick, snapshot: serializeSimSnapshot(snapshotSimHostBytes(host)), effects: [...resident.effects] }),

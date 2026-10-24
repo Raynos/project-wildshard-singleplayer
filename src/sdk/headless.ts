@@ -14,7 +14,6 @@ import { TickWorkerHost } from './tickWorkerHost';
 import { AuthorProofPlanSchema, TickCommandSchema, type HeadlessCommand, type AuthorProofPlan, type AuthorProofReport, type HeadlessCommandSource, type HeadlessTickCommit } from './tickProtocol';
 import * as v from 'valibot';
 import { decodeSimSnapshot } from '@wildshard/engine/sim/snapshot';
-import { trustedHeadlessModule, type TrustedHeadlessRuntime } from './headlessRuntime';
 import { SCRIPT_LIMITS } from '@wildshard/format/scriptLimits';
 import { scriptAdmissionRows } from '@wildshard/format/scriptContract';
 import { headlessSections } from './headlessSections';
@@ -24,8 +23,7 @@ export class HeadlessSimulation {
   private readonly runner: TickWorkerHost;
   private constructor(runner: TickWorkerHost) { this.runner = runner; }
   /** Start the fixed worker with runtime deadlines by default. Trusted offline validation selects advisory timing; author data cannot select this policy. */
-  static async create(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, snapshot?: string, options: { deadline?: 'runtime' | 'advisory'; trustedRuntime?: TrustedHeadlessRuntime; sections?: ReadonlyMap<string, unknown> } = {}): Promise<HeadlessSimulation> {
-    const trustedRuntime = options.trustedRuntime === undefined ? undefined : { module: trustedHeadlessModule(options.trustedRuntime.module) };
+  static async create(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, snapshot?: string, options: { deadline?: 'runtime' | 'advisory'; sections?: ReadonlyMap<string, unknown> } = {}): Promise<HeadlessSimulation> {
     const sections = headlessSections(options.sections ?? outputDescriptor(shard)?.sections);
     const memory = offlineMemoryAdmission('refuse');
     await prepareAssetDecoders();
@@ -44,7 +42,7 @@ export class HeadlessSimulation {
     if (!distributed && (!existsSync(source) || !existsSync(loader))) throw new Error('SDK headless worker missing; build/pack the SDK or use its complete workspace checkout');
     // Source-checkout workers need their own Node hooks; parent Vitest/Vite transforms never cross the isolate boundary.
     const execArgv = distributed ? [] : ['--experimental-transform-types', '--import', pathToFileURL(loader).href];
-    const runner = new TickWorkerHost(pathToFileURL(distributed ? bundled : source), { shard, assets: admitted, binary, sections, ...(trustedRuntime === undefined ? {} : { trustedRuntime }), ...(snapshot === undefined ? {} : { snapshot }) }, shard.serverBudget, execArgv, options.deadline ?? 'runtime');
+    const runner = new TickWorkerHost(pathToFileURL(distributed ? bundled : source), { shard, assets: admitted, binary, sections, ...(snapshot === undefined ? {} : { snapshot }) }, shard.serverBudget, execArgv, options.deadline ?? 'runtime');
     try { await runner.initialized(); return new HeadlessSimulation(runner); } catch (error) { await runner.dispose(); throw error; }
   }
   /** Last committed state is detached; callers cannot change the checkpoint used after a refused or unfinished tick. */

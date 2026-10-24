@@ -55,7 +55,7 @@ for (const slug of shards) test(`${slug}: evict and re-enter with kit, held item
   } finally { first.dispose(); }
   // Nothing from the old native world survives; a fresh installer must recreate
   // its full adapter kit before strict restore accepts the held/quest state.
-  const again = trusted ? await createTrustedHeadlessResident(preparation, undefined, saved)
+  const again = trusted ? await createTrustedHeadlessResident(preparation, saved)
     : { host: restoreSimHost(first.host.level, { rapier }, saved,
       host => { bindShardfileSim(host, shard, assets, { rapier, sections, quest: questPorts, restoring: true }); }), dispose() { this.host.dispose(); } };
   try {

@@ -3,7 +3,6 @@
   "version": "0.0.0",
   "type": "module",
   "exports": {
-    "./headlessAssembly": "./headlessAssembly.ts",
     "./bake/species": "./bake/species.ts",
     "./decisionBindingMap": "./decisionBindingMap.ts",
     "./scriptScenario": "./scriptScenario.ts",

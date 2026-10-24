@@ -46,7 +46,7 @@ test('the published Roc guest drives the retained native body through phases and
       expect(logical.decision.bindings[0]?.slots['step']).toBeGreaterThanOrEqual(phase * 10);
     }
     const saved = snapshotSimHost(host), before = policy(resident);
-    resumed = await createTrustedHeadlessResident(preparation, undefined, saved);
+    resumed = await createTrustedHeadlessResident(preparation, saved);
     expect(policy(resumed)).toEqual(before);
     expect(resumed.host.entities.size).toBe(host.entities.size);
     for (let i = 0; i < 30; i++) { resident.step([]); resumed.step([]); }

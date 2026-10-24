@@ -9211,54 +9211,28 @@ no repository policy module. Standalone v1 projects still declare an explicit
 Early asset target errors report target checks alone; execution sample
 requirements are checked only after the real simulation measurement.
 
-### Declared trusted headless assembly (W2 C9)
+### Native headless data and proof contracts (D3)
 
-`@wildshard/sdk/headlessAssembly.prepareHeadlessAssembly(preparation,
-modules)` reads `sim/headless-assembly.json` from the verified product and
-assembles the existing native installers. Pine and Driftwood use it. A
-shard's `boot/headlessModules.ts` supplies static imports only: the official
-product build resolves every listed module and checks its exported names
-against that catalogue without executing gameplay code. The SDK never
-turns a data string into a URL or imports a shard or a test fixture.
-The explicit `sdk/headlessRuntime` trusted-module loader accepts this
-export-only catalogue alongside its existing `prepareHeadlessRuntime`
-factory contract. It calls the assembly host inside the SDK; a shard
-does not pass installer callbacks across an ordinary platform API.
+The public SDK worker accepts admitted `sim/runtime-plan` data or the ordinary
+shardfile simulation. It has no caller-selected module URL, executable export
+catalogue or JSON expression interpreter. Missing plans never fall back to
+shard source. Product identity, asset admission, native installation and strict
+continuation restore remain mandatory.
 
-Native proof callers may instead use `generateHeadlessModuleMap(root, slug)`
-from `scripts/check-headless-assemblies.mjs`. It admits the same named exports
-without executing them and emits static imports in
-`tmp/headless-modules/<slug>/modules.mjs`, outside source and play products.
-Nine uses this generated map; no handwritten shard catalogue imports its
-proofs. `@wildshard/game/proof/entryways` defines `proveEntryways`,
-`proveSocketLift`, `proveShardfileEntries` and their proof port/result types.
-Only native proof callers import that module. Gameplay retains
-`commandSocketLift` in `game/plugin/simulation`; it never imports the proof
-module. Entry walks, gate lanes, transfers and fresh-world disposal are
-unchanged.
+`HeadlessRuntimePreparation`, `HeadlessRuntimeInstallation`,
+`HeadlessRuntimePlan` and `PrepareHeadlessRuntime` retain their existing typed
+legacy/proof contracts. Native gameplay proofs call their existing typed hosts
+directly in test fixtures; their fixed test worker accepts no code URL. Borrowed
+bodies, quests, save/re-entry and complete checkpoint assertions keep running.
+The four existing `sim/headless-assembly.json` named files remain for admitted
+constants and page construction; their module strings grant no runtime loader
+or source-census credit. Native hosts remain until their separate regraph.
 
-The sim-in-runtime guard also follows the JSON module roots, retaining
-existing native runtime debt when no handwritten catalogue remains.
-
-The bounded JSON declaration contains `modules`, product `constants`,
-ordered named `prepare` and `install` rows, level settings, ports and an
-entry-proof callback. `$ref` borrows a field or its correctly bound method;
-`$call` and `$new` call supplied capabilities. `$fn` reads its own arguments
-and the current installation's live bindings, so a callback can borrow a
-roster installed later. Conditional, coalescing and sequential expressions
-preserve the original short-circuit and effect order. Prototype keys,
-unknown operations, excessive nesting and duplicate row names refuse.
-Each install gets a fresh binding environment; asynchronous installation
-refuses. Existing owners retain every step phase, clock, RNG stream,
-snapshot adapter and scope. Preparation may await product files; the
-separate fresh entry-proof primitive always disposes its native world.
-
-This is an explicit trusted-code boundary, like a selected legacy native
-entry. Authoring a module name grants no capability: the host only exposes
-the declared exports from the caller's already imported catalogue. The
-ordinary data-only `sim/runtime-plan` path does not select this host.
-`sim-in-runtime` follows the static catalogue as a native root, keeping
-the remaining shard-owned simulation code in its existing census.
+`@wildshard/game/proof/entryways` defines `proveEntryways`, `proveSocketLift`,
+`proveShardfileEntries` and their proof port/result types. Only native proof
+callers import it. Gameplay keeps `commandSocketLift` in
+`game/plugin/simulation`. Entry walks, gate lanes, transfers and fresh-world
+disposal are unchanged.
 
 ### World-target landing attachments (KA6)
 
@@ -9468,13 +9442,9 @@ at `lend()`: all attacks in tape order, first ranged heavy hold, last melee and
 movement input (including release), and last value per script actor. It is
 transient input, never a second saved owner. Existing world owners publish
 numeric weather/wind and synchronized contact points; item rows receive no
-shard functions. The install-only `sdk/headlessAssembly` value
-`{$native:{kind:"combat.motion",speed}}` samples the actual pre-motor
-boundary before gameplay and keeps unavailable delegated motion as null,
-so firing refuses. It uses the installation frame's concrete host and combat
-owner; finite positive speed and one motion capability per assembly are
-required. No clock or save adapter is added. The legacy
-`{$native:"native.body-scripts"}` form stays unchanged. Swept items synchronously
+shard functions. Direct native proof installation samples the actual pre-motor
+boundary through the concrete host and combat frame, retaining unavailable
+motion as null so firing refuses. It adds no clock or save adapter. Swept items synchronously
 ask `item.reaction` for the world's existing alarm/stagger consequences, keeping
 their original order. `bindNativeRangedVolumes` borrows numeric published points
 separately from live joint queries; it retains actors only weakly.
@@ -11706,15 +11676,14 @@ entered specimen scope, item effects, keepsake binding and loot ordering.
 Leaving during either awaited product read prevents later construction or
 bindings. Existing quest, collection, inventory and save owners remain live.
 
-### Native body-script assembly capability (G571)
+### Native body-script ground admission (G571)
 
-`sdk/headlessAssembly` accepts one top-level install expression
-`{ $native: 'native.body-scripts' }` after real static-ground admission and
-before quest props. It reads the admitted `sim/scripts` and `sim/bodies`
-sections through the installation's concrete product and host frame. Prepare,
-constant, nested, unknown and duplicate native capabilities refuse at admission.
-The existing body post/decision/pre order, adapters and quest-envelope
-continuation remain unchanged; no new clock or save owner is registered.
+Direct typed native proof installation calls
+`game/quest/nativeBodyScripts.installNativeBodyScripts` after real static-ground
+admission and before quest props. It retains the admitted `sim/scripts`,
+`sim/bodies`, move, strike, target and native-plan sections. The existing body
+post/decision/pre order, adapters and quest-envelope continuation are unchanged;
+no new clock or save owner is registered.
 
 `engine/physics/query.hasStaticGround(physics)` checks actual enabled,
 non-sensor static colliders tagged as ground. It is an admission query that
@@ -11725,7 +11694,7 @@ dynamic and untagged colliders establish no ground readiness.
 service check during `restoreSimHost` installation or before a prepared fresh target is consumed. Checks run once,
 after physics, tags and adapters have restored and before the host returns.
 Ordinary hosts refuse registration; keeping a fresh prepared target drops its pending checks. A failed check disposes the target.
-The native body capability uses this boundary for restored ground admission;
+Native body installation uses this boundary for restored ground admission;
 fresh installation still requires actual ground before construction.
 
 ### Stateless herd shelter projections (G571)

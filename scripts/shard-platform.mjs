@@ -5,7 +5,7 @@ import { representativeProduct, shardProducts } from './shard-outputs.mjs';
 import { productManifestPath } from './authored-manifest.mjs';
 import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { dirname, relative, resolve } from 'node:path';
+import { relative, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseSync } from 'vite';
 import * as v from 'valibot';
@@ -20,7 +20,6 @@ import { loadListedViews, listedViewInventory } from './listed-view-code.mjs';
 import { createOutputReader } from './shard-platform-output.mjs';
 import { sectionHostImports } from './shard-platform-hosts.mjs';
 import { runtimeClosures } from './shard-runtime-closure.mjs';
-import { checkHeadlessAssembly } from './check-headless-assemblies.mjs';
 import { chargePlatformUsers, hasChargebackDeclarations, inlinePlatformPaths, inlinePlatformSpans, platformChargeback, recordPrivateCharge, retiredPlatformModule } from './platform-chargebacks.mjs';
 
 // The compiler's declarations globally replace Array.at's optional return with T. Load its JS API
@@ -781,10 +780,7 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
   const hostFiles = new Map();
   for (const [slug, output] of Object.entries(outputs)) {
     const path = `${prefixOf(slug)}.section-hosts.ts`;
-    // The source ruler retains native composition. A checked JSON capability
-    // catalogue has the same defining users as its former handwritten imports.
-    const native = sourceProgress ? checkHeadlessAssembly(root, slug, dirname(resolve(root, path))) : undefined;
-    texts.set(path, `${sectionHostImports(output.sections, sourceProgress ? '../../' : '../../src/')}\n${native ?? ''}`); probes.set(path, true);
+    texts.set(path, sectionHostImports(output.sections, sourceProgress ? '../../' : '../../src/')); probes.set(path, true);
     hostFiles.set(slug, path);
   }
   // Source progress still reports the authored inventory, but build-only imports

@@ -65,7 +65,7 @@ export async function proveTrustedGridReady(source, mode = DEVELOPER, prepare = 
       const { loadHeadlessProduct } = await import('../../../src/sdk/headlessProduct.ts');
       const product = await loadHeadlessProduct(`out/${slug}`);
       const preparation={shard:source,assets,rapier,product};
-      if(product.has('sim/runtime-plan')) resident=await createTrustedHeadlessResident(preparation,undefined,snapshot);
+      if(product.has('sim/runtime-plan')) resident=await createTrustedHeadlessResident(preparation,snapshot);
       else {
         assert.equal(typeof prepare,'function','A native proof needs its direct typed factory');
         resident=await createNativeProofResident(preparation,prepare,snapshot);

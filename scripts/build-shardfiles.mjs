@@ -7,7 +7,6 @@ import { existsSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { runWildshard } from './wildshard.mjs';
-import { checkHeadlessAssembly } from './check-headless-assemblies.mjs';
 import { legacyInventory } from './legacy-shards.mjs';
 import { mapInputHashes, mapTilesHash, mapStampPath, verifyMapPixels } from './map-hash.mjs';
 import { readBuildKey, reuseOrBuild, shardfileCacheRoot, shardfileKey, treeHashes } from './shardfile-cache.mjs';
@@ -71,7 +70,6 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
     }
   }
   for (const slug of scope ?? only ?? []) if (!built.includes(slug)) throw new Error(`wildshard build: --shard=${slug} is not a first-party shardfile project (${built.join(', ')})`);
-  if(onFailure===undefined)for (const folder of new Set((selected ?? built).map(slug => products.find(row => row.name === slug)?.folder ?? slug))) checkHeadlessAssembly(root, folder);
   if (only !== undefined && strict) console.warn('wildshard build: --shard ignored in CI; building every shard');
   const recorded = build === runWildshard;
   const files = recorded ? undefined : treeHashes(root);
@@ -90,7 +88,7 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
     if(onFailure!==undefined){
       let preparation=folderPreparation.get(folder);
       if(preparation===undefined) {
-        preparation=(async()=>{await prepareMaps([folder]);checkHeadlessAssembly(root,folder);})();
+        preparation=(async()=>{await prepareMaps([folder]);})();
         folderPreparation.set(folder,preparation);
       }
       await preparation;
