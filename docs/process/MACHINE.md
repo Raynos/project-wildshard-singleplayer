@@ -230,7 +230,11 @@ For a no-quiet attribution diagnostic, `--webkit-timeline=<existing scratch dir>
 keeps the bounded raw Inspector timeline, page-clock anchors and hook/frame times
 for each grid drive. It uses no GL timer wrappers or CPU profiler; its timings
 have no frame-floor acceptance credit. Unknown gaps remain unproven when the
-existing timeline coverage or clock checks fail.
+existing timeline coverage or clock checks fail. Add `--wasm-constructors=<existing scratch dir>`
+to retain bounded native Memory/Module/Instance durations and original frame-clock
+reads. It injects before app modules, collects stacks outside each native timed
+segment, and saves on existing Inspector evaluations; no extra watcher or rAF.
+Constructor and timeline observations are diagnostic, with no floor timing credit.
 
 For one steady function-sampling diagnostic, add `--safari-profile=<existing
 scratch dir> --safari-steady=grid-nalati-interior` to a Simulator grid travel
