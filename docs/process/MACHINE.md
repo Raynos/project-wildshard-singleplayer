@@ -217,6 +217,11 @@ the actual inflation depends on captured responses. Do not subtract 200 MB
 from historical results or label those changes as game memory savings.
 WebKit and Simulator readings are unaffected by this Chromium correction.
 
+The Chromium grid census opens the official `mute=1&nolock=1&sw=0` benchmark
+route and enters through the original `hud.enterNow()` operation. A reveal
+already fading behind live controls is not a click target. Readiness and
+reveal-completion waits still finish before any measurement window starts.
+
 The existing frame-floor reader can also take quiet with `--surface=sim --quiet`.
 Only its exact official Sim worker may hold it, after the preview builds; desktop,
 parent orchestration and scratch callers refuse. It releases in worker cleanup,

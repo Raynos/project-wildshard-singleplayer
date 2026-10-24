@@ -7,6 +7,7 @@ import {devices} from 'playwright';
 import {launchMemoryBrowser} from './chromium-memory-browser.mjs';
 import {saveFixture,harnessPins} from './debug-settings.mjs';
 import {frameFloorSettingsCode} from './frame-floor-settings.mjs';
+import {floorGridBenchmarkUrl,FLOOR_GRID_ENTER} from './frame-floor-navigation.mjs';
 import {gridFloorPlans,gridFloorDeclaredPlan,gridFloorDocumentIdentity,stageFloorGrid,driveFloorGrid,gridFloorWitnessFailures,floorGridEntryRoute} from './frame-floor-grid.mjs';
 import {chromiumProcessPeaks,ownedResidencyBytes} from './grid-ready-memory.mjs';
 
@@ -37,9 +38,9 @@ try {
   await saveFixture(context,{scope:'global',key:'gfx',data:{dpr:'2',aa:'auto'}});
   await saveFixture(context,{scope:'device',key:'devMode',data:true});
   await harnessPins(context,{seed:357,browser:'Chromium / iPhone 16 Pro',lane:'sp-x1-grid-ready'});
-  await page.goto(base,{waitUntil:'load'});await page.locator('.ws-main-grid').click();
+  await page.goto(floorGridBenchmarkUrl(base),{waitUntil:'load'});await page.locator('.ws-main-grid').click();
   await page.waitForFunction(()=>window.__wildshard?.shard?.grid?.state().live?.live?.gameplayReady,undefined,{timeout:240000});
-  const initialOverlay=page.locator('.ws-grid-reveal');if(await initialOverlay.isVisible())await initialOverlay.dispatchEvent('pointerdown'); // R1: the layer takes no pointer; any touch skips
+  await page.evaluate(FLOOR_GRID_ENTER);
   await page.waitForFunction(()=>!document.querySelector('#hud')?.classList.contains('ws-grid-revealing'),undefined,{timeout:30000});
   const initialState=await page.evaluate(()=>window.__wildshard.shard.grid.state());
   const targets=slugs.map(slug=>({slug,instance:initialState.cells.find(row=>row.slug===slug)?.instance}));
@@ -78,7 +79,7 @@ try {
   };
   try {
    await page.waitForFunction(()=>window.__wildshard?.shard?.grid?.state().live?.live?.gameplayReady,undefined,{timeout:240000});
-   const overlay=page.locator('.ws-grid-reveal');if(await overlay.isVisible())await overlay.dispatchEvent('pointerdown');
+   await page.evaluate(FLOOR_GRID_ENTER);
    await page.waitForFunction(()=>!document.querySelector('#hud')?.classList.contains('ws-grid-revealing'),undefined,{timeout:30000});
    const meta=await page.evaluate(()=>({tier:window.__wildshard.boot.tier,clock:window.__wildshard.app.clock.mode,
     renderScale:window.__wildshard.world.game.renderer.getPixelRatio()}));

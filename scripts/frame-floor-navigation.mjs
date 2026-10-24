@@ -1,5 +1,15 @@
 import { gridFloorDocumentIdentity } from './frame-floor-grid.mjs';
 
+/** Use the official network benchmark route, never a worker registration stub.
+ * @param {string} base */
+export function floorGridBenchmarkUrl(base) {
+  return new URL('/?mute=1&nolock=1&sw=0', base).href;
+}
+
+/** Enter through the original HUD operation. A fading reveal can already be
+ * behind live controls or detached; it is never a locator click target. */
+export const FLOOR_GRID_ENTER = '(window.__wildshard.world.hud.enterNow(), true)';
+
 /** @param {unknown} value */
 function documentToken(value) {
   if (value === null || typeof value !== 'object' || !('token' in value)
