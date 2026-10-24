@@ -1,9 +1,5 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Read the same admitted products and native physics as the grid.
 import { readFileSync } from 'node:fs';
-// oxlint-disable-next-line import/no-nodejs-modules -- Trusted legacy entries are local, explicit test inputs.
-import { resolve } from 'node:path';
-// oxlint-disable-next-line import/no-nodejs-modules -- Trusted entries need absolute module URLs.
-import { pathToFileURL } from 'node:url';
 import { expect, test, vi } from 'vitest';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { snapshotSimHost, restoreSimHost, serializeSimSnapshot, decodeSimSnapshot } from '../src/engine/sim/snapshot';
@@ -15,13 +11,9 @@ import { createTrustedHeadlessResident } from '../src/sdk/headlessRuntime';
 import { hasDeclaredClientPage } from '../src/format/runtimeBinds';
 import { ScriptHost } from '../src/engine/script/host';
 import { productHeadlessSections } from '../src/sdk/headlessSections';
-import { generateHeadlessModuleMap } from '../scripts/check-headless-assemblies.mjs';
 
 const shards = ['_template', 'blender-template', 'ink-cel-valley', 'pastel-plain', 'driftwood-isle', 'pine-hollow', 'nalati-grasslands',
   'nine-dragon-stack', 'sunscar-dunes', 'far-reach'] as const;
-const entries: Partial<Record<string, string>> = {
-  'pine-hollow': 'test/fixtures/pine-headless.ts',
-};
 
 // G498: eviction, then return through the actual native installer/restore path.
 // All ten live products are tested; sealed legacy products are never grid destinations.
@@ -33,14 +25,11 @@ for (const slug of shards) test(`${slug}: evict and re-enter with kit, held item
   const assets = new Map(descriptor.index.files.map(file => [file.commons === true ? `commons:${file.hash}` : file.hash,
     Uint8Array.from(readFileSync(`${directory}/${file.path}`))]));
   const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
-  const entry = slug === 'driftwood-isle' || slug === 'nine-dragon-stack' || slug === 'nalati-grasslands'
-    ? generateHeadlessModuleMap(resolve('.'), slug) : entries[slug];
-  const trusted = entry !== undefined || product.has('sim/runtime-plan');
-  const options = entry === undefined ? undefined : { module: pathToFileURL(resolve(entry)).href };
+  const trusted = product.has('sim/runtime-plan');
   const preparation = { shard, assets, rapier, product };
   const sections = productHeadlessSections(product);
   const questPorts = { fact: () => undefined, coins: () => undefined };
-  const first = trusted ? await createTrustedHeadlessResident(preparation, options)
+  const first = trusted ? await createTrustedHeadlessResident(preparation)
     : createShardfileSim(shard, assets, { rapier, sections, quest: questPorts });
   let saved;
   try {
@@ -66,7 +55,7 @@ for (const slug of shards) test(`${slug}: evict and re-enter with kit, held item
   } finally { first.dispose(); }
   // Nothing from the old native world survives; a fresh installer must recreate
   // its full adapter kit before strict restore accepts the held/quest state.
-  const again = trusted ? await createTrustedHeadlessResident(preparation, options, saved)
+  const again = trusted ? await createTrustedHeadlessResident(preparation, undefined, saved)
     : { host: restoreSimHost(first.host.level, { rapier }, saved,
       host => { bindShardfileSim(host, shard, assets, { rapier, sections, quest: questPorts, restoring: true }); }), dispose() { this.host.dispose(); } };
   try {

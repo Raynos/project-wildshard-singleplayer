@@ -37,7 +37,6 @@ import { ROC_STEP, ROC_ID } from '../../../src/shards/far-reach/generators/rows/
  */
 export const ENTRY = 'runtime/headless.ts';
 const ROOT = new URL('../../../', import.meta.url);
-const MODULE = new URL('worker.ts', import.meta.url).href;
 const assets = new Map(source.files.map(file => [file.hash, new Uint8Array(readFileSync(new URL(`src/shards/far-reach/assets/${file.hash}`, ROOT)))]));
 const EYE = 1.68;
 const identity = { instance: 'far-reach-witness', shard: source.identity.slug, revision: source.identity.revision };
@@ -364,7 +363,7 @@ export async function replayProof(rapier: Rapier): Promise<object> {
     const hash = digest(original.host), replayHash = digest(restored.host);
     if (hash !== replayHash || JSON.stringify(original.effects.slice(before)) !== JSON.stringify(restored.effects)) throw new Error('Continuation diverged');
     // the shipping worker, started from the same checkpoint, continues to the same state
-    worker = await HeadlessSimulation.create(source, assets, checkpoint, { deadline: 'advisory', trustedRuntime: { module: MODULE } });
+    worker = await HeadlessSimulation.create(source, assets, checkpoint, { deadline: 'advisory'});
     let commit;
     for (const tick of commands.slice(0, WORKER)) commit = await worker.step([{ source: 'witness.tape', commands: tick }]);
     if (commit === undefined || canonicalSimDigest(commit.snapshot) !== atWorker) throw new Error('The worker continuation diverged from the in-process restore');
@@ -503,7 +502,7 @@ export async function replaySlice(rapier: Rapier): Promise<object> {
     }
     const hash = digest(original.host), replayHash = digest(restored.host);
     if (hash !== replayHash || JSON.stringify(original.effects.slice(before)) !== JSON.stringify(restored.effects)) throw new Error('Continuation diverged');
-    worker = await HeadlessSimulation.create(source, assets, checkpoint, { deadline: 'advisory', trustedRuntime: { module: MODULE } });
+    worker = await HeadlessSimulation.create(source, assets, checkpoint, { deadline: 'advisory'});
     let commit;
     for (const tick of commands.slice(0, WORKER)) commit = await worker.step([{ source: 'witness.tape', commands: tick }]);
     if (commit === undefined || canonicalSimDigest(commit.snapshot) !== atWorker) throw new Error('The worker continuation diverged from the in-process restore');
