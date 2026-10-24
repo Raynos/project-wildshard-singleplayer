@@ -32,7 +32,7 @@ Every row is decided work (Jake's G-rows); the refs are the brief.
 | GR2 | Generators redesign: app tables then per-shard build programs; converted projects bypass the legacy generator scheduler, with scoped `--shard=` support | tooling-perf/generators-spike-mini-plan.md:GR2 | done (2026-10-24, sp-x1): `326950c025` + `78681f7cf5`; 410 ready-related cases; exact generation 24 products |
 | GR-PATHS | Make check-paths green: remove stale deleted-file references and fix real fixture/layout misses; no widened allow lists; Vitest glob-cache CI repair stays with sp-x2 | generators redesign; sp-x1 181-failure census | done (2026-10-24, sp-x8): `0228d34c52` + `ac7db8225b` + `b7f3e18243`; 181 → 0, no new allowances |
 
-| TS-T2 | TypeScript: check src once through layers tsc -b; preserve test, script and composition-root coverage; coordinate Typecheck command with sp-x7 | tooling-perf/typescript-mini-plan.md:T2 | in flight (2026-10-24, sp-x8) |
+| TS-T2 | TypeScript: check src once through layers tsc -b; preserve test, script and composition-root coverage; coordinate Typecheck command with sp-x7 | tooling-perf/typescript-mini-plan.md:T2 | done (2026-10-24, sp-x8): `96fe07d0eb` + `5025374ca2`; full cold local check 24.968 s, CI timing pending |
 
 **G683 Codex order (Jake, 13:20):** finish extras in this order, taking the top open Codex row of the first plan that has one:
 (1) tile streaming (shard-platform/tile-streaming-mini-plan.md), (2) loading (loading-mini-plan.md), (3) core memory

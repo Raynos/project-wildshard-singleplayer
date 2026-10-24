@@ -10,9 +10,10 @@ Goal (Jake): a full TypeScript check of the whole repo before push, warm in seco
 
 - `tsc` is **TS 7.0.2 (Go)**; typed lint is `oxlint-tsgolint` 7.0.2002 (Go, no cache). `tsc6` (6.0.2) exists only for the lint
   scripts' JS API. Switching compilers is not the fix.
-- CI `typecheck-lint`: `tsc --noEmit` on the root `tsconfig.json` (src + test, no incremental), then `tsc -b tsconfig.layers.json`
-  (six composite layer projects, which check all of src **a second time**), then six small projects (api, scripts, drafts,
-  drafts/tools, admin, admin/tools).
+- CI `typecheck-lint`: `tsc -b tsconfig.layers.json` checks seven source projects including the app composition root,
+  then root `tsc --noEmit` checks tests against their declarations. All six small projects remain (api, scripts, drafts,
+  drafts/tools, admin, admin/tools); API/scripts reuse platform declarations. Scripts retain strict/checkJs and match
+  root/layer skipLibCheck, with a real JS-body refusal regression. Generated inputs still come from the exact CI run.
 - Push gate: no full typecheck, only `oxlint --type-check` on files pre-commit deferred. Pre-commit: oxlint on staged files, soft 5 s cap.
 - `scripts/lint-all.mjs` starts a new oxlint per 256 files (~29 per full run), each rebuilding the program (unmeasured).
 
@@ -44,7 +45,7 @@ Goal (Jake): a full TypeScript check of the whole repo before push, warm in seco
 2. **Four checkers, four copies.** Each TS 7 checker builds its own types (11.8 M types with 4 vs 4.8 M with 1), so big JSON
    types are paid four times.
 3. **Tests:** 1,231 files, ~2.8 GB.
-4. **src checked twice** in CI (root + layers).
+4. **src checked twice** in the original CI baseline (root + layers); T2 removes the duplicate implementation check.
 5. **Inferred valibot types:** 761 `Infer` sites; the format layer emits 14 MB of `.d.ts` from 1.6 MB of source
    (`clientPlan.ts` 12 KB → 1.09 MB). Causes the 7 TS2589 errors (in `-b` only, every run, at HEAD).
 6. **Incremental doesn't help edits:** a hub-file edit re-checks nearly everything; it only wins when nothing changed.
@@ -63,11 +64,24 @@ Goal (Jake): a full TypeScript check of the whole repo before push, warm in seco
 | Row | What | Expected | Size | Done when |
 |---|---|---|---|---|
 | T1 | Generated JSON out of the program (G655): no generated file is imported (GR0 ban + the generator redesign G654); authored JSON stays typed | −4 GB, −15–30 s | M | root program ≤ 6 GB, green |
-| T2 | Check src once: layers `-b` is the only src check; the root re-check goes | −60 s CI | S–M | CI Typecheck step < 1 min |
+| T2 | done (2026-10-24, sp-x8): `96fe07d0eb` declaration compatibility + `5025374ca2` seven source projects, declaration-consuming tests/API/scripts, exact old-root coverage and app TS6307 contracts; all six tool/site checks retained | Old combined root cold 11.115 s; final cold tests 4.608 s; full forced-source + cold-test + six-project sequence 24.968 s locally | S–M | Local complete check and compiler refusal regressions pass. CI Typecheck step < 1 min remains the next natural CI timing readout, not a claimed local result |
 | T3 | **Tests next to their source (G645):** unit and integration tests move into their layer's workspace (next to the file or in the layer), checked by that layer's project; only regression, end-to-end and scenario tests stay in a separate test project referencing the layers | warm per-layer checks; tests stop being one 2.8 GB lump | M–L | no unit test under `test/`; every layer project includes its tests |
 | T4 | Explicit types on exported valibot schemas, format first, then `isolatedDeclarations` per layer (G644; engine 786 sites) | fixes TS2589, format `.d.ts` 14 MB → < 2 MB, cheaper `-b` edits | L | no TS2589; `isolatedDeclarations` on in engine, then the others |
 | T5 | Pre-push full check: `tsc -b` with a persistent tsbuildinfo (fixed slot, or the cache copied into the push tree; paths are relative) | 1–5 s no change, ~15 s shard edit after T1–T3 | M | the gate runs the full check within 45 s; over-budget (engine API edit) falls back to CI (D2) |
 | T6 | Mac only, after T1: `--checkers 8` | 62 → 25 s, +3.4 GB | S | measured after T1 |
+
+T2 covered the 13 previously unowned top-level app roots and SDK `.d.mts`, preserving every old root input through
+source ownership or tests/ambient contracts. The root test program contains zero source TS implementations. Compiler
+fixtures refuse missing declarations, source errors, test errors and JavaScript-body errors. Ready related checks ran
+737 tests / 133 suites green (seven absent-product suites explicitly deferred); the final config hook's discovery
+deferred on an unrelated coherent D3 grapple host move, with no executed test red. The complete cold check passed all
+eight stages. The CI Typecheck hunk was coordinated with sp-x7; cohort, generation and proof wiring did not change.
+
+T4 debt observed while making script consumers reuse declarations: checking the emitted declarations themselves with
+skipLibCheck disabled triggers TS2589 in `audioProfiles.d.ts` (`AudioMixRecipe`, then `AudioNodeSchema`) and
+`voicePatches.d.ts`. Two output-alias prototypes only moved the depth error and were discarded; no audio schema or
+validator changed. Script bodies stay strictly typed while their already-built layer declarations follow the same
+skipLibCheck policy as root and layers.
 
 ## Decisions (decided G655: D1 keep authored JSON typed, generated never imported via GR0; D2 leave to CI; D3 lint rule)
 
