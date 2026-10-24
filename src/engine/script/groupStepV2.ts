@@ -40,6 +40,7 @@ export interface GroupStepOperationV2 {
   readonly reference?: GroupStepReferenceV2;
   readonly native?: Readonly<GroupStepNativeV2>;
 }
+const stateSlice:unknown=Reflect.get(Float64Array.prototype,'slice');
 function sameRng(a: RngState, b: RngState): boolean {
   return a.version === b.version && a.state === b.state && a.initial === b.initial && a.scrambledFork === b.scrambledFork;
 }
@@ -65,7 +66,7 @@ export class GroupStepV2 {
       const bank=new GroupBankV2(rows.bank);
       return {
       id: index === 0 ? 'main' : this.rows.profiles?.[index - 1]?.id,
-      rows, bank, output: new Float64Array(bank.width),
+      rows, bank, input: new Float64Array(bank.width), output: new Float64Array(bank.width),
       counts: new Map([[1,1],[2,0],[4,0],[5,1],[6,0],[21,0]]), columns: new ObservationColumnsV2(rows.columns, scope),
       actions: new Map(rows.actions.map(row=>{if(row.native!==undefined)freezeNative(row.native);return [row.id,row];})),
       order: rows.columns.map((row,column)=>({name:row.name,index:column})).sort((a,b)=>a.name<b.name?-1:a.name>b.name?1:0).map(row=>row.index),
@@ -112,7 +113,15 @@ export class GroupStepV2 {
       const signal = profile.rows.signals.indexOf(input.signal) + 1;
       if (signal === 0 || input.group.length === 0 || input.members.length > profile.rows.members
         || !Number.isInteger(input.handle) || input.handle < 1 || input.handle > 0x7fffffff) throw new Error('Invalid group step input');
-      const originalState = input.state.slice();
+      const stateInput=input.state;
+      let originalState:Float64Array;
+      // This snapshot is used only inside the non-reentrant synchronous call.
+      // Public/custom slice semantics stay on the original detached-copy path.
+      if(Object.getPrototypeOf(stateInput)===Float64Array.prototype&&!Object.hasOwn(stateInput,'slice')
+        &&!Object.hasOwn(stateInput,'constructor')&&stateInput.slice===stateSlice){
+        if(stateInput.length!==profile.bank.width)throw new Error('Group bank width mismatch');
+        originalState=profile.input;originalState.set(stateInput);
+      }else originalState=stateInput.slice();
       profile.bank.validate(originalState, input.group, input.references);
       const refs = input.references.map(row => {
         if (!validReference(row)) throw new Error('Foreign group reference body');

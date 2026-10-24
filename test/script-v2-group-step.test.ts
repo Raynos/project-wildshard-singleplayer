@@ -271,3 +271,22 @@ test('reused numeric staging keeps outstanding candidates and their publications
     f.runner.prepare(f.input).accept();expect(f.state[1]).toBe(145);
   } finally { f.root.dispose(); }
 });
+
+
+test('input staging refuses shorter and longer banks without stale tails and preserves custom slice', () => {
+  const f = fixture();
+  try {
+    f.runner.prepare(f.input).accept();
+    for (const length of [0, f.state.length - 1, f.state.length + 1]) {
+      expect(() => f.runner.prepare({ ...f.input, state: new Float64Array(length) })).toThrow('width');
+    }
+    const state = new Float64Array(f.state);let calls = 0;
+    Object.defineProperty(state, 'slice', { value(this: Float64Array) {
+      calls++;return Float64Array.prototype.slice.call(this);
+    } });
+    const ready = f.runner.prepare({ ...f.input, state });
+    expect(calls).toBe(2);expect(ready.values['sum']).toBe(120);
+    ready.accept();expect(state[1]).toBe(120);
+    f.runner.prepare(f.input).accept();expect(f.state[1]).toBe(120);
+  } finally { f.root.dispose(); }
+});
