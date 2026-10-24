@@ -967,7 +967,6 @@
  "test/ground-tell-wedge.test.ts": 0,
  "test/group-species.test.ts": 0.007,
  "test/guarded-pickup.test.ts": 0.037,
- "test/headless-assembly-build.test.ts": 0.018,
  "test/headless-assembly.test.ts": 0.212,
  "test/headless-combat-motion.test.ts": 0.178,
  "test/headless-command-ports.test.ts": 0.005,
