@@ -72,10 +72,11 @@ class FailFastTests(unittest.TestCase):
             finally:
                 foreign.terminate();foreign.wait(timeout=3)
 
-    def test_behaviour_finishes_its_own_failure_while_other_jobs_keep_peer_stop(self):
+    def test_independent_checks_finish_their_own_failure_without_peer_observation(self):
         main=API['main'];run=API['run']
         command=[sys.executable,'-c','import time;time.sleep(.2);print("FAIL test/own.test.ts > actual");raise SystemExit(7)']
-        for job, expected in [('behaviour',7),('behaviour-products',7),('products',1)]:
+        independent=('behaviour','behaviour-products','products','typecheck-lint')
+        for job, expected in [(job,7) for job in independent]+[('build-and-deploy',1)]:
             with self.subTest(job=job):
                 observations=[]
                 def peer():
@@ -88,7 +89,7 @@ class FailFastTests(unittest.TestCase):
                         self.assertRaises(SystemExit) as stopped:
                     main()
                 self.assertEqual(stopped.exception.code,expected)
-                if job in ('behaviour','behaviour-products'):
+                if job in independent:
                     self.assertEqual(observations,[])
                     self.assertIn('::error file=test/own.test.ts',out.getvalue())
                     self.assertNotIn('Peer job',out.getvalue())
@@ -96,6 +97,14 @@ class FailFastTests(unittest.TestCase):
                     self.assertEqual(observations,[1])
                     self.assertIn('Peer job behaviour (3)',out.getvalue())
                     self.assertNotIn('FAIL test/own.test.ts',out.getvalue())
+
+    def test_typecheck_matrix_keeps_independent_shards_and_original_commands(self):
+        source=Path('.github/workflows/deploy.yml').read_text()
+        types=source.split('\n  typecheck-lint:\n',1)[1].split('\n  derived-docs:\n',1)[0]
+        self.assertIn('fail-fast: false',types)
+        self.assertNotIn('fail-fast: true',types)
+        self.assertIn('pnpm exec tsc -b tsconfig.layers.json',types)
+        self.assertIn('pnpm run lint:typed --shard=${{ matrix.shard }}/5',types)
 
     def test_behaviour_matrix_keeps_independent_jobs_and_per_shard_bail(self):
         source=Path('.github/workflows/deploy.yml').read_text()

@@ -181,11 +181,11 @@ def main():
         args=args[1:]
     if not args:
         raise SystemExit('usage: ci-fail-fast.py -- <command...>')
-    # G678/SW9: behaviour shards report their own failures independently. Keep
-    # their per-shard bail and diagnostics without stopping on another job.
+    # G678/SW9: tests, products and types/lint report independent failures.
+    # Keep each command's own stop and diagnostics without peer observation.
     # Release jobs and local uses also retain their commands without peer IO.
     reader=peer_failure if os.environ.get('GITHUB_EVENT_NAME') in ('push','pull_request') \
-        and os.environ.get('GITHUB_JOB') not in ('behaviour', 'behaviour-products') else None
+        and os.environ.get('GITHUB_JOB') not in ('behaviour', 'behaviour-products', 'products', 'typecheck-lint') else None
     def interrupted(number, frame):
         raise SystemExit(128+number)
     for number in (signal.SIGTERM, signal.SIGINT):

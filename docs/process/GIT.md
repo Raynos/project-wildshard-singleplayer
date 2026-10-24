@@ -171,10 +171,10 @@ rewrite still needs Jake's approval.
   full-gate stamps are retired; current push verdicts and gate seconds live in `.git/push.log`. Required exact-SHA
   boot smoke retains WebKit rendering, every public shard, and the road into Signal. Production
   selects only a CI-green and smoke-green commit.
-- **CI fail-fast (G671 C4, G678 SW9):** generation and product failures block their dependents. Type/lint
-  matrices cancel sibling jobs on their first failure. Behaviour shards finish independently, each stopping
-  at its own first failed case and printing its cause; neither the matrix nor the command wrapper stops a
-  behaviour shard for a peer failure. Other long commands observe only their exact run/attempt and stop
+- **CI fail-fast (G671 C4, G678 SW9):** generation and product failures block their dependents. Products,
+  type/lint and behaviour shards finish independently, each stopping at its own first failure and printing
+  its cause; neither matrix cancellation nor the command wrapper stops these jobs for a peer failure.
+  Other long commands observe only their exact run/attempt and stop
   their own process groups when a peer fails, retaining a red
   workflow verdict. An unavailable peer observation is named and not retried; the original checks still run.
   Failure annotations name the source/test file, and short-lived `ci-failures-*` artifacts contain only paths,

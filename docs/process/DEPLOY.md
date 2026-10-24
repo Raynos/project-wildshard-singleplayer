@@ -33,6 +33,9 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   mismatched artifacts fail instead of rebuilding. Both matrices keep `fail-fast: false` and each shard's own
   first-failure bail; neither command wrapper stops for a peer failure. Exact-SHA smoke dispatch requires both
   cohorts, every producer, types/lint, docs and the web build to pass.
+  Products and every typecheck/lint shard also finish independently after another job fails, so their own
+  admission and source errors remain visible in the same run. Each command still stops on its own error;
+  typecheck/lint matrix cancellation is disabled.
 - **CI's vitest is Linux x64 (under coverage in the nightly): other floats, and ~2–2.5× a Mac's time** (ci-green, 2026-10-09; main was
   red for hours on both):
   - **A recorded digest never passes through V8's native transcendentals** (`Math.sin / cos / tan / exp / log / atan2 /

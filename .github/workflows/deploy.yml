@@ -262,7 +262,8 @@ jobs:
     timeout-minutes: 15
     # Run types and fast lint once; bound each typed runner to one fifth.
     strategy:
-      fail-fast: true
+      # SW9: retain every shard's own failure instead of cancelling peers.
+      fail-fast: false
       matrix:
         shard: [types, fast, 1, 2, 3, 4, 5]
     steps:
