@@ -97,7 +97,8 @@ function fixture() {
     parseArenaScriptData({ arenaScript: titan.TITAN_HOST, programs:{attack:programs.attack,wind:programs.wind}, arenaFire }, geometry)});
   new Mount(legacyDouble<ConstructorParameters<typeof Mount>[0]>({ app, scope }), f.player, f.manager,
     { speeds: { walk: 1.8, trot: 4.5, canter: 8.5, gallop: 13 }, names: {}, thrownDamage: 7, thrownLabel: 'Thrown', restAt: { x: 3, z: 5 } });
-  const carriedUpdate = vi.spyOn(CarriedQuestProp.prototype, 'update');
+  const carried: Pick<CarriedQuestProp, 'update'> = CarriedQuestProp.prototype;
+  const carriedUpdate = vi.spyOn(carried, 'update');
   const taming = legacyDouble<PageTamingOwner>({ phase: 'bonded', upgraded: true });
   const owners = { taming, arena, fight, figures: {} };
   return { ctx, scope, flags, world, play, rows, owners, json, system, events, onNames, projection, chapterUpdate, people, placesUpdate, enter, kill, carriedUpdate };
