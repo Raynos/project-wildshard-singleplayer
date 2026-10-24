@@ -64,61 +64,41 @@ it('cannot enlarge or remove either custom-section policy ceiling',()=>{
   writeFileSync(before,policy(2,100));writeFileSync(after,policy(1,90));
   expect(comparePlatformList('lint/ratchet.json',before,after)).toEqual([]);
   writeFileSync(after,policy(3,101));
-  expect(comparePlatformList('lint/ratchet.json',before,after)).toEqual(['demo: custom-section ceiling rises without a raises line']);
+  expect(comparePlatformList('lint/ratchet.json',before,after)).toEqual(['demo: custom-section ceilings are shrink-only']);
   for(const [count,bytes]of [[3,100],[2,101]] as const) {
    writeFileSync(after,policy(count,bytes));
-   expect(comparePlatformList('lint/ratchet.json',before,after)).toEqual(['demo: custom-section ceiling rises without a raises line']);
+   expect(comparePlatformList('lint/ratchet.json',before,after)).toEqual(['demo: custom-section ceilings are shrink-only']);
   }
   writeFileSync(after,'{}');
   expect(comparePlatformList('lint/ratchet.json',before,after)).toHaveLength(2);
  }finally{rmSync(root,{recursive:true,force:true});}
 });
 
-it('requires exact appended adoption rises and permanently seals them at the spike end',()=>{
+it('refuses count and byte rises even with old adoption or measured-reset records',()=>{
  const budgets=(count:number,bytes:number):Record<string,number>=>({'custom-sections/demo/count':count,'custom-sections/demo/bytes':bytes});
- const base={version:1,baselineAt:'a'.repeat(40),baseline:{demo:{count:2,bytes:100}},risesCloseAt:null,raises:[]};
- const row={slug:'demo',from:{count:2,bytes:100},to:{count:3,bytes:101},why:'Admit the reviewed W2 section'};
- const raised={...base,raises:[row]};
- expect(compareCustomSections(budgets(1,90),budgets(2,100),undefined,base)).toEqual([]);
- expect(compareCustomSections(budgets(2,100),budgets(3,101),base,base)).toHaveLength(1);
- expect(compareCustomSections(budgets(2,100),budgets(3,101),base,raised)).toEqual([]);
- expect(compareCustomSections(budgets(3,101),budgets(4,102),raised,raised)).toHaveLength(1);
- expect(compareCustomSections(budgets(2,100),budgets(1,80),base,base)).toEqual([]);
- expect(compareCustomSections(budgets(3,101),budgets(3,101),raised,{...raised,raises:[{...row,why:'edit'}]})).toContain('custom-section raises must remain an immutable append-only history');
- expect(compareCustomSections(budgets(2,100),budgets(2,100),base,raised)).toContain('demo: custom-section raises line matches no ceiling change');
- const sealed={...base,risesCloseAt:'W1 spike end'};
- expect(compareCustomSections(budgets(2,100),budgets(2,100),base,sealed)).toEqual([]);
- expect(compareCustomSections(budgets(2,100),budgets(3,101),base,{...raised,risesCloseAt:'W1 spike end'})).toEqual([]);
- expect(compareCustomSections(budgets(2,100),budgets(3,101),sealed,{...sealed,raises:[row]})).toContain('demo: custom-section rises closed at W1 spike end');
- expect(compareCustomSections(budgets(2,100),budgets(2,100),sealed,base)).toContain('custom-section rise window cannot reopen');
- expect(compareCustomSections(budgets(2,100),{'custom-sections/demo/count':2},base,base)).not.toEqual([]);
-});
-
-it('allows one exact G514 reset then resumes shrink-only ceilings',()=>{
- const budgets=(count:number,bytes:number):Record<string,number>=>({'custom-sections/demo/count':count,'custom-sections/demo/bytes':bytes});
- const base={version:1,baselineAt:'a'.repeat(40),baseline:{demo:{count:2,bytes:100}},risesCloseAt:'W1 spike end',raises:[]};
- const row={slug:'demo',from:{count:2,bytes:100},to:{count:3,bytes:101},why:'G514: measured code-to-data growth'};
+ const base={version:1,baselineAt:'a'.repeat(40),baseline:{demo:{count:2,bytes:100}}};
+ const row={slug:'demo',from:{count:2,bytes:100},to:{count:3,bytes:101},why:'historical override'};
  const reset={revision:'b'.repeat(40),ceilings:{demo:row.to}};
- const next={...base,raises:[row],g514Reset:reset};
- expect(compareCustomSections(budgets(2,100),budgets(3,101),base,next)).toEqual([]);
- expect(compareCustomSections(budgets(2,100),budgets(3,101),base,{...next,raises:[]})).toContain('demo: custom-section ceiling rises without an appended exact {slug, from, to, why} line');
- expect(compareCustomSections(budgets(2,100),budgets(3,102),base,next)).toContain('G514 custom-section reset must match all committed ceilings');
- expect(compareCustomSections(budgets(3,101),budgets(2,90),next,next)).toEqual([]);
- expect(compareCustomSections(budgets(3,101),budgets(4,102),next,next)).toContain('demo: custom-section rises closed at W1 spike end');
- expect(compareCustomSections(budgets(3,101),budgets(3,101),next,{...next,g514Reset:{...reset,revision:'c'.repeat(40)}})).toContain('G514 custom-section reset is immutable');
- expect(compareCustomSections(budgets(3,101),budgets(3,101),next,base)).toContain('G514 custom-section reset is immutable');
+ for(const after of [base,{...base,raises:[row]},{...base,g514Reset:reset},
+   {...base,remeasures:[{...reset,why:'measured'}]},{...base,risesCloseAt:null,raises:[row]}]) {
+  for(const [count,bytes]of [[3,100],[2,101],[3,101]] as const)
+   expect(compareCustomSections(budgets(2,100),budgets(count,bytes),base,after)).toContain('demo: custom-section ceilings are shrink-only');
+ }
+ expect(compareCustomSections(budgets(2,100),budgets(1,80),base,base)).toEqual([]);
+ expect(compareCustomSections(budgets(2,100),budgets(2,100),base,base)).toEqual([]);
 });
 
-it('allows appended measured remeasures after the G514 reset, one per commit',()=>{
- const budgets=(count:number,bytes:number):Record<string,number>=>({'custom-sections/demo/count':count,'custom-sections/demo/bytes':bytes});
- const base={version:1,baselineAt:'a'.repeat(40),baseline:{demo:{count:2,bytes:100}},risesCloseAt:'W1 spike end',raises:[],g514Reset:{revision:'b'.repeat(40),ceilings:{demo:{count:2,bytes:100}}}};
- const row={slug:'demo',from:{count:2,bytes:100},to:{count:3,bytes:120},why:'measured code-to-data growth'};
- const again={revision:'c'.repeat(40),ceilings:{demo:row.to},why:'rows replaced runtime TS'};
- const next={...base,raises:[row],remeasures:[again]};
- expect(compareCustomSections(budgets(2,100),budgets(3,120),base,next)).toEqual([]);
- expect(compareCustomSections(budgets(2,100),budgets(3,120),base,{...next,raises:[]})).toContain('demo: custom-section ceiling rises without an appended exact {slug, from, to, why} line');
- expect(compareCustomSections(budgets(2,100),budgets(3,121),base,next)).toContain('custom-section remeasure must match all committed ceilings');
- expect(compareCustomSections(budgets(2,100),budgets(3,120),base,{...next,remeasures:[again,again]})).toContain('custom-section remeasures append one row per commit');
- expect(compareCustomSections(budgets(3,120),budgets(4,130),next,next)).toContain('demo: custom-section rises closed at W1 spike end');
- expect(compareCustomSections(budgets(3,120),budgets(3,120),next,{...next,remeasures:[]})).toContain('custom-section remeasures must remain an immutable append-only history');
+it('drops obsolete override history while preserving the immutable original baseline',()=>{
+ const budgets={'custom-sections/demo/count':2,'custom-sections/demo/bytes':100};
+ const base={version:1,baselineAt:'a'.repeat(40),baseline:{demo:{count:2,bytes:100}}};
+ const old={...base,risesCloseAt:'W1 spike end',raises:[],g514Reset:{revision:'b'.repeat(40),ceilings:base.baseline},remeasures:[]};
+ expect(compareCustomSections(budgets,budgets,old,base)).toEqual([]);
+ expect(compareCustomSections(budgets,budgets,base,old)).toContain('custom-section policy is malformed');
+ expect(compareCustomSections(budgets,budgets,base,{...base,baselineAt:'c'.repeat(40)})).toContain('custom-section initial baseline is immutable');
+ expect(compareCustomSections(budgets,budgets,base,{...base,baseline:{}})).toContain('custom-section initial baseline is immutable');
+ expect(compareCustomSections(budgets,budgets,base,undefined)).toContain('custom-section policy cannot be removed');
+ expect(compareCustomSections(budgets,budgets,{},base)).toContain('custom-section predecessor policy is malformed');
+ expect(compareCustomSections(budgets,budgets,undefined,base)).toEqual([]);
+ expect(compareCustomSections({},budgets,undefined,base)).toContain('demo: custom-section ceilings are shrink-only');
+ expect(compareCustomSections(budgets,{'custom-sections/demo/count':2},base,base)).not.toEqual([]);
 });
