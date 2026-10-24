@@ -41,6 +41,13 @@ function ownValues(input: Readonly<Record<string, GroupBankValueV2>>, names: rea
     if (descriptor === undefined || !Object.hasOwn(descriptor, 'value')) throw new Error('Group bank accessor refused');
   }
 }
+function referenceWire(handle: number, row: GroupBankFieldV2, group: string,
+  byHandle: ReadonlyMap<number, GroupBankReferenceV2>): string {
+  const found = byHandle.get(integer(handle, 1, 0x7fffffff));
+  if (found === undefined || row.kind !== 'reference' && row.kind !== 'references'
+    || row.own === true && found.group !== group) throw new Error('Unresolved group reference');
+  return found.wire;
+}
 /** A stateless codec; fields retain their declared order. The returned record
  * fits the original owner's snapshot assembly, rather than a new envelope. */
 export class GroupBankV2 {
@@ -171,12 +178,6 @@ export class GroupBankV2 {
     result?: Record<string,GroupBankValueV2>): void {
     if (bank.length !== this.width) throw new Error('Group bank width mismatch');
     const { byHandle } = this.loan(roster, group);
-    const reference = (handle:number,row:GroupBankFieldV2):string => {
-      const found=byHandle.get(integer(handle,1,0x7fffffff));
-      if(found===undefined||(row.kind!=='reference'&&row.kind!=='references')
-        ||row.own===true&&found.group!==group)throw new Error('Unresolved group reference');
-      return found.wire;
-    };
     let offset = 0;
     for (const row of this.fields) {
       const value = bank[offset];
@@ -207,7 +208,7 @@ export class GroupBankV2 {
           break;
         }
         case 'reference': {
-          const wire=value===0?null:reference(value,row);
+          const wire=value===0?null:referenceWire(value,row,group,byHandle);
           if(result!==undefined)result[row.name]=wire;break;
         }
         case 'references': {
@@ -215,7 +216,7 @@ export class GroupBankV2 {
           for (let index = 0; index < row.capacity; index++) {
             const handle = bank[offset + index + 1];
             if (handle === undefined) throw new Error('Missing ordered group reference');
-            if (index < count) values.push(reference(handle,row));
+            if (index < count) values.push(referenceWire(handle,row,group,byHandle));
             else if (!Object.is(handle, 0)) throw new Error('Nonzero unused group reference');
           }
           if (new Set(values).size !== values.length) throw new Error('Duplicate ordered group reference');
@@ -255,13 +256,17 @@ export class GroupBankV2 {
     let accepted = false;
     const validate = (): void => {
       if (accepted || scope.disposed || scope.disposing) throw new Error('Retired group bank preparation');
-      if (bank.length !== before.length || before.some((value, index) => !Object.is(value, bank[index])))
-        throw new Error('Changed group bank owner');
-      if (roster.length !== pins.length || pins.some((pin, index) => {
-        const row = roster[index];
-        return row !== pin.source || row.group !== pin.group || row.slot !== pin.slot
-          || row.identity !== pin.identity || row.wire !== pin.wire || row.handle !== pin.handle;
-      })) throw new Error('Changed group reference loan');
+      if (bank.length !== before.length) throw new Error('Changed group bank owner');
+      for (let index = 0; index < before.length; index++) {
+        if (!Object.is(before[index], bank[index])) throw new Error('Changed group bank owner');
+      }
+      if (roster.length !== pins.length) throw new Error('Changed group reference loan');
+      for (let index = 0; index < pins.length; index++) {
+        const pin = pins[index], row = roster[index];
+        if (pin === undefined || row !== pin.source || row.group !== pin.group || row.slot !== pin.slot
+          || row.identity !== pin.identity || row.wire !== pin.wire || row.handle !== pin.handle)
+          throw new Error('Changed group reference loan');
+      }
     };
     return { values, validate, accept: () => { validate(); bank.set(next); accepted = true; } };
   }

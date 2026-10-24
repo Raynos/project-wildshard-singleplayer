@@ -202,3 +202,24 @@ test('equivalent fresh rosters preserve metadata but keep each publication tied 
     expect(Object.is(bank[bank.length - 1], -0)).toBe(true);
   } finally { scope.dispose(); }
 });
+
+test('repeated publication guards retain signed-zero and final-row metadata fences', () => {
+  const codec = new GroupBankV2([{ name: 'value', kind: 'number' }]), scope = new Scope('publication-loop');
+  const loans = structuredClone(roster), bank = codec.encode({ value: -0 }, 'first', loans);
+  try {
+    const ready = codec.prepare(bank, Float64Array.of(1), 'first', loans, scope);
+    for (let at = 0; at < 3; at++) ready.validate();
+    bank[0] = 0;
+    expect(() => ready.validate()).toThrow('Changed group bank owner');
+    bank[0] = -0;
+    const last = loans[loans.length - 1];
+    if (last === undefined) throw new Error('Missing final reference');
+    const handle = last.handle;
+    last.handle = 99;
+    expect(() => ready.validate()).toThrow('Changed group reference loan');
+    last.handle = handle;
+    ready.validate(); ready.accept();
+    expect(bank[0]).toBe(1);
+    expect(() => ready.validate()).toThrow('Retired group bank preparation');
+  } finally { scope.dispose(); }
+});
