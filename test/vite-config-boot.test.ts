@@ -5,6 +5,18 @@ import { mkdirSync, mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Import the actual build helper from the fixture config.
 import { resolve } from 'node:path';
 
+test('the bundled Vite generator config imports discovery without loading the product builder', async () => {
+  mkdirSync('tmp/vite-config-boot', { recursive: true });
+  const root = mkdtempSync(resolve('tmp/vite-config-boot/discovery-'));
+  try {
+    const path = resolve(root, 'vite.config.ts');
+    writeFileSync(path, `import * as generator from ${JSON.stringify(resolve('vite/gen.ts'))}; export default { define: { GENERATOR_EXPORTS: JSON.stringify(Object.keys(generator).sort()) } };`);
+    const loaded = await loadConfigFromFile({ command: 'build', mode: 'production' }, path, root, 'silent', undefined, 'bundle');
+    expect(loaded?.config.define?.['GENERATOR_EXPORTS']).toBe(JSON.stringify(['assetIndex', 'generateBootTables']));
+    expect(loaded?.dependencies.some(file => /(?:build-shardfiles|bake-data-maps|gen-programs)\.mjs$/u.test(file))).toBe(false);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
 test('the Vite Node loader computes tier facts without importing page runtime state',async()=>{
   mkdirSync('tmp/vite-config-boot',{recursive:true});
   const root=mkdtempSync(resolve('tmp/vite-config-boot/tier-'));

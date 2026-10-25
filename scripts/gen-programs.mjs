@@ -4,6 +4,7 @@ import { resolve } from 'node:path';
 import { parseSync } from 'vite';
 import { legacyInventory } from './legacy-shards.mjs';
 import { manifestFolders, outputManifest, shardProducts } from './shard-outputs.mjs';
+import { usesProgramDiscovery } from './program-discovery.mjs';
 
 /** The SDK's named, value-level generate export is the conversion boundary.
  * Never execute a config just to discover its build mode.
@@ -60,19 +61,6 @@ export async function buildPrograms(root, plan, reuse = false) {
   return buildShardfiles(root, { reuse, ...(plan.scoped ? { scope: plan.products } : {}) });
 }
 
-/** @param {unknown} value @returns {value is Record<string, unknown>} */
-const plain = value => value !== null && typeof value === 'object' && !Array.isArray(value);
-/** Only the admitted data binding slots can require generated product metadata.
- * @param {unknown} metadata */
-export function usesProgramDiscovery(metadata) {
-  if (!plain(metadata) || !plain(metadata.bindings)) return false;
-  const values = metadata.bindings;
-  /** @param {unknown} value */
-  const program = value => plain(value) && value.program === true;
-  const boot = values.boot;
-  return ['budgets', 'navigation', 'mapPalette', 'poses', 'audioCues'].some(key => program(values[key]))
-    || plain(boot) && ['files', 'sources', 'lateReads', 'explore'].some(key => program(boot[key]));
-}
 /** Discovery and boot tables cover every manifest even for a scoped build.
  * Read declarations only; a config is never executed to discover prerequisites.
  * @param {string} root */

@@ -8,8 +8,7 @@ import { outputManifest, shardProducts } from './shard-outputs.mjs';
 import { genShardWords } from './gen-shard-words.mjs';
 import { legacyInventory, legacyPrimary } from './legacy-shards.mjs';
 import { genDecisionPolicies } from './gen-decision-policy.mjs';
-import { readProgramDiscovery } from './program-discovery.mjs';
-import { usesProgramDiscovery } from './gen-programs.mjs';
+import { readProgramDiscovery, usesProgramDiscovery } from './program-discovery.mjs';
 
 /** Static runtime imports only: lazy plugin/look thunks and erased types stay out of the startup closure. */
 export function manifestClosure(root) {

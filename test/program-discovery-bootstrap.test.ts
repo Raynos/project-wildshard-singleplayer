@@ -3,12 +3,12 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 // oxlint-disable-next-line import/no-nodejs-modules -- Keep fixture paths inside repository scratch.
 import { dirname, resolve } from 'node:path';
 import { afterEach, expect, test } from 'vitest';
-import { emitProgramTables, generationPlan, programDiscoveryProducts, usesProgramDiscovery, programInputPlan } from '../scripts/gen-programs.mjs';
+import { emitProgramTables, generationPlan, programDiscoveryProducts, programInputPlan } from '../scripts/gen-programs.mjs';
 import { captureProductInputs, productInputKey, productToolchainKey, publishProductInputs, recordBundle } from '../scripts/shardfile-inputs.mjs';
 import { productRecipe } from '../scripts/built-product.mjs';
 import { InputHashMemo } from '../scripts/bake-input-hashes.mjs';
 import { shardfileValidationRevision } from '../scripts/shardfile-validation-revision.mjs';
-import { readProgramDiscovery } from '../scripts/program-discovery.mjs';
+import { readProgramDiscovery, usesProgramDiscovery } from '../scripts/program-discovery.mjs';
 import { authoredManifestSource } from '../scripts/authored-manifest.mjs';
 import { emptyShardfile } from '../src/sdk/author';
 import { writeOutputProduct } from '../src/sdk/outputProduct';

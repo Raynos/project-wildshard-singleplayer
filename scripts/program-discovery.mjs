@@ -6,6 +6,20 @@ import { readBuiltShardfile } from './built-product.mjs';
 import { discoveryFormat, outputFormat } from './shard-platform-format.mjs';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
 
+/** @param {unknown} value @returns {value is Record<string, unknown>} */
+const plain = value => value !== null && typeof value === 'object' && !Array.isArray(value);
+/** Inspect admitted binding slots without loading any generator or product builder.
+ * @param {unknown} metadata */
+export function usesProgramDiscovery(metadata) {
+  if (!plain(metadata) || !plain(metadata.bindings)) return false;
+  const values = metadata.bindings;
+  /** @param {unknown} value */
+  const program = value => plain(value) && value.program === true;
+  const boot = values.boot;
+  return ['budgets', 'navigation', 'mapPalette', 'poses', 'audioCues'].some(key => program(values[key]))
+    || plain(boot) && ['files', 'sources', 'lateReads', 'explore'].some(key => program(boot[key]));
+}
+
 /** Read only current product metadata, bound to its exact index and canonical values.
  * @param {string} root @param {string} name
  * @param {{cacheRoot?:string,env?:NodeJS.ProcessEnv}} [options] */
