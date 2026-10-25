@@ -59,6 +59,7 @@
   },
   "assetGlobs": [
     "public/assets/nine-dragon/**",
+    "public/assets/baked/nine-dragon-stack/navmesh.bin",
     "public/assets/gpu/nine-dragon/**",
     "public/assets/music/nine-dragon-stack/**",
     "public/assets/sfx/nine-dragon-stack/**",

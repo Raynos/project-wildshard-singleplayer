@@ -6,6 +6,7 @@ import { dirname, resolve } from 'node:path';
 import { Buffer } from 'node:buffer';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
+import * as v from 'valibot';
 import { createProjectGeneration } from '../src/sdk/projectGeneration';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { hashImmutableBytes } from '../src/sdk/immutable';
@@ -14,6 +15,14 @@ import before from './fixtures/nine-navigation.json' with { type: 'json' };
 
 const project = resolve('src/shards/nine-dragon-stack');
 function fixture(): string { mkdirSync('tmp', { recursive: true }); return mkdtempSync(resolve('tmp', 'nine-navigation-')); }
+
+test('the original public navigation transport is explicitly owned by the defining shard', () => {
+  const manifest = v.parse(v.object({ assetGlobs: v.array(v.string()) }), JSON.parse(readFileSync(resolve(project, 'manifest.json'), 'utf8')));
+  expect(manifest.assetGlobs).toContain(`public${before.url}`);
+  const bytes = new Uint8Array(readFileSync(resolve('public', before.url.slice(1))));
+  expect(bytes.byteLength).toBe(6047);
+  expect(hashImmutableBytes(bytes)).toBe(before.navigation.file);
+});
 
 test('cold and hit navigation retain every original byte, ordered layer, cost and public URL', async () => {
   const root = fixture(), assets = new Map<string, Uint8Array>();
