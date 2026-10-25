@@ -13,6 +13,7 @@ import { hashImmutableBytes } from '../src/sdk/immutable';
 import { nineNavigation, NINE_NAVIGATION_INPUT } from '../src/shards/nine-dragon-stack/generators/navigationProgram';
 import before from './fixtures/nine-navigation.json' with { type: 'json' };
 import { generated } from './fixtures/nine-source-program';
+import { bootDiscovery } from './fixtures/nine-boot-discovery';
 
 const project = resolve('src/shards/nine-dragon-stack');
 function fixture(): string { mkdirSync('tmp', { recursive: true }); return mkdtempSync(resolve('tmp', 'nine-navigation-')); }
@@ -75,7 +76,7 @@ test('the real source program supplies every original discovery value without a 
   const manifest = v.parse(v.object({ bindings: v.object({ navigation: v.strictObject({ program: v.literal(true) }) }) }),
     JSON.parse(readFileSync(resolve(project, 'manifest.json'), 'utf8')));
   expect(manifest.bindings.navigation).toEqual({ program: true });
-  expect(generated.discovery).toEqual({ navigation: before });
+  expect(generated.discovery).toEqual({ navigation: before, ...bootDiscovery });
   expect(generated.shard.navigation).toEqual(before.navigation);
   expect(generated.shard.critical).toEqual(before.critical);
 });

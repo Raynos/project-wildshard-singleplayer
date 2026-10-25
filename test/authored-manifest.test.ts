@@ -26,12 +26,13 @@ import { MANIFEST as blender } from '../src/shards/blender-template/discovery.ge
 import { MANIFEST as driftwood } from '../src/shards/driftwood-isle/discovery.generated';
 import { DRIFTWOOD_FAUNA_PLANS } from '../src/shards/driftwood-isle/generators/fauna';
 import nineNavigation from './fixtures/nine-navigation.json' with { type: 'json' };
+import { bootDiscovery } from './fixtures/nine-boot-discovery';
 import { generated as signalProgram } from './fixtures/sunscar-source-program';
 import * as v from 'valibot';
 
 const root = resolve(import.meta.dirname, '..');
 const metadata = (slug: string): unknown => JSON.parse(readFileSync(resolve(root, `src/shards/${slug}/manifest.json`), 'utf8'));
-const nineDiscovery = parseDiscoveryValues({ navigation: nineNavigation });
+const nineDiscovery = parseDiscoveryValues({ navigation: nineNavigation, ...bootDiscovery });
 const declaredSource = (slug: string): string => authoredManifestSource(root, slug,
   slug === 'nine-dragon-stack' ? { discovery: nineDiscovery } : slug === 'sunscar-dunes' ? { discovery: parseDiscoveryValues(signalProgram.discovery) } : undefined);
 describe('authored JSON discovery', () => {

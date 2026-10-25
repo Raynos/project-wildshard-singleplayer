@@ -5,7 +5,8 @@ import { resolve } from 'node:path';
 import * as v from 'valibot';
 import { expect, test } from 'vitest';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { nineBootDiscovery } from '../src/shards/nine-dragon-stack/generators/bootDiscovery';
+import { nineBootProgram, nineBootDiscovery } from '../src/shards/nine-dragon-stack/generators/bootDiscovery';
+import { bootDiscovery } from './fixtures/nine-boot-discovery';
 import original from './fixtures/nine-boot-discovery.json' with { type: 'json' };
 
 function inventory(): Record<string, number | true> {
@@ -49,4 +50,12 @@ test('inventory presence controls the same phone fallback and authored-file filt
   expect(absent['boot.sources'].modes.desktop.img.props).toHaveLength(29);
   expect(absent['boot.explore']).toEqual(cold['boot.explore']);
   expect(absent.poses).toEqual(cold.poses);
+});
+
+test('the injected source reader retains every original value and refuses older contexts', () => {
+  for (const row of original) {
+    const value: unknown = Reflect.get(bootDiscovery, row.slot);
+    expect(hashImmutableBytes(new TextEncoder().encode(JSON.stringify(value))), row.slot).toBe(row.hash);
+  }
+  expect(() => nineBootProgram({})).toThrow('requires current inputFiles capability');
 });

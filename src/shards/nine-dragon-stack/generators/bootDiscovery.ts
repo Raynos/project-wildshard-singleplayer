@@ -1,3 +1,4 @@
+import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import manifest from '../data/manifest.json' with { type: 'json' };
 import discovery from '../data/discovery.json' with { type: 'json' };
 import { bootSources } from './bootFiles';
@@ -25,4 +26,12 @@ export function nineBootDiscovery(inventory: Readonly<Record<string, number | tr
   return { 'boot.files': manifest.BOOT_FILES, 'boot.sources': sources,
     'boot.explore': { art: [...Object.values(explore.art), ...explore.compare.flatMap(({ live, image }) => [live, image]), ...discovery.extraArt] },
     poses: MOCKUP_CAMERAS };
+}
+
+/** Read current confined presence facts before producing the original discovery rows. */
+export function nineBootProgram(ctx: Pick<ProjectGenerationContext, 'inputFiles'>): ReturnType<typeof nineBootDiscovery> {
+  const list = ctx.inputFiles; if (list === undefined) throw new Error('Nine boot discovery requires current inputFiles capability');
+  const inventory = Object.fromEntries(list(['/assets/nine-dragon/'])
+    .filter(url => !url.endsWith('.DS_Store')).map((url): [string, true] => [url, true]));
+  return nineBootDiscovery(inventory);
 }
