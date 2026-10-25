@@ -390,6 +390,20 @@ test('neighbour transport release shrinks the shared claim before readers copy i
   expect(allocator.entries()).toHaveLength(0); expect(pins.size).toBe(0);
 });
 
+test('residency counts the same nested data under ordinary and null prototypes', () => {
+  const input: unknown = JSON.parse('{"02":2,"name":"ab","items":[true,null,{"🌲":"pine"}]}');
+  // Container slots, UTF-16 keys/strings and primitive values all remain charged.
+  expect(jsonResidentBytes(input)).toBe(462);
+  if (typeof input !== 'object' || input === null) throw new Error('Missing plain fixture');
+  Object.setPrototypeOf(input, null);
+  expect(jsonResidentBytes(input)).toBe(462);
+});
+
+test('residency charges shared JSON containers at each source occurrence', () => {
+  const shared = {a: 1};
+  expect(jsonResidentBytes({first: shared, second: shared})).toBe(394);
+});
+
 test.each([Number.NaN, Infinity, -0])('residency refuses noncanonical JSON numbers %s before accounting', value => {
   const source = fixture().source;
   source.identity.seed = value;

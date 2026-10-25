@@ -250,8 +250,10 @@ function jsonHeapBytes(input: unknown): number {
     const value = pending.pop();
     if (Array.isArray(value)) { const items: readonly unknown[] = value; heap += 40 + items.length * 8; for (const item of items) count(item); }
     else if (typeof value === 'object' && value !== null) {
-      const entries = Object.entries(value); heap += 64 + entries.length * 16;
-      for (const [key, item] of entries) { heap += 24 + key.length * 2; count(item); }
+      // Both callers validated this synchronous plain-data tree. Keep the key
+      // snapshot without allocating an extra pair array for every property.
+      const fields = value as Readonly<Record<string, unknown>>, keys = Object.keys(value); heap += 64 + keys.length * 16;
+      for (const key of keys) { heap += 24 + key.length * 2; count(fields[key]); }
     } else count(value);
   }
   return heap;
