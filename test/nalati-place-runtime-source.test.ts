@@ -5,7 +5,7 @@ import { relative, resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
 import * as v from 'valibot';
-import { preparePlaceRuntime, type PlaceRuntimeInput } from '../src/shards/nalati-grasslands/generators/placeRuntimeSource.mjs';
+import { preparePlaceRuntime, placeRuntimeRows, type PlaceRuntimeInput } from '../src/shards/nalati-grasslands/generators/placeRuntimeSource.mjs';
 import { jsonBytes } from '../scripts/bake-output.mjs';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
@@ -31,6 +31,28 @@ test('pure runtime preparation preserves all seven complete output pins and inpu
     expect(Buffer.compare(bytes, original), path).toBe(0);
   }
   expect(JSON.stringify([...inputs])).toBe(before);
+});
+
+test('structured preparation keeps metadata and independent owned floor bytes', () => {
+  const normalize = (value: unknown): unknown => { const result: unknown = JSON.parse(new TextDecoder().decode(jsonBytes(value))); return result; };
+  const first = placeRuntimeRows(read, normalize);
+  const prepared = v.parse(v.looseObject({ floorSources: v.array(v.unknown()) }), JSON.parse(readFileSync(`${prefix}data/placeRuntime.generated.json`, 'utf8')));
+  const { floorSources, ...runtime } = prepared;
+  expect(first.runtime).toEqual(runtime);
+  expect(first.metrics).toEqual(read('data/modelMetrics.json'));
+  expect(first.capture).toEqual(read('data/staticCapture.json'));
+  expect(first.shapeBook).toEqual(JSON.parse(readFileSync(`${prefix}data/shapeBook.generated.json`, 'utf8')));
+  expect(first.floors.map(floor => floor.name)).toEqual(floorSources.map(row => v.parse(v.object({ name: v.string() }), row).name));
+  for (const [index, floor] of first.floors.entries()) {
+    const row = v.parse(v.object({ source: v.string() }), floorSources[index]);
+    expect(Buffer.compare(floor.bytes, readFileSync(`${prefix}${row.source}`))).toBe(0);
+    floor.bytes.fill(0);
+  }
+  const second = placeRuntimeRows(read, normalize);
+  for (const [index, floor] of second.floors.entries()) {
+    const row = v.parse(v.object({ source: v.string() }), floorSources[index]);
+    expect(Buffer.compare(floor.bytes, readFileSync(`${prefix}${row.source}`))).toBe(0);
+  }
 });
 
 test('original asset and binary coverage refusals remain', () => {

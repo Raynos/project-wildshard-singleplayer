@@ -1,16 +1,16 @@
 import { placeFloors } from './placeFloors.mjs';
 import { Euler, Matrix4, Quaternion, Vector3 } from 'three';
 
-/** Prepare the original seven runtime byte files; the caller owns source reads, JSON encoding and publication. */
-export function preparePlaceRuntime(read,jsonBytes) {
+/** The one runtime preparation algorithm; metadata is normalized only at its defining wire boundary. */
+function buildPlaceRuntimeRows(read) {
 const catalogue = read('data/campCatalogue.json');
 const places = read('data/places.json'), dressing = read('data/dressingGeos.json');
 const bytes = g => g.attrs.reduce((n, [,type,size]) => n + Math.ceil(g.count * size * ({f32:4,u8:1,i8:1,u16:2,f16:2}[type]) / 4) * 4, 0) + (g.index === null ? 0 : g.indexCount * 4);
 const floors=[];
 const floorRow=input=>{
   const baked=placeFloors(input);if(!('raw'in baked))return baked;
-  const {raw,...row}=baked,index=floors.length,name=`world/floors/${index}.bin`,source=`data/place-floor-${index}.generated.bin`;
-  floors.push({name,kind:'bin',source,bytes:raw});return {...row,file:name};
+  const {raw,...row}=baked,index=floors.length,name=`world/floors/${index}.bin`;
+  floors.push({name,bytes:raw});return {...row,file:name};
 };
 let at=0;
 const rows=places.rows.map(row=>({...row,members:row.members.map(([id,member])=>[id,{...member,floors:member.floors.map(floorRow)}]),instances: row.instances.map(([name, instance]) => {
@@ -39,17 +39,32 @@ for(const step of view.sequence){
 }
 const centre=low.map((v,i)=>(v+high[i])/2),radius=Math.sqrt(high.reduce((sum,v,i)=>sum+(v-low[i])**2,0))/2+12;
 const smoke={attributes,centre,radius,puffs};
-const files=new Map();
-for(const floor of floors)files.set(floor.source,floor.bytes);
-const floorSources=floors.map(floor=>({name:floor.name,kind:floor.kind,source:floor.source}));
-files.set('boot/placeRuntime.generated.json',jsonBytes({floorSources,places:{...places,rows},dressing:{...dressing,rows:shapes},view:{...view,smoke}}));
-files.set('data/placeRuntime.generated.json',jsonBytes({floorSources,places:{...places,rows},dressing:{...dressing,rows:shapes},view:{...view,smoke}}));
-files.set('boot/modelMetrics.generated.json',jsonBytes(read('data/modelMetrics.json')));
-files.set('data/staticCapture.generated.json',jsonBytes(read('data/staticCapture.json')));
+const metrics=read('data/modelMetrics.json'),capture=read('data/staticCapture.json');
 const paint=read('data/poiPaint.json');
 // G600 L8: the prepared shapes as fixed draw rows (game/models/fixedDraws): the actors' blocks in the place bake, the
 // painted ones in named binary blocks. The sign lettering's atlases are scene-dressing rows of their own (game/looks/lettering).
 const sources=paint.rows.map(({file,name})=>({name,kind:'bin',source:file}));
-files.set('data/shapeBook.generated.json',jsonBytes({draws:[...rows.filter(row=>row.name.startsWith('actor:')).flatMap(row=>row.meshes.slice(0,1).map(mesh=>({slot:row.name.slice(6),channels:[],lane:{url:'/assets/nalati/baked/places.bin',offset:mesh.offset},baked:mesh.geometry}))),...paint.rows.map(({key,geometry},index)=>({slot:key,channels:[],file:sources[index].name,baked:geometry}))],sources}));
-return files;
+const shapeBook={draws:[...rows.filter(row=>row.name.startsWith('actor:')).flatMap(row=>row.meshes.slice(0,1).map(mesh=>({slot:row.name.slice(6),channels:[],lane:{url:'/assets/nalati/baked/places.bin',offset:mesh.offset},baked:mesh.geometry}))),...paint.rows.map(({key,geometry},index)=>({slot:key,channels:[],file:sources[index].name,baked:geometry}))],sources};
+return {floors,runtime:{places:{...places,rows},dressing:{...dressing,rows:shapes},view:{...view,smoke}},metrics,capture,shapeBook};
+}
+
+/** Expose the original wire values (including signed-zero/undefined normalization) and owned floor bytes.
+ * The caller supplies the existing metadata codec/admission law; raw floor bytes never cross it. */
+export function placeRuntimeRows(read,normalize) {
+  const {floors,runtime,metrics,capture,shapeBook}=buildPlaceRuntimeRows(read);
+  return {floors,runtime:normalize(runtime),metrics:normalize(metrics),capture:normalize(capture),shapeBook:normalize(shapeBook)};
+}
+
+/** Preserve existing CLI byte publication while source readers adopt the structured preparation above. */
+export function preparePlaceRuntime(read,jsonBytes) {
+  const {floors,runtime,metrics,capture,shapeBook}=buildPlaceRuntimeRows(read);
+  const floorSources=floors.map((floor,index)=>({name:floor.name,kind:'bin',source:`data/place-floor-${index}.generated.bin`}));
+  const files=new Map(floors.map((floor,index)=>[floorSources[index].source,floor.bytes]));
+  const prepared={floorSources,...runtime};
+  files.set('boot/placeRuntime.generated.json',jsonBytes(prepared));
+  files.set('data/placeRuntime.generated.json',jsonBytes(prepared));
+  files.set('boot/modelMetrics.generated.json',jsonBytes(metrics));
+  files.set('data/staticCapture.generated.json',jsonBytes(capture));
+  files.set('data/shapeBook.generated.json',jsonBytes(shapeBook));
+  return files;
 }
