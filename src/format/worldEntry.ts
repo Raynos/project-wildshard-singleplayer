@@ -42,9 +42,110 @@ const PieceSchema = v.strictObject({ kind: v.literal('piece'), when: v.exactOpti
   active: v.exactOptional(v.literal('tool-closed')), colliderOwner: v.exactOptional(id), surfaces: v.exactOptional(v.pipe(v.array(surface), v.minLength(1), v.maxLength(16))) });
 const CutSchema = v.strictObject({ kind: v.literal('cut'), when: v.exactOptional(when), cuts: v.pipe(v.array(v.strictObject({ x: finite, z: finite,
   hw: v.pipe(finite, v.minValue(0)), hd: v.pipe(finite, v.minValue(0)), yaw: finite, below: finite })), v.minLength(1), v.maxLength(64)) });
-export const WorldEntryStepSchema = v.variant('kind', [AttachSchema, PlaceSchema, LookSchema, PieceSchema, CutSchema]);
-export const WorldEntrySchema = v.strictObject({ blocks: v.record(id, v.pipe(v.array(WorldEntryStepSchema), v.maxLength(1024))) });
-export type WorldEntryStep = v.InferOutput<typeof WorldEntryStepSchema>;
-export type WorldEntryRows = v.InferOutput<typeof WorldEntrySchema>;
+export const WorldEntryStepSchema: v.GenericSchema<WorldEntryStepInput, WorldEntryStep> = v.variant('kind', [AttachSchema, PlaceSchema, LookSchema, PieceSchema, CutSchema]);
+export const WorldEntrySchema: v.GenericSchema<WorldEntryRowsInput, WorldEntryRows> = v.strictObject({ blocks: v.record(id, v.pipe(v.array(WorldEntryStepSchema), v.maxLength(1024))) });
+
+
 /** Admit a world entry blob (its product file) before the world build runs any of it. */
 export function parseWorldEntry(input: unknown): WorldEntryRows { return v.parse(WorldEntrySchema, input); }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type WorldEntryStepInput = WorldEntryStep;
+export type WorldEntryStep = ({
+    kind: 'attach';
+    when?: {
+        tier?: 'phone' | 'desktop';
+        variant?: string;
+    };
+    id: string;
+    as: 'group' | 'mesh' | 'object';
+    parent?: string;
+    name?: string;
+    nameAfter?: string;
+    castShadow?: boolean;
+    userData?: Record<string, (boolean) | (number) | (string)>;
+}) | ({
+    kind: 'place';
+    when?: {
+        tier?: 'phone' | 'desktop';
+        variant?: string;
+    };
+    id: string;
+}) | ({
+    kind: 'look';
+    when?: {
+        tier?: 'phone' | 'desktop';
+        variant?: string;
+    };
+    look: string;
+    state: {
+        transparent?: boolean;
+        opacity?: number;
+        alphaToCoverage?: boolean;
+        depthWrite?: boolean;
+        depthTest?: boolean;
+        depthFunc?: number;
+        blending?: number;
+        blendEquation?: number;
+        blendEquationAlpha?: number;
+        blendSrc?: number;
+        blendDst?: number;
+        blendSrcAlpha?: number;
+        blendDstAlpha?: number;
+    };
+}) | ({
+    kind: 'piece';
+    when?: {
+        tier?: 'phone' | 'desktop';
+        variant?: string;
+    };
+    id: string;
+    name: string;
+    file: string;
+    category: 'ground' | 'nature' | 'buildings' | 'props';
+    surface: 'sand' | 'wetSand' | 'grass' | 'rock' | 'planks' | 'stone' | 'water' | 'wood' | 'metal' | 'flesh' | 'shell' | 'ground' | 'edge' | 'felt' | 'earth';
+    colliders: (unknown)[];
+    floors: ({
+        x: number;
+        z: number;
+        hw: number;
+        hd: number;
+        y: number;
+        rot?: number;
+        slope?: number;
+        tilt?: number;
+        profile?: ([
+            number,
+            number,
+            number
+        ])[];
+    })[];
+    floorPolicy: 'first' | 'highest';
+    solidFloor: boolean;
+    object?: (string) | null;
+    active?: 'tool-closed';
+    colliderOwner?: string;
+    surfaces?: ('sand' | 'wetSand' | 'grass' | 'rock' | 'planks' | 'stone' | 'water' | 'wood' | 'metal' | 'flesh' | 'shell' | 'ground' | 'edge' | 'felt' | 'earth')[];
+}) | ({
+    kind: 'cut';
+    when?: {
+        tier?: 'phone' | 'desktop';
+        variant?: string;
+    };
+    cuts: ({
+        x: number;
+        z: number;
+        hw: number;
+        hd: number;
+        yaw: number;
+        below: number;
+    })[];
+});
+interface WorldEntryRowsInputFields {
+    blocks: Record<string, (WorldEntryStepInput)[]>;
+}
+export type WorldEntryRowsInput = { [Key in keyof WorldEntryRowsInputFields]: WorldEntryRowsInputFields[Key] };
+interface WorldEntryRowsFields {
+    blocks: Record<string, (WorldEntryStep)[]>;
+}
+export type WorldEntryRows = { [Key in keyof WorldEntryRowsFields]: WorldEntryRowsFields[Key] };

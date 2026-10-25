@@ -44,17 +44,17 @@ const HourClockSchema = v.strictObject({ units: v.literal('hour'), start: n, sun
  * (a file shape in a lent look); the `weather` lane laying the weather over the look, the `dome` lane (flash × `flash`) and
  * the `tint` lane (the panorama's re-grade and the `tint` looks' params). The look is the parts lane's `look` owner.
  */
-const PaintedSkySchema = v.strictObject({
+const PaintedSkySchema: v.GenericSchema<PaintedSkyRowsInput, PaintedSkyRows> = v.strictObject({
   file: id, clock: HourClockSchema, dome: v.strictObject({ shape: id, look: id, order: n }), flash: n,
   lanes: v.strictObject({ key: id, sample: id, dome: id, weather: id, tint: id }), tint: v.pipe(v.array(id), v.maxLength(8)),
   from: v.strictObject({ fog: id, shade: id, rim: id, light: id }),
   moon: v.strictObject({ disc: v.tuple([n, n, n]), gain: n, scale: n, halo: n, haloOpacity: n }),
 });
-export type PaintedSkyRows = v.InferOutput<typeof PaintedSkySchema>;
+
 /** Native presentation bindings are resource ids and numeric policies only. A page runs a phase `program` on its own
  *  system, or a `storm` its reactions step; the forest blocks (observations, rain, shelter, focus, the `channels` lane) are
  *  each optional. */
-export const ForestWeatherSchema = v.pipe(v.strictObject({
+export const ForestWeatherSchema: v.GenericSchema<ForestWeatherRowsInput, ForestWeatherRows> = v.pipe(v.strictObject({
   files: v.strictObject({ observations: v.exactOptional(id), rain: v.exactOptional(id), program: v.exactOptional(id), shelter: v.exactOptional(id) }),
   mode: v.picklist(['setting', 'live']), channels: v.exactOptional(id), debug: id, heldPhase: n,
   focus: v.exactOptional(v.strictObject({ kind: id, variant: id, near: n, threshold: n, retention: n, height: n, radius: n, gain: n })),
@@ -63,4 +63,277 @@ export const ForestWeatherSchema = v.pipe(v.strictObject({
 }), v.check(row => (row.files.program === undefined) !== (row.storm === undefined), 'one weather owner: a program or a storm'),
   v.check(row => (row.files.observations === undefined) === (row.files.rain === undefined && row.files.shelter === undefined && row.focus === undefined && row.channels === undefined),
     'the forest blocks come together'));
-export type ForestWeatherRows = v.InferOutput<typeof ForestWeatherSchema>;
+
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type PaintedSkyRowsInput = PaintedSkyRows;
+interface PaintedSkyRowsFields {
+    file: string;
+    clock: {
+        units: 'hour';
+        start: number;
+        sun: {
+            maxElevation: number;
+            azimuthOffset: number;
+        };
+        schedule: ({
+            phase: 'dawn' | 'day' | 'golden' | 'dusk' | 'night';
+            from: number;
+            to: number;
+            minutes: number;
+        })[];
+        pauseOnPin: boolean;
+        fixed: {
+            midday: number;
+            golden: number;
+            sunset: number;
+            night: number;
+        };
+        presets: {
+            dawn: number;
+            noon: number;
+            dusk: number;
+            night: number;
+        };
+    };
+    dome: {
+        shape: string;
+        look: string;
+        order: number;
+    };
+    flash: number;
+    lanes: {
+        key: string;
+        sample: string;
+        dome: string;
+        weather: string;
+        tint: string;
+    };
+    tint: (string)[];
+    from: {
+        fog: string;
+        shade: string;
+        rim: string;
+        light: string;
+    };
+    moon: {
+        disc: [
+            number,
+            number,
+            number
+        ];
+        gain: number;
+        scale: number;
+        halo: number;
+        haloOpacity: number;
+    };
+}
+export type PaintedSkyRows = { [Key in keyof PaintedSkyRowsFields]: PaintedSkyRowsFields[Key] };
+interface ForestWeatherRowsInputFields {
+    files: {
+        observations?: string;
+        rain?: string;
+        program?: string;
+        shelter?: string;
+    };
+    mode: 'setting' | 'live';
+    channels?: string;
+    debug: string;
+    heldPhase: number;
+    focus?: {
+        kind: string;
+        variant: string;
+        near: number;
+        threshold: number;
+        retention: number;
+        height: number;
+        radius: number;
+        gain: number;
+    };
+    sky?: PaintedSkyRowsInput;
+    storm?: {
+        file: string;
+        idle: string;
+        native: {
+            file: string;
+            shelters: string;
+            world: string;
+        };
+        cues: ({
+            event: string;
+            patch: string;
+            kind: 'near' | 'distant';
+            range: number;
+            floor: number;
+            reach: number;
+        })[];
+        beds: {
+            group: string;
+            every: number;
+            rain: string;
+            wind: string;
+            range: [
+                number,
+                number
+            ];
+        };
+    };
+    parts?: {
+        file: string;
+        lane: string;
+        params: (string)[];
+        textures: ({
+            id: string;
+            bytes: string;
+            size: number;
+            noise: boolean;
+            lend: ([
+                string,
+                string
+            ])[];
+        })[];
+        parts: (({
+            kind: 'mesh' | 'points';
+            id: string;
+            shape: string;
+            look: string;
+            order: number;
+        }) | ({
+            kind: 'instanced';
+            id: string;
+            shape: string;
+            look: string;
+            order: number;
+            matrices: string;
+        }) | ({
+            kind: 'sprite';
+            id: string;
+            texture: string;
+            order: number;
+            fog: boolean;
+            toneMapped: boolean;
+        }))[];
+        rain?: {
+            look: string;
+            radius: {
+                phone: number;
+                desktop: number;
+            };
+            streaks: {
+                phone: number;
+                desktop: number;
+            };
+            order: number;
+        };
+    };
+    system: {
+        id: string;
+        after: (string)[];
+        before: (string)[];
+    };
+}
+export type ForestWeatherRowsInput = { [Key in keyof ForestWeatherRowsInputFields]: ForestWeatherRowsInputFields[Key] };
+interface ForestWeatherRowsFields {
+    files: {
+        observations?: string;
+        rain?: string;
+        program?: string;
+        shelter?: string;
+    };
+    mode: 'setting' | 'live';
+    channels?: string;
+    debug: string;
+    heldPhase: number;
+    focus?: {
+        kind: string;
+        variant: string;
+        near: number;
+        threshold: number;
+        retention: number;
+        height: number;
+        radius: number;
+        gain: number;
+    };
+    sky?: PaintedSkyRows;
+    storm?: {
+        file: string;
+        idle: string;
+        native: {
+            file: string;
+            shelters: string;
+            world: string;
+        };
+        cues: ({
+            event: string;
+            patch: string;
+            kind: 'near' | 'distant';
+            range: number;
+            floor: number;
+            reach: number;
+        })[];
+        beds: {
+            group: string;
+            every: number;
+            rain: string;
+            wind: string;
+            range: [
+                number,
+                number
+            ];
+        };
+    };
+    parts?: {
+        file: string;
+        lane: string;
+        params: (string)[];
+        textures: ({
+            id: string;
+            bytes: string;
+            size: number;
+            noise: boolean;
+            lend: ([
+                string,
+                string
+            ])[];
+        })[];
+        parts: (({
+            kind: 'mesh' | 'points';
+            id: string;
+            shape: string;
+            look: string;
+            order: number;
+        }) | ({
+            kind: 'instanced';
+            id: string;
+            shape: string;
+            look: string;
+            order: number;
+            matrices: string;
+        }) | ({
+            kind: 'sprite';
+            id: string;
+            texture: string;
+            order: number;
+            fog: boolean;
+            toneMapped: boolean;
+        }))[];
+        rain?: {
+            look: string;
+            radius: {
+                phone: number;
+                desktop: number;
+            };
+            streaks: {
+                phone: number;
+                desktop: number;
+            };
+            order: number;
+        };
+    };
+    system: {
+        id: string;
+        after: (string)[];
+        before: (string)[];
+    };
+}
+export type ForestWeatherRows = { [Key in keyof ForestWeatherRowsFields]: ForestWeatherRowsFields[Key] };

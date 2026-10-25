@@ -14,7 +14,7 @@ const page = v.strictObject({ stream, herds: n, centres: v.array(point), kinds: 
 const action = v.strictObject({ state: n, from: v.exactOptional(n), fromNot: v.exactOptional(n), sound: v.exactOptional(key), splash: v.exactOptional(n) });
 /** Client-only population projection: physical volleys, pooled splash particles,
  * memory observations and lights share the existing animal manager lifetime. */
-export const PopulationProjectionSchema = v.strictObject({
+export const PopulationProjectionSchema: v.GenericSchema<PopulationProjectionRowsInput, PopulationProjectionRows> = v.strictObject({
   id: key, seed: n, random: n, page: v.strictObject({ phone: page, desktop: page }),
   counts: v.record(key, v.strictObject({ kind: key, groups: v.boolean(), practice: v.boolean() })),
   practice: v.strictObject({ program: ReturnProgramSchema, law: EncounterScheduleSchema }),
@@ -31,4 +31,436 @@ export const PopulationProjectionSchema = v.strictObject({
     intensity: n, rise: key, rising: key, range: n, flicker: v.tuple([n, n, n, n, n]),
     streamRate: n, streamHeight: v.tuple([n, n]), streamSplash: n }),
 });
-export type PopulationProjectionRows = v.InferOutput<typeof PopulationProjectionSchema>;
+
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+interface PopulationProjectionRowsInputFields {
+    id: string;
+    seed: number;
+    random: number;
+    page: {
+        phone: {
+            stream: {
+                version: 1;
+                state: number;
+                initial: number;
+                scrambledFork: boolean;
+            };
+            herds: number;
+            centres: ({
+                x: number;
+                z: number;
+            })[];
+            kinds: (string)[];
+            enemies: (Omit<Omit<{
+                kind: string;
+                variant: (string) | null;
+            }, keyof ({
+                x: number;
+                z: number;
+            })> & {
+                x: number;
+                z: number;
+            }, keyof ({
+                yaw: number;
+                herd: number;
+                practice?: true;
+            })> & {
+                yaw: number;
+                herd: number;
+                practice?: true;
+            })[];
+            perches: ({
+                crown: [
+                    number,
+                    number,
+                    number
+                ];
+                base: [
+                    number,
+                    number,
+                    number
+                ];
+            })[];
+        };
+        desktop: {
+            stream: {
+                version: 1;
+                state: number;
+                initial: number;
+                scrambledFork: boolean;
+            };
+            herds: number;
+            centres: ({
+                x: number;
+                z: number;
+            })[];
+            kinds: (string)[];
+            enemies: (Omit<Omit<{
+                kind: string;
+                variant: (string) | null;
+            }, keyof ({
+                x: number;
+                z: number;
+            })> & {
+                x: number;
+                z: number;
+            }, keyof ({
+                yaw: number;
+                herd: number;
+                practice?: true;
+            })> & {
+                yaw: number;
+                herd: number;
+                practice?: true;
+            })[];
+            perches: ({
+                crown: [
+                    number,
+                    number,
+                    number
+                ];
+                base: [
+                    number,
+                    number,
+                    number
+                ];
+            })[];
+        };
+    };
+    counts: Record<string, {
+        kind: string;
+        groups: boolean;
+        practice: boolean;
+    }>;
+    practice: {
+        program: v.InferInput<typeof ReturnProgramSchema>;
+        law: v.InferInput<typeof EncounterScheduleSchema>;
+    };
+    hold: Omit<Omit<{
+        kind: string;
+    }, keyof ({
+        x: number;
+        z: number;
+    })> & {
+        x: number;
+        z: number;
+    }, keyof ({
+        r: number;
+        guardR: number;
+        step: number;
+        floor: ((number) | null)[];
+    })> & {
+        r: number;
+        guardR: number;
+        step: number;
+        floor: ((number) | null)[];
+    };
+    volley: v.InferInput<typeof BodySlotsSchema>;
+    launch: v.InferInput<typeof BodyLaunchSchema>;
+    strike: {
+        id: string;
+        damage: number;
+        tags: v.InferInput<(typeof ConeWeaponProfileSchema)['entries']['gust']['entries']['tags']>;
+    };
+    contact: {
+        sound: string;
+        landSound: string;
+        landAge: number;
+        splash: number;
+    };
+    husk: {
+        colour: string;
+        detail: number;
+    };
+    splash: {
+        capacity: number;
+        gravity: number;
+        colour: [
+            number,
+            number,
+            number
+        ];
+        size: number;
+        opacity: number;
+        count: number;
+        radius: number;
+        height: [
+            number,
+            number
+        ];
+        speed: [
+            number,
+            number
+        ];
+        up: [
+            number,
+            number
+        ];
+        life: [
+            number,
+            number
+        ];
+    };
+    effects: ({
+        kind: string;
+        state: string;
+        actions: ({
+            state: number;
+            from?: number;
+            fromNot?: number;
+            sound?: string;
+            splash?: number;
+        })[];
+        periodic: {
+            state: number;
+            interval: number;
+            chance: number;
+            x: string;
+            z: string;
+            radius: number;
+            splash: number;
+        };
+    })[];
+    light: {
+        colour: number;
+        distance: number;
+        decay: number;
+        headY: number;
+        deathSplash: number;
+        fade: number;
+        intensity: number;
+        rise: string;
+        rising: string;
+        range: number;
+        flicker: [
+            number,
+            number,
+            number,
+            number,
+            number
+        ];
+        streamRate: number;
+        streamHeight: [
+            number,
+            number
+        ];
+        streamSplash: number;
+    };
+}
+export type PopulationProjectionRowsInput = { [Key in keyof PopulationProjectionRowsInputFields]: PopulationProjectionRowsInputFields[Key] };
+interface PopulationProjectionRowsFields {
+    id: string;
+    seed: number;
+    random: number;
+    page: {
+        phone: {
+            stream: {
+                version: 1;
+                state: number;
+                initial: number;
+                scrambledFork: boolean;
+            };
+            herds: number;
+            centres: ({
+                x: number;
+                z: number;
+            })[];
+            kinds: (string)[];
+            enemies: (Omit<Omit<{
+                kind: string;
+                variant: (string) | null;
+            }, keyof ({
+                x: number;
+                z: number;
+            })> & {
+                x: number;
+                z: number;
+            }, keyof ({
+                yaw: number;
+                herd: number;
+                practice?: true;
+            })> & {
+                yaw: number;
+                herd: number;
+                practice?: true;
+            })[];
+            perches: ({
+                crown: [
+                    number,
+                    number,
+                    number
+                ];
+                base: [
+                    number,
+                    number,
+                    number
+                ];
+            })[];
+        };
+        desktop: {
+            stream: {
+                version: 1;
+                state: number;
+                initial: number;
+                scrambledFork: boolean;
+            };
+            herds: number;
+            centres: ({
+                x: number;
+                z: number;
+            })[];
+            kinds: (string)[];
+            enemies: (Omit<Omit<{
+                kind: string;
+                variant: (string) | null;
+            }, keyof ({
+                x: number;
+                z: number;
+            })> & {
+                x: number;
+                z: number;
+            }, keyof ({
+                yaw: number;
+                herd: number;
+                practice?: true;
+            })> & {
+                yaw: number;
+                herd: number;
+                practice?: true;
+            })[];
+            perches: ({
+                crown: [
+                    number,
+                    number,
+                    number
+                ];
+                base: [
+                    number,
+                    number,
+                    number
+                ];
+            })[];
+        };
+    };
+    counts: Record<string, {
+        kind: string;
+        groups: boolean;
+        practice: boolean;
+    }>;
+    practice: {
+        program: v.InferOutput<typeof ReturnProgramSchema>;
+        law: v.InferOutput<typeof EncounterScheduleSchema>;
+    };
+    hold: Omit<Omit<{
+        kind: string;
+    }, keyof ({
+        x: number;
+        z: number;
+    })> & {
+        x: number;
+        z: number;
+    }, keyof ({
+        r: number;
+        guardR: number;
+        step: number;
+        floor: ((number) | null)[];
+    })> & {
+        r: number;
+        guardR: number;
+        step: number;
+        floor: ((number) | null)[];
+    };
+    volley: v.InferOutput<typeof BodySlotsSchema>;
+    launch: v.InferOutput<typeof BodyLaunchSchema>;
+    strike: {
+        id: string;
+        damage: number;
+        tags: v.InferOutput<(typeof ConeWeaponProfileSchema)['entries']['gust']['entries']['tags']>;
+    };
+    contact: {
+        sound: string;
+        landSound: string;
+        landAge: number;
+        splash: number;
+    };
+    husk: {
+        colour: string;
+        detail: number;
+    };
+    splash: {
+        capacity: number;
+        gravity: number;
+        colour: [
+            number,
+            number,
+            number
+        ];
+        size: number;
+        opacity: number;
+        count: number;
+        radius: number;
+        height: [
+            number,
+            number
+        ];
+        speed: [
+            number,
+            number
+        ];
+        up: [
+            number,
+            number
+        ];
+        life: [
+            number,
+            number
+        ];
+    };
+    effects: ({
+        kind: string;
+        state: string;
+        actions: ({
+            state: number;
+            from?: number;
+            fromNot?: number;
+            sound?: string;
+            splash?: number;
+        })[];
+        periodic: {
+            state: number;
+            interval: number;
+            chance: number;
+            x: string;
+            z: string;
+            radius: number;
+            splash: number;
+        };
+    })[];
+    light: {
+        colour: number;
+        distance: number;
+        decay: number;
+        headY: number;
+        deathSplash: number;
+        fade: number;
+        intensity: number;
+        rise: string;
+        rising: string;
+        range: number;
+        flicker: [
+            number,
+            number,
+            number,
+            number,
+            number
+        ];
+        streamRate: number;
+        streamHeight: [
+            number,
+            number
+        ];
+        streamSplash: number;
+    };
+}
+export type PopulationProjectionRows = { [Key in keyof PopulationProjectionRowsFields]: PopulationProjectionRowsFields[Key] };

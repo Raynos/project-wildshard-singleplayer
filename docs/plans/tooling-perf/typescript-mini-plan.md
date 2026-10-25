@@ -148,6 +148,7 @@ normal layer emission is the declaration-size authority. Continuation starts at 
 | T4-F2h | Native bindings, quest interactions, held data, toon looks and module contracts; preserve object metadata and literal revisions | 60 min | done (2026-10-25, sp-x8) |
 | T4-F2i | Decision, world, quest, runtime and motion contracts; retain legacy intake, nested schema identities and exact constants | 60 min | done (2026-10-25, sp-x8) |
 | T4-F2j | Restore implicit record inference for earlier named contracts; preserve closed keys and reject any-valued iteration | 60 min | done (2026-10-25, sp-x8) |
+| T4-F2k | Weather, checkpoint, encounter and world-entry contracts; preserve record inference, readonly tuples and schema checks | 60 min | done (2026-10-25, sp-x8) |
 | T4-I1 | Format isolated declarations, then engine and remaining layers, one bounded diagnostic family per slice | 60 min per family | open |
 
 T4 first format slices are on origin: schema expressions and emitted runtime JavaScript are unchanged.

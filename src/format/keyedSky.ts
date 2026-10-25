@@ -17,7 +17,7 @@ const preset = v.strictObject({ key: v.string(), bg: n, env: n, light: colour, l
   cloudSun: colour, cloudLit: colour, cloudA: n, far: colour, lamps: n, sat: n });
 
 /** Decode authored JSON at the clock boundary, including tuple arity and weather field kinds. */
-export const KEYED_SKY = v.pipe(v.unknown(), v.check(isJsonData, 'Keyed sky requires plain JSON'), v.strictObject({
+export const KEYED_SKY: v.GenericSchema<KeyedSkyStyleInput, KeyedSkyStyle> = v.pipe(v.unknown(), v.check(isJsonData, 'Keyed sky requires plain JSON'), v.strictObject({
   dayFraction: n, cycleMinutes: n, start: n,
   response: v.strictObject({ shadowStep: n, overcastLamps: n, domeDim: n, horizonCeiling: n,
     overcastHorizon: v.strictObject({ luma: n, tint: rgb, amount: n }), mistHorizon: v.strictObject({ luma: n, tint: rgb, amount: n }),
@@ -41,7 +41,7 @@ export const KEYED_SKY = v.pipe(v.unknown(), v.check(isJsonData, 'Keyed sky requ
 }));
 
 
-export type KeyedSkyStyle = v.InferOutput<typeof KEYED_SKY>;
+
 export type SkyKeyRow = KeyedSkyStyle['keys'][string];
 /** Admit data before constructing clocks, graphs or textures. */
 export function parseKeyedSky(input: unknown): KeyedSkyStyle {
@@ -57,3 +57,258 @@ export function parseKeyedSky(input: unknown): KeyedSkyStyle {
   if (rows.packedKeys !== undefined) for (const id of Object.keys(rows.keys)) if (rows.packedKeys[id] === undefined) throw new Error('Incomplete packed sky');
   return rows;
 }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type KeyedSkyStyleInput = unknown;
+interface KeyedSkyStyleFields {
+    dayFraction: number;
+    cycleMinutes: number;
+    start: number;
+    response: {
+        shadowStep: number;
+        overcastLamps: number;
+        domeDim: number;
+        horizonCeiling: number;
+        overcastHorizon: {
+            luma: number;
+            tint: [
+                number,
+                number,
+                number
+            ];
+            amount: number;
+        };
+        mistHorizon: {
+            luma: number;
+            tint: [
+                number,
+                number,
+                number
+            ];
+            amount: number;
+        };
+        moonDisc: number;
+        minLight: number;
+        lightBase: number;
+        above: [
+            number,
+            number
+        ];
+        residentKeys: number;
+        prefetch: number;
+        environment: {
+            width: number;
+            smallWidth: number;
+            refresh: number;
+        };
+    };
+    packedKeys?: Record<string, {
+        file: string;
+        width: number;
+        height: number;
+        horizon: [
+            number,
+            number,
+            number
+        ];
+    }>;
+    schedule: ({
+        phase: 'dawn' | 'day' | 'golden' | 'dusk' | 'night';
+        from: number;
+        to: number;
+        minutes: number;
+    })[];
+    keys: Record<string, {
+        id: string;
+        sunU: number;
+        sunEl: number;
+        paint: number;
+    }>;
+    moonKey: string;
+    keyFiles: {
+        color: string;
+        gain: string;
+    };
+    presets: Record<string, {
+        key: string;
+        bg: number;
+        env: number;
+        light: (number) | ([
+            number,
+            number,
+            number
+        ]);
+        lightI: number;
+        hemiSky: (number) | ([
+            number,
+            number,
+            number
+        ]);
+        hemiGround: (number) | ([
+            number,
+            number,
+            number
+        ]);
+        hemiI: number;
+        fogSun: (number) | ([
+            number,
+            number,
+            number
+        ]);
+        fogDist: number;
+        fogHeight: number;
+        vol: number;
+        volColor: (number) | ([
+            number,
+            number,
+            number
+        ]);
+        rays: number;
+        glow: (number) | ([
+            number,
+            number,
+            number
+        ]);
+        disc: (number) | ([
+            number,
+            number,
+            number
+        ]);
+        halo: (number) | ([
+            number,
+            number,
+            number
+        ]);
+        haloO: number;
+        cloudSun: (number) | ([
+            number,
+            number,
+            number
+        ]);
+        cloudLit: (number) | ([
+            number,
+            number,
+            number
+        ]);
+        cloudA: number;
+        far: (number) | ([
+            number,
+            number,
+            number
+        ]);
+        lamps: number;
+        sat: number;
+    }>;
+    frames: ([
+        number,
+        string
+    ])[];
+    phases: Record<string, number>;
+    fixed: {
+        midday: number;
+        golden: number;
+        sunset: number;
+        night: number;
+    };
+    namedPhases: {
+        dawn: number;
+        noon: number;
+        dusk: number;
+        night: number;
+    };
+    sun: {
+        rise: number;
+        sweep: number;
+        noon: number;
+        nightRise: number;
+        nightSweep: number;
+        nadir: number;
+    };
+    moon: {
+        rise: number;
+        sweep: number;
+        base: number;
+        arc: number;
+    };
+    night: {
+        rise: [
+            number,
+            number
+        ];
+        fall: [
+            number,
+            number
+        ];
+    };
+    fade: {
+        sunY: [
+            number,
+            number
+        ];
+        moonIn: [
+            number,
+            number
+        ];
+        moonOut: [
+            number,
+            number
+        ];
+    };
+    nightShadow: number;
+    dusk: [
+        number,
+        number
+    ];
+    dawn: {
+        at: number;
+        width: [
+            number,
+            number
+        ];
+    };
+    dome: {
+        name: string;
+        radius: number;
+        segments: [
+            number,
+            number
+        ];
+    };
+    overcast: (({
+        op: 'scale';
+        key: ('bg' | 'env' | 'lightI' | 'hemiI' | 'fogDist' | 'fogHeight' | 'vol' | 'rays' | 'haloO' | 'cloudA' | 'lamps' | 'sat') | ('light' | 'hemiSky' | 'hemiGround' | 'fogSun' | 'volColor' | 'glow' | 'disc' | 'halo' | 'cloudSun' | 'cloudLit' | 'far');
+        by: number;
+        curve?: [
+            number,
+            number
+        ];
+    }) | ({
+        op: 'add';
+        key: 'bg' | 'env' | 'lightI' | 'hemiI' | 'fogDist' | 'fogHeight' | 'vol' | 'rays' | 'haloO' | 'cloudA' | 'lamps' | 'sat';
+        by: number;
+    }) | ({
+        op: 'atLeast';
+        key: 'bg' | 'env' | 'lightI' | 'hemiI' | 'fogDist' | 'fogHeight' | 'vol' | 'rays' | 'haloO' | 'cloudA' | 'lamps' | 'sat';
+        by: number;
+    }) | ({
+        op: 'grey';
+        key: 'light' | 'hemiSky' | 'hemiGround' | 'fogSun' | 'volColor' | 'glow' | 'disc' | 'halo' | 'cloudSun' | 'cloudLit' | 'far';
+        by: number;
+        tint: [
+            number,
+            number,
+            number
+        ];
+    }) | ({
+        op: 'toward';
+        key: 'light' | 'hemiSky' | 'hemiGround' | 'fogSun' | 'volColor' | 'glow' | 'disc' | 'halo' | 'cloudSun' | 'cloudLit' | 'far';
+        by: number;
+        colour: [
+            number,
+            number,
+            number
+        ];
+        lit?: number;
+    }))[];
+}
+export type KeyedSkyStyle = { [Key in keyof KeyedSkyStyleFields]: KeyedSkyStyleFields[Key] };

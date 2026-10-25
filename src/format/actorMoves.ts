@@ -18,7 +18,7 @@ const ready = v.variant('kind', [
   v.strictObject({ kind: v.literal('range'), strike: v.exactOptional(id) }),
 ]);
 /** Data-only fixed-step motion. Decisions, strike selection, rewards and phase transitions are not moves. */
-export const ActorMoveSchema = v.variant('kind', [
+export const ActorMoveSchema: v.GenericSchema<ActorMoveInput, ActorMove> = v.variant('kind', [
   v.strictObject({ id, kind: v.literal('steer'), ...motion,
     fields: v.strictObject({ yaw: id, speed: id, turn: id }) }),
   v.strictObject({ id, kind: v.literal('relocate'), point: v.variant('kind', [
@@ -45,7 +45,7 @@ export const ActorMoveSchema = v.variant('kind', [
 /** Plain `actors/moves` section, bounded and uniquely named. */
 export const ActorMovesSchema: v.GenericSchema<unknown, ActorMoves> = v.pipe(v.unknown(), v.check(isJsonData, 'plain JSON move data'), v.array(ActorMoveSchema), v.maxLength(256),
   v.check(rows => new Set(rows.map(row => row.id)).size === rows.length, 'unique move ids'));
-export type ActorMove = v.InferOutput<typeof ActorMoveSchema>;
+
 export type ActorMoves = ActorMove[];
 /** Admit a whole motion catalogue before starting or replacing a move. */
 export function parseActorMoves(input: unknown): ActorMoves { return v.parse(ActorMovesSchema, input); }
@@ -65,3 +65,551 @@ export function actorMoveRules(rows: readonly ActorMove[], refs: { spots: Readon
   }
   return [...failures];
 }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type ActorMoveInput = (Omit<Omit<{
+    id: string;
+    kind: 'steer';
+}, keyof ({
+    speed: number;
+    turn: number;
+    ground?: boolean | undefined;
+})> & {
+    speed: number;
+    turn: number;
+    ground?: boolean | undefined;
+}, keyof ({
+    fields: {
+        yaw: string;
+        speed: string;
+        turn: string;
+    };
+})> & {
+    fields: {
+        yaw: string;
+        speed: string;
+        turn: string;
+    };
+}) | ({
+    id: string;
+    kind: 'relocate';
+    point: ({
+        kind: 'spot';
+        spot: string;
+    }) | ({
+        kind: 'fields';
+        x: string;
+        z: string;
+    });
+    facing?: ('target') | (number);
+}) | (Omit<Omit<{
+    id: string;
+    kind: 'orbit';
+}, keyof ({
+    speed: number;
+    turn: number;
+    ground?: boolean | undefined;
+})> & {
+    speed: number;
+    turn: number;
+    ground?: boolean | undefined;
+}, keyof ({
+    center: [
+        number,
+        number
+    ];
+    r: number;
+    y: number;
+    lead?: number;
+    angularSpeed?: number;
+})> & {
+    center: [
+        number,
+        number
+    ];
+    r: number;
+    y: number;
+    lead?: number;
+    angularSpeed?: number;
+}) | (Omit<Omit<{
+    id: string;
+    kind: 'stalk';
+}, keyof ({
+    speed: number;
+    turn: number;
+    ground?: boolean | undefined;
+})> & {
+    speed: number;
+    turn: number;
+    ground?: boolean | undefined;
+}, keyof ({
+    standOff: number;
+    above?: number;
+    altitude?: number;
+    retreat?: boolean | undefined;
+    constantSpeed?: boolean | undefined;
+    ready: ({
+        kind: 'over';
+        radius: number;
+        height: number;
+    }) | ({
+        kind: 'band';
+        tolerance: number;
+    }) | ({
+        kind: 'range';
+        strike?: string;
+    });
+    giveUp?: number;
+})> & {
+    standOff: number;
+    above?: number;
+    altitude?: number;
+    retreat?: boolean | undefined;
+    constantSpeed?: boolean | undefined;
+    ready: ({
+        kind: 'over';
+        radius: number;
+        height: number;
+    }) | ({
+        kind: 'band';
+        tolerance: number;
+    }) | ({
+        kind: 'range';
+        strike?: string;
+    });
+    giveUp?: number;
+}) | (Omit<Omit<{
+    id: string;
+    kind: 'dive';
+}, keyof ({
+    speed: number;
+    turn: number;
+    ground?: boolean | undefined;
+})> & {
+    speed: number;
+    turn: number;
+    ground?: boolean | undefined;
+}, keyof ({
+    slope: number;
+    skim: number;
+    altitude: number;
+    aimHeight: number;
+    targetAltitude?: boolean | undefined;
+    contactCompletes?: boolean | undefined;
+    maxSeconds: number;
+    strike?: string;
+})> & {
+    slope: number;
+    skim: number;
+    altitude: number;
+    aimHeight: number;
+    targetAltitude?: boolean | undefined;
+    contactCompletes?: boolean | undefined;
+    maxSeconds: number;
+    strike?: string;
+}) | (Omit<Omit<{
+    id: string;
+    kind: 'climb';
+}, keyof ({
+    speed: number;
+    turn: number;
+    ground?: boolean | undefined;
+})> & {
+    speed: number;
+    turn: number;
+    ground?: boolean | undefined;
+}, keyof ({
+    seconds: number;
+    speedBonus?: number | undefined;
+    altitude: number;
+})> & {
+    seconds: number;
+    speedBonus?: number | undefined;
+    altitude: number;
+}) | (Omit<Omit<{
+    id: string;
+    kind: 'takeoff';
+}, keyof ({
+    speed: number;
+    turn: number;
+    ground?: boolean | undefined;
+})> & {
+    speed: number;
+    turn: number;
+    ground?: boolean | undefined;
+}, keyof ({
+    perch: string;
+    altitude: number;
+    seconds: number;
+    bank: number;
+})> & {
+    perch: string;
+    altitude: number;
+    seconds: number;
+    bank: number;
+}) | (Omit<Omit<{
+    id: string;
+    kind: 'perch';
+}, keyof ({
+    speed: number;
+    turn: number;
+    ground?: boolean | undefined;
+})> & {
+    speed: number;
+    turn: number;
+    ground?: boolean | undefined;
+}, keyof ({
+    perch: string;
+    arrival?: number | undefined;
+})> & {
+    perch: string;
+    arrival?: number | undefined;
+}) | (Omit<Omit<{
+    id: string;
+    kind: 'rise';
+}, keyof ({
+    speed: number;
+    turn: number;
+    ground?: boolean | undefined;
+})> & {
+    speed: number;
+    turn: number;
+    ground?: boolean | undefined;
+}, keyof ({
+    from: number;
+    to: number;
+    rate: number;
+    yawLead: number;
+})> & {
+    from: number;
+    to: number;
+    rate: number;
+    yawLead: number;
+}) | (Omit<Omit<{
+    id: string;
+    kind: 'lie';
+}, keyof ({
+    speed: number;
+    turn: number;
+    ground?: boolean | undefined;
+})> & {
+    speed: number;
+    turn: number;
+    ground?: boolean | undefined;
+}, keyof ({
+    from: number;
+    to: number;
+    rate: number;
+    yawLead: number;
+})> & {
+    from: number;
+    to: number;
+    rate: number;
+    yawLead: number;
+}) | (Omit<Omit<{
+    id: string;
+    kind: 'ring-run';
+}, keyof ({
+    speed: number;
+    turn: number;
+    ground?: boolean | undefined;
+})> & {
+    speed: number;
+    turn: number;
+    ground?: boolean | undefined;
+}, keyof ({
+    radius: number;
+    angle: number;
+    angularSpeed?: number | undefined;
+    closeRadius?: number | undefined;
+    stopDistance?: number | undefined;
+})> & {
+    radius: number;
+    angle: number;
+    angularSpeed?: number | undefined;
+    closeRadius?: number | undefined;
+    stopDistance?: number | undefined;
+}) | ({
+    id: string;
+    kind: 'burrow';
+    field: string;
+    rate: number;
+}) | ({
+    id: string;
+    kind: 'surface';
+    field: string;
+    rate: number;
+});
+export type ActorMove = (Omit<Omit<{
+    id: string;
+    kind: 'steer';
+}, keyof ({
+    speed: number;
+    turn: number;
+    ground: boolean;
+})> & {
+    speed: number;
+    turn: number;
+    ground: boolean;
+}, keyof ({
+    fields: {
+        yaw: string;
+        speed: string;
+        turn: string;
+    };
+})> & {
+    fields: {
+        yaw: string;
+        speed: string;
+        turn: string;
+    };
+}) | ({
+    id: string;
+    kind: 'relocate';
+    point: ({
+        kind: 'spot';
+        spot: string;
+    }) | ({
+        kind: 'fields';
+        x: string;
+        z: string;
+    });
+    facing?: ('target') | (number);
+}) | (Omit<Omit<{
+    id: string;
+    kind: 'orbit';
+}, keyof ({
+    speed: number;
+    turn: number;
+    ground: boolean;
+})> & {
+    speed: number;
+    turn: number;
+    ground: boolean;
+}, keyof ({
+    center: [
+        number,
+        number
+    ];
+    r: number;
+    y: number;
+    lead?: number;
+    angularSpeed?: number;
+})> & {
+    center: [
+        number,
+        number
+    ];
+    r: number;
+    y: number;
+    lead?: number;
+    angularSpeed?: number;
+}) | (Omit<Omit<{
+    id: string;
+    kind: 'stalk';
+}, keyof ({
+    speed: number;
+    turn: number;
+    ground: boolean;
+})> & {
+    speed: number;
+    turn: number;
+    ground: boolean;
+}, keyof ({
+    standOff: number;
+    above?: number;
+    altitude?: number;
+    retreat: boolean;
+    constantSpeed: boolean;
+    ready: ({
+        kind: 'over';
+        radius: number;
+        height: number;
+    }) | ({
+        kind: 'band';
+        tolerance: number;
+    }) | ({
+        kind: 'range';
+        strike?: string;
+    });
+    giveUp?: number;
+})> & {
+    standOff: number;
+    above?: number;
+    altitude?: number;
+    retreat: boolean;
+    constantSpeed: boolean;
+    ready: ({
+        kind: 'over';
+        radius: number;
+        height: number;
+    }) | ({
+        kind: 'band';
+        tolerance: number;
+    }) | ({
+        kind: 'range';
+        strike?: string;
+    });
+    giveUp?: number;
+}) | (Omit<Omit<{
+    id: string;
+    kind: 'dive';
+}, keyof ({
+    speed: number;
+    turn: number;
+    ground: boolean;
+})> & {
+    speed: number;
+    turn: number;
+    ground: boolean;
+}, keyof ({
+    slope: number;
+    skim: number;
+    altitude: number;
+    aimHeight: number;
+    targetAltitude: boolean;
+    contactCompletes: boolean;
+    maxSeconds: number;
+    strike?: string;
+})> & {
+    slope: number;
+    skim: number;
+    altitude: number;
+    aimHeight: number;
+    targetAltitude: boolean;
+    contactCompletes: boolean;
+    maxSeconds: number;
+    strike?: string;
+}) | (Omit<Omit<{
+    id: string;
+    kind: 'climb';
+}, keyof ({
+    speed: number;
+    turn: number;
+    ground: boolean;
+})> & {
+    speed: number;
+    turn: number;
+    ground: boolean;
+}, keyof ({
+    seconds: number;
+    speedBonus: number;
+    altitude: number;
+})> & {
+    seconds: number;
+    speedBonus: number;
+    altitude: number;
+}) | (Omit<Omit<{
+    id: string;
+    kind: 'takeoff';
+}, keyof ({
+    speed: number;
+    turn: number;
+    ground: boolean;
+})> & {
+    speed: number;
+    turn: number;
+    ground: boolean;
+}, keyof ({
+    perch: string;
+    altitude: number;
+    seconds: number;
+    bank: number;
+})> & {
+    perch: string;
+    altitude: number;
+    seconds: number;
+    bank: number;
+}) | (Omit<Omit<{
+    id: string;
+    kind: 'perch';
+}, keyof ({
+    speed: number;
+    turn: number;
+    ground: boolean;
+})> & {
+    speed: number;
+    turn: number;
+    ground: boolean;
+}, keyof ({
+    perch: string;
+    arrival: number;
+})> & {
+    perch: string;
+    arrival: number;
+}) | (Omit<Omit<{
+    id: string;
+    kind: 'rise';
+}, keyof ({
+    speed: number;
+    turn: number;
+    ground: boolean;
+})> & {
+    speed: number;
+    turn: number;
+    ground: boolean;
+}, keyof ({
+    from: number;
+    to: number;
+    rate: number;
+    yawLead: number;
+})> & {
+    from: number;
+    to: number;
+    rate: number;
+    yawLead: number;
+}) | (Omit<Omit<{
+    id: string;
+    kind: 'lie';
+}, keyof ({
+    speed: number;
+    turn: number;
+    ground: boolean;
+})> & {
+    speed: number;
+    turn: number;
+    ground: boolean;
+}, keyof ({
+    from: number;
+    to: number;
+    rate: number;
+    yawLead: number;
+})> & {
+    from: number;
+    to: number;
+    rate: number;
+    yawLead: number;
+}) | (Omit<Omit<{
+    id: string;
+    kind: 'ring-run';
+}, keyof ({
+    speed: number;
+    turn: number;
+    ground: boolean;
+})> & {
+    speed: number;
+    turn: number;
+    ground: boolean;
+}, keyof ({
+    radius: number;
+    angle: number;
+    angularSpeed: number;
+    closeRadius: number;
+    stopDistance: number;
+})> & {
+    radius: number;
+    angle: number;
+    angularSpeed: number;
+    closeRadius: number;
+    stopDistance: number;
+}) | ({
+    id: string;
+    kind: 'burrow';
+    field: string;
+    rate: number;
+}) | ({
+    id: string;
+    kind: 'surface';
+    field: string;
+    rate: number;
+});

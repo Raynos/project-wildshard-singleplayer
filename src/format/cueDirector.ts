@@ -21,7 +21,7 @@ const sprayRow = v.strictObject({ id, capacity: v.pipe(v.number(), v.integer(), 
   renderOrder: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(64)), fade: vector, look: id });
 /** Cue rows schedule existing sound cues and native VFX targets in declaration
  * order. Fields are prepared from declared libraries, never shard hooks. */
-export const CueDirectorWireSchema = v.strictObject({ version: v.literal(1),
+export const CueDirectorWireSchema: v.GenericSchema<CueDirectorWireRowsInput, CueDirectorWireRows> = v.strictObject({ version: v.literal(1),
   fields: v.pipe(v.array(v.strictObject({ id, library: id, look: id, name: id, shape: v.picklist(['point', 'streak', 'flake']),
     count: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(8192)),
     palette: v.exactOptional(v.pipe(v.array(v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(0xffffff))), v.minLength(1), v.maxLength(64))),
@@ -35,9 +35,100 @@ export const CueDirectorWireSchema = v.strictObject({ version: v.literal(1),
   })), v.maxLength(128)),
 });
 /** Native admission additionally validates identities and field dependencies. */
-export const CueDirectorSchema = v.pipe(CueDirectorWireSchema, v.check(rows => new Set(rows.rows.map(row => row.id)).size === rows.rows.length
+export const CueDirectorSchema: v.GenericSchema<CueDirectorRowsInput, CueDirectorRows> = v.pipe(CueDirectorWireSchema, v.check(rows => new Set(rows.rows.map(row => row.id)).size === rows.rows.length
   && new Set(rows.fields.map(field => field.id)).size === rows.fields.length
   && new Set(rows.sprays?.map(row => row.id)).size === (rows.sprays?.length ?? 0)
   && rows.rows.every(row => row.vfx.every(target => target.kind === 'impact' || (target.kind === 'field' ? rows.fields.some(field => field.id === target.field && field.life !== undefined)
     : rows.sprays?.some(declared => declared.id === target.spray) === true))), 'Unique cues and live burst fields'));
-export type CueDirectorRows = v.InferOutput<typeof CueDirectorSchema>;
+
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type CueDirectorWireRowsInput = CueDirectorWireRows;
+interface CueDirectorWireRowsFields {
+    version: 1;
+    fields: ({
+        id: string;
+        library: string;
+        look: string;
+        name: string;
+        shape: 'point' | 'streak' | 'flake';
+        count: number;
+        palette?: (number)[];
+        life?: number;
+        place?: {
+            at: [
+                number,
+                number,
+                number
+            ];
+            aim: [
+                number,
+                number,
+                number
+            ];
+        };
+    })[];
+    sprays?: ({
+        id: string;
+        capacity: number;
+        lit: boolean;
+        renderOrder: number;
+        fade: [
+            number,
+            number,
+            number
+        ];
+        look: string;
+    })[];
+    rows: ({
+        id: string;
+        sound?: string;
+        soundPhase?: string;
+        delay?: number;
+        vfx: (({
+            kind: 'impact';
+            material: 'sand' | 'wood' | 'shell' | 'sparks' | 'dirt' | 'stone';
+            count: number;
+            reverse: boolean;
+            offset: [
+                number,
+                number,
+                number
+            ];
+        }) | ({
+            kind: 'field';
+            field: string;
+            ahead: number;
+            offset: [
+                number,
+                number,
+                number
+            ];
+        }) | ({
+            kind: 'spray';
+            spray: string;
+            count: number;
+            speed: number;
+            up: number;
+            push: number;
+            life: number;
+            size: number;
+            colour: [
+                number,
+                number,
+                number
+            ];
+            jitter: number;
+            spread: number;
+            flags: ('gravity' | 'bounce' | 'grow' | 'rise')[];
+            offset: [
+                number,
+                number,
+                number
+            ];
+        }))[];
+    })[];
+}
+export type CueDirectorWireRows = { [Key in keyof CueDirectorWireRowsFields]: CueDirectorWireRowsFields[Key] };
+export type CueDirectorRowsInput = CueDirectorWireRowsInput;
+export type CueDirectorRows = CueDirectorWireRows;

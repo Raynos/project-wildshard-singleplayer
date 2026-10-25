@@ -13,7 +13,7 @@ const transitions = v.strictObject({ ids: v.pipe(v.array(v.string()), v.maxLengt
 });
 /** One renderer-free composition frame over the existing native owners. Facets
  * select mechanics; phase and save order retain the caller's admitted wire. */
-export const NativeQuestCompositionSchema = v.strictObject({
+export const NativeQuestCompositionSchema: v.GenericSchema<NativeQuestCompositionRowsInput, NativeQuestCompositionRows> = v.strictObject({
   step: key, cable: key, eye: n, counts: v.picklist(['all', 'declared']), phases: v.pipe(v.array(phase), v.minLength(1)),
   saved: v.strictObject({ names: v.record(key, key), snapshot: v.array(saved), restore: v.array(saved), optional: v.array(saved) }),
   bounds: v.exactOptional(v.strictObject({ rows: v.pipe(integer, v.minValue(1), v.maxValue(64)), items: v.exactOptional(v.pipe(integer, v.maxValue(64))), ordered: v.exactOptional(v.boolean()) })),
@@ -37,7 +37,7 @@ export const NativeQuestCompositionSchema = v.strictObject({
   lead: v.exactOptional(v.strictObject({ step: key, target: key })),
 });
 /** Closed rows over actual native mechanics, with no authored executable ports. */
-export type NativeQuestCompositionRows = v.InferOutput<typeof NativeQuestCompositionSchema>;
+
 /** Admit role/phase identities and dependencies before allocating any owner. */
 export function parseNativeQuestComposition(input: unknown): NativeQuestCompositionRows {
   const rows = v.parse(NativeQuestCompositionSchema, input);
@@ -67,7 +67,7 @@ const point = v.strictObject({ x: n, y: n, z: n });
 const prompt = v.strictObject({ ...point.entries, radius: v.pipe(n, v.minValue(Number.MIN_VALUE)) });
 /** Build admission for captured service prompts; all existing cable endpoints
  * survive unchanged in the original named placement document. */
-export const NativeQuestServiceSpotsSchema = v.strictObject({
+export const NativeQuestServiceSpotsSchema: v.GenericSchema<NativeQuestServiceSpotsRowsInput, NativeQuestServiceSpotsRows> = v.strictObject({
   rows: v.array(v.strictObject({ ...point.entries, id: key, kind: key, yaw: n, prompt: v.nullable(point) })),
   people: v.array(v.strictObject({ kind: key, at: point, prompt })), board: prompt, pickup: prompt,
   cable: v.strictObject({ prompt, top: point, bottom: point, landing: point }), signals: v.record(key, prompt),
@@ -79,3 +79,320 @@ export function parseNativeQuestServiceSpots(input: unknown): v.InferOutput<type
     || new Set(rows.people.map(row => row.kind)).size !== rows.people.length) throw new Error('Duplicate native story spot');
   return rows;
 }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+interface NativeQuestCompositionRowsInputFields {
+    step: string;
+    cable: string;
+    eye: number;
+    counts: 'all' | 'declared';
+    phases: ('commands' | 'reading' | 'props' | 'transitions' | 'cable' | 'director' | 'reward' | 'chapter' | 'lead')[];
+    saved: {
+        names: Record<string, string>;
+        snapshot: ('key' | 'finale' | 'iron' | 'lead' | 'clock' | 'fast' | 'cable' | 'pickup' | 'counts' | 'pack' | 'dialogue' | 'board' | 'rewardOwned' | 'trader' | 'ammunition' | 'zipline' | 'reward' | 'barrel')[];
+        restore: ('key' | 'finale' | 'iron' | 'lead' | 'clock' | 'fast' | 'cable' | 'pickup' | 'counts' | 'pack' | 'dialogue' | 'board' | 'rewardOwned' | 'trader' | 'ammunition' | 'zipline' | 'reward' | 'barrel')[];
+        optional: ('key' | 'finale' | 'iron' | 'lead' | 'clock' | 'fast' | 'cable' | 'pickup' | 'counts' | 'pack' | 'dialogue' | 'board' | 'rewardOwned' | 'trader' | 'ammunition' | 'zipline' | 'reward' | 'barrel')[];
+    };
+    bounds?: {
+        rows: number;
+        items?: number;
+        ordered?: boolean;
+    };
+    transitions: {
+        ids: (string)[];
+        rowLimit: number;
+        flagLimit: number;
+        touch: 'direct' | 'graph';
+        pickup: ('walk-in') | ({
+            radius: number;
+            height: number;
+        });
+        plate?: {
+            inset: number;
+            depth: number;
+        };
+    };
+    props?: {
+        barrel: {
+            kind: string;
+            id: string;
+        };
+        drop: {
+            kind: string;
+            id: string;
+        };
+        promptHeight: number;
+    };
+    acquisition?: {
+        population: string;
+        equipment: string;
+        kind: string;
+        slot: number;
+        id: string;
+        observation: string;
+        guardRadius: number;
+        radius: number;
+        action: number;
+    };
+    reward?: {
+        director: string;
+        channels: string;
+        field: string;
+        complete: string;
+        seen: string;
+    };
+    prompts?: {
+        talk: {
+            id: string;
+            action: number;
+            radius: number;
+        };
+        cable: {
+            id: string;
+            action: number;
+        };
+        rowBase: number;
+    };
+    reading?: {
+        primary: string;
+        delay: number;
+    };
+    effects?: {
+        pack: string;
+    };
+    board?: {
+        finish: string;
+        claims: number;
+        ids: (string)[];
+    };
+    trade?: {
+        pack: string;
+        finish: string;
+        speaker: string;
+    };
+    ammunition?: {
+        launcher: number;
+    };
+    bench?: {
+        id: string;
+        pose: v.InferInput<(typeof QuestStorySchema)['entries']['bench']>;
+    };
+    pickup?: {
+        flag: string;
+    };
+    boss?: {
+        id: string;
+    };
+    chapter?: v.InferInput<typeof ChapterDirectorSchema>;
+    lead?: {
+        step: string;
+        target: string;
+    };
+}
+export type NativeQuestCompositionRowsInput = { [Key in keyof NativeQuestCompositionRowsInputFields]: NativeQuestCompositionRowsInputFields[Key] };
+interface NativeQuestCompositionRowsFields {
+    step: string;
+    cable: string;
+    eye: number;
+    counts: 'all' | 'declared';
+    phases: ('commands' | 'reading' | 'props' | 'transitions' | 'cable' | 'director' | 'reward' | 'chapter' | 'lead')[];
+    saved: {
+        names: Record<string, string>;
+        snapshot: ('key' | 'finale' | 'iron' | 'lead' | 'clock' | 'fast' | 'cable' | 'pickup' | 'counts' | 'pack' | 'dialogue' | 'board' | 'rewardOwned' | 'trader' | 'ammunition' | 'zipline' | 'reward' | 'barrel')[];
+        restore: ('key' | 'finale' | 'iron' | 'lead' | 'clock' | 'fast' | 'cable' | 'pickup' | 'counts' | 'pack' | 'dialogue' | 'board' | 'rewardOwned' | 'trader' | 'ammunition' | 'zipline' | 'reward' | 'barrel')[];
+        optional: ('key' | 'finale' | 'iron' | 'lead' | 'clock' | 'fast' | 'cable' | 'pickup' | 'counts' | 'pack' | 'dialogue' | 'board' | 'rewardOwned' | 'trader' | 'ammunition' | 'zipline' | 'reward' | 'barrel')[];
+    };
+    bounds?: {
+        rows: number;
+        items?: number;
+        ordered?: boolean;
+    };
+    transitions: {
+        ids: (string)[];
+        rowLimit: number;
+        flagLimit: number;
+        touch: 'direct' | 'graph';
+        pickup: ('walk-in') | ({
+            radius: number;
+            height: number;
+        });
+        plate?: {
+            inset: number;
+            depth: number;
+        };
+    };
+    props?: {
+        barrel: {
+            kind: string;
+            id: string;
+        };
+        drop: {
+            kind: string;
+            id: string;
+        };
+        promptHeight: number;
+    };
+    acquisition?: {
+        population: string;
+        equipment: string;
+        kind: string;
+        slot: number;
+        id: string;
+        observation: string;
+        guardRadius: number;
+        radius: number;
+        action: number;
+    };
+    reward?: {
+        director: string;
+        channels: string;
+        field: string;
+        complete: string;
+        seen: string;
+    };
+    prompts?: {
+        talk: {
+            id: string;
+            action: number;
+            radius: number;
+        };
+        cable: {
+            id: string;
+            action: number;
+        };
+        rowBase: number;
+    };
+    reading?: {
+        primary: string;
+        delay: number;
+    };
+    effects?: {
+        pack: string;
+    };
+    board?: {
+        finish: string;
+        claims: number;
+        ids: (string)[];
+    };
+    trade?: {
+        pack: string;
+        finish: string;
+        speaker: string;
+    };
+    ammunition?: {
+        launcher: number;
+    };
+    bench?: {
+        id: string;
+        pose: v.InferOutput<(typeof QuestStorySchema)['entries']['bench']>;
+    };
+    pickup?: {
+        flag: string;
+    };
+    boss?: {
+        id: string;
+    };
+    chapter?: v.InferOutput<typeof ChapterDirectorSchema>;
+    lead?: {
+        step: string;
+        target: string;
+    };
+}
+export type NativeQuestCompositionRows = { [Key in keyof NativeQuestCompositionRowsFields]: NativeQuestCompositionRowsFields[Key] };
+export type NativeQuestServiceSpotsRowsInput = NativeQuestServiceSpotsRows;
+interface NativeQuestServiceSpotsRowsFields {
+    rows: (Omit<{
+        x: number;
+        y: number;
+        z: number;
+    }, keyof ({
+        id: string;
+        kind: string;
+        yaw: number;
+        prompt: ({
+            x: number;
+            y: number;
+            z: number;
+        }) | null;
+    })> & {
+        id: string;
+        kind: string;
+        yaw: number;
+        prompt: ({
+            x: number;
+            y: number;
+            z: number;
+        }) | null;
+    })[];
+    people: ({
+        kind: string;
+        at: {
+            x: number;
+            y: number;
+            z: number;
+        };
+        prompt: Omit<{
+            x: number;
+            y: number;
+            z: number;
+        }, keyof ({
+            radius: number;
+        })> & {
+            radius: number;
+        };
+    })[];
+    board: Omit<{
+        x: number;
+        y: number;
+        z: number;
+    }, keyof ({
+        radius: number;
+    })> & {
+        radius: number;
+    };
+    pickup: Omit<{
+        x: number;
+        y: number;
+        z: number;
+    }, keyof ({
+        radius: number;
+    })> & {
+        radius: number;
+    };
+    cable: {
+        prompt: Omit<{
+            x: number;
+            y: number;
+            z: number;
+        }, keyof ({
+            radius: number;
+        })> & {
+            radius: number;
+        };
+        top: {
+            x: number;
+            y: number;
+            z: number;
+        };
+        bottom: {
+            x: number;
+            y: number;
+            z: number;
+        };
+        landing: {
+            x: number;
+            y: number;
+            z: number;
+        };
+    };
+    signals: Record<string, Omit<{
+        x: number;
+        y: number;
+        z: number;
+    }, keyof ({
+        radius: number;
+    })> & {
+        radius: number;
+    }>;
+}
+export type NativeQuestServiceSpotsRows = { [Key in keyof NativeQuestServiceSpotsRowsFields]: NativeQuestServiceSpotsRowsFields[Key] };

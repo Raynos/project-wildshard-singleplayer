@@ -6,19 +6,19 @@ const finite = v.pipe(v.number(), v.finite());
 const duration = v.tuple([v.pipe(finite, v.minValue(Number.MIN_VALUE)), v.pipe(finite, v.minValue(Number.MIN_VALUE))]);
 const fields = v.pipe(v.record(id, finite), v.check(rows => Object.keys(rows).length <= 32));
 /** Fixed-step native wind/weather binding, including gameplay cue data. */
-export const WeatherWorldSchema = v.strictObject({
+export const WeatherWorldSchema: v.GenericSchema<WeatherWorldRowsInput, WeatherWorldRows> = v.strictObject({
   step: id, scareRadius: v.pipe(finite,v.minValue(0)), windReference: v.pipe(finite,v.minValue(Number.MIN_VALUE)),
   light: v.strictObject({ base: finite, storm: finite, ramps: v.pipe(v.array(v.tuple([finite,finite,finite])),v.maxLength(8)) }),
   hit: v.strictObject({ ask: v.literal('weather.damage'), tags: v.array(v.custom<`${string}.${string}`>(value => typeof value === 'string' && /^[a-z][a-zA-Z0-9.-]*\.[a-zA-Z0-9.*-]+$/u.test(value))),
     cause: v.strictObject({ kind: id,label: id,text: id }),toast: id }),
 });
 /** The physical wind's own continuation; never shared with a renderer global. */
-export const WindStateSchema = v.strictObject({ speed: finite,dir: finite,gustiness: finite,time: finite,travel: finite,wander: v.boolean(),baseSpeed: finite,baseDir: finite,
+export const WindStateSchema: v.GenericSchema<WindStateRowsInput, WindStateRows> = v.strictObject({ speed: finite,dir: finite,gustiness: finite,time: finite,travel: finite,wander: v.boolean(),baseSpeed: finite,baseDir: finite,
   target: v.strictObject({ speed: finite,dir: finite,gustiness: finite,rate: finite }) });
 const actionSchema = v.strictObject({target:id, when:v.exactOptional(AudioMixExpressionSchema),
   value:v.union([AudioMixExpressionSchema,v.strictObject({range:v.tuple([AudioMixExpressionSchema,AudioMixExpressionSchema])})])});
 /** Bounded scalar weather program. Phase transitions, cadence and random ownership remain engine mechanics. */
-export const WeatherProgramSchema = v.pipe(v.strictObject({
+export const WeatherProgramSchema: v.GenericSchema<WeatherProgramInput, WeatherProgram> = v.pipe(v.strictObject({
   states: v.pipe(v.array(id), v.minLength(1), v.maxLength(32)), next: v.record(id, id),
   length: v.record(id, duration), firstLength: v.exactOptional(v.record(id, duration)),
   soak: finite, dry: finite, salt: v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(0xffffffff)),
@@ -51,7 +51,7 @@ function validReferences(row:v.InferOutput<typeof WeatherProgramSchema>):boolean
     Object.hasOwn(row.registers??{},action.target) && (action.when===undefined||valid(action.when,actionInputs)) &&
     (typeof action.value==='object'&&'range' in action.value?action.value.range.every(expr=>valid(expr,actionInputs)):valid(action.value,actionInputs)));
 }
-export type WeatherProgram = v.InferOutput<typeof WeatherProgramSchema>;
+
 /** Parse authored or hash-checked product data before creating a weather owner. */
 export function parseWeatherProgram(value: unknown): WeatherProgram { const rows=v.parse(WeatherProgramSchema,value);if(!validReferences(rows))throw new RangeError('Invalid weather numeric references');return rows; }
 
@@ -68,7 +68,7 @@ const named = v.pipe(v.array(v.tuple([name, source])), v.maxLength(32));
  * weather "on" for its readers; `flash` names the register they may raise; `shelter` circles grow by `margin` and mark the
  * caller's `input.sheltered`.
  */
-export const WeatherReactionsSchema = v.strictObject({
+export const WeatherReactionsSchema: v.GenericSchema<WeatherReactionRowsInput, WeatherReactionRows> = v.strictObject({
   version: v.literal(1), hz: v.pipe(finite, v.minValue(1), v.maxValue(10)), script: v.unknown(), bytes: v.string(),
   actions: v.exactOptional(v.strictObject({ event: id, unless: v.exactOptional(name) })),
   active: v.pipe(v.array(id), v.maxLength(32)), flash: name,
@@ -85,7 +85,7 @@ export const WeatherReactionsSchema = v.strictObject({
   hud: v.exactOptional(v.strictObject({ chips: v.pipe(v.array(v.strictObject({ state: id, within: v.exactOptional(v.pipe(finite, v.minValue(0))),
     title: v.pipe(v.string(), v.maxLength(64)), tone: v.picklist(['soon', 'storm', 'clearing']) })), v.maxLength(16)), sub: v.pipe(v.string(), v.maxLength(64)), low: name })),
 });
-export type WeatherReactionRows = v.InferOutput<typeof WeatherReactionsSchema>;
+
 /** Admit reaction rows against the continuation they drive: every register they read or write is the program's own. */
 export function parseWeatherReactions(value: unknown, program: WeatherProgram): WeatherReactionRows {
   const rows = v.parse(WeatherReactionsSchema, value), registers = program.registers ?? {};
@@ -97,3 +97,311 @@ export function parseWeatherReactions(value: unknown, program: WeatherProgram): 
     throw new RangeError('Invalid weather reaction references');
   return rows;
 }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type WeatherWorldRowsInput = WeatherWorldRows;
+interface WeatherWorldRowsFields {
+    step: string;
+    scareRadius: number;
+    windReference: number;
+    light: {
+        base: number;
+        storm: number;
+        ramps: ([
+            number,
+            number,
+            number
+        ])[];
+    };
+    hit: {
+        ask: 'weather.damage';
+        tags: (`${string}.${string}`)[];
+        cause: {
+            kind: string;
+            label: string;
+            text: string;
+        };
+        toast: string;
+    };
+}
+export type WeatherWorldRows = { [Key in keyof WeatherWorldRowsFields]: WeatherWorldRowsFields[Key] };
+export type WindStateRowsInput = WindStateRows;
+interface WindStateRowsFields {
+    speed: number;
+    dir: number;
+    gustiness: number;
+    time: number;
+    travel: number;
+    wander: boolean;
+    baseSpeed: number;
+    baseDir: number;
+    target: {
+        speed: number;
+        dir: number;
+        gustiness: number;
+        rate: number;
+    };
+}
+export type WindStateRows = { [Key in keyof WindStateRowsFields]: WindStateRowsFields[Key] };
+interface WeatherProgramInputFields {
+    states: (string)[];
+    next: Record<string, string>;
+    length: Record<string, [
+        number,
+        number
+    ]>;
+    firstLength?: Record<string, [
+        number,
+        number
+    ]>;
+    soak: number;
+    dry: number;
+    salt: number;
+    initial: Record<string, number>;
+    modes: Record<string, ('none') | ({
+        hold?: string;
+        at?: number;
+        dry?: boolean;
+    })>;
+    sampleFixed?: boolean;
+    zeroOutputs?: boolean;
+    forceHold?: boolean;
+    forceAt?: number;
+    holdPolicy?: 'all' | 'first';
+    tickHeld?: boolean;
+    forceWet?: v.InferInput<typeof AudioMixExpressionSchema>;
+    values: ([
+        string,
+        v.InferInput<typeof AudioMixExpressionSchema>
+    ])[];
+    outputs: Record<string, v.InferInput<typeof AudioMixExpressionSchema>>;
+    registers?: Record<string, number>;
+    actions?: Record<string, ({
+        target: string;
+        when?: v.InferInput<typeof AudioMixExpressionSchema>;
+        value: (v.InferInput<typeof AudioMixExpressionSchema>) | ({
+            range: [
+                v.InferInput<typeof AudioMixExpressionSchema>,
+                v.InferInput<typeof AudioMixExpressionSchema>
+            ];
+        });
+    })[]>;
+    page?: {
+        id: string;
+        after: (string)[];
+        before: (string)[];
+        tick: string;
+    };
+    wetProjectile?: {
+        gravity: number;
+        drag: number;
+    };
+    air?: {
+        step: string;
+        system: string;
+        tick: string;
+        field: {
+            x: number;
+            z: number;
+            frontLength: number;
+            frontSpeed: number;
+            secondaryLength: number;
+        };
+        base: number;
+        scale: number;
+    };
+}
+export type WeatherProgramInput = { [Key in keyof WeatherProgramInputFields]: WeatherProgramInputFields[Key] };
+interface WeatherProgramFields {
+    states: (string)[];
+    next: Record<string, string>;
+    length: Record<string, [
+        number,
+        number
+    ]>;
+    firstLength?: Record<string, [
+        number,
+        number
+    ]>;
+    soak: number;
+    dry: number;
+    salt: number;
+    initial: Record<string, number>;
+    modes: Record<string, ('none') | ({
+        hold?: string;
+        at?: number;
+        dry?: boolean;
+    })>;
+    sampleFixed?: boolean;
+    zeroOutputs?: boolean;
+    forceHold?: boolean;
+    forceAt?: number;
+    holdPolicy?: 'all' | 'first';
+    tickHeld?: boolean;
+    forceWet?: v.InferOutput<typeof AudioMixExpressionSchema>;
+    values: ([
+        string,
+        v.InferOutput<typeof AudioMixExpressionSchema>
+    ])[];
+    outputs: Record<string, v.InferOutput<typeof AudioMixExpressionSchema>>;
+    registers?: Record<string, number>;
+    actions?: Record<string, ({
+        target: string;
+        when?: v.InferOutput<typeof AudioMixExpressionSchema>;
+        value: (v.InferOutput<typeof AudioMixExpressionSchema>) | ({
+            range: [
+                v.InferOutput<typeof AudioMixExpressionSchema>,
+                v.InferOutput<typeof AudioMixExpressionSchema>
+            ];
+        });
+    })[]>;
+    page?: {
+        id: string;
+        after: (string)[];
+        before: (string)[];
+        tick: string;
+    };
+    wetProjectile?: {
+        gravity: number;
+        drag: number;
+    };
+    air?: {
+        step: string;
+        system: string;
+        tick: string;
+        field: {
+            x: number;
+            z: number;
+            frontLength: number;
+            frontSpeed: number;
+            secondaryLength: number;
+        };
+        base: number;
+        scale: number;
+    };
+}
+export type WeatherProgram = { [Key in keyof WeatherProgramFields]: WeatherProgramFields[Key] };
+interface WeatherReactionRowsInputFields {
+    version: 1;
+    hz: number;
+    script: unknown;
+    bytes: string;
+    actions?: {
+        event: string;
+        unless?: string;
+    };
+    active: (string)[];
+    flash: string;
+    shelter: {
+        margin: number;
+        circles: ([
+            number,
+            number,
+            number
+        ])[];
+    };
+    points: ([
+        number,
+        number,
+        number
+    ])[];
+    steps: ({
+        signal: string;
+        when?: string;
+        observe: ([
+            string,
+            string
+        ])[];
+        probe?: {
+            x: string;
+            z: string;
+            radius: (string) | (number);
+        };
+        random?: boolean | undefined;
+        write: ([
+            string,
+            string
+        ])[];
+        emit: ({
+            event: string;
+            when: string;
+            fields: ([
+                string,
+                string
+            ])[];
+        })[];
+    })[];
+    hud?: {
+        chips: ({
+            state: string;
+            within?: number;
+            title: string;
+            tone: 'soon' | 'storm' | 'clearing';
+        })[];
+        sub: string;
+        low: string;
+    };
+}
+export type WeatherReactionRowsInput = { [Key in keyof WeatherReactionRowsInputFields]: WeatherReactionRowsInputFields[Key] };
+interface WeatherReactionRowsFields {
+    version: 1;
+    hz: number;
+    script: unknown;
+    bytes: string;
+    actions?: {
+        event: string;
+        unless?: string;
+    };
+    active: (string)[];
+    flash: string;
+    shelter: {
+        margin: number;
+        circles: ([
+            number,
+            number,
+            number
+        ])[];
+    };
+    points: ([
+        number,
+        number,
+        number
+    ])[];
+    steps: ({
+        signal: string;
+        when?: string;
+        observe: ([
+            string,
+            string
+        ])[];
+        probe?: {
+            x: string;
+            z: string;
+            radius: (string) | (number);
+        };
+        random: boolean;
+        write: ([
+            string,
+            string
+        ])[];
+        emit: ({
+            event: string;
+            when: string;
+            fields: ([
+                string,
+                string
+            ])[];
+        })[];
+    })[];
+    hud?: {
+        chips: ({
+            state: string;
+            within?: number;
+            title: string;
+            tone: 'soon' | 'storm' | 'clearing';
+        })[];
+        sub: string;
+        low: string;
+    };
+}
+export type WeatherReactionRows = { [Key in keyof WeatherReactionRowsFields]: WeatherReactionRowsFields[Key] };

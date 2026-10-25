@@ -25,8 +25,8 @@ const uniforms = v.pipe(v.record(name, uniform), v.check(rows => Object.keys(row
 /** a scaled post row; the pass host admits its programs, targets and draws when it builds one */
 const pass = v.custom<ScaledPostRow>(row => typeof row === 'object' && row !== null && 'programs' in row && 'draws' in row && 'targets' in row && 'outputs' in row, 'A scaled post row');
 /** one write into a bag uniform: a number, a vector component, or the same component of every vector in an array */
-const write = v.strictObject({ param: name, index: v.exactOptional(index), each: v.exactOptional(v.boolean()), value: finite });
-const effect = v.strictObject({
+const write: v.GenericSchema<PostGraphWriteInput, PostGraphWrite> = v.strictObject({ param: name, index: v.exactOptional(index), each: v.exactOptional(v.boolean()), value: finite });
+const effect: v.GenericSchema<PostGraphEffectInput, PostGraphEffect> = v.strictObject({
   /** writes on the edge */
   set: v.exactOptional(v.pipe(v.array(write), v.maxLength(16))),
   /** writes whose values before the `on` edge come back on `off` and when the look goes */
@@ -35,7 +35,7 @@ const effect = v.strictObject({
   display: v.exactOptional(v.pipe(finite, v.minValue(0), v.maxValue(1))),
 });
 /** the drawing buffer each frame: its pixel ratio (scaled, times `times` below `at`), a step on it, or its size */
-const pixel = v.variant('of', [
+const pixel: v.GenericSchema<PostGraphPixelInput, PostGraphPixel> = v.variant('of', [
   v.strictObject({ of: v.literal('ratio'), param: name, index: v.exactOptional(index), scale: v.exactOptional(finite), below: v.exactOptional(v.strictObject({ at: finite, times: finite })) }),
   v.strictObject({ of: v.literal('step'), param: name, at: finite, below: finite, above: finite }),
   v.strictObject({ of: v.literal('buffer'), param: name }),
@@ -46,7 +46,7 @@ const tiers = v.pipe(v.array(v.picklist(['phone', 'desktop'])), v.minLength(1));
 const triple = v.tuple([finite, finite, finite]), quad = v.tuple([finite, finite, finite, finite]);
 /** G615: a painterly level's painted world (the post-graph look's optional `painted` row); each part's own host admits its
  *  row (air, ground, tiles, capture, grass rows, the painterly world's rows, panorama and key). */
-export const PaintedWorldSchema = v.strictObject({
+export const PaintedWorldSchema: v.GenericSchema<PaintedWorldRowInput, PaintedWorldRow> = v.strictObject({
   /** the ramp from `start` to `end` metres toward `haze`, the panorama's aerial / edge haze, its fog slot, and the heading
    *  LUT (sRGB triples round the azimuth, un-graded at build time so the level's grade maps them back onto the painting) */
   fog: v.strictObject({ start: finite, end: finite, haze: triple, aerial: quad, edge: quad, order: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(1000)),
@@ -62,8 +62,8 @@ export const PaintedWorldSchema = v.strictObject({
   grass: v.strictObject({ rows: v.unknown(), cards: v.strictObject({ url: v.pipe(v.string(), v.regex(/^\/[A-Za-z0-9/_.-]+$/u)), phoneUrl: v.pipe(v.string(), v.regex(/^\/[A-Za-z0-9/_.-]+$/u)), name: v.pipe(v.string(), v.minLength(1), v.maxLength(64)) }) }),
 });
 /** An admitted painted world row. */
-export type PaintedWorldRow = v.InferOutput<typeof PaintedWorldSchema>;
-export const PostGraphLookSchema = v.strictObject({
+
+export const PostGraphLookSchema: v.GenericSchema<PostGraphLookRowInput, PostGraphLookRow> = v.strictObject({
   passes: v.pipe(v.record(name, pass), v.check(rows => Object.keys(rows).length <= 16, 'At most 16 post passes')),
   /** the side passes in draw order, each on its tiers: a graph pass (`constants` its own links, `params` its pack params, a bag
    *  name or a number), or the engine's bloom blur of the scene colour (its blurred light as output `bloom`, which the
@@ -106,7 +106,366 @@ export const PostGraphLookSchema = v.strictObject({
   /** lent graph looks' texture params, each given its bag uniform's texture when the look is lent and whenever it changes */
   textures: v.exactOptional(v.pipe(v.array(v.strictObject({ look: id, param: name, uniform: name })), v.maxLength(32))),
 });
-export type PostGraphLookRow = v.InferOutput<typeof PostGraphLookSchema>;
-export type PostGraphEffect = v.InferOutput<typeof effect>;
-export type PostGraphWrite = v.InferOutput<typeof write>;
-export type PostGraphPixel = v.InferOutput<typeof pixel>;
+
+
+
+
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type PostGraphWriteInput = PostGraphWrite;
+interface PostGraphWriteFields {
+    param: string;
+    index?: number;
+    each?: boolean;
+    value: number;
+}
+export type PostGraphWrite = { [Key in keyof PostGraphWriteFields]: PostGraphWriteFields[Key] };
+interface PostGraphEffectInputFields {
+    set?: (PostGraphWriteInput)[];
+    hold?: (PostGraphWriteInput)[];
+    display?: number;
+}
+export type PostGraphEffectInput = { [Key in keyof PostGraphEffectInputFields]: PostGraphEffectInputFields[Key] };
+interface PostGraphEffectFields {
+    set?: (PostGraphWrite)[];
+    hold?: (PostGraphWrite)[];
+    display?: number;
+}
+export type PostGraphEffect = { [Key in keyof PostGraphEffectFields]: PostGraphEffectFields[Key] };
+export type PostGraphPixelInput = PostGraphPixel;
+export type PostGraphPixel = ({
+    of: 'ratio';
+    param: string;
+    index?: number;
+    scale?: number;
+    below?: {
+        at: number;
+        times: number;
+    };
+}) | ({
+    of: 'step';
+    param: string;
+    at: number;
+    below: number;
+    above: number;
+}) | ({
+    of: 'buffer';
+    param: string;
+});
+export type PaintedWorldRowInput = PaintedWorldRow;
+interface PaintedWorldRowFields {
+    fog: {
+        start: number;
+        end: number;
+        haze: [
+            number,
+            number,
+            number
+        ];
+        aerial: [
+            number,
+            number,
+            number,
+            number
+        ];
+        edge: [
+            number,
+            number,
+            number,
+            number
+        ];
+        order: number;
+        lut: (number)[];
+    };
+    air: unknown;
+    ground: unknown;
+    tiles: unknown;
+    capture: unknown;
+    world?: {
+        rows: unknown;
+        panorama: unknown;
+        key: unknown;
+        ridge: (number)[];
+        grade: {
+            lend: string;
+            uniforms: Record<string, number>;
+            saturation: string;
+        };
+        tint: Record<string, 'key' | 'moon' | 'light' | 'veil' | 'veilColour' | 'flash'>;
+    };
+    grass: {
+        rows: unknown;
+        cards: {
+            url: string;
+            phoneUrl: string;
+            name: string;
+        };
+    };
+}
+export type PaintedWorldRow = { [Key in keyof PaintedWorldRowFields]: PaintedWorldRowFields[Key] };
+interface PostGraphLookRowInputFields {
+    passes: Record<string, ScaledPostRow>;
+    sides: (({
+        pass: string;
+        tiers: ('phone' | 'desktop')[];
+        constants?: Record<string, (number) | ({
+            rgb: number;
+        }) | ({
+            v2: [
+                number,
+                number
+            ];
+        }) | ({
+            v3: [
+                number,
+                number,
+                number
+            ];
+        }) | ({
+            v4: [
+                number,
+                number,
+                number,
+                number
+            ];
+        }) | ({
+            v4s: ([
+                number,
+                number,
+                number,
+                number
+            ])[];
+        })>;
+        params?: Record<string, (string) | (number)>;
+    }) | ({
+        bloom: string;
+        tiers: ('phone' | 'desktop')[];
+        threshold: number;
+        smoothing: number;
+        radius: number;
+        levels?: number;
+    }))[];
+    composite: {
+        pass: string;
+        output: string;
+    };
+    inputs: Record<string, {
+        side: string;
+        output: string;
+    }>;
+    flags?: Record<string, {
+        inputs: (string)[];
+        on: number;
+    }>;
+    uniforms: Record<string, (number) | ({
+        rgb: number;
+    }) | ({
+        v2: [
+            number,
+            number
+        ];
+    }) | ({
+        v3: [
+            number,
+            number,
+            number
+        ];
+    }) | ({
+        v4: [
+            number,
+            number,
+            number,
+            number
+        ];
+    }) | ({
+        v4s: ([
+            number,
+            number,
+            number,
+            number
+        ])[];
+    })>;
+    live?: string;
+    aliases?: Record<string, string>;
+    pixel?: (PostGraphPixelInput)[];
+    lut?: {
+        url: string;
+        texture: string;
+        amount: string;
+    };
+    lent?: ({
+        look: string;
+        param: string;
+        side: string;
+        drawn: number;
+        absent: number;
+    })[];
+    events?: ({
+        event: 'practice.active' | 'explore.studio';
+        on: PostGraphEffectInput;
+        off: PostGraphEffectInput;
+    })[];
+    ao?: {
+        phone: Record<string, (number) | (boolean)>;
+        desktop: Record<string, (number) | (boolean)>;
+        color: [
+            number,
+            number,
+            number
+        ];
+        fog: [
+            number,
+            number
+        ];
+    };
+    sky?: {
+        clouds: boolean;
+        planet: boolean;
+        ownSky?: boolean;
+    };
+    scene?: Record<never, never>;
+    painted?: PaintedWorldRowInput;
+    channels?: {
+        group: string;
+        programs: v.InferInput<typeof ClientChannelsSchema>;
+    };
+    textures?: ({
+        look: string;
+        param: string;
+        uniform: string;
+    })[];
+}
+export type PostGraphLookRowInput = { [Key in keyof PostGraphLookRowInputFields]: PostGraphLookRowInputFields[Key] };
+interface PostGraphLookRowFields {
+    passes: Record<string, ScaledPostRow>;
+    sides: (({
+        pass: string;
+        tiers: ('phone' | 'desktop')[];
+        constants?: Record<string, (number) | ({
+            rgb: number;
+        }) | ({
+            v2: readonly [
+                number,
+                number
+            ];
+        }) | ({
+            v3: readonly [
+                number,
+                number,
+                number
+            ];
+        }) | ({
+            v4: readonly [
+                number,
+                number,
+                number,
+                number
+            ];
+        }) | ({
+            v4s: readonly (readonly [
+                number,
+                number,
+                number,
+                number
+            ])[];
+        })>;
+        params?: Record<string, (string) | (number)>;
+    }) | ({
+        bloom: string;
+        tiers: ('phone' | 'desktop')[];
+        threshold: number;
+        smoothing: number;
+        radius: number;
+        levels?: number;
+    }))[];
+    composite: {
+        pass: string;
+        output: string;
+    };
+    inputs: Record<string, {
+        side: string;
+        output: string;
+    }>;
+    flags?: Record<string, {
+        inputs: (string)[];
+        on: number;
+    }>;
+    uniforms: Record<string, (number) | ({
+        rgb: number;
+    }) | ({
+        v2: readonly [
+            number,
+            number
+        ];
+    }) | ({
+        v3: readonly [
+            number,
+            number,
+            number
+        ];
+    }) | ({
+        v4: readonly [
+            number,
+            number,
+            number,
+            number
+        ];
+    }) | ({
+        v4s: readonly (readonly [
+            number,
+            number,
+            number,
+            number
+        ])[];
+    })>;
+    live?: string;
+    aliases?: Record<string, string>;
+    pixel?: (PostGraphPixel)[];
+    lut?: {
+        url: string;
+        texture: string;
+        amount: string;
+    };
+    lent?: ({
+        look: string;
+        param: string;
+        side: string;
+        drawn: number;
+        absent: number;
+    })[];
+    events?: ({
+        event: 'practice.active' | 'explore.studio';
+        on: PostGraphEffect;
+        off: PostGraphEffect;
+    })[];
+    ao?: {
+        phone: Record<string, (number) | (boolean)>;
+        desktop: Record<string, (number) | (boolean)>;
+        color: readonly [
+            number,
+            number,
+            number
+        ];
+        fog: readonly [
+            number,
+            number
+        ];
+    };
+    sky?: {
+        clouds: boolean;
+        planet: boolean;
+        ownSky?: boolean;
+    };
+    scene?: Record<never, never>;
+    painted?: PaintedWorldRow;
+    channels?: {
+        group: string;
+        programs: v.InferOutput<typeof ClientChannelsSchema>;
+    };
+    textures?: ({
+        look: string;
+        param: string;
+        uniform: string;
+    })[];
+}
+export type PostGraphLookRow = { [Key in keyof PostGraphLookRowFields]: PostGraphLookRowFields[Key] };
