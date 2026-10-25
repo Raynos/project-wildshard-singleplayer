@@ -3,18 +3,15 @@ import { resolve } from 'node:path';
 import { readFileSync } from 'node:fs';
 import { deflateSync } from 'node:zlib';
 import { byteWriter, jsonBytes } from '../../../../scripts/bake-output.mjs';
-import { prepareNativeTerrain } from '../../../../scripts/bake/nativeWorld.mjs';
-import { game } from '@wildshard/game/shard/registry';
-import { bakeCragRock } from './places.ts';
+import { bakeCragRockOnTerrain } from './places.ts';
 import { writeGeometry, join } from './geometryWriter.ts';
 
 const root = resolve(import.meta.dirname, '../../../..');
-await prepareNativeTerrain(game.shard, { root, bytes: readFileSync(resolve(root, 'public/assets/baked/nalati-grasslands/terrain.bin')) });
-const { terrainHeight: heightAt } = await import('@wildshard/engine/world/terrainHeight');
+const terrain = readFileSync(resolve(root, 'public/assets/baked/nalati-grasslands/terrain.bin'));
 const blocks = [];
 let offset = 0;
 const build = tier => {
-  const made = bakeCragRock(tier === 'phone', heightAt);
+  const made = bakeCragRockOnTerrain(tier === 'phone', terrain);
   const meshes = made.meshes.map(({ name, geometry }) => {
     const key = `crag:${tier}:${name}`, start = blocks.length;
     const part = { key, offset, row: writeGeometry(geometry, blocks, key) };

@@ -1873,7 +1873,15 @@ export interface CragRockBake {
 
 const RING = 7; // the crest test's radius (m)
 
-export function bakeCragRock(phone: boolean, heightAt: Ground, seed = 0xc4a9): CragRockBake {
+/** Build the original crag geometry over one owned native terrain and its authored trail field. */
+export function bakeCragRockOnTerrain(phone: boolean, terrain: Uint8Array, seed = 0xc4a9): CragRockBake {
+  const source = readNativeTerrain(terrain), trail = TERRAIN.trailDistance;
+  if (trail === undefined) throw new Error('Native crags require authored trail queries');
+  return bakeCragRock(phone, source.heightAt, seed, { trailDistance: trail });
+}
+
+export function bakeCragRock(phone: boolean, heightAt: Ground, seed = 0xc4a9, queries?: Pick<PlaceQueries, 'trailDistance'>): CragRockBake {
+  const sampleTrail = queries?.trailDistance ?? ((x: number, z: number) => trailDistance(x, z));
   const rng = new Rng(seed), jitter = new Noise2D(seed + 3);
   const colliders: Collider[] = [];
   const descs: ColliderDesc[] = [];
@@ -1890,7 +1898,7 @@ export function bakeCragRock(phone: boolean, heightAt: Ground, seed = 0xc4a9): C
   // keep-outs: the cave, Argymaq's bench, the snow lotus, the watchtower's rock (their own agents dress them)
   const keepOut: [number, number, number][] = [[LEOPARD_CAVE.x, LEOPARD_CAVE.z, 22], [ARGYMAQ_PASTURE.x, ARGYMAQ_PASTURE.z, 34], [WATCHTOWER.x, WATCHTOWER.z, 22], ...SNOW_LOTUS.map((l): [number, number, number] => [l.x, l.z, l.r + 6])];
   const blocked = (x: number, z: number, r: number): boolean =>
-    Math.abs(x) > 246 || Math.abs(z) > 246 || trailDistance(x, z) < 9 + r || inPoiClearing(x, z, 4 + r) || glacierMask(x, z) > 0.02 || brookMask(x, z) > 0 ||
+    Math.abs(x) > 246 || Math.abs(z) > 246 || sampleTrail(x, z) < 9 + r || inPoiClearing(x, z, 4 + r) || glacierMask(x, z) > 0.02 || brookMask(x, z) > 0 ||
     keepOut.some(([kx, kz, kr]) => Math.hypot(x - kx, z - kz) < kr + r);
   const col = (): THREE.Color => new THREE.Color().setScalar(rng.range(0.3, 0.4)).offsetHSL(0, 0, 0).add(new THREE.Color(0, 0.004, 0.02));
 

@@ -80,3 +80,16 @@ test('owned outcrops use only supplied queries without an active level', () => {
   `;
   execFileSync(process.execPath, ['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', '--input-type=module', '--eval', source]);
 });
+
+test('native crags keep all registered bytes without selecting a level', () => {
+  const source = `
+    import assert from 'node:assert/strict';
+    import { selectedLevel } from '@wildshard/engine/level/selection';
+    import { bakeCragRockOnTerrain } from './src/shards/nalati-grasslands/generators/places.ts';
+    assert.equal(selectedLevel(),null);
+    assert.throws(()=>bakeCragRockOnTerrain(false,new Uint8Array()),/Native terrain byte cap/);
+    await import('./src/shards/nalati-grasslands/generators/bake-crag-rock.mjs');
+    assert.equal(selectedLevel(),null);
+  `;
+  execFileSync(process.execPath, ['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', '--input-type=module', '--eval', source, '--', '--check']);
+});
