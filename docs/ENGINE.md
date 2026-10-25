@@ -8642,7 +8642,7 @@ read schemas parse; authored receipts/sidecars grant no trust.
 `format/` leaves: `validationReceipt` bytes/clock/pause; `outputAddress`
 paths; `outputFields` unknown projection; `memoryAdmission` policy;
 `deviceMemoryCost` budgets/cost acceptance; `ktx2Cost` bounded headers.
-These leaves grant no schema admission alone.
+`stateLineage` retains saved identity/state/migration checks.
 
 `configuredShardfile(document, options)` awaits the same section reader
 for the SDK client's embedded index. Installed data-client manifests

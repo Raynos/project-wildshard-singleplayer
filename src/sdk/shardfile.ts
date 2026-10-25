@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { ShardfileSchema as GameSchema, parseShardfile as parse, shardfileRules as rules, type Shardfile as GameShardfile } from '@wildshard/format/shardSchema';
-import { assertStateCompatibility as assertCompatibility } from '@wildshard/format/product';
+import { assertStateCompatibility as assertCompatibility } from '@wildshard/format/stateLineage';
 
 /** Author-facing serialisable renderer-neutral shardfile contract. */
 export type Shardfile = GameShardfile;

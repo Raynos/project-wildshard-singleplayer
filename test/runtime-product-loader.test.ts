@@ -85,6 +85,40 @@ function fixture(platformRef = false, extra?: (source: schema.Shardfile) => Read
 }
 function trust(receipt: unknown): void { vi.stubGlobal('__SHARDFILE_VALIDATOR__', 'loader-test'); vi.stubGlobal('__SHARDFILE_VERDICTS__', [receipt]); }
 
+test('private exact admission avoids offline decoder and graph validation', async () => {
+  const f = fixture(); trust(f.receipt);
+  const offline = await import('../src/format/product');
+  const decoder = vi.spyOn(offline, 'prepareAssetDecoders'), graph = vi.spyOn(offline, 'preflightAssetGraph');
+  try {
+    const admitted = await admitProduct(f.index, f.options);
+    expect(admitted.source).toEqual(f.source);
+    expect(admitted.assets.get(f.ref)).toEqual(f.blob);
+    expect(decoder).not.toHaveBeenCalled();
+    expect(graph).not.toHaveBeenCalled();
+  } finally { decoder.mockRestore(); graph.mockRestore(); }
+});
+
+test('unproved admission retains offline decoder and graph validation', async () => {
+  const f = fixture(), offline = await import('../src/format/product');
+  const decoder = vi.spyOn(offline, 'prepareAssetDecoders'), graph = vi.spyOn(offline, 'preflightAssetGraph');
+  try {
+    const admitted = await admitProduct(f.index, f.options);
+    expect(admitted.source).toEqual(f.source);
+    expect(decoder).toHaveBeenCalled();
+    expect(graph).toHaveBeenCalled();
+  } finally { decoder.mockRestore(); graph.mockRestore(); }
+});
+
+test('an exposed exact product retains graph validation on re-admission', async () => {
+  const f = fixture(); trust(f.receipt);
+  const source = await readProductDescriptor(f.options), offline = await import('../src/format/product');
+  const graph = vi.spyOn(offline, 'preflightAssetGraph');
+  try {
+    expect((await admitProduct(source, f.options)).source).toEqual(f.source);
+    expect(graph).toHaveBeenCalled();
+  } finally { graph.mockRestore(); }
+});
+
 test('finished preparation releases synchronous inputs only through its explicit verified-reread authority', async () => {
   const f = fixture(true); trust(f.receipt);
   const admitted = await admitProduct(f.index, f.options);
