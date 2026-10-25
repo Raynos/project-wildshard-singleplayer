@@ -7,7 +7,7 @@ const names = v.pipe(v.array(id), v.maxLength(64));
 const condition = v.strictObject({ all: v.exactOptional(names), any: v.exactOptional(names), none: v.exactOptional(names),
   count: v.exactOptional(v.strictObject({ of: names, atLeast: v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(64)) })) });
 /** Presentation-only weather channels; targets are a first-match flag table, never executable shard policy. */
-export const EasedFieldsSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Weather fields require plain JSON'), v.strictObject({
+export const EasedFieldsSchema: v.GenericSchema<EasedFieldsRowsInput, EasedFieldsRows> = v.pipe(v.unknown(), v.check(isJsonData, 'Weather fields require plain JSON'), v.strictObject({
   version: v.literal(1), fields: v.pipe(v.array(v.strictObject({ field: id,
     ease: v.strictObject({ rate: v.pipe(finite, v.minValue(Number.MIN_VALUE)) }),
     min: finite, max: finite, else: finite,
@@ -15,6 +15,34 @@ export const EasedFieldsSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Weathe
   })), v.maxLength(24)),
 }), v.check(rows => new Set(rows.fields.map(row => row.field)).size === rows.fields.length
   && rows.fields.every(row => row.min <= row.max && [row.else, ...row.steps.map(step => step.value)].every(value => value >= row.min && value <= row.max)), 'Unique bounded weather fields'));
-export type EasedFieldsRows = v.InferOutput<typeof EasedFieldsSchema>;
+
 /** Admit the entire step table before binding a uniform or registering a frame system. */
 export function parseEasedFields(input: unknown): EasedFieldsRows { return v.parse(EasedFieldsSchema, input); }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type EasedFieldsRowsInput = unknown;
+interface EasedFieldsRowsFields {
+    version: 1;
+    fields: ({
+        field: string;
+        ease: {
+            rate: number;
+        };
+        min: number;
+        max: number;
+        else: number;
+        steps: ({
+            when: {
+                all?: (string)[];
+                any?: (string)[];
+                none?: (string)[];
+                count?: {
+                    of: (string)[];
+                    atLeast: number;
+                };
+            };
+            value: number;
+        })[];
+    })[];
+}
+export type EasedFieldsRows = { [Key in keyof EasedFieldsRowsFields]: EasedFieldsRowsFields[Key] };

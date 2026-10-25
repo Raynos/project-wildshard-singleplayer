@@ -3,7 +3,7 @@ import * as v from 'valibot';
 const text = v.pipe(v.string(), v.minLength(1), v.maxLength(512));
 const natural = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(100_000_000));
 /** Existing packed-geometry codec metadata, shared by collection displays and held finish extras. */
-export const PackedGeometryRowsSchema = v.strictObject({ bytes: natural,
+export const PackedGeometryRowsSchema: v.GenericSchema<PackedGeometryRowsRowsInput, PackedGeometryRowsRows> = v.strictObject({ bytes: natural,
   geometries: v.pipe(v.array(v.strictObject({
     attrs: v.pipe(v.array(v.tuple([text, natural])), v.maxLength(32)), count: natural, unique: natural,
     own: v.nullable(v.picklist(['u16', 'u32'])), indexCount: natural,
@@ -112,3 +112,25 @@ export class GeometryPackData {
     return attribute.array;
   }
 }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type PackedGeometryRowsRowsInput = PackedGeometryRowsRows;
+interface PackedGeometryRowsRowsFields {
+    bytes: number;
+    geometries: ({
+        attrs: ([
+            string,
+            number
+        ])[];
+        count: number;
+        unique: number;
+        own: ('u16' | 'u32') | null;
+        indexCount: number;
+        groups?: ({
+            start: number;
+            count: number;
+            materialIndex: number;
+        })[];
+    })[];
+}
+export type PackedGeometryRowsRows = { [Key in keyof PackedGeometryRowsRowsFields]: PackedGeometryRowsRowsFields[Key] };

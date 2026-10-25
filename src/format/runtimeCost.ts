@@ -3,7 +3,7 @@ import { RUNTIME_RESIDENT_FACTOR } from './wireLimits';
 
 const mb = v.pipe(v.number(), v.finite(), v.minValue(0));
 /** Reviewed trusted-runtime measurements, kept with their shard rather than presenting an empty data budget as its cost. */
-export const MemoryMeasurementSchema = v.strictObject({
+export const MemoryMeasurementSchema: v.StrictObjectSchema<{ readonly webContentMB: v.GenericSchema<MemoryMeasurementRowsInput['webContentMB'], MemoryMeasurementRows['webContentMB']>; readonly glMB: v.GenericSchema<MemoryMeasurementRowsInput['glMB'], MemoryMeasurementRows['glMB']>; readonly engineBaseMB: v.GenericSchema<MemoryMeasurementRowsInput['engineBaseMB'], MemoryMeasurementRows['engineBaseMB']>; readonly residentBaseMB: v.ExactOptionalSchema<v.GenericSchema<Exclude<MemoryMeasurementRowsInput['residentBaseMB'], undefined>, Exclude<MemoryMeasurementRows['residentBaseMB'], undefined>>, undefined>; readonly rev: v.GenericSchema<MemoryMeasurementRowsInput['rev'], MemoryMeasurementRows['rev']>; readonly device: v.GenericSchema<MemoryMeasurementRowsInput['device'], MemoryMeasurementRows['device']>; readonly evidence: v.GenericSchema<MemoryMeasurementRowsInput['evidence'], MemoryMeasurementRows['evidence']>; }, undefined> = v.strictObject({
   webContentMB: mb, glMB: mb, engineBaseMB: mb,
   /** Matched settled pre-entry resident set. When present, subtract it instead of the dated engine-only calibration. */
   residentBaseMB: v.exactOptional(mb),
@@ -12,9 +12,9 @@ export const MemoryMeasurementSchema = v.strictObject({
   evidence: v.pipe(v.string(), v.regex(/^progress\/memory\/[a-zA-Z0-9/_-]+\.json$/u)),
 });
 /** The current runtime measurement may retain its separate images-first reading for cold phone texture selection. */
-export const RuntimeCostSchema = v.strictObject({ ...MemoryMeasurementSchema.entries, imagesFirst: v.optional(MemoryMeasurementSchema) });
+export const RuntimeCostSchema: v.GenericSchema<RuntimeCostInput, RuntimeCost> = v.strictObject({ ...MemoryMeasurementSchema.entries, imagesFirst: v.optional(MemoryMeasurementSchema) });
 /** Decimal MB; GL bytes accompany WebContent, never the GPU process as a replacement. */
-export type RuntimeCost = v.InferOutput<typeof RuntimeCostSchema>;
+
 
 /**
  * SF22a / G144 / G258: remove the matched resident baseline (or legacy engine base) and undo the allocator's calibration exactly once. The allocator adds
@@ -38,12 +38,43 @@ export function runtimeAccountedBytes(input: unknown): number {
  * `sim-basis:`). The declared `budgets.sim.resident` stays the validated authoring ceiling (scripts at their growth limit);
  * this row only replaces the ceiling in the allocator's charge, and never raises it.
  */
-export const RegionalSimCostSchema = v.strictObject({
+export const RegionalSimCostSchema: v.GenericSchema<RegionalSimCostInput, RegionalSimCost> = v.strictObject({
   residentMB: v.pipe(mb, v.minValue(0.001)),
   rev: v.pipe(v.string(), v.regex(/^[a-f0-9]{9,40}$/u)),
   device: v.pipe(v.string(), v.minLength(1), v.maxLength(200)),
   evidence: v.pipe(v.string(), v.regex(/^progress\/memory\/[a-zA-Z0-9/_-]+\.json$/u)),
 });
 /** Decimal MB, measured per admitted regional sim. */
-export type RegionalSimCost = v.InferOutput<typeof RegionalSimCostSchema>;
 
+
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type MemoryMeasurementRowsInput = MemoryMeasurementRows;
+interface MemoryMeasurementRowsFields {
+    webContentMB: number;
+    glMB: number;
+    engineBaseMB: number;
+    residentBaseMB?: number;
+    rev: string;
+    device: string;
+    evidence: string;
+}
+export type MemoryMeasurementRows = { [Key in keyof MemoryMeasurementRowsFields]: MemoryMeasurementRowsFields[Key] };
+export type RuntimeCostInput = Omit<MemoryMeasurementRowsInput, keyof ({
+    imagesFirst?: MemoryMeasurementRowsInput | undefined;
+})> & {
+    imagesFirst?: MemoryMeasurementRowsInput | undefined;
+};
+export type RuntimeCost = Omit<MemoryMeasurementRows, keyof ({
+    imagesFirst?: MemoryMeasurementRows | undefined;
+})> & {
+    imagesFirst?: MemoryMeasurementRows | undefined;
+};
+export type RegionalSimCostInput = RegionalSimCost;
+interface RegionalSimCostFields {
+    residentMB: number;
+    rev: string;
+    device: string;
+    evidence: string;
+}
+export type RegionalSimCost = { [Key in keyof RegionalSimCostFields]: RegionalSimCostFields[Key] };

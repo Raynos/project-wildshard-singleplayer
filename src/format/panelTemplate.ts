@@ -41,7 +41,7 @@ const template: v.GenericSchema<unknown, PanelTemplate> = v.lazy(() => v.strictO
   when: v.exactOptional(conditionSchema()), repeat: v.exactOptional(v.strictObject({ source: path, as: path, index: v.exactOptional(path) })),
   action: v.exactOptional(action), children: v.exactOptional(v.pipe(v.array(template), v.maxLength(256))),
 }));
-export const PanelDefinitionSchema = v.strictObject({ frame: template, body: v.exactOptional(v.pipe(v.array(template), v.maxLength(256))),
+export const PanelDefinitionSchema: v.GenericSchema<PanelDefinitionInput, PanelDefinition> = v.strictObject({ frame: template, body: v.exactOptional(v.pipe(v.array(template), v.maxLength(256))),
   lifetime: v.picklist(['persistent', 'open']), showClass: v.exactOptional(text), closeRef: v.exactOptional(text),
   closeKeys: v.exactOptional(v.pipe(v.array(text), v.maxLength(32))),
   stopEvents: v.exactOptional(v.pipe(v.array(v.picklist(['pointerdown', 'touchstart', 'mousedown'])), v.maxLength(3))),
@@ -53,7 +53,7 @@ export const PanelDefinitionSchema = v.strictObject({ frame: template, body: v.e
     flags: v.pipe(v.array(v.strictObject({ cls: text, when: conditionSchema() })), v.maxLength(16)) })),
 });
 /** Admitted content shared by renderer-free expansion and the page adapter. */
-export type PanelDefinition = v.InferOutput<typeof PanelDefinitionSchema>;
+
 /** Refuse deep/unbounded programs before recursive schema admission. */
 export function parsePanelDefinition(input: unknown): PanelDefinition {
   let nodes = 0;
@@ -66,3 +66,65 @@ export function parsePanelDefinition(input: unknown): PanelDefinition {
   if (parsed.transient !== undefined && (parsed.lifetime !== 'persistent' || parsed.showClass === undefined)) throw new Error('Transient panel requires a persistent shown frame');
   return parsed;
 }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+interface PanelDefinitionInputFields {
+    frame: v.InferInput<typeof template>;
+    body?: (v.InferInput<typeof template>)[];
+    lifetime: 'persistent' | 'open';
+    showClass?: string;
+    closeRef?: string;
+    closeKeys?: (string)[];
+    stopEvents?: ('pointerdown' | 'touchstart' | 'mousedown')[];
+    keys?: ({
+        codes: (string)[];
+        action: v.InferInput<typeof action>;
+    })[];
+    stopTyping?: boolean;
+    focus?: string;
+    inputGuard?: {
+        ref: string;
+        milliseconds: number;
+    };
+    layer?: {
+        order: number;
+    };
+    transient?: {
+        milliseconds: number;
+        flags: ({
+            cls: string;
+            when: v.InferInput<ReturnType<typeof conditionSchema>>;
+        })[];
+    };
+}
+export type PanelDefinitionInput = { [Key in keyof PanelDefinitionInputFields]: PanelDefinitionInputFields[Key] };
+interface PanelDefinitionFields {
+    frame: v.InferOutput<typeof template>;
+    body?: (v.InferOutput<typeof template>)[];
+    lifetime: 'persistent' | 'open';
+    showClass?: string;
+    closeRef?: string;
+    closeKeys?: (string)[];
+    stopEvents?: ('pointerdown' | 'touchstart' | 'mousedown')[];
+    keys?: ({
+        codes: (string)[];
+        action: v.InferOutput<typeof action>;
+    })[];
+    stopTyping?: boolean;
+    focus?: string;
+    inputGuard?: {
+        ref: string;
+        milliseconds: number;
+    };
+    layer?: {
+        order: number;
+    };
+    transient?: {
+        milliseconds: number;
+        flags: ({
+            cls: string;
+            when: v.InferOutput<ReturnType<typeof conditionSchema>>;
+        })[];
+    };
+}
+export type PanelDefinition = { [Key in keyof PanelDefinitionFields]: PanelDefinitionFields[Key] };

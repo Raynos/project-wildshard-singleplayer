@@ -156,6 +156,7 @@ normal layer emission is the declaration-size authority. Continuation starts at 
 | T4-I1a | Continuation, rig, catalogue and authored-page schemas; retain nested metadata and default laws | 60 min | done (2026-10-25, sp-x8) |
 | T4-I1b | Native riding, state, skin and scene schemas; retain transform metadata, tuples and default laws | 60 min | done (2026-10-25, sp-x8) |
 | T4-I1c | Ground, traversal, script and world-reference schemas; retain literals, records and default laws | 60 min | done (2026-10-25, sp-x8) |
+| T4-I1d | Grazer, elite, edge, panel and post-stack schemas; retain structural entries and bounded transforms | 60 min | done (2026-10-25, sp-x8) |
 
 T4 first format slices are on origin: schema expressions and emitted runtime JavaScript are unchanged.
 Independent named data types replace exported validator implementation types; original/candidate input and output

@@ -16,7 +16,7 @@ import { isJsonData } from '@wildshard/format/json';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 
 /** budget v1: at most 4 authored post passes and 1,000 post instructions per pixel at 2× (a pair at a blend included) */
-export const POST_STACK_BUDGET = Object.freeze({ passes: 4, instructions: 1000 });
+export const POST_STACK_BUDGET: Readonly<{passes:4;instructions:1000}> = Object.freeze({ passes: 4, instructions: 1000 });
 /**
  * The normal pre-pass a stack pays once when any of its passes reads `sceneNormal`, as per-pixel instructions at 2×
  * (budget v1's estimate: a second opaque draw of the visible scene writing packed view normals; revised only from a
@@ -24,7 +24,7 @@ export const POST_STACK_BUDGET = Object.freeze({ passes: 4, instructions: 1000 }
  */
 export const POST_NORMAL_PREPASS_COST = 160;
 
-const postGraph = v.pipe(v.unknown(), v.rawTransform(({ dataset, addIssue, NEVER }): GraphIr => {
+const postGraph: v.GenericSchema<PostGraphRowsInput, PostGraphRows> = v.pipe(v.unknown(), v.rawTransform(({ dataset, addIssue, NEVER }): GraphIr => {
   if (!isJsonData(dataset.value)) { addIssue({ message: 'post graph is plain JSON data' }); return NEVER; }
   const checked = validateGraph(dataset.value);
   if (!checked.ok) { addIssue({ message: checked.errors.join('; ') }); return NEVER; }
@@ -32,14 +32,14 @@ const postGraph = v.pipe(v.unknown(), v.rawTransform(({ dataset, addIssue, NEVER
   return checked.graph;
 }));
 /** one authored pass: inline post graph IR, or a graph file of the library closure */
-const PostPassSchema = v.union([
+const PostPassSchema: v.GenericSchema<PostPassInput, PostPass> = v.union([
   v.strictObject({ graph: postGraph }),
   v.strictObject({ file: v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u)) }),
 ]);
 /** `look.post`: the shard's ordered post passes (empty: the platform's own post only) */
-export const PostStackSchema = v.pipe(v.array(PostPassSchema), v.maxLength(POST_STACK_BUDGET.passes));
+export const PostStackSchema: v.GenericSchema<PostStackRowsInput, PostStackRows> = v.pipe(v.array(PostPassSchema), v.maxLength(POST_STACK_BUDGET.passes));
 /** One admitted pass. */
-export type PostPass = v.InferOutput<typeof PostPassSchema>;
+
 
 /** What a stack costs: its passes' per-pixel instructions, the pre-pass when any reads the normal, and the inputs read. */
 export interface PostStackCost { readonly passes: number; readonly instructions: number; readonly inputs: PostInputs }
@@ -96,3 +96,19 @@ export function postPairRefusal(a: PostStackCost, b: PostStackCost): string | nu
   const sum = a.instructions + b.instructions - shared;
   return sum > POST_STACK_BUDGET.instructions ? `post: ≈ ${sum} instructions per pixel at 2× where the two frames blend (at most ${POST_STACK_BUDGET.instructions})` : null;
 }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type PostGraphRowsInput = unknown;
+export type PostGraphRows = GraphIr;
+export type PostPassInput = ({
+    graph: PostGraphRowsInput;
+}) | ({
+    file: string;
+});
+export type PostPass = ({
+    graph: PostGraphRows;
+}) | ({
+    file: string;
+});
+export type PostStackRowsInput = (PostPassInput)[];
+export type PostStackRows = (PostPass)[];

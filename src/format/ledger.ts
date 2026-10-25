@@ -8,13 +8,49 @@ const catalogue = v.strictObject({ kind: v.literal('catalogue'), item: id, tier:
 const achievement = v.strictObject({ kind: v.literal('achievement'), id, title: id, threshold: v.pipe(positive, v.maxValue(100_000)) });
 
 /** Facts carry host-assigned identity and provenance; cell coordinates never participate. */
-export const LedgerFactSchema = v.strictObject({ instance: id, shard: id, revision: positive, entity: id, tick: natural, ordinal: natural, name: id, origin });
+export const LedgerFactSchema: v.GenericSchema<LedgerFactInput, LedgerFact> = v.strictObject({ instance: id, shard: id, revision: positive, entity: id, tick: natural, ordinal: natural, name: id, origin });
 /** One witnessed engine/script outcome, with a stable six-part identity. */
-export type LedgerFact = v.InferOutput<typeof LedgerFactSchema>;
+
 /** Profile rewards are approved catalogue objects or achievements/titles; shard coins are excluded. */
-export const LedgerRulesSchema = v.pipe(v.array(v.strictObject({ fact: id, origin, rewards: v.pipe(v.array(v.variant('kind', [catalogue, achievement])), v.minLength(1), v.maxLength(16)) })), v.maxLength(128), v.check((rules) => new Set(rules.map((rule) => rule.fact)).size === rules.length, 'unique fact mappings'));
+export const LedgerRulesSchema: v.GenericSchema<LedgerRulesRowsInput, LedgerRulesRows> = v.pipe(v.array(v.strictObject({ fact: id, origin, rewards: v.pipe(v.array(v.variant('kind', [catalogue, achievement])), v.minLength(1), v.maxLength(16)) })), v.maxLength(128), v.check((rules) => new Set(rules.map((rule) => rule.fact)).size === rules.length, 'unique fact mappings'));
 /** Data mapping declared facts to platform-controlled profile rewards. */
 export type LedgerRule = v.InferOutput<typeof LedgerRulesSchema>[number];
 /** Validate compiled author data before the platform binds its allowed reward mappings. */
 export function parseLedgerRules(input: unknown): LedgerRule[] { return v.parse(LedgerRulesSchema, input); }
 
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type LedgerFactInput = LedgerFact;
+interface LedgerFactFields {
+    instance: string;
+    shard: string;
+    revision: number;
+    entity: string;
+    tick: number;
+    ordinal: number;
+    name: string;
+    origin: {
+        kind: 'engine' | 'script';
+        source: string;
+    };
+}
+export type LedgerFact = { [Key in keyof LedgerFactFields]: LedgerFactFields[Key] };
+export type LedgerRulesRowsInput = LedgerRulesRows;
+export type LedgerRulesRows = ({
+    fact: string;
+    origin: {
+        kind: 'engine' | 'script';
+        source: string;
+    };
+    rewards: (({
+        kind: 'catalogue';
+        item: string;
+        tier: number;
+        quantity: number;
+    }) | ({
+        kind: 'achievement';
+        id: string;
+        title: string;
+        threshold: number;
+    }))[];
+})[];
