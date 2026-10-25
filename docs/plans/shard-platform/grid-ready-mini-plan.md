@@ -27,7 +27,9 @@ Each slice is bounded to one hour; report misses and their observed owners first
 | G723.2f | Repair the native held-pool lifetime mismatch exposed by preparation retirement: rehydrate evicted blade/polearm geometry before synchronous consumers while retaining admitted book data and every owner/product fence. At most one hour. | done (2026-10-25, sp-x8) |
 | G723.3 | Measure the defining warm-ahead slice against the same first-entry route and keep every durability, cancellation, claim and readiness fence. At most one hour. | done (measurement only; 2026-10-25, sp-x8) |
 | G723.4 | Use direct-heading lead time inside an active source only for admitted isolated preparation within the existing pair budget. Keep the source authoritative and retire it before destination entry. At most one hour. | done (bounded source cut; 2026-10-25, sp-x8) |
-| G723.5 | Measure source-side preparation on the original first-entry routes; retain the under-five-second target as open wherever the actual edge wait misses. At most one hour. | open |
+| G723.5 | Measure source-side preparation on the original first-entry routes; retain the under-five-second target as open wherever the actual edge wait misses. At most one hour. | done (measurement only; 2026-10-25, sp-x8) |
+| G723.6 | Reuse the existing exact packed-position scanner for synchronous baked geometry bounds; preserve every decoded buffer, box/sphere value and fallback. At most one hour. | done (bounded source cut; 2026-10-25, sp-x8) |
+| G723.7 | Continue world-construction and warm-up cuts until the measured Driftwood, Nalati and Nine edge waits pass five seconds, preserving all readiness and two-resident fences. Each source slice is at most one hour. | open |
 
 ## G717 frame-floor misses (2026-10-25, sp-x1; G639)
 

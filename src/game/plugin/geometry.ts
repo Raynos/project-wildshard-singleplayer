@@ -1241,8 +1241,10 @@ export function readBakedGeometry(bytes: Uint8Array, offset: number, row: BakedG
     for (let i = 0; i < deltas.length; i++) { last += deltas[i] ?? 0; index[i] = last; }
     g.setIndex(new BufferAttribute(index, 1));
   }
-  g.computeBoundingSphere();
-  if (row.box) g.computeBoundingBox();
+  // The baked read owns plain attributes. Reuse the exact packed scanner instead of scanning
+  // through accessors again for the optional box; this public decoder remains synchronous.
+  const bounds = geometryBoundsSteps(g, row.box ? 'both' : 'sphere');
+  while (!bounds.next().done) { /* exhaust before publishing the owned geometry */ }
   return g;
 }
 
