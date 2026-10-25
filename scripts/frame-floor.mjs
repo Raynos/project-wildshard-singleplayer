@@ -719,7 +719,7 @@ function nodeBuildsByHook(log, completed) {
     late: late.map((row) => [Math.round(row.at - play.start), `${row.material}@${row.object}`]),
     // Keep world/boot builds too: a sampled long compile can precede afterPlay.
     // Existing bounded scalar records only; older pins have no per-build duration.
-    events: log.map((row) => ({ at: row.at, ms: row.ms ?? null, material: row.material, object: row.object, how: row.how })) };
+    events: log.map((row) => ({ at: row.at, ms: row.ms ?? null, prepareMs: row.prepareMs ?? null, frontendMs: row.frontendMs ?? null, material: row.material, object: row.object, how: row.how })) };
 }
 function longFrameHooks(at, completed) {
   const out = new Map();

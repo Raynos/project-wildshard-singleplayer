@@ -410,8 +410,10 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   /** The last BUILD_LOG_CAP builds, oldest first: when (diagnostic clock) and for which material and object (names
    *  only), elapsed build time and how the build went (`how`: 'reused', or why it was built in full: 'first of its key', 'no graph shape',
    *  'no reuse key', a pairing refusal; '+ kept' when a full build was kept for reuse). The frame floor attributes them
-   *  to runtime hooks: a build after an entry's warm-up is a missed warm program. */
-  readonly buildLog: { at: number; ms: number; material: string; object: string; how: string }[] = [];
+   *  to runtime hooks: a build after an entry's warm-up is a missed warm program.
+   *  prepareMs covers shape/key/reuse lookup; frontendMs is only the stock
+   *  builder call (null on reuse), both within the existing total ms. */
+  readonly buildLog: { at: number; ms: number; prepareMs: number; frontendMs: number | null; material: string; object: string; how: string }[] = [];
   /** each `buildLog` row's program parameters (`reuseKey`: the object class, the custom key's tail, the parameters and
    *  defines), at the same index; '' where none could be read. Two builds of one material diff here (what moved its key). */
   readonly buildKeys: string[] = [];
@@ -856,10 +858,17 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     const key = shape === null || program === null ? null : `${program}\n${shape.signature}`;
     const reused = key === null || shape === null ? null : this.reusedBuild(key, material, object, shape);
     let how = shape === null ? 'no graph shape' : key === null ? 'no reuse key' : typeof reused === 'string' ? reused : 'first of its key';
+    const prepareMs = diagnosticNow() - t0;
+    let frontendMs: number | null = null;
     if (typeof reused === 'object' && reused !== null) { this.applyReused(material, object, parameters, reused); this.reuses++; how = 'reused'; }
     else {
-      if (material instanceof NodeMaterial) buildWithInstanceAttributes(material, () => { super.build(material, object, parameters); });
-      else super.build(material, object, parameters);
+      const buildFrontend = (): void => {
+        const frontendAt = diagnosticNow();
+        super.build(material, object, parameters);
+        frontendMs = diagnosticNow() - frontendAt;
+      };
+      if (material instanceof NodeMaterial) buildWithInstanceAttributes(material, buildFrontend);
+      else buildFrontend();
       const real = key === null ? null : captureBuild(Reflect.get(material, '_latestBuilder'));
       if (key !== null && real !== null && shape !== null && owner !== undefined) {
         const { lazy, rest: unbound } = lazyReads(unboundReads(real, material, owner), owner);
@@ -889,7 +898,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     this.buildMs += buildMs;
     this.builds++;
     if (this.buildLog.length >= BUILD_LOG_CAP) { this.buildLog.shift(); this.buildKeys.shift(); }
-    this.buildLog.push({ at: t0, ms: buildMs, material: material.name || material.type, object: object.name || object.type, how });
+    this.buildLog.push({ at: t0, ms: buildMs, prepareMs, frontendMs, material: material.name || material.type, object: object.name || object.type, how });
     this.buildKeys.push(program ?? reuseKey(parameters, object, material, this.shareKeyOf(material)) ?? '');
     // WebGLRenderer.getProgram calls build only for a key its material has no program for, then files the acquired
     // program under that key: the program lands at the map's current size

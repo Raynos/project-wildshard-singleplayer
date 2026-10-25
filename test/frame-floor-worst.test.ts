@@ -77,8 +77,8 @@ test('keeps pre-afterPlay shader identities on the original page clock', () => {
   const start = source.indexOf('function nodeBuildsByHook('), end = source.indexOf('\nfunction longFrameHooks(', start);
   if (start === -1 || end <= start) throw new Error('Build attribution function missing');
   const log = [
-    {at: 125, ms: 112.5, material: 'tree', object: 'instances', how: 'first of its key'},
-    {at: 275, ms: 8, material: 'water', object: 'surface', how: 'reused'},
+    {at: 125, ms: 112.5, prepareMs: 12.5, frontendMs: 90, material: 'tree', object: 'instances', how: 'first of its key'},
+    {at: 275, ms: 8, prepareMs: 3, frontendMs: null, material: 'water', object: 'surface', how: 'reused'},
     {at: 310, material: 'old-pin', object: 'mesh', how: 'no graph shape'},
   ];
   const hooks = [{instance: 'cell', hook: 'world', start: 100, end: 200},
@@ -87,5 +87,5 @@ test('keeps pre-afterPlay shader identities on the original page clock', () => {
   expect(value).toEqual({total: 3, afterPlay: 2,
     byHook: {'cell:world': 1, 'cell:afterPlay': 1, 'between hooks': 1}, afterPlayAt: 250, afterPlayMs: 50,
     late: [[25, 'water@surface'], [60, 'old-pin@mesh']],
-    events: [log[0], log[1], {...log[2], ms: null}]});
+    events: [log[0], log[1], {...log[2], ms: null, prepareMs: null, frontendMs: null}]});
 });

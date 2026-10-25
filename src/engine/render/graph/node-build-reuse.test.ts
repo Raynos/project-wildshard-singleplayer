@@ -1,6 +1,7 @@
 import { afterAll, afterEach, expect, test, vi } from 'vitest';
 import * as THREE from 'three';
 import { TextureNode } from 'three/webgpu';
+import { WebGLNodesHandler } from 'three/examples/jsm/tsl/WebGLNodesHandler.js';
 import { compileGraph } from './compile';
 import { EngineNodesHandler } from '../nodes/engineNodesHandler';
 import { isDev, setDev } from '../../core/devMode';
@@ -85,4 +86,27 @@ test('a graph of another shape (one operator differs) builds in full', () => {
     expect(handler.reuses).toBe(0);
     expect(second.fragmentShader).not.toBe(first.fragmentShader);
   } finally { done(); a.material.dispose(); b.material.dispose(); }
+});
+
+test('build diagnostics separate the stock frontend from a reused build', () => {
+  setDev(true);
+  const { handler, build, done } = harness();
+  const a = compileGraph(GRAPH(0.25)), b = compileGraph(GRAPH(0.75));
+  let now = 100;
+  const clock = vi.spyOn(performance, 'now').mockImplementation(() => now);
+  const original: unknown = Reflect.get(WebGLNodesHandler.prototype, 'build');
+  if (typeof original !== 'function') throw new Error('Missing stock node builder');
+  const frontend = vi.spyOn(WebGLNodesHandler.prototype, 'build').mockImplementation(function timedStockFrontend(this: WebGLNodesHandler, material, object, parameters): void {
+    Reflect.apply(original, this, [material, object, parameters]);
+    now += 7;
+  });
+  try {
+    const first = build(a.material), second = build(b.material);
+    expect(frontend).toHaveBeenCalledOnce();
+    expect(handler.buildLog).toHaveLength(2);
+    expect(handler.buildLog[0]).toMatchObject({ at: 100, ms: 7, prepareMs: 0, frontendMs: 7 });
+    expect(handler.buildLog[1]).toMatchObject({ at: 107, ms: 0, prepareMs: 0, frontendMs: null, how: 'reused' });
+    expect(second.vertexShader).toBe(first.vertexShader);
+    expect(second.fragmentShader).toBe(first.fragmentShader);
+  } finally { frontend.mockRestore(); clock.mockRestore(); done(); a.material.dispose(); b.material.dispose(); }
 });

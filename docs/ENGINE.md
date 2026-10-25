@@ -1252,17 +1252,19 @@ ordinary grouping and 12 ms bound; readiness still awaits the complete inventory
 
 For a running WebKit game, `Game.warmEnteredFrame` supplies `waitForDrawnFrame` as the
 `pause` callback. It waits for a fresh completed game draw and a paint opportunity; a capped/skipped browser rAF
-Entered-frame diagnostics are scalar: `Game.entryPreparation` records the exact destination
-`root` UUID, scope `owner` name, `completed`, running `phase` and optional
-`progress: { done, total, detail }`, plus compile/link/upload, composer, parked-draw and
-offscreen-draw elapsed times and completed units, including their painted waits. A region must
-match the trace root to its destination before reading it. It holds no materials, textures, scenes or
-native handles. `warmParkedDraws` accepts `options.onProgress(done, total)` for actual completed
-drawables; `warmOffscreenPasses` accepts a trailing optional callback after `excludedRoots`
-for actual completed registered passes. Observers run after draw flags are restored and change
-no pacing, work inventory or readiness. `PrecompileStage` is the optional `onStage` callback
-of `precompileLevel` (and the argument after `uploadBudget` in `runPrecompile`); observers do not change
-work ordering or readiness. Older frame-floor captures omit this field.
+`Game.entryPreparation` exposes the destination root UUID, scope owner, completed,
+phase, optional progress `{ done, total, detail }`, and compile/link/upload, composer
+and parked/offscreen draw times and units, including painted waits. Match the root
+to the destination; this trace retains no resources. `warmParkedDraws` takes
+`options.onProgress(done, total)`; `warmOffscreenPasses` takes a trailing callback
+after `excludedRoots`. `PrecompileStage` is `precompileLevel`'s `options.onStage`
+and `runPrecompile`'s argument after `uploadBudget`. Callbacks run after draw flags
+are restored and change no work order, pacing or readiness. Older pins omit this trace.
+
+`Game.nodeBuilds.log` retains 1,024 scalar records with total `ms`, names and reuse
+reason. `prepareMs` times shape/key/reuse lookup; `frontendMs` times only the stock
+builder (null on reuse; the reader reports null for old pins). These exclude
+native link/GPU time.
 
 Isolation costs a drawn frame per image: Pine's entered warm-up took 7.8 s on the Simulator at 30 fps (op-hitch27).
 An optional `UploadBudget` (`{ ms, bytes }`, `precompileLevel`'s `uploadBudget`, `prepareSceneRoots`' and

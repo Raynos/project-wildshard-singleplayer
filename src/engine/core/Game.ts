@@ -834,8 +834,9 @@ export class Game {
    * included; no content resources are retained. The root identifies the exact destination. */
   get entryPreparation(): Readonly<EntryPreparation> | null { return this._entryPreparation; }
   /** The node (graph material) programs built so far and the recent build log (`EngineNodesHandler.buildLog`); null
-   *  before any graph material loaded the back-end. A diagnostic: the frame floor counts builds after an entry's warm-up. */
-  get nodeBuilds(): { readonly builds: number; readonly buildMs: number; readonly log: readonly { at: number; ms: number; material: string; object: string; how: string }[] } | null {
+   *  before any graph material loaded the back-end. Preparation and stock frontend times subdivide each total;
+   *  frontendMs is null on reuse. The frame floor counts builds after an entry's warm-up. */
+  get nodeBuilds(): { readonly builds: number; readonly buildMs: number; readonly log: readonly { at: number; ms: number; prepareMs: number; frontendMs: number | null; material: string; object: string; how: string }[] } | null {
     const handler = installedGraphBackend(this.renderer);
     return handler === null ? null : { builds: handler.builds, buildMs: handler.buildMs, log: handler.buildLog };
   }
