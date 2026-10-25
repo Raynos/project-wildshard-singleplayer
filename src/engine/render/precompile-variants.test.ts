@@ -274,6 +274,7 @@ test.each([
   { query: 20, resolve: 7, cancel: true, held: false },
   { query: 20, resolve: 20, cancel: false, held: true },
   { query: 20, resolve: 20, cancel: true, held: true },
+  { query: 0, resolve: 0, cancel: false, held: true },
 ])('slow native queries separate resolve/block preparation (query $query, resolve $resolve, cancel $cancel, held $held)', async ({ query, resolve, cancel, held }) => {
   const renderer: unknown = Object.create(WebGLRenderer.prototype);
   if (!(renderer instanceof WebGLRenderer)) throw new Error('Missing renderer');
@@ -304,7 +305,8 @@ test.each([
       await warm;
       expect(events.map(event => event.kind)).toEqual(['query', 'resolve', 'blocks']);
       if (query > 0) expect(events[1]?.frame).toBeGreaterThan(events[0]?.frame ?? -1);
-      expect(events[2]?.frame).toBeGreaterThan(events[1]?.frame ?? -1);
+      if (resolve > 0) expect(events[2]?.frame).toBeGreaterThan(events[1]?.frame ?? -1);
+      else expect(events[2]?.frame).toBe(events[1]?.frame);
     }
   } finally { setBuildHeld(false); clock.mockRestore(); blocks.mockRestore(); noteFrameDrawn(Number.NEGATIVE_INFINITY); geometry.dispose(); material.dispose(); }
 });
