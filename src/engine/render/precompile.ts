@@ -997,7 +997,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     const prevRt = renderer.getRenderTarget(), prevTone = renderer.toneMapping;
     const fog = job.target?.fog ?? null;
     const environment = job.target?.environment ?? null;
-    const originalSide = job.materialSide?.material.side;
+    let originalSide: THREE.Side | undefined;
     const restoreDrawn = isolateImageUploads ? holdDrawnPrograms(renderer, job.root) : undefined;
     try {
       if (job.fogOff && job.target) job.target.fog = null;
@@ -1010,7 +1010,11 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
       }
       job.lights?.prepare();
       job.prepare?.();
-      if (job.materialSide !== undefined) {
+      // A live owner may change its flags while the previous unit yields.
+      // Then let Three compile that current material instead of forcing a stale face.
+      if (job.materialSide !== undefined && job.materialSide.material.transparent
+        && job.materialSide.material.side === THREE.DoubleSide && !job.materialSide.material.forceSinglePass) {
+        originalSide = job.materialSide.material.side;
         job.materialSide.material.side = job.materialSide.side;
         job.materialSide.material.needsUpdate = true;
       }

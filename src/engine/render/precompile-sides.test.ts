@@ -3,8 +3,9 @@ import { BackSide, BoxGeometry, DoubleSide, FrontSide, Mesh, MeshBasicMaterial, 
 import { runPrecompile, sceneJobs } from './precompile';
 import { noteFrameDrawn, setBuildHeld } from '../core/framePacing';
 
-test.each([{ cost: 12, cancel: false }, { cost: 12, cancel: true }, { cost: 0, cancel: false }])(
-  'two-sided preparation separates native face units (cost $cost, cancel $cancel)', async ({ cost, cancel }) => {
+test.each([{ cost: 12, cancel: false, singleAfter: false }, { cost: 12, cancel: true, singleAfter: false },
+  { cost: 0, cancel: false, singleAfter: false }, { cost: 12, cancel: false, singleAfter: true }])(
+  'two-sided preparation separates native face units (cost $cost, cancel $cancel, singleAfter $singleAfter)', async ({ cost, cancel, singleAfter }) => {
   const renderer: unknown = Object.create(WebGLRenderer.prototype);
   if (!(renderer instanceof WebGLRenderer)) throw new Error('Missing renderer');
   const scene = new Scene(), geometry = new BoxGeometry();
@@ -36,14 +37,15 @@ test.each([{ cost: 12, cancel: false }, { cost: 12, cancel: true }, { cost: 0, c
   try {
     const warm = runPrecompile(renderer, new PerspectiveCamera(), sceneJobs(scene, null, 1).jobs, 1,
       undefined, [], () => current, true, () => {
-        expect(material.side).toBe(DoubleSide); expect(material.forceSinglePass).toBe(false);
+        expect(material.side).toBe(DoubleSide); expect(material.forceSinglePass).toBe(frame > 0 && singleAfter);
         frame++; now = 1000 + frame * (1000 / 30); noteFrameDrawn(now, now, 30);
+        if (singleAfter && frame === 1) { material.forceSinglePass = true; material.needsUpdate = true; }
         if (cancel) current = false;
         return Promise.resolve();
       });
     await (cancel ? expect(warm).rejects.toThrow('Shader warm-up owner left') : warm);
     expect(issued).toEqual(cancel ? [{ side: BackSide, frame: 0 }]
-      : [{ side: BackSide, frame: 0 }, { side: FrontSide, frame: cost === 0 ? 0 : 1 }]);
+      : [{ side: BackSide, frame: 0 }, { side: singleAfter ? DoubleSide : FrontSide, frame: cost === 0 ? 0 : 1 }]);
     expect(costs).toEqual(cancel ? [cost] : [cost, cost]);
     expect(material.version).toBe(cancel ? 1 : 2);
     expect(material.side).toBe(DoubleSide); expect(material.transparent).toBe(true);
