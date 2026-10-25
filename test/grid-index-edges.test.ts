@@ -4,10 +4,10 @@ import { outputSectionPayloads } from '@wildshard/format/outputFields';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { readGridProductEdges, readGridProductFar, readGridProductNear } from '../src/game/grid/products';
 
-function fixture() {
-  const source = emptyShardfile({ slug: 'edge-fixture', name: 'Edges', author: 'Test', revision: 1, seed: 9 });
+function fixture(slug = 'edge-fixture') {
+  const source = emptyShardfile({ slug, name: 'Edges', author: 'Test', revision: 1, seed: 9 });
   const encode = (value: unknown) => new TextEncoder().encode(encodeCanonicalJson(value));
-  const payloads = outputSectionPayloads(source), url = 'https://game.test/shardfiles/edge-fixture/shard.json';
+  const payloads = outputSectionPayloads(source), url = `https://game.test/shardfiles/${slug}/shard.json`;
   const sectionBytes = new Map([...payloads].map(([name, value]) => [name, encode(value)]));
   const index = { format: 'wildshard.shardfile', formatVersion: 2, sdk: '0.2', version: source.version, identity: source.identity, requires: source.requires,
     build: { sourceHash: '0'.repeat(64), validator: 'test' }, admission: { budgets: source.budgets, serverBudget: source.serverBudget, authorCaps: source.authorCaps, critical: source.critical, library: source.library },
@@ -21,6 +21,33 @@ function fixture() {
   });
   return { source, url, edgeUrl, wires, fetch, options: { base: new URL('.', url).href, offline: false, firstParty: false, fetch, hash: (bytes: Uint8Array) => Promise.resolve(hashImmutableBytes(bytes)) } };
 }
+
+test('a build-owned grid index skips grammar but keeps identity and section hashes', async () => {
+  const f = fixture('built-edge-fixture'), wire = f.wires.get(f.url);
+  if (wire === undefined) throw new Error('Missing index fixture');
+  const stale = vi.fn(() => Promise.resolve()), options = { ...f.options, firstParty: true, built: { indexes: new Set([hashImmutableBytes(wire)]), stale } };
+  const grammar = vi.spyOn(await import('../src/format/outputIndex'), 'parseOutputIndex');
+  try {
+    expect(await readGridProductEdges(f.url, f.source.identity.slug, options)).toEqual({ edge: f.source.edge, entryways: f.source.entryways });
+    expect(grammar).not.toHaveBeenCalled(); expect(stale).not.toHaveBeenCalled();
+    await expect(readGridProductEdges(f.url, 'wrong-cell', options)).rejects.toThrow('identity');
+    f.wires.set(f.edgeUrl, new TextEncoder().encode('{}'));
+    await expect(readGridProductEdges(f.url, f.source.identity.slug, options)).rejects.toThrow('hash or size');
+  } finally { grammar.mockRestore(); }
+});
+
+test.each(['third-party', 'unbundled'] as const)('%s grid metadata still loads checked grammar', async mode => {
+  const f = fixture(`${mode}-edge-fixture`), wire = f.wires.get(f.url);
+  if (wire === undefined) throw new Error('Missing index fixture');
+  const options = mode === 'third-party'
+    ? { ...f.options, built: { indexes: new Set([hashImmutableBytes(wire)]), stale: () => Promise.resolve() } }
+    : { ...f.options, firstParty: true };
+  const grammar = vi.spyOn(await import('../src/format/outputIndex'), 'parseOutputIndex');
+  try {
+    expect(await readGridProductEdges(f.url, f.source.identity.slug, options)).toEqual({ edge: f.source.edge, entryways: f.source.entryways });
+    expect(grammar).toHaveBeenCalledOnce();
+  } finally { grammar.mockRestore(); }
+});
 
 test('grid edge preparation reads only the index and edge section, never the other product sections or assets', async () => {
   const f = fixture();

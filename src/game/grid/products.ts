@@ -15,7 +15,7 @@ import { postStackCost } from '@wildshard/format/postStack';
 import type { ResidencyAllocator } from './allocator';
 import { neighbourProductFilesPaced } from '../shardfile/productCost';
 import { outputBlobPath } from '@wildshard/format/outputAddress';
-import { parseOutputIndex, type OutputIndex } from '@wildshard/format/outputIndex';
+import type { OutputIndex } from '@wildshard/format/outputIndex';
 import { FarSchema, ShardReferenceSchema } from '@wildshard/format/shardSections';
 import type { ShardfileFarRows, ShardfileNearRows } from './shardfileFar';
 import { NearPlaceholderSchema } from '@wildshard/format/nearPlaceholder';
@@ -41,12 +41,19 @@ interface GridProductIndex { readonly index: OutputIndex; readonly url: string; 
  *  frame over a Sky Reach drive at phone 4x). The index is still read and its stale-client check still runs every time;
  *  only the parse of the same bytes is kept. The oldest of 32 leaves first. */
 const parsedIndexes = new Map<string, OutputIndex>();
+// The input below is parsed privately from these exact wire bytes. Only the
+// bundle's own validated index inventory proves its schema output type.
+function builtGridIndex(input: unknown, hash: string, options: ProductOptions): input is OutputIndex {
+  return typeof input === 'object' && input !== null && options.firstParty && options.built?.indexes.has(hash) === true;
+}
 async function readGridProductIndex(url: string, identity: string, options: ProductOptions): Promise<GridProductIndex> {
   const bytes = await boundedResponse(await options.fetch(url), limits.sourceBytes), key = await options.hash(bytes);
   let index = parsedIndexes.get(key);
   if (index !== undefined) await checkBuiltIndex(key, options);
   else {
-    index = parseOutputIndex(await readIndexBytes(bytes, options)); parsedIndexes.set(key, index);
+    const input = await readIndexBytes(bytes, options);
+    index = builtGridIndex(input, key, options) ? input : (await import('@wildshard/format/outputIndex')).parseOutputIndex(input);
+    parsedIndexes.set(key, index);
     if (parsedIndexes.size > 32) { const oldest = parsedIndexes.keys().next().value; if (oldest !== undefined) parsedIndexes.delete(oldest); }
   }
   const { slug: declaredIdentity } = index.identity;
