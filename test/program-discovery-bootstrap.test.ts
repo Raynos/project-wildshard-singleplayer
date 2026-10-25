@@ -1,5 +1,5 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Own source, sealed receipts and products in tiny scratch fixtures.
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Keep fixture paths inside repository scratch.
 import { dirname, resolve } from 'node:path';
 import { afterEach, expect, test } from 'vitest';
@@ -21,6 +21,7 @@ function fixture(actualProduct = false) {
   const cacheRoot = resolve(root, 'cache'), options = { cacheRoot, env: {} };
   const put = (file: string, text: string): void => { const path = resolve(root, file); mkdirSync(dirname(path), { recursive: true }); writeFileSync(path, text); };
   for (const file of ['package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml']) put(file, '{}');
+  put('node_modules/@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm', 'installed-physics-byte-identity');
   const manifest = { slug: 'alpha', card: {}, sky: {}, minimap: {}, explore: {}, horizonStrips: [], bindings: { accent: '#123456', budgets: { program: true } } };
   put('src/shards/alpha/manifest.json', JSON.stringify(manifest));
   const source = emptyShardfile({ slug: 'alpha', name: 'Alpha', author: 'Test', revision: 1, seed: 1 });
@@ -58,9 +59,11 @@ function fixture(actualProduct = false) {
 test('cold inputs-only generation builds the required product before emitting discovery', async () => {
   const f = fixture(true), order: string[] = [];
   expect(() => readProgramDiscovery(f.root, 'alpha', f.options)).toThrow('Missing current product');
+  expect(existsSync(resolve(f.root, 'public/assets/physics/rapier.wasm'))).toBe(false);
   await emitProgramTables(f.root, generationPlan(f.root, 'beta'), { inputsOnly: true,
     build: (root, plan, reuse) => {
       expect(root).toBe(f.root); expect(plan.products).toEqual(['alpha']); expect(reuse).toBe(true);
+      expect(readFileSync(resolve(root, 'public/assets/physics/rapier.wasm')).equals(readFileSync(resolve(root, 'node_modules/@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm')))).toBe(true);
       order.push('product'); return f.build();
     }, writeTables: async () => { order.push('tables'); await f.writeTables(); },
   });

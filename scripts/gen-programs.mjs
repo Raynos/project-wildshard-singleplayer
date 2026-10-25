@@ -102,6 +102,10 @@ export function programInputPlan(root, plan) {
 export async function emitProgramTables(root, plan, { inputsOnly, reuse = false, writeTables, build = buildPrograms }) {
   const required = programDiscoveryProducts(root);
   if (required.length > 0) {
+    // Provider products can run headless validation before boot tables. Publish
+    // the same installed physics bytes that the later boot stage already uses.
+    const { copyRapierWasm } = await import('../vite/rapier.ts');
+    copyRapierWasm(root);
     const products = inputsOnly ? generationPlan(root, required.join(',')) : programInputPlan(root, plan);
     await build(root, products, inputsOnly || reuse);
   }

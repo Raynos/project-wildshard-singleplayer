@@ -13,11 +13,11 @@
 import { copyFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { fileURLToPath } from 'node:url';
+import { resolve as resolvePath } from 'node:path';
 import { brotliCompress, constants as zlib } from 'node:zlib';
 import type { Plugin } from 'vite';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
-const SOURCE = `${ROOT}node_modules/@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm`;
 const TARGET_DIR = `${ROOT}public/assets/physics`;
 const TARGET = `${TARGET_DIR}/rapier.wasm`;
 
@@ -55,9 +55,12 @@ export function rapierPreviewPlugin(): Plugin {
   };
 }
 
-export function copyRapierWasm(): void {
-  const src = readFileSync(SOURCE);
-  if (existsSync(TARGET) && readFileSync(TARGET).equals(src)) return;
-  mkdirSync(TARGET_DIR, { recursive: true });
-  copyFileSync(SOURCE, TARGET);
+/** Publish the installed binary for this source checkout before native product validation or boot tables. */
+export function copyRapierWasm(root: string = ROOT): void {
+  const source = resolvePath(root, 'node_modules/@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm');
+  const directory = resolvePath(root, 'public/assets/physics'), target = resolvePath(directory, 'rapier.wasm');
+  const src = readFileSync(source);
+  if (existsSync(target) && readFileSync(target).equals(src)) return;
+  mkdirSync(directory, { recursive: true });
+  copyFileSync(source, target);
 }
