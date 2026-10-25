@@ -53,6 +53,7 @@ test('browser products need a build proof and bundle no checked host intake', as
     expect(modules.some(id => id.endsWith(`/src/format/${name}.ts`)), name).toBe(false);
   }
   expect(modules.some(id => id.endsWith('/shardfile/customSchema.ts'))).toBe(false);
+  expect(modules.some(id => /(?:^|\/)node_modules\/ajv\//u.test(id.replaceAll('\\', '/')))).toBe(false);
   const code = chunks.map(chunk => chunk.code).join('\n');
   await mkdir('tmp', { recursive: true });
   const dir = await mkdtemp(resolve('tmp/browser-descriptor-')), file = resolve(dir, 'reader.mjs');
@@ -86,6 +87,8 @@ test('browser products need a build proof and bundle no checked host intake', as
   await expect(loaded.admitProduct(admitted.source, options)).rejects.toThrow('Built shardfile changed after verification');
   expect(fetch).not.toHaveBeenCalled();
   await expect(loaded.admitProduct(structuredClone(source), options)).rejects.toThrow('server validation');
+  expect(fetch).not.toHaveBeenCalled();
+  await expect(loaded.admitProduct(index, { ...options, firstParty: false })).rejects.toThrow('server validation');
   expect(fetch).not.toHaveBeenCalled();
   await expect(loaded.readCheckedOutputIndex(index)).rejects.toThrow('server validation');
   const jsonBytes = encode({ value: 7 }), jsonHash = hashImmutableBytes(jsonBytes);
