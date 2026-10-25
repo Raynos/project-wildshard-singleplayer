@@ -1,0 +1,74 @@
+{
+  "commit": "49af17b6b6a7c4de505864683aaa30f953810d80",
+  "build": "49af17b-mvnbnfyg",
+  "tier": "phone",
+  "walkCpu": 1,
+  "walkErrors": [],
+  "legs": [
+    {
+      "name": "south-entry-canal-bridge",
+      "frames": 1001,
+      "seconds": 33.4,
+      "end": {
+        "x": 0.001,
+        "y": 0.019,
+        "z": -100.703
+      },
+      "maxY": 2.29,
+      "stuck": [],
+      "complete": true,
+      "timedOut": false
+    },
+    {
+      "name": "stall-aisle",
+      "frames": 326,
+      "seconds": 10.9,
+      "end": {
+        "x": -93.751,
+        "y": 0.017,
+        "z": -72.704
+      },
+      "maxY": 0.03,
+      "stuck": [],
+      "complete": true,
+      "timedOut": false
+    },
+    {
+      "name": "board-house-wall-holds",
+      "frames": 78,
+      "seconds": 2.6,
+      "end": {
+        "x": -83.15,
+        "y": 0.45,
+        "z": -218.759
+      },
+      "maxY": 0.45,
+      "stuck": [],
+      "out": 0,
+      "complete": true,
+      "timedOut": false
+    }
+  ],
+  "boardHold": {
+    "colliders": 87,
+    "contextLost": false,
+    "error": null,
+    "frames": 241,
+    "hover": true,
+    "last": {
+      "free": 0.013764525011932684,
+      "ms": 4004.200000047684,
+      "x": -83.15003491630341,
+      "y": 0.4500126573297833,
+      "z": -218.72160649440093
+    },
+    "lastSecondTravel": 0.0001611202169442549,
+    "maxX": -83.14993571127343,
+    "start": {
+      "x": -93.75,
+      "y": 0.44388888897374273,
+      "z": -218.75
+    },
+    "wallX": -82.75
+  }
+}
