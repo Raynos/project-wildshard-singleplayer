@@ -58,10 +58,10 @@ const cragDecoded=Math.max(...Object.values(cragRows).flatMap(tier=>tier.meshes.
   if(row.attrs.some(attribute=>attribute[1]!=='f32'))throw new Error('Crag writer requires float32 attributes');
   return part.offset+row.attrs.reduce((bytes,attribute)=>bytes+row.count*attribute[2]*4,0)+(row.index===null?0:row.indexCount*4);
 })));
+export const DRESSING_PLACE_DECODED=preparedInput.places.bytes;
 export const DRESSING_BAKE_SOURCES=[
   {name:'world/crags.bin',kind:'bin' as const,source:'data/crags.generated.bin',options:{decoded:cragDecoded}},
   {name:'world/dressing.bin',kind:'bin' as const,source:'data/dressing.generated.bin',options:{decoded:preparedInput.dressing.bytes}},
-  {name:'world/places.bin',kind:'bin' as const,source:'data/places.generated.bin',options:{decoded:preparedInput.places.bytes}},
 ];
 const cover=v.parse(coverSchema,coverInput);
 // the places' anchors and the camp smoke's baked puffs (bake-place-runtime.mjs)

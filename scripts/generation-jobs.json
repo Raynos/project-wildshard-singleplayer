@@ -14976,31 +14976,6 @@
       ],
       "platform": "portable",
       "seedOutputs": []
-    },
-    {
-      "id": "nalati-places-blob",
-      "shard": "nalati-grasslands",
-      "entry": "src/shards/nalati-grasslands/generators/bake-dressing-bakes.mjs",
-      "command": [
-        "src/sdk/bake/json.mjs",
-        "src/shards/nalati-grasslands/generators/bake-dressing-bakes.mjs",
-        "placeBytes",
-        "src/shards/nalati-grasslands/data/places.generated.bin",
-        "--bytes"
-      ],
-      "inputRoots": [
-        "src/shards/nalati-grasslands/generators/bake-dressing-bakes.mjs",
-        "src/sdk/bake/json.mjs",
-        "public/assets/nalati/baked/places.bin"
-      ],
-      "outputs": [
-        "src/shards/nalati-grasslands/data/places.generated.bin"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/nalati-grasslands/data/places.generated.bin"
-      ],
-      "platform": "portable",
-      "seedOutputs": []
     }
   ]
 }
