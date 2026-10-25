@@ -54,6 +54,20 @@ test('an instanced batch packs only visible copies per geometry, keeps their mat
   batch.dispose();
 });
 
+// Match the test domain in lint/wildshard-plugin.js; production lookalikes remain guarded.
+const batchedDraw = (path: string, source: string): boolean =>
+  !path.endsWith('.test.ts') && !path.startsWith('src/engine/test/') && path.endsWith('.ts') && /new\s+(?:THREE\.)?BatchedMesh\s*\(/u.test(source);
+
+test('the draw census excludes only canonical test-domain sources', () => {
+  const source = 'new THREE.BatchedMesh(1, 2, 3)';
+  for (const path of ['src/engine/render/draw.ts', 'src/game/test/draw.ts', 'src/engine/render/draw.test.ts/draw.ts']) {
+    expect(batchedDraw(path, source), path).toBe(true);
+  }
+  for (const path of ['src/engine/render/draw.test.ts', 'src/engine/test/draw.ts', 'src/game/draw.test.ts']) {
+    expect(batchedDraw(path, source), path).toBe(false);
+  }
+});
+
 test('every BatchedMesh in the live source is one of the three guarded engine draws', () => {
   const found: string[] = [];
   const walk = (dir: string): void => {
@@ -62,7 +76,7 @@ test('every BatchedMesh in the live source is one of the three guarded engine dr
       if (entry.isDirectory()) { if (!entry.name.endsWith('-legacy') && entry.name !== 'node_modules') walk(path); continue; }
       if (!entry.name.endsWith('.ts')) continue;
       const text = readFileSync(path, 'utf8');
-      if (/new\s+(?:THREE\.)?BatchedMesh\s*\(/u.test(text)) found.push(path);
+      if (batchedDraw(path, text)) found.push(path);
     }
   };
   walk('src');
