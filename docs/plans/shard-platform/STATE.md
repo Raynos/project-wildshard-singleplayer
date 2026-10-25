@@ -2,7 +2,7 @@
 
 **Order (G639):** (1) live reds → (2) NALATI 0 → (3) grid / frame floor → extras.
 
-**(1) LIVE 988c79b48c (17:20Z: map timeout fix + title tracing; after ba3a6f08bf grid cache-write fix). Hourly releases (sp-x7,
+**(1) LIVE 673de55 (18:36Z); c13 releasing 19:2xZ. Hourly releases (sp-x7,
 G705). CF2 capture stall: tracing 59f9c74145/454ec76f3a await a CI occurrence; programShare warning: sp-x9. Smoke artifact stall: per-leg bundles b77b802191 (no
 central 1.37 GB relay). No open CI red.
 
