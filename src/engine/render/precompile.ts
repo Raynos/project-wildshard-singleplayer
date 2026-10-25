@@ -84,6 +84,8 @@ export interface CompileJob {
   futureLights?: readonly THREE.Light[];
   /** Configure a shared, per-draw-configured material (a graph shadow-depth variant) just before this job compiles. */
   prepare?: () => void;
+  /** One native face program of a two-pass transparent material; restored before any yield. */
+  materialSide?: { readonly material: THREE.Material; readonly side: THREE.Side };
 }
 
 export interface PrecompileReport { materials: number; jobs: number; programs: number; parallel: boolean }
@@ -324,7 +326,7 @@ function* sceneJobSteps(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, 
   excludedRoots?: ReadonlySet<THREE.Object3D>, include?: (object: THREE.Object3D) => boolean): Generator<void, { jobs: CompileJob[]; materials: number }> {
   const seen = new Set<string>();
   const mats = new Set<THREE.Material>();
-  const clones: THREE.Object3D[] = [];
+  const clones: { readonly object: THREE.Object3D; readonly side?: CompileJob['materialSide'] }[] = [];
   const pending = [...roots].reverse();
   while (pending.length > 0) {
     const o = pending.pop();
@@ -338,18 +340,28 @@ function* sceneJobSteps(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, 
     // A mesh's material array can contain many distinct programs. Count each
     // as one unit too, so a live `per = 1` job cannot hide an atomic batch.
     for (const material of wanted) {
-      const copy = standIn(mesh);
-      copy.material = material;
-      clones.push(copy);
+      // Three's compile otherwise issues both face programs synchronously.
+      const sides = material.transparent && material.side === THREE.DoubleSide && !material.forceSinglePass
+        ? [THREE.BackSide, THREE.FrontSide] : [undefined];
+      for (const side of sides) {
+        const copy = standIn(mesh);
+        copy.material = material;
+        clones.push({ object: copy, ...(side === undefined ? {} : { side: { material, side } }) });
+      }
       yield;
     }
     if (wanted.length === 0) yield;
   }
   const jobs: CompileJob[] = [];
-  for (let i = 0; i < clones.length; i += per) {
+  for (let i = 0; i < clones.length;) {
     const root = new THREE.Group();
-    for (const c of clones.slice(i, i + per)) root.add(c);
-    jobs.push({ label: engineString('s_4bdf150dd0ed', [i]), root, target: scene, rt });
+    const first = clones[i], start = i;
+    if (first === undefined) break;
+    do {
+      const clone = clones[i++]; if (clone !== undefined) root.add(clone.object);
+    } while (i < clones.length && i - start < per && first.side === undefined && clones[i]?.side === undefined);
+    jobs.push({ label: engineString('s_4bdf150dd0ed', [start]), root, target: scene, rt,
+      ...(first.side === undefined ? {} : { materialSide: first.side }) });
     yield;
   }
   return { jobs, materials: mats.size };
@@ -985,6 +997,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     const prevRt = renderer.getRenderTarget(), prevTone = renderer.toneMapping;
     const fog = job.target?.fog ?? null;
     const environment = job.target?.environment ?? null;
+    const originalSide = job.materialSide?.material.side;
     const restoreDrawn = isolateImageUploads ? holdDrawnPrograms(renderer, job.root) : undefined;
     try {
       if (job.fogOff && job.target) job.target.fog = null;
@@ -997,6 +1010,10 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
       }
       job.lights?.prepare();
       job.prepare?.();
+      if (job.materialSide !== undefined) {
+        job.materialSide.material.side = job.materialSide.side;
+        job.materialSide.material.needsUpdate = true;
+      }
       renderer.compile(job.root, job.camera ?? camera, job.target ?? undefined);
       job.root.traverse(object => { for (const material of materialsOf(object)) {
         for (const program of materialPrograms(renderer, material)) {
@@ -1008,6 +1025,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
         }
       } });
     } finally {
+      if (job.materialSide !== undefined && originalSide !== undefined) job.materialSide.material.side = originalSide;
       restoreDrawn?.();
       renderer.setRenderTarget(prevRt); renderer.toneMapping = prevTone;
       if (job.fogOff && job.target) job.target.fog = fog;
