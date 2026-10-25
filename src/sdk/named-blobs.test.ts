@@ -5,11 +5,11 @@ import { expect, test } from 'vitest';
 import { mkdirSync, mkdtempSync, writeFileSync, symlinkSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The fixture owns a bounded temporary project directory.
 import { resolve } from 'node:path';
-import { nameBlob, emitNamedBlobs, readNamedBlob } from '../src/sdk/blobs';
-import { nameBlobBytes } from '../src/sdk/blobBytes';
-import { hashImmutableBytes } from '../src/sdk/immutable';
-import { compileGltfSource } from '../src/sdk/bake/gltfSource';
-import { parseGlb } from '../src/sdk/assets';
+import { nameBlob, emitNamedBlobs, readNamedBlob } from './blobs';
+import { nameBlobBytes } from './blobBytes';
+import { hashImmutableBytes } from './immutable';
+import { compileGltfSource } from './bake/gltfSource';
+import { parseGlb } from './assets';
 import { NodeIO } from '@gltf-transform/core';
 
 const wasm = new Uint8Array([1, 2, 3]);
@@ -17,7 +17,7 @@ const position = new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0]);
 const indices = new Uint16Array([0, 1, 2]);
 const gltf = (uri = 'geometry.bin') => ({ asset: { version: '2.0' }, scene: 0, scenes: [{ nodes: [0] }], nodes: [{ mesh: 0 }],
   meshes: [{ primitives: [{ attributes: { POSITION: 0 }, indices: 1 }] }],
-  buffers: [{ byteLength: position.byteLength, uri }, { byteLength: indices.byteLength, uri: `data:application/octet-stream;base64,${btoa(String.fromCodePoint(...new Uint8Array(indices.buffer)))}` }],
+  buffers: [{ byteLength: position.byteLength, uri }, { byteLength: indices.byteLength, uri: 'data:application/octet-stream;base64,AAABAAIA' }],
   bufferViews: [{ buffer: 0, byteOffset: 0, byteLength: position.byteLength }, { buffer: 1, byteOffset: 0, byteLength: indices.byteLength }],
   accessors: [{ bufferView: 0, componentType: 5126, count: 3, type: 'VEC3', min: [0, 0, 0], max: [1, 1, 0] }, { bufferView: 1, componentType: 5123, count: 3, type: 'SCALAR' }] });
 const jsonBytes = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(value));

@@ -3,14 +3,14 @@ import { afterEach, expect, test } from 'vitest';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- All fixture paths are inside its scratch directory.
 import { resolve } from 'node:path';
-import { emptyShardfile } from '../src/sdk/author';
-import { nameBlob } from '../src/sdk/blobs';
-import { mergeProjectBlobs, prepareProjectOutput, projectMirrors } from '../src/sdk/projectOutput';
-import { readProjectAssets, buildProject } from '../src/sdk/project';
-import { validateOutputProduct, writeOutputProduct } from '../src/sdk/outputProduct';
+import { emptyShardfile } from './author';
+import { nameBlob } from './blobs';
+import { mergeProjectBlobs, prepareProjectOutput, projectMirrors } from './projectOutput';
+import { readProjectAssets, buildProject } from './project';
+import { validateOutputProduct, writeOutputProduct } from './outputProduct';
 import { compileScript } from '@wildshard/sdk/compileScript';
-import { encodeCanonicalJson } from '../src/sdk/immutable';
-import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
+import { encodeCanonicalJson } from './immutable';
+import { loadHeadlessProduct } from './headlessProduct';
 
 const directories: string[] = [];
 function directory(): string {

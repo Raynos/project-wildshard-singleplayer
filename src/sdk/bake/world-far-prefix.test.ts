@@ -1,8 +1,8 @@
 import { expect, test } from 'vitest';
 import { Document, NodeIO, type Material } from '@gltf-transform/core';
-import { normalizeWorldGlb } from '../src/sdk/bake/world';
-import { farSources } from '../src/sdk/bake/authoredWorld';
-import { parseWorldSource } from '../src/sdk/worldSource';
+import { normalizeWorldGlb } from './world';
+import { farSources } from './authoredWorld';
+import { parseWorldSource } from '../worldSource';
 
 // G608: a world source's `far` prefix: those nodes fill only the far proxy, never a tile or a collider
 function world(): Promise<Uint8Array> {

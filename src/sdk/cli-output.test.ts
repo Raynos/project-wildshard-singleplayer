@@ -3,10 +3,10 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve only owned fixture paths.
 import { resolve } from 'node:path';
 import { expect, test, vi } from 'vitest';
-import { runCli } from '../src/sdk/cli';
+import { runCli } from './cli';
 import { buildProject, newProject } from '@wildshard/sdk/project';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
-import { HeadlessSimulation } from '../src/sdk/headless';
+import { HeadlessSimulation } from './headless';
 
 test('CLI validates v2 output and refuses monolith disk inputs for validate and prove', async () => {
   mkdirSync('tmp', { recursive: true });

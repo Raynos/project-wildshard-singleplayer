@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
-import { bindHeadlessCommands } from '../src/sdk/headlessRuntime';
-import type { HeadlessCommand, HeadlessEffect } from '../src/sdk/tickProtocol';
+import { bindHeadlessCommands } from './headlessRuntime';
+import type { HeadlessCommand, HeadlessEffect } from './tickProtocol';
 
 it('keeps ordered native tick inputs, releases and effects without retaining a previous tape', () => {
   let tape: readonly HeadlessCommand[] = [

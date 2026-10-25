@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { defineMirror, runtimeMirrorIssues } from '../src/sdk/runtimeMirrors';
+import { defineMirror, runtimeMirrorIssues } from './runtimeMirrors';
 
 // data/layout.ts computes; runtime/const.ts copies the evaluated values (P2a spec §2.3).
 const CROWN = { x: 0, z: -190, r: 20 };

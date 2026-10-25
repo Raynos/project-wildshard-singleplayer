@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
-import { emptyShardfile } from '../src/sdk/author';
-import { HeadlessSimulation } from '../src/sdk/headless';
+import { emptyShardfile } from './author';
+import { HeadlessSimulation } from './headless';
 
 test('the public worker never reads a caller-selected module option', async () => {
   const shard = emptyShardfile({ slug: 'data-only-proof', name: 'Data only', author: 'Fixture', revision: 1, seed: 17 });

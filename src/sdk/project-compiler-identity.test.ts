@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync, symlinkSync } from 'node
 // oxlint-disable-next-line import/no-nodejs-modules -- Package resolution uses only this synthetic directory.
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
-import { compilerPackageInputs } from '../src/sdk/projectCompilerIdentity';
+import { compilerPackageInputs } from './projectCompilerIdentity';
 
 test('compiler identities cover transitive runtime and standard-library bytes, not installation paths', () => {
   mkdirSync('tmp', { recursive: true }); const root = mkdtempSync(resolve('tmp', 'compiler-identity-'));

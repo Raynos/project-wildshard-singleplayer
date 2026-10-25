@@ -4,8 +4,8 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Fixtures remain under the ignored test scratch root.
 import { resolve } from 'node:path';
 import { build } from 'vite';
-import { emptyShardfile } from '../src/sdk/author';
-import { readProjectAssets } from '../src/sdk/project';
+import { emptyShardfile } from './author';
+import { readProjectAssets } from './project';
 
 const directories: string[] = [];
 afterEach(() => { for (const path of directories.splice(0)) rmSync(path, { recursive: true }); });

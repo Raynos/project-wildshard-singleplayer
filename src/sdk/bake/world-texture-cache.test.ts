@@ -3,13 +3,11 @@ import {afterEach,beforeAll,expect,test,vi} from 'vitest';
 import {existsSync,mkdirSync,mkdtempSync,readFileSync,readdirSync,rmSync,truncateSync,utimesSync,writeFileSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Fixture paths never leave the owned cache root.
 import {join,resolve} from 'node:path';
-// oxlint-disable-next-line import/no-nodejs-modules -- Corruption fixtures rewrite the exact cache wire bytes.
-import {Buffer} from 'node:buffer';
-import {bakeWorldTexture} from '../src/sdk/bake/textureWasm';
-import {cachedWorldTexture} from '../src/sdk/bake/worldTextureMemo';
-import {writeImagePixels} from '../src/sdk/bake/image';
-import {parseKtx2} from '../src/sdk/assets';
-import {hashImmutableBytes} from '../src/sdk/immutable';
+import {bakeWorldTexture} from './textureWasm';
+import {cachedWorldTexture} from './worldTextureMemo';
+import {writeImagePixels} from './image';
+import {parseKtx2} from '../assets';
+import {hashImmutableBytes} from '../immutable';
 import * as v from 'valibot';
 
 const owned:string[]=[];
@@ -64,13 +62,16 @@ test.each(['dimensions','mips','transfer'] as const)('re-encodes a self-consiste
  const root=fixture();vi.stubEnv('WILDSHARD_WORLD_TEXTURE_CACHE',root);
  await bakeWorldTexture(image,'srgb');
  const [name]=readdirSync(root);if(name===undefined)throw new Error('Missing cold cache entry');
- const file=join(root,name),saved=v.parse(v.object({bytes:v.string()}),JSON.parse(readFileSync(file,'utf8')));
- const bytes=Buffer.from(saved.bytes,'base64'),header=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);
+ const file=join(root,name),entryKey=name.slice(0,-5);
+ const bytes=cachedWorldTexture(root,entryKey,()=>{throw new Error('Missing cold cache bytes');},()=>undefined);
+ const header=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);
  if(kind==='dimensions')header.setUint32(20,4,true);
  if(kind==='mips')header.setUint32(40,1,true);
  if(kind==='transfer')bytes[header.getUint32(48,true)+14]=1;
- const value=v.parse(v.record(v.string(),v.unknown()),JSON.parse(readFileSync(file,'utf8')));
- value['bytes']=bytes.toString('base64');value['hash']=hashImmutableBytes(bytes);writeFileSync(file,JSON.stringify(value));
+ // Use the real wire serializer to seed self-consistent but invalid texture content.
+ rmSync(file);cachedWorldTexture(root,entryKey,()=>bytes,()=>undefined);
+ const poisoned=v.parse(v.object({hash:v.string()}),JSON.parse(readFileSync(file,'utf8')));
+ expect(poisoned.hash).toBe(hashImmutableBytes(bytes));
  expect(await bakeWorldTexture(image,'srgb')).toEqual(reference);
  const repaired=v.parse(v.object({hash:v.string()}),JSON.parse(readFileSync(file,'utf8')));
  expect(repaired.hash).toBe(hashImmutableBytes(reference));
