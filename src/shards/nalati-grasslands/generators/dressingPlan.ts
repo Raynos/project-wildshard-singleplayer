@@ -18,8 +18,22 @@
  *     before the heart, so a drift shrinks to its core with distance instead of vanishing at a ring
  */
 import { Rng } from '@wildshard/sdk/random';
+import type { PlaceRow } from './placeRows';
 
 interface Box { x: number; z: number; hw: number; hd: number; rot: number; yBottom: number; yTop: number; ghost?: true }
+
+/** Original POI keep-outs, in view order, over explicitly supplied native ground and place rows.
+ * This borrows the rows without installing a world or reading a generated file. */
+export function dressingPoiColliders(rows: readonly Pick<PlaceRow, 'name' | 'anchors' | 'colliders'>[],
+  sequence: readonly { readonly name: string }[], heightAt: (x: number, z: number) => number): readonly Box[] {
+  const spots = rows.find(row => row.name === 'kurgans')?.anchors?.balbalSpots;
+  if (spots === undefined) throw new Error('Native dressing requires kurgan balbal anchors');
+  return sequence.flatMap(row => row.name === 'balbals' ? spots.map(spot => {
+    const scale = spot.scale ?? 1, y = heightAt(spot.x, spot.z) - .18 * scale;
+    return { x: spot.x, z: spot.z, hw: .42 * scale, hd: .33 * scale, rot: -spot.yaw,
+      yBottom: y - 1, yTop: y + 2.2 * scale, ghost: true as const };
+  }) : rows.find(place => place.name === row.name)?.colliders ?? []);
+}
 interface Tree extends Point { r: number }
 interface ForestInput { trees: readonly Tree[]; nearby: (x: number, z: number, radius?: number) => readonly Tree[] }
 interface Inst { x: number; y: number; z: number; yaw: number; sx: number; sy: number; sz: number;
