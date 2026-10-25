@@ -9,7 +9,6 @@ import { nalatiPlacesProgram, type NalatiPlaceBuild } from '../src/shards/nalati
 
 const unused: NalatiPlaceBuild = {
   dressing: () => { throw new Error('Unexpected dressing construction'); },
-  specimens: make => make(), deflate: bytes => bytes,
 };
 
 test('fresh owned places retain native bytes and metadata with detached cache hits', () => {
@@ -17,8 +16,6 @@ test('fresh owned places retain native bytes and metadata with detached cache hi
     import assert from 'node:assert/strict';
     import { mkdtempSync,readFileSync,rmSync } from 'node:fs';
     import { resolve } from 'node:path';
-    import { deflateSync } from 'node:zlib';
-    import { withPortableMath } from '@wildshard/commons/bake/portableMath';
     import { createProjectGeneration } from './src/sdk/projectGeneration.ts';
     import { hashImmutableBytes } from './src/sdk/immutable.ts';
     import { nalatiPlacesProgram } from './src/shards/nalati-grasslands/generators/placesProgram.ts';
@@ -31,7 +28,7 @@ test('fresh owned places retain native bytes and metadata with detached cache hi
     const context=()=>createProjectGeneration(resolve('src/shards/nalati-grasslands'),'a'.repeat(64),new Map(),cache,
       [{prefix:'/assets/baked/nalati-grasslands/',directory:resolve('public/assets/baked/nalati-grasslands')}]);
     let constructions=0;
-    const options={specimens:withPortableMath,deflate:bytes=>deflateSync(bytes,{level:9}),dressing:()=>{
+    const options={dressing:()=>{
       constructions++;
       return prepareNalatiDressing(dressingRecipe,(x,z)=>inSpruceClearing(x,z)?0:Math.max(loneSpruceMask(x,z),edgeSpruceMask(x,z,edgeBermAt(x,z))));
     }};
