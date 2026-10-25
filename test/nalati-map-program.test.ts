@@ -8,6 +8,7 @@ import { hashImmutableBytes } from '../src/sdk/immutable';
 import { paintDataMap } from '../scripts/bake-data-maps.mjs';
 import { discoverGeneration, generateShardJob } from '../scripts/generate.mjs';
 import { InputHashMemo } from '../scripts/bake-input-hashes.mjs';
+import { mapTilesHash } from '../scripts/map-hash.mjs';
 import * as v from 'valibot';
 import settings from '../src/shards/nalati-grasslands/look/map.json' with { type: 'json' };
 import original from './fixtures/nalati-map-files.json' with { type: 'json' };
@@ -70,6 +71,11 @@ for (const omitGeometry of [true, false]) {
           const before = original[2]; if (before === undefined) throw new Error('Missing native image oracle');
           expect(result.hashes[before.path]).toBe(before.hash);
           expect(Object.keys(result.hashes).sort()).toEqual([...job.outputs].sort());
+          // The sealed producer and the full product tree must describe the
+          // same world, including canonical metadata rather than boot aliases.
+          const stamp = v.parse(v.object({ tilesHash: v.string() }), JSON.parse(readFileSync(resolve(result.directory,
+            'src/shards/nalati-grasslands/look/map.baked.json'), 'utf8')));
+          expect(stamp.tilesHash).toBe(mapTilesHash(resolve(root, 'src/shards/nalati-grasslands')));
         } finally { result.release(); }
       }
     } finally { rmSync(cacheDir, { recursive: true, force: true }); }

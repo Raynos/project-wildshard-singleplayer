@@ -5,7 +5,7 @@
     "data/placeRuntime.generated.json",
     "data/specimens.generated.json",
     "boot/poiPaint.json",
-    "boot/modelMetrics.generated.json",
+    "data/modelMetrics.json",
     "boot/decorative.generated.json",
     "boot/layout.generated.json",
     "boot/cragRock.generated.json",
@@ -51,7 +51,6 @@
     "data/geography-ice.bin",
     "data/geography-pond.bin",
     "../../../public/assets/nalati/baked/places.bin",
-    "../../../public/assets/nalati/baked/dressing.bin",
     "../../../public/assets/nalati/baked/crags.bin",
     "../../../public/assets/nalati/baked/painted-models/eagle.glb",
     "../../../public/assets/nalati/baked/painted-models/cauldron.glb",
@@ -73,7 +72,8 @@
     "../../../scripts/map-painter.mjs",
     "../../sdk/bake/mapRaster.ts",
     "../../../scripts/bake-data-maps.mjs",
-    "../../../public/assets/baked/nalati-grasslands/terrain.bin"
+    "../../../public/assets/baked/nalati-grasslands/terrain.bin",
+    "../../sdk/random.ts"
   ],
   "style": {
     "kind": "ground",
