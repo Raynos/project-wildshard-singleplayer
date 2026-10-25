@@ -36,12 +36,12 @@ const WaterDrawSchema = v.strictObject({
   toonSeaLevel: v.boolean(),
 });
 /** A finite play rectangle with its authored fall floor inside the central square. */
-export const RuntimeBoundsSchema = v.pipe(v.strictObject({
+export const RuntimeBoundsSchema: v.GenericSchema<RuntimeBounds> = v.pipe(v.strictObject({
   x: v.tuple([finite, finite]), z: v.tuple([finite, finite]),
   outer: v.strictObject({ maxAbsXZ: v.pipe(finite, v.minValue(0)), floor: finite }),
 }), v.check(row => row.x[0] < row.x[1] && row.z[0] < row.z[1], 'ordered play bounds'));
 /** Client-only declarations select compiled platform features, never modules, owners or property paths. */
-export const ClientFeatureSchema = v.variant('kind', [
+export const ClientFeatureSchema: v.GenericSchema<ClientFeatureInput, ClientFeatureRow> = v.variant('kind', [
   v.strictObject({ kind: v.literal('strings.register') }),
   v.strictObject({ kind: v.literal('content.catalogue'), quests: v.boolean(), finishes: v.boolean(),
     economy: v.exactOptional(CatalogueEconomySchema),
@@ -139,11 +139,138 @@ export const ClientFeatureSchema = v.variant('kind', [
     ])) }),v.check(row=>row.objects===undefined||row.source===undefined,'Debug exposure requires one concrete source')),
 ]);
 /** Rows are unordered. Phase, rank and lifetime belong exclusively to the compiled registry. */
-export const ClientPlanSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Client plan requires plain JSON'), v.strictObject({ version: v.literal(1), features: v.pipe(v.array(ClientFeatureSchema), v.maxLength(64)) }),
+export const ClientPlanSchema: v.GenericSchema<unknown, ClientPlan> = v.pipe(v.unknown(), v.check(isJsonData, 'Client plan requires plain JSON'), v.strictObject({ version: v.literal(1), features: v.pipe(v.array(ClientFeatureSchema), v.maxLength(64)) }),
   v.check(plan => new Set(plan.features.map(row => row.kind === 'debug.expose' ? `${row.kind}:${row.name}` : row.kind === 'view.program' ? `${row.kind}:${row.id}` : row.kind === 'arena-room.entry' ? `${row.kind}:${row.owner}` : row.kind)).size === plan.features.length, 'Duplicate client feature'),
   v.check(plan => { const entries=plan.features.filter(row=>row.kind==='arena-room.entry');return new Set(entries.map(row=>row.publish)).size===entries.length; },'Duplicate arena entry publication'));
-export type ClientPlan = v.InferOutput<typeof ClientPlanSchema>;
-export type ClientFeatureRow = ClientPlan['features'][number];
+export interface ClientPlan { version: 1; features: ClientFeatureRow[] }
+export type ClientFeatureInput = { kind: 'strings.register'; } | { kind: 'content.catalogue'; quests: boolean;
+  finishes: boolean; economy?: v.InferInput<typeof CatalogueEconomySchema>; weapons: (string)[]; ammunition:
+  (string)[]; effects: ('starter' | 'finishes')[]; compendiums: (string)[]; encounters: ({ id: string;
+  displayName: string; showHeadBar: boolean; })[]; } | { kind: 'state.adventure'; file: string; id?: string;
+  progress?: true; } | { kind: 'world.meadow'; file: string; } | { kind: 'world.ambient-life'; file: string;
+  flocks: ({ id: string; owner: string; })[]; } | { kind: 'world.updates'; rows: v.InferInput<typeof
+  WorldUpdatesSchema>; } | v.InferInput<typeof DeclaredCombatTargetsSchema> | { kind: 'world.assembly'; native?:
+  { groups: string; }; library?: string; catalogue?: string; entered?: { root: string; blocks: (string)[]; };
+  rows: v.InferInput<typeof WorldAssemblySchema>; } | { kind: 'world.runtime-hooks'; bounds?: RuntimeBounds;
+  floor?: string; overhead: (string)[]; meleeSilent?: boolean; } | { kind: 'world.movers'; system: string;
+  bindings: ({ kind: 'object'; id: string; owner: string; order?: 'XYZ' | 'YXZ'; visibility?: 'enabled'; moor?:
+  { look: string; water: number; cleats: [number, number]; }; } | { kind: 'chain'; id: string; owner: string;
+  })[]; } | { kind: 'world.bind-sets'; placed: (string)[]; groups: ({ id: string; placed: (string)[]; })[];
+  quest?: string; } | { kind: 'world.paths'; rows: v.InferInput<typeof PagePathRampSchema>; } | { kind:
+  'world.dressing'; } | { kind: 'population.wildlife'; file: string; crowd: { json: string; binary: string; };
+  navSteer: boolean; publish?: string; frame: { id: string; after: (string)[]; before: (string)[]; }; } | {
+  kind: 'world.sets'; rows: ({ place: string; id: string; name: string; file: string; pois?: (string)[] |
+  undefined; x: number; z: number; r: number; mode?: 'centre' | 'bounds'; })[]; } | { kind: 'riding.session';
+  file: string; owner?: string; } | { kind: 'stealth.entry'; owner: string; claims: string; riding: string;
+  night: string; bow: string; melee: string; impactExclusion: number; debugRiding?: string; frame: { id: string;
+  after: (string)[]; before: (string)[]; }; } | { kind: 'elite.construct'; owner: string; file: string;
+  admission: string; fight: string; models: string; program: string; weather: string; night: string; ledges: {
+  part: string; anchor: string; }; } | { kind: 'timed.encounters'; owner: string; file: string; draws: string;
+  species: string; guest: string; weather: string; sites?: string; figures: { rider: string; captain: string;
+  storm: 'rider' | 'captain'; }; } | { kind: 'practice.course'; course: 'horse' | 'grapple'; title: string;
+  blurb: string; icon: string; art: string; file: string; } | { kind: 'held.claims.prepare'; id: string;
+  source?: { slots: string; library: string; }; } | { kind: 'population.product-creatures'; } | { kind:
+  'population.hull-book'; } | { kind: 'held.claims.install'; claims: string; preparation?: 'kit' | 'world'; } |
+  { kind: 'held.claims.enter'; claims: string; grapple: { item: string; source: string; presentation: string; };
+  } | { kind: 'portal.ride'; source: string; } | { kind: 'held.cosmetics'; } | { kind: 'held.ranged-feel'; } | {
+  kind: 'bag.finds'; id: string; quest: string; file: string; } | { kind: 'look.painterly'; shadeTint: [number,
+  number, number]; rimColor: [number, number, number]; wind: { x: number; z: number; strength: number; }; } | {
+  kind: 'audio.scene'; } | { kind: 'world.forest-page'; file: string; cave?: { file: string; cap: { shard: ({
+  through: number; max: number; }) | null; grid: ({ through: number; max: number; }) | null; }; spots?: {
+  ranged: string; zone: string; fade: number; max: number; }; }; } | { kind: 'weather.forest'; file: string;
+  owner?: string; hud?: true; } | { kind: 'page.life'; file: string; ranged: string; object?: string; } | {
+  kind: 'held.ranged-page'; file: string; shadowBatch?: { shard: boolean; grid: boolean; }; } | { kind:
+  'arena-room.entry'; owner: string; claims: string; reward: string; publish: string; equipment?:
+  'held-finishes'; } | { kind: 'taming.entry'; riding: string; publish: string; object?: string; } | { kind:
+  'elite.entry'; owner: string; adventure: string; body: string; rock: { x: number; z: number; top: number; };
+  taming?: string; } | { kind: 'quest.chapter-view'; chapterView: string; story: string; arena: string; fight:
+  string; taming?: string; } | { kind: 'quest.continuation'; file: string; } | { kind: 'quest.views'; file:
+  string; } | { kind: 'view.program'; id: string; rows: v.InferInput<typeof ViewProgramSchema>; module: string;
+  } | { kind: 'quest.world'; file: string; ambient?: string; } | { kind: 'quest.reference'; id: string; } | {
+  kind: 'quest.composition'; id: string; file: string; equipment?: { ranged: string; animals: string; sounds:
+  string; }; figures?: { file: string; draws: string; }; reference?: string; } | { kind: 'quest.spawns'; id:
+  string; source: string; quest: string; animals: string; sounds: string; } | { kind: 'world.water'; rows: ({
+  id: string; surface: v.InferInput<typeof WaterSurfaceSchema>; geometry: string; } | { id: string; surface:
+  v.InferInput<typeof WaterSurfaceSchema>; draw: { grid: { phone: v.InferInput<typeof BakedSourceSchema>;
+  desktop: v.InferInput<typeof BakedSourceSchema>; }; attributes: Record<string, string>; level: number; floor?:
+  v.InferInput<typeof BakedSourceSchema>; dry: ({ minX: number; minZ: number; maxX: number; maxZ: number; })[];
+  foam: ({ x: number; z: number; hw: number; hd: number; rot: number; yTop: number; yBottom: number; })[]; lent:
+  Record<string, 'uCloudShadow' | 'uToonNight' | 'uSeaLevel' | 'uCloudTime'>; toonSeaLevel: boolean; }; })[]; }
+  | { kind: 'world.scenes'; } | { kind: 'world.baked'; rows: (v.InferInput<typeof BakedTilesSchema>)[]; } | {
+  kind: 'motion.channels'; rows: v.InferInput<typeof SceneMotionSchema>; } | v.InferInput<typeof
+  ClientHeldMeleeSchema> | v.InferInput<typeof ClientSpeciesProgramSchema> | v.InferInput<typeof
+  ClientQuestPageSchema> | v.InferInput<typeof ClientPopulationSchema> | v.InferInput<typeof ClientTrailsSchema>
+  | v.InferInput<typeof ClientCuesSchema> | v.InferInput<typeof ClientHeldBossSchema> | v.InferInput<typeof
+  ClientSpawnedBossSchema> | v.InferInput<typeof ClientPlayerEnterSchema> | v.InferInput<typeof
+  ClientBossTelegraphSchema> | { kind: 'light.emitters'; rows: v.InferInput<typeof LightEmittersSchema>; } | {
+  kind: 'weather.fields'; rows: v.InferInput<typeof EasedFieldsSchema>; quest: string; } | { kind:
+  'debug.expose'; name: string; objects?: (string)[]; source?: { kind: 'runtime-object'; id: string; } | { kind:
+  'dressing'; } | { kind: 'timed-riders'; owner: string; } | { kind: 'world-weather'; owner: string; } | { kind:
+  'arena-room'; owner: string; }; };
+export type ClientFeatureRow = { kind: 'strings.register'; } | { kind: 'content.catalogue'; quests: boolean;
+  finishes: boolean; economy?: v.InferOutput<typeof CatalogueEconomySchema>; weapons: (string)[]; ammunition:
+  (string)[]; effects: ('starter' | 'finishes')[]; compendiums: (string)[]; encounters: ({ id: string;
+  displayName: string; showHeadBar: boolean; })[]; } | { kind: 'state.adventure'; file: string; id?: string;
+  progress?: true; } | { kind: 'world.meadow'; file: string; } | { kind: 'world.ambient-life'; file: string;
+  flocks: ({ id: string; owner: string; })[]; } | { kind: 'world.updates'; rows: v.InferOutput<typeof
+  WorldUpdatesSchema>; } | v.InferOutput<typeof DeclaredCombatTargetsSchema> | { kind: 'world.assembly';
+  native?: { groups: string; }; library?: string; catalogue?: string; entered?: { root: string; blocks:
+  (string)[]; }; rows: v.InferOutput<typeof WorldAssemblySchema>; } | { kind: 'world.runtime-hooks'; bounds?:
+  RuntimeBounds; floor?: string; overhead: (string)[]; meleeSilent?: boolean; } | { kind: 'world.movers';
+  system: string; bindings: ({ kind: 'object'; id: string; owner: string; order?: 'XYZ' | 'YXZ'; visibility?:
+  'enabled'; moor?: { look: string; water: number; cleats: [number, number]; }; } | { kind: 'chain'; id: string;
+  owner: string; })[]; } | { kind: 'world.bind-sets'; placed: (string)[]; groups: ({ id: string; placed:
+  (string)[]; })[]; quest?: string; } | { kind: 'world.paths'; rows: v.InferOutput<typeof PagePathRampSchema>; }
+  | { kind: 'world.dressing'; } | { kind: 'population.wildlife'; file: string; crowd: { json: string; binary:
+  string; }; navSteer: boolean; publish?: string; frame: { id: string; after: (string)[]; before: (string)[]; };
+  } | { kind: 'world.sets'; rows: ({ place: string; id: string; name: string; file: string; pois: (string)[]; x:
+  number; z: number; r: number; mode?: 'centre' | 'bounds'; })[]; } | { kind: 'riding.session'; file: string;
+  owner?: string; } | { kind: 'stealth.entry'; owner: string; claims: string; riding: string; night: string;
+  bow: string; melee: string; impactExclusion: number; debugRiding?: string; frame: { id: string; after:
+  (string)[]; before: (string)[]; }; } | { kind: 'elite.construct'; owner: string; file: string; admission:
+  string; fight: string; models: string; program: string; weather: string; night: string; ledges: { part:
+  string; anchor: string; }; } | { kind: 'timed.encounters'; owner: string; file: string; draws: string;
+  species: string; guest: string; weather: string; sites?: string; figures: { rider: string; captain: string;
+  storm: 'rider' | 'captain'; }; } | { kind: 'practice.course'; course: 'horse' | 'grapple'; title: string;
+  blurb: string; icon: string; art: string; file: string; } | { kind: 'held.claims.prepare'; id: string;
+  source?: { slots: string; library: string; }; } | { kind: 'population.product-creatures'; } | { kind:
+  'population.hull-book'; } | { kind: 'held.claims.install'; claims: string; preparation?: 'kit' | 'world'; } |
+  { kind: 'held.claims.enter'; claims: string; grapple: { item: string; source: string; presentation: string; };
+  } | { kind: 'portal.ride'; source: string; } | { kind: 'held.cosmetics'; } | { kind: 'held.ranged-feel'; } | {
+  kind: 'bag.finds'; id: string; quest: string; file: string; } | { kind: 'look.painterly'; shadeTint: [number,
+  number, number]; rimColor: [number, number, number]; wind: { x: number; z: number; strength: number; }; } | {
+  kind: 'audio.scene'; } | { kind: 'world.forest-page'; file: string; cave?: { file: string; cap: { shard: ({
+  through: number; max: number; }) | null; grid: ({ through: number; max: number; }) | null; }; spots?: {
+  ranged: string; zone: string; fade: number; max: number; }; }; } | { kind: 'weather.forest'; file: string;
+  owner?: string; hud?: true; } | { kind: 'page.life'; file: string; ranged: string; object?: string; } | {
+  kind: 'held.ranged-page'; file: string; shadowBatch?: { shard: boolean; grid: boolean; }; } | { kind:
+  'arena-room.entry'; owner: string; claims: string; reward: string; publish: string; equipment?:
+  'held-finishes'; } | { kind: 'taming.entry'; riding: string; publish: string; object?: string; } | { kind:
+  'elite.entry'; owner: string; adventure: string; body: string; rock: { x: number; z: number; top: number; };
+  taming?: string; } | { kind: 'quest.chapter-view'; chapterView: string; story: string; arena: string; fight:
+  string; taming?: string; } | { kind: 'quest.continuation'; file: string; } | { kind: 'quest.views'; file:
+  string; } | { kind: 'view.program'; id: string; rows: v.InferOutput<typeof ViewProgramSchema>; module: string;
+  } | { kind: 'quest.world'; file: string; ambient?: string; } | { kind: 'quest.reference'; id: string; } | {
+  kind: 'quest.composition'; id: string; file: string; equipment?: { ranged: string; animals: string; sounds:
+  string; }; figures?: { file: string; draws: string; }; reference?: string; } | { kind: 'quest.spawns'; id:
+  string; source: string; quest: string; animals: string; sounds: string; } | { kind: 'world.water'; rows: ({
+  id: string; surface: v.InferOutput<typeof WaterSurfaceSchema>; geometry: string; } | { id: string; surface:
+  v.InferOutput<typeof WaterSurfaceSchema>; draw: { grid: { phone: v.InferOutput<typeof BakedSourceSchema>;
+  desktop: v.InferOutput<typeof BakedSourceSchema>; }; attributes: Record<string, string>; level: number;
+  floor?: v.InferOutput<typeof BakedSourceSchema>; dry: ({ minX: number; minZ: number; maxX: number; maxZ:
+  number; })[]; foam: ({ x: number; z: number; hw: number; hd: number; rot: number; yTop: number; yBottom:
+  number; })[]; lent: Record<string, 'uCloudShadow' | 'uToonNight' | 'uSeaLevel' | 'uCloudTime'>; toonSeaLevel:
+  boolean; }; })[]; } | { kind: 'world.scenes'; } | { kind: 'world.baked'; rows: (v.InferOutput<typeof
+  BakedTilesSchema>)[]; } | { kind: 'motion.channels'; rows: v.InferOutput<typeof SceneMotionSchema>; } |
+  v.InferOutput<typeof ClientHeldMeleeSchema> | v.InferOutput<typeof ClientSpeciesProgramSchema> |
+  v.InferOutput<typeof ClientQuestPageSchema> | v.InferOutput<typeof ClientPopulationSchema> |
+  v.InferOutput<typeof ClientTrailsSchema> | v.InferOutput<typeof ClientCuesSchema> | v.InferOutput<typeof
+  ClientHeldBossSchema> | v.InferOutput<typeof ClientSpawnedBossSchema> | v.InferOutput<typeof
+  ClientPlayerEnterSchema> | v.InferOutput<typeof ClientBossTelegraphSchema> | { kind: 'light.emitters'; rows:
+  v.InferOutput<typeof LightEmittersSchema>; } | { kind: 'weather.fields'; rows: v.InferOutput<typeof
+  EasedFieldsSchema>; quest: string; } | { kind: 'debug.expose'; name: string; objects?: (string)[]; source?: {
+  kind: 'runtime-object'; id: string; } | { kind: 'dressing'; } | { kind: 'timed-riders'; owner: string; } | {
+  kind: 'world-weather'; owner: string; } | { kind: 'arena-room'; owner: string; }; };
 export type ClientFeatureKind = ClientFeatureRow['kind'];
 const parsedPlans = new WeakMap<object, ClientPlan>();
 function freezePlanRows(value: unknown): void {
@@ -167,3 +294,7 @@ export function parseClientPlan(input: unknown): ClientPlan {
 export function clientPlanModuleGroups(plan: { readonly features: readonly ClientFeatureRow[] }): string[] {
   return plan.features.filter(row => row.kind !== 'debug.expose' || row.source?.kind === 'dressing').map(row => row.kind);
 }
+
+/** Validated play bounds, independent of the validator implementation. */
+export interface RuntimeBounds { x: [number, number]; z: [number, number]; outer: { maxAbsXZ: number; floor:
+  number; }; }
