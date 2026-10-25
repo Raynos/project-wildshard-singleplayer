@@ -2,9 +2,9 @@
 
 **Order (G639):** (1) live reds → (2) NALATI 0 → (3) grid / frame floor → extras.
 
-**(1) LIVE ba3a6f08bf (16:24Z: grid cache-write fix 73b894e5c9); 988c79b48c releasing ~17:10Z. Hourly releases (sp-x7,
-G705). CF2 title-capture stall: tracing 59f9c74145 + retention 454ec76f3a wait for a CI occurrence; programShare warning
-with sp-x9. Artifact path red fixed bd521a3bbd. No open CI red.
+**(1) LIVE 988c79b48c (17:20Z: map timeout fix + title tracing; after ba3a6f08bf grid cache-write fix). Hourly releases (sp-x7,
+G705). CF2 capture stall: tracing 59f9c74145/454ec76f3a await a CI occurrence; programShare warning: sp-x9. Smoke artifact stall: per-leg bundles b77b802191 (no
+central 1.37 GB relay). No open CI red.
 
 **(2) NALATI 0 done (27dd969127).** HOST-AUDIT (G679) parked until every mini plan finishes. Legacy waits (G606).
 
@@ -15,8 +15,8 @@ PASS on 9dc10c2d58: DW + Nalati 1.056 GB upper envelope (< 1.8 GB). Native 1,312
 (cancel fix ff66c28901), <= 2 residents (kept + incoming) under a guard (loading <= 1.8 GB, 1.2 GB/shard, else retire first).
 L18: DW declared 107 -> 78.3 MB (8b74db3d22, 8515b8049f, 37709250b2); brotli on; rest is lighter assets (Opus).
 
-**Memory (G682: menu <= 148.5, Template <= 198.5 MiB):** f4465ac4ab menu 165, select 169, Template 317, Template2 305.
-G713: close structurally: lazy-load code (js-payload J1-J10, sp-x2) + lighter post RT chain (Opus variant sheet, Tue).
+**Memory (G682: menu <= 148.5, Template <= 198.5 MiB):** f4465ac4ab menu 165, Template 317.
+G713: lazy-load code (js-payload J1-J10, sp-x2) + lighter post RT chain (Opus variant sheet, Tue).
 
 **For wildshard-v (G711):** Rows: GR3 9, GR4 19, T3 293 / 1,039, T4 format 5.5 MB (< 2). DONE: G720 cb756b79df (cap b8cf2c73da; in cell 7.4 s), G721 22248f9b6a+49af17b6b6
 (cap 0993a458aa), G719 dcd3379372 (caps a74b837aa0; NM twice = G700/RP3), G722 191aee7b15
@@ -24,7 +24,8 @@ G713: close structurally: lazy-load code (js-payload J1-J10, sp-x2) + lighter po
 0.48 s (was 1.43 s blank); the 0.32 s black is iOS's launch zoom, outside the page.
 Hero retake 0dd7ce4722: art/main-menu-hero/round-5-retake/board.jpg; Nalati aerial terrain FIXED 0ce626a8f5 (board
 art/main-menu-hero/round-6-nalati-terrain/); G630 still needs Nine far proxy + Sunscar glow (Opus). Now: sp-x9 G733 -> L17; sp-x2 J5 then tile T4 (G730: J6-J10 after extras); sp-x8 TS T3; sp-x6 NM RM2; sp-x1 G717 quiet misses.
-**Blocked on Jake:** LEGACY phone QA, road B pilot play, hero board. **On Opus:** G713 post RT sheet,
+**Blocked on Jake:** free ~13 GiB CI scratch DCG refused: `! rm -rf tmp/sp-x7-live/infra-dist-22633
+tmp/sp-x7-live/boot-dist-22633.zip`; LEGACY phone QA, road B pilot play, hero board. **On Opus:** G713 post RT sheet,
 G685 look row, NM RM4+, U2 occupied parents, L18.3 lighter DW assets, G630 Nine far + Sunscar glow, T3/T6 visual.
 
 **Lanes:** Claude weekly 100 %: 0 Opus until Tue 13:00 (G605); standing queues sent (SW10), lanes run their plans without
