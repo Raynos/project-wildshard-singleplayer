@@ -1,3 +1,4 @@
+import { executeBundle } from './executeBundle';
 import { mergeProjectSections } from './projectSections';
 import { writeNewProject } from './newProject';
 import { assertConfigBoundary } from './configBoundary';
@@ -6,8 +7,6 @@ import { createProjectGeneration, isProjectGenerator, type ProjectGenerationInpu
 import { cpSync, existsSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve source assets inside the author project.
 import { resolve, sep } from 'node:path';
-// oxlint-disable-next-line import/no-nodejs-modules -- Encode a compiled config as a Node module URL.
-import { Buffer } from 'node:buffer';
 // oxlint-disable-next-line import/no-nodejs-modules -- Build phase diagnostics belong only to the CI compiler process.
 import process from 'node:process';
 import { build } from 'vite';
@@ -61,7 +60,7 @@ async function authorModule(project: string, file: string): Promise<{ exports: R
   if (chunks.length !== 1) throw new Error('config must bundle as one module');
   const chunk = chunks[0]; if (chunk === undefined) throw new Error('config chunk missing');
   assertConfigBoundary([...chunk.imports, ...chunk.dynamicImports]);
-  const loaded: unknown = await import(`data:text/javascript;base64,${Buffer.from(chunk.code).toString('base64')}`);
+  const loaded: unknown = await executeBundle(chunk.code, project);
   if (typeof loaded !== 'object' || loaded === null) throw new Error('Author module has no exports');
   return { exports: Object.fromEntries(Object.entries(loaded)), hash: contentHash(new TextEncoder().encode(chunk.code)) };
 }

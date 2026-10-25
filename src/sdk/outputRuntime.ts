@@ -1,10 +1,9 @@
+import { executeBundle } from './executeBundle';
 // oxlint-disable-next-line import/no-nodejs-modules -- The author build owns the generated runtime copy.
 import { existsSync, lstatSync, mkdirSync, readdirSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Runtime inventory paths are local project-relative paths.
 import { dirname, relative, resolve, sep } from 'node:path';
 import { build, parseSync } from 'vite';
-// oxlint-disable-next-line import/no-nodejs-modules -- Build-only schema evaluation never ships executable output.
-import { Buffer } from 'node:buffer';
 import * as v from 'valibot';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 import { hashImmutableBytes } from './immutable';
@@ -88,7 +87,7 @@ export async function proveRuntimeData(destination: string, index: OutputIndex, 
     const chunks = output.output.filter(chunk => chunk.type === 'chunk');
     const chunk = chunks[0];
     if (chunks.length !== 1 || chunk === undefined) throw new Error('Runtime proof must compile to one build-only module');
-    const loaded: unknown = await import(`data:text/javascript;base64,${Buffer.from(chunk.code).toString('base64')}`);
+    const loaded: unknown = await executeBundle(chunk.code, destination);
     if (typeof loaded !== 'object' || loaded === null) throw new Error('Runtime proof module has no namespace');
     return loaded as Readonly<Record<string, unknown>>;
   };
