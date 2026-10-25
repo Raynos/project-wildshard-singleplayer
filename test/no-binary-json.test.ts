@@ -55,11 +55,15 @@ function fixture(run: (root: string, git: (...args: string[]) => string, put: (n
   const put = (name: string, value: string): void => {
     const target = resolve(root, name); mkdirSync(resolve(target, '..'), { recursive: true }); writeFileSync(target, value);
   };
+  const outerMessage=processEnv['WS_COMMIT_MESSAGE']; delete processEnv['WS_COMMIT_MESSAGE'];
   try {
     git('init', '-q'); git('config', 'core.hooksPath', '/dev/null'); git('config', 'user.name', 'fixture'); git('config', 'user.email', 'fixture@example.invalid');
     put('lint/no-binary-json.json', JSON.stringify(policy())); git('add', '.'); git('commit', '-qm', 'fixture');
     run(root, git, put);
-  } finally { rmSync(root, { recursive: true, force: true }); }
+  } finally {
+    if (outerMessage===undefined) delete processEnv['WS_COMMIT_MESSAGE']; else processEnv['WS_COMMIT_MESSAGE']=outerMessage;
+    rmSync(root, { recursive: true, force: true });
+  }
 }
 
 test('staged checks read exact index assets and reject self-approved caps', () => fixture((root, git, put) => {
@@ -152,6 +156,23 @@ test('source/tool base64 debt cannot grow, move or disappear from exact Git poli
   }
   git('rm','-f',file);
   expect(checkBinaryRevision(root,':','HEAD',[file]).join(' ')).toContain('source debt policy deleted');
+}));
+
+test('protocol source debt needs exact unique approval in the committed final footer',()=>fixture((root,git,put)=>{
+  const file='lint/base64-debt.json', transport='scripts/parity/fast-png.mjs';
+  const debt=(count:number)=>JSON.stringify({schema:'no-base64/1',source,files:count===0?{}:{[transport]:count}});
+  put(file,debt(0));git('add',file);git('commit','-qm','seed source policy');
+  const parent=git('rev-parse','HEAD'), line=`Base64-Approved: wildshard-new ${transport} 1`;
+  put(file,debt(1));git('add',file);
+  git('commit','-qm',`fix: protocol boundary\n\n${line}\n\nAssisted-by: fixture:model`);
+  expect(checkBinaryRevision(root,'HEAD',parent,[file])).toEqual([]);
+  for(const message of [line.replace('wildshard-new','other'),line.replace(' 1',' 2'),
+    `${line}\n${line}`,`${line}\n\nbody after approval`,line.replace(transport,'scripts/other.mjs')]) {
+    put(file,debt(1));git('add',file);git('commit','--allow-empty','-qm',`fix: not approved\n\n${message}`);
+    expect(checkBinaryRevision(root,'HEAD',parent,[file]).join(' ')).toMatch(/approval|allowance grew/u);
+  }
+  put(file,debt(2));git('add',file);git('commit','-qm',`fix: count mismatch\n\n${line}`);
+  expect(checkBinaryRevision(root,'HEAD',parent,[file]).join(' ')).toContain('allowance grew');
 }));
 
 

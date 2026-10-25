@@ -32,6 +32,7 @@
     "scripts/nine-dragon-domes.mjs": 2,
     "scripts/ota-release.mjs": 4,
     "scripts/parity.mjs": 1,
+    "scripts/parity/fast-png.mjs": 1,
     "scripts/parity/prove-speed.mjs": 1,
     "scripts/parity/record.mjs": 2,
     "scripts/parity/ssim.mjs": 2,

@@ -92,11 +92,13 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   requires every visible ring and ten gameplay frames before the Signal road leg.
   Smoke receipts distinguish drawn frames, fixed ring steps and clock/pause state.
   Screenshot diagnostics retain a stable Playwright trace only while a boot frame is captured, with trace
-  screenshots, snapshots and sources disabled. Logs retain the screenshot API duration and its font milestones;
+  screenshots, snapshots and sources disabled. Logs retain capture duration and font-ready milestones;
   native layout/capture/PNG encoding/cleanup RPC durations are explicitly unavailable in this trace API.
   Chromium's separate protocol observer records layout and screenshot RPC round trips without retaining payloads.
-  Before each PNG, the helper waits one browser animation frame without requesting a game draw. That wait and
-  the capture share the original ten-second allowance; a stalled frame refuses without capturing later.
+  Chromium captures the same device-scale viewport PNG through Playwright's public CDP session with
+  `optimizeForSpeed: true`, then decodes it through the same pixel assertions. Fonts and one browser animation
+  frame settle first without requesting a game draw; all stages share the original ten-second allowance.
+  A stalled stage refuses without accepting a late PNG or requesting a replacement. The failure JPEG remains diagnostic.
   The composited image, pixel checks and 10-second screenshot timeout remain unchanged; a missing diagnostic
   trace is reported without substituting a successful frame or retrying the capture.
   Six required macOS legs separate public cases, Developer standalones, the grid/Signal road proof,

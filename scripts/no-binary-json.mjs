@@ -135,8 +135,8 @@ function blobs(root, tree, paths) {
 }
 
 /** A separate source/tooling census cannot be erased by src-only central debt regeneration.
- * @param {string} root @param {Map<string,{mode:string,oid:string}>} tree @param {Map<string,{mode:string,oid:string}>} parent @param {string} file @param {string} schema @param {RegExp} roots */
-function sourceDebtChanges(root, tree, parent, file, schema, roots) {
+ * @param {string} root @param {Map<string,{mode:string,oid:string}>} tree @param {Map<string,{mode:string,oid:string}>} parent @param {string} file @param {string} schema @param {RegExp} roots @param {string} message */
+function sourceDebtChanges(root, tree, parent, file, schema, roots, message) {
   if (!tree.has(file)) return parent.has(file) ? [`BINARY-JSON ${file}: source debt policy deleted`] : [];
   /** @param {Map<string,{mode:string,oid:string}>} records @returns {{files:Record<string,number>,sources:string[]}} */
   const read = records => {
@@ -164,7 +164,15 @@ function sourceDebtChanges(root, tree, parent, file, schema, roots) {
       && outputs.producers['scripts/gen-shards.mjs'].includes(path);
   };
   for(const path of after.sources)if(!before.sources.includes(path)&&!discoveryMigration(path))failures.push(`BINARY-JSON ${file}: app source exemption grew for ${path}`);
-  for (const [path, count] of Object.entries(after.files)) if (!Object.hasOwn(before.files, path) || count > (before.files[path] ?? 0)) failures.push(`BINARY-JSON ${file}: source debt allowance grew for ${path}`);
+  const increases = Object.entries(after.files).filter(([path,count]) => !Object.hasOwn(before.files,path) || count > (before.files[path] ?? 0));
+  const expected = new Map(file === 'lint/base64-debt.json' ? increases.map(([path,count]) => [`Base64-Approved: wildshard-new ${path} ${count}`,path]) : []);
+  const content = message.trimEnd().replace(/\n\nAssisted-by:[^\n]+$/u,'').replaceAll(/\n[ \t]+/gu,' ');
+  const footer = content.split(/\n\s*\n/u).at(-1) ?? '', approved = new Set();
+  if (file === 'lint/base64-debt.json') for (const line of content.split('\n').filter(row => row.startsWith('Base64-Approved:'))) {
+    if (!footer.split('\n').includes(line) || !expected.has(line) || approved.has(line)) failures.push(`BINARY-JSON ${file}: invalid or unmatched approval ${line}`);
+    else approved.add(line);
+  }
+  for (const [path,count] of increases) if (!approved.has(`Base64-Approved: wildshard-new ${path} ${count}`)) failures.push(`BINARY-JSON ${file}: source debt allowance grew for ${path}`);
   return failures;
 }
 
@@ -172,15 +180,15 @@ function sourceDebtChanges(root, tree, parent, file, schema, roots) {
  * @param {string} root @param {string} revision @param {string} previous @param {readonly string[]} changed */
 export function checkBinaryRevision(root, revision, previous, changed) {
   const tree = entries(root, revision), parent = entries(root, previous);
+  const message = revision === ':' ? process.env.WS_COMMIT_MESSAGE ?? '' : git(root, ['show', '-s', '--format=%B', revision]).toString();
   const base64 = [
-    ...sourceDebtChanges(root,tree,parent,'lint/base64-debt.json','no-base64/1',/^(?:src|scripts)\//u),
-    ...sourceDebtChanges(root,tree,parent,'lint/generated-import-debt.json','no-generated-import/1',/^(?:src|test)\//u),
+    ...sourceDebtChanges(root,tree,parent,'lint/base64-debt.json','no-base64/1',/^(?:src|scripts)\//u,message),
+    ...sourceDebtChanges(root,tree,parent,'lint/generated-import-debt.json','no-generated-import/1',/^(?:src|test)\//u,message),
     ...checkGeneratedSourceRevision(root, revision, previous, changed),
   ];
   if (!tree.has(BINARY_JSON_POLICY)) return [...base64, ...(parent.has(BINARY_JSON_POLICY) ? [`BINARY-JSON ${BINARY_JSON_POLICY}: policy deleted`] : [])];
   const policy = binaryJsonPolicy(JSON.parse(blobs(root, tree, [BINARY_JSON_POLICY]).get(BINARY_JSON_POLICY) ?? 'null'));
   const before = parent.has(BINARY_JSON_POLICY) ? binaryJsonPolicy(JSON.parse(blobs(root, parent, [BINARY_JSON_POLICY]).get(BINARY_JSON_POLICY) ?? 'null')) : undefined;
-  const message = revision === ':' ? process.env.WS_COMMIT_MESSAGE ?? '' : git(root, ['show', '-s', '--format=%B', revision]).toString();
   const failures = [...base64, ...(before === undefined ? [] : binaryPolicyIncreases(before, policy, message))];
   const selected = changed.includes(BINARY_JSON_POLICY) ? [...tree.keys()].filter(path => path.endsWith('.json')) : changed.filter(path => path.endsWith('.json'));
   for (const [path, text] of blobs(root, tree, selected)) failures.push(...binaryJsonFailures(path, text, policy));
