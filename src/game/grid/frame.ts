@@ -49,7 +49,7 @@ import type { LookCellPost } from '@wildshard/engine/render/look';
 import { RoadSky, type RoadSkyPage } from './roadSky';
 import { FAR_RING, GRID_HAZE } from './farProxy';
 import { bindFrameLook, type FrameLookContribution, type FramePost, type FrameSkyLayer, type RegionChain, type RegionPost } from './frameLook';
-import { NEUTRAL_GRADE, ROAD_SKY, dominantOwner, frameFog, frameGrade, frameOwners, type FrameCell, type FullGrade, type RegionGrade, type RegionWeights } from './frameModel';
+import { NEUTRAL_GRADE, ROAD_SKY, dominantOwner, edgeDistance, frameFog, frameGrade, frameOwners, type FrameCell, type FullGrade, type RegionGrade, type RegionWeights } from './frameModel';
 
 /** What the frame reads from the page: the scene and camera, the engine's composer and its grade effects (late-bound). */
 export interface GridFrameHost {
@@ -111,7 +111,7 @@ export interface FrameCinematic {
   readonly port: (instance: string) => NonNullable<FramePost['vol']>;
   readonly forget: (instance: string) => void;
   readonly take: (instance: string, start: { readonly strength: number; readonly sunColor: readonly [number, number, number]; readonly sunDir?: Vector3 | undefined; readonly fog?: Color | undefined }) => void;
-  readonly weight: (w: number) => void;
+  readonly weight: (w: number, grainVisible?: boolean) => void;
   readonly release: () => void;
   /** G321 part 5: god rays for a page whose chain has none (null: none), and a region whose chain draws rays taking them */
   readonly rays?: Effect | null;
@@ -559,7 +559,7 @@ export class GridFrame {
     const at = this.feet();
     this.weights = frameOwners(this.cells, at.x, at.z, this.half, this.band);
     this.bypass?.restore(); // the writers below see their own values
-    if (this.chainPost !== null) this.carry();
+    if (this.chainPost !== null) this.carry(at);
     this.graded = frameGrade(this.weights, this.homeInstance, this.ownerGrades());
     this.effect.set(this.graded);
     for (const [owner, set] of this.stacks) {
@@ -691,7 +691,7 @@ export class GridFrame {
   }
 
   /** G232: the live region with the most weight that brings a chain carries the page's grade, faded by its weight. */
-  private carry(): void {
+  private carry(at: { readonly x: number; readonly z: number }): void {
     let best: string | null = null, top = 0, chain: RegionChain | null = null;
     for (const [instance, look] of this.live) {
       const w = look.chain === undefined ? 0 : this.weights.cells.get(instance) ?? 0;
@@ -702,7 +702,9 @@ export class GridFrame {
     this.chainWeight = top;
     this.chainFade?.weight(top);
     this.carrier?.knobs?.(top);
-    this.cine?.weight(top);
+    const cell = best === null ? undefined : this.cells.find(row => row.instance === best);
+    // G725: colour may blend across the edge; film grain belongs only to the actual cell interior.
+    this.cine?.weight(top, cell !== undefined && edgeDistance(cell, at.x, at.z, this.half) <= 0);
     this.lookEffect.blendMode.opacity.value = top;
     const lut = this.carrier?.chain.lut() ?? null, drawn = lut !== null && swappableLut(lut);
     this.lutUniform(drawn ? lut : this.neutral);

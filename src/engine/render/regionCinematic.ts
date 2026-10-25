@@ -183,12 +183,12 @@ export class RegionCinematic {
     this.attachSceneDepth();
     this.vol.setParked(false);
   }
-  /** The carrier's weight (0..1, its cell's owner weight): the shafts' opacity, the fringe's offset and the grain's opacity. */
-  weight(w: number): void {
+  /** The carrier's weight (0..1): shafts/fringe follow its blend; grain is hidden outside the actual cell. */
+  weight(w: number, grainVisible = true): void {
     this.w = this.carrier === null ? 0 : w;
     this.vol.blendMode.opacity.value = this.w;
     this.chroma.offset.set(CINEMATIC_FX.chroma * this.w, CINEMATIC_FX.chroma * this.w);
-    this.grain.blendMode.opacity.value = CINEMATIC_FX.grain * this.w;
+    this.grain.blendMode.opacity.value = grainVisible ? CINEMATIC_FX.grain * this.w : 0;
   }
   /** The carrier leaves: the march parks (its target freed), every effect neutral (the rays at 0), the march's light back. */
   release(): void {
