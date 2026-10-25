@@ -482,8 +482,7 @@
       "export": "default"
     },
     "mapPalette": {
-      "module": "./data/mapPalette.generated.json",
-      "export": "default"
+      "program": true
     },
     "poses": {
       "program": true

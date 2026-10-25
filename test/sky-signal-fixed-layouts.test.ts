@@ -5,20 +5,18 @@ import { authoredManifestSource } from '../scripts/authored-manifest.mjs';
 import { parseDiscoveryValues } from '@wildshard/format/discoveryValues';
 import { generated as signalProgram } from './fixtures/sunscar-source-program';
 import skyMap from '../src/shards/far-reach/data/mapPalette.generated.json' with { type: 'json' };
-import signalMap from '../src/shards/sunscar-dunes/data/mapPalette.generated.json' with { type: 'json' };
+import { SIGNAL_DUNES_MAP as signalMap } from '../src/shards/sunscar-dunes/generators/minimap';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { fixedLayoutFiles as skyFiles } from '../src/shards/far-reach/generators/fixedLayouts';
-import { fixedLayoutFiles as signalFiles } from '../src/shards/sunscar-dunes/generators/fixedLayouts';
 import sky from '../src/shards/far-reach/data/layout.generated.json' with { type: 'json' };
 import * as signalSource from '../src/shards/sunscar-dunes/generators/layout';
 import crown from '../src/shards/far-reach/data/crownLayout.generated.json' with { type: 'json' };
-import * as duneSource from '../src/shards/sunscar-dunes/generators/duneRows';
 
 // The old transport sorts top-level export names; Vite namespaces retain
 // declaration order, so keep the original wire ordering in these byte oracles.
 const ordered = (rows: Readonly<Record<string, unknown>>) => Object.fromEntries(
   Object.entries(rows).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0));
-const signal = ordered(signalSource), dunes = ordered(duneSource);
+const signal = ordered(signalSource);
 
 // Captured from 68807c271 before moving the coordinate recipes: every derived
 // bridge endpoint, pad, trail, island, map mark and crown stone is included.
@@ -34,7 +32,6 @@ for (const [label, rows, hash] of [
 
 for (const [label, compile, rows] of [
   ['Sky', skyFiles, new Map<string, unknown>([['data/layout.generated.json', sky], ['data/crownLayout.generated.json', crown], ['data/mapPalette.generated.json', skyMap]])],
-  ['Signal', signalFiles, new Map<string, unknown>([['data/layout.generated.json', signal], ['data/duneRows.generated.json', dunes], ['data/mapPalette.generated.json', signalMap]])],
 ] as const) {
   test(`${label} compiles the complete layout without runtime mirrors`, () => {
     const files = compile();
@@ -53,7 +50,7 @@ for (const [slug, palette] of [['far-reach', skyMap], ['sunscar-dunes', signalMa
     expect(source).not.toMatch(/from ["'][^"']*generators\/(?:layout|minimap)/u);
     if (slug === 'sunscar-dunes') {
       expect(() => authoredManifestSource(cwd(), slug)).toThrow('program discovery value budgets');
-      for (const key of ['budgets', 'navigation', 'poses', 'audioCues', 'boot.files', 'boot.sources', 'boot.lateReads'] as const) {
+      for (const key of ['budgets', 'navigation', 'mapPalette', 'poses', 'audioCues', 'boot.files', 'boot.sources', 'boot.lateReads'] as const) {
         const missing = { ...parseDiscoveryValues(signalProgram.discovery) }; delete missing[key];
         expect(() => authoredManifestSource(cwd(), slug, { discovery: missing })).toThrow(`program discovery value ${key}`);
       }

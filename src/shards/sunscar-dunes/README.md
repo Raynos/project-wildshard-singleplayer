@@ -47,11 +47,11 @@ alone (E357 Z3, round 4). No engine edits.
 | `look/render.ts`, `data/sky.ts` | the `extend` look: the clean engine chain, the platform dusk dome (`@wildshard/sdk/looks/duskDome`) with stars, violet fog, a low warm key light, sand painted by hollow / crest with a ripple patch |
 | `audio/cues.ts` | the whip's cues on kit voices until its own crack is generated |
 
-`generators/fixedLayouts.ts` compiles the fixed coordinates and map palette to
-`data/layout.generated.json` and `data/mapPalette.generated.json`. The page reads
-those rows through its existing scene and discovery owners; coordinate recipes
-remain build-only. `generators/duneRows.ts` also compiles the derived dune pads and tint
-to `data/duneRows.generated.json`; `generators/minimap.ts` authors the palette.
+The fixed coordinate recipes in `generators/layout.ts` and `generators/duneRows.ts`
+feed the source product directly. `generators/minimap.ts` supplies its actual
+palette through validated product discovery; runtime discovery stays data-only.
+All three retired JSON handoffs remain pinned by complete source-byte goldens
+in `test/sunscar-layout-source.test.ts`.
 
 ## Budgets
 
