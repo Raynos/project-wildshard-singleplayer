@@ -53,7 +53,7 @@ for (const [id, original] of Object.entries(images)) {
 describe('isolated open-plot map outputs', () => {
   let cacheDir: string, catalogPath: string, original: ShardGenerationJob, worlds: ShardGenerationJob, maps: ShardGenerationJob[];
   let prepared: Awaited<ReturnType<typeof generateShardJob>> | undefined;
-  beforeAll(async () => {
+  beforeAll(() => {
     const job = discoverGeneration(root).jobs.find(row => row.id === 'open-plots-world');
     if (job === undefined) throw new Error('Missing registered open-plot producer');
     original = job; cacheDir = mkdtempSync(resolve(root, 'tmp/plot-map-inputs-'));
@@ -69,15 +69,18 @@ describe('isolated open-plot map outputs', () => {
     }
     expect([...worlds.outputs, ...maps.flatMap(row => row.outputs)].sort()).toEqual([...job.outputs].sort());
     writeFileSync(resolve(root, catalogPath), JSON.stringify({ schema: 'generation-jobs/1', notice: 'DO NOT EDIT isolated map fixtures', jobs: [worlds, ...maps] }));
-    prepared = await generateShardJob(root, worlds, { cacheDir, catalogPath, forceCompare: true });
-    expect(Object.keys(prepared.hashes).sort()).toEqual([...worlds.outputs].sort());
   });
   afterAll(() => {
     prepared?.release();
     if (cacheDir !== undefined) rmSync(cacheDir, { recursive: true, force: true });
   });
-  const options = () => {
-    if (prepared === undefined) throw new Error('Missing verified world setup');
+  let preparing: Promise<Awaited<ReturnType<typeof generateShardJob>>> | undefined;
+  const options = async () => {
+    // The lifecycle hook declares the fixture only. The first dependent test
+    // owns real cold world production under its unchanged producer budget.
+    preparing ??= generateShardJob(root, worlds, { cacheDir, catalogPath, forceCompare: true });
+    prepared = await preparing;
+    expect(Object.keys(prepared.hashes).sort()).toEqual([...worlds.outputs].sort());
     return { cacheDir, catalogPath, forceCompare: true, preparation: { outputs: original.outputs, upstream: new Map([[worlds.id, prepared]]) } };
   };
   test('the declared map stage refuses the omitted painter before painting', async () => {
@@ -86,12 +89,12 @@ describe('isolated open-plot map outputs', () => {
     const descriptor = { ...first, inputRoots: first.inputRoots.filter(file => file !== sceneSource) };
     const omitted = relative(root, resolve(cacheDir, 'omitted.json'));
     writeFileSync(resolve(root, omitted), JSON.stringify({ schema: 'generation-jobs/1', notice: 'DO NOT EDIT sealed negative fixture', jobs: [worlds, descriptor] }));
-    await expect(generateShardJob(root, descriptor, { ...options(), catalogPath: omitted })).rejects.toThrow('Generator exited 1');
+    await expect(generateShardJob(root, descriptor, { ...await options(), catalogPath: omitted })).rejects.toThrow('Generator exited 1');
   });
   for (const [file, hash] of Object.entries(images['open-plots-world'])) {
     test(`preserves the complete original ${file}`, async () => {
       const job = maps.find(row => row.outputs.includes(file)); if (job === undefined) throw new Error('Missing map stage');
-      const result = await generateShardJob(root, job, options());
+      const result = await generateShardJob(root, job, await options());
       try {
         expect(Object.keys(result.hashes).sort()).toEqual([...job.outputs].sort());
         expect(result.hashes[file]).toBe(hash);
