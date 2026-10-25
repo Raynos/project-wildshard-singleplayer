@@ -194,6 +194,8 @@ export function hostCallbackSites(root, file, program) {
       return [];
     }
     if (node.type === 'TSTypeAnnotation') return values({ ...ref, node: node.typeAnnotation }, next);
+    if (node.type === 'TSLiteralType') return values(child(ref, node.literal), next);
+    if (node.type === 'TSTypeQuery') return values(child(ref, node.exprName), next);
     if (node.type === 'TSTypeAliasDeclaration') return [{ ...ref, node }];
     if (node.type === 'TSTypeReference') {
       const args = node.typeArguments?.params ?? node.typeParameters?.params ?? [];
@@ -211,7 +213,10 @@ export function hostCallbackSites(root, file, program) {
     }
     if (node.type === 'TSQualifiedName') return values(child(ref, node.left), next).flatMap(value => property(value, keyOf(node.right), next));
     if (['TSUnionType', 'TSIntersectionType'].includes(node.type)) return node.types.flatMap(type => values(child(ref, type), next));
-    if (node.type === 'MemberExpression') return values(child(ref, node.object), next).flatMap(value => property(value, node.computed && node.property.type !== 'Literal' ? null : keyOf(node.property), next));
+    if (node.type === 'MemberExpression') {
+      const names = node.computed ? values(child(ref, node.property), next).filter(value => value.node.type === 'Literal').map(value => keyOf(value.node)) : [keyOf(node.property)];
+      return values(child(ref, node.object), next).flatMap(value => names.flatMap(name => property(value, name, next)));
+    }
     if (node.type === 'ConditionalExpression') return [node.consequent, node.alternate].flatMap(value => values(child(ref, value), next));
     if (node.type === 'LogicalExpression') return [node.left, node.right].flatMap(value => values(child(ref, value), next));
     if (node.type === 'NewExpression') return values(child(ref, node.callee), next).map(value => decorate(value, { instance: true }));

@@ -194,3 +194,16 @@ function nested(rows:Readonly<Bag<Callback>>,defaults:DefaultBag){host(rows);hos
     expect(issues).toEqual(expect.arrayContaining(hostCallbackViolations(f.root,file)));
   } finally {f.close();}
 });
+
+
+test('syntax resolves literal computed selectors and typeof callback annotations', () => {
+  const f=fixture(`import * as api from '../../../game/host';
+const key='host'; const named=()=>{};
+api[key]({run:named});
+function forward(selector:'host',callback:typeof named){api[selector](callback);}`);
+  try {
+    const source=readFileSync(resolve(f.root,file),'utf8');
+    expect(hostCallbackSites(f.root,file,parseSync(file,source).program)).toEqual(hostCallbackViolations(f.root,file));
+    expect(hostCallbackSites(f.root,file,parseSync(file,source).program)).toHaveLength(2);
+  } finally {f.close();}
+});
