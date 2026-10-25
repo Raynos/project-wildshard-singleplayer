@@ -12,7 +12,8 @@
  * 8 or more is the whole cell: every tile attached.
  */
 import type { Scope } from '@wildshard/engine/app/scope';
-import { buildYield } from '@wildshard/engine/core/workSlice';
+import { frameBudgetSpent } from '@wildshard/engine/core/framePacing';
+import { buildYield, WORK_SLICE_MS } from '@wildshard/engine/core/workSlice';
 import { followTile, ring, tileKey, type TileContent } from './tileContent';
 import { tileOf, tileOrder, type CellTile, type TileEntryway } from './tileOrder';
 
@@ -115,6 +116,10 @@ export class TileDriver {
         const content = this.contents[tile.count];
         if (content === undefined) throw new Error('Missing tile content');
         if (!content.tiles().has(key)) continue;
+        // Cached stages may resolve in microtasks; share the live frame's
+        // budget before admitting another stage, including background tiles.
+        if (frameBudgetSpent(WORK_SLICE_MS)) await this.pause();
+        if (tile.scope.disposed || tile.scope.disposing) return null;
         await (layer === 'render' ? content.attach(key, tile.scope) : content.attachColliders?.(key, tile.scope));
         if (tile.scope.disposed) return null;
       }

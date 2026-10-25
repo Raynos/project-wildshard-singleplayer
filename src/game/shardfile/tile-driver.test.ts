@@ -3,6 +3,7 @@ import { Scope } from '@wildshard/engine/app/scope';
 import { TileDriver, tileKeys, residentTiles, followResidentTiles } from './tileDriver';
 import type { TileContent } from './tileContent';
 import { tileOrder } from './tileOrder';
+import { noteFrameDrawn, setBuildHeld } from '@wildshard/engine/core/framePacing';
 
 // Tile streaming T4: an entered region's per-tile content follows the player. A made-up content with something in every
 // tile records each attach and each tile scope's end.
@@ -154,4 +155,68 @@ test('retiring a resident during coarse preparation refuses publication', async 
     await expect(pending).rejects.toThrow('Tile resident is disposed');
     expect(followResidentTiles(scope, () => ({ x: 0, z: 0 }))).toBeNull();
   } finally { coarse.release(); scope.dispose(); }
+});
+
+
+test.each(['render', 'colliders'] as const)('cached %s stages share the drawn-frame budget', async layer => {
+  const owner = new Scope('paced-tile-stages'), key = 36, visited: number[] = [], turns: number[] = [];
+  let now = 1000, spent = 0;
+  const clock = vi.spyOn(performance, 'now').mockImplementation(() => now);
+  setBuildHeld(false); noteFrameDrawn(now, now, 30);
+  const sources: TileContent[] = Array.from({ length: 24 }, (_, index) => {
+    const attach = (): Promise<void> => { visited.push(index); now++; spent++; return Promise.resolve(); };
+    return { id: `stage.${index}`, tiles: () => new Set([key]),
+      attach: layer === 'render' ? attach : () => Promise.resolve(),
+      ...(layer === 'colliders' ? { attachColliders: attach } : {}) };
+  });
+  const driver = new TileDriver(owner, sources, () => 1, () => {
+    turns.push(spent); spent = 0; noteFrameDrawn(now, now, 30); return Promise.resolve();
+  });
+  try {
+    await driver.require([key]);
+    turns.push(spent);
+    expect(visited).toEqual(Array.from({ length: 24 }, (_, index) => index));
+    // A cached promise is only a microtask: all 24 used to spend one drawn frame.
+    expect(Math.max(...turns)).toBeLessThanOrEqual(8);
+    expect(driver.resident(layer).has(key)).toBe(true);
+  } finally { owner.dispose(); noteFrameDrawn(Number.NEGATIVE_INFINITY); clock.mockRestore(); }
+});
+
+test('a background tile cancelled at its budget fence runs no later content', async () => {
+  const owner = new Scope('cancel-paced-tile'), key = 36, paused = gate(), resume = gate();
+  let now = 1000;
+  const clock = vi.spyOn(performance, 'now').mockImplementation(() => now);
+  setBuildHeld(false); noteFrameDrawn(now, now, 30);
+  const later = vi.fn(() => Promise.resolve());
+  const driver = new TileDriver(owner, [
+    { id: 'first', tiles: () => new Set([key]), attach: () => { now += 9; return Promise.resolve(); } },
+    { id: 'later', tiles: () => new Set([key]), attach: later },
+  ], () => 1, () => { paused.release(); return resume.promise; });
+  try {
+    // No collider work: step through the empty collider ring before render.
+    for (let frame = 0; frame < 80; frame++) { driver.step(0, 0); await Promise.resolve(); await Promise.resolve(); }
+    await paused.promise;
+    driver.step(-240, -240); resume.release();
+    await Promise.resolve(); await Promise.resolve(); await Promise.resolve();
+    expect(later).not.toHaveBeenCalled();
+    expect(driver.resident('render').has(key)).toBe(false);
+  } finally { resume.release(); owner.dispose(); noteFrameDrawn(Number.NEGATIVE_INFINITY); clock.mockRestore(); }
+});
+
+
+test('loading tile stages retain their original synchronous admission', async () => {
+  const owner = new Scope('loading-tile-stages'), visited: number[] = [];
+  let now = 1000;
+  const clock = vi.spyOn(performance, 'now').mockImplementation(() => now);
+  noteFrameDrawn(Number.NEGATIVE_INFINITY); setBuildHeld(false);
+  const sources: TileContent[] = Array.from({ length: 24 }, (_, index) => ({
+    id: `stage.${index}`, tiles: () => new Set([36]),
+    attach: () => { visited.push(index); now += 10; return Promise.resolve(); },
+  }));
+  const pause = vi.fn(() => Promise.resolve()), driver = new TileDriver(owner, sources, () => 1, pause);
+  try {
+    await driver.require([36]);
+    expect(visited).toEqual(Array.from({ length: 24 }, (_, index) => index));
+    expect(pause).toHaveBeenCalledTimes(1); // the existing end-of-required-tile pause only
+  } finally { owner.dispose(); noteFrameDrawn(Number.NEGATIVE_INFINITY); clock.mockRestore(); }
 });
