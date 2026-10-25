@@ -30,11 +30,13 @@ export class TileDriver {
   /** The tiles attached now, by layer (the overlay and tests read them). */
   resident(layer: Layer): ReadonlySet<number> { return new Set(this.attached[layer].keys()); }
 
-  /** Attach `keys` in order, render and colliders, before the player has controls (the rank-0 tiles); resolves once all are in. */
+  /** Attach `keys` in order, render and colliders, before the player has controls (the rank-0 tiles); rejects a live content failure. */
   async require(keys: Iterable<number>): Promise<void> {
     for (const key of keys) {
-      await this.attach(key, 'render'); await this.attach(key, 'colliders');
-      await this.pause();
+      this.live();
+      await this.attach(key, 'render', true); this.live();
+      await this.attach(key, 'colliders', true); this.live();
+      await this.pause(); this.live();
     }
   }
 
@@ -69,8 +71,12 @@ export class TileDriver {
     }
   }
 
+  private live(): void {
+    if (this.scope.disposed || this.scope.disposing) throw new Error('Tile resident is disposed');
+  }
+
   /** One tile's content of one layer, in a fresh child scope (kept only if it is still wanted when it finishes). */
-  private async attach(key: number, layer: Layer): Promise<void> {
+  private async attach(key: number, layer: Layer, required = false): Promise<void> {
     if (this.attached[layer].has(key)) return;
     const tile = this.scope.child(`tile:${layer}:${String(key)}`);
     this.attached[layer].set(key, tile);
@@ -88,6 +94,7 @@ export class TileDriver {
       tile.dispose();
       if (cancelled) return;
       this.failed.add(`${layer}:${String(key)}`);
+      if (required) throw error;
       if (!this.scope.disposed) console.warn(`[tiles] ${layer} tile ${String(key)} failed to attach; it stays out`, error);
     }
   }
@@ -116,20 +123,30 @@ export function followRing(radius = TILE_RING): (viewer: { readonly x: number; r
   };
 }
 
-const drivers = new WeakMap<Scope, TileDriver>(), started = new WeakSet<Scope>();
+const drivers = new WeakMap<Scope, TileDriver>(), started = new WeakMap<Scope, Promise<void>>();
 /**
  * T4: a resident world's tiled content attached before its player has controls: the spawn's and the entries' tiles
  * (rank 0, `tileOrder`), the coarse stand-ins (T11), and a driver kept on the resident for its entries to follow the player
- * with (`followResidentTiles`). Once per resident (a re-entry keeps its tiles); nothing tiled: nothing to do.
+ * with (`followResidentTiles`). Concurrent entries await the same preparation; a failed preparation stays refused for
+ * that resident. A re-entry keeps its tiles; nothing tiled: nothing to do.
  */
-export async function residentTiles(resident: Scope, contents: readonly TileContent[], spawn: { readonly x: number; readonly z: number },
+export function residentTiles(resident: Scope, contents: readonly TileContent[], spawn: { readonly x: number; readonly z: number },
   entryways: readonly TileEntryway[]): Promise<void> {
-  if (contents.length === 0 || started.has(resident)) return;
-  started.add(resident);
-  const driver = new TileDriver(resident, contents, () => TILE_RING, () => buildYield(resident)), order = tileOrder(spawn, entryways);
-  await driver.require(tileKeys(order.tiles.filter(tile => order.rank(tile) === 0)));
-  await driver.coarse(spawn.x, spawn.z);
-  drivers.set(resident, driver);
+  if (contents.length === 0) return Promise.resolve();
+  const existing = started.get(resident);
+  if (existing !== undefined) return existing;
+  // Reserve before any content callback can re-enter this boot path.
+  const pending = Promise.resolve().then(async () => {
+    const live = (): void => { if (resident.disposed || resident.disposing) throw new Error('Tile resident is disposed'); };
+    live();
+    const driver = new TileDriver(resident, contents, () => TILE_RING, () => buildYield(resident)), order = tileOrder(spawn, entryways);
+    await driver.require(tileKeys(order.tiles.filter(tile => order.rank(tile) === 0))); live();
+    await driver.coarse(spawn.x, spawn.z); live();
+    drivers.set(resident, driver);
+    return undefined;
+  });
+  started.set(resident, pending);
+  return pending;
 }
 /** T4: once a frame while a world is entered, its resident's tiles follow the player's cell-local position. */
 export function followResidentTiles(resident: Scope, position: () => { readonly x: number; readonly z: number }): (() => void) | null {

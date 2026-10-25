@@ -234,10 +234,10 @@ browsers and the owned preview are closed; no Sim was used.
 | Row | What | Code | Lane | Size | Done when (measured) | Deps |
 |---|---|---|---|---|---|---|
 | T0 | Census: each shard's entered world split into tile-local and shard-global MB (DW, Nalati, Pine, Nine, Sky) | glbytes census + allocator claims | Codex | 0.5 d | done (2026-10-24, sp-x8): pre-implementation cost model above; CPU backing DW/N/P/Nine/Sky 41.74/40.84/78.57/44.41/20.22 MiB; bounded outside-5x5 0.01–2.69/1.93–6.77/0.87–7.19/0–0/0–0.62 MiB; unknowns retained; retirement proof T1/T3 | — |
-| T1 | Leak-free disposal: finish O18 (sp-o3); ghost counter per tile and region scope | `grid/live.ts`, new `grid/ghosts.ts` | Codex | 1 d (+ sp-o3) | 20 tile load/evict cycles and 5 DW→Sky→DW round trips each return to baseline ±20 MB; ghosts 0 | sp-o3 |
+| T1 | Leak-free disposal: finish O18 (sp-o3); ghost counter per tile and region scope | `grid/live.ts`, new `grid/ghosts.ts` | Codex | 1 d (+ sp-o3) | **done (2026-10-24, sp-x9; G710 settled sample):** 196 observed tile lifetimes / five returns; settled R4→R5 +10.62 MB, ghosts 0/0; old warm-up-baseline grade remains FAIL as detailed below | sp-o3 |
 | T2 | Engine tile residency host (`engine/world/tileResidency`): rect tiles of any size, N×N full ring + coarse ring, parent-first, no holes, hysteresis, per-frame bytes and ms budget, scope + lease per tile. `rings.ts` and `clientWorld.ts` become users (net deletion); road and junction tile types | `game/grid/rings.ts`, `shardfile/clientWorld.ts`, `residency.ts` | Codex | 2 d | host-bar six tests; Node 1 km drive: resident ≤ 25 + ring, 0 hole frames; same trace as today at 150 m | — |
 | T3 | Per-tile content: placements bucketed by pose (no rebake) into per-model instance ranges; welds / merged / baked sets by triangle centroid; registry colliders per tile scope | `worldScenes.ts`, `worldScenePlacement.ts`, `bakedTiles.ts`, `sdk/bake/worldGlb.ts` | Codex + Opus | 3 d | DW draw count ±10 % of today at the same pose; no visual diff in the 5 × 5 | T2 |
-| T4 | The entered world streams (H3 generalised, joined with sp-o1): shard-global state + rank-0 tiles before controls, the rest via T2; SHARD SELECT and grid | `grid/liveSession.ts` `enterInitialHome`, `shardfile/client.ts` | Opus | 2 d | DW SHARD SELECT + grid: tap → controls −30 % vs M1; worst frame ≤ 100 ms | T2, T3 |
+| T4 | The entered world streams (H3 generalised, joined with sp-o1): shard-global state + rank-0 tiles before controls, the rest via T2; SHARD SELECT and grid | `grid/liveSession.ts` `enterInitialHome`, `shardfile/client.ts` | Codex (sp-x2, G708) | ≤1 h slices below | **in flight:** DW SHARD SELECT + grid: tap → controls −30 % vs M1; worst frame ≤ 100 ms | T2, T3 |
 | T5 | Debug row "Tile residency: 3 × 3 / 5 × 5 / whole shard" (A/B/C, E451) and a Developer overlay (tile borders, resident colour, MB per tile) | Settings Debug, minimap | Opus | 0.5 d | Jake can feel it on Driftwood (first playable slice: T2 + T3 (DW only) + T4 + T5) | T4 |
 | T6 | Creatures, NPCs and figures by tile: presentation in resident tiles; brains global, dormant outside 5 × 5; patrols that cross tiles hand over | population, quest figures | Codex | 1.5 d | DW boar / captain fights unchanged; memory drops by its T0 share | T3 |
 | T7 | Crossings by tiles: neighbour region = small state; tiles by distance; the source evicts behind the player; delete whole-world `warmAhead` and the 4-world cap | `grid/live.ts`, `liveSession.ts`, `hybrid.ts` | Opus + Codex | 2.5 d | DW↔Sky ×5 on Chromium phone tier: peak ≤ 1.2 GB per shard, back to baseline ±20 MB, crossing < 5 s, worst frame ≤ 100 ms | T1, T4, T6 |
@@ -245,6 +245,21 @@ browsers and the owned preview are closed; no Sim was used.
 | T9 | G638 picked A: 62.5 m gap, pitch 562.5; asphalt unchanged at 15 m, side strips 23.75 m, seams/junction/routes follow the lattice | strips, roadLook, roadLayout, config | Codex (sp-x6) | 2 d | **done** (2026-10-24): runtime `ae2dca27dc`; native 15/30 m/s peer routes each 4 crossings / 0 stuck; labelled phone road/junction witnesses; current-origin `57d1344dc1` EWNS held walks all complete / 0 stuck / gates open. [Compact receipts](../../../progress/shard-platform/tile-streaming/t9-lattice.md); T1 retirement and T10 broader milestone stay separate | T2 |
 | T10 | Milestone: M1 Simulator recording + soak; delete the whole-shard path when Jake picks; Jake's iPhone check (G558) | — | coordinator | — | Sim < 5 s warm / < 15 s cold; Jake's word | all |
 | T11 | Far landmarks survive the ring: authored landmarks beyond the N×N ring (Pine crag spires, waterfall) draw a coarse stand-in from their LOD / impostor in the coarse ring, evicted only at its edge (found by sp-o1 at 5 × 5, 10-23) | tile residency, landmark LODs | Opus sp-o1 | 0.5–1 d | Pine spawn view at 5 × 5 shows the spires and waterfall | T2 |
+
+### T4 / T6 / T8 bounded slices (G711)
+
+Each engineering slice below is at most one hour; milestone measurements stay separate.
+
+| Slice | Status | Contract / exit |
+|---|---|---|
+| T4.1 Required entered tiles | done (this code commit) | Rank-0 render/collider errors refuse boot; concurrent entries await the same preparation; failed/retired residents never publish a driver. Background movement cancellation and no-retry behavior stay pinned. |
+| T4.2 Standalone / grid caller coverage | in flight (sp-x2) | Audit each assembled/forest/dressing entry and the control gate; pin missing caller contracts without moving global state or changing the look. |
+| T4.3 Entered-stream milestone | in flight (sp-x2, after T4.2) | Defining preview plus DW standalone/grid tap-to-controls and worst-frame evidence against M1; retain any missing baseline explicitly. |
+| T6.1 Dormancy / snapshot contract | done (contract-only slice below) | Current-position membership, exceptions and exact snapshot/RNG pins; no brain or native-sim schedule change. |
+| T6.2 Presentation lease / rebind | waits-Opus | Existing design below needs render parity for shared models, moving figures, native slots and held/boss pins before runtime changes. |
+| T8.1 Complete-L0 bake fences | done (`7093891d97`) | All 24 products declare 64 L0 slots; strict caps and the exact 6/4 exception remain. |
+| T8.2 Driftwood lossless route | in flight (sp-x2) | Only 2/4 has a delivered-byte saving; size a compiler-output slice, preserve resident ledger/bitwise views. 3/1 and 3/3 remain held as documented below. |
+| T8.3 Occupied L1 appearance | waits-Opus | U2's empty parents are complete; occupied parents require genuine coarse proxies and an Opus design or Jake pick. |
 
 **T8 lossless route audit (2026-10-24, sp-x2):** the existing decoder
 releases both the original wire and its copied encoded BIN/parser. With the
@@ -367,7 +382,17 @@ without a lifecycle edit. The FR-pending counter and native gate stay intact.
 The next slice shares built-in lit/fog/PMREM shader shapes, with fresh
 per-scene JS bindings and explicit pure-patch certificates. Real Metal GL
 parity is 252 / 252 exact pairs; eligible programs stay flat after warm-up.
-One fresh plain T1 remains pending; no phone or acceptance claim.
+The plain `eec878c1f4` run completed 12 clean legs / 196 observed tile
+lifetimes, errors 0, original phone-4x protocol and 45-second boundary waits.
+Programs were 406 / 453 / 497 / 541 / 541 / 541; ghosts were 13/1, 0/0,
+0/1, 1/1, 0/0, 0/0. **T1 is done under G710's settled-sample ruling:**
+returns 4→5 keep 541 programs and zero ghosts, with renderer+GPU private
+footprint 2,647,285,760→2,657,902,592 B (+10,616,832 B, within 20 MB).
+The unchanged old warm-up-baseline grader remains FAIL: all five native
+deltas are negative (-251,953,152 / -232,620,032 / -199,426,048 /
+-219,529,216 / -208,912,384 B), with transient FR-pending counters above.
+No gate or ghost meter changed; no further ghost diagnosis, phone or
+broader grid-clearance claim. No forced GC or committed receipt.
 
 The follow-up TIME-key audit is sizing only: 16 authored Driftwood look
 graphs use boxed wind-time/gust references. `graphShape` serializes the
