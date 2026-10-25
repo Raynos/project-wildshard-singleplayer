@@ -2,9 +2,9 @@
 
 **Order (G639):** (1) live reds → (2) NALATI 0 → (3) grid / frame floor → extras.
 
-**(1) LIVE b92412f040 (11:38Z); 8d7fb5440c releasing 12:19Z. Since 07:41Z: 653f0abe85 (tonight's fixes), c8e2a84b0e
-(G723 warm-ahead + sword fix 9dc10c2d58), 183bd85273 (Explorer + CF2 screenshot fix aa3b2781da). Hourly releases (sp-x7,
-G705; deploy cron silent since 06:17, manual backstop each hour). No open release red.
+**(1) LIVE 7b7f0b1f0b (12:54Z). Since 07:41Z: 653f0abe85 (tonight's fixes), c8e2a84b0e (G723 warm-ahead + sword fix
+9dc10c2d58), 183bd85273 (Explorer + CF2 fix aa3b2781da), b92412f040, 8d7fb5440c. Hourly releases (sp-x7, G705; cron back
+12:37Z). Open: Sunscar source-fixture rewrite red after GR4 (sp-x6, 13:41Z).
 
 **(2) NALATI 0 done (27dd969127).** HOST-AUDIT (G679) parked until every mini plan finishes. Legacy waits (G606).
 
@@ -27,6 +27,6 @@ art/main-menu-hero/round-6-nalati-terrain/); G630 still needs Nine far proxy + S
 **Blocked on Jake:** LEGACY phone QA, memory budget call, road B pilot play, hero board. **On Opus:** G713 post RT sheet,
 G685 look row, NM RM4+, U2 occupied parents, L18.3 lighter DW assets, G630 Nine far + Sunscar glow, T3/T6 visual.
 
-**Lanes:** Claude weekly 99 %: 0 Opus (G605); 5 Codex + sp-x7 (Codex weekly 10 %).
+**Lanes:** Claude weekly 99 %: 0 Opus (G605); 5 Codex + sp-x7 (Codex weekly 17 %).
 
 **Rules:** G704 (<= ~20 files/move commit, one big move: T3). G605. Fix forward, no reverts (G674). No new Debug rows (G669). G670. Never herdr wildshard-v.
