@@ -411,6 +411,7 @@ function farTile(w, p, type) {
 
 /** Every tile's border paving is the plot's (the generator's ground); a builder fills only its inner square. */
 const BUILDERS = { H: house, G: garden, S: stalls, C: canal, L: canal, N: forecourt, P: plaza };
+const discardTriangle = () => { /* Collision-only replay intentionally omits the already-placed GLB visuals. */ };
 
 /** Export the existing static house/stall builders at the origin, split by their actual palette-array identity.
  * Ordinals retain original triangle order when material slots are merged again. Equal RGB values never alias slots.
@@ -454,7 +455,12 @@ export function buildLayout(grid, parts, p, seed, kit) {
   for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) {
     const { type, turns } = grid[r][c], centre = [-250 + TILE * (c + 0.5), 250 - TILE * (r + 0.5)];
     const w = writer(parts, centre, turns, kit), build = BUILDERS[type];
-    build(w, p, type === 'C' || type === 'L' ? type : seed(r, c));
+    const variant = type === 'C' || type === 'L' ? type : seed(r, c);
+    if (kit?.placeArchitecture?.(w, type, variant) === true) {
+      // Replay only the defining collision recipe; GLB float storage cannot move a box or change registration order.
+      build({ tri: discardTriangle, triColours: discardTriangle, quad: discardTriangle, box: discardTriangle,
+        sides: discardTriangle, floor: discardTriangle, solid: w.solid }, p, variant);
+    } else build(w, p, variant);
     farTile(w, p, type);
     // NM7: string lights over the lanes between tiles (each tile strings its north and east seams when they are inside the
     // plot), on posts at the lane crossings' corners

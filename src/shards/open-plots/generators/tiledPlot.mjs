@@ -15,7 +15,7 @@ import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import { MeshoptDecoder } from 'meshoptimizer';
 import { readImagePixels, writeImagePixels } from '@wildshard/sdk/bake/image';
 import { buildLayout, parseLayout, paving, pool, Soup } from './kit.mjs';
-import { prepareLanternKit } from './kitGlb.mjs';
+import { preparePlotKit } from './kitGlb.mjs';
 
 /** sRGB hex to linear RGB */
 const linear = (hex) => [1, 3, 5].map(at => { const c = Number.parseInt(hex.slice(at, at + 2), 16) / 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; });
@@ -128,7 +128,7 @@ async function tiledPlot(root, repo, layoutName) {
     }
   }
   // the tiles; H and G pick their variant from the tile's place
-  buildLayout(grid, parts, palette, (r, c) => (r * 7 + c * 3) % 2, await prepareLanternKit(palette));
+  buildLayout(grid, parts, palette, (r, c) => (r * 7 + c * 3) % 2, await preparePlotKit(palette));
   // a pool at the plot's edge (an entry forecourt's lanterns) keeps to the cell: its rim (black, it adds nothing) stops at it
   const pools = parts.Pool.part('Pool').positions, EDGE = 249.5;
   for (let i = 0; i < pools.length; i += 3) for (const k of [0, 2]) pools[i + k] = Math.max(-EDGE, Math.min(EDGE, pools[i + k] ?? 0));

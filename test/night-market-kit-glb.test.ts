@@ -48,20 +48,23 @@ console.log(JSON.stringify(rows));`;
   expect(rows.every(row => row.bytes > 0 && row.bytes < 16_384)).toBe(true);
 });
 
-test('GLB placement preserves the full layout, seed order and exact source collision', () => {
+test.each([
+  { factory: 'prepareLanternKit', positionTolerance: 0.000002, normalTolerance: 0, exactRoles: ['Kit', 'Water', 'far', 'solid'] },
+  { factory: 'preparePlotKit', positionTolerance: 0.000008, normalTolerance: 0.0000002, exactRoles: ['Water', 'far', 'solid'] },
+])('GLB placement preserves full layout order and collision ($factory)', ({ factory, positionTolerance, normalTolerance, exactRoles }) => {
   const kit = new URL('../src/shards/open-plots/generators/kit.mjs', import.meta.url).href;
   const glb = new URL('../src/shards/open-plots/generators/kitGlb.mjs', import.meta.url).href;
   const program = `import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {buildLayout,parseLayout,Soup} from ${JSON.stringify(kit)};
-import {prepareLanternKit} from ${JSON.stringify(glb)};
+import {${factory}} from ${JSON.stringify(glb)};
 // A separate instance of the same pure builder gives both paths their initial moving-light seed stream.
 const source=readFileSync(new URL(${JSON.stringify(kit)}),'utf8');
 const original=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
 const layout=JSON.parse(readFileSync('src/shards/open-plots/data/layouts/night-market.json','utf8'));
 const linear=hex=>[1,3,5].map(at=>{const c=parseInt(hex.slice(at,at+2),16)/255;return c<=.04045?c/12.92:((c+.055)/1.055)**2.4});
 const palette=Object.fromEntries(Object.entries(layout.palette).map(([key,c])=>[key,linear(c)]));
-const prepared=await prepareLanternKit(palette);
+const prepared=await ${factory}(palette);
 const parts=()=>Object.fromEntries(['Kit','Glow','Pool','Water','far','solid'].map(key=>[key,new Soup()]));
 const a=parts(),b=parts(),seed=(r,c)=>(r*7+c*3)%2;
 original.buildLayout(parseLayout(layout.rows),a,palette,seed);
@@ -70,24 +73,31 @@ const rows=[];
 for(const role of Object.keys(a)){
  const name=role==='solid'?'Solid':role,ap=a[role].part(name),bp=b[role].part(name);
  assert.equal(ap.positions.length,bp.positions.length);
- for(const channel of ['normals','colours','uvs'])assert.deepEqual(new Float32Array(bp[channel]),new Float32Array(ap[channel]),role+' '+channel);
+ for(const channel of ['colours','uvs'])assert.deepEqual(new Float32Array(bp[channel]),new Float32Array(ap[channel]),role+' '+channel);
  if(role==='solid')assert.deepEqual(bp,ap);
  let error=0;
  const before=new Float32Array(ap.positions),after=new Float32Array(bp.positions);
  for(let i=0;i<before.length;i++)error=Math.max(error,Math.abs(before[i]-after[i]));
- rows.push({role,error,triangles:before.length/9});
+ let normalError=0;const normalsBefore=new Float32Array(ap.normals),normalsAfter=new Float32Array(bp.normals);
+ assert.equal(normalsBefore.length,normalsAfter.length);
+ for(let i=0;i<normalsBefore.length;i++)normalError=Math.max(normalError,Math.abs(normalsBefore[i]-normalsAfter[i]));
+ rows.push({role,error,normalError,triangles:before.length/9});
 }
 // Refuse before a writer sees a partial piece.
 let writes=0;const sink={triColours(){writes++}};
 assert.throws(()=>prepared.placeLantern(sink,0,0,3),/invalid placement/);
 assert.throws(()=>prepared.placeLantern(sink,Infinity,0,2.8),/invalid placement/);
+if(${factory === 'preparePlotKit'}){
+ assert.throws(()=>prepared.placeArchitecture(sink,'H',2),/invalid placement variant/);
+ assert.equal(prepared.placeArchitecture(sink,'G',0),false);
+}
 assert.equal(writes,0);
 console.log(JSON.stringify(rows));`;
   const output = execFileSync(process.execPath, ['--import', './scripts/bake-loader.mjs', '--input-type=module', '-e', program], { encoding: 'utf8' });
-  const rows = v.parse(v.array(v.object({ role: v.string(), error: v.number(), triangles: v.number() })), JSON.parse(output));
+  const rows = v.parse(v.array(v.object({ role: v.string(), error: v.number(), normalError: v.number(), triangles: v.number() })), JSON.parse(output));
   expect(rows.map(row => row.role)).toEqual(['Kit', 'Glow', 'Pool', 'Water', 'far', 'solid']);
-  // Ordinary GLB float32 storage: at most two micrometres after actual tile placement, no altered collision.
-  expect(rows.every(row => row.error <= 0.000002)).toBe(true);
-  expect(rows.filter(row => ['Kit', 'Water', 'far', 'solid'].includes(row.role)).every(row => row.error === 0)).toBe(true);
+  // Ordinary GLB float32 storage; collision and the original far/water recipes remain exact.
+  expect(rows.every(row => row.error <= positionTolerance && row.normalError <= normalTolerance)).toBe(true);
+  expect(rows.filter(row => exactRoles.includes(row.role)).every(row => row.error === 0)).toBe(true);
   expect(rows.every(row => row.triangles > 0)).toBe(true);
 });

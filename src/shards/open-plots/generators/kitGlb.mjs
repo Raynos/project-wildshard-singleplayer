@@ -80,3 +80,55 @@ export async function prepareLanternKit(palette) {
     },
   });
 }
+
+/** Decode existing architecture once and restore its original per-role triangle order after palette-slot grouping.
+ * Far stand-ins are checked here; the layout keeps drawing its original far and collision recipes. */
+export async function prepareArchitectureKit(palette) {
+  const pieces = new Map();
+  for (const [type, variant] of [['H', 0], ['H', 1], ['S', 0]]) {
+    const { bytes, bindings } = architectureGlb(type, palette, variant);
+    const materials = Object.fromEntries([...bindings.keys(), 'collision'].map(name => [name, 'kit']));
+    const decoded = await normalizeWorldGlb(bytes, { glb: 'architecture.glb', materials, colliders: 'nodes:collide_', far: 'far_' }, ['kit']);
+    const roles = new Map();
+    for (const row of decoded.static) {
+      const binding = bindings.get(row.node);
+      if (binding === undefined || row.colours === null || row.colours.length !== row.positions.length
+        || row.indices.length !== binding.ordinals.length * 3) throw new Error('open-plots architecture: incomplete palette geometry');
+      let triangles = roles.get(binding.role);
+      if (triangles === undefined) { triangles = []; roles.set(binding.role, triangles); }
+      for (let i = 0; i < binding.ordinals.length; i++) {
+        triangles.push({ ordinal: binding.ordinals[i], at: i * 3, positions: row.positions, colours: row.colours, indices: row.indices });
+      }
+    }
+    for (const triangles of roles.values()) {
+      triangles.sort((a, b) => a.ordinal - b.ordinal);
+      if (triangles.some((triangle, i) => triangle.ordinal !== i)) throw new Error('open-plots architecture: invalid triangle order');
+    }
+    const farTriangles = decoded.far.reduce((count, row) => count + row.indices.length / 3, 0);
+    if (farTriangles === 0 || farTriangles > 40 || decoded.collision.length !== 1) throw new Error('open-plots architecture: invalid far or collision piece');
+    pieces.set(`${type}/${variant}`, roles);
+  }
+  return Object.freeze({
+    placeArchitecture(w, type, variant) {
+      if (type !== 'H' && type !== 'S') return false;
+      const roles = pieces.get(`${type}/${type === 'S' ? 0 : variant}`);
+      if (roles === undefined) throw new Error('open-plots architecture: invalid placement variant');
+      for (const [role, triangles] of roles) for (const { at, positions, colours, indices } of triangles) {
+        const points = [], rgb = [];
+        for (let corner = 0; corner < 3; corner++) {
+          const i = indices[at + corner] * 3;
+          points.push([positions[i], positions[i + 1], positions[i + 2]]);
+          rgb.push([colours[i], colours[i + 1], colours[i + 2]]);
+        }
+        w.triColours(role, points[0], points[1], points[2], rgb);
+      }
+      return true;
+    },
+  });
+}
+
+/** Owned build-time kit; no decoded buffers, placement callbacks or decoder services enter the product. */
+export async function preparePlotKit(palette) {
+  const lanterns = await prepareLanternKit(palette), architecture = await prepareArchitectureKit(palette);
+  return Object.freeze({ ...lanterns, ...architecture });
+}
