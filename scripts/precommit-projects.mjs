@@ -17,7 +17,7 @@ export function stagedFiles(root) {
   }));
   /** @type {Map<string, string>} */
   const cache = new Map();
-  return { paths: [...entries.keys()], read(/** @type {string} */ name) {
+  return { paths: [...entries.keys()], blobs: entries, read(/** @type {string} */ name) {
     const oid = entries.get(name);
     if (oid === undefined) return undefined;
     if (!cache.has(name)) cache.set(name, git(['cat-file', 'blob', oid]));

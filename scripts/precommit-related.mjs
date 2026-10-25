@@ -6,33 +6,10 @@ import { relative, resolve } from 'node:path';
 import { runCommitJobs } from './precommit-jobs.mjs';
 import { stagedFiles, stagedProjectFailures, stagedProjects } from './precommit-projects.mjs';
 import { selectRelatedSuites } from './precommit-selection.mjs';
+import { candidateImportSources } from './precommit-imports.mjs';
 
 const SOURCE = /^(?:src|test|scripts)\//u;
 const TEXT = /\.(?:[cm]?[jt]sx?|json|glsl|wgsl|css)$/u;
-
-/** Read candidate modules in one Git process, rather than one child per file.
- * The index stays authoritative, including semantic-patch commits.
- * @param {string} root @param {string[]} paths */
-function candidateSources(root, paths) {
-  const modules = paths.filter(file => /\.[cm]?[jt]sx?$/u.test(file) || /^src\/[^/]+\/package\.json$/u.test(file));
-  /** @type {Map<string, string>} */
-  const sources = new Map();
-  if (modules.length === 0) return sources;
-  const env = resolve(root) === process.cwd() ? process.env
-    : Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_')));
-  const bytes = execFileSync('git', ['cat-file', '--batch'], { cwd: root, env,
-    input: modules.map(file => `:${file}\n`).join(''), maxBuffer: 1 << 28 });
-  let offset = 0;
-  for (const file of modules) {
-    const end = bytes.indexOf(10, offset), header = bytes.subarray(offset, end).toString('utf8');
-    const match = /^[0-9a-f]+ blob (\d+)$/u.exec(header), size = Number(match?.[1]);
-    if (end === -1 || match === null || !Number.isSafeInteger(size) || size < 0 || end + 1 + size >= bytes.length)
-      throw new Error(`Missing candidate module ${file}`);
-    sources.set(file, bytes.subarray(end + 1, end + 1 + size).toString('utf8'));
-    offset = end + 1 + size + 1;
-  }
-  return sources;
-}
 
 /** Consume one invocation budget, including time already spent waiting for the
  * commit lock and running mandatory guards. Direct callers get the same cap.
@@ -85,7 +62,9 @@ export async function relatedWorker(root, files) {
   const { WS_COMMIT_RELATED_TOKEN: token } = process.env;
   const staged = stagedFiles(root);
   const selecting = performance.now();
-  const selection = selectRelatedSuites(candidateSources(root, staged.paths), files, staged.paths);
+  const candidate = candidateImportSources(root, staged);
+  const selection = selectRelatedSuites(candidate.sources, files, staged.paths, 20, candidate.imports);
+  console.info(`CF1: import syntax cache ${candidate.hits} hits / ${candidate.misses} parses`);
   process.argv.splice(2, process.argv.length - 2, 'run', ...selection.files);
   console.info(`CF1: ${selection.direct.length} staged/direct suites + ${selection.nearest.length} nearest importer suites; ${selection.omitted} further related suites remain in full CI`);
   console.info(`CF1: candidate import selection ${(performance.now() - selecting).toFixed(0)} ms`);

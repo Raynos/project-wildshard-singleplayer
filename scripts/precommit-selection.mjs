@@ -11,8 +11,9 @@ const stem = (/** @type {string} */ path) => posix.basename(path).replace(/\.(?:
  * @param {ReadonlyMap<string, string>} sources
  * @param {readonly string[]} changed
  * @param {readonly string[]} [paths]
- * @param {number} [limit] */
-export function selectRelatedSuites(sources, changed, paths = [...sources.keys()], limit = 20) {
+ * @param {number} [limit]
+ * @param {ReadonlyMap<string, readonly string[]>} [imports] */
+export function selectRelatedSuites(sources, changed, paths = [...sources.keys()], limit = 20, imports = new Map()) {
   if (!Number.isSafeInteger(limit) || limit < 0) throw new Error('Invalid nearest-suite limit');
   const present = new Set(paths);
   /** @type {Map<string, string>} */
@@ -45,11 +46,11 @@ export function selectRelatedSuites(sources, changed, paths = [...sources.keys()
   };
   for (const [file, text] of sources) {
     if (!MODULE.test(file)) continue;
-    for (const imported of ts.preProcessFile(text, true, true).importedFiles) {
-      const dependency = target(file, imported.fileName);
+    for (const imported of imports?.get(file) ?? ts.preProcessFile(text, true, true).importedFiles.map(row => row.fileName)) {
+      const dependency = target(file, imported);
       if (dependency === null) continue;
       add(dependency, file);
-      const layer = /^@wildshard\/([^/]+)\//u.exec(imported.fileName)?.[1];
+      const layer = /^@wildshard\/([^/]+)\//u.exec(imported)?.[1];
       if (layer !== undefined) add(`src/${layer}/package.json`, file);
     }
   }
