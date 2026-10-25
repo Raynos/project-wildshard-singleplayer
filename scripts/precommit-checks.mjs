@@ -8,18 +8,10 @@ import { ratchetApprovalFailures } from './ratchet-approval.mjs';
 import { linkNodeModules } from './link-node-modules.mjs';
 import { legacyInventory, registeredLegacyFile } from './legacy-shards.mjs';
 
-/** Preserve ordinary rules; only the two approved whole-program rules defer.
+/** Preserve syntax rules; type-aware rules stay in the separate typed gate.
  * @param {unknown} raw */
 export function fastCommitLintConfig(raw) {
-  const config = untypedLintConfig(raw);
-  const serialized = JSON.stringify(config);
-  const expensive = Object.fromEntries(['wildshard/no-authored-html', 'wildshard/no-shard-host-callback']
-    .filter(rule => serialized.includes(`"${rule}"`)).map(rule => [rule, 'off']));
-  const overrides = Reflect.get(config, 'overrides');
-  const rules = Reflect.get(config, 'rules');
-  Object.assign(config, { rules: { ...(typeof rules === 'object' && rules !== null ? rules : {}), ...expensive },
-    overrides: [...(Array.isArray(overrides) ? overrides : []), { files: ['**/*'], rules: expensive }] });
-  return config;
+  return untypedLintConfig(raw);
 }
 
 /** @param {string[]} files @param {string} executable */

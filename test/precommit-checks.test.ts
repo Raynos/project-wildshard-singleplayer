@@ -11,14 +11,14 @@ import { commitCheckFailed, commitGuards, runCommitJobs } from '../scripts/preco
 import { fastCommitLintConfig } from '../scripts/precommit-checks.mjs';
 import { precommitInputs } from '../scripts/precommit-inputs.mjs';
 
-test('fast lint retains custom rules and overrides except the two approved whole-program rules', () => {
+test('fast lint retains rewritten syntax rules and overrides', () => {
   const original = { options: { typeAware: true, reportUnusedDisableDirectives: 'error' },
     jsPlugins: ['./lint/wildshard-plugin.js'], rules: { 'wildshard/no-authored-html': 'error', 'wildshard/no-shard-branch': 'error' },
     overrides: [{ files: ['src/**'], rules: { 'wildshard/no-shard-host-callback': 'error' } }] };
   const config = fastCommitLintConfig(structuredClone(original));
   expect(config.options).toMatchObject({ typeAware: false, reportUnusedDisableDirectives: 'off' });
-  expect(config['rules']).toEqual({ 'wildshard/no-authored-html': 'off', 'wildshard/no-shard-host-callback': 'off', 'wildshard/no-shard-branch': 'error' });
-  expect(config['overrides']).toEqual([...original.overrides, { files: ['**/*'], rules: { 'wildshard/no-authored-html': 'off', 'wildshard/no-shard-host-callback': 'off' } }]);
+  expect(config['rules']).toEqual(original.rules);
+  expect(config['overrides']).toEqual(original.overrides);
   expect(original.options.typeAware).toBe(true);
 });
 

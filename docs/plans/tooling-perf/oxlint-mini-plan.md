@@ -1,7 +1,8 @@
 # oxlint speed: mini plan (TOOLING-PERF, G634/G636)
 
-**State:** `in flight` 2026-10-25 (sp-x9, G709). R1/R2 and G715 loading
-U1 → U2 → U4 are done; R3–R5 are current. The original
+**State:** `in flight` 2026-10-25 (sp-x9, G709). R1–R3/R5 are done;
+R4's cost target stays open on the generator migration. G715 loading
+U1 → U2 → U4's first acceptance is done; sp-x2 owns the current-HEAD follow-up. The original
 benchmark below is historical (mirror at 6f6add1, 5,799 files, 18-core shared
 Mac, ±30% noise); current measurements and later rulings follow the rows.
 
@@ -39,9 +40,9 @@ JSON: full 10.3 s / 8 GB. Full typed + full JS plugin in one run: 180 s / 12.7 G
 |---|---|---|
 | R1 | **done (2026-10-24, sp-x9):** `lint:fast`: today's config with `typeAware: false`, unused-directive reporting off, the 2 heavy JS rules removed (reuse `scripts/push-lint-config.mjs` `untypedLintConfig()`) | Actual full fast lint 7.72 s; 20 engine files 0.44 s, both green. Fast config imports no TypeScript library; CLI-only JSONC parsing remains unchanged. |
 | R2 | **done (2026-10-24, sp-x9):** pre-commit runs the shared fast config against exact staged files in G636's parallel set | Real no-eval refusal with bad staged bytes hidden by clean unstaged text; working text/index unchanged. Eight related cases / two suites plus named types and typed lint pass. Fast and typed attempts stay separate; existing explicit deadline deferral remains. |
-| R3 | **in flight (2026-10-25, sp-x9):** remove the custom rules' private TypeScript programs (G642). G675 keeps typed lint in CI; retain five partitions until measured cost permits consolidation. Slices below. | current full typed cost supports safe CI scheduling; no local push typed gate |
-| R4 | **open; G655 supersedes G643:** keep authored JSON typed; generated files are never imported (GR0). Audit current generated-input dependencies before changing CI partitions. | full typed lint ≤ 15 s / ≤ 8 GB |
-| R5 | Fix the real error at HEAD: `src/game/riding/client.ts:26` duplicate import of `./taming` | lint clean |
+| R3 | **done (2026-10-25, sp-x9):** both custom rules use syntax, with no private TypeScript program (G642). Full typed lint passes in 29.87 s / 10,229,350,400 B max RSS, 6,402 files. Retain all five CI partitions; the memory target is unmet. Both rewritten rules now run in fast lint. G675 keeps typed lint in CI. | current full typed cost supports safe CI scheduling; no local push typed gate |
+| R4 | **open, dependency on GR source migration; G655 supersedes G643:** authored JSON stays typed. Read-only config census finds 443 generated JSON roots / 122,264,132 B in the shard project (914 JSON roots / 135,548,644 B total), plus 59,017 B of declared generated game JSON. GR0 still records 978 allowed import sites across 501 files; this is debt, not proof every allowance is live. No ambient-unknown escape, broad exclusion or legacy-path change. Keep five CI partitions until the generated inputs are removed and the target passes. | full typed lint ≤ 15 s / ≤ 8 GB |
+| R5 | **done (`b2a97d96a0`, independently verified 2026-10-25):** the defining fix already merged `TamingSession` and `TamingPrograms` into one `./taming` import. Current named typed lint passes; no further edit. | lint clean |
 
 ### R3 slices (2026-10-25, G711)
 
@@ -49,12 +50,13 @@ JSON: full 10.3 s / 8 GB. Full typed + full JS plugin in one run: 180 s / 12.7 G
 |---|---|---|
 | R3.1 | done (sp-x9, `e2d40b583f` + `7fcb4f8917`) | Host callback lint uses the supplied AST plus syntax of reachable imports; the typed host catalogue stays a build tool. Alias, inherited-method, forwarded-type, shadowing, refusal and compiler-import tests preserve admission fences. |
 | R3.2 | done (sp-x9, this commit) | HTML lint uses the supplied AST and shared lexical resolver; numeric/boolean provenance, exact trusted ports, writes and private-helper callers stay checked. Unknowns refuse; a name-filtered syntax census detects open interface merges for `keyof`. Both analyzers report zero sites on 451 candidate files (448 have unchanged source bytes); the source-stable hostile kernel has 200 identical diagnostics. |
-| R3.3 | in flight (sp-x9) | Re-measure the complete typed path after both rewrites and R4; keep all five CI partitions until justified. Fast-rule admission remains a separate measured boundary. |
+| R3.3 | done (sp-x9, this commit) | Complete typed path passes at 29.87 s / 10.23 GB max RSS. Five CI partitions stay. Fast lint with both rewritten rules passes at 9.91 / 9.74 s (rules off: 6.43 / 6.22 s), inside G655's 6–10 s budget. Real CLI refuses unsafe HTML and shard callbacks; ordinary fast-config overrides remain intact. |
 
 ### Current-source boundary (2026-10-24)
 
-R1 already shares the staged fast config, excludes generated outputs and disables
-only the two approved whole-program rules. The import refusal fixture now also
+R1 originally shared the staged fast config, excluded generated outputs and disabled
+the two approved whole-program rules. R3 removes those temporary exclusions after
+their syntax rewrites and full fast-path measurements. The import refusal fixture also
 prevents an eager TypeScript-library load on that path. Seven alternating
 source-hashed pairs reduce config-module import median 86.71→29.69 ms; this
 is startup overhead, not a full-lint speed claim. No rule is weakened.
@@ -63,10 +65,12 @@ R2 adds an exact-index regression rather than another hook path: ordinary staged
 lint errors refuse even when the working copy is clean. The typed attempt still
 runs separately under G636; no hook rule, deadline or deferral is changed.
 
-Before R3, retain the five-way CI partition introduced by `7a507f252e` after
-three full-program runner shutdowns. One current complete typed invocation is
-still 58.36 s / 11,112,628,224 B maximum RSS on this Mac (6,338 files, green),
-so replacing it with one CI job is not yet justified. G675 also supersedes
+Retain the five-way CI partition introduced by `7a507f252e` after three
+full-program runner shutdowns. The pre-R3 complete typed invocation was
+58.36 s / 11,112,628,224 B max RSS (6,338 files); the post-R3 invocation is
+29.87 s / 10,229,350,400 B (6,402 files), both green. These are shared-tree
+readings with different inputs, not an isolated speedup. Memory remains over
+R4's 8 GB target, so one CI job is not yet justified. G675 also supersedes
 R3's local push typed-lint requirement: typed lint remains a full CI gate.
 R4's generated-input dependency must be resolved before consolidating CI.
 

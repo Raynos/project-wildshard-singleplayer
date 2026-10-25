@@ -7,6 +7,7 @@ import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- invoke the current runtime and preserve the executable path
 import { env, execPath } from 'node:process';
 import { expect, test } from 'vitest';
+import { fastCommitLintConfig } from '../scripts/precommit-checks.mjs';
 
 test('fast lint shares staged rules, propagates refusals and cleans each private config',()=>{
  mkdirSync('tmp',{recursive:true});const fixture=mkdtempSync(resolve('tmp/lint-fast-'));
@@ -28,9 +29,8 @@ registerHooks({resolve(specifier,context,nextResolve){
   const called:unknown=JSON.parse(readFileSync(resolve(fixture,'called.json'),'utf8'));
   expect(called).toEqual({args:['--threads=2','-c',expect.stringMatching(/^\.commit-fast-lint-\d+\.json$/u),'src/one.ts','src/two.ts'],
    config:{options:{typeAware:false,reportUnusedDisableDirectives:'off'},
-    rules:{'wildshard/no-authored-html':'off','wildshard/no-shard-host-callback':'off','wildshard/no-shard-branch':'error'},
-    overrides:[{files:['src/**'],rules:{'wildshard/no-shard-host-callback':'error'}},
-     {files:['**/*'],rules:{'wildshard/no-authored-html':'off','wildshard/no-shard-host-callback':'off'}}]}});
+    rules:{'wildshard/no-authored-html':'error','wildshard/no-shard-branch':'error'},
+    overrides:[{files:['src/**'],rules:{'wildshard/no-shard-host-callback':'error'}}]}});
   expect(run([]).status).toBe(0);
   const whole:unknown=JSON.parse(readFileSync(resolve(fixture,'called.json'),'utf8'));
   expect(whole).toMatchObject({args:['--threads=2','-c',expect.stringMatching(/^\.commit-fast-lint-\d+\.json$/u)]});
@@ -44,4 +44,27 @@ registerHooks({resolve(specifier,context,nextResolve){
   expect(run(['--type-aware']).status).toBe(2);
   expect(readdirSync(fixture).some(name=>name.startsWith('.commit-fast-lint-'))).toBe(false);
  }finally{rmSync(fixture,{recursive:true,force:true});}
+});
+
+test('fast syntax rules refuse unsafe HTML and shard callbacks',()=>{
+ mkdirSync('tmp',{recursive:true});const root=mkdtempSync(resolve('tmp/fast-syntax-'));
+ try{
+  mkdirSync(resolve(root,'src/game'),{recursive:true});
+  mkdirSync(resolve(root,'src/shards/sample/runtime'),{recursive:true});
+  writeFileSync(resolve(root,'src/game/host.ts'),'export function host(value:unknown){return value;}');
+  const file='src/shards/sample/runtime/play.ts';
+  writeFileSync(resolve(root,file),`import {host} from '../../../game/host';
+declare const untrusted:string;document.body.innerHTML=untrusted;host({tick(){}});`);
+  writeFileSync(resolve(root,'lint.json'),JSON.stringify(fastCommitLintConfig({options:{typeAware:true},
+   jsPlugins:[resolve('lint/wildshard-plugin.js')],categories:{correctness:'off'},
+   rules:{'wildshard/no-authored-html':'error','wildshard/no-shard-host-callback':'error'}})));
+  const run=()=>spawnSync(execPath,[resolve('node_modules/oxlint/bin/oxlint'),'-c','lint.json','-f','json',file],
+   {cwd:root,encoding:'utf8',env});
+  const bad=run();expect(bad.status,bad.stderr).toBe(1);
+  expect(bad.stdout).toContain('no-authored-html');
+  expect(bad.stdout).toContain('no-shard-host-callback');
+  writeFileSync(resolve(root,file),`import {host} from '../../../game/host';
+document.body.textContent='plain';host({amount:1});`);
+  const good=run();expect(good.status,good.stderr).toBe(0);
+ }finally{rmSync(root,{recursive:true,force:true});}
 });
