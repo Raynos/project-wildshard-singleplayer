@@ -11,6 +11,9 @@ import { TEST_DOMAIN_RUNTIME_RULES } from '../lint/wildshard-plugin.js';
 test('colocated fixtures keep product guards in production and architecture guards in tests', () => {
   mkdirSync('tmp', { recursive: true }); const root = mkdtempSync(resolve('tmp/test-domain-'));
   const put = (path: string, source: string): string => { const file = resolve(root, path); mkdirSync(dirname(file), { recursive: true }); writeFileSync(file, source); return file; };
+  // The real HTML rule owns a typed source census rooted at the child cwd.
+  // Keep that census inside this fixture, rather than the full game checkout.
+  put('tsconfig.json', JSON.stringify({ compilerOptions: { strict: true, types: [], target: 'ES2022', module: 'ESNext', moduleResolution: 'bundler' }, include: ['src'] }));
   const config = put('config.json', JSON.stringify({ jsPlugins: [resolve('lint/wildshard-plugin.js')], categories: { correctness: 'off' }, rules: {
     ...Object.fromEntries(TEST_DOMAIN_RUNTIME_RULES.map(name => [`wildshard/${name}`, 'error'])),
     'wildshard/layer': 'error', 'wildshard/no-module-mock': 'error', 'wildshard/no-production-test-import': 'error', 'wildshard/generator-imports': 'error',
@@ -23,7 +26,7 @@ test('colocated fixtures keep product guards in production and architecture guar
     'wildshard/layer': 'error', 'wildshard/no-module-mock': 'error', 'wildshard/no-production-test-import': 'error', 'wildshard/generator-imports': 'error',
   } }));
   const run = (files: readonly string[], selected = config): ReturnType<typeof spawnSync> => spawnSync(resolve('node_modules/.bin/oxlint'),
-    ['--threads=1', '--no-ignore', '-c', selected, '-f', 'json', ...files], { encoding: 'utf8', timeout: 10_000 });
+    ['--threads=1', '--no-ignore', '-c', selected, '-f', 'json', ...files], { cwd: root, encoding: 'utf8', timeout: 10_000 });
   const code = 'const label = "Pine loot"; const node = document.createElement("div"); node.textContent = "Play now"; node.innerHTML = document.title; document.body.appendChild(node); export { label };';
   const rejected: { file: string; rules: readonly string[] }[] = [];
   const refuses = (path: string, source: string, rules: readonly string[]): void => { rejected.push({ file: put(path, source), rules }); };
@@ -55,7 +58,7 @@ test('colocated fixtures keep product guards in production and architecture guar
       expect(result.status, String(result.error ?? '') + String(result.stdout) + String(result.stderr)).toBe(1);
       const output = v.parse(v.object({ diagnostics: v.array(v.object({ filename: v.string(), code: v.string() })) }), JSON.parse(String(result.stdout)));
       for (const row of rows) {
-        const codes = output.diagnostics.filter(diagnostic => resolve(diagnostic.filename) === row.file).map(diagnostic => diagnostic.code);
+        const codes = output.diagnostics.filter(diagnostic => resolve(root, diagnostic.filename) === row.file).map(diagnostic => diagnostic.code);
         for (const rule of row.rules) expect(codes, row.file).toContain(`wildshard(${rule})`);
       }
     }
