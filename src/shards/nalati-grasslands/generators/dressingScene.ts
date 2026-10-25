@@ -59,8 +59,8 @@ const cragDecoded=Math.max(...Object.values(cragRows).flatMap(tier=>tier.meshes.
   return part.offset+row.attrs.reduce((bytes,attribute)=>bytes+row.count*attribute[2]*4,0)+(row.index===null?0:row.indexCount*4);
 })));
 export const DRESSING_PLACE_DECODED=preparedInput.places.bytes;
+export const DRESSING_CRAG_DECODED=cragDecoded;
 export const DRESSING_BAKE_SOURCES=[
-  {name:'world/crags.bin',kind:'bin' as const,source:'data/crags.generated.bin',options:{decoded:cragDecoded}},
   {name:'world/dressing.bin',kind:'bin' as const,source:'data/dressing.generated.bin',options:{decoded:preparedInput.dressing.bytes}},
 ];
 const cover=v.parse(coverSchema,coverInput);

@@ -1,5 +1,5 @@
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
-import { nalatiPlaceBlob } from './placeBlobProgram';
+import { nalatiBakeBlob } from './placeBlobProgram';
 import {AudioSceneSchema} from '@wildshard/format/audioScene';
 import {AUDIO_SCENE as audioSceneInput} from './product';
 import { nalatiPhysicsSources } from './physics';
@@ -25,7 +25,7 @@ import { strike } from '@wildshard/sdk/species';
 import finds from '../data/finds.generated.json' with {type:'json'};
 import { coverSpecimenBlobs } from './coverSpecimens';
 import { TREE_SET } from './treeSet';
-import { DRESSING_CONTACT_SOURCES, DRESSING_FLOOR_SOURCES, DRESSING_SPECIMEN_SOURCES, DRESSING_ATLAS_SOURCES, DRESSING_BAKE_SOURCES, DRESSING_PLACE_DECODED, dressingSceneBlobs } from './dressingScene';
+import { DRESSING_CONTACT_SOURCES, DRESSING_FLOOR_SOURCES, DRESSING_SPECIMEN_SOURCES, DRESSING_ATLAS_SOURCES, DRESSING_BAKE_SOURCES, DRESSING_PLACE_DECODED, DRESSING_CRAG_DECODED, dressingSceneBlobs } from './dressingScene';
 import * as v from 'valibot';
 import { carriedQuestRows, CARRIED_QUEST_SOURCES } from './carriedQuest';
 import { CarriedQuestSchema } from '@wildshard/format/questSteps';
@@ -191,6 +191,7 @@ export const output={blobs:[{name:'held/slots.json',kind:'json' as const,source:
 
 /** Own the existing places binary through the injected build reader, with unchanged admission costs. */
 export async function prepareOutput(ctx: ProjectGenerationContext): Promise<typeof output> {
-  const places = await nalatiPlaceBlob(ctx, DRESSING_PLACE_DECODED);
-  return { ...output, namedFiles: [...output.namedFiles, places.file], assets: new Map([...output.assets, [places.file.hash, places.bytes]]) };
+  const places = await nalatiBakeBlob(ctx, 'places', DRESSING_PLACE_DECODED);
+  const crags = await nalatiBakeBlob(ctx, 'crags', DRESSING_CRAG_DECODED);
+  return { ...output, namedFiles: [...output.namedFiles, places.file, crags.file], assets: new Map([...output.assets, [places.file.hash, places.bytes], [crags.file.hash, crags.bytes]]) };
 }

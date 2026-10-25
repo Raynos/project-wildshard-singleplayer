@@ -16,8 +16,8 @@ import { zlibSync, unzlibSync } from 'fflate';
 import { writeGeometry, join } from '../src/shards/nalati-grasslands/generators/geometryWriter';
 import * as v from 'valibot';
 import { SceneDressingSchema } from '../src/format/sceneDressing';
-import { DRESSING_BAKE_SOURCES, DRESSING_PLACE_DECODED, dressingScene } from '../src/shards/nalati-grasslands/generators/dressingScene';
-import { nalatiPlaceBlob } from '../src/shards/nalati-grasslands/generators/placeBlobProgram';
+import { DRESSING_BAKE_SOURCES, DRESSING_PLACE_DECODED, DRESSING_CRAG_DECODED, dressingScene } from '../src/shards/nalati-grasslands/generators/dressingScene';
+import { nalatiBakeBlob } from '../src/shards/nalati-grasslands/generators/placeBlobProgram';
 import { isJsonData } from '../src/format/json';
 import { readBakedGeometry } from '../src/game/plugin/geometry';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
@@ -167,9 +167,12 @@ test('geometry source addresses remain binary while the JSON address word stays 
 
 test('Nalati logical bakes admit the exact shipping compressed bytes and decoded costs',async()=>{
   const sources=await Promise.all(DRESSING_BAKE_SOURCES.map(source=>readNamedBlob('src/shards/nalati-grasslands',source.name,source.source,source.kind,source.options)));
-  sources.push(await nalatiPlaceBlob({cached:(_step,generate)=>Promise.resolve(generate(new Map([
+  sources.push(await nalatiBakeBlob({cached:(_step,generate)=>Promise.resolve(generate(new Map([
     ['/assets/nalati/baked/places.bin',readFileSync('public/assets/nalati/baked/places.bin')],
-  ])))},DRESSING_PLACE_DECODED));
+  ])))},'places',DRESSING_PLACE_DECODED));
+  sources.push(await nalatiBakeBlob({cached:(_step,generate)=>Promise.resolve(generate(new Map([
+    ['/assets/nalati/baked/crags.bin',readFileSync('public/assets/nalati/baked/crags.bin')],
+  ])))},'crags',DRESSING_CRAG_DECODED));
   expect(sources.map(source=>source.file.name).sort((a,b)=>(a??'').localeCompare(b??''))).toEqual(['world/crags.bin','world/dressing.bin','world/places.bin']);
   for(const admitted of sources){
     const name=admitted.file.name?.slice('world/'.length),original=readFileSync(`public/assets/nalati/baked/${name}`);

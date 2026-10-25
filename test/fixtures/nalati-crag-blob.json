@@ -1,0 +1,13 @@
+{
+  "name": "world/crags.bin",
+  "path": "blobs/bin/b170a9e2cc394d78b269bd3abbc6b0ad361db40c06b91aed2c2be8ebd5463b6e.bin",
+  "kind": "bin",
+  "hash": "b170a9e2cc394d78b269bd3abbc6b0ad361db40c06b91aed2c2be8ebd5463b6e",
+  "compressed": 2087994,
+  "decoded": 7152600,
+  "gpu": 0,
+  "triangles": 0,
+  "draws": 0,
+  "critical": false,
+  "dependencies": []
+}

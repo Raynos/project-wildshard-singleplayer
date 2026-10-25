@@ -7,13 +7,15 @@ import { build } from 'vite';
 import { createProjectGeneration } from '../src/sdk/projectGeneration';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
-import { nalatiPlaceBlob } from '../src/shards/nalati-grasslands/generators/placeBlobProgram';
+import { nalatiBakeBlob } from '../src/shards/nalati-grasslands/generators/placeBlobProgram';
 import { prepareOutput } from '../src/shards/nalati-grasslands/generators/output';
 import original from './fixtures/nalati-place-blob.json' with { type: 'json' };
+import cragOriginal from './fixtures/nalati-crag-blob.json' with { type: 'json' };
 import { discoverGeneration } from '../scripts/generate.mjs';
 
 test('the duplicate places-copy job stays retired', () => {
-  expect(discoverGeneration(resolve('.')).jobs.map(job => job.id)).not.toContain('nalati-places-blob');
+  const jobs = discoverGeneration(resolve('.')).jobs.map(job => job.id);
+  expect(jobs).not.toContain('nalati-places-blob'); expect(jobs).not.toContain('nalati-crags-blob');
 });
 
 test('the actual output hook preserves every predecessor file cost and binary byte on cold and cache hit', async () => {
@@ -22,7 +24,7 @@ test('the actual output hook preserves every predecessor file cost and binary by
     [{ prefix: '/assets/nalati/baked/', directory: resolve('public/assets/nalati/baked') }]);
   const before = readFileSync('public/assets/nalati/baked/places.bin');
   try {
-    const cold = await nalatiPlaceBlob(context(), original.decoded);
+    const cold = await nalatiBakeBlob(context(), 'places', original.decoded);
     expect(cold.file).toEqual(original); expect(Buffer.compare(cold.bytes, before)).toBe(0);
     cold.bytes.fill(0);
     const hit = await prepareOutput(context());
@@ -32,13 +34,19 @@ test('the actual output hook preserves every predecessor file cost and binary by
     if (bytes === undefined) throw new Error('Output lost the owned places bytes');
     expect(bytes.length).toBe(original.compressed); expect(hashImmutableBytes(bytes)).toBe(original.hash);
     expect(Buffer.compare(bytes, before)).toBe(0);
+    expect(hit.namedFiles.filter(file => file.name === 'world/crags.bin')).toEqual([cragOriginal]);
+    expect(hit.blobs.some(file => file.name === 'world/crags.bin')).toBe(false);
+    const crags = hit.assets.get(cragOriginal.hash);
+    if (crags === undefined) throw new Error('Output lost the owned crag bytes');
+    expect(crags.length).toBe(cragOriginal.compressed); expect(hashImmutableBytes(crags)).toBe(cragOriginal.hash);
+    expect(Buffer.compare(crags, readFileSync('public/assets/nalati/baked/crags.bin'))).toBe(0);
   } finally { rmSync(cache, { recursive: true, force: true }); }
 });
 
 test('missing authored and owned bytes refuse before output publication', async () => {
-  await expect(nalatiPlaceBlob({ cached: (_step, generate) => Promise.resolve(generate(new Map())) }, original.decoded)).rejects.toThrow('Missing authored places binary');
-  await expect(nalatiPlaceBlob({ cached: () => Promise.resolve(new Map()) }, original.decoded)).rejects.toThrow('Missing owned places binary');
-  await expect(nalatiPlaceBlob({ cached: () => Promise.resolve(new Map([['places.bin', new Uint8Array(1)], ['extra', new Uint8Array(1)]])) }, original.decoded)).rejects.toThrow('Missing owned places binary');
+  await expect(nalatiBakeBlob({ cached: (_step, generate) => Promise.resolve(generate(new Map())) }, 'places', original.decoded)).rejects.toThrow('Missing authored places binary');
+  await expect(nalatiBakeBlob({ cached: () => Promise.resolve(new Map()) }, 'places', original.decoded)).rejects.toThrow('Missing owned places binary');
+  await expect(nalatiBakeBlob({ cached: () => Promise.resolve(new Map([['places.bin', new Uint8Array(1)], ['extra', new Uint8Array(1)]])) }, 'places', original.decoded)).rejects.toThrow('Missing owned places binary');
 });
 
 test('the owned places source stays in one config-safe author chunk', async () => {

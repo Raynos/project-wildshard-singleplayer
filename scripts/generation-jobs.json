@@ -14928,31 +14928,6 @@
       "platform": "native"
     },
     {
-      "id": "nalati-crags-blob",
-      "shard": "nalati-grasslands",
-      "entry": "src/shards/nalati-grasslands/generators/bake-dressing-bakes.mjs",
-      "command": [
-        "src/sdk/bake/json.mjs",
-        "src/shards/nalati-grasslands/generators/bake-dressing-bakes.mjs",
-        "cragBytes",
-        "src/shards/nalati-grasslands/data/crags.generated.bin",
-        "--bytes"
-      ],
-      "inputRoots": [
-        "src/shards/nalati-grasslands/generators/bake-dressing-bakes.mjs",
-        "src/sdk/bake/json.mjs",
-        "public/assets/nalati/baked/crags.bin"
-      ],
-      "outputs": [
-        "src/shards/nalati-grasslands/data/crags.generated.bin"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/nalati-grasslands/data/crags.generated.bin"
-      ],
-      "platform": "portable",
-      "seedOutputs": []
-    },
-    {
       "id": "nalati-dressing-blob",
       "shard": "nalati-grasslands",
       "entry": "src/shards/nalati-grasslands/generators/bake-dressing-bakes.mjs",
