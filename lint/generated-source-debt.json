@@ -2903,7 +2903,6 @@
     "src/shards/sunscar-dunes/assets/runtimeBoot.generated.json",
     "src/shards/sunscar-dunes/data/drapeGround.generated.json",
     "src/shards/sunscar-dunes/data/questPage.generated.json",
-    "src/shards/sunscar-dunes/data/restPools.generated.json",
     "src/shards/sunscar-dunes/data/worldBakes.generated.json"
   ]
 }

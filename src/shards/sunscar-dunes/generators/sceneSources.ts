@@ -8,7 +8,6 @@ import { QUEST_NPC } from './questNpc';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import type { SceneModelSource, SceneBakeSource } from '@wildshard/game/shardfile/sceneSources';
 import * as models from './rows/files';
-import rest from '../data/restPools.generated.json' with { type: 'json' };
 import { SIGNAL_PIECES as pieces } from './rows/pieces';
 import * as surfaces from './rows/surfaces';
 import { SIGNAL_MODEL_SPECIMENS } from './rows/rigLibrary';
@@ -45,9 +44,8 @@ const inputs = { dusk: 'dusk', lights: 'firelights' };
 const publicFiles = { urls: models.BAKED_URLS, resources: models.WORLD_BYTES };
 const json = (name: string, value: unknown) => nameBlob(name, 'json', new TextEncoder().encode(JSON.stringify(value)));
 /** Original models, material decorations and bakes from explicit world rows; no rendering builder is mirrored. */
-export function signalSceneSources(world: SceneWorldBakes, rigs: NonNullable<SceneModelSource['rows']['rigs']>, files: { readonly urls: SceneBakeSource['urls']; readonly resources: NonNullable<SceneBakeSource['resources']> } = publicFiles, ownedPools: ReadonlyMap<string, NonNullable<SceneModelSource['rows']['geometryPools']>[number]> = new Map()): NamedBlob[] {
-  for (const url of ownedPools.keys()) if (rest.filter(pool => pool.url === url).length !== 1) throw new Error('Missing original rest pool binding');
-  const pools = rest.map(pool => ownedPools.get(pool.url) ?? pool);
+export function signalSceneSources(world: SceneWorldBakes, rigs: NonNullable<SceneModelSource['rows']['rigs']>, pools: NonNullable<SceneModelSource['rows']['geometryPools']>, files: { readonly urls: SceneBakeSource['urls']; readonly resources: NonNullable<SceneBakeSource['resources']> } = publicFiles): NamedBlob[] {
+  if (pools.length !== 3 || new Set(pools.map(pool => pool.url)).size !== 3 || pools.some(pool => pool.parts.length === 0)) throw new Error('Missing original rest pool inventory');
   const held = whipHeldRecipe(world.lash), gear = gearSceneRows(world, held);
   const { resources: _resources, ...whipRecipe } = held;
   const { specimen: _whip, ...whip } = gear[0];

@@ -1,5 +1,4 @@
 import { placeEffects, type PlaceEffects } from './placeEffects';
-import { REST_URLS } from './rows/restFiles';
 import { CylinderGeometry, PlaneGeometry, Group, Mesh, MeshStandardMaterial, SphereGeometry, Vector3 } from 'three';
 import { clientSceneGlb, type ClientSceneBake } from '@wildshard/sdk/bake/glb';
 import { WELL_RIG, HD, CAMP_HD, COOK, LANTERN, WAYMARK_HD, DECK_BRAZIER } from './rows/places';
@@ -35,11 +34,6 @@ export function oilRest(): ClientSceneBake {
   const made = clientSceneGlb(root, new Map([[material, 'oil']]));
   return { ...made, scene: { ...made.scene, materials: [{ kind: 'standard', id: 'oil', properties: { color: 0x1a120c, roughness: 0.2 } }] } };
 }
-
-export function restPools(): readonly { readonly url: string; readonly parts: readonly string[] }[] { return [wellRest(), oilRest(), fireRest()].map((made,index) => {
-  const url = REST_URLS[index]; if (url === undefined) throw new Error('Undeclared place pool');
-  return { url, parts: made.scene.nodes.flatMap(node => node.kind === 'mesh' ? [node.geometry] : []) };
-}); }
 
 /** The static place frames and model placements, authored beside the existing geometry pools. */
 interface PlaceFrames { readonly camp: PrivateScene; readonly tower: PrivateScene; readonly waymark: PrivateScene; readonly cookAt: readonly [number,number,number]; readonly brazierAt: readonly [number,number,number] }

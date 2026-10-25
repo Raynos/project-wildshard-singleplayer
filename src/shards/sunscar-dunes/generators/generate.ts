@@ -24,7 +24,7 @@ import { REST_URLS } from './rows/restFiles';
 /** Build the original declaration and output together from their defining source functions. */
 export async function generate(ctx: ProjectGenerationContext): Promise<GeneratedProject> {
   const navigation = await signalNavigation(ctx), fire = await signalFireBook(ctx), rigs = await signalRigs(ctx), world = await signalWorld(ctx), restFire = await signalRestFire(ctx), restWell = await signalRestWell(ctx), restOil = await signalRestOil(ctx), boot = signalOwnedBoot(REST_URLS), sand = await signalSand(ctx);
-  const scene = signalWorldScenes(world.world, signalSceneSources(world.world, rigs.library, world.files, new Map([[REST_URLS[0], restWell.pool], [REST_URLS[1], restOil.pool], [REST_URLS[2], restFire.pool]])), placeBindings());
+  const scene = signalWorldScenes(world.world, signalSceneSources(world.world, rigs.library, [restWell.pool, restOil.pool, restFire.pool], world.files), placeBindings());
   const models = scene.blobs.find(blob => blob.file.name === 'world/sources/models.json');
   if (models === undefined) throw new Error('Missing world model descriptor');
   return { shard: signalProductRows(fire.file, sand, navigation), output: signalSourceOutput(models, [...rigs.blobs, ...world.blobs, restFire.blob, restWell.blob, restOil.blob], scene, signalClientPlan(signalQuestPage(signalQuestMarkers(world.world)))),
