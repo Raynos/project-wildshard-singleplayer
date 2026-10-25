@@ -8,6 +8,7 @@ import { stairPlanData } from './stairPlan';
 import plan from '../data/layoutPlan.json' with { type: 'json' };
 import type { NineWorldDeclarations } from './worldRows';
 import lantern from '../data/lantern.json' with { type: 'json' };
+import type { NineNativeAtlas } from './nativeSignMetadata';
 
 const { STAIR, WELL, Y0 } = plan;
 /** Native typed channels, index and receiver order become data for the existing scene-buffer reader.
@@ -39,8 +40,8 @@ export function cardScene(list: readonly Mesh[], name: string, publish: (bytes: 
 }
 
 /** All filtering, window-facing tests and card geometry run once on the author. */
-export function presentationRows(tier: 'phone' | 'desktop', caps: boolean, layout: NineSourceWorld['layout'], world: NineWorldDeclarations, publish: (bytes: Uint8Array) => string): { streaks: SceneBuffers; halos: SceneBuffers } {
-  const source = volumeSources(tier, caps, layout), position = new Vector3(), rotation = new Quaternion(), scale = new Vector3();
+export function presentationRows(tier: 'phone' | 'desktop', caps: boolean, layout: NineSourceWorld['layout'], world: NineWorldDeclarations, publish: (bytes: Uint8Array) => string, atlas?: NineNativeAtlas): { streaks: SceneBuffers; halos: SceneBuffers } {
+  const source = volumeSources(tier, caps, layout, atlas), position = new Vector3(), rotation = new Quaternion(), scale = new Vector3();
   for (const offset of world.rows.portalLanterns) {
     new Matrix4().fromArray(world.records, offset).decompose(position, rotation, scale);
     source.lanterns.push({ at: position.clone().add(new Vector3(0, -lantern.drop * scale.x, 0)), color: new Color(lantern.glow.color),
@@ -64,6 +65,6 @@ export function presentationRows(tier: 'phone' | 'desktop', caps: boolean, layou
   return { streaks: cardScene([floor, ...stairs], 'wet-receivers', publish), halos: cardScene([halo], 'halos', publish) };
 }
 
-export function presentationData(layout: NineSourceWorld['layout'], world: NineWorldDeclarations, publish: (bytes: Uint8Array) => string): { open: ReturnType<typeof presentationRows>; capped: ReturnType<typeof presentationRows> } {
-  return { open: presentationRows('phone', false, layout, world, publish), capped: presentationRows('phone', true, layout, world, publish) };
+export function presentationData(layout: NineSourceWorld['layout'], world: NineWorldDeclarations, publish: (bytes: Uint8Array) => string, atlas?: NineNativeAtlas): { open: ReturnType<typeof presentationRows>; capped: ReturnType<typeof presentationRows> } {
+  return { open: presentationRows('phone', false, layout, world, publish, atlas), capped: presentationRows('phone', true, layout, world, publish, atlas) };
 }

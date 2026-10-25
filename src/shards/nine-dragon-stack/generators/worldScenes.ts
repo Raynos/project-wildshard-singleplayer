@@ -195,7 +195,7 @@ const publishCardBuffer = (bytes: Uint8Array): string => {
   if (!cardBuffers.has(file)) cardBuffers.set(file, nameBlob(file, 'bin', source.bytes));
   return file;
 };
-const cards = presentationData(layout, worldRows, publishCardBuffer), empty = addWindowNodes(parseWorldScene({ imports: [], scene: { version: 1, root: 'root', textures: [], materials: [], nodes: [{ kind: 'group', id: 'root', children: [] }] } }), [2], layout);
+const cards = presentationData(layout, worldRows, publishCardBuffer, signs.atlas), empty = addWindowNodes(parseWorldScene({ imports: [], scene: { version: 1, root: 'root', textures: [], materials: [], nodes: [{ kind: 'group', id: 'root', children: [] }] } }), [2], layout);
 // one file per distinct buffer: an ending whose cards match the other's reads the same file
 const cardFiles = new Map<string, string>();
 const cardDependencies = new Map<string, string[]>();
@@ -227,7 +227,7 @@ const painted = Object.entries(architectureGraphs()).flatMap(([id, graph]) => gr
 // the light pools' two baked volumes (generators/lightVolumes.ts) per tier and deck ending, lent to every look that reads them
 const lit = Object.entries(architectureGraphs()).flatMap(([id, graph]) => graph.params !== undefined && 'uLpVolA' in graph.params ? [id] : []);
 const volumeOf = (caps: 'capped' | 'open', tier: 'phone' | 'desktop', index: number) => {
-  const row = lightVolumeRows(layout)[`${tier}-${caps}-${index}`]; if (row === undefined) throw new Error(`Nine has no light volume ${tier}-${caps}-${index}`);
+  const row = lightVolumeRows(layout, signs.atlas)[`${tier}-${caps}-${index}`]; if (row === undefined) throw new Error(`Nine has no light volume ${tier}-${caps}-${index}`);
   return { file: row.file, size: [...row.size], min: [...row.min], inv: [...row.inv], maximum: row.maximum };
 };
 const VOLUMES = (['A', 'B'] as const).map((suffix, index) => ({ kind: 'volume', looks: lit, label: 'Nine Dragon light volumes (GPU only)', publish: `light.${suffix}`,

@@ -13,12 +13,12 @@ import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import legacyAtlas from '../data/signAtlas.generated.json' with { type: 'json' };
-import type { NineNativeSignInputs } from './nativeSignMetadata';
+import type { NineNativeAtlas, NineNativeSignInputs } from './nativeSignMetadata';
 
 const signRows = parseSignView(rawSignRows);
 
 /** Declared native raster handoffs; the source program keys their bytes explicitly. */
-export function retainedSignInputs(): NineNativeSignInputs { return { glyphs: legacyGlyphs, atlas: parseNativeSignAtlas(legacyAtlas) }; }
+export function retainedSignInputs(atlas?: NineNativeAtlas): NineNativeSignInputs & { readonly atlas: NineNativeAtlas } { return { glyphs: legacyGlyphs, atlas: atlas ?? parseNativeSignAtlas(legacyAtlas) }; }
 
 /** Re-admit cached source metadata beside the producer's existing sign validators. */
 export function parseSignSourceRows(input: unknown): { name: string; kind: 'glb' | 'ktx2' | 'json'; source: string;

@@ -83,7 +83,7 @@ const { entryProof, decals } = inputs;
 const decalSources = 'sources' in decals ? Object.entries(decals.sources).map(([tier, row]) => ({ name: `looks/jian-decal-${tier}.png`, kind: 'image' as const, source: row.png })) : [];
 const decalBlobs = 'blobs' in decals ? decals.blobs : [];
 if (rawMovers.some(row => row.file.hash !== movers.hash)) throw new Error('Nine movers bytes differ from module hash');
-const emitted = emitNamedBlobs(NINE_SCENE_BLOBS.concat(LAYOUT_PLACEMENT_BLOBS, lightVolumeBlobs(inputs.ownedWorld.layout), layoutBlobs(inputs.ownedWorld, inputs.scenes), facadeWindowBlobs(inputs.ownedWorld.layout), [
+const emitted = emitNamedBlobs(NINE_SCENE_BLOBS.concat(LAYOUT_PLACEMENT_BLOBS, lightVolumeBlobs(inputs.ownedWorld.layout, inputs.signs.atlas), layoutBlobs(inputs.ownedWorld, inputs.scenes), facadeWindowBlobs(inputs.ownedWorld.layout), [
   nameBlob('looks/silk-weave.r8', 'bin', silkWeaveBytes(), { decoded: 65_536, gpu: 87_381 }),
   nameBlob('looks/plain-weave.r8', 'bin', plainWeaveBytes(), { decoded: 65_536, gpu: 87_381 }),
   nameBlob('geometry/fixed-kits.json', 'json', json(parseFixedPractice({ practice: grappleCourseScene(course) })),{jsonSchema:namedJsonSchema(FixedPracticeFileSchema)}),
