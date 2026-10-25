@@ -5,10 +5,11 @@ import {PracticeSceneSchema,RidingPracticeSchema} from '@wildshard/format/practi
 import {FixedPracticeFileSchema} from '../src/shards/nine-dragon-stack/generators/sections';
 import {horseCourseRows} from '../src/shards/nalati-grasslands/generators/courseScene';
 import {grappleCourseScene} from '../src/shards/nine-dragon-stack/generators/courseScene';
+import { ninePracticeRows } from './fixtures/nine-practice-product';
 import course from '../src/shards/nine-dragon-stack/data/grappleCourse.json' with {type:'json'};
 
 test('both native practice rooms have defining named-file admission',()=>{
- const horse=horseCourseRows(),grapple=grappleCourseScene(course),bytes=(value:unknown)=>new TextEncoder().encode(JSON.stringify(value));
+ const horse=horseCourseRows(),grapple=grappleCourseScene(course, ninePracticeRows),bytes=(value:unknown)=>new TextEncoder().encode(JSON.stringify(value));
  const scene=namedJsonSchema(PracticeSceneSchema),riding=namedJsonSchema(RidingPracticeSchema),fixed=namedJsonSchema(FixedPracticeFileSchema);
  expect(nameBlob('horse.json','json',bytes(horse),{jsonSchema:riding}).file.jsonSchema).toEqual(riding);
  expect(nameBlob('grapple.json','json',bytes({practice:grapple}),{jsonSchema:fixed}).file.jsonSchema).toEqual(fixed);

@@ -22,12 +22,14 @@ export async function ninePracticeProgram(ctx: Pick<ProjectGenerationContext, 'c
   });
   const metadata = files.get('practice.json'), binary = files.get('practice.wasm');
   if (files.size !== 2 || metadata === undefined || binary === undefined) throw new Error('Nine practice cache inventory differs');
-  const hash = hashImmutableBytes(binary), expected = courseProgramInputs('checkpoints', {}, {
-    module: `blobs/wasm/${hash}.wasm`, sourceHash: hashImmutableBytes(text.encode(courseSource)),
+  const hash = hashImmutableBytes(binary), sourceHash = hashImmutableBytes(text.encode(courseSource)), expected = courseProgramInputs('checkpoints', {}, {
+    module: `blobs/wasm/${hash}.wasm`, sourceHash,
   }).row;
   const actual: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(metadata));
   if (encodeCanonicalJson(actual) !== encodeCanonicalJson({ script: expected, bytes: '' })) throw new Error('Nine practice contract differs');
   const blob = nameBlob('behaviour/practice.wasm', 'wasm', binary, { critical: true, script: { abi: 1, pages: expected.pages } });
   if (blob.file.path !== expected.module || ctx.asset(blob.bytes) !== hash) throw new Error('Nine practice publication differs');
-  return { script: expected, blob };
+  // The original compiler appends sourceHash after its complete parsed row.
+  // Preserve that order for the existing noncanonical scene JSON wire too.
+  return { script: { ...definition.row, module: expected.module, sourceHash }, blob };
 }

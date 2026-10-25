@@ -43,12 +43,14 @@ test('source-owned files preserve the original complete output and executable by
   const signHashes = new Set(signBefore.admitted.map(row => row.hash));
   const legacySigns = signBefore.admitted.map(({ name, kind, decoded, gpu, triangles, draws, critical, dependencies }, index) => ({ name, kind, source: `data/signSource-${index}.generated.${kind}`, options: { decoded, gpu, triangles, draws, critical, dependencies } }));
   const oldDecalSources = native.map(tier => ({ name: `looks/jian-decal-${tier}.png`, kind: 'image', source: `assets/${nativeDecals[tier].hash}` }));
-  expect(signature({ blobs: [...actual.blobs.slice(0, 2), ...legacyCasts, ...actual.blobs.slice(2), ...legacySigns, ...oldDecalSources], namedFiles: actual.namedFiles.filter(row => row.name !== 'views/movers.wasm' && !nativeHashes.has(row.hash) && !castHashes.has(row.hash) && !signHashes.has(row.hash)),
+  const legacyPractice = { name: 'behaviour/practice.wasm', kind: 'wasm', source: 'behaviour/practice.generated.wasm',
+    options: { critical: true, script: { abi: 1, pages: inputs.courseProgram.script.pages } } };
+  expect(signature({ blobs: [legacyPractice, ...actual.blobs, ...legacyCasts, ...legacySigns, ...oldDecalSources], namedFiles: actual.namedFiles.filter(row => row.name !== 'views/movers.wasm' && row.name !== 'behaviour/practice.wasm' && !nativeHashes.has(row.hash) && !castHashes.has(row.hash) && !signHashes.has(row.hash)),
     assets: physical(actual.assets, true), platform: { ...actual.platform, files: physical(actual.platform.files) } }))
     .toEqual({ bytes: 159100, hash: 'df0e53e56eaa60cb3754080c41df6e7295d388fa064280c0371a8402ba69bb1e' });
   // Supply distinct proof and decal rows directly, without a file-reader fallback.
   const burst = { name: 'fixture', shape: 'flake' as const, count: 1, life: .5 };
-  const suppliedInputs = { casts: inputs.casts, signs: inputs.signs, ownedWorld: inputs.ownedWorld, scenes: inputs.scenes, held: inputs.held, construction: { seed: product.identity.seed, looks: Object.keys(product.look.materials) },
+  const suppliedInputs = { courseProgram: inputs.courseProgram, casts: inputs.casts, signs: inputs.signs, ownedWorld: inputs.ownedWorld, scenes: inputs.scenes, held: inputs.held, construction: { seed: product.identity.seed, looks: Object.keys(product.look.materials) },
     scriptRevisions: SCRIPT_V2_REVISIONS, graphArmsSchema: { type: 'object' },
     bursts: { muzzle: burst, bite: burst, dock: burst, sparks: burst }, entryProof: { lanes: 1, steps: 2, portalTransfers: 3 },
     decals: { sources: { phone: { width: 1, height: 1, png: 'phone.png' }, desktop: { width: 2, height: 2, png: 'desktop.png' } } } };

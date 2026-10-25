@@ -16,6 +16,6 @@ export async function generate(ctx: ProjectGenerationContext): Promise<NineGener
   const boot = nineBootProgram(ctx);
   const inputs = await readNineProductInputs(ctx);
   const shard = nineProductFrom(inputs, { pages: NINE_MOVERS_CONTRACT.pages });
-  const output = await nineSourceOutput(ctx, { casts: inputs.casts, signs: inputs.signs, held: inputs.held, ownedWorld: inputs.ownedWorld, scenes: inputs.scenes, construction: { seed: shard.identity.seed, looks: Object.keys(shard.look.materials) } });
+  const output = await nineSourceOutput(ctx, { courseProgram: inputs.courseProgram, casts: inputs.casts, signs: inputs.signs, held: inputs.held, ownedWorld: inputs.ownedWorld, scenes: inputs.scenes, construction: { seed: shard.identity.seed, looks: Object.keys(shard.look.materials) } });
   return { shard, output, map: { pixels: await nineMap(ctx), name: 'ui/images/map' }, discovery: { navigation: inputs.navigation, ...boot } };
 }

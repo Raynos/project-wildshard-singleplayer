@@ -3,6 +3,7 @@ import type { NineSourceSigns } from './signsProgram';
 import type { NineSourceWorld } from './worldProgram';
 import type { NineWorldScenes } from './worldScenes';
 import type { NineNavigation } from './navigationProgram';
+import type { NinePracticeProgram } from './practiceProgram';
 import type { NineHeldInputs } from './heldGraphFiles';
 import { filamentGraph } from './filamentGraph';
 import { haloGraph } from './haloGraph';
@@ -42,7 +43,7 @@ export interface NineProductInputs {
   readonly signs: NineSourceSigns;
   readonly ownedWorld: NineSourceWorld; readonly scenes: NineWorldScenes;
   readonly held: NineHeldInputs;
-  readonly courseProgram: { readonly compiled: { readonly bytes: number }; readonly script: { readonly pages: number } };
+  readonly courseProgram: NinePracticeProgram;
   readonly navigation: NineNavigation;
   readonly world: { readonly shardfile: { readonly library: readonly string[]; readonly files: readonly NineInputFile[]; readonly tiles: unknown }; readonly props: Readonly<Record<string, unknown>> | null | undefined };
 }
@@ -59,7 +60,7 @@ export function nineProductFrom(inputs: NineProductInputs, movers: { readonly pa
 const { courseProgram, navigation, world, held: { files: heldGraphFiles } } = inputs;
 const base = emptyShardfile({ slug: 'nine-dragon-stack', name: 'Nine Dragon Stack', author: 'Wildshard', revision: 1, seed: 0x9d2a });
 const library = new Set([...world.shardfile.library, ...heldGraphFiles.library]), charged = [...world.shardfile.files.filter(file => library.has(file.hash)), ...heldGraphFiles.files];
-const courseBytes=courseProgram.compiled.bytes, courseMemory=courseBytes+courseProgram.script.pages*65536*2;
+const courseBytes=courseProgram.blob.bytes.byteLength, courseMemory=courseBytes+courseProgram.script.pages*65536*2;
 const navigationResident = navigation.files.reduce((sum, file) => sum + file.decoded, 0);
 // the movers view module's memory (behaviour/movers.as, its pages twice: the client lane's image and its rewind copy)
 const viewMemory = movers.pages * 65536 * 2;

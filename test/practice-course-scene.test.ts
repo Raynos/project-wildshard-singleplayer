@@ -5,10 +5,11 @@ import { parsePracticeScene } from '@wildshard/format/practiceCourseRows';
 import { buildPracticeScene } from '@wildshard/game/practice/scene';
 import { horseCourseRows } from '../src/shards/nalati-grasslands/generators/courseScene';
 import { grappleCourseScene } from '../src/shards/nine-dragon-stack/generators/courseScene';
+import { ninePracticeRows } from './fixtures/nine-practice-product';
 import course from '../src/shards/nine-dragon-stack/data/grappleCourse.json' with { type: 'json' };
 
 test('both shipping courses publish bounded local scenes with their real obstacles and targets', () => {
-  const horse = horseCourseRows(), grapple = grappleCourseScene(course);
+  const horse = horseCourseRows(), grapple = grappleCourseScene(course, ninePracticeRows);
   expect(horse.road.at(0)).toEqual(horse.road.at(-1));
   expect(horse.presentation.colliders.filter(row => row.surface === 'wood')).toHaveLength(8);
   expect(grapple.hooks).toHaveLength(course.hooks.length);
@@ -24,7 +25,7 @@ test('both shipping courses publish bounded local scenes with their real obstacl
 test('one presenter translates drawings, native collision and minimap coordinates together', () => {
   vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
   try {
-    for (const [data, offset] of [[horseCourseRows().presentation, new Vector3(40, 3000, 60)], [grappleCourseScene(course).presentation, new Vector3(-17, 3000, 23)]] as const) {
+    for (const [data, offset] of [[horseCourseRows().presentation, new Vector3(40, 3000, 60)], [grappleCourseScene(course, ninePracticeRows).presentation, new Vector3(-17, 3000, 23)]] as const) {
       const view = buildPracticeScene(data, offset, 'practice');
       const first = data.colliders[0]; if (first === undefined) throw new Error('Missing course floor');
       expect(view.colliders[0]).toMatchObject({ x: first.x + offset.x, y: first.y + offset.y, z: first.z + offset.z });
@@ -49,7 +50,7 @@ test('admission rejects malformed triangles, negative solids and executable fiel
 
 test('Nine fixed-kit admission includes the emitted practice scene and refuses unknown fields', async () => {
   const { parseFixedRows } = await import('../src/shards/nine-dragon-stack/generators/sections');
-  const practice = grappleCourseScene(course);
+  const practice = grappleCourseScene(course, ninePracticeRows);
   const payload = { signs: [], lanterns: [], lantern: { drop: 1, glow: { color: 1, w: 1, h: 1, power: 1, spill: 1 } }, practice };
   expect(parseFixedRows(payload).practice).toEqual(practice);
   expect(() => parseFixedRows({ ...payload, update: 'run()' })).toThrow();

@@ -16,7 +16,7 @@ import type { OutputDescriptor } from '../src/game/shardfile/outputDescriptor';
 import type { ShardContext } from '../src/game/plugin/context';
 import { emptyShardfile } from '../src/sdk/author';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
-import { ninePracticeRows,ninePracticeBytes } from './fixtures/nine-practice-modules';
+import { ninePracticeRows,ninePracticeBytes } from './fixtures/nine-practice-product';
 import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
 import { NINE_MOVERS_CONTRACT } from '../src/shards/nine-dragon-stack/generators/moversProgram';
 

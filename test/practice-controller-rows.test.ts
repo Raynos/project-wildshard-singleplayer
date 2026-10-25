@@ -2,10 +2,11 @@ import {expect,test} from 'vitest';
 import {parsePracticeController} from '../src/format/practiceCourseRows';
 import {horseCourseRows} from '../src/shards/nalati-grasslands/generators/courseScene';
 import {grappleCourseScene} from '../src/shards/nine-dragon-stack/generators/courseScene';
+import { ninePracticeRows } from './fixtures/nine-practice-product';
 import course from '../src/shards/nine-dragon-stack/data/grappleCourse.json' with {type:'json'};
 
 test('both real native entries share one strict controller grammar',()=>{
- for(const rows of [horseCourseRows().controller,grappleCourseScene(course).controller])expect(parsePracticeController(rows)).toEqual(rows);
+ for(const rows of [horseCourseRows().controller,grappleCourseScene(course, ninePracticeRows).controller])expect(parsePracticeController(rows)).toEqual(rows);
  const original=horseCourseRows().controller;
  const orchard=parsePracticeController({...original,title:'Orchard laps',entry:{kind:'mount',actor:{kind:'mule',variant:'cart',name:'Juniper'},start:{x:2,z:5,yaw:1},road:[[0,0],[20,0]]},center:{kind:'fixed',x:44,z:-9}});
  expect(orchard.entry.kind).toBe('mount');expect(orchard.title).toBe('Orchard laps');
@@ -19,7 +20,7 @@ test('controller admission refuses executable and incomplete suffixes before ent
 
 
 test('grapple entry rows admit unrelated hook courses and detach their bounded coordinates', () => {
- const base=grappleCourseScene(course).controller,hooks=[{x:-7,y:12,z:9},{x:20,y:4,z:-8}];
+ const base=grappleCourseScene(course, ninePracticeRows).controller,hooks=[{x:-7,y:12,z:9},{x:20,y:4,z:-8}];
  const rows=parsePracticeController({...base,title:'Quarry swing',entry:{kind:'grapple',hooks}});
  if(rows.entry.kind!=='grapple')throw new Error('Missing independent grapple entry');
  expect(rows.title).toBe('Quarry swing');expect(rows.entry.hooks[0]?.x).toBe(-7);

@@ -8,6 +8,9 @@ import { generated } from './fixtures/nine-source-program';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { generatedProjectMap, packProjectMap } from '../src/sdk/projectMap';
+import { parseDecisionScripts } from '../src/format/decisionScripts';
+import { admitScriptContract } from '../src/format/scriptContract';
+import { parseFixedPractice } from '../src/shards/nine-dragon-stack/generators/sections';
 
 test('the source entry owns both outputs and preserves the complete original declaration', () => {
   expect(entry).toBe(generate);
@@ -31,6 +34,28 @@ test('the actual source entry publishes the original charged map and logical ima
   expect(packed.shard.library).toContain(packed.hash);
 });
 
+test('the source entry shares one admitted practice contract across raw output and scene/controller rows', () => {
+  const output = generated.output, module = output.namedFiles.find(file => file.name === 'behaviour/practice.wasm');
+  expect(module).toEqual({ name: 'behaviour/practice.wasm', kind: 'wasm',
+    path: 'blobs/wasm/6ffc72748c1709f4239ac983fdda5841a524a026512287fe16f0fa498b276102.wasm',
+    hash: '6ffc72748c1709f4239ac983fdda5841a524a026512287fe16f0fa498b276102', compressed: 9786, decoded: 9786,
+    gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: true });
+  if (module === undefined) throw new Error('Missing owned practice module');
+  const binary = output.assets.get(module.hash), rows = output.platform.files.get('sections/actors/return-scripts.json');
+  const fixed = output.namedFiles.find(file => file.name === 'geometry/fixed-kits.json');
+  if (binary === undefined || rows === undefined || fixed === undefined) throw new Error('Missing owned practice output');
+  const sceneBytes = output.assets.get(fixed.hash);
+  if (sceneBytes === undefined) throw new Error('Missing owned practice scene');
+  expect(binary.byteLength).toBe(9786); expect(hashImmutableBytes(binary)).toBe(module.hash);
+  expect(() => admitScriptContract(binary, { abi: 1, pages: 1 })).not.toThrow();
+  const scripts = parseDecisionScripts(JSON.parse(new TextDecoder().decode(rows)));
+  expect(scripts).toHaveLength(1);
+  const script = scripts[0]; if (script === undefined) throw new Error('Missing owned practice contract');
+  expect(hashImmutableBytes(new TextEncoder().encode(encodeCanonicalJson({ script })))).toBe('9127647ac9e42b887da2e4affd59f7e74e3a2d9c9e22263fa35991c20675e8a9');
+  expect(parseFixedPractice(JSON.parse(new TextDecoder().decode(sceneBytes))).practice.program).toEqual({ script, bytes: '' });
+  expect(output.blobs.some(file => file.source.includes('practice.generated'))).toBe(false);
+});
+
 test('the real import closure seals source helpers without a manual scheduler root list', async () => {
   const options = { configFile: false as const, logLevel: 'silent' as const, build: { write: false as const, minify: false as const,
     lib: { entry: resolve('src/shards/nine-dragon-stack/shard.config.ts'), formats: ['es' as const] }, rolldownOptions: { external: [/^node:/u, 'assemblyscript/dist/asc.js'], output: { codeSplitting: false } } } };
@@ -41,7 +66,7 @@ test('the real import closure seals source helpers without a manual scheduler ro
   const chunks = built.output.filter(row => row.type === 'chunk'); expect(chunks).toHaveLength(1);
   for (const chunk of chunks) {
     assertConfigBoundary([...chunk.imports, ...chunk.dynamicImports]);
-    for (const name of ['moversProgram.ts', 'nativeDecals.ts', 'entryProof.ts']) {
+    for (const name of ['moversProgram.ts', 'nativeDecals.ts', 'entryProof.ts', 'practiceProgram.ts']) {
       expect(Object.keys(chunk.modules).some(path => path.endsWith(`/generators/${name}`)), name).toBe(true);
     }
   }

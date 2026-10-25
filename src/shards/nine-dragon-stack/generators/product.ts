@@ -1,4 +1,4 @@
-import courseProgram from '../behaviour/practice.generated.json' with { type: 'json' };
+import { ninePracticeProgram } from './practiceProgram';
 import { nineCastsProgram } from './castsProgram';
 import { nineSignsProgram } from './signsProgram';
 import { nineDeclarationsProgram } from './declarationsProgram';
@@ -16,11 +16,11 @@ import nativeGlyphInputs from '../data/nativeGlyphs.json' with { type: 'json' };
 
 const DEFAULT_MOVERS = { pages: 1 };
 
-/** Remaining world/course readers accompany this invocation's source-owned navigation. */
+/** Every declaration input belongs to this invocation's admitted source programs. */
 export async function readNineProductInputs(ctx: ProjectGenerationContext): Promise<NineProductInputs> {
   const native = await nineNativeSignAtlas(ctx, nativeAtlasInputs), glyphs = await nineNativeGlyphs(ctx, nativeGlyphInputs);
   const profile = await nineHeldProfile(ctx), ownedWorld = await nineWorldProgram(ctx, native.atlas), casts = await nineCastsProgram(ctx), signs = await nineSignsProgram(ctx, native, glyphs);
-  const declarations = await nineDeclarationsProgram(ctx, ownedWorld);
+  const declarations = await nineDeclarationsProgram(ctx, ownedWorld), courseProgram = await ninePracticeProgram(ctx);
   return { casts, signs, courseProgram, navigation: await nineNavigation(ctx), world: ownedWorld.metadata, ownedWorld, scenes: nineWorldScenes(ownedWorld.layout, casts.material, signs, declarations.world), held: { profile, files: createHeldGraphFiles(profile) } };
 }
 

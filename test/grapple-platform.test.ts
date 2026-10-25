@@ -1,6 +1,7 @@
 import { practiceFrame } from '../src/shards/nine-dragon-stack/generators/practiceFrame';
 // @vitest-environment happy-dom
-import {ninePracticeRows as PRACTICE_PROGRAM,lendNinePractice} from './fixtures/nine-practice-modules';
+import { ninePracticeRows as PRACTICE_PROGRAM } from './fixtures/nine-practice-product';
+import { lendNinePractice } from './fixtures/nine-practice-modules';
 // oxlint-disable-next-line import/no-nodejs-modules -- Native traversal uses the shipped physics binary.
 import { readFileSync } from 'node:fs';
 import { expect, test, vi } from 'vitest';

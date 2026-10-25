@@ -4,7 +4,8 @@ import { isJsonData } from '../src/format/json';
 import { ProjectedState, ReturnProgram } from '../src/game/population/returnProgram';
 import { practiceFrame } from '../src/shards/nine-dragon-stack/generators/practiceFrame';
 import course from '../src/shards/nine-dragon-stack/data/grappleCourse.json' with { type: 'json' };
-import {ninePracticeRows as program,lendNinePractice} from './fixtures/nine-practice-modules';
+import { ninePracticeRows as program } from './fixtures/nine-practice-product';
+import { lendNinePractice } from './fixtures/nine-practice-modules';
 import {Scope} from '../src/engine/app/scope';
 
 const owners:Scope[]=[];afterEach(()=>{for(const owner of owners.splice(0))owner.dispose();});

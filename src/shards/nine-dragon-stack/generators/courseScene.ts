@@ -1,13 +1,9 @@
 import { practiceFrame } from './practiceFrame';
-import practiceInput from '../behaviour/practice.generated.json' with {type:'json'};
+import type { NinePracticeProgram } from './practiceProgram';
 import * as THREE from 'three';
 import { CourseKit as DevKit, courseLabel as devLabel, captureCourse } from '@wildshard/sdk/bake/practiceCourse';
 import type { HookPracticeLayout, PracticeScene } from '@wildshard/format/practiceCourseRows';
 import type course from '../data/grappleCourse.json';
-
-const {compiled,...PRACTICE_PROGRAM}=practiceInput;
-/** Same course executable and fixed-page contract; the product owns the raw source intake. */
-export const NINE_PRACTICE_MODULE={script:PRACTICE_PROGRAM.script,...compiled};
 
 type ColliderDesc = PracticeScene['colliders'][number];
 type RoomMap = PracticeScene['map'];
@@ -175,5 +171,6 @@ function target(row: HookCourseRow, x: number, y: number, z: number, r: number):
   return m;
 }
 
-export function grappleCourseScene(row: HookCourseRow): HookPracticeLayout { const origin = new THREE.Vector3(); const {root,colliders}=build(row,origin); const hooks=hookCourseHooks(row);return { program: PRACTICE_PROGRAM, sampleEpsilon:1e-9, frame: practiceFrame(row), presentation: captureCourse(root,colliders,courseMap(row,origin)), hooks, course: row,
+/** Bind this invocation's admitted contract to the unchanged course presentation and controller. */
+export function grappleCourseScene(row: HookCourseRow, program: Pick<NinePracticeProgram, 'script'>): HookPracticeLayout { const origin = new THREE.Vector3(); const {root,colliders}=build(row,origin); const hooks=hookCourseHooks(row);return { program: { script: program.script, bytes: '' }, sampleEpsilon:1e-9, frame: practiceFrame(row), presentation: captureCourse(root,colliders,courseMap(row,origin)), hooks, course: row,
 controller:{title:row.title,chip:row.chip,piece:{id:row.piece.id,name:row.piece.name,file:row.piece.file,surface:'metal'},center:{kind:'spawn'},entry:{kind:'grapple',hooks:hooks.map(({x,y,z})=>({x,y,z}))},view:{kind:'checkpoints',pads:row.pads.map(pad=>pad.label),goals:row.run.goals,words:row.words}} }; }
