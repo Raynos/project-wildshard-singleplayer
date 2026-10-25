@@ -16,7 +16,7 @@ const place = v.strictObject({ poi: id, x: n, z: n,
 const custom = v.pipe(v.string(), v.regex(/^custom\/[a-zA-Z0-9_./-]{1,249}$/));
 /** Entered quest composition names resources and ordered effects, never functions.
  * Every facet past the shared entry, kit, talks, trader, cable and places is optional. */
-export const QuestPageSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Quest page composition requires JSON rows'), v.strictObject({
+export const QuestPageSchema: v.GenericSchema<unknown, QuestPageRows> = v.pipe(v.unknown(), v.check(isJsonData, 'Quest page composition requires JSON rows'), v.strictObject({
   id, debug: id,
   /** Optional entry resources share this admitted document without new file names. */
   entryResources: v.exactOptional(v.strictObject({ world: QuestWorldSchema, figures: QuestFiguresSchema, continuation: QuestContinuationSchema })),
@@ -64,18 +64,18 @@ export const QuestPageSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Quest pa
   systems: v.strictObject({ kit: id, kitAfter: v.optional(ids, []), talks: id, cable: id, places: id, before: ids,
     speakerPose: v.exactOptional(id), traderPose: v.exactOptional(id), trader: v.exactOptional(id), guide: v.exactOptional(id), sway: v.exactOptional(id) }),
 }));
-export type QuestPageRows = v.InferOutput<typeof QuestPageSchema>;
+export interface QuestPageRows { id: string; debug: string; entryResources?: { world: v.InferOutput<typeof QuestWorldSchema>; figures: v.InferOutput<typeof QuestFiguresSchema>; continuation: v.InferOutput<typeof QuestContinuationSchema>; }; world?: string; frames?: Record<string, { x: number; z: number; rot: number; }>; placement?: { platforms?: boolean; registryReach?: number; }; files: { services: string; stall: string; discovery?: string; assembly?: string; encounter?: string; hints?: string; returns?: string; contracts?: string; director?: string; trader?: string; }; kit?: { section?: string; platforms?: boolean; registryReach?: number; }; events: unknown; services: (string)[]; deaths: unknown; deathOrder: number; deathMoves: ({ effect: string; target: string; })[]; deathKill?: number; talks: v.InferOutput<typeof QuestPageTalksSchema>; held?: string; quietPlaces: (string)[]; peopleLod: boolean; chapter: { publishFlags?: boolean; placements: boolean; completion: boolean; remaining?: string; program?: unknown; }; speaker?: { figure: string; feet: { poi: string; x: number; z: number; y?: number; dy?: number; yaw?: number; anchor?: string; }; fire: { poi: string; x: number; z: number; y?: number; dy?: number; yaw?: number; anchor?: string; }; }; trader?: { figure: string; counter: string; offer: string; label: string; radius: number; }; shop: boolean; board?: { panel: string; } & Omit<v.InferOutput<typeof ContractBoardPageSchema>, 'contracts' | 'panel'>; forest?: string; ranged?: string; placed: ({ owner: string; scene: string; })[]; door?: v.InferOutput<typeof QuestPageDoorSchema>; mover?: v.InferOutput<typeof QuestPageMoverSchema>; collections?: v.InferOutput<typeof QuestPageCollectionsSchema>; map?: v.InferOutput<typeof QuestPageMapSchema>; pages: ({ file: string; prompts: (string)[]; requires: (string)[]; })[]; points: ({ id: string; x: number; z: number; height: number; })[]; cable: { view: unknown; drawDistance?: number; ends?: { a: string; b: string; anchor: string; publish: string; }; }; places?: ({ id: string; label: string; x: number; z: number; r: number; quiet: boolean; })[]; jumps: Record<string, { x: number; z: number; flags: (string)[]; look: { x: number; z: number; }; height?: { x: number; z: number; up: number; }; phase?: number; }>; browser?: string; boss?: { pool: { poi: string; x: number; z: number; y?: number; dy?: number; yaw?: number; anchor?: string; }; reward: string; }; sway?: { piece: string; height: number; ease: number; threshold: number; rate: number; speed: number; rollHz: number; roll: number; dipHz: number; dip: number; }; guideHeight?: number; placeInterval: number; systems: { kit: string; kitAfter: (string)[]; talks: string; cable: string; places: string; before: (string)[]; speakerPose?: string; traderPose?: string; trader?: string; guide?: string; sway?: string; }; }
 type Present<T, K extends keyof T> = T & { readonly [P in K]-?: NonNullable<T[P]> };
 /** The placed-figure page (speaker, trader, boss and bridge rows present), as its shard's install reads it. */
 export type QuestPageCompositionRows = Present<QuestPageRows, 'world' | 'speaker' | 'trader' | 'boss' | 'sway'> & {
   readonly systems: Present<QuestPageRows['systems'], 'speakerPose' | 'traderPose' | 'trader' | 'sway'>;
 };
 /** The admitted schema both shards' composition files are published under. */
-export const QuestPageCompositionSchema = QuestPageSchema;
+export const QuestPageCompositionSchema: v.GenericSchema<unknown, QuestPageRows> = QuestPageSchema;
 
 /** Optional chapter-only view facet: concrete mounted/arena owners are sampled
  * by a finite vocabulary; the admitted guest owns all story decisions. */
-export const ChapterViewSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Chapter view requires JSON rows'), v.strictObject({
+export const ChapterViewSchema: v.GenericSchema<unknown, ChapterViewRows> = v.pipe(v.unknown(), v.check(isJsonData, 'Chapter view requires JSON rows'), v.strictObject({
   figures: v.exactOptional(FigureGroupSchema),
   npcs: v.record(id, NpcDialogueRowSchema),
   places: v.pipe(v.array(v.strictObject({ id, label: id, x: n, z: n,
@@ -90,4 +90,4 @@ export const ChapterViewSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Chapte
     debug: v.strictObject({ id, prop: id, goals: id }),
   }),
 }));
-export type ChapterViewRows = v.InferOutput<typeof ChapterViewSchema>;
+export interface ChapterViewRows { figures?: v.InferOutput<typeof FigureGroupSchema>; npcs: Record<string, v.InferOutput<typeof NpcDialogueRowSchema>>; places: ({ id: string; label: string; x: number; z: number; r: number; quiet?: boolean; })[]; program: v.InferOutput<typeof ReturnProgramSchema>; view: { story: string; carried: string; system: { id: string; before: (string)[]; after: (string)[]; }; timeField: string; signal: string; interval: number; observations: Record<string, 'taming.bonded' | 'taming.upgraded' | 'arena.inside' | 'arena.tied'>; pulse: { signal: string; interval: number; }; death: { kind: string; signal: string; }; debug: { id: string; prop: string; goals: string; }; }; }
