@@ -1,10 +1,10 @@
 {
   "$doc": "What production and the native OTA channel serve (E357 decision 32). Moved only by scripts/deploy-pin.mjs set (at a milestone; decision 103: the lead moves it when the gate is green) or rollback. mode: pinned (during GAME-NORMALIZATION) | newest-green (gpu-gate-green main) | newest-ci-green (the newest main whose push CI passed; Jake 2026-10-02).",
-  "mode": "newest-ci-green",
-  "sha": "f42d192560dead1a4e508f1642f57c9ea46baa51",
-  "milestone": "post-Z4 hotfix-rollback-rollback-rollback-rollback-rollback-rollback-rollback-rollback-rollback-rollback-rollback-rollback",
+  "mode": "pinned",
+  "sha": "653f0abe856bd6019818ba92f8ee9c8910bbe7d1",
+  "milestone": "post-Z4 hotfix-rollback-rollback-rollback-rollback-rollback-rollback-rollback-rollback-rollback-rollback-rollback-rollback-rollback",
   "gate": "grandfathered",
-  "go": "wildshard-new lifts T9 hold: sp-x6 bounded first-east walk passes on f42d192560 and T9 a80, zero stuck with gate and gameplayReady true. Independent sp-x6 and sp-x9 audit attributes the freeze to the walk harness stuck-fallback teleport, not the game. Restore normal hourly newest CI-green main with exact-SHA green six-leg smoke.",
-  "set": "2026-10-24T20:34:41.083Z",
+  "go": "Hold current verified live 653f under wildshard-new restriction: candidates containing 594723dace without 9dc10c2d58 must not release. Readiness currently selects barred 594. Restore newest-ci-green once a candidate containing 9dc has full CI and exact six-leg smoke; no production version rollback.",
+  "set": "2026-10-25T08:29:38.062Z",
   "by": "E357 lead"
 }
