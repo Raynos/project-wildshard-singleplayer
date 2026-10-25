@@ -305,11 +305,12 @@ async function main() {
     if (process.argv.length !== 5 || target === undefined || estimate === undefined || !/^[0-9]+$/u.test(estimate)) throw new Error('Expected audit-estimate <floor> <estimated-bytes> with the native summary on stdin');
     const summary = v.parse(v.object({rev: v.pipe(v.string(), v.regex(/^[a-f0-9]{40}$/u)), coreMemory: v.string(),
       results: v.array(v.looseObject({version: v.string()}))}), JSON.parse(readFileSync(0, 'utf8')));
-    if (summary.coreMemory !== 'all' && summary.coreMemory !== target) throw new Error('Native summary does not select the requested floor');
+    if (!selectedCoreMemoryTargets(summary.coreMemory).some(row => row.shard === target)) throw new Error('Native summary does not select the requested floor');
     for (const row of summary.results) {
       const version = v.parse(v.object({build: v.string()}), JSON.parse(row.version));
       if (!version.build.startsWith(`${summary.rev.slice(0, 7)}-`)) throw new Error('Native summary source pin differs from its reading');
     }
+    coreMemorySummary(summary.results, summary.coreMemory);
     const audit = coreMemoryEstimateAudit(summary.results, target, Number(estimate));
     console.info(JSON.stringify({sourcePin: summary.rev, ...audit}));
     if (audit.within15Percent !== true || !audit.budgetPassed) process.exitCode = 1;

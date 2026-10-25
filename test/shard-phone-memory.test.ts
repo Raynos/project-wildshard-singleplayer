@@ -64,6 +64,38 @@ test('saved estimate audits refuse mixed source pins before issuing a verdict', 
   expect(result.stderr).toContain('source pin differs');
 });
 
+test('saved Template-pair estimates audit either floor without admitting other cohorts', () => {
+  const pair = rows().slice(2).map(row => Object.assign(row, {version: JSON.stringify({build: '1111111-fixture'})}));
+  const summary = {rev: '1'.repeat(40), coreMemory: 'templates', results: pair};
+  const audit = (target: string, input: unknown = summary) => spawnSync('node', [
+    'scripts/shard-phone-memory.mjs', 'audit-estimate', target, '208182520',
+  ], {encoding: 'utf8', input: JSON.stringify(input)});
+  for (const target of ['_template', 'blender-template']) {
+    const result = audit(target);
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain(`"shard":"${target}"`);
+    expect(result.stdout).toContain('"measuredBytes":208182520');
+    expect(result.stdout).toContain('"within15Percent":true');
+    expect(result.stdout).toContain('"budgetPassed":true');
+  }
+  const unrelated = audit('menu');
+  expect(unrelated.status).toBe(1); expect(unrelated.stdout).toBe('');
+  expect(unrelated.stderr).toContain('does not select');
+  const mixed = [...pair, {...nativeProtocol, shard: 'menu', errors: [], samples: [], version: JSON.stringify({build: '1111111-fixture'})}];
+  const collected = structuredClone(pair), foreign = structuredClone(pair);
+  for (const row of collected) row.forcedGC = true;
+  for (const row of foreign) row.version = JSON.stringify({build: '2222222-other'});
+  for (const results of [mixed, collected, foreign]) {
+    const refused = audit('_template', {...summary, results});
+    expect(refused.status).toBe(1); expect(refused.stdout).toBe('');
+  }
+  const missing = audit('_template', {...summary, results: pair.filter(row => row.shard !== '_template')});
+  expect(missing.status).toBe(1);
+  expect(missing.stdout).toContain('"measuredBytes":null');
+  expect(missing.stdout).toContain('"within15Percent":null');
+  expect(missing.stdout).toContain('"budgetPassed":false');
+});
+
 test('four independent floors use the picked combined process limits', () => {
   expect(webKitCoreMemoryFloorBytes).toBe(87397464 + 15927456);
   expect(coreMemoryTargets.map(target => [target.shard, (target.limitBytes - webKitCoreMemoryFloorBytes) / MiB])).toEqual([
