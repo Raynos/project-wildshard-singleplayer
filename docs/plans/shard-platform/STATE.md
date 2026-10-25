@@ -3,7 +3,7 @@
 **Order (G639):** (1) live reds → (2) NALATI TO ZERO → (3) grid / frame floor. Extras: loading, core memory, TOOLING-PERF,
 Night Market, tile streaming, no-binaries.
 
-**(1) LIVE e6627ba522 (20:51Z, first with the T9 lattice; f42d192560 19:36Z), each after full CI + all six exact smoke
+**(1) LIVE 0b1ca136e9 (01:31Z 10-25; da94 G694 wave 1, LEGACY fixes, L9), each after full CI + all six exact smoke
 legs; ff45 pin removed (692f9bd22e), hourly newest-CI-green deploys running (sp-x7). Six smoke reds + boot race fixed on the way.
 
 **(2) NALATI 0: every shard at zero, C1-C9 closed, M3 100 %, M2 10/10 (ruler 27dd969127).** R27 done (168a974f29).
@@ -27,8 +27,9 @@ pick for Jake: art/driftwood-isle/round-19-tile-lod (3af5687a53) A landed / B / 
 
 **For wildshard-v:** main CI FULL GREEN again on da94ec4da3 (13m28s; typecheck 50 s); its smoke 3/6 legs green so far. G694 wave 1 done,
 LEGACY A/B ready, L9 PASS. T1: shader programs churn because scene-hash keys change per return (sp-x9 fixing, first slice proven);
-GR3 16/28, GR4 Sunscar producers callable, T3 196 suites moved, T4 -2.0 MB declarations, T6 contract slice. Your grep 45432 has ended.
+GR3 11 jobs left (nav 8bcd90461c), GR4 22 (specimen effects 26dcd1f593; bakeOwned SDK split approved), T3 265 suites / 880 tests,
+T4 format 14.0 -> 7.4 MB (44d7fc16d0), T6 contract slice. 20:30 sp-x8: watchdog restarted it on its open TS-T3 row (SW10 met).
 
-**Lanes:** Claude weekly 90 %: 0 Opus (sp-o3 stopped, G605); 5 Codex + sp-x7.
+**Lanes:** Claude weekly 96 %: 0 Opus (sp-o3 stopped, G605); 5 Codex + sp-x7.
 
 **Rules:** G605. Fix forward, no reverts (G674). No new Debug rows (G669). G670. Never herdr wildshard-v.
