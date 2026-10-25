@@ -85,7 +85,7 @@ skipLibCheck policy as root and layers.
 
 T4 first format slices are on origin: schema expressions and emitted runtime JavaScript are unchanged.
 Independent named data types replace exported validator implementation types; original/candidate input and output
-contracts remain mutually assignable (56 contracts). No compiler option or admission fence changed.
+contracts remain mutually assignable (76 contracts). No compiler option or admission fence changed.
 
 | Declaration | Before bytes | After bytes | Commit |
 |---|---:|---:|---|
@@ -93,17 +93,28 @@ contracts remain mutually assignable (56 contracts). No compiler option or admis
 | voicePatches | 12,481 | 2,368 | `bf10517256` |
 | clientPlan | 1,289,272 | 20,066 | `b28dcc33ec` |
 | sceneDressing | 516,289 | 12,604 | `7b745a7a01` |
+| worldAssembly | 294,929 | 10,127 | `9d03402c65` |
+| worldScenes | 305,851 | 12,875 | `0379ab78a4` |
+| speciesBookRows | 508,433 | 11,191 | `bfc9a2b448` |
 
-These four files save **2,013,307 bytes (96.9%)**. The same 285 live format modules still emit approximately
-12.0 MB, so the <2 MB target remains open. The audio regression reproduces the original two TS2589 errors and
+These seven files save **3,088,327 bytes (96.9%)** (3,186,507 → 98,180 bytes). The same 285 live format modules
+emit **14,010,239 → 10,921,409 bytes**, including a separate net −503 bytes of peer changes, so the <2 MB target remains open. The audio regression reproduces the original two TS2589 errors and
 checks isolated emission plus a strict emitted-declaration consumer with skipLibCheck disabled. Client-plan and
 dressing regressions pin isolated emission, bounded sizes and defining imported data contracts; existing admission,
 default, corruption and decoded-cost tests pass. One broad related run passed 3,217 tests and hit one peer sealed
 Sunscar discovery dependency failure; that exact case passed after its owner's reader-isolation repair. Forty-one
 missing-product suites explicitly defer to CI; this is not a full-suite pass.
 
-A per-file isolated-declaration audit finds **68/285 ready**, with 651 diagnostics remaining in 217 modules
-(609 missing variable annotations, 34 non-inferable expressions, one parameter, one spread object and six arrays).
+World declarations retain the original arena variants, checkpoints, scene defaults and imported contracts. The
+exported ParsedWorldScenes interface keeps downstream shard declarations nameable: a real virtual consumer reproduces
+TS4023 with the private interface and emits with the public contract. Species presentation retains an explicitly typed
+ObjectSchema with four entries for the existing pick/omit readers; its compiler regression covers both operations.
+All three latest slices have focused admission/runtime tests and typed lint green; the current full layers/root chain
+passes, including peer source changes. The final normal compiler emission is the size authority (worldScenes is
+12,875 bytes; its commit body used the isolated-emitter estimate of 12,886).
+
+A per-file isolated-declaration audit finds **71/285 ready**, with 641 diagnostics remaining in 214 modules
+(599 missing variable annotations, 34 non-inferable expressions, one parameter, one spread object and six arrays).
 Global isolatedDeclarations remains off until the layer actually meets its contract. T4 is still in flight.
 
 ## Decisions (decided G655: D1 keep authored JSON typed, generated never imported via GR0; D2 leave to CI; D3 lint rule)
