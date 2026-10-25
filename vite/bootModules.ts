@@ -3,7 +3,8 @@ import ts from '@typescript/typescript6';
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { readModuleFiles } from '../src/engine/boot/download';
-import { bootProductTotals, homeClientModuleGroups } from './bootProducts';
+import { homeClientModuleGroups } from './bootProducts';
+import { bootTierProductTotals } from './bootProductTiers';
 import { homeExtraFiles } from './bootExtras';
 import { createHash } from 'node:crypto';
 import { selectionModules } from '../scripts/title-catalogue.mjs';
@@ -203,7 +204,7 @@ export function bootModulesPlugin(): Plugin {
         if (dependency === null || dependency.external !== false) throw new Error('Missing selected Explorer module');
         featureRoots['explorer.catalogue'].push(dependency.id);
       }
-      const products = bootProductTotals(root), extras: Record<string, readonly [string, number, number, string]> = {};
+      const products = bootTierProductTotals(root), extras: Record<string, readonly [string, number, number, string]> = {};
       for (const prefix of Object.keys(products)) {
         const directory = prefix.split('/')[2];
         if (directory === undefined) throw new Error('Missing boot home directory');

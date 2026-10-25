@@ -1,3 +1,4 @@
+import { stringsSteps, tierLibrarySteps } from '@wildshard/format/tierSelection';
 import { parseImageAsset } from '@wildshard/format/stillImage';
 import { journalImageRefs } from '@wildshard/format/compendiumRows';
 import type { Shardfile } from '@wildshard/format/shardSchema';
@@ -9,12 +10,9 @@ import { preflightShardfile } from '@wildshard/format/preflight';
 import { isJsonData } from '@wildshard/format/json';
 import { outputDescriptor } from './outputDescriptor';
 import { isPlatformDataSection } from '@wildshard/format/outputIndex';
-import { parseWorldScenes, worldScenesForTier } from '@wildshard/format/worldScenes';
+import { parseWorldScenes } from '@wildshard/format/worldScenes';
 import { parseWorldSceneModels, worldSceneModelGraphs, worldSceneModelResources } from '@wildshard/format/worldSceneModels';
 import { parseWorldSceneWeld } from '@wildshard/format/worldSceneWeld';
-import { parseRiggedHullBook } from '@wildshard/format/riggedHulls';
-import { PosedLibrarySchema } from '@wildshard/format/namedJsonContracts';
-import * as v from 'valibot';
 import { plumbingKnob } from '../shard/declaredPlumbing';
 import { recordSceneProfile } from './sceneProfile';
 
@@ -33,19 +31,6 @@ export function scopedSpecimenLibrarySource(source: Shardfile, assets: ReadonlyM
 /** Run `steps` to its result, pausing after each 8 ms of them, or sooner once the frame's shared build budget is spent:
  *  the grid admits several products at once, and their own clocks alone stacked 45-65 ms of steps into one Pine frame
  *  (a live admission paints in between). */
-/** Every string a JSON-like value holds, object keys included, handed to `found`, in steps of 4096 visited values (the
- *  library projections walked a whole product's sections in one ~20-30 ms task of a neighbour's admission at 4x CPU). */
-function* stringsSteps(roots: readonly unknown[], found: (text: string) => void): Generator<void> {
-  const pending: unknown[] = [...roots];
-  let visited = 0;
-  while (pending.length > 0) {
-    const value = pending.pop();
-    if (++visited % 4096 === 0) yield;
-    if (typeof value === 'string') found(value);
-    else if (Array.isArray(value)) { const items: readonly unknown[] = value; for (const item of items) pending.push(item); }
-    else if (typeof value === 'object' && value !== null) for (const [key, child] of Object.entries(value)) { found(key); pending.push(child); }
-  }
-}
 const drive = <T>(steps: Generator<void, T>): T => { for (;;) { const step = steps.next(); if (step.done === true) return step.value; } };
 
 async function paced<T>(steps: Generator<void, T>, pause: () => Promise<void>): Promise<T> {
@@ -170,87 +155,20 @@ export function tierLibrarySource(source: Shardfile, tier: 'phone' | 'desktop', 
 export function tierLibrarySourcePaced(source: Shardfile, tier: 'phone' | 'desktop', assets: ReadonlyMap<string, Uint8Array>, pause: (() => Promise<void>) | undefined): Promise<Shardfile> {
   return paced(tierLibrarySourceSteps(source, tier, assets), pause ?? (() => Promise.resolve()));
 }
+/** Typed alternatives which no critical, shared or dependency reader needs can
+ * stay on disk. The full descriptor remains available for verified late reads.
+ * The boot compiler and runtime use this same selection before declaring bytes. */
+export async function tierProductFilesPaced(source: Shardfile, tier: 'phone' | 'desktop', pause?: () => Promise<void>): Promise<Shardfile['files']> {
+  const descriptor = outputDescriptor(source);
+  if (descriptor === undefined) return source.files;
+  const inactive = await paced(tierLibrarySteps(source, tier, descriptor), pause ?? (() => Promise.resolve()));
+  return inactive.size === 0 ? source.files : source.files.filter(file => !inactive.has(file.hash));
+}
 function* tierLibrarySourceSteps(source: Shardfile, tier: 'phone' | 'desktop', assets?: ReadonlyMap<string, Uint8Array>): Generator<void, Shardfile> {
   const descriptor = outputDescriptor(source);
   if (descriptor === undefined) return source;
-  const names = new Map<string, string>();
-  for (const file of descriptor.index.files) {
-    for (const name of [file.hash, file.path, `/shardfiles/${source.identity.slug}/${file.path}`]) names.set(name, file.hash);
-    if (file.name !== undefined) names.set(file.name, file.hash);
-  }
-  const inactive = new Set<string>(), used = new Set(source.critical);
-  const alternative = (selected: string, other: string): void => {
-    const off = names.get(other); if (off !== undefined) inactive.add(off);
-    const on = names.get(selected); if (on !== undefined) used.add(on);
-  };
-  const sections = new Map(descriptor.sections);
-  const metadata = source.manifest;
-  let manifest = source.manifest;
-  if (metadata?.horizonStrips?.phone !== undefined) {
-    const horizon = metadata.horizonStrips, selected = tier === 'phone' ? horizon.phone : horizon;
-    const other = tier === 'phone' ? horizon : horizon.phone;
-    if (selected !== undefined && other !== undefined) {
-      alternative(selected.day, other.day); alternative(selected.night, other.night);
-      const { phone: _phone, ...base } = horizon;
-      manifest = { ...metadata, horizonStrips: { ...base, day: selected.day, night: selected.night } };
-      sections.set('ui/level', { manifest });
-    }
-  }
-  const scenes = sections.get('world/scenes');
-  if (scenes !== undefined) {
-    const declared = parseWorldScenes(scenes);
-    for (const library of declared.libraries) if (library.kind === 'owned') for (const model of library.models) {
-      if (model.tier === undefined || model.tier === tier) continue;
-      for (const file of typeof model.file === 'string' ? [model.file] : Object.values(model.file)) {
-        const ref = names.get(file); if (ref !== undefined) inactive.add(ref);
-      }
-    }
-    for (const placement of declared.placements) if (placement.tier !== undefined && placement.tier !== tier && 'file' in placement) {
-      const ref = names.get(placement.file); if (ref !== undefined) inactive.add(ref);
-    }
-    const row = worldScenesForTier(declared, tier);
-    const libraries: typeof row.libraries = [];
-    for (const library of row.libraries) {
-      if (library.kind !== 'owned') { libraries.push(library); continue; }
-      const models: typeof library.models = [];
-      for (const model of library.models) {
-        if (typeof model.file === 'string') models.push(model);
-        else {
-          alternative(model.file[tier], model.file[tier === 'phone' ? 'desktop' : 'phone']);
-          models.push({ ...model, file: model.file[tier] });
-        }
-      }
-      libraries.push({ ...library, models });
-    }
-    sections.set('world/scenes', { ...row, libraries });
-  }
-  const hulls = sections.get('look/rigged-hulls');
-  if (hulls !== undefined) {
-    // The rigged-hull loader reads only its page tier's resources (looks/riggedHulls.ts).
-    const book = parseRiggedHullBook(hulls);
-    const off = (input: unknown): void => {
-      if (typeof input === 'string') { const hash = names.get(input); if (hash !== undefined) inactive.add(hash); }
-      else if (typeof input === 'object' && input !== null) for (const value of Object.values(input)) off(value);
-    };
-    off(book.tiers[tier === 'phone' ? 'desktop' : 'phone']);
-    sections.set('look/rigged-hulls', { ...book, tiers: { [tier]: book.tiers[tier] } });
-  }
-  // Posed libraries (looks/posedInstances.ts) read only their page tier's geometry and atlas.
-  // Only a small named JSON can be one; the strict schema, not a name, identifies it.
-  if (assets !== undefined) for (const file of source.files) {
-    const bytes = file.kind === 'json' && file.decoded <= 65_536 ? assets.get(file.hash) : undefined;
-    const text = bytes === undefined ? '' : new TextDecoder('utf-8', { fatal: true }).decode(bytes);
-    if (!text.includes('"tiers"')) continue;
-    const row = v.safeParse(PosedLibrarySchema, JSON.parse(text));
-    if (!row.success) continue;
-    const selected = row.output.tiers[tier], other = row.output.tiers[tier === 'phone' ? 'desktop' : 'phone'];
-    alternative(selected.geometry, other.geometry); if (selected.atlas !== undefined && other.atlas !== undefined) alternative(selected.atlas, other.atlas);
-  }
-  if (inactive.size === 0) return source;
-  const { files: _files, library: _library, critical: _critical, manifest: _manifest, ...fields } = source;
-  yield* stringsSteps([{ ...fields, manifest }, ...sections.values()], text => { const hash = names.get(text); if (hash !== undefined) used.add(hash); });
-  for (const file of source.files) for (const ref of file.dependencies) used.add(ref);
-  const excluded = new Set([...inactive].filter(hash => !used.has(hash)));
+  const excluded = yield* tierLibrarySteps(source, tier, descriptor, assets);
+  if (excluded.size === 0) return source;
   const library = new Set(source.library), saving = source.files.reduce((sum, file) =>
     sum + (library.has(file.hash) && excluded.has(file.hash) ? file.decoded + file.gpu : 0), 0);
   return { ...source, library: source.library.filter(hash => !excluded.has(hash)), budgets: {

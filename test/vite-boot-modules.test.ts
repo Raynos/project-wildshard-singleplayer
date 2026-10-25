@@ -92,7 +92,7 @@ test('the actual Vite plugin emits exact module body sizes into the existing doc
       const text=JSON.stringify(value),path=`${name.replaceAll('/','-')}.json`;writeFileSync(resolve(product,path),text);
       return {name,path,bytes:Buffer.byteLength(text),hash:createHash('sha256').update(text).digest('hex')};
     });
-    writeFileSync(resolve(product,'shard.json'),JSON.stringify({format:'wildshard.shardfile',formatVersion:2,sections,schemas:[],files:[],runtime:null}));
+    writeFileSync(resolve(product,'shard.json'),JSON.stringify({format:'wildshard.shardfile',formatVersion:2,version:{},identity:{slug:'example'},requires:{},admission:{library:[],critical:[]},sections,schemas:[],files:[],runtime:null}));
     const result = await build({ root, configFile: false, logLevel: 'silent', plugins: [bootModulesPlugin()],
       build: { write: false, minify: false, cssCodeSplit: false } });
     if (Array.isArray(result) || !('output' in result)) throw new Error('Expected one generated bundle');
@@ -106,7 +106,9 @@ test('the actual Vite plugin emits exact module body sizes into the existing doc
       const bytes = file.type === 'chunk' ? file.code : file.source;
       return [`/${file.fileName}`, typeof bytes === 'string' ? new TextEncoder().encode(bytes).byteLength : bytes.byteLength];
     }).sort(([left], [right]) => left.localeCompare(right));
-    expect(rows.products).toEqual({'/shardfiles/example/':[expect.any(Number),expect.any(Number)]});
+    const productText=readFileSync(resolve(product,'shard.json'),'utf8');
+    const total=Buffer.byteLength(productText)+sections.reduce((sum,row)=>sum+row.bytes,0);
+    expect(rows.products).toEqual({'/shardfiles/example/':[Buffer.byteLength(productText),total,total,total]});
     expect(rows.common).toEqual(expected(['/first-', '/index-']));
     expect(rows.client).toEqual(expected(['/client-', '/index-']));
     expect(rows.grid).toEqual(expected(['/session-', '/reveal-', '/index-']));

@@ -23,6 +23,7 @@ import { parseManifestMetadata } from '../src/format/minimap';
 import { parseImageAsset } from '../src/format/stillImage';
 import { Scope } from '../src/engine/app/scope';
 import { bootWaits } from '../src/engine/boot/waits';
+import { DownloadAccounting, observeDownloadAccounting } from '../src/engine/boot/download';
 
 const scopes: Scope[] = [];
 afterEach(() => { for (const scope of scopes.splice(0)) scope.dispose(); Reflect.deleteProperty(globalThis, '__SHARDFILE_VALIDATOR__'); Reflect.deleteProperty(globalThis, '__SHARDFILE_VERDICTS__'); });
@@ -483,6 +484,92 @@ test('shrinking residency cannot grow, underflow or revive a released claim', ()
   expect(() => claim.shrink(11)).toThrow('shrink'); expect(() => claim.shrink(-1)).toThrow('shrink');
   claim.shrink(4); expect(allocator.cost().input.products).toBe(4);
   claim.release(); claim.shrink(1); expect(allocator.entries()).toHaveLength(0);
+});
+
+function tierTransportFixture(retain: 'none' | 'critical' | 'dependency' = 'none') {
+  const desktopBytes = new Uint8Array([9]), desktop = hashImmutableBytes(desktopBytes);
+  const f = fixture(false, source => {
+    source.files.push({ hash: desktop, kind: 'binary', compressed: 1, decoded: 700, gpu: 300, triangles: 0, draws: 0, dependencies: [], critical: false });
+    source.library.push(desktop); source.budgets.library.resident += 1000; source.budgets.library.compressed += 1;
+    if (retain === 'critical') source.critical.push(desktop);
+    if (retain === 'dependency') source.files[0]?.dependencies.push(desktop);
+    return new Map([['world/scenes', { version: 1, libraries: [{ id: 'trees', kind: 'owned', models: [
+      { id: 'tree', file: { phone: 'models/token.bin', desktop: 'models/desktop.bin' } },
+    ] }], materials: [], steps: [] }]]);
+  });
+  f.wires.set(`blobs/bin/${desktop}.bin`, desktopBytes);
+  return { ...f, desktop };
+}
+
+test.each(['phone', 'desktop'] as const)('trusted %s admission never declares or fetches the other typed variant', async tier => {
+  const f = tierTransportFixture(); trust(f.receipt);
+  const accounting = new DownloadAccounting(f.options.base);
+  own().onDispose(observeDownloadAccounting(accounting));
+  const urls: string[] = [], progress: { bytesTotal: number; filesTotal: number }[] = [];
+  const admitted = await admitProduct(f.index, { ...f.options, tier,
+    fetch: url => { urls.push(url); return f.options.fetch(url); }, progress: row => { progress.push(row); } });
+  const selected = tier === 'phone' ? f.ref : f.desktop, other = tier === 'phone' ? f.desktop : f.ref;
+  expect(admitted.assets.has(selected)).toBe(true); expect(admitted.assets.has(other)).toBe(false);
+  expect(urls).not.toContain(new URL(`blobs/bin/${other}.bin`, f.options.base).href);
+  expect(progress.at(-1)).toMatchObject({ filesTotal: 1, bytesTotal: tier === 'phone' ? 3 : 1 });
+  expect(accounting.snapshot().declaredFiles).toBe(f.index.sections.length + f.index.schemas.length + 1);
+  expect(admitted.source.files).toHaveLength(2); // Exact descriptor and its identity remain authoritative.
+  expect(admitted.source.library).toHaveLength(2);
+});
+
+test.each(['critical', 'dependency'] as const)('a %s keeps an off-tier alternative in admission', async retain => {
+  const f = tierTransportFixture(retain); trust(f.receipt);
+  const admitted = await admitProduct(f.index, { ...f.options, tier: 'phone' });
+  expect([...admitted.assets.keys()]).toEqual([f.ref, f.desktop]);
+});
+
+test('an unspecified device tier retains complete transport admission', async () => {
+  const f = tierTransportFixture(); trust(f.receipt);
+  const admitted = await admitProduct(f.index, f.options);
+  expect([...admitted.assets.keys()]).toEqual([f.ref, f.desktop]);
+});
+
+test('tier caches re-enter offline and a different tier repairs only its missing inputs online', async () => {
+  const f = tierTransportFixture(); trust(f.receipt);
+  let visited: Awaited<ReturnType<ProductCache['product']>> = null;
+  const stored = new Map<string, Uint8Array>();
+  const cache: ProductCache = { product: () => Promise.resolve(visited),
+    asset: (_base, hash) => Promise.resolve(stored.get(hash) ?? null),
+    putAsset: (_base, hash, wire) => { stored.set(hash, wire); return Promise.resolve(); },
+    putProduct: (_base, product) => { visited = product; return Promise.resolve(); } };
+  await admitProduct(f.index, { ...f.options, cache, tier: 'phone' });
+  expect(stored.has(f.desktop)).toBe(false);
+  const offline = { ...f.options, cache, offline: true, fetch: (): Promise<Response> => { throw new Error('Offline cannot fetch'); } };
+  expect((await admitProduct(f.index, { ...offline, tier: 'phone' })).assets.has(f.ref)).toBe(true);
+  await expect(admitProduct(f.index, { ...offline, tier: 'desktop' })).rejects.toThrow('incomplete offline cache');
+  const urls: string[] = [];
+  await admitProduct(f.index, { ...f.options, cache, tier: 'desktop', fetch: url => { urls.push(url); return f.options.fetch(url); } });
+  expect(urls).toContain(new URL(`blobs/bin/${f.desktop}.bin`, f.options.base).href);
+  expect(urls).not.toContain(new URL(`blobs/bin/${f.ref}.bin`, f.options.base).href);
+  expect((await admitProduct(f.index, { ...offline, tier: 'desktop' })).assets.has(f.desktop)).toBe(true);
+});
+
+test('a selected tier file still refuses corrupt network bytes', async () => {
+  const f = tierTransportFixture(); trust(f.receipt);
+  f.wires.set(`blobs/bin/${f.ref}.bin`, new Uint8Array([3, 2, 1]));
+  await expect(admitProduct(f.index, { ...f.options, tier: 'phone' })).rejects.toThrow('Shardfile asset hash mismatch');
+});
+
+test('tier selection never bypasses full validation without an exact trusted receipt', async () => {
+  const f = tierTransportFixture(), urls: string[] = [];
+  f.wires.set(`blobs/bin/${f.desktop}.bin`, new Uint8Array([8]));
+  await expect(admitProduct(f.index, { ...f.options, tier: 'phone',
+    fetch: url => { urls.push(url); return f.options.fetch(url); } })).rejects.toThrow('Shardfile asset hash mismatch');
+  expect(urls).toContain(new URL(`blobs/bin/${f.desktop}.bin`, f.options.base).href);
+});
+
+test('tier selection with no alternatives preserves its admitted descriptor owner', async () => {
+  const f=fixture();
+  const resolved=await resolveOutputDescriptor(f.index,{offline:false,hash:f.options.hash,
+    read:path=>{const wire=f.wires.get(path);if(wire===undefined)throw new Error('Missing fixture section');return Promise.resolve(wire);}});
+  const source=schema.parseShardfile(resolved);carryOutputDescriptor(resolved,source);
+  expect(tierLibrarySource(source,'phone')).toBe(source);
+  expect(tierLibrarySource(source,'desktop')).toBe(source);
 });
 
 test('tier residency excludes only a typed alternative with no other live reference', async () => {

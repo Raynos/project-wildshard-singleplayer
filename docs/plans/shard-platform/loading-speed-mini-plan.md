@@ -83,6 +83,15 @@ M1 half a day; wave 1 about 1.5 days; wave 2 about 2 days; **about 4 lane-days, 
 Jake's phone check. Warm < 5 s is likely (the reveal is 6.5 s of the 13.6 s gap); cold < 15 s is the riskier half and
 hinges on C1 + H2 + H3 together.
 
+### L18 implementation slices (G734, sp-x8)
+
+| Slice | Work | Status |
+|---|---|---|
+| L18.1 | Typed tier selection before transport and download declaration; matching boot reserve; preserve exact admission, offline re-entry and tier changes. At most one hour. | done (2026-10-24, sp-x8) |
+| L18.2 | Explorer, comparison and simulation inputs on demand with real progress; bounded implementation slices after the crossing measurement. | open |
+| L18.3 | Reduce or stream the remaining entry geometry without changing its appearance; bounded slices after attribution. | open |
+| L18.4 | Verify production compression of GLB and BIN responses. | open |
+
 ## The update pill (Jake, 2026-10-23 09:33, iPhone screenshot on ab93dccfe: *"Pressing the updating button takes forever. I just expected to refresh the page. I don't know why refreshing the page takes so long."*)
 
 The pill (`src/engine/ui/Update.ts`) shows "UPDATING…", waits up to the service worker's adopt cap for a waiting

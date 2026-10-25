@@ -17,13 +17,13 @@ import { preflightShardfile } from '@wildshard/format/preflight';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 import { assertExternalShardSlug, externalShardInstance } from './identity';
 import { runtimeBoundWorldFiles } from '../plugin/headless';
-import { neighbourProductFilesPaced, runtimeOnlyProductFilesPaced, tierLibrarySourcePaced, urlImageLibrarySourcePaced, scopedSpecimenLibrarySourcePaced, deviceLibraryCostPaced } from './productCost';
+import { neighbourProductFilesPaced, runtimeOnlyProductFilesPaced, tierLibrarySourcePaced, tierProductFilesPaced, urlImageLibrarySourcePaced, scopedSpecimenLibrarySourcePaced, deviceLibraryCostPaced } from './productCost';
 import { carryOutputDescriptor, IncompleteOutputCacheError, isBuildValidatedOutput, outputBlobUrl, outputDescriptor, resolveOutputDescriptor } from './outputDescriptor';
 
 
 const HASH = /^[a-f0-9]{64}$/u;
 const MAX_FILE_BYTES = 25_000_000;
-/** A complete visited product is published only after every immutable asset has passed admission. */
+/** A visited product is published after every immutable asset selected for its admitted tier passes admission. */
 export interface CachedProduct { source: unknown; firstParty: boolean; validation?: ValidationReceipt }
 /** Storage is injected so offline admission uses the same path in browsers and tests. */
 export interface ProductCache {
@@ -50,7 +50,7 @@ export interface ProductProgress {
 }
 /** Loading is explicit about connectivity and first-party provenance, never inferred from an author field. */
 export interface ProductOptions {
-  /** Trusted renderer tier; only typed host alternatives affect resident estimates. */
+  /** Trusted renderer tier; only typed host alternatives affect transport selection and resident estimates. */
   tier?: 'phone' | 'desktop';
   /** Trusted namespaced quality overrides, captured before profile admission. */
   quality?: Readonly<Partial<Record<`${string}.${string}`, number | boolean>>>;
@@ -183,7 +183,7 @@ async function readBoundedResponse(response: Response, maximum: number, read?: (
 function resolveDescriptor(input: unknown, options: ProductOptions, lineage = false, background = false): Promise<unknown> {
   const base = new URL('.', options.base).href, cache = options.cache, backgroundStore = cache?.putAssetBackground;
   return resolveOutputDescriptor(input, {
-    offline: options.offline, hash: options.hash, firstParty: options.firstParty, ...(lineage ? { lineage } : {}),
+    offline: options.offline, hash: options.hash, firstParty: options.firstParty, deferAssetDeclarations: true, ...(lineage ? { lineage } : {}),
     ...(options.pause === undefined ? {} : { pause: options.pause }),
     declare: (path, bytes) => { declareDownloadFile(new URL(path, base).href, bytes); },
     cacheHit: (path, hash, bytes) => { recordCachedDownload(hash, bytes, new URL(path, base).href); },
@@ -300,7 +300,12 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
   await options.pause?.();
   options.reserve?.(source);
   await options.pause?.();
-  const refs = [...source.files.map((file) => ({ ref: file.hash, cap: file.compressed })), ...source.requires.commons.map((hash) => ({ ref: `commons:${hash}`, cap: source.requires.commonsWire[hash] ?? 0 }))];
+  // Only an exact build validation receipt can replace byte-by-byte validation
+  // of unselected alternatives. Keep the complete descriptor for verified late
+  // reads and a later device tier; unknown, critical and shared references stay.
+  const files = options.firstParty && receipt !== null && options.tier !== undefined
+    ? await tierProductFilesPaced(source, options.tier, options.pause) : source.files;
+  const refs = [...files.map((file) => ({ ref: file.hash, cap: file.compressed })), ...source.requires.commons.map((hash) => ({ ref: `commons:${hash}`, cap: source.requires.commonsWire[hash] ?? 0 }))];
   // Reserve the complete product first, then overlap at most sixteen immutable transports. Validation and
   // publication retain authored order; all started reads settle before a failure returns or writes cache.
   const unique = new Map<string, number>();

@@ -3428,13 +3428,11 @@ hybrid paths retain their own inventories. Missing compiled sources refuse.
 This prevents eager predecessor packs beside the compiled product. Demanded
 files still use the original transport/cache and missing-pack fallback.
 
-**Data-only catalogue cards.** `@wildshard/game/plugin/context` defines `sourceManifest(source, admittedAssets?)`: pure identity/accent/presentation mapping with no fetch, decode or install. `@wildshard/game/shardfile/presentation` defines the exact `PresentationSchema` and `presentationCard`; `@wildshard/game/shardfile/stillImage` defines `parseStillImage`, `stillImageUrl` and `STILL_IMAGE_LIMITS`. Local charged image hashes resolve only from admitted bounded PNG/JPEG/WebP bytes to inert MIME-sniffed data URLs. The full loader uses these fields when present and preserves existing cards otherwise. SDK `assetCost("image", bytes)` uses the same parser and residency law.
+**Data-only catalogue cards.** `@wildshard/game/plugin/context` defines pure `sourceManifest(source, admittedAssets?)` card mapping. `@wildshard/game/shardfile/presentation` defines `PresentationSchema` and `presentationCard`; `@wildshard/game/shardfile/stillImage` defines `parseStillImage`, `stillImageUrl` and `STILL_IMAGE_LIMITS`. Bounded admitted PNG/JPEG/WebP bytes become inert MIME-sniffed data URLs; absent fields preserve existing cards. SDK `assetCost("image", bytes)` shares parsing and residency.
 
-Device admission projects image encoding costs through `urlImageLibrarySource`.
-Known immutable manifest and rich-journal URLs keep wire bytes, CPU pixels and
-compositor pixels, without charging a base64 string those readers never create.
-A card/map data-URL reader, another reference or a dependency retains the full
-image envelope. This projection changes no source ceiling or transport cost.
+`@wildshard/format/tierSelection` defines `tierLibrarySteps` and cooperative `stringsSteps`. Exact-receipt tier admission and boot totals share selection; critical/shared/dependency reads remain. Offline tier misses refuse; online repairs reverify.
+
+Device admission projects image encoding costs through `urlImageLibrarySource`: immutable manifest/journal URLs retain wire, CPU and compositor pixels, excluding unused base64. Card/map data URLs, other readers and dependencies retain the full envelope. Source ceilings and transport costs stay unchanged.
 
 ### Declared water (SHARD-PLATFORM SF9d)
 

@@ -5,6 +5,8 @@ import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { bootProductTotals, productDownloadTotal, homeClientModuleGroups } from '../vite/bootProducts';
+import {bootTierProductTotals} from '../vite/bootProductTiers';
+import {outputSectionPayloads} from '../src/format/outputIndex';
 // oxlint-disable-next-line import/no-nodejs-modules -- Record exact section hashes in the real output fixture.
 import { createHash } from 'node:crypto';
 
@@ -16,6 +18,39 @@ const index = { format: 'wildshard.shardfile', formatVersion: 2, sdk: '0.2', ver
   sections: [{ name: 'custom/first', path: 'sections/custom/first.json', schema: 'schemas/custom/first.schema.json', hash, bytes: 40 }],
   schemas: [{ path: 'schemas/custom/first.schema.json', hash, bytes: 15 }],
   files: [{ kind: 'bin', path: `blobs/bin/${hash}.bin`, hash, compressed: 30, decoded: 300, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: false }], runtime: null };
+
+test.each([null,{kind:'client-plan'}])('compiler tier totals reserve the selected bank for runtime %j',(runtime)=>{
+  mkdirSync('tmp/vite-boot-products',{recursive:true});
+  const root=mkdtempSync(resolve('tmp/vite-boot-products/tier-'));
+  try {
+    const row=emptyShardfile({slug:'tier-total',name:'Tier',author:'Test',revision:1,seed:9});
+    const digest=(text:string)=>createHash('sha256').update(text).digest('hex');
+    const phone=digest('phone'),desktop=digest('desktop');
+    row.files.push(...[phone,desktop].map((assetHash,i)=>({hash:assetHash,kind:'binary' as const,compressed:i+1,decoded:i+1,gpu:0,triangles:0,draws:0,dependencies:[],critical:false})));
+    row.library.push(phone,desktop);row.budgets.library={compressed:3,resident:3};
+    const product=resolve(root,'out/tier-total');mkdirSync(product,{recursive:true});
+    const values=new Map(outputSectionPayloads(row));
+    values.set('world/scenes',{version:1,libraries:[{id:'trees',kind:'owned',models:[{id:'tree',file:{phone:'phone.bin',desktop:'desktop.bin'}}]}],materials:[],steps:[]});
+    const sections=[...values].map(([name,value])=>{
+      const text=JSON.stringify(value),path=`sections/${name}.json`;
+      mkdirSync(resolve(product,'sections',name.split('/')[0]??''),{recursive:true});writeFileSync(resolve(product,path),text);
+      return {name,path,hash:digest(text),bytes:Buffer.byteLength(text),schema:`wildshard:${name}@1`};
+    });
+    const files=[];
+    for(let i=0;i<row.files.length;i++) {
+      const file=row.files[i];if(file===undefined)throw new Error('Missing tier fixture file');
+      files.push({...file,kind:'bin',name:i===0?'phone.bin':'desktop.bin',path:`blobs/bin/${file.hash}.bin`});
+    }
+    const data={...index,runtime,identity:row.identity,requires:row.requires,
+      admission:{budgets:row.budgets,serverBudget:row.serverBudget,authorCaps:row.authorCaps,critical:row.critical,library:row.library},
+      sections,schemas:[],files};
+    const text=JSON.stringify(data);writeFileSync(resolve(product,'shard.json'),text);
+    const full=productDownloadTotal(data,Buffer.byteLength(text));
+    expect(bootTierProductTotals(root)).toEqual({'/shardfiles/tier-total/':[full[0],full[1],full[1]-2,full[1]-1]});
+    writeFileSync(resolve(product,'sections/world/scenes.json'),'{}');
+    expect(()=>bootTierProductTotals(root)).toThrow('Boot tier section differs');
+  } finally {rmSync(root,{recursive:true,force:true});}
+});
 
 test('uses index, section, custom-schema and encoded blob bytes, never decoded/GPU budgets', () => {
   expect(productDownloadTotal(index, 20)).toEqual([20, 105]);
@@ -56,5 +91,8 @@ test('the shell contains only directory totals; complete file banks stay in thei
     expect(rows).toEqual({ '/shardfiles/total-test/': [Buffer.byteLength(text), Buffer.byteLength(text) + 85] });
     expect(JSON.stringify(rows)).not.toContain('custom/first');
     expect(JSON.stringify(rows)).not.toContain(hash);
+    const legacy=JSON.stringify({...index,runtime:{entry:'runtime/plugin.ts'}});
+    writeFileSync(resolve(root,'out/total-test/shard.json'),legacy);
+    expect(bootTierProductTotals(root)).toEqual({'/shardfiles/total-test/':[Buffer.byteLength(legacy),Buffer.byteLength(legacy)+85]});
   } finally { rmSync(root, { recursive: true, force: true }); }
 });

@@ -1,4 +1,5 @@
 import { declareDownloadFile, reserveDownloadGroup, reserveDownloadBank, preloadModuleGroups } from '@wildshard/engine/boot/download';
+import { TIER } from '@wildshard/engine/core/tier';
 
 /** Start code reads together, but report failures only at the original boot
  * barrier. A preceding import failure wins over a later admission refusal. */
@@ -30,7 +31,7 @@ export function prepareHomeModules(descriptor: string | undefined, base: string)
 
 /** Use only the selected first-party home's compact compiler facts. External
  * descriptors and legacy-only cards retain their existing admission path. */
-export function reserveHomeDownload(input: unknown, descriptor: string | undefined, base: string): void {
+export function reserveHomeDownload(input: unknown, descriptor: string | undefined, base: string, tier: 'phone' | 'desktop' = TIER): void {
   if (descriptor === undefined || input === undefined) return;
   const url = new URL(descriptor, base), prefix = new URL('.', url);
   if (url.origin !== new URL(base).origin || !/^\/shardfiles\/[a-zA-Z0-9_-]+\/shard\.json$/u.test(url.pathname)
@@ -38,9 +39,12 @@ export function reserveHomeDownload(input: unknown, descriptor: string | undefin
   if (typeof input !== 'object' || input === null || Array.isArray(input)) throw new Error('Invalid home download totals');
   if (!Object.hasOwn(input, prefix.pathname)) return;
   const row: unknown = Reflect.get(input, prefix.pathname);
-  if (!Array.isArray(row) || row.length !== 2) throw new Error('Invalid home download total');
-  const indexBytes: unknown = row[0], total: unknown = row[1];
+  if (!Array.isArray(row) || row.length !== 2 && row.length !== 4) throw new Error('Invalid home download total');
+  const indexBytes: unknown = row[0], full: unknown = row[1];
+  const total: unknown = row.length === 4 ? row[tier === 'phone' ? 2 : 3] : full;
   if (typeof indexBytes !== 'number' || !Number.isSafeInteger(indexBytes) || indexBytes < 0
+    || typeof full !== 'number' || !Number.isSafeInteger(full) || full < indexBytes
+    || row.length === 4 && !row.slice(2).every(value => typeof value === 'number' && Number.isSafeInteger(value) && value >= indexBytes && value <= full)
     || typeof total !== 'number' || !Number.isSafeInteger(total) || total < indexBytes) throw new Error('Invalid home download total');
   reserveDownloadGroup(prefix.href, total);
   declareDownloadFile(url.href, indexBytes);

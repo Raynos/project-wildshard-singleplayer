@@ -63,7 +63,7 @@ test('a real emitted image and admitted source produce only the selected home ba
     writeFileSync(resolve(root, 'out/home', sourcePath), models);
     const sections = Object.entries({ 'quests/host': { questHost: { page: { version: 1 } } },
       'look/painted': { look: { sky: { kind: 'strips', row: { strips: [{ key: 'early', url: '/assets/early.webp' }, { key: 'late', url: '/assets/late.webp' }] } } } },
-      'world/scenes': { libraries: [{ kind: 'models', file: 'source.json' }] } }).map(([name, rows]) => {
+      'world/scenes': { version:1,libraries: [{ id:'fixture-models',kind: 'models', file: 'source.json' }],materials:[],steps:[] } }).map(([name, rows]) => {
       const value = JSON.stringify(rows), path = `sections/${name}.json`;
       mkdirSync(dirname(resolve(root, 'out/home', path)), { recursive: true });
       writeFileSync(resolve(root, 'out/home', path), value);

@@ -5,6 +5,17 @@ import { mkdirSync, mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Import the actual build helper from the fixture config.
 import { resolve } from 'node:path';
 
+test('the Vite Node loader computes tier facts without importing page runtime state',async()=>{
+  mkdirSync('tmp/vite-config-boot',{recursive:true});
+  const root=mkdtempSync(resolve('tmp/vite-config-boot/tier-'));
+  try {
+    const path=resolve(root,'vite.config.ts');
+    writeFileSync(path,`import {bootTierProductTotals} from ${JSON.stringify(resolve('vite/bootProductTiers.ts'))}; export default {define:{BOOT_TOTALS:JSON.stringify(bootTierProductTotals(${JSON.stringify(root)}))}};`);
+    const loaded=await loadConfigFromFile({command:'build',mode:'production'},path,root,'silent',undefined,'bundle');
+    expect(loaded?.config.define?.['BOOT_TOTALS']).toBe('{}');
+  } finally {rmSync(root,{recursive:true,force:true});}
+});
+
 test('the Vite bundled Node config loader reads boot facts without importing the runtime format graph', async () => {
   mkdirSync('tmp/vite-config-boot', { recursive: true });
   const root = mkdtempSync(resolve('tmp/vite-config-boot/case-'));

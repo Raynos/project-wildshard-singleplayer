@@ -6,6 +6,8 @@ import type { Shardfile } from '@wildshard/format/shardSchema';
 
 /** Byte readers are injected: the section adapter runs in browsers and renderer-free Node admission. */
 export interface OutputDescriptorReader {
+  /** Admission will declare its device-selected asset bank after section verification. */
+  deferAssetDeclarations?: boolean;
   /** Expected sizes come from the parsed product index, before any section reads. */
   declare?: (path: string, bytes: number) => void;
   read: (path: string, maximum: number) => Promise<Uint8Array>;
@@ -94,10 +96,11 @@ export async function resolveOutputDescriptor(input: unknown, reader: OutputDesc
   const index = parseOutputDescriptorIndex(input);
   if (index === null) return input;
   for (const file of [...index.sections, ...index.schemas]) reader.declare?.(file.path, file.bytes);
-  // A home admission reads the complete immutable bank after its sections.
-  // Publish that denominator before the first section/cache request, not when
-  // the much larger blob stage starts. A historical lineage never reads blobs.
-  if (reader.lineage !== true) for (const file of index.files) reader.declare?.(outputBlobPath(file), file.compressed);
+  // General readers declare the immutable bank before their first section read.
+  // Admission defers blobs until its verified sections select a device tier;
+  // the boot compiler reserves that same selected bank before section reads.
+  // A historical lineage never reads blobs.
+  if (reader.lineage !== true && reader.deferAssetDeclarations !== true) for (const file of index.files) reader.declare?.(outputBlobPath(file), file.compressed);
   const sections = new Map<string, unknown>();
   let cached = reader.cached !== undefined || reader.verified !== undefined;
   const stores: Promise<void>[] = [];
