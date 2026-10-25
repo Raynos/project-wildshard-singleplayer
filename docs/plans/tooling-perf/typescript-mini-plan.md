@@ -85,7 +85,7 @@ skipLibCheck policy as root and layers.
 
 T4 first format slices are on origin: schema expressions and emitted runtime JavaScript are unchanged.
 Independent named data types replace exported validator implementation types; original/candidate input and output
-contracts remain mutually assignable (204 contracts). No compiler option or admission fence changed.
+contracts remain mutually assignable (242 contracts, including the private item bridge nodes). No compiler option or admission fence changed.
 
 | Declaration | Before bytes | After bytes | Commit |
 |---|---:|---:|---|
@@ -108,10 +108,12 @@ contracts remain mutually assignable (204 contracts). No compiler option or admi
 | creatures | 353,724 | 15,751 | `44d7fc16d0` |
 | roamingCombat | 125,190 | 1,687 | `16da600fd3` |
 | materialFamilies | 181,494 | 36,063 | `3c6189b3d2` |
+| items | 589,831 | 25,726 | `e7691fcaa7` |
+| bossProfiles | 312,502 | 25,102 | `a956756bee` |
 
-These nineteen files save **6,352,202 bytes (95.8%)** (6,629,809 → 277,607 bytes). The same 285 live format modules
-emit **14,010,239 → 7,044,510 bytes**. This whole-layer number also includes dependent declaration shrinkage and
-peer changes; only the nineteen-file saving is attributed directly above. The <2 MB target remains open. The audio regression reproduces the original two TS2589 errors and
+These twenty-one files save **7,203,707 bytes (95.6%)** (7,532,142 → 328,435 bytes). The same 285 live format modules
+emit **14,010,239 → 6,067,501 bytes**. This whole-layer number also includes dependent declaration shrinkage and
+peer changes; only the twenty-one-file saving is attributed directly above. The <2 MB target remains open. The audio regression reproduces the original two TS2589 errors and
 checks isolated emission plus a strict emitted-declaration consumer with skipLibCheck disabled. Client-plan and
 dressing regressions pin isolated emission, bounded sizes and defining imported data contracts; existing admission,
 default, corruption and decoded-cost tests pass. One broad related run passed 3,217 tests and hit one peer sealed
@@ -142,8 +144,17 @@ full layers/root chain passes, including the repaired peer SDK fixture, Nine cal
 SDK test membership. CF1 explicitly defers source-wide related selections above twenty suites; these are not full
 related passes. No schema expression, runtime JavaScript, producer bytes or admission check changed.
 
-A per-file isolated-declaration audit finds **83/285 ready**, with 577 diagnostics remaining in 202 modules
-(535 missing variable annotations, 34 non-inferable expressions, one parameter, one spread object and six arrays).
+The item packet preserves the JSON Schema bridge's complete pipe/array/variant/entry and nullable-wrapper paths,
+including exact namespaced weapon/tool identifiers, slots, tags, effects and actions. Its 22 contracts cover the
+private raw, weapon, tool, attack, equipment, admission-pipe and swept-policy nodes as well as public schemas. Boss
+profiles retain all five variant options and the spawned/held subset; four pipeline output aliases keep Valibot's
+required dictionary compatibility. Virtual consumers prove both variant sets and refuse a namespace-free effect.
+The final item/boss packet passes 20 focused cases in seven suites, four related declaration cases, named typed lint,
+format emission and a fresh full layers/root check. Empty strict-object data uses the equivalent Record<never, never>
+spelling; no admission check changes.
+
+A per-file isolated-declaration audit finds **85/285 ready**, with 561 diagnostics remaining in 200 modules
+(519 missing variable annotations, 34 non-inferable expressions, one parameter, one spread object and six arrays).
 Global isolatedDeclarations remains off until the layer actually meets its contract. T4 is still in flight.
 
 ## Decisions (decided G655: D1 keep authored JSON typed, generated never imported via GR0; D2 leave to CI; D3 lint rule)
