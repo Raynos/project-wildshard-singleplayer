@@ -35,7 +35,7 @@
 import { execFileSync } from 'node:child_process';
 import { debugSettings } from './debug-settings.mjs';
 import { browserBakeBytes } from './bake-output.mjs';
-import { stopSpinRecording, uploadSpinRecording } from './model-spin-recording.mjs';
+import { stopSpinRecording, uploadRecordedClip } from './model-spin-recording.mjs';
 import { mkdirSync, mkdtempSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve as resolvePath } from 'node:path';
 
@@ -280,7 +280,7 @@ try {
       try {
         const sink = await browserBakeBytes(page, { maxBytes: Math.max(1, clip.bytes), maxFiles: 1 });
         try {
-          await page.evaluate(uploadSpinRecording, { source: clip.url, destination: `${sink.url}clip` });
+          await page.evaluate(uploadRecordedClip, { source: clip.url, destination: `${sink.url}clip` });
           const bytes = sink.take('clip');
           if (bytes.byteLength !== clip.bytes) throw new SpinError('Recorded clip byte count changed');
           writeFileSync(webm, bytes);

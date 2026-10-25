@@ -22,8 +22,10 @@
 import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
 import { resolve as resolvePath, join } from 'node:path';
-import { tmpdir } from 'node:os';
 import { saveFixture } from './debug-settings.mjs';
+import { browserBakeBytes } from './bake-output.mjs';
+import { recordProgressClip } from './progress-recording.mjs';
+import { uploadRecordedClip } from './model-spin-recording.mjs';
 
 const { chromium } = await import('playwright');
 const ROOT = resolvePath(new URL('..', import.meta.url).pathname);
@@ -46,7 +48,8 @@ const OUT = join(flag('root', join(ROOT, 'progress')), SLUG, `${when}-${SHA.slic
 mkdirSync(OUT, { recursive: true });
 // one temp folder per run: two runs of the same shard at the same SHA (the lead's and a builder's) shared one, and the
 // first to finish deleted it under the other (two council captures stopped half-way, E399)
-const TMP = mkdtempSync(join(tmpdir(), `shard-progress-${SLUG}-${SHA.slice(0, 8)}-`));
+mkdirSync(join(ROOT, 'tmp'), { recursive: true });
+const TMP = mkdtempSync(join(ROOT, 'tmp', `shard-progress-${SLUG}-${SHA.slice(0, 8)}-`));
 const sleep = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });
 const D = Math.PI / 180;
 
@@ -81,9 +84,11 @@ const checkFrames = (ids, force) => {
   return { skipped: null, shots };
 };
 
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+/** @type {import('playwright').Browser|undefined} */
+let browser;
 const errors = [], shots = [];
 try {
+  browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true,
     userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1' });
   await saveFixture(ctx, { scope: 'device', key: 'devMode', data: true }); // experimental shards enter only in developer mode
@@ -184,25 +189,16 @@ try {
   // the clip: a slow orbit, recorded from the canvas at its real resolution
   if (CLIP && CAMS.clip) {
     await hud(false);
-    const b64 = await page.evaluate(async (c) => {
-      const canvas = document.querySelector('canvas'); if (!canvas) throw new Error('no canvas');
-      const stream = canvas.captureStream(30);
-      const rec = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9', videoBitsPerSecond: 8_000_000 });
-      const parts = []; rec.ondataavailable = (e) => { if (e.data.size > 0) parts.push(e.data); };
-      const start = performance.now();
-      const step = () => {
-        const t = (performance.now() - start) / 1000 / c.secs, a = c.startDeg * Math.PI / 180 + t * c.sweepDeg * Math.PI / 180;
-        window.__prog = { pos: [c.center[0] + Math.sin(a) * c.radius, c.center[1] + c.height, c.center[2] + Math.cos(a) * c.radius], look: c.center, fov: c.fov ?? 60 };
-        if (t < 1) requestAnimationFrame(step);
-      };
-      rec.start(250); step();
-      await new Promise((resolve) => { setTimeout(resolve, c.secs * 1000); });
-      rec.stop(); await new Promise((resolve) => { rec.onstop = resolve; });
-      const buf = new Uint8Array(await new Blob(parts, { type: 'video/webm' }).arrayBuffer());
-      let s = ''; for (let i = 0; i < buf.length; i += 0x8000) s += String.fromCodePoint(...buf.subarray(i, i + 0x8000));
-      return btoa(s);
-    }, CAMS.clip);
-    const webm = join(TMP, 'clip.webm'); writeFileSync(webm, Buffer.from(b64, 'base64'));
+    const clip = await page.evaluate(recordProgressClip, CAMS.clip), webm = join(TMP, 'clip.webm');
+    try {
+      const sink = await browserBakeBytes(page, { maxBytes: Math.max(1, clip.bytes), maxFiles: 1 });
+      try {
+        await page.evaluate(uploadRecordedClip, { source: clip.url, destination: `${sink.url}clip` });
+        const bytes = sink.take('clip');
+        if (bytes.byteLength !== clip.bytes) throw new Error('Recorded clip byte count changed');
+        writeFileSync(webm, bytes);
+      } finally { await sink.dispose(); }
+    } finally { await page.evaluate(source => { URL.revokeObjectURL(source); }, clip.url); }
     execFileSync('ffmpeg', ['-v', 'error', '-y', '-i', webm, '-vf', 'scale=540:-2,format=yuv420p', '-c:v', 'libx264', '-b:v', '900k', '-maxrate', '1200k', '-bufsize', '2400k', '-r', '30', '-movflags', '+faststart', join(OUT, 'clip.mp4')]);
   }
   // the compiled programs after every view was drawn (E397: a program-key collision shows up as a lower count)
@@ -210,6 +206,6 @@ try {
   writeFileSync(join(OUT, 'meta.json'), `${JSON.stringify({ shard: SLUG, sha: SHA, when, label: LABEL, loadSeconds: loadS, shots, clip: CLIP && Boolean(CAMS.clip), programs, staged, camAt, qa, active: CAMS.shots.filter((x) => x.calm === false).map((x) => x.id), cameras: execFileSync('git', ['hash-object', flag('cameras', join(ROOT, 'art', SLUG, 'progress', 'cameras.json'))], { encoding: 'utf8' }).trim(), pageErrors: errors }, null, 1)}\n`);
   console.log(`progress: ${OUT.slice(ROOT.length + 1)} · ${shots.length} shots${CLIP && CAMS.clip ? ' + clip' : ''} · load ${loadS} s · qa ${qa.skipped ? `skipped (${qa.skipped})` : `${Object.values(qa.shots).filter((v) => v.flagged).length} flagged, re-taken: ${qa.retaken.join(', ') || 'none'}`}${errors.length > 0 ? ` · ${errors.length} page errors` : ''}`);
 } finally {
-  await browser.close();
-  rmSync(TMP, { recursive: true, force: true });
+  try { await browser?.close(); }
+  finally { rmSync(TMP, { recursive: true, force: true }); }
 }

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
-import { stopSpinRecording, uploadSpinRecording } from '../scripts/model-spin-recording.mjs';
+import { stopSpinRecording, uploadRecordedClip } from '../scripts/model-spin-recording.mjs';
 
 const parts = [new Blob([new Uint8Array([0, 128, 255])]), new Blob([new Uint8Array([1, 2])])];
 const read = vi.fn<typeof fetch>(), off = vi.fn(), frames = vi.fn(() => 37);
@@ -64,7 +64,7 @@ test('an absent Explorer recorder refuses before allocating a clip', async () =>
 test('the handoff sends the complete native Blob once, without returning its bytes as JSON', async () => {
   const blob = new Blob(parts, { type: 'video/webm' });
   read.mockResolvedValueOnce(new Response(blob)).mockResolvedValueOnce(new Response(null, { status: 204 }));
-  await expect(uploadSpinRecording({ source: 'blob:owned-spin', destination: 'https://binary.invalid/clip' })).resolves.toBeUndefined();
+  await expect(uploadRecordedClip({ source: 'blob:owned-spin', destination: 'https://binary.invalid/clip' })).resolves.toBeUndefined();
   expect(read).toHaveBeenCalledTimes(2); expect(read.mock.calls[0]).toEqual(['blob:owned-spin']);
   const [destination, options] = read.mock.calls[1] ?? [];
   expect(destination).toBe('https://binary.invalid/clip'); expect(options?.method).toBe('POST');
@@ -73,11 +73,11 @@ test('the handoff sends the complete native Blob once, without returning its byt
 });
 test('a failed source read refuses before uploading', async () => {
   read.mockResolvedValueOnce(new Response(null, { status: 404 }));
-  await expect(uploadSpinRecording({ source: 'blob:owned-spin', destination: 'https://binary.invalid/clip' })).rejects.toThrow('Recorded clip read refused');
+  await expect(uploadRecordedClip({ source: 'blob:owned-spin', destination: 'https://binary.invalid/clip' })).rejects.toThrow('Recorded clip read refused');
   expect(read).toHaveBeenCalledTimes(1);
 });
 test('a failed upload refuses without reporting a successful clip', async () => {
   read.mockResolvedValueOnce(new Response(new Blob(parts))).mockResolvedValueOnce(new Response(null, { status: 400 }));
-  await expect(uploadSpinRecording({ source: 'blob:owned-spin', destination: 'https://binary.invalid/clip' })).rejects.toThrow('Recorded clip handoff refused');
+  await expect(uploadRecordedClip({ source: 'blob:owned-spin', destination: 'https://binary.invalid/clip' })).rejects.toThrow('Recorded clip handoff refused');
   expect(read).toHaveBeenCalledTimes(2);
 });

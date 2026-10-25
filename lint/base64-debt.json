@@ -36,7 +36,6 @@
     "scripts/proof-pine-look-parity.mjs": 3,
     "scripts/proof-signal-look-parity.mjs": 3,
     "scripts/proof-sky-look-parity.mjs": 3,
-    "scripts/shard-progress.mjs": 2,
     "scripts/skin-playback/run.mjs": 2,
     "scripts/tsl-spike/run.mjs": 1,
     "src/commons/practiceCourse.ts": 1,

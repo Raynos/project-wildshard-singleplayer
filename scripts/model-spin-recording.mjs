@@ -17,7 +17,7 @@ export async function stopSpinRecording() {
 /** Transfer one already-stopped native clip. Only URL/size metadata crosses the
  * evaluate boundary; its caller owns source URL and destination-route cleanup.
  * @param {{source:string,destination:string}} locations */
-export async function uploadSpinRecording({source,destination}) {
+export async function uploadRecordedClip({source,destination}) {
   const clip=await fetch(source);
   if(!clip.ok)throw new Error('Recorded clip read refused');
   const response=await fetch(destination,{method:'POST',body:await clip.blob()});
