@@ -22,6 +22,46 @@ export function gridSessionBudgetErrors(modules, budgets) {
   return errors;
 }
 
+const titleRoots = ['src/entry.ts', 'src/engine/ui/StartTitle.ts', 'src/game/mainMenu.ts', 'src/game/grid/pageEntry.ts', 'src/game/travel/travel.ts'];
+const titleFormat = new Set(['accent.ts', 'admissionLimits.ts', 'builtIndexes.ts', 'contentBounds.ts', 'outputDownload.ts']);
+/** Static dependencies of the original public title's explicit dynamic roots.
+ * Count shared chunks once; optional settings and gameplay stay outside. */
+export function titleClosureBudgetErrors(modules, budgets) {
+  const entries = Object.entries(modules), clean = id => id.replaceAll('\\', '/').split('?')[0];
+  if (!Object.hasOwn(budgets, 'js/title/gzip') && !entries.some(([, row]) => row.moduleIds.some(id => clean(id) === 'src/entry.ts'))) return [];
+  const errors = [], selected = new Set();
+  function visit(file) {
+    if (selected.has(file)) return;
+    selected.add(file);
+    const row = modules[file];
+    if (row === undefined) { errors.push(`missing title chunk ${file}`); return; }
+    if (!Array.isArray(row.imports)) { errors.push(`missing title static imports (${file})`); return; }
+    for (const dependency of row.imports) visit(dependency);
+  }
+  for (const source of titleRoots) {
+    const found = entries.filter(([, row]) => row.moduleIds.some(id => clean(id) === source));
+    if (found.length === 0) errors.push(`missing title root ${source}`);
+    for (const [file] of found) visit(file);
+  }
+  for (const file of selected) for (const raw of modules[file]?.moduleIds ?? []) {
+    const id = clean(raw);
+    if (/node_modules\/(?:three|@dimforge\/rapier[^/]*)(?:\/|$)/u.test(id)
+      || /^src\/shards\/.*\.[cm]?[jt]sx?$/u.test(id) || /\.generated(?:\.|$)/u.test(id)
+      || /^src\/engine\/(?:explore|calibrate)\//u.test(id)
+      || /^src\/format\/.*\.ts$/u.test(id) && !titleFormat.has(id.slice('src/format/'.length))) errors.push(`forbidden title module ${id} (${file})`);
+  }
+  for (const [unit, field] of [['raw', 'rawBytes'], ['gzip', 'gzBytes']]) {
+    const cap = budgets[`js/title/${unit}`]; let total = 0;
+    if (!Number.isSafeInteger(cap) || cap <= 0) { errors.push(`missing title ${unit} ceiling`); continue; }
+    for (const file of selected) {
+      const bytes = modules[file]?.[field];
+      if (!Number.isSafeInteger(bytes) || bytes < 0) errors.push(`missing title ${unit} bytes (${file})`); else total += bytes;
+    }
+    if (total > cap) errors.push(`title ${unit} ${total} exceeds ${cap}`);
+  }
+  return errors;
+}
+
 export function checkChunks(manifest, modules, closures, budgets = {}) {
   const errors = [];
   // SF16 keeps picker metadata; every authored template gameplay module is data loaded from its shardfile.
@@ -76,7 +116,7 @@ export function checkChunks(manifest, modules, closures, budgets = {}) {
   // Fail closed if the report was missing, incomplete or from a different build.
   for (const row of Object.values(manifest)) if ((row.name !== undefined || row.isEntry || row.isDynamicEntry || cold.has(row.file)) && row.file.endsWith('.js') && !modules[row.file]) errors.push(`missing module report for ${row.file}`);
   if (Object.keys(modules).length === 0) errors.push('empty chunk module report');
-  errors.push(...gridSessionBudgetErrors(modules, budgets));
+  errors.push(...gridSessionBudgetErrors(modules, budgets), ...titleClosureBudgetErrors(modules, budgets));
   return { errors, table: Object.entries(modules).map(([file, row]) => ({ file, name: row.name, gzBytes: row.gzBytes, modules: row.moduleIds.length })) };
 }
 
