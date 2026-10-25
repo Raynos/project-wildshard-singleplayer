@@ -2,8 +2,10 @@
 
 **State:** `in flight` (2026-10-25, sp-x2) — menu G682 PASS at 93.476 MiB;
 C1.1 worker backing cut done `9108b14ec6`, C2 reading / C3 title isolation qualified
-in §10. Current Template 1 remains FAIL at 260.070 MiB (§11); C4 holder attribution
-and current selection/Template 2 floors remain open. C5 remains a look pick.
+in §10. Current Template 1 remains FAIL at 263.976 MiB (§12); idle workers retire
+but no native-byte gain is established. C4 native attribution and current
+selection/Template 2 floors remain open. C7 protocol separation is done (§12).
+C5 remains a look pick.
 Budgets stay fixed.
 An extra under G639 (after Nalati to zero and grid readiness).
 
@@ -17,7 +19,7 @@ the page components take 300, then that should show in template 1 and template 2
 
 **Current menu G682 PASS (2026-10-25): 93.476 MiB combined WebContent + GPU**
 on `59aaa985dd`, with all 24 products prefetched; see §10. Template 1 is now
-**260.070 MiB FAIL** on `87491b8aa7` (§11). Selection and Template 2 remain
+**263.976 MiB FAIL** on `6436257c8e` (§12). Selection and Template 2 remain
 unremeasured since `f4465ac4ab`: 169.5 / 304.6 MiB, both misses (§7).
 The respective limits remain
 148.5383 / 198.5383 MiB. No four-floor PASS or single-cut causal gain is claimed.
@@ -430,8 +432,9 @@ retention attribution remain open.
 |---|---|---|
 | C4.1 Current native reading and cache lifetime | done (this commit), measured FAIL retained | Template 1 260.070 / 198.538 MiB; no runtime errors. New real-GC contracts prove settled downloads/write snapshots are released on success and quota refusal while the cache remains alive. No production release was justified. |
 | C4.2 Current main-page holders / idle decoders | done (this commit), bounded | One matching Chromium heap: 29,755,996 B rooted JS / 17,510,853 B unique backing, not a 55 MiB dead cache. Two idle tile-decode workers remain live; retire their pool after 30 s without queued/active jobs, recreate on the next decode. Three regressions fail before the cut; six worker contracts pass afterward. Native-byte gain remains unmeasured. |
-| C4.3 Remaining native/worker attribution | open | Worker heaps, browser-native storage and allocator residency are not decomposed by the main-page graph. The 260.070 MiB native budget failure remains the acceptance result until the next coherent milestone. |
+| C4.3 Remaining native/worker attribution | in flight (2026-10-25, sp-x2), milestone measured | Native Template 1 263.976 / 198.538 MiB FAIL. Chromium confirms zero live workers at 60/120 s, without a heap snapshot or forced GC. No native-byte gain established; native holder attribution remains open. |
 | C6 Model source | done previously `d2ef0c0848`, historical calibration | 250 MiB base, explicit grid-only page claims, unchanged caps. This visit does not silently recalibrate the estimator or establish current ±15% accuracy. |
+| C7.1 Reader protocol separation | done (this commit) | Only the original cold, uncollected WebKit protocol qualifies G682. Chromium retains diagnostic totals but cannot print a WebKit PASS/FAIL. Current four-floor qualification remains open. |
 
 One official cold compiled Template 1 visit used landed `87491b8aa7`, build
 `87491b8-mvo9ztg9`, with the existing reader's original title/select/SHARDFILE
@@ -528,3 +531,55 @@ graph rollups and retained paths stay locally in
 Touched game/test types and named typed lint pass; six direct worker contracts
 and 1,723 related cases / 321 suites pass. Fifteen stale-product suites remain
 explicit CI deferrals; no product build or complete-suite PASS is implied.
+
+## 12. C4 milestone and C7 protocol boundary (2026-10-25)
+
+One cold compiled Template 1 visit on landed `6436257c8e`, build
+`6436257-mvoblq55`, through the unchanged official native reader. No forced GC,
+heap snapshot, Network-domain body capture or extra visit. All samples contain
+two WebContent processes and one GPU process; runtime errors are empty.
+
+| Native combined floor | 10 s MiB | 60 s MiB | 120 s MiB | Fixed limit MiB |
+|---|---:|---:|---:|---:|
+| Previous `87491b8aa7` | 275.617 | 261.023 | 260.070 | 198.538 |
+| Idle retirement `6436257c8e` | 283.507 | 264.054 | **263.976 FAIL** | 198.538 |
+
+At 120 s, WebContent is 233,935,984 B and GPU is 42,863,112 B: total
+276,799,096 B, **68,616,576 B / 65.438 MiB over** the unchanged budget.
+The 3.906 MiB increase is one cohort each, not an isolated regression or gain.
+Passive categories arrive only after acceptance: last JavaScript/GC-owned
+108,797,908 B, Page 114,692,396 B, JIT 17,891,328 B and Other 31,375,360 B.
+These are not additive native owners; their timestamps remain zero.
+
+Actual CPU overlap is retained: quiet began 16:09:23 local; sp-x9's existing
+Pine tests ended about 16:09:24/32 and its 80-test commit gate ran
+16:10:13–45 (`f55bcc097b`). No timing or causal claim. Reader/browser/proxy,
+Simulator, quiet and the owned preview all closed naturally.
+
+A separate no-quiet Chromium diagnostic on the same source pin uses the same
+phone tier, 2× scale, muted real compiled entry and zero Inspector body capacity.
+At 10 s both Playwright and browser target enumeration show cache/hash workers
+plus two tile decoders; at **60/120 s both inventories are empty**. No forced GC
+or heap snapshot. This confirms actual worker retirement, without sizing its
+WebKit benefit. Allocator dump renderer private footprint is 224,611,328 B;
+that is a different metric from the original libproc physical-footprint ruler
+and does not qualify its 230 MB target. Buffer partition raw capacity is
+19,415,040 B / live objects 15,662,400 B; web cache is 11,015,162 B. Parent,
+child, raw and ownership-attributed sizes are not additive.
+
+The historical 218 MiB prefetch holder was already identified as Inspector
+response capture in `e17a51f183`, using a same-source comparison. It is not a new
+game-cache savings claim or a blanket subtraction from WebKit. Current data
+does not justify dropping live product buffers or changing the C5 look policy.
+Raw current readings remain under `tmp/sp-x2/core-c4-idle-template/` and
+`tmp/sp-x2-c4-workers/6436257/`; all diagnostic resources are closed.
+
+The C7 audit found that the Chromium `core` command reused G682's WebKit budget
+summary. It now reports original Chromium totals only, explicitly unqualified
+for WebKit. The native summary requires `webkit-core-floor/1`, cold mode,
+`forcedGC: false` and zero Inspector response-body capacity. Missing/failed
+floors still fail unknown, limit/limit+1 and GPU inclusion remain unchanged,
+and the official reader retains its budget-failure exit. A regression fails
+before the guard; 20 focused / 21 related cases pass afterward, with scripts
+types, scoped fixture types and named typed lint green. Re-admitting the saved
+native menu and both Template readings preserves PASS / FAIL / FAIL exactly.

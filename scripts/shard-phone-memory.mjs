@@ -92,11 +92,10 @@ export function helloWorldMemoryFloor(input) {
     menuLimitBytes: totalBytes + 50 * 1048576, templateLimitBytes: totalBytes + 100 * 1048576};
 }
 
-/** Compare only the unmodified 120-second floor, never the cache-clear diagnostic.
- * Missing/failed readings stay unknown and fail; Chromium is not phone RAM.
+/** Read only the original 120-second floor, never the cache-clear diagnostic.
  * @param {unknown} input
  * @param {string} [selection] One app floor, or all four by default. */
-export function coreMemorySummary(input, selection = 'all') {
+function coreFloorTotals(input, selection = 'all') {
   const targets = coreMemoryTargets.filter(target => selection === 'all' || target.shard === selection);
   if (targets.length === 0) throw new Error('Unknown app core memory floor');
   const rows = v.parse(floorRows, input);
@@ -105,9 +104,28 @@ export function coreMemorySummary(input, selection = 'all') {
     const row = rows.find(value => value.shard === target.shard), samples = row?.samples.filter(sample => sample.phase === '120s') ?? [];
     if (samples.length > 1) throw new Error(`Duplicate 120s floor: ${target.shard}`);
     const sample = samples[0], totalBytes = sample === undefined || row?.errors.length !== 0 ? null : sample.rendererBytes + sample.gpuBytes;
-    return {shard: target.shard, name: target.name, limitBytes: target.limitBytes,
-      totalBytes, passed: totalBytes !== null && totalBytes <= target.limitBytes};
+    return {shard: target.shard, name: target.name, limitBytes: target.limitBytes, totalBytes};
   });
+}
+
+/** G682 applies only to the cold, uncollected native WebKit reader.
+ * Missing/failed floors stay unknown and fail; Chromium is not phone RAM.
+ * @param {unknown} input
+ * @param {string} [selection] One app floor, or all four by default. */
+export function coreMemorySummary(input, selection = 'all') {
+  const totals = coreFloorTotals(input, selection);
+  v.parse(v.array(v.object({protocol: v.literal('webkit-core-floor/1'), mode: v.literal('cold'),
+    forcedGC: v.literal(false), inspectorResponseBodyBytes: v.literal(0)})), input);
+  return totals.map(({shard, name, limitBytes, totalBytes}) => ({shard, name, limitBytes, totalBytes,
+    passed: totalBytes !== null && totalBytes <= limitBytes}));
+}
+
+/** Chromium diagnostics report totals without qualifying a WebKit budget.
+ * @param {unknown} input */
+export function chromiumCoreMemorySummary(input) {
+  const totals = coreFloorTotals(input);
+  v.parse(v.array(v.object({protocol: v.literal('chromium-phone-core/1')})), input);
+  return totals.map(({shard, name, totalBytes}) => ({shard, name, totalBytes}));
 }
 
 const processRows = v.array(v.object({pid: v.pipe(v.number(), v.safeInteger(), v.minValue(1)),
@@ -197,7 +215,7 @@ async function measureTarget(base, shard, label, out, pin, floor, requireCompile
 const title = shard === 'menu' || shard === 'select';
 const memoryBrowser = await launchMemoryBrowser(['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist', '--enable-precise-memory-info']);
 const {browser} = memoryBrowser;
-const result = { label, shard, base, pin, floor, compiledEntryRequired: requireCompiled && !title, inspectorResponseBodyBytes: 0, samples: [], errors: [] };
+const result = { label, shard, base, pin, floor, protocol: 'chromium-phone-core/1', compiledEntryRequired: requireCompiled && !title, inspectorResponseBodyBytes: 0, samples: [], errors: [] };
 try {
   const context = await browser.newContext({ ...devices['iPhone 16 Pro'], serviceWorkers: floor ? 'block' : 'allow' });
   await saveFixture(context, { scope: 'device', key: 'devMode', data: true });
@@ -286,10 +304,10 @@ async function main() {
       if (row.errors.length > 0) break;
     }
   } finally {
-    result.summary = coreMemorySummary(result.targets);
+    result.summary = chromiumCoreMemorySummary(result.targets);
     writeFileSync(out, `${JSON.stringify(result, null, 2)}\n`);
-    for (const row of result.summary) console.log(`${row.name}: ${row.totalBytes === null ? 'UNKNOWN' : `${(row.totalBytes / 1048576).toFixed(1)} MiB`} / ${row.limitBytes / 1048576} MiB ${row.passed ? 'PASS' : 'FAIL'}`);
-    if (result.summary.some(row => !row.passed)) process.exitCode = 1;
+    for (const row of result.summary) console.log(`${row.name}: ${row.totalBytes === null ? 'UNKNOWN' : `${(row.totalBytes / 1048576).toFixed(1)} MiB`} (Chromium diagnostic; WebKit budget unqualified)`);
+    if (result.summary.some(row => row.totalBytes === null)) process.exitCode = 1;
   }
 }
 

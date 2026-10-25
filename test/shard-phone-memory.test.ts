@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Refusals must occur before launching a memory browser.
 import { execFileSync } from 'node:child_process';
 import { expect, test } from 'vitest';
-import { coreMemorySummary, coreMemoryTargets, selectedCoreMemoryTargets, scriptResourceURLs, simulatorCoreFootprint, webKitCoreMemoryFloorBytes,
+import { coreMemorySummary, chromiumCoreMemorySummary, coreMemoryTargets, selectedCoreMemoryTargets, scriptResourceURLs, simulatorCoreFootprint, webKitCoreMemoryFloorBytes,
   serveHelloWorldMemory, helloWorldMemoryHTML, helloWorldMemoryFloor } from '../scripts/shard-phone-memory.mjs';
 
 const MiB = 1048576;
@@ -12,7 +12,8 @@ test('script inventory keeps distinct complete JavaScript URLs only', () => {
   expect(scriptResourceURLs(urls.map(name => ({name})))).toEqual(urls.slice(0, 3));
   expect(scriptResourceURLs([])).toEqual([]);
 });
-const rows = () => coreMemoryTargets.map(target => ({shard: target.shard, errors: [],
+const nativeProtocol = {protocol: 'webkit-core-floor/1', mode: 'cold', forcedGC: false, inspectorResponseBodyBytes: 0};
+const rows = () => coreMemoryTargets.map(target => ({...nativeProtocol, shard: target.shard, errors: [],
   samples: [10, 60, 120].map(second => ({phase: `${second}s`, rendererBytes: target.limitBytes - 10 * MiB, gpuBytes: 10 * MiB}))}));
 
 test('four independent floors use the picked combined process limits', () => {
@@ -21,6 +22,16 @@ test('four independent floors use the picked combined process limits', () => {
     ['menu', 50], ['select', 50], ['_template', 100], ['blender-template', 100],
   ]);
   expect(coreMemorySummary(rows()).every(row => row.passed && row.totalBytes === row.limitBytes)).toBe(true);
+});
+
+test('WebKit budgets refuse Chromium, collected and unlabelled readings', () => {
+  const native = {shard: 'menu', errors: [], protocol: 'webkit-core-floor/1', mode: 'cold',
+    forcedGC: false, inspectorResponseBodyBytes: 0,
+    samples: [{phase: '120s', rendererBytes: 1, gpuBytes: 1}]};
+  for (const patch of [{protocol: 'chromium-phone-core/1'}, {protocol: undefined},
+    {mode: 'warm'}, {forcedGC: true}, {inspectorResponseBodyBytes: 1}]) {
+    expect(() => coreMemorySummary([{...native, ...patch}], 'menu')).toThrow();
+  }
 });
 
 test('single-floor cohorts retain the original target and refuse unknown selections', () => {
@@ -37,7 +48,7 @@ test('single-floor cohorts retain the original target and refuse unknown selecti
 
 test('single-floor verdicts enforce the same limit without requiring other visits', () => {
   for (const target of coreMemoryTargets) {
-    const input = {shard: target.shard, errors: [], samples: [
+    const input = {...nativeProtocol, shard: target.shard, errors: [], samples: [
       {phase: '120s', rendererBytes: target.limitBytes - 1, gpuBytes: 1},
     ]};
     expect(coreMemorySummary([input], target.shard)).toEqual([
@@ -77,13 +88,26 @@ test('uses original 120s values, counts GPU, and never substitutes a cache-clear
 test('missing, failed and invalid readings cannot pass as zero', () => {
   expect(coreMemorySummary([])).toHaveLength(4);
   expect(coreMemorySummary([]).every(row => row.totalBytes === null && !row.passed)).toBe(true);
-  expect(coreMemorySummary([{shard: 'menu', errors: ['page failed'], samples: [{phase: '120s', rendererBytes: 1, gpuBytes: 1}]}])[0])
+  expect(coreMemorySummary([{...nativeProtocol, shard: 'menu', errors: ['page failed'], samples: [{phase: '120s', rendererBytes: 1, gpuBytes: 1}]}])[0])
     .toMatchObject({totalBytes: null, passed: false});
-  expect(coreMemorySummary([{shard: 'menu', errors: [], samples: [{phase: '10s', rendererBytes: 1, gpuBytes: 1}]}])[0])
+  expect(coreMemorySummary([{...nativeProtocol, shard: 'menu', errors: [], samples: [{phase: '10s', rendererBytes: 1, gpuBytes: 1}]}])[0])
     .toMatchObject({totalBytes: null, passed: false});
   for (const rendererBytes of [-1, Number.NaN, Infinity, undefined]) expect(() => coreMemorySummary([
     {shard: 'menu', errors: [], samples: [{phase: '120s', rendererBytes, gpuBytes: 1}]},
   ])).toThrow();
+});
+
+test('Chromium diagnostics retain original totals and errors without native verdicts', () => {
+  const input = rows().map(({shard, errors, samples}) => ({shard, errors, samples, protocol: 'chromium-phone-core/1'}));
+  expect(chromiumCoreMemorySummary(input)).toEqual(coreMemoryTargets.map(({shard, name, limitBytes}) => ({
+    shard, name, totalBytes: limitBytes,
+  })));
+  const menu = input[0];
+  if (menu === undefined) throw new Error('Missing diagnostic fixture');
+  expect(chromiumCoreMemorySummary([{...menu, errors: ['page failed']}])[0]).toMatchObject({totalBytes: null});
+  expect(chromiumCoreMemorySummary([]).every(row => row.totalBytes === null)).toBe(true);
+  expect(() => chromiumCoreMemorySummary(rows())).toThrow();
+  expect(() => coreMemorySummary(input)).toThrow();
 });
 
 test('duplicate or foreign floors and duplicate acceptance samples refuse', () => {
