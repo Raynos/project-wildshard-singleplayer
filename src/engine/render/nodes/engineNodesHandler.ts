@@ -407,10 +407,10 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   /** node-material programs this handler built (the validator's and the bench's count) */
   builds = 0;
   /** The last BUILD_LOG_CAP builds, oldest first: when (diagnostic clock) and for which material and object (names
-   *  only), and how the build went (`how`: 'reused', or why it was built in full: 'first of its key', 'no graph shape',
+   *  only), elapsed build time and how the build went (`how`: 'reused', or why it was built in full: 'first of its key', 'no graph shape',
    *  'no reuse key', a pairing refusal; '+ kept' when a full build was kept for reuse). The frame floor attributes them
    *  to runtime hooks: a build after an entry's warm-up is a missed warm program. */
-  readonly buildLog: { at: number; material: string; object: string; how: string }[] = [];
+  readonly buildLog: { at: number; ms: number; material: string; object: string; how: string }[] = [];
   /** each `buildLog` row's program parameters (`reuseKey`: the object class, the custom key's tail, the parameters and
    *  defines), at the same index; '' where none could be read. Two builds of one material diff here (what moved its key). */
   readonly buildKeys: string[] = [];
@@ -883,10 +883,11 @@ export class EngineNodesHandler extends WebGLNodesHandler {
         console.warn(`[programShare] ${material.name || material.type} wrote other code under a shared program key: it keys by its own nodes from now on`);
       }
     }
-    this.buildMs += diagnosticNow() - t0;
+    const buildMs = diagnosticNow() - t0;
+    this.buildMs += buildMs;
     this.builds++;
     if (this.buildLog.length >= BUILD_LOG_CAP) { this.buildLog.shift(); this.buildKeys.shift(); }
-    this.buildLog.push({ at: t0, material: material.name || material.type, object: object.name || object.type, how });
+    this.buildLog.push({ at: t0, ms: buildMs, material: material.name || material.type, object: object.name || object.type, how });
     this.buildKeys.push(program ?? reuseKey(parameters, object, material, this.shareKeyOf(material)) ?? '');
     // WebGLRenderer.getProgram calls build only for a key its material has no program for, then files the acquired
     // program under that key: the program lands at the map's current size
