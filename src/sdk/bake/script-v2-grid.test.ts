@@ -1,11 +1,46 @@
+
 import { expect,test } from 'vitest';
-import { layoutV2,writeV2Frame,validateV2Frame,type V2FrameAuthority } from '../src/format/scriptWireV2';
-import { prepareV2HeightGrid,type V2HeightGrid } from './fixtures/heightGridV2';
-import { bakedSamplers } from '../src/format/bakedTerrainSampling';
-import { v2CoreSource } from '../src/sdk/as/wsV2';
-import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
-import { ScriptModuleV2 } from '../src/engine/script/moduleV2';
-import { prepareV2Observations } from '../src/engine/script/observationsV2';
+import { layoutV2,writeV2Frame,validateV2Frame,type V2FrameAuthority ,type V2Layout} from '@wildshard/format/scriptWireV2';
+
+import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
+import { v2CoreSource } from '../as/wsV2';
+import { compileScriptV2 } from './compileScriptV2';
+import { ScriptModuleV2 } from '@wildshard/engine/script/moduleV2';
+import { prepareV2Observations } from '@wildshard/engine/script/observationsV2';
+
+// Test-only setup for the retained real ABI2 protocol contracts.
+/** ABI-v2 height-grid transport. Sim/projection callers supply the native world
+ * owner's lattice; there is no renderer or implicit active-terrain fallback. */
+
+
+interface V2HeightGrid {
+  readonly originX: number; readonly originZ: number; readonly cellX: number; readonly cellZ: number;
+  readonly cols: number; readonly rows: number; readonly waterY: number; readonly heights: Float32Array;
+}
+/** Validate arithmetic and copy all bytes before touching the guest. Returning
+ * a writer lets the same native snapshot survive a rejected call/re-step. */
+function prepareV2HeightGrid(layout: V2Layout,grid: V2HeightGrid | null): { readonly count: number; readonly write: (view: DataView) => void } {
+  const region = layout.regions[13];if (region === undefined) throw new Error('Missing v2 height-grid region');
+  let bytes = new Uint8Array();
+  if (grid !== null) {
+    const { originX,originZ,cellX,cellZ,cols,rows,waterY,heights } = grid;
+    if (![originX,originZ,cellX,cellZ,waterY].every(Number.isFinite) || cellX <= 0 || cellZ <= 0
+      || !Number.isInteger(cols) || !Number.isInteger(rows) || cols < 2 || rows < 2 || region.capacity < 64
+      || cols > Math.floor((region.capacity-64)/4/rows)) throw new Error('Invalid or oversized v2 height grid');
+    if (heights.length !== cols*rows || !heights.every(Number.isFinite)
+      || !Number.isFinite(originX+(cols-1)*cellX) || !Number.isFinite(originZ+(rows-1)*cellZ)) throw new Error('Invalid v2 height-grid samples');
+    bytes = new Uint8Array(64+heights.length*4);const view = new DataView(bytes.buffer);
+    [originX,originZ,cellX,cellZ].forEach((value,i) => view.setFloat64(i*8,value,true));
+    view.setUint32(32,cols,true);view.setUint32(36,rows,true);view.setUint32(40,region.offset+64,true);view.setFloat64(48,waterY,true);view.setUint32(56,1,true);
+    heights.forEach((value,i) => view.setFloat32(64+i*4,value,true));
+  }
+  return { count: bytes.length,write: view => {
+    if (view.byteLength !== layout.pages*65536) throw new Error('Wrong v2 height-grid memory');
+    const target = new Uint8Array(view.buffer,view.byteOffset+layout.io+region.offset,region.capacity);
+    if (bytes.length === 0) target.subarray(0,64).fill(0);else target.set(bytes);
+  } };
+}
+
 
 const layout = layoutV2(1024,1,new Map([[1,1],[2,2],[3,2],[4,2],[5,1],[14,128]]));
 const grid: V2HeightGrid = { originX: -1,originZ: -1,cellX: 1,cellZ: 1,cols: 3,rows: 3,waterY: -5,heights: Float32Array.from([1.1,2,7,3,9,4,-2,3,8]) };

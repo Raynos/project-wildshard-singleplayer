@@ -2,7 +2,7 @@
 import type { AnimalRigContext, AnimalRigJoint } from '../../../src/engine/entities/animalRig';
 import { bump, clamp, lookAngles, smooth01, squashBody, step } from '../../../src/engine/entities/species/rigs';
 import { stepCreatureLift } from '../../../src/game/plugin/animation';
-import { poseCreatureStride } from '../creatureStride';
+import { poseCreatureStride } from '@wildshard/engine/test/creatureStride';
 import { sampleCreatureSwing } from '../creatureSwing';
 
 type Side = 'L' | 'R';

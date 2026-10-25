@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { Euler, Vector3 } from 'three';
-import { poseCreatureStride } from './fixtures/creatureStride';
+import { poseCreatureStride } from '../test/creatureStride';
 
 test('stride alternates borrowed legs and layers fold, refusing invalid input before posing', () => {
   const joint = () => ({ position: new Vector3(), rotation: new Euler(), scale: new Vector3(1, 1, 1) });

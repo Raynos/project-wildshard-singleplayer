@@ -1,6 +1,34 @@
+import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
+import type { TerrainField } from '../level/data';
+import type { HuntGround } from './huntPattern';
 import { expect, test } from 'vitest';
-import { bakedHuntGround } from './fixtures/bakedHuntGround';
-import type { BakedGrid } from '../src/format/bakedTerrainBytes';
+
+import type { BakedGrid } from '@wildshard/format/bakedTerrainBytes';
+
+// Historical contract oracle; production consumers use the data-driven owners.
+/**
+ * Bind a baked navigation surface to live authored water/forest queries. The grid supplies only height and normal;
+ * trails, pads, water, wetness and trees remain the caller's authority. Bounds are inclusive after the requested margin.
+ * The stream function is captured on binding, while water level and pond are read on each query.
+ */
+function bakedHuntGround(grid: BakedGrid, ports: {
+  readonly field: Pick<TerrainField, 'trailDistance' | 'cabinMask' | 'streamAt' | 'waterLevel' | 'pond'>;
+  readonly chunkHalf: number;
+  readonly trees: HuntGround['trees'];
+  readonly treeless: HuntGround['treeless'];
+  readonly wetAt: HuntGround['wetAt'];
+  readonly sea: HuntGround['sea'];
+}): HuntGround {
+  const samplers = bakedSamplers(grid), field = ports.field, stream = field.streamAt, half = ports.chunkHalf;
+  return {
+    heightAt: samplers.heightAt, normalY: (x, z) => samplers.normalAt(x, z)[1],
+    trailDistance: field.trailDistance, cabinMask: field.cabinMask,
+    inChunk: (x, z, margin) => Math.abs(x) <= half - margin && Math.abs(z) <= half - margin,
+    streamAt: (x, z) => stream === undefined ? null : stream(x, z), waterLevel: () => field.waterLevel(), pond: () => field.pond,
+    sea: ports.sea, wetAt: ports.wetAt, trees: ports.trees, treeless: ports.treeless, terrain: () => true, chunkHalf: half,
+  };
+}
+
 
 test('baked hunting ground keeps inclusive bounds and live water, wetness and forest authority', () => {
   const grid: BakedGrid = { res: 2, size: 10, seed: 0, landscapeHash: 0, heights: new Float32Array([0, 10, 0, 10]), splat: new Uint8Array(16), undergrowth: null };

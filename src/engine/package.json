@@ -7,6 +7,7 @@
     "./test/realGc": "./test/realGc.ts",
     "./test/world": "./test/world.ts",
     "./test/creature": "./test/creature.ts",
+    "./test/creatureStride": "./test/creatureStride.ts",
     "./test/manager": "./test/manager.ts",
     "./test/nativeBytes": "./test/nativeBytes.ts",
     "./test/terrain": "./test/terrain.ts",
