@@ -28,7 +28,7 @@ async function fixture(options: { paired?: boolean; loading?: number; isolation?
   if (east === undefined || north === undefined) throw new Error('Missing neighbours');
   const page = createSimHost(level, { rapier }), residency = new PageResidency(), events: string[] = [];
   const allocated: { instance: string; owners: string[] }[] = [];
-  const control: { dispose: boolean; holdIncoming: boolean; finish: (() => void) | undefined } = { dispose: true, holdIncoming: false, finish: undefined };
+  const control: { dispose: boolean; holdIncoming: boolean; finish: (() => void) | undefined; aborted: string[] } = { dispose: true, holdIncoming: false, finish: undefined, aborted: [] };
   const budget = { playing: 1_200_000_000, loading: options.loading ?? 1_800_000_000 };
   const player = { position: page.player.position, yaw: -Math.PI / 2, health: page.player.health, owner: page.player, motor: page.releasePlayerMotor() };
   const live = new LiveGridHost(assembly, {
@@ -43,7 +43,8 @@ async function fixture(options: { paired?: boolean; loading?: number; isolation?
       bundle: () => ({ criticalWireBytes: 1000, hybridWireBytes: 1000, decodeSeconds: 0, runtimeParseSeconds: 10 }) },
     admit: cell => Promise.resolve({ bytes: 1000, exclusiveRuntime: true, reloadsCheckpoint: true, prepareRuntime: () => Promise.resolve(),
       ...(options.paired === true && options.isolation !== false ? { isolatedPreparation: true } : {}),
-      create: () => {
+      create: (_saved, _claim, signal) => {
+        signal?.addEventListener('abort', () => { control.aborted.push(cell.instance); }, { once: true });
         allocated.push({ instance: cell.instance, owners: [...residency.allocator.claims()].map(row => row.owner) });
         events.push(`create:${cell.instance}`);
         const host = createSimHost(level, { rapier, playerBody: false, ground: false });
@@ -221,6 +222,25 @@ test('G723: a late build that ignores its abort is disposed after a U-turn, neve
     expect(f.live.state().residents).toEqual([f.home.instance]);
     expect(f.claims().some(row => row.owner === f.east.instance)).toBe(false);
     expect(f.events).toContain(`disposed:${f.east.instance}`);
+    expect(f.live.state().issues).toEqual({});
+  } finally { f.control.finish?.(); f.close(); }
+});
+
+test('G723: an unsettled preparation owns the queue until its own cleanup finishes', async () => {
+  const f = await fixture({ paired: true });
+  try {
+    await f.enterHome(); const leave = await f.live.prepare(f.home.instance, null); leave.commit();
+    f.control.holdIncoming = true; await f.approachEast();
+    await f.live.prefetch([f.north.instance]);
+    f.player.position.x = 0; f.player.position.z = -(CHUNK_HALF + .5);
+    travel(f.live, f.player.position, 0, -1); await f.settle();
+    expect(f.control.aborted).toEqual([]);
+    expect(f.live.state().pending).toEqual([f.east.instance]);
+    expect(f.created()).toEqual([f.home.instance, f.east.instance]);
+    const back = await f.live.prepare(null, f.home.instance); back.commit();
+    if (f.control.finish === undefined) throw new Error('Missing held preparation');
+    f.control.finish(); await f.settle();
+    expect(f.live.state().residents).toEqual([f.home.instance]);
     expect(f.live.state().issues).toEqual({});
   } finally { f.control.finish?.(); f.close(); }
 });

@@ -27,7 +27,7 @@ import { createProgramKeeper, retainRendererPrograms, RETAINED_PROGRAM_BYTES, RE
 import { installBootProgramChoice } from './bootPrograms';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { WORK_SLICE_MS, workSlice } from '@wildshard/engine/core/workSlice';
-import { CHUNK_HALF, ENTRY_ASPHALT, CONTENT_CAPS } from '@wildshard/engine/core/config';
+import { CHUNK_HALF, ENTRY_ASPHALT } from '@wildshard/engine/core/config';
 import type { DisposeStep, Scope } from '@wildshard/engine/app/scope';
 import type { Events } from '@wildshard/engine/events/events';
 import type { Physics } from '@wildshard/engine/physics/Physics';
@@ -269,7 +269,6 @@ export class LiveGridSession {
       keepPrograms: instance => { this.keepPrograms(instance); },
       home: { mode: 'owned', instance: home.instance, bytes: ports.residency.bytes, residency: ports.residency },
       player, allocator: ports.allocator,
-      preparationBudget: { playing: CONTENT_CAPS.playing, loading: CONTENT_CAPS.loading },
       highway: { bytes: highwayBytes, create: () => {
         const highwayScope = scope.child('grid.highway.platform');
         this.transferWalls.set(null, new TransferWalls(() => ports.physics, assembly.cells.map(cell => cell.origin), traveller.motor.opts.radius, 'entry', highwayScope));
@@ -627,7 +626,7 @@ export class LiveGridSession {
       return finish(await (metadata ? this.admitRuntime(cell, retained, true) : this.admitRuntime(cell, retained, false)));
     }
     const bytes = regionalDataCellBytes(cell.slug, source, findShard(cell.slug));
-    if (metadata) return finish({ bytes, isolatedPreparation: true, reloadsCheckpoint: true, cancel: retained.release });
+    if (metadata) return finish({ bytes, reloadsCheckpoint: true, cancel: retained.release });
     let durability = this.durability.get(cell.instance);
     if (durability === undefined) {
       durability = new GridRegionDurability(this.page.saves, { id: cell.instance, shard: cell.slug }, source, this.page.catalogue);
@@ -708,7 +707,7 @@ export class LiveGridSession {
         throw error;
       }
     };
-    return finish({ bytes, isolatedPreparation: true, reloadsCheckpoint: true, cancel: releaseProduct, create: async (saved: Parameters<LiveGridAdmission['create']>[0]) => {
+    return finish({ bytes, reloadsCheckpoint: true, cancel: releaseProduct, create: async (saved: Parameters<LiveGridAdmission['create']>[0]) => {
       // SF88e: each declared script module's WebAssembly.Memory is a synchronous full GC on iOS JSC (40-80 ms each);
       // lease them one drawn frame apart under the owner the script host installs in, so entry draws no 250 ms frame
       const owner = constructionOwner() ?? currentOwner();
@@ -750,13 +749,14 @@ export class LiveGridSession {
       await manifest.load();
     };
     await prepareEntry();
-    const isolatedPreparation = dataPage || manifest.clientPlanRuntime === true;
-    if (metadata) return { bytes, exclusiveRuntime: true, isolatedPreparation, reloadsCheckpoint: true, cancel: retained.release, prepareRuntime: prepareEntry };
+    // G723 containment: keep production factories on retire-before-allocation until real yielded-construction
+    // cancellation proves that an unrelated early guess cannot hold the committed destination's queue.
+    if (metadata) return { bytes, exclusiveRuntime: true, reloadsCheckpoint: true, cancel: retained.release, prepareRuntime: prepareEntry };
     const saved = new GridRegionDurability(this.page.saves, { id: cell.instance, shard: cell.slug }, retained.admitted.source, this.page.catalogue);
     this.durability.set(cell.instance, saved);
     let closed = false;
     const release = (): void => { if (closed) return; closed = true; this.durability.delete(cell.instance); retained.release(); };
-    return { bytes, exclusiveRuntime: true, isolatedPreparation, reloadsCheckpoint: true, cancel: release, prepareRuntime: prepareEntry, create: async (_prior, claim, signal) => {
+    return { bytes, exclusiveRuntime: true, reloadsCheckpoint: true, cancel: release, prepareRuntime: prepareEntry, create: async (_prior, claim, signal) => {
       const factory = createRegionalRuntimeFactory({ home: this.ports.home.origin,
         continuation: regionalRuntimeCheckpoint(this.page.saves, { id: cell.instance, shard: cell.slug }, retained.admitted.source.identity.revision),
         prepareFoundation: createRegionalWorldFoundation({ rapier: this.ports.physics.R, ...(this.ports.tiles === undefined ? {} : { tiles: this.ports.tiles }), navmesh: level => loadNavmesh(level.id, level.bakedId ?? level.id, level.navigation), pause: () => yieldGridConstruction(this.runtimeScope),

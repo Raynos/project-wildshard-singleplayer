@@ -467,7 +467,9 @@ export class LiveGridHost {
     // Spend a safe road approach on the destination's admitted world rather than waiting
     // at its wall. Actual world-space movement selects the approaching cell: proximity alone would rebuild the
     // just-retired source behind the traveller. Stationary/missed first samples retain the original wall reach.
-    if (this.active === null && (this.requests.size === 0 || this.approach !== null)) {
+    // One constructor owns the queue until it settles. A predicted heading must not cancel yielded world work;
+    // only an actual crossing may supersede it through the existing safe-point cancellation contract.
+    if (this.active === null && this.requests.size === 0) {
       const wallReach = 6 + this.ports.player.motor.opts.radius + 0.5 + this.ports.readiness.link.speed / 60;
       const moving = !travelled ? undefined : candidates.find(cell => headsToEntry(cell, feet, previous)
         && this.distance(cell, feet) < this.distance(cell, previous) - 0.000001);
