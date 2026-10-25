@@ -191,11 +191,6 @@
       "length": 14232
     }
   ],
-  "paint": {
-    "hash": "b103bd277266ae53eb282cca201456f7fe12d809d20004f18e192296cd8fde5e",
-    "length": 35059269,
-    "chunks": 252
-  },
   "castFiles": [
     {
       "name": "geometry/casts/walker-dark.glb",

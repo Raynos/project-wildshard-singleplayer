@@ -1,7 +1,4 @@
 import { layout } from './fixtures/nine-product-inputs';
-// oxlint-disable-next-line import/no-nodejs-modules -- parse the generated pixel chunks at runtime instead of inferring their 47 MB JSON type
-import { readFileSync } from 'node:fs';
-import * as v from 'valibot';
 import { unzlibSync } from 'fflate';
 import { parseGrappleFilament } from '@wildshard/format/grapple';
 import filamentRows from '../src/shards/nine-dragon-stack/data/filament.json' with { type: 'json' };
@@ -63,7 +60,7 @@ test('wet receivers compile within both caps and retain their plane channels', (
   for (const [key, value] of Object.entries(fields)) Reflect.set(renderer, key, value);
   const handler = new EngineNodesHandler(), scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera();
   scene.add(square); handler.setRenderer(renderer); handler.renderStart(scene, camera); handler.updateLights([]);
-  const parameters: object = {};
+  const parameters: object = { customProgramCacheKey: compiled.material.customProgramCacheKey() };
   const isParameters = (value: object): value is THREE.WebGLProgramParametersWithUniforms => !Array.isArray(value);
   if (!isParameters(parameters)) throw new Error('Missing parameters');
   try {
@@ -124,26 +121,6 @@ test('halo discs compile with additive alpha preservation inside the existing ca
   compiled.material.dispose();
 });
 
-
-test('paint chunks cover every layer exactly with a neutral unmasked alpha', () => {
-  const natural=v.pipe(v.number(),v.integer(),v.minValue(0));
-  const chunks=v.strictObject({size:v.pipe(natural,v.minValue(1),v.maxValue(8192)),layers:v.pipe(natural,v.minValue(1),v.maxValue(256)),parts:v.array(v.strictObject({layer:natural,offset:natural,byteOffset:natural,byteLength:natural}))});
-  const paintArray=v.parse(v.strictObject({phone:chunks,desktop:chunks}),JSON.parse(readFileSync(new URL('../src/shards/nine-dragon-stack/data/paintArray.generated.json',import.meta.url),'utf8')));
-  const packed = readFileSync('src/shards/nine-dragon-stack/data/paintArray.generated.bin');
-  for (const row of Object.values(paintArray)) {
-    const ends = Array.from({ length: row.layers }, () => 0);
-    for (const part of row.parts) {
-      const bytes = unzlibSync(packed.subarray(part.byteOffset,part.byteOffset+part.byteLength));
-      expect(part.offset).toBe(ends[part.layer]);
-      expect(bytes.length).toBe(Math.min(196608, row.size * row.size * 4 - part.offset));
-      ends[part.layer] = part.offset + bytes.length;
-      if ([2, 3, 4, 5, 6, 7].includes(part.layer)) {
-        for (let i = 3; i < bytes.length; i += 4) if (bytes[i] !== 128) throw new Error('Unmasked paint alpha changed');
-      }
-    }
-    expect(ends).toEqual(Array.from({ length: row.layers }, () => row.size * row.size * 4));
-  }
-});
 
 test('filament graph binds the simulated rope and preserves target alpha', async () => {
   const { filamentGraph } = await import('../src/shards/nine-dragon-stack/generators/filamentGraph');

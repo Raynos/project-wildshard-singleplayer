@@ -6,6 +6,7 @@ import bindings from '../data/lookBindings.json' with { type: 'json' };
 import sharedUniforms from '../data/sharedUniforms.json' with { type: 'json' };
 import type { PostGraphLookRow } from '@wildshard/format/postGraphLook';
 import type { postRows } from './postGraphs';
+import { parseGlowRows } from './sections';
 import { NINE_MANIFEST_ROWS } from './manifestRows';
 import { Color, Vector3 } from 'three';
 
@@ -54,7 +55,7 @@ export function postGraphRow(passes: ReturnType<typeof postRows>): PostGraphLook
       { pass: 'bleed', tiers: ['desktop'] }],
     inputs: { tTight: { side: 'bleed', output: 'tight' }, tWide: { side: 'bleed', output: 'wide' }, tHaze: { side: 'haze', output: 'haze' }, tRefl: { side: 'reflect', output: 'reflection' } },
     flags: { uHasBleed: { inputs: ['tTight', 'tWide'], on: 1 }, uRainHaze: { inputs: ['tHaze'], on: 6 }, uReflK: { inputs: ['tRefl'], on: 1 } },
-    uniforms: { ...uniforms, ...light.glow, datum: Y0 },
+    uniforms: { ...uniforms, ...parseGlowRows(light.glow), datum: Y0 },
     aliases: { uInk: 'uInk0', ...Object.fromEntries(fog.map(key => [`${key.charAt(1).toLowerCase()}${key.slice(2)}`, key])) },
     // line widths are authored at 3×: below 2.5× the phone's 2× draws them 20 % heavier; the drizzle's px scale; the unsharp
     // mask where the buffer is under the 3× screen; the screen-space pieces' buffer size

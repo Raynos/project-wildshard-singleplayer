@@ -6,7 +6,7 @@ import { facadeWindowBlobs } from './facadeWindows';
 import type { NineHeldInputs } from './heldGraphFiles';
 import { heldView } from './heldView';
 import {CAST_BINARY_SOURCES} from './castSources';
-import { FixedPracticeFileSchema, parseFixedPractice } from './sections';
+import { FixedPracticeFileSchema, parseFixedPractice, parseFilamentRows, parseHaloState } from './sections';
 import { postRows } from './postGraphs';
 import { postGraphRow } from './composite';
 import { NINE_FRAME_CHANNELS, NINE_FRAME_GROUP } from './frameChannels';
@@ -72,7 +72,7 @@ export function nineOutput(movers: { readonly hash: string } & ({ readonly bytes
   inputs: NineOutputInputs): NineOutput {
 const heldGraphFiles = inputs.held.files, { LAYOUT_PLACEMENT_BLOBS, NINE_SCENE_BLOBS, NINE_WORLD_SCENES } = inputs.scenes;
 const MOVERS_OPTIONS = { critical: true, script: { abi: 2 as const, lane: 'view' as const, pages: 1, ioBytes: 4096, compilerRevision: inputs.scriptRevisions.compiler, admissionRevision: inputs.scriptRevisions.admission } };
-const equipmentRows = { portraitFov: 78, aim: { ...aim, ribbon: filamentGeometry(aim.ropePoints), filament: filamentRows, filamentState: lightRows.haloState }, bursts: inputs.bursts } satisfies GrappleRows;
+const equipmentRows = { portraitFov: 78, aim: { ...aim, ribbon: filamentGeometry(aim.ropePoints), filament: parseFilamentRows(filamentRows), filamentState: parseHaloState(lightRows.haloState) }, bursts: inputs.bursts } satisfies GrappleRows;
 
 
 const rawMovers = 'bytes' in movers ? [nameBlob('views/movers.wasm', 'wasm', movers.bytes, MOVERS_OPTIONS)] : [];

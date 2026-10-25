@@ -1,6 +1,7 @@
 import { Float32BufferAttribute, InstancedBufferAttribute, InstancedBufferGeometry, Mesh, MeshBasicMaterial, type Material, Uint16BufferAttribute } from 'three';
 import light from '../data/light.json' with { type: 'json' };
 import type { Emitter as EmitterLike } from './receiverCards';
+import { parseHaloState } from './sections';
 
 
 
@@ -41,7 +42,7 @@ export function buildHalos(src: HaloSources): Mesh<InstancedBufferGeometry, Mate
   g.setAttribute('aR', new InstancedBufferAttribute(new Float32Array(rad), 1));
   g.instanceCount = n;
   const mat = new MeshBasicMaterial();
-  mat.setValues(light.haloState);
+  mat.setValues(parseHaloState(light.haloState));
   const mesh = new Mesh(g, mat);
   mesh.name = 'halos';
   mesh.frustumCulled = false;

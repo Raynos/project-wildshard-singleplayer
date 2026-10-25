@@ -1,0 +1,181 @@
+{
+  "rows": [
+    {
+      "kind": "layers",
+      "looks": [
+        "nine-architecture",
+        "nine-architecture-cut",
+        "nine-facade",
+        "nine-facade-small"
+      ],
+      "param": "uPaint",
+      "base": "/assets/nine-dragon/paint",
+      "label": "Nine Dragon paint array (GPU only)",
+      "size": {
+        "phone": 512,
+        "desktop": 1024
+      },
+      "anisotropy": 8,
+      "layers": [
+        {
+          "name": "flag",
+          "alpha": true
+        },
+        {
+          "name": "flag2",
+          "alpha": true
+        },
+        {
+          "name": "stone",
+          "alpha": false
+        },
+        {
+          "name": "panel",
+          "alpha": false
+        },
+        {
+          "name": "concrete",
+          "alpha": false
+        },
+        {
+          "name": "tiles",
+          "alpha": false
+        },
+        {
+          "name": "lacquer",
+          "alpha": false
+        },
+        {
+          "name": "wood",
+          "alpha": false
+        },
+        {
+          "name": "poster",
+          "alpha": true
+        }
+      ]
+    }
+  ],
+  "files": [
+    {
+      "url": "/assets/nine-dragon/paint/flag.jpg",
+      "bytes": 425106,
+      "hash": "6170cdc77f53980d2e02758187aff37400ef7287f413a8f62bd193c77c5ff86b"
+    },
+    {
+      "url": "/assets/nine-dragon/paint/flag.phone.webp",
+      "bytes": 138938,
+      "hash": "616a2233cde755fe11a3e5a49e20cec366a6f8926eb719d5ab938f96c3d83397"
+    },
+    {
+      "url": "/assets/nine-dragon/paint/flag-a.jpg",
+      "bytes": 36710,
+      "hash": "9dcc79b9d6ca77554da28a49d856a9668f0186245cc40cb9c158a78b54e22173"
+    },
+    {
+      "url": "/assets/nine-dragon/paint/flag-a.phone.webp",
+      "bytes": 21748,
+      "hash": "2e0544fb02dd12768d0937ceb91e572f648e7f01632101ca9a97f4082b340cfb"
+    },
+    {
+      "url": "/assets/nine-dragon/paint/flag2.jpg",
+      "bytes": 451924,
+      "hash": "1140dc67deb2719a2a5e56eb9007260771075c1b84b7e3343ac389bc7032ea30"
+    },
+    {
+      "url": "/assets/nine-dragon/paint/flag2.phone.webp",
+      "bytes": 145642,
+      "hash": "4d9c91d0e882dd862fa204a84017eff29af5d5b14c9a48e62f6a67112d13bee8"
+    },
+    {
+      "url": "/assets/nine-dragon/paint/flag2-a.jpg",
+      "bytes": 35227,
+      "hash": "2d97fbc1dad02ff974d5e7d313496961fdc877ea71dc1cfe126c2ae7f426da4e"
+    },
+    {
+      "url": "/assets/nine-dragon/paint/flag2-a.phone.webp",
+      "bytes": 20592,
+      "hash": "c70033455f9bb1a1ad0d355262ffb7e6797c2f5b8139fbf4ce3c0f9b0978291f"
+    },
+    {
+      "url": "/assets/nine-dragon/paint/stone.jpg",
+      "bytes": 482803,
+      "hash": "e561404fbdf1bf43b40e645d4acb00ae9cd1b74025101212598fbecedfe0d152"
+    },
+    {
+      "url": "/assets/nine-dragon/paint/stone.phone.webp",
+      "bytes": 142192,
+      "hash": "4ab6c0f630f7948a43522d892bec1ed64884cab5215f242f938bb01b10d4923d"
+    },
+    {
+      "url": "/assets/nine-dragon/paint/panel.jpg",
+      "bytes": 312402,
+      "hash": "c941409de959ec4938faab8dd691774a90edc0e028e92e3fca535fb733bf6dec"
+    },
+    {
+      "url": "/assets/nine-dragon/paint/panel.phone.webp",
+      "bytes": 117456,
+      "hash": "9983342aa194830a6e11f2733a02ab28eb72f9deba987b6967a500ecb60fcfc9"
+    },
+    {
+      "url": "/assets/nine-dragon/paint/concrete.jpg",
+      "bytes": 471430,
+      "hash": "ae34582dd4a5013fb53b400fa71d91a6b508c0cc4f925303d436c3f03e9e4513"
+    },
+    {
+      "url": "/assets/nine-dragon/paint/concrete.phone.webp",
+      "bytes": 140000,
+      "hash": "a96701d7896572ffdd81330acd2e18f11ab1a0516b36c33cff937cf7fc4ff49e"
+    },
+    {
+      "url": "/assets/nine-dragon/paint/tiles.jpg",
+      "bytes": 281062,
+      "hash": "cc9d5f04f889cadf5b00941e057f895870e729c20856654e44cc7c9b20c9ff78"
+    },
+    {
+      "url": "/assets/nine-dragon/paint/tiles.phone.webp",
+      "bytes": 97912,
+      "hash": "c74dc30f4b4634f458720b71d399358b756450210d9d51f828d095110d3fcbad"
+    },
+    {
+      "url": "/assets/nine-dragon/paint/lacquer.jpg",
+      "bytes": 383735,
+      "hash": "9e23bc4f210ec11321c98645999b66f2a8293b5fc808942e87c28987a1ab93bb"
+    },
+    {
+      "url": "/assets/nine-dragon/paint/lacquer.phone.webp",
+      "bytes": 124568,
+      "hash": "7d595e50e25141f542cd712c663562dcb4294316df6fc6c7b8a2c08ab8dc3caf"
+    },
+    {
+      "url": "/assets/nine-dragon/paint/wood.jpg",
+      "bytes": 392910,
+      "hash": "f3830e841b88affddb6a334ca57385729ae39cbedff628589d7cdcdc3d36b363"
+    },
+    {
+      "url": "/assets/nine-dragon/paint/wood.phone.webp",
+      "bytes": 120004,
+      "hash": "f8ec1ca33b338562d4b8905430edaafaa65838ddaeb71365be42b4f16d505e51"
+    },
+    {
+      "url": "/assets/nine-dragon/paint/poster.jpg",
+      "bytes": 311634,
+      "hash": "050b226940bc5bc8bb0a4228fdcac0d5fb758e05e42b6899a3536af31e5cd1a0"
+    },
+    {
+      "url": "/assets/nine-dragon/paint/poster.phone.webp",
+      "bytes": 84982,
+      "hash": "73533a1790edb420a1bf5ecac486107771f309f2669010910f5d2ac6bea36bec"
+    },
+    {
+      "url": "/assets/nine-dragon/paint/poster-a.jpg",
+      "bytes": 67274,
+      "hash": "804dcc4dd19eaa04ece0b97cd8b638751b09881f8613d73155920dcff10924d4"
+    },
+    {
+      "url": "/assets/nine-dragon/paint/poster-a.phone.webp",
+      "bytes": 60986,
+      "hash": "d77c39d34fcbbadb4a6fa0619a4f224fecac8b5da519f36016e57d542f24d397"
+    }
+  ]
+}

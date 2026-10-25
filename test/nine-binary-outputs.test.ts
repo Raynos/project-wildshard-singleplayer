@@ -37,11 +37,6 @@ test('the hook producer returns the same original GLB and material without encod
   if(expected===undefined)throw new Error('Missing hook byte witness');
   expect(row.glb).toBeInstanceOf(Uint8Array);expect(hash(row.glb)).toBe(expected.hash);expect(row.material).toStrictEqual(hook.material);
 });
-test('paint retains all compressed chunks byte for byte outside JSON',()=>{
-  const bytes=readFileSync('src/shards/nine-dragon-stack/data/paintArray.generated.bin');
-  expect(bytes.length).toBe(baseline.paint.length);expect(hash(bytes)).toBe(baseline.paint.hash);
-});
-
 test.each(['castSources','signAtlasSources'])('%s declarations bundle without file services; SDK reads later',async entry=>{
   const built=await build({configFile:false,publicDir:false,logLevel:'silent',build:{write:false,minify:false,
     lib:{entry:`src/shards/nine-dragon-stack/generators/${entry}.ts`,formats:['es']},rolldownOptions:{external:[/^node:/u]}}});

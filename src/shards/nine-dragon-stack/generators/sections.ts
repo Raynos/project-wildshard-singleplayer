@@ -9,6 +9,22 @@ const BurstFieldsSchema = v.strictObject({ muzzle: BurstFieldSchema, bite: Burst
 /** Original complete admission of the four named held-tool burst fields. */
 export function parseBurstFields(value: unknown): GrappleRows['bursts'] { return v.parse(BurstFieldsSchema, value); }
 
+const finiteUniform = v.pipe(v.number(), v.finite());
+const UniformPair = v.strictObject({ v2: v.tuple([finiteUniform, finiteUniform]) });
+const UniformTriple = v.strictObject({ v3: v.tuple([finiteUniform, finiteUniform, finiteUniform]) });
+const UniformQuad = v.strictObject({ v4: v.tuple([finiteUniform, finiteUniform, finiteUniform, finiteUniform]) });
+const FilamentRowsSchema = v.strictObject({ uRes: UniformPair, uProjection: UniformPair, uCorePx: finiteUniform, uHaloPx: finiteUniform,
+  uI: finiteUniform, uPulse: finiteUniform, uLen: finiteUniform, uTime: finiteUniform, uCore: UniformTriple, uHalo: UniformTriple });
+const HaloStateSchema = v.strictObject({ blending: v.literal(5), blendEquation: v.literal(100), blendEquationAlpha: v.literal(100),
+  blendSrc: v.literal(201), blendDst: v.literal(201), blendSrcAlpha: v.literal(200), blendDstAlpha: v.literal(201) });
+const GlowRowsSchema = v.strictObject({ uGlow: UniformQuad, uGlow2: UniformQuad, uGlowCol: v.strictObject({ rgb: finiteUniform }) });
+/** Admit the authored ribbon tuples instead of relying on generated literal declarations. */
+export function parseFilamentRows(value: unknown): GrappleRows['aim']['filament'] { return v.parse(FilamentRowsSchema, value); }
+/** Preserve the existing additive-alpha material state at its data boundary. */
+export function parseHaloState(value: unknown): GrappleRows['aim']['filamentState'] { return v.parse(HaloStateSchema, value); }
+/** Composite uniforms retain their exact vector arity from ordinary authored JSON. */
+export function parseGlowRows(value: unknown): v.InferOutput<typeof GlowRowsSchema> { return v.parse(GlowRowsSchema, value); }
+
 const finite = v.number();
 const SURFACES = ['wood', 'metal', 'flesh', 'felt', 'stone', 'rock', 'sand', 'water', 'grass', 'wetSand', 'planks', 'shell', 'ground', 'edge', 'earth'] as const;
 const V3 = v.tuple([finite, finite, finite]);
