@@ -4,6 +4,7 @@ import { expect, test,vi } from 'vitest';
 import {GroupBankV2} from '../src/engine/script/groupBankV2';
 import type {V2ColumnOwners} from '../src/engine/script/observationColumnsV2';
 import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
+import { hashImmutableBytes } from '../src/sdk/immutable';
 import { v2CoreSource } from '../src/sdk/as/wsV2';
 import { groupStepSourceV2 } from '../src/sdk/as/groupStepV2';
 import { groupBankSourceV2 } from '../src/sdk/as/groupBankV2';
@@ -52,7 +53,14 @@ class ScriptedPack extends PackBrain<AnimalSim>{
  }
 }
 
-function program(): Promise<Uint8Array> {
+// Compile inside an executed test so a compiler failure remains a test red.
+// Only compiled bytes are shared; every caller still owns its guest image.
+let compiledProgram: Promise<Uint8Array> | undefined;
+async function program(): Promise<Uint8Array> {
+  compiledProgram ??= compileProgram();
+  return new Uint8Array(await compiledProgram);
+}
+function compileProgram(): Promise<Uint8Array> {
   const rows = parseGroupStepV2(PACK_ROWS), pack = readDecisionSources(new URL('../src/shards/nalati-grasslands/', import.meta.url).pathname).get('behaviour/pack.as');
   if(pack===undefined)throw new Error('Missing authored pack source');
   const entry = `import { init, tick, drive } from './behaviour/pack';
@@ -65,6 +73,20 @@ export function ws_project(fuel:i32):i32{core.beginState();assert(core.beginBind
   return compileScriptV2(entry, { lane: 'project', ioBytes: groupStepLayoutV2(rows).bytes, maximumPages: rows.pages,
     sources: { 'behaviour/pack.ts': pack, 'sdk/as/wsV2.ts': v2CoreSource(0), 'sdk/as/groupBankV2.pack.ts': groupBankSourceV2(0, 34), 'sdk/as/groupStepV2.pack.ts': groupStepSourceV2(63, 16) } });
 }
+
+test('pack fixture copies preserve an independent compile after caller mutation', async () => {
+  const reference = await compileProgram();
+  const [first, second] = await Promise.all([program(), program()]);
+  const hash = hashImmutableBytes(reference);
+  expect(hashImmutableBytes(first)).toBe(hash);
+  expect(hashImmutableBytes(second)).toBe(hash);
+  expect(first.buffer).not.toBe(second.buffer);
+  first.fill(0);
+  expect(hashImmutableBytes(second)).toBe(hash);
+  const later = await program();
+  expect(later.buffer).not.toBe(second.buffer);
+  expect(hashImmutableBytes(later)).toBe(hash);
+});
 
 type Log = (string | number)[][];
 const round = (value: number): number => Math.round(value * 1e6) / 1e6;
