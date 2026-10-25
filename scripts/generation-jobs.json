@@ -14063,6 +14063,7 @@
         "scripts/function-source.mjs",
         "scripts/legacy-shards.mjs",
         "scripts/map-geometry.mjs",
+        "src/sdk/bake/mapAssembly.ts",
         "scripts/map-hash.mjs",
         "scripts/map-painter.mjs",
         "scripts/map-world.mjs",
@@ -14630,6 +14631,7 @@
         "src/shards/pine-hollow/data/mapAssembly.generated.json",
         "src/shards/pine-hollow/data/mapAssembly.generated.bin",
         "scripts/map-geometry.mjs",
+        "src/sdk/bake/mapAssembly.ts",
         "src/sdk/bake/mapScenes.ts"
       ],
       "outputs": [

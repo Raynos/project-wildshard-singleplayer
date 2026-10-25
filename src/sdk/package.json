@@ -10,6 +10,7 @@
   ],
   "exports": {
     "./bake/groundMap": "./bake/groundMap.ts",
+    "./bake/mapAssembly": "./bake/mapAssembly.ts",
     "./bake/species": "./bake/species.ts",
     "./decisionBindingMap": "./decisionBindingMap.ts",
     "./scriptScenario": "./scriptScenario.ts",

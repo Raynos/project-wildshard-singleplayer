@@ -81,6 +81,13 @@ legacy images retain their pixel check. Authored minimaps pack the same
 in-memory bytes; the builder then publishes the verified product image and
 receipt at its existing URL. No shard-source metadata is emitted.
 
+`@wildshard/sdk/bake/mapAssembly.MapAssembly` collects ordered map shapes
+and their float32 instance placements. `pack()` returns independent scene
+JSON and raw packed geometry bytes without compression, file reads or
+publication. The caller retains geometry/material disposal ownership.
+The retained Node map adapter uses the same packer and applies its original
+zlib compression and file publication afterward.
+
 A cached step may also name a public asset URL beneath an input root explicitly
 supplied by the CLI's manifest intake. Each URL must select exactly one root;
 traversal, encoded separators, ambiguous roots and symlink escapes refuse.

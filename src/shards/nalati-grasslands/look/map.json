@@ -68,6 +68,7 @@
     "../../../public/assets/nalati/baked/spruce-cc0350ba0ebca44c42e7fdad9afecd116e0ede9e676e0e1206d77fb7b37edcd0.glb",
     "../../../scripts/map-world.mjs",
     "../../../scripts/map-geometry.mjs",
+    "../../sdk/bake/mapAssembly.ts",
     "../../sdk/bake/mapScenes.ts",
     "../../../scripts/map-painter.mjs",
     "../../sdk/bake/mapRaster.ts",
