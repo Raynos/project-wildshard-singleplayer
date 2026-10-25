@@ -46,7 +46,7 @@ The 19 grid cells use the 19 ideas once each (G629, G653).
 
 | Row | What | Done when |
 |---|---|---|
-| RP1 | Jake reviews the 19 mockups; any he wants changed get a new round | each idea has an approved mockup |
+| RP1 | Jake reviews the 19 mockups; any he wants changed get a new round | **done** 2026-10-24 (G712: "Mockups look good") |
 | RP2 | Per idea: kit, layout, landmark (Hunyuan3D 2.1 / TRELLIS.2, better wins), billboards, palette and map look, as the pilot did | the plot matches its mockup in a 4-angle capture |
 | RP3 | The five new ideas get `outputs.json` rows and replace the five repeated cells | all 19 cells unique |
 | RP4 | Delete the hologram path (hologram, plinth, sign inputs) once every plot is remastered | no hologram code or assets left |
