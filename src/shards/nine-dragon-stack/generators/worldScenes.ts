@@ -1,6 +1,6 @@
 import { addWindowNodes, windowStep } from './facadeWindowRecipe';
 import { MOVER_REST, MOVER_STAGES } from './moversView';
-import { SIGN_POOL_LIBRARIES, SIGN_ATLAS_ROWS } from './signAtlasSources';
+import type { NineSourceSigns } from './signsProgram';
 import signTextures from '../data/signTextureSources.json' with { type: 'json' };
 import rawSignRows from '../data/signView.json' with { type: 'json' };
 import { parseSignView, LayoutRowsSchema, parseSpecimenProfiles } from './sections';
@@ -38,7 +38,8 @@ import { lightVolumeRows } from './lightVolumes';
 import paint from '../data/paint.json' with { type: 'json' };
 import canopy from '../data/canopy.json' with { type: 'json' };
 
-function buildWorldScenes(layout: NineSourceWorld['layout'], hookMaterial: Parameters<typeof castMaterials>[0]) {
+function buildWorldScenes(layout: NineSourceWorld['layout'], hookMaterial: Parameters<typeof castMaterials>[0], signs: NineSourceSigns) {
+const { rows: SIGN_ATLAS_ROWS, libraries: SIGN_POOL_LIBRARIES } = signs;
 const signRows = parseSignView(rawSignRows);
 const profiles = parseSpecimenProfiles(rawProfiles);
 
@@ -391,5 +392,5 @@ const LAYOUT_PLACEMENT_BLOBS: NamedBlob[] = [...LAYOUT_PLACEMENTS.map(row => nam
 return { SET_TILES, NINE_SCENE_BLOBS, SET_PLACEMENTS, LION_PLACEMENTS, LAYOUT_PLACEMENTS, NINE_WORLD_SCENES, LAYOUT_PLACEMENT_BLOBS };
 }
 /** The same scene catalogue and placements from this invocation's checked layout. */
-export function nineWorldScenes(layout: NineSourceWorld['layout'], material: Parameters<typeof castMaterials>[0]): ReturnType<typeof buildWorldScenes> { return buildWorldScenes(layout, material); }
+export function nineWorldScenes(layout: NineSourceWorld['layout'], material: Parameters<typeof castMaterials>[0], signs: NineSourceSigns): ReturnType<typeof buildWorldScenes> { return buildWorldScenes(layout, material, signs); }
 export type NineWorldScenes = ReturnType<typeof nineWorldScenes>;

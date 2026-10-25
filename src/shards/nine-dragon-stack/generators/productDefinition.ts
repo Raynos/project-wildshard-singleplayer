@@ -1,4 +1,5 @@
 import type { NineSourceCasts } from './castsProgram';
+import type { NineSourceSigns } from './signsProgram';
 import type { NineSourceWorld } from './worldProgram';
 import type { NineWorldScenes } from './worldScenes';
 import type { NineNavigation } from './navigationProgram';
@@ -38,6 +39,7 @@ const DEFAULT_MOVERS = { pages: 1 };
 /** Owned source results consumed by the declaration in this same build. */
 export interface NineProductInputs {
   readonly casts: NineSourceCasts;
+  readonly signs: NineSourceSigns;
   readonly ownedWorld: NineSourceWorld; readonly scenes: NineWorldScenes;
   readonly held: NineHeldInputs;
   readonly courseProgram: { readonly compiled: { readonly bytes: number }; readonly script: { readonly pages: number } };

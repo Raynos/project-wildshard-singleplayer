@@ -2,6 +2,7 @@ import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { signAtlasBlobs, retainedSignInputs, parseSignSourceRows } from './signAtlasOutput';
+import { signSourceRows } from './signAtlasSources';
 
 /** Exact predecessor files, returned as owned bytes rather than published under source. */
 export function nineSignSourceFiles(read: (file: string) => Uint8Array): Map<string, Uint8Array> {
@@ -25,14 +26,18 @@ export function nineSignInputs(): string[] {
     ...Object.values(native.atlas).flatMap(row => [row.buffer, row.mono.packed, row.colour.packed])])].map(file => `data/${file}`);
 }
 
+export type NineSourceSigns = ReturnType<typeof signSourceRows> & { readonly files: ReadonlyMap<string, Uint8Array>; readonly blobs: readonly NamedBlob[] };
+
 /** Each invocation re-admits every immutable cache result and publishes owned bytes. */
-export async function nineSignsProgram(ctx: Pick<ProjectGenerationContext, 'cached' | 'asset'>): Promise<{ readonly files: ReadonlyMap<string, Uint8Array>; readonly blobs: readonly NamedBlob[] }> {
+export async function nineSignsProgram(ctx: Pick<ProjectGenerationContext, 'cached' | 'asset'>): Promise<NineSourceSigns> {
   const files = await ctx.cached({ id: 'sign-sources', inputs: nineSignInputs() }, inputs => nineSignSourceFiles(file => {
     const bytes = inputs.get(`data/${file}`); if (bytes === undefined) throw new Error(`Missing Nine native sign ${file}`); return bytes;
   }));
   const metadata = files.get('data/signSources.generated.json'); if (metadata === undefined) throw new Error('Missing Nine sign manifest');
   const manifest: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(metadata));
   const sources = parseSignSourceRows(manifest);
+  if (typeof manifest !== 'object' || manifest === null || !('rows' in manifest)) throw new Error('Missing Nine sign rows');
+  const admitted = signSourceRows({ sources, rows: manifest.rows });
   const names = new Set(sources.map(row => row.source)), logical = new Set(sources.map(row => row.name));
   if (sources.length !== 27 || names.size !== sources.length || logical.size !== sources.length || files.size !== sources.length + 1) throw new Error('Nine sign file inventory differs');
   const blobs = sources.map((row, index) => {
@@ -42,5 +47,5 @@ export async function nineSignsProgram(ctx: Pick<ProjectGenerationContext, 'cach
     if (ctx.asset(blob.bytes) !== hashImmutableBytes(blob.bytes)) throw new Error('Nine sign publication differs');
     return blob;
   });
-  return { files, blobs };
+  return { ...admitted, files, blobs };
 }

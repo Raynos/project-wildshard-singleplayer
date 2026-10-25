@@ -9,10 +9,10 @@ import bursts from '../data/burstFields.json' with { type: 'json' };
 import { readNineProductInputs } from './product';
 import { nineProductFrom } from './productDefinition';
 
-type OutputSources = Pick<NineOutputInputs, 'construction' | 'held' | 'ownedWorld' | 'scenes' | 'casts'>;
+type OutputSources = Pick<NineOutputInputs, 'construction' | 'held' | 'ownedWorld' | 'scenes' | 'casts' | 'signs'>;
 async function sourcesFor(ctx: ProjectGenerationContext): Promise<OutputSources> {
   const inputs = await readNineProductInputs(ctx), source = nineProductFrom(inputs, { pages: NINE_MOVERS_CONTRACT.pages });
-  return { casts: inputs.casts, held: inputs.held, ownedWorld: inputs.ownedWorld, scenes: inputs.scenes, construction: { seed: source.identity.seed, looks: Object.keys(source.look.materials) } };
+  return { casts: inputs.casts, signs: inputs.signs, held: inputs.held, ownedWorld: inputs.ownedWorld, scenes: inputs.scenes, construction: { seed: source.identity.seed, looks: Object.keys(source.look.materials) } };
 }
 
 /** One owned output operation, with fresh entry evidence and cached immutable executable/native inputs. */

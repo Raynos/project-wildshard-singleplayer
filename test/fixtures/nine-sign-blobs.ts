@@ -1,6 +1,13 @@
-import { readNamedBlob, type NamedBlob } from '../../src/sdk/blobs';
-import { SIGN_ATLAS_SOURCES } from '../../src/shards/nine-dragon-stack/generators/signAtlasSources';
-/** Exercise the same bounded file intake as the product writer. */
+// oxlint-disable-next-line import/no-nodejs-modules -- Fixture owns and removes only its isolated source cache.
+import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Use the defining real author root.
+import { resolve } from 'node:path';
+import { type NamedBlob } from '../../src/sdk/blobs';
+import { createProjectGeneration } from '../../src/sdk/projectGeneration';
+import { nineSignsProgram } from '../../src/shards/nine-dragon-stack/generators/signsProgram';
+/** Exercise the same owned source/cache operation as the product writer. */
 export async function nineSignBlobs(): Promise<NamedBlob[]> {
-  return Promise.all(SIGN_ATLAS_SOURCES.map(row => readNamedBlob('src/shards/nine-dragon-stack', row.name, row.source, row.kind, row.options)));
+  mkdirSync('tmp', { recursive: true }); const cache = mkdtempSync(resolve('tmp', 'nine-sign-blobs-'));
+  try { return [...(await nineSignsProgram(createProjectGeneration(resolve('src/shards/nine-dragon-stack'), 'f'.repeat(64), new Map(), cache))).blobs]; }
+  finally { rmSync(cache, { recursive: true, force: true }); }
 }

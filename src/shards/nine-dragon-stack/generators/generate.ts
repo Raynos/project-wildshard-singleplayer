@@ -13,6 +13,6 @@ export interface NineGeneratedProject extends GeneratedProject { readonly output
 export async function generate(ctx: ProjectGenerationContext): Promise<NineGeneratedProject> {
   const inputs = await readNineProductInputs(ctx);
   const shard = nineProductFrom(inputs, { pages: NINE_MOVERS_CONTRACT.pages });
-  const output = await nineSourceOutput(ctx, { casts: inputs.casts, held: inputs.held, ownedWorld: inputs.ownedWorld, scenes: inputs.scenes, construction: { seed: shard.identity.seed, looks: Object.keys(shard.look.materials) } });
+  const output = await nineSourceOutput(ctx, { casts: inputs.casts, signs: inputs.signs, held: inputs.held, ownedWorld: inputs.ownedWorld, scenes: inputs.scenes, construction: { seed: shard.identity.seed, looks: Object.keys(shard.look.materials) } });
   return { shard, output, discovery: { navigation: inputs.navigation } };
 }
