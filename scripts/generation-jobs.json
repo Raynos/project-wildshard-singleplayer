@@ -8346,6 +8346,7 @@
         "src/shards/far-reach/generators/keeperFigure.ts",
         "src/shards/far-reach/generators/modelIntake.ts",
         "src/shards/far-reach/generators/preparedModels.ts",
+        "src/shards/far-reach/generators/preparedModelBytes.ts",
         "src/shards/far-reach/generators/vane.ts",
         "src/shards/far-reach/generators/palette.ts"
       ],
@@ -8443,6 +8444,7 @@
         "src/shards/far-reach/generators/keeperFigure.ts",
         "src/shards/far-reach/generators/modelIntake.ts",
         "src/shards/far-reach/generators/preparedModels.ts",
+        "src/shards/far-reach/generators/preparedModelBytes.ts",
         "src/shards/far-reach/generators/vane.ts",
         "src/shards/far-reach/generators/palette.ts"
       ],
@@ -8508,6 +8510,7 @@
         "src/shards/far-reach/generators/keeperFigure.ts",
         "src/shards/far-reach/generators/modelIntake.ts",
         "src/shards/far-reach/generators/preparedModels.ts",
+        "src/shards/far-reach/generators/preparedModelBytes.ts",
         "src/shards/far-reach/generators/vane.ts",
         "src/shards/far-reach/generators/palette.ts"
       ],
@@ -9733,6 +9736,7 @@
         "src/shards/far-reach/generators/keeperFigure.ts",
         "src/shards/far-reach/generators/modelIntake.ts",
         "src/shards/far-reach/generators/preparedModels.ts",
+        "src/shards/far-reach/generators/preparedModelBytes.ts",
         "src/shards/far-reach/generators/vane.ts",
         "src/shards/far-reach/generators/palette.ts"
       ],

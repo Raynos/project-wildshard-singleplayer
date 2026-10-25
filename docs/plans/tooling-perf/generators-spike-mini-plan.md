@@ -122,7 +122,7 @@ in `public/assets/<slug>/` as real `.glb` / `.png` / `.ktx2` / `.bin`. App-wide 
 | GR2 | done (2026-10-24, sp-x1): `326950c025` + `78681f7cf5`; app tables then the existing per-product build pool, heavy-lane, scoped `--shard=`; preparation-only CI preserved | S | fresh Node refuses any scheduler import for a fully converted folder; 29 focused + 410 ready-related cases pass; exact `78681` generation builds all 24 products |
 | GR3 | in flight (2026-10-24, sp-x1): **Nine** (28 jobs at claim; 0 remain; shard producer retirement `460196a1d7`): direct row, physics and schema calls replace imports; `castHook` / `lightSpill` become cached `.glb` / `.bin`; dead `paintArray` retires (G416, closes B4); atlases per D2; its tests call functions | L | 0 Nine rows in the catalogue, 0 `*.generated.*` under its folder, product validates, boot smoke green |
 | GR4 | **done (2026-10-25, sp-x6): Sunscar** (23 → 0). All jobs and modern shard-source handoffs retired with original byte/product parity. Exact `743e56f784` full preview and official 12-case boot smoke pass; five byte-exact frozen legacy world assets (380,964 B) stay held for LD. | M | same bar |
-| GR5 | **Far Reach** (47) | L | same bar |
+| GR5 | **in flight (2026-10-25, sp-x1): Far Reach** (47 at claim; 47 remain). Largest prepared-model byte producer now takes explicit fitting rows; retained writers remain until owned source/cache and product readers land. | L | same bar |
 | GR6 | **in flight (2026-10-25, sp-x6): Nalati** (54 at claim; 50 after map assembly/duplicate blobs). Direct owned map bytes replace the largest source handoff; preserve native geometry/image oracles, then largest remaining producer first. | L | same bar |
 | GR7 | **Driftwood** (41; chain of 5, `rockScenes` / `mapAssembly` number arrays) | L | same bar |
 | GR8 | **Pine** (60; HDRI keys and painted per D2) | XL | same bar |
@@ -130,6 +130,15 @@ in `public/assets/<slug>/` as real `.glb` / `.png` / `.ktx2` / `.bin`. App-wide 
 | GR10 | Runtime: the 7 runtime / plugin imports of outputs read shardfile sections | M | no runtime file imports a step output |
 | GR11 | App tables to virtual modules (D4): starter tables, slugs, discovery, boot tables, budgets | M | no `*.generated.*` anywhere under `src/` |
 | GR12 | Delete `generation-jobs.json`, `generate.mjs`, the `generation-*` helpers, the `*.d.json.ts` shims and the generated `.gitignore` lines; burn-down lists empty | M | the files are gone and both bans have no exceptions |
+
+### GR5 current ≤ 1 h slices (G711)
+
+| Slice | Status | Boundary |
+|---|---|---|
+| F1 prepared-model pure bytes | done | Largest registered output (10,134,100 B): explicit caller-owned island frames, model fits and carved height replace hidden metadata reads in the pure byte function. The retained CLI delegates with its existing rows. Complete original GLB bytes/hash, independent-build isolation, transform order, fit precedence, supplied carved height, missing-read refusal and one config-safe chunk pass. All four retained reader closures declare the defining leaf atomically; the real sealed producer refuses its omission and regenerates the original full output when present. Six focused/related cases, touched shard/fixture types and named typed lint pass. No job retired (47 remain). |
+| F2 prepared-model source/cache | open | Compute owned island frames and fitting rows from authoring inputs, then publish cached raw GLB bytes without generated metadata or file fallback; retain original whole-wire pin and per-part/bounds/group contracts. |
+| F3 prepared-model readers | open | Feed the owned geometry into declaration/output/native library readers with the exact original costs and logical identities; preserve keeper pivots and all fitted model frames. |
+| F4 prepared-model retirement | open | Retire only sky-prepared-models (47 → 46) after producer/reader adoption; strict scoped generation with original public handoff absent, plus complete product parity. |
 
 ### GR6 current ≤ 1 h slices (G711)
 
