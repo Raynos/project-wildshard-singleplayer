@@ -34,9 +34,19 @@ official floor credit; sp-x8 owns the quiet rerun at the next milestone.
 |---|---|---|
 | G717.N1 | Attribute Nalati's 287 / 243 ms official hitches using the original drive. Chromium phone4x reproduced max 483.3 ms: 176.2 ms sampled native first-use query plus 188.5 ms game phases; the independent afterPlay frame spent 106.5 ms resolving a link. | done (attribution only; 2026-10-25, sp-x1) |
 | G717.N2 | Fix the reproduced native first-use / activation work and compare the same Chromium route; no timing credit from the diagnostic. At most one hour per source cut. | in flight (2026-10-25, sp-x1) |
-| G717.P1 | Name and fix Pine whole-drive p95 45 ms; original-history Chromium phone4x reproduces p95 66.8 / max 333.3 ms, including 150.7 ms scene-binding refresh in the worst frame. At most one hour per source cut. | in flight (2026-10-25, sp-x1) |
+| G717.P1 | Pine whole-drive: original-history Chromium phone4x reproduces p95 66.8 / max 333.3 ms, including 150.7 ms scene-binding refresh. Warm parked draws borrow/restore environments; stock wrapper IDs change even when the exact resources return. Compare weak resource identities while retaining scene/light identity fences. Fog/environment round-trip regressions eliminate the redundant build; real replacements still refresh. Chromium comparison pending. | in flight (2026-10-25, sp-x1; source cut ≤ 1 h) |
 | G717.D1 | Driftwood spawn: pairing all acquired variants eagerly queried still-linking programs (147.1 ms of the Chromium 250 ms worst frame). `997273e20d` resolves only the selected variant, preserving every pairing and error check. Chromium original ALL before/after: p95 100 → 50.1 / max 250 → 66.7 ms; both complete/errors 0. Diagnostic only; remaining admission work is D2. | done (2026-10-25, sp-x1) |
 | G717.D2 | Attribute and cut the remaining Driftwood spawn admission/parser frames (26.9 ms sampled cost projection in the worst remaining 66.7 ms interval). Preserve complete costs, validation and reads. At most one hour per source cut. | in flight (2026-10-25, sp-x1) |
+
+## G717 entry-look cuts (2026-10-25, sp-x6; G639)
+
+Each slice is at most one hour. Keep the Chromium phone4x entry/look/leave
+gate unchanged; diagnostics identify callers and do not qualify as passes.
+
+| Slice | Work | Status |
+|---|---|---|
+| G717.L1 | Night Market entry: retained 300.1 ms miss; independent diagnostic 350 ms. Mesh entry validation accounts for 205 ms inclusive in a second, browser-overlapped diagnostic. Disjoint triangle bounds preserve exact clearance, continuous ground and wire admission. Actual 64-chunk / 32,585-triangle kernel median 22.31 → 1.87 ms (21 alternating pairs); unchanged entry gate pending landed-source preview. | in flight (2026-10-25, sp-x6) |
+| G717.L2 | Attribute and fix Signal, Nalati, Sky, Alien and Thin Ice entry-look misses, one measured cause per bounded source cut. | open |
 
 ## Why it never completes today
 

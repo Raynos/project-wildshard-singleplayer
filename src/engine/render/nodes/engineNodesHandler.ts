@@ -253,7 +253,15 @@ function isMaterialProperties(value: unknown): value is MaterialProperties { ret
  * one node build not yet paired with the program the renderer acquired for it: the renderer files that program in the
  * material's program map (`programs`, key → program) at `slot`, the map's size when the build ran
  */
-interface SceneBinding { readonly scene: WeakRef<object>; readonly rawKey: unknown; readonly lights: string; readonly parameters: THREE.WebGLProgramParametersWithUniforms }
+interface SceneInputs { readonly fog: object | null; readonly environment: object | null }
+function sameSceneInput(held: WeakRef<object> | null, live: object | null): boolean {
+  return held === null ? live === null : held.deref() === live;
+}
+interface SceneBinding {
+  readonly scene: WeakRef<object>; readonly rawKey: unknown; readonly lights: string;
+  readonly inputs: { readonly fog: WeakRef<object> | null; readonly environment: WeakRef<object> | null } | null;
+  readonly parameters: THREE.WebGLProgramParametersWithUniforms;
+}
 interface PendingBuild { readonly binding: SceneBinding | null; readonly uniformsGroups: unknown[]; readonly updateNodes: unknown; readonly uniforms: Record<string, unknown>; readonly programs: unknown; readonly slot: number }
 
 /** Node buffer names contain process-global node IDs. Equal cloned graphs share a
@@ -441,7 +449,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   /** programShare: each shared build key's code, as a length and hash */
   private readonly sharedCode = new Map<string, string>();
   private real: Renderer | null = null;
-  private bindingFacts: { readonly stamp: number; readonly scene: object; readonly rawKey: unknown; readonly lights: string } | null = null;
+  private bindingFacts: { readonly stamp: number; readonly scene: object; readonly rawKey: unknown; readonly lights: string; readonly inputs: SceneInputs | null } | null = null;
   private readonly sceneShaderKeys = new SceneShaderKeys();
   private readonly sceneBindings = new WeakMap<THREE.Material, Map<unknown, SceneBinding>>();
   private warnedLevelFog = false;
@@ -958,7 +966,8 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     if (scene === undefined) return null;
     const held = this.bindingFacts;
     if (held !== null && held.stamp === this.lightsStamp && held.scene === scene) return held;
-    const next = { stamp: this.lightsStamp, scene, rawKey: scene.getCacheKey(),
+    const inputs = scene.scene instanceof THREE.Scene ? { fog: scene.scene.fog, environment: scene.scene.environment } : null;
+    const next = { stamp: this.lightsStamp, scene, rawKey: scene.getCacheKey(), inputs,
       lights: scene.lightsNode.getBuiltinLights().map(light => light instanceof THREE.Light ? light.id : '').join(',') };
     this.bindingFacts = next;
     return next;
@@ -967,13 +976,20 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   private sceneBinding(parameters: THREE.WebGLProgramParametersWithUniforms): SceneBinding | null {
     if (typeof parameters.customProgramCacheKey !== 'string' || !parameters.customProgramCacheKey.includes('|scene:shape:')) return null;
     const facts = this.currentBindingFacts();
-    return facts === null ? null : { scene: new WeakRef(facts.scene), rawKey: facts.rawKey, lights: facts.lights, parameters };
+    return facts === null ? null : { scene: new WeakRef(facts.scene), rawKey: facts.rawKey, lights: facts.lights,
+      inputs: facts.inputs === null ? null : { fog: facts.inputs.fog === null ? null : new WeakRef(facts.inputs.fog),
+        environment: facts.inputs.environment === null ? null : new WeakRef(facts.inputs.environment) }, parameters };
   }
 
   private sameSceneBinding(binding: SceneBinding | null): boolean {
     if (binding === null) return true;
     const facts = this.currentBindingFacts();
-    return facts !== null && binding.scene.deref() === facts.scene && binding.rawKey === facts.rawKey && binding.lights === facts.lights;
+    if (facts === null || binding.scene.deref() !== facts.scene || binding.lights !== facts.lights) return false;
+    if (binding.inputs === null || facts.inputs === null) return binding.rawKey === facts.rawKey;
+    // Stock SceneContext recreates its node wrappers after a borrowed fog or
+    // environment is restored. The same scene, live resources and source lights
+    // still supply the exact bound uniforms; only real owner replacements rebind.
+    return sameSceneInput(binding.inputs.fog, facts.inputs.fog) && sameSceneInput(binding.inputs.environment, facts.inputs.environment);
   }
 
   /** A scene with the same shader shape may reuse the native program, but not

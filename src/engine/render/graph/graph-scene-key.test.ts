@@ -199,3 +199,47 @@ test('lent post inputs retain distinct sampler slots before and after placeholde
     expect(samplers).toEqual([source, bloom]);
   } finally { graph.material.dispose(); geometry.dispose(); source.dispose(); bloom.dispose(); }
 });
+
+test.each(['fog', 'environment'] as const)('a restored scene %s keeps its existing warm program bindings', field => {
+  const programs = new Map<string, object>();
+  const properties: {programs: typeof programs; currentProgram?: object; uniforms?: Record<string, unknown>; __version?: number} = {programs};
+  const renderer = rendererFixture();
+  Reflect.set(renderer, 'properties', {get: () => properties, has: () => true});
+  const handler = new EngineNodesHandler(); handler.setRenderer(renderer);
+  const material = compileGraph({version: 1, kind: 'material', model: 'unlit',
+    nodes: {colour: {op: 'fogColour'}}, stages: {surface: {colour: 'colour'}}, effectState: {fog: false}}).material;
+  const geometry = new THREE.PlaneGeometry(), mesh = new THREE.Mesh(geometry, material), camera = new THREE.PerspectiveCamera();
+  const scene = new THREE.Scene(), original = new THREE.Fog(0xff0000, 1, 10), borrowed = new THREE.Fog(0x0000ff, 1, 10);
+  const environment = new THREE.DataTexture(new Uint8Array(16), 2, 2), otherEnvironment = new THREE.DataTexture(new Uint8Array(16), 2, 2);
+  environment.mapping = THREE.CubeUVReflectionMapping; otherEnvironment.mapping = THREE.CubeUVReflectionMapping;
+  scene.fog = original; scene.environment = environment; scene.add(mesh);
+  const borrow = (): void => { if (field === 'fog') scene.fog = borrowed; else scene.environment = otherEnvironment; };
+  try {
+    handler.renderStart(scene, camera); handler.updateLights([]); handler.setObject(mesh, material);
+    const customProgramCacheKey = material.customProgramCacheKey(), input: object = {customProgramCacheKey};
+    const isParameters = (value: object): value is THREE.WebGLProgramParametersWithUniforms => !Array.isArray(value);
+    if (!isParameters(input)) throw new Error('Missing parameters');
+    handler.build(material, mesh, input);
+    const program = {getUniforms: () => ({seq: Object.keys(input.uniforms).map(id => ({id}))})};
+    programs.set('same-native-program', program); properties.currentProgram = program; properties.__version = material.version;
+    handler.onUpdateProgram(material, program, properties);
+    const before = properties.uniforms;
+    handler.renderEnd();
+    // Precompile temporarily borrows another resource, then restores this exact owner.
+    borrow(); handler.renderStart(scene, camera); handler.updateLights([]); handler.renderEnd();
+    scene.fog = original; scene.environment = environment; handler.renderStart(scene, camera); handler.updateLights([]); handler.setObject(mesh, material);
+    expect(material.customProgramCacheKey()).toBe(customProgramCacheKey);
+    material.onBeforeRender(renderer, scene, camera, geometry, mesh, new THREE.Group());
+    expect(handler.builds).toBe(1);
+    expect(properties.uniforms).toBe(before);
+    handler.renderEnd();
+    // An actual replacement still needs its own live bindings, even with the same shader shape.
+    borrow(); handler.renderStart(scene, camera); handler.updateLights([]); handler.setObject(mesh, material);
+    material.onBeforeRender(renderer, scene, camera, geometry, mesh, new THREE.Group());
+    expect(handler.builds).toBe(2);
+    expect(properties.uniforms).not.toBe(before);
+    expect(Object.values(properties.uniforms ?? {}).some(uniform => typeof uniform === 'object' && uniform !== null
+      && Reflect.get(uniform, 'value') === scene.fog?.color)).toBe(true);
+    handler.renderEnd();
+  } finally {material.dispose(); geometry.dispose(); environment.dispose(); otherEnvironment.dispose();}
+});
