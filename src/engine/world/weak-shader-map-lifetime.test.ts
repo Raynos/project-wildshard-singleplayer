@@ -6,7 +6,7 @@ import {mkdirSync, mkdtempSync, rmSync, writeFileSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the exact runner without a shell.
 import {resolve as resolvePath} from 'node:path';
 import {MeshStandardMaterial} from 'three';
-import {WeakShaderMap} from '../src/engine/world/weakShaderMap';
+import {WeakShaderMap} from './weakShaderMap';
 
 function retainedMap(): {map: WeakShaderMap<{material: MeshStandardMaterial}>; weak: WeakRef<MeshStandardMaterial>} {
   const map = new WeakShaderMap<{material: MeshStandardMaterial}>(), material = new MeshStandardMaterial();
@@ -26,7 +26,7 @@ test('weak shader entries collect their material and cleared listeners release t
     mkdirSync('tmp', {recursive: true}); const directory = mkdtempSync(resolvePath('tmp/shader-map-gc-'));
     try {
       const config = resolvePath(directory, 'vitest.config.mjs');
-      writeFileSync(config, `export default {root:${JSON.stringify(resolvePath('.'))},test:{include:['test/weak-shader-map-lifetime.test.ts'],setupFiles:[],pool:'forks',maxWorkers:1,execArgv:['--expose-gc']}};`);
+      writeFileSync(config, `export default {root:${JSON.stringify(resolvePath('.'))},test:{include:['src/engine/world/weak-shader-map-lifetime.test.ts'],setupFiles:[],pool:'forks',maxWorkers:1,execArgv:['--expose-gc']}};`);
       const output = execFileSync(process.execPath, ['--expose-gc', resolvePath('node_modules/vitest/vitest.mjs'), 'run', '--config', config], {
         env: {...process.env, WS_SHADER_MAP_GC: '1', NO_COLOR: '1'}, encoding: 'utf8', stdio: 'pipe', timeout: 30_000,
       }); expect(output).toContain('1 passed');

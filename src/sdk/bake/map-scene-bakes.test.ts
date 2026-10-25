@@ -1,6 +1,6 @@
 import { expect, test, vi } from 'vitest';
-import { MapRaster } from '../src/sdk/bake/mapRaster';
-import { paintMapScenes } from '../src/sdk/bake/mapScenes';
+import { MapRaster } from './mapRaster';
+import { paintMapScenes } from './mapScenes';
 
 const pieces = { rock: { kinds: [{ name: 'stone', warm: false }] }, camp: { kinds: [{ name: 'wood', warm: true }] } };
 const recipe = { scene: { root: 'root', nodes: [{ id: 'root', kind: 'group', children: ['stone', 'wood'] },
