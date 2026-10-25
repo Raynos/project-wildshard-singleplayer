@@ -51,6 +51,12 @@ for (const [slug, palette] of [['far-reach', skyMap], ['sunscar-dunes', signalMa
       ? { discovery: parseDiscoveryValues(signalProgram.discovery) } : undefined);
     expect(source).toContain(`mapPalette: ${JSON.stringify(palette)}`);
     expect(source).not.toMatch(/from ["'][^"']*generators\/(?:layout|minimap)/u);
-    if (slug === 'sunscar-dunes') expect(() => authoredManifestSource(cwd(), slug)).toThrow('program discovery value boot.files');
+    if (slug === 'sunscar-dunes') {
+      expect(() => authoredManifestSource(cwd(), slug)).toThrow('program discovery value budgets');
+      for (const key of ['budgets', 'poses', 'audioCues', 'boot.files', 'boot.sources', 'boot.lateReads'] as const) {
+        const missing = { ...parseDiscoveryValues(signalProgram.discovery) }; delete missing[key];
+        expect(() => authoredManifestSource(cwd(), slug, { discovery: missing })).toThrow(`program discovery value ${key}`);
+      }
+    }
   });
 }
