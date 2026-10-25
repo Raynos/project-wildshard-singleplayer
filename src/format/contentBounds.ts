@@ -4,11 +4,11 @@ import memoryGates from './memoryGates.json' with { type: 'json' };
 /** Square cell width in metres. */
 export const CHUNK_SIZE = 500;        // metres, square
 /** Half a cell width in metres. */
-export const CHUNK_HALF = CHUNK_SIZE / 2;
+export const CHUNK_HALF: number = CHUNK_SIZE / 2;
 /** Signed placement radius of the finite platform catalogue (SF88); residency budgets stay independent. */
 export const GRID_RADIUS = 2;
 /** Number of placements, including open plots, in the finite square platform. */
-export const GRID_CELL_COUNT = (2 * GRID_RADIUS + 1) ** 2;
+export const GRID_CELL_COUNT: number = (2 * GRID_RADIUS + 1) ** 2;
 /** Legal midpoint entry opening in metres. */
 export const ENTRY_WIDTH = 8;
 /** Asphalt reserved inside each midpoint entry in metres. */
@@ -18,7 +18,7 @@ export const CELL_HEIGHT = 500;       // metres, bottom to top
 /** Cell depth below the highway in metres. */
 export const CELL_BELOW = 250;        // metres below the highway level
 /** Cell height above the highway in metres. */
-export const CELL_ABOVE = CELL_HEIGHT - CELL_BELOW;
+export const CELL_ABOVE: number = CELL_HEIGHT - CELL_BELOW;
 /** Painted horizon radius in metres, shared by the renderer and authored water fades. */
 export const HORIZON_RADIUS = 2300;
 /** Decimal bytes per MB in the streaming cost model. */
@@ -27,14 +27,14 @@ export const CONTENT_MB = 1_000_000;
  * WebContent 250–261 MiB, GPU 39–43 MiB including content. Shard resident
  * bytes are added separately. This baseline is an estimate, not a target or
  * an observed process reading; live grid page allocations are separate claims. */
-export const ENGINE_BASE_BYTES = 250 * 1024 * 1024;
+export const ENGINE_BASE_BYTES: number = 250 * 1024 * 1024;
 /** The one memory switch (src/format/memoryGates.json, G433): the Explorer / loading caps and whether memory checks refuse
  * (`enforce`) or only report (`report-only`, until SHARD-PLATFORM closes). Runtime admission always refuses over the caps. */
-export const MEMORY_GATES = Object.freeze({
+export const MEMORY_GATES: Readonly<{ reportOnly: boolean; explorerMB: number; loadingMB: number; }> = Object.freeze({
   reportOnly: memoryGates.mode === 'report-only', explorerMB: memoryGates.explorerMB, loadingMB: memoryGates.loadingMB,
 });
 /** Provisional phone content caps; shadow draws count in each draw cap. */
-export const CONTENT_CAPS = {
+export const CONTENT_CAPS: { readonly l0: { readonly size: 62.5; readonly resident: number; readonly compressed: number; readonly triangles: 40000; readonly draws: 8; }; readonly l1: { readonly size: 125; readonly resident: number; readonly compressed: number; readonly triangles: 10000; readonly draws: 2; }; readonly far: { readonly resident: number; readonly compressed: 1000000; readonly triangles: 8000; readonly draws: 1; }; readonly library: { readonly resident: number; readonly compressed: number; }; readonly sim: { readonly resident: number; readonly compressed: number; }; readonly engineBase: number; readonly playing: number; readonly loading: number; readonly l0Count: 40; readonly l1Count: 32; readonly farCount: 9; readonly simCount: 4; readonly libraryCount: 4; readonly overlap: number; readonly residentFactor: 1.11; readonly nearRadius: 150; readonly shadowRadius: 80; readonly pitch: 562.5; } = {
   l0: { size: 62.5, resident: 4 * CONTENT_MB, compressed: 0.3 * CONTENT_MB, triangles: 40_000, draws: 8 },
   l1: { size: 125, resident: 2 * CONTENT_MB, compressed: 0.2 * CONTENT_MB, triangles: 10_000, draws: 2 },
   far: { resident: 1.6 * CONTENT_MB, compressed: CONTENT_MB, triangles: 8_000, draws: 1 },
@@ -58,7 +58,8 @@ export function textureMipBytes(width: number, height: number, levels: number, b
   return bytes;
 }
 
-const CROSSROADS_CONFIG = {
+const CROSSROADS_CONFIG: { readonly n0: 29; // Four-library worst disc: 21 resident tiles plus 8 heading lookahead (SF22a).
+readonly n1: 32; readonly nf: 9; readonly libs: 4; readonly sims: 4; readonly churn: 2; readonly cpu: "drop"; readonly empty: 8; readonly secs: 20; readonly shadow: 1; readonly shadowRadius: 80; readonly dpr: 2; readonly l0SplatSize: 256; readonly l1AtlasSize: 512; readonly farSegments: 62; readonly capsMB: { readonly l0: number; readonly l1: number; readonly far: number; readonly lib: number; readonly sim: number; }; readonly trisCap: { readonly l0: 40000; readonly l1: 10000; readonly far: 8000; }; } = {
   n0: 29, // Four-library worst disc: 21 resident tiles plus 8 heading lookahead (SF22a).
   n1: CONTENT_CAPS.l1Count, nf: CONTENT_CAPS.farCount,
   libs: CONTENT_CAPS.libraryCount, sims: CONTENT_CAPS.simCount,

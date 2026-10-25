@@ -3,7 +3,7 @@
 import { SCRIPT_V1_COMMANDS } from './scriptAbiV1';
 import type { V2Layout } from './scriptWireV2';
 
-export const V2_ACTION_OPS = Object.freeze({ impulse: SCRIPT_V1_COMMANDS.impulse,dismount: 23,ignite: 24,trust:26,ownership:27,lead:28,mount:29,hurt:30,pose:31,adopt:32,bond:33,release:34,hide:35,retire:36,breaking:37,notice:38,playerPose:39 });
+export const V2_ACTION_OPS: Readonly<{ impulse: 14; dismount: 23; ignite: 24; trust: 26; ownership: 27; lead: 28; mount: 29; hurt: 30; pose: 31; adopt: 32; bond: 33; release: 34; hide: 35; retire: 36; breaking: 37; notice: 38; playerPose: 39; }> = Object.freeze({ impulse: SCRIPT_V1_COMMANDS.impulse,dismount: 23,ignite: 24,trust:26,ownership:27,lead:28,mount:29,hurt:30,pose:31,adopt:32,bond:33,release:34,hide:35,retire:36,breaking:37,notice:38,playerPose:39 });
 export type V2ActionOperation = typeof V2_ACTION_OPS[keyof typeof V2_ACTION_OPS];
 export type V2ActionTargetKind = 'player' | 'mount' | 'cell-field' | 'taming' | 'taming-herd' | 'taming-actor';
 const operations:ReadonlySet<number>=new Set(Object.values(V2_ACTION_OPS));

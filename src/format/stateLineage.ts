@@ -8,8 +8,8 @@ import { SHARDFILE_ADMISSION_LIMITS as limits } from './admissionLimits';
 
 const identity = v.object({ slug: v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u)),
   revision: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(Number.MAX_SAFE_INTEGER)) });
-const lineage = v.object({ identity, state: StateSchema });
-type StateLineage = v.InferOutput<typeof lineage>;
+const lineage: v.GenericSchema<StateLineageInput, StateLineage> = v.object({ identity, state: StateSchema });
+
 /** Read only strict portable state and identity from a previously visited product. Its legacy geometry and scripts remain unadmitted. */
 export function parseStateLineage(input: unknown): StateLineage { return v.parse(lineage, input); }
 
@@ -51,3 +51,21 @@ export function assertStateCompatibility(previous: StateLineage, next: Shardfile
   assertMigrationCompatibility(previous.state, next.state, next.migrations);
 }
 
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+interface StateLineageInputFields {
+    identity: {
+        slug: string;
+        revision: number;
+    };
+    state: v.InferInput<typeof StateSchema>;
+}
+export type StateLineageInput = { [Key in keyof StateLineageInputFields]: StateLineageInputFields[Key] };
+interface StateLineageFields {
+    identity: {
+        slug: string;
+        revision: number;
+    };
+    state: v.InferOutput<typeof StateSchema>;
+}
+export type StateLineage = { [Key in keyof StateLineageFields]: StateLineageFields[Key] };

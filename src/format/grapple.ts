@@ -56,10 +56,10 @@ const finite = v.pipe(v.number(), v.finite());
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(256));
 const pair = v.strictObject({ v2: v.tuple([finite, finite]) });
 const triple = v.strictObject({ v3: v.tuple([finite, finite, finite]) });
-const filamentSchema = v.strictObject({ uRes: pair, uProjection: pair, uCorePx: finite, uHaloPx: finite, uI: finite,
+const filamentSchema: v.GenericSchema<GrappleFilamentUniformsInput, GrappleFilamentUniforms> = v.strictObject({ uRes: pair, uProjection: pair, uCorePx: finite, uHaloPx: finite, uI: finite,
   uPulse: finite, uLen: finite, uTime: finite, uCore: triple, uHalo: triple });
 /** Admitted ribbon parameters have only the declared numeric/vector keys. */
-export type GrappleFilamentUniforms = v.InferOutput<typeof filamentSchema>;
+
 /** The same authored look parameters serve the native ribbon and its fixture. */
 export function parseGrappleFilament(value: unknown): GrappleFilamentUniforms { return v.parse(filamentSchema, value); }
 /** Validate identity and physics data before installing the approved native mode. */
@@ -76,3 +76,41 @@ export function parseGrappleProfile(value: unknown): GrappleProfile {
       aspect: v.pipe(finite, v.minValue(.1), v.maxValue(10)), portraitFov: v.pipe(finite, v.minValue(10), v.maxValue(140)) }),
   }), value);
 }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type GrappleFilamentUniformsInput = GrappleFilamentUniforms;
+interface GrappleFilamentUniformsFields {
+    uRes: {
+        v2: [
+            number,
+            number
+        ];
+    };
+    uProjection: {
+        v2: [
+            number,
+            number
+        ];
+    };
+    uCorePx: number;
+    uHaloPx: number;
+    uI: number;
+    uPulse: number;
+    uLen: number;
+    uTime: number;
+    uCore: {
+        v3: [
+            number,
+            number,
+            number
+        ];
+    };
+    uHalo: {
+        v3: [
+            number,
+            number,
+            number
+        ];
+    };
+}
+export type GrappleFilamentUniforms = { [Key in keyof GrappleFilamentUniformsFields]: GrappleFilamentUniformsFields[Key] };

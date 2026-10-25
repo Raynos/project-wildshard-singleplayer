@@ -6,7 +6,7 @@ import { readV2Module,type V2Instruction,type V2Module,type V2Signature } from '
 export const V2_ENTRY_SIGNATURES: Readonly<Record<string,readonly number[]>> = Object.freeze({
   ws_init: [0x7f,0x7f,0x7f], ws_step: [0x7f,0x7f], ws_project: [0x7f], ws_view: [0x7c,0x7c,0x7f],
 });
-export const V2_WORK_ENTRIES = Object.freeze({ sim: 'ws_step',project: 'ws_project',view: 'ws_view' });
+export const V2_WORK_ENTRIES: Readonly<{ sim: "ws_step"; project: "ws_project"; view: "ws_view"; }> = Object.freeze({ sim: 'ws_step',project: 'ws_project',view: 'ws_view' });
 export type V2Lane = keyof typeof V2_WORK_ENTRIES;
 /** Runtime modules have exactly one work entry; build input may select one of
  * several authored exports before the others are removed. */

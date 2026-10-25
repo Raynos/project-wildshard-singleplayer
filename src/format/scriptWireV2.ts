@@ -1,7 +1,7 @@
 /** ABI v2 host-owned layout and immutable call envelope. No guest pointer or
  * count can enlarge these capacities. The record validators own their domains. */
-export const V2_REGION_STRIDES = Object.freeze([64,8,8,8,96,16,80,32,56,64,80,64,8,1,32,8,80,8,48,16,64,64]);
-export const V2_HEADER_BYTES = 128, V2_DIRECTORY_ENTRY_BYTES = 24, V2_DIRECTORY_BYTES = 22*24;
+export const V2_REGION_STRIDES: readonly number[] = Object.freeze([64,8,8,8,96,16,80,32,56,64,80,64,8,1,32,8,80,8,48,16,64,64]);
+export const V2_HEADER_BYTES = 128, V2_DIRECTORY_ENTRY_BYTES = 24, V2_DIRECTORY_BYTES: number = 22*24;
 const outputKinds = new Set([3,10,11,17,18,20,22]);
 export interface V2Region { readonly kind: number; readonly offset: number; readonly stride: number; readonly capacity: number }
 export interface V2Layout { readonly io: number; readonly pages: number; readonly bytes: number; readonly regions: readonly V2Region[] }

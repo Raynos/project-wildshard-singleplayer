@@ -3,7 +3,7 @@
 import { SCRIPT_V1_LISTS } from './scriptAbiV1';
 import { relativeTickV2,type V2Layout } from './scriptWireV2';
 
-export const V2_QUERY_OPS = Object.freeze({ walkable: SCRIPT_V1_LISTS.nearestWalkable,path: SCRIPT_V1_LISTS.path,ray: 8,overlap: 9,nearest: 10,sight: 11,grass: 12,normal: 13 });
+export const V2_QUERY_OPS: Readonly<{ walkable: 4; path: 5; ray: 8; overlap: 9; nearest: 10; sight: 11; grass: 12; normal: 13; }> = Object.freeze({ walkable: SCRIPT_V1_LISTS.nearestWalkable,path: SCRIPT_V1_LISTS.path,ray: 8,overlap: 9,nearest: 10,sight: 11,grass: 12,normal: 13 });
 export type V2QueryOperation = typeof V2_QUERY_OPS[keyof typeof V2_QUERY_OPS];
 type Vec2 = readonly [number,number];
 type Vec3 = readonly [number,number,number];

@@ -109,7 +109,15 @@ export type MeleeContactRow = AuthoredContact<v.InferOutput<typeof MeleeContactR
 /** Optional item attachment, bounded before the shared contact controller allocates its moves. */
 export const MeleeContactsSchema: v.GenericSchema<MeleeContactsRowsInput, MeleeContactsRows> = v.pipe(v.array(MeleeContactRowSchema), v.minLength(1), v.maxLength(16));
 /** Cone contacts read slash damage/cooldowns from the item; this profile declares the reach allowance and gust. */
-export const ConeWeaponProfileSchema = v.strictObject({
+export const ConeWeaponProfileSchema: v.StrictObjectSchema<{
+ readonly family: v.LiteralSchema<'cone', undefined>;
+ readonly slash: v.GenericSchema<ConeWeaponProfileRowsInput['slash'], ConeWeaponProfileRows['slash']>;
+ readonly gust: v.StrictObjectSchema<{
+  [Key in Exclude<keyof ConeWeaponProfileRows['gust'], 'tags'>]: v.GenericSchema<ConeWeaponProfileRowsInput['gust'][Key], ConeWeaponProfileRows['gust'][Key]>;
+ } & { readonly tags: v.GenericSchema<ConeWeaponProfileRowsInput['gust']['tags'], ConeWeaponProfileRows['gust']['tags']> & {
+  readonly pipe: readonly [v.ArraySchema<v.CustomSchema<`${string}.${string}`, undefined>, undefined>, unknown];
+ } }, undefined>;
+}, undefined> = v.strictObject({
   family: v.literal('cone'), slash: v.strictObject({ reachAllowance: v.pipe(scalar, v.maxValue(20)) }),
   gust: v.strictObject({ reach: positive, halfAngle: v.pipe(positive, v.maxValue(Math.PI)),
     push: scalar, lift: scalar, damage: scalar, cooldown: seconds,
@@ -1264,3 +1272,23 @@ interface HeldBowFileRowsFields {
     base: HeldBowBaseRows;
 }
 export type HeldBowFileRows = { [Key in keyof HeldBowFileRowsFields]: HeldBowFileRowsFields[Key] };
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type ConeWeaponProfileRowsInput = ConeWeaponProfileRows;
+interface ConeWeaponProfileRowsFields {
+    family: 'cone';
+    slash: {
+        reachAllowance: number;
+    };
+    gust: {
+        reach: number;
+        halfAngle: number;
+        push: number;
+        lift: number;
+        damage: number;
+        cooldown: number;
+        tags: (`${string}.${string}`)[];
+        move: string;
+    };
+}
+export type ConeWeaponProfileRows = { [Key in keyof ConeWeaponProfileRowsFields]: ConeWeaponProfileRowsFields[Key] };

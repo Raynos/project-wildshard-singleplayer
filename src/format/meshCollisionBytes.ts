@@ -1,5 +1,5 @@
 /** Bounds for one indexed collision chunk; larger geometry must be partitioned before encoding. */
-export const MESH_COLLISION_LIMITS = Object.freeze({ vertices: 120000, triangles: 40000, coordinate: 250 });
+export const MESH_COLLISION_LIMITS: Readonly<{ vertices: 120000; triangles: 40000; coordinate: 250; }> = Object.freeze({ vertices: 120000, triangles: 40000, coordinate: 250 });
 const MAGIC = 0x31434d57; // WMC1, little endian.
 const HEADER = 24;
 

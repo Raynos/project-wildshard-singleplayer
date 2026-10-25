@@ -1,5 +1,5 @@
 /** Core numeric script ABI v0. Compiler/instrumenter revisions are part of this contract. */
-export const SCRIPT_ABI = Object.freeze({ version: 0, assemblyscript: '0.28.20', binaryen: '132.0.0', maxBytes: 262144, memoryPages: 64, maxFunctions: 512, maxGlobals: 128, maxLocals: 1024, callDepth: 64 });
+export const SCRIPT_ABI: Readonly<{ version: 0; assemblyscript: "0.28.20"; binaryen: "132.0.0"; maxBytes: 262144; memoryPages: 64; maxFunctions: 512; maxGlobals: 128; maxLocals: 1024; callDepth: 64; }> = Object.freeze({ version: 0, assemblyscript: '0.28.20', binaryen: '132.0.0', maxBytes: 262144, memoryPages: 64, maxFunctions: 512, maxGlobals: 128, maxLocals: 1024, callDepth: 64 });
 /** Required export signatures; parameter types followed by the numeric result, or zero for void. */
 export const SCRIPT_EXPORTS: Readonly<Record<string, readonly number[]>> = Object.freeze({
   abi_version: [0x7f], __start: [], init: [0x7f, 0x7f, 0], in_ptr: [0x7f], in_cap: [0x7f], out_ptr: [0x7f], out_cap: [0x7f], out_count: [0x7f], on_tick: [],

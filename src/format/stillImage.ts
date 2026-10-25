@@ -1,7 +1,7 @@
 /** Bounded inert SHARD SELECT images. These limits apply before a browser decoder sees any bytes. */
 export const STILL_IMAGE_LIMITS = { bytes: 4_194_304, dimension: 4096, chunks: 1024 } as const;
 /** Texture strips may be wide, but never exceed a title image's pixel area or wire cap. */
-export const IMAGE_ASSET_LIMITS = { ...STILL_IMAGE_LIMITS, dimension: 8192, pixels: STILL_IMAGE_LIMITS.dimension ** 2 } as const;
+export const IMAGE_ASSET_LIMITS: { readonly dimension: 8192; readonly pixels: number; readonly bytes: 4194304; readonly chunks: 1024; } = { ...STILL_IMAGE_LIMITS, dimension: 8192, pixels: STILL_IMAGE_LIMITS.dimension ** 2 } as const;
 /** Byte-derived image envelope and conservative CPU/data-URL and compositor residency. */
 export interface StillImage { mime: 'image/png' | 'image/jpeg' | 'image/webp'; width: number; height: number; decoded: number; gpu: number }
 const crcTable = Uint32Array.from({ length: 256 }, (_unused, value) => {

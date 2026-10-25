@@ -1,9 +1,9 @@
 /** Fixed wire-space cell dimensions; native engine configuration must agree (format-wire-limits.test.ts). */
-export const WIRE_CELL = Object.freeze({ half: 250, below: 250, above: 250, entryWidth: 8 });
+export const WIRE_CELL: Readonly<{ half: 250; below: 250; above: 250; entryWidth: 8; }> = Object.freeze({ half: 250, below: 250, above: 250, entryWidth: 8 });
 /** Bounded presentation-lane wire capacity; native engine capacity must agree with this contract. */
-export const CLIENT_SCRIPT_LIMITS = Object.freeze({ bindings: 128, particlesPerTick: 256, particlesLive: 4096, emitters: 16, fields: 24, parameters: 64 });
+export const CLIENT_SCRIPT_LIMITS: Readonly<{ bindings: 128; particlesPerTick: 256; particlesLive: 4096; emitters: 16; fields: 24; parameters: 64; }> = Object.freeze({ bindings: 128, particlesPerTick: 256, particlesLive: 4096, emitters: 16, fields: 24, parameters: 64 });
 /** Calibration in the measured runtime wire contract; the native allocator must use the same factor. */
 export const RUNTIME_RESIDENT_FACTOR = 1.11;
 /** Declared weapon-hook phases; admission and native phase numbering must agree. */
 /** Wire L0/L1 tile sizes; the native allocator/grid configuration must agree exactly. */
-export const WIRE_TILE_SIZES = Object.freeze({ l0: 62.5, l1: 125 });
+export const WIRE_TILE_SIZES: Readonly<{ l0: 62.5; l1: 125; }> = Object.freeze({ l0: 62.5, l1: 125 });

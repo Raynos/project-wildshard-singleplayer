@@ -44,8 +44,11 @@
  * Pure data and checks: this module imports no three.js, so the shardfile validator can use it on any machine.
  */
 
+/** A graph identifier matcher retains the original mutable RegExp contract. */
+type GraphIdentifierPattern = RegExp;
+
 /** a fog graph's catalogue id as a material's `effectState.fog` names it (the look catalogue's id pattern) */
-export const GRAPH_FOG_ID = /^[a-z][a-z0-9.-]{0,127}$/u;
+export const GRAPH_FOG_ID: GraphIdentifierPattern = /^[a-z][a-z0-9.-]{0,127}$/u;
 /** the IR version a graph declares; a graph of another version is refused (the lighting stage is additive: still version 1) */
 export const GRAPH_IR_VERSION = 1;
 /** the most iterations a `loop` node may run */
@@ -251,7 +254,7 @@ export const DEFAULT_GRAPH_BUDGET: GraphBudget = { nodes: 160, samplers: 4, inst
 export const MAX_GRAPH_BUDGET: GraphBudget = Object.freeze({ nodes: 4096, samplers: 16, instructions: 8192 });
 
 /** Raw graph JSON bounds, enforced before typing or compiler work; trusted presets supply their own node budget. */
-export const GRAPH_ADMISSION_LIMITS = Object.freeze({ bytes: 64_000, depth: 64 });
+export const GRAPH_ADMISSION_LIMITS: Readonly<{ bytes: 64000; depth: 64; }> = Object.freeze({ bytes: 64_000, depth: 64 });
 /** whether JSON writes `value` as itself in quotes: printable ASCII with no quote or backslash (a loop, not a regex: Node's
  *  type stripping rewrote the regex's escaped bracket and broke it) */
 function plainJsonString(value: string): boolean {
@@ -259,7 +262,7 @@ function plainJsonString(value: string): boolean {
   return true;
 }
 /** Check JSON bytes, all nested nodes and inert structure without invoking authored getters or toJSON methods. */
-export function graphAdmissionErrors(input: unknown, nodeLimit = DEFAULT_GRAPH_BUDGET.nodes): string[] {
+export function graphAdmissionErrors(input: unknown, nodeLimit: number = DEFAULT_GRAPH_BUDGET.nodes): string[] {
   type Entry = { value: unknown; depth: number; nodes: boolean } | { leave: object };
   const pending: Entry[] = [{ value: input, depth: 0, nodes: false }], active = new Set<object>(), encoder = new TextEncoder();
   let bytes = 0, nodes = 0;
@@ -545,7 +548,7 @@ const isNumeric = (t: GraphValueType): boolean => t !== 'bool';
 const ID = /^[A-Za-z_][A-Za-z0-9_]{0,63}$/;
 const SURFACE_TYPES: Readonly<Record<string, GraphValueType>> = { colour: 'vec3', alpha: 'float', targetAlpha: 'float', emissive: 'vec3', roughness: 'float', metalness: 'float', occlusion: 'float', discard: 'bool', normal: 'vec3' };
 /** an `attribute` node's name: `a` and a capital (`aSeed`), so it never names one of three's own attributes */
-export const GRAPH_ATTRIBUTE_NAME = /^a[A-Z][A-Za-z0-9]{0,31}$/;
+export const GRAPH_ATTRIBUTE_NAME: GraphIdentifierPattern = /^a[A-Z][A-Za-z0-9]{0,31}$/;
 /** where a `varying`'s input runs: the vertex program of the place reading it */
 const VARYING_SOURCE: Readonly<Partial<Record<GraphPlace, GraphPlace>>> = { fragment: 'vertex', sun: 'vertex', ambient: 'vertex', grade: 'vertex', outline: 'outlineVertex' };
 
