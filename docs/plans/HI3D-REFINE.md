@@ -48,7 +48,10 @@ What decides it:
 | H3 | The stage: `scripts/img2mesh/hi3d_refine.py`, `driftwood_post.py --geo`, a `"refine"` key / `REFINE` env in `build_props.py`. Off, outputs rebuild byte-for-byte | done (`f42d192560`; stone-a checked byte-for-byte after every change) |
 | H4 | The runs. Jake (2026-10-24) swapped the small props for obvious heroes: bear, ranger, horse, wreck, roc (+ stone-a, the 6 Pine Hollow props and the hut as numbers) | done: 14 subjects at 1024, 2 at 512, plus arm C (Hunyuan repaint) on 3 heroes + stone-a |
 | H5 | Numbers + boards | done: `art/hi3d-refine/round-1-heroes/` (`d43cc26ab5`); numbers in localai `docs/hi3d.md` |
-| H6 | Jake's verdict per shard | needs pick (2026-10-24) |
+| H6 | Jake's verdict per shard | done: **Jake (2026-10-24): opt-in per prop**, never a shard default; rebuild the winners shard by shard, each behind Developer first |
+| H8 | Driftwood wreck: `"refine"` on its rows of `props/driftwood-hero.json` (LOD0 + lod1), rebuild, ship behind Developer | open |
+| H9 | Pine Hollow ranger and bear: refined hulls through the shard's own NPC / creature bakes (`bake-npcs.mjs`, `creature-color.mjs`), behind Developer | open |
+| H10 | Far Reach storm roc: refined hull through the shard's model build, behind Developer | open |
 | H7 | Docs: when to use it and when not, in localai and here | done here (README §4b, LOCAL-MODELS, mockup-to-model); localai + weights staged, landing needs Jake's `!` line (the commit guard blocks `git commit` outside this repo) |
 
 **Result (same triangle budget, final game GLBs):** B wins on the wreck (spiky shards → a readable ship, same bytes),
@@ -57,5 +60,4 @@ the horse (no normal map); a loss on stone-a (Hi3D carves the reference's glyphs
 ones). Arm C (Hunyuan repaint) lost every time. Two pipeline bugs found and fixed on the way: black DIFFUSE bakes from
 metallic sources (every Hunyuan GLB), and Blender's collapse stalling on 1 M faces.
 
-Out of scope: rebuilding the shipped props of the shards that win. That becomes one row per shard after H6.
-Characters and rigged meshes are out of scope too.
+After H6 the winners are rebuilt one row per shard (H8–H10); stone-a and Nalati's models stay as they are.
