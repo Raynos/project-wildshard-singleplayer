@@ -64,13 +64,20 @@ test('a wrong build cannot dismiss the modal and its retry remains available bet
 });
 
 test('an explicit same-build refresh completes when there was no announced target', async () => {
-  const store = memory(incoming(null));
+  const store = memory({ ...incoming(null), packReady: false });
   const screen = new UpdateProgress(owner(), 'old-build', () => undefined, store, () => now);
   document.dispatchEvent(new Event('ws:ready')); await vi.advanceTimersByTimeAsync(100);
   expect(store.read()).toBeNull();
   screen.start('later-build', true); screen.phase('install');
   expect(document.querySelector('[aria-current="step"]')?.textContent).toBe('Installing');
   expect(store.read()).toMatchObject({ target: 'later-build' });
+});
+
+test('an announced waiting worker must advance the build even without a version label', async () => {
+  const store = memory(incoming(null));
+  new UpdateProgress(owner(), 'old-build', () => undefined, store, () => now);
+  document.dispatchEvent(new Event('ws:ready')); await vi.advanceTimersByTimeAsync(100);
+  expect(store.read()).not.toBeNull(); expect(document.querySelector('button')?.hidden).toBe(false);
 });
 
 test.each([-1, 300001])('stale or future handoffs do not obscure an unrelated launch (%s ms)', age => {

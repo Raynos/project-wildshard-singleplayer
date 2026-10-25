@@ -1,4 +1,7 @@
 export interface ArtObservation { rows: { src: string; ok: boolean }[] }
+export interface UpdateProgressEvent {
+  kind: string; host: number; origin?: number; phase?: string; fact?: string;
+}
 export interface UpdateObservation {
   base: string;
   oldVersion: { build: string };
@@ -28,4 +31,8 @@ export function updateReport(data: UpdateObservation): {
   update: TrafficObservation;
   template: { tapToReadyMs: number; admissionMs: number | null; traffic: TrafficObservation };
   limits: string;
+};
+export function updateProgressReport(rows: readonly UpdateProgressEvent[]): {
+  pass: boolean; firstVisibleMs: number; tapToPaintMs: number; longestGapMs: number;
+  actualChanges: number; phases: (string | undefined)[]; finalFact: string; limits: string;
 };

@@ -104,7 +104,8 @@ export class UpdateProgress {
 
   private titleReady(): void {
     if (!this.incoming || this.state === null) return;
-    if (this.state.target !== null && this.state.target !== this.build) {
+    if ((this.state.target !== null && this.state.target !== this.build)
+      || (this.state.target === null && this.state.packReady && this.state.source === this.build)) {
       this.failed = true; this.showRetry(); return;
     }
     // Title dispatches this only after its real DOM has replaced the inline shell.

@@ -51,3 +51,38 @@ export function updateReport(data) {
     limits: 'Diagnostic proxy response bodies include injected, uncompressed HTML. Same URL does not prove unchanged content. Install traffic includes pre-tap stale-art inspection; update traffic is bounded by response end, not request start.',
   };
 }
+
+/** Measure actual step/receipt changes, deliberately excluding the elapsed clock.
+ * @param {readonly import('./update-report.d.mts').UpdateProgressEvent[]} rows */
+export function updateProgressReport(rows) {
+  const tapIndex = rows.findLastIndex(row => row.kind === 'tap'), tap = rows[tapIndex];
+  if (tap === undefined || !Number.isFinite(tap.host) || tap.host <= 0
+    || typeof tap.origin !== 'number' || !Number.isFinite(tap.origin) || tap.origin <= 0) throw new Error('Missing update tap clock');
+  const bank = rows.slice(tapIndex + 1), inline = bank.find(row => row.kind === 'document');
+  const painted = bank.findLast(row => row.kind === 'updateTitlePaint' && row.origin === inline?.origin);
+  if (inline === undefined || painted === undefined || typeof inline.origin !== 'number'
+    || !Number.isFinite(inline.origin) || inline.origin <= 0 || inline.origin === tap.origin) {
+    throw new Error('Missing new-document progress handoff');
+  }
+  const changes = bank.filter(row => row.kind === 'updateProgress' && row.host <= painted.host);
+  if (changes.length === 0 || !changes.some(row => row.origin === tap.origin) || !changes.some(row => row.origin === inline.origin)) {
+    throw new Error('Progress must cover both documents');
+  }
+  const hidden = bank.find(row => row.kind === 'updateHidden' && row.origin === inline.origin);
+  if (hidden === undefined || hidden.host > painted.host) throw new Error('Title paint must follow modal release');
+  let previous = tap.host, longestGapMs = 0;
+  for (const row of [...changes, painted]) {
+    if (!Number.isFinite(row.host) || row.host <= 0 || row.host < previous) throw new Error('Invalid progress clock');
+    longestGapMs = Math.max(longestGapMs, row.host - previous); previous = row.host;
+    if (row.kind === 'updateProgress' && (!['found', 'download', 'install', 'reload'].includes(row.phase ?? '')
+      || typeof row.fact !== 'string')) throw new Error('Missing actual progress phase or receipt');
+  }
+  const first = changes[0];
+  if (first === undefined) throw new Error('Missing first progress');
+  return { pass: first.host - tap.host <= 1000 && longestGapMs <= 1000,
+    firstVisibleMs: first.host - tap.host, tapToPaintMs: painted.host - tap.host,
+    longestGapMs, actualChanges: changes.length,
+    phases: [...new Set(changes.map(row => row.phase))],
+    finalFact: changes.at(-1)?.fact ?? '',
+    limits: 'Only recorded phase/receipt changes count. Elapsed clock repaint is excluded; proxy HTML is diagnostic and uncompressed.' };
+}

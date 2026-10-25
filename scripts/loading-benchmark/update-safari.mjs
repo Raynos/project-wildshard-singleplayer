@@ -3,18 +3,21 @@
 import {execFileSync,spawn} from 'node:child_process';
 import {mkdirSync,writeFileSync} from 'node:fs';
 import {createServer} from 'node:net';
+import {once} from 'node:events';
 import {setTimeout as sleep} from 'node:timers/promises';
 import {observeTransport} from './transport.mjs';
 import {soakInspector} from '../soak/inspector.mjs';
 import {accuracyRecorder} from './accuracy-data.mjs';
 import {loadingCardIndex} from './catalogue.mjs';
-import {updateReport} from './update-report.mjs';
+import {updateReport,updateProgressReport} from './update-report.mjs';
 import {saveFixtureCode} from '../debug-settings.mjs';
 
 const [before,after,beforePin,afterPin,directory]=process.argv.slice(2),udid=process.env.SIM_UDID;
+const progressOnly=process.argv.includes('--progress-only');
 if(!udid||!before||!after||!directory||! /^[a-f0-9]{40}$/u.test(beforePin??'')||! /^[a-f0-9]{40}$/u.test(afterPin??''))throw new Error('sim-lane, two owned URLs, exact source SHAs and output directory required');
 const out=directory;mkdirSync(out,{recursive:true});
-let current=before,inspector,selected;
+let current=before,inspector,selected,video;
+async function stopVideo(){const child=video;video=undefined;if(child&&child.exitCode===null&&child.signalCode===null){child.kill('SIGINT');await once(child,'exit');}}
 function record(){
  const key='__loadingUpdate',rows=JSON.parse(sessionStorage.getItem(key)??'[]');
  const put=(kind,detail={})=>{rows.push({kind,host:Date.now(),at:performance.now(),origin:performance.timeOrigin,...detail});sessionStorage.setItem(key,JSON.stringify(rows));};
@@ -25,6 +28,17 @@ function record(){
  navigator.serviceWorker?.addEventListener('controllerchange',()=>put('controllerchange'));
  addEventListener('error',e=>put('error',{message:e.message}));
  addEventListener('unhandledrejection',e=>put('error',{message:String(e.reason)}));
+ let signature='';
+ new MutationObserver(()=>{
+  const screen=document.querySelector('.ws-update-screen');
+  if(screen){
+   const detail={phase:screen.dataset.phase,fact:screen.querySelector('[role="status"]')?.textContent,steps:[...screen.querySelectorAll('li')].map(row=>row.textContent)};
+   const next=JSON.stringify(detail);if(next!==signature){signature=next;put('updateProgress',detail);}
+  }else if(signature!==''){
+   signature='';put('updateHidden');
+   if(document.querySelector('.ws-main-select'))requestAnimationFrame(()=>{requestAnimationFrame(()=>{put('updateTitlePaint');});});
+  }
+ }).observe(document.documentElement,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['data-phase']});
 }
 const oldVersion=await(await fetch(new URL('/version.json',before))).json(),newVersion=await(await fetch(new URL('/version.json',after))).json();
 if(!oldVersion.build.startsWith(beforePin.slice(0,7))||!newVersion.build.startsWith(afterPin.slice(0,7)))throw new Error('Served source pin mismatch');
@@ -55,10 +69,19 @@ try{
  current=after;result.switchHost=Date.now();
  await gesture('document.querySelector(".ws-main-select").click()');await sleep(1000);shot('stale-select');result.staleSelect=await collect();result.staleArt=await art();await evaluate('navigator.serviceWorker.getRegistration().then(r=>r.update()).catch(e=>window.__loadingUpdate.put("update-error",{message:String(e)}));true');
  await wait('Boolean(window.__ws_sw?.waiting)',120000);result.waitingHost=Date.now();result.waitingState=await collect();
+ if(progressOnly){video=spawn('xcrun',['simctl','io',udid,'recordVideo','--codec=h264',`${out}/update.mp4`],{stdio:'ignore'});await sleep(300);}
  result.tapHost=Date.now();await gesture('window.__loadingUpdate.put("tap");document.querySelector(".ws-update").click();true');
+ if(progressOnly){await sleep(80);shot('updating');}
  await sleep(500);await connect();
  await wait(`document.querySelector('.ws-main-select') && document.querySelector('.ws-update')?.textContent?.toLowerCase().includes('${result.newVersion.build.slice(0,7)}')`,120000);
  result.titleHost=Date.now();result.afterState=await collect();
+ if(progressOnly){
+  await wait('document.querySelector(".ws-update-screen")===null && JSON.parse(sessionStorage.getItem("__loadingUpdate")??"[]").some(row=>row.kind==="updateTitlePaint")',15000);
+  result.afterState=await collect();shot('updated-title');await stopVideo();
+  result.transport=transport.receipts;result.htmlFixtures=transport.htmlFixtures;result.report=updateProgressReport(result.afterState.rows);
+  writeFileSync(`${out}/result.json`,JSON.stringify(result,null,2));
+  if(!result.report.pass||result.afterState.accuracy.errors.length>0)throw new Error('Update progress acceptance refused; see event clocks');
+ }else{
  await gesture('document.querySelector(".ws-main-select").click()');await sleep(1000);shot('after-select');result.afterSelect=await collect();result.afterArt=await art();
  const names=JSON.parse(await evaluate('JSON.stringify([...document.querySelectorAll(".ws-menu-card > b")].map(x=>x.textContent))'));
  const index=loadingCardIndex(names,'_template');
@@ -68,6 +91,7 @@ try{
  result.templateReadyHost=Date.now();result.templateState=await collect();shot('template-after-update');
  result.transport=transport.receipts;result.htmlFixtures=transport.htmlFixtures;result.report=updateReport(result);writeFileSync(`${out}/result.json`,JSON.stringify(result,null,2));
  if(result.report.staleArt.failed.length>0||result.report.newArt.failed.length>0||[result.beforeState,result.staleSelect,result.afterState,result.templateState].some(state=>state.accuracy.errors.length>0))throw new Error('Update art or application fault; see captured states');
+ }
  console.log(JSON.stringify(result.report));
 } catch(error){result.error=String(error);result.transport=transport.receipts;try{result.failureState=await collect();shot('failure');}catch{/* A lost target must not replace the original refusal. */}writeFileSync(`${out}/failed.json`,JSON.stringify(result,null,2));throw error;}
-finally{try{await evaluate('location.replace("about:blank")');}catch{/* The page already navigated or closed. */}inspector?.close();proxy.kill('SIGTERM');try{execFileSync('xcrun',['simctl','terminate',udid,'com.apple.mobilesafari'],{stdio:'ignore'});}catch{/* Safari is already closed. */}await transport.close();writeFileSync(`${out}/proxy.log`,proxyLog);}
+finally{await stopVideo();try{await evaluate('location.replace("about:blank")');}catch{/* The page already navigated or closed. */}inspector?.close();proxy.kill('SIGTERM');try{execFileSync('xcrun',['simctl','terminate',udid,'com.apple.mobilesafari'],{stdio:'ignore'});}catch{/* Safari is already closed. */}await transport.close();writeFileSync(`${out}/proxy.log`,proxyLog);}
