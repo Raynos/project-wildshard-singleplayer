@@ -7,7 +7,7 @@ import { build } from 'vite';
 import { createProjectGeneration } from '../src/sdk/projectGeneration';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
-import { signalRestFire } from '../src/shards/sunscar-dunes/generators/restFireProgram';
+import { signalRestFire } from '../src/shards/sunscar-dunes/generators/restPoolProgram';
 
 const original = '9a0dfb440ed07bf4338467add4ea7c0941b62294c1ae7efd4a9802d776eb1f42';
 const parts = ['fire-flame', 'fire-wisp', 'fire-glow', 'pool-caravan-lamp', 'pool-cook', 'pool-keeper-lamp', 'pool-brazier-0', 'pool-brazier-1', 'pool-brazier-2'];
@@ -50,7 +50,7 @@ test('unexpected inputs and malformed cached inventories refuse before publicati
 
 test('the rest-fire source bundles once without file, module or compiler services', async () => {
   const result = await build({ configFile: false, logLevel: 'silent', build: { write: false, minify: false,
-    lib: { entry: resolve('src/shards/sunscar-dunes/generators/restFireProgram.ts'), formats: ['es'] },
+    lib: { entry: resolve('src/shards/sunscar-dunes/generators/restPoolProgram.ts'), formats: ['es'] },
     rolldownOptions: { external: [/^node:/u, 'assemblyscript/dist/asc.js'], output: { codeSplitting: false } } } });
   const output = Array.isArray(result) ? result[0] : result;
   if (output === undefined || !('output' in output)) throw new Error('Missing rest-fire source bundle');

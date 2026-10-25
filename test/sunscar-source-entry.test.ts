@@ -42,9 +42,9 @@ test('direct world rows preserve the original ordered aggregate without its JSON
   expect(signature(world)).toEqual(before.raw.world);
   const registry = v.parse(v.object({ jobs: v.array(v.object({ id: v.string(), shard: v.nullable(v.string()), inputRoots: v.array(v.string()), outputs: v.array(v.string()) })) }),
     JSON.parse(readFileSync('scripts/generation-jobs.json', 'utf8')));
-  expect(registry.jobs.some(row => ['signal-world-bakes', 'signal-product', 'signal-fire-book', 'signal-rigs', 'signal-manifest-ground', 'signal-world', 'signal-sand', 'signal-data-map', 'signal-declaration', 'signal-rest-fire', 'signal-view-data', 'signal-navigation', 'signal-rest-scenes', 'signal-physics'].includes(row.id))).toBe(false);
+  expect(registry.jobs.some(row => ['signal-world-bakes', 'signal-product', 'signal-fire-book', 'signal-rigs', 'signal-manifest-ground', 'signal-world', 'signal-sand', 'signal-data-map', 'signal-declaration', 'signal-rest-fire', 'signal-view-data', 'signal-navigation', 'signal-rest-scenes', 'signal-physics', 'signal-rest-well'].includes(row.id))).toBe(false);
   expect(registry.jobs.flatMap(row => row.inputRoots.concat(row.outputs)).some(path => path.startsWith('src/shards/sunscar-dunes/.wildshard/product/'))).toBe(false);
-  expect(registry.jobs.filter(row => row.shard === 'sunscar-dunes')).toHaveLength(8);
+  expect(registry.jobs.filter(row => row.shard === 'sunscar-dunes')).toHaveLength(7);
   const paths = registry.jobs.flatMap(row => row.inputRoots.concat(row.outputs));
   expect(paths.some(path => path.startsWith('src/shards/sunscar-dunes/') && /\/(?:manifestGround|nativeGround)\.generated\.json$/u.test(path))).toBe(false);
   expect(registry.jobs.flatMap(row => row.inputRoots.concat(row.outputs)).some(path => path.endsWith('/worldBakes.generated.json'))).toBe(false);
@@ -60,11 +60,14 @@ test('the SDK admits all original physical bytes, platform metadata and mirrors 
     return { old, current };
   });
   const owned = result.output.namedFiles?.filter(file => file.name?.startsWith('geometry/rigs/') === true
-    || file.name?.startsWith('geometry/world/') === true || file.name === 'geometry/rest/fire.glb' || file.name === 'textures/plait.bin' || file.name === 'ui/map') ?? [];
-  expect(owned).toHaveLength(14);
+    || file.name?.startsWith('geometry/world/') === true || file.name?.startsWith('geometry/rest/') === true || file.name === 'textures/plait.bin' || file.name === 'ui/map') ?? [];
+  expect(owned).toHaveLength(15);
   const fire = owned.find(file => file.name === 'geometry/rest/fire.glb');
   expect(fire?.hash).toBe('9a0dfb440ed07bf4338467add4ea7c0941b62294c1ae7efd4a9802d776eb1f42');
   expect(fire?.compressed).toBe(72196);
+  const well = owned.find(file => file.name === 'geometry/rest/well.glb');
+  expect(well?.hash).toBe('3988eb3478c078ebfedade1758cee01dd369677763fbe8cf93cd5d65ddab735a');
+  expect(well?.compressed).toBe(8124);
   const modelFile = descriptors.find(row => row.old.name === 'world/sources/models.json');
   if (modelFile === undefined) throw new Error('Missing owned pool descriptor');
   const pools = (bytes: Uint8Array | undefined) => {
@@ -74,7 +77,7 @@ test('the SDK admits all original physical bytes, platform metadata and mirrors 
   };
   const previousPools = pools(output.assets.get(modelFile.old.hash));
   expect(pools(result.assets.get(modelFile.current.hash))).toEqual(previousPools.map(pool =>
-    pool.url === REST_URLS[2] ? { url: 'geometry/rest/fire.glb', parts: pool.parts } : pool));
+    pool.url === REST_URLS[2] ? { url: 'geometry/rest/fire.glb', parts: pool.parts } : pool.url === REST_URLS[0] ? { url: 'geometry/rest/well.glb', parts: pool.parts } : pool));
   const map = owned.find(file => file.name === 'ui/map');
   expect(map?.hash).toBe('bac9393474d96298d9bd4a407197d0bc86be913b872c8430e8f2e0aabd5cb399');
   expect(map?.compressed).toBe(172348);
@@ -100,7 +103,7 @@ test('the SDK admits all original physical bytes, platform metadata and mirrors 
       ...(budget.downloadAllowance === undefined ? {} : { downloadAllowance: budget.downloadAllowance - compressed }) } },
   })).toEqual(before.shard);
   const assets = physical(result.assets);
-  expect(assets).toHaveLength(before.assets.length + 14);
+  expect(assets).toHaveLength(before.assets.length + 15);
   const projectedAssets = new Map(result.assets);
   for (const hash of hashes) projectedAssets.delete(hash);
   for (const row of descriptors) {
@@ -125,8 +128,8 @@ test('the SDK admits all original physical bytes, platform metadata and mirrors 
   expect(signature(result.mirrors)).toEqual(before.mirrors);
 });
 
-test('computed discovery removes only the retired public rig/world/fire/skirt URLs in both tiers', () => {
-  const rigs = new Set([...Object.values(DUNE_RIG_URLS), ...Object.values(BAKED_URLS), REST_URLS[2]]);
+test('computed discovery removes only the retired public rig/world/fire/well/skirt URLs in both tiers', () => {
+  const rigs = new Set([...Object.values(DUNE_RIG_URLS), ...Object.values(BAKED_URLS), REST_URLS[0], REST_URLS[2]]);
   const expected = { tiers: { phone: { ...BOOT_SOURCES.tiers.phone, terrain: BOOT_SOURCES.tiers.phone.terrain.filter(url => url !== SAND_FILES.skirt), props: BOOT_SOURCES.tiers.phone.props.filter(url => !rigs.has(url)) },
     desktop: { ...BOOT_SOURCES.tiers.desktop, terrain: BOOT_SOURCES.tiers.desktop.terrain.filter(url => url !== SAND_FILES.skirt), props: BOOT_SOURCES.tiers.desktop.props.filter(url => !rigs.has(url)) } } };
   expect(generated.discovery).toEqual({ navigation, budgets: BUDGETS, poses: SIGNAL_DEV_POSES, audioCues: cues, 'boot.lateReads': LATE_READS, 'boot.sources': expected, 'boot.files': { ...BOOT_FILES, sources: expected } });
