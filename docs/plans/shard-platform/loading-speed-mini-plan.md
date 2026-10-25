@@ -83,14 +83,16 @@ M1 half a day; wave 1 about 1.5 days; wave 2 about 2 days; **about 4 lane-days, 
 Jake's phone check. Warm < 5 s is likely (the reveal is 6.5 s of the 13.6 s gap); cold < 15 s is the riskier half and
 hinges on C1 + H2 + H3 together.
 
-### L18 implementation slices (G734, sp-x8)
+### L18 implementation slices (G734, sp-x8 L18.1; sp-x2 L18.2–4)
 
 | Slice | Work | Status |
 |---|---|---|
 | L18.1 | Typed tier selection before transport and download declaration; matching boot reserve; preserve exact admission, offline re-entry and tier changes. At most one hour. | done (2026-10-24, sp-x8) |
-| L18.2 | Explorer, comparison and simulation inputs on demand with real progress; bounded implementation slices after the crossing measurement. | open |
-| L18.3 | Reduce or stream the remaining entry geometry without changing its appearance; bounded slices after attribution. | open |
-| L18.4 | Verify production compression of GLB and BIN responses. | open |
+| L18.2 | Explorer, comparison and simulation inputs on demand with real progress; retain each synchronous gameplay reader. | in flight (2026-10-25, sp-x2), ≤1 h slices below |
+| L18.2a | Trace named-file readers and progress before changing the entry bank. The assembly JSON is read during quest composition, not merely by headless tools; do not defer it by filename. | in flight (sp-x2, ≤1 h audit) |
+| L18.3 | Reduce or stream the remaining entry geometry without changing its appearance; bounded slices after attribution. | in flight (2026-10-25, sp-x2) |
+| L18.3a | World construction reads only `cells[TIER]`; use that same typed choice in admission and compiler totals. Shared/critical/dependency refs still retain either bank. | done (this code commit): phone 84,464,908 B /315 files → 81,240,976 B /314; desktop 96,907,800 B /315 → 93,697,134 B /314. Exact checked production inventory, declared blob content only; no measured network or loading gain. 75 focused cases, format types and scoped typed lint pass. |
+| L18.4 | Verify production compression of GLB and BIN responses. | done (2026-10-25, sp-x2): production Driftwood GLB `07cd00fb…` (210,048 B content) and BIN `13fd9051…` (138,228 B) both return HTTP 200 / `Content-Encoding: br` with `Accept-Encoding: gzip, br`; index also Brotli. No server/config change or byte delta. |
 
 ## The update pill (Jake, 2026-10-23 09:33, iPhone screenshot on ab93dccfe: *"Pressing the updating button takes forever. I just expected to refresh the page. I don't know why refreshing the page takes so long."*)
 

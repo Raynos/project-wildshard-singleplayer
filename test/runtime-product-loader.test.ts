@@ -13,7 +13,7 @@ import { loadManifestProduct,provideManifestAdmission,loadShardProduct, runtimeP
 import { admitProduct, readProductDescriptor, type ProductOptions, type ProductCache } from '../src/game/shardfile/product';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
 import { neighbourProductFiles, productResidentBytes, jsonResidentBytes, runtimeOnlyProductFiles, tierLibrarySource, urlImageLibrarySource, scopedSpecimenLibrarySource, scopedSpecimenLibrarySourcePaced } from '../src/game/shardfile/productCost';
-import { carryOutputDescriptor, resolveOutputDescriptor } from '../src/game/shardfile/outputDescriptor';
+import { carryOutputDescriptor, outputDescriptor, resolveOutputDescriptor } from '../src/game/shardfile/outputDescriptor';
 import { MemoryAdmission } from '../src/format/product';
 import { acceptValidatedCost } from '../src/format/assetAdmission';
 import { ProductLeases } from '../src/game/grid/productLeases';
@@ -486,7 +486,7 @@ test('shrinking residency cannot grow, underflow or revive a released claim', ()
   claim.release(); claim.shrink(1); expect(allocator.entries()).toHaveLength(0);
 });
 
-function tierTransportFixture(retain: 'none' | 'critical' | 'dependency' = 'none', legacy = false) {
+function tierTransportFixture(retain: 'none' | 'critical' | 'dependency' | 'reader' = 'none', legacy = false, cells = false) {
   const desktopBytes = new Uint8Array([9]), desktop = hashImmutableBytes(desktopBytes);
   const f = fixture(false, source => {
     if (legacy) source.runtime = { entry: 'runtime/index.ts' };
@@ -494,6 +494,14 @@ function tierTransportFixture(retain: 'none' | 'critical' | 'dependency' = 'none
     source.library.push(desktop); source.budgets.library.resident += 1000; source.budgets.library.compressed += 1;
     if (retain === 'critical') source.critical.push(desktop);
     if (retain === 'dependency') source.files[0]?.dependencies.push(desktop);
+    if (cells) return new Map<string, unknown>([
+      ['client/plan', { version: 1, features: [{ kind: 'world.assembly', rows: {
+        construction: { cells: { phone: 'models/token.bin', desktop: 'models/desktop.bin' }, seed: 1,
+          progress: { total: 1, finish: 'World', budgetMs: 8 }, checkpoints: [] },
+        stages: [{ kind: 'place', id: 'entry', label: 'Entry' }],
+      } }] }],
+      ...retain === 'reader' ? [['ui/strings', { shared: 'models/desktop.bin' }] as const] : [],
+    ]);
     return new Map([['world/scenes', { version: 1, libraries: [{ id: 'trees', kind: 'owned', models: [
       { id: 'tree', file: { phone: 'models/token.bin', desktop: 'models/desktop.bin' } },
     ] }], materials: [], steps: [] }]]);
@@ -501,6 +509,26 @@ function tierTransportFixture(retain: 'none' | 'critical' | 'dependency' = 'none
   f.wires.set(`blobs/bin/${desktop}.bin`, desktopBytes);
   return { ...f, desktop };
 }
+
+test.each(['phone', 'desktop'] as const)('world construction admits only its %s cover-cell bank', async tier => {
+  const f = tierTransportFixture('none', false, true); trust(f.receipt);
+  const urls: string[] = [], progress: { bytesTotal: number; filesTotal: number }[] = [];
+  const admitted = await admitProduct(f.index, { ...f.options, tier,
+    fetch: url => { urls.push(url); return f.options.fetch(url); }, progress: row => { progress.push(row); } });
+  const selected = tier === 'phone' ? f.ref : f.desktop, other = tier === 'phone' ? f.desktop : f.ref;
+  expect([...admitted.assets.keys()]).toEqual([selected]);
+  expect(urls).not.toContain(new URL(`blobs/bin/${other}.bin`, f.options.base).href);
+  expect(progress.at(-1)).toMatchObject({ filesTotal: 1, bytesTotal: tier === 'phone' ? 3 : 1 });
+  expect(outputDescriptor(admitted.source)?.sections.get('client/plan')).toMatchObject({ features: [{ rows: {
+    construction: { cells: { phone: 'models/token.bin', desktop: 'models/desktop.bin' } },
+  } }] });
+});
+
+test.each(['critical', 'dependency', 'reader'] as const)('a %s keeps a shared off-tier cover-cell bank', async retain => {
+  const f = tierTransportFixture(retain, false, true); trust(f.receipt);
+  const admitted = await admitProduct(f.index, { ...f.options, tier: 'phone' });
+  expect([...admitted.assets.keys()]).toEqual([f.ref, f.desktop]);
+});
 
 test.each(['phone', 'desktop'] as const)('trusted %s admission never declares or fetches the other typed variant', async tier => {
   const f = tierTransportFixture(); trust(f.receipt);
@@ -530,8 +558,8 @@ test('an unspecified device tier retains complete transport admission', async ()
   expect([...admitted.assets.keys()]).toEqual([f.ref, f.desktop]);
 });
 
-test('tier caches re-enter offline and a different tier repairs only its missing inputs online', async () => {
-  const f = tierTransportFixture(); trust(f.receipt);
+test.each([false, true])('tier caches re-enter offline and repair missing inputs online (cover %s)', async cells => {
+  const f = tierTransportFixture('none', false, cells); trust(f.receipt);
   let visited: Awaited<ReturnType<ProductCache['product']>> = null;
   const stored = new Map<string, Uint8Array>();
   const cache: ProductCache = { product: () => Promise.resolve(visited),
@@ -556,8 +584,8 @@ test('a selected tier file still refuses corrupt network bytes', async () => {
   await expect(admitProduct(f.index, { ...f.options, tier: 'phone' })).rejects.toThrow('Shardfile asset hash mismatch');
 });
 
-test('legacy constructors retain every immutable input despite typed tier alternatives', async () => {
-  const f=tierTransportFixture('none',true);trust(f.receipt);
+test.each([false, true])('legacy constructors retain every immutable input (cover %s)', async cells => {
+  const f=tierTransportFixture('none',true,cells);trust(f.receipt);
   const admitted=await admitProduct(f.index,{...f.options,tier:'phone'});
   expect(admitted.assets.has(f.ref)).toBe(true);expect(admitted.assets.has(f.desktop)).toBe(true);
 });

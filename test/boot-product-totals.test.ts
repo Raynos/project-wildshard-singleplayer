@@ -19,7 +19,7 @@ const index = { format: 'wildshard.shardfile', formatVersion: 2, sdk: '0.2', ver
   schemas: [{ path: 'schemas/custom/first.schema.json', hash, bytes: 15 }],
   files: [{ kind: 'bin', path: `blobs/bin/${hash}.bin`, hash, compressed: 30, decoded: 300, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: false }], runtime: null };
 
-test.each([null,{kind:'client-plan'}])('compiler tier totals reserve the selected bank for runtime %j',(runtime)=>{
+test.each([null,{kind:'client-plan'}].flatMap(runtime => [false, true].map(cover => ({runtime, cover}))))('compiler tier totals reserve the selected bank (runtime $runtime, cover $cover)',({runtime,cover})=>{
   mkdirSync('tmp/vite-boot-products',{recursive:true});
   const root=mkdtempSync(resolve('tmp/vite-boot-products/tier-'));
   try {
@@ -30,7 +30,12 @@ test.each([null,{kind:'client-plan'}])('compiler tier totals reserve the selecte
     row.library.push(phone,desktop);row.budgets.library={compressed:3,resident:3};
     const product=resolve(root,'out/tier-total');mkdirSync(product,{recursive:true});
     const values=new Map(outputSectionPayloads(row));
-    values.set('world/scenes',{version:1,libraries:[{id:'trees',kind:'owned',models:[{id:'tree',file:{phone:'phone.bin',desktop:'desktop.bin'}}]}],materials:[],steps:[]});
+    const selectedSection = cover ? 'client/plan' : 'world/scenes';
+    values.set(selectedSection,cover ? {version:1,features:[{kind:'world.assembly',rows:{
+      construction:{cells:{phone:'phone.bin',desktop:'desktop.bin'},seed:1,
+        progress:{total:1,finish:'World',budgetMs:8},checkpoints:[]},
+      stages:[{kind:'place',id:'entry',label:'Entry'}],
+    }}]} : {version:1,libraries:[{id:'trees',kind:'owned',models:[{id:'tree',file:{phone:'phone.bin',desktop:'desktop.bin'}}]}],materials:[],steps:[]});
     const sections=[...values].map(([name,value])=>{
       const text=JSON.stringify(value),path=`sections/${name}.json`;
       mkdirSync(resolve(product,'sections',name.split('/')[0]??''),{recursive:true});writeFileSync(resolve(product,path),text);
@@ -47,7 +52,7 @@ test.each([null,{kind:'client-plan'}])('compiler tier totals reserve the selecte
     const text=JSON.stringify(data);writeFileSync(resolve(product,'shard.json'),text);
     const full=productDownloadTotal(data,Buffer.byteLength(text));
     expect(bootTierProductTotals(root)).toEqual({'/shardfiles/tier-total/':[full[0],full[1],full[1]-2,full[1]-1]});
-    writeFileSync(resolve(product,'sections/world/scenes.json'),'{}');
+    writeFileSync(resolve(product,`sections/${selectedSection}.json`),'{}');
     expect(()=>bootTierProductTotals(root)).toThrow('Boot tier section differs');
   } finally {rmSync(root,{recursive:true,force:true});}
 });

@@ -1,6 +1,7 @@
 import { parseWorldScenes, worldScenesForTier } from './worldScenes';
 import { parseRiggedHullBook } from './riggedHulls';
 import { PosedLibrarySchema } from './namedJsonContracts';
+import { parseClientPlan } from './clientPlan';
 import * as v from 'valibot';
 
 /** Only immutable addressing and typed alternatives are needed for selection.
@@ -77,6 +78,22 @@ export function* tierLibrarySteps(source: TierSelectionSource, tier: 'phone' | '
       libraries.push({ ...library, models });
     }
     sections.set('world/scenes', { ...row, libraries });
+  }
+  const client = sections.get('client/plan');
+  if (client !== undefined) {
+    const plan = parseClientPlan(client);
+    const features = plan.features.map(feature => {
+      if (feature.kind !== 'world.assembly' || feature.rows.construction?.cells === undefined) return feature;
+      const construction = feature.rows.construction, cells = construction.cells;
+      if (cells === undefined) return feature;
+      // WorldAssembly.construct reads exactly cells[TIER], including on a
+      // restored entry. Other sections, critical pins and dependencies below
+      // still protect a shared file; the descriptor itself is never changed.
+      alternative(cells[tier], cells[tier === 'phone' ? 'desktop' : 'phone']);
+      return { ...feature, rows: { ...feature.rows, construction: { ...construction,
+        cells: { phone: cells[tier], desktop: cells[tier] } } } };
+    });
+    sections.set('client/plan', { ...plan, features });
   }
   const hulls = sections.get('look/rigged-hulls');
   if (hulls !== undefined) {
