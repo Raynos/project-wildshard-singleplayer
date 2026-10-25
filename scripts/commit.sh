@@ -153,11 +153,16 @@ finally:
   export WS_COMMIT_MESSAGE="$message"
   if [ -n "$patch" ]; then
     index=$(mktemp "$common/commit-patch.XXXXXX")
-    rm -f "$index"
+    # Seed only metadata; read-tree below resets every candidate blob to HEAD.
+    cp "$common/index" "$index"
     export GIT_INDEX_FILE="$index"
     trap '\''rm -f "$GIT_INDEX_FILE" "$GIT_INDEX_FILE.lock"'\'' EXIT
     parent=$(git rev-parse HEAD)
-    git read-tree "$parent"
+    git read-tree --reset "$parent"
+    # Hidden working-tree flags must not suppress exact candidate checks.
+    git ls-files -z | git update-index --no-assume-unchanged -z --stdin
+    git ls-files -z | git update-index --no-skip-worktree -z --stdin
+    git ls-files -z | git update-index --no-fsmonitor-valid -z --stdin
     git apply --cached -- "$patch"
     while IFS= read -r -d "" changed; do
       allowed=0

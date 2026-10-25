@@ -27,7 +27,10 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   shared stages. Name literal files, never a directory. A named file's entire working copy is committed: agree
   with its owner if it also contains another lane's hunk. Direct commits and private-index landings are retired.
   For shared files use `scripts/commit.sh --patch <file.patch> "message" -- <files...>`: an exact patch applies
-  to HEAD under the same lock and rejects undeclared paths. A declared working file whose bytes still
+  to HEAD under the same lock and rejects undeclared paths. Its private index
+  reuses shared stat metadata, resets all entries to HEAD, then clears hidden
+  working-tree flags before applying the patch; peer stages never enter the
+  candidate and the shared index is unchanged. A declared working file whose bytes still
   equal the parent advances to the committed bytes under that lock; local edits stay untouched and are
   reported. Foreign shared stages stay untouched; a stage still equal to the parent advances under the
   index lock, avoiding a staged revert of the patch. Stale patches refuse.
