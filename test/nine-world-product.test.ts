@@ -3,10 +3,14 @@ import { hashImmutableBytes } from '../src/sdk/immutable';
 import { prepareAssetDecoders } from '../src/format/product';
 import { nineWorldProduct, nineLayoutWord } from '../src/shards/nine-dragon-stack/generators/worldProduct';
 
+// Build the genuinely cold world during collection. Its complete byte oracle
+// retains the ordinary 30 s assertion budget, without timing production setup.
+await prepareAssetDecoders();
+const product = nineWorldProduct();
+
 // Original registered output bytes captured before extracting the in-memory producer.
-test('the owned world preserves the complete original layout, metadata and asset bytes', async () => {
-  await prepareAssetDecoders();
-  const product = nineWorldProduct(), encode = (value: unknown, suffix = '') => new TextEncoder().encode(JSON.stringify(value, nineLayoutWord) + suffix);
+test('the owned world preserves the complete original layout, metadata and asset bytes', () => {
+  const encode = (value: unknown, suffix = '') => new TextEncoder().encode(JSON.stringify(value, nineLayoutWord) + suffix);
   const world = encode(product.metadata, '\n'), layout = encode(product.layout);
   expect(world.byteLength).toBe(152270);
   expect(hashImmutableBytes(world)).toBe('3bdbd28ef8e41cc1b429ea6838c3fe2861791016d5b36d9490d316adeeb780ec');
