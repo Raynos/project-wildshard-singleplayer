@@ -4,7 +4,7 @@ import { expect, test } from 'vitest';
 import { build } from 'vite';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 
-for (const [entry, nativeBakeImport] of [['shard.config.ts', false], ['generators/output.ts', true], ['generators/output.ts', false]] as const) {
+for (const [entry, nativeBakeImport] of [['shard.config.ts', false], ['generators/output.ts', true], ['generators/output.ts', false], ['generators/worldSources.ts', false]] as const) {
   test(`Sunscar ${entry} ${nativeBakeImport ? 'keeps unpublished native metadata config-safe' : 'keeps effect metadata data-only'}`, async () => {
     let rewrites = 0;
     const result = await build({ configFile: false, logLevel: 'silent',

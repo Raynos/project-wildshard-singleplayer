@@ -1,6 +1,6 @@
 import { Scene, type InstancedMesh, type MeshStandardMaterial, type Object3D } from 'three';
 import { foldKinds as foldSdkKinds, type KindExtra, type PieceBake } from '@wildshard/sdk/bake/kinds';
-import { bake, BakedPiece, type BakedSceneParts } from '@wildshard/sdk/bake';
+import { bakeOwned, BakedPiece, type BakedSceneParts } from '@wildshard/sdk/bake';
 
 /**
  * Build-time only (SHARD-PLATFORM SF72): Signal Dunes' use of the SDK's instanced-kinds baker (`@wildshard/sdk/bake/kinds`).
@@ -36,9 +36,9 @@ export const signalPiece = (piece: string, meshes: readonly (readonly [string, I
 export type SignalPieceBake = PieceBake & Readonly<Record<string, unknown>>;
 export const pieceRows = (p: BakedSceneParts): SignalPieceBake => ({ glb: p.glb, kinds: p.kinds, colliders: p.colliders, ...p.rows });
 
-/** One piece through `bake` alone: the stale gates' per-piece view of the whole scene's bake (`generators/scene.ts`). */
+/** One piece through `bakeOwned` alone: the stale gates' per-piece view of the whole scene's bake (`generators/scene.ts`). */
 export function bakePiece(piece: BakedPiece<ColliderDesc>): SignalPieceBake {
-  const out = bake(new Scene().add(piece), { slug: 'sunscar-dunes' }).pieces[0];
+  const out = bakeOwned(new Scene().add(piece), { slug: 'sunscar-dunes' }).pieces[0];
   if (out === undefined) throw new Error(`${piece.name} baked nothing`);
   return pieceRows(out);
 }
