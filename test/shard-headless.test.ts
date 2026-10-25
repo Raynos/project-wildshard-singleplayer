@@ -16,7 +16,7 @@ import { PASTEL_SOURCE as pastel } from './fixtures/pastelSource';
 import driftwood from '../src/shards/driftwood-isle/shard.config';
 import pine from '../src/shards/pine-hollow/shard.config';
 import nalati from '../src/shards/nalati-grasslands/shard.config';
-import nine from '../src/shards/nine-dragon-stack/generators/product';
+import nine from './fixtures/nine-product-inputs';
 import signal from '../src/shards/sunscar-dunes/shard.config';
 import sky from '../src/shards/far-reach/shard.config';
 

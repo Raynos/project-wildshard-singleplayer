@@ -7,7 +7,7 @@ import { runtimeBinds, withoutRuntimeRows } from '../src/game/plugin/headless';
 import { regionalRuntimeAccountedBytes } from '../src/game/grid/regionalRuntime';
 import { useOwnedGridHome } from '../src/game/grid/pageShell';
 import { MANIFEST } from '../src/shards/nine-dragon-stack/discovery.generated';
-import source from '../src/shards/nine-dragon-stack/generators/product';
+import source from './fixtures/nine-product-inputs';
 import cost from '../src/shards/nine-dragon-stack/data/runtimeCost.json' with { type: 'json' };
 
 test('Nine compiled entry preserves original native binds, section authority, runtime cost and home retention', () => {

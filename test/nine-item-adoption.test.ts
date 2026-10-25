@@ -9,7 +9,7 @@ import { EquipmentService } from '../src/engine/combat/EquipmentService';
 import { INPUT_CONTEXTS } from '../src/game/inputContexts';
 import { bindRuntimeEquipment } from '../src/game/plugin/headless';
 import { ItemCatalogue } from '../src/game/loadout/itemCatalogue';
-import source from '../src/shards/nine-dragon-stack/generators/product';
+import source from './fixtures/nine-product-inputs';
 import manifest from '../src/shards/nine-dragon-stack/discovery.generated';
 import items from '../src/shards/nine-dragon-stack/data/items.json' with { type: 'json' };
 import { GrappleTool } from '../src/game/grapple/tool';

@@ -176,7 +176,7 @@
     "src/shards/nine-dragon-stack/generators/layoutProjection.ts": 2,
     "src/shards/nine-dragon-stack/generators/lightVolumes.ts": 3,
     "src/shards/nine-dragon-stack/generators/presentation.ts": 1,
-    "src/shards/nine-dragon-stack/generators/product.ts": 3,
+    "src/shards/nine-dragon-stack/generators/product.ts": 2,
     "src/shards/nine-dragon-stack/generators/signAtlasOutput.ts": 2,
     "src/shards/nine-dragon-stack/generators/signAtlasSources.ts": 1,
     "src/shards/nine-dragon-stack/generators/spillBake.ts": 1,

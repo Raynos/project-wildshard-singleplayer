@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
-import product, { nineProduct } from '../src/shards/nine-dragon-stack/generators/product';
+import product, { nineProduct } from './fixtures/nine-product-inputs';
 import { output } from './fixtures/nine-source-program';
 import nativeDecals from '../src/shards/nine-dragon-stack/data/nativeDecals.json' with { type: 'json' };
 import before from './fixtures/nine-admitted-output.json' with { type: 'json' };
@@ -39,7 +39,8 @@ test('source-owned files preserve the original complete output and executable by
     .toEqual({ bytes: 140949, hash: 'c8ac0b097ca25d1af5317693b4f1966a1122f1e1357eb0fd443aa92219d3d181' });
   // Supply distinct proof and decal rows directly, without a file-reader fallback.
   const burst = { name: 'fixture', shape: 'flake' as const, count: 1, life: .5 };
-  const suppliedInputs = { scriptRevisions: SCRIPT_V2_REVISIONS, graphArmsSchema: { type: 'object' },
+  const suppliedInputs = { construction: { seed: product.identity.seed, looks: Object.keys(product.look.materials) },
+    scriptRevisions: SCRIPT_V2_REVISIONS, graphArmsSchema: { type: 'object' },
     bursts: { muzzle: burst, bite: burst, dock: burst, sparks: burst }, entryProof: { lanes: 1, steps: 2, portalTransfers: 3 },
     decals: { sources: { phone: { width: 1, height: 1, png: 'phone.png' }, desktop: { width: 2, height: 2, png: 'desktop.png' } } } };
   const supplied = emitNineOutput({ hash, bytes }, suppliedInputs);

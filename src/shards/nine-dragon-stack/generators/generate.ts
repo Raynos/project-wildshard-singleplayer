@@ -9,6 +9,7 @@ export interface NineGeneratedProject extends GeneratedProject { readonly output
 
 /** The source invocation owns its executable, fresh entry evidence and native decal bytes. */
 export async function generate(ctx: ProjectGenerationContext): Promise<NineGeneratedProject> {
-  const output = await nineSourceOutput(ctx);
-  return { shard: nineProduct({ pages: NINE_MOVERS_CONTRACT.pages }), output };
+  const shard = await nineProduct(ctx, { pages: NINE_MOVERS_CONTRACT.pages });
+  const output = await nineSourceOutput(ctx, { seed: shard.identity.seed, looks: Object.keys(shard.look.materials) });
+  return { shard, output };
 }

@@ -1,6 +1,5 @@
 import * as v from 'valibot';
 import { WorldAssemblySchema } from '@wildshard/format/worldAssembly';
-import shardfile from './product';
 import { nineBuildBlocks } from './worldEntry';
 import { MOVER_STAGES } from './moversView';
 import { NINE_WORLD_SCENES } from './worldScenes';
@@ -15,7 +14,7 @@ const STATIC_GEOMETRY = 'Nine Dragon static geometry (only the positions stay in
  * where it paused, a work slice where it sliced) and its static geometry GPU-only. Each deck ending is a construction
  * variant: `capped` played alone, `open` in a grid cell.
  */
-export function nineWorldAssembly(): v.InferOutput<typeof WorldAssemblySchema> {
+export function nineWorldAssembly(source: { readonly seed: number; readonly looks: readonly string[] }): v.InferOutput<typeof WorldAssemblySchema> {
   const blocks = nineBuildBlocks();
   const entry = (id: string, label: string) => {
     const rows = blocks[id]; if (rows === undefined) throw new Error(`Missing Nine build block ${id}`);
@@ -23,7 +22,7 @@ export function nineWorldAssembly(): v.InferOutput<typeof WorldAssemblySchema> {
   };
   const mover = (id: string) => ({ kind: 'entry' as const, id, label: 'movers', rows: [{ kind: 'place' as const, id }, { kind: 'attach' as const, id: `${id}.root`, as: 'object' as const }],
     object: { as: 'object' as const, part: `${id}.root` } });
-  const looks = Object.keys(shardfile.look.materials);
+  const looks = source.looks;
   const progress = (label: string, done: number) => ({ kind: 'progress' as const, label, done });
   const lastMover = MOVER_STAGES[MOVER_STAGES.length - 1]; if (lastMover === undefined) throw new Error('Nine has no movers');
   // the banyan crown's parts, when the layout bake drew a crown (the dressing step publishes them)
@@ -31,7 +30,7 @@ export function nineWorldAssembly(): v.InferOutput<typeof WorldAssemblySchema> {
   return v.parse(WorldAssemblySchema, {
     construction: {
       looks: { unbound: looks, bound: looks }, root: { id: 'nine.root', name: 'nine-dragon-stack' }, variant: { standalone: 'capped', cell: 'open' },
-      seed: shardfile.identity.seed,
+      seed: source.seed,
       progress: { kind: 'checkpoints', total: 100, start: 'paint + fonts', finish: 'world ready', budgetMs: 30 },
       checkpoints: [
         { stage: 'portals', at: 'before', actions: [progress('layout: square', 15), progress('layout: baked', 20)] },

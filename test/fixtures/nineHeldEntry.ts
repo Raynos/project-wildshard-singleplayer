@@ -11,7 +11,7 @@ import { entryOwner } from '../../src/game/shardfile/entryOwners';
 import { heldSwordWorld } from './heldNativeSword';
 import type { HeldMeleeOwner } from '../../src/game/loadout/claims';
 import type { ShardRuntime } from '../../src/game/shard/runtime';
-import source from '../../src/shards/nine-dragon-stack/generators/product';
+import source from './nine-product-inputs';
 import manifest from '../../src/shards/nine-dragon-stack/discovery.generated';
 import aim from '../../src/shards/nine-dragon-stack/data/grapple.json' with { type: 'json' };
 import bursts from '../../src/shards/nine-dragon-stack/data/burstFields.json' with { type: 'json' };

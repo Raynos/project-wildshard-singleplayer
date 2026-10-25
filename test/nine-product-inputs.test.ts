@@ -7,9 +7,8 @@ import { parseSync } from 'vite';
 import { generatorImportViolation } from '../lint/shard-imports.mjs';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { nineProductFrom } from '../src/shards/nine-dragon-stack/generators/productDefinition';
-import product, { nineProduct, readNineProductInputs } from '../src/shards/nine-dragon-stack/generators/product';
+import product, { nineProduct, inputs } from './fixtures/nine-product-inputs';
 
-const inputs = readNineProductInputs();
 
 test('owned inputs preserve the complete original Nine declaration and view contract', () => {
   const declaration = nineProductFrom(inputs);

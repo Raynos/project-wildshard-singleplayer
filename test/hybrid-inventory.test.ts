@@ -105,7 +105,7 @@ test('look-only trusted hybrids retain native kit and play ownership', async () 
 
 test.each([
   ['Nalati', () => import('../src/shards/nalati-grasslands/shard.config')],
-  ['Nine', () => import('../src/shards/nine-dragon-stack/generators/product')],
+  ['Nine', () => import('./fixtures/nine-product-inputs')],
 ] as const)('%s look-only native rows never request a second simulation', async (_name, load) => {
   const source = (await load()).default;
   const assets = new ClientAssets(source, new Map(), { base: 'https://example.test/native/', firstParty: true, offline: false,

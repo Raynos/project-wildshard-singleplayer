@@ -1,5 +1,5 @@
 import { graphFileRules } from '../src/format/materials';
-import product from '../src/shards/nine-dragon-stack/generators/product';
+import product from './fixtures/nine-product-inputs';
 import { heldGraphFiles } from '../src/shards/nine-dragon-stack/generators/heldGraphFiles';
 import { postRows } from '../src/shards/nine-dragon-stack/generators/postGraphs';
 import { ScaledPostPass, prepareScaledPost } from '../src/game/looks/scaledPost';

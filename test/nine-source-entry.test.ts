@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
 import entry, { generate } from '../src/shards/nine-dragon-stack/shard.config';
-import product from '../src/shards/nine-dragon-stack/generators/product';
+import product from './fixtures/nine-product-inputs';
 import { generated } from './fixtures/nine-source-program';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
