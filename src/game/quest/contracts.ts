@@ -1,6 +1,7 @@
 /** Numeric projection bridge. Authored AS owns decisions; this module retains
  * admitted identities, detached rewards and the original page save envelope. */
-import type { ContractCatalogue, ContractReward as Reward } from '@wildshard/format/contracts';
+import { parseContractCatalogue, type ContractCatalogue, type ContractReward as Reward } from '@wildshard/format/contracts';
+import type { Scope } from '@wildshard/engine/app/scope';
 import { ReturnProgram } from '../population/returnProgram';
 
 export interface Contract {
@@ -12,16 +13,29 @@ export interface Board {next:number;slots:Contract[];claimed:number;streak:numbe
 export interface KillInfo {kind:string;variant?:string|undefined;rarity?:string|undefined;elite:string|null;tags:readonly string[]}
 type Frame=Readonly<Record<string,number>>;
 const guests=new WeakMap<ContractCatalogue,{program:ReturnProgram;ids:Map<string,number>}>();
+const owners=new WeakMap<ContractCatalogue,{scope?:Scope;retired:boolean}>();
 function guest(rows:ContractCatalogue):{program:ReturnProgram;ids:Map<string,number>}{
+ const owner=owners.get(rows);
+ if(owner?.retired===true)throw new Error('Contract owner disposed');
  let value=guests.get(rows);
  if(value===undefined){
   if(rows.program===undefined)throw new Error('Contract catalogue lacks its admitted programme');
   const strings=new Set<string>();
   const visit=(input:unknown):void=>{if(typeof input==='string')strings.add(input);else if(Array.isArray(input))input.forEach(visit);else if(typeof input==='object'&&input!==null)Object.values(input).forEach(visit);};
   visit({...rows,program:null});
-  value={program:ReturnProgram.page(rows.program),ids:new Map([...strings].map((name,i)=>[name,i]))};guests.set(rows,value);
+  value={program:ReturnProgram.page(rows.program,owner?.scope),ids:new Map([...strings].map((name,i)=>[name,i]))};guests.set(rows,value);
  }
  return value;
+}
+/** Detach an entered catalogue and bind its guest to that owner's verified
+ * module loan. Retained rows reject after retirement without retaining Scope. */
+export function ownContractCatalogue(input:ContractCatalogue,scope:Scope):ContractCatalogue {
+ if(scope.disposed||scope.disposing)throw new Error('Contract owner disposed');
+ const rows=parseContractCatalogue(input),owner:{scope?:Scope;retired:boolean}={scope,retired:false};
+ owners.set(rows,owner);
+ try {guest(rows);}catch(error){owners.delete(rows);throw error;}
+ scope.onDispose(()=>{owner.retired=true;delete owner.scope;guests.delete(rows);});
+ return rows;
 }
 function id(rows:ContractCatalogue,value:string|undefined|null):number{return value===undefined||value===null?-1:guest(rows).ids.get(value)??-2;}
 function columns(a:readonly number[]=[],b:readonly number[]=[],c:readonly number[]=[]):Record<string,number>{

@@ -3753,21 +3753,18 @@ installing native or presentation owners. Their JSON Schema roots are
 `questGraph.QuestGraph` and `questInteractions.InteractionRows`; the existing
 game and SDK parsers preserve the defining schema identities and verdicts.
 
-The pure `@wildshard/format/questHost` module declares `QuestHostRow`, the
-`QuestHostSchema` admission contract, `parseQuestHost` and its semantic
-`questHostRules`. It bounds external command routes, body and owner
-observations, ordered data-only directors and individual continuations.
-`installQuestHost` in `@wildshard/game/plugin/simulation` borrows actual
-`QuestHostPorts`: native observation/action maps and the existing director
-action bindings. Quiet initial observations preserve saved flag ownership;
-optional seeds choose the original loaded state without replaying effects.
-No body, mover, encounter or new clock is created by the quest composition.
-Root `questHost` is optional and names `questHost.QuestHost` in JSON
-Schema discovery. `questHostBindingRules` requires native quest ownership
-and declares every durable flag; transient marks keep their existing
-limits. `installDeclaredQuestHost` selects that admitted composition before
-borrowing native ports. Bound presentation projections retain no quest host;
-omission leaves the previous serialized bytes unchanged.
+`@wildshard/format/questHost` defines `QuestHostRow`, `QuestHostSchema`,
+`parseQuestHost` and semantic `questHostRules`: bounded external commands,
+body/owner observations, ordered data-only directors and continuations.
+`@wildshard/game/plugin/simulation` `installQuestHost` borrows native
+observation/action maps and director bindings from `QuestHostPorts`.
+Quiet observations and optional loaded-state seeds preserve saved flags
+without replaying effects. No body, mover, encounter or clock is added.
+Optional root `questHost` names `questHost.QuestHost` in JSON Schema.
+`questHostBindingRules` requires native quest ownership and declares durable
+flags; transient marks keep their limits. `installDeclaredQuestHost` selects
+this composition before borrowing ports. Bound presentation projections
+retain no host; omission preserves serialized bytes.
 
 Pine and Driftwood both select this admitted native composition and its
 ordered command router. Routes select an actor (the graph actor by default),
@@ -3782,6 +3779,10 @@ Optional unique `questHost.flags` declare the composition's
 additional durable interaction flags without changing `quests.flags`, its AS
 handle registry or existing saved decision contracts. Both page and native bindings read that root
 graph; the custom story payload contains no second graph or interaction table.
+
+`@wildshard/game/quest/contracts` `ownContractCatalogue(rows, scope)`
+binds a detached catalogue to its verified module loan. Retirement releases
+the guest and Scope; retained rows refuse. Unscoped inline callers remain.
 
 Root `questNpcs` also accepts `kind: "posed-talk"`: unchanged dialogue,
 named figure, reading policy, optional authored placement and named conditional

@@ -14,7 +14,7 @@ import { enteredHeldLoadout } from '../loadout/held';
 import { HeldFinishes } from '../loadout/finishes';
 import { DataPanel } from '../ui/dataPanels';
 import { ContractBoard } from './contractBoard';
-import { saveBoard, contractKill, isFilled, type Board } from './contracts';
+import { saveBoard, contractKill, isFilled, ownContractCatalogue, type Board } from './contracts';
 import { commitQuestEffects } from './effects';
 import type { bindStoryAchievements } from './story';
 
@@ -36,14 +36,15 @@ function notice(template: string, values: Readonly<Record<string, string | numbe
 export function installContractBoardPage(ctx: ShardContext, quest: string, rows: ContractBoardPageRows,
   sfx: InteractSfx, feats: Awaited<ReturnType<typeof bindStoryAchievements>>): ContractBoardPage {
   if (ctx.scope.disposed) throw new Error('Quest board requires a live owner');
-  const contracts = rows.contracts, panelRows = rows.panel;
+  const panelRows = rows.panel;
   const runtime = ctx.game.runtime, world = runtime?.world, play = runtime?.play;
   if (runtime === undefined || world === undefined || world === null || play === undefined || play === null) throw new Error('Quest board requires entered play owners');
   const loadout = rows.ammunition === undefined ? null : enteredHeldLoadout(ctx.scope, rows.ammunition.loadout);
-  if (loadout === null && contracts.rows.some(row => row.reward.bolts > 0)) throw new Error('Quest board requires its declared ammunition owner');
+  if (loadout === null && rows.contracts.rows.some(row => row.reward.bolts > 0)) throw new Error('Quest board requires its declared ammunition owner');
   const finishes = new Map(Object.entries(rows.finishes).map(([key, caption]) => [key, { finish: HeldFinishes.current(ctx.manifest.slug).get(key), text: caption }]));
   const legacy = jsonSlot(rows.store.slot, 'shard');
   const saved = bindRuntimeState(ctx, ctx.product.shardfile, rows.store.state, () => JSON.stringify(legacy.read(ctx.manifest.slug)), ctx.manifest.slug);
+  const contracts = ownContractCatalogue(rows.contracts, ctx.scope);
   const owner = new ContractBoard({ contracts, saved: String(saved.read()), radius: rows.radius,
     prompt: { x: rows.at.x, y: terrainHeight(rows.at.x, rows.at.z) + rows.height, z: rows.at.z } }), board = owner.current;
   const persist = (): void => { try { const raw = saveBoard(board); v.parse(jsonSchema, JSON.parse(raw) as unknown); saved.write(raw); } catch { /* storage unavailable */ } };
