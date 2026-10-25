@@ -14310,7 +14310,7 @@
         "src/shards/nalati-grasslands/generators/bake-kurgan.mjs",
         "src/shards/nalati-grasslands/generators/bake-layout.mjs",
         "src/shards/nalati-grasslands/generators/bake-map.mjs",
-        "src/shards/nalati-grasslands/generators/bake-model-paint.d.mts",
+        "src/shards/nalati-grasslands/generators/modelPaint.d.mts",
         "src/shards/nalati-grasslands/generators/bake-model-paint.mjs",
         "src/shards/nalati-grasslands/generators/bake-nalati-bodies.d.mts",
         "src/shards/nalati-grasslands/generators/bake-nalati-bodies.mjs",

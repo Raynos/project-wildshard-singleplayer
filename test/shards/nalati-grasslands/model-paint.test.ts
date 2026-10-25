@@ -1,9 +1,15 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Read retained GLBs to verify exact offline channels and atlas bytes.
 import { readFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Bundle the actual source painter without its publication adapter.
+import { resolve } from 'node:path';
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
+import { build } from 'vite';
 import { readSourceModel } from '@wildshard/sdk/bake/skinned';
-import { MODEL_FILES, bakeModelPaint, cloneFrame } from '../../../src/shards/nalati-grasslands/generators/bake-model-paint.mjs';
+import { assertConfigBoundary } from '../../../src/sdk/configBoundary';
+import { MODEL_FILES, bakeModelPaint, cloneFrame } from '../../../src/shards/nalati-grasslands/generators/modelPaint.mjs';
+import { hashImmutableBytes } from '@wildshard/sdk/immutable';
+import originals from '../../fixtures/nalati-model-paint.json' with { type: 'json' };
 import { worldFiles } from '../../../src/shards/nalati-grasslands/generators/bootFiles';
 import { rawFromGltf, bakeVertexAO } from '../../../src/shards/nalati-grasslands/generators/modelPainting';
 
@@ -19,6 +25,25 @@ const firstMesh = (scene: THREE.Object3D): THREE.Mesh => {
 };
 
 describe('Nalati fixed model paint', () => {
+  it('owns all 43 original GLBs in one publication-free author bundle', async () => {
+    expect([...MODEL_FILES].sort()).toEqual(originals.map(row => row.file).sort());
+    expect(originals.reduce((bytes, row) => bytes + row.bytes, 0)).toBe(14247456);
+    const result = await build({ configFile: false, logLevel: 'silent', build: { write: false, minify: false,
+      lib: { entry: resolve('src/shards/nalati-grasslands/generators/modelPaint.mjs'), formats: ['es'] },
+      rolldownOptions: { external: [/^node:/u], output: { codeSplitting: false } },
+    } });
+    const built = Array.isArray(result) ? result[0] : result;
+    if (built === undefined || !('output' in built)) throw new Error('Missing model-paint author bundle');
+    const chunks = built.output.filter(row => row.type === 'chunk');
+    expect(chunks).toHaveLength(1);
+    for (const chunk of chunks) {
+      const imports = [...chunk.imports, ...chunk.dynamicImports];
+      expect(() => assertConfigBoundary(imports)).not.toThrow();
+      expect(imports).not.toContain('node:fs');
+      expect(Object.keys(chunk.modules).some(path => path.endsWith('/scripts/bake-output.mjs'))).toBe(false);
+      expect(() => assertConfigBoundary([...imports, 'node:fs'])).toThrow('must use injected build capabilities');
+    }
+  });
   it('prefetches prepared world models while keeping original creature rigs', () => {
     const prepared = '/assets/nalati/baked/painted-models/';
     const rig = '/assets/nalati/models/wolf.rigged.glb', phoneRig = '/assets/nalati/models/wolf.phone.rigged.glb';
@@ -40,7 +65,12 @@ describe('Nalati fixed model paint', () => {
     if (!(plain instanceof Float32Array)) throw new Error('Expected Float32 colours');
     const clone = cloneFrame(name, expected.clone());
     expected.setAttribute('color', new THREE.BufferAttribute(bakeVertexAO(expected, plain), 3));
-    const prepared = await readSourceModel(await bakeModelPaint(input, name)), mesh = firstMesh(prepared.gltf.scene);
+    const bytes = await bakeModelPaint(input, name);
+    const original = originals.find(row => row.file === file);
+    if (original === undefined) throw new Error(`Missing original GLB pin: ${file}`);
+    expect(bytes.length).toBe(original.bytes);
+    expect(hashImmutableBytes(bytes)).toBe(original.sha256);
+    const prepared = await readSourceModel(bytes), mesh = firstMesh(prepared.gltf.scene);
     expect(mesh.matrixWorld.equals(new THREE.Matrix4())).toBe(true);
     for (const channel of Object.keys(expected.attributes)) expect(equal(words(mesh.geometry.getAttribute(channel)), words(expected.getAttribute(channel)))).toBe(true);
     const a = mesh.geometry.index, b = expected.index;

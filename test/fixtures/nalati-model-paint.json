@@ -1,0 +1,217 @@
+[
+  {
+    "file": "horse-saddled.glb",
+    "bytes": 551716,
+    "sha256": "1bbd155f7ecb1eeac3ee1bbccc8036d4dc768dda0c2040d516d465a1041864af"
+  },
+  {
+    "file": "horse-saddled.phone.glb",
+    "bytes": 488036,
+    "sha256": "20ee2ea003fb27837cbcc33a541249a40fee8bf0537491454c5658e863e510e8"
+  },
+  {
+    "file": "horse-wild.glb",
+    "bytes": 526064,
+    "sha256": "81439f6884cd94e48f439e5eb47d81b050698e9260f4445e1fc7cc4aeaab8199"
+  },
+  {
+    "file": "horse-wild.phone.glb",
+    "bytes": 466920,
+    "sha256": "243dc06f05f145d9fe80e73c0af841c7c640fd175f7a634e833ad71a4af234b4"
+  },
+  {
+    "file": "wolf.glb",
+    "bytes": 618380,
+    "sha256": "132a4320862c9932ce439db1345038debd7b067b010ffa3d578745e0ce83bd28"
+  },
+  {
+    "file": "wolf.phone.glb",
+    "bytes": 462144,
+    "sha256": "9435e1f09d4561317169d96643e6838b0775f42c7c077db8f030ea6b0a35bc1b"
+  },
+  {
+    "file": "sheep.glb",
+    "bytes": 465024,
+    "sha256": "8bccfdd523ffef960edace50d4d9191e96017d27a18dc55a5067e2ff9b1218a8"
+  },
+  {
+    "file": "sheep.phone.glb",
+    "bytes": 314408,
+    "sha256": "13c0241922113c3cbeafcadb08398a2cd7f9c35800321f1614f474f931c6086a"
+  },
+  {
+    "file": "snow-leopard.glb",
+    "bytes": 1042832,
+    "sha256": "16b71ba598fd57a23d1a96df4db6709507a7825e4bc0f936dc0c8c2eeeb33cf8"
+  },
+  {
+    "file": "snow-leopard.phone.glb",
+    "bytes": 639708,
+    "sha256": "bfcb0139d5100f8d37574d1a2a4cd4a85938d76f483750e5ba354e80bdd5f110"
+  },
+  {
+    "file": "eagle.glb",
+    "bytes": 563860,
+    "sha256": "850c7a375dc5ff5968c2718178832192127dd6e209249821a5550e1c36fb02d0"
+  },
+  {
+    "file": "eagle.phone.glb",
+    "bytes": 398852,
+    "sha256": "3448f30d43af5577467e61512da6e13f26878b8b5aaf51ab6b3a6c3e98623dc8"
+  },
+  {
+    "file": "golden-king.glb",
+    "bytes": 493152,
+    "sha256": "407d02c65323f30a8da756f7448069a43b39cf354f46ea73ce53a6cbb8f2191b"
+  },
+  {
+    "file": "golden-king.phone.glb",
+    "bytes": 391048,
+    "sha256": "fd58c022cadcb7073cb40a8b10336a36e41f63f1a75bf7105a21149ec221cb90"
+  },
+  {
+    "file": "spruce.glb",
+    "bytes": 433296,
+    "sha256": "d9fabb176c262434cbf92ed5c94a19de0249764a76af0951a089a9618fc468fc"
+  },
+  {
+    "file": "spruce.phone.glb",
+    "bytes": 316940,
+    "sha256": "6aa797732b954540cc4f8db259fe434e8e85b87f8034946788ae3818d58504f8"
+  },
+  {
+    "file": "balbal.glb",
+    "bytes": 263928,
+    "sha256": "e070bfe915dc38dd5227eef449259fc57b98b6601f6171b372cf3d42dc142802"
+  },
+  {
+    "file": "balbal.phone.glb",
+    "bytes": 125056,
+    "sha256": "2e8c2fd6a9a36a8c966abf84f5c0367728771764227560414522c3747432cf85"
+  },
+  {
+    "file": "boulder-1.glb",
+    "bytes": 105748,
+    "sha256": "23b6a1913a3ff5bbda5dfd9a4b51e732b781891481d7ed3a342950e8873a0696"
+  },
+  {
+    "file": "boulder-1.phone.glb",
+    "bytes": 46280,
+    "sha256": "2090b0d8df05b38304f6496d50bd77d8450fe3a7241074b418403ce44eca9984"
+  },
+  {
+    "file": "boulder-2.glb",
+    "bytes": 83048,
+    "sha256": "4885e532bc0b185f6c9df9a1cd4de1b0a76889d96da8b51a71f87738532d0efc"
+  },
+  {
+    "file": "boulder-2.phone.glb",
+    "bytes": 37080,
+    "sha256": "4b12253a1df0044a40bb98543be8754cdb45b6723aabeada717203b95de26610"
+  },
+  {
+    "file": "boulder-3.glb",
+    "bytes": 88140,
+    "sha256": "b7d4ddaec4cdc7831a16dc50754ed5f07ea742f6689e9bbbf8c6aa6253c41e30"
+  },
+  {
+    "file": "boulder-3.phone.glb",
+    "bytes": 39940,
+    "sha256": "6c1a99cfd35198d4b84de68ffbd8b33e10658b89317d42b27f33db49a49e3499"
+  },
+  {
+    "file": "kumis-churn.glb",
+    "bytes": 336708,
+    "sha256": "d3b5fd4c0def22067702ddc88e32b0ba4326eaca539882ffe79adc9f39926d35"
+  },
+  {
+    "file": "kumis-churn.phone.glb",
+    "bytes": 176228,
+    "sha256": "5ff7c3233e8553c7a8c49172a4b190fe195da7bbb25d2b2fe362e05b764792d5"
+  },
+  {
+    "file": "cauldron.glb",
+    "bytes": 314992,
+    "sha256": "5a9953869894e42f8aaeb4e6fc2a4413c0a28e80c975012ab2f5fa073bd1e733"
+  },
+  {
+    "file": "cauldron.phone.glb",
+    "bytes": 159308,
+    "sha256": "395852db3955620511efdfd377d752aa90b14acc34ad40e83395b6fb6d79ae67"
+  },
+  {
+    "file": "saddle.glb",
+    "bytes": 355048,
+    "sha256": "15982640acc040c5a3b7224422feaeb01b140b965c8076fff40129ec1bf9f8fe"
+  },
+  {
+    "file": "saddle.phone.glb",
+    "bytes": 177856,
+    "sha256": "dbef8414ff829247ae38deea23854ccda05ea0088ef1437342beb1e706ed8ac9"
+  },
+  {
+    "file": "firewood.glb",
+    "bytes": 423208,
+    "sha256": "67f44bca5d7164f2f12a6d011771698d96028c593e225087246b971ca648dd2d"
+  },
+  {
+    "file": "firewood.phone.glb",
+    "bytes": 187912,
+    "sha256": "93d883f168b7a03dfa605e706b2bc8232d872f482c9b5d1feee70a35b857c1f6"
+  },
+  {
+    "file": "chest.glb",
+    "bytes": 340824,
+    "sha256": "0da1354b09c03526545d1555be32f0608cc7c4d0f23321458d175f695f2401ce"
+  },
+  {
+    "file": "chest.phone.glb",
+    "bytes": 158876,
+    "sha256": "371847bac63721467b9cd9dde8f2e2412850fefdb50ba4a1c38d5b7d6f027c65"
+  },
+  {
+    "file": "watchtower.glb",
+    "bytes": 335712,
+    "sha256": "766e2258aabae4e797c69963237bf66e8ee613b663927db549e4070fd2b56b0b"
+  },
+  {
+    "file": "watchtower.phone.glb",
+    "bytes": 269628,
+    "sha256": "98f930e269fad3548527870d57f506eea4e07e0731a4c14d534729112b8e522b"
+  },
+  {
+    "file": "snow-lotus.glb",
+    "bytes": 489596,
+    "sha256": "05def616232640a01e5c515986d0a8e3ea41322a3127717946a7b4c634158c80"
+  },
+  {
+    "file": "snow-lotus.phone.glb",
+    "bytes": 261244,
+    "sha256": "145d19fda61397969713039d580d7b1d6cc3df10d8592d1c94b027760b76ebed"
+  },
+  {
+    "file": "kokpar-rider.glb",
+    "bytes": 653636,
+    "sha256": "24fa48bc189079a4c82308b6a364a418beaf4ea9e930ea48ea9dd7a04324be93"
+  },
+  {
+    "file": "kokpar-rider.phone.glb",
+    "bytes": 578624,
+    "sha256": "a7bf85adf5751a148df147a02be03df710f7d4384423daaf4382f03566261c1d"
+  },
+  {
+    "file": "horse-wild.far.glb",
+    "bytes": 19940,
+    "sha256": "853422408cce327f42492cf3bad4b4eb061427e8e0046e72af1bc906ba2e1fef"
+  },
+  {
+    "file": "horse-saddled.far.glb",
+    "bytes": 20132,
+    "sha256": "5746e4b7e09981b822f9f0f048bab7a975177b70e586155c68479a6213367594"
+  },
+  {
+    "file": "kokpar-rider.far.glb",
+    "bytes": 26384,
+    "sha256": "292657da49836741792bc14dad16267fc1cc95bcf151938aa180199b85a6c268"
+  }
+]
