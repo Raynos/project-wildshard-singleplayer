@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import sharp from 'sharp';
 import * as v from 'valibot';
-import { readProductDownloadIndex } from './bootProducts';
+import { readOutputDownloadIndex } from '../src/format/outputDownload';
 
 const TILE = 256;
 const hash = (bytes: Uint8Array): string => createHash('sha256').update(bytes).digest('hex');
@@ -13,7 +13,7 @@ const plot = new TextEncoder().encode('<svg xmlns="http://www.w3.org/2000/svg" w
 /** Read only the validated product's map section and its hash-checked image, never a runtime or its libraries. */
 export function productMapBytes(root: string, slug: string): Uint8Array | null {
   if (!/^_?[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(slug)) throw new Error('Invalid atlas product');
-  const folder = resolve(root, 'out', slug), index = readProductDownloadIndex(JSON.parse(readFileSync(resolve(folder, 'shard.json'), 'utf8')));
+  const folder = resolve(root, 'out', slug), index = readOutputDownloadIndex(JSON.parse(readFileSync(resolve(folder, 'shard.json'), 'utf8')));
   const row = index.sections.find(section => section.name === 'look/map');
   if (row === undefined) return null;
   const bytes = readFileSync(resolve(folder, row.path));

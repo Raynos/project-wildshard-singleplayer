@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./outputDownload": "./outputDownload.ts",
     "./tierSelection": "./tierSelection.ts",
     "./eliteContinuation": "./eliteContinuation.ts",
     "./eliteEntryRows": "./eliteEntryRows.ts",

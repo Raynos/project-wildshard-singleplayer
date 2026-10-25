@@ -3,7 +3,8 @@ import {readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {createHash} from 'node:crypto';
 import {entryFileSteps} from '../src/format/tierSelection';
-import {bootProductTotals,readProductDownloadIndex} from './bootProducts';
+import {bootProductTotals} from './bootProducts';
+import {readOutputDownloadIndex} from '../src/format/outputDownload';
 import * as v from 'valibot';
 
 type Total = readonly [number,number] | readonly [number,number,number,number];
@@ -15,7 +16,7 @@ export function bootTierProductTotals(root:string): Readonly<Record<string,Total
     const directory=prefix.split('/')[2];
     if(directory===undefined)throw new Error('Missing product directory');
     const product=resolve(root,'out',directory),input:unknown=JSON.parse(readFileSync(resolve(product,'shard.json'),'utf8'));
-    const index=readProductDownloadIndex(input);
+    const index=readOutputDownloadIndex(input);
     const runtime=v.safeParse(v.object({kind:v.literal('client-plan')}),index.runtime);
     if(index.runtime!==null&&!runtime.success){rows[prefix]=full;continue;}
     const sections=new Map<string,unknown>();

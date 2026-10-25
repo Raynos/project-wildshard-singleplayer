@@ -16,7 +16,7 @@
  */
 import { PrefetchQuota, PrefetchBytes } from '@wildshard/engine/boot/prefetchQuota';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
-import { outputBlobPath, parseOutputIndex } from '@wildshard/format/outputIndex';
+import { readOutputDownloadIndex } from '@wildshard/format/outputDownload';
 import { findTitleManifest } from '../shard/titleList';
 import type { ProductCache, ProductOptions } from '../shardfile/product';
 import { browserContentStore, contentHash } from '../shardfile/contentStore';
@@ -133,8 +133,11 @@ class GridPrefetch {
       (await content.fetchVerified(file, hash, size, { reply: 'stored', keep: true }))?.stored ?? null : undefined;
     const bytes = await readGridPrefetch(url.href, limits.sourceBytes);
     if (indexes !== null && !indexes.has(await contentHash(bytes))) { this.stop('a newer deployment'); return; }
-    const index = parseOutputIndex(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)));
-    const listed: Row[] = [...index.sections, ...index.schemas, ...index.files.map(file => ({ path: outputBlobPath(file), hash: file.hash, bytes: file.compressed }))];
+    const input: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
+    // A known build's complete index was checked above; this only schedules
+    // verified disk copies. Unverified development input keeps full parsing.
+    const index = indexes === null ? (await import('@wildshard/format/outputIndex')).parseOutputIndex(input) : readOutputDownloadIndex(input);
+    const listed: Row[] = [...index.sections, ...index.schemas, ...index.files.map(file => ({ path: file.path, hash: file.hash, bytes: file.compressed }))];
     // a commons blob or a shared section is listed by several products: count and store it once
     const rows = listed.filter(row => { if (this.hashes.has(row.hash)) return false; this.hashes.add(row.hash); return true; });
     this.status.knownFiles += rows.length; this.status.knownBytes += rows.reduce((sum, row) => sum + row.bytes, 0);

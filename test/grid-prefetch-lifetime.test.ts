@@ -6,7 +6,7 @@ import {installTitleManifests, titleManifests, type TitleManifest} from '../src/
 import {browserContentStore} from '../src/game/shardfile/contentStore';
 import {startGridPrefetch, gridPrefetchStatus} from '../src/game/grid/prefetch';
 
-afterEach(() => {vi.restoreAllMocks(); vi.unstubAllGlobals();});
+afterEach(() => {vi.restoreAllMocks(); vi.unstubAllGlobals(); vi.unstubAllEnvs();});
 
 test('completed prefetch releases dedupe hashes after their last live reader', async () => {
   const first = new Uint8Array([1]), second = new Uint8Array([2]);
@@ -18,6 +18,8 @@ test('completed prefetch releases dedupe hashes after their last live reader', a
     sections: [], schemas: [], runtime: null, files: hashes.map(hash => ({hash, kind: 'bin', path: `blobs/bin/${hash}.bin`,
       compressed: 1, decoded: 1, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: false})),
   });
+  vi.stubEnv('DEV', false);
+  vi.stubGlobal('__SHARDFILE_VERDICTS__', [{ indexHash: hashImmutableBytes(new TextEncoder().encode(JSON.stringify(index))) }]);
   const title = (slug: '_template' | 'blender-template', path: string): TitleManifest => ({slug, name: slug, biome: 'test', status: 'hidden',
     card: {thumb: '', portrait: '', landscape: ''}, entries: {legacy: false, shardfile: true}, shardfile: `http://localhost/${path}/index.json`});
   let previous: readonly TitleManifest[] = [];

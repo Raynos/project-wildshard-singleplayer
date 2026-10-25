@@ -2,7 +2,7 @@ import { existsSync, readFileSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import * as v from 'valibot';
-import { readProductDownloadIndex } from './bootProducts';
+import { readOutputDownloadIndex } from '../src/format/outputDownload';
 import { PickupCatalogueSchema } from '../src/format/specimenCatalogue';
 
 interface Asset { readonly type: string; readonly originalFileNames?: readonly string[]; readonly source?: string | Uint8Array }
@@ -46,7 +46,7 @@ export function sceneSourceUrls(kind: 'models' | 'baked', input: unknown): reado
  * all shards' file lists in the document. Original runtime admission is unchanged. */
 export function homeExtraFiles(root: string, directory: string, bundle: Bundle, inlineLimit = 4096): Files | null {
   const product = resolve(root, 'out', directory), indexPath = resolve(product, 'shard.json');
-  const index = readProductDownloadIndex(JSON.parse(readFileSync(indexPath, 'utf8')));
+  const index = readOutputDownloadIndex(JSON.parse(readFileSync(indexPath, 'utf8')));
   if (index.runtime !== null) return null;
   const section = (name: string): unknown => {
     const sectionRow = index.sections.find(candidate => candidate.name === name);
