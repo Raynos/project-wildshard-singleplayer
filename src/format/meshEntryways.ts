@@ -25,9 +25,16 @@ export function validateMeshEntryways(source: { meshCollision: ShardMeshCollisio
   const data = source.meshCollision; if (data === null) return;
   const footprints = entryFootprints(source.entryways), surfaces = footprints.map((): EntryVertex[][] => []);
   const inspect = (triangle: readonly EntryVertex[], permanent: boolean): void => {
+    let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
+    for (const point of triangle) {
+      minX = Math.min(minX, point.x); maxX = Math.max(maxX, point.x);
+      minZ = Math.min(minZ, point.z); maxZ = Math.max(maxZ, point.z);
+    }
     for (const [index, rect] of footprints.entries()) {
       const entry = source.entryways[index], flat = surfaces[index];
       if (entry === undefined || flat === undefined) throw new Error('Missing mesh entry footprint');
+      // Only disjoint projections can skip exact clipping; touching edges still take the original proof.
+      if (maxX < rect.minX || minX > rect.maxX || maxZ < rect.minZ || minZ > rect.maxZ) continue;
       if (obstructsEntry(triangle, rect)) throw new Error(`illegal shard: mesh entryway ${entry.edge} footprint obstructed above road height`);
       if (!permanent || (entry.kind ?? 'ground') !== 'ground') continue;
       const clipped = clipEntryPolygon(triangle, rect);
