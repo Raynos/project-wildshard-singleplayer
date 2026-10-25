@@ -12,7 +12,10 @@ import { parseSignView } from './sections.ts';
 
 const root = resolve(import.meta.dirname, '../../../..');
 const writer = byteWriter(process.argv.includes('--check'), 'nine-sign-atlas');
-const outputData = resolve(root, 'src/shards/nine-dragon-stack/data');
+// GD2: explicit asset refresh/checks publish real native inputs outside source.
+// The retained catalogue keeps its existing target until the reader handoff lands.
+const nativeInputs = process.argv.includes('--native-inputs');
+const outputData = resolve(root, nativeInputs ? 'public/assets/nine-dragon/authored/sign-atlas' : 'src/shards/nine-dragon-stack/data');
 const entry = process.env.NINE_SIGN_ENTRY ?? resolve(import.meta.dirname, 'signAtlasPage.ts');
 const result = await build({ configFile: false, logLevel: 'silent', publicDir: false, root,
   build: { write: false, target: 'esnext', minify: false,
@@ -61,6 +64,6 @@ try {
     console.log(`Nine ${tier}: ${Object.keys(row.cells).length} cells, ${row.placed.length} signs, ${Object.keys(row.keys).length} specimens; R8 ${tiers[tier].mono.pixelHash}, RGBA8 ${tiers[tier].colour.pixelHash}`);
   }
 } finally { await browser.close(); }
-writer.put(resolve(root, process.env.NINE_SIGN_OUTPUT ?? 'src/shards/nine-dragon-stack/data/signAtlas.generated.json'),
+writer.put(process.env.NINE_SIGN_OUTPUT === undefined ? resolve(outputData, nativeInputs ? 'signAtlas.json' : 'signAtlas.generated.json') : resolve(root, process.env.NINE_SIGN_OUTPUT),
   Buffer.from(`${JSON.stringify(tiers, (_key, value) => typeof value === 'number' && Object.is(value, -0) ? '-0' : value)}\n`));
 writer.finish();

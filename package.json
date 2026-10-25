@@ -31,6 +31,7 @@
     "test:checks": "pnpm gen && node scripts/check-graph.mjs --source-only",
     "preview": "vite preview",
     "assets": "node scripts/fetch-assets.mjs && node scripts/tex-tiers.mjs",
+    "assets:nine-sign-atlas": "python3 scripts/heavy-lane.py build -- bash scripts/browser-lane.sh node --experimental-transform-types --import ./scripts/bake-loader.mjs src/shards/nine-dragon-stack/generators/bake-sign-atlas.mjs --native-inputs",
     "tex-tiers": "node scripts/tex-tiers.mjs",
     "timelapse": "bash scripts/timelapse.sh",
     "bench": "node scripts/bench-load.mjs",
