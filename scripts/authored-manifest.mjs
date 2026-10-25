@@ -128,7 +128,7 @@ export function authoredManifestSource(root, slug, { generation = false, metadat
     rows.push(`sword: async () => (await import('@wildshard/game/systems/viewmodel/heldView')).HeldView.admit({ kind: 'toon', ...${heldRows}.look }).sword()`);
   } else if (b.sword) rows.push(`sword: async () => ${lazy(b.sword, true)}`);
   if (b.boot?.platform === 'page-mode') {
-    imports.push("import { pageModeBoot } from '@wildshard/game/shard/pageBoot';");
+    imports.push(`import { ${b.ktx2?.platform === 'page-mode' ? 'pageModeBoot, pageModeKtx2' : 'pageModeBoot'} } from '@wildshard/game/shard/pageBoot';`);
     rows.push(`bootBindings: pageModeBoot(${value(b.boot.rows)})`);
   } else if (b.boot) rows.push(`bootBindings: { ${['files', 'sources', 'lateReads', 'bakedUnread', 'audio', 'explore'].filter(key => b.boot[key]).map(key => key === 'audio' ? `audio: async () => ${lazy(b.boot[key], true)}` : `${key}: ${value(b.boot[key], `boot.${key}`)}`).join(', ')} }`);
   const native = [];
@@ -159,7 +159,8 @@ export function authoredManifestSource(root, slug, { generation = false, metadat
     if (key === 'ktx2' && b[key].platform === 'page-mode') {
       const ref = b[key].rows;
       if (ref.export !== 'default' || !ref.module.endsWith('.json')) throw new Error(`${file}: page KTX2 requires default JSON rows`);
-      native.push(`ktx2: async () => (await import('@wildshard/game/shard/pageBoot')).pageModeKtx2((await import(${JSON.stringify(modulePath(ref.module))}, { with: { type: 'json' } })).default)`);
+      const mapper = b.boot?.platform === 'page-mode' ? 'pageModeKtx2' : "(await import('@wildshard/game/shard/pageBoot')).pageModeKtx2";
+      native.push(`ktx2: async () => ${mapper}((await import(${JSON.stringify(modulePath(ref.module))}, { with: { type: 'json' } })).default)`);
     } else native.push(b[key].export ? `${key}: async () => ${lazy(b[key], true)}` : `${key}: () => import(${JSON.stringify(modulePath(b[key].module))})`);
   }
   if (b.posesLoader) native.push(`dev: {poses: async () => ${lazy(b.posesLoader, true)}}`);

@@ -7,4 +7,5 @@ declare module 'virtual:wildshard-title' {
 declare module 'virtual:wildshard-selection' {
   import type {ShardManifest} from '@wildshard/game/shard/manifest';
   export const SHARD_LOADERS:Readonly<Record<string,()=>Promise<ShardManifest>>>;
+  export const LEGACY_CONTENT_IDENTITIES:Readonly<Record<string,string>>;
 }
