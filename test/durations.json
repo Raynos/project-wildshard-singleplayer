@@ -1692,7 +1692,7 @@
  "src/sdk/bake/script-scenario.test.ts": 0.009,
  "src/sdk/bake/script-v2-admission.test.ts": 2.245,
  "src/sdk/bake/script-v2-batch-sdk.test.ts": 2.122,
- "test/script-v2-dual.test.ts": 1.4,
+ "src/sdk/bake/script-v2-dual.test.ts": 1.4,
  "src/sdk/bake/script-v2-external-stage.test.ts": 0.853,
  "test/script-v2-finite.test.ts": 0.953,
  "src/sdk/bake/script-v2-fuel.test.ts": 0.263,

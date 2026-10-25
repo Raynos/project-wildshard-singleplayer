@@ -1,4 +1,4 @@
-import type { compileDualScriptV2 } from './compileDualScriptV2';
+import type { compileDualScriptV2 } from '../../src/sdk/test/compileDualScriptV2';
 
 /** Each port's shadow adapters exercise the admitted artifacts as well as
  * compile them. CI discovers fixtures without a manually maintained list. */

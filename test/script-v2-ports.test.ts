@@ -2,7 +2,7 @@
  * authored inputs and two ABI adapters; the compiler enforces reachability.
  * Retained v0 originals stay hash-pinned execution oracles until cutover. */
 import { expect,test } from 'vitest';
-import { compileDualScriptV2 } from './fixtures/compileDualScriptV2';
+import { compileDualScriptV2 } from '../src/sdk/test/compileDualScriptV2';
 import { compileScript } from '../src/sdk/bake/compileScript';
 import type { DualPortFixture } from './fixtures/script-v2-port';
 

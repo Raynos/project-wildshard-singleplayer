@@ -4,10 +4,10 @@
 import { admitScriptContract } from '@wildshard/format/scriptContract';
 import { admitScriptV2,parseScriptArtifactV2,SCRIPT_V2_REVISIONS,type ScriptArtifactV2 } from '@wildshard/format/scriptAdmissionV2';
 import type { V2Lane } from '@wildshard/format/scriptFuelV2';
-import { inspectDecisionSource } from '../../src/sdk/decisionSource';
-import { hashImmutableBytes } from '../../src/sdk/immutable';
-import { compileScript } from '../../src/sdk/bake/compileScript';
-import { compileScriptV2 } from '../../src/sdk/bake/compileScriptV2';
+import { inspectDecisionSource } from '../decisionSource';
+import { hashImmutableBytes } from '../immutable';
+import { compileScript } from '../bake/compileScript';
+import { compileScriptV2 } from '../bake/compileScriptV2';
 
 interface Wrapper { readonly source: string; readonly sources?: Readonly<Record<string,string>> }
 function checkSource(path: string,text: string): void {
