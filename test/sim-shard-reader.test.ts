@@ -182,6 +182,18 @@ test('step evidence retains monotonic sample ratios separately from the rounded 
   expect(stepEvidence([{detail: first.detail, setup: first.setup, clock: first.clock}, last]).observedStarts[0]?.pageElapsedPercent).toBeUndefined();
 });
 
+test('a missing or invalid completion clock cannot manufacture a precise step ratio', () => {
+  const first = {detail: 'step 2 / 3 · Admission', setup: '25', clock: '00:00.2', elapsedMs: 200};
+  const final = {detail: 'gap after World', setup: '100', clock: '00:01.0', fading: true};
+  for (const elapsedMs of [undefined, null, 0, -1, Number.NaN, Infinity]) {
+    const last = elapsedMs === undefined ? final : {...final, elapsedMs};
+    const report = stepEvidence([first, last]).observedStarts[0];
+    expect(report).toMatchObject({elapsedPercent: 20, errorPoints: 5});
+    expect(report).not.toHaveProperty('pageElapsedPercent');
+    expect(report).not.toHaveProperty('pageErrorPoints');
+  }
+});
+
 
 test('bare painted admission rows start the denominator boundary, while module subphases do not', () => {
   const sample = (step: string, declaredBytes: string) => ({ step, declaredBytes, pendingBytes: '0', downloadPercent: '100' });
