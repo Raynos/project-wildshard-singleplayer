@@ -185,6 +185,61 @@ test('G723: standing inside a source never guesses its isolated neighbour', asyn
   } finally { f.close(); }
 });
 
+test('G723: committing the initial spawn does not turn its placement into a neighbour heading', async () => {
+  const f = await fixture({ paired: true });
+  try {
+    f.live.beforeFixed();
+    const enter = await f.live.prepare(null, f.home.instance);
+    f.player.position.x = CHUNK_HALF - 30; enter.commit();
+    await f.live.prefetch([f.east.instance]); await f.settle();
+    expect(f.live.current()).toBe(f.home.instance);
+    expect(f.created()).toEqual([f.home.instance]);
+    travel(f.live, f.player.position, 1, 0); await f.settle();
+    expect(f.live.ready(f.east.instance)).toBe(true);
+    expect(f.live.current()).toBe(f.home.instance);
+  } finally { f.close(); }
+});
+
+test('G723: a source pose jump resets the heading before the next genuine movement', async () => {
+  const f = await fixture({ paired: true });
+  try {
+    await f.enterHome(); await f.live.prefetch([f.east.instance]); f.live.beforeFixed();
+    f.player.position.x = CHUNK_HALF - 30; f.live.beforeFixed(); await f.settle();
+    expect(f.created()).toEqual([f.home.instance]);
+    travel(f.live, f.player.position, 1, 0); await f.settle();
+    expect(f.live.ready(f.east.instance)).toBe(true);
+    expect(f.live.state().residents).toEqual([f.home.instance, f.east.instance].sort());
+  } finally { f.close(); }
+});
+
+test('G723: a road pose jump is not a boulevard prediction and the following drive still prepares', async () => {
+  const f = await fixture({ paired: true });
+  try {
+    await f.enterHome(); const leave = await f.live.prepare(f.home.instance, null); leave.commit();
+    await f.live.prefetch([f.east.instance]);
+    f.player.position.x = f.east.origin.x / 2; f.player.position.z = -300; f.live.beforeFixed();
+    f.player.position.z = -100; f.live.beforeFixed(); await f.settle();
+    expect(f.created()).toEqual([f.home.instance]);
+    travel(f.live, f.player.position, 0, 1); await f.settle();
+    expect(f.live.ready(f.east.instance)).toBe(true);
+    expect(f.live.state().residents).toEqual([f.home.instance, f.east.instance].sort());
+  } finally { f.close(); }
+});
+
+test('G723: filtering a pose heading never suppresses ordinary readiness at the destination wall', async () => {
+  const f = await fixture({ paired: true });
+  try {
+    await f.enterHome(); const leave = await f.live.prepare(f.home.instance, null); leave.commit();
+    await f.live.prefetch([f.east.instance]);
+    f.player.position.x = f.east.origin.x - CHUNK_HALF - .5; f.player.position.z = 0;
+    f.live.beforeFixed(); await f.settle();
+    expect(f.live.current()).toBe(null);
+    expect(f.live.ready(f.east.instance)).toBe(true);
+    expect(f.live.state().residents).toEqual([f.home.instance, f.east.instance].sort());
+    expect(f.events).not.toContain(`retire:${f.home.instance}`);
+  } finally { f.close(); }
+});
+
 test('G723: a U-turn retires an already prepared guess and reuses the kept source', async () => {
   const f = await fixture({ paired: true });
   try {

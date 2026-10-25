@@ -445,8 +445,11 @@ export class LiveGridHost {
   }
   private beforeFixedWithWork(work:{candidates:GridCell[];nearby:GridCell[];boulevard:GridCell[];bounded:GridCell[]}):void{
     const feet = this.worldFeet(), previous = this.previousFeet;
-    const travelled = previous !== undefined && Math.hypot(feet.x - previous.x, feet.z - previous.z) >= APPROACH_TRAVEL_METRES;
-    if (previous === undefined || travelled) this.previousFeet = feet;
+    const travelledDistance = previous === undefined ? 0 : Math.hypot(feet.x - previous.x, feet.z - previous.z);
+    // More than a second of modeled travel between fixed samples is a pose/portal jump.
+    // Establish a new origin instead of spending a constructor on its accidental direction.
+    const travelled = previous !== undefined && travelledDistance >= APPROACH_TRAVEL_METRES && travelledDistance <= this.ports.readiness.link.speed;
+    if (previous === undefined || travelledDistance >= APPROACH_TRAVEL_METRES) this.previousFeet = feet;
     // Prefetch the closest cells' products (never their worlds: G663). Unsupported far proxies do not consume the count
     // before enterable cells inside the cold readiness bound.
     const candidates=work.candidates,cells=this.assembly.cells;
@@ -678,6 +681,7 @@ export class LiveGridHost {
       motors.commit(); this.unbind?.(); this.unbind = undefined;
       if (this.approach?.instance === to) this.approach = null;
       this.ports.player.motor = rider.motor; this.active = to;
+      this.previousFeet = this.worldFeet(); // A committed spawn/frame placement is not the traveller's heading.
       const host = this.region(to)?.host; if (host !== undefined) this.unbind = host.bindExternalPlayer(this.ports.player);
       this.ports.bindFrame({ instance: to, physics: this.physics(to), motor: rider.motor, origin, ...(host === undefined ? {} : { host }) });
       this.residents.get(to ?? '')?.lease.update({ needed: true }); this.residents.get(from ?? '')?.lease.update({ needed: to === null });

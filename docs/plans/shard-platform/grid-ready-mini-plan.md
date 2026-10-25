@@ -30,6 +30,7 @@ Each slice is bounded to one hour; report misses and their observed owners first
 | G723.5 | Measure source-side preparation on the original first-entry routes; retain the under-five-second target as open wherever the actual edge wait misses. At most one hour. | done (measurement only; 2026-10-25, sp-x8) |
 | G723.6 | Reuse the existing exact packed-position scanner for synchronous baked geometry bounds; preserve every decoded buffer, box/sphere value and fallback. At most one hour. | done (bounded source cut; 2026-10-25, sp-x8) |
 | G723.7 | Continue world-construction and warm-up cuts until the measured Driftwood, Nalati and Nine edge waits pass five seconds, preserving all readiness and two-resident fences. Each source slice is at most one hour. | open |
+| G723.8 | Refuse inferred neighbour headings from committed spawn placement or large pose jumps; reset the motion sample and preserve preparation after subsequent real movement. At most one hour. | done (bounded source cut; 2026-10-25, sp-x8) |
 
 ## G717 frame-floor misses (2026-10-25, sp-x1; G639)
 
