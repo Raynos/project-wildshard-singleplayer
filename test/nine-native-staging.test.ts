@@ -14,9 +14,12 @@ test('the retained native sign page bundles from only its sealed declared source
   const root = process.cwd(), validator = 'src/shards/nine-dragon-stack/generators/sections.ts';
   const job = discoverGeneration(root).jobs.find(row => row.id === 'nine-sign-atlas');
   if (job === undefined) throw new Error('Missing retained sign raster adapter');
-  const check = async (roots: readonly string[]) => {
+  const check = async (omitValidator: boolean) => {
     // generate.mjs always includes the format infrastructure; the descriptor owns its new validator.
-    const inputs = Object.entries(generationInputs(root, [...roots, 'src/format'])).map(([file, hash]) => ({ file, hash, source: resolve(root, file) }));
+    const inputs = Object.entries(generationInputs(root, [...job.inputRoots, 'src/format']))
+      .filter(([file]) => !omitValidator || file !== validator)
+      .map(([file, hash]) => ({ file, hash, source: resolve(root, file) }));
+    expect(inputs.some(row => row.file === validator)).toBe(!omitValidator);
     const tree = await stageGenerationInputs({ root, job: 'nine-sign-bundle', inputs });
     try {
       linkNodeModules(root, tree);
@@ -31,8 +34,8 @@ test('the retained native sign page bundles from only its sealed declared source
       return native;
     } finally { rmSync(tree, { recursive: true, force: true }); }
   };
-  const absent = await check(job.inputRoots.filter(file => file !== validator));
+  const absent = await check(true);
   expect(absent.status).toBe(1); expect(absent.stderr).toContain('sections.ts');
-  const present = await check(job.inputRoots);
+  const present = await check(false);
   expect(present.status, present.stderr).toBe(0);
 });

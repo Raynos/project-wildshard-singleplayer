@@ -4,7 +4,7 @@ import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Native comparison checks every byte without expanding typed arrays into assertion objects.
 import { Buffer } from 'node:buffer';
-import { expect, test } from 'vitest';
+import { afterAll, expect, test } from 'vitest';
 import { build } from 'vite';
 import { createProjectGeneration } from '../src/sdk/projectGeneration';
 import { prepareProjectOutput } from '../src/sdk/projectOutput';
@@ -40,37 +40,50 @@ function sameOutput(actual: NineOutput, expected: NineOutput): void {
   sameFiles(actual.platform.files, expected.platform.files); sameFiles(actual.assets, expected.assets);
 }
 
-test('cold and hit source output retain every original admitted file byte and contract with fresh proofs', async () => {
+// Build the genuinely cold fixture during collection; each correctness case
+// keeps the standard 30 s budget for its complete byte/proof assertions.
+async function prepareColdOutput() {
   await prepareAssetDecoders();
   mkdirSync('tmp', { recursive: true }); const cache = mkdtempSync(resolve('tmp', 'nine-source-output-'));
   try {
     const project = resolve('src/shards/nine-dragon-stack'), assets = new Map<string, Uint8Array>();
     const context = () => createProjectGeneration(project, 'f'.repeat(64), assets, cache,
       [{ prefix: '/assets/', directory: resolve('public/assets') }]);
-    let proofs = 0;
-    const coldContext = context(), hitContext = context();
+    const proofs = { calls: 0 };
+    const coldContext = context();
     const cold = await nineSourceOutput({ ...coldContext, proveStaticPortalEntries: (...args) => {
-      proofs++; return coldContext.proveStaticPortalEntries(...args);
+      proofs.calls++; return coldContext.proveStaticPortalEntries(...args);
     } });
-    const hit = await nineSourceOutput({ ...hitContext, cached: step => hitContext.cached(step, () => { throw new Error('A hit must not regenerate'); }),
-      proveStaticPortalEntries: (...args) => { proofs++; return hitContext.proveStaticPortalEntries(...args); } });
-    expect(proofs).toBe(2);
-    sameOutput(hit, cold);
-    const prepared = await prepareProjectOutput(project, cold);
-    const originalAssets = new Set(before.assets.map(row => row.name));
-    const worldFiles = originalWorld.filter(row => row.path.startsWith('assets/'));
-    const actualKeys = new Set([...prepared.assets.keys(), ...prepared.blobs.map(row => row.file.hash)]);
-    expect([...actualKeys].sort()).toEqual([...new Set([...originalAssets, ...worldFiles.map(row => row.hash)])].sort());
-    // The original 185 prepared assets retain their complete oracle. The 397
-    // world files move from the project reader into owned output and are
-    // independently pinned byte-for-byte by nine-world-program's 399 rows.
-    for (const row of worldFiles) {
-      const owned = prepared.assets.get(row.hash); if (owned === undefined) throw new Error(`Missing owned world ${row.hash}`);
-      expect(owned.byteLength).toBe(row.bytes); expect(hashImmutableBytes(owned)).toBe(row.hash);
-    }
-    expect(nineOutputReceipt(prepared, originalAssets)).toEqual(before);
-    expect(NINE_MOVERS_CONTRACT).toMatchObject({ compilerRevision: SCRIPT_V2_REVISIONS.compiler, admissionRevision: SCRIPT_V2_REVISIONS.admission });
-  } finally { rmSync(cache, { recursive: true, force: true }); }
+    return { project, context, cold, proofs, dispose: () => { rmSync(cache, { recursive: true, force: true }); } };
+  } catch (error) { rmSync(cache, { recursive: true, force: true }); throw error; }
+}
+const fixture = await prepareColdOutput();
+afterAll(fixture.dispose);
+
+test('cold source output retains every original admitted file byte and contract', async () => {
+  expect(fixture.proofs.calls).toBe(1);
+  const prepared = await prepareProjectOutput(fixture.project, fixture.cold);
+  const originalAssets = new Set(before.assets.map(row => row.name));
+  const worldFiles = originalWorld.filter(row => row.path.startsWith('assets/'));
+  const actualKeys = new Set([...prepared.assets.keys(), ...prepared.blobs.map(row => row.file.hash)]);
+  expect([...actualKeys].sort()).toEqual([...new Set([...originalAssets, ...worldFiles.map(row => row.hash)])].sort());
+  // The original 185 prepared assets retain their complete oracle. The 397
+  // world files move from the project reader into owned output and are
+  // independently pinned byte-for-byte by nine-world-program's 399 rows.
+  for (const row of worldFiles) {
+    const owned = prepared.assets.get(row.hash); if (owned === undefined) throw new Error(`Missing owned world ${row.hash}`);
+    expect(owned.byteLength).toBe(row.bytes); expect(hashImmutableBytes(owned)).toBe(row.hash);
+  }
+  expect(nineOutputReceipt(prepared, originalAssets)).toEqual(before);
+  expect(NINE_MOVERS_CONTRACT).toMatchObject({ compilerRevision: SCRIPT_V2_REVISIONS.compiler, admissionRevision: SCRIPT_V2_REVISIONS.admission });
+});
+
+test('hit source output preserves every byte without regeneration and proves entries afresh', async () => {
+  const hitContext = fixture.context();
+  const hit = await nineSourceOutput({ ...hitContext, cached: step => hitContext.cached(step, () => { throw new Error('A hit must not regenerate'); }),
+    proveStaticPortalEntries: (...args) => { fixture.proofs.calls++; return hitContext.proveStaticPortalEntries(...args); } });
+  expect(fixture.proofs.calls).toBe(2);
+  sameOutput(hit, fixture.cold);
 });
 
 test('source output bundles without a filesystem or compiler service and preserves burst refusals', async () => {

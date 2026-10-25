@@ -7,6 +7,7 @@ import { expect, test } from 'vitest';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { ShardfileClient } from '../src/game/shardfile/client';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
+import NINE from './fixtures/nine-product-inputs';
 
 // The callback is the public simulation-handoff contract, not a private mode probe.
 test('native blob inventory does not announce a data sim; declared behavior still does', () => {
@@ -105,7 +106,7 @@ test('look-only trusted hybrids retain native kit and play ownership', async () 
 
 test.each([
   ['Nalati', () => import('../src/shards/nalati-grasslands/shard.config')],
-  ['Nine', () => import('./fixtures/nine-product-inputs')],
+  ['Nine', () => Promise.resolve({ default: NINE })],
 ] as const)('%s look-only native rows never request a second simulation', async (_name, load) => {
   const source = (await load()).default;
   const assets = new ClientAssets(source, new Map(), { base: 'https://example.test/native/', firstParty: true, offline: false,
