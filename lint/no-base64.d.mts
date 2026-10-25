@@ -1,6 +1,6 @@
 import type {ESTree} from 'vite';
 
-export function base64Call(node:ESTree.CallExpression,constants?:ReadonlyMap<string,ReadonlySet<string>>,buffers?:ReadonlySet<string>,codecs?:ReadonlySet<string>):boolean;
+export function base64Call(node:ESTree.CallExpression,constants?:ReadonlyMap<string,ReadonlySet<string>>,buffers?:ReadonlySet<string>,codecs?:ReadonlySet<string>,factories?:ReadonlySet<string>):boolean;
 export function base64Path(filename:string):string;
 export interface Base64Visitors {
   readonly ImportDeclaration:(node:ESTree.ImportDeclaration)=>void;

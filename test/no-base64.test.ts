@@ -29,6 +29,19 @@ test('syntax-only detection covers ordinary, optional, computed, aliased and con
    new Uint8Array([1,2]);Buffer.from('beef','hex');data.toString('utf8');JSON.stringify({rows:[1,2]});`)).toBe(0);
 });
 
+test('destructuring and Buffer factory aliases retain the binary codec boundary',()=>{
+  expect(sites(`import * as binary from 'node:buffer';
+   const {atob:decode,btoa:encode}=globalThis;decode('AA==');encode('x');
+   const {Buffer:Bytes,atob:decodeImported}=binary;Bytes.from('AA==','base64');decodeImported('AA==');
+   const {from:make}=Bytes;make('AA==','base64');make('beef','hex');
+   const copied=Bytes.from;copied('AA==','base64url');
+   const alias=make;alias('AA==','BASE64');`)).toBe(7);
+  expect(sites(`const dictionary={from:(value:string)=>value,atob:()=>1};
+   const {from:pick,atob:local}=dictionary;pick('base64');local();
+   import * as ordinary from './plain';const {Buffer:NotBytes}=ordinary;
+   const {from:other}=NotBytes;other('AA==','base64');`)).toBe(0);
+});
+
 test('the real rule refuses new source/tool calls and permits only shrinking exact file debt',()=>{
   mkdirSync('tmp',{recursive:true});const root=mkdtempSync(resolve('tmp/no-base64-'));
   const policy=resolve(root,'debt.json'),config=resolve(root,'lint.json'),plugin=resolve(root,'rule.mjs');
@@ -49,5 +62,7 @@ test('the real rule refuses new source/tool calls and permits only shrinking exa
     expect(run('test/fixture.ts',"atob('AA==');").status).toBe(0);
     expect(run('src/new.ts',"const codec='base64';Buffer.from('AA==',codec);").status).toBe(1);
     expect(run('src/new.ts',"const codec='hex';Buffer.from('AA==',codec);").status).toBe(0);
+    expect(run('src/new.ts',"const {atob:decode}=globalThis;decode('AA==');").status).toBe(1);
+    expect(run('scripts/generators/new.mjs',"const {from:make}=Buffer;make('AA==','base64');").status).toBe(1);
   }finally{rmSync(root,{recursive:true,force:true});}
 });
