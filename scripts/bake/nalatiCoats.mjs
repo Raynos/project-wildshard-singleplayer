@@ -1,9 +1,10 @@
 // Nalati's coat pages in plain Node, for scripts/bake-coats.mjs: the painter (src/shards/nalati-grasslands/generators/coats.ts)
 // over the committed rigged hulls, with the shipping species rows' palettes and tints. No page, renderer or registry.
 //   node --import ./scripts/bake-loader.mjs scripts/bake/nalatiCoats.mjs <phone|desktop> <out.json>
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { writeCoatFiles } from './coatFiles.mjs';
 
 import horseRows from '../../src/shards/nalati-grasslands/species/horse.json' with { type: 'json' };
 
@@ -37,5 +38,5 @@ if (import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   const { produceNalatiCoats } = await import(`${SHARD}/generators/coats.ts`);
   const pub = resolve(import.meta.dirname, '../../public');
   const coats = await produceNalatiCoats(url => Promise.resolve(new Uint8Array(readFileSync(resolve(pub, url.slice(1))))), tier, await nalatiCoatInputs());
-  writeFileSync(out, JSON.stringify(coats.map(c => ({ url: c.url, png: `data:image/png;base64,${Buffer.from(c.png).toString('base64')}` }))));
+  writeCoatFiles(out, coats);
 }

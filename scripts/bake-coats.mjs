@@ -22,9 +22,9 @@
 //   node --import ./scripts/bake-loader.mjs scripts/bake-ktx2.mjs
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
+import { readCoatFiles } from './bake/coatFiles.mjs';
 
 const ROOT = resolve(import.meta.dirname, '..');
 const PUB = resolve(ROOT, 'public');
@@ -51,64 +51,67 @@ const prior = existsSync(TABLE) ? JSON.parse(readFileSync(TABLE, 'utf8')) : {};
 const cache = prior.cache ?? {};
 const table = { phone: prior.phone ?? {}, desktop: prior.desktop ?? {} };
 const used = new Set();
-const TMP = join(tmpdir(), `bake-coats-${process.pid}`);
-mkdirSync(TMP, { recursive: true });
-mkdirSync(OUT, { recursive: true });
-if (IMAGES !== null) mkdirSync(IMAGES, { recursive: true });
-let encoded = 0, reused = 0;
+mkdirSync(resolve(ROOT, 'tmp'), { recursive: true });
+const TMP = mkdtempSync(resolve(ROOT, 'tmp/bake-coats-'));
+try {
+  mkdirSync(OUT, { recursive: true });
+  if (IMAGES !== null) mkdirSync(IMAGES, { recursive: true });
+  let encoded = 0, reused = 0;
 
-if (slug === 'pine-hollow') execFileSync(process.execPath, ['src/shards/pine-hollow/generators/bake-pine-coat-pages.mjs'], { cwd: ROOT, stdio: 'inherit' });
-for (const tier of tiers) {
-  let sources;
-  const tex = 'img';
-  if (slug === 'pine-hollow') {
-    const pages = JSON.parse(readFileSync(resolve(ROOT, 'src/shards/pine-hollow/data/coatPages.generated.json'), 'utf8')).tiers[tier];
-    sources = Object.entries(pages).map(([key, page]) => ({ url: key, png: `data:image/png;base64,${readFileSync(resolve(PUB, page.image.slice(1))).toString('base64')}` }));
-  } else {
-    const list = join(TMP, `${tier}.json`);
-    execFileSync(process.execPath, ['--import', './scripts/bake-loader.mjs', 'scripts/bake/nalatiCoats.mjs', tier, list], { cwd: ROOT, stdio: 'inherit' });
-    sources = JSON.parse(readFileSync(list, 'utf8'));
-  }
-  if (sources.length === 0) throw new Error(`${tier}: no coats (texture mode ${tex})`);
-  const next = {};
-  for (const s of sources) {
-    const png = Buffer.from(s.png.slice(s.png.indexOf(',') + 1), 'base64');
-    if (IMAGES !== null) {
-      // the images path's file: the canvas's exact pixels (lossless, -exact keeps every RGB)
-      const file = join(PUB, s.url);
-      if (!file.startsWith(`${IMAGES}/`)) throw new Error(`${s.url}: not under /${shard.images}`);
-      const src = join(TMP, 'lossless.png');
-      writeFileSync(src, png);
-      mkdirSync(dirname(file), { recursive: true });
-      execFileSync('cwebp', ['-quiet', '-lossless', '-exact', '-z', '9', '-metadata', 'none', src, '-o', file]);
+  if (slug === 'pine-hollow') execFileSync(process.execPath, ['src/shards/pine-hollow/generators/bake-pine-coat-pages.mjs'], { cwd: ROOT, stdio: 'inherit' });
+  for (const tier of tiers) {
+    let sources;
+    const tex = 'img';
+    if (slug === 'pine-hollow') {
+      const pages = JSON.parse(readFileSync(resolve(ROOT, 'src/shards/pine-hollow/data/coatPages.generated.json'), 'utf8')).tiers[tier];
+      sources = Object.entries(pages).map(([key, page]) => ({ url: key, png: readFileSync(resolve(PUB, page.image.slice(1))) }));
+    } else {
+      const list = join(TMP, `${tier}.json`);
+      execFileSync(process.execPath, ['--import', './scripts/bake-loader.mjs', 'scripts/bake/nalatiCoats.mjs', tier, list], { cwd: ROOT, stdio: 'inherit' });
+      sources = readCoatFiles(list);
     }
-    const key = sha(`${sha(png)}|${ENCODER}|${FLAGS.join(' ')}`);
-    used.add(key);
-    let out = cache[key];
-    if (out && existsSync(join(PUB, out))) reused++;
-    else {
-      const src = join(TMP, `${encoded}.png`), dst = join(TMP, `${encoded}.ktx2`);
-      writeFileSync(src, png);
-      execFileSync('basisu', [...FLAGS, src, '-output_file', dst], { stdio: ['ignore', 'ignore', 'pipe'] });
-      const bytes = readFileSync(dst);
-      const stem = s.url.slice(s.url.lastIndexOf('/') + 1).replace(/\.(png|webp)$/u, '');
-      const file = join(OUT, `${stem}-${sha(bytes).slice(0, 8)}.ktx2`);
-      writeFileSync(file, bytes);
-      out = pub(file); cache[key] = out; encoded++;
+    if (sources.length === 0) throw new Error(`${tier}: no coats (texture mode ${tex})`);
+    const next = {};
+    for (const s of sources) {
+      const png = s.png;
+      if (IMAGES !== null) {
+        // the images path's file: the canvas's exact pixels (lossless, -exact keeps every RGB)
+        const file = join(PUB, s.url);
+        if (!file.startsWith(`${IMAGES}/`)) throw new Error(`${s.url}: not under /${shard.images}`);
+        const src = join(TMP, 'lossless.png');
+        writeFileSync(src, png);
+        mkdirSync(dirname(file), { recursive: true });
+        execFileSync('cwebp', ['-quiet', '-lossless', '-exact', '-z', '9', '-metadata', 'none', src, '-o', file]);
+      }
+      const key = sha(`${sha(png)}|${ENCODER}|${FLAGS.join(' ')}`);
+      used.add(key);
+      let out = cache[key];
+      if (out && existsSync(join(PUB, out))) reused++;
+      else {
+        const src = join(TMP, `${encoded}.png`), dst = join(TMP, `${encoded}.ktx2`);
+        writeFileSync(src, png);
+        execFileSync('basisu', [...FLAGS, src, '-output_file', dst], { stdio: ['ignore', 'ignore', 'pipe'] });
+        const bytes = readFileSync(dst);
+        const stem = s.url.slice(s.url.lastIndexOf('/') + 1).replace(/\.(png|webp)$/u, '');
+        const file = join(OUT, `${stem}-${sha(bytes).slice(0, 8)}.ktx2`);
+        writeFileSync(file, bytes);
+        out = pub(file); cache[key] = out; encoded++;
+      }
+      next[s.url] = out;
     }
-    next[s.url] = out;
+    table[tier] = Object.fromEntries(Object.entries(next).sort(([a], [b]) => a.localeCompare(b)));
+    console.log(`bake-coats: ${slug} ${tier} ${sources.length} coats (texture mode ${tex})`);
   }
-  table[tier] = Object.fromEntries(Object.entries(next).sort(([a], [b]) => a.localeCompare(b)));
-  console.log(`bake-coats: ${slug} ${tier} ${sources.length} coats (texture mode ${tex})`);
-}
 
-for (const k of Object.keys(cache)) if (!used.has(k) && !Object.values(table).some((t) => Object.values(t).includes(cache[k]))) delete cache[k];
-const live = new Set([...Object.values(table.phone), ...Object.values(table.desktop)]);
-for (const f of readdirSync(OUT)) if (!live.has(pub(join(OUT, f)))) rmSync(join(OUT, f));
-if (IMAGES !== null) {
-  const named = new Set([...Object.keys(table.phone), ...Object.keys(table.desktop)]);
-  for (const f of readdirSync(IMAGES)) if (!named.has(pub(join(IMAGES, f)))) rmSync(join(IMAGES, f));
+  for (const k of Object.keys(cache)) if (!used.has(k) && !Object.values(table).some((t) => Object.values(t).includes(cache[k]))) delete cache[k];
+  const live = new Set([...Object.values(table.phone), ...Object.values(table.desktop)]);
+  for (const f of readdirSync(OUT)) if (!live.has(pub(join(OUT, f)))) rmSync(join(OUT, f));
+  if (IMAGES !== null) {
+    const named = new Set([...Object.keys(table.phone), ...Object.keys(table.desktop)]);
+    for (const f of readdirSync(IMAGES)) if (!named.has(pub(join(IMAGES, f)))) rmSync(join(IMAGES, f));
+  }
+  writeFileSync(TABLE, `${JSON.stringify({ $doc: `${shard.doc}: written by scripts/bake-coats.mjs --shard=${slug} (per tier: coat table name -> KTX2; cache: PNG+settings hash -> KTX2); merged into the shard's KTX2 table by scripts/bake-ktx2.mjs`, phone: table.phone, desktop: table.desktop, cache }, null, 1)}\n`);
+  console.log(`bake-coats: ${encoded} encoded, ${reused} reused · ${live.size} files`);
+} finally {
+  rmSync(TMP, { recursive: true, force: true });
 }
-writeFileSync(TABLE, `${JSON.stringify({ $doc: `${shard.doc}: written by scripts/bake-coats.mjs --shard=${slug} (per tier: coat table name -> KTX2; cache: PNG+settings hash -> KTX2); merged into the shard's KTX2 table by scripts/bake-ktx2.mjs`, phone: table.phone, desktop: table.desktop, cache }, null, 1)}\n`);
-rmSync(TMP, { recursive: true, force: true });
-console.log(`bake-coats: ${encoded} encoded, ${reused} reused · ${live.size} files`);

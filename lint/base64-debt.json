@@ -2,13 +2,11 @@
   "schema": "no-base64/1",
   "source": "8183c3df1d0baf41bcc75c7c5097fb4c12a800ca",
   "files": {
-    "scripts/bake-coats.mjs": 2,
     "scripts/bake-maps.mjs": 2,
     "scripts/bake-template-shardfile.mjs": 1,
     "scripts/bake-textures.mjs": 1,
     "scripts/bake-viewmodel-sets.mjs": 2,
     "scripts/bake/far-board.mjs": 2,
-    "scripts/bake/nalatiCoats.mjs": 1,
     "scripts/bake/rings-drive.mjs": 2,
     "scripts/bake/species-scripts.mjs": 1,
     "scripts/creature-lineup.mjs": 2,
