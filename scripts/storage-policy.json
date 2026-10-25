@@ -9,6 +9,13 @@
   "migrationBase": "51a68db06eeaceda20a1c571e509724f535a7086",
   "pins": [
     {
+      "path": "public/assets/title/launch-1206x2622.png",
+      "oid": "195b1a626040f7ed5a48468dc28e02fba52e55a4",
+      "bytes": 1626518,
+      "kind": "runtime",
+      "purpose": "G716 iPhone 16/17 Pro pre-document launch surface, rendered from the inline title hero and boat by scripts/generate-title-launch.mjs"
+    },
+    {
       "path": "src/shards/driftwood-isle/assets/a3fca362de406d3063f6aff3083eb852967dfbb73afb7ff67daaaddaed262e3a",
       "oid": "d40b8b5cf0dc5409eabbec757660b4cb13225c31",
       "bytes": 1263018,

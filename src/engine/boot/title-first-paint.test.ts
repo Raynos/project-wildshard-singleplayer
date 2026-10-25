@@ -63,3 +63,17 @@ test('the first-paint panel survives failed title start and retires only after t
   showStartTitle(() => build(false));
   expect(shell?.isConnected).toBe(false);
 });
+
+
+test('the standalone launch image matches the declared phone pixel dimensions', () => {
+  const window = firstDocument('');
+  const link = window.document.querySelector('link[rel="apple-touch-startup-image"]');
+  expect(link?.getAttribute('media')).toContain('(device-width: 402px)');
+  expect(link?.getAttribute('media')).toContain('(device-height: 874px)');
+  expect(link?.getAttribute('media')).toContain('(-webkit-device-pixel-ratio: 3)');
+  const href = link?.getAttribute('href');
+  if (href === undefined || href === null) throw new Error('Missing native launch image');
+  const png = readFileSync(`public${href}`);
+  expect(png.subarray(1, 4).toString()).toBe('PNG');
+  expect([png.readUInt32BE(16), png.readUInt32BE(20)]).toEqual([1206, 2622]);
+});
