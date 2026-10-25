@@ -158,6 +158,8 @@ export class LiveGridHost {
   private readonly saved = new GridContinuationCache();
   private readonly cacheLease: ResidencyLease | undefined;
   private readonly requests = new Map<string, Promise<void>>();
+  /** Admitted constructors own the product they consumed; queued requests may still prefetch theirs. */
+  private readonly constructing = new Set<string>();
   private readonly retirements: Retirement[] = [];
   private readonly ghosts = new GhostWorlds();
   private readonly retiring = new Map<string, RetiringRegion>();
@@ -248,7 +250,7 @@ export class LiveGridHost {
     return resident !== undefined && !resident.evicting && !resident.disposalFailed && this.readiness.isReady(instance);
   }
   /** Submit whole-shard requests in stable order. Failed attempts remain closed until an explicit retry. */
-  prefetch(instances: readonly string[]): Promise<void> { return Promise.all([...new Set(instances)].sort().map((id) => this.residents.has(id) ? Promise.resolve() : this.prefetchProduct(id))).then(() => undefined); }
+  prefetch(instances: readonly string[]): Promise<void> { return Promise.all([...new Set(instances)].sort().map((id) => this.residents.has(id) || (!this.disposed && this.constructing.has(id)) ? Promise.resolve() : this.prefetchProduct(id))).then(() => undefined); }
   private prefetchProduct(instance: string): Promise<LiveGridAdmission> {
     this.assertAlive(); const cell = this.assembly.cell(instance);
     const product = this.products.get(instance); if (product !== undefined) return Promise.resolve(product);
@@ -335,6 +337,7 @@ export class LiveGridHost {
       // A failed disposal stays fully charged and blocks construction even if the pair's budget would fit.
       if ([...this.residents.values()].some((row) => row.disposalFailed === true)) throw new Error('Exclusive runtime awaits successful disposal');
       this.products.delete(instance);
+      this.constructing.add(instance);
       if (this.ports.continuations === 'durable' && admitted.reloadsCheckpoint !== true && this.ports.read === undefined) throw new Error('Durable-only live regions require a checkpoint reader before allocation');
       let lease: ResidencyLease;
       if (instance === this.ports.home.instance && this.initialHomePending) {
@@ -385,7 +388,7 @@ export class LiveGridHost {
       try { admission?.cancel?.(); }
       catch (cleanup) { throw new AggregateError([error, cleanup], 'Live admission and product cancellation failed', { cause: cleanup }); }
       throw gaveUp && !(error instanceof ApproachAbandonedError) ? new ApproachAbandonedError(`Road approach of ${instance} abandoned for another crossing`, { cause: error }) : error;
-    } finally { this.requests.delete(instance); timing?.finish(); }
+    } finally { this.constructing.delete(instance); this.requests.delete(instance); timing?.finish(); }
   }
   private distance(cell: GridCell, p = this.worldFeet()): number { return Math.hypot(Math.max(0, Math.abs(p.x - cell.origin.x) - CHUNK_HALF), Math.max(0, Math.abs(p.z - cell.origin.z) - CHUNK_HALF)); }
   /** Cold worlds use a wider release radius and five-second dwell. The last entered source stays warm on the road;

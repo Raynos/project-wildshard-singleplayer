@@ -30,8 +30,9 @@ async function fixture(options: { paired?: boolean; loading?: number; isolation?
   if (east === undefined || north === undefined) throw new Error('Missing neighbours');
   const page = createSimHost(level, { rapier }), residency = new PageResidency(), events: string[] = [];
   const allocated: { instance: string; owners: string[] }[] = [];
-  const control: { dispose: boolean; holdIncoming: boolean; finish: (() => void) | undefined; aborted: string[]; ownedYield: boolean; yielding: boolean } = {
-    dispose: true, holdIncoming: false, finish: undefined, aborted: [], ownedYield: false, yielding: false,
+  const admissions: string[] = [], runtimes: string[] = [], cancelled: string[] = [];
+  const control: { dispose: boolean; holdIncoming: boolean; finish: (() => void) | undefined; reject: ((error: Error) => void) | undefined; aborted: string[]; ownedYield: boolean; yielding: boolean } = {
+    dispose: true, holdIncoming: false, finish: undefined, reject: undefined, aborted: [], ownedYield: false, yielding: false,
   };
   const budget = { playing: 1_200_000_000, loading: options.loading ?? 1_800_000_000 };
   const player = { position: page.player.position, yaw: -Math.PI / 2, health: page.player.health, owner: page.player, motor: page.releasePlayerMotor() };
@@ -45,7 +46,8 @@ async function fixture(options: { paired?: boolean; loading?: number; isolation?
     // a large world: its readiness reach starts well inside the source
     readiness: { link: { speed: 30, linkBitsPerSecond: 5_000_000, requestLatencySeconds: 0.25, maxStallSeconds: 3 },
       bundle: () => ({ criticalWireBytes: 1000, hybridWireBytes: 1000, decodeSeconds: 0, runtimeParseSeconds: 10 }) },
-    admit: cell => Promise.resolve({ bytes: 1000, exclusiveRuntime: true, reloadsCheckpoint: true, prepareRuntime: () => Promise.resolve(),
+    admit: cell => { admissions.push(cell.instance); return Promise.resolve({ bytes: 1000, exclusiveRuntime: true, reloadsCheckpoint: true,
+      prepareRuntime: () => { runtimes.push(cell.instance); return Promise.resolve(); }, cancel: () => { cancelled.push(cell.instance); },
       ...(options.paired === true && options.isolation !== false ? { isolatedPreparation: true } : {}),
       create: (_saved, _claim, signal) => {
         signal?.addEventListener('abort', () => { control.aborted.push(cell.instance); }, { once: true });
@@ -66,8 +68,10 @@ async function fixture(options: { paired?: boolean; loading?: number; isolation?
           finally { signal?.removeEventListener('abort', cancel); }
         })();
         return cell.instance === east.instance && control.holdIncoming
-          ? new Promise<typeof region>(resolve => { control.finish = () => { resolve(region); }; }) : Promise.resolve(region);
-      } }),
+          ? new Promise<typeof region>((resolve, reject) => {
+            control.finish = () => { resolve(region); }; control.reject = error => { region.dispose(); reject(error); };
+          }) : Promise.resolve(region);
+      } }); },
   });
   const settle = async (): Promise<void> => {
     for (let i = 0; i < 20; i++) { live.beforeFixed(); await new Promise(resolve => { setTimeout(resolve, 2); }); }
@@ -83,12 +87,94 @@ async function fixture(options: { paired?: boolean; loading?: number; isolation?
     const leave = await live.prepare(from, null); leave.commit();
     const enter = await live.prepare(null, to); enter.commit();
   };
-  return { live, home, east, north, player, events, allocated, control, budget, settle, enterHome, approachEast, cross,
+  return { live, home, east, north, player, events, allocated, admissions, runtimes, cancelled, control, budget, settle, enterHome, approachEast, cross,
     claims: () => [...residency.allocator.claims()],
     entries: () => residency.allocator.entries(),
     created: () => events.filter(event => event.startsWith('create:')).map(event => event.slice(7)),
     close: () => { control.dispose = true; live.dispose(); player.motor.dispose(); page.dispose(); residency.dispose(); } };
 }
+
+test('G723: prefetch reuses a consumed admission while its constructor is pending', async () => {
+  const f = await fixture({ paired: true });
+  try {
+    await f.enterHome(); const leave = await f.live.prepare(f.home.instance, null); leave.commit();
+    f.control.holdIncoming = true; await f.approachEast();
+    await f.live.prefetch([f.east.instance, f.east.instance, f.north.instance]);
+    expect(f.admissions.filter(id => id === f.east.instance)).toHaveLength(1);
+    expect(f.runtimes.filter(id => id === f.east.instance)).toHaveLength(1);
+    expect(f.admissions.filter(id => id === f.north.instance)).toHaveLength(1);
+    expect(f.live.ready(f.east.instance)).toBe(false);
+    expect(f.live.state().residents).toEqual([f.home.instance]);
+    expect(f.live.state().pending).toContain(f.east.instance);
+    if (f.control.finish === undefined) throw new Error('Missing held constructor');
+    f.control.finish(); await f.settle();
+    await f.live.prefetch([f.east.instance]);
+    expect(f.admissions.filter(id => id === f.east.instance)).toHaveLength(1);
+    expect(f.live.ready(f.east.instance)).toBe(true);
+    const enter = await f.live.prepare(null, f.east.instance); enter.commit();
+    expect(f.live.current()).toBe(f.east.instance);
+    expect(f.events.indexOf(`disposed:${f.home.instance}`)).toBeLessThan(f.events.indexOf(`frame:${f.east.instance}`));
+    expect(f.live.state().issues).toEqual({});
+  } finally { f.control.finish?.(); await f.settle(); f.close(); }
+});
+
+test('G723: failed construction keeps its original refusal and admits afresh only after retry', async () => {
+  const f = await fixture({ paired: true }), failure = new Error('incoming constructor refused');
+  try {
+    await f.enterHome(); const leave = await f.live.prepare(f.home.instance, null); leave.commit();
+    f.control.holdIncoming = true; await f.approachEast();
+    await f.live.prefetch([f.east.instance]);
+    expect(f.admissions.filter(id => id === f.east.instance)).toHaveLength(1);
+    if (f.control.reject === undefined) throw new Error('Missing held constructor');
+    f.control.reject(failure); await f.settle();
+    expect(f.live.refusal(f.east.instance)).toBe(failure);
+    expect(f.live.ready(f.east.instance)).toBe(false);
+    expect(f.cancelled.filter(id => id === f.east.instance)).toHaveLength(1);
+    expect(f.claims().some(row => row.owner === f.east.instance)).toBe(false);
+    await expect(f.live.prefetch([f.east.instance])).rejects.toThrow('incoming constructor refused');
+    expect(f.admissions.filter(id => id === f.east.instance)).toHaveLength(1);
+    f.live.retry(f.east.instance); f.control.holdIncoming = false;
+    await f.live.prefetch([f.east.instance]);
+    const enter = await f.live.prepare(null, f.east.instance); enter.commit(); await f.settle();
+    expect(f.admissions.filter(id => id === f.east.instance)).toHaveLength(2);
+    expect(f.live.ready(f.east.instance)).toBe(true);
+    expect(f.live.state().issues).toEqual({});
+  } finally { f.control.finish?.(); await f.settle(); f.close(); }
+});
+
+test('G723: a queued destination still prefetches metadata before the previous constructor settles', async () => {
+  const f = await fixture({ paired: true });
+  try {
+    await f.enterHome(); const leave = await f.live.prepare(f.home.instance, null); leave.commit();
+    f.control.holdIncoming = true; await f.approachEast();
+    const entering = f.live.prepare(null, f.north.instance);
+    await f.live.prefetch([f.north.instance]);
+    expect(f.admissions.filter(id => id === f.north.instance)).toHaveLength(1);
+    expect(f.runtimes.filter(id => id === f.north.instance)).toHaveLength(1);
+    expect(f.created()).not.toContain(f.north.instance);
+    expect(f.live.ready(f.north.instance)).toBe(false);
+    if (f.control.finish === undefined) throw new Error('Missing held constructor');
+    f.control.finish(); const enter = await entering; enter.commit();
+    expect(f.live.current()).toBe(f.north.instance);
+    expect(f.admissions.filter(id => id === f.north.instance)).toHaveLength(1);
+    expect(f.cancelled.filter(id => id === f.east.instance)).toHaveLength(1);
+    expect(f.claims().some(row => row.owner === f.east.instance)).toBe(false);
+    expect(f.live.state().issues).toEqual({});
+  } finally { f.control.finish?.(); await f.settle(); f.close(); }
+});
+
+test('G723: disposal still refuses prefetch while a consumed constructor settles', async () => {
+  const f = await fixture({ paired: true });
+  try {
+    await f.enterHome(); const leave = await f.live.prepare(f.home.instance, null); leave.commit();
+    f.control.holdIncoming = true; await f.approachEast(); f.live.dispose();
+    expect(() => f.live.prefetch([f.east.instance])).toThrow('Live grid is disposed');
+    if (f.control.finish === undefined) throw new Error('Missing held constructor');
+    f.control.finish(); await f.settle();
+    expect(f.live.ready(f.east.instance)).toBe(false);
+    expect(f.claims().some(row => row.owner === f.east.instance)).toBe(false);
+  } finally { f.control.finish?.(); await f.settle(); f.close(); }
+});
 
 test.each([true, false])('G723: admission timings keep one bounded phase per cell across re-entry (Developer=%s)', async developer => {
   const previous = isDev(), f = await fixture({ paired: true });
