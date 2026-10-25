@@ -95,9 +95,13 @@ export interface MapExtras {
 /** an axis-aligned rectangle: its centre and half extents (m) */
 export interface MapExtraRect { readonly x: number; readonly z: number; readonly hx: number; readonly hz: number; readonly color: string }
 /** a square image: its centre, its side (m) and its opacity */
-export interface MapExtraImage { readonly image: CanvasImageSource; readonly x: number; readonly z: number; readonly size: number; readonly alpha: number }
+export interface MapExtraImage { readonly image: CanvasImageSource; readonly x: number; readonly z: number; readonly size: number; readonly alpha: number;
+  /** Optional source-pixel rectangle for a tile in a shared image. */
+  readonly crop?: readonly [number, number, number, number] }
 /** a text label at a point; one past the rim is pinned just inside it, in its direction */
-export interface MapExtraLabel { readonly x: number; readonly z: number; readonly text: string; readonly color: string }
+export interface MapExtraLabel { readonly x: number; readonly z: number; readonly text: string; readonly color: string;
+  /** Optional cell-local label box in metres, with a shorter overview name. */
+  readonly width?: number; readonly height?: number; readonly short?: string }
 
 /** a named place on the maps: the format's row (`@wildshard/format/minimap`); frozen legacy folders still name it here */
 export type MapPoi = MapPoiRow;
@@ -468,7 +472,9 @@ export class Minimap {
       const h = m.size / 2;
       if (m.alpha <= 0 || Math.abs(m.x - pos.x) > h + reach || Math.abs(m.z - pos.z) > h + reach) continue;
       ctx.globalAlpha = Math.min(1, m.alpha);
-      ctx.drawImage(m.image, c - (m.x + h - pos.x) * k, c - (m.z + h - pos.z) * k, m.size * k, m.size * k);
+      const x = c - (m.x + h - pos.x) * k, y = c - (m.z + h - pos.z) * k;
+      if (m.crop === undefined) ctx.drawImage(m.image, x, y, m.size * k, m.size * k);
+      else ctx.drawImage(m.image, ...m.crop, x, y, m.size * k, m.size * k);
     }
     ctx.globalAlpha = 1;
   }

@@ -40,6 +40,7 @@ import { CABIN_SITES, POND, hasPond } from '../world/Heightfield';
 import { activeLevel } from '../level/selection';
 import { LAYER_PPM, type MapExtras, type MapFeatures, type Minimap } from './Minimap';
 import { ROOM_BG, fitRoom, paintRoom } from './roomMap';
+import { fitMapLabel } from './mapLabel';
 
 /** a point on the full map: a discovered place (named), an undiscovered one ("?"), or a live quest marker (pulsing diamond);
  *  `short` = a quest marker's short name ("SEA CAVE" for "SEA CAVE SHARD") — the map labels it with that */
@@ -262,7 +263,9 @@ export class FullMap {
       for (const m of extras.images) {
         if (m.alpha <= 0) continue;
         ctx.globalAlpha = Math.min(1, m.alpha);
-        ctx.drawImage(m.image, sx(m.x + m.size / 2), sz(m.z + m.size / 2), m.size * ppm, m.size * ppm);
+        const x = sx(m.x + m.size / 2), y = sz(m.z + m.size / 2);
+        if (m.crop === undefined) ctx.drawImage(m.image, x, y, m.size * ppm, m.size * ppm);
+        else ctx.drawImage(m.image, ...m.crop, x, y, m.size * ppm, m.size * ppm);
       }
       ctx.globalAlpha = 1;
     }
@@ -294,6 +297,22 @@ export class FullMap {
       ctx.lineJoin = 'round'; ctx.lineWidth = 3 * this.dpr; ctx.strokeStyle = 'rgba(6, 10, 18, 0.85)';
       const lh = Math.max(12 * this.dpr, 0.05 * CHUNK_SIZE * ppm);
       for (const l of extras.labels) {
+        if (l.width !== undefined && l.height !== undefined) {
+          const text = (this._zoom < 2 ? l.short ?? l.text : l.text).toUpperCase();
+          const width = l.width * ppm - 4 * this.dpr, height = l.height * ppm;
+          const label = fitMapLabel(text, width, height, 11 * this.dpr, 8 * this.dpr, (line, font) => {
+            ctx.font = `700 ${font}px Rajdhani, sans-serif`; return ctx.measureText(line).width;
+          });
+          const x = sx(l.x), y = sz(l.z), lineHeight = label.font * 1.15;
+          ctx.font = `700 ${label.font}px Rajdhani, sans-serif`; ctx.fillStyle = l.color;
+          for (const [i, line] of label.lines.entries()) {
+            const at = y + (i - (label.lines.length - 1) / 2) * lineHeight;
+            ctx.strokeText(line, x, at); ctx.fillText(line, x, at);
+          }
+          if (label.lines.length > 0) held.push({ x0: x - width / 2, x1: x + width / 2, y0: y - height / 2, y1: y + height / 2 });
+          continue;
+        }
+        ctx.font = `700 ${lh}px Rajdhani, sans-serif`;
         const t = l.text.toUpperCase(), x = sx(l.x), y = sz(l.z), hw = ctx.measureText(t).width / 2;
         ctx.strokeText(t, x, y); ctx.fillStyle = l.color; ctx.fillText(t, x, y);
         held.push({ x0: x - hw, y0: y - lh / 2, x1: x + hw, y1: y + lh / 2 }); // the pins' labels lay out clear of it (playtest round 3)

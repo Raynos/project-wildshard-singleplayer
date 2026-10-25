@@ -1,5 +1,6 @@
 import { defineConfig, type Plugin } from 'vite';
 import { gridSeamPlansPlugin } from './vite/gridSeamPlans';
+import { worldMapAtlasPlugin } from './vite/worldMapAtlas';
 import { execSync } from 'node:child_process';
 import { rmSync, readdirSync, existsSync, readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
@@ -123,6 +124,6 @@ export default defineConfig(({ mode, command }) => {
     worker: { plugins: () => [noTopLevelAwait()] },
     resolve: { alias: rapierAlias }, // Rapier's wasm-importing module → plain bindings (vite/rapier.ts)
     define: { __SHARDFILE_VALIDATOR__: JSON.stringify(validationRevision), __SHARDFILE_VERDICTS__: JSON.stringify(buildValidationReceipts(validationRevision)), __DEVSERVER__: mode === 'devserver', __BUILD_ID__: JSON.stringify(BUILD_ID), __SAVE_NAMESPACES__: JSON.stringify(readdirSync('src/shards').filter((slug) => existsSync(join('src/shards', slug, 'manifest.ts')))) },
-    plugins: native ? [gridSeamPlansPlugin(), outputProductsPlugin(), devserverFlags(false), genShardsPlugin(), titleCataloguePlugin(), backdropPrefixPlugin(), versionPlugin(), nativePlugin(), noTopLevelAwait()] : [gridSeamPlansPlugin(), outputProductsPlugin(), devserverFlags(mode === 'devserver'), genShardsPlugin(), titleCataloguePlugin(), backdropPrefixPlugin(), versionPlugin(), crossroadsRigPlugin(BUILD_ID), bootModulesPlugin(), pwaPlugin(BUILD_ID), rapierPreviewPlugin(), chunkReport(), noTopLevelAwait()],
+    plugins: native ? [gridSeamPlansPlugin(), worldMapAtlasPlugin(), outputProductsPlugin(), devserverFlags(false), genShardsPlugin(), titleCataloguePlugin(), backdropPrefixPlugin(), versionPlugin(), nativePlugin(), noTopLevelAwait()] : [gridSeamPlansPlugin(), worldMapAtlasPlugin(), outputProductsPlugin(), devserverFlags(mode === 'devserver'), genShardsPlugin(), titleCataloguePlugin(), backdropPrefixPlugin(), versionPlugin(), crossroadsRigPlugin(BUILD_ID), bootModulesPlugin(), pwaPlugin(BUILD_ID), rapierPreviewPlugin(), chunkReport(), noTopLevelAwait()],
   };
 });

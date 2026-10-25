@@ -7454,6 +7454,17 @@ kinds, gaps and out-of-range indices refuse before the view is installed.
 
 ### Retained grid map pixels
 
+The Bag world map uses one app-build atlas of all declared cell products,
+including Developer overrides. It loads and charges that one RGBA image before
+play; opening the map never admits a region to obtain its picture. A product
+without a declared map has an explicit plain-plot diagram; declared missing or
+corrupt image bytes refuse the build. Repeated placements share their tile.
+
+`MapExtraImage.crop` optionally selects a source-pixel rectangle from a shared
+image. `MapExtraLabel.width` / `height` bound a label in world metres, and
+`short` supplies its overview name. FullMap wraps complete words inside that
+box, uses the full name at 2× / 4× and hides text that cannot fit.
+
 `leaseMapImage` reserves the admitted full image cost before decoding.
 `CellMinimaps` reports retained dimensions only after closing a downsized
 bitmap: the home keeps its full bitmap, and neighbours keep one 400-pixel

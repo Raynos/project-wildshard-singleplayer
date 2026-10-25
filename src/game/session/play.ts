@@ -499,8 +499,8 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   // the grid's player-facing moments: G98's sky-down reveal to the pier (G622 D1: 3 s, any touch or key takes over), then
   // G78's SAFE ZONE + dimmed ATTACK on the road, G82 / G105's title card on entering a shard, G97's speed look (gridHud.ts)
   if (grid !== null) {
-    const [{ installGridReveal }, { installGridHud }, { installBudgetOverlay }, { installMinimapBlend }] = await Promise.all([
-      import('../grid/reveal'), import('../grid/gridHud'), import('../grid/budgetOverlay'), import('../grid/minimapBlend'),
+    const [{ installGridReveal }, { installGridHud }, { installBudgetOverlay }, { installMinimapBlend }, { loadGridMapAtlas }] = await Promise.all([
+      import('../grid/reveal'), import('../grid/gridHud'), import('../grid/budgetOverlay'), import('../grid/minimapBlend'), import('../grid/mapAtlas'),
     ]);
     if (game.levelScope.disposed || game.levelScope.disposing) throw new Error('Grid owner retired while loading presentation');
     const revealing = session.recovery === undefined || initialGridReload(session.recovery) ? installGridReveal({ scope: game.levelScope, camera: game.camera, hudRoot: hud.root, canvas: game.renderer.domElement, onLate: (fn) => { game.onLate(fn, 'game.grid.reveal'); },
@@ -511,8 +511,9 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
       velocity: () => player.velocity, live: () => hud.entered && !hud.paused && !revealing(),
       onInput: (fn) => { game.onInput(fn, 'game.grid.hud.fov'); }, onLate: (fn) => { game.onLate(fn, 'game.grid.hud'); } });
     // G107: the minimap blends at the road boundary (the shard + the road + the neighbours' names inside; faded terrain on the road)
+    const atlas = await loadGridMapAtlas(game.levelScope, grid.allocator, __GRID_MAP_ATLAS__);
     const blend = installMinimapBlend(minimap, { assembly: grid.assembly, home: grid.home, cells: gridCells, worldFeet: () => grid.worldFeet(), image: (id) => grid.mapImage(id),
-      name: (cell) => findShard(cell.slug)?.name ?? cell.slug }, game.levelScope, fullMap); // SF66: the full map lays out every cell's baked map + the road
+      name: (cell) => findShard(cell.slug)?.name ?? cell.slug }, game.levelScope, fullMap, atlas); // Full map is complete before the first Bag open.
     // playtest round 3: the menu names the shard whose cell you are in (the full map's arrow reads mapAt's home frame too)
     game.levelScope.onDispose(gridCells.onEnter((cell) => { menu.setLevelName(findShard(cell.slug)?.name ?? cell.slug); }));
     // SF38 / G30: Developer mode's points budget over the one live allocator (no element or timer until Developer is on)

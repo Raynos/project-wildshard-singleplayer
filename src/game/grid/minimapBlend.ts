@@ -147,26 +147,29 @@ export function minimapOverlay(host: MinimapBlendHost, rects: readonly MapExtraR
 
 /** The grid's full map (SF66): every cell's baked map at its cell, the road network, each shard's name near its cell's north
  *  edge; the home's own ground is the map's base layer. Home-frame metres. */
-export function fullMapOverlay(host: MinimapBlendHost, rects: readonly MapExtraRect[]): MapExtras {
-  const { assembly, home } = host, ox = home.origin.x, oz = home.origin.z, homeImage = host.image(home.instance);
+type AtlasTile = (slug: string) => Pick<MapExtraImage, 'image' | 'crop'>;
+export function fullMapOverlay(host: MinimapBlendHost, rects: readonly MapExtraRect[], atlas?: AtlasTile): MapExtras {
+  const { assembly, home } = host, ox = home.origin.x, oz = home.origin.z, homeImage = atlas === undefined ? host.image(home.instance) : null;
   const images: MapExtraImage[] = [], labels: MapExtraLabel[] = [];
   for (const cell of assembly.cells) {
     const x = cell.origin.x - ox, z = cell.origin.z - oz;
-    labels.push({ x, z: z + CHUNK_HALF - 28, text: host.name(cell), color: NAME });
+    const text = host.name(cell);
+    labels.push({ x, z: z + CHUNK_HALF - 90, text, short: text.split(' · ').at(-1) ?? text, color: NAME, width: CHUNK_HALF * 2 - 32, height: 160 });
+    if (atlas !== undefined) { images.push({ ...atlas(cell.slug), x, z, size: 2 * CHUNK_HALF, alpha: 1 }); continue; }
     if (cell.instance === home.instance && homeImage === null) continue;
     const image = host.image(cell.instance);
     if (image !== null) images.push({ image, x, z, size: 2 * CHUNK_HALF, alpha: 1 });
   }
-  return { outside: VOID, baseAlpha: homeImage === null ? 1 : 0, rects, images, labels };
+  return { outside: VOID, baseAlpha: atlas === undefined && homeImage === null ? 1 : 0, rects, images, labels };
 }
 
 interface ExtrasSink { setExtras: (source: (() => MapExtras | null) | null) => void }
 /** Feed the page's minimap (and its full map) while the grid runs; the overlays leave with the scope. */
-export function installMinimapBlend(minimap: ExtrasSink, host: MinimapBlendHost, scope: Scope, fullMap?: ExtrasSink): () => MapExtras {
+export function installMinimapBlend(minimap: ExtrasSink, host: MinimapBlendHost, scope: Scope, fullMap?: ExtrasSink, atlas?: AtlasTile): () => MapExtras {
   const rects = roadRects(host.assembly, host.home);
   let last: MapExtras = { rects, images: [], labels: [] };
   minimap.setExtras(() => { last = minimapOverlay(host, rects); return last; });
-  fullMap?.setExtras(() => fullMapOverlay(host, rects));
+  fullMap?.setExtras(() => fullMapOverlay(host, rects, atlas));
   scope.onDispose(() => { minimap.setExtras(null); fullMap?.setExtras(null); });
   return () => last;
 }
