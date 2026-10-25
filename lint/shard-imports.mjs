@@ -1,4 +1,4 @@
-import { dirname, resolve } from 'node:path';
+import { dirname, isAbsolute, resolve } from 'node:path';
 
 /** Resolve source syntax to the game boundary; relative imports cannot bypass the author-package rule. */
 export function shardGameImport(filename, source) {
@@ -40,6 +40,9 @@ export function generatorImportViolation(filename, source) {
   const path=filename.replaceAll('\\','/'), match=/(?:^|\/)src\/shards\/([^/]+)\/(.+)$/u.exec(path);
   if(match===null || !(/^(?:generators|data|quests)\//u.test(match[2]) || match[2]==='shard.config.ts')) return null;
   if(typeof source!=='string')return null;
+  // Test runners and Node fixture tools never become producer imports.
+  if(path.endsWith('.test.ts') && source!=='<computed>' && !source.startsWith('.')
+    && !isAbsolute(source) && !source.startsWith('@wildshard/')) return null;
   if(/^@wildshard\/sdk\/runtime(?:\/|$)/u.test(source))return 'trusted SDK runtime code is not an authoring import';
   if(source==='three' || source.startsWith('three/') || /^@wildshard\/(?:sdk|commons)(?:\/|$)/u.test(source))return null;
   const local=source.startsWith('.') ? resolve(dirname(filename),source).replaceAll('\\','/') : '';

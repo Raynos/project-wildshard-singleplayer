@@ -1011,7 +1011,7 @@ const noShardRuntime = rule('Primary shards contain authoring and declarations o
 const generatorImports = rule('Generator and data imports stay on the authoring surface (DS0.3)', context => {
   if(legacySourcePath(pathOf(context))!==null)return {};
   return boundaryVisitors((node,source,computed)=>{
-    const reason=computed && generatorImportViolation(context.filename,'<computed>')!==null
+    const reason=(computed || source===null) && generatorImportViolation(context.filename,'<computed>')!==null
       ? 'author imports require a literal module path' : generatorImportViolation(context.filename,source);
     if(reason!==null)report(context,node,`${reason}: ${source}`);
   });

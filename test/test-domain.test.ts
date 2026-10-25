@@ -13,14 +13,14 @@ test('colocated fixtures keep product guards in production and architecture guar
   const put = (path: string, source: string): string => { const file = resolve(root, path); mkdirSync(dirname(file), { recursive: true }); writeFileSync(file, source); return file; };
   const config = put('config.json', JSON.stringify({ jsPlugins: [resolve('lint/wildshard-plugin.js')], categories: { correctness: 'off' }, rules: {
     ...Object.fromEntries(TEST_DOMAIN_RUNTIME_RULES.map(name => [`wildshard/${name}`, 'error'])),
-    'wildshard/layer': 'error', 'wildshard/no-module-mock': 'error', 'wildshard/no-production-test-import': 'error',
+    'wildshard/layer': 'error', 'wildshard/no-module-mock': 'error', 'wildshard/no-production-test-import': 'error', 'wildshard/generator-imports': 'error',
   } }));
   const surfaces = put('surfaces.json', JSON.stringify({ jsPlugins: [resolve('lint/wildshard-plugin.js')], categories: { correctness: 'off' }, rules: {
     'wildshard/engine-words': 'error', 'wildshard/no-inline-ui-string': 'error', 'wildshard/no-authored-html': 'error',
     'wildshard/no-global-listener-patch': 'error', 'wildshard/no-raw-hud': 'error',
   } }));
   const boundaries = put('boundaries.json', JSON.stringify({ jsPlugins: [resolve('lint/wildshard-plugin.js')], categories: { correctness: 'off' }, rules: {
-    'wildshard/layer': 'error', 'wildshard/no-module-mock': 'error', 'wildshard/no-production-test-import': 'error',
+    'wildshard/layer': 'error', 'wildshard/no-module-mock': 'error', 'wildshard/no-production-test-import': 'error', 'wildshard/generator-imports': 'error',
   } }));
   const run = (files: readonly string[], selected = config): ReturnType<typeof spawnSync> => spawnSync(resolve('node_modules/.bin/oxlint'),
     ['--threads=1', '--no-ignore', '-c', selected, '-f', 'json', ...files], { encoding: 'utf8', timeout: 10_000 });
@@ -29,12 +29,20 @@ test('colocated fixtures keep product guards in production and architecture guar
   const refuses = (path: string, source: string, rules: readonly string[]): void => { rejected.push({ file: put(path, source), rules }); };
   try {
     const builder = 'import binaryen from "binaryen"; export const wasm = binaryen;';
-    const allowed = run([put('src/engine/core/fixture.test.ts', code), put('src/engine/test/helper.ts', code), put('src/format/binary.test.ts', builder)]);
+    const allowed = run([put('src/engine/core/fixture.test.ts', code), put('src/engine/test/helper.ts', code), put('src/format/binary.test.ts', builder),
+      put('src/shards/probe/generators/unit.test.ts', 'import {test} from "vitest"; import {readFile} from "node:fs"; export const fixture = {test,readFile};')]);
     expect(allowed.status, String(allowed.error ?? '') + String(allowed.stdout) + String(allowed.stderr)).toBe(0);
     refuses('src/engine/core/fixture.ts', code, ['engine-words', 'no-inline-ui-string', 'no-authored-html', 'no-global-listener-patch', 'no-raw-hud']);
     refuses('src/engine/core/boundary.test.ts', 'import {value} from "../../game/value"; import {vi} from "vitest"; vi.mock("./value"); export {value};', ['layer', 'no-module-mock']);
     refuses('src/format/binary.ts', builder, ['layer']);
     refuses('src/format/upward.test.ts', 'import {value} from "../engine/value"; export {value};', ['layer']);
+    refuses('src/shards/probe/generators/runner.ts', 'import {test} from "vitest"; export const fixture = test;', ['generator-imports']);
+    refuses('src/shards/probe/generators/files.ts', 'import {readFile} from "node:fs"; export const fixture = readFile;', ['generator-imports']);
+    refuses('src/shards/probe/generators/cross.test.ts', 'import {value} from "../../other/generators/value"; export {value};', ['layer', 'generator-imports']);
+    refuses('src/shards/probe/generators/computed.test.ts', 'export function load(source: string) { return import(source); }', ['generator-imports']);
+    refuses('src/shards/probe/generators/computed.ts', 'export function load(source: string) { return import(source); }', ['generator-imports']);
+    refuses('src/shards/probe/generators/game.test.ts', 'import {value} from "@wildshard/game/world"; export {value};', ['generator-imports']);
+    refuses('src/shards/probe/generators/absolute.test.ts', 'import {value} from "/src/engine/value"; export {value};', ['generator-imports']);
     const statements = ['import "./fixture.test";', 'export * from "./fixture.test.ts";', 'void import("./fixture.test.js");', 'export type Value = typeof import("./fixture.test");',
       'import "../test/helper";', 'export * from "../test/helper";', 'void import("../test/helper");', 'export type Helper = typeof import("../test/helper");'];
     statements.forEach((source, index) => { refuses(`src/engine/core/importer-${index}.ts`, source, ['no-production-test-import']); });
