@@ -35,7 +35,7 @@ export function nineWorldLayout(layout: ReturnType<typeof nineScene>['layout']):
 
 /** Original world bake as owned data and bytes, with no file writes or scene publication.
  * The retained file adapter and the source product call this same function. */
-export function nineWorldProduct(atlas?: NineSpillAtlas): NineWorldProduct {
+export function nineWorldProduct(atlas: NineSpillAtlas): NineWorldProduct {
   const product = nineScene(atlas), { baked } = product;
   const libraries: Record<'layout' | 'boot' | 'explorer', string[]> = { layout: [], boot: [], explorer: [] };
   const assets = new Map(baked.assets), files = [...baked.shardfile.files];

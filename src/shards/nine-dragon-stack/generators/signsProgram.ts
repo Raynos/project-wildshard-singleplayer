@@ -7,7 +7,7 @@ import type { NineNativeAtlas, NineNativeSignInputs } from './nativeSignMetadata
 import type { NineNativeAtlasSource } from './nativeSignAtlas';
 
 /** Exact predecessor files, returned as owned bytes rather than published under source. */
-export function nineSignSourceFiles(read: (file: string) => Uint8Array, native?: NineNativeSignInputs): Map<string, Uint8Array> {
+export function nineSignSourceFiles(read: (file: string) => Uint8Array, native: NineNativeSignInputs): Map<string, Uint8Array> {
   const files = new Map<string, Uint8Array>(), rows: Record<string, unknown> = {};
   const sources = signAtlasBlobs(read, native).map(({ file, bytes }, index) => {
     const source = `data/signSource-${index}.generated.${file.kind}`;
@@ -20,26 +20,18 @@ export function nineSignSourceFiles(read: (file: string) => Uint8Array, native?:
   return files;
 }
 
-/** Retained native raster inputs remain explicit until their own producer rows retire. */
-export function nineSignInputs(): string[] {
-  const native = retainedSignInputs();
-  return [...new Set(['glyphs.generated.json', 'signAtlas.generated.json',
-    ...Object.values(native.glyphs).flatMap(row => row.packed),
-    ...Object.values(native.atlas).flatMap(row => [row.buffer, row.mono.packed, row.colour.packed])])].map(file => `data/${file}`);
-}
-
 export type NineSourceSigns = ReturnType<typeof signSourceRows> & { readonly files: ReadonlyMap<string, Uint8Array>; readonly blobs: readonly NamedBlob[]; readonly atlas: NineNativeAtlas };
 
 /** Each invocation re-admits every immutable cache result and publishes owned bytes. */
-export async function nineSignsProgram(ctx: Pick<ProjectGenerationContext, 'cached' | 'asset'>, source?: NineNativeAtlasSource): Promise<NineSourceSigns> {
-  const native = retainedSignInputs(source?.atlas);
-  const declared = source === undefined ? nineSignInputs() : [...new Set(['glyphs.generated.json',
+export async function nineSignsProgram(ctx: Pick<ProjectGenerationContext, 'cached' | 'asset'>, source: NineNativeAtlasSource): Promise<NineSourceSigns> {
+  const native = retainedSignInputs(source.atlas);
+  const declared = [...new Set(['glyphs.generated.json',
     ...Object.values(native.glyphs).flatMap(row => row.packed)])].map(file => `data/${file}`);
-  const identity = source === undefined ? 'sign-sources' : `signs-${hashImmutableBytes(new TextEncoder().encode(encodeCanonicalJson([
+  const identity = `signs-${hashImmutableBytes(new TextEncoder().encode(encodeCanonicalJson([
     native.atlas, [...source.files].map(([name, bytes]) => [name, hashImmutableBytes(bytes)]),
   ])))}`;
   const files = await ctx.cached({ id: identity, inputs: declared }, inputs => nineSignSourceFiles(file => {
-    const bytes = source?.files.get(file) ?? inputs.get(`data/${file}`); if (bytes === undefined) throw new Error(`Missing Nine native sign ${file}`); return bytes;
+    const bytes = source.files.get(file) ?? inputs.get(`data/${file}`); if (bytes === undefined) throw new Error(`Missing Nine native sign ${file}`); return bytes;
   }, native));
   const metadata = files.get('data/signSources.generated.json'); if (metadata === undefined) throw new Error('Missing Nine sign manifest');
   const manifest: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(metadata));

@@ -8,7 +8,6 @@ import { bakeSpill, type Emitter } from './lightSpill';
 import rawSignRows from '../data/signView.json' with { type: 'json' };
 import { parseSignView } from './sections';
 import lantern from '../data/lantern.json' with { type: 'json' };
-import atlas from '../data/signAtlas.generated.json' with { type: 'json' };
 import { portalPlanRows } from './portalEntries';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 
@@ -102,12 +101,12 @@ function spillInputsPrepared(caps: boolean, tier: 'phone' | 'desktop', input: Ni
 }
 
 /** Prepare a standalone tier/deck with the same source and per-vertex input order. */
-export function spillInputs(caps: boolean, tier: 'phone' | 'desktop', input: NineSpillAtlas = atlas): { geometry: Map<string, BufferGeometry>; emitters: Emitter[] } {
+export function spillInputs(caps: boolean, tier: 'phone' | 'desktop', input: NineSpillAtlas): { geometry: Map<string, BufferGeometry>; emitters: Emitter[] } {
   return withPortableMath(() => spillInputsPrepared(caps, tier, input, prepareSpillGeometry()));
 }
 
 /** The old grid acceleration retains exactly the original per-vertex light order. */
-export function bakedSpill(caps: boolean, tier: 'phone' | 'desktop', atlasRows: NineSpillAtlas = atlas): ReturnType<typeof spillInputs> {
+export function bakedSpill(caps: boolean, tier: 'phone' | 'desktop', atlasRows: NineSpillAtlas): ReturnType<typeof spillInputs> {
   const input = spillInputs(caps, tier, atlasRows);
   bakeSpill([...input.geometry.values()], input.emitters);
   return input;
@@ -115,7 +114,7 @@ export function bakedSpill(caps: boolean, tier: 'phone' | 'desktop', atlasRows: 
 
 /** Each draw's spill, baked into its geometry: every tier and deck ending lights a shared draw identically (refused
  *  otherwise), and each ending's own entry decks are their own draw. */
-export function drawSpill(atlasRows: NineSpillAtlas = atlas): ReadonlyMap<string, BufferAttribute> {
+export function drawSpill(atlasRows: NineSpillAtlas): ReadonlyMap<string, BufferAttribute> {
   const spill = new Map<string, BufferAttribute>();
   const shaded = new Map<string, ReadonlyMap<string, BufferAttribute>>();
   const prepared = withPortableMath(prepareSpillGeometry);

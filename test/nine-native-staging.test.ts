@@ -6,17 +6,16 @@ import { spawnSync } from 'node:child_process';
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
-import { discoverGeneration, generationInputs } from '../scripts/generate.mjs';
+import { generationInputs } from '../scripts/generate.mjs';
 import { stageGenerationInputs } from '../scripts/generation-stage.mjs';
 import { linkNodeModules } from '../scripts/link-node-modules.mjs';
+import roots from './fixtures/nine-native-refresh-roots.json' with { type: 'json' };
 
 test('the retained native sign page bundles from only its sealed declared sources', async () => {
   const root = process.cwd(), validator = 'src/shards/nine-dragon-stack/generators/sections.ts';
-  const job = discoverGeneration(root).jobs.find(row => row.id === 'nine-sign-atlas');
-  if (job === undefined) throw new Error('Missing retained sign raster adapter');
   const check = async (omitValidator: boolean) => {
     // generate.mjs always includes the format infrastructure; the descriptor owns its new validator.
-    const inputs = Object.entries(generationInputs(root, [...job.inputRoots, 'src/format']))
+    const inputs = Object.entries(generationInputs(root, [...roots, 'src/format']))
       .filter(([file]) => !omitValidator || file !== validator)
       .map(([file, hash]) => ({ file, hash, source: resolve(root, file) }));
     expect(inputs.some(row => row.file === validator)).toBe(!omitValidator);

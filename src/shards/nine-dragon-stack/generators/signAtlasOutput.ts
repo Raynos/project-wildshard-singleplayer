@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { SignAtlasSchema, parseSignView, parseNativeSignAtlas } from './sections';
+import { SignAtlasSchema, parseSignView } from './sections';
 // oxlint-disable-next-line import/no-nodejs-modules -- Author-only lossless KTX2 encoding, matching the SDK texture baker.
 import { zstdCompressSync } from 'node:zlib';
 import { unzlibSync } from 'fflate';
@@ -12,13 +12,12 @@ import { BufferAttribute, BufferGeometry, Float32BufferAttribute, MeshStandardMa
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
-import legacyAtlas from '../data/signAtlas.generated.json' with { type: 'json' };
 import type { NineNativeAtlas, NineNativeSignInputs } from './nativeSignMetadata';
 
 const signRows = parseSignView(rawSignRows);
 
 /** Declared native raster handoffs; the source program keys their bytes explicitly. */
-export function retainedSignInputs(atlas?: NineNativeAtlas): NineNativeSignInputs & { readonly atlas: NineNativeAtlas } { return { glyphs: legacyGlyphs, atlas: atlas ?? parseNativeSignAtlas(legacyAtlas) }; }
+export function retainedSignInputs(atlas: NineNativeAtlas): NineNativeSignInputs & { readonly atlas: NineNativeAtlas } { return { glyphs: legacyGlyphs, atlas }; }
 
 /** Re-admit cached source metadata beside the producer's existing sign validators. */
 export function parseSignSourceRows(input: unknown): { name: string; kind: 'glb' | 'ktx2' | 'json'; source: string;
@@ -63,9 +62,8 @@ function glyphTexture(tier: string, field: { size: number; packed: readonly stri
 }
 
 /** Standard exact rest pools and lossless KTX2 textures, admitted by the existing named-file writer. */
-export function signAtlasBlobs(read: ReadSignBytes, input?: NineNativeSignInputs): NamedBlob[] {
-  const supplied: NineNativeSignInputs = input ?? retainedSignInputs();
-  const { glyphs, atlas: rows } = supplied;
+export function signAtlasBlobs(read: ReadSignBytes, input: NineNativeSignInputs): NamedBlob[] {
+  const { glyphs, atlas: rows } = input;
   const blobs = (['phone', 'desktop'] as const).flatMap(tier => {
     const row = rows[tier];
     const material = new MeshStandardMaterial(), buffer = read(row.buffer);

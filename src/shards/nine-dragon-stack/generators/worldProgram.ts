@@ -26,8 +26,8 @@ export interface NineSourceWorld {
 
 /** Cache exact predecessor wires and raw GLBs outside source, including supplied native light rows in the identity.
  * Every hit retains ordinary admission and publication. */
-export async function nineWorldProgram(ctx: Pick<ProjectGenerationContext, 'cached' | 'asset'>, atlas?: NineSpillAtlas): Promise<NineSourceWorld> {
-  const identity = atlas === undefined ? 'world-layout' : `world-${hashImmutableBytes(new TextEncoder().encode(encodeCanonicalJson([
+export async function nineWorldProgram(ctx: Pick<ProjectGenerationContext, 'cached' | 'asset'>, atlas: NineSpillAtlas): Promise<NineSourceWorld> {
+  const identity = `world-${hashImmutableBytes(new TextEncoder().encode(encodeCanonicalJson([
     atlas.phone.placed, atlas.phone.lights, atlas.desktop.placed, atlas.desktop.lights,
   ])))}`;
   const files = await ctx.cached({ id: identity }, () => {

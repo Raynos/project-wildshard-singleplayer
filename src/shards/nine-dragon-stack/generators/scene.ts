@@ -20,7 +20,7 @@ export function nineChannels(geometry: BufferGeometry): Record<string, string> {
 }
 
 /** Static fabric is drawn from whole L0 nodes; local specimens are standard instanced-kind library GLBs. */
-function buildNineScene(atlas?: NineSpillAtlas): { baked: BakedScene; layout: ReturnType<typeof nineLayoutSource>; keys: { boot: string[]; explorer: string[] }; boxes: Record<string, boolean> } {
+function buildNineScene(atlas: NineSpillAtlas): { baked: BakedScene; layout: ReturnType<typeof nineLayoutSource>; keys: { boot: string[]; explorer: string[] }; boxes: Record<string, boolean> } {
   const layout = nineLayoutSource(), scene = new Scene(); scene.name = 'nine-dragon-stack';
   const material = new MeshStandardMaterial({ vertexColors: true });
   // each kit's neon spill rides in its tiles as the aSpill channel (generators/spillBake.ts `drawSpill`)
@@ -73,4 +73,4 @@ function buildNineScene(atlas?: NineSpillAtlas): { baked: BakedScene; layout: Re
 }
 
 /** Portable author math keeps the exact scene reproducible across arm64 Mac and Linux x64. */
-export function nineScene(atlas?: NineSpillAtlas): ReturnType<typeof buildNineScene> { return withPortableMath(() => buildNineScene(atlas)); }
+export function nineScene(atlas: NineSpillAtlas): ReturnType<typeof buildNineScene> { return withPortableMath(() => buildNineScene(atlas)); }

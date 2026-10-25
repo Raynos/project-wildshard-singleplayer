@@ -8,15 +8,14 @@ import { bakeLightVolume } from './lightVolume';
 import { neonSize } from './signMath';
 import type { NineSourceWorld } from './worldProgram';
 import { fixedKitRows } from './casts';
-import signs from '../data/signAtlas.generated.json' with { type: 'json' };
 import pools from '../data/lightPools.json' with { type: 'json' };
 import lantern from '../data/lantern.json' with { type: 'json' };
 import rawSignRows from '../data/signView.json' with { type: 'json' };
-import { parseSignView, parseNativeSignAtlas } from './sections';
+import { parseSignView } from './sections';
 import type { NineNativeAtlas } from './nativeSignMetadata';
 import { encodeCanonicalJson, hashImmutableBytes } from '@wildshard/sdk/immutable';
 
-const signRows = parseSignView(rawSignRows), legacyAtlas = parseNativeSignAtlas(signs);
+const signRows = parseSignView(rawSignRows);
 
 interface EmitterLike { at: Vector3; color: Color; w: number; h: number; power: number; spill: number }
 interface WindowLike { m: Matrix4; win: Vector4; light: Color }
@@ -64,7 +63,7 @@ export function lightPoolRows(opt: { readonly lanterns: readonly EmitterLike[]; 
 }
 
 /** Restore the static pool inputs in the same order as the page's layout reader. */
-export function volumeSources(tier: 'phone' | 'desktop', caps: boolean, layout: NineSourceWorld['layout'], atlas: NineNativeAtlas = legacyAtlas): { lanterns: EmitterLike[]; ctxEmitters: EmitterLike[]; signs: EmitterLike[]; windows: WindowLike[] } {
+export function volumeSources(tier: 'phone' | 'desktop', caps: boolean, layout: NineSourceWorld['layout'], atlas: NineNativeAtlas): { lanterns: EmitterLike[]; ctxEmitters: EmitterLike[]; signs: EmitterLike[]; windows: WindowLike[] } {
   const c = layout.rows.counts, records = layout.records;
   let cursor = (c.walkers + c.sitters) * 16;
   const numeric = (value: unknown): number => {
@@ -134,5 +133,5 @@ function volumeData(layout: NineSourceWorld['layout'], atlas: NineNativeAtlas): 
   }
   const result = { blobs, rows }; cached.set(layout, {atlas: identity, data: result}); return result;
 }
-export function lightVolumeBlobs(layout: NineSourceWorld['layout'], atlas: NineNativeAtlas = legacyAtlas): NamedBlob[] { return volumeData(layout, atlas).blobs; }
-export function lightVolumeRows(layout: NineSourceWorld['layout'], atlas: NineNativeAtlas = legacyAtlas): Readonly<Record<string, VolumeRow>> { return volumeData(layout, atlas).rows; }
+export function lightVolumeBlobs(layout: NineSourceWorld['layout'], atlas: NineNativeAtlas): NamedBlob[] { return volumeData(layout, atlas).blobs; }
+export function lightVolumeRows(layout: NineSourceWorld['layout'], atlas: NineNativeAtlas): Readonly<Record<string, VolumeRow>> { return volumeData(layout, atlas).rows; }
