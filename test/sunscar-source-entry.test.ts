@@ -9,7 +9,7 @@ import entry, { generate } from '../src/shards/sunscar-dunes/shard.config';
 
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { readProjectAssets } from '../src/sdk/project';
-import { generated, world, originalOutput as output } from './fixtures/sunscar-source-program';
+import { navigation, generated, world, originalOutput as output } from './fixtures/sunscar-source-program';
 import before from './fixtures/sunscar-source-entry.json' with { type: 'json' };
 import originalProductAssets from './fixtures/sunscar-duplicate-product.json' with { type: 'json' };
 import rigFiles from './fixtures/sunscar-rig-files.json' with { type: 'json' };
@@ -42,9 +42,9 @@ test('direct world rows preserve the original ordered aggregate without its JSON
   expect(signature(world)).toEqual(before.raw.world);
   const registry = v.parse(v.object({ jobs: v.array(v.object({ id: v.string(), shard: v.nullable(v.string()), inputRoots: v.array(v.string()), outputs: v.array(v.string()) })) }),
     JSON.parse(readFileSync('scripts/generation-jobs.json', 'utf8')));
-  expect(registry.jobs.some(row => ['signal-world-bakes', 'signal-product', 'signal-fire-book', 'signal-rigs', 'signal-manifest-ground', 'signal-world', 'signal-sand', 'signal-data-map', 'signal-declaration', 'signal-rest-fire', 'signal-view-data'].includes(row.id))).toBe(false);
+  expect(registry.jobs.some(row => ['signal-world-bakes', 'signal-product', 'signal-fire-book', 'signal-rigs', 'signal-manifest-ground', 'signal-world', 'signal-sand', 'signal-data-map', 'signal-declaration', 'signal-rest-fire', 'signal-view-data', 'signal-navigation'].includes(row.id))).toBe(false);
   expect(registry.jobs.flatMap(row => row.inputRoots.concat(row.outputs)).some(path => path.startsWith('src/shards/sunscar-dunes/.wildshard/product/'))).toBe(false);
-  expect(registry.jobs.filter(row => row.shard === 'sunscar-dunes')).toHaveLength(11);
+  expect(registry.jobs.filter(row => row.shard === 'sunscar-dunes')).toHaveLength(10);
   const paths = registry.jobs.flatMap(row => row.inputRoots.concat(row.outputs));
   expect(paths.some(path => path.startsWith('src/shards/sunscar-dunes/') && /\/(?:manifestGround|nativeGround)\.generated\.json$/u.test(path))).toBe(false);
   expect(registry.jobs.flatMap(row => row.inputRoots.concat(row.outputs)).some(path => path.endsWith('/worldBakes.generated.json'))).toBe(false);
@@ -129,7 +129,7 @@ test('computed discovery removes only the retired public rig/world/fire/skirt UR
   const rigs = new Set([...Object.values(DUNE_RIG_URLS), ...Object.values(BAKED_URLS), REST_URLS[2]]);
   const expected = { tiers: { phone: { ...BOOT_SOURCES.tiers.phone, terrain: BOOT_SOURCES.tiers.phone.terrain.filter(url => url !== SAND_FILES.skirt), props: BOOT_SOURCES.tiers.phone.props.filter(url => !rigs.has(url)) },
     desktop: { ...BOOT_SOURCES.tiers.desktop, terrain: BOOT_SOURCES.tiers.desktop.terrain.filter(url => url !== SAND_FILES.skirt), props: BOOT_SOURCES.tiers.desktop.props.filter(url => !rigs.has(url)) } } };
-  expect(generated.discovery).toEqual({ budgets: BUDGETS, poses: SIGNAL_DEV_POSES, audioCues: cues, 'boot.lateReads': LATE_READS, 'boot.sources': expected, 'boot.files': { ...BOOT_FILES, sources: expected } });
+  expect(generated.discovery).toEqual({ navigation, budgets: BUDGETS, poses: SIGNAL_DEV_POSES, audioCues: cues, 'boot.lateReads': LATE_READS, 'boot.sources': expected, 'boot.files': { ...BOOT_FILES, sources: expected } });
 });
 
 

@@ -2,7 +2,7 @@ import slotMigrations from '../data/slotMigrations.json' with { type: 'json' };
 import { QUEST_HOST } from './questHost';
 import { QUEST_NPC } from './questNpc';
 import signalStages from '../data/signalStages.json' with { type: 'json' };
-import navigation from '../data/navigation.generated.json' with { type: 'json' };
+import type { SignalNavigation } from './navigationProgram';
 import bossStages from '../data/bossStages.json' with { type: 'json' };
 import SIGNAL_DUNES_RUNTIME_COST from '../data/runtimeCost.json' with { type: 'json' };
 import { emptyShardfile } from '@wildshard/sdk/author';
@@ -21,7 +21,7 @@ import { signalFireGraphs } from './fireLook';
 import type { FireBookFile } from './fireBookPixels';
 
 /** Construct the original declaration from the source-owned texture metadata. */
-export function signalProductRows(fireBook: FireBookFile, sandSource: SignalSandMetadata): Shardfile {
+export function signalProductRows(fireBook: FireBookFile, sandSource: SignalSandMetadata, navigation: SignalNavigation): Shardfile {
 const FIRE_GRAPHS = signalFireGraphs(fireBook.hash);
 
 // Legacy trusted runtime retains today's geometry/spawn; SF29 binds only its audio.

@@ -4,6 +4,7 @@ import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createProjectGeneration } from '../../src/sdk/projectGeneration';
 import { projectAssets } from '../../src/sdk/project';
+import { signalNavigation } from '../../src/shards/sunscar-dunes/generators/navigationProgram';
 import { signalRigs } from '../../src/shards/sunscar-dunes/generators/rigProgram';
 import { signalRigLibrary } from '../../src/shards/sunscar-dunes/generators/rows/rigLibrary';
 import { DUNE_RIG_URLS } from '../../src/shards/sunscar-dunes/generators/rows/files';
@@ -30,18 +31,18 @@ const built = await (async () => {
   try {
     const ctx = createProjectGeneration(root, 'a'.repeat(64), assets, cache, [{ prefix: '/assets/', directory: resolve('public/assets') }]);
     const generated = await generate(ctx), rigs = await signalRigs(ctx);
-    return { generated, rigLibrary: signalRigLibrary(DUNE_RIG_URLS, rigs.library.bodies.standIns.strider), world: signalWorldMetadata(await signalWorldFiles(ctx)), sand: await signalSand(ctx) };
+    return { generated, navigation: await signalNavigation(ctx), rigLibrary: signalRigLibrary(DUNE_RIG_URLS, rigs.library.bodies.standIns.strider), world: signalWorldMetadata(await signalWorldFiles(ctx)), sand: await signalSand(ctx) };
   }
   finally { rmSync(cache, { recursive: true, force: true }); }
 })();
-export const { generated, world, sand, rigLibrary } = built;
+export const { generated, world, sand, rigLibrary, navigation } = built;
 /** Original public-name projection from the actual bake, for unchanged full-byte oracles. */
 export const held = whipHeldRecipe(world.lash), gear = gearSceneRows(world, held);
 export const markers = signalQuestMarkers(world), page = signalQuestPage(markers), client = signalClientPlan(page);
 export const sourceBlobs = signalSceneSources(world, rigLibrary), scene = signalWorldScenes(world, sourceBlobs);
 export const originalOutput = signalSceneOutput(scene, client);
 const fireBytes = [...assets.values()].find(bytes => bytes[0] === 0xab && bytes[1] === 0x4b && bytes[2] === 0x54 && bytes[3] === 0x58);
-if (fireBytes === undefined || assets.size !== 17) throw new Error('Missing source-owned fire-book, pools, rigs or world');
-export const signalProductRows = () => product(fireBookFile(fireBytes), sand);
+if (fireBytes === undefined || assets.size !== 18) throw new Error('Missing source-owned fire-book, pools, rigs or world');
+export const signalProductRows = () => product(fireBookFile(fireBytes), sand, navigation);
 export const source = generated.shard;
 export const sourceAssets = projectAssets(root, source, 'project', assets);
