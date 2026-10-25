@@ -1,5 +1,7 @@
 import { listenDom } from '../input/dom';
 import { app } from '../app/runtime';
+import { ExploreLoadProgress } from './loadProgress';
+import { engineString } from '../strings';
 /**
  * World Explorer's static image comparison. Each target has a capture from the same authored
  * camera. Opening it never flies or moves the live camera. Images are requested only when
@@ -23,6 +25,8 @@ export class Compare {
   private readonly targetImg: HTMLImageElement;
   private readonly divider: HTMLElement;
   private readonly targets: readonly Target[];
+  private readonly pickerProgress: ExploreLoadProgress;
+  private readonly imageProgress: ExploreLoadProgress;
   private split = 0.5;
   private current: Target | null = null;
 
@@ -49,8 +53,11 @@ export class Compare {
     this.liveImg = this.overlay.querySelector<HTMLImageElement>('.ws-x-compare-live') ?? document.createElement('img');
     this.targetImg = this.overlay.querySelector<HTMLImageElement>('.ws-x-compare-target') ?? document.createElement('img');
     this.divider = this.overlay.querySelector<HTMLElement>('.ws-x-divider') ?? this.overlay;
+    this.pickerProgress = new ExploreLoadProgress(this.picker);
+    this.imageProgress = new ExploreLoadProgress(this.overlay);
+    this.uiScope.onDispose(() => { this.pickerProgress.dispose(); this.imageProgress.dispose(); });
     listenDom(this.uiScope, this.button, 'click', () => { this.togglePicker(); });
-    listenDom(this.uiScope, this.picker.querySelector('.ws-x-picker-close'), 'click', () => { this.picker.classList.remove('show'); });
+    listenDom(this.uiScope, this.picker.querySelector('.ws-x-picker-close'), 'click', () => { this.picker.classList.remove('show'); this.pickerProgress.clear(); });
     this.picker.querySelectorAll<HTMLElement>('.ws-x-target').forEach((b) => { listenDom(this.uiScope, b, 'click', () => { const t = this.targets.find((x) => x.id === b.dataset['id']); if (t) this.show(t); }); });
     listenDom(this.uiScope, this.overlay.querySelector('.ws-x-compare-close'), 'click', () => { this.close(); });
     listenDom(this.uiScope, this.divider, 'pointerdown', (e) => { this.divider.setPointerCapture(e.pointerId); this.splitAt(e.clientX); e.preventDefault(); });
@@ -67,20 +74,27 @@ export class Compare {
 
   private togglePicker(): void {
     if (!this.picker.classList.contains('show')) {
+      const pending: Promise<void>[] = [];
       this.picker.querySelectorAll<HTMLElement>('.ws-x-target').forEach((b) => {
         const t = this.targets.find((x) => x.id === b.dataset['id']);
         const slot = b.querySelector<HTMLElement>('.ws-x-target-img');
-        if (t && slot) slot.style.backgroundImage = `url('${t.target}')`;
+        if (t && slot) {
+          const image = new Image(); image.alt = t.name; image.src = t.target;
+          slot.replaceChildren(image); pending.push(image.decode());
+        }
       });
-    }
+      void this.pickerProgress.watch(engineString('s_explore_compare'), pending).catch(() => undefined); // Visible failure replaces the spinner.
+    } else this.pickerProgress.clear();
     this.picker.classList.toggle('show');
   }
 
   private show(t: Target): void {
     this.current = t;
     this.picker.classList.remove('show');
+    this.pickerProgress.clear();
     this.liveImg.src = t.live;
     this.targetImg.src = t.target;
+    void this.imageProgress.watch(t.name, [this.liveImg.decode(), this.targetImg.decode()]).catch(() => undefined);
     const name = this.overlay.querySelector('.ws-x-compare-head b');
     if (name) name.textContent = t.name;
     this.overlay.classList.add('show');
@@ -89,6 +103,7 @@ export class Compare {
   }
 
   close(): void {
+    this.pickerProgress.clear(); this.imageProgress.clear();
     this.overlay.classList.remove('show'); this.picker.classList.remove('show'); this.current = null;
     this.explore.setCompareOpen(false);
     this.liveImg.removeAttribute('src'); this.targetImg.removeAttribute('src');

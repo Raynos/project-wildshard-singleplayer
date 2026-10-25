@@ -74,7 +74,12 @@ export function loadingSpecimen(id: string, size: readonly [number, number, numb
       holder.add(made);
       announceModelReady(id);
     } catch (error) {
-      if (owner?.disposed !== true) console.warn(`[models] ${id}: the specimen's file did not load`, error);
+      // A closed view still cancels silently. A live failed decoder must not
+      // report successful readiness to the Explorer progress display.
+      if (owner?.disposed !== true && owner?.disposing !== true) {
+        console.warn(`[models] ${id}: the specimen's file did not load`, error);
+        throw error;
+      }
     }
   })();
   trackSpecimenReady(holder, pending);

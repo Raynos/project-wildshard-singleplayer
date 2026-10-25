@@ -104,10 +104,19 @@
 .ws-x-grid { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); align-content: start; gap: 8px; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; overscroll-behavior: contain; }
 .ws-x-model { display: flex; flex-direction: column; gap: 3px; padding: 5px 5px 8px; text-align: left; background: var(--ws-glass-deep); border: 1px solid rgba(143, 227, 255, 0.2); }
 .ws-x-model:hover, .ws-x-model:focus-visible { border-color: var(--ws-cyan); outline: none; }
-.ws-x-model .ws-x-model-thumb { display: block; aspect-ratio: 4 / 3; background: radial-gradient(circle at 50% 60%, rgba(143, 227, 255, 0.12), rgba(6, 10, 18, 0.6)); overflow: hidden; }
+.ws-x-model .ws-x-model-thumb { position: relative; display: block; aspect-ratio: 4 / 3; background: radial-gradient(circle at 50% 60%, rgba(143, 227, 255, 0.12), rgba(6, 10, 18, 0.6)); overflow: hidden; }
 .ws-x-model .ws-x-model-thumb canvas { display: block; width: 100%; height: 100%; }
 .ws-x-model b { padding: 2px 4px 0; font-family: var(--ws-display); font-size: 14px; letter-spacing: 0.12em; text-transform: uppercase; color: #fff; }
 .ws-x-model small { padding: 0 4px; font-size: 9px; letter-spacing: 0.12em; color: var(--ws-cyan-dim); }
+/* Real preparation counts for existing cold Explorer views (G729). */
+.ws-x-load { position: absolute; z-index: 1; left: 50%; top: 45%; transform: translate(-50%, -50%); display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; width: min(280px, 85%); box-sizing: border-box; padding: 10px; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); font-size: 11px; text-align: center; pointer-events: none; }
+.ws-x-load[hidden] { display: none; }
+.ws-x-load i { flex: 0 0 12px; height: 12px; border: 2px solid var(--ws-cyan); border-right-color: transparent; border-radius: 50%; animation: ws-x-load-spin 0.8s linear infinite; }
+@keyframes ws-x-load-spin { to { transform: rotate(360deg); } }
+.ws-x-load progress { width: 100%; height: 4px; accent-color: var(--ws-cyan); }
+.ws-x-load.failed i { display: none; }
+.ws-x-model-thumb .ws-x-load { font-size: 9px; padding: 5px; }
+@media (prefers-reduced-motion: reduce) { .ws-x-load i { animation: none; } }
 /* turntable: view + light chips up top, the sheet low */
 .ws-x-views, .ws-x-lights { position: absolute; left: 50%; transform: translateX(-50%); display: flex; gap: 4px; pointer-events: auto; }
 .ws-x-views { top: calc(68px + env(safe-area-inset-top, 0px)); }
@@ -253,7 +262,8 @@
 .ws-x-picker-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .ws-x-target { display: flex; flex-direction: column; gap: 5px; padding: 5px 5px 8px; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--ws-cyan-line); text-align: left; }
 .ws-x-target:hover, .ws-x-target:focus-visible { border-color: var(--ws-amber); outline: none; }
-.ws-x-target .ws-x-target-img { display: block; aspect-ratio: 720 / 925; background-size: cover; background-position: center; }
+.ws-x-target .ws-x-target-img { position: relative; display: block; aspect-ratio: 720 / 925; }
+.ws-x-target-img img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; }
 .ws-x-target b { font-family: var(--ws-display); font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; }
 .ws-x-compare { position: absolute; inset: 0; display: none; pointer-events: auto; background: #05080d; }
 .ws-x-compare.show { display: block; }

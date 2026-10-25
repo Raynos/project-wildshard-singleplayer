@@ -39,6 +39,7 @@ import type { LightPreset, DayCycleClock } from '../world/dayCycle';
 import { app } from '../app/runtime';
 import { registeredSets } from './registry';
 import { bandWindow, fitOrbit, lensReset, lensShift, setsOf } from './setView';
+import { ExploreLoadProgress } from './loadProgress';
 
 type View = 'solid' | 'wire' | 'facets' | 'paint' | 'tiers';
 const VIEWS: readonly [View, string][] = [['solid', 'Solid'], ['wire', 'Wireframe'], ['facets', 'Facets'], ['paint', 'Paint'], ['tiers', 'Tiers']];
@@ -161,11 +162,14 @@ export class ModelExplorer implements ExplorePane {
   private readonly explore: Explore;
   private readonly world: World;
   private readonly entries: CatalogEntry[];
+  private readonly preparation: ExploreLoadProgress;
   constructor(explore: Explore, world: World, entries: CatalogEntry[]) {
     this.explore = explore;
     this.world = world;
     this.entries = entries;
     this.el = html('div', 'ws-x-models');
+    this.preparation = new ExploreLoadProgress(this.el);
+    this.uiScope.onDispose(() => { this.preparation.dispose(); });
     this.grid = html('div', 'ws-x-catalog', '<div class="ws-x-filter"><button type="button" class="ws-x-lineup">Lineup</button></div><div class="ws-x-grid"></div>');
     const lineup = this.grid.querySelector('.ws-x-lineup'); if (lineup === null) throw new Error('ModelExplorer: missing lineup');
     for (const category of CATEGORIES.filter((c) => c.id === 'all' || entries.some((e) => e.category === c.id))) {
@@ -349,6 +353,7 @@ export class ModelExplorer implements ExplorePane {
     this.current = e;
     this.el.dataset['view'] = 'model';
     const o = e.object();
+    if (e.ready !== undefined) void this.preparation.watch(e.name, [e.ready()]).catch(() => undefined); // The status retains this failure until another choice.
     if (!e.live && o.parent !== this.studio) { this.studio.add(o); this.fresh.add(o); }
     this.isolate(o);
     this.frameModel(o);
@@ -399,6 +404,7 @@ export class ModelExplorer implements ExplorePane {
   }
 
   private closeModel(): void {
+    this.preparation.clear();
     this.closeLineup();
     this.setSkeleton(false, false);
     if (!this.current) { this.unisolate(); return; }
@@ -935,11 +941,15 @@ export class ModelExplorer implements ExplorePane {
   }
 
   private async prepareThumbnail(e: CatalogEntry, root: THREE.Object3D, version: number): Promise<void> {
+    const host = this.grid.querySelector<HTMLElement>(`.ws-x-model[data-id="${e.id}"] .ws-x-model-thumb`) ?? this.grid;
+    const progress = new ExploreLoadProgress(host), forget = this.uiScope.capture('disposers', () => { progress.dispose(); });
+    let failed = false;
     try {
-      await e.ready?.();
+      await progress.watch(e.name, [e.ready?.() ?? Promise.resolve()]);
       if (version === this.thumbnailVersion && this.el.classList.contains('show') && this.el.dataset['view'] === 'catalog') this.captureThumbnail(e);
-    } catch (error) { console.error(`[explorer] ${e.id}: thumbnail preparation failed`, error); }
+    } catch (error) { failed = true; console.error(`[explorer] ${e.id}: thumbnail preparation failed`, error); }
     finally {
+      forget(); if (!failed) progress.dispose(); // A failed card keeps its status until the catalogue is closed or rebuilt.
       if (this.current !== e) { this.fresh.delete(root); e.release?.(); }
       if (this.pendingThumb === e) this.pendingThumb = null;
     }
