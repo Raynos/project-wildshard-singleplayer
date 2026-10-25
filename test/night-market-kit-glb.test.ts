@@ -47,3 +47,47 @@ console.log(JSON.stringify(rows));`;
   expect(rows.map(row => row.counts)).toEqual(Array.from({ length: 4 }, () => [8, 10, 8, 12]));
   expect(rows.every(row => row.bytes > 0 && row.bytes < 16_384)).toBe(true);
 });
+
+test('GLB placement preserves the full layout, seed order and exact source collision', () => {
+  const kit = new URL('../src/shards/open-plots/generators/kit.mjs', import.meta.url).href;
+  const glb = new URL('../src/shards/open-plots/generators/kitGlb.mjs', import.meta.url).href;
+  const program = `import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {buildLayout,parseLayout,Soup} from ${JSON.stringify(kit)};
+import {prepareLanternKit} from ${JSON.stringify(glb)};
+// A separate instance of the same pure builder gives both paths their initial moving-light seed stream.
+const source=readFileSync(new URL(${JSON.stringify(kit)}),'utf8');
+const original=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
+const layout=JSON.parse(readFileSync('src/shards/open-plots/data/layouts/night-market.json','utf8'));
+const linear=hex=>[1,3,5].map(at=>{const c=parseInt(hex.slice(at,at+2),16)/255;return c<=.04045?c/12.92:((c+.055)/1.055)**2.4});
+const palette=Object.fromEntries(Object.entries(layout.palette).map(([key,c])=>[key,linear(c)]));
+const prepared=await prepareLanternKit(palette);
+const parts=()=>Object.fromEntries(['Kit','Glow','Pool','Water','far','solid'].map(key=>[key,new Soup()]));
+const a=parts(),b=parts(),seed=(r,c)=>(r*7+c*3)%2;
+original.buildLayout(parseLayout(layout.rows),a,palette,seed);
+buildLayout(parseLayout(layout.rows),b,palette,seed,prepared);
+const rows=[];
+for(const role of Object.keys(a)){
+ const name=role==='solid'?'Solid':role,ap=a[role].part(name),bp=b[role].part(name);
+ assert.equal(ap.positions.length,bp.positions.length);
+ for(const channel of ['normals','colours','uvs'])assert.deepEqual(new Float32Array(bp[channel]),new Float32Array(ap[channel]),role+' '+channel);
+ if(role==='solid')assert.deepEqual(bp,ap);
+ let error=0;
+ const before=new Float32Array(ap.positions),after=new Float32Array(bp.positions);
+ for(let i=0;i<before.length;i++)error=Math.max(error,Math.abs(before[i]-after[i]));
+ rows.push({role,error,triangles:before.length/9});
+}
+// Refuse before a writer sees a partial piece.
+let writes=0;const sink={triColours(){writes++}};
+assert.throws(()=>prepared.placeLantern(sink,0,0,3),/invalid placement/);
+assert.throws(()=>prepared.placeLantern(sink,Infinity,0,2.8),/invalid placement/);
+assert.equal(writes,0);
+console.log(JSON.stringify(rows));`;
+  const output = execFileSync(process.execPath, ['--import', './scripts/bake-loader.mjs', '--input-type=module', '-e', program], { encoding: 'utf8' });
+  const rows = v.parse(v.array(v.object({ role: v.string(), error: v.number(), triangles: v.number() })), JSON.parse(output));
+  expect(rows.map(row => row.role)).toEqual(['Kit', 'Glow', 'Pool', 'Water', 'far', 'solid']);
+  // Ordinary GLB float32 storage: at most two micrometres after actual tile placement, no altered collision.
+  expect(rows.every(row => row.error <= 0.000002)).toBe(true);
+  expect(rows.filter(row => ['Kit', 'Water', 'far', 'solid'].includes(row.role)).every(row => row.error === 0)).toBe(true);
+  expect(rows.every(row => row.triangles > 0)).toBe(true);
+});

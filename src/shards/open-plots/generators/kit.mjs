@@ -85,7 +85,7 @@ export function checkLayout(grid) {
 }
 
 /** A tile's writer: every point is tile-local, turned `turns` quarter turns clockwise and moved to the tile's centre. */
-function writer(parts, centre, turns) {
+function writer(parts, centre, turns, kit) {
   const turn = ([x, y, z]) => {
     let px = x, pz = z;
     for (let i = 0; i < turns; i++) [px, pz] = [pz, -px];
@@ -118,7 +118,7 @@ function writer(parts, centre, turns) {
     const a = turn(min), b = turn(max);
     parts.solid.box('Solid', [Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.min(a[2], b[2])], [Math.max(a[0], b[0]), Math.max(a[1], b[1]), Math.max(a[2], b[2])]);
   };
-  return { tri, triColours, quad, box, sides, floor, solid };
+  return { tri, triColours, quad, box, sides, floor, solid, placeLantern: kit?.placeLantern };
 }
 
 /** An n-sided frustum about (x, z) from radius r0 at y0 to r1 at y1 (r1 0: a cone), capped. */
@@ -178,6 +178,12 @@ function firefly(w, x, y, z) { mover(w, x, y, z, 0.07, nextSeed() * 0.5); }
 function skyLantern(w, x, y, z) { mover(w, x, y, z, 0.35, 0.5 + nextSeed() * 0.5); }
 /** A lantern on a post (post in Kit, the lantern lit) and its pool of light. */
 function lantern(w, x, z, p, height = 2.8) {
+  if (w.placeLantern !== undefined) {
+    w.placeLantern(w, x, z, height);
+    // Preserve the original box arithmetic and order; GLB float storage must not alter collision.
+    w.solid([x - 0.09, 0, z - 0.09], [x + 0.09, height, z + 0.09]);
+    return;
+  }
   w.sides('Kit', [x - 0.09, 0, z - 0.09], [x + 0.09, height, z + 0.09], p.wood);
   w.solid([x - 0.09, 0, z - 0.09], [x + 0.09, height, z + 0.09]);
   w.box('Glow', [x - 0.3, height, z - 0.3], [x + 0.3, height + 0.75, z + 0.3], p.lantern, p.lantern);
@@ -410,11 +416,11 @@ const BUILDERS = { H: house, G: garden, S: stalls, C: canal, L: canal, N: foreco
  * Build the whole layout into `parts` ({ Kit, Glow, far, solid } soups): tile (column c, row r) has its centre at
  * x = -250 + 62.5 (c + 0.5), z = 250 - 62.5 (r + 0.5) (row 1 north). `seed(r, c)` picks a variant for H and G.
  */
-export function buildLayout(grid, parts, p, seed) {
+export function buildLayout(grid, parts, p, seed, kit) {
   checkLayout(grid);
   for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) {
     const { type, turns } = grid[r][c], centre = [-250 + TILE * (c + 0.5), 250 - TILE * (r + 0.5)];
-    const w = writer(parts, centre, turns), build = BUILDERS[type];
+    const w = writer(parts, centre, turns, kit), build = BUILDERS[type];
     build(w, p, type === 'C' || type === 'L' ? type : seed(r, c));
     farTile(w, p, type);
     // NM7: string lights over the lanes between tiles (each tile strings its north and east seams when they are inside the
