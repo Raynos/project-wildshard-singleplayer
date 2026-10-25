@@ -13,6 +13,7 @@ AGENTS.md and docs/process/ hold the rest.
   red that blocks you. Split each L/XL row into ≤ 1 h slices with a status cell (done / in flight / waits-Jake /
   waits-Opus) in its plan, in the first code commit of that row (G711).
 - **Big moves (G704):** ≤ ~20 hand-touched files a commit, typed lint first, one big move at a time.
+- **Producer before reader:** a new generated input lands with (or before) its first reader, never after.
 - **Small commits:** land each green cut now; claims and progress go in the code commit's message, never a separate
   docs/record commit; no receipts (G506/G708).
 - **Messages (G708):** herdr only for a red that blocks you, via `scripts/herdr-prompt.sh <owner>`; no 'released',
