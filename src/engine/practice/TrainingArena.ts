@@ -20,10 +20,12 @@ import type { WorldRegistry, ColliderDesc } from '../world/registry';
 import { DummyMotion, DummyPose } from './DummyMotion';
 import type { DummyClips } from './DummyClips';
 import { applyDummyStudio } from './DummyStudio';
-import { DUMMY_JOINTS, DUMMY_VARIANTS, type DummyVariant, type TrainingDummyModel } from './TrainingDummy';
+import { DUMMY_JOINTS, type DummyVariant, type TrainingDummyModel } from './TrainingDummy';
+import { DUMMY_VARIANTS } from './dummyMetadata';
 import { ARENA_LINEUP } from './lineup';
 import { paramsOf } from '../models/model';
-import { dummyFigure, dummyStandIn, trainingDummy } from '../models/trainingDummy';
+import { trainingDummy } from '../models/trainingDummy';
+import { dummyFigure, dummyStandIn } from '../models/trainingDummyFigure';
 import './arena.css';
 import type { Renderer } from '../render/renderer';
 

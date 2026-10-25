@@ -4,9 +4,10 @@ import { cacheUntilDisposed, retainCachedResources } from '../app/cachedAssets';
 import * as THREE from 'three';
 import { clone as cloneSkeleton } from 'three/examples/jsm/utils/SkeletonUtils.js';
 import {
-  DUMMY_BONE_NAMES, DUMMY_JOINTS, LEGACY_BONE_NAMES, TRAINING_DUMMY_SCALE,
+  DUMMY_BONE_NAMES, DUMMY_JOINTS, LEGACY_BONE_NAMES,
   type DummyJoints, type DummyRig, type DummyVariant, type TrainingDummyModel,
 } from './TrainingDummy';
+import { TRAINING_DUMMY_SCALE } from './dummyMetadata';
 
 const URLS: Record<DummyVariant, string> = {
   wood: '/assets/practice/dummies/wood-wood.glb',

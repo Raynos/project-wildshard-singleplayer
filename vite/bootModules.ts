@@ -179,7 +179,7 @@ export function bootModulesPlugin(): Plugin {
       }
       // Practice keeps its synchronous room; only arena arrivals await these existing lazy model/clip loaders.
       const practice: string[] = [];
-      for (const file of ['src/engine/practice/TrainingArena.ts', 'src/engine/models/trainingDummy.ts']) {
+      for (const file of ['src/engine/practice/TrainingArena.ts', 'src/engine/models/trainingDummy.ts', 'src/engine/models/trainingDummyFigure.ts']) {
         const importer = resolve(root, file);
         for (const request of sourceImports(importer)) {
           const dependency = await this.resolve(request, importer);

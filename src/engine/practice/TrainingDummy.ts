@@ -1,18 +1,9 @@
-import { engineString } from '../strings';
 /** The three shared practice specimens: one humanoid construction, three core/armor materials. */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { TRAINING_DUMMY_SCALE } from './dummyMetadata';
 
 export type DummyVariant = 'wood' | 'straw-cloth' | 'wood-steel';
-/** The player's capsule is 1.8 m from feet to crown; keep the shared specimens human-sized. */
-export const TRAINING_DUMMY_HEIGHT = 1.8;
-export const TRAINING_DUMMY_SOURCE_HEIGHT = 2.65;
-export const TRAINING_DUMMY_SCALE = TRAINING_DUMMY_HEIGHT / TRAINING_DUMMY_SOURCE_HEIGHT;
-export const DUMMY_VARIANTS: readonly { id: DummyVariant; label: string; full: string }[] = [
-  { id: 'wood', label: engineString('s_731140284eac'), full: 'Wood frame · wood armor' },
-  { id: 'straw-cloth', label: engineString('s_689ddfcde9e2'), full: 'Straw body · cloth armor' },
-  { id: 'wood-steel', label: engineString('s_305d2091e911'), full: 'Wood frame · steel armor' },
-];
 
 /**
  * The bone contract (E285). The humanoid skeleton the Blender rig exports, by exact bone name:

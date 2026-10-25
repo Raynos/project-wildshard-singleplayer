@@ -32,7 +32,7 @@ import { beginExploreEntry, recordBootCheckpoint } from '@wildshard/engine/boot/
 import { startMenuPreload } from '@wildshard/engine/boot/extras';
 import { macrotask } from '@wildshard/engine/boot/plan';
 import { waitFor } from '@wildshard/engine/boot/waits';
-import { loadExplore, loadFeedback as loadFeedbackModule } from '@wildshard/engine/boot/runtime';
+import { loadExplore, loadFeedback as loadFeedbackModule, loadPlayground } from '@wildshard/engine/boot/runtime';
 import { CombatCues } from '@wildshard/engine/combat/cues';
 import { EffectService } from '@wildshard/engine/combat/effects/EffectService';
 import { PlayerHealth } from '@wildshard/engine/combat/health';
@@ -46,7 +46,6 @@ import { Impacts } from '@wildshard/engine/fx/Impacts';
 import { floorBelow, lineOfSight } from '@wildshard/engine/physics/query';
 import { CameraFX } from '@wildshard/engine/player/CameraFX';
 import { Hands } from '@wildshard/engine/player/Hands';
-import { loadPlayground } from '@wildshard/engine/practice/playground/load';
 import { Combat, aimReadout } from '@wildshard/engine/ui/Combat';
 import { DeathFade } from '@wildshard/engine/ui/DeathFade';
 import { FirstHints } from '@wildshard/engine/ui/FirstHints';
