@@ -6,8 +6,8 @@ import { SIGNAL_PIECES as pieces } from '../src/shards/sunscar-dunes/generators/
 import cues from '../src/shards/sunscar-dunes/data/cues.json' with { type: 'json' };
 import { heldPlayback } from '../src/shards/sunscar-dunes/generators/heldPlayback';
 import { SIGNAL_EMITTERS as emitters } from '../src/shards/sunscar-dunes/generators/lightEmitters';
-import { SIGNAL_CLIENT_PLAN as client } from '../src/shards/sunscar-dunes/generators/clientPlan';
-import { SIGNAL_SOURCE_BLOBS, SIGNAL_SOURCE_LIBRARIES } from '../src/shards/sunscar-dunes/generators/sceneSources';
+import { client, sourceBlobs as SIGNAL_SOURCE_BLOBS } from './fixtures/sunscar-source-program';
+import { SIGNAL_SOURCE_LIBRARIES } from '../src/shards/sunscar-dunes/generators/sceneSources';
 
 // Captured from the original signal-view-data / signal-held-playback outputs
 // before GR4 removes their JSON handoffs. Canonicalization ignores object-key

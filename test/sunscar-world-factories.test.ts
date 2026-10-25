@@ -3,17 +3,20 @@ import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { bakeSignalWorldSources } from '../src/shards/sunscar-dunes/generators/worldSources';
 import { signalWorldMetadata } from '../src/shards/sunscar-dunes/generators/worldMetadata';
-import { whipHeldRecipe, WHIP_HELD_RECIPE } from '../src/shards/sunscar-dunes/generators/rows/heldWeapon';
-import { gearSceneRows, GEAR_SCENE_ROWS } from '../src/shards/sunscar-dunes/generators/rows/gearModels';
-import { signalSceneSources, SIGNAL_SOURCE_BLOBS } from '../src/shards/sunscar-dunes/generators/sceneSources';
-import { signalWorldScenes, SIGNAL_WORLD_SCENES, SIGNAL_SCENE_BLOBS } from '../src/shards/sunscar-dunes/generators/worldScenes';
+import { whipHeldRecipe } from '../src/shards/sunscar-dunes/generators/rows/heldWeapon';
+import { gearSceneRows } from '../src/shards/sunscar-dunes/generators/rows/gearModels';
+import { signalSceneSources } from '../src/shards/sunscar-dunes/generators/sceneSources';
+import { signalWorldScenes } from '../src/shards/sunscar-dunes/generators/worldScenes';
 import { signalSceneOutput } from '../src/shards/sunscar-dunes/generators/sourceOutput';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
-import { signalQuestMarkers, QUEST_MARKERS } from '../src/shards/sunscar-dunes/generators/questMarkers';
-import { signalQuestPage, SIGNAL_QUEST_PAGE } from '../src/shards/sunscar-dunes/generators/questPage';
-import { signalClientPlan, SIGNAL_CLIENT_PLAN } from '../src/shards/sunscar-dunes/generators/clientPlan';
+import { signalQuestMarkers } from '../src/shards/sunscar-dunes/generators/questMarkers';
+import { signalQuestPage } from '../src/shards/sunscar-dunes/generators/questPage';
+import { signalClientPlan } from '../src/shards/sunscar-dunes/generators/clientPlan';
+import { held as WHIP_HELD_RECIPE, gear as GEAR_SCENE_ROWS, sourceBlobs as SIGNAL_SOURCE_BLOBS, scene as originalScene,
+  markers as QUEST_MARKERS, page as SIGNAL_QUEST_PAGE, client as SIGNAL_CLIENT_PLAN } from './fixtures/sunscar-source-program';
 import before from './fixtures/sunscar-source-entry.json' with { type: 'json' };
 
+const SIGNAL_WORLD_SCENES = originalScene.worldScenes, SIGNAL_SCENE_BLOBS = originalScene.blobs;
 const { files } = await bakeSignalWorldSources(new Uint8Array(readFileSync('src/shards/sunscar-dunes/assets/models/dry-well.glb')));
 const physical = (values: ReadonlyMap<string, Uint8Array>) => [...values]
   .map(([name, bytes]) => [name, bytes.length, hashImmutableBytes(bytes)])
@@ -28,7 +31,7 @@ test('explicit world rows retain every original held, specimen, scene and output
   const scene = signalWorldScenes(world, sources);
   expect(scene.worldScenes).toEqual(SIGNAL_WORLD_SCENES);
   expect(scene.blobs.map(blob => blob.file)).toEqual(SIGNAL_SCENE_BLOBS.map(blob => blob.file));
-  const output = signalSceneOutput(scene);
+  const output = signalSceneOutput(scene, SIGNAL_CLIENT_PLAN);
   const bytes = new TextEncoder().encode(encodeCanonicalJson({ ...output, assets: physical(output.assets),
     platform: { ...output.platform, files: physical(output.platform.files) } }));
   expect({ bytes: bytes.length, hash: hashImmutableBytes(bytes) }).toEqual(before.raw.output);

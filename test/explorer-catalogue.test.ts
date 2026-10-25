@@ -21,7 +21,7 @@ import { createModelLibrary, rigLibrary } from '../src/game/plugin/geometry';
 import { sceneScalar, sceneScalarValue, sceneVectors } from '../src/game/shardfile/sceneInputs';
 import type { ShardContext } from '../src/game/plugin/context';
 import { output as sky } from '../src/shards/far-reach/generators/output';
-import { output as signal } from '../src/shards/sunscar-dunes/generators/sourceOutput';
+import { originalOutput as signal } from './fixtures/sunscar-source-program';
 import { signalEmberBuffer, SIGNAL_EMBER_BLOBS } from '../src/shards/sunscar-dunes/generators/emberBuffers';
 
 const encode = (value: unknown) => new TextEncoder().encode(JSON.stringify(value));

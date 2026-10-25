@@ -4,7 +4,7 @@ import { createWorldScene } from '../src/game/plugin/scene';
 import { worldPieces } from '../src/game/shardfile/bakedKinds';
 import type { Piece } from '../src/engine/world/registry';
 import { admitHeldRecipe } from '../src/game/plugin/heldRecipe';
-import { WHIP_HELD_RECIPE } from '../src/shards/sunscar-dunes/generators/rows/heldWeapon';
+import { held as WHIP_HELD_RECIPE } from './fixtures/sunscar-source-program';
 import { FAN_HELD_RECIPE } from '../src/shards/far-reach/generators/rows/heldWeapon';
 
 it('admits both shipping held recipes and refuses malformed private capabilities', () => {

@@ -5,7 +5,7 @@ import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.j
 import { GeometryPack, packedRows } from '../src/sdk/kit/geometryPack';
 import { bakeSignalSkirt } from '../src/shards/sunscar-dunes/generators/skirt';
 import { SIGNAL_SKIRT_BLOBS } from '../src/shards/sunscar-dunes/generators/skirtScenes';
-import { SIGNAL_WORLD_SCENES } from '../src/shards/sunscar-dunes/generators/worldScenes';
+import { scene } from './fixtures/sunscar-source-program';
 import { parseWorldScenes } from '../src/format/worldScenes';
 import { parseWorldScene } from '../src/format/clientChannels';
 import { Scope } from '../src/engine/app/scope';
@@ -16,6 +16,8 @@ import { parseShardfile } from '../src/format/shardSchema';
 import { lendSceneMaterials, sceneMaterial } from '../src/game/shardfile/lentLooks';
 import { installWorldScenes } from '../src/game/shardfile/worldScenes';
 import type { ShardContext } from '../src/game/plugin/context';
+
+const SIGNAL_WORLD_SCENES = scene.worldScenes;
 
 function geometryMesh(value: unknown): value is Mesh { return value instanceof Mesh; }
 

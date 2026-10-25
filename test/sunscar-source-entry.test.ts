@@ -5,11 +5,11 @@ import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import entry, { generate } from '../src/shards/sunscar-dunes/shard.config';
-import { output } from '../src/shards/sunscar-dunes/generators/sourceOutput';
-import { worldBakes } from '../src/shards/sunscar-dunes/generators/worldBakes';
+
+
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { readProjectAssets } from '../src/sdk/project';
-import { generated } from './fixtures/sunscar-source-program';
+import { generated, world, originalOutput as output } from './fixtures/sunscar-source-program';
 import before from './fixtures/sunscar-source-entry.json' with { type: 'json' };
 import originalProductAssets from './fixtures/sunscar-duplicate-product.json' with { type: 'json' };
 import rigFiles from './fixtures/sunscar-rig-files.json' with { type: 'json' };
@@ -34,7 +34,7 @@ test('the source entry owns both outputs with the complete original declaration 
 });
 
 test('direct world rows preserve the original ordered aggregate without its JSON handoff', () => {
-  expect(signature(worldBakes())).toEqual(before.raw.world);
+  expect(signature(world)).toEqual(before.raw.world);
   const registry = v.parse(v.object({ jobs: v.array(v.object({ id: v.string(), shard: v.nullable(v.string()), inputRoots: v.array(v.string()), outputs: v.array(v.string()) })) }),
     JSON.parse(readFileSync('scripts/generation-jobs.json', 'utf8')));
   expect(registry.jobs.some(row => ['signal-world-bakes', 'signal-product', 'signal-fire-book', 'signal-rigs', 'signal-manifest-ground'].includes(row.id))).toBe(false);

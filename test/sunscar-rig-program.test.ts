@@ -9,8 +9,9 @@ import { hashImmutableBytes } from '../src/sdk/immutable';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { signalRigFiles, signalRigs } from '../src/shards/sunscar-dunes/generators/rigProgram';
 import { signalRigLibrary, SIGNAL_RIG_LIBRARY } from '../src/shards/sunscar-dunes/generators/rows/rigLibrary';
-import { signalModelSource, SIGNAL_SOURCE_BLOBS } from '../src/shards/sunscar-dunes/generators/sceneSources';
-import { signalSourceOutput, output as originalOutput } from '../src/shards/sunscar-dunes/generators/sourceOutput';
+import { signalSceneSources } from '../src/shards/sunscar-dunes/generators/sceneSources';
+import { signalSourceOutput } from '../src/shards/sunscar-dunes/generators/sourceOutput';
+import { world, sourceBlobs as SIGNAL_SOURCE_BLOBS, originalOutput, scene, client } from './fixtures/sunscar-source-program';
 import original from './fixtures/sunscar-rig-files.json' with { type: 'json' };
 
 const signature = (files: ReadonlyMap<string, Uint8Array>) => Object.fromEntries([...files].map(([name, bytes]) => [name, { bytes: bytes.length, hash: hashImmutableBytes(bytes) }]));
@@ -38,10 +39,12 @@ test('cold and cached creature bakes retain all five original full-byte identiti
     }
     expect(rigs.library.bodies.standIns).toEqual(SIGNAL_RIG_LIBRARY.bodies.standIns);
     expect(rigs.library.looks).toBe(SIGNAL_RIG_LIBRARY.looks);
-    const baseline = signalModelSource(signalRigLibrary(SIGNAL_RIG_LIBRARY.bodies.urls, rigs.library.bodies.standIns.strider));
+    const baseline = signalSceneSources(world, signalRigLibrary(SIGNAL_RIG_LIBRARY.bodies.urls, rigs.library.bodies.standIns.strider))[0];
+    if (baseline === undefined) throw new Error('Missing original model');
     expect(hashImmutableBytes(baseline.bytes)).toBe(SIGNAL_SOURCE_BLOBS[0]?.file.hash);
-    const output = signalSourceOutput(signalModelSource(rigs.library), rigs.blobs);
-    expect(output.platform).toBe(originalOutput.platform);
+    const model = signalSceneSources(world, rigs.library)[0]; if (model === undefined) throw new Error('Missing model');
+    const output = signalSourceOutput(model, rigs.blobs, scene, client);
+    expect(output.platform).toEqual(originalOutput.platform);
     expect(output.namedFiles?.length).toBe((originalOutput.namedFiles.length) + 4);
   } finally { rmSync(cache, { recursive: true, force: true }); }
 });

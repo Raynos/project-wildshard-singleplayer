@@ -5,7 +5,7 @@ import { publishBoundQuest } from '../src/game/quest/boundState';
 import { EmitterPresentation } from '../src/game/shardfile/lightEmitters';
 import { parseLightEmitters } from '../src/format/lightEmitters';
 import type { MoverRuntime } from '../src/game/plugin/mover';
-import { SIGNAL_CLIENT_PLAN } from '../src/shards/sunscar-dunes/generators/clientPlan';
+import { client as SIGNAL_CLIENT_PLAN } from './fixtures/sunscar-source-program';
 import sky from '../src/shards/far-reach/data/product.generated.json' with { type: 'json' };
 import { expect, test } from 'vitest';
 import { Group, Vector3 } from 'three';
