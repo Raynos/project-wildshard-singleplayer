@@ -2,9 +2,10 @@
 
 **Order (G639):** (1) live reds → (2) NALATI 0 → (3) grid / frame floor → extras.
 
-**(1) LIVE 7b7f0b1f0b (12:54Z). Since 07:41Z: 653f0abe85 (tonight's fixes), c8e2a84b0e (G723 warm-ahead + sword fix
-9dc10c2d58), 183bd85273 (Explorer + CF2 fix aa3b2781da), b92412f040, 8d7fb5440c. Hourly releases (sp-x7, G705; cron back
-12:37Z). 5c465d9b52 (CI + six legs) releasing 14:0xZ. No open red.
+**(1) LIVE 5c465d9b52 (14:32Z); f4b17bcb5a releasing 15:09Z. Since 07:41Z: 653f0abe85 (tonight's fixes), c8e2a84b0e
+(G723 warm-ahead + sword fix), 183bd85273 (Explorer + CF2 fix), b92412f040, 8d7fb5440c, 7b7f0b1f0b. Hourly releases
+(sp-x7, G705). Watch: intermittent grid far-cell stall since f6143c0a36 (in f4b1; cause unproven); fix candidate
+73b894e5c9 (sp-x2) rides ba3a6f08bf, smoke running.
 
 **(2) NALATI 0 done (27dd969127).** HOST-AUDIT (G679) parked until every mini plan finishes. Legacy waits (G606).
 
