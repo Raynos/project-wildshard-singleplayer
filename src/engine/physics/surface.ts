@@ -16,11 +16,16 @@ export interface ColliderTag { material: Material; owner: unknown }
 
 // Rapier's canonical Collider wrappers are world-local; numeric handles repeat in independent hosts.
 const tags = new WeakMap<Collider, ColliderTag>();
+const terrain = new WeakSet<Collider>();
 
+/** Classify at registration, outside Rapier's borrowed native query callbacks. */
 export function tagCollider(c: Collider, material: Material, owner: unknown = null): void {
   tags.set(c, { material, owner });
+  if (material === 'ground' && c.heightfieldNRows() > 0) terrain.add(c); else terrain.delete(c);
 }
 
 export function tagOf(c: Collider): ColliderTag | undefined { return tags.get(c); }
+/** JS-only query: native controller predicates cannot reborrow Rapier's collider set. */
+export function isTerrainCollider(c: Collider): boolean { return terrain.has(c); }
 
-export function untagCollider(c: Collider): void { tags.delete(c); }
+export function untagCollider(c: Collider): void { tags.delete(c); terrain.delete(c); }

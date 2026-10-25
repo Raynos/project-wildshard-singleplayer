@@ -13757,3 +13757,9 @@ supplied by the CLI's manifest intake. Each URL must select exactly one root;
 traversal, encoded separators, ambiguous roots and symlink escapes refuse.
 The bounded bytes are detached and hashed on every hit, like project-relative
 inputs. No repository layout, shard name or ambient parent path grants access.
+
+`physics/surface.tagCollider` keeps surface material and owner unchanged and
+classifies ground heightfields as spring-ridden terrain at registration. Baked
+structural meshes still stop hoverboard/swim movement. `isTerrainCollider` reads
+only weak JS metadata inside native controller predicates; saved-tag replay
+rebuilds the classification without a new snapshot field or native query reentry.

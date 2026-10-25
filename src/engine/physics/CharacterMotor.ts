@@ -17,7 +17,7 @@
 import type { Capsule, Collider, KinematicCharacterController, Ray, RigidBody } from '@dimforge/rapier3d-simd';
 import type { Physics } from './Physics';
 import { GROUP, groups, queryGroups, type GroupName } from './groups';
-import { tagCollider, tagOf } from './surface';
+import { isTerrainCollider, tagCollider } from './surface';
 import { FIXED_STEP } from '../core/fixedStep';
 
 export interface MotorOptions {
@@ -84,7 +84,7 @@ export class CharacterMotor {
   private ghost = '';
   private enabled = true;
   /** a move that ignores the terrain heightfield (the hoverboard, swimming: they ride their own springs over it) */
-  private readonly notGround = (c: Collider): boolean => tagOf(c)?.material !== 'ground';
+  private readonly notGround = (c: Collider): boolean => !isTerrainCollider(c);
   readonly result: MoveResult = { grounded: false, groundNormalY: 1, downhillX: 0, downhillZ: 0, horizontalFreedom: 1, groundCollider: null };
   private readonly anchor = { x: 0, y: 0, z: 0 };
   private anchorBody: RigidBody | null = null;
