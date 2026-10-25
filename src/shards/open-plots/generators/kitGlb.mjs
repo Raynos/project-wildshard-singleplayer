@@ -18,10 +18,10 @@ export function lanternGlb(palette, height = 2.8) {
 /** Own an existing static tile GLB and the palette/ordinal bindings produced by that exact source invocation.
  * Material names carry role and palette slot; far nodes retain the existing <= 40-triangle tile stand-in. */
 export function architectureGlb(type, palette, variant = 0) {
-  const { parts, bindings, movingLights } = architecturePiece(type, palette, variant);
+  const { parts, bindings, movingLights, lanterns } = architecturePiece(type, palette, variant);
   const entries = Array.from(bindings, ([name, binding]) => [binding.role, name, name, name]);
   entries.push(['solid', 'Solid', 'collide_body', 'collision']);
-  return { bytes: encodeParts(parts, entries, `architecture_${type}_${variant}`), bindings, movingLights };
+  return { bytes: encodeParts(parts, entries, `architecture_${type}_${variant}`), bindings, movingLights, lanterns };
 }
 
 function encodeParts(parts, entries, name) {
@@ -107,10 +107,11 @@ export async function prepareArchitectureVariants(sources) {
     if (a.movingLights.length !== b.movingLights.length || a.movingLights.some((light, i) => {
       const other = b.movingLights[i];
       return light.kind !== other.kind || light.position.some((value, k) => value !== other.position[k]);
-    }) || !sameWords(a.collision.positions, b.collision.positions) || !sameWords(a.collision.indices, b.collision.indices)) {
+    }) || a.lanterns.length !== b.lanterns.length || a.lanterns.some((light, i) => !sameWords(light.at, b.lanterns[i].at) || !sameWords(light.colour, b.lanterns[i].colour))
+      || !sameWords(a.collision.positions, b.collision.positions) || !sameWords(a.collision.indices, b.collision.indices)) {
       throw new Error('open-plots architecture: LOD changes collision or moving lights');
     }
-    pieces.set(`${type}/${variant}`, levels.map(level => ({ roles: level.roles, movingLights: level.movingLights })));
+    pieces.set(`${type}/${variant}`, levels.map(level => ({ roles: level.roles, movingLights: level.movingLights, lanterns: level.lanterns })));
   }
   return Object.freeze({
     placeArchitecture(w, type, variant, lod = 0) {
@@ -127,8 +128,8 @@ function sameWords(a, b) {
 }
 
 async function decodeArchitecture(source) {
-  const { bytes, bindings, movingLights } = source;
-  if (!(bytes instanceof Uint8Array) || bytes.length === 0 || !(bindings instanceof Map) || !Array.isArray(movingLights)) {
+  const { bytes, bindings, movingLights, lanterns } = source;
+  if (!(bytes instanceof Uint8Array) || bytes.length === 0 || !(bindings instanceof Map) || !Array.isArray(movingLights) || !Array.isArray(lanterns)) {
     throw new Error('open-plots architecture: invalid owned GLB source');
   }
   const materials = Object.fromEntries([...bindings.keys(), 'collision'].map(name => [name, 'kit']));
@@ -162,12 +163,27 @@ async function decodeArchitecture(source) {
     return i > 0 && light.ordinal < movingLights[i - 1].ordinal;
   });
   if (invalidLight) throw new Error('open-plots architecture: invalid moving-light order');
+  const invalidLantern = lanterns.some(light => {
+    if (!Array.isArray(light.at)) return true;
+    if (light.at.length !== 3) return true;
+    if (!Array.isArray(light.colour)) return true;
+    if (light.colour.length !== 3) return true;
+    for (let i = 0; i < 3; i++) {
+      if (!Number.isFinite(light.at[i]) || !Number.isFinite(light.colour[i]) || light.colour[i] < 0 || light.colour[i] > 1) return true;
+    }
+    return false;
+  });
+  if (invalidLantern) {
+    throw new Error('open-plots architecture: invalid lantern emitter');
+  }
   if (movingLights.length > 0 && !roles.has('Glow')) roles.set('Glow', []);
-  return { roles, movingLights: movingLights.map(light => ({ kind: light.kind, ordinal: light.ordinal, position: [...light.position] })),
+  return { roles, lanterns: lanterns.map(light => ({ at: [...light.at], colour: [...light.colour] })),
+    movingLights: movingLights.map(light => ({ kind: light.kind, ordinal: light.ordinal, position: [...light.position] })),
     triangles: [...roles.values()].reduce((count, rows) => count + rows.length, 0), collision: decoded.collision[0] };
 }
 
 function placeArchitecture(w, piece) {
+  for (const light of piece.lanterns) w.lanternEmitter?.([...light.at], [...light.colour]);
   for (const [role, triangles] of piece.roles) {
     let moving = 0;
     for (let triangle = 0; triangle <= triangles.length; triangle++) {

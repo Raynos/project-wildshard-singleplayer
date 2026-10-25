@@ -14,7 +14,7 @@ import { Document, NodeIO } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import { MeshoptDecoder } from 'meshoptimizer';
 import { readImagePixels, writeImagePixels } from '@wildshard/sdk/bake/image';
-import { buildLayout, parseLayout, paving, pool, Soup } from './kit.mjs';
+import { bakeLanternVertices, buildLayout, parseLayout, paving, pool, Soup } from './kit.mjs';
 import { preparePlotKit } from './kitGlb.mjs';
 
 /** sRGB hex to linear RGB */
@@ -75,7 +75,7 @@ async function meanColour(file) {
 
 /** A poster board: the picture on both faces of a framed board on two posts, lamps over its face; `n` faces out, `offset`
  *  moves it along its face (an entry's board stands beside the lane: an entry's footprint stays clear above the road). */
-function poster(parts, palette, { centre, n, width, bottom, posts, offset = 0 }) {
+function poster(parts, palette, { centre, n, width, bottom, posts, offset = 0 }, lanterns) {
   const height = width * 9 / 16, depth = 0.4, r = [-n[2], 0, n[0]], top = bottom + height;
   const at = (s, y, d) => [centre[0] + r[0] * (s + offset) + n[0] * d, y, centre[1] + r[2] * (s + offset) + n[2] * d];
   const face = (d, out) => {
@@ -93,7 +93,10 @@ function poster(parts, palette, { centre, n, width, bottom, posts, offset = 0 })
   };
   box('Kit', -width / 2 - 0.35, bottom - 0.35, -depth / 2, width / 2 + 0.35, top + 0.35, depth / 2, palette.board);
   for (const s of [-posts, posts]) { const [min, max] = box('Kit', s - 0.2, 0, -0.2, s + 0.2, bottom, 0.2, palette.board); parts.solid.box('Solid', min, max); }
-  for (const s of [-width / 3, 0, width / 3]) box('Glow', s - 0.4, top + 0.35, depth / 2, s + 0.4, top + 0.65, depth / 2 + 0.8, palette.lantern);
+  for (const s of [-width / 3, 0, width / 3]) {
+    box('Glow', s - 0.4, top + 0.35, depth / 2, s + 0.4, top + 0.65, depth / 2 + 0.8, palette.lantern);
+    lanterns.push({ at: at(s, top + 0.5, depth / 2 + 0.4), colour: [...palette.lantern] });
+  }
   // the far proxy's board: its frame in the board's colour, a lit middle
   box('far', -width / 2, bottom, -depth / 2, width / 2, top, depth / 2, palette.board);
 }
@@ -128,14 +131,16 @@ async function tiledPlot(root, repo, layoutName) {
     }
   }
   // the tiles; H and G pick their variant from the tile's place
-  buildLayout(grid, parts, palette, (r, c) => (r * 7 + c * 3) % 2, await preparePlotKit(palette));
+  const lanterns = [], kit = await preparePlotKit(palette);
+  buildLayout(grid, parts, palette, (r, c) => (r * 7 + c * 3) % 2,
+    { ...kit, lanternEmitter: (at, colour) => lanterns.push({ at, colour }) });
   // a pool at the plot's edge (an entry forecourt's lanterns) keeps to the cell: its rim (black, it adds nothing) stops at it
   const pools = parts.Pool.part('Pool').positions, EDGE = 249.5;
   for (let i = 0; i < pools.length; i += 3) for (const k of [0, 2]) pools[i + k] = Math.max(-EDGE, Math.min(EDGE, pools[i + k] ?? 0));
   // the posters: the plaza's facing the south entry, one over each entry facing out to the road
   const { plaza, entry } = layout.posters;
-  poster(parts, palette, { centre: [plaza.x, plaza.z], n: [0, 0, -1], width: plaza.width, bottom: plaza.bottom, posts: plaza.width / 3, offset: plaza.offset ?? 0 });
-  for (const n of [[0, 0, 1], [0, 0, -1], [1, 0, 0], [-1, 0, 0]]) poster(parts, palette, { centre: [n[0] * entry.inset, n[2] * entry.inset], n, width: entry.width, bottom: entry.bottom, posts: entry.posts, offset: entry.offset });
+  poster(parts, palette, { centre: [plaza.x, plaza.z], n: [0, 0, -1], width: plaza.width, bottom: plaza.bottom, posts: plaza.width / 3, offset: plaza.offset ?? 0 }, lanterns);
+  for (const n of [[0, 0, 1], [0, 0, -1], [1, 0, 0], [-1, 0, 0]]) poster(parts, palette, { centre: [n[0] * entry.inset, n[2] * entry.inset], n, width: entry.width, bottom: entry.bottom, posts: entry.posts, offset: entry.offset }, lanterns);
   // NM7: the gate uplit: warm pools round its feet and one wide one under it (the Pool material adds their light)
   const lit = { Pool: parts.Pool }, plotWriter = { triColours: (part, a, b, c, colours) => lit[part].triColours(part, [a, b, c], colours) };
   pool(plotWriter, 0, 0, 30, palette.gatePool, 0.09);
@@ -156,6 +161,11 @@ async function tiledPlot(root, repo, layoutName) {
   }
   // the floor everyone walks on (the canals' water sits below it, behind their rims)
   parts.solid.quad('Solid', [-250, 0, -250], [-250, 0, 250], [250, 0, 250], [250, 0, -250]);
+  // RM3 prepares the actual post-lantern bake at neutral strength, preserving today's look.
+  // RM6 owns visible light tuning; radius/cut give the existing 4.5 m post-pool reach.
+  const surface = parts.Kit.part('Kit');
+  surface.colours = bakeLanternVertices(surface, lanterns, { gain: 0, radius: 1.5, cut: 3 });
+  console.info(`open-plots: ${layoutName} lantern bake: ${lanterns.length} emitters, neutral gain 0 (RM6 tuning pending)`);
   return { parts, landmark, farLandmark, nearImage, poster: resolve(repo, layout.posters.image) };
 }
 

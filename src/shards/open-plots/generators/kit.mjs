@@ -130,7 +130,9 @@ function writer(parts, centre, turns, kit) {
     const a = turn(min), b = turn(max);
     parts.solid.box('Solid', [Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.min(a[2], b[2])], [Math.max(a[0], b[0]), Math.max(a[1], b[1]), Math.max(a[2], b[2])]);
   };
-  return { tri, triColours, triChannels, quad, box, sides, floor, solid, placeLantern: kit?.placeLantern };
+  const lanternEmitter = kit?.lanternEmitter === undefined ? undefined
+    : (at, colour) => kit.lanternEmitter(turn(at), [...colour]);
+  return { tri, triColours, triChannels, quad, box, sides, floor, solid, lanternEmitter, placeLantern: kit?.placeLantern };
 }
 
 /** An n-sided frustum about (x, z) from radius r0 at y0 to r1 at y1 (r1 0: a cone), capped. */
@@ -200,6 +202,7 @@ export function placeMovingLight(w, kind, position) {
 }
 /** A lantern on a post (post in Kit, the lantern lit) and its pool of light. */
 function lantern(w, x, z, p, height = 2.8) {
+  w.lanternEmitter?.([x, height + 0.375, z], [...p.lantern]);
   if (w.placeLantern !== undefined) {
     w.placeLantern(w, x, z, height);
     // Preserve the original box arithmetic and order; GLB float storage must not alter collision.
@@ -288,6 +291,7 @@ function garden(w, p, variant) {
       const x = x0 + (x1 - x0) * u, z = z0 + (z1 - z0) * v, size = 8 + i; // NM14: fuller crowns, as the mockup's gardens
       tree(w, x, z, size, p, i * 0.7 + index);
       // NM9: a lantern hung under each crown and its pool
+      w.lanternEmitter?.([x + 1.1, size * 0.5 + 0.35, z], [...p.lantern]);
       w.box('Glow', [x + 0.8, size * 0.5, z - 0.3], [x + 1.4, size * 0.5 + 0.7, z + 0.3], p.lantern, p.lantern);
       pool(w, x + 1.1, z, 4, p.pool);
     }
@@ -314,7 +318,10 @@ function stalls(w, p) {
     // NM7: the awning lit from within and a lantern string along its open eave, a pool of light before it
     w.quad('Glow', [x0 - 0.5, h - 0.05, z - 5], [x1 + 0.5, h - 0.05, z - 5], [x1 + 0.5, h - 0.05, z + 5], [x0 - 0.5, h - 0.05, z + 5], p.awning);
     const eave = front + out * 0.9;
-    for (const dz of [-3.9, -1.3, 1.3, 3.9]) w.box('Glow', [eave - 0.18, h - 0.6, z + dz - 0.2], [eave + 0.18, h - 0.15, z + dz + 0.2], p.lantern, p.lantern);
+    for (const dz of [-3.9, -1.3, 1.3, 3.9]) {
+      w.lanternEmitter?.([eave, h - 0.375, z + dz], [...p.lantern]);
+      w.box('Glow', [eave - 0.18, h - 0.6, z + dz - 0.2], [eave + 0.18, h - 0.15, z + dz + 0.2], p.lantern, p.lantern);
+    }
     pool(w, front + out * 3, z, 6, p.pool);
     w.solid([x0, 0, z - 4.6], [x1, 1.2, z + 4.6]);
   }
@@ -324,6 +331,7 @@ function stalls(w, p) {
     w.box('Kit', [x - 1.4, 0.4, z - 0.9], [x + 1.4, 1.3, z + 0.9], p.crate);
     w.box('Kit', [x - 1.5, 2.3, z - 1.1], [x + 1.5, 2.5, z + 1.1], p.stall);
     for (const dx of [-1.3, 1.3]) w.box('Kit', [x + dx - 0.08, 0, z - 0.08], [x + dx + 0.08, 2.3, z + 0.08], p.wood);
+    w.lanternEmitter?.([x, 1.8, z], [...p.lantern]);
     w.box('Glow', [x - 0.25, 1.5, z - 0.25], [x + 0.25, 2.1, z + 0.25], p.lantern, p.lantern);
     pool(w, x, z, 4, p.pool);
     w.solid([x - 1.4, 0, z - 0.9], [x + 1.4, 1.3, z + 0.9]);
@@ -401,6 +409,7 @@ function forecourt(w, p) {
     w.box('Kit', [x - 2, 0, z - 2], [x + 2, 1.1, z + 2], p.wood);
     for (const [dx, dz] of [[-2.2, -2.2], [2.2, -2.2], [-2.2, 2.2], [2.2, 2.2]]) w.box('Kit', [x + dx - 0.12, 0, z + dz - 0.12], [x + dx + 0.12, 3, z + dz + 0.12], p.wood);
     frustum(w, 'Kit', x, z, 4, 3.6, 0, 3, 4.6, p.stall, Math.PI / 4);
+    w.lanternEmitter?.([x, 2.5, z], [...p.lantern]);
     w.box('Glow', [x - 0.25, 2.2, z - 0.25], [x + 0.25, 2.8, z + 0.25], p.lantern, p.lantern);
     pool(w, x, z, 4.5, p.pool);
     w.solid([x - 2, 0, z - 2], [x + 2, 1.1, z + 2]);
@@ -462,11 +471,12 @@ export function architecturePiece(type, palette, variant = 0) {
   };
   const parts = { Kit: new Soup(partKey), Glow: new Soup(partKey), Pool: new Soup(partKey), Water: new Soup(partKey),
     far: new Soup(partKey), solid: new Soup() };
-  const w = writer(parts, [0, 0], 0), movingLights = [];
+  const w = writer(parts, [0, 0], 0), movingLights = [], lanterns = [];
+  w.lanternEmitter = (at, colour) => lanterns.push({ at: [...at], colour: [...colour] });
   w.captureMovingLight = (kind, position) => movingLights.push({ kind, position: [...position], ordinal: ordinals.get('Glow') ?? 0 });
   BUILDERS[type](w, palette, type === 'C' || type === 'L' ? type : variant);
   farTile(w, palette, type);
-  return { parts, bindings, movingLights };
+  return { parts, bindings, movingLights, lanterns };
 }
 
 /**
@@ -487,10 +497,48 @@ export function buildLayout(grid, parts, p, seed, kit) {
     farTile(w, p, type);
     // NM7: string lights over the lanes between tiles (each tile strings its north and east seams when they are inside the
     // plot), on posts at the lane crossings' corners
-    const plot = writer(parts, centre, 0); // the seams run in plot axes, whatever the tile's turn
+    const plot = writer(parts, centre, 0, kit); // the seams run in plot axes, whatever the tile's turn
     if (r > 0) stringLights(plot, p, 0, centre);
     if (c < 7) stringLights(plot, p, 1, centre);
   }
+}
+
+/** Bake linear RGB into owned Kit colours with E = gain*(1-d²/(radius*cut)²)²/(1+d²/radius²).
+ * The compact taper is Nine's falloff law, evaluated at vertices without a runtime light or volume.
+ * Neutral gain preserves old words exactly; RM6 owns visible tuning. Refusals never mutate input. */
+export function bakeLanternVertices(part, lights, { gain, radius, cut }) {
+  const triple = values => Array.isArray(values) && values.length === 3
+    && Number.isFinite(values[0]) && Number.isFinite(values[1]) && Number.isFinite(values[2]);
+  const rgb = values => triple(values) && values.every(value => value >= 0 && value <= 1);
+  const radius2 = radius * radius, reach2 = (radius * cut) ** 2;
+  if (!Number.isFinite(gain) || gain < 0 || !Number.isFinite(radius) || !Number.isFinite(cut)
+    || !Number.isFinite(radius2) || radius <= 0 || radius2 === 0
+    || !Number.isFinite(reach2) || cut <= 0 || reach2 === 0) throw new Error('open-plots light: invalid falloff');
+  if (!Array.isArray(part.positions) || !Array.isArray(part.colours) || part.positions.length % 3 !== 0
+    || part.positions.length !== part.colours.length) throw new Error('open-plots light: invalid vertices');
+  for (let i = 0; i < part.positions.length; i++) {
+    if (!Number.isFinite(part.positions[i]) || !Number.isFinite(part.colours[i]) || part.colours[i] < 0 || part.colours[i] > 1) {
+      throw new Error('open-plots light: invalid vertices');
+    }
+  }
+  if (!Array.isArray(lights)) throw new Error('open-plots light: invalid emitter');
+  for (const light of lights) if (light === undefined || !triple(light.at) || !rgb(light.colour)) throw new Error('open-plots light: invalid emitter');
+  const colours = part.colours.slice();
+  if (gain === 0) return colours;
+  for (let at = 0; at < part.positions.length; at += 3) {
+    let r = 0, g = 0, b = 0;
+    for (const light of lights) {
+      const dx = part.positions[at] - light.at[0], dy = part.positions[at + 1] - light.at[1], dz = part.positions[at + 2] - light.at[2];
+      const d2 = dx * dx + dy * dy + dz * dz;
+      if (d2 >= reach2) continue;
+      const win = 1 - d2 / reach2, e = gain * win * win / (1 + d2 / radius2);
+      r += light.colour[0] * e; g += light.colour[1] * e; b += light.colour[2] * e;
+    }
+    colours[at] = Math.min(1, colours[at] + r);
+    colours[at + 1] = Math.min(1, colours[at + 1] + g);
+    colours[at + 2] = Math.min(1, colours[at + 2] + b);
+  }
+  return colours;
 }
 
 /** The lane on a tile's north (side 0) or east (side 1) seam: two strings of bulbs 3 m either side of the seam, sagging
@@ -520,6 +568,7 @@ function stringLights(w, p, side, centre) {
       if (clear(x, z)) continue;
       // a bulb is a small tetrahedron: closed, seen from every side, 4 triangles (a box was 10)
       const colour = i % 2 === 0 ? p.lantern : p.bulbRed, apex = [x, y + bulb * 1.4, z], a = [x - bulb, y - bulb, z - bulb], b = [x + bulb, y - bulb, z - bulb], c = [x, y - bulb, z + bulb * 1.4];
+      w.lanternEmitter?.([x, y, z], [...colour]);
       w.tri('Glow', apex, b, a, colour); w.tri('Glow', apex, c, b, colour); w.tri('Glow', apex, a, c, colour); w.tri('Glow', a, b, c, colour);
     }
   }
