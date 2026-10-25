@@ -18,7 +18,7 @@ export interface ByteRoute {
   readonly fulfill: (response: { status: number; headers: Record<string, string>; body?: string }) => Promise<void>;
 }
 export interface ByteSinkPage {
-  readonly route: (pattern: string, handler: (route: ByteRoute) => Promise<void>) => Promise<void>;
+  readonly route: (pattern: string, handler: (route: ByteRoute) => Promise<void>) => Promise<unknown>;
   readonly unroute: (pattern: string, handler: (route: ByteRoute) => Promise<void>) => Promise<void>;
 }
 /** One bounded, owned byte handoff from a native authoring page. */

@@ -56,7 +56,7 @@ try {
           const pose = object(value), original = object(get(baseline, `poses.${name}`));
           const score = await imageScore(page, string(original.shot), string(pose.shot), [.../** @type {number[][]} */(array(original.boxes)), .../** @type {number[][]} */(array(pose.boxes))]);
           pose.ssim = score.ssim ?? 0;
-          if (score.diffBase64 && pose.ssim < 0.99) writeFileSync(join(out, `${key}.${mode}.${index+1}.${name}.diff.png`), Buffer.from(score.diffBase64, 'base64'));
+          if (score.diff && pose.ssim < 0.99) writeFileSync(join(out, `${key}.${mode}.${index+1}.${name}.diff.png`), score.diff);
         }
         const result = compare(baseline, record);
         checked.push({ mode, run: index+1, ...result });

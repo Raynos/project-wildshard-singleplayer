@@ -1,11 +1,29 @@
 import { copyFileSync, mkdirSync, writeFileSync,readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { randomUUID } from 'node:crypto';
+import { browserBakeBytes } from '../bake-output.mjs';
 import { array, number, object, percentile, string } from './value.mjs';
 import { matches, normalize } from './compare.mjs';
 import { ssim } from './ssim.mjs';
 
 /** @param {import('playwright').Page} page @param {string} golden @param {string} current @param {number[][]} masks */
-export function imageScore(page,golden,current,masks) {return page.evaluate(ssim,{a:readFileSync(golden).toString('base64'),b:readFileSync(current).toString('base64'),mask:masks});}
+export async function imageScore(page,golden,current,masks) {
+  const inputs=new Map([['golden',readFileSync(golden)],['current',readFileSync(current)]]);
+  const url=`https://parity-images.invalid/${randomUUID()}/`,pattern=`${url}*`;
+  /** @param {import('playwright').Route} route */
+  const read=async route=>{
+    const request=route.request(),bytes=request.method()==='GET'?inputs.get(request.url().slice(url.length)):undefined;
+    await route.fulfill({status:bytes===undefined?404:200,headers:{'Access-Control-Allow-Origin':'*','Cache-Control':'no-store','Content-Type':'image/jpeg'},body:bytes??'Missing parity image'});
+  };
+  await page.route(pattern,read);
+  try {
+    const sink=await browserBakeBytes(page,{maxFiles:1});
+    try {
+      const {hasDiff,...score}=await page.evaluate(ssim,{a:`${url}golden`,b:`${url}current`,diff:`${sink.url}diff`,mask:masks});
+      return {...score,...hasDiff?{diff:sink.take('diff')}:{}};
+    } finally {await sink.dispose();}
+  } finally {await page.unroute(pattern,read);}
+}
 /** @param {import('playwright').Page} page @param {import('./value.mjs').RecordValue[]} runs @param {{sha:string,browser:string}} meta */
 export async function aggregate(page,runs,meta) {
   const records=runs.map(normalize),base=structuredClone(records[0]??{}),spread=/** @type {import('./value.mjs').RecordValue} */ ({}),selfMin=/** @type {import('./value.mjs').RecordValue} */ ({});
