@@ -2,9 +2,9 @@
 
 **Order (G639):** (1) live reds → (2) NALATI 0 → (3) grid / frame floor → extras.
 
-**(1) LIVE f4b17bcb5a (15:27Z); ba3a6f08bf (grid cache-write fix 73b894e5c9) releasing 16:10Z. Hourly releases (sp-x7,
-G705). CF2 title-capture stall: Chromium title tracing 59f9c74145 awaits the next CI occurrence; programShare warning
-on the Nine title with sp-x9. No open CI red.
+**(1) LIVE ba3a6f08bf (16:24Z: grid cache-write fix 73b894e5c9); 988c79b48c releasing ~17:10Z. Hourly releases (sp-x7,
+G705). CF2 title-capture stall: tracing 59f9c74145 + retention 454ec76f3a wait for a CI occurrence; programShare warning
+with sp-x9. Artifact path red fixed bd521a3bbd. No open CI red.
 
 **(2) NALATI 0 done (27dd969127).** HOST-AUDIT (G679) parked until every mini plan finishes. Legacy waits (G606).
 
