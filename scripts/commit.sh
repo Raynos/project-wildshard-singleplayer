@@ -114,7 +114,7 @@ PYALIGN
 export -f align_shared_index
 export WS_COMMIT_MESSAGE="$message"
 exec python3 -c '
-import fcntl, os, signal, subprocess, sys, time
+import fcntl, json, os, signal, subprocess, sys, time
 started = time.monotonic()
 acquired = None
 os.environ["WS_COMMIT_STARTED_AT"] = str(int(time.time() * 1000))
@@ -144,6 +144,18 @@ finally:
     work = 0 if acquired is None else (finished - acquired) * 1000
     print(f"commit.sh: {wait:.0f} ms lock wait; {work:.0f} ms serialized work", flush=True)
     print(f"commit.sh: {elapsed:.0f} ms total wall (lock wait included)", flush=True)
+    exception = sys.exc_info()[1]
+    code = exception.code if isinstance(exception, SystemExit) else None
+    code = code if code is None or isinstance(code, int) else 1
+    timing = {"version": 1, "id": str(os.getpid()) + ":" + os.environ["WS_COMMIT_STARTED_AT"],
+              "at": time.time(), "elapsedMs": round(elapsed), "waitMs": round(wait),
+              "workMs": round(work), "exitCode": code,
+              "lane": os.getenv("WS_COMMIT_LANE") or os.getenv("HERDR_PANE_ID")}
+    try:
+        with open(os.path.join(os.path.dirname(sys.argv[1]), "commit-times.jsonl"), "a") as ledger:
+            ledger.write(json.dumps(timing, separators=(",", ":")) + "\n")
+    except OSError as error:
+        print("commit.sh: timing log unavailable: " + str(error), file=sys.stderr)
     if elapsed > 60000:
         print("commit.sh: invocation exceeded 60 s; CF1 cannot renew its budget (serialized Git completion remains mandatory)", file=sys.stderr)
 ' "$common/commit.lock" bash -c '

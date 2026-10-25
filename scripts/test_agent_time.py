@@ -45,6 +45,37 @@ class AgentTimeTests(unittest.TestCase):
         self.assertEqual(reading['timeouts'], {'heavy-lane':1})
         self.assertEqual(reading['queueSeconds'], [76.5])
 
+    def test_commit_timing_ledger_keeps_refusals_and_ignores_quotes_duplicates_and_invalid_rows(self):
+        with tempfile.TemporaryDirectory(dir='tmp') as directory:
+            path = Path(directory) / 'commit-times.jsonl'
+            first = dict(version=1, id='ok', at=20, elapsedMs=100, waitMs=40, workMs=60, exitCode=0)
+            refused = dict(first, id='refused', elapsedMs=300, waitMs=100, workMs=200, exitCode=1)
+            unknown = dict(first, id='unknown', elapsedMs=600, waitMs=0, workMs=600, exitCode=None)
+            invalid = [dict(first, id='negative', elapsedMs=-1), dict(first, id='bad-sum', workMs=500),
+                       dict(first, id='bad-type', waitMs=True), dict(first, id='bad-exit', exitCode='0'),
+                       dict(first, id='bad-version', version=2), dict(first, id='bad-time', at=float('nan')),
+                       {key: value for key, value in first.items() if key != 'exitCode'}]
+            contents = [dict(first, id='old', at=9), first, refused, unknown, first, *invalid]
+            path.write_text('\n'.join(map(json.dumps, contents)) + '\ncommit.sh: 999999 ms total wall\n')
+            samples, ignored, error = API['commit_timing_rows'](path, 10)
+            self.assertIsNone(error)
+            self.assertEqual([row['id'] for row in samples], ['ok', 'refused', 'unknown'])
+            self.assertEqual(ignored, len(invalid) + 2)
+            reading = API['commit_timing_reading'](path, 10)
+            self.assertIn('total seconds n=3 med=0.30 p90=0.60 max=0.60', reading)
+            self.assertIn('refused 1; unknown outcome 1', reading)
+            self.assertNotIn('999999', reading)
+            self.assertEqual(API['commit_timing_rows'](path, 21)[0], [])
+
+    def test_missing_commit_ledger_is_unavailable_and_empty_is_not_a_zero_time_pass(self):
+        with tempfile.TemporaryDirectory(dir='tmp') as directory:
+            path = Path(directory) / 'commit-times.jsonl'
+            self.assertIn('unavailable: FileNotFoundError', API['commit_timing_reading'](path, 0))
+            path.write_text('')
+            reading = API['commit_timing_reading'](path, 0)
+            self.assertIn('total seconds n=0', reading)
+            self.assertNotIn('p90=0', reading)
+
     def test_claude_mirror_hours_and_codex_project_filter(self):
         cut=dt.datetime(2026,1,1,tzinfo=dt.timezone.utc)
         with tempfile.TemporaryDirectory(dir='tmp') as directory:
@@ -72,7 +103,7 @@ class AgentTimeTests(unittest.TestCase):
                     'file_count':lambda *args: 'unavailable'}), contextlib.redirect_stdout(output):
                 report(directory,2000000000,reading)
             for name in ('Push gate','CI / red main','Build mirror','Heavy builds','Five-minute waits',
-                         'Full-test lane','Simulator / browsers','Commit lock / tree','Generated inputs','Machine','Budgets'):
+                         'Full-test lane','Simulator / browsers','Commit lock / tree','Commit invocation','Generated inputs','Machine','Budgets'):
                 self.assertIn('| '+name+' |',output.getvalue())
             self.assertIn('unavailable fixture',output.getvalue())
 

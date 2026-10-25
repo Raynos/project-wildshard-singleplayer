@@ -12,6 +12,7 @@ import argparse
 import datetime as dt
 import glob
 import json
+import math
 import os
 import re
 import statistics
@@ -161,11 +162,53 @@ def rows(path, since):
     return out
 
 
-def quantiles(values):
+def quantiles(values, digits=0):
     if not values:
         return 'n=0'
     values = sorted(values)
-    return 'n=%d med=%.0f p90=%.0f max=%.0f' % (len(values), statistics.median(values), values[int(len(values) * 0.9)], values[-1])
+    return 'n=%d med=%.*f p90=%.*f max=%.*f' % (len(values), digits, statistics.median(values), digits, values[int(len(values) * 0.9)], digits, values[-1])
+
+
+def commit_timing_rows(path, since):
+    """Read actual wrapper completions, including refusals; never scrape quoted logs."""
+    try:
+        contents = path.read_text()
+    except OSError as error:
+        return [], 0, type(error).__name__
+    accepted, ignored = {}, 0
+    for line in contents.splitlines():
+        try:
+            row = json.loads(line)
+        except ValueError:
+            ignored += 1
+            continue
+        if not isinstance(row, dict) or type(row.get('at')) not in (int, float) or not math.isfinite(row['at']):
+            ignored += 1
+            continue
+        if row['at'] < since:
+            continue
+        values = [row.get(name) for name in ('elapsedMs', 'waitMs', 'workMs')]
+        if (type(row.get('version')) is not int or row['version'] != 1 or 'exitCode' not in row or not isinstance(row.get('id'), str) or not row['id']
+                or any(type(value) not in (int, float) or not math.isfinite(value) or value < 0 for value in values)
+                or abs(values[0] - values[1] - values[2]) > 1
+                or row.get('exitCode') is not None and type(row['exitCode']) is not int
+                or row['id'] in accepted):
+            ignored += 1
+            continue
+        accepted[row['id']] = row
+    return list(accepted.values()), ignored, None
+
+
+def commit_timing_reading(path, since):
+    samples, ignored, error = commit_timing_rows(path, since)
+    if error:
+        return 'unavailable: ' + error + ' (wrapper timing ledger)'
+    parts = [name + ' seconds ' + quantiles([row[field] / 1000 for row in samples], 2)
+             for name, field in [('total', 'elapsedMs'), ('wait', 'waitMs'), ('work', 'workMs')]]
+    parts.append('refused %d; unknown outcome %d; ignored invalid/duplicate %d; actual wrapper completions only' % (
+        sum(row['exitCode'] is not None and row['exitCode'] != 0 for row in samples),
+        sum(row['exitCode'] is None for row in samples), ignored))
+    return '; '.join(parts)
 
 
 def observe_output(reading, output):
@@ -342,6 +385,7 @@ def print_reading(repo, since, observations):
     table = [
         ('Push gate', '%d timed ticks, %d red; gate seconds %s; quiet ticks %d' % (len(gates), sum(row.get('status') == 'red' for row in pushes), quantiles([row['gateSeconds'] for row in gates]), sum(row.get('status') == 'quiet' for row in pushes))),
         ('Commit to origin', 'seconds %s (reachable ledger commits)' % quantiles(published)),
+        ('Commit invocation', commit_timing_reading(Path(repo) / '.git/commit-times.jsonl', since)),
         ('CI / red main', ci + '; reverts %d (G674 fix-forward only)' % reverts),
         ('Build mirror', 'Opus command hours %.2f; no mirror occupancy log' % observations['opusMirrorHours']),
         ('Heavy builds', '%d completed; queue seconds %s; build seconds %s; transcript queues >60 s: %d' % (len(builds), quantiles([row['queueSeconds'] for row in builds]), quantiles([row['buildSeconds'] for row in builds]), sum(value > 60 for value in observations['queueSeconds'])) + ('; historical log expiry left a gap' if not builds else '')),

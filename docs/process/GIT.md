@@ -61,7 +61,11 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   total wall time including the lock wait, plus separate lock-wait and
   serialized-work durations. A requested-lock marker distinguishes a queued
   invocation from one already executing checks; these timings never renew
-  its deadline.
+  its deadline. Finished invocations append timing/outcome metadata to
+  `.git/commit-times.jsonl` for `scripts/agent-time.py`; refusals stay in the
+  distribution. Messages and file contents are not logged. Diagnostic write
+  failures never change the commit verdict, and a missing ledger is reported
+  as unavailable rather than a passing zero.
   A per-file Vite override uses candidate-index bytes for differing tracked
   modules, including peer edits; loose files and the index stay untouched.
   An executed failing test refuses even if another test later times out.

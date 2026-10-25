@@ -71,4 +71,21 @@ sys.exit(23 if os.environ.get('FIXTURE_REFUSE') else 0)
                              cwd=root, env={**env, 'FIXTURE_REFUSE': '1'}, capture_output=True, text=True)
     assert refused.returncode != 0 and git('rev-parse', 'HEAD') == head, refused
     red = metrics(refused.stdout + refused.stderr)
-    print(json.dumps({'queued': queued, 'refused': red, 'budgetIncludesWait': True, 'hookRedRefuses': True}))
+    ledger = root / '.git/commit-times.jsonl'
+    records = [json.loads(line) for line in ledger.read_text().splitlines()]
+    assert len(records) == 2 and [row['exitCode'] for row in records] == [0, refused.returncode], records
+    for row, output in zip(records, [queued, red]):
+        assert row['version'] == 1 and row['id']
+        assert row['elapsedMs'] == output['totalMs'] and row['waitMs'] == output['waitMs'] and row['workMs'] == output['workMs']
+    # A broken diagnostic destination never changes an actual commit verdict.
+    ledger.unlink()
+    ledger.mkdir()
+    passed = subprocess.run(['scripts/commit.sh', 'fixture diagnostic failure', '--', 'owned.txt'],
+                            cwd=root, env=env, capture_output=True, text=True)
+    assert passed.returncode == 0 and 'timing log unavailable' in passed.stderr, passed
+    (root / 'owned.txt').write_text('still refused\n')
+    failed = subprocess.run(['scripts/commit.sh', 'fixture red diagnostic', '--', 'owned.txt'],
+                            cwd=root, env={**env, 'FIXTURE_REFUSE': '1'}, capture_output=True, text=True)
+    assert failed.returncode != 0 and 'timing log unavailable' in failed.stderr, failed
+    print(json.dumps({'queued': queued, 'refused': red, 'budgetIncludesWait': True, 'hookRedRefuses': True,
+                      'timingRows': len(records), 'diagnosticFailurePreservesVerdict': True}))

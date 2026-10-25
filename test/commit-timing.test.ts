@@ -10,4 +10,6 @@ test('queued commits split wait from work without renewing the budget or hiding 
   });
   expect(output).toContain('"budgetIncludesWait": true');
   expect(output).toContain('"hookRedRefuses": true');
+  expect(output).toContain('"timingRows": 2');
+  expect(output).toContain('"diagnosticFailurePreservesVerdict": true');
 });
