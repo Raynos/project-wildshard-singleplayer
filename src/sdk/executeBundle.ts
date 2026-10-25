@@ -8,6 +8,8 @@ import { existsSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 // oxlint-disable-next-line import/no-nodejs-modules -- Preserve native ESM's previous content-addressed namespace identity.
 import { createHash } from 'node:crypto';
+// oxlint-disable-next-line import/no-nodejs-modules -- Pin trusted bundle execution to Node ESM rather than a transforming test host.
+import { Script, constants } from 'node:vm';
 
 // A data URL was the same ESM identity for the same source, including rejected
 // evaluations. Keep that identity without retaining its 4/3-sized encoded URL.
@@ -38,7 +40,15 @@ async function load(source: string, project: string): Promise<unknown> {
   try {
     const file = resolve(directory, 'bundle.mjs');
     await writeFile(file, source, 'utf8');
-    return await import(pathToFileURL(file).href);
+    // A host runner can rewrite import() and transform this multi-megabyte
+    // bundle a second time. Only the tiny import expression is compiled here;
+    // Node's native ESM loader evaluates the original file, just as the former
+    // data URL did. Never evaluate the bundle as a script or change its code.
+    const loader = new Script(`import(${JSON.stringify(pathToFileURL(file).href)})`, {
+      filename: file, importModuleDynamically: constants.USE_MAIN_CONTEXT_DEFAULT_LOADER,
+    });
+    const loaded: unknown = loader.runInThisContext();
+    return await loaded;
   } finally {
     await rm(directory, { recursive: true, force: true });
   }

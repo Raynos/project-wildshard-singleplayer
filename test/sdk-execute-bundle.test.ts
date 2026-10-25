@@ -7,6 +7,7 @@ import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Give Node an exact absolute source module URL.
 import { pathToFileURL } from 'node:url';
 import { expect, test } from 'vitest';
+import { executeBundle } from '../src/sdk/executeBundle';
 
 function native(source: string): string {
   mkdirSync('tmp', { recursive: true });
@@ -66,4 +67,13 @@ test('syntax, evaluation and async refusals clean only owned files and stay cach
     for(const url of attempted)assert.equal(existsSync(dirname(fileURLToPath(url))),false);
     hook.deregister();
   `)).toBe('');
+});
+
+
+test('bundle execution keeps native function text inside the Vitest host', async () => {
+  const source = 'export function probe(){return import.meta.url;}';
+  const loaded = await executeBundle(source, 'src/shards/pine-hollow');
+  if (typeof loaded !== 'object' || loaded === null || !('probe' in loaded) || typeof loaded.probe !== 'function')
+    throw new Error('Missing native exported probe');
+  expect(loaded.probe.toString()).toBe('function probe(){return import.meta.url;}');
 });
