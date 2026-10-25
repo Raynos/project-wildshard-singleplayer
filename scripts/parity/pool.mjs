@@ -2,6 +2,7 @@ import { spawn } from 'node:child_process';
 import { createInterface } from 'node:readline';
 import { join } from 'node:path';
 import { chromium } from 'playwright';
+import { captureRpcObserver } from './capture-rpc.mjs';
 
 /** Bounded scheduling preserves input order and drains every started task before throwing.
  * @template T,R @param {T[]} items @param {number} jobs @param {(item:T,index:number,slot:number)=>Promise<R>} task @param {(slot:number)=>Promise<void>} [onIdle] */
@@ -20,12 +21,16 @@ export async function parallel(items, jobs, task, onIdle) {
   return results;
 }
 
-/** @param {string} root @param {string} angle */
-async function open(root, angle) {
+/** @param {string} root @param {string} angle @param {boolean} captureRpc */
+async function open(root, angle, captureRpc) {
   const launcher = join(root, 'scripts/parity/lane-browser.mjs');
-  const child = process.platform === 'darwin'
-    ? spawn(join(root, 'scripts/browser-lane.sh'), ['--max', '90', process.execPath, launcher, angle], { stdio: ['pipe', 'pipe', 'inherit'] })
-    : spawn(process.execPath, [launcher, angle], { stdio: ['pipe', 'pipe', 'inherit'] });
+  const command = process.platform === 'darwin' ? join(root, 'scripts/browser-lane.sh') : process.execPath;
+  const args = process.platform === 'darwin' ? ['--max', '90', process.execPath, launcher, angle] : [launcher, angle];
+  const child = spawn(command, args, { stdio: ['pipe', 'pipe', 'pipe'], env: captureRpc ? { ...process.env, DEBUG: 'pw:protocol' } : process.env });
+  const observer = captureRpcObserver(row => console.log(`boot-capture-rpc ${JSON.stringify(row)}`));
+  const diagnostics = createInterface({ input: child.stderr });
+  diagnostics.on('line', line => { if (!captureRpc || !observer.line(line)) process.stderr.write(`${line}\n`); });
+  diagnostics.once('close', () => observer.finish());
   const lines = createInterface({ input: child.stdout });
   try {
     const endpoint = await new Promise((resolve, reject) => {
@@ -44,12 +49,12 @@ async function open(root, angle) {
 }
 
 /** Each persistent browser is held by its own lane subprocess; contexts are used sequentially per slot.
- * @param {string} root @param {number} jobs @param {string} angle */
-export function browserPool(root, jobs, angle) {
+ * @param {string} root @param {number} jobs @param {string} angle @param {boolean} [captureRpc] */
+export function browserPool(root, jobs, angle, captureRpc = false) {
   /** @type {Map<number,ReturnType<typeof open>>} */ const slots = new Map();
   const browser = async (/** @type {number} */ slot) => {
     let promise = slots.get(slot);
-    if (!promise) { promise = open(root, angle); slots.set(slot, promise); }
+    if (!promise) { promise = open(root, angle, captureRpc); slots.set(slot, promise); }
     return (await promise).browser;
   };
   const release=async(/** @type {number} */slot)=>{const promise=slots.get(slot);slots.delete(slot);if(promise)await (await promise).close();};

@@ -431,7 +431,7 @@ async function main() {
   const preview = external === undefined ? await serve(root, '', true) : null;
   const base = external ?? preview?.url;
   if (!base) throw new Error('No built preview');
-  const pool = browserPool(root, 1, option('angle') ?? (process.platform === 'darwin' ? 'metal' : 'swiftshader'));
+  const pool = browserPool(root, 1, option('angle') ?? (process.platform === 'darwin' ? 'metal' : 'swiftshader'), true);
   try {
     const browser = await pool.browser(0);
     const group = option('case-group') ?? 'all';
