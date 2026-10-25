@@ -39,12 +39,23 @@ export function base64Bytes(text: string): Uint8Array<ArrayBuffer> {
   return out;
 }
 
-/** Restore a range of four-byte words from their four byte lanes into a distinct complete buffer. */
+const LITTLE_ENDIAN_WORDS = new Uint8Array(new Uint32Array([1]).buffer)[0] === 1;
+
+/** Restore a range of four-byte words from their four byte lanes into a distinct complete buffer.
+ * Aligned little-endian outputs use one word store; other layouts retain byte stores. */
 export function unshuffleLanes(lanes: Uint8Array, out = new Uint8Array(lanes.length), wordStart = 0, wordEnd = lanes.length / 4): Uint8Array {
   if (lanes.length % 4 !== 0) throw new Error('unshuffleLanes: not whole words');
   const n = lanes.length / 4;
   if (out.length !== lanes.length || out.buffer === lanes.buffer || !Number.isSafeInteger(wordStart) || !Number.isSafeInteger(wordEnd)
     || wordStart < 0 || wordEnd < wordStart || wordEnd > n) throw new Error('unshuffleLanes: bad output/range');
+  if (wordStart === wordEnd) return out;
+  if (LITTLE_ENDIAN_WORDS && out.byteOffset % 4 === 0) {
+    const words = new Uint32Array(out.buffer, out.byteOffset, n), third = n * 2, fourth = n * 3;
+    for (let i = wordStart; i < wordEnd; i++) {
+      words[i] = (lanes[i] ?? 0) | ((lanes[n + i] ?? 0) << 8) | ((lanes[third + i] ?? 0) << 16) | ((lanes[fourth + i] ?? 0) << 24);
+    }
+    return out;
+  }
   for (let i = wordStart; i < wordEnd; i++) {
     const at = i * 4;
     out[at] = lanes[i] ?? 0; out[at + 1] = lanes[n + i] ?? 0;

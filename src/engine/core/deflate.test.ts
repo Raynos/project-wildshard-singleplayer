@@ -34,6 +34,25 @@ test('every partial range writes only its words in a distinct offset output', ()
   }
 });
 
+test.each([4, 5, 8])('aligned and unaligned outputs preserve every lane bit at offset %i', offset => {
+  const words = 16385, source = new Uint8Array(words * 4 + 9).fill(173);
+  const input = source.subarray(3, 3 + words * 4);
+  for (let lane = 0; lane < 4; lane++) for (let word = 0; word < words; word++) input[lane * words + word] = (word * 131 + lane * 79) & 255;
+  const original = source.slice(), backing = new Uint8Array(words * 4 + 17).fill(251);
+  const output = backing.subarray(offset, offset + words * 4), expected = backing.slice();
+  const start = 1, end = words - 1;
+  for (let word = start; word < end; word++) for (let lane = 0; lane < 4; lane++) expected[offset + word * 4 + lane] = input[lane * words + word] ?? 0;
+  expect(unshuffleLanes(input, output, start, end)).toBe(output);
+  expect(backing).toEqual(expected);
+  expect(source).toEqual(original);
+});
+
+test('an empty range returns its output without touching detached empty backing', () => {
+  const output = new Uint8Array(4);
+  structuredClone(output.buffer, { transfer: [output.buffer] });
+  expect(unshuffleLanes(new Uint8Array(0), output)).toBe(output);
+});
+
 test('range and alias refusals precede all writes', () => {
   const input = new Uint8Array(32).fill(9), output = new Uint8Array(32).fill(251);
   for (const [start, end] of [[-1, 2], [0, 9], [3, 2], [0.5, 2], [0, Number.NaN], [0, Infinity], [Number.MAX_SAFE_INTEGER + 1, 2]]) {

@@ -31,6 +31,7 @@ Each slice is bounded to one hour; report misses and their observed owners first
 | G723.6 | Reuse the existing exact packed-position scanner for synchronous baked geometry bounds; preserve every decoded buffer, box/sphere value and fallback. At most one hour. | done (bounded source cut; 2026-10-25, sp-x8) |
 | G723.7 | Continue world-construction and warm-up cuts until the measured Driftwood, Nalati and Nine edge waits pass five seconds, preserving all readiness and two-resident fences. Each source slice is at most one hour. | open |
 | G723.8 | Refuse inferred neighbour headings from committed spawn placement or large pose jumps; reset the motion sample and preserve preparation after subsequent real movement. At most one hour. | done (bounded source cut; 2026-10-25, sp-x8) |
+| G723.9 | Restore aligned byte lanes with one exact native word store; preserve byte order, partial ranges, distinct backing and existing decode yields. At most one hour. | done (bounded decoder cut; 2026-10-25, sp-x8) |
 
 ## G717 frame-floor misses (2026-10-25, sp-x1; G639)
 
