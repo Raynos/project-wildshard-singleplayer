@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read the shard's admitted in-tree bytes and the native physics module.
 import { readFileSync } from 'node:fs';
-import source from '../../../src/shards/sunscar-dunes/generators/product.ts';
+import { source, sourceAssets } from '../../fixtures/sunscar-source-program.ts';
 import { loadRapier } from '../../../src/engine/physics/rapier.ts';
 import { decodeSimSnapshot } from '../../../src/engine/sim/snapshot.ts';
 import { installAppIdentity } from '../../../src/engine/app/identity.ts';
@@ -15,7 +15,7 @@ assert.equal(typeof document, 'undefined'); assert.equal(typeof window, 'undefin
 installAppIdentity(WILDSHARD_IDENTITY);
 const root = new URL('../../../', import.meta.url);
 const rapier = await loadRapier(readFileSync(new URL('public/assets/physics/rapier.wasm', root)));
-const assets = new Map(source.files.map((file) => [file.hash, new Uint8Array(readFileSync(new URL(`src/shards/sunscar-dunes/assets/${file.hash}`, root)))]));
+const assets = sourceAssets;
 // The same verified built runtime plan as the shipping worker, without a shard module URL.
 const adapter = await createTrustedHeadlessAdapter({ shard: source, assets, rapier, product: await loadHeadlessProduct('out/sunscar-dunes') });
 try {

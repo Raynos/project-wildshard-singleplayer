@@ -21,7 +21,7 @@ import { SKY_CLIENT_PLAN } from '../src/shards/far-reach/generators/clientPlan';
 import { SIGNAL_CLIENT_PLAN } from '../src/shards/sunscar-dunes/generators/clientPlan';
 import { clientOwnershipRules } from '../src/format/clientOwnership';
 import { skyProductRows } from '../src/shards/far-reach/generators/product';
-import { signalProductRows } from '../src/shards/sunscar-dunes/generators/product';
+import { signalProductRows } from './fixtures/sunscar-source-program';
 import { emitPlatformSections } from '../src/sdk/platformSections';
 import { SKY_NATIVE_WORLD } from '../src/shards/far-reach/generators/rows/nativeWorld';
 import { SIGNAL_NATIVE_WORLD } from '../src/shards/sunscar-dunes/generators/rows/nativeWorld';

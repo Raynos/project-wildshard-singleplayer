@@ -39,12 +39,17 @@ const bodies = (host) => JSON.stringify([host.state.tick, ...[...host.entities].
  * through the same trusted entry. The template's door/script step (natives declare no script door) becomes play on the
  * region's own clock: a hurt creature, or a lent weapon swing where the region has no fauna (Nine Dragon Stack).
  */
-export async function proveTrustedGridReady(source, mode = DEVELOPER, prepare = null) {
+export async function proveTrustedGridReady(source, mode = DEVELOPER, prepare = null, sourceAssets = null) {
   assert.equal(typeof document, 'undefined'); assert.equal(typeof window, 'undefined');
   installAppIdentity(WILDSHARD_IDENTITY);
   const slug = source.identity.slug;
   const rapier = await loadRapier(readFileSync(new URL('public/assets/physics/rapier.wasm', ROOT)));
-  const assets = new Map(source.files.map(file => [file.hash, bytes(slug, file.hash)]));
+  const assets = new Map(source.files.map(file => {
+    const value = sourceAssets === null ? bytes(slug, file.hash) : sourceAssets.get(file.hash);
+    assert.ok(value instanceof Uint8Array && value.byteLength === file.compressed, 'Source asset bytes must match their declared size');
+    if (sourceAssets !== null) assert.equal(createHash('sha256').update(value).digest('hex'), file.hash);
+    return [file.hash, value];
+  }));
   const templateAssets = readTemplateAssets();
   const assembly = new GridAssembly(mode, catalogue.grid), instance = assembly.cells.find(cell => cell.slug === slug)?.instance;
   assert.equal(typeof instance, 'string', `${slug} has no catalogue grid cell in this mode`);

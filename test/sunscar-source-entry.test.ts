@@ -9,6 +9,7 @@ import { output } from '../src/shards/sunscar-dunes/generators/sourceOutput';
 import { worldBakes } from '../src/shards/sunscar-dunes/generators/worldBakes';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { readProjectAssets } from '../src/sdk/project';
+import { generated } from './fixtures/sunscar-source-program';
 import before from './fixtures/sunscar-source-entry.json' with { type: 'json' };
 import originalProductAssets from './fixtures/sunscar-duplicate-product.json' with { type: 'json' };
 
@@ -22,7 +23,7 @@ const physical = (values: ReadonlyMap<string, Uint8Array>) => [...values]
 
 test('the source entry owns both outputs with the complete original declaration and output bytes', () => {
   expect(entry).toBe(generate);
-  const result = generate();
+  const result = generated;
   expect(result.output).toBe(output);
   expect(signature(result.shard)).toEqual(before.raw.shard);
   expect(signature({ ...output, assets: physical(output.assets), platform: { ...output.platform, files: physical(output.platform.files) } }))
@@ -33,9 +34,9 @@ test('direct world rows preserve the original ordered aggregate without its JSON
   expect(signature(worldBakes())).toEqual(before.raw.world);
   const registry = v.parse(v.object({ jobs: v.array(v.object({ id: v.string(), shard: v.nullable(v.string()), inputRoots: v.array(v.string()), outputs: v.array(v.string()) })) }),
     JSON.parse(readFileSync('scripts/generation-jobs.json', 'utf8')));
-  expect(registry.jobs.some(row => row.id === 'signal-world-bakes' || row.id === 'signal-product')).toBe(false);
+  expect(registry.jobs.some(row => row.id === 'signal-world-bakes' || row.id === 'signal-product' || row.id === 'signal-fire-book')).toBe(false);
   expect(registry.jobs.flatMap(row => row.inputRoots.concat(row.outputs)).some(path => path.startsWith('src/shards/sunscar-dunes/.wildshard/product/'))).toBe(false);
-  expect(registry.jobs.filter(row => row.shard === 'sunscar-dunes')).toHaveLength(20);
+  expect(registry.jobs.filter(row => row.shard === 'sunscar-dunes')).toHaveLength(19);
   expect(registry.jobs.flatMap(row => row.inputRoots.concat(row.outputs)).some(path => path.endsWith('/worldBakes.generated.json'))).toBe(false);
 });
 

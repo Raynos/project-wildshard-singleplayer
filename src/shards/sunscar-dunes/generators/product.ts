@@ -6,7 +6,7 @@ import navigation from '../data/navigation.generated.json' with { type: 'json' }
 import bossStages from '../data/bossStages.json' with { type: 'json' };
 import SIGNAL_DUNES_RUNTIME_COST from '../data/runtimeCost.json' with { type: 'json' };
 import { emptyShardfile } from '@wildshard/sdk/author';
-import { parseShardfile } from '@wildshard/sdk/shardfile';
+import { parseShardfile, type Shardfile } from '@wildshard/sdk/shardfile';
 import { AUDIO } from './rows/audio';
 import tiles from '../data/tiles.json' with { type: 'json' };
 import { SIGNAL_LEDGER } from './rows/ledger';
@@ -18,8 +18,10 @@ import { SAND_FIELDS } from './rows/sandFields';
 import { SAND_DUSK } from './rows/dusk';
 import { STORM_FIELD, STORM_GRAPHS } from './rows/stormLook';
 import { signalFireGraphs } from './fireLook';
-import fireBook from '../data/fireBook.generated.json' with { type: 'json' };
+import type { FireBookFile } from './fireBookPixels';
 
+/** Construct the original declaration from the source-owned texture metadata. */
+export function signalProductRows(fireBook: FireBookFile): Shardfile {
 const FIRE_GRAPHS = signalFireGraphs(fireBook.hash);
 
 // Legacy trusted runtime retains today's geometry/spawn; SF29 binds only its audio.
@@ -59,8 +61,5 @@ const product = parseShardfile({ ...base, navigation: navigation.navigation, ser
   look: { ...base.look, families: ['pbr'], materials: { pbr: sand, ...Object.fromEntries(Object.entries({ ...STORM_GRAPHS, ...FIRE_GRAPHS }).map(([id, graph]) => [id, { family: 'graph', graph }])) }, curves: { pbr: SAND_DUSK }, samplers: { [fireBook.hash]: { filter: 'linear', mips: 'gpu' }, [ref('grain')]: { wrap: 'repeat', anisotropy: 8, mips: 'gpu' }, [ref('trail')]: { filter: 'linear' }, [ref('shadow')]: { filter: 'linear' } } },
   terrain: { ...tiles.terrain, shadow: { cast: false, receive: false }, follow: 8, order: -1 }, tiles: tiles.tiles, files: [...tiles.files, ...navigation.files, ...maps].sort((a, b) => a.hash.localeCompare(b.hash)), library: maps.map((file) => file.hash), critical: [...tiles.critical, ...navigation.critical], edge: tiles.edge });
 
-/** The identical declared product row for runtime consumers; file I/O belongs to the SDK Node driver. */
-export function signalProductRows(): typeof product { return product; }
-
-// oxlint-disable-next-line import/no-default-export -- The documented author config consumes this declaration.
-export default product;
+return product;
+}

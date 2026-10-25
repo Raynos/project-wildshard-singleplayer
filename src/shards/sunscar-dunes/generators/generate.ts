@@ -1,8 +1,9 @@
-import type { GeneratedProject } from '@wildshard/sdk/projectGeneration';
+import type { GeneratedProject, ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import { signalProductRows } from './product';
+import { signalFireBook } from './fireBookProgram';
 import { output } from './sourceOutput';
 
 /** Build the original declaration and output together from their defining source functions. */
-export function generate(): GeneratedProject {
-  return { shard: signalProductRows(), output };
+export async function generate(ctx: ProjectGenerationContext): Promise<GeneratedProject> {
+  return { shard: signalProductRows((await signalFireBook(ctx)).file), output };
 }

@@ -17,7 +17,7 @@ import driftwood from '../src/shards/driftwood-isle/shard.config';
 import pine from '../src/shards/pine-hollow/shard.config';
 import nalati from '../src/shards/nalati-grasslands/shard.config';
 import nine from './fixtures/nine-product-inputs';
-import signal from '../src/shards/sunscar-dunes/generators/product';
+import { source as signal } from './fixtures/sunscar-source-program';
 import sky from '../src/shards/far-reach/shard.config';
 
 const cases = [

@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The witness reads the shard's admitted in-tree bytes and the native physics module.
 import { readFileSync } from 'node:fs';
 import { Vector3 } from 'three';
-import source from '../../../src/shards/sunscar-dunes/generators/product';
+import { source, sourceAssets } from '../../fixtures/sunscar-source-program';
 import { createSimHost, type SimHost } from '../../../src/engine/sim';
 import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHost } from '../../../src/engine/sim/snapshot';
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
@@ -41,7 +41,7 @@ const { SCOUT_AT, COMPLETE_FLAG, MATRIARCH_FLAG } = signalFlags;
  */
 export const ENTRY = 'sim/runtime-plan';
 const ROOT = new URL('../../../', import.meta.url);
-const assets = new Map(source.files.map(file => [file.hash, new Uint8Array(readFileSync(new URL(`src/shards/sunscar-dunes/assets/${file.hash}`, ROOT)))]));
+const assets = sourceAssets;
 const EYE = 1.68;
 const identity = { instance: 'sunscar-witness', shard: source.identity.slug, revision: source.identity.revision };
 

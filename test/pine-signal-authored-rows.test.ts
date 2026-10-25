@@ -4,7 +4,7 @@ import sky from '../src/shards/pine-hollow/data/sky.json' with { type: 'json' };
 import { KEYED_SKY } from '../src/format/keyedSky';
 import { keyedSkyDay } from '../src/game/looks/keyedSkyClock';
 import { signalFireGraphs } from '../src/shards/sunscar-dunes/generators/fireLook';
-import { signalProductRows } from '../src/shards/sunscar-dunes/generators/product';
+import { signalProductRows } from './fixtures/sunscar-source-program';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 
 // Evaluated before conversion at 192f37727: every sky key, light preset,

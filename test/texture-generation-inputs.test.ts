@@ -1,10 +1,9 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The real producer's cache stays in this owned scratch directory.
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve only repository source and the owned temporary cache.
 import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- The source catalogue belongs to this checkout.
 import { cwd } from 'node:process';
-import * as v from 'valibot';
 import { expect, test } from 'vitest';
 import { discoverGeneration, generateShardJob } from '../scripts/generate.mjs';
 
@@ -21,9 +20,9 @@ test('isolated image texture adapters include the raw pixel packer and its codec
   expect(checked).toBeGreaterThan(0);
 });
 
-test('the registered fire-book stage refuses missing helpers and preserves its original texture bytes', async () => {
-  const job=discoverGeneration(root).jobs.find(row=>row.id==='signal-fire-book');
-  if(job===undefined)throw new Error('Missing registered fire-book producer');
+test('the retained declaration stage refuses missing pixel helpers and preserves its original rows', async () => {
+  const job=discoverGeneration(root).jobs.find(row=>row.id==='signal-declaration');
+  if(job===undefined)throw new Error('Missing registered declaration producer');
   const cacheDir=mkdtempSync(resolve(root,'tmp/fire-book-inputs-'));
   try {
     for(const missing of required){
@@ -32,13 +31,9 @@ test('the registered fire-book stage refuses missing helpers and preserves its o
     }
     const result=await generateShardJob(root,job,{cacheDir,forceCompare:true});
     try {
-      const hash='5fe421ef5db33fc737043742feea77ad24105299c23e120b62c39e206e331b0a';
-      const file=`src/shards/sunscar-dunes/assets/${hash}`;
+      const file='src/shards/sunscar-dunes/data/product.generated.json';
       expect(Object.keys(result.hashes).sort()).toEqual([...job.outputs].sort());
-      expect(result.hashes[file]).toBe(hash);
-      const metadata=v.parse(v.object({hash:v.string()}),JSON.parse(readFileSync(resolve(result.directory,
-        'src/shards/sunscar-dunes/data/fireBook.generated.json'),'utf8')));
-      expect(metadata.hash).toBe(hash);
+      expect(result.hashes[file]).toBe('dcf9a22c356ac6a13abf921fb82a00b371cc79b8544d68dee6981c2618f8137b');
     } finally {result.release();}
   } finally {rmSync(cacheDir,{recursive:true,force:true});}
 });
