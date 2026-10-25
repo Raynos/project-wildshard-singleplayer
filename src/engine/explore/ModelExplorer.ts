@@ -1004,7 +1004,7 @@ export class ModelExplorer implements ExplorePane {
     this.unisolate();
     if (!e.live) o.removeFromParent();
     const slot = this.grid.querySelector(`.ws-x-model[data-id="${e.id}"] .ws-x-model-thumb`);
-    if (slot && !slot.firstChild) slot.append(c);
+    if (slot !== null && slot.querySelector('canvas') === null) slot.append(c);
     const small = this.grid.querySelector(`.ws-x-model[data-id="${e.id}"] small:last-of-type`); // (the first is how it's made)
     if (small && !e.live) small.textContent = engineString('s_4ecdc2db1bc2', [trisLabel(measure(o).tris), e.copies > 1 ? engineString('s_1312908d3788') : '']);
   }
