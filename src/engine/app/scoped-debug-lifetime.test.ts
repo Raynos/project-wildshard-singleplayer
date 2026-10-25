@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
-import { realGc } from './fake/realGc';
+import { Scope } from './scope';
+import { realGc } from '@wildshard/engine/test/realGc';
 
 function savedGetter(target: object, key: string): () => unknown {
   const descriptor = Object.getOwnPropertyDescriptor(target, key);
@@ -20,7 +20,7 @@ function retiredDebug(target: object, active: Scope): { ref: WeakRef<Scope>; get
 }
 
 test('live debug globals and saved getters release an older retired Scope', async () => {
-  await realGc('test/scoped-debug-lifetime.test.ts', 'live debug globals and saved getters release an older retired Scope', async collect => {
+  await realGc('src/engine/app/scoped-debug-lifetime.test.ts', 'live debug globals and saved getters release an older retired Scope', async collect => {
     const target = {}, active = new Scope('current diagnostics'), { ref, getters } = retiredDebug(target, active);
     try {
       await collect(ref);

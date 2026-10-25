@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
-import { SharedTileBuilds } from '../src/game/shardfile/tileContent';
-import { realGc } from './fake/realGc';
+import { Scope } from '@wildshard/engine/app/scope';
+import { SharedTileBuilds } from './tileContent';
+import { realGc } from '@wildshard/engine/test/realGc';
 
 async function retiredBuild(holder: Scope): Promise<{ builds: SharedTileBuilds<object>; ref: WeakRef<object> }> {
   const owner = new Scope('retired resident');
@@ -13,7 +13,7 @@ async function retiredBuild(holder: Scope): Promise<{ builds: SharedTileBuilds<o
 }
 
 test('a live ring holder releases the payload of a retired resident build', async () => {
-  await realGc('test/tile-build-lifetime.test.ts', 'a live ring holder releases the payload of a retired resident build', async collect => {
+  await realGc('src/game/shardfile/tile-build-lifetime.test.ts', 'a live ring holder releases the payload of a retired resident build', async collect => {
     const holder = new Scope('independent ring');
     try {
       const { builds, ref } = await retiredBuild(holder);
@@ -44,7 +44,7 @@ async function retiredHolder(builds: SharedTileBuilds<number>): Promise<WeakRef<
 }
 
 test('a shared live build releases a departed holder while another ring still holds it', async () => {
-  await realGc('test/tile-build-lifetime.test.ts', 'a shared live build releases a departed holder while another ring still holds it', async collect => {
+  await realGc('src/game/shardfile/tile-build-lifetime.test.ts', 'a shared live build releases a departed holder while another ring still holds it', async collect => {
     const owner = new Scope('live resident'), holder = new Scope('collider ring');
     const builds = new SharedTileBuilds(owner, () => Promise.resolve(50));
     try {

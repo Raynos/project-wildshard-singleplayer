@@ -1,9 +1,9 @@
 import { expect, test } from 'vitest';
 import { BoxGeometry, BufferGeometry, Group, Mesh, MeshBasicMaterial, PerspectiveCamera, Scene } from 'three';
-import { paintedGroundMerge } from '../src/game/looks/paintedGroundMerge';
-import { GroundMerge } from '../src/game/shardfile/groundMerge';
-import { Scope } from '../src/engine/app/scope';
-import { realGc } from './fake/realGc';
+import { paintedGroundMerge } from './paintedGroundMerge';
+import { GroundMerge } from '../shardfile/groundMerge';
+import { Scope } from '@wildshard/engine/app/scope';
+import { realGc } from '@wildshard/engine/test/realGc';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 function installed() {
@@ -19,7 +19,7 @@ function installed() {
 }
 
 test('live merged ground releases its removed original mesh and backing', async () => {
-  await realGc('test/painted-ground-lifetime.test.ts', 'live merged ground releases', async collect => {
+  await realGc('src/game/looks/painted-ground-lifetime.test.ts', 'live merged ground releases', async collect => {
     const live = installed();
     try {
       await collect(live.original);await collect(live.geometry);await collect(live.backing);

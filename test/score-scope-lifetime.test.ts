@@ -6,7 +6,7 @@ import { Music } from '../src/engine/audio/Music';
 import { CatalogueScore } from '../src/engine/audio/SetScore';
 import { parseAudioData } from '../src/format/audio';
 import pine from '../src/shards/pine-hollow/data/audioSource.json';
-import { realGc } from './fake/realGc';
+import { realGc } from '@wildshard/engine/test/realGc';
 
 function retiredScore(music: Music): { ref: WeakRef<Scope>; score: CatalogueScore } {
   const profile = parseAudioData(pine.audio).music;

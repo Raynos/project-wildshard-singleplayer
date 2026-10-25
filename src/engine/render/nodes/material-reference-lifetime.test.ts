@@ -2,9 +2,9 @@
 import { expect, test } from 'vitest';
 import { MaterialReferenceNode, MeshStandardNodeMaterial, NodeFrame } from 'three/webgpu';
 import { materialOpacity } from 'three/tsl';
-import { Scope } from '../src/engine/app/scope';
-import { EngineNodesHandler } from '../src/engine/render/nodes/engineNodesHandler';
-import { realGc } from './fake/realGc';
+import { Scope } from '../../app/scope';
+import { EngineNodesHandler } from './engineNodesHandler';
+import { realGc } from '@wildshard/engine/test/realGc';
 
 function cachedOpacity(): MaterialReferenceNode {
   const get: unknown = Reflect.get(materialOpacity, 'getCache');
@@ -26,7 +26,7 @@ function retiredMaterial(handler: EngineNodesHandler, node: MaterialReferenceNod
 }
 
 test('a cached stock material reference releases the retired material Scope', async () => {
-  await realGc('test/material-reference-lifetime.test.ts', 'a cached stock material reference releases the retired material Scope', async collect => {
+  await realGc('src/engine/render/nodes/material-reference-lifetime.test.ts', 'a cached stock material reference releases the retired material Scope', async collect => {
     const handler = new EngineNodesHandler(), node = cachedOpacity();
     await collect(retiredMaterial(handler, node));
     expect(cachedOpacity()).toBe(node);

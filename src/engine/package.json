@@ -4,6 +4,7 @@
   "type": "module",
   "exports": {
     "./test/FakeGame": "./test/FakeGame.ts",
+    "./test/realGc": "./test/realGc.ts",
     "./anim/rigParser": "./anim/rigParser.ts",
     "./ai/eliteRoster": "./ai/eliteRoster.ts",
     "./ai/eliteLifecycle": "./ai/eliteLifecycle.ts",

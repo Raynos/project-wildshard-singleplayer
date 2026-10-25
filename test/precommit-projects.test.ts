@@ -51,6 +51,11 @@ test('staged project membership keeps includes, excludes, type imports and refer
     expect(stagedProjectFailures(root, ['src/engine/own.ts'])).toHaveLength(1);
     put('src/engine/test/helper.ts', 'import type {Own} from "../own";'); git('add', '.');
     expect(stagedProjectFailures(root, ['src/engine/test/helper.ts'])).toEqual([]);
+    put('src/game/tsconfig.test.json', '{"extends":"../../tsconfig.json","include":["**/*.test.ts"],"references":[{"path":"../../tsconfig.engine.json"}]}');
+    put('src/game/fixture.test.ts', 'import type {Helper} from "../engine/test/helper";'); git('add', '.');
+    expect(stagedProjectFailures(root, ['src/game/fixture.test.ts'])).toHaveLength(1);
+    put('src/game/tsconfig.test.json', '{"extends":"../../tsconfig.json","include":["**/*.test.ts"],"references":[{"path":"../../tsconfig.engine.json"},{"path":"../engine/tsconfig.test.json"}]}'); git('add', '.');
+    expect(stagedProjectFailures(root, ['src/game/fixture.test.ts'])).toEqual([]);
     put('src/engine/own.ts', 'import type {Helper} from "./test/helper";'); git('add', 'src/engine/own.ts');
     expect(stagedProjectFailures(root, ['src/engine/own.ts'])).toHaveLength(1);
   } finally { rmSync(root, { recursive: true, force: true }); }

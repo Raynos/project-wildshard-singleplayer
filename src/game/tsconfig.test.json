@@ -18,6 +18,9 @@
       "path": "../../tsconfig.engine.json"
     },
     {
+      "path": "../engine/tsconfig.test.json"
+    },
+    {
       "path": "../../tsconfig.format.json"
     },
     {

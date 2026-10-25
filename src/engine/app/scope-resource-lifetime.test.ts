@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { BufferGeometry } from 'three';
-import { Scope, dispatchRebind } from '../src/engine/app/scope';
-import { realGc } from './fake/realGc';
+import { Scope, dispatchRebind } from './scope';
+import { realGc } from '@wildshard/engine/test/realGc';
 
 function retireDuringRebind(geometry: BufferGeometry): WeakRef<Scope> {
   const owner = new Scope('cached hull world');
@@ -18,7 +18,7 @@ function retireDuringRebind(geometry: BufferGeometry): WeakRef<Scope> {
 }
 
 test('a cached geometry releases an owner retired during a binding refresh', async () => {
-  await realGc('test/scope-resource-lifetime.test.ts', 'a cached geometry releases an owner retired during a binding refresh', async collect => {
+  await realGc('src/engine/app/scope-resource-lifetime.test.ts', 'a cached geometry releases an owner retired during a binding refresh', async collect => {
     const geometry = new BufferGeometry(), retired = retireDuringRebind(geometry);
     await collect(retired);
     let disposals = 0;
@@ -36,7 +36,7 @@ function lateGeometry(geometry: BufferGeometry): WeakRef<Scope> {
 }
 
 test('a cached geometry arriving after retirement never keeps the closed Scope', async () => {
-  await realGc('test/scope-resource-lifetime.test.ts', 'a cached geometry arriving after retirement never keeps the closed Scope', async collect => {
+  await realGc('src/engine/app/scope-resource-lifetime.test.ts', 'a cached geometry arriving after retirement never keeps the closed Scope', async collect => {
     const geometry = new BufferGeometry();
     let disposals = 0;
     geometry.addEventListener('dispose', () => { disposals++; });
