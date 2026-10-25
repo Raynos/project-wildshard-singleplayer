@@ -1,4 +1,5 @@
 export interface DownloadSample { step?: string; declaredBytes?: string; pendingBytes?: string; downloadPercent?: string }
+export function compiledPollDetails<T extends {errors: readonly string[]}, U>(details: boolean, accuracy: T | null, measures: () => U): {accuracy: T | null; measures: U} | {errors: readonly string[]};
 export interface CompiledFrameWindow { controlsAt: number | null; last: number | null; worst: number; worstAt: number | null; frames: number; complete: boolean }
 export function sampleCompiledFrame(state: CompiledFrameWindow, at: number, ready: boolean): void;
 export function compiledFrameMetrics(state: CompiledFrameWindow | null | undefined, origin: number, tap: number): {

@@ -1,7 +1,24 @@
 import { expect, test } from 'vitest';
-import { compiledEntryQualification, compiledFrameMetrics, downloadEvidence, recoveredGridControls, requireCompiledEntry, sampleCompiledFrame, transportEvidence, waitForWaitingWorker, type CompiledFrameWindow } from '../scripts/loading-benchmark/sim-shard.mjs';
+import { compiledEntryQualification, compiledFrameMetrics, compiledPollDetails, downloadEvidence, recoveredGridControls, requireCompiledEntry, sampleCompiledFrame, transportEvidence, waitForWaitingWorker, type CompiledFrameWindow } from '../scripts/loading-benchmark/sim-shard.mjs';
 
 const frameWindow = (): CompiledFrameWindow => ({ controlsAt: null, last: null, worst: 0, worstAt: null, frames: 0, complete: false });
+
+test('post-controls polls stop reading the resource bank but still report late application errors', () => {
+  let resourceReads = 0, measureReads = 0;
+  const errors: string[] = [];
+  const accuracy = { errors, get resources() { resourceReads++; return [{name: '/assets/world.glb', detail: 'x'.repeat(16384)}]; } };
+  const measures = () => { measureReads++; return [{name: 'prepare', start: 1, ms: 2}]; };
+  const initial = JSON.stringify(compiledPollDetails(true, accuracy, measures));
+  expect(initial.length).toBeGreaterThan(16384);
+  for (let poll = 0; poll < 16; poll++) {
+    expect(JSON.stringify(compiledPollDetails(false, accuracy, measures))).toBe('{"errors":[]}');
+  }
+  errors.push('Late render failure');
+  expect(compiledPollDetails(false, accuracy, measures)).toEqual({errors: ['Late render failure']});
+  expect(initial).toContain('"errors":[]');
+  expect(resourceReads).toBe(1); expect(measureReads).toBe(1);
+  expect(compiledPollDetails(false, null, measures)).toEqual({errors: []});
+});
 
 test('compiled qualification retains the observed cold miss even when the median passes', () => {
   expect(compiledEntryQualification([81, 372, 81].map(worstFrameAfterControlsMs => ({worstFrameAfterControlsMs}))))

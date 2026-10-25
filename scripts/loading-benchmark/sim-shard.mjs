@@ -1,5 +1,15 @@
 import { loadingShardName } from './catalogue.mjs';
 
+/** Keep post-controls polls independent of the frozen loading/resource bank.
+ * Injected into Safari: dependencies must stay inside the function.
+ * @template {{errors: readonly string[]}} T
+ * @template U
+ * @param {boolean} details @param {T | null} accuracy @param {() => U} measures
+ * @returns {{accuracy: T | null; measures: U} | {errors: readonly string[]}} */
+export function compiledPollDetails(details, accuracy, measures) {
+  return details ? { accuracy, measures: measures() } : { errors: accuracy?.errors ?? [] };
+}
+
 /** Sample the compiled card's actual controls, then eight seconds of rAF gaps.
  * Loading gaps before the first ready frame are excluded; a frame straddling
  * the window end keeps its full duration rather than hiding a long freeze.

@@ -130,8 +130,13 @@ recorder into the first HTML, preserving asset/worker response bytes and
 recording both HTML hashes. Per-run output retains loading rows, resource
 and worker receipts, declared-byte changes, percentage drops and named
 performance measures. Missing counters stay missing; a successful capture
-alone does not pass the loading budgets. Controls are observed at 500 ms
-intervals. Grid-only reveal/frame checks stay unavailable in compiled mode.
+alone does not pass the loading budgets. Inspector polls remain 500 ms apart;
+the first ready rAF fixes controls, followed by eight seconds of rAF gaps.
+After the first-ready snapshot, polls retain live readiness/errors without
+serializing the frozen resource bank or scanning measures again. The compiled
+summary checks every visit against 100 ms: a measured miss exits 2,
+incomplete/refused evidence exits 1. Grid M1 behavior stays unchanged;
+compiled entries still have no grid reveal/broken-frame verdict.
 
 The independent observer retains encoded HTTP body bytes and, separately,
 stream-counted content bytes after gzip/brotli/deflate. Corrupt or unsupported

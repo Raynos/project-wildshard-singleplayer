@@ -24,7 +24,7 @@ import { soakInspector } from './soak/inspector.mjs';
 import { loadingCardIndex, loadingShardName } from './loading-benchmark/catalogue.mjs';
 import { observeTransport } from './loading-benchmark/transport.mjs';
 import { accuracyRecorder } from './loading-benchmark/accuracy-data.mjs';
-import { requireCompiledEntry, downloadEvidence, transportEvidence, waitForWaitingWorker, recoveredGridControls, sampleCompiledFrame, compiledFrameMetrics, compiledEntryQualification } from './loading-benchmark/sim-shard.mjs';
+import { requireCompiledEntry, downloadEvidence, transportEvidence, waitForWaitingWorker, recoveredGridControls, sampleCompiledFrame, compiledFrameMetrics, compiledEntryQualification, compiledPollDetails } from './loading-benchmark/sim-shard.mjs';
 import { cachedBodyEvidence } from './loading-benchmark/cache-bodies.mjs';
 import { saveFixtureCode } from './debug-settings.mjs';
 import { readSimulatorCoreFootprint, selectedCoreMemoryTargets, coreMemorySummary, compiledFloorSave, scriptResourceURLs,
@@ -344,10 +344,12 @@ async function run(mode, index, target) {
           break;
         }
         if (shard !== undefined) {
-          const current = JSON.parse(await page.evaluate(`JSON.stringify({ href: location.href, origin: performance.timeOrigin, at: performance.now(), accuracy: window.__loadingAccuracy ?? null,
+          const current = JSON.parse(await page.evaluate(`JSON.stringify({ href: location.href, origin: performance.timeOrigin, at: performance.now(),
             ready: (${COMPILED_READY}),
-            measures: performance.getEntriesByType('measure').map(row => ({ name: row.name, start: row.startTime, ms: row.duration })) })`));
+            ...(${compiledPollDetails.toString()})(${compiled === null}, window.__loadingAccuracy ?? null,
+              () => performance.getEntriesByType('measure').map(row => ({ name: row.name, start: row.startTime, ms: row.duration }))) })`));
           compiledReady = current.ready;
+          if (compiled !== null && current.errors?.length > 0) { compiled.accuracy.errors = current.errors; break; }
           if (current.accuracy?.errors.length > 0) { compiled = current; break; }
           // Keep the original first-ready byte/phase sample, not eight seconds
           // of later background traffic, while the frame window completes.
