@@ -1,5 +1,5 @@
-import type { ShardManifest } from './game/shard/manifest';
-import { retried } from './engine/boot/retry';
+import type { ShardManifest } from '@wildshard/game/shard/manifest';
+import { retried } from '@wildshard/engine/boot/retry';
 
 type Identity = Pick<ShardManifest, 'slug' | 'legacy'>;
 type Loaders = Readonly<Record<string, (() => Promise<ShardManifest>) | undefined>>;
