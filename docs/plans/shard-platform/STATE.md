@@ -2,9 +2,10 @@
 
 **Order (G639):** (1) live reds → (2) NALATI 0 → (3) grid / frame floor → extras.
 
-**(1) LIVE c8e2a84b0e (09:13Z 10-25): full CI + six audited legs; adds G723 warm-ahead (594723dace) + sword fix
-9dc10c2d58 + dome fixture d9cc7ce103 on top of 653f0abe85 (07:41Z, tonight's fixes). Hourly newest-CI-green releases (sp-x7, G705). 183bd85273 (CI + six legs
-green) releasing ~10:30Z: Explorer card fix 769f64dac7 + CF2 screenshot fix aa3b2781da (capture 10.8 s -> 0.75 s).
+**(1) LIVE 183bd85273 (10:33Z 10-25): full CI + six audited legs; Explorer card fix 769f64dac7 + CF2 screenshot fix
+aa3b2781da (CI capture 10.8 s -> 0.75 s) on c8e2a84b0e (09:13Z: G723 warm-ahead + sword fix 9dc10c2d58) and 653f0abe85
+(07:41Z, tonight's fixes). Hourly releases (sp-x7, G705; cron silent since 06:17,
+manual backstop each hour): b92412f040 releasing 11:18Z. No open release red.
 
 **(2) NALATI 0 done (27dd969127).** HOST-AUDIT (G679) parked until every mini plan finishes. Legacy waits (G606).
 
@@ -23,7 +24,7 @@ G713: close structurally: lazy-load code (js-payload J1-J10, sp-x2) + lighter po
 (board 95d25c95da), G724+G725 d8598ec213 (re-entry 17.7 ms, no panel/static, one world). L16 0dd7ce4722: hero
 0.48 s (was 1.43 s blank); the 0.32 s black is iOS's launch zoom, outside the page.
 Hero retake 0dd7ce4722: art/main-menu-hero/round-5-retake/board.jpg; Nalati aerial terrain FIXED 0ce626a8f5 (board
-art/main-menu-hero/round-6-nalati-terrain/); G630 still needs Nine far proxy + Sunscar glow (Opus). Now: sp-x9 G733 -> L17; sp-x2 G713 JS payload J1-J10 (U1/U2/U4 done d9d068ce7f); sp-x6 NM RM2; sp-x1 G717 quiet misses.
+art/main-menu-hero/round-6-nalati-terrain/); G630 still needs Nine far proxy + Sunscar glow (Opus). Now: sp-x9 G733 -> L17; sp-x2 JS payload J5 (J1-J4 done; 7 frozen G606 warnings kept); sp-x6 NM RM2; sp-x1 G717 quiet misses.
 **Blocked on Jake:** LEGACY phone QA, memory budget call, road B pilot play, hero board. **On Opus:** G713 post RT sheet,
 G685 look row, NM RM4+, U2 occupied parents, L18.3 lighter DW assets, G630 Nine far + Sunscar glow, T3/T6 visual.
 
