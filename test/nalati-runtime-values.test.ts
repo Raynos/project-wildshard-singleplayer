@@ -12,7 +12,7 @@ import pins from './fixtures/nalati-place-runtime-files.json' with { type: 'json
 
 const prefix = 'src/shards/nalati-grasslands/';
 function original(path: string): unknown { const value: unknown = JSON.parse(readFileSync(`${prefix}${path}`, 'utf8')); return value; }
-const inputs = { places: original('data/places.json'), dressing: original('data/dressingGeos.json'), paint: original('data/poiPaint.json') };
+const inputs = { places: original('data/places.json'), paint: original('data/poiPaint.json') };
 
 test('source values retain every predecessor metadata field and complete floor byte', () => {
   const packet = nalatiRuntimeRows(inputs);

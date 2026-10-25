@@ -862,6 +862,8 @@
       "shard": "nalati-grasslands",
       "entry": "src/shards/nalati-grasslands/generators/bake-place-runtime.mjs",
       "command": [
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
         "src/shards/nalati-grasslands/generators/bake-place-runtime.mjs"
       ],
       "inputRoots": [
@@ -870,7 +872,6 @@
         "src/shards/nalati-grasslands/generators/placeRuntimeSource.mjs",
         "src/shards/nalati-grasslands/generators/placeRuntimeSource.d.mts",
         "src/shards/nalati-grasslands/data/places.json",
-        "src/shards/nalati-grasslands/data/dressingGeos.json",
         "src/shards/nalati-grasslands/data/modelMetrics.json",
         "src/shards/nalati-grasslands/data/worldView.json",
         "src/shards/nalati-grasslands/generators/placeFloors.mjs",
@@ -879,7 +880,19 @@
         "pnpm-lock.yaml",
         "src/shards/nalati-grasslands/data/staticCapture.json",
         "src/shards/nalati-grasslands/data/poiPaint.json",
-        "src/shards/nalati-grasslands/data/signAtlases.json"
+        "src/shards/nalati-grasslands/data/signAtlases.json",
+        "src/sdk/package.json",
+        "src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/byteCodec.ts",
+        "src/sdk/random.ts",
+        "src/sdk/immutable.ts",
+        "src/shards/nalati-grasslands/generators/dressingProgram.ts",
+        "src/shards/nalati-grasslands/generators/dressingGeometryRows.ts",
+        "src/shards/nalati-grasslands/generators/dressingGeos.ts",
+        "src/shards/nalati-grasslands/generators/dressingNoise.ts",
+        "src/shards/nalati-grasslands/generators/dressingGeometry.ts",
+        "src/shards/nalati-grasslands/generators/geometryWriter.ts",
+        "src/shards/nalati-grasslands/generators/placeWire.ts"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/boot/placeRuntime.generated.json",

@@ -81,16 +81,19 @@ test('the preparation source bundles as one config-safe chunk', async () => {
   }
 });
 
-for (const omit of [true, false]) {
-  test(`sealed runtime producer ${omit ? 'refuses the missing pure source' : 'preserves every original output'}`, async () => {
+for (const omission of ['preparation', 'geometry', null] as const) {
+  test(`sealed runtime producer ${omission === null ? 'preserves every original output' : `refuses the missing ${omission} source`}`, async () => {
     const root = resolve('.'), job = discoverGeneration(root).jobs.find(row => row.id === 'nalati-place-runtime');
     if (job === undefined) throw new Error('Missing retained place-runtime producer');
     const source = `${prefix}generators/placeRuntimeSource.mjs`;
-    expect(job.inputRoots).toContain(source);
+    const geometry = `${prefix}generators/dressingGeometryRows.ts`;
+    expect(job.inputRoots).toContain(source); expect(job.inputRoots).toContain(geometry);
+    expect(job.inputRoots).not.toContain(`${prefix}data/dressingGeos.json`);
     const cacheDir = mkdtempSync(resolve('tmp/nalati-runtime-pure-'));
     try {
-      if (omit) {
-        const descriptor = { ...job, inputRoots: job.inputRoots.filter(file => file !== source) };
+      if (omission !== null) {
+        const absent = omission === 'preparation' ? source : geometry;
+        const descriptor = { ...job, inputRoots: job.inputRoots.filter(file => file !== absent) };
         const catalogPath = relative(root, resolve(cacheDir, 'omitted.json'));
         const catalog = v.parse(v.object({ schema: v.string(), notice: v.string(), jobs: v.array(v.unknown()) }), JSON.parse(readFileSync('scripts/generation-jobs.json', 'utf8')));
         writeFileSync(resolve(root, catalogPath), JSON.stringify({ ...catalog, jobs: catalog.jobs.map(row => typeof row === 'object' && row !== null && Reflect.get(row, 'id') === job.id ? descriptor : row) }));
