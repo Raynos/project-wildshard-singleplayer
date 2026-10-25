@@ -148,7 +148,9 @@ About 10 Opus lane-days, roughly 5 calendar days on two lanes.
 | RM1.6 plaza pair targets | done | D1/D2 each have two candidates, nine detailed targets and a labelled sheet; eight-dome overview explicitly records 71/72 overall targets because B1.2 remains missing |
 | RM2.1 road / plaza baseline | done | 36 exact views / four labelled sheets on `903baf53bc`; whole-scene maxima A1 139 draws / 307,798 tris, A2 148 / 339,674, D1 150 / 348,643, D2 156 / 361,596. Effective Night Market claims 65.1–114.8 MiB, separate page-wide CDP samples. Draw target still missed; no FPS/native-memory acceptance |
 | RM2.2 aerial baseline | done | 36 exact views / four sheets, same `903baf53bc`: B1 127 draws / 296,187 tris, B2 170 / 331,062, C1 122 / 287,121, C2 193 / 330,691; claims 36.9–117.1 MiB. Actual outside/entered tiers retained; C2 detached far eye does not certify the far proxy. All owned browsers/preview closed |
-| RM3.1 existing kit extraction | in flight (2026-10-25, sp-x6) | Existing post lantern exported as owned GLB bytes with named palette slots and collision geometry; current placements unchanged. Remaining kit families follow in bounded slices |
+| RM3.1 lantern extraction / placement | done | Four existing heights exported as owned GLBs and consumed by the plot generator. Full-layout colours, normals, UVs, moving-light order and raw collision exact; visual positions within two micrometres. Cold sealed producer: 42 outputs / 21.1 s. Whole RM3 capture milestone remains open |
+| RM3.1b stall / house extraction | open | Existing static stall and house pieces through the same GLB intake, no look change |
+| RM3.1c canal / garden / plaza extraction | open | Remaining existing static kit families; moving-light seed order and collision stay exact |
 | RM3.2 variants / LOD intake | open | Palette slots, three variants, LOD0/LOD1/far bounds |
 | RM3.3 light / budgets | open | Generator vertex-light plumbing and per-tile budget report; look unchanged |
 | RM3.4 milestone | open | Build and original baseline parity |

@@ -16056,6 +16056,13 @@
       ],
       "inputRoots": [
         "src/shards/open-plots/generators/kit.mjs",
+        "src/shards/open-plots/generators/kitGlb.mjs",
+        "src/sdk/bake/glb.ts",
+        "src/sdk/bake/world.ts",
+        "src/sdk/bake/worldGlb.ts",
+        "src/sdk/assets.ts",
+        "src/sdk/immutable.ts",
+        "src/sdk/worldSource.ts",
         "src/shards/open-plots/generators/tiledPlot.mjs",
         "src/shards/open-plots/data/layouts",
         "src/shards/open-plots/generators/bake-plots.mjs",
