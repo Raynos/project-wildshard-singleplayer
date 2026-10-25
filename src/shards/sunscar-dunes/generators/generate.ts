@@ -11,7 +11,10 @@ import { signalQuestPage } from './questPage';
 import { signalClientPlan } from './clientPlan';
 import { signalSand } from './sandProgram';
 import { signalMap } from './mapProgram';
-import { signalOwnedBoot } from './rows/boot';
+import { BUDGETS } from './rows/budgets';
+import { SIGNAL_DEV_POSES } from './rows/devPoses';
+import cues from '../data/cues.json' with { type: 'json' };
+import { LATE_READS, signalOwnedBoot } from './rows/boot';
 import { signalRestFire } from './restFireProgram';
 import { REST_URLS } from './rows/restFiles';
 
@@ -23,5 +26,5 @@ export async function generate(ctx: ProjectGenerationContext): Promise<Generated
   if (models === undefined) throw new Error('Missing world model descriptor');
   return { shard: signalProductRows(fire.file, sand), output: signalSourceOutput(models, [...rigs.blobs, ...world.blobs, restFire.blob], scene, signalClientPlan(signalQuestPage(signalQuestMarkers(world.world)))),
     map: { pixels: await signalMap(ctx), name: 'ui/map' },
-    discovery: { 'boot.files': boot.files, 'boot.sources': boot.sources } };
+    discovery: { budgets: BUDGETS, poses: SIGNAL_DEV_POSES, audioCues: cues, 'boot.lateReads': LATE_READS, 'boot.files': boot.files, 'boot.sources': boot.sources } };
 }

@@ -1,13 +1,12 @@
 import stages from '../../data/bossStages.json' with { type: 'json' };
 import { SIGNAL_PAGE_HOLDS } from './hostOwners';
 import { MATRIARCH_PRESENTATION } from './matriarchPresentation';
-import { SIGNAL_RIG_LIBRARY } from './rigLibrary';
 import { SIGNAL_MODULES, SIGNAL_SPECIES, SIGNAL_STRIKES, SIGNAL_PAGE_ROWS } from './brains';
 import { SIGNAL_HEADLESS } from './headlessOwners';
 
 /** Authored population policy, retaining preparation-time module admission and home order. */
 const program = { species: SIGNAL_SPECIES, strikes: SIGNAL_STRIKES, modules: SIGNAL_MODULES };
-export const SIGNAL_PAGE_PROGRAM = { species: { program, page: SIGNAL_PAGE_ROWS, library: SIGNAL_RIG_LIBRARY },
+export const SIGNAL_PAGE_PROGRAM = { species: { program, page: SIGNAL_PAGE_ROWS },
   population: { system: 'sunscar.creatures', holds: SIGNAL_PAGE_HOLDS, witness: { kinds: ['duneRay', 'duneStrider'] } },
   inspect: { actors: { ray: { home: 0 } }, roster: 'creatures', boss: 'matriarch' },
   fight: { id: SIGNAL_HEADLESS.boss.row.id, definition: SIGNAL_HEADLESS.boss.definition, stages, profile: SIGNAL_HEADLESS.boss.profile,

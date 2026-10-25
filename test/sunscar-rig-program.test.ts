@@ -8,10 +8,10 @@ import { createProjectGeneration } from '../src/sdk/projectGeneration';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { signalRigFiles, signalRigs } from '../src/shards/sunscar-dunes/generators/rigProgram';
-import { signalRigLibrary, SIGNAL_RIG_LIBRARY } from '../src/shards/sunscar-dunes/generators/rows/rigLibrary';
+import { signalRigLibrary } from '../src/shards/sunscar-dunes/generators/rows/rigLibrary';
 import { signalSceneSources } from '../src/shards/sunscar-dunes/generators/sceneSources';
 import { signalSourceOutput } from '../src/shards/sunscar-dunes/generators/sourceOutput';
-import { world, sourceBlobs as SIGNAL_SOURCE_BLOBS, originalOutput, scene, client } from './fixtures/sunscar-source-program';
+import { rigLibrary, world, sourceBlobs as SIGNAL_SOURCE_BLOBS, originalOutput, scene, client } from './fixtures/sunscar-source-program';
 import original from './fixtures/sunscar-rig-files.json' with { type: 'json' };
 
 const signature = (files: ReadonlyMap<string, Uint8Array>) => Object.fromEntries([...files].map(([name, bytes]) => [name, { bytes: bytes.length, hash: hashImmutableBytes(bytes) }]));
@@ -37,9 +37,9 @@ test('cold and cached creature bakes retain all five original full-byte identiti
       expect(blob.file.compressed).toBe(blob.bytes.length);
       expect(blob.file.decoded).toBeGreaterThan(0); expect(blob.file.triangles).toBeGreaterThan(0); expect(blob.file.draws).toBeGreaterThan(0);
     }
-    expect(rigs.library.bodies.standIns).toEqual(SIGNAL_RIG_LIBRARY.bodies.standIns);
-    expect(rigs.library.looks).toBe(SIGNAL_RIG_LIBRARY.looks);
-    const baseline = signalSceneSources(world, signalRigLibrary(SIGNAL_RIG_LIBRARY.bodies.urls, rigs.library.bodies.standIns.strider))[0];
+    expect(rigs.library.bodies.standIns).toEqual(rigLibrary.bodies.standIns);
+    expect(rigs.library.looks).toBe(rigLibrary.looks);
+    const baseline = signalSceneSources(world, signalRigLibrary(rigLibrary.bodies.urls, rigs.library.bodies.standIns.strider))[0];
     if (baseline === undefined) throw new Error('Missing original model');
     expect(hashImmutableBytes(baseline.bytes)).toBe(SIGNAL_SOURCE_BLOBS[0]?.file.hash);
     const model = signalSceneSources(world, rigs.library)[0]; if (model === undefined) throw new Error('Missing model');

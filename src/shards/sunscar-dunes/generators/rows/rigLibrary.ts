@@ -1,12 +1,11 @@
 import * as MODELS from './files';
-import STRIDER_BODY from '../../assets/striderRig.generated.json' with { type: 'json' };
 import { RAY_BODY, SKITTERER_BODY } from './species/bodies';
 import { SIGNAL_CREATURE_LOOK_ROWS } from './creatureLooks';
 import STRINGS from '../../data/strings.json' with { type: 'json' };
 
 export interface StriderBody {
   readonly bones: readonly { readonly name: string; readonly parent: string | null; readonly pos: readonly [number, number, number] }[];
-  readonly dims: typeof STRIDER_BODY.dims;
+  readonly dims: { readonly bodyY: number; readonly bodyHalfLen: number; readonly bodyRadius: number; readonly headRadius: number; readonly legLen: number; readonly halfWidth: number };
 }
 export interface RigLibrary {
   readonly bodies: { readonly creatures: typeof MODELS.DUNE_RIGS; readonly urls: Readonly<Record<MODELS.DuneRigName, string>>;
@@ -18,7 +17,6 @@ export function signalRigLibrary(urls: Readonly<Record<MODELS.DuneRigName, strin
   return { bodies: { creatures: MODELS.DUNE_RIGS, urls,
     standIns: { skitterer: SKITTERER_BODY, strider, ray: RAY_BODY, matriarch: RAY_BODY }, fault: '[sunscar-dunes]' }, looks: SIGNAL_CREATURE_LOOK_ROWS };
 }
-export const SIGNAL_RIG_LIBRARY = signalRigLibrary(MODELS.DUNE_RIG_URLS, STRIDER_BODY);
 const specimen = { parts: 'first', material: { vertexColors: true, roughness: 0.8, flatShading: true } } as const;
 const file = 'src/shards/sunscar-dunes/generators/rows/rigLibrary.ts';
 export const SIGNAL_MODEL_SPECIMENS = [

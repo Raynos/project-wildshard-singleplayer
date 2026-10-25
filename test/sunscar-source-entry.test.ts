@@ -13,7 +13,10 @@ import { generated, world, originalOutput as output } from './fixtures/sunscar-s
 import before from './fixtures/sunscar-source-entry.json' with { type: 'json' };
 import originalProductAssets from './fixtures/sunscar-duplicate-product.json' with { type: 'json' };
 import rigFiles from './fixtures/sunscar-rig-files.json' with { type: 'json' };
-import { BOOT_FILES, BOOT_SOURCES } from '../src/shards/sunscar-dunes/generators/rows/boot';
+import { BUDGETS } from '../src/shards/sunscar-dunes/generators/rows/budgets';
+import { SIGNAL_DEV_POSES } from '../src/shards/sunscar-dunes/generators/rows/devPoses';
+import cues from '../src/shards/sunscar-dunes/data/cues.json' with { type: 'json' };
+import { LATE_READS, BOOT_FILES, BOOT_SOURCES } from '../src/shards/sunscar-dunes/generators/rows/boot';
 import { REST_URLS } from '../src/shards/sunscar-dunes/generators/rows/restFiles';
 import { SAND_FILES } from '../src/shards/sunscar-dunes/generators/rows/sand';
 import { DUNE_RIG_URLS, BAKED_URLS } from '../src/shards/sunscar-dunes/generators/rows/files';
@@ -126,5 +129,5 @@ test('computed discovery removes only the retired public rig/world/fire/skirt UR
   const rigs = new Set([...Object.values(DUNE_RIG_URLS), ...Object.values(BAKED_URLS), REST_URLS[2]]);
   const expected = { tiers: { phone: { ...BOOT_SOURCES.tiers.phone, terrain: BOOT_SOURCES.tiers.phone.terrain.filter(url => url !== SAND_FILES.skirt), props: BOOT_SOURCES.tiers.phone.props.filter(url => !rigs.has(url)) },
     desktop: { ...BOOT_SOURCES.tiers.desktop, terrain: BOOT_SOURCES.tiers.desktop.terrain.filter(url => url !== SAND_FILES.skirt), props: BOOT_SOURCES.tiers.desktop.props.filter(url => !rigs.has(url)) } } };
-  expect(generated.discovery).toEqual({ 'boot.sources': expected, 'boot.files': { ...BOOT_FILES, sources: expected } });
+  expect(generated.discovery).toEqual({ budgets: BUDGETS, poses: SIGNAL_DEV_POSES, audioCues: cues, 'boot.lateReads': LATE_READS, 'boot.sources': expected, 'boot.files': { ...BOOT_FILES, sources: expected } });
 });

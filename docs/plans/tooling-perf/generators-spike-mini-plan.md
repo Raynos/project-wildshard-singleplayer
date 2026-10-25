@@ -162,6 +162,8 @@ in `public/assets/<slug>/` as real `.glb` / `.png` / `.ktx2` / `.bin`. App-wide 
 
 | Rest-fire product adoption / retirement | done | Retire `signal-rest-fire` (13 → 12 jobs), its wrapper and 72,196 B public handoff. The product owns the original GLB hash/costs and nine named primitives; its scene descriptor rebinds only that pool, and phone/desktop discovery removes only the retired URL. Well/oil pools, original declaration/output projections and frozen legacy assets stay exact. Final scoped generation passes in 19.60 s with the handoff absent; 78 ready-related cases / 15 suites, touched shard/fixture types and scoped typed lint pass (four stale product suites CI-deferred). |
 
+| View metadata source preparation | done | Prepare the next-largest `signal-view-data` (48,373 B / 20 files). The actual cached rig result now supplies the skeleton explicitly; the unused population-library field and generated default import are gone. Source discovery also supplies budgets, poses, cues and late reads before manifest adoption. All 20 original JSON/declaration hashes match, with namespace enumeration normalized only in the test oracle; 71 other ready-related cases, touched shard/fixture types and scoped typed lint pass. Four product suites stay CI-deferred; the old producer/bindings remain for the next slice (12 jobs). |
+
 GR0–GR2 first, then one shard at a time, each an independent lane-task that lands in small commits. The gen plan's timings
 pick which steps get `cached`.
 

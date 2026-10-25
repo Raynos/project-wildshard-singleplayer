@@ -12,7 +12,7 @@ import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { signalQuestMarkers } from '../src/shards/sunscar-dunes/generators/questMarkers';
 import { signalQuestPage } from '../src/shards/sunscar-dunes/generators/questPage';
 import { signalClientPlan } from '../src/shards/sunscar-dunes/generators/clientPlan';
-import { held as WHIP_HELD_RECIPE, gear as GEAR_SCENE_ROWS, sourceBlobs as SIGNAL_SOURCE_BLOBS, scene as originalScene,
+import { rigLibrary, held as WHIP_HELD_RECIPE, gear as GEAR_SCENE_ROWS, sourceBlobs as SIGNAL_SOURCE_BLOBS, scene as originalScene,
   markers as QUEST_MARKERS, page as SIGNAL_QUEST_PAGE, client as SIGNAL_CLIENT_PLAN } from './fixtures/sunscar-source-program';
 import before from './fixtures/sunscar-source-entry.json' with { type: 'json' };
 
@@ -26,7 +26,7 @@ test('explicit world rows retain every original held, specimen, scene and output
   const world = signalWorldMetadata(files), held = whipHeldRecipe(world.lash);
   expect(held).toEqual(WHIP_HELD_RECIPE);
   expect(gearSceneRows(world, held)).toEqual(GEAR_SCENE_ROWS);
-  const sources = signalSceneSources(world);
+  const sources = signalSceneSources(world, rigLibrary);
   expect(sources.map(blob => blob.file)).toEqual(SIGNAL_SOURCE_BLOBS.map(blob => blob.file));
   const scene = signalWorldScenes(world, sources);
   expect(scene.worldScenes).toEqual(SIGNAL_WORLD_SCENES);
@@ -49,12 +49,12 @@ test('held and specimen factories read the supplied anchors and lash dimensions'
   expect(gear[3].position[1]).toBe(-world.well.anchors.y);
   expect(gear[4].position[1]).toBe(-brazier.y);
   expect(gear[0].specimen.recipe).toBe(held);
-  const models = signalSceneSources(world)[0]; if (models === undefined) throw new Error('Missing models');
+  const models = signalSceneSources(world, rigLibrary)[0]; if (models === undefined) throw new Error('Missing models');
   expect(models.file.hash).not.toBe(SIGNAL_SOURCE_BLOBS[0]?.file.hash);
 });
 
 test('each scene assembly owns its mutable arrays and refuses missing declared braziers', () => {
-  const world = signalWorldMetadata(files), sources = signalSceneSources(world);
+  const world = signalWorldMetadata(files), sources = signalSceneSources(world, rigLibrary);
   const first = signalWorldScenes(world, sources), second = signalWorldScenes(world, sources);
   first.worldScenes.steps.pop(); first.blobs.pop();
   expect(second.worldScenes).toEqual(SIGNAL_WORLD_SCENES);

@@ -12,7 +12,7 @@ import * as models from './rows/files';
 import rest from '../data/restPools.generated.json' with { type: 'json' };
 import { SIGNAL_PIECES as pieces } from './rows/pieces';
 import * as surfaces from './rows/surfaces';
-import { SIGNAL_RIG_LIBRARY, SIGNAL_MODEL_SPECIMENS } from './rows/rigLibrary';
+import { SIGNAL_MODEL_SPECIMENS } from './rows/rigLibrary';
 import { gearSceneRows } from './rows/gearModels';
 import { whipHeldRecipe } from './rows/heldWeapon';
 import { HD_GLOVE_SIZE } from './rows/whip';
@@ -46,7 +46,7 @@ const inputs = { dusk: 'dusk', lights: 'firelights' };
 const publicFiles = { urls: models.BAKED_URLS, resources: models.WORLD_BYTES };
 const json = (name: string, value: unknown) => nameBlob(name, 'json', new TextEncoder().encode(JSON.stringify(value)));
 /** Original models, material decorations and bakes from explicit world rows; no rendering builder is mirrored. */
-export function signalSceneSources(world: SceneWorldBakes, rigs: NonNullable<SceneModelSource['rows']['rigs']> = SIGNAL_RIG_LIBRARY, files: { readonly urls: SceneBakeSource['urls']; readonly resources: NonNullable<SceneBakeSource['resources']> } = publicFiles, firePool?: NonNullable<SceneModelSource['rows']['geometryPools']>[number]): NamedBlob[] {
+export function signalSceneSources(world: SceneWorldBakes, rigs: NonNullable<SceneModelSource['rows']['rigs']>, files: { readonly urls: SceneBakeSource['urls']; readonly resources: NonNullable<SceneBakeSource['resources']> } = publicFiles, firePool?: NonNullable<SceneModelSource['rows']['geometryPools']>[number]): NamedBlob[] {
   if (firePool !== undefined && rest.filter(pool => pool.url === REST_URLS[2]).length !== 1) throw new Error('Missing original fire pool binding');
   const pools = firePool === undefined ? rest : rest.map(pool => pool.url === REST_URLS[2] ? firePool : pool);
   const held = whipHeldRecipe(world.lash), gear = gearSceneRows(world, held);
