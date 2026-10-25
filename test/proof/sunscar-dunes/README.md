@@ -1,18 +1,18 @@
 # Signal Dunes: authored physics (G350-SD, was DS1.5 Node-canonical)
 
-`generators/physics.ts` composes the physics product `data/physics.generated.json` from authoring inputs only (G320): the
-camp placement, tower, ridge and scout recipes, the species scale ranges with the creature manager's seed stream, and
-`data/physicsRows.json` for what no recipe computes (the practice arena, the dressing tree, each species simulation spec,
-the prompt and crack spots). It runs under the authoring loader; no world, model, registry or runtime code runs. The
-retired DS1.5 bake built the world in Node; its last output matched this product in every gameplay field, byte for byte.
+`generators/physics.ts` defines the source-owned physics declaration from the camp placement, tower, ridge and scout
+recipes, species scale ranges and seeded creature stream, plus authored arena, dressing, species and spot rows.
+The SDK product and this witness consume that declaration directly. The 23,200-byte original handoff is pinned by
+`test/sunscar-physics-source.test.ts`; its standalone writer job is retired.
 
-Regenerate and compare:
+Compare the complete source bytes and run the existing gameplay/replay/Ledger witness:
 
 ```sh
-node scripts/generate.mjs --job=signal-physics --compare
+pnpm exec vitest run test/sunscar-physics-source.test.ts
+node --experimental-transform-types --import ./scripts/sim-node-loader.mjs test/proof/sunscar-dunes/run.mjs all
 ```
 
-The official 12,503-tick gameplay journey retains the canonical hash `95a6050c27629ed4eb94e79af6a502495f3e5aa7b4c9fd56fb03c8cfdaef54ae`, both earned facts and 25 coins. The 1,793-tick mid-fight restore suffix and shipping-worker continuation agree exactly, with durable reload and duplicate-stable Ledger outcomes. No checkpoint payload or gameplay outcome changes. Fifteen focused native contracts, strict and touched root-config type-aware lint pass.
+At the original authored-physics boundary, the official 12,503-tick gameplay journey retained the canonical hash `95a6050c27629ed4eb94e79af6a502495f3e5aa7b4c9fd56fb03c8cfdaef54ae`, both earned facts and 25 coins. The 1,793-tick mid-fight restore suffix and shipping-worker continuation agree exactly, with durable reload and duplicate-stable Ledger outcomes. Those historical receipts predate later scheduler changes. The current witness reads the admitted product and verifies every asset byte/hash, then independently checks gameplay, restore, shipping-worker continuation and durable Ledger outcomes. No compatibility receipt is re-pinned by the writer retirement.
 
 Fresh native page comparison confirms every gameplay field is exact. The actual map rebake preserves every image byte. Official `physics-baseline.mjs --no-build --mode=walk --shard=sunscar-dunes`: **7 legs, 0 stuck, no page errors**.
 

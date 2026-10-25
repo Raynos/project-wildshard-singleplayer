@@ -1,7 +1,6 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The witness reads the shard's admitted in-tree bytes and the native physics module.
 import { readFileSync } from 'node:fs';
 import { Vector3 } from 'three';
-import { source, sourceAssets } from '../../fixtures/sunscar-source-program';
 import { createSimHost, type SimHost } from '../../../src/engine/sim';
 import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHost } from '../../../src/engine/sim/snapshot';
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
@@ -11,6 +10,7 @@ import type { AnimalSim } from '../../../src/engine/entities/AnimalSim';
 import { Ledger, LedgerEmitter, type LedgerReceipt } from '../../../src/game/ledger';
 import { loadHeadlessProduct } from '../../../src/sdk/headlessProduct';
 import { productHeadlessSections } from '../../../src/sdk/headlessSections';
+import { hashImmutableBytes } from '../../../src/sdk/immutable';
 import { outputDescriptor } from '../../../src/game/shardfile/outputDescriptor';
 import { prepareNativeRuntime, type HeadlessRuntimeInstallation, type HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
 import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProtocol';
@@ -23,10 +23,13 @@ import { weaponContactDistance } from '../../../src/engine/combat/contactWeapon'
 import { WHIP_ITEM, WHIP_PROFILE } from '../../../src/shards/sunscar-dunes/generators/rows/items';
 import signalFlags from '../../../src/shards/sunscar-dunes/data/flags.generated.json' with { type: 'json' };
 import { BASIN } from "../../../src/shards/sunscar-dunes/generators/layout";
-import baked from '../../../src/shards/sunscar-dunes/data/physics.generated.json' with { type: 'json' };
+import { SIGNAL_PHYSICS } from '../../../src/shards/sunscar-dunes/generators/physics';
 import { bindHeadlessPrompts, createHeadlessPromptPicker, parsePromptRegistrations, type HeadlessPrompt } from '../../../src/game/quest/interactionRows';
 import * as v from 'valibot';
 
+// Preserve the original plain JSON boundary, including signed-zero normalization.
+const physicsDocument = JSON.stringify(SIGNAL_PHYSICS);
+const baked: unknown = JSON.parse(physicsDocument);
 const { SCOUT_AT, COMPLETE_FLAG, MATRIARCH_FLAG } = signalFlags;
 
 
@@ -41,7 +44,17 @@ const { SCOUT_AT, COMPLETE_FLAG, MATRIARCH_FLAG } = signalFlags;
  */
 export const ENTRY = 'sim/runtime-plan';
 const ROOT = new URL('../../../', import.meta.url);
-const assets = sourceAssets;
+function productAssets(product: Awaited<ReturnType<typeof loadHeadlessProduct>>): Map<string, Uint8Array> {
+  const descriptor = outputDescriptor(product.shardfile);
+  if (descriptor === undefined) throw new Error('Missing admitted Signal native output');
+  return new Map(descriptor.index.files.map(file => {
+    const bytes = Uint8Array.from(readFileSync(`out/sunscar-dunes/${file.path}`));
+    if (bytes.length !== file.compressed || hashImmutableBytes(bytes) !== file.hash) throw new Error('Signal witness asset differs');
+    return [file.commons === true ? `commons:${file.hash}` : file.hash, bytes];
+  }));
+}
+const admitted = await loadHeadlessProduct('out/sunscar-dunes'), source = admitted.shardfile;
+const assets = productAssets(admitted);
 const EYE = 1.68;
 const identity = { instance: 'sunscar-witness', shard: source.identity.slug, revision: source.identity.revision };
 
@@ -257,10 +270,7 @@ export async function replayProof(rapier: Rapier): Promise<object> {
     const hash = digest(original.host), replayHash = digest(restored.host);
     if (hash !== replayHash || JSON.stringify(original.effects) !== JSON.stringify(restored.effects)) throw new Error('Continuation diverged');
     // the shipping worker, started from the same checkpoint, continues to the same state
-    const product = await loadHeadlessProduct('out/sunscar-dunes'), descriptor = outputDescriptor(product.shardfile);
-    if (descriptor === undefined) throw new Error('Missing admitted Signal native output');
-    const workerAssets = new Map(descriptor.index.files.map(file => [file.commons === true ? `commons:${file.hash}` : file.hash,
-      Uint8Array.from(readFileSync(`out/sunscar-dunes/${file.path}`))]));
+    const product = await loadHeadlessProduct('out/sunscar-dunes'), workerAssets = productAssets(product);
     worker = await HeadlessSimulation.create(product.shardfile, workerAssets, checkpoint, { deadline: 'advisory', sections: productHeadlessSections(product) });
     let commit;
     for (const tick of commands.slice(0, WORKER)) commit = await worker.step([{ source: 'witness.tape', commands: tick }]);

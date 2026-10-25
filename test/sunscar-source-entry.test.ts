@@ -42,9 +42,9 @@ test('direct world rows preserve the original ordered aggregate without its JSON
   expect(signature(world)).toEqual(before.raw.world);
   const registry = v.parse(v.object({ jobs: v.array(v.object({ id: v.string(), shard: v.nullable(v.string()), inputRoots: v.array(v.string()), outputs: v.array(v.string()) })) }),
     JSON.parse(readFileSync('scripts/generation-jobs.json', 'utf8')));
-  expect(registry.jobs.some(row => ['signal-world-bakes', 'signal-product', 'signal-fire-book', 'signal-rigs', 'signal-manifest-ground', 'signal-world', 'signal-sand', 'signal-data-map', 'signal-declaration', 'signal-rest-fire', 'signal-view-data', 'signal-navigation', 'signal-rest-scenes'].includes(row.id))).toBe(false);
+  expect(registry.jobs.some(row => ['signal-world-bakes', 'signal-product', 'signal-fire-book', 'signal-rigs', 'signal-manifest-ground', 'signal-world', 'signal-sand', 'signal-data-map', 'signal-declaration', 'signal-rest-fire', 'signal-view-data', 'signal-navigation', 'signal-rest-scenes', 'signal-physics'].includes(row.id))).toBe(false);
   expect(registry.jobs.flatMap(row => row.inputRoots.concat(row.outputs)).some(path => path.startsWith('src/shards/sunscar-dunes/.wildshard/product/'))).toBe(false);
-  expect(registry.jobs.filter(row => row.shard === 'sunscar-dunes')).toHaveLength(9);
+  expect(registry.jobs.filter(row => row.shard === 'sunscar-dunes')).toHaveLength(8);
   const paths = registry.jobs.flatMap(row => row.inputRoots.concat(row.outputs));
   expect(paths.some(path => path.startsWith('src/shards/sunscar-dunes/') && /\/(?:manifestGround|nativeGround)\.generated\.json$/u.test(path))).toBe(false);
   expect(registry.jobs.flatMap(row => row.inputRoots.concat(row.outputs)).some(path => path.endsWith('/worldBakes.generated.json'))).toBe(false);
