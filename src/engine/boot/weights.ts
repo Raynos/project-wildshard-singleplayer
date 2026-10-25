@@ -37,7 +37,9 @@ export function blendLoadingTimings(previous: LoadingTimings, measured: LoadingT
     return [key, before === undefined ? next : (before + next) / 2];
   }));
 }
-export const loadingTimingKey = (key: LoadingTimingKey): string => `boot.path.times:v2:${key.tier}:${key.path}:${key.identity}`;
+/** Use the defined boot.times record. The versioned suffix isolates path
+ * history and corrected gameplay attribution from legacy timing entries. */
+export const loadingTimingKey = (key: LoadingTimingKey): string => `boot.times:path:v3:${key.tier}:${key.path}:${key.identity}`;
 
 /** The player sees the same two tracks as Developer: equal shares of actual download and weighted setup completion. */
 export function combinedLoadingFraction(download: number, setup: number): number {
