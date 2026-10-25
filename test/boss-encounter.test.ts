@@ -8,7 +8,7 @@ import { installBossEncounter, type BossEncounterPorts, type BossEncounterRows, 
 import bossRows from '../src/shards/pine-hollow/data/bossEncounter.json' with { type: 'json' };
 import bossPresentation from '../src/shards/pine-hollow/data/bossPresentation.json' with { type: 'json' };
 import { bossEncounterPresentation } from '@wildshard/format/bossEncounter';
-import { mockCanvas } from './fake/weaponParity';
+import { mockCanvas } from '@wildshard/engine/test/weaponParity';
 import titan from '../src/shards/nalati-grasslands/data/stormTitanFight.generated.json' with { type: 'json' };
 import king from '../src/shards/nalati-grasslands/data/goldenKing.generated.json' with { type: 'json' };
 

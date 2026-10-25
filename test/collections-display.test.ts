@@ -25,7 +25,7 @@ import { collectionRows } from '../src/shards/driftwood-isle/generators/collecti
 import { DRIFTWOOD_LOOT } from '../src/shards/driftwood-isle/generators/loot';
 import { declaredLootEconomy } from '../src/game/shard/declaredRows';
 import { FakeGame, legacyDouble } from '@wildshard/engine/test/FakeGame';
-import { mockCanvas } from './fake/weaponParity';
+import { mockCanvas } from '@wildshard/engine/test/weaponParity';
 import * as v from 'valibot';
 
 const material = new MeshStandardMaterial();

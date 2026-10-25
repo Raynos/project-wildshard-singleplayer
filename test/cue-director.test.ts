@@ -2,7 +2,7 @@ import { afterEach, expect, test, vi } from 'vitest';
 import { AdditiveBlending, BufferAttribute, BufferGeometry, Group, Mesh, MeshBasicMaterial, PerspectiveCamera, Points, PointsMaterial, Scene, Vector3, type Vector2 } from 'three';
 import { parse } from 'valibot';
 import { Scope } from '../src/engine/app/scope';
-import { overrideTerrain } from './fake/terrain';
+import { overrideTerrain } from '@wildshard/engine/test/terrain';
 import { app } from '../src/engine/app/runtime';
 import type { Game } from '../src/engine/core/Game';
 import { CombatCues } from '../src/engine/combat/cues';

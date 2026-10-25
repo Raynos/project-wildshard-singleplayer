@@ -6,7 +6,7 @@ import * as v from 'valibot';
 import { Scope } from '../src/engine/app/scope';
 import { app } from '../src/engine/app/runtime';
 import type { Game } from '../src/engine/core/Game';
-import { overrideTerrain } from './fake/terrain';
+import { overrideTerrain } from '@wildshard/engine/test/terrain';
 import { CueDirector } from '../src/game/audio/cueDirector';
 import { SlotEncounterView } from '../src/game/boss/encounterView';
 import { ReturnProgram } from '../src/game/population/returnProgram';

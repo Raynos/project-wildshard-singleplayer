@@ -10,7 +10,7 @@ import { ItemCatalogue } from '../src/game/loadout/itemCatalogue';
 import type { ShardContext } from '../src/game/plugin/context';
 import type { ShardRuntime } from '../src/game/shard/runtime';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
-import { mockCanvas } from './fake/weaponParity';
+import { mockCanvas } from '@wildshard/engine/test/weaponParity';
 import type { HeldFirearmRows } from '../src/game/plugin/heldFirearm';
 import { emptyShardfile } from '../src/sdk/author';
 import { parseHeldFirearmRows } from '../src/format/weaponProfiles';

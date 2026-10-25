@@ -19,7 +19,7 @@ import {installViewProgram,preflightViewLends,lendViewValues,lendViewDraw,lendVi
 import {presentEntryOwner,publishEntryOwner} from '../src/game/shardfile/entryOwners';
 import {titanWhirlGate} from '../src/shards/nalati-grasslands/generators/stormTitanFight';
 import {whirlsViewRows} from '../src/shards/nalati-grasslands/generators/titanWhirlsView';
-import {overrideTerrain} from './fake/terrain';
+import {overrideTerrain} from '@wildshard/engine/test/terrain';
 import {titanPrograms as programmes} from './fixtures/titanInlineWitness';
 import moduleRows from '../src/shards/nalati-grasslands/behaviour/titanWhirlsView.generated.json' with {type:'json'};
 

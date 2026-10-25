@@ -6,7 +6,7 @@ import { Rng } from '../src/engine/core/rng';
 import { arenaRoomSpeciesControl } from '../src/game/boss/arenaRoom';
 import speciesRows from '../src/shards/nalati-grasslands/data/speciesLooks.json';
 import { GOLDENKING_SPECIES as original } from './fixtures/species-oracle/goldenKingControl';
-import { overrideTerrain } from './fake/terrain';
+import { overrideTerrain } from '@wildshard/engine/test/terrain';
 import { manager } from '@wildshard/engine/test/manager';
 
 const GOLDEN_KING='golden-king';

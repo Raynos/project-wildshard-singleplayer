@@ -6,7 +6,7 @@ import { Scope } from '../src/engine/app/scope';
 import { LightPool } from '../src/engine/fx/LightPool';
 import { SEED } from '../src/engine/core/config';
 import { Rng } from '../src/engine/core/rng';
-import { overrideTerrain } from './fake/terrain';
+import { overrideTerrain } from '@wildshard/engine/test/terrain';
 import { speciesDef } from '../src/engine/entities/species/registry';
 import * as look from '../src/engine/world/lowpolyKit';
 import { PopulationProjection } from '../src/game/population/projection';
@@ -14,7 +14,7 @@ import { ProjectedState, ReturnProgram } from '../src/game/population/returnProg
 import { ReturnGate } from '../src/game/population/respawn';
 import { populationProjectionRows } from '../src/shards/driftwood-isle/generators/populationProjection';
 import { manager } from '@wildshard/engine/test/manager';
-import { mockCanvas } from './fake/weaponParity';
+import { mockCanvas } from '@wildshard/engine/test/weaponParity';
 import { readNativeTerrain } from '../src/sdk/bake/terrain';
 import { driftwoodGroundBytes } from '../src/shards/driftwood-isle/generators/groundRows';
 import { WORLD_DROP } from '../src/shards/driftwood-isle/generators/landscapeRows';

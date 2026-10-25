@@ -8,7 +8,7 @@ import { speciesDef } from '../src/engine/entities/species/registry';
 import { Scope } from '../src/engine/app/scope';
 import {RETURN_PROGRAM as program} from '../src/shards/driftwood-isle/generators/returnProgram';
 import {lendDriftwoodReturns} from './fixtures/driftwood-return-modules';
-import { overrideTerrain } from './fake/terrain';
+import { overrideTerrain } from '@wildshard/engine/test/terrain';
 
 test('materializes ordered groups through the manager and retires only owned actors', () => {
   interface Actor { herd: number; kind: string; pose: number[]; roll: number }

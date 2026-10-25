@@ -9,6 +9,8 @@
     "./test/creature": "./test/creature.ts",
     "./test/manager": "./test/manager.ts",
     "./test/nativeBytes": "./test/nativeBytes.ts",
+    "./test/terrain": "./test/terrain.ts",
+    "./test/weaponParity": "./test/weaponParity.ts",
     "./anim/rigParser": "./anim/rigParser.ts",
     "./ai/eliteRoster": "./ai/eliteRoster.ts",
     "./ai/eliteLifecycle": "./ai/eliteLifecycle.ts",

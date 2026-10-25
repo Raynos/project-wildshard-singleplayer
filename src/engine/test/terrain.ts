@@ -1,5 +1,5 @@
-import { bindHeightfield, captureHeightfield, HeightfieldBinding } from '../../src/engine/world/Heightfield';
-import type { TerrainField } from '../../src/engine/level/data';
+import { bindHeightfield, captureHeightfield, HeightfieldBinding } from '../world/Heightfield';
+import type { TerrainField } from '../level/data';
 
 type TerrainOverride = Partial<Pick<TerrainField, 'heightAt' | 'normalAt' | 'splatAt' | 'trailDistance' | 'cabinMask' | 'pondMask' | 'waterLevel' | 'streamAt'>>;
 /** Tests use the same retained-frame binding as resident worlds; no runtime test override remains. */

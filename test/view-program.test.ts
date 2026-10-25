@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { BoxGeometry, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, Object3D, PerspectiveCamera, Scene, ShaderMaterial, Vector3 } from 'three';
 import { GroundTell } from '../src/engine/fx/groundTell';
-import { overrideTerrain } from './fake/terrain';
+import { overrideTerrain } from '@wildshard/engine/test/terrain';
 import { parse } from 'valibot';
 import { Scope } from '../src/engine/app/scope';
 import { viewProgram, type ViewSlotActor } from '../src/engine/script/viewProgram';

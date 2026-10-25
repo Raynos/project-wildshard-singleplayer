@@ -8,7 +8,7 @@ import type { Game } from '../src/engine/core/Game';
 import type { Player } from '../src/engine/player/Player';
 import type { Forest } from '../src/engine/world/forest/Forest';
 import type { SkyRig } from '../src/engine/world/skyRig';
-import { overrideTerrain } from './fake/terrain';
+import { overrideTerrain } from '@wildshard/engine/test/terrain';
 import { CueDirector } from '../src/game/audio/cueDirector';
 import { lendLooks } from '../src/game/shardfile/lentLooks';
 import { PatrolEncounterView } from '../src/game/boss/encounterView';

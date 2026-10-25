@@ -7,7 +7,7 @@ import { pinBrain } from '../src/engine/ai/pinning';
 import { AnimalSim } from '../src/engine/entities/AnimalSim';
 import { followRing } from '../src/game/shardfile/tileDriver';
 import { manager } from '@wildshard/engine/test/manager';
-import { overrideTerrain } from './fake/terrain';
+import { overrideTerrain } from '@wildshard/engine/test/terrain';
 
 const cleanup: (() => void)[] = [];
 afterEach(() => { vi.restoreAllMocks(); for (const stop of cleanup.splice(0).reverse()) stop(); });

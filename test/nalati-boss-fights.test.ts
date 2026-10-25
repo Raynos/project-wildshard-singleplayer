@@ -27,7 +27,7 @@ import { PatrolViewSchema } from '../src/format/encounterRows';
 import { BoxGeometry, MeshBasicMaterial, PerspectiveCamera, Vector3 } from 'three';
 import { BossBrain, type BossScript, type BossDefinition } from '../src/engine/ai/BossBrain';
 import { silentBossPresentation } from '../src/engine/ai/phases';
-import { overrideTerrain } from './fake/terrain';
+import { overrideTerrain } from '@wildshard/engine/test/terrain';
 import { Scope } from '../src/engine/app/scope';
 import { lendLooks } from '../src/game/shardfile/lentLooks';
 import { parseArenaScriptData } from '@wildshard/format/arenaScriptRows';
@@ -48,7 +48,7 @@ import world from '../src/shards/nalati-grasslands/boot/layout.generated.json' w
 import { manager } from '@wildshard/engine/test/manager';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import {titanPrograms as programs} from './fixtures/titanInlineWitness';
-import { mockCanvas } from './fake/weaponParity';
+import { mockCanvas } from '@wildshard/engine/test/weaponParity';
 import { App } from '../src/engine/app/app';
 import { createLevelInstallation } from '../src/engine/level/installation';
 import { WorldRegistry } from '../src/engine/world/registry';

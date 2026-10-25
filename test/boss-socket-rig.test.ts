@@ -6,7 +6,7 @@ import { RoamingCombatSchema } from '../src/format/roamingCombat';
 import { BossSocketRig } from '../src/game/boss/socketRig';
 import { SceneHandles } from '../src/game/shardfile/sceneHandles';
 import { manager } from '@wildshard/engine/test/manager';
-import { overrideTerrain } from './fake/terrain';
+import { overrideTerrain } from '@wildshard/engine/test/terrain';
 import collision from '../src/shards/pine-hollow/data/kingCollision.generated.json' with { type: 'json' };
 import { ROAMING_COMBAT, ROAMING_COMBAT_BLOB } from '../src/shards/pine-hollow/generators/roamingCombat';
 

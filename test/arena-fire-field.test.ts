@@ -6,7 +6,7 @@ import { BoxGeometry, BufferGeometry, Color, Group, InstancedMesh, Matrix4, Mesh
 import { parsePrivateScene } from '../src/format/clientChannels';
 import { ArenaSceneView } from '../src/game/boss/encounterView';
 import { Scope } from '../src/engine/app/scope';
-import { overrideTerrain } from './fake/terrain';
+import { overrideTerrain } from '@wildshard/engine/test/terrain';
 import { ArenaFireView, ArenaWhirlsView } from '../src/game/boss/arenaFire';
 import { arenaFireView, arenaWhirlsView } from './fake/arenaViews';
 import { fireViewRows } from '../src/shards/nalati-grasslands/generators/titanFireView';
