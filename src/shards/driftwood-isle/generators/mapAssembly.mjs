@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { Matrix4, Quaternion, Vector3 } from 'three';
-import { MapAssembly, mapModel, readMapJson } from '../../../../scripts/map-assembly.mjs';
+import { MapAssembly, mapModel, readMapJson } from '../../../../scripts/map-geometry.mjs';
 import { MapWorld, mapPool } from '../../../../scripts/map-world.mjs';
 import { WORLD_SCENES, SCENE_MODEL_BLOBS } from './worldScenes.ts';
 import { DRIFTWOOD_OUTPUT, DRIFTWOOD_FIXED_SOURCES } from './assets.ts';

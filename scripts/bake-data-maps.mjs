@@ -92,7 +92,7 @@ export async function paintDataMap(root, slug, { output, glbs, sources } = {}) {
   for (const file of glbs ?? painter.glbs ?? []) await raster.glb(source(file), undefined, drawn);
   if (painter.scenes !== undefined) {
     const { paintMapScenes } = await import('./map-scenes.mjs');
-    await paintMapScenes(raster, painter.scenes, settings, { input, json: file => json(input(file)), bytes: file => readFileSync(input(file)) });
+    await paintMapScenes(raster, painter.scenes, settings, { input, json: rows, bytes: readBytes });
   }
   if (raster.triangles === 0) throw new Error(`${slug}: data map is empty`);
   const style = own?.style ?? settings.style;

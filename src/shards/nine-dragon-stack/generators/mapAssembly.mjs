@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { BufferGeometry, Float32BufferAttribute, Matrix4, PlaneGeometry, Quaternion, TorusGeometry, Vector3 } from 'three';
 import { withPortableMath } from '@wildshard/commons/bake/portableMath';
-import { MapAssembly, mapModel, readMapJson } from '../../../../scripts/map-assembly.mjs';
+import { MapAssembly, mapModel, readMapJson } from '../../../../scripts/map-geometry.mjs';
 import { nineLayoutSource } from './layout.ts';
 import { specimenRecipes } from './specimens.ts';
 import { banyanOut } from './banyanPlan.ts';
@@ -112,6 +112,15 @@ export async function nineMapAssembly() {
   const calligraphy = neon.build(); assembly.add('neon-boards', calligraphy.boards); calligraphy.tubes.dispose();
   for (const geometry of layout.geometries) geometry.dispose();
   return { assembly, facade: world.rows.facade.drawn };
+}
+
+/** Native map painting consumes owned values, without a source-file handoff. */
+export async function nineMapFiles() {
+  const { assembly } = await nineMapAssembly();
+  try {
+    const { json, binary } = assembly.encode();
+    return new Map([['map/assembly.json', json], ['map/geometry.bin', binary]]);
+  } finally { for (const shape of assembly.shapes) { shape.geometry.dispose(); shape.material.dispose(); } }
 }
 
 if (import.meta.main) { const { assembly } = await nineMapAssembly(); assembly.write(resolve(base, 'data/mapAssembly.generated')); }

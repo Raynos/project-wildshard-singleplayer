@@ -16722,7 +16722,8 @@
         "scripts/bake-loader.mjs",
         "package.json",
         "pnpm-lock.yaml",
-        "pnpm-workspace.yaml"
+        "pnpm-workspace.yaml",
+        "scripts/map-geometry.mjs"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/data/mapAssembly.generated.json",
@@ -16773,7 +16774,8 @@
         "src/format/terrainTileBytes.ts",
         "src/format/contentBounds.ts",
         "package.json",
-        "pnpm-lock.yaml"
+        "pnpm-lock.yaml",
+        "scripts/map-geometry.mjs"
       ],
       "outputs": [
         "public/assets/nalati-grasslands/map/top.webp",
@@ -16811,7 +16813,8 @@
         "scripts/bake-loader.mjs",
         "package.json",
         "pnpm-lock.yaml",
-        "pnpm-workspace.yaml"
+        "pnpm-workspace.yaml",
+        "scripts/map-geometry.mjs"
       ],
       "outputs": [
         "src/shards/nine-dragon-stack/data/mapAssembly.generated.json",
@@ -16854,7 +16857,8 @@
         "src/format/terrainTileBytes.ts",
         "src/format/contentBounds.ts",
         "package.json",
-        "pnpm-lock.yaml"
+        "pnpm-lock.yaml",
+        "scripts/map-geometry.mjs"
       ],
       "outputs": [
         "public/assets/nine-dragon-stack/map/top.webp",
@@ -16895,7 +16899,8 @@
         "package.json",
         "pnpm-lock.yaml",
         "pnpm-workspace.yaml",
-        "src/shards/pine-hollow/data/geography.generated.json"
+        "src/shards/pine-hollow/data/geography.generated.json",
+        "scripts/map-geometry.mjs"
       ],
       "outputs": [
         "src/shards/pine-hollow/data/mapAssembly.generated.json",
@@ -16953,7 +16958,8 @@
         "package.json",
         "pnpm-lock.yaml",
         "src/shards/pine-hollow/data/mapAssembly.generated.json",
-        "src/shards/pine-hollow/data/mapAssembly.generated.bin"
+        "src/shards/pine-hollow/data/mapAssembly.generated.bin",
+        "scripts/map-geometry.mjs"
       ],
       "outputs": [
         "public/assets/pine-hollow/map/top.webp",
@@ -16994,7 +17000,8 @@
         "scripts/bake-loader.mjs",
         "package.json",
         "pnpm-lock.yaml",
-        "pnpm-workspace.yaml"
+        "pnpm-workspace.yaml",
+        "scripts/map-geometry.mjs"
       ],
       "outputs": [
         "src/shards/driftwood-isle/data/mapAssembly.generated.json",

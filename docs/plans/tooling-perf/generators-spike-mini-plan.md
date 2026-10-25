@@ -230,7 +230,8 @@ GR3 bounded slices (G711; each <= 1 h, one producer retirement per commit):
 | Glyphs | open | Preserve native raster bytes and replace source handoff |
 | Sign sources | open | Direct typed sign rows and confined native adapter |
 | Sign atlas | open | Own original atlas bytes and remove native handoff |
-| Map assembly | open | Own original geometry/map rows; no source output |
+| M1 map geometry/encoding separation | done | Pure defining geometry module; all original scene/pack bytes and native map image exact; no job retirement |
+| M2 map assembly reader handoff/retirement | in flight (2026-10-24, sp-x1) | Retire only nine-map-assembly; original raster and cold scoped generation |
 | Data map | open | Own original PNG and metadata through source entry |
 | Final acceptance | open | Zero rows/generated source, current product and boot smoke |
 
