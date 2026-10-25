@@ -22,8 +22,14 @@ test('the duplicate scene-copy jobs stay retired', () => {
 
 test('the actual output hook preserves every predecessor file cost and binary byte on cold and cache hit', async () => {
   const cache = mkdtempSync(resolve('tmp/nalati-place-blob-'));
-  const context = () => createProjectGeneration(resolve('src/shards/nalati-grasslands'), 'a'.repeat(64), new Map(), cache,
-    [{ prefix: '/assets/nalati/baked/', directory: resolve('public/assets/nalati/baked') }]);
+  const requested: string[] = [];
+  const context = () => {
+    const ctx = createProjectGeneration(resolve('src/shards/nalati-grasslands'), 'a'.repeat(64), new Map(), cache,
+      [{ prefix: '/assets/nalati/baked/', directory: resolve('public/assets/nalati/baked') }]);
+    return { ...ctx, cached: (step: Parameters<typeof ctx.cached>[0], make: Parameters<typeof ctx.cached>[1]) => {
+      requested.push(...(step.inputs ?? [])); return ctx.cached(step, make);
+    } };
+  };
   const before = readFileSync('public/assets/nalati/baked/places.bin');
   try {
     for (const [name, pin] of [['places', original], ['crags', cragOriginal], ['dressing', dressingOriginal]] as const) {
@@ -32,7 +38,9 @@ test('the actual output hook preserves every predecessor file cost and binary by
       expect(Buffer.compare(cold.bytes, readFileSync(`public/assets/nalati/baked/${name}.bin`))).toBe(0);
       cold.bytes.fill(0);
     }
+    requested.length = 0;
     const hit = await prepareOutput(context());
+    expect(requested).not.toContain('/assets/nalati/baked/dressing.bin');
     const files = hit.namedFiles.filter(file => file.name === 'world/places.bin');
     expect(files).toEqual([original]); expect(hit.blobs.some(file => file.name === 'world/places.bin')).toBe(false);
     const bytes = hit.assets.get(original.hash);

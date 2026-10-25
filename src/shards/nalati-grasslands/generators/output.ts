@@ -1,5 +1,6 @@
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import { nalatiBakeBlob } from './placeBlobProgram';
+import { nalatiDressingProgram } from './dressingProgram';
 import {AudioSceneSchema} from '@wildshard/format/audioScene';
 import {AUDIO_SCENE as audioSceneInput} from './product';
 import { nalatiPhysicsSources } from './physics';
@@ -193,6 +194,8 @@ export const output={blobs:[{name:'held/slots.json',kind:'json' as const,source:
 export async function prepareOutput(ctx: ProjectGenerationContext): Promise<typeof output> {
   const places = await nalatiBakeBlob(ctx, 'places', DRESSING_PLACE_DECODED);
   const crags = await nalatiBakeBlob(ctx, 'crags', DRESSING_CRAG_DECODED);
-  const dressingBlob = await nalatiBakeBlob(ctx, 'dressing', DRESSING_DECODED);
+  const dressingFiles = await nalatiDressingProgram(ctx), dressingBytes = dressingFiles.get('dressing.bin');
+  if (dressingBytes === undefined) throw new Error('Missing owned native dressing binary');
+  const dressingBlob = nameBlob('world/dressing.bin', 'bin', dressingBytes, { decoded: DRESSING_DECODED });
   return { ...output, namedFiles: [...output.namedFiles, places.file, crags.file, dressingBlob.file], assets: new Map([...output.assets, [places.file.hash, places.bytes], [crags.file.hash, crags.bytes], [dressingBlob.file.hash, dressingBlob.bytes]]) };
 }

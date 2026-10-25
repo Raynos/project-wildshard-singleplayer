@@ -14391,6 +14391,7 @@
         "src/shards/nalati-grasslands/generators/nightGeometry.ts",
         "src/shards/nalati-grasslands/generators/nightProgram.mjs",
         "src/shards/nalati-grasslands/generators/output.ts",
+        "src/shards/nalati-grasslands/generators/dressingProgram.ts",
         "src/shards/nalati-grasslands/generators/packGroup.ts",
         "src/shards/nalati-grasslands/generators/paint.ts",
         "src/shards/nalati-grasslands/generators/painted.ts",
@@ -14449,7 +14450,8 @@
         "src/shards/nalati-grasslands/generators/yard.ts",
         "src/shards/nalati-grasslands/generators/yurt.ts",
         "src/shards/nalati-grasslands/generators/zones.ts",
-        "src/shards/nalati-grasslands/look/map.json"
+        "src/shards/nalati-grasslands/look/map.json",
+        "src/sdk/bake/byteCodec.ts"
       ],
       "outputs": [
         "public/assets/nalati-grasslands/map/top.webp",
