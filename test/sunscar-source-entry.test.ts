@@ -14,6 +14,7 @@ import before from './fixtures/sunscar-source-entry.json' with { type: 'json' };
 import originalProductAssets from './fixtures/sunscar-duplicate-product.json' with { type: 'json' };
 import rigFiles from './fixtures/sunscar-rig-files.json' with { type: 'json' };
 import { BOOT_FILES, BOOT_SOURCES } from '../src/shards/sunscar-dunes/generators/rows/boot';
+import { REST_URLS } from '../src/shards/sunscar-dunes/generators/rows/restFiles';
 import { SAND_FILES } from '../src/shards/sunscar-dunes/generators/rows/sand';
 import { DUNE_RIG_URLS, BAKED_URLS } from '../src/shards/sunscar-dunes/generators/rows/files';
 
@@ -38,9 +39,9 @@ test('direct world rows preserve the original ordered aggregate without its JSON
   expect(signature(world)).toEqual(before.raw.world);
   const registry = v.parse(v.object({ jobs: v.array(v.object({ id: v.string(), shard: v.nullable(v.string()), inputRoots: v.array(v.string()), outputs: v.array(v.string()) })) }),
     JSON.parse(readFileSync('scripts/generation-jobs.json', 'utf8')));
-  expect(registry.jobs.some(row => ['signal-world-bakes', 'signal-product', 'signal-fire-book', 'signal-rigs', 'signal-manifest-ground', 'signal-world', 'signal-sand', 'signal-data-map', 'signal-declaration'].includes(row.id))).toBe(false);
+  expect(registry.jobs.some(row => ['signal-world-bakes', 'signal-product', 'signal-fire-book', 'signal-rigs', 'signal-manifest-ground', 'signal-world', 'signal-sand', 'signal-data-map', 'signal-declaration', 'signal-rest-fire'].includes(row.id))).toBe(false);
   expect(registry.jobs.flatMap(row => row.inputRoots.concat(row.outputs)).some(path => path.startsWith('src/shards/sunscar-dunes/.wildshard/product/'))).toBe(false);
-  expect(registry.jobs.filter(row => row.shard === 'sunscar-dunes')).toHaveLength(13);
+  expect(registry.jobs.filter(row => row.shard === 'sunscar-dunes')).toHaveLength(12);
   const paths = registry.jobs.flatMap(row => row.inputRoots.concat(row.outputs));
   expect(paths.some(path => path.startsWith('src/shards/sunscar-dunes/') && /\/(?:manifestGround|nativeGround)\.generated\.json$/u.test(path))).toBe(false);
   expect(registry.jobs.flatMap(row => row.inputRoots.concat(row.outputs)).some(path => path.endsWith('/worldBakes.generated.json'))).toBe(false);
@@ -56,8 +57,21 @@ test('the SDK admits all original physical bytes, platform metadata and mirrors 
     return { old, current };
   });
   const owned = result.output.namedFiles?.filter(file => file.name?.startsWith('geometry/rigs/') === true
-    || file.name?.startsWith('geometry/world/') === true || file.name === 'textures/plait.bin' || file.name === 'ui/map') ?? [];
-  expect(owned).toHaveLength(13);
+    || file.name?.startsWith('geometry/world/') === true || file.name === 'geometry/rest/fire.glb' || file.name === 'textures/plait.bin' || file.name === 'ui/map') ?? [];
+  expect(owned).toHaveLength(14);
+  const fire = owned.find(file => file.name === 'geometry/rest/fire.glb');
+  expect(fire?.hash).toBe('9a0dfb440ed07bf4338467add4ea7c0941b62294c1ae7efd4a9802d776eb1f42');
+  expect(fire?.compressed).toBe(72196);
+  const modelFile = descriptors.find(row => row.old.name === 'world/sources/models.json');
+  if (modelFile === undefined) throw new Error('Missing owned pool descriptor');
+  const pools = (bytes: Uint8Array | undefined) => {
+    if (bytes === undefined) throw new Error('Missing pool bytes');
+    return v.parse(v.object({ rows: v.object({ geometryPools: v.array(v.object({ url: v.string(), parts: v.array(v.string()) })) }) }),
+      JSON.parse(new TextDecoder().decode(bytes))).rows.geometryPools;
+  };
+  const previousPools = pools(output.assets.get(modelFile.old.hash));
+  expect(pools(result.assets.get(modelFile.current.hash))).toEqual(previousPools.map(pool =>
+    pool.url === REST_URLS[2] ? { url: 'geometry/rest/fire.glb', parts: pool.parts } : pool));
   const map = owned.find(file => file.name === 'ui/map');
   expect(map?.hash).toBe('bac9393474d96298d9bd4a407197d0bc86be913b872c8430e8f2e0aabd5cb399');
   expect(map?.compressed).toBe(172348);
@@ -83,7 +97,7 @@ test('the SDK admits all original physical bytes, platform metadata and mirrors 
       ...(budget.downloadAllowance === undefined ? {} : { downloadAllowance: budget.downloadAllowance - compressed }) } },
   })).toEqual(before.shard);
   const assets = physical(result.assets);
-  expect(assets).toHaveLength(before.assets.length + 13);
+  expect(assets).toHaveLength(before.assets.length + 14);
   const projectedAssets = new Map(result.assets);
   for (const hash of hashes) projectedAssets.delete(hash);
   for (const row of descriptors) {
@@ -108,8 +122,8 @@ test('the SDK admits all original physical bytes, platform metadata and mirrors 
   expect(signature(result.mirrors)).toEqual(before.mirrors);
 });
 
-test('computed discovery removes only the retired public rig/world/skirt URLs in both tiers', () => {
-  const rigs = new Set([...Object.values(DUNE_RIG_URLS), ...Object.values(BAKED_URLS)]);
+test('computed discovery removes only the retired public rig/world/fire/skirt URLs in both tiers', () => {
+  const rigs = new Set([...Object.values(DUNE_RIG_URLS), ...Object.values(BAKED_URLS), REST_URLS[2]]);
   const expected = { tiers: { phone: { ...BOOT_SOURCES.tiers.phone, terrain: BOOT_SOURCES.tiers.phone.terrain.filter(url => url !== SAND_FILES.skirt), props: BOOT_SOURCES.tiers.phone.props.filter(url => !rigs.has(url)) },
     desktop: { ...BOOT_SOURCES.tiers.desktop, terrain: BOOT_SOURCES.tiers.desktop.terrain.filter(url => url !== SAND_FILES.skirt), props: BOOT_SOURCES.tiers.desktop.props.filter(url => !rigs.has(url)) } } };
   expect(generated.discovery).toEqual({ 'boot.sources': expected, 'boot.files': { ...BOOT_FILES, sources: expected } });

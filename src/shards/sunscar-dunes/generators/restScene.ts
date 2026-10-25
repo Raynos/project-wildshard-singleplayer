@@ -148,7 +148,6 @@ export function fireRest(): ClientSceneBake {
     pool(`pool-brazier-${String(i)}`,fireRows(WAYMARK_FIRE).pool,(x,z)=>heightAt(at.x+x,at.z+z)-flameY);});
   return clientSceneGlb(root,new Map([[material,'fire-geometry']]));
 }
-export function fireGlb(): Uint8Array { return fireRest().glb; }
 
 /** Place fields and live-effect attachments; geometry, frames and material ownership remain the existing recipes. */
 interface PlaceBinding extends PlaceEffects { recipe:WorldSceneRecipe;fields:Record<string,unknown>;lights:{id:string;color:number;intensity:number;distance:number;decay:number}[];glowAt:readonly number[]|null }

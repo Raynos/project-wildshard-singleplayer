@@ -5,6 +5,7 @@ import { signalEmberBuffer } from './emberBuffers';
 import { placeEffects, type PlaceEffects } from './placeEffects';
 import type { CardGroupRow } from './rows/fireCards';
 import { QUEST_NPC } from './questNpc';
+import { REST_URLS } from './rows/restFiles';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import type { SceneModelSource, SceneBakeSource } from '@wildshard/game/shardfile/sceneSources';
 import * as models from './rows/files';
@@ -45,12 +46,14 @@ const inputs = { dusk: 'dusk', lights: 'firelights' };
 const publicFiles = { urls: models.BAKED_URLS, resources: models.WORLD_BYTES };
 const json = (name: string, value: unknown) => nameBlob(name, 'json', new TextEncoder().encode(JSON.stringify(value)));
 /** Original models, material decorations and bakes from explicit world rows; no rendering builder is mirrored. */
-export function signalSceneSources(world: SceneWorldBakes, rigs: NonNullable<SceneModelSource['rows']['rigs']> = SIGNAL_RIG_LIBRARY, files: { readonly urls: SceneBakeSource['urls']; readonly resources: NonNullable<SceneBakeSource['resources']> } = publicFiles): NamedBlob[] {
+export function signalSceneSources(world: SceneWorldBakes, rigs: NonNullable<SceneModelSource['rows']['rigs']> = SIGNAL_RIG_LIBRARY, files: { readonly urls: SceneBakeSource['urls']; readonly resources: NonNullable<SceneBakeSource['resources']> } = publicFiles, firePool?: NonNullable<SceneModelSource['rows']['geometryPools']>[number]): NamedBlob[] {
+  if (firePool !== undefined && rest.filter(pool => pool.url === REST_URLS[2]).length !== 1) throw new Error('Missing original fire pool binding');
+  const pools = firePool === undefined ? rest : rest.map(pool => pool.url === REST_URLS[2] ? firePool : pool);
   const held = whipHeldRecipe(world.lash), gear = gearSceneRows(world, held);
   const { resources: _resources, ...whipRecipe } = held;
   const { specimen: _whip, ...whip } = gear[0];
   const { specimen: scoutSource, ...scout } = gear[5];
-  const library = { rows: { ...models.DUNE_MODELS, geometryPools: rest, rigs }, inputs, specimens: SIGNAL_MODEL_SPECIMENS,
+  const library = { rows: { ...models.DUNE_MODELS, geometryPools: pools, rigs }, inputs, specimens: SIGNAL_MODEL_SPECIMENS,
     held: [{ item: held.equipment.id, definition: whip, recipe: whipRecipe, resources: {
       geometry: ['coil', 'loop', 'cord', 'wrap'].map(id => ({ id, source: { library: 'bakes', model: id }, piece: 'lash', index: 'array' as const })),
       objects: [{ id: 'hero', source: { library: 'models', model: 'glove-hd4' }, fit: { size: HD_GLOVE_SIZE, by: 'span' } }],
