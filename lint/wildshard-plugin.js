@@ -27,7 +27,8 @@ import { runtimeCommonsClosure } from './commons-closure.mjs';
 import { runtimePerformanceViolations, frozenRuntimePerformanceViolations } from './runtime-performance.mjs';
 import { shardGameImport, shardEngineImport, generatorImportViolation, legacyNpcImport } from './shard-imports.mjs';
 import { shardfileBoundaryVisitors } from './shardfile-boundaries.mjs';
-import { hostCallbackViolations, hostPlayFile } from './host-callbacks.mjs';
+import { hostCallbackSites } from './host-callback-syntax.mjs';
+import { hostPlayFile } from './host-files.mjs';
 
 const REPO = fileURLToPath(new URL('../', import.meta.url));
 /** E432: the layers are workspace packages, `@wildshard/<layer>[/<sub>]` → `src/<layer>/<sub | index>`. Whether a
@@ -956,8 +957,8 @@ const shardHostCallback = {
     const root = index === -1 ? REPO : context.filename.slice(0, index);
     if (!hostPlayFile(root, file)) return {};
     const limit = context.options[0]?.count === true ? 0 : shardfileDebt['wildshard/no-shard-host-callback']?.[file] ?? 0;
-    return { 'Program:exit'() {
-      for (const issue of hostCallbackViolations(root, file).slice(limit)) context.report({
+    return { 'Program:exit'(program) {
+      for (const issue of hostCallbackSites(root, file, program).slice(limit)) context.report({
         loc: { start: context.sourceCode.getLocFromIndex(issue.start), end: context.sourceCode.getLocFromIndex(issue.end) }, message: issue.message,
       });
     } };

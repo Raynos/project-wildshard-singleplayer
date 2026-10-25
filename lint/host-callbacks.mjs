@@ -1,25 +1,13 @@
-// G454: resolved call boundaries, shared by oxlint and the generated host catalogue.
-import { existsSync, readFileSync } from 'node:fs';
+// G454: typed build-time host catalogue; oxlint uses host-callback-syntax.
+import { existsSync } from 'node:fs';
 import { relative, resolve } from 'node:path';
 import ts from '@typescript/typescript6';
+import { hostPlayFile } from './host-files.mjs';
 
 const projects = new Map();
-const freezes = new Map();
 const localPath = (root, file) => relative(root, file).replaceAll('\\', '/');
 const platform = file => /^src\/(?:engine|game|sdk)\//u.test(file);
 const shard = file => /^src\/shards\/([^/]+)\/(.+)$/u.exec(file);
-/** Build-only functions and exact frozen predecessors are not play callbacks. */
-export function hostPlayFile(root, file) {
-  const match = shard(file);
-  if (!match || /^(?:data|generators|behaviour|assets|blender)\/|^shard\.config\.|\.d\.ts$|\.generated\./u.test(match[2])) return false;
-  if (!freezes.has(root)) {
-    const frozen = resolve(root, 'lint/legacy-shards.json');
-    freezes.set(root, existsSync(frozen) ? JSON.parse(readFileSync(frozen, 'utf8')).shards ?? {} : {});
-  }
-  const row = freezes.get(root)[match[1]];
-  return row === undefined || !Object.hasOwn(row.files, match[2]);
-}
-
 /** One compiler/checker per immutable tree; no diagnostics or emit, only binding/signature resolution. */
 export function hostAnalysis(inputRoot) {
   const root = resolve(inputRoot);

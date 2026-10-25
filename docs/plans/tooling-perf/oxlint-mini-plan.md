@@ -1,7 +1,7 @@
 # oxlint speed: mini plan (TOOLING-PERF, G634/G636)
 
-**State:** `in flight` 2026-10-24 (sp-x9, G709). R1/R2 are done. G715 routes
-this lane through loading U1 → U2 → U4 before returning to R3–R5. The original
+**State:** `in flight` 2026-10-25 (sp-x9, G709). R1/R2 and G715 loading
+U1 → U2 → U4 are done; R3–R5 are current. The original
 benchmark below is historical (mirror at 6f6add1, 5,799 files, 18-core shared
 Mac, ±30% noise); current measurements and later rulings follow the rows.
 
@@ -39,9 +39,17 @@ JSON: full 10.3 s / 8 GB. Full typed + full JS plugin in one run: 180 s / 12.7 G
 |---|---|---|
 | R1 | **done (2026-10-24, sp-x9):** `lint:fast`: today's config with `typeAware: false`, unused-directive reporting off, the 2 heavy JS rules removed (reuse `scripts/push-lint-config.mjs` `untypedLintConfig()`) | Actual full fast lint 7.72 s; 20 engine files 0.44 s, both green. Fast config imports no TypeScript library; CLI-only JSONC parsing remains unchanged. |
 | R2 | **done (2026-10-24, sp-x9):** pre-commit runs the shared fast config against exact staged files in G636's parallel set | Real no-eval refusal with bad staged bytes hidden by clean unstaged text; working text/index unchanged. Eight related cases / two suites plus named types and typed lint pass. Fast and typed attempts stay separate; existing explicit deadline deferral remains. |
-| R3 | `lint:typed` (type-aware + the 2 heavy JS rules): push gate on changed files + importers; CI one full-repo job (+ one `lint:fast` job) instead of 4 `lint-all` shards | push-gate typed lint ≤ 15 s |
-| R4 | **G643:** TypeScript never reads generated JSON — imports resolve to one ambient `unknown` module, importers parse with their valibot schema — shared with the TypeScript plan | full typed lint ≤ 15 s / ≤ 8 GB |
+| R3 | **in flight (2026-10-25, sp-x9):** remove the custom rules' private TypeScript programs (G642). G675 keeps typed lint in CI; retain five partitions until measured cost permits consolidation. Slices below. | current full typed cost supports safe CI scheduling; no local push typed gate |
+| R4 | **open; G655 supersedes G643:** keep authored JSON typed; generated files are never imported (GR0). Audit current generated-input dependencies before changing CI partitions. | full typed lint ≤ 15 s / ≤ 8 GB |
 | R5 | Fix the real error at HEAD: `src/game/riding/client.ts:26` duplicate import of `./taming` | lint clean |
+
+### R3 slices (2026-10-25, G711)
+
+| Slice | Status | Boundary |
+|---|---|---|
+| R3.1 | done (sp-x9, this commit) | Host callback lint uses the supplied AST plus syntax of reachable imports; the typed host catalogue stays a build tool. Alias, inherited-method, forwarded-type, shadowing, refusal and compiler-import tests preserve admission fences. |
+| R3.2 | in flight (sp-x9) | Replace the HTML rule's private TypeScript program without weakening numeric/text and trusted-port checks. |
+| R3.3 | open | Re-measure the complete typed path after both rewrites and R4; keep all five CI partitions until justified. |
 
 ### Current-source boundary (2026-10-24)
 
@@ -66,5 +74,5 @@ R4's generated-input dependency must be resolved before consolidating CI.
 
 1. **The 2 heavy JS rules: DECIDED (G642)** — rewrite them to use only oxlint's AST (no TypeScript program); until then they run only in `lint:typed`. Also: all generated files excluded from lint (G642).
 2. **Push-gate `lint:fast` scope: DECIDED (G655)** — the whole repo, 6–10 s.
-3. **Generated JSON: DECIDED (G643)** — excluded from the type program entirely (`unknown` + schema parse), no companion declarations.
+3. **Generated JSON: DECIDED (G655, supersedes G643)** — authored JSON stays typed; generated files are never imported (GR0), no ambient-unknown escape.
 4. **`--type-check` in `lint:typed`: DECIDED (G657)** — left out; tsc stays the type check.

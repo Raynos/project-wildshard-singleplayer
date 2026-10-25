@@ -1,12 +1,14 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Run the real policy plugin against an isolated fixture.
 import { spawnSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Owned small compiler inputs, removed after each test.
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, readFileSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve policy fixture paths.
 import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Child oxlint inherits this process environment.
 import { cwd, env, execPath } from 'node:process';
 import { expect, test } from 'vitest';
+import { parseSync } from 'vite';
+import { hostCallbackSites } from '../lint/host-callback-syntax.mjs';
 import { hostAnalysis, hostCallbackViolations } from '../lint/host-callbacks.mjs';
 import { hostCatalogue, hostVerdicts, renderHostCatalogue } from '../scripts/gen-host-catalogue.mjs';
 
@@ -33,6 +35,7 @@ function setup(ctx:Ports, callback:()=>void) {ctx.onTick(callback);}
 accept.call(null,{run:named}); accept.apply(null,[{run:named}]);`);
   try {
     const issues = hostCallbackViolations(f.root, file);
+    expect(hostCallbackSites(f.root, file, parseSync(file, readFileSync(resolve(f.root, file), 'utf8')).program)).toEqual(issues);
     expect(issues).toHaveLength(7);
     expect(new Set(issues.map(row => row.module))).toEqual(new Set(['src/game/host.ts']));
     expect(issues.map(row => row.path)).toContain('arg0.*.step');
@@ -51,9 +54,13 @@ host({rows:[{value:1}]}); { const host=(fn:()=>void)=>fn(); host(()=>{}); }`);
     f.write('src/shards/sample/runtime/frozen.ts', `import {host} from '../../../game/host'; host(()=>{});`);
     f.write('src/shards/sample/runtime/module.mts', `import {host} from '../../../game/host'; host(()=>{});`);
     expect(hostCallbackViolations(f.root, file)).toEqual([]);
+    expect(hostCallbackSites(f.root, file, parseSync(file, readFileSync(resolve(f.root, file), 'utf8')).program)).toEqual([]);
     expect(hostCallbackViolations(f.root, 'src/shards/sample/data/build.ts')).toEqual([]);
     expect(hostCallbackViolations(f.root, 'src/shards/sample/runtime/frozen.ts')).toEqual([]);
     expect(hostCallbackViolations(f.root, 'src/shards/sample/runtime/module.mts')).toHaveLength(1);
+    for (const [target,count] of [['src/shards/sample/data/build.ts',0],['src/shards/sample/runtime/frozen.ts',0],['src/shards/sample/runtime/module.mts',1]] as const) {
+      expect(hostCallbackSites(f.root,target,parseSync(target,readFileSync(resolve(f.root,target),'utf8')).program)).toHaveLength(count);
+    }
   } finally { f.close(); }
 });
 
@@ -62,6 +69,7 @@ test('optional and nested forwarded callbacks count without expanding platform s
 function forward(options:{nested:{run?:()=>void},service:Base},yes:boolean){host(options);host(yes ? ()=>{} : null);}`);
   try {
     const issues = hostCallbackViolations(f.root, file);
+    expect(hostCallbackSites(f.root, file, parseSync(file, readFileSync(resolve(f.root, file), 'utf8')).program)).toEqual(issues);
     expect(issues.map(row => row.path)).toEqual(['arg0.nested.run', 'arg0.true']);
   } finally { f.close(); }
 });
@@ -121,4 +129,68 @@ test('review credit expires on changed source and never overrides observed callb
     expect(hostVerdicts(['sample', 'second'], [], audit, 'changed')['twoRealUsers']?.status).toBe('needs-review');
     expect(hostVerdicts(['sample'], [], audit, 'changed')['noShardNouns']?.status).toBe('needs-review');
   } finally { f.close(); }
+});
+
+
+test('syntax guard follows computed access, destructuring, callback returns and nested type aliases', () => {
+  const f = fixture(`import {host, Base, type Ports} from '../../../game/host';
+import * as api from '../../../game/host';
+const {host:send}=api; const method=api['host'];
+const callback=()=>{}; function options(){return {ready:callback};}
+type Nested={run?:()=>void}; interface Rows {nested:Nested; service:Base}
+function forward(rows:Rows, ctx:Ports){send(rows); const {onTick:tick}=ctx;tick(callback);}
+method(options()); const bound=host.bind(null); bound({run:callback});
+{function host(_value:unknown){};host({ignored:callback});}
+function shadow(api:{host:(value:unknown)=>void}){api.host(callback);}`);
+  try {
+    const source=readFileSync(resolve(f.root,file),'utf8');
+    expect(hostCallbackSites(f.root,file,parseSync(file,source).program)).toEqual(hostCallbackViolations(f.root,file));
+  } finally {f.close();}
+});
+
+test('syntax dependency cache follows current bytes without retaining a stale callback', () => {
+  const f=fixture("import {host} from '../../../game/host';import {rows} from './rows';host(rows);");
+  try {
+    const program=parseSync(file,readFileSync(resolve(f.root,file),'utf8')).program;
+    expect(hostCallbackSites(f.root,file,program)).toHaveLength(1);
+    f.write('src/shards/sample/runtime/rows.ts','export const rows={value:1};');
+    expect(hostCallbackSites(f.root,file,program)).toEqual([]);
+  } finally {f.close();}
+});
+
+test('syntax callback guard runs with TypeScript compiler imports forbidden', () => {
+  const f=fixture("import {host} from '../../../game/host';host({run(){}});");
+  try {
+    const helper=resolve('lint/host-callback-syntax.mjs');
+    const child=spawnSync(execPath,['--input-type=module','-e',`
+import {registerHooks} from 'node:module';
+registerHooks({resolve(specifier,context,next){
+  if (/typescript/u.test(specifier)) throw new Error('Compiler import forbidden: '+specifier);
+  return next(specifier,context);
+}});
+const {readFileSync}=await import('node:fs');
+const {parseSync}=await import('vite');
+const {hostCallbackSites}=await import(${JSON.stringify(helper)});
+const program=parseSync(${JSON.stringify(file)},readFileSync(${JSON.stringify(resolve(f.root,file))},'utf8')).program;
+const issues=hostCallbackSites(${JSON.stringify(f.root)},${JSON.stringify(file)},program);
+if (issues.length!==1) throw new Error(JSON.stringify(issues));
+`],{encoding:'utf8'});
+    expect(child.stderr).toBe('');expect(child.status).toBe(0);
+  } finally {f.close();}
+});
+
+
+test('syntax keeps generic callback constraints and imported callback aliases', () => {
+  const f=fixture(`import {host} from '../../../game/host.js';
+import type {Callback} from '../../../game/types';
+type Bag<T>={run:T}; type DefaultBag<T=()=>void>={run:T};
+function generic<T extends {run:()=>void}>(rows:T){host(rows);}
+function nested(rows:Readonly<Bag<Callback>>,defaults:DefaultBag){host(rows);host(defaults);}`);
+  try {
+    f.write('src/game/types.ts','export type Callback=()=>void;');
+    const source=readFileSync(resolve(f.root,file),'utf8');
+    const issues=hostCallbackSites(f.root,file,parseSync(file,source).program);
+    expect(issues.map(row=>row.path)).toEqual(['arg0.run','arg0.run','arg0.run']);
+    expect(issues).toEqual(expect.arrayContaining(hostCallbackViolations(f.root,file)));
+  } finally {f.close();}
 });
