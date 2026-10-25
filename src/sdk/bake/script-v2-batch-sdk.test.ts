@@ -1,9 +1,9 @@
 import { expect,test } from 'vitest';
-import { compileSimV2 } from '../src/sdk/test/compileSimV2';
-import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
-import { ScriptModuleV2 } from '../src/engine/script/moduleV2';
-import { prepareV2Observations,type V2BindingInput } from '../src/engine/script/observationsV2';
-import { layoutV2,writeV2Frame,validateV2Frame,type V2FrameAuthority } from '../src/format/scriptWireV2';
+import { compileSimV2 } from '../test/compileSimV2';
+import { compileScriptV2 } from './compileScriptV2';
+import { ScriptModuleV2 } from '@wildshard/engine/script/moduleV2';
+import { prepareV2Observations,type V2BindingInput } from '@wildshard/engine/script/observationsV2';
+import { layoutV2,writeV2Frame,validateV2Frame,type V2FrameAuthority } from '@wildshard/format/scriptWireV2';
 
 const layout = layoutV2(1024,1,new Map([[1,2],[2,2],[3,2],[4,2],[5,2]]));
 const program = `import * as ws from './sdk/as/wsV2';

@@ -1,7 +1,7 @@
 import { expect,test } from 'vitest';
-import { SimBatchV2,type V2BatchCapture,type V2BatchCandidate,type V2PreparedTransaction } from '../src/engine/script/simBatchV2';
-import { compileSimV2 } from '../src/sdk/test/compileSimV2';
-import { layoutV2 } from '../src/format/scriptWireV2';
+import { SimBatchV2,type V2BatchCapture,type V2BatchCandidate,type V2PreparedTransaction } from '@wildshard/engine/script/simBatchV2';
+import { compileSimV2 } from '../test/compileSimV2';
+import { layoutV2 } from '@wildshard/format/scriptWireV2';
 
 const layout = layoutV2(1024,1,new Map([[1,2],[2,2],[3,2],[4,2],[5,2]]));
 const program = `import * as ws from './sdk/as/wsV2';let scratch:i32=0;

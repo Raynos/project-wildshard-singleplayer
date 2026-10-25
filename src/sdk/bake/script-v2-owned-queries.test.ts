@@ -1,12 +1,12 @@
 import { expect,test,vi } from 'vitest';
 import * as v from 'valibot';
-import { DecisionHost,type DecisionScript,type DecisionHostOptions,type DecisionSnapshot } from '../src/engine/script/decision';
-import { OwnedSimBatchV2,type OwnedV2Frame,type OwnedV2Input } from '../src/engine/script/ownedSimBatchV2';
-import { answerV2QueryBatch } from '../src/engine/script/queriesV2';
-import { layoutV2 } from '../src/format/scriptWireV2';
-import type { V2QueryOperation,V2QueryAnswer } from '../src/format/scriptQueriesV2';
-import { compileScript } from '../src/sdk/bake/compileScript';
-import { compileSimV2 } from '../src/sdk/test/compileSimV2';
+import { DecisionHost,type DecisionScript,type DecisionHostOptions,type DecisionSnapshot } from '@wildshard/engine/script/decision';
+import { OwnedSimBatchV2,type OwnedV2Frame,type OwnedV2Input } from '@wildshard/engine/script/ownedSimBatchV2';
+import { answerV2QueryBatch } from '@wildshard/engine/script/queriesV2';
+import { layoutV2 } from '@wildshard/format/scriptWireV2';
+import type { V2QueryOperation,V2QueryAnswer } from '@wildshard/format/scriptQueriesV2';
+import { compileScript } from './compileScript';
+import { compileSimV2 } from '../test/compileSimV2';
 
 const layout = layoutV2(2048,1,new Map([[1,1],[2,2],[3,2],[5,1],[6,1],[7,1],[9,32],[10,32],[11,2],[12,2],[13,4],[21,1],[22,1]]));
 let modules: Promise<readonly [Uint8Array,Uint8Array]> | undefined;

@@ -1,9 +1,9 @@
 import { expect,test } from 'vitest';
-import { DecisionHost,type DecisionScript,type DecisionHostOptions } from '../src/engine/script/decision';
-import { OwnedSimBatchV2,type OwnedV2Frame } from '../src/engine/script/ownedSimBatchV2';
-import { layoutV2 } from '../src/format/scriptWireV2';
-import { compileScript } from '../src/sdk/bake/compileScript';
-import { compileSimV2 } from '../src/sdk/test/compileSimV2';
+import { DecisionHost,type DecisionScript,type DecisionHostOptions } from '@wildshard/engine/script/decision';
+import { OwnedSimBatchV2,type OwnedV2Frame } from '@wildshard/engine/script/ownedSimBatchV2';
+import { layoutV2 } from '@wildshard/format/scriptWireV2';
+import { compileScript } from './compileScript';
+import { compileSimV2 } from '../test/compileSimV2';
 
 const layout = layoutV2(2048,1,new Map([[1,1],[2,1],[3,1],[4,1],[5,1],[6,1],[7,1],[9,32],[10,32],[21,1],[22,1]]));
 let modules: Promise<readonly [Uint8Array,Uint8Array]> | undefined;

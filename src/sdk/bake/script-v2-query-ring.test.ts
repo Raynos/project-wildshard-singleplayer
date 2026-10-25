@@ -1,10 +1,10 @@
 import { expect,test } from 'vitest';
-import { QueryRingV2,answerV2QueryBatch } from '../src/engine/script/queriesV2';
-import { SimBatchV2 } from '../src/engine/script/simBatchV2';
-import { compileSimV2 } from '../src/sdk/test/compileSimV2';
-import { prepareV2Observations } from '../src/engine/script/observationsV2';
-import { layoutV2,writeV2Frame,validateV2Frame,type V2FrameAuthority } from '../src/format/scriptWireV2';
-import type { V2QueryBinding,V2QueryOperation,V2QueryAnswer } from '../src/format/scriptQueriesV2';
+import { QueryRingV2,answerV2QueryBatch } from '@wildshard/engine/script/queriesV2';
+import { SimBatchV2 } from '@wildshard/engine/script/simBatchV2';
+import { compileSimV2 } from '../test/compileSimV2';
+import { prepareV2Observations } from '@wildshard/engine/script/observationsV2';
+import { layoutV2,writeV2Frame,validateV2Frame,type V2FrameAuthority } from '@wildshard/format/scriptWireV2';
+import type { V2QueryBinding,V2QueryOperation,V2QueryAnswer } from '@wildshard/format/scriptQueriesV2';
 
 const layout = layoutV2(1024,1,new Map([[1,1],[2,2],[3,2],[5,1],[11,2],[12,2],[13,8]]));
 const binding: V2QueryBinding = { identity: 'quest',handle: 1,observed: new Map([[4,'body-A'],[9,'body-B']]),operations: new Set<V2QueryOperation>([8]) }, byHandle = new Map([[1,binding]]), byName = new Map([['quest',binding]]), due = new Set(['quest']);

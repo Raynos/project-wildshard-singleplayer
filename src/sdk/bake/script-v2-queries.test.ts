@@ -1,9 +1,9 @@
 import { expect,test } from 'vitest';
-import { readV2QueryRequests,prepareV2QueryReplies,type V2QueryBinding,type V2QueryRequest,type V2QueryOperation } from '../src/format/scriptQueriesV2';
-import { compileSimV2 } from '../src/sdk/test/compileSimV2';
-import { ScriptModuleV2 } from '../src/engine/script/moduleV2';
-import { prepareV2Observations } from '../src/engine/script/observationsV2';
-import { layoutV2,writeV2Frame,validateV2Frame,type V2FrameAuthority } from '../src/format/scriptWireV2';
+import { readV2QueryRequests,prepareV2QueryReplies,type V2QueryBinding,type V2QueryRequest,type V2QueryOperation } from '@wildshard/format/scriptQueriesV2';
+import { compileSimV2 } from '../test/compileSimV2';
+import { ScriptModuleV2 } from '@wildshard/engine/script/moduleV2';
+import { prepareV2Observations } from '@wildshard/engine/script/observationsV2';
+import { layoutV2,writeV2Frame,validateV2Frame,type V2FrameAuthority } from '@wildshard/format/scriptWireV2';
 
 const layout = layoutV2(1024,1,new Map([[1,1],[2,1],[3,1],[5,1],[11,2],[12,2],[13,8]]));
 const original: V2QueryBinding = { identity: 'quest',handle: 2,observed: new Map([[4,'body-A'],[9,'body-B']]),operations: new Set<V2QueryOperation>([4,5,8,9]) };
