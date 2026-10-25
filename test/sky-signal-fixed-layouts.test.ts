@@ -2,6 +2,8 @@ import { expect, test } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Discovery compiles the isolated source tree under Node.
 import { cwd } from 'node:process';
 import { authoredManifestSource } from '../scripts/authored-manifest.mjs';
+import { parseDiscoveryValues } from '@wildshard/format/discoveryValues';
+import { generated as signalProgram } from './fixtures/sunscar-source-program';
 import skyMap from '../src/shards/far-reach/data/mapPalette.generated.json' with { type: 'json' };
 import signalMap from '../src/shards/sunscar-dunes/data/mapPalette.generated.json' with { type: 'json' };
 import { hashImmutableBytes } from '../src/sdk/immutable';
@@ -45,8 +47,10 @@ for (const [label, compile, rows] of [
 
 for (const [slug, palette] of [['far-reach', skyMap], ['sunscar-dunes', signalMap]] as const) {
   test(`${slug} discovery lends fixed palette JSON without executable authoring`, () => {
-    const source = authoredManifestSource(cwd(), slug);
+    const source = authoredManifestSource(cwd(), slug, slug === 'sunscar-dunes'
+      ? { discovery: parseDiscoveryValues(signalProgram.discovery) } : undefined);
     expect(source).toContain(`mapPalette: ${JSON.stringify(palette)}`);
     expect(source).not.toMatch(/from ["'][^"']*generators\/(?:layout|minimap)/u);
+    if (slug === 'sunscar-dunes') expect(() => authoredManifestSource(cwd(), slug)).toThrow('program discovery value boot.files');
   });
 }
