@@ -374,7 +374,9 @@ export async function driveFloorGrid(plan, documentOrigin) {
   // row, the cost model) was ~2 ms a Simulator frame, max 24 ms, on Nine Dragon's road entry, which the phone never pays.
   const read = (frame = false) => {
     if (!sameDocument() || window.__wildshard !== api) throw new Error('Grid floor document or API changed during travel (navigation or graphics recovery)');
-    const state = api.shard.grid.state(); if (!state.live?.live) throw new Error('Grid live telemetry missing');
+    const grid = api.shard.grid;
+    const state = frame && typeof grid.travelState === 'function' ? grid.travelState() : grid.state();
+    if (!state?.live?.live) throw new Error('Grid live telemetry missing');
     if (frame) return state;
     const residency = api.shard.grid.residency();
     return { ...state, claims: residency.claims, entryPreparation: world.game.entryPreparation ?? null, ...(plan.borrowedHome === undefined ? {} : {

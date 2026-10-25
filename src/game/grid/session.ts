@@ -603,6 +603,11 @@ export class GridSession {
     host.scope.onDispose(app.debug.scopedExpose('grid', { state: () => this.state(), roadView: () => this.roadBudget.view(), roadResident: () => this.roadBudget.resident(),
       // G144 admission receipts read the same allocator, without reserving or changing any claim.
       residency: () => ({ cost: this.allocator.cost(), claims: this.allocator.entries(), home: homeResidency }),
+      // Per-frame travel needs the same fresh live/crossing facts, without the
+      // full debug view's cells, ring accounting, skies, grades and post rows.
+      travelState: (): Pick<GridSessionState, 'inside' | 'live'> => ({
+        inside: gridCells.cell?.instance ?? null, live: this.live?.state() ?? null,
+      }),
       // the live cell alone, for a sampler that must not build the whole readout four times a second (state() allocates it)
       current: () => (this.live === null ? null : this.live.live.current()),
       ...(harnessPins() === undefined ? {} : { simulation: (instanceId: string) => this.live?.simulation(instanceId) }),
