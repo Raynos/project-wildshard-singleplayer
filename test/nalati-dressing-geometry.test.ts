@@ -19,8 +19,8 @@ function wire() { return encodeNalatiPart(bakeDressing(), bytes => new Uint8Arra
 
 test('geometry-only construction preserves every original dressing wire byte', () => {
   const files = wire();
-  for (const [path, bytes] of [['public/assets/nalati/baked/dressing.bin', files.binary],
-    ['src/shards/nalati-grasslands/data/dressingGeos.json', files.document]] as const) {
+  for (const [path, bytes] of [['test/fixtures/nalati-dressing.bin', files.binary],
+    ['test/fixtures/nalati-dressing-geos.json', files.document]] as const) {
     const pin = pins.find(row => row.path === path);
     if (pin === undefined) throw new Error('Missing original dressing wire pin');
     expect({ path, bytes: bytes.byteLength, hash: hashImmutableBytes(bytes) }).toEqual(pin);
@@ -59,8 +59,6 @@ for (const omit of [true, false]) {
     if (job === undefined) throw new Error('Missing native cover producer');
     const source = 'src/shards/nalati-grasslands/generators/dressingGeometryRows.ts';
     expect(job.inputRoots).toContain(source);
-    expect(job.inputRoots).not.toContain('src/shards/nalati-grasslands/data/dressingGeos.json');
-    expect(job.inputRoots).not.toContain('public/assets/nalati/baked/dressing.bin');
     const cacheDir = mkdtempSync(resolve('tmp/nalati-cover-owned-'));
     try {
       if (omit) {

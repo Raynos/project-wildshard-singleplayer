@@ -23,7 +23,7 @@ export interface NalatiRuntimeInputs {
 export function nalatiRuntimeRows(computed: NalatiRuntimeInputs): PlaceRuntimeRows {
   const dressing: unknown = JSON.parse(new TextDecoder().decode(buildDressingWire().document));
   const records = { ...inputs, 'data/places.json': computed.places,
-    'data/dressingGeos.json': dressing, 'data/poiPaint.json': computed.paint };
+    dressing, 'data/poiPaint.json': computed.paint };
   return placeRuntimeRows(name => records[name], value => {
     const text = JSON.stringify(value);
     if (text === undefined) throw new Error('Missing prepared Nalati metadata');

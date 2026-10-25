@@ -2,10 +2,9 @@
 // DS1.5: the authored places/specimens/dressing generator runs in Node, over the real terrain grid.
 // Normal generation and --check use the same exact row/float bytes and zlib lanes on every platform.
 // Regenerate: node --experimental-transform-types --import ./scripts/bake-loader.mjs generators/bake-nalati-places.mjs
-import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { deflateSync, inflateSync } from 'node:zlib';
+import { deflateSync } from 'node:zlib';
 import { encodeNalatiPart } from './placeWire.ts';
 
 const root = resolve(import.meta.dirname, '../../../..');
@@ -47,15 +46,6 @@ export function alike(a, b, path, skip, tol = 1e-9) {
   return null;
 }
 
-/** The committed places, specimens and dressing-shape bakes (rows, raw binary) as the page reads them. */
-export function committedPlaces() {
-  return Object.fromEntries([['places', 'places.bin', 'places.json'], ['specimens', 'specimens.bin', 'placeSpecimens.json'], ['dressing', 'dressing.bin', 'dressingGeos.json']].map(([file, bin, json]) => {
-    const rows = JSON.parse(readFileSync(resolve(DATA, json), 'utf8')), raw = unshuffle(new Uint8Array(inflateSync(readFileSync(resolve(OUT, bin)))));
-    if (raw.length !== rows.bytes || createHash('sha256').update(raw).digest('hex') !== rows.bin) throw new Error(`bake-nalati-places: ${bin} is not its rows' binary`);
-    return [file, { rows, raw }];
-  }));
-}
-
 /** The first difference between a committed bake and a rebake's rows and binary (rows within 1e-9, floats within 2^-20), or null. */
 export function bakeDifference(file, committed, made, geos) {
   const rowsDiff = alike(committed.rows.rows, made.rows, file, (k) => k === 'count' || k === 'geometry');
@@ -79,7 +69,7 @@ export function writeNalatiParts(parts, check = false) {
     } else { mkdirSync(resolve(path, '..'), { recursive: true }); writeFileSync(path, buffer); }
   };
   for (const { name, json, part } of parts) {
-    if (!['places', 'specimens', 'dressing'].includes(name) || !['places.json', 'placeSpecimens.json', 'dressingGeos.json'].includes(json)) throw new Error('Unknown Nalati bake output');
+    if (!['places', 'specimens'].includes(name) || !['places.json', 'placeSpecimens.json'].includes(json)) throw new Error('Unknown Nalati bake output');
     const encoded = encodeNalatiPart(part, bytes => deflateSync(bytes, { level: 9 }));
     put(resolve(OUT, `${name}.bin`), encoded.binary);
     put(resolve(DATA, json), encoded.document);
@@ -87,12 +77,4 @@ export function writeNalatiParts(parts, check = false) {
   if (changed !== 0) throw new Error(`Nalati bake has ${changed} stale outputs`);
 }
 
-/** Publish/check the standard dressing Scene, using the same retained file boundary. */
-export function writeDressingScene(scene, check = false) {
-  const path = resolve(DATA, 'dressing.scene.generated.json'), bytes = Buffer.from(`${JSON.stringify(scene)}\n`);
-  if (check) {
-    if (!existsSync(path) || !readFileSync(path).equals(bytes)) throw new Error('Nalati dressing Scene is stale');
-  } else { mkdirSync(DATA, { recursive: true }); writeFileSync(path, bytes); }
-}
-
-if (import.meta.main) throw new Error('Run bake-nalati-painted.mjs for places or bake-nalati-dressing.mjs for dressing');
+if (import.meta.main) throw new Error('Run bake-nalati-painted.mjs for native places and specimens');

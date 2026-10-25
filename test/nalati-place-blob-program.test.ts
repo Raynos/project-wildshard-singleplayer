@@ -14,10 +14,10 @@ import cragOriginal from './fixtures/nalati-crag-blob.json' with { type: 'json' 
 import dressingOriginal from './fixtures/nalati-dressing-blob.json' with { type: 'json' };
 import { discoverGeneration } from '../scripts/generate.mjs';
 
-test('the duplicate scene-copy jobs stay retired', () => {
+test('native dressing and duplicate scene-copy jobs stay retired', () => {
   const descriptors = discoverGeneration(resolve('.')).jobs;
   const jobs = descriptors.map(job => job.id);
-  expect(jobs).not.toContain('nalati-places-blob'); expect(jobs).not.toContain('nalati-crags-blob'); expect(jobs).not.toContain('nalati-dressing-blob');
+  expect(jobs).not.toContain('nalati-dressing'); expect(jobs).not.toContain('nalati-places-blob'); expect(jobs).not.toContain('nalati-crags-blob'); expect(jobs).not.toContain('nalati-dressing-blob');
 });
 
 test('the actual output hook preserves every predecessor file cost and binary byte on cold and cache hit', async () => {
@@ -32,7 +32,7 @@ test('the actual output hook preserves every predecessor file cost and binary by
   };
   const before = readFileSync('public/assets/nalati/baked/places.bin');
   try {
-    for (const [name, pin] of [['places', original], ['crags', cragOriginal], ['dressing', dressingOriginal]] as const) {
+    for (const [name, pin] of [['places', original], ['crags', cragOriginal]] as const) {
       const cold = await nalatiBakeBlob(context(), name, pin.decoded);
       expect(cold.file).toEqual(pin);
       expect(Buffer.compare(cold.bytes, readFileSync(`public/assets/nalati/baked/${name}.bin`))).toBe(0);
@@ -58,12 +58,12 @@ test('the actual output hook preserves every predecessor file cost and binary by
     const dressing = hit.assets.get(dressingOriginal.hash);
     if (dressing === undefined) throw new Error('Output lost the owned dressing bytes');
     expect(dressing.length).toBe(dressingOriginal.compressed); expect(hashImmutableBytes(dressing)).toBe(dressingOriginal.hash);
-    expect(Buffer.compare(dressing, readFileSync('public/assets/nalati/baked/dressing.bin'))).toBe(0);
+    expect(Buffer.compare(dressing, readFileSync('test/fixtures/nalati-dressing.bin'))).toBe(0);
   } finally { rmSync(cache, { recursive: true, force: true }); }
 });
 
 test('missing authored and owned bytes refuse before output publication', async () => {
-  for (const [name, pin] of [['places', original], ['crags', cragOriginal], ['dressing', dressingOriginal]] as const) {
+  for (const [name, pin] of [['places', original], ['crags', cragOriginal]] as const) {
     await expect(nalatiBakeBlob({ cached: (_step, generate) => Promise.resolve(generate(new Map())) }, name, pin.decoded)).rejects.toThrow(`Missing authored ${name} binary`);
     await expect(nalatiBakeBlob({ cached: () => Promise.resolve(new Map()) }, name, pin.decoded)).rejects.toThrow(`Missing owned ${name} binary`);
     await expect(nalatiBakeBlob({ cached: () => Promise.resolve(new Map([[`${name}.bin`, new Uint8Array(1)], ['extra', new Uint8Array(1)]])) }, name, pin.decoded)).rejects.toThrow(`Missing owned ${name} binary`);

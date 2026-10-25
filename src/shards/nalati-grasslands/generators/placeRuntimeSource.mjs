@@ -4,7 +4,7 @@ import { Euler, Matrix4, Quaternion, Vector3 } from 'three';
 /** The one runtime preparation algorithm; metadata is normalized only at its defining wire boundary. */
 function buildPlaceRuntimeRows(read) {
 const catalogue = read('data/campCatalogue.json');
-const places = read('data/places.json'), dressing = read('data/dressingGeos.json');
+const places = read('data/places.json'), dressing = read('dressing');
 const bytes = g => g.attrs.reduce((n, [,type,size]) => n + Math.ceil(g.count * size * ({f32:4,u8:1,i8:1,u16:2,f16:2}[type]) / 4) * 4, 0) + (g.index === null ? 0 : g.indexCount * 4);
 const floors=[];
 const floorRow=input=>{

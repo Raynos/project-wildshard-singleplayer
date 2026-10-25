@@ -22,8 +22,8 @@ test('native dressing owns complete original cold bytes and independent cache hi
   };
   const check = (files: ReadonlyMap<string, Uint8Array>) => {
     expect([...files.keys()].sort()).toEqual(['dressing.bin', 'dressing.json']);
-    for (const [name, path] of [['dressing.bin', 'public/assets/nalati/baked/dressing.bin'],
-      ['dressing.json', 'src/shards/nalati-grasslands/data/dressingGeos.json']] as const) {
+    for (const [name, path] of [['dressing.bin', 'test/fixtures/nalati-dressing.bin'],
+      ['dressing.json', 'test/fixtures/nalati-dressing-geos.json']] as const) {
       const bytes = files.get(name), pin = pins.find(row => row.path === path);
       if (bytes === undefined || pin === undefined) throw new Error('Missing original dressing output');
       expect({ path, bytes: bytes.length, hash: hashImmutableBytes(bytes) }).toEqual(pin);

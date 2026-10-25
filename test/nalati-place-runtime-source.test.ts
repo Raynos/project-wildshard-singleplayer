@@ -13,11 +13,11 @@ import { discoverGeneration, generateShardJob } from '../scripts/generate.mjs';
 import pins from './fixtures/nalati-place-runtime-files.json' with { type: 'json' };
 
 const prefix = 'src/shards/nalati-grasslands/';
-function read(name: PlaceRuntimeInput): unknown { const input: unknown = JSON.parse(readFileSync(`${prefix}${name}`, 'utf8')); return input; }
+function read(name: PlaceRuntimeInput): unknown { const path = name === 'dressing' ? 'test/fixtures/nalati-dressing-geos.json' : `${prefix}${name}`; const input: unknown = JSON.parse(readFileSync(path, 'utf8')); return input; }
 
 test('pure runtime preparation preserves all seven complete output pins and input records', () => {
   const inputs = new Map<PlaceRuntimeInput, unknown>();
-  for (const name of ['data/campCatalogue.json', 'data/places.json', 'data/dressingGeos.json', 'data/worldView.json', 'data/modelMetrics.json', 'data/staticCapture.json', 'data/poiPaint.json'] as const) inputs.set(name, read(name));
+  for (const name of ['data/campCatalogue.json', 'data/places.json', 'dressing', 'data/worldView.json', 'data/modelMetrics.json', 'data/staticCapture.json', 'data/poiPaint.json'] as const) inputs.set(name, read(name));
   const select = (name: PlaceRuntimeInput): unknown => inputs.get(name);
   const before = JSON.stringify([...inputs]);
   const files = preparePlaceRuntime(select, jsonBytes);
@@ -57,7 +57,7 @@ test('structured preparation keeps metadata and independent owned floor bytes', 
 
 test('original asset and binary coverage refusals remain', () => {
   expect(() => preparePlaceRuntime(name => name === 'data/campCatalogue.json' ? [] : read(name), jsonBytes)).toThrow('Missing asset declaration');
-  for (const file of ['data/places.json', 'data/dressingGeos.json'] as const) {
+  for (const file of ['data/places.json', 'dressing'] as const) {
     expect(() => preparePlaceRuntime(name => {
       if (name !== file) return read(name);
       const row = v.parse(v.looseObject({ bytes: v.number() }), read(name));
@@ -88,7 +88,6 @@ for (const omission of ['preparation', 'geometry', null] as const) {
     const source = `${prefix}generators/placeRuntimeSource.mjs`;
     const geometry = `${prefix}generators/dressingGeometryRows.ts`;
     expect(job.inputRoots).toContain(source); expect(job.inputRoots).toContain(geometry);
-    expect(job.inputRoots).not.toContain(`${prefix}data/dressingGeos.json`);
     const cacheDir = mkdtempSync(resolve('tmp/nalati-runtime-pure-'));
     try {
       if (omission !== null) {

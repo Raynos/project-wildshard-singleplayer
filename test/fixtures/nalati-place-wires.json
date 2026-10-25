@@ -20,12 +20,12 @@
     "hash": "e77f940a3b32d5b7266783339555ae3c19ef65c0494f574a3a711638638b0308"
   },
   {
-    "path": "public/assets/nalati/baked/dressing.bin",
+    "path": "test/fixtures/nalati-dressing.bin",
     "bytes": 66881,
     "hash": "61d680cdf497c9906df63cec350d3abc4606833fdf80cba2e4bcf4ab5a7ac1d3"
   },
   {
-    "path": "src/shards/nalati-grasslands/data/dressingGeos.json",
+    "path": "test/fixtures/nalati-dressing-geos.json",
     "bytes": 2605,
     "hash": "09a991c2f8dbb8167631134e8293a48b273b2371cbfc704f596af9853e35eb98"
   }

@@ -8,7 +8,7 @@ import { expect, test } from 'vitest';
 import { build } from 'vite';
 import * as v from 'valibot';
 import { encodeNalatiPart } from '../src/shards/nalati-grasslands/generators/placeWire';
-import { committedPlaces } from '../src/shards/nalati-grasslands/generators/bake-nalati-places.mjs';
+import { committedPlaces } from './fixtures/nalati-committed-places';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { discoverGeneration, generateShardJob } from '../scripts/generate.mjs';
@@ -16,13 +16,14 @@ import beforeWires from './fixtures/nalati-place-wires.json' with { type: 'json'
 
 const original = committedPlaces();
 const compress = (bytes: Uint8Array): Uint8Array => new Uint8Array(deflateSync(bytes, { level: 9 }));
-for (const [name, document] of [['places', 'places.json'], ['specimens', 'placeSpecimens.json'], ['dressing', 'dressingGeos.json']] as const) {
+for (const [name, document] of [['places', 'places.json'], ['specimens', 'placeSpecimens.json'], ['dressing', 'nalati-dressing-geos.json']] as const) {
   test(`the pure ${name} wire preserves every committed geometry and metadata byte`, () => {
     const before = original[name], inputHash = hashImmutableBytes(before.raw);
     const encoded = encodeNalatiPart({ rows: before.rows.rows, bin: before.raw }, compress);
-    const binary = readFileSync(`public/assets/nalati/baked/${name}.bin`), rows = readFileSync(`src/shards/nalati-grasslands/data/${document}`);
-    for (const [path, actual, committed] of [[`public/assets/nalati/baked/${name}.bin`, encoded.binary, binary],
-      [`src/shards/nalati-grasslands/data/${document}`, encoded.document, rows]] as const) {
+    const binaryPath = name === 'dressing' ? 'test/fixtures/nalati-dressing.bin' : `public/assets/nalati/baked/${name}.bin`;
+    const documentPath = name === 'dressing' ? `test/fixtures/${document}` : `src/shards/nalati-grasslands/data/${document}`;
+    const binary = readFileSync(binaryPath), rows = readFileSync(documentPath);
+    for (const [path, actual, committed] of [[binaryPath, encoded.binary, binary], [documentPath, encoded.document, rows]] as const) {
       const expected = beforeWires.find(row => row.path === path);
       if (expected === undefined) throw new Error('Missing predecessor wire oracle');
       expect({ path, bytes: actual.byteLength, hash: hashImmutableBytes(actual) }).toEqual(expected);
@@ -59,8 +60,8 @@ test('the authoring wire bundles without publication or runtime services', async
 });
 
 for (const omission of ['wire', 'geometry', null] as const) {
-  test(`the native dressing adapter ${omission === null ? 'keeps all original registered outputs' : `refuses the omitted ${omission} producer`}`, async () => {
-    const root = resolve('.'), job = discoverGeneration(root).jobs.find(row => row.id === 'nalati-dressing');
+  test(`the native runtime adapter ${omission === null ? 'keeps all original registered outputs' : `refuses the omitted ${omission} producer`}`, async () => {
+    const root = resolve('.'), job = discoverGeneration(root).jobs.find(row => row.id === 'nalati-place-runtime');
     if (job === undefined) throw new Error('Missing native dressing producer');
     const wire = 'src/shards/nalati-grasslands/generators/placeWire.ts';
     const geometry = 'src/shards/nalati-grasslands/generators/dressingGeometryRows.ts';

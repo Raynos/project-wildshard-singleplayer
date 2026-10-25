@@ -4,8 +4,7 @@
  * code (smooth: welded, averaged normals, never faceted), vertex-painted, no textures, standing on their local origin
  * (y = 0 is the ground) at roughly unit size; the placer scales them. Moved verbatim from `models/dressing.ts` (the same
  * seeds, the same rng streams); `generators/places.ts` bakes every variant the page draws (`DRESSING_GEOS`: both tiers'
- * rock detail, the phone's lite rose and lupin) into `public/assets/nalati/baked/dressing.bin` + `data/dressingGeos.json`,
- * and `models/dressing.ts` reads them back (`world/placeBake.ts` bakedDressingGeo).
+ * rock detail, the phone's lite rose and lupin) into owned native geometry and metadata; the product reads those values
  *
  *   boulderGeo(seed)    a rounded granite boulder: warm / cool grey, moss on the tops, lichen spots, dark foot  (320 tris)
  *   slabGeo(seed)       a flatter, rougher outcrop rock for the slopes                                         (320 tris)
