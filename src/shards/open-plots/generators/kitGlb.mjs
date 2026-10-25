@@ -83,62 +83,125 @@ export async function prepareLanternKit(palette) {
   });
 }
 
-/** Decode existing architecture once and restore its original per-role triangle order after palette-slot grouping.
- * Far stand-ins are checked here; the layout keeps drawing its original far and collision recipes. */
-export async function prepareArchitectureKit(palette) {
-  const pieces = new Map();
-  for (const [type, variant] of [['H', 0], ['H', 1], ['S', 0], ['C', 0], ['L', 0], ['N', 0], ['G', 0], ['G', 1], ['P', 0]]) {
-    const { bytes, bindings, movingLights } = architectureGlb(type, palette, variant);
-    const materials = Object.fromEntries([...bindings.keys(), 'collision'].map(name => [name, 'kit']));
-    const decoded = await normalizeWorldGlb(bytes, { glb: 'architecture.glb', materials, colliders: 'nodes:collide_', far: 'far_' }, ['kit']);
-    const roles = new Map();
-    for (const row of decoded.static) {
-      const binding = bindings.get(row.node);
-      if (binding === undefined || row.colours === null || row.colours.length !== row.positions.length
-        || row.indices.length !== binding.ordinals.length * 3) throw new Error('open-plots architecture: incomplete palette geometry');
-      let triangles = roles.get(binding.role);
-      if (triangles === undefined) { triangles = []; roles.set(binding.role, triangles); }
-      for (let i = 0; i < binding.ordinals.length; i++) {
-        triangles.push({ ordinal: binding.ordinals[i], at: i * 3, positions: row.positions, colours: row.colours,
-          indices: row.indices, normals: row.normals, uv: row.uv });
-      }
-    }
-    for (const triangles of roles.values()) {
-      triangles.sort((a, b) => a.ordinal - b.ordinal);
-      if (triangles.some((triangle, i) => triangle.ordinal !== i)) throw new Error('open-plots architecture: invalid triangle order');
-    }
-    const farTriangles = decoded.far.reduce((count, row) => count + row.indices.length / 3, 0);
-    if (farTriangles === 0 || farTriangles > 40 || decoded.collision.length !== 1) throw new Error('open-plots architecture: invalid far or collision piece');
-    const glowCount = roles.get('Glow')?.length ?? 0;
-    if (movingLights.some((light, i) => !Number.isInteger(light.ordinal) || light.ordinal < 0 || light.ordinal > glowCount
-      || (i > 0 && light.ordinal < movingLights[i - 1].ordinal))) throw new Error('open-plots architecture: invalid moving-light order');
-    if (movingLights.length > 0 && !roles.has('Glow')) roles.set('Glow', []);
-    pieces.set(`${type}/${variant}`, { roles, movingLights });
+/** Admit one to three explicitly supplied variants per tile family, each with LOD0 and LOD1.
+ * Levels own their decoded arrays; missing levels, duplicate variants and oversized far stand-ins refuse.
+ * This build-only table chooses no distance, collision policy or variant on behalf of a caller. */
+export async function prepareArchitectureVariants(sources) {
+  if (!Array.isArray(sources) || sources.length === 0) throw new Error('open-plots architecture: explicit variants required');
+  const keys = new Set();
+  for (const { type, variant, lod0, lod1 } of sources) {
+    const key = `${type}/${variant}`;
+    if (!['H', 'S', 'C', 'L', 'N', 'G', 'P'].includes(type) || !Number.isInteger(variant) || variant < 0 || variant > 2
+      || keys.has(key) || lod0 === undefined || lod1 === undefined) throw new Error('open-plots architecture: invalid variant or missing LOD');
+    keys.add(key);
   }
+  for (const { type, variant } of sources) for (let i = 0; i < variant; i++) {
+    if (!keys.has(`${type}/${i}`)) throw new Error('open-plots architecture: noncontiguous variants');
+  }
+  const pieces = new Map();
+  for (const { type, variant, lod0, lod1 } of sources) {
+    const levels = [await decodeArchitecture(lod0)];
+    levels.push(lod1 === lod0 ? levels[0] : await decodeArchitecture(lod1));
+    if (levels[1].triangles > levels[0].triangles) throw new Error('open-plots architecture: LOD1 exceeds LOD0');
+    const [a, b] = levels;
+    if (a.movingLights.length !== b.movingLights.length || a.movingLights.some((light, i) => {
+      const other = b.movingLights[i];
+      return light.kind !== other.kind || light.position.some((value, k) => value !== other.position[k]);
+    }) || !sameWords(a.collision.positions, b.collision.positions) || !sameWords(a.collision.indices, b.collision.indices)) {
+      throw new Error('open-plots architecture: LOD changes collision or moving lights');
+    }
+    pieces.set(`${type}/${variant}`, levels.map(level => ({ roles: level.roles, movingLights: level.movingLights })));
+  }
+  return Object.freeze({
+    placeArchitecture(w, type, variant, lod = 0) {
+      if (!['H', 'S', 'C', 'L', 'N', 'G', 'P'].includes(type) || !Number.isInteger(variant) || !Number.isInteger(lod) || lod < 0 || lod > 1) throw new Error('open-plots architecture: invalid LOD');
+      const levels = pieces.get(`${type}/${variant}`);
+      if (levels === undefined) throw new Error('open-plots architecture: invalid placement variant');
+      placeArchitecture(w, levels[lod]);
+    },
+  });
+}
+
+function sameWords(a, b) {
+  return a.length === b.length && a.every((value, i) => Object.is(value, b[i]));
+}
+
+async function decodeArchitecture(source) {
+  const { bytes, bindings, movingLights } = source;
+  if (!(bytes instanceof Uint8Array) || bytes.length === 0 || !(bindings instanceof Map) || !Array.isArray(movingLights)) {
+    throw new Error('open-plots architecture: invalid owned GLB source');
+  }
+  const materials = Object.fromEntries([...bindings.keys(), 'collision'].map(name => [name, 'kit']));
+  const decoded = await normalizeWorldGlb(bytes, { glb: 'architecture.glb', materials, colliders: 'nodes:collide_', far: 'far_' }, ['kit']);
+  const roles = new Map();
+  for (const row of decoded.static) {
+    const binding = bindings.get(row.node);
+    if (binding === undefined || !['Kit', 'Glow', 'Pool', 'Water'].includes(binding.role) || row.colours === null || row.colours.length !== row.positions.length
+      || row.indices.length !== binding.ordinals.length * 3) throw new Error('open-plots architecture: incomplete palette geometry');
+    let triangles = roles.get(binding.role);
+    if (triangles === undefined) { triangles = []; roles.set(binding.role, triangles); }
+    for (let i = 0; i < binding.ordinals.length; i++) {
+      triangles.push({ ordinal: binding.ordinals[i], at: i * 3, positions: row.positions, colours: row.colours,
+        indices: row.indices, normals: row.normals, uv: row.uv });
+    }
+  }
+  for (const triangles of roles.values()) {
+    triangles.sort((a, b) => a.ordinal - b.ordinal);
+    if (triangles.some((triangle, i) => triangle.ordinal !== i)) throw new Error('open-plots architecture: invalid triangle order');
+  }
+  const farTriangles = decoded.far.reduce((count, row) => count + row.indices.length / 3, 0);
+  if (farTriangles === 0 || farTriangles > 40 || decoded.collision.length !== 1) throw new Error('open-plots architecture: invalid far or collision piece');
+  const glowCount = roles.get('Glow')?.length ?? 0;
+  const invalidLight = movingLights.some((light, i) => {
+    if (!['firefly', 'sky-lantern'].includes(light.kind)) return true;
+    if (!Array.isArray(light.position)) return true;
+    if (light.position.length !== 3) return true;
+    if (light.position.some(value => !Number.isFinite(value))) return true;
+    if (!Number.isInteger(light.ordinal)) return true;
+    if (light.ordinal < 0 || light.ordinal > glowCount) return true;
+    return i > 0 && light.ordinal < movingLights[i - 1].ordinal;
+  });
+  if (invalidLight) throw new Error('open-plots architecture: invalid moving-light order');
+  if (movingLights.length > 0 && !roles.has('Glow')) roles.set('Glow', []);
+  return { roles, movingLights: movingLights.map(light => ({ kind: light.kind, ordinal: light.ordinal, position: [...light.position] })),
+    triangles: [...roles.values()].reduce((count, rows) => count + rows.length, 0), collision: decoded.collision[0] };
+}
+
+function placeArchitecture(w, piece) {
+  for (const [role, triangles] of piece.roles) {
+    let moving = 0;
+    for (let triangle = 0; triangle <= triangles.length; triangle++) {
+      if (role === 'Glow') while (piece.movingLights[moving]?.ordinal === triangle) {
+        const light = piece.movingLights[moving++]; placeMovingLight(w, light.kind, light.position);
+      }
+      if (triangle === triangles.length) continue;
+      const { at, positions, colours, indices, normals, uv } = triangles[triangle];
+      const points = [], rgb = [], ns = [], uvs = [];
+      for (let corner = 0; corner < 3; corner++) {
+        const i = indices[at + corner] * 3;
+        points.push([positions[i], positions[i + 1], positions[i + 2]]);
+        rgb.push([colours[i], colours[i + 1], colours[i + 2]]);
+        if (normals !== null) ns.push([normals[i], normals[i + 1], normals[i + 2]]);
+        if (uv !== null) { const u = indices[at + corner] * 2; uvs.push([uv[u], uv[u + 1]]); }
+      }
+      w.triChannels(role, points, rgb, normals === null ? null : ns, uv === null ? null : uvs);
+    }
+  }
+}
+
+/** Keep today's one/two-variant choices and existing low-poly geometry at both levels.
+ * RM4 supplies distinct authored models later; no reduced-LOD or third-art-variant claim is made here. */
+export async function prepareArchitectureKit(palette) {
+  const sources = [];
+  for (const [type, variant] of [['H', 0], ['H', 1], ['S', 0], ['C', 0], ['L', 0], ['N', 0], ['G', 0], ['G', 1], ['P', 0]]) {
+    const piece = architectureGlb(type, palette, variant);
+    sources.push({ type, variant, lod0: piece, lod1: piece });
+  }
+  const prepared = await prepareArchitectureVariants(sources);
   return Object.freeze({
     placeArchitecture(w, type, variant) {
       if (!['H', 'S', 'C', 'L', 'N', 'G', 'P'].includes(type)) return false;
-      const piece = pieces.get(`${type}/${type === 'H' || type === 'G' ? variant : 0}`);
-      if (piece === undefined) throw new Error('open-plots architecture: invalid placement variant');
-      for (const [role, triangles] of piece.roles) {
-        let moving = 0;
-        for (let triangle = 0; triangle <= triangles.length; triangle++) {
-          if (role === 'Glow') while (piece.movingLights[moving]?.ordinal === triangle) {
-            const light = piece.movingLights[moving++]; placeMovingLight(w, light.kind, light.position);
-          }
-          if (triangle === triangles.length) continue;
-          const { at, positions, colours, indices, normals, uv } = triangles[triangle];
-          const points = [], rgb = [], ns = [], uvs = [];
-          for (let corner = 0; corner < 3; corner++) {
-            const i = indices[at + corner] * 3;
-            points.push([positions[i], positions[i + 1], positions[i + 2]]);
-            rgb.push([colours[i], colours[i + 1], colours[i + 2]]);
-            if (normals !== null) ns.push([normals[i], normals[i + 1], normals[i + 2]]);
-            if (uv !== null) { const u = indices[at + corner] * 2; uvs.push([uv[u], uv[u + 1]]); }
-          }
-          w.triChannels(role, points, rgb, normals === null ? null : ns, uv === null ? null : uvs);
-        }
-      }
+      prepared.placeArchitecture(w, type, type === 'H' || type === 'G' ? variant : 0, 0);
       return true;
     },
   });
