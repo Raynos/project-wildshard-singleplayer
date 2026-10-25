@@ -2,7 +2,7 @@
 
 **Order (G639):** (1) live reds → (2) NALATI 0 → (3) grid / frame floor → extras.
 
-**(1) LIVE c13aa9df6 (19:38Z); 67ba880968 (CI + six legs green) releasing ~21:05Z. Hourly releases (sp-x7, G705). Smoke
+**(1) LIVE 67ba880968 (21:17Z); 9c660cf826 (loader fix 4fdbe727f6 + map fix f86a0d6e02) releasing 22:04Z. Hourly releases (sp-x7, G705). Smoke
 per-leg bundles b77b802191: 23-70 s per leg (was a 1,199 s timeout); JSON pack closure fix 67ba880968. CF2 capture stall:
 title tracing awaits a CI occurrence; programShare warning: sp-x9. No open release red.
 
