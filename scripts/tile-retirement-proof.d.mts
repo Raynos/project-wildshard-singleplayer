@@ -35,5 +35,6 @@ export function seedTileRetirementHome(reference: { x: number; z: number }, iden
   documentIdentity: () => FloorGridDocumentIdentity): Promise<void>;
 export function readRetirementResources(): {
   renderer: { geometries: number; textures: number; programs: number | null };
+  programCache: readonly { cacheKey: string; name: string; usedTimes: number }[];
   ledger: MemorySnapshot;
 };

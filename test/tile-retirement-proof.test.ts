@@ -69,12 +69,23 @@ function mutableBoundary() { return { ...boundary() }; }
 
 test('T1 resource diagnostic reads scalar counters and the explicit ledger without upload lookups', () => {
   const ledger = { totals: { gpu: 8, ram: 16 }, allocations: [{ owner: 'resident', domain: 'gpu', bytes: 8 }] };
+  const programs = [{ cacheKey: 'variant,a', name: 'material', usedTimes: 2,
+    program: { nativeHandle: true } }, { cacheKey: 'variant,b', name: 'post', usedTimes: 1,
+    program: { nativeHandle: true } }];
   const api = { memory: () => ledger, world: { game: { renderer: {
-    info: { memory: { geometries: 3, textures: 4 }, programs: [{}, {}] },
+    info: { memory: { geometries: 3, textures: 4 }, programs },
     properties: { get: () => { throw new Error('Diagnostic must not register an upload'); } },
   } } } };
   const read = (): unknown => runInNewContext(`(${readRetirementResources.toString()})()`, { window: { __wildshard: api } });
-  expect(read()).toEqual({ renderer: { geometries: 3, textures: 4, programs: 2 }, ledger });
+  const snapshot = read(), first = programs[0];
+  if (first === undefined) throw new Error('Missing program fixture');
+  first.cacheKey = 'next,variant'; first.usedTimes = 3;
+  expect(snapshot).toEqual({ renderer: { geometries: 3, textures: 4, programs: 2 }, programCache: [
+    { cacheKey: 'variant,a', name: 'material', usedTimes: 2 },
+    { cacheKey: 'variant,b', name: 'post', usedTimes: 1 },
+  ], ledger });
+  expect(read()).toMatchObject({ programCache: [{ cacheKey: 'next,variant', usedTimes: 3 },
+    { cacheKey: 'variant,b', usedTimes: 1 }] });
   Object.defineProperty(api, 'memory', { get: () => { throw new Error('Do not invoke an arbitrary getter'); } });
   expect(read).toThrow(/ledger unavailable/u);
 });

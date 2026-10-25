@@ -86,7 +86,10 @@ export function readRetirementResources() {
   const memory = Object.getOwnPropertyDescriptor(api, 'memory')?.value;
   if (typeof memory !== 'function') throw new Error('Scalar memory ledger unavailable');
   return { renderer: { geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures,
-    programs: renderer.info.programs?.length ?? null }, ledger: memory.call(api) };
+    programs: renderer.info.programs?.length ?? null },
+    programCache: (renderer.info.programs ?? []).map(program => ({
+      cacheKey: program.cacheKey, name: program.name, usedTimes: program.usedTimes,
+    })), ledger: memory.call(api) };
 }
 
 /** Initial staging only, before warm-up or measured input. A new position can
