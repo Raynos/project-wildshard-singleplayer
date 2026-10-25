@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 
 const coord = v.pipe(v.number(), v.finite(), v.minValue(-250), v.maxValue(250));
-export const WaterBodyIdSchema = v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u), v.maxLength(128));
+export const WaterBodyIdSchema: v.GenericSchema<WaterBodyIdInput, WaterBodyId> = v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u), v.maxLength(128));
 const id = WaterBodyIdSchema;
 const point = v.tuple([coord, coord]);
 const circle = v.pipe(v.strictObject({ kind: v.literal('circle'), x: coord, z: coord, radius: v.pipe(coord, v.minValue(0.01)) }), v.check((s) => Math.abs(s.x) + s.radius <= 250 && Math.abs(s.z) + s.radius <= 250, 'pool fits cell'));
@@ -27,10 +27,10 @@ const streamPoint = v.strictObject({ x: coord, z: coord, level: coord, under: v.
 const levels = v.optional(v.pipe(v.record(id, coord), v.check((rows) => Object.keys(rows).length <= 8, 'at most 8 live levels')));
 const dryEntries = v.optional(v.pipe(v.array(v.picklist(['north', 'east', 'south', 'west'])), v.maxLength(4), v.check((rows) => new Set(rows).size === rows.length, 'unique dry entryways')));
 /** A declared stream: a sloping rest surface along its points, banks `width / 2` either side (a habitat's water too). */
-export const StreamWaterSchema = v.pipe(v.strictObject({ id, kind: v.literal('stream'), width: v.pipe(coord, v.minValue(0.01), v.maxValue(100)), points: v.pipe(v.array(streamPoint), v.minLength(2), v.maxLength(128)), levels, dryEntries }), v.check((s) => s.points.every((p, i) => {
+export const StreamWaterSchema: v.SchemaWithPipe<readonly [v.StrictObjectSchema<{ readonly id: v.GenericSchema<StreamWaterRowsInput['id'], StreamWaterRows['id']>; readonly kind: v.GenericSchema<StreamWaterRowsInput['kind'], StreamWaterRows['kind']>; readonly width: v.GenericSchema<StreamWaterRowsInput['width'], StreamWaterRows['width']>; readonly points: v.GenericSchema<StreamWaterRowsInput['points'], StreamWaterRows['points']>; readonly levels: v.OptionalSchema<v.GenericSchema<Exclude<StreamWaterRowsInput['levels'], undefined>, Exclude<StreamWaterRows['levels'], undefined>>, undefined>; readonly dryEntries: v.OptionalSchema<v.GenericSchema<Exclude<StreamWaterRowsInput['dryEntries'], undefined>, Exclude<StreamWaterRows['dryEntries'], undefined>>, undefined>; }, undefined>, v.CheckAction<{ [K in keyof StreamWaterRows]: StreamWaterRows[K] }, 'stream fits cell, has nonzero segments and declares its live levels'>]> = v.pipe(v.strictObject({ id, kind: v.literal('stream'), width: v.pipe(coord, v.minValue(0.01), v.maxValue(100)), points: v.pipe(v.array(streamPoint), v.minLength(2), v.maxLength(128)), levels, dryEntries }), v.check((s) => s.points.every((p, i) => {
   const prev = s.points[i - 1]; return (p.under === undefined || s.levels?.[p.under] !== undefined) && Math.abs(p.x) + s.width / 2 <= 250 && Math.abs(p.z) + s.width / 2 <= 250 && (prev === undefined || p.x !== prev.x || p.z !== prev.z);
 }), 'stream fits cell, has nonzero segments and declares its live levels'));
-export const WaterBodySchema = v.variant('kind', [
+export const WaterBodySchema: v.GenericSchema<WaterBodyRowsInput, WaterBodyRows> = v.variant('kind', [
   v.strictObject({ id, kind: v.literal('pool'), level: coord, shape: v.variant('kind', [circle, polygon]), dryEntries }),
   v.strictObject({ id: v.literal('sea'), kind: v.literal('sea'), level: coord, waves: v.boolean(), dryEntries }),
   StreamWaterSchema,
@@ -39,9 +39,9 @@ export const WaterBodySchema = v.variant('kind', [
 export function waterBodiesOrdered(rows: readonly { readonly id: string; readonly kind: string }[]): boolean {
   return new Set(rows.map(row => row.id)).size === rows.length && rows.every((row,i) => row.kind === 'sea' ? i === rows.length-1 : row.id !== 'sea');
 }
-export const WaterSchema = v.pipe(v.array(WaterBodySchema), v.maxLength(64), v.check(rows => waterBodiesOrdered(rows), 'unique water ids and sea last'));
+export const WaterSchema: v.GenericSchema<ShardWaterInput, ShardWater> = v.pipe(v.array(WaterBodySchema), v.maxLength(64), v.check(rows => waterBodiesOrdered(rows), 'unique water ids and sea last'));
 /** A serialisable water section for pools, seas and streams, defaulting to [] in the full format. */
-export type ShardWater = v.InferOutput<typeof WaterSchema>;
+
 
 const param = v.pipe(v.string(), v.minLength(1), v.maxLength(64));
 const literal = v.union([v.number(), v.pipe(v.array(v.number()), v.minLength(2), v.maxLength(4))]);
@@ -51,7 +51,7 @@ const literal = v.union([v.number(), v.pipe(v.array(v.number()), v.minLength(2),
  * proximity the host stamps round standing colliders) and its dry rectangles' sockets. Data only (G454).
  */
 const finite = v.pipe(v.number(), v.finite());
-export const WaterSurfaceSchema = v.strictObject({
+export const WaterSurfaceSchema: v.GenericSchema<WaterSurfaceRowInput, WaterSurfaceRow> = v.strictObject({
   look: v.pipe(v.string(), v.minLength(1), v.maxLength(128)),
   name: v.pipe(v.string(), v.maxLength(64)),
   renderOrder: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(16)),
@@ -70,8 +70,178 @@ export const WaterSurfaceSchema = v.strictObject({
     reveal: v.tuple([finite, finite]) }), v.check(row => row.reveal[0] < row.reveal[1], 'Ordered water reveal band required'))),
 });
 /** A validated water-surface row. */
-export type WaterSurfaceRow = v.InferOutput<typeof WaterSurfaceSchema>;
+
 /** Validate a water-surface row. */
 export function parseWaterSurface(input: unknown): WaterSurfaceRow {
   return v.parse(WaterSurfaceSchema, input);
 }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type WaterBodyIdInput = WaterBodyId;
+export type WaterBodyId = string;
+interface StreamWaterRowsInputFields {
+    id: WaterBodyIdInput;
+    kind: 'stream';
+    width: number;
+    points: ({
+        x: number;
+        z: number;
+        level: number;
+        under?: WaterBodyIdInput | undefined;
+    })[];
+    levels?: Record<string, number> | undefined;
+    dryEntries?: ('north' | 'east' | 'south' | 'west')[] | undefined;
+}
+export type StreamWaterRowsInput = { [Key in keyof StreamWaterRowsInputFields]: StreamWaterRowsInputFields[Key] };
+interface StreamWaterRowsFields {
+    id: WaterBodyId;
+    kind: 'stream';
+    width: number;
+    points: ({
+        x: number;
+        z: number;
+        level: number;
+        under?: WaterBodyId | undefined;
+    })[];
+    levels?: Record<string, number> | undefined;
+    dryEntries?: ('north' | 'east' | 'south' | 'west')[] | undefined;
+}
+export type StreamWaterRows = { [Key in keyof StreamWaterRowsFields]: StreamWaterRowsFields[Key] };
+export type WaterBodyRowsInput = ({
+    id: WaterBodyIdInput;
+    kind: 'pool';
+    level: number;
+    shape: ({
+        kind: 'circle';
+        x: number;
+        z: number;
+        radius: number;
+    }) | ({
+        kind: 'polygon';
+        points: ([
+            number,
+            number
+        ])[];
+    });
+    dryEntries?: ('north' | 'east' | 'south' | 'west')[] | undefined;
+}) | ({
+    id: 'sea';
+    kind: 'sea';
+    level: number;
+    waves: boolean;
+    dryEntries?: ('north' | 'east' | 'south' | 'west')[] | undefined;
+}) | (StreamWaterRowsInput);
+export type WaterBodyRows = ({
+    id: WaterBodyId;
+    kind: 'pool';
+    level: number;
+    shape: ({
+        kind: 'circle';
+        x: number;
+        z: number;
+        radius: number;
+    }) | ({
+        kind: 'polygon';
+        points: ([
+            number,
+            number
+        ])[];
+    });
+    dryEntries?: ('north' | 'east' | 'south' | 'west')[] | undefined;
+}) | ({
+    id: 'sea';
+    kind: 'sea';
+    level: number;
+    waves: boolean;
+    dryEntries?: ('north' | 'east' | 'south' | 'west')[] | undefined;
+}) | (StreamWaterRows);
+export type ShardWaterInput = (WaterBodyRowsInput)[];
+export type ShardWater = (WaterBodyRows)[];
+interface WaterSurfaceRowInputFields {
+    look: string;
+    name: string;
+    renderOrder: number;
+    culled?: boolean | undefined;
+    waves?: boolean | undefined;
+    bind?: {
+        clock?: string | undefined;
+        waterHalf?: string | undefined;
+        chunkHalf?: string | undefined;
+    } | undefined;
+    params?: Record<string, (number) | ((number)[])> | undefined;
+    floor?: {
+        texture: string;
+        res: number;
+        foamReach: number;
+        foamBand: number;
+    } | undefined;
+    dry?: {
+        prefix: string;
+        slots: number;
+        none: [
+            number,
+            number,
+            number,
+            number
+        ];
+    } | undefined;
+    transition?: {
+        full: number;
+        lowered: number;
+        seconds: number;
+        exponent: number;
+        depth: string;
+        film: number;
+        lift: number;
+        bank: number;
+        reveal: [
+            number,
+            number
+        ];
+    };
+}
+export type WaterSurfaceRowInput = { [Key in keyof WaterSurfaceRowInputFields]: WaterSurfaceRowInputFields[Key] };
+interface WaterSurfaceRowFields {
+    look: string;
+    name: string;
+    renderOrder: number;
+    culled: boolean;
+    waves: boolean;
+    bind: {
+        clock?: string | undefined;
+        waterHalf?: string | undefined;
+        chunkHalf?: string | undefined;
+    };
+    params: Record<string, (number) | ((number)[])>;
+    floor?: {
+        texture: string;
+        res: number;
+        foamReach: number;
+        foamBand: number;
+    } | undefined;
+    dry?: {
+        prefix: string;
+        slots: number;
+        none: [
+            number,
+            number,
+            number,
+            number
+        ];
+    } | undefined;
+    transition?: {
+        full: number;
+        lowered: number;
+        seconds: number;
+        exponent: number;
+        depth: string;
+        film: number;
+        lift: number;
+        bank: number;
+        reveal: [
+            number,
+            number
+        ];
+    };
+}
+export type WaterSurfaceRow = { [Key in keyof WaterSurfaceRowFields]: WaterSurfaceRowFields[Key] };

@@ -27,7 +27,7 @@ const graphPreset = v.strictObject({ family: v.literal('graph'), preset: FamilyM
 const GRAPH_FILE_BYTES = 64_000;
 const id = v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u), v.maxLength(128));
 /** Authored material IDs select bounded platform presets or validated material graph data, never shader source. */
-export const MaterialsSchema = v.pipe(v.record(id, v.union([FamilyMaterialSchema, graphMaterial, graphFile, graphPreset])), v.check((rows) => Object.keys(rows).length <= 256, 'bounded material catalogue'));
+export const MaterialsSchema: v.GenericSchema<MaterialsRowsInput, MaterialsRows> = v.pipe(v.record(id, v.union([FamilyMaterialSchema, graphMaterial, graphFile, graphPreset])), v.check((rows) => Object.keys(rows).length <= 256, 'bounded material catalogue'));
 /** An admitted catalogue entry. */
 export type MaterialEntry = v.InferOutput<typeof MaterialsSchema>[string];
 
@@ -65,7 +65,7 @@ export function graphFileTextureRefs(materials: Readonly<v.InferOutput<typeof Ma
   return refs;
 }
 /** Optional per-shard family looks use the renderer-neutral engine schemas. */
-export const FamilyLooksSchema = v.strictObject({ toon: v.exactOptional(ToonLookSchema), painterly: v.exactOptional(PainterlyLookSchema), emissive: v.exactOptional(EmissiveLookSchema) });
+export const FamilyLooksSchema: v.GenericSchema<FamilyLooksRowsInput, FamilyLooksRows> = v.strictObject({ toon: v.exactOptional(ToonLookSchema), painterly: v.exactOptional(PainterlyLookSchema), emissive: v.exactOptional(EmissiveLookSchema) });
 /**
  * A look texture's sampler, one row per texture ref of the material catalogue (absent row: the loader's sampler, as before).
  * `wrap` its S and T addressing (absent: clamp); `anisotropy` its anisotropic samples, 1 (off) to 16, capped by the device
@@ -74,7 +74,7 @@ export const FamilyLooksSchema = v.strictObject({ toon: v.exactOptional(ToonLook
  * chain, as a data texture's driver mips (a baked chain is not bit-equal to them), `'file'` (absent) samples the file's
  * own levels.
  */
-export const TextureSamplersSchema = v.pipe(v.record(v.pipe(v.string(), v.regex(/^(?:commons:)?[a-f0-9]{64}$/u)), v.strictObject({
+export const TextureSamplersSchema: v.GenericSchema<TextureSamplersInput, TextureSamplers> = v.pipe(v.record(v.pipe(v.string(), v.regex(/^(?:commons:)?[a-f0-9]{64}$/u)), v.strictObject({
   wrap: v.exactOptional(v.picklist(['repeat', 'clamp', 'mirror'])), anisotropy: v.exactOptional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(16))),
   filter: v.exactOptional(v.picklist(['linear', 'nearest'])), mips: v.exactOptional(v.picklist(['file', 'gpu'])),
 })), v.check((rows) => Object.keys(rows).length <= 256, 'bounded texture samplers'));
@@ -211,11 +211,11 @@ export type CurveTerm =
 export interface Curve { readonly base?: number; readonly terms?: readonly CurveTerm[]; readonly times?: Curve; readonly scale?: number; readonly mix?: readonly [number, number] }
 const finite = v.pipe(v.number(), v.finite());
 const pair = v.tuple([finite, finite]);
-const CurveTermSchema = v.union([v.strictObject({ gain: finite, pow: finite }), v.strictObject({ gain: finite, edges: pair }),
+const CurveTermSchema: v.GenericSchema<CurveTermRowsInput, CurveTermRows> = v.union([v.strictObject({ gain: finite, pow: finite }), v.strictObject({ gain: finite, edges: pair }),
   v.strictObject({ gain: finite, ramp: pair, fold: v.exactOptional(v.boolean()) }), v.strictObject({ gain: finite, linear: pair })]);
 const curveCore = { base: v.exactOptional(finite), terms: v.exactOptional(v.pipe(v.array(CurveTermSchema), v.maxLength(8))), scale: v.exactOptional(finite), mix: v.exactOptional(pair) };
 /** A curve row (bounded: eight terms; `times` is a curve one level deep, no further `times`). */
-export const CurveSchema = v.strictObject({ ...curveCore, times: v.exactOptional(v.strictObject(curveCore)) });
+export const CurveSchema: v.GenericSchema<CurveRowsInput, CurveRows> = v.strictObject({ ...curveCore, times: v.exactOptional(v.strictObject(curveCore)) });
 
 const clamp01 = (t: number): number => Math.min(1, Math.max(0, t));
 const smooth = (t: number): number => t * t * (3 - 2 * t);
@@ -240,7 +240,7 @@ export function curveAt(curve: Curve, d: number): number {
  * family can move without a new program (`MOVABLE_FAMILY_PARAMS`). The client evaluates them in its material tick, only
  * when a field moved, uniforms only.
  */
-export const MaterialCurvesSchema = v.pipe(v.record(id, v.pipe(v.array(v.strictObject({
+export const MaterialCurvesSchema: v.GenericSchema<MaterialCurvesRowsInput, MaterialCurvesRows> = v.pipe(v.record(id, v.pipe(v.array(v.strictObject({
   param: v.pipe(v.string(), v.regex(/^[a-zA-Z]\w*(?:\.\w+)*$/u), v.maxLength(96)), state: v.pipe(v.string(), v.regex(/^(?:shared|player)\.[A-Za-z_]\w*$/u)), curve: CurveSchema,
 })), v.minLength(1), v.maxLength(32))), v.check((rows) => Object.keys(rows).length <= 32, 'bounded material curves'));
 /** What each family moves without a new program: a path prefix (`ground.` the whole ground layer) or an exact name. */
@@ -285,3 +285,138 @@ export function materialCurveRules(source: Pick<Shardfile, 'look' | 'state' | 'r
   }
   return errors;
 }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type MaterialsRowsInput = Record<string, (v.InferInput<typeof FamilyMaterialSchema>) | ({
+    family: 'graph';
+    graph: unknown;
+}) | ({
+    family: 'graph';
+    file: string;
+}) | ({
+    family: 'graph';
+    preset: v.InferInput<typeof FamilyMaterialSchema>;
+    version: (typeof GRAPH_PRESET_VERSION);
+})>;
+export type MaterialsRows = Record<string, (v.InferOutput<typeof FamilyMaterialSchema>) | ({
+    family: 'graph';
+    graph: GraphIr;
+}) | ({
+    family: 'graph';
+    file: string;
+}) | ({
+    family: 'graph';
+    preset: v.InferOutput<typeof FamilyMaterialSchema>;
+    version: (typeof GRAPH_PRESET_VERSION);
+})>;
+interface FamilyLooksRowsInputFields {
+    toon?: v.InferInput<typeof ToonLookSchema>;
+    painterly?: v.InferInput<typeof PainterlyLookSchema>;
+    emissive?: v.InferInput<typeof EmissiveLookSchema>;
+}
+export type FamilyLooksRowsInput = { [Key in keyof FamilyLooksRowsInputFields]: FamilyLooksRowsInputFields[Key] };
+interface FamilyLooksRowsFields {
+    toon?: v.InferOutput<typeof ToonLookSchema>;
+    painterly?: v.InferOutput<typeof PainterlyLookSchema>;
+    emissive?: v.InferOutput<typeof EmissiveLookSchema>;
+}
+export type FamilyLooksRows = { [Key in keyof FamilyLooksRowsFields]: FamilyLooksRowsFields[Key] };
+export type TextureSamplersInput = TextureSamplers;
+export type TextureSamplers = Record<string, {
+    wrap?: 'repeat' | 'clamp' | 'mirror';
+    anisotropy?: number;
+    filter?: 'linear' | 'nearest';
+    mips?: 'file' | 'gpu';
+}>;
+export type CurveTermRowsInput = CurveTermRows;
+export type CurveTermRows = ({
+    gain: number;
+    pow: number;
+}) | ({
+    gain: number;
+    edges: [
+        number,
+        number
+    ];
+}) | ({
+    gain: number;
+    ramp: [
+        number,
+        number
+    ];
+    fold?: boolean;
+}) | ({
+    gain: number;
+    linear: [
+        number,
+        number
+    ];
+});
+export type CurveRowsInput = Omit<{
+    base?: number;
+    terms?: (CurveTermRowsInput)[];
+    scale?: number;
+    mix?: [
+        number,
+        number
+    ];
+}, keyof ({
+    times?: {
+        base?: number;
+        terms?: (CurveTermRowsInput)[];
+        scale?: number;
+        mix?: [
+            number,
+            number
+        ];
+    };
+})> & {
+    times?: {
+        base?: number;
+        terms?: (CurveTermRowsInput)[];
+        scale?: number;
+        mix?: [
+            number,
+            number
+        ];
+    };
+};
+export type CurveRows = Omit<{
+    base?: number;
+    terms?: (CurveTermRows)[];
+    scale?: number;
+    mix?: [
+        number,
+        number
+    ];
+}, keyof ({
+    times?: {
+        base?: number;
+        terms?: (CurveTermRows)[];
+        scale?: number;
+        mix?: [
+            number,
+            number
+        ];
+    };
+})> & {
+    times?: {
+        base?: number;
+        terms?: (CurveTermRows)[];
+        scale?: number;
+        mix?: [
+            number,
+            number
+        ];
+    };
+};
+export type MaterialCurvesRowsInput = Record<string, ({
+    param: string;
+    state: string;
+    curve: CurveRowsInput;
+})[]>;
+export type MaterialCurvesRows = Record<string, ({
+    param: string;
+    state: string;
+    curve: CurveRows;
+})[]>;

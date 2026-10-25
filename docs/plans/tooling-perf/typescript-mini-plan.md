@@ -150,6 +150,7 @@ normal layer emission is the declaration-size authority. Continuation starts at 
 | T4-F2j | Restore implicit record inference for earlier named contracts; preserve closed keys and reject any-valued iteration | 60 min | done (2026-10-25, sp-x8) |
 | T4-F2k | Weather, checkpoint, encounter and world-entry contracts; preserve record inference, readonly tuples and schema checks | 60 min | done (2026-10-25, sp-x8) |
 | T4-F2l | Population, audio, placement and light contracts; preserve schema entries, clip arity and authored defaults | 60 min | done (2026-10-25, sp-x8) |
+| T4-F2m | Wire, brain, water, terrain and material contracts; preserve schema composition, transforms and authored defaults | 60 min | done (2026-10-25, sp-x8) |
 | T4-I1 | Format isolated declarations, then engine and remaining layers, one bounded diagnostic family per slice | 60 min per family | open |
 
 T4 first format slices are on origin: schema expressions and emitted runtime JavaScript are unchanged.

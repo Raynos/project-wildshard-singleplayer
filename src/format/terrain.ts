@@ -23,20 +23,20 @@ const sampling = v.strictObject({ law: v.literal('bilinear'), file: ref,
  */
 const order = v.pipe(v.number(), v.integer(), v.minValue(-100), v.maxValue(100));
 /** The terrain's render files address the ordinary tile grid; the collider file is a separate critical sim root. */
-const renderedTerrain = v.pipe(v.strictObject({ version: v.literal(1), form: v.exactOptional(v.literal('render')), family: v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u)), collider: ref,
+const renderedTerrain: v.GenericSchema<RenderedTerrainRowsInput, RenderedTerrainRows> = v.pipe(v.strictObject({ version: v.literal(1), form: v.exactOptional(v.literal('render')), family: v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u)), collider: ref,
   tiles: v.pipe(v.array(v.strictObject({ lod: v.picklist([0, 1]), x: address, z: address, file: ref })), v.length(80)),
   shadow: v.exactOptional(shadow), follow: v.exactOptional(follow), sampling: v.exactOptional(sampling), order: v.exactOptional(order) }),
 v.check((terrain) => new Set(terrain.tiles.map((tile) => `${tile.lod}/${tile.x}/${tile.z}`)).size === 80 && terrain.tiles.every((tile) => tile.x < (tile.lod === 0 ? 8 : 4) && tile.z < (tile.lod === 0 ? 8 : 4)), 'complete terrain tile grids'));
-const queryTerrain = v.pipe(v.strictObject({ version: v.literal(1), form: v.literal('query'),
+const queryTerrain: v.GenericSchema<QueryTerrainRowsInput, QueryTerrainRows> & { readonly pipe: readonly [unknown, v.TransformAction<Omit<QueryTerrainRows, 'collider'> & { collider?: string }, QueryTerrainRows>] } = v.pipe(v.strictObject({ version: v.literal(1), form: v.literal('query'),
   family: v.optional(v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u)), 'toon'), collider: v.exactOptional(ref),
   tiles: v.pipe(v.array(v.strictObject({ lod: v.picklist([0, 1]), x: address, z: address, file: ref })), v.length(0)),
   sampling, shadow: v.exactOptional(shadow), follow: v.exactOptional(follow), order: v.exactOptional(order) }),
 v.transform((row) => ({ ...row, collider: row.collider ?? row.sampling.file })));
 /** Rendered terrain retains its original defaults; query terrain has no render tiles and requires a runtime terrain owner.
  * An omitted query collider reference derives from sampling.file; this does not allocate collision. */
-export const TerrainSchema = v.union([renderedTerrain, queryTerrain]);
+export const TerrainSchema: v.UnionSchema<[typeof renderedTerrain, typeof queryTerrain], undefined> = v.union([renderedTerrain, queryTerrain]);
 /** A validated terrain section, containing no landscape closures. */
-export type ShardTerrain = v.InferOutput<typeof TerrainSchema>;
+
 
 const metre = v.pipe(v.number(), v.finite(), v.minValue(-1000), v.maxValue(1000));
 const groundPoint = v.tuple([metre, metre]);
@@ -47,7 +47,7 @@ const seed = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(0xfffffff
  * shardfile's water grammar; a ground-only basin borrows this field's mask and live water level. The game builds the
  * manifest ground from these rows (`declaredGround`); no shard code. Generated from the shard's own layout.
  */
-export const GroundRowsSchema = v.pipe(v.unknown(),v.check(isJsonData,'Ground rows require plain JSON'),v.strictObject({
+export const GroundRowsSchema: v.GenericSchema<GroundRowsInput, GroundRows> = v.pipe(v.unknown(),v.check(isJsonData,'Ground rows require plain JSON'),v.strictObject({
   /** the baked terrain field by key, or a flat placement datum at `flat` (a structure-first world's ground) */
   terrain: v.union([v.strictObject({ key: v.pipe(v.string(), v.regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u)), seed }), v.strictObject({ flat: metre, seed })]),
   trails: v.pipe(v.array(v.pipe(v.array(groundPoint), v.minLength(2), v.maxLength(256))), v.maxLength(64)),
@@ -62,19 +62,180 @@ export const GroundRowsSchema = v.pipe(v.unknown(),v.check(isJsonData,'Ground ro
   /** the shard's own runtime grades its paths (the plugin's `paths`), as the manifest ground declares */
   paths: v.exactOptional(v.literal('plugin')),
 }),v.check(row => row.pond === undefined || row.mask === undefined,'Geometric pond and sampled mask are exclusive'));
-export type GroundRows = v.InferOutput<typeof GroundRowsSchema>;
+
 
 const finite = v.pipe(v.number(), v.finite());
 /** A declared forest's exact candidate answers (the manifest's `forestQueries`, G4): every jittered sample's density, scale
  *  and species mix, read from a generated geography file's `forest` rows (its other rows are not read). */
 const forestCandidate = v.strictObject({ x: finite,z: finite,density: finite,
   scale: finite,species: v.record(v.pipe(v.string(),v.minLength(1),v.maxLength(64)),finite) });
-export const ForestRowsSchema = v.union([
+export const ForestRowsSchema: v.GenericSchema<ForestRowsInput, ForestRows> = v.union([
   v.object({ forest: v.pipe(v.array(forestCandidate),v.maxLength(65536)),density: v.exactOptional(v.never()) }),
   v.pipe(v.object({ forest: v.pipe(v.array(v.omit(forestCandidate,['density'])),v.maxLength(65536)),density: ScalarChannelSchema }),
     v.check(rows => rows.density.type === 'f64' && rows.density.count === rows.forest.length,'Forest density requires one f64 per candidate')),
 ]);
 /** A declared clip (the manifest's `pondClip`, G4): the pond surface's grid (`segs` cells a side of `cell` m from its corner
  *  `x0`, `z0`) and the row-major indices of the cells another water body draws instead. */
-export const PondClipSchema = v.strictObject({ x0: finite, z0: finite, cell: v.pipe(finite, v.minValue(Number.MIN_VALUE)),
+export const PondClipSchema: v.GenericSchema<PondClipRowsInput, PondClipRows> = v.strictObject({ x0: finite, z0: finite, cell: v.pipe(finite, v.minValue(Number.MIN_VALUE)),
   segs: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(1024)), cells: v.pipe(v.array(v.pipe(v.number(), v.integer(), v.minValue(0))), v.maxLength(65536)) });
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type RenderedTerrainRowsInput = RenderedTerrainRows;
+interface RenderedTerrainRowsFields {
+    version: 1;
+    form?: 'render';
+    family: string;
+    collider: string;
+    tiles: ({
+        lod: 0 | 1;
+        x: number;
+        z: number;
+        file: string;
+    })[];
+    shadow?: {
+        cast: boolean;
+        receive: boolean;
+    };
+    follow?: number;
+    sampling?: {
+        law: 'bilinear';
+        file: string;
+        normalEpsilon: number;
+        datum: number;
+    };
+    order?: number;
+}
+export type RenderedTerrainRows = { [Key in keyof RenderedTerrainRowsFields]: RenderedTerrainRowsFields[Key] };
+interface QueryTerrainRowsInputFields {
+    version: 1;
+    form: 'query';
+    family?: string | undefined;
+    collider?: string;
+    tiles: ({
+        lod: 0 | 1;
+        x: number;
+        z: number;
+        file: string;
+    })[];
+    sampling: {
+        law: 'bilinear';
+        file: string;
+        normalEpsilon: number;
+        datum: number;
+    };
+    shadow?: {
+        cast: boolean;
+        receive: boolean;
+    };
+    follow?: number;
+    order?: number;
+}
+export type QueryTerrainRowsInput = { [Key in keyof QueryTerrainRowsInputFields]: QueryTerrainRowsInputFields[Key] };
+export type QueryTerrainRows = Omit<{
+    version: 1;
+    form: 'query';
+    family: string;
+    collider?: string;
+    tiles: ({
+        lod: 0 | 1;
+        x: number;
+        z: number;
+        file: string;
+    })[];
+    sampling: {
+        law: 'bilinear';
+        file: string;
+        normalEpsilon: number;
+        datum: number;
+    };
+    shadow?: {
+        cast: boolean;
+        receive: boolean;
+    };
+    follow?: number;
+    order?: number;
+}, 'collider'> & {
+    collider: string;
+};
+export type ShardTerrainInput = (RenderedTerrainRowsInput) | (QueryTerrainRowsInput);
+export type ShardTerrain = (RenderedTerrainRows) | (QueryTerrainRows);
+export type GroundRowsInput = unknown;
+interface GroundRowsFields {
+    terrain: ({
+        key: string;
+        seed: number;
+    }) | ({
+        flat: number;
+        seed: number;
+    });
+    trails: (([
+        number,
+        number
+    ])[])[];
+    cabinSites: ({
+        x: number;
+        z: number;
+        rot: number;
+    })[];
+    pond?: {
+        x: number;
+        z: number;
+        r: number;
+    };
+    water: number;
+    datum?: number;
+    mask?: v.InferOutput<typeof ScalarLatticeSchema>;
+    bodies: ((v.InferOutput<typeof WaterBodySchema>) | ({
+        id: v.InferOutput<typeof WaterBodyIdSchema>;
+        kind: 'terrain-basin';
+    }))[];
+    paths?: 'plugin';
+}
+export type GroundRows = { [Key in keyof GroundRowsFields]: GroundRowsFields[Key] };
+export type ForestRowsInput = ({
+    forest: ({
+        x: number;
+        z: number;
+        density: number;
+        scale: number;
+        species: Record<string, number>;
+    })[];
+    density?: never;
+}) | ({
+    forest: (Omit<{
+        x: number;
+        z: number;
+        density: number;
+        scale: number;
+        species: Record<string, number>;
+    }, 'density'>)[];
+    density: v.InferInput<typeof ScalarChannelSchema>;
+});
+export type ForestRows = ({
+    forest: ({
+        x: number;
+        z: number;
+        density: number;
+        scale: number;
+        species: Record<string, number>;
+    })[];
+    density?: never;
+}) | ({
+    forest: (Omit<{
+        x: number;
+        z: number;
+        density: number;
+        scale: number;
+        species: Record<string, number>;
+    }, 'density'>)[];
+    density: v.InferOutput<typeof ScalarChannelSchema>;
+});
+export type PondClipRowsInput = PondClipRows;
+interface PondClipRowsFields {
+    x0: number;
+    z0: number;
+    cell: number;
+    segs: number;
+    cells: (number)[];
+}
+export type PondClipRows = { [Key in keyof PondClipRowsFields]: PondClipRowsFields[Key] };
