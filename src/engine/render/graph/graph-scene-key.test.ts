@@ -201,6 +201,43 @@ test.each(['shared', 'fog', 'environment', 'lights'] as const)('an exterior comp
   } finally { material.dispose(); geometry.dispose(); environment.dispose(); otherEnvironment.dispose(); light.dispose(); otherLight.dispose(); }
 });
 
+test('a warmed exterior PBR binding reads live page intensity and rotation', () => {
+  const programs = new Map<string, object>();
+  const properties: {programs: typeof programs; currentProgram?: object; uniforms?: Record<string, unknown>; __version?: number} = {programs};
+  const renderer = rendererFixture();
+  Reflect.set(renderer, 'properties', {get: () => properties, has: () => true});
+  const handler = new EngineNodesHandler(); handler.setRenderer(renderer);
+  const material = compileGraph({version: 1, kind: 'material', model: 'standard', nodes: {},
+    stages: {surface: {colour: [.5, .5, .5], roughness: 1}}, effectState: {fog: false}}).material;
+  const geometry = new THREE.PlaneGeometry(), mesh = new THREE.Mesh(geometry, material), camera = new THREE.PerspectiveCamera();
+  const target = new THREE.WebGLRenderTarget(768, 1024); target.texture.mapping = THREE.CubeUVReflectionMapping;
+  const page = new THREE.Scene(); page.environment = target.texture; page.environmentIntensity = 2.375;
+  page.environmentRotation.set(.2, .4, .1);
+  const warm = createCompileScene(page); warm.environment = target.texture; warm.environmentIntensity = .125;
+  const values = (): unknown[] => Object.values(properties.uniforms ?? {}).map((uniform): unknown =>
+    typeof uniform === 'object' && uniform !== null ? Reflect.get(uniform, 'value') : undefined);
+  try {
+    warm.add(mesh); handler.renderStart(warm, camera); handler.updateLights([]); handler.setObject(mesh, material);
+    const customProgramCacheKey = material.customProgramCacheKey(), input: object = {customProgramCacheKey};
+    const isParameters = (value: object): value is THREE.WebGLProgramParametersWithUniforms => !Array.isArray(value);
+    if (!isParameters(input)) throw new Error('Missing parameters');
+    handler.build(material, mesh, input);
+    const program = {getUniforms: () => ({seq: Object.keys(input.uniforms).map(id => ({id}))})};
+    programs.set('same-PBR-program', program); properties.currentProgram = program; properties.__version = material.version;
+    handler.onUpdateProgram(material, program, properties);
+    expect(values()).toContain(.125);
+    const before = properties.uniforms;
+    handler.renderEnd();
+    page.add(mesh); handler.renderStart(page, camera); handler.updateLights([]); handler.setObject(mesh, material);
+    material.onBeforeRender(renderer, page, camera, geometry, mesh, new THREE.Group());
+    expect(handler.builds).toBe(1); expect(properties.uniforms).toBe(before);
+    expect(values()).toContain(target.texture); expect(values()).toContain(2.375);
+    const rotation = new THREE.Matrix4().makeRotationFromEuler(page.environmentRotation).transpose();
+    expect(values().some(value => value instanceof THREE.Matrix4 && value.equals(rotation))).toBe(true);
+    handler.renderEnd();
+  } finally { material.dispose(); geometry.dispose(); target.dispose(); }
+});
+
 test('lent post inputs retain distinct sampler slots before and after placeholder retargeting', () => {
   const renderer = rendererFixture(), handler = new EngineNodesHandler(); handler.setRenderer(renderer);
   const nodes: Record<string, GraphNode> = {
