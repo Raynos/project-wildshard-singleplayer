@@ -277,56 +277,58 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
       const libraryProgress = loadingUnits('Model libraries', section.libraries.length);
       libraryProgress(0);
       for (const [libraryIndex, row] of section.libraries.entries()) {
-        if (row.kind === 'models') {
-          const models = sceneModelSource(product, row.id); await models.preload(() => buildYield(owner));
-          libraries.set(row.id, { geometry: id => models.geometry(id), models });
-        } else if (row.kind === 'baked') { await sceneBakeSource(product, row.id).load();
-        } else if (row.kind === 'whole') {
-          const used = new Set(row.models.flatMap(model => residentReferences.has(JSON.stringify([row.id, model.id])) ? [model.id] : []));
-          if (row.load === 'explorer' || used.size === 0) { libraryProgress(libraryIndex + 1, `${row.id} · deferred`); continue; }
-          const whole = await readWholeLibrary(owner, product, row, used, () => buildYield(owner), ctx.app.assets);
-          finish.push(whole.done); libraries.set(row.id, { geometry: whole.geometry });
-        } else if (row.kind === 'owned') {
-          const models = new Map<string, WorldSceneGeometry>();
-          const neededModels = row.models.filter(model => residentReferences.has(JSON.stringify([row.id, model.id])));
-          const modelProgress = loadingUnits('Home models', neededModels.length);
-          modelProgress(0, row.id);
-          // read ahead: the next MODEL_READ_AHEAD models' bytes are read while the current one decodes (one model after
-          // another waited on each read: much of the home's ~0.46 s library intake at 4x CPU)
-          // (a model whose decoded template is already cached reads nothing: a retired resident's storage is reused)
-          const files = neededModels.map(model => typeof model.file === 'string' ? model.file : model.file[TIER]), ahead = new Map<string, Promise<Uint8Array>>();
-          const readAhead = (index: number): void => {
-            const name = files[index], model = neededModels[index]; if (name === undefined || model === undefined || ahead.has(name)) return;
-            if (cachedWorldSceneGeometry(product, { file: name, attributes: model.attributes, ...(model.segments === undefined ? {} : { segments: model.segments }) }, ctx.app.assets)) return;
-            const read = product.file(name); void read.catch(() => undefined); ahead.set(name, read);
-          };
-          const reader = { url: (name: string) => product.url(name), file: (name: string): Promise<Uint8Array> => {
-            const read = ahead.get(name); if (read === undefined) return product.file(name);
-            ahead.delete(name); return read;
-          } };
-          for (const [modelIndex, model] of neededModels.entries()) {
-            for (let next = modelIndex; next < modelIndex + MODEL_READ_AHEAD; next++) readAhead(next);
-            const file = files[modelIndex] ?? (typeof model.file === 'string' ? model.file : model.file[TIER]);
-            const geometry = await readWorldSceneGeometry(owner, reader, { file, attributes: model.attributes, ...(model.segments === undefined ? {} : { segments: model.segments }) }, ctx.app.assets);
-            finish.push(geometry.done); models.set(model.id, geometry);
-            modelProgress(modelIndex + 1, model.id);
-            // Consumers keep private mutable copies; finish releases the construction lease.
-            await buildYield(owner);
+        await timeClientPreparation(product.slug, `scene.library:${row.kind}:${row.id}`, async () => {
+          if (row.kind === 'models') {
+            const models = sceneModelSource(product, row.id); await models.preload(() => buildYield(owner));
+            libraries.set(row.id, { geometry: id => models.geometry(id), models });
+          } else if (row.kind === 'baked') { await sceneBakeSource(product, row.id).load();
+          } else if (row.kind === 'whole') {
+            const used = new Set(row.models.flatMap(model => residentReferences.has(JSON.stringify([row.id, model.id])) ? [model.id] : []));
+            if (row.load === 'explorer' || used.size === 0) { libraryProgress(libraryIndex + 1, `${row.id} · deferred`); return; }
+            const whole = await readWholeLibrary(owner, product, row, used, () => buildYield(owner), ctx.app.assets);
+            finish.push(whole.done); libraries.set(row.id, { geometry: whole.geometry });
+          } else if (row.kind === 'owned') {
+            const models = new Map<string, WorldSceneGeometry>();
+            const neededModels = row.models.filter(model => residentReferences.has(JSON.stringify([row.id, model.id])));
+            const modelProgress = loadingUnits('Home models', neededModels.length);
+            modelProgress(0, row.id);
+            // read ahead: the next MODEL_READ_AHEAD models' bytes are read while the current one decodes (one model after
+            // another waited on each read: much of the home's ~0.46 s library intake at 4x CPU)
+            // (a model whose decoded template is already cached reads nothing: a retired resident's storage is reused)
+            const files = neededModels.map(model => typeof model.file === 'string' ? model.file : model.file[TIER]), ahead = new Map<string, Promise<Uint8Array>>();
+            const readAhead = (index: number): void => {
+              const name = files[index], model = neededModels[index]; if (name === undefined || model === undefined || ahead.has(name)) return;
+              if (cachedWorldSceneGeometry(product, { file: name, attributes: model.attributes, ...(model.segments === undefined ? {} : { segments: model.segments }) }, ctx.app.assets)) return;
+              const read = product.file(name); void read.catch(() => undefined); ahead.set(name, read);
+            };
+            const reader = { url: (name: string) => product.url(name), file: (name: string): Promise<Uint8Array> => {
+              const read = ahead.get(name); if (read === undefined) return product.file(name);
+              ahead.delete(name); return read;
+            } };
+            for (const [modelIndex, model] of neededModels.entries()) {
+              for (let next = modelIndex; next < modelIndex + MODEL_READ_AHEAD; next++) readAhead(next);
+              const file = files[modelIndex] ?? (typeof model.file === 'string' ? model.file : model.file[TIER]);
+              const geometry = await readWorldSceneGeometry(owner, reader, { file, attributes: model.attributes, ...(model.segments === undefined ? {} : { segments: model.segments }) }, ctx.app.assets);
+              finish.push(geometry.done); models.set(model.id, geometry);
+              modelProgress(modelIndex + 1, model.id);
+              // Consumers keep private mutable copies; finish releases the construction lease.
+              await buildYield(owner);
+            }
+            libraries.set(row.id, { geometry: id => models.get(id)?.copy() ?? null });
+          } else {
+            requireSceneOwner(owner);
+            const models = worldScenePool(product, row);
+            await models.preload(() => buildYield(owner));
+            requireSceneOwner(owner);
+            if (row.publish !== undefined) for (const part of row.files.flatMap(file => file.parts)) {
+              const geometry = models.geometry(part); if (geometry === null) throw new Error(`Missing scene pool part: ${part}`);
+              owner.onDispose(() => { geometry.dispose(); }); handles.publish(`${row.publish}.${part}`, geometry);
+            }
+            libraries.set(row.id, { geometry: id => models.geometry(id), models });
           }
-          libraries.set(row.id, { geometry: id => models.get(id)?.copy() ?? null });
-        } else {
-          requireSceneOwner(owner);
-          const models = worldScenePool(product, row);
-          await models.preload(() => buildYield(owner));
-          requireSceneOwner(owner);
-          if (row.publish !== undefined) for (const part of row.files.flatMap(file => file.parts)) {
-            const geometry = models.geometry(part); if (geometry === null) throw new Error(`Missing scene pool part: ${part}`);
-            owner.onDispose(() => { geometry.dispose(); }); handles.publish(`${row.publish}.${part}`, geometry);
-          }
-          libraries.set(row.id, { geometry: id => models.geometry(id), models });
-        }
-        libraryProgress(libraryIndex + 1, row.id);
-        await buildYield(owner);
+          libraryProgress(libraryIndex + 1, row.id);
+          await buildYield(owner);
+        });
       }
     });
     const missing = section.materials.flatMap(row => (row.kind === 'look' || row.kind === 'surface') && row.look !== undefined

@@ -13,6 +13,7 @@ import type { ShardContext } from '../src/game/plugin/context';
 import { emptyShardfile } from '../src/sdk/author';
 import * as runtimeProducts from '../src/game/shardfile/runtimeProduct';
 import { recordSceneProfile } from '../src/game/shardfile/sceneProfile';
+import { isDev, setDev } from '../src/engine/core/devMode';
 
 // A made-up second shard: two steps, cube variants, repeated groups and named handles.
 const recipe = { scene: { version: 1, root: 'root', nodes: [{ kind: 'group', id: 'root', children: ['stone'] },
@@ -48,9 +49,45 @@ function fixture(cell = false): ShardContext {
   const files = new Map([['models/stone.glb', triangle()], ['scenes/open.json', encode(recipe)], ['scenes/cell.json', encode(cellRecipe)]]);
   const source = emptyShardfile({ slug: 'fixture-harbour', name: 'Harbour', author: 'Fixture', revision: 1, seed: 3 });
   return { scope, app: { registry, assets: new AssetService() }, game: {}, cube: cell ? { half: 250 } : null,
-    product: { shardfile: source, hasFile: (name: string) => files.has(name), url: (name: string) => name,
+    product: { slug: 'fixture-harbour', shardfile: source, hasFile: (name: string) => files.has(name), url: (name: string) => name,
       file: (name: string) => { const value = files.get(name); return value === undefined ? Promise.reject(new Error('Missing fixture blob')) : Promise.resolve(value); } } } as ShardContext;
 }
+
+test.each([true, false])('library timing names declared rows, replaces re-entry and skips public spans (Developer=%s)', async developer => {
+  const previous = isDev(), names = ['scene.library:owned:shapes', 'scene.library:owned:spare', 'scene.library:whole:deferred']
+    .map(step => `wildshard.prepare:fixture-harbour:${step}`), contexts: ShardContext[] = [];
+  const rows = section();
+  rows.libraries.push({ id: 'spare', kind: 'owned', models: [{ id: 'stone', file: 'models/stone.glb', attributes: {} }] },
+    { id: 'deferred', kind: 'whole', load: 'explorer', models: [{ id: 'unused', part: 'unused', files: ['never-read.glb'] }] });
+  const marker = rows.steps.find(step => step.id === 'markers');
+  if (marker === undefined) throw new Error('Missing marker fixture');
+  marker.geometry['rock'] = { library: 'spare', model: 'stone' };
+  try {
+    setDev(developer);
+    for (let entry = 0; entry < 2; entry++) {
+      const context = fixture(); contexts.push(context);
+      const handles = await installWorldScenes(context, rows);
+      expect(handles.object('markers.east.stone')).toBeInstanceOf(Mesh);
+      for (const name of names) {
+        const entries = performance.getEntriesByName(name);
+        expect(entries).toHaveLength(developer ? 1 : 0);
+        if (developer) expect(entries[0]?.duration).toBeGreaterThanOrEqual(0);
+      }
+      context.scope.dispose();
+    }
+  } finally { setDev(previous); for (const context of contexts) context.scope.dispose(); for (const name of names) performance.clearMeasures(name); }
+});
+
+test('library timing retains the failed library identity and original refusal', async () => {
+  const previous = isDev(), context = fixture(), name = 'wildshard.prepare:fixture-harbour:scene.library:owned:shapes';
+  const failure = new Error('Fixture decode read refused'), file = context.product.file.bind(context.product);
+  vi.spyOn(context.product, 'file').mockImplementation(path => path === 'models/stone.glb' ? Promise.reject(failure) : file(path));
+  try {
+    setDev(true);
+    await expect(installWorldScenes(context, section())).rejects.toBe(failure);
+    expect(performance.getEntriesByName(name)).toHaveLength(1);
+  } finally { setDev(previous); vi.restoreAllMocks(); context.scope.dispose(); performance.clearMeasures(name); }
+});
 
 test('world profile changes refuse before geometry intake and a fresh admission permits rebuilding', async () => {
   const context = fixture(), reads: string[] = [], file = context.product.file.bind(context.product);

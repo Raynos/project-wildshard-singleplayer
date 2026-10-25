@@ -35,6 +35,7 @@ Each slice is bounded to one hour; report misses and their observed owners first
 | G723.10 | Reuse exact packed scans for missing GPU-only geometry bounds; preserve existing identities, custom readers/methods, diagnostic order and upload ownership. At most one hour. | done (bounded construction cut; 2026-10-25, sp-x8) |
 | G723.11 | Scan ordinary rest-pool Float32 channels with an indexed loop; preserve every finite-value refusal, custom method/receiver, prototype and shadowed-length fallback, and publish no part of an invalid pool. At most one hour. | done (bounded intake cut; 2026-10-25, sp-x8) |
 | G723.12 | Reuse private decoded GLB channels during whole reconstruction, removing only the intermediate borrowed clone. Keep public caller-owned assembly copying, detached final arrays, metadata/topology validation, pacing and disposal. At most one hour. | done (bounded intake cut; 2026-10-25, sp-x8) |
+| G723.13 | Name each declared scene library in the existing Developer preparation spans; retain one result per product/kind/id across re-entry, failed work and deferred rows. Preserve ordering, cancellation, progress and cold Explorer behavior. Elapsed spans include yields, not CPU attribution. At most one hour. | done (bounded attribution seam; 2026-10-25, sp-x8) |
 
 ## G717 frame-floor misses (2026-10-25, sp-x1; G639)
 
