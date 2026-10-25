@@ -12,7 +12,7 @@ import { outputSectionPayloads, parseOutputIndex } from '../src/format/outputInd
 import { loadManifestProduct,provideManifestAdmission,loadShardProduct, runtimeProduct, shardProductFromAdmission } from '../src/game/shardfile/runtimeProduct';
 import { admitProduct, readProductDescriptor, type ProductOptions, type ProductCache } from '../src/game/shardfile/product';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
-import { neighbourProductFiles, productResidentBytes, jsonResidentBytes, runtimeOnlyProductFiles, tierLibrarySource, urlImageLibrarySource, scopedSpecimenLibrarySource, scopedSpecimenLibrarySourcePaced } from '../src/game/shardfile/productCost';
+import { neighbourProductFiles, productResidentBytes, jsonResidentBytes, runtimeOnlyProductFiles, runtimeOnlyProductFilesPaced, tierLibrarySource, urlImageLibrarySource, scopedSpecimenLibrarySource, scopedSpecimenLibrarySourcePaced } from '../src/game/shardfile/productCost';
 import { carryOutputDescriptor, outputDescriptor, resolveOutputDescriptor } from '../src/game/shardfile/outputDescriptor';
 import { MemoryAdmission } from '../src/format/memoryAdmission';
 import { acceptValidatedCost } from '../src/format/assetAdmission';
@@ -438,6 +438,26 @@ test('declared neighbour inputs and their transitive dependencies survive runtim
   expect(runtimeOnlyProductFiles(f.source)).toEqual([]);
   f.source.look.samplers = {};
   expect(new Set(runtimeOnlyProductFiles(f.source))).toEqual(new Set([f.ref, child, leaf]));
+});
+
+test('paced file classification retains hash keys and dependency cycles across its worklist yield', async () => {
+  const f = fixture(), child = 'e'.repeat(64), orphan = 'f'.repeat(64);
+  const root = f.source.files[0]; if (root === undefined) throw new Error('Missing fixture file');
+  const refs = Array.from({length: 1500}, (_, index) => (index + 1).toString(16).padStart(64, '0'));
+  root.dependencies.push(child);
+  f.source.files.push(...refs.map(hash => ({...root, hash, dependencies: []})),
+    {...root, hash: child, dependencies: [f.ref]}, {...root, hash: orphan, dependencies: []});
+  f.source.look.samplers = Object.fromEntries([f.ref, ...refs].map(hash => [hash, {wrap: 'repeat' as const}]));
+  expect(runtimeOnlyProductFiles(f.source)).toEqual([orphan]);
+  let now = 1e9;
+  const clock = vi.spyOn(performance, 'now').mockImplementation(() => { now += 10; return now; });
+  const pause = vi.fn(() => Promise.resolve());
+  try {
+    expect(await runtimeOnlyProductFilesPaced(f.source, pause)).toEqual([orphan]);
+    expect(pause).toHaveBeenCalledTimes(1);
+  } finally { clock.mockRestore(); }
+  f.source.look.samplers = {};
+  expect(runtimeOnlyProductFiles(f.source)).toEqual(f.source.files.map(file => file.hash));
 });
 
 test('independent platform sections keep their file-path inputs for synchronous hosts', async () => {

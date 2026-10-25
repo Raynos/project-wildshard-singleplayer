@@ -289,7 +289,12 @@ function* runtimeOnlyProductFilesSteps(source: Shardfile, unread: ReadonlySet<st
     if (++visited % 4096 === 0) yield;
     if (typeof value === 'string') { const ref = paths.get(value) ?? value; if (files.has(ref)) keep.add(ref); }
     else if (Array.isArray(value)) { const items: readonly unknown[] = value; for (const item of items) queue(item); }
-    else if (typeof value === 'object' && value !== null) for (const [key, child] of Object.entries(value)) { pending.push(key); queue(child); }
+    else if (typeof value === 'object' && value !== null) {
+      // Keep both own keys and children in the same worklist order: a sampler's
+      // property name can itself be a synchronous file reference.
+      const fields = value as Readonly<Record<string, unknown>>;
+      for (const key of Object.keys(value)) { pending.push(key); queue(fields[key]); }
+    }
   }
   const dependencies = [...keep];
   while (dependencies.length > 0) {
