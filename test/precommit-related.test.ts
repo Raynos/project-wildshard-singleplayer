@@ -88,6 +88,13 @@ test('types run only when touched project metadata is already warm', () => {
     expect(jobs).toHaveLength(1);
     expect(jobs[0]?.command).toContain('src/engine/tsconfig.test.json');
     expect(jobs[0]?.command.at(-1)).toBe('node_modules/.cache/commit-src-engine-tsconfig.test.json.tsbuildinfo');
+    put('tsconfig.app.json', '{"extends":"./tsconfig.json","include":["src/*.ts"],"exclude":["src/*.test.ts"]}');
+    put('src/tsconfig.test.json', '{"extends":"../tsconfig.json","compilerOptions":{"tsBuildInfoFile":"../.tsc-layers/app-tests.tsbuildinfo"},"include":["*.test.ts"],"references":[{"path":"../tsconfig.app.json"}]}');
+    put('src/entry.test.ts', 'export const value = 1;');
+    put('.tsc-layers/app-tests.tsbuildinfo', '{}'); git('add', '.');
+    const appJobs = warmTypeJobs(root, ['src/entry.test.ts']);
+    expect(appJobs).toHaveLength(1);
+    expect(appJobs[0]?.command).toContain('src/tsconfig.test.json');
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 

@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { prepareBootImports } from '../src/bootDownloads';
+import { prepareBootImports } from './bootDownloads';
 
 function delayed<T>() {
   let fulfill: (value: T) => void = () => { throw new Error('Uninitialized deferred'); };

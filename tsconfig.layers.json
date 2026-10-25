@@ -17,6 +17,7 @@
     { "path": "./src/game/tsconfig.test.json" },
     { "path": "./src/sdk/tsconfig.test.json" },
     { "path": "./src/commons/tsconfig.test.json" },
-    { "path": "./src/shards/tsconfig.test.json" }
+    { "path": "./src/shards/tsconfig.test.json" },
+    { "path": "./src/tsconfig.test.json" }
   ]
 }

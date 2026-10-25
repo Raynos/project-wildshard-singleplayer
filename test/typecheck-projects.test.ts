@@ -62,6 +62,14 @@ test('every source file has a layer owner, while the root covers all tests and a
       expect(productionConfig.exclude).toContain(`src/${layer}/test`);
     }
   }
+  const appTests = project('src/tsconfig.test.json'), appProduction = project('tsconfig.app.json');
+  expect(appTests.options.types).toContain('node');
+  expect(appProduction.options.types).not.toContain('node');
+  expect(appTests.options.outDir).toBe(appProduction.options.outDir);
+  expect(appTests.options.tsBuildInfoFile).not.toBe(appProduction.options.tsBuildInfoFile);
+  expect(appTests.fileNames.length).toBeGreaterThan(0);
+  const appSource = new Set(appProduction.fileNames);
+  expect(appTests.fileNames.filter(file => !file.endsWith('.d.ts') && appSource.has(file))).toEqual([]);
 });
 
 test('private game fixtures stay Node-only and root consumers read their declarations', () => {

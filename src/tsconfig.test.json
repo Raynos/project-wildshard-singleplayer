@@ -1,0 +1,16 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "noEmit": false,
+    "emitDeclarationOnly": true,
+    "declaration": true,
+    "types": ["vite/client", "node"],
+    "rootDir": "..",
+    "outDir": "../.tsc-layers/app",
+    "tsBuildInfoFile": "../.tsc-layers/app-tests.tsbuildinfo"
+  },
+  "references": [{ "path": "../tsconfig.app.json" }],
+  "include": ["*.test.ts", "**/*.d.ts", "**/*.d.mts", "**/*.d.*.ts"],
+  "exclude": []
+}

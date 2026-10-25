@@ -41,6 +41,12 @@ test('staged project membership keeps includes, excludes, type imports and refer
     expect(stagedProjectFailures(root, ['src/entry.ts'])).toHaveLength(1);
     put('src/entry.ts', 'import type {Valid} from "./format/valid";'); git('add', 'src/entry.ts');
     expect(stagedProjectFailures(root, ['src/entry.ts'])).toEqual([]);
+    put('tsconfig.app.json', '{"extends":"./tsconfig.json","include":["src/*.ts"],"exclude":["src/*.test.ts"],"references":[{"path":"./tsconfig.format.json"}]}');
+    put('src/tsconfig.test.json', '{"extends":"../tsconfig.json","include":["*.test.ts"],"references":[{"path":"../tsconfig.app.json"}]}');
+    put('src/entry.test.ts', 'import type {Valid} from "./format/valid";'); git('add', '.');
+    expect(stagedProjectFailures(root, ['src/entry.test.ts'])).toEqual([]);
+    put('src/entry.test.ts', 'import type {Fake} from "../test/fake";'); git('add', 'src/entry.test.ts');
+    expect(stagedProjectFailures(root, ['src/entry.test.ts'])).toHaveLength(1);
     put('src/engine/tsconfig.test.json', '{"extends":"../../tsconfig.json","include":["**/*.test.ts","test/**/*.ts"],"references":[{"path":"../../tsconfig.engine.json"}]}');
     put('tsconfig.engine.json', '{"extends":"./tsconfig.json","include":["src/engine"],"exclude":["**/*.test.ts","src/engine/test","src/engine/excluded.ts"],"references":[{"path":"./tsconfig.format.json"}]}');
     put(file, 'import type {Own} from "./own";'); git('add', '.');

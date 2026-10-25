@@ -11,13 +11,15 @@ import { expect,test } from 'vitest';
 import { fastCommitLintConfig } from '../scripts/precommit-checks.mjs';
 import { readLintConfig } from '../scripts/guard-counts.mjs';
 
-for(const layer of ['engine','format']){
+for(const layer of ['engine','format','game','sdk','commons','shards','app']){
  test(`the actual ${layer} test project owns units outside production`,()=>{
-  const units=readdirSync(`src/${layer}`,{recursive:true,encoding:'utf8'})
-   .filter(file=>file.endsWith('.test.ts')).map(file=>`src/${layer}/${file}`);
-  const project=ts.getParsedCommandLineOfConfigFile(resolve(`src/${layer}/tsconfig.test.json`),{},
+  const directory=layer==='app'?'src':`src/${layer}`;
+  const units=readdirSync(directory,{recursive:layer!=='app',encoding:'utf8'})
+   .filter(file=>file.endsWith('.test.ts')&&!file.split('/').includes('node_modules')).map(file=>`${directory}/${file}`);
+  const config=layer==='app'?'src/tsconfig.test.json':`${directory}/tsconfig.test.json`;
+  const project=ts.getParsedCommandLineOfConfigFile(resolve(config),{},
    {...ts.sys,onUnRecoverableConfigFileDiagnostic:diagnostic=>{throw new Error(ts.flattenDiagnosticMessageText(diagnostic.messageText,'\n'));}});
-  expect(project).toBeDefined();expect(units.length).toBeGreaterThan(0);
+  expect(project).toBeDefined();if(layer!=='commons')expect(units.length).toBeGreaterThan(0);
   for(const file of units)expect(project?.fileNames).toContain(resolve(file));
   const production=ts.getParsedCommandLineOfConfigFile(resolve(`tsconfig.${layer}.json`),{},
    {...ts.sys,onUnRecoverableConfigFileDiagnostic:diagnostic=>{throw new Error(ts.flattenDiagnosticMessageText(diagnostic.messageText,'\n'));}});

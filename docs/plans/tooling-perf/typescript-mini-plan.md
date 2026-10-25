@@ -99,6 +99,7 @@ implementation. Existing test identities, assertions and deadlines stay fixed.
 | T3-A1 | Direct-import and immediate-fixture ownership census; enumerate concrete batches while preserving accepted cross-layer integrations | 60 min | done (2026-10-25, sp-x8) |
 | T3-A2 | Audit transitive shared-fixture and source-string consumers; classify remaining root regressions and further bounded relocation batches | 60 min | in flight (2026-10-25, sp-x8) |
 | T3-C1 | Reconcile the final root inventory, workspace membership and CF1/CI selection; retain only classified root suites | 45 min | open |
+| T3-C1a | Give application-root units a separate Node test project; preserve production exclusion, static TS6307, warm CF1 jobs and candidate config inputs | 45 min | done (2026-10-25, sp-x8) |
 
 T2 covered the 13 previously unowned top-level app roots and SDK `.d.mts`, preserving every old root input through
 source ownership or tests/ambient contracts. The root test program contains zero source TS implementations. Compiler
