@@ -15,7 +15,7 @@ const bake = v.strictObject({ url: v.pipe(v.string(), v.minLength(1), v.maxLengt
  * frame). `programs` names the three look.materials graphs and the client channel group that turns their params;
  * `rings` the water looks that wear the rain's rings (their `rain` param).
  */
-export const RainPresentationSchema = v.strictObject({
+export const RainPresentationSchema: v.GenericSchema<RainPresentationRowsInput, RainPresentationRows> = v.strictObject({
   name: id,
   look: v.strictObject({ coverN: v.pipe(count(1024), v.minValue(8)), streaks: tier(16_384), splashes: tier(512), lensDrops: tier(64) }),
   programs: v.strictObject({ rain: id, splash: id, lens: id, channels: id }),
@@ -26,4 +26,106 @@ export const RainPresentationSchema = v.strictObject({
   bake: v.strictObject({ phone: bake, desktop: bake }),
 });
 /** A validated rain row. */
-export type RainPresentationRows = v.InferOutput<typeof RainPresentationSchema>;
+
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+interface RainPresentationRowsInputFields {
+    name: string;
+    look: {
+        coverN: number;
+        streaks: {
+            phone: number;
+            desktop: number;
+        };
+        splashes: {
+            phone: number;
+            desktop: number;
+        };
+        lensDrops: {
+            phone: number;
+            desktop: number;
+        };
+    };
+    programs: {
+        rain: string;
+        splash: string;
+        lens: string;
+        channels: string;
+    };
+    cover: {
+        page: string;
+        roofs: v.InferInput<(typeof ForestRoofMaskSchema)['entries']['roofs']>;
+    };
+    hood?: {
+        x: number;
+        z: number;
+        rot: number;
+        hw: number;
+        lz0: number;
+        lz1: number;
+        up: number;
+    } | undefined;
+    water: v.InferInput<typeof WaterSurfaceSchema>;
+    rings: (string)[];
+    bake: {
+        phone: {
+            url: string;
+            rows: v.InferInput<typeof PackedGeometryRowsSchema>;
+        };
+        desktop: {
+            url: string;
+            rows: v.InferInput<typeof PackedGeometryRowsSchema>;
+        };
+    };
+}
+export type RainPresentationRowsInput = { [Key in keyof RainPresentationRowsInputFields]: RainPresentationRowsInputFields[Key] };
+interface RainPresentationRowsFields {
+    name: string;
+    look: {
+        coverN: number;
+        streaks: {
+            phone: number;
+            desktop: number;
+        };
+        splashes: {
+            phone: number;
+            desktop: number;
+        };
+        lensDrops: {
+            phone: number;
+            desktop: number;
+        };
+    };
+    programs: {
+        rain: string;
+        splash: string;
+        lens: string;
+        channels: string;
+    };
+    cover: {
+        page: string;
+        roofs: v.InferOutput<(typeof ForestRoofMaskSchema)['entries']['roofs']>;
+    };
+    hood?: {
+        x: number;
+        z: number;
+        rot: number;
+        hw: number;
+        lz0: number;
+        lz1: number;
+        up: number;
+    } | undefined;
+    water: v.InferOutput<typeof WaterSurfaceSchema>;
+    rings: (string)[];
+    bake: {
+        phone: {
+            url: string;
+            rows: v.InferOutput<typeof PackedGeometryRowsSchema>;
+        };
+        desktop: {
+            url: string;
+            rows: v.InferOutput<typeof PackedGeometryRowsSchema>;
+        };
+    };
+}
+export type RainPresentationRows = { [Key in keyof RainPresentationRowsFields]: RainPresentationRowsFields[Key] };

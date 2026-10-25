@@ -3,11 +3,11 @@ import { WIRE_CELL } from './wireLimits';
 import { SocketLiftSchema } from './socketLift';
 import { PortalLinkSchema } from './portalLink';
 
-const ENTRY_WIDTH = WIRE_CELL.entryWidth;
+const ENTRY_WIDTH: typeof WIRE_CELL.entryWidth = WIRE_CELL.entryWidth;
 const finite = v.pipe(v.number(), v.finite());
 const points = { north: [0, 0, 250], south: [0, 0, -250], east: [250, 0, 0], west: [-250, 0, 0] } as const;
 /** A legal 500 m cube has exactly one opening at each edge midpoint, meeting the highway at y=0. */
-export const EntrywaysSchema = v.pipe(v.array(v.strictObject({ edge: v.picklist(['north', 'east', 'south', 'west']), at: v.tuple([finite, finite, finite]),
+export const EntrywaysSchema: v.GenericSchema<ShardEntrywaysInput, ShardEntryways> = v.pipe(v.array(v.strictObject({ edge: v.picklist(['north', 'east', 'south', 'west']), at: v.tuple([finite, finite, finite]),
   kind: v.optional(v.picklist(['ground', 'socketOverWater', 'socketLift', 'portalLink'])), lift: v.exactOptional(SocketLiftSchema), portal: v.exactOptional(PortalLinkSchema),
   width: v.literal(ENTRY_WIDTH, 'illegal shard: entryways must be 8 metres wide') }), 'illegal shard: four midpoint entryways are required'),
 v.length(4, 'illegal shard: exactly four midpoint entryways are required'),
@@ -16,7 +16,7 @@ v.check((rows) => new Set(rows.map((row) => row.edge)).size === 4 && rows.every(
 v.check(rows => rows.every(row => (row.kind === 'socketLift') === (row.lift !== undefined)), 'illegal shard: only socketLift entries require a lift declaration'),
 v.check(rows => rows.every(row => (row.kind === 'portalLink') === (row.portal !== undefined)), 'illegal shard: only portalLink entries require a portal declaration'));
 /** Width is the full opening in metres along the boundary; it never overrides authored terrain. */
-export type ShardEntryways = v.InferOutput<typeof EntrywaysSchema>;
+
 function flatOpening(samples: readonly number[], width: number): boolean {
   const stride = 500 / (samples.length - 1), positions = [-width / 2, width / 2];
   for (let i = 0; i < samples.length; i++) { const position = -250 + i * stride; if (Math.abs(position) <= width / 2) positions.push(position); }
@@ -30,3 +30,29 @@ export function entrywayRules(source: { entryways: ShardEntryways; edge: Record<
   return source.entryways.some((row) => source.edge[row.edge].roadHeight !== 0 || ((row.kind ?? 'ground') === 'ground' && !flatOpening(source.edge[row.edge].heights, row.width)))
     ? ['illegal shard: entryway opening must meet road height y=0 across its width'] : [];
 }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type ShardEntrywaysInput = ({
+    edge: 'north' | 'east' | 'south' | 'west';
+    at: [
+        number,
+        number,
+        number
+    ];
+    kind?: 'ground' | 'socketOverWater' | 'socketLift' | 'portalLink' | undefined;
+    lift?: v.InferInput<typeof SocketLiftSchema>;
+    portal?: v.InferInput<typeof PortalLinkSchema>;
+    width: (typeof ENTRY_WIDTH);
+})[];
+export type ShardEntryways = ({
+    edge: 'north' | 'east' | 'south' | 'west';
+    at: [
+        number,
+        number,
+        number
+    ];
+    kind?: 'ground' | 'socketOverWater' | 'socketLift' | 'portalLink' | undefined;
+    lift?: v.InferOutput<typeof SocketLiftSchema>;
+    portal?: v.InferOutput<typeof PortalLinkSchema>;
+    width: (typeof ENTRY_WIDTH);
+})[];

@@ -10,7 +10,7 @@ const range = v.pipe(v.tuple([number, number]), v.check(([lo, hi]) => lo <= hi))
 const system = v.strictObject({ id, after: v.array(id), before: v.array(id) });
 /** Client ambient ownership over actual flock, journal, tool and actor services.
  * Rules are stateless ABI-v1 projections; no executable shard ports cross rows. */
-export const PageLifeSchema = v.strictObject({
+export const PageLifeSchema: v.GenericSchema<PageLifeRowsInput, PageLifeRows> = v.strictObject({
   version: v.literal(1), seed: number, system,
   draw: v.nullable(v.strictObject({ library: id, capacity: v.pipe(number, v.integer(), v.minValue(1), v.maxValue(512)), glow: range })),
   flocks: v.pipe(v.array(v.strictObject({ id, row: AmbientFlockSchema, perches: AmbientPerchesSchema,
@@ -37,7 +37,7 @@ export const PageLifeSchema = v.strictObject({
   debug: v.exactOptional(v.strictObject({ id, window: id, flocks: v.record(id, id), visitors: v.record(id, id), populations: v.record(id, id),
     commands: v.record(id, v.strictObject({ operation: v.picklist(['visit', 'scavenge']), group: id })) })),
 });
-export type PageLifeRows = v.InferOutput<typeof PageLifeSchema>;
+
 export function parsePageLife(input: unknown): PageLifeRows {
   const rows = v.parse(PageLifeSchema, input), ids = new Set(rows.flocks.map(row => row.id));
   const packed = rows.flocks.reduce((sum, row) => sum + (row.packed ? row.row.count : 0), 0)
@@ -51,3 +51,253 @@ export function parsePageLife(input: unknown): PageLifeRows {
     ...Object.values(rows.debug.commands).map(row => row.group)].some(name => !ids.has(name))) throw new Error('Unknown ambient debug group');
   return rows;
 }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+interface PageLifeRowsInputFields {
+    version: 1;
+    seed: number;
+    system: {
+        id: string;
+        after: (string)[];
+        before: (string)[];
+    };
+    draw: ({
+        library: string;
+        capacity: number;
+        glow: [
+            number,
+            number
+        ];
+    }) | null;
+    flocks: ({
+        id: string;
+        row: v.InferInput<typeof AmbientFlockSchema>;
+        perches: v.InferInput<typeof AmbientPerchesSchema>;
+        packed: boolean;
+        borrowed: boolean;
+        audio: 'bank' | 'cue';
+        library?: string;
+        anchor?: {
+            x: number;
+            y: number;
+            z: number;
+        };
+        tints?: (number)[];
+    })[];
+    foragers: ({
+        row: v.InferInput<typeof ForagerPopulationSchema>;
+        model: number;
+        scale: number;
+        alertRate: number;
+        alertGain: number;
+        sitPitch: number;
+        combat?: {
+            target: v.InferInput<typeof CrowdWeaponTargetSchema>;
+            preyY: number;
+            hits: ([
+                number,
+                number,
+                number
+            ])[];
+        };
+    })[];
+    program?: {
+        script: unknown;
+        bytes: string;
+    };
+    carcasses?: {
+        group: string;
+        arrival: [
+            number,
+            number
+        ];
+        visitors: Record<string, number>;
+        bodyWidths: Record<string, number>;
+        defaultWidth: number;
+        defaultVisitors: number;
+        giveUp: number;
+        reach: number;
+        tint: number;
+        untrackedAge: number;
+        harvestDelay: number;
+    };
+    guide?: {
+        group: string;
+        policy: {
+            distance: 'centre';
+            min: number;
+            max: number;
+            schedule: {
+                kind: 'periodic';
+                initial: number;
+                period: [
+                    number,
+                    number
+                ];
+            };
+        };
+        cue: string;
+        gain: number;
+    };
+    harvest?: {
+        len: number;
+        kneelIn: number;
+        cuts: (number)[];
+        rise: number;
+        camera: {
+            down: number;
+            targetY: number;
+            defaultPitch: number;
+            maxPitch: number;
+        };
+        surface: 'litter' | 'sand' | 'rock' | 'grass' | 'planks';
+        sounds: [
+            string,
+            string
+        ];
+        gain: number;
+        kick: [
+            number,
+            number
+        ];
+        fallbackSurface: 'wood' | 'ground' | 'flesh';
+        fallbackPan: number;
+        fallbackGain: number;
+    };
+    debug?: {
+        id: string;
+        window: string;
+        flocks: Record<string, string>;
+        visitors: Record<string, string>;
+        populations: Record<string, string>;
+        commands: Record<string, {
+            operation: 'visit' | 'scavenge';
+            group: string;
+        }>;
+    };
+}
+export type PageLifeRowsInput = { [Key in keyof PageLifeRowsInputFields]: PageLifeRowsInputFields[Key] };
+interface PageLifeRowsFields {
+    version: 1;
+    seed: number;
+    system: {
+        id: string;
+        after: (string)[];
+        before: (string)[];
+    };
+    draw: ({
+        library: string;
+        capacity: number;
+        glow: [
+            number,
+            number
+        ];
+    }) | null;
+    flocks: ({
+        id: string;
+        row: v.InferOutput<typeof AmbientFlockSchema>;
+        perches: v.InferOutput<typeof AmbientPerchesSchema>;
+        packed: boolean;
+        borrowed: boolean;
+        audio: 'bank' | 'cue';
+        library?: string;
+        anchor?: {
+            x: number;
+            y: number;
+            z: number;
+        };
+        tints?: (number)[];
+    })[];
+    foragers: ({
+        row: v.InferOutput<typeof ForagerPopulationSchema>;
+        model: number;
+        scale: number;
+        alertRate: number;
+        alertGain: number;
+        sitPitch: number;
+        combat?: {
+            target: v.InferOutput<typeof CrowdWeaponTargetSchema>;
+            preyY: number;
+            hits: ([
+                number,
+                number,
+                number
+            ])[];
+        };
+    })[];
+    program?: {
+        script: unknown;
+        bytes: string;
+    };
+    carcasses?: {
+        group: string;
+        arrival: [
+            number,
+            number
+        ];
+        visitors: Record<string, number>;
+        bodyWidths: Record<string, number>;
+        defaultWidth: number;
+        defaultVisitors: number;
+        giveUp: number;
+        reach: number;
+        tint: number;
+        untrackedAge: number;
+        harvestDelay: number;
+    };
+    guide?: {
+        group: string;
+        policy: {
+            distance: 'centre';
+            min: number;
+            max: number;
+            schedule: {
+                kind: 'periodic';
+                initial: number;
+                period: [
+                    number,
+                    number
+                ];
+            };
+        };
+        cue: string;
+        gain: number;
+    };
+    harvest?: {
+        len: number;
+        kneelIn: number;
+        cuts: (number)[];
+        rise: number;
+        camera: {
+            down: number;
+            targetY: number;
+            defaultPitch: number;
+            maxPitch: number;
+        };
+        surface: 'litter' | 'sand' | 'rock' | 'grass' | 'planks';
+        sounds: [
+            string,
+            string
+        ];
+        gain: number;
+        kick: [
+            number,
+            number
+        ];
+        fallbackSurface: 'wood' | 'ground' | 'flesh';
+        fallbackPan: number;
+        fallbackGain: number;
+    };
+    debug?: {
+        id: string;
+        window: string;
+        flocks: Record<string, string>;
+        visitors: Record<string, string>;
+        populations: Record<string, string>;
+        commands: Record<string, {
+            operation: 'visit' | 'scavenge';
+            group: string;
+        }>;
+    };
+}
+export type PageLifeRows = { [Key in keyof PageLifeRowsFields]: PageLifeRowsFields[Key] };

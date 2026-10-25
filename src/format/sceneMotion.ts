@@ -14,7 +14,7 @@ const inputSchema = v.union([v.strictObject({ flag: id }), v.strictObject({ mode
   v.strictObject({ part: HandleIdSchema, property: transform })]);
 /** Existing native mover configuration and the views bound to its published poses.
  * Groups only partition declared channel programs; no new scheduler is authored. */
-export const SceneMotionSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Scene motion requires plain JSON'), v.strictObject({
+export const SceneMotionSchema: v.GenericSchema<SceneMotionInput, SceneMotion> = v.pipe(v.unknown(), v.check(isJsonData, 'Scene motion requires plain JSON'), v.strictObject({
   version: v.literal(1), owner: id,
   installation: v.strictObject({ systemId: id, viewSystemId: v.exactOptional(id), frameSystemId: v.exactOptional(id), socketLiftPrompts: v.exactOptional(v.boolean()),
     permissions: v.optional(v.pipe(v.array(v.strictObject({ mover: id,
@@ -42,6 +42,81 @@ export const SceneMotionSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Scene 
   && unique(rows.frames) && new Set(rows.groups.flatMap(row => row.programs).concat(rows.frames.map(row => row.program))).size
     === rows.groups.reduce((count, row) => count + row.programs.length, 0) + rows.frames.length,
 'Unique motion groups and channel programs; child groups precede their parent'));
-export type SceneMotion = v.InferOutput<typeof SceneMotionSchema>;
+
 /** Admission creates no channel, physics body, prompt or system. */
 export function parseSceneMotion(input: unknown): SceneMotion { return v.parse(SceneMotionSchema, input); }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type SceneMotionInput = unknown;
+interface SceneMotionFields {
+    version: 1;
+    owner: string;
+    installation: {
+        systemId: string;
+        viewSystemId?: string;
+        frameSystemId?: string;
+        socketLiftPrompts?: boolean;
+        permissions: ({
+            mover: string;
+            flags: ({
+                name: string;
+                bit: number;
+            })[];
+        })[];
+    };
+    groups: ({
+        id: string;
+        programs: (string)[];
+        targets: Record<string, v.InferOutput<typeof HandleIdSchema>>;
+        nativeOwners: (string)[];
+        copiedOwners: (string)[];
+        bindings: (string)[];
+        rest: ({
+            id: string;
+            position: {
+                x: number;
+                y: number;
+                z: number;
+            };
+            euler: {
+                x: number;
+                y: number;
+                z: number;
+            };
+            enabled: boolean;
+        })[];
+        initial: ({
+            program: string;
+            at: v.InferOutput<typeof ScenePointRefSchema>;
+        })[];
+        prompts: ({
+            id: string;
+            action: string;
+        })[];
+        observations: ({
+            program: string;
+            channel: v.InferOutput<typeof ClientChannelPropertySchema>;
+            value: v.InferOutput<typeof HandleIdSchema>;
+        })[];
+    })[];
+    frames: ({
+        id: string;
+        program: string;
+        cube?: 'standalone' | 'cell';
+        targets: Record<string, v.InferOutput<typeof HandleIdSchema>>;
+        inputs: Record<string, ({
+            flag: string;
+        }) | ({
+            mode: string;
+        }) | ({
+            part: v.InferOutput<typeof HandleIdSchema>;
+            property: 'x' | 'y' | 'z' | 'yaw' | 'pitch' | 'roll';
+        })>;
+        materials: ({
+            channel: v.InferOutput<typeof ClientChannelPropertySchema>;
+            material: v.InferOutput<typeof HandleIdSchema>;
+            property: 'opacity' | 'emissiveIntensity';
+        })[];
+    })[];
+}
+export type SceneMotion = { [Key in keyof SceneMotionFields]: SceneMotionFields[Key] };

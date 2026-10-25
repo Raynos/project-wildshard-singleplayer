@@ -7,13 +7,13 @@ const count = v.pipe(scalar, v.integer(), v.maxValue(1024));
 const name = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9.-]*$/u), v.maxLength(128));
 const pair = v.strictObject({ gravity: scalar, drag: scalar });
 /** Aimed and radial launches contain coefficients only; their stream and body owners remain native. */
-export const BodyLaunchSchema = v.variant('kind', [
+export const BodyLaunchSchema: v.GenericSchema<BodyLaunchRowsInput, BodyLaunchRows> = v.variant('kind', [
   v.pipe(v.strictObject({ kind: v.literal('target'), speed: positive, time: v.tuple([positive, positive]), gravity: scalar,
     rotation: v.tuple([finite, finite, finite]) }), v.check(row => row.time[0] <= row.time[1], 'Ordered flight time bounds')),
   v.strictObject({ kind: v.literal('radial'), horizontal: scalar, up: finite }),
 ]);
 /** Bounded numeric projectile/contact and continuation policy. It supplies values, never executable hooks. */
-export const NativeRangedRowSchema = v.pipe(v.strictObject({
+export const NativeRangedRowSchema: v.GenericSchema<NativeRangedRowsInput, NativeRangedRows> = v.pipe(v.strictObject({
   step: name, slot: v.pipe(count, v.maxValue(31)), eye: v.pipe(scalar, v.maxValue(20)), extent: positive, floor: finite,
   radius: scalar, tags: ConeWeaponProfileSchema.entries.gust.entries.tags,
   glance: v.strictObject({ lift: scalar, keep: scalar, bounce: scalar, maxSpeed: scalar }),
@@ -27,7 +27,7 @@ export const NativeRangedRowSchema = v.pipe(v.strictObject({
 const slot = v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(31));
 const phase = v.picklist(['beforeBodies', 'afterBodies']);
 /** Ordered native slots, ownership flags and numeric input publication; no executable policy. */
-export const NativeLoadoutRowSchema = v.pipe(v.strictObject({
+export const NativeLoadoutRowSchema: v.GenericSchema<NativeLoadoutRowsInput, NativeLoadoutRows> = v.pipe(v.strictObject({
   slots: v.pipe(v.array(slot), v.minLength(1), v.maxLength(32)), initial: slot,
   lower: v.pipe(scalar, v.maxValue(60)), raise: v.pipe(scalar, v.maxValue(60)),
   ownership: v.exactOptional(v.pipe(v.array(v.nullable(v.pipe(v.string(), v.minLength(1), v.maxLength(128)))), v.maxLength(32))),
@@ -42,3 +42,143 @@ export const NativeLoadoutRowSchema = v.pipe(v.strictObject({
 export function parseNativeLoadoutRow(input: unknown): v.InferOutput<typeof NativeLoadoutRowSchema> {
   return v.parse(NativeLoadoutRowSchema, input);
 }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type BodyLaunchRowsInput = BodyLaunchRows;
+export type BodyLaunchRows = ({
+    kind: 'target';
+    speed: number;
+    time: [
+        number,
+        number
+    ];
+    gravity: number;
+    rotation: [
+        number,
+        number,
+        number
+    ];
+}) | ({
+    kind: 'radial';
+    horizontal: number;
+    up: number;
+});
+interface NativeRangedRowsInputFields {
+    step: string;
+    slot: number;
+    eye: number;
+    extent: number;
+    floor: number;
+    radius: number;
+    tags: v.InferInput<(typeof ConeWeaponProfileSchema)['entries']['gust']['entries']['tags']>;
+    glance: {
+        lift: number;
+        keep: number;
+        bounce: number;
+        maxSpeed: number;
+    };
+    defaultAmmo: string;
+    ammunition: ({
+        id: string;
+        flight: {
+            gravity: number;
+            drag: number;
+        };
+        wet?: {
+            gravity: number;
+            drag: number;
+        };
+        presentation?: {
+            label: string;
+            name: string;
+            pouchMax: number;
+        };
+        targets: (string)[];
+        damage: number;
+    })[];
+    shaft?: {
+        capacity: number;
+        length: number;
+        bury: number;
+        reach: {
+            radius: number;
+            up: number;
+            down: number;
+        };
+        recover: number;
+        recoveryStride: number;
+    };
+}
+export type NativeRangedRowsInput = { [Key in keyof NativeRangedRowsInputFields]: NativeRangedRowsInputFields[Key] };
+interface NativeRangedRowsFields {
+    step: string;
+    slot: number;
+    eye: number;
+    extent: number;
+    floor: number;
+    radius: number;
+    tags: v.InferOutput<(typeof ConeWeaponProfileSchema)['entries']['gust']['entries']['tags']>;
+    glance: {
+        lift: number;
+        keep: number;
+        bounce: number;
+        maxSpeed: number;
+    };
+    defaultAmmo: string;
+    ammunition: ({
+        id: string;
+        flight: {
+            gravity: number;
+            drag: number;
+        };
+        wet?: {
+            gravity: number;
+            drag: number;
+        };
+        presentation?: {
+            label: string;
+            name: string;
+            pouchMax: number;
+        };
+        targets: (string)[];
+        damage: number;
+    })[];
+    shaft?: {
+        capacity: number;
+        length: number;
+        bury: number;
+        reach: {
+            radius: number;
+            up: number;
+            down: number;
+        };
+        recover: number;
+        recoveryStride: number;
+    };
+}
+export type NativeRangedRows = { [Key in keyof NativeRangedRowsFields]: NativeRangedRowsFields[Key] };
+export type NativeLoadoutRowsInput = NativeLoadoutRows;
+interface NativeLoadoutRowsFields {
+    slots: (number)[];
+    initial: number;
+    lower: number;
+    raise: number;
+    ownership?: ((string) | null)[];
+    input?: {
+        step: string;
+        phase: 'beforeBodies' | 'afterBodies';
+        command: string;
+        publication: {
+            step: string;
+            phase: 'beforeBodies' | 'afterBodies';
+            aim: {
+                command: string;
+                initial: number;
+                min: number;
+                max: number;
+                sentinel?: number;
+            };
+        };
+    };
+}
+export type NativeLoadoutRows = { [Key in keyof NativeLoadoutRowsFields]: NativeLoadoutRowsFields[Key] };

@@ -21,7 +21,7 @@ export interface LimbRigSpec {
 
 const channel = v.union([v.picklist(LIMB_POSE_KEYS), v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(15))]);
 const count = v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(65536));
-const BakedClip = v.pipe(v.strictObject({
+const BakedClip: v.GenericSchema<BakedPoseClipInput, BakedPoseClip> = v.pipe(v.strictObject({
   channels: v.pipe(v.array(channel), v.maxLength(32)),
   x: v.tuple([v.number(), v.number(), count, v.picklist([0, 1])]),
   t: v.optional(v.tuple([v.pipe(v.number(), v.minValue(1e-6)), count])),
@@ -31,9 +31,9 @@ const BakedClip = v.pipe(v.strictObject({
 /** One baked clip (a shard's generator samples its clip rows offline): the channels it sets (a pose key or a foot slot
  *  `limb * 4 + 0..3`), its input grid `x` (from, to, samples, 1 = loops over [from, to) / 0 = clamps to [from, to]), for a
  *  clip that also reads the clock its period and samples `t`, and the samples (row-major: t, then x, then channel). */
-export type BakedPoseClip = v.InferOutput<typeof BakedClip>;
+
 /** Bounded baked channels; a table contains no executable expression or callback. */
-export const BakedClipTable = v.strictObject({ version: v.literal(1), clips: v.record(v.string(), BakedClip) });
+export const BakedClipTable: v.GenericSchema<BakedClipTableRowsInput, BakedClipTableRows> = v.strictObject({ version: v.literal(1), clips: v.record(v.string(), BakedClip) });
 /** Read a generated clip table (a malformed one refuses, it is never defaulted); the lookup refuses a clip it lacks. */
 export function readBakedClips(input: unknown): (name: string) => BakedPoseClip {
   const table = v.parse(BakedClipTable, input);
@@ -50,13 +50,13 @@ const key = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
 const positive = v.pipe(finite, v.minValue(Number.MIN_VALUE));
 const window = v.pipe(v.tuple([finite, finite]), v.check(([a, b]) => a < b));
 /** A quadruped's proportions and limb order, independent of bone naming. */
-export const LimbRigSchema = v.strictObject({
+export const LimbRigSchema: v.GenericSchema<LimbRigRowsInput, LimbRigRows> = v.strictObject({
   spine: v.strictObject({ root: key, hips: key, tail: key, chest: key, neck: key, head: key }),
   hipsCounter: v.tuple([finite, finite]), limbs: v.tuple([v.tuple([key,key,key,key]),v.tuple([key,key,key,key]),v.tuple([key,key,key,key]),v.tuple([key,key,key,key])]),
   heightFrom: v.tuple([key,key]), minHeight: positive, walkStride: positive, chargeStride: positive,
 });
 /** Ordered blend policy: locomotion, held attack, recoil, then attention. All controls are numeric rows or clip ids. */
-export const LimbBlendSchema = v.strictObject({
+export const LimbBlendSchema: v.GenericSchema<LimbBlendInput, LimbBlend> = v.strictObject({
   clips: v.strictObject({ idle: key, walk: key, run: key, death: key, hit: key }),
   memory: v.strictObject({ walk: key, run: key, phase: key, action: key, held: key }),
   walk: window, run: window, response: v.tuple([positive,positive]), hold: window,
@@ -64,10 +64,139 @@ export const LimbBlendSchema = v.strictObject({
   brace: finite, look: v.strictObject({ yaw: positive, up: finite, down: finite, fallbackHeight: finite,
     runFade: finite, neckYaw: finite, headYaw: finite, headPitch: finite }),
 });
-export type LimbBlend = v.InferOutput<typeof LimbBlendSchema>;
+
 /** Strict admission before any pose clocks or scene binding exist. */
 export function parseLimbBlend(input: unknown): LimbBlend {
   const row = v.parse(LimbBlendSchema, input);
   if (new Set(row.attacks.map(a => a.action)).size !== row.attacks.length) throw new Error('Duplicate limb attack action');
   return row;
 }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type BakedPoseClipInput = BakedPoseClip;
+interface BakedPoseClipFields {
+    channels: (((typeof LIMB_POSE_KEYS)[number]) | (number))[];
+    x: [
+        number,
+        number,
+        number,
+        0 | 1
+    ];
+    t?: [
+        number,
+        number
+    ] | undefined;
+    values: (number)[];
+}
+export type BakedPoseClip = { [Key in keyof BakedPoseClipFields]: BakedPoseClipFields[Key] };
+interface BakedClipTableRowsInputFields {
+    version: 1;
+    clips: Record<string, BakedPoseClipInput>;
+}
+export type BakedClipTableRowsInput = { [Key in keyof BakedClipTableRowsInputFields]: BakedClipTableRowsInputFields[Key] };
+interface BakedClipTableRowsFields {
+    version: 1;
+    clips: Record<string, BakedPoseClip>;
+}
+export type BakedClipTableRows = { [Key in keyof BakedClipTableRowsFields]: BakedClipTableRowsFields[Key] };
+export type LimbRigRowsInput = LimbRigRows;
+interface LimbRigRowsFields {
+    spine: {
+        root: string;
+        hips: string;
+        tail: string;
+        chest: string;
+        neck: string;
+        head: string;
+    };
+    hipsCounter: [
+        number,
+        number
+    ];
+    limbs: [
+        [
+            string,
+            string,
+            string,
+            string
+        ],
+        [
+            string,
+            string,
+            string,
+            string
+        ],
+        [
+            string,
+            string,
+            string,
+            string
+        ],
+        [
+            string,
+            string,
+            string,
+            string
+        ]
+    ];
+    heightFrom: [
+        string,
+        string
+    ];
+    minHeight: number;
+    walkStride: number;
+    chargeStride: number;
+}
+export type LimbRigRows = { [Key in keyof LimbRigRowsFields]: LimbRigRowsFields[Key] };
+export type LimbBlendInput = LimbBlend;
+interface LimbBlendFields {
+    clips: {
+        idle: string;
+        walk: string;
+        run: string;
+        death: string;
+        hit: string;
+    };
+    memory: {
+        walk: string;
+        run: string;
+        phase: string;
+        action: string;
+        held: string;
+    };
+    walk: [
+        number,
+        number
+    ];
+    run: [
+        number,
+        number
+    ];
+    response: [
+        number,
+        number
+    ];
+    hold: [
+        number,
+        number
+    ];
+    defaultAttack: string;
+    attacks: ({
+        action: number;
+        clip: string;
+        weight: number;
+        suppressLook: boolean;
+    })[];
+    brace: number;
+    look: {
+        yaw: number;
+        up: number;
+        down: number;
+        fallbackHeight: number;
+        runFade: number;
+        neckYaw: number;
+        headYaw: number;
+        headPitch: number;
+    };
+}
+export type LimbBlend = { [Key in keyof LimbBlendFields]: LimbBlendFields[Key] };

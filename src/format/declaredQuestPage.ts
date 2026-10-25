@@ -16,7 +16,7 @@ const unique = (rows: readonly { readonly id: string }[]) => new Set(rows.map(ro
 const promptDefinition = { id, action: id, label: text, when: v.exactOptional(condition),
   labels: v.optional(v.pipe(v.array(v.strictObject({ when: condition, text })), v.maxLength(16)), []) };
 /** Z11 page rows contain no borrowed owners, paths, calls or executable hooks. */
-export const DeclaredQuestPageSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Quest page requires plain JSON'), v.strictObject({
+export const DeclaredQuestPageSchema: v.GenericSchema<DeclaredQuestPageInput, DeclaredQuestPage> = v.pipe(v.unknown(), v.check(isJsonData, 'Quest page requires plain JSON'), v.strictObject({
   version: v.literal(1), quest: id,
   prompts: v.pipe(v.array(v.union([
     v.strictObject({ ...promptDefinition, at: ScenePointRefSchema, radius: v.pipe(finite, v.minValue(0), v.maxValue(100)) }),
@@ -30,6 +30,72 @@ export const DeclaredQuestPageSchema = v.pipe(v.unknown(), v.check(isJsonData, '
   initial: v.optional(v.pipe(v.array(v.strictObject({ when: condition, effects })), v.maxLength(64)), []),
 }), v.check(row => unique(row.prompts) && unique(row.observations) && unique(row.actions)
   && row.prompts.every(prompt => row.actions.some(action => action.id === prompt.action)), 'Unique declared page ids and accepted prompt actions'));
-export type DeclaredQuestPage = v.InferOutput<typeof DeclaredQuestPageSchema>;
+
 /** Admission precedes prompt allocation or restore effects. */
 export function parseDeclaredQuestPage(input: unknown): DeclaredQuestPage { return v.parse(DeclaredQuestPageSchema, input); }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type DeclaredQuestPageInput = unknown;
+interface DeclaredQuestPageFields {
+    version: 1;
+    quest: string;
+    prompts: ((Omit<{
+        id: string;
+        action: string;
+        label: string;
+        when?: {
+            all?: (string)[];
+            any?: (string)[];
+            none?: (string)[];
+        };
+        labels: ({
+            when: {
+                all?: (string)[];
+                any?: (string)[];
+                none?: (string)[];
+            };
+            text: string;
+        })[];
+    }, keyof ({
+        at: v.InferOutput<typeof ScenePointRefSchema>;
+        radius: number;
+    })> & {
+        at: v.InferOutput<typeof ScenePointRefSchema>;
+        radius: number;
+    }) | ({
+        id: string;
+        action: string;
+        label: string;
+        channel: string;
+    }))[];
+    observations: ({
+        id: string;
+        source: v.InferOutput<typeof ObservationRefSchema>;
+    })[];
+    actions: ({
+        id: string;
+        interaction?: string;
+        needs: (Omit<{
+            all?: (string)[];
+            any?: (string)[];
+            none?: (string)[];
+        }, keyof ({
+            else?: string;
+        })> & {
+            else?: string;
+        })[];
+        denied: Record<string, string>;
+        refused: Record<string, (v.InferOutput<typeof QuestEffectSchema>)[]>;
+        before: (v.InferOutput<typeof QuestEffectSchema>)[];
+        after: (v.InferOutput<typeof QuestEffectSchema>)[];
+    })[];
+    initial: ({
+        when: {
+            all?: (string)[];
+            any?: (string)[];
+            none?: (string)[];
+        };
+        effects: (v.InferOutput<typeof QuestEffectSchema>)[];
+    })[];
+}
+export type DeclaredQuestPage = { [Key in keyof DeclaredQuestPageFields]: DeclaredQuestPageFields[Key] };
