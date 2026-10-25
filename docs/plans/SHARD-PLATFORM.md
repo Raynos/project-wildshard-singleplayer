@@ -60,6 +60,7 @@ plan? … what is in scope … and what do we all have to complete to be done?"*
 | [memory-strip](shard-platform/memory-strip-mini-plan.md) + leak fix (O18) | G628 | **open**: leak fix first (crossing-crash P0), then strip rows M1–M7 |
 | [tile-streaming](shard-platform/tile-streaming-mini-plan.md) (62.5 m tiles, memory + loading) | G626, G638 | **draft, being grilled**: 62.5 m gap now, 5×5/3×3 Debug A/B/C, Driftwood first; D5 open |
 | [core-memory](shard-platform/core-memory-mini-plan.md) (core game floor, Templates 1 + 2 in SHARD SELECT) | G640 | **draft**: measurement first |
+| [js-heap](shard-platform/js-heap-mini-plan.md) (Template heap allocation, clean menu → Template path) | E501 | **draft, for Jake**: clean path = direct `/?chunk=_template`, Developer off, no harness pins; idle 5.6 MiB/s, 17 major GCs / 30 s; G1 guard + H1–H11 |
 | [legacy-deletion](shard-platform/legacy-deletion-mini-plan.md) | G604, G606 | LD1–LD3 done; LD4 per shard at zero; LD5–LD8 only on Jake's word after his QA |
 | [custom-code-freeze](shard-platform/custom-code-freeze-mini-plan.md) | E496 | **active** 10-24: freeze F1–F5 (lock all shards, schema + lint refusals), delete-now D1–D6 (~5k lines), legacy LD5–LD8 built here, then A1–A2 |
 | [js-payload](shard-platform/js-payload-mini-plan.md) (draft, for Jake) | E500 | **draft** 10-24: J1–J10, biggest first: grid seam plans out of JS, title diet, shard entry diet, shard isolation; D1–D4 for Jake |
