@@ -1,10 +1,10 @@
 import { expect, test, vi } from 'vitest';
-import { CHUNK_HALF } from '../src/engine/core/config';
-import { loadRapier } from '../src/engine/physics/rapier';
-import { createSimHost, type SimLevel } from '../src/engine/sim';
-import { GridAssembly, type GridPoint } from '../src/game/grid/assembly';
-import { LiveGridHost } from '../src/game/grid/live';
-import { PageResidency } from '../src/game/grid/pageResidency';
+import { CHUNK_HALF } from '@wildshard/engine/core/config';
+import { loadRapier } from '@wildshard/engine/physics/rapier';
+import { createSimHost, type SimLevel } from '@wildshard/engine/sim';
+import { GridAssembly, type GridPoint } from './assembly';
+import { LiveGridHost } from './live';
+import { PageResidency } from './pageResidency';
 import { fixtureBytes } from '@wildshard/engine/test/nativeBytes';
 
 const level: SimLevel = { version: 1, id: 'platform', seed: 1, ground: { size: 500, height: 0 },
@@ -20,7 +20,7 @@ function original(assembly: GridAssembly, feet: GridPoint): string | null {
 for (const mode of [{ developer: false, devserver: false }, { developer: true, devserver: false },
   { developer: false, devserver: true }, { developer: true, devserver: true }]) {
   test(`road targets retain exact order and boundary decisions ${JSON.stringify(mode)}`, async () => {
-    const R = await loadRapier(Uint8Array.from(fixtureBytes(new URL('../node_modules/@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm', import.meta.url))));
+    const R = await loadRapier(Uint8Array.from(fixtureBytes(new URL('../../../node_modules/@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm', import.meta.url))));
     const assembly = new GridAssembly(mode), cells = assembly.cells, home = assembly.cell('driftwood-isle');
     const page = createSimHost(level, { rapier: R }), residency = new PageResidency();
     const player = { position: page.player.position, yaw: 0, health: page.player.health, owner: page.player, motor: page.releasePlayerMotor() };

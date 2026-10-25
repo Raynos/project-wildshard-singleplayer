@@ -6,15 +6,15 @@ import { readFileSync, mkdirSync, mkdtempSync, writeFileSync, rmSync } from 'nod
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the child runner without a shell.
 import { resolve as resolvePath } from 'node:path';
 import { BufferAttribute, BufferGeometry, Mesh, MeshStandardMaterial } from 'three';
-import { Scope } from '../src/engine/app/scope';
-import { MemoryAttribution } from '../src/engine/core/memoryAttribution';
-import { sharedModelContext } from '../src/engine/models/model';
-import { SkyRig } from '../src/engine/world/skyRig';
-import { defineWorldSceneCatalogue, bindWorldSceneModelSources } from '../src/game/models/worldSceneCatalogue';
-import { parseWorldSceneModels } from '../src/format/worldSceneModels';
-import { WorldAssembly } from '../src/game/shardfile/worldAssembly';
-import { entryOwner } from '../src/game/shardfile/entryOwners';
-import type { SceneHandles } from '../src/game/shardfile/sceneHandles';
+import { Scope } from '@wildshard/engine/app/scope';
+import { MemoryAttribution } from '@wildshard/engine/core/memoryAttribution';
+import { sharedModelContext } from '@wildshard/engine/models/model';
+import { SkyRig } from '@wildshard/engine/world/skyRig';
+import { defineWorldSceneCatalogue, bindWorldSceneModelSources } from '../models/worldSceneCatalogue';
+import { parseWorldSceneModels } from '@wildshard/format/worldSceneModels';
+import { WorldAssembly } from './worldAssembly';
+import { entryOwner } from './entryOwners';
+import type { SceneHandles } from './sceneHandles';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import * as v from 'valibot';
 
@@ -90,7 +90,7 @@ test('awaited shipped sites release their GPU storage and collect while the page
     mkdirSync('tmp', { recursive: true }); const directory = mkdtempSync(resolvePath('tmp/world-site-gc-'));
     try {
       const config = resolvePath(directory, 'vitest.config.mjs');
-      writeFileSync(config, `export default {root:${JSON.stringify(resolvePath('.'))},test:{include:['test/world-site-lifetime.test.ts'],environment:'happy-dom',setupFiles:[],pool:'forks',maxWorkers:1,execArgv:['--expose-gc']}};`);
+      writeFileSync(config, `export default {root:${JSON.stringify(resolvePath('.'))},test:{include:['src/game/shardfile/world-site-lifetime.test.ts'],environment:'happy-dom',setupFiles:[],pool:'forks',maxWorkers:1,execArgv:['--expose-gc']}};`);
       const output = execFileSync(process.execPath, ['--expose-gc', resolvePath('node_modules/vitest/vitest.mjs'), 'run', '--config', config], {
         env: { ...process.env, WS_WORLD_SITE_GC: '1', NO_COLOR: '1' }, encoding: 'utf8', stdio: 'pipe', timeout: 30_000,
       }); expect(output).toContain('1 passed');

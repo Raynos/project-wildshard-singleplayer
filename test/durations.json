@@ -1590,7 +1590,7 @@
  "test/quest-presentation.test.ts": 0.1,
  "test/quest-product-admission.test.ts": 0.054,
  "test/quest-reading-roster.test.ts": 0.019,
- "test/quest-reference.test.ts": 0.0,
+ "src/game/quest/quest-reference.test.ts": 0.0,
  "test/quest-retired-callbacks.test.ts": 0.004,
  "test/quest-reward-motion.test.ts": 0.6,
  "src/game/plugin/quest-reward.test.ts": 0.02,

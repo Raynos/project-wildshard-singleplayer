@@ -1,10 +1,10 @@
 import { expect, test } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
-import { Flags } from '../src/engine/world/interact/flags';
-import { placesWithDiscovery } from '../src/engine/quest/view';
-import { LastPlace } from '../src/game/LastPlace';
-import type { QuestPageComposition } from '../src/game/quest/pageComposition';
-import { QuestPageReference } from '../src/game/quest/pageReference';
+import { Scope } from '@wildshard/engine/app/scope';
+import { Flags } from '@wildshard/engine/world/interact/flags';
+import { placesWithDiscovery } from '@wildshard/engine/quest/view';
+import { LastPlace } from '../LastPlace';
+import type { QuestPageComposition } from './pageComposition';
+import { QuestPageReference } from './pageReference';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 function quest(): QuestPageComposition {
