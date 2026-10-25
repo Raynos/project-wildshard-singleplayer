@@ -11,6 +11,7 @@ import { admitScriptContract } from '../src/format/scriptContract';
 import { ninePracticeProgram } from '../src/shards/nine-dragon-stack/generators/practiceProgram';
 import { buildCourseProgram } from '../src/commons/practiceCourse';
 import before from './fixtures/course-program-contracts.json' with { type: 'json' };
+import { ninePracticeBytes, ninePracticeRows } from './fixtures/nine-practice-product';
 
 mkdirSync('tmp', { recursive: true });
 const cache = mkdtempSync(resolve('tmp', 'nine-practice-program-'));
@@ -32,6 +33,11 @@ if (predecessor.binary === undefined) throw new Error('Missing original raw cour
 const original = predecessor.binary;
 const contract = encodeCanonicalJson({ script: cold.script });
 const metadata = new TextEncoder().encode(encodeCanonicalJson({ script: cold.script, bytes: '' }));
+
+test('product-free practice fixtures retain the complete independently compiled module and contract', () => {
+  expect(ninePracticeBytes).toEqual(original);
+  expect(encodeCanonicalJson(ninePracticeRows)).toBe(encodeCanonicalJson({ script: cold.script, bytes: '' }));
+});
 
 test('the injected course retains every original contract field, executable byte and admitted cost', () => {
   expect(compiles).toBe(1); expect(cold.blob.bytes).toEqual(original);

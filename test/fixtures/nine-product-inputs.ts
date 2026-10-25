@@ -9,7 +9,7 @@ import { courseProgramInputs } from '../../src/commons/courseProgram';
 import { encodeCanonicalJson, hashImmutableBytes } from '../../src/sdk/immutable';
 import { ninePracticeRows, ninePracticeBytes } from './nine-practice-product';
 
-// DOM suites consume the admitted course as a checked cache hit. Real cold
+// DOM suites consume the independently pinned course as a checked cache hit. Real cold
 // compilation remains covered by the Node producer/source-output suites.
 const courseText = readFileSync('src/commons/scripts/course.as', 'utf8'), text = new TextEncoder();
 if (hashImmutableBytes(text.encode(courseText)) !== ninePracticeRows.script.sourceHash) throw new Error('Practice fixture product has stale source');
