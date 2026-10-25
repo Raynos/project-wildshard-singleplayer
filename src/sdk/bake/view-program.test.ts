@@ -1,12 +1,12 @@
 import { expect, test } from 'vitest';
 import { BoxGeometry, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, Object3D, PerspectiveCamera, Scene, ShaderMaterial, Vector3 } from 'three';
-import { GroundTell } from '../src/engine/fx/groundTell';
+import { GroundTell } from '@wildshard/engine/fx/groundTell';
 import { overrideTerrain } from '@wildshard/engine/test/terrain';
 import { parse } from 'valibot';
-import { Scope } from '../src/engine/app/scope';
-import { viewProgram, type ViewSlotActor } from '../src/engine/script/viewProgram';
-import { ViewProgramSchema } from '../src/format/viewProgram';
-import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
+import { Scope } from '@wildshard/engine/app/scope';
+import { viewProgram, type ViewSlotActor } from '@wildshard/engine/script/viewProgram';
+import { ViewProgramSchema } from '@wildshard/format/viewProgram';
+import { compileScriptV2 } from './compileScriptV2';
 
 // A made-up second program (marsh lanterns): each transform position i moves to the first column + i on x; the channel
 // bank is the columns after the first.

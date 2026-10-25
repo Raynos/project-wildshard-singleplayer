@@ -2347,7 +2347,7 @@
  "test/tree-species.test.ts": 0.2,
  "test/vertex-wear.test.ts": 0.007,
  "src/engine/script/view-lane.test.ts": 0.009,
- "test/view-program.test.ts": 1.946,
+ "src/sdk/bake/view-program.test.ts": 1.946,
  "test/viewmodel-staging.test.ts": 0,
  "test/vitest-module-cache.test.ts": 3.208,
  "test/vitest-sharding.test.ts": 0.01,

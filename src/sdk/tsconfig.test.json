@@ -15,6 +15,9 @@
   },
   "references": [
     {
+      "path": "../engine/tsconfig.test.json"
+    },
+    {
       "path": "../../tsconfig.format.json"
     },
     {

@@ -188,6 +188,27 @@ test('workspace Node tests consume declarations without giving production Node g
     expect(rootFiles).toContain(`${root}/out/src/engine/internal.d.ts`);
     expect(rootFiles).not.toContain(`${root}/src/engine/test/helper.ts`);
     expect(rootFiles).not.toContain(`${root}/src/engine/internal.ts`);
+    const sdkOptions = { strict: true, composite: true, declaration: true, emitDeclarationOnly: true,
+      outDir: '../../out', rootDir: '../..', types: ['node'], skipLibCheck: true,
+      module: 'ESNext', moduleResolution: 'bundler', target: 'ES2022' };
+    put('src/sdk/value.test.ts', 'import {make} from "../engine/test/helper"; export const result: number = make().value;\n');
+    put('src/sdk/tsconfig.test.json', JSON.stringify({ compilerOptions: sdkOptions, include: ['**/*.test.ts'],
+      references: [{ path: '../../tsconfig.engine.json' }] }));
+    const missingTestReference = run('--noEmit', '-p', 'src/sdk/tsconfig.test.json');
+    expect(missingTestReference.status).not.toBe(0);
+    expect(String(missingTestReference.stdout) + String(missingTestReference.stderr)).toContain('TS6307');
+    put('src/sdk/tsconfig.test.json', JSON.stringify({ compilerOptions: sdkOptions, include: ['**/*.test.ts'],
+      references: [{ path: '../../tsconfig.engine.json' }, { path: '../engine/tsconfig.test.json' }] }));
+    const sdkCheck = run('--noEmit', '-p', 'src/sdk/tsconfig.test.json', '--listFiles');
+    expect(sdkCheck.status, String(sdkCheck.stdout) + String(sdkCheck.stderr)).toBe(0);
+    const sdkFiles = String(sdkCheck.stdout).replaceAll('\\', '/').split('\n');
+    expect(sdkFiles).toContain(`${root}/out/src/engine/test/helper.d.ts`);
+    expect(sdkFiles).not.toContain(`${root}/src/engine/test/helper.ts`);
+    expect(sdkFiles).not.toContain(`${root}/src/engine/internal.ts`);
+    put('src/sdk/value.test.ts', 'import {make} from "../engine/test/helper"; export const result: string = make().value;\n');
+    const badSdkTest = run('--noEmit', '-p', 'src/sdk/tsconfig.test.json');
+    expect(badSdkTest.status).not.toBe(0);
+    expect(String(badSdkTest.stdout) + String(badSdkTest.stderr)).toContain('TS2322');
     put('test/helper.ts', 'import {make} from "../src/engine/test/helper"; export const result: string = make().value;\n');
     const badHelper = run('--noEmit');
     expect(badHelper.status).not.toBe(0);

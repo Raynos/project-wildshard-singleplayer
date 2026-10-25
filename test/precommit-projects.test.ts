@@ -56,6 +56,14 @@ test('staged project membership keeps includes, excludes, type imports and refer
     expect(stagedProjectFailures(root, ['src/game/fixture.test.ts'])).toHaveLength(1);
     put('src/game/tsconfig.test.json', '{"extends":"../../tsconfig.json","include":["**/*.test.ts"],"references":[{"path":"../../tsconfig.engine.json"},{"path":"../engine/tsconfig.test.json"}]}'); git('add', '.');
     expect(stagedProjectFailures(root, ['src/game/fixture.test.ts'])).toEqual([]);
+    put('tsconfig.sdk.json', '{"extends":"./tsconfig.json","include":["src/sdk"],"exclude":["**/*.test.ts"],"references":[{"path":"./tsconfig.engine.json"}]}');
+    put('src/sdk/tsconfig.test.json', '{"extends":"../../tsconfig.json","include":["**/*.test.ts"],"references":[{"path":"../../tsconfig.sdk.json"}]}');
+    put('src/sdk/fixture.test.ts', 'import type {Helper} from "../engine/test/helper";'); git('add', '.');
+    expect(stagedProjectFailures(root, ['src/sdk/fixture.test.ts'])).toHaveLength(1);
+    put('src/sdk/tsconfig.test.json', '{"extends":"../../tsconfig.json","include":["**/*.test.ts"],"references":[{"path":"../../tsconfig.sdk.json"},{"path":"../engine/tsconfig.test.json"}]}'); git('add', '.');
+    expect(stagedProjectFailures(root, ['src/sdk/fixture.test.ts'])).toEqual([]);
+    put('src/sdk/own.ts', 'import type {Helper} from "../engine/test/helper";'); git('add', '.');
+    expect(stagedProjectFailures(root, ['src/sdk/own.ts'])).toHaveLength(1);
     put('src/engine/own.ts', 'import type {Helper} from "./test/helper";'); git('add', 'src/engine/own.ts');
     expect(stagedProjectFailures(root, ['src/engine/own.ts'])).toHaveLength(1);
   } finally { rmSync(root, { recursive: true, force: true }); }
