@@ -14,9 +14,12 @@ Each slice is bounded to one hour; report misses and their observed owners first
 | Slice | Work | Status |
 |---|---|---|
 | G717.1 | Driftwood, Pine, Nalati and Nine: qualified Chromium phone memory/look and first-crossing step timings. | done (2026-10-24, sp-x8) |
-| G717.2 | Remaining shard and plot memory/look cohorts on the same pin; retain exact identities and only actual passes. | in flight (2026-10-24, sp-x8) |
-| G717.3 | One official quiet Simulator standing/road/crossing floor, then separate native memory with actual two-resident witnesses. | open |
-| G717.4 | Re-latch only qualified passes; report worst rows, preparation steps and source owners before proposing crossing cuts. | open |
+| G717.2 | Remaining shard and plot memory/look cohorts; cause-corrected entries use the defining tile-priority fix, with exact identities and only actual passes retained. | done (2026-10-25, sp-x8) |
+| G717.3 | Official quiet Simulator floor and separate native visit completed. The actual two-resident condition was not observed; its memory reading remains unavailable. | open (two-resident witness not reached) |
+| G717.4 | Re-latch only qualified passes; report worst rows, preparation steps and source owners before proposing crossing cuts. | done (2026-10-25, sp-x8) |
+| G723.1 | Measure first road-to-control waits and existing completed preparation stages for Driftwood, Pine, Nalati and Nine; separate prior preparation from edge wait. At most one hour. | done (2026-10-25, sp-x8) |
+| G723.2 | Agree the kept-return boundary with the streaming owner, then warm the unique approached neighbour before the edge using existing admission and memory claims. Contracts and one bounded source slice; at most one hour. | open |
+| G723.3 | Measure the defining warm-ahead slice against the same first-entry route and keep every durability, cancellation, claim and readiness fence. At most one hour. | open |
 
 ## Why it never completes today
 
