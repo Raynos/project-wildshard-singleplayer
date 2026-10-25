@@ -39,6 +39,9 @@ export interface NineNativeSignInputs {
   }>>;
 }
 
+/** Declared native raster handoffs; the source program keys their bytes explicitly. */
+export function retainedSignInputs(): NineNativeSignInputs { return { glyphs: legacyGlyphs, atlas: legacyAtlas }; }
+
 const specimenKey = (p: SignModelParams): string => `${signRows.model.key}:${p.style}:${p.text}:${p.color}:${p.ink ?? ''}:${String(p.vertical)}:${p.size}:${String(p.blade)}`;
 const vector = (values: readonly (string | number)[]): Vector3 => new Vector3(Number(values[0]), Number(values[1]), Number(values[2]));
 type ReadSignBytes = (file: string) => Uint8Array;

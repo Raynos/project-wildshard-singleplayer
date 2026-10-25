@@ -234,7 +234,8 @@ GR3 bounded slices (G711; each <= 1 h, one producer retirement per commit):
 | Declarations | open | Direct checked world rows; remove declaration adapter |
 | Boot metadata | open | Direct checked geometry/presentation metadata |
 | Glyphs | open | Preserve native raster bytes and replace source handoff |
-| Sign sources | open | Direct typed sign rows and confined native adapter |
+| S1 sign-source cache | done | 28 files / 9,308,309 B and all 27 admitted rows exact; cold/hit/refusal and sealed adapter checks; no job retirement |
+| S2 sign-source reader handoff | in flight | Consume owned sign rows/blobs, remove one job and 28 source outputs, cold scoped generation |
 | Sign atlas | open | Own original atlas bytes and remove native handoff |
 | M1 map geometry/encoding separation | done | Pure defining geometry module; all original scene/pack bytes and native map image exact; no job retirement |
 | M2 map assembly reader handoff/retirement | done | Nine 8 → 7; both former source files absent, exact scene/pack and WebP bytes; cold scoped generation |

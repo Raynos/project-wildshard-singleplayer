@@ -1,0 +1,497 @@
+{
+  "files": [
+    {
+      "path": "data/signSource-0.generated.glb",
+      "bytes": 403176,
+      "hash": "57863d4c518369c6c4856600b0f74d610c2d263fb3a2b4e93265ae8bde1715fd"
+    },
+    {
+      "path": "data/signSource-1.generated.glb",
+      "bytes": 159628,
+      "hash": "e5d06f4de324cfc1c98bc29d0b35958a2d0a8d35deffbff9be43a6bff03ff3be"
+    },
+    {
+      "path": "data/signSource-2.generated.glb",
+      "bytes": 152600,
+      "hash": "d781952c2ad0d6ff6d9458d579e605b6ac5b5ca9c11214e7ac4c894fe57d099e"
+    },
+    {
+      "path": "data/signSource-3.generated.glb",
+      "bytes": 158288,
+      "hash": "4c8645475b43af2d1d0471edcba52765bb20dd6059094d5127394ee690c1dd46"
+    },
+    {
+      "path": "data/signSource-4.generated.glb",
+      "bytes": 2224,
+      "hash": "73c72b8ade916a414c0d16b15438507852db22305a0fbbdb2cd3c0263bed7630"
+    },
+    {
+      "path": "data/signSource-5.generated.glb",
+      "bytes": 1415784,
+      "hash": "f81c06153531580d671a9e73282273f035c8b6b31f0afcb747f3963c6cf22cc1"
+    },
+    {
+      "path": "data/signSource-6.generated.glb",
+      "bytes": 256116,
+      "hash": "7a46e9ff1ce7fa8201a228df34b3d359edbcac82a7918c0d87136984982ad4df"
+    },
+    {
+      "path": "data/signSource-7.generated.glb",
+      "bytes": 245452,
+      "hash": "9c63350a1a35f243e2875ec4a51853da475aef4a4123e21dc863b024d73c1fa2"
+    },
+    {
+      "path": "data/signSource-8.generated.glb",
+      "bytes": 258020,
+      "hash": "e1142afc58e14234fb8c945b851487f6e4f5fe8111b5190fe35f10d9709eb3eb"
+    },
+    {
+      "path": "data/signSource-9.generated.glb",
+      "bytes": 258472,
+      "hash": "b2c250d1f200cde36c0cce3047c7e70c164d21f7dceac1a185a1bb157ee8b0f4"
+    },
+    {
+      "path": "data/signSource-10.generated.glb",
+      "bytes": 260112,
+      "hash": "9c542d6f0f8814bbc34c99fb57c68cbfcc8640e8fa7f15e7b310461115e24af0"
+    },
+    {
+      "path": "data/signSource-11.generated.glb",
+      "bytes": 260092,
+      "hash": "5cf78d988b8f0e018008da90e9676204287dcb9f8746e7ccb70e24392da90d49"
+    },
+    {
+      "path": "data/signSource-12.generated.glb",
+      "bytes": 260892,
+      "hash": "9dd6138c52aeeed0dc9d77d03f54088c9af761ebd7e0a3e69bd678c210b79cd6"
+    },
+    {
+      "path": "data/signSource-13.generated.glb",
+      "bytes": 256856,
+      "hash": "87bd4f0d4f6e325fbf2f66d4e5c4038e03ea2c50feaf8a72fbfc959a4655e794"
+    },
+    {
+      "path": "data/signSource-14.generated.glb",
+      "bytes": 21456,
+      "hash": "e06a072925899e106dd30a73c802af622c2289aabb1ea0b8e61e57147bb36df0"
+    },
+    {
+      "path": "data/signSource-15.generated.json",
+      "bytes": 673739,
+      "hash": "f701a34b02ab577a525585b4748aa3ae30e70095c63389307a66448fb8d71085"
+    },
+    {
+      "path": "data/signSource-16.generated.ktx2",
+      "bytes": 59218,
+      "hash": "ed70ef638d67e10d71716f43a7f90aebc34e5b4319ddd5ad0086f510d085e4e6"
+    },
+    {
+      "path": "data/signSource-17.generated.ktx2",
+      "bytes": 53275,
+      "hash": "9dc34d63d213db9398e88992cbfec9f6301ff72c9ae19f3499b2e967a7a48684"
+    },
+    {
+      "path": "data/signSource-18.generated.ktx2",
+      "bytes": 226533,
+      "hash": "19e7f333542eedf98723ef2a67aa422e7d77544c1b2612edd901d892243e43a2"
+    },
+    {
+      "path": "data/signSource-19.generated.glb",
+      "bytes": 403176,
+      "hash": "9238bff9c3dc90a002930b95e11775b365b490b43b2076ed0ea3d1bd906685b0"
+    },
+    {
+      "path": "data/signSource-20.generated.glb",
+      "bytes": 159628,
+      "hash": "800578641fc63532010645b367eece677a48a2198d87532251d74d2b187fe40c"
+    },
+    {
+      "path": "data/signSource-21.generated.glb",
+      "bytes": 152600,
+      "hash": "c4b3b52b6773e677a89e90fd48c788fd67853da83c117827714994de779255fa"
+    },
+    {
+      "path": "data/signSource-22.generated.glb",
+      "bytes": 158288,
+      "hash": "33a5322b74d9187568186091b23c4db2def46f785bfc90d42161bd535419ad41"
+    },
+    {
+      "path": "data/signSource-23.generated.json",
+      "bytes": 673741,
+      "hash": "5a485b54f860fb6fdf462e7f04ebbd026dbcfd095169da9bad1481fa19a209bd"
+    },
+    {
+      "path": "data/signSource-24.generated.ktx2",
+      "bytes": 126264,
+      "hash": "93ce696c4b801d68d4b8480a002636957b534867a20d6b11cef3bb770e87d0d0"
+    },
+    {
+      "path": "data/signSource-25.generated.ktx2",
+      "bytes": 106458,
+      "hash": "66b02edd38b79512bc000973f755a5d322ecba1469512e1d21521d99a09010d5"
+    },
+    {
+      "path": "data/signSource-26.generated.ktx2",
+      "bytes": 792324,
+      "hash": "78a67ae0617a833839110c2efbdad963949852d4312ba019dac8cb5ed3e540fe"
+    },
+    {
+      "path": "data/signSources.generated.json",
+      "bytes": 1353897,
+      "hash": "faf68eee89cd5ac7b41d405dfd39228350fbed64789f17df3b15f2076c630136"
+    }
+  ],
+  "admitted": [
+    {
+      "name": "signs/pool-57863d4c518369c6c4856600b0f74d610c2d263fb3a2b4e93265ae8bde1715fd.glb",
+      "path": "blobs/glb/57863d4c518369c6c4856600b0f74d610c2d263fb3a2b4e93265ae8bde1715fd.glb",
+      "kind": "glb",
+      "hash": "57863d4c518369c6c4856600b0f74d610c2d263fb3a2b4e93265ae8bde1715fd",
+      "compressed": 403176,
+      "decoded": 403148,
+      "gpu": 276936,
+      "triangles": 2098,
+      "draws": 200,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "signs/pool-e5d06f4de324cfc1c98bc29d0b35958a2d0a8d35deffbff9be43a6bff03ff3be.glb",
+      "path": "blobs/glb/e5d06f4de324cfc1c98bc29d0b35958a2d0a8d35deffbff9be43a6bff03ff3be.glb",
+      "kind": "glb",
+      "hash": "e5d06f4de324cfc1c98bc29d0b35958a2d0a8d35deffbff9be43a6bff03ff3be",
+      "compressed": 159628,
+      "decoded": 159600,
+      "gpu": 33792,
+      "triangles": 256,
+      "draws": 200,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "signs/pool-d781952c2ad0d6ff6d9458d579e605b6ac5b5ca9c11214e7ac4c894fe57d099e.glb",
+      "path": "blobs/glb/d781952c2ad0d6ff6d9458d579e605b6ac5b5ca9c11214e7ac4c894fe57d099e.glb",
+      "kind": "glb",
+      "hash": "d781952c2ad0d6ff6d9458d579e605b6ac5b5ca9c11214e7ac4c894fe57d099e",
+      "compressed": 152600,
+      "decoded": 152572,
+      "gpu": 26400,
+      "triangles": 200,
+      "draws": 200,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "signs/pool-4c8645475b43af2d1d0471edcba52765bb20dd6059094d5127394ee690c1dd46.glb",
+      "path": "blobs/glb/4c8645475b43af2d1d0471edcba52765bb20dd6059094d5127394ee690c1dd46.glb",
+      "kind": "glb",
+      "hash": "4c8645475b43af2d1d0471edcba52765bb20dd6059094d5127394ee690c1dd46",
+      "compressed": 158288,
+      "decoded": 158260,
+      "gpu": 32472,
+      "triangles": 246,
+      "draws": 200,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "signs/pool-73c72b8ade916a414c0d16b15438507852db22305a0fbbdb2cd3c0263bed7630.glb",
+      "path": "blobs/glb/73c72b8ade916a414c0d16b15438507852db22305a0fbbdb2cd3c0263bed7630.glb",
+      "kind": "glb",
+      "hash": "73c72b8ade916a414c0d16b15438507852db22305a0fbbdb2cd3c0263bed7630",
+      "compressed": 2224,
+      "decoded": 2196,
+      "gpu": 792,
+      "triangles": 6,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "signs/pool-f81c06153531580d671a9e73282273f035c8b6b31f0afcb747f3963c6cf22cc1.glb",
+      "path": "blobs/glb/f81c06153531580d671a9e73282273f035c8b6b31f0afcb747f3963c6cf22cc1.glb",
+      "kind": "glb",
+      "hash": "f81c06153531580d671a9e73282273f035c8b6b31f0afcb747f3963c6cf22cc1",
+      "compressed": 1415784,
+      "decoded": 1415756,
+      "gpu": 1284888,
+      "triangles": 9734,
+      "draws": 200,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "signs/pool-7a46e9ff1ce7fa8201a228df34b3d359edbcac82a7918c0d87136984982ad4df.glb",
+      "path": "blobs/glb/7a46e9ff1ce7fa8201a228df34b3d359edbcac82a7918c0d87136984982ad4df.glb",
+      "kind": "glb",
+      "hash": "7a46e9ff1ce7fa8201a228df34b3d359edbcac82a7918c0d87136984982ad4df",
+      "compressed": 256116,
+      "decoded": 256088,
+      "gpu": 126984,
+      "triangles": 962,
+      "draws": 200,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "signs/pool-9c63350a1a35f243e2875ec4a51853da475aef4a4123e21dc863b024d73c1fa2.glb",
+      "path": "blobs/glb/9c63350a1a35f243e2875ec4a51853da475aef4a4123e21dc863b024d73c1fa2.glb",
+      "kind": "glb",
+      "hash": "9c63350a1a35f243e2875ec4a51853da475aef4a4123e21dc863b024d73c1fa2",
+      "compressed": 245452,
+      "decoded": 245424,
+      "gpu": 116160,
+      "triangles": 880,
+      "draws": 200,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "signs/pool-e1142afc58e14234fb8c945b851487f6e4f5fe8111b5190fe35f10d9709eb3eb.glb",
+      "path": "blobs/glb/e1142afc58e14234fb8c945b851487f6e4f5fe8111b5190fe35f10d9709eb3eb.glb",
+      "kind": "glb",
+      "hash": "e1142afc58e14234fb8c945b851487f6e4f5fe8111b5190fe35f10d9709eb3eb",
+      "compressed": 258020,
+      "decoded": 257992,
+      "gpu": 128832,
+      "triangles": 976,
+      "draws": 200,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "signs/pool-b2c250d1f200cde36c0cce3047c7e70c164d21f7dceac1a185a1bb157ee8b0f4.glb",
+      "path": "blobs/glb/b2c250d1f200cde36c0cce3047c7e70c164d21f7dceac1a185a1bb157ee8b0f4.glb",
+      "kind": "glb",
+      "hash": "b2c250d1f200cde36c0cce3047c7e70c164d21f7dceac1a185a1bb157ee8b0f4",
+      "compressed": 258472,
+      "decoded": 258444,
+      "gpu": 129360,
+      "triangles": 980,
+      "draws": 200,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "signs/pool-9c542d6f0f8814bbc34c99fb57c68cbfcc8640e8fa7f15e7b310461115e24af0.glb",
+      "path": "blobs/glb/9c542d6f0f8814bbc34c99fb57c68cbfcc8640e8fa7f15e7b310461115e24af0.glb",
+      "kind": "glb",
+      "hash": "9c542d6f0f8814bbc34c99fb57c68cbfcc8640e8fa7f15e7b310461115e24af0",
+      "compressed": 260112,
+      "decoded": 260084,
+      "gpu": 130944,
+      "triangles": 992,
+      "draws": 200,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "signs/pool-5cf78d988b8f0e018008da90e9676204287dcb9f8746e7ccb70e24392da90d49.glb",
+      "path": "blobs/glb/5cf78d988b8f0e018008da90e9676204287dcb9f8746e7ccb70e24392da90d49.glb",
+      "kind": "glb",
+      "hash": "5cf78d988b8f0e018008da90e9676204287dcb9f8746e7ccb70e24392da90d49",
+      "compressed": 260092,
+      "decoded": 260064,
+      "gpu": 130944,
+      "triangles": 992,
+      "draws": 200,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "signs/pool-9dd6138c52aeeed0dc9d77d03f54088c9af761ebd7e0a3e69bd678c210b79cd6.glb",
+      "path": "blobs/glb/9dd6138c52aeeed0dc9d77d03f54088c9af761ebd7e0a3e69bd678c210b79cd6.glb",
+      "kind": "glb",
+      "hash": "9dd6138c52aeeed0dc9d77d03f54088c9af761ebd7e0a3e69bd678c210b79cd6",
+      "compressed": 260892,
+      "decoded": 260864,
+      "gpu": 131736,
+      "triangles": 998,
+      "draws": 200,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "signs/pool-87bd4f0d4f6e325fbf2f66d4e5c4038e03ea2c50feaf8a72fbfc959a4655e794.glb",
+      "path": "blobs/glb/87bd4f0d4f6e325fbf2f66d4e5c4038e03ea2c50feaf8a72fbfc959a4655e794.glb",
+      "kind": "glb",
+      "hash": "87bd4f0d4f6e325fbf2f66d4e5c4038e03ea2c50feaf8a72fbfc959a4655e794",
+      "compressed": 256856,
+      "decoded": 256828,
+      "gpu": 127512,
+      "triangles": 966,
+      "draws": 200,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "signs/pool-e06a072925899e106dd30a73c802af622c2289aabb1ea0b8e61e57147bb36df0.glb",
+      "path": "blobs/glb/e06a072925899e106dd30a73c802af622c2289aabb1ea0b8e61e57147bb36df0.glb",
+      "kind": "glb",
+      "hash": "e06a072925899e106dd30a73c802af622c2289aabb1ea0b8e61e57147bb36df0",
+      "compressed": 21456,
+      "decoded": 21428,
+      "gpu": 11088,
+      "triangles": 84,
+      "draws": 16,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "signs/atlas-phone.json",
+      "path": "blobs/json/f701a34b02ab577a525585b4748aa3ae30e70095c63389307a66448fb8d71085.json",
+      "kind": "json",
+      "hash": "f701a34b02ab577a525585b4748aa3ae30e70095c63389307a66448fb8d71085",
+      "compressed": 673739,
+      "decoded": 673739,
+      "gpu": 0,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "signs/atlas-phone-mono.ktx2",
+      "path": "blobs/ktx2/ed70ef638d67e10d71716f43a7f90aebc34e5b4319ddd5ad0086f510d085e4e6.ktx2",
+      "kind": "ktx2",
+      "hash": "ed70ef638d67e10d71716f43a7f90aebc34e5b4319ddd5ad0086f510d085e4e6",
+      "compressed": 59218,
+      "decoded": 2097152,
+      "gpu": 2796203,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "signs/atlas-phone-colour.ktx2",
+      "path": "blobs/ktx2/9dc34d63d213db9398e88992cbfec9f6301ff72c9ae19f3499b2e967a7a48684.ktx2",
+      "kind": "ktx2",
+      "hash": "9dc34d63d213db9398e88992cbfec9f6301ff72c9ae19f3499b2e967a7a48684",
+      "compressed": 53275,
+      "decoded": 2097152,
+      "gpu": 2796204,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "signs/glyphs-phone.ktx2",
+      "path": "blobs/ktx2/19e7f333542eedf98723ef2a67aa422e7d77544c1b2612edd901d892243e43a2.ktx2",
+      "kind": "ktx2",
+      "hash": "19e7f333542eedf98723ef2a67aa422e7d77544c1b2612edd901d892243e43a2",
+      "compressed": 226533,
+      "decoded": 2097152,
+      "gpu": 4194304,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "signs/pool-9238bff9c3dc90a002930b95e11775b365b490b43b2076ed0ea3d1bd906685b0.glb",
+      "path": "blobs/glb/9238bff9c3dc90a002930b95e11775b365b490b43b2076ed0ea3d1bd906685b0.glb",
+      "kind": "glb",
+      "hash": "9238bff9c3dc90a002930b95e11775b365b490b43b2076ed0ea3d1bd906685b0",
+      "compressed": 403176,
+      "decoded": 403148,
+      "gpu": 276936,
+      "triangles": 2098,
+      "draws": 200,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "signs/pool-800578641fc63532010645b367eece677a48a2198d87532251d74d2b187fe40c.glb",
+      "path": "blobs/glb/800578641fc63532010645b367eece677a48a2198d87532251d74d2b187fe40c.glb",
+      "kind": "glb",
+      "hash": "800578641fc63532010645b367eece677a48a2198d87532251d74d2b187fe40c",
+      "compressed": 159628,
+      "decoded": 159600,
+      "gpu": 33792,
+      "triangles": 256,
+      "draws": 200,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "signs/pool-c4b3b52b6773e677a89e90fd48c788fd67853da83c117827714994de779255fa.glb",
+      "path": "blobs/glb/c4b3b52b6773e677a89e90fd48c788fd67853da83c117827714994de779255fa.glb",
+      "kind": "glb",
+      "hash": "c4b3b52b6773e677a89e90fd48c788fd67853da83c117827714994de779255fa",
+      "compressed": 152600,
+      "decoded": 152572,
+      "gpu": 26400,
+      "triangles": 200,
+      "draws": 200,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "signs/pool-33a5322b74d9187568186091b23c4db2def46f785bfc90d42161bd535419ad41.glb",
+      "path": "blobs/glb/33a5322b74d9187568186091b23c4db2def46f785bfc90d42161bd535419ad41.glb",
+      "kind": "glb",
+      "hash": "33a5322b74d9187568186091b23c4db2def46f785bfc90d42161bd535419ad41",
+      "compressed": 158288,
+      "decoded": 158260,
+      "gpu": 32472,
+      "triangles": 246,
+      "draws": 200,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "signs/atlas-desktop.json",
+      "path": "blobs/json/5a485b54f860fb6fdf462e7f04ebbd026dbcfd095169da9bad1481fa19a209bd.json",
+      "kind": "json",
+      "hash": "5a485b54f860fb6fdf462e7f04ebbd026dbcfd095169da9bad1481fa19a209bd",
+      "compressed": 673741,
+      "decoded": 673741,
+      "gpu": 0,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "signs/atlas-desktop-mono.ktx2",
+      "path": "blobs/ktx2/93ce696c4b801d68d4b8480a002636957b534867a20d6b11cef3bb770e87d0d0.ktx2",
+      "kind": "ktx2",
+      "hash": "93ce696c4b801d68d4b8480a002636957b534867a20d6b11cef3bb770e87d0d0",
+      "compressed": 126264,
+      "decoded": 8388608,
+      "gpu": 11184811,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "signs/atlas-desktop-colour.ktx2",
+      "path": "blobs/ktx2/66b02edd38b79512bc000973f755a5d322ecba1469512e1d21521d99a09010d5.ktx2",
+      "kind": "ktx2",
+      "hash": "66b02edd38b79512bc000973f755a5d322ecba1469512e1d21521d99a09010d5",
+      "compressed": 106458,
+      "decoded": 8388608,
+      "gpu": 11184812,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "signs/glyphs-desktop.ktx2",
+      "path": "blobs/ktx2/78a67ae0617a833839110c2efbdad963949852d4312ba019dac8cb5ed3e540fe.ktx2",
+      "kind": "ktx2",
+      "hash": "78a67ae0617a833839110c2efbdad963949852d4312ba019dac8cb5ed3e540fe",
+      "compressed": 792324,
+      "decoded": 8388608,
+      "gpu": 16777216,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    }
+  ]
+}
