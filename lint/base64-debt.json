@@ -31,7 +31,7 @@
     "scripts/progress-trailer/era-audio.mjs": 1,
     "scripts/proof-driftwood-look-parity.mjs": 2,
     "scripts/proof-nalati-look-parity.mjs": 2,
-    "scripts/proof-pine-look-parity.mjs": 3,
+    "scripts/proof-pine-look-parity.mjs": 1,
     "scripts/proof-signal-look-parity.mjs": 3,
     "scripts/proof-sky-look-parity.mjs": 3,
     "scripts/skin-playback/run.mjs": 2,
