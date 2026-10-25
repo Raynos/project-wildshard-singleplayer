@@ -5,6 +5,7 @@ import { vec3 } from 'three/tsl';
 import { EngineNodesHandler } from '../nodes/engineNodesHandler';
 import { compileGraph } from './compile';
 import { Scope } from '../../app/scope';
+import type { GraphNode } from '@wildshard/format/materialGraph';
 import { patchShader, PATCH_ORDER } from '../shaderPatches';
 
 vi.stubGlobal('ImageBitmap', class ImageBitmap { readonly width = 0; });
@@ -154,14 +155,25 @@ test('an equivalent scene refreshes the warm program uniform bindings', () => {
 
 test('lent post inputs retain distinct sampler slots before and after placeholder retargeting', () => {
   const renderer = rendererFixture(), handler = new EngineNodesHandler(); handler.setRenderer(renderer);
+  const nodes: Record<string, GraphNode> = {
+    uv: { op: 'screenUV' }, source: { op: 'texture', param: 'source', in: ['uv'] },
+    bloom: { op: 'texture', param: 'bloom', in: ['uv'] }, gain: { op: 'param', param: 'gain' },
+    rgbSource: { op: 'swizzle', in: ['source'], mask: 'xyz' }, rgbBloom: { op: 'swizzle', in: ['bloom'], mask: 'xyz' },
+    scaled: { op: 'mul', in: ['rgbBloom', 'gain'] },
+  };
+  let sum = 'rgbSource';
+  for (let i = 1; i <= 17; i++) {
+    nodes[`uv${i}`] = { op: 'add', in: ['uv', [i / 100, 0]] };
+    nodes[`sample${i}`] = { op: 'texture', param: 'source', in: [`uv${i}`] };
+    nodes[`rgb${i}`] = { op: 'swizzle', in: [`sample${i}`], mask: 'xyz' };
+    nodes[`sum${i}`] = { op: 'add', in: [sum, `rgb${i}`] }; sum = `sum${i}`;
+  }
+  nodes['average'] = { op: 'div', in: [sum, 18] };
+  nodes['result'] = { op: 'add', in: ['average', 'scaled'] };
   const graph = compileGraph({ version: 1, kind: 'post', params: {
     source: { type: 'texture', role: 'lent', value: 'source' }, bloom: { type: 'texture', role: 'lent', value: 'bloom' },
     gain: { type: 'float', value: .5 },
-  }, nodes: { uv: { op: 'screenUV' }, source: { op: 'texture', param: 'source', in: ['uv'] },
-    bloom: { op: 'texture', param: 'bloom', in: ['uv'] }, gain: { op: 'param', param: 'gain' },
-    rgbSource: { op: 'swizzle', in: ['source'], mask: 'xyz' }, rgbBloom: { op: 'swizzle', in: ['bloom'], mask: 'xyz' },
-    scaled: { op: 'mul', in: ['rgbBloom', 'gain'] }, sum: { op: 'add', in: ['rgbSource', 'scaled'] } },
-  stages: { post: { colour: 'sum' } } });
+  }, nodes, stages: { post: { colour: 'result' } } });
   const geometry = new THREE.PlaneGeometry(), mesh = new THREE.Mesh(geometry, graph.material), camera = new THREE.PerspectiveCamera();
   const source = new THREE.DataTexture(new Uint8Array([128, 32, 16, 255]), 1, 1);
   const bloom = new THREE.DataTexture(new Uint8Array([16, 64, 32, 255]), 1, 1);

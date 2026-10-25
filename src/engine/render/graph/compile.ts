@@ -523,6 +523,8 @@ function compileOwned(input: unknown, opts: CompileGraphOptions, owner: GraphNod
   const lent = new Map<string, ((next: THREE.Texture) => void)[]>();
   /** the texture each lent param was lent last, for its samples not built yet */
   const lentNow = new Map<string, THREE.Texture>();
+  // One logical sampler per input, even when a blur reads it at many UVs.
+  const lentRoots = new Map<string, ReturnType<typeof retargetableTexture>>();
   const arraySamplers = new Set<string>(), volumeSamplers = new Set<string>();
   const findArraySamplers = (nodes: Readonly<Record<string, GraphNode>>): void => {
     for (const node of Object.values(nodes)) {
@@ -602,10 +604,12 @@ function compileOwned(input: unknown, opts: CompileGraphOptions, owner: GraphNod
   const depthNear = uniform(opts.depth?.near ?? 0.1), depthFar = uniform(opts.depth?.far ?? 1000);
   // every scene-input sample, by input, so `setTargets` can move them to the composer's buffers
   const taps: Record<'scene' | 'depth' | 'normal', ((next: THREE.Texture) => void)[]> = { scene: [], depth: [], normal: [] };
+  const tapRoots = new Map<string, ReturnType<typeof retargetableTexture>>();
   const tap = (slot: 'scene' | 'depth' | 'normal', map: THREE.Texture, at: Node<'vec2'>): Node<'vec4'> => {
-    const sample = retargetableTexture(map, at);
-    taps[slot].push(sample.retarget);
-    return sample.node;
+    let sample = tapRoots.get(slot);
+    if (sample === undefined) { sample = retargetableTexture(map, at); tapRoots.set(slot, sample); taps[slot].push(sample.retarget); }
+    if (!(sample.node instanceof TextureNode)) throw new Error('material graph: scene sample is not a texture node');
+    return sample.node.sample(at);
   };
   const weight = uniform(1);
   interface Scope { readonly uniforms?: ReadonlyMap<string, Val>; readonly lightDeps?: ReadonlySet<string>; readonly lightMemo?: Map<string, Val>; readonly nodes: Readonly<Record<string, GraphNode>>; readonly parent: Scope | null; readonly memo: Map<string, Val>; readonly acc: Val | null; readonly index: Val | null }
@@ -953,11 +957,16 @@ function compileOwned(input: unknown, opts: CompileGraphOptions, owner: GraphNod
         };
         const file = n.param === undefined ? undefined : texParams.get(n.param);
         if (file?.role === 'lent' && n.param !== undefined) {
-          const array = n.op === 'textureArray';
-          const sample = retargetableTexture(lentNow.get(n.param) ?? (array ? lentArrayStandIn() : lentStandIn()), asVec2(one())), list = lent.get(n.param) ?? [];
-          list.push(sample.retarget); lent.set(n.param, list);
+          const array = n.op === 'textureArray', sampleUv = asVec2(one());
+          let sample = lentRoots.get(n.param);
+          if (sample === undefined) {
+            sample = retargetableTexture(lentNow.get(n.param) ?? (array ? lentArrayStandIn() : lentStandIn()), sampleUv);
+            lentRoots.set(n.param, sample);
+            const list = lent.get(n.param) ?? []; list.push(sample.retarget); lent.set(n.param, list);
+          }
           if (!(sample.node instanceof TextureNode)) throw new Error('material graph: lent sample is not a texture node');
-          const sampled = array ? sample.node.depth(new MathNode('floor', asFloat(two()[1]).add(0.5))) : sample.node;
+          const at = sample.node.sample(sampleUv);
+          const sampled = array ? at.depth(new MathNode('floor', asFloat(two()[1]).add(0.5))) : at;
           return { t: 'vec4', n: sampling(sampled) };
         }
         if (file === undefined || file.role === 'lent' || opts.textures === undefined) throw new Error(`material graph: texture ${String(n.param)} needs { textures }`);
