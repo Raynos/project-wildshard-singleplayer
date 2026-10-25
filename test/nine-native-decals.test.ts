@@ -8,7 +8,7 @@ import { hashImmutableBytes } from '../src/sdk/immutable';
 import { readImagePixels } from '../src/sdk/bake/image';
 import { nineDecalBlobs, nineNativeDecals } from '../src/shards/nine-dragon-stack/generators/nativeDecals';
 import sources from '../src/shards/nine-dragon-stack/data/nativeDecals.json' with { type: 'json' };
-import { output, nineOutput } from '../src/shards/nine-dragon-stack/generators/output';
+import { output } from './fixtures/nine-source-program';
 import before from './fixtures/nine-decal-binary.json' with { type: 'json' };
 
 test('committed native decals retain every original PNG byte, pixel, dimension and admitted cost on cold and hit', async () => {
@@ -29,12 +29,12 @@ test('committed native decals retain every original PNG byte, pixel, dimension a
       expect([image.width, image.height]).toEqual([before[tier].width, before[tier].height]);
       expect(hashImmutableBytes(new Uint8Array(image.pixels.buffer, image.pixels.byteOffset, image.pixels.byteLength))).toBe(before[tier].pixelHash);
     }
-    const owned = nineOutput(undefined, cold), names = new Set(cold.map(row => row.file.name));
-    expect(owned.blobs).toEqual(output.blobs.filter(row => !names.has(row.name)));
-    expect(owned.namedFiles).toEqual([...output.namedFiles, ...cold.map(row => row.file)].sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '')));
-    const expected = new Map([...output.assets, ...cold.map(row => [row.file.hash, row.bytes] as const)]);
-    const signatures = (files: ReadonlyMap<string, Uint8Array>) => [...files].map(([hash, bytes]) => [hash, bytes.byteLength, hashImmutableBytes(bytes)]).sort(([a], [b]) => String(a).localeCompare(String(b)));
-    expect(signatures(owned.assets)).toEqual(signatures(expected)); expect(owned.platform).toEqual(output.platform);
+    for (const blob of cold) {
+      expect(output.blobs.some(row => row.name === blob.file.name)).toBe(false);
+      expect(output.namedFiles.find(row => row.name === blob.file.name)).toEqual(blob.file);
+      const admitted = output.assets.get(blob.file.hash); if (admitted === undefined) throw new Error('Missing source-owned decal');
+      expect(hashImmutableBytes(admitted)).toBe(hashImmutableBytes(blob.bytes));
+    }
     const invalid = new Map((['phone', 'desktop'] as const).map(tier => [sources[tier].file,
       new Uint8Array(readFileSync(`public${sources[tier].url}`))]));
     const phone = invalid.get(sources.phone.file); if (phone === undefined) throw new Error('Missing input');

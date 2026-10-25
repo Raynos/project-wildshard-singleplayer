@@ -1,5 +1,6 @@
-// oxlint-disable-next-line unicorn/prefer-export-from -- E434 forbids re-export barrels.
-import product from './generators/product';
+import { generate as generateNine } from './generators/generate';
 
-// oxlint-disable-next-line import/no-default-export -- Documented entry for SDK author projects.
-export default product;
+/** Source generation owns both the declaration and its admitted output. */
+export const generate = generateNine;
+// oxlint-disable-next-line import/no-default-export -- The documented author entry is the source program.
+export default generate;

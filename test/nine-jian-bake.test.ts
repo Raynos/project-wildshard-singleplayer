@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { BufferAttribute, BufferGeometryLoader, MaterialLoader, ShaderMaterial, type BufferGeometry } from 'three';
-import { output } from '../src/shards/nine-dragon-stack/generators/output';
+import { output } from './fixtures/nine-source-program';
 import baseline from './fixtures/nine-jian-buffers.json' with { type: 'json' };
 
 async function hash(bytes: Uint8Array): Promise<string> {

@@ -4,7 +4,7 @@ import * as v from 'valibot';
 import { expect, test } from 'vitest';
 import { DataTexture, RGFormat, UnsignedByteType } from 'three';
 import { nineSignBlobs } from './fixtures/nine-sign-blobs';
-import { output } from '../src/shards/nine-dragon-stack/generators/output';
+import { output } from './fixtures/nine-source-program';
 import baseline from './fixtures/nine-glyphs.json' with { type: 'json' };
 import { FONT_CHARS, WORDS } from '../src/shards/nine-dragon-stack/generators/words';
 import signRows from '../src/shards/nine-dragon-stack/data/signView.json' with { type: 'json' };

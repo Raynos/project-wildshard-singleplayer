@@ -13,7 +13,7 @@ publishes owned image blobs. The existing output reader remains the CLI authorit
 To check native staleness without writing any source output:
 
 ```sh
-bash scripts/browser-lane.sh node --experimental-transform-types --import ./scripts/bake-loader.mjs src/shards/nine-dragon-stack/generators/bake-decal-atlas.mjs --authored --check
+bash scripts/browser-lane.sh node --experimental-transform-types --import ./scripts/bake-loader.mjs src/shards/nine-dragon-stack/generators/bake-decal-atlas.mjs --check
 ```
 
 Drop `--check` only for an intentional native asset rebuild; update the byte pins and retain the full pixel oracles.

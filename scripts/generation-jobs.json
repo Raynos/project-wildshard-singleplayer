@@ -10573,35 +10573,6 @@
       ]
     },
     {
-      "id": "nine-movers-view",
-      "shard": "nine-dragon-stack",
-      "entry": "src/shards/nine-dragon-stack/generators/bake-movers-view.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/shards/nine-dragon-stack/generators/bake-movers-view.mjs"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "src/format",
-        "src/sdk",
-        "src/shards/nine-dragon-stack/behaviour/movers.as",
-        "src/shards/nine-dragon-stack/generators/bake-movers-view.mjs",
-        "src/shards/nine-dragon-stack/generators/moversProgram.ts"
-      ],
-      "outputs": [
-        "src/shards/nine-dragon-stack/behaviour/movers.generated.json",
-        "src/shards/nine-dragon-stack/behaviour/movers.generated.wasm"
-      ],
-      "platform": "portable",
-      "buildTimeOutputs": [
-        "src/shards/nine-dragon-stack/behaviour/movers.generated.json",
-        "src/shards/nine-dragon-stack/behaviour/movers.generated.wasm"
-      ]
-    },
-    {
       "id": "driftwood-director",
       "shard": "driftwood-isle",
       "entry": "src/shards/driftwood-isle/generators/bake-driftwood-director.mjs",
@@ -16286,48 +16257,6 @@
       "platform": "darwin"
     },
     {
-      "id": "nine-decal-atlas",
-      "shard": "nine-dragon-stack",
-      "entry": "src/shards/nine-dragon-stack/generators/bake-decal-atlas.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/shards/nine-dragon-stack/generators/bake-decal-atlas.mjs"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "src/engine/package.json",
-        "src/game/package.json",
-        "src/format/package.json",
-        "src/sdk/package.json",
-        "scripts/bake-output.mjs",
-        "src/sdk/bake/source-loader.mjs",
-        "src/sdk/bake/image.ts",
-        "src/sdk/bake/worldImage.ts",
-        "src/shards/nine-dragon-stack/generators/bake-decal-atlas.mjs",
-        "src/shards/nine-dragon-stack/generators/decalAtlasPage.ts",
-        "src/shards/nine-dragon-stack/data/decals.json",
-        "src/shards/nine-dragon-stack/data/plumbing.json",
-        "src/game/plugin/geometry.ts",
-        "src/engine/core/rng.ts",
-        "src/engine/core/noise.ts",
-        "src/engine",
-        "budgets/desktop-reference.json",
-        "src/game"
-      ],
-      "outputs": [
-        "src/shards/nine-dragon-stack/data/heldDecals.generated.json",
-        "src/shards/nine-dragon-stack/assets/af1d80c86f41a8e66c4949645f9ed42cd563888a02b930410be46f06f5528242",
-        "src/shards/nine-dragon-stack/assets/5616ef471c7572f8ce43fe4bba8e167ce7f4ab0b5985d2003018454d17b6e634"
-      ],
-      "platform": "darwin",
-      "browser": true,
-      "catalogueDependencies": []
-    },
-    {
       "id": "nalati-sign-atlases",
       "shard": "nalati-grasslands",
       "entry": "src/shards/nalati-grasslands/generators/bake-sign-atlases.mjs",
@@ -19098,49 +19027,6 @@
         "src/shards/nalati-grasslands/assets/world-terrain/ground-l1-1-3.generated.glb"
       ],
       "platform": "native"
-    },
-    {
-      "id": "nine-entry-proof",
-      "shard": "nine-dragon-stack",
-      "entry": "src/shards/nine-dragon-stack/generators/bake-entry-proof.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./scripts/bake-loader.mjs",
-        "src/shards/nine-dragon-stack/generators/bake-entry-proof.mjs"
-      ],
-      "inputRoots": [
-        "src/shards/nine-dragon-stack/generators/bake-entry-proof.mjs",
-        "src/shards/nine-dragon-stack/generators/headless.ts",
-        "src/shards/nine-dragon-stack/generators/bakedColliders.ts",
-        "src/shards/nine-dragon-stack/data/layoutPlan.json",
-        "src/shards/nine-dragon-stack/data/portals.json",
-        "src/shards/nine-dragon-stack/data/grappleProfile.json",
-        "src/game",
-        "src/engine",
-        "src/sdk",
-        "src/format",
-        "scripts/bake-loader.mjs",
-        "scripts/bake-output.mjs",
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "src/shards/nine-dragon-stack/generators/portalEntries.ts",
-        "src/shards/nine-dragon-stack/generators/portalFloors.ts",
-        "src/shards/nine-dragon-stack/generators/decks.json",
-        "src/shards/nine-dragon-stack/data/physicsRows.json",
-        "src/shards/nine-dragon-stack/generators/floorBoxes.ts",
-        "src/shards/nine-dragon-stack/generators/fronts.ts",
-        "src/shards/nine-dragon-stack/generators/physics.ts",
-        "src/shards/nine-dragon-stack/generators/physicsPlacements.ts"
-      ],
-      "outputs": [
-        "src/shards/nine-dragon-stack/data/entryProof.generated.json"
-      ],
-      "platform": "portable",
-      "buildTimeOutputs": [
-        "src/shards/nine-dragon-stack/data/entryProof.generated.json"
-      ]
     },
     {
       "id": "nalati-crags-blob",

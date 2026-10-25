@@ -17,18 +17,18 @@ import type { ShardContext } from '../src/game/plugin/context';
 import { emptyShardfile } from '../src/sdk/author';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { ninePracticeRows,ninePracticeBytes } from './fixtures/nine-practice-modules';
+import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
+import { NINE_MOVERS_CONTRACT } from '../src/shards/nine-dragon-stack/generators/moversProgram';
 
 const hash=v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u)),count=v.pipe(v.number(),v.safeInteger(),v.minValue(1));
 const compiled=v.strictObject({source:v.string(),bytes:count,hash});
-test('both actual raw executables and complete original contracts remain byte-identical',()=>{
+test('both actual raw executables and complete original contracts remain byte-identical',async()=>{
   const practice=v.parse(v.strictObject({script:v.unknown(),bytes:v.literal(''),compiled}),JSON.parse(readFileSync('src/shards/nine-dragon-stack/behaviour/practice.generated.json','utf8')));
-  const movers=v.parse(v.strictObject({lane:v.literal('view'),pages:v.literal(1),ioBytes:v.literal(4096),bytes:v.literal(''),compiled}),JSON.parse(readFileSync('src/shards/nine-dragon-stack/behaviour/movers.generated.json','utf8')));
   expect(practice.compiled).toEqual({source:'behaviour/practice.generated.wasm',bytes:9786,hash:'6ffc72748c1709f4239ac983fdda5841a524a026512287fe16f0fa498b276102'});
-  expect(movers.compiled).toEqual({source:'behaviour/movers.generated.wasm',bytes:4859,hash:'3548c07ed2ac758a530cb973e7fe45962f084a76135701152486ffdb013bb276'});
   expect(hashImmutableBytes(new TextEncoder().encode(encodeCanonicalJson({script:practice.script})))).toBe('9127647ac9e42b887da2e4affd59f7e74e3a2d9c9e22263fa35991c20675e8a9');
-  expect(hashImmutableBytes(new TextEncoder().encode(encodeCanonicalJson({lane:movers.lane,pages:movers.pages,ioBytes:movers.ioBytes})))).toBe('e3576adf14d47596fbd43c7c2dc7cb682d49ea8733fd0a05cc7af69bee8d0158');
-  const view=new Uint8Array(readFileSync(`src/shards/nine-dragon-stack/${movers.compiled.source}`));
-  expect(hashImmutableBytes(ninePracticeBytes)).toBe(practice.compiled.hash);expect(hashImmutableBytes(view)).toBe(movers.compiled.hash);expect(view.byteLength).toBe(movers.compiled.bytes);
+  expect(hashImmutableBytes(new TextEncoder().encode(encodeCanonicalJson({lane:NINE_MOVERS_CONTRACT.lane,pages:NINE_MOVERS_CONTRACT.pages,ioBytes:NINE_MOVERS_CONTRACT.ioBytes})))).toBe('e3576adf14d47596fbd43c7c2dc7cb682d49ea8733fd0a05cc7af69bee8d0158');
+  const view=await compileScriptV2(readFileSync('src/shards/nine-dragon-stack/behaviour/movers.as','utf8'),{lane:NINE_MOVERS_CONTRACT.lane,ioBytes:NINE_MOVERS_CONTRACT.ioBytes});
+  expect(hashImmutableBytes(ninePracticeBytes)).toBe(practice.compiled.hash);expect(hashImmutableBytes(view)).toBe('3548c07ed2ac758a530cb973e7fe45962f084a76135701152486ffdb013bb276');expect(view.byteLength).toBe(4859);
   expect(()=>admitScriptContract(ninePracticeBytes,{abi:1,pages:1})).not.toThrow();
   expect(()=>admitScriptContract(view,{abi:2,lane:'view',pages:1,ioBytes:4096,compilerRevision:SCRIPT_V2_REVISIONS.compiler,admissionRevision:SCRIPT_V2_REVISIONS.admission})).not.toThrow();
 });

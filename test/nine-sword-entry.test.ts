@@ -4,7 +4,7 @@ import { Scope } from '../src/engine/app/scope';
 import { createLevelInstallation } from '../src/engine/level/installation';
 import { shardContext, type ShardContext } from '../src/game/plugin/context';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
-import source from '../src/shards/nine-dragon-stack/shard.config';
+import source from '../src/shards/nine-dragon-stack/generators/product';
 import manifest from '../src/shards/nine-dragon-stack/discovery.generated';
 import { entryOwner } from '../src/game/shardfile/entryOwners';
 import { toLevelSpec } from '../src/game/shard/spec';

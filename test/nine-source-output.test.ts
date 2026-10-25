@@ -7,13 +7,14 @@ import { Buffer } from 'node:buffer';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
 import { createProjectGeneration } from '../src/sdk/projectGeneration';
-import { prepareProjectOutput, type PreparedProjectOutput } from '../src/sdk/projectOutput';
+import { prepareProjectOutput } from '../src/sdk/projectOutput';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { SCRIPT_V2_REVISIONS } from '../src/format/scriptAdmissionV2';
 import { prepareAssetDecoders } from '../src/format/product';
 import { NINE_MOVERS_CONTRACT } from '../src/shards/nine-dragon-stack/generators/moversProgram';
 import { nineSourceOutput } from '../src/shards/nine-dragon-stack/generators/sourceOutput';
-import { output } from '../src/shards/nine-dragon-stack/generators/output';
+import before from './fixtures/nine-admitted-output.json' with { type: 'json' };
+import { nineOutputReceipt } from './fixtures/nine-output-receipt';
 import { parseBurstFields } from '../src/shards/nine-dragon-stack/generators/sections';
 import type { NineOutput } from '../src/shards/nine-dragon-stack/generators/productOutput';
 import bursts from '../src/shards/nine-dragon-stack/data/burstFields.json' with { type: 'json' };
@@ -37,23 +38,6 @@ function sameOutput(actual: NineOutput, expected: NineOutput): void {
   sameFiles(actual.platform.files, expected.platform.files); sameFiles(actual.assets, expected.assets);
 }
 
-function samePrepared(actual: PreparedProjectOutput, expected: PreparedProjectOutput): void {
-  const rows = (value: PreparedProjectOutput) => [...value.blobs].sort((a, b) => a.file.path.localeCompare(b.file.path));
-  const blobs = rows(actual), originals = rows(expected);
-  expect(blobs.map(({ file, script }) => ({ file, script }))).toEqual(originals.map(({ file, script }) => ({ file, script })));
-  for (const [index, blob] of blobs.entries()) {
-    const original = originals[index]; if (original === undefined) throw new Error('Missing original blob');
-    sameBytes(blob.bytes, original.bytes, blob.file.path);
-  }
-  expect(actual.options.namedFiles).toEqual(expected.options.namedFiles);
-  expect(actual.options.platform?.sections).toEqual(expected.options.platform?.sections);
-  expect(actual.options.custom?.sections).toEqual(expected.options.custom?.sections);
-  sameFiles(actual.options.platform?.files ?? new Map(), expected.options.platform?.files ?? new Map());
-  sameFiles(actual.options.custom?.files ?? new Map(), expected.options.custom?.files ?? new Map());
-  const physical = (value: PreparedProjectOutput) => new Map([...value.assets, ...value.blobs.map(row => [row.file.hash, row.bytes] as const)]);
-  sameFiles(physical(actual), physical(expected));
-}
-
 test('cold and hit source output retain every original admitted file byte and contract with fresh proofs', async () => {
   await prepareAssetDecoders();
   mkdirSync('tmp', { recursive: true }); const cache = mkdtempSync(resolve('tmp', 'nine-source-output-'));
@@ -70,8 +54,7 @@ test('cold and hit source output retain every original admitted file byte and co
       proveStaticPortalEntries: (...args) => { proofs++; return hitContext.proveStaticPortalEntries(...args); } });
     expect(proofs).toBe(2);
     sameOutput(hit, cold);
-    const expected = await prepareProjectOutput(project, output);
-    samePrepared(await prepareProjectOutput(project, cold), expected);
+    expect(nineOutputReceipt(await prepareProjectOutput(project, cold))).toEqual(before);
     expect(NINE_MOVERS_CONTRACT).toMatchObject({ compilerRevision: SCRIPT_V2_REVISIONS.compiler, admissionRevision: SCRIPT_V2_REVISIONS.admission });
   } finally { rmSync(cache, { recursive: true, force: true }); }
 });
