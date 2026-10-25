@@ -14,3 +14,22 @@
 @media (max-width: 700px) {
   .ws-update { right: 16px; }
 }
+
+/* Renderer-free loading handoff; deliberately not .ws-load, which title-first hides. */
+.ws-update-screen { position: fixed; inset: 0; z-index: calc(var(--ws-layer-modal) + 10); display: flex; flex-direction: column; align-items: center; gap: 32px; overflow-y: auto; box-sizing: border-box; padding: calc(44px + env(safe-area-inset-top, 0px)) 16px calc(24px + env(safe-area-inset-bottom, 0px)); background: radial-gradient(ellipse at 50% 30%, #0d1a26 0%, #06090f 60%, #030508 100%); color: var(--ws-text); font-family: var(--ws-mono); touch-action: pan-y; overscroll-behavior: contain; outline: none; }
+.ws-update-screen-head { width: 100%; max-width: 560px; }
+.ws-update-screen .ws-wordmark { font: 700 34px/1 var(--ws-display); letter-spacing: .06em; text-transform: uppercase; color: #fff; }
+.ws-update-screen .ws-wordmark b { color: var(--ws-cyan); }
+.ws-update-screen-panel { width: 100%; max-width: 560px; box-sizing: border-box; padding: 20px 18px; }
+.ws-update-screen h1 { display: flex; align-items: baseline; gap: 16px; margin: 0; font: 700 20px var(--ws-display); letter-spacing: .14em; text-transform: uppercase; }
+.ws-update-screen-clock { margin-left: auto; font: 12px var(--ws-mono); color: var(--ws-cyan); font-variant-numeric: tabular-nums; }
+.ws-update-screen ol { list-style: none; counter-reset: update-step; padding: 0; margin: 24px 0; }
+.ws-update-screen li { counter-increment: update-step; display: flex; align-items: center; gap: 12px; min-height: 42px; font-size: 12px; color: var(--ws-text-dim); border-bottom: 1px solid rgba(143, 227, 255, .08); }
+.ws-update-screen li::before { content: counter(update-step); width: 22px; height: 22px; display: grid; place-items: center; flex: none; border: 1px solid var(--ws-cyan-line); font-size: 10px; }
+.ws-update-screen li[data-state='active'] { color: #fff; }
+.ws-update-screen li[data-state='active']::before { color: var(--ws-cyan); border-color: var(--ws-cyan); box-shadow: 0 0 12px rgba(143, 227, 255, .25); }
+.ws-update-screen li[data-state='done'] { color: var(--ws-cyan-dim); }
+.ws-update-screen-fact { margin: 0; font-size: 11px; line-height: 1.7; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.ws-update-screen button { width: 100%; min-height: 48px; margin-top: 18px; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan); color: var(--ws-cyan); font: 700 16px var(--ws-display); cursor: pointer; }
+.ws-update-screen button:focus-visible { outline: 2px solid var(--ws-cyan); outline-offset: 3px; }
+.ws-update-screen button[hidden] { display: none; }

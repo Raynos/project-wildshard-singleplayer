@@ -18,6 +18,7 @@ import { engineString } from '../strings';
 import { isDev, onDev } from '../core/devMode';
 import { markReload } from '../boot/lastEnd';
 import { DownloadAccounting, observeDownloadAccounting } from '../boot/download';
+import { UpdateProgress } from './UpdateProgress';
 
 
 // The update pill exists before content is selected; keep App and Three out of the entry graph.
@@ -35,7 +36,9 @@ el.innerHTML = engineString('s_85c05389552b');
 hudSlots.widget('band.1', el, 0, scope, document.body);
 
 let busy = false;
-const reload = async (): Promise<void> => {
+let targetBuild: string | null = null;
+const screen = new UpdateProgress(scope, __BUILD_ID__, () => { busy = false; void reload(); });
+async function reload(): Promise<void> {
   if (busy) return;
   busy = true;
   const text = el.querySelector('[data-el="text"]'), attempt = scope.child('update');
@@ -51,15 +54,29 @@ const reload = async (): Promise<void> => {
   attempt.listen(window, 'pagehide', () => { attempt.dispose(); }, { once: true });
   // A newer service worker waiting: adopt it (SKIP_WAITING → controllerchange → reload, src/engine/boot/sw.ts).
   const sw = window.__ws_sw;
-  if (sw?.waiting && sw.waiting.state !== 'redundant') await sw.adopt(undefined, 'build pill tap');
+  const waiting = sw?.waiting;
+  // The new screen's first slice is Developer-only; persisted handoffs restore
+  // independently of the setting on the destination document.
+  if (isDev() || screen.active) {
+    screen.start(targetBuild, waiting !== undefined && waiting !== null && waiting.state !== 'redundant');
+    if (!await screen.present()) return;
+  }
+  if (sw && waiting && waiting.state !== 'redundant') {
+    screen.phase('install');
+    if (navigator.serviceWorker !== undefined) attempt.listen(navigator.serviceWorker, 'controllerchange', () => {
+      if (navigator.serviceWorker.controller === waiting) screen.phase('reload');
+    });
+    await sw.adopt(undefined, 'build pill tap');
+  }
   // Still here: nothing was waiting, or the hand-over never landed within adopt()'s cap — e.g. the announced worker went
   // redundant because a later deploy superseded it, which left the pill dead to taps (E53). Cache-bust the document
   // itself; keep ?chunk= and friends.
   const url = new URL(location.href);
+  screen.phase('reload');
   url.searchParams.set('v', Date.now().toString(36));
   markReload('build pill tap (?v= reload)');
   location.replace(url.toString());
-};
+}
 // pointerup as well as click: iOS drops the synthesized click when a tap jitters (index.html cancels touchmove for the
 // rubber-band), so the pill answers the lift itself; `busy` keeps the pair from running twice
 scope.listen(el, 'pointerup', () => { void reload(); });
@@ -89,8 +106,10 @@ async function check(): Promise<void> {
   try {
     const r = await fetch(`/version.json?t=${Date.now()}`, { cache: 'no-store' });
     if (!r.ok) return;
-    const j = (await r.json()) as { build?: string };
-    if (j.build !== undefined && j.build !== '' && j.build !== __BUILD_ID__) lightUp(shortBuild(j.build));
+    const j: unknown = await r.json();
+    if (typeof j === 'object' && j !== null && 'build' in j && typeof j.build === 'string' && j.build !== '' && j.build !== __BUILD_ID__) {
+      targetBuild = j.build; lightUp(shortBuild(j.build));
+    }
   } catch { /* offline — keep the plain reload pill */ }
 }
 void check();

@@ -1,5 +1,17 @@
 /** English engine UI strings. Content-owned overrides are installed by the composition root. */
 export const ENGINE_STRINGS = {
+  "s_update_heading": "Updating",
+  "s_update_found": "New build found",
+  "s_update_requested": "Refresh requested",
+  "s_update_download": "Downloading boot pack",
+  "s_update_pack_ready": "Boot pack ready",
+  "s_update_install": "Installing",
+  "s_update_no_handoff": "No worker handoff needed",
+  "s_update_reload": "Reloading title",
+  "s_update_bytes": "⟦0⟧ files · ⟦1⟧ KiB downloaded · ⟦2⟧ KiB cached",
+  "s_update_elapsed": "⟦0⟧s",
+  "s_update_waiting": "The new title has not arrived. Try updating again.",
+  "s_update_retry": "Try again",
   "s_perf_worst_frame": "max ⟦0⟧ ms⟦1⟧",
   "s_loading_modules": "Application modules",
   "s_loading_gap_setup": "gap before setup",
