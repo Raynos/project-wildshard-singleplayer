@@ -40,7 +40,8 @@
     "inbox:pull": "node scripts/inbox-pull.mjs",
     "native:sync": "pnpm build:native && cap sync && node scripts/native-paths.mjs",
     "native:ios": "bash scripts/native-ios.sh",
-    "native:android": "bash scripts/native-android.sh"
+    "native:android": "bash scripts/native-android.sh",
+    "assets:nine-glyphs": "python3 scripts/heavy-lane.py build -- bash scripts/browser-lane.sh node --experimental-transform-types --import ./scripts/bake-loader.mjs src/shards/nine-dragon-stack/generators/bake-glyphs.mjs --native-inputs"
   },
   "dependencies": {
     "@capacitor/android": "8.5.2",

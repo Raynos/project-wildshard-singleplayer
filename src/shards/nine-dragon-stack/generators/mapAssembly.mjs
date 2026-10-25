@@ -16,6 +16,7 @@ import { fixedKitRows, readFixedSlots } from './casts.ts';
 import { tintAbove } from './lods.ts';
 import { NeonText } from './neonGeometry.ts';
 import { admitNativeSignAtlas } from './nativeSignAtlas.ts';
+import { admitNativeGlyphs } from './nativeGlyphs.ts';
 
 const base = resolve(import.meta.dirname, '..'), root = resolve(base, '../../..');
 const read = file => readMapJson(resolve(base, file));
@@ -108,7 +109,10 @@ export async function nineMapAssembly() {
   // depth-off tubes, mist, steam, streaks and portal swirls are omitted by
   // the browser height pass as well; the sky and screen are above the cut.
   assembly.add('signs', atlasGeometry(atlas.geometries.world, atlasBytes));
-  const glyphs = read('data/glyphs.generated.json').desktop, sign = read('data/signView.json');
+  const glyphInputs = read('data/nativeGlyphs.json');
+  const glyphSource = admitNativeGlyphs(new Map(glyphInputs.map(row => [row.name,
+    new Uint8Array(readFileSync(resolve(root, `public${row.input}`)))])), glyphInputs);
+  const glyphs = glyphSource.glyphs.desktop, sign = read('data/signView.json');
   const field = { layout: glyphs.layout, rect: ch => { const rect = glyphs.rects[ch]; if (rect === undefined) throw new Error(`Missing map glyph ${ch}`); return rect; } };
   const neon = new NeonText(sign.model.tubeGain, field);
   for (const { p, neon: calligraphy } of atlas.placed) if (calligraphy) neon.add({ text: p.spec.text, color: p.spec.color, vertical: p.spec.vertical, em: p.size,

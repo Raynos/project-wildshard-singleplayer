@@ -11,28 +11,20 @@ import { parseKtx2 } from '../../src/format/ktx2Cost';
 import { rawKtx2, bakeSignalSand } from '../../src/shards/sunscar-dunes/generators/sand';
 import { signAtlasBlobs } from '../../src/shards/nine-dragon-stack/generators/signAtlasOutput';
 import { parseNativeSignAtlas } from '../../src/shards/nine-dragon-stack/generators/sections';
-// oxlint-disable-next-line import/no-nodejs-modules -- Read the original atlas bytes without a generated JSON type program.
-import { readFileSync } from 'node:fs';
 import { nineSignBlobs } from '../fixtures/nine-sign-blobs';
 import binaryReference from '../fixtures/nine-sign-binary.json' with { type: 'json' };
 import reference from '../fixtures/nine-sign-atlas.json' with { type: 'json' };
 import { nativeSignAtlas } from '../fixtures/nine-native-atlas';
+import { nativeGlyphs } from '../fixtures/nine-native-glyphs';
 
-const finite=v.pipe(v.number(),v.finite());
-const atlas = nativeSignAtlas.atlas;
-
-const glyphTier = v.object({ size: finite, packed: v.array(v.string()),
-  layout: v.object({ cell: finite, fontPx: finite, spread: finite, skeletonSpread: finite }),
-  rects: v.record(v.string(), v.object({ u0: finite, v0: finite, u1: finite, v1: finite })),
-});
-const glyphs = (() => {
-  const value: unknown = JSON.parse(readFileSync('src/shards/nine-dragon-stack/data/glyphs.generated.json', 'utf8'));
-  return v.parse(v.object({ phone: glyphTier, desktop: glyphTier }), value);
-})();
+const atlas = nativeSignAtlas.atlas, glyphs = nativeGlyphs.glyphs;
 
 const hash = (bytes: Uint8Array | string): string => createHash('sha256').update(bytes).digest('hex');
 const digest = (value: unknown): string => hash(JSON.stringify(value));
-const read = (file: string): Uint8Array => nativeSignAtlas.files.get(file) ?? new Uint8Array(readFileSync(`src/shards/nine-dragon-stack/data/${file}`));
+const read = (file: string): Uint8Array => {
+  const bytes = nativeSignAtlas.files.get(file) ?? nativeGlyphs.files.get(file);
+  if (bytes === undefined) throw new Error(`Missing native sign fixture ${file}`); return bytes;
+};
 const blobs = await nineSignBlobs();
 const slice = (bytes: Uint8Array, row: { byteOffset: number; byteLength: number }): Uint8Array => bytes.slice(row.byteOffset, row.byteOffset + row.byteLength);
 

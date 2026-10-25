@@ -1,9 +1,8 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- Admit glyph fixture metrics without inferring its packed pixel data.
-import { readFileSync } from 'node:fs';
 import * as v from 'valibot';
 import { expect, test } from 'vitest';
 import { DataTexture, RGFormat, UnsignedByteType } from 'three';
 import { nineSignBlobs } from './fixtures/nine-sign-blobs';
+import { nativeGlyphs } from './fixtures/nine-native-glyphs';
 import { output } from './fixtures/nine-source-program';
 import baseline from './fixtures/nine-glyphs.json' with { type: 'json' };
 import { FONT_CHARS, WORDS } from '../src/shards/nine-dragon-stack/generators/words';
@@ -14,13 +13,7 @@ import { NINE_WORLD_SCENES } from './fixtures/nine-product-inputs';
 import { worldScenesForTier } from '../src/format/worldScenes';
 import { createModelLibrary } from '../src/game/plugin/geometry';
 
-const finite=v.pipe(v.number(),v.finite());
-const glyphTier=v.object({layout:v.object({cell:finite,fontPx:finite,spread:finite,skeletonSpread:finite}),
-  rects:v.record(v.string(),v.object({u0:finite,v0:finite,u1:finite,v1:finite}))});
-const glyphs=(()=>{
-  const value:unknown=JSON.parse(readFileSync('src/shards/nine-dragon-stack/data/glyphs.generated.json','utf8'));
-  v.assert(v.object({phone:glyphTier,desktop:glyphTier}),value);return value;
-})();
+const glyphs = nativeGlyphs.glyphs;
 
 const signs = await nineSignBlobs();
 function blob(name: string): Uint8Array {

@@ -5,10 +5,10 @@ import { relative, resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { discoverGeneration, generateShardJob } from '../scripts/generate.mjs';
 
-test('the sealed map requires its native atlas root and retains the original image bytes', async () => {
+test.each(['public/assets/nine-dragon/authored/sign-atlas', 'public/assets/nine-dragon/authored/glyphs'])('the sealed map requires native root %s and retains the original image bytes', async native => {
   const root = resolve('.'), jobs = discoverGeneration(root).jobs, job = jobs.find(row => row.id === 'nine-data-map');
   if (job === undefined) throw new Error('Missing Nine map producer');
-  const native = 'public/assets/nine-dragon/authored/sign-atlas', cacheDir = mkdtempSync(resolve(root, 'tmp/nine-map-native-'));
+  const cacheDir = mkdtempSync(resolve(root, 'tmp/nine-map-native-'));
   try {
     const omitted = { ...job, inputRoots: job.inputRoots.filter(file => file !== native) };
     const catalogPath = relative(root, resolve(cacheDir, 'omitted.json'));

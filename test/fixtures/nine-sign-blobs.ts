@@ -6,9 +6,10 @@ import { type NamedBlob } from '../../src/sdk/blobs';
 import { createProjectGeneration } from '../../src/sdk/projectGeneration';
 import { nineSignsProgram } from '../../src/shards/nine-dragon-stack/generators/signsProgram';
 import { nativeSignAtlas } from './nine-native-atlas';
+import { nativeGlyphs } from './nine-native-glyphs';
 /** Exercise the same owned source/cache operation as the product writer. */
 export async function nineSignBlobs(): Promise<NamedBlob[]> {
   mkdirSync('tmp', { recursive: true }); const cache = mkdtempSync(resolve('tmp', 'nine-sign-blobs-'));
-  try { return [...(await nineSignsProgram(createProjectGeneration(resolve('src/shards/nine-dragon-stack'), 'f'.repeat(64), new Map(), cache), nativeSignAtlas)).blobs]; }
+  try { return [...(await nineSignsProgram(createProjectGeneration(resolve('src/shards/nine-dragon-stack'), 'f'.repeat(64), new Map(), cache), nativeSignAtlas, nativeGlyphs)).blobs]; }
   finally { rmSync(cache, { recursive: true, force: true }); }
 }

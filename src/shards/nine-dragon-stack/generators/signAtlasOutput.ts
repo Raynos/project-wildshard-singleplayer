@@ -4,7 +4,6 @@ import { SignAtlasSchema, parseSignView } from './sections';
 import { zstdCompressSync } from 'node:zlib';
 import { unzlibSync } from 'fflate';
 import { NeonText } from './neonGeometry';
-import legacyGlyphs from '../data/glyphs.generated.json' with { type: 'json' };
 import rawSignRows from '../data/signView.json' with { type: 'json' };
 import { signCopies } from './signCopies';
 import type { SignModelParams } from '../data/signTypes';
@@ -12,12 +11,9 @@ import { BufferAttribute, BufferGeometry, Float32BufferAttribute, MeshStandardMa
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
-import type { NineNativeAtlas, NineNativeSignInputs } from './nativeSignMetadata';
+import type { NineNativeSignInputs } from './nativeSignMetadata';
 
 const signRows = parseSignView(rawSignRows);
-
-/** Declared native raster handoffs; the source program keys their bytes explicitly. */
-export function retainedSignInputs(atlas: NineNativeAtlas): NineNativeSignInputs & { readonly atlas: NineNativeAtlas } { return { glyphs: legacyGlyphs, atlas }; }
 
 /** Re-admit cached source metadata beside the producer's existing sign validators. */
 export function parseSignSourceRows(input: unknown): { name: string; kind: 'glb' | 'ktx2' | 'json'; source: string;

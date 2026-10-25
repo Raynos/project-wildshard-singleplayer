@@ -291,7 +291,7 @@ GR3 bounded slices (G711; each <= 1 h, one producer retirement per commit):
 | Boot metadata | open | Direct checked geometry/presentation metadata |
 | Glyphs | in flight (2026-10-25, sp-x1) | G1 native producer/admission → G2 reader handoff → G3 retirement; each ≤ 1 h, original pixels/metrics retained |
 | G1 native glyph producer/admission | done | Six original native raster/metadata files (1,539,114 B) committed before readers. Both original complete pixel/metric hashes, detached cold/hit results, undeclared-root and malformed inventory/reference refusal cases pass with touched/fixture types, typed lint and related checks; no job retirement |
-| G2 native glyph reader handoff | open | Thread admitted glyph metadata/bytes through source signs and native refresh/map/test readers; full original pixels and metrics exact |
+| G2 native glyph reader handoff | done | Admitted native glyph metadata/bytes reach sign production, map and standalone fixtures; cache identity includes both metrics and bytes. All original pixels, metrics, sign wires/costs and map image bytes retained. Both sealed native-root omissions refuse; actual WebKit refresh/check, 28 focus cases, touched/fixture types, typed lint and related checks pass. No job retirement |
 | G3 glyph job retirement | open | Nine 4 → 3, six source handoffs absent through cold scoped generation; native refresh retained |
 | S1 sign-source cache | done | 28 files / 9,308,309 B and all 27 admitted rows exact; cold/hit/refusal and sealed adapter checks; no job retirement |
 | S2 sign-source reader handoff | done | Nine 7 → 6; 28 source files (9,308,309 B) absent; all original admitted rows and full product bytes exact; cold scoped generation |

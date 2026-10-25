@@ -14223,7 +14223,8 @@
         "src/format",
         "src/commons",
         "pnpm-workspace.yaml",
-        "public/assets/nine-dragon/authored/sign-atlas"
+        "public/assets/nine-dragon/authored/sign-atlas",
+        "public/assets/nine-dragon/authored/glyphs"
       ],
       "outputs": [
         "public/assets/nine-dragon-stack/map/top.webp",
