@@ -2,10 +2,9 @@
 
 **Order (G639):** (1) live reds → (2) NALATI 0 → (3) grid / frame floor → extras.
 
-**(1) LIVE 5c465d9b52 (14:32Z); f4b17bcb5a releasing 15:09Z. Since 07:41Z: 653f0abe85 (tonight's fixes), c8e2a84b0e
-(G723 warm-ahead + sword fix), 183bd85273 (Explorer + CF2 fix), b92412f040, 8d7fb5440c, 7b7f0b1f0b. Hourly releases
-(sp-x7, G705). Watch: intermittent grid far-cell stall since f6143c0a36 (in f4b1; cause unproven); fix candidate
-73b894e5c9 (sp-x2) rides ba3a6f08bf, smoke running.
+**(1) LIVE f4b17bcb5a (15:27Z); ba3a6f08bf (grid cache-write fix 73b894e5c9) releasing 16:10Z. Hourly releases (sp-x7,
+G705). CF2 title-capture stall: Chromium title tracing 59f9c74145 awaits the next CI occurrence; programShare warning
+on the Nine title with sp-x9. No open CI red.
 
 **(2) NALATI 0 done (27dd969127).** HOST-AUDIT (G679) parked until every mini plan finishes. Legacy waits (G606).
 
@@ -28,6 +27,7 @@ art/main-menu-hero/round-6-nalati-terrain/); G630 still needs Nine far proxy + S
 **Blocked on Jake:** LEGACY phone QA, road B pilot play, hero board. **On Opus:** G713 post RT sheet,
 G685 look row, NM RM4+, U2 occupied parents, L18.3 lighter DW assets, G630 Nine far + Sunscar glow, T3/T6 visual.
 
-**Lanes:** Claude weekly 99 %: 0 Opus (G605); 5 Codex + sp-x7 (Codex weekly 17 %).
+**Lanes:** Claude weekly 100 %: 0 Opus until Tue 13:00 (G605); standing queues sent (SW10), lanes run their plans without
+the coordinator; 5 Codex + sp-x7 (Codex weekly 17 %).
 
 **Rules:** G704 (<= ~20 files/move commit, one big move: T3). G605. Fix forward, no reverts (G674). No new Debug rows (G669). G670. Never herdr wildshard-v.
