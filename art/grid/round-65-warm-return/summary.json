@@ -1,0 +1,398 @@
+{
+  "app": "774305c6a4df906152002e9d76937cf2f09ef404",
+  "build": "774305c-mvnckbkm",
+  "device": "iPhone 16 Pro",
+  "tier": "phone",
+  "muted": true,
+  "route": "seed road then held input road -> Driftwood -> road -> Driftwood",
+  "legs": [
+    {
+      "name": "road-to-DW",
+      "elapsedMs": 4922.5,
+      "crossingToReadyMs": 1034.5,
+      "panelFrames": 0,
+      "otherPanelFrames": 0,
+      "maxRoadGrain": 0,
+      "roadGrainFrames": 0,
+      "maxResidents": 1,
+      "hooks": [
+        {
+          "end": 8834.700000047684,
+          "hook": "activate",
+          "instance": "driftwood-isle",
+          "outcome": "done",
+          "start": 8814.300000071526
+        }
+      ],
+      "crossingTimings": [
+        {
+          "checkpointEnd": 5461.300000071526,
+          "commitEnd": 5461.300000071526,
+          "end": 5461.300000071526,
+          "from": "driftwood-isle",
+          "readyAt": 5439.899999976158,
+          "requestedAt": 5415.600000023842,
+          "start": 5460.5,
+          "to": null
+        },
+        {
+          "checkpointEnd": 7847.100000023842,
+          "commitEnd": 7847.200000047684,
+          "end": 7847.200000047684,
+          "from": null,
+          "readyAt": 7816.899999976158,
+          "requestedAt": 7814.5,
+          "start": 7847.100000023842,
+          "to": "driftwood-isle"
+        }
+      ],
+      "before": {
+        "crossing": "settled",
+        "crossingTarget": null,
+        "current": null,
+        "feet": {
+          "x": 0,
+          "y": 0.4583333346061409,
+          "z": 281.25
+        },
+        "fx": {
+          "carrier": null,
+          "chroma": 0,
+          "depth": "scene",
+          "grain": 0,
+          "rays": [
+            null,
+            0
+          ],
+          "sceneDepth": false,
+          "target": [
+            1,
+            1
+          ],
+          "vol": [
+            0,
+            0.55
+          ],
+          "weight": 0
+        },
+        "inside": null,
+        "leg": "road-to-DW",
+        "loading": null,
+        "ms": 60.699999928474426,
+        "pending": [
+          "blender-template-1",
+          "far-reach",
+          "nalati-grasslands",
+          "open-plot-nw",
+          "pine-hollow",
+          "sunscar-dunes"
+        ],
+        "ready": true,
+        "residents": [
+          "driftwood-isle"
+        ]
+      },
+      "after": {
+        "crossing": "settled",
+        "crossingTarget": "driftwood-isle",
+        "current": "driftwood-isle",
+        "feet": {
+          "x": -3.889207714147247e-05,
+          "y": 0.0099034728764667,
+          "z": 243.42983993841335
+        },
+        "fx": {
+          "carrier": null,
+          "chroma": 0,
+          "depth": "scene",
+          "grain": 0,
+          "rays": [
+            null,
+            0
+          ],
+          "sceneDepth": false,
+          "target": [
+            1,
+            1
+          ],
+          "vol": [
+            0,
+            0.55
+          ],
+          "weight": 0
+        },
+        "inside": "driftwood-isle",
+        "leg": "road-to-DW",
+        "loading": null,
+        "ms": 4983.399999976158,
+        "pending": [],
+        "ready": true,
+        "residents": [
+          "driftwood-isle"
+        ]
+      }
+    },
+    {
+      "name": "DW-to-road",
+      "elapsedMs": 6495.699999928474,
+      "crossingToReadyMs": 34.40000009536743,
+      "panelFrames": 0,
+      "otherPanelFrames": 0,
+      "maxRoadGrain": 0,
+      "roadGrainFrames": 0,
+      "maxResidents": 1,
+      "hooks": [],
+      "crossingTimings": [
+        {
+          "checkpointEnd": 5461.300000071526,
+          "commitEnd": 5461.300000071526,
+          "end": 5461.300000071526,
+          "from": "driftwood-isle",
+          "readyAt": 5439.899999976158,
+          "requestedAt": 5415.600000023842,
+          "start": 5460.5,
+          "to": null
+        },
+        {
+          "checkpointEnd": 7847.100000023842,
+          "commitEnd": 7847.200000047684,
+          "end": 7847.200000047684,
+          "from": null,
+          "readyAt": 7816.899999976158,
+          "requestedAt": 7814.5,
+          "start": 7847.100000023842,
+          "to": "driftwood-isle"
+        },
+        {
+          "checkpointEnd": 14449.200000047684,
+          "commitEnd": 14449.200000047684,
+          "end": 14449.200000047684,
+          "from": "driftwood-isle",
+          "readyAt": 14416.800000071526,
+          "requestedAt": 14414.399999976158,
+          "start": 14448.399999976158,
+          "to": null
+        }
+      ],
+      "before": {
+        "crossing": "settled",
+        "crossingTarget": "driftwood-isle",
+        "current": "driftwood-isle",
+        "feet": {
+          "x": -3.889207714147247e-05,
+          "y": 0.0099034728764667,
+          "z": 243.42983993841335
+        },
+        "fx": {
+          "carrier": null,
+          "chroma": 0,
+          "depth": "scene",
+          "grain": 0,
+          "rays": [
+            null,
+            0
+          ],
+          "sceneDepth": false,
+          "target": [
+            1,
+            1
+          ],
+          "vol": [
+            0,
+            0.55
+          ],
+          "weight": 0
+        },
+        "inside": "driftwood-isle",
+        "leg": "DW-to-road",
+        "loading": null,
+        "ms": 4983.699999928474,
+        "pending": [],
+        "ready": true,
+        "residents": [
+          "driftwood-isle"
+        ]
+      },
+      "after": {
+        "crossing": "settled",
+        "crossingTarget": null,
+        "current": null,
+        "feet": {
+          "x": 1.2188332795259882e-06,
+          "y": 0.4498285739584825,
+          "z": 280.2642687762418
+        },
+        "fx": {
+          "carrier": null,
+          "chroma": 0,
+          "depth": "scene",
+          "grain": 0,
+          "rays": [
+            null,
+            0
+          ],
+          "sceneDepth": false,
+          "target": [
+            1,
+            1
+          ],
+          "vol": [
+            0,
+            0.55
+          ],
+          "weight": 0
+        },
+        "inside": null,
+        "leg": "DW-to-road",
+        "loading": null,
+        "ms": 11479.299999952316,
+        "pending": [],
+        "ready": true,
+        "residents": [
+          "driftwood-isle"
+        ]
+      }
+    },
+    {
+      "name": "road-to-DW-return",
+      "elapsedMs": 5083.700000047684,
+      "crossingToReadyMs": 1033,
+      "panelFrames": 0,
+      "otherPanelFrames": 0,
+      "maxRoadGrain": 0,
+      "roadGrainFrames": 0,
+      "maxResidents": 1,
+      "hooks": [
+        {
+          "end": 20598.80000007153,
+          "hook": "activate",
+          "instance": "driftwood-isle",
+          "outcome": "done",
+          "start": 20581.10000002384
+        }
+      ],
+      "crossingTimings": [
+        {
+          "checkpointEnd": 5461.300000071526,
+          "commitEnd": 5461.300000071526,
+          "end": 5461.300000071526,
+          "from": "driftwood-isle",
+          "readyAt": 5439.899999976158,
+          "requestedAt": 5415.600000023842,
+          "start": 5460.5,
+          "to": null
+        },
+        {
+          "checkpointEnd": 7847.100000023842,
+          "commitEnd": 7847.200000047684,
+          "end": 7847.200000047684,
+          "from": null,
+          "readyAt": 7816.899999976158,
+          "requestedAt": 7814.5,
+          "start": 7847.100000023842,
+          "to": "driftwood-isle"
+        },
+        {
+          "checkpointEnd": 14449.200000047684,
+          "commitEnd": 14449.200000047684,
+          "end": 14449.200000047684,
+          "from": "driftwood-isle",
+          "readyAt": 14416.800000071526,
+          "requestedAt": 14414.399999976158,
+          "start": 14448.399999976158,
+          "to": null
+        },
+        {
+          "checkpointEnd": 19614.89999997616,
+          "commitEnd": 19615.10000002384,
+          "end": 19615.10000002384,
+          "from": null,
+          "readyAt": 19583.80000007153,
+          "requestedAt": 19581.5,
+          "start": 19614.89999997616,
+          "to": "driftwood-isle"
+        }
+      ],
+      "before": {
+        "crossing": "settled",
+        "crossingTarget": null,
+        "current": null,
+        "feet": {
+          "x": 8.618577388430637e-07,
+          "y": 0.4499091889665446,
+          "z": 280.6342687772849
+        },
+        "fx": {
+          "carrier": null,
+          "chroma": 0,
+          "depth": "scene",
+          "grain": 0,
+          "rays": [
+            null,
+            0
+          ],
+          "sceneDepth": false,
+          "target": [
+            1,
+            1
+          ],
+          "vol": [
+            0,
+            0.55
+          ],
+          "weight": 0
+        },
+        "inside": null,
+        "leg": "road-to-DW-return",
+        "loading": null,
+        "ms": 11632.399999976158,
+        "pending": [],
+        "ready": true,
+        "residents": [
+          "driftwood-isle"
+        ]
+      },
+      "after": {
+        "crossing": "settled",
+        "crossingTarget": "driftwood-isle",
+        "current": "driftwood-isle",
+        "feet": {
+          "x": 0.00016129843361359364,
+          "y": 0.015098935924236834,
+          "z": 243.43000143487737
+        },
+        "fx": {
+          "carrier": null,
+          "chroma": 0,
+          "depth": "scene",
+          "grain": 0,
+          "rays": [
+            null,
+            0
+          ],
+          "sceneDepth": false,
+          "target": [
+            1,
+            1
+          ],
+          "vol": [
+            0,
+            0.55
+          ],
+          "weight": 0
+        },
+        "inside": "driftwood-isle",
+        "leg": "road-to-DW-return",
+        "loading": null,
+        "ms": 16716.199999928474,
+        "pending": [],
+        "ready": true,
+        "residents": [
+          "driftwood-isle"
+        ]
+      }
+    }
+  ],
+  "error": null,
+  "contextLost": false
+}
