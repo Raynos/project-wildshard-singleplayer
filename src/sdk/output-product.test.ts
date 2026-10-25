@@ -5,11 +5,11 @@ import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync, symlinkSyn
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve fixture files inside the owned output directory.
 import { resolve } from 'node:path';
 import { emptyShardfile } from '@wildshard/sdk/author';
-import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
+import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
 import { emitPlatformSections } from '@wildshard/sdk/platformSections';
-import { runtimePackageAllowed, validateRuntimeImports } from '../src/sdk/runtimeImports';
+import { runtimePackageAllowed, validateRuntimeImports } from './runtimeImports';
 import { defineSection, emitDefinedSections } from '@wildshard/sdk/sections';
-import { writeOutputProduct, validateOutputProduct } from '../src/sdk/outputProduct';
+import { writeOutputProduct, validateOutputProduct } from './outputProduct';
 import { encodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 
 const directories: string[] = [];

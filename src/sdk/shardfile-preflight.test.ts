@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
-import { parseShardfile } from '../src/format/shardSchema';
-import { emptyShardfile } from '../src/sdk/author';
+import { parseShardfile } from '@wildshard/format/shardSchema';
+import { emptyShardfile } from './author';
 
 const fixture = () => emptyShardfile({ slug: 'preflight-test', name: 'Preflight', author: 'Test', revision: 1, seed: 1 });
 

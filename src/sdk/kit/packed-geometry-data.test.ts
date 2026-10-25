@@ -1,8 +1,8 @@
 import { expect, test } from 'vitest';
 import { BufferAttribute, BufferGeometry } from 'three';
-import { GeometryPackData, packedRows } from '../src/format/geometryPack';
-import { GeometryPack as NativeGeometryPack } from '../src/engine/models/geometryPack';
-import { GeometryPack, GeometryPackWriter } from '../src/sdk/kit/geometryPack';
+import { GeometryPackData, packedRows } from '@wildshard/format/geometryPack';
+import { GeometryPack as NativeGeometryPack } from '@wildshard/engine/models/geometryPack';
+import { GeometryPack, GeometryPackWriter } from './geometryPack';
 
 test.each(['expanded', 'u16', 'u32'] as const)('packed %s arrays preserve bits, indices, groups and independent loans', mode => {
   const geometry = new BufferGeometry(), positions = mode === 'expanded'

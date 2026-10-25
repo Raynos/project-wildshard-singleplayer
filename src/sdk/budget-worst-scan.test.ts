@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
-import { nearbyContentCost, worstContentCost, worstContentCostSteps } from '../src/format/budget';
-import { emptyShardfile } from '../src/sdk/author';
+import { nearbyContentCost, worstContentCost, worstContentCostSteps } from '@wildshard/format/budget';
+import { emptyShardfile } from './author';
 
 const MB = 1_000_000;
 

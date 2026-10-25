@@ -3,9 +3,9 @@ import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { parseImageAsset, parseStillImage } from '@wildshard/format/stillImage';
 import { assetCost } from '@wildshard/format/product';
-import { validateShardfileAssets } from '../src/format/assetAdmission';
-import { emptyShardfile } from '../src/sdk/author';
-import { hashImmutableBytes } from '../src/sdk/immutable';
+import { validateShardfileAssets } from '@wildshard/format/assetAdmission';
+import { emptyShardfile } from './author';
+import { hashImmutableBytes } from './immutable';
 import { nameBlob } from '@wildshard/sdk/blobs';
 
 // A bounded VP8L envelope suffices to exercise rejection before any image decoder.

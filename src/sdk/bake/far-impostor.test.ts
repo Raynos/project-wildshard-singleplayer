@@ -1,11 +1,11 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { assetCost } from '../src/format/product';
-import { FarSchema } from '../src/format/shardSections';
-import { bakeFarPlaceholder } from '../src/sdk/bake/placeholders';
-import { FAR_IMPOSTOR_BAKE } from '../src/sdk/bake/farImpostor';
-import { readImagePixels } from '../src/sdk/bake/image';
-import type { PlaceholderGrid, PlaceholderLook } from '../src/game/plugin/animation';
+import { assetCost } from '@wildshard/format/product';
+import { FarSchema } from '@wildshard/format/shardSections';
+import { bakeFarPlaceholder } from './placeholders';
+import { FAR_IMPOSTOR_BAKE } from './farImpostor';
+import { readImagePixels } from './image';
+import type { PlaceholderGrid, PlaceholderLook } from '@wildshard/game/plugin/animation';
 
 // G539: every far proxy bakes a camera-facing impostor beside it, admitted in the same far row and its caps.
 const res = 17, heights = Float32Array.from({ length: res * res }, (_, i) => 30 * Math.sin((i % res) * 0.7) * Math.cos(Math.floor(i / res) * 0.5) + 20);

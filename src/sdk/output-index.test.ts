@@ -1,7 +1,7 @@
 import { expect, expectTypeOf, it } from 'vitest';
 import type { PlatformSectionName } from '@wildshard/format/sections';
 import { emptyShardfile } from '@wildshard/sdk/author';
-import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
+import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
 import { assembleOutputShardfile, outputSectionPayloads, OUTPUT_SECTIONS, parseOutputIndex, type OutputPlatformSectionName } from '@wildshard/format/outputIndex';
 
 it('covers every public platform section name',()=>{expectTypeOf<OutputPlatformSectionName>().toEqualTypeOf<PlatformSectionName>();});

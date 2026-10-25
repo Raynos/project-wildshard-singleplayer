@@ -2,7 +2,7 @@
 import { constants, zstdCompressSync, zstdDecompressSync } from 'node:zlib';
 import { zlibSync, unzlibSync } from 'fflate';
 import { expect, test } from 'vitest';
-import { encodeBuildBytes } from '../src/sdk/bake/byteCodec';
+import { encodeBuildBytes } from './byteCodec';
 
 const input = Uint8Array.from({ length: 4096 }, (_, index) => (index * 13) % 256);
 test('default deflate is the original level9 stream, including view offsets', () => {
