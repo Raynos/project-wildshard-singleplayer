@@ -1,4 +1,4 @@
-import { zlibSync } from 'fflate';
+import { encodeBuildBytes } from '@wildshard/sdk/bake/byteCodec';
 import { PineSeedStream } from './seedStream';
 import { forestDensity, oldGrowthMask, speciesMix } from './forestGeography';
 
@@ -30,5 +30,5 @@ export function pineForestRows(manifest: ForestSource): ForestCandidate[] {
 /** Pure owned bytes for product publication; no filesystem service in the config graph. */
 export function pineDensityBlob(manifest: ForestSource): { name: string; bytes: Uint8Array; decoded: number } {
   const values = Float64Array.from(pineForestRows(manifest), row => row.density);
-  return { name: PINE_DENSITY_FILE, bytes: zlibSync(new Uint8Array(values.buffer)), decoded: values.byteLength };
+  return { name: PINE_DENSITY_FILE, bytes: encodeBuildBytes(new Uint8Array(values.buffer), 'deflate', 6), decoded: values.byteLength };
 }
