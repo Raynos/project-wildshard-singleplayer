@@ -1,0 +1,32 @@
+[
+  {
+    "path": "public/assets/nalati/baked/places.bin",
+    "bytes": 11547006,
+    "hash": "0e2ab3cedcd64ee9827e78a3534fd3a16e7eb861a42e23613f1b825adfbd40ea"
+  },
+  {
+    "path": "src/shards/nalati-grasslands/data/places.json",
+    "bytes": 1506858,
+    "hash": "fbe66ce2b4050879276a2878bb8de2ede6171625b8b1bf1b13431e8031d75384"
+  },
+  {
+    "path": "public/assets/nalati/baked/specimens.bin",
+    "bytes": 2342425,
+    "hash": "6af939b53c6390c9460c009b73693a56b733278bc7e6b03d46a4bb8fac488394"
+  },
+  {
+    "path": "src/shards/nalati-grasslands/data/placeSpecimens.json",
+    "bytes": 22316,
+    "hash": "e77f940a3b32d5b7266783339555ae3c19ef65c0494f574a3a711638638b0308"
+  },
+  {
+    "path": "public/assets/nalati/baked/dressing.bin",
+    "bytes": 66881,
+    "hash": "61d680cdf497c9906df63cec350d3abc4606833fdf80cba2e4bcf4ab5a7ac1d3"
+  },
+  {
+    "path": "src/shards/nalati-grasslands/data/dressingGeos.json",
+    "bytes": 2605,
+    "hash": "09a991c2f8dbb8167631134e8293a48b273b2371cbfc704f596af9853e35eb98"
+  }
+]

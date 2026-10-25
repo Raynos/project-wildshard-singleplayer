@@ -6,26 +6,19 @@ import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { deflateSync, inflateSync } from 'node:zlib';
+import { encodeNalatiPart } from './placeWire.ts';
 
 const root = resolve(import.meta.dirname, '../../../..');
 const OUT = resolve(root, 'public/assets/nalati/baked');
 const DATA = resolve(root, 'src/shards/nalati-grasslands/data');
 const TERRAIN = resolve(root, 'public/assets/baked/nalati-grasslands/terrain.bin');
 
-/** the binary in four byte lanes (every word's first bytes, then its second …): floats compress better so */
-function shuffle(bin) {
-  if (bin.length % 4 !== 0) throw new Error('[nalati places] the bake is not whole words');
-  const n = bin.length / 4, out = new Uint8Array(bin.length);
-  for (let i = 0; i < n; i++) for (let b = 0; b < 4; b++) out[b * n + i] = bin[i * 4 + b] ?? 0;
-  return out;
-}
 /** The raw binary from its shipped lanes (every 4-byte word's first bytes, then its second …). */
 export function unshuffle(lanes) {
   const n = lanes.length / 4, out = new Uint8Array(lanes.length);
   for (let b = 0; b < 4; b++) for (let i = 0; i < n; i++) out[i * 4 + b] = lanes[b * n + i] ?? 0;
   return out;
 }
-const stamp = (bin, rows) => ({ notice: 'DO NOT EDIT: regenerate with generators/bake-nalati-places.mjs (Node canonical).', bin: createHash('sha256').update(bin).digest('hex'), bytes: bin.length, rows });
 const terrainBuffer = () => { const b = readFileSync(TERRAIN); return b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength); };
 
 /** Each geometry of a bake expanded to its per-vertex floats (welded ones through their index). */
@@ -87,8 +80,9 @@ export function writeNalatiParts(parts, check = false) {
   };
   for (const { name, json, part } of parts) {
     if (!['places', 'specimens', 'dressing'].includes(name) || !['places.json', 'placeSpecimens.json', 'dressingGeos.json'].includes(json)) throw new Error('Unknown Nalati bake output');
-    put(resolve(OUT, `${name}.bin`), deflateSync(shuffle(part.bin), { level: 9 }));
-    put(resolve(DATA, json), `${JSON.stringify(stamp(part.bin, part.rows))}\n`);
+    const encoded = encodeNalatiPart(part, bytes => deflateSync(bytes, { level: 9 }));
+    put(resolve(OUT, `${name}.bin`), encoded.binary);
+    put(resolve(DATA, json), encoded.document);
   }
   if (changed !== 0) throw new Error(`Nalati bake has ${changed} stale outputs`);
 }

@@ -872,7 +872,9 @@
         "src/shards/nalati-grasslands/generators/dressingGeos.ts",
         "src/shards/nalati-grasslands/generators/dressingNoise.ts",
         "src/shards/nalati-grasslands/generators/geometryWriter.ts",
-        "src/format/inputDeclarations.ts"
+        "src/format/inputDeclarations.ts",
+        "src/shards/nalati-grasslands/generators/placeWire.ts",
+        "src/sdk/immutable.ts"
       ],
       "outputs": [
         "public/assets/nalati/baked/dressing.bin",
