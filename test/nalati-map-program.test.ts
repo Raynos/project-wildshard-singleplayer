@@ -7,6 +7,7 @@ import { nalatiMapFiles } from '../src/shards/nalati-grasslands/generators/mapAs
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { paintDataMap } from '../scripts/bake-data-maps.mjs';
 import { discoverGeneration, generateShardJob } from '../scripts/generate.mjs';
+import { InputHashMemo } from '../scripts/bake-input-hashes.mjs';
 import * as v from 'valibot';
 import settings from '../src/shards/nalati-grasslands/look/map.json' with { type: 'json' };
 import original from './fixtures/nalati-map-files.json' with { type: 'json' };
@@ -14,6 +15,9 @@ import original from './fixtures/nalati-map-files.json' with { type: 'json' };
 // Cold native construction precedes the timed assertions; every resulting byte
 // is checked against the predecessor, rather than a copied authored projection.
 const files = await nalatiMapFiles();
+// Both isolated producers share only the defining stat/content memo; each still
+// stages its own sealed tree, executes fresh and verifies every input afterward.
+const inputHashes = new InputHashMemo(resolve('.'));
 const inputs = new Map(files);
 for (const file of settings.painter.glbs) inputs.set(file, readFileSync(resolve('src/shards/nalati-grasslands', file)));
 
@@ -59,9 +63,9 @@ for (const omitGeometry of [true, false]) {
           JSON.parse(readFileSync('scripts/generation-jobs.json', 'utf8')));
         writeFileSync(resolve(root, catalogPath), JSON.stringify({ ...catalog, jobs: catalog.jobs.map(row =>
           typeof row === 'object' && row !== null && Reflect.get(row, 'id') === job.id ? descriptor : row) }));
-        await expect(generateShardJob(root, descriptor, { cacheDir, catalogPath, forceCompare: true })).rejects.toThrow('Generator exited 1');
+        await expect(generateShardJob(root, descriptor, { cacheDir, catalogPath, forceCompare: true, inputHashes })).rejects.toThrow('Generator exited 1');
       } else {
-        const result = await generateShardJob(root, job, { cacheDir, forceCompare: true });
+        const result = await generateShardJob(root, job, { cacheDir, forceCompare: true, inputHashes });
         try {
           const before = original[2]; if (before === undefined) throw new Error('Missing native image oracle');
           expect(result.hashes[before.path]).toBe(before.hash);
