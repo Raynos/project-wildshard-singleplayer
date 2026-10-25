@@ -63,9 +63,14 @@ class AgentTimeTests(unittest.TestCase):
             self.assertEqual(ignored, len(invalid) + 2)
             reading = API['commit_timing_reading'](path, 10)
             self.assertIn('total seconds n=3 med=0.30 p90=0.60 max=0.60', reading)
+            self.assertIn('successful total seconds n=1 med=0.10 p90=0.10 max=0.10', reading)
             self.assertIn('refused 1; unknown outcome 1', reading)
             self.assertNotIn('999999', reading)
             self.assertEqual(API['commit_timing_rows'](path, 21)[0], [])
+            path.write_text(json.dumps(refused) + '\n')
+            refused_only = API['commit_timing_reading'](path, 10)
+            self.assertIn('successful total seconds n=0;', refused_only)
+            self.assertIn('refused 1; unknown outcome 0', refused_only)
 
     def test_missing_commit_ledger_is_unavailable_and_empty_is_not_a_zero_time_pass(self):
         with tempfile.TemporaryDirectory(dir='tmp') as directory:

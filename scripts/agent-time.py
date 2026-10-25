@@ -205,6 +205,8 @@ def commit_timing_reading(path, since):
         return 'unavailable: ' + error + ' (wrapper timing ledger)'
     parts = [name + ' seconds ' + quantiles([row[field] / 1000 for row in samples], 2)
              for name, field in [('total', 'elapsedMs'), ('wait', 'waitMs'), ('work', 'workMs')]]
+    parts.append('successful total seconds ' + quantiles(
+        [row['elapsedMs'] / 1000 for row in samples if row['exitCode'] == 0], 2))
     parts.append('refused %d; unknown outcome %d; ignored invalid/duplicate %d; actual wrapper completions only' % (
         sum(row['exitCode'] is not None and row['exitCode'] != 0 for row in samples),
         sum(row['exitCode'] is None for row in samples), ignored))
