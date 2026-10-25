@@ -10,13 +10,14 @@ import type { SceneModelSource, SceneBakeSource } from '@wildshard/game/shardfil
 import * as models from './rows/files';
 import rest from '../data/restPools.generated.json' with { type: 'json' };
 import { SIGNAL_PIECES as pieces } from './rows/pieces';
-import world from '../data/worldBakes.generated.json' with { type: 'json' };
+import { worldBakes } from './worldBakes';
 import * as surfaces from './rows/surfaces';
 import { SIGNAL_RIG_LIBRARY, SIGNAL_MODEL_SPECIMENS } from './rows/rigLibrary';
 import { GEAR_SCENE_ROWS } from './rows/gearModels';
 import { WHIP_HELD_RECIPE } from './rows/heldWeapon';
 import { HD_GLOVE_SIZE } from './rows/whip';
 
+const world = worldBakes();
 const { resources: _resources, ...whipRecipe } = WHIP_HELD_RECIPE;
 const { specimen: _whip, ...whip } = GEAR_SCENE_ROWS[0];
 const { specimen: scoutSource, ...scout } = GEAR_SCENE_ROWS[5];

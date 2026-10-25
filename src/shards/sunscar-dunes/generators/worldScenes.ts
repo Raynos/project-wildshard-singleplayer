@@ -3,12 +3,13 @@ import { parseWorldScenes } from '@wildshard/format/worldScenes';
 import { nameBlob } from '@wildshard/sdk/blobs';
 import scenes from '../data/restScenes.generated.json' with { type: 'json' };
 import { SIGNAL_PIECES as pieces } from './rows/pieces';
-import world from '../data/worldBakes.generated.json' with { type: 'json' };
+import { worldBakes } from './worldBakes';
 import { SIGNAL_SOURCE_LIBRARIES, SIGNAL_SOURCE_BLOBS } from './sceneSources';
 import { SIGNAL_SKIRT_BLOBS, SIGNAL_SKIRT_LIBRARY, SIGNAL_SKIRT_STEPS } from './skirtScenes';
 import { SIGNAL_EMBER_BLOBS } from './emberBuffers';
 import { SIGNAL_EMITTERS } from './lightEmitters';
 
+const world = worldBakes();
 const json = (name: string, value: unknown) => nameBlob(name, 'json', new TextEncoder().encode(JSON.stringify(value)));
 const emitterFiles = new Set(SIGNAL_EMITTERS.rows.flatMap(row => row.draws.flatMap(draw => draw.kind === 'buffered' ? [draw.file] : [])));
 export const SIGNAL_SCENE_BLOBS = [...SIGNAL_SOURCE_BLOBS, ...SIGNAL_SKIRT_BLOBS, ...SIGNAL_EMBER_BLOBS.filter(blob => emitterFiles.has(blob.file.name ?? ''))];

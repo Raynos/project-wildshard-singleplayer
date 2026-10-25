@@ -6,7 +6,7 @@ import { clientTileViews } from '../src/game/shardfile/clientViews';
 import driftwood from '../src/shards/driftwood-isle/shard.config';
 import nalati from '../src/shards/nalati-grasslands/shard.config';
 import sky from '../src/shards/far-reach/shard.config';
-import signal from '../src/shards/sunscar-dunes/shard.config';
+import signal from '../src/shards/sunscar-dunes/generators/product';
 import pine from '../src/shards/pine-hollow/shard.config';
 
 for (const source of [driftwood, nalati]) {

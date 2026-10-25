@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read the shard's admitted in-tree bytes and the native physics module.
 import { readFileSync } from 'node:fs';
-import source from '../../../src/shards/sunscar-dunes/shard.config.ts';
+import source from '../../../src/shards/sunscar-dunes/generators/product.ts';
 import { loadRapier } from '../../../src/engine/physics/rapier.ts';
 import { decodeSimSnapshot } from '../../../src/engine/sim/snapshot.ts';
 import { installAppIdentity } from '../../../src/engine/app/identity.ts';

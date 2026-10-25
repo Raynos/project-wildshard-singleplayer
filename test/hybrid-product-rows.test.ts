@@ -2,7 +2,7 @@
 import { expect, test } from 'vitest';
 import { SIGNAL_MODEL_SPECIMENS as signalModels } from '../src/shards/sunscar-dunes/generators/rows/rigLibrary';
 import { SIGNAL_PAGE_PROGRAM } from '../src/shards/sunscar-dunes/generators/rows/population';
-import { output as signalOutput } from '../src/shards/sunscar-dunes/generators/output';
+import { output as signalOutput } from '../src/shards/sunscar-dunes/generators/sourceOutput';
 import { readSpeciesProgram, readSpeciesPrograms } from '../src/format/speciesPrograms';
 
 // Explorer and page use the same generated body catalogue and exact clip rows.

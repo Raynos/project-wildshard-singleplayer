@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The witness reads the shard's admitted in-tree bytes and the native physics module.
 import { readFileSync } from 'node:fs';
 import { Vector3 } from 'three';
-import source from '../../../src/shards/sunscar-dunes/shard.config';
+import source from '../../../src/shards/sunscar-dunes/generators/product';
 import { createSimHost, type SimHost } from '../../../src/engine/sim';
 import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHost } from '../../../src/engine/sim/snapshot';
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';

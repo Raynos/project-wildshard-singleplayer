@@ -65,7 +65,9 @@ export async function paintMapScenes(raster, config, settings, data) {
     }
   }
   for (const row of config.bakes ?? []) {
-    const source = mapRows(data.json(row.rows.file), row.rows.path)[0];
+    const selected = mapRows(data.json(row.rows.file), row.rows.path)[0];
+    if (row.piece !== undefined && (typeof row.piece !== 'string' || !/^[a-z][a-z0-9.-]{0,127}$/u.test(row.piece))) throw new Error('Map bake needs a bounded piece identity');
+    const source = row.piece === undefined ? selected : { [row.piece]: selected };
     for (const [id, piece] of Object.entries(source)) bakes.set(id, { file: `${row.directory}/${id}.glb`, kinds: piece.kinds });
   }
   for (const ref of config.recipes) for (const recipe of mapRows(data.json(ref.file), ref.path)) {

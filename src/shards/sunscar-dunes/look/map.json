@@ -11,7 +11,13 @@
     "generators/bucket.ts",
     "manifest.json",
     "data/tiles.json",
-    "data/worldBakes.generated.json",
+    "data/rocks.json",
+    "data/dressing.json",
+    "data/tower.json",
+    "data/caravan.json",
+    "data/well.json",
+    "data/lash.json",
+    "data/braziers.json",
     "assets/models.generated.json",
     "../../../scripts/map-scenes.mjs",
     "../../../scripts/map-painter.mjs",
@@ -148,8 +154,57 @@
       ],
       "bakes": [
         {
+          "piece": "rocks",
           "rows": {
-            "file": "data/worldBakes.generated.json",
+            "file": "data/rocks.json",
+            "path": []
+          },
+          "directory": "../../../public/assets/sunscar-dunes/baked"
+        },
+        {
+          "piece": "dressing",
+          "rows": {
+            "file": "data/dressing.json",
+            "path": []
+          },
+          "directory": "../../../public/assets/sunscar-dunes/baked"
+        },
+        {
+          "piece": "tower",
+          "rows": {
+            "file": "data/tower.json",
+            "path": []
+          },
+          "directory": "../../../public/assets/sunscar-dunes/baked"
+        },
+        {
+          "piece": "caravan",
+          "rows": {
+            "file": "data/caravan.json",
+            "path": []
+          },
+          "directory": "../../../public/assets/sunscar-dunes/baked"
+        },
+        {
+          "piece": "well",
+          "rows": {
+            "file": "data/well.json",
+            "path": []
+          },
+          "directory": "../../../public/assets/sunscar-dunes/baked"
+        },
+        {
+          "piece": "lash",
+          "rows": {
+            "file": "data/lash.json",
+            "path": []
+          },
+          "directory": "../../../public/assets/sunscar-dunes/baked"
+        },
+        {
+          "piece": "braziers",
+          "rows": {
+            "file": "data/braziers.json",
             "path": []
           },
           "directory": "../../../public/assets/sunscar-dunes/baked"
