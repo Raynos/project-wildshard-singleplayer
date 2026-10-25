@@ -16,8 +16,14 @@ test('fast lint shares staged rules, propagates refusals and cleans each private
    rules:{'wildshard/no-authored-html':'error','wildshard/no-shard-branch':'error'},
    overrides:[{files:['src/**'],rules:{'wildshard/no-shard-host-callback':'error'}}]}));
   writeFileSync(resolve(fixture,'node_modules/.bin/oxlint'),`#!/usr/bin/env node\nconst fs=require('node:fs'),args=process.argv.slice(2);fs.writeFileSync('called.json',JSON.stringify({args,config:JSON.parse(fs.readFileSync(args[args.indexOf('-c')+1],'utf8'))}));process.exit(Number(process.env.LINTER_STATUS??0));\n`,{mode:0o755});
+  const guard=resolve(fixture,'no-typescript.mjs');
+  writeFileSync(guard,`import {registerHooks} from 'node:module';
+registerHooks({resolve(specifier,context,nextResolve){
+ if(specifier==='@typescript/typescript6'||specifier==='typescript')throw new Error('Fast lint loaded TypeScript');
+ return nextResolve(specifier,context);
+}});\n`);
   const run=(args:string[],status='0')=>spawnSync(execPath,[resolve('scripts/lint-fast.mjs'),...args],
-   {cwd:fixture,encoding:'utf8',env:{PATH:env['PATH']??'',LINTER_STATUS:status}});
+   {cwd:fixture,encoding:'utf8',env:{PATH:env['PATH']??'',LINTER_STATUS:status,NODE_OPTIONS:`--import=${guard}`}});
   expect(run(['src/one.ts','src/two.ts']).status).toBe(0);
   const called:unknown=JSON.parse(readFileSync(resolve(fixture,'called.json'),'utf8'));
   expect(called).toEqual({args:['--threads=2','-c',expect.stringMatching(/^\.commit-fast-lint-\d+\.json$/u),'src/one.ts','src/two.ts'],
