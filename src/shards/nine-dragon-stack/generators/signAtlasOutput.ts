@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { SignAtlasSchema, parseSignView } from './sections';
+import { SignAtlasSchema, parseSignView, parseNativeSignAtlas } from './sections';
 // oxlint-disable-next-line import/no-nodejs-modules -- Author-only lossless KTX2 encoding, matching the SDK texture baker.
 import { zstdCompressSync } from 'node:zlib';
 import { unzlibSync } from 'fflate';
@@ -13,7 +13,7 @@ import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import legacyAtlas from '../data/signAtlas.generated.json' with { type: 'json' };
-import { parseNativeSignAtlas, type NineNativeSignInputs } from './nativeSignMetadata';
+import type { NineNativeSignInputs } from './nativeSignMetadata';
 
 const signRows = parseSignView(rawSignRows);
 

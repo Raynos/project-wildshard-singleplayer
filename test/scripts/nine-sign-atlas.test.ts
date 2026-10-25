@@ -10,7 +10,7 @@ import { readSourceModel } from '../../src/sdk/bake/skinned';
 import { parseKtx2 } from '../../src/format/product';
 import { rawKtx2, bakeSignalSand } from '../../src/shards/sunscar-dunes/generators/sand';
 import { signAtlasBlobs } from '../../src/shards/nine-dragon-stack/generators/signAtlasOutput';
-import { parseNativeSignAtlas } from '../../src/shards/nine-dragon-stack/generators/nativeSignMetadata';
+import { parseNativeSignAtlas } from '../../src/shards/nine-dragon-stack/generators/sections';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read the original atlas bytes without a generated JSON type program.
 import { readFileSync } from 'node:fs';
 import { nineSignBlobs } from '../fixtures/nine-sign-blobs';

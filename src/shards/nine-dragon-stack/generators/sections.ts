@@ -1,6 +1,7 @@
 import { ReturnProgramSchema } from '@wildshard/format/namedJsonContracts';
 import { PracticeSceneSchema,PracticeControllerSchema } from '@wildshard/format/practiceCourseRows';
 import * as v from 'valibot';
+import type { NineNativeAtlas } from './nativeSignMetadata';
 import type { GrappleRows } from '../data/grappleTypes';
 
 const BurstFieldSchema = v.strictObject({ name: v.string(), shape: v.picklist(['flake', 'streak']), count: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(24)), life: v.pipe(v.number(), v.minValue(0.001), v.maxValue(1)) });
@@ -243,3 +244,23 @@ const CastHookSchema = v.strictObject({ glb: v.literal('castHook.generated.glb')
 }), casts: v.array(v.strictObject({ name: v.string(), file: v.string() })) });
 /** Admit the native hook material and exact named cast inventory at the defining schema boundary. */
 export function parseCastHook(value: unknown): v.InferOutput<typeof CastHookSchema> { return v.parse(CastHookSchema, value); }
+
+/** Validate supplied native metadata before its geometry ranges or light rows are consumed. */
+export function parseNativeSignAtlas(input: unknown): NineNativeAtlas {
+  const nativeFinite = v.pipe(v.number(), v.finite());
+  const range = v.object({ byteOffset: v.pipe(nativeFinite, v.integer(), v.minValue(0)), byteLength: v.pipe(nativeFinite, v.integer(), v.minValue(0)) });
+  const placement = v.object({ w: nativeFinite, h: nativeFinite, neon: v.boolean(), p: v.object({
+    at: v.array(v.union([nativeFinite, v.string()])), normal: v.array(v.union([nativeFinite, v.string()])), size: nativeFinite,
+    spec: v.object({ text: v.string(), color: v.string(), vertical: v.boolean(), style: v.string(), ink: v.exactOptional(v.string()) }),
+    gain: v.exactOptional(nativeFinite), flicker: v.exactOptional(nativeFinite), blade: v.exactOptional(v.boolean()),
+    board: v.exactOptional(nativeFinite), fogK: v.exactOptional(nativeFinite), clear: v.exactOptional(nativeFinite),
+  }) });
+  const tier = v.object({ buffer: v.string(), cells: v.record(v.string(), v.unknown()), placed: v.array(placement),
+    lights: v.array(v.object({ at: v.array(nativeFinite), color: v.array(nativeFinite), w: nativeFinite, h: nativeFinite, power: nativeFinite, spill: nativeFinite })),
+    keys: v.record(v.string(), v.string()), mono: v.object({ packed: v.string(), bytes: nativeFinite }), colour: v.object({ packed: v.string(), bytes: nativeFinite }),
+    geometries: v.record(v.string(), v.object({ attributes: v.record(v.string(), v.object({ width: nativeFinite, data: range })),
+      index: range, sphere: v.nullable(v.array(nativeFinite)) })) });
+  v.assert(v.object({ phone: tier, desktop: tier }), input);
+  return input;
+}
+
