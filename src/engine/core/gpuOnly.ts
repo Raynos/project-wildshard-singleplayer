@@ -3,10 +3,11 @@
  * only on the GPU, so an in-place WebGL restore brings it back empty. A module that makes such a bake marks it here, and
  * src/engine/core/GpuRecovery.ts reloads the page on a context loss instead of restoring in place (E54).
  */
-import { BufferAttribute, type BufferGeometry, Data3DTexture, DataArrayTexture, DataTexture, Mesh, type Object3D, SkinnedMesh, StaticDrawUsage, type Texture } from 'three';
+import { BufferAttribute, BufferGeometry, Data3DTexture, DataArrayTexture, DataTexture, Mesh, type Object3D, SkinnedMesh, StaticDrawUsage, type Texture } from 'three';
 import { enteredOwner } from '../app/ownership';
 import { resourceScope } from '../app/resources';
 import type { Scope } from '../app/scope';
+import { geometryBoundsSteps } from '../world/geometryBounds';
 
 const labels = new Set<string>();
 /** marks made outside any shard (at module load: KTX2 mode drops every texture's mips once uploaded) — the page's, never reset */
@@ -45,8 +46,21 @@ function releaseCpuCopy(this: BufferAttribute): void { this.array = this.array.s
  * in place (`label`, above). Returns the bytes that will go.
  */
 export function gpuOnlyAttributes(g: BufferGeometry, label: string, keep: readonly string[] = ['position']): number {
-  if (g.boundingBox === null) g.computeBoundingBox();
-  if (g.boundingSphere === null) g.computeBoundingSphere();
+  const ordinary = g.getAttribute === BufferGeometry.prototype.getAttribute
+    && g.computeBoundingBox === BufferGeometry.prototype.computeBoundingBox && g.computeBoundingSphere === BufferGeometry.prototype.computeBoundingSphere;
+  const position = ordinary && (g.boundingBox === null || g.boundingSphere === null) ? g.getAttribute('position') : undefined;
+  const packed = position instanceof BufferAttribute && position.array instanceof Float32Array
+    && position.itemSize === 3 && !position.normalized && position.count * 3 === position.array.length
+    && position.getX === BufferAttribute.prototype.getX && position.getY === BufferAttribute.prototype.getY && position.getZ === BufferAttribute.prototype.getZ;
+  if (packed) {
+    // Exhaust synchronously, in the original box/sphere order. Keep existing
+    // bounds untouched and retain native methods/readers for custom geometry.
+    if (g.boundingBox === null) { const steps = geometryBoundsSteps(g, 'box'); while (!steps.next().done) { /* exact bounds before upload */ } }
+    if (g.boundingSphere === null) { const steps = geometryBoundsSteps(g, 'sphere'); while (!steps.next().done) { /* exact bounds before upload */ } }
+  } else {
+    if (g.boundingBox === null) g.computeBoundingBox();
+    if (g.boundingSphere === null) g.computeBoundingSphere();
+  }
   let bytes = 0;
   for (const [name, a] of Object.entries(g.attributes)) {
     if (keep.includes(name) || !(a instanceof BufferAttribute) || a.usage !== StaticDrawUsage) continue;
