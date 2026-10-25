@@ -9,6 +9,7 @@ Every row is decided work (Jake's G-rows); the refs are the brief.
 
 | # | Task | Refs | Taken |
 |---|---|---|---|
+| SW11/G703 | CF1 related run never skipped: replace the >20-suite CI deferral with a cheaper bounded selection | shared-waits-mini-plan.md SW11, G703 | in flight (2026-10-24, sp-x8) |
 | G679 | (Jake correction 13:20) RECORD ONLY: the 114 recommendations are HOST-AUDIT's accepted starting point; HOST-AUDIT is a parked plan that starts after all SHARD-PLATFORM mini plans. No listings / folds / chargebacks now | docs/reviews/host-audit-inventory.md -> archive | sp-x6 (record only) |
 | G680 | Driftwood tile LOD option B: apply variant-B.patch; tile 6,4 at 4.67 MB gets an exact storage pin | art/driftwood-isle/round-19-tile-lod | sp-x2 (brief) |
 | G681 | (G684: then Jake plays it in game; no board) Night Market road option B: lower / see-through barrier at open-plot edges, as an open-plot layout row (Codex only if pure data, else waits for Opus) | waits for Opus (Tue 13:00): not pure data; needs graphical code in grid softWallLook.ts (HEIGHT 7, shader opacity) per plot (sp-x8 audit) |
