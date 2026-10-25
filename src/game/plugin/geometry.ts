@@ -1779,11 +1779,11 @@ export interface WholeGeometryView {
 }
 class WholeGeometryAssembler {
   private readonly groups = new Map<string, { output: BufferGeometry; matrix: Matrix4; seen: Uint8Array; triangles: Uint8Array; layout: string }>();
-  add(node: Mesh): void {
+  add(node: Mesh, ownership: 'borrow' | 'take' = 'borrow'): void {
     const metadata: unknown = node.userData['wholePartition'], native: unknown = node.userData['nativeAttributes'], instances: unknown = node.userData['instances64'];
     const pose: unknown = node.userData['matrix64'] ?? (node instanceof InstancedMesh && node.count === 1 && Array.isArray(instances) && instances.length === 1 ? instances[0] : undefined);
     const row = wholeV.parse(WholePartition, metadata), channels = wholeV.parse(WholeNative, native), signature = JSON.stringify(channels);
-    const values = wholeV.parse(wholeV.pipe(wholeV.array(wholeV.pipe(wholeV.number(), wholeV.finite())), wholeV.length(16)), pose), input = nativeWholeGeometry(node);
+    const values = wholeV.parse(wholeV.pipe(wholeV.array(wholeV.pipe(wholeV.number(), wholeV.finite())), wholeV.length(16)), pose), input = nativeWholeGeometry(node, ownership);
     try {
       let group = this.groups.get(row.id);
       if (group === undefined) {
@@ -1926,7 +1926,9 @@ export async function readWholeGeometry(scope: ResourceScope, source: Shardfile 
           meshes.push(object);
         });
         for (const mesh of meshes) {
-          assembler.add(mesh);
+          // This reader owns the temporary GLB. Reuse its plain channels
+          // until cleanup; the assembler still writes independent final arrays.
+          assembler.add(mesh, 'take');
           await check();
         }
         if (scope.disposed) throw new Error('Whole geometry unloaded while reading');

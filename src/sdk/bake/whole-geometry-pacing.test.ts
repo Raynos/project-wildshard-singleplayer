@@ -1,11 +1,11 @@
 import { afterEach, expect, test, vi } from 'vitest';
-import { BufferAttribute, BufferGeometry, Matrix4, MeshBasicMaterial } from 'three';
+import { BufferAttribute, BufferGeometry, Matrix4, Mesh, MeshBasicMaterial } from 'three';
 import { zlibSync } from 'fflate';
 import { Scope } from '@wildshard/engine/app/scope';
 import { pageScope } from '@wildshard/engine/app/resources';
 import { enterOwner } from '@wildshard/engine/app/ownership';
 import { fetchDeflatedBytes } from '@wildshard/engine/core/deflate';
-import { fetchLaneBake, readWholeGeometry, unshuffleLanes } from '@wildshard/game/plugin/geometry';
+import { assembleWholeGeometryViews, fetchLaneBake, readWholeGeometry, unshuffleLanes } from '@wildshard/game/plugin/geometry';
 import { provideRuntimeProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import { emptyShardfile } from '../author';
 import { staticGlb } from './glb';
@@ -15,14 +15,15 @@ const owners: Scope[] = [], geometries: BufferGeometry[] = [], materials: MeshBa
 const nativeFetch = globalThis.fetch, nativeDecoder = globalThis.DecompressionStream;
 afterEach(() => { vi.restoreAllMocks(); vi.stubGlobal('fetch', nativeFetch); vi.stubGlobal('DecompressionStream', nativeDecoder); for (const owner of owners.splice(0)) owner.dispose(); for (const geometry of geometries.splice(0)) geometry.dispose(); for (const material of materials.splice(0)) material.dispose(); });
 
-function source(owner: Scope, levels = false): { geometry: BufferGeometry; ref: string; matrix: Matrix4; product: ReturnType<typeof emptyShardfile>; coarse: string } {
+function source(owner: Scope, levels = false, indexed = false): { geometry: BufferGeometry; ref: string; matrix: Matrix4; product: ReturnType<typeof emptyShardfile>; coarse: string } {
   owners.push(owner);
   const geometry = new BufferGeometry(), count = 65538, positions = new Float32Array(count * 3);
   for (let i = 0; i < positions.length; i++) positions[i] = Math.sin(i) * (i % 97 - 48);
   geometry.setAttribute('position', new BufferAttribute(positions, 3)); geometries.push(geometry);
+  if (indexed) geometry.setIndex(new BufferAttribute(Uint32Array.from({ length: count }, (_, index) => index), 1));
   const material = new MeshBasicMaterial(), matrix = new Matrix4().makeTranslation(3.25, -2.5, 8.125); materials.push(material);
   const bytes = staticGlb([{ geometry, material, nativeAttributes: true, compactIndex: true, transform: matrix,
-    extras: { wholePartition: { id: 'draw', vertices: { runs: [0, count] }, triangles: { runs: [0, count / 3] }, vertexCount: count, indexCount: 0, index: 'none' } } }]);
+    extras: { wholePartition: { id: 'draw', vertices: { runs: [0, count] }, triangles: { runs: [0, count / 3] }, vertexCount: count, indexCount: indexed ? count : 0, index: indexed ? 'u32' : 'none' } } }]);
   const ref = hashImmutableBytes(bytes), product = emptyShardfile({ slug: 'whole-pace', name: 'Whole pace', author: 'Test', revision: 1, seed: 1 });
   product.files.push({ hash: ref, kind: 'glb', compressed: bytes.length, decoded: bytes.length, gpu: positions.byteLength, triangles: count / 3, draws: 1, dependencies: [], critical: false });
   const invalid = new Uint8Array([1, 2, 3]), coarse = hashImmutableBytes(invalid), assets = new Map([[ref, bytes]]);
@@ -62,6 +63,46 @@ test('yields through final validation and bounds without changing source bytes o
     expect(view?.matrix.elements).toEqual(fixture.matrix.elements);
     expect(result.size).toBe(1);
   } finally { owner.dispose(); oracle.dispose(); }
+});
+
+test.each([false, true])('the owned reader avoids transient attribute clones and keeps final backing detached (indexed=%s)', async indexed => {
+  const owner = new Scope('whole-owned-channels'), fixture = source(owner, false, indexed);
+  const clone = vi.spyOn(BufferAttribute.prototype, 'clone'), disposed = vi.spyOn(BufferGeometry.prototype, 'dispose');
+  const result = await readWholeGeometry(owner, 'whole-pace', [fixture.ref]), view = result.get('draw');
+  if (view === undefined) throw new Error('Missing reconstructed draw');
+  expect(view.geometry.getAttribute('position').array).toEqual(fixture.geometry.getAttribute('position').array);
+  expect(view.geometry.getAttribute('position').array.buffer).not.toBe(fixture.geometry.getAttribute('position').array.buffer);
+  expect(view.geometry.index?.array).toEqual(fixture.geometry.index?.array);
+  if (indexed) expect(view.geometry.index?.array.buffer).not.toBe(fixture.geometry.index?.array.buffer);
+  expect(view.matrix.elements).toEqual(fixture.matrix.elements);
+  expect(clone).not.toHaveBeenCalled();
+  expect(disposed.mock.contexts.length).toBeGreaterThanOrEqual(2);
+  for (const input of disposed.mock.contexts) {
+    if (!(input instanceof BufferGeometry)) throw new Error('Expected decoded geometry cleanup');
+    const position: unknown = input.getAttribute('position');
+    if (!(position instanceof BufferAttribute)) throw new Error('Expected decoded plain positions');
+    expect(position.array.buffer).not.toBe(view.geometry.getAttribute('position').array.buffer);
+    if (indexed) expect(input.index?.array.buffer).not.toBe(view.geometry.index?.array.buffer);
+  }
+});
+
+test('the public assembler still borrows caller-owned channels without disposing or mutating them', () => {
+  const owner = new Scope('whole-borrowed-channels'), fixture = source(owner), geometry = fixture.geometry;
+  const mesh = new Mesh(geometry, materials[materials.length - 1]);
+  mesh.userData['nativeAttributes'] = { position: { semantic: 'POSITION', storage: 'Float32Array', normalized: false, itemSize: 3 } };
+  const count = geometry.getAttribute('position').count;
+  mesh.userData['wholePartition'] = { id: 'draw', vertices: { runs: [0, count] }, triangles: { runs: [0, count / 3] }, vertexCount: count, indexCount: 0, index: 'none' };
+  mesh.userData['matrix64'] = fixture.matrix.elements;
+  const disposed = vi.fn<() => void>(); geometry.addEventListener('dispose', disposed);
+  const clone = vi.spyOn(BufferAttribute.prototype, 'clone'), result = assembleWholeGeometryViews([mesh]);
+  const view = result.get('draw');
+  if (view === undefined) throw new Error('Missing borrowed draw');
+  try {
+    expect(clone).toHaveBeenCalledTimes(1); expect(disposed).not.toHaveBeenCalled();
+    const original = geometry.getAttribute('position'), output = view.geometry.getAttribute('position');
+    expect(output.array).toEqual(original.array); expect(output.array.buffer).not.toBe(original.array.buffer);
+    const first = original.getX(0); output.setX(0, first + 7); expect(original.getX(0)).toBe(first);
+  } finally { view.geometry.dispose(); geometry.removeEventListener('dispose', disposed); }
 });
 
 test('a scope closed during finalization disposes the unpublished reconstructed draw', async () => {
