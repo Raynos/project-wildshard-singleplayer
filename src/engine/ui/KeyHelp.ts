@@ -3,7 +3,7 @@ import { listenPage } from '../input/dom';
 import type { Scope } from '../app/scope';
 import { engineString } from '../strings';
 import { BindingTable } from '../input/bindingTable';
-import { keycap } from '../input/ControlsPanel';
+import { keycap } from '../input/keycap';
 import { mountUi } from './ownership';
 
 const div = (cls: string, text = ''): HTMLDivElement => { const d = document.createElement('div'); d.className = cls; if (text !== '') d.textContent = text; return d; };
