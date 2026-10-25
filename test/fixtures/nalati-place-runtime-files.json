@@ -1,0 +1,9 @@
+{
+  "src/shards/nalati-grasslands/boot/placeRuntime.generated.json": "a14825fbd1e823975852a553f94feb72a5d024a54228a2182e857534844914b8",
+  "src/shards/nalati-grasslands/boot/modelMetrics.generated.json": "7b28eb61e3b25fa53ed7bb2ff5eabfff08b42340a8de4c6e79989b485e3935e6",
+  "src/shards/nalati-grasslands/data/staticCapture.generated.json": "faaf4fbdbd94287100743e01864df91d3607c3300cdcbeb562e6310e10e6121b",
+  "src/shards/nalati-grasslands/data/placeRuntime.generated.json": "a14825fbd1e823975852a553f94feb72a5d024a54228a2182e857534844914b8",
+  "src/shards/nalati-grasslands/data/shapeBook.generated.json": "623745bcdad1020c991d0c9293d0f0acd5b78509d3f98fa3acf847e25c38ad7a",
+  "src/shards/nalati-grasslands/data/place-floor-0.generated.bin": "895bd0eff0cc3cd710b4a16e624c9dc962bc35e90e8f8985c8dfab0bc2ee3cf4",
+  "src/shards/nalati-grasslands/data/place-floor-1.generated.bin": "31f46016e071151f68724c5b8937a4147e01ef99ff6fb24da29b47f7de391029"
+}

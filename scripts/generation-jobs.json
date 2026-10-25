@@ -900,6 +900,8 @@
       "inputRoots": [
         "scripts/bake-output.mjs",
         "src/shards/nalati-grasslands/generators/bake-place-runtime.mjs",
+        "src/shards/nalati-grasslands/generators/placeRuntimeSource.mjs",
+        "src/shards/nalati-grasslands/generators/placeRuntimeSource.d.mts",
         "src/shards/nalati-grasslands/data/places.json",
         "src/shards/nalati-grasslands/data/dressingGeos.json",
         "src/shards/nalati-grasslands/data/modelMetrics.json",
