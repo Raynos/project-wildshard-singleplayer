@@ -1,14 +1,14 @@
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
-import { App } from '../src/engine/app/app';
-import { Scope } from '../src/engine/app/scope';
-import { PlayerHealth } from '../src/engine/combat/health';
-import { EffectService } from '../src/engine/combat/effects/EffectService';
-import type { DamageDealt } from '../src/engine/combat/pipeline';
+import { App } from '@wildshard/engine/app/app';
+import { Scope } from '@wildshard/engine/app/scope';
+import { PlayerHealth } from '@wildshard/engine/combat/health';
+import { EffectService } from '@wildshard/engine/combat/effects/EffectService';
+import type { DamageDealt } from '@wildshard/engine/combat/pipeline';
 import { overrideTerrain } from '@wildshard/engine/test/terrain';
-import { PageCombatSession } from '../src/game/Boss';
-import type { ShardContext } from '../src/game/plugin/context';
+import { PageCombatSession } from './Boss';
+import type { ShardContext } from './plugin/context';
 import { manager } from '@wildshard/engine/test/manager';
 
 const rows = { god: false, bossKinds: ['boar'], stunEffect: 'effect.marsh-root', unlockSkins: [] };

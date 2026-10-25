@@ -1,11 +1,11 @@
 import { afterEach, expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
-import { Scope } from '../src/engine/app/scope';
-import { app } from '../src/engine/app/runtime';
-import { Rng } from '../src/engine/core/rng';
-import { pinBrain } from '../src/engine/ai/pinning';
-import { AnimalSim } from '../src/engine/entities/AnimalSim';
-import { followRing } from '../src/game/shardfile/tileDriver';
+import { Scope } from '@wildshard/engine/app/scope';
+import { app } from '@wildshard/engine/app/runtime';
+import { Rng } from '@wildshard/engine/core/rng';
+import { pinBrain } from '@wildshard/engine/ai/pinning';
+import { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
+import { followRing } from './tileDriver';
 import { manager } from '@wildshard/engine/test/manager';
 import { overrideTerrain } from '@wildshard/engine/test/terrain';
 

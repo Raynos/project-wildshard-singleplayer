@@ -1325,7 +1325,7 @@
  "src/game/plugin/packed-creature-bodies.test.ts": 0.014,
  "src/sdk/kit/packed-geometry-data.test.ts": 0.016,
  "test/page-boot-discovery.test.ts": 0.0,
- "test/page-combat-session.test.ts": 0.108,
+ "src/game/page-combat-session.test.ts": 0.108,
  "test/page-life.test.ts": 0.094,
  "src/game/shard/page-mode-boot.test.ts": 0.0,
  "test/page-mode-policy.test.ts": 0.01,
