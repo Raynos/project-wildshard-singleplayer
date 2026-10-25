@@ -129,6 +129,33 @@ it('names uncounted admission work without inventing an empty file batch', () =>
   } finally { loading.scope.dispose(); }
 });
 
+it('does not count one parsed descriptor as half the complete admission stage', () => {
+  const loading = new Loading({id: 'admission-units', name: 'Admission units'});
+  try {
+    loading.setPath({id: 'shardfile', steps: [{key: 'modules', label: 'Modules', weight: 1},
+      {key: 'admission', label: 'Product admission', weight: 1}, {key: 'world', label: 'World', weight: 1}]},
+    [{tier: '*', path: 'shardfile', identity: '*', source: 'measured fixture', samples: 1,
+      ms: {modules: 100, admission: 1000, world: 1000}}]);
+    now = 200;
+    loading.paintAdmission({phase: 'descriptor', detail: 'Parsing shard descriptor', bytesRead: 50,
+      bytesTotal: 50, filesDone: 1, filesTotal: 1});
+    vi.advanceTimersByTime(32);
+    expect(loading.root.dataset['setup']).toBe('4');
+    expect(loading.root.querySelector('[data-el="foot"]')?.textContent).toContain('1 / 1 files');
+    now = 400;
+    loading.paintAdmission({phase: 'assets', detail: 'Reading product assets', bytesRead: 0,
+      bytesTotal: 1000, filesDone: 0, filesTotal: 122});
+    vi.advanceTimersByTime(32);
+    expect(loading.root.dataset['setup']).toBe('13');
+    now = 600;
+    loading.paintAdmission({phase: 'assets', detail: 'Checking verified product', bytesRead: 1000,
+      bytesTotal: 1000, filesDone: 122, filesTotal: 122});
+    vi.advanceTimersByTime(32);
+    expect(loading.root.dataset['setup']).toBe('20');
+    expect(loading.root.querySelector('[data-el="foot"]')?.textContent).toContain('122 / 122 files');
+  } finally { loading.scope.dispose(); }
+});
+
 it('shows the actual declared ratio when a late dependency is discovered, without a 99 percent cap', () => {
   const loading = new Loading({ id: 'test', name: 'Test' }, { scoped: true });
   const view: ProgressView = { download: 0, setup: 0, done: false, error: null, step: 'audio', label: 'Audio', detail: '',

@@ -155,7 +155,11 @@ export class Loading {
     const bytes = progress.bytesTotal > 0 || progress.bytesRead > 0 ? ` · ${formatMB(progress.bytesRead)} read` : '';
     const detail = `${progress.detail}${files}${bytes}`;
     this.phase?.detail(detail);
-    this.timeline.report(phase, detail, progress.filesDone, progress.filesTotal);
+    // Admission switches inventories: one descriptor, then sections, then
+    // assets and cache verification. Their local counts describe the work,
+    // not a fraction of the complete stage. Use its measured time weight.
+    if (phase === 'modules') this.timeline.report(phase, detail, progress.filesDone, progress.filesTotal);
+    else this.timeline.report(phase, detail);
     setData(this.root, 'step', `admission.${progress.phase}`);
     this.dirty = true;
   }
