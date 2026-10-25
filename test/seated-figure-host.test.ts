@@ -3,21 +3,15 @@ import { readdirSync, readFileSync } from 'node:fs';
 import * as v from 'valibot';
 import { expect, test, vi } from 'vitest';
 import { Bone, BufferGeometry, Material, Mesh, MeshStandardMaterial, Skeleton } from 'three';
-import { zlibSync } from 'fflate';
 import { MountedSpecimenSeatSchema } from '../src/format/mountedSpecimenRows';
 import { Scope } from '../src/engine/app/scope';
 import { SeatedFigure, seatedFigureView } from '../src/game/riding/seatedFigure';
 
 // G603 L10 host bar, tests 2-6, for the riding host's rider seated on a mount, on a made-up lamplighter riding a donkey:
 // its own inline shapes, a scene-declared standard coat (no lent look), another joint, speed clock and two cue kinds.
-const base64 = (data: Uint8Array): string => btoa(String.fromCodePoint(...data));
-function block(x: number): Uint8Array {
-  const position = new Float32Array([x, 0, 0, 1, 0, 0, 0, 1, 0]), deltas = new Int32Array([0, 1, 1]);
-  const out = new Uint8Array(position.byteLength + deltas.byteLength);
-  out.set(new Uint8Array(position.buffer), 0); out.set(new Uint8Array(deltas.buffer), position.byteLength);
-  return out;
-}
-const shape = (key: string, x: number) => ({ key, data: base64(zlibSync(block(x))),
+// Exact original zlib wires: position [x, 0, 0, 1, 0, 0, 0, 1, 0], index deltas [0, 1, 1].
+const shape = (key: string, x: 2 | 3) => ({ key,
+  data: x === 2 ? 'eJxjYGBwAGIoaLBHsFH5jFAMADHKAcE=' : 'eJxjYHBwYICDBnsEG5XPCMUAPUoCAQ==',
   geometry: { attrs: [['position', 'f32', 3, false]], count: 3, index: 'u16', indexCount: 3, box: true, expand: false } });
 const lamplighter = () => ({ mount: 'saddle',
   figure: { version: 1, root: 'rider', materials: [{ kind: 'standard', id: 'coat', properties: { color: 0x334455, roughness: 0.8 } }],
