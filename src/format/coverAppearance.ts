@@ -7,7 +7,7 @@ const unit = v.pipe(finite, v.minValue(0), v.maxValue(1));
 const texture = v.strictObject({ url: identifier, srgb: v.boolean(), repeat: v.boolean() });
 /** Client-only appearance rows for fixed and streamed instance fields. They
  * describe materials and numeric vertex channels, never placement or culling. */
-export const CoverAppearanceSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Cover appearance requires plain JSON'),
+export const CoverAppearanceSchema: v.GenericSchema<CoverAppearanceRowInput, CoverAppearanceRow> = v.pipe(v.unknown(), v.check(isJsonData, 'Cover appearance requires plain JSON'),
   v.strictObject({ textures: v.optional(v.record(identifier, texture), {}),
     kinds: v.pipe(v.array(v.strictObject({ id: identifier, graph: identifier, texture: v.exactOptional(identifier), name: v.exactOptional(identifier),
       attributes: v.optional(v.pipe(v.record(v.pipe(identifier, v.regex(/^a[A-Z][a-zA-Z0-9]*$/u)), finite), v.maxEntries(32)), {}), shadow: v.optional(v.boolean(), false),
@@ -17,6 +17,37 @@ export const CoverAppearanceSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Co
   v.check(row => new Set(row.kinds.map(kind => kind.id)).size === row.kinds.length
     && row.kinds.every(kind => kind.texture === undefined || row.textures[kind.texture] !== undefined)
     && Object.keys(row.textures).length <= 64, 'Unique kinds and declared bounded textures'));
-export type CoverAppearanceRow = v.InferOutput<typeof CoverAppearanceSchema>;
+
 /** Refuse executable values and missing textures at publication and client intake. */
 export function parseCoverAppearance(input: unknown): CoverAppearanceRow { return v.parse(CoverAppearanceSchema, input); }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type CoverAppearanceRowInput = unknown;
+interface CoverAppearanceRowFields {
+    textures: Record<string, {
+        url: string;
+        srgb: boolean;
+        repeat: boolean;
+    }>;
+    kinds: ({
+        id: string;
+        graph: string;
+        texture?: string;
+        name?: string;
+        attributes: Record<string, number>;
+        shadow: boolean;
+        properties: {
+            alphaTest?: number;
+            roughness?: number;
+            polygonOffset?: boolean;
+            polygonOffsetFactor?: number;
+            polygonOffsetUnits?: number;
+        };
+    })[];
+    params: {
+        viewer?: string;
+        shift?: string;
+        sunTint?: string;
+    };
+}
+export type CoverAppearanceRow = { [Key in keyof CoverAppearanceRowFields]: CoverAppearanceRowFields[Key] };

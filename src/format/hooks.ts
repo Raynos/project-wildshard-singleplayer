@@ -7,12 +7,12 @@ const id = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9.-]*$/u), v.maxLength(128
 const positive = v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(0x7fffffff));
 const finite = v.pipe(v.number(), v.finite());
 /** Named conditions read stable published fields; scenes enqueue next-tick events on a host-resolved actor. */
-export const HooksSchema = v.strictObject({
+export const HooksSchema: v.GenericSchema<ShardHooksInput, ShardHooks> = v.strictObject({
   conditions: v.pipe(v.array(v.strictObject({ id, scope: v.picklist(['shared', 'player']), fieldId: positive, equals: finite })), v.maxLength(256)),
   scenes: v.pipe(v.array(v.strictObject({ id, type: positive, value: finite })), v.maxLength(256)),
 });
 /** JSON-only named hook declarations shared by quests, input and Debug choices. */
-export type ShardHooks = v.InferOutput<typeof HooksSchema>;
+
 /** Resolve field types, bounds and privacy without allowing authored hook callbacks. */
 export function hookRules(hooks: ShardHooks, state: { shared: readonly HookField[]; player: readonly HookField[] }): string[] {
   const errors: string[] = [];
@@ -26,3 +26,20 @@ export function hookRules(hooks: ShardHooks, state: { shared: readonly HookField
   }
   return [...new Set(errors)];
 }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type ShardHooksInput = ShardHooks;
+interface ShardHooksFields {
+    conditions: ({
+        id: string;
+        scope: 'shared' | 'player';
+        fieldId: number;
+        equals: number;
+    })[];
+    scenes: ({
+        id: string;
+        type: number;
+        value: number;
+    })[];
+}
+export type ShardHooks = { [Key in keyof ShardHooksFields]: ShardHooksFields[Key] };

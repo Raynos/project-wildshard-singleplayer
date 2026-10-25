@@ -9,10 +9,38 @@ const row = v.strictObject({ item: v.strictObject({ kind: id, variant: v.exactOp
   count: v.exactOptional(v.union([count, v.pipe(v.tuple([count, count]), v.check(([low, high]) => low <= high, 'ordered count'))])),
   when: v.exactOptional(gate) });
 /** Ordered each/weighted tables with conjunctive kind/tag gates; all draws stay in WeightedTable. */
-export const SpawnTablesSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Spawn tables must be plain JSON'),
+export const SpawnTablesSchema: v.GenericSchema<SpawnTablesInput, SpawnTables> = v.pipe(v.unknown(), v.check(isJsonData, 'Spawn tables must be plain JSON'),
   v.array(v.strictObject({ id, table: v.strictObject({ mode: v.picklist(['each', 'weighted']), rows: v.pipe(v.array(row), v.maxLength(256)) }),
     respawn: v.exactOptional(v.strictObject({ delay: number, away: number })) })), v.maxLength(256),
   v.check(rows => new Set(rows.map(value => value.id)).size === rows.length, 'unique spawn table ids'));
-export type SpawnTables = v.InferOutput<typeof SpawnTablesSchema>;
+
 /** Admit the complete table set before registering a live spawner. */
 export function readSpawnTables(input: unknown): SpawnTables { return v.parse(SpawnTablesSchema, input); }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type SpawnTablesInput = unknown;
+export type SpawnTables = ({
+    id: string;
+    table: {
+        mode: 'each' | 'weighted';
+        rows: ({
+            item: {
+                kind: string;
+                variant?: string;
+            };
+            weight: number;
+            count?: (number) | ([
+                number,
+                number
+            ]);
+            when?: {
+                kind?: string;
+                tags?: (string)[];
+            };
+        })[];
+    };
+    respawn?: {
+        delay: number;
+        away: number;
+    };
+})[];

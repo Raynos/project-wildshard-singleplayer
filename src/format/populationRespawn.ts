@@ -3,7 +3,7 @@ import * as v from 'valibot';
 const finite = v.pipe(v.number(), v.finite());
 /** Native return services own the queue clock and predecessor identities.
  * The admitted event program chooses deadlines, eligibility and placement. */
-export const NativeReturnRowsSchema = v.strictObject({
+export const NativeReturnRowsSchema: v.GenericSchema<NativeReturnRowsInput, NativeReturnRows> = v.strictObject({
   program: v.unknown(), outOfSight: v.pipe(finite, v.minValue(0)),
   water: finite, fixed: v.pipe(v.array(v.string()), v.maxLength(32)),
   interval: v.pipe(finite, v.minValue(0.1)),
@@ -13,7 +13,7 @@ export const NativeReturnRowsSchema = v.strictObject({
     night: v.exactOptional(v.boolean()),
   })),
 });
-export type NativeReturnRows = v.InferOutput<typeof NativeReturnRowsSchema>;
+
 
 /** Authored seconds before replacement and its existing night gate. */
 export interface RespawnRule { delay: { min: number; max: number }; night?: boolean }
@@ -27,3 +27,22 @@ export interface RespawnTraversal {
   readonly limit: number | null;
   readonly result: 'reuse' | 'fresh';
 }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type NativeReturnRowsInput = NativeReturnRows;
+interface NativeReturnRowsFields {
+    program: unknown;
+    outOfSight: number;
+    water: number;
+    fixed: (string)[];
+    interval: number;
+    limit: number;
+    rules: Record<string, {
+        delay: {
+            min: number;
+            max: number;
+        };
+        night?: boolean;
+    }>;
+}
+export type NativeReturnRows = { [Key in keyof NativeReturnRowsFields]: NativeReturnRowsFields[Key] };

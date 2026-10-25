@@ -4,10 +4,10 @@ import type { Shardfile } from './shardSchema';
 
 const criterion = v.strictObject({ verdict: v.picklist(['pass', 'fail']), evidence: v.pipe(v.string(), v.minLength(1), v.maxLength(1024)) });
 /** Build evidence is meaningful only inside its exact index/source/validator-bound validation receipt. */
-export const GridStructuralEvidenceSchema = v.strictObject({ version: v.literal(1), criteria: v.strictObject({
+export const GridStructuralEvidenceSchema: v.GenericSchema<GridStructuralEvidenceInput, GridStructuralEvidence> = v.strictObject({ version: v.literal(1), criteria: v.strictObject({
   bakedTiles: criterion, edgeProfile: criterion, fourEntryways: criterion, hudAccent: criterion,
 }) });
-export type GridStructuralEvidence = v.InferOutput<typeof GridStructuralEvidenceSchema>;
+
 export function parseGridStructuralEvidence(input: unknown): GridStructuralEvidence { return v.parse(GridStructuralEvidenceSchema, input); }
 
 /** Call only after full byte admission: terrain, mesh/socket landings, prop collision,
@@ -22,3 +22,28 @@ export function structuralGridEvidence(source: Shardfile): GridStructuralEvidenc
     hudAccent: { verdict: 'pass', evidence: `Declared palette accent: ${source.accent}` },
   } };
 }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type GridStructuralEvidenceInput = GridStructuralEvidence;
+interface GridStructuralEvidenceFields {
+    version: 1;
+    criteria: {
+        bakedTiles: {
+            verdict: 'pass' | 'fail';
+            evidence: string;
+        };
+        edgeProfile: {
+            verdict: 'pass' | 'fail';
+            evidence: string;
+        };
+        fourEntryways: {
+            verdict: 'pass' | 'fail';
+            evidence: string;
+        };
+        hudAccent: {
+            verdict: 'pass' | 'fail';
+            evidence: string;
+        };
+    };
+}
+export type GridStructuralEvidence = { [Key in keyof GridStructuralEvidenceFields]: GridStructuralEvidenceFields[Key] };

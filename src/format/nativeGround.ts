@@ -2,9 +2,9 @@ import * as v from 'valibot';
 import type { ShardEntryways } from './entryways';
 
 /** Original native WSTR terrain retained by a trusted world-only hybrid; this declaration never installs collision. */
-export const NativeGroundSchema = v.strictObject({ version: v.literal(1), file: v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u)) });
+export const NativeGroundSchema: v.GenericSchema<NativeGroundInput, NativeGround> = v.strictObject({ version: v.literal(1), file: v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u)) });
 /** The immutable native payload; resolution, seed and landscape identity derive from admitted bytes. */
-export type NativeGround = v.InferOutput<typeof NativeGroundSchema>;
+
 /** Structural native-ground reference inputs, independent of the native byte decoder. */
 export interface NativeGroundSource {
   nativeGround: NativeGround | null;
@@ -27,3 +27,11 @@ export function nativeGroundRules(source: NativeGroundSource): string[] {
   if (file?.kind !== 'binary' || file.dependencies.length > 0 || !source.critical.includes(data.file)) errors.push('native ground is an independent critical binary root');
   return errors;
 }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type NativeGroundInput = NativeGround;
+interface NativeGroundFields {
+    version: 1;
+    file: string;
+}
+export type NativeGround = { [Key in keyof NativeGroundFields]: NativeGroundFields[Key] };

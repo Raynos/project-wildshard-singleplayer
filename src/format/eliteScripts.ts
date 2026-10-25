@@ -4,7 +4,7 @@ const finite = v.pipe(v.number(), v.finite(), v.minValue(-1e6), v.maxValue(1e6))
 const key = v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.:-]*$/u), v.maxLength(128));
 const name = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9_-]*$/u), v.maxLength(64));
 /** An elite fight script's declaration: its module, parameters, slots, modes, voices, lanes, contacts and own actions. */
-export const EliteScriptSchema = v.pipe(v.strictObject({
+export const EliteScriptSchema: v.GenericSchema<EliteScriptDataInput, EliteScriptData> = v.pipe(v.strictObject({
   id: key, kind: v.literal('elite-script'), module: v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u)),
   parameters: v.pipe(v.array(finite), v.maxLength(64)),
   /** the fight's numeric state, with its spawn values */
@@ -24,7 +24,37 @@ export const EliteScriptSchema = v.pipe(v.strictObject({
 }), v.check(row => new Set(row.slots.map(s => s.field)).size === row.slots.length && new Set(row.modes).size === row.modes.length,
   'Unique elite script slots and modes'));
 /** Validated elite script data. */
-export type EliteScriptData = v.InferOutput<typeof EliteScriptSchema>;
+
 /** Validate before admission or allocation. */
 export function parseEliteScript(input: unknown): EliteScriptData { return v.parse(EliteScriptSchema, input); }
 
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type EliteScriptDataInput = EliteScriptData;
+interface EliteScriptDataFields {
+    id: string;
+    kind: 'elite-script';
+    module: string;
+    parameters: (number)[];
+    slots: ({
+        field: string;
+        initial: number;
+    })[];
+    modes: (string)[];
+    voices: (string)[];
+    lanes: ({
+        mode: string;
+        lane: number;
+        trauma: number;
+    })[];
+    contacts: ({
+        strike: string;
+        throughWalls: boolean;
+        stun: number;
+        trauma: number;
+    })[];
+    actions: (string)[];
+    maxSpeed: number;
+    maxTurnRate: number;
+}
+export type EliteScriptData = { [Key in keyof EliteScriptDataFields]: EliteScriptDataFields[Key] };

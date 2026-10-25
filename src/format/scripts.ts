@@ -3,9 +3,9 @@ import * as v from 'valibot';
 const positive = v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(0x7fffffff));
 const moduleRef = v.pipe(v.string(), v.regex(/^(?:commons:)?[a-f0-9]{64}$/u));
 /** Numeric entity handles and an optional host-verified actor id bind an admitted module to local sim work. */
-export const ScriptBindingsSchema = v.pipe(v.array(v.strictObject({ module: moduleRef, entity: positive, actorId: v.nullable(v.pipe(v.string(), v.minLength(1), v.maxLength(128))), kind: v.picklist(['server', 'entity']) })), v.maxLength(10000));
+export const ScriptBindingsSchema: v.GenericSchema<ShardScriptBindingsInput, ShardScriptBindings> = v.pipe(v.array(v.strictObject({ module: moduleRef, entity: positive, actorId: v.nullable(v.pipe(v.string(), v.minLength(1), v.maxLength(128))), kind: v.picklist(['server', 'entity']) })), v.maxLength(10000));
 /** A validated v0 script binding list. */
-export type ShardScriptBindings = v.InferOutput<typeof ScriptBindingsSchema>;
+
 /** Reference/identity checks; both actor-bound server logic and actor-free director logic run authoritatively. */
 export function scriptBindingRules(bindings: readonly ShardScriptBindings[number][], scripts: readonly string[]): string[] {
   const errors: string[] = [], keys = new Set<string>(), actors = new Map<number, string | null>();
@@ -20,3 +20,12 @@ export function scriptBindingRules(bindings: readonly ShardScriptBindings[number
 }
 /** Format-owned field ids/defaults, with optional authored lower-only bounds. */
 export interface ShardScriptField { id: number; name: string; type: 'bool' | 'i32' | 'f64' | 'string'; privacy: 'public' | 'owner' | 'host'; default: boolean | number | string; min?: number | undefined; max?: number | undefined }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type ShardScriptBindingsInput = ShardScriptBindings;
+export type ShardScriptBindings = ({
+    module: string;
+    entity: number;
+    actorId: (string) | null;
+    kind: 'server' | 'entity';
+})[];
