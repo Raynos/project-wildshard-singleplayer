@@ -6,7 +6,7 @@
       "src/engine/render/graph/compile.ts": "22e0170f7020542080359cf32a7ce382a71104c5b5d0f03b89232505446a7ef5"
     },
     "after": {
-      "src/engine/render/nodes/engineNodesHandler.ts": "7e35de07eeb2e988e8cabba6e48b991cf0f2580e50cf334bbd57e29afa4c9953",
+      "src/engine/render/nodes/engineNodesHandler.ts": "9f6048b241ff7568c3e95922eb72ec0b05c0a9076fb65884eb19bfdd92cc29a8",
       "src/engine/render/graph/compile.ts": "319a1fd983c6f44010a13c84496e7a61be922ffaa7ffe3810f2762b3106827e0"
     }
   },
@@ -738,6 +738,7 @@
     "typedLint": "Named type-aware oxlint on all four touched TS paths PASS",
     "engineTypes": "tsc --noEmit -p src/engine/tsconfig.test.json PASS",
     "rootTypes": "BLOCKED only by foreign test/nine-decal-binary.test.ts old generators/output import plus row inferred type; owner notified; not claimed green",
-    "regression": "New independent-scene case fails before fix; strict dependent-scene controls remain passing"
+    "regression": "Independent-scene RED/GREEN plus custom patch install/removal RED/GREEN; 11 focused cases PASS after the strict patch boundary fix",
+    "followup": "Custom patch fix: 5 regression-related cases and 11 focused cases PASS; engine test project types and named type-aware lint PASS"
   }
 }

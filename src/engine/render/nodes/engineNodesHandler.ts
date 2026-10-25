@@ -362,6 +362,7 @@ interface StockKeyMemo {
   layer: { readonly whole: boolean } | null;
   toneMapped: boolean;
   rawOutput: boolean;
+  sceneIndependent: boolean;
   /** each object shape's whole key: [plain, receive] */
   readonly keys: Map<string, [string | undefined, string | undefined]>;
   /** each object shape's final key (patches folded in) and its token: [plain, receive] (`keyToken`) */
@@ -533,16 +534,14 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     // customProgramCacheKey: the tail is read through a stand-in whose class hash is empty, so a shared graph's key walks no
     // node ids at all (computing the hash to cut it off walked them twice a memo miss)
     const blankHash = { prototype: { customProgramCacheKey: (): string => '' } };
-    const sharedStock = (material: THREE.Material, receive: boolean): string => {
+    const sharedStock = (material: THREE.Material, receive: boolean, sceneIndependent: boolean): string => {
       const lead = this.shareKeyOf(material);
       if (lead === null) return stockKey.call(material);
       // A certified unlit graph reads neither scene lights/environment nor fog. Stock SceneContext still hashes
       // their fresh node/light IDs on every region entry, retaining equivalent programs on a shared material.
       // Explicit material inputs and layer bindings keep the original boundary; target/receive/object/patch facts
       // remain in this key and wholeKey. The compiler excludes explicit scene inputs, including nested loops.
-      if (material instanceof MeshBasicNodeMaterial && material.userData['graphSceneIndependent'] === true
-        && !material.fog && material.envMap === null && material.envNode === null && material.lightsNode === null
-        && layerFrameOf(material) === null)
+      if (sceneIndependent)
         return `${lead}|scene:none|${internals(this).renderer.getCacheKey()}${String(receive)}`;
       const bare: unknown = Object.create(material, { constructor: { value: blankHash } });
       const tail: unknown = Reflect.apply(stockKey, bare, []);
@@ -558,19 +557,23 @@ export class EngineNodesHandler extends WebGLNodesHandler {
       const stamp = keyContext();
       asked();
       const rawOutput = this.userData['graphRawOutput'] === true, objectKey = nodeObjectKey(object);
-      const depth = this.userData['graphDepthVariant'] === true;
-      if (stamp < 0) { built(); return shaderPatchProgramKey(this, wholeKey(depth ? depthStockKey(this, receive) : sharedStock(this, receive), this.toneMapped, rawOutput, objectKey, fog, layer)); }
+      const depth = this.userData['graphDepthVariant'] === true, patches = shaderPatchSet(this);
+      const sceneIndependent = this instanceof MeshBasicNodeMaterial && this.userData['graphSceneIndependent'] === true
+        && !this.fog && this.envMap === null && this.envNode === null && this.lightsNode === null
+        && layer === null && patches === null;
+      if (stamp < 0) { built(); return shaderPatchProgramKey(this, wholeKey(depth ? depthStockKey(this, receive) : sharedStock(this, receive, sceneIndependent), this.toneMapped, rawOutput, objectKey, fog, layer)); }
       let memos = stockKeys.get(this);
       if (memos === undefined || memos[0]?.version !== this.version) { memos = []; stockKeys.set(this, memos); }
       let memo: (typeof memos)[number] | undefined; // a loop, not find(): no closure made on every draw
       for (let i = 0; i < memos.length; i++) if (memos[i]?.stamp === stamp) { memo = memos[i]; break; }
       if (memo === undefined) {
-        memo = { stamp, version: this.version, receive: undefined, plain: undefined, fog, layer, toneMapped: this.toneMapped, rawOutput, keys: new Map(), tokens: new Map() };
+        memo = { stamp, version: this.version, receive: undefined, plain: undefined, fog, layer, toneMapped: this.toneMapped, rawOutput, sceneIndependent, keys: new Map(), tokens: new Map() };
         // a few key contexts a frame (the screen and its targets); a context that moved on drops out first
         if (memos.length >= MEMO_CONTEXTS) memos.shift();
         memos.push(memo);
-      } else if (memo.fog !== fog || memo.layer !== layer || memo.toneMapped !== this.toneMapped || memo.rawOutput !== rawOutput) {
-        memo.fog = fog; memo.layer = layer; memo.toneMapped = this.toneMapped; memo.rawOutput = rawOutput; memo.keys.clear(); memo.tokens.clear();
+      } else if (memo.fog !== fog || memo.layer !== layer || memo.toneMapped !== this.toneMapped || memo.rawOutput !== rawOutput || memo.sceneIndependent !== sceneIndependent) {
+        if (memo.sceneIndependent !== sceneIndependent) { memo.receive = undefined; memo.plain = undefined; }
+        memo.sceneIndependent = sceneIndependent; memo.fog = fog; memo.layer = layer; memo.toneMapped = this.toneMapped; memo.rawOutput = rawOutput; memo.keys.clear(); memo.tokens.clear();
       }
       // the whole key, kept per object shape and receive flag while its other parts hold (warm draws ask on every draw)
       let shape = memo.keys.get(objectKey);
@@ -579,14 +582,14 @@ export class EngineNodesHandler extends WebGLNodesHandler {
       if (kept !== undefined) {
         // the slot's final key while its kept key and the material's patch set are the same objects: no key text compared
         // (a node key runs to hundreds of KB: 43 of 4270 samples of a steady Nalati Simulator profile compared it)
-        const patches = shaderPatchSet(this), held = memo.tokens.get(objectKey)?.[slot];
+        const held = memo.tokens.get(objectKey)?.[slot];
         if (held !== undefined && held.kept === kept && held.patches === patches) { reuse(held.token); return held.final; }
         return tokened(memo, objectKey, slot, shaderPatchProgramKey(this, kept), kept, patches);
       }
       let stock = receive ? memo.receive : memo.plain;
-      if (stock === undefined) { stock = depth ? depthStockKey(this, receive) : sharedStock(this, receive); if (receive) memo.receive = stock; else memo.plain = stock; }
+      if (stock === undefined) { stock = depth ? depthStockKey(this, receive) : sharedStock(this, receive, sceneIndependent); if (receive) memo.receive = stock; else memo.plain = stock; }
       const key = wholeKey(stock, this.toneMapped, rawOutput, objectKey, fog, layer); shape[slot] = key; built();
-      return tokened(memo, objectKey, slot, shaderPatchProgramKey(this, key), key, shaderPatchSet(this));
+      return tokened(memo, objectKey, slot, shaderPatchProgramKey(this, key), key, patches);
     };
     this.epilogue.push((out, ctx) => {
       const bound = materialNodeFogOf(ctx.material);

@@ -4,6 +4,8 @@ import { LightsNode } from 'three/webgpu';
 import { vec3 } from 'three/tsl';
 import { EngineNodesHandler } from '../nodes/engineNodesHandler';
 import { compileGraph } from './compile';
+import { Scope } from '../../app/scope';
+import { patchShader, PATCH_ORDER } from '../shaderPatches';
 
 vi.stubGlobal('ImageBitmap', class ImageBitmap { readonly width = 0; });
 afterAll(() => { vi.unstubAllGlobals(); });
@@ -82,4 +84,16 @@ test('explicit node environment and lighting inputs keep the stock scene boundar
     expect(key(a, [new THREE.DirectionalLight()])).not.toBe(key(b, [new THREE.DirectionalLight()]));
     material.dispose();
   }
+});
+
+test('custom shader patches restore scene identity after an independent lookup', () => {
+  const material = compileGraph({ version: 1, kind: 'material', model: 'unlit', nodes: {},
+    stages: { surface: { colour: [1, 0, 0] } }, effectState: { fog: false } }).material;
+  const key = keyReader(material), a = new THREE.Scene(), b = new THREE.Scene(), owner = new Scope('scene-patch');
+  const lights = [new THREE.DirectionalLight()], plain = key(a, lights);
+  patchShader(material, 'scene-reader', PATCH_ORDER.view, () => undefined, { scope: owner });
+  expect(key(a, lights)).not.toBe(key(b, [new THREE.DirectionalLight()]));
+  owner.dispose();
+  expect(key(a, lights)).toBe(plain);
+  material.dispose();
 });
