@@ -32,6 +32,9 @@ function fixture() {
 
 test('root preparation skips unused parked-material inventories and retains exact variants and live flags', async () => {
   const f = fixture(), walk = vi.spyOn(f.excluded, 'traverse');
+  let clock = 0;
+  // This case counts cheap-work barriers; the costly-discovery case below owns budget expiry.
+  const time = vi.spyOn(performance, 'now').mockImplementation(() => {clock += .05; return clock;});
   let pauses = 0;
   try {
     await prepareSceneRoots(f.renderer, f.camera, f.scene, null, [f.root], () => true, () => {
@@ -42,7 +45,7 @@ test('root preparation skips unused parked-material inventories and retains exac
     expect(pauses).toBe(3); // The two existing discovery barriers and final compile barrier; no cheap-work fence.
     expect(f.material.version).toBe(0);
     expect(f.scene.children).toEqual([f.root, f.excluded, f.light]);
-  } finally {walk.mockRestore(); f.dispose();}
+  } finally {time.mockRestore(); walk.mockRestore(); f.dispose();}
 });
 
 test('root discovery retains each road environment layout without changing borrowed scene state', async () => {
