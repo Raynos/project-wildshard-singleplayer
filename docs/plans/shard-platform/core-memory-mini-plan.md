@@ -1,13 +1,12 @@
 # Core-game memory benchmax: mini plan (measured, G640)
 
-**State:** `in flight` (2026-10-25, sp-x2) — coherent `50d155f897` native cohort
-is 2/4 PASS: menu 93.538 / selection 107.679 MiB; Template 1 260.664 and
-Template 2 249.679 MiB FAIL (§13). C1.1 backing cut done `9108b14ec6`;
-C3 title isolation qualified. Idle workers retire, without an established
-native-byte gain. C4 native holders and C6 calibration remain open. C6's
-pinned-product prediction is 15.000330% high; the exact audit refuses a rounded
-pass. C7 protocol separation is done `50d155f897`. C5 remains a look pick.
-Budgets stay fixed; this slice leaves the 250 MiB estimator base unchanged.
+**State:** `in flight` (2026-10-25, sp-x2) — latest Template-only native pair
+on `5f99d999e6` is 0/2 PASS: Template1 **267.398 MiB**, Template2
+**245.507 MiB**, both over fixed198.538 MiB (§14). Prior full `50d155f897`
+cohort remains 2/4 PASS; menu/select were not repeated. The world.data GLB
+admission graph is narrower, without a consistent native gain. C1.1 done
+`9108b14ec6`; C3 title isolation qualified. C4 holders / C6 calibration remain
+open, C5 waits-Opus. Budgets and the 250 MiB estimator base stay unchanged.
 An extra under G639 (after Nalati to zero and grid readiness).
 
 Jake, 2026-10-23, reading the tile streaming page (*"What tiles can't remove: the ~300 MB engine base, the ~320 MB of
@@ -432,14 +431,14 @@ retention attribution remain open.
 |---|---|---|
 | C4.1 Current native reading and cache lifetime | done `b03613aa82`, measured FAIL retained | Template 1 260.070 / 198.538 MiB; no runtime errors. New real-GC contracts prove settled downloads/write snapshots are released on success and quota refusal while the cache remains alive. No production release was justified. |
 | C4.2 Current main-page holders / idle decoders | done `6436257c8e`, bounded | One matching Chromium heap: 29,755,996 B rooted JS / 17,510,853 B unique backing, not a 55 MiB dead cache. Two idle tile-decode workers remain live; retire their pool after 30 s without queued/active jobs, recreate on the next decode. Three regressions fail before the cut; six worker contracts pass afterward. Native-byte gain is not established. |
-| C4.3 Remaining native/worker attribution | in flight (2026-10-25, sp-x2), milestone measured | Current native Template 1 260.664 / 198.538 MiB FAIL. Chromium confirms zero live workers at 60/120 s, without a heap snapshot or forced GC. No native-byte gain established; native holder attribution remains open. |
-| C4.4 world.data model admission | source done (producer `dfa2feca44`, reader this commit); native pending | Extract the exact bounded GLB implementation, switch equipment/skin readers, and load full product costing only for declared commons. Static source closure -39,457 raw / -10,954 gzip B; not a RAM saving. New entry graph regression fails before/passes after, malformed commons still refuse before publication. Only the two failing native Template rows rerun. |
+| C4.3 Remaining native/worker attribution | in flight (2026-10-25, sp-x2), milestone measured | Latest native Templates 267.398/245.507 MiB vs 198.538 MiB FAIL. Earlier Chromium confirms zero live workers at 60/120 s without a heap snapshot or forced GC. No consistent native-byte gain established; native holder attribution remains open. |
+| C4.4 world.data model admission | source done `dfa2feca44` + `5f99d999e6`; measured FAIL retained | Exact bounded GLB parser and deferred commons validation; static source closure -39,457 raw/-10,954 gzip B. Original native pair267.398/245.507 MiB, both FAIL; no consistent native gain. Actual compressed-model geometry/owner/refusal contracts preserved. |
 | C6 Model source | done previously `d2ef0c0848`, historical calibration | 250 MiB base, explicit grid-only page claims, unchanged caps. This visit does not silently recalibrate the estimator or establish current ±15% accuracy. |
 | C6.1 Pinned product / exact model audit | done (this commit) | Same `50d155f897` product and estimator: 299.764 MiB predicted / 260.664 MiB observed, 15.000330% high. Offline native-only audit refuses the exact miss, independently of G682; no base/cap change. |
 | C6.2 Current calibration | open | One current paired product/observation does not justify fitting the shared engine base. Current prediction marginally misses the picked ±15% band; it is not marked accurate. |
 | C7.1 Reader protocol separation | done `50d155f897` | Only the original cold, uncollected WebKit protocol qualifies G682. Chromium retains diagnostic totals but cannot print a WebKit PASS/FAIL. |
 | C7.2 Coherent current four-floor reading | done (measurement), 2/4 PASS | `50d155f897`: 93.538 / 107.679 / 260.664 / 249.679 MiB. Both templates remain over G682; no repeated cohort or source-isolated gain claim. |
-| C7.3 Template-only requalification selector | done (this code commit), reading pending | `sim-grid-entry.mjs --core-memory=templates` visits only the existing Template1/2 targets in their original order and applies the same G682 caps/protocol. Missing, collected, foreign-protocol or mixed menu evidence cannot pass. No third/fourth visit or new calibration. |
+| C7.3 Template-only requalification selector | done `688f7e1d78`, measured FAIL in §14 | `sim-grid-entry.mjs --core-memory=templates` visits only the existing Template1/2 targets in their original order and applies the same G682 caps/protocol. Missing, collected, foreign-protocol or mixed menu evidence cannot pass. No third/fourth visit or new calibration. |
 
 One official cold compiled Template 1 visit used landed `87491b8aa7`, build
 `87491b8-mvo9ztg9`, with the existing reader's original title/select/SHARDFILE
@@ -666,3 +665,52 @@ beyond, unknown/invalid inputs, CLI pass/fail and mixed source refusal. The
 initial CLI regression fails before implementation; all 23 focused / 24 related
 cases, scripts project types, scoped fixture types and named typed lint pass.
 The metadata-only preview is closed, with no browser or Simulator launched.
+
+## 14. Template world.data cut and native pair (2026-10-25)
+
+Equipment/skin admission imported the complete product validator during
+world.data preparation. Producer `dfa2feca44` extracts its exact bounded GLB
+implementation once; reader `5f99d999e6` uses that defining leaf. Commons retain
+their original byte-derived costing, loaded only when declared. All geometry,
+rig, animation, bounds and malformed-byte checks remain. Local static entry
+closure is635→632 files, raw6,559,793→6,520,336 B and
+gzip1,754,790→1,743,836 B. These source sizes are not delivered or native savings.
+No prior emitted bundle remained for a matching comparison.
+
+Only the failing Template rows reran through the original official reader's
+Template-pair selection (`688f7e1d78`): same target objects/order, fixed budgets,
+cold compiled title/select entry, phone tier, DPR2, muted, no Network capture,
+heap snapshot or forced GC. App `5f99d999e6`, build `5f99d99-mvoetw6g`.
+
+| Original 120s floor | WC bytes, both processes | GPU bytes | Combined MiB | Fixed limit MiB | Verdict |
+|---|---:|---:|---:|---:|---|
+| Template1 | 237,311,112 | 43,076,080 | **267.398** | 198.538 | FAIL |
+| Template2 | 216,962,184 | 40,471,024 | **245.507** | 198.538 | FAIL |
+
+Both visits complete/errors0, every10/60/120s sample2WC+1GPU. Rc1 is measured
+budget failure: excess72,204,672/49,250,688 B (68.860/46.969 MiB).
+Compared with prior50d, Template1 is higher and Template2 lower. Different
+pins, one pair each and peer overlap establish no consistent or isolated gain.
+Menu/selection were not repeated; no current four-floor verdict is inferred.
+
+The first command mistakenly supplied both base/rev and refused before launch
+or samples. One cause-corrected rev-only pair completed in274s. Peer sp-x1
+reported related checks17:45:26–17:45:46 local and hook17:46:06–17:46:19,
+overlapping the first visit; retained, no timing credit. Own optional broad
+product-free related walk was cancelled after more than15min before the native
+pair; unfinished coverage is deferred, not called green. Source cuts passed
+18/32 focused cases and CF1 42/139; pair-reader24 focus/25 CF1 pass.
+
+The post-milestone runtime model regression uses the real compressed GLB and
+equipment loader: exact position/normal/UV/index data, shared live ownership,
+last-owner disposal and hash-valid malformed-byte refusal. Its first fixture
+incorrectly expected a16-bit index from the default32-bit encoder; requesting
+the encoder's existing compact-index option retains the strict parity check.
+Two new cases plus23 existing graph/library cases, scoped fixture types and
+named typed lint pass. No shipped visual or allocator policy changes.
+
+Reader/proxy/Safari/Simulator cleanup completed; the owned retained preview was
+stopped afterward. Raw samples and compact rollup remain locally at
+`tmp/sp-x2/template-entry/native-pair/`. No second captured pair or forced
+collection ran. C4 native attribution and the excess remain open; active
+composer resources stay behind the existing C5 look decision.
