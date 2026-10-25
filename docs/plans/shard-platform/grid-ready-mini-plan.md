@@ -24,6 +24,7 @@ Each slice is bounded to one hour; report misses and their observed owners first
 | G723.2c | Contain the release red: one unsettled constructor owns the prediction queue; production factories keep retire-before-allocation while the allocator guard and isolated contract tests remain. At most one hour. | done (2026-10-25, sp-x8) |
 | G723.2d | Prove yielded real construction settles on cancellation before re-enabling paired production preparation; include committed-destination queue priority and the original Template return. At most one hour. | done (2026-10-25, sp-x8) |
 | G723.2e | Restore only the bounded isolated production opt-in after real yielded-install cancellation/retry proof; retain one unsettled constructor and the full cancellation, durability, two-world and cost fences. Native two-resident reading follows before edge timings. At most one hour. | in flight (2026-10-25, sp-x8) |
+| G723.2f | Repair the native held-pool lifetime mismatch exposed by preparation retirement: rehydrate evicted blade/polearm geometry before synchronous consumers while retaining admitted book data and every owner/product fence. At most one hour. | done (2026-10-25, sp-x8) |
 | G723.3 | Measure the defining warm-ahead slice against the same first-entry route and keep every durability, cancellation, claim and readiness fence. At most one hour. | open |
 
 ## G717 frame-floor misses (2026-10-25, sp-x1; G639)

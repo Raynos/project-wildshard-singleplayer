@@ -65,8 +65,8 @@ test('preparation retains blade then polearm then original book and one original
     const nextScope=f.parent.child('next-entry'),next={...f.ctx,scope:nextScope};
     expect(()=>f.held.installPage(next)).toThrow('not prepared for this owner');
     await f.held.prepareSlotSources(next);f.held.installPage(next);
-    expect(f.held.model('reward')).toMatchObject({id:model.id,name:model.name,file:model.file,defaults:model.defaults});expect(f.events).toEqual(['blade','polearm','book','packed:/assets/fixture/gear.bin']);
-    expect(f.bladePrepare).toHaveBeenCalledOnce();expect(f.polearmPrepare).toHaveBeenCalledOnce();expect(f.packed).toHaveBeenCalledOnce();
+    expect(f.held.model('reward')).toMatchObject({id:model.id,name:model.name,file:model.file,defaults:model.defaults});expect(f.events).toEqual(['blade','polearm','book','packed:/assets/fixture/gear.bin','blade','polearm']);
+    expect(f.bladePrepare).toHaveBeenCalledTimes(2);expect(f.polearmPrepare).toHaveBeenCalledTimes(2);expect(f.packed).toHaveBeenCalledOnce();
   } finally {f.parent.dispose();}
 });
 

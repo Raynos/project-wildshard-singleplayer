@@ -361,9 +361,11 @@ export class HeldClaims {
     const check=():void=>{owner();sources();this.checkSlotMetadata(metadata);if(ctx.product!==metadata.product||ctx.product.shardfile!==source||source.items!==items||ctx.product.file!==metadata.readFile||ctx.product.json!==metadata.readJson||ctx.product.url!==metadata.resolveUrl||ctx.app.equipment!==equipment)throw new Error('Held metadata owner was replaced');};
     check();metadata.preparing=true;
     try {
+      // Metadata/book admission survives retirement, but its native pool caches may have been evicted.
+      // Rehydrate them before this owner's synchronous weapon factories can borrow their parts.
+      for(const row of blades){await row.value.prepare(metadata.product);check();}
+      for(const row of polearms){await row.value.prepare(metadata.product);check();}
       if(!metadata.loaded){
-        for(const row of blades){await row.value.prepare(metadata.product);check();}
-        for(const row of polearms){await row.value.prepare(metadata.product);check();}
         const book=v.parse(SpecimenBookSchema,await metadata.product.json(metadata.file));check();
         const packed=book.packed;if(packed===undefined)throw new Error('Held specimen book has no packed source');
         const catalogue=defineSpecimenCatalogue<Record<string,object>>(book.rows,packed,book.materials);
