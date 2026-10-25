@@ -1,8 +1,13 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare the registered producer's original executable oracle.
 import { readFileSync } from 'node:fs';
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import * as v from 'valibot';
 import { Scope } from '../src/engine/app/scope';
+import { loadRapier } from '../src/engine/physics/rapier';
+import { createSimHost } from '../src/engine/sim';
+import { HerdShelter } from '../src/game/population/shelter';
+import { parsePopulationShelter } from '../src/format/herdShelter';
+import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { ReturnProgramSchema } from '../src/format/namedJsonContracts';
 import { ReturnModulesSchema } from '../src/format/scriptContract';
@@ -11,10 +16,13 @@ import { outputPlatformPayloads } from '../src/sdk/outputProduct';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { output } from '../src/shards/pine-hollow/generators/output';
 
-const original = v.parse(ReturnProgramSchema, JSON.parse(readFileSync('src/shards/pine-hollow/behaviour/life.generated.json', 'utf8')));
-const script = parseDecisionScripts([original.script])[0];
-if (script === undefined) throw new Error('Missing original Pine life script');
-const life = { script, bytes: original.bytes };
+function originalProgram(name: string) {
+  const original = v.parse(ReturnProgramSchema, JSON.parse(readFileSync(`src/shards/pine-hollow/behaviour/${name}.generated.json`, 'utf8')));
+  const script = parseDecisionScripts([original.script])[0];
+  if (script === undefined) throw new Error(`Missing original Pine ${name} script`);
+  return { script, bytes: original.bytes };
+}
+const life = originalProgram('life'), shelter = originalProgram('shelter');
 
 function namedJson(name: string): unknown {
   const file = output.namedFiles.find(row => row.name === name);
@@ -26,12 +34,14 @@ const programPage = v.object({ program: ReturnProgramSchema });
 const cases = [
   { name: 'actors/page-life.json', wasm: 'behaviour/pine.life.wasm', original: life, size: 9133,
     hash: '260eee8839d76af399fadc27a383c92ef8f75a0bbab154bce727d973d24e3594' },
+  { name: 'actors/shelter.json', wasm: 'behaviour/pine.shelter.wasm', original: shelter, size: 6664,
+    hash: '6005b3f6c02dc65ada9cf9b0a754dad73c44ecebb00e0df13ebc9b5957ce7316' },
 ];
 function admittedRows() {
   return v.parse(ReturnModulesSchema, outputPlatformPayloads(output.platform, ['actors/return-scripts']).get('actors/return-scripts'));
 }
 
-test('Pine life and both quest copies publish descriptors with only admitted binary modules', () => {
+test('Pine life, shelter and both quest copies publish descriptors with only admitted binary modules', () => {
   const rows = admittedRows();
   for (const row of cases) {
     const raw = v.parse(programPage, namedJson(row.name)).program;
@@ -68,12 +78,19 @@ test('original admitted Pine modules execute through the owning scope and refuse
       expect(() => ReturnProgram.page(raw, other)).toThrow('loan');
       const guest = ReturnProgram.page(raw, child), oracle = ReturnProgram.page(row.original);
       expect(ReturnProgram.page(structuredClone(raw), child)).toBe(guest);
-      for (const draw of [0, .2, 1]) for (const scale of [.5, 1])
-        expect(guest.project('arrival', { now: 7, minimum: 18, maximum: 52, draw, scale }))
-          .toEqual(oracle.project('arrival', { now: 7, minimum: 18, maximum: 52, draw, scale }));
-      for (const distance of [169.99, 170, 170.01]) {
-        const fields = { now: 100, kill: 0, arrival: 100, harvest: -1, site: -1, visit: 3, distance, reach: 170, giveUp: 240, present: 1 };
-        expect(guest.project('carcass', fields)).toEqual(oracle.project('carcass', fields));
+      if (row.original === life) {
+        for (const draw of [0, .2, 1]) for (const scale of [.5, 1])
+          expect(guest.project('arrival', { now: 7, minimum: 18, maximum: 52, draw, scale }))
+            .toEqual(oracle.project('arrival', { now: 7, minimum: 18, maximum: 52, draw, scale }));
+        for (const distance of [169.99, 170, 170.01]) {
+          const fields = { now: 100, kill: 0, arrival: 100, harvest: -1, site: -1, visit: 3, distance, reach: 170, giveUp: 240, present: 1 };
+          expect(guest.project('carcass', fields)).toEqual(oracle.project('carcass', fields));
+        }
+      } else {
+        for (const rain of [0, .5, 1]) for (const present of [0, 1]) {
+          const fields = { present, rain, wet: .5, dry: .2, hold: 60, homeHold: 80, dt: .1 };
+          expect(guest.project('shelterStep', fields)).toEqual(oracle.project('shelterStep', fields));
+        }
       }
       const changed = { ...raw, script: { ...row.original.script, pages: 2 } };
       expect(() => ReturnProgram.page(changed, child)).toThrow('contract mismatch');
@@ -97,4 +114,46 @@ test('Pine binary descriptors cannot fall back to encoded bytes on a missing or 
       expect(() => ReturnProgram.page(raw, owner)).toThrow('loan');
     } finally { owner.dispose(); }
   }
+});
+
+
+test('native Pine shelter retains raw-module goals, cadence and saved continuation on a fresh host', async () => {
+  const rapier = await loadRapier(new Uint8Array(readFileSync('public/assets/physics/rapier.wasm')));
+  const firstHost = createSimHost({ ...SIM_LEVEL, entities: [] }, { rapier });
+  const restoredHost = createSimHost({ ...SIM_LEVEL, entities: [] }, { rapier });
+  const rows = parsePopulationShelter(namedJson('actors/shelter.json'));
+  const trees = [{ x: 0, z: 0, r: 1, height: 25, cover: 1 }];
+  const herds = () => [{ kind: 'deer', cx: 10, cz: 0, members: [] }, { kind: 'boar', cx: 200, cz: 0, members: [] }];
+  try {
+    ReturnProgram.lendModules(firstHost.scope, output.assets, admittedRows());
+    const guest = ReturnProgram.native(firstHost, rows.program);
+    const calls = vi.spyOn(guest, 'project');
+    const actual = new HerdShelter({ herds: herds() }, trees, rows.look, guest);
+    const oracle = new HerdShelter({ herds: herds() }, trees, rows.look, ReturnProgram.page(shelter));
+    for (const rain of [0, .3, .31, 1]) for (let tick = 0; tick < 120; tick++) {
+      actual.update(1 / 60, rain); oracle.update(1 / 60, rain);
+      expect(actual.wanderGoal(0, rain)).toEqual(oracle.wanderGoal(0, rain));
+    }
+    const saved = actual.snapshot();
+    expect(saved).toEqual(oracle.snapshot());
+    expect(actual.wanderGoal(0, 1)).toEqual({ x: 3.2, z: 0, r: rows.look.spotR });
+    expect(calls.mock.calls.filter(([signal]) => signal === 'shelterStep')).toHaveLength(160);
+    expect(saved.shelters).toHaveLength(2);
+    expect(saved.shelters[0]).not.toBeNull();
+    ReturnProgram.lendModules(restoredHost.scope, output.assets, admittedRows());
+    const resumedGuest = ReturnProgram.native(restoredHost, rows.program);
+    expect(resumedGuest).not.toBe(guest);
+    const resumed = new HerdShelter({ herds: herds() }, trees, rows.look, resumedGuest);
+    resumed.restore(saved); oracle.restore(saved);
+    for (let tick = 0; tick < 1000; tick++) {
+      resumed.update(.1, 0); oracle.update(.1, 0);
+      expect(resumed.wanderGoal(0, 0)).toEqual(oracle.wanderGoal(0, 0));
+    }
+    expect(resumed.snapshot()).toEqual(oracle.snapshot());
+    expect(resumed.snapshot().shelters).toEqual([null, null]);
+    firstHost.dispose();
+    expect(() => guest.project('shelterStep', {})).toThrow('disposed');
+    expect(() => ReturnProgram.native(firstHost, rows.program)).toThrow('disposed');
+    expect(ReturnProgram.native(restoredHost, rows.program)).toBe(resumedGuest);
+  } finally { firstHost.dispose(); restoredHost.dispose(); }
 });
