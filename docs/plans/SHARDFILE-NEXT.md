@@ -37,7 +37,7 @@ where a row names a dependency.
   backs it. New behaviour a player could see goes behind Developer first.
 - Memory stays a platform limit: 1.2 GB per shard playing, 1.8 GB loading. Nothing here lets a shard choose its own
   memory use.
-- No new bots, cron jobs or proof machinery (G585). Analytics rows are reads of existing telemetry.
+- No new bots, cron jobs or proof machinery (G585), except the one scorecard job Jake picked (SN-D31).
 - Script ABI changes (rows E2, F2) are agreed with [WASM-HOST](WASM-HOST.md), which owns the ABI's next version.
 - Numbers go in commit messages. No receipts or proof files.
 
@@ -97,6 +97,13 @@ Jake's grill, 2026-10-24 (page: [Shardfile Next Decisions](https://claude.ai/art
   more.
 - **SN-D28 Claude and Codex lanes both use the `wildshard-dev` MCP server;** each session still takes a browser lane
   slot.
+- **SN-D29 Fresh start for today's saves.** The player record does not migrate the current format; old save keys are
+  cleared when the record ships.
+- **SN-D30 Template 2 pilots the player record** behind Developer, then every shard switches in one landing.
+- **SN-D31 The scorecard is a standing dashboard page refreshed by a scheduled job.** Jake picked it knowing it is a
+  new automation, so it is his explicit exception to G585 for this one job.
+- **SN-D32 A rollback is proposed as a question to Jake** with the broken shard, the product to pin and a before /
+  after capture; his answer is quoted in the commit.
 
 ## Rows
 
@@ -131,6 +138,8 @@ quest flags, current steps and dialogue do not. Declared `migrations` exist, but
   matches; on a revision bump the world starts fresh and the record is re-applied. — open
 - **B3** Wire the declared `migrations` hooks for the player record: a rename or a removed quest step migrates by id
   instead of dropping the record. — open
+- **B5** Ship with a fresh start (SN-D29): today's save keys are cleared, not migrated. Template 2 pilots behind
+  Developer, then every shard switches in one landing (SN-D30). — open
 - **B4** A headless test: build a shard, play to a mid-quest step, bump the revision, rebuild, and expect the wallet,
   items and quest step back. — open
 
@@ -146,7 +155,7 @@ committed.
   (revision, root hash, date, the commit subject). Where the bytes live is open question Q2. — open
 - **C2** A catalogue placement takes `product: <hash>` or follows `latest` (the default). A pin whose product fails
   today's `requires.sdk` or admission is refused at build time, with the reason. — open
-- **C3** A one-shard rollback is a one-line catalogue change, landed only on Jake's word (SN-D6); write the drill into
+- **C3** A one-shard rollback is a one-line catalogue change, landed only on Jake's word, given as an answer to a question with evidence (SN-D6, SN-D32); write the drill into
   [docs/process/DEPLOY.md](../process/DEPLOY.md). Still one site and one deployment: a pin is data. — open
 
 **Done when** one shard can be rolled back to its previous product while every other shard stays on `latest`.
@@ -206,8 +215,8 @@ means for them.
 - **G1** Each shard's funnel is derived from its `quests` section: step reached, time to step, where people stop.
   No new event names unless a step can't be read from `quest.step`. — open
 - **G2** Coin flows in and out by source, read from the `ledger`. — open
-- **G3** `telemetry-brief` prints one scorecard per shard (funnel plus coin flow). It is a read, not a new bot, and
-  it never asks Jake to do anything. — open
+- **G3** A standing dashboard page with one scorecard per shard (funnel, coin flow, retention), refreshed by one
+  scheduled job (SN-D31, Jake's exception to G585). It never asks Jake to do anything. — open
 - **G4** D1 / D7 retention (SN-D11): a stable anonymous player id across days, sent with the existing session
   records, and retention in the scorecard. — open
 
