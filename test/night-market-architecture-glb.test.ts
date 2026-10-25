@@ -13,19 +13,22 @@ import {architecturePiece,Soup} from ${JSON.stringify(kit)};
 import {architectureGlb} from ${JSON.stringify(glb)};
 const text=readFileSync(new URL(${JSON.stringify(kit)}),'utf8');
 // Compare with the defining builders, without palette partitioning or a copied geometry recipe.
-const original=await import('data:text/javascript;base64,'+Buffer.from(text+'\\nexport {house,stalls,canal,forecourt,farTile,writer};').toString('base64'));
+const original=await import('data:text/javascript;base64,'+Buffer.from(text+'\\nexport {house,stalls,canal,forecourt,garden,plaza,farTile,writer};').toString('base64'));
 const hex=JSON.parse(readFileSync('src/shards/open-plots/data/layouts/night-market.json','utf8')).palette;
 const palette=Object.fromEntries(Object.entries(hex).map(([key,s])=>[key,[1,3,5].map(at=>{const c=parseInt(s.slice(at,at+2),16)/255;return c<=.04045?c/12.92:((c+.055)/1.055)**2.4})]));
 const rows=[];
-for(const [type,variant] of [['H',0],['H',1],['S',0],['C',0],['L',0],['N',0]]){
+for(const [type,variant] of [['H',0],['H',1],['S',0],['C',0],['L',0],['N',0],['G',0],['G',1],['P',0]]){
  const baseline=Object.fromEntries(['Kit','Glow','Pool','Water','far','solid'].map(role=>[role,new Soup()]));
- const w=original.writer(baseline,[0,0],0);
- const builder={H:original.house,S:original.stalls,C:original.canal,L:original.canal,N:original.forecourt}[type];
+ const w=original.writer(baseline,[0,0],0),referenceLights=[];
+ w.captureMovingLight=(kind,position)=>referenceLights.push({kind,position:[...position],ordinal:baseline.Glow.part('Glow').positions.length/9});
+ const builder={H:original.house,S:original.stalls,C:original.canal,L:original.canal,N:original.forecourt,G:original.garden,P:original.plaza}[type];
  builder(w,palette,type==='C'||type==='L'?type:variant);original.farTile(w,palette,type);
  const source=architecturePiece(type,palette,variant),encoded=architectureGlb(type,palette,variant);
+ assert.deepEqual(source.movingLights,referenceLights);assert.deepEqual(encoded.movingLights,referenceLights);
  const again=architectureGlb(type,palette,variant);
  assert.notEqual(encoded.bytes.buffer,again.bytes.buffer);assert.deepEqual(encoded.bytes,again.bytes);
  assert.notEqual(encoded.bindings,again.bindings);
+ assert.notEqual(encoded.movingLights,again.movingLights);
  const doc=await new NodeIO().readBinary(encoded.bytes),nodes=doc.getRoot().listNodes();
  assert.equal(nodes.length,source.bindings.size+1);
  assert.equal(new Set(doc.getRoot().listMaterials().map(m=>m.getName())).size,nodes.length);
@@ -53,13 +56,14 @@ for(const [type,variant] of [['H',0],['H',1],['S',0],['C',0],['L',0],['N',0]]){
  const collision=nodes.find(node=>node.getName()==='collide_body').getMesh().listPrimitives()[0];
  assert.deepEqual(collision.getAttribute('POSITION').getArray(),new Float32Array(baseline.solid.part('Solid').positions));
  counts.solid=collision.getAttribute('POSITION').getCount()/3;
+ assert.equal(encoded.movingLights.length,type==='G'?6:type==='P'?3:0);
  rows.push({type,variant,bytes:encoded.bytes.length,counts});
 }
 const equal={...palette,wood:[...palette.roof]},aliased={...palette,wood:palette.roof};
 const sameColour=architectureGlb('H',equal);
 assert.ok(sameColour.bindings.has('Kit_wood'));assert.ok(sameColour.bindings.has('Kit_roof'));
 assert.throws(()=>architectureGlb('H',aliased),/distinct named RGB/);
-for(const [type,variant] of [['H',2],['S',1],['G',0]])assert.throws(()=>architectureGlb(type,palette,variant),/existing type and variant/);
+for(const [type,variant] of [['H',2],['S',1],['G',2],['X',0]])assert.throws(()=>architectureGlb(type,palette,variant),/existing type and variant/);
 assert.throws(()=>architectureGlb('H',{...palette,wood:[NaN,0,0]}),/distinct named RGB/);
 const missing={...palette};delete missing.wood;
 assert.throws(()=>architectureGlb('H',missing),/undeclared palette/);
@@ -82,6 +86,9 @@ console.log(JSON.stringify(rows));`;
     ['C', 0, { Kit: 428, Glow: 110, Pool: 92, Water: 2, far: 4, solid: 576 }],
     ['L', 0, { Kit: 412, Glow: 60, Pool: 56, Water: 4, far: 6, solid: 540 }],
     ['N', 0, { Kit: 614, Glow: 120, Pool: 96, Water: 0, far: 22, solid: 300 }],
+    ['G', 0, { Kit: 330, Glow: 130, Pool: 104, Water: 10, far: 22, solid: 168 }],
+    ['G', 1, { Kit: 330, Glow: 130, Pool: 104, Water: 10, far: 22, solid: 168 }],
+    ['P', 0, { Kit: 112, Glow: 100, Pool: 80, Water: 0, far: 2, solid: 144 }],
   ]);
   expect(rows.every(row => row.bytes < 200_000)).toBe(true);
 });

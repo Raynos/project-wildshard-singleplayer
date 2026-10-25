@@ -185,9 +185,19 @@ function mover(w, x, y, z, size, seed) {
   w.tri('Glow', top, b, a, c); w.tri('Glow', top, d, b, c); w.tri('Glow', top, a, d, c); w.tri('Glow', a, b, d, c);
 }
 /** A firefly: a 7 cm mover the glow graph wanders (+-0.8 m) and blinks green. */
-function firefly(w, x, y, z) { mover(w, x, y, z, 0.07, nextSeed() * 0.5); }
+function firefly(w, x, y, z) { placeMovingLight(w, 'firefly', [x, y, z]); }
 /** A floating sky lantern: a 0.5 m mover the glow graph bobs and drifts (+-2 m), lit orange. */
-function skyLantern(w, x, y, z) { mover(w, x, y, z, 0.35, 0.5 + nextSeed() * 0.5); }
+function skyLantern(w, x, y, z) { placeMovingLight(w, 'sky-lantern', [x, y, z]); }
+/** One original moving-light recipe. Static exports capture its insertion point without consuming a seed;
+ * collision-only replay skips it. Actual placement consumes the same seed and writes the original double vertices. */
+export function placeMovingLight(w, kind, position) {
+  if (!['firefly', 'sky-lantern'].includes(kind) || !Array.isArray(position) || position.length !== 3
+    || position.some(value => !Number.isFinite(value))) throw new Error('open-plots: invalid moving light');
+  if (w.captureMovingLight !== undefined) { w.captureMovingLight(kind, position); return; }
+  if (w.staticOnly === true) return;
+  const seed = nextSeed() * 0.5;
+  mover(w, position[0], position[1], position[2], kind === 'firefly' ? 0.07 : 0.35, kind === 'firefly' ? seed : 0.5 + seed);
+}
 /** A lantern on a post (post in Kit, the lantern lit) and its pool of light. */
 function lantern(w, x, z, p, height = 2.8) {
   if (w.placeLantern !== undefined) {
@@ -425,11 +435,11 @@ function farTile(w, p, type) {
 const BUILDERS = { H: house, G: garden, S: stalls, C: canal, L: canal, N: forecourt, P: plaza };
 const discardTriangle = () => { /* Collision-only replay intentionally omits the already-placed GLB visuals. */ };
 
-/** Export existing static house/stall/canal/forecourt builders at the origin, split by palette-array identity.
+/** Export existing static tile geometry at the origin, split by palette-array identity.
  * Ordinals retain original triangle order when material slots are merged again. Equal RGB values never alias slots.
- * These builders do not consume moving-light seeds; no current layout or source collider is changed. */
+ * Moving lights are separate insertion records; extraction never consumes their seed stream. */
 export function architecturePiece(type, palette, variant = 0) {
-  if (!['H', 'S', 'C', 'L', 'N'].includes(type) || (type === 'H' ? ![0, 1].includes(variant) : variant !== 0)) {
+  if (!Object.hasOwn(BUILDERS, type) || (type === 'H' || type === 'G' ? ![0, 1].includes(variant) : variant !== 0)) {
     throw new Error('open-plots architecture: existing type and variant required');
   }
   const slots = new Map();
@@ -452,10 +462,11 @@ export function architecturePiece(type, palette, variant = 0) {
   };
   const parts = { Kit: new Soup(partKey), Glow: new Soup(partKey), Pool: new Soup(partKey), Water: new Soup(partKey),
     far: new Soup(partKey), solid: new Soup() };
-  const w = writer(parts, [0, 0], 0);
+  const w = writer(parts, [0, 0], 0), movingLights = [];
+  w.captureMovingLight = (kind, position) => movingLights.push({ kind, position: [...position], ordinal: ordinals.get('Glow') ?? 0 });
   BUILDERS[type](w, palette, type === 'C' || type === 'L' ? type : variant);
   farTile(w, palette, type);
-  return { parts, bindings };
+  return { parts, bindings, movingLights };
 }
 
 /**
@@ -471,7 +482,7 @@ export function buildLayout(grid, parts, p, seed, kit) {
     if (kit?.placeArchitecture?.(w, type, variant) === true) {
       // Replay only the defining collision recipe; GLB float storage cannot move a box or change registration order.
       build({ tri: discardTriangle, triColours: discardTriangle, quad: discardTriangle, box: discardTriangle,
-        sides: discardTriangle, floor: discardTriangle, solid: w.solid }, p, variant);
+        sides: discardTriangle, floor: discardTriangle, solid: w.solid, staticOnly: true }, p, variant);
     } else build(w, p, variant);
     farTile(w, p, type);
     // NM7: string lights over the lanes between tiles (each tile strings its north and east seams when they are inside the
