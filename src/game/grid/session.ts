@@ -298,7 +298,7 @@ export class GridSession {
   private readonly roadPlans = new Map<Mesh, CullPlan>();
   private readonly roadBudget: { readonly view: () => RoadViewCost | null; readonly resident: () => RoadResident };
   private readonly life: NeighbourLife;
-  private readonly admitNeighbour: ((cell: GridCell) => void) | undefined;
+  private readonly admitNeighbour: ((cell: GridCell) => Promise<void>) | undefined;
   /** G222 playtest #7: each neighbour's declared doors and gates, shown exactly when its region has them standing */
   private readonly panels: NeighbourPanels;
   private readonly softWalls: { readonly step: () => void; readonly state: () => SoftWallState };
@@ -608,10 +608,10 @@ export class GridSession {
    * reader, material set and view set per slug (the template copies share them), each cell its own root. A neighbour that
    * fails to admit keeps its far proxy.
    */
-  private tileAdmission(renderer: Renderer, roots: ReadonlyMap<string, Group>): (cell: GridCell) => void {
+  private tileAdmission(renderer: Renderer, roots: ReadonlyMap<string, Group>): (cell: GridCell) => Promise<void> {
     const scope = this.host.scope, skins = new Map<string, Promise<ReadonlyMap<string, ClientSkin>>>();
     const shared = new Map<string, Promise<{ source: ClientRingInstance['source']; assets: ClientAssets; views: ClientTileViews; compile: (entry: unknown) => Material }>>();
-    const requested = new Set<string>();
+    const requested = new Map<string, Promise<void>>();
     const admit = async (cell: GridCell): Promise<void> => {
       const root = roots.get(cell.instance); if (root === undefined) return;
       try {
@@ -634,18 +634,19 @@ export class GridSession {
           }
           const { source, assets, views, compile } = await loading;
           if (scope.disposed) return;
-          if (source.tiles.length > 0) this.clientTiles.offer(cell.instance, { source, assets, root, views });
+          this.clientTiles.offer(cell.instance, { source, assets, root, views });
           const bytes = retained.admitted.assets;
           try { await this.life.admit(cell, root, source, bytes, compile, skins); } catch (error) { console.warn(`[grid] ${cell.instance} stays still (client scripts):`, error); }
           try { await this.panels.admit(cell, root, source, bytes, views); } catch (error) { console.warn(`[grid] ${cell.instance} draws no doors (declared panels):`, error); }
         } finally {
           try { await retained.releaseInputs(); } finally { if (!pageOwned) retained.release(); }
         }
-      } catch (error) { this.refuse(cell, error); } // G167 / G217: a refused shard's cell screen names the reason
+      } catch (error) { this.refuse(cell, error); throw error; } // Required entry retains the original refusal.
     };
     return cell => {
-      if (scope.disposed || requested.has(cell.instance)) return;
-      requested.add(cell.instance); void admit(cell);
+      if (scope.disposed || scope.disposing) return Promise.reject(new Error('Grid tile owner left'));
+      const prior = requested.get(cell.instance); if (prior !== undefined) return prior;
+      const pending = admit(cell); requested.set(cell.instance, pending); return pending;
     };
   }
 
@@ -715,6 +716,10 @@ export class GridSession {
     if (this.host.residency === undefined) throw new Error('Grid session requires the early page residency owner');
     this.live = new LiveGridSession({ assembly: this.assembly, home: this.home, physics: this.host.physics, scope: this.host.scope, walls: this.walls, strips: this.strips, allocator: this.allocator,
       residency: this.host.residency.home(), tiles: this.clientTiles, lightingSettled: () => { this.prelinkViews(); },
+      ...(this.admitNeighbour === undefined ? {} : { prepareDataTiles: async (cell: GridCell, scope: Scope, start: { readonly x: number; readonly z: number }) => {
+        await this.admitNeighbour?.(cell);
+        await this.clientTiles.enterOffered(cell.instance, scope, start);
+      } }),
       neighbourEdges: (cell, origin) => neighbourEdges(cell, { origin }), rimEdges: (origin) => rimEdges(this.assembly, { origin }) }, page);
     return this.live;
   }
@@ -759,7 +764,7 @@ export class GridSession {
     // cells keep their baked proxy without admitting their full product at boot.
     for (const cell of this.neighbours) {
       const distance = Math.hypot(Math.max(0, Math.abs(at.x - cell.origin.x) - CHUNK_HALF), Math.max(0, Math.abs(at.z - cell.origin.z) - CHUNK_HALF));
-      if (this.assembly.approaching(distance, 400 + Math.min(speed, 60) * 4)) this.admitNeighbour?.(cell);
+      if (this.assembly.approaching(distance, 400 + Math.min(speed, 60) * 4)) void this.admitNeighbour?.(cell).catch(() => undefined);
     }
     this.softWalls.step();
     if (view) this.viewStep();

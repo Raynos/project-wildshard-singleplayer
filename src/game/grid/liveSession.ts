@@ -128,6 +128,8 @@ export interface LiveGridPage {
 }
 /** What the session lends: the assembly, the home world and its walls, the strips and the one allocator. */
 export interface LiveGridSessionPorts {
+  /** Data-only cells publish gameplay only after their admitted entry tiles are resident. */
+  readonly prepareDataTiles?: (cell: GridCell, scope: Scope, start: { readonly x: number; readonly z: number }) => Promise<void>;
   /** Borrow the page render scheduler when an entered data region replaces neighbour views. */
   readonly tiles?: ClientTileRegistration;
   /** Told once the lighting a crossing changes is in place (an entered runtime's activation settled, or the road again
@@ -712,7 +714,18 @@ export class LiveGridSession {
       const modules = copySource.sim.scripts.flatMap(name => { const module = assets.get(name); return module === undefined ? [] : [module]; });
       const release = owner === null || modules.length === 0 || modules.length > SCRIPT_LIMITS.instances ? undefined
         : await prepareScriptMemoryLease(modules, owner, 'frame');
-      try { return await (owner === null ? build(saved) : owner.run(() => build(saved))); }
+      try {
+        const region = await (owner === null ? build(saved) : owner.run(() => build(saved)));
+        try {
+          const feet = this.live.worldFeet();
+          await this.ports.prepareDataTiles?.(cell, region.host.scope, { x: feet.x - cell.origin.x, z: feet.z - cell.origin.z });
+          return region;
+        } catch (error) {
+          try { region.dispose(); }
+          catch (cleanup) { throw new AggregateError([error, cleanup], 'Data entry and cleanup failed', { cause: cleanup }); }
+          throw error;
+        }
+      }
       finally { release?.(); }
     } });
     } catch (error) { try { releaseProduct(); } finally { product.release(); } throw error; }

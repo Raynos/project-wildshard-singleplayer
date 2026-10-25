@@ -92,6 +92,59 @@ test('a missing coarse tier keeps its fine patches as coverage beyond the select
   expect(f.pins()).toBe(0); expect(f.allocator.entries()).toHaveLength(0);
 });
 
+test('data entry waits for offered near coverage and retires with its regional owner', async () => {
+  const f = fixture(false);
+  try {
+    await expect(f.registration.enterOffered('unknown', f.resident, camera)).rejects.toThrow('not been admitted');
+    f.registration.offer('home', f.entered);
+    let ready = false;
+    const pending = f.registration.enterOffered('home', f.resident, camera).then(() => { ready = true; return undefined; });
+    expect(ready).toBe(false);
+    for (let frame = 0; frame < 10; frame++) { f.streamer.step(camera); await Promise.resolve(); }
+    expect(ready).toBe(false);
+    await f.drive(); await pending;
+    expect(f.registration.owns('home')).toBe(true);
+    expect(f.coverage(f.entered.root)).toEqual(Array.from({ length: 64 }, () => 1));
+    f.resident.dispose();
+    expect(f.registration.owns('home')).toBe(false);
+    expect(f.entered.root.children).toHaveLength(0);
+    const returned = f.scope.child('returned');
+    const again = f.registration.enterOffered('home', returned, camera);
+    await f.drive(); await again;
+    expect(f.coverage(f.entered.root)).toEqual(Array.from({ length: 64 }, () => 1));
+  } finally { f.scope.dispose(); }
+  expect(f.pins()).toBe(0); expect(f.allocator.entries()).toHaveLength(0);
+});
+
+test('data entry keeps preparation refusal and closed-owner fences', async () => {
+  const f = fixture(true, true);
+  try {
+    f.registration.offer('home', f.entered);
+    const pending = f.registration.enterOffered('home', f.resident, camera);
+    const refusal = expect(pending).rejects.toThrow('Fixture preparation refused');
+    await f.drive(); await refusal;
+    expect(f.registration.owns('home')).toBe(false);
+    f.resident.dispose();
+    await expect(f.registration.enterOffered('home', f.resident, camera)).rejects.toThrow('owner left');
+  } finally { f.scope.dispose(); }
+  expect(f.pins()).toBe(0); expect(f.allocator.entries()).toHaveLength(0);
+});
+
+test('data entry retains already uploaded neighbour tiles instead of reloading them', async () => {
+  const f = fixture();
+  try {
+    await f.drive();
+    const roots = f.neighbour.root.children.filter(root => root.name.includes(':l1/'));
+    expect(roots.length).toBeGreaterThan(0);
+    const pending = f.registration.enterOffered('home', f.resident, camera);
+    for (const root of roots) expect(root.parent).toBe(f.neighbour.root);
+    await f.drive(); await pending;
+    for (const root of roots) expect(root.parent).toBe(f.neighbour.root);
+    expect(f.coverage(f.neighbour.root)).toEqual(Array.from({ length: 64 }, () => 1));
+  } finally { f.scope.dispose(); }
+  expect(f.pins()).toBe(0); expect(f.allocator.entries()).toHaveLength(0);
+});
+
 test('failed preparation and page disposal release registrations and their real leases', async () => {
   const f = fixture(true, true);
   try {

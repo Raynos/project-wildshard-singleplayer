@@ -304,6 +304,8 @@ export interface ClientTileRegistration {
   owns: (instance: string) => boolean;
   dispose: () => void;
   offer: (instance: string, entry: ClientRingInstance) => void;
+  /** A data-only cell borrows its admitted neighbour views with required entry coverage. */
+  enterOffered: (instance: string, scope: Scope, start: { readonly x: number; readonly z: number }) => Promise<void>;
   enter: (instance: string, entry: ClientRingInstance, scope: Scope, start: { readonly x: number; readonly z: number }) => Promise<{ readonly fine: ReadonlySet<string>; refresh: () => Promise<void> }>;
 }
 
@@ -312,10 +314,15 @@ export function clientTileRegistration(instances: Map<string, ClientRingInstance
   streamer: Pick<TileStreamer<unknown>, 'require' | 'resident' | 'setFullRing' | 'retireRefinement'>, radius: () => number): ClientTileRegistration {
   const entered = new Map<string, () => void>(), fallback = new Map(instances);
   let disposed = false;
-  return {
+  const registration: ClientTileRegistration = {
     owns: instance => entered.has(instance),
     dispose: () => { if (disposed) return; disposed = true; for (const release of entered.values()) release(); },
     offer: (instance, entry) => { if (disposed) throw new Error('Tile registration disposed'); fallback.set(instance, entry); if (!entered.has(instance)) instances.set(instance, entry); },
+    enterOffered: async (instance, scope, start) => {
+      const entry = fallback.get(instance);
+      if (entry === undefined) throw new Error('Data cell tile views have not been admitted');
+      await registration.enter(instance, entry, scope, start);
+    },
     enter: async (instance, entry, scope, start) => {
       const ownerLeft = (): boolean => disposed || scope.disposed || scope.disposing;
       if (ownerLeft()) throw new Error('Entered tile owner left');
@@ -333,7 +340,9 @@ export function clientTileRegistration(instances: Map<string, ClientRingInstance
         const prior = fallback.get(instance); if (prior === undefined) instances.delete(instance); else instances.set(instance, prior);
       };
       try {
-        streamer.setFullRing(instance, radius()); registered = true; streamer.retireRefinement(instance);
+        streamer.setFullRing(instance, radius()); registered = true;
+        const prior = instances.get(instance);
+        if (prior?.root !== entry.root || prior.views !== entry.views) streamer.retireRefinement(instance);
         instances.set(instance, { ...entry, source: { ...entry.source, tiles: entry.source.tiles.filter(tile => keys.has(`${tile.lod}/${tile.x}/${tile.z}`)) } });
         entered.set(instance, release); scope.onDispose(release);
         // Entered scenes hide the neighbour root: keep every coarse quadrant there until this region leaves.
@@ -354,6 +363,7 @@ export function clientTileRegistration(instances: Map<string, ClientRingInstance
       } catch (error) { release(); throw error; }
     },
   };
+  return registration;
 }
 
 /** A loaded tile view borrows the one scheduler; refresh changes its selection, never starts another queue. */

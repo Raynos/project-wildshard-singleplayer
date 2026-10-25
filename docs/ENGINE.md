@@ -13492,6 +13492,11 @@ Scene entry resolves frozen graph placement dependencies before choosing
 tile ownership: a placement consumed whole by frozen contacts or a named
 place set builds once as a complete placement. Its earlier entry row must
 not also register tiled attachment. Unrelated placements still stream.
+The grid's data-only cell entry awaits its admitted neighbour views through
+`ClientTileRegistration.enterOffered` before publishing gameplay. It pins
+coarse coverage and the entry's L0 tiles on this same scheduler. Borrowing
+the same root retains uploaded tiles; a replacement root retires them.
+The regional scope releases the entry registration and its pins on retirement.
 Cells may declare `type: level | road | junction` and a centred `extent`
 with finite positive width/depth up to 500 m. Omitted extents retain the
 500 m lattice; kinds do not infer dimensions or install logic. L0
