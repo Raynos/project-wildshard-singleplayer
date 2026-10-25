@@ -70,6 +70,21 @@ Goal (Jake): a full TypeScript check of the whole repo before push, warm in seco
 | T5 | Pre-push full check: `tsc -b` with a persistent tsbuildinfo (fixed slot, or the cache copied into the push tree; paths are relative) | 1–5 s no change, ~15 s shard edit after T1–T3 | M | the gate runs the full check within 45 s; over-budget (engine API edit) falls back to CI (D2) |
 | T6 | Mac only, after T1: `--checkers 8` | 62 → 25 s, +3.4 GB | S | measured after T1 |
 
+### T3 remaining slices (G704/G711)
+
+Each slice is at most one hour; a relocation commit touches at most about twenty
+source/test paths. Later inventory findings get their own bounded slices before
+implementation. Existing test identities, assertions and deadlines stay fixed.
+
+| Slice | Scope | Budget | Status |
+|---|---|---|---|
+| T3-F1 | Eight format declaration suites: arena, audio, boss, channels, creatures, equipment, materials and roaming combat | 45 min | open |
+| T3-F2 | Eight format declaration suites: client plan, items, native plan, painted look, rows, dressing and species metadata | 45 min | open |
+| T3-F3 | Four format declaration suites: specimen, assembly, world models/page and scenes | 30 min | open |
+| T3-G1 | Remaining game units with existing public lower-layer imports; adapt byte fixtures without new exports or encoding debt | 60 min | in flight (2026-10-24, sp-x8) |
+| T3-A1 | Classify remaining root suites and fixture consumers; enumerate concrete ownership batches, preserving accepted cross-layer integrations | 60 min | open |
+| T3-C1 | Reconcile the final root inventory, workspace membership and CF1/CI selection; retain only classified root suites | 45 min | open |
+
 T2 covered the 13 previously unowned top-level app roots and SDK `.d.mts`, preserving every old root input through
 source ownership or tests/ambient contracts. The root test program contains zero source TS implementations. Compiler
 fixtures refuse missing declarations, source errors, test errors and JavaScript-body errors. Ready related checks ran

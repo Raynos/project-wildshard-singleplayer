@@ -1,6 +1,5 @@
 import * as v from 'valibot';
 import {expect,test,vi} from 'vitest';
-import {zlibSync} from 'fflate';
 import {Scope} from '../src/engine/app/scope';
 import {BinarySourceSchema} from '../src/format/binarySource';
 import {binarySourceBytes,prepareBinarySources} from '../src/game/models/binarySource';
@@ -20,7 +19,7 @@ test('preparation reads each exact file once, keeping raw bytes and the legacy d
   const rows=[{source:{file:'shape'},bytes:4},{source:{file:'shape'},bytes:4}];
   const files=await prepareBinarySources({file,hasFile:()=>true},rows);
   expect(file.mock.calls).toEqual([['shape']]);expect(binarySourceBytes({file:'shape'},files)).toBe(raw);
-  const data=btoa(String.fromCodePoint(...zlibSync(raw)));
+  const data='eJxj+M/SAAADiQGE'; // The same zlib wire for [0, 255, 4, 128], without an encoder in the fixture.
   expect(binarySourceBytes({data})).toEqual(raw);
   expect(await prepareBinarySources({},[{source:{data},bytes:4}])).toEqual(new Map());
   await expect(prepareBinarySources({file},[{source:{file:'shape'},bytes:8}])).rejects.toThrow('byte count');
