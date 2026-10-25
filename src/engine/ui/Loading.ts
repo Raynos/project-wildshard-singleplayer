@@ -411,11 +411,14 @@ export class Loading {
     // Freeze the elapsed clock and completed rows, not the game's draw loop.
     this.tickClock(); this.scope.cancelRaf(this.raf);
     this.root.dataset['ready'] = 'true';
+    this.root.dataset['hold'] = 'true';
     const play = document.createElement('button');
     play.type = 'button'; play.className = 'ws-load-play'; play.textContent = engineString('s_loading_play');
-    const panel = this.root.querySelector('.ws-load-panel');
-    if (panel === null) throw new Error('Loading: missing completed panel');
-    panel.append(play);
+    const body = this.root.querySelector<HTMLElement>('.ws-load-body');
+    const foot = this.root.querySelector('.ws-load-foot');
+    if (body === null || foot === null) throw new Error('Loading: missing completed body or footer');
+    body.dataset['scroll'] = 'true';
+    this.root.insertBefore(play, foot);
     return new Promise<void>((resolve, reject) => {
       let waiting = true;
       const proceed = (playRequested = false): void => {

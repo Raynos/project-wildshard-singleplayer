@@ -76,6 +76,9 @@ it('holds complete bars and frozen timings until PLAY, then enters once after th
   expect(loading.done()).toBe(finished);
   const play = loading.root.querySelector<HTMLButtonElement>('.ws-load-play');
   if (play === null) throw new Error('Missing PLAY');
+  expect(play.parentElement).toBe(loading.root);
+  expect(play.nextElementSibling?.classList.contains('ws-load-foot')).toBe(true);
+  expect(loading.root.querySelector<HTMLElement>('.ws-load-body')?.dataset['scroll']).toBe('true');
   expect(play.textContent).toBe('PLAY'); expect(document.activeElement).toBe(play);
   expect(loading.playRequested).toBe(false);
   expect(loading.root.dataset['download']).toBe('100'); expect(loading.root.dataset['setup']).toBe('100');
@@ -87,6 +90,7 @@ it('holds complete bars and frozen timings until PLAY, then enters once after th
   expect(loading.root.querySelector('[data-el="clock"]')?.textContent).toBe(clock);
   expect(loading.root.querySelector('[data-el="rows"]')?.innerHTML).toBe(rows);
   play.click(); play.click(); await Promise.resolve();
+  expect(loading.root.dataset['hold']).toBe('true');
   expect(loading.playRequested).toBe(true);
   expect(enter).not.toHaveBeenCalled();
   await vi.advanceTimersByTimeAsync(320); await finished;
