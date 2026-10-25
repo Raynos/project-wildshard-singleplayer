@@ -1172,7 +1172,9 @@
         "src/shards/pine-hollow/data/terrainBindings.json",
         "src/format/populationEnvironment.ts",
         "src/format/scalarChannel.ts",
-        "src/shards/pine-hollow/generators/forestRows.ts"
+        "src/shards/pine-hollow/generators/forestRows.ts",
+        "src/sdk/package.json",
+        "src/sdk/bake/byteCodec.ts"
       ],
       "outputs": [
         "src/shards/pine-hollow/data/geography.generated.json",
