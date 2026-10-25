@@ -7,6 +7,7 @@ import cues from '../src/shards/sunscar-dunes/data/cues.json' with { type: 'json
 import { heldPlayback } from '../src/shards/sunscar-dunes/generators/heldPlayback';
 import { SIGNAL_EMITTERS as emitters } from '../src/shards/sunscar-dunes/generators/lightEmitters';
 import { SIGNAL_CLIENT_PLAN as client } from '../src/shards/sunscar-dunes/generators/clientPlan';
+import { SIGNAL_SOURCE_BLOBS, SIGNAL_SOURCE_LIBRARIES } from '../src/shards/sunscar-dunes/generators/sceneSources';
 
 // Captured from the original signal-view-data / signal-held-playback outputs
 // before GR4 removes their JSON handoffs. Canonicalization ignores object-key
@@ -27,5 +28,21 @@ for (const name of Object.keys(rows) as (keyof typeof rows)[]) {
   test(`Sunscar ${name} keeps the original product values`, () => {
     const bytes = new TextEncoder().encode(encodeCanonicalJson(rows[name]));
     expect(hashImmutableBytes(bytes)).toBe(originals[name]);
+  });
+}
+
+// Full bytes captured before replacing the generated rest-scene effect input.
+for (const [index, name, bytes, hash] of [
+  [0, 'models', 26685, '3a48fc5fd2728208ad344422f17854ac1705f8162a4318f224b88157dc2850c1'],
+  [1, 'bakes', 24094, '16a8b5ccde010f28354f594072fc60daa6a684475172a4517d16f8075a965339'],
+] as const) {
+  test(`Sunscar ${name} source keeps every original byte and file cost`, () => {
+    const blob = SIGNAL_SOURCE_BLOBS[index];
+    if (blob === undefined) throw new Error('Missing original scene source');
+    expect(blob.bytes.byteLength).toBe(bytes);
+    expect(hashImmutableBytes(blob.bytes)).toBe(hash);
+    expect(blob.file).toEqual({ name: `world/sources/${name}.json`, path: `blobs/json/${hash}.json`, kind: 'json', hash,
+      compressed: bytes, decoded: bytes, gpu: 0, triangles: 0, draws: 0, critical: false, dependencies: [] });
+    expect(SIGNAL_SOURCE_LIBRARIES[index]).toEqual({ id: name, kind: name === 'models' ? 'models' : 'baked', file: `world/sources/${name}.json` });
   });
 }
