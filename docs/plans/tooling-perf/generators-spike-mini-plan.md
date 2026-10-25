@@ -121,7 +121,7 @@ in `public/assets/<slug>/` as real `.glb` / `.png` / `.ktx2` / `.bin`. App-wide 
 | GR1 | done (2026-10-24, sp-x1): SDK `ctx.cached` / `ctx.asset`, in-memory boss metadata and Template/Pastel map/world programs; `de4c2ed072` + `89dc5c0c07` + `ea96805666` | M | Exact `ea96805666` full preview passes all 24 products in 165.42 s; both folders have zero job rows and no new file under `src/` after generation/build |
 | GR2 | done (2026-10-24, sp-x1): `326950c025` + `78681f7cf5`; app tables then the existing per-product build pool, heavy-lane, scoped `--shard=`; preparation-only CI preserved | S | fresh Node refuses any scheduler import for a fully converted folder; 29 focused + 410 ready-related cases pass; exact `78681` generation builds all 24 products |
 | GR3 | in flight (2026-10-24, sp-x1): **Nine** (28 jobs at claim; 9 remain): direct row, physics and schema calls replace imports; `castHook` / `lightSpill` become cached `.glb` / `.bin`; dead `paintArray` retires (G416, closes B4); atlases per D2; its tests call functions | L | 0 Nine rows in the catalogue, 0 `*.generated.*` under its folder, product validates, boot smoke green |
-| GR4 | **Sunscar** (23 jobs) | M | same bar |
+| GR4 | **in flight (2026-10-24, sp-x6): Sunscar** (23 at claim; 19 remain). Four jobs retired with exact source-product parity; next largest is creature rigs. | M | same bar |
 | GR5 | **Far Reach** (47) | L | same bar |
 | GR6 | **Nalati** (47; 69 product imports, `poiPaint` / `grass` / `geography`) | L | same bar |
 | GR7 | **Driftwood** (41; chain of 5, `rockScenes` / `mapAssembly` number arrays) | L | same bar |
@@ -130,6 +130,13 @@ in `public/assets/<slug>/` as real `.glb` / `.png` / `.ktx2` / `.bin`. App-wide 
 | GR10 | Runtime: the 7 runtime / plugin imports of outputs read shardfile sections | M | no runtime file imports a step output |
 | GR11 | App tables to virtual modules (D4): starter tables, slugs, discovery, boot tables, budgets | M | no `*.generated.*` anywhere under `src/` |
 | GR12 | Delete `generation-jobs.json`, `generate.mjs`, the `generation-*` helpers, the `*.d.json.ts` shims and the generated `.gitignore` lines; burn-down lists empty | M | the files are gone and both bans have no exceptions |
+
+### GR4 current ≤ 1 h slices (G711)
+
+| Slice | Status | Boundary |
+|---|---|---|
+| Rig recipe | done | Cached source inputs; all five original native files byte-exact, detached cache hits, one pure author bundle. No job removed in this preparation slice. |
+| Rig adoption | in flight (2026-10-24, sp-x6) | Pass owned rig bytes and original skeleton into source-product metadata, adapt the retained view-data producer, retire only `signal-rigs` (19 → 18); exact assets/costs. |
 
 GR0–GR2 first, then one shard at a time, each an independent lane-task that lands in small commits. The gen plan's timings
 pick which steps get `cached`.

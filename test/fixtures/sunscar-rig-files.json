@@ -1,0 +1,22 @@
+{
+  "skitterer.glb": {
+    "bytes": 5740,
+    "hash": "e9914c2166c6ec003abe417270436df0012c9c1af6b223dc6c6583157b433e8f"
+  },
+  "ray.glb": {
+    "bytes": 643436,
+    "hash": "5a7790638935b07e4ef27e09810b71c2c0ce563e078dac79c5750257e75c25a5"
+  },
+  "matriarch.glb": {
+    "bytes": 638824,
+    "hash": "dd8580bbb0828b7eef30f9489e013995d8b96edb0c5f4399a5b791b22aeb07fa"
+  },
+  "strider.glb": {
+    "bytes": 84196,
+    "hash": "e21cdbc0c48d79d48670fd5f0d34c6eb9329da64635947c286247e702eb24def"
+  },
+  "striderRig.json": {
+    "bytes": 1289,
+    "hash": "d24181a9295c7040867ee733d5842e8543b7e255a13ccdea75b394979bb885c9"
+  }
+}
