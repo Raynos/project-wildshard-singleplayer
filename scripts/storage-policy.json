@@ -9,11 +9,11 @@
   "migrationBase": "51a68db06eeaceda20a1c571e509724f535a7086",
   "pins": [
     {
-      "path": "public/assets/title/launch-1206x2622.png",
-      "oid": "195b1a626040f7ed5a48468dc28e02fba52e55a4",
-      "bytes": 1626518,
+      "path": "public/assets/title/launch-1206x2622-e78cd1eb93eb.png",
+      "oid": "6cae66727a099497d8c19592e73f3cccf82efaf7",
+      "bytes": 1627294,
       "kind": "runtime",
-      "purpose": "G716 iPhone 16/17 Pro pre-document launch surface, rendered from the inline title hero and boat by scripts/generate-title-launch.mjs"
+      "purpose": "G716 native pre-document launch hero with phone status-area inset, rendered from index.html by scripts/generate-title-launch.mjs"
     },
     {
       "path": "src/shards/driftwood-isle/assets/a3fca362de406d3063f6aff3083eb852967dfbb73afb7ff67daaaddaed262e3a",

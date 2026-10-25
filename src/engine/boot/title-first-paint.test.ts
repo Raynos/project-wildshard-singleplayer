@@ -73,6 +73,7 @@ test('the standalone launch image matches the declared phone pixel dimensions', 
   expect(link?.getAttribute('media')).toContain('(-webkit-device-pixel-ratio: 3)');
   const href = link?.getAttribute('href');
   if (href === undefined || href === null) throw new Error('Missing native launch image');
+  expect(href).toMatch(/^\/assets\/title\/launch-1206x2622-[a-f0-9]{12}\.png$/u);
   const png = readFileSync(`public${href}`);
   expect(png.subarray(1, 4).toString()).toBe('PNG');
   expect([png.readUInt32BE(16), png.readUInt32BE(20)]).toEqual([1206, 2622]);
