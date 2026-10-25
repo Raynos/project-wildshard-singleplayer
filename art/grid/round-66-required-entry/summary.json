@@ -1,0 +1,162 @@
+{
+  "app": "1138f0564cf53b57f293cc02eddaac9adc888361",
+  "device": "iPhone 16 Pro",
+  "tier": "phone",
+  "cpu": 4,
+  "muted": true,
+  "cases": [
+    {
+      "slug": "blender-template",
+      "plan": {
+        "name": "blender-template-road-entry",
+        "from": null,
+        "to": "blender-template-1",
+        "movement": "road-hover",
+        "start": {
+          "x": -281.25,
+          "z": -281.25
+        },
+        "waypoints": [
+          {
+            "x": -562.5,
+            "z": -281.25
+          },
+          {
+            "x": -562.5,
+            "z": -352.5
+          }
+        ],
+        "requiredResidents": [
+          "blender-template-1"
+        ],
+        "finishOnArrival": false,
+        "observePreparation": true,
+        "hoverMaxSpeed": 30
+      },
+      "error": null,
+      "elapsedSeconds": 24.95039999997616,
+      "current": "blender-template-1",
+      "inside": "blender-template-1",
+      "ready": true,
+      "residents": [
+        "blender-template-1"
+      ],
+      "crossing": {
+        "current": "blender-template-1",
+        "target": "blender-template-1",
+        "phase": "settled",
+        "issue": null
+      },
+      "drawn": {
+        "far": true,
+        "near": false,
+        "l1": 12,
+        "l0": 13
+      },
+      "errors": [],
+      "contextLost": false
+    },
+    {
+      "slug": "open-plot-ember-forge",
+      "plan": {
+        "name": "open-plot-ember-forge-road-entry",
+        "from": null,
+        "to": "open-plot-4-1",
+        "movement": "road-hover",
+        "start": {
+          "x": 1406.25,
+          "z": -281.25
+        },
+        "waypoints": [
+          {
+            "x": 1125,
+            "z": -281.25
+          },
+          {
+            "x": 1125,
+            "z": -352.5
+          }
+        ],
+        "requiredResidents": [
+          "open-plot-4-1"
+        ],
+        "finishOnArrival": false,
+        "observePreparation": true,
+        "hoverMaxSpeed": 30
+      },
+      "error": null,
+      "elapsedSeconds": 26.589299999952317,
+      "current": "open-plot-4-1",
+      "inside": "open-plot-4-1",
+      "ready": true,
+      "residents": [
+        "open-plot-4-1"
+      ],
+      "crossing": {
+        "current": "open-plot-4-1",
+        "target": "open-plot-4-1",
+        "phase": "settled",
+        "issue": null
+      },
+      "drawn": {
+        "far": false,
+        "near": false,
+        "l1": 16,
+        "l0": 15
+      },
+      "errors": [],
+      "contextLost": false
+    },
+    {
+      "slug": "open-plot-night-market",
+      "plan": {
+        "name": "open-plot-night-market-road-entry",
+        "from": null,
+        "to": "open-plot-nw",
+        "movement": "road-hover",
+        "start": {
+          "x": -281.25,
+          "z": 281.25
+        },
+        "waypoints": [
+          {
+            "x": -562.5,
+            "z": 281.25
+          },
+          {
+            "x": -562.5,
+            "z": 352.5
+          }
+        ],
+        "requiredResidents": [
+          "open-plot-nw"
+        ],
+        "finishOnArrival": false,
+        "observePreparation": true,
+        "hoverMaxSpeed": 30
+      },
+      "error": null,
+      "elapsedSeconds": 26.237,
+      "current": "open-plot-nw",
+      "inside": "open-plot-nw",
+      "ready": true,
+      "residents": [
+        "open-plot-nw"
+      ],
+      "crossing": {
+        "current": "open-plot-nw",
+        "target": "open-plot-nw",
+        "phase": "settled",
+        "issue": null
+      },
+      "drawn": {
+        "far": false,
+        "near": false,
+        "l1": 16,
+        "l0": 15
+      },
+      "errors": [],
+      "contextLost": false
+    }
+  ]
+}
