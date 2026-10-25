@@ -3,7 +3,6 @@
   "source": "8183c3df1d0baf41bcc75c7c5097fb4c12a800ca",
   "files": {
     "scripts/bake-maps.mjs": 2,
-    "scripts/bake-template-shardfile.mjs": 1,
     "scripts/bake/far-board.mjs": 2,
     "scripts/bake/rings-drive.mjs": 2,
     "scripts/bake/species-scripts.mjs": 1,
