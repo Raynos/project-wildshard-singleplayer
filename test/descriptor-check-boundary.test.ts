@@ -5,6 +5,8 @@ import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { outputSectionPayloads } from '../src/format/outputFields';
 import type { resolveOutputDescriptor } from '../src/game/shardfile/outputDescriptor';
 import type { admitProduct, ProductOptions } from '../src/game/shardfile/product';
+import type { createShardProduct } from '../src/game/shardfile/shardProduct';
+import type { readCheckedOutputIndex } from '../src/game/shardfile/outputIndexChecks';
 // oxlint-disable-next-line import/no-nodejs-modules -- Execute and remove one real browser build as an owned temporary module.
 import { mkdir, mkdtemp, writeFile, rm } from 'node:fs/promises';
 // oxlint-disable-next-line import/no-nodejs-modules -- Keep the temporary browser module under the repository scratch root.
@@ -12,9 +14,12 @@ import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Native import evaluates the bundled browser entry without a browser or eval shim.
 import { pathToFileURL } from 'node:url';
 
-function resolverModule(input: unknown): input is { resolveOutputDescriptor: typeof resolveOutputDescriptor; admitProduct: typeof admitProduct } {
+function resolverModule(input: unknown): input is { resolveOutputDescriptor: typeof resolveOutputDescriptor; admitProduct: typeof admitProduct;
+  createShardProduct: typeof createShardProduct; readCheckedOutputIndex: typeof readCheckedOutputIndex } {
   return typeof input === 'object' && input !== null && 'resolveOutputDescriptor' in input && typeof input.resolveOutputDescriptor === 'function'
-    && 'admitProduct' in input && typeof input.admitProduct === 'function';
+    && 'admitProduct' in input && typeof input.admitProduct === 'function'
+    && 'createShardProduct' in input && typeof input.createShardProduct === 'function'
+    && 'readCheckedOutputIndex' in input && typeof input.readCheckedOutputIndex === 'function';
 }
 
 test('browser products need a build proof and bundle no checked host intake', async () => {
@@ -30,12 +35,15 @@ test('browser products need a build proof and bundle no checked host intake', as
     }), schemas: [], files: [], runtime: null };
   const entry = new URL('../descriptor-check-boundary', import.meta.url).pathname;
   const productEntry = new URL('../src/game/shardfile/product.ts', import.meta.url).pathname;
+  const metadataEntry = new URL('../src/game/shardfile/outputIndexChecks.ts', import.meta.url).pathname;
   const result = await build({ configFile: false, publicDir: false, logLevel: 'silent',
     define: { __SHARDFILE_VALIDATOR__: JSON.stringify('browser-boundary'), __SHARDFILE_VERDICTS__: JSON.stringify([{ revision: 'browser-boundary',
       sourceHash: index.build.sourceHash, indexHash: hashImmutableBytes(encode(index)), worst: { playing: 0, loading: 0, accounted: 0, location: [0, 0] } }]) },
     plugins: [{ name: 'descriptor-check-boundary', resolveId(id) { return id === entry ? '\0descriptor-check-boundary' : null; },
       load(id) { return id === '\0descriptor-check-boundary' ? `export {resolveOutputDescriptor} from '@wildshard/game/shardfile/outputDescriptor';
-        export {admitProduct} from ${JSON.stringify(productEntry)};` : null; } }],
+        export {admitProduct} from ${JSON.stringify(productEntry)};
+        export {readCheckedOutputIndex} from ${JSON.stringify(metadataEntry)};
+        export {createShardProduct} from '@wildshard/game/shardfile/shardProduct';` : null; } }],
     build: { write: false, minify: false, lib: { entry, formats: ['es'] }, rolldownOptions: { output: { codeSplitting: false } } } });
   const built = Array.isArray(result) ? result[0] : result;
   if (built === undefined || !('output' in built)) throw new Error('Missing descriptor bundle');
@@ -79,6 +87,15 @@ test('browser products need a build proof and bundle no checked host intake', as
   expect(fetch).not.toHaveBeenCalled();
   await expect(loaded.admitProduct(structuredClone(source), options)).rejects.toThrow('server validation');
   expect(fetch).not.toHaveBeenCalled();
+  await expect(loaded.readCheckedOutputIndex(index)).rejects.toThrow('server validation');
+  const jsonBytes = encode({ value: 7 }), jsonHash = hashImmutableBytes(jsonBytes);
+  const jsonInput = { slug: source.identity.slug, revision: 1, shardfile: source, sections: values,
+    files: new Map([['value.json', { hash: jsonHash, url: '/value.json', jsonSchema: { type: 'object', properties: { value: { type: 'number' } } } }]]),
+    read: vi.fn(() => Promise.resolve(jsonBytes)) };
+  expect(await loaded.createShardProduct({ ...jsonInput, builtJson: true }).json<{ value: number }>('value.json')).toEqual({ value: 7 });
+  await expect(loaded.createShardProduct(jsonInput).json('value.json')).rejects.toThrow('server validation');
+  await expect(loaded.createShardProduct({ ...jsonInput, builtJson: true, read: () => Promise.resolve(new TextEncoder().encode('{broken')) }).json('value.json')).rejects.toThrow();
+  await expect(loaded.createShardProduct({ ...jsonInput, builtJson: true, read: () => Promise.resolve(new Uint8Array([255])) }).json('value.json')).rejects.toThrow();
   const first = index.sections[0]; if (first === undefined) throw new Error('Missing section');
   wires.set(first.path, new Uint8Array(first.bytes));
   await expect(loaded.resolveOutputDescriptor(index, reader)).rejects.toThrow('section hash or size mismatch');

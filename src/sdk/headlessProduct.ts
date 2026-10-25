@@ -10,7 +10,7 @@ import { SHARDFILE_ADMISSION_LIMITS } from '@wildshard/format/admissionLimits';
 import { isOutputIndex } from '@wildshard/format/outputAddress';
 import { parseShardfile } from '@wildshard/format/shardSchema';
 import { carryOutputDescriptor, resolveOutputDescriptor, outputDescriptor } from '@wildshard/game/shardfile/outputDescriptor';
-import { nodeOutputDescriptorChecks } from '@wildshard/game/shardfile/outputChecksNode';
+import { nodeOutputDescriptorChecks, nodeNamedJsonCheck } from '@wildshard/game/shardfile/outputChecksNode';
 import { shardProductData } from '@wildshard/game/shardfile/productData';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 
@@ -47,5 +47,5 @@ export async function loadHeadlessProduct(outDir: string): Promise<ShardProduct>
     const bytes = await read(file.path, file.compressed);
     if (bytes.length !== file.compressed || await hash(bytes) !== file.hash) throw new Error('Native product blob hash or size mismatch');
     return bytes;
-  }, true);
+  }, true, false, nodeNamedJsonCheck);
 }

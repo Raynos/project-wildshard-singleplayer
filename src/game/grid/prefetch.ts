@@ -23,6 +23,7 @@ import { browserContentStore, contentHash } from '../shardfile/contentStore';
 import { hashOwnedBytes, prepareContentHash } from '@wildshard/engine/boot/contentHash';
 import { ContentCacheWorker } from '@wildshard/engine/boot/contentCacheWorker';
 import { builtIndexHashes } from '@wildshard/format/builtIndexes';
+import { readCheckedOutputIndex } from '../shardfile/outputIndexChecks';
 import type { GridAssembly } from './assembly';
 
 /** Files in flight at once: the page's own reads keep most of the pipe. */
@@ -135,8 +136,8 @@ class GridPrefetch {
     if (indexes !== null && !indexes.has(await contentHash(bytes))) { this.stop('a newer deployment'); return; }
     const input: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
     // A known build's complete index was checked above; this only schedules
-    // verified disk copies. Unverified development input keeps full parsing.
-    const index = indexes === null ? (await import('@wildshard/format/outputIndex')).parseOutputIndex(input) : readOutputDownloadIndex(input);
+    // verified disk copies. Unverified input needs checked Node ingestion.
+    const index = indexes === null ? await readCheckedOutputIndex(input) : readOutputDownloadIndex(input);
     const listed: Row[] = [...index.sections, ...index.schemas, ...index.files.map(file => ({ path: file.path, hash: file.hash, bytes: file.compressed }))];
     // a commons blob or a shared section is listed by several products: count and store it once
     const rows = listed.filter(row => { if (this.hashes.has(row.hash)) return false; this.hashes.add(row.hash); return true; });

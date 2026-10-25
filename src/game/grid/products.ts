@@ -26,6 +26,7 @@ import * as v from 'valibot';
 import { recordCachedDownload } from '@wildshard/engine/boot/download';
 import { GridAdmissionPriority } from './admissionPriority';
 import { timeClientPreparation } from '../shardfile/preparationTiming';
+import { readCheckedOutputIndex } from '../shardfile/outputIndexChecks';
 
 const edgeRows = v.strictObject({ edge: EdgeProfilesSchema, entryways: EntrywaysSchema });
 const farRow = v.looseObject({ far: v.nullable(v.looseObject({ decoded: v.number(), gpu: v.number() })) });
@@ -52,7 +53,7 @@ async function readGridProductIndex(url: string, identity: string, options: Prod
   if (index !== undefined) await checkBuiltIndex(key, options);
   else {
     const input = await readIndexBytes(bytes, options);
-    index = builtGridIndex(input, key, options) ? input : (await import('@wildshard/format/outputIndex')).parseOutputIndex(input);
+    index = builtGridIndex(input, key, options) ? input : await readCheckedOutputIndex(input);
     parsedIndexes.set(key, index);
     if (parsedIndexes.size > 32) { const oldest = parsedIndexes.keys().next().value; if (oldest !== undefined) parsedIndexes.delete(oldest); }
   }

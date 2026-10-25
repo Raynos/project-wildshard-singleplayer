@@ -8639,10 +8639,11 @@ Build proofs bind index/model hashes. Snapshot before pauses; hash section
 and source bytes. Sidecars grant no trust. Pure format leaves:
 validationReceipt, outputAddress, outputFields, memoryAdmission,
 deviceMemoryCost, ktx2Cost. stateLineage checks old inventories/state,
-never admits models. Keep full-cache and migration refusals.
-Browser descriptors refuse unproved input. Node author readers inject
-`nodeOutputDescriptorChecks` through `OutputDescriptorReader.checks`;
-Node/CI defaults retain checked grammar, custom queue and assembly.
+never admits models. Keep cache and migration refusals.
+Browser descriptors, metadata and JSON refuse unproved intake. Native
+author readers inject `nodeOutputDescriptorChecks` (`checks`) and
+`nodeNamedJsonCheck` (`ShardProductInput.jsonCheck`, also the optional
+sixth `shardProductData` argument). Node defaults retain checked intake.
 
 `configuredShardfile(document, options)` awaits the same section reader
 for the SDK client's embedded index. Installed data-client manifests

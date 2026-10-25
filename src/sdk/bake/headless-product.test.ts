@@ -45,7 +45,9 @@ test.each(['direct', 'author-bundle'] as const)('%s native admission supplies ch
     const source = emptyShardfile({ slug: 'native-product', name: 'Native', author: 'Test', revision: 1, seed: 1 });
     const blob = new Uint8Array([1, 2, 3]), hash = hashImmutableBytes(blob);
     source.files.push({ hash, kind: 'binary', compressed: 3, decoded: 3, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: false });
-    source.library.push(hash); source.budgets.library = { compressed: 3, resident: 3 };
+    const json = bytes({ bones: ['root'] }), jsonHash = hashImmutableBytes(json);
+    source.files.push({ hash: jsonHash, kind: 'json', compressed: json.length, decoded: json.length, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: false });
+    source.library.push(hash, jsonHash); source.budgets.library = { compressed: 3 + json.length, resident: 3 + json.length };
     const values = new Map(outputSectionPayloads(source)); values.set('custom/native', { count: 7 });
     const sections = await Promise.all([...values].map(async ([name, value]) => {
       const wire = bytes(value), path = `sections/${name}.json`; await put(path, wire);
@@ -58,12 +60,21 @@ test.each(['direct', 'author-bundle'] as const)('%s native admission supplies ch
       identity: source.identity, requires: source.requires, build: { sourceHash: hashImmutableBytes(bytes(source)), validator: 'test' },
       admission: { budgets: source.budgets, serverBudget: source.serverBudget, authorCaps: source.authorCaps, critical: source.critical, library: source.library },
       sections, schemas: [{ path: 'schemas/custom/native.schema.json', hash: hashImmutableBytes(customSchema), bytes: customSchema.length }],
-      files: source.files.map(file => ({ ...file, kind: 'bin', name: 'models/native.bin', path: `blobs/bin/${hash}.bin` })), runtime: null });
+      files: source.files.map(file => file.hash === hash ? { ...file, kind: 'bin', name: 'models/native.bin', path: `blobs/bin/${hash}.bin` }
+        : { ...file, kind: 'json', name: 'rig.json', path: `blobs/json/${jsonHash}.json`, jsonSchema: { $schema: 'http://json-schema.org/draft-07/schema#', type: 'object', required: ['bones'], properties: { bones: { type: 'array', items: { type: 'string' } } } } }), runtime: null });
     await put('shard.json', bytes(index)); await put(`blobs/bin/${hash}.bin`, blob);
+    await put(`blobs/json/${jsonHash}.json`, json);
     const product = await load(dir);
     expect(product.shardfile).toEqual(source);
     expect(product.section('custom/native', { 'custom/native': v.strictObject({ count: v.number() }) })).toEqual({ count: 7 });
     expect(await product.file('models/native.bin')).toEqual(blob);
+    expect(await product.json<{ bones: string[] }>('rig.json')).toEqual({ bones: ['root'] });
+    const badJsonIndex = structuredClone(index), jsonFile = badJsonIndex.files.find(file => file.name === 'rig.json');
+    if (jsonFile === undefined) throw new Error('Missing named JSON');
+    jsonFile.jsonSchema = { $schema: 'http://json-schema.org/draft-07/schema#', type: 'array' };
+    await put('shard.json', bytes(badJsonIndex));
+    await expect((await load(dir)).json('rig.json')).rejects.toThrow('refuses its schema');
+    await put('shard.json', bytes(index));
     const checked = await load(dir);
     expect(() => checked.section('custom/native', { 'custom/native': v.strictObject({ count: v.string() }) })).toThrow('schema');
     await put(`blobs/bin/${hash}.bin`, new Uint8Array([3, 2, 1]));

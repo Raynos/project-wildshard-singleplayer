@@ -1,7 +1,12 @@
 import { assembleOutputShardfile, parseOutputDescriptorIndex } from '@wildshard/format/outputIndex';
 import { loadingStage, loadingUnits, waitFor } from '@wildshard/engine/boot/waits';
-import { validateCustomSchema, validateCustomSchemaPaced } from './customSchema';
+import { validateCustomSchema, validateCustomSchemaPaced, validateNamedJsonSchemaPaced } from './customSchema';
 import type { OutputDescriptorChecks, OutputDescriptorReader } from './outputDescriptor';
+import type { NamedJsonCheck } from './namedJsonChecks';
+
+/** Preserve named-JSON validation in native author bundles, regardless of their
+ * build tool's browser-shaped constants. */
+export const nodeNamedJsonCheck: NamedJsonCheck = (schema, bytes, pause) => validateNamedJsonSchemaPaced(schema, bytes, pause);
 
 // Independent checked readers share the original schema queue; a caller's paint
 // policy cannot refill one interval with several complete schema compilations.
