@@ -1,6 +1,13 @@
 import { ReturnProgramSchema } from '@wildshard/format/namedJsonContracts';
 import { PracticeSceneSchema,PracticeControllerSchema } from '@wildshard/format/practiceCourseRows';
 import * as v from 'valibot';
+import type { GrappleRows } from '../data/grappleTypes';
+
+const BurstFieldSchema = v.strictObject({ name: v.string(), shape: v.picklist(['flake', 'streak']), count: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(24)), life: v.pipe(v.number(), v.minValue(0.001), v.maxValue(1)) });
+const BurstFieldsSchema = v.strictObject({ muzzle: BurstFieldSchema, bite: BurstFieldSchema, dock: BurstFieldSchema, sparks: BurstFieldSchema });
+
+/** Original complete admission of the four named held-tool burst fields. */
+export function parseBurstFields(value: unknown): GrappleRows['bursts'] { return v.parse(BurstFieldsSchema, value); }
 
 const finite = v.number();
 const SURFACES = ['wood', 'metal', 'flesh', 'felt', 'stone', 'rock', 'sand', 'water', 'grass', 'wetSand', 'planks', 'shell', 'ground', 'edge', 'earth'] as const;
