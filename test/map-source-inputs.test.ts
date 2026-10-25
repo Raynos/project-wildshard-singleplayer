@@ -34,7 +34,7 @@ test('retained painter declarations track the defining raster source and invalid
     if (!mapSettings(dir).inputs.includes('../../../scripts/map-painter.mjs')) continue;
     expect(mapInputRoots(dir)).toContain(resolve('src/sdk/bake/mapRaster.ts')); tracked++;
   }
-  expect(tracked).toBe(8);
+  expect(tracked).toBe(7);
   for (const slug of ['sunscar-dunes', 'far-reach', 'nalati-grasslands', 'nine-dragon-stack', 'driftwood-isle']) {
     const roots = mapInputRoots(resolve('src/shards', slug));
     expect(roots).toContain(resolve('src/sdk/bake/mapScenes.ts'));

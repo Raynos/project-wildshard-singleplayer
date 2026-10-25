@@ -1,4 +1,6 @@
 import { expect, test } from 'vitest';
+// oxlint-disable-next-line import/no-nodejs-modules -- Declare the source program's real, bounded model input root.
+import { resolve } from 'node:path';
 import { readProjectAssets } from '../src/sdk/project';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { parsePersistedQuestPage } from '../src/sdk/quests';
@@ -40,7 +42,8 @@ const originals = {
 
 for (const slug of ['far-reach', 'sunscar-dunes'] as const) {
   test(`${slug} compiles identical quest, NPC and director continuations`, async () => {
-    const loaded = await readProjectAssets(`src/shards/${slug}`);
+    const loaded = await readProjectAssets(`src/shards/${slug}`, undefined, slug === 'sunscar-dunes'
+      ? { folder: slug, imageRoots: [{ prefix: '/assets/', directory: resolve('public/assets') }] } : undefined);
     for (const section of ['quests', 'questHost', 'questNpcs', 'directors'] as const) {
       const value = section === 'questHost' ? questPolicy(loaded.shard.questHost) : loaded.shard[section];
       const serialized = section === 'questHost' ? encodeCanonicalJson(value) : JSON.stringify(value);

@@ -2912,7 +2912,6 @@
     "src/shards/sunscar-dunes/assets/fe6ce4afcfe921004f6a29c277614f3835fac51d044d0c0b587dc7851a869acd",
     "src/shards/sunscar-dunes/assets/lateReads.generated.d.json.ts",
     "src/shards/sunscar-dunes/assets/lateReads.generated.json",
-    "src/shards/sunscar-dunes/assets/map.webp",
     "src/shards/sunscar-dunes/assets/models.generated.d.json.ts",
     "src/shards/sunscar-dunes/assets/models.generated.json",
     "src/shards/sunscar-dunes/assets/pieces.generated.d.json.ts",
@@ -2935,12 +2934,10 @@
     "src/shards/sunscar-dunes/data/physics.generated.json",
     "src/shards/sunscar-dunes/data/physicsPlacements.generated.json",
     "src/shards/sunscar-dunes/data/product.generated.json",
-    "src/shards/sunscar-dunes/data/productMap.json",
     "src/shards/sunscar-dunes/data/questPage.generated.json",
     "src/shards/sunscar-dunes/data/restPools.generated.json",
     "src/shards/sunscar-dunes/data/restScenes.generated.json",
     "src/shards/sunscar-dunes/data/towerPhysics.generated.json",
-    "src/shards/sunscar-dunes/data/worldBakes.generated.json",
-    "src/shards/sunscar-dunes/look/map.baked.json"
+    "src/shards/sunscar-dunes/data/worldBakes.generated.json"
   ]
 }

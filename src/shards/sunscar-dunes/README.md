@@ -95,6 +95,9 @@ The documented `shard.config.ts` entry runs the source program in
 and caches packing by decoded pixel identity; the original KTX2 bytes and
 all costs are preserved without a generated source-tree texture or metadata
 handoff. The retained declaration adapter derives its rows from the same
-pixels. Curated `assets/map.webp` and `data/productMap.json` freeze the
-official map raster and stamp; refresh both after an official map bake.
-The live stale-map gate still refuses a changed world or image.
+pixels. The source program also caches the original map lattice from the
+real world/rest bakes, admitted terrain and five explicit model inputs.
+The SDK packs its byte-exact lossless image into the charged product and
+publishes the existing map URL; no source-tree map image or stamp remains.
+Public input roots are explicit, and the product receipt retains world
+freshness and byte validation.

@@ -10,6 +10,7 @@ import { signalQuestMarkers } from './questMarkers';
 import { signalQuestPage } from './questPage';
 import { signalClientPlan } from './clientPlan';
 import { signalSand } from './sandProgram';
+import { signalMap } from './mapProgram';
 import { signalOwnedBoot } from './rows/boot';
 
 /** Build the original declaration and output together from their defining source functions. */
@@ -19,5 +20,6 @@ export async function generate(ctx: ProjectGenerationContext): Promise<Generated
   const models = scene.blobs.find(blob => blob.file.name === 'world/sources/models.json');
   if (models === undefined) throw new Error('Missing world model descriptor');
   return { shard: signalProductRows(fire.file, sand), output: signalSourceOutput(models, [...rigs.blobs, ...world.blobs], scene, signalClientPlan(signalQuestPage(signalQuestMarkers(world.world)))),
+    map: { pixels: await signalMap(ctx), name: 'ui/map' },
     discovery: { 'boot.files': boot.files, 'boot.sources': boot.sources } };
 }

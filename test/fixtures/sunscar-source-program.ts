@@ -25,7 +25,7 @@ const root = resolve('src/shards/sunscar-dunes');
 /** Run the actual source program; no generated metadata stands in for its result. */
 const built = await (async () => {
   try {
-    const ctx = createProjectGeneration(root, 'a'.repeat(64), assets, cache);
+    const ctx = createProjectGeneration(root, 'a'.repeat(64), assets, cache, [{ prefix: '/assets/', directory: resolve('public/assets') }]);
     return { generated: await generate(ctx), world: signalWorldMetadata(await signalWorldFiles(ctx)), sand: await signalSand(ctx) };
   }
   finally { rmSync(cache, { recursive: true, force: true }); }

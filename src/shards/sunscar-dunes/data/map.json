@@ -2,21 +2,12 @@
   "why": "Signal Dunes' map as flat dune sand in its dusk oranges (G252, Jake's pick B): the sand in three tones with a strong hillshade from the height pass so the dunes read, the long shadows folded into a darker sand; the signal posts raised with an edge and a shadow",
   "inputs": [
     "shard.config.ts",
-    "data/layout.generated.json",
     "generators",
-    "data/restScenes.generated.json",
-    "data/restPools.generated.json",
-    "../../../public/assets/sunscar-dunes/baked/rest-oil.glb",
-    "../../../public/assets/sunscar-dunes/baked/rest-well.glb",
     "generators/bucket.ts",
     "manifest.json",
     "data/tiles.json",
-    "assets/models.generated.json",
     "../../sdk/bake/mapScenes.ts",
-    "../../../scripts/map-painter.mjs",
     "../../sdk/bake/mapRaster.ts",
-    "../../../scripts/bake-data-maps.mjs",
-    "../../../public/assets/sunscar-dunes/baked/rest-fire.glb",
     "../../../public/assets/sunscar-dunes/models/brazier-hd/brazier-hd.glb",
     "../../../public/assets/sunscar-dunes/models/crates-hd/crates-hd.glb",
     "../../../public/assets/sunscar-dunes/models/horse-hd/horse-hd.glb",
@@ -86,8 +77,8 @@
     "assets/e43f319e358ac6ac177b22ddc6d9a3dff1290feb089c73da610bd87baa825649",
     "assets/e3483293e5a32ab4ddc1e7e388adfaadafcd9b13249115fe709e25c3a80f7ccd",
     "assets/d60fd616c7809137b636c20dcb8474bb510c3b5fc507549b44907204cfc382aa",
-    "generators/bake-map.mjs",
-    "assets/models/dry-well.glb"
+    "assets/models/dry-well.glb",
+    "../../sdk/bake/groundMap.ts"
   ],
   "style": {
     "kind": "ground",
@@ -130,8 +121,6 @@
   },
   "painter": {
     "version": 1,
-    "job": "signal-data-map",
-    "authored": true,
     "terrain": [
       "data/tiles.json"
     ],
@@ -267,6 +256,7 @@
     "glbs": [
       "../../../public/assets/sunscar-dunes/baked/rocks.glb",
       "../../../public/assets/sunscar-dunes/baked/dressing.glb"
-    ]
+    ],
+    "program": true
   }
 }

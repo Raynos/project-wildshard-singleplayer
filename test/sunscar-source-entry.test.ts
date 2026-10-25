@@ -38,9 +38,9 @@ test('direct world rows preserve the original ordered aggregate without its JSON
   expect(signature(world)).toEqual(before.raw.world);
   const registry = v.parse(v.object({ jobs: v.array(v.object({ id: v.string(), shard: v.nullable(v.string()), inputRoots: v.array(v.string()), outputs: v.array(v.string()) })) }),
     JSON.parse(readFileSync('scripts/generation-jobs.json', 'utf8')));
-  expect(registry.jobs.some(row => ['signal-world-bakes', 'signal-product', 'signal-fire-book', 'signal-rigs', 'signal-manifest-ground', 'signal-world', 'signal-sand'].includes(row.id))).toBe(false);
+  expect(registry.jobs.some(row => ['signal-world-bakes', 'signal-product', 'signal-fire-book', 'signal-rigs', 'signal-manifest-ground', 'signal-world', 'signal-sand', 'signal-data-map'].includes(row.id))).toBe(false);
   expect(registry.jobs.flatMap(row => row.inputRoots.concat(row.outputs)).some(path => path.startsWith('src/shards/sunscar-dunes/.wildshard/product/'))).toBe(false);
-  expect(registry.jobs.filter(row => row.shard === 'sunscar-dunes')).toHaveLength(15);
+  expect(registry.jobs.filter(row => row.shard === 'sunscar-dunes')).toHaveLength(14);
   const paths = registry.jobs.flatMap(row => row.inputRoots.concat(row.outputs));
   expect(paths.some(path => path.startsWith('src/shards/sunscar-dunes/') && /\/(?:manifestGround|nativeGround)\.generated\.json$/u.test(path))).toBe(false);
   expect(registry.jobs.flatMap(row => row.inputRoots.concat(row.outputs)).some(path => path.endsWith('/worldBakes.generated.json'))).toBe(false);
@@ -48,7 +48,7 @@ test('direct world rows preserve the original ordered aggregate without its JSON
 
 
 test('the SDK admits all original physical bytes, platform metadata and mirrors through the source entry', async () => {
-  const result = await readProjectAssets(resolve('src/shards/sunscar-dunes'));
+  const result = await readProjectAssets(resolve('src/shards/sunscar-dunes'), undefined, { folder: 'sunscar-dunes', imageRoots: [{ prefix: '/assets/', directory: resolve('public/assets') }] });
   const changedNames = ['world/sources/models.json', 'world/sources/bakes.json'];
   const descriptors = changedNames.map(name => {
     const old = output.namedFiles.find(file => file.name === name), current = result.output.namedFiles?.find(file => file.name === name);
@@ -56,8 +56,12 @@ test('the SDK admits all original physical bytes, platform metadata and mirrors 
     return { old, current };
   });
   const owned = result.output.namedFiles?.filter(file => file.name?.startsWith('geometry/rigs/') === true
-    || file.name?.startsWith('geometry/world/') === true || file.name === 'textures/plait.bin') ?? [];
-  expect(owned).toHaveLength(12);
+    || file.name?.startsWith('geometry/world/') === true || file.name === 'textures/plait.bin' || file.name === 'ui/map') ?? [];
+  expect(owned).toHaveLength(13);
+  const map = owned.find(file => file.name === 'ui/map');
+  expect(map?.hash).toBe('bac9393474d96298d9bd4a407197d0bc86be913b872c8430e8f2e0aabd5cb399');
+  expect(map?.compressed).toBe(172348);
+  expect(result.shard.map?.image).toBe(map?.hash);
   for (const rig of owned.filter(file => file.name?.startsWith('geometry/rigs/'))) {
     const expected = Object.entries(rigFiles).find(([name]) => rig.name === `geometry/rigs/${name}`)?.[1];
     expect({ bytes: rig.compressed, hash: rig.hash }).toEqual(expected);
@@ -67,7 +71,8 @@ test('the SDK admits all original physical bytes, platform metadata and mirrors 
   const resident = owned.reduce((sum, file) => sum + file.decoded + file.gpu,
     descriptors.reduce((sum, row) => sum + row.current.decoded + row.current.gpu - row.old.decoded - row.old.gpu, 0));
   const budget = result.shard.budgets.library;
-  expect(signature({ ...result.shard,
+  const { map: _map, ...previousShard } = result.shard;
+  expect(signature({ ...previousShard,
     files: result.shard.files.filter(file => !hashes.has(file.hash)).map(file => {
       const row = descriptors.find(value => value.current.hash === file.hash);
       if (row === undefined) return file;
@@ -78,7 +83,7 @@ test('the SDK admits all original physical bytes, platform metadata and mirrors 
       ...(budget.downloadAllowance === undefined ? {} : { downloadAllowance: budget.downloadAllowance - compressed }) } },
   })).toEqual(before.shard);
   const assets = physical(result.assets);
-  expect(assets).toHaveLength(before.assets.length + 12);
+  expect(assets).toHaveLength(before.assets.length + 13);
   const projectedAssets = new Map(result.assets);
   for (const hash of hashes) projectedAssets.delete(hash);
   for (const row of descriptors) {
