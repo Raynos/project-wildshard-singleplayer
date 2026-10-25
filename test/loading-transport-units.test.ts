@@ -50,3 +50,28 @@ test('upgrade observation switches upstreams while retaining one browser origin 
     expect(observed.receipts.every(row => row.bodyEncoding === 'identity' && row.startedAt <= row.endedAt)).toBe(true);
   } finally { await observed?.close(); await close(old); await close(next); }
 });
+
+test('HTML observation retains exact compiler facts without altering them or hiding absent evidence', async () => {
+  const inventory = JSON.stringify({ common: [['/assets/entry.js', 7]], optional: { files: [['/assets/parser.js', 11]], groups: { 'models.gltf': [0] } } });
+  const bank = (json: string): string => `<script type="application/json" id="boot-module-files">${json}</script>`;
+  let html = `<html><head>${bank(inventory)}</head><body>Unrelated page content</body></html>`;
+  const server = createServer((_request, response) => { response.writeHead(200, { 'content-type': 'text/html' }); response.end(html); });
+  let observed: Awaited<ReturnType<typeof observeTransport>> | undefined;
+  try {
+    await new Promise<void>(resolve => { server.listen(0, '127.0.0.1', resolve); });
+    const address = server.address();
+    if (address === null || typeof address === 'string') throw new Error('Missing fixture address');
+    observed = await observeTransport(`http://127.0.0.1:${address.port}/`, { recorder: () => undefined });
+    const served = await (await fetch(observed.base)).text();
+    expect(served).toContain(bank(inventory));
+    expect(observed.htmlFixtures[0]).toEqual({ originalSHA256: createHash('sha256').update(html).digest('hex'),
+      injectedSHA256: createHash('sha256').update(served).digest('hex'),
+      moduleInventory: { json: inventory, sha256: createHash('sha256').update(inventory).digest('hex') } });
+    for (const [head, error] of [['', 'missing'], [bank('{'), 'invalid JSON'], [bank('[]'), 'not an object'],
+      [bank(inventory) + bank(inventory), 'duplicate'], [bank(JSON.stringify({ large: 'x'.repeat(1024 * 1024) })), 'over 1 MiB']]) {
+      html = `<html><head>${head}</head></html>`;
+      expect(await (await fetch(observed.base)).text()).toContain(head);
+      expect(observed.htmlFixtures.at(-1)?.moduleInventory).toEqual({ error });
+    }
+  } finally { await observed?.close(); server.closeAllConnections(); await new Promise<void>(resolve => { server.close(() => { resolve(); }); }); }
+});

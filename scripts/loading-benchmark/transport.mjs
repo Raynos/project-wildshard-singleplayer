@@ -4,6 +4,22 @@ import https from 'node:https';
 import { createHash } from 'node:crypto';
 import { createGunzip, createBrotliDecompress, createInflate } from 'node:zlib';
 
+// Retain only static compiler metadata already in the observed HTML. Missing,
+// malformed or oversized facts stay explicit; none changes the served page.
+/** @param {string} html */
+function moduleInventory(html) {
+  const matches = [...html.matchAll(/<script\b[^>]*\sid=["']boot-module-files["'][^>]*>([\s\S]*?)<\/script\s*>/gu)];
+  if (matches.length !== 1) return { error: matches.length === 0 ? 'missing' : 'duplicate' };
+  const json = matches[0]?.[1] ?? '';
+  if (Buffer.byteLength(json) > 1024 * 1024) return { error: 'over 1 MiB' };
+  try {
+    /** @type {unknown} */
+    const value = JSON.parse(json);
+    if (typeof value !== 'object' || value === null || Array.isArray(value)) return { error: 'not an object' };
+  } catch { return { error: 'invalid JSON' }; }
+  return { json, sha256: createHash('sha256').update(json).digest('hex') };
+}
+
 /** Proof-only streaming count: HTTP content and encoded wire bodies have
  * different units. No application body is retained or consumed a second time. */
 export function decodedBodyCounter(encoding) {
@@ -55,7 +71,7 @@ export async function observeTransport(upstream, fixture = {}) {
           const original = Buffer.concat(chunks).toString('utf8');
           const patched = original.replace('<head>', `<head><script>${fixture.prelude ?? ''}(${fixture.recorder.toString()})();</script>`);
           htmlFixtures.push({ originalSHA256: createHash('sha256').update(original).digest('hex'),
-            injectedSHA256: createHash('sha256').update(patched).digest('hex') });
+            injectedSHA256: createHash('sha256').update(patched).digest('hex'), moduleInventory: moduleInventory(original) });
           body = Buffer.byteLength(patched);
           delete headers['transfer-encoding'];
           headers['content-length'] = String(body);
