@@ -179,6 +179,7 @@ function skyLantern(w, x, y, z) { mover(w, x, y, z, 0.35, 0.5 + nextSeed() * 0.5
 /** A lantern on a post (post in Kit, the lantern lit) and its pool of light. */
 function lantern(w, x, z, p, height = 2.8) {
   w.sides('Kit', [x - 0.09, 0, z - 0.09], [x + 0.09, height, z + 0.09], p.wood);
+  w.solid([x - 0.09, 0, z - 0.09], [x + 0.09, height, z + 0.09]);
   w.box('Glow', [x - 0.3, height, z - 0.3], [x + 0.3, height + 0.75, z + 0.3], p.lantern, p.lantern);
   pool(w, x, z, 4.5, p.pool);
 }
@@ -259,7 +260,10 @@ function stalls(w, p) {
     const x0 = Math.min(outer, inner), x1 = Math.max(outer, inner), front = inner, out = -side;
     // the counter, the posts and a red gable roof with its ridge north-south
     w.box('Kit', [Math.min(front + side * 1.5, outer - side * 1), 0, z - 4], [Math.max(front + side * 1.5, outer - side * 1), 1.2, z + 4], p.wood);
-    for (const [x, zz] of [[x0, z - 4.6], [x1, z - 4.6], [x0, z + 4.6], [x1, z + 4.6]]) w.box('Kit', [x - 0.18, 0, zz - 0.18], [x + 0.18, 3.6, zz + 0.18], p.wood);
+    for (const [x, zz] of [[x0, z - 4.6], [x1, z - 4.6], [x0, z + 4.6], [x1, z + 4.6]]) {
+      w.box('Kit', [x - 0.18, 0, zz - 0.18], [x + 0.18, 3.6, zz + 0.18], p.wood);
+      w.solid([x - 0.18, 0, zz - 0.18], [x + 0.18, 3.6, zz + 0.18]);
+    }
     const h = 3.6, ridge = 5.6, xm = (x0 + x1) / 2;
     w.quad('Kit', [x0 - 0.7, h, z + 5.2], [xm, ridge, z + 5.2], [xm, ridge, z - 5.2], [x0 - 0.7, h, z - 5.2], p.stall);
     w.quad('Kit', [x1 + 0.7, h, z - 5.2], [xm, ridge, z - 5.2], [xm, ridge, z + 5.2], [x1 + 0.7, h, z + 5.2], p.stall);
