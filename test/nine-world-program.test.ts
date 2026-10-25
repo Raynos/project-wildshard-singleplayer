@@ -62,14 +62,14 @@ test('changed native lamps cannot hit an earlier world cache', async () => {
 test('missing, extra, corrupt and wrongly published world bytes remain refusals', async () => {
   const { captured, context } = fixture, h = context();
   const bad = new Map(captured); bad.delete('layout.json');
-  await expect(nineWorldProgram({ ...h, cached: () => Promise.resolve(bad) })).rejects.toThrow('Missing owned Nine world layout.json');
+  await expect(nineWorldProgram({ ...h, cached: () => Promise.resolve(bad) }, atlas)).rejects.toThrow('Missing owned Nine world layout.json');
   const extra = new Map(captured); extra.set('unexpected.bin', new Uint8Array());
-  await expect(nineWorldProgram({ ...h, cached: () => Promise.resolve(extra) })).rejects.toThrow('file inventory differs');
+  await expect(nineWorldProgram({ ...h, cached: () => Promise.resolve(extra) }, atlas)).rejects.toThrow('file inventory differs');
   const first = before.find(row => row.path.startsWith('assets/')); if (first === undefined) throw new Error('Missing original geometry');
   const corrupt = new Map(captured), key = first.path.replace('assets/', 'blobs/');
   corrupt.set(key, new Uint8Array(first.bytes));
-  await expect(nineWorldProgram({ ...h, cached: () => Promise.resolve(corrupt) })).rejects.toThrow('world bytes differ');
-  await expect(nineWorldProgram({ ...h, asset: () => '0'.repeat(64), cached: () => Promise.resolve(captured) })).rejects.toThrow('publication differs');
+  await expect(nineWorldProgram({ ...h, cached: () => Promise.resolve(corrupt) }, atlas)).rejects.toThrow('world bytes differ');
+  await expect(nineWorldProgram({ ...h, asset: () => '0'.repeat(64), cached: () => Promise.resolve(captured) }, atlas)).rejects.toThrow('publication differs');
 });
 
 test('the source world cache closure bundles without publication, filesystem or compiler services', async () => {

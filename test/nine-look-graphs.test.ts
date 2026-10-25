@@ -1,4 +1,4 @@
-import { layout } from './fixtures/nine-product-inputs';
+import { layout, inputs } from './fixtures/nine-product-inputs';
 import { unzlibSync } from 'fflate';
 import { parseGrappleFilament } from '@wildshard/format/grapple';
 import filamentRows from '../src/shards/nine-dragon-stack/data/filament.json' with { type: 'json' };
@@ -21,9 +21,9 @@ vi.stubGlobal('ImageBitmap', class ImageBitmap { readonly width = 0; });
 afterAll(() => { vi.unstubAllGlobals(); });
 
 test('every admitted volume variant resolves its shared lossless voxel payload', () => {
-  const blobs = lightVolumeBlobs(layout), names = new Map(blobs.map(blob => [blob.file.name, blob]));
+  const blobs = lightVolumeBlobs(layout, inputs.signs.atlas), names = new Map(blobs.map(blob => [blob.file.name, blob]));
   expect(new Set(blobs.map(blob => blob.file.hash)).size).toBe(blobs.length);
-  const rows = Object.values(lightVolumeRows(layout));
+  const rows = Object.values(lightVolumeRows(layout, inputs.signs.atlas));
   expect(rows).toHaveLength(8);
   for (const row of rows) {
     const payload = names.get(row.file); if (payload === undefined) throw new Error('Missing volume payload');

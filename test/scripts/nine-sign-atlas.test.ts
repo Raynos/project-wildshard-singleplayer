@@ -16,12 +16,10 @@ import { readFileSync } from 'node:fs';
 import { nineSignBlobs } from '../fixtures/nine-sign-blobs';
 import binaryReference from '../fixtures/nine-sign-binary.json' with { type: 'json' };
 import reference from '../fixtures/nine-sign-atlas.json' with { type: 'json' };
+import { nativeSignAtlas } from '../fixtures/nine-native-atlas';
 
 const finite=v.pipe(v.number(),v.finite());
-const atlas=(()=>{
-  const value:unknown=JSON.parse(readFileSync('src/shards/nine-dragon-stack/data/signAtlas.generated.json','utf8'));
-  return parseNativeSignAtlas(value);
-})();
+const atlas = nativeSignAtlas.atlas;
 
 const glyphTier = v.object({ size: finite, packed: v.array(v.string()),
   layout: v.object({ cell: finite, fontPx: finite, spread: finite, skeletonSpread: finite }),
@@ -34,7 +32,7 @@ const glyphs = (() => {
 
 const hash = (bytes: Uint8Array | string): string => createHash('sha256').update(bytes).digest('hex');
 const digest = (value: unknown): string => hash(JSON.stringify(value));
-const read = (file: string): Uint8Array => new Uint8Array(readFileSync(`src/shards/nine-dragon-stack/data/${file}`));
+const read = (file: string): Uint8Array => nativeSignAtlas.files.get(file) ?? new Uint8Array(readFileSync(`src/shards/nine-dragon-stack/data/${file}`));
 const blobs = await nineSignBlobs();
 const slice = (bytes: Uint8Array, row: { byteOffset: number; byteLength: number }): Uint8Array => bytes.slice(row.byteOffset, row.byteOffset + row.byteLength);
 
@@ -46,7 +44,7 @@ test('native metadata refuses missing tiers, invalid ranges and non-finite light
 
 test('portable sign assembly retains every original named byte and cost', () => {
   expect(blobs.map(row => row.file)).toStrictEqual(binaryReference.files);
-  expect(signAtlasBlobs(read).map(row => row.file)).toStrictEqual(binaryReference.files);
+  expect(signAtlasBlobs(read, { atlas, glyphs }).map(row => row.file)).toStrictEqual(binaryReference.files);
 });
 
 test('portable sign assembly reads every supplied native input and keeps the original product', () => {

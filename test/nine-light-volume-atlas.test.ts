@@ -6,17 +6,17 @@ import { parseNativeSignAtlas } from '../src/shards/nine-dragon-stack/generators
 import { lightVolumeBlobs, lightVolumeRows, volumeSources } from '../src/shards/nine-dragon-stack/generators/lightVolumes';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 
-test('the legacy adapter retains every original compressed volume byte and admitted cost', () => {
-  const blobs = lightVolumeBlobs(layout);
+test('native inputs retain every original compressed volume byte and admitted cost', () => {
+  const atlas = parseNativeSignAtlas(rawAtlas), blobs = lightVolumeBlobs(layout, atlas);
   expect(blobs.map(blob => ({ file: blob.file, bytes: blob.bytes.byteLength, hash: hashImmutableBytes(blob.bytes) })))
     .toEqual(before.blobs.filter(blob => blob.file.name.startsWith('looks/volumes-')));
-  expect(Object.keys(lightVolumeRows(layout))).toHaveLength(8);
+  expect(Object.keys(lightVolumeRows(layout, atlas))).toHaveLength(8);
 });
 
 test.each(['phone', 'desktop'] as const)('the %s volume consumes supplied readonly native lamps', tier => {
   const atlas = parseNativeSignAtlas(rawAtlas), light = { at: [0, 130, 0], color: [.2, .4, .6], w: 6, h: 7, power: 8, spill: 9 };
   const supplied = { ...atlas, [tier]: { ...atlas[tier], placed: [], lights: [light] } };
-  const original = volumeSources(tier, false, layout), changed = volumeSources(tier, false, layout, supplied);
+  const original = volumeSources(tier, false, layout, atlas), changed = volumeSources(tier, false, layout, supplied);
   expect(changed.signs).toHaveLength(1);
   const lamp = changed.signs[0]; if (lamp === undefined) throw new Error('Missing supplied native lamp');
   expect(lamp.at.toArray()).toEqual(light.at);

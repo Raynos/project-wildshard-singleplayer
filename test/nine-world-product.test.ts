@@ -2,11 +2,12 @@ import { expect, test } from 'vitest';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { prepareAssetDecoders } from '../src/format/product';
 import { nineWorldProduct, nineLayoutWord } from '../src/shards/nine-dragon-stack/generators/worldProduct';
+import { nativeSignAtlas } from './fixtures/nine-native-atlas';
 
 // Build the genuinely cold world during collection. Its complete byte oracle
 // retains the ordinary 30 s assertion budget, without timing production setup.
 await prepareAssetDecoders();
-const product = nineWorldProduct();
+const product = nineWorldProduct(nativeSignAtlas.atlas);
 
 // Original registered output bytes captured before extracting the in-memory producer.
 test('the owned world preserves the complete original layout, metadata and asset bytes', () => {

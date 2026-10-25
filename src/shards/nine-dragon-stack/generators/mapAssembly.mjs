@@ -15,6 +15,7 @@ import { nineCastFiles } from './castsProgram.ts';
 import { fixedKitRows, readFixedSlots } from './casts.ts';
 import { tintAbove } from './lods.ts';
 import { NeonText } from './neonGeometry.ts';
+import { admitNativeSignAtlas } from './nativeSignAtlas.ts';
 
 const base = resolve(import.meta.dirname, '..'), root = resolve(base, '../../..');
 const read = file => readMapJson(resolve(base, file));
@@ -41,7 +42,11 @@ function atlasGeometry(source, bytes) {
 export async function nineMapAssembly() {
   const files = await nineCastFiles(url => new Uint8Array(readFileSync(resolve(root, `public${url}`))));
   const cast = name => castModel(name, files);
-  const atlas = read('data/signAtlas.generated.json').desktop, atlasBytes = new Uint8Array(readFileSync(resolve(base, 'data', atlas.buffer)));
+  const nativeInputs = read('data/nativeSignAtlas.json');
+  const native = admitNativeSignAtlas(new Map(nativeInputs.map(row => [row.name,
+    new Uint8Array(readFileSync(resolve(root, `public${row.input}`)))])), nativeInputs);
+  const atlas = native.atlas.desktop, atlasBytes = native.files.get(atlas.buffer);
+  if (atlasBytes === undefined) throw new Error('Missing native map atlas geometry');
   const assembly = new MapAssembly(), layout = withPortableMath(() => nineLayoutSource()), { rows, records } = layout;
   const world = await worldRows(rows, records, url => new Uint8Array(readFileSync(resolve(root, `public${url}`))));
   const recipes = new Map(specimenRecipes(banyanOut.plan?.lumps ?? []));

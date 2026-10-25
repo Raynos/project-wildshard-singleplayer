@@ -7,15 +7,16 @@ import { createProjectGeneration } from '../src/sdk/projectGeneration';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { admitNativeSignAtlas, nineNativeSignAtlas } from '../src/shards/nine-dragon-stack/generators/nativeSignAtlas';
 import before from './fixtures/nine-native-atlas-files.json' with { type: 'json' };
+import inputs from '../src/shards/nine-dragon-stack/data/nativeSignAtlas.json' with { type: 'json' };
 
-const files = new Map<string, Uint8Array>(before.map(row => [row.name, new Uint8Array(readFileSync(`src/shards/nine-dragon-stack/${row.input}`))]));
+const files = new Map<string, Uint8Array>(inputs.map(row => [row.name, new Uint8Array(readFileSync(`public${row.input}`))]));
 
 test('all seven native files retain their original hashes on cold and detached hits', async () => {
   mkdirSync('tmp', { recursive: true }); const cache = mkdtempSync(resolve('tmp', 'nine-native-atlas-'));
   try {
-    const context = () => createProjectGeneration(resolve('src/shards/nine-dragon-stack'), 'e'.repeat(64), new Map(), cache);
-    const cold = await nineNativeSignAtlas(context(), before), hitContext = context();
-    const hit = await nineNativeSignAtlas({ cached: step => hitContext.cached(step, () => { throw new Error('A hit must not regenerate'); }) }, before);
+    const context = () => createProjectGeneration(resolve('src/shards/nine-dragon-stack'), 'e'.repeat(64), new Map(), cache, [{ prefix: '/assets/', directory: resolve('public/assets') }]);
+    const cold = await nineNativeSignAtlas(context(), inputs), hitContext = context();
+    const hit = await nineNativeSignAtlas({ cached: step => hitContext.cached(step, () => { throw new Error('A hit must not regenerate'); }) }, inputs);
     expect(cold.files.size).toBe(7); expect(hit.atlas).toEqual(cold.atlas); expect(hit.atlas).not.toBe(cold.atlas);
     for (const row of before) {
       const a = cold.files.get(row.name), b = hit.files.get(row.name);
