@@ -11625,7 +11625,12 @@
         "src/shards/sunscar-dunes/generators/rows/stormLook.ts",
         "src/shards/sunscar-dunes/generators/rows/whipContacts.ts",
         "src/shards/sunscar-dunes/generators/signalGraph.ts",
-        "src/shards/sunscar-dunes/generators/signalInteractions.ts"
+        "src/shards/sunscar-dunes/generators/signalInteractions.ts",
+        "src/commons/bake/portableMath.ts",
+        "src/shards/sunscar-dunes/generators/duneField.ts",
+        "src/shards/sunscar-dunes/generators/landscape.ts",
+        "src/shards/sunscar-dunes/generators/landscapeNoise.ts",
+        "src/shards/sunscar-dunes/generators/manifestGround.ts"
       ],
       "outputs": [
         "src/shards/sunscar-dunes/data/product.generated.json"
@@ -16427,7 +16432,16 @@
         "src/shards/sunscar-dunes/generators/rows/pieces.ts",
         "src/shards/sunscar-dunes/generators/rows/sand.ts",
         "src/shards/sunscar-dunes/generators/rows/surfaces.ts",
-        "src/engine/render/shaderPatches.ts"
+        "src/engine/render/shaderPatches.ts",
+        "src/commons/bake/portableMath.ts",
+        "src/commons/package.json",
+        "src/shards/sunscar-dunes/generators/duneField.ts",
+        "src/shards/sunscar-dunes/generators/duneRows.ts",
+        "src/shards/sunscar-dunes/generators/landscape.ts",
+        "src/shards/sunscar-dunes/generators/landscapeNoise.ts",
+        "src/shards/sunscar-dunes/generators/layout.ts",
+        "src/shards/sunscar-dunes/generators/manifestGround.ts",
+        "src/shards/sunscar-dunes/generators/rows/flags.ts"
       ],
       "outputs": [
         "src/shards/sunscar-dunes/assets/models.generated.json",
@@ -16522,7 +16536,9 @@
         "src/shards/sunscar-dunes/generators/rows/surfaces.ts",
         "src/engine/render/shaderPatches.ts",
         "src/format/json.ts",
-        "src/format/materialGraph.ts"
+        "src/format/materialGraph.ts",
+        "src/shards/sunscar-dunes/generators/duneRows.ts",
+        "src/shards/sunscar-dunes/generators/layout.ts"
       ],
       "outputs": [
         "src/shards/sunscar-dunes/data/paintedLook.generated.json",
@@ -18096,7 +18112,12 @@
         "src/shards/sunscar-dunes/generators/rows/stormLook.ts",
         "src/shards/sunscar-dunes/generators/rows/whipContacts.ts",
         "src/shards/sunscar-dunes/generators/signalGraph.ts",
-        "src/shards/sunscar-dunes/generators/signalInteractions.ts"
+        "src/shards/sunscar-dunes/generators/signalInteractions.ts",
+        "src/commons/bake/portableMath.ts",
+        "src/shards/sunscar-dunes/generators/duneField.ts",
+        "src/shards/sunscar-dunes/generators/landscape.ts",
+        "src/shards/sunscar-dunes/generators/landscapeNoise.ts",
+        "src/shards/sunscar-dunes/generators/manifestGround.ts"
       ],
       "outputs": [
         "src/shards/sunscar-dunes/.wildshard/product/039ebbc6d284b8ed27d1cda8d7c3ec4c5e724747188c31f151e445cc2c0f185b",
