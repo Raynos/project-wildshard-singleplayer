@@ -231,7 +231,8 @@ GR3 bounded slices (G711; each <= 1 h, one producer retirement per commit):
 | C1 casts source/cache and host fixtures | done | All 78 predecessor files, admitted costs, cold/hit/refusal checks; no job retirement |
 | C2 casts reader handoff and retirement | done | Nine 9 → 8; all 78 former files exact, cold scoped generation and full live output parity |
 | Practice | open | Direct course program, then remove its two source handoffs |
-| Declarations | open | Direct checked world rows; remove declaration adapter |
+| D1 declarations source/cache | done | Both original canonical wires (3,470,533 B), checked partition owners and cache/refusal checks; no job retirement |
+| D2 declarations reader handoff | open | Direct checked world rows; remove the two source handoffs and declaration adapter (Nine 6 → 5) |
 | Boot metadata | open | Direct checked geometry/presentation metadata |
 | Glyphs | open | Preserve native raster bytes and replace source handoff |
 | S1 sign-source cache | done | 28 files / 9,308,309 B and all 27 admitted rows exact; cold/hit/refusal and sealed adapter checks; no job retirement |

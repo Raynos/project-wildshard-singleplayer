@@ -19,6 +19,32 @@ const { SHEET_LAYERS, STEAM_PUFFS } = worldDressingRows;
 
 const stair = stairPlanData();
 
+/** Checked source result shared by the entry, scene and presentation builders. */
+export interface NineWorldDeclarations {
+  readonly rows: WorldRows;
+  readonly records: number[];
+  readonly wholeTiles: Record<string, { files: string[]; resident: boolean }>;
+}
+
+/** Cached rows cross the same data schema before any matrix offset is consumed. */
+export function parseWorldDeclarations(input: unknown): NineWorldDeclarations {
+  const value = v.parse(v.strictObject({ rows: WorldRowsSchema, records: v.array(v.pipe(v.number(), v.finite())),
+    wholeTiles: v.record(v.string(), v.strictObject({ files: v.array(v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u))), resident: v.boolean() })) }), input);
+  if (value.rows.records !== value.records.length) throw new Error('Nine world declaration record inventory differs');
+  return value;
+}
+
+/** Read only the original whole-partition identity from a bounded GLB JSON chunk. */
+export function worldPartitionIds(bytes: Uint8Array): string[] {
+  if (bytes.byteLength < 20) throw new Error('Nine partition GLB is truncated');
+  const header = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength), length = header.getUint32(12, true);
+  if (header.getUint32(0, true) !== 0x46546c67 || header.getUint32(4, true) !== 2 || header.getUint32(8, true) !== bytes.byteLength
+    || header.getUint32(16, true) !== 0x4e4f534a || length > bytes.byteLength - 20) throw new Error('Nine partition GLB header differs');
+  const json: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes.subarray(20, 20 + length)));
+  const value = v.parse(v.object({ nodes: v.optional(v.array(v.object({ extras: v.optional(v.object({ wholePartition: v.optional(v.object({ id: v.string() })) })) })), []) }), json);
+  return value.nodes.flatMap(node => node.extras?.wholePartition === undefined ? [] : [node.extras.wholePartition.id]);
+}
+
 const { PLAZA, STREET, STAIR, WELL, Y0 } = NINE_LAYOUT_PLAN;
 
 /** Compile placement queues and floor laws into immutable rows; no client queue or geometry scan remains. */
