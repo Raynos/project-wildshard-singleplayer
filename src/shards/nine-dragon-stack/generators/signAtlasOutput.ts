@@ -42,6 +42,13 @@ export interface NineNativeSignInputs {
 /** Declared native raster handoffs; the source program keys their bytes explicitly. */
 export function retainedSignInputs(): NineNativeSignInputs { return { glyphs: legacyGlyphs, atlas: legacyAtlas }; }
 
+/** Re-admit cached source metadata beside the producer's existing sign validators. */
+export function parseSignSourceRows(input: unknown): { name: string; kind: 'glb' | 'ktx2' | 'json'; source: string;
+  options: { decoded: number; gpu: number; triangles: number; draws: number; critical: boolean; dependencies: string[] } }[] {
+  return v.parse(v.object({ sources: v.array(v.strictObject({ name: v.string(), kind: v.picklist(['glb', 'ktx2', 'json']), source: v.string(),
+    options: v.strictObject({ decoded: v.number(), gpu: v.number(), triangles: v.number(), draws: v.number(), critical: v.boolean(), dependencies: v.array(v.string()) }) })) }), input).sources;
+}
+
 const specimenKey = (p: SignModelParams): string => `${signRows.model.key}:${p.style}:${p.text}:${p.color}:${p.ink ?? ''}:${String(p.vertical)}:${p.size}:${String(p.blade)}`;
 const vector = (values: readonly (string | number)[]): Vector3 => new Vector3(Number(values[0]), Number(values[1]), Number(values[2]));
 type ReadSignBytes = (file: string) => Uint8Array;

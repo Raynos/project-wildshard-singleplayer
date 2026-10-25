@@ -1,11 +1,7 @@
-import * as v from 'valibot';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
-import { signAtlasBlobs, retainedSignInputs } from './signAtlasOutput';
-
-const Sources = v.array(v.strictObject({ name: v.string(), kind: v.picklist(['glb', 'ktx2', 'json']), source: v.string(),
-  options: v.strictObject({ decoded: v.number(), gpu: v.number(), triangles: v.number(), draws: v.number(), critical: v.boolean(), dependencies: v.array(v.string()) }) }));
+import { signAtlasBlobs, retainedSignInputs, parseSignSourceRows } from './signAtlasOutput';
 
 /** Exact predecessor files, returned as owned bytes rather than published under source. */
 export function nineSignSourceFiles(read: (file: string) => Uint8Array): Map<string, Uint8Array> {
@@ -36,7 +32,7 @@ export async function nineSignsProgram(ctx: Pick<ProjectGenerationContext, 'cach
   }));
   const metadata = files.get('data/signSources.generated.json'); if (metadata === undefined) throw new Error('Missing Nine sign manifest');
   const manifest: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(metadata));
-  const { sources } = v.parse(v.object({ sources: Sources }), manifest);
+  const sources = parseSignSourceRows(manifest);
   const names = new Set(sources.map(row => row.source)), logical = new Set(sources.map(row => row.name));
   if (sources.length !== 27 || names.size !== sources.length || logical.size !== sources.length || files.size !== sources.length + 1) throw new Error('Nine sign file inventory differs');
   const blobs = sources.map((row, index) => {
