@@ -10,7 +10,7 @@ Every row is decided work (Jake's G-rows); the refs are the brief.
 | Lane | Plan, in order |
 |---|---|
 | sp-x1 | generators GR3 (current slice) -> G722 billboard poster colour -> 5x5 hero retake (G625/G630, round-5-retake board for Jake) -> GR3 -> GR5 Far Reach -> GR7 Driftwood |
-| sp-x6 | CS0 done e463dc80af -> G719 Bag > Map labels + one up-front baked world-map atlas (all 25 cells on first open; NM tile in 2 cells?) -> G726 Night Market remaster RM1 -> RM2 -> RM3 (no look change; Opus RM4+ Tue 13:00) -> GR4 Sunscar -> GR6 Nalati -> GR8 Pine |
+| sp-x6 | CS0 done e463dc80af -> G719 done dcd3379372 + e45e75885c (25 first-open tiles; intentional G700 Night Market copies; phone 1x/2x/4x JPEGs) -> G726 Night Market remaster RM1 -> RM2 -> RM3 (no look change; Opus RM4+ Tue 13:00) -> GR4 Sunscar -> GR6 Nalati -> GR8 Pine |
 | sp-x8 | SW11/G703 done ed647c4859 -> TypeScript T3 (current batch) -> G718 FPS pill fix -> G717 grid-ready remeasure + G723 crossing step timings (DW/Pine/Nalati/Nine), then cut + warm neighbour (< 5 s) -> T3 -> T4 (from sp-x2) -> T5 |
 | sp-x2 | G700 road B done 58e8609229 -> tile streaming T4 (current slice) -> G720 NM near tiles resident on entry, no far proxy at eye height -> G721 open-plot kit colliders (walk 0 stuck) -> G724+G725 left cell stays warm, re-entry < 1 s; cinematic grain only inside its region -> T4 -> T6 / T8 |
 | sp-x9 | T1 done (G710) -> oxlint R1-R2 done 45126745a7 -> G716 L16 live black-launch regression (bisect + inline index.html hero/boat bar) -> loading-speed U1 (stale phone build = red if the update fails) -> U2 -> U4 (G715, folds U3) -> oxlint R3-R5 -> no-binaries B1-B6 -> QW7 -> core-memory lazy-load code (G713: menu carries no three.js or shard code) |
