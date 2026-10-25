@@ -16,11 +16,13 @@ import { instancedQuad } from '../src/engine/render/instancedGeometry';
 import { PaintedNumbersSchema, parsePaintedLook } from '../src/format/paintedLook';
 import { skyPaintedPresentation, SKY_PAINTED_GRAPHS } from '../src/shards/far-reach/generators/paintedLook';
 import { signalPaintedPresentation } from '../src/shards/sunscar-dunes/generators/paintedLook';
+import { LAST_LIGHT_SUN } from '../src/shards/sunscar-dunes/generators/rows/lightLook';
 import { paintedLookFromRow, painterLightGlsl, painterLightPatch } from '../src/engine/render/dataLook';
-import signal from '../src/shards/sunscar-dunes/data/paintedLook.generated.json' with { type: 'json' };
 import sky from '../src/shards/far-reach/data/paintedLook.generated.json' with { type: 'json' };
 
-test('both generated looks admit their clock, sky and light without changing values', () => {
+const signal = parsePaintedLook(signalPaintedPresentation());
+
+test('both authored looks admit their clock, sky and light without changing values', () => {
   for (const rows of [signal.look, sky.look]) {
     const admitted = parse(PaintedNumbersSchema, rows);
     expect(admitted).toEqual(rows);
@@ -51,7 +53,7 @@ test('product presentation retains both original look rows and all dressing reso
   const presentation = skyPaintedPresentation(), dusk = parsePaintedLook(signalPaintedPresentation());
   expect(presentation.look).toEqual(sky.look);
   expect(dusk.look).toEqual(signal.look);
-  expect(dusk.materialSun).toEqual(signal.painterSun);
+  expect(dusk.materialSun).toEqual(LAST_LIGHT_SUN);
   expect(dusk.materialOptOut).toBe('sunscarNoRim');
   expect(dusk.state).toBe('dusk');
   expect(dusk.terrain).toBe('declared');

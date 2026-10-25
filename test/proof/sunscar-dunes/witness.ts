@@ -21,7 +21,8 @@ import { MATRIARCH_ID } from '../../../src/shards/sunscar-dunes/generators/rows/
 import { readRuntimeWorldMetadata, nativeMeleeVolumeHit } from '../../../src/game/plugin/simulation';
 import { weaponContactDistance } from '../../../src/engine/combat/contactWeapon';
 import { WHIP_ITEM, WHIP_PROFILE } from '../../../src/shards/sunscar-dunes/generators/rows/items';
-import signalFlags from '../../../src/shards/sunscar-dunes/data/flags.generated.json' with { type: 'json' };
+import { SCOUT_AT } from '../../../src/shards/sunscar-dunes/generators/rows/flags';
+import { COMPLETE_FLAG, MATRIARCH_FLAG } from '../../../src/shards/sunscar-dunes/generators/rows/signalQuest';
 import { BASIN } from "../../../src/shards/sunscar-dunes/generators/layout";
 import { SIGNAL_PHYSICS } from '../../../src/shards/sunscar-dunes/generators/physics';
 import { bindHeadlessPrompts, createHeadlessPromptPicker, parsePromptRegistrations, type HeadlessPrompt } from '../../../src/game/quest/interactionRows';
@@ -30,7 +31,6 @@ import * as v from 'valibot';
 // Preserve the original plain JSON boundary, including signed-zero normalization.
 const physicsDocument = JSON.stringify(SIGNAL_PHYSICS);
 const baked: unknown = JSON.parse(physicsDocument);
-const { SCOUT_AT, COMPLETE_FLAG, MATRIARCH_FLAG } = signalFlags;
 
 
 /**

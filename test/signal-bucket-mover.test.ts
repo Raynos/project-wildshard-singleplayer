@@ -2,9 +2,8 @@ import { expect, test } from 'vitest';
 import { Scope } from '../src/engine/app/scope';
 import { createMoverHost, MoverRuntime } from '../src/game/plugin/mover';
 import { SIGNAL_BUCKET_MOVERS, SIGNAL_BUCKET_CHANNELS } from '../src/shards/sunscar-dunes/generators/bucket';
-import signalFlags from '../src/shards/sunscar-dunes/data/flags.generated.json' with { type: 'json' };
+import { FLAG } from '../src/shards/sunscar-dunes/generators/rows/flags';
 
-const { FLAG } = signalFlags;
 
 async function bucket(flags: ReadonlySet<string>) {
   const scope = new Scope('signal-bucket'), host = await createMoverHost(SIGNAL_BUCKET_MOVERS, new Map(), () => []);

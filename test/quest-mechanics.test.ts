@@ -11,9 +11,8 @@ import { parseQuestHost } from '../src/format/questHost';
 import { installQuestHost, type QuestCableOwner } from '../src/game/plugin/simulation';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { QUEST_HOST as signal } from '../src/shards/sunscar-dunes/generators/questHost';
-import signalFlags from '../src/shards/sunscar-dunes/data/flags.generated.json' with { type: 'json' };
+import { FLAG } from '../src/shards/sunscar-dunes/generators/rows/flags';
 
-const { FLAG } = signalFlags;
 
 class Cable implements QuestCableOwner {
   riding = false; atEnd = false; starts = 0;
