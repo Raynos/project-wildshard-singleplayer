@@ -7,7 +7,8 @@ import { installBakeEnvironment } from './environment.mjs';
 import { prepareNativeTerrain } from './nativeWorld.mjs';
 import { byteWriter, jsonBytes, outputHash } from '../bake-output.mjs';
 
-async function bakeNalatiDressing(dressingRecipe) {
+/** Build fresh placement data; an original continuous forest law may be supplied by a native geometry author. */
+export async function prepareNalatiDressing(dressingRecipe, forestMask) {
   const root = resolve(import.meta.dirname, '../..');
   const environment = installBakeEnvironment(root);
   const noop = () => undefined;
@@ -15,7 +16,9 @@ async function bakeNalatiDressing(dressingRecipe) {
 
   try {
     const { MANIFEST: NALATI_GRASSLANDS } = await import('../../src/shards/nalati-grasslands/discovery.generated.ts');
-    await prepareNativeTerrain(NALATI_GRASSLANDS, { root, bytes: readFileSync(resolve(root, 'public/assets/baked/nalati-grasslands/terrain.bin')) });
+    if (forestMask !== undefined && NALATI_GRASSLANDS.forest === undefined) throw new Error('Missing Nalati forest definition');
+    const definition = forestMask === undefined ? NALATI_GRASSLANDS : { ...NALATI_GRASSLANDS, forest: { ...NALATI_GRASSLANDS.forest, mask: forestMask } };
+    await prepareNativeTerrain(definition, { root, bytes: readFileSync(resolve(root, 'public/assets/baked/nalati-grasslands/terrain.bin')) });
     const { configureGrassField } = await import('@wildshard/game/systems/looks/grassField');
     const { default: NALATI_GRASS_LAYOUT } = await import('../../src/shards/nalati-grasslands/data/grassFieldLayout.json', { with: { type: 'json' } });
     const { pageScope } = await import('@wildshard/engine/app/resources');
@@ -50,13 +53,7 @@ async function bakeNalatiDressing(dressingRecipe) {
     const avoid = [...poiColliders, ...outcrops.colliders, ...crags.colliders];
     for (const part of crags.meshes) part.geometry.dispose();
     const clutter = campClutterSpots(avoid);
-    const writer = byteWriter(process.argv.includes('--check'), 'nalati-dressing-plan');
-    for (const [key, rows] of Object.entries({ ...plan, clutter })) {
-      writer.put(resolve(root, `src/shards/nalati-grasslands/data/dressing-${key}.generated.json`), jsonBytes(rows, 0));
-    }
-    writer.finish();
-    console.log(JSON.stringify({ trees: trees.length, avoid: avoid.length, rows: Object.fromEntries(Object.entries({ ...plan, clutter }).map(([key, rows]) => [key, rows.length])),
-      sha256: outputHash(jsonBytes({ plan, clutter }, 0)), canonical: outputHash(new TextEncoder().encode(encodeCanonicalJson({ plan, clutter }))) }));
+    return { plan, clutter, trees: trees.length, avoid: avoid.length };
   } finally {
     const { pageScope } = await import('@wildshard/engine/app/resources');
     pageScope.dispose(); environment.dispose();
@@ -64,7 +61,17 @@ async function bakeNalatiDressing(dressingRecipe) {
 
 }
 
-const recipe = process.argv[2];
-if (recipe !== 'src/shards/nalati-grasslands/generators/dressingPlan.ts') throw new Error('Requires the retained Nalati dressing recipe');
-const { dressingRecipe } = await import(pathToFileURL(resolve(import.meta.dirname, '../..', recipe)).href);
-await bakeNalatiDressing(dressingRecipe);
+if (import.meta.main) {
+  const recipe = process.argv[2];
+  if (recipe !== 'src/shards/nalati-grasslands/generators/dressingPlan.ts') throw new Error('Requires the retained Nalati dressing recipe');
+  const { dressingRecipe } = await import(pathToFileURL(resolve(import.meta.dirname, '../..', recipe)).href);
+  const { plan, clutter, trees, avoid } = await prepareNalatiDressing(dressingRecipe);
+  const root = resolve(import.meta.dirname, '../..');
+  const writer = byteWriter(process.argv.includes('--check'), 'nalati-dressing-plan');
+  for (const [key, rows] of Object.entries({ ...plan, clutter })) {
+    writer.put(resolve(root, `src/shards/nalati-grasslands/data/dressing-${key}.generated.json`), jsonBytes(rows, 0));
+  }
+  writer.finish();
+  console.log(JSON.stringify({ trees, avoid, rows: Object.fromEntries(Object.entries({ ...plan, clutter }).map(([key, rows]) => [key, rows.length])),
+    sha256: outputHash(jsonBytes({ plan, clutter }, 0)), canonical: outputHash(new TextEncoder().encode(encodeCanonicalJson({ plan, clutter }))) }));
+}
