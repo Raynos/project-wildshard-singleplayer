@@ -9,6 +9,7 @@ import { resolve, dirname } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Give the fixture its actual admitted hashes.
 import { createHash } from 'node:crypto';
 import { sceneSourceUrls, homeExtraFiles } from '../vite/bootExtras';
+import { productDownloadTotal } from '../vite/bootProducts';
 
 test('lists exactly the model reader preloads, deduplicating URLs and excluding unused mappings/specimen metadata', () => {
   expect(sceneSourceUrls('models', { rows: {
@@ -55,7 +56,8 @@ test('a real emitted image and admitted source produce only the selected home ba
     writeFileSync(resolve(root, 'public/assets/late.webp'), new Uint8Array(7));
     writeFileSync(resolve(root, 'public/assets/physics/rapier.wasm'), new Uint8Array(13));
     const source = emptyShardfile({ slug: 'home', name: 'Home', author: 'Test', revision: 1, seed: 9 });
-    const models = JSON.stringify({ rows: { meshes: ['one'], meshUrls: { one: '/assets/model.glb', unused: '/assets/never.glb' }, hd: [], hdUrls: {} } });
+    const models = JSON.stringify({ rows: { meshes: ['one'], meshUrls: { one: '/assets/model.glb', unused: '/assets/never.glb' }, hd: [], hdUrls: {},
+      rigs: { bodies: { creatures: ['owned', 'public'], urls: { owned: 'geometry/rigs/body.glb', public: '/assets/model.glb' } } } } });
     const hash = createHash('sha256').update(models).digest('hex'), sourcePath = `blobs/json/${hash}.json`;
     mkdirSync(resolve(root, 'out/home/blobs/json'), { recursive: true });
     writeFileSync(resolve(root, 'out/home', sourcePath), models);
@@ -67,10 +69,14 @@ test('a real emitted image and admitted source produce only the selected home ba
       writeFileSync(resolve(root, 'out/home', path), value);
       return { name, path, bytes: Buffer.byteLength(value), hash: createHash('sha256').update(value).digest('hex'), schema: `wildshard:${name}@1` };
     });
-    writeFileSync(resolve(root, 'out/home/shard.json'), JSON.stringify({ format: 'wildshard.shardfile', formatVersion: 2, sdk: '0.2', version: source.version, identity: source.identity,
+    const rig = new Uint8Array(19), rigHash = createHash('sha256').update(rig).digest('hex'), rigPath = `blobs/glb/${rigHash}.glb`;
+    mkdirSync(resolve(root, 'out/home/blobs/glb'), { recursive: true }); writeFileSync(resolve(root, 'out/home', rigPath), rig);
+    const index = { format: 'wildshard.shardfile', formatVersion: 2, sdk: '0.2', version: source.version, identity: source.identity,
       requires: source.requires, build: { sourceHash: hash, validator: 'test' },
       admission: { budgets: source.budgets, serverBudget: source.serverBudget, authorCaps: source.authorCaps, critical: source.critical, library: source.library },
-      sections, schemas: [], files: [{ name: 'source.json', kind: 'json', path: sourcePath, hash, compressed: Buffer.byteLength(models), decoded: Buffer.byteLength(models), gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: false }], runtime: null }));
+      sections, schemas: [], files: [{ name: 'source.json', kind: 'json', path: sourcePath, hash, compressed: Buffer.byteLength(models), decoded: Buffer.byteLength(models), gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: false },
+        { name: 'geometry/rigs/body.glb', kind: 'glb', path: rigPath, hash: rigHash, compressed: rig.length, decoded: rig.length, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: false }], runtime: null };
+    writeFileSync(resolve(root, 'out/home/shard.json'), JSON.stringify(index));
     const result = await build({ root, configFile: false, logLevel: 'silent', plugins: [bootModulesPlugin()], build: { write: false, assetsInlineLimit: 0, cssCodeSplit: false } });
     if (Array.isArray(result) || !('output' in result)) throw new Error('Missing fixture bundle');
     const bundle = Object.fromEntries(result.output.map(file => [file.fileName, file]));
@@ -86,6 +92,11 @@ test('a real emitted image and admitted source produce only the selected home ba
     expect(html.source).toContain(`/${metadata.fileName}`);
     expect(html.source).not.toContain('/assets/model.glb');
     expect(html.source).toContain(createHash('sha256').update(metadata.source).digest('hex'));
+    const withoutRig = { ...index, files: index.files.filter(file => file.hash !== rigHash) };
+    expect(productDownloadTotal(index, 100)[1] - productDownloadTotal(withoutRig, 100)[1]).toBe(rig.length);
+    writeFileSync(resolve(root, 'out/home/shard.json'), JSON.stringify(withoutRig));
+    expect(() => homeExtraFiles(root, 'home', bundle, 0)).toThrow('Unsafe boot source URL');
+    writeFileSync(resolve(root, 'out/home/shard.json'), JSON.stringify(index));
     writeFileSync(resolve(root, 'out/home', sourcePath), '{}');
     expect(() => homeExtraFiles(root, 'home', bundle, 0)).toThrow('differs from its index');
   } finally { rmSync(root, { recursive: true, force: true }); }

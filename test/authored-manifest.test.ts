@@ -26,13 +26,14 @@ import { MANIFEST as blender } from '../src/shards/blender-template/discovery.ge
 import { MANIFEST as driftwood } from '../src/shards/driftwood-isle/discovery.generated';
 import { DRIFTWOOD_FAUNA_PLANS } from '../src/shards/driftwood-isle/generators/fauna';
 import nineNavigation from './fixtures/nine-navigation.json' with { type: 'json' };
+import { generated as signalProgram } from './fixtures/sunscar-source-program';
 import * as v from 'valibot';
 
 const root = resolve(import.meta.dirname, '..');
 const metadata = (slug: string): unknown => JSON.parse(readFileSync(resolve(root, `src/shards/${slug}/manifest.json`), 'utf8'));
 const nineDiscovery = parseDiscoveryValues({ navigation: nineNavigation });
 const declaredSource = (slug: string): string => authoredManifestSource(root, slug,
-  slug === 'nine-dragon-stack' ? { discovery: nineDiscovery } : undefined);
+  slug === 'nine-dragon-stack' ? { discovery: nineDiscovery } : slug === 'sunscar-dunes' ? { discovery: parseDiscoveryValues(signalProgram.discovery) } : undefined);
 describe('authored JSON discovery', () => {
   test('reads checked spawn data without importing its generator at runtime', () => {
     const source = authoredManifestSource(root, 'driftwood-isle');
@@ -62,7 +63,7 @@ describe('authored JSON discovery', () => {
     expect(manifest.bounds).toEqual(row.bounds); expect(manifest.sky).toEqual(row.sky);
     expect(manifest.pois).toEqual(row.pois); expect(manifest.minimap?.image).toBe(row.minimap.image);
     expect(existsSync(resolve(root, `src/shards/${manifest.slug}/manifest.ts`))).toBe(false);
-    const source = authoredManifestSource(root, manifest.slug);
+    const source = declaredSource(manifest.slug);
     for (const path of Object.values(row.card).concat(Object.values(row.explore.art))) {
       if (path.startsWith('/src/')) { expect(source).toContain(path); expect(existsSync(resolve(root, path.slice(1)))).toBe(true); }
       else expect(path.startsWith('data:image/') || path.startsWith('/assets/')).toBe(true);
