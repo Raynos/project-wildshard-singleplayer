@@ -3,6 +3,7 @@ import type { BakedTerrain } from './terrain';
 import type { BakedProps } from './props';
 import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import { MapRaster } from './mapRaster';
+import { paintMapGeometry } from './mapScenes';
 
 const hexColour = v.pipe(v.string(), v.regex(/^#[a-fA-F0-9]{6}$/u));
 const palette = v.pipe(v.array(v.object({ match: hexColour, fill: hexColour, edge: v.exactOptional(hexColour) })), v.minLength(1), v.maxLength(256));
@@ -72,4 +73,21 @@ export async function rasterGroundMap(terrain: Pick<BakedTerrain, 'terrain' | 'a
   for (const panel of props.props.panels) if (panel.visible) await raster.glb(read(props.assets, panel.file));
   if (raster.triangles === 0) throw new Error('Data map is empty');
   return { pixels: stylize(raster, admitted), triangles: raster.triangles };
+}
+
+
+/** Explicit owned geometry/JSON readers for a source program; no file or public-directory resolver is installed. */
+export interface SceneMapBytes {
+  input: (file: string) => Uint8Array;
+  model?: (url: string) => Uint8Array;
+  json: (file: string) => unknown;
+  bytes: (file: string) => Uint8Array;
+}
+/** Paint declared L0 terrain, GLBs and private scenes with the existing ground palette.
+ * Returns the original 1000-square RGBA lattice from caller-owned inputs, without image/stamp publication. */
+export async function rasterSceneMap(settings: unknown, data: SceneMapBytes): Promise<{ pixels: Uint8Array; triangles: number }> {
+  const admitted = v.parse(v.object({ style: styleSchema, clipBelow: v.exactOptional(v.nullable(v.number())), clipAbove: v.exactOptional(v.nullable(v.number())) }), settings);
+  const raster = new MapRaster(1000, { clipBelow: admitted.clipBelow ?? -Infinity, clipAbove: admitted.clipAbove ?? Infinity });
+  await paintMapGeometry(raster, settings, data);
+  return { pixels: stylize(raster, admitted.style), triangles: raster.triangles };
 }

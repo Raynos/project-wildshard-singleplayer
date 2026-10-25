@@ -4,6 +4,8 @@ import { Box3, Euler, Matrix4, Quaternion, Vector3 } from 'three';
 import * as v from 'valibot';
 import { GeometryPack, packedRows } from '@wildshard/sdk/kit/geometryPack';
 import type { MapRaster } from './mapRaster';
+import type { Node } from '@gltf-transform/core';
+import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 
 const vector = v.tuple([v.number(), v.number(), v.number()]);
 const referenceSchema = v.object({ file: v.string(), path: v.exactOptional(v.array(v.string())) });
@@ -196,4 +198,35 @@ export async function paintMapScenes(raster: MapRaster, input: unknown, style: u
       await raster.glb(file, matrix);
     } else await row.draw(row.matrix);
   }
+}
+
+
+const geometryDeclaration = v.object({ painter: v.object({ version: v.literal(1), terrain: v.exactOptional(v.array(v.string())),
+  props: v.exactOptional(v.array(v.string())), glbs: v.exactOptional(v.array(v.string())), scenes: v.exactOptional(v.unknown()) }),
+  outputs: v.exactOptional(v.record(v.string(), v.object({ exclude: v.exactOptional(v.union([v.string(), v.array(v.string())])) }))) });
+const terrainRows = v.object({ terrain: v.object({ tiles: v.array(v.object({ lod: v.number(), file: v.string() })) }) });
+const propsRows = v.object({ props: v.object({ wholeLibrary: v.exactOptional(v.unknown()),
+  tiles: v.array(v.object({ lod: v.number(), file: v.string(), additionalFiles: v.exactOptional(v.array(v.string())) })),
+  panels: v.array(v.object({ file: v.string(), visible: v.exactOptional(v.boolean()) })) }) });
+/** The single declared terrain/props/GLB/private-scene placement loop, shared by source programs and retained file adapters. */
+export async function paintMapGeometry(raster: MapRaster, input: unknown, data: MapSceneReader,
+  options: { output?: string; glbs?: readonly string[]; label?: string } = {}): Promise<void> {
+  const config = v.parse(geometryDeclaration, input), painter = config.painter, label = options.label ?? 'map';
+  for (const file of painter.terrain ?? []) {
+    const row = v.parse(terrainRows, data.json(file));
+    for (const tile of row.terrain.tiles.filter(entry => entry.lod === 0)) raster.terrain(decodeTerrainTile(data.bytes(`assets/${tile.file}`)));
+  }
+  for (const file of painter.props ?? []) {
+    const source = data.json(file), library = v.parse(v.object({ props: v.object({ wholeLibrary: v.exactOptional(v.unknown()) }) }), source);
+    if (library.props.wholeLibrary !== undefined) throw new Error(`${label}: whole-library props need an explicit map assembly`);
+    const { props } = v.parse(propsRows, source);
+    for (const tile of props.tiles.filter(entry => entry.lod === 0)) for (const ref of [tile.file, ...tile.additionalFiles ?? []]) await raster.glb(data.input(`assets/${ref}`));
+    for (const panel of props.panels.filter(entry => entry.visible !== false)) await raster.glb(data.input(`assets/${panel.file}`));
+  }
+  const own = options.output === undefined ? undefined : config.outputs?.[options.output], excluded = own?.exclude;
+  const exclude = typeof excluded === 'string' ? [excluded] : excluded ?? [];
+  const drawn = exclude.length === 0 ? undefined : (node: Node) => !exclude.some(prefix => node.getName().startsWith(prefix));
+  for (const file of options.glbs ?? painter.glbs ?? []) await raster.glb(data.input(file), undefined, drawn);
+  if (painter.scenes !== undefined) await paintMapScenes(raster, painter.scenes, input, data);
+  if (raster.triangles === 0) throw new Error(`${label}: data map is empty`);
 }

@@ -13758,18 +13758,18 @@ transfer without loading an image decoder or a filesystem service. The
 existing image-file adapter retains its decoding and flip semantics and
 uses this same packer. Both paths preserve the original complete bytes.
 
-`GeneratedProject.map` supplies the original 1000 × 1000 RGBA lattice and an
-optional logical name. `@wildshard/sdk/bake/groundMap.rasterGroundMap` paints
-actual L0 terrain and placed GLB triangles with the existing ground palette,
-integer coverage, height ordering and relief. The SDK encodes the original
-lossless WebP directly into the charged product. The root adapter supplies
-its current world-input hash through `--generated-map-tiles-hash`; build and
-read-only lookup share the same recipe. A missing generated map, competing
-external image or invalid lattice refuses. Source-program maps bypass legacy
-map jobs and stamps; legacy images still require their original pixel check.
-The authored minimap packs those same in-memory bytes before publication;
-the builder then publishes its existing public URL from the verified product
-image and receipt. Neither step creates map metadata under shard source.
+`GeneratedProject.map` supplies a 1000 × 1000 RGBA lattice and optional
+logical name. `@wildshard/sdk/bake/groundMap.rasterGroundMap` paints actual
+L0 terrain and placed GLBs; `rasterSceneMap(settings, readers)` adds declared
+props/private scenes using owned bytes and decoded JSON. Readers retain
+model URL authority; neither operation infers file roots. Both preserve
+integer coverage, height order, ground palette and relief. The SDK encodes
+lossless WebP into the charged product. Build/read-only lookup share the
+current world-input key from `--generated-map-tiles-hash`. Missing/invalid
+lattices or competing images refuse. Source maps bypass legacy jobs/stamps;
+legacy images retain their pixel check. Authored minimaps pack the same
+in-memory bytes; the builder then publishes the verified product image and
+receipt at its existing URL. No shard-source metadata is emitted.
 
 A cached step may also name a public asset URL beneath an input root explicitly
 supplied by the CLI's manifest intake. Each URL must select exactly one root;

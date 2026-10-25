@@ -59,29 +59,13 @@ export async function prepareDataMaps(root,only) {await createDataMapPreparation
 /** Rasterize declared map geometry into owned RGBA without publishing an image or stamp.
  * Readers retain input authority; both source-owned and validated file inputs use this same algorithm. */
 export async function rasterDataMap(settings, data, { output, glbs, label = 'map' } = {}) {
-  const { decodeTerrainTile } = await import('../src/format/terrainTileBytes.ts');
   const painter = settings.painter;
   if (painter?.version !== 1 || settings.style === undefined) throw new Error(`${label}: missing data map painter declaration`);
   const raster = new MapRaster(1000, settings, readMapGeometry);
-  const source = data.input, rows = data.json, readBytes = data.bytes;
-  for (const file of painter.terrain ?? []) {
-    const row = rows(file);
-    for (const tile of row.terrain.tiles.filter(entry => entry.lod === 0)) raster.terrain(decodeTerrainTile(readBytes(`assets/${tile.file}`)));
-  }
-  for (const file of painter.props ?? []) {
-    const { props } = rows(file);
-    if (props.wholeLibrary !== undefined) throw new Error(`${label}: whole-library props need an explicit map assembly`);
-    for (const tile of props.tiles.filter(entry => entry.lod === 0)) for (const ref of [tile.file, ...tile.additionalFiles ?? []]) await raster.glb(source(`assets/${ref}`));
-    for (const panel of props.panels.filter(entry => entry.visible !== false)) await raster.glb(source(`assets/${panel.file}`));
-  }
+  const { paintMapGeometry } = await import('../src/sdk/bake/mapScenes.ts');
+  const source = data.input;
+  await paintMapGeometry(raster, settings, { input: source, model: url => source(`../../../public${url}`), json: data.json, bytes: data.bytes }, { output, glbs, label });
   const own = output === undefined ? undefined : settings.outputs?.[output];
-  const exclude = own?.exclude === undefined ? [] : [own.exclude].flat(), drawn = exclude.length === 0 ? undefined : node => !exclude.some(prefix => node.getName().startsWith(prefix));
-  for (const file of glbs ?? painter.glbs ?? []) await raster.glb(source(file), undefined, drawn);
-  if (painter.scenes !== undefined) {
-    const { paintMapScenes } = await import('../src/sdk/bake/mapScenes.ts');
-    await paintMapScenes(raster, painter.scenes, settings, { input: source, model: url => source(`../../../public${url}`), json: rows, bytes: readBytes });
-  }
-  if (raster.triangles === 0) throw new Error(`${label}: data map is empty`);
   const style = own?.style ?? settings.style;
   const pixels = stylizeMap(raster, style);
   return { raster, pixels };

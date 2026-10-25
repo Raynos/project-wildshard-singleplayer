@@ -7,6 +7,16 @@ import { build } from 'vite';
 import { assertConfigBoundary } from '../configBoundary';
 import { MapRaster } from './mapRaster';
 import { mapRows, paintMapScenes } from './mapScenes';
+import { rasterSceneMap } from './groundMap';
+
+test('source map framing keeps style, empty geometry and whole-library refusals', async () => {
+  const style = { kind: 'ground', classes: [{ match: '#737373', fill: '#cccccc' }] };
+  const reader = { input: (): Uint8Array => { throw new Error('Unadmitted input'); }, bytes: () => new Uint8Array(),
+    json: (): unknown => ({ props: { wholeLibrary: {} } }) };
+  await expect(rasterSceneMap({ style: { kind: 'other' }, painter: { version: 1 } }, reader)).rejects.toThrow();
+  await expect(rasterSceneMap({ style, painter: { version: 1 } }, reader)).rejects.toThrow('data map is empty');
+  await expect(rasterSceneMap({ style, painter: { version: 1, props: ['props'] } }, reader)).rejects.toThrow('whole-library props');
+});
 
 test('declared wildcard paths preserve row order and refuse absent/non-array data', () => {
   const source = { groups: [{ rows: [{ value: 4 }, { value: -0 }] }, { rows: [{ value: 9 }] }] };
