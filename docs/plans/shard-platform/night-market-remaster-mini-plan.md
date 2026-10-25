@@ -54,7 +54,7 @@ The method is NINE-DRAGON-STACK §7 and LOOK-LOOP "Two domes". Round 15's eight 
 - a **stand dome** at the mockup's camera, whose view 5 is the mockup itself;
 - a **look dome** at what that camera looks at, whose 9 views include one looking back at the stand dome.
 
-The cameras are round 46's (`art/grid/round-46-night-market-nine-angles/`). That gives **5 mockups and 10 domes**. Anchors
+The cameras are round 46's (`art/grid/round-46-night-market-nine-angles/`). Jake G726 selected r1, r3, r4 and r7: **4 mockups and 8 domes**. E1/E2 below are historical consistency references only, not additional target/capture scope. Anchors
 are in plot-local metres: south entry at z = −250, gate at (0, 0), y = height above the paving.
 
 | Dome | Mockup | Anchor | Must hold (assets · density · light) |
@@ -91,7 +91,7 @@ the mockup at 40 m and 100 m.
    the way the cameras say.
 4. Upscale each tile with the mockup as the detail reference.
 
-The output is 90 targets in `art/grid/round-63-night-market-domes/<dome>/`, every sheet labelled
+The output is 72 targets in `art/grid/round-63-night-market-domes/<dome>/`, every sheet labelled
 "<dome> · n · view · TARGET".
 
 **The loop, per dome and round:**
@@ -117,8 +117,8 @@ The look-dome lane re-captures the stand dome each round to prove its work shows
 | Row | What | Owner | Effort | Done when |
 |---|---|---|---|---|
 | RM0 | **Streaming acceptance** (built by tile-streaming T4.3 and G719, not here): walking in from the south road, the L0 tiles draw before the kerb; the far proxy never draws inside the entered cell | sp-x2 (tile-streaming) | — | A phone-tier walk road → plaza shows L0 within 3 s of entering, with no far stand-in at eye height; the Bag map shows every cell on first open |
-| RM1 | **Dome targets:** 10 `cameras.json` and floor plans, 10 codex 3×3 grids (2 candidates each), 90 upscales, labelled sheets | Codex (`image_gen`, not a lane) or plan agent | 4 h | `round-63-night-market-domes/` holds 10 labelled target sheets plus an overview |
-| RM2 | **Baseline captures** of the 10 domes on HEAD after RM0, with triangles, draws and memory per dome | Codex | 2 h | 10 in-game 3×3 sheets beside their targets; per-dome numbers in the commit |
+| RM1 | **Dome targets (G726):** 8 `cameras.json` and floor plans, 8 codex 3×3 grids (2 candidates each), 72 upscales, labelled sheets | Codex (`image_gen`, not a lane) or plan agent | 4 h | `round-63-night-market-domes/` holds 8 labelled target sheets plus an overview |
+| RM2 | **Baseline captures** of the 8 domes on HEAD after RM0, with triangles, draws and memory per dome | Codex | 2 h | 8 in-game 3×3 sheets beside their targets; per-dome numbers in the commit |
 | RM3 | **Kit plumbing** (no look change): placement generators in `kit.mjs` place GLB kit pieces (palette slots, 3 variants, LOD0/LOD1, a ≤ 40-triangle far stand-in). A vertex light bake in the generator adds every lantern's light to nearby Kit vertices with Nine's falloff law. A per-tile budget report. Today's builders are exported as the first pieces, so the capture is unchanged. | Codex | 1 d | `build-shardfiles --shard=open-plot-night-market` exits 0; RM2 captures unchanged; the per-tile report is printed |
 | RM4 | **Kit remaster (models).** Real models, 3 variants each: stall (hero plus a striped-awning row stall), round paper lantern and ornate post, string-light cord with round bulbs, arched stone bridge with balustrade, house court (tiled hip roofs with upturned eaves, timber frame, lit windows), canal coping, planter, bench, goods and crates, banners, round-crown trees, static posed figures. Architecture is Blender scripts (`scripts/blender/build.sh`, GLB committed); organic pieces are TRELLIS.2 vs Hunyuan3D-2, better wins, through `mockup-to-model`. | Opus (look-dome lane) | 3 d | Each piece has a labelled 4-angle board beside its mockup crop; A2, D2 and E2 meet bars 5 and 2 |
 | RM5 | **Materials and palette:** one trim-sheet texture per style (roof tile, timber, plaster, awning stripe, stone) in KTX2 with phone mips, shared by the kit. Paving as a ruled graph material (flagstone joints, kerb edges, wear; data, no texture). The palette locked to round 46 (G714: red-and-gold lantern dusk). | Opus (stand-dome lane) | 1 d | Bars 1 and 6 in A1, A2, D1, D2 and E2 |
@@ -128,13 +128,29 @@ The look-dome lane re-captures the stand dome each round to prove its work shows
 | RM9 | **Gate landmark:** a new single-object reference from r7; Hunyuan3D 2.1 vs TRELLIS.2, better wins (G632); hanging kit lanterns, emissive gold trim, uplight; ≤ 30k triangles near across the 4 plaza tiles, ≤ 2.5k far | Opus (look-dome lane) | 1 d | D2's 9 views match their targets; a labelled 4-angle board |
 | RM10 | **Life:** round paper sky lanterns (replacing the tetrahedra), food-stall steam, fireflies, banner sway (the existing glow graph), static posed figures at stalls and on bridges. An animated crowd only if an existing SDK crowd host takes it as data (HOST-BAR). | Opus | 0.5 d | Visible in a 5 s road-entry clip; frame floor unchanged |
 | RM11 | **Near view and far proxy:** the near view's vertex colours take the trim-sheet colours; the light layer keeps lanterns and pools; far stand-ins re-authored from the new kit (roof silhouettes, canal quads, the lit gate) within the 8k far cap | Opus (stand-dome lane) | 0.5 d | A1, C1 and C2 read as the mockup at 260 m and 100 m up |
-| RM12 | **Perf and memory per dome**, phone tier: Chromium 2× captures report triangles and draws per dome, then one Simulator reading at the milestone | Codex (captures) + Opus (fixes) | 0.5 d | Inside the plot ≤ 600k triangles and ≤ 120 draws per frame; ≥ 30 fps floor (Low Power Mode cap); memory ≤ +150 MB over today's 1.06 GB two-world reading and ≤ 1.2 GB per shard (G556); loading ≤ 1.8 GB |
+| RM12 | **Perf and memory per dome**, phone tier: Chromium 2× captures report triangles and draws per dome, then one Simulator reading at the milestone | Codex (captures) + Opus (fixes) | 0.5 d | Inside the plot ≤ 600k triangles and ≤ 120 draws per frame; ≥ 30 fps floor (Low Power Mode cap); memory ≤ +300 MB over today's 1.06 GB two-world reading and ≤ 1.2 GB per shard (G556); loading ≤ 1.8 GB |
 | RM13 | **Board and play:** 5 cameras × MOCKUP · BEFORE (the 22:21 build) · NOW, labelled, iPhone portrait, plus a 30 s walk video from road to plaza; then Jake plays it (G684) | Opus | 0.5 h | Board and clip sent; Jake's word |
 | RM14 | **Make it general for RP2:** the kit library is shared (`public/assets/open-plots/kit/`, retinted by palette slots); each idea is a style row, round 62's palette and grade, its own hero pieces and landmark, and the same 5-camera / 10-dome template | Opus + Codex | 0.5 d | A second idea's style row builds with no generator code change (one test); `remaster-open-plots-mini-plan.md` gets the how-to |
 
 Order: RM0 (other plan) ∥ RM1 → RM2 → RM3, all Codex before Tue. Then RM4 ∥ RM5 ∥ RM6 (two Opus lanes from Tue 13:00) →
 RM7 → RM8 → RM9 → RM10 → RM11, with look-loop rounds per dome throughout. Then RM12 → RM13 → Jake plays → RM14 → RP2.
 About 10 Opus lane-days, roughly 5 calendar days on two lanes.
+
+### RM1–RM3 slices (G711, ≤ 1 h each; sp-x6)
+
+| Slice | Status | Deliverable |
+|---|---|---|
+| RM1.1 camera grounding | done | Eight exact plot-local camera manifests / 72 views and labelled floor plans in `art/grid/round-63-night-market-domes/`; actual 64-tile layout, z north, four G726 pairs only |
+| RM1.2 road pair targets | in flight (2026-10-24, sp-x6) | A1/A2 two imagegen candidates each, chosen grids and detailed targets |
+| RM1.3 40 m pair targets | open | B1/B2 grids and targets |
+| RM1.4 100 m pair targets | open | C1/C2 grids and targets |
+| RM1.5 plaza pair targets | open | D1/D2 grids and targets; overview |
+| RM2.1 road / plaza baseline | open | Same source/cameras; draw, triangle and memory readings |
+| RM2.2 aerial baseline | open | 40 m / 100 m pairs and full baseline sheets |
+| RM3.1 existing kit extraction | open | First GLB kit pieces, no placement/look change |
+| RM3.2 variants / LOD intake | open | Palette slots, three variants, LOD0/LOD1/far bounds |
+| RM3.3 light / budgets | open | Generator vertex-light plumbing and per-tile budget report; look unchanged |
+| RM3.4 milestone | open | Build and original baseline parity |
 
 ## 4. Decisions for Jake
 
