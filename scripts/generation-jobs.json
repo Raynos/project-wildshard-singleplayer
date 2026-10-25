@@ -11634,7 +11634,8 @@
         "src/shards/sunscar-dunes/generators/duneField.ts",
         "src/shards/sunscar-dunes/generators/landscape.ts",
         "src/shards/sunscar-dunes/generators/landscapeNoise.ts",
-        "src/shards/sunscar-dunes/generators/manifestGround.ts"
+        "src/shards/sunscar-dunes/generators/manifestGround.ts",
+        "src/shards/sunscar-dunes/generators/rows/places.ts"
       ],
       "outputs": [
         "src/shards/sunscar-dunes/data/product.generated.json"
@@ -18121,7 +18122,8 @@
         "src/shards/sunscar-dunes/generators/duneField.ts",
         "src/shards/sunscar-dunes/generators/landscape.ts",
         "src/shards/sunscar-dunes/generators/landscapeNoise.ts",
-        "src/shards/sunscar-dunes/generators/manifestGround.ts"
+        "src/shards/sunscar-dunes/generators/manifestGround.ts",
+        "src/shards/sunscar-dunes/generators/rows/places.ts"
       ],
       "outputs": [
         "src/shards/sunscar-dunes/.wildshard/product/039ebbc6d284b8ed27d1cda8d7c3ec4c5e724747188c31f151e445cc2c0f185b",

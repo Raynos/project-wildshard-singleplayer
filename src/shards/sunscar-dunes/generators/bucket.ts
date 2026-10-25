@@ -3,9 +3,9 @@ import { parseMovers } from '@wildshard/format/movers';
 import { ClientChannels } from '@wildshard/sdk/clientChannels';
 import { FLAG } from './rows/flags';
 import STRINGS from '../data/strings.json' with { type: 'json' };
-import scenes from '../data/restScenes.generated.json' with { type: 'json' };
+import { WELL_RIG } from './rows/places';
 
-const id = 'sunscar.well.bucket', drop = scenes.bindings.well.fields.drop.value;
+const id = 'sunscar.well.bucket', drop = WELL_RIG.drop;
 const at = { x: 0, y: 1.85 - drop, z: 0 }, euler = { x: 0, y: 0, z: 0 };
 const motion = { driver: { kind: 'track' }, trigger: { kind: 'interact', permission: 0 },
   track: { clip: 'haul', duration: 1.2, loop: 'once', speed: 1, times: [0, 1.2], position: [[0, at.y, 0], [0, 1.35, 0]] } };
