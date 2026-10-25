@@ -17,6 +17,7 @@ import { compileScriptV2 } from './bake/compileScriptV2';
 import { compileDeclaredDecisionScripts, compileDecisionScripts } from './buildDecisionScripts';
 import { proveStaticPortalEntries } from './projectEntryProof';
 import { readImagePixels } from './bake/image';
+import { projectInputFiles } from './projectInputFiles';
 import type { Shardfile } from './shardfile';
 import type { ProjectOutput } from './projectOutput';
 import type { DiscoveryInput } from '@wildshard/format/discoveryValues';
@@ -49,6 +50,8 @@ export interface ProjectGenerationContext {
   proveStaticPortalEntries: typeof proveStaticPortalEntries;
   /** Decode bounded still image bytes into owned RGBA at build time; no Sharp dependency enters the author bundle. */
   readImagePixels: typeof readImagePixels;
+  /** Fresh bounded names below declared URL roots; older adapters may omit this build-only capability. */
+  inputFiles?: (prefixes: readonly string[]) => readonly string[];
   cached: (step: ProjectGenerationStep, generate: (inputs: ReadonlyMap<string, Uint8Array>) => ReadonlyMap<string, Uint8Array> | Promise<ReadonlyMap<string, Uint8Array>>) => Promise<ReadonlyMap<string, Uint8Array>>;
   asset: (bytes: Uint8Array) => string;
   compileScript: typeof compileScript;
@@ -82,6 +85,7 @@ export function createProjectGeneration(project: string, programHash: string, as
   });
   return {
     compileScript, compileScriptV2, compileDecisionScripts: compileDeclaredDecisionScripts, compileDecisionRows: compileDecisionScripts, proveStaticPortalEntries, readImagePixels,
+    inputFiles: prefixes => projectInputFiles(roots, prefixes),
     asset(bytes) {
       if (!(bytes instanceof Uint8Array) || bytes.byteLength > 256_000_000) throw new Error('Invalid generation asset bytes');
       const copy = new Uint8Array(bytes), key = hashImmutableBytes(copy); assets.set(key, copy); return key;

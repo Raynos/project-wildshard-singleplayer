@@ -218,3 +218,25 @@ it.each([false,true])('guards function text after the native bundle execution bo
   writeFileSync(compiler,source.replace('first docs','changed docs'));
   if(executed)expect(key()).toBeUndefined();else expect(key()).toBe(initial);
 });
+
+it('injected input inventory receipts observe nested additions and removals without reading payloads', async () => {
+  const root = fixture(), receipt = resolve(root, 'inventory-receipt.json'), assets = resolve(root, 'assets');
+  mkdirSync(resolve(assets, 'nested')); writeFileSync(resolve(assets, 'one.webp'), 'original');
+  writeFileSync(resolve(assets, 'nested/two.webp'), 'two');
+  await captureProductInputs(root, receipt, () => {
+    const ctx = createProjectGeneration(root, 'c'.repeat(64), new Map(), resolve(root, '.cache'), [{ prefix: '/assets/', directory: assets }]);
+    const list = ctx.inputFiles; if (list === undefined) throw new Error('Current SDK must supply inputFiles');
+    expect(list(['/assets/'])).toEqual(['/assets/nested/two.webp', '/assets/one.webp']);
+    recordBundle({ output: [] }); return Promise.resolve();
+  });
+  const memo = new InputHashMemo(root), key = productInputKey(root, receipt, [], memo);
+  expect(key).toMatch(/^[a-f0-9]{64}$/u);
+  writeFileSync(resolve(assets, 'one.webp'), 'changed payload size and content');
+  expect(productInputKey(root, receipt, [], memo)).toBe(key);
+  writeFileSync(resolve(assets, 'nested/new.webp'), 'new');
+  expect(productInputKey(root, receipt, [], memo)).toBeUndefined();
+  rmSync(resolve(assets, 'nested/new.webp'));
+  expect(productInputKey(root, receipt, [], memo)).toBe(key);
+  rmSync(resolve(assets, 'one.webp'));
+  expect(productInputKey(root, receipt, [], memo)).toBeUndefined();
+});
