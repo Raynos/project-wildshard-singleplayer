@@ -10,7 +10,6 @@
     "scripts/creature-lineup.mjs": 2,
     "scripts/families-board/run.mjs": 1,
     "scripts/family-props-board/run.mjs": 1,
-    "scripts/hero-shots.mjs": 1,
     "scripts/loading-benchmark/capture.mjs": 1,
     "scripts/look-parity-creatures.mjs": 1,
     "scripts/music/export-midi.mjs": 1,

@@ -26,6 +26,7 @@
 //   scripts/browser-lane.sh --max 10 node scripts/hero-shots.mjs --shard=<slug> --url=… --overlay=<a.jpg,b.jpg> --out=<dir>
 //   → only the -menu.jpg checks, for heroes already shot (or the shipped one).
 import { execFileSync } from 'node:child_process';
+import { randomUUID } from 'node:crypto';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename, join, resolve as resolvePath } from 'node:path';
 import { saveFixture } from './debug-settings.mjs';
@@ -81,14 +82,19 @@ async function overlay(jpgs) {
   if (!ok) errors.push(`overlay: no card whose hero names ${SLUG}`);
   await sleep(1200);
   for (const jpg of jpgs) {
-    const b64 = readFileSync(jpg).toString('base64');
-    await page.evaluate((src) => {
-      let st = document.getElementById('__hero'); if (!st) { st = document.createElement('style'); st.id = '__hero'; document.head.append(st); }
-      st.textContent = `.ws-menu .ws-menu-hero{background-image:url(data:image/jpeg;base64,${src})!important;opacity:1!important;transition:none!important}`;
-    }, b64);
-    await sleep(800);
-    toJpeg(await page.screenshot({ type: 'png' }), join(OUT, `${basename(jpg, '.jpg')}-menu.jpg`));
-    console.log('menu check', basename(jpg));
+    const bytes = readFileSync(jpg);
+    const url = new URL(`/__wildshard_hero/${randomUUID()}.jpg`, page.url()).href;
+    const serve = (/** @type {import('playwright').Route} */ route) => route.fulfill({ contentType: 'image/jpeg', body: bytes });
+    await page.route(url, serve);
+    try {
+      await page.evaluate((src) => {
+        let st = document.getElementById('__hero'); if (!st) { st = document.createElement('style'); st.id = '__hero'; document.head.append(st); }
+        st.textContent = `.ws-menu .ws-menu-hero{background-image:url("${src}")!important;opacity:1!important;transition:none!important}`;
+      }, url);
+      await sleep(800);
+      toJpeg(await page.screenshot({ type: 'png' }), join(OUT, `${basename(jpg, '.jpg')}-menu.jpg`));
+      console.log('menu check', basename(jpg));
+    } finally { await page.unroute(url, serve); }
   }
   await ctx.close();
 }
