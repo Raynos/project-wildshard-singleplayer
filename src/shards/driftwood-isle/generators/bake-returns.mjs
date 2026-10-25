@@ -20,6 +20,6 @@ const bytes = `${JSON.stringify({script,bytes:'',compiled:{source:'behaviour/ret
 const target = new URL('../behaviour/returns.generated.json',import.meta.url);
 if(process.argv.includes('--check')) {
   if(readFileSync(target,'utf8')!==bytes)throw new Error('Return program is stale');
-  if(!readFileSync(wasm).equals(Buffer.from(blob.bytes)))throw new Error('Return binary is stale');
+  if(!readFileSync(wasm).equals(blob.bytes))throw new Error('Return binary is stale');
 } else {writeFileSync(wasm,blob.bytes);writeFileSync(target,bytes);}
 console.info(`driftwood-returns: ${built.lines}/${built.ceiling} authored AS lines`);

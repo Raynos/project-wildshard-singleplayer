@@ -11,6 +11,6 @@ const target = new URL('../behaviour/bridgeSway.generated.json', import.meta.url
 const wasm=new URL('../behaviour/bridgeSway.generated.wasm',import.meta.url);
 if (process.argv.includes('--check')) {
   if (readFileSync(target, 'utf8') !== bytes) throw new Error('Bridge sway view module is stale');
-  if(!readFileSync(wasm).equals(Buffer.from(module)))throw new Error('Bridge sway binary is stale');
+  if(!readFileSync(wasm).equals(module))throw new Error('Bridge sway binary is stale');
 } else {writeFileSync(wasm,module);writeFileSync(target,bytes);}
 console.info(`driftwood-bridge-sway: ${module.length} bytes`);
