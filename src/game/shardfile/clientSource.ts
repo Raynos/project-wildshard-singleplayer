@@ -5,7 +5,7 @@ import { runtimeAccountedBytes } from '@wildshard/format/runtimeCost';
 import { MemoryAdmission } from '@wildshard/format/product';
 import { contentCost } from '@wildshard/format/contentCost';
 import { MEMORY_GATES } from '@wildshard/format/contentBounds';
-import { isOutputIndex } from '@wildshard/format/outputIndex';
+import { isOutputIndex } from '@wildshard/format/outputAddress';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { isDev } from '@wildshard/engine/core/devMode';

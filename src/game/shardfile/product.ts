@@ -7,7 +7,7 @@ import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
 import { builtValidationReceipt, readValidationReceipt, validationRevision, validationSourceBytes, type ValidationReceipt } from "@wildshard/format/validationReceipt";
 import { assertStateCompatibility, parseStateLineage, preflightAssetGraph, prepareAssetDecoders, type MemoryAdmission } from "@wildshard/format/product";
 import { SHARDFILE_VERSION, shardfileRevision } from '@wildshard/format/version';
-import { isOutputIndex } from '@wildshard/format/outputIndex';
+import { isOutputIndex } from '@wildshard/format/outputAddress';
 
 import { acceptValidatedCost, preflightDeclaredCosts, validateShardfileAssets } from '@wildshard/format/assetAdmission';
 import { PRODUCT_CACHE_NAME } from '@wildshard/engine/pwa/cacheNames';

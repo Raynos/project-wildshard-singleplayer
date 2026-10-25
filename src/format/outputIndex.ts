@@ -1,4 +1,5 @@
 /** Versioned, renderer-free disk contract shared by the writer and network reader. */
+import { isOutputIndex, outputBlobPath } from './outputAddress';
 import * as v from 'valibot';
 import { assertCellBounds } from './cellBounds';
 import { ShardfileFieldSchemas, parseShardfile, type Shardfile } from './shardSchema';
@@ -78,8 +79,6 @@ export const OUTPUT_SECTIONS:readonly SectionMapping[]=OUTPUT_SECTION_FIELDS;
 const OUTPUT_DATA_SECTIONS: typeof PLATFORM_DATA_SECTIONS=PLATFORM_DATA_SECTIONS;
 /** Compile-time coverage is checked against the public platform-section registry. */
 export type OutputPlatformSectionName=(typeof OUTPUT_SECTION_FIELDS)[number]['name']|keyof typeof OUTPUT_DATA_SECTIONS;
-/** Detect the explicit disk envelope, including unsupported versions that must refuse. */
-export function isOutputIndex(input: unknown): boolean { return typeof input === 'object' && input !== null && 'format' in input && input.format === 'wildshard.shardfile'; }
 /** Parse the supported major and refuse duplicate, escaping or noncanonical inventory paths. */
 export function parseOutputIndex(input: unknown): OutputIndex {
   if (!isJsonDataWithFileSchemas(input)) throw new Error('Output index must contain plain JSON only');
@@ -116,12 +115,6 @@ function parseOutputIndexRows(input: unknown): OutputIndex {
   }
   for (const entry of index.runtime?.files ?? []) if (!/^runtime\/(?:[a-zA-Z0-9_-][a-zA-Z0-9_.-]*\/)*[a-zA-Z0-9_-][a-zA-Z0-9_.-]*\.ts$/u.test(entry.path)) throw new Error('Runtime output must be TypeScript inside runtime/');
   return index;
-}
-/** Validated relative blob path, independent of a server base URL. */
-export function outputBlobPath(file: Pick<OutputFile, 'kind' | 'hash' | 'path'>): string {
-  const extensions: Record<OutputFile['kind'], readonly string[]> = { glb: ['glb'], ktx2: ['ktx2'], tile: ['wtt'], bin: ['bin'], json: ['json'], wasm: ['wasm'], image: ['webp', 'jpg', 'png'], audio: ['mp3', 'ogg', 'wav', 'm4a'] };
-  if (!extensions[file.kind].some(ext => file.path === `blobs/${file.kind}/${file.hash}.${ext}`)) throw new Error('Blob path differs from its kind and hash');
-  return file.path;
 }
 /** Whether a section is an independently authored plain platform value. */
 export function isPlatformDataSection(name:string):name is keyof typeof OUTPUT_DATA_SECTIONS{return Object.hasOwn(OUTPUT_DATA_SECTIONS,name);}

@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./outputAddress": "./outputAddress.ts",
     "./validationReceipt": "./validationReceipt.ts",
     "./outputDownload": "./outputDownload.ts",
     "./tierSelection": "./tierSelection.ts",

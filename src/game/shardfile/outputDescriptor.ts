@@ -1,4 +1,5 @@
-import { assembleOutputFields, assembleOutputShardfile, outputBlobPath, parseOutputDescriptorIndex, type OutputIndex } from '@wildshard/format/outputIndex';
+import { outputBlobPath } from '@wildshard/format/outputAddress';
+import { assembleOutputFields, assembleOutputShardfile, parseOutputDescriptorIndex, type OutputIndex } from '@wildshard/format/outputIndex';
 import { builtValidationReceipt, validationSourceBytes, validationSourceBytesPaced, type ValidationReceipt } from '@wildshard/format/validationReceipt';
 import { loadingStage, loadingUnits, waitFor } from '@wildshard/engine/boot/waits';
 import { diagnosticNow } from '@wildshard/engine/core/clock';

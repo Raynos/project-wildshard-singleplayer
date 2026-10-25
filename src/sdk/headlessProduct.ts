@@ -7,7 +7,7 @@ import { createHash } from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- The native product exposes local content-addressed blob URLs.
 import { pathToFileURL } from 'node:url';
 import { SHARDFILE_ADMISSION_LIMITS } from '@wildshard/format/admissionLimits';
-import { isOutputIndex } from '@wildshard/format/outputIndex';
+import { isOutputIndex } from '@wildshard/format/outputAddress';
 import { parseShardfile } from '@wildshard/format/shardSchema';
 import { carryOutputDescriptor, resolveOutputDescriptor, outputDescriptor } from '@wildshard/game/shardfile/outputDescriptor';
 import { shardProductData } from '@wildshard/game/shardfile/productData';

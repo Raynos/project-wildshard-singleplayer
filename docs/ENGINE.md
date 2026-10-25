@@ -8633,14 +8633,13 @@ retry. `loadManifestProduct` runs at the standalone/plugin boundary;
 descriptor again. `loadFirstPartyProduct` uses the configured first-party
 base for early readers and requires the same live owner.
 
-A build-owned validation receipt pins canonical index and assembled
-host-model digests. That exact root skips section, full-model and custom
-schemas; every section/schema byte still passes its size and hash.
-Unproved inputs retain checked admission with custom validators loaded
-on request. Explicit schema arguments still parse checked/proof products
-on read. No network sidecar or authored receipt grants this trust.
-The defining receipt API is `format/validationReceipt`; paced encoding
-receives the caller's wall clock and cancellation pause.
+Build-owned receipts pin canonical index and host-model hashes. Only
+that exact root skips section/model/custom schemas; wire sizes and
+hashes remain checked. Unproved inputs load validators on request.
+Explicit read schemas still parse; sidecars/authored receipts grant no
+trust. `format/validationReceipt` owns receipt bytes and accepts the
+caller's clock/pause. `format/outputAddress` owns envelope detection and
+canonical blob paths without schemas.
 
 `configuredShardfile(document, options)` awaits the same section reader
 for the SDK client's embedded index. Installed data-client manifests

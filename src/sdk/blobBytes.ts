@@ -1,7 +1,7 @@
 import { assetCost, prepareAssetDecoders } from '@wildshard/format/product';
 import { parseImageAsset } from '@wildshard/format/stillImage';
 import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
-import { outputBlobPath } from '@wildshard/format/outputIndex';
+import { outputBlobPath } from '@wildshard/format/outputAddress';
 import { hashImmutableBytes, encodeCanonicalJson } from './immutable';
 import type { BlobOptions, NamedBlob, NamedBlobKind } from './blobs';
 
