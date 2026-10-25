@@ -8,7 +8,7 @@ import { hashImmutableBytes } from '../src/sdk/immutable';
 import { admitNativeSignAtlas, nineNativeSignAtlas } from '../src/shards/nine-dragon-stack/generators/nativeSignAtlas';
 import before from './fixtures/nine-native-atlas-files.json' with { type: 'json' };
 
-const files = new Map(before.map(row => [row.name, new Uint8Array(readFileSync(`src/shards/nine-dragon-stack/${row.input}`))]));
+const files = new Map<string, Uint8Array>(before.map(row => [row.name, new Uint8Array(readFileSync(`src/shards/nine-dragon-stack/${row.input}`))]));
 
 test('all seven native files retain their original hashes on cold and detached hits', async () => {
   mkdirSync('tmp', { recursive: true }); const cache = mkdtempSync(resolve('tmp', 'nine-native-atlas-'));
