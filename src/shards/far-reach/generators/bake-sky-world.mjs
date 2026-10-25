@@ -13,7 +13,7 @@ import * as v from 'valibot';
 import { hashImmutableBytes, encodeCanonicalJson as canonicalJson } from '@wildshard/sdk/immutable';
 import { parseKtx2 } from '@wildshard/sdk/assets';
 import { readImagePixels, writeImagePixels } from '@wildshard/sdk/bake/image';
-import { completeL0Tiles } from '@wildshard/sdk/bake/tileGrid';
+import { completeL0Tiles, completeEmptyL1Tiles } from '@wildshard/sdk/bake/tileGrid';
 
 const invokedFile = process.argv.at(1);
 if (invokedFile !== undefined && resolve(invokedFile) === import.meta.filename) {
@@ -67,7 +67,7 @@ const keep = new Set(['fan.glb', 'prepared-models.glb']);
   if (!check) mkdirSync(resolve(project, 'assets'), { recursive: true });
   for (const [hash, bytes] of baked.assets) emit(resolve(project, 'assets', hash), bytes);
   // in the product's order (files by hash, tiles by level, x, z), so the declaration is the emitted shard.json
-  const files = [...baked.files].sort((a, b) => a.hash.localeCompare(b.hash)), tiles = completeL0Tiles([...baked.tiles].sort((a, b) => a.lod - b.lod || a.x - b.x || a.z - b.z));
+  const files = [...baked.files].sort((a, b) => a.hash.localeCompare(b.hash)), tiles = completeEmptyL1Tiles(completeL0Tiles([...baked.tiles].sort((a, b) => a.lod - b.lod || a.x - b.x || a.z - b.z)));
   emit(resolve(project, 'data/props.json'), canonicalJson({ props: baked.props, tiles, files, report: baked.report }));
   console.info(`far-reach isle props: ${String(baked.props.tiles.length)} tiles, ${String(baked.report.reduce((n, r) => n + r.draws, 0))} draws`);
 }

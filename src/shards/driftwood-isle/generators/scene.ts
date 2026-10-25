@@ -1,5 +1,6 @@
 import { InstancedMesh, Mesh, MeshStandardMaterial, Scene, type BufferGeometry } from 'three';
 import { bake, BakedPiece, WholeShape, type BakedScene } from '@wildshard/sdk/bake';
+import { completeEmptyL1Tiles } from '@wildshard/sdk/bake/tileGrid';
 import { driftwoodFixedSource } from './fixedSource';
 import { bridgeUnitGeometries } from './ropeBridge';
 import { originalBridgeDecks } from './driftwoodBridge.mjs';
@@ -28,6 +29,7 @@ export function driftwoodScene(project: string, head: BufferGeometry): { baked: 
     }
   }
   const baked = bake(scene, { slug: 'driftwood-isle', name: 'Driftwood Isle' }, { project });
+  baked.shardfile.tiles = completeEmptyL1Tiles(baked.shardfile.tiles);
   material.dispose();
   return { baked, fixed };
 }

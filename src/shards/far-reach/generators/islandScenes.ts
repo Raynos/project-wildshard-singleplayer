@@ -35,5 +35,10 @@ try {
 export const SKY_ISLAND_LIBRARY = { id: 'islands', kind: 'owned', models } as const;
 /** The static islands as whole parts of the baked tiles (`library: 'isle-tiles'`), each in its own frame. A partitioned
  * island may span tiles: the reader reads each file once and reassembles every island from its parts. */
-export const SKY_ISLE_TILES = { id: 'isle-tiles', kind: 'whole', models: tiled.map(isle => ({ id: isle.id, part: `isle_${isle.id.replace('.', '-')}`,
-  files: isleProps.props.tiles.map(tile => tile.file), matrix: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0 - isle.x, 0 - isle.y, 0 - isle.z, 1] })) } as const;
+export function skyIsleTileLibrary(tiles: readonly { lod: number; file: string }[]): {
+  readonly id: 'isle-tiles'; readonly kind: 'whole'; readonly models: { id: string; part: string; files: string[]; matrix: number[] }[];
+} {
+  return { id: 'isle-tiles', kind: 'whole', models: tiled.map(isle => ({ id: isle.id, part: `isle_${isle.id.replace('.', '-')}`,
+    files: tiles.filter(tile => tile.lod === 0).map(tile => tile.file), matrix: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0 - isle.x, 0 - isle.y, 0 - isle.z, 1] })) } as const;
+}
+export const SKY_ISLE_TILES = skyIsleTileLibrary(isleProps.props.tiles);

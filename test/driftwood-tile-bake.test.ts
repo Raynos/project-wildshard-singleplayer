@@ -20,6 +20,9 @@ test('the compact Driftwood tile bake reconstructs every original world draw bit
   const { fixed, baked } = driftwoodScene(project, head);
   const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js');
   try {
+    const parents = baked.shardfile.tiles.filter(tile => tile.lod === 1);
+    expect(parents).toHaveLength(7);
+    expect(parents.every(tile => tile.files.length === 0 && tile.compressed + tile.decoded + tile.gpu + tile.triangles + tile.draws === 0)).toBe(true);
     const tiles = baked.shardfile.tiles.filter(tile => tile.lod === 0);
     expect(tiles.length).toBeGreaterThan(0);
     for (const tile of tiles) for (const hash of tile.files) {

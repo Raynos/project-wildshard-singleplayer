@@ -1860,15 +1860,15 @@ export function assembleWholeGeometryViews(nodes: readonly Mesh[]): Map<string, 
  * Read verified tile/library GLBs and assemble original draws; temporary decodes are freed after each bounded file.
  * Completeness checks and exact bounds scan in bounded steps on the shared frame budget.
  * `pause` (optional) runs after each assembled mesh and finalization step; otherwise the engine's work slice yields.
- * A slug reads its already admitted/declared product's tiles and whole library by default; unknown slugs refuse.
- * Source-object callers keep their existing tile-only default.
+ * A slug reads its admitted/declared product's L0 tiles and whole library by default; unknown slugs refuse.
+ * Source-object callers default to L0 tiles only. Explicit refs are unchanged; L1 proxies cannot rebuild exact originals.
  */
 export async function readWholeGeometry(scope: ResourceScope, source: Shardfile | string, refs?: readonly string[], pause?: () => Promise<void>): Promise<Map<string, WholeGeometryView>> {
   const { runtimeProduct, slugRuntimeProduct } = await import('../shardfile/runtimeProduct');
   const product = typeof source === 'string' ? slugRuntimeProduct(source) : runtimeProduct(source);
   if (product === null) throw new Error('Whole geometry needs an admitted or declared product');
   const props = typeof source === 'string' ? product.source.props : source.props;
-  const hashes = refs ?? [...props?.tiles.flatMap(row => [row.file, ...row.additionalFiles ?? []]) ?? [],
+  const hashes = refs ?? [...props?.tiles.filter(row => row.lod === 0).flatMap(row => [row.file].concat(row.additionalFiles ?? [])) ?? [],
     ...typeof source === 'string' ? props?.wholeLibrary ?? [] : []];
   const assembler = new WholeGeometryAssembler();
   const slice = workSlice(undefined, scope);

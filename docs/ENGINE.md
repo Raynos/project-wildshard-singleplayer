@@ -4200,6 +4200,13 @@ Full-world `bake` and authored-GLB builds declare all 64 L0 squares. Vacant
 squares have no files and zero costs; render/terrain payload rows stay sparse.
 `@wildshard/sdk/bake/tileGrid` exposes `completeL0Tiles` for full-world
 metadata emitters; it validates existing addresses/bounds before filling gaps.
+`completeEmptyL1Tiles` requires all 64 explicit validated L0 rows and adds
+only parents whose four children have no files, costs or geometric error. It
+preserves existing L1 rows, refuses partial/unknown child inventories, and
+never invents a coarse proxy for occupied children. Driftwood and Sky call it
+after full-world L0 completion; their sparse render/library lists stay intact.
+Exact whole-geometry defaults read only L0 tiles (plus the slug's whole library);
+explicit references keep their original validation and order.
 Library-only packers retain their sparse inventories. The runtime treats explicit
 zero-cost, no-file squares as empty readiness without allocating or fetching.
 
@@ -5288,9 +5295,10 @@ admission Map and retain no decoded transports.
 
 `readWholeGeometry(scope, slug, refs?, pause?)` consumes that slug's
 already admitted or declared runtime reader and refuses unknown slugs.
-Its default reads the declared props tiles plus whole library. Passing
-a source object retains the original tile-only default. Explicit refs
-and per-mesh pauses work in both forms; neither form changes draws,
+Its default reads the declared L0 props tiles plus whole library. A
+source object defaults to L0 tiles only; coarse L1 proxies are excluded
+from exact reconstruction. Explicit refs and per-mesh pauses keep their
+original order and validation in both forms; neither form changes draws,
 source ordinals, attribute storage or decoder-release ownership.
 
 The defining `bakedSamplers` retains four components for a proven-uniform

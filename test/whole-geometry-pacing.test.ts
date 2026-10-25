@@ -15,7 +15,7 @@ const owners: Scope[] = [], geometries: BufferGeometry[] = [], materials: MeshBa
 const nativeFetch = globalThis.fetch, nativeDecoder = globalThis.DecompressionStream;
 afterEach(() => { vi.restoreAllMocks(); vi.stubGlobal('fetch', nativeFetch); vi.stubGlobal('DecompressionStream', nativeDecoder); for (const owner of owners.splice(0)) owner.dispose(); for (const geometry of geometries.splice(0)) geometry.dispose(); for (const material of materials.splice(0)) material.dispose(); });
 
-function source(owner: Scope): { geometry: BufferGeometry; ref: string; matrix: Matrix4 } {
+function source(owner: Scope, levels = false): { geometry: BufferGeometry; ref: string; matrix: Matrix4; product: ReturnType<typeof emptyShardfile>; coarse: string } {
   owners.push(owner);
   const geometry = new BufferGeometry(), count = 65538, positions = new Float32Array(count * 3);
   for (let i = 0; i < positions.length; i++) positions[i] = Math.sin(i) * (i % 97 - 48);
@@ -25,12 +25,30 @@ function source(owner: Scope): { geometry: BufferGeometry; ref: string; matrix: 
     extras: { wholePartition: { id: 'draw', vertices: { runs: [0, count] }, triangles: { runs: [0, count / 3] }, vertexCount: count, indexCount: 0, index: 'none' } } }]);
   const ref = hashImmutableBytes(bytes), product = emptyShardfile({ slug: 'whole-pace', name: 'Whole pace', author: 'Test', revision: 1, seed: 1 });
   product.files.push({ hash: ref, kind: 'glb', compressed: bytes.length, decoded: bytes.length, gpu: positions.byteLength, triangles: count / 3, draws: 1, dependencies: [], critical: false });
-  provideRuntimeProduct({ source: product, assets: new Map([[ref, bytes]]), cached: false }, owner, {
+  const invalid = new Uint8Array([1, 2, 3]), coarse = hashImmutableBytes(invalid), assets = new Map([[ref, bytes]]);
+  if (levels) {
+    product.files.push({ hash: coarse, kind: 'glb', compressed: invalid.length, decoded: invalid.length, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: false });
+    assets.set(coarse, invalid);
+    product.props = { version: 1, family: 'pbr', tiles: [{ lod: 0, x: 0, z: 0, file: ref }, { lod: 1, x: 0, z: 0, file: coarse }],
+      panels: [], models: [], far: null, colliders: [], textures: [] };
+  }
+  provideRuntimeProduct({ source: product, assets, cached: false }, owner, {
     base: 'https://test.example/shardfiles/whole-pace/', offline: false, firstParty: true,
     fetch: () => Promise.reject(new Error('All test bytes must be admitted')), hash: wire => Promise.resolve(hashImmutableBytes(wire)),
   });
-  return { geometry, ref, matrix };
+  return { geometry, ref, matrix, product, coarse };
 }
+
+test.each([false, true])('whole defaults read L0 only; explicit references retain strict decoding (object source=%s)', async object => {
+  const owner = new Scope('whole-pace'), fixture = source(owner, true);
+  const input = object ? fixture.product : 'whole-pace';
+  const result = await readWholeGeometry(owner, input);
+  expect(result.get('draw')?.geometry.getAttribute('position').array).toEqual(fixture.geometry.getAttribute('position').array);
+  expect(result.size).toBe(1);
+  // The same declared L1 reference still reaches the unchanged GLB refusal
+  // when a caller explicitly asks for it; it is never silently discarded.
+  await expect(readWholeGeometry(owner, input, [fixture.coarse])).rejects.toThrow();
+});
 
 test('yields through final validation and bounds without changing source bytes or exact sphere', async () => {
   const owner = new Scope('whole-pace'), fixture = source(owner), original = fixture.geometry, oracle = original.clone(), pause = vi.fn(() => Promise.resolve());

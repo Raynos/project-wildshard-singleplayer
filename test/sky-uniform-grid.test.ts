@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { expect, test } from 'vitest';
-import { completeL0Tiles } from '@wildshard/sdk/bake/tileGrid';
+import { completeL0Tiles, completeEmptyL1Tiles } from '@wildshard/sdk/bake/tileGrid';
 import { FilesSchema, TilesSchema } from '@wildshard/format/shardSections';
 import { PropsSchema } from '@wildshard/format/props';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare the retained producer's actual metadata without importing a generated module.
@@ -13,10 +13,11 @@ test('Sky ships every L0 square without changing any island payload or geometry-
     JSON.parse(readFileSync('src/shards/far-reach/data/props.json', 'utf8')));
   const baked = skyIsleProps(), tiles = v.parse(TilesSchema, shipping.tiles);
   const occupied = baked.tiles.slice().sort((a, b) => a.lod - b.lod || a.x - b.x || a.z - b.z);
-  expect(tiles).toEqual(completeL0Tiles(occupied));
+  expect(tiles).toEqual(completeEmptyL1Tiles(completeL0Tiles(occupied)));
   expect(tiles.filter(row => row.lod === 0)).toHaveLength(64);
   expect(tiles.filter(row => row.files.length > 0)).toEqual(occupied);
-  expect(tiles.filter(row => row.files.length === 0)).toHaveLength(42);
+  expect(tiles.filter(row => row.lod === 0 && row.files.length === 0)).toHaveLength(42);
+  expect(tiles.filter(row => row.lod === 1)).toHaveLength(5);
   expect(shipping.props).toEqual(baked.props);
   expect(shipping.files).toEqual(baked.files.slice().sort((a, b) => a.hash.localeCompare(b.hash)));
   for (const tile of tiles.filter(row => row.files.length === 0)) {
@@ -24,6 +25,6 @@ test('Sky ships every L0 square without changing any island payload or geometry-
   }
   const census = tileBakeCensus(tiles, shipping.files);
   expect(Object.keys(census.debt).filter(key => key.startsWith('missing/0/'))).toEqual([]);
-  expect(census.l1).toBe(0);
-  expect(Object.keys(census.debt).filter(key => key.startsWith('missing/1/'))).toHaveLength(16);
+  expect(census.l1).toBe(5);
+  expect(Object.keys(census.debt).filter(key => key.startsWith('missing/1/'))).toHaveLength(11);
 });
