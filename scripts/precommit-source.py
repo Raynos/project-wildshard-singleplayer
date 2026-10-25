@@ -154,7 +154,7 @@ def required_sources(blobs, specification, tree=None, executable=None, staged_pa
             selected.add(name)
         if name.startswith('lint/') or name == 'src/tsconfig.test.json' or re.fullmatch(r'src/[^/]+/(?:package|tsconfig(?:\.test)?)\.json', name):
             selected.add(name)
-    roots = ['scripts/precommit-checks.mjs', 'scripts/precommit-source.py', 'scripts/push_input_cache.py', *specification.get('files', []), *specification.get('guards', [])]
+    roots = ['scripts/precommit-checks.mjs', 'scripts/precommit-source.py', 'scripts/push_input_cache.py', 'scripts/git-source-view.mjs', *specification.get('files', []), *specification.get('guards', [])]
     if specification.get('guards'):
         roots.append('scripts/vitest-push-guards.config.ts')
     if specification.get('deleted'):
@@ -419,6 +419,31 @@ def staged_source(repo, tree, deadline, revision=None, specification=None):
                 for path in (tree / folder).rglob('*'):
                     if path.is_file() and str(path.relative_to(tree)) not in selected:
                         path.unlink()
+        # Guard ownership is current policy, not historical test input. Derive
+        # it through the same static Git reader as the push gate, using exactly
+        # the records captured above (never a later shared-index observation).
+        helper = tree / 'scripts/git-source-view.mjs'
+        if 'scripts/gen-shard-words.mjs' in contents and helper.exists():
+            program = """import {readFileSync} from 'node:fs';
+import {pathToFileURL} from 'node:url';
+const {gitSourceView,installGitSourceView,deriveGitVocabulary}=await import(pathToFileURL(process.argv[1]).href);
+const view=gitSourceView(process.argv[2],'HEAD');
+view.files.clear();view.directories.clear();view.directories.add('');
+for(const record of readFileSync(0,'utf8').split(String.fromCharCode(0))) {
+ if(record==='')continue;
+ const at=record.indexOf(String.fromCharCode(9)),[mode,,oid]=record.slice(0,at).split(' '),name=record.slice(at+1);
+ if(mode!=='100644'&&mode!=='100755')continue;
+ view.files.set(name,oid);
+ const parts=name.split('/');parts.pop();
+ while(parts.length>0){view.directories.add(parts.join('/'));parts.pop();}
+}
+installGitSourceView(view);await deriveGitVocabulary(view);
+process.stdout.write(view.read('lint/shard-words.generated.json'));
+"""
+            vocabulary = subprocess.check_output(['node', '--input-type=module', '-e', program, str(helper), str(repo)],
+                input=b'\0'.join(records) + b'\0', timeout=max(.01, deadline - time.time()))
+            target = tree / 'lint/shard-words.generated.json'
+            target.parent.mkdir(parents=True, exist_ok=True); target.write_bytes(vocabulary)
         # Imported asset URLs are part of these source guards. Read exact Git
         # objects in one batch; never take the shared working build-copy assets.
         blobs = {os.fsdecode(row.split(b'\t', 1)[1]): row.split(b'\t', 1)[0].split()[2] for row in records}
