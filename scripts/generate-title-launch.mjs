@@ -8,12 +8,12 @@ import { browserPool } from './parity/pool.mjs';
 
 const root = resolve(import.meta.dirname, '..');
 const source = readFileSync(resolve(root, 'index.html'), 'utf8');
-const style = source.match(/<style>([\s\S]*?)<\/style>/)?.[1];
-const shell = source.match(/<div class="ws-launch" data-title-shell>[\s\S]*?<\/svg>\s*<\/div>\s*<\/div>/)?.[0];
+const style = /<style>([\s\S]*?)<\/style>/u.exec(source)?.[1];
+const shell = /<div class="ws-launch" data-title-shell>[\s\S]*?<\/svg>\s*<\/div>\s*<\/div>/u.exec(source)?.[0];
 if (style === undefined || shell === undefined) throw new Error('Missing first-document title shell');
 // Standalone content starts below the 62 px phone status area (index.html E58).
 const nativeInset = 62;
-const previous = source.match(/rel="apple-touch-startup-image" href="([^"]+)"/)?.[1];
+const previous = /rel="apple-touch-startup-image" href="([^"]+)"/u.exec(source)?.[1];
 if (previous === undefined) throw new Error('Missing native launch image link');
 const pool = browserPool(root, 1, 'metal');
 try {
