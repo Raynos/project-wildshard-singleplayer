@@ -7,7 +7,7 @@ import { expect, test } from 'vitest';
 test('exact per-leg archives preserve bytes and refuse corrupt, missing, mixed or unsafe transfers without retry', () => {
   const result = spawnSync('python3', ['test/test_boot_dist.py'], { encoding: 'utf8', timeout: 10_000 });
   expect(result.status, result.stderr + result.stdout).toBe(0);
-  expect(result.stderr).toContain('Ran 9 tests');
+  expect(result.stderr).toContain('Ran 10 tests');
 });
 
 test('smoke downloads each exact source-run leg directly without a full-dist relay or retry', () => {

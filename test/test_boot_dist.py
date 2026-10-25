@@ -22,12 +22,17 @@ class Transfer(unittest.TestCase):
             'index.html': b'<script src="/assets/shell.js"></script>',
             'version.json': b'{"build":"aaaaaaa-fixture"}',
             'assets/shell.js': b'const pack="/assets/packs/first.phone-current.bin";',
+            'assets/boot-tables-a1b2c3.json': json.dumps({'packs': {'first': {'phone': {'parts': [
+                {'url': '/assets/packs/first.phone-json.bin', 'bytes': 15,
+                 'files': [['/assets/first/phone.webp', 0, 15, 'image/webp']]}
+            ]}}}}).encode(),
             'assets/shell.js.map': b'unchanged source map',
             'assets/first/card.png': b'shared title image',
             'assets/first/scene.glb': bytes(range(256)),
             'assets/second/scene.glb': b'second geometry',
             'assets/shared/texture.png': b'shared texture',
             'assets/packs/first.phone-current.bin': b'current exact pack',
+            'assets/packs/first.phone-json.bin': b'JSON exact pack',
             'assets/packs/first.phone-obsolete.bin': b'unreferenced historical pack',
             'shardfiles/first/shard.json': b'first exact descriptor',
             'shardfiles/second/shard.json': b'second exact descriptor',
@@ -61,6 +66,15 @@ class Transfer(unittest.TestCase):
         self.assertEqual((target / 'assets/first/card.png').read_bytes(), self.values['assets/first/card.png'])
         self.assertFalse((target / 'assets/first/scene.glb').exists())
         self.assertTrue((target / 'shardfiles/second/shard.json').exists())
+
+    def test_json_only_boot_table_pack_survives_with_exact_rows_and_bytes(self):
+        target = self.restore()
+        table = json.loads((target / 'assets/boot-tables-a1b2c3.json').read_text())
+        part = table['packs']['first']['phone']['parts'][0]
+        self.assertNotIn(part['url'].encode(), self.values['assets/shell.js'])
+        self.assertEqual(part['files'], [['/assets/first/phone.webp', 0, 15, 'image/webp']])
+        self.assertEqual((target / part['url'].lstrip('/')).read_bytes(), b'JSON exact pack')
+        self.assertFalse((target / 'assets/packs/first.phone-obsolete.bin').exists())
 
     def test_grid_and_explorer_keep_all_worlds(self):
         for part in ('boot-grid', 'hover-chromium', 'hover-webkit', 'explorer'):

@@ -57,10 +57,12 @@ def pack(dist, output, plan, sha, run):
     slugs = set().union(*[set(plan[p]) for p in PARTS])
     files = []
     # Historical content-addressed packs accumulate in public/. Only literal pack
-    # URLs in this exact emitted module bank can be requested by its generated table.
+    # URLs in this exact emitted JS/JSON bank can be requested by its generated
+    # tables. Boot tables are external JSON, so JS-only scanning loses live packs.
     packs = set()
-    for module in (dist / 'assets').glob('*.js'):
-        packs.update(re.findall(r'/assets/packs/([a-zA-Z0-9_.-]+\.bin)', module.read_text()))
+    for suffix in ('*.js', '*.json'):
+        for module in (dist / 'assets').glob(suffix):
+            packs.update(re.findall(r'/assets/packs/([a-zA-Z0-9_.-]+\.bin)', module.read_text()))
     for path in sorted(dist.rglob('*')):
         if path.is_symlink():
             raise ValueError('Dist symlink refused')

@@ -71,7 +71,7 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   push run, without relaying a full dist through another job. Four grid/Explorer legs share the same complete-world
   bundle because prediction and catalogue coverage can visit every declared primary. Standalone bundles omit only
   unselected shard-owned paths; shared assets, title images, compiled modules and source maps remain available.
-  Historical content-addressed packs absent from every emitted module's generated URL table are not transferred.
+  Historical content-addressed packs absent from every emitted JS or JSON URL table are not transferred.
   Every served file retains its original bytes and SHA-256. Archive SHA-256, file inventory, SHA/run/leg binding,
   version, path and regular-file checks refuse corrupt or mixed transfers before extraction, without retry.
   Each receipt records transferred bytes and transfer-plus-verification seconds under the unchanged 20-minute cap.
@@ -92,6 +92,11 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   the later Nine image-decode failures in public, Developer and Explorer keep this smoke red. These measurements
   establish the transport result, not release acceptance. The previous full-dist relay exhausted 1,191.6 seconds
   downloading a 1,373,810,670-byte artifact in smoke `40217512944` before the unchanged outer deadline stopped it.
+  The Nine failure was a transport dependency omission: JS-only pack pruning missed external JSON boot tables,
+  leaving zero packs in that artifact. On exact `5b7f2466dd`, replacing only those pack responses with SPA HTML
+  reproduced the native image-decode failure (9 seconds versus an 18-second complete-pack boot). The corrected
+  JS-and-JSON scan restores all eight table-named Nine packs byte-for-byte; 60 contained file hashes match the
+  failed CI's original individual-file inventory. Archive integrity alone does not prove dependency completeness.
   Smoke verifies that provenance and the version stamp before serving the same selected bytes to each browser leg;
   it never regenerates products. Missing or expired artifacts refuse the proof: push a head containing the artifact
   publisher and prove that head; an older run without the artifact cannot supply this proof.
