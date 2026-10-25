@@ -31,7 +31,7 @@ test('frozen selection prepares exactly its inventoried pair with unchanged cont
 
 test('a suffix, missing primary or misleading native identity refuses before fetching any world', async () => {
   const f = fixture();
-  await expect(selectedManifests({ ...f.copy, slug: 'unregistered-legacy' }, f.loaders, f.identities, f.before)).rejects.toThrow('not inventoried');
+  await expect(selectedManifests(f.copy, f.loaders, {}, f.before)).rejects.toThrow('not inventoried');
   await expect(selectedManifests(f.primary, f.loaders, { [f.primary.slug]: f.other.slug }, f.before)).rejects.toThrow('not inventoried');
   await expect(selectedManifests(f.copy, f.loaders, { [f.copy.slug]: f.copy.slug }, f.before)).rejects.toThrow('not inventoried');
   await expect(selectedManifests(f.copy, { [f.copy.slug]: f.loaders[f.copy.slug] }, f.identities, f.before)).rejects.toThrow('Missing selected discovery loader');
