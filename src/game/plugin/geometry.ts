@@ -172,6 +172,21 @@ function dressHd(m: MeshStandardMaterial, look: HdLookRow | undefined, inputs: S
 export interface PaintedModelRow { readonly name: string; readonly url: string; readonly geometry: string; readonly pivots?: readonly (string | null)[]; readonly releaseImage?: boolean }
 /** Geometry stays in the authored frame; the map is shared, and reads clone every geometry. */
 export interface PaintedModel { readonly geometry: BufferGeometry; readonly map: Texture; readonly pivots?: { readonly body: BufferGeometry; readonly head: BufferGeometry; readonly arm: BufferGeometry; readonly fore: BufferGeometry } }
+
+const nativeFloat32Some: unknown = Reflect.get(Float32Array.prototype, 'some');
+function hasNonfiniteFloat32(values: Float32Array): boolean {
+  const some: unknown = Reflect.get(values, 'some');
+  // Native validation still refuses detached/out-of-bounds empty views. Custom
+  // methods and length/prototype overrides retain their original scan, too.
+  if (some !== nativeFloat32Some || Object.getPrototypeOf(values) !== Float32Array.prototype || Object.hasOwn(values, 'length') || values.length === 0) {
+    if (typeof some !== 'function') throw new TypeError('Rest channel scan is not callable');
+    return Boolean(Reflect.apply(some, values, [(value: number) => !Number.isFinite(value)]));
+  }
+  const count = values.length;
+  for (let index = 0; index < count; index++) if (!Number.isFinite(values[index])) return true;
+  return false;
+}
+
 /** Load named resources once; each owner takes independent geometry over shared painted textures. */
 export function createModelLibrary<M extends string, H extends string>(rows: ModelLibraryRows<M, H>, fault: string, surfaceInputs: SurfaceInputs = {}, readModel: (url: string) => Promise<{ readonly scene: Object3D }> = loadRigFile): ModelLibrary<M, H> {
   let lookPorts: Parameters<ModelLibrary<M, H>['bindLooks']>[1] | null = null;
@@ -271,7 +286,7 @@ export function createModelLibrary<M extends string, H extends string>(rows: Mod
         for (const [channel, attribute] of Object.entries(geometry.attributes)) {
           const width = ['uv','uv1'].includes(channel) ? 2 : channel === 'tangent' ? 4 : ['position', 'normal', 'color'].includes(channel) ? 3 : channels.find(row => row.source === channel)?.width;
           if (width === undefined || !(attribute instanceof BufferAttribute) || !(attribute.array instanceof Float32Array)
-            || attribute.normalized || attribute.itemSize !== width || attribute.count !== position.count || attribute.array.some(value => !Number.isFinite(value))) throw new Error('Rest pool has incompatible Float32 channels');
+            || attribute.normalized || attribute.itemSize !== width || attribute.count !== position.count || hasNonfiniteFloat32(attribute.array)) throw new Error('Rest pool has incompatible Float32 channels');
         }
         for (const row of channels) {
           const attribute: unknown = geometry.attributes[row.source];

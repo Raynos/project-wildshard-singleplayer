@@ -33,6 +33,7 @@ Each slice is bounded to one hour; report misses and their observed owners first
 | G723.8 | Refuse inferred neighbour headings from committed spawn placement or large pose jumps; reset the motion sample and preserve preparation after subsequent real movement. At most one hour. | done (bounded source cut; 2026-10-25, sp-x8) |
 | G723.9 | Restore aligned byte lanes with one exact native word store; preserve byte order, partial ranges, distinct backing and existing decode yields. At most one hour. | done (bounded decoder cut; 2026-10-25, sp-x8) |
 | G723.10 | Reuse exact packed scans for missing GPU-only geometry bounds; preserve existing identities, custom readers/methods, diagnostic order and upload ownership. At most one hour. | done (bounded construction cut; 2026-10-25, sp-x8) |
+| G723.11 | Scan ordinary rest-pool Float32 channels with an indexed loop; preserve every finite-value refusal, custom method/receiver, prototype and shadowed-length fallback, and publish no part of an invalid pool. At most one hour. | done (bounded intake cut; 2026-10-25, sp-x8) |
 
 ## G717 frame-floor misses (2026-10-25, sp-x1; G639)
 
