@@ -83,6 +83,12 @@ Jake's grill, 2026-10-24 (page: [Shardfile Next Decisions](https://claude.ai/art
 - **SN-D19 Two devices merge per zone, by kind:** quests keep the furthest step and completed stays completed; coins,
   bag and travelling items take the newest write. Progress never goes back and coins never duplicate.
 - **SN-D20 Phase I comes right after B; phase J lands next to D.** Full order: A, B, I, C, E, F, D + J, G, H.
+- **SN-D21 One account can link several sign-in methods.** The first sign-in creates it; Settings adds the others;
+  every method opens the same character. No auto-linking by email.
+- **SN-D22 Magic-link emails go through Resend.**
+- **SN-D23 Players delete their account from Settings:** it removes the R2 record and the linked sign-ins, and the
+  device keeps playing locally (Apple requires in-app deletion for the native apps).
+- **SN-D24 Telemetry is never linked to an account.** It stays anonymous per install, even when signed in.
 
 ## Rows
 
@@ -225,6 +231,8 @@ The record from phase B stays on the device unless the player chooses to sign in
   (SN-D18). — open
 - **I3** The merge rule (SN-D19): per zone section, quests keep the furthest step, coins, bag and travelling items take
   the newest write. — open
+- **I5** Account linking and deletion in Settings (SN-D21, SN-D23); magic links sent through Resend (SN-D22).
+  Telemetry never carries the account (SN-D24). — open
 - **I4** A test: play on device A, sign in on device B, and expect the same quests, travelling items and profile. — open
 
 **Done when** a signed-in player continues on a second device, and a player who never signs in sees no change.
