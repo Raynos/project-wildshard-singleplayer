@@ -1,6 +1,6 @@
 # Night Market remaster: the dome method (E503)
 
-**State:** `draft` 2026-10-24, for Jake to read; not sent to the builder, no lane rows queued. Read at HEAD a8a15bb462.
+**State:** `active` 2026-10-24 — Jake ruled D1–D4 (G726): the **4 hero cameras** only (8 domes; the inside corner stays consistent), Blender + TRELLIS.2/Hunyuan3D-2, budget **+300 MB**, Codex RM1–RM3 now, Opus from Tue 13:00. Read at HEAD a8a15bb462.
 Graphical work is Opus, and Opus lanes are 0 until **Tue 10-27 13:00** (G605); Codex can prepare data and tooling before
 then (D4). Builds on the [Night Market pilot](night-market-pilot-mini-plan.md) (NM0–NM14, G632/G633/G641/G681/G684/G700)
 and feeds the [remaster of the 18 other plots](remaster-open-plots-mini-plan.md) (RP2, G712/G714).
