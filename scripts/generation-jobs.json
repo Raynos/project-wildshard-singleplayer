@@ -7195,6 +7195,7 @@
         "src/shards/far-reach/generators/creatureClips.ts",
         "src/shards/far-reach/generators/creatureLooks.ts",
         "src/shards/far-reach/generators/fileInventory.ts",
+        "src/shards/far-reach/generators/layout.ts",
         "src/shards/far-reach/generators/modelFrames.ts",
         "src/shards/far-reach/generators/restFiles.ts",
         "src/shards/far-reach/generators/rigLibrary.ts",
