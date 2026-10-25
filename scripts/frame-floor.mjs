@@ -344,13 +344,22 @@ function evaluator(raw, observe = () => undefined) {
     const key = `__frameFloorEval${++evalSequence}`;
     const origin = JSON.parse(await raw(`globalThis[${JSON.stringify(key)}] = {done:false}; Promise.resolve().then(() => (${expression})).then(value => {globalThis[${JSON.stringify(key)}] = {done:true,value};}, error => {globalThis[${JSON.stringify(key)}] = {done:true,error:String(error)};}); JSON.stringify((${gridFloorDocumentIdentity.toString()})())`));
     const start = Date.now();
+    let progressCursor = null;
     try {
       while (Date.now() - start < timeout) {
-        const value = await raw(`JSON.stringify({identity:(${gridFloorDocumentIdentity.toString()})(),state:globalThis[${JSON.stringify(key)}] ?? null,progress:window.__frameFloorGridProgress?.() ?? null})`);
+        // The ledger already samples once a second, but serializing its unchanged
+        // claims on every 100 ms result poll creates avoidable diagnostic garbage.
+        const value = await raw(`(() => { const progress=window.__frameFloorGridProgress?.() ?? null, previous=${JSON.stringify(progressCursor)};
+          const unchanged=progress !== null && previous !== null && progress.sampledAt === previous.sampledAt
+            && (progress.stop?.leg ?? null) === previous.leg && (progress.stop?.phase ?? null) === previous.phase;
+          return JSON.stringify({identity:(${gridFloorDocumentIdentity.toString()})(),state:globalThis[${JSON.stringify(key)}] ?? null,progress:unchanged ? null : progress}); })()`);
         const envelope = typeof value === 'string' ? JSON.parse(value) : null;
         if (envelope?.identity?.token !== origin.token) throw Object.assign(new Error('Frame floor document changed during evaluation (navigation or graphics recovery); measurement cannot continue'), { documentOrigin: envelope?.identity?.timeOrigin });
         evaluationOriginDriftMaxMs = Math.max(evaluationOriginDriftMaxMs, Math.abs(envelope.identity.timeOrigin - origin.timeOrigin));
-        if (envelope.progress) observe(envelope.progress);
+        if (envelope.progress) {
+          observe(envelope.progress);
+          progressCursor = {sampledAt: envelope.progress.sampledAt, leg: envelope.progress.stop?.leg ?? null, phase: envelope.progress.stop?.phase ?? null};
+        }
         const state = envelope.state;
         if (state?.done) { if (state.error) throw new Error(state.error); return state.value; }
         await sleep(100);
