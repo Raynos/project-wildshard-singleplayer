@@ -1,4 +1,3 @@
-import * as v from 'valibot';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
@@ -10,14 +9,10 @@ import { hookProduct, type HookProduct } from './hookProduct';
 import { nineLayoutData } from './layoutSource';
 import { deckFloorRows } from './floorRows';
 import { CAST_NAMES } from './castSources';
+import { parseCastHook } from './sections';
 
 const INPUTS = ['/assets/nine-dragon/lab/walker.glb', '/assets/nine-dragon/lab/sitter.glb',
   '/assets/nine-dragon/lab/organic/lion.glb', '/assets/nine-dragon/lab/guard.glb', '/assets/nine-dragon/lab/grapple/dragon-hook.glb'];
-const vector = v.tuple([v.number(), v.number(), v.number()]);
-const Hook = v.strictObject({ glb: v.literal('castHook.generated.glb'), material: v.strictObject({
-  color: vector, side: v.picklist([0, 1, 2]), normalScale: v.tuple([v.number(), v.number()]), emissive: vector,
-  emissiveIntensity: v.number(), envMapIntensity: v.number(), metalness: v.number(), roughness: v.number(),
-}), casts: v.array(v.strictObject({ name: v.string(), file: v.string() })) });
 const json = (value: unknown, suffix = ''): Uint8Array => new TextEncoder().encode(`${JSON.stringify(value)}${suffix}`);
 
 /** Exact predecessor native files, returned as bytes without publishing into source or public folders. */
@@ -50,7 +45,7 @@ export async function nineCastsProgram(ctx: Pick<ProjectGenerationContext, 'cach
     const bytes = inputs.get(url); if (bytes === undefined) throw new Error(`Missing authored Nine cast ${url}`); return bytes;
   }));
   const read = (name: string): Uint8Array => { const bytes = files.get(name); if (bytes === undefined) throw new Error(`Missing owned Nine cast ${name}`); return bytes; };
-  const hook = v.parse(Hook, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(read('hook.json'))));
+  const hook = parseCastHook(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(read('hook.json'))));
   const names = new Set([...CAST_NAMES, 'guard']);
   if (files.size !== names.size * 2 + 4 || hook.casts.length !== names.size || new Set(hook.casts.map(row => row.name)).size !== names.size
     || hook.casts.some(row => !names.has(row.name) || row.file !== `data/cast-${row.name}.generated.glb`)) throw new Error('Nine cast file inventory differs');

@@ -236,3 +236,10 @@ const WorldLayoutSchema = v.strictObject({ version: v.literal(1), count: v.pipe(
 export function parseWorldHeader(value: unknown): v.InferOutput<typeof WorldHeaderSchema> { return v.parse(WorldHeaderSchema, value); }
 /** Preserve signed/nonfinite layout words until the existing layout admission revives them. */
 export function parseWorldLayout(value: unknown): v.InferOutput<typeof WorldLayoutSchema> { return v.parse(WorldLayoutSchema, value); }
+
+const CastHookSchema = v.strictObject({ glb: v.literal('castHook.generated.glb'), material: v.strictObject({
+  color: V3, side: v.picklist([0, 1, 2]), normalScale: v.tuple([finite, finite]), emissive: V3,
+  emissiveIntensity: finite, envMapIntensity: finite, metalness: finite, roughness: finite,
+}), casts: v.array(v.strictObject({ name: v.string(), file: v.string() })) });
+/** Admit the native hook material and exact named cast inventory at the defining schema boundary. */
+export function parseCastHook(value: unknown): v.InferOutput<typeof CastHookSchema> { return v.parse(CastHookSchema, value); }
