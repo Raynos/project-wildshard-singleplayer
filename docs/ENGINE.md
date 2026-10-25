@@ -4407,7 +4407,9 @@ SHA256 directory. `@wildshard/sdk/synth` defines `synthProject(project)` and
 The latter also accepts an already generated graph, including Template 1's
 retained generator. Geometry, material and node traversal use the DS1.3 reader;
 its explicit unsupported-feature refusals still apply. Synth supplies compiler
-input, not a finished shardfile or an entry proof. It adds no schema field.
+input, not a finished shardfile or an entry proof. It adds no schema field. Author modules execute
+as raw UTF-8 through the shared native ESM loader; private execution files
+retire after evaluation, including failures, while canonical scene output stays.
 
 Graph generation executes during synth; expensive bake jobs remain owned by the
 shared generation-job cache. Immutable scene copies are verified before reuse;

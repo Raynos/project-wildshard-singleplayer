@@ -3,8 +3,7 @@ import { assertConfigBoundary } from './configBoundary';
 import { realpathSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Author inputs must remain within the project.
 import { resolve, sep } from 'node:path';
-// oxlint-disable-next-line import/no-nodejs-modules -- Encode an in-memory trusted author module, without writing executable cache files.
-import { Buffer } from 'node:buffer';
+import { executeBundle } from './executeBundle';
 import { build } from 'vite';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the defining reader into the same author bundle.
 import { fileURLToPath } from 'node:url';
@@ -57,7 +56,7 @@ export default { scene: readScene(input.scene), slug: input.identity.slug };`;
   const chunks = built.output.filter(output => output.type === 'chunk'), chunk = chunks[0];
   if (chunks.length !== 1 || chunk === undefined) throw new Error('Scene config must compile as one module');
   assertConfigBoundary([...chunk.imports, ...chunk.dynamicImports]);
-  const loaded: unknown = await import(`data:text/javascript;base64,${Buffer.from(chunk.code).toString('base64')}`);
+  const loaded: unknown = await executeBundle(chunk.code, root);
   if (typeof loaded !== 'object' || loaded === null || !('default' in loaded)) throw new Error('Scene config produced no reader result');
   const data = loaded.default;
   if (typeof data !== 'object' || data === null || !('slug' in data) || typeof data.slug !== 'string'

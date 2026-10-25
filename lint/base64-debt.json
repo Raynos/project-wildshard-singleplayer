@@ -52,7 +52,6 @@
     "src/game/shardfile/stillImage.ts": 1,
     "src/sdk/buildBehaviour.ts": 1,
     "src/sdk/returnProjectionV2.ts": 2,
-    "src/sdk/synth.ts": 1,
     "src/shards/driftwood-isle-legacy/runtime/baked.ts": 1,
     "src/shards/driftwood-isle-legacy/runtime/headless.ts": 1,
     "src/shards/driftwood-isle/generators/nativeBake.ts": 1,
