@@ -9,6 +9,8 @@
 // One headless Chromium on Metal (--mute-audio), closed at the end.
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { resolve as resolvePath, dirname } from 'node:path';
+import { randomUUID } from 'node:crypto';
+import { browserBakeBytes } from './bake-output.mjs';
 
 const { chromium } = await import('playwright');
 const ROOT = resolvePath(new URL('..', import.meta.url).pathname);
@@ -101,26 +103,56 @@ try {
   for (const [kind, variants] of CFG.rows) {
     const info = await page.evaluate(([k, v]) => window.__lnRow(k, v), [kind, variants]);
     await page.waitForTimeout(1500);
-    shots.push({ label: `${kind}: ${variants.join(' · ')}   (?creatures=${LOOK}, ${TIER})`, b64: (await page.screenshot({ type: 'jpeg', quality: 88 })).toString('base64') });
+    shots.push({ label: `${kind}: ${variants.join(' · ')}   (?creatures=${LOOK}, ${TIER})`, bytes: await page.screenshot({ type: 'jpeg', quality: 88 }) });
     console.log(kind, JSON.stringify(info));
   }
   if (errs.length > 0) console.log('page errors:', errs.slice(0, 3).join(' | '));
   const comp = await (await browser.newContext()).newPage();
-  const b64 = await comp.evaluate(async ({ list, w, h }) => {
-    const load = (src) => new Promise((resolve, reject) => { const i = new Image(); i.onload = () => resolve(i); i.onerror = reject; i.src = src; });
-    const G = 4, LAB = 22;
-    const c = document.createElement('canvas'); c.width = w; c.height = list.length * (h + LAB + G);
-    const x = c.getContext('2d'); x.fillStyle = '#111'; x.fillRect(0, 0, c.width, c.height);
-    for (let i = 0; i < list.length; i++) {
-      const im = await load(`data:image/jpeg;base64,${list[i].b64}`);
-      const y = i * (h + LAB + G);
-      x.drawImage(im, 0, y + LAB, w, h);
-      x.font = '600 15px ui-monospace, monospace'; x.fillStyle = '#9fe6ff'; x.fillText(list[i].label, 6, y + 16);
-    }
-    for (let qq = 0.85; qq >= 0.35; qq -= 0.05) { const u = c.toDataURL('image/jpeg', qq); if (u.length * 0.75 < 4.8e5) return u.split(',')[1]; }
-    return c.toDataURL('image/jpeg', 0.3).split(',')[1];
-  }, { list: shots, w: 1400, h: Math.round(1400 * H / W) });
-  writeFileSync(OUT, Buffer.from(b64, 'base64'));
+  const inputs = new Map(shots.map((shot, i) => [String(i), shot.bytes]));
+  const url = `https://lineup-images.invalid/${randomUUID()}/`, pattern = `${url}*`;
+  const images = shots.map((shot, i) => ({ label: shot.label, src: `${url}${i}` }));
+  /** @param {import('playwright').Route} route */
+  const read = async route => {
+    const request = route.request(), bytes = request.method() === 'GET' ? inputs.get(request.url().slice(url.length)) : undefined;
+    await route.fulfill({ status: bytes === undefined ? 404 : 200, headers: { 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store', 'Content-Type': 'image/jpeg' }, body: bytes ?? 'Missing lineup image' });
+  };
+  await comp.route(pattern, read);
+  try {
+    const sink = await browserBakeBytes(comp, { maxFiles: 1 });
+    try {
+      const size = await comp.evaluate(async ({ list, w, h, output }) => {
+        const load = (src) => new Promise((resolve, reject) => { const i = new Image(); i.crossOrigin = 'anonymous'; i.onload = () => resolve(i); i.onerror = reject; i.src = src; });
+        const G = 4, LAB = 22;
+        const c = document.createElement('canvas'); c.width = w; c.height = list.length * (h + LAB + G);
+        const x = c.getContext('2d'); x.fillStyle = '#111'; x.fillRect(0, 0, c.width, c.height);
+        for (let i = 0; i < list.length; i++) {
+          const im = await load(list[i].src);
+          const y = i * (h + LAB + G);
+          x.drawImage(im, 0, y + LAB, w, h);
+          x.font = '600 15px ui-monospace, monospace'; x.fillStyle = '#9fe6ff'; x.fillText(list[i].label, 6, y + 16);
+        }
+        const encode = quality => new Promise((resolve, reject) => {
+          c.toBlob(blob => {
+            if (blob === null) reject(new Error('Lineup JPEG encoding refused'));
+            else resolve(blob);
+          }, 'image/jpeg', quality);
+        });
+        let image;
+        for (let qq = 0.85; qq >= 0.35; qq -= 0.05) {
+          const blob = await encode(qq);
+          // Keep the original data-URL size test, including its prefix and padding.
+          if ((23 + 4 * Math.ceil(blob.size / 3)) * 0.75 < 4.8e5) { image = blob; break; }
+        }
+        image ??= await encode(0.3);
+        const response = await fetch(output, { method: 'POST', body: image });
+        if (!response.ok) throw new Error('Lineup byte upload refused');
+        return image.size;
+      }, { list: images, output: `${sink.url}board`, w: 1400, h: Math.round(1400 * H / W) });
+      const bytes = sink.take('board');
+      if (bytes.byteLength !== size) throw new Error('Incomplete lineup JPEG');
+      writeFileSync(OUT, bytes);
+    } finally { await sink.dispose(); }
+  } finally { await comp.unroute(pattern, read); }
   console.log(`wrote ${OUT.slice(ROOT.length + 1)}`);
 } finally {
   await browser.close();
