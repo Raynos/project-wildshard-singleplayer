@@ -14,7 +14,7 @@
  */
 import { CONTENT_CAPS } from '@wildshard/engine/core/config';
 import { contentCost, type ContentCostInput } from '@wildshard/format/contentCost';
-import { MemoryAdmission } from '@wildshard/format/product';
+import { MemoryAdmission } from '@wildshard/format/memoryAdmission';
 import { shardCost } from '../../../src/game/grid/allocator';
 
 /** The cost model's categories; `library` and `sim` map onto its plural fields. */

@@ -6,7 +6,7 @@ import { initializeTier, TIER } from '../src/engine/core/tier';
 import { CONTENT_CAPS } from '../src/engine/core/config';
 import { AssetResidencyBridge } from '../src/game/grid/assetResidency';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
-import { MemoryAdmission } from '../src/format/product';
+import { MemoryAdmission } from '../src/format/memoryAdmission';
 import { staticGlb } from '../src/sdk/bake/glb';
 import { readWorldSceneGeometry } from '../src/game/shardfile/worldSceneGeometry';
 import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';

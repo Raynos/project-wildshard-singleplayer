@@ -5,7 +5,8 @@ import { scriptAdmissionRows } from '@wildshard/format/scriptContract';
 import type { TextureTranscodeSupport } from '@wildshard/format/contentBounds';
 import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
 import { builtValidationReceipt, readValidationReceipt, validationRevision, validationSourceBytes, type ValidationReceipt } from "@wildshard/format/validationReceipt";
-import { assertStateCompatibility, parseStateLineage, preflightAssetGraph, prepareAssetDecoders, type MemoryAdmission } from "@wildshard/format/product";
+import { assertStateCompatibility, parseStateLineage, preflightAssetGraph, prepareAssetDecoders } from '@wildshard/format/product';
+import type { MemoryAdmission } from '@wildshard/format/memoryAdmission';
 import { SHARDFILE_VERSION, shardfileRevision } from '@wildshard/format/version';
 import { isOutputIndex } from '@wildshard/format/outputAddress';
 

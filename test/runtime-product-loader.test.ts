@@ -14,7 +14,7 @@ import { admitProduct, readProductDescriptor, type ProductOptions, type ProductC
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
 import { neighbourProductFiles, productResidentBytes, jsonResidentBytes, runtimeOnlyProductFiles, tierLibrarySource, urlImageLibrarySource, scopedSpecimenLibrarySource, scopedSpecimenLibrarySourcePaced } from '../src/game/shardfile/productCost';
 import { carryOutputDescriptor, outputDescriptor, resolveOutputDescriptor } from '../src/game/shardfile/outputDescriptor';
-import { MemoryAdmission } from '../src/format/product';
+import { MemoryAdmission } from '../src/format/memoryAdmission';
 import { acceptValidatedCost } from '../src/format/assetAdmission';
 import { ProductLeases } from '../src/game/grid/productLeases';
 import { ResidencyAllocator } from '../src/game/grid/allocator';

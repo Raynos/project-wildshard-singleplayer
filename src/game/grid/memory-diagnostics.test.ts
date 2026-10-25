@@ -4,7 +4,7 @@ import { Scope } from '@wildshard/engine/app/scope';
 import { withOwner } from '@wildshard/engine/app/ownership';
 import { setDev } from '@wildshard/engine/core/devMode';
 import { contentCost, type ContentCostInput } from '@wildshard/format/contentCost';
-import { MemoryAdmission } from '@wildshard/format/product';
+import { MemoryAdmission } from '@wildshard/format/memoryAdmission';
 import { memoryAttribution, type MemorySnapshot } from '@wildshard/engine/core/memoryAttribution';
 import { installBudgetOverlay, memoryHeadline } from './budgetOverlay';
 import { installMemoryWarning } from './memoryWarning';

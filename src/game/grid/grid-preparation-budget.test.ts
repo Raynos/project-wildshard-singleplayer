@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { CONTENT_CAPS } from '@wildshard/engine/core/config';
 import { contentCost } from '@wildshard/format/contentCost';
-import { MemoryAdmission } from '@wildshard/format/product';
+import { MemoryAdmission } from '@wildshard/format/memoryAdmission';
 import { ResidencyAllocator, shardCost } from './allocator';
 
 const limits = { playing: CONTENT_CAPS.playing, loading: CONTENT_CAPS.loading };

@@ -6,7 +6,7 @@ import { CONTENT_CAPS } from '../src/engine/core/config';
 import { initializeTier, TIER } from '../src/engine/core/tier';
 import { AssetResidencyBridge } from '../src/game/grid/assetResidency';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
-import { MemoryAdmission } from '../src/format/product';
+import { MemoryAdmission } from '../src/format/memoryAdmission';
 import { emptyShardfile } from '../src/sdk/author';
 import { staticGlb } from '../src/sdk/bake/glb';
 import { hashImmutableBytes } from '../src/sdk/immutable';

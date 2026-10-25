@@ -8640,6 +8640,7 @@ Explicit read schemas still parse; sidecars/authored receipts grant no
 trust. `format/validationReceipt` owns receipt bytes and accepts the
 caller's clock/pause. `format/outputAddress` owns envelope detection and
 canonical blob paths without schemas.
+`format/memoryAdmission` keeps live memory policy independent of offline byte parsers.
 
 `configuredShardfile(document, options)` awaits the same section reader
 for the SDK client's embedded index. Installed data-client manifests

@@ -5,7 +5,8 @@ import { admitScript } from '@wildshard/format/scriptAdmission';
 import { SCRIPT_LIMITS } from '@wildshard/format/scriptLimits';
 import { worstContentCost, worstContentCostSteps } from '@wildshard/format/budget';
 import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
-import { assetCost, parseKtx2, validateTerrainAssets, validatePropDrawBounds, preflightAssetGraph, type MemoryAdmission } from "@wildshard/format/product";
+import { assetCost, parseKtx2, validateTerrainAssets, validatePropDrawBounds, preflightAssetGraph } from '@wildshard/format/product';
+import type { MemoryAdmission } from '@wildshard/format/memoryAdmission';
 
 import { validateMeshCollisionAssets } from '@wildshard/format/meshCollisionAssets';
 import { validateNavigationAssets } from '@wildshard/format/navigation';

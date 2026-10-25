@@ -3,7 +3,7 @@ import { expect, test, vi } from 'vitest';
 import { configuredShardfile, preparePageResidency } from './clientSource';
 import { parseShardSlug } from '../shard/slug';
 import type { ProductOptions } from './product';
-import { MemoryAdmission } from '@wildshard/format/product';
+import { MemoryAdmission } from '@wildshard/format/memoryAdmission';
 import { SHARDFILE_ADMISSION_LIMITS } from '@wildshard/format/admissionLimits';
 
 function options(): ProductOptions {

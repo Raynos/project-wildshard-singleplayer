@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { ResidencyAllocator, type ResidencyClaim } from '../src/game/grid/allocator';
 import { ReferenceResidencyAllocator } from './fixtures/grid/allocator-before';
-import { MemoryAdmission, type MemoryAdmissionRequest } from '../src/format/product';
+import { MemoryAdmission, type MemoryAdmissionRequest } from '../src/format/memoryAdmission';
 import { CONTENT_CAPS } from '../src/engine/core/config';
 import recorded from './fixtures/grid/pine-ledger-sequence.json' with { type: 'json' };
 

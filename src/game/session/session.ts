@@ -43,7 +43,7 @@ import { loadManifestProduct, manifestAdmittedSource } from '../shardfile/runtim
 import { absentShardProduct } from '../shardfile/shardProduct';
 import { gridLevel } from '../grid/pageMode';
 import type { PageResidency } from '../grid/pageResidency';
-import type { MemoryAdmission } from '@wildshard/format/product';
+import type { MemoryAdmission } from '@wildshard/format/memoryAdmission';
 import { gridPageShell, gridPageShellLevel, selectGridPageShell, GridPageShellPlugin, useOwnedGridHome } from '../grid/pageShell';
 
 declare const __BUILD_ID__: string;

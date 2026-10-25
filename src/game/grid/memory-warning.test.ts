@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { MemoryAdmission } from '@wildshard/format/product';
+import { MemoryAdmission } from '@wildshard/format/memoryAdmission';
 import { memoryWarningChip, residentOverLimit } from './memoryWarning';
 
 test('history retains a worst-location estimate while the HUD filters it by entered shard', () => {

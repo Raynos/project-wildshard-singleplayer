@@ -2,7 +2,7 @@ import { prepareClientModuleGroups } from './clientModules';
 import { outputDescriptor } from './outputDescriptor';
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 import { runtimeAccountedBytes } from '@wildshard/format/runtimeCost';
-import { MemoryAdmission } from '@wildshard/format/product';
+import { MemoryAdmission } from '@wildshard/format/memoryAdmission';
 import { contentCost } from '@wildshard/format/contentCost';
 import { MEMORY_GATES } from '@wildshard/format/contentBounds';
 import { isOutputIndex } from '@wildshard/format/outputAddress';

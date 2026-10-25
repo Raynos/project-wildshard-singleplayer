@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./memoryAdmission": "./memoryAdmission.ts",
     "./outputAddress": "./outputAddress.ts",
     "./validationReceipt": "./validationReceipt.ts",
     "./outputDownload": "./outputDownload.ts",

@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import { CONTENT_CAPS } from '@wildshard/engine/core/config';
 import { contentCost, type ContentCostInput } from '@wildshard/format/contentCost';
 import { ResidencyAllocator, type ResidencyEntry } from './allocator';
-import { MemoryAdmission } from '@wildshard/format/product';
+import { MemoryAdmission } from '@wildshard/format/memoryAdmission';
 import { budgetPoints, shardLimit } from './budgetPoints';
 
 const entry = (owner: string, bytes: number): ResidencyEntry =>

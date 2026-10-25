@@ -7,7 +7,7 @@ import { withOwner } from '../src/engine/app/ownership';
 import { CONTENT_CAPS } from '../src/engine/core/config';
 import { AssetResidencyBridge } from '../src/game/grid/assetResidency';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
-import { MemoryAdmission } from '../src/format/product';
+import { MemoryAdmission } from '../src/format/memoryAdmission';
 
 function fixture(bytes = 1000) {
   const allocator = new ResidencyAllocator({ playing: CONTENT_CAPS.engineBase + CONTENT_CAPS.overlap + Math.ceil(bytes * CONTENT_CAPS.residentFactor), memory: new MemoryAdmission() });
