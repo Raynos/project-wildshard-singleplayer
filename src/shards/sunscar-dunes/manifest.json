@@ -471,8 +471,7 @@
   "bindings": {
     "accent": "orchid",
     "budgets": {
-      "module": "./assets/budgets.generated.json",
-      "export": "default"
+      "program": true
     },
     "navigation": {
       "module": "./data/navigation.generated.json",
@@ -487,12 +486,10 @@
       "export": "default"
     },
     "poses": {
-      "module": "./assets/devPoses.generated.json",
-      "export": "default"
+      "program": true
     },
     "audioCues": {
-      "module": "./assets/cues.generated.json",
-      "export": "default"
+      "program": true
     },
     "boot": {
       "files": {
@@ -502,8 +499,7 @@
         "program": true
       },
       "lateReads": {
-        "module": "./assets/lateReads.generated.json",
-        "export": "default"
+        "program": true
       }
     },
     "render": {
