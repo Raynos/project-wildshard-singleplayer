@@ -19,7 +19,9 @@ test('Nalati compiles its chapters, camp dialogues, placements and discovery int
   expect(Object.keys(content.people).length).toBeGreaterThan(0);
   expect(content.places.length).toBeGreaterThan(0);
   for (const npc of Object.values(content.npcs)) expect(npc.dialogue.length).toBeGreaterThan(0);
-  const loaded = await readProjectAssets('src/shards/nalati-grasslands');
+  const loaded = await readProjectAssets('src/shards/nalati-grasslands', undefined, { folder: 'nalati-grasslands', imageRoots: [
+    { prefix: '/assets/nalati/baked/', directory: 'public/assets/nalati/baked' },
+  ] });
   expect(loaded.shard.quests).toEqual(source.quests);
   const file = loaded.output.namedFiles?.find(row => row.name === 'quests/content.json');
   const bytes = file === undefined ? undefined : loaded.assets.get(file.hash);
