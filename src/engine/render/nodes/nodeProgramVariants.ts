@@ -15,34 +15,34 @@ export type VariantKey = object | string;
 interface Variants { version: number; active: VariantKey; entries: Map<VariantKey, Snapshot> }
 /** One fixed-shape copy of the fields (a literal, so every snapshot shares one hidden class and Object.assign copies it
  *  on V8's fast path: restoring them by name, one keyed store a field, was the top self frame of the Sim's Pine interior) */
-const snapshot = (p: object): Snapshot => ({
-  currentProgram: Reflect.get(p, 'currentProgram'),
-  __version: Reflect.get(p, '__version'),
-  uniforms: Reflect.get(p, 'uniforms'),
-  uniformsList: Reflect.get(p, 'uniformsList'),
-  needsLights: Reflect.get(p, 'needsLights'),
-  lightsStateVersion: Reflect.get(p, 'lightsStateVersion'),
-  outputColorSpace: Reflect.get(p, 'outputColorSpace'),
-  batching: Reflect.get(p, 'batching'),
-  batchingColor: Reflect.get(p, 'batchingColor'),
-  instancing: Reflect.get(p, 'instancing'),
-  instancingColor: Reflect.get(p, 'instancingColor'),
-  instancingMorph: Reflect.get(p, 'instancingMorph'),
-  skinning: Reflect.get(p, 'skinning'),
-  morphTargets: Reflect.get(p, 'morphTargets'),
-  morphNormals: Reflect.get(p, 'morphNormals'),
-  morphColors: Reflect.get(p, 'morphColors'),
-  morphTargetsCount: Reflect.get(p, 'morphTargetsCount'),
-  numClippingPlanes: Reflect.get(p, 'numClippingPlanes'),
-  numIntersection: Reflect.get(p, 'numIntersection'),
-  vertexAlphas: Reflect.get(p, 'vertexAlphas'),
-  vertexTangents: Reflect.get(p, 'vertexTangents'),
-  toneMapping: Reflect.get(p, 'toneMapping'),
-  environment: Reflect.get(p, 'environment'),
-  fog: Reflect.get(p, 'fog'),
-  envMap: Reflect.get(p, 'envMap'),
-  envMapRotation: Reflect.get(p, 'envMapRotation'),
-  lightProbeGrid: Reflect.get(p, 'lightProbeGrid'),
+const snapshot = (p: Readonly<Partial<Snapshot>>): Snapshot => ({
+  currentProgram: p.currentProgram,
+  __version: p.__version,
+  uniforms: p.uniforms,
+  uniformsList: p.uniformsList,
+  needsLights: p.needsLights,
+  lightsStateVersion: p.lightsStateVersion,
+  outputColorSpace: p.outputColorSpace,
+  batching: p.batching,
+  batchingColor: p.batchingColor,
+  instancing: p.instancing,
+  instancingColor: p.instancingColor,
+  instancingMorph: p.instancingMorph,
+  skinning: p.skinning,
+  morphTargets: p.morphTargets,
+  morphNormals: p.morphNormals,
+  morphColors: p.morphColors,
+  morphTargetsCount: p.morphTargetsCount,
+  numClippingPlanes: p.numClippingPlanes,
+  numIntersection: p.numIntersection,
+  vertexAlphas: p.vertexAlphas,
+  vertexTangents: p.vertexTangents,
+  toneMapping: p.toneMapping,
+  environment: p.environment,
+  fog: p.fog,
+  envMap: p.envMap,
+  envMapRotation: p.envMapRotation,
+  lightProbeGrid: p.lightProbeGrid,
 });
 
 /** Warm object-layout variants of one node material, with the renderer retaining
@@ -51,7 +51,8 @@ export class NodeProgramVariants {
   private readonly materials = new WeakMap<Material, Variants>();
   /** Called only after WebGLRenderer selected a program for this exact key. */
   record(material: Material, key: VariantKey, properties: object): void {
-    if (Reflect.get(properties, '__version') !== material.version) return;
+    const current: Readonly<Partial<Snapshot>> = properties;
+    if (current.__version !== material.version) return;
     let variants = this.materials.get(material);
     if (variants === undefined || variants.version !== material.version) {
       variants = { version: material.version, active: key, entries: new Map() }; this.materials.set(material, variants);

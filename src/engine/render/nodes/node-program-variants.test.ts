@@ -44,3 +44,39 @@ test('token keys select by identity, never by text', () => {
   expect(variants.select(material, b, properties)).toBe(true); expect(properties.currentProgram).toBe(programB);
   material.dispose();
 });
+
+test('variant snapshots preserve inherited getters, receivers and complete field read order', () => {
+  const variants = new NodeProgramVariants(), material = new MeshBasicMaterial(), key = {}, program = {}, fog = {};
+  const reads: string[] = [], receivers: object[] = [], parent = {};
+  Object.defineProperty(parent, 'fog', {get(this: object): object { receivers.push(this); return fog; }});
+  const source: Record<string, unknown> = {currentProgram: program, __version: material.version};
+  Reflect.setPrototypeOf(source, parent);
+  const properties = new Proxy(source, {get(target, name, receiver): unknown { reads.push(String(name)); return Reflect.get(target, name, receiver); }});
+  try {
+    variants.record(material, key, properties);
+    expect(reads).toEqual(['__version', 'currentProgram', '__version', 'uniforms', 'uniformsList', 'needsLights', 'lightsStateVersion',
+      'outputColorSpace', 'batching', 'batchingColor', 'instancing', 'instancingColor', 'instancingMorph', 'skinning',
+      'morphTargets', 'morphNormals', 'morphColors', 'morphTargetsCount', 'numClippingPlanes', 'numIntersection',
+      'vertexAlphas', 'vertexTangents', 'toneMapping', 'environment', 'fog', 'envMap', 'envMapRotation', 'lightProbeGrid']);
+    expect(receivers).toEqual([properties]);
+    reads.length = 0;
+    expect(variants.select(material, key, properties)).toBe(true); expect(reads).toEqual(['currentProgram']);
+    expect(Object.hasOwn(source, 'fog')).toBe(false);
+    Object.defineProperty(source, 'fog', {value: null, configurable: true, writable: true});
+    source['currentProgram'] = {};
+    expect(variants.select(material, key, properties)).toBe(true);
+    expect(source['currentProgram']).toBe(program); expect(source['fog']).toBe(fog);
+  } finally { material.dispose(); }
+});
+
+test('unrecorded or stale variants do not read program fields', () => {
+  const variants = new NodeProgramVariants(), material = new MeshBasicMaterial(), key = {};
+  const properties = {__version: -1, get currentProgram(): never { throw new Error('Unpublished program read'); }};
+  try {
+    variants.record(material, key, properties);
+    expect(variants.select(material, key, properties)).toBe(false);
+    const recorded = {__version: material.version, currentProgram: {}};
+    variants.record(material, key, recorded); material.needsUpdate = true;
+    expect(variants.select(material, key, properties)).toBe(false);
+  } finally { material.dispose(); }
+});
