@@ -150,7 +150,10 @@ export class Loading {
     if (!this.scoped && !this.admissionPhases.has(progress.phase)) { this.admissionPhases.add(progress.phase); recordBootCheckpoint(`admission:${progress.phase}`, { detail: progress.detail }); }
     this.admission = progress;
     const phase = progress.phase === 'modules' ? 'modules' : 'admission';
-    if (this.phase !== undefined && phase !== this.phaseKey) { this.phase.end(); this.phase = this.timeline.begin(phase); this.phaseKey = phase; }
+    let phaseChanged = false;
+    if (this.phase !== undefined && phase !== this.phaseKey) {
+      this.phase.end(); this.phase = this.timeline.begin(phase); this.phaseKey = phase; phaseChanged = true;
+    }
     const files = progress.filesTotal > 0 ? ` · ${progress.filesDone} / ${progress.filesTotal} files` : '';
     const bytes = progress.bytesTotal > 0 || progress.bytesRead > 0 ? ` · ${formatMB(progress.bytesRead)} read` : '';
     const detail = `${progress.detail}${files}${bytes}`;
@@ -160,6 +163,9 @@ export class Loading {
     // not a fraction of the complete stage. Use its measured time weight.
     if (phase === 'modules') this.timeline.report(phase, detail, progress.filesDone, progress.filesTotal);
     else this.timeline.report(phase, detail);
+    // Hand off the footer before exposing the new phase to the next callback;
+    // same-phase byte updates keep the ordinary paced panel repaint.
+    if (phaseChanged) this.paintWaiting(this.timeline.snapshot());
     setData(this.root, 'step', `admission.${progress.phase}`);
     this.dirty = true;
   }

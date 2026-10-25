@@ -18,6 +18,31 @@ beforeEach(() => {
 });
 afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); document.body.replaceChildren(); });
 
+it('hands the visible footer to admission before publishing its first callback', () => {
+  const loading = new Loading({id: 'descriptor', name: 'Descriptor'});
+  const foot = (): string => loading.root.querySelector('[data-el="foot"]')?.textContent ?? '';
+  try {
+    loading.setPath({id: 'shardfile', steps: [{key: 'modules', label: 'Application modules', weight: 1},
+      {key: 'admission', label: 'Product admission', weight: 1}, {key: 'world', label: 'World', weight: 1}]});
+    loading.waiting('Preparing application services');
+    now = 400; vi.advanceTimersByTime(32);
+    expect(foot()).toContain('Application modules');
+    loading.paintAdmission({phase: 'descriptor', detail: 'Fetching shard descriptor · /shardfiles/descriptor/entry.json',
+      filesDone: 0, filesTotal: 1, bytesRead: 0, bytesTotal: 0});
+    expect(loading.root.dataset['step']).toBe('admission.descriptor');
+    expect(foot()).toContain('Product admission · Fetching shard descriptor · /shardfiles/descriptor/entry.json');
+    expect(foot()).not.toContain('Application modules');
+    expect(loading.root.dataset['filesInFlight']).toBe('0');
+    const handedOff = foot();
+    loading.paintAdmission({phase: 'descriptor', detail: 'Reading shard descriptor · /shardfiles/descriptor/entry.json',
+      filesDone: 0, filesTotal: 1, bytesRead: 10, bytesTotal: 100});
+    // Same-phase byte progress keeps the ordinary paced repaint.
+    expect(foot()).toBe(handedOff);
+    now = 700; vi.advanceTimersByTime(32);
+    expect(foot()).toContain('Reading shard descriptor · /shardfiles/descriptor/entry.json');
+  } finally { loading.scope.dispose(); }
+});
+
 it('retains a completed short step start even when it finished before the first row paint', () => {
   const loading = new Loading({id: 'starts', name: 'Starts'});
   try {
