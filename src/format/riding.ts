@@ -108,7 +108,7 @@ export const ClientRidingSessionSchema: v.GenericSchema<ClientRidingSessionRowsI
 
 /** Admitted data contracts, independent of validator implementation metadata. */
 export type ReinPresentationRowsInput = ReinPresentationRows;
-export interface ReinPresentationRows {
+interface ReinPresentationRowsFields {
     span: number;
     halfWidth: number;
     heldRate: number;
@@ -157,8 +157,9 @@ export interface ReinPresentationRows {
         minWeight: number;
     };
 }
+export type ReinPresentationRows = { [Key in keyof ReinPresentationRowsFields]: ReinPresentationRowsFields[Key] };
 export type RidingControlsInput = unknown;
-export interface RidingControls {
+interface RidingControlsFields {
     foot: string;
     mounted: string;
     breaking: string;
@@ -177,8 +178,9 @@ export interface RidingControls {
     };
     describe?: Exclude<v.InferOutput<typeof InputExtraEntries.describe>, undefined>;
 }
+export type RidingControls = { [Key in keyof RidingControlsFields]: RidingControlsFields[Key] };
 export type RidingPresentationRowsInput = RidingPresentationRows;
-export interface RidingPresentationRows {
+interface RidingPresentationRowsFields {
     alive: string;
     smooth: ({
         source: string;
@@ -207,8 +209,9 @@ export interface RidingPresentationRows {
         strength: string;
     };
 }
+export type RidingPresentationRows = { [Key in keyof RidingPresentationRowsFields]: RidingPresentationRowsFields[Key] };
 export type PageTamingBindingRowsInput = PageTamingBindingRows;
-export interface PageTamingBindingRows {
+interface PageTamingBindingRowsFields {
     upgradeKind: string;
     bonds: [
         string,
@@ -239,7 +242,8 @@ export interface PageTamingBindingRows {
         ];
     };
 }
-export interface PageRidingPresetRowsInput {
+export type PageTamingBindingRows = { [Key in keyof PageTamingBindingRowsFields]: PageTamingBindingRowsFields[Key] };
+interface PageRidingPresetRowsInputFields {
     controls?: RidingControlsInput;
     mode: {
         id: 'ride';
@@ -277,7 +281,8 @@ export interface PageRidingPresetRowsInput {
         };
     };
 }
-export interface PageRidingPresetRows {
+export type PageRidingPresetRowsInput = { [Key in keyof PageRidingPresetRowsInputFields]: PageRidingPresetRowsInputFields[Key] };
+interface PageRidingPresetRowsFields {
     controls?: RidingControls;
     mode: {
         id: 'ride';
@@ -315,8 +320,9 @@ export interface PageRidingPresetRows {
         };
     };
 }
+export type PageRidingPresetRows = { [Key in keyof PageRidingPresetRowsFields]: PageRidingPresetRowsFields[Key] };
 export type ClientRidingSessionRowsInput = unknown;
-export interface ClientRidingSessionRows {
+interface ClientRidingSessionRowsFields {
     preset: PageRidingPresetRows;
     programs: {
         approach: v.InferOutput<typeof ReturnProgramSchema>;
@@ -364,3 +370,4 @@ export interface ClientRidingSessionRows {
     };
     figure?: string;
 }
+export type ClientRidingSessionRows = { [Key in keyof ClientRidingSessionRowsFields]: ClientRidingSessionRowsFields[Key] };

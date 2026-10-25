@@ -51,7 +51,7 @@ export function parseExplorerCatalogue(input: unknown): ExplorerCatalogue { retu
 
 /** Admitted data contracts, independent of validator implementation metadata. */
 export type ExplorerCatalogueInput = unknown;
-export interface ExplorerCatalogue {
+interface ExplorerCatalogueFields {
     version: 1;
     entries: (({
         kind: 'species';
@@ -307,3 +307,4 @@ export interface ExplorerCatalogue {
         drawnAs?: 'single' | 'merged' | 'instanced' | 'skinned' | 'batched';
     }))[];
 }
+export type ExplorerCatalogue = { [Key in keyof ExplorerCatalogueFields]: ExplorerCatalogueFields[Key] };

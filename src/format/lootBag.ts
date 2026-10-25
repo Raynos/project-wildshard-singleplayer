@@ -44,7 +44,7 @@ export const LootBagSchema: v.GenericSchema<LootBagRowsInput, LootBagRows> = v.p
 
 /** Admitted data contracts, independent of validator implementation metadata. */
 export type LootPresentationRowsInput = LootPresentationRows;
-export interface LootPresentationRows {
+interface LootPresentationRowsFields {
     quest: string;
     chart: string;
     lateKinds: (string)[];
@@ -58,7 +58,8 @@ export interface LootPresentationRows {
         how: string;
     })[];
 }
-export interface LootProgressionRowsInput {
+export type LootPresentationRows = { [Key in keyof LootPresentationRowsFields]: LootPresentationRowsFields[Key] };
+interface LootProgressionRowsInputFields {
     flags: (string)[];
     states: ({
         earned: ({
@@ -73,7 +74,8 @@ export interface LootProgressionRowsInput {
         curve: v.InferInput<typeof CurveSchema>;
     };
 }
-export interface LootProgressionRows {
+export type LootProgressionRowsInput = { [Key in keyof LootProgressionRowsInputFields]: LootProgressionRowsInputFields[Key] };
+interface LootProgressionRowsFields {
     flags: (string)[];
     states: ({
         earned: ({
@@ -88,8 +90,9 @@ export interface LootProgressionRows {
         curve: v.InferOutput<typeof CurveSchema>;
     };
 }
+export type LootProgressionRows = { [Key in keyof LootProgressionRowsFields]: LootProgressionRowsFields[Key] };
 export type LootFindsRowsInput = LootFindsRows;
-export interface LootFindsRows {
+interface LootFindsRowsFields {
     counters: ({
         label: string;
         flags: (string)[];
@@ -124,6 +127,7 @@ export interface LootFindsRows {
         text: string;
     };
 }
+export type LootFindsRows = { [Key in keyof LootFindsRowsFields]: LootFindsRowsFields[Key] };
 export type LootMarksRowsInput = LootMarksRows;
 export type LootMarksRows = ({
     flag: string;
@@ -132,9 +136,10 @@ export type LootMarksRows = ({
     color: string;
 })[];
 export type LootBagRowsInput = unknown;
-export interface LootBagRows {
+interface LootBagRowsFields {
     presentation: LootPresentationRows;
     progression: LootProgressionRows;
     finds: LootFindsRows;
     marks: LootMarksRows;
 }
+export type LootBagRows = { [Key in keyof LootBagRowsFields]: LootBagRowsFields[Key] };

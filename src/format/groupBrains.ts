@@ -88,7 +88,7 @@ export const GuardedHerdGuestSchema: v.GenericSchema<GuardedHerdGuestRowsInput, 
 
 /** Admitted data contracts, independent of validator implementation metadata. */
 export type ShardPackGroupInput = ShardPackGroup;
-export interface ShardPackGroup {
+interface ShardPackGroupFields {
     id: string;
     kind: 'pack';
     thinkDivisor: 6;
@@ -123,8 +123,9 @@ export interface ShardPackGroup {
     snarlCue: string;
     biteCue: string;
 }
+export type ShardPackGroup = { [Key in keyof ShardPackGroupFields]: ShardPackGroupFields[Key] };
 export type StalkerGroupRowsInput = StalkerGroupRows;
-export interface StalkerGroupRows {
+interface StalkerGroupRowsFields {
     id: string;
     kind: 'stalker';
     thinkDivisor: 6;
@@ -160,8 +161,9 @@ export interface StalkerGroupRows {
     biteCue: string;
     pattern: 'pack';
 }
+export type StalkerGroupRows = { [Key in keyof StalkerGroupRowsFields]: StalkerGroupRowsFields[Key] };
 export type ShardHerdGroupInput = ShardHerdGroup;
-export interface ShardHerdGroup {
+interface ShardHerdGroupFields {
     id: string;
     kind: 'herd';
     thinkDivisor: 6;
@@ -188,8 +190,9 @@ export interface ShardHerdGroup {
     neighCue: string;
     squealCue: string;
 }
+export type ShardHerdGroup = { [Key in keyof ShardHerdGroupFields]: ShardHerdGroupFields[Key] };
 export type GrazerGroupRowsInput = GrazerGroupRows;
-export interface GrazerGroupRows {
+interface GrazerGroupRowsFields {
     id: string;
     kind: 'grazer';
     thinkDivisor: 6;
@@ -217,10 +220,11 @@ export interface GrazerGroupRows {
     squealCue: string;
     pattern: 'herd';
 }
+export type GrazerGroupRows = { [Key in keyof GrazerGroupRowsFields]: GrazerGroupRowsFields[Key] };
 export type ShardGroupBrainInput = (ShardPackGroupInput) | (ShardHerdGroupInput) | (StalkerGroupRowsInput) | (GrazerGroupRowsInput);
 export type ShardGroupBrain = (ShardPackGroup) | (ShardHerdGroup) | (StalkerGroupRows) | (GrazerGroupRows);
 export type GroupGuestBindingRowsInput = GroupGuestBindingRows;
-export interface GroupGuestBindingRows {
+interface GroupGuestBindingRowsFields {
     profile: string;
     capture?: {
         common: (string)[];
@@ -234,6 +238,7 @@ export interface GroupGuestBindingRows {
         segments: number;
     };
 }
+export type GroupGuestBindingRows = { [Key in keyof GroupGuestBindingRowsFields]: GroupGuestBindingRowsFields[Key] };
 export type GuardedHerdGuestRowsInput = {
     references?: Record<string, string>;
     plans?: true;

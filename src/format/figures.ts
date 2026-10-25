@@ -87,7 +87,7 @@ export const FigureGroupSchema: v.GenericSchema<FigureGroupRowsInput, FigureGrou
 
 /** Admitted data contracts, independent of validator implementation metadata. */
 export type FigureMotionRowInput = FigureMotionRow;
-export interface FigureMotionRow {
+interface FigureMotionRowFields {
     collider: {
         half: number;
         top: number;
@@ -123,8 +123,9 @@ export interface FigureMotionRow {
         talkRate: number;
     };
 }
+export type FigureMotionRow = { [Key in keyof FigureMotionRowFields]: FigureMotionRowFields[Key] };
 export type FigureSkinRowInput = FigureSkinRow;
-export interface FigureSkinRow {
+interface FigureSkinRowFields {
     url: string;
     material: string;
     rest: ([
@@ -167,8 +168,9 @@ export interface FigureSkinRow {
         coatOnly: number;
     };
 }
+export type FigureSkinRow = { [Key in keyof FigureSkinRowFields]: FigureSkinRowFields[Key] };
 export type FigureRowInput = unknown;
-export interface FigureRow {
+interface FigureRowFields {
     id: v.InferOutput<typeof HandleIdSchema>;
     name: string;
     root?: v.InferOutput<typeof ScenePointRefSchema>;
@@ -227,7 +229,8 @@ export interface FigureRow {
     ];
     points: boolean;
 }
-export interface FigureCatalogueRowInput {
+export type FigureRow = { [Key in keyof FigureRowFields]: FigureRowFields[Key] };
+interface FigureCatalogueRowInputFields {
     pack?: {
         url: string;
         rows: v.InferInput<typeof PackedGeometryRowsSchema>;
@@ -254,7 +257,8 @@ export interface FigureCatalogueRowInput {
         };
     }>;
 }
-export interface FigureCatalogueRow {
+export type FigureCatalogueRowInput = { [Key in keyof FigureCatalogueRowInputFields]: FigureCatalogueRowInputFields[Key] };
+interface FigureCatalogueRowFields {
     pack?: {
         url: string;
         rows: v.InferOutput<typeof PackedGeometryRowsSchema>;
@@ -281,8 +285,9 @@ export interface FigureCatalogueRow {
         };
     }>;
 }
+export type FigureCatalogueRow = { [Key in keyof FigureCatalogueRowFields]: FigureCatalogueRowFields[Key] };
 export type FigureAtlasRowInput = FigureAtlasRow;
-export interface FigureAtlasRow {
+interface FigureAtlasRowFields {
     url: string;
     name: string;
     skeleton: string;
@@ -294,7 +299,8 @@ export interface FigureAtlasRow {
     rim: number;
     bands: number;
 }
-export interface FigureGroupRowsInput {
+export type FigureAtlasRow = { [Key in keyof FigureAtlasRowFields]: FigureAtlasRowFields[Key] };
+interface FigureGroupRowsInputFields {
     name: string;
     sleep: {
         figure: string;
@@ -354,7 +360,8 @@ export interface FigureGroupRowsInput {
         };
     };
 }
-export interface FigureGroupRows {
+export type FigureGroupRowsInput = { [Key in keyof FigureGroupRowsInputFields]: FigureGroupRowsInputFields[Key] };
+interface FigureGroupRowsFields {
     name: string;
     sleep: {
         figure: string;
@@ -414,3 +421,4 @@ export interface FigureGroupRows {
         };
     };
 }
+export type FigureGroupRows = { [Key in keyof FigureGroupRowsFields]: FigureGroupRowsFields[Key] };

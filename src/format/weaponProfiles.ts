@@ -272,7 +272,7 @@ export const HeldBowFileSchema: v.GenericSchema<HeldBowFileRowsInput, HeldBowFil
 
 /** Admitted data contracts, independent of validator implementation metadata. */
 export type MeleeWeaponProfileRowsInput = MeleeWeaponProfileRows;
-export interface MeleeWeaponProfileRows {
+interface MeleeWeaponProfileRowsFields {
     family: 'melee';
     damage: number;
     reach: number;
@@ -348,8 +348,9 @@ export interface MeleeWeaponProfileRows {
         maxHits: number;
     };
 }
+export type MeleeWeaponProfileRows = { [Key in keyof MeleeWeaponProfileRowsFields]: MeleeWeaponProfileRowsFields[Key] };
 export type BowWeaponProfileRowsInput = BowWeaponProfileRows;
-export interface BowWeaponProfileRows {
+interface BowWeaponProfileRowsFields {
     family: 'bow';
     quiver: number;
     speedBase: number;
@@ -382,8 +383,9 @@ export interface BowWeaponProfileRows {
     substeps: number;
     lifetime: number;
 }
+export type BowWeaponProfileRows = { [Key in keyof BowWeaponProfileRowsFields]: BowWeaponProfileRowsFields[Key] };
 export type FirearmWeaponProfileRowsInput = FirearmWeaponProfileRows;
-export interface FirearmWeaponProfileRows {
+interface FirearmWeaponProfileRowsFields {
     family: 'firearm';
     action: 'semi' | 'lever' | 'bolt';
     magazine: number;
@@ -427,8 +429,9 @@ export interface FirearmWeaponProfileRows {
         lifetime: number;
     };
 }
+export type FirearmWeaponProfileRows = { [Key in keyof FirearmWeaponProfileRowsFields]: FirearmWeaponProfileRowsFields[Key] };
 export type ThrownWeaponProfileRowsInput = ThrownWeaponProfileRows;
-export interface ThrownWeaponProfileRows {
+interface ThrownWeaponProfileRowsFields {
     family: 'thrown';
     speed: number;
     gravity: number;
@@ -448,8 +451,9 @@ export interface ThrownWeaponProfileRows {
     arcAfter: number;
     stagger: number;
 }
+export type ThrownWeaponProfileRows = { [Key in keyof ThrownWeaponProfileRowsFields]: ThrownWeaponProfileRowsFields[Key] };
 export type LashWeaponProfileRowsInput = LashWeaponProfileRows;
-export interface LashWeaponProfileRows {
+interface LashWeaponProfileRowsFields {
     family: 'lash';
     contact?: {
         chestHeight: number;
@@ -469,7 +473,8 @@ export interface LashWeaponProfileRows {
         second: string;
     };
 }
-export interface HeldBowBaseRowsInput {
+export type LashWeaponProfileRows = { [Key in keyof LashWeaponProfileRowsFields]: LashWeaponProfileRowsFields[Key] };
+interface HeldBowBaseRowsInputFields {
     family: 'bow';
     parent?: string;
     quiver: number;
@@ -521,7 +526,8 @@ export interface HeldBowBaseRowsInput {
         })[];
     };
 }
-export interface HeldBowBaseRows {
+export type HeldBowBaseRowsInput = { [Key in keyof HeldBowBaseRowsInputFields]: HeldBowBaseRowsInputFields[Key] };
+interface HeldBowBaseRowsFields {
     family: 'bow';
     parent?: string;
     quiver: number;
@@ -573,8 +579,9 @@ export interface HeldBowBaseRows {
         })[];
     };
 }
+export type HeldBowBaseRows = { [Key in keyof HeldBowBaseRowsFields]: HeldBowBaseRowsFields[Key] };
 export type MeleeContactDataInput = MeleeContactData;
-export interface MeleeContactData {
+interface MeleeContactDataFields {
     lane: 'primary' | 'secondary';
     heavy: boolean;
     cooldown: number;
@@ -608,6 +615,7 @@ export interface MeleeContactData {
         }))[];
     })[];
 }
+export type MeleeContactData = { [Key in keyof MeleeContactDataFields]: MeleeContactDataFields[Key] };
 export type MeleeContactsRowsInput = (MeleeContactDataInput)[];
 export type MeleeContactsRows = (MeleeContactData)[];
 export type WeaponProfileInput = unknown;
@@ -628,7 +636,7 @@ export type WeaponProfile = (MeleeWeaponProfileRows) | (BowWeaponProfileRows) | 
     };
 });
 export type NativeMeleeRowsInput = NativeMeleeRows;
-export interface NativeMeleeRows {
+interface NativeMeleeRowsFields {
     step: string;
     input?: {
         attack: number;
@@ -678,8 +686,9 @@ export interface NativeMeleeRows {
         })[];
     };
 }
+export type NativeMeleeRows = { [Key in keyof NativeMeleeRowsFields]: NativeMeleeRowsFields[Key] };
 export type HeldModelDataInput = HeldModelData;
-export interface HeldModelData {
+interface HeldModelDataFields {
     materials: Record<string, ({
         name: string;
         look: {
@@ -764,8 +773,9 @@ export interface HeldModelData {
     };
     scaleRoot?: boolean;
 }
+export type HeldModelData = { [Key in keyof HeldModelDataFields]: HeldModelDataFields[Key] };
 export type HeldPresentationRowsInput = HeldPresentationRows;
-export interface HeldPresentationRows {
+interface HeldPresentationRowsFields {
     frame: {
         clock: 'frame' | 'world';
         fovWhen: 'always' | 'active';
@@ -868,6 +878,7 @@ export interface HeldPresentationRows {
         number
     ];
 }
+export type HeldPresentationRows = { [Key in keyof HeldPresentationRowsFields]: HeldPresentationRowsFields[Key] };
 export type HeldFirearmRowsInput = {
     mount: 'ownPass' | 'shared';
     gate?: string;
@@ -975,7 +986,7 @@ export type HeldFirearmViewRows = ({
         time: number;
     };
 }) & Record<string, unknown>;
-export interface HeldFirearmPageRowsInput {
+interface HeldFirearmPageRowsInputFields {
     feel: ({
         ads: ({
             blend: number;
@@ -984,7 +995,8 @@ export interface HeldFirearmPageRowsInput {
     view: HeldFirearmViewRowsInput;
     rows: HeldFirearmRowsInput;
 }
-export interface HeldFirearmPageRows {
+export type HeldFirearmPageRowsInput = { [Key in keyof HeldFirearmPageRowsInputFields]: HeldFirearmPageRowsInputFields[Key] };
+interface HeldFirearmPageRowsFields {
     feel: ({
         ads: ({
             blend: number;
@@ -993,8 +1005,9 @@ export interface HeldFirearmPageRows {
     view: HeldFirearmViewRows;
     rows: HeldFirearmRows;
 }
+export type HeldFirearmPageRows = { [Key in keyof HeldFirearmPageRowsFields]: HeldFirearmPageRowsFields[Key] };
 export type HeldBowRowsInput = HeldBowRows;
-export interface HeldBowRows {
+interface HeldBowRowsFields {
     bake: {
         look: string;
         arrow: string;
@@ -1210,15 +1223,18 @@ export interface HeldBowRows {
     };
     styles?: Record<string, string>;
 }
-export interface HeldBowDefinitionRowsInput {
+export type HeldBowRows = { [Key in keyof HeldBowRowsFields]: HeldBowRowsFields[Key] };
+interface HeldBowDefinitionRowsInputFields {
     base: HeldBowBaseRowsInput;
     bow: HeldBowRowsInput;
 }
-export interface HeldBowDefinitionRows {
+export type HeldBowDefinitionRowsInput = { [Key in keyof HeldBowDefinitionRowsInputFields]: HeldBowDefinitionRowsInputFields[Key] };
+interface HeldBowDefinitionRowsFields {
     base: HeldBowBaseRows;
     bow: HeldBowRows;
 }
-export interface HeldBowFileRowsInput {
+export type HeldBowDefinitionRows = { [Key in keyof HeldBowDefinitionRowsFields]: HeldBowDefinitionRowsFields[Key] };
+interface HeldBowFileRowsInputFields {
     pool: {
         url: string;
         parts: (string)[];
@@ -1232,7 +1248,8 @@ export interface HeldBowFileRowsInput {
     bow: HeldBowRowsInput;
     base: HeldBowBaseRowsInput;
 }
-export interface HeldBowFileRows {
+export type HeldBowFileRowsInput = { [Key in keyof HeldBowFileRowsInputFields]: HeldBowFileRowsInputFields[Key] };
+interface HeldBowFileRowsFields {
     pool: {
         url: string;
         parts: (string)[];
@@ -1246,3 +1263,4 @@ export interface HeldBowFileRows {
     bow: HeldBowRows;
     base: HeldBowBaseRows;
 }
+export type HeldBowFileRows = { [Key in keyof HeldBowFileRowsFields]: HeldBowFileRowsFields[Key] };

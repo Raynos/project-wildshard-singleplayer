@@ -100,7 +100,7 @@ export interface HookPracticeLayout {
 
 /** Admitted data contracts, independent of validator implementation metadata. */
 export type PracticeSceneInput = PracticeScene;
-export interface PracticeScene {
+interface PracticeSceneFields {
     parts: (({
         kind: 'box';
         tone: 'grey' | 'orange' | 'dark' | 'light' | 'sand' | 'field';
@@ -246,8 +246,9 @@ export interface PracticeScene {
         }))[];
     };
 }
+export type PracticeScene = { [Key in keyof PracticeSceneFields]: PracticeSceneFields[Key] };
 export type PracticeControllerRowsInput = unknown;
-export interface PracticeControllerRows {
+interface PracticeControllerRowsFields {
     title: string;
     chip: string;
     piece: {
@@ -315,7 +316,8 @@ export interface PracticeControllerRows {
         };
     });
 }
-export interface RidingPracticeLayoutInput {
+export type PracticeControllerRows = { [Key in keyof PracticeControllerRowsFields]: PracticeControllerRowsFields[Key] };
+interface RidingPracticeLayoutInputFields {
     controller: PracticeControllerRowsInput;
     presentation: PracticeSceneInput;
     road: ([
@@ -369,7 +371,8 @@ export interface RidingPracticeLayoutInput {
         halfNotice: string;
     };
 }
-export interface RidingPracticeLayout {
+export type RidingPracticeLayoutInput = { [Key in keyof RidingPracticeLayoutInputFields]: RidingPracticeLayoutInputFields[Key] };
+interface RidingPracticeLayoutFields {
     controller: PracticeControllerRows;
     presentation: PracticeScene;
     road: ([
@@ -423,3 +426,4 @@ export interface RidingPracticeLayout {
         halfNotice: string;
     };
 }
+export type RidingPracticeLayout = { [Key in keyof RidingPracticeLayoutFields]: RidingPracticeLayoutFields[Key] };

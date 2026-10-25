@@ -88,7 +88,7 @@ export function parseBarterEconomy(input: unknown): BarterEconomy {
 
 /** Admitted data contracts, independent of validator implementation metadata. */
 export type ClaimedPickupRowsInput = ClaimedPickupRows;
-export interface ClaimedPickupRows {
+interface ClaimedPickupRowsFields {
     options: {
         tier?: 'common' | 'rare' | 'legendary';
         prompt?: string;
@@ -119,6 +119,7 @@ export interface ClaimedPickupRows {
     };
     toast?: string;
 }
+export type ClaimedPickupRows = { [Key in keyof ClaimedPickupRowsFields]: ClaimedPickupRowsFields[Key] };
 export type LootTablesRowsInput = LootTablesRows;
 export type LootTablesRows = ({
     id: string;
@@ -140,7 +141,7 @@ export type LootTablesRows = ({
         })[];
     };
 })[];
-export interface LootEconomyInput {
+interface LootEconomyInputFields {
     presentation?: v.InferInput<typeof LootPresentationSchema>;
     exchange?: v.InferInput<typeof ExchangeSchema>;
     pickups?: Record<string, ClaimedPickupRowsInput>;
@@ -171,7 +172,8 @@ export interface LootEconomyInput {
     finds: v.InferInput<typeof LootFindsSchema>;
     marks: v.InferInput<typeof LootMarksSchema>;
 }
-export interface LootEconomy {
+export type LootEconomyInput = { [Key in keyof LootEconomyInputFields]: LootEconomyInputFields[Key] };
+interface LootEconomyFields {
     presentation?: v.InferOutput<typeof LootPresentationSchema>;
     exchange?: v.InferOutput<typeof ExchangeSchema>;
     pickups?: Record<string, ClaimedPickupRows>;
@@ -202,7 +204,8 @@ export interface LootEconomy {
     finds: v.InferOutput<typeof LootFindsSchema>;
     marks: v.InferOutput<typeof LootMarksSchema>;
 }
-export interface BarterEconomyInput {
+export type LootEconomy = { [Key in keyof LootEconomyFields]: LootEconomyFields[Key] };
+interface BarterEconomyInputFields {
     kind: 'barter';
     goods: ({
         id: string;
@@ -215,7 +218,8 @@ export interface BarterEconomyInput {
     exchange: v.InferInput<typeof ExchangeSchema>;
     tables: LootTablesRowsInput;
 }
-export interface BarterEconomy {
+export type BarterEconomyInput = { [Key in keyof BarterEconomyInputFields]: BarterEconomyInputFields[Key] };
+interface BarterEconomyFields {
     kind: 'barter';
     goods: ({
         id: string;
@@ -228,3 +232,4 @@ export interface BarterEconomy {
     exchange: v.InferOutput<typeof ExchangeSchema>;
     tables: LootTablesRows;
 }
+export type BarterEconomy = { [Key in keyof BarterEconomyFields]: BarterEconomyFields[Key] };

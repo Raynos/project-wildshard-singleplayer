@@ -70,7 +70,7 @@ export const ModesSchema: v.GenericSchema<ModeRowsInput, ModeRows> = v.pipe(v.st
 export function parseModes(input: unknown): ModeRows { return v.parse(ModesSchema, input); }
 
 /** Admitted data contracts, independent of validator implementation metadata. */
-export interface ZiplineModeInput {
+interface ZiplineModeInputFields {
     kind: 'zipline';
     id: string;
     top: {
@@ -107,7 +107,8 @@ export interface ZiplineModeInput {
     drag?: number | undefined;
     maxSpeed?: number | undefined;
 }
-export interface ZiplineMode {
+export type ZiplineModeInput = { [Key in keyof ZiplineModeInputFields]: ZiplineModeInputFields[Key] };
+interface ZiplineModeFields {
     kind: 'zipline';
     id: string;
     top: {
@@ -144,7 +145,8 @@ export interface ZiplineMode {
     drag: number;
     maxSpeed: number;
 }
-export interface UpdraftModeInput {
+export type ZiplineMode = { [Key in keyof ZiplineModeFields]: ZiplineModeFields[Key] };
+interface UpdraftModeInputFields {
     kind: 'updraft';
     id: string;
     from: {
@@ -161,7 +163,8 @@ export interface UpdraftModeInput {
     margin?: number | undefined;
     lift: number;
 }
-export interface UpdraftMode {
+export type UpdraftModeInput = { [Key in keyof UpdraftModeInputFields]: UpdraftModeInputFields[Key] };
+interface UpdraftModeFields {
     kind: 'updraft';
     id: string;
     from: {
@@ -178,7 +181,8 @@ export interface UpdraftMode {
     margin: number;
     lift: number;
 }
-export interface LadderModeInput {
+export type UpdraftMode = { [Key in keyof UpdraftModeFields]: UpdraftModeFields[Key] };
+interface LadderModeInputFields {
     kind: 'ladder';
     id: string;
     bottom: {
@@ -203,7 +207,8 @@ export interface LadderModeInput {
     reach?: number | undefined;
     speed?: number | undefined;
 }
-export interface LadderMode {
+export type LadderModeInput = { [Key in keyof LadderModeInputFields]: LadderModeInputFields[Key] };
+interface LadderModeFields {
     kind: 'ladder';
     id: string;
     bottom: {
@@ -228,8 +233,9 @@ export interface LadderMode {
     reach: number;
     speed: number;
 }
+export type LadderMode = { [Key in keyof LadderModeFields]: LadderModeFields[Key] };
 export type CableProfileRowsInput = CableProfileRows;
-export interface CableProfileRows {
+interface CableProfileRowsFields {
     anchors: 'direct';
     start: number;
     release: number;
@@ -239,22 +245,26 @@ export interface CableProfileRows {
         velocity: number;
     };
 }
+export type CableProfileRows = { [Key in keyof CableProfileRowsFields]: CableProfileRowsFields[Key] };
 export type RideGaitsRowsInput = RideGaitsRows;
-export interface RideGaitsRows {
+interface RideGaitsRowsFields {
     walk: number;
     trot: number;
     canter: number;
     gallop: number;
 }
-export interface RideModeInput {
+export type RideGaitsRows = { [Key in keyof RideGaitsRowsFields]: RideGaitsRowsFields[Key] };
+interface RideModeInputFields {
     id: string;
     gaits: RideGaitsRowsInput;
 }
-export interface RideMode {
+export type RideModeInput = { [Key in keyof RideModeInputFields]: RideModeInputFields[Key] };
+interface RideModeFields {
     id: string;
     gaits: RideGaitsRows;
 }
-export interface GrappleModeInput {
+export type RideMode = { [Key in keyof RideModeFields]: RideModeFields[Key] };
+interface GrappleModeInputFields {
     id: string;
     minRange?: number | undefined;
     maxRange?: number | undefined;
@@ -265,7 +275,8 @@ export interface GrappleModeInput {
     windowX?: number | undefined;
     windowY?: number | undefined;
 }
-export interface GrappleMode {
+export type GrappleModeInput = { [Key in keyof GrappleModeInputFields]: GrappleModeInputFields[Key] };
+interface GrappleModeFields {
     id: string;
     minRange: number;
     maxRange: number;
@@ -276,15 +287,18 @@ export interface GrappleMode {
     windowX: number;
     windowY: number;
 }
+export type GrappleMode = { [Key in keyof GrappleModeFields]: GrappleModeFields[Key] };
 export type TraverseModeInput = (ZiplineModeInput) | (UpdraftModeInput) | (LadderModeInput);
 export type TraverseMode = (ZiplineMode) | (UpdraftMode) | (LadderMode);
-export interface ModeRowsInput {
+interface ModeRowsInputFields {
     ride?: (RideModeInput)[];
     grapple?: (GrappleModeInput)[];
     traverse?: (TraverseModeInput)[] | undefined;
 }
-export interface ModeRows {
+export type ModeRowsInput = { [Key in keyof ModeRowsInputFields]: ModeRowsInputFields[Key] };
+interface ModeRowsFields {
     ride?: (RideMode)[];
     grapple?: (GrappleMode)[];
     traverse: (TraverseMode)[];
 }
+export type ModeRows = { [Key in keyof ModeRowsFields]: ModeRowsFields[Key] };

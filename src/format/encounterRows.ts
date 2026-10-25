@@ -159,7 +159,7 @@ export const CloudSpecimenSchema: v.GenericSchema<CloudSpecimenRowsInput, CloudS
 
 
 /** Admitted data contracts, independent of validator implementation metadata. */
-export interface EncounterSitesRowsInput {
+interface EncounterSitesRowsInputFields {
     name: string;
     label: string;
     file: string;
@@ -182,7 +182,8 @@ export interface EncounterSitesRowsInput {
         tilt?: number | undefined;
     })[];
 }
-export interface EncounterSitesRows {
+export type EncounterSitesRowsInput = { [Key in keyof EncounterSitesRowsInputFields]: EncounterSitesRowsInputFields[Key] };
+interface EncounterSitesRowsFields {
     name: string;
     label: string;
     file: string;
@@ -205,8 +206,9 @@ export interface EncounterSitesRows {
         tilt: number;
     })[];
 }
+export type EncounterSitesRows = { [Key in keyof EncounterSitesRowsFields]: EncounterSitesRowsFields[Key] };
 export type EncounterPatrolRowsInput = EncounterPatrolRows;
-export interface EncounterPatrolRows {
+interface EncounterPatrolRowsFields {
     parameters: Record<string, number>;
     member: Record<string, number>;
     group: Record<string, number>;
@@ -239,8 +241,9 @@ export interface EncounterPatrolRows {
         target: string;
     };
 }
+export type EncounterPatrolRows = { [Key in keyof EncounterPatrolRowsFields]: EncounterPatrolRowsFields[Key] };
 export type EncounterSlotsRowsInput = EncounterSlotsRows;
-export interface EncounterSlotsRows {
+interface EncounterSlotsRowsFields {
     actors?: {
         kind: string;
         variant: string;
@@ -271,8 +274,9 @@ export interface EncounterSlotsRows {
         count: number;
     };
 }
+export type EncounterSlotsRows = { [Key in keyof EncounterSlotsRowsFields]: EncounterSlotsRowsFields[Key] };
 export type CoupledEncounterRowsInput = CoupledEncounterRows;
-export interface CoupledEncounterRows {
+interface CoupledEncounterRowsFields {
     initial: Record<string, number>;
     member: Record<string, number>;
     commit: Record<string, number>;
@@ -287,15 +291,17 @@ export interface CoupledEncounterRows {
         damage: string;
     };
 }
+export type CoupledEncounterRows = { [Key in keyof CoupledEncounterRowsFields]: CoupledEncounterRowsFields[Key] };
 export type EncounterScheduleRowsInput = EncounterScheduleRows;
-export interface EncounterScheduleRows {
+interface EncounterScheduleRowsFields {
     signal: string;
     initial: Record<string, number>;
     parameters: Record<string, number>;
     retain: Record<string, string>;
     outputs?: (string)[];
 }
-export interface ArenaEncounterRowsInput {
+export type EncounterScheduleRows = { [Key in keyof EncounterScheduleRowsFields]: EncounterScheduleRowsFields[Key] };
+interface ArenaEncounterRowsInputFields {
     frame: {
         signals: {
             step: string;
@@ -314,7 +320,8 @@ export interface ArenaEncounterRowsInput {
         hurt: string;
     })[];
 }
-export interface ArenaEncounterRows {
+export type ArenaEncounterRowsInput = { [Key in keyof ArenaEncounterRowsInputFields]: ArenaEncounterRowsInputFields[Key] };
+interface ArenaEncounterRowsFields {
     frame: {
         signals: {
             step: string;
@@ -333,7 +340,8 @@ export interface ArenaEncounterRows {
         hurt: string;
     })[];
 }
-export interface ArenaWhirlsRowsInput {
+export type ArenaEncounterRows = { [Key in keyof ArenaEncounterRowsFields]: ArenaEncounterRowsFields[Key] };
+interface ArenaWhirlsRowsInputFields {
     view: {
         source: string;
         slot: string;
@@ -397,7 +405,8 @@ export interface ArenaWhirlsRowsInput {
         ];
     };
 }
-export interface ArenaWhirlsRows {
+export type ArenaWhirlsRowsInput = { [Key in keyof ArenaWhirlsRowsInputFields]: ArenaWhirlsRowsInputFields[Key] };
+interface ArenaWhirlsRowsFields {
     view: {
         source: string;
         slot: string;
@@ -461,8 +470,9 @@ export interface ArenaWhirlsRows {
         ];
     };
 }
+export type ArenaWhirlsRows = { [Key in keyof ArenaWhirlsRowsFields]: ArenaWhirlsRowsFields[Key] };
 export type SlotViewRowsInput = SlotViewRows;
-export interface SlotViewRows {
+interface SlotViewRowsFields {
     cycle: {
         wake: string;
         dawn: string;
@@ -518,8 +528,9 @@ export interface SlotViewRows {
         look: string;
     };
 }
+export type SlotViewRows = { [Key in keyof SlotViewRowsFields]: SlotViewRowsFields[Key] };
 export type PatrolViewRowsInput = PatrolViewRows;
-export interface PatrolViewRows {
+interface PatrolViewRowsFields {
     looks: Record<string, string>;
     quietLook: string;
     quietScale: number;
@@ -588,8 +599,9 @@ export interface PatrolViewRows {
         };
     };
 }
+export type PatrolViewRows = { [Key in keyof PatrolViewRowsFields]: PatrolViewRowsFields[Key] };
 export type ArenaFireRowsInput = ArenaFireRows;
-export interface ArenaFireRows {
+interface ArenaFireRowsFields {
     flameLook: string;
     smokeLook: string;
     flameCount: number;
@@ -645,6 +657,7 @@ export interface ArenaFireRows {
         };
     };
 }
+export type ArenaFireRows = { [Key in keyof ArenaFireRowsFields]: ArenaFireRowsFields[Key] };
 export type TimedEncountersRowsInput = ({
     presentation: string;
     program: v.InferInput<typeof ReturnProgramSchema>;
@@ -714,7 +727,7 @@ export type EncounterMaterialRows = ({
     opacity: number;
     offset: number;
 });
-export interface CloudBodyRowsInput {
+interface CloudBodyRowsInputFields {
     scene: unknown;
     geometry: Record<string, unknown>;
     materials: Record<string, EncounterMaterialRowsInput>;
@@ -818,7 +831,8 @@ export interface CloudBodyRowsInput {
         ];
     };
 }
-export interface CloudBodyRows {
+export type CloudBodyRowsInput = { [Key in keyof CloudBodyRowsInputFields]: CloudBodyRowsInputFields[Key] };
+interface CloudBodyRowsFields {
     scene: unknown;
     geometry: Record<string, unknown>;
     materials: Record<string, EncounterMaterialRows>;
@@ -922,7 +936,8 @@ export interface CloudBodyRows {
         ];
     };
 }
-export interface ArenaSceneRowsInput {
+export type CloudBodyRows = { [Key in keyof CloudBodyRowsFields]: CloudBodyRowsFields[Key] };
+interface ArenaSceneRowsInputFields {
     scene: unknown;
     geometry: Record<string, unknown>;
     materials: Record<string, EncounterMaterialRowsInput>;
@@ -946,7 +961,8 @@ export interface ArenaSceneRowsInput {
         count: number;
     }>;
 }
-export interface ArenaSceneRows {
+export type ArenaSceneRowsInput = { [Key in keyof ArenaSceneRowsInputFields]: ArenaSceneRowsInputFields[Key] };
+interface ArenaSceneRowsFields {
     scene: unknown;
     geometry: Record<string, unknown>;
     materials: Record<string, EncounterMaterialRows>;
@@ -970,7 +986,8 @@ export interface ArenaSceneRows {
         count: number;
     }>;
 }
-export interface CloudSpecimenRowsInput {
+export type ArenaSceneRows = { [Key in keyof ArenaSceneRowsFields]: ArenaSceneRowsFields[Key] };
+interface CloudSpecimenRowsInputFields {
     name: string;
     phone: CloudBodyRowsInput;
     desktop: CloudBodyRowsInput;
@@ -982,7 +999,8 @@ export interface CloudSpecimenRowsInput {
         ];
     })>>;
 }
-export interface CloudSpecimenRows {
+export type CloudSpecimenRowsInput = { [Key in keyof CloudSpecimenRowsInputFields]: CloudSpecimenRowsInputFields[Key] };
+interface CloudSpecimenRowsFields {
     name: string;
     phone: CloudBodyRows;
     desktop: CloudBodyRows;
@@ -994,3 +1012,4 @@ export interface CloudSpecimenRows {
         ];
     })>>;
 }
+export type CloudSpecimenRows = { [Key in keyof CloudSpecimenRowsFields]: CloudSpecimenRowsFields[Key] };

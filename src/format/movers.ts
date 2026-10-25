@@ -180,13 +180,15 @@ export type MoverData = ({
     restoreFrom?: v.InferOutput<typeof MoverRestoreFromSchema>;
     input: (number)[];
 })[];
-export interface WorldMoversRowsInput {
+interface WorldMoversRowsInputFields {
     movers: MoverDataInput;
 }
-export interface WorldMoversRows {
+export type WorldMoversRowsInput = { [Key in keyof WorldMoversRowsInputFields]: WorldMoversRowsInputFields[Key] };
+interface WorldMoversRowsFields {
     movers: MoverData;
 }
-export interface MoverBakeInput {
+export type WorldMoversRows = { [Key in keyof WorldMoversRowsFields]: WorldMoversRowsFields[Key] };
+interface MoverBakeInputFields {
     capture: string;
     output?: 'typescript' | 'json' | undefined;
     execution?: 'native';
@@ -200,7 +202,8 @@ export interface MoverBakeInput {
         };
     })[];
 }
-export interface MoverBake {
+export type MoverBakeInput = { [Key in keyof MoverBakeInputFields]: MoverBakeInputFields[Key] };
+interface MoverBakeFields {
     capture: string;
     output: 'typescript' | 'json';
     execution?: 'native';
@@ -214,3 +217,4 @@ export interface MoverBake {
         };
     })[];
 }
+export type MoverBake = { [Key in keyof MoverBakeFields]: MoverBakeFields[Key] };

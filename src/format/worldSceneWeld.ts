@@ -586,7 +586,7 @@ export type WorldSceneWeldNode = ({
     until?: WorldSceneDistanceRows;
     castFrom?: WorldSceneDistanceRows;
 });
-export interface WorldSceneWeldMaterialRowsInput {
+interface WorldSceneWeldMaterialRowsInputFields {
     id: string;
     kind: 'standard' | 'basic';
     source?: {
@@ -598,7 +598,8 @@ export interface WorldSceneWeldMaterialRowsInput {
     blending?: 0 | 1 | 2 | 3 | 4 | 5;
     fog?: boolean;
 }
-export interface WorldSceneWeldMaterialRows {
+export type WorldSceneWeldMaterialRowsInput = { [Key in keyof WorldSceneWeldMaterialRowsInputFields]: WorldSceneWeldMaterialRowsInputFields[Key] };
+interface WorldSceneWeldMaterialRowsFields {
     id: string;
     kind: 'standard' | 'basic';
     source?: {
@@ -610,8 +611,9 @@ export interface WorldSceneWeldMaterialRows {
     blending?: 0 | 1 | 2 | 3 | 4 | 5;
     fog?: boolean;
 }
+export type WorldSceneWeldMaterialRows = { [Key in keyof WorldSceneWeldMaterialRowsFields]: WorldSceneWeldMaterialRowsFields[Key] };
 export type WorldSceneWeldInput = unknown;
-export interface WorldSceneWeld {
+interface WorldSceneWeldFields {
     id: string;
     root: string;
     result?: string;
@@ -651,8 +653,9 @@ export interface WorldSceneWeld {
         words: (number)[];
     }))[];
 }
+export type WorldSceneWeld = { [Key in keyof WorldSceneWeldFields]: WorldSceneWeldFields[Key] };
 export type WorldSceneWeldSourceRowsInput = WorldSceneWeldSourceRows;
-export interface WorldSceneWeldSourceRows {
+interface WorldSceneWeldSourceRowsFields {
     id: string;
     file: ((string) | ({
         phone: string;
@@ -669,3 +672,4 @@ export interface WorldSceneWeldSourceRows {
         });
     });
 }
+export type WorldSceneWeldSourceRows = { [Key in keyof WorldSceneWeldSourceRowsFields]: WorldSceneWeldSourceRowsFields[Key] };

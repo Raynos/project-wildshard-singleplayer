@@ -63,7 +63,7 @@ export function parseQuestFiguresDocument(input: unknown): QuestFiguresRows {
 }
 
 /** Admitted data contracts, independent of validator implementation metadata. */
-export interface QuestFigureRowsInput {
+interface QuestFigureRowsInputFields {
     id: string;
     kit: string;
     feet: {
@@ -134,7 +134,8 @@ export interface QuestFigureRowsInput {
         before: (string)[];
     };
 }
-export interface QuestFigureRows {
+export type QuestFigureRowsInput = { [Key in keyof QuestFigureRowsInputFields]: QuestFigureRowsInputFields[Key] };
+interface QuestFigureRowsFields {
     id: string;
     kit: string;
     feet: {
@@ -205,13 +206,15 @@ export interface QuestFigureRows {
         before: (string)[];
     };
 }
+export type QuestFigureRows = { [Key in keyof QuestFigureRowsFields]: QuestFigureRowsFields[Key] };
 export type QuestFiguresRowsInput = unknown;
-export interface QuestFiguresRows {
+interface QuestFiguresRowsFields {
     figures: (QuestFigureRows)[];
     group?: v.InferOutput<typeof FigureGroupSchema>;
 }
+export type QuestFiguresRows = { [Key in keyof QuestFiguresRowsFields]: QuestFiguresRowsFields[Key] };
 export type KitFigureCardsRowsInput = unknown;
-export interface KitFigureCardsRows {
+interface KitFigureCardsRowsFields {
     catalogue: string;
     draws: string;
     cards: Record<string, {
@@ -221,3 +224,4 @@ export interface KitFigureCardsRows {
         figure: QuestFigureRows;
     }>;
 }
+export type KitFigureCardsRows = { [Key in keyof KitFigureCardsRowsFields]: KitFigureCardsRowsFields[Key] };

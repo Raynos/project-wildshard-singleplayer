@@ -54,7 +54,7 @@ export function parseCollectionDisplays(value: unknown): v.InferOutput<typeof Co
 
 /** Admitted data contracts, independent of validator implementation metadata. */
 export type CollectionModelRowInput = CollectionModelRow;
-export interface CollectionModelRow {
+interface CollectionModelRowFields {
     id: string;
     name: string;
     objectName: string;
@@ -89,24 +89,27 @@ export interface CollectionModelRow {
         ]>;
     };
 }
+export type CollectionModelRow = { [Key in keyof CollectionModelRowFields]: CollectionModelRowFields[Key] };
 export type CollectionCardRowsInput = Pick<CollectionModelRowInput, 'id' | 'name' | 'file' | 'surface' | 'defaults' | 'variants'>;
 export type CollectionCardRows = Pick<CollectionModelRow, 'id' | 'name' | 'file' | 'surface' | 'defaults' | 'variants'>;
-export interface CollectionMountPackInput {
+interface CollectionMountPackInputFields {
     notice: string;
     url: string;
     sha256: string;
     rows: v.InferInput<typeof PackedGeometryRowsSchema>;
     slots: Record<string, number>;
 }
-export interface CollectionMountPack {
+export type CollectionMountPackInput = { [Key in keyof CollectionMountPackInputFields]: CollectionMountPackInputFields[Key] };
+interface CollectionMountPackFields {
     notice: string;
     url: string;
     sha256: string;
     rows: v.InferOutput<typeof PackedGeometryRowsSchema>;
     slots: Record<string, number>;
 }
+export type CollectionMountPack = { [Key in keyof CollectionMountPackFields]: CollectionMountPackFields[Key] };
 export type CollectionChalkInput = CollectionChalk;
-export interface CollectionChalk {
+interface CollectionChalkFields {
     size: [
         number,
         number
@@ -124,7 +127,8 @@ export interface CollectionChalk {
         number
     ]>;
 }
-export interface CollectionKeepsakesInput {
+export type CollectionChalk = { [Key in keyof CollectionChalkFields]: CollectionChalkFields[Key] };
+interface CollectionKeepsakesInputFields {
     floor: {
         poi: v.InferInput<(typeof AdventureContentSchema)['entries']['places']['item']['entries']['at']['entries']['poi']>;
         anchor: string;
@@ -169,7 +173,8 @@ export interface CollectionKeepsakesInput {
     })[];
     debugName: string;
 }
-export interface CollectionKeepsakes {
+export type CollectionKeepsakesInput = { [Key in keyof CollectionKeepsakesInputFields]: CollectionKeepsakesInputFields[Key] };
+interface CollectionKeepsakesFields {
     floor: {
         poi: v.InferOutput<(typeof AdventureContentSchema)['entries']['places']['item']['entries']['at']['entries']['poi']>;
         anchor: string;
@@ -214,11 +219,14 @@ export interface CollectionKeepsakes {
     })[];
     debugName: string;
 }
-export interface CollectionDisplaysRowsInput {
+export type CollectionKeepsakes = { [Key in keyof CollectionKeepsakesFields]: CollectionKeepsakesFields[Key] };
+interface CollectionDisplaysRowsInputFields {
     models: Record<string, CollectionModelRowInput>;
     keepsakes: CollectionKeepsakesInput;
 }
-export interface CollectionDisplaysRows {
+export type CollectionDisplaysRowsInput = { [Key in keyof CollectionDisplaysRowsInputFields]: CollectionDisplaysRowsInputFields[Key] };
+interface CollectionDisplaysRowsFields {
     models: Record<string, CollectionModelRow>;
     keepsakes: CollectionKeepsakes;
 }
+export type CollectionDisplaysRows = { [Key in keyof CollectionDisplaysRowsFields]: CollectionDisplaysRowsFields[Key] };

@@ -65,15 +65,16 @@ export const HeldFinishesSchema: v.GenericSchema<HeldFinishesRowsInput, HeldFini
 
 /** Admitted data contracts, independent of validator implementation metadata. */
 export type HeldFinishCardRowsInput = HeldFinishCardRows;
-export interface HeldFinishCardRows {
+interface HeldFinishCardRowsFields {
     id: string;
     name: string;
     blurb: string;
     lockedBlurb: string;
     icon: 'crossbow' | 'lever';
 }
+export type HeldFinishCardRows = { [Key in keyof HeldFinishCardRowsFields]: HeldFinishCardRowsFields[Key] };
 export type CosmeticFinishBindInput = CosmeticFinishBind;
-export interface CosmeticFinishBind {
+interface CosmeticFinishBindFields {
     claims: string;
     held: ({
         target: string;
@@ -95,7 +96,8 @@ export interface CosmeticFinishBind {
         styles: (string)[];
     };
 }
-export interface CosmeticFinishesRowsInput {
+export type CosmeticFinishBind = { [Key in keyof CosmeticFinishBindFields]: CosmeticFinishBindFields[Key] };
+interface CosmeticFinishesRowsInputFields {
     menu?: {
         title: string;
     };
@@ -218,7 +220,8 @@ export interface CosmeticFinishesRowsInput {
         })[];
     })[];
 }
-export interface CosmeticFinishesRows {
+export type CosmeticFinishesRowsInput = { [Key in keyof CosmeticFinishesRowsInputFields]: CosmeticFinishesRowsInputFields[Key] };
+interface CosmeticFinishesRowsFields {
     menu?: {
         title: string;
     };
@@ -341,7 +344,8 @@ export interface CosmeticFinishesRows {
         })[];
     })[];
 }
-export interface HeldFinishesRowsInput {
+export type CosmeticFinishesRows = { [Key in keyof CosmeticFinishesRowsFields]: CosmeticFinishesRowsFields[Key] };
+interface HeldFinishesRowsInputFields {
     cosmetics?: CosmeticFinishesRowsInput;
     source?: {
         url: string;
@@ -374,7 +378,8 @@ export interface HeldFinishesRowsInput {
         materials: (string)[];
     })[]>;
 }
-export interface HeldFinishesRows {
+export type HeldFinishesRowsInput = { [Key in keyof HeldFinishesRowsInputFields]: HeldFinishesRowsInputFields[Key] };
+interface HeldFinishesRowsFields {
     cosmetics?: CosmeticFinishesRows;
     source?: {
         url: string;
@@ -407,3 +412,4 @@ export interface HeldFinishesRows {
         materials: (string)[];
     })[]>;
 }
+export type HeldFinishesRows = { [Key in keyof HeldFinishesRowsFields]: HeldFinishesRowsFields[Key] };

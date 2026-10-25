@@ -105,7 +105,7 @@ export function parseEliteEntryPageRows(input: unknown): EliteEntryPageRows {
 }
 
 /** Admitted data contracts, independent of validator implementation metadata. */
-export interface EliteEntryRowsInput {
+interface EliteEntryRowsInputFields {
     version: 1;
     id: v.InferInput<typeof HandleIdSchema>;
     ui: v.InferInput<typeof HandleIdSchema>;
@@ -201,7 +201,8 @@ export interface EliteEntryRowsInput {
         });
     })[];
 }
-export interface EliteEntryRows {
+export type EliteEntryRowsInput = { [Key in keyof EliteEntryRowsInputFields]: EliteEntryRowsInputFields[Key] };
+interface EliteEntryRowsFields {
     version: 1;
     id: v.InferOutput<typeof HandleIdSchema>;
     ui: v.InferOutput<typeof HandleIdSchema>;
@@ -297,7 +298,8 @@ export interface EliteEntryRows {
         });
     })[];
 }
-export interface EliteEntryPageRowsInput {
+export type EliteEntryRows = { [Key in keyof EliteEntryRowsFields]: EliteEntryRowsFields[Key] };
+interface EliteEntryPageRowsInputFields {
     entry: EliteEntryRowsInput;
     actions: v.InferInput<typeof EliteOutputActionsSchema>;
     profiles: ({
@@ -321,7 +323,8 @@ export interface EliteEntryPageRowsInput {
         variant: v.InferInput<typeof HandleIdSchema>;
     })[];
 }
-export interface EliteEntryPageRows {
+export type EliteEntryPageRowsInput = { [Key in keyof EliteEntryPageRowsInputFields]: EliteEntryPageRowsInputFields[Key] };
+interface EliteEntryPageRowsFields {
     entry: EliteEntryRows;
     actions: v.InferOutput<typeof EliteOutputActionsSchema>;
     profiles: ({
@@ -345,3 +348,4 @@ export interface EliteEntryPageRows {
         variant: v.InferOutput<typeof HandleIdSchema>;
     })[];
 }
+export type EliteEntryPageRows = { [Key in keyof EliteEntryPageRowsFields]: EliteEntryPageRowsFields[Key] };

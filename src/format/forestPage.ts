@@ -57,7 +57,7 @@ export const LivingPageSitesSchema: v.GenericSchema<LivingPageSitesRowsInput, Li
 
 /** Admitted data contracts, independent of validator implementation metadata. */
 export type ForestPageRowsInput = unknown;
-export interface ForestPageRows {
+interface ForestPageRowsFields {
     water: v.InferOutput<typeof PageWaterBindingSchema>;
     treeLooks: ({
         look: string;
@@ -173,15 +173,18 @@ export interface ForestPageRows {
         tier?: 'phone' | 'desktop';
     }))[];
 }
-export interface ForestGroundLayoutInput {
+export type ForestPageRows = { [Key in keyof ForestPageRowsFields]: ForestPageRowsFields[Key] };
+interface ForestGroundLayoutInputFields {
     counts: (number)[];
     layout: Record<string, (GroundPlacementInput)[]>;
 }
-export interface ForestGroundLayout {
+export type ForestGroundLayoutInput = { [Key in keyof ForestGroundLayoutInputFields]: ForestGroundLayoutInputFields[Key] };
+interface ForestGroundLayoutFields {
     counts: (number)[];
     layout: Record<string, (GroundPlacement)[]>;
 }
-export interface LivingPageInputRowsInput {
+export type ForestGroundLayout = { [Key in keyof ForestGroundLayoutFields]: ForestGroundLayoutFields[Key] };
+interface LivingPageInputRowsInputFields {
     graph: v.InferInput<typeof WorldSceneWeldSchema>;
     life: v.InferInput<typeof BuildingLifeRowsSchema>;
     geometry: ({
@@ -193,7 +196,8 @@ export interface LivingPageInputRowsInput {
         };
     })[];
 }
-export interface LivingPageInputRows {
+export type LivingPageInputRowsInput = { [Key in keyof LivingPageInputRowsInputFields]: LivingPageInputRowsInputFields[Key] };
+interface LivingPageInputRowsFields {
     graph: v.InferOutput<typeof WorldSceneWeldSchema>;
     life: v.InferOutput<typeof BuildingLifeRowsSchema>;
     geometry: ({
@@ -205,8 +209,9 @@ export interface LivingPageInputRows {
         };
     })[];
 }
+export type LivingPageInputRows = { [Key in keyof LivingPageInputRowsFields]: LivingPageInputRowsFields[Key] };
 export type LivingPageSitesRowsInput = LivingPageSitesRows;
-export interface LivingPageSitesRows {
+interface LivingPageSitesRowsFields {
     buildings: ({
         id: string;
         index: number;
@@ -221,6 +226,7 @@ export interface LivingPageSitesRows {
         d: number;
     })[];
 }
+export type LivingPageSitesRows = { [Key in keyof LivingPageSitesRowsFields]: LivingPageSitesRowsFields[Key] };
 export type GroundPlacementInput = GroundPlacement;
 export type GroundPlacement = {
     nx: number;

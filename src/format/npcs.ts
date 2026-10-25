@@ -148,7 +148,7 @@ export function questNpcBindingRules(rows: readonly (QuestNpcBinding | QuestNpcT
 
 /** Admitted data contracts, independent of validator implementation metadata. */
 export type NpcDialogueRowInput = NpcDialogueRow;
-export interface NpcDialogueRow {
+interface NpcDialogueRowFields {
     id: string;
     name: string;
     dialogue: ({
@@ -161,8 +161,9 @@ export interface NpcDialogueRow {
         sets?: (string)[];
     })[];
 }
+export type NpcDialogueRow = { [Key in keyof NpcDialogueRowFields]: NpcDialogueRowFields[Key] };
 export type QuestPageTalksRowsInput = QuestPageTalksRows;
-export interface QuestPageTalksRows {
+interface QuestPageTalksRowsFields {
     models: (({
         source: 'catalogue';
         id: string;
@@ -191,8 +192,9 @@ export interface QuestPageTalksRows {
     })>;
     steps?: unknown;
 }
+export type QuestPageTalksRows = { [Key in keyof QuestPageTalksRowsFields]: QuestPageTalksRowsFields[Key] };
 export type NpcMotionInput = NpcMotion;
-export interface NpcMotion {
+interface NpcMotionFields {
     turns: boolean;
     waveUntilMet: boolean;
     ease: number;
@@ -303,7 +305,8 @@ export interface NpcMotion {
         ]);
     };
 }
-export interface NpcRowInput {
+export type NpcMotion = { [Key in keyof NpcMotionFields]: NpcMotionFields[Key] };
+interface NpcRowInputFields {
     id: string;
     name: string;
     spot: string;
@@ -361,7 +364,8 @@ export interface NpcRowInput {
     motion?: NpcMotionInput;
     dialogue: v.InferInput<(typeof dialogue)['entries']['dialogue']>;
 }
-export interface NpcRow {
+export type NpcRowInput = { [Key in keyof NpcRowInputFields]: NpcRowInputFields[Key] };
+interface NpcRowFields {
     id: string;
     name: string;
     spot: string;
@@ -419,7 +423,8 @@ export interface NpcRow {
     motion?: NpcMotion;
     dialogue: v.InferOutput<(typeof dialogue)['entries']['dialogue']>;
 }
-export interface QuestNpcBindingInput {
+export type NpcRow = { [Key in keyof NpcRowFields]: NpcRowFields[Key] };
+interface QuestNpcBindingInputFields {
     npc: NpcRowInput;
     label: string;
     system: string;
@@ -436,7 +441,8 @@ export interface QuestNpcBindingInput {
     missing: 'omit' | 'anchor';
     update: 'loaded' | 'always';
 }
-export interface QuestNpcBinding {
+export type QuestNpcBindingInput = { [Key in keyof QuestNpcBindingInputFields]: QuestNpcBindingInputFields[Key] };
+interface QuestNpcBindingFields {
     npc: NpcRow;
     label: string;
     system: string;
@@ -453,7 +459,8 @@ export interface QuestNpcBinding {
     missing: 'omit' | 'anchor';
     update: 'loaded' | 'always';
 }
-export interface QuestNpcTalkBindingInput {
+export type QuestNpcBinding = { [Key in keyof QuestNpcBindingFields]: QuestNpcBindingFields[Key] };
+interface QuestNpcTalkBindingInputFields {
     kind: 'posed-talk';
     npc: NpcDialogueRowInput;
     figure: string;
@@ -494,7 +501,8 @@ export interface QuestNpcTalkBindingInput {
         };
     };
 }
-export interface QuestNpcTalkBinding {
+export type QuestNpcTalkBindingInput = { [Key in keyof QuestNpcTalkBindingInputFields]: QuestNpcTalkBindingInputFields[Key] };
+interface QuestNpcTalkBindingFields {
     kind: 'posed-talk';
     npc: NpcDialogueRow;
     figure: string;
@@ -535,3 +543,4 @@ export interface QuestNpcTalkBinding {
         };
     };
 }
+export type QuestNpcTalkBinding = { [Key in keyof QuestNpcTalkBindingFields]: QuestNpcTalkBindingFields[Key] };
