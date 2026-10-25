@@ -1,6 +1,6 @@
 import { parsePrivateScene } from '@wildshard/format/clientChannels';
 import { QUEST_NPC } from './questNpc';
-import { nameBlob } from '@wildshard/sdk/blobs';
+import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import type { SceneModelSource, SceneBakeSource } from '@wildshard/game/shardfile/sceneSources';
 import * as files from './fileInventory';
 import { SKY_AO_FLOOR } from './modelFrames';
@@ -39,6 +39,10 @@ const baked = { rows: bakeRows, urls: files.BAKED_URLS,
   placements: { rows: world.pieces as readonly WorldPieceRow[], colliders: fixed.standalone.fixed.colliders },
   materialLibrary: 'sky', attributes: { _shk: 'aShk', _farcloth: 'aFarCloth' } } satisfies SceneBakeSource;
 const json = (name: string, rows: unknown) => nameBlob(name, 'json', new TextEncoder().encode(JSON.stringify(rows)));
-export const SKY_SOURCE_BLOBS = [json('world/sources/sky.json', sky), json('world/sources/heroes.json', hero), json('world/sources/bakes.json', baked)];
+/** Retain the complete native library while the caller supplies its owned geometry identity. */
+export function skyHeroSource(geometry: string): NamedBlob {
+  return json('world/sources/heroes.json', { ...hero, rows: { ...hero.rows, geometryPools: [{ ...heroes.pool, url: geometry }] } });
+}
+export const SKY_SOURCE_BLOBS = [json('world/sources/sky.json', sky), skyHeroSource(heroes.pool.url), json('world/sources/bakes.json', baked)];
 export const SKY_SOURCE_LIBRARIES = [{ id: 'sky', kind: 'models', file: 'world/sources/sky.json' },
   { id: 'heroes', kind: 'models', file: 'world/sources/heroes.json' }, { id: 'bakes', kind: 'baked', file: 'world/sources/bakes.json' }] as const;

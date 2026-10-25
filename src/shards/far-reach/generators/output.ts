@@ -3,7 +3,7 @@ import { skyPaintedPresentation, SKY_PAINTED_ATTRIBUTE_SOURCES } from './painted
 import { FAN_ID } from './rows/items';
 import { parseExplorerCatalogue } from '@wildshard/format/explorerCatalogue';
 import { SKY_SCENE_BLOBS, SKY_WORLD_SCENES } from './worldScenes';
-import { emitNamedBlobs } from '@wildshard/sdk/blobs';
+import { emitNamedBlobs, nameBlob } from '@wildshard/sdk/blobs';
 import STRINGS from '../data/strings.json' with { type: 'json' };
 import { SKY_PAGE_PROGRAM } from './rows/population';
 import { SKY_GUST_TARGETS } from './gustTargets';
@@ -14,6 +14,9 @@ import { ROC_STRIKES } from './rows/brains';
 import type { ProjectOutput } from '@wildshard/sdk/projectOutput';
 import { SKY_NATIVE_WORLD } from './rows/nativeWorld';
 import baked from '../data/physics.generated.json' with { type: 'json' };
+import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import { preparedModelProgram } from './preparedModelProgram';
+import { skyHeroSource } from './sceneSources';
 
 /** Build-only declarations; the compiled client features own all presentation. */
 const sources = emitNamedBlobs(SKY_SCENE_BLOBS);
@@ -29,3 +32,14 @@ export const output = { blobs:SKY_PAINTED_ATTRIBUTE_SOURCES,namedFiles: sources.
     ['sim/scripts', ROC_DECISION], ['actors/moves', ROC_MOVES], ['actors/strikes', ROC_STRIKES], ['world/targets', { targets: SKY_GUST_TARGETS, spots: ROC_WORLD_TARGETS.spots }],
   ])),
 } satisfies ProjectOutput;
+
+/** Publish the original prepared geometry through normal named-file admission and native pool resolution. */
+export async function prepareOutput(ctx: ProjectGenerationContext): Promise<typeof output> {
+  const name = 'world/geometry/prepared-models.glb';
+  const geometry = nameBlob(name, 'glb', await preparedModelProgram(ctx)), hero = skyHeroSource(name);
+  const previous = output.namedFiles.find(file => file.name === hero.file.name);
+  if (previous === undefined) throw new Error('Missing original hero library output');
+  const assets = new Map(output.assets);
+  assets.delete(previous.hash); assets.set(geometry.file.hash, geometry.bytes); assets.set(hero.file.hash, hero.bytes);
+  return { ...output, namedFiles: [...output.namedFiles.map(file => file.name === hero.file.name ? hero.file : file), geometry.file], assets };
+}
