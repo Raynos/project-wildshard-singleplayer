@@ -9,7 +9,7 @@ import { resolve, dirname } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Give the fixture its actual admitted hashes.
 import { createHash } from 'node:crypto';
 import { sceneSourceUrls, homeExtraFiles } from '../vite/bootExtras';
-import { productDownloadTotal } from '../vite/bootProducts';
+import { homeClientModuleGroups, productDownloadTotal } from '../vite/bootProducts';
 
 test('lists exactly the model reader preloads, deduplicating URLs and excluding unused mappings/specimen metadata', () => {
   expect(sceneSourceUrls('models', { rows: {
@@ -80,6 +80,7 @@ test('a real emitted image and admitted source produce only the selected home ba
       sections, schemas: [], files: [{ name: 'source.json', kind: 'json', path: sourcePath, hash, compressed: Buffer.byteLength(models), decoded: Buffer.byteLength(models), gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: false },
         { name: 'geometry/rigs/body.glb', kind: 'glb', path: rigPath, hash: rigHash, compressed: rig.length, decoded: rig.length, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: false }], runtime: null };
     writeFileSync(resolve(root, 'out/home/shard.json'), JSON.stringify(index));
+    expect(homeClientModuleGroups(root, 'home')).toContain('models.gltf');
     const result = await build({ root, configFile: false, logLevel: 'silent', plugins: [bootModulesPlugin()], build: { write: false, assetsInlineLimit: 0, cssCodeSplit: false } });
     if (Array.isArray(result) || !('output' in result)) throw new Error('Missing fixture bundle');
     const bundle = Object.fromEntries(result.output.map(file => [file.fileName, file]));
@@ -103,7 +104,22 @@ test('a real emitted image and admitted source produce only the selected home ba
     writeFileSync(resolve(root, 'out/home/shard.json'), JSON.stringify(withoutRig));
     expect(() => homeExtraFiles(root, 'home', bundle, 0)).toThrow('Unsafe boot source URL');
     writeFileSync(resolve(root, 'out/home/shard.json'), JSON.stringify(index));
+    const native = JSON.stringify({ rows: { meshes: [], meshUrls: {}, hd: [], hdUrls: {},
+      geometryPools: [{ url: 'geometry/rigs/body.glb', parts: ['body'], native: { first: true } }],
+      rigs: { bodies: { creatures: ['body'], urls: { body: 'geometry/rigs/body.glb' } } }, rigLoad: 'manual' } });
+    writeFileSync(resolve(root, 'out/home', sourcePath), native);
+    const nativeIndex = { ...index, files: [{ ...index.files[0], name: 'source.json', kind: 'json', path: sourcePath,
+      compressed: Buffer.byteLength(native), decoded: Buffer.byteLength(native), hash: createHash('sha256').update(native).digest('hex') }] };
+    writeFileSync(resolve(root, 'out/home/shard.json'), JSON.stringify(nativeIndex));
+    expect(homeClientModuleGroups(root, 'home')).toContain('models.gltf');
+    const manual = JSON.stringify({ rows: { meshes: [], hd: [], rigs: { bodies: { creatures: ['body'] } }, rigLoad: 'manual' } });
+    writeFileSync(resolve(root, 'out/home', sourcePath), manual);
+    writeFileSync(resolve(root, 'out/home/shard.json'), JSON.stringify({ ...nativeIndex, files: [{ ...nativeIndex.files[0],
+      compressed: Buffer.byteLength(manual), decoded: Buffer.byteLength(manual), hash: createHash('sha256').update(manual).digest('hex') }] }));
+    expect(homeClientModuleGroups(root, 'home')).not.toContain('models.gltf');
+    writeFileSync(resolve(root, 'out/home/shard.json'), JSON.stringify(index));
     writeFileSync(resolve(root, 'out/home', sourcePath), '{}');
+    expect(() => homeClientModuleGroups(root, 'home')).toThrow('differs from its index');
     expect(() => homeExtraFiles(root, 'home', bundle, 0)).toThrow('differs from its index');
   } finally { rmSync(root, { recursive: true, force: true }); }
 });

@@ -43,6 +43,20 @@ export function sceneSourceUrls(kind: 'models' | 'baked', input: unknown): reado
   return [...new Set(urls)];
 }
 
+/** Match eager model-library reads, including native pools. Empty libraries
+ * and manually requested rigs do not need the parser at world intake. */
+export function sceneSourceUsesGltf(input: unknown): boolean {
+  const rows = object(field(object(input), 'rows'));
+  if (array(field(rows, 'meshes')).length > 0 || array(field(rows, 'hd')).length > 0 || array(field(rows, 'paintedModels') ?? []).length > 0) return true;
+  for (const value of array(field(rows, 'geometryPools') ?? [])) {
+    const pool = object(value);
+    if (array(field(pool, 'parts')).length > 0 || array(field(pool, 'atlases') ?? []).length > 0) return true;
+  }
+  const rigs = field(rows, 'rigs');
+  if (rigs === undefined || field(rows, 'rigLoad') === 'manual') return false;
+  return array(field(object(field(object(rigs), 'bodies')), 'creatures')).length > 0;
+}
+
 /** Shipped, data-only page inventory. The full bank is a per-home asset, never
  * all shards' file lists in the document. Original runtime admission is unchanged. */
 export function homeExtraFiles(root: string, directory: string, bundle: Bundle, inlineLimit = 4096): Files | null {
