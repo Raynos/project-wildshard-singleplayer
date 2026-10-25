@@ -94,8 +94,13 @@ it('keeps the current saved-file detail instead of an outer zero-file admission 
     expect(foot()).toContain('Now working on: Product admission · Checking saved 0123456789ab');
     expect(foot()).not.toContain('Admit product');
     expect(loading.root.dataset['filesInFlight']).toBe('0');
-    waits.push(waitFor('Read /product/blob.bin', pending, 'file'));
+    waits.push(waitFor('Hash 0123456789ab', pending, 'worker'));
     now = 700; vi.advanceTimersByTime(32);
+    expect(foot()).toContain('Now waiting for: Hash 0123456789ab');
+    expect(foot()).not.toContain('0 files in flight');
+    expect(loading.root.dataset['filesInFlight']).toBe('0');
+    waits.push(waitFor('Read /product/blob.bin', pending, 'file'));
+    now = 1000; vi.advanceTimersByTime(32);
     expect(foot()).toContain('Now waiting for: Read /product/blob.bin');
     expect(foot()).toContain('1 files in flight');
   } finally { finish(); await Promise.all(waits); loading.scope.dispose(); }
