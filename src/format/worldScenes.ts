@@ -41,8 +41,9 @@ const poolParts = (files: readonly { readonly tier?: 'phone' | 'desktop'; readon
 type PoolFile = Extract<v.InferOutput<typeof library>, { kind: 'pool' }>['files'][number];
 const poolChannels = (files: readonly PoolFile[]): boolean => files.every(file => {
   const channels = file.channels ?? [];
+  const parts = new Set(file.parts);
   return new Set(channels.map(row => row.name)).size === channels.length && new Set(channels.map(row => row.source)).size === channels.length
-    && channels.every(row => row.parts === undefined || new Set(row.parts).size === row.parts.length && row.parts.every(part => file.parts.includes(part)));
+    && channels.every(row => row.parts === undefined || new Set(row.parts).size === row.parts.length && row.parts.every(part => parts.has(part)));
 });
 const material = v.variant('kind', [WorldSceneSurfaceSchema,
   v.strictObject({ id, kind: v.literal('source'), load: v.optional(v.picklist(['resident', 'placement']), 'resident'), url: id, publishObject: v.exactOptional(id), aliases: v.optional(v.record(id, id), {}), part: v.optional(v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(127)), 0),

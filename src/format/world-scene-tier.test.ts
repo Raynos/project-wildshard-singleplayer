@@ -53,3 +53,18 @@ test('admits product instance packets and tier-selected channel pools', () => {
   expect(() => parseWorldScenes(scenes([{ part: 'm', name: 'aWin', width: 4, packet: packet(2) }]))).toThrow();
   expect(() => parseWorldScenes(scenes([], [{ file: 'a.glb', parts: ['x'] }, { file: 'b.glb', tier: 'phone', parts: ['x'] }]))).toThrow();
 });
+
+test('validates complete bounded pool channel membership and still refuses foreign or duplicate names', () => {
+  const parts = Array.from({length: 128}, (_, index) => `part${index}`);
+  const file = {file: 'all.glb', parts, channels: Array.from({length: 16}, (_, index) => ({
+    name: `channel${index}`, source: `_channel${index}`, width: 3, parts: [...parts],
+  }))};
+  const scenes = (input: unknown) => ({version: 1, materials: [], steps: [], libraries: [{id: 'all', kind: 'pool', files: [input]}]});
+  const parsed = parseWorldScenes(scenes(file)), library = parsed.libraries[0];
+  expect(library?.kind === 'pool' && library.files).toEqual([file]);
+  const foreign = structuredClone(file), duplicate = structuredClone(file), repeatedName = structuredClone(file), repeatedSource = structuredClone(file);
+  const last = foreign.channels[15], doubled = duplicate.channels[15], name = repeatedName.channels[15], source = repeatedSource.channels[15];
+  if (last === undefined || doubled === undefined || name === undefined || source === undefined) throw new Error('Incomplete channel fixture');
+  last.parts[127] = 'foreign'; doubled.parts[127] = 'part0'; name.name = 'channel0'; source.source = '_channel0';
+  for (const invalid of [foreign, duplicate, repeatedName, repeatedSource]) expect(() => parseWorldScenes(scenes(invalid))).toThrow();
+});
