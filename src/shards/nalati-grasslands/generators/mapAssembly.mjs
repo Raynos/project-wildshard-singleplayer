@@ -90,4 +90,11 @@ export async function nalatiMapAssembly() {
   return { assembly, native };
 }
 
-if (import.meta.main) { const { assembly } = await nalatiMapAssembly(); assembly.write(resolve(base, 'data/mapAssembly.generated')); }
+/** Native map painting consumes owned bytes, without a source-file handoff. */
+export async function nalatiMapFiles() {
+  const { assembly } = await nalatiMapAssembly();
+  try {
+    const { json, binary } = assembly.encode();
+    return new Map([['map/assembly.json', json], ['map/geometry.bin', binary]]);
+  } finally { for (const shape of assembly.shapes) { shape.geometry.dispose(); shape.material.dispose(); } }
+}

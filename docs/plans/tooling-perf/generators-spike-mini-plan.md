@@ -123,13 +123,23 @@ in `public/assets/<slug>/` as real `.glb` / `.png` / `.ktx2` / `.bin`. App-wide 
 | GR3 | in flight (2026-10-24, sp-x1): **Nine** (28 jobs at claim; 4 remain): direct row, physics and schema calls replace imports; `castHook` / `lightSpill` become cached `.glb` / `.bin`; dead `paintArray` retires (G416, closes B4); atlases per D2; its tests call functions | L | 0 Nine rows in the catalogue, 0 `*.generated.*` under its folder, product validates, boot smoke green |
 | GR4 | **done (2026-10-25, sp-x6): Sunscar** (23 → 0). All jobs and modern shard-source handoffs retired with original byte/product parity. Exact `743e56f784` full preview and official 12-case boot smoke pass; five byte-exact frozen legacy world assets (380,964 B) stay held for LD. | M | same bar |
 | GR5 | **Far Reach** (47) | L | same bar |
-| GR6 | **Nalati** (47; 69 product imports, `poiPaint` / `grass` / `geography`) | L | same bar |
+| GR6 | **in flight (2026-10-25, sp-x6): Nalati** (54 at claim; 53 after map assembly). Direct owned map bytes replace the largest source handoff; preserve native geometry/image oracles, then largest remaining producer first. | L | same bar |
 | GR7 | **Driftwood** (41; chain of 5, `rockScenes` / `mapAssembly` number arrays) | L | same bar |
 | GR8 | **Pine** (60; HDRI keys and painted per D2) | XL | same bar |
 | GR9 | Small shards (ink-cel, blender-template, open-plots) and the 5 shared `scripts/bake-*` (pickups, textures, terrain, schemas) as game functions | M | catalogue empty |
 | GR10 | Runtime: the 7 runtime / plugin imports of outputs read shardfile sections | M | no runtime file imports a step output |
 | GR11 | App tables to virtual modules (D4): starter tables, slugs, discovery, boot tables, budgets | M | no `*.generated.*` anywhere under `src/` |
 | GR12 | Delete `generation-jobs.json`, `generate.mjs`, the `generation-*` helpers, the `*.d.json.ts` shims and the generated `.gitignore` lines; burn-down lists empty | M | the files are gone and both bans have no exceptions |
+
+### GR6 current ≤ 1 h slices (G711)
+
+| Slice | Status | Boundary |
+|---|---|---|
+| Map assembly reader/retirement | done | Retire `nalati-map-assembly` (54 → 53) and its two handoffs (17,993,434 B). The existing builder returns owned canonical JSON/compressed geometry through `MapAssembly.encode`; the painter consumes those bytes directly. All original assembly bytes and complete native WebP (724,014 B, 9,230,092 triangles) match, including all three terrain GLBs. Real sealed omitted-helper and missing-geometry controls refuse; actual upstream roots/dependencies and the existing native terrain loader stay explicit. Seven focused cases, touched shard/fixture types and scoped typed lint pass; isolated actual restoration passes in 11.88 s with both handoffs absent. No new host, SDK API, look or collider change. |
+| Places source/cache | open | Next largest remaining output; source construction/cache preparation before reader adoption and single-job retirement. |
+| Places reader/retirement | open | Exact original scene/model bytes and consumer order, sealed roots in the same commit; then one scoped cold product proof. |
+| Remaining largest-first jobs | open | Split each next producer into ≤ 1 h source/cache, consumer and retirement slices as needed; one retired job per commit. |
+| Built milestone | open | Zero catalogue rows/source handoffs, original complete admitted product and native witness parity, one full preview and official boot smoke. Frozen legacy-held assets remain untouched. |
 
 ### GR4 current ≤ 1 h slices (G711)
 

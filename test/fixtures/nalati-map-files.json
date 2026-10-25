@@ -1,0 +1,17 @@
+[
+  {
+    "path": "src/shards/nalati-grasslands/data/mapAssembly.generated.json",
+    "bytes": 9109181,
+    "hash": "26df76fb2769dc636b55a8f463924ad2b3fabb511ba2308e7b98a24ae46d6022"
+  },
+  {
+    "path": "src/shards/nalati-grasslands/data/mapAssembly.generated.bin",
+    "bytes": 8884253,
+    "hash": "1745adc544c52a047aec20975770c9a2ff3a71f861650df243152c2a568b4b2e"
+  },
+  {
+    "path": "public/assets/nalati-grasslands/map/top.webp",
+    "bytes": 724014,
+    "hash": "7723ca9f1b7415875270ca247bf5ab2279af649f87b3d3428fb2fd779bc29d8c"
+  }
+]

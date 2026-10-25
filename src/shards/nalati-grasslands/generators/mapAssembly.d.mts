@@ -3,3 +3,6 @@ import type { BakedGrid } from '@wildshard/format/bakedTerrainBytes';
 
 export function nalatiMapAssembly(): Promise<{ assembly: MapAssembly; native: BakedGrid }>;
 export function readNalatiMapPlaces(directory?: string): unknown;
+
+/** Owned canonical scene and compressed geometry bytes for the native painter. */
+export function nalatiMapFiles(): Promise<ReadonlyMap<string, Uint8Array>>;

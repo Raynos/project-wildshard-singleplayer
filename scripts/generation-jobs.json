@@ -14130,63 +14130,17 @@
       ]
     },
     {
-      "id": "nalati-map-assembly",
-      "shard": "nalati-grasslands",
-      "entry": "src/shards/nalati-grasslands/generators/mapAssembly.mjs",
-      "command": [
-        "--import",
-        "./scripts/bake-loader.mjs",
-        "src/shards/nalati-grasslands/generators/mapAssembly.mjs"
-      ],
-      "inputRoots": [
-        "src/engine",
-        "src/game",
-        "src/sdk",
-        "src/commons",
-        "src/format",
-        "src/shards/nalati-grasslands",
-        "public/assets/nalati/baked",
-        "public/assets/baked/nalati-grasslands/terrain.bin",
-        "scripts/map-world.mjs",
-        "scripts/map-painter.mjs",
-        "scripts/bake-loader.mjs",
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "scripts/map-geometry.mjs"
-      ],
-      "outputs": [
-        "src/shards/nalati-grasslands/data/mapAssembly.generated.json",
-        "src/shards/nalati-grasslands/data/mapAssembly.generated.bin"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/nalati-grasslands/data/mapAssembly.generated.json",
-        "src/shards/nalati-grasslands/data/mapAssembly.generated.bin"
-      ],
-      "platform": "portable",
-      "catalogueDependencies": [
-        "nalati-place-runtime",
-        "nalati-decorative",
-        "nalati-poi-paint",
-        "nalati-crags",
-        "nalati-spruce",
-        "camp-specimen-catalogue"
-      ]
-    },
-    {
       "id": "nalati-data-map",
       "shard": "nalati-grasslands",
       "entry": "src/shards/nalati-grasslands/generators/bake-map.mjs",
       "command": [
         "--import",
-        "./src/sdk/bake/source-loader.mjs",
+        "./scripts/bake-loader.mjs",
         "src/shards/nalati-grasslands/generators/bake-map.mjs"
       ],
       "inputRoots": [
         "src/shards/nalati-grasslands/data/armsStyle.json",
         "src/shards/nalati-grasslands/generators",
-        "src/shards/nalati-grasslands/data/mapAssembly.generated.json",
-        "src/shards/nalati-grasslands/data/mapAssembly.generated.bin",
         "src/shards/nalati-grasslands/assets/world-terrain/ground.generated.glb",
         "src/shards/nalati-grasslands/assets/world-terrain/slab.generated.glb",
         "src/shards/nalati-grasslands/assets/world-terrain/water.generated.glb",
@@ -14206,7 +14160,17 @@
         "package.json",
         "pnpm-lock.yaml",
         "scripts/map-geometry.mjs",
-        "src/sdk/bake/mapScenes.ts"
+        "src/sdk/bake/mapScenes.ts",
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/commons",
+        "src/format",
+        "src/shards/nalati-grasslands",
+        "public/assets/nalati/baked",
+        "public/assets/baked/nalati-grasslands/terrain.bin",
+        "scripts/bake-loader.mjs",
+        "pnpm-workspace.yaml"
       ],
       "outputs": [
         "public/assets/nalati-grasslands/map/top.webp",
@@ -14218,7 +14182,12 @@
       ],
       "platform": "portable",
       "catalogueDependencies": [
-        "nalati-map-assembly",
+        "nalati-place-runtime",
+        "nalati-decorative",
+        "nalati-poi-paint",
+        "nalati-crags",
+        "nalati-spruce",
+        "camp-specimen-catalogue",
         "nalati-terrain-scene"
       ]
     },

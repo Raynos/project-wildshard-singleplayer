@@ -972,8 +972,6 @@
     "src/shards/nalati-grasslands/data/kurganLayout.generated.json",
     "src/shards/nalati-grasslands/data/layout.generated.d.json.ts",
     "src/shards/nalati-grasslands/data/layout.generated.json",
-    "src/shards/nalati-grasslands/data/mapAssembly.generated.bin",
-    "src/shards/nalati-grasslands/data/mapAssembly.generated.json",
     "src/shards/nalati-grasslands/data/navigation.generated.json",
     "src/shards/nalati-grasslands/data/night.generated.json",
     "src/shards/nalati-grasslands/data/paintedTextures.generated.json",

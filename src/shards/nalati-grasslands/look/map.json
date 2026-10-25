@@ -2,11 +2,12 @@
   "why": "Nalati's map in its painterly palette as flat colours (G252, Jake's pick B): the green and gold steppe, the river's stone bed and blue water with an edge (two water matches: the dark pools and ponds, and the light river the 'nalati-water' look graph draws in display colour since 4c967cd0f, where the old shader wrote linear values straight to the screen), the snowfields in two whites, the trails picked out with an edge; yurts, trees and rocks raised with an edge and a shadow",
   "inputs": [
     "generators",
-    "data/mapAssembly.generated.json",
-    "data/mapAssembly.generated.bin",
-    "assets/world-terrain/ground.generated.glb",
-    "assets/world-terrain/slab.generated.glb",
-    "assets/world-terrain/water.generated.glb",
+    "data",
+    "boot",
+    "assets",
+    "../../../public/assets/nalati/baked",
+    "../../../public/assets/baked/nalati-grasslands/terrain.bin",
+    "../../../scripts/map-geometry.mjs",
     "../../../scripts/map-world.mjs",
     "../../sdk/bake/mapScenes.ts",
     "../../../scripts/map-painter.mjs",
@@ -84,9 +85,7 @@
   "painter": {
     "version": 1,
     "job": "nalati-data-map",
-    "prerequisites": [
-      "nalati-map-assembly"
-    ],
+    "prerequisites": [],
     "glbs": [
       "assets/world-terrain/ground.generated.glb",
       "assets/world-terrain/slab.generated.glb",
@@ -95,9 +94,9 @@
     "scenes": {
       "packs": [
         {
-          "file": "data/mapAssembly.generated.bin",
+          "file": "map/geometry.bin",
           "rows": {
-            "file": "data/mapAssembly.generated.json",
+            "file": "map/assembly.json",
             "path": [
               "pack"
             ]
@@ -110,7 +109,7 @@
       ],
       "recipes": [
         {
-          "file": "data/mapAssembly.generated.json",
+          "file": "map/assembly.json",
           "path": [
             "scene"
           ]
