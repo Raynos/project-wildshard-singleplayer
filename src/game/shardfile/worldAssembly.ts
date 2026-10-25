@@ -409,7 +409,7 @@ export class WorldAssembly {
       publishEntryOwner(scope, 'chain', stage.id, chain);
     } else if (stage.kind === 'place') {
       // tile streaming T3: by tile, its stable root now and its copies as the tile driver attaches them (T4); it places
-      // nothing whole: a GPU root naming it takes the stable root alone
+      // a frozen graph's complete-placement dependency keeps its existing whole owner instead
       const whole = scenes.requiresWhole(stage.id) ? await scenes.place(stage.id) : null;
       if (whole === null) scenes.tile(stage.id);
       publishEntryOwner(scope, 'object', stage.id, scenes.object(`${stage.id}.root`)); publishEntryOwner(scope, 'placed', stage.id, whole === null ? [] : [whole]);
