@@ -1,6 +1,6 @@
 import {afterEach,beforeAll,expect,test,vi} from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Every cache fixture is owned beneath the repository tmp directory.
-import {existsSync,mkdirSync,mkdtempSync,readFileSync,readdirSync,rmSync,truncateSync,utimesSync,writeFileSync} from 'node:fs';
+import {existsSync,mkdirSync,mkdtempSync,readFileSync,readdirSync,rmSync,symlinkSync,truncateSync,utimesSync,writeFileSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Fixture paths never leave the owned cache root.
 import {join,resolve} from 'node:path';
 import {bakeWorldTexture} from './textureWasm';
@@ -8,7 +8,6 @@ import {cachedWorldTexture} from './worldTextureMemo';
 import {writeImagePixels} from './image';
 import {parseKtx2} from '../assets';
 import {hashImmutableBytes} from '../immutable';
-import * as v from 'valibot';
 
 const owned:string[]=[];
 let image:Uint8Array=new Uint8Array(),reference:Uint8Array=new Uint8Array();
@@ -42,18 +41,34 @@ test('a hit skips encoding, re-admits its exact bytes and owns the returned stor
  expect(second).toEqual(reference);expect(encode).toHaveBeenCalledTimes(1);expect(admit).toHaveBeenCalledTimes(2);
 });
 
-test.each(['json','key','hash','base64','schema','oversize'] as const)('re-encodes a %s cache corruption instead of accepting it',kind=>{
- const root=fixture(),encode=vi.fn(()=>Uint8Array.from(reference)),file=join(root,`${key}.json`);
+test('the atomic cache entry stores the original texture as binary, with no JSON payload',()=>{
+ const root=fixture();cachedWorldTexture(root,key,()=>reference,parseKtx2);
+ const file=join(root,`${key}.bin`);
+ expect(existsSync(file)).toBe(true);
+ const wire=readFileSync(file),header=new DataView(wire.buffer,wire.byteOffset,144),text=new TextDecoder();
+ expect(text.decode(wire.subarray(0,8))).toBe('WSWTEX02');
+ expect(text.decode(wire.subarray(8,72))).toBe(key);
+ expect(text.decode(wire.subarray(72,136))).toBe(hashImmutableBytes(reference));
+ expect(header.getUint32(136,true)).toBe(reference.length);expect(header.getUint32(140,true)).toBe(0);
+ expect(wire.length).toBe(144+reference.length);expect(Uint8Array.from(wire.subarray(144))).toEqual(reference);
+ expect(readdirSync(root)).toEqual([`${key}.bin`]);
+});
+
+test.each(['truncated','key','hash','payload','schema','length','reserved','trailing','oversize'] as const)('re-encodes a %s cache corruption instead of accepting it',kind=>{
+ const root=fixture(),encode=vi.fn(()=>Uint8Array.from(reference)),file=join(root,`${key}.bin`);
  cachedWorldTexture(root,key,encode,parseKtx2);
- if(kind==='json')writeFileSync(file,'not JSON');
- else if(kind==='oversize')truncateSync(file,33_334_001);
+ const wire=readFileSync(file),header=new DataView(wire.buffer,wire.byteOffset,144);
+ if(kind==='truncated')writeFileSync(file,wire.subarray(0,143));
+ else if(kind==='oversize')truncateSync(file,25_000_145);
+ else if(kind==='trailing'){const extended=new Uint8Array(wire.length+1);extended.set(wire);writeFileSync(file,extended);}
  else{
-  const value=v.parse(v.record(v.string(),v.unknown()),JSON.parse(readFileSync(file,'utf8')));
-  if(kind==='key')value['key']='b'.repeat(64);
-  if(kind==='hash')value['hash']='0'.repeat(64);
-  if(kind==='base64')value['bytes']='broken';
-  if(kind==='schema')value['schema']=2;
-  writeFileSync(file,JSON.stringify(value));
+  if(kind==='key')wire.fill(98,8,72);
+  if(kind==='hash')wire.fill(48,72,136);
+  if(kind==='payload')wire[144]=0;
+  if(kind==='schema')wire[7]=51;
+  if(kind==='length')header.setUint32(136,reference.length-1,true);
+  if(kind==='reserved')header.setUint32(140,1,true);
+  writeFileSync(file,wire);
  }
  expect(cachedWorldTexture(root,key,encode,parseKtx2)).toEqual(reference);expect(encode).toHaveBeenCalledTimes(2);
 });
@@ -62,7 +77,7 @@ test.each(['dimensions','mips','transfer'] as const)('re-encodes a self-consiste
  const root=fixture();vi.stubEnv('WILDSHARD_WORLD_TEXTURE_CACHE',root);
  await bakeWorldTexture(image,'srgb');
  const [name]=readdirSync(root);if(name===undefined)throw new Error('Missing cold cache entry');
- const file=join(root,name),entryKey=name.slice(0,-5);
+ const file=join(root,name),entryKey=name.slice(0,-4);
  const bytes=cachedWorldTexture(root,entryKey,()=>{throw new Error('Missing cold cache bytes');},()=>undefined);
  const header=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);
  if(kind==='dimensions')header.setUint32(20,4,true);
@@ -70,11 +85,10 @@ test.each(['dimensions','mips','transfer'] as const)('re-encodes a self-consiste
  if(kind==='transfer')bytes[header.getUint32(48,true)+14]=1;
  // Use the real wire serializer to seed self-consistent but invalid texture content.
  rmSync(file);cachedWorldTexture(root,entryKey,()=>bytes,()=>undefined);
- const poisoned=v.parse(v.object({hash:v.string()}),JSON.parse(readFileSync(file,'utf8')));
- expect(poisoned.hash).toBe(hashImmutableBytes(bytes));
+ const text=new TextDecoder();
+ expect(text.decode(readFileSync(file).subarray(72,136))).toBe(hashImmutableBytes(bytes));
  expect(await bakeWorldTexture(image,'srgb')).toEqual(reference);
- const repaired=v.parse(v.object({hash:v.string()}),JSON.parse(readFileSync(file,'utf8')));
- expect(repaired.hash).toBe(hashImmutableBytes(reference));
+ expect(text.decode(readFileSync(file).subarray(72,136))).toBe(hashImmutableBytes(reference));
 });
 
 test('changed decoded pixels, roles and orientation get separate keys; invalid input still refuses',async()=>{
@@ -91,20 +105,46 @@ test('disabled or unwritable storage encodes normally; failed encodes never publ
  expect(cachedWorldTexture(undefined,key,encode,parseKtx2)).toEqual(reference);
  expect(cachedWorldTexture(file,key,encode,parseKtx2)).toEqual(reference);expect(readFileSync(file,'utf8')).toBe('keep');
  expect(()=>cachedWorldTexture(root,key,()=>{throw new Error('encode refused');},parseKtx2)).toThrow('encode refused');
- expect(existsSync(join(root,`${key}.json`))).toBe(false);
+ expect(existsSync(join(root,`${key}.bin`))).toBe(false);
  expect(()=>cachedWorldTexture(root,key,()=>reference,()=>{throw new Error('admission refused');})).toThrow('admission refused');
- expect(existsSync(join(root,`${key}.json`))).toBe(false);
+ expect(existsSync(join(root,`${key}.bin`))).toBe(false);
 });
 
 test('bounds cache count and bytes while preserving unrelated paths',()=>{
  const root=fixture();
  for(let i=0;i<130;i++){
-  const file=join(root,`${i.toString(16).padStart(64,'0')}.json`);writeFileSync(file,'old');utimesSync(file,1,1);
+  const file=join(root,`${i.toString(16).padStart(64,'0')}.bin`);writeFileSync(file,'old');utimesSync(file,1,1);
  }
- const large=join(root,`${'f'.repeat(64)}.json`);writeFileSync(large,'old');truncateSync(large,128*1024*1024+1);utimesSync(large,0,0);
+ const large=join(root,`${'f'.repeat(64)}.bin`);writeFileSync(large,'old');truncateSync(large,128*1024*1024+1);utimesSync(large,0,0);
  writeFileSync(join(root,'keep.txt'),'keep');
  cachedWorldTexture(root,key,()=>reference,parseKtx2);
- expect(readdirSync(root).filter(name=>name.endsWith('.json')).length).toBeLessThanOrEqual(128);
+ expect(readdirSync(root).filter(name=>name.endsWith('.bin')).length).toBeLessThanOrEqual(128);
  expect(existsSync(large)).toBe(false);expect(readFileSync(join(root,'keep.txt'),'utf8')).toBe('keep');
  expect(cachedWorldTexture(root,key,()=>{throw new Error('warm encode');},parseKtx2)).toEqual(reference);
+});
+
+test('ignores old JSON and removes only owned regular legacy entries after publishing',()=>{
+ const root=fixture(),legacy=join(root,`${key}.json`),unrelated=join(root,'keep.json');
+ writeFileSync(legacy,'{"schema":1}');writeFileSync(unrelated,'keep');
+ const encode=vi.fn(()=>reference);
+ expect(cachedWorldTexture(root,key,encode,parseKtx2)).toEqual(reference);expect(encode).toHaveBeenCalledOnce();
+ expect(existsSync(legacy)).toBe(false);expect(readFileSync(unrelated,'utf8')).toBe('keep');
+});
+
+test('refuses symlink cache reads without modifying their target; preserves payload subviews',()=>{
+ const root=fixture(),outside=fixture(),file=join(root,`${key}.bin`);
+ cachedWorldTexture(outside,key,()=>reference,parseKtx2);
+ const target=join(outside,`${key}.bin`),original=readFileSync(target);symlinkSync(target,file);
+ const storage=new Uint8Array(reference.length+6).fill(255);storage.set(reference,3);
+ const encode=vi.fn(()=>storage.subarray(3,-3));
+ expect(cachedWorldTexture(root,key,encode,parseKtx2)).toEqual(reference);expect(encode).toHaveBeenCalledOnce();
+ expect(readFileSync(target)).toEqual(original);
+ expect(cachedWorldTexture(root,key,()=>{throw new Error('warm encode');},parseKtx2)).toEqual(reference);
+});
+
+test('refuses invalid keys and empty or oversized encoder results without publishing',()=>{
+ const root=fixture(),encode=vi.fn(()=>reference);
+ expect(()=>cachedWorldTexture(root,'../escape',encode,parseKtx2)).toThrow();expect(encode).not.toHaveBeenCalled();
+ for(const length of [0,25_000_001])expect(()=>cachedWorldTexture(root,key,()=>new Uint8Array(length),()=>undefined)).toThrow('wire cap exceeded');
+ expect(readdirSync(root)).toEqual([]);
 });

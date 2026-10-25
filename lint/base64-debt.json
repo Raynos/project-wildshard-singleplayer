@@ -61,7 +61,6 @@
     "src/game/population/returnProjectionV2.ts": 1,
     "src/game/population/spawnScript.ts": 5,
     "src/game/shardfile/stillImage.ts": 1,
-    "src/sdk/bake/worldTextureMemo.ts": 3,
     "src/sdk/buildBehaviour.ts": 1,
     "src/sdk/outputRuntime.ts": 1,
     "src/sdk/project.ts": 1,
