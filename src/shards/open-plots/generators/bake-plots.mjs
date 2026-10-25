@@ -240,5 +240,10 @@ async function writeWorld(idea, { soup, assets, kerbs, far }) {
 
 // One world per idea row, then each output's data map from its own world (every world first: the map hash reads them all).
 // G641: an idea row with a layout is a tiled plot (kit.mjs, tiledPlot.mjs); the rest keep the hologram showroom
-for (const idea of ideas) await (idea.layout === undefined ? writeWorld(idea, await plot(idea)) : writeTiledWorld(ROOT, REPO, idea));
-for (const idea of ideas) await paintDataMap(REPO, 'open-plots', { output: idea.slug, glbs: [`assets/${idea.idea}/world.glb`] });
+// The same producer supports bounded setup and per-output map proofs. Ordinary
+// generation still builds every world before painting every map, in order.
+const args = process.argv.slice(2), worldsOnly = args.length === 1 && args[0] === '--worlds-only';
+const mapOnly = args.length === 1 && args[0].startsWith('--map-only=') ? args[0].slice('--map-only='.length) : undefined;
+if (args.length > 0 && !worldsOnly && (mapOnly === undefined || !ideas.some(idea => idea.slug === mapOnly))) throw new Error('Unknown plot generation selection');
+if (mapOnly === undefined) for (const idea of ideas) await (idea.layout === undefined ? writeWorld(idea, await plot(idea)) : writeTiledWorld(ROOT, REPO, idea));
+if (!worldsOnly) for (const idea of ideas.filter(row => mapOnly === undefined || row.slug === mapOnly)) await paintDataMap(REPO, 'open-plots', { output: idea.slug, glbs: [`assets/${idea.idea}/world.glb`] });
