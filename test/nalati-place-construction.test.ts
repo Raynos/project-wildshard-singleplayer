@@ -10,6 +10,35 @@ import before from './fixtures/nalati-place-wires.json' with { type: 'json' };
 const native = ['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', '--import', './scripts/generation-level.mjs'];
 const shard = '--generation-shard=nalati-grasslands';
 
+test('fresh native POI keep-outs preserve all original rows without selecting a world or retaining geometry', () => {
+  const source = `
+    import assert from 'node:assert/strict';
+    import { readFileSync } from 'node:fs';
+    import { BufferGeometry } from 'three';
+    import { selectedLevel } from '@wildshard/engine/level/selection';
+    import { readNativeTerrain } from './src/sdk/bake/terrain.ts';
+    import { bakeNalatiPoiKeepouts } from './src/shards/nalati-grasslands/generators/places.ts';
+    import { alike } from './src/shards/nalati-grasslands/generators/bake-nalati-places.mjs';
+    assert.equal(selectedLevel(),null);
+    const ground=readNativeTerrain(readFileSync('public/assets/baked/nalati-grasslands/terrain.bin'));
+    const original=JSON.parse(readFileSync('src/shards/nalati-grasslands/data/places.json','utf8'));
+    const expected=original.rows.slice(0,10).map(({name,anchors,colliders})=>({name,anchors,colliders}));
+    const prior=BufferGeometry.prototype.dispose;let disposed=0;
+    BufferGeometry.prototype.dispose=function(){disposed++;return prior.call(this);};
+    try{
+      const made=bakeNalatiPoiKeepouts(ground.heightAt),next=bakeNalatiPoiKeepouts(ground.heightAt);
+      assert.equal(made.length,10);assert.ok(disposed>0);
+      const wire=JSON.parse(JSON.stringify(made));
+      assert.equal(alike(expected,wire,'keepouts',()=>false),null);
+      assert.notEqual(alike(expected,wire.slice(1),'keepouts',()=>false),null);
+      assert.deepEqual(made,next);assert.notEqual(made,next);
+      for(let i=0;i<made.length;i++)assert.notEqual(made[i].colliders,next[i].colliders);
+      assert.equal(selectedLevel(),null);
+    }finally{BufferGeometry.prototype.dispose=prior;}
+  `;
+  execFileSync(process.execPath, ['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', '--input-type=module', '--eval', source]);
+});
+
 test('fresh native places retain exact binaries and the original native metadata contract', () => {
   const source = `
     import assert from 'node:assert/strict';

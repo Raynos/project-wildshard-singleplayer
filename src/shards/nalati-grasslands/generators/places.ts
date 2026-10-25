@@ -1041,6 +1041,21 @@ export interface PlaceQueries {
   readonly trailDistance: (x: number, z: number) => number;
 }
 
+const POI_BUILDERS = [nomadCamp, bridge, summerCamp, eagleRockPlace, cairnPlace, kurgansPlace, cragsPlace, roadsPlace, watchtowerPlace, kokparPlace];
+
+/** Construct fresh POI anchors/keep-outs over supplied native ground, before dressing decisions.
+ * Uses the same original constructors as the complete place bake; no generated rows or selected world.
+ * Temporary drawing geometry is disposed before only collision/anchor data escapes. */
+export function bakeNalatiPoiKeepouts(ground: Ground): readonly Pick<PlaceRow, 'name' | 'anchors' | 'colliders'>[] {
+  return POI_BUILDERS.map(build => {
+    const effects: EffectRow[] = [];
+    const place = build({ ground, flutter: recordingFlutter(effects), smoke: recordingPlumes(effects) }, effects);
+    try {
+      return { name: place.name, anchors: place.anchors ?? {}, colliders: [...(place.colliders ?? place.set.boxes)] };
+    } finally { for (const mesh of place.meshes) mesh.geometry.dispose(); }
+  });
+}
+
 /**
  * The bake over the page's ground (its baked terrain sampler): the places in the page's order (the camp, the
  * bridge, the summer camp, Eagle Rock, the Wind Cairn), then the specimens (the bridge's fitted to its first placement, so after the places), then
@@ -1049,7 +1064,7 @@ export interface PlaceQueries {
 export function bakeNalatiPlaces(ground: Ground, specimenScope: SpecimenScope = nativeSpecimenScope, dressing?: { readonly plan: DressPlan; readonly clutter: ClutterSpots }, queries?: PlaceQueries): { places: PlacesBake<PlaceRow>; specimens: PlacesBake<SpecimenRow>; dressing: PlacesBake<DressingGeoRow> } {
   if (queries === undefined) throw new Error('Native places require explicit terrain queries');
   const blocks: Uint8Array[] = [];
-  const rows = [nomadCamp, bridge, summerCamp, eagleRockPlace, cairnPlace, kurgansPlace, cragsPlace, roadsPlace, watchtowerPlace, kokparPlace, (ctx: PaintCtx) => finishBuild(outcropsPlace(ctx, queries)), (ctx: PaintCtx) => finishBuild(dressingStatics(ctx, dressingInput(dressing).plan)), (ctx: PaintCtx) => finishBuild(dressingClutter(ctx, dressingInput(dressing).clutter))].map((build): PlaceRow => {
+  const rows = [...POI_BUILDERS, (ctx: PaintCtx) => finishBuild(outcropsPlace(ctx, queries)), (ctx: PaintCtx) => finishBuild(dressingStatics(ctx, dressingInput(dressing).plan)), (ctx: PaintCtx) => finishBuild(dressingClutter(ctx, dressingInput(dressing).clutter))].map((build): PlaceRow => {
     const effects: EffectRow[] = [];
     const ctx: PaintCtx = { ground, flutter: recordingFlutter(effects), smoke: recordingPlumes(effects) };
     const p = build(ctx, effects), { members, instances } = p.set.rows();
