@@ -13634,6 +13634,12 @@ owned content-addressed bytes. `compileScript`, `compileScriptV2` and
 and installed compiler dependencies enter the cache key; author modules
 import no compiler or filesystem service.
 
+`proveStaticPortalEntries(shard, pieces)` is an uncached build capability for
+static portal links. It admits the shard, installs the declared baked pieces,
+walks the real capsule routes and returns lane, step and transfer counts. Each
+call owns a fresh native physics world and disposes it on success or refusal.
+Ordinary edges and moving entry routes retain their world-specific proofs.
+
 A build function may return a shard declaration or `GeneratedProject`:
 `{shard, output}`. The latter carries `ProjectOutput` named files and platform
 sections produced by that same invocation. Root and sidecar output exports
