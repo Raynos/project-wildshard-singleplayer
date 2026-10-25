@@ -69,7 +69,14 @@ async function readGridProductFile(at: GridProductIndex, path: string, hash: str
   if (bytes.length !== size || await options.hash(bytes) !== hash) throw new Error(`Grid product file ${path} hash or size mismatch`);
   // a grid cell's file is not the home load's: a cache hit is credited as cache, never declared into the home track
   if (held !== null && held !== undefined) recordCachedDownload(hash, bytes.length);
-  else await options.cache?.putAsset(base, hash, bytes);
+  else {
+    const cache = options.cache;
+    // These verified render bytes publish no visited/offline product. A cache
+    // with the explicit background port must not hold ringsReady on disk IO;
+    // complete admission still awaits its own durable writes before publishing.
+    if (cache?.putAssetBackground !== undefined) void Promise.resolve().then(() => cache.putAssetBackground?.(base, hash, bytes)).catch(() => undefined);
+    else await cache?.putAsset(base, hash, bytes);
+  }
   return bytes;
 }
 /** One hash-verified section of the index, parsed (null when the index has none). */

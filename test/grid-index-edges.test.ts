@@ -3,6 +3,7 @@ import { emptyShardfile } from '@wildshard/sdk/author';
 import { outputSectionPayloads } from '@wildshard/format/outputFields';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { readGridProductEdges, readGridProductFar, readGridProductNear } from '../src/game/grid/products';
+import type { ProductCache } from '../src/game/shardfile/product';
 
 function fixture(slug = 'edge-fixture') {
   const source = emptyShardfile({ slug, name: 'Edges', author: 'Test', revision: 1, seed: 9 });
@@ -87,6 +88,28 @@ test('warm edge sections use exact cached bytes without another network revalida
   expect(f.fetch.mock.calls.map(([url]) => url)).toEqual([f.url]);
   await expect(readGridProductEdges(f.url, f.source.identity.slug, { ...f.options,
     cachedResponse: async () => { await Promise.resolve(); return new Uint8Array(bytes.length); } })).rejects.toThrow('hash or size');
+});
+
+test.each(['pending', 'rejected', 'throws'] as const)('verified grid render bytes do not wait for %s background persistence', async kind => {
+  const f = fixture(`background-${kind}`);
+  let writing = (): void => { throw new Error('Missing write observer'); }, release = (): void => { throw new Error('Missing write release'); };
+  const started = new Promise<void>(resolve => { writing = resolve; }), stored = new Promise<boolean>(resolve => { release = () => { resolve(true); }; });
+  const durable = vi.fn(() => { writing(); return stored; }), publish = vi.fn(() => Promise.resolve());
+  const cache: ProductCache = { product: () => Promise.resolve(null), asset: () => Promise.resolve(null), putAsset: durable, putProduct: publish,
+    putAssetBackground: () => { writing(); if (kind === 'throws') throw new Error('Disk unavailable'); return kind === 'pending' ? stored : Promise.reject(new Error('Disk unavailable')); } };
+  const wire = f.wires.get(f.url); if (wire === undefined) throw new Error('Missing index');
+  let complete = false;
+  const reading = readGridProductEdges(f.url, f.source.identity.slug, { ...f.options, cache, firstParty: true,
+    built: { indexes: new Set([hashImmutableBytes(wire)]), stale: () => Promise.resolve() } }).then(value => { complete = true; return value; });
+  try {
+    await started;
+    // All transport/hash work finished before persistence started. Drain its
+    // microtasks in one Node turn while the disk promise remains unresolved.
+    await new Promise<void>(resolve => { setImmediate(resolve); });
+    expect(complete).toBe(true);
+    expect(await reading).toEqual({ edge: f.source.edge, entryways: f.source.entryways });
+    expect(durable).not.toHaveBeenCalled(); expect(publish).not.toHaveBeenCalled();
+  } finally { release(); await reading.catch(() => undefined); }
 });
 
 test('O26: a world without mesh collision reads only the index and its collision section for its far proxy', async () => {
