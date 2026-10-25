@@ -1,5 +1,5 @@
 import { ReturnProgram } from '../src/game/population/returnProgram';
-import program from '../src/shards/pine-hollow/behaviour/shelter.generated.json' with { type: 'json' };
+import { PINE_SHELTER_ORIGINAL as program } from './fixtures/pine-shelter';
 import { expect, test, vi } from 'vitest';
 import { HerdShelter } from '../src/game/population/shelter';
 import look from '../src/shards/pine-hollow/data/populationShelter.json' with { type: 'json' };

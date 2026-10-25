@@ -110,11 +110,19 @@ async function projectModule(project: string, decisionLegacyLines?: number, sele
     for (const [hash, bytes] of product.assets) baked.set(hash, bytes);
   } else shard = parseShardfile(declaration);
   checkProjectRuntime(project, projectPerformancePolicy(project, shard));
-  const sidecar = existsSync(resolve(project, 'generators/output.ts')) ? (await authorModule(project, 'generators/output.ts')).exports : undefined;
+  const sidecarModule = existsSync(resolve(project, 'generators/output.ts')) ? await authorModule(project, 'generators/output.ts') : undefined;
+  const sidecar = sidecarModule?.exports;
   if (sidecar !== undefined && ('output' in loaded || !('output' in sidecar))) throw new Error('Output sidecar requires one unambiguous output export');
   if (generatedOutput !== undefined && (sidecar !== undefined || 'output' in loaded)) throw new Error('Generated project requires one unambiguous output declaration');
+  let sidecarOutput = sidecar?.['output'];
+  const prepareOutput = sidecar?.['prepareOutput'];
+  if (prepareOutput !== undefined) {
+    if (!isProjectGenerator(prepareOutput) || sidecarModule === undefined) throw new Error('Output preparation must be a build function');
+    sidecarOutput = await prepareOutput(createProjectGeneration(project,
+      contentHash(new TextEncoder().encode(canonicalJson({ program: program.hash, sidecar: sidecarModule.hash }))), baked, undefined, inputRoots));
+  }
   shard = mergeProjectSections(shard, sidecar?.['sections']);
-  const output = await prepareProjectOutput(project, generatedOutput ?? (sidecar === undefined ? loaded['output'] : sidecar['output']), { source: shard, options: projectDecisionOptions(loaded['buildOptions'], projectDecisionBudget(project, decisionLegacyLines)) });
+  const output = await prepareProjectOutput(project, generatedOutput ?? (sidecar === undefined ? loaded['output'] : sidecarOutput), { source: shard, options: projectDecisionOptions(loaded['buildOptions'], projectDecisionBudget(project, decisionLegacyLines)) });
   // The CLI-only sidecar may declare the runtime/const.ts mirrors too (a browser config cannot import data/ values).
   if (sidecar !== undefined && 'mirrors' in loaded && 'mirrors' in sidecar) throw new Error('Runtime mirrors declared by both the config and its output sidecar');
   const mirrors = projectMirrors('mirrors' in loaded ? loaded['mirrors'] : sidecar !== undefined && 'mirrors' in sidecar ? sidecar['mirrors'] : undefined);

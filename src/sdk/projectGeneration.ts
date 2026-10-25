@@ -14,7 +14,7 @@ import { readBoundedFile } from './sourceReader';
 import { projectCompilerIdentity } from './projectCompilerIdentity';
 import { compileScript } from './bake/compileScript';
 import { compileScriptV2 } from './bake/compileScriptV2';
-import { compileDeclaredDecisionScripts } from './buildDecisionScripts';
+import { compileDeclaredDecisionScripts, compileDecisionScripts } from './buildDecisionScripts';
 import { proveStaticPortalEntries } from './projectEntryProof';
 import { readImagePixels } from './bake/image';
 import type { Shardfile } from './shardfile';
@@ -54,6 +54,8 @@ export interface ProjectGenerationContext {
   compileScript: typeof compileScript;
   compileScriptV2: typeof compileScriptV2;
   compileDecisionScripts: typeof compileDeclaredDecisionScripts;
+  /** Exact registries for stateless projections; older adapters may omit it. */
+  compileDecisionRows?: typeof compileDecisionScripts;
 }
 /** Build entries are trusted functions; their returned declaration still crosses normal shardfile admission. */
 export function isProjectGenerator(input: unknown): input is (ctx: ProjectGenerationContext) => unknown { return typeof input === 'function'; }
@@ -79,7 +81,7 @@ export function createProjectGeneration(project: string, programHash: string, as
     return { prefix: source.prefix, directory: realpathSync(source.directory) };
   });
   return {
-    compileScript, compileScriptV2, compileDecisionScripts: compileDeclaredDecisionScripts, proveStaticPortalEntries, readImagePixels,
+    compileScript, compileScriptV2, compileDecisionScripts: compileDeclaredDecisionScripts, compileDecisionRows: compileDecisionScripts, proveStaticPortalEntries, readImagePixels,
     asset(bytes) {
       if (!(bytes instanceof Uint8Array) || bytes.byteLength > 256_000_000) throw new Error('Invalid generation asset bytes');
       const copy = new Uint8Array(bytes), key = hashImmutableBytes(copy); assets.set(key, copy); return key;

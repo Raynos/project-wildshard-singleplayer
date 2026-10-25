@@ -1,6 +1,6 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare the registered producer's original executable oracle.
-import { readFileSync } from 'node:fs';
-import { expect, test, vi } from 'vitest';
+import { readFileSync, mkdtempSync, rmSync } from 'node:fs';
+import { afterAll, expect, test, vi } from 'vitest';
 import * as v from 'valibot';
 import { Scope } from '../src/engine/app/scope';
 import { loadRapier } from '../src/engine/physics/rapier';
@@ -14,7 +14,15 @@ import { ReturnModulesSchema } from '../src/format/scriptContract';
 import { parseDecisionScripts } from '../src/format/decisionScripts';
 import { outputPlatformPayloads } from '../src/sdk/outputProduct';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { output } from '../src/shards/pine-hollow/generators/output';
+import { prepareOutput } from '../src/shards/pine-hollow/generators/output';
+import { createProjectGeneration } from '../src/sdk/projectGeneration';
+import { PINE_SHELTER_ORIGINAL } from './fixtures/pine-shelter';
+
+const cache = mkdtempSync('tmp/pine-return-');
+afterAll(() => rmSync(cache, { recursive: true, force: true }));
+const context = createProjectGeneration('src/shards/pine-hollow',
+  hashImmutableBytes(new TextEncoder().encode('pine-shelter-original-v1')), new Map(), cache);
+const output = await prepareOutput(context);
 
 function originalProgram(name: string) {
   const original = v.parse(ReturnProgramSchema, JSON.parse(readFileSync(`src/shards/pine-hollow/behaviour/${name}.generated.json`, 'utf8')));
@@ -22,7 +30,7 @@ function originalProgram(name: string) {
   if (script === undefined) throw new Error(`Missing original Pine ${name} script`);
   return { script, bytes: original.bytes };
 }
-const life = originalProgram('life'), shelter = originalProgram('shelter');
+const life = originalProgram('life'), shelter = PINE_SHELTER_ORIGINAL;
 
 function namedJson(name: string): unknown {
   const file = output.namedFiles.find(row => row.name === name);
@@ -156,4 +164,28 @@ test('native Pine shelter retains raw-module goals, cadence and saved continuati
     expect(() => ReturnProgram.native(firstHost, rows.program)).toThrow('disposed');
     expect(ReturnProgram.native(restoredHost, rows.program)).toBe(resumedGuest);
   } finally { firstHost.dispose(); restoredHost.dispose(); }
+});
+
+
+test('shelter preparation keeps detached cached bytes and refuses a missing compiler', async () => {
+  const raw = output.assets.get(cases[1]?.hash ?? '');
+  expect(raw).toBeDefined();
+  raw?.fill(0);
+  const again = await prepareOutput(context);
+  expect(hashImmutableBytes(again.assets.get(cases[1]?.hash ?? '') ?? new Uint8Array())).toBe(cases[1]?.hash);
+  const { compileDecisionRows: _compiler, ...missing } = context;
+  await expect(prepareOutput(missing)).rejects.toThrow('decision-row compilation');
+});
+
+
+test('shelter preparation rejects stale compiler metadata and a substituted cache payload', async () => {
+  const compiler = context.compileDecisionRows;
+  if (compiler === undefined) throw new Error('Real build compiler is required');
+  const cold = { ...context, cached: (_step: Parameters<typeof context.cached>[0], generate: Parameters<typeof context.cached>[1]) =>
+    Promise.resolve(generate(new Map([['behaviour/shelter.as', new Uint8Array(readFileSync('src/shards/pine-hollow/behaviour/shelter.as'))]]))) };
+  await expect(prepareOutput({ ...cold, compileDecisionRows: async (...args) => {
+    const built = await compiler(...args);
+    return { ...built, rows: built.rows.map(row => { const changed = structuredClone(row); changed.pages = 2; return changed; }) };
+  } })).rejects.toThrow('metadata is stale');
+  await expect(prepareOutput({ ...context, cached: () => Promise.resolve(new Map([['shelter.wasm', new Uint8Array([0])]])) })).rejects.toThrow();
 });

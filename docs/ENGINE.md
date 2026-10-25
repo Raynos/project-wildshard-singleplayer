@@ -13703,15 +13703,15 @@ then orders each group by owner id, independent of product row order.
 
 ### Source-only author generation
 
-A `shard.config.ts` build function receives `ProjectGenerationContext` from
-`@wildshard/sdk/projectGeneration`. Its `cached({id, inputs, native}, fn)`
-returns detached named bytes keyed by the bundled source closure, compiler
-identity, explicit input bytes and optional native host. Inputs are read on
-hits too; product receipts observe the step key. `asset(bytes)` publishes
-owned content-addressed bytes. `compileScript`, `compileScriptV2` and
-`compileDecisionScripts` are injected build capabilities. Their implementations
-and installed compiler dependencies enter the cache key; author modules
-import no compiler or filesystem service.
+Build functions receive `ProjectGenerationContext` from
+`@wildshard/sdk/projectGeneration`. `cached({id, inputs, native}, fn)` returns
+detached bytes keyed by bundled source, compiler, explicit inputs and native
+host; hits still read inputs. `asset(bytes)`
+publishes owned bytes. Injected `compileScript`, `compileScriptV2`,
+`compileDecisionScripts` and optional `compileDecisionRows` compile without
+author filesystem/compiler imports. Compiler dependencies enter cache keys.
+An output sidecar may export `prepareOutput(ctx)` alongside `output`; its
+result crosses product admission, keyed by config and sidecar source.
 
 `proveStaticPortalEntries(shard, pieces)` is an uncached build capability for
 static portal links. It admits the shard, installs the declared baked pieces,

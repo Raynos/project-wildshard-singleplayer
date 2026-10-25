@@ -139,3 +139,45 @@ test('inlining lazy author helpers retains the executable filesystem dependency 
   };`);
   await expect(readProjectAssets(path)).rejects.toThrow('must use injected build capabilities for file access');
 });
+
+test('output preparation receives bounded cached inputs and admits detached binary output', async () => {
+  const path = directory(); mkdirSync(resolve(path, 'generators'));
+  writeFileSync(resolve(path, 'shard.config.ts'), `export default ${JSON.stringify(source())};`);
+  writeFileSync(resolve(path, 'input.bin'), binary);
+  writeFileSync(resolve(path, 'generators/output.ts'), `
+import { nameBlob } from '@wildshard/sdk/blobs';
+export const output = {};
+export async function prepareOutput(ctx) {
+  const files = await ctx.cached({id:'named-input',inputs:['input.bin']}, inputs => new Map([['body.bin',inputs.get('input.bin')]]));
+  const blob = nameBlob('models/body.bin','bin',files.get('body.bin'));
+  return {namedFiles:[blob.file],assets:new Map([[blob.file.hash,blob.bytes]])};
+}`);
+  const first = await readProjectAssets(path), second = await readProjectAssets(path);
+  const file = first.output.namedFiles?.find(row => row.name === 'models/body.bin');
+  if (file === undefined) throw new Error('Missing prepared blob');
+  expect(first.assets.get(file.hash)).toEqual(binary);
+  first.assets.get(file.hash)?.fill(0);
+  expect(second.assets.get(file.hash)).toEqual(binary);
+  writeFileSync(resolve(path, 'input.bin'), new Uint8Array([4, 5, 6]));
+  const changed = await readProjectAssets(path);
+  expect(changed.output.namedFiles?.[0]?.hash).not.toBe(file.hash);
+  const nextSource = readFileSync(resolve(path, 'generators/output.ts'), 'utf8')
+    .replace("inputs.get('input.bin')", 'new Uint8Array([7,8,9])');
+  writeFileSync(resolve(path, 'generators/output.ts'), nextSource);
+  const revised = await readProjectAssets(path), nextFile = revised.output.namedFiles?.[0];
+  if (nextFile === undefined) throw new Error('Missing revised blob');
+  expect(revised.assets.get(nextFile.hash)).toEqual(new Uint8Array([7, 8, 9]));
+});
+
+test('output preparation retains function, filesystem and output admission refusals', async () => {
+  const path = directory(); mkdirSync(resolve(path, 'generators'));
+  writeFileSync(resolve(path, 'shard.config.ts'), `export default ${JSON.stringify(source())};`);
+  const sidecar = resolve(path, 'generators/output.ts');
+  writeFileSync(sidecar, 'export const output={}; export const prepareOutput=42;');
+  await expect(readProjectAssets(path)).rejects.toThrow('build function');
+  writeFileSync(sidecar, 'export const output={}; export function prepareOutput(){return {runtime:{}};}');
+  await expect(readProjectAssets(path)).rejects.toThrow();
+  writeFileSync(sidecar, `import {readFileSync} from 'node:fs';
+    export const output={}; export function prepareOutput(){return readFileSync('input.bin');}`);
+  await expect(readProjectAssets(path)).rejects.toThrow('must use injected build capabilities');
+});

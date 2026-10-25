@@ -1,0 +1,86 @@
+{
+  "script": {
+    "id": "pine.shelter",
+    "abi": "1.0",
+    "side": "sim",
+    "module": "blobs/wasm/6005b3f6c02dc65ada9cf9b0a754dad73c44ecebb00e0df13ebc9b5957ce7316.wasm",
+    "source": "behaviour/shelter.as",
+    "binding": {
+      "shard": true
+    },
+    "pages": 1,
+    "onFail": "hold",
+    "on": [
+      "signal"
+    ],
+    "tick": null,
+    "reads": [
+      "field"
+    ],
+    "commands": [
+      "channel"
+    ],
+    "actors": {},
+    "moves": {},
+    "strikes": {},
+    "cues": {},
+    "fields": {
+      "candidates": "candidates",
+      "heightBias": "heightBias",
+      "coverBias": "coverBias",
+      "distance": "distance",
+      "height": "height",
+      "cover": "cover",
+      "x": "x",
+      "z": "z",
+      "radius": "radius",
+      "clear": "clear",
+      "homeX": "homeX",
+      "homeZ": "homeZ",
+      "present": "present",
+      "spot": "spot",
+      "spotX": "spotX",
+      "spotZ": "spotZ",
+      "hold": "hold",
+      "dt": "dt",
+      "rain": "rain",
+      "wet": "wet",
+      "dry": "dry",
+      "homeHold": "homeHold",
+      "spotR": "spotR",
+      "homeR": "homeR"
+    },
+    "flags": {},
+    "zones": {},
+    "spots": {},
+    "targets": {},
+    "spawns": {},
+    "signals": {
+      "shelterScore": "shelterScore",
+      "shelterPlace": "shelterPlace",
+      "shelterStep": "shelterStep",
+      "shelterGoal": "shelterGoal"
+    },
+    "facts": {},
+    "rewards": {},
+    "channels": {
+      "index": "index",
+      "score": "score",
+      "x": "x",
+      "z": "z",
+      "r": "r",
+      "accept": "accept",
+      "create": "create",
+      "keep": "keep",
+      "apply": "apply",
+      "hold": "hold"
+    },
+    "impulses": {},
+    "weather": {},
+    "timers": [],
+    "stateVersion": 1,
+    "state": [],
+    "params": {},
+    "sourceHash": "7a6cc26a7a2cd147c34209e7a19c5878006202f54439702dc321201184a46f00"
+  }
+}
