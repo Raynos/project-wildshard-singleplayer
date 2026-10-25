@@ -10,8 +10,32 @@ import before from './fixtures/nalati-place-wires.json' with { type: 'json' };
 const native = ['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', '--import', './scripts/generation-level.mjs'];
 const shard = '--generation-shard=nalati-grasslands';
 
-test('fresh native places and specimens preserve all four original wire files', () => {
-  execFileSync(process.execPath, [...native, 'src/shards/nalati-grasslands/generators/bake-nalati-painted.mjs', shard, '--check']);
+test('fresh native places retain exact binaries and the original native metadata contract', () => {
+  const source = `
+    import assert from 'node:assert/strict';
+    import { readFileSync } from 'node:fs';
+    import { deflateSync } from 'node:zlib';
+    import { nativeNalatiPlaces } from './src/shards/nalati-grasslands/generators/bake-nalati-painted.mjs';
+    import { encodeNalatiPart } from './src/shards/nalati-grasslands/generators/placeWire.ts';
+    import { alike } from './src/shards/nalati-grasslands/generators/bake-nalati-places.mjs';
+    import { hashImmutableBytes } from './src/sdk/immutable.ts';
+    const made = await nativeNalatiPlaces();
+    const pins = JSON.parse(readFileSync('test/fixtures/nalati-place-wires.json','utf8'));
+    for (const [name,document] of [['places','places.json'],['specimens','placeSpecimens.json']]) {
+      const encoded = encodeNalatiPart(made[name],bytes => deflateSync(bytes,{level:9}));
+      const pin = pins.find(row => row.path === 'public/assets/nalati/baked/'+name+'.bin');
+      assert.equal(encoded.binary.byteLength,pin.bytes);assert.equal(hashImmutableBytes(encoded.binary),pin.hash);
+      const original = JSON.parse(readFileSync('src/shards/nalati-grasslands/data/'+document,'utf8'));
+      const actual = JSON.parse(new TextDecoder().decode(encoded.document));
+      // Retained native metadata has always compared all rows at 1e-9:
+      // V8's final double bits differ between arm64 and x64. Geometry remains
+      // bit-exact above, and the committed JSON wire pins remain exact below.
+      assert.equal(alike(original,actual,name,()=>false),null);
+      assert.notEqual(alike(original,{...actual,rows:actual.rows.slice(1)},name,()=>false),null);
+      console.info(JSON.stringify({name,nativeDoubleDifference:alike(original,actual,name,()=>false,0)}));
+    }
+  `;
+  execFileSync(process.execPath, [...native, '--input-type=module', '--eval', source, '--', shard]);
   for (const expected of before.slice(0, 4)) {
     const bytes = readFileSync(expected.path);
     expect({ path: expected.path, bytes: bytes.byteLength, hash: hashImmutableBytes(bytes) }).toEqual(expected);

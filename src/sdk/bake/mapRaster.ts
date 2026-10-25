@@ -41,19 +41,24 @@ export class MapRaster {
   /** Integer subpixel inclusion and post-interpolation height/colour quantization retain the original raster. */
   triangle(points: readonly (readonly number[])[], colours: readonly (readonly number[])[]): void {
     this.triangles++;
-    const p = points.map(point => { const [x, y] = mapPixel(at(point, 0), at(point, 2), this.size); return [Math.round(x * 1024), Math.round(y * 1024)] as const; });
-    const edge = (a: Pair, b: Pair, x: number, y: number): number => (b[0] - a[0]) * (y - a[1]) - (b[1] - a[1]) * (x - a[0]);
-    const area = edge(at(p, 0), at(p, 1), ...at(p, 2));
+    const p0 = at(points, 0), p1 = at(points, 1), p2 = at(points, 2);
+    // Preserve mapPixel's arithmetic order and integer subpixels without
+    // allocating projected tuples, bounds arrays or an edge closure per face.
+    const x0 = Math.round(((250 - at(p0, 0)) * this.size / 500) * 1024), y0 = Math.round(((250 - at(p0, 2)) * this.size / 500) * 1024);
+    const x1 = Math.round(((250 - at(p1, 0)) * this.size / 500) * 1024), y1 = Math.round(((250 - at(p1, 2)) * this.size / 500) * 1024);
+    const x2 = Math.round(((250 - at(p2, 0)) * this.size / 500) * 1024), y2 = Math.round(((250 - at(p2, 2)) * this.size / 500) * 1024);
+    const area = (x1 - x0) * (y2 - y0) - (y1 - y0) * (x2 - x0);
     if (area === 0) return;
-    const minX = Math.max(0, Math.floor(Math.min(...p.map(q => q[0])) / 1024));
-    const maxX = Math.min(this.size - 1, Math.ceil(Math.max(...p.map(q => q[0])) / 1024));
-    const minY = Math.max(0, Math.floor(Math.min(...p.map(q => q[1])) / 1024));
-    const maxY = Math.min(this.size - 1, Math.ceil(Math.max(...p.map(q => q[1])) / 1024));
+    const minX = Math.max(0, Math.floor(Math.min(x0, x1, x2) / 1024));
+    const maxX = Math.min(this.size - 1, Math.ceil(Math.max(x0, x1, x2) / 1024));
+    const minY = Math.max(0, Math.floor(Math.min(y0, y1, y2) / 1024));
+    const maxY = Math.min(this.size - 1, Math.ceil(Math.max(y0, y1, y2) / 1024));
     for (let y = minY; y <= maxY; y++) for (let x = minX; x <= maxX; x++) {
       const sx = x * 1024 + 512, sy = y * 1024 + 512;
-      const a = edge(at(p, 1), at(p, 2), sx, sy) / area, b = edge(at(p, 2), at(p, 0), sx, sy) / area, c = 1 - a - b;
+      const a = ((x2 - x1) * (sy - y1) - (y2 - y1) * (sx - x1)) / area,
+        b = ((x0 - x2) * (sy - y2) - (y0 - y2) * (sx - x2)) / area, c = 1 - a - b;
       if (a < 0 || b < 0 || c < -1e-12) continue;
-      const h = a * at(at(points, 0), 1) + b * at(at(points, 1), 1) + c * at(at(points, 2), 1);
+      const h = a * at(p0, 1) + b * at(p1, 1) + c * at(p2, 1);
       if (h < (this.clip.clipBelow ?? -Infinity) || h > (this.clip.clipAbove ?? Infinity)) continue;
       const offset = y * this.size + x, fixed = Math.round(h * 65536);
       if (fixed <= at(this.height, offset)) continue;

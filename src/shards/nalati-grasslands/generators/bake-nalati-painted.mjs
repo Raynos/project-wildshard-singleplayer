@@ -11,14 +11,21 @@ import { dressingRecipe } from './dressingPlan.ts';
 import { inSpruceClearing, loneSpruceMask, edgeBermAt } from './terrainRecipe.ts';
 import { edgeSpruceMask } from './edgeRecipe.ts';
 
-// The shipped static geometry predates the bilinear runtime geography masks.
-// Reconstruct its original forest decisions, without changing the runtime scatter
-// plan or using rounded baked fields to decide which stump exists.
-const dressing = await prepareNalatiDressing(dressingRecipe, (x, z) => inSpruceClearing(x, z) ? 0
-  : Math.max(loneSpruceMask(x, z), edgeSpruceMask(x, z, edgeBermAt(x, z))));
-const terrain = readNalatiTerrain();
-await prepareNativeTerrain(game.shard, { root: resolve(import.meta.dirname, '../../../..'), bytes: new Uint8Array(terrain) });
+/** Fresh retained native construction; publication remains the CLI's separate responsibility. */
+export async function nativeNalatiPlaces() {
+  // The shipped static geometry predates the bilinear runtime geography masks.
+  // Reconstruct its original forest decisions, without changing the runtime scatter
+  // plan or using rounded baked fields to decide which stump exists.
+  const dressing = await prepareNalatiDressing(dressingRecipe, (x, z) => inSpruceClearing(x, z) ? 0
+    : Math.max(loneSpruceMask(x, z), edgeSpruceMask(x, z, edgeBermAt(x, z))));
+  const terrain = readNalatiTerrain();
+  await prepareNativeTerrain(game.shard, { root: resolve(import.meta.dirname, '../../../..'), bytes: new Uint8Array(terrain) });
 
-const made = bakeNalatiPlacesOnTerrain(terrain, withPortableMath, dressing);
-writeNalatiParts([{ name: 'places', json: 'places.json', part: made.places },
-  { name: 'specimens', json: 'placeSpecimens.json', part: made.specimens }], process.argv.includes('--check'));
+  return bakeNalatiPlacesOnTerrain(terrain, withPortableMath, dressing);
+}
+
+if (import.meta.main) {
+  const made = await nativeNalatiPlaces();
+  writeNalatiParts([{ name: 'places', json: 'places.json', part: made.places },
+    { name: 'specimens', json: 'placeSpecimens.json', part: made.specimens }], process.argv.includes('--check'));
+}
