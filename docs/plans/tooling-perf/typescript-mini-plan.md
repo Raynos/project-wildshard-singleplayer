@@ -83,6 +83,29 @@ skipLibCheck disabled triggers TS2589 in `audioProfiles.d.ts` (`AudioMixRecipe`,
 validator changed. Script bodies stay strictly typed while their already-built layer declarations follow the same
 skipLibCheck policy as root and layers.
 
+T4 first format slices are on origin: schema expressions and emitted runtime JavaScript are unchanged.
+Independent named data types replace exported validator implementation types; original/candidate input and output
+contracts remain mutually assignable (56 contracts). No compiler option or admission fence changed.
+
+| Declaration | Before bytes | After bytes | Commit |
+|---|---:|---:|---|
+| audioProfiles | 259,252 | 28,949 | `bf10517256` |
+| voicePatches | 12,481 | 2,368 | `bf10517256` |
+| clientPlan | 1,289,272 | 20,066 | `b28dcc33ec` |
+| sceneDressing | 516,289 | 12,604 | `7b745a7a01` |
+
+These four files save **2,013,307 bytes (96.9%)**. The same 285 live format modules still emit approximately
+12.0 MB, so the <2 MB target remains open. The audio regression reproduces the original two TS2589 errors and
+checks isolated emission plus a strict emitted-declaration consumer with skipLibCheck disabled. Client-plan and
+dressing regressions pin isolated emission, bounded sizes and defining imported data contracts; existing admission,
+default, corruption and decoded-cost tests pass. One broad related run passed 3,217 tests and hit one peer sealed
+Sunscar discovery dependency failure; that exact case passed after its owner's reader-isolation repair. Forty-one
+missing-product suites explicitly defer to CI; this is not a full-suite pass.
+
+A per-file isolated-declaration audit finds **68/285 ready**, with 651 diagnostics remaining in 217 modules
+(609 missing variable annotations, 34 non-inferable expressions, one parameter, one spread object and six arrays).
+Global isolatedDeclarations remains off until the layer actually meets its contract. T4 is still in flight.
+
 ## Decisions (decided G655: D1 keep authored JSON typed, generated never imported via GR0; D2 leave to CI; D3 lint rule)
 
 1. **D1 Checked-in JSON:** `resolveJsonModule` off and **all** JSON `unknown`, parsed with valibot at the boundary (recommended) /
