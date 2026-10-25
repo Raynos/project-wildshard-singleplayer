@@ -64,9 +64,18 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   or manual release reads `.github/deploy-pin.json`: mode `newest-ci-green` picks the newest main commit whose push
   `deploy` run (typecheck, lint, test, build) passed **and whose exact SHA has `boot-smoke = success`**. The separate
   `.github/workflows/boot-smoke.yml` is explicitly dispatched by the successful push CI job (or by an operator), reuses that exact
-  successful main push run's `boot-dist` artifact, and drives every public primary shard to entered, unpaused page-ready
+  successful main push run's exact dist artifacts, and drives every public primary shard to entered, unpaused page-ready
   with ten live gameplay frames. Push CI archives its actual web dist with its full commit, run ID and tar checksum.
-  Smoke verifies that provenance and the version stamp before sharing the same bytes with all six browser legs;
+  The producer publishes a small `boot-dist-manifest` and separate public, Developer and world bundles. The central
+  smoke job verifies only that manifest; each browser leg downloads its bundle directly from the exact successful
+  push run, without relaying a full dist through another job. Four grid/Explorer legs share the same complete-world
+  bundle because prediction and catalogue coverage can visit every declared primary. Standalone bundles omit only
+  unselected shard-owned paths; shared assets, title images, compiled modules and source maps remain available.
+  Historical content-addressed packs absent from every emitted module's generated URL table are not transferred.
+  Every served file retains its original bytes and SHA-256. Archive SHA-256, file inventory, SHA/run/leg binding,
+  version, path and regular-file checks refuse corrupt or mixed transfers before extraction, without retry.
+  Each receipt records transferred bytes and transfer-plus-verification seconds under the unchanged 20-minute cap.
+  Smoke verifies that provenance and the version stamp before serving the same selected bytes to each browser leg;
   it never regenerates products. Missing or expired artifacts refuse the proof: push a head containing the artifact
   publisher and prove that head; an older run without the artifact cannot supply this proof.
   Cases come from that build's actual title catalogue, excluding frozen copies and

@@ -185,18 +185,36 @@ jobs:
         if: github.event_name == 'push'
         run: |
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
-          tar -cf boot-dist.tar -C dist .
-          sha256sum boot-dist.tar > boot-dist.sha256
-          printf '{"sha":"%s","run":"%s"}\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" > boot-dist-proof.json
+          node scripts/boot-dist-plan.mjs > boot-dist-plan.json
+          python3 scripts/boot-dist.py pack --sha "$GITHUB_SHA" --run "$GITHUB_RUN_ID"
       - uses: actions/upload-artifact@v4
         if: github.event_name == 'push'
         with:
-          name: boot-dist
-          path: |
-            boot-dist.tar
-            boot-dist.sha256
-            boot-dist-proof.json
-          # Compress transport only; the tar and its checksum stay identical.
+          name: boot-dist-manifest
+          path: boot-dist-parts/boot-dist-manifest.json
+          retention-days: 3
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: github.event_name == 'push'
+        with:
+          name: boot-dist-boot-public
+          path: boot-dist-parts/boot-public/
+          compression-level: 6
+          retention-days: 3
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: github.event_name == 'push'
+        with:
+          name: boot-dist-boot-developer
+          path: boot-dist-parts/boot-developer/
+          compression-level: 6
+          retention-days: 3
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: github.event_name == 'push'
+        with:
+          name: boot-dist-worlds
+          path: boot-dist-parts/worlds/
           compression-level: 6
           retention-days: 3
           if-no-files-found: error

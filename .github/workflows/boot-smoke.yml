@@ -30,6 +30,7 @@ jobs:
     timeout-minutes: 20
     outputs:
       sha: ${{ steps.tested.outputs.sha }}
+      source_run: ${{ steps.source.outputs.run }}
     steps:
       - name: Bind the tested commit
         id: tested
@@ -94,35 +95,26 @@ jobs:
           echo "run=$run_id" >> "$GITHUB_OUTPUT"
       - uses: actions/download-artifact@v4
         with:
-          name: boot-dist
+          name: boot-dist-manifest
           github-token: ${{ github.token }}
           run-id: ${{ steps.source.outputs.run }}
-      - name: Verify the exact push artifact
+      - name: Verify the exact push manifest
         env:
           TESTED_SHA: ${{ steps.tested.outputs.sha }}
           SOURCE_RUN: ${{ steps.source.outputs.run }}
         run: |
-          sha256sum --check boot-dist.sha256
-          tar -xOf boot-dist.tar ./version.json > boot-version.json
           node --input-type=module <<'NODE'
           import { readFileSync } from 'node:fs';
-          const proof = JSON.parse(readFileSync('boot-dist-proof.json', 'utf8'));
-          const { build } = JSON.parse(readFileSync('boot-version.json', 'utf8'));
-          const prefix = build.split('-')[0];
+          const proof = JSON.parse(readFileSync('boot-dist-manifest.json', 'utf8'));
+          const parts = ['boot-public','boot-developer','boot-grid','hover-chromium','hover-webkit','explorer'];
+          const prefix = proof.version.build.split('-')[0];
           if (proof.sha !== process.env.TESTED_SHA || proof.run !== process.env.SOURCE_RUN
-            || !/^[a-f0-9]{7,40}$/u.test(prefix) || !proof.sha.startsWith(prefix)) throw new Error('Push artifact does not match tested SHA and run');
+            || !/^[a-f0-9]{7,40}$/u.test(prefix) || !proof.sha.startsWith(prefix)
+            || Object.keys(proof.legs).sort().join() !== [...parts].sort().join()
+            || parts.some(part => !/^[a-f0-9]{64}$/u.test(proof.legs[part].archiveHash)
+              || !Number.isSafeInteger(proof.legs[part].archiveBytes) || proof.legs[part].archiveBytes <= 0))
+            throw new Error('Push manifest does not match tested SHA/run and all six legs');
           NODE
-      - uses: actions/upload-artifact@v4
-        with:
-          name: boot-dist
-          path: |
-            boot-dist.tar
-            boot-dist.sha256
-            boot-dist-proof.json
-          # Browser legs receive the identical verified tar, compressed in transit.
-          compression-level: 6
-          retention-days: 1
-          if-no-files-found: error
 
   boot-smoke:
     needs: build
@@ -170,21 +162,39 @@ jobs:
           path: ~/Library/Caches/ms-playwright
           key: boot-touch-browsers-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
       - run: pnpm exec playwright install chromium webkit
+      - name: Start exact-leg transfer clock
+        run: date +%s > boot-dist-download-started
       - uses: actions/download-artifact@v4
-        continue-on-error: true # The restore step retries one missing/truncated transfer.
         with:
-          name: boot-dist
+          name: boot-dist-manifest
+          github-token: ${{ github.token }}
+          run-id: ${{ needs.build.outputs.source_run }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: boot-dist-${{ (matrix.part == 'boot-public' || matrix.part == 'boot-developer') && matrix.part || 'worlds' }}
+          github-token: ${{ github.token }}
+          run-id: ${{ needs.build.outputs.source_run }}
+          path: boot-dist-parts
       - name: Unpack and verify the tested dist
         env:
-          GH_TOKEN: ${{ github.token }}
           TESTED_SHA: ${{ needs.build.outputs.sha }}
+          SOURCE_RUN: ${{ needs.build.outputs.source_run }}
+          SMOKE_PART: ${{ matrix.part }}
         run: |
           test "$(git rev-parse HEAD)" = "$TESTED_SHA"
-          bash scripts/restore-boot-dist.sh
-          # Historical preview plugins compress the public copy at startup.
+          python3 scripts/boot-dist.py restore --sha "$TESTED_SHA" --run "$SOURCE_RUN" --part "$SMOKE_PART"
+          mkdir -p boot-smoke-results
+          node --input-type=module <<'NODE'
+          import { readFileSync, writeFileSync } from 'node:fs';
+          const proof = JSON.parse(readFileSync('boot-dist-parts/boot-dist-proof.json', 'utf8'));
+          const seconds = Date.now()/1000 - Number(readFileSync('boot-dist-download-started', 'utf8'));
+          const receipt = { part: process.env.SMOKE_PART, sha: process.env.TESTED_SHA, run: process.env.SOURCE_RUN,
+            archiveBytes: proof.archiveBytes, transferAndVerifySeconds: seconds };
+          console.log(`boot-dist transfer ${JSON.stringify(receipt)}`);
+          writeFileSync('boot-smoke-results/dist-transfer.json', JSON.stringify(receipt));
+          NODE
           mkdir -p public/assets/physics
           cp dist/assets/physics/rapier.wasm public/assets/physics/rapier.wasm
-          node --input-type=module -e 'import { readFileSync } from "node:fs"; const { build } = JSON.parse(readFileSync("dist/version.json", "utf8")); const prefix = build.split("-")[0]; if (!/^[a-f0-9]{7,40}$/u.test(prefix) || !process.env.TESTED_SHA.startsWith(prefix)) throw new Error("Built dist does not match tested SHA");'
       - name: Every public shard reaches real page-ready
         if: matrix.part == 'boot-public'
         run: node scripts/parity/boot-smoke.mjs --case-group=public
