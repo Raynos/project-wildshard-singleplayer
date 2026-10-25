@@ -13,7 +13,7 @@ Every row is decided work (Jake's G-rows); the refs are the brief.
 | sp-x6 | CS0 done e463dc80af → G719 done → G717 look misses done 60f2ba740c → RM1/RM2/RM3 done aab5aca4737 → GR4 Sunscar done (23 → 0; exact743e preview/boot pass) → GR6 Nalati in flight (54 at claim) → GR8 Pine |
 | sp-x8 | G717 verdict ae146afe1d; G723 2a-2d/4/11 (sword fix 9dc10c2d58; G717.3 PASS 1.056 GB; < 5 s edges open) -> TypeScript T3 (<= ~20 files/batch) -> T4 -> T5 |
 | sp-x2 | U1/U2/U4 done d9d068ce7f -> JS J1-J5 done e033628a5d (J6-J10 queued after extras, G730) -> tile T4 latest grid30f/compiled730f qualifications pass; T6 presentation/occupied L1 waits-Opus, T8.2 skipped/indexed transport dropped -> loading L9 worker receipts then open L10-L14 (G683); core C1 not claimed |
-| sp-x9 | G733 done94ef588da9; L17 done2511ddea95/f30e0be71c; programShare done d247df6cf0; commit ratchet done1e3f0fe5b2; SW11 import fe36697fbe + transforms87a1387349 + pack3e6d67947e + serialized-worker slice (p90<=30s reading OPEN) -> oxlint R3 done / R4 waits GR / R5 done -> no-binaries B5/B6 (shelter0fbf97d6e3; contract waits-Opus) -> QW7 |
+| sp-x9 | G733 done94ef588da9; L17 done2511ddea95/f30e0be71c; programShare done d247df6cf0; commit ratchet done1e3f0fe5b2; SW11 import fe36697fbe + transforms87a1387349 + pack3e6d67947e + workers85409aed46 + wait/workce2b966a97 + message preflight (p90<=30s reading OPEN) -> oxlint R3 done / R4 waits GR / R5 done -> no-binaries B5/B6 (shelter0fbf97d6e3; contract waits-Opus) -> QW7 |
 | sp-x7 | releases only |
 
 ## 10-24 open rows (Jake's picks G679-G682, a2c1e9647b; SW10: one claimable row per live lane)

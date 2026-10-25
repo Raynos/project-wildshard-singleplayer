@@ -31,6 +31,10 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   equal the parent advances to the committed bytes under that lock; local edits stay untouched and are
   reported. Foreign shared stages stay untouched; a stage still equal to the parent advances under the
   index lock, avoiding a staged revert of the patch. Stale patches refuse.
+  The wrapper first applies the existing message-convention validator under
+  the commit lock, before touching the candidate index or running checks.
+  Invalid messages refuse immediately; valid messages still run every normal
+  pre-commit and commit-message hook. This shares the entry-time budget.
   Pre-commit runs storage policy, fast lint and staged guards in parallel under a soft five-second budget.
   The optional type-aware lint attempt stays within that cap (G636), without oxlint's `--type-check` (G657);
   `tsc` owns TypeScript diagnostics. Timeout warns and hands those exact staged blobs' typed lint to pre-push;

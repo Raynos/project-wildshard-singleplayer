@@ -112,6 +112,7 @@ finally:
 PYALIGN
 }
 export -f align_shared_index
+export WS_COMMIT_MESSAGE="$message"
 exec python3 -c '
 import fcntl, os, signal, subprocess, sys, time
 started = time.monotonic()
@@ -127,6 +128,14 @@ try:
         fcntl.flock(lease, fcntl.LOCK_EX)
         acquired = time.monotonic()
         signal.alarm(0)
+        validator = ".githooks/commit-msg-conventions"
+        if os.path.isfile(validator):
+            import runpy
+            error = runpy.run_path(validator)["validate"](
+                os.environ["WS_COMMIT_MESSAGE"], human=os.getenv("SKIP_ATTRIB") == "1")
+            if error:
+                print("Commit blocked: " + error, file=sys.stderr)
+                raise SystemExit(1)
         raise SystemExit(subprocess.run(sys.argv[2:]).returncode)
 finally:
     finished = time.monotonic()
