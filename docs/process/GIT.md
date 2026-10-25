@@ -51,7 +51,10 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   lock wait and earlier guards; CF1 never starts
   a fresh allowance afterward. Mandatory serialized Git completion remains
   safe and any total overrun is printed separately. Each invocation prints its
-  total wall time including the lock wait.
+  total wall time including the lock wait, plus separate lock-wait and
+  serialized-work durations. A requested-lock marker distinguishes a queued
+  invocation from one already executing checks; these timings never renew
+  its deadline.
   A per-file Vite override uses candidate-index bytes for differing tracked
   modules, including peer edits; loose files and the index stay untouched.
   An executed failing test refuses even if another test later times out.

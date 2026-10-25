@@ -115,6 +115,7 @@ export -f align_shared_index
 exec python3 -c '
 import fcntl, os, signal, subprocess, sys, time
 started = time.monotonic()
+acquired = None
 os.environ["WS_COMMIT_STARTED_AT"] = str(int(time.time() * 1000))
 def timeout(*_):
     raise SystemExit("commit.sh: commit lock timed out")
@@ -122,11 +123,17 @@ signal.signal(signal.SIGALRM, timeout)
 signal.alarm(120)
 try:
     with open(sys.argv[1], "a") as lease:
+        print("commit.sh: waiting for commit lock", flush=True)
         fcntl.flock(lease, fcntl.LOCK_EX)
+        acquired = time.monotonic()
         signal.alarm(0)
         raise SystemExit(subprocess.run(sys.argv[2:]).returncode)
 finally:
-    elapsed = (time.monotonic() - started) * 1000
+    finished = time.monotonic()
+    elapsed = (finished - started) * 1000
+    wait = ((finished if acquired is None else acquired) - started) * 1000
+    work = 0 if acquired is None else (finished - acquired) * 1000
+    print(f"commit.sh: {wait:.0f} ms lock wait; {work:.0f} ms serialized work", flush=True)
     print(f"commit.sh: {elapsed:.0f} ms total wall (lock wait included)", flush=True)
     if elapsed > 60000:
         print("commit.sh: invocation exceeded 60 s; CF1 cannot renew its budget (serialized Git completion remains mandatory)", file=sys.stderr)
