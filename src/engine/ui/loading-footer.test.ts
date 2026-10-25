@@ -106,6 +106,29 @@ it('keeps the current saved-file detail instead of an outer zero-file admission 
   } finally { finish(); await Promise.all(waits); loading.scope.dispose(); }
 });
 
+it('names uncounted admission work without inventing an empty file batch', () => {
+  const loading = new Loading({id: 'visited-product', name: 'Visited product'});
+  const foot = (): string => loading.root.querySelector('[data-el="foot"]')?.textContent ?? '';
+  try {
+    loading.setPath({id: 'shardfile', steps: [{key: 'modules', label: 'Modules', weight: 1},
+      {key: 'admission', label: 'Product admission', weight: 1}]});
+    loading.paintAdmission({phase: 'cache-read', detail: 'Checking visited product', bytesRead: 0,
+      bytesTotal: 0, filesDone: 0, filesTotal: 0});
+    now = 400; vi.advanceTimersByTime(32);
+    expect(foot()).toBe('Now working on: Product admission · Checking visited product');
+    expect(loading.root.dataset['filesInFlight']).toBe('0');
+    loading.paintAdmission({phase: 'assets', detail: 'Reading indexed files', bytesRead: 0,
+      bytesTotal: 100, filesDone: 0, filesTotal: 2});
+    now = 700; vi.advanceTimersByTime(32);
+    expect(foot()).toContain('Reading indexed files · 0 / 2 files · 0.00 MB read');
+    loading.paintAdmission({phase: 'assets', detail: 'Reading bytes before file index', bytesRead: 10,
+      bytesTotal: 0, filesDone: 0, filesTotal: 0});
+    now = 1000; vi.advanceTimersByTime(32);
+    expect(foot()).toContain('Reading bytes before file index · 0.00 MB read');
+    expect(foot()).not.toContain('0 / 0 files');
+  } finally { loading.scope.dispose(); }
+});
+
 it('shows the actual declared ratio when a late dependency is discovered, without a 99 percent cap', () => {
   const loading = new Loading({ id: 'test', name: 'Test' }, { scoped: true });
   const view: ProgressView = { download: 0, setup: 0, done: false, error: null, step: 'audio', label: 'Audio', detail: '',
