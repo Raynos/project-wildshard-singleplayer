@@ -8,7 +8,8 @@ import { Physics } from './Physics';
 import { groups } from './groups';
 import { installBakedMeshColliders } from './meshCollision';
 import { loadRapier } from './rapier';
-import { tagCollider } from './surface';
+import { isTerrainCollider, tagCollider, tagOf } from './surface';
+import { TransferWalls } from './transferWalls';
 
 const options = { radius: .38, height: 1.7, step: .35, maxClimbDeg: 40, snap: .3, ...PLAYER_BODY };
 async function fixture() {
@@ -53,5 +54,25 @@ test('board movement still ignores the actual terrain heightfield', async () => 
     for (let tick = 0; tick < 60; tick++) { physics.step(); motor.move(feet, { x: .1, y: 0, z: 0 }, true); }
     expect(feet.x).toBeGreaterThan(3.9);
     expect(feet.y).toBe(.45);
+  } finally { motor.dispose(); scope.dispose(); physics.dispose(); }
+});
+
+
+test('board transfer fence reaches the entry trigger with the unchanged edge filter', async () => {
+  const { physics, scope } = await fixture();
+  const walls = new TransferWalls(() => physics, [{ x: -562.5, z: -562.5 }], .38, 'entry', scope);
+  const motor = new CharacterMotor(physics, options), feet = { x: -562.5, y: .45, z: -281.25 };
+  try {
+    for (const handle of walls.snapshot()) {
+      const collider = physics.world.getCollider(handle);
+      expect(tagOf(collider)?.material).toBe('edge');
+      // The previous ground-tag predicate and G721's terrain predicate both
+      // include this permanent fence. It must not become a board bypass.
+      expect(tagOf(collider)?.material !== 'ground').toBe(!isTerrainCollider(collider));
+    }
+    for (let tick = 0; tick < 120; tick++) { physics.step(); motor.move(feet, { x: 0, y: 0, z: -.5 }, true); }
+    expect(feet.z).toBeCloseTo(-306.515, 2);
+    expect(Math.abs(feet.z + 562.5) - 250).toBeLessThan(6);
+    expect(motor.result.horizontalFreedom).toBeLessThan(.01);
   } finally { motor.dispose(); scope.dispose(); physics.dispose(); }
 });

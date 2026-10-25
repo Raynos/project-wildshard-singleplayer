@@ -109,3 +109,33 @@ test('failed coarse publication rejects coarse and fine requirements together', 
     await rejected; expect(f.allocator.entries()).toHaveLength(0);
   } finally { coarse.release(); fine.release(); f.streamer.dispose(); }
 });
+
+test('required entry preempts an unrelated stalled fetch without exceeding its slot cap', async () => {
+  const allocator = new ResidencyAllocator(), cancelled: string[] = [], discarded: string[] = [];
+  const blocked: ((result: string | Error) => void)[] = [];
+  const streamer = new TileStreamer([{ instance: 'background', origin: { x: 0, z: 0 } }, { instance: 'entry', origin: { x: 1000, z: 0 } }],
+    { reserve: claim => allocator.reserve(claim), now: () => 0 },
+    (_instance, level, x, z) => level === 'far' || x === 0 && z === 0 ? 1000 : null, {
+      fetch: (tile, done) => { if (tile.instance === 'background' && tile.level !== 'far') blocked.push(done); else done(tile.key); },
+      cancel: tile => { cancelled.push(tile.key); },
+      discard: tile => { discarded.push(tile.key); },
+      upload: () => ({ mask: () => undefined, shadow: () => undefined, dispose: () => undefined }),
+    }, { maxInFlight: 1, uploadsPerFrame: 1, viewDistance: 2000 });
+  let pin: ReturnType<typeof streamer.require> | undefined;
+  try {
+    const at = { x: 0, z: 0, vx: 0, vz: 0 };
+    for (let frame = 0; frame < 3; frame++) streamer.step(at);
+    expect(blocked).toHaveLength(1);
+    pin = streamer.require('entry', [0]); let ready = false;
+    void pin.ready.then(() => { ready = true; return undefined; }, () => undefined);
+    for (let frame = 0; frame < 5; frame++) { streamer.step(at); await Promise.resolve(); expect(streamer.stats().inFlight).toBeLessThanOrEqual(1); }
+    expect(ready).toBe(true);
+    expect(cancelled).toContain('background:l1/0/0');
+    expect(cancelled).not.toContain('entry:far');
+    expect(streamer.resident()).toContain('entry:l0/0/0');
+    const late = blocked[0]; if (late === undefined) throw new Error('Missing blocked fetch');
+    late('late background result'); streamer.step(at);
+    expect(discarded).toContain('background:l1/0/0');
+  } finally { pin?.release(); streamer.dispose(); }
+  expect(allocator.entries()).toHaveLength(0);
+});

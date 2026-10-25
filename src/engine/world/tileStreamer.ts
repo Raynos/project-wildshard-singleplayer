@@ -585,14 +585,30 @@ export class TileStreamer<D> {
 
   /** Request wanted tiles parent-first, nearest first, within the in-flight cap; each is charged before it is fetched. */
   private request(want: ReadonlyMap<string, { tile: RingTile; distance: number }>): void {
+    const required = new Set<string>();
+    for (const { tile } of this.pins.values()) {
+      required.add(tile.key);
+      if (tile.level !== 'far') required.add(key(tile.instance, 'far', 0, 0));
+      if (tile.level === 'l0') required.add(key(tile.instance, 'l1', Math.floor(tile.x / 2), Math.floor(tile.z / 2)));
+    }
     const pending = [...want.values()].filter(({ tile }) => !this.slots.has(tile.key) && (this.retryAt.get(tile.key) ?? 0) <= this.frame)
-      .sort((a, b) => LEVEL_RANK[a.tile.level] - LEVEL_RANK[b.tile.level] || a.distance - b.distance || a.tile.key.localeCompare(b.tile.key));
+      .sort((a, b) => Number(required.has(b.tile.key)) - Number(required.has(a.tile.key))
+        || LEVEL_RANK[a.tile.level] - LEVEL_RANK[b.tile.level] || a.distance - b.distance || a.tile.key.localeCompare(b.tile.key));
     let inFlight = [...this.slots.values()].filter((s) => s.state === 'fetching').length;
     for (const { tile: plan, distance } of pending) {
-      if (inFlight >= this.options.maxInFlight) break;
       const parentKey = parentOf(plan), parent = parentKey === null ? undefined : this.slots.get(parentKey);
       if (parentKey !== null && this.exists(plan) && parent?.state !== 'uploaded') continue;
       const bytes = this.bytes(plan.instance, plan.level, plan.x, plan.z); if (bytes === null) continue;
+      if (inFlight >= this.options.maxInFlight) {
+        if (!required.has(plan.key)) break;
+        // Entry must not wait behind unrelated background reads. Cancel only
+        // unfinished, unpinned work; late results retain their original lease fence.
+        const victim = [...this.slots.values()].filter(slot => slot.state === 'fetching' && !required.has(slot.tile.key)
+          && !this.hasChildren(slot.tile) && !this.completed.some(done => done.lease === slot.lease))
+          .sort((a, b) => b.distance - a.distance || a.tile.key.localeCompare(b.tile.key))[0];
+        if (victim === undefined) continue;
+        this.drop(victim); inFlight--;
+      }
       // Ports retain a fresh descriptor for this construction, never the private plan.
       const tile = { ...plan };
       const lease = this.budget.reserve({ id: `render:${tile.key}`, category: tile.level, bytes, owner: tile.instance, distance, needed: true, evictSync: () => { this.evicted(tile.key); } });
