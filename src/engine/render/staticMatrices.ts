@@ -27,8 +27,14 @@ const pose = (node: Object3D, out: Float64Array): Float64Array => {
   out[0] = p.x; out[1] = p.y; out[2] = p.z; out[3] = q.x; out[4] = q.y; out[5] = q.z; out[6] = q.w; out[7] = s.x; out[8] = s.y; out[9] = s.z;
   return out;
 };
-const scratch = new Float64Array(10);
-const moved = (held: Held): boolean => { pose(held.node, scratch); for (let i = 0; i < 10; i++) if (scratch[i] !== held.pose[i]) return true; return false; };
+/** Read the complete pose before comparing, as the original scratch-array capture did. */
+const moved = (held: Held): boolean => {
+  const p = held.node.position, q = held.node.quaternion, s = held.node.scale;
+  const px = p.x, py = p.y, pz = p.z, qx = q.x, qy = q.y, qz = q.z, qw = q.w, sx = s.x, sy = s.y, sz = s.z;
+  const prior = held.pose;
+  return px !== prior[0] || py !== prior[1] || pz !== prior[2] || qx !== prior[3] || qy !== prior[4]
+    || qz !== prior[5] || qw !== prior[6] || sx !== prior[7] || sy !== prior[8] || sz !== prior[9];
+};
 const reported = new WeakSet<Object3D>();
 const IDENTITY: readonly number[] = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
 function same(a: ArrayLike<number>, b: Float64Array): boolean {

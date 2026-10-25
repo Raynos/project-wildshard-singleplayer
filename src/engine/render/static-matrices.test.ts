@@ -68,3 +68,57 @@ test('a held subtree skips the walk until its parent moves, its structure change
   } finally { owner.dispose(); quiet.mockRestore(); }
   expect(Object.hasOwn(root, 'updateMatrixWorld')).toBe(false);
 });
+
+const poseChanges: readonly { readonly name: string; readonly change: (node: Group) => void }[] = [
+  {name: 'position x', change: node => { node.position.x = 2; }},
+  {name: 'position y', change: node => { node.position.y = 2; }},
+  {name: 'position z', change: node => { node.position.z = 2; }},
+  {name: 'quaternion x', change: node => { node.quaternion.x = .2; }},
+  {name: 'quaternion y', change: node => { node.quaternion.y = .2; }},
+  {name: 'quaternion z', change: node => { node.quaternion.z = .2; }},
+  {name: 'quaternion w', change: node => { node.quaternion.w = .2; }},
+  {name: 'scale x', change: node => { node.scale.x = 2; }},
+  {name: 'scale y', change: node => { node.scale.y = 2; }},
+  {name: 'scale z', change: node => { node.scale.z = 2; }},
+];
+test.each(poseChanges)('every held $name change resumes ordinary matrix updates', ({change}) => {
+  const root = new Group(), scope = new Scope('pose component'), checks: (() => void)[] = [];
+  const report = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+  try {
+    holdStaticMatrices(root, scope, check => { checks.push(check); }, {subtree: false});
+    checks[0]?.(); expect(root.matrixAutoUpdate).toBe(false);
+    change(root); checks[0]?.(); expect(root.matrixAutoUpdate).toBe(true);
+    expect(report).toHaveBeenCalledOnce();
+  } finally { scope.dispose(); report.mockRestore(); }
+});
+
+test('pose checks read every coordinate in order before handling the first change', () => {
+  const root = new Group(), scope = new Scope('pose read order'), checks: (() => void)[] = [], reads: string[] = [];
+  const report = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+  try {
+    holdStaticMatrices(root, scope, check => { checks.push(check); }, {subtree: false});
+    root.position.x = 2;
+    for (const [name, value, keys] of [['position', root.position, ['x', 'y', 'z']], ['quaternion', root.quaternion, ['x', 'y', 'z', 'w']], ['scale', root.scale, ['x', 'y', 'z']]] as const) {
+      for (const key of keys) {
+        const number: unknown = Reflect.get(value, key);
+        Object.defineProperty(value, key, {configurable: true, get: () => { reads.push(`${name}.${key}`); return number; }});
+      }
+    }
+    checks[0]?.();
+    expect(reads.slice(0, 10)).toEqual(['position.x', 'position.y', 'position.z', 'quaternion.x', 'quaternion.y', 'quaternion.z', 'quaternion.w', 'scale.x', 'scale.y', 'scale.z']);
+    expect(root.matrixAutoUpdate).toBe(true);
+  } finally { scope.dispose(); report.mockRestore(); }
+});
+
+test('signed zero stays static and a captured NaN still resumes updates', () => {
+  const scope = new Scope('nonfinite pose'), zero = new Group(), nan = new Group(), checks: (() => void)[] = [];
+  const report = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+  try {
+    nan.position.x = Number.NaN;
+    holdStaticMatrices(zero, scope, check => { checks.push(check); }, {subtree: false});
+    holdStaticMatrices(nan, scope, check => { checks.push(check); }, {subtree: false});
+    zero.position.x = -0; for (const check of checks) check();
+    expect(zero.matrixAutoUpdate).toBe(false); expect(nan.matrixAutoUpdate).toBe(true);
+    expect(report).toHaveBeenCalledOnce();
+  } finally { scope.dispose(); report.mockRestore(); }
+});
