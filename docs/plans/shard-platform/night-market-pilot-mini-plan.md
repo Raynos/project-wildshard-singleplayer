@@ -1,5 +1,7 @@
 # Night Market open-plot pilot: mini plan (G616, G617, G621, G623, G626, G629)
 
+> **Remaster (E503, draft for Jake):** [night-market-remaster](night-market-remaster-mini-plan.md): the Nine dome method (10 domes, rows RM0–RM14) after Jake's 10-24 "trash fire" playtest.
+
 Jake, 2026-10-23: *"we need to make a mini plan of how to build it"*. Read at HEAD 3af2694878. Mockups:
 `art/grid/round-45-night-market-billboards/` (m1 100 m over the neighbour, m2 road entry, m3 top-down 630 m, m4 plaza);
 round 46 is coming and is the capture target. The plan adds one SDK flag and otherwise stays data plus generator, with no runtime code.

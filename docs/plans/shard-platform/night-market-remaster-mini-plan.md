@@ -1,0 +1,152 @@
+# Night Market remaster: the dome method (E503)
+
+**State:** `draft` 2026-10-24, for Jake to read; not sent to the builder, no lane rows queued. Read at HEAD a8a15bb462.
+Graphical work is Opus, and Opus lanes are 0 until **Tue 10-27 13:00** (G605); Codex can prepare data and tooling before
+then (D4). Builds on the [Night Market pilot](night-market-pilot-mini-plan.md) (NM0–NM14, G632/G633/G641/G681/G684/G700)
+and feeds the [remaster of the 18 other plots](remaster-open-plots-mini-plan.md) (RP2, G712/G714).
+
+Jake, 2026-10-24 ~22:20 Cancun, after three phone screenshots of the Night Market plot on build 0b1ca136e (iPhone
+portrait, 29–30 fps, MEM 0.92 GB, 2 worlds): *"lol fucking night market looks like trash fire. Have a dedicated agent come
+up with a mini plan to remaster it using the Nine look dome technique."* At 22:21 he added that the screenshots were partly
+a streaming problem: two minutes later, in the same spot, the real tiles loaded (red-roof stalls with lanterns, pennant
+string lights, trees, lamp posts with light pools, darker paving; MEM 1.06 GB, 30 fps).
+
+The two problems need separate fixes: **(a)** the near tiles stream in late, so the far proxy shows at eye height. That is a
+tile-streaming fix, not art. **(b)** Even fully loaded, the plot is far below the mockups. That is this remaster.
+
+## 1. Diagnosis
+
+### 1a. Streaming: the far proxy drew at eye height (a tile-streaming fix, not this plan's art)
+
+- **What the 22:19 screenshots show is the far proxy.** Each tile has a far stand-in (`generators/kit.mjs:378-385`
+  `farTile`). For an S tile it is two red boxes 12 m wide, 5.6 m high and 54 m long. From a distance these were the "line of
+  red boxes on the horizon"; from 3 m away, one was the "giant dark-red wall". The flat grey-blue ground is the stand-in's
+  single-colour floor quad. The faceted red gate is `far_landmark` (`landmark-far.glb`, 2.5k triangles, the texture's colours
+  baked into vertex colours, no normals). Neither the L0 tiles nor the near view (`near: 'coarse'`,
+  `generators/product.ts:30`, which keeps the L1 shapes and a light layer) had arrived.
+- **Cause:** the entered cell's tiles became resident late. `436b14b3ed` (22:01, T4.1: missing required tiles now refuse
+  entry instead of handing over controls) and `acf56cf5c4` (22:16, T4.2: re-entry restores the rank-0 tiles evicted on the
+  previous entry) both landed **after** build 0b1ca136e (19:34). T4.3, the entered-stream milestone, is in flight (sp-x2).
+  The Bag world map filling in "based on exploring" (G719) is the same symptom.
+- **Owner:** [tile-streaming](tile-streaming-mini-plan.md) T4.3, plus G719's up-front map atlas. Row RM0 below is only the
+  acceptance check on the Night Market walk; this plan builds nothing for it.
+
+### 1b. The art gap once loaded (22:21 screenshots; NM11 board `art/grid/round-56-night-market-nm11/board.jpg`; round 58/59)
+
+| # | What Jake sees | Why (file:line) | What the mockup / Nine does instead |
+|---|---|---|---|
+| 1 | **Flat, untextured ground** | `generators/tiledPlot.mjs:112-118`: the paving is a 10 m vertex-colour checker in two shades about 3 % apart (`#8b91a2` / `#838a9b`, `data/layouts/night-market.json`). The `kit` material is plain PBR, roughness 0.9, with no maps (`data/source.json:256`). There are no joints, kerbs or block edges. | The mockup's plaza (`round-46…/r7-plaza.jpg`) has ~3 m flagstones with dark joints, warm where the lanterns light them. Nine's ruled kit (`nine-dragon-stack/generators/kit/ruledKit.ts`) draws flagstone rows and edges analytically in the material, with no texture. |
+| 2 | **Black, untextured poles; black stall undersides** | Lantern posts are 0.18 m bars (`kit.mjs:181`), stall and banner posts are 0.36 m and 0.24 m boxes (`kit.mjs:262`, `:422`), all in dark wood `#5b3a24`. The only light is a low dusk sun (`source.json:197` `dayOverride 0.72`) plus a flat 0.8 ambient. There is no AO and no light from the lanterns on geometry, so every face turned away from the sun goes near black. | Nine bakes light volumes from ~9 500 emitters (`generators/lightVolumes.ts`, falloff law in `data/lightPools.json`), so lanterns light the posts, eaves and walls round them. |
+| 3 | **Plain stall boxes** | `kit.mjs:256-286` `stalls()`: a counter box, four square posts, a 4-face gable and one lit quad, 10 per S tile. No awning cloth, stripes, valance, goods, signs or people. | Nine's hero stall (`nine-dragon-stack/generators/stalls.ts`, 620 lines): striped awning with a scalloped valance, banner, lit name board, a counter crowded with goods, bulbs, cooks. |
+| 4 | **Hard-edged light pools** | `kit.mjs:154-160` `pool()`: an 8-triangle octagon whose colour fades linearly to black at the rim, additive, 4–6 m radius, orange `#9a4a14`. The octagon edges show, and the overlapping smudges are bigger than the lights that cast them (5.5k triangles). | Nine uses a smooth per-pixel falloff (`k`, `r`, `cut` per emitter kind, `data/lightPools.json`) and a glossy lobe. |
+| 5 | **Lights read as cubes and floating triangles, with no glow** | Lanterns are 0.6 m cubes (`kit.mjs:182`); bulbs and sky lanterns are tetrahedra (`kit.mjs:171-178`, `:436-437`). **Bloom is off for every open plot** (`open-plots/manifest.json:47` `bloomIntensity 0`, threshold 1; Nine has 0.6 / 0.9, Pine 0.55, Driftwood 0.4). The look is `style: greybox` with AO off (`manifest.json:152-159`). | Nine's lanterns are lathed with sagging cords (`generators/lanternGeometry.ts`) and drawn by the `nine-lantern` graph material, with bloom on. |
+| 6 | **Trees like gems** | `kit.mjs:186-192`: two hexagonal cones back to back, i.e. an octahedron. | Round, lumpy crowns in clusters. |
+| 7 | **Empty at eye height** | The plot is 500 m across. The whole world is ~94k triangles (kit 44k, glow 29k, pool 5.5k, landmark 15k), about **1.5k per 62.5 m tile** against an L0 cap of 40k (`src/format/contentBounds.ts:38`). That is 4 % of the budget. Each plaza quarter (`kit.mjs:364-375`) is 62.5 m of bare paving with 10 lanterns and one planter; the four make a 125 m square. | The mockup reads as a dense town: stall rows, house courts and gardens touch, and the plaza has gardens, canal stubs and bridges right by the gate. |
+| 8 | **The gate is a dark silhouette** | The Hunyuan 2.1 textured gate (`landmark.glb`, 15k triangles) carries no lanterns, no lit gold trim and no uplight beyond two pools, so it is backlit against the dusk (NM11 plaza shot). | Bright red pillars, gold brackets, ~10 hanging lanterns. |
+| 9 | **Coarse from the road and from 100 m** | The near view is vertex colours only (`src/sdk/bake/placeholders.ts:394-400`), so the posters show as flat mean colours (round 61 README). The far proxy is ≤ 40 triangles per tile. | The road-entry and 100 m mockups are the same rich scene seen from further away. |
+| 10 | Neighbour noise (not this plan) | Thin Ice's cyan far hologram shows through the arch and over the skyline (round 61 README). | It goes when RP2 remasters the other plots. |
+
+## 2. The dome method applied to Night Market
+
+The method is NINE-DRAGON-STACK §7 and LOOK-LOOP "Two domes". Round 15's eight domes
+(`art/nine-dragon-stack/round-15-eight-domes/`) are the template. Each mockup camera gets two domes:
+
+- a **stand dome** at the mockup's camera, whose view 5 is the mockup itself;
+- a **look dome** at what that camera looks at, whose 9 views include one looking back at the stand dome.
+
+The cameras are round 46's (`art/grid/round-46-night-market-nine-angles/`). That gives **5 mockups and 10 domes**. Anchors
+are in plot-local metres: south entry at z = −250, gate at (0, 0), y = height above the paving.
+
+| Dome | Mockup | Anchor | Must hold (assets · density · light) |
+|---|---|---|---|
+| **A1 road stand** | r1 road entry | (0, −262, eye 1.7; round 60's 8 m camera as view 5) | Road, kerb and the 1.2 m curtain (G700), entry posters, both N forecourts, the lantern avenue running to the gate. The lit gate must read at 260 m. |
+| **A2 road look** | r1 | (0, −205, eye), facing the gate | Forecourt planters, ornate lantern posts every 8 m, string lights over the lane, the first canal bridge, H house fronts with lit windows, stall rows starting. View 7 looks back to the road and its posters. |
+| **B1 40 m stand** | r3 40 m over the road | (0, −300, 40 up) | The south half from above: tiled roofs (ridge, eaves, texture), turquoise canals, lawns, the lantern grid reading as a pattern, soft pools. Tests L0 and L1. |
+| **B2 40 m look** | r3 | (0, −120, 40 up), orbit | Every south tile type from 9 sides at mid height; no bare paving > 15 m between pieces. |
+| **C1 100 m stand** | r4 100 m over the neighbour | (0, −400, 100 up) over the road cell | The whole plot as the near view and L1 draw it: roofs, canals, gardens, gate and lights all read. Tests the near view and far proxy. |
+| **C2 100 m look** | r4 | (0, 0, 100 up), orbit and top-down | The north half and the plot's silhouette from every side, including the far proxy at 600 m (view 9). |
+| **D1 plaza stand** | r7 plaza | (0, −45, eye) = spawn, facing the gate | Flagstones with joints, planters with round trees, the canal stubs and bridges either side, the lit gate with hanging lanterns, the plaza poster, bloom halos. |
+| **D2 gate look** | r7 | (0, −18, eye) in front of the gate | The gate close up (pillars, brackets, gold trim, lanterns, uplight), looking up, and back toward D1 across the plaza; crowd at the stalls nearby. |
+| **E1 corner stand** | r8 inside corner, 25 m up | (−215, 215, 25 up) over the NW H tile | House courts and gardens from roof height: tiled roofs, court lawns, a lantern in every court, the market beyond. |
+| **E2 corner look** | r8 | (−180, 180, eye) in a garden / court | Eye height inside an H/G pair: walls with timber frames and lit windows, round trees with lanterns, a pond, hedges. No black faces, no gems. |
+
+**Eye-height detail bar** (A1, A2, D1, D2, E2; in every view under the horizon):
+
+1. No plain-colour floor: every ground surface shows joints or a pattern within 30 m.
+2. Nothing under 8 % luminance bigger than a door, except a deliberate silhouette against the sky.
+3. At least 12 distinct lit things within 30 m, each with a soft round pool and a bloom halo.
+4. No bare stretch longer than 15 m along a lane.
+5. Every repeated piece (stall, lantern, tree, house) is a real model with at least 3 variants, so no two neighbours are
+   identical.
+6. Each palette region within ΔE00 ≤ 8 of the target (LOOK-LOOP step 5).
+
+The aerial domes (B, C) carry the pattern, light and LOD read: the tile layout, canal colour and lantern grid must match
+the mockup at 40 m and 100 m.
+
+**Targets.** The plot isn't built yet, so the targets are imagined from the mockup (LOOK-LOOP):
+
+1. Write `cameras.json` per dome.
+2. Draw a floor plan from `data/layouts/night-market.json`, with the cameras as numbered dots and view wedges.
+3. Make one codex `image_gen` 3×3 grid per dome from [mockup, floor plan], two candidates, and keep the one whose tiles face
+   the way the cameras say.
+4. Upscale each tile with the mockup as the detail reference.
+
+The output is 90 targets in `art/grid/round-63-night-market-domes/<dome>/`, every sheet labelled
+"<dome> · n · view · TARGET".
+
+**The loop, per dome and round:**
+
+1. Capture the 9 views on a served build of HEAD through `scripts/browser-lane.sh` (iPhone 16 Pro portrait, phone tier, 2×
+   render scale, muted).
+2. Put the capture 3×3 beside the target 3×3.
+3. Write a gap list and merge it into a TOP-10.
+4. Fix.
+5. Eye-check: previous | this | target. Revert anything that looks worse.
+6. Report triangles, draws and MB per dome in the commit.
+
+Two Opus lanes own disjoint files, as Nine did:
+
+- the **look-dome lane** owns the kit models and hero pieces (`public/assets/open-plots/kit/`, the gate dressing);
+- the **stand-dome lane** owns the systems (materials, paving, light bake, bloom and grade, near view, density placement in
+  `kit.mjs` / `tiledPlot.mjs`).
+
+The look-dome lane re-captures the stand dome each round to prove its work shows there.
+
+## 3. Rows (build order)
+
+| Row | What | Owner | Effort | Done when |
+|---|---|---|---|---|
+| RM0 | **Streaming acceptance** (built by tile-streaming T4.3 and G719, not here): walking in from the south road, the L0 tiles draw before the kerb; the far proxy never draws inside the entered cell | sp-x2 (tile-streaming) | — | A phone-tier walk road → plaza shows L0 within 3 s of entering, with no far stand-in at eye height; the Bag map shows every cell on first open |
+| RM1 | **Dome targets:** 10 `cameras.json` and floor plans, 10 codex 3×3 grids (2 candidates each), 90 upscales, labelled sheets | Codex (`image_gen`, not a lane) or plan agent | 4 h | `round-63-night-market-domes/` holds 10 labelled target sheets plus an overview |
+| RM2 | **Baseline captures** of the 10 domes on HEAD after RM0, with triangles, draws and memory per dome | Codex | 2 h | 10 in-game 3×3 sheets beside their targets; per-dome numbers in the commit |
+| RM3 | **Kit plumbing** (no look change): placement generators in `kit.mjs` place GLB kit pieces (palette slots, 3 variants, LOD0/LOD1, a ≤ 40-triangle far stand-in). A vertex light bake in the generator adds every lantern's light to nearby Kit vertices with Nine's falloff law. A per-tile budget report. Today's builders are exported as the first pieces, so the capture is unchanged. | Codex | 1 d | `build-shardfiles --shard=open-plot-night-market` exits 0; RM2 captures unchanged; the per-tile report is printed |
+| RM4 | **Kit remaster (models).** Real models, 3 variants each: stall (hero plus a striped-awning row stall), round paper lantern and ornate post, string-light cord with round bulbs, arched stone bridge with balustrade, house court (tiled hip roofs with upturned eaves, timber frame, lit windows), canal coping, planter, bench, goods and crates, banners, round-crown trees, static posed figures. Architecture is Blender scripts (`scripts/blender/build.sh`, GLB committed); organic pieces are TRELLIS.2 vs Hunyuan3D-2, better wins, through `mockup-to-model`. | Opus (look-dome lane) | 3 d | Each piece has a labelled 4-angle board beside its mockup crop; A2, D2 and E2 meet bars 5 and 2 |
+| RM5 | **Materials and palette:** one trim-sheet texture per style (roof tile, timber, plaster, awning stripe, stone) in KTX2 with phone mips, shared by the kit. Paving as a ruled graph material (flagstone joints, kerb edges, wear; data, no texture). The palette locked to round 46 (G714: red-and-gold lantern dusk). | Opus (stand-dome lane) | 1 d | Bars 1 and 6 in A1, A2, D1, D2 and E2 |
+| RM6 | **Light:** bloom on for open plots (grade data, ~0.5 / 0.9 like Nine and Pine); smooth round pools sized to their light (16-segment fan with a smoothstep profile, or a pool graph); RM3's vertex light bake tuned; the gate given lanterns, emissive gold trim and uplight; a warmer dusk fill (hemisphere ground colour). No new real lights, instancing only (E271). No Debug row (G669); the old look comes back only on Jake's word. | Opus (stand-dome lane) | 1.5 d | Bars 2 and 3 in every eye-height dome; the phone-tier frame floor holds (RM10) |
+| RM7 | **Ground and canals:** kerbs and raised block edges, canal walls with stone coping, bridges with balustrades, water that doubles the lights (emissive streak cards like Nine's wet-stone streaks) | Opus (stand-dome lane) | 1 d | B1, B2, D1 and E1 canals read as the mockup's turquoise canals with lit reflections |
+| RM8 | **Density and scale:** every tile re-packed to the mockup. Stalls on both sides of every lane at ~6 m pitch; the plaza quarters get lawns, canal stubs, bridges, planters and a lantern avenue (r7); taller house courts with court walls; budget ≤ 15k triangles and ≤ 0.3 MB compressed per L0 tile. If a tile goes over 0.3 MB, the plot moves from the merged `world` GLB to the props bake's instanced scatter (`src/sdk/bake/props.ts`, as pastel-plain and ink-cel-valley do), because `authoredWorld.ts:63` refuses `props`. | Opus (stand-dome lane), Codex for the layout data | 1.5 d | Bar 4 in every eye-height dome; ≥ 70 % of each tile covered in the C2 top-down; per-tile numbers in the commit |
+| RM9 | **Gate landmark:** a new single-object reference from r7; Hunyuan3D 2.1 vs TRELLIS.2, better wins (G632); hanging kit lanterns, emissive gold trim, uplight; ≤ 30k triangles near across the 4 plaza tiles, ≤ 2.5k far | Opus (look-dome lane) | 1 d | D2's 9 views match their targets; a labelled 4-angle board |
+| RM10 | **Life:** round paper sky lanterns (replacing the tetrahedra), food-stall steam, fireflies, banner sway (the existing glow graph), static posed figures at stalls and on bridges. An animated crowd only if an existing SDK crowd host takes it as data (HOST-BAR). | Opus | 0.5 d | Visible in a 5 s road-entry clip; frame floor unchanged |
+| RM11 | **Near view and far proxy:** the near view's vertex colours take the trim-sheet colours; the light layer keeps lanterns and pools; far stand-ins re-authored from the new kit (roof silhouettes, canal quads, the lit gate) within the 8k far cap | Opus (stand-dome lane) | 0.5 d | A1, C1 and C2 read as the mockup at 260 m and 100 m up |
+| RM12 | **Perf and memory per dome**, phone tier: Chromium 2× captures report triangles and draws per dome, then one Simulator reading at the milestone | Codex (captures) + Opus (fixes) | 0.5 d | Inside the plot ≤ 600k triangles and ≤ 120 draws per frame; ≥ 30 fps floor (Low Power Mode cap); memory ≤ +150 MB over today's 1.06 GB two-world reading and ≤ 1.2 GB per shard (G556); loading ≤ 1.8 GB |
+| RM13 | **Board and play:** 5 cameras × MOCKUP · BEFORE (the 22:21 build) · NOW, labelled, iPhone portrait, plus a 30 s walk video from road to plaza; then Jake plays it (G684) | Opus | 0.5 h | Board and clip sent; Jake's word |
+| RM14 | **Make it general for RP2:** the kit library is shared (`public/assets/open-plots/kit/`, retinted by palette slots); each idea is a style row, round 62's palette and grade, its own hero pieces and landmark, and the same 5-camera / 10-dome template | Opus + Codex | 0.5 d | A second idea's style row builds with no generator code change (one test); `remaster-open-plots-mini-plan.md` gets the how-to |
+
+Order: RM0 (other plan) ∥ RM1 → RM2 → RM3, all Codex before Tue. Then RM4 ∥ RM5 ∥ RM6 (two Opus lanes from Tue 13:00) →
+RM7 → RM8 → RM9 → RM10 → RM11, with look-loop rounds per dome throughout. Then RM12 → RM13 → Jake plays → RM14 → RP2.
+About 10 Opus lane-days, roughly 5 calendar days on two lanes.
+
+## 4. Decisions for Jake
+
+- **D1 Fidelity bar.** 1 Skip · **2 Match the mockup's look at eye height in all ten domes (rec):** stylised and
+  low-poly like the mockup itself, but real models, lit and dense · 3 Keep the code-built kit and only fix light, ground and
+  density (about half the effort, still "boxes") · 4 Go past the mockup toward photoreal.
+- **D2 Asset pipeline.** 1 Skip · **2 Blender scripts for architecture (stalls, houses, bridges, lanterns, posts);
+  TRELLIS.2 vs Hunyuan3D-2, better wins, for organic pieces (trees, goods, figures) and the gate (rec)** · 3 Everything
+  image-to-3D · 4 Everything code-built (today's builders, upgraded).
+- **D3 Perf budget inside the plot, phone tier.** 1 Skip · **2 30 fps floor (Low Power Mode cap), ≤ 600k triangles and
+  ≤ 120 draws, ≤ +150 MB over today and ≤ 1.2 GB per shard (rec)** · 3 No growth over today's reading · 4 Anything up to
+  1.2 GB per shard.
+- **D4 Before Opus returns (Tue 13:00).** 1 Skip · **2 Codex starts now on RM1–RM3 (dome targets, baseline captures, the
+  GLB-piece placement, vertex light bake and per-tile report, all with no look change); Opus builds the look from Tue (rec)** ·
+  3 Wait for Opus Tue for everything.
