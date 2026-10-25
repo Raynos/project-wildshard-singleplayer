@@ -3,12 +3,14 @@ import { ssim } from '../scripts/parity/ssim.mjs';
 
 const original = new Map<string, PropertyDescriptor | undefined>();
 const upload = new Blob([new Uint8Array([137, 80, 78, 71])], { type: 'image/png' });
+const encode = vi.fn(() => Promise.resolve(upload));
 const read = vi.fn<typeof fetch>();
 const first = { width: 16, height: 16, close: vi.fn() };
 const second = { width: 16, height: 16, close: vi.fn() };
 let noCanvas = false;
+let canvases = 0;
 class Canvas {
-  constructor(readonly width: number, readonly height: number) {}
+  constructor(readonly width: number, readonly height: number) { canvases++; }
   getContext(): object | null {
     if (noCanvas) return null;
     return {
@@ -18,10 +20,10 @@ class Canvas {
       putImageData: () => { /* The real-browser proof pins every actual diff pixel. */ },
     };
   }
-  convertToBlob(): Promise<Blob> { return Promise.resolve(upload); }
+  convertToBlob(): Promise<Blob> { return encode(); }
 }
 beforeEach(() => {
-  noCanvas = false; second.width = 16; second.height = 16;
+  noCanvas = false; canvases = 0; encode.mockClear(); second.width = 16; second.height = 16;
   first.close.mockClear(); second.close.mockClear(); read.mockReset();
   read.mockImplementation((input, init) => {
     if (init?.method === 'POST') return Promise.resolve(new Response(null, { status: 204 }));
@@ -49,6 +51,16 @@ test('returns only score metadata and sends the native PNG body once', async () 
 });
 test('retains the complete-mask refusal without admitting a replacement score', async () => {
   await expect(ssim({ ...input, mask: [[0, 0, 16, 16]] })).resolves.toEqual({ hasDiff: true, ssim: null, full: 1, masked: 1, note: 'the whole frame is masked' });
+});
+test('score-only mode keeps the same numbers without a diff canvas, encoder or upload', async () => {
+  await expect(ssim({ a: input.a, b: input.b })).resolves.toEqual({ hasDiff: false, ssim: 1, full: 1, masked: 0, note: null });
+  expect(canvases).toBe(2); expect(encode).not.toHaveBeenCalled();
+  expect(read.mock.calls).toEqual([[input.a], [input.b]]);
+  expect(first.close).toHaveBeenCalledOnce(); expect(second.close).toHaveBeenCalledOnce();
+});
+test('score-only mode keeps the complete-mask refusal without encoding a diff', async () => {
+  await expect(ssim({ a: input.a, b: input.b, mask: [[0, 0, 16, 16]] })).resolves.toEqual({ hasDiff: false, ssim: null, full: 1, masked: 1, note: 'the whole frame is masked' });
+  expect(canvases).toBe(2); expect(encode).not.toHaveBeenCalled(); expect(read).toHaveBeenCalledTimes(2);
 });
 test('a size mismatch produces no diff and closes both decoded bitmaps', async () => {
   second.width = 8;

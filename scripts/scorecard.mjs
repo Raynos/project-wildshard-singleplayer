@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { saveFixtureCode, debugSettings } from './debug-settings.mjs';
+import { imageScore } from './parity/record.mjs';
 // scorecard.mjs — the regression scorecard (docs/design/scorecard.md). One table of every variable the big merges trade
 // against each other (E155/E159 shard residency, E157 KTX2 textures + baked PMREM, E158/E161 prefetch + cache GC):
 // memory, downloads, time, frame rate, the look, and the shard-switch route. A baseline is recorded on main before
@@ -722,7 +723,7 @@ async function scoreShots(allRuns) {
     for (const r of allRuns) for (const s of r.shots) {
       if (!existsSync(s.golden) || s.file === s.golden) { s.ssim = s.file === s.golden ? 1 : null; continue; }
       const mask = [...(goldenBoxes.get(s.key) ?? []), ...(s.boxes ?? [])];
-      const res = await page.evaluate(SSIM_FN, { a: readFileSync(s.golden).toString('base64'), b: readFileSync(s.file).toString('base64'), mask });
+      const res = await imageScore(page, s.golden, s.file, mask, false);
       s.ssim = typeof res.ssim === 'number' ? round(res.ssim, 4) : null;
       s.ssimUnmasked = typeof res.full === 'number' ? round(res.full, 4) : null;
       s.masked = res.masked;
@@ -730,33 +731,6 @@ async function scoreShots(allRuns) {
     }
   } finally { await within(ctx.close(), 10_000); }
 }
-/** SSIM on luma, 7×7 windows; windows touching a `mask` box (the creatures in either frame) are left out */
-async function SSIM_FN({ a, b, mask }) {
-  const decode = (b64) => { const bin = Uint8Array.from(atob(b64), (c) => c.codePointAt(0) ?? 0); return createImageBitmap(new Blob([bin], { type: 'image/jpeg' })); };
-  const [ia, ib] = await Promise.all([decode(a), decode(b)]);
-  if (ia.width !== ib.width || ia.height !== ib.height) return { ssim: 0, note: `size ${ia.width}×${ia.height} vs ${ib.width}×${ib.height}` };
-  const w = ia.width, h = ia.height, W1 = w + 1;
-  const luma = (bm) => { const c = new OffscreenCanvas(w, h); const x = c.getContext('2d'); x.drawImage(bm, 0, 0); const d = x.getImageData(0, 0, w, h).data; const L = new Float64Array(w * h); for (let i = 0; i < w * h; i++) L[i] = 0.299 * d[i * 4] + 0.587 * d[i * 4 + 1] + 0.114 * d[i * 4 + 2]; return L; };
-  const X = luma(ia), Y = luma(ib);
-  const integral = (f) => { const S = new Float64Array(W1 * (h + 1)); for (let r = 0; r < h; r++) { let row = 0; for (let c = 0; c < w; c++) { row += f(r * w + c); S[(r + 1) * W1 + c + 1] = S[r * W1 + c + 1] + row; } } return S; };
-  const Sx = integral((i) => X[i]), Sy = integral((i) => Y[i]), Sxx = integral((i) => X[i] * X[i]), Syy = integral((i) => Y[i] * Y[i]), Sxy = integral((i) => X[i] * Y[i]);
-  const k = 7, N = k * k, cov = N / (N - 1), C1 = (0.01 * 255) ** 2, C2 = (0.03 * 255) ** 2;
-  const box = (S, r, c) => S[(r + k) * W1 + c + k] - S[r * W1 + c + k] - S[(r + k) * W1 + c] + S[r * W1 + c];
-  const M = new Uint8Array(w * h);
-  for (const [x0, y0, x1, y1] of mask ?? []) for (let y = Math.max(0, Math.floor(y0)); y < Math.min(h, Math.ceil(y1)); y++) M.fill(1, y * w + Math.max(0, Math.floor(x0)), y * w + Math.min(w, Math.ceil(x1)));
-  const Sm = integral((i) => M[i]);
-  let sum = 0, n = 0, all = 0, nAll = 0;
-  for (let r = 0; r + k <= h; r++) for (let c = 0; c + k <= w; c++) {
-    const mx = box(Sx, r, c) / N, my = box(Sy, r, c) / N;
-    const vx = (box(Sxx, r, c) / N - mx * mx) * cov, vy = (box(Syy, r, c) / N - my * my) * cov, vxy = (box(Sxy, r, c) / N - mx * my) * cov;
-    const s = ((2 * mx * my + C1) * (2 * vxy + C2)) / ((mx * mx + my * my + C1) * (vx + vy + C2));
-    all += s; nAll++;
-    if (box(Sm, r, c) > 0) continue;
-    sum += s; n++;
-  }
-  return { ssim: n > 0 ? sum / n : null, full: all / nAll, masked: Math.round((1 - n / nAll) * 1000) / 1000, note: n === 0 ? 'the whole frame is masked' : null };
-}
-
 /** --retouch: build the same tree again with one texture re-encoded; load build A (cold + warm), switch the origin to
  *  build B, and count the bytes it takes until a page runs build B (the service worker's update included). */
 async function retouchRow() {

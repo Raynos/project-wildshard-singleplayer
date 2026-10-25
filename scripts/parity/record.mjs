@@ -6,8 +6,8 @@ import { array, number, object, percentile, string } from './value.mjs';
 import { matches, normalize } from './compare.mjs';
 import { ssim } from './ssim.mjs';
 
-/** @param {import('playwright').Page} page @param {string} golden @param {string} current @param {number[][]} masks */
-export async function imageScore(page,golden,current,masks) {
+/** @param {import('playwright').Page} page @param {string} golden @param {string} current @param {number[][]} masks @param {boolean} [includeDiff] */
+export async function imageScore(page,golden,current,masks,includeDiff=true) {
   const inputs=new Map([['golden',readFileSync(golden)],['current',readFileSync(current)]]);
   const url=`https://parity-images.invalid/${randomUUID()}/`,pattern=`${url}*`;
   /** @param {import('playwright').Route} route */
@@ -17,11 +17,11 @@ export async function imageScore(page,golden,current,masks) {
   };
   await page.route(pattern,read);
   try {
-    const sink=await browserBakeBytes(page,{maxFiles:1});
+    const sink=includeDiff?await browserBakeBytes(page,{maxFiles:1}):undefined;
     try {
-      const {hasDiff,...score}=await page.evaluate(ssim,{a:`${url}golden`,b:`${url}current`,diff:`${sink.url}diff`,mask:masks});
-      return {...score,...hasDiff?{diff:sink.take('diff')}:{}};
-    } finally {await sink.dispose();}
+      const {hasDiff,...score}=await page.evaluate(ssim,{a:`${url}golden`,b:`${url}current`,...sink===undefined?{}:{diff:`${sink.url}diff`},mask:masks});
+      return {...score,...hasDiff&&sink!==undefined?{diff:sink.take('diff')}:{}};
+    } finally {await sink?.dispose();}
   } finally {await page.unroute(pattern,read);}
 }
 /** @param {import('playwright').Page} page @param {import('./value.mjs').RecordValue[]} runs @param {{sha:string,browser:string}} meta */
