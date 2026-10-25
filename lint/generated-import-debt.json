@@ -264,7 +264,6 @@
     "src/shards/sunscar-dunes/generators/fireLook.ts": 1,
     "src/shards/sunscar-dunes/generators/lashTargets.ts": 1,
     "src/shards/sunscar-dunes/generators/lightEmitters.ts": 1,
-    "src/shards/sunscar-dunes/generators/output.ts": 1,
     "src/shards/sunscar-dunes/generators/product.ts": 3,
     "src/shards/sunscar-dunes/generators/questMarkers.ts": 5,
     "src/shards/sunscar-dunes/generators/questNpc.ts": 1,
