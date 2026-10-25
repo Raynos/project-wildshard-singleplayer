@@ -7,8 +7,7 @@ import { unzlibSync } from 'fflate';
 import { byteWriter, jsonBytes, outputHash, browserBakeBytes } from '../../../../scripts/bake-output.mjs';
 
 const root = resolve(import.meta.dirname, '../../../..');
-const nativeInputs = process.argv.includes('--native-inputs');
-const outputData = resolve(root, nativeInputs ? 'public/assets/nine-dragon/authored/glyphs' : 'src/shards/nine-dragon-stack/data');
+const outputData = resolve(root, 'public/assets/nine-dragon/authored/glyphs');
 const result = await build({
   configFile: false, logLevel: 'silent', publicDir: false, root,
   build: { write: false, target: 'esnext', minify: false,
@@ -62,7 +61,7 @@ try {
     console.log(`Nine ${tier}: ${row.size}x${row.size} RG8, ${data.length} decoded, ${chunks.reduce((sum, part) => sum + part.byteLength, 0)} wire, ${tiers[tier].pixelHash}`);
   }
 } finally { await browser.close(); }
-writer.put(resolve(outputData, nativeInputs ? 'glyphs.json' : 'glyphs.generated.json'), jsonBytes(tiers, 0));
+writer.put(resolve(outputData, 'glyphs.json'), jsonBytes(tiers, 0));
 writer.finish();
 
 if (process.env.NINE_GLYPH_PROOF !== undefined) {
