@@ -3,7 +3,6 @@ import { AddEquation, CustomBlending, OneFactor, ZeroFactor } from 'three';
 import canopy from '../data/canopy.json' with { type: 'json' };
 import light from '../data/light.json' with { type: 'json' };
 import { nineWorldInstallRows, type NinePhysicsPlacement } from './physicsPlacements';
-import worldRows from '../data/worldRows.generated.json' with { type: 'json' };
 import { deckFloorRows } from './floorRows';
 import windowBindings from '../data/windowBindings.json' with { type: 'json' };
 import type { NineWorldScenes } from './worldScenes';
@@ -18,7 +17,7 @@ const deckFloors = deckFloorRows();
  * (the world assembly's entry stages, generators/worldAssembly.ts), and the square's stone pieces (`pieces`, the
  * world/scenes section's entry, run in the entered world once the assembly stands).
  */
-function nineEntryBlocks({ LAYOUT_PLACEMENTS, LION_PLACEMENTS, SET_PLACEMENTS }: NineWorldScenes): WorldEntryRows['blocks'] {
+function nineEntryBlocks({ worldRows, LAYOUT_PLACEMENTS, LION_PLACEMENTS, SET_PLACEMENTS }: NineWorldScenes): WorldEntryRows['blocks'] {
   // the walkable square and stacks as one piece: its stone colliders for the ending, the world's floors then the decks' (first)
   const install = nineWorldInstallRows();
   const floors = (variant: 'capped' | 'open', rows: readonly NinePhysicsPlacement[]) => {

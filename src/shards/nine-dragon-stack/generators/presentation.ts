@@ -6,7 +6,7 @@ import { buildStreaks, stairStreaks } from './receiverCards';
 import { buildHalos } from './haloCards';
 import { stairPlanData } from './stairPlan';
 import plan from '../data/layoutPlan.json' with { type: 'json' };
-import world from '../data/worldRows.generated.json' with { type: 'json' };
+import type { NineWorldDeclarations } from './worldRows';
 import lantern from '../data/lantern.json' with { type: 'json' };
 
 const { STAIR, WELL, Y0 } = plan;
@@ -38,7 +38,7 @@ export function cardScene(list: readonly Mesh[], name: string): SceneBuffers {
 }
 
 /** All filtering, window-facing tests and card geometry run once on the author. */
-export function presentationRows(tier: 'phone' | 'desktop', caps: boolean, layout: NineSourceWorld['layout']): { streaks: SceneBuffers; halos: SceneBuffers } {
+export function presentationRows(tier: 'phone' | 'desktop', caps: boolean, layout: NineSourceWorld['layout'], world: NineWorldDeclarations): { streaks: SceneBuffers; halos: SceneBuffers } {
   const source = volumeSources(tier, caps, layout), position = new Vector3(), rotation = new Quaternion(), scale = new Vector3();
   for (const offset of world.rows.portalLanterns) {
     new Matrix4().fromArray(world.records, offset).decompose(position, rotation, scale);
@@ -63,6 +63,6 @@ export function presentationRows(tier: 'phone' | 'desktop', caps: boolean, layou
   return { streaks: cardScene([floor, ...stairs], 'wet-receivers'), halos: cardScene([halo], 'halos') };
 }
 
-export function presentationData(layout: NineSourceWorld['layout']): { open: ReturnType<typeof presentationRows>; capped: ReturnType<typeof presentationRows> } {
-  return { open: presentationRows('phone', false, layout), capped: presentationRows('phone', true, layout) };
+export function presentationData(layout: NineSourceWorld['layout'], world: NineWorldDeclarations): { open: ReturnType<typeof presentationRows>; capped: ReturnType<typeof presentationRows> } {
+  return { open: presentationRows('phone', false, layout, world), capped: presentationRows('phone', true, layout, world) };
 }

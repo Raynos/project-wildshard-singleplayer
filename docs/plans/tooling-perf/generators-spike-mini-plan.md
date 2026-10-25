@@ -120,7 +120,7 @@ in `public/assets/<slug>/` as real `.glb` / `.png` / `.ktx2` / `.bin`. App-wide 
 | GR0 | done (2026-10-24, sp-x1): existing import ban `7d9ada1bbb` plus generated-source guard; exact-path output debt only shrinks, G656 app sources remain separately reviewed | S | staged/push Git checks and pre/post-gen + CI tree checks refuse new source outputs; 138 focused cases pass |
 | GR1 | done (2026-10-24, sp-x1): SDK `ctx.cached` / `ctx.asset`, in-memory boss metadata and Template/Pastel map/world programs; `de4c2ed072` + `89dc5c0c07` + `ea96805666` | M | Exact `ea96805666` full preview passes all 24 products in 165.42 s; both folders have zero job rows and no new file under `src/` after generation/build |
 | GR2 | done (2026-10-24, sp-x1): `326950c025` + `78681f7cf5`; app tables then the existing per-product build pool, heavy-lane, scoped `--shard=`; preparation-only CI preserved | S | fresh Node refuses any scheduler import for a fully converted folder; 29 focused + 410 ready-related cases pass; exact `78681` generation builds all 24 products |
-| GR3 | in flight (2026-10-24, sp-x1): **Nine** (28 jobs at claim; 6 remain): direct row, physics and schema calls replace imports; `castHook` / `lightSpill` become cached `.glb` / `.bin`; dead `paintArray` retires (G416, closes B4); atlases per D2; its tests call functions | L | 0 Nine rows in the catalogue, 0 `*.generated.*` under its folder, product validates, boot smoke green |
+| GR3 | in flight (2026-10-24, sp-x1): **Nine** (28 jobs at claim; 5 remain): direct row, physics and schema calls replace imports; `castHook` / `lightSpill` become cached `.glb` / `.bin`; dead `paintArray` retires (G416, closes B4); atlases per D2; its tests call functions | L | 0 Nine rows in the catalogue, 0 `*.generated.*` under its folder, product validates, boot smoke green |
 | GR4 | **in flight (2026-10-24, sp-x6): Sunscar** (23 at claim; 18 remain). Five jobs retired with exact source-product parity; cached rigs are now owned by the product. | M | same bar |
 | GR5 | **Far Reach** (47) | L | same bar |
 | GR6 | **Nalati** (47; 69 product imports, `poiPaint` / `grass` / `geography`) | L | same bar |
@@ -232,7 +232,7 @@ GR3 bounded slices (G711; each <= 1 h, one producer retirement per commit):
 | C2 casts reader handoff and retirement | done | Nine 9 → 8; all 78 former files exact, cold scoped generation and full live output parity |
 | Practice | open | Direct course program, then remove its two source handoffs |
 | D1 declarations source/cache | done | Both original canonical wires (3,470,533 B), checked partition owners and cache/refusal checks; no job retirement |
-| D2 declarations reader handoff | open | Direct checked world rows; remove the two source handoffs and declaration adapter (Nine 6 → 5) |
+| D2 declarations reader handoff | done | Nine 6 → 5; both source handoffs (3,470,533 B) absent, original canonical rows and full product bytes exact; cold scoped generation |
 | Boot metadata | open | Direct checked geometry/presentation metadata |
 | Glyphs | open | Preserve native raster bytes and replace source handoff |
 | S1 sign-source cache | done | 28 files / 9,308,309 B and all 27 admitted rows exact; cold/hit/refusal and sealed adapter checks; no job retirement |

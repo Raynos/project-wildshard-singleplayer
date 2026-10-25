@@ -8941,56 +8941,6 @@
       }
     },
     {
-      "id": "nine-declarations",
-      "shard": "nine-dragon-stack",
-      "entry": "src/shards/nine-dragon-stack/generators/bake-declarations.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./scripts/bake-loader.mjs",
-        "src/shards/nine-dragon-stack/generators/bake-declarations.mjs"
-      ],
-      "inputRoots": [
-        "src/shards/nine-dragon-stack/generators/bake-declarations.mjs",
-        "src/shards/nine-dragon-stack/generators/audio.ts",
-        "src/shards/nine-dragon-stack/data/audioSamples.json",
-        "src/shards/nine-dragon-stack/data/layoutPlan.json",
-        "src/shards/nine-dragon-stack/data/worldDressing.json",
-        "src/sdk/clientChannels.ts",
-        "src/format",
-        "src/sdk/bake/source-loader.mjs",
-        "scripts/bake-output.mjs",
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "src/sdk/immutable.ts",
-        "src/sdk/package.json",
-        "src/sdk/audio.ts",
-        "scripts/bake-loader.mjs",
-        "src/shards/nine-dragon-stack/generators",
-        "src/shards/nine-dragon-stack/data",
-        "public/assets/nine-dragon/lab/walker.glb",
-        "public/assets/nine-dragon/lab/sitter.glb",
-        "src/commons",
-        "src/engine",
-        "src/game",
-        "src/sdk",
-        "src/shards/nine-dragon-stack"
-      ],
-      "outputs": [
-        "src/shards/nine-dragon-stack/data/declarations.generated.json",
-        "src/shards/nine-dragon-stack/data/worldRows.generated.json"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/nine-dragon-stack/data/declarations.generated.json",
-        "src/shards/nine-dragon-stack/data/worldRows.generated.json"
-      ],
-      "platform": "portable",
-      "catalogueDependencies": [
-        "nine-sign-atlas"
-      ]
-    },
-    {
       "id": "sky-rising-islets",
       "shard": "far-reach",
       "entry": "src/shards/far-reach/generators/risingIslets.ts",
@@ -16710,8 +16660,7 @@
       ],
       "platform": "portable",
       "catalogueDependencies": [
-        "nine-sign-atlas",
-        "nine-declarations"
+        "nine-sign-atlas"
       ]
     },
     {

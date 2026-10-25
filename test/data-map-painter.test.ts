@@ -18,11 +18,11 @@ import isletScene from '../src/shards/far-reach/data/isletScenes.generated.json'
 import isletMotion from '../src/shards/far-reach/data/isletMotion.generated.json' with { type: 'json' };
 import { nalatiMapAssembly } from '../src/shards/nalati-grasslands/generators/mapAssembly.mjs';
 import { nineMapAssembly } from '../src/shards/nine-dragon-stack/generators/mapAssembly.mjs';
+import { scenes as nineScenes } from './fixtures/nine-product-inputs';
 import { Matrix4, Quaternion, Vector3 } from 'three';
 import { driftwoodMapAssembly } from '../src/shards/driftwood-isle/generators/mapAssembly.mjs';
 import { pineMapAssembly } from '../src/shards/pine-hollow/generators/mapAssembly.mjs';
 import pinePhysics from '../src/shards/pine-hollow/data/physicsRows.json' with { type: 'json' };
-import { WorldRowsSchema } from '../src/shards/nine-dragon-stack/generators/sections';
 
 const grey = [[120, 120, 120], [120, 120, 120], [120, 120, 120]];
 const triangle = [[200, 4, 200], [150, 4, 200], [200, 4, 150]];
@@ -153,8 +153,7 @@ test('Nalati map assembly covers every POI model copy at its admitted pose', asy
 });
 
 test('Nine map contains every facade copy, queued set and rest mover', async () => {
-  const nineWorld=schema.parse(schema.object({rows:WorldRowsSchema,records:schema.array(schema.pipe(schema.number(),schema.finite()))}),
-    JSON.parse(readFileSync('src/shards/nine-dragon-stack/data/worldRows.generated.json','utf8')));
+  const nineWorld = nineScenes.worldRows;
   const { assembly } = await nineMapAssembly();
   try {
     for (const row of nineWorld.rows.facade.drawn) {

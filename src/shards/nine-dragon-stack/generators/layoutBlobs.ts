@@ -1,5 +1,4 @@
 import * as v from 'valibot';
-import worldRows from '../data/worldRows.generated.json' with { type: 'json' };
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import { formatJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import type { NineSourceWorld } from './worldProgram';
@@ -13,7 +12,7 @@ const json = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.strin
 export function layoutWireSchema(): ReturnType<typeof formatJsonSchema> { return formatJsonSchema(GeometryBootSchema, 'draft-07'); }
 
 /** Separate small author rows from raw float64 records; no megabyte JSON parse runs at native boot. */
-export function layoutBlobs(source: NineSourceWorld, { SET_TILES }: NineWorldScenes): NamedBlob[] {
+export function layoutBlobs(source: NineSourceWorld, { SET_TILES, worldRows }: NineWorldScenes): NamedBlob[] {
   const world = source.metadata;
   const { rows, records: numeric } = bakedLayout(source.layout);
   const tiles = v.parse(v.array(v.object({ file: v.string(), additionalFiles: v.exactOptional(v.array(v.string())) })), world.props?.tiles);

@@ -28,7 +28,7 @@ import { compressGlb } from '@wildshard/sdk/bake/glbCompression';
 import { Matrix4, MeshBasicMaterial, PlaneGeometry, Quaternion, SphereGeometry, Vector3 } from 'three';
 import { bakedLayoutProjection } from './layoutProjection';
 import explorer from '../data/explorerModels.json' with { type: 'json' };
-import worldRows from '../data/worldRows.generated.json' with { type: 'json' };
+import type { NineWorldDeclarations } from './worldRows';
 import type { NineSourceWorld } from './worldProgram';
 import rawProfiles from '../data/specimenProfiles.json' with { type: 'json' };
 import plan from '../data/layoutPlan.json' with { type: 'json' };
@@ -38,7 +38,7 @@ import { lightVolumeRows } from './lightVolumes';
 import paint from '../data/paint.json' with { type: 'json' };
 import canopy from '../data/canopy.json' with { type: 'json' };
 
-function buildWorldScenes(layout: NineSourceWorld['layout'], hookMaterial: Parameters<typeof castMaterials>[0], signs: NineSourceSigns) {
+function buildWorldScenes(layout: NineSourceWorld['layout'], hookMaterial: Parameters<typeof castMaterials>[0], signs: NineSourceSigns, worldRows: NineWorldDeclarations) {
 const { rows: SIGN_ATLAS_ROWS, libraries: SIGN_POOL_LIBRARIES } = signs;
 const signRows = parseSignView(rawSignRows);
 const profiles = parseSpecimenProfiles(rawProfiles);
@@ -58,7 +58,7 @@ function signDraw(id: string, part: string, material: string, renderOrder = 0) {
   const library = signLibrary.get(part); if (library === undefined) throw new Error(`Nine sign atlas has no part ${part}`);
   return { id, library, model: part, material, castShadow: false, receiveShadow: false, renderOrder };
 }
-// Which tiles hold each whole partition, and whether the page loads them at boot (generators/bake-declarations.mjs).
+// Which admitted tiles hold each whole partition, and whether the page loads them at boot.
 const wholeTiles = v.parse(v.record(v.string(), v.strictObject({ files: v.array(v.string()), resident: v.boolean() })), worldRows.wholeTiles);
 const tiles = new Map(Object.entries(wholeTiles).map(([id, row]) => [id, row.files])), resident = new Set(Object.entries(wholeTiles).flatMap(([id, row]) => row.resident ? [id] : []));
 const sets = new Map(layout.rows.sets.map(row => [`set:${row.name}`, `layout_${row.geo}`]));
@@ -189,7 +189,7 @@ const recipe = addWindowNodes(parseWorldScene({ imports: [], scene: { version: 1
 const look = (id: string, name: string) => ({ id, kind: 'look', look: name });
 const library = (id: keyof typeof aliases) => ({ id, kind: 'whole', ...(id === 'native' ? {} : { load: 'explorer' }), models: [...aliases[id].values()] });
 // the wet floor's reflection cards and the lanterns' halos (phone only), per deck ending: open in a grid cell, capped alone
-const cards = presentationData(layout), empty = addWindowNodes(parseWorldScene({ imports: [], scene: { version: 1, root: 'root', textures: [], materials: [], nodes: [{ kind: 'group', id: 'root', children: [] }] } }), [2], layout);
+const cards = presentationData(layout, worldRows), empty = addWindowNodes(parseWorldScene({ imports: [], scene: { version: 1, root: 'root', textures: [], materials: [], nodes: [{ kind: 'group', id: 'root', children: [] }] } }), [2], layout);
 // one file per distinct buffer: an ending whose cards match the other's reads the same file
 const cardFiles = new Map<string, string>();
 const cardFile = (caps: 'open' | 'capped', kind: 'streaks' | 'halos'): string => {
@@ -389,8 +389,8 @@ const NINE_WORLD_SCENES = parseWorldScenes({ version: 1, catalogue: 'models/worl
 const LAYOUT_PLACEMENT_BLOBS: NamedBlob[] = [...LAYOUT_PLACEMENTS.map(row => nameBlob(layoutPlacementFile(row.id), 'json', new TextEncoder().encode(JSON.stringify(row)))),
   nameBlob('world/fabric.json', 'json', json(FABRIC)), nameBlob('world/scenes/fixed.json', 'json', json(FIXED_RECIPE))];
 
-return { SET_TILES, NINE_SCENE_BLOBS, SET_PLACEMENTS, LION_PLACEMENTS, LAYOUT_PLACEMENTS, NINE_WORLD_SCENES, LAYOUT_PLACEMENT_BLOBS };
+return { worldRows, SET_TILES, NINE_SCENE_BLOBS, SET_PLACEMENTS, LION_PLACEMENTS, LAYOUT_PLACEMENTS, NINE_WORLD_SCENES, LAYOUT_PLACEMENT_BLOBS };
 }
 /** The same scene catalogue and placements from this invocation's checked layout. */
-export function nineWorldScenes(layout: NineSourceWorld['layout'], material: Parameters<typeof castMaterials>[0], signs: NineSourceSigns): ReturnType<typeof buildWorldScenes> { return buildWorldScenes(layout, material, signs); }
+export function nineWorldScenes(layout: NineSourceWorld['layout'], material: Parameters<typeof castMaterials>[0], signs: NineSourceSigns, worldRows: NineWorldDeclarations): ReturnType<typeof buildWorldScenes> { return buildWorldScenes(layout, material, signs, worldRows); }
 export type NineWorldScenes = ReturnType<typeof nineWorldScenes>;
