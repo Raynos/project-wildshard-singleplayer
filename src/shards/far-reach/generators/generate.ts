@@ -12,5 +12,5 @@ export async function generate(ctx: ProjectGenerationContext): Promise<{
   const output = await prepareOutput(ctx);
   const geometry = output.namedFiles.find(file => file.name === 'world/geometry/prepared-models.glb');
   if (geometry === undefined) throw new Error('Missing owned prepared geometry for boot');
-  return { shard: skyProductRows(), output, discovery: skyProductBoot(`/shardfiles/far-reach/${geometry.path}`) };
+  return { shard: skyProductRows(), output, discovery: skyProductBoot() };
 }
