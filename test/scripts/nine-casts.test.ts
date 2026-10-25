@@ -8,7 +8,7 @@ import { BufferAttribute, Float32BufferAttribute, Mesh, MeshBasicMaterial, Box3,
 
 import {nineCastBlobs, rawCast} from '../fixtures/nine-cast-blobs';
 import { createOwnedGeometry } from '../../src/engine/models/ownedGeometry';
-import metadata from '../../src/shards/nine-dragon-stack/boot/metadata.generated.json' with { type: 'json' };
+import { originalHookBounds } from '../fixtures/nine-boot-contract';
 import hookBounds from '../../src/shards/nine-dragon-stack/data/hookBounds.json' with { type: 'json' };
 import { createModelLibrary } from '../../src/game/plugin/geometry';
 import { readSourceModel } from '../../src/sdk/bake/skinned';
@@ -148,7 +148,7 @@ beforeAll(async () => {
   const fullHook = CAST_BLOBS.find(row => row.file.name === 'geometry/dragon-hook.glb');
   if (fullHook === undefined) throw new Error('Missing full-detail hook blob');
   await bakedHook.load(fullHook.bytes);
-  const nativeHook = bakedHook.take(), bounds = metadata.specimens.hook.bounds;
+  const nativeHook = bakedHook.take(), bounds = originalHookBounds;
   nativeHook.boundingBox = new Box3(new Vector3().fromArray(bounds.box.min), new Vector3().fromArray(bounds.box.max));
   nativeHook.boundingSphere = new Sphere(new Vector3().fromArray(bounds.sphere.center), bounds.sphere.radius);
   // the catalogue row's sphere (data/hookBounds.json) is the source cast's own
