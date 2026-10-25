@@ -1,11 +1,11 @@
 // @vitest-environment happy-dom
 import { afterEach, expect, test, vi } from 'vitest';
 import { Color, DataTexture, Mesh, MeshBasicMaterial, PlaneGeometry, Scene, Texture, Vector3, type IUniform } from 'three';
-import { Scope } from '../src/engine/app/scope';
-import * as assets from '../src/engine/core/assets';
-import { painterlyUniforms } from '../src/engine/world/painterly';
-import { PaintedPanorama } from '../src/game/looks/painterlyLook';
-import { lendLooks } from '../src/game/shardfile/lentLooks';
+import { Scope } from '@wildshard/engine/app/scope';
+import * as assets from '@wildshard/engine/core/assets';
+import { painterlyUniforms } from '@wildshard/engine/world/painterly';
+import { PaintedPanorama } from './painterlyLook';
+import { lendLooks } from '../shardfile/lentLooks';
 
 // A made-up dune sea (the panorama's fixture second user): its own painting, haze sea, ridge and lit graphs.
 const dunes = { dome: { name: 'dune-sky', look: 'dune-painting', image: { phone: '/assets/dunes/sky.phone.webp', desktop: '/assets/dunes/sky.webp' }, pad: 8, fallbackWidth: 4096,

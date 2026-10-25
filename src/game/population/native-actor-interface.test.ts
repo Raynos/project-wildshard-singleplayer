@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
-import { NativeActors } from '../src/game/population/actors';
-import { EntityIds } from '../src/engine/entities/ids';
+import { NativeActors } from './actors';
+import { EntityIds } from '@wildshard/engine/entities/ids';
 
 interface Body { readonly name: string; alive: boolean }
 

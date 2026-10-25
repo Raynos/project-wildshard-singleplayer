@@ -44,7 +44,7 @@
   "test/pine-night-emits.test.ts": [
     "pine-hollow"
   ],
-  "test/creature-group-sampling.test.ts": [],
+  "src/game/plugin/creature-group-sampling.test.ts": [],
   "test/contracts-platform.test.ts": [],
   "test/world-scenes-platform.test.ts": [],
   "test/scripts/skitterer-pack.test.ts": [
@@ -118,7 +118,7 @@
   ],
   "test/painted-look-rows.test.ts": [],
   "test/held-arms-platform.test.ts": [],
-  "test/native-actor-interface.test.ts": [],
+  "src/game/population/native-actor-interface.test.ts": [],
   "test/population-platform.test.ts": [],
   "test/quest-step-runner.test.ts": [],
   "test/quest-step-traces.test.ts": [],

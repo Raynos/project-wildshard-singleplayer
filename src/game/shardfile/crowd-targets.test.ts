@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
-import { FlockBrain } from '../src/engine/ai/flock';
-import { CrowdRoster, CrowdTargets, CrowdWeaponTarget } from '../src/game/shardfile/crowdRuntime';
+import { FlockBrain } from '@wildshard/engine/ai/flock';
+import { CrowdRoster, CrowdTargets, CrowdWeaponTarget } from './crowdRuntime';
 
 test('an orchard deer crowd supplies prey and authored hit spheres without a renderer', () => {
   const brain = new FlockBrain({ heightAt: () => 0, normalY: () => 1, inBounds: () => true, wetAt: () => false,

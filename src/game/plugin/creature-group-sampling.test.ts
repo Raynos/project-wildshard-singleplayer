@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
-import { Rng } from '../src/engine/core/rng';
-import { sampleCreatureGroup, type CreatureGroupSpec } from '../src/game/plugin/brain';
+import { Rng } from '@wildshard/engine/core/rng';
+import { sampleCreatureGroup, type CreatureGroupSpec } from './brain';
 
 
 const ground = (x: number, z: number): number => Math.sin(x * 0.05) * 3 + Math.cos(z * 0.07) * 2;

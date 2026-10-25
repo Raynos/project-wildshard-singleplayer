@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { Color, HemisphereLight, Vector3 } from 'three';
-import type { SkyRig } from '../src/engine/world/skyRig';
-import { PainterKeyLight } from '../src/game/looks/painterlyLook';
+import type { SkyRig } from '@wildshard/engine/world/skyRig';
+import { PainterKeyLight } from './painterlyLook';
 
 // A made-up coast (the painter's key's fixture second user): a gentler swing, a sea-blue fill and a sand bounce.
 const coast = { turn: 20, lift: 10, ease: [0, 10], sky: [0.2, 0.4, 0.8], ground: [0.6, 0.5, 0.3], mix: 0.5, fill: 0.8 };

@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { BoxGeometry, Group, Mesh, MeshLambertMaterial, MeshStandardMaterial } from 'three';
-import { Scope } from '../src/engine/app/scope';
-import { cellClip } from '../src/game/grid/cellClip';
+import { Scope } from '@wildshard/engine/app/scope';
+import { cellClip } from './cellClip';
 
 test('a clipped variant keeps its source\'s defines (the cascades\' USE_CSM), so it shadows and keys like its source', () => {
   const scope = new Scope('clip defines'), root = new Group();

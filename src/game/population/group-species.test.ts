@@ -1,8 +1,8 @@
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
-import type { Animal } from '../src/engine/entities/AnimalView';
-import type { ThinkCtx } from '../src/engine/entities/species/registry';
-import { groupSpecies } from '../src/game/population/groupSpecies';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
+import type { ThinkCtx } from '@wildshard/engine/entities/species/registry';
+import { groupSpecies } from './groupSpecies';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 test('marsh herd rows own held memory, damage and bounded group cadence', () => {

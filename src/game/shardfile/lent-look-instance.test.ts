@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { MeshBasicMaterial } from 'three';
-import { Scope } from '../src/engine/app/scope';
-import { lendLooks, lentLookInstance } from '../src/game/shardfile/lentLooks';
+import { Scope } from '@wildshard/engine/app/scope';
+import { lendLooks, lentLookInstance } from './lentLooks';
 
 test('a lent graph look gives independent copies, and refuses an unlent look or a lend that makes none', () => {
   const scope = new Scope('copies'), made: Map<string, unknown>[] = [];

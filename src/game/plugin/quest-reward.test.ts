@@ -1,10 +1,10 @@
 // @vitest-environment happy-dom
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
-import { Scope } from '../src/engine/app/scope';
-import { QuestRewardController, applyQuestRewardPose } from '../src/game/plugin/quests';
-import { QuestRewardBeat } from '../src/game/quest/reward';
-import { questPhaseSpan, questPhaseAt } from '../src/game/quest/storyLaw';
+import { Scope } from '@wildshard/engine/app/scope';
+import { QuestRewardController, applyQuestRewardPose } from './quests';
+import { QuestRewardBeat } from '../quest/reward';
+import { questPhaseSpan, questPhaseAt } from '../quest/storyLaw';
 
 const player = () => ({ position: new Vector3(2, 3, 4), velocity: new Vector3(1, 0, 1), yaw: 0.3, pitch: 0.1, carried: false });
 

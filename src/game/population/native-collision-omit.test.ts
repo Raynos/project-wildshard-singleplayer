@@ -1,11 +1,11 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Install real colliders with the shipped Rapier bytes.
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
-import { Physics } from '../src/engine/physics/Physics';
-import { loadRapier } from '../src/engine/physics/rapier';
-import { tagOf } from '../src/engine/physics/surface';
-import { installNativeCollision, type NativeCollisionSolid } from '../src/game/population/nativeBake';
+import { Scope } from '@wildshard/engine/app/scope';
+import { Physics } from '@wildshard/engine/physics/Physics';
+import { loadRapier } from '@wildshard/engine/physics/rapier';
+import { tagOf } from '@wildshard/engine/physics/surface';
+import { installNativeCollision, type NativeCollisionSolid } from './nativeBake';
 
 // A grid admission names the baked materials it leaves out (Pine's entry proof drops the standalone rim slabs, `edge`);
 // the standalone install of the same bake keeps every solid.

@@ -1,7 +1,7 @@
 import { zlibSync } from 'fflate';
 import { afterAll, expect, test, vi } from 'vitest';
-import { packedCreatureBodies } from '../src/game/plugin/geometry';
-import { Rng } from '../src/engine/core/rng';
+import { packedCreatureBodies } from './geometry';
+import { Rng } from '@wildshard/engine/core/rng';
 
 const file = `/assets/test/bodies-${'a'.repeat(64)}.bin`;
 const row = () => ({ file, bytes: 36, bodies: [{ kind: 'bird', variant: 'small',

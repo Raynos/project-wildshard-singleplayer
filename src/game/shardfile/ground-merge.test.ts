@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import * as THREE from 'three';
-import { Scope } from '../src/engine/app/scope';
-import { GroundMerge } from '../src/game/shardfile/groundMerge';
+import { Scope } from '@wildshard/engine/app/scope';
+import { GroundMerge } from './groundMerge';
 
 // Tile streaming P1 (draws): a splat ground's resident tiles draw as one merged mesh per material; a coarse tile leaves out
 // the quadrants its fine tiles cover, and the merge follows its members' tile scopes.

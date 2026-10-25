@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import { afterEach, expect, test } from 'vitest';
-import { wind } from '../src/engine/world/steppeWind';
-import { installAtmosphere } from '../src/engine/world/Atmosphere';
-import { paintedAir } from '../src/game/looks/paintedLook';
+import { wind } from '@wildshard/engine/world/steppeWind';
+import { installAtmosphere } from '@wildshard/engine/world/Atmosphere';
+import { paintedAir } from './paintedLook';
 
 // A made-up moor (painted air's fixture second user): bigger, fainter cloud shadows that drift slower.
 const moor = { tile: 800, threshold: 0.6, strength: 0.4, softness: 0.1, drift: [1, 0.5] };
