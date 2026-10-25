@@ -5,6 +5,19 @@ readiness for one shard."* And: *"grid readiness should not be blocked on my iPh
 readiness check for the shard platform plan, like a final step after everything else is done, once the whole mega plan is
 99 %"* (G558).
 
+## G717 / G723 remeasurement slices (2026-10-24, sp-x8)
+
+The old 48 passes were explicitly removed by G717; historical receipts below do
+not restore them. Measure the post-L18.1 origin build without changing gates.
+Each slice is bounded to one hour; report misses and their observed owners first.
+
+| Slice | Work | Status |
+|---|---|---|
+| G717.1 | Driftwood, Pine, Nalati and Nine: qualified Chromium phone memory/look and first-crossing step timings. | in flight (2026-10-24, sp-x8) |
+| G717.2 | Remaining shard and plot memory/look cohorts on the same pin; retain exact identities and only actual passes. | open |
+| G717.3 | One official quiet Simulator standing/road/crossing floor, then separate native memory with actual two-resident witnesses. | open |
+| G717.4 | Re-latch only qualified passes; report worst rows, preparation steps and source owners before proposing crossing cuts. | open |
+
 ## Why it never completes today
 
 At ruler ed51b1446 every shard passes four of the six M2 criteria (baked tiles, edge profile, four entries, HUD accent).

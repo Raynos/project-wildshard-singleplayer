@@ -1,6 +1,22 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { gradeFloorNative } from './frame-floor-native.mjs';
+import { gradeFloorNative, floorNativeExpression } from './frame-floor-native.mjs';
+import { runInNewContext } from 'node:vm';
+
+await test('native memory witnesses copy the actual runtime residents without inventing two worlds', () => {
+  const residents=['road','cell'],pending=[];
+  const live={current:'cell',residents,pending,gameplayReady:true};
+  const context={window:{__wildshard:{memory:()=>({totals:{gpu:12},unattributed:{gpu:0},allocations:[]}),
+    shard:{grid:{state:()=>({live:{live,crossing:{phase:'settled'}}})}}}},performance:{timeOrigin:1}};
+  const row=runInNewContext(floorNativeExpression,context);
+  assert.deepEqual(Array.from(row.residents),['road','cell']);
+  assert.equal(row.phase,'playing');assert.equal(row.current,'cell');
+  residents.pop();pending.push('other');
+  assert.equal(row.residents.length,2);assert.equal(row.pending.length,0);
+  const next=runInNewContext(floorNativeExpression,context);
+  assert.deepEqual(Array.from(next.residents),['road']);
+  assert.deepEqual(Array.from(next.pending),['other']);assert.equal(next.phase,'loading');
+});
 
 const native = Array.from({ length: 6 }, (_, index) => ({ type: 'sample', phase: 'measure',
   t: new Date(index * 100).toISOString(), interval: index < 3 ? 900 : 700,

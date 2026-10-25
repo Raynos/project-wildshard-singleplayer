@@ -5,14 +5,15 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 
-const expression = `(() => {
+export const floorNativeExpression = `(() => {
   const api = window.__wildshard, read = api && Object.getOwnPropertyDescriptor(api, 'memory')?.value;
   if (typeof read !== 'function') return null;
   const memory = read.call(api), grid = api.shard?.grid?.state(), live = grid?.live?.live;
   return { at: Date.now(), origin: performance.timeOrigin,
     memory: { totals: memory.totals, unattributed: memory.unattributed, allocations: memory.allocations.filter(row => row.domain === 'gpu') },
     phase: live?.gameplayReady && live.pending.length === 0 && grid.live.crossing.phase === 'settled' ? 'playing' : 'loading',
-    current: live?.current ?? null };
+    current: live?.current ?? null, residents: [...(live?.residents ?? [])],
+    pending: [...(live?.pending ?? [])] };
 })()`;
 
 /** Collect the existing scalar GPU ledger alongside native kernel interval highs.
@@ -41,7 +42,7 @@ export function startFloorNative(root, directory, device, read, interrupt) {
   process.once('SIGTERM', terminate);
   const observing = (async () => {
     while (!controller.signal.aborted) {
-      try { accept(await read(expression)); }
+      try { accept(await read(floorNativeExpression)); }
       catch (error) { errors.push({ at: Date.now(), error: String(error) }); }
       await sleep(500);
     }
