@@ -1,7 +1,6 @@
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 import { declareDownloadFile, noteDownloadRead, recordCachedDownload } from '@wildshard/engine/boot/download';
 import { waitFor } from '@wildshard/engine/boot/waits';
-import { scriptAdmissionRows } from '@wildshard/format/scriptContract';
 import type { TextureTranscodeSupport } from '@wildshard/format/contentBounds';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { builtValidationReceipt, readValidationReceipt, validationRevision, validationSourceBytes, type ValidationReceipt } from "@wildshard/format/validationReceipt";
@@ -21,6 +20,7 @@ import { assertExternalShardSlug, externalShardInstance } from './identity';
 import { runtimeBoundWorldFiles } from '../plugin/headless';
 import { neighbourProductFilesPaced, runtimeOnlyProductFilesPaced, tierLibrarySourcePaced, tierProductFilesPaced, urlImageLibrarySourcePaced, scopedSpecimenLibrarySourcePaced, deviceLibraryCostPaced } from './productCost';
 import { carryOutputDescriptor, IncompleteOutputCacheError, isBuildValidatedOutput, outputBlobUrl, outputDescriptor, resolveOutputDescriptor } from './outputDescriptor';
+import { checkedProductCosts, parseCheckedProduct, prepareCheckedProduct, validateCheckedProductAssets } from './productChecks';
 
 
 const HASH = /^[a-f0-9]{64}$/u;
@@ -233,7 +233,7 @@ export async function readProductInput(input: unknown, options: ProductOptions):
   const assembled = await resolveDescriptor(input, options, false, true);
   if (isBuildValidatedOutput(assembled)) return assembled;
   preflightShardfile(assembled);
-  const source = (await import('@wildshard/format/shardSchema')).parseShardfile(assembled);
+  const source = await parseCheckedProduct(assembled);
   carryOutputDescriptor(assembled, source);
   return source;
 }
@@ -266,16 +266,14 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
   await options.pause?.();
   if (!isBuildValidatedOutput(raw)) preflightShardfile(raw);
   if (version(raw) !== SHARDFILE_VERSION) throw new Error('Shardfile needs the current format');
-  const source = options.firstParty && isBuildValidatedOutput(raw) ? raw : (await import('@wildshard/format/shardSchema')).parseShardfile(raw), assets = new Map<string, Uint8Array>(), hashes = new Map<Uint8Array, string>();
+  const source = options.firstParty && isBuildValidatedOutput(raw) ? raw : await parseCheckedProduct(raw), assets = new Map<string, Uint8Array>(), hashes = new Map<Uint8Array, string>();
   carryOutputDescriptor(raw, source);
   if (!options.firstParty) assertExternalShardSlug(source.identity.slug);
   // A newly reconstructed private root already proved its exact declaration.
-  // Exposed roots and checked inputs retain graph validation before asset reads.
+  // Node checks exposed roots; the browser rehashes their complete source below.
   let decodersReady = false;
   if (raw === descriptorInput || source !== raw || !isBuildValidatedOutput(source)) {
-    const checked = await import('@wildshard/format/product');
-    await checked.prepareAssetDecoders(); decodersReady = true;
-    checked.preflightAssetGraph(source);
+    decodersReady = await prepareCheckedProduct(source);
   }
   await options.pause?.();
   const revisionKey = validationRevision();
@@ -289,7 +287,7 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
   // A build receipt is pinned inside this client, never fetched from data.
   const receipt = revisionKey !== null
     ? readValidationReceipt(visited?.validation, sourceHash) ?? (options.firstParty ? builtValidationReceipt(sourceHash) : null) : null;
-  const worst = receipt?.worst ?? (await import('@wildshard/format/assetAdmission')).preflightDeclaredCosts(source, options.memory).worst;
+  const worst = receipt?.worst ?? await checkedProductCosts(source, options.memory);
   if (receipt !== null) acceptValidatedCost(source, worst, options.memory);
   if (source.runtime !== null && !options.firstParty) throw new Error('Custom runtime requires a trusted first-party shard');
   if (hasDeclaredClientPage(source) && !options.firstParty) throw new Error('Native page features require a trusted first-party shard');
@@ -402,10 +400,9 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
   }
   progress('validation', receipt === null ? 'Validating assets, simulation and entries' : 'Verified exact product validation receipt');
   if (receipt === null) {
-    if (!decodersReady) await (await import('@wildshard/format/product')).prepareAssetDecoders();
-    (await import('@wildshard/format/assetAdmission')).validateShardfileAssets(source, assets, (bytes) => {
+    await validateCheckedProductAssets(source, assets, (bytes) => {
       const hash = hashes.get(bytes); if (hash === undefined) throw new Error('Asset was not hashed'); return hash;
-    }, options.memory, options.textures, scriptAdmissionRows(outputDescriptor(source)?.sections));
+    }, options.memory, options.textures, outputDescriptor(source)?.sections, decodersReady);
   }
   if (receipt !== null && options.textures !== undefined) {
     const tierSource = options.tier === undefined ? source : await tierLibrarySourcePaced(source, options.tier, assets, options.pause);
