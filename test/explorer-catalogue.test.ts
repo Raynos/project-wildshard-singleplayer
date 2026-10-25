@@ -125,7 +125,7 @@ test('made-up second scene user binds declared lights, sources and cube membersh
 test('draw fields keep original float32 seeds, order, visibility and ownership', async () => {
   const file = signalEmberBuffer(3, 'sparks'), blob = SIGNAL_EMBER_BLOBS.find(row => row.file.name === file);
   if (blob === undefined) throw new Error('Missing fixture ember bytes');
-  const product = fixture('fixture-points', { version: 1, entries: [] }, undefined, [blob]), scope = new Scope('fixture-points'), root = new Group(), material = new MeshStandardMaterial();
+  const product = fixture('fixture-points', { version: 1, entries: [] }, undefined, SIGNAL_EMBER_BLOBS.filter(row => row === blob || blob.file.dependencies.includes(row.file.hash))), scope = new Scope('fixture-points'), root = new Group(), material = new MeshStandardMaterial();
   const rows = [{ kind: 'buffered', file, material: 'glow', scale: 2, y: 4 }];
   await prepareSceneDrawRows(product, rows);
   drawSceneRows(product, rows, root, scope, new Map([['glow', material]]));

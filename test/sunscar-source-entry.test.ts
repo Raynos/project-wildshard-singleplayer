@@ -1,3 +1,4 @@
+import { originalEmberTransport } from './fixtures/signal-inline-embers';
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify the exact retired catalogue row in the shared source registry.
 import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the real SDK project reader at its defining author folder.
@@ -35,7 +36,8 @@ test('the source entry owns both outputs with the complete original declaration 
   const result = generated;
   expect(result.output?.platform).toEqual(output.platform);
   expect(signature(result.shard)).toEqual(before.raw.shard);
-  expect(signature({ ...output, assets: physical(output.assets), platform: { ...output.platform, files: physical(output.platform.files) } }))
+  const old = originalEmberTransport(output.namedFiles, output.assets);
+  expect(signature({ ...output, namedFiles: old.namedFiles, assets: physical(old.assets), platform: { ...output.platform, files: physical(output.platform.files) } }))
     .toEqual(before.raw.output);
 });
 
@@ -53,7 +55,9 @@ test('direct world rows preserve the original ordered aggregate without its JSON
 
 
 test('the SDK admits all original physical bytes, platform metadata and mirrors through the source entry', async () => {
-  const result = await readProjectAssets(resolve('src/shards/sunscar-dunes'), undefined, { folder: 'sunscar-dunes', imageRoots: [{ prefix: '/assets/', directory: resolve('public/assets') }] });
+  const loaded = await readProjectAssets(resolve('src/shards/sunscar-dunes'), undefined, { folder: 'sunscar-dunes', imageRoots: [{ prefix: '/assets/', directory: resolve('public/assets') }] });
+  const priorTransport = originalEmberTransport(loaded.output.namedFiles ?? [], loaded.assets);
+  const result = { ...loaded, assets: priorTransport.assets, shard: priorTransport.shard(loaded.shard), output: { ...loaded.output, namedFiles: priorTransport.namedFiles } };
   const changedNames = ['world/sources/models.json', 'world/sources/bakes.json'];
   const descriptors = changedNames.map(name => {
     const old = output.namedFiles.find(file => file.name === name), current = result.output.namedFiles?.find(file => file.name === name);

@@ -119,7 +119,8 @@ test('Signal current ember Points retain native golden-ratio float32 bytes and d
   const file = signalEmberBuffer(260, 'fire.embers'), blob = SIGNAL_EMBER_BLOBS.find(value => value.file.name === file);
   if (blob === undefined) throw new Error('Missing ember data');
   const scope = new Scope('ember-buffer'), material = new MeshBasicMaterial();
-  const group = createSceneBuffers(JSON.parse(new TextDecoder().decode(blob.bytes)), material, scope);
+  const files = new Map(SIGNAL_EMBER_BLOBS.flatMap(row => row.file.name === undefined ? [] : [[row.file.name, row.bytes]]));
+  const group = createSceneBuffers(JSON.parse(new TextDecoder().decode(blob.bytes)), material, scope, undefined, undefined, files);
   const points = group.children[0]; if (!points3(points)) throw new Error('Missing current ember Points');
   const index = new Float32Array(260), seed = new Float32Array(260);
   for (let i = 0; i < 260; i++) { index[i] = i; seed[i] = (i * 0.618034) % 1; }
@@ -157,7 +158,7 @@ test('cold Explorer preparation admits buffered effects and refuses missing file
   const recipe = { scene: { version: 1, root: 'root', nodes: [{ id: 'root', kind: 'group', children: [] }], materials: [] }, imports: [] };
   const scenes = parseWorldScenes({ version: 1, libraries: [], materials: [], steps: [{ id: 'fire', scene: 'scene.json' }] });
   const product = (include: boolean) => {
-    const data = emitNamedBlobs([nameBlob('scene.json', 'json', new TextEncoder().encode(JSON.stringify(recipe))), ...(include ? [blob] : [])]);
+    const data = emitNamedBlobs([nameBlob('scene.json', 'json', new TextEncoder().encode(JSON.stringify(recipe))), ...(include ? SIGNAL_EMBER_BLOBS.filter(row => row === blob || blob.file.dependencies.includes(row.file.hash)) : [])]);
     return createShardProduct({ slug: 'fixture-cold-effects', revision: 1,
       shardfile: emptyShardfile({ slug: 'fixture-cold-effects', name: 'Cold effects', author: 'Fixture', revision: 1, seed: 1 }),
       sections: new Map([['world/scenes', scenes]]),

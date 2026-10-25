@@ -1,6 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The native recipe proof starts only from its retained author model.
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
+import { originalEmberTransport } from './fixtures/signal-inline-embers';
 import { bakeSignalWorldSources } from '../src/shards/sunscar-dunes/generators/worldSources';
 import { signalWorldMetadata } from '../src/shards/sunscar-dunes/generators/worldMetadata';
 import { whipHeldRecipe } from '../src/shards/sunscar-dunes/generators/rows/heldWeapon';
@@ -33,7 +34,8 @@ test('explicit world rows retain every original held, specimen, scene and output
   expect(scene.worldScenes).toEqual(SIGNAL_WORLD_SCENES);
   expect(scene.blobs.map(blob => blob.file)).toEqual(SIGNAL_SCENE_BLOBS.map(blob => blob.file));
   const output = signalSceneOutput(scene, SIGNAL_CLIENT_PLAN);
-  const bytes = new TextEncoder().encode(encodeCanonicalJson({ ...output, assets: physical(output.assets),
+  const old = originalEmberTransport(output.namedFiles, output.assets);
+  const bytes = new TextEncoder().encode(encodeCanonicalJson({ ...output, namedFiles: old.namedFiles, assets: physical(old.assets),
     platform: { ...output.platform, files: physical(output.platform.files) } }));
   expect({ bytes: bytes.length, hash: hashImmutableBytes(bytes) }).toEqual(before.raw.output);
 });

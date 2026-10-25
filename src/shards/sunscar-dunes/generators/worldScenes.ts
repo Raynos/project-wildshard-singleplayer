@@ -10,11 +10,12 @@ import { SIGNAL_EMITTERS } from './lightEmitters';
 
 const json = (name: string, value: unknown) => nameBlob(name, 'json', new TextEncoder().encode(JSON.stringify(value)));
 const emitterFiles = new Set(SIGNAL_EMITTERS.rows.flatMap(row => row.draws.flatMap(draw => draw.kind === 'buffered' ? [draw.file] : [])));
+const emitterDependencies = new Set(SIGNAL_EMBER_BLOBS.filter(blob => emitterFiles.has(blob.file.name ?? '')).flatMap(blob => blob.file.dependencies));
 /** One owned assembly result; every call creates its scene arrays anew. */
 export interface SignalWorldSceneFiles { blobs: NamedBlob[]; worldScenes: ReturnType<typeof parseWorldScenes> }
 /** Assemble the original scene files and bindings from the same explicit bake rows as their libraries. */
 export function signalWorldScenes(world: SceneWorldBakes, sources: readonly NamedBlob[], bindings: ReturnType<typeof placeBindings>): SignalWorldSceneFiles {
-  const blobs = [...sources, ...SIGNAL_SKIRT_BLOBS, ...SIGNAL_EMBER_BLOBS.filter(blob => emitterFiles.has(blob.file.name ?? ''))];
+  const blobs = [...sources, ...SIGNAL_SKIRT_BLOBS, ...SIGNAL_EMBER_BLOBS.filter(blob => emitterFiles.has(blob.file.name ?? '') || emitterDependencies.has(blob.file.hash))];
   const steps: unknown[] = [], effects: { readonly part: string; readonly pool: string | null; readonly rows: unknown }[] = [];
   /** Original order, native hierarchy and fields. Sources remain the existing
    * model libraries and kind bakes; this only declares their assembly bindings. */
