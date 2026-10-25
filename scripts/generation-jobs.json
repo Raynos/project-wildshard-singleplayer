@@ -8534,7 +8534,8 @@
         "src/shards/sunscar-dunes/generators/facets.ts",
         "src/shards/sunscar-dunes/generators/hulls.ts",
         "src/shards/sunscar-dunes/generators/rigidSkin.ts",
-        "src/shards/sunscar-dunes/generators/species.ts"
+        "src/shards/sunscar-dunes/generators/species.ts",
+        "src/shards/sunscar-dunes/generators/rigSources.ts"
       ],
       "outputs": [
         "public/assets/sunscar-dunes/rigs/skitterer.glb",
