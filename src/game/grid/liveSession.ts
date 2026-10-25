@@ -936,6 +936,11 @@ export class LiveGridSession {
   /** The admitted native simulation for a browser witness; the page exposes this only when harness pins exist. */
   simulation(instance: string): ShardfileSimulation | undefined { return this.regions.get(instance)?.simulation; }
 
+  /** Fresh per-frame travel facts; setup/final witnesses use the complete state readout. */
+  travelState(): Pick<LiveGridSessionState, 'live' | 'crossing' | 'runtimeTiming'> {
+    return { live: this.live.state(), crossing: this.crossing.crossing.state(), runtimeTiming: this.hybrid.timings() };
+  }
+
   state(): LiveGridSessionState {
     const cap = this.page.traveller.hoverSpeedLimit?.();
     return { bootPrograms: this.bootPrograms, keptPrograms: this.keeper?.size ?? 0, live: this.live.state(), crossing: this.crossing.crossing.state(), stowed: this.page.equipment.stowed, renderOrigin: { x: this.offset.x, z: this.offset.z }, runtimeTiming: this.hybrid.timings(), crossingTiming: this.crossing.crossing.timings(), leaveTiming: this.leaveTiming.map(row => ({ ...row })), crossingLoading: this.crossing.crossing.timings().map(crossingLoadingRows),
