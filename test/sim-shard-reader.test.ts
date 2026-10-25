@@ -1,7 +1,21 @@
 import { expect, test } from 'vitest';
-import { compiledTimingHistory, compiledDocumentEvidence, compiledEntryQualification, compiledFrameMetrics, compiledPollDetails, downloadEvidence, recoveredGridControls, requireCompiledEntry, sampleCompiledFrame, stepEvidence, transportEvidence, waitForWaitingWorker, type CompiledFrameWindow } from '../scripts/loading-benchmark/sim-shard.mjs';
+import { admissionFrameEvidence, compiledTimingHistory, compiledDocumentEvidence, compiledEntryQualification, compiledFrameMetrics, compiledPollDetails, downloadEvidence, recoveredGridControls, requireCompiledEntry, sampleCompiledFrame, stepEvidence, transportEvidence, waitForWaitingWorker, type CompiledFrameWindow } from '../scripts/loading-benchmark/sim-shard.mjs';
+import type { AdmissionFrames } from '../scripts/loading-benchmark/accuracy-data.d.mts';
 
 const frameWindow = (): CompiledFrameWindow => ({ controlsAt: null, last: null, worst: 0, worstAt: null, frames: 0, complete: false });
+
+test('admission callback evidence preserves unknowns, blank facts and incomplete coverage', () => {
+  const record = (): AdmissionFrames => ({protocol: 'loading-admission-raf/1', frames: 2, droppedFrames: 0,
+    truncatedFrames: 0, maxGapMs: 16, endedAt: 50, runs: [{firstAt: 10, lastAt: 26, frames: 2,
+      step: 'admission', footer: '', waiting: '', filesInFlight: ''}]});
+  expect(admissionFrameEvidence(record())).toEqual({callbackRecordComplete: true, reason: null, observedFrames: 2, blankFooterFrames: 2});
+  expect(admissionFrameEvidence(undefined)).toMatchObject({callbackRecordComplete: false, reason: 'missing', blankFooterFrames: null});
+  expect(admissionFrameEvidence({...record(), endedAt: null})).toMatchObject({callbackRecordComplete: false, reason: 'unfinished'});
+  expect(admissionFrameEvidence({...record(), frames: 3, droppedFrames: 1})).toMatchObject({callbackRecordComplete: false, reason: 'overflow', blankFooterFrames: null});
+  expect(admissionFrameEvidence({...record(), truncatedFrames: 1})).toMatchObject({callbackRecordComplete: false, reason: 'truncated', blankFooterFrames: null});
+  for (const patch of [{frames: 3}, {endedAt: 20}, {maxGapMs: -1}, {truncatedFrames: 3}])
+    expect(() => admissionFrameEvidence({...record(), ...patch})).toThrow('admission frame');
+});
 
 test('compiled timing evidence retains only the persisted selected path', () => {
   const key = 'path:v3:phone:shardfile:sunscar-dunes';

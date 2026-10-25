@@ -10,6 +10,33 @@ export function compiledPollDetails(details, accuracy, measures) {
   return details ? { accuracy, measures: measures() } : { errors: accuracy?.errors ?? [] };
 }
 
+/** Keep callback coverage separate from painted frames and label correctness.
+ * Missing/overflowed/truncated records cannot qualify complete observation.
+ * @param {import('./accuracy-data.d.mts').AdmissionFrames | undefined} record */
+export function admissionFrameEvidence(record) {
+  if (record === undefined) return {callbackRecordComplete: false, reason: 'missing', observedFrames: 0, blankFooterFrames: null};
+  /** @param {unknown} value */
+  const integer = value => typeof value === 'number' && Number.isSafeInteger(value) && value >= 0;
+  if (record.protocol !== 'loading-admission-raf/1' || !integer(record.frames) || !integer(record.droppedFrames)
+    || !integer(record.truncatedFrames) || !Number.isFinite(record.maxGapMs) || record.maxGapMs < 0 || record.runs.length > 256)
+    throw new Error('Invalid admission frame record');
+  let frames = 0, blankFooterFrames = 0, last = -1;
+  for (const run of record.runs) {
+    if (!integer(run.frames) || run.frames === 0 || !Number.isFinite(run.firstAt) || run.firstAt < 0
+      || !Number.isFinite(run.lastAt) || run.lastAt < run.firstAt || run.firstAt < last
+      || [run.step, run.footer, run.waiting, run.filesInFlight].some(value => typeof value !== 'string' || value.length > 1024))
+      throw new Error('Invalid admission frame run');
+    frames += run.frames; last = run.lastAt;
+    if (run.footer.trim() === '') blankFooterFrames += run.frames;
+  }
+  if (frames + record.droppedFrames !== record.frames || record.truncatedFrames > record.frames
+    || record.endedAt !== null && (!Number.isFinite(record.endedAt) || record.endedAt < last)) throw new Error('Incomplete admission frame accounting');
+  const reason = record.frames === 0 ? 'no admission callbacks' : record.endedAt === null ? 'unfinished'
+    : record.droppedFrames > 0 ? 'overflow' : record.truncatedFrames > 0 ? 'truncated' : null;
+  return {callbackRecordComplete: reason === null, reason, observedFrames: record.frames,
+    blankFooterFrames: record.droppedFrames === 0 && record.truncatedFrames === 0 ? blankFooterFrames : null};
+}
+
 /** Sample the compiled card's actual controls, then eight seconds of rAF gaps.
  * Loading gaps before the first ready frame are excluded; a frame straddling
  * the window end keeps its full duration rather than hiding a long freeze.

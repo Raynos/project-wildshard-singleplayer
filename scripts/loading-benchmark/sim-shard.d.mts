@@ -1,3 +1,5 @@
+import type { AdmissionFrames } from './accuracy-data.d.mts';
+
 export interface DownloadSample { step?: string; declaredBytes?: string; pendingBytes?: string; downloadPercent?: string }
 export interface StepSample { clock?: string; detail?: string; setup?: string; fading?: boolean; elapsedMs?: number | null }
 /** First observed samples; monotonic ratios require a real panel clock origin. */
@@ -7,6 +9,10 @@ export function stepEvidence(samples: readonly StepSample[]): {
   lastSetupBeforeFade: number | null;
 };
 export function compiledPollDetails<T extends {errors: readonly string[]}, U>(details: boolean, accuracy: T | null, measures: () => U): {accuracy: T | null; measures: U} | {errors: readonly string[]};
+/** Callback coverage only; never painted-frame or L11 acceptance. */
+export function admissionFrameEvidence(record: AdmissionFrames | undefined): {
+  callbackRecordComplete: boolean; reason: string | null; observedFrames: number; blankFooterFrames: number | null;
+};
 export interface CompiledFrameWindow { controlsAt: number | null; last: number | null; worst: number; worstAt: number | null; frames: number; complete: boolean }
 export function sampleCompiledFrame(state: CompiledFrameWindow, at: number, ready: boolean): void;
 export function compiledFrameMetrics(state: CompiledFrameWindow | null | undefined, origin: number, tap: number): {

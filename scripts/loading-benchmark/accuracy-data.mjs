@@ -1,6 +1,40 @@
 export function accuracyRecorder() {
-      const state = { version: 2, samples: [], final: null, readyAt: 0, firstAt: -1, last: '', lastSampleAt: 0, updates: [], errors: [], resources: [], workerReceipts: [] };
+      /** @type {import('./accuracy-data.d.mts').AdmissionFrames} */
+      const admissionFrames = {protocol: 'loading-admission-raf/1', frames: 0, droppedFrames: 0,
+        truncatedFrames: 0, maxGapMs: 0, endedAt: null, runs: []};
+      const state = { version: 2, samples: [], final: null, readyAt: 0, firstAt: -1, last: '', lastSampleAt: 0, updates: [], errors: [], resources: [], workerReceipts: [], admissionFrames };
       Reflect.set(window, '__loadingAccuracy', state);
+      // One cheap DOM tuple per animation callback, not a full row/resource
+      // snapshot. These are observed callback facts, not inferred step starts
+      // or proof that a browser painted between callbacks. Overflow is explicit.
+      /** @type {number | null} */
+      let lastAdmissionAt = null;
+      /** @param {number} at */
+      const frame = at => {
+        if (state.readyAt) return;
+        const root = document.querySelector('.ws-load');
+        const step = root instanceof HTMLElement ? root.dataset.step ?? '' : '';
+        if (root instanceof HTMLElement && !Object.hasOwn(root.dataset, 'shell') && !root.classList.contains('hide')
+          && (step === 'admission' || step.startsWith('admission.') && step !== 'admission.modules')) {
+          const raw = {step, footer: root.querySelector('[data-el="foot"]')?.textContent ?? '',
+            waiting: root.dataset.waiting ?? '', filesInFlight: root.dataset.filesInFlight ?? ''};
+          if (Object.values(raw).some(value => value.length > 1024)) admissionFrames.truncatedFrames++;
+          const facts = {step: step.slice(0, 1024), footer: raw.footer.slice(0, 1024),
+            waiting: raw.waiting.slice(0, 1024), filesInFlight: raw.filesInFlight.slice(0, 1024)};
+          admissionFrames.frames++;
+          if (lastAdmissionAt !== null) admissionFrames.maxGapMs = Math.max(admissionFrames.maxGapMs, at - lastAdmissionAt);
+          const previous = admissionFrames.runs.at(-1);
+          if (previous !== undefined && previous.lastAt === lastAdmissionAt && previous.step === facts.step && previous.footer === facts.footer
+            && previous.waiting === facts.waiting && previous.filesInFlight === facts.filesInFlight) {
+            previous.lastAt = at; previous.frames++;
+          } else if (admissionFrames.runs.length < 256) admissionFrames.runs.push({firstAt: at, lastAt: at,
+            frames: 1, ...facts});
+          else admissionFrames.droppedFrames++;
+          lastAdmissionAt = at; admissionFrames.endedAt = null;
+        } else if (lastAdmissionAt !== null) { admissionFrames.endedAt = at; lastAdmissionAt = null; }
+        requestAnimationFrame(frame);
+      };
+      requestAnimationFrame(frame);
       navigator.serviceWorker.addEventListener('message', event => {
         if (!state.readyAt && ['WS_BACKGROUND_DOWNLOAD', 'WS_WORKER_DOWNLOAD'].includes(event.data?.type)) state.workerReceipts.push(event.data);
       });
@@ -36,7 +70,10 @@ export function accuracyRecorder() {
         if (changed) { state.updates.push(now); state.last = detailed; }
         if (changed || now - state.lastSampleAt >= 250) { state.samples.push(sample); state.lastSampleAt = now; }
         state.final = sample;
-        if (root.classList.contains('hide')) state.readyAt = now;
+        if (root.classList.contains('hide')) {
+          state.readyAt = now;
+          if (admissionFrames.frames > 0 && admissionFrames.endedAt === null) admissionFrames.endedAt = now;
+        }
       };
       setInterval(read, 250);
       document.addEventListener('DOMContentLoaded', () => {

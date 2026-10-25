@@ -24,7 +24,7 @@ import { soakInspector } from './soak/inspector.mjs';
 import { loadingCardIndex, loadingShardName } from './loading-benchmark/catalogue.mjs';
 import { observeTransport } from './loading-benchmark/transport.mjs';
 import { accuracyRecorder } from './loading-benchmark/accuracy-data.mjs';
-import { requireCompiledEntry, downloadEvidence, stepEvidence, transportEvidence, waitForWaitingWorker, recoveredGridControls, sampleCompiledFrame, compiledFrameMetrics, compiledEntryQualification, compiledDocumentEvidence, compiledPollDetails, compiledTimingHistory } from './loading-benchmark/sim-shard.mjs';
+import { requireCompiledEntry, downloadEvidence, stepEvidence, transportEvidence, waitForWaitingWorker, recoveredGridControls, sampleCompiledFrame, compiledFrameMetrics, compiledEntryQualification, compiledDocumentEvidence, compiledPollDetails, compiledTimingHistory, admissionFrameEvidence } from './loading-benchmark/sim-shard.mjs';
 import { cachedBodyEvidence } from './loading-benchmark/cache-bodies.mjs';
 import { saveFixtureCode } from './debug-settings.mjs';
 import { readSimulatorCoreFootprint, selectedCoreMemoryTargets, coreMemorySummary, compiledFloorSave, scriptResourceURLs,
@@ -385,7 +385,7 @@ async function run(mode, index, target) {
     const timingAfter = JSON.parse(await page.evaluate(`JSON.stringify((${compiledTimingHistory.toString()})(() => localStorage.getItem('wildshard.save.v2.device'), ${JSON.stringify(shard)}))`));
     const receipts = transport.receipts.filter(row => row.endedAt >= compiled.origin && row.endedAt <= compiled.origin + compiled.accuracy.readyAt);
     const result = { mode, run: index, shard, href: compiled.href, document, timingHistory: {before: timingBefore, after: timingAfter}, accuracy: compiled.accuracy, measures: compiled.measures,
-      download: downloadEvidence(compiled.accuracy.samples), steps: stepEvidence(compiled.accuracy.samples), transportUnits: transportEvidence(receipts), cachedBodies, transportReceipts: receipts, htmlFixtures: transport.htmlFixtures,
+      download: downloadEvidence(compiled.accuracy.samples), steps: stepEvidence(compiled.accuracy.samples), admissionFrames: admissionFrameEvidence(compiled.accuracy.admissionFrames), transportUnits: transportEvidence(receipts), cachedBodies, transportReceipts: receipts, htmlFixtures: transport.htmlFixtures,
       rows: compiled.accuracy.final.rows.flatMap(row => Number.isFinite(Number(row.ms)) ? [{ key: row.key, ms: Number(row.ms), label: row.label, detail: row.detail }] : []),
       loaderPaintMs: sample.fcp === null ? null : Math.round(compiled.origin + sample.fcp - sample.tap),
       loaderEndMs: Math.round(compiled.origin + compiled.accuracy.readyAt - sample.tap),
