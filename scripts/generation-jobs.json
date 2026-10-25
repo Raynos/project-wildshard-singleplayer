@@ -8261,46 +8261,6 @@
       "seedOutputs": []
     },
     {
-      "id": "signal-physics-placements",
-      "shard": "sunscar-dunes",
-      "entry": "src/shards/sunscar-dunes/generators/physicsPlacements.ts",
-      "command": [
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/sdk/bake/json.mjs",
-        "src/shards/sunscar-dunes/generators/physicsPlacements.ts",
-        "signalPhysicsPlacements",
-        "src/shards/sunscar-dunes/data/physicsPlacements.generated.json"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "src/format/contentBounds.ts",
-        "src/format/package.json",
-        "src/sdk/bake/json.mjs",
-        "src/sdk/bake/source-loader.mjs",
-        "src/sdk/package.json",
-        "src/sdk/physics.ts",
-        "src/sdk/sceneTransform.ts",
-        "src/shards/sunscar-dunes/generators/duneRows.ts",
-        "src/shards/sunscar-dunes/generators/layout.ts",
-        "src/shards/sunscar-dunes/generators/rows/places.ts",
-        "src/shards/sunscar-dunes/data/strings.json",
-        "src/shards/sunscar-dunes/generators/duneField.ts",
-        "src/shards/sunscar-dunes/generators/landscape.ts",
-        "src/shards/sunscar-dunes/generators/landscapeNoise.ts",
-        "src/shards/sunscar-dunes/generators/physicsPlacements.ts"
-      ],
-      "outputs": [
-        "src/shards/sunscar-dunes/data/physicsPlacements.generated.json"
-      ],
-      "platform": "portable",
-      "buildOutputs": {
-        "src/shards/sunscar-dunes/data/physicsPlacements.generated.json": "dc53caf1683fea1aa8e0117b93485ef09e6956fbd55b29846f0783e5ee8bd92f"
-      },
-      "seedOutputs": []
-    },
-    {
       "id": "sky-bridge-colliders",
       "shard": "far-reach",
       "entry": "src/shards/far-reach/generators/bridgeColliders.ts",
