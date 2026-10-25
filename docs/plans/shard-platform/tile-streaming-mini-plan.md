@@ -252,14 +252,31 @@ Each engineering slice below is at most one hour; milestone measurements stay se
 
 | Slice | Status | Contract / exit |
 |---|---|---|
-| T4.1 Required entered tiles | done (this code commit) | Rank-0 render/collider errors refuse boot; concurrent entries await the same preparation; failed/retired residents never publish a driver. Background movement cancellation and no-retry behavior stay pinned. |
-| T4.2 Standalone / grid caller coverage | in flight (sp-x2) | Audit each assembled/forest/dressing entry and the control gate; pin missing caller contracts without moving global state or changing the look. |
+| T4.1 Required entered tiles | done (`436b14b3ed`) | Rank-0 render/collider errors refuse boot; concurrent entries await the same preparation; failed/retired residents never publish a driver. Background movement cancellation and no-retry behavior stay pinned. |
+| T4.2 Standalone / grid caller coverage | done (this code commit) | Restore evicted rank-0 tiles on re-entry; attach appended scene stages to existing tile scopes; prepare each coarse stand-in once. Required callers await in-flight background errors. |
 | T4.3 Entered-stream milestone | in flight (sp-x2, after T4.2) | Defining preview plus DW standalone/grid tap-to-controls and worst-frame evidence against M1; retain any missing baseline explicitly. |
 | T6.1 Dormancy / snapshot contract | done (contract-only slice below) | Current-position membership, exceptions and exact snapshot/RNG pins; no brain or native-sim schedule change. |
 | T6.2 Presentation lease / rebind | waits-Opus | Existing design below needs render parity for shared models, moving figures, native slots and held/boss pins before runtime changes. |
 | T8.1 Complete-L0 bake fences | done (`7093891d97`) | All 24 products declare 64 L0 slots; strict caps and the exact 6/4 exception remain. |
 | T8.2 Driftwood lossless route | in flight (sp-x2) | Only 2/4 has a delivered-byte saving; size a compiler-output slice, preserve resident ledger/bitwise views. 3/1 and 3/3 remain held as documented below. |
 | T8.3 Occupied L1 appearance | waits-Opus | U2's empty parents are complete; occupied parents require genuine coarse proxies and an Opus design or Jake pick. |
+
+**T4 caller audit:** the non-native `clientWorldAssembly.ts` awaits `residentTiles`
+before installing its follow system, using the cached `SceneHandles.tiled()` list.
+`forestPage.ts` finishes its landmarks on that same resident/scene list;
+`sceneDressing.ts` uses a separate `scene.dressing.tiles` child for its contacts.
+`ShardfileClient.world()` awaits the ordered world phase, and `installClientPhase`
+awaits each feature. The owned initial grid home waits for activation/gameplay
+readiness before its first fixed tick (`liveSession.enterInitialHome`). The native
+assembly branch keeps its existing counted construction and global owners.
+
+The second contract slice fixes the stale one-shot tile latch: re-entry reacquires
+rank-0 tiles evicted during the prior entry, and appended scene content attaches
+under the same surviving tile scopes without replaying prior content. New coarse
+stand-ins prepare once; background tiles pick up appended content too. Failure
+and cancellation stay distinct even when required/background callers share work.
+No global state, brain scheduling, geometry or render material changed; the
+loading/frame acceptance remains T4.3, not a claim from these Node contracts.
 
 **T8 lossless route audit (2026-10-24, sp-x2):** the existing decoder
 releases both the original wire and its copied encoded BIN/parser. With the

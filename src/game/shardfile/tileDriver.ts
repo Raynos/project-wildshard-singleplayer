@@ -17,13 +17,17 @@ import { followTile, ring, tileKey, type TileContent } from './tileContent';
 import { tileOf, tileOrder, type CellTile, type TileEntryway } from './tileOrder';
 
 type Layer = 'render' | 'colliders';
+type TileFailure = { readonly error: unknown } | null;
+interface Attachment { readonly scope: Scope; count: number; pending: Promise<TileFailure> | null }
 
 export class TileDriver {
-  private readonly attached: Record<Layer, Map<number, Scope>> = { render: new Map(), colliders: new Map() };
+  private readonly attached: Record<Layer, Map<number, Attachment>> = { render: new Map(), colliders: new Map() };
   private readonly failed = new Set<string>();
   private centre: CellTile | null = null;
   private renderRing: ReadonlySet<number> = new Set();
   private busy = false;
+  private coarseScope: Scope | null = null;
+  private coarseCount = 0;
   constructor(private readonly scope: Scope, private readonly contents: readonly TileContent[], private readonly radius: () => number,
     private readonly pause: () => Promise<void>) {}
 
@@ -44,8 +48,14 @@ export class TileDriver {
    *  beyond the render ring), each leaving out the tiles the render ring draws as it moves. */
   async coarse(x: number, z: number): Promise<void> {
     this.centre = followTile(null, x, z); this.renderRing = ring(this.centre, this.radius());
-    const scope = this.scope.child('tiles:coarse');
-    for (const content of this.contents) await content.coarse?.(scope, tile => this.renderRing.has(tile));
+    const scope = this.coarseScope ??= this.scope.child('tiles:coarse');
+    for (; this.coarseCount < this.contents.length; this.coarseCount++) {
+      this.live();
+      const content = this.contents[this.coarseCount];
+      if (content === undefined) throw new Error('Missing tile content');
+      await content.coarse?.(scope, tile => this.renderRing.has(tile));
+      this.live();
+    }
   }
 
   /** Once a frame with the player's cell-local position: retire the tiles outside the rings, then start the nearest wanted
@@ -57,12 +67,15 @@ export class TileDriver {
     this.renderRing = wanted.render;
     for (const layer of ['render', 'colliders'] as const) for (const [key, tile] of this.attached[layer]) {
       if (wanted[layer].has(key)) continue;
-      this.attached[layer].delete(key); tile.dispose();
+      this.attached[layer].delete(key); tile.scope.dispose();
     }
     if (this.busy) return;
     const distance = (key: number): number => Math.max(Math.abs((key % 8) - centre.i), Math.abs(Math.floor(key / 8) - centre.j));
     for (const layer of ['colliders', 'render'] as const) {
-      const next = [...wanted[layer]].filter(key => !this.attached[layer].has(key) && !this.failed.has(`${layer}:${String(key)}`))
+      const next = [...wanted[layer]].filter(key => {
+        const tile = this.attached[layer].get(key);
+        return (tile === undefined || tile.count < this.contents.length) && !this.failed.has(`${layer}:${String(key)}`);
+      })
         .sort((a, b) => distance(a) - distance(b) || a - b)[0];
       if (next === undefined) continue;
       this.busy = true;
@@ -75,28 +88,48 @@ export class TileDriver {
     if (this.scope.disposed || this.scope.disposing) throw new Error('Tile resident is disposed');
   }
 
-  /** One tile's content of one layer, in a fresh child scope (kept only if it is still wanted when it finishes). */
+  /** One tile's content of one layer, including stages registered after its first attachment. */
   private async attach(key: number, layer: Layer, required = false): Promise<void> {
-    if (this.attached[layer].has(key)) return;
-    const tile = this.scope.child(`tile:${layer}:${String(key)}`);
-    this.attached[layer].set(key, tile);
+    let tile = this.attached[layer].get(key);
+    if (tile === undefined) {
+      tile = { scope: this.scope.child(`tile:${layer}:${String(key)}`), count: 0, pending: null };
+      this.attached[layer].set(key, tile);
+    }
+    const current = tile;
+    if (current.pending === null && current.count >= this.contents.length) return;
+    let pending = current.pending;
+    if (pending === null) {
+      let settle = (_result: TileFailure): void => { throw new Error('Missing tile preparation resolver'); };
+      let refuse = (_error: unknown): void => { throw new Error('Missing tile preparation refusal'); };
+      pending = new Promise<TileFailure>((resolve, reject) => { settle = resolve; refuse = reject; });
+      current.pending = pending;
+      void this.prepare(key, layer, current, required).then(settle, refuse);
+    }
+    const result = await pending;
+    if (required && result !== null) throw result.error;
+  }
+
+  private async prepare(key: number, layer: Layer, tile: Attachment, required: boolean): Promise<TileFailure> {
     try {
-      for (const content of this.contents) {
+      for (; tile.count < this.contents.length; tile.count++) {
+        const content = this.contents[tile.count];
+        if (content === undefined) throw new Error('Missing tile content');
         if (!content.tiles().has(key)) continue;
-        await (layer === 'render' ? content.attach(key, tile) : content.attachColliders?.(key, tile));
-        if (tile.disposed) return;
+        await (layer === 'render' ? content.attach(key, tile.scope) : content.attachColliders?.(key, tile.scope));
+        if (tile.scope.disposed) return null;
       }
+      return null;
     } catch (error: unknown) {
       if (this.attached[layer].get(key) === tile) this.attached[layer].delete(key);
-      // A sliced preparation may reject after movement has already retired its
-      // tile. Only a live owner's failure blacklists content, not cancellation.
-      const cancelled = tile.disposed || tile.disposing || this.scope.disposed || this.scope.disposing;
-      tile.dispose();
-      if (cancelled) return;
+      // Movement cancellation can be retried; every waiter sees a live content
+      // failure even when the first waiter was a background streaming step.
+      const cancelled = tile.scope.disposed || tile.scope.disposing || this.scope.disposed || this.scope.disposing;
+      tile.scope.dispose();
+      if (cancelled) return null;
       this.failed.add(`${layer}:${String(key)}`);
-      if (required) throw error;
-      if (!this.scope.disposed) console.warn(`[tiles] ${layer} tile ${String(key)} failed to attach; it stays out`, error);
-    }
+      if (!required && !this.scope.disposed) console.warn(`[tiles] ${layer} tile ${String(key)} failed to attach; it stays out`, error);
+      return { error };
+    } finally { tile.pending = null; }
   }
 }
 
@@ -123,29 +156,32 @@ export function followRing(radius = TILE_RING): (viewer: { readonly x: number; r
   };
 }
 
-const drivers = new WeakMap<Scope, TileDriver>(), started = new WeakMap<Scope, Promise<void>>();
+const drivers = new WeakMap<Scope, TileDriver>();
+const started = new WeakMap<Scope, { readonly pending: Promise<void>; readonly state: { complete: boolean } }>();
 /**
  * T4: a resident world's tiled content attached before its player has controls: the spawn's and the entries' tiles
  * (rank 0, `tileOrder`), the coarse stand-ins (T11), and a driver kept on the resident for its entries to follow the player
  * with (`followResidentTiles`). Concurrent entries await the same preparation; a failed preparation stays refused for
- * that resident. A re-entry keeps its tiles; nothing tiled: nothing to do.
+ * that resident. Each later entry restores required tiles and attaches newly registered content without rebuilding
+ * surviving tiles or coarse stand-ins. Nothing tiled: nothing to do.
  */
 export function residentTiles(resident: Scope, contents: readonly TileContent[], spawn: { readonly x: number; readonly z: number },
   entryways: readonly TileEntryway[]): Promise<void> {
   if (contents.length === 0) return Promise.resolve();
   const existing = started.get(resident);
-  if (existing !== undefined) return existing;
+  if (existing !== undefined && !existing.state.complete) return existing.pending;
   // Reserve before any content callback can re-enter this boot path.
+  const preparation = { complete: false };
   const pending = Promise.resolve().then(async () => {
     const live = (): void => { if (resident.disposed || resident.disposing) throw new Error('Tile resident is disposed'); };
     live();
-    const driver = new TileDriver(resident, contents, () => TILE_RING, () => buildYield(resident)), order = tileOrder(spawn, entryways);
+    const driver = drivers.get(resident) ?? new TileDriver(resident, contents, () => TILE_RING, () => buildYield(resident)), order = tileOrder(spawn, entryways);
     await driver.require(tileKeys(order.tiles.filter(tile => order.rank(tile) === 0))); live();
     await driver.coarse(spawn.x, spawn.z); live();
-    drivers.set(resident, driver);
+    drivers.set(resident, driver); preparation.complete = true;
     return undefined;
   });
-  started.set(resident, pending);
+  started.set(resident, { pending, state: preparation });
   return pending;
 }
 /** T4: once a frame while a world is entered, its resident's tiles follow the player's cell-local position. */
