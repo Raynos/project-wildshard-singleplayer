@@ -13,14 +13,15 @@ import {architecturePiece,Soup} from ${JSON.stringify(kit)};
 import {architectureGlb} from ${JSON.stringify(glb)};
 const text=readFileSync(new URL(${JSON.stringify(kit)}),'utf8');
 // Compare with the defining builders, without palette partitioning or a copied geometry recipe.
-const original=await import('data:text/javascript;base64,'+Buffer.from(text+'\\nexport {house,stalls,farTile,writer};').toString('base64'));
+const original=await import('data:text/javascript;base64,'+Buffer.from(text+'\\nexport {house,stalls,canal,forecourt,farTile,writer};').toString('base64'));
 const hex=JSON.parse(readFileSync('src/shards/open-plots/data/layouts/night-market.json','utf8')).palette;
 const palette=Object.fromEntries(Object.entries(hex).map(([key,s])=>[key,[1,3,5].map(at=>{const c=parseInt(s.slice(at,at+2),16)/255;return c<=.04045?c/12.92:((c+.055)/1.055)**2.4})]));
 const rows=[];
-for(const [type,variant] of [['H',0],['H',1],['S',0]]){
+for(const [type,variant] of [['H',0],['H',1],['S',0],['C',0],['L',0],['N',0]]){
  const baseline=Object.fromEntries(['Kit','Glow','Pool','Water','far','solid'].map(role=>[role,new Soup()]));
  const w=original.writer(baseline,[0,0],0);
- (type==='H'?original.house:original.stalls)(w,palette,variant);original.farTile(w,palette,type);
+ const builder={H:original.house,S:original.stalls,C:original.canal,L:original.canal,N:original.forecourt}[type];
+ builder(w,palette,type==='C'||type==='L'?type:variant);original.farTile(w,palette,type);
  const source=architecturePiece(type,palette,variant),encoded=architectureGlb(type,palette,variant);
  const again=architectureGlb(type,palette,variant);
  assert.notEqual(encoded.bytes.buffer,again.bytes.buffer);assert.deepEqual(encoded.bytes,again.bytes);
@@ -40,7 +41,7 @@ for(const [type,variant] of [['H',0],['H',1],['S',0]]){
    assert.deepEqual(primitive.getMaterial().getBaseColorFactor(),[1,1,1,1]);
    assert.deepEqual(primitive.getAttribute('POSITION').getArray(),new Float32Array(part.positions));
    assert.deepEqual(primitive.getAttribute('COLOR_0').getArray(),new Float32Array(part.colours));
-   if(role==='Kit'||role==='Glow')assert.deepEqual(primitive.getAttribute('NORMAL').getArray(),new Float32Array(part.normals));
+   if(role==='Kit'||role==='Glow'||role==='Water')assert.deepEqual(primitive.getAttribute('NORMAL').getArray(),new Float32Array(part.normals));
    assert.equal(binding.ordinals.length,part.positions.length/9);
    for(const [channel,width] of [['positions',9],['normals',9],['colours',9],['uvs',6]]){
     for(let i=0;i<binding.ordinals.length;i++)for(let k=0;k<width;k++)restored[channel][binding.ordinals[i]*width+k]=part[channel][i*width+k];
@@ -62,6 +63,15 @@ for(const [type,variant] of [['H',2],['S',1],['G',0]])assert.throws(()=>architec
 assert.throws(()=>architectureGlb('H',{...palette,wood:[NaN,0,0]}),/distinct named RGB/);
 const missing={...palette};delete missing.wood;
 assert.throws(()=>architectureGlb('H',missing),/undeclared palette/);
+// Authored smooth normals and UVs survive placement instead of being flattened or reset.
+const attributes={Kit:new Soup()},points=[[0,0,0],[1,0,0],[0,0,1]],rgb=[[1,0,0],[0,1,0],[0,0,1]],uv=[[.1,.2],[.3,.4],[.5,.6]];
+original.writer(attributes,[8,10],1).triChannels('Kit',points,rgb,[[0,0,1],[0,1,0],[1,0,0]],uv);
+const triangle=attributes.Kit.part('Kit');
+assert.deepEqual(triangle.positions,[8,0,10,8,0,9,9,0,10]);
+assert.deepEqual(triangle.normals.map(value=>value===0?0:value),[1,0,0,0,1,0,0,0,-1]);
+assert.deepEqual(triangle.uvs,uv.flat());
+const pool={Pool:new Soup()};original.writer(pool,[0,0],0).triChannels('Pool',points,rgb,null,uv);
+assert.deepEqual(pool.Pool.part('Pool').uvs,uv.flat());
 console.log(JSON.stringify(rows));`;
   const output = execFileSync(process.execPath, ['--import', './scripts/bake-loader.mjs', '--input-type=module', '-e', program], { encoding: 'utf8' });
   const rows = v.parse(v.array(v.object({ type: v.string(), variant: v.number(), bytes: v.number(), counts: v.record(v.string(), v.number()) })), JSON.parse(output));
@@ -69,6 +79,9 @@ console.log(JSON.stringify(rows));`;
     ['H', 0, { Kit: 142, Glow: 106, Pool: 56, Water: 0, far: 22, solid: 144 }],
     ['H', 1, { Kit: 158, Glow: 110, Pool: 56, Water: 0, far: 22, solid: 156 }],
     ['S', 0, { Kit: 720, Glow: 460, Pool: 112, Water: 0, far: 22, solid: 648 }],
+    ['C', 0, { Kit: 428, Glow: 110, Pool: 92, Water: 2, far: 4, solid: 576 }],
+    ['L', 0, { Kit: 412, Glow: 60, Pool: 56, Water: 4, far: 6, solid: 540 }],
+    ['N', 0, { Kit: 614, Glow: 120, Pool: 96, Water: 0, far: 22, solid: 300 }],
   ]);
   expect(rows.every(row => row.bytes < 200_000)).toBe(true);
 });

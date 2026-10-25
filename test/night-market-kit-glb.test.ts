@@ -50,7 +50,7 @@ console.log(JSON.stringify(rows));`;
 
 test.each([
   { factory: 'prepareLanternKit', positionTolerance: 0.000002, normalTolerance: 0, exactRoles: ['Kit', 'Water', 'far', 'solid'] },
-  { factory: 'preparePlotKit', positionTolerance: 0.000008, normalTolerance: 0.0000002, exactRoles: ['Water', 'far', 'solid'] },
+  { factory: 'preparePlotKit', positionTolerance: 2 ** -16, normalTolerance: 2 ** -23, exactRoles: ['Water', 'far', 'solid'] },
 ])('GLB placement preserves full layout order and collision ($factory)', ({ factory, positionTolerance, normalTolerance, exactRoles }) => {
   const kit = new URL('../src/shards/open-plots/generators/kit.mjs', import.meta.url).href;
   const glb = new URL('../src/shards/open-plots/generators/kitGlb.mjs', import.meta.url).href;
@@ -96,8 +96,9 @@ console.log(JSON.stringify(rows));`;
   const output = execFileSync(process.execPath, ['--import', './scripts/bake-loader.mjs', '--input-type=module', '-e', program], { encoding: 'utf8' });
   const rows = v.parse(v.array(v.object({ role: v.string(), error: v.number(), normalError: v.number(), triangles: v.number() })), JSON.parse(output));
   expect(rows.map(row => row.role)).toEqual(['Kit', 'Glow', 'Pool', 'Water', 'far', 'solid']);
-  // Ordinary GLB float32 storage; collision and the original far/water recipes remain exact.
-  expect(rows.every(row => row.error <= positionTolerance && row.normalError <= normalTolerance)).toBe(true);
+  // Local float32 storage precedes translation: cancellation near zero need not preserve per-coordinate ULPs.
+  // Bound absolute error by cell-edge float32 spacing; keep collision and far/water geometry exact.
+  expect(rows.filter(row => row.error > positionTolerance || row.normalError > normalTolerance)).toEqual([]);
   expect(rows.filter(row => exactRoles.includes(row.role)).every(row => row.error === 0)).toBe(true);
   expect(rows.every(row => row.triangles > 0)).toBe(true);
 });

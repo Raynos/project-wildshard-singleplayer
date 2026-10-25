@@ -93,6 +93,18 @@ function writer(parts, centre, turns, kit) {
   };
   const tri = (part, a, b, c, colour) => parts[part].tri(part, turn(a), turn(b), turn(c), colour);
   const triColours = (part, a, b, c, colours) => parts[part].triColours(part, [turn(a), turn(b), turn(c)], colours);
+  // Preserve authored GLB normals rather than deriving a new face normal from float-rounded positions.
+  const triChannels = (part, points, colours, normals, uvs) => {
+    let directions = normals;
+    if (directions === null) { const n = normalize(cross(sub(points[1], points[0]), sub(points[2], points[0]))); directions = [n, n, n]; }
+    const target = parts[part].part(part);
+    for (let i = 0; i < 3; i++) {
+      target.positions.push(...turn(points[i])); target.colours.push(...colours[i]);
+      const [x, y, z] = directions[i]; let nx = x, nz = z;
+      for (let n = 0; n < turns; n++) [nx, nz] = [nz, -nx];
+      target.normals.push(nx, y, nz); target.uvs.push(...(uvs === null ? [0, 0] : uvs[i]));
+    }
+  };
   const quad = (part, a, b, c, d, colour) => { tri(part, a, b, c, colour); tri(part, a, c, d, colour); };
   /** an axis-aligned box, every face outward; `open` leaves out the bottom */
   const box = (part, [x0, y0, z0], [x1, y1, z1], colour, top = colour, open = true) => {
@@ -118,7 +130,7 @@ function writer(parts, centre, turns, kit) {
     const a = turn(min), b = turn(max);
     parts.solid.box('Solid', [Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.min(a[2], b[2])], [Math.max(a[0], b[0]), Math.max(a[1], b[1]), Math.max(a[2], b[2])]);
   };
-  return { tri, triColours, quad, box, sides, floor, solid, placeLantern: kit?.placeLantern };
+  return { tri, triColours, triChannels, quad, box, sides, floor, solid, placeLantern: kit?.placeLantern };
 }
 
 /** An n-sided frustum about (x, z) from radius r0 at y0 to r1 at y1 (r1 0: a cone), capped. */
@@ -413,11 +425,11 @@ function farTile(w, p, type) {
 const BUILDERS = { H: house, G: garden, S: stalls, C: canal, L: canal, N: forecourt, P: plaza };
 const discardTriangle = () => { /* Collision-only replay intentionally omits the already-placed GLB visuals. */ };
 
-/** Export the existing static house/stall builders at the origin, split by their actual palette-array identity.
+/** Export existing static house/stall/canal/forecourt builders at the origin, split by palette-array identity.
  * Ordinals retain original triangle order when material slots are merged again. Equal RGB values never alias slots.
  * These builders do not consume moving-light seeds; no current layout or source collider is changed. */
 export function architecturePiece(type, palette, variant = 0) {
-  if ((type !== 'H' && type !== 'S') || (type === 'H' ? ![0, 1].includes(variant) : variant !== 0)) {
+  if (!['H', 'S', 'C', 'L', 'N'].includes(type) || (type === 'H' ? ![0, 1].includes(variant) : variant !== 0)) {
     throw new Error('open-plots architecture: existing type and variant required');
   }
   const slots = new Map();
@@ -441,7 +453,7 @@ export function architecturePiece(type, palette, variant = 0) {
   const parts = { Kit: new Soup(partKey), Glow: new Soup(partKey), Pool: new Soup(partKey), Water: new Soup(partKey),
     far: new Soup(partKey), solid: new Soup() };
   const w = writer(parts, [0, 0], 0);
-  BUILDERS[type](w, palette, variant);
+  BUILDERS[type](w, palette, type === 'C' || type === 'L' ? type : variant);
   farTile(w, palette, type);
   return { parts, bindings };
 }

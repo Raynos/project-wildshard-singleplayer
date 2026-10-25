@@ -15,7 +15,7 @@ export function lanternGlb(palette, height = 2.8) {
   ], 'lantern');
 }
 
-/** Own the existing house/stall GLB and the palette/ordinal bindings produced by that exact source invocation.
+/** Own an existing static tile GLB and the palette/ordinal bindings produced by that exact source invocation.
  * Material names carry role and palette slot; far nodes retain the existing <= 40-triangle tile stand-in. */
 export function architectureGlb(type, palette, variant = 0) {
   const { parts, bindings } = architecturePiece(type, palette, variant);
@@ -34,7 +34,7 @@ function encodeParts(parts, entries, name) {
       material.name = slot;
       primitives.push({ name: nodeName, geometry, material, compactIndex: true });
       if (source !== 'solid') geometry.setAttribute('color', new Float32BufferAttribute(part.colours, 3));
-      if (source === 'Kit' || source === 'Glow') geometry.setAttribute('normal', new Float32BufferAttribute(part.normals, 3));
+      if (source === 'Kit' || source === 'Glow' || source === 'Water') geometry.setAttribute('normal', new Float32BufferAttribute(part.normals, 3));
     }
     return staticGlb(primitives, name);
   } finally {
@@ -57,7 +57,7 @@ export async function prepareLanternKit(palette) {
       if (role === undefined || row.colours === null || row.colours.length !== row.positions.length) {
         throw new Error('open-plots lantern: missing visual palette channel');
       }
-      return { role, positions: row.positions, colours: row.colours, indices: row.indices };
+      return { role, positions: row.positions, colours: row.colours, indices: row.indices, normals: row.normals, uv: row.uv };
     });
     if (geometry.length !== 3 || new Set(geometry.map(row => row.role)).size !== 3 || decoded.collision.length !== 1) {
       throw new Error('open-plots lantern: incomplete GLB piece');
@@ -68,14 +68,16 @@ export async function prepareLanternKit(palette) {
     placeLantern(w, x, z, height) {
       const geometry = pieces.get(height);
       if (geometry === undefined || !Number.isFinite(x) || !Number.isFinite(z)) throw new Error('open-plots lantern: invalid placement');
-      for (const { role, positions, colours, indices } of geometry) for (let i = 0; i < indices.length; i += 3) {
-        const points = [], rgb = [];
+      for (const { role, positions, colours, indices, normals, uv } of geometry) for (let i = 0; i < indices.length; i += 3) {
+        const points = [], rgb = [], ns = [], uvs = [];
         for (let corner = 0; corner < 3; corner++) {
           const at = indices[i + corner] * 3;
           points.push([x + positions[at], positions[at + 1], z + positions[at + 2]]);
           rgb.push([colours[at], colours[at + 1], colours[at + 2]]);
+          if (normals !== null) ns.push([normals[at], normals[at + 1], normals[at + 2]]);
+          if (uv !== null) { const u = indices[i + corner] * 2; uvs.push([uv[u], uv[u + 1]]); }
         }
-        w.triColours(role, points[0], points[1], points[2], rgb);
+        w.triChannels(role, points, rgb, normals === null ? null : ns, uv === null ? null : uvs);
       }
     },
   });
@@ -85,7 +87,7 @@ export async function prepareLanternKit(palette) {
  * Far stand-ins are checked here; the layout keeps drawing its original far and collision recipes. */
 export async function prepareArchitectureKit(palette) {
   const pieces = new Map();
-  for (const [type, variant] of [['H', 0], ['H', 1], ['S', 0]]) {
+  for (const [type, variant] of [['H', 0], ['H', 1], ['S', 0], ['C', 0], ['L', 0], ['N', 0]]) {
     const { bytes, bindings } = architectureGlb(type, palette, variant);
     const materials = Object.fromEntries([...bindings.keys(), 'collision'].map(name => [name, 'kit']));
     const decoded = await normalizeWorldGlb(bytes, { glb: 'architecture.glb', materials, colliders: 'nodes:collide_', far: 'far_' }, ['kit']);
@@ -97,7 +99,8 @@ export async function prepareArchitectureKit(palette) {
       let triangles = roles.get(binding.role);
       if (triangles === undefined) { triangles = []; roles.set(binding.role, triangles); }
       for (let i = 0; i < binding.ordinals.length; i++) {
-        triangles.push({ ordinal: binding.ordinals[i], at: i * 3, positions: row.positions, colours: row.colours, indices: row.indices });
+        triangles.push({ ordinal: binding.ordinals[i], at: i * 3, positions: row.positions, colours: row.colours,
+          indices: row.indices, normals: row.normals, uv: row.uv });
       }
     }
     for (const triangles of roles.values()) {
@@ -110,17 +113,19 @@ export async function prepareArchitectureKit(palette) {
   }
   return Object.freeze({
     placeArchitecture(w, type, variant) {
-      if (type !== 'H' && type !== 'S') return false;
-      const roles = pieces.get(`${type}/${type === 'S' ? 0 : variant}`);
+      if (!['H', 'S', 'C', 'L', 'N'].includes(type)) return false;
+      const roles = pieces.get(`${type}/${type === 'H' ? variant : 0}`);
       if (roles === undefined) throw new Error('open-plots architecture: invalid placement variant');
-      for (const [role, triangles] of roles) for (const { at, positions, colours, indices } of triangles) {
-        const points = [], rgb = [];
+      for (const [role, triangles] of roles) for (const { at, positions, colours, indices, normals, uv } of triangles) {
+        const points = [], rgb = [], ns = [], uvs = [];
         for (let corner = 0; corner < 3; corner++) {
           const i = indices[at + corner] * 3;
           points.push([positions[i], positions[i + 1], positions[i + 2]]);
           rgb.push([colours[i], colours[i + 1], colours[i + 2]]);
+          if (normals !== null) ns.push([normals[i], normals[i + 1], normals[i + 2]]);
+          if (uv !== null) { const u = indices[at + corner] * 2; uvs.push([uv[u], uv[u + 1]]); }
         }
-        w.triColours(role, points[0], points[1], points[2], rgb);
+        w.triChannels(role, points, rgb, normals === null ? null : ns, uv === null ? null : uvs);
       }
       return true;
     },
