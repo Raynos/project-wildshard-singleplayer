@@ -1,6 +1,6 @@
 import {expect,it} from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- The ratchet fixture owns these temporary policy files.
-import {mkdtempSync,mkdirSync,writeFileSync,rmSync} from 'node:fs';
+import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,rmSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Confine policy paths to the fixture.
 import {join} from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Small isolated policy fixture.
@@ -101,4 +101,23 @@ it('drops obsolete override history while preserving the immutable original base
  expect(compareCustomSections(budgets,budgets,undefined,base)).toEqual([]);
  expect(compareCustomSections({},budgets,undefined,base)).toContain('demo: custom-section ceilings are shrink-only');
  expect(compareCustomSections(budgets,{'custom-sections/demo/count':2},base,base)).not.toEqual([]);
+});
+
+it('holds every ceiling at or below the exact G698 measured product inventory',()=>{
+ const policy: unknown=JSON.parse(readFileSync('lint/ratchet.json','utf8'));
+ if(typeof policy!=='object'||policy===null||!('budgets' in policy)||typeof policy.budgets!=='object'||policy.budgets===null)throw new Error('Missing budgets');
+ const measured:Record<string,{count:number;bytes:number}>={
+  'driftwood-isle':{count:53,bytes:3074153},'far-reach':{count:19,bytes:2928189},
+  'nalati-grasslands':{count:46,bytes:12351832},'nine-dragon-stack':{count:19,bytes:4552493},
+  'pine-hollow':{count:234,bytes:10626533},'sunscar-dunes':{count:16,bytes:79809},
+ };
+ for(const [key,value]of Object.entries(policy.budgets)){
+  const match=/^custom-sections\/([^/]+)\/(count|bytes)$/u.exec(key);
+  if(match===null)continue;
+  const slug=match[1],unit=match[2];
+  if(slug===undefined||(unit!=='count'&&unit!=='bytes'))throw new Error('Invalid section ceiling');
+  expect(typeof value).toBe('number');expect(value).toBeLessThanOrEqual(measured[slug]?.[unit]??0);
+ }
+ expect(Object.values(measured).reduce((sum,row)=>sum+row.count,0)).toBe(387);
+ expect(Object.values(measured).reduce((sum,row)=>sum+row.bytes,0)).toBe(33613009);
 });

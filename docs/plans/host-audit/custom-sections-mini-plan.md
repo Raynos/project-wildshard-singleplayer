@@ -103,7 +103,7 @@ hook: extend it to charge a section's or blob's schema to the shards that emit i
 
 | Row | What | Effort |
 |---|---|---|
-| **CS0** | **Ceilings to actuals and a schema freeze** (free, can land now): set every `custom-sections/<slug>` ceiling to the measured value (549 → 387, 62 MB → 33.6 MB); refuse a new `custom/` section and any new named JSON whose schema is defined in a shard folder | 0.5 day, Codex |
+| **CS0** | **in flight (2026-10-24, sp-x6):** measured ceilings landed first; schema freeze next. **Ceilings to actuals and a schema freeze** (free, can land now): set every `custom-sections/<slug>` ceiling to the measured value (549 → 387, 62 MB → 33.6 MB); refuse a new `custom/` section and any new named JSON whose schema is defined in a shard folder | 0.5 day, Codex |
 | **CS1** | **Generated section inventory** inside HA1's ruler mode: every section and named JSON blob with shard, bytes, schema module, the schema's shard users, reading host (H-group). Lands in HA2's one table | 0.5–1 day, Codex |
 | **CS2** | **Platform names for blobs**: `product.json` admits only names whose schema is registered platform-wide; the ~345 format-schema blobs get platform names (`world/scenes/<id>`), shard-local schemas listed for CS3–CS9 | 2–3 days, Codex + Opus review |
 | **CS3** | **K1 scenes**: one streamed `world/scenes` family and `models/library`; Pine's 112 placement files become one indexed section; tier copies derived. Pine first, then Sky / Signal / Nine / Driftwood / Nalati | 3–4 days, Codex (Opus memory reading on Pine) |
