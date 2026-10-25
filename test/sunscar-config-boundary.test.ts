@@ -4,12 +4,16 @@ import { expect, test } from 'vitest';
 import { build } from 'vite';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 
-for (const [entry, nativeBakeImport] of [['shard.config.ts', false], ['generators/sourceOutput.ts', true], ['generators/sourceOutput.ts', false], ['generators/worldSources.ts', false]] as const) {
+// The output factory now accepts scene/plan values. World assembly owns the
+// emitter import where the original unpublished native-metadata control belongs.
+for (const [entry, nativeBakeImport] of [['shard.config.ts', false], ['generators/worldScenes.ts', true], ['generators/sourceOutput.ts', false], ['generators/worldSources.ts', false]] as const) {
   test(`Sunscar ${entry} ${nativeBakeImport ? 'keeps unpublished native metadata config-safe' : 'keeps effect metadata data-only'}`, async () => {
     let rewrites = 0;
     const result = await build({ configFile: false, logLevel: 'silent',
       plugins: [{ name: 'original-effect-import', enforce: 'pre', transform(source, id) {
         if (!nativeBakeImport || !id.endsWith('/generators/lightEmitters.ts')) return null;
+        expect(source).toContain("import { placeEffects } from './placeEffects';");
+        expect(source).toContain('const bindings = placeEffects();');
         rewrites++;
         return source.replace("import { placeEffects } from './placeEffects';", "import { placeBindings } from './restScene';")
           .replace('const bindings = placeEffects();', 'const bindings = placeBindings();');
@@ -28,9 +32,15 @@ for (const [entry, nativeBakeImport] of [['shard.config.ts', false], ['generator
         // The publication split removes formerly retained, unused fs imports.
         // Explicit publication remains refused by the SDK's negative bundle case.
         expect(Object.keys(chunk.modules).some(path => path.endsWith('/generators/restScene.ts'))).toBe(true);
+        expect(Object.keys(chunk.modules).some(path => path.endsWith('/generators/lightEmitters.ts'))).toBe(true);
       }
       else {
         expect(Object.keys(chunk.modules).some(path => path.endsWith('/generators/restScene.ts'))).toBe(false);
+      }
+      if (entry === 'generators/sourceOutput.ts') {
+        for (const file of ['worldScenes.ts', 'lightEmitters.ts']) {
+          expect(Object.keys(chunk.modules).some(path => path.endsWith(`/generators/${file}`))).toBe(false);
+        }
       }
     }
   });
