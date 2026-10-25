@@ -4,12 +4,14 @@
     "generators",
     "data",
     "../../../public/assets/nine-dragon/lab",
-    "../../../scripts/map-geometry.mjs",
+    "../../../public/assets/nine-dragon/authored/sign-atlas",
+    "../../../public/assets/nine-dragon/authored/glyphs",
     "../../sdk/bake/mapAssembly.ts",
     "../../sdk/bake/mapScenes.ts",
-    "../../../scripts/map-painter.mjs",
     "../../sdk/bake/mapRaster.ts",
-    "../../../scripts/bake-data-maps.mjs"
+    "../../sdk/bake/groundMap.ts",
+    "../../sdk/kit/geometryPack.ts",
+    "../../commons/bake/portableMath.ts"
   ],
   "clipAbove": 153,
   "style": {
@@ -87,32 +89,6 @@
   },
   "painter": {
     "version": 1,
-    "program": true,
-    "job": "nine-data-map",
-    "scenes": {
-      "packs": [
-        {
-          "file": "map/geometry.bin",
-          "rows": {
-            "file": "map/assembly.json",
-            "path": [
-              "pack"
-            ]
-          },
-          "names": [
-            "names"
-          ],
-          "deflated": true
-        }
-      ],
-      "recipes": [
-        {
-          "file": "map/assembly.json",
-          "path": [
-            "scene"
-          ]
-        }
-      ]
-    }
+    "program": true
   }
 }

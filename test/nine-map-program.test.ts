@@ -13,7 +13,7 @@ import { admitNativeGlyphs } from '../src/shards/nine-dragon-stack/generators/na
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { paintDataMap } from '../scripts/bake-data-maps.mjs';
-import settings from '../src/shards/nine-dragon-stack/look/map.json' with { type: 'json' };
+import settings from '../src/shards/nine-dragon-stack/data/map.json' with { type: 'json' };
 import before from './fixtures/nine-map-files.json' with { type: 'json' };
 import nativeInputs from '../src/shards/nine-dragon-stack/data/nativeSignAtlas.json' with { type: 'json' };
 import glyphInputs from '../src/shards/nine-dragon-stack/data/nativeGlyphs.json' with { type: 'json' };

@@ -18,8 +18,10 @@ import { parseClientChannels } from '../src/format/clientChannels';
 import isletScene from '../src/shards/far-reach/data/isletScenes.generated.json' with { type: 'json' };
 import isletMotion from '../src/shards/far-reach/data/isletMotion.generated.json' with { type: 'json' };
 import { nalatiMapAssembly } from '../src/shards/nalati-grasslands/generators/mapAssembly.mjs';
-import { nineMapAssembly } from '../src/shards/nine-dragon-stack/generators/mapAssembly.mjs';
-import { scenes as nineScenes } from './fixtures/nine-product-inputs';
+import { nineMapAssemblyFrom } from '../src/shards/nine-dragon-stack/generators/mapAssemblySource';
+import { scenes as nineScenes, casts as nineCasts } from './fixtures/nine-product-inputs';
+import { nativeSignAtlas } from './fixtures/nine-native-atlas';
+import { nativeGlyphs } from './fixtures/nine-native-glyphs';
 import { Matrix4, Quaternion, Vector3 } from 'three';
 import { driftwoodMapAssembly } from '../src/shards/driftwood-isle/generators/mapAssembly.mjs';
 import { pineMapAssembly } from '../src/shards/pine-hollow/generators/mapAssembly.mjs';
@@ -155,7 +157,8 @@ test('Nalati map assembly covers every POI model copy at its admitted pose', asy
 
 test('Nine map contains every facade copy, queued set and rest mover', async () => {
   const nineWorld = nineScenes.worldRows;
-  const { assembly } = await nineMapAssembly();
+  const { assembly } = await nineMapAssemblyFrom({ casts: nineCasts.raw, native: nativeSignAtlas, glyphs: nativeGlyphs,
+    read: url => new Uint8Array(readFileSync(resolve(`public${url}`))) });
   try {
     for (const row of nineWorld.rows.facade.drawn) {
       const node = assembly.nodes.find(candidate => candidate.name === `facade:${row.id}`);

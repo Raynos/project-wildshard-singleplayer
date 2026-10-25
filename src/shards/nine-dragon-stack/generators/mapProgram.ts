@@ -6,7 +6,7 @@ import { admitNativeSignAtlas } from './nativeSignAtlas';
 import { admitNativeGlyphs } from './nativeGlyphs';
 import nativeInputs from '../data/nativeSignAtlas.json' with { type: 'json' };
 import glyphInputs from '../data/nativeGlyphs.json' with { type: 'json' };
-import settings from '../data/mapPalette.json' with { type: 'json' };
+import settings from '../data/map.json' with { type: 'json' };
 
 /** Every authored model and native atlas/glyph byte consumed by the map assembly. */
 export const NINE_MAP_INPUTS = ['/assets/nine-dragon/lab/walker.glb', '/assets/nine-dragon/lab/sitter.glb',

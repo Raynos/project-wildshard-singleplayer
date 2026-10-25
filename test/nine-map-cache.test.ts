@@ -12,8 +12,6 @@ import { hashImmutableBytes } from '../src/sdk/immutable';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { nineMap, nineMapPixels, NINE_MAP_INPUTS } from '../src/shards/nine-dragon-stack/generators/mapProgram';
 import before from './fixtures/nine-map-files.json' with { type: 'json' };
-import palette from '../src/shards/nine-dragon-stack/data/mapPalette.json' with { type: 'json' };
-import retained from '../src/shards/nine-dragon-stack/look/map.json' with { type: 'json' };
 
 mkdirSync('tmp', { recursive: true });
 const cache = mkdtempSync(resolve('tmp', 'nine-map-cache-'));
@@ -30,7 +28,6 @@ const ctx = context(), cold = await nineMap({ cached: (step, generate) => ctx.ca
 }) });
 
 test('cold source map retains every original pixel and lossless image byte', async () => {
-  expect(palette).toEqual({ clipAbove: retained.clipAbove, style: retained.style });
   expect(cold.length).toBe(4_000_000);
   expect(pixelHash(cold)).toBe('131bc5c356d05f490ee4516b0e305af0785056fdb9657b950b4c8f64edebb2b5');
   const image = await generatedProjectMap({ pixels: cold }, 'f'.repeat(64)), original = before[2];
