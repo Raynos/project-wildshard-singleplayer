@@ -135,12 +135,12 @@ export class NearPlaceholders {
       }
       const { prepared, bytes, owns = false } = loaded;
       // cancel-safe: a cell that left the plan (or a disposed owner) discards what arrived
-      if (this.disposed || this.slots.get(instance)?.generation !== generation) { prepared.geometry.dispose(); return; }
+      if (this.disposed || this.slots.get(instance)?.generation !== generation) { prepared.geometry.dispose(); prepared.light?.dispose(); prepared.colour?.dispose(); return; }
       const root = this.host.root(instance);
       const lease = root === undefined ? null : this.host.allocator.reserve({ id: `near:${instance}`, category: 'near', bytes, owner: instance, distance, needed: false,
         evictSync: () => { const live = this.slots.get(instance); if (live !== undefined) this.drop(live, false); } });
-      if (root === undefined || lease === null) { prepared.geometry.dispose(); this.slots.delete(instance); return; } // refused: the far proxy stays
-      const view = installFarProxy(root, prepared.geometry, prepared.look, prepared.positionalMask === true, this.host.decorate, true, null, prepared.light ?? null);
+      if (root === undefined || lease === null) { prepared.geometry.dispose(); prepared.light?.dispose(); prepared.colour?.dispose(); this.slots.delete(instance); return; } // refused: the far proxy stays
+      const view = installFarProxy(root, prepared.geometry, prepared.look, prepared.positionalMask === true, this.host.decorate, true, null, prepared.light ?? null, prepared.colour ?? null);
       view.mesh.name = 'near-placeholder';
       slot.view = view; slot.lease = lease; slot.owns = owns;
       this.bytes.set(instance, bytes);

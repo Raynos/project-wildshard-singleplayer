@@ -22,3 +22,10 @@ test('Night Market road B lowers only its layout curtain and keeps road A poster
   for (const cell of low) expect(cell.edgeLook).toEqual({ height: 1.2 });
   expect(layout.posters.entry).toMatchObject({ width: 10, bottom: 0.6, inset: 247, posts: 4, offset: 12.5 });
 });
+
+test('all plot poster faces use the unlit map or baked mean without fog', () => {
+  for (const output of Object.values(outputs)) expect(output.look.materials.billboard).toMatchObject({
+    family: 'graph', graph: { model: 'unlit', effectState: { fog: false },
+      nodes: { picture: { op: 'meshMap', name: 'colourOrVertex' } } },
+  });
+});

@@ -1,5 +1,5 @@
 import { expect, test, vi } from 'vitest';
-import { BoxGeometry, BufferAttribute, BufferGeometry, Group } from 'three';
+import { AdditiveBlending, NormalBlending, BoxGeometry, BufferAttribute, BufferGeometry, Group, Mesh, MeshBasicMaterial } from 'three';
 import { installFarProxy, type FarProxyView } from './farView';
 import { ResidencyAllocator } from './allocator';
 import { bakedNearFiles, NearPlaceholders, type NearPlaceholderHost } from './nearPlaceholderView';
@@ -60,6 +60,23 @@ test('proxy installation publishes the same exact packed sphere', () => {
   expect(view.mesh.parent).toBe(root);
   expect(geometry.boundingBox).toBeNull();
   view.dispose(); oracle.dispose();
+});
+
+test('near opaque colour keeps its mean without additive glow, fog or exposure', () => {
+  const root = new Group(), geometry = new BoxGeometry(), light = new BoxGeometry(), colour = new BoxGeometry();
+  const retired = [geometry, light, colour].map(part => { const fn = vi.fn(); part.addEventListener('dispose', () => { fn(); }); return fn; });
+  const view = installFarProxy(root, geometry, { family: 'pbr', haze: { colour: [1, 1, 1] } }, true, undefined, false, null, light, colour);
+  try {
+    const glow = view.mesh.getObjectByName('far-proxy-light'), face = view.mesh.getObjectByName('far-proxy-colour');
+    if (!(glow instanceof Mesh && glow.material instanceof MeshBasicMaterial && face instanceof Mesh && face.material instanceof MeshBasicMaterial)) throw new Error('Missing near layers');
+    expect(glow.material.blending).toBe(AdditiveBlending); expect(glow.material.color.r).toBe(1.6);
+    expect(face.geometry).toBe(colour); expect(face.material.blending).toBe(NormalBlending);
+    expect(face.material.color.toArray()).toEqual([1, 1, 1]); expect(face.material.transparent).toBe(false);
+    expect(face.material.fog).toBe(false); expect(face.material.toneMapped).toBe(false); expect(face.material.depthWrite).toBe(true);
+    view.mask(new Set(Array.from({ length: 16 }, (_, i) => i))); expect(view.mesh.visible).toBe(false);
+  } finally { view.dispose(); view.dispose(); }
+  for (const fn of retired) expect(fn).toHaveBeenCalledOnce();
+  expect(root.children).toHaveLength(0);
 });
 
 

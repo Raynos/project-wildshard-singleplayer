@@ -4,7 +4,7 @@ import { Scope } from '../../app/scope';
 import { compileGraph } from './compile';
 import { bindGraphMeshMap, graphMeshMapBase } from '../graphBackend';
 import { EngineNodesHandler } from '../nodes/engineNodesHandler';
-import type { GraphIr } from '@wildshard/format/materialGraph';
+import { validateGraph, type GraphIr } from '@wildshard/format/materialGraph';
 
 vi.stubGlobal('ImageBitmap', class ImageBitmap { readonly width = 0; });
 afterAll(() => { vi.unstubAllGlobals(); });
@@ -22,7 +22,7 @@ function program(graph: GraphIr, source: THREE.Material): THREE.WebGLProgramPara
   const handler = new EngineNodesHandler(), compiled = compileGraph(graph, { textures: () => sampled }), scope = new Scope('pbr-loan');
   const material = bindGraphMeshMap(compiled.material, source, scope);
   handler.setRenderer(renderer);
-  const geometry = new THREE.PlaneGeometry(1, 1); geometry.setAttribute('aSeed', new THREE.Float32BufferAttribute([0, 0.25, 0.5, 0.75], 1));
+  const geometry = new THREE.PlaneGeometry(1, 1); geometry.setAttribute('color', new THREE.Float32BufferAttribute([0.01, 0.02, 0.04, 0.01, 0.02, 0.04, 0.01, 0.02, 0.04, 0.01, 0.02, 0.04], 3)); geometry.setAttribute('aSeed', new THREE.Float32BufferAttribute([0, 0.25, 0.5, 0.75], 1));
   geometry.setAttribute('aDirection', new THREE.Float32BufferAttribute([1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0], 3));
   const object = new THREE.Mesh(geometry, material);
   const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera();
@@ -58,4 +58,28 @@ test('mapped lit graphs retain native PBR slots and shared uniforms', () => {
     for (const texture of [normal, roughness, ao]) expect(Object.values(shader.uniforms).some(uniform => uniform.value === texture)).toBe(true);
     expect(source.normalMap).toBe(normal);
   } finally { scope.dispose(); compiled.material.dispose(); source.dispose(); other.dispose(); normal.dispose(); roughness.dispose(); ao.dispose(); }
+});
+
+test('colour-or-vertex map loans preserve source sRGB and use the baked linear mean only without a map', () => {
+  const graph: GraphIr = { version: 1, kind: 'material', model: 'unlit', effectState: { fog: false },
+    nodes: { image: { op: 'meshMap', name: 'colourOrVertex' }, rgb: { op: 'swizzle', in: ['image'], mask: 'xyz' } },
+    stages: { surface: { colour: 'rgb' } } };
+  expect(validateGraph(graph).ok).toBe(true);
+  const texture = new THREE.DataTexture(new Uint8Array([18, 24, 43, 255]), 1, 1);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  const image = new THREE.MeshBasicMaterial({ map: texture }), mean = new THREE.MeshBasicMaterial({ vertexColors: true });
+  const scope = new Scope('poster-map'), compiled = compileGraph(graph);
+  try {
+    const mapped = bindGraphMeshMap(compiled.material, texture, scope);
+    expect(Reflect.get(mapped, 'map')).toBe(texture);
+    expect(texture.colorSpace).toBe(THREE.SRGBColorSpace);
+    expect(Reflect.get(mapped, 'fog')).toBe(false);
+    expect(mapped.userData['graphRawOutput']).toBe(true);
+    const full = program(graph, image), coarse = program(graph, mean);
+    expect(Object.values(full.uniforms).some(uniform => uniform.value === texture)).toBe(true);
+    expect(full.vertexShader).not.toMatch(/in vec3 color;/u);
+    expect(coarse.vertexShader).toMatch(/in vec3 color;/u);
+    expect(coarse.fragmentShader).not.toMatch(/sRGBTransferOETF/u);
+    expect(full.fragmentShader).not.toMatch(/sRGBTransferOETF/u);
+  } finally { scope.dispose(); compiled.material.dispose(); image.dispose(); mean.dispose(); texture.dispose(); }
 });

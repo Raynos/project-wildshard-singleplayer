@@ -7,7 +7,7 @@ import { CONTENT_CAPS } from '@wildshard/engine/core/config';
 import { parseBakedTerrain } from '@wildshard/engine/world/BakedTerrain';
 import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import type { PlaceholderTree } from '@wildshard/format/placeholderSource';
-import { NEAR_LIGHT, NEAR_PLACEHOLDER_LIMITS } from '@wildshard/format/nearPlaceholder';
+import { NEAR_COLOUR, NEAR_LIGHT, NEAR_PLACEHOLDER_LIMITS } from '@wildshard/format/nearPlaceholder';
 import { MEASURE_SLOT, parseFamilyMaterial, type FamilyMaterialParams } from '@wildshard/format/materialFamilies';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { placeholderGeometry, placeholderLeanDrop, type PlaceholderGrid, type PlaceholderLook, type PlaceholderLookRuntime, type PlaceholderPart } from '@wildshard/game/plugin/animation';
@@ -506,24 +506,27 @@ async function authoredFarImpostor(shard: Shardfile, assets: Map<string, Uint8Ar
 
 /** G380 / NM5: a world with no height field's near view from its own coarse tiles (`shardfileWorld`) over a flat floor
  *  under them; unchanged when it has none. */
-export async function coarseNearView(shard: Shardfile, assets: Map<string, Uint8Array>, skip?: (material: string) => boolean): Promise<Shardfile> {
-  const prototypes = await shardfileWorld(shard, assets, skip);
+export async function coarseNearView(shard: Shardfile, assets: Map<string, Uint8Array>, skip?: (material: string) => boolean, opaque?: (material: string) => boolean): Promise<Shardfile> {
+  const prototypes = await shardfileWorld(shard, assets, name => skip?.(name) === true || opaque?.(name) === true);
   if (prototypes.length === 0) return shard;
   const baked = await bakeNearPlaceholder({ grid: null, look: shardfileLook(shard), prototypes, residentBytes: Math.min(NEAR_BAKE.residentBytes, NEAR_PLACEHOLDER_LIMITS.contentBytes) });
   const file = baked.manifest.file;
   assets.set(file.hash, baked.bytes);
   // NM13: what `skip` left out is light; it draws in its own additive layer over the near view (the grid's near loader
   // keeps the mesh named NEAR_LIGHT apart from the lit draw)
-  const lightBytes = skip === undefined ? null : await nearLightGlb(shard, assets, skip), lightFile = lightBytes === null ? null : fileRow(lightBytes);
+  const lightBytes = skip === undefined ? null : await nearLightGlb(shard, assets, name => skip(name) && opaque?.(name) !== true), lightFile = lightBytes === null ? null : fileRow(lightBytes);
   if (lightBytes !== null && lightFile !== null) assets.set(lightFile.hash, lightBytes);
-  const added = [file, ...(lightFile === null ? [] : [lightFile])].filter(row => !shard.files.some(known => known.hash === row.hash));
-  return { ...shard, files: [...shard.files, ...added], near: { version: 1, terrain: [], content: [file.hash, ...(lightFile === null ? [] : [lightFile.hash])] } };
+  const colourBytes = opaque === undefined ? null : await nearLightGlb(shard, assets, opaque, NEAR_COLOUR), colourFile = colourBytes === null ? null : fileRow(colourBytes);
+  if (colourBytes !== null && colourFile !== null) assets.set(colourFile.hash, colourBytes);
+  const layers = [file, ...(lightFile === null ? [] : [lightFile]), ...(colourFile === null ? [] : [colourFile])];
+  const added = layers.filter(row => !shard.files.some(known => known.hash === row.hash));
+  return { ...shard, files: [...shard.files, ...added], near: { version: 1, terrain: [], content: layers.map(row => row.hash) } };
 }
 
 /** m²: light triangles smaller than this (a bulb, a firefly) leave the near light layer; pools, windows and lanterns stay */
 const NEAR_LIGHT_MIN_AREA = 0.3;
 /** The light primitives of the coarse tiles (`light` names their materials) as one non-indexed vertex-colour mesh. */
-async function nearLightGlb(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, light: (material: string) => boolean): Promise<Uint8Array | null> {
+async function nearLightGlb(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, light: (material: string) => boolean, nodeName = NEAR_LIGHT): Promise<Uint8Array | null> {
   const prototypes = await shardfileWorld(shard, assets, name => !light(name)), positions: number[] = [], colours: number[] = [];
   const m = new Matrix4(), a = new Vector3(), b = new Vector3(), c = new Vector3(), e1 = new Vector3(), e2 = new Vector3();
   for (const p of prototypes) for (const t of p.transforms) {
@@ -540,7 +543,7 @@ async function nearLightGlb(shard: Shardfile, assets: ReadonlyMap<string, Uint8A
   if (positions.length === 0) return null;
   const geometry = new BufferGeometry();
   geometry.setAttribute('position', new Float32BufferAttribute(positions, 3)); geometry.setAttribute('color', new Float32BufferAttribute(colours, 3));
-  return staticGlb([{ geometry, material: new MeshBasicMaterial({ vertexColors: true }), name: NEAR_LIGHT, castShadow: false }], NEAR_LIGHT);
+  return staticGlb([{ geometry, material: new MeshBasicMaterial({ vertexColors: true }), name: nodeName, castShadow: false }], nodeName);
 }
 
 /**

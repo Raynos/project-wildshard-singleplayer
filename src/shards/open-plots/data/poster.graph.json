@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "kind": "material",
+  "model": "unlit",
+  "effectState": { "fog": false },
+  "nodes": {
+    "picture": { "op": "meshMap", "name": "colourOrVertex" },
+    "rgb": { "op": "swizzle", "in": ["picture"], "mask": "xyz" }
+  },
+  "stages": { "surface": { "colour": "rgb" } }
+}

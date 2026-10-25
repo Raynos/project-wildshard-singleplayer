@@ -161,7 +161,10 @@ export async function bakeAuthoredWorld(input: unknown, bytes: Uint8Array): Prom
     // additive light layer (NM13, `coarseNearView`)
     const lightNames = new Set(world.materials.flatMap((row, index) => { const entry = materials[row.id];
       return light.has(index) || entry?.family === 'emissive' || (entry?.family === 'graph' && 'graph' in entry && entry.graph.model === 'unlit') ? [row.name, row.id] : []; }));
-    if (authored.near === 'coarse') return { shard: await coarseNearView(shard, baked.assets, name => lightNames.has(name)), assets: baked.assets };
+    const colourNames = new Set(world.materials.flatMap(row => { const entry = materials[row.id];
+      return entry?.family === 'graph' && 'graph' in entry && entry.graph.model === 'unlit'
+        && Object.values(entry.graph.nodes).some(node => node.op === 'meshMap' && node.name === 'colourOrVertex') ? [row.name, row.id] : []; }));
+    if (authored.near === 'coarse') return { shard: await coarseNearView(shard, baked.assets, name => lightNames.has(name), name => colourNames.has(name)), assets: baked.assets };
     return { shard, assets: baked.assets };
   } finally { catalogue.dispose(); geometry.forEach(part => part.dispose()); }
 }

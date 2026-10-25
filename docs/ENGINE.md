@@ -5488,6 +5488,19 @@ The material graph input `meshMap` samples the original model colour map at
 its mesh UV, including the borrowed texture's sampler, transform and colour
 space. It is a fragment-only vec4 input and costs one sampler even when reused;
 post, points and vertex stages refuse it. Unmapped meshes read white RGBA.
+`meshMap` with `name: "colourOrVertex"` uses the same map when present, or
+linear vertex RGB (alpha 1) when a coarse mesh has only its baked mean
+colour. It preserves the borrowed texture's colour space and sampler; it
+does not multiply the picture by that mean. The default stays white
+without a map, and `name: "bump"` keeps its existing bump-map behaviour.
+Coarse authored-world bakes retain this graph's opaque mean colour in a
+separate `near-colour` mesh. The near loader masks and retires it with the
+lit proxy, while its unlit material keeps normal depth-writing blending,
+unit intensity, no fog and no tone mapping. Additive near lights retain
+their existing separate glow layer.
+Static texture transport admits this explicit colour binding only with
+opaque unit base factors, zero authored emissive colour and no other map
+roles; unsupported factor/alpha/texture semantics still refuse.
 `@wildshard/sdk/materials.meshMap` authors this input. The client compiler's
 optional second texture argument and declared props' colour slots bind it via
 `bindGraphMeshMap` in the existing engine graph backend. Equal graph/map pairs

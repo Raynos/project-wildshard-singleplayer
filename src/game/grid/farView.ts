@@ -6,7 +6,7 @@
  * boundary-face flag in TEXCOORD_0.y (G222: 1 lip, 2 foot), where the material lays rock strata over the shard's cliff
  * palette.
  */
-import { AdditiveBlending, DataTexture, LinearFilter, LinearMipmapLinearFilter, Mesh, MeshBasicMaterial, MeshLambertMaterial, MeshStandardMaterial, RedFormat, RepeatWrapping, Vector2, type BufferGeometry, type Material, type Object3D } from 'three';
+import { AdditiveBlending, NormalBlending, DataTexture, LinearFilter, LinearMipmapLinearFilter, Mesh, MeshBasicMaterial, MeshLambertMaterial, MeshStandardMaterial, RedFormat, RepeatWrapping, Vector2, type BufferGeometry, type Material, type Object3D } from 'three';
 import { patchShader } from '@wildshard/engine/render/shaderPatches';
 import { geometryBoundsSteps } from '@wildshard/engine/world/geometryBounds';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
@@ -130,9 +130,9 @@ if (vFarCliff > 0.5) {
 
 /** NM13: a near view's light layer (`NEAR_LIGHT`): its vertex colours added unlit over what is drawn (light pools, lit
  *  windows and lanterns), masked by the same 16 regions as the lit draw when it is masked by position. */
-function farLightMaterial(mask: Float32Array, positionalMask: boolean): MeshBasicMaterial {
-  const material = new MeshBasicMaterial({ vertexColors: true, transparent: true, blending: AdditiveBlending, depthWrite: false, fog: false });
-  material.color.setScalar(1.6); // the glow's intensity, which the vertex-colour bake leaves out
+function farLightMaterial(mask: Float32Array, positionalMask: boolean, additive = true): MeshBasicMaterial {
+  const material = new MeshBasicMaterial({ vertexColors: true, transparent: additive, blending: additive ? AdditiveBlending : NormalBlending, depthWrite: !additive, fog: false, toneMapped: additive });
+  material.color.setScalar(additive ? 1.6 : 1); // opaque colour is already linear; only additive glow gets an intensity boost
   if (positionalMask) patchShader(material, 'nm13-near-light', 0, (shader): void => {
     shader.uniforms['farMask'] = { value: mask };
     shader.vertexShader = shader.vertexShader.replace('#include <common>', '#include <common>\nvarying vec2 vFarLightP;')
@@ -148,11 +148,13 @@ function farLightMaterial(mask: Float32Array, positionalMask: boolean): MeshBasi
  * `decorate` patches its material before anything compiles it (G321 part 4: the horizon fade); `grain` adds the near
  * placeholder's ground detail (`NEAR_GRAIN`).
  */
-export function installFarProxy(root: Object3D, geometry: BufferGeometry, look: FarLookRuntime, positionalMask = false, decorate?: (material: Material) => void, grain = false, impostorData: FarImpostorData | null = null, light: BufferGeometry | null = null): FarProxyView {
+export function installFarProxy(root: Object3D, geometry: BufferGeometry, look: FarLookRuntime, positionalMask = false, decorate?: (material: Material) => void, grain = false, impostorData: FarImpostorData | null = null, light: BufferGeometry | null = null, colour: BufferGeometry | null = null): FarProxyView {
   const { material, setMask, setBand } = farProxyMaterial(look, positionalMask, grain), mesh = new Mesh(geometry, material);
   // NM13: the light layer rides the lit draw (its child: shown, masked and retired with it)
   const lightMask = new Float32Array(16), lightMesh = light === null ? null : new Mesh(light, farLightMaterial(lightMask, positionalMask));
   if (lightMesh !== null) { lightMesh.name = 'far-proxy-light'; lightMesh.renderOrder = 1; lightMesh.frustumCulled = false; mesh.add(lightMesh); }
+  const colourMesh = colour === null ? null : new Mesh(colour, farLightMaterial(lightMask, positionalMask, false));
+  if (colourMesh !== null) { colourMesh.name = 'far-proxy-colour'; colourMesh.frustumCulled = false; mesh.add(colourMesh); }
   decorate?.(material);
   mesh.name = 'far-proxy'; mesh.castShadow = false; mesh.receiveShadow = false; mesh.matrixAutoUpdate = false; mesh.updateMatrix();
   const bounds = geometryBoundsSteps(geometry, 'sphere');
@@ -167,16 +169,18 @@ export function installFarProxy(root: Object3D, geometry: BufferGeometry, look: 
     ...(impostor === null ? {} : { band: (share: number) => {
       // the proxy keeps the dither under the share and stops drawing once the impostor has it all; the impostor shows only
       // where the proxy would (a near view or an entered region covers both)
-      setBand(share); material.visible = share < 1; if (lightMesh !== null) lightMesh.visible = share < 1; impostor.band(share, mesh.visible);
+      setBand(share); material.visible = share < 1; if (lightMesh !== null) lightMesh.visible = share < 1; if (colourMesh !== null) colourMesh.visible = share < 1; impostor.band(share, mesh.visible);
     } }),
-    dispose: () => { if (disposed) return; disposed = true; impostor?.dispose(); mesh.removeFromParent(); geometry.dispose(); material.dispose(); if (lightMesh !== null) { light?.dispose(); const own: unknown = lightMesh.material; if (own instanceof MeshBasicMaterial) own.dispose(); } },
+    dispose: () => { if (disposed) return; disposed = true; impostor?.dispose(); mesh.removeFromParent(); geometry.dispose(); material.dispose(); for (const layer of [lightMesh, colourMesh]) if (layer !== null) { layer.geometry.dispose(); const own: unknown = layer.material; if (own instanceof MeshBasicMaterial) own.dispose(); } },
   };
 }
 
 /** A fetched, parsed proxy waiting for its budgeted upload. */
 export interface FarPrepared { readonly geometry: BufferGeometry; readonly look: FarLookRuntime; readonly positionalMask?: boolean; readonly impostor?: FarImpostorData | null;
   /** NM13: a near view's light layer, drawn additively over it */
-  readonly light?: BufferGeometry }
+  readonly light?: BufferGeometry;
+  /** Opaque unlit linear colour, without additive glow or haze. */
+  readonly colour?: BufferGeometry }
 /**
  * The rings' ports for level `far` (compose with the tile ports through SF18b's `levelPorts`): `load` fetches and parses
  * an instance's far.glb off the frame (GLTF parse, region in uv.x) with its far.json look. Optional `prepare` borrows
@@ -197,12 +201,12 @@ export function farRingPorts(options: { root: (instance: string) => Object3D; lo
           if (options.prepare !== undefined) {
             let view: FarProxyView | undefined;
             try {
-              view = installFarProxy(options.root(tile.instance), data.geometry, data.look, data.positionalMask, options.decorate, false, data.impostor ?? null, data.light ?? null);
+              view = installFarProxy(options.root(tile.instance), data.geometry, data.look, data.positionalMask, options.decorate, false, data.impostor ?? null, data.light ?? null, data.colour ?? null);
               view.mesh.visible = false;
               await options.prepare(view, data);
               staged.set(data, view);
             } catch (error) {
-              if (view === undefined) data.geometry.dispose(); else view.dispose();
+              if (view === undefined) { data.geometry.dispose(); data.light?.dispose(); data.colour?.dispose(); } else view.dispose();
               throw error;
             }
           }
@@ -214,13 +218,13 @@ export function farRingPorts(options: { root: (instance: string) => Object3D; lo
     },
     upload: (tile, data) => {
       const view = staged.get(data);
-      if (view === undefined) return installFarProxy(options.root(tile.instance), data.geometry, data.look, data.positionalMask, options.decorate, false, data.impostor ?? null, data.light ?? null);
+      if (view === undefined) return installFarProxy(options.root(tile.instance), data.geometry, data.look, data.positionalMask, options.decorate, false, data.impostor ?? null, data.light ?? null, data.colour ?? null);
       staged.delete(data); view.mesh.visible = true;
       return view;
     },
     discard: (_tile, data) => {
       const view = staged.get(data); staged.delete(data);
-      if (view === undefined) data.geometry.dispose(); else view.dispose();
+      if (view === undefined) { data.geometry.dispose(); data.light?.dispose(); data.colour?.dispose(); } else view.dispose();
     },
   };
 }

@@ -27,6 +27,8 @@ export const NearPlaceholderSchema = v.pipe(v.unknown(), v.check(isJsonData, 'JS
 /** The node name of a near view's light layer (NM13): one unlit vertex-colour mesh in a content GLB, drawn additively over
  *  the near view's lit draw. */
 export const NEAR_LIGHT = 'near-light';
+/** Opaque unlit vertex colours, kept separate from additive near lights. */
+export const NEAR_COLOUR = 'near-colour';
 /** Admitted immutable near presentation; missing sections retain ordinary far proxies. */
 export type NearPlaceholder = v.InferOutput<typeof NearPlaceholderSchema>;
 /** Persistent decoded/GPU bytes and wire bytes of a deduplicated visual closure. */

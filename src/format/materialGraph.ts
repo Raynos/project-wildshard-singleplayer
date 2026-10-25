@@ -81,7 +81,7 @@ export interface GraphNode {
   /** `loop`: the body, run `count` times; inside it `acc` is the running value and `index` the iteration (a float) */
   readonly body?: GraphLoopBody;
   /** `attribute`: the geometry attribute's name (`aSeed`: `a`, then a capital; three's own attributes are inputs);
-   *  `meshMap`: `bump` reads the material's bump map (on its own UV set) instead of its colour map */
+   *  `meshMap`: `bump` reads its bump map; `colourOrVertex` reads its colour map or the linear vertex colour when no map is bound */
   readonly name?: string;
   /** `attribute`: the attribute's type */
   readonly type?: GraphValueType;
@@ -782,7 +782,7 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
         if (op === 'sceneColour') sampled.scene = true;
         if (op === 'meshMap') {
           if (kind !== 'material' || primitive === 'points') return fail(`${at}: meshMap requires a mesh material`);
-          if (raw.name !== undefined && raw.name !== 'bump') return fail(`${at}: meshMap name ${JSON.stringify(raw.name)} (bump or none)`);
+          if (raw.name !== undefined && raw.name !== 'bump' && raw.name !== 'colourOrVertex') return fail(`${at}: meshMap name ${JSON.stringify(raw.name)} (bump, colourOrVertex or none)`);
           sampled.mesh = true;
         }
         return spec.type ?? null;

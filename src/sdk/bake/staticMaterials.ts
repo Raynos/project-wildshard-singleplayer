@@ -47,9 +47,13 @@ export class StaticMaterialCatalogue {
       checkSource(source);
       const entry = Object.hasOwn(look, source.id) ? look[source.id] : undefined;
       if (!nameOk(source.name) || this.rows.has(source.name) || entry === undefined) throw new Error(`Static material ${source.name || '(unnamed)'} is duplicated or has no explicit look entry`);
-      // An untextured slot may draw a graph look: the graph reads only its own params and the vertices, never the GLB's
-      // factors. A textured graph slot still needs an explicit factor-binding adapter.
-      if (entry.family === 'graph' && Object.values(source.maps).some(map => map !== null)) throw new Error('Static graph transport needs an explicit factor-binding adapter');
+      // colourOrVertex explicitly binds this colour slot at runtime. Its opaque picture replaces vertex colour;
+      // non-unit factors, other texture roles and an authored emissive term still need their own adapters.
+      const colourGraph = entry.family === 'graph' && 'graph' in entry && entry.graph.model === 'unlit'
+        && Object.values(entry.graph.nodes).some(node => node.op === 'meshMap' && node.name === 'colourOrVertex')
+        && source.alpha === 'OPAQUE' && source.colour.every(value => value === 1) && source.emissive.every(value => value === 0)
+        && slots.every(slot => slot === 'colour' || source.maps[slot] === null);
+      if (entry.family === 'graph' && Object.values(source.maps).some(map => map !== null) && !colourGraph) throw new Error('Static graph transport needs an explicit factor-binding adapter');
       const cutoff = source.alpha === 'MASK' ? source.alphaCutoff : 0;
       if (('alphaCutoff' in entry ? entry.alphaCutoff : 0) !== cutoff) throw new Error(`Static material ${source.name}: catalogue alpha cutoff differs from source`);
       const binding: BoundMaterial = { id: source.id, colour: null, normal: null, metallicRoughness: null, occlusion: null, emissive: null }, dependencies: string[] = [];

@@ -4,6 +4,7 @@ import source from '../data/source.json' with { type: 'json' };
 import hologram from '../data/hologram.graph.json' with { type: 'json' };
 import glowFlicker from '../data/glowFlicker.graph.json' with { type: 'json' };
 import poolFlicker from '../data/poolFlicker.graph.json' with { type: 'json' };
+import poster from '../data/poster.graph.json' with { type: 'json' };
 
 /** The open-plots source shard (SF88g, G538/G539/G541/G542/G545): data rows (`outputs.json`, one product per idea) and one
  *  build-time generator (`generators/bake-plots.mjs`, which writes each idea's `assets/<idea>/world.glb`); this module
@@ -11,7 +12,8 @@ import poolFlicker from '../data/poolFlicker.graph.json' with { type: 'json' };
  *  `data/source.json` holds the plot's authorship, spawn and look (G541, G545: the measure-grid survey floor, plain PBR
  *  kerb and frames, lit-from-within billboard and sign, cyan rim); each hologram draws in the shared graph. */
 const look = { ...source.look, materials: { ...source.look.materials,
-  hologram: { family: 'graph', graph: hologram } } };
+  hologram: { family: 'graph', graph: hologram },
+  billboard: { family: 'graph', graph: poster } } };
 
 const { why: _why, ...tiledMaterials } = source.tiledMaterials;
 /** G641: a tiled plot's look adds the kit's materials (generators/tiledPlot.mjs) */
