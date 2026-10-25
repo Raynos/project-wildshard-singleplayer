@@ -112,6 +112,507 @@
           "contextLost": 0
         }
       }
+    },
+    {
+      "shard": "_template",
+      "criterion": "memory",
+      "source": "0dd7ce4722d2dedda19b0201d6679cb442382108",
+      "latchedAt": "2026-10-25T05:13:14.048Z",
+      "quiet": false,
+      "measurement": {
+        "when": "2026-10-25T04:44:17.575Z",
+        "surface": "chromium",
+        "metrics": {
+          "samples": 194,
+          "playingPeakBytes": 15541970,
+          "loadingPeakBytes": 19057570,
+          "browserProcessPeakBytes": 700909568,
+          "rendererProcessPeakBytes": 1054085120,
+          "gpuProcessPeakBytes": 955385856
+        }
+      }
+    },
+    {
+      "shard": "_template",
+      "criterion": "oneFrameLooks",
+      "source": "0dd7ce4722d2dedda19b0201d6679cb442382108",
+      "latchedAt": "2026-10-25T05:13:14.049Z",
+      "quiet": false,
+      "measurement": {
+        "when": "2026-10-25T04:44:17.575Z",
+        "surface": "chromium",
+        "metrics": {
+          "maxMs": 133.29999999999563,
+          "frames": 1269,
+          "windows": 3,
+          "skipped": 0,
+          "contextLost": 0
+        }
+      }
+    },
+    {
+      "shard": "far-reach",
+      "criterion": "memory",
+      "source": "0dd7ce4722d2dedda19b0201d6679cb442382108",
+      "latchedAt": "2026-10-25T05:13:14.049Z",
+      "quiet": false,
+      "measurement": {
+        "when": "2026-10-25T04:47:35.292Z",
+        "surface": "chromium",
+        "metrics": {
+          "samples": 151,
+          "playingPeakBytes": 219691977,
+          "loadingPeakBytes": 219691977,
+          "browserProcessPeakBytes": 689424384,
+          "rendererProcessPeakBytes": 1493161984,
+          "gpuProcessPeakBytes": 1100498944
+        }
+      }
+    },
+    {
+      "shard": "ink-cel-valley",
+      "criterion": "memory",
+      "source": "0dd7ce4722d2dedda19b0201d6679cb442382108",
+      "latchedAt": "2026-10-25T05:13:14.049Z",
+      "quiet": false,
+      "measurement": {
+        "when": "2026-10-25T04:48:11.108Z",
+        "surface": "chromium",
+        "metrics": {
+          "samples": 197,
+          "playingPeakBytes": 14376467,
+          "loadingPeakBytes": 17539135,
+          "browserProcessPeakBytes": 674547712,
+          "rendererProcessPeakBytes": 1594890240,
+          "gpuProcessPeakBytes": 1139673088
+        }
+      }
+    },
+    {
+      "shard": "ink-cel-valley",
+      "criterion": "oneFrameLooks",
+      "source": "0dd7ce4722d2dedda19b0201d6679cb442382108",
+      "latchedAt": "2026-10-25T05:13:14.049Z",
+      "quiet": false,
+      "measurement": {
+        "when": "2026-10-25T04:48:11.108Z",
+        "surface": "chromium",
+        "metrics": {
+          "maxMs": 133.30000000001746,
+          "frames": 1281,
+          "windows": 3,
+          "skipped": 0,
+          "contextLost": 0
+        }
+      }
+    },
+    {
+      "shard": "open-plot-alien-plain",
+      "criterion": "memory",
+      "source": "0dd7ce4722d2dedda19b0201d6679cb442382108",
+      "latchedAt": "2026-10-25T05:13:14.049Z",
+      "quiet": false,
+      "measurement": {
+        "when": "2026-10-25T04:48:58.555Z",
+        "surface": "chromium",
+        "metrics": {
+          "samples": 193,
+          "playingPeakBytes": 16839937,
+          "loadingPeakBytes": 16902893,
+          "browserProcessPeakBytes": 677234688,
+          "rendererProcessPeakBytes": 1662425088,
+          "gpuProcessPeakBytes": 1145456640
+        }
+      }
+    },
+    {
+      "shard": "open-plot-clockwork-canyon",
+      "criterion": "memory",
+      "source": "0dd7ce4722d2dedda19b0201d6679cb442382108",
+      "latchedAt": "2026-10-25T05:13:14.058Z",
+      "quiet": false,
+      "measurement": {
+        "when": "2026-10-25T04:52:05.178Z",
+        "surface": "chromium",
+        "metrics": {
+          "samples": 196,
+          "playingPeakBytes": 16805245,
+          "loadingPeakBytes": 16867681,
+          "browserProcessPeakBytes": 697223168,
+          "rendererProcessPeakBytes": 1004195840,
+          "gpuProcessPeakBytes": 938149888
+        }
+      }
+    },
+    {
+      "shard": "open-plot-clockwork-canyon",
+      "criterion": "oneFrameLooks",
+      "source": "0dd7ce4722d2dedda19b0201d6679cb442382108",
+      "latchedAt": "2026-10-25T05:13:14.058Z",
+      "quiet": false,
+      "measurement": {
+        "when": "2026-10-25T04:52:05.178Z",
+        "surface": "chromium",
+        "metrics": {
+          "maxMs": 133.29999999999927,
+          "frames": 1267,
+          "windows": 3,
+          "skipped": 0,
+          "contextLost": 0
+        }
+      }
+    },
+    {
+      "shard": "open-plot-coral-drift",
+      "criterion": "memory",
+      "source": "0dd7ce4722d2dedda19b0201d6679cb442382108",
+      "latchedAt": "2026-10-25T05:13:14.058Z",
+      "quiet": false,
+      "measurement": {
+        "when": "2026-10-25T04:52:52.543Z",
+        "surface": "chromium",
+        "metrics": {
+          "samples": 188,
+          "playingPeakBytes": 17842064,
+          "loadingPeakBytes": 17891920,
+          "browserProcessPeakBytes": 669272064,
+          "rendererProcessPeakBytes": 871453696,
+          "gpuProcessPeakBytes": 963692544
+        }
+      }
+    },
+    {
+      "shard": "open-plot-coral-drift",
+      "criterion": "oneFrameLooks",
+      "source": "0dd7ce4722d2dedda19b0201d6679cb442382108",
+      "latchedAt": "2026-10-25T05:13:14.058Z",
+      "quiet": false,
+      "measurement": {
+        "when": "2026-10-25T04:52:52.543Z",
+        "surface": "chromium",
+        "metrics": {
+          "maxMs": 83.19999999999709,
+          "frames": 1293,
+          "windows": 3,
+          "skipped": 0,
+          "contextLost": 0
+        }
+      }
+    },
+    {
+      "shard": "open-plot-desert-ruin",
+      "criterion": "memory",
+      "source": "0dd7ce4722d2dedda19b0201d6679cb442382108",
+      "latchedAt": "2026-10-25T05:13:14.058Z",
+      "quiet": false,
+      "measurement": {
+        "when": "2026-10-25T04:53:37.777Z",
+        "surface": "chromium",
+        "metrics": {
+          "samples": 191,
+          "playingPeakBytes": 16885939,
+          "loadingPeakBytes": 16935791,
+          "browserProcessPeakBytes": 669583360,
+          "rendererProcessPeakBytes": 980866048,
+          "gpuProcessPeakBytes": 939575296
+        }
+      }
+    },
+    {
+      "shard": "open-plot-desert-ruin",
+      "criterion": "oneFrameLooks",
+      "source": "0dd7ce4722d2dedda19b0201d6679cb442382108",
+      "latchedAt": "2026-10-25T05:13:14.058Z",
+      "quiet": false,
+      "measurement": {
+        "when": "2026-10-25T04:53:37.777Z",
+        "surface": "chromium",
+        "metrics": {
+          "maxMs": 116.70000000001164,
+          "frames": 1295,
+          "windows": 3,
+          "skipped": 0,
+          "contextLost": 0
+        }
+      }
+    },
+    {
+      "shard": "open-plot-frostline-peaks",
+      "criterion": "memory",
+      "source": "0dd7ce4722d2dedda19b0201d6679cb442382108",
+      "latchedAt": "2026-10-25T05:13:14.058Z",
+      "quiet": false,
+      "measurement": {
+        "when": "2026-10-25T04:56:55.039Z",
+        "surface": "chromium",
+        "metrics": {
+          "samples": 189,
+          "playingPeakBytes": 17712050,
+          "loadingPeakBytes": 17761898,
+          "browserProcessPeakBytes": 668665856,
+          "rendererProcessPeakBytes": 1039620096,
+          "gpuProcessPeakBytes": 972359680
+        }
+      }
+    },
+    {
+      "shard": "open-plot-frostline-peaks",
+      "criterion": "oneFrameLooks",
+      "source": "0dd7ce4722d2dedda19b0201d6679cb442382108",
+      "latchedAt": "2026-10-25T05:13:14.058Z",
+      "quiet": false,
+      "measurement": {
+        "when": "2026-10-25T04:56:55.039Z",
+        "surface": "chromium",
+        "metrics": {
+          "maxMs": 100,
+          "frames": 1298,
+          "windows": 3,
+          "skipped": 0,
+          "contextLost": 0
+        }
+      }
+    },
+    {
+      "shard": "open-plot-lantern-bayou",
+      "criterion": "memory",
+      "source": "0dd7ce4722d2dedda19b0201d6679cb442382108",
+      "latchedAt": "2026-10-25T05:13:14.066Z",
+      "quiet": false,
+      "measurement": {
+        "when": "2026-10-25T04:58:42.410Z",
+        "surface": "chromium",
+        "metrics": {
+          "samples": 197,
+          "playingPeakBytes": 16924929,
+          "loadingPeakBytes": 17012721,
+          "browserProcessPeakBytes": 700696576,
+          "rendererProcessPeakBytes": 1499403264,
+          "gpuProcessPeakBytes": 948160512
+        }
+      }
+    },
+    {
+      "shard": "open-plot-lantern-bayou",
+      "criterion": "oneFrameLooks",
+      "source": "0dd7ce4722d2dedda19b0201d6679cb442382108",
+      "latchedAt": "2026-10-25T05:13:14.066Z",
+      "quiet": false,
+      "measurement": {
+        "when": "2026-10-25T04:58:42.410Z",
+        "surface": "chromium",
+        "metrics": {
+          "maxMs": 183.3000000000029,
+          "frames": 1275,
+          "windows": 3,
+          "skipped": 0,
+          "contextLost": 0
+        }
+      }
+    },
+    {
+      "shard": "open-plot-mosslight-ruins",
+      "criterion": "memory",
+      "source": "0dd7ce4722d2dedda19b0201d6679cb442382108",
+      "latchedAt": "2026-10-25T05:13:14.066Z",
+      "quiet": false,
+      "measurement": {
+        "when": "2026-10-25T04:59:30.193Z",
+        "surface": "chromium",
+        "metrics": {
+          "samples": 192,
+          "playingPeakBytes": 16925961,
+          "loadingPeakBytes": 16988909,
+          "browserProcessPeakBytes": 675809280,
+          "rendererProcessPeakBytes": 1611617280,
+          "gpuProcessPeakBytes": 951191552
+        }
+      }
+    },
+    {
+      "shard": "open-plot-mosslight-ruins",
+      "criterion": "oneFrameLooks",
+      "source": "0dd7ce4722d2dedda19b0201d6679cb442382108",
+      "latchedAt": "2026-10-25T05:13:14.066Z",
+      "quiet": false,
+      "measurement": {
+        "when": "2026-10-25T04:59:30.193Z",
+        "surface": "chromium",
+        "metrics": {
+          "maxMs": 50,
+          "frames": 1292,
+          "windows": 3,
+          "skipped": 0,
+          "contextLost": 0
+        }
+      }
+    },
+    {
+      "shard": "open-plot-showcase-template",
+      "criterion": "memory",
+      "source": "0dd7ce4722d2dedda19b0201d6679cb442382108",
+      "latchedAt": "2026-10-25T05:13:14.066Z",
+      "quiet": false,
+      "measurement": {
+        "when": "2026-10-25T05:02:47.816Z",
+        "surface": "chromium",
+        "metrics": {
+          "samples": 191,
+          "playingPeakBytes": 17637869,
+          "loadingPeakBytes": 17687717,
+          "browserProcessPeakBytes": 669714432,
+          "rendererProcessPeakBytes": 855741440,
+          "gpuProcessPeakBytes": 938346496
+        }
+      }
+    },
+    {
+      "shard": "open-plot-showcase-template",
+      "criterion": "oneFrameLooks",
+      "source": "0dd7ce4722d2dedda19b0201d6679cb442382108",
+      "latchedAt": "2026-10-25T05:13:14.066Z",
+      "quiet": false,
+      "measurement": {
+        "when": "2026-10-25T05:02:47.816Z",
+        "surface": "chromium",
+        "metrics": {
+          "maxMs": 83.29999999998836,
+          "frames": 1292,
+          "windows": 3,
+          "skipped": 0,
+          "contextLost": 0
+        }
+      }
+    },
+    {
+      "shard": "open-plot-sky-harbor",
+      "criterion": "memory",
+      "source": "0dd7ce4722d2dedda19b0201d6679cb442382108",
+      "latchedAt": "2026-10-25T05:13:14.066Z",
+      "quiet": false,
+      "measurement": {
+        "when": "2026-10-25T05:03:33.726Z",
+        "surface": "chromium",
+        "metrics": {
+          "samples": 198,
+          "playingPeakBytes": 16872393,
+          "loadingPeakBytes": 16935341,
+          "browserProcessPeakBytes": 673974272,
+          "rendererProcessPeakBytes": 997677056,
+          "gpuProcessPeakBytes": 982779904
+        }
+      }
+    },
+    {
+      "shard": "open-plot-sky-harbor",
+      "criterion": "oneFrameLooks",
+      "source": "0dd7ce4722d2dedda19b0201d6679cb442382108",
+      "latchedAt": "2026-10-25T05:13:14.066Z",
+      "quiet": false,
+      "measurement": {
+        "when": "2026-10-25T05:03:33.726Z",
+        "surface": "chromium",
+        "metrics": {
+          "maxMs": 133.29999999998836,
+          "frames": 1343,
+          "windows": 3,
+          "skipped": 0,
+          "contextLost": 0
+        }
+      }
+    },
+    {
+      "shard": "open-plot-sky-race",
+      "criterion": "memory",
+      "source": "0dd7ce4722d2dedda19b0201d6679cb442382108",
+      "latchedAt": "2026-10-25T05:13:14.074Z",
+      "quiet": false,
+      "measurement": {
+        "when": "2026-10-25T05:05:07.202Z",
+        "surface": "chromium",
+        "metrics": {
+          "samples": 196,
+          "playingPeakBytes": 16819311,
+          "loadingPeakBytes": 16894447,
+          "browserProcessPeakBytes": 698107904,
+          "rendererProcessPeakBytes": 1582650368,
+          "gpuProcessPeakBytes": 897026048
+        }
+      }
+    },
+    {
+      "shard": "open-plot-sky-race",
+      "criterion": "oneFrameLooks",
+      "source": "0dd7ce4722d2dedda19b0201d6679cb442382108",
+      "latchedAt": "2026-10-25T05:13:14.074Z",
+      "quiet": false,
+      "measurement": {
+        "when": "2026-10-25T05:05:07.202Z",
+        "surface": "chromium",
+        "metrics": {
+          "maxMs": 83.39999999999782,
+          "frames": 1272,
+          "windows": 3,
+          "skipped": 0,
+          "contextLost": 0
+        }
+      }
+    },
+    {
+      "shard": "open-plot-starfall-observatory",
+      "criterion": "memory",
+      "source": "0dd7ce4722d2dedda19b0201d6679cb442382108",
+      "latchedAt": "2026-10-25T05:13:14.074Z",
+      "quiet": false,
+      "measurement": {
+        "when": "2026-10-25T05:05:54.721Z",
+        "surface": "chromium",
+        "metrics": {
+          "samples": 194,
+          "playingPeakBytes": 16920507,
+          "loadingPeakBytes": 16983455,
+          "browserProcessPeakBytes": 685049856,
+          "rendererProcessPeakBytes": 1250383872,
+          "gpuProcessPeakBytes": 931268608
+        }
+      }
+    },
+    {
+      "shard": "open-plot-starfall-observatory",
+      "criterion": "oneFrameLooks",
+      "source": "0dd7ce4722d2dedda19b0201d6679cb442382108",
+      "latchedAt": "2026-10-25T05:13:14.074Z",
+      "quiet": false,
+      "measurement": {
+        "when": "2026-10-25T05:05:54.721Z",
+        "surface": "chromium",
+        "metrics": {
+          "maxMs": 83.30000000000291,
+          "frames": 1313,
+          "windows": 3,
+          "skipped": 0,
+          "contextLost": 0
+        }
+      }
+    },
+    {
+      "shard": "open-plot-thin-ice",
+      "criterion": "memory",
+      "source": "0dd7ce4722d2dedda19b0201d6679cb442382108",
+      "latchedAt": "2026-10-25T05:13:14.075Z",
+      "quiet": false,
+      "measurement": {
+        "when": "2026-10-25T05:06:41.489Z",
+        "surface": "chromium",
+        "metrics": {
+          "samples": 192,
+          "playingPeakBytes": 16891985,
+          "loadingPeakBytes": 16954933,
+          "browserProcessPeakBytes": 687441920,
+          "rendererProcessPeakBytes": 1246140416,
+          "gpuProcessPeakBytes": 942180352
+        }
+      }
     }
   ]
 }
