@@ -10,6 +10,7 @@
   ],
   "exports": {
     "./bake/placement": "./bake/placement.ts",
+    "./bake/forest": "./bake/forest.ts",
     "./bake/annulus": "./bake/annulus.ts",
     "./noise": "./noise.ts",
     "./bake/groundMap": "./bake/groundMap.ts",
@@ -178,6 +179,10 @@
       "./bake/placement": {
         "types": "./dist/types/sdk/bake/placement.d.ts",
         "default": "./dist/bake/placement.js"
+      },
+      "./bake/forest": {
+        "types": "./dist/types/sdk/bake/forest.d.ts",
+        "default": "./dist/bake/forest.js"
       },
       "./bake/annulus": {
         "types": "./dist/types/sdk/bake/annulus.d.ts",

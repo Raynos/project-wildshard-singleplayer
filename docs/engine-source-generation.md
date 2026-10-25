@@ -24,6 +24,13 @@ author module bundles. Programs may decode freshly and include the measured
 pixel/dimension identity in a cached packing step, preserving invalidation
 when decoded pixels change without adding a source-tree handoff.
 
+`bakeForestPlacements(source, variants)` from `@wildshard/sdk/bake/forest`
+uses the engine's defining forest algorithm with explicit seed, count, policy
+and native terrain queries. It returns owned numeric tree records (RGB tuples,
+not runtime color objects) and the original padded spatial query over those
+same records. Nothing selects a level or installs terrain. The author owns
+the result and keys its native cache on all supplied source policies/samplers.
+
 `inputFiles(prefixes)` lists current file URL names beneath the context's
 explicit input roots without reading payloads. It accepts at most eight
 nonoverlapping directory prefixes and returns at most 4,096 sorted names;
