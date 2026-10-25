@@ -101,6 +101,30 @@ test('the existing BUILD reply distinguishes waiting from completed activation',
   ]);
 });
 
+test('activation carries unchanged packs without downloading and fetches only a new content URL', async () => {
+  const kept = '/assets/packs/home-aaaaaaaa.pack', changed = '/assets/packs/home-bbbbbbbb.pack';
+  const obsolete = '/assets/packs/old-cccccccc.pack';
+  const f = fixture(url => Promise.resolve(url.endsWith('/asset-manifest.json')
+    ? Response.json({ [kept]: 'aaaaaaaa', [changed]: 'bbbbbbbb' }) : new Response('new pack bytes')));
+  const old = await f.open('ws-static-previous');
+  await old.put(new URL(kept, base).href, new Response('unchanged pack bytes'));
+  await old.put(new URL(obsolete, base).href, new Response('retired pack bytes'));
+  await f.dispatch('activate');
+  const current = await f.open('ws-static-unit-assets');
+  expect(await (await current.match(new URL(kept, base).href))?.text()).toBe('unchanged pack bytes');
+  expect(await current.match(new URL(obsolete, base).href)).toBeUndefined();
+  f.fetch.mockClear();
+  await f.dispatch('fetch', { request: new Request(new URL(kept, base)) });
+  expect(f.fetch).not.toHaveBeenCalled();
+  await f.dispatch('fetch', { request: new Request(new URL(changed, base)) });
+  expect(f.fetch).toHaveBeenCalledTimes(1);
+  const requested = f.fetch.mock.calls[0]?.[0];
+  expect(typeof requested === 'string' ? requested : requested?.url).toBe(new URL(changed, base).href);
+  await vi.waitFor(async () => {
+    expect(await (await current.match(new URL(changed, base).href))?.text()).toBe('new pack bytes');
+  });
+});
+
 test('background code is serial, yields its body to foreground reads, then supports offline access', async () => {
   vi.useFakeTimers(); vi.setSystemTime(1000);
   const signals: AbortSignal[] = []; let attempts = 0;
