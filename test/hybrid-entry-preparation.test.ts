@@ -3,6 +3,7 @@ import { expect, test } from 'vitest';
 import { Object3D, Scene, Vector3 } from 'three';
 import { App } from '../src/engine/app/app';
 import { Scope } from '../src/engine/app/scope';
+import { buildYield } from '../src/engine/core/workSlice';
 import { bindConstructionEnvironment, constructionOwner, ownedFacade, withOwner } from '../src/engine/app/ownership';
 import { createLevelInstallation } from '../src/engine/level/installation';
 import { parseShardSlug } from '../src/game/shard/slug';
@@ -114,4 +115,47 @@ test('a compiled data owner parks and restores its actual finite hooks without a
     expect(await session.enter({instance:'compiled',slug:manifest.slug})).toBe(true);expect(entered).toBe(first);expect(runtime.hooks.meleeSilent).toBe(true);expect(warm).toBe(1);
     scope.dispose();expect(runtime.hooks.meleeSilent).toBeUndefined();expect(first?.disposed).toBe(true);
   }finally{scope.dispose();}
+});
+
+
+test('abandoning a yielded isolated install restores bindings and permits a fresh install', async () => {
+  const scope = new Scope('cancelled-isolated-install'), app = new App();
+  const manifest = { ...TEMPLATE, slug: parseShardSlug('cancelled-entry') };
+  const source = emptyShardfile({ slug: manifest.slug, name: 'Cancelled entry', author: 'Fixture', revision: 1, seed: 7 });
+  const product = createShardProduct({ slug: manifest.slug, revision: 1, shardfile: source,
+    sections: new Map([['client/plan', { version: 1, features: [] }]]), files: new Map(),
+    read: () => Promise.reject(new Error('No fixture file')) });
+  const runtime: ShardRuntime = { world: null, step: null, play: null, interactables: [], overhead: [], objects: {}, hooks: {},
+    viewer: () => new Vector3(), horizonVeil: null };
+  let reached: (() => void) | undefined, cancelled: Scope | undefined, builds = 0, restores = 0, visible = false;
+  const yielded = new Promise<void>(resolve => { reached = resolve; });
+  const resident: HybridResident = { instance: 'fixture', slug: manifest.slug, declaration: null, product,
+    firstParty: true, retainRuntime: true, scope, runtime, context: (owner, local) => {
+      const level = createLevelInstallation(app, owner, {}, () => ({ set: () => undefined, detail: () => undefined }));
+      const context = shardContext(level.context, manifest, { shard: manifest, runtime: local, rows: new Map(),
+        bag: { tab: () => () => undefined, fragment: () => () => undefined } }, product);
+      return { ...level, context, prepareConstruction: () => () => { restores++; },
+        beforeWorld: entered => { installEnteredRuntimeService(entered, entry => {
+          visible = true; entry.onDispose(() => { visible = false; });
+        }); }, afterWorld: async entered => {
+          if (++builds !== 1) return;
+          cancelled = entered.scope; reached?.(); await buildYield(entered.scope);
+          throw new Error('Cancelled construction advanced past its fence');
+        } };
+    } };
+  const session = new HybridRuntimeSession(new Map([['fixture', resident]]), scope);
+  try {
+    const installing = session.installAhead('fixture');
+    const settled = (async () => { try { return { value: await installing }; } catch (error) { return { error }; } })();
+    await yielded; expect(visible).toBe(false); session.abandon('fixture');
+    const result = await settled;
+    expect('error' in result && String(result.error)).toContain('scope has closed');
+    expect(cancelled?.disposed).toBe(true); expect(scope.disposed).toBe(false);
+    expect(restores).toBe(1); expect(session.timings().current).toBeNull(); expect(visible).toBe(false);
+    expect(await session.installAhead('fixture')).toBe(true);
+    expect(builds).toBe(2); expect(restores).toBe(2); expect(visible).toBe(false);
+    expect(await session.enter({ instance: 'fixture', slug: manifest.slug })).toBe(true);
+    expect(builds).toBe(2); expect(visible).toBe(true);
+  } finally { scope.dispose(); }
+  expect(visible).toBe(false);
 });
