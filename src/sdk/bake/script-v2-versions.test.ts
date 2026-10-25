@@ -1,6 +1,6 @@
 import { expect,test } from 'vitest';
-import { SCRIPT_V2_REVISIONS,parseScriptArtifactV2,admitScriptV2 } from '../src/format/scriptAdmissionV2';
-import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
+import { SCRIPT_V2_REVISIONS,parseScriptArtifactV2,admitScriptV2 } from '@wildshard/format/scriptAdmissionV2';
+import { compileScriptV2 } from './compileScriptV2';
 
 const row = () => ({ abi: 2,minor: 0,compilerRevision: 1,admissionRevision: 1,hash: 'a'.repeat(64),lane: 'view',pages: 1,ioBytes: 656 });
 test('artifact metadata snapshots one explicit contract and refuses unknown versions and layouts', () => {

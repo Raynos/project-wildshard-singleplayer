@@ -1,9 +1,9 @@
 import { expect,test } from 'vitest';
-import { v2CoreSource } from '../src/sdk/as/wsV2';
-import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
-import { ScriptModuleV2 } from '../src/engine/script/moduleV2';
-import { prepareV2Observations } from '../src/engine/script/observationsV2';
-import { layoutV2,writeV2Frame,validateV2Frame,type V2FrameAuthority } from '../src/format/scriptWireV2';
+import { v2CoreSource } from '../as/wsV2';
+import { compileScriptV2 } from './compileScriptV2';
+import { ScriptModuleV2 } from '@wildshard/engine/script/moduleV2';
+import { prepareV2Observations } from '@wildshard/engine/script/observationsV2';
+import { layoutV2,writeV2Frame,validateV2Frame,type V2FrameAuthority } from '@wildshard/format/scriptWireV2';
 
 const layout = layoutV2(1024,1,new Map([[1,1],[2,10],[3,10],[4,6],[5,1],[6,1],[7,1],[8,1],[9,1]]));
 function offset(kind: number,index = 0): number {

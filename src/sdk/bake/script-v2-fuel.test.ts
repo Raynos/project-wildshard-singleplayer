@@ -1,8 +1,8 @@
 import { expect,test } from 'vitest';
 import binaryen from 'binaryen';
-import { instrumentV2Fuel } from '../src/sdk/bake/v2Fuel';
-import { instrumentV2Finite } from '../src/sdk/bake/v2Finite';
-import { inspectV2Fuel } from '../src/format/scriptFuelV2';
+import { instrumentV2Fuel } from './v2Fuel';
+import { instrumentV2Finite } from './v2Finite';
+import { inspectV2Fuel } from '@wildshard/format/scriptFuelV2';
 
 function wasm(step: string, extra = '', init = '(i32.const 0)', view = '(i32.const 0)'): Uint8Array {
   const module = binaryen.parseText(`(module (import "env" "memory" (memory 1 1)) ${extra}

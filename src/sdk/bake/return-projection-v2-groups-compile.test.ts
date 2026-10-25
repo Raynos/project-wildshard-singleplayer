@@ -1,10 +1,10 @@
 import { expect, test } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
-import { Rng } from '../src/engine/core/rng';
-import { ReturnProgram } from '../src/game/population/returnProgram';
-import { parseGroupStepV2 } from '../src/format/scriptGroupStepV2';
-import { compileReturnProjectionV2 } from '../src/sdk/returnProjectionV2';
-import { groupBankSourceV2 } from '../src/sdk/as/groupBankV2';
+import { Scope } from '@wildshard/engine/app/scope';
+import { Rng } from '@wildshard/engine/core/rng';
+import { ReturnProgram } from '@wildshard/game/population/returnProgram';
+import { parseGroupStepV2 } from '@wildshard/format/scriptGroupStepV2';
+import { compileReturnProjectionV2 } from '../returnProjectionV2';
+import { groupBankSourceV2 } from '../as/groupBankV2';
 
 // R10b: one compiled programme serves its numeric signals and a group profile (the shared pasture composition)
 const groups = parseGroupStepV2({ bank: [{ name: 'count', kind: 'number' }], columns: [], members: 4, signals: ['advance'], actions: [],

@@ -1,15 +1,15 @@
 import {beforeAll,expect,test} from 'vitest';
-import {AnimalSim} from '../src/engine/entities/AnimalSim';
-import {GroupBrain,type GroupGuestFrameV2,type GroupGuestProjectionV2,type GroupGuestPublicationV2} from '../src/engine/ai/GroupBrain';
-import {GroupStepV2,type GroupStepNativeResultV2} from '../src/engine/script/groupStepV2';
-import {Scope} from '../src/engine/app/scope';
-import {Rng} from '../src/engine/core/rng';
-import type {GroupBankValueV2} from '../src/format/scriptGroupBankV2';
-import {parseGroupStepV2,groupStepLayoutV2} from '../src/format/scriptGroupStepV2';
-import {compileScriptV2} from '../src/sdk/bake/compileScriptV2';
-import {v2CoreSource} from '../src/sdk/as/wsV2';
-import {groupBankSourceV2} from '../src/sdk/as/groupBankV2';
-import {groupStepSourceV2} from '../src/sdk/as/groupStepV2';
+import {AnimalSim} from '@wildshard/engine/entities/AnimalSim';
+import {GroupBrain,type GroupGuestFrameV2,type GroupGuestProjectionV2,type GroupGuestPublicationV2} from '@wildshard/engine/ai/GroupBrain';
+import {GroupStepV2,type GroupStepNativeResultV2} from '@wildshard/engine/script/groupStepV2';
+import {Scope} from '@wildshard/engine/app/scope';
+import {Rng} from '@wildshard/engine/core/rng';
+import type {GroupBankValueV2} from '@wildshard/format/scriptGroupBankV2';
+import {parseGroupStepV2,groupStepLayoutV2} from '@wildshard/format/scriptGroupStepV2';
+import {compileScriptV2} from './compileScriptV2';
+import {v2CoreSource} from '../as/wsV2';
+import {groupBankSourceV2} from '../as/groupBankV2';
+import {groupStepSourceV2} from '../as/groupStepV2';
 
 const rows=parseGroupStepV2({bank:[{name:'value',kind:'number'},{name:'pc',kind:'number',integer:true,min:0,max:1}],columns:[{name:'reply',id:1,source:{kind:'result',channel:'reply'}}],members:1,signals:['step'],actions:[{id:1,words:2,native:{kind:'normal',channel:'reply'}},{id:2,words:2,member:0,native:{kind:'memory',key:'aw'}}],outputs:2,pages:1,fuel:40000,randomStreams:2});
 let bytes:Uint8Array;

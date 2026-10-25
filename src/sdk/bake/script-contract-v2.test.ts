@@ -1,9 +1,9 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
-import { admitScriptContract, ScriptContractSchema } from '../src/format/scriptContract';
-import { assetCost } from '../src/format/product';
-import { SCRIPT_V2_REVISIONS } from '../src/format/scriptAdmissionV2';
+import { compileScriptV2 } from './compileScriptV2';
+import { admitScriptContract, ScriptContractSchema } from '@wildshard/format/scriptContract';
+import { assetCost } from '@wildshard/format/product';
+import { SCRIPT_V2_REVISIONS } from '@wildshard/format/scriptAdmissionV2';
 
 const head = 'export function ws_abi():i32{return 2;} export function ws_io():i32{return 1024;} export function ws_init(lo:i32,hi:i32,fuel:i32):i32{return 0;}\n';
 const lanes = {

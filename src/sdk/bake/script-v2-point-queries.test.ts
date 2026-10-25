@@ -1,14 +1,14 @@
 import { beforeAll, expect, test } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
-import { GroupStepV2 } from '../src/engine/script/groupStepV2';
-import { QueryRingV2 } from '../src/engine/script/queriesV2';
-import { Physics } from '../src/engine/physics/Physics';
-import { loadRapier } from '../src/engine/physics/rapier';
-import { resolvePhysicsQueriesV2, type V2QueryWorld } from '../src/engine/physics/queryBatchV2';
-import { parseGroupStepV2, groupStepLayoutV2 } from '../src/format/scriptGroupStepV2';
-import { validateV2QueryRequest, prepareV2QueryReplies, type V2QueryBinding, type V2QueryRequest } from '../src/format/scriptQueriesV2';
-import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
-import { v2CoreSource } from '../src/sdk/as/wsV2';
+import { Scope } from '@wildshard/engine/app/scope';
+import { GroupStepV2 } from '@wildshard/engine/script/groupStepV2';
+import { QueryRingV2 } from '@wildshard/engine/script/queriesV2';
+import { Physics } from '@wildshard/engine/physics/Physics';
+import { loadRapier } from '@wildshard/engine/physics/rapier';
+import { resolvePhysicsQueriesV2, type V2QueryWorld } from '@wildshard/engine/physics/queryBatchV2';
+import { parseGroupStepV2, groupStepLayoutV2 } from '@wildshard/format/scriptGroupStepV2';
+import { validateV2QueryRequest, prepareV2QueryReplies, type V2QueryBinding, type V2QueryRequest } from '@wildshard/format/scriptQueriesV2';
+import { compileScriptV2 } from './compileScriptV2';
+import { v2CoreSource } from '../as/wsV2';
 import { fixtureBytes } from '@wildshard/engine/test/nativeBytes';
 
 const rows = parseGroupStepV2({ bank: [{ kind: 'number', name: 'grassSum' }, { kind: 'number', name: 'normalSum' }],
@@ -55,7 +55,7 @@ function frame(): DataView {
 }
 test('actual AS lists use the original native field owners, ordered replies and existing pending/ready saves', async () => {
   const scope = new Scope('point-queries');
-  const R = await loadRapier(Uint8Array.from(fixtureBytes(new URL('../node_modules/@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm', import.meta.url)))), physics = new Physics(R);
+  const R = await loadRapier(Uint8Array.from(fixtureBytes(new URL('../../../node_modules/@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm', import.meta.url)))), physics = new Physics(R);
   const grassCalls: number[][] = [], groundCalls: number[][] = [];
   const grass = { base: 2, calls: grassCalls, grassHeightAt(x: number, z: number): number { this.calls.push([x, z]);return this.base + x * .1 - z * .2; } };
   const ground = { calls: groundCalls, normalY(x: number, z: number): number { this.calls.push([x, z]);return Math.cos(x * .03) * Math.cos(z * .05); } };
@@ -117,7 +117,7 @@ test('point requests, reply arity and normal bounds share the same live and rest
   expect(() => prepareV2QueryReplies(layout, 1, [{ request: request(13), atTick: 0, answer: { status: 1, kind: 'normal', samples: Array.from({ length: 16 }, () => 2) } }], byName)).toThrow('normal');
 });
 test('field authority, finite samples and callable identity are checked before any reply publication', async () => {
-  const R = await loadRapier(Uint8Array.from(fixtureBytes(new URL('../node_modules/@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm', import.meta.url)))), physics = new Physics(R);
+  const R = await loadRapier(Uint8Array.from(fixtureBytes(new URL('../../../node_modules/@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm', import.meta.url)))), physics = new Physics(R);
   const world: V2QueryWorld = { physics, navmesh: null, bodies: new Map(), sees: ['WORLD'], as: 'PLAYER' };
   const resolve = (value: V2QueryWorld) => resolvePhysicsQueriesV2([{ module: 'module', request: request() }], new Map([['module', new Map([['group', value]])]]));
   try {

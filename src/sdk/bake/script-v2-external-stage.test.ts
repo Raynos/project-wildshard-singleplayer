@@ -1,7 +1,7 @@
 import { expect,test,vi } from 'vitest';
 import * as v from 'valibot';
-import { DecisionHost,type DecisionScript,type DecisionSnapshot,type DecisionHostOptions,type DecisionExternalCommand } from '../src/engine/script/decision';
-import { compileScript } from '../src/sdk/bake/compileScript';
+import { DecisionHost,type DecisionScript,type DecisionSnapshot,type DecisionHostOptions,type DecisionExternalCommand } from '@wildshard/engine/script/decision';
+import { compileScript } from './compileScript';
 
 let compiled: Promise<Uint8Array> | undefined;
 function bytes(): Promise<Uint8Array> {

@@ -1,9 +1,9 @@
 import { expect,test } from 'vitest';
 import binaryen from 'binaryen';
-import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
-import { instrumentV2Finite } from '../src/sdk/bake/v2Finite';
-import { instrumentV2Fuel } from '../src/sdk/bake/v2Fuel';
-import { admitScriptV2 } from '../src/format/scriptAdmissionV2';
+import { compileScriptV2 } from './compileScriptV2';
+import { instrumentV2Finite } from './v2Finite';
+import { instrumentV2Fuel } from './v2Fuel';
+import { admitScriptV2 } from '@wildshard/format/scriptAdmissionV2';
 
 const source = (step = 'store<f64>(1024,dtick);return 0;'): string => `
 export function ws_abi():i32{return 2;} export function ws_io():i32{return 1024;}
@@ -57,7 +57,7 @@ test('v2 verifies finite helper returns after Binaryen flattens their outer guar
 
 test('v2 reserves the full trusted IO area outside AS data and refuses hostile active-data overlap', async () => {
   const bytes = await compileScriptV2(source('assert(dtick>0,"static payload");return 0;'),{ ioBytes: 4096 });
-  const data = (await import('../src/format/scriptModuleV2')).readV2Module(bytes).data;
+  const data = (await import('@wildshard/format/scriptModuleV2')).readV2Module(bytes).data;
   expect(data.length).toBeGreaterThan(0); expect(data.every(row => row.offset >= 1024+4096)).toBe(true);
   expect(admitScriptV2(bytes,{ ioBytes: 4096 }).ioBytes).toBe(4096);
   const header = instrumentV2Fuel(raw('(nop)','(data (i32.const 1400) "a")'));

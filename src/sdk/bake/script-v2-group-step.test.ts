@@ -1,17 +1,17 @@
 import { expect, test, vi } from 'vitest';
-import { AnimalSim } from '../src/engine/entities/AnimalSim';
-import { Scope } from '../src/engine/app/scope';
-import { Rng } from '../src/engine/core/rng';
-import { GroupBankV2 } from '../src/engine/script/groupBankV2';
-import { GroupStepV2 } from '../src/engine/script/groupStepV2';
-import { ScriptModuleV2 } from '../src/engine/script/moduleV2';
-import { ObservationColumnsV2 } from '../src/engine/script/observationColumnsV2';
-import { QueryRingV2 } from '../src/engine/script/queriesV2';
-import { parseGroupStepV2, groupStepColumnV2, groupStepLayoutV2 } from '../src/format/scriptGroupStepV2';
-import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
-import { v2CoreSource } from '../src/sdk/as/wsV2';
-import { groupStepSourceV2 } from '../src/sdk/as/groupStepV2';
-import { groupBankSourceV2 } from '../src/sdk/as/groupBankV2';
+import { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
+import { Scope } from '@wildshard/engine/app/scope';
+import { Rng } from '@wildshard/engine/core/rng';
+import { GroupBankV2 } from '@wildshard/engine/script/groupBankV2';
+import { GroupStepV2 } from '@wildshard/engine/script/groupStepV2';
+import { ScriptModuleV2 } from '@wildshard/engine/script/moduleV2';
+import { ObservationColumnsV2 } from '@wildshard/engine/script/observationColumnsV2';
+import { QueryRingV2 } from '@wildshard/engine/script/queriesV2';
+import { parseGroupStepV2, groupStepColumnV2, groupStepLayoutV2 } from '@wildshard/format/scriptGroupStepV2';
+import { compileScriptV2 } from './compileScriptV2';
+import { v2CoreSource } from '../as/wsV2';
+import { groupStepSourceV2 } from '../as/groupStepV2';
+import { groupBankSourceV2 } from '../as/groupBankV2';
 
 const rows = parseGroupStepV2({ bank: [
   { name: 'held', kind: 'number', integer: true, min: 0, max: 65535 },

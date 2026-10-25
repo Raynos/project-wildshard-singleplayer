@@ -1,6 +1,6 @@
 import { expect,test } from 'vitest';
-import { DecisionHost,type DecisionScript,type DecisionSnapshot,type DecisionHostOptions } from '../src/engine/script/decision';
-import { compileScript } from '../src/sdk/bake/compileScript';
+import { DecisionHost,type DecisionScript,type DecisionSnapshot,type DecisionHostOptions } from '@wildshard/engine/script/decision';
+import { compileScript } from './compileScript';
 
 let compiled: Promise<Uint8Array> | undefined;
 function bytes(): Promise<Uint8Array> {
