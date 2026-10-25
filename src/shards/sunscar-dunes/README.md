@@ -82,9 +82,10 @@ The manifest declares a required ground (`createBakedTerrainField({ key })`)
 whose samples are the shardfile's own terrain collider: in a grid cell the
 session's loader reads it from the admitted product before collision, and
 standalone the look binds it before any height query. There is no WSTR
-`terrain.bin`. `generators/bake-manifest-ground.mjs` cold-produces the original
-developer pose heights; the `signal-manifest-ground` cache job pins them, and
-neither a retained grid nor runtime code seeds the producer. A missing
+`terrain.bin`. `generators/manifestGround.ts` supplies the original developer
+pose heights and f64 tint means directly from the authored landscape. The
+obsolete ground JSON job and its unused native sample grid are retired;
+neither a retained grid nor runtime code seeds these queries. A missing
 collider, a product of another seed or no loader refuses entry. Native
 actor/prompt authoring retains its original analytic f64 placement queries
 through `signalAuthorGround`; the client reads the baked collider.

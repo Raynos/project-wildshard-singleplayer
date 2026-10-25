@@ -121,7 +121,7 @@ in `public/assets/<slug>/` as real `.glb` / `.png` / `.ktx2` / `.bin`. App-wide 
 | GR1 | done (2026-10-24, sp-x1): SDK `ctx.cached` / `ctx.asset`, in-memory boss metadata and Template/Pastel map/world programs; `de4c2ed072` + `89dc5c0c07` + `ea96805666` | M | Exact `ea96805666` full preview passes all 24 products in 165.42 s; both folders have zero job rows and no new file under `src/` after generation/build |
 | GR2 | done (2026-10-24, sp-x1): `326950c025` + `78681f7cf5`; app tables then the existing per-product build pool, heavy-lane, scoped `--shard=`; preparation-only CI preserved | S | fresh Node refuses any scheduler import for a fully converted folder; 29 focused + 410 ready-related cases pass; exact `78681` generation builds all 24 products |
 | GR3 | in flight (2026-10-24, sp-x1): **Nine** (28 jobs at claim; 5 remain): direct row, physics and schema calls replace imports; `castHook` / `lightSpill` become cached `.glb` / `.bin`; dead `paintArray` retires (G416, closes B4); atlases per D2; its tests call functions | L | 0 Nine rows in the catalogue, 0 `*.generated.*` under its folder, product validates, boot smoke green |
-| GR4 | **in flight (2026-10-24, sp-x6): Sunscar** (23 at claim; 18 remain). Five jobs retired with exact source-product parity; cached rigs are now owned by the product. | M | same bar |
+| GR4 | **in flight (2026-10-24, sp-x6): Sunscar** (23 at claim; 17 remain). Six jobs retired with exact source-product parity; cached rigs are now owned by the product, ground metadata/tint use direct source queries. | M | same bar |
 | GR5 | **Far Reach** (47) | L | same bar |
 | GR6 | **Nalati** (47; 69 product imports, `poiPaint` / `grass` / `geography`) | L | same bar |
 | GR7 | **Driftwood** (41; chain of 5, `rockScenes` / `mapAssembly` number arrays) | L | same bar |
@@ -137,6 +137,7 @@ in `public/assets/<slug>/` as real `.glb` / `.png` / `.ktx2` / `.bin`. App-wide 
 |---|---|---|
 | Rig recipe | done | Cached source inputs; all five original native files byte-exact, detached cache hits, one pure author bundle. No job removed in this preparation slice. |
 | Rig adoption | done | `signal-rigs` retired (19 → 18): four original GLBs (1,372,196 B) plus the same parsed skeleton. Product URLs and computed boot bindings replace four public URLs; retained native view producer keeps all 20 files exact. Cold scoped generation passed (26 s), full original admission projection and sealed omission proofs pass. |
+| Ground handoff retirement | done | `signal-manifest-ground` retired (18 → 17; 1,189,382 B / two unused JSON outputs). Existing pose/tint consumers query source directly; stale input roots and unused sampler/writer removed. All 66,049 f64 means and original pose metadata pinned; full product/discovery/physical-byte oracles unchanged. 74 related cases / 12 suites, touched-layer/fixture types and typed lint pass; four unrelated product suites explicitly deferred. Stable scoped inputs-only generation passes (39.67 s), both retired files remain absent and source-tree guard passes. The initial generation refused an owned whitespace edit during its input hash fence; no guard relaxation or runtime-memory gain claimed. |
 
 GR0–GR2 first, then one shard at a time, each an independent lane-task that lands in small commits. The gen plan's timings
 pick which steps get `cached`.
