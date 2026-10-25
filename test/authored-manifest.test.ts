@@ -14,6 +14,7 @@ import { parseManifestMetadata } from '@wildshard/format/minimap';
 import { parseDiscoveryValues } from '@wildshard/format/discoveryValues';
 import { ShardfileSchema } from '@wildshard/format/shardSchema';
 import { defineAuthoredShard } from '@wildshard/game/shard/manifest';
+import { readProjectAssets } from '../src/sdk/project';
 import { productMapInput } from '../scripts/built-product.mjs';
 import { authoredManifestSource } from '../scripts/authored-manifest.mjs';
 import { MANIFEST as nalati } from '../src/shards/nalati-grasslands/discovery.generated';
@@ -58,13 +59,17 @@ describe('authored JSON discovery', () => {
       expect(read).toThrow(/bounded generators directory/u);
     } finally { rmSync(scratch, {recursive: true}); }
   });
-  for (const manifest of [sky, signal, template, pine, driftwood, blender, nalati]) test(`${manifest.slug} composes typed native bindings and complete images`, () => {
+  for (const manifest of [sky, signal, template, pine, driftwood, blender, nalati]) test(`${manifest.slug} composes typed native bindings and complete images`, async () => {
     const row = parseManifestMetadata(metadata(manifest.slug));
     expect(manifest.name).toBe(row.name); expect(manifest.spawn).toEqual(row.spawn);
     expect(manifest.bounds).toEqual(row.bounds); expect(manifest.sky).toEqual(row.sky);
     expect(manifest.pois).toEqual(row.pois); expect(manifest.minimap?.image).toBe(row.minimap.image);
     expect(existsSync(resolve(root, `src/shards/${manifest.slug}/manifest.ts`))).toBe(false);
-    const source = declaredSource(manifest.slug);
+    const source = manifest.slug === 'far-reach' ? authoredManifestSource(root, manifest.slug, {
+      discovery: parseDiscoveryValues((await readProjectAssets(resolve(root, 'src/shards/far-reach'), undefined, {
+        folder: 'far-reach', imageRoots: [{ prefix: '/assets/', directory: resolve(root, 'public/assets') }],
+      })).output.discovery),
+    }) : declaredSource(manifest.slug);
     for (const path of Object.values(row.card).concat(Object.values(row.explore.art))) {
       if (path.startsWith('/src/')) { expect(source).toContain(path); expect(existsSync(resolve(root, path.slice(1)))).toBe(true); }
       else expect(path.startsWith('data:image/') || path.startsWith('/assets/')).toBe(true);
