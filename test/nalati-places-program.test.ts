@@ -20,7 +20,6 @@ test('fresh owned places retain native bytes and metadata with detached cache hi
     import { hashImmutableBytes } from './src/sdk/immutable.ts';
     import { nalatiPlacesProgram } from './src/shards/nalati-grasslands/generators/placesProgram.ts';
     import { prepareNalatiDressing } from './scripts/bake/nalatiDressing.mjs';
-    import { dressingRecipe } from './src/shards/nalati-grasslands/generators/dressingPlan.ts';
     import { inSpruceClearing,loneSpruceMask,edgeBermAt } from './src/shards/nalati-grasslands/generators/terrainRecipe.ts';
     import { edgeSpruceMask } from './src/shards/nalati-grasslands/generators/edgeRecipe.ts';
     import { alike } from './src/shards/nalati-grasslands/generators/bake-nalati-places.mjs';
@@ -30,7 +29,7 @@ test('fresh owned places retain native bytes and metadata with detached cache hi
     let constructions=0;
     const options={dressing:()=>{
       constructions++;
-      return prepareNalatiDressing(dressingRecipe,(x,z)=>inSpruceClearing(x,z)?0:Math.max(loneSpruceMask(x,z),edgeSpruceMask(x,z,edgeBermAt(x,z))));
+      return prepareNalatiDressing((x,z)=>inSpruceClearing(x,z)?0:Math.max(loneSpruceMask(x,z),edgeSpruceMask(x,z,edgeBermAt(x,z))));
     }};
     const pins=JSON.parse(readFileSync('test/fixtures/nalati-place-wires.json','utf8'));
     const check=files=>{

@@ -85,8 +85,7 @@ test('native dressing preparation does not read the old generated place rows', (
     syncBuiltinESMExports();
     try{
       const { prepareNalatiDressing }=await import('./scripts/bake/nalatiDressing.mjs');
-      const { dressingRecipe }=await import('./src/shards/nalati-grasslands/generators/dressingPlan.ts');
-      const made=await prepareNalatiDressing(dressingRecipe);
+      const made=await prepareNalatiDressing();
       assert.equal(made.plan.stumps.length,10);assert.ok(made.avoid>0);
     }finally{fs.readFileSync=prior;syncBuiltinESMExports();}
   `;
@@ -100,11 +99,10 @@ test('the independent runtime scatter plan keeps every existing output byte', ()
 test('continuous forest decisions retain the original static stump lost by the bilinear mask', () => {
   const source = `
     import { prepareNalatiDressing } from './scripts/bake/nalatiDressing.mjs';
-    import { dressingRecipe } from './src/shards/nalati-grasslands/generators/dressingPlan.ts';
     import { inSpruceClearing, loneSpruceMask, edgeBermAt } from './src/shards/nalati-grasslands/generators/terrainRecipe.ts';
     import { edgeSpruceMask } from './src/shards/nalati-grasslands/generators/edgeRecipe.ts';
-    const runtime = await prepareNalatiDressing(dressingRecipe);
-    const original = await prepareNalatiDressing(dressingRecipe, (x,z) => inSpruceClearing(x,z) ? 0 : Math.max(loneSpruceMask(x,z),edgeSpruceMask(x,z,edgeBermAt(x,z))));
+    const runtime = await prepareNalatiDressing();
+    const original = await prepareNalatiDressing((x,z) => inSpruceClearing(x,z) ? 0 : Math.max(loneSpruceMask(x,z),edgeSpruceMask(x,z,edgeBermAt(x,z))));
     console.log(JSON.stringify({ runtime: runtime.plan.stumps.length, original: original.plan.stumps.length }));
   `;
   const output = execFileSync(process.execPath, [...native, '--input-type=module', '--eval', source, '--', shard], { encoding: 'utf8' });
