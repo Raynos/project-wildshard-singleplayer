@@ -87,6 +87,7 @@
   },
   "painter": {
     "version": 1,
+    "program": true,
     "job": "nine-data-map",
     "scenes": {
       "packs": [
