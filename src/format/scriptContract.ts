@@ -6,24 +6,24 @@ import { admitScriptV2, SCRIPT_V2_REVISIONS, type ScriptAdmissionV2 } from './sc
 import { DecisionScriptsSchema, parseDecisionScripts, type DecisionScripts } from './decisionScripts';
 
 /** Fixed ABI2 byte admission metadata, independent of execution or source sniffing. */
-export const ScriptV2ContractSchema = v.strictObject({ abi: v.literal(2), lane: v.picklist(['sim', 'project', 'view']), pages: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(4)),
+export const ScriptV2ContractSchema: v.StrictObjectSchema<{ readonly abi: v.GenericSchema<ScriptV2ContractRowsInput['abi'], ScriptV2ContractRows['abi']>; readonly lane: v.GenericSchema<ScriptV2ContractRowsInput['lane'], ScriptV2ContractRows['lane']>; readonly pages: v.GenericSchema<ScriptV2ContractRowsInput['pages'], ScriptV2ContractRows['pages']>; readonly ioBytes: v.GenericSchema<ScriptV2ContractRowsInput['ioBytes'], ScriptV2ContractRows['ioBytes']>; readonly compilerRevision: v.GenericSchema<ScriptV2ContractRowsInput['compilerRevision'], ScriptV2ContractRows['compilerRevision']>; readonly admissionRevision: v.GenericSchema<ScriptV2ContractRowsInput['admissionRevision'], ScriptV2ContractRows['admissionRevision']>; }, undefined> = v.strictObject({ abi: v.literal(2), lane: v.picklist(['sim', 'project', 'view']), pages: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(4)),
     ioBytes: v.pipe(v.number(), v.integer(), v.minValue(656), v.maxValue(4 * 65536)),
     compilerRevision: v.literal(SCRIPT_V2_REVISIONS.compiler), admissionRevision: v.literal(SCRIPT_V2_REVISIONS.admission) });
 /** Explicit byte-admission contract. It is build metadata, never an extra output-index field. */
-export const ScriptContractSchema = v.variant('abi', [
+export const ScriptContractSchema: v.GenericSchema<ScriptContractInput, ScriptContract> = v.variant('abi', [
   v.strictObject({ abi: v.literal(0) }),
   v.strictObject({ abi: v.literal(1), pages: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(4)) }),
   ScriptV2ContractSchema,
 ]);
-export type ScriptContract = v.InferOutput<typeof ScriptContractSchema>;
+
 /** An explicit view module survives named-file reconstruction, disk and worker transport. */
-export const ViewModuleSchema = v.strictObject({ id: v.pipe(v.string(), v.minLength(1), v.maxLength(128)),
+export const ViewModuleSchema: v.StrictObjectSchema<{ readonly id: v.GenericSchema<ViewModuleRowInput['id'], ViewModuleRow['id']>; readonly module: v.GenericSchema<ViewModuleRowInput['module'], ViewModuleRow['module']>; readonly side: v.GenericSchema<ViewModuleRowInput['side'], ViewModuleRow['side']>; readonly abi: v.GenericSchema<ViewModuleRowInput['abi'], ViewModuleRow['abi']>; readonly lane: v.GenericSchema<ViewModuleRowInput['lane'], ViewModuleRow['lane']>; readonly pages: v.GenericSchema<ViewModuleRowInput['pages'], ViewModuleRow['pages']>; readonly ioBytes: v.GenericSchema<ViewModuleRowInput['ioBytes'], ViewModuleRow['ioBytes']>; readonly compilerRevision: v.GenericSchema<ViewModuleRowInput['compilerRevision'], ViewModuleRow['compilerRevision']>; readonly admissionRevision: v.GenericSchema<ViewModuleRowInput['admissionRevision'], ViewModuleRow['admissionRevision']>; }, undefined> = v.strictObject({ id: v.pipe(v.string(), v.minLength(1), v.maxLength(128)),
   module: v.pipe(v.string(), v.regex(/^blobs\/wasm\/[a-f0-9]{64}\.wasm$/u)), side: v.literal('view'),
   ...ScriptV2ContractSchema.entries, lane: v.literal('view') });
-export const ViewModulesSchema = v.pipe(v.array(ViewModuleSchema), v.maxLength(64),
+export const ViewModulesSchema: v.GenericSchema<ViewModuleRowsInput, ViewModuleRows> = v.pipe(v.array(ViewModuleSchema), v.maxLength(64),
   v.check(rows => new Set(rows.map(row => row.id)).size === rows.length && new Set(rows.map(row => row.module)).size === rows.length, 'Unique view module ids and paths'));
-export type ViewModuleRow = v.InferOutput<typeof ViewModuleSchema>;
-const OwnedSimModuleSchema = v.strictObject({ ...ViewModuleSchema.entries,side: v.literal('sim'),lane: v.literal('sim') });
+
+const OwnedSimModuleSchema: v.GenericSchema<OwnedSimModuleRowsInput, OwnedSimModuleRows> = v.strictObject({ ...ViewModuleSchema.entries,side: v.literal('sim'),lane: v.literal('sim') });
 /** Stateless project modules use the same persistent inventory as legacy return
  * policies, never view or scheduled spawn declarations. */
 const ProjectModuleSchema = v.strictObject({ ...ViewModuleSchema.entries,side: v.literal('sim'),lane: v.literal('project') });
@@ -33,7 +33,7 @@ const ProjectReturnModulesSchema = v.pipe(v.unknown(),v.check(isJsonData,'plain 
   v.check(rows=>new Set(rows.map(row=>row.module)).size<=8,'at most eight return modules'),
   v.check(rows=>rows.reduce((count,row)=>count+(row.abi!==2&&'spawnGroup' in row.binding?Object.keys(row.actors).length:1),0)<=64,'at most 64 logical return bindings'),
   v.check(rows=>rows.some(row=>row.abi===2),'explicit project module required'));
-export const ReturnModulesSchema = v.union([DecisionScriptsSchema,ProjectReturnModulesSchema]);
+export const ReturnModulesSchema: v.GenericSchema<ReturnModuleRowsInput, ReturnModuleRows> = v.union([DecisionScriptsSchema,ProjectReturnModulesSchema]);
 export type ReturnModuleRow = v.InferOutput<typeof ReturnModulesSchema>[number];
 const OwnedV2ModulesSchema = v.array(v.union([ViewModuleSchema,OwnedSimModuleSchema,ProjectModuleSchema]));
 export type ScriptAdmissionRows = readonly (DecisionScripts[number] | ViewModuleRow | v.InferOutput<typeof OwnedSimModuleSchema> | ReturnModuleRow)[];
@@ -102,3 +102,69 @@ export function decisionMemoryPreparationPages(sections?: ReadonlyMap<string, un
   }
   return [...modules.values()];
 }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type OwnedSimModuleRowsInput = Omit<ViewModuleRowInput, keyof ({
+    side: 'sim';
+    lane: 'sim';
+})> & {
+    side: 'sim';
+    lane: 'sim';
+};
+export type OwnedSimModuleRows = Omit<ViewModuleRow, keyof ({
+    side: 'sim';
+    lane: 'sim';
+})> & {
+    side: 'sim';
+    lane: 'sim';
+};
+export type ScriptV2ContractRowsInput = ScriptV2ContractRows;
+interface ScriptV2ContractRowsFields {
+    abi: 2;
+    lane: 'sim' | 'project' | 'view';
+    pages: number;
+    ioBytes: number;
+    compilerRevision: (typeof SCRIPT_V2_REVISIONS)['compiler'];
+    admissionRevision: (typeof SCRIPT_V2_REVISIONS)['admission'];
+}
+export type ScriptV2ContractRows = { [Key in keyof ScriptV2ContractRowsFields]: ScriptV2ContractRowsFields[Key] };
+export type ScriptContractInput = ({
+    abi: 0;
+}) | ({
+    abi: 1;
+    pages: number;
+}) | (ScriptV2ContractRowsInput);
+export type ScriptContract = ({
+    abi: 0;
+}) | ({
+    abi: 1;
+    pages: number;
+}) | (ScriptV2ContractRows);
+export type ViewModuleRowInput = Omit<Omit<{
+    id: string;
+    module: string;
+    side: 'view';
+}, keyof (ScriptV2ContractRowsInput)> & ScriptV2ContractRowsInput, keyof ({
+    lane: 'view';
+})> & {
+    lane: 'view';
+};
+export type ViewModuleRow = Omit<Omit<{
+    id: string;
+    module: string;
+    side: 'view';
+}, keyof (ScriptV2ContractRows)> & ScriptV2ContractRows, keyof ({
+    lane: 'view';
+})> & {
+    lane: 'view';
+};
+export type ViewModuleRowsInput = (ViewModuleRowInput)[];
+export type ViewModuleRows = (ViewModuleRow)[];
+export type ReturnModuleRowsInput = unknown;
+export type ReturnModuleRows = (v.InferOutput<typeof DecisionScriptsSchema>) | (((v.InferOutput<(typeof DecisionScriptsSchema)['pipe'][2]['item']>) | (Omit<ViewModuleRow, keyof ({
+    side: 'sim';
+    lane: 'project';
+})> & {
+    side: 'sim';
+    lane: 'project';
+}))[]);

@@ -11,7 +11,7 @@ const names = v.pipe(v.array(name), v.maxLength(64));
 const observations = v.pipe(v.record(name, v.boolean()), v.check(value => Object.keys(value).length <= 16, 'Bounded quest initial observations'));
 const initial = v.pipe(v.array(observations), v.maxLength(64));
 const inputs = v.pipe(v.record(name, v.pipe(name, v.regex(/^(?:flag|event):[a-z][a-z0-9.-]*$/u))), v.check(value => Object.keys(value).length <= 16, 'Bounded quest command inputs'));
-const raw = v.strictObject({
+const raw: v.GenericSchema<QuestHostRowInput, QuestHostRow> = v.strictObject({
   version: v.literal(1), graph: QuestGraphSchema, interactions: InteractionRowsSchema,
   flags: v.exactOptional(names),
   page: v.exactOptional(v.union([QuestPageInteractionsSchema, DeclaredQuestPageSchema])),
@@ -44,7 +44,7 @@ const raw = v.strictObject({
   }),
 });
 /** Bounded native quest composition. Actual bodies, mover poses, commands and effects are borrowed from their owners. */
-export type QuestHostRow = v.InferOutput<typeof raw>;
+
 type PageAction = NonNullable<QuestHostRow['page']>['actions'][number];
 type PageEffect = NonNullable<PageAction['before']>[number];
 function pageActionEffects(action: PageAction): readonly PageEffect[] {
@@ -144,3 +144,171 @@ export function questHostBindingRules(row: QuestHostRow | null | undefined, flag
   for(const seed of row.page?.initial??[])pageCheck(seed.when);
   return [...new Set(errors)];
 }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+interface QuestHostRowInputFields {
+    version: 1;
+    graph: v.InferInput<typeof QuestGraphSchema>;
+    interactions: v.InferInput<typeof InteractionRowsSchema>;
+    flags?: (string)[];
+    page?: unknown;
+    npcs: (v.InferInput<typeof NpcRowSchema>)[];
+    drive: 'commands' | 'external';
+    actors: {
+        ids: (string)[];
+        error: string;
+    };
+    observations: (({
+        binding: string;
+        kind: 'all-dead';
+        actors: (string)[];
+    }) | ({
+        binding: string;
+        kind: 'owner';
+        owner: string;
+    }) | ({
+        binding: string;
+        kind: 'mover';
+        mover: string;
+        state: 'at-end' | 'enabled';
+    }) | ({
+        binding: string;
+        kind: 'cable';
+        cable: string;
+        state: 'riding' | 'at-end';
+    }) | ({
+        binding: string;
+        kind: 'timer';
+        timer: string;
+    }))[];
+    stages: ({
+        row: v.InferInput<typeof DirectorStagesSchema>;
+        initial: (Record<string, boolean>)[];
+        seed?: {
+            flag: string;
+            initial: (Record<string, boolean>)[];
+        };
+        tick: boolean;
+        continuation?: {
+            step: string;
+            error: string;
+        };
+    })[];
+    summons: ({
+        target: string;
+        director: string;
+    })[];
+    commands: {
+        step: (string) | null;
+        inputs: Record<string, string>;
+        routes: ({
+            value: (number) | null;
+            actor?: string;
+            spot: (string) | null;
+            when: string;
+            action: ({
+                kind: 'row';
+                id: string;
+            }) | ({
+                kind: 'owner';
+                id: string;
+            }) | ({
+                kind: 'mover';
+                mover: string;
+                command: 1 | 2 | 3;
+            }) | ({
+                kind: 'cable';
+                cable: string;
+                command: 'start';
+            }) | ({
+                kind: 'flag';
+                flag: string;
+                value: boolean;
+            });
+        })[];
+    };
+}
+export type QuestHostRowInput = { [Key in keyof QuestHostRowInputFields]: QuestHostRowInputFields[Key] };
+interface QuestHostRowFields {
+    version: 1;
+    graph: v.InferOutput<typeof QuestGraphSchema>;
+    interactions: v.InferOutput<typeof InteractionRowsSchema>;
+    flags?: (string)[];
+    page?: (v.InferOutput<typeof QuestPageInteractionsSchema>) | (v.InferOutput<typeof DeclaredQuestPageSchema>);
+    npcs: (v.InferOutput<typeof NpcRowSchema>)[];
+    drive: 'commands' | 'external';
+    actors: {
+        ids: (string)[];
+        error: string;
+    };
+    observations: (({
+        binding: string;
+        kind: 'all-dead';
+        actors: (string)[];
+    }) | ({
+        binding: string;
+        kind: 'owner';
+        owner: string;
+    }) | ({
+        binding: string;
+        kind: 'mover';
+        mover: string;
+        state: 'at-end' | 'enabled';
+    }) | ({
+        binding: string;
+        kind: 'cable';
+        cable: string;
+        state: 'riding' | 'at-end';
+    }) | ({
+        binding: string;
+        kind: 'timer';
+        timer: string;
+    }))[];
+    stages: ({
+        row: v.InferOutput<typeof DirectorStagesSchema>;
+        initial: (Record<string, boolean>)[];
+        seed?: {
+            flag: string;
+            initial: (Record<string, boolean>)[];
+        };
+        tick: boolean;
+        continuation?: {
+            step: string;
+            error: string;
+        };
+    })[];
+    summons: ({
+        target: string;
+        director: string;
+    })[];
+    commands: {
+        step: (string) | null;
+        inputs: Record<string, string>;
+        routes: ({
+            value: (number) | null;
+            actor?: string;
+            spot: (string) | null;
+            when: string;
+            action: ({
+                kind: 'row';
+                id: string;
+            }) | ({
+                kind: 'owner';
+                id: string;
+            }) | ({
+                kind: 'mover';
+                mover: string;
+                command: 1 | 2 | 3;
+            }) | ({
+                kind: 'cable';
+                cable: string;
+                command: 'start';
+            }) | ({
+                kind: 'flag';
+                flag: string;
+                value: boolean;
+            });
+        })[];
+    };
+}
+export type QuestHostRow = { [Key in keyof QuestHostRowFields]: QuestHostRowFields[Key] };

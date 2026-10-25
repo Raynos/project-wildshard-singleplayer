@@ -145,6 +145,7 @@ normal layer emission is the declaration-size authority. Continuation starts at 
 | T4-F2e | Collection, NPC and loot contracts with card projection and nested grant metadata | 60 min | done (2026-10-25, sp-x8) |
 | T4-F2f | Authored manifest and capture-pose contracts; preserve sky pick and capture-probe items | 60 min | done (2026-10-25, sp-x8) |
 | T4-F2g | Group, riding and finish contracts; preserve variants, exact optional descriptions and literal columns | 60 min | done (2026-10-25, sp-x8) |
+| T4-F2h | Native bindings, quest interactions, held data, toon looks and module contracts; preserve object metadata and literal revisions | 60 min | done (2026-10-25, sp-x8) |
 | T4-I1 | Format isolated declarations, then engine and remaining layers, one bounded diagnostic family per slice | 60 min per family | open |
 
 T4 first format slices are on origin: schema expressions and emitted runtime JavaScript are unchanged.
