@@ -1,0 +1,642 @@
+{
+  "sourceCommit": "191aee7b152d9db58cb09844e431613d80eea950",
+  "build": {
+    "build": "191aee7-mvnbqwdv",
+    "time": "2026-10-25T04:25:26.054Z"
+  },
+  "sourceImage": "public/assets/open-plots/night-market/poster.webp",
+  "requestReference": "art/grid/round-49-night-market-billboards-2x2/bb-b.jpg",
+  "frame": {
+    "cameraWorld": [
+      -584.5,
+      1.8,
+      480
+    ],
+    "canvas": [
+      804,
+      1748
+    ],
+    "cells": [
+      {
+        "cell": [
+          0,
+          1
+        ],
+        "drawn": {
+          "far": false,
+          "l0": 0,
+          "l1": 0,
+          "near": true
+        },
+        "instance": "pine-hollow",
+        "shows": "near",
+        "slug": "pine-hollow"
+      },
+      {
+        "cell": [
+          1,
+          1
+        ],
+        "drawn": {
+          "far": true,
+          "l0": 0,
+          "l1": 0,
+          "near": false
+        },
+        "instance": "template-2",
+        "shows": "far proxy",
+        "slug": "_template"
+      },
+      {
+        "cell": [
+          -1,
+          0
+        ],
+        "drawn": {
+          "far": false,
+          "l0": 0,
+          "l1": 12,
+          "near": true
+        },
+        "instance": "sunscar-dunes",
+        "shows": "near",
+        "slug": "sunscar-dunes"
+      },
+      {
+        "cell": [
+          0,
+          0
+        ],
+        "drawn": {
+          "far": false,
+          "l0": 0,
+          "l1": 0,
+          "near": true
+        },
+        "instance": "driftwood-isle",
+        "shows": "near",
+        "slug": "driftwood-isle"
+      },
+      {
+        "cell": [
+          1,
+          0
+        ],
+        "drawn": {
+          "far": true,
+          "l0": 0,
+          "l1": 0,
+          "near": false
+        },
+        "instance": "nalati-grasslands",
+        "shows": "far proxy",
+        "slug": "nalati-grasslands"
+      },
+      {
+        "cell": [
+          0,
+          -1
+        ],
+        "drawn": {
+          "far": true,
+          "l0": 0,
+          "l1": 0,
+          "near": false
+        },
+        "instance": "far-reach",
+        "shows": "far proxy",
+        "slug": "far-reach"
+      },
+      {
+        "cell": [
+          -1,
+          1
+        ],
+        "drawn": {
+          "far": false,
+          "l0": 25,
+          "l1": 16,
+          "near": false
+        },
+        "instance": "open-plot-nw",
+        "shows": "playing",
+        "slug": "open-plot-night-market"
+      },
+      {
+        "cell": [
+          -1,
+          -1
+        ],
+        "drawn": {
+          "far": true,
+          "l0": 0,
+          "l1": 0,
+          "near": false
+        },
+        "instance": "blender-template-1",
+        "shows": "far proxy",
+        "slug": "blender-template"
+      },
+      {
+        "cell": [
+          1,
+          -1
+        ],
+        "drawn": {
+          "far": true,
+          "l0": 0,
+          "l1": 0,
+          "near": false
+        },
+        "instance": "nine-dragon-stack",
+        "shows": "far proxy",
+        "slug": "nine-dragon-stack"
+      },
+      {
+        "cell": [
+          -2,
+          -2
+        ],
+        "drawn": {
+          "far": true,
+          "l0": 0,
+          "l1": 0,
+          "near": false
+        },
+        "instance": "open-plot-0-0",
+        "shows": "far proxy",
+        "slug": "open-plot-coral-drift"
+      },
+      {
+        "cell": [
+          -1,
+          -2
+        ],
+        "drawn": {
+          "far": true,
+          "l0": 0,
+          "l1": 0,
+          "near": false
+        },
+        "instance": "open-plot-1-0",
+        "shows": "far proxy",
+        "slug": "open-plot-night-market"
+      },
+      {
+        "cell": [
+          0,
+          -2
+        ],
+        "drawn": {
+          "far": true,
+          "l0": 0,
+          "l1": 0,
+          "near": false
+        },
+        "instance": "open-plot-2-0",
+        "shows": "far proxy",
+        "slug": "open-plot-sky-race"
+      },
+      {
+        "cell": [
+          1,
+          -2
+        ],
+        "drawn": {
+          "far": true,
+          "l0": 0,
+          "l1": 0,
+          "near": false
+        },
+        "instance": "open-plot-3-0",
+        "shows": "far proxy",
+        "slug": "open-plot-desert-ruin"
+      },
+      {
+        "cell": [
+          2,
+          -2
+        ],
+        "drawn": {
+          "far": true,
+          "l0": 0,
+          "l1": 0,
+          "near": false
+        },
+        "instance": "open-plot-4-0",
+        "shows": "far proxy",
+        "slug": "open-plot-alien-plain"
+      },
+      {
+        "cell": [
+          -2,
+          -1
+        ],
+        "drawn": {
+          "far": true,
+          "l0": 0,
+          "l1": 0,
+          "near": false
+        },
+        "instance": "open-plot-0-1",
+        "shows": "far proxy",
+        "slug": "open-plot-lantern-bayou"
+      },
+      {
+        "cell": [
+          2,
+          -1
+        ],
+        "drawn": {
+          "far": true,
+          "l0": 0,
+          "l1": 0,
+          "near": false
+        },
+        "instance": "open-plot-4-1",
+        "shows": "far proxy",
+        "slug": "open-plot-ember-forge"
+      },
+      {
+        "cell": [
+          -2,
+          0
+        ],
+        "drawn": {
+          "far": false,
+          "l0": 0,
+          "l1": 2,
+          "near": true
+        },
+        "instance": "pastel-plain-1",
+        "shows": "near",
+        "slug": "pastel-plain"
+      },
+      {
+        "cell": [
+          2,
+          0
+        ],
+        "drawn": {
+          "far": true,
+          "l0": 0,
+          "l1": 0,
+          "near": false
+        },
+        "instance": "ink-cel-valley-1",
+        "shows": "far proxy",
+        "slug": "ink-cel-valley"
+      },
+      {
+        "cell": [
+          -2,
+          1
+        ],
+        "drawn": {
+          "far": true,
+          "l0": 0,
+          "l1": 0,
+          "near": false
+        },
+        "instance": "open-plot-0-3",
+        "shows": "far proxy",
+        "slug": "open-plot-mosslight-ruins"
+      },
+      {
+        "cell": [
+          2,
+          1
+        ],
+        "drawn": {
+          "far": true,
+          "l0": 0,
+          "l1": 0,
+          "near": false
+        },
+        "instance": "open-plot-4-3",
+        "shows": "far proxy",
+        "slug": "open-plot-clockwork-canyon"
+      },
+      {
+        "cell": [
+          -2,
+          2
+        ],
+        "drawn": {
+          "far": true,
+          "l0": 0,
+          "l1": 0,
+          "near": false
+        },
+        "instance": "open-plot-0-4",
+        "shows": "far proxy",
+        "slug": "open-plot-frostline-peaks"
+      },
+      {
+        "cell": [
+          -1,
+          2
+        ],
+        "drawn": {
+          "far": true,
+          "l0": 0,
+          "l1": 0,
+          "near": false
+        },
+        "instance": "open-plot-1-4",
+        "shows": "far proxy",
+        "slug": "open-plot-thin-ice"
+      },
+      {
+        "cell": [
+          0,
+          2
+        ],
+        "drawn": {
+          "far": true,
+          "l0": 0,
+          "l1": 0,
+          "near": false
+        },
+        "instance": "open-plot-2-4",
+        "shows": "far proxy",
+        "slug": "open-plot-showcase-template"
+      },
+      {
+        "cell": [
+          1,
+          2
+        ],
+        "drawn": {
+          "far": true,
+          "l0": 0,
+          "l1": 0,
+          "near": false
+        },
+        "instance": "open-plot-3-4",
+        "shows": "far proxy",
+        "slug": "open-plot-starfall-observatory"
+      },
+      {
+        "cell": [
+          2,
+          2
+        ],
+        "drawn": {
+          "far": true,
+          "l0": 0,
+          "l1": 0,
+          "near": false
+        },
+        "instance": "open-plot-4-4",
+        "shows": "far proxy",
+        "slug": "open-plot-sky-harbor"
+      }
+    ],
+    "current": "open-plot-nw",
+    "deviceScale": 3,
+    "error": null,
+    "fov": 72,
+    "frameCount": 645,
+    "inside": "open-plot-nw",
+    "materials": [
+      {
+        "colourSpace": "srgb",
+        "fog": false,
+        "height": 576,
+        "map": "7a4c3d89-367a-4310-a001-1a484cae308b",
+        "material": "MeshBasicNodeMaterial",
+        "node": "baked_5",
+        "raw": false,
+        "toneMapped": false,
+        "width": 1024
+      },
+      {
+        "colourSpace": "srgb",
+        "fog": false,
+        "height": 576,
+        "map": "7a4c3d89-367a-4310-a001-1a484cae308b",
+        "material": "MeshBasicNodeMaterial",
+        "node": "baked_5",
+        "raw": false,
+        "toneMapped": false,
+        "width": 1024
+      },
+      {
+        "colourSpace": "srgb",
+        "fog": false,
+        "height": 576,
+        "map": "7a4c3d89-367a-4310-a001-1a484cae308b",
+        "material": "MeshBasicNodeMaterial",
+        "node": "baked_4",
+        "raw": false,
+        "toneMapped": false,
+        "width": 1024
+      },
+      {
+        "colourSpace": "srgb",
+        "fog": false,
+        "height": 576,
+        "map": "7a4c3d89-367a-4310-a001-1a484cae308b",
+        "material": "MeshBasicNodeMaterial",
+        "node": "baked_5",
+        "raw": false,
+        "toneMapped": false,
+        "width": 1024
+      },
+      {
+        "colourSpace": "srgb",
+        "fog": false,
+        "height": 576,
+        "map": "7a4c3d89-367a-4310-a001-1a484cae308b",
+        "material": "MeshBasicNodeMaterial",
+        "node": "baked_4",
+        "raw": false,
+        "toneMapped": false,
+        "width": 1024
+      },
+      {
+        "colourSpace": "srgb",
+        "fog": false,
+        "height": 576,
+        "map": "7a4c3d89-367a-4310-a001-1a484cae308b",
+        "material": "MeshBasicNodeMaterial",
+        "node": "baked_5",
+        "raw": false,
+        "toneMapped": false,
+        "width": 1024
+      },
+      {
+        "colourSpace": "srgb",
+        "fog": false,
+        "height": 576,
+        "map": "7a4c3d89-367a-4310-a001-1a484cae308b",
+        "material": "MeshBasicNodeMaterial",
+        "node": "baked_3",
+        "raw": false,
+        "toneMapped": false,
+        "width": 1024
+      }
+    ],
+    "means": [],
+    "renderScale": 2,
+    "rings": {
+      "far": 25,
+      "frame": 645,
+      "ghosts": {
+        "count": 0,
+        "tiles": []
+      },
+      "inFlight": 0,
+      "l0": 25,
+      "l1": 30,
+      "queued": 0,
+      "refused": 0
+    },
+    "ringsReady": true,
+    "samples": [
+      {
+        "css": [
+          62.978019600214886,
+          359.7614086160827
+        ],
+        "uv": [
+          0,
+          0
+        ]
+      },
+      {
+        "css": [
+          339.0219803997851,
+          359.7614086160827
+        ],
+        "uv": [
+          1,
+          0
+        ]
+      },
+      {
+        "css": [
+          57.52585915586357,
+          516.3604113980788
+        ],
+        "uv": [
+          0,
+          1
+        ]
+      },
+      {
+        "css": [
+          344.4741408441364,
+          516.3604113980788
+        ],
+        "uv": [
+          1,
+          1
+        ]
+      },
+      {
+        "css": [
+          70.29457567065401,
+          476.0621295259553
+        ],
+        "uv": [
+          0.04,
+          0.75
+        ]
+      },
+      {
+        "css": [
+          326.76046348620696,
+          500.1459624103342
+        ],
+        "uv": [
+          0.94,
+          0.9
+        ]
+      }
+    ],
+    "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1",
+    "version": {
+      "build": "191aee7-mvnbqwdv",
+      "time": "2026-10-25T04:25:26.054Z"
+    },
+    "viewport": [
+      402,
+      874
+    ],
+    "worldFeet": {
+      "x": -584.5000185034146,
+      "y": 0.019992054301837925,
+      "z": 480.0000033018028
+    }
+  },
+  "pixels": [
+    {
+      "css": [
+        70.29457567065401,
+        476.0621295259553
+      ],
+      "uv": [
+        0.04,
+        0.75
+      ],
+      "pixel": [
+        211,
+        1428
+      ],
+      "source": [
+        20,
+        31,
+        64
+      ],
+      "rendered": [
+        20,
+        31,
+        64
+      ],
+      "maxError": 0
+    },
+    {
+      "css": [
+        326.76046348620696,
+        500.1459624103342
+      ],
+      "uv": [
+        0.94,
+        0.9
+      ],
+      "pixel": [
+        980,
+        1500
+      ],
+      "source": [
+        20,
+        31,
+        64
+      ],
+      "rendered": [
+        20,
+        31,
+        64
+      ],
+      "maxError": 0
+    }
+  ],
+  "coarse": {
+    "linearMean": [
+      0.22364093363285065,
+      0.17661304771900177,
+      0.17756697535514832
+    ],
+    "sRGB": [
+      130,
+      117,
+      117
+    ],
+    "nearColourBytes": 2792,
+    "vertices": 60,
+    "sha256": "ccf4c71e5795cabc068dc6e42dcf0c1e3b40eac116548e7e34f85afc59158993",
+    "visualLimit": "Swatches compare unchanged source mean with actual native bake; no isolated distant screenshot claim."
+  }
+}
