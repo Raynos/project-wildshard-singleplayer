@@ -135,7 +135,7 @@ test('real Vitest refuses missing products before loading worker setup or suite 
   expect(existsSync(resolve(f.root, 'worker-started'))).toBe(false);
 });
 
-test.each(['local-related', 'ci-related', 'focused', 'all-blocked'] as const)('real Vitest product coverage: %s', async mode => {
+test.each(['local-related', 'ci-related', 'focused', 'all-blocked', 'local-commit', 'ci-commit'] as const)('real Vitest product coverage: %s', async mode => {
   const f=await fixture();
   write(f.root,'scripts/test-products.json',JSON.stringify({'test/product.test.ts':[f.name]}));
   write(f.root,f.source,'changed');
@@ -144,13 +144,13 @@ test.each(['local-related', 'ci-related', 'focused', 'all-blocked'] as const)('r
   write(f.root,'test/product.test.ts',"import '../source';throw new Error('product suite must not load');");
   write(f.root,'test/setup.mjs',"import fs from 'node:fs';fs.writeFileSync('worker-started','yes');");
   write(f.root,'vitest.config.mts',`import {DurationSequencer} from ${JSON.stringify(resolve('scripts/vitest-shard.ts'))};export default {root:${JSON.stringify(f.root)},test:{include:['test/*.test.ts'],setupFiles:['test/setup.mjs'],sequence:{sequencer:DurationSequencer}}};`);
-  const args=mode==='focused'?['run','test/pure.test.ts','test/product.test.ts']:['related','--run','source.ts'];
+  const args=mode==='focused'||mode.endsWith('-commit')?['run','test/pure.test.ts','test/product.test.ts']:['related','--run','source.ts'];
   const result=spawnSync(process.execPath,[resolve('node_modules/vitest/vitest.mjs'),...args,'--config',resolve(f.root,'vitest.config.mts')],{
-    cwd:f.root,env:{...process.env,WS_TEST_COHORT:undefined,CI:mode==='ci-related'?'1':'',GITHUB_ACTIONS:'',WILDSHARD_SHARDFILE_CACHE:f.cacheRoot,WS_TEST_PRODUCTS_SHA:'',VERCEL_GIT_COMMIT_SHA:'',NO_COLOR:'1'},
+    cwd:f.root,env:{...process.env,WS_TEST_COHORT:undefined,CI:mode.startsWith('ci-')?'1':'',GITHUB_ACTIONS:'',WS_COMMIT_RELATED_TOKEN:mode.endsWith('-commit')?'fixture':undefined,WILDSHARD_SHARDFILE_CACHE:f.cacheRoot,WS_TEST_PRODUCTS_SHA:'',VERCEL_GIT_COMMIT_SHA:'',NO_COLOR:'1'},
     encoding:'utf8',stdio:'pipe',timeout:15_000,maxBuffer:1_048_576,
   });
   expect(result.error).toBeUndefined();
-  if(mode==='local-related'){
+  if(mode==='local-related'||mode==='local-commit'){
     expect(result.status).toBe(0);expect(result.stdout).toContain('1 passed');
     expect(result.stderr).toContain('skipping 1 product suites (CI still runs them): test/product.test.ts');
     expect(result.stderr).toContain('python3 scripts/heavy-lane.py build -- node scripts/build-shardfiles.mjs --reuse --shard=author');

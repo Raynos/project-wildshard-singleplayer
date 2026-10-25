@@ -23,7 +23,7 @@ function fixture() {
   put('package.json', '{"type":"module"}');
   put('vitest.config.mjs', 'export default {test:{include:["test/**/*.test.ts"],maxWorkers:1}};');
   put('src/value.ts', 'export const value = 1;\n');
-  put('test/value.test.ts', 'import {test,expect} from "vitest";import {value} from "../src/value";test("value",()=>{expect(Object.keys(process.env).filter(key=>key.startsWith("GIT_"))).toEqual([]);expect(value).toBe(1)});\n');
+  put('test/value.test.ts', 'import {test,expect} from "vitest";import {value} from "../src/value";test("value",()=>{expect(Object.keys(process.env).filter(key=>key.startsWith("GIT_"))).toEqual([]);expect(process.env.WS_COMMIT_RELATED_TOKEN).toBeUndefined();expect(value).toBe(1)});\n');
   git('add', '.'); git('commit', '-qm', 'fixture');
   linkNodeModules(repository, root);
   return { root, git, put };
@@ -145,7 +145,7 @@ test('real commit excludes a loose peer regression but refuses it when staged', 
   }finally{rmSync(root,{recursive:true,force:true});}
 },30_000);
 
-test('real commits run twenty related suites but defer twenty-one before executing tests', () => {
+test('real commits refuse reds above twenty related suites and twenty staged tests', () => {
   const {root,git,put}=fixture();
   try {
     for(let index=0;index<19;index++)put(`test/extra-${index}.test.ts`,
@@ -162,20 +162,21 @@ test('real commits run twenty related suites but defer twenty-one before executi
     expect(red.stdout+red.stderr).toContain('selected 20 related suites');
     expect(red.stdout+red.stderr).toContain('CF1 TEST FAILURE:');
     expect(git('rev-parse','HEAD')).toBe(parent);
-    put('test/extra-19.test.ts','throw new Error("large selection must not execute");');
-    const deferred=commit(['src/value.ts','test/extra-19.test.ts']);
-    expect(deferred.status,deferred.stdout+deferred.stderr).toBe(0);
-    expect(deferred.stdout+deferred.stderr).toContain('selected 21 related suites exceed');
-    expect(deferred.stdout+deferred.stderr).toContain('no tests executed');
-    expect(deferred.stdout+deferred.stderr).not.toContain('CF1 TEST FAILURE:');
-    expect(deferred.stdout+deferred.stderr).toContain('total wall (lock wait included)');
+    put('test/extra-19.test.ts','import {test,expect} from "vitest";import {value} from "../src/value";test("staged red above twenty",()=>expect(value).toBe(99));');
+    const expanded=commit(['src/value.ts','test/extra-19.test.ts']);
+    expect(expanded.status,expanded.stdout+expanded.stderr).not.toBe(0);
+    expect(expanded.stdout+expanded.stderr).toContain('staged red above twenty');
+    expect(expanded.stdout+expanded.stderr).toContain('CF1 TEST FAILURE:');
+    expect(expanded.stdout+expanded.stderr).not.toContain('no tests executed');
+    expect(git('rev-parse','HEAD')).toBe(parent);
     const staged=Array.from({length:20},(_,index)=>`test/extra-${index}.test.ts`).concat('test/value.test.ts');
     for(const file of staged)put(file,`${readFileSync(resolve(root,file),'utf8')}\n// staged batch\n`);
     const batch=commit(staged);
-    expect(batch.status,batch.stdout+batch.stderr).toBe(0);
-    expect(batch.stdout+batch.stderr).toContain('21 staged test files exceed');
-    expect(batch.stdout+batch.stderr).toContain('selection and execution skipped');
-    expect(batch.stdout+batch.stderr).not.toContain(' RUN ');
+    expect(batch.status,batch.stdout+batch.stderr).not.toBe(0);
+    expect(batch.stdout+batch.stderr).toContain('21 staged/direct suites');
+    expect(batch.stdout+batch.stderr).toContain('CF1 TEST FAILURE:');
+    expect(batch.stdout+batch.stderr).toContain(' RUN ');
+    expect(git('rev-parse','HEAD')).toBe(parent);
   } finally {rmSync(root,{recursive:true,force:true});}
 },30_000);
 

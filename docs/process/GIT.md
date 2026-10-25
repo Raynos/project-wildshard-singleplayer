@@ -40,12 +40,15 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   type-only and star-export edges; loose files or loose export additions cannot
   satisfy them. Ambiguous star names refuse. Exact declared generated outputs
   retain their existing CI deferral; external package exports stay with tsc.
-  **CF1 (G689):** staged `src/`, `test/` and `scripts/` paths select
-  `vitest related --run`, alongside touched layer `tsc -p` checks when their
-  incremental metadata is warm. Selections above **20 related suites** defer
-  before test execution; batches above 20 staged test files skip discovery too.
-  CI keeps the complete selection. A single **60-second allowance starts at
-  `commit.sh` entry**, including lock wait and earlier guards; CF1 never starts
+  **CF1 (G689):** staged `src/`, `test/` and `scripts/` paths select related
+  Vitest cases, alongside touched layer `tsc -p` checks when their
+  incremental metadata is warm. **G703 keeps the test run regardless of size:**
+  every staged test runs, plus at most 20 nearest importer suites from the
+  candidate's static import graph. Distance, matching source/test names and
+  stable path order determine that bounded extra selection; the hook prints
+  its selected paths and actual run count. CI keeps the complete selection.
+  A single **60-second allowance starts at `commit.sh` entry**, including
+  lock wait and earlier guards; CF1 never starts
   a fresh allowance afterward. Mandatory serialized Git completion remains
   safe and any total overrun is printed separately. Each invocation prints its
   total wall time including the lock wait.

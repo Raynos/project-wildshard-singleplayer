@@ -10,6 +10,10 @@ import * as v from 'valibot';
 
 export const DURATIONS_FILE = 'test/durations.json';
 const FILE_OVERHEAD_S = 0.3;
+// CF1 preselects exact paths without Vitest's broad related-module transform.
+// Capture its existing worker token before the runner clears child inheritance.
+const { WS_COMMIT_RELATED_TOKEN } = process.env;
+const COMMIT_RELATED = WS_COMMIT_RELATED_TOKEN !== undefined;
 
 /** Recorded seconds per test file (repo-relative path), or null when there is no usable file. */
 export function readDurations(root: string): Map<string, number> | null {
@@ -68,7 +72,7 @@ export class DurationSequencer extends BaseSequencer {
         const {CI:ci,GITHUB_ACTIONS:actions}=process.env;
         // Only local dependency walks may defer unavailable product suites.
         // Explicit file runs and CI retain the original strict preflight.
-        if((this.ctx.config.related?.length??0)>0&&!ci&&!actions){
+        if(((this.ctx.config.related?.length??0)>0||COMMIT_RELATED)&&!ci&&!actions){
           const selection=selectBuiltTestProducts(root,selected);
           if(selection.blocked.length>0){
             console.warn(`Local related: skipping ${selection.blocked.length} product suites (CI still runs them): ${selection.blocked.join(', ')}. Missing current products: ${selection.missing.join(', ')}. Build: python3 scripts/heavy-lane.py build -- ${selection.buildCommand}`);

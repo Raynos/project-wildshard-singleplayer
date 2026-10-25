@@ -5,11 +5,34 @@ import { existsSync, mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 import { relative, resolve } from 'node:path';
 import { runCommitJobs } from './precommit-jobs.mjs';
 import { stagedFiles, stagedProjectFailures, stagedProjects } from './precommit-projects.mjs';
+import { selectRelatedSuites } from './precommit-selection.mjs';
 
 const SOURCE = /^(?:src|test|scripts)\//u;
 const TEXT = /\.(?:[cm]?[jt]sx?|json|glsl|wgsl|css)$/u;
-const TEST = /\.(?:test|spec)\.[cm]?[jt]sx?$/u;
-const SUITE_LIMIT = 20;
+
+/** Read candidate modules in one Git process, rather than one child per file.
+ * The index stays authoritative, including semantic-patch commits.
+ * @param {string} root @param {string[]} paths */
+function candidateSources(root, paths) {
+  const modules = paths.filter(file => /\.[cm]?[jt]sx?$/u.test(file) || /^src\/[^/]+\/package\.json$/u.test(file));
+  /** @type {Map<string, string>} */
+  const sources = new Map();
+  if (modules.length === 0) return sources;
+  const env = resolve(root) === process.cwd() ? process.env
+    : Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_')));
+  const bytes = execFileSync('git', ['cat-file', '--batch'], { cwd: root, env,
+    input: modules.map(file => `:${file}\n`).join(''), maxBuffer: 1 << 28 });
+  let offset = 0;
+  for (const file of modules) {
+    const end = bytes.indexOf(10, offset), header = bytes.subarray(offset, end).toString('utf8');
+    const match = /^[0-9a-f]+ blob (\d+)$/u.exec(header), size = Number(match?.[1]);
+    if (end === -1 || match === null || !Number.isSafeInteger(size) || size < 0 || end + 1 + size >= bytes.length)
+      throw new Error(`Missing candidate module ${file}`);
+    sources.set(file, bytes.subarray(end + 1, end + 1 + size).toString('utf8'));
+    offset = end + 1 + size + 1;
+  }
+  return sources;
+}
 
 /** Consume one invocation budget, including time already spent waiting for the
  * commit lock and running mandatory guards. Direct callers get the same cap.
@@ -56,10 +79,15 @@ export function stagedInputOverride(root, staged) {
  * are conspicuous deferrals, including product or server prerequisites.
  * @param {string} root @param {string[]} files */
 export async function relatedWorker(root, files) {
-  process.argv.splice(2, process.argv.length - 2, 'related', '--run', ...files);
   const { createVitest } = await import('vitest/node');
   const { WS_COMMIT_RELATED_TOKEN: token } = process.env;
   const staged = stagedFiles(root);
+  const selecting = performance.now();
+  const selection = selectRelatedSuites(candidateSources(root, staged.paths), files, staged.paths);
+  process.argv.splice(2, process.argv.length - 2, 'run', ...selection.files);
+  console.info(`CF1: ${selection.direct.length} staged/direct suites + ${selection.nearest.length} nearest importer suites; ${selection.omitted} further related suites remain in full CI`);
+  console.info(`CF1: candidate import selection ${(performance.now() - selecting).toFixed(0)} ms`);
+  for (const file of selection.files) console.info(`CF1 selected: ${file}`);
   const loose = execFileSync('git', ['ls-files', '--others', '--exclude-standard', '-z'], { cwd: root, encoding: 'utf8' }).split('\0').filter(file => TEXT.test(file));
   const override = stagedInputOverride(root, staged);
   // Keep the hook's index only long enough to seal overrides. Fixture Git
@@ -68,7 +96,7 @@ export async function relatedWorker(root, files) {
   let count = 0, failures = 0;
   const executing = new WeakSet();
   const started = performance.now();
-  const vitest = await createVitest({ root, related: files, run: true, watch: false, passWithNoTests: true,
+  const vitest = await createVitest({ root, run: true, watch: false, passWithNoTests: true,
     reporters: ['default', {
       onTestRunStart(specifications) {
         count = specifications.length;
@@ -84,19 +112,18 @@ export async function relatedWorker(root, files) {
       },
     }],
   }, { plugins: [override] });
+  // The sequencer has captured the local-related context. Nested fixture
+  // commands stay ordinary strict runs; only this reporter retains the token.
+  Reflect.deleteProperty(process.env, 'WS_COMMIT_RELATED_TOKEN');
   try {
     // A peer's new tests are not part of this candidate. Newly staged tests
     // are absent from --others and keep the ordinary executed-red refusal.
     for (const project of vitest.projects) project.config.exclude.push(...loose);
     if (loose.length > 0) console.warn(`CF1: exclude ${loose.length} loose text paths absent from the candidate index`);
-    const specifications = await vitest.getRelevantTestSpecifications();
-    count = specifications.length;
-    if (count > SUITE_LIMIT) {
-      console.warn(`CF1 DEFERRED TO CI: selected ${count} related suites exceed the ${SUITE_LIMIT}-suite local ceiling; no tests executed`);
-    } else if (count > 0) {
+    if (selection.files.length > 0) {
       // Keep Vitest's ordinary initialization, hooks and reporter lifecycle.
       // The exact selected paths prevent a second, broader related selection.
-      await vitest.start(specifications.map(specification => specification.moduleId));
+      await vitest.start(selection.files.map(file => resolve(root, file)));
     }
     if (process.exitCode !== undefined && process.exitCode !== 0 && failures === 0)
       console.warn('CF1 DEFERRED TO CI: collection/runner failed without an executed failing test');
@@ -142,10 +169,7 @@ export async function commitRelated(root, changed, deadline = relatedDeadline())
     if (performance.now() >= deadline) throw new Error('60-second commit deadline reached before selection');
     if (!existsSync(resolve(root, 'node_modules/vitest/vitest.mjs'))) throw new Error('Vitest is not installed');
     const jobs = warmTypeJobs(root, files);
-    const selectedTests = files.filter(file => TEST.test(file)).length;
-    if (selectedTests > SUITE_LIMIT)
-      console.warn(`CF1 DEFERRED TO CI: ${selectedTests} staged test files exceed the ${SUITE_LIMIT}-suite local ceiling; selection and execution skipped`);
-    else jobs.unshift({ name: 'related tests', command: [process.execPath, import.meta.filename, '--worker', JSON.stringify(files)] });
+    jobs.unshift({ name: 'related tests', command: [process.execPath, import.meta.filename, '--worker', JSON.stringify(files)] });
     mkdirSync(resolve(root, 'tmp'), { recursive: true });
     const temporary = mkdtempSync(resolve(root, 'tmp/commit-related-'));
     const env = resolve(root) === process.cwd() ? process.env
