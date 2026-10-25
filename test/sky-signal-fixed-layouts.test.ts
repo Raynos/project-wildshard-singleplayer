@@ -1,6 +1,8 @@
 import { expect, test } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Discovery compiles the isolated source tree under Node.
 import { cwd } from 'node:process';
+// oxlint-disable-next-line import/no-nodejs-modules -- Bind native model reads to the actual declared public root.
+import { resolve } from 'node:path';
 import { authoredManifestSource } from '../scripts/authored-manifest.mjs';
 import { parseDiscoveryValues } from '@wildshard/format/discoveryValues';
 import { generated as signalProgram } from './fixtures/sunscar-source-program';
@@ -11,6 +13,7 @@ import { fixedLayoutFiles as skyFiles } from '../src/shards/far-reach/generators
 import sky from '../src/shards/far-reach/data/layout.generated.json' with { type: 'json' };
 import * as signalSource from '../src/shards/sunscar-dunes/generators/layout';
 import crown from '../src/shards/far-reach/data/crownLayout.generated.json' with { type: 'json' };
+import { readProjectAssets } from '../src/sdk/project';
 
 // The old transport sorts top-level export names; Vite namespaces retain
 // declaration order, so keep the original wire ordering in these byte oracles.
@@ -43,15 +46,25 @@ for (const [label, compile, rows] of [
 }
 
 for (const [slug, palette] of [['far-reach', skyMap], ['sunscar-dunes', signalMap]] as const) {
-  test(`${slug} discovery lends fixed palette JSON without executable authoring`, () => {
-    const source = authoredManifestSource(cwd(), slug, slug === 'sunscar-dunes'
-      ? { discovery: parseDiscoveryValues(signalProgram.discovery) } : undefined);
+  test(`${slug} discovery lends fixed palette JSON without executable authoring`, async () => {
+    const discovery = slug === 'sunscar-dunes' ? parseDiscoveryValues(signalProgram.discovery)
+      : (await readProjectAssets(`src/shards/${slug}`, undefined, {
+        folder: slug, imageRoots: [{ prefix: '/assets/', directory: resolve('public/assets') }],
+      })).output.discovery;
+    if (discovery === undefined) throw new Error('Missing current source discovery');
+    const source = authoredManifestSource(cwd(), slug, { discovery });
     expect(source).toContain(`mapPalette: ${JSON.stringify(palette)}`);
     expect(source).not.toMatch(/from ["'][^"']*generators\/(?:layout|minimap)/u);
     if (slug === 'sunscar-dunes') {
       expect(() => authoredManifestSource(cwd(), slug)).toThrow('program discovery value budgets');
       for (const key of ['budgets', 'navigation', 'mapPalette', 'poses', 'audioCues', 'boot.files', 'boot.sources', 'boot.lateReads'] as const) {
         const missing = { ...parseDiscoveryValues(signalProgram.discovery) }; delete missing[key];
+        expect(() => authoredManifestSource(cwd(), slug, { discovery: missing })).toThrow(`program discovery value ${key}`);
+      }
+    } else {
+      expect(() => authoredManifestSource(cwd(), slug)).toThrow('program discovery value boot.files');
+      for (const key of ['boot.files', 'boot.sources', 'boot.lateReads'] as const) {
+        const missing = { ...discovery }; delete missing[key];
         expect(() => authoredManifestSource(cwd(), slug, { discovery: missing })).toThrow(`program discovery value ${key}`);
       }
     }

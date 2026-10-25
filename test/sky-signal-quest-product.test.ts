@@ -42,8 +42,8 @@ const originals = {
 
 for (const slug of ['far-reach', 'sunscar-dunes'] as const) {
   test(`${slug} compiles identical quest, NPC and director continuations`, async () => {
-    const loaded = await readProjectAssets(`src/shards/${slug}`, undefined, slug === 'sunscar-dunes'
-      ? { folder: slug, imageRoots: [{ prefix: '/assets/', directory: resolve('public/assets') }] } : undefined);
+    const loaded = await readProjectAssets(`src/shards/${slug}`, undefined,
+      { folder: slug, imageRoots: [{ prefix: '/assets/', directory: resolve('public/assets') }] });
     for (const section of ['quests', 'questHost', 'questNpcs', 'directors'] as const) {
       const value = section === 'questHost' ? questPolicy(loaded.shard.questHost) : loaded.shard[section];
       const serialized = section === 'questHost' ? encodeCanonicalJson(value) : JSON.stringify(value);
