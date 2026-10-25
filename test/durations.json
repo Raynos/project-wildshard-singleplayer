@@ -1232,7 +1232,7 @@
  "test/native-bake-reader.test.ts": 9.172,
  "src/game/population/native-collision-omit.test.ts": 0.033,
  "src/sdk/bake/native-creature-pose.test.ts": 0.021,
- "test/native-creature-recipes.test.ts": 0.009,
+ "src/game/shardfile/native-creature-recipes.test.ts": 0.009,
  "test/native-elite-save-schema.test.ts": 0.014,
  "test/native-fauna-boot.test.ts": 0.139,
  "test/native-ground-assembly.test.ts": 10.89,

@@ -1,7 +1,10 @@
 import { expect,test } from 'vitest';
-import { AnimalSim } from '../src/engine/entities/AnimalSim';
-import { nearestPopulationActor } from '../src/game/shardfile/groupRuntime';
-import { SIM_LEVEL } from './fixtures/sim-level/level';
+import { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
+import { nearestPopulationActor } from './groupRuntime';
+import { SIM_CREATURE_RECIPE } from '../test/creatureRecipe';
+import type { SimLevel } from '@wildshard/engine/sim';
+
+const SIM_LEVEL: Pick<SimLevel, 'entities'> = { entities: [SIM_CREATURE_RECIPE] };
 
 test('native prey selection retains horizontal bounds, live roster ties and current membership',()=>{
   const recipe=SIM_LEVEL.entities[0];if(recipe===undefined)throw new Error('Missing native body recipe');

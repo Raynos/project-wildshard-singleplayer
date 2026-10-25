@@ -1,6 +1,9 @@
 import { expect, test } from 'vitest';
-import { nativeCreatureRecipes } from '../src/game/shardfile/homeKeeper';
-import { SIM_LEVEL } from './fixtures/sim-level/level';
+import { nativeCreatureRecipes } from './homeKeeper';
+import { SIM_CREATURE_RECIPE } from '../test/creatureRecipe';
+import type { SimLevel } from '@wildshard/engine/sim';
+
+const SIM_LEVEL: Pick<SimLevel, 'entities'> = { entities: [SIM_CREATURE_RECIPE] };
 
 test('native recipe lookup keeps each duplicate policy and validates saved actor intake before use', () => {
   const row = SIM_LEVEL.entities[0]; if (row === undefined) throw new Error('Missing actual actor recipe');
