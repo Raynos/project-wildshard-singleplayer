@@ -5,7 +5,7 @@ import { ScriptModuleV2 } from '../src/engine/script/moduleV2';
 import { prepareV2Observations } from '../src/engine/script/observationsV2';
 import { createSimHost } from '../src/engine/sim';
 import { loadRapier } from '../src/engine/physics/rapier';
-import { compileSimV2 } from './fixtures/compileSimV2';
+import { compileSimV2 } from '../src/sdk/test/compileSimV2';
 import { readV2WorldActions,V2_ACTION_OPS,type V2ActionBinding,type V2WorldAction } from '../src/format/scriptActionsV2';
 import { layoutV2,writeV2Frame,validateV2Frame,type V2FrameAuthority } from '../src/format/scriptWireV2';
 import { prepareV2WorldActions, type V2WorldActionLoan } from '../src/game/shardfile/worldActionsV2';

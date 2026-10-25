@@ -19,7 +19,7 @@ import { parseSpawnScript,spawnScriptRegistries } from '../src/format/spawnScrip
 import { SCRIPT_V2_REVISIONS } from '../src/format/scriptAdmissionV2';
 import { scriptAdmissionRows,decisionModuleContracts } from '../src/format/scriptContract';
 import { layoutV2 } from '../src/format/scriptWireV2';
-import { compileSimV2 } from './fixtures/compileSimV2';
+import { compileSimV2 } from '../src/sdk/test/compileSimV2';
 import { compileDecisionScripts } from '../src/sdk/buildDecisionScripts';
 
 const capacities = [{ kind: 1,capacity: 1 },{ kind: 2,capacity: 1 },{ kind: 3,capacity: 1 },{ kind: 5,capacity: 1 },{ kind: 6,capacity: 3 },{ kind: 7,capacity: 1 },{ kind: 9,capacity: 32 },{ kind: 10,capacity: 32 },{ kind: 21,capacity: 1 },{ kind: 22,capacity: 1 }];

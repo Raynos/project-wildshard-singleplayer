@@ -2,7 +2,7 @@ import { expect,test } from 'vitest';
 import { compileScript } from '../src/sdk/bake/compileScript';
 import { scriptSource } from './script/fixture';
 import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
-import { compileSimV2 } from './fixtures/compileSimV2';
+import { compileSimV2 } from '../src/sdk/test/compileSimV2';
 import { ScriptModuleV2 } from '../src/engine/script/moduleV2';
 import { validateV2FloatColumns } from '../src/format/scriptMemoryV2';
 

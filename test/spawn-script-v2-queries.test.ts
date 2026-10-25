@@ -17,7 +17,7 @@ import { SpawnInputV2Schema } from '../src/format/spawnScriptV2';
 import { SCRIPT_V2_REVISIONS } from '../src/format/scriptAdmissionV2';
 import { layoutV2 } from '../src/format/scriptWireV2';
 import { compileScript } from '../src/sdk/bake/compileScript';
-import { compileSimV2 } from './fixtures/compileSimV2';
+import { compileSimV2 } from '../src/sdk/test/compileSimV2';
 import { sha256 } from '../src/game/plugin/moduleHash';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import type { Animal } from '../src/engine/entities/AnimalView';

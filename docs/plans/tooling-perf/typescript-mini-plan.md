@@ -89,7 +89,7 @@ implementation. Existing test identities, assertions and deadlines stay fixed.
 | T3-H1 | Three SDK geometry suites and game tile-content units; inline each sole-consumer fixture without changing its statements or test bodies | 60 min | done (2026-10-25, sp-x8) |
 | T3-H2 | Baked hunt-ground and Script V2 grid units with sole-use fixtures; shared creature-stride oracle goes in the engine test subtree | 60 min | done (2026-10-25, sp-x8) |
 | T3-H3a | SDK private test-fixture project boundary and strict production-import, layer and module-mock regressions; retain the same named test-domain rules | 45 min | done (2026-10-25, sp-x8) |
-| T3-H3b | Move the shared ABI2 sim compiler fixture and its fourteen consumers atomically; no re-export shim or production compiler API | 60 min | open |
+| T3-H3b | Move the shared ABI2 sim compiler fixture and its fourteen consumers atomically; root consumes SDK test declarations, no re-export shim or production compiler API | 60 min | done (2026-10-25, sp-x8) |
 | T3-A1 | Classify remaining root suites and fixture consumers; enumerate concrete ownership batches, preserving accepted cross-layer integrations | 60 min | in flight (2026-10-25, sp-x8) |
 | T3-C1 | Reconcile the final root inventory, workspace membership and CF1/CI selection; retain only classified root suites | 45 min | open |
 

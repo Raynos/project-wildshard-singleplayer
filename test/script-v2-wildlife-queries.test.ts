@@ -6,7 +6,7 @@ import { groups } from '../src/engine/physics/groups';
 import { resolvePhysicsQueriesV2,type V2QueryWorld } from '../src/engine/physics/queryBatchV2';
 import { QueryRingV2,answerV2QueryBatch } from '../src/engine/script/queriesV2';
 import { SimBatchV2 } from '../src/engine/script/simBatchV2';
-import { compileSimV2 } from './fixtures/compileSimV2';
+import { compileSimV2 } from '../src/sdk/test/compileSimV2';
 import { layoutV2 } from '../src/format/scriptWireV2';
 import { prepareV2QueryReplies,validateV2QueryRequest,type V2QueryBinding,type V2QueryOperation,type V2QueryRequest } from '../src/format/scriptQueriesV2';
 import { fixtureBytes } from '@wildshard/engine/test/nativeBytes';

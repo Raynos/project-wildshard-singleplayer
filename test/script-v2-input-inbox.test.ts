@@ -2,7 +2,7 @@ import { expect,test } from 'vitest';
 import { InputInboxV2,type V2InputBinding } from '../src/engine/script/inputInboxV2';
 import { prepareV2Observations } from '../src/engine/script/observationsV2';
 import { layoutV2,writeV2Frame,validateV2Frame,type V2FrameAuthority } from '../src/format/scriptWireV2';
-import { compileSimV2 } from './fixtures/compileSimV2';
+import { compileSimV2 } from '../src/sdk/test/compileSimV2';
 import { ScriptModuleV2 } from '../src/engine/script/moduleV2';
 
 const layout = layoutV2(1024,1,new Map([[1,2],[2,2],[3,2],[5,2],[7,1],[8,4],[9,4]]));

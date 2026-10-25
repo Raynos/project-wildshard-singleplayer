@@ -4,7 +4,7 @@ import { prepareV2Rng,type V2RngInput } from '../src/format/scriptRngV2';
 import { layoutV2,writeV2Frame,validateV2Frame } from '../src/format/scriptWireV2';
 import { prepareV2Observations } from '../src/engine/script/observationsV2';
 import { ScriptModuleV2 } from '../src/engine/script/moduleV2';
-import { compileSimV2 } from './fixtures/compileSimV2';
+import { compileSimV2 } from '../src/sdk/test/compileSimV2';
 import { DecisionHost,type DecisionScript } from '../src/engine/script/decision';
 import { compileScript } from '@wildshard/sdk/compileScript';
 

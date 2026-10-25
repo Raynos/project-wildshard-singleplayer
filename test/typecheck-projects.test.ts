@@ -220,6 +220,24 @@ test('workspace Node tests consume declarations without giving production Node g
     expect(sdkFiles).not.toContain(`${root}/src/engine/test/helper.ts`);
     expect(sdkFiles).not.toContain(`${root}/src/engine/internal.ts`);
     expect(sdkFiles).toContain(`${root}/src/sdk/test/helper.ts`);
+    const sdkTestsBuild = run('-b', 'src/sdk/tsconfig.test.json');
+    expect(sdkTestsBuild.status, String(sdkTestsBuild.stdout) + String(sdkTestsBuild.stderr)).toBe(0);
+    put('tsconfig.json', JSON.stringify({ compilerOptions: { strict: true, noEmit: true, types: [], skipLibCheck: true,
+      module: 'ESNext', moduleResolution: 'bundler' }, include: ['test'], references: [
+      { path: './tsconfig.engine.json' }, { path: './src/engine/tsconfig.test.json' },
+      { path: './tsconfig.sdk.json' }, { path: './src/sdk/tsconfig.test.json' },
+    ] }));
+    put('test/sdk-helper.ts', 'import {fixturePid} from "../src/sdk/test/helper"; export const result: number = fixturePid;\n');
+    const sdkRoot = run('--noEmit', '--listFiles');
+    expect(sdkRoot.status, String(sdkRoot.stdout) + String(sdkRoot.stderr)).toBe(0);
+    const sdkRootFiles = String(sdkRoot.stdout).replaceAll('\\', '/').split('\n');
+    expect(sdkRootFiles).toContain(`${root}/out/src/sdk/test/helper.d.ts`);
+    expect(sdkRootFiles).not.toContain(`${root}/src/sdk/test/helper.ts`);
+    put('test/sdk-helper.ts', 'import {fixturePid} from "../src/sdk/test/helper"; export const result: string = fixturePid;\n');
+    const badSdkRoot = run('--noEmit');
+    expect(badSdkRoot.status, String(badSdkRoot.stdout) + String(badSdkRoot.stderr)).not.toBe(0);
+    expect(String(badSdkRoot.stdout) + String(badSdkRoot.stderr)).toContain('TS2322');
+    put('test/sdk-helper.ts', 'import {fixturePid} from "../src/sdk/test/helper"; export const result: number = fixturePid;\n');
     put('src/sdk/value.test.ts', 'import {make} from "../engine/test/helper"; export const result: string = make().value;\n');
     const badSdkTest = run('--noEmit', '-p', 'src/sdk/tsconfig.test.json');
     expect(badSdkTest.status).not.toBe(0);
