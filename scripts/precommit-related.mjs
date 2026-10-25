@@ -70,7 +70,9 @@ export function stagedInputOverride(root, staged) {
       if (path === undefined || !overrides.has(path)) return null;
       const source = overrides.get(path);
       if (source === undefined) throw new Error(`Absent staged module: ${relative(root, path)}`);
-      return source;
+      // This pre-load hook replaces Vite's raw-file loader too. Preserve its
+      // module contract while keeping candidate bytes authoritative over WIP.
+      return /(?:\?|&)raw(?:&|$)/u.test(id) ? `export default ${JSON.stringify(source)};` : source;
     },
   };
 }
