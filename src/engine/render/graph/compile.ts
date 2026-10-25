@@ -362,6 +362,12 @@ class GraphLitMaterial extends GraphNormalMaterial {
  * it is declared twice (three renames it `irradiance_1`) and never written.
  */
 const HOOK_INPUT_OPS: ReadonlySet<string> = new Set([...SUN_OPS, 'irradiance', 'radiance', 'environmentIrradiance', 'environmentIrradianceAt', 'litColour']);
+const SCENE_INPUT_OPS: ReadonlySet<string> = new Set(['fogColour', 'fogZenithColour', 'skyLightDirection', 'skyLightColour']);
+/** Even an unfogged unlit graph may explicitly read its scene; loop bodies retain that dependency. */
+function readsSceneInputs(nodes: Readonly<Record<string, GraphNode>>): boolean {
+  return Object.values(nodes).some(node => HOOK_INPUT_OPS.has(node.op) || SCENE_INPUT_OPS.has(node.op)
+    || (node.body !== undefined && readsSceneInputs(node.body.nodes)));
+}
 
 const lightDependentsOf = new WeakMap<GraphIr, ReadonlySet<string>>();
 /** the root nodes that read a hook input (HOOK_INPUT_OPS), directly or through their inputs and loop bodies; once per
@@ -1182,6 +1188,9 @@ function compileOwned(input: unknown, opts: CompileGraphOptions, owner: GraphNod
   if (ir.kind === 'material' && ir.model !== 'unlit') material.userData['graphPbrMaps'] = true;
   // an unlit graph writes raw colour, as the GLSL program it stands for did: no output transform (engineNodesHandler, 1)
   if (ir.kind === 'material' && ir.model === 'unlit') material.userData['graphRawOutput'] = true;
+  // This certificate removes only unused scene identity from the program key, never a scene-bound uniform.
+  if (ir.kind === 'material' && ir.model === 'unlit' && ir.effectState?.fog === false && !readsSceneInputs(ir.nodes))
+    material.userData['graphSceneIndependent'] = true;
   const outline = ir.kind !== 'material' ? null : outlineMaterial();
   if (outline !== null && Object.keys(attributeDefaults).length > 0) outline.userData['graphAttributeDefaults'] = attributeDefaults;
   // a selected shard fog (O11) replaces the engine fog for this material and its hull

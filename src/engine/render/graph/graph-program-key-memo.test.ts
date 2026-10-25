@@ -34,7 +34,7 @@ test('the program-key memo follows a target bound inside one render call', () =>
   };
   for (const [key, value] of Object.entries(fields)) Reflect.set(renderer, key, value);
   const handler = new EngineNodesHandler(); handler.setRenderer(renderer);
-  const material = compileGraph({ version: 1, kind: 'material', model: 'unlit', nodes: {}, stages: { surface: { colour: [1, 0, 0] } }, effectState: { fog: false } }).material;
+  const material = compileGraph({ version: 1, kind: 'material', model: 'standard', nodes: {}, stages: { surface: { colour: [1, 0, 0] } }, effectState: { fog: false } }).material;
   const mesh = new THREE.Mesh(new THREE.PlaneGeometry(), material);
   const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(), sun = new THREE.DirectionalLight();
   scene.add(mesh);
@@ -77,7 +77,7 @@ test('the program-key memo outlives render calls of an unchanged scene', () => {
   };
   for (const [key, value] of Object.entries(fields)) Reflect.set(renderer, key, value);
   const handler = new EngineNodesHandler(); handler.setRenderer(renderer);
-  const material = compileGraph({ version: 1, kind: 'material', model: 'unlit', nodes: {}, stages: { surface: { colour: [1, 0, 0] } }, effectState: { fog: false } }).material;
+  const material = compileGraph({ version: 1, kind: 'material', model: 'standard', nodes: {}, stages: { surface: { colour: [1, 0, 0] } }, effectState: { fog: false } }).material;
   const mesh = new THREE.Mesh(new THREE.PlaneGeometry(), material);
   const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(), sun = new THREE.DirectionalLight();
   scene.add(mesh);
@@ -139,7 +139,7 @@ test('a graph depth variant keys the same program under any scene lights, enviro
   };
   for (const [key, value] of Object.entries(fields)) Reflect.set(renderer, key, value);
   const handler = new EngineNodesHandler(); handler.setRenderer(renderer);
-  const material = compileGraph({ version: 1, kind: 'material', model: 'unlit', nodes: {}, stages: { surface: { colour: [1, 0, 0] } }, effectState: { fog: false } }).material;
+  const material = compileGraph({ version: 1, kind: 'material', model: 'standard', nodes: {}, stages: { surface: { colour: [1, 0, 0] } }, effectState: { fog: false } }).material;
   material.userData['graphShadowDepth'] = true;
   const stock = new THREE.MeshDepthMaterial(), depth = handler.shadowDepthOf(material, stock);
   if (depth === null) throw new Error('Missing graph depth variant');

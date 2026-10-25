@@ -205,6 +205,7 @@ interface ProgramEntry {
 }
 /** the parts of three's (untyped) stock handler the engine handler reaches */
 interface StockInternals {
+  renderer: { getCacheKey: () => string };
   updateNodes: (nodes: unknown) => void;
   getOutputCallback: (outputNode: Node<'vec4'>, builder: NodeBuilder) => Node<'vec4'>;
   customProgramCacheKeyCallback: (this: THREE.Material) => string;
@@ -532,9 +533,17 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     // customProgramCacheKey: the tail is read through a stand-in whose class hash is empty, so a shared graph's key walks no
     // node ids at all (computing the hash to cut it off walked them twice a memo miss)
     const blankHash = { prototype: { customProgramCacheKey: (): string => '' } };
-    const sharedStock = (material: THREE.Material): string => {
+    const sharedStock = (material: THREE.Material, receive: boolean): string => {
       const lead = this.shareKeyOf(material);
       if (lead === null) return stockKey.call(material);
+      // A certified unlit graph reads neither scene lights/environment nor fog. Stock SceneContext still hashes
+      // their fresh node/light IDs on every region entry, retaining equivalent programs on a shared material.
+      // Explicit material inputs and layer bindings keep the original boundary; target/receive/object/patch facts
+      // remain in this key and wholeKey. The compiler excludes explicit scene inputs, including nested loops.
+      if (material instanceof MeshBasicNodeMaterial && material.userData['graphSceneIndependent'] === true
+        && !material.fog && material.envMap === null && material.envNode === null && material.lightsNode === null
+        && layerFrameOf(material) === null)
+        return `${lead}|scene:none|${internals(this).renderer.getCacheKey()}${String(receive)}`;
       const bare: unknown = Object.create(material, { constructor: { value: blankHash } });
       const tail: unknown = Reflect.apply(stockKey, bare, []);
       return typeof tail === 'string' ? lead + tail : stockKey.call(material);
@@ -550,7 +559,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
       asked();
       const rawOutput = this.userData['graphRawOutput'] === true, objectKey = nodeObjectKey(object);
       const depth = this.userData['graphDepthVariant'] === true;
-      if (stamp < 0) { built(); return shaderPatchProgramKey(this, wholeKey(depth ? depthStockKey(this, receive) : sharedStock(this), this.toneMapped, rawOutput, objectKey, fog, layer)); }
+      if (stamp < 0) { built(); return shaderPatchProgramKey(this, wholeKey(depth ? depthStockKey(this, receive) : sharedStock(this, receive), this.toneMapped, rawOutput, objectKey, fog, layer)); }
       let memos = stockKeys.get(this);
       if (memos === undefined || memos[0]?.version !== this.version) { memos = []; stockKeys.set(this, memos); }
       let memo: (typeof memos)[number] | undefined; // a loop, not find(): no closure made on every draw
@@ -575,7 +584,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
         return tokened(memo, objectKey, slot, shaderPatchProgramKey(this, kept), kept, patches);
       }
       let stock = receive ? memo.receive : memo.plain;
-      if (stock === undefined) { stock = depth ? depthStockKey(this, receive) : sharedStock(this); if (receive) memo.receive = stock; else memo.plain = stock; }
+      if (stock === undefined) { stock = depth ? depthStockKey(this, receive) : sharedStock(this, receive); if (receive) memo.receive = stock; else memo.plain = stock; }
       const key = wholeKey(stock, this.toneMapped, rawOutput, objectKey, fog, layer); shape[slot] = key; built();
       return tokened(memo, objectKey, slot, shaderPatchProgramKey(this, key), key, shaderPatchSet(this));
     };

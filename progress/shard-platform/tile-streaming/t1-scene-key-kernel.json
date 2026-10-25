@@ -1,0 +1,743 @@
+{
+  "sourceHashes": {
+    "pin": "efcea95a3e11185c024564e782d74c08f80be31c",
+    "before": {
+      "src/engine/render/nodes/engineNodesHandler.ts": "d22a969e1fb2f57e18fcd61d4eb815aee08ba72ede3fb7fc5723dd96d8758f16",
+      "src/engine/render/graph/compile.ts": "22e0170f7020542080359cf32a7ce382a71104c5b5d0f03b89232505446a7ef5"
+    },
+    "after": {
+      "src/engine/render/nodes/engineNodesHandler.ts": "7e35de07eeb2e988e8cabba6e48b991cf0f2580e50cf334bbd57e29afa4c9953",
+      "src/engine/render/graph/compile.ts": "319a1fd983c6f44010a13c84496e7a61be922ffaa7ffe3810f2762b3106827e0"
+    }
+  },
+  "renderer": "Real Chromium WebGL2 / ANGLE Metal; 32x32 RGBA target; no GPU timer or performance claim",
+  "parity": [
+    {
+      "kind": "independent",
+      "countsBefore": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "countsAfter": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "pixelParity": true
+    },
+    {
+      "kind": "fog-input",
+      "countsBefore": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "countsAfter": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "pixelParity": true
+    },
+    {
+      "kind": "lit",
+      "countsBefore": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "countsAfter": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "pixelParity": true
+    }
+  ],
+  "rows": [
+    {
+      "variant": "before",
+      "cases": [
+        {
+          "kind": "independent",
+          "visits": [
+            {
+              "visit": 0,
+              "programCount": 1,
+              "pixelSha256": "76e8df39a07506dff516291f648084ac66518dddffcc1c96652321b91afae8cd",
+              "centerRGBA": [
+                51,
+                153,
+                229,
+                255
+              ],
+              "sceneNodeKeys": {
+                "lights": 3482778324429646,
+                "environment": 2254675377172211,
+                "fog": 8957091660858327,
+                "combined": 358227061062727
+              }
+            },
+            {
+              "visit": 1,
+              "programCount": 2,
+              "pixelSha256": "472e056552369373183505e385169da1a5124de5d634ff8a41c5f4919a3046bd",
+              "centerRGBA": [
+                64,
+                153,
+                229,
+                255
+              ],
+              "sceneNodeKeys": {
+                "lights": 4198944694577347,
+                "environment": 522663092017011,
+                "fog": 6423916235107367,
+                "combined": 3191377086319149
+              }
+            },
+            {
+              "visit": 2,
+              "programCount": 3,
+              "pixelSha256": "ab5bcb6d92d1ac00ab64bc1d08419606a30ac9bb4e8f761a87e759a406edaa31",
+              "centerRGBA": [
+                77,
+                153,
+                229,
+                255
+              ],
+              "sceneNodeKeys": {
+                "lights": 6371035402964661,
+                "environment": 2238931378776967,
+                "fog": 1857687157256893,
+                "combined": 374800395658389
+              }
+            },
+            {
+              "visit": 3,
+              "programCount": 4,
+              "pixelSha256": "81bd67f89066d2a9fd28a996051da05a6fc0317cebcefc5141f4024c0b8591f5",
+              "centerRGBA": [
+                89,
+                153,
+                229,
+                255
+              ],
+              "sceneNodeKeys": {
+                "lights": 7389136635957195,
+                "environment": 7954673963858918,
+                "fog": 6729326810227613,
+                "combined": 1060747772626321
+              }
+            },
+            {
+              "visit": 4,
+              "programCount": 5,
+              "pixelSha256": "b4d0a3c52145c30f72a40ec4e188cf02f3732de140920ae81303da4e1be380a3",
+              "centerRGBA": [
+                102,
+                153,
+                229,
+                255
+              ],
+              "sceneNodeKeys": {
+                "lights": 2116167343393057,
+                "environment": 337235430125778,
+                "fog": 2881825467721777,
+                "combined": 2111309585387317
+              }
+            },
+            {
+              "visit": 5,
+              "programCount": 6,
+              "pixelSha256": "f3baaa7f8da8fcb32e0fd8b16f154749f00d3d16c2946c4a77e0232c081ea44b",
+              "centerRGBA": [
+                115,
+                153,
+                229,
+                255
+              ],
+              "sceneNodeKeys": {
+                "lights": 5430448621313095,
+                "environment": 671054704266646,
+                "fog": 6788467952597083,
+                "combined": 2332945674657340
+              }
+            }
+          ]
+        },
+        {
+          "kind": "fog-input",
+          "visits": [
+            {
+              "visit": 0,
+              "programCount": 1,
+              "pixelSha256": "8b59e868c863086ee1b0241a2391f953d1b85f5199ca87112176ac13d7ed979e",
+              "centerRGBA": [
+                26,
+                38,
+                128,
+                255
+              ],
+              "sceneNodeKeys": {
+                "lights": 5149911500682338,
+                "environment": null,
+                "fog": 3693532296516568,
+                "combined": 5880894485490834
+              }
+            },
+            {
+              "visit": 1,
+              "programCount": 2,
+              "pixelSha256": "d820235e4191fa6853cad691d4fa878af1aaf5ac72b04dc8e3e11ae5ff1c5898",
+              "centerRGBA": [
+                51,
+                38,
+                128,
+                255
+              ],
+              "sceneNodeKeys": {
+                "lights": 8701125302240267,
+                "environment": null,
+                "fog": 4812086650782169,
+                "combined": 2619399696848799
+              }
+            },
+            {
+              "visit": 2,
+              "programCount": 3,
+              "pixelSha256": "b28e5220cf25fd5c75c9da1a17db4edcd5d10ea7d85b4ca2250502c68c29632c",
+              "centerRGBA": [
+                77,
+                38,
+                128,
+                255
+              ],
+              "sceneNodeKeys": {
+                "lights": 281535525546127,
+                "environment": null,
+                "fog": 2833628575250676,
+                "combined": 5813570283005717
+              }
+            },
+            {
+              "visit": 3,
+              "programCount": 4,
+              "pixelSha256": "c4fb603ddcf452cc82bba4e5e7cac1b2f38f1452005670488427ecb531515228",
+              "centerRGBA": [
+                102,
+                38,
+                128,
+                255
+              ],
+              "sceneNodeKeys": {
+                "lights": 65394900409326,
+                "environment": null,
+                "fog": 8032010310786013,
+                "combined": 4222650367913564
+              }
+            },
+            {
+              "visit": 4,
+              "programCount": 5,
+              "pixelSha256": "fd93f30179e58ff7068a7e8566a6735c3e3e35473cb9240b2ce0755b271fa901",
+              "centerRGBA": [
+                128,
+                38,
+                128,
+                255
+              ],
+              "sceneNodeKeys": {
+                "lights": 8632324839948346,
+                "environment": null,
+                "fog": 1995729781380550,
+                "combined": 712857112517582
+              }
+            },
+            {
+              "visit": 5,
+              "programCount": 6,
+              "pixelSha256": "162ee79679789af8ca92bc07b976e50d54b7ddb76d7bd734c1571d3f6379ec44",
+              "centerRGBA": [
+                153,
+                38,
+                128,
+                255
+              ],
+              "sceneNodeKeys": {
+                "lights": 7425761051387661,
+                "environment": null,
+                "fog": 4347893783718548,
+                "combined": 422178618182050
+              }
+            }
+          ]
+        },
+        {
+          "kind": "lit",
+          "visits": [
+            {
+              "visit": 0,
+              "programCount": 1,
+              "pixelSha256": "71e7ea9b41e9dd72ceb6d96e03c43d5a46a4a8374fbe861302934cbfb83bc95d",
+              "centerRGBA": [
+                25,
+                32,
+                73,
+                255
+              ],
+              "sceneNodeKeys": {
+                "lights": 5084826717234983,
+                "environment": null,
+                "fog": 1225286530955738,
+                "combined": 756565012513513
+              }
+            },
+            {
+              "visit": 1,
+              "programCount": 2,
+              "pixelSha256": "6b0d8757b862970764ad70743b8253d6de8ec8dce139bf4cbed9d411ce6569ed",
+              "centerRGBA": [
+                31,
+                37,
+                73,
+                255
+              ],
+              "sceneNodeKeys": {
+                "lights": 2805170363753101,
+                "environment": null,
+                "fog": 962886492558742,
+                "combined": 4388768660135657
+              }
+            },
+            {
+              "visit": 2,
+              "programCount": 3,
+              "pixelSha256": "f0f9ac263fc2511f792ff650cb4a151f73c313b01287552de71dfccfedbb7f75",
+              "centerRGBA": [
+                36,
+                43,
+                73,
+                255
+              ],
+              "sceneNodeKeys": {
+                "lights": 610849880179282,
+                "environment": null,
+                "fog": 6381434076802693,
+                "combined": 7824472312944776
+              }
+            },
+            {
+              "visit": 3,
+              "programCount": 4,
+              "pixelSha256": "affedbc7d96f085eb2376ff639579d4d8f5e8af7d004d7d6fa18c62fee855695",
+              "centerRGBA": [
+                42,
+                49,
+                73,
+                255
+              ],
+              "sceneNodeKeys": {
+                "lights": 7538247838620106,
+                "environment": null,
+                "fog": 5930272468755181,
+                "combined": 4600447232806095
+              }
+            },
+            {
+              "visit": 4,
+              "programCount": 5,
+              "pixelSha256": "c7442ee12fbe54c1134dd43e35f029d932f5476a3a4e85039e37a996b0248061",
+              "centerRGBA": [
+                48,
+                55,
+                73,
+                255
+              ],
+              "sceneNodeKeys": {
+                "lights": 7171945457509110,
+                "environment": null,
+                "fog": 3020525472247629,
+                "combined": 7820471389152423
+              }
+            },
+            {
+              "visit": 5,
+              "programCount": 6,
+              "pixelSha256": "e4d8db0bdf1a04a82427d376368de65ba3ee17ff99cdf2c3d43bef6c9ccffae9",
+              "centerRGBA": [
+                54,
+                60,
+                73,
+                255
+              ],
+              "sceneNodeKeys": {
+                "lights": 8752280704039147,
+                "environment": null,
+                "fog": 7277202326465295,
+                "combined": 7512208971706522
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "variant": "after",
+      "cases": [
+        {
+          "kind": "independent",
+          "visits": [
+            {
+              "visit": 0,
+              "programCount": 1,
+              "pixelSha256": "76e8df39a07506dff516291f648084ac66518dddffcc1c96652321b91afae8cd",
+              "centerRGBA": [
+                51,
+                153,
+                229,
+                255
+              ],
+              "sceneNodeKeys": {
+                "lights": 3482778324429646,
+                "environment": 2254675377172211,
+                "fog": 8957091660858327,
+                "combined": 358227061062727
+              }
+            },
+            {
+              "visit": 1,
+              "programCount": 1,
+              "pixelSha256": "472e056552369373183505e385169da1a5124de5d634ff8a41c5f4919a3046bd",
+              "centerRGBA": [
+                64,
+                153,
+                229,
+                255
+              ],
+              "sceneNodeKeys": {
+                "lights": 4198944694577347,
+                "environment": 522663092017011,
+                "fog": 6423916235107367,
+                "combined": 3191377086319149
+              }
+            },
+            {
+              "visit": 2,
+              "programCount": 1,
+              "pixelSha256": "ab5bcb6d92d1ac00ab64bc1d08419606a30ac9bb4e8f761a87e759a406edaa31",
+              "centerRGBA": [
+                77,
+                153,
+                229,
+                255
+              ],
+              "sceneNodeKeys": {
+                "lights": 6371035402964661,
+                "environment": 1672637247052345,
+                "fog": 3215629548684437,
+                "combined": 7941960165701906
+              }
+            },
+            {
+              "visit": 3,
+              "programCount": 1,
+              "pixelSha256": "81bd67f89066d2a9fd28a996051da05a6fc0317cebcefc5141f4024c0b8591f5",
+              "centerRGBA": [
+                89,
+                153,
+                229,
+                255
+              ],
+              "sceneNodeKeys": {
+                "lights": 7389136635957195,
+                "environment": 7665920220341612,
+                "fog": 4524562192095256,
+                "combined": 2090067061945906
+              }
+            },
+            {
+              "visit": 4,
+              "programCount": 1,
+              "pixelSha256": "b4d0a3c52145c30f72a40ec4e188cf02f3732de140920ae81303da4e1be380a3",
+              "centerRGBA": [
+                102,
+                153,
+                229,
+                255
+              ],
+              "sceneNodeKeys": {
+                "lights": 2116167343393057,
+                "environment": 6101737236131773,
+                "fog": 3424141694026164,
+                "combined": 2108215590255459
+              }
+            },
+            {
+              "visit": 5,
+              "programCount": 1,
+              "pixelSha256": "f3baaa7f8da8fcb32e0fd8b16f154749f00d3d16c2946c4a77e0232c081ea44b",
+              "centerRGBA": [
+                115,
+                153,
+                229,
+                255
+              ],
+              "sceneNodeKeys": {
+                "lights": 5430448621313095,
+                "environment": 7567876209806928,
+                "fog": 4381428419591378,
+                "combined": 7975397605451933
+              }
+            }
+          ]
+        },
+        {
+          "kind": "fog-input",
+          "visits": [
+            {
+              "visit": 0,
+              "programCount": 1,
+              "pixelSha256": "8b59e868c863086ee1b0241a2391f953d1b85f5199ca87112176ac13d7ed979e",
+              "centerRGBA": [
+                26,
+                38,
+                128,
+                255
+              ],
+              "sceneNodeKeys": {
+                "lights": 5149911500682338,
+                "environment": null,
+                "fog": 6316884037804308,
+                "combined": 4942458124782850
+              }
+            },
+            {
+              "visit": 1,
+              "programCount": 2,
+              "pixelSha256": "d820235e4191fa6853cad691d4fa878af1aaf5ac72b04dc8e3e11ae5ff1c5898",
+              "centerRGBA": [
+                51,
+                38,
+                128,
+                255
+              ],
+              "sceneNodeKeys": {
+                "lights": 8701125302240267,
+                "environment": null,
+                "fog": 6021036020328128,
+                "combined": 4260429493078994
+              }
+            },
+            {
+              "visit": 2,
+              "programCount": 3,
+              "pixelSha256": "b28e5220cf25fd5c75c9da1a17db4edcd5d10ea7d85b4ca2250502c68c29632c",
+              "centerRGBA": [
+                77,
+                38,
+                128,
+                255
+              ],
+              "sceneNodeKeys": {
+                "lights": 281535525546127,
+                "environment": null,
+                "fog": 4530880379777743,
+                "combined": 8126782940372356
+              }
+            },
+            {
+              "visit": 3,
+              "programCount": 4,
+              "pixelSha256": "c4fb603ddcf452cc82bba4e5e7cac1b2f38f1452005670488427ecb531515228",
+              "centerRGBA": [
+                102,
+                38,
+                128,
+                255
+              ],
+              "sceneNodeKeys": {
+                "lights": 65394900409326,
+                "environment": null,
+                "fog": 4394675252011771,
+                "combined": 141109425073075
+              }
+            },
+            {
+              "visit": 4,
+              "programCount": 5,
+              "pixelSha256": "fd93f30179e58ff7068a7e8566a6735c3e3e35473cb9240b2ce0755b271fa901",
+              "centerRGBA": [
+                128,
+                38,
+                128,
+                255
+              ],
+              "sceneNodeKeys": {
+                "lights": 8632324839948346,
+                "environment": null,
+                "fog": 1652489346989458,
+                "combined": 1325069483481628
+              }
+            },
+            {
+              "visit": 5,
+              "programCount": 6,
+              "pixelSha256": "162ee79679789af8ca92bc07b976e50d54b7ddb76d7bd734c1571d3f6379ec44",
+              "centerRGBA": [
+                153,
+                38,
+                128,
+                255
+              ],
+              "sceneNodeKeys": {
+                "lights": 7425761051387661,
+                "environment": null,
+                "fog": 1977506043004072,
+                "combined": 7458843461460302
+              }
+            }
+          ]
+        },
+        {
+          "kind": "lit",
+          "visits": [
+            {
+              "visit": 0,
+              "programCount": 1,
+              "pixelSha256": "71e7ea9b41e9dd72ceb6d96e03c43d5a46a4a8374fbe861302934cbfb83bc95d",
+              "centerRGBA": [
+                25,
+                32,
+                73,
+                255
+              ],
+              "sceneNodeKeys": {
+                "lights": 5084826717234983,
+                "environment": null,
+                "fog": 5313610265140039,
+                "combined": 1063652361805837
+              }
+            },
+            {
+              "visit": 1,
+              "programCount": 2,
+              "pixelSha256": "6b0d8757b862970764ad70743b8253d6de8ec8dce139bf4cbed9d411ce6569ed",
+              "centerRGBA": [
+                31,
+                37,
+                73,
+                255
+              ],
+              "sceneNodeKeys": {
+                "lights": 2805170363753101,
+                "environment": null,
+                "fog": 8153029545786100,
+                "combined": 5607553018035915
+              }
+            },
+            {
+              "visit": 2,
+              "programCount": 3,
+              "pixelSha256": "f0f9ac263fc2511f792ff650cb4a151f73c313b01287552de71dfccfedbb7f75",
+              "centerRGBA": [
+                36,
+                43,
+                73,
+                255
+              ],
+              "sceneNodeKeys": {
+                "lights": 610849880179282,
+                "environment": null,
+                "fog": 6644579478900192,
+                "combined": 4789658233521676
+              }
+            },
+            {
+              "visit": 3,
+              "programCount": 4,
+              "pixelSha256": "affedbc7d96f085eb2376ff639579d4d8f5e8af7d004d7d6fa18c62fee855695",
+              "centerRGBA": [
+                42,
+                49,
+                73,
+                255
+              ],
+              "sceneNodeKeys": {
+                "lights": 7538247838620106,
+                "environment": null,
+                "fog": 2335935886744604,
+                "combined": 2488743244269506
+              }
+            },
+            {
+              "visit": 4,
+              "programCount": 5,
+              "pixelSha256": "c7442ee12fbe54c1134dd43e35f029d932f5476a3a4e85039e37a996b0248061",
+              "centerRGBA": [
+                48,
+                55,
+                73,
+                255
+              ],
+              "sceneNodeKeys": {
+                "lights": 7171945457509110,
+                "environment": null,
+                "fog": 210329897752326,
+                "combined": 2255075534447358
+              }
+            },
+            {
+              "visit": 5,
+              "programCount": 6,
+              "pixelSha256": "e4d8db0bdf1a04a82427d376368de65ba3ee17ff99cdf2c3d43bef6c9ccffae9",
+              "centerRGBA": [
+                54,
+                60,
+                73,
+                255
+              ],
+              "sceneNodeKeys": {
+                "lights": 8752280704039147,
+                "environment": null,
+                "fog": 6404099668525915,
+                "combined": 525985458272461
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "18 before/after exact RGBA pairs, each with 676 nonblack pixels; live tint/fog/light values vary across visits.",
+    "Certified unlit case excludes scene inputs; fog-input/lit controls keep original scene identity and program counts.",
+    "This kernel is not a live T1 or iOS reading. Follow-up program diagnostic and one plain T1 remain required.",
+    "Only two production source files are replaced from the recorded Git baseline for the before bundle; other dependencies are shared within this paired build."
+  ],
+  "validation": {
+    "related": "1771 tests / 388 ready suites PASS; 15 missing-product suites explicitly deferred to CI",
+    "typedLint": "Named type-aware oxlint on all four touched TS paths PASS",
+    "engineTypes": "tsc --noEmit -p src/engine/tsconfig.test.json PASS",
+    "rootTypes": "BLOCKED only by foreign test/nine-decal-binary.test.ts old generators/output import plus row inferred type; owner notified; not claimed green",
+    "regression": "New independent-scene case fails before fix; strict dependent-scene controls remain passing"
+  }
+}
