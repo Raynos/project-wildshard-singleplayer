@@ -2,7 +2,7 @@
 import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Bind only the explicit author root and its private cache.
 import { resolve } from 'node:path';
-import { expect, test } from 'vitest';
+import { afterAll, expect, test } from 'vitest';
 import { build } from 'vite';
 import { createProjectGeneration } from '../src/sdk/projectGeneration';
 import { hashImmutableBytes } from '../src/sdk/immutable';
@@ -12,7 +12,8 @@ import { nineLayoutWord } from '../src/shards/nine-dragon-stack/generators/world
 import { nineWorldProgram } from '../src/shards/nine-dragon-stack/generators/worldProgram';
 import before from './fixtures/nine-world-files.json' with { type: 'json' };
 
-test('cold and hit source world preserve all 399 original wires and every geometry byte', async () => {
+/** Prepare one genuinely empty cache; production work is fixture setup, never an assertion-time benchmark. */
+async function coldWorldFixture() {
   await prepareAssetDecoders();
   mkdirSync('tmp', { recursive: true }); const cache = mkdtempSync(resolve('tmp', 'nine-world-cache-'));
   try {
@@ -22,27 +23,42 @@ test('cold and hit source world preserve all 399 original wires and every geomet
       captured = await generate(inputs); return captured;
     }) });
     if (captured === undefined) throw new Error('Missing cold world receipt');
-    expect(captured.size).toBe(399);
-    for (const row of before) {
-      const key = row.path === 'data/layout.generated.json' ? 'layout.json' : row.path === 'data/world.generated.json' ? 'world.json' : row.path.replace('assets/', 'blobs/');
-      const bytes = captured.get(key); if (bytes === undefined) throw new Error(`Missing original ${key}`);
-      expect(bytes.byteLength, key).toBe(row.bytes); expect(hashImmutableBytes(bytes), key).toBe(row.hash);
-    }
-    const h = context(), hit = await nineWorldProgram({ ...h, cached: step => h.cached(step, () => { throw new Error('A hit must not rebuild'); }) });
-    const digest = (value: unknown): string => hashImmutableBytes(new TextEncoder().encode(JSON.stringify(value, nineLayoutWord)));
-    expect(digest(hit.metadata)).toBe(digest(cold.metadata)); expect(digest(hit.layout)).toBe(digest(cold.layout));
-    expect(hit.assets.size).toBe(397); expect(cold.assets.size).toBe(397);
-    for (const [hash, bytes] of hit.assets) { expect(hashImmutableBytes(bytes)).toBe(hash); expect(bytes === cold.assets.get(hash)).toBe(false); }
-    const bad = new Map(captured); bad.delete('layout.json');
-    await expect(nineWorldProgram({ ...h, cached: () => Promise.resolve(bad) })).rejects.toThrow('Missing owned Nine world layout.json');
-    const extra = new Map(captured); extra.set('unexpected.bin', new Uint8Array());
-    await expect(nineWorldProgram({ ...h, cached: () => Promise.resolve(extra) })).rejects.toThrow('file inventory differs');
-    const first = before.find(row => row.path.startsWith('assets/')); if (first === undefined) throw new Error('Missing original geometry');
-    const corrupt = new Map(captured), key = first.path.replace('assets/', 'blobs/');
-    corrupt.set(key, new Uint8Array(first.bytes));
-    await expect(nineWorldProgram({ ...h, cached: () => Promise.resolve(corrupt) })).rejects.toThrow('world bytes differ');
-    await expect(nineWorldProgram({ ...h, asset: () => '0'.repeat(64), cached: () => Promise.resolve(captured ?? new Map()) })).rejects.toThrow('publication differs');
-  } finally { rmSync(cache, { recursive: true, force: true }); }
+    return { captured, cold, context, dispose: () => { rmSync(cache, { recursive: true, force: true }); } };
+  } catch (error) { rmSync(cache, { recursive: true, force: true }); throw error; }
+}
+const fixture = await coldWorldFixture();
+afterAll(() => { fixture.dispose(); });
+
+test('cold source world preserves all 399 original wires and every geometry byte', () => {
+  const { captured } = fixture;
+  expect(captured.size).toBe(399);
+  for (const row of before) {
+    const key = row.path === 'data/layout.generated.json' ? 'layout.json' : row.path === 'data/world.generated.json' ? 'world.json' : row.path.replace('assets/', 'blobs/');
+    const bytes = captured.get(key); if (bytes === undefined) throw new Error(`Missing original ${key}`);
+    expect(bytes.byteLength, key).toBe(row.bytes); expect(hashImmutableBytes(bytes), key).toBe(row.hash);
+  }
+});
+
+test('a cache hit never rebuilds and retains complete rows and independently owned geometry', async () => {
+  const { cold, context } = fixture;
+  const h = context(), hit = await nineWorldProgram({ ...h, cached: step => h.cached(step, () => { throw new Error('A hit must not rebuild'); }) });
+  const digest = (value: unknown): string => hashImmutableBytes(new TextEncoder().encode(JSON.stringify(value, nineLayoutWord)));
+  expect(digest(hit.metadata)).toBe(digest(cold.metadata)); expect(digest(hit.layout)).toBe(digest(cold.layout));
+  expect(hit.assets.size).toBe(397); expect(cold.assets.size).toBe(397);
+  for (const [hash, bytes] of hit.assets) { expect(hashImmutableBytes(bytes)).toBe(hash); expect(bytes === cold.assets.get(hash)).toBe(false); }
+});
+
+test('missing, extra, corrupt and wrongly published world bytes remain refusals', async () => {
+  const { captured, context } = fixture, h = context();
+  const bad = new Map(captured); bad.delete('layout.json');
+  await expect(nineWorldProgram({ ...h, cached: () => Promise.resolve(bad) })).rejects.toThrow('Missing owned Nine world layout.json');
+  const extra = new Map(captured); extra.set('unexpected.bin', new Uint8Array());
+  await expect(nineWorldProgram({ ...h, cached: () => Promise.resolve(extra) })).rejects.toThrow('file inventory differs');
+  const first = before.find(row => row.path.startsWith('assets/')); if (first === undefined) throw new Error('Missing original geometry');
+  const corrupt = new Map(captured), key = first.path.replace('assets/', 'blobs/');
+  corrupt.set(key, new Uint8Array(first.bytes));
+  await expect(nineWorldProgram({ ...h, cached: () => Promise.resolve(corrupt) })).rejects.toThrow('world bytes differ');
+  await expect(nineWorldProgram({ ...h, asset: () => '0'.repeat(64), cached: () => Promise.resolve(captured) })).rejects.toThrow('publication differs');
 });
 
 test('the source world cache closure bundles without publication, filesystem or compiler services', async () => {

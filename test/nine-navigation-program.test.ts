@@ -12,6 +12,7 @@ import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { nineNavigation, NINE_NAVIGATION_INPUT } from '../src/shards/nine-dragon-stack/generators/navigationProgram';
 import before from './fixtures/nine-navigation.json' with { type: 'json' };
+import { generated } from './fixtures/nine-source-program';
 
 const project = resolve('src/shards/nine-dragon-stack');
 function fixture(): string { mkdirSync('tmp', { recursive: true }); return mkdtempSync(resolve('tmp', 'nine-navigation-')); }
@@ -70,11 +71,10 @@ test('the source navigation closure bundles without filesystem, decoder services
   for (const chunk of chunks) assertConfigBoundary([...chunk.imports, ...chunk.dynamicImports]);
 });
 
-test('the real source program supplies every original discovery value without a generated navigation reader', async () => {
+test('the real source program supplies every original discovery value without a generated navigation reader', () => {
   const manifest = v.parse(v.object({ bindings: v.object({ navigation: v.strictObject({ program: v.literal(true) }) }) }),
     JSON.parse(readFileSync(resolve(project, 'manifest.json'), 'utf8')));
   expect(manifest.bindings.navigation).toEqual({ program: true });
-  const { generated } = await import('./fixtures/nine-source-program');
   expect(generated.discovery).toEqual({ navigation: before });
   expect(generated.shard.navigation).toEqual(before.navigation);
   expect(generated.shard.critical).toEqual(before.critical);
