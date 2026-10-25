@@ -8,9 +8,8 @@ import { GridAssembly } from './assembly';
 import { LiveGridHost } from './live';
 import { PageResidency } from './pageResidency';
 
-// G663 (tile streaming T7): a neighbour is never built whole beside a source, whichever way the traveller heads. A
-// committed crossing into another cell retires the source just left before the destination's world allocates; a U-turn
-// back into that source re-activates it.
+// G663 remains the opaque/over-budget fallback. G723 opts in isolated factories only: a kept source plus one incoming
+// world may fit, but the source retires before destination entry; a U-turn reuses it and abandons the incoming guess.
 const level: SimLevel = { version: 1, id: 'platform', seed: 1, ground: { size: 500, height: 0 },
   player: { at: { x: 0, y: 0, z: 0 }, yaw: 0, speed: 30 }, entities: [], quests: [],
   weapon: { id: 'none', shape: { kind: 'point', radius: 0 }, windup: 0, active: 0, recover: 0, cooldown: 0, range: 0, damage: 0, tags: [] } };
@@ -21,46 +20,58 @@ function travel(live: LiveGridHost, at: { x: number; z: number }, dx: number, dz
   at.x += dx; at.z += dz; live.beforeFixed();
 }
 
-async function fixture() {
+async function fixture(options: { paired?: boolean; loading?: number; isolation?: boolean } = {}) {
   const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
   const assembly = new GridAssembly({ developer: false, devserver: false }), home = assembly.cell('driftwood-isle');
   const east = assembly.cells.find(cell => cell.origin.x === assembly.pitch && cell.origin.z === 0);
   const north = assembly.cells.find(cell => cell.origin.x === 0 && cell.origin.z === -assembly.pitch);
   if (east === undefined || north === undefined) throw new Error('Missing neighbours');
   const page = createSimHost(level, { rapier }), residency = new PageResidency(), events: string[] = [];
-  const allocated: { instance: string; owners: string[] }[] = [], control = { dispose: true };
+  const allocated: { instance: string; owners: string[] }[] = [];
+  const control: { dispose: boolean; holdIncoming: boolean; finish: (() => void) | undefined } = { dispose: true, holdIncoming: false, finish: undefined };
+  const budget = { playing: 1_200_000_000, loading: options.loading ?? 1_800_000_000 };
   const player = { position: page.player.position, yaw: -Math.PI / 2, health: page.player.health, owner: page.player, motor: page.releasePlayerMotor() };
   const live = new LiveGridHost(assembly, {
     home: { mode: 'owned', instance: home.instance, bytes: 1000, residency: residency.admitHome(home.instance, 1000) },
     player, allocator: residency.allocator, continuations: 'durable', save: () => true,
-    bindFrame: () => undefined, gameplayReady: () => true,
+    bindFrame: frame => { events.push(`frame:${frame.instance ?? 'road'}`); }, gameplayReady: () => true,
+    ...(options.paired === true ? { preparationBudget: budget } : {}),
     highway: { bytes: 1000, create: () => ({ physics: page.physics, dispose: () => undefined }) },
     prefetchable: cell => [home.instance, east.instance, north.instance].includes(cell.instance),
     // a large world: its readiness reach starts well inside the source
     readiness: { link: { speed: 30, linkBitsPerSecond: 5_000_000, requestLatencySeconds: 0.25, maxStallSeconds: 3 },
       bundle: () => ({ criticalWireBytes: 1000, hybridWireBytes: 1000, decodeSeconds: 0, runtimeParseSeconds: 10 }) },
     admit: cell => Promise.resolve({ bytes: 1000, exclusiveRuntime: true, reloadsCheckpoint: true, prepareRuntime: () => Promise.resolve(),
+      ...(options.paired === true && options.isolation !== false ? { isolatedPreparation: true } : {}),
       create: () => {
         allocated.push({ instance: cell.instance, owners: [...residency.allocator.claims()].map(row => row.owner) });
         events.push(`create:${cell.instance}`);
         const host = createSimHost(level, { rapier, playerBody: false, ground: false });
-        return Promise.resolve({ host, checkpoint: () => true, dispose: () => { host.dispose(); }, *retire() {
+        const region = { host, checkpoint: () => true, dispose: () => { events.push(`disposed:${cell.instance}`); host.dispose(); }, *retire() {
           events.push(`retire:${cell.instance}`);
           yield { scope: cell.instance, kind: 'disposers' } as const;
           if (cell.instance === home.instance && !control.dispose) throw new Error('kept disposal refused');
           host.dispose(); events.push(`disposed:${cell.instance}`);
-        } });
+        } };
+        return cell.instance === east.instance && control.holdIncoming
+          ? new Promise<typeof region>(resolve => { control.finish = () => { resolve(region); }; }) : Promise.resolve(region);
       } }),
   });
   const settle = async (): Promise<void> => {
     for (let i = 0; i < 20; i++) { live.beforeFixed(); await new Promise(resolve => { setTimeout(resolve, 2); }); }
   };
   const enterHome = async (): Promise<void> => { const enter = await live.prepare(null, home.instance); enter.commit(); };
+  const approachEast = async (): Promise<void> => {
+    // Isolation and cost come from admitted metadata, not from an unverified heading guess.
+    await live.prefetch([east.instance]);
+    player.position.x = CHUNK_HALF + .5; player.position.z = 0;
+    travel(live, player.position, 1, 0); await settle();
+  };
   const cross = async (from: string, to: string): Promise<void> => {
     const leave = await live.prepare(from, null); leave.commit();
     const enter = await live.prepare(null, to); enter.commit();
   };
-  return { live, home, east, north, player, events, allocated, control, settle, enterHome, cross,
+  return { live, home, east, north, player, events, allocated, control, budget, settle, enterHome, approachEast, cross,
     claims: () => [...residency.allocator.claims()],
     entries: () => residency.allocator.entries(),
     created: () => events.filter(event => event.startsWith('create:')).map(event => event.slice(7)),
@@ -78,6 +89,153 @@ test('G663: in a source no neighbour builds, whichever way the traveller heads, 
     expect(f.created()).toEqual([f.home.instance]);
     expect(f.live.state().residents).toEqual([f.home.instance]);
     expect(f.live.state().issues).toEqual({});
+  } finally { f.close(); }
+});
+
+test('G723: explicitly isolated preparation keeps two charged worlds before the edge, then retires before entry', async () => {
+  const f = await fixture({ paired: true });
+  try {
+    await f.enterHome();
+    const leave = await f.live.prepare(f.home.instance, null); leave.commit();
+    await f.approachEast();
+    expect(f.live.state().residents).toEqual([f.home.instance, f.east.instance].sort());
+    expect(f.live.ready(f.east.instance)).toBe(true);
+    expect(f.events).not.toContain(`retire:${f.home.instance}`);
+    expect(f.allocated.find(row => row.instance === f.east.instance)?.owners).toContain(f.home.instance);
+    const enter = await f.live.prepare(null, f.east.instance);
+    expect(f.events).toContain(`disposed:${f.home.instance}`);
+    expect(f.claims().some(row => row.owner === f.home.instance)).toBe(false);
+    enter.commit();
+    expect(f.events.indexOf(`disposed:${f.home.instance}`)).toBeLessThan(f.events.indexOf(`frame:${f.east.instance}`));
+    expect(f.live.state().residents).toEqual([f.east.instance]);
+  } finally { f.close(); }
+});
+
+test('G723: a U-turn retires an already prepared guess and reuses the kept source', async () => {
+  const f = await fixture({ paired: true });
+  try {
+    await f.enterHome(); const leave = await f.live.prepare(f.home.instance, null); leave.commit();
+    await f.approachEast();
+    expect(f.live.ready(f.east.instance)).toBe(true);
+    const back = await f.live.prepare(null, f.home.instance); back.commit(); await f.settle();
+    expect(f.created().filter(id => id === f.home.instance)).toHaveLength(1);
+    expect(f.live.state().residents).toEqual([f.home.instance]);
+    expect(f.events).not.toContain(`retire:${f.home.instance}`);
+    expect(f.events).toContain(`disposed:${f.east.instance}`);
+  } finally { f.close(); }
+});
+
+test('G723: a budget refusal keeps the old retire-before-allocation crossing without an issue', async () => {
+  const f = await fixture({ paired: true, loading: 1 });
+  try {
+    await f.enterHome(); const leave = await f.live.prepare(f.home.instance, null); leave.commit();
+    await f.approachEast();
+    expect(f.created()).toEqual([f.home.instance]);
+    const enter = await f.live.prepare(null, f.east.instance); enter.commit();
+    expect(f.events.indexOf(`disposed:${f.home.instance}`)).toBeLessThan(f.events.indexOf(`create:${f.east.instance}`));
+    expect(f.live.state().issues).toEqual({});
+  } finally { f.close(); }
+});
+
+test('G723: a budget port alone never treats an opaque factory as isolated', async () => {
+  const f = await fixture({ paired: true, isolation: false });
+  try {
+    await f.enterHome(); const leave = await f.live.prepare(f.home.instance, null); leave.commit();
+    await f.approachEast();
+    expect(f.created()).toEqual([f.home.instance]);
+    const enter = await f.live.prepare(null, f.east.instance); enter.commit();
+    expect(f.events.indexOf(`disposed:${f.home.instance}`)).toBeLessThan(f.events.indexOf(`create:${f.east.instance}`));
+  } finally { f.close(); }
+});
+
+test('G723: the budget is rechecked after queuing, retaining metadata for a safe later attempt', async () => {
+  const f = await fixture({ paired: true });
+  try {
+    await f.enterHome(); const leave = await f.live.prepare(f.home.instance, null); leave.commit();
+    await f.live.prefetch([f.east.instance]);
+    f.player.position.x = CHUNK_HALF + .5; travel(f.live, f.player.position, 1, 0);
+    expect(f.live.state().pending).toContain(f.east.instance);
+    f.budget.loading = 1; await f.settle();
+    expect(f.created()).toEqual([f.home.instance]);
+    expect(f.live.state().issues).toEqual({});
+    expect(f.live.ready(f.east.instance)).toBe(false);
+    f.budget.loading = 1_800_000_000;
+    travel(f.live, f.player.position, 1, 0); await f.settle();
+    expect(f.live.ready(f.east.instance)).toBe(true);
+    expect(f.created()).toEqual([f.home.instance, f.east.instance]);
+  } finally { f.close(); }
+});
+
+test('G723: a unique isolated boulevard destination prepares before the traveller turns into its mouth', async () => {
+  const f = await fixture({ paired: true });
+  try {
+    await f.enterHome(); const leave = await f.live.prepare(f.home.instance, null); leave.commit();
+    await f.live.prefetch([f.east.instance]);
+    f.player.position.x = f.east.origin.x / 2; f.player.position.z = -100;
+    travel(f.live, f.player.position, 0, 1); await f.settle();
+    expect(f.live.current()).toBe(null);
+    expect(f.live.ready(f.east.instance)).toBe(true);
+    expect(f.live.state().residents).toEqual([f.home.instance, f.east.instance].sort());
+    expect(f.events).not.toContain(`retire:${f.home.instance}`);
+  } finally { f.close(); }
+});
+
+test('G723: changing the prepared prediction never allocates a third world', async () => {
+  const f = await fixture({ paired: true });
+  try {
+    await f.enterHome(); const leave = await f.live.prepare(f.home.instance, null); leave.commit();
+    await f.approachEast();
+    expect(f.live.ready(f.east.instance)).toBe(true);
+    const next = await f.live.prepare(null, f.north.instance); next.commit();
+    expect(f.events.indexOf(`disposed:${f.east.instance}`)).toBeLessThan(f.events.indexOf(`create:${f.north.instance}`));
+    expect(f.allocated.every(row => row.owners.filter(owner => [f.home.instance, f.east.instance, f.north.instance].includes(owner)).length <= 2)).toBe(true);
+    expect(f.live.state().residents).toEqual([f.north.instance]);
+  } finally { f.close(); }
+});
+
+test('G723: a changed road prediction replaces only the incoming world, keeping the immediate return', async () => {
+  const f = await fixture({ paired: true });
+  try {
+    await f.enterHome(); const leave = await f.live.prepare(f.home.instance, null); leave.commit();
+    await f.approachEast();
+    await f.live.prefetch([f.north.instance]);
+    f.player.position.x = 0; f.player.position.z = -(CHUNK_HALF + .5);
+    travel(f.live, f.player.position, 0, -1); await f.settle();
+    expect(f.live.state().residents).toEqual([f.home.instance, f.north.instance].sort());
+    expect(f.events).not.toContain(`retire:${f.home.instance}`);
+    expect(f.events.indexOf(`disposed:${f.east.instance}`)).toBeLessThan(f.events.indexOf(`create:${f.north.instance}`));
+    expect(f.allocated.every(row => row.owners.filter(owner => [f.home.instance, f.east.instance, f.north.instance].includes(owner)).length <= 2)).toBe(true);
+  } finally { f.close(); }
+});
+
+test('G723: a late build that ignores its abort is disposed after a U-turn, never published', async () => {
+  const f = await fixture({ paired: true });
+  try {
+    await f.enterHome(); const leave = await f.live.prepare(f.home.instance, null); leave.commit();
+    f.control.holdIncoming = true;
+    await f.approachEast();
+    expect(f.live.state().pending).toContain(f.east.instance);
+    const back = await f.live.prepare(null, f.home.instance); back.commit();
+    if (f.control.finish === undefined) throw new Error('Missing incoming build');
+    f.control.finish(); await f.settle();
+    expect(f.live.state().residents).toEqual([f.home.instance]);
+    expect(f.claims().some(row => row.owner === f.east.instance)).toBe(false);
+    expect(f.events).toContain(`disposed:${f.east.instance}`);
+    expect(f.live.state().issues).toEqual({});
+  } finally { f.control.finish?.(); f.close(); }
+});
+
+test('G723: failed source retirement blocks entry even when the destination was prepared', async () => {
+  const f = await fixture({ paired: true });
+  try {
+    await f.enterHome(); const leave = await f.live.prepare(f.home.instance, null); leave.commit();
+    await f.approachEast();
+    expect(f.live.ready(f.east.instance)).toBe(true);
+    f.control.dispose = false;
+    await expect(f.live.prepare(null, f.east.instance)).rejects.toThrow('successful disposal');
+    expect(f.live.current()).toBe(null);
+    expect(f.claims().filter(row => [f.home.instance, f.east.instance].includes(row.owner))).toHaveLength(2);
+    expect(f.live.state().issues[`cleanup:${f.home.instance}`]).toContain('kept disposal refused');
   } finally { f.close(); }
 });
 

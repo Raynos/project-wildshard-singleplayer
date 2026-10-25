@@ -17,6 +17,18 @@ function claim() {
   return lease;
 }
 
+test('G723: metadata retains the explicit isolation capability but fresh preparation must match it', async () => {
+  const create = vi.fn<LiveGridAdmission['create']>(), cancel = vi.fn<() => void>();
+  const metadata = { bytes: 1, isolatedPreparation: true };
+  const admitted = await preparationAdmission(() => Promise.resolve(metadata), () => Promise.resolve({ bytes: 1, create, cancel }));
+  const lease = claim();
+  try {
+    expect(admitted).toMatchObject({ isolatedPreparation: true });
+    await expect(admitted.create(undefined, lease)).rejects.toThrow('isolation');
+    expect(create).not.toHaveBeenCalled(); expect(cancel).toHaveBeenCalledOnce();
+  } finally { lease.release(); }
+});
+
 test('prefetch releases its input lease and cached admission reacquires on every visit', async () => {
   const events: string[] = [];
   const metadata: boolean[] = [];

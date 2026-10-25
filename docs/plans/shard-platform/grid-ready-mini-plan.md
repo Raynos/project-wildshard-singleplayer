@@ -20,7 +20,7 @@ Each slice is bounded to one hour; report misses and their observed owners first
 | G723.1 | Measure first road-to-control waits and existing completed preparation stages for Driftwood, Pine, Nalati and Nine; separate prior preparation from edge wait. At most one hour. | done (2026-10-25, sp-x8) |
 | G723.2 | Coordinator approved kept plus one isolated incoming world, with strict preparation budgets and source retirement before destination entry; preserve the kept source on a U-turn. Bounded source slices below. | in flight (2026-10-25, sp-x8) |
 | G723.2a | Read-only allocator projection: page loading and both owner limits, including already retained inputs; no admission, eviction or warning-policy mutation. At most one hour. | done (2026-10-25, sp-x8) |
-| G723.2b | Wire explicit isolation capability and the budget guard into unique warm-ahead; enforce two-world maximum, cancellation, U-turn retention and retirement before entry. At most one hour. | open |
+| G723.2b | Wire explicit isolation capability and the budget guard into unique warm-ahead; enforce two-world maximum, cancellation, U-turn retention and retirement before entry. At most one hour. | done (2026-10-25, sp-x8) |
 | G723.3 | Measure the defining warm-ahead slice against the same first-entry route and keep every durability, cancellation, claim and readiness fence. At most one hour. | open |
 
 ## G717 frame-floor misses (2026-10-25, sp-x1; G639)
