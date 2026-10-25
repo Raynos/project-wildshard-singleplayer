@@ -1,6 +1,13 @@
 import { describe, expect, it, vi } from 'vitest';
-import { DepthTexture, DirectionalLight, Group, WebGLRenderTarget } from 'three';
-import { CompileLights } from './compileLights';
+import { DepthTexture, DirectionalLight, Group, Scene, WebGLRenderTarget } from 'three';
+import { CompileLights, compileSceneSource, createCompileScene } from './compileLights';
+import { realGc } from '@wildshard/engine/test/realGc';
+
+function sceneLoan(): {warm: Scene; source: WeakRef<Scene>} {
+  const source = new Scene(), warm = createCompileScene(source);
+  expect(compileSceneSource(warm)).toBe(source);
+  return {warm, source: new WeakRef(source)};
+}
 
 function lightCopy(lights: CompileLights, source: DirectionalLight): DirectionalLight {
   const copy = lights.copy(source);
@@ -15,6 +22,14 @@ function target(): WebGLRenderTarget {
 }
 
 describe('compile-only light storage', () => {
+  it('a retained compile scene releases its retired source page', async () => {
+    await realGc('src/engine/render/compile-lights.test.ts', 'a retained compile scene releases its retired source page', async collect => {
+      const {warm, source} = sceneLoan();
+      await collect(source);
+      expect(compileSceneSource(warm)).toBe(warm);
+    });
+  });
+
   it('borrows the live shadow without changing or disposing its light and map', () => {
     const lights = new CompileLights(), source = new DirectionalLight();
     source.castShadow = true; source.intensity = 2;

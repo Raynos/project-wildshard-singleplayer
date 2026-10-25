@@ -10,7 +10,7 @@ import type { Renderer } from './renderer';
 import type { OffscreenPass } from './look';
 import type { Game } from '../core/Game';
 import { chunkShadowCastersSliced } from '../world/shadowChunks';
-import { CompileLights } from './compileLights';
+import { CompileLights, createCompileScene } from './compileLights';
 import { recordGpuCheckpoint } from '../boot/gpuTrace';
 import { familyCompileJobs } from './families/registry';
 import { shaderPatchTextures } from './shaderPatches';
@@ -141,7 +141,7 @@ function* exteriorJobSteps(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | nul
   if (registered === undefined) return [];
   // `leaving`: content that goes with the entered frame's owner (its staged camera models) never draws outside either
   const state = leaving.length === 0 ? registered : { environment: registered.environment, roots: new Set([...registered.roots, ...leaving]) };
-  const target = new THREE.Scene();
+  const target = createCompileScene(scene);
   const lights = new CompileLights();
   // the road draws with the page's own environment (a layer swaps a cell's in only while it renders, `BackdropLayer.apply`):
   // with none declared, the live page environment keys the exterior variant (G639: a null one keyed Driftwood's road

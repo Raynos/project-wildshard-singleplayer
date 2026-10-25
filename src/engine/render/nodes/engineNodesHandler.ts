@@ -60,7 +60,7 @@ import { tentShadowFilter } from './tentShadowFilter';
 import { planeBiasShadowFilter } from './planeBiasShadowFilter';
 import { EngineDirectionalLightNode } from './cascadeLightNode';
 import { isCascadeGhost } from '../../world/cascadeLights';
-import { compileLightSource } from '../compileLights';
+import { compileLightSource, compileSceneSource } from '../compileLights';
 import { Scope } from '../../app/scope';
 import { rebindGeometry } from '../../app/cachedAssets';
 import { diagnosticNow } from '../../core/clock';
@@ -449,7 +449,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   /** programShare: each shared build key's code, as a length and hash */
   private readonly sharedCode = new Map<string, string>();
   private real: Renderer | null = null;
-  private bindingFacts: { readonly stamp: number; readonly scene: object; readonly rawKey: unknown; readonly lights: string; readonly inputs: SceneInputs | null } | null = null;
+  private bindingFacts: { readonly stamp: number; readonly context: object; readonly scene: object; readonly rawKey: unknown; readonly lights: string; readonly inputs: SceneInputs | null } | null = null;
   private readonly sceneShaderKeys = new SceneShaderKeys();
   private readonly sceneBindings = new WeakMap<THREE.Material, Map<unknown, SceneBinding>>();
   private warnedLevelFog = false;
@@ -965,9 +965,9 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     const scene = internals(this).renderStack.at(-1)?.sceneContext;
     if (scene === undefined) return null;
     const held = this.bindingFacts;
-    if (held !== null && held.stamp === this.lightsStamp && held.scene === scene) return held;
+    if (held !== null && held.stamp === this.lightsStamp && held.context === scene) return held;
     const inputs = scene.scene instanceof THREE.Scene ? { fog: scene.scene.fog, environment: scene.scene.environment } : null;
-    const next = { stamp: this.lightsStamp, scene, rawKey: scene.getCacheKey(), inputs,
+    const next = { stamp: this.lightsStamp, context: scene, scene: compileSceneSource(scene.scene), rawKey: scene.getCacheKey(), inputs,
       lights: scene.lightsNode.getBuiltinLights().map(light => light instanceof THREE.Light ? light.id : '').join(',') };
     this.bindingFacts = next;
     return next;

@@ -1624,11 +1624,12 @@ before invoking a custom painter.
 `@wildshard/game` re-exports the old names `ShardRender`, `ShardComposeContext`, `ShardComposition` for manifests not yet moved.
 
 **Exterior lighting preparation.** `@wildshard/engine/render/precompile` defines
-`registerExteriorLighting(scene, owner, root, environment)`. A framed content owner declares
-which subtree leaves the page's light inventory outside its frame and the exterior
-environment (including an explicit `null`). Ordinary sliced preparation borrows
-detached light clones to compile that state's world/depth variants too. Live visibility,
-parents, lights and environment stay unchanged; retiring the owner removes the declaration.
+`registerExteriorLighting(scene, owner, root, environment)`: the subtree's lights
+leave outside its frame; `environment` (including `null`) declares the exterior.
+Sliced warm-up borrows light clones and weakly aliases the page scene to compile
+world/depth variants. Live visibility, parents, lights and environment stay
+unchanged. Retirement unregisters the declaration; resource and unrelated-scene
+binding fences remain exact.
 
 **Offscreen preparation.** `@wildshard/engine/render/offscreenPreparation` defines
 `registerOffscreenPreparation(scene, owner, pass)` and `OffscreenPreparation`:

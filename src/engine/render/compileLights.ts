@@ -1,4 +1,4 @@
-import { DirectionalLight, PointLight, SpotLight, type Light } from 'three';
+import { DirectionalLight, PointLight, Scene, SpotLight, type Light, type Object3D } from 'three';
 
 type ShadowLight = DirectionalLight | PointLight | SpotLight;
 const shadowLight = (light: Light): light is ShadowLight => light instanceof DirectionalLight || light instanceof PointLight || light instanceof SpotLight;
@@ -12,6 +12,21 @@ const sources = new WeakMap<Light, Light>();
  *  id and binds its uniforms to that light, so a copy's own id keyed a program no real draw asks for: the node back-end
  *  builds node programs with the sources (EngineNodesHandler.updateLights); classic programs key only light counts. */
 export function compileLightSource(light: Light): Light | undefined { return sources.get(light); }
+
+const sceneSources = new WeakMap<Object3D, WeakRef<Scene>>();
+/** Detached exterior compilation stands for this page scene. The alias owns
+ * no page resources; callers still configure its exact fog, environment and
+ * source lights. A retained compile target never keeps the page alive. */
+export function createCompileScene(source: Scene): Scene {
+  const scene = new Scene();
+  sceneSources.set(scene, new WeakRef(source));
+  return scene;
+}
+/** Identity only: matching the scene never substitutes for matching its live
+ * fog, environment and source lights. Real unrelated scenes stay distinct. */
+export function compileSceneSource(scene: Object3D): Object3D {
+  return sceneSources.get(scene)?.deref() ?? scene;
+}
 
 export class CompileLights {
   private readonly copies: Copy[] = [];

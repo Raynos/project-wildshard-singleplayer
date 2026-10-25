@@ -3,6 +3,7 @@ import {BoxGeometry, DataTexture, DirectionalLight, Fog, Group, Mesh, MeshBasicM
 import {Scope} from '../app/scope';
 import {prepareSceneRoots, registerExteriorLighting} from './precompile';
 import {noteEnvironment} from './drawnEnvironment';
+import {compileSceneSource} from './compileLights';
 
 function fixture() {
   const scope = new Scope('root-preparation'), scene = new Scene(), camera = new PerspectiveCamera();
@@ -17,6 +18,7 @@ function fixture() {
   if (!(renderer instanceof WebGLRenderer)) throw new Error('Renderer fixture missing');
   const compiled: {material: string; receiver: boolean; fog: unknown; lights: number; environment: unknown}[] = [];
   const compile = (job: Object3D, _camera: PerspectiveCamera, target: Scene): void => {
+    expect(compileSceneSource(target)).toBe(scene);
     let lights = 0; target.traverseVisible(object => {if (object instanceof DirectionalLight) lights++;});
     job.traverse(object => {if (object instanceof Mesh && object.material instanceof MeshBasicMaterial) compiled.push({material: object.material.name,
       receiver: object.receiveShadow, fog: target.fog, lights, environment: target.environment});});

@@ -7,6 +7,7 @@ import { compileGraph } from './compile';
 import { Scope } from '../../app/scope';
 import type { GraphNode } from '@wildshard/format/materialGraph';
 import { patchShader, PATCH_ORDER } from '../shaderPatches';
+import { createCompileScene } from '../compileLights';
 
 vi.stubGlobal('ImageBitmap', class ImageBitmap { readonly width = 0; });
 afterAll(() => { vi.unstubAllGlobals(); });
@@ -152,6 +153,52 @@ test('an equivalent scene refreshes the warm program uniform bindings', () => {
     expect(handler.builds).toBe(2);
     handler.renderEnd();
   } finally { material.dispose(); geometry.dispose(); }
+});
+
+test.each(['shared', 'fog', 'environment', 'lights'] as const)('an exterior compile scene keeps exact page owners and fences a %s handoff', field => {
+  const programs = new Map<string, object>();
+  const properties: {programs: typeof programs; currentProgram?: object; uniforms?: Record<string, unknown>; __version?: number} = {programs};
+  const renderer = rendererFixture();
+  Reflect.set(renderer, 'properties', {get: () => properties, has: () => true});
+  const handler = new EngineNodesHandler(); handler.setRenderer(renderer);
+  const material = compileGraph({version: 1, kind: 'material', model: 'unlit',
+    nodes: {colour: {op: 'fogColour'}}, stages: {surface: {colour: 'colour'}}, effectState: {fog: false}}).material;
+  const geometry = new THREE.PlaneGeometry(), mesh = new THREE.Mesh(geometry, material), camera = new THREE.PerspectiveCamera();
+  const page = new THREE.Scene(); page.fog = new THREE.Fog(0xff0000, 1, 10);
+  const environment = new THREE.DataTexture(new Uint8Array(16), 2, 2), otherEnvironment = environment.clone();
+  environment.mapping = THREE.CubeUVReflectionMapping; otherEnvironment.mapping = THREE.CubeUVReflectionMapping;
+  page.environment = environment;
+  const warm = createCompileScene(page); warm.fog = field === 'fog' ? page.fog.clone() : page.fog;
+  warm.environment = field === 'environment' ? otherEnvironment : environment;
+  const light = new THREE.DirectionalLight(), otherLight = new THREE.DirectionalLight();
+  try {
+    warm.add(mesh); handler.renderStart(warm, camera); handler.updateLights([field === 'lights' ? otherLight : light]); handler.setObject(mesh, material);
+    const customProgramCacheKey = material.customProgramCacheKey(), input: object = {customProgramCacheKey};
+    const isParameters = (value: object): value is THREE.WebGLProgramParametersWithUniforms => !Array.isArray(value);
+    if (!isParameters(input)) throw new Error('Missing parameters');
+    handler.build(material, mesh, input);
+    const program = {getUniforms: () => ({seq: Object.keys(input.uniforms).map(id => ({id}))})};
+    programs.set('same-native-program', program); properties.currentProgram = program; properties.__version = material.version;
+    handler.onUpdateProgram(material, program, properties);
+    const before = properties.uniforms;
+    handler.renderEnd();
+    const draw = (scene: THREE.Scene): void => {
+      scene.add(mesh); handler.renderStart(scene, camera); handler.updateLights([light]); handler.setObject(mesh, material);
+      try { material.onBeforeRender(renderer, scene, camera, geometry, mesh, new THREE.Group()); }
+      finally { handler.renderEnd(); }
+    };
+    draw(page);
+    const builds = field === 'shared' ? 1 : 2;
+    expect(handler.builds).toBe(builds);
+    if (field === 'shared') expect(properties.uniforms).toBe(before);
+    else expect(properties.uniforms).not.toBe(before);
+    page.fog = new THREE.Fog(0x0000ff, 1, 10); draw(page);
+    expect(handler.builds).toBe(builds + 1); expect(properties.uniforms).not.toBe(before);
+    expect(Object.values(properties.uniforms ?? {}).some(uniform => typeof uniform === 'object' && uniform !== null
+      && Reflect.get(uniform, 'value') === page.fog?.color)).toBe(true);
+    const unrelated = new THREE.Scene(); unrelated.fog = page.fog; unrelated.environment = environment; draw(unrelated);
+    expect(handler.builds).toBe(builds + 2);
+  } finally { material.dispose(); geometry.dispose(); environment.dispose(); otherEnvironment.dispose(); light.dispose(); otherLight.dispose(); }
 });
 
 test('lent post inputs retain distinct sampler slots before and after placeholder retargeting', () => {
