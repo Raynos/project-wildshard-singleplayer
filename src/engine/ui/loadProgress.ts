@@ -1,3 +1,4 @@
+import type { Scope } from '../app/scope';
 import { engineString } from '../strings';
 import { app } from '../app/runtime';
 import { mountUi, uiScope } from './ownership';
@@ -52,8 +53,8 @@ export class LoadProgress {
 
 /** A user-requested code feature owns visible preparation progress. Completion
  * counts the import, not guessed network bytes. Retirement always removes UI. */
-export async function loadModuleWithProgress<T>(label: string, load: () => Promise<T>): Promise<T> {
-  const owner = uiScope('module-load'), host = document.createElement('div'), progress = new LoadProgress(host);
+export async function loadModuleWithProgress<T>(label: string, load: () => Promise<T>, parent?: Scope): Promise<T> {
+  const owner = uiScope('module-load', parent), host = document.createElement('div'), progress = new LoadProgress(host);
   mountUi(host, owner, document.body);
   app.ui.push('modal', { root: progress.element, embedded: true, back: () => undefined }, owner);
   owner.onDispose(() => { progress.dispose(); });
