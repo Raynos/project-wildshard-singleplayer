@@ -137,6 +137,11 @@ export function createShardProduct(input: ShardProductInput): ShardProduct {
   function json<T>(name: string): Promise<T>;
   async function json(name: string): Promise<unknown> {
     const file = named(name);
+    // Unsupported browser ingestion refuses before touching the blob reader.
+    // An explicit native port keeps author bundles checked even under SSR:false.
+    if (!(import.meta.env?.SSR ?? true) && input.builtJson !== true && input.jsonCheck === undefined && file.jsonSchema !== undefined) {
+      throw new Error('Shardfile needs server validation before client admission');
+    }
     const bytes = await input.read(file.hash);
     // a read in play lets a due frame through between its parse, schema compile and validation (pacedResolve)
     const decoded: unknown = file.jsonSchema === undefined ? JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes))

@@ -93,7 +93,9 @@ test('browser products need a build proof and bundle no checked host intake', as
     files: new Map([['value.json', { hash: jsonHash, url: '/value.json', jsonSchema: { type: 'object', properties: { value: { type: 'number' } } } }]]),
     read: vi.fn(() => Promise.resolve(jsonBytes)) };
   expect(await loaded.createShardProduct({ ...jsonInput, builtJson: true }).json<{ value: number }>('value.json')).toEqual({ value: 7 });
+  jsonInput.read.mockClear();
   await expect(loaded.createShardProduct(jsonInput).json('value.json')).rejects.toThrow('server validation');
+  expect(jsonInput.read).not.toHaveBeenCalled();
   await expect(loaded.createShardProduct({ ...jsonInput, builtJson: true, read: () => Promise.resolve(new TextEncoder().encode('{broken')) }).json('value.json')).rejects.toThrow();
   await expect(loaded.createShardProduct({ ...jsonInput, builtJson: true, read: () => Promise.resolve(new Uint8Array([255])) }).json('value.json')).rejects.toThrow();
   const first = index.sections[0]; if (first === undefined) throw new Error('Missing section');
