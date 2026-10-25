@@ -5,7 +5,7 @@ import { resolve } from 'node:path';
 import ts from '@typescript/typescript6';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { CreaturesSchema } from '../src/format/creatures';
+import { CreaturesSchema } from './creatures';
 
 test('creature declarations bound metadata while retaining imported brain and group contracts', () => {
   const emitted = ts.transpileDeclaration(readFileSync('src/format/creatures.ts', 'utf8'), {

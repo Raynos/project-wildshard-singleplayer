@@ -78,7 +78,7 @@ implementation. Existing test identities, assertions and deadlines stay fixed.
 
 | Slice | Scope | Budget | Status |
 |---|---|---|---|
-| T3-F1 | Eight format declaration suites: arena, audio, boss, channels, creatures, equipment, materials and roaming combat | 45 min | open |
+| T3-F1 | Eight format declaration suites: arena, audio, boss, channels, creatures, equipment, materials and roaming combat | 45 min | done (2026-10-24, sp-x8) |
 | T3-F2 | Eight format declaration suites: client plan, items, native plan, painted look, rows, dressing and species metadata | 45 min | open |
 | T3-F3 | Four format declaration suites: specimen, assembly, world models/page and scenes | 30 min | open |
 | T3-G1 | Remaining game units with existing public lower-layer imports; adapt byte fixtures without new exports or encoding debt | 60 min | in flight (2026-10-24, sp-x8) |

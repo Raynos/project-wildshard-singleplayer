@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import ts from '@typescript/typescript6';
 import { expect, test } from 'vitest';
-import { HeldEquipmentSchema, type HeldEquipmentInput, type HeldEquipmentRows } from '../src/format/heldEquipment';
+import { HeldEquipmentSchema, type HeldEquipmentInput, type HeldEquipmentRows } from './heldEquipment';
 import * as v from 'valibot';
 
 test('held equipment declarations bound metadata and retain explicit authored and parsed data', () => {

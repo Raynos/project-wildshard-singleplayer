@@ -5,7 +5,7 @@ import { resolve } from 'node:path';
 import ts from '@typescript/typescript6';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { FamilyMaterialSchema } from '../src/format/materialFamilies';
+import { FamilyMaterialSchema } from './materialFamilies';
 
 test('material-family declarations isolate validator internals while retaining defaulted data', () => {
   const emitted = ts.transpileDeclaration(readFileSync('src/format/materialFamilies.ts', 'utf8'), {
