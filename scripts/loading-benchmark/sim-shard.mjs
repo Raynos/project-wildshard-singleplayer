@@ -60,14 +60,15 @@ export function compiledEntryQualification(rows) {
 }
 
 /** Safari's timeOrigin can round differently in one live document. Fence
- * navigation with its per-document token, retaining the raw clock drift.
+ * navigation with its per-document token. Retain the page origin and raw
+ * drift so worker-relative receipts can be aligned from the result alone.
  * @param {import('./sim-shard.mjs').CompiledDocument} first
  * @param {import('./sim-shard.mjs').CompiledDocument} last */
 export function compiledDocumentEvidence(first, last) {
   if (typeof first.documentToken !== 'string' || first.documentToken.length === 0
     || first.documentToken !== last.documentToken || !Number.isFinite(first.origin) || !Number.isFinite(last.origin))
     throw new Error('Compiled frame window changed document or has no document identity');
-  return { token: first.documentToken, originDriftMs: last.origin - first.origin };
+  return { token: first.documentToken, timeOrigin: first.origin, originDriftMs: last.origin - first.origin };
 }
 
 /** A saved-pose update skips descent; require actual unpaused gameplay rather than an invented reveal. */

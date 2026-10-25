@@ -40,7 +40,7 @@ test('compiled refusals and missing frame evidence remain incomplete rather than
 test('compiled document identity records the observed one-millisecond Safari origin drift', () => {
   const first = {origin: 1792948830448, documentToken: 'same-live-document'};
   expect(compiledDocumentEvidence(first, {...first, origin: 1792948830449}))
-    .toEqual({token: 'same-live-document', originDriftMs: 1});
+    .toEqual({token: 'same-live-document', timeOrigin: first.origin, originDriftMs: 1});
   expect(compiledDocumentEvidence(first, {...first, origin: first.origin - 1}).originDriftMs).toBe(-1);
   expect(() => compiledDocumentEvidence(first, {...first, documentToken: 'replacement-document'})).toThrow('changed document');
   expect(() => compiledDocumentEvidence(first, {origin: first.origin})).toThrow('identity');

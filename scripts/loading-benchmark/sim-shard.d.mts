@@ -18,7 +18,7 @@ export interface CompiledEntryQualification {
 }
 export function compiledEntryQualification(rows: readonly {error?: string; worstFrameAfterControlsMs?: number}[]): CompiledEntryQualification;
 export interface CompiledDocument { readonly origin: number; readonly documentToken?: string | null }
-export function compiledDocumentEvidence(first: CompiledDocument, last: CompiledDocument): { token: string; originDriftMs: number };
+export function compiledDocumentEvidence(first: CompiledDocument, last: CompiledDocument): { token: string; timeOrigin: number; originDriftMs: number };
 export function recoveredGridControls(sample: {
   readonly bootEntry?: { readonly reason?: string; readonly saved?: boolean; readonly continuing?: boolean; readonly grid?: boolean } | null;
   readonly world?: { readonly entered?: boolean; readonly paused?: boolean; readonly frameGate?: boolean } | null;
