@@ -237,7 +237,7 @@ browsers and the owned preview are closed; no Sim was used.
 | T1 | Leak-free disposal: finish O18 (sp-o3); ghost counter per tile and region scope | `grid/live.ts`, new `grid/ghosts.ts` | Codex | 1 d (+ sp-o3) | **done (2026-10-24, sp-x9; G710 settled sample):** 196 observed tile lifetimes / five returns; settled R4→R5 +10.62 MB, ghosts 0/0; old warm-up-baseline grade remains FAIL as detailed below | sp-o3 |
 | T2 | Engine tile residency host (`engine/world/tileResidency`): rect tiles of any size, N×N full ring + coarse ring, parent-first, no holes, hysteresis, per-frame bytes and ms budget, scope + lease per tile. `rings.ts` and `clientWorld.ts` become users (net deletion); road and junction tile types | `game/grid/rings.ts`, `shardfile/clientWorld.ts`, `residency.ts` | Codex | 2 d | host-bar six tests; Node 1 km drive: resident ≤ 25 + ring, 0 hole frames; same trace as today at 150 m | — |
 | T3 | Per-tile content: placements bucketed by pose (no rebake) into per-model instance ranges; welds / merged / baked sets by triangle centroid; registry colliders per tile scope | `worldScenes.ts`, `worldScenePlacement.ts`, `bakedTiles.ts`, `sdk/bake/worldGlb.ts` | Codex + Opus | 3 d | DW draw count ±10 % of today at the same pose; no visual diff in the 5 × 5 | T2 |
-| T4 | The entered world streams (H3 generalised, joined with sp-o1): shard-global state + rank-0 tiles before controls, the rest via T2; SHARD SELECT and grid | `grid/liveSession.ts` `enterInitialHome`, `shardfile/client.ts` | Codex (sp-x2, G708) | ≤1 h slices below | **in flight:** DW SHARD SELECT + grid: tap → controls −30 % vs M1; worst frame ≤ 100 ms | T2, T3 |
+| T4 | The entered world streams (H3 generalised, joined with sp-o1): shard-global state + rank-0 tiles before controls, the rest via T2; SHARD SELECT and grid | `grid/liveSession.ts` `enterInitialHome`, `shardfile/client.ts` | Codex (sp-x2, G708) | ≤1 h slices below | **in flight:** exact30f grid cold/warm9.899/12.478s,45/41ms worst; compiled7.136/7.229s,110/90ms worst. Cold compiled still FAILS100ms; no standalone M1 exists for a percentage claim. | T2, T3 |
 | T5 | Debug row "Tile residency: 3 × 3 / 5 × 5 / whole shard" (A/B/C, E451) and a Developer overlay (tile borders, resident colour, MB per tile) | Settings Debug, minimap | Opus | 0.5 d | Jake can feel it on Driftwood (first playable slice: T2 + T3 (DW only) + T4 + T5) | T4 |
 | T6 | Creatures, NPCs and figures by tile: presentation in resident tiles; brains global, dormant outside 5 × 5; patrols that cross tiles hand over | population, quest figures | Codex | 1.5 d | DW boar / captain fights unchanged; memory drops by its T0 share | T3 |
 | T7 | Crossings by tiles: neighbour region = small state; tiles by distance; the source evicts behind the player; delete whole-world `warmAhead` and the 4-world cap | `grid/live.ts`, `liveSession.ts`, `hybrid.ts` | Opus + Codex | 2.5 d | DW↔Sky ×5 on Chromium phone tier: peak ≤ 1.2 GB per shard, back to baseline ±20 MB, crossing < 5 s, worst frame ≤ 100 ms | T1, T4, T6 |
@@ -260,7 +260,7 @@ Each engineering slice below is at most one hour; milestone measurements stay se
 | T4.3c Compiled frame qualification | done (this code commit) | The one `dd2d8d6164` compiled pair completed/errors 0: controls 16.120/7.027 s cold/warm, eight-second worst 372/81 ms. Cold FAIL / warm PASS; no repeat or standalone percentage claim. Summary now reports the 100 ms gate across every visit, exit 2 for a measured miss and exit 1 for incomplete/refused evidence; eleven related cases, narrow strict contract types and typed lint pass. Offline classification of that saved pair exits 2; grid M1 behavior stays unchanged. T4 remains open pending attribution and matched grid evidence. |
 | T4.3d Post-controls observer work | done (this code commit) | Stop serializing the frozen loading/resource bank and rescanning performance measures on each 500 ms post-controls poll; keep live readiness, document identity and late-error refusal. Saved-pair loading-details JSON is 910,752/763,369 B cold/warm before, 13 B after (common fields excluded); first-ready byte/phase evidence stays fixed. Twelve related cases, narrow strict contract types and typed lint pass after G723 cancelled its unstarted quiet window. No new capture or claim that this caused the cold 372 ms gap. |
 | T4.3e Warm-grid attribution | done (diagnostic only; this code commit records the boundary) | One 653f grid pair: cold/warm controls 15.157/14.534 s, worst 43/201 ms. One approved warm Timeline on the same pin, original clocks/deadline and no quiet: controls 12.578 s, worst 50 ms; the 201 ms miss did not recur. Drift +0.3 ms/drops 0, but rAF coverage 59.9% <80% refuses partition. No causal shader attribution or acceptance gain; shared with sp-x1, which retains G717 shader ownership. T4 stays open; next source work is G734 L18.2–4. |
-| T4.3f Post-J5 entry qualification | in flight (2026-10-25, sp-x2, ≤1 h) | G730 returns here after J5 closure. Reuse exact30f ready preview for one original grid and compiled cold/warm pair through the official reader; preserve clocks/deadlines and100ms post-controls gate. Prior warm-grid201ms/cold-compiled372ms remain open until actual measurements; no profiling or timing credit from Chromium. |
+| T4.3f Post-J5 entry qualification | in flight (2026-10-25, sp-x2): cold compiled frame gate remains open | Original pairs complete on exact30f/build30f0a5d-mvnzxkc8, all4 visits complete: grid controls9.899/12.478s and45/41ms worst (point comparison vs M1 cold/warm35.8/18.6s:−72.3%/−32.9%); compiled7.136/7.229s and110/90ms worst. Compiled cold110ms ends at controls+485ms (starts+375), FAILrc2; warm PASS. First ready poll+217, next+755 with500ms sleep bounds first full-bank read beforeabout+255: no direct overlap, indirectGC unproven. No Timeline/Profiler or cause assigned; shared with G717 shader owner sp-x1. One cohort each/noncausal; standalone M1 remains unavailable. Quiet/Sim/browser/preview all cleaned; no repeat queued. |
 | G720 Data-cell entry coverage | done (`cb756b79df` + this capture commit) | Data-only entry awaits admitted views and required coverage; existing uploaded views survive same-root borrowing. On phone tier, first in-cell sample has 16 L1/15 L0 and no far proxy, 0 ms waiting inside. [Capture and timings](../../../art/grid/round-63-night-market-entry/README.md); no frame-floor claim. |
 | G721.1 Board structural collision | done (`22248f9b6a`) | Separate terrain filtering from surface material: admitted structural meshes stop the board after fresh install and native restore; terrain springs retain their existing heightfield bypass. |
 | G721.2 Shared plot kit and walk | done (`49af17b6b6` + this capture commit) | Shared lamp/stall posts register through the existing physics bake; eight render hashes exact. Full pinned build 0; Night Market walk 3/3 complete, 0 stuck, board escape 0 outside frames. Four-second held-forward check stops outside the wall, 0.16 mm final-second travel. [Phone capture and route](../../../art/grid/round-64-night-market-collision/README.md); no new collider ring policy. |
@@ -274,6 +274,7 @@ Each engineering slice below is at most one hour; milestone measurements stay se
 | T8.1 Complete-L0 bake fences | done (`7093891d97`) | All 24 products declare 64 L0 slots; strict caps and the exact 6/4 exception remain. |
 | T8.2 Driftwood lossless route | waits: low value (50–80 build-only lines for 6,778 B delivered) | Read-only sizing complete: tile 2/4 bypasses named-blob compression and needs an opt-in encoder before the compiler derives hashes/costs, plus parity/GC proofs and registered-job output refresh. Coordinator says skip this route; no implementation or geometry writes. 3/1 and 3/3 remain held because gzip grows. Seek a larger delivered-byte or frame saving. |
 | T8.3 Occupied L1 appearance | waits-Opus | U2's empty parents are complete; occupied parents require genuine coarse proxies and an Opus design or Jake pick. |
+| T8.4 Exact indexed transport sizing | dropped (2026-10-25, sp-x2): gzip grows431,654B | Read-only/in-memory only, all8 over-cap B tiles /27 whole parts. 239,539 native vertex records yield238,486 unique records; all attributes are mapped native channels (0 unused bytes). Raw8,306,872→8,762,272B; gzip-9 2,371,499→2,803,153B. Expanded triangle attribute words match bitwise, existing indexed parts/indices stay exact, but current whole projection cannot consume the reindexed nonindexed parts without an ordinal-expansion change. Reject before decoder/producer work; no geometry file, schema, cap, exact6/4 pin or Jake B change. |
 
 **T4 caller audit:** the non-native `clientWorldAssembly.ts` awaits `residentTiles`
 before installing its follow system, using the cached `SceneHandles.tiled()` list.
@@ -534,6 +535,35 @@ U2's first safe slice (sp-x2, 2026-10-24, `9b179032ff`) excludes L1 from exact
 `readWholeGeometry` defaults and Sky's exact island file list; explicit refs
 keep their strict decoder and order. Complete, validated L0 rows prove only
 these empty parents (no files or costs):
+
+**T8 indexed-transport proposal verdict (2026-10-25, sp-x2): reject.**
+This is a different route from skipped T8.2, sized entirely in memory.
+No geometry files or producers were written. Original blob/section hashes
+were checked before and after. Each candidate keeps material/node metadata,
+transforms and triangle order; an independent packaged-buffer read expands
+its index and compares every original attribute word. Already indexed parts
+retain all original vertices and exact indices, including unused vertices.
+The original whole-partition ordinal metadata is unchanged, so the current
+native projection intentionally cannot accept the reindexed nonindexed parts.
+Even before that decoder work, the transport is larger:
+
+| B tile | Original GLB B | Indexed candidate B | Original gzip-9 B | Candidate gzip-9 B |
+|---|---:|---:|---:|---:|
+| 2/4 | 421,392 | 456,628 | 112,760 | 144,533 |
+| 2/5 | 1,763,416 | 1,866,512 | 574,798 | 670,179 |
+| 3/1 | 375,648 | 407,056 | 96,999 | 125,174 |
+| 3/2 | 755,768 | 808,552 | 191,987 | 238,385 |
+| 3/3 | 308,860 | 331,284 | 83,325 | 103,355 |
+| 5/5 | 1,037,232 | 1,090,312 | 199,262 | 247,530 |
+| 6/3 | 1,301,356 | 1,353,608 | 415,200 | 471,539 |
+| 6/4 | 2,343,200 | 2,448,320 | 697,168 | 802,458 |
+
+Only1,053 of239,539 native vertex records deduplicate (0.44%). All27 parts
+retain source ordinals; there are no unmapped attributes to strip. The index
+overhead defeats the small sharing. Keep B, its exact6/4 resident exception,
+the grid and every cap. This is gzip-9 transport sizing, not a live network,
+GPU, native-peak or retained-memory measurement. No implementation follows.
+
 
 | Full-world emitter | Empty L1 parents | Occupied parents still needing actual coarse proxies |
 |---|---|---|
