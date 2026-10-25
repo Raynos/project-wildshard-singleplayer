@@ -144,7 +144,7 @@ About 10 Opus lane-days, roughly 5 calendar days on two lanes.
 | RM1.2 road stand targets | done | A1: two imagegen candidates, chosen B, nine individually detailed targets and labelled sheet; rejected rear-gate and photographic-ground variants documented |
 | RM1.3 road look targets | done | A2: two saved candidates, nine individual targets and labelled sheet; paired gate identity/scale corrected |
 | RM1.4 40 m pair targets | in flight (2026-10-25, sp-x6) | B1 two candidates + 8/9 detailed targets; SW target 2 image-tool refusals twice, explicit sheet gap. B2 two candidates + 9/9 targets and labelled sheet; invented rear buildings removed |
-| RM1.5 100 m pair targets | open | C1/C2 grids and targets |
+| RM1.5 100 m pair targets | in flight (2026-10-25, sp-x6) | C1 two candidates + nine detailed targets and labelled sheet; C2 detailed and awaiting its small landing |
 | RM1.6 plaza pair targets | open | D1/D2 grids and targets; overview |
 | RM2.1 road / plaza baseline | open | Same source/cameras; draw, triangle and memory readings |
 | RM2.2 aerial baseline | open | 40 m / 100 m pairs and full baseline sheets |
