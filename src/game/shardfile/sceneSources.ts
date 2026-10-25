@@ -13,6 +13,7 @@ import { bakedMeshWorld, type BakedMeshKindRow, type BakedMeshWorld, type BakedB
 import { fetchDeflatedBytes } from '@wildshard/engine/core/deflate';
 import type { ShardProduct } from './shardProduct';
 import { sceneRigFiles } from './sceneRigFiles';
+import { sceneBakeFiles } from './sceneBakeFiles';
 
 type Library = ModelLibrary<string, string>;
 type Kind = BakedMeshKindRow & { readonly surface?: readonly SurfaceLook[]; readonly look?: string };
@@ -71,8 +72,9 @@ export function prepareSceneSources(product: ShardProduct): Promise<void> {
     }
     for (const row of rows.libraries) {
       if (row.kind !== 'baked') continue;
-      const source = await product.json<SceneBakeSource>(row.file);
-      if (!isJsonData(source) || Object.keys(source.rows).length > 128) throw new Error('Invalid declared bake source');
+      const declared = await product.json<SceneBakeSource>(row.file);
+      if (!isJsonData(declared) || Object.keys(declared.rows).length > 128) throw new Error('Invalid declared bake source');
+      const source = sceneBakeFiles(declared, product);
       const name = key(product.slug, row.id), surfaces = inputs(product.slug, source.inputs);
       bakeRows.set(name, source);
       if (!bakes.has(name)) bakes.set(name, bakedMeshWorld(source.rows, source.urls, 'scene source', {
