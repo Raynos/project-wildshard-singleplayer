@@ -5207,6 +5207,12 @@ all started reads settle before the earliest authored refusal returns.
 Asset-map and cache publication happen only after every read succeeds.
 This transport window never changes the page-wide one-slot GLTF decoder.
 
+`ProductOptions.descriptorPath` is a caller-owned pathname used only in
+progress and wait labels, never for transport or admission authority. The
+manifest entry supplies its actual URL pathname; inline inputs without one
+identify their cache key instead of inventing a descriptor file. Later
+phases name already-computed source or asset hashes when available.
+
 `ProductOptions.cacheBatch` optionally overlaps four offline-cache writes or
 durable-presence checks per settled window. Pins remain held through all
 started operations, including failure; refusals retain authored order.

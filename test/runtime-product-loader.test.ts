@@ -11,7 +11,7 @@ import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { parseOutputIndex } from '../src/format/outputIndex';
 import { outputSectionPayloads } from '../src/format/outputFields';
 import { loadManifestProduct,provideManifestAdmission,loadShardProduct, runtimeProduct, shardProductFromAdmission } from '../src/game/shardfile/runtimeProduct';
-import { admitProduct, readProductDescriptor, type ProductOptions, type ProductCache } from '../src/game/shardfile/product';
+import { admitProduct, readProductDescriptor, type ProductOptions, type ProductCache, type ProductProgress } from '../src/game/shardfile/product';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
 import { neighbourProductFiles, productResidentBytes, jsonResidentBytes, runtimeOnlyProductFiles, runtimeOnlyProductFilesPaced, tierLibrarySource, urlImageLibrarySource, scopedSpecimenLibrarySource, scopedSpecimenLibrarySourcePaced } from '../src/game/shardfile/productCost';
 import { carryOutputDescriptor, outputDescriptor, resolveOutputDescriptor } from '../src/game/shardfile/outputDescriptor';
@@ -84,6 +84,54 @@ function fixture(platformRef = false, extra?: (source: schema.Shardfile) => Read
   return { source, index, wires, options, blob, ref, receipt, descriptors: () => descriptors };
 }
 function trust(receipt: unknown): void { vi.stubGlobal('__SHARDFILE_VALIDATOR__', 'loader-test'); vi.stubGlobal('__SHARDFILE_VERDICTS__', [receipt]); }
+
+test.each([false, true])('every admission phase identifies its actual descriptor or hash (receipt %s)', async trusted => {
+  const f = fixture(), progress: ProductProgress[] = [], stored = new Map<string, Uint8Array>();
+  if (trusted) trust(f.receipt);
+  const cache: ProductCache = {
+    product: () => Promise.resolve(null), asset: (_base, hash) => Promise.resolve(stored.get(hash) ?? null),
+    putAsset: (_base, hash, wire) => { stored.set(hash, wire); return Promise.resolve(); },
+    putProduct: () => Promise.resolve(),
+  };
+  const fetch = vi.fn(f.options.fetch);
+  const admitted = await admitProduct(f.index, {...f.options, cache, fetch,
+    descriptorPath: '/shardfiles/runtime-loader/shard.json', progress: row => { progress.push(row); }});
+  expect(admitted.source).toEqual(f.source);
+  expect(admitted.assets.get(f.ref)).toEqual(f.blob);
+  expect(progress[0]).toMatchObject({phase: 'cache-read', filesDone: 0, filesTotal: 0});
+  expect(progress.at(-1)).toMatchObject({phase: 'complete', filesDone: 1, filesTotal: 1, bytesRead: 3, bytesTotal: 3});
+  expect(progress.some(row => row.phase === 'validation')).toBe(true);
+  expect(progress.some(row => row.phase === 'cache')).toBe(true);
+  expect(fetch.mock.calls.some(([url]) => url.endsWith('/shard.json'))).toBe(false);
+  for (const row of progress) {
+    expect(row.detail).toMatch(/\/shardfiles\/runtime-loader\/shard\.json|\b[a-f0-9]{12}\b/u);
+  }
+});
+
+test('inline admission without a descriptor path identifies its cache key without inventing a file', async () => {
+  const f = fixture(), progress: ProductProgress[] = [];
+  trust(f.receipt);
+  await admitProduct(f.index, {...f.options, progress: row => { progress.push(row); }});
+  expect(progress[0]?.detail).toBe('Checking visited product · /shardfiles/runtime-loader/');
+  expect(progress[0]?.detail).not.toContain('shard.json');
+});
+
+test('a pending visited-cache wait names the real descriptor and drains normally', async () => {
+  const f = fixture(); trust(f.receipt);
+  let release = (): void => { throw new Error('Uninitialized visited read'); };
+  const visited = new Promise<null>(resolve => { release = () => { resolve(null); }; });
+  const cache: ProductCache = {product: () => visited, asset: () => Promise.resolve(null),
+    putAsset: () => Promise.resolve(), putProduct: () => Promise.resolve()};
+  const pending = admitProduct(f.index, {...f.options, cache, descriptorPath: '/actual/entry.json'});
+  try {
+    expect(bootWaits().some(row => row.kind === 'file'
+      && row.label === 'Read visited product cache · /actual/entry.json')).toBe(true);
+  } finally {
+    release();
+    expect((await pending).assets.get(f.ref)).toEqual(f.blob);
+  }
+  expect(bootWaits()).toHaveLength(0);
+});
 
 test('private exact admission avoids offline decoder and graph validation', async () => {
   const f = fixture(); trust(f.receipt);

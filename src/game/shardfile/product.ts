@@ -60,6 +60,8 @@ export interface ProductOptions {
   textures?: TextureTranscodeSupport;
   /** Optional catalogue SHA-256 of the exact format-2 index wire bytes. */
   descriptorHash?: string;
+  /** Caller-owned descriptor pathname for progress only; never a fetch or validation input. */
+  descriptorPath?: string;
   base: string; cache?: ProductCache; offline: boolean; firstParty: boolean;
   /** Optional URL-cache hint for sections and blobs; readers still verify declared sizes and hashes. */
   cachedResponse?: (url: string, hash: string, maximum: number) => Promise<Uint8Array | null>;
@@ -256,8 +258,9 @@ async function cacheRows<T>(rows: readonly T[], batch: boolean, work: (row: T) =
 }
 async function admitProductWork(input: unknown, options: ProductOptions): Promise<AdmittedProduct> {
   const base = new URL('.', options.base).href;
-  options.progress?.({ phase: 'cache-read', detail: 'Checking visited product', bytesRead: 0, bytesTotal: 0, filesDone: 0, filesTotal: 0 });
-  const visited = await waitFor('Read visited product cache', Promise.resolve(options.cache?.product(base)), 'file');
+  const descriptorPath = options.descriptorPath ?? new URL(base).pathname;
+  options.progress?.({ phase: 'cache-read', detail: `Checking visited product · ${descriptorPath}`, bytesRead: 0, bytesTotal: 0, filesDone: 0, filesTotal: 0 });
+  const visited = await waitFor(`Read visited product cache · ${descriptorPath}`, Promise.resolve(options.cache?.product(base)), 'file');
   if (visited !== null && visited !== undefined) preflightShardfile(visited);
   const cached = options.offline ? visited : null;
   if (cached !== null && cached !== undefined && !isOutputIndex(cached.source)) throw new Error('Cached shardfile requires a format-2 rebuild');
@@ -282,8 +285,9 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
   // An exposed root (raw === descriptorInput) must hash again: callers may have changed it.
   const fresh = raw !== descriptorInput && source === raw && isBuildValidatedOutput(source);
   const sourceHash = revisionKey === null ? '' : fresh && built?.revision === revisionKey ? built.sourceHash
-    : await waitFor('Hash product validation source', options.hash(validationSourceBytes(source)), 'worker');
+    : await waitFor(`Hash product validation source · ${descriptorPath}`, options.hash(validationSourceBytes(source)), 'worker');
   if (built !== undefined && sourceHash !== built.sourceHash) throw new Error('Built shardfile changed after verification');
+  const reference = sourceHash === '' ? descriptorPath : sourceHash.slice(0, 12);
   // A build receipt is pinned inside this client, never fetched from data.
   const receipt = revisionKey !== null
     ? readValidationReceipt(visited?.validation, sourceHash) ?? (options.firstParty ? builtValidationReceipt(sourceHash) : null) : null;
@@ -340,7 +344,7 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
   const progress = (phase: ProductProgress['phase'], detail: string): void => {
     options.progress?.({ phase, detail, bytesRead, bytesTotal, filesDone, filesTotal: addresses.length });
   };
-  progress('assets', 'Reading immutable assets');
+  progress('assets', `Reading immutable assets · ${reference}`);
   const load = async ([hash, cap]: [string, number]): Promise<Uint8Array> => {
     const url = outputBlobUrl(source, ownFiles.has(hash) ? hash : `commons:${hash}`, base);
     const verified = await waitFor(`${options.transport === undefined ? 'Verified cache' : 'Read'} ${hash.slice(0, 12)}`, (async () =>
@@ -370,7 +374,7 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
     }
     if (transported.has(hash)) noteDownloadRead(bytes.length);
     else if (fromCache) { verifiedCached.add(hash); recordCachedDownload(hash, bytes.length, url); }
-    filesDone++; progress('assets', `Verified ${filesDone} / ${addresses.length} files`);
+    filesDone++; progress('assets', `Verified ${hash.slice(0, 12)} · ${filesDone} / ${addresses.length} files`);
     return owned;
   };
   type ReadResult = { readonly ok: true; readonly bytes: Uint8Array } | { readonly ok: false; readonly error: unknown };
@@ -398,7 +402,7 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
     if (bytes === undefined) throw new Error('Asset was not admitted');
     assets.set(ref, bytes);
   }
-  progress('validation', receipt === null ? 'Validating assets, simulation and entries' : 'Verified exact product validation receipt');
+  progress('validation', `${receipt === null ? 'Validating assets, simulation and entries' : 'Verified exact product validation receipt'} · ${reference}`);
   if (receipt === null) {
     await validateCheckedProductAssets(source, assets, (bytes) => {
       const hash = hashes.get(bytes); if (hash === undefined) throw new Error('Asset was not hashed'); return hash;
@@ -417,22 +421,22 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
     await options.pause?.();
   }
   if (!options.offline && options.cache !== undefined) {
-    progress('cache', 'Saving verified offline assets');
+    progress('cache', `Saving verified offline assets · ${reference}`);
     const cache = options.cache, descriptor = outputDescriptor(source);
     const sectionFiles = descriptor === undefined ? [] : [...descriptor.index.sections, ...descriptor.index.schemas];
     const release = cache.pin?.([...assets.keys()].map((ref) => ref.replace(/^commons:/u, '')).concat(sectionFiles.map(section => section.hash)));
     try {
-      let complete = descriptor?.cacheStored === undefined ? descriptor?.cached ?? true : await waitFor('Persist product sections', descriptor.cacheStored, 'file');
+      let complete = descriptor?.cacheStored === undefined ? descriptor?.cached ?? true : await waitFor(`Persist product sections · ${reference}`, descriptor.cacheStored, 'file');
       await cacheRows([...assets], options.cacheBatch === true, async ([ref, bytes]) => {
         const hash = ref.replace(/^commons:/u, '');
         if (verifiedCached.has(hash)) return; // Exact cached bytes were already admitted; avoid rewriting the same immutable file.
-        progress('cache', `Saving ${ref.slice(0, 12)}`);
+        progress('cache', `Saving ${hash.slice(0, 12)}`);
         if (!await waitFor(`Save ${hash.slice(0, 12)}`, (async () => await cache.putAsset(base, hash, bytes) !== false)(), 'file')) complete = false;
       });
       const present = (hash: string, bytes: number): Promise<boolean> => waitFor(`Check saved ${hash.slice(0, 12)}`, (async () => cache.verifiedPresent === undefined
         ? await cache.asset(base, hash) !== null : cache.verifiedPresent(hash, bytes))(), 'file');
       await cacheRows([...assets], options.cacheBatch === true, async ([ref, bytes]) => {
-        const hash = ref.replace(/^commons:/u, ''); progress('cache', `Checking saved ${ref.slice(0, 12)}`);
+        const hash = ref.replace(/^commons:/u, ''); progress('cache', `Checking saved ${hash.slice(0, 12)}`);
         if (await present(hash, bytes.length)) return;
         // Another owner/browser may have evicted a previously verified hit before this publication pin.
         // Repair that miss, then recheck durable presence just as for a newly fetched file.
@@ -451,7 +455,7 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
       }
     } finally { release?.(); }
   }
-  progress('complete', 'Product admitted');
+  progress('complete', `Product admitted · ${reference}`);
   await options.pause?.();
   return { source, assets, cached: cached !== null && cached !== undefined, ...(options.firstParty ? { releaseTransport: transportRelease(source, assets, options), releasePreparedTransport: transportRelease(source, assets, options, true) } : {}), ...(options.firstParty ? {} : { instance: await externalShardInstance(base, source.identity.slug, options.hash) }) };
 }

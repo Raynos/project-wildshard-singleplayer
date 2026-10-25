@@ -142,22 +142,22 @@ export async function installManifestShardfile(manifest: ShardManifest, provided
   if (!options.firstParty) throw new Error('Manifest shardfile descriptors require first-party provenance');
   const url = new URL(manifest.shardfile, options.base);
   if (url.origin !== new URL(options.base).origin || url.search !== '' || url.hash !== '') throw new Error('Manifest shardfile must be an unqualified same-origin source');
-  const productOptions = { ...options, base: new URL('.', url).href };
+  const productOptions = { ...options, base: new URL('.', url).href, descriptorPath: url.pathname };
   let input: unknown;
   if (options.offline) {
-    options.progress?.({ phase: 'descriptor', detail: 'Reading visited shard descriptor', bytesRead: 0, bytesTotal: 0, filesDone: 0, filesTotal: 1 });
+    options.progress?.({ phase: 'descriptor', detail: `Reading visited shard descriptor · ${url.pathname}`, bytesRead: 0, bytesTotal: 0, filesDone: 0, filesTotal: 1 });
     const visited = await options.cache?.product(productOptions.base);
     if (visited?.firstParty !== true) throw new Error('First-party shardfile has not been visited offline');
     input = visited.source;
   } else {
     let bytesRead = 0;
-    options.progress?.({ phase: 'descriptor', detail: 'Fetching shard descriptor', bytesRead, bytesTotal: 0, filesDone: 0, filesTotal: 1 });
+    options.progress?.({ phase: 'descriptor', detail: `Fetching shard descriptor · ${url.pathname}`, bytesRead, bytesTotal: 0, filesDone: 0, filesTotal: 1 });
     const response = await options.fetch(url.href), length = Number(response.headers.get('content-length'));
     const bytesTotal = Number.isSafeInteger(length) && length > 0 ? length : 0;
     const bytes = await boundedResponse(response, limits.sourceBytes, (size) => {
-      bytesRead += size; options.progress?.({ phase: 'descriptor', detail: 'Reading shard descriptor', bytesRead, bytesTotal, filesDone: 0, filesTotal: 1 });
+      bytesRead += size; options.progress?.({ phase: 'descriptor', detail: `Reading shard descriptor · ${url.pathname}`, bytesRead, bytesTotal, filesDone: 0, filesTotal: 1 });
     });
-    options.progress?.({ phase: 'descriptor', detail: 'Parsing shard descriptor', bytesRead, bytesTotal: bytesRead, filesDone: 1, filesTotal: 1 });
+    options.progress?.({ phase: 'descriptor', detail: `Parsing shard descriptor · ${url.pathname}`, bytesRead, bytesTotal: bytesRead, filesDone: 1, filesTotal: 1 });
     input = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
   }
   if (!isOutputIndex(input)) throw new Error('Manifest shardfile requires a format-2 output');

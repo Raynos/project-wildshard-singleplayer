@@ -129,11 +129,20 @@ test.each([true, false])('first-party data admission retains Explore=%s without 
   const { source, wires } = fixture(false, 0, 1, 'template');
   const explore = { art: { world: '/assets/world.webp', models: '/assets/models.webp', sets: '/assets/sets.webp', practice: '/assets/practice.webp' } };
   const legacyLoad = () => Promise.reject(new Error('Native loader must not run'));
-  const manifest = { ...sourceManifest(source), ...(withExplore ? { explore } : {}), load: legacyLoad, shardfile: `${base}shard.json` };
+  const descriptorName = withExplore ? 'entry.json' : 'shard.json';
+  if (withExplore) {
+    const wire = wires.get('shard.json');
+    if (wire === undefined) throw new Error('Missing fixture descriptor');
+    wires.set(descriptorName, wire);
+  }
+  const manifest = { ...sourceManifest(source), ...(withExplore ? { explore } : {}), load: legacyLoad, shardfile: `${base}${descriptorName}` };
   const previous = shards(), active = game.shard;
+  const descriptorDetails: string[] = [];
   try {
     installShards([manifest]);
-    const installed = await installManifestShardfile(manifest, options(wires), {
+    const installed = await installManifestShardfile(manifest, {...options(wires), progress: row => {
+      if (row.phase === 'descriptor') descriptorDetails.push(row.detail);
+    }}, {
       instance: 'template-solo', recipes: new Map(), items: new Map(), catalogue: [],
       voices: () => new Map(), icon: () => { throw new Error('No fixture item'); },
     });
@@ -142,6 +151,8 @@ test.each([true, false])('first-party data admission retains Explore=%s without 
     expect(installed.load).not.toBe(legacyLoad);
     expect(installed.ground).not.toBe(manifest.ground);
     expect(installed.ground.terrain?.heightAt(0, 0)).toBe(0);
+    expect(descriptorDetails.length).toBeGreaterThan(0);
+    for (const detail of descriptorDetails) expect(detail).toContain(new URL(manifest.shardfile).pathname);
   } finally { installShards(previous); setActiveChunk(active.slug); }
 });
 
