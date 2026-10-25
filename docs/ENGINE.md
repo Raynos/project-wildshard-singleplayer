@@ -1677,6 +1677,14 @@ live frame. The ordinary frame still restores and applies layers in its usual or
 Every shader patch goes through `patchShader(material, id, order, fn, { scope, mode?, key? })`. A raw
 `onBeforeCompile` or `customProgramCacheKey` is a lint error (`wildshard/no-raw-shader-patch`).
 
+Graph programs key built-in lights, fog model and classic PMREM layout by shader
+shape. Replacing a scene rebuilds its JS uniform bindings while reusing the
+native program. Live light/fog/environment values remain uniforms. Custom light
+nodes, material environment overrides and unrecognized scene inputs retain
+identity keys. A patch opts into this reuse only with `sceneShapeKey:true`,
+`pureKey:true` and an explicit complete source key; CSM, region looks and cell
+clipping declare that contract. Other patch chains stay strict.
+
 | Export | What it is |
 |---|---|
 | `patchShader` | registers a patch; returns its remover. Pass `scope` so it goes with your level |

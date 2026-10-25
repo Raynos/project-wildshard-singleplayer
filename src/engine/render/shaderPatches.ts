@@ -49,13 +49,17 @@ export interface ShaderPatchOptions {
   /** `key` is a function of its input alone (an append of what the patch captured): a node renderer may keep its result
    *  for the same input, as it asks on every draw. Leave unset for a key that reads changing state. */
   pureKey?: boolean;
+  /** The explicit patch key describes every shader-source choice; replacing
+   * builtin scene inputs only requires fresh uniform bindings. Opt in only for
+   * renderer-independent patches with a pure key. Custom hooks stay strict. */
+  sceneShapeKey?: boolean;
   /** Borrowed textures injected through shader uniforms; warm-up uploads them before the first draw. */
   textures?: readonly THREE.Texture[];
   /** removes the patch when the scope is disposed */
   scope?: Scope;
 }
 
-interface Entry { readonly id: string; readonly order: number; readonly seq: number; readonly fn: ShaderPatchFn; readonly key?: ShaderPatchKey; readonly pureKey?: boolean; readonly textures?: readonly THREE.Texture[] }
+interface Entry { readonly id: string; readonly order: number; readonly seq: number; readonly fn: ShaderPatchFn; readonly key?: ShaderPatchKey; readonly pureKey?: boolean; readonly sceneShapeKey?: boolean; readonly textures?: readonly THREE.Texture[] }
 interface State {
   entries: Entry[];
   /** Uniform textures observed when these callbacks actually compile. */
@@ -141,7 +145,7 @@ export function takeForeignHook(mat: THREE.Material, install: () => void): Shade
 export function patchShader(mat: THREE.Material, id: string, order: number, fn: ShaderPatchFn, opts: ShaderPatchOptions = {}): () => void {
   const mode = opts.mode ?? 'chain';
   const state = stateOf(mat, mode);
-  const entry: Entry = { id, order, seq: seq++, fn, ...(opts.key === undefined ? {} : { key: opts.key }), ...(opts.pureKey === true ? { pureKey: true } : {}), ...(opts.textures === undefined ? {} : { textures: [...opts.textures] }) };
+  const entry: Entry = { id, order, seq: seq++, fn, ...(opts.key === undefined ? {} : { key: opts.key }), ...(opts.pureKey === true ? { pureKey: true } : {}), ...(opts.sceneShapeKey === true ? { sceneShapeKey: true } : {}), ...(opts.textures === undefined ? {} : { textures: [...opts.textures] }) };
   state.entries = [...state.entries, entry].sort((a, b) => a.order - b.order || a.seq - b.seq);
   const keyBefore = state.key, explicitBefore = state.explicitKey;
   const { key } = opts;
@@ -215,6 +219,21 @@ export function shaderPatchSet(mat: THREE.Material): object | null {
   // a key function not marked pure may answer differently each ask: a fresh object, never matched, so it is asked again
   const memo = nodePatchKeys.get(state);
   return memo !== undefined && memo.entries === state.entries && memo.results !== null ? state.entries : {};
+}
+
+const sceneShapePatches = new WeakMap<State, { readonly entries: readonly Entry[]; readonly safe: boolean }>();
+
+/** Only explicitly certified patch chains can share equivalent scene shader
+ * shapes. An inherited own callback or an unkeyed/custom patch stays strict. */
+export function shaderPatchSceneShape(mat: THREE.Material): boolean {
+  const state = states.get(mat);
+  if (state === undefined || mat.onBeforeCompile !== state.runner) return !Object.hasOwn(mat, 'onBeforeCompile');
+  const held = sceneShapePatches.get(state);
+  if (held?.entries === state.entries) return held.safe;
+  const safe = state.before.hook === undefined && state.entries.every(entry => entry.id === 'inherited'
+    || entry.sceneShapeKey === true && entry.pureKey === true && entry.key !== undefined);
+  sceneShapePatches.set(state, { entries: state.entries, safe });
+  return safe;
 }
 
 /** Whether `mat` carries a patch entry `id` (its own, or copied in by `copyShaderPatches`). */

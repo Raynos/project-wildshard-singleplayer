@@ -52,7 +52,7 @@ import * as THREE from 'three';
 import { WebGLNodesHandler } from 'three/examples/jsm/tsl/WebGLNodesHandler.js';
 import { ConvertNode, MaterialReferenceNode, MeshBasicNodeMaterial, NodeFrame, NodeMaterial, PMREMNode, TextureNode, type Node, type NodeBuilder } from 'three/webgpu';
 import { Fn, and, cameraPosition, context, mix, modelWorldMatrix, nodeObject, normalLocal, positionWorld, reference, step, uniform, vec2, vec3, vec4, workingToColorSpace } from 'three/tsl';
-import { shaderPatchProgramKey, shaderPatchSet } from '../shaderPatches';
+import { shaderPatchProgramKey, shaderPatchSet, shaderPatchSceneShape } from '../shaderPatches';
 import { fogPatches, materialNodeFogOf } from '../fogPatches';
 import { planeBiasShadowFilterOn, tentShadowFilterOn } from '../../world/shadowFilter';
 import { colourRampFog, engineFog } from './engineFog';
@@ -74,6 +74,7 @@ import { bindGraphAttributeDefaults, copyGraphAttributeDefaults, prepareGraphAtt
 import { buildWithInstanceAttributes, instanceAttributeShader, nodeInstanceKey } from './nodeInstancing';
 import { TextureUpdates } from './textureUpdates';
 import { withNodeChildSnapshots } from './nodeChildren';
+import { SceneShaderKeys } from './sceneShaderKey';
 import { NodeProgramVariants } from './nodeProgramVariants';
 import { classicModelUniform } from './nodeObjectUniforms';
 import { registerShadowDepthResolver } from '../shadowDepthVariants';
@@ -187,6 +188,7 @@ function fogOf(builder: NodeBuilder): THREE.Fog | THREE.FogExp2 | null {
   const fog: unknown = Reflect.get(scene, 'fog');
   return fog instanceof THREE.Fog || fog instanceof THREE.FogExp2 ? fog : null;
 }
+function isDrawObject(value: unknown): value is THREE.Object3D { return value instanceof THREE.Object3D; }
 function isNode(value: object): value is Node<'vec4'> { return Reflect.get(value, 'isNode') === true; }
 
 /** Three's module-cached material readers must not keep their last retired target. */
@@ -209,7 +211,7 @@ interface StockInternals {
   updateNodes: (nodes: unknown) => void;
   getOutputCallback: (outputNode: Node<'vec4'>, builder: NodeBuilder) => Node<'vec4'>;
   customProgramCacheKeyCallback: (this: THREE.Material) => string;
-  renderStack: { camera: THREE.Camera; sceneContext: { fogNode: Node | null; environmentNode: Node | null; scene: THREE.Object3D; getCacheKey: () => unknown } }[];
+  renderStack: { camera: THREE.Camera; sceneContext: { lightsNode: { getBuiltinLights: () => unknown[] }; fogNode: Node | null; environmentNode: Node | null; scene: THREE.Object3D; getCacheKey: () => unknown } }[];
   programCache: Map<THREE.Material, Map<unknown, ProgramEntry>>;
   collectUniformsGroups: (builder: unknown) => unknown[];
   onBeforeRenderCallback: THREE.Material['onBeforeRender'];
@@ -244,7 +246,8 @@ function isMaterialProperties(value: unknown): value is MaterialProperties { ret
  * one node build not yet paired with the program the renderer acquired for it: the renderer files that program in the
  * material's program map (`programs`, key → program) at `slot`, the map's size when the build ran
  */
-interface PendingBuild { readonly uniformsGroups: unknown[]; readonly updateNodes: unknown; readonly uniforms: Record<string, unknown>; readonly programs: unknown; readonly slot: number }
+interface SceneBinding { readonly scene: WeakRef<object>; readonly rawKey: unknown; readonly lights: string; readonly parameters: THREE.WebGLProgramParametersWithUniforms }
+interface PendingBuild { readonly binding: SceneBinding | null; readonly uniformsGroups: unknown[]; readonly updateNodes: unknown; readonly uniforms: Record<string, unknown>; readonly programs: unknown; readonly slot: number }
 
 /** Node buffer names contain process-global node IDs. Equal cloned graphs share a
  * program, so both its GLSL blocks and each build's runtime groups need names
@@ -344,7 +347,7 @@ function wholeKey(stock: string, toneMapped: boolean, rawOutput: boolean, object
 
 /** one bound target's key context (`EngineNodesHandler.keyContextNow`) */
 interface KeyContext {
-  top: object; lights: number; readonly scene: object; readonly sceneKey: unknown;
+  top: object; lights: number; readonly scene: object; readonly sceneKey: unknown; readonly shaderShape: string | null;
   readonly toneMapping: THREE.ToneMapping; readonly colorSpace: string; readonly stamp: number;
 }
 /** the key contexts a material keeps memos for at once (the screen and the targets one frame draws it into) */
@@ -363,6 +366,7 @@ interface StockKeyMemo {
   toneMapped: boolean;
   rawOutput: boolean;
   sceneIndependent: boolean;
+  sceneShape: boolean;
   /** each object shape's whole key: [plain, receive] */
   readonly keys: Map<string, [string | undefined, string | undefined]>;
   /** each object shape's final key (patches folded in) and its token: [plain, receive] (`keyToken`) */
@@ -422,7 +426,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   private readonly reusable = new Map<string, WeakRef<THREE.Material>>();
   /** each such material's full build, held by the material itself: a key never keeps a retired region's material or its
    *  nodes alive (live P0: Driftwood -> Sky Reach -> Driftwood), and a disposed material's build goes with it */
-  private readonly reusableBuilds = new WeakMap<THREE.Material, { readonly output: BuildOutput; readonly shape: GraphShape; readonly lazy: readonly LazyUniform[] }>();
+  private readonly reusableBuilds = new WeakMap<THREE.Material, { readonly binding: SceneBinding | null; readonly output: BuildOutput; readonly shape: GraphShape; readonly lazy: readonly LazyUniform[] }>();
   /** each graph material's shape, read before its first build touched its nodes */
   private readonly shapes = new WeakMap<THREE.Material, GraphShape>();
   /** programShare: graph shapes whose builds wrote other code under one shared key (they key by their own nodes) */
@@ -430,6 +434,9 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   /** programShare: each shared build key's code, as a length and hash */
   private readonly sharedCode = new Map<string, string>();
   private real: Renderer | null = null;
+  private bindingFacts: { readonly stamp: number; readonly scene: object; readonly rawKey: unknown; readonly lights: string } | null = null;
+  private readonly sceneShaderKeys = new SceneShaderKeys();
+  private readonly sceneBindings = new WeakMap<THREE.Material, Map<unknown, SceneBinding>>();
   private warnedLevelFog = false;
   /** the node programs' uniforms, sent per draw as plain program uniforms (`nodePlainUniforms.ts`); null without a WebGL 2
    *  context */
@@ -534,7 +541,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     // customProgramCacheKey: the tail is read through a stand-in whose class hash is empty, so a shared graph's key walks no
     // node ids at all (computing the hash to cut it off walked them twice a memo miss)
     const blankHash = { prototype: { customProgramCacheKey: (): string => '' } };
-    const sharedStock = (material: THREE.Material, receive: boolean, sceneIndependent: boolean): string => {
+    const sharedStock = (material: THREE.Material, receive: boolean, sceneIndependent: boolean, sceneShape: boolean): string => {
       const lead = this.shareKeyOf(material);
       if (lead === null) return stockKey.call(material);
       // A certified unlit graph reads neither scene lights/environment nor fog. Stock SceneContext still hashes
@@ -543,6 +550,9 @@ export class EngineNodesHandler extends WebGLNodesHandler {
       // remain in this key and wholeKey. The compiler excludes explicit scene inputs, including nested loops.
       if (sceneIndependent)
         return `${lead}|scene:none|${internals(this).renderer.getCacheKey()}${String(receive)}`;
+      const scene = internals(this).renderStack.at(-1)?.sceneContext;
+      const stable = sceneShape && scene !== undefined ? this.sceneShaderKeys.key(scene.scene, scene.lightsNode.getBuiltinLights()) : null;
+      if (stable !== null) return `${lead}|scene:shape:${stable}|${internals(this).renderer.getCacheKey()}${String(receive)}`;
       const bare: unknown = Object.create(material, { constructor: { value: blankHash } });
       const tail: unknown = Reflect.apply(stockKey, bare, []);
       return typeof tail === 'string' ? lead + tail : stockKey.call(material);
@@ -561,19 +571,21 @@ export class EngineNodesHandler extends WebGLNodesHandler {
       const sceneIndependent = this instanceof MeshBasicNodeMaterial && this.userData['graphSceneIndependent'] === true
         && !this.fog && this.envMap === null && this.envNode === null && this.lightsNode === null
         && layer === null && patches === null;
-      if (stamp < 0) { built(); return shaderPatchProgramKey(this, wholeKey(depth ? depthStockKey(this, receive) : sharedStock(this, receive, sceneIndependent), this.toneMapped, rawOutput, objectKey, fog, layer)); }
+      const sceneShape = this instanceof NodeMaterial && Reflect.get(this, 'envMap') === null
+        && this.envNode === null && this.lightsNode === null && shaderPatchSceneShape(this);
+      if (stamp < 0) { built(); return shaderPatchProgramKey(this, wholeKey(depth ? depthStockKey(this, receive) : sharedStock(this, receive, sceneIndependent, sceneShape), this.toneMapped, rawOutput, objectKey, fog, layer)); }
       let memos = stockKeys.get(this);
       if (memos === undefined || memos[0]?.version !== this.version) { memos = []; stockKeys.set(this, memos); }
       let memo: (typeof memos)[number] | undefined; // a loop, not find(): no closure made on every draw
       for (let i = 0; i < memos.length; i++) if (memos[i]?.stamp === stamp) { memo = memos[i]; break; }
       if (memo === undefined) {
-        memo = { stamp, version: this.version, receive: undefined, plain: undefined, fog, layer, toneMapped: this.toneMapped, rawOutput, sceneIndependent, keys: new Map(), tokens: new Map() };
+        memo = { stamp, version: this.version, receive: undefined, plain: undefined, fog, layer, toneMapped: this.toneMapped, rawOutput, sceneIndependent, sceneShape, keys: new Map(), tokens: new Map() };
         // a few key contexts a frame (the screen and its targets); a context that moved on drops out first
         if (memos.length >= MEMO_CONTEXTS) memos.shift();
         memos.push(memo);
-      } else if (memo.fog !== fog || memo.layer !== layer || memo.toneMapped !== this.toneMapped || memo.rawOutput !== rawOutput || memo.sceneIndependent !== sceneIndependent) {
-        if (memo.sceneIndependent !== sceneIndependent) { memo.receive = undefined; memo.plain = undefined; }
-        memo.sceneIndependent = sceneIndependent; memo.fog = fog; memo.layer = layer; memo.toneMapped = this.toneMapped; memo.rawOutput = rawOutput; memo.keys.clear(); memo.tokens.clear();
+      } else if (memo.fog !== fog || memo.layer !== layer || memo.toneMapped !== this.toneMapped || memo.rawOutput !== rawOutput || memo.sceneIndependent !== sceneIndependent || memo.sceneShape !== sceneShape) {
+        if (memo.sceneIndependent !== sceneIndependent || memo.sceneShape !== sceneShape) { memo.receive = undefined; memo.plain = undefined; }
+        memo.sceneShape = sceneShape; memo.sceneIndependent = sceneIndependent; memo.fog = fog; memo.layer = layer; memo.toneMapped = this.toneMapped; memo.rawOutput = rawOutput; memo.keys.clear(); memo.tokens.clear();
       }
       // the whole key, kept per object shape and receive flag while its other parts hold (warm draws ask on every draw)
       let shape = memo.keys.get(objectKey);
@@ -587,7 +599,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
         return tokened(memo, objectKey, slot, shaderPatchProgramKey(this, kept), kept, patches);
       }
       let stock = receive ? memo.receive : memo.plain;
-      if (stock === undefined) { stock = depth ? depthStockKey(this, receive) : sharedStock(this, receive, sceneIndependent); if (receive) memo.receive = stock; else memo.plain = stock; }
+      if (stock === undefined) { stock = depth ? depthStockKey(this, receive) : sharedStock(this, receive, sceneIndependent, sceneShape); if (receive) memo.receive = stock; else memo.plain = stock; }
       const key = wholeKey(stock, this.toneMapped, rawOutput, objectKey, fog, layer); shape[slot] = key; built();
       return tokened(memo, objectKey, slot, shaderPatchProgramKey(this, key), key, patches);
     };
@@ -631,13 +643,14 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     // A new render call or light update: the stock key's scene part is the scene context's hash (its lights, environment
     // and fog), read once here; an unchanged hash keeps the stamp, so a material's key outlives the render call.
     const scene = top.sceneContext, sceneKey = scene.getCacheKey();
-    if (same && c.scene === scene && c.sceneKey === sceneKey) { c.top = top; c.lights = this.lightsStamp; return c.stamp; }
-    const next: KeyContext = { top, lights: this.lightsStamp, scene, sceneKey, toneMapping: renderer.toneMapping, colorSpace: renderer.outputColorSpace, stamp: ++this.keyContextStamp };
+    const shaderShape = this.sceneShaderKeys.key(scene.scene, scene.lightsNode.getBuiltinLights());
+    if (same && c.scene === scene && c.sceneKey === sceneKey && c.shaderShape === shaderShape) { c.top = top; c.lights = this.lightsStamp; return c.stamp; }
+    const next: KeyContext = { top, lights: this.lightsStamp, scene, sceneKey, shaderShape, toneMapping: renderer.toneMapping, colorSpace: renderer.outputColorSpace, stamp: ++this.keyContextStamp };
     if (target === null) this.screenKeyContext = next; else this.keyContexts.set(target, next);
     return next.stamp;
   }
 
-  override renderEnd(): void { try { super.renderEnd(); } finally { this.textureUpdates.endRender(); this.blocks?.invalidateBindings(); } }
+  override renderEnd(): void { try { super.renderEnd(); } finally { this.bindingFacts = null; this.textureUpdates.endRender(); this.blocks?.invalidateBindings(); } }
 
   /** Clone-safe optional attributes use the renderer's existing constant-value binding. */
   override setObject(object: THREE.Object3D, material: THREE.Material): void {
@@ -833,7 +846,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
       const real = key === null ? null : captureBuild(Reflect.get(material, '_latestBuilder'));
       if (key !== null && real !== null && shape !== null && owner !== undefined) {
         const { lazy, rest: unbound } = lazyReads(unboundReads(real, material, owner), owner);
-        if (unbound.length === 0) { this.reusable.set(key, new WeakRef(material)); this.reusableBuilds.set(material, { output: real, shape, lazy }); how += ' + kept'; }
+        if (unbound.length === 0) { this.reusable.set(key, new WeakRef(material)); this.reusableBuilds.set(material, { output: real, shape, lazy, binding: this.sceneBinding(parameters) }); how += ' + kept'; }
       }
     }
     this.disposeFirst(material);
@@ -870,7 +883,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     const uniformsGroups = classicModelUniform(parameters, internals(this).collectUniformsGroups(builder).filter(isBlockGroup));
     stableBufferNames(builder, parameters, uniformsGroups);
     this.blocks?.declare(parameters, uniformsGroups.filter(isBlockGroup));
-    pending.push({ uniformsGroups, updateNodes,
+    pending.push({ binding: this.sceneBinding(parameters), uniformsGroups, updateNodes,
       uniforms: parameters.uniforms, programs, slot: programs instanceof Map ? programs.size : -1 });
     // A cold precompile may never draw. Retain only the stock fallback's runtime
     // view, not the builder's graph caches, source strings, scene and geometry.
@@ -905,7 +918,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   private reusedBuild(key: string, material: THREE.Material, object: THREE.Object3D, shape: GraphShape): BuildOutput | string | null {
     const source = this.reusable.get(key)?.deref(), entry = source === undefined ? undefined : this.reusableBuilds.get(source);
     if (source === undefined || entry === undefined) { this.reusable.delete(key); return null; }
-    if (source === material) return null;
+    if (source === material || !this.sameSceneBinding(entry.binding)) return null;
     const twins = pairShapes(entry.shape, shape);
     if (!bindLazy(entry.lazy, twins, object, material)) return 'a reference uniform cannot be made alike';
     return rebindBuild(entry.output, twins) ?? 'a paired uniform is not a uniform node';
@@ -929,6 +942,60 @@ export class EngineNodesHandler extends WebGLNodesHandler {
       if (Array.isArray(list)) { const added: unknown = list.pop(); list.unshift(added); }
     }
     self.updateNodes(output.updateNodes);
+  }
+
+  /** Native programs share code; their JS uniforms still belong to the scene
+   * which supplied them. No strong scene reference is added to the cache. */
+  private currentBindingFacts(): NonNullable<EngineNodesHandler['bindingFacts']> | null {
+    const scene = internals(this).renderStack.at(-1)?.sceneContext;
+    if (scene === undefined) return null;
+    const held = this.bindingFacts;
+    if (held !== null && held.stamp === this.lightsStamp && held.scene === scene) return held;
+    const next = { stamp: this.lightsStamp, scene, rawKey: scene.getCacheKey(),
+      lights: scene.lightsNode.getBuiltinLights().map(light => light instanceof THREE.Light ? light.id : '').join(',') };
+    this.bindingFacts = next;
+    return next;
+  }
+
+  private sceneBinding(parameters: THREE.WebGLProgramParametersWithUniforms): SceneBinding | null {
+    if (typeof parameters.customProgramCacheKey !== 'string' || !parameters.customProgramCacheKey.includes('|scene:shape:')) return null;
+    const facts = this.currentBindingFacts();
+    return facts === null ? null : { scene: new WeakRef(facts.scene), rawKey: facts.rawKey, lights: facts.lights, parameters };
+  }
+
+  private sameSceneBinding(binding: SceneBinding | null): boolean {
+    if (binding === null) return true;
+    const facts = this.currentBindingFacts();
+    return facts !== null && binding.scene.deref() === facts.scene && binding.rawKey === facts.rawKey && binding.lights === facts.lights;
+  }
+
+  /** A scene with the same shader shape may reuse the native program, but not
+   * a previous scene's lights, fog references, environment sampler or updates. */
+  private refreshSceneBinding(material: THREE.Material, program: unknown): void {
+    const bindings = this.sceneBindings.get(material), binding = bindings?.get(program);
+    if (binding === undefined || this.sameSceneBinding(binding)) return;
+    const object: unknown = this.frame.object;
+    if (!isDrawObject(object)) return;
+    const parameters = { ...binding.parameters };
+    this.build(material, object, parameters);
+    const pending = this.pendingBuilds.get(material), build = pending?.pop();
+    if (pending?.length === 0) this.pendingBuilds.delete(material);
+    if (build === undefined || build.binding === null) throw new Error('Missing refreshed scene binding');
+    material.onBeforeCompile(parameters, this.classicRenderer());
+    const known = internals(this).programCache.get(material), previous = known?.get(program);
+    if (known === undefined || previous === undefined) throw new Error('Missing node program binding');
+    for (const group of previous.uniformsGroups) {
+      if (typeof group !== 'object' || group === null) continue;
+      this.blocks?.release(group);
+      const dispose: unknown = Reflect.get(group, 'dispose');
+      if (typeof dispose === 'function') Reflect.apply(dispose, group, []);
+    }
+    releaseMaterialReferences(previous.updateNodes, material);
+    known.set(program, { uniformsGroups: build.uniformsGroups, uniforms: build.uniforms,
+      uniformsList: uniformsListOf(program, build.uniforms), updateNodes: build.updateNodes });
+    bindings?.set(program, build.binding);
+    this.drawEntries.delete(material);
+    Reflect.deleteProperty(material, '_latestBuilder');
   }
 
   /**
@@ -955,6 +1022,10 @@ export class EngineNodesHandler extends WebGLNodesHandler {
           // a build from before the material was disposed filed into a map that is gone: nothing to pair
           const built: unknown = build.programs === programs ? acquired[build.slot] : undefined;
           if (built === undefined || known.has(built)) continue;
+          if (build.binding !== null) {
+            const bindings = this.sceneBindings.get(material) ?? new Map<unknown, SceneBinding>();
+            bindings.set(built, build.binding); this.sceneBindings.set(material, bindings);
+          }
           known.set(built, { uniformsGroups: build.uniformsGroups, uniforms: build.uniforms, uniformsList: uniformsListOf(built, build.uniforms), updateNodes: build.updateNodes });
         }
       }
@@ -963,6 +1034,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
 
   onUpdateProgram(material: THREE.Material, program: unknown, materialProperties: object): void {
     this.pairPrograms(material, materialProperties);
+    this.refreshSceneBinding(material, program);
     const stock: unknown = Reflect.get(WebGLNodesHandler.prototype, 'onUpdateProgram');
     if (typeof stock === 'function') Reflect.apply(stock, this, [material, program, materialProperties]);
     if (internals(this).programCache.get(material)?.has(program) === true) Reflect.deleteProperty(material, '_latestBuilder');
@@ -1075,12 +1147,16 @@ export class EngineNodesHandler extends WebGLNodesHandler {
       if (!isMaterialProperties(properties)) throw new Error('Missing node material properties');
       // the variants are keyed by the key's token (`tokened`), not the key text
       material.customProgramCacheKey(); const token = this.lastKeyToken;
-      if (token === null || !this.objectVariants.select(material, token, properties)) {
+      const selected = token !== null && this.objectVariants.select(material, token, properties);
+      if (!selected) {
         // A cold variant needs one normal lookup, without invalidating every
         // other warm variant by incrementing the material's version.
         properties.__version = -1;
       }
-      const current = properties.currentProgram, draw = this.drawEntry(material, current), entry = draw?.entry;
+      const current = properties.currentProgram;
+      this.pairPrograms(material, properties);
+      if (selected) this.refreshSceneBinding(material, current);
+      const draw = this.drawEntry(material, current), entry = draw?.entry;
       // compile() can select a new program without onUpdateProgram. After an offscreen
       // draw, setProgram may see matching material flags and skip its switch callback.
       if (current !== undefined && (this.pendingBuilds.has(material) || entry === undefined ||
@@ -1128,6 +1204,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     for (const pending of this.pendingBuilds.get(material) ?? []) releaseMaterialReferences(pending.updateNodes, material);
     const builder: unknown = Reflect.get(material, '_latestBuilder');
     if (typeof builder === 'object' && builder !== null) releaseMaterialReferences(Reflect.get(builder, 'updateNodes'), material);
+    this.sceneBindings.delete(material);
     this.pendingBuilds.delete(material); this.objectVariants.forget(material); this.drawEntries.delete(material); this.reusableBuilds.delete(material);
     Reflect.deleteProperty(material, '_latestBuilder');
     const self = internals(this), programs = self.programCache.get(material), blocks = this.blocks;

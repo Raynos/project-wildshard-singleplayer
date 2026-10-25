@@ -359,15 +359,22 @@ retain it. The [real Metal GL kernel](../../../progress/shard-platform/tile-stre
 reuses one program over six independent scenes (before: six), with all
 18 before/after RGBA pairs byte-identical. Lit and fog-input controls keep
 their six distinct programs. This is not a live program-count, memory or
-phone result. The corrected exact preview failed before any capture on
-Sunscar's transitive `node:fs` config dependency; GR4 owner notified. The
-one post-fix program diagnostic and plain T1 remain unstarted.
+phone result. After GR4 repair `59b1b7df1e`, the plain T1 remained FAIL:
+baseline ghosts 12 tiles / 2 regions, final 0 / 0, with native deltas
+-153 to -286 MB (no causal saving claim). A baseline-only diagnostic then
+reproduced 24 / 1; its heap snapshot and finalizer delivery cleared 0 / 0
+without a lifecycle edit. The FR-pending counter and native gate stay intact.
+The next slice shares built-in lit/fog/PMREM shader shapes, with fresh
+per-scene JS bindings and explicit pure-patch certificates. Real Metal GL
+parity is 252 / 252 exact pairs; eligible programs stay flat after warm-up.
+One fresh plain T1 remains pending; no phone or acceptance claim.
 
 The follow-up TIME-key audit is sizing only: 16 authored Driftwood look
 graphs use boxed wind-time/gust references. `graphShape` serializes the
 numeric payload, but `shareKeyOf` caches that shape per material. Advancing
-time alone does not re-key an existing material; steady new-key frequency
-is unmeasured. No ReferenceNode key or uniform binding has changed.
+time alone does not re-key an existing material. The final 20 seconds of
+each of the six diagnostic standing windows contained zero node builds.
+No ReferenceNode key or clock binding has changed.
 
 Prior [fbb acceptance](../../../progress/shard-platform/tile-streaming/t1-retirement-fbb.json),
 [fbb resource evidence](../../../progress/shard-platform/tile-streaming/t1-resources-fbb.json),

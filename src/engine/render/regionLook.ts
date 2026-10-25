@@ -253,7 +253,7 @@ export function scopeLookChunks(root: THREE.Object3D, look: LookChunks, scope: S
       return;
     }
     // three keys a program by its shader id (or a ShaderMaterial's original source id) and this key, never the patched text
-    patchShader(material, 'region.look', PATCH_ORDER.view + 40, (shader) => { applyLookChunks(shader, look, origin); }, { scope, key: (before) => `${before}|look:${look.id}`, pureKey: true });
+    patchShader(material, 'region.look', PATCH_ORDER.view + 40, (shader) => { applyLookChunks(shader, look, origin); }, { scope, key: (before) => `${before}|look:${look.id}`, pureKey: true, sceneShapeKey: true });
     material.needsUpdate = true; count++;
   };
   const visitValue = (material: unknown): void => {
