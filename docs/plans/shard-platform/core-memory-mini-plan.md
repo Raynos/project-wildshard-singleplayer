@@ -429,7 +429,8 @@ retention attribution remain open.
 | Slice (at most 1 h) | Status | Result / remaining acceptance |
 |---|---|---|
 | C4.1 Current native reading and cache lifetime | done (this commit), measured FAIL retained | Template 1 260.070 / 198.538 MiB; no runtime errors. New real-GC contracts prove settled downloads/write snapshots are released on success and quota refusal while the cache remains alive. No production release was justified. |
-| C4.2 Remaining holder attribution | open | Resolve current JS/GC-owned and Page storage into concrete holders before changing lifetime. The old 55 MiB cache-body / 23 MiB resource-cache explanation is not established by this visit. |
+| C4.2 Current main-page holders / idle decoders | done (this commit), bounded | One matching Chromium heap: 29,755,996 B rooted JS / 17,510,853 B unique backing, not a 55 MiB dead cache. Two idle tile-decode workers remain live; retire their pool after 30 s without queued/active jobs, recreate on the next decode. Three regressions fail before the cut; six worker contracts pass afterward. Native-byte gain remains unmeasured. |
+| C4.3 Remaining native/worker attribution | open | Worker heaps, browser-native storage and allocator residency are not decomposed by the main-page graph. The 260.070 MiB native budget failure remains the acceptance result until the next coherent milestone. |
 | C6 Model source | done previously `d2ef0c0848`, historical calibration | 250 MiB base, explicit grid-only page claims, unchanged caps. This visit does not silently recalibrate the estimator or establish current ±15% accuracy. |
 
 One official cold compiled Template 1 visit used landed `87491b8aa7`, build
@@ -475,3 +476,55 @@ preview and Simulator closed; quiet absent and zero booted devices verified
 before source checks resumed. Release-red owners received the natural cleanup
 handoff. No retry or second native visit. Original data and compact offline
 rollup remain in `tmp/sp-x2/core-c4-template/`.
+
+### C4.2 main-page holder census and idle worker cut
+
+One Template-only Chromium snapshot on the same landed app pin `87491b8aa7`
+used the existing streamed heap workflow via `browser-lane.sh`: muted iPhone
+16 Pro, phone tier, 2× render, Developer on, explicit compiled entry, real
+entered/unpaused controls, 120 s settle, service workers blocked and Inspector
+Network-body capacity zero. No `.git/quiet`, native rereading, forced controls
+or second main-page snapshot. Browser and preview closed before offline graph
+work. The heap itself may collect garbage and cannot replace §11's native
+acceptance value.
+
+| Graph accounting (distinct rulers) | Bytes |
+|---|---:|
+| Rooted JS node shallow bytes | 29,755,996 |
+| External strings, separate | 8,274,341 |
+| Unique ArrayBuffer backing / 962 stores | 17,510,853 |
+| Included product/source backing / 169 stores | 5,862,263 |
+| Included Wasm backing | 4,915,200 |
+| Included code/bytecode/metadata within JS | 14,718,876 |
+
+Before/after snapshot `Runtime.getHeapUsage.usedSize` was 42,410,720 /
+32,056,192 B; these are not node-shallow or native process units. The one
+closed scope is `ui.Loading`; deleting its incoming graph edges in this saved
+graph disconnects only **344 JS bytes / zero backing**, not the footprint gap.
+The preferred retainer paths to product backing name the admitted assets and
+`ClientAssets.wire`; Rapier owns the largest individual 1,835,008 B backing.
+Trees overlap and deleting short Debug/global paths is not exclusive savings.
+No broad product/cache clear is justified.
+
+Both Playwright's worker inventory and browser target enumeration show exactly
+two live `tileDecodeWorker` targets at settle; no content-cache/hash worker.
+The decoder kept both contexts until its level scope ended, even if never used
+or long idle. `TileDecoder` now retires the pool after 30 s with zero queued or
+active decodes. New work cancels the deadline; the next request recreates the
+original pool capacity and preserves round-robin IDs, detached whole-buffer
+transfer, attached partial views, queued copy bounds and exact reply ownership.
+Retired listeners detach. Permanent disposal/error stays final; a refused
+restart rejects without detaching input. There is no new Debug row, renderer,
+geometry, validation, terrain data or residency-budget change.
+
+The controlled-worker kernel uses actual `structuredClone` transfer semantics.
+Idle, never-used and queue-tail retirement cases fail on the original reader;
+all six contracts pass with the cut, including new-work cancellation and
+startup/error fences. This establishes two worker contexts -> zero while idle,
+not their process-byte cost. Worker heaps/native backing remain unsized; no
+claim that this recovers 61.532 MiB or passes G682. Raw snapshot, worker inventory,
+graph rollups and retained paths stay locally in
+`tmp/sp-x2-c4-heap/87491b8/`. The next native milestone qualifies byte impact.
+Touched game/test types and named typed lint pass; six direct worker contracts
+and 1,723 related cases / 321 suites pass. Fifteen stale-product suites remain
+explicit CI deferrals; no product build or complete-suite PASS is implied.
