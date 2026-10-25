@@ -89,6 +89,14 @@ Jake's grill, 2026-10-24 (page: [Shardfile Next Decisions](https://claude.ai/art
 - **SN-D23 Players delete their account from Settings:** it removes the R2 record and the linked sign-ins, and the
   device keeps playing locally (Apple requires in-app deletion for the native apps).
 - **SN-D24 Telemetry is never linked to an account.** It stays anonymous per install, even when signed in.
+- **SN-D25 Every player action needs an intent row.** The build fails without one; a one-line row inherits range from
+  the action's radius and a rate of 10 per second.
+- **SN-D26 A tag joins the shared vocabulary once two shards use it,** like shared content today; any agent promotes
+  it with a one-line meaning.
+- **SN-D27 Landmarks get a sub-cap of 20 % of the shard's budget** (about 240 MB of the 1.2 GB); the validator refuses
+  more.
+- **SN-D28 Claude and Codex lanes both use the `wildshard-dev` MCP server;** each session still takes a browser lane
+  slot.
 
 ## Rows
 
@@ -148,7 +156,7 @@ committed.
 Today script commands are checked before they stage (SCRIPT-ABI.md "Commands and authority"), but player input
 (`plumbing.input` actions, `targets.interactions`, item actions) has no declared rate limit, range check or state gate.
 
-- **D1** An `intents` section: one row per player request, with its argument schema, maximum rate, range from the
+- **D1** An `intents` section (required for every player action, SN-D25): one row per player request, with its argument schema, maximum rate, range from the
   player's actor and required state field. Defaults keep most rows to one line (range = the declared radius,
   rate = 10 Hz). — open
 - **D2** The local sim refuses any request that fails its row, exactly as a future server will, and counts refusals
@@ -165,7 +173,7 @@ spawns carry no labels (the template's `props.colliders` rows have only `id`, `i
 
 - **E1** An optional `tags` list (at most 8 short ids) on collider, target, spawn and placed-piece rows, and a `tags`
   section declaring each shard tag with one line of meaning, on top of the shared vocabulary in commons data
-  (SN-D8). An undeclared tag fails validation. — open
+  (SN-D8; a tag is promoted once two shards use it, SN-D26). An undeclared tag fails validation. — open
 - **E2** A `tagged(tag)` list read plus tag enter / leave events in the Script ABI's next version, agreed with
   WASM-HOST. — open
 - **E3** A lint rule: engine, game and SDK code never compares a tag *name*. A host keys on a tag the shard
@@ -184,8 +192,8 @@ Today content is either library (resident for the level) or tile-bound (resident
   resident, charged up front) and `quest` (resident while a quest step points at it). — open
 - **F2** A `prefetch(x, z)` request for `socketLift` and `portalLink` entryways, so the far side is resident before
   arrival. Agreed with WASM-HOST if it becomes a script read. — open
-- **F3** The validator charges landmark and quest sets at their worst case against the 1.2 GB cap and refuses
-  overages, like `critical`. One device reading per shard that adopts a class. — open
+- **F3** The validator charges landmark and quest sets at their worst case against the 1.2 GB cap, with landmarks
+  held to 20 % of it (SN-D27), and refuses overages, like `critical`. One device reading per shard that adopts a class. — open
 
 **Done when** one shard uses all three classes within its cap, with no half-loaded group at a seam.
 
