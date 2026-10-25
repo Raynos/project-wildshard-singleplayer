@@ -1071,7 +1071,12 @@ stage owns that interval. The declared list and row numbers stay fixed: unknown
 work is named in its parent's detail, and undeclared passes reuse the last
 declared pass. `snapshot().current` retains the newest work for unit accounting;
 `snapshot().display` names the earliest running step for presentation. Ignored
-shell stages remain inside their reported parent. Parallel selected-audio reads
+shell stages remain inside their reported parent. Started rows retain optional
+`startedAt` on the same monotonic clock: the initial row starts at the attempt
+origin, and aliases or undeclared repeated calls do not overwrite a row's first
+start. Completed short rows retain that boundary even if no repaint occurred
+while they ran; it is not a paint timestamp or a sampled setup percentage.
+Parallel selected-audio reads
 have their own declared row, ending when the reads settle. The game supplies legacy, shardfile, grid and crossing
 tables. Crossing diagnostics partition preparation, boundary wait, checkpoint,
 commit and activation using the existing same-clock transition timestamps.

@@ -18,6 +18,24 @@ beforeEach(() => {
 });
 afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); document.body.replaceChildren(); });
 
+it('retains a completed short step start even when it finished before the first row paint', () => {
+  const loading = new Loading({id: 'starts', name: 'Starts'});
+  try {
+    loading.setPath({id: 'shardfile', steps: [{key: 'modules', label: 'Modules', weight: 1},
+      {key: 'admission', label: 'Product admission', weight: 1}, {key: 'world', label: 'World', weight: 1}]});
+    const timeline = currentLoadingTimeline();
+    if (timeline === undefined) throw new Error('Missing timeline');
+    now = 120; loading.paintAdmission({phase: 'product', detail: 'Reading entry.json',
+      filesDone: 0, filesTotal: 0, bytesRead: 0, bytesTotal: 0}); loading.endAdmission();
+    now = 500; const world = timeline.begin('world'); vi.advanceTimersByTime(32);
+    const row = loading.root.querySelector<HTMLElement>('[data-key="admission"]');
+    expect(row?.dataset['startedAt']).toBe('120');
+    expect(row?.dataset['ms']).toBe('0');
+    expect(row?.className).toBe('ok');
+    world.end();
+  } finally { loading.scope.dispose(); }
+});
+
 it('does not invent a one-step total before the actual path is declared', () => {
   const loading = new Loading({ id: 'pending', name: 'Pending' });
   try {

@@ -331,6 +331,7 @@ export class Loading {
       set(el.children[1] as HTMLElement, 'detail' in r ? r.detail : '');
       setData(el, 'key', 'key' in r ? r.key : 'gap');
       setData(el, 'ms', String(r.ms));
+      setData(el, 'startedAt', 'key' in r && r.startedAt !== undefined ? String(r.startedAt) : '');
       const ms = r.ms;
       set(el.children[2] as HTMLElement, ms >= 1000 ? engineString('s_51b784eb9dd6', [(ms / 1000).toFixed(1)]) : engineString('s_f3813306296c', [Math.round(ms)]));
     });

@@ -9,9 +9,11 @@ function fixture() {
   class Element {
     dataset: Record<string, string> = {path: 'shardfile', step: 'modules', startedAt: '0'};
     footer = ''; fading = false; rowReads = 0;
+    rows: {dataset: Record<string, string>; className: string;
+      children: {item: (index: number) => {textContent: string} | null}}[] = [];
     classList = {contains: (name: string) => name === 'hide' && this.fading};
     querySelector(selector: string) { return {textContent: selector === '[data-el="foot"]' ? this.footer : ''}; }
-    querySelectorAll() { this.rowReads++; return []; }
+    querySelectorAll() { this.rowReads++; return this.rows; }
   }
   const root = new Element(), window = {addEventListener: () => undefined};
   const page = {window, HTMLElement: Element, performance: {now: () => now},
@@ -68,4 +70,12 @@ test('a visit without admission never fabricates admission coverage', () => {
   const f = fixture(); f.frame(10); f.finish(); f.frame(20);
   expect(f.state()).toMatchObject({admissionFrames: {frames: 0, endedAt: null, runs: []}});
   expect(f.pending()).toBe(0);
+});
+
+test('serialized final rows preserve the declared start clock of a short completed step', () => {
+  const f = fixture();
+  f.root.rows.push({dataset: {key: 'admission', ms: '0', startedAt: '12'}, className: 'ok',
+    children: {item: () => ({textContent: ''})}});
+  f.frame(100); f.finish();
+  expect(f.state()).toMatchObject({final: {rows: [{key: 'admission', ms: '0', startedAt: '12'}]}});
 });

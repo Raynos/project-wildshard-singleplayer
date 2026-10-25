@@ -4,6 +4,8 @@ export interface LoadingStep { key: string; label: string; weight: number; alias
 export interface LoadingPath { id: string; steps: readonly LoadingStep[]; ignored?: readonly string[] }
 export interface LoadingRow {
   key: string; label: string; number: number; state: 'todo' | 'on' | 'ok'; ms: number; detail: string; fraction?: number;
+  /** First accounted start on the monotonic timeline clock, not a paint timestamp. */
+  startedAt?: number;
 }
 export interface LoadingGap { label: string; state: 'on' | 'ok'; ms: number; after: string | null }
 interface Stage { key: string; base: string; detail: string; fraction?: number }
@@ -16,7 +18,7 @@ export class LoadingTimeline {
   /** Attempt identity for wait attribution; it carries no work or serialized state. */
   readonly waitOwner = Symbol('loading-waits');
   private path: LoadingPath;
-  private readonly rows = new Map<string, { ms: number; started: boolean; detail: string; fraction?: number }>();
+  private readonly rows = new Map<string, { ms: number; started: boolean; detail: string; fraction?: number; startedAt?: number }>();
   private readonly active = new Map<number, Stage>();
   private readonly aliases = new Map<string, string>();
   private readonly ignored = new Set<string>();
@@ -32,7 +34,7 @@ export class LoadingTimeline {
     const initial = this.gaps.pop(), first = path.steps[0];
     if (first !== undefined) {
       const row = this.rows.get(first.key);
-      if (row !== undefined) { row.started = true; row.ms = initial?.ms ?? 0; }
+      if (row !== undefined) { row.started = true; row.startedAt = startedAt; row.ms = initial?.ms ?? 0; }
     }
   }
   configure(path: LoadingPath): void {
@@ -95,7 +97,8 @@ export class LoadingTimeline {
     const key = already?.key ?? again?.key ?? base;
     if (repeated || count === 0) this.occurrences.set(base, count + 1);
     const previous = this.gaps.at(-1); if (previous?.state === 'on') previous.state = 'ok';
-    const row = this.rows.get(key); if (row !== undefined) row.started = true;
+    const row = this.rows.get(key);
+    if (row !== undefined) { row.started = true; row.startedAt ??= this.at; }
     const id = ++this.sequence, stage = { key, base, detail: initialDetail };
     this.active.set(id, stage);
     return { end: () => {
@@ -112,6 +115,7 @@ export class LoadingTimeline {
       const result: LoadingRow = { key, label: step?.label ?? key, number: index + 1,
         state: running.has(key) ? 'on' : row?.started ? 'ok' : 'todo', ms: row?.ms ?? 0, detail: row?.detail ?? '' };
       if (row?.fraction !== undefined) result.fraction = row.fraction;
+      if (row?.startedAt !== undefined) result.startedAt = row.startedAt;
       return result;
     });
     return { path: this.path.id, rows, gaps: this.gaps.map(gap => ({ label: gap.label, state: gap.state,
