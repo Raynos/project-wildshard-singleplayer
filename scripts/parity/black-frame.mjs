@@ -38,10 +38,25 @@ export async function captureBootFrame(page, label, deadline, frames) {
   const started = performance.now();
   console.log(`boot-capture ${JSON.stringify({ label, stage: 'screenshot-roundtrip', state: 'start', ms: 0 })}`);
   let state = 'refused';
+  const captureDeadline = Math.min(deadline, Date.now() + 10000);
   const bytes = await (async () => { try {
-    const available = deadline - Date.now();
+    // Wait for the browser compositor's next frame, without requesting a game draw.
+    // This shares the original capture allowance; a stalled rAF cannot extend it.
+    const frameStarted = performance.now();
+    let frameTimer;
+    try {
+      await Promise.race([
+        page.evaluate(() => new Promise(resolve => { requestAnimationFrame(() => resolve(true)); })),
+        new Promise((_resolve, reject) => {
+          frameTimer = setTimeout(() => reject(new Error(`Boot deadline: ${label} compositor frame`)),
+            Math.max(0, captureDeadline - Date.now()));
+        }),
+      ]);
+      console.log(`boot-capture ${JSON.stringify({ label, stage: 'compositor-frame', state: 'complete', ms: performance.now() - frameStarted })}`);
+    } finally { clearTimeout(frameTimer); }
+    const available = captureDeadline - Date.now();
     if (available <= 0) throw new Error(`Boot deadline: ${label} screenshot`);
-    const captured = await page.screenshot({ type: 'png', timeout: Math.min(10000, available) });
+    const captured = await page.screenshot({ type: 'png', timeout: available });
     state = 'complete'; return captured;
   } finally {
     console.log(`boot-capture ${JSON.stringify({ label, stage: 'screenshot-roundtrip', state, ms: performance.now() - started })}`);

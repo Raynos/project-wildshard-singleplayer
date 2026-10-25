@@ -6,5 +6,5 @@ export interface BootFrameSample extends FrameSample { label:string }
 export function screenshotPixels(bytes:number[]):Promise<FrameSample>;
 /** Reject missing samples and frames with at least 90% near-black pixels. */
 export function frameFailure(sample:FrameSample):string|null;
-/** Sample within the existing boot deadline, retaining the observation before refusal. */
+/** Wait one browser frame and sample within the original 10-second capture and boot deadlines. */
 export function captureBootFrame(page:Page,label:string,deadline:number,frames:BootFrameSample[]):Promise<void>;

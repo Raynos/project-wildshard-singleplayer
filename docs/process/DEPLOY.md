@@ -94,6 +94,9 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   Screenshot diagnostics retain a stable Playwright trace only while a boot frame is captured, with trace
   screenshots, snapshots and sources disabled. Logs retain the screenshot API duration and its font milestones;
   native layout/capture/PNG encoding/cleanup RPC durations are explicitly unavailable in this trace API.
+  Chromium's separate protocol observer records layout and screenshot RPC round trips without retaining payloads.
+  Before each PNG, the helper waits one browser animation frame without requesting a game draw. That wait and
+  the capture share the original ten-second allowance; a stalled frame refuses without capturing later.
   The composited image, pixel checks and 10-second screenshot timeout remain unchanged; a missing diagnostic
   trace is reported without substituting a successful frame or retrying the capture.
   Six required macOS legs separate public cases, Developer standalones, the grid/Signal road proof,

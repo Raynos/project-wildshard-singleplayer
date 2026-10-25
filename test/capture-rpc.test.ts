@@ -31,6 +31,23 @@ test('a stalled RPC stays unfinished and session identities cannot complete each
   expect(rows).toHaveLength(2);
 });
 
+test('the retained CI overrun belongs to native capture rather than layout', () => {
+  const rows: CaptureRpcStage[] = []; let now = 0;
+  const observer = captureRpcObserver(row => { rows.push(row); }, () => now);
+  observer.line('pw:protocol SEND ► {"id":1,"method":"Page.getLayoutMetrics","sessionId":"nine"}');
+  now = 499.401708;
+  observer.line('pw:protocol RECV ◀ {"id":1,"sessionId":"nine","result":{}}');
+  observer.line('pw:protocol SEND ► {"id":2,"method":"Page.captureScreenshot","sessionId":"nine"}');
+  now += 10689.834125;
+  observer.line('pw:protocol RECV ◀ {"id":2,"sessionId":"nine","result":{"data":"redacted"}}');
+  observer.finish();
+  expect(rows[1]?.stage).toBe('Page.getLayoutMetrics');
+  expect(rows[1]?.ms).toBeCloseTo(499.401708, 6);
+  expect(rows[3]?.stage).toBe('Page.captureScreenshot');
+  expect(rows[3]?.ms).toBeCloseTo(10689.834125, 6);
+  expect(rows[3]?.ms).toBeGreaterThan(10000);
+});
+
 test('malformed, unrelated and explicit error records cannot imply a successful capture', () => {
   const rows: CaptureRpcStage[] = [];
   const observer = captureRpcObserver(row => { rows.push(row); }, () => 0);
