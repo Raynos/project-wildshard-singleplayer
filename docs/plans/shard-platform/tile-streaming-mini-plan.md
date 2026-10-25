@@ -271,6 +271,40 @@ producer/metadata/policy candidates were removed and original registered
 outputs restored. Jake's B, the exact 6/4 exception, all eight wire debts,
 the grid and caps remain unchanged. U2 parent/decoder audit proceeds next.
 
+### T6 ownership audit (2026-10-24, sp-x2)
+
+T6 is **in flight**, not complete. `c145edf02a` already installs animal
+dormancy in standalone and regional worlds. The contract-only slice pins
+that behaviour; it changes no brain, native-sim schedule or render owner.
+
+| Owner / reader | Current contract and evidence | Remaining presentation work |
+|---|---|---|
+| Animal roster / decisions | `AnimalManager.ts:571-627`: player-following 5×5, membership from each actor's current position; outside-ring legacy actors skip decision/body/pose. Pinned, driven, harness-held, brain-pinned and native-simulation-bound actors remain exceptions. `loadout.ts:40` and `regionalWorld.ts:467` install the same ring. | Preserve actor identity, snapshot, RNG and exceptions; moving actors must transfer their view lease rather than respawn. Ring membership is desired coverage, not proof that a render tile has finished attaching. |
+| Animal rig / models | `AnimalManager.ts:494-534` eagerly creates and retains each rig; `AnimalFactory.ts:255-296,561-630` shares cached variant geometry/materials but gives rigs their skeleton and visual ports. `AnimalView.ts:87-215` retains bone/pose references. | Hiding is not disposal. Releasing one view must never dispose a shared model still read by another view. A presentation lease needs explicit detach/rebind and last-reader rules. |
+| Physics / held gear / view programs | `physics/creatures.ts:69-110` poses hitboxes from original actor bone queries before dormancy. `client.ts:478-480` binds the original view to its native actor; `speciesViewSlots.ts:32-55` retains stable actor slots and reads `actor.mesh`. Page-home dressing runs once (`pageHomes.ts:48-71`). | Keep hitboxes, posed queries, equipment attachments and view-program slots valid while views leave/re-enter. Do not remove the native-bound exception to simulate visual eviction. |
+| Animal retirement / saves | `AnimalManager.ts:464-473` removes the actor, hunt memory, tokens, scheduler and bodies; non-native actors become dead. `pageHomes.ts:56-71` uses this for page retirement and real respawn. | `retire()` is not a presentation-only sleep API. Tile retirement must not invoke it or consume spawn/adoption RNG. |
+| Quest figures / prompts | `quest/figures.ts:53-155` builds and publishes kit figures in page scope; trader pieces/counters share that lifetime. `FigureRows.ts:90-125,154-159` owns scoped publications and cancels late skins on disposal. | Retain logical prompt/joint/socket identities and quest state. Current disposal unpublishes them; it cannot be attached directly to an evictable tile. |
+| Moving merged figures | `quest/figures.ts:194-270` keeps orbit state, moving collider anchors, attention channels and atlas bones together; a distance gate already sleeps the group. | Split state/anchors from atlas presentation before tile ownership. Preserve row order, orbit phase, collider and prompt continuity. |
+| Tile scope | `tileContent.ts:29-40` attaches static tile content under a disposable child scope. `tileDriver.ts:46-85` retires scopes on ring movement and cancels late attachment. | There is no moving-actor lease-transfer contract. Reusing static pose buckets would strand a patrol at its spawn tile. |
+
+**Contract-only coverage:** `test/creature-residency-contract.test.ts` drives
+the real manager with its existing renderer-free fixture. It pins all five
+exceptions, engagement unpinning, camera independence, current-position and
+player-ring crossings, null residency, no retirement, exact dormant actor
+snapshot and unchanged population/shared RNG continuation. The existing
+`creature-ring.test.ts` remains the independent ring/hysteresis check.
+
+**Separate presentation lease/rebind design (open, requires Opus parity):**
+keep the original actors, quest state and logical anchors in the region;
+give only detachable render instances a tile presentation lease. Prepare
+the destination before transferring a moving actor, preserve its stable
+publications, and release shared source assets only after their last view.
+The design must cover pending hull/skin cancellation, re-entry, held/boss
+pins, native view bindings and save/restore before runtime changes. Add
+lease-transfer / stale-callback / last-reader tests, then prove identical
+DW boar and captain fights plus Opus render parity. No memory reduction or
+completed T6 claim follows from the contract tests alone.
+
 **T1 in flight (2026-10-24, sp-x9):** the latest [plain retirement cohort](../../../progress/shard-platform/tile-streaming/t1-retirement-3d1.json)
 on `3d1d45f087` (includes `75d81fca9b`) completed 12 clean legs / 199 observed
 tile lifetimes, errors 0, all six boundaries zero tile/region ghosts. It still
