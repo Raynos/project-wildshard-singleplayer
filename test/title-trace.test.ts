@@ -1,7 +1,7 @@
 import { expect, test, vi } from 'vitest';
 import type { Page } from 'playwright';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
-import { observeTitleCapture, TITLE_TRACE_CATEGORIES, TITLE_TRACE_MAX_BYTES, type TitleTracePort, type TitleTraceWriter } from '../scripts/parity/title-trace.mjs';
+import { observeTitleCapture, TITLE_TRACE_CATEGORIES, TITLE_TRACE_MAX_RAW_BYTES, TITLE_TRACE_MAX_COMPRESSED_BYTES, type TitleTracePort, type TitleTraceWriter } from '../scripts/parity/title-trace.mjs';
 
 function fixture() {
   const prefix = 'nine-title', files = new Map<string, string | Uint8Array>();
@@ -53,8 +53,37 @@ test('unavailable native tracing does not skip or replace the capture', async ()
 test('oversized native trace is reported rather than uploaded or silently truncated', async () => {
   const f = fixture();
   expect(await observeTitleCapture(f.page, f.prefix, () => Promise.resolve(true), () => ({ start: () => Promise.resolve(),
-    stop: () => Promise.resolve(new Uint8Array(TITLE_TRACE_MAX_BYTES + 1)) }), f.write)).toBe(true);
+    stop: () => Promise.resolve(new Uint8Array(TITLE_TRACE_MAX_RAW_BYTES + 1)) }), f.write)).toBe(true);
   expect(f.files.has(`${f.prefix}-chromium.json.gz`)).toBe(false);
   expect(f.metadata()).toMatchObject({ state: 'oversize', path: null,
-    maxBytes: TITLE_TRACE_MAX_BYTES, rawBytes: TITLE_TRACE_MAX_BYTES + 1 });
+    maxRawBytes: TITLE_TRACE_MAX_RAW_BYTES, maxCompressedBytes: TITLE_TRACE_MAX_COMPRESSED_BYTES,
+    rawBytes: TITLE_TRACE_MAX_RAW_BYTES + 1 });
+});
+
+test('a trace the size of the first Nine receipt retains every byte within the compressed cap', async () => {
+  const f = fixture(), header = '{"traceEvents":[]}', text = header + ' '.repeat(16_440_478 - header.length);
+  const bytes = new TextEncoder().encode(text);
+  expect(bytes.byteLength).toBe(16_440_478);
+  await observeTitleCapture(f.page, f.prefix, () => Promise.resolve(true), () => ({ start: () => Promise.resolve(),
+    stop: () => Promise.resolve(bytes) }), f.write);
+  const packed = f.files.get(`${f.prefix}-chromium.json.gz`);
+  if (!(packed instanceof Uint8Array)) throw new Error('Missing complete Nine-sized trace');
+  const decoded = await new Response(new Blob([Uint8Array.from(packed)]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
+  expect(decoded).toBe(text);
+  expect(packed.byteLength).toBeLessThan(TITLE_TRACE_MAX_COMPRESSED_BYTES);
+  expect(f.metadata()).toMatchObject({ state: 'retained', rawBytes: bytes.byteLength });
+});
+
+test('incompressible traces still refuse the unchanged eight MiB artifact cap', async () => {
+  const f = fixture(), bytes = new Uint8Array(9 * 1024 * 1024);
+  let state = 1;
+  for (let i = 0; i < bytes.length; i++) {
+    state = (Math.imul(state, 1_664_525) + 1_013_904_223) >>> 0;
+    bytes[i] = state >>> 24;
+  }
+  await observeTitleCapture(f.page, f.prefix, () => Promise.resolve(true), () => ({ start: () => Promise.resolve(),
+    stop: () => Promise.resolve(bytes) }), f.write);
+  expect(f.files.has(`${f.prefix}-chromium.json.gz`)).toBe(false);
+  expect(f.metadata()).toMatchObject({ state: 'oversize', path: null, rawBytes: bytes.byteLength,
+    maxCompressedBytes: 8 * 1024 * 1024 });
 });

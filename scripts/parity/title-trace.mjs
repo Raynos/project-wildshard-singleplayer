@@ -1,7 +1,8 @@
 import { writeFileSync } from 'node:fs';
 import { gzipSync } from 'node:zlib';
 
-export const TITLE_TRACE_MAX_BYTES = 8 * 1024 * 1024;
+export const TITLE_TRACE_MAX_RAW_BYTES = 32 * 1024 * 1024;
+export const TITLE_TRACE_MAX_COMPRESSED_BYTES = 8 * 1024 * 1024;
 export const TITLE_TRACE_CATEGORIES = Object.freeze([
   'gpu', 'cc', 'viz', 'devtools.timeline', 'disabled-by-default-devtools.timeline',
 ]);
@@ -39,16 +40,17 @@ export async function observeTitleCapture(page, prefix, capture, open = openTitl
     if (started && port !== null) {
       try {
         const bytes = await port.stop(); rawBytes = bytes.byteLength;
-        if (rawBytes > TITLE_TRACE_MAX_BYTES) state = 'oversize';
+        if (rawBytes > TITLE_TRACE_MAX_RAW_BYTES) state = 'oversize';
         else {
           const packed = gzipSync(bytes, { level: 1 }); compressedBytes = packed.byteLength;
-          if (compressedBytes > TITLE_TRACE_MAX_BYTES) state = 'oversize';
+          if (compressedBytes > TITLE_TRACE_MAX_COMPRESSED_BYTES) state = 'oversize';
           else { write(path, packed); state = 'retained'; }
         }
       } catch (error) { message = String(error); }
     }
     const observation = { state, message, startedAt, captureStartedAt, captureEndedAt, stoppedAt: Date.now(),
-      maxBytes: TITLE_TRACE_MAX_BYTES, rawBytes, compressedBytes, categories: TITLE_TRACE_CATEGORIES,
+      maxRawBytes: TITLE_TRACE_MAX_RAW_BYTES, maxCompressedBytes: TITLE_TRACE_MAX_COMPRESSED_BYTES,
+      rawBytes, compressedBytes, categories: TITLE_TRACE_CATEGORIES,
       path: state === 'retained' ? path : null };
     try { write(receipt, `${JSON.stringify(observation, null, 2)}\n`); }
     catch (error) { console.log(`boot-title-trace receipt unavailable: ${String(error)}`); }
