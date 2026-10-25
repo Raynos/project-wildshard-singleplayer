@@ -1,9 +1,12 @@
 /** Bounded GLB byte admission shared by build validation and runtime entry.
  * No product/schema graph is initialized to admit an equipment or skin model. */
 import type { AssetCost } from './product';
-import { glbBuffers } from './glbBuffers';
+import { glbBuffers, prepareGlbBuffers } from './glbBuffers';
 import { visitGlbGeometry, type GlbVertex } from './glbTriangles';
 import { projectedLayerCoverage, type OverdrawEstimate } from './overdraw';
+
+/** Await compressed-buffer readiness at the asynchronous model boundary. */
+export function prepareGlbCost(): Promise<void> { return prepareGlbBuffers(); }
 
 const MAX_BYTES = 25_000_000;
 const MAX_ELEMENTS = 4_000_000;

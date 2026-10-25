@@ -96,3 +96,26 @@ test('KTX2 residency still reads and parses bytes before publishing device-speci
     expect(f.allocator.entries()).toHaveLength(0);
   } finally { f.scope.dispose(); }
 });
+
+test('declared commons still receive verified byte-derived residency costs', async () => {
+  const f = fixture();
+  f.source.requires.commons.push(f.ref); f.source.requires.commonsWire[f.ref] = f.wire.length;
+  const read = vi.fn(f.ports.read);
+  try {
+    await leaseClientLibrary(f.source, f.assets.retained, { ...f.ports, read });
+    expect(read).toHaveBeenCalledWith(`commons:${f.ref}`);
+    expect(f.allocator.cost().input.commons).toBe(f.wire.length);
+    expect(f.allocator.cost().input.libraries).toBe(24);
+  } finally { f.scope.dispose(); }
+  expect(f.allocator.entries()).toHaveLength(0);
+});
+
+test('malformed commons refuse before any library claim is published', async () => {
+  const f = fixture(), bytes = new Uint8Array([103, 108, 84, 70]), hash = hashImmutableBytes(bytes);
+  f.source.requires.commons.push(hash); f.source.requires.commonsWire[hash] = bytes.length;
+  f.cache.set(hash, bytes);
+  try {
+    await expect(leaseClientLibrary(f.source, f.assets.retained, f.ports)).rejects.toThrow('truncated');
+    expect(f.allocator.entries()).toHaveLength(0);
+  } finally { f.scope.dispose(); }
+});

@@ -93,3 +93,8 @@ test('session and eager rig contracts leave the bounded parser and decoder cold'
   const files = titleGraph(['src/game/session/session.ts', 'src/game/shardfile/client.ts', 'src/engine/anim/rig.ts']);
   expect(files.filter(file => /src\/engine\/anim\/rigParser\.ts$|^three\/examples\/jsm\/(?:loaders\/GLTFLoader|libs\/meshopt_decoder)/u.test(file))).toEqual([]);
 });
+
+test('model byte admission leaves complete product validation off the entry graph', () => {
+  const files = titleGraph(['src/game/shardfile/client.ts']);
+  expect(files.filter(file => /src\/format\/(?:product|assetAdmission)\.ts$/u.test(file))).toEqual([]);
+});

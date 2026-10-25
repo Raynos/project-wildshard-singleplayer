@@ -14,7 +14,7 @@ import * as v from 'valibot';
 import { parseSkinBindings, parseSkinRows, validateCreatureBones, type SkinBinding, type SkinRow } from '@wildshard/format/skinData';
 import type { ShardRows } from '@wildshard/format/rows';
 import type { Shardfile } from '@wildshard/format/shardSchema';
-import { parseGlb } from '@wildshard/format/product';
+import { parseGlbData as parseGlb } from './glbCost';
 import { skinLayerDecoded } from '@wildshard/format/skinLayers';
 import { MaterialsSchema } from '@wildshard/format/materials';
 

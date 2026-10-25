@@ -13,7 +13,8 @@ import type { Material, Object3D, SkinnedMesh } from 'three';
 import { bindRig, prepareRigLoader, type ClipName, type RigInstance } from '@wildshard/engine/anim/rig';
 import { AnimMachine } from '@wildshard/engine/anim/machine';
 import type { Scope } from '@wildshard/engine/app/scope';
-import { parseGlb, prepareAssetDecoders, type AssetCost } from '@wildshard/format/product';
+import type { AssetCost } from '@wildshard/format/product';
+import { parseGlbData, prepareGlbCost } from '@wildshard/format/glbCost';
 import { skinLayerDecoded } from '@wildshard/format/skinLayers';
 import { parseSkinBindings, type SkinRow, type SkinBinding } from '@wildshard/format/skinData';
 import { skinPoseLayers } from './skinLayerPlayback';
@@ -45,8 +46,8 @@ const isSkin = (node: Object3D): node is SkinnedMesh => (node as Partial<Skinned
 export async function loadSkin(glb: Uint8Array, row: SkinRow, binding: SkinBinding, material: Material, scope?: Scope): Promise<SkinPlayer> {
   if (binding.skin !== row.id) throw new Error(`skin ${row.id}: binding for ${binding.skin}`);
   parseSkinBindings([binding], [row]);
-  await prepareAssetDecoders();
-  const cost = parseGlb(glb);
+  await prepareGlbCost();
+  const cost = parseGlbData(glb);
   cost.decoded += skinLayerDecoded(binding.poseLayers ?? {}, row.rig.joints[0]?.length ?? 0);
   if (cost.gpu > row.cost.gpu || cost.decoded > row.cost.decoded || cost.triangles > row.cost.triangles || cost.draws > row.cost.draws) throw new Error(`skin ${row.id}: cost above its declaration`);
   const file = await (await prepareRigLoader()).createRigLoader().parseBytesAsync(glb, '');
