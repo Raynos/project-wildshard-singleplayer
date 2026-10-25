@@ -63,6 +63,15 @@ test('fixed boot and art bindings stay independent of page mode and lazy graph l
     { platform: 'fixed', density: 0, scale: 2 }]) expect(() => declaredForestQueries(bad)).toThrow();
 });
 
+test('declared forest rows join the manifest intake instead of decoding during discovery', () => {
+  const data = parseManifestMetadata(metadata({ bindings: { ...bindings, entry,
+    forestQueries: { platform: 'declared', rows: { module: './data/forest.generated.json', export: 'default' } } } }));
+  const source = authoredManifestSource(root, fixture.slug, { metadataOnly: true, composed: data });
+  expect(source).toMatch(/forestRows: binding\d+/u);
+  expect(source).toContain('from "./data/forest.generated.json"');
+  expect(source).not.toContain('declaredForestQueries');
+});
+
 test('the default JSON art binding contributes extra source image imports and refuses invalid paths', () => {
   const scratch = mkdtempSync(resolve(root, 'tmp/manifest-extra-art-'));
   const folder = resolve(scratch, 'src/shards/_template/boot');

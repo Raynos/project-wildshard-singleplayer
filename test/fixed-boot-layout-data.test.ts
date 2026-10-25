@@ -1,5 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Pin the exact predecessor's metadata and double-precision coordinates.
 import { createHash } from 'node:crypto';
+// oxlint-disable-next-line import/no-nodejs-modules -- Read the registered native density output for exact-byte parity.
+import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import pine from '../src/shards/pine-hollow/data/layout.generated.json' with { type: 'json' };
 import clipRows from '../src/shards/pine-hollow/data/pondClip.generated.json' with { type: 'json' };
@@ -12,6 +14,8 @@ import { forestDensity, oldGrowthMask, speciesMix } from '../src/shards/pine-hol
 import geography from '../src/shards/pine-hollow/data/geography.generated.json' with { type: 'json' };
 import manifest from '../src/shards/pine-hollow/manifest.json' with { type: 'json' };
 import { PINE_TREE_IDS } from '../src/shards/pine-hollow/generators/treeSet';
+import { ScalarLatticeBindings, readScalarChannel } from '../src/engine/world/scalarChannel';
+import { pineDensityBlob } from '../src/shards/pine-hollow/generators/forestRows';
 
 const digest = (value: unknown): string => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 
@@ -24,7 +28,10 @@ it('retains every Pine coordinate and discovery anchor from ac722f90c', () => {
 });
 
 const creek = declaredGround(groundRows).water?.find(body => body.id === 'creek');
-const FOREST_QUERIES = declaredForestQueries(geography), inBeaverPool = declaredPondClip(clipRows);
+const densityBlocks = new Map([['assets/pine-hollow/scalars/forest-density.bin', readFileSync(new URL('../public/assets/pine-hollow/scalars/forest-density.bin', import.meta.url))]]);
+const scalarBlocks = new ScalarLatticeBindings();
+const FOREST_QUERIES = declaredForestQueries(geography, scalarBlocks), inBeaverPool = declaredPondClip(clipRows);
+scalarBlocks.prepare(densityBlocks);
 const POOL = 'pine-hollow.beaver-pool';
 
 it('keeps the declared creek under the live beaver pool level', () => {
@@ -40,6 +47,17 @@ it('keeps the declared creek under the live beaver pool level', () => {
 });
 
 it('retains every exact forest candidate answer across clearings and species zones', () => {
+  const density = readScalarChannel(geography.density, densityBlocks);
+  expect(geography.density).toEqual({ type: 'f64', count: 3364, data: { file: 'assets/pine-hollow/scalars/forest-density.bin' } });
+  expect(density.byteLength).toBe(26912);
+  const authored = pineDensityBlob(manifest);
+  expect(authored.name).toBe('assets/pine-hollow/scalars/forest-density.bin');
+  expect(authored.decoded).toBe(26912);
+  const compressed = densityBlocks.get('assets/pine-hollow/scalars/forest-density.bin');
+  if (compressed === undefined) throw new Error('Missing registered density output');
+  expect(authored.bytes).toEqual(new Uint8Array(compressed));
+  expect(compressed.byteLength).toBe(4237);
+  expect(createHash('sha256').update(compressed).digest('hex')).toBe('baa1e6abbdddea3ffadc63b0297cd5cd6d16e772d2fe708c82fe191b5bcc3186');
   expect(manifest.forest.speciesTraits.map(trait => trait.id)).toEqual(PINE_TREE_IDS);
   expect(geography.forest).toHaveLength(3364);
   for (const row of geography.forest) {

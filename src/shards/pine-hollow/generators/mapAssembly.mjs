@@ -66,7 +66,9 @@ export async function pineMapAssembly() {
   }
   assembly.add('pond', new BufferGeometry().setAttribute('position', new Float32BufferAttribute(points, 3)).setIndex(indices));
 
-  const manifest = read('manifest.json'), geography = read('data/geography.generated.json'), density = readScalarChannel(geography.density);
+  const manifest = read('manifest.json'), geography = read('data/geography.generated.json');
+  const densityFile = 'assets/pine-hollow/scalars/forest-density.bin';
+  const density = readScalarChannel(geography.density, new Map([[densityFile, readFileSync(resolve(root, 'public', densityFile))]]));
   if (density.length !== geography.forest.length) throw new Error('Map forest density differs');
   const candidates = new Map(geography.forest.map((row,index) => [`${row.x},${row.z}`,{ row,index }]));
   const at = (x, z) => { const row = candidates.get(`${x},${z}`); if (row === undefined) throw new Error('Map forest candidate differs'); return row; };

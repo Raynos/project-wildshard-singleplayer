@@ -186,10 +186,6 @@
       "base64Chars": 15704,
       "dataUris": 0
     },
-    "src/shards/pine-hollow/data/geography.generated.json": {
-      "base64Chars": 5652,
-      "dataUris": 0
-    },
     "test/fixtures/originalBalbalRows.json": {
       "base64Chars": 52932,
       "dataUris": 0

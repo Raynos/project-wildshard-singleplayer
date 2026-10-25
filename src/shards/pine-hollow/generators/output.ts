@@ -84,6 +84,8 @@ import floorRows from '../data/floorLayout.generated.json' with { type: 'json' }
 import { PINE_OUTPUT } from './outputInputs';
 import grazers from '../data/grazers.generated.json' with { type: 'json' };
 import { NATIVE_VIEW, SPECIES_LOOKS } from './nativeView';
+import { pineDensityBlob } from './forestRows';
+import manifest from '../manifest.json' with { type: 'json' };
 
 /** Preserve logical names and tier selection while packing named geometry losslessly. */
 function meshoptSource<T extends { kind: string; options?: BlobSourceOptions }>(row: T) {
@@ -103,7 +105,8 @@ const coverTextures=Object.fromEntries(Object.entries(paintedRows.textures).filt
 const collectionTextures=Object.fromEntries(Object.entries(paintedRows.textures).filter(([key])=>!coverTextureIds.has(key)));
 const shelterWasm = nameBlob('behaviour/pine.shelter.wasm', 'wasm',
   Uint8Array.from(atob(shelterProgram.bytes), byte => byte.codePointAt(0) ?? 0), { critical: true, script: { abi: 1, pages: 1 } });
-const clientJson=emitNamedBlobs([nameBlob('world/forest-weather.json', 'json', new TextEncoder().encode(encodeCanonicalJson(forestWeather))), FOREST_STORY_BLOB, PINE_QUEST_PAGE_BLOB, nameBlob('quests/native-story.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PINE_NATIVE_QUEST)), { jsonSchema: namedJsonSchema(NativeQuestCompositionSchema) }), nameBlob('quests/native-spots.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseNativeQuestServiceSpots({ rows: spots.rows, people: spots.people, board: spots.board, pickup: spots.rifle, cable: spots.zip, signals: spots.lanterns }))), { jsonSchema: namedJsonSchema(NativeQuestServiceSpotsSchema) }), ...RANGED_PAGE_BLOBS, FOREST_PAGE_BLOB, LANDMARK_VIEW_BLOB, ROAMING_COMBAT_BLOB, LIFE_WASM, shelterWasm, nameBlob('actors/page-life.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PAGE_LIFE))),
+const forestDensity = pineDensityBlob(manifest);
+const clientJson=emitNamedBlobs([nameBlob(forestDensity.name, 'bin', forestDensity.bytes, { critical: true, decoded: forestDensity.decoded }), nameBlob('world/forest-weather.json', 'json', new TextEncoder().encode(encodeCanonicalJson(forestWeather))), FOREST_STORY_BLOB, PINE_QUEST_PAGE_BLOB, nameBlob('quests/native-story.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PINE_NATIVE_QUEST)), { jsonSchema: namedJsonSchema(NativeQuestCompositionSchema) }), nameBlob('quests/native-spots.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseNativeQuestServiceSpots({ rows: spots.rows, people: spots.people, board: spots.board, pickup: spots.rifle, cable: spots.zip, signals: spots.lanterns }))), { jsonSchema: namedJsonSchema(NativeQuestServiceSpotsSchema) }), ...RANGED_PAGE_BLOBS, FOREST_PAGE_BLOB, LANDMARK_VIEW_BLOB, ROAMING_COMBAT_BLOB, LIFE_WASM, shelterWasm, nameBlob('actors/page-life.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PAGE_LIFE))),
 nameBlob('look/cover-appearance.json','json',new TextEncoder().encode(encodeCanonicalJson(parseCoverAppearance({...coverAppearance,textures:coverTextures})))),nameBlob('actors/elites.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ ...elites, fights: eliteFights }))),...SCENE_BLOBS,nameBlob('quests/persistence.json','json',new TextEncoder().encode(encodeCanonicalJson(persistence))),
   nameBlob('look/wildlife-draw.json', 'json', new TextEncoder().encode(encodeCanonicalJson(WILDLIFE_DRAW))),
   nameBlob('sim/headless-assembly.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ ...headlessAssembly, constants: { terrain: PINE_TERRAIN, entries: headlessEntries, environment: POPULATION_ENVIRONMENT } }))),

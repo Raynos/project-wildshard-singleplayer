@@ -1,18 +1,17 @@
 import { fileURLToPath } from 'node:url';
+import { readFileSync } from 'node:fs';
 import { zlibSync } from 'fflate';
 import * as v from 'valibot';
 import { ScalarChannelSchema } from '@wildshard/format/scalarChannel';
-import { readFileSync } from 'node:fs';
 import { byteWriter, jsonBytes } from '../../../../scripts/bake-output.mjs';
-import { PineSeedStream } from './seedStream.ts';
-import { forestDensity, oldGrowthMask, speciesMix } from './forestGeography.ts';
+import { pineForestRows, PINE_DENSITY_FILE } from './forestRows.ts';
 import { creekSpan, inBeaverPool } from './geography.ts';
 import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 import TERRAIN from '../data/terrainBindings.json' with { type: 'json' };
 import { Noise2D } from './floorNoise.ts';
 
 const manifest = JSON.parse(readFileSync(new URL('../manifest.json', import.meta.url), 'utf8'));
-const speciesIds = manifest.forest.speciesTraits.map(row => row.id);
+
 
 /** The creek's ordered piecewise profile at `along` (its first piece that reaches there, else the last). */
 function streamProfile(source, along) {
@@ -33,11 +32,7 @@ function streamSurface(source, along, levels = {}) {
 
 /** Sample the exact jittered candidate lattice, retaining every double. */
 export function pineGeography() {
-  const rng = new PineSeedStream(manifest.seed + 99), cell = manifest.forest.spacing, forest = [];
-  for (let x = -244; x < 244; x += cell) for (let z = -244; z < 244; z += cell) {
-    const px = x + rng.range(-cell * 0.45, cell * 0.45), pz = z + rng.range(-cell * 0.45, cell * 0.45);
-    forest.push({ x: px, z: pz, density: forestDensity(px, pz), scale: 1 + oldGrowthMask(px, pz) * 0.25, species: speciesMix(px, pz, speciesIds) });
-  }
+  const forest = pineForestRows(manifest);
   const lines = []; let arc = 0;
   for (let i = 0; i + 1 < LAYOUT.CREEK.length; i++) {
     const a = LAYOUT.CREEK[i], b = LAYOUT.CREEK[i + 1]; if (a === undefined || b === undefined) throw new Error('Missing creek vertex');
@@ -130,7 +125,9 @@ export function pineGround(geography = pineGeography()) {
 
 if (import.meta.main) {
   const writer = byteWriter(process.argv.includes('--check'), 'pine-geography'), geography = pineGeography();
-  writer.put(fileURLToPath(new URL('../data/geography.generated.json', import.meta.url)), jsonBytes({ ...geography,forest: geography.forest.map(({ density: _density,...row }) => row),density: v.parse(ScalarChannelSchema,{ type: 'f64',count: geography.forest.length,data: Buffer.from(zlibSync(new Uint8Array(Float64Array.from(geography.forest,row => row.density).buffer))).toString('base64') }) }, 0));
+  const density = zlibSync(new Uint8Array(Float64Array.from(geography.forest, row => row.density).buffer));
+  writer.put(fileURLToPath(new URL(`../../../../public/${PINE_DENSITY_FILE}`, import.meta.url)), density);
+  writer.put(fileURLToPath(new URL('../data/geography.generated.json', import.meta.url)), jsonBytes({ ...geography,forest: geography.forest.map(({ density: _density,...row }) => row),density: v.parse(ScalarChannelSchema,{ type: 'f64',count: geography.forest.length,data: { file: PINE_DENSITY_FILE } }) }, 0));
   writer.put(fileURLToPath(new URL('../data/ground.generated.json', import.meta.url)), jsonBytes(pineGround(geography), 0));
   writer.put(fileURLToPath(new URL('../data/pondClip.generated.json', import.meta.url)), jsonBytes(pondClip(), 0));
   writer.finish();

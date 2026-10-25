@@ -4,6 +4,7 @@ import { authoredManifestSource, shardManifestPath } from './authored-manifest.m
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { installShards } from '../src/game/shard/list.ts';
+import { prepareNativeScalarBlocks } from './bake/nativeWorld.mjs';
 
 const slug=process.argv.find(arg=>arg.startsWith('--generation-shard='))?.slice(19);
 if(slug===undefined || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(slug)) throw new Error('Missing generator shard');
@@ -12,4 +13,7 @@ if (existsSync(resolve(root, `src/shards/${slug}/manifest.json`))) writeFileSync
 /** @type {{default:import('../src/game/shard/manifest.ts').ShardManifest}} */
 const loaded=await import(pathToFileURL(resolve(import.meta.dirname,`../${shardManifestPath(root, slug)}`)).href);
 if(loaded.default.slug!==slug) throw new Error('Generator manifest identity differs');
+// Native authoring consumers query the same exact scalar values before any
+// product exists. Validate the complete declared intake before installing it.
+prepareNativeScalarBlocks(loaded.default, root);
 installShards([loaded.default]);

@@ -85,7 +85,6 @@
     "src/shards/nine-dragon-stack/generators/bake-glyphs.mjs": 2,
     "src/shards/pine-hollow-legacy/runtime/baked.ts": 1,
     "src/shards/pine-hollow/generators/bake-contracts.mjs": 1,
-    "src/shards/pine-hollow/generators/bake-geography.mjs": 1,
     "src/shards/pine-hollow/generators/bake-life.mjs": 1,
     "src/shards/pine-hollow/generators/bake-pine-painted.mjs": 2,
     "src/shards/pine-hollow/generators/bake-shelter.mjs": 1,

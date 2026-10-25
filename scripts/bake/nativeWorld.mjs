@@ -1,4 +1,4 @@
-import {readFileSync} from 'node:fs';
+import {existsSync,readFileSync} from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -7,7 +7,11 @@ export function prepareNativeScalarBlocks(def, root) {
   const intake = def.scalarBlocks;
   if (intake === undefined || intake.prepared) return;
   const project = resolve(root, 'src/shards', def.slug);
-  intake.prepare(new Map(intake.files.map(file => [file, readFileSync(resolve(project, file))])));
+  intake.prepare(new Map(intake.files.map(file => {
+    const local = resolve(project, file);
+    const path = !existsSync(local) && file.startsWith('assets/') ? resolve(root, 'public', file) : local;
+    return [file, readFileSync(path)];
+  })));
 }
 
 /** Select the actual authored level and its original native bytes before terrain, forest or model construction. */

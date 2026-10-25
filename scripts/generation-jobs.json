@@ -729,7 +729,8 @@
         "src/shards/nalati-grasslands/data/dressing-gates.generated.json",
         "src/shards/nalati-grasslands/data/dressing-drifts.generated.json",
         "src/shards/nalati-grasslands/data/dressing-colliders.generated.json",
-        "src/shards/nalati-grasslands/data/dressing-clutter.generated.json"
+        "src/shards/nalati-grasslands/data/dressing-clutter.generated.json",
+        "scripts/bake/nativeWorld.mjs"
       ],
       "outputs": [
         "public/assets/nalati/baked/places.bin",
@@ -1170,15 +1171,18 @@
         "src/sdk/bake/source-loader.mjs",
         "src/shards/pine-hollow/data/terrainBindings.json",
         "src/format/populationEnvironment.ts",
-        "src/format/scalarChannel.ts"
+        "src/format/scalarChannel.ts",
+        "src/shards/pine-hollow/generators/forestRows.ts"
       ],
       "outputs": [
         "src/shards/pine-hollow/data/geography.generated.json",
+        "public/assets/pine-hollow/scalars/forest-density.bin",
         "src/shards/pine-hollow/data/ground.generated.json",
         "src/shards/pine-hollow/data/pondClip.generated.json"
       ],
       "buildTimeOutputs": [
         "src/shards/pine-hollow/data/geography.generated.json",
+        "public/assets/pine-hollow/scalars/forest-density.bin",
         "src/shards/pine-hollow/data/ground.generated.json",
         "src/shards/pine-hollow/data/pondClip.generated.json"
       ],
@@ -2218,10 +2222,12 @@
         "src/shards/pine-hollow/data/boot-poses.generated.json",
         "src/shards/pine-hollow/data/bootMetadata.generated.json",
         "src/shards/pine-hollow/data/geography.generated.json",
+        "public/assets/pine-hollow/scalars/forest-density.bin",
         "src/shards/pine-hollow/data/pondClip.generated.json",
         "src/shards/pine-hollow/data/gpuTables.generated.json",
         "src/shards/pine-hollow/data/perches.generated.json",
-        "src/shards/pine-hollow/data/fauna.generated.ts"
+        "src/shards/pine-hollow/data/fauna.generated.ts",
+        "scripts/bake/nativeWorld.mjs"
       ],
       "outputs": [
         "src/shards/pine-hollow/data/perchRows.generated.json"
@@ -2274,9 +2280,11 @@
         "src/shards/pine-hollow/data/boot-poses.generated.json",
         "src/shards/pine-hollow/data/bootMetadata.generated.json",
         "src/shards/pine-hollow/data/geography.generated.json",
+        "public/assets/pine-hollow/scalars/forest-density.bin",
         "src/shards/pine-hollow/data/pondClip.generated.json",
         "src/shards/pine-hollow/data/gpuTables.generated.json",
-        "src/shards/pine-hollow/data/fauna.generated.ts"
+        "src/shards/pine-hollow/data/fauna.generated.ts",
+        "scripts/bake/nativeWorld.mjs"
       ],
       "outputs": [
         "src/shards/pine-hollow/data/groundTiles.json",
@@ -3408,7 +3416,8 @@
         "src/format/materialGraph.ts",
         "src/format/materials.ts",
         "src/format/paintedLook.ts",
-        "src/format/runtimeBinds.ts"
+        "src/format/runtimeBinds.ts",
+        "scripts/bake/nativeWorld.mjs"
       ],
       "outputs": [
         "src/shards/driftwood-isle/data/reefLayout.generated.json",
@@ -3508,7 +3517,8 @@
         "src/format/materialGraph.ts",
         "src/format/materials.ts",
         "src/format/paintedLook.ts",
-        "src/format/runtimeBinds.ts"
+        "src/format/runtimeBinds.ts",
+        "scripts/bake/nativeWorld.mjs"
       ],
       "outputs": [
         "public/assets/driftwood-isle/baked/ground-c71039a949f150fe1ad02fa56556dd795c6ab691f28dd65e97899bbacdaf80fd.glb",
@@ -3565,7 +3575,8 @@
         "src/format/materialGraph.ts",
         "src/format/materials.ts",
         "src/format/paintedLook.ts",
-        "src/format/runtimeBinds.ts"
+        "src/format/runtimeBinds.ts",
+        "scripts/bake/nativeWorld.mjs"
       ],
       "outputs": [
         "public/assets/driftwood-isle/baked/ocean-e29cd70d60cff4eed17da3621629db3cc7de24f9b98a4a9738470026ea4c9328.glb",
@@ -7868,9 +7879,11 @@
         "src/shards/pine-hollow/data/boot-poses.generated.json",
         "src/shards/pine-hollow/data/bootMetadata.generated.json",
         "src/shards/pine-hollow/data/geography.generated.json",
+        "public/assets/pine-hollow/scalars/forest-density.bin",
         "src/shards/pine-hollow/data/pondClip.generated.json",
         "src/shards/pine-hollow/data/gpuTables.generated.json",
-        "src/shards/pine-hollow/data/fauna.generated.ts"
+        "src/shards/pine-hollow/data/fauna.generated.ts",
+        "scripts/bake/nativeWorld.mjs"
       ],
       "outputs": [
         "public/assets/hdri/qwantani_dawn_puresky_2k.key.jpg",
@@ -12667,7 +12680,8 @@
         "src/format/materialGraph.ts",
         "src/format/materials.ts",
         "src/format/paintedLook.ts",
-        "src/format/runtimeBinds.ts"
+        "src/format/runtimeBinds.ts",
+        "scripts/bake/nativeWorld.mjs"
       ],
       "outputs": [
         "src/shards/driftwood-isle/data/islandDressing.generated.json",
@@ -13961,7 +13975,8 @@
         "src/shards/nalati-grasslands/data/speciesRows.json",
         "src/shards/nalati-grasslands/boot/declaration.generated.ts",
         "src/shards/nalati-grasslands/data/navigation.generated.json",
-        "src/shards/nalati-grasslands/boot/geography.generated.json"
+        "src/shards/nalati-grasslands/boot/geography.generated.json",
+        "scripts/bake/nativeWorld.mjs"
       ],
       "outputs": [
         "public/assets/nalati/baked/painted-models/horse-saddled.glb",
@@ -14558,7 +14573,8 @@
         "src/shards/nalati-grasslands/data/speciesRows.json",
         "src/shards/nalati-grasslands/boot/declaration.generated.ts",
         "src/shards/nalati-grasslands/data/navigation.generated.json",
-        "src/shards/nalati-grasslands/boot/geography.generated.json"
+        "src/shards/nalati-grasslands/boot/geography.generated.json",
+        "scripts/bake/nativeWorld.mjs"
       ],
       "outputs": [
         "public/assets/nalati/baked/crags.bin",
@@ -16696,6 +16712,7 @@
         "pnpm-lock.yaml",
         "pnpm-workspace.yaml",
         "src/shards/pine-hollow/data/geography.generated.json",
+        "public/assets/pine-hollow/scalars/forest-density.bin",
         "scripts/map-geometry.mjs"
       ],
       "outputs": [
