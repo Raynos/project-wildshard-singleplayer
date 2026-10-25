@@ -152,10 +152,13 @@ try {
     }
     // one staged frame per creature kind (scripts/look-parity-creatures.mjs): the bodies' geometry, skin, maps and materials
     for (const kind of await page.evaluate(creatureKinds)) {
-      const shot = await page.evaluate(creatureShot, kind);
-      if (shot.calls <= 0 || shot.triangles <= 0 || shot.lit <= 0) throw new Error(`Empty native creature sample: ${tier}/${kind}`);
+      const capture = await page.evaluateHandle(creatureShot, kind);
+      const rawPath = raw === undefined ? undefined : join(raw, `${tier}-creature-${kind}.rgba`);
+      const shot = await readParityFrame(page, capture, rawPath, frame => {
+        if (frame.calls <= 0 || frame.triangles <= 0 || frame.lit <= 0) throw new Error(`Empty native creature sample: ${tier}/${kind}`);
+      });
       const row = { tier, pose: `creature:${kind}`, player: shot.player, width: shot.width, height: shot.height, calls: shot.calls, triangles: shot.triangles, lit: shot.lit, pixels: shot.pixels };
-      if (raw !== undefined) { row.raw = join(raw, `${tier}-creature-${kind}.rgba`); writeFileSync(row.raw, Buffer.from(shot.data, 'base64')); }
+      if (rawPath !== undefined) row.raw = rawPath;
       rows.push(row);
       console.log(`${tier} creature ${kind} (scale ${shot.player[0]}, ${shot.player[1]} bones): ${shot.calls} draws, ${shot.triangles} triangles, ${shot.lit} lit pixels`);
     }

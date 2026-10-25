@@ -19,6 +19,7 @@ import { installInit } from './parity/init.mjs';
 import { settlePresentationTerrain } from './parity/terrain-settle.mjs';
 import { within } from './parity/timeout.mjs';
 import { creatureKinds, creatureShot } from './look-parity-creatures.mjs';
+import { readParityFrame } from './parity/frame-bytes.mjs';
 
 /** yaw 0 looks north (−z, toward the tower from the spawn), +π/2 west (−x); x / z in metres (the spawn stands on the sand) */
 const POSES = [
@@ -204,9 +205,11 @@ try {
     }
     // one staged frame per creature kind (scripts/look-parity-creatures.mjs): the bodies' geometry, skin, maps and materials
     for (const kind of c1 ? [] : await page.evaluate(creatureKinds)) {
-      const shot = await page.evaluate(creatureShot, kind);
+      const capture = await page.evaluateHandle(creatureShot, kind);
+      const rawPath = raw === undefined ? undefined : join(raw, `${tier}-creature-${kind}.rgba`);
+      const shot = await readParityFrame(page, capture, rawPath);
       const row = { tier, pose: `creature:${kind}`, player: shot.player, width: shot.width, height: shot.height, calls: shot.calls, triangles: shot.triangles, lit: shot.lit, pixels: shot.pixels };
-      if (raw !== undefined) { row.raw = join(raw, `${tier}-creature-${kind}.rgba`); writeFileSync(row.raw, Buffer.from(shot.data, 'base64')); }
+      if (rawPath !== undefined) row.raw = rawPath;
       rows.push(row);
       console.log(`${tier} creature ${kind} (scale ${shot.player[0]}, ${shot.player[1]} bones): ${shot.calls} draws, ${shot.triangles} triangles, ${shot.lit} lit pixels`);
     }

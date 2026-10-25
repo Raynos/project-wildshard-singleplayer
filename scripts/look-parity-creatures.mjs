@@ -68,6 +68,5 @@ export async function creatureShot(kind) {
   mesh.position.copy(pose.position); mesh.quaternion.copy(pose.quaternion); mesh.scale.copy(size); mesh.layers.mask = layers; mesh.updateMatrixWorld(true);
   let lit = 0; for (let i = 0; i < pixels.length; i += 4) if (pixels[i] + pixels[i + 1] + pixels[i + 2] > 0) lit++;
   const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', pixels));
-  let bin = ''; for (let i = 0; i < pixels.length; i += 0x8000) bin += String.fromCodePoint(...pixels.subarray(i, i + 0x8000));
-  return { player: [Math.round(scale * 1000) / 1000, mesh.skeleton.bones.length, 0], width: gl.drawingBufferWidth, height: gl.drawingBufferHeight, calls, triangles, lit, pixels: Array.from(digest, x => x.toString(16).padStart(2, '0')).join(''), data: btoa(bin) };
+  return { player: [Math.round(scale * 1000) / 1000, mesh.skeleton.bones.length, 0], width: gl.drawingBufferWidth, height: gl.drawingBufferHeight, calls, triangles, lit, pixels: Array.from(digest, x => x.toString(16).padStart(2, '0')).join(''), data: pixels };
 }

@@ -20,12 +20,14 @@ export function frameSummary(frame) {
  * @param {import('../bake-output.mjs').ByteSinkPage} page
  * @param {Pick<import('playwright').JSHandle<T>,'evaluate'|'dispose'>} handle
  * @param {string} [file]
+ * @param {(metadata:Omit<T,'data'>)=>void} [validate] Synchronous check before binary publication.
  * @returns {Promise<Omit<T,'data'>>} */
-export async function readParityFrame(page, handle, file) {
+export async function readParityFrame(page, handle, file, validate) {
   try {
     /** @type {(frame:T)=>{bytes:number,metadata:Omit<T,'data'>}} */
     const summarize = frameSummary;
     const summary = await handle.evaluate(summarize);
+    validate?.(summary.metadata);
     if (file !== undefined) {
       const sink = await browserBakeBytes(page, { maxBytes: summary.bytes, maxFiles: 1 });
       try {
