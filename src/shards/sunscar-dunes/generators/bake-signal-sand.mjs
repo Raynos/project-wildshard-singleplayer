@@ -12,13 +12,11 @@ import { mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'nod
 import { resolve } from 'node:path';
 import { constants, zstdCompressSync } from 'node:zlib';
 import { zlibSync } from 'fflate';
-import { bakeSignalSand, bakeSandFiles, SAND_ZSTD_LEVEL } from './sand.ts';
-import { bakeSignalSkirt } from './skirt.ts';
+import { SAND_ZSTD_LEVEL } from './sand.ts';
+import { bakeSignalSandSources } from './sandSources.ts';
 
 const root = resolve(import.meta.dirname, '../../../..'), project = resolve(root, 'src/shards/sunscar-dunes');
 const out = resolve(root, 'public/assets/sunscar-dunes/sand');
-const { shadow, trail, grain, meanR, meanGlint } = bakeSignalSand();
-const skirt = bakeSignalSkirt();
 const check = process.argv.includes('--check');
 const emit = (file, bytes) => {
   if (check) {
@@ -26,20 +24,12 @@ const emit = (file, bytes) => {
   } else writeFileSync(file, bytes);
 };
 if (!check) mkdirSync(out, { recursive: true });
-// only the skirt ships as a zlib stream; the maps are the KTX2 library files below
-const maps = { skirt: skirt.bytes };
-for (const [name, bytes] of Object.entries(maps)) {
-  const packed = zlibSync(bytes, { level: 9 });
-  emit(resolve(out, `${name}.bin`), packed);
-  console.info(`sunscar-dunes sand ${name}: ${String(bytes.length)} bytes → sand/${name}.bin (${String(packed.length)})`);
+const files = bakeSignalSandSources(bytes => zlibSync(bytes, { level: 9 }),
+  bytes => new Uint8Array(zstdCompressSync(bytes, { params: { [constants.ZSTD_c_compressionLevel]: SAND_ZSTD_LEVEL } })));
+for (const [name, bytes] of files) {
+  const target = name.startsWith('sand/') ? resolve(out, name.slice(5)) : resolve(project, name.startsWith('assets/') ? name : `data/${name}`);
+  emit(target, bytes);
+  console.info(`sunscar-dunes ${name}: ${String(bytes.length)} bytes`);
 }
 // the folder holds exactly this bake: no orphan map from an older bake ships
-for (const entry of readdirSync(out)) if (!Object.hasOwn(maps, entry.replace(/\.bin$/u, ''))) { if (check) throw new Error(`Orphan bake ${entry}`); rmSync(resolve(out, entry)); }
-// the maps as single-level zstd-supercompressed KTX2 library files the look's sand names (data/sandMaps.json, assets/<sha256>)
-const zstd = (bytes) => new Uint8Array(zstdCompressSync(bytes, { params: { [constants.ZSTD_c_compressionLevel]: SAND_ZSTD_LEVEL } }));
-const files = bakeSandFiles({ shadow, trail, grain }, zstd);
-for (const [name, row] of Object.entries(files.rows)) console.info(`sunscar-dunes sand ${name}: assets/${row.hash} (${String(row.compressed)} bytes)`);
-for (const [hash, bytes] of files.bytes) emit(resolve(project, 'assets', hash), bytes);
-emit(resolve(project, 'data/sandMaps.json'), `${JSON.stringify(files.rows, null, 2)}\n`);
-emit(resolve(project, 'data/sand.json'), `${JSON.stringify({ meanR, meanGlint }, null, 2)}\n`);
-emit(resolve(project, 'data/skirt.json'), `${JSON.stringify(skirt.rows, null, 2)}\n`);
+for (const entry of readdirSync(out)) if (!files.has(`sand/${entry}`)) { if (check) throw new Error(`Orphan bake ${entry}`); rmSync(resolve(out, entry)); }
