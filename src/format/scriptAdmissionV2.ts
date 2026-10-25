@@ -6,8 +6,8 @@ import * as v from 'valibot';
 
 /** H13 selects these versioned implementations explicitly. They describe the
  * v2 toolchain only; the shipped v0/v1 compiler and admission remain separate. */
-export const SCRIPT_V2_REVISIONS = Object.freeze({ abi: 2,minor: 0,compiler: 1,admission: 1 } as const);
-export const ScriptArtifactV2Schema = v.strictObject({
+export const SCRIPT_V2_REVISIONS: Readonly<{abi:2;minor:0;compiler:1;admission:1}> = Object.freeze({ abi: 2,minor: 0,compiler: 1,admission: 1 } as const);
+export const ScriptArtifactV2Schema: v.StrictObjectSchema<{ readonly abi: v.GenericSchema<ScriptArtifactV2RowsInput['abi'], ScriptArtifactV2Rows['abi']>; readonly minor: v.GenericSchema<ScriptArtifactV2RowsInput['minor'], ScriptArtifactV2Rows['minor']>; readonly compilerRevision: v.GenericSchema<ScriptArtifactV2RowsInput['compilerRevision'], ScriptArtifactV2Rows['compilerRevision']>; readonly admissionRevision: v.GenericSchema<ScriptArtifactV2RowsInput['admissionRevision'], ScriptArtifactV2Rows['admissionRevision']>; readonly hash: v.GenericSchema<ScriptArtifactV2RowsInput['hash'], ScriptArtifactV2Rows['hash']>; readonly lane: v.GenericSchema<ScriptArtifactV2RowsInput['lane'], ScriptArtifactV2Rows['lane']>; readonly pages: v.GenericSchema<ScriptArtifactV2RowsInput['pages'], ScriptArtifactV2Rows['pages']>; readonly ioBytes: v.GenericSchema<ScriptArtifactV2RowsInput['ioBytes'], ScriptArtifactV2Rows['ioBytes']>; }, undefined> = v.strictObject({
   abi: v.literal(SCRIPT_V2_REVISIONS.abi),minor: v.literal(SCRIPT_V2_REVISIONS.minor),
   compilerRevision: v.literal(SCRIPT_V2_REVISIONS.compiler),admissionRevision: v.literal(SCRIPT_V2_REVISIONS.admission),
   hash: v.pipe(v.string(),v.length(64),v.regex(/^[a-f0-9]{64}$/u)),lane: v.picklist(['sim','project','view']),
@@ -89,3 +89,17 @@ export function admitScriptV2(bytes: Uint8Array,options: { readonly ioBytes?: nu
   if (image.data.some(row => row.length > 0 && row.offset < io+ioBytes && row.offset+row.length > io)) throw new Error('V2 static data overlaps host IO');
   return { initialPages: fuel.pages,maximumPages: fuel.pages,globals: fuel.globals,fuel: fuel.fuel,lane: fuel.lane,io,ioBytes,entries: fuel.entries };
 }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type ScriptArtifactV2RowsInput = ScriptArtifactV2Rows;
+interface ScriptArtifactV2RowsFields {
+    abi: (typeof SCRIPT_V2_REVISIONS)['abi'];
+    minor: (typeof SCRIPT_V2_REVISIONS)['minor'];
+    compilerRevision: (typeof SCRIPT_V2_REVISIONS)['compiler'];
+    admissionRevision: (typeof SCRIPT_V2_REVISIONS)['admission'];
+    hash: string;
+    lane: 'sim' | 'project' | 'view';
+    pages: number;
+    ioBytes: number;
+}
+export type ScriptArtifactV2Rows = { [Key in keyof ScriptArtifactV2RowsFields]: ScriptArtifactV2RowsFields[Key] };

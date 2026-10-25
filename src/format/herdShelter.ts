@@ -27,7 +27,32 @@ export interface HerdShelterRows {
 const positive = v.pipe(v.number(), v.finite(), v.minValue(0));
 const lookSchema = v.strictObject({ kinds: v.array(v.pipe(v.string(), v.minLength(1))), bigTree: positive, reach: positive,
   homeHold: positive, clear: positive, spotR: positive, homeR: positive, wet: positive, dry: positive, heightBias: positive, coverBias: positive });
-export const PopulationShelterSchema = v.strictObject({ environment: v.pipe(v.string(), v.minLength(1), v.maxLength(128)), roster: v.pipe(v.string(), v.minLength(1), v.maxLength(128)), weather: v.pipe(v.string(), v.minLength(1), v.maxLength(128)), step: v.pipe(v.string(), v.minLength(1), v.maxLength(128)),
+export const PopulationShelterSchema: v.GenericSchema<PopulationShelterRowsInput, PopulationShelterRows> = v.strictObject({ environment: v.pipe(v.string(), v.minLength(1), v.maxLength(128)), roster: v.pipe(v.string(), v.minLength(1), v.maxLength(128)), weather: v.pipe(v.string(), v.minLength(1), v.maxLength(128)), step: v.pipe(v.string(), v.minLength(1), v.maxLength(128)),
   program: v.unknown(), herdLimit: v.pipe(positive, v.integer(), v.minValue(1), v.maxValue(1024)), look: lookSchema });
 /** Parse the admitted native shelter rows; the page borrows exactly the same look. */
 export function parsePopulationShelter(input: unknown): v.InferOutput<typeof PopulationShelterSchema> { return v.parse(PopulationShelterSchema, input); }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type PopulationShelterRowsInput = PopulationShelterRows;
+interface PopulationShelterRowsFields {
+    environment: string;
+    roster: string;
+    weather: string;
+    step: string;
+    program: unknown;
+    herdLimit: number;
+    look: {
+        kinds: (string)[];
+        bigTree: number;
+        reach: number;
+        homeHold: number;
+        clear: number;
+        spotR: number;
+        homeR: number;
+        wet: number;
+        dry: number;
+        heightBias: number;
+        coverBias: number;
+    };
+}
+export type PopulationShelterRows = { [Key in keyof PopulationShelterRowsFields]: PopulationShelterRowsFields[Key] };

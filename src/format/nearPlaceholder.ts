@@ -11,12 +11,12 @@ import { isJsonData } from './json';
  * most, 34 MB in all on the near residency line inside the 1.0 GB Explorer envelope. Content may rise again only with a
  * measured budget.
  */
-export const NEAR_PLACEHOLDER_LIMITS = Object.freeze({ terrainBytes: 2_500_000, contentBytes: 6_000_000,
+export const NEAR_PLACEHOLDER_LIMITS: Readonly<{terrainBytes:2500000;contentBytes:6000000;cells:4;residentBytes:34000000;terrainFiles:16;contentFiles:32}> = Object.freeze({ terrainBytes: 2_500_000, contentBytes: 6_000_000,
   cells: 4, residentBytes: 34_000_000, terrainFiles: 16, contentFiles: 32 });
 const hash = v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u));
 const address = v.pipe(v.number(), v.safeInteger(), v.minValue(0), v.maxValue(3));
 /** Visual L1 terrain and optional authored low-LOD meshes; never simulation or collider roots. */
-export const NearPlaceholderSchema = v.pipe(v.unknown(), v.check(isJsonData, 'JSON-only near placeholder'),
+export const NearPlaceholderSchema: v.GenericSchema<NearPlaceholderInput, NearPlaceholder> = v.pipe(v.unknown(), v.check(isJsonData, 'JSON-only near placeholder'),
   v.strictObject({ version: v.literal(1),
     terrain: v.pipe(v.array(v.strictObject({ x: address, z: address, file: hash })), v.maxLength(NEAR_PLACEHOLDER_LIMITS.terrainFiles)),
     content: v.pipe(v.array(hash), v.maxLength(NEAR_PLACEHOLDER_LIMITS.contentFiles)) }),
@@ -30,7 +30,7 @@ export const NEAR_LIGHT = 'near-light';
 /** Opaque unlit vertex colours, kept separate from additive near lights. */
 export const NEAR_COLOUR = 'near-colour';
 /** Admitted immutable near presentation; missing sections retain ordinary far proxies. */
-export type NearPlaceholder = v.InferOutput<typeof NearPlaceholderSchema>;
+
 /** Persistent decoded/GPU bytes and wire bytes of a deduplicated visual closure. */
 export interface NearPlaceholderCost { readonly resident: number; readonly compressed: number; readonly triangles: number; readonly draws: number }
 type FileRow = v.InferOutput<typeof FilesSchema>[number];
@@ -96,3 +96,16 @@ export function nearPlaceholderCost(near: NearPlaceholder, inventory: Inventory)
   return { terrain, content, total };
 }
 
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type NearPlaceholderInput = unknown;
+interface NearPlaceholderFields {
+    version: 1;
+    terrain: ({
+        x: number;
+        z: number;
+        file: string;
+    })[];
+    content: (string)[];
+}
+export type NearPlaceholder = { [Key in keyof NearPlaceholderFields]: NearPlaceholderFields[Key] };

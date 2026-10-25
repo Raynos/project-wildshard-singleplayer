@@ -4,14 +4,14 @@ const id = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9.-]*$/u), v.maxLength(128
 const hash = v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u));
 const address = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(7));
 /** Exact cell-local triangle chunks; interactive panels keep independent stable collider identities. */
-export const MeshCollisionSchema = v.pipe(v.strictObject({ version: v.literal(1),
+export const MeshCollisionSchema: v.GenericSchema<ShardMeshCollisionInput, ShardMeshCollision> = v.pipe(v.strictObject({ version: v.literal(1),
   tiles: v.pipe(v.array(v.strictObject({ x: address, z: address, file: hash })), v.maxLength(64)),
   panels: v.pipe(v.array(v.strictObject({ id, panel: id, file: hash, initialActive: v.boolean() })), v.maxLength(64)),
 }), v.check(data => new Set(data.tiles.map(row => `${row.x}/${row.z}`)).size === data.tiles.length, 'unique mesh collision tile addresses'),
 v.check(data => new Set(data.panels.map(row => row.id)).size === data.panels.length && new Set(data.panels.map(row => row.panel)).size === data.panels.length, 'unique mesh collision panel identities'),
 v.check(data => { const refs = [...data.tiles, ...data.panels].map(row => row.file); return new Set(refs).size === refs.length; }, 'independently charged mesh collision chunks'));
 /** Admitted metadata references immutable WMC1 bytes, never an authored physics closure. */
-export type ShardMeshCollision = v.InferOutput<typeof MeshCollisionSchema>;
+
 /** Renderer-neutral references checked before immutable asset admission. */
 export interface CollisionSource {
   meshCollision: ShardMeshCollision | null;
@@ -36,3 +36,21 @@ export function meshCollisionRules(source: CollisionSource): string[] {
   if (new Set(ids).size !== ids.length) errors.push('unique combined mesh and prop collider identities');
   return errors;
 }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type ShardMeshCollisionInput = ShardMeshCollision;
+interface ShardMeshCollisionFields {
+    version: 1;
+    tiles: ({
+        x: number;
+        z: number;
+        file: string;
+    })[];
+    panels: ({
+        id: string;
+        panel: string;
+        file: string;
+        initialActive: boolean;
+    })[];
+}
+export type ShardMeshCollision = { [Key in keyof ShardMeshCollisionFields]: ShardMeshCollisionFields[Key] };

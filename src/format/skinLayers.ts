@@ -2,7 +2,7 @@ import * as v from 'valibot';
 
 const finite = v.pipe(v.number(), v.finite());
 // Copy bounded sample tables once; per-number schema datasets otherwise dominate skin admission allocations.
-function samples(minimum: number, maximum: number) {
+function samples(minimum: number, maximum: number): PoseSamples {
   return v.pipe(v.unknown(), v.rawTransform(({ dataset, addIssue, NEVER }): number[] => {
     const input = dataset.value;
     if (!Array.isArray(input) || input.length < minimum || input.length > maximum) {
@@ -19,11 +19,11 @@ function samples(minimum: number, maximum: number) {
     return output;
   }));
 }
-const trackSchema = v.strictObject({ bone: v.pipe(v.string(), v.maxLength(64)), property: v.picklist(['position', 'rotation', 'scale', 'quaternion']), axis: v.picklist(['x', 'y', 'z']), order: v.picklist(['XYZ', 'YXZ', 'ZXY', 'ZYX', 'YZX', 'XZY']), values: samples(0, 300000) });
+const trackSchema: v.StrictObjectSchema<PoseTrackEntries, undefined> = v.strictObject({ bone: v.pipe(v.string(), v.maxLength(64)), property: v.picklist(['position', 'rotation', 'scale', 'quaternion']), axis: v.picklist(['x', 'y', 'z']), order: v.picklist(['XYZ', 'YXZ', 'ZXY', 'ZYX', 'YZX', 'XZY']), values: samples(0, 300000) });
 /** Independent sampled clocks supplement a base clip; optional phase tables preserve coupled gait and breath. */
-export const SkinPoseLayerSchema = v.strictObject({ id: v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u), v.maxLength(128)), period: v.pipe(finite, v.minValue(0.01), v.maxValue(120)), times: samples(2, 4097), phasePeriod: v.pipe(finite, v.minValue(0.01), v.maxValue(120)), phaseSteps: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(64)), tracks: v.pipe(v.array(trackSchema), v.maxLength(128)) });
+export const SkinPoseLayerSchema: v.StrictObjectSchema<{ readonly id: v.GenericSchema<SkinPoseLayerInput['id'], SkinPoseLayer['id']>; readonly period: v.GenericSchema<SkinPoseLayerInput['period'], SkinPoseLayer['period']>; readonly times: PoseSamples; readonly phasePeriod: v.GenericSchema<SkinPoseLayerInput['phasePeriod'], SkinPoseLayer['phasePeriod']>; readonly phaseSteps: v.GenericSchema<SkinPoseLayerInput['phaseSteps'], SkinPoseLayer['phaseSteps']>; readonly tracks: v.SchemaWithPipe<readonly [v.ArraySchema<typeof trackSchema, undefined>, v.MaxLengthAction<v.InferOutput<typeof trackSchema>[], 128, undefined>]>; }, undefined> = v.strictObject({ id: v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u), v.maxLength(128)), period: v.pipe(finite, v.minValue(0.01), v.maxValue(120)), times: samples(2, 4097), phasePeriod: v.pipe(finite, v.minValue(0.01), v.maxValue(120)), phaseSteps: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(64)), tracks: v.pipe(v.array(trackSchema), v.maxLength(128)) });
 /** Callback-free pose samples, bounded and owned by the skin binding. */
-export type SkinPoseLayer = v.InferOutput<typeof SkinPoseLayerSchema>;
+
 /** Validate table sizes, periodic endpoints and joint references before compiling float buffers. */
 export function validateSkinLayers(layers: readonly SkinPoseLayer[], joints: readonly string[]): void {
   let numbers = 0;
@@ -51,3 +51,40 @@ export function skinLayerDecoded(layers: Readonly<Record<string, readonly SkinPo
   return new TextEncoder().encode(JSON.stringify(layers)).length * 2 + numbers * 12 + joints * 80 * states;
 }
 
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+interface SkinPoseLayerInputFields {
+    id: string;
+    period: number;
+    times: unknown;
+    phasePeriod: number;
+    phaseSteps: number;
+    tracks: ({
+        bone: string;
+        property: 'position' | 'rotation' | 'scale' | 'quaternion';
+        axis: 'x' | 'y' | 'z';
+        order: 'XYZ' | 'YXZ' | 'ZXY' | 'ZYX' | 'YZX' | 'XZY';
+        values: unknown;
+    })[];
+}
+export type SkinPoseLayerInput = { [Key in keyof SkinPoseLayerInputFields]: SkinPoseLayerInputFields[Key] };
+interface SkinPoseLayerFields {
+    id: string;
+    period: number;
+    times: number[];
+    phasePeriod: number;
+    phaseSteps: number;
+    tracks: ({
+        bone: string;
+        property: 'position' | 'rotation' | 'scale' | 'quaternion';
+        axis: 'x' | 'y' | 'z';
+        order: 'XYZ' | 'YXZ' | 'ZXY' | 'ZYX' | 'YZX' | 'XZY';
+        values: number[];
+    })[];
+}
+export type SkinPoseLayer = { [Key in keyof SkinPoseLayerFields]: SkinPoseLayerFields[Key] };
+
+type PoseSamples = v.SchemaWithPipe<readonly [v.UnknownSchema, v.RawTransformAction<unknown, number[]>]>;
+type PoseTrackInput = SkinPoseLayerInput['tracks'][number];
+type PoseTrackOutput = SkinPoseLayer['tracks'][number];
+type PoseTrackEntries = { [Key in Exclude<keyof PoseTrackOutput, 'values'>]: v.GenericSchema<PoseTrackInput[Key], PoseTrackOutput[Key]> } & { readonly values: PoseSamples };

@@ -10,11 +10,36 @@ const finite = v.pipe(v.number(), v.finite());
  * start (`texture`, sampled through `rect`), then, for each part in order at its byte offset, each attribute's
  * `count * size` normalized bytes in turn.
  */
-export const VertexWearSchema = v.strictObject({
+export const VertexWearSchema: v.GenericSchema<VertexWearRowInput, VertexWearRow> = v.strictObject({
   file: text,
   texture: v.nullable(v.strictObject({ width: natural, height: natural })),
   rect: v.tuple([finite, finite, finite, finite]),
   parts: v.pipe(v.array(v.tuple([natural, natural])), v.minLength(1), v.maxLength(64)),
   attributes: v.pipe(v.array(v.strictObject({ name: text, size: v.picklist([1, 2, 3, 4]) })), v.minLength(1), v.maxLength(4)),
 });
-export type VertexWearRow = v.InferOutput<typeof VertexWearSchema>;
+
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type VertexWearRowInput = VertexWearRow;
+interface VertexWearRowFields {
+    file: string;
+    texture: ({
+        width: number;
+        height: number;
+    }) | null;
+    rect: [
+        number,
+        number,
+        number,
+        number
+    ];
+    parts: ([
+        number,
+        number
+    ])[];
+    attributes: ({
+        name: string;
+        size: 1 | 2 | 3 | 4;
+    })[];
+}
+export type VertexWearRow = { [Key in keyof VertexWearRowFields]: VertexWearRowFields[Key] };

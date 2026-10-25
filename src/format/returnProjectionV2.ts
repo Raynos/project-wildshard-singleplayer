@@ -9,9 +9,9 @@ import { layoutV2, type V2Layout } from './scriptWireV2';
 const bindingName=v.pipe(v.string(),v.minLength(1),v.maxLength(512),v.regex(/^(?!__proto__$|prototype$|constructor$)/));
 const additionalNames=v.pipe(v.array(bindingName),v.maxLength(256));
 const names=v.pipe(v.array(bindingName),v.minLength(1),v.maxLength(256));
-export const ReturnProjectionV2Schema = v.strictObject({ artifact: v.strictObject({...ScriptArtifactV2Schema.entries,lane:v.literal('project')}),
+export const ReturnProjectionV2Schema: v.GenericSchema<ReturnProjectionV2RowsInput, ReturnProjectionV2Rows> = v.strictObject({ artifact: v.strictObject({...ScriptArtifactV2Schema.entries,lane:v.literal('project')}),
   fields: names,signals: names,channels: names,additional:v.exactOptional(v.strictObject({fields:additionalNames,signals:additionalNames,channels:additionalNames})),outputCapacity:v.exactOptional(v.pipe(v.number(),v.integer(),v.minValue(1),v.maxValue(128))),bytes: v.pipe(v.string(),v.maxLength(2_000_000)),groups: v.exactOptional(GroupStepV2Schema) });
-export type ReturnProjectionV2Rows = v.InferOutput<typeof ReturnProjectionV2Schema>;
+
 /** Nine detached field frames retain actor zero plus the original eight ordered
  * candidates. Missing fields remain absent and refuse only if actually read. */
 export function returnProjectionV2Layout(fields: number,pages = 1,outputCapacity = 32,groups?:GroupStepRowsV2): V2Layout {
@@ -36,3 +36,43 @@ export function parseReturnProjectionV2(input: unknown): ReturnProjectionV2Rows 
   }
   return row;
 }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+interface ReturnProjectionV2RowsInputFields {
+    artifact: Omit<v.InferInput<typeof ScriptArtifactV2Schema>, keyof ({
+        lane: 'project';
+    })> & {
+        lane: 'project';
+    };
+    fields: (string)[];
+    signals: (string)[];
+    channels: (string)[];
+    additional?: {
+        fields: (string)[];
+        signals: (string)[];
+        channels: (string)[];
+    };
+    outputCapacity?: number;
+    bytes: string;
+    groups?: v.InferInput<typeof GroupStepV2Schema>;
+}
+export type ReturnProjectionV2RowsInput = { [Key in keyof ReturnProjectionV2RowsInputFields]: ReturnProjectionV2RowsInputFields[Key] };
+interface ReturnProjectionV2RowsFields {
+    artifact: Omit<v.InferOutput<typeof ScriptArtifactV2Schema>, keyof ({
+        lane: 'project';
+    })> & {
+        lane: 'project';
+    };
+    fields: (string)[];
+    signals: (string)[];
+    channels: (string)[];
+    additional?: {
+        fields: (string)[];
+        signals: (string)[];
+        channels: (string)[];
+    };
+    outputCapacity?: number;
+    bytes: string;
+    groups?: v.InferOutput<typeof GroupStepV2Schema>;
+}
+export type ReturnProjectionV2Rows = { [Key in keyof ReturnProjectionV2RowsFields]: ReturnProjectionV2RowsFields[Key] };

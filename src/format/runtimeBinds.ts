@@ -35,7 +35,7 @@ export const RUNTIME_BOUND_SECTIONS = ['quests', 'ledger', 'items', 'spawns', 's
 /** One section a trusted runtime binds rather than the data client. */
 export type RuntimeBoundSection = (typeof RUNTIME_BOUND_SECTIONS)[number];
 /** `runtime.binds`: the declared capability that replaces the implicit "empty apart from audio, edges and colliders" rule. */
-export const RuntimeBindsSchema = v.pipe(v.array(v.picklist(RUNTIME_BOUND_SECTIONS)), v.maxLength(RUNTIME_BOUND_SECTIONS.length),
+export const RuntimeBindsSchema: v.GenericSchema<RuntimeBindsRowsInput, RuntimeBindsRows> = v.pipe(v.array(v.picklist(RUNTIME_BOUND_SECTIONS)), v.maxLength(RUNTIME_BOUND_SECTIONS.length),
   v.check((sections) => new Set(sections).size === sections.length, 'unique runtime-bound sections'));
 
 /** Typed page declarations select a data owner; disk admission must also prove
@@ -43,3 +43,7 @@ export const RuntimeBindsSchema = v.pipe(v.array(v.picklist(RUNTIME_BOUND_SECTIO
 export function hasDeclaredClientPage(source: Partial<Pick<Shardfile, 'runtime' | 'questHost'>>): boolean {
   return source.runtime === null && source.questHost?.page !== undefined && 'version' in source.questHost.page;
 }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type RuntimeBindsRowsInput = RuntimeBindsRows;
+export type RuntimeBindsRows = ((typeof RUNTIME_BOUND_SECTIONS)[number])[];

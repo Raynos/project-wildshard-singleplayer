@@ -11,7 +11,7 @@ const graph = v.pipe(v.unknown(), v.rawTransform(({ dataset, addIssue, NEVER }):
 }));
 /** One pure vec3 colour expression on a standard material. Locals preserve
  * authored rounding boundaries; layout preserves existing program source. */
-export const ColourFunctionSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Colour function requires plain JSON'),
+export const ColourFunctionSchema: v.GenericSchema<ColourFunctionRowInput, ColourFunctionRow> = v.pipe(v.unknown(), v.check(isJsonData, 'Colour function requires plain JSON'),
   v.strictObject({ name: id, input: id, locals: v.pipe(v.array(id), v.maxLength(32)), layout: v.picklist(['compact', 'lines', 'spaced']), graph }),
   v.check(row => {
     const input = row.graph.params?.[row.input];
@@ -23,9 +23,22 @@ export const ColourFunctionSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Col
     && new Set(row.locals).size === row.locals.length
     && row.locals.every(local => row.graph.nodes[local] !== undefined && local !== row.input && local !== row.name);
   }, 'One pure colour input/output and unique declared locals'));
-export type ColourFunctionRow = v.InferOutput<typeof ColourFunctionSchema>;
+
 /** Named product colour functions consumed by existing material hosts. */
-export const ColourFunctionBookSchema = v.pipe(v.record(id, ColourFunctionSchema), v.maxEntries(32));
-export type ColourFunctionBook = v.InferOutput<typeof ColourFunctionBookSchema>;
+export const ColourFunctionBookSchema: v.GenericSchema<ColourFunctionBookInput, ColourFunctionBook> = v.pipe(v.record(id, ColourFunctionSchema), v.maxEntries(32));
+
 /** Reject code, resource inputs and unsupported stages before lowering. */
 export function parseColourFunction(input: unknown): ColourFunctionRow { return v.parse(ColourFunctionSchema, input); }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type ColourFunctionRowInput = unknown;
+interface ColourFunctionRowFields {
+    name: string;
+    input: string;
+    locals: (string)[];
+    layout: 'compact' | 'lines' | 'spaced';
+    graph: GraphIr;
+}
+export type ColourFunctionRow = { [Key in keyof ColourFunctionRowFields]: ColourFunctionRowFields[Key] };
+export type ColourFunctionBookInput = Record<string, ColourFunctionRowInput>;
+export type ColourFunctionBook = Record<string, ColourFunctionRow>;
