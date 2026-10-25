@@ -1,3 +1,4 @@
+import { heldProfile } from './fixtures/nine-product-inputs';
 import { expect, test } from 'vitest';
 import { BufferAttribute, BufferGeometryLoader, type BufferGeometry } from 'three';
 import { buildViewmodelParts } from '../src/shards/nine-dragon-stack/generators/viewmodelParts';
@@ -56,7 +57,7 @@ test('pendants have a finite drape and bounded flutter that leaves their roots p
 });
 
 test('body and ink hull read the same baked motion with no extra outline draw', () => {
-  const graphs = viewmodelGraphs();
+  const graphs = viewmodelGraphs(heldProfile);
   for (const id of ['nine-vm-cloth', 'nine-vm-cloth-hull']) {
     const graph = graphs[id];
     if (graph === undefined) throw new Error('Missing cloth graph');

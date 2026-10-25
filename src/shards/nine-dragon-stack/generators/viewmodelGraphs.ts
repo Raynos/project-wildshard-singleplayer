@@ -1,3 +1,4 @@
+import type { NineHeldProfile } from './heldProfile';
 import { heldRigGraphs } from './heldRigGraphs';
 import { Color } from 'three';
 import { heldEffects } from './heldEffects';
@@ -36,7 +37,7 @@ class Vm extends LookGraph {
 }
 
 /** The same held draws, expressed as bounded arithmetic; no added hull draw. */
-export function viewmodelGraphs(): Readonly<Record<string, GraphIr>> {
+export function viewmodelGraphs(profile: NineHeldProfile): Readonly<Record<string, GraphIr>> {
   const g = new Vm(), sw = g.sw.bind(g), add = g.add.bind(g), sub = g.sub.bind(g), mul = g.mul.bind(g), div = g.div.bind(g), max = g.max.bind(g), mix = g.mix.bind(g), choose = g.choose.bind(g), band = g.band.bind(g);
   const cls = g.op('floor', [add(sw(g.attr('aMat', 'vec4', true), 'x'), .5)]), mat = g.attr('aMat', 'vec4', true), face = g.attr('aFace', 'vec4'), uv = g.op('uv');
   g.arrays['uPal'] = { type: 'vec3', value: rows.uPal.rgbs.map(hex => new Color(hex).toArray()) };
@@ -105,7 +106,7 @@ export function viewmodelGraphs(): Readonly<Record<string, GraphIr>> {
   const hull = k.finishVm(k.mix(k.u('uInk'), km(k.u('uGold'), 1.3), k.u('uSutra')), { 'vertex.normal': { normal: k.a('aHullN', 'vec3') }, 'vertex.clip': { position: clip } });
   const bases = { 'nine-vm-body': body, 'nine-vm-hull': hull, 'nine-vm-cloth': flutter(body), 'nine-vm-cloth-hull': flutter(hull) };
   const withHullWidth = (source: GraphIr, value: number): GraphIr => ({ ...source, params: { ...source.params, uHullK: { type: 'float', value } } });
-  return { 'nine-vm-sheet': { ...bases['nine-vm-cloth'], doubleSided: true }, ...bases, ...heldEffects(), ...heldRigGraphs(bases), 'nine-vm-knot-hull': withHullWidth(hull, .55), 'nine-vm-hair-hull': withHullWidth(bases['nine-vm-cloth-hull'], .18), 'nine-vm-thin-hull': withHullWidth(bases['nine-vm-cloth-hull'], .55) };
+  return { 'nine-vm-sheet': { ...bases['nine-vm-cloth'], doubleSided: true }, ...bases, ...heldEffects(), ...heldRigGraphs(bases, profile), 'nine-vm-knot-hull': withHullWidth(hull, .55), 'nine-vm-hair-hull': withHullWidth(bases['nine-vm-cloth-hull'], .18), 'nine-vm-thin-hull': withHullWidth(bases['nine-vm-cloth-hull'], .55) };
 }
 
 /** Both existing cloth draws read the same baked field; no mutable geometry or frame callback. */

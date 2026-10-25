@@ -1,8 +1,7 @@
-import { heldGraphFiles } from './heldGraphFiles';
+import type { NineHeldInputs } from './heldGraphFiles';
 import { parsePrivateScene } from '@wildshard/format/clientChannels';
 import { GraphArmsSchema, parseGraphArms } from '@wildshard/format/graphArmsRows';
 import { namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
-import profile from '../data/heldProfile.generated.json' with { type: 'json' };
 import pendants from '../data/heldPendants.json' with { type: 'json' };
 import arms from '../data/arms.json' with { type: 'json' };
 
@@ -13,7 +12,7 @@ const TRAIL = 'nine-vm-trail', EDGE = 'nine-vm-edge';
 export function heldViewSchema(): ReturnType<typeof namedJsonSchema> { return namedJsonSchema(GraphArmsSchema); }
 
 /** The held arms as one GraphArms row (the graph kind of game/systems/viewmodel/heldView.ts); runtime code never imports authoring JSON. */
-export function heldView(): Readonly<Record<string, unknown>> {
+export function heldView({ profile, files }: NineHeldInputs): Readonly<Record<string, unknown>> {
   const scene = parsePrivateScene(pendants);
   const materials = pendants.materials.map(row => row.source);
   const looks = [...new Set([...profile.meshes.map(row => row.look), ...materials, TRAIL])];
@@ -23,7 +22,7 @@ export function heldView(): Readonly<Record<string, unknown>> {
       holdRight: ARMS.holdRight, holdLeft: ARMS.holdLeft, walkRate: ARMS.walkRate, lag: ARMS.lag },
     blade: { socket: ARMS.weapon, base: ARMS.bladeBase, tip: ARMS.bladeTip },
     trail: { look: TRAIL, seed: 'seed', samples: 28, subdivisions: 4, movementSq: 1e-6, life: ARMS.trail.life, total: ARMS.trail.total, from: ARMS.trail.from, order: 5 },
-    claw: ARMS.claw, params: heldGraphFiles.params,
+    claw: ARMS.claw, params: files.params,
     meshes: profile.meshes.map(({ name, look, channels, hull, doubleSide, maps }) => maps === '' ? { name, look, channels, hull, doubleSide } : { name, look, channels, hull, doubleSide, maps }),
     maps: { base: ARMS_BASE, names: ARMS_MAPS, kinds: { maps: 'uMapsTex', nrm: 'uNrmTex' }, anisotropy: 4 },
     weave: { file: 'looks/plain-weave.r8', size: 256, param: 'uSilk' },

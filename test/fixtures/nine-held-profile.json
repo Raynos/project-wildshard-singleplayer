@@ -1,0 +1,445 @@
+{
+  "meshes": [
+    {
+      "name": "R_jian",
+      "look": "nine-vm-rig-0",
+      "attributes": [
+        "_AMAT",
+        "POSITION",
+        "NORMAL",
+        "TEXCOORD_0",
+        "COLOR_0",
+        "_AFACE",
+        "_ANS"
+      ],
+      "channels": {
+        "aMat": "_amat",
+        "aFace": "_aface",
+        "aNs": "_ans"
+      },
+      "hull": false,
+      "width": 1,
+      "maps": "",
+      "rotation": [
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1
+      ],
+      "doubleSide": false
+    },
+    {
+      "name": "R_jian_hull",
+      "look": "nine-vm-rig-1",
+      "attributes": [
+        "_AMAT",
+        "POSITION",
+        "_AHULLN"
+      ],
+      "channels": {
+        "aMat": "_amat",
+        "aHullN": "_ahulln",
+        "normal": "aHullN"
+      },
+      "hull": true,
+      "width": 1,
+      "maps": "",
+      "rotation": [
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1
+      ],
+      "doubleSide": false
+    },
+    {
+      "name": "L_claw_mesh",
+      "look": "nine-vm-rig-2",
+      "attributes": [
+        "_AMAT",
+        "POSITION",
+        "NORMAL",
+        "TEXCOORD_0"
+      ],
+      "channels": {
+        "aMat": "_amat",
+        "aNs": "normal"
+      },
+      "hull": false,
+      "width": 1,
+      "maps": "gauntlet",
+      "rotation": [
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1
+      ],
+      "doubleSide": false
+    },
+    {
+      "name": "L_claw_hull",
+      "look": "nine-vm-rig-3",
+      "attributes": [
+        "_AMAT",
+        "POSITION",
+        "_AHULLN"
+      ],
+      "channels": {
+        "aMat": "_amat",
+        "aHullN": "_ahulln",
+        "normal": "aHullN"
+      },
+      "hull": true,
+      "width": 0.8,
+      "maps": "",
+      "rotation": [
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1
+      ],
+      "doubleSide": false
+    },
+    {
+      "name": "R_glove",
+      "look": "nine-vm-rig-4",
+      "attributes": [
+        "_AMAT",
+        "JOINTS_0",
+        "POSITION",
+        "NORMAL",
+        "TEXCOORD_0",
+        "WEIGHTS_0"
+      ],
+      "channels": {
+        "aMat": "_amat",
+        "aNs": "normal"
+      },
+      "hull": false,
+      "width": 1,
+      "maps": "hand-r",
+      "rotation": [
+        0.9241586358383356,
+        0.3800108617676874,
+        -0.039020004408074044,
+        -0.1484506247692039,
+        0.26313823896630273,
+        -0.9532684192814457,
+        -0.3519846982626653,
+        0.886763785983783,
+        0.2995943258084971
+      ],
+      "doubleSide": true
+    },
+    {
+      "name": "R_glove_hull",
+      "look": "nine-vm-rig-5",
+      "attributes": [
+        "_AMAT",
+        "JOINTS_0",
+        "POSITION",
+        "WEIGHTS_0",
+        "_AHULLN"
+      ],
+      "channels": {
+        "aMat": "_amat",
+        "aHullN": "_ahulln",
+        "normal": "aHullN"
+      },
+      "hull": true,
+      "width": 1,
+      "maps": "",
+      "rotation": [
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1
+      ],
+      "doubleSide": false
+    },
+    {
+      "name": "R_sleeve",
+      "look": "nine-vm-rig-6",
+      "attributes": [
+        "_AMAT",
+        "JOINTS_0",
+        "POSITION",
+        "NORMAL",
+        "TEXCOORD_0",
+        "WEIGHTS_0"
+      ],
+      "channels": {
+        "aMat": "_amat",
+        "aNs": "normal"
+      },
+      "hull": false,
+      "width": 1,
+      "maps": "arm-r",
+      "rotation": [
+        0.8339067114108962,
+        -0.4776464736491499,
+        -0.2765021570881428,
+        -0.18770010350106725,
+        0.2256839470869427,
+        -0.955947397701854,
+        0.5190070016960779,
+        0.8490704342030699,
+        0.09854506559263786
+      ],
+      "doubleSide": true
+    },
+    {
+      "name": "R_sleeve_hull",
+      "look": "nine-vm-rig-7",
+      "attributes": [
+        "_AMAT",
+        "JOINTS_0",
+        "POSITION",
+        "WEIGHTS_0",
+        "_AHULLN"
+      ],
+      "channels": {
+        "aMat": "_amat",
+        "aHullN": "_ahulln",
+        "normal": "aHullN"
+      },
+      "hull": true,
+      "width": 1,
+      "maps": "",
+      "rotation": [
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1
+      ],
+      "doubleSide": false
+    },
+    {
+      "name": "R_upper",
+      "look": "nine-vm-rig-8",
+      "attributes": [
+        "_AMAT",
+        "JOINTS_0",
+        "POSITION",
+        "NORMAL",
+        "TEXCOORD_0",
+        "COLOR_0",
+        "_AFACE",
+        "WEIGHTS_0"
+      ],
+      "channels": {
+        "aMat": "_amat",
+        "aFace": "_aface",
+        "aNs": "normal"
+      },
+      "hull": false,
+      "width": 1,
+      "maps": "",
+      "rotation": [
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1
+      ],
+      "doubleSide": true
+    },
+    {
+      "name": "R_upper_hull",
+      "look": "nine-vm-rig-9",
+      "attributes": [
+        "_AHULLN",
+        "_AMAT",
+        "JOINTS_0",
+        "POSITION",
+        "WEIGHTS_0"
+      ],
+      "channels": {
+        "aMat": "_amat",
+        "aHullN": "_ahulln",
+        "normal": "aHullN"
+      },
+      "hull": true,
+      "width": 1,
+      "maps": "",
+      "rotation": [
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1
+      ],
+      "doubleSide": false
+    },
+    {
+      "name": "L_gauntlet",
+      "look": "nine-vm-rig-10",
+      "attributes": [
+        "_AMAT",
+        "JOINTS_0",
+        "POSITION",
+        "NORMAL",
+        "TEXCOORD_0",
+        "WEIGHTS_0"
+      ],
+      "channels": {
+        "aMat": "_amat",
+        "aNs": "normal"
+      },
+      "hull": false,
+      "width": 1,
+      "maps": "gauntlet",
+      "rotation": [
+        0.7073209545414502,
+        0.2127456814034171,
+        0.35614090232767065,
+        0.28833216378235377,
+        0.2540178140723419,
+        -0.724389062218981,
+        -0.29826436360242164,
+        0.7500761462532352,
+        0.1443057317875402
+      ],
+      "doubleSide": true
+    },
+    {
+      "name": "L_gauntlet_hull",
+      "look": "nine-vm-rig-11",
+      "attributes": [
+        "_AMAT",
+        "JOINTS_0",
+        "POSITION",
+        "WEIGHTS_0",
+        "_AHULLN"
+      ],
+      "channels": {
+        "aMat": "_amat",
+        "aHullN": "_ahulln",
+        "normal": "aHullN"
+      },
+      "hull": true,
+      "width": 1,
+      "maps": "",
+      "rotation": [
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1
+      ],
+      "doubleSide": false
+    },
+    {
+      "name": "L_fist",
+      "look": "nine-vm-rig-12",
+      "attributes": [
+        "_AMAT",
+        "JOINTS_0",
+        "POSITION",
+        "NORMAL",
+        "TEXCOORD_0",
+        "WEIGHTS_0"
+      ],
+      "channels": {
+        "aMat": "_amat",
+        "aNs": "normal"
+      },
+      "hull": false,
+      "width": 1,
+      "maps": "fist-l",
+      "rotation": [
+        0.7073209545414502,
+        0.2127456814034171,
+        0.35614090232767065,
+        0.28833216378235377,
+        0.2540178140723419,
+        -0.724389062218981,
+        -0.29826436360242164,
+        0.7500761462532352,
+        0.1443057317875402
+      ],
+      "doubleSide": true
+    },
+    {
+      "name": "L_fist_hull",
+      "look": "nine-vm-rig-13",
+      "attributes": [
+        "_AMAT",
+        "JOINTS_0",
+        "POSITION",
+        "WEIGHTS_0",
+        "_AHULLN"
+      ],
+      "channels": {
+        "aMat": "_amat",
+        "aHullN": "_ahulln",
+        "normal": "aHullN"
+      },
+      "hull": true,
+      "width": 0.8,
+      "maps": "",
+      "rotation": [
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1
+      ],
+      "doubleSide": false
+    }
+  ],
+  "standIn": {
+    "bytes": 209,
+    "hash": "367ec38b070564fce48ab65f374c3dd47c714ed069b864c79eba1d4029201a9b"
+  },
+  "rig": {
+    "bytes": 2478580,
+    "hash": "def60ea43b2168097fbc3e61875d08d322740762e94d820fa8979d15a992a0f8"
+  }
+}

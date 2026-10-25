@@ -18723,39 +18723,6 @@
       ]
     },
     {
-      "id": "nine-held-profile",
-      "shard": "nine-dragon-stack",
-      "entry": "src/shards/nine-dragon-stack/generators/bake-held-profile.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./scripts/bake-loader.mjs",
-        "src/shards/nine-dragon-stack/generators/bake-held-profile.mjs"
-      ],
-      "inputRoots": [
-        "scripts/bake-output.mjs",
-        "src/shards/nine-dragon-stack/generators/bake-held-profile.mjs",
-        "public/assets/nine-dragon/viewmodel/fp-rig.glb",
-        "package.json",
-        "pnpm-lock.yaml",
-        "scripts/bake-loader.mjs",
-        "src/engine/app/identity.ts",
-        "src/engine/boot/tables.ts",
-        "src/game/identity.ts",
-        "src/game/shard/list.ts",
-        "src/sdk"
-      ],
-      "outputs": [
-        "src/shards/nine-dragon-stack/data/heldProfile.generated.json",
-        "src/shards/nine-dragon-stack/data/heldProfile.generated.d.json.ts"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/nine-dragon-stack/data/heldProfile.generated.json",
-        "src/shards/nine-dragon-stack/data/heldProfile.generated.d.json.ts"
-      ],
-      "platform": "portable"
-    },
-    {
       "id": "driftwood-map-assembly",
       "shard": "driftwood-isle",
       "entry": "src/shards/driftwood-isle/generators/mapAssembly.mjs",

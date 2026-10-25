@@ -1,8 +1,8 @@
 import type { GraphIr, GraphNode } from '@wildshard/format/materialGraph';
-import profile from '../data/heldProfile.generated.json' with { type: 'json' };
+import type { NineHeldProfile } from './heldProfile';
 
 /** Select original GLB channels at build time; no per-vertex startup repair. */
-export function heldRigGraphs(graphs: Readonly<Record<string, GraphIr>>): Readonly<Record<string, GraphIr>> {
+export function heldRigGraphs(graphs: Readonly<Record<string, GraphIr>>, profile: NineHeldProfile): Readonly<Record<string, GraphIr>> {
   return Object.fromEntries(profile.meshes.map(row => {
     const source = graphs[row.hull ? 'nine-vm-hull' : 'nine-vm-body'];
     if (source === undefined) throw new Error('Missing held base graph');

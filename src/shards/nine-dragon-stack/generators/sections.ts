@@ -184,3 +184,24 @@ export function parseFixedRows(value: unknown): Omit<v.InferOutput<typeof FixedR
   const row = v.parse(FixedRowsSchema, JSON.parse(JSON.stringify(value), (_key, entry: unknown) => entry === '-0' ? -0 : entry));
   return { ...row, practice: { ...row.practice, presentation: v.parse(PracticeSceneSchema, row.practice.presentation) } };
 }
+
+const HeldScalar = v.pipe(v.number(), v.finite());
+const HeldIndex = v.pipe(v.number(), v.safeInteger(), v.minValue(0));
+const HeldMeshSchema = v.strictObject({
+  name: v.string(), look: v.string(), attributes: v.array(v.string()), channels: v.record(v.string(), v.string()),
+  hull: v.boolean(), width: HeldScalar, maps: v.string(), rotation: v.pipe(v.array(HeldScalar), v.length(9)), doubleSide: v.boolean(),
+});
+const HeldMeshesSchema = v.pipe(v.array(HeldMeshSchema), v.minLength(1), v.maxLength(64));
+const HeldRigSourceSchema = v.object({
+  nodes: v.array(v.object({ mesh: v.exactOptional(HeldIndex), name: v.exactOptional(v.string()), skin: v.exactOptional(HeldIndex),
+    extras: v.exactOptional(v.object({ hull: v.exactOptional(v.boolean()), hullK: v.exactOptional(HeldScalar), maps: v.exactOptional(v.string()),
+      assetRot: v.exactOptional(v.pipe(v.array(HeldScalar), v.length(9))) })) })),
+  meshes: v.array(v.object({ primitives: v.array(v.object({ attributes: v.record(v.string(), v.unknown()) })) })),
+});
+
+/** Original held-GLB mesh metadata; raw source and cached results share one admission. */
+export type NineHeldMesh = v.InferOutput<typeof HeldMeshSchema>;
+/** Read only the authored mesh/attribute/extras declarations, never geometry or image bytes. */
+export function parseHeldRigSource(value: unknown): v.InferOutput<typeof HeldRigSourceSchema> { return v.parse(HeldRigSourceSchema, value); }
+/** Admit complete original mesh rows and their existing 1..64 mesh bound. */
+export function parseHeldMeshes(value: unknown): readonly NineHeldMesh[] { return v.parse(HeldMeshesSchema, value); }

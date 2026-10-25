@@ -6,19 +6,21 @@ import { nineNativeDecals } from './nativeDecals';
 import { heldViewSchema } from './heldView';
 import { parseBurstFields } from './sections';
 import bursts from '../data/burstFields.json' with { type: 'json' };
-import { nineProduct } from './product';
+import { readNineProductInputs } from './product';
+import { nineProductFrom } from './productDefinition';
 
-async function constructionFor(ctx: ProjectGenerationContext): Promise<NineOutputInputs['construction']> {
-  const source = await nineProduct(ctx, { pages: NINE_MOVERS_CONTRACT.pages });
-  return { seed: source.identity.seed, looks: Object.keys(source.look.materials) };
+type OutputSources = Pick<NineOutputInputs, 'construction' | 'held'>;
+async function sourcesFor(ctx: ProjectGenerationContext): Promise<OutputSources> {
+  const inputs = await readNineProductInputs(ctx), source = nineProductFrom(inputs, { pages: NINE_MOVERS_CONTRACT.pages });
+  return { held: inputs.held, construction: { seed: source.identity.seed, looks: Object.keys(source.look.materials) } };
 }
 
 /** One owned output operation, with fresh entry evidence and cached immutable executable/native inputs. */
-export async function nineSourceOutput(ctx: ProjectGenerationContext, construction?: NineOutputInputs['construction']): Promise<NineOutput> {
-  const world = construction ?? await constructionFor(ctx);
+export async function nineSourceOutput(ctx: ProjectGenerationContext, supplied?: OutputSources): Promise<NineOutput> {
+  const sources = supplied ?? await sourcesFor(ctx);
   const movers = await nineMoversProgram(ctx);
   const entryProof = await nineEntryProof(ctx);
   const decals = await nineNativeDecals(ctx);
-  return nineOutput(movers, { construction: world, entryProof, decals: { blobs: decals }, bursts: parseBurstFields(bursts),
+  return nineOutput(movers, { ...sources, entryProof, decals: { blobs: decals }, bursts: parseBurstFields(bursts),
     graphArmsSchema: heldViewSchema(), scriptRevisions: { compiler: NINE_MOVERS_CONTRACT.compilerRevision, admission: NINE_MOVERS_CONTRACT.admissionRevision } });
 }

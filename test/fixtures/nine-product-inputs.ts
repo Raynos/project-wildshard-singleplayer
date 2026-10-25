@@ -8,11 +8,13 @@ import { nineProductFrom } from '../../src/shards/nine-dragon-stack/generators/p
 
 async function sourceInputs(): Promise<Awaited<ReturnType<typeof readNineProductInputs>>> {
   mkdirSync('tmp', { recursive: true }); const cache = mkdtempSync(resolve('tmp', 'nine-declaration-'));
-  try { return await readNineProductInputs(createProjectGeneration(resolve('src/shards/nine-dragon-stack'), 'b'.repeat(64), new Map(), cache)); }
+  try { return await readNineProductInputs(createProjectGeneration(resolve('src/shards/nine-dragon-stack'), 'b'.repeat(64), new Map(), cache, [{ prefix: '/assets/', directory: resolve('public/assets') }])); }
   finally { rmSync(cache, { recursive: true, force: true }); }
 }
 
 export const inputs = await sourceInputs();
+export const heldProfile = inputs.held.profile;
+export const heldGraphFiles = inputs.held.files;
 /** Exercise the same pure factory with actual source results and the supplied fixed-page view contract. */
 export function nineProduct(movers: { readonly pages: number } = { pages: 1 }): ReturnType<typeof nineProductFrom> {
   return nineProductFrom(inputs, movers);

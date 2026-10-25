@@ -1,6 +1,5 @@
 import { graphFileRules } from '../src/format/materials';
-import product from './fixtures/nine-product-inputs';
-import { heldGraphFiles } from '../src/shards/nine-dragon-stack/generators/heldGraphFiles';
+import product, { heldGraphFiles, heldProfile } from './fixtures/nine-product-inputs';
 import { postRows } from '../src/shards/nine-dragon-stack/generators/postGraphs';
 import { ScaledPostPass, prepareScaledPost } from '../src/game/looks/scaledPost';
 import { postGraphLookOf } from '../src/game/looks/postGraphLook';
@@ -108,7 +107,7 @@ test('volume sampling refuses wrong coordinates, dimensions and lent textures', 
 });
 
 test('held toon and hull graphs compile rigid and skinned without adding draws', () => {
-  for (const [id, graph] of Object.entries(viewmodelGraphs())) {
+  for (const [id, graph] of Object.entries(viewmodelGraphs(heldProfile))) {
     expect(Object.keys(graph.nodes).length, id).toBeLessThanOrEqual(4096);
     expect(new TextEncoder().encode(JSON.stringify(graph)).length, id).toBeLessThanOrEqual(64000);
     expect(graph.stages.outline, id).toBeUndefined();
@@ -159,7 +158,7 @@ test('a second shard fixture drives resized post targets and skips gated outputs
 
 
 test('held draw rows compile aliased GLB buffers and ribbon channels', () => {
-  for (const [id, graph] of Object.entries(viewmodelGraphs()).filter(([key]) => key.startsWith('nine-vm-rig-') || key === 'nine-vm-edge' || key === 'nine-vm-trail')) {
+  for (const [id, graph] of Object.entries(viewmodelGraphs(heldProfile)).filter(([key]) => key.startsWith('nine-vm-rig-') || key === 'nine-vm-edge' || key === 'nine-vm-trail')) {
     expect(validateGraph(graph, { trustedBudget: true }).ok, id).toBe(true);
     const shaders = build(graph, false, id.startsWith('nine-vm-rig-'));
     expect(shaders.fragment, id).not.toContain('NaN');

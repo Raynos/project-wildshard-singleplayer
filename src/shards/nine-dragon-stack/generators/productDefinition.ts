@@ -1,4 +1,4 @@
-import { heldGraphFiles } from './heldGraphFiles';
+import type { NineHeldInputs } from './heldGraphFiles';
 import { filamentGraph } from './filamentGraph';
 import { haloGraph } from './haloGraph';
 import { architectureGraphs } from './architectureGraphs';
@@ -33,6 +33,7 @@ const DEFAULT_MOVERS = { pages: 1 };
 
 /** Owned source results consumed by the declaration in this same build. */
 export interface NineProductInputs {
+  readonly held: NineHeldInputs;
   readonly courseProgram: { readonly compiled: { readonly bytes: number }; readonly script: { readonly pages: number } };
   readonly navigation: { readonly navigation: unknown; readonly files: readonly NineInputFile[]; readonly critical: readonly string[] };
   readonly world: { readonly shardfile: { readonly library: readonly string[]; readonly files: readonly NineInputFile[]; readonly tiles: unknown }; readonly props: Readonly<Record<string, unknown>> | null | undefined };
@@ -47,7 +48,7 @@ interface NineInputFile {
 
 /** Assemble the declaration from owned world/navigation/course results and the fixed-page view contract. */
 export function nineProductFrom(inputs: NineProductInputs, movers: { readonly pages: number } = DEFAULT_MOVERS): Shardfile {
-const { courseProgram, navigation, world } = inputs;
+const { courseProgram, navigation, world, held: { files: heldGraphFiles } } = inputs;
 const base = emptyShardfile({ slug: 'nine-dragon-stack', name: 'Nine Dragon Stack', author: 'Wildshard', revision: 1, seed: 0x9d2a });
 const library = new Set([...world.shardfile.library, ...heldGraphFiles.library]), charged = [...world.shardfile.files.filter(file => library.has(file.hash)), ...heldGraphFiles.files];
 const courseBytes=courseProgram.compiled.bytes, courseMemory=courseBytes+courseProgram.script.pages*65536*2;

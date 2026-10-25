@@ -1,5 +1,6 @@
 import type { GeneratedProject, ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
-import { nineProduct } from './product';
+import { readNineProductInputs } from './product';
+import { nineProductFrom } from './productDefinition';
 import { NINE_MOVERS_CONTRACT } from './moversProgram';
 import { nineSourceOutput } from './sourceOutput';
 import type { NineOutput } from './productOutput';
@@ -9,7 +10,8 @@ export interface NineGeneratedProject extends GeneratedProject { readonly output
 
 /** The source invocation owns its executable, fresh entry evidence and native decal bytes. */
 export async function generate(ctx: ProjectGenerationContext): Promise<NineGeneratedProject> {
-  const shard = await nineProduct(ctx, { pages: NINE_MOVERS_CONTRACT.pages });
-  const output = await nineSourceOutput(ctx, { seed: shard.identity.seed, looks: Object.keys(shard.look.materials) });
+  const inputs = await readNineProductInputs(ctx);
+  const shard = nineProductFrom(inputs, { pages: NINE_MOVERS_CONTRACT.pages });
+  const output = await nineSourceOutput(ctx, { held: inputs.held, construction: { seed: shard.identity.seed, looks: Object.keys(shard.look.materials) } });
   return { shard, output };
 }

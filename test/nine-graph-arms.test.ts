@@ -1,10 +1,11 @@
+import { inputs } from './fixtures/nine-product-inputs';
 import { expect, test } from 'vitest';
 import { GraphArmsSchema, parseGraphArms } from '../src/format/graphArmsRows';
 import { heldView } from '../src/shards/nine-dragon-stack/generators/heldView';
 import arms from '../src/shards/nine-dragon-stack/data/arms.json' with { type: 'json' };
 
 test('Nine held arms are one admitted GraphArms row', () => {
-  const row = parseGraphArms(heldView());
+  const row = parseGraphArms(heldView(inputs.held));
   expect(row.blade).toEqual({ socket: 'R_weapon', base: arms.ARMS.bladeBase, tip: arms.ARMS.bladeTip });
   expect(row.rig.joints.flat()).toHaveLength(14);
   expect(new Set(row.meshes.map(mesh => mesh.look)).size).toBeGreaterThan(0);
@@ -18,7 +19,7 @@ test('held view admission preserves rows and refuses malformed named payloads', 
   const { createShardProduct } = await import('../src/game/shardfile/shardProduct');
   const { emptyShardfile } = await import('../src/sdk/author');
   const encode = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(value));
-  const row = parseGraphArms(heldView()), schema = namedJsonSchema(GraphArmsSchema);
+  const row = parseGraphArms(heldView(inputs.held)), schema = namedJsonSchema(GraphArmsSchema);
   const blob = nameBlob('weapons/held.json', 'json', encode(row), { jsonSchema: schema });
   let payload = blob.bytes;
   const identity = {slug:'held-schema',name:'Held schema',author:'Wildshard',revision:1,seed:1};

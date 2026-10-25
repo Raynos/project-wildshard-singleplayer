@@ -83,7 +83,6 @@
     "src/shards/nalati-grasslands/generators/reinsCard.ts": 1,
     "src/shards/nine-dragon-stack/generators/bake-decal-atlas.mjs": 2,
     "src/shards/nine-dragon-stack/generators/bake-glyphs.mjs": 5,
-    "src/shards/nine-dragon-stack/generators/bake-held-profile.mjs": 1,
     "src/shards/nine-dragon-stack/generators/bake-sign-atlas.mjs": 2,
     "src/shards/nine-dragon-stack/generators/decalAtlasPage.ts": 1,
     "src/shards/nine-dragon-stack/generators/glyphPage.ts": 1,

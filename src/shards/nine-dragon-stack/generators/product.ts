@@ -2,13 +2,16 @@ import courseProgram from '../behaviour/practice.generated.json' with { type: 'j
 import world from '../data/world.generated.json' with { type: 'json' };
 import { nineProductFrom, type NineProductInputs } from './productDefinition';
 import { nineNavigation } from './navigationProgram';
+import { nineHeldProfile } from './heldProfile';
+import { createHeldGraphFiles } from './heldGraphFiles';
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 
 const DEFAULT_MOVERS = { pages: 1 };
 
 /** Remaining world/course readers accompany this invocation's source-owned navigation. */
 export async function readNineProductInputs(ctx: ProjectGenerationContext): Promise<NineProductInputs> {
-  return { courseProgram, navigation: await nineNavigation(ctx), world };
+  const profile = await nineHeldProfile(ctx);
+  return { courseProgram, navigation: await nineNavigation(ctx), world, held: { profile, files: createHeldGraphFiles(profile) } };
 }
 
 /** Build the declaration from this invocation's admitted source results. */
