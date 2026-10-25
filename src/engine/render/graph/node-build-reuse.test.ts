@@ -1,6 +1,7 @@
 import { afterAll, afterEach, expect, test, vi } from 'vitest';
 import * as THREE from 'three';
-import { TextureNode } from 'three/webgpu';
+import { TextureNode, UniformArrayNode } from 'three/webgpu';
+import { graphNodeOwner } from '../nodes/nodeBuildReuse';
 import { WebGLNodesHandler } from 'three/examples/jsm/tsl/WebGLNodesHandler.js';
 import { compileGraph } from './compile';
 import { EngineNodesHandler } from '../nodes/engineNodesHandler';
@@ -75,6 +76,51 @@ test('an equal program reuses the first build with its own params and textures',
     expect(Reflect.get(second.uniforms[k] ?? {}, 'value')).toBe(0.5);
     expect(Reflect.get(first.uniforms[k] ?? {}, 'value')).toBe(0.25);
   } finally { done(); a.material.dispose(); b.material.dispose(); ta.dispose(); tb.dispose(); tb2.dispose(); }
+});
+
+test('equal uniform-array builds compare their final stable buffer names', () => {
+  const { handler, build, done } = harness();
+  const graph = (red: number): GraphIr => ({ version: 1, kind: 'material', model: 'unlit', effectState: { fog: false },
+    arrays: { palette: { type: 'vec3', value: Array.from({ length: 17 }, () => [red, 0, 0]) } },
+    nodes: { colour: { op: 'arrayElement', param: 'palette', in: [0] } }, stages: { surface: { colour: 'colour' } } });
+  const a = compileGraph(graph(.25)), b = compileGraph(graph(.75)), c = compileGraph(graph(.5));
+  const warning = vi.spyOn(console, 'warn');
+  try {
+    const first = build(a.material), second = build(b.material), third = build(c.material);
+    expect(second.vertexShader).toBe(first.vertexShader);
+    expect(second.fragmentShader).toBe(first.fragmentShader);
+    expect(third.customProgramCacheKey).toBe(first.customProgramCacheKey);
+    expect(third.fragmentShader).toBe(first.fragmentShader);
+    expect(handler.builds).toBe(3);
+    const buffers = [a, b, c].map(compiled => graphNodeOwner(compiled.material)?.compiled.find(node => node instanceof UniformArrayNode));
+    const values = (): unknown[] => buffers.map(node => node instanceof UniformArrayNode ? node.array[0] : undefined);
+    expect(values()).toEqual([new THREE.Vector3(.25, 0, 0), new THREE.Vector3(.75, 0, 0), new THREE.Vector3(.5, 0, 0)]);
+    b.setArrayParam('palette', Array.from({ length: 17 }, () => [.375, 0, 0]));
+    expect(values()).toEqual([new THREE.Vector3(.25, 0, 0), new THREE.Vector3(.375, 0, 0), new THREE.Vector3(.5, 0, 0)]);
+    expect(first.fragmentShader).toContain('engineNodeBufferData0[17]');
+    expect(first.fragmentShader).not.toMatch(/\b(?:NodeBuffer_|buffer)\d+\b/u);
+    expect(warning.mock.calls.filter(args => String(args[0]).includes('[programShare]'))).toEqual([]);
+  } finally { warning.mockRestore(); done(); a.material.dispose(); b.material.dispose(); c.material.dispose(); }
+});
+
+test('a real final-code change still disables sharing for its shape', () => {
+  const { build, done } = harness(), a = compileGraph(GRAPH(.25)), b = compileGraph(GRAPH(.75));
+  const original: unknown = Reflect.get(WebGLNodesHandler.prototype, 'build');
+  if (typeof original !== 'function') throw new Error('Missing stock node builder');
+  let changed = false;
+  const frontend = vi.spyOn(WebGLNodesHandler.prototype, 'build').mockImplementation(function differingCode(this: WebGLNodesHandler, material, object, parameters): void {
+    Reflect.apply(original, this, [material, object, parameters]);
+    if (changed) parameters.fragmentShader = parameters.fragmentShader.replace(/\}\s*$/u, 'fragColor *= 0.5;\n}');
+  });
+  const warning = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+  try {
+    const first = build(a.material); changed = true;
+    const second = build(a.material);
+    expect(second.fragmentShader).toContain('fragColor *= 0.5;');
+    expect(second.fragmentShader).not.toBe(first.fragmentShader);
+    expect(warning.mock.calls.filter(args => String(args[0]).includes('[programShare]'))).toHaveLength(1);
+    expect(build(b.material).customProgramCacheKey).not.toBe(first.customProgramCacheKey);
+  } finally { frontend.mockRestore(); warning.mockRestore(); done(); a.material.dispose(); b.material.dispose(); }
 });
 
 test('a graph of another shape (one operator differs) builds in full', () => {

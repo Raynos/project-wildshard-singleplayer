@@ -885,15 +885,6 @@ export class EngineNodesHandler extends WebGLNodesHandler {
       if (!shader.includes('float wildshardGraphPointSize;') || !shader.includes('gl_PointSize = 1.0;')) throw new Error('Missing graph point-size output');
       parameters.vertexShader = shader.replace('gl_PointSize = 1.0;', 'gl_PointSize = wildshardGraphPointSize;');
     }
-    // programShare: one shared key stands for one program's code; a build that wrote other code stops its shape sharing
-    if (key !== null && shape !== null && this.shareKeyOf(material) !== null) {
-      const code = codeHash(`${parameters.vertexShader}\0${parameters.fragmentShader}`), seen = this.sharedCode.get(key);
-      if (seen === undefined) this.sharedCode.set(key, code);
-      else if (seen !== code) {
-        this.unshared.add(shape.signature);
-        console.warn(`[programShare] ${material.name || material.type} wrote other code under a shared program key: it keys by its own nodes from now on`);
-      }
-    }
     const buildMs = diagnosticNow() - t0;
     this.buildMs += buildMs;
     this.builds++;
@@ -910,6 +901,16 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     const uniformsGroups = classicModelUniform(parameters, internals(this).collectUniformsGroups(builder).filter(isBlockGroup));
     stableBufferNames(builder, parameters, uniformsGroups);
     this.blocks?.declare(parameters, uniformsGroups.filter(isBlockGroup));
+    // Compare the emitted code after stable buffer naming and uniform lowering.
+    // Transient NodeBuffer IDs differ between equal array-backed graphs.
+    if (key !== null && shape !== null && this.shareKeyOf(material) !== null) {
+      const code = codeHash(`${parameters.vertexShader}\0${parameters.fragmentShader}`), seen = this.sharedCode.get(key);
+      if (seen === undefined) this.sharedCode.set(key, code);
+      else if (seen !== code) {
+        this.unshared.add(shape.signature);
+        console.warn(`[programShare] ${material.name || material.type} wrote other code under a shared program key: it keys by its own nodes from now on`);
+      }
+    }
     pending.push({ binding: this.sceneBinding(parameters), uniformsGroups, updateNodes,
       uniforms: parameters.uniforms, programs, slot: programs instanceof Map ? programs.size : -1 });
     // A cold precompile may never draw. Retain only the stock fallback's runtime
