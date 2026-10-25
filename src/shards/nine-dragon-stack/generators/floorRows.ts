@@ -36,6 +36,11 @@ export const inFrame: typeof sdkInFrame = sdkInFrame;
 /** each deck's parts: the slab, the two parapets just outside the opening, the end wall past the socket */
 export const deckParts = (f: Frame): { slab: FrameBox; rails: FrameBox[]; walls: FrameBox[] } => sdkDeckParts(f, SIZES);
 
+/** Original ordered floor rectangles from the same four physical deck frames. */
+export function deckFloorRows(): { x: number; z: number; hw: number; hd: number; y: number }[] {
+  return FRAMES.map(frame => { const slab = deckParts(frame).slab; return { x: slab.x, z: slab.z, hw: slab.sx / 2, hd: slab.sz / 2, y: 0 }; });
+}
+
 /** G200: the standalone balustrade across a deck's open end (world/entries.ts draws it): its sizes (generators/decks.json) */
 export const CAP: typeof DECK_CAP = DECK_CAP;
 /** the balustrade's colliding parts: its plinth, its top rail, the brazier's pedestal and the two lantern pillars */

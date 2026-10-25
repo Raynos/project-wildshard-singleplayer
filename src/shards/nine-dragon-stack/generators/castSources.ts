@@ -7,9 +7,10 @@ import lodRows from '../data/lod.json' with { type: 'json' };
 import hookRows from '../data/hookSpecimen.json' with { type: 'json' };
 
 const crowd = Object.entries(crowdRows).flatMap(([key, row]) => row.variants.map(variant => `${key}-${variant.id}`));
-const names = [...crowd, 'lion', ...castRows.FIXED_KITS, ...[10, 30].map(distance => `lion-mid${distance}`),
+export const CAST_NAMES = [...crowd, 'lion', ...castRows.FIXED_KITS, ...[10, 30].map(distance => `lion-mid${distance}`),
   ...hookRows.lods.map(distance => `dragon-hook-mid${distance}`),
   ...crowd.flatMap(name => lodRows.MID_FROM.map(distance => `${name}-mid${distance}`).concat(`${name}-far`))];
+const names = CAST_NAMES;
 const json = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(value));
 
 /** The admitted pool files retain the existing rest reader and per-file channel declarations. */

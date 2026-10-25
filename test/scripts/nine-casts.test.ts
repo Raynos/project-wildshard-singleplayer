@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs';
 import { beforeAll, expect, test } from 'vitest';
 import { BufferAttribute, Float32BufferAttribute, Mesh, MeshBasicMaterial, Box3, Object3D, Sphere, Vector3, type BufferGeometry } from 'three';
 
-import {nineCastBlobs} from '../fixtures/nine-cast-blobs';
+import {nineCastBlobs, rawCast} from '../fixtures/nine-cast-blobs';
 import { createOwnedGeometry } from '../../src/engine/models/ownedGeometry';
 import metadata from '../../src/shards/nine-dragon-stack/boot/metadata.generated.json' with { type: 'json' };
 import hookBounds from '../../src/shards/nine-dragon-stack/data/hookBounds.json' with { type: 'json' };
@@ -25,11 +25,12 @@ import { Rng } from '../../src/engine/core/rng';
 import { bindWorldSceneModelSources, defineWorldSceneCatalogue } from '../../src/game/models/worldSceneCatalogue';
 import { parseWorldSceneModels } from '../../src/format/worldSceneModels';
 import { floorAtRects } from '../../src/engine/physics/box';
-import deckFloors from '../../src/shards/nine-dragon-stack/data/deckFloors.generated.json' with { type: 'json' };
+import { deckFloorRows } from '../../src/shards/nine-dragon-stack/generators/floorRows';
 import lodBasis from '../fixtures/nine-lods.json' with { type: 'json' };
 import baseline from '../fixtures/nine-casts.json' with { type: 'json' };
 
 const CAST_BLOBS=await nineCastBlobs();
+const deckFloors = deckFloorRows();
 
 const { CAST_CHANNELS } = castRows;
 const names = v.parse(v.array(v.picklist(['walker-dark', 'walker-light', 'sitter-dark', 'sitter-light', 'lion', 'guard', 'entries-open', 'entries-capped', 'facade-signs'])), [...castRows.CASTS, ...castRows.FIXED_KITS]);
@@ -120,7 +121,7 @@ beforeAll(async () => {
   for (const name of ['walker-oxblood', 'walker-paper', 'walker-blue']) {
     const library = createModelLibrary<never, never>({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, hdLooks: {}, aoFloor: 1,
       geometryPools: [{ url: name, parts: [name], channels: CAST_CHANNELS }],
-    }, 'test Nine baked dye', {}, async () => (await readSourceModel(read(`/assets/nine-dragon/baked/casts/${name}.glb`))).gltf);
+    }, 'test Nine baked dye', {}, async () => (await readSourceModel(rawCast(name))).gltf);
     await library.preload();
     const geometry = library.geometry(name, { borrow: true });
     if (geometry === null) throw new Error(`Missing baked dye ${name}`);
@@ -159,7 +160,7 @@ beforeAll(async () => {
     const path = `${name}-${suffix}`;
     const library = createModelLibrary<never, never>({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, hdLooks: {}, aoFloor: 1,
       geometryPools: [{ url: path, parts: [path], channels: name === 'dragon-hook' ? [] : CAST_CHANNELS }],
-    }, 'test Nine LOD casts', {}, async () => (await readSourceModel(read(`/assets/nine-dragon/baked/casts/${path}.glb`))).gltf);
+    }, 'test Nine LOD casts', {}, async () => (await readSourceModel(rawCast(path))).gltf);
     await library.preload();
     const prepared = library.geometry(path, { borrow: true });
     if (prepared === null) throw new Error(`Missing packed LOD ${key}`);

@@ -38,7 +38,7 @@ export function mapGeometry(bytes, offset, row) {
 export async function mapModel(file, slot = 0, world = false) {
   await MeshoptDecoder.ready;
   const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'meshopt.decoder': MeshoptDecoder });
-  const doc = await io.readBinary(new Uint8Array(readFileSync(file)));
+  const doc = await io.readBinary(file instanceof Uint8Array ? file : new Uint8Array(readFileSync(file)));
   const node = doc.getRoot().listNodes().filter(row => row.getMesh() !== null).at(slot), mesh = node?.getMesh();
   if (mesh?.listPrimitives().length !== 1) throw new Error(`Map model needs one primitive: ${file}:${slot}`);
   const primitive = mesh.listPrimitives()[0], geometry = new BufferGeometry();

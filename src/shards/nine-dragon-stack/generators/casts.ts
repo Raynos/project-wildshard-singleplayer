@@ -84,3 +84,10 @@ export function bakeFixedKits(recorded: v.InferOutput<typeof slots>): { packs: M
   packs.set('facade-signs', packGeometry('facade-signs', geometry));
   return { packs, geometries, signs: recorder.calls, lanterns };
 }
+
+/** Direct metadata handoff; geometry belongs only to this call and is released immediately. */
+export function fixedKitRows(recorded: v.InferOutput<typeof slots>): Pick<ReturnType<typeof bakeFixedKits>, 'signs' | 'lanterns'> {
+  const fixed = bakeFixedKits(recorded);
+  for (const geometry of fixed.geometries.values()) geometry.dispose();
+  return { signs: fixed.signs, lanterns: fixed.lanterns };
+}

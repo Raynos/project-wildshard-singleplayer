@@ -1,10 +1,10 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- Verify declared source URLs against retained generated cast files.
+// oxlint-disable-next-line import/no-nodejs-modules -- Compare the authored native hook with its admitted source product.
 import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare every decoded geometry byte without object-matcher traversal.
 import { Buffer } from 'node:buffer';
 import { expect, test } from 'vitest';
 import { CAST_SOURCES } from '../src/shards/nine-dragon-stack/generators/castSources';
-import {nineCastBlobs} from './fixtures/nine-cast-blobs';
+import {nineCastBlobs, rawCast} from './fixtures/nine-cast-blobs';
 import { createModelLibrary } from '../src/game/plugin/geometry';
 import { readSourceModel } from '../src/sdk/bake/skinned';
 import { parseWorldSceneWeld } from '../src/format/worldSceneWeld';
@@ -31,7 +31,7 @@ test('cast resource rows publish exact channels and preserve middle-LOD sharing 
     geometryPools: source.files.map(({ file, ...row }) => ({ url: file, ...row })),
   }, 'cast-resource proof', {}, async file => {
     const [packed, original] = await Promise.all([readSourceModel(named(file)),
-      readSourceModel(new Uint8Array(readFileSync(`public/assets/nine-dragon/baked/casts/${file.split('/').at(-1)}`)))]);
+      readSourceModel(rawCast(file.split('/').at(-1)?.replace('.glb', '') ?? ''))]);
     const name = file.split('/').at(-1)?.replace('.glb', ''), actual = name === undefined ? undefined : packed.gltf.scene.getObjectByName(name);
     const expected = name === undefined ? undefined : original.gltf.scene.getObjectByName(name);
     if (!(actual instanceof Mesh) || !(expected instanceof Mesh)) throw new Error('Missing decoded cast for lossless proof');
