@@ -5,6 +5,7 @@ import { build } from 'vite';
 import { webkit, devices } from 'playwright';
 import { unzlibSync } from 'fflate';
 import { byteWriter, jsonBytes, outputHash } from '../../../../scripts/bake-output.mjs';
+import { browserBakeBytes } from '../../../../scripts/browser-bake-bytes.mjs';
 
 const root = resolve(import.meta.dirname, '../../../..');
 const result = await build({
@@ -27,8 +28,23 @@ try {
   const original = process.env.NINE_GLYPH_REFERENCE;
   if (original !== undefined) await page.addScriptTag({ content: readFileSync(original, 'utf8') });
   for (const tier of ['phone', 'desktop']) {
-    const row = await page.evaluate(selected => window.bakeNineGlyphs(selected), tier);
-    const data = Buffer.concat(row.packed.map(part => unzlibSync(Buffer.from(part, 'base64'))));
+    const sink = await browserBakeBytes(page);
+    let row, chunks;
+    try {
+      row = await page.evaluate(async ({ selected, url }) => {
+        const baked = window.bakeNineGlyphs(selected), packed = [];
+        for (let i = 0; i < baked.packed.length; i++) {
+          const id = `part-${i}`, bytes = baked.packed[i];
+          if (bytes === undefined) throw new Error('Missing glyph byte block');
+          const response = await fetch(`${url}${id}`, { method: 'POST', body: bytes });
+          if (!response.ok) throw new Error('Glyph byte handoff refused');
+          packed.push(id);
+        }
+        return { ...baked, packed };
+      }, { selected: tier, url: sink.url });
+      chunks = row.packed.map(id => sink.take(id));
+    } finally { await sink.dispose(); }
+    const data = Buffer.concat(chunks.map(part => unzlibSync(part)));
     if (original !== undefined) {
       const before = await page.evaluate(selected => window.originalNineGlyphs(selected), tier);
       if (!Buffer.from(data).equals(Buffer.from(before.base64, 'base64')) ||
@@ -36,13 +52,13 @@ try {
       proof[tier] = { size: before.size, pixelHash: outputHash(Buffer.from(before.base64, 'base64')), rectHash: outputHash(jsonBytes(before.rects, 0).subarray(0, -1)) };
       console.log(`Nine ${tier}: exact original runtime pixels and metrics (zero tolerance)`);
     }
-    const packed = row.packed.map((part, i) => {
+    const packed = chunks.map((part, i) => {
       const file = `glyphs-${tier}-${i}.bin`;
-      writer.put(resolve(root, 'src/shards/nine-dragon-stack/data', file), Buffer.from(part, 'base64'));
+      writer.put(resolve(root, 'src/shards/nine-dragon-stack/data', file), part);
       return file;
     });
     tiers[tier] = { ...row, packed, pixelHash: outputHash(data) };
-    console.log(`Nine ${tier}: ${row.size}x${row.size} RG8, ${data.length} decoded, ${row.packed.reduce((sum, part) => sum + Buffer.from(part, 'base64').length, 0)} wire, ${tiers[tier].pixelHash}`);
+    console.log(`Nine ${tier}: ${row.size}x${row.size} RG8, ${data.length} decoded, ${chunks.reduce((sum, part) => sum + part.byteLength, 0)} wire, ${tiers[tier].pixelHash}`);
   }
 } finally { await browser.close(); }
 writer.put(resolve(root, 'src/shards/nine-dragon-stack/data/glyphs.generated.json'), jsonBytes(tiers, 0));

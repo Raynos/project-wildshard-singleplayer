@@ -4,13 +4,12 @@ import { KAI_STACK, GLYPH_LAYOUT } from './signs';
 import { FONT_CHARS } from './words';
 
 /** Native WebKit font output is retained, so portable product builds need neither system fonts nor a canvas. */
-export function bakeGlyphPage(tier: keyof typeof GLYPH_LAYOUT): { size: number; layout: (typeof GLYPH_LAYOUT)[keyof typeof GLYPH_LAYOUT]; rects: Record<string, { u0: number; v0: number; u1: number; v1: number }>; packed: string[] } {
+export function bakeGlyphPage(tier: keyof typeof GLYPH_LAYOUT): { size: number; layout: (typeof GLYPH_LAYOUT)[keyof typeof GLYPH_LAYOUT]; rects: Record<string, { u0: number; v0: number; u1: number; v1: number }>; packed: Uint8Array<ArrayBuffer>[] } {
   const layout = GLYPH_LAYOUT[tier], field = bakeGlyphField(Array.from(FONT_CHARS), layout, KAI_STACK);
-  const packed: string[] = [];
+  const packed: Uint8Array<ArrayBuffer>[] = [];
   for (let at = 0; at < field.data.length; at += 2_097_152) {
     const bytes = zlibSync(field.data.subarray(at, at + 2_097_152), { level: 9 });
-    let raw = ''; for (let start = 0; start < bytes.length; start += 32768) raw += String.fromCodePoint(...bytes.subarray(start, start + 32768));
-    packed.push(btoa(raw));
+    packed.push(bytes);
   }
   return { size: field.size, layout, rects: Object.fromEntries(field.rects), packed };
 }
