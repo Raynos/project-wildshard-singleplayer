@@ -3,6 +3,8 @@ import { expect, test } from 'vitest';
 import { gzipSync, brotliCompressSync, deflateSync } from 'node:zlib';
 // oxlint-disable-next-line import/no-nodejs-modules -- Serve exact old/new fixture bytes on one observed origin.
 import { createServer, type Server } from 'node:http';
+// oxlint-disable-next-line import/no-nodejs-modules -- Independently verify the streamed proof digest.
+import { createHash } from 'node:crypto';
 import { decodedBodyCounter, observeTransport } from '../scripts/loading-benchmark/transport.mjs';
 
 test('proof receipts keep compressed wire bytes separate from exact content bytes', async () => {
@@ -36,7 +38,7 @@ test('upgrade observation switches upstreams while retaining one browser origin 
   try {
     const oldURL = await listen(old), nextURL = await listen(next);
     let upstream = oldURL;
-    observed = await observeTransport(() => upstream);
+    observed = await observeTransport(() => upstream, { bodyHashes: true });
     const url = new URL('sw.js', observed.base).href, before = await fetch(url);
     expect(await before.text()).toBe('old worker'); expect(before.headers.get('service-worker-allowed')).toBe('/');
     upstream = nextURL;
@@ -44,5 +46,7 @@ test('upgrade observation switches upstreams while retaining one browser origin 
     expect(await after.text()).toBe('new worker'); expect(after.url).toBe(url);
     expect(observed.htmlFixtures).toEqual([]);
     expect(observed.receipts.map(row => row.url)).toEqual([new URL('sw.js', oldURL).href, new URL('sw.js', nextURL).href]);
+    expect(observed.receipts.map(row => row.bodySHA256)).toEqual(['old worker', 'new worker'].map(body => createHash('sha256').update(body).digest('hex')));
+    expect(observed.receipts.every(row => row.bodyEncoding === 'identity' && row.startedAt <= row.endedAt)).toBe(true);
   } finally { await observed?.close(); await close(old); await close(next); }
 });

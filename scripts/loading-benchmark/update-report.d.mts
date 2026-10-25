@@ -13,12 +13,15 @@ export interface UpdateObservation {
   templateTapHost: number;
   templateReadyHost: number;
   templateState: { accuracy: { final: { rows: { key?: string; ms?: string }[] } | null } };
-  transport: { url: string; endedAt: number; status: number; bodyBytes: number }[];
+  transport: { url: string; endedAt: number; status: number; bodyBytes: number; bodySHA256?: string; bodyEncoding?: string }[];
 }
 export interface TrafficObservation {
   responsesEnded: number;
   bodyBytes: number;
   sameURLBodyBytes: number;
+  unchangedBodyBytes: number;
+  changedBodyBytes: number;
+  unknownBodyBytes: number;
   failures: { url: string; status: number }[];
 }
 export function updateReport(data: UpdateObservation): {

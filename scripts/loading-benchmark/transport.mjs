@@ -32,6 +32,7 @@ export async function observeTransport(upstream, fixture = {}) {
       response.end(fixture.start); return;
     }
     const target = new URL(request.url ?? '/', typeof upstream === 'function' ? upstream() : upstream);
+    const startedAt = Date.now();
     if (target.protocol !== 'http:' && target.protocol !== 'https:') { response.writeHead(502); response.end(); return; }
     const inject = fixture.recorder !== undefined && (target.pathname === '/' || target.pathname === '/index.html');
     const requestHeaders = { ...request.headers, host: target.host };
@@ -46,8 +47,9 @@ export async function observeTransport(upstream, fixture = {}) {
       const chunks = [];
       if (!inject) response.writeHead(incoming.statusCode ?? 502, headers);
       let body = 0;
+      const digest = fixture.bodyHashes ? createHash('sha256') : null;
       const decoded = decodedBodyCounter(incoming.headers['content-encoding']);
-      incoming.on('data', chunk => { body += chunk.length; decoded.write(chunk); if (inject) chunks.push(chunk); else response.write(chunk); });
+      incoming.on('data', chunk => { body += chunk.length; digest?.update(chunk); decoded.write(chunk); if (inject) chunks.push(chunk); else response.write(chunk); });
       incoming.on('end', () => {
         if (inject) {
           const original = Buffer.concat(chunks).toString('utf8');
@@ -62,7 +64,10 @@ export async function observeTransport(upstream, fixture = {}) {
         }
         response.end();
         const endedAt = Date.now();
-        void decoded.finish().then(contentBytes => receipts.push({ url: target.href, status: incoming.statusCode ?? 502, endedAt, bodyBytes: body,
+        void decoded.finish().then(contentBytes => receipts.push({ url: target.href, status: incoming.statusCode ?? 502, startedAt, endedAt, bodyBytes: body,
+          // Wire identity is comparable only with the same encoding. HTML is
+          // intentionally injected, so its upstream digest is not a served-body receipt.
+          ...(digest !== null && !inject ? { bodySHA256: digest.digest('hex'), bodyEncoding: incoming.headers['content-encoding'] ?? 'identity' } : {}),
           decodedBodyBytes: inject ? body : contentBytes,
           requestCache: { cacheControl: request.headers['cache-control'], ifNoneMatch: request.headers['if-none-match'],
             ifModifiedSince: request.headers['if-modified-since'], acceptEncoding: request.headers['accept-encoding'],

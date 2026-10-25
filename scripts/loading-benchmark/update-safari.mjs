@@ -42,7 +42,7 @@ function record(){
 }
 const oldVersion=await(await fetch(new URL('/version.json',before))).json(),newVersion=await(await fetch(new URL('/version.json',after))).json();
 if(!oldVersion.build.startsWith(beforePin.slice(0,7))||!newVersion.build.startsWith(afterPin.slice(0,7)))throw new Error('Served source pin mismatch');
-const transport=await observeTransport(()=>current,{recorder:record,prelude:`(${accuracyRecorder.toString()})();`});const base=transport.base;
+const transport=await observeTransport(()=>current,{recorder:record,prelude:`(${accuracyRecorder.toString()})();`,bodyHashes:true});const base=transport.base;
 async function port(){const s=createServer();await new Promise(resolve=>{s.listen(0,'127.0.0.1',resolve);});const address=s.address();if(address===null||typeof address==='string')throw new Error('Inspector port did not bind');const p=address.port;await new Promise(resolve=>{s.close(resolve);});return p;}
 const list=await port(),first=await port(),socket=execFileSync('xcrun',['simctl','getenv',udid,'RWI_LISTEN_SOCKET'],{encoding:'utf8'}).trim();
 const proxy=spawn('ios_webkit_debug_proxy',['-s',`unix:${socket}`,'-c',`null:${list},:${first}-${first+8}`],{stdio:['ignore','ignore','pipe']});
@@ -58,6 +58,10 @@ function probeArt(){
  for(const src of urls){const im=new Image();const finish=ok=>{window.__loadingUpdateArt.rows.push({src,ok,width:im.naturalWidth});window.__loadingUpdateArt.done++};im.onload=()=>finish(true);im.onerror=()=>finish(false);im.src=src;}
 }
 async function art(){await evaluate(`(${probeArt.toString()})();true`);await wait('window.__loadingUpdateArt.done===window.__loadingUpdateArt.total',30000);return JSON.parse(await evaluate('JSON.stringify(window.__loadingUpdateArt)'));}
+async function cachedURLs(){
+ await evaluate(`window.__loadingUpdateCaches=null;caches.keys().then(names=>Promise.all(names.map(async name=>({name,urls:(await(await caches.open(name)).keys()).map(row=>row.url)})))).then(rows=>{window.__loadingUpdateCaches=rows;});true`);
+ await wait('window.__loadingUpdateCaches!==null');return JSON.parse(await evaluate('JSON.stringify(window.__loadingUpdateCaches)'));
+}
 function shot(name){execFileSync('xcrun',['simctl','io',udid,'screenshot',`${out}/${name}.png`],{stdio:'ignore'});}
 const result={before,after,beforePin,afterPin,base,oldVersion,newVersion};
 try{
@@ -65,16 +69,18 @@ try{
  await wait('document.querySelector(".ws-main-select") && navigator.serviceWorker.controller!==null');
  await evaluate(`${saveFixtureCode({scope:'device',key:'devMode',data:true})};${saveFixtureCode({scope:'global',key:'settings',data:{volume:0,music:0},merge:true})};setTimeout(()=>location.reload(),50);true`);
  await sleep(500);await connect();await wait('document.documentElement.dataset.dev!==undefined && document.querySelector(".ws-main-select")');
- shot('before-title');result.beforeState=await collect();
+ shot('before-title');result.beforeState=await collect();result.beforeCaches=await cachedURLs();
  current=after;result.switchHost=Date.now();
- await gesture('document.querySelector(".ws-main-select").click()');await sleep(1000);shot('stale-select');result.staleSelect=await collect();result.staleArt=await art();await evaluate('navigator.serviceWorker.getRegistration().then(r=>r.update()).catch(e=>window.__loadingUpdate.put("update-error",{message:String(e)}));true');
+ await gesture('document.querySelector(".ws-main-select").click()');await sleep(1000);shot('stale-select');result.staleSelect=await collect();result.staleArt=await art();await evaluate(`navigator.serviceWorker.getRegistration().then(r=>{
+ const track=()=>{const worker=r.installing;if(worker){window.__loadingUpdate.put('worker-state',{state:worker.state});worker.addEventListener('statechange',()=>window.__loadingUpdate.put('worker-state',{state:worker.state}));}};
+ r.addEventListener('updatefound',track);track();window.__loadingUpdate.put('update-request');return r.update();}).catch(e=>window.__loadingUpdate.put('update-error',{message:String(e)}));true`);
  await wait('Boolean(window.__ws_sw?.waiting)',120000);result.waitingHost=Date.now();result.waitingState=await collect();
  if(progressOnly){video=spawn('xcrun',['simctl','io',udid,'recordVideo','--codec=h264',`${out}/update.mp4`],{stdio:'ignore'});await sleep(300);}
  result.tapHost=Date.now();await gesture('window.__loadingUpdate.put("tap");document.querySelector(".ws-update").click();true');
  if(progressOnly){await sleep(80);shot('updating');}
  await sleep(500);await connect();
  await wait(`document.querySelector('.ws-main-select') && document.querySelector('.ws-update')?.textContent?.toLowerCase().includes('${result.newVersion.build.slice(0,7)}')`,120000);
- result.titleHost=Date.now();result.afterState=await collect();
+ result.titleHost=Date.now();result.afterState=await collect();result.afterCaches=await cachedURLs();
  if(progressOnly){
   await wait('document.querySelector(".ws-update-screen")===null && JSON.parse(sessionStorage.getItem("__loadingUpdate")??"[]").some(row=>row.kind==="updateTitlePaint")',15000);
   result.afterState=await collect();shot('updated-title');await stopVideo();

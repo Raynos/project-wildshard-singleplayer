@@ -24,10 +24,20 @@ export function updateReport(data) {
    * @param {string} value */
   const path = value => { const url = new URL(value); return `${url.pathname}${url.search}`; };
   const previous = new Set(data.transport.filter(row => row.endedAt < data.switchHost).map(row => path(row.url)));
+  const previousBodies = new Map(data.transport.filter(row => row.endedAt < data.switchHost && row.status === 200
+    && row.bodySHA256 !== undefined && row.bodyEncoding !== undefined).map(row => [path(row.url), row]));
   /** @param {number} from @param {number} to */
   const traffic = (from, to) => {
     const bank = data.transport.filter(row => row.endedAt >= from && row.endedAt < to);
+    let unchangedBodyBytes = 0, changedBodyBytes = 0, unknownBodyBytes = 0;
+    for (const row of bank) {
+      const old = previousBodies.get(path(row.url));
+      if (row.status !== 200 || old === undefined || row.bodySHA256 === undefined || row.bodyEncoding !== old.bodyEncoding) unknownBodyBytes += row.bodyBytes;
+      else if (row.bodySHA256 === old.bodySHA256) unchangedBodyBytes += row.bodyBytes;
+      else changedBodyBytes += row.bodyBytes;
+    }
     return { responsesEnded: bank.length, bodyBytes: bank.reduce((sum, row) => sum + row.bodyBytes, 0),
+      unchangedBodyBytes, changedBodyBytes, unknownBodyBytes,
       sameURLBodyBytes: bank.filter(row => previous.has(path(row.url))).reduce((sum, row) => sum + row.bodyBytes, 0),
       failures: bank.filter(row => row.status >= 400).map(row => ({ url: row.url, status: row.status })) };
   };
@@ -48,7 +58,7 @@ export function updateReport(data) {
     template: { tapToReadyMs: data.templateReadyHost - data.templateTapHost,
       admissionMs: admissionMs !== null && Number.isFinite(admissionMs) ? admissionMs : null,
       traffic: traffic(data.templateTapHost, data.templateReadyHost) },
-    limits: 'Diagnostic proxy response bodies include injected, uncompressed HTML. Same URL does not prove unchanged content. Install traffic includes pre-tap stale-art inspection; update traffic is bounded by response end, not request start.',
+    limits: 'Diagnostic proxy response bodies include injected, uncompressed HTML. Same URL does not prove unchanged content. Unchanged/changed bytes require matching URL, successful bodies and the same encoding with SHA-256 receipts; other bytes stay unknown. No request is evidence of no wire body, not proof of a cache hit. Install traffic includes pre-tap stale-art inspection; update traffic is bounded by response end, not request start.',
   };
 }
 

@@ -18,9 +18,23 @@ test('splits event clocks, deduplicates art and keeps same-URL bytes distinct fr
   expect([report.adoptionMs, report.reloadToInlineMs, report.inlineToReadyMs, report.readyToPaintMs, report.tapToPaintMs]).toEqual([1, 471, 287, 54, 813]);
   expect(report.staleArt).toEqual({ unique: 1, failed: [] });
   expect(report.newArt.failed).toEqual(['/hero.jpg']);
-  expect(report.update).toEqual({ responsesEnded: 2, bodyBytes: 7, sameURLBodyBytes: 7, failures: [{ url: 'http://after/missing.js', status: 404 }] });
+  expect(report.update).toEqual({ responsesEnded: 2, bodyBytes: 7, sameURLBodyBytes: 7,
+    unchangedBodyBytes: 0, changedBodyBytes: 0, unknownBodyBytes: 7,
+    failures: [{ url: 'http://after/missing.js', status: 404 }] });
   expect(report.template).toMatchObject({ tapToReadyMs: 4365, admissionMs: 1252 });
   expect(report.limits).toContain('Same URL does not prove unchanged content');
+});
+test('only counts unchanged re-downloads with successful same-encoding body identities', () => {
+  const data = observation();
+  data.transport = [
+    { url: 'http://before/pack.js', endedAt: 400, status: 200, bodyBytes: 5, bodySHA256: 'old', bodyEncoding: 'br' },
+    { url: 'http://after/pack.js', endedAt: 1100, status: 200, bodyBytes: 5, bodySHA256: 'old', bodyEncoding: 'br' },
+    { url: 'http://after/pack.js', endedAt: 1200, status: 200, bodyBytes: 7, bodySHA256: 'new', bodyEncoding: 'br' },
+    { url: 'http://after/pack.js', endedAt: 1300, status: 200, bodyBytes: 9, bodySHA256: 'old', bodyEncoding: 'gzip' },
+    { url: 'http://after/pack.js', endedAt: 1400, status: 500, bodyBytes: 2, bodySHA256: 'old', bodyEncoding: 'br' },
+  ];
+  expect(updateReport(data).update).toMatchObject({ bodyBytes: 23, unchangedBodyBytes: 5,
+    changedBodyBytes: 7, unknownBodyBytes: 11 });
 });
 test.each(['controllerchange', 'document', 'ready', 'titlePaint'])('refuses a missing %s instead of substituting inspector poll time', kind => {
   const data = observation(); data.afterState.rows = data.afterState.rows.filter(row => row.kind !== kind);

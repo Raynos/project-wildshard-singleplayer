@@ -88,11 +88,11 @@ hinges on C1 + H2 + H3 together.
 | Slice | Work | Status |
 |---|---|---|
 | L18.1 | Typed tier selection before transport and download declaration; matching boot reserve; preserve exact admission, offline re-entry and tier changes. At most one hour. | done (2026-10-24, sp-x8) |
-| L18.2 | Explorer, comparison and simulation inputs on demand with real progress; retain each synchronous gameplay reader. | in flight (2026-10-25, sp-x2), ≤1 h slices below |
+| L18.2 | Explorer, comparison and simulation inputs on demand with real progress; retain each synchronous gameplay reader. | done (2026-10-25, sp-x2): cheap safe cuts `37709250b2` + progress `218118499e`; live assembly and whole-library readers remain synchronous. Further geometry deferral is unsafe; target not met. |
 | L18.2a | Trace named-file readers and progress before changing the entry bank. | done (2026-10-25, sp-x2 audit): assembly JSON has a live quest-composition reader and stays admitted. Explorer choices already read selected geometry on demand, but entry still fetches it; model readiness/compare images need G729 progress before further deferral. |
 | L18.2b | Drop manifest-only product image copies; live authored URL readers stay unchanged. Protect map/card/host, critical and dependency uses; preserve the descriptor and verified late reads/offline refusal. At most one hour. | done (this code commit): checked DW phone entry 81,240,976 B /314 → 78,344,952 B /299; desktop 93,697,134 B /314 → 90,801,110 B /299 (−2,896,024 B /15 each). Declared blob content, not observed network or time. Exact receipt retains image pixel/wire reserve without fetching duplicate bodies. Focused tests, touched-layer types and typed lint pass. G729 UI progress is still open; no new lazy UI path here. |
 | L18.2c | Existing Model Explorer and Compare loads show a spinner and completed preparation counts; stale/closed views cannot be painted by earlier work. At most one hour. | done (this code commit): model/card readiness and comparison-picker/pair decodes drive real task counts, with visible live failures and silent retired-owner cancellation. Engine/test declarations and touched typed lint pass; focused lifecycle/decode cases retained. Entry bytes/files unchanged (0 B /0 files); this is the G729 prerequisite, not an additional deferral or performance claim. |
-| L18.3 | Reduce or stream the remaining entry geometry without changing its appearance; bounded slices after attribution. | in flight (2026-10-25, sp-x2) |
+| L18.3 | Lighter foliage, rocks and protos; variant sheet for Jake before any appearance change. | waits-Opus (2026-10-25, coordinator call): DW remains 78,344,952 B /299 declared phone files, above the ~19.05 MB target. Three largest live GLBs: meshopt raw 16,770,480 → 10,343,748 B, but gzip-9 delivery 5,806,920 → 8,653,016 B (+49%); rejected. Whole-library geometry has live readers, so tile deferral is unsafe. No geometry write; engineering stops here. |
 | L18.3a | World construction reads only `cells[TIER]`; use that same typed choice in admission and compiler totals. Shared/critical/dependency refs still retain either bank. | done (this code commit): phone 84,464,908 B /315 files → 81,240,976 B /314; desktop 96,907,800 B /315 → 93,697,134 B /314. Exact checked production inventory, declared blob content only; no measured network or loading gain. 75 focused cases, format types and scoped typed lint pass. |
 | L18.4 | Verify production compression of GLB and BIN responses. | done (2026-10-25, sp-x2): production Driftwood GLB `07cd00fb…` (210,048 B content) and BIN `13fd9051…` (138,228 B) both return HTTP 200 / `Content-Encoding: br` with `Accept-Encoding: gzip, br`; index also Brotli. No server/config change or byte delta. |
 
@@ -116,3 +116,13 @@ pack downloads again, and the new worker installs alongside. To Jake that is a r
 |---|---|---|
 | U4.1 | Renderer-free modal, real completed receipts, validated session handoff and retry; Developer-only until acceptance | done (2026-10-25, sp-x9) |
 | U4.2 | Old-build Simulator tap, per-second progress capture and public enablement | done (2026-10-25, sp-x9): 2,873 ms / 15 changes / 253 ms longest gap / errors 0 |
+
+### Current-build update follow-up (G715, sp-x2)
+
+Prior U1/U2/U4 results above remain valid historical measurements. Recheck the larger build gap before any new runtime change.
+
+| Slice (≤ 1 h) | Scope | Status |
+|---|---|---|
+| U1.3 | One ff45b6a24 → newest pinned build Simulator visit; split install/adopt/reload/title, inspect stale/new art and Template admission. Stream response hashes to distinguish unchanged re-downloads from changed or unknown bytes. | in flight (2026-10-25, sp-x2); existing worker caches and deadlines retained |
+| U2.2 | Review current exact worker/update regressions and fix only a reproduced update failure or delay; retain stable content URLs. | open, after U1.3 |
+| U4.3 | Review current loading-style progress against actual phase/receipt evidence; preserve prior native handoff proof, fix a demonstrated gap only. | open, after U2.2 |
