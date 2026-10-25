@@ -29,11 +29,11 @@ export async function prepareNalatiDressing(dressingRecipe, forestMask) {
       import('../../src/shards/nalati-grasslands/generators/layout.ts'), import('../../src/shards/nalati-grasslands/generators/terrainRecipe.ts'),
       import('../../src/shards/nalati-grasslands/generators/terrainRecipe.ts'),
     ]);
-    const [noise, heightfield, { GrassField }, { terrainHeight: heightAt }] = await Promise.all([
+    const [noise, heightfield, { bakeMeadowField }, { terrainHeight: heightAt }] = await Promise.all([
       import('@wildshard/engine/core/noise'), import('@wildshard/engine/world/Heightfield'),
-      import('@wildshard/game/systems/looks/grassField'), import('@wildshard/engine/world/terrainHeight'),
+      import('@wildshard/sdk/bake/meadow'), import('@wildshard/engine/world/terrainHeight'),
     ]);
-    const meadow = new GrassField({ seed: definition.seed, half: 250, heightAt,
+    const meadow = bakeMeadowField({ seed: definition.seed, half: 250, heightAt,
       normalAt: heightfield.normalAt, splatAt: heightfield.splatAt, trailDistance: heightfield.trailDistance,
       cabinMask: heightfield.cabinMask, pondMask: heightfield.pondMask, waterLevel: heightfield.waterLevel,
       paint: (x, z, y, slope, out) => {
