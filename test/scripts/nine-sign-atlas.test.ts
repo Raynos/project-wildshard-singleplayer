@@ -7,7 +7,7 @@ import * as v from 'valibot';
 import { BufferAttribute } from 'three';
 import { createModelLibrary } from '../../src/game/plugin/geometry';
 import { readSourceModel } from '../../src/sdk/bake/skinned';
-import { parseKtx2 } from '../../src/format/product';
+import { parseKtx2 } from '../../src/format/ktx2Cost';
 import { rawKtx2, bakeSignalSand } from '../../src/shards/sunscar-dunes/generators/sand';
 import { signAtlasBlobs } from '../../src/shards/nine-dragon-stack/generators/signAtlasOutput';
 import { parseNativeSignAtlas } from '../../src/shards/nine-dragon-stack/generators/sections';

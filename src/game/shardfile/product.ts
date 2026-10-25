@@ -10,7 +10,8 @@ import type { MemoryAdmission } from '@wildshard/format/memoryAdmission';
 import { SHARDFILE_VERSION, shardfileRevision } from '@wildshard/format/version';
 import { isOutputIndex } from '@wildshard/format/outputAddress';
 
-import { acceptValidatedCost, preflightDeclaredCosts, validateShardfileAssets } from '@wildshard/format/assetAdmission';
+import { preflightDeclaredCosts, validateShardfileAssets } from '@wildshard/format/assetAdmission';
+import { acceptValidatedCost } from '@wildshard/format/deviceMemoryCost';
 import { PRODUCT_CACHE_NAME } from '@wildshard/engine/pwa/cacheNames';
 import { ContentCacheWorker } from '@wildshard/engine/boot/contentCacheWorker';
 import { browserContentStore, contentHash } from './contentStore';

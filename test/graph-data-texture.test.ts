@@ -3,7 +3,7 @@ import { zstdDecompressSync } from 'node:zlib';
 import { expect, it, vi } from 'vitest';
 import { DataTexture, NoColorSpace } from 'three';
 import { validateGraph, type GraphIr } from '../src/format/materialGraph';
-import { parseKtx2 } from '../src/format/product';
+import { parseKtx2 } from '../src/format/ktx2Cost';
 import { compileGraph } from '../src/engine/render/graph/compile';
 import { bakeRawColourTexture } from '../src/sdk/bake/texture';
 import { writeImagePixels } from '../src/sdk/bake/image';

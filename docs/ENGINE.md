@@ -8633,14 +8633,14 @@ retry. `loadManifestProduct` runs at the standalone/plugin boundary;
 descriptor again. `loadFirstPartyProduct` uses the configured first-party
 base for early readers and requires the same live owner.
 
-Build receipts pin canonical index/model hashes. The reader snapshots
-plain index data before any caller pause; its exact hash alone skips
-grammar. Section sizes/hashes and assembled-source hashes still check.
-Unproved inputs load validators; explicit read schemas still parse.
-Authored receipts/sidecars grant no trust. `format/validationReceipt`
-owns bytes and clock/pause; `format/outputAddress` owns paths/envelopes.
-`format/outputFields` projects unknown fields, never admission.
-`format/memoryAdmission` separates live memory policy from byte parsing.
+Build receipts bind canonical index/model hashes. Snapshot plain indexes
+before caller pauses. Exact hashes skip grammar; section sizes/hashes
+and assembled-source hashes still check. Unproved inputs and explicit
+read schemas parse; authored receipts/sidecars grant no trust.
+`format/` leaves: `validationReceipt` bytes/clock/pause; `outputAddress`
+paths; `outputFields` unknown projection; `memoryAdmission` policy;
+`deviceMemoryCost` budgets/cost acceptance; `ktx2Cost` bounded headers.
+These leaves grant no schema admission alone.
 
 `configuredShardfile(document, options)` awaits the same section reader
 for the SDK client's embedded index. Installed data-client manifests

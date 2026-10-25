@@ -6,7 +6,7 @@ import { STORM_NOISE, STORM_NOISE_SAMPLER } from '../src/shards/far-reach/genera
 import { bakeSkySeaTexture } from '../src/shards/far-reach/generators/seaTexture';
 import sky from '../src/shards/far-reach/shard.config';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { parseKtx2 } from '../src/format/product';
+import { parseKtx2 } from '../src/format/ktx2Cost';
 
 it('admits the original storm density and lighting as a cached linear library file', async () => {
   const SEA=bakeSkySeaTexture();

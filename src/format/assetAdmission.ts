@@ -1,11 +1,11 @@
+import { acceptsProductCost, textureLibrarySource } from './deviceMemoryCost';
 import { admitScriptContract, decisionModuleContracts, type ScriptAdmissionRows } from './scriptContract';
 import type { TextureTranscodeSupport } from './contentBounds';
-import { CONTENT_CAPS as C } from '@wildshard/format/contentBounds';
 import { admitScript } from '@wildshard/format/scriptAdmission';
 import { SCRIPT_LIMITS } from '@wildshard/format/scriptLimits';
-import { worstContentCost, worstContentCostSteps } from '@wildshard/format/budget';
+import { worstContentCost } from '@wildshard/format/budget';
 import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
-import { assetCost, parseKtx2, validateTerrainAssets, validatePropDrawBounds, preflightAssetGraph } from '@wildshard/format/product';
+import { assetCost, validateTerrainAssets, validatePropDrawBounds, preflightAssetGraph } from '@wildshard/format/product';
 import type { MemoryAdmission } from '@wildshard/format/memoryAdmission';
 
 import { validateMeshCollisionAssets } from '@wildshard/format/meshCollisionAssets';
@@ -30,17 +30,6 @@ import { assertCommonsCosts, type CommonsCosts } from '@wildshard/format/commons
 import { nearPlaceholderCost } from '@wildshard/format/nearPlaceholder';
 import { validateNearPlaceholderAssets } from '@wildshard/format/nearPlaceholderAssets';
 
-
-function acceptsTotal(memory: MemoryAdmission | undefined, source: Shardfile, stage: 'declared' | 'actual', cost: ReturnType<typeof worstContentCost>): boolean {
-  if (memory === undefined) return cost.playing <= C.playing && cost.loading <= C.loading;
-  return memory.accept({ stage, owner: source.identity.slug, id: `${source.identity.slug}:worst-location`,
-    claimedBytes: cost.accounted, accountedBytes: cost.accounted, playingBytes: cost.playing, loadingBytes: cost.loading });
-}
-
-/** Reapply the current trusted memory policy to a previously validated exact declaration. */
-export function acceptValidatedCost(source: Shardfile, cost: ReturnType<typeof worstContentCost>, memory?: MemoryAdmission): void {
-  if (!acceptsTotal(memory, source, 'declared', cost)) throw new Error(`declared worst-location total exceeds envelope: ${cost.playing}`);
-}
 
 /** Check declared residency before immutable reads; exact parsed headers are checked again on admission. */
 export function preflightDeclaredCosts(source: Shardfile, memory?: MemoryAdmission): { commons: CommonsCosts; worst: ReturnType<typeof worstContentCost> } {
@@ -74,7 +63,7 @@ export function preflightDeclaredCosts(source: Shardfile, memory?: MemoryAdmissi
   }
   const resident = Object.values(commons).reduce((total, cost) => total + cost.decoded + cost.gpu, 0);
   const worst = worstContentCost(source, resident);
-  if (!acceptsTotal(memory, source, 'declared', worst)) throw new Error(`declared worst-location total exceeds envelope: ${worst.playing}`);
+  if (!acceptsProductCost(memory, source, 'declared', worst)) throw new Error(`declared worst-location total exceeds envelope: ${worst.playing}`);
   return { commons, worst };
 }
 
@@ -220,7 +209,7 @@ export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<stri
   if (clientModules.size + new Set(scripts.filter(row => row.side === 'view').map(row => row.module)).size > SCRIPT_LIMITS.instances || clientMemory > SCRIPT_LIMITS.memoryBytes || libraryResident > s.budgets.library.resident) throw new Error('client script memory or view budget understated or above host cap');
   if (libraryResident + sketchResident > s.budgets.library.resident) throw new Error('compendium sketch raster budget understated');
   const cost = worstContentCost(textureLibrarySource(s, assets, textures), commons);
-  if (!acceptsTotal(memory, s, 'actual', cost)) throw new Error(`worst-location total exceeds envelope: ${cost.playing}`);
+  if (!acceptsProductCost(memory, s, 'actual', cost)) throw new Error(`worst-location total exceeds envelope: ${cost.playing}`);
   validateNavigationAssets(s, assets);
   validateNativeGround(s, assets);
   validateEntrywayTerrain(s, assets);
@@ -234,27 +223,4 @@ export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<stri
   if (s.near !== undefined) validateNearPlaceholderAssets(s.near, assets);
   validateSkinAssets(s, assets);
   return s;
-}
-
-/** Device cost projection after byte admission; source ceilings retain their full RGBA fallback. */
-export function textureLibrarySource(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>, support?: TextureTranscodeSupport): Shardfile {
-  if (support === undefined || (!support.astc && !support.bc7)) return source;
-  const files = new Map(source.files.map(file => [file.hash, file])), seen = new Set<string>(), pending = [...source.library];
-  let saving = 0;
-  while (pending.length > 0) {
-    const ref = pending.pop(); if (ref === undefined || seen.has(ref)) continue;
-    seen.add(ref);
-    const file = files.get(ref); if (file === undefined) continue;
-    pending.push(...file.dependencies);
-    if (file.kind !== 'ktx2') continue;
-    const bytes = assets.get(ref); if (bytes === undefined) throw new Error('Missing admitted texture cost bytes');
-    saving += parseKtx2(bytes).gpu - parseKtx2(bytes, support).gpu;
-  }
-  return { ...source, budgets: { ...source.budgets, library: { ...source.budgets.library, resident: Math.max(0, source.budgets.library.resident - saving) } } };
-}
-
-/** Trusted device's exact library projection, with all existing conservative neighbour and fallback ceilings retained. */
-export function* deviceLibraryCostSteps(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>, support?: TextureTranscodeSupport): Generator<void, ReturnType<typeof worstContentCost>> {
-  const commons = Object.values(source.requires.commonsCosts).reduce((sum, row) => sum + row.decoded + row.gpu, 0);
-  return yield* worstContentCostSteps(textureLibrarySource(source, assets, support), commons);
 }

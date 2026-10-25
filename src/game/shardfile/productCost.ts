@@ -4,7 +4,7 @@ import { journalImageRefs } from '@wildshard/format/compendiumRows';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { TextureTranscodeSupport } from '@wildshard/format/contentBounds';
 import type { worstContentCost } from '@wildshard/format/budget';
-import { deviceLibraryCostSteps } from '@wildshard/format/assetAdmission';
+import { deviceLibraryCostSteps } from '@wildshard/format/deviceMemoryCost';
 import { frameBudgetSpent } from '@wildshard/engine/core/framePacing';
 import { preflightShardfile } from '@wildshard/format/preflight';
 import { isJsonData } from '@wildshard/format/json';

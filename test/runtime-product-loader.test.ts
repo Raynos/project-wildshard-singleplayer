@@ -16,7 +16,7 @@ import { ClientAssets } from '../src/game/shardfile/clientAssets';
 import { neighbourProductFiles, productResidentBytes, jsonResidentBytes, runtimeOnlyProductFiles, runtimeOnlyProductFilesPaced, tierLibrarySource, urlImageLibrarySource, scopedSpecimenLibrarySource, scopedSpecimenLibrarySourcePaced } from '../src/game/shardfile/productCost';
 import { carryOutputDescriptor, outputDescriptor, resolveOutputDescriptor } from '../src/game/shardfile/outputDescriptor';
 import { MemoryAdmission } from '../src/format/memoryAdmission';
-import { acceptValidatedCost } from '../src/format/assetAdmission';
+import { acceptValidatedCost } from '../src/format/deviceMemoryCost';
 import { ProductLeases } from '../src/game/grid/productLeases';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import metadata from '../src/shards/far-reach/manifest.json';

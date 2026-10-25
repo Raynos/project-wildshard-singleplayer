@@ -1,7 +1,8 @@
 import type { TextureTranscodeSupport } from '@wildshard/format/contentBounds';
 import type { ShardContext } from "../plugin/context";
 import type { ResidencyAllocator, ResidencyClaim } from '../grid/allocator';
-import { assetCost, parseKtx2, prepareAssetDecoders } from '@wildshard/format/product';
+import { assetCost, prepareAssetDecoders } from '@wildshard/format/product';
+import { parseKtx2 } from '@wildshard/format/ktx2Cost';
 import { admitScript } from '@wildshard/format/scriptAdmission';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { clientScriptViewCost } from '@wildshard/format/clientScripts';

@@ -4,6 +4,8 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./ktx2Cost": "./ktx2Cost.ts",
+    "./deviceMemoryCost": "./deviceMemoryCost.ts",
     "./outputFields": "./outputFields.ts",
     "./memoryAdmission": "./memoryAdmission.ts",
     "./outputAddress": "./outputAddress.ts",
