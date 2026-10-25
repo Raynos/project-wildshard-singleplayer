@@ -142,8 +142,8 @@ About 10 Opus lane-days, roughly 5 calendar days on two lanes.
 |---|---|---|
 | RM1.1 camera grounding | done | Eight exact plot-local camera manifests / 72 views and labelled floor plans in `art/grid/round-63-night-market-domes/`; actual 64-tile layout, z north, four G726 pairs only |
 | RM1.2 road stand targets | done | A1: two imagegen candidates, chosen B, nine individually detailed targets and labelled sheet; rejected rear-gate and photographic-ground variants documented |
-| RM1.3 road look targets | in flight (2026-10-24, sp-x6) | A2 two candidates, chosen grid and nine targets |
-| RM1.4 40 m pair targets | open | B1/B2 grids and targets |
+| RM1.3 road look targets | done | A2: two saved candidates, nine individual targets and labelled sheet; paired gate identity/scale corrected |
+| RM1.4 40 m pair targets | in flight (2026-10-24, sp-x6) | B1/B2 grids and targets |
 | RM1.5 100 m pair targets | open | C1/C2 grids and targets |
 | RM1.6 plaza pair targets | open | D1/D2 grids and targets; overview |
 | RM2.1 road / plaza baseline | open | Same source/cameras; draw, triangle and memory readings |

@@ -40,3 +40,5 @@ succeeded. No CLI/API fallback was used.
 
 The first close-ground detail pass was too photographic; its replacement
 keeps broad matte polygon colours and clean joints rather than grit.
+The paired A2 review reduced A1's gate silhouette while preserving its
+three roof tiers, so the farther road camera has the smaller gate.
