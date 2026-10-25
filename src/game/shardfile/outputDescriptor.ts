@@ -1,5 +1,7 @@
 import { outputBlobPath } from '@wildshard/format/outputAddress';
-import { assembleOutputFields, assembleOutputShardfile, parseOutputDescriptorIndex, type OutputIndex } from '@wildshard/format/outputIndex';
+import type { OutputIndex } from '@wildshard/format/outputIndex';
+import { assembleOutputTransport } from '@wildshard/format/outputFields';
+import { isJsonDataWithFileSchemas } from '@wildshard/format/json';
 import { builtValidationReceipt, validationSourceBytes, validationSourceBytesPaced, type ValidationReceipt } from '@wildshard/format/validationReceipt';
 import { loadingStage, loadingUnits, waitFor } from '@wildshard/engine/boot/waits';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
@@ -88,13 +90,40 @@ function buildValidatedSource(value: unknown, sourceHash: string, indexHash: str
   return typeof value === 'object' && value !== null && builtValidationReceipt(sourceHash, indexHash) !== null;
 }
 
+function receiptBytes(value: unknown, pause: OutputDescriptorReader['pause']): Uint8Array | Promise<Uint8Array> {
+  return pause === undefined ? validationSourceBytes(value) : validationSourceBytesPaced(value, pause, diagnosticNow);
+}
+function indexReceipt(value: unknown, digest?: string): ValidationReceipt | null {
+  if (typeof value !== 'object' || value === null) return null;
+  const build: unknown = Object.getOwnPropertyDescriptor(value, 'build')?.value;
+  if (typeof build !== 'object' || build === null) return null;
+  const sourceHash: unknown = Object.getOwnPropertyDescriptor(build, 'sourceHash')?.value;
+  return typeof sourceHash === 'string' ? builtValidationReceipt(sourceHash, digest) : null;
+}
+// The build-owned digest proves this schema output. An authored receipt cannot
+// enter the table; the digest below is computed from the actual owned values.
+function buildValidatedIndex(value: unknown, digest: string): value is OutputIndex {
+  return indexReceipt(value, digest) !== null;
+}
+async function ownedBuildIndex(input: unknown, reader: OutputDescriptorReader): Promise<{ index: OutputIndex; receipt: ValidationReceipt; digest: string } | null> {
+  if (reader.firstParty !== true || indexReceipt(input) === null || !isJsonDataWithFileSchemas(input)) return null;
+  // Clone before the first caller pause/hash callback. Neither can mutate the
+  // private snapshot while its canonical bytes are encoded and verified.
+  const owned: unknown = structuredClone(input);
+  const digest = await reader.hash(await receiptBytes(owned, reader.pause));
+  if (!buildValidatedIndex(owned, digest)) return null;
+  const receipt = indexReceipt(owned, digest);
+  return receipt === null ? null : { index: owned, receipt, digest };
+}
+
 /**
  * Read all sections needed by today's complete Shardfile hosts, checking exact
  * byte sizes and hashes before assembly. Already assembled in-memory models
  * remain host inputs; disk readers separately require a format-2 index.
  */
 export async function resolveOutputDescriptor(input: unknown, reader: OutputDescriptorReader): Promise<unknown> {
-  const index = parseOutputDescriptorIndex(input);
+  const pinned = reader.lineage === true ? null : await ownedBuildIndex(input, reader);
+  const index = pinned?.index ?? (await import('@wildshard/format/outputIndex')).parseOutputDescriptorIndex(input);
   if (index === null) return input;
   for (const file of [...index.sections, ...index.schemas]) reader.declare?.(file.path, file.bytes);
   // General readers declare the immutable bank before their first section read.
@@ -142,12 +171,10 @@ export async function resolveOutputDescriptor(input: unknown, reader: OutputDesc
     if (result.status === 'rejected') throw result.reason;
     (result.value[0].startsWith('schemas/') ? schemas : sections).set(...result.value);
   }
-  if (reader.lineage === true) return assembleOutputFields(index, sections, false);
-  const sourceBytes = (value: unknown): Uint8Array | Promise<Uint8Array> => reader.pause === undefined
-    ? validationSourceBytes(value) : validationSourceBytesPaced(value, reader.pause, diagnosticNow);
-  const candidate = reader.firstParty === true ? builtValidationReceipt(index.build.sourceHash) : null;
-  const indexHash = candidate === null ? undefined : await reader.hash(await sourceBytes(input));
-  const receipt = indexHash === undefined ? null : builtValidationReceipt(index.build.sourceHash, indexHash);
+  if (reader.lineage === true) return assembleOutputTransport(index, sections);
+  const candidate = pinned?.receipt ?? (reader.firstParty === true ? builtValidationReceipt(index.build.sourceHash) : null);
+  const indexHash = pinned?.digest ?? (candidate === null ? undefined : await reader.hash(await receiptBytes(input, reader.pause)));
+  const receipt = pinned?.receipt ?? (indexHash === undefined ? null : builtValidationReceipt(index.build.sourceHash, indexHash));
   // G728: the exact build receipt proves custom schemas too; every section/schema
   // byte above still passes its declared size and hash. Unproved inputs stay checked.
   const custom = index.sections.filter(row => row.name.startsWith('custom/'));
@@ -167,12 +194,12 @@ export async function resolveOutputDescriptor(input: unknown, reader: OutputDesc
   });
   // Unproved products keep the original serialized schema phase before paced
   // hashing; only a possible CI receipt needs that digest to decide the fast path.
-  const digest = indexHash ?? await reader.hash(await sourceBytes(input));
+  const digest = indexHash ?? await reader.hash(await receiptBytes(input, reader.pause));
   let source: Shardfile;
-  if (receipt === null) source = assembleOutputShardfile(index, sections);
+  if (receipt === null) source = (await import('@wildshard/format/outputIndex')).assembleOutputShardfile(index, sections);
   else {
-    const fields = assembleOutputFields(index, sections, false);
-    const actual = await reader.hash(await sourceBytes(fields));
+    const fields = assembleOutputTransport(index, sections);
+    const actual = await reader.hash(await receiptBytes(fields, reader.pause));
     if (actual !== index.build.sourceHash || !buildValidatedSource(fields, actual, digest)) throw new Error('Built shardfile source receipt mismatch');
     source = fields;
     buildValidated.add(source);

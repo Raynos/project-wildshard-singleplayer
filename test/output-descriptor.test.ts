@@ -7,7 +7,7 @@ import { parseShardfile, type Shardfile } from '../src/format/shardSchema';
 import { readProductDescriptor, admitProduct, type CachedProduct, type ProductCache, type ProductOptions } from '../src/game/shardfile/product';
 import { provideHybridDeclaration, runtimeProduct } from '../src/game/shardfile/runtimeProduct';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
-import { outputBlobUrl, outputDescriptor, resolveOutputDescriptor } from '../src/game/shardfile/outputDescriptor';
+import { isBuildValidatedOutput, outputBlobUrl, outputDescriptor, resolveOutputDescriptor } from '../src/game/shardfile/outputDescriptor';
 import { DownloadAccounting, installDownloadAccounting } from '../src/engine/boot/download';
 import { installManifestShardfile, installShardfileProduct } from '../src/game/shardfile/clientSource';
 import { prepareBootImports } from '../src/bootDownloads';
@@ -56,6 +56,73 @@ function cacheStore(): { cache: ProductCache; bytes: Map<string, Uint8Array>; pr
     putProduct: (_base, value) => { product = structuredClone(value); return Promise.resolve(); },
   } };
 }
+
+function installIndexReceipt(index: OutputIndex): () => void {
+  const values = { __SHARDFILE_VALIDATOR__: 'index-receipt-test', __SHARDFILE_VERDICTS__: [{ revision: 'index-receipt-test', sourceHash: index.build.sourceHash,
+    indexHash: hashImmutableBytes(encodeCanonicalJson(index)), worst: { playing: 0, loading: 0, accounted: 0, location: [0, 0] } }] };
+  const previous = new Map(Object.keys(values).map(name => [name, Object.getOwnPropertyDescriptor(globalThis, name)] as const));
+  for (const [name, value] of Object.entries(values)) Object.defineProperty(globalThis, name, { configurable: true, writable: true, value });
+  return () => {
+    for (const [name, descriptor] of previous) {
+      if (descriptor === undefined) Reflect.deleteProperty(globalThis, name);
+      else Object.defineProperty(globalThis, name, descriptor);
+    }
+  };
+}
+function sectionReader(wires: ReadonlyMap<string, Uint8Array>): (path: string) => Promise<Uint8Array> {
+  return path => {
+    const bytes = wires.get(path); if (bytes === undefined) throw new Error('Missing fixture section');
+    return Promise.resolve(new Uint8Array(bytes));
+  };
+}
+
+test('receipt lookup refuses authored accessors without invoking them', async () => {
+  const f = fixture(); let reads = 0;
+  const input = { ...f.index };
+  Object.defineProperty(input, 'build', { enumerable: true, get: () => { reads++; return f.index.build; } });
+  await expect(resolveOutputDescriptor(input, { read: sectionReader(f.wires), hash, offline: false, firstParty: true })).rejects.toThrow('bounded plain JSON');
+  expect(reads).toBe(0);
+});
+
+test('build receipt skips descriptor grammar and owns the index across pauses', async () => {
+  const f = fixture(), restore = installIndexReceipt(f.index);
+  const grammar = vi.spyOn(await import('../src/format/outputIndex'), 'parseOutputDescriptorIndex');
+  let paused = false;
+  try {
+    const source = await resolveOutputDescriptor(f.index, { read: sectionReader(f.wires), hash, offline: false, firstParty: true,
+      pause: () => { paused = true; f.index.identity.name = 'Changed after intake'; return Promise.resolve(); } });
+    expect(paused).toBe(true);
+    expect(source).toEqual(f.source);
+    expect(isBuildValidatedOutput(source)).toBe(true);
+    expect(grammar).not.toHaveBeenCalled();
+  } finally { grammar.mockRestore(); restore(); }
+});
+
+test('build index proof still refuses changed section bytes', async () => {
+  const f = fixture(), restore = installIndexReceipt(f.index);
+  const grammar = vi.spyOn(await import('../src/format/outputIndex'), 'parseOutputDescriptorIndex');
+  const entry = f.index.sections[0]; if (entry === undefined) throw new Error('Missing fixture section');
+  const wire = f.wires.get(entry.path); if (wire === undefined) throw new Error('Missing fixture wire');
+  const changed = new Uint8Array(wire), first = changed[0]; if (first === undefined) throw new Error('Empty fixture wire');
+  changed[0] = first ^ 1; f.wires.set(entry.path, changed);
+  try {
+    await expect(resolveOutputDescriptor(f.index, { read: sectionReader(f.wires), hash, offline: false, firstParty: true }))
+      .rejects.toThrow(/section hash or size mismatch/u);
+    expect(grammar).not.toHaveBeenCalled();
+  } finally { grammar.mockRestore(); restore(); }
+});
+
+test('a changed index cannot borrow its original build receipt', async () => {
+  const f = fixture(), restore = installIndexReceipt(f.index);
+  const grammar = vi.spyOn(await import('../src/format/outputIndex'), 'parseOutputDescriptorIndex');
+  f.index.identity.name = 'Changed before intake';
+  try {
+    const source = await resolveOutputDescriptor(f.index, { read: sectionReader(f.wires), hash, offline: false, firstParty: true });
+    expect(source).toMatchObject({ identity: { name: 'Changed before intake' } });
+    expect(isBuildValidatedOutput(source)).toBe(false);
+    expect(grammar).toHaveBeenCalledOnce();
+  } finally { grammar.mockRestore(); restore(); }
+});
 
 test.each([true, false])('first-party data admission retains Explore=%s without restoring the native loader', async (withExplore) => {
   const { source, wires } = fixture(false, 0, 1, 'template');
@@ -290,14 +357,15 @@ test('index, section integrity and path/version refusals happen before any host 
 
 test('every section request starts before a slow first response completes', async () => {
   const { index, wires } = fixture(), started: string[] = [];
-  const gate: { release?: () => void } = {};
+  const gate: { release?: () => void; started?: () => void } = {};
   const wait = new Promise<void>(resolve => { gate.release = resolve; });
+  const firstStarted = new Promise<void>(resolve => { gate.started = resolve; });
   const pending = resolveOutputDescriptor(index, { offline: false, hash, read: async path => {
-    started.push(path); await wait;
+    started.push(path); gate.started?.(); await wait;
     const bytes = wires.get(path); if (bytes === undefined) throw new Error('Missing section');
     return bytes;
   } });
-  try { await Promise.resolve(); expect(started).toHaveLength(index.sections.length); }
+  try { await firstStarted; expect(started).toHaveLength(index.sections.length); }
   finally { gate.release?.(); }
   await expect(pending).resolves.toBeDefined();
 });
