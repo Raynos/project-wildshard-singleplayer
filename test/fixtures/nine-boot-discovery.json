@@ -1,0 +1,22 @@
+[
+  {
+    "slot": "boot.files",
+    "bytes": 1391,
+    "hash": "4322ae0065150f8b41bcbc90ca686a12f2de2077e76675d145e6ca81f85cc5c4"
+  },
+  {
+    "slot": "boot.sources",
+    "bytes": 8296,
+    "hash": "dfe01b423d6041ac85d17aed2eb8da1bc80c954a7688e738ebb6956d3ab56ba2"
+  },
+  {
+    "slot": "boot.explore",
+    "bytes": 648,
+    "hash": "eabda9d583ca971458af7a19e3a957ea43c895dc818d6ebe6b351a559f00f9fa"
+  },
+  {
+    "slot": "poses",
+    "bytes": 2108,
+    "hash": "74578ec1aaaf8ea8f93db65fcec46ed7f6b0d1db95e42444d29640707c8ae371"
+  }
+]

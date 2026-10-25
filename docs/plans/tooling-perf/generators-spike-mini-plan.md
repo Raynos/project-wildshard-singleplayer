@@ -288,7 +288,10 @@ GR3 bounded slices (G711; each <= 1 h, one producer retirement per commit):
 | Practice | open | Direct course program, then remove its two source handoffs |
 | D1 declarations source/cache | done | Both original canonical wires (3,470,533 B), checked partition owners and cache/refusal checks; no job retirement |
 | D2 declarations reader handoff | done | Nine 6 → 5; both source handoffs (3,470,533 B) absent, original canonical rows and full product bytes exact; cold scoped generation |
-| Boot metadata | open | Direct checked geometry/presentation metadata |
+| Boot metadata | in flight (2026-10-25, sp-x1) | B1 pure discovery rows → B2 receipt-backed marker/readers → B3 retirement; each ≤ 1 h |
+| B1 boot discovery factory | done | Pure defining factory preserves all four complete original canonical values, all four source modes and their 30 props, ordered art and poses. Real inventory parity and absent phone/base fallback cases pass; touched/fixture types, typed lint and related checks green. No reader/job retirement |
+| B2 boot discovery handoff | open | Source program supplies all four discovery slots; exact marker/refusal/cold proofs, retained authored declaration oracle |
+| B3 boot metadata retirement | open | Nine 3 → 2; retire seven source handoffs and unused writer data, preserve boot and discovery contracts |
 | Glyphs | done | G1 native producer precedes G2 readers; G3 retires six source files and scheduler job. Original raster pixels, metrics, sign costs and full product bytes retained |
 | G1 native glyph producer/admission | done | Six original native raster/metadata files (1,539,114 B) committed before readers. Both original complete pixel/metric hashes, detached cold/hit results, undeclared-root and malformed inventory/reference refusal cases pass with touched/fixture types, typed lint and related checks; no job retirement |
 | G2 native glyph reader handoff | done | Admitted native glyph metadata/bytes reach sign production, map and standalone fixtures; cache identity includes both metrics and bytes. All original pixels, metrics, sign wires/costs and map image bytes retained. Both sealed native-root omissions refuse; actual WebKit refresh/check, 28 focus cases, touched/fixture types, typed lint and related checks pass. No job retirement |
