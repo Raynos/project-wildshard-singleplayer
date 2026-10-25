@@ -38,6 +38,7 @@
     "./bake/farImpostor": "./bake/farImpostor.ts",
     "./bake/kinds": "./bake/kinds.ts",
     "./bake/texture": "./bake/texture.ts",
+    "./bake/rawTexture": "./bake/rawTexture.ts",
     "./bake/byteCodec": "./bake/byteCodec.ts",
     "./bake/export": "./bake/export.ts",
     "./movers": "./movers.ts",
@@ -279,6 +280,10 @@
       "./bake/texture": {
         "types": "./dist/types/sdk/bake/texture.d.ts",
         "default": "./dist/bake/texture.js"
+      },
+      "./bake/rawTexture": {
+        "types": "./dist/types/sdk/bake/rawTexture.d.ts",
+        "default": "./dist/bake/rawTexture.js"
       },
       "./bake/byteCodec": {
         "types": "./dist/types/sdk/bake/byteCodec.d.ts",

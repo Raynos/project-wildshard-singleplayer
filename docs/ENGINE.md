@@ -13662,6 +13662,13 @@ must be unshared, attached byte views of at most 256,000,000 bytes. It copies
 the selected view and returns independent bytes, without installing a service
 or adding runtime decoding or asset authority.
 
+`bakeRawColourPixels(image, options)` in `@wildshard/sdk/bake/rawTexture`
+packs bounded, unshared RGBA pixels into the existing single-level Zstd
+KTX2 format. It keeps the supplied row order and explicit linear/sRGB
+transfer without loading an image decoder or a filesystem service. The
+existing image-file adapter retains its decoding and flip semantics and
+uses this same packer. Both paths preserve the original complete bytes.
+
 `GeneratedProject.map` supplies the original 1000 × 1000 RGBA lattice and an
 optional logical name. `@wildshard/sdk/bake/groundMap.rasterGroundMap` paints
 actual L0 terrain and placed GLB triangles with the existing ground palette,

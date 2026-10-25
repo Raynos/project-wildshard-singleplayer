@@ -6,10 +6,9 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve only filenames inside the encoder's owned temporary directory.
 import { join } from 'node:path';
-// oxlint-disable-next-line import/no-nodejs-modules -- Pinned Node's deterministic Zstd stores exact admitted raster bytes.
-import { constants, zstdCompressSync } from 'node:zlib';
 import { parseKtx2 } from '../assets';
 import { readImagePixels } from './image';
+import { bakeRawColourPixels } from './rawTexture';
 
 /** Bake PNG colour pixels to mipmapped sRGB UASTC KTX2; the engine's existing loader transcodes these blocks to ASTC. */
 export function bakeColourTexture(png: Uint8Array, encoder = 'basisu', options: { flipY?: boolean } = {}): Uint8Array {
@@ -30,17 +29,5 @@ export function bakeColourTexture(png: Uint8Array, encoder = 'basisu', options: 
  * look.samplers mips:'gpu' uses the runtime's existing mip law, as for a painted bitmap. */
 export async function bakeRawColourTexture(image: Uint8Array, options: { flipY?: boolean; colourSpace?: 'srgb' | 'linear' } = {}): Promise<Uint8Array> {
   if (options.colourSpace !== undefined && !['srgb', 'linear'].includes(options.colourSpace)) throw new Error('Invalid texture colour space');
-  const linear = options.colourSpace === 'linear';
-  const { width, height, pixels } = await readImagePixels(image, options);
-  const packed = zstdCompressSync(pixels, { params: { [constants.ZSTD_c_compressionLevel]: 19 } });
-  const descriptorSize = 92, offset = 104 + descriptorSize, out = new Uint8Array(offset + packed.length), view = new DataView(out.buffer);
-  out.set([171, 75, 84, 88, 32, 50, 48, 187, 13, 10, 26, 10]);
-  // RGBA8 with explicit transfer, one Zstd level. Descriptor and level bytes never overlap.
-  [linear ? 37 : 43, 1, width, height, 0, 0, 1, 1, 2, 104, descriptorSize].forEach((value, i) => { view.setUint32(12 + i * 4, value, true); });
-  view.setBigUint64(80, BigInt(offset), true); view.setBigUint64(88, BigInt(packed.length), true); view.setBigUint64(96, BigInt(pixels.length), true);
-  view.setUint32(104, descriptorSize, true); view.setUint16(112, 2, true); view.setUint16(114, descriptorSize - 4, true); out.set([1, 1, linear ? 1 : 2, 0], 116);
-  for (let channel = 0; channel < 4; channel++) {
-    const at = 132 + channel * 16; view.setUint16(at, channel * 8, true); out[at + 2] = 7; out[at + 3] = channel === 3 ? 15 : channel; view.setUint32(at + 12, 255, true);
-  }
-  out.set(packed, offset); parseKtx2(out); return out;
+  return bakeRawColourPixels(await readImagePixels(image, options), options);
 }
