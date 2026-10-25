@@ -141,10 +141,10 @@ normal layer emission is the declaration-size authority. Continuation starts at 
 | T4-F2a | Weapon and Explorer data contracts; preserve family variants, held entries and contact-tag metadata | 60 min | done (2026-10-25, sp-x8) |
 | T4-F2b | Encounter contracts, preserving schedule omit and nested cloud-puff metadata | 60 min | done (2026-10-25, sp-x8) |
 | T4-F2c | Figure, brain and mover contracts with authored/admitted default refusals | 60 min | done (2026-10-25, sp-x8) |
-| T4-F2d | Practice, quest and traversal contracts with exact optional/default laws | 60 min | open |
-| T4-F2e | Collection, NPC and loot contracts with card projection and nested grant metadata | 60 min | open |
-| T4-F2f | Authored manifest and capture-pose contracts; preserve sky pick and capture-probe items | 60 min | open |
-| T4-F2g | Group, riding and finish contracts; preserve variants, exact optional descriptions and literal columns | 60 min | open |
+| T4-F2d | Practice, quest and traversal contracts with exact optional/default laws | 60 min | done (2026-10-25, sp-x8) |
+| T4-F2e | Collection, NPC and loot contracts with card projection and nested grant metadata | 60 min | done (2026-10-25, sp-x8) |
+| T4-F2f | Authored manifest and capture-pose contracts; preserve sky pick and capture-probe items | 60 min | done (2026-10-25, sp-x8) |
+| T4-F2g | Group, riding and finish contracts; preserve variants, exact optional descriptions and literal columns | 60 min | done (2026-10-25, sp-x8) |
 | T4-I1 | Format isolated declarations, then engine and remaining layers, one bounded diagnostic family per slice | 60 min per family | open |
 
 T4 first format slices are on origin: schema expressions and emitted runtime JavaScript are unchanged.

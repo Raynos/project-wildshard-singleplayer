@@ -39,7 +39,7 @@ export interface ReinRibbonFrame {
 const reinFinite = v.pipe(v.number(), v.finite()), reinPositive = v.pipe(reinFinite, v.minValue(Number.MIN_VALUE));
 const reinPoint = v.tuple([reinFinite, reinFinite, reinFinite]);
 /** Admit the strap's drawing rows and named native anchor observations together. */
-export const ReinPresentationSchema = v.strictObject({
+export const ReinPresentationSchema: v.GenericSchema<ReinPresentationRowsInput, ReinPresentationRows> = v.strictObject({
   span: v.pipe(reinFinite, v.integer(), v.minValue(1), v.maxValue(64)), halfWidth: reinPositive,
   heldRate: reinPositive, droppedSag: reinFinite,
   hand: v.strictObject({ x: reinFinite, y: reinFinite, depth: reinPositive }),
@@ -49,21 +49,21 @@ export const ReinPresentationSchema = v.strictObject({
   anchors: v.strictObject({ head: v.string(), crest: v.string(), body: v.string(), withers: reinPoint,
     minWeight: v.pipe(reinFinite, v.minValue(0), v.maxValue(1)) }),
 });
-export type ReinPresentationRows = v.InferOutput<typeof ReinPresentationSchema>;
+
 
 const ridingId = v.pipe(v.string(),v.minLength(1),v.maxLength(128));
 /** Client-only native riding contexts, physical defaults and binding descriptions.
  * Semantic actions belong to the mount/taming owners; authors supply no handler. */
-export const RidingControlsSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Riding controls require JSON'), v.strictObject({
+export const RidingControlsSchema: v.GenericSchema<RidingControlsInput, RidingControls> = v.pipe(v.unknown(), v.check(isJsonData, 'Riding controls require JSON'), v.strictObject({
   foot: ridingId, mounted: ridingId, breaking: ridingId, movement: ridingId, dismount: v.pipe(v.string(),v.minLength(1),v.maxLength(256)),
   keys: v.strictObject({ 'ride.whistle': InputKeysSchema, 'ride.offer': InputKeysSchema, 'ride.gallop': InputKeysSchema,
     'move.forward': InputKeysSchema, 'move.back': InputKeysSchema, 'move.left': InputKeysSchema, 'move.right': InputKeysSchema,
     'lean.left': InputKeysSchema, 'lean.right': InputKeysSchema }), describe: InputExtraEntries.describe,
 }), v.check(rows => new Set([rows.foot,rows.mounted,rows.breaking]).size === 3, 'Distinct riding contexts'));
-export type RidingControls = v.InferOutput<typeof RidingControlsSchema>;
+
 
 /** Numeric envelope rows shared by native mounts and their client rigs. */
-export const RidingPresentationSchema = v.strictObject({ alive: v.string(),
+export const RidingPresentationSchema: v.GenericSchema<RidingPresentationRowsInput, RidingPresentationRows> = v.strictObject({ alive: v.string(),
   smooth: v.array(v.strictObject({ source: v.string(), target: v.string(), rate: reinFinite, low: reinFinite, high: reinFinite })),
   decay: v.array(v.strictObject({ source: v.string(), target: v.string(), rate: reinFinite })),
   graze: v.strictObject({ target: v.string(), rate: reinFinite, speed: reinFinite }),
@@ -81,12 +81,12 @@ export function cleanMountName(raw: string, maximum: number): string {
 }
 
 /** Admitted native taming labels and stable saved identities. */
-export const PageTamingBindingSchema = v.strictObject({ upgradeKind: v.string(), bonds: v.tuple([v.string(), v.string()]), names: v.tuple([v.string(), v.string()]),
+export const PageTamingBindingSchema: v.GenericSchema<PageTamingBindingRowsInput, PageTamingBindingRows> = v.strictObject({ upgradeKind: v.string(), bonds: v.tuple([v.string(), v.string()]), names: v.tuple([v.string(), v.string()]),
   offset: v.tuple([v.number(), v.number()]), fields: v.strictObject({ upgraded: v.string(), horseUpgraded: v.string(), candidateUpgraded: v.string() }),
   labels: v.strictObject({ mount: v.string(), breaking: v.string(), trust: v.string(), start: v.string(), thrown: v.string(), bonded: v.tuple([v.string(), v.string()]) }) });
 
 /** Native controls and presentation policy for an entered riding session. */
-export const PageRidingPresetSchema = v.strictObject({ controls: v.exactOptional(RidingControlsSchema), mode: v.strictObject({ id: v.literal('ride'), hud: v.literal('ride') }), mountableLabel: v.string(),
+export const PageRidingPresetSchema: v.GenericSchema<PageRidingPresetRowsInput, PageRidingPresetRows> = v.strictObject({ controls: v.exactOptional(RidingControlsSchema), mode: v.strictObject({ id: v.literal('ride'), hud: v.literal('ride') }), mountableLabel: v.string(),
   taming: v.strictObject({ herds: v.string(), adopted: v.strictObject({ kind: v.string(), variant: v.string(),
     upgrade: v.strictObject({ scale: v.number(), colour: v.tuple([v.number(),v.number(),v.number()]) }) }),
     thrownLabel: v.string(), breakingContext: v.string(), stowOnBreaking: v.boolean() }),
@@ -95,7 +95,7 @@ export const PageRidingPresetSchema = v.strictObject({ controls: v.exactOptional
 
 /** Client-only session composition; every dependency is JSON data. */
 const point = v.strictObject({ x: v.number(), z: v.number() });
-export const ClientRidingSessionSchema = v.pipe(v.unknown(), v.check(isJsonData), v.strictObject({
+export const ClientRidingSessionSchema: v.GenericSchema<ClientRidingSessionRowsInput, ClientRidingSessionRows> = v.pipe(v.unknown(), v.check(isJsonData), v.strictObject({
   preset: PageRidingPresetSchema, programs: v.object({ approach: ReturnProgramSchema, breaking: ReturnProgramSchema, riding: ReturnProgramSchema,
     initial: v.record(v.string(), v.number()), reins: ReinPresentationSchema }),
   profile: v.strictObject({ speeds: v.strictObject({ walk: v.number(), trot: v.number(), canter: v.number(), gallop: v.number() }), thrownDamage: v.number(), thrownLabel: v.string() }),
@@ -105,3 +105,262 @@ export const ClientRidingSessionSchema = v.pipe(v.unknown(), v.check(isJsonData)
   /** the product file of a figure seated on the pasture raid's mount (format/mountedSpecimenRows), gesturing on its cues */
   figure: v.exactOptional(v.pipe(v.string(), v.minLength(1), v.maxLength(256))),
 }));
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type ReinPresentationRowsInput = ReinPresentationRows;
+export interface ReinPresentationRows {
+    span: number;
+    halfWidth: number;
+    heldRate: number;
+    droppedSag: number;
+    hand: {
+        x: number;
+        y: number;
+        depth: number;
+    };
+    neck: {
+        down: number;
+        out: number;
+    };
+    jowl: {
+        down: number;
+        out: number;
+    };
+    bit: {
+        back: number;
+        out: number;
+    };
+    colour: [
+        number,
+        number,
+        number
+    ];
+    edge: [
+        number,
+        number,
+        number
+    ];
+    paint: {
+        rim: number;
+        bands: number;
+        shade: number;
+    };
+    anchors: {
+        head: string;
+        crest: string;
+        body: string;
+        withers: [
+            number,
+            number,
+            number
+        ];
+        minWeight: number;
+    };
+}
+export type RidingControlsInput = unknown;
+export interface RidingControls {
+    foot: string;
+    mounted: string;
+    breaking: string;
+    movement: string;
+    dismount: string;
+    keys: {
+        'ride.whistle': v.InferOutput<typeof InputKeysSchema>;
+        'ride.offer': v.InferOutput<typeof InputKeysSchema>;
+        'ride.gallop': v.InferOutput<typeof InputKeysSchema>;
+        'move.forward': v.InferOutput<typeof InputKeysSchema>;
+        'move.back': v.InferOutput<typeof InputKeysSchema>;
+        'move.left': v.InferOutput<typeof InputKeysSchema>;
+        'move.right': v.InferOutput<typeof InputKeysSchema>;
+        'lean.left': v.InferOutput<typeof InputKeysSchema>;
+        'lean.right': v.InferOutput<typeof InputKeysSchema>;
+    };
+    describe?: Exclude<v.InferOutput<typeof InputExtraEntries.describe>, undefined>;
+}
+export type RidingPresentationRowsInput = RidingPresentationRows;
+export interface RidingPresentationRows {
+    alive: string;
+    smooth: ({
+        source: string;
+        target: string;
+        rate: number;
+        low: number;
+        high: number;
+    })[];
+    decay: ({
+        source: string;
+        target: string;
+        rate: number;
+    })[];
+    graze: {
+        target: string;
+        rate: number;
+        speed: number;
+    };
+    base: {
+        bone: string;
+        target: string;
+    };
+    wind: {
+        x: string;
+        z: string;
+        strength: string;
+    };
+}
+export type PageTamingBindingRowsInput = PageTamingBindingRows;
+export interface PageTamingBindingRows {
+    upgradeKind: string;
+    bonds: [
+        string,
+        string
+    ];
+    names: [
+        string,
+        string
+    ];
+    offset: [
+        number,
+        number
+    ];
+    fields: {
+        upgraded: string;
+        horseUpgraded: string;
+        candidateUpgraded: string;
+    };
+    labels: {
+        mount: string;
+        breaking: string;
+        trust: string;
+        start: string;
+        thrown: string;
+        bonded: [
+            string,
+            string
+        ];
+    };
+}
+export interface PageRidingPresetRowsInput {
+    controls?: RidingControlsInput;
+    mode: {
+        id: 'ride';
+        hud: 'ride';
+    };
+    mountableLabel: string;
+    taming: {
+        herds: string;
+        adopted: {
+            kind: string;
+            variant: string;
+            upgrade: {
+                scale: number;
+                colour: [
+                    number,
+                    number,
+                    number
+                ];
+            };
+        };
+        thrownLabel: string;
+        breakingContext: string;
+        stowOnBreaking: boolean;
+    };
+    actions: {
+        herds: string;
+        tagRange: number;
+        tagHeight: number;
+        squeal: string;
+        labels: {
+            name: string;
+            panic: string;
+            thrown: string;
+            bolt: string;
+        };
+    };
+}
+export interface PageRidingPresetRows {
+    controls?: RidingControls;
+    mode: {
+        id: 'ride';
+        hud: 'ride';
+    };
+    mountableLabel: string;
+    taming: {
+        herds: string;
+        adopted: {
+            kind: string;
+            variant: string;
+            upgrade: {
+                scale: number;
+                colour: [
+                    number,
+                    number,
+                    number
+                ];
+            };
+        };
+        thrownLabel: string;
+        breakingContext: string;
+        stowOnBreaking: boolean;
+    };
+    actions: {
+        herds: string;
+        tagRange: number;
+        tagHeight: number;
+        squeal: string;
+        labels: {
+            name: string;
+            panic: string;
+            thrown: string;
+            bolt: string;
+        };
+    };
+}
+export type ClientRidingSessionRowsInput = unknown;
+export interface ClientRidingSessionRows {
+    preset: PageRidingPresetRows;
+    programs: {
+        approach: v.InferOutput<typeof ReturnProgramSchema>;
+        breaking: v.InferOutput<typeof ReturnProgramSchema>;
+        riding: v.InferOutput<typeof ReturnProgramSchema>;
+        initial: Record<string, number>;
+        reins: ReinPresentationRows;
+    };
+    profile: {
+        speeds: {
+            walk: number;
+            trot: number;
+            canter: number;
+            gallop: number;
+        };
+        thrownDamage: number;
+        thrownLabel: string;
+    };
+    roads: (([
+        number,
+        number
+    ])[])[];
+    rest: {
+        face: {
+            x: number;
+            z: number;
+        };
+    } & {
+        x: number;
+        z: number;
+    };
+    taming: {
+        binding: PageTamingBindingRows;
+        rail: {
+            x: number;
+            z: number;
+        };
+    };
+    naming: {
+        panel: v.InferOutput<typeof PanelDefinitionSchema>;
+        action: string;
+        maximum: number;
+        notice: string;
+        bondedFeat: string;
+    };
+    figure?: string;
+}

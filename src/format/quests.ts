@@ -22,9 +22,9 @@ const dialogue = v.strictObject({ id, name: text, start: id, nodes: v.pipe(v.arr
 /** Display metadata for the existing achievement registry and ledger; no new progress save. */
 const achievement = v.strictObject({ id, name: text, goal: text, count: v.pipe(finite, v.safeInteger(), v.minValue(1), v.maxValue(4096)),
   kind: v.exactOptional(id), variant: v.exactOptional(id), event: v.exactOptional(id), title: text, icon: CatalogueIconSchema });
-const raw = v.strictObject({ achievements: v.exactOptional(v.pipe(v.array(achievement), v.maxLength(256))), flags: names, quests: v.pipe(v.array(quest), v.maxLength(32)), triggers: v.pipe(v.array(trigger), v.maxLength(128)), dialogue: v.pipe(v.array(dialogue), v.maxLength(32)) });
+const raw: v.GenericSchema<{ [K in keyof QuestDataInput]: QuestDataInput[K] }, QuestData> = v.strictObject({ achievements: v.exactOptional(v.pipe(v.array(achievement), v.maxLength(256))), flags: names, quests: v.pipe(v.array(quest), v.maxLength(32)), triggers: v.pipe(v.array(trigger), v.maxLength(128)), dialogue: v.pipe(v.array(dialogue), v.maxLength(32)) });
 /** Plain quest graphs, declared flags/triggers and finite dialogue trees; hooks name platform-resolved script ports. */
-export type QuestData = v.InferOutput<typeof raw>;
+
 const reads = (c: v.InferOutput<typeof condition> | undefined): string[] => [...(c?.all ?? []), ...(c?.any ?? []), ...(c?.none ?? [])];
 /** Reject dangling flags, repeated identities, unreachable dialogue nodes and cycles before installing authored data. */
 export function questDataRules(data: QuestData): string[] {
@@ -52,6 +52,278 @@ export function questDataRules(data: QuestData): string[] {
   return [...new Set(errors)];
 }
 /** Serialisable quest/dialogue section with semantic validation in the same admission pass. */
-export const QuestDataSchema = v.pipe(raw, v.check((data) => questDataRules(data).length === 0, 'valid quest and dialogue graph'));
+export const QuestDataSchema: v.GenericSchema<{ [K in keyof QuestDataRowsInput]: QuestDataRowsInput[K] }, QuestDataRows> = v.pipe(raw, v.check((data) => questDataRules(data).length === 0, 'valid quest and dialogue graph'));
 /** Compile TypeScript-authored rows to validated serialisable quest/dialogue data. */
 export function parseQuestData(input: unknown): QuestData { return v.parse(QuestDataSchema, input); }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export interface QuestDataInput {
+    achievements?: ({
+        id: string;
+        name: string;
+        goal: string;
+        count: number;
+        kind?: string;
+        variant?: string;
+        event?: string;
+        title: string;
+        icon: v.InferInput<typeof CatalogueIconSchema>;
+    })[];
+    flags: (string)[];
+    quests: ({
+        id: string;
+        title: string;
+        track?: boolean;
+        completeFlag: string;
+        startWhen?: {
+            all?: (string)[];
+            any?: (string)[];
+            none?: (string)[];
+        };
+        intro?: {
+            objective: string;
+            chip?: string;
+            hint?: string;
+            markers?: ({
+                id: string;
+                label: string;
+                short?: string;
+                at: {
+                    poi: 'world';
+                    x: number;
+                    z: number;
+                    y?: number;
+                };
+                hideWhen?: {
+                    all?: (string)[];
+                    any?: (string)[];
+                    none?: (string)[];
+                };
+            })[];
+        };
+        steps: ({
+            id: string;
+            objective: string;
+            chip?: string;
+            hint?: string;
+            done: {
+                all?: (string)[];
+                any?: (string)[];
+                none?: (string)[];
+            };
+            count?: (string)[];
+            markers?: ({
+                id: string;
+                label: string;
+                short?: string;
+                at: {
+                    poi: 'world';
+                    x: number;
+                    z: number;
+                    y?: number;
+                };
+                hideWhen?: {
+                    all?: (string)[];
+                    any?: (string)[];
+                    none?: (string)[];
+                };
+            })[];
+        })[];
+        onComplete?: {
+            fact?: string;
+            scene?: string;
+            coins?: number;
+        };
+    })[];
+    triggers: (({
+        id: string;
+        kind: 'region';
+        flag: string;
+        x: number;
+        z: number;
+        radius: number;
+        when?: {
+            all?: (string)[];
+            any?: (string)[];
+            none?: (string)[];
+        };
+    }) | ({
+        id: string;
+        kind: 'death';
+        flag: string;
+        tag: string;
+        when?: {
+            all?: (string)[];
+            any?: (string)[];
+            none?: (string)[];
+        };
+    }) | ({
+        id: string;
+        kind: 'script';
+        flag: string;
+        condition: string;
+        when?: {
+            all?: (string)[];
+            any?: (string)[];
+            none?: (string)[];
+        };
+    }))[];
+    dialogue: ({
+        id: string;
+        name: string;
+        start: string;
+        nodes: ({
+            id: string;
+            lines: (string)[];
+            sets?: (string)[];
+            choices: ({
+                id: string;
+                label: string;
+                next: (string) | null;
+                when?: {
+                    all?: (string)[];
+                    any?: (string)[];
+                    none?: (string)[];
+                };
+                sets?: (string)[];
+                scene?: string;
+            })[];
+        })[];
+    })[];
+}
+export interface QuestData {
+    achievements?: ({
+        id: string;
+        name: string;
+        goal: string;
+        count: number;
+        kind?: string;
+        variant?: string;
+        event?: string;
+        title: string;
+        icon: v.InferOutput<typeof CatalogueIconSchema>;
+    })[];
+    flags: (string)[];
+    quests: ({
+        id: string;
+        title: string;
+        track?: boolean;
+        completeFlag: string;
+        startWhen?: {
+            all?: (string)[];
+            any?: (string)[];
+            none?: (string)[];
+        };
+        intro?: {
+            objective: string;
+            chip?: string;
+            hint?: string;
+            markers?: ({
+                id: string;
+                label: string;
+                short?: string;
+                at: {
+                    poi: 'world';
+                    x: number;
+                    z: number;
+                    y?: number;
+                };
+                hideWhen?: {
+                    all?: (string)[];
+                    any?: (string)[];
+                    none?: (string)[];
+                };
+            })[];
+        };
+        steps: ({
+            id: string;
+            objective: string;
+            chip?: string;
+            hint?: string;
+            done: {
+                all?: (string)[];
+                any?: (string)[];
+                none?: (string)[];
+            };
+            count?: (string)[];
+            markers?: ({
+                id: string;
+                label: string;
+                short?: string;
+                at: {
+                    poi: 'world';
+                    x: number;
+                    z: number;
+                    y?: number;
+                };
+                hideWhen?: {
+                    all?: (string)[];
+                    any?: (string)[];
+                    none?: (string)[];
+                };
+            })[];
+        })[];
+        onComplete?: {
+            fact?: string;
+            scene?: string;
+            coins?: number;
+        };
+    })[];
+    triggers: (({
+        id: string;
+        kind: 'region';
+        flag: string;
+        x: number;
+        z: number;
+        radius: number;
+        when?: {
+            all?: (string)[];
+            any?: (string)[];
+            none?: (string)[];
+        };
+    }) | ({
+        id: string;
+        kind: 'death';
+        flag: string;
+        tag: string;
+        when?: {
+            all?: (string)[];
+            any?: (string)[];
+            none?: (string)[];
+        };
+    }) | ({
+        id: string;
+        kind: 'script';
+        flag: string;
+        condition: string;
+        when?: {
+            all?: (string)[];
+            any?: (string)[];
+            none?: (string)[];
+        };
+    }))[];
+    dialogue: ({
+        id: string;
+        name: string;
+        start: string;
+        nodes: ({
+            id: string;
+            lines: (string)[];
+            sets?: (string)[];
+            choices: ({
+                id: string;
+                label: string;
+                next: (string) | null;
+                when?: {
+                    all?: (string)[];
+                    any?: (string)[];
+                    none?: (string)[];
+                };
+                sets?: (string)[];
+                scene?: string;
+            })[];
+        })[];
+    })[];
+}
+export type QuestDataRowsInput = QuestDataInput;
+export type QuestDataRows = QuestData;

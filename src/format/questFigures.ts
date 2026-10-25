@@ -18,7 +18,7 @@ const object = v.variant('kind', [
 ]);
 const system = v.strictObject({ id, before: v.pipe(v.array(id), v.maxLength(8)) });
 const ids = v.pipe(v.record(id, id), v.maxEntries(16));
-export const QuestFigureSchema = v.strictObject({
+export const QuestFigureSchema: v.GenericSchema<QuestFigureRowsInput, QuestFigureRows> = v.strictObject({
   id, kit: id, feet: place, fire: v.exactOptional(place),
   /** each kit part's fixed draw slot; campAt 'fire' moves the camp part to the fire */
   parts: ids, campAt: v.exactOptional(v.literal('fire')),
@@ -34,24 +34,24 @@ export const QuestFigureSchema = v.strictObject({
  *  programs (`npc.<kit>`), so two rows reusing a kit would collide in the page's resources; ids are unique too. A page
  *  may instead declare one merged figure group (format/figures `FigureGroupSchema`: its figures drawn as one atlas skin),
  *  never beside kit figures. */
-export const QuestFiguresSchema = v.pipe(v.unknown(), v.check(isJsonData, 'plain JSON figures'),
+export const QuestFiguresSchema: v.GenericSchema<QuestFiguresRowsInput, QuestFiguresRows> = v.pipe(v.unknown(), v.check(isJsonData, 'plain JSON figures'),
   v.strictObject({ figures: v.pipe(v.array(QuestFigureSchema), v.maxLength(8),
     v.check(rows => new Set(rows.map(row => row.kit)).size === rows.length && new Set(rows.map(row => row.id)).size === rows.length, 'one figure per kit, unique ids')),
   group: v.exactOptional(FigureGroupSchema) }), v.check(rows => rows.group === undefined || rows.figures.length === 0, 'a merged figure group stands alone'));
-export type QuestFigureRows = v.InferOutput<typeof QuestFigureSchema>;
-export type QuestFiguresRows = v.InferOutput<typeof QuestFiguresSchema>;
+
+
 
 
 /** Cold Explorer kit cards reuse the live figure rows; their model has no
  * ignored params or variants and their source selects one fixed field only. */
-export const KitFigureCardsSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Kit figure cards require plain JSON'), v.strictObject({
+export const KitFigureCardsSchema: v.GenericSchema<KitFigureCardsRowsInput, KitFigureCardsRows> = v.pipe(v.unknown(), v.check(isJsonData, 'Kit figure cards require plain JSON'), v.strictObject({
   catalogue: id, draws: v.pipe(v.string(), v.regex(/^custom\/[A-Za-z][A-Za-z0-9_.-]*$/u)),
   cards: v.pipe(v.record(id, v.strictObject({
     model: v.strictObject({ ...v.pick(SpecimenModelMetadataSchema, ['id', 'name', 'file', 'category', 'pipeline', 'surface']).entries, defaults: v.strictObject({}) }),
     figure: QuestFigureSchema,
   })), v.maxEntries(64), v.check(rows => Object.keys(rows).length > 0, 'at least one kit figure card')),
 }));
-export type KitFigureCardsRows = v.InferOutput<typeof KitFigureCardsSchema>;
+
 
 /** Read standalone rows or the fixed resource field of an admitted quest page.
  * The field is compiled here; documents cannot provide a selector or callback. */
@@ -60,4 +60,164 @@ export function parseQuestFiguresDocument(input: unknown): QuestFiguresRows {
     QuestFiguresSchema, v.object({ entryResources: v.object({ figures: QuestFiguresSchema }) }),
   ])), input);
   return 'entryResources' in rows ? rows.entryResources.figures : rows;
+}
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export interface QuestFigureRowsInput {
+    id: string;
+    kit: string;
+    feet: {
+        poi: string;
+        x: number;
+        z: number;
+        y?: number;
+        dy?: number;
+        yaw?: number;
+        anchor?: string;
+    };
+    fire?: {
+        poi: string;
+        x: number;
+        z: number;
+        y?: number;
+        dy?: number;
+        yaw?: number;
+        anchor?: string;
+    };
+    parts: Record<string, string>;
+    campAt?: 'fire';
+    objects?: (({
+        kind: 'basic-mesh';
+        id: string;
+        name: string;
+        draw: string;
+        colour: [
+            number,
+            number,
+            number
+        ];
+        vertexColors: boolean;
+        at: 'feet' | 'fire';
+        lift: number;
+    }) | ({
+        kind: 'cloud';
+        id: string;
+        name: string;
+        draw: string;
+        look: string;
+        at: 'feet' | 'fire';
+        center: [
+            number,
+            number,
+            number
+        ];
+        radius: number;
+        order: number;
+        seeds: boolean;
+    }))[] | undefined;
+    publish?: ({
+        id: string;
+        draw: string;
+    })[] | undefined;
+    piece?: string;
+    card?: string;
+    name?: string;
+    counter?: {
+        model: string;
+        ahead: number;
+        piece: string;
+        name: string;
+        solidFloor: boolean;
+    };
+    system: {
+        id: string;
+        before: (string)[];
+    };
+}
+export interface QuestFigureRows {
+    id: string;
+    kit: string;
+    feet: {
+        poi: string;
+        x: number;
+        z: number;
+        y?: number;
+        dy?: number;
+        yaw?: number;
+        anchor?: string;
+    };
+    fire?: {
+        poi: string;
+        x: number;
+        z: number;
+        y?: number;
+        dy?: number;
+        yaw?: number;
+        anchor?: string;
+    };
+    parts: Record<string, string>;
+    campAt?: 'fire';
+    objects: (({
+        kind: 'basic-mesh';
+        id: string;
+        name: string;
+        draw: string;
+        colour: [
+            number,
+            number,
+            number
+        ];
+        vertexColors: boolean;
+        at: 'feet' | 'fire';
+        lift: number;
+    }) | ({
+        kind: 'cloud';
+        id: string;
+        name: string;
+        draw: string;
+        look: string;
+        at: 'feet' | 'fire';
+        center: [
+            number,
+            number,
+            number
+        ];
+        radius: number;
+        order: number;
+        seeds: boolean;
+    }))[];
+    publish: ({
+        id: string;
+        draw: string;
+    })[];
+    piece?: string;
+    card?: string;
+    name?: string;
+    counter?: {
+        model: string;
+        ahead: number;
+        piece: string;
+        name: string;
+        solidFloor: boolean;
+    };
+    system: {
+        id: string;
+        before: (string)[];
+    };
+}
+export type QuestFiguresRowsInput = unknown;
+export interface QuestFiguresRows {
+    figures: (QuestFigureRows)[];
+    group?: v.InferOutput<typeof FigureGroupSchema>;
+}
+export type KitFigureCardsRowsInput = unknown;
+export interface KitFigureCardsRows {
+    catalogue: string;
+    draws: string;
+    cards: Record<string, {
+        model: {
+            defaults: Record<never, never>;
+        } & Pick<v.InferOutput<typeof SpecimenModelMetadataSchema>, 'id' | 'name' | 'file' | 'category' | 'pipeline' | 'surface'>;
+        figure: QuestFigureRows;
+    }>;
 }

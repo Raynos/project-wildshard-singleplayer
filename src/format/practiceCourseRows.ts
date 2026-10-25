@@ -33,18 +33,18 @@ const shape = v.variant('kind', [
   v.strictObject({ kind: v.literal('label'), x: n, z: n, text, color: text }),
 ]);
 /** Client-only practice presentation: local developer primitives, baked meshes, colliders and a room map. */
-export const PracticeSceneSchema = v.strictObject({
+export const PracticeSceneSchema: v.GenericSchema<PracticeSceneInput, PracticeScene> = v.strictObject({
   parts: v.pipe(v.array(v.variant('kind', [box, plane, wall, label, checker, mesh])), v.maxLength(2048)),
   colliders: v.pipe(v.array(v.strictObject({ kind: v.literal('box'), x: n, y: n, z: n, hx: n, hy: n, hz: n,
     surface: v.exactOptional(v.picklist(['ground', 'wood', 'metal'])) })), v.maxLength(2048)),
   map: v.strictObject({ bounds: v.strictObject(rect), shapes: v.pipe(v.array(shape), v.maxLength(2048)) }),
 });
-export type PracticeScene = v.InferOutput<typeof PracticeSceneSchema>;
+
 /** Reject malformed or unbounded scene data before allocating client geometry. */
 export function parsePracticeScene(value: unknown): PracticeScene { return v.parse(PracticeSceneSchema, value); }
 
 /** Finite room entry and HUD rows. Native entry owners retain bodies and tools; the common guest retains the run law. */
-export const PracticeControllerSchema = v.pipe(v.unknown(),v.check(isJsonData,'Practice controller requires JSON data'),v.strictObject({
+export const PracticeControllerSchema: v.GenericSchema<PracticeControllerRowsInput, PracticeControllerRows> = v.pipe(v.unknown(),v.check(isJsonData,'Practice controller requires JSON data'),v.strictObject({
   title:text,chip:text,piece:v.strictObject({id:text,name:text,file:text,surface:v.picklist(['wood','metal'])}),
   center:v.variant('kind',[v.strictObject({kind:v.literal('fixed'),x:n,z:n}),v.strictObject({kind:v.literal('spawn')})]),
   entry:v.variant('kind',[
@@ -58,12 +58,12 @@ export const PracticeControllerSchema = v.pipe(v.unknown(),v.check(isJsonData,'P
       words:v.strictObject({ready:text,finish:text,running:text,between:text,done:text,best:text,fell:text})}),
   ]),
 }));
-export type PracticeControllerRows = v.InferOutput<typeof PracticeControllerSchema>;
+
 /** Refuse executable, unbounded or incomplete controller rows before native entry allocation. */
 export function parsePracticeController(input:unknown):PracticeControllerRows { return v.parse(PracticeControllerSchema,input); }
 
 /** Client-only mounted practice. The guest owns laps; rows own the room and labels. */
-export const RidingPracticeSchema = v.strictObject({
+export const RidingPracticeSchema: v.GenericSchema<RidingPracticeLayoutInput, RidingPracticeLayout> = v.strictObject({
   controller:PracticeControllerSchema,
   presentation: PracticeSceneSchema, road: v.pipe(v.array(v.tuple([n,n])), v.minLength(2), v.maxLength(2048)),
   fieldAt: v.strictObject({x:n,z:n}), horseStart: v.strictObject({x:n,z:n,yaw:n}), riderStart: v.strictObject({x:n,z:n}),
@@ -73,7 +73,7 @@ export const RidingPracticeSchema = v.strictObject({
   program:ReturnProgramSchema, sampleEpsilon:v.picklist([0,1e-9]),
   words:v.strictObject({ready:text,ride:text,lap:text,half:text,last:text,best:text,fell:text,lapNotice:text,halfNotice:text}),
 });
-export type RidingPracticeLayout = v.InferOutput<typeof RidingPracticeSchema>;
+
 /** Refuse incomplete room and run rows before constructing the native presentation. */
 export function parseRidingPractice(input:unknown):RidingPracticeLayout {
   if(!isJsonData(input))throw new Error('Practice rows require JSON data');
@@ -96,4 +96,330 @@ export interface HookPracticeRow {
 /** Offline traversal-room presentation and the run's data. */
 export interface HookPracticeLayout {
   controller: PracticeControllerRows; program: unknown; sampleEpsilon: number; frame: Readonly<Record<string, number>>; presentation: PracticeScene; hooks: { pad: string; x: number; y: number; z: number }[]; course: HookPracticeRow;
+}
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type PracticeSceneInput = PracticeScene;
+export interface PracticeScene {
+    parts: (({
+        kind: 'box';
+        tone: 'grey' | 'orange' | 'dark' | 'light' | 'sand' | 'field';
+        at: [
+            number,
+            number,
+            number
+        ];
+        size: [
+            number,
+            number,
+            number
+        ];
+        tint: number;
+    }) | ({
+        kind: 'plane';
+        tone: 'grey' | 'orange' | 'dark' | 'light' | 'sand' | 'field';
+        at: [
+            number,
+            number,
+            number
+        ];
+        size: [
+            number,
+            number
+        ];
+    }) | ({
+        kind: 'wall';
+        tone: 'grey' | 'orange' | 'dark' | 'light' | 'sand' | 'field';
+        at: [
+            number,
+            number,
+            number
+        ];
+        size: [
+            number,
+            number
+        ];
+        face: 'px' | 'nx' | 'pz' | 'nz';
+    }) | ({
+        kind: 'label';
+        text: string;
+        width: number;
+        at: [
+            number,
+            number,
+            number
+        ];
+        yaw: number;
+        color?: string;
+        back?: string;
+        standing?: boolean;
+    }) | ({
+        kind: 'checker';
+        at: [
+            number,
+            number,
+            number
+        ];
+        length: number;
+    }) | ({
+        kind: 'mesh';
+        at: [
+            number,
+            number,
+            number
+        ];
+        rotation: [
+            number,
+            number,
+            number
+        ];
+        name: string;
+        position: (number)[];
+        uv?: (number)[];
+        color?: (number)[];
+        index?: (number)[];
+        material: {
+            color: number;
+            tone?: 'grey' | 'orange' | 'dark' | 'light' | 'sand' | 'field';
+            side: 0 | 1 | 2;
+            toneMapped: boolean;
+            polygonOffset: boolean;
+            polygonOffsetFactor: number;
+        };
+    }))[];
+    colliders: ({
+        kind: 'box';
+        x: number;
+        y: number;
+        z: number;
+        hx: number;
+        hy: number;
+        hz: number;
+        surface?: 'ground' | 'wood' | 'metal';
+    })[];
+    map: {
+        bounds: {
+            x0: number;
+            z0: number;
+            x1: number;
+            z1: number;
+        };
+        shapes: (({
+            kind: 'rect';
+            fill?: string;
+            stroke?: string;
+        } & {
+            x0: number;
+            z0: number;
+            x1: number;
+            z1: number;
+        }) | ({
+            kind: 'path';
+            pts: ([
+                number,
+                number
+            ])[];
+            width: number;
+            color: string;
+            closed?: boolean;
+        }) | ({
+            kind: 'dot';
+            x: number;
+            z: number;
+            r: number;
+            color: string;
+        }) | ({
+            kind: 'grid';
+            step: number;
+            color: string;
+        } & {
+            x0: number;
+            z0: number;
+            x1: number;
+            z1: number;
+        }) | ({
+            kind: 'label';
+            x: number;
+            z: number;
+            text: string;
+            color: string;
+        }))[];
+    };
+}
+export type PracticeControllerRowsInput = unknown;
+export interface PracticeControllerRows {
+    title: string;
+    chip: string;
+    piece: {
+        id: string;
+        name: string;
+        file: string;
+        surface: 'wood' | 'metal';
+    };
+    center: ({
+        kind: 'fixed';
+        x: number;
+        z: number;
+    }) | ({
+        kind: 'spawn';
+    });
+    entry: ({
+        kind: 'mount';
+        actor: {
+            kind: string;
+            variant: string;
+            name: string;
+        };
+        start: {
+            x: number;
+            z: number;
+            yaw: number;
+        };
+        road: ([
+            number,
+            number
+        ])[];
+    }) | ({
+        kind: 'grapple';
+        hooks: ({
+            x: number;
+            y: number;
+            z: number;
+        })[];
+    });
+    view: ({
+        kind: 'laps';
+        words: {
+            ready: string;
+            ride: string;
+            lap: string;
+            half: string;
+            last: string;
+            best: string;
+            fell: string;
+            lapNotice: string;
+            halfNotice: string;
+        };
+    }) | ({
+        kind: 'checkpoints';
+        pads: (string)[];
+        goals: number;
+        words: {
+            ready: string;
+            finish: string;
+            running: string;
+            between: string;
+            done: string;
+            best: string;
+            fell: string;
+        };
+    });
+}
+export interface RidingPracticeLayoutInput {
+    controller: PracticeControllerRowsInput;
+    presentation: PracticeSceneInput;
+    road: ([
+        number,
+        number
+    ])[];
+    fieldAt: {
+        x: number;
+        z: number;
+    };
+    horseStart: {
+        x: number;
+        z: number;
+        yaw: number;
+    };
+    riderStart: {
+        x: number;
+        z: number;
+    };
+    oval: {
+        halfLen: number;
+        radius: number;
+        width: number;
+    };
+    lineX: number;
+    title: string;
+    chip: string;
+    piece: {
+        id: string;
+        name: string;
+        file: string;
+    };
+    actor: {
+        kind: string;
+        variant: string;
+        name: string;
+    };
+    riderPitch: number;
+    shoulder: number;
+    program: v.InferInput<typeof ReturnProgramSchema>;
+    sampleEpsilon: 0 | 1e-9;
+    words: {
+        ready: string;
+        ride: string;
+        lap: string;
+        half: string;
+        last: string;
+        best: string;
+        fell: string;
+        lapNotice: string;
+        halfNotice: string;
+    };
+}
+export interface RidingPracticeLayout {
+    controller: PracticeControllerRows;
+    presentation: PracticeScene;
+    road: ([
+        number,
+        number
+    ])[];
+    fieldAt: {
+        x: number;
+        z: number;
+    };
+    horseStart: {
+        x: number;
+        z: number;
+        yaw: number;
+    };
+    riderStart: {
+        x: number;
+        z: number;
+    };
+    oval: {
+        halfLen: number;
+        radius: number;
+        width: number;
+    };
+    lineX: number;
+    title: string;
+    chip: string;
+    piece: {
+        id: string;
+        name: string;
+        file: string;
+    };
+    actor: {
+        kind: string;
+        variant: string;
+        name: string;
+    };
+    riderPitch: number;
+    shoulder: number;
+    program: v.InferOutput<typeof ReturnProgramSchema>;
+    sampleEpsilon: 0 | 1e-9;
+    words: {
+        ready: string;
+        ride: string;
+        lap: string;
+        half: string;
+        last: string;
+        best: string;
+        fell: string;
+        lapNotice: string;
+        halfNotice: string;
+    };
 }

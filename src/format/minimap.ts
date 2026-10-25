@@ -196,7 +196,7 @@ const localModule = v.pipe(text, v.regex(/^\.\/[a-zA-Z0-9_-]+(?:[./][a-zA-Z0-9_-
 /** Authored discovery selects data or declared generated modules, never source loaders. */
 const bindingModule = v.pipe(localModule, v.regex(/\.(?:json|generated)$/u));
 const bindingName = v.pipe(text, v.regex(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/u));
-const binding = v.strictObject({module: bindingModule, export: bindingName});
+const binding: v.StrictObjectSchema<{ readonly module: v.GenericSchema<ManifestBindingRowsInput['module'], ManifestBindingRows['module']>; readonly export: v.GenericSchema<ManifestBindingRowsInput['export'], ManifestBindingRows['export']>; }, undefined> = v.strictObject({module: bindingModule, export: bindingName});
 // A source program supplies these values in its admitted product receipt.
 // This is a data marker, never permission to import an executable generator.
 const programBinding = v.strictObject({ program: v.literal(true) });
@@ -208,7 +208,7 @@ const pageBoot = v.strictObject({ platform: v.literal('page-mode'), rows: v.stri
   module: v.pipe(binding.entries.module, v.regex(/\.json$/u)), export: v.literal('default'),
 }) });
 /** A constant density field; no executable forest recipe or species policy. */
-export const FixedForestQueriesSchema = v.strictObject({ platform: v.literal('fixed'), density: v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(1)) });
+export const FixedForestQueriesSchema: v.GenericSchema<FixedForestQueriesRowsInput, FixedForestQueriesRows> = v.strictObject({ platform: v.literal('fixed'), density: v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(1)) });
 const bindings = v.strictObject({
   accent: text, budgets: dataBinding, runtimeCost: v.exactOptional(binding), navigation: v.exactOptional(dataBinding),
   // Finite sample declarations hydrate through defineShard in its original decode order.
@@ -237,7 +237,7 @@ const tier = v.objectWithRest({aa: v.exactOptional(v.picklist(['fxaa', 'smaa', '
   slices: v.exactOptional(v.boolean()), skipRaysOffscreen: v.exactOptional(v.boolean()), envSteps: v.exactOptional(v.boolean()), pointLightSkip: v.exactOptional(v.boolean()), godRays: v.exactOptional(v.boolean()), ao: v.exactOptional(v.boolean()),
   textures: v.exactOptional(v.picklist(['img', 'ktx2']))}, number);
 const strings = v.pipe(v.array(text), v.maxLength(256));
-export const ManifestMetadataSchema = v.strictObject({
+export const ManifestMetadataSchema: v.StrictObjectSchema<{ readonly bindings: v.GenericSchema<ManifestMetadataInput['bindings'], ManifestMetadata['bindings']>; readonly boot: v.ExactOptionalSchema<v.GenericSchema<Exclude<ManifestMetadataInput['boot'], undefined>, Exclude<ManifestMetadata['boot'], undefined>>, undefined>; readonly entries: v.ExactOptionalSchema<v.GenericSchema<Exclude<ManifestMetadataInput['entries'], undefined>, Exclude<ManifestMetadata['entries'], undefined>>, undefined>; readonly gridShardfile: v.ExactOptionalSchema<v.GenericSchema<Exclude<ManifestMetadataInput['gridShardfile'], undefined>, Exclude<ManifestMetadata['gridShardfile'], undefined>>, undefined>; readonly shardfile: v.ExactOptionalSchema<v.GenericSchema<Exclude<ManifestMetadataInput['shardfile'], undefined>, Exclude<ManifestMetadata['shardfile'], undefined>>, undefined>; readonly ground: v.ExactOptionalSchema<v.GenericSchema<Exclude<ManifestMetadataInput['ground'], undefined>, Exclude<ManifestMetadata['ground'], undefined>>, undefined>; readonly groundColour: v.ExactOptionalSchema<v.GenericSchema<Exclude<ManifestMetadataInput['groundColour'], undefined>, Exclude<ManifestMetadata['groundColour'], undefined>>, undefined>; readonly world: v.ExactOptionalSchema<v.GenericSchema<Exclude<ManifestMetadataInput['world'], undefined>, Exclude<ManifestMetadata['world'], undefined>>, undefined>; readonly boundary: v.ExactOptionalSchema<v.GenericSchema<Exclude<ManifestMetadataInput['boundary'], undefined>, Exclude<ManifestMetadata['boundary'], undefined>>, undefined>; readonly hoverSpeedClass: v.ExactOptionalSchema<v.GenericSchema<Exclude<ManifestMetadataInput['hoverSpeedClass'], undefined>, Exclude<ManifestMetadata['hoverSpeedClass'], undefined>>, undefined>; readonly uses: v.ExactOptionalSchema<v.GenericSchema<Exclude<ManifestMetadataInput['uses'], undefined>, Exclude<ManifestMetadata['uses'], undefined>>, undefined>; readonly loadout: v.ExactOptionalSchema<v.GenericSchema<Exclude<ManifestMetadataInput['loadout'], undefined>, Exclude<ManifestMetadata['loadout'], undefined>>, undefined>; readonly species: v.ExactOptionalSchema<v.GenericSchema<Exclude<ManifestMetadataInput['species'], undefined>, Exclude<ManifestMetadata['species'], undefined>>, undefined>; readonly encounters: v.ExactOptionalSchema<v.GenericSchema<Exclude<ManifestMetadataInput['encounters'], undefined>, Exclude<ManifestMetadata['encounters'], undefined>>, undefined>; readonly fight: v.ExactOptionalSchema<v.GenericSchema<Exclude<ManifestMetadataInput['fight'], undefined>, Exclude<ManifestMetadata['fight'], undefined>>, undefined>; readonly creatures: v.ExactOptionalSchema<v.GenericSchema<Exclude<ManifestMetadataInput['creatures'], undefined>, Exclude<ManifestMetadata['creatures'], undefined>>, undefined>; readonly tiers: v.ExactOptionalSchema<v.GenericSchema<Exclude<ManifestMetadataInput['tiers'], undefined>, Exclude<ManifestMetadata['tiers'], undefined>>, undefined>; readonly loot: v.ExactOptionalSchema<v.GenericSchema<Exclude<ManifestMetadataInput['loot'], undefined>, Exclude<ManifestMetadata['loot'], undefined>>, undefined>; readonly hud: v.ExactOptionalSchema<v.GenericSchema<Exclude<ManifestMetadataInput['hud'], undefined>, Exclude<ManifestMetadata['hud'], undefined>>, undefined>; readonly bag: v.ExactOptionalSchema<v.GenericSchema<Exclude<ManifestMetadataInput['bag'], undefined>, Exclude<ManifestMetadata['bag'], undefined>>, undefined>; readonly regionalSimCost: v.ExactOptionalSchema<v.GenericSchema<Exclude<ManifestMetadataInput['regionalSimCost'], undefined>, Exclude<ManifestMetadata['regionalSimCost'], undefined>>, undefined>; readonly spawns: v.ExactOptionalSchema<v.GenericSchema<Exclude<ManifestMetadataInput['spawns'], undefined>, Exclude<ManifestMetadata['spawns'], undefined>>, undefined>; readonly audio: v.GenericSchema<ManifestMetadataInput['audio'], ManifestMetadata['audio']>; readonly api: v.GenericSchema<ManifestMetadataInput['api'], ManifestMetadata['api']>; readonly slug: v.GenericSchema<ManifestMetadataInput['slug'], ManifestMetadata['slug']>; readonly order: v.GenericSchema<ManifestMetadataInput['order'], ManifestMetadata['order']>; readonly status: v.GenericSchema<ManifestMetadataInput['status'], ManifestMetadata['status']>; readonly shardSelect: v.ExactOptionalSchema<v.GenericSchema<Exclude<ManifestMetadataInput['shardSelect'], undefined>, Exclude<ManifestMetadata['shardSelect'], undefined>>, undefined>; readonly name: v.GenericSchema<ManifestMetadataInput['name'], ManifestMetadata['name']>; readonly label: v.GenericSchema<ManifestMetadataInput['label'], ManifestMetadata['label']>; readonly seed: v.GenericSchema<ManifestMetadataInput['seed'], ManifestMetadata['seed']>; readonly biome: v.GenericSchema<ManifestMetadataInput['biome'], ManifestMetadata['biome']>; readonly blurb: v.GenericSchema<ManifestMetadataInput['blurb'], ManifestMetadata['blurb']>; readonly card: v.GenericSchema<ManifestMetadataInput['card'], ManifestMetadata['card']>; readonly style: v.GenericSchema<ManifestMetadataInput['style'], ManifestMetadata['style']>; readonly kitLook: v.GenericSchema<ManifestMetadataInput['kitLook'], ManifestMetadata['kitLook']>; readonly hands: v.ExactOptionalSchema<v.GenericSchema<Exclude<ManifestMetadataInput['hands'], undefined>, Exclude<ManifestMetadata['hands'], undefined>>, undefined>; readonly camera: v.ExactOptionalSchema<v.GenericSchema<Exclude<ManifestMetadataInput['camera'], undefined>, Exclude<ManifestMetadata['camera'], undefined>>, undefined>; readonly weapon: v.GenericSchema<ManifestMetadataInput['weapon'], ManifestMetadata['weapon']>; readonly treeCount: v.GenericSchema<ManifestMetadataInput['treeCount'], ManifestMetadata['treeCount']>; readonly trees: v.GenericSchema<ManifestMetadataInput['trees'], ManifestMetadata['trees']>; readonly assetGlobs: v.GenericSchema<ManifestMetadataInput['assetGlobs'], ManifestMetadata['assetGlobs']>; readonly spawn: v.GenericSchema<ManifestMetadataInput['spawn'], ManifestMetadata['spawn']>; readonly bounds: v.ExactOptionalSchema<v.GenericSchema<Exclude<ManifestMetadataInput['bounds'], undefined>, Exclude<ManifestMetadata['bounds'], undefined>>, undefined>; readonly sky: v.GenericSchema<ManifestMetadataInput['sky'], ManifestMetadata['sky']>; readonly atmosphere: v.GenericSchema<ManifestMetadataInput['atmosphere'], ManifestMetadata['atmosphere']>; readonly grade: v.GenericSchema<ManifestMetadataInput['grade'], ManifestMetadata['grade']>; readonly horizon: v.ExactOptionalSchema<v.GenericSchema<Exclude<ManifestMetadataInput['horizon'], undefined>, Exclude<ManifestMetadata['horizon'], undefined>>, undefined>; readonly minimap: v.GenericSchema<ManifestMetadataInput['minimap'], ManifestMetadata['minimap']>; readonly pois: v.GenericSchema<ManifestMetadataInput['pois'], ManifestMetadata['pois']>; readonly explore: v.GenericSchema<ManifestMetadataInput['explore'], ManifestMetadata['explore']>; readonly captureProbes: v.ExactOptionalSchema<v.ArraySchema<v.GenericSchema<Exclude<ManifestMetadataInput['captureProbes'], undefined>[number], Exclude<ManifestMetadata['captureProbes'], undefined>[number]>, undefined>, undefined>; readonly next: v.ExactOptionalSchema<v.GenericSchema<Exclude<ManifestMetadataInput['next'], undefined>, Exclude<ManifestMetadata['next'], undefined>>, undefined>; readonly debugOptions: v.ExactOptionalSchema<v.GenericSchema<Exclude<ManifestMetadataInput['debugOptions'], undefined>, Exclude<ManifestMetadata['debugOptions'], undefined>>, undefined>; readonly bodyShadow: v.ExactOptionalSchema<v.GenericSchema<Exclude<ManifestMetadataInput['bodyShadow'], undefined>, Exclude<ManifestMetadata['bodyShadow'], undefined>>, undefined>; readonly ocean: v.ExactOptionalSchema<v.GenericSchema<Exclude<ManifestMetadataInput['ocean'], undefined>, Exclude<ManifestMetadata['ocean'], undefined>>, undefined>; readonly blender: v.ExactOptionalSchema<v.GenericSchema<Exclude<ManifestMetadataInput['blender'], undefined>, Exclude<ManifestMetadata['blender'], undefined>>, undefined>; readonly horizonStrips: v.ExactOptionalSchema<v.GenericSchema<Exclude<ManifestMetadataInput['horizonStrips'], undefined>, Exclude<ManifestMetadata['horizonStrips'], undefined>>, undefined>; readonly assets: v.ExactOptionalSchema<v.GenericSchema<Exclude<ManifestMetadataInput['assets'], undefined>, Exclude<ManifestMetadata['assets'], undefined>>, undefined>; readonly look: v.ExactOptionalSchema<v.GenericSchema<Exclude<ManifestMetadataInput['look'], undefined>, Exclude<ManifestMetadata['look'], undefined>>, undefined>; readonly pondLilyExclusions: v.ExactOptionalSchema<v.GenericSchema<Exclude<ManifestMetadataInput['pondLilyExclusions'], undefined>, Exclude<ManifestMetadata['pondLilyExclusions'], undefined>>, undefined>; readonly faunaTuning: v.ExactOptionalSchema<v.GenericSchema<Exclude<ManifestMetadataInput['faunaTuning'], undefined>, Exclude<ManifestMetadata['faunaTuning'], undefined>>, undefined>; readonly forest: v.ExactOptionalSchema<v.GenericSchema<Exclude<ManifestMetadataInput['forest'], undefined>, Exclude<ManifestMetadata['forest'], undefined>>, undefined>; }, undefined> = v.strictObject({
   bindings,
   boot: v.exactOptional(v.strictObject({barrier: v.exactOptional(v.boolean()), cullBeforeFirstDraw: v.exactOptional(v.boolean()),
     phone: v.exactOptional(v.strictObject({ deferExtras: v.exactOptional(v.boolean()), fragile: v.exactOptional(v.boolean()), trace: v.exactOptional(v.boolean()) })), viewmodelSets: v.exactOptional(v.pipe(v.array(v.picklist(['walnut', 'brushed-steel', 'leather', 'cord', 'bolt', 'anodised', 'polymer', 'gunmetal'])), v.maxLength(8))), shaders: v.exactOptional(v.strictObject({background: v.boolean()})), audio: v.exactOptional(strings), precache: strings, stagedWorld: v.exactOptional(v.boolean()),
@@ -305,7 +305,7 @@ export const ManifestMetadataSchema = v.strictObject({
     understory: v.exactOptional(v.strictObject({ferns: number, shrubs: number, fernCanopy: v.boolean()})), speciesTraits: v.exactOptional(v.array(v.strictObject({id: text, scale: v.tuple([number, number]), grows: v.boolean(), girth: number, spacing: v.picklist(['normal','wide','tight']), hue: v.exactOptional(number)})))})),
 });
 /** Validated authored discovery output, with plain image paths. */
-export type ManifestMetadata = v.InferOutput<typeof ManifestMetadataSchema>;
+
 /** Parse authored JSON without loading native code or constructing services. */
 export function parseManifestMetadata(input: unknown, expectedSlug?: string): ManifestMetadata {
   const data = v.parse(ManifestMetadataSchema, input);
@@ -315,10 +315,717 @@ export function parseManifestMetadata(input: unknown, expectedSlug?: string): Ma
 }
 
 const captureVector = v.strictTuple([number, number, number]);
-const capturePoses = v.record(text, v.strictObject({ eye: captureVector, yaw: number, pitch: number,
+const capturePoses: v.GenericSchema<CapturePoseRowsInput, CapturePoseRows> = v.record(text, v.strictObject({ eye: captureVector, yaw: number, pitch: number,
   feet: v.exactOptional(captureVector), mockup: v.string(), frame: v.string(),
   probe: v.exactOptional(v.strictObject({ name: v.exactOptional(v.string()), x: v.exactOptional(number),
     y: v.exactOptional(number), z: v.exactOptional(number), yaw: v.exactOptional(number), pitch: v.exactOptional(number) })),
 }));
 /** Admit manifest-bound diagnostic pose JSON without weakening fixed-size vector checks. */
 export function parseCapturePoses(input: unknown): v.InferOutput<typeof capturePoses> { return v.parse(capturePoses, input); }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type ManifestBindingRowsInput = ManifestBindingRows;
+export interface ManifestBindingRows {
+    module: string;
+    export: string;
+}
+export type FixedForestQueriesRowsInput = FixedForestQueriesRows;
+export interface FixedForestQueriesRows {
+    platform: 'fixed';
+    density: number;
+}
+export type ManifestMetadataInput = ManifestMetadata;
+export interface ManifestMetadataFields {
+    bindings: {
+        accent: string;
+        budgets: (ManifestBindingRows) | ({
+            program: true;
+        });
+        runtimeCost?: ManifestBindingRows;
+        navigation?: (ManifestBindingRows) | ({
+            program: true;
+        });
+        groundRows?: ManifestBindingRows;
+        groundColourSamples?: ManifestBindingRows;
+        surfaceSamples?: ManifestBindingRows;
+        forestMaskSamples?: ManifestBindingRows;
+        mapGroundSamples?: ManifestBindingRows;
+        navmesh?: ManifestBindingRows;
+        mapPalette?: (ManifestBindingRows) | ({
+            program: true;
+        });
+        poses?: (ManifestBindingRows) | ({
+            program: true;
+        });
+        audioCues?: (ManifestBindingRows) | ({
+            program: true;
+        });
+        boot?: ({
+            platform: 'page-mode';
+            rows: {
+                module: v.InferOutput<(typeof binding)['entries']['module']>;
+                export: 'default';
+            };
+        }) | ({
+            files: (ManifestBindingRows) | ({
+                program: true;
+            });
+            sources: (ManifestBindingRows) | ({
+                program: true;
+            });
+            lateReads?: (ManifestBindingRows) | ({
+                program: true;
+            });
+            bakedUnread?: ManifestBindingRows;
+            audio?: ManifestBindingRows;
+            explore?: ({
+                program: true;
+            }) | ({
+                module: string;
+                export: 'default';
+            });
+        });
+        forestQueries?: (ManifestBindingRows) | ({
+            platform: 'declared';
+            rows: ManifestBindingRows;
+        }) | (FixedForestQueriesRows);
+        pondClip?: (ManifestBindingRows) | ({
+            platform: 'declared';
+            rows: ManifestBindingRows;
+        });
+        sword?: (ManifestBindingRows) | ({
+            rows: string;
+        }) | ({
+            platform: 'graph';
+            file: string;
+        });
+        audioPreload?: ManifestBindingRows;
+        posesLoader?: ManifestBindingRows;
+        spawns?: ManifestBindingRows;
+        entry?: {
+            platform: 'client-plan';
+            retainHomeRuntime: boolean;
+            stagesOwner: 'declared' | 'runtime';
+            styles?: (string)[];
+        };
+        ground?: (ManifestBindingRows) | ({
+            platform: 'declared';
+            rows: ManifestBindingRows;
+        });
+        render?: (ManifestBindingRows) | ({
+            platform: 'painted' | 'toon';
+        }) | ({
+            platform: 'keyed';
+            channels: string;
+            looks: ManifestBindingRows;
+            trim: ManifestBindingRows;
+            trimRow: string;
+        }) | ({
+            platform: 'post';
+            file: string;
+            field: (string)[];
+        });
+        load?: {
+            module: string;
+        };
+        ktx2?: ({
+            platform: 'page-mode';
+            rows: {
+                module: v.InferOutput<(typeof binding)['entries']['module']>;
+                export: 'default';
+            };
+        }) | ({
+            module: string;
+        }) | (ManifestBindingRows);
+        roster?: ({
+            call: boolean;
+        } & ManifestBindingRows) | ({
+            platform: 'held';
+            rows: string;
+        });
+    };
+    boot?: {
+        barrier?: boolean;
+        cullBeforeFirstDraw?: boolean;
+        phone?: {
+            deferExtras?: boolean;
+            fragile?: boolean;
+            trace?: boolean;
+        };
+        viewmodelSets?: ('walnut' | 'brushed-steel' | 'leather' | 'cord' | 'bolt' | 'anodised' | 'polymer' | 'gunmetal')[];
+        shaders?: {
+            background: boolean;
+        };
+        audio?: (string)[];
+        precache: (string)[];
+        stagedWorld?: boolean;
+        steps?: Record<string, {
+            label: string;
+            weight: number;
+        }>;
+        bytes?: {
+            sky?: string;
+            trees?: string;
+            cabins?: string;
+            props?: string;
+            music?: string;
+            sfx?: string;
+        };
+    };
+    entries?: {
+        legacy: boolean;
+        shardfile: boolean;
+    };
+    gridShardfile?: string;
+    shardfile?: string;
+    ground?: {
+        structures: true;
+        paths?: 'plugin';
+    };
+    groundColour?: [
+        number,
+        number,
+        number
+    ];
+    world?: {
+        killY: number;
+    };
+    boundary?: {
+        visible: boolean;
+    };
+    hoverSpeedClass?: 'shard' | 'road';
+    uses?: ('weather' | 'dayCycle' | 'bosses' | 'elites' | 'spawns' | 'quests' | 'swim' | 'hover' | 'explore' | 'practice' | 'coins' | 'loot' | 'compendium' | 'feats' | 'bag.pack')[];
+    loadout?: {
+        weapons: (string)[];
+        tools: (string)[];
+        start: (string)[];
+        held?: string;
+        loans?: ({
+            id: string;
+            in: 'practice';
+        })[];
+        pickups?: ({
+            id: string;
+            at: string;
+        })[];
+    };
+    species?: (string)[];
+    encounters?: (string)[];
+    fight?: {
+        maxHitDamage?: number;
+        capExempt?: (string)[];
+        attackers?: (number) | ('unbounded');
+        telegraphed?: boolean;
+        input?: {
+            bufferMs: number;
+            coyoteMs: number;
+        };
+    };
+    creatures?: {
+        lowPoly: boolean;
+        waitForModels: boolean;
+        furRim: boolean;
+        tintRange: number;
+        oneMaterial: boolean;
+    };
+    tiers?: {
+        phone?: ({
+            aa?: 'fxaa' | 'smaa' | 'off';
+            slices?: boolean;
+            skipRaysOffscreen?: boolean;
+            envSteps?: boolean;
+            pointLightSkip?: boolean;
+            godRays?: boolean;
+            ao?: boolean;
+            textures?: 'img' | 'ktx2';
+        }) & Record<string, number>;
+        desktop?: ({
+            aa?: 'fxaa' | 'smaa' | 'off';
+            slices?: boolean;
+            skipRaysOffscreen?: boolean;
+            envSteps?: boolean;
+            pointLightSkip?: boolean;
+            godRays?: boolean;
+            ao?: boolean;
+            textures?: 'img' | 'ktx2';
+        }) & Record<string, number>;
+        grid?: {
+            phone?: ({
+                aa?: 'fxaa' | 'smaa' | 'off';
+                slices?: boolean;
+                skipRaysOffscreen?: boolean;
+                envSteps?: boolean;
+                pointLightSkip?: boolean;
+                godRays?: boolean;
+                ao?: boolean;
+                textures?: 'img' | 'ktx2';
+            }) & Record<string, number>;
+            desktop?: ({
+                aa?: 'fxaa' | 'smaa' | 'off';
+                slices?: boolean;
+                skipRaysOffscreen?: boolean;
+                envSteps?: boolean;
+                pointLightSkip?: boolean;
+                godRays?: boolean;
+                ao?: boolean;
+                textures?: 'img' | 'ktx2';
+            }) & Record<string, number>;
+        };
+    };
+    loot?: {
+        coins?: boolean;
+    };
+    hud?: {
+        dayBadge?: boolean;
+        bands?: ('band.1' | 'band.2' | 'band.3' | 'band.4' | 'band.5' | 'band.6')[];
+    };
+    bag?: {
+        skinsTitle?: string;
+        tabs: (string)[];
+        pack: {
+            slots: number;
+            keeps?: (string)[];
+        };
+    };
+    regionalSimCost?: {
+        residentMB: number;
+        rev: string;
+        device: string;
+        evidence: string;
+    };
+    spawns?: ({
+        kind: string;
+        count: number;
+        variants?: (string)[];
+        anchor?: {
+            x: number;
+            z: number;
+            rMin: number;
+            rMax: number;
+        };
+        canopy: boolean;
+        trailBand: [
+            number,
+            number
+        ];
+    })[];
+    audio: {
+        ambience: string;
+        score: string;
+        catalogue?: true;
+        alertOnlyHostile?: boolean;
+        bed?: string;
+        samples?: {
+            loopGains: Record<string, number>;
+            omitLoops?: (string)[];
+            omitShots?: (string)[];
+        };
+    };
+    api: 1;
+    slug: string;
+    order: number;
+    status: 'live' | 'experimental' | 'earlyAccess' | 'hidden';
+    shardSelect?: boolean;
+    name: string;
+    label: string;
+    seed: number;
+    biome: string;
+    blurb: string;
+    card: {
+        thumb: string;
+        portrait: string;
+        landscape: string;
+    };
+    style: string;
+    kitLook: 'toon' | 'painterly' | 'pbr';
+    hands?: 'toon' | 'pbr';
+    camera?: {
+        portraitFov: number;
+    };
+    weapon: 'crossbow' | 'sword' | 'custom';
+    treeCount: number;
+    trees: {
+        factory?: 'none';
+        noun: string;
+        bark?: string;
+        twigAtlas?: string;
+        set?: string;
+        treeSet?: 'world/trees';
+        drawnBy?: 'model';
+        setVariants?: ({
+            name: string;
+            species: string;
+            height: number;
+            trunk: number;
+            collider: number;
+        })[];
+    };
+    assetGlobs: (string)[];
+    spawn: {
+        x: number;
+        y?: number;
+        z: number;
+        yaw: number;
+    };
+    bounds?: {
+        x0: number;
+        x1: number;
+        z0: number;
+        z1: number;
+        floor: number;
+    };
+    sky: {
+        hdri?: string;
+        sunColor: [
+            number,
+            number,
+            number
+        ];
+        sunIntensity: number;
+        envIntensity: number;
+        bgIntensity: number;
+        fogSunColor: [
+            number,
+            number,
+            number
+        ];
+        cloudSunColor: [
+            number,
+            number,
+            number
+        ];
+        hemiSky: number;
+        hemiGround: number;
+        hemiIntensity: number;
+        sun?: {
+            azimuth: number;
+            elevation: number;
+        };
+        planet?: {
+            azimuth: number;
+            elevation: number;
+            size: number;
+            tilt: number;
+            roll?: number;
+        };
+        painted?: {
+            zenith: [
+                number,
+                number,
+                number
+            ];
+            horizon: [
+                number,
+                number,
+                number
+            ];
+            ground: [
+                number,
+                number,
+                number
+            ];
+            glow: [
+                number,
+                number,
+                number
+            ];
+        };
+    };
+    atmosphere: {
+        edgeHaze?: boolean;
+        wetSurfaces?: boolean;
+        weather?: boolean;
+        fogHeight: number;
+        fogHeightFalloff: number;
+        fogHeightDensity: number;
+        fogDistDensity: number;
+        volumetricSunColor: [
+            number,
+            number,
+            number
+        ];
+        volumetric?: {
+            height: number;
+            falloff: number;
+            density: number;
+            strength: number;
+        };
+    };
+    grade: {
+        saturation: number;
+        brightness: number;
+        contrast: number;
+        bloomIntensity: number;
+        bloomThreshold: number;
+        shadowTint: [
+            number,
+            number,
+            number
+        ];
+        highTint: [
+            number,
+            number,
+            number
+        ];
+        lift: [
+            number,
+            number,
+            number
+        ];
+        gain: [
+            number,
+            number,
+            number
+        ];
+        gamma: number;
+    };
+    horizon?: {
+        rings: ({
+            r: number;
+            base: number;
+            color: [
+                number,
+                number,
+                number
+            ];
+            top: [
+                number,
+                number,
+                number
+            ];
+            snowLine: number;
+            haze: number;
+            bands: ({
+                azimuth: number;
+                spread: number;
+                height: number;
+                rough: number;
+            })[];
+            floor: number;
+        })[];
+        cloudSea: boolean;
+    };
+    minimap: {
+        image: string;
+        openWater?: {
+            level: number;
+            deepDepth: number;
+        };
+        outside?: string;
+    };
+    pois: ({
+        id: string;
+        name: string;
+        x: number;
+        z: number;
+        r?: number;
+    })[];
+    explore: {
+        art: {
+            world: string;
+            models: string;
+            sets: string;
+            practice: string;
+        };
+        compare?: ({
+            id: string;
+            label: string;
+            model: string;
+            target: string;
+            live: string;
+            image: string;
+        })[];
+    };
+    captureProbes?: ({
+        name: string;
+        x: number;
+        z: number;
+        yaw: number;
+        pitch: number;
+    })[];
+    next?: string;
+    debugOptions?: (string)[];
+    bodyShadow?: boolean;
+    ocean?: {
+        level: number;
+        shallowColor: [
+            number,
+            number,
+            number
+        ];
+        deepColor: [
+            number,
+            number,
+            number
+        ];
+        deepDepth: number;
+    };
+    blender?: {
+        area: {
+            x0: number;
+            x1: number;
+            z0: number;
+            z1: number;
+        };
+        models: (string)[];
+    };
+    horizonStrips?: {
+        day: string;
+        night: string;
+        elMin: number;
+        elMax: number;
+        scale?: number;
+        phone?: {
+            day: string;
+            night: string;
+        };
+    };
+    assets?: {
+        groundLayers: [
+            string,
+            string,
+            string,
+            string
+        ];
+        groundTints: [
+            [
+                number,
+                number,
+                number
+            ],
+            [
+                number,
+                number,
+                number
+            ],
+            [
+                number,
+                number,
+                number
+            ],
+            [
+                number,
+                number,
+                number
+            ]
+        ];
+        slabRock: string;
+        boreal?: {
+            normalK: [
+                number,
+                number,
+                number,
+                number
+            ];
+            trailDust: [
+                number,
+                number,
+                number,
+                number
+            ];
+            grassTint: [
+                number,
+                number,
+                number
+            ];
+        };
+    };
+    look?: {
+        grade: {
+            shadowTint: [
+                number,
+                number,
+                number
+            ];
+        };
+        curve: number;
+        vibrance: number;
+        vol: number;
+        fogDist: number;
+        sat: number;
+        ambient: number;
+        sky: number;
+        dayMist: number;
+    };
+    pondLilyExclusions?: ({
+        x: number;
+        z: number;
+        r: number;
+    })[];
+    faunaTuning?: Record<string, {
+        sightRange?: number;
+        sightRangeGraze?: number;
+        sightCone?: number;
+        hearWalk?: number;
+        hearSprint?: number;
+        noticeRate?: number;
+        impactAlert?: number;
+    }>;
+    forest?: {
+        spacing: number;
+        densityFreq: number;
+        clearings: [
+            number,
+            number
+        ];
+        maxSlope: number;
+        tintHue: number;
+        tintHueJitter: [
+            number,
+            number
+        ];
+        tintSat: [
+            number,
+            number
+        ];
+        tintLight: [
+            number,
+            number
+        ];
+        largeVariantChance: number;
+        understory?: {
+            ferns: number;
+            shrubs: number;
+            fernCanopy: boolean;
+        };
+        speciesTraits?: ({
+            id: string;
+            scale: [
+                number,
+                number
+            ];
+            grows: boolean;
+            girth: number;
+            spacing: 'normal' | 'wide' | 'tight';
+            hue?: number;
+        })[];
+    };
+}
+export type CapturePoseRowsInput = CapturePoseRows;
+export type CapturePoseRows = Record<string, {
+    eye: [
+        number,
+        number,
+        number
+    ];
+    yaw: number;
+    pitch: number;
+    feet?: [
+        number,
+        number,
+        number
+    ];
+    mockup: string;
+    frame: string;
+    probe?: {
+        name?: string;
+        x?: number;
+        y?: number;
+        z?: number;
+        yaw?: number;
+        pitch?: number;
+    };
+}>;
+
+/** Closed admitted fields keep the original record-compatible object type. */
+export type ManifestMetadata = { [Key in keyof ManifestMetadataFields]: ManifestMetadataFields[Key] };

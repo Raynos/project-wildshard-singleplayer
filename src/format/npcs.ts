@@ -11,15 +11,15 @@ const condition = v.strictObject({ all: v.exactOptional(names), any: v.exactOpti
 
 
 /** Dialogue data independent of its rendered body. Skinned stand-in NPCs keep their own figure installer. */
-const dialogue = v.strictObject({ id: npcRowName, name: text,
+const dialogue: v.StrictObjectSchema<{ readonly id: v.GenericSchema<NpcDialogueRowInput['id'], NpcDialogueRow['id']>; readonly name: v.GenericSchema<NpcDialogueRowInput['name'], NpcDialogueRow['name']>; readonly dialogue: v.GenericSchema<NpcDialogueRowInput['dialogue'], NpcDialogueRow['dialogue']>; }, undefined> = v.strictObject({ id: npcRowName, name: text,
   dialogue: v.pipe(v.array(v.strictObject({ when: v.exactOptional(condition), lines: v.pipe(v.array(text), v.minLength(1), v.maxLength(16)), sets: v.exactOptional(names) })), v.minLength(1), v.maxLength(16)),
 });
 /** Validated dialogue row; directly consumed by both the page and native NpcDialogue. */
-export type NpcDialogueRow = v.InferOutput<typeof dialogue>;
+
 /** Strict dialogue admission with a bounded named output contract. */
 export const NpcDialogueRowSchema: v.GenericSchema<v.InferInput<typeof dialogue>, NpcDialogueRow> = dialogue;
 /** Page talks borrow declared catalogue or resident figures; completions select named mechanics only. */
-export const QuestPageTalksSchema = v.strictObject({
+export const QuestPageTalksSchema: v.GenericSchema<QuestPageTalksRowsInput, QuestPageTalksRows> = v.strictObject({
   models: v.pipe(v.array(v.variant('source', [
     v.strictObject({ source: v.literal('catalogue'), id: npcRowName, library: text,
       bark: v.strictObject({ audio: npcRowName, group: npcRowName }) }),
@@ -32,7 +32,7 @@ export const QuestPageTalksSchema = v.strictObject({
   ])), v.maxEntries(64)),
   steps: v.exactOptional(v.unknown()),
 });
-export type QuestPageTalksRows = v.InferOutput<typeof QuestPageTalksSchema>;
+
 /** Validate the dialogue without inventing pivot-figure fields for a skinned NPC. */
 export function parseNpcDialogueRow(input: unknown): NpcDialogueRow { return v.parse(NpcDialogueRowSchema, input); }
 
@@ -46,11 +46,11 @@ const npcPose = v.strictObject({ lift: npcSwing, forward: npcSwing, bend: npcSwi
  * and a vertical swell, [amplitude, hz]); and its arm's pose at rest, waving (the player within its wave range) and
  * talking.
  */
-const motion = v.strictObject({ turns: v.boolean(), waveUntilMet: v.boolean(), ease: positive,
+const motion: v.GenericSchema<NpcMotionInput, NpcMotion> = v.strictObject({ turns: v.boolean(), waveUntilMet: v.boolean(), ease: positive,
   breathe: v.strictObject({ yaw: v.tuple([npcRowFinite, positive]), scale: v.tuple([npcRowFinite, positive]) }),
   rest: npcPose, wave: npcPose, talk: npcPose });
 /** A validated pivot NPC motion row. */
-export type NpcMotion = v.InferOutput<typeof motion>;
+
 
 /** Strict pivot-motion admission; native interpolation stays with the runtime owner. */
 export const NpcMotionSchema: v.GenericSchema<v.InferInput<typeof motion>, NpcMotion> = motion;
@@ -63,7 +63,7 @@ export const NpcMotionSchema: v.GenericSchema<v.InferInput<typeof motion>, NpcMo
  * named spot) stands `talkHeight` over its feet and reaches `talkRadius` from the player's eye. Its first matching
  * dialogue entry is what it says (the engine's NpcDef order).
  */
-const row = v.strictObject({
+const row: v.GenericSchema<NpcRowInput, NpcRow> = v.strictObject({
   id: npcRowName, name: text, spot: npcRowName, at: npcRowPoint, faceHome: npcRowPoint, metFlag: npcRowName,
   talkHeight: positive, talkRadius: positive, faceRange: positive, waveRange: positive,
   /** the solid column round it (`half` m square, from `below` under its feet to `above` over them); none: it is not solid */
@@ -84,25 +84,25 @@ const row = v.strictObject({
   dialogue: dialogue.entries.dialogue,
 });
 /** A validated quest-giver NPC row (`NpcRowSchema`). */
-export type NpcRow = v.InferOutput<typeof row>;
+
 /** Strict quest-giver admission with named input/output seams independent of runtime figures. */
 export const NpcRowSchema: v.GenericSchema<v.InferInput<typeof row>, NpcRow> = row;
 /** Compile an authored NPC row; an unknown field or an empty dialogue refuses. */
 export function parseNpcRow(input: unknown): NpcRow { return v.parse(NpcRowSchema, input); }
 
-const questBinding = v.strictObject({
+const questBinding: v.GenericSchema<QuestNpcBindingInput, QuestNpcBinding> = v.strictObject({
   npc: NpcRowSchema, label: text, system: npcRowName, sourceFile: text,
   ground: v.strictObject({ height: npcRowFinite, at: v.nullable(npcRowPoint), error: text }),
   met: v.picklist(['flag', 'unmet']), missing: v.picklist(['omit', 'anchor']), update: v.picklist(['loaded', 'always']),
 });
 /** Serialisable NPC placement, prompt and lifecycle policy; geometry and its look remain borrowed resources. */
-export type QuestNpcBinding = v.InferOutput<typeof questBinding>;
+
 /** Strict NPC binding admission with bounded lifecycle choices and finite authored ground. */
 export const QuestNpcBindingSchema: v.GenericSchema<v.InferInput<typeof questBinding>, QuestNpcBinding> = questBinding;
 /** Admit the quest NPC's policy before constructing a figure or registering any system or collider. */
 export function parseQuestNpcBinding(input: unknown): QuestNpcBinding { return v.parse(QuestNpcBindingSchema, input); }
 
-const posedTalkBinding = v.pipe(v.strictObject({
+const posedTalkBinding: v.GenericSchema<QuestNpcTalkBindingInput, QuestNpcTalkBinding> = v.pipe(v.strictObject({
   kind: v.literal('posed-talk'), npc: NpcDialogueRowSchema, figure: npcRowName,
   at: v.exactOptional(npcRowPoint), yaw: v.exactOptional(npcRowFinite),
   install: v.pipe(v.strictObject({ id: npcRowName, label: text,
@@ -116,7 +116,7 @@ const posedTalkBinding = v.pipe(v.strictObject({
   done: v.exactOptional(v.strictObject({ call: npcRowName, when: v.exactOptional(condition) })),
 }), v.check(binding => (binding.at === undefined) === (binding.yaw === undefined), 'An authored figure placement needs both position and yaw'));
 /** A posed figure keeps its existing model and motion; the root declares its talk and placement. */
-export type QuestNpcTalkBinding = v.InferOutput<typeof posedTalkBinding>;
+
 
 const questBindings = v.pipe(v.array(v.union([QuestNpcBindingSchema, posedTalkBinding])), v.maxLength(64),
   v.check(rows => ['id', 'spot', 'system'].every(key => {
@@ -145,3 +145,393 @@ export function questNpcBindingRules(rows: readonly (QuestNpcBinding | QuestNpcT
   return errors;
 }
 
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type NpcDialogueRowInput = NpcDialogueRow;
+export interface NpcDialogueRow {
+    id: string;
+    name: string;
+    dialogue: ({
+        when?: {
+            all?: (string)[];
+            any?: (string)[];
+            none?: (string)[];
+        };
+        lines: (string)[];
+        sets?: (string)[];
+    })[];
+}
+export type QuestPageTalksRowsInput = QuestPageTalksRows;
+export interface QuestPageTalksRows {
+    models: (({
+        source: 'catalogue';
+        id: string;
+        library: string;
+        bark: {
+            audio: string;
+            group: string;
+        };
+    }) | ({
+        source: 'entered';
+        id: string;
+        approach: string;
+        swap: boolean;
+        stow: boolean;
+    }))[];
+    calls: Record<string, ({
+        kind: 'trader';
+        trader: string;
+    }) | ({
+        kind: 'talk';
+        target: string;
+        after?: {
+            flag: string;
+            service: string;
+        };
+    })>;
+    steps?: unknown;
+}
+export type NpcMotionInput = NpcMotion;
+export interface NpcMotion {
+    turns: boolean;
+    waveUntilMet: boolean;
+    ease: number;
+    breathe: {
+        yaw: [
+            number,
+            number
+        ];
+        scale: [
+            number,
+            number
+        ];
+    };
+    rest: {
+        lift: ([
+            number,
+            number,
+            number
+        ]) | ([
+            number,
+            number,
+            number,
+            'half'
+        ]);
+        forward: ([
+            number,
+            number,
+            number
+        ]) | ([
+            number,
+            number,
+            number,
+            'half'
+        ]);
+        bend: ([
+            number,
+            number,
+            number
+        ]) | ([
+            number,
+            number,
+            number,
+            'half'
+        ]);
+    };
+    wave: {
+        lift: ([
+            number,
+            number,
+            number
+        ]) | ([
+            number,
+            number,
+            number,
+            'half'
+        ]);
+        forward: ([
+            number,
+            number,
+            number
+        ]) | ([
+            number,
+            number,
+            number,
+            'half'
+        ]);
+        bend: ([
+            number,
+            number,
+            number
+        ]) | ([
+            number,
+            number,
+            number,
+            'half'
+        ]);
+    };
+    talk: {
+        lift: ([
+            number,
+            number,
+            number
+        ]) | ([
+            number,
+            number,
+            number,
+            'half'
+        ]);
+        forward: ([
+            number,
+            number,
+            number
+        ]) | ([
+            number,
+            number,
+            number,
+            'half'
+        ]);
+        bend: ([
+            number,
+            number,
+            number
+        ]) | ([
+            number,
+            number,
+            number,
+            'half'
+        ]);
+    };
+}
+export interface NpcRowInput {
+    id: string;
+    name: string;
+    spot: string;
+    at: {
+        x: number;
+        z: number;
+    };
+    faceHome: {
+        x: number;
+        z: number;
+    };
+    metFlag: string;
+    talkHeight: number;
+    talkRadius: number;
+    faceRange: number;
+    waveRange: number;
+    collider?: {
+        half: number;
+        below: number;
+        above: number;
+        surface: 'flesh' | 'wood' | 'metal' | 'felt' | 'shell' | 'earth';
+    };
+    figure: {
+        model: string;
+        height: number;
+        neck?: [
+            number,
+            number,
+            number
+        ];
+        shoulder: [
+            number,
+            number,
+            number
+        ];
+        armBelowX: number;
+        armAboveY: number;
+        armSlope?: number;
+        armTopY?: number;
+        centre?: 'base';
+        elbow?: {
+            at: [
+                number,
+                number,
+                number
+            ];
+            axis: [
+                number,
+                number
+            ];
+        };
+        roughness: number;
+        flat: boolean;
+    };
+    motion?: NpcMotionInput;
+    dialogue: v.InferInput<(typeof dialogue)['entries']['dialogue']>;
+}
+export interface NpcRow {
+    id: string;
+    name: string;
+    spot: string;
+    at: {
+        x: number;
+        z: number;
+    };
+    faceHome: {
+        x: number;
+        z: number;
+    };
+    metFlag: string;
+    talkHeight: number;
+    talkRadius: number;
+    faceRange: number;
+    waveRange: number;
+    collider?: {
+        half: number;
+        below: number;
+        above: number;
+        surface: 'flesh' | 'wood' | 'metal' | 'felt' | 'shell' | 'earth';
+    };
+    figure: {
+        model: string;
+        height: number;
+        neck?: [
+            number,
+            number,
+            number
+        ];
+        shoulder: [
+            number,
+            number,
+            number
+        ];
+        armBelowX: number;
+        armAboveY: number;
+        armSlope?: number;
+        armTopY?: number;
+        centre?: 'base';
+        elbow?: {
+            at: [
+                number,
+                number,
+                number
+            ];
+            axis: [
+                number,
+                number
+            ];
+        };
+        roughness: number;
+        flat: boolean;
+    };
+    motion?: NpcMotion;
+    dialogue: v.InferOutput<(typeof dialogue)['entries']['dialogue']>;
+}
+export interface QuestNpcBindingInput {
+    npc: NpcRowInput;
+    label: string;
+    system: string;
+    sourceFile: string;
+    ground: {
+        height: number;
+        at: ({
+            x: number;
+            z: number;
+        }) | null;
+        error: string;
+    };
+    met: 'flag' | 'unmet';
+    missing: 'omit' | 'anchor';
+    update: 'loaded' | 'always';
+}
+export interface QuestNpcBinding {
+    npc: NpcRow;
+    label: string;
+    system: string;
+    sourceFile: string;
+    ground: {
+        height: number;
+        at: ({
+            x: number;
+            z: number;
+        }) | null;
+        error: string;
+    };
+    met: 'flag' | 'unmet';
+    missing: 'omit' | 'anchor';
+    update: 'loaded' | 'always';
+}
+export interface QuestNpcTalkBindingInput {
+    kind: 'posed-talk';
+    npc: NpcDialogueRowInput;
+    figure: string;
+    at?: {
+        x: number;
+        z: number;
+    };
+    yaw?: number;
+    install: {
+        id: string;
+        label: string;
+        radius: number;
+        file: string;
+        copyPrompt: boolean;
+        updateOrder: 'figure-first' | 'talk-first';
+        bark?: {
+            enter: number;
+            leave: number;
+        };
+        approach?: {
+            radius: number;
+            unlessFlag: string;
+        };
+    };
+    prompt?: {
+        at: {
+            x: number;
+            z: number;
+        };
+        height: number;
+    };
+    done?: {
+        call: string;
+        when?: {
+            all?: (string)[];
+            any?: (string)[];
+            none?: (string)[];
+        };
+    };
+}
+export interface QuestNpcTalkBinding {
+    kind: 'posed-talk';
+    npc: NpcDialogueRow;
+    figure: string;
+    at?: {
+        x: number;
+        z: number;
+    };
+    yaw?: number;
+    install: {
+        id: string;
+        label: string;
+        radius: number;
+        file: string;
+        copyPrompt: boolean;
+        updateOrder: 'figure-first' | 'talk-first';
+        bark?: {
+            enter: number;
+            leave: number;
+        };
+        approach?: {
+            radius: number;
+            unlessFlag: string;
+        };
+    };
+    prompt?: {
+        at: {
+            x: number;
+            z: number;
+        };
+        height: number;
+    };
+    done?: {
+        call: string;
+        when?: {
+            all?: (string)[];
+            any?: (string)[];
+            none?: (string)[];
+        };
+    };
+}

@@ -10,7 +10,7 @@ const finite = v.pipe(v.number(), v.finite(), v.minValue(-10000000), v.maxValue(
 const count = v.pipe(finite, v.integer(), v.minValue(0));
 const positive = v.pipe(count, v.minValue(1));
 /** Claimed drops keep their original model/grant owners; only matching, launch and retirement are authored. */
-export const ClaimedPickupSchema = v.strictObject({
+export const ClaimedPickupSchema: v.GenericSchema<ClaimedPickupRowsInput, ClaimedPickupRows> = v.strictObject({
   options: v.strictObject({ tier: v.exactOptional(v.picklist(['common', 'rare', 'legendary'])), prompt: v.exactOptional(text),
     scale: v.exactOptional(finite), tilt: v.exactOptional(finite), glow: v.exactOptional(v.boolean()) }),
   toss: v.strictObject({ horizontal: finite, up: finite }), walkIn: v.nullable(v.strictObject({ radius: finite, height: finite })),
@@ -22,7 +22,7 @@ export const ClaimedPickupSchema = v.strictObject({
 const grantSchema = v.strictObject({ id: effectId, key, unless: v.exactOptional(v.pipe(v.array(key), v.maxLength(32))), stacks: v.exactOptional(v.pipe(positive, v.maxValue(1024))) });
 const grants = v.pipe(v.array(grantSchema), v.maxLength(128));
 /** Bounded data selectors lower to the existing weighted-table predicate and count laws. */
-export const LootTablesSchema = v.pipe(v.array(v.strictObject({ id: key, domain: v.picklist(['coins', 'trophies']),
+export const LootTablesSchema: v.GenericSchema<LootTablesRowsInput, LootTablesRows> = v.pipe(v.array(v.strictObject({ id: key, domain: v.picklist(['coins', 'trophies']),
   table: v.strictObject({ mode: v.picklist(['weighted', 'each']), rows: v.pipe(v.array(v.strictObject({
     item: key, weight: v.pipe(finite, v.minValue(0)), count: v.exactOptional(v.union([count, v.tuple([count, count])])),
     match: v.strictObject({ kind: key, variant: v.exactOptional(key), unowned: v.exactOptional(v.boolean()) }),
@@ -42,7 +42,7 @@ export function parseLootTables(input: unknown): v.InferOutput<typeof LootTables
   return rows;
 }
 /** Inert economy content; ownership, transactions, attributes and menu lifetimes stay with their existing services. */
-export const LootEconomySchema = v.strictObject({
+export const LootEconomySchema: v.StrictObjectSchema<{ readonly presentation: v.ExactOptionalSchema<v.GenericSchema<Exclude<LootEconomyInput['presentation'], undefined>, Exclude<LootEconomy['presentation'], undefined>>, undefined>; readonly exchange: v.ExactOptionalSchema<v.GenericSchema<Exclude<LootEconomyInput['exchange'], undefined>, Exclude<LootEconomy['exchange'], undefined>>, undefined>; readonly pickups: v.ExactOptionalSchema<v.GenericSchema<Exclude<LootEconomyInput['pickups'], undefined>, Exclude<LootEconomy['pickups'], undefined>>, undefined>; readonly tables: v.ExactOptionalSchema<v.GenericSchema<Exclude<LootEconomyInput['tables'], undefined>, Exclude<LootEconomy['tables'], undefined>>, undefined>; readonly progression: v.ExactOptionalSchema<v.GenericSchema<Exclude<LootEconomyInput['progression'], undefined>, Exclude<LootEconomy['progression'], undefined>>, undefined>; readonly effects: v.GenericSchema<LootEconomyInput['effects'], LootEconomy['effects']>; readonly goods: v.GenericSchema<LootEconomyInput['goods'], LootEconomy['goods']>; readonly grants: v.StrictObjectSchema<{ readonly player: v.GenericSchema<LootEconomyInput['grants']['player'], LootEconomy['grants']['player']>; readonly worn: v.GenericSchema<LootEconomyInput['grants']['worn'], LootEconomy['grants']['worn']>; readonly weapons: v.GenericSchema<LootEconomyInput['grants']['weapons'], LootEconomy['grants']['weapons']>; }, undefined>; readonly finds: v.GenericSchema<LootEconomyInput['finds'], LootEconomy['finds']>; readonly marks: v.GenericSchema<LootEconomyInput['marks'], LootEconomy['marks']>; }, undefined> = v.strictObject({
   presentation:v.exactOptional(LootPresentationSchema),
   exchange: v.exactOptional(ExchangeSchema),
   pickups: v.exactOptional(v.pipe(v.record(key, ClaimedPickupSchema), v.maxEntries(128))),
@@ -53,7 +53,7 @@ export const LootEconomySchema = v.strictObject({
   finds: LootFindsSchema,
   marks: LootMarksSchema,
 });
-export type LootEconomy = v.InferOutput<typeof LootEconomySchema>;
+
 /** Cross-row references are also part of the defining RowsSchema admission. */
 export function lootEconomyRules(row: LootEconomy): string[] {
   const errors: string[] = [], effects = new Set(row.effects.map(effect => effect.id));
@@ -72,16 +72,159 @@ export function parseLootEconomy(input: unknown): LootEconomy {
 }
 
 /** Barter admission keeps cards and transactions in one order, without coin-only ownership fields. */
-export const BarterEconomySchema = v.pipe(v.strictObject({ kind: v.literal('barter'),
+export const BarterEconomySchema: v.GenericSchema<BarterEconomyInput, BarterEconomy> = v.pipe(v.strictObject({ kind: v.literal('barter'),
   goods: v.pipe(v.array(v.strictObject({ id: key, name: text, does: text,
     icon: v.picklist(['bolt', 'rifle', 'longbow', 'crossbow']), price: count, tile: text })), v.minLength(1), v.maxLength(64)),
   exchange: ExchangeSchema, tables: LootTablesSchema,
 }), v.check(row => new Set(row.goods.map(good => good.id)).size === row.goods.length
   && row.goods.length === row.exchange.goods.length && row.goods.every((good, index) => good.id === row.exchange.goods[index]?.id)
   && lootTableRules(row.tables).length === 0, 'Aligned unique barter cards, transactions and drop tables'));
-export type BarterEconomy = v.InferOutput<typeof BarterEconomySchema>;
+
 /** Admit detached barter data before inventory, finish or ammunition owners are borrowed. */
 export function parseBarterEconomy(input: unknown): BarterEconomy {
   if (!isJsonData(input)) throw new TypeError('JSON-only economy rows');
   return v.parse(BarterEconomySchema, input);
+}
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type ClaimedPickupRowsInput = ClaimedPickupRows;
+export interface ClaimedPickupRows {
+    options: {
+        tier?: 'common' | 'rare' | 'legendary';
+        prompt?: string;
+        scale?: number;
+        tilt?: number;
+        glow?: boolean;
+    };
+    toss: {
+        horizontal: number;
+        up: number;
+    };
+    walkIn: ({
+        radius: number;
+        height: number;
+    }) | null;
+    takenGrace: number;
+    unique: boolean;
+    disposeItemOnTake: boolean;
+    retireBeforeCallback: boolean;
+    death?: {
+        kind: string;
+        variant?: string;
+        floor: 'source' | 'ground' | 'max';
+        towardPlayer?: {
+            distance: number;
+            epsilon: number;
+        };
+    };
+    toast?: string;
+}
+export type LootTablesRowsInput = LootTablesRows;
+export type LootTablesRows = ({
+    id: string;
+    domain: 'coins' | 'trophies';
+    table: {
+        mode: 'weighted' | 'each';
+        rows: ({
+            item: string;
+            weight: number;
+            count?: (number) | ([
+                number,
+                number
+            ]);
+            match: {
+                kind: string;
+                variant?: string;
+                unowned?: boolean;
+            };
+        })[];
+    };
+})[];
+export interface LootEconomyInput {
+    presentation?: v.InferInput<typeof LootPresentationSchema>;
+    exchange?: v.InferInput<typeof ExchangeSchema>;
+    pickups?: Record<string, ClaimedPickupRowsInput>;
+    tables?: LootTablesRowsInput;
+    progression?: v.InferInput<typeof LootProgressionSchema>;
+    effects: v.InferInput<(typeof CatalogueEconomyRegistrationSchema)['entries']['effects']>;
+    goods: v.InferInput<(typeof CatalogueEconomyRegistrationSchema)['entries']['goods']>;
+    grants: {
+        player: ({
+            id: v.InferInput<typeof effectId>;
+            key: string;
+            unless?: (string)[];
+            stacks?: number;
+        })[];
+        worn: ({
+            id: v.InferInput<typeof effectId>;
+            key: string;
+            unless?: (string)[];
+            stacks?: number;
+        })[];
+        weapons: ({
+            id: v.InferInput<typeof effectId>;
+            key: string;
+            unless?: (string)[];
+            stacks?: number;
+        })[];
+    };
+    finds: v.InferInput<typeof LootFindsSchema>;
+    marks: v.InferInput<typeof LootMarksSchema>;
+}
+export interface LootEconomy {
+    presentation?: v.InferOutput<typeof LootPresentationSchema>;
+    exchange?: v.InferOutput<typeof ExchangeSchema>;
+    pickups?: Record<string, ClaimedPickupRows>;
+    tables?: LootTablesRows;
+    progression?: v.InferOutput<typeof LootProgressionSchema>;
+    effects: v.InferOutput<(typeof CatalogueEconomyRegistrationSchema)['entries']['effects']>;
+    goods: v.InferOutput<(typeof CatalogueEconomyRegistrationSchema)['entries']['goods']>;
+    grants: {
+        player: ({
+            id: v.InferOutput<typeof effectId>;
+            key: string;
+            unless?: (string)[];
+            stacks?: number;
+        })[];
+        worn: ({
+            id: v.InferOutput<typeof effectId>;
+            key: string;
+            unless?: (string)[];
+            stacks?: number;
+        })[];
+        weapons: ({
+            id: v.InferOutput<typeof effectId>;
+            key: string;
+            unless?: (string)[];
+            stacks?: number;
+        })[];
+    };
+    finds: v.InferOutput<typeof LootFindsSchema>;
+    marks: v.InferOutput<typeof LootMarksSchema>;
+}
+export interface BarterEconomyInput {
+    kind: 'barter';
+    goods: ({
+        id: string;
+        name: string;
+        does: string;
+        icon: 'bolt' | 'rifle' | 'longbow' | 'crossbow';
+        price: number;
+        tile: string;
+    })[];
+    exchange: v.InferInput<typeof ExchangeSchema>;
+    tables: LootTablesRowsInput;
+}
+export interface BarterEconomy {
+    kind: 'barter';
+    goods: ({
+        id: string;
+        name: string;
+        does: string;
+        icon: 'bolt' | 'rifle' | 'longbow' | 'crossbow';
+        price: number;
+        tile: string;
+    })[];
+    exchange: v.InferOutput<typeof ExchangeSchema>;
+    tables: LootTablesRows;
 }

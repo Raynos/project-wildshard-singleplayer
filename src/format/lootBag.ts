@@ -12,20 +12,20 @@ const colour = v.pipe(v.string(), v.regex(/^#[a-fA-F0-9]{6}$/u));
 const sticker = { label: text, icon: v.picklist(['talon', 'tusk', 'hat', 'necklace']), prize: v.exactOptional(v.pipe(v.array(text), v.maxLength(16))) };
 
 /** Defining native Bag metadata, shared unchanged with economy admission. */
-export const LootPresentationSchema=v.strictObject({
+export const LootPresentationSchema: v.GenericSchema<LootPresentationRowsInput, LootPresentationRows>=v.strictObject({
   quest:key,chart:key,lateKinds:flags,
   chime:v.strictObject({sound:v.picklist(['chest','locked','lever','plate','door','grate','chime','glyph','ignite']),gain:v.pipe(finite,v.minValue(0),v.maxValue(8))}),
   cosmetics:v.pipe(v.array(v.strictObject({id:key,icon:v.picklist(['hat','cape']),how:text})),v.maxLength(64)),
 });
-export const LootProgressionSchema = v.strictObject({ flags,
+export const LootProgressionSchema: v.GenericSchema<LootProgressionRowsInput, LootProgressionRows> = v.strictObject({ flags,
     states: v.pipe(v.array(v.strictObject({ earned: v.pipe(v.array(v.strictObject({ id: key, text })), v.maxLength(128)), displayCount: count, next: v.nullable(count) })), v.minLength(1), v.maxLength(257)),
     glow: v.strictObject({ owned: key, curve: CurveSchema }) });
-export const LootFindsSchema = v.strictObject({ counters: v.pipe(v.array(v.strictObject({ label: text, flags })), v.maxLength(32)),
+export const LootFindsSchema: v.GenericSchema<LootFindsRowsInput, LootFindsRows> = v.strictObject({ counters: v.pipe(v.array(v.strictObject({ label: text, flags })), v.maxLength(32)),
     sections: v.pipe(v.array(v.strictObject({ title: text, dense: v.exactOptional(v.boolean()), wide: v.exactOptional(v.boolean()),
       items: v.pipe(v.array(v.union([v.strictObject({ ...sticker, flag: key }), v.strictObject({ ...sticker, owned: key })])), v.maxLength(256)) })), v.maxLength(32)),
     glass: v.exactOptional(v.strictObject({ flags, colors: v.pipe(v.array(colour), v.minLength(1), v.maxLength(256)), fallback: colour })),
     next: v.exactOptional(v.strictObject({ counter: v.pipe(count, v.maxValue(31)), every: positive, max: count, text })) });
-export const LootMarksSchema = v.pipe(v.array(v.strictObject({ flag: key, x: finite, z: finite, color: colour })), v.maxLength(256));
+export const LootMarksSchema: v.GenericSchema<LootMarksRowsInput, LootMarksRows> = v.pipe(v.array(v.strictObject({ flag: key, x: finite, z: finite, color: colour })), v.maxLength(256));
 
 /** The original cross-row laws apply to both native economy and Bag data. */
 export function lootBagRules(row: { readonly progression?: v.InferOutput<typeof LootProgressionSchema>; readonly finds: v.InferOutput<typeof LootFindsSchema> }): string[] {
@@ -37,7 +37,104 @@ export function lootBagRules(row: { readonly progression?: v.InferOutput<typeof 
 }
 /** Detached finite projection only; current purse, flags, health and ownership
  * remain the native services' state. No exchange or grant grammar is imported. */
-export const LootBagSchema = v.pipe(v.unknown(), v.check(isJsonData, 'JSON-only loot Bag rows'), v.strictObject({
+export const LootBagSchema: v.GenericSchema<LootBagRowsInput, LootBagRows> = v.pipe(v.unknown(), v.check(isJsonData, 'JSON-only loot Bag rows'), v.strictObject({
   presentation: LootPresentationSchema, progression: LootProgressionSchema, finds: LootFindsSchema, marks: LootMarksSchema,
 }), v.check(row => lootBagRules(row).length === 0, 'Valid loot Bag references'));
-export type LootBagRows = v.InferOutput<typeof LootBagSchema>;
+
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type LootPresentationRowsInput = LootPresentationRows;
+export interface LootPresentationRows {
+    quest: string;
+    chart: string;
+    lateKinds: (string)[];
+    chime: {
+        sound: 'chest' | 'locked' | 'lever' | 'plate' | 'door' | 'grate' | 'chime' | 'glyph' | 'ignite';
+        gain: number;
+    };
+    cosmetics: ({
+        id: string;
+        icon: 'hat' | 'cape';
+        how: string;
+    })[];
+}
+export interface LootProgressionRowsInput {
+    flags: (string)[];
+    states: ({
+        earned: ({
+            id: string;
+            text: string;
+        })[];
+        displayCount: number;
+        next: (number) | null;
+    })[];
+    glow: {
+        owned: string;
+        curve: v.InferInput<typeof CurveSchema>;
+    };
+}
+export interface LootProgressionRows {
+    flags: (string)[];
+    states: ({
+        earned: ({
+            id: string;
+            text: string;
+        })[];
+        displayCount: number;
+        next: (number) | null;
+    })[];
+    glow: {
+        owned: string;
+        curve: v.InferOutput<typeof CurveSchema>;
+    };
+}
+export type LootFindsRowsInput = LootFindsRows;
+export interface LootFindsRows {
+    counters: ({
+        label: string;
+        flags: (string)[];
+    })[];
+    sections: ({
+        title: string;
+        dense?: boolean;
+        wide?: boolean;
+        items: (({
+            flag: string;
+        } & {
+            label: string;
+            icon: 'talon' | 'tusk' | 'hat' | 'necklace';
+            prize?: (string)[];
+        }) | ({
+            owned: string;
+        } & {
+            label: string;
+            icon: 'talon' | 'tusk' | 'hat' | 'necklace';
+            prize?: (string)[];
+        }))[];
+    })[];
+    glass?: {
+        flags: (string)[];
+        colors: (string)[];
+        fallback: string;
+    };
+    next?: {
+        counter: number;
+        every: number;
+        max: number;
+        text: string;
+    };
+}
+export type LootMarksRowsInput = LootMarksRows;
+export type LootMarksRows = ({
+    flag: string;
+    x: number;
+    z: number;
+    color: string;
+})[];
+export type LootBagRowsInput = unknown;
+export interface LootBagRows {
+    presentation: LootPresentationRows;
+    progression: LootProgressionRows;
+    finds: LootFindsRows;
+    marks: LootMarksRows;
+}
