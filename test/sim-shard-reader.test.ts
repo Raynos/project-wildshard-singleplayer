@@ -1,7 +1,24 @@
 import { expect, test } from 'vitest';
-import { compiledFrameMetrics, downloadEvidence, recoveredGridControls, requireCompiledEntry, sampleCompiledFrame, transportEvidence, waitForWaitingWorker, type CompiledFrameWindow } from '../scripts/loading-benchmark/sim-shard.mjs';
+import { compiledEntryQualification, compiledFrameMetrics, downloadEvidence, recoveredGridControls, requireCompiledEntry, sampleCompiledFrame, transportEvidence, waitForWaitingWorker, type CompiledFrameWindow } from '../scripts/loading-benchmark/sim-shard.mjs';
 
 const frameWindow = (): CompiledFrameWindow => ({ controlsAt: null, last: null, worst: 0, worstAt: null, frames: 0, complete: false });
+
+test('compiled qualification retains the observed cold miss even when the median passes', () => {
+  expect(compiledEntryQualification([81, 372, 81].map(worstFrameAfterControlsMs => ({worstFrameAfterControlsMs}))))
+    .toEqual({ frameLimitMs: 100, complete: true, passed: false, worstFrameAfterControlsMs: 372, exitCode: 2 });
+  expect(compiledEntryQualification([{worstFrameAfterControlsMs: 100}]))
+    .toMatchObject({ complete: true, passed: true, exitCode: 0 });
+  expect(compiledEntryQualification([{worstFrameAfterControlsMs: 101}]))
+    .toMatchObject({ complete: true, passed: false, exitCode: 2 });
+});
+
+test('compiled refusals and missing frame evidence remain incomplete rather than a measured miss', () => {
+  for (const rows of [[], [{}], [{worstFrameAfterControlsMs: Number.NaN}], [{worstFrameAfterControlsMs: -1}],
+    [{worstFrameAfterControlsMs: 372}, {error: 'compiled entry never reached controls'}]]) {
+    expect(compiledEntryQualification(rows)).toEqual({ frameLimitMs: 100, complete: false, passed: false,
+      worstFrameAfterControlsMs: null, exitCode: 1 });
+  }
+});
 
 test('compiled entry measures the full post-controls window without charging loading or shifting controls', () => {
   const state = frameWindow();

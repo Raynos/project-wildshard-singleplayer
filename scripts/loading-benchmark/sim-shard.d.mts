@@ -5,6 +5,10 @@ export function compiledFrameMetrics(state: CompiledFrameWindow | null | undefin
   controlsMs: number; controlsObservationIntervalMs: number; worstFrameAfterControlsMs: number; worstFrameAfterControlsAtMs: number | null;
   postControlsFrames: number; postControlsWindowMs: number; postControlsObservedMs: number;
 };
+export interface CompiledEntryQualification {
+  frameLimitMs: 100; complete: boolean; passed: boolean; worstFrameAfterControlsMs: number | null; exitCode: 0 | 1 | 2;
+}
+export function compiledEntryQualification(rows: readonly {error?: string; worstFrameAfterControlsMs?: number}[]): CompiledEntryQualification;
 export function recoveredGridControls(sample: {
   readonly bootEntry?: { readonly reason?: string; readonly saved?: boolean; readonly continuing?: boolean; readonly grid?: boolean } | null;
   readonly world?: { readonly entered?: boolean; readonly paused?: boolean; readonly frameGate?: boolean } | null;

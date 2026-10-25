@@ -24,7 +24,7 @@ import { soakInspector } from './soak/inspector.mjs';
 import { loadingCardIndex, loadingShardName } from './loading-benchmark/catalogue.mjs';
 import { observeTransport } from './loading-benchmark/transport.mjs';
 import { accuracyRecorder } from './loading-benchmark/accuracy-data.mjs';
-import { requireCompiledEntry, downloadEvidence, transportEvidence, waitForWaitingWorker, recoveredGridControls, sampleCompiledFrame, compiledFrameMetrics } from './loading-benchmark/sim-shard.mjs';
+import { requireCompiledEntry, downloadEvidence, transportEvidence, waitForWaitingWorker, recoveredGridControls, sampleCompiledFrame, compiledFrameMetrics, compiledEntryQualification } from './loading-benchmark/sim-shard.mjs';
 import { cachedBodyEvidence } from './loading-benchmark/cache-bodies.mjs';
 import { saveFixtureCode } from './debug-settings.mjs';
 import { readSimulatorCoreFootprint, selectedCoreMemoryTargets, coreMemorySummary, compiledFloorSave, scriptResourceURLs,
@@ -444,7 +444,9 @@ if (coreMemory !== undefined) {
     if (summary.floors.some(row => !row.passed)) process.exitCode = 1;
   }
 } else {
-const summary = { shard: shard ?? null, base: BASE, rev: args.rev ?? null, at: new Date().toISOString(), modes: Object.fromEntries(modes.map(mode => {
+const qualification = shard === undefined ? null : compiledEntryQualification(results);
+const summary = { shard: shard ?? null, base: BASE, rev: args.rev ?? null, at: new Date().toISOString(),
+  ...(qualification === null ? {} : {qualification}), modes: Object.fromEntries(modes.map(mode => {
   const rows = results.filter(row => row.mode === mode && row.error === undefined);
   const keys = ['loaderPaintMs', 'loaderEndMs', 'revealStartMs', 'controlsMs', 'worstFrameAfterControlsMs'];
   const steps = [...new Set(rows.flatMap(row => (row.rows ?? []).map(step => step.key)))];
@@ -457,6 +459,10 @@ const summary = { shard: shard ?? null, base: BASE, rev: args.rev ?? null, at: n
 })) };
 writeFileSync(resolvePath(out, 'summary.json'), `${JSON.stringify(summary, null, 1)}\n`);
 for (const [mode, row] of Object.entries(summary.modes)) console.info(`${mode}: ${row.runs} runs (${row.failed} failed) · loader ${row.loaderPaintMs} ms · loader end ${row.loaderEndMs} · reveal ${row.revealStartMs} · controls ${row.controlsMs} ms · worst frame after controls ${row.worstFrameAfterControlsMs} ms · step total grew ${row.stepTotalGrew} · download drops ${row.downloadDrops} · broken frames ${row.brokenFrames}`);
+if (qualification !== null) {
+  console.info(`compiled post-controls frame gate: ${qualification.complete ? qualification.passed ? 'PASS' : 'FAIL' : 'INCOMPLETE'} · worst ${qualification.worstFrameAfterControlsMs} ms / ${qualification.frameLimitMs} ms`);
+  process.exitCode = qualification.exitCode;
+}
 }
 console.info(`summary: ${resolvePath(out, 'summary.json')}`);
 if (results.some(row => row.error !== undefined)) process.exitCode = 1;

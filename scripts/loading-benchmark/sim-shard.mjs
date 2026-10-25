@@ -31,6 +31,24 @@ export function compiledFrameMetrics(state, origin, tap) {
     postControlsFrames: state.frames, postControlsWindowMs: 8000, postControlsObservedMs: state.last - state.controlsAt };
 }
 
+/** Qualify every completed compiled visit; a median must not hide one miss.
+ * Exit 1 is incomplete/refused evidence; exit 2 is a measured frame miss.
+ * @param {readonly {error?: string; worstFrameAfterControlsMs?: number}[]} rows
+ * @returns {import('./sim-shard.mjs').CompiledEntryQualification} */
+export function compiledEntryQualification(rows) {
+  let worst = null;
+  for (const row of rows) {
+    const frame = row.worstFrameAfterControlsMs;
+    if (row.error !== undefined || typeof frame !== 'number' || !Number.isFinite(frame) || frame < 0) {
+      return { frameLimitMs: 100, complete: false, passed: false, worstFrameAfterControlsMs: null, exitCode: 1 };
+    }
+    worst = Math.max(worst ?? 0, frame);
+  }
+  if (worst === null) return { frameLimitMs: 100, complete: false, passed: false, worstFrameAfterControlsMs: null, exitCode: 1 };
+  const passed = worst <= 100;
+  return { frameLimitMs: 100, complete: true, passed, worstFrameAfterControlsMs: worst, exitCode: passed ? 0 : 2 };
+}
+
 /** A saved-pose update skips descent; require actual unpaused gameplay rather than an invented reveal. */
 export function recoveredGridControls(sample) {
   return sample?.bootEntry?.reason === 'reload' && sample.bootEntry.saved === true
