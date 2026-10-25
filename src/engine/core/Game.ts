@@ -896,7 +896,9 @@ export class Game {
     // G580 T2 (Developer): the parked destination's static matrices are not recomputed every frame while it waits hidden
     const thaw = futureRoot !== undefined && futureRoot !== this.rootScene && !futureRoot.visible && parkedMatricesFrozen() ? freezeParkedMatrices(futureRoot, { shown: 'skip' }) : undefined;
     try {
-    const pause = isolateImageUploads && this.frameCount > 0
+    // A capped browser rAF may skip the game draw. Every live caller
+    // requires a completed draw before starting another shader batch.
+    const pause = this.frameCount > 0
       ? () => waitForDrawnFrame(owner, () => this.frameCount, current) : undefined;
     // Live image batches share the measured byte/time bound. Compressed uploads retain their independent painted fences.
     const uploadBudget = isolateImageUploads ? LIVE_UPLOAD_BUDGET : undefined;
