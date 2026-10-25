@@ -24,8 +24,8 @@ export async function prepareNalatiDressing(dressingRecipe, forestMask) {
     const { pageScope } = await import('@wildshard/engine/app/resources');
     const { RIVER } = await import('../../src/shards/nalati-grasslands/generators/terrainRecipe.ts');
     configureGrassField({ ...NALATI_GRASS_LAYOUT, riverZ: RIVER.z, riverHalf: RIVER.half }, pageScope);
-    const [{ placeForest }, { SPRUCE_SPECS }, { dressingRockColliders }] = await Promise.all([
-      import('@wildshard/engine/world/forest/placement'), import('../../src/shards/nalati-grasslands/generators/spruceGeometry.ts'),
+    const [{ bakeForestPlacements }, { SPRUCE_SPECS }, { dressingRockColliders }] = await Promise.all([
+      import('@wildshard/sdk/bake/forest'), import('../../src/shards/nalati-grasslands/generators/spruceGeometry.ts'),
       import('../../src/shards/nalati-grasslands/generators/places.ts'),
     ]);
     const [layout, terrain, { inPoiClearing }] = await Promise.all([
@@ -37,8 +37,11 @@ export async function prepareNalatiDressing(dressingRecipe, forestMask) {
       import('@wildshard/game/systems/looks/grassField'), import('@wildshard/engine/world/terrainHeight'),
     ]);
     const { planDressing, campClutterSpots } = dressingRecipe({ layout, ...terrain, ...noise, ...heightfield, ...grass, heightAt, inPoiClearing });
-    const { trees, grid } = placeForest(SPRUCE_SPECS.map(row => ({ trunkRadius: row.trunk, height: row.height })));
-    const forest = { trees, nearby: (x, z, r) => grid.nearby(x, z, r) };
+    const forest = bakeForestPlacements({ seed: definition.seed, treeCount: definition.treeCount,
+      forest: definition.forest, heightAt: heightfield.heightAt, normalAt: heightfield.normalAt,
+      trailDistance: heightfield.trailDistance, cabinMask: heightfield.cabinMask, pondMask: heightfield.pondMask },
+    SPRUCE_SPECS.map(row => ({ trunkRadius: row.trunk, height: row.height })));
+    const { trees } = forest;
     const plan = await planDressing(forest);
     const placeRows = JSON.parse(readFileSync(resolve(root, 'src/shards/nalati-grasslands/data/places.json'), 'utf8')).rows;
     const sequence = JSON.parse(readFileSync(resolve(root, 'src/shards/nalati-grasslands/data/worldView.json'), 'utf8')).sequence;
