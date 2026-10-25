@@ -3,14 +3,15 @@ import { uiScope, mountUi } from './ownership';
 import { engineString } from '../strings';
 import { saveStorage } from '../saves/slots';
 /**
- * Frame meter, top-right — after trials-gauntlet-demo's `src/ui/perf.ts`: fps and frame ms p50 / p95
- * from the game's ring of frame times, draw calls and triangles from renderer.info, the tier and DPR.
+ * Frame meter, top-right: completed draws per wall-clock second and the worst
+ * interval over three seconds; the details retain the game's frame p50 / p95,
+ * draw calls and triangles from renderer.info, the tier and DPR.
  * Repainted at most twice a second and written to the DOM only when the text changed, so the meter
  * costs the phone nothing. `?perf=0` hides it.
  *
  * Phones (E47, Jake: "a compact FPS counter next to the pause button … '59 fps 17 ms' … when you tap it it can expand to
  * show calls and tris … on top of the mini map"): perf.css turns the meter into a small glass pill on PAUSE's row showing
- * only fps + p50 ms; it is a button, and a tap opens `.ws-perf-panel` over the minimap (p50 / p95, draw calls, triangles,
+ * only fps + worst ms; it is a button, and a tap opens `.ws-perf-panel` over the minimap (p50 / p95, draw calls, triangles,
  * tier · DPR, GL losses). It stays up until the pill is tapped again (a toggle — E142). The pill cancels its own touch events (no
  * double-tap zoom, no callout / selection on iOS) and toggles on pointerup, so it never starts a look drag. Desktop keeps
  * the one-line readout, click-through as before.
@@ -31,6 +32,7 @@ import { isDev, onDev } from '../core/devMode';
 import { runPerfProbe, probeLines, probeReport, probeSamples } from './perfProbe';
 import { PerfHud, type Counts } from './perfHud';
 import { PerfLap } from './perfLap';
+import { FrameWindow } from './frameWindow';
 import './perf.css';
 
 const savedStorage = saveStorage('device');
@@ -61,8 +63,10 @@ export class Perf {
   private rows: { p50: HTMLElement; p95: HTMLElement; calls: HTMLElement; tris: HTMLElement; tier: HTMLElement; gl: HTMLElement };
 
   private game: Game;
+  private readonly frameWindow: FrameWindow;
   constructor(game: Game) {
     this.game = game;
+    this.frameWindow = new FrameWindow(performance.now(), game.frameCount);
     const limit = frameBudget(game.level.id, TIER, game.level.budgets);
     this.budget.calls = limit.draws ?? Infinity; this.budget.tris = limit.tris ?? Infinity;
     game.app.debug.expose('render.tierPick', { read: tierPickInfo, repick: () => { forgetTierPick(); markReload('tier pick: repick'); location.reload(); } });
@@ -181,12 +185,22 @@ export class Perf {
     if (this.budgetOn) this.scope.expose(window, '__perfBudget', this.budget);
     this.scope.expose(window, '__perfHud', this.hud);
     game.onUpdate(() => this.update(performance.now()), 'hud.perf');
-    // frames are gated on the menu (Game.frameGate): say so rather than freeze on the last number
-    this.scope.interval(500, () => { if (performance.now() - this.lastPaint > 1500 && this.lastText !== 'idle') { this.lastText = 'idle'; (this.root.firstElementChild as HTMLElement).textContent = engineString('s_bda050585a00'); (this.root.querySelector('.ws-perf-long') as HTMLElement).textContent = engineString('s_ebe595da4637'); (this.root.querySelector('.ws-perf-ms') as HTMLElement).textContent = engineString('s_a7a9dc5bcf71'); this.root.classList.remove('slow', 'bad'); this.mirror(); } });
+    // A stalled game cannot drive its own meter. The existing widget timer
+    // reads completed draws, including a growing gap when there are none.
+    this.scope.interval(PAINT_MS, () => {
+      if (!this.active) return;
+      this.frameWindow.observe(game.frameCount, game.frameRafTime);
+      this.paint(performance.now());
+    });
   }
 
   /** Hidden while the menu is up (the world is not rendering, so there is nothing to measure). */
-  setActive(on: boolean): void { if (!on) this.lap.cancel('the menu opened'); this.active = on; this.root.hidden = on ? this.userHidden : true; if (!on || this.userHidden) this.open(false); }
+  setActive(on: boolean): void {
+    if (!on) this.lap.cancel('the menu opened');
+    if (on !== this.active) { this.frameWindow.reset(performance.now(), this.game.frameCount); this.lastPaint = -Infinity; }
+    this.active = on; this.root.hidden = on ? this.userHidden : true;
+    if (!on || this.userHidden) this.open(false);
+  }
   private readonly probeOut: HTMLElement;
   /** the last probe's full report (COPY) */
   private probeText = '';
@@ -234,6 +248,7 @@ export class Perf {
   private userHidden = false;
 
   private update(now: number) {
+    this.frameWindow.observe(this.game.frameCount, this.game.frameRafTime);
     this.hud.tick(now);
     this.lap.tick(now);
     if ((this.panel.classList.contains('open') || this.hud.recording) && now - this.lastStats >= STATS_MS) {
@@ -241,15 +256,18 @@ export class Perf {
       this.hud.paint();
       if (this.hud.recording) this.recBtn.textContent = engineString('s_a9470d9be8b3');
     }
-    if (now - this.lastPaint < PAINT_MS) return;
+  }
+
+  private paint(now: number): void {
+    if (!this.active || now - this.lastPaint < PAINT_MS) return;
     this.lastPaint = now;
     const g = this.game;
     this.sorted.set(g.frameMs); this.sorted.sort();
     const n = this.sorted.findIndex((v) => v > 0); // unfilled slots are 0 and sort first
     const valid = n === -1 ? 0 : this.sorted.length - n;
-    if (valid < 10) return;
-    const q = (p: number): number => this.sorted[n + Math.min(valid - 1, Math.floor(valid * p))] ?? 0;
+    const q = (p: number): number => valid === 0 ? 0 : this.sorted[n + Math.min(valid - 1, Math.floor(valid * p))] ?? 0;
     const p50 = q(0.5), p95 = q(0.95);
+    const { fps, worst } = this.frameWindow.read(now);
     const r = g.lastFrame;
     const gl = g.gl.events ? ` · gl lost ×${g.gl.events}${g.gl.restoredAt > g.gl.lostAt ? ` restored ${Math.round(g.gl.restoredAt - g.gl.lostAt)} ms` : ''}` : '';
     let check = '';
@@ -261,15 +279,16 @@ export class Perf {
       b.over = b.maxCalls > b.calls || b.maxTris > b.tris;
       check = ` · max ${b.maxCalls}c / ${k(b.maxTris)}${Number.isFinite(b.calls) && Number.isFinite(b.tris) ? ` ${b.over ? 'OVER' : 'OK'} (≤${b.calls}c / ${k(b.tris)})` : ''}`;
     }
-    const text = `${Math.round(1000 / p50)}|${p50.toFixed(1)} / ${p95.toFixed(1)} ms · ${r.calls} calls · ${k(r.triangles)} tris · ${tierPickLine()} · ${g.renderer.getPixelRatio().toFixed(2)}×${gl}${check}`;
+    const peak = engineString('s_perf_worst_frame', [Math.round(worst), '']);
+    const text = `${Math.round(fps)}|${p50.toFixed(1)} / ${p95.toFixed(1)} ms · ${peak} · ${r.calls} calls · ${k(r.triangles)} tris · ${tierPickLine()} · ${g.renderer.getPixelRatio().toFixed(2)}×${gl}${check}`;
     if (text === this.lastText) return;
     this.lastText = text;
-    const [fps = '', rest = ''] = text.split('|');
-    (this.root.firstElementChild as HTMLElement).textContent = fps;
+    const [fpsText = '', rest = ''] = text.split('|');
+    (this.root.firstElementChild as HTMLElement).textContent = fpsText;
     (this.root.querySelector('.ws-perf-long') as HTMLElement).textContent = rest;
-    // phones: the pill shows fps + p50 ms; the panel carries the draw calls / triangles the phone-tier budget is measured in
+    // phones: the pill shows wall-clock fps + recent worst ms; the panel carries the draw calls / triangles the phone-tier budget is measured in
     // (project/archive/2026-09-22-play-perf.md), the p95, the tier and DPR
-    (this.root.querySelector('.ws-perf-ms') as HTMLElement).textContent = engineString('s_73113562217f', [Math.round(p50), check]); // ?perf=1: OK / OVER the phone budget
+    (this.root.querySelector('.ws-perf-ms') as HTMLElement).textContent = engineString('s_perf_worst_frame', [Math.round(worst), check]);
     const R = this.rows;
     R.p50.textContent = engineString('s_f3813306296c', [p50.toFixed(1)]);
     R.p95.textContent = engineString('s_f3813306296c', [p95.toFixed(1)]);
@@ -277,8 +296,8 @@ export class Perf {
     R.tris.textContent = k(r.triangles);
     R.tier.textContent = engineString('s_6f8a92998046', [TIER, g.renderer.getPixelRatio().toFixed(2)]);
     R.gl.textContent = gl === '' ? engineString('s_2689367b205c') : gl.replace(/^ · /, '');
-    this.root.classList.toggle('slow', p50 > 20);   // under 50 fps
-    this.root.classList.toggle('bad', p50 > 33.4 || (this.budgetOn && this.budget.over));  // under 30 fps (or over the draw budget)
+    this.root.classList.toggle('slow', fps < 50);
+    this.root.classList.toggle('bad', worst > 100 || fps < 30 || (this.budgetOn && this.budget.over));
     this.mirror();
   }
 

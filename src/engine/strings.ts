@@ -1,5 +1,6 @@
 /** English engine UI strings. Content-owned overrides are installed by the composition root. */
 export const ENGINE_STRINGS = {
+  "s_perf_worst_frame": "max ⟦0⟧ ms⟦1⟧",
   "s_loading_modules": "Application modules",
   "s_loading_gap_setup": "gap before setup",
   "s_loading_gap_before": "gap before ⟦0⟧",

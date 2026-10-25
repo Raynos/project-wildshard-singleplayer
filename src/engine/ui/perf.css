@@ -5,6 +5,7 @@
 .ws-perf b::after { content: ' fps'; font-size: 8px; font-weight: 400; color: rgba(196, 220, 232, 0.55); }
 .ws-perf.slow b { color: #ffd27a; }
 .ws-perf.bad b { color: #ff7a6b; }
+.ws-perf.bad .ws-perf-ms, .ws-perf-live.bad span { color: #ff7a6b; }
 .ws-perf[hidden] { display: none; }
 .ws-perf .ws-perf-ms { display: none; }
 .ws-perf-panel { display: none; }
