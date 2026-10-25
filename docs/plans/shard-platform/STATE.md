@@ -2,9 +2,9 @@
 
 **Order (G639):** (1) live reds → (2) NALATI 0 → (3) grid / frame floor → extras.
 
-**(1) LIVE 673de55 (18:36Z); c13 releasing 19:2xZ. Hourly releases (sp-x7,
-G705). CF2 capture stall: tracing 59f9c74145/454ec76f3a await a CI occurrence; programShare warning: sp-x9. Smoke artifact stall: per-leg bundles b77b802191 (no
-central 1.37 GB relay). No open CI red.
+**(1) LIVE c13aa9df6 (19:38Z). Hourly releases (sp-x7, G705). Smoke per-leg bundles b77b802191 measured: 40-47 s per leg
+(was a 1,199 s relay timeout). CF2 capture stall: title tracing awaits a CI occurrence; programShare warning: sp-x9.
+Open reds: Nine level.world image-decode fatal (sp-x1, 20:39Z); T4 weather/entry types (sp-x8, 20:43Z).
 
 **(2) NALATI 0 done (27dd969127).** HOST-AUDIT (G679) parked until every mini plan finishes. Legacy waits (G606).
 
@@ -22,8 +22,8 @@ G713: lazy-load code (js-payload J1-J10, sp-x2) + lighter post RT chain (Opus va
 (cap 0993a458aa), G719 dcd3379372 (caps a74b837aa0; NM twice = G700/RP3), G722 191aee7b15
 (board 95d25c95da), G724+G725 d8598ec213 (re-entry 17.7 ms, no panel/static, one world). L16 0dd7ce4722: hero
 0.48 s (was 1.43 s blank); the 0.32 s black is iOS's launch zoom, outside the page.
-Hero retake 0dd7ce4722: art/main-menu-hero/round-5-retake/board.jpg; Nalati aerial terrain FIXED 0ce626a8f5 (board
-art/main-menu-hero/round-6-nalati-terrain/); G630 still needs Nine far proxy + Sunscar glow (Opus). Now: sp-x9 G733 -> L17; sp-x2 J5 then tile T4 (G730: J6-J10 after extras); sp-x8 TS T3; sp-x6 NM RM2; sp-x1 G717 quiet misses.
+Hero retake board 0dd7ce4722; Nalati aerial terrain fixed 0ce626a8f5; G630 still needs Nine far proxy + Sunscar glow (Opus). G733 badges 94ef588da9 (blank thumbnails never reproduced; U1: updates apply in 720 ms); L17
+2511ddea95 + f30e0be71c. Now: sp-x9 small rows; sp-x1 G717 quiet misses -> GR3; sp-x2 J5 then tile T4 (G730: J6-J10 after extras); sp-x8 TS T3; sp-x6 NM RM2 / GR4.
 **Blocked on Jake:** free ~13 GiB CI scratch DCG refused: `! rm -rf tmp/sp-x7-live/infra-dist-22633
 tmp/sp-x7-live/boot-dist-22633.zip`; LEGACY phone QA, road B pilot play, hero board. **On Opus:** G713 post RT sheet,
 G685 look row, NM RM4+, U2 occupied parents, L18.3 lighter DW assets, G630 Nine far + Sunscar glow, T3/T6 visual.
