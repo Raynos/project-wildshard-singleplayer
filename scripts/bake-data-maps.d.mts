@@ -1,5 +1,5 @@
 import type { MapBakeStamp } from './map-hash.mjs';
-import type { MapRaster } from './map-painter.mjs';
+import type { MapRaster } from '../src/sdk/bake/mapRaster';
 
 /** Existing map geometry and palette declarations, without filesystem roots. */
 export interface DataMapSettings {

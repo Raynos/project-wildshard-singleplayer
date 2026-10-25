@@ -8,7 +8,8 @@ import { configureLevel } from '../src/engine/level/selection.ts';
 import { placeForest } from '../src/engine/world/forest/placement.ts';
 
 import { BufferGeometry, Euler, Float32BufferAttribute, Matrix4, Quaternion, Vector3 } from 'three';
-import { MapRaster } from './map-painter.mjs';
+import { MapRaster } from '../src/sdk/bake/mapRaster.ts';
+import { readMapGeometry } from './map-painter.mjs';
 import { mapModel, readMapJson } from './map-geometry.mjs';
 
 export const mapPose = pose => pose.matrix === undefined ? new Matrix4().compose(new Vector3(pose.x, pose.y, pose.z),
@@ -124,7 +125,7 @@ export function mapGround(source, resolution, size, palette, hole) {
 /** Decode all local templates once; node transforms belong to their declared
  * world placements, while raw imported scenes explicitly request world=true. */
 export async function mapPool(file, world = false) {
-  const doc = await new MapRaster(1).document(file), result = new Map();
+  const doc = await new MapRaster(1, {}, readMapGeometry).document(file), result = new Map();
   for (const node of doc.getRoot().listNodes()) {
     const mesh = node.getMesh(); if (mesh === null) continue;
     if (mesh.listPrimitives().length !== 1) throw new Error(`Map pool requires one primitive ${file}`);

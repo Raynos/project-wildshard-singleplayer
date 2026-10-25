@@ -4,7 +4,8 @@ import { createRequire } from 'node:module';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { MapRaster, stylizeMap } from './map-painter.mjs';
+import { MapRaster } from '../src/sdk/bake/mapRaster.ts';
+import { readMapGeometry, stylizeMap } from './map-painter.mjs';
 import { MAP_METRES, mapPixelHash, mapSettingsPath, mapStampPath, mapShards, mapTilesHash } from './map-hash.mjs';
 import { InputHashMemo } from './bake-input-hashes.mjs';
 
@@ -61,7 +62,7 @@ export async function rasterDataMap(settings, data, { output, glbs, label = 'map
   const { decodeTerrainTile } = await import('../src/format/terrainTileBytes.ts');
   const painter = settings.painter;
   if (painter?.version !== 1 || settings.style === undefined) throw new Error(`${label}: missing data map painter declaration`);
-  const raster = new MapRaster(1000, settings);
+  const raster = new MapRaster(1000, settings, readMapGeometry);
   const source = data.input, rows = data.json, readBytes = data.bytes;
   for (const file of painter.terrain ?? []) {
     const row = rows(file);

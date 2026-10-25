@@ -1,17 +1,5 @@
-import type { TerrainTileData } from '../src/format/terrainTileBytes';
-import type { BufferGeometry, Matrix4 } from 'three';
-import type { Node } from '@gltf-transform/core';
+import type { MapRaster } from '../src/sdk/bake/mapRaster';
 
-export function mapPixel(x: number, z: number, size?: number): number[];
-export class MapRaster {
-  constructor(size?: number, clip?: { clipBelow?: number; clipAbove?: number });
-  size: number;
-  height: Int32Array;
-  colour: Uint8Array;
-  triangles: number;
-  triangle(points: readonly (readonly number[])[], colours: readonly (readonly number[])[]): void;
-  terrain(tile: TerrainTileData): void;
-  geometry(geometry: BufferGeometry, matrix?: Matrix4): void;
-  glb(file: string | Uint8Array, placement?: Matrix4, select?: (node: Node) => boolean, options?: { local?: boolean }): Promise<void>;
-}
+/** Explicit disk reader for retained build adapters only. */
+export function readMapGeometry(file: string): Uint8Array;
 export function stylizeMap(raster: MapRaster, style: { kind: string } & Record<string, unknown>): Buffer;

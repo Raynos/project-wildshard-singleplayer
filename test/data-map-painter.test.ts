@@ -6,7 +6,8 @@ import { Document, NodeIO } from '@gltf-transform/core';
 import { EXTMeshGPUInstancing } from '@gltf-transform/extensions';
 import { expect, test } from 'vitest';
 import * as schema from 'valibot';
-import { MapRaster, mapPixel, stylizeMap } from '../scripts/map-painter.mjs';
+import { MapRaster, mapPixel } from '../src/sdk/bake/mapRaster';
+import { readMapGeometry, stylizeMap } from '../scripts/map-painter.mjs';
 import { decodeTerrainTile, terrainTileHeight } from '../src/format/terrainTileBytes';
 import { templateTerrain } from '../src/shards/_template/generators/terrain';
 import { paintDataMap } from '../scripts/bake-data-maps.mjs';
@@ -80,23 +81,23 @@ test('instanced GLB placements and fresh stamps survive deterministic regenerati
     writeFileSync(file, await io.writeBinary(doc));
     writeFileSync(resolve(dir, 'look/map.json'), JSON.stringify({ why: 'fixture', inputs: ['scene.glb'], painter: { version: 1, glbs: ['scene.glb'] }, style: { kind: 'ground', void: 'transparent', classes: [{ match: '#ffffff', fill: '#cccccc' }] } }));
     const first = await paintDataMap(root, 'fixture');
-    const pixel = (x: number, z: number): number => { const [u = 0, v = 0] = mapPixel(x, z); return Math.floor(v) * 1000 + Math.floor(u); };
+    const pixel = (x: number, z: number): number => { const [u, v] = mapPixel(x, z); return Math.floor(v) * 1000 + Math.floor(u); };
     expect(first.raster.height[pixel(107, -93)]).toBe(8 * 65536);
     expect(first.raster.height[pixel(-93, 107)]).toBe(12 * 65536);
     expect(first.raster.height[pixel(0, 0)]).toBe(-2147483648);
     const recipe = { scene: { root: 'root', nodes: [{ kind: 'group', id: 'root', position: [100, 3, -100], children: ['part'] },
       { kind: 'mesh', id: 'part', geometry: 'model', position: [0, 5, 0] }] }, imports: [] };
-    const assembly = new MapRaster();
+    const assembly = new MapRaster(1000, {}, readMapGeometry);
     await paintMapScenes(assembly, { pools: ['scene.glb'], recipes: [{ file: 'recipe.json' }] }, {}, {
       input: () => file, json: () => recipe, bytes: () => new Uint8Array(),
     });
     expect(assembly.height[pixel(102, -98)]).toBe(8 * 65536);
     expect(assembly.height[pixel(-93, 107)]).toBe(-2147483648);
-    await expect(paintMapScenes(new MapRaster(), { recipes: [{ file: 'recipe.json' }] }, {}, {
+    await expect(paintMapScenes(new MapRaster(1000, {}, readMapGeometry), { recipes: [{ file: 'recipe.json' }] }, {}, {
       input: () => file, json: () => recipe, bytes: () => new Uint8Array(),
     })).rejects.toThrow('Missing declared map geometry');
     const unplaced = { scene: { root: 'part', nodes: [{ kind: 'mesh', id: 'part', geometry: 'model', instances: 2 }] } };
-    await expect(paintMapScenes(new MapRaster(), { pools: ['scene.glb'], recipes: [{ file: 'recipe.json' }] }, {}, {
+    await expect(paintMapScenes(new MapRaster(1000, {}, readMapGeometry), { pools: ['scene.glb'], recipes: [{ file: 'recipe.json' }] }, {}, {
       input: () => file, json: () => unplaced, bytes: () => new Uint8Array(),
     })).rejects.toThrow('Missing rest instance matrices');
     const image = resolve(root, 'public/assets/fixture/map/top.webp'), bytes = readFileSync(image);

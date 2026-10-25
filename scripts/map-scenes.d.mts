@@ -1,4 +1,4 @@
-import type { MapRaster } from './map-painter.mjs';
+import type { MapRaster } from '../src/sdk/bake/mapRaster';
 
 export function mapRows(value: unknown, path?: readonly string[]): unknown[];
 export function paintMapScenes(raster: MapRaster, config: unknown, settings: unknown, data: {

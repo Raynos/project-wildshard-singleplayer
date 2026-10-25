@@ -1,5 +1,5 @@
 import { expect, test, vi } from 'vitest';
-import { MapRaster } from '../scripts/map-painter.mjs';
+import { MapRaster } from '../src/sdk/bake/mapRaster';
 import { paintMapScenes } from '../scripts/map-scenes.mjs';
 
 const pieces = { rock: { kinds: [{ name: 'stone', warm: false }] }, camp: { kinds: [{ name: 'wood', warm: true }] } };
