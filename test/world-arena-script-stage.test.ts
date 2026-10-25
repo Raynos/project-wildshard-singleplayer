@@ -19,6 +19,7 @@ import { WorldAssembly, type WorldAssemblyPorts } from '../src/game/shardfile/wo
 import { publishEntryOwner, entryOwner } from '../src/game/shardfile/entryOwners';
 import { lendLooks } from '../src/game/shardfile/lentLooks';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { nodeNamedJsonCheck } from '../src/game/shardfile/outputChecksNode';
 import { WorldAssemblySchema } from '../src/format/worldAssembly';
 import { ArenaScriptFightFileSchema, ArenaScriptGeometrySchema } from '../src/format/arenaScriptRows';
 import { emptyShardfile } from '../src/sdk/author';
@@ -60,6 +61,7 @@ function fixture(options: { held?: 'fight' | 'geometry'; parent?: Scope; native?
   const source = emptyShardfile({ slug: 'arena-fixture', name: 'Arena', author: 'Fixture', revision: 1, seed: 19 });
   const held = options.held === undefined ? null : row.files[options.held];
   const product = createShardProduct({ slug: source.identity.slug, revision: 1, shardfile: source, sections: new Map(),
+    jsonCheck: nodeNamedJsonCheck,
     files: new Map([[row.files.fight, { hash: row.files.fight, url: row.files.fight, jsonSchema: fightSchema }],
       [row.files.geometry, { hash: row.files.geometry, url: row.files.geometry, jsonSchema: geometrySchema }]]),
     read: async hash => {

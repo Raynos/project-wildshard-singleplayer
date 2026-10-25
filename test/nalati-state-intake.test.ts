@@ -22,6 +22,7 @@ import { WorldAssembly } from '../src/game/shardfile/worldAssembly';
 import { SceneDressing } from '../src/game/shardfile/sceneDressing';
 import { publishEntryOwner } from '../src/game/shardfile/entryOwners';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { nodeNamedJsonCheck } from '../src/game/shardfile/outputChecksNode';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import {ReturnModulesSchema} from '../src/format/scriptContract';
 import * as room from '../src/game/boss/arenaRoom';
@@ -35,6 +36,7 @@ test('the shipped world assembly King intake retains its attack owner before wea
   const emitted=await readProjectAssets('src/shards/nalati-grasslands');
   const files=new Map((emitted.output.namedFiles??[]).flatMap(file=>file.name===undefined?[]:[[file.name,{...file,url:file.path}] as const]));
   const product=createShardProduct({slug:emitted.shard.identity.slug,revision:emitted.shard.identity.revision,shardfile:emitted.shard,sections:outputPlatformPayloads(emitted.output.platform,['client/plan','actors/return-scripts']),files,
+    jsonCheck:nodeNamedJsonCheck,
     read:hash=>{const bytes=emitted.assets.get(hash);if(bytes===undefined)throw new Error('Missing shipped named bytes');return Promise.resolve(bytes);}});
   const plan=parseClientPlan(product.section('client/plan'));
   const assembly=plan.features.find(row=>row.kind==='world.assembly');
