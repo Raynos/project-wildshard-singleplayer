@@ -4,10 +4,10 @@ import { expect, test } from 'vitest';
 import { build } from 'vite';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 
-// The output factory now accepts scene/plan values. World assembly owns the
-// emitter import where the original unpublished native-metadata control belongs.
-for (const [entry, nativeBakeImport] of [['shard.config.ts', false], ['generators/worldScenes.ts', true], ['generators/sourceOutput.ts', false], ['generators/worldSources.ts', false]] as const) {
-  test(`Sunscar ${entry} ${nativeBakeImport ? 'keeps unpublished native metadata config-safe' : 'keeps effect metadata data-only'}`, async () => {
+// The source program now owns the native map bake. Keep its allowed pure bake
+// separate from the effect-only boundary and the original injected native control.
+for (const [entry, nativeBakeImport] of [['shard.config.ts', false], ['generators/lightEmitters.ts', false], ['generators/worldScenes.ts', true], ['generators/sourceOutput.ts', false], ['generators/worldSources.ts', false]] as const) {
+  test(`Sunscar ${entry} ${nativeBakeImport || entry === 'shard.config.ts' ? 'keeps source bakes config-safe' : 'keeps effect metadata data-only'}`, async () => {
     let rewrites = 0;
     const result = await build({ configFile: false, logLevel: 'silent',
       plugins: [{ name: 'original-effect-import', enforce: 'pre', transform(source, id) {
@@ -28,13 +28,19 @@ for (const [entry, nativeBakeImport] of [['shard.config.ts', false], ['generator
     for (const chunk of chunks) {
       const boundary = () => assertConfigBoundary([...chunk.imports, ...chunk.dynamicImports]);
       expect(boundary).not.toThrow();
+      for (const forbidden of ['node:fs', 'node:module', 'assemblyscript/dist/asc.js']) {
+        expect(() => assertConfigBoundary([...chunk.imports, ...chunk.dynamicImports, forbidden])).toThrow('must use injected build capabilities');
+      }
       if (nativeBakeImport) {
         // The publication split removes formerly retained, unused fs imports.
         // Explicit publication remains refused by the SDK's negative bundle case.
         expect(Object.keys(chunk.modules).some(path => path.endsWith('/generators/restScene.ts'))).toBe(true);
         expect(Object.keys(chunk.modules).some(path => path.endsWith('/generators/lightEmitters.ts'))).toBe(true);
       }
-      else {
+      else if (entry === 'shard.config.ts') {
+        expect(Object.keys(chunk.modules).some(path => path.endsWith('/generators/mapProgram.ts'))).toBe(true);
+        expect(Object.keys(chunk.modules).some(path => path.endsWith('/generators/restScene.ts'))).toBe(true);
+      } else {
         expect(Object.keys(chunk.modules).some(path => path.endsWith('/generators/restScene.ts'))).toBe(false);
       }
       if (entry === 'generators/sourceOutput.ts') {
