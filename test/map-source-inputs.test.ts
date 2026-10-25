@@ -28,26 +28,37 @@ test('map keys ignore installed launchers while retaining source and lockfile by
 });
 
 
-test('retained painter declarations track the defining raster source and invalidate on its edits', () => {
-  let tracked = 0;
-  for (const { dir } of mapShards(resolve('.'))) {
+test('retained painters and the source-owned map track their defining raster roots', () => {
+  const tracked: string[] = [];
+  for (const { slug, dir } of mapShards(resolve('.'))) {
     if (!mapSettings(dir).inputs.includes('../../../scripts/map-painter.mjs')) continue;
-    expect(mapInputRoots(dir)).toContain(resolve('src/sdk/bake/mapRaster.ts')); tracked++;
+    expect(mapInputRoots(dir)).toContain(resolve('src/sdk/bake/mapRaster.ts')); tracked.push(slug);
   }
-  expect(tracked).toBe(7);
+  expect(tracked).toEqual(['blender-template', 'driftwood-isle', 'far-reach', 'ink-cel-valley', 'nalati-grasslands', 'open-plots']);
+  const nineRoots = mapInputRoots(resolve('src/shards/nine-dragon-stack'));
+  for (const source of ['mapAssembly', 'mapScenes', 'mapRaster', 'groundMap']) {
+    expect(nineRoots).toContain(resolve(`src/sdk/bake/${source}.ts`));
+  }
+  expect(nineRoots).toContain(resolve('src/sdk/kit/geometryPack.ts'));
+  expect(nineRoots).toContain(resolve('src/commons/bake/portableMath.ts'));
+  expect(nineRoots).toContain(resolve('src/shards/nine-dragon-stack/data/map.json'));
+  expect(nineRoots).not.toContain(resolve('scripts/map-painter.mjs'));
   for (const slug of ['sunscar-dunes', 'far-reach', 'nalati-grasslands', 'nine-dragon-stack', 'driftwood-isle']) {
     const roots = mapInputRoots(resolve('src/shards', slug));
     expect(roots).toContain(resolve('src/sdk/bake/mapScenes.ts'));
   }
+});
+
+test.each(['look', 'data'])('%s map declarations invalidate on raster and scene edits', (layout) => {
   mkdirSync('tmp', { recursive: true });
   const root = mkdtempSync(resolve('tmp/map-raster-source-')), shard = resolve(root, 'shards/fixture');
   try {
-    mkdirSync(resolve(shard, 'look'), { recursive: true }); mkdirSync(resolve(root, 'sdk/bake'), { recursive: true });
+    mkdirSync(resolve(shard, layout), { recursive: true }); mkdirSync(resolve(root, 'sdk/bake'), { recursive: true });
     const source = resolve(root, 'sdk/bake/mapRaster.ts');
-    writeFileSync(resolve(shard, 'look/map.json'), JSON.stringify({ why: 'raster source fixture', inputs: ['../../sdk/bake/mapRaster.ts', '../../sdk/bake/mapScenes.ts'] }));
+    writeFileSync(resolve(shard, layout, 'map.json'), JSON.stringify({ why: 'raster source fixture', inputs: ['../../sdk/bake/mapRaster.ts', '../../sdk/bake/mapScenes.ts'] }));
     const scenes = resolve(root, 'sdk/bake/mapScenes.ts'); writeFileSync(scenes, 'export const scenes = 1;');
     writeFileSync(source, 'export const source = 1;'); const original = mapTilesHash(shard);
-    expect(Object.keys(mapInputHashes(shard))).toEqual(['../../sdk/bake/mapRaster.ts', '../../sdk/bake/mapScenes.ts', 'look/map.json']);
+    expect(Object.keys(mapInputHashes(shard))).toEqual(['../../sdk/bake/mapRaster.ts', '../../sdk/bake/mapScenes.ts', `${layout}/map.json`]);
     writeFileSync(source, 'export const source = 2;'); expect(mapTilesHash(shard)).not.toBe(original);
     writeFileSync(source, 'export const source = 1;'); expect(mapTilesHash(shard)).toBe(original);
     writeFileSync(scenes, 'export const scenes = 2;'); expect(mapTilesHash(shard)).not.toBe(original);
