@@ -65,7 +65,7 @@ Goal (Jake): a full TypeScript check of the whole repo before push, warm in seco
 |---|---|---|---|---|
 | T1 | Generated JSON out of the program (G655): no generated file is imported (GR0 ban + the generator redesign G654); authored JSON stays typed | −4 GB, −15–30 s | M | root program ≤ 6 GB, green |
 | T2 | done (2026-10-24, sp-x8): `96fe07d0eb` declaration compatibility + `5025374ca2` seven source projects, declaration-consuming tests/API/scripts, exact old-root coverage and app TS6307 contracts; all six tool/site checks retained | Old combined root cold 11.115 s; final cold tests 4.608 s; full forced-source + cold-test + six-project sequence 24.968 s locally | S–M | Local complete check and compiler refusal regressions pass. Full green CI 40146594652 (`da94ec4da3`) completed Typecheck in 50 s (< 1 min). Cold typed lint keeps default source redirects without another tsc source pass; missing-declaration and unsafe-assignment regressions remain strict |
-| T3 | in flight (2026-10-24, sp-x8). **Tests next to their source (G645):** unit and integration tests move into their layer's workspace (next to the file or in the layer), checked by that layer's project; only regression, end-to-end and scenario tests stay in a separate test project referencing the layers | warm per-layer checks; tests stop being one 2.8 GB lump | M–L | no unit test under `test/`; every layer project includes its tests |
+| T3 | done (2026-10-25, sp-x8). **Tests next to their source (G645):** 462 source suites have one test-project owner and zero production membership; 994 root tooling, regression and scenario suites retain their separate declaration-consuming project | warm per-layer checks; tests stop being one 2.8 GB lump | M–L | all 1,460 tracked suites discovered; layer builds, ownership/Node/lint refusals, CF1 and CI cohort coverage pass |
 | T4 | **in flight (2026-10-24, sp-x8; G708 handoff):** explicit types on exported valibot schemas, format first, then `isolatedDeclarations` per layer (G644; engine 786 sites) | fixes TS2589, format `.d.ts` 14 MB → < 2 MB, cheaper `-b` edits | L | no TS2589; `isolatedDeclarations` on in engine, then the others |
 | T5 | Pre-push full check: `tsc -b` with a persistent tsbuildinfo (fixed slot, or the cache copied into the push tree; paths are relative) | 1–5 s no change, ~15 s shard edit after T1–T3 | M | the gate runs the full check within 45 s; over-budget (engine API edit) falls back to CI (D2) |
 | T6 | Mac only, after T1: `--checkers 8` | 62 → 25 s, +3.4 GB | S | measured after T1 |
@@ -97,9 +97,19 @@ implementation. Existing test identities, assertions and deadlines stay fixed.
 | T3-H6a | Private game fixture project boundary; strict production imports, layer direction, Node isolation and declaration-only root consumption | 45 min | done (2026-10-25, sp-x8) |
 | T3-H6b | Extract the shared creature recipe once, preserving full simulation-level data, then relocate its two game units without moving scenario callers | 45 min | done (2026-10-25, sp-x8) |
 | T3-A1 | Direct-import and immediate-fixture ownership census; enumerate concrete batches while preserving accepted cross-layer integrations | 60 min | done (2026-10-25, sp-x8) |
-| T3-A2 | Audit transitive shared-fixture and source-string consumers; classify remaining root regressions and further bounded relocation batches | 60 min | in flight (2026-10-25, sp-x8) |
-| T3-C1 | Reconcile the final root inventory, workspace membership and CF1/CI selection; retain only classified root suites | 45 min | open |
+| T3-A2 | Audit transitive shared-fixture and source-string consumers; classify remaining root regressions and further bounded relocation batches | 60 min | done (2026-10-25, sp-x8) |
+| T3-C1 | Reconcile the final root inventory, workspace membership and CF1/CI selection; retain only classified root suites | 45 min | done (2026-10-25, sp-x8) |
 | T3-C1a | Give application-root units a separate Node test project; preserve production exclusion, static TS6307, warm CF1 jobs and candidate config inputs | 45 min | done (2026-10-25, sp-x8) |
+
+T3's remaining root suites are tooling/policy/CLI regressions, real product/native or multi-shard scenarios,
+historical hash/encoding/save/transaction oracles, and cross-layer contracts that need private implementations
+(including the nine GroupStep suites kept at root by G645's ruling). The transitive fixture audit extracted
+SDK compiler fixtures and the game creature recipe instead of introducing public runtime exports or shims.
+The apparent direct-import candidates retained at root are `client-script-transactions-regression`,
+`nalati-place-binary`, `native-floor-shards`, `pickup-catalogue`, `pine-contract-offers-product`,
+`scalar-lattice`, `script-checkpoint-regression`, and `sunscar-config-boundary`: each is a retained
+transaction, real-product, encoded-wire, frozen-answer, save or author-bundle regression. The real-AS
+port inventory and historical creature-swing oracle also remain root scenarios, with their defining fixtures.
 
 T2 covered the 13 previously unowned top-level app roots and SDK `.d.mts`, preserving every old root input through
 source ownership or tests/ambient contracts. The root test program contains zero source TS implementations. Compiler

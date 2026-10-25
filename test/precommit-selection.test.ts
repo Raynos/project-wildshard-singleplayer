@@ -42,11 +42,12 @@ test('workspace exports, dynamic imports, emitted JS suffixes and raw assets kee
 
 test('discovery and workspace test configs retain bounded test execution', () => {
   const sources = new Map([
-    ['test/root.test.ts', ''], ['src/game/a.test.ts', ''], ['src/sdk/a.test.ts', ''],
+    ['test/root.test.ts', ''], ['src/game/a.test.ts', ''], ['src/sdk/a.test.ts', ''], ['src/boot.test.ts', ''],
   ]);
   expect(selectRelatedSuites(sources, ['vitest.config.ts'], [...sources.keys()], 1).files).toHaveLength(1);
   expect(selectRelatedSuites(sources, ['src/sdk/tsconfig.test.json']).files).toEqual(['src/sdk/a.test.ts']);
-  expect(selectRelatedSuites(sources, ['tsconfig.json']).candidates).toBe(3);
+  expect(selectRelatedSuites(sources, ['src/tsconfig.test.json']).files).toContain('src/boot.test.ts');
+  expect(selectRelatedSuites(sources, ['tsconfig.json']).candidates).toBe(4);
 });
 
 test('cycles, repeated changed files and deleted tests neither duplicate nor invent suites', () => {

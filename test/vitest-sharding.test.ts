@@ -37,7 +37,7 @@ test('both CI cohorts cover every discovered test once and keep exact-run produc
  const workflow=readFileSync('.github/workflows/deploy.yml','utf8');
  const registry=v.parse(v.record(v.string(),v.array(v.string())),JSON.parse(readFileSync('scripts/test-products.json','utf8')));
  const paths=['src','test','admin/test','drafts/test'].flatMap(root=>readdirSync(root,{recursive:true,encoding:'utf8'})
-  .filter(file=>file.endsWith('.test.ts')).map(file=>`${root}/${file.replaceAll('\\','/')}`));
+  .filter(file=>file.endsWith('.test.ts')&&!file.replaceAll('\\','/').split('/').includes('node_modules')).map(file=>`${root}/${file.replaceAll('\\','/')}`));
  const selected:string[]=[];
  for(const [id,cohort,producer,total] of [['behaviour','product-free','generated-inputs',16],['behaviour-products','products','products',4]] as const){
   const job=workflow.split(`\n  ${id}:\n`)[1]?.split(/\n {2}[a-z][\w-]*:\n/u)[0];

@@ -27,6 +27,22 @@ for(const layer of ['engine','format','game','sdk','commons','shards','app']){
  });
 }
 
+test('every colocated source suite has exactly one owning test project',()=>{
+ const suites=ts.sys.readDirectory(resolve('src'),['.ts'],['**/node_modules/**'],['**/*.test.ts']);
+ const owners=new Map<string,string[]>();
+ for(const layer of ['engine','format','game','sdk','commons','shards','app']){
+  const file=layer==='app'?'src/tsconfig.test.json':`src/${layer}/tsconfig.test.json`;
+  const parsed=ts.getParsedCommandLineOfConfigFile(resolve(file),{},
+   {...ts.sys,onUnRecoverableConfigFileDiagnostic:diagnostic=>{throw new Error(ts.flattenDiagnosticMessageText(diagnostic.messageText,'\n'));}});
+  if(parsed===undefined)throw new Error(`Missing test project ${file}`);
+  for(const suite of parsed.fileNames.filter(path=>path.endsWith('.test.ts'))){
+   const projects=owners.get(suite)??[];projects.push(file);owners.set(suite,projects);
+  }
+ }
+ expect([...owners.keys()].sort()).toEqual([...suites].sort());
+ for(const suite of suites)expect(owners.get(suite),suite).toHaveLength(1);
+});
+
 test('colocated tests retain the hard refusal of module replacement',()=>{
  mkdirSync('tmp',{recursive:true});const root=mkdtempSync(resolve('tmp/unit-policy-'));
  const target=resolve(root,'src/engine/example.test.ts'),config=resolve(root,'lint.json');
