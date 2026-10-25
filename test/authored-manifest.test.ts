@@ -11,6 +11,7 @@ import { execPath } from 'node:process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve fixture files in this isolated source export.
 import { resolve } from 'node:path';
 import { parseManifestMetadata } from '@wildshard/format/minimap';
+import { parseDiscoveryValues } from '@wildshard/format/discoveryValues';
 import { ShardfileSchema } from '@wildshard/format/shardSchema';
 import { defineAuthoredShard } from '@wildshard/game/shard/manifest';
 import { productMapInput } from '../scripts/built-product.mjs';
@@ -24,10 +25,14 @@ import { MANIFEST as pine } from '../src/shards/pine-hollow/discovery.generated'
 import { MANIFEST as blender } from '../src/shards/blender-template/discovery.generated';
 import { MANIFEST as driftwood } from '../src/shards/driftwood-isle/discovery.generated';
 import { DRIFTWOOD_FAUNA_PLANS } from '../src/shards/driftwood-isle/generators/fauna';
+import nineNavigation from './fixtures/nine-navigation.json' with { type: 'json' };
 import * as v from 'valibot';
 
 const root = resolve(import.meta.dirname, '..');
 const metadata = (slug: string): unknown => JSON.parse(readFileSync(resolve(root, `src/shards/${slug}/manifest.json`), 'utf8'));
+const nineDiscovery = parseDiscoveryValues({ navigation: nineNavigation });
+const declaredSource = (slug: string): string => authoredManifestSource(root, slug,
+  slug === 'nine-dragon-stack' ? { discovery: nineDiscovery } : undefined);
 describe('authored JSON discovery', () => {
   test('reads checked spawn data without importing its generator at runtime', () => {
     const source = authoredManifestSource(root, 'driftwood-isle');
@@ -86,7 +91,7 @@ describe('authored JSON discovery', () => {
 
 test('declared entries compile literal runtime links without shard plugin wrappers', () => {
   for (const slug of ['pine-hollow', 'driftwood-isle', 'nine-dragon-stack']) {
-    const source = authoredManifestSource(root, slug);
+    const source = declaredSource(slug);
     expect(source).toContain("import('@wildshard/game/shard/declaredEntry')");
     const policy = parseManifestMetadata(metadata(slug)).bindings.entry;
     expect(policy?.platform).toBe('client-plan');
@@ -102,7 +107,7 @@ test('declared entries compile literal runtime links without shard plugin wrappe
 
 test('authored platform entry waits for styles and its defining constructor module', async () => {
   for (const slug of ['driftwood-isle', 'pine-hollow', 'nine-dragon-stack']) {
-    const source = authoredManifestSource(root, slug), file = ts.createSourceFile('manifest.ts', source, ts.ScriptTarget.Latest, true);
+    const source = declaredSource(slug), file = ts.createSourceFile('manifest.ts', source, ts.ScriptTarget.Latest, true);
     let expression: ts.Expression | undefined;
     const find = (node: ts.Node): void => {
       if (ts.isPropertyAssignment(node) && node.name.getText(file) === 'load') expression = node.initializer;
