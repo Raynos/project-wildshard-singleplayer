@@ -5,6 +5,7 @@ import { isJsonDataWithFileSchemas } from '@wildshard/format/json';
 import { builtValidationReceipt, validationSourceBytes, validationSourceBytesPaced, type ValidationReceipt } from '@wildshard/format/validationReceipt';
 import { loadingStage, loadingUnits, waitFor } from '@wildshard/engine/boot/waits';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
+import { parseOutputLineageIndex } from '@wildshard/format/stateLineage';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 
 /** Byte readers are injected: the section adapter runs in browsers and renderer-free Node admission. */
@@ -29,8 +30,8 @@ export interface OutputDescriptorReader {
   offline: boolean;
   /** Only a matching build-pinned index and source receipt permits unchecked assembly. */
   firstParty?: boolean;
-  /** A previous visit read for its state lineage only: hash-checked sections assembled unparsed and never admitted, so an
-   *  older build's product is not refused by this build's section schemas (the caller parses identity and state). */
+  /** A previous visit read for its state lineage only: all sections remain hash-checked, but only identity/state are
+   * returned, never admitted. The portable reader ignores obsolete host declarations; the caller checks state semantics. */
   lineage?: boolean;
 }
 
@@ -128,15 +129,17 @@ export async function resolveOutputDescriptor(input: unknown, reader: OutputDesc
     if (!isJsonDataWithFileSchemas(input)) throw new Error('Shardfile descriptor requires bounded plain JSON');
     return input;
   }
-  const pinned = reader.lineage === true ? null : await ownedBuildIndex(input, reader);
-  const index = pinned?.index ?? (await import('@wildshard/format/outputIndex')).parseOutputDescriptorIndex(input);
-  if (index === null) return input;
-  for (const file of [...index.sections, ...index.schemas]) reader.declare?.(file.path, file.bytes);
+  const historical = reader.lineage === true ? parseOutputLineageIndex(input) : null;
+  const pinned = historical === null ? await ownedBuildIndex(input, reader) : null;
+  const current = historical === null ? pinned?.index ?? (await import('@wildshard/format/outputIndex')).parseOutputDescriptorIndex(input) : null;
+  const inventory = historical ?? current;
+  if (inventory === null) return input;
+  for (const file of [...inventory.sections, ...inventory.schemas]) reader.declare?.(file.path, file.bytes);
   // General readers declare the immutable bank before their first section read.
   // Admission defers blobs until its verified sections select a device tier;
   // the boot compiler reserves that same selected bank before section reads.
   // A historical lineage never reads blobs.
-  if (reader.lineage !== true && reader.deferAssetDeclarations !== true) for (const file of index.files) reader.declare?.(outputBlobPath(file), file.compressed);
+  if (current !== null && reader.deferAssetDeclarations !== true) for (const file of current.files) reader.declare?.(outputBlobPath(file), file.compressed);
   const sections = new Map<string, unknown>();
   let cached = reader.cached !== undefined || reader.verified !== undefined;
   const stores: Promise<void>[] = [];
@@ -171,13 +174,17 @@ export async function resolveOutputDescriptor(input: unknown, reader: OutputDesc
   };
   // Each section is independently bounded; launch the complete inventory in
   // parallel, and settle every request before returning a failed admission.
-  const results = await Promise.allSettled([...index.sections, ...index.schemas.map(row => ({ ...row, name: row.path, schema: row.path }))].map(load));
+  const results = await Promise.allSettled([...inventory.sections, ...inventory.schemas.map(row => ({ ...row, name: row.path, schema: row.path }))].map(load));
   const schemas = new Map<string, unknown>();
   for (const result of results) {
     if (result.status === 'rejected') throw result.reason;
     (result.value[0].startsWith('schemas/') ? schemas : sections).set(...result.value);
   }
-  if (reader.lineage === true) return assembleOutputTransport(index, sections);
+  if (current === null) {
+    const state = sections.get('state/state');
+    return { identity: inventory.identity, state: typeof state === 'object' && state !== null && 'state' in state ? state.state : undefined };
+  }
+  const index = current;
   const candidate = pinned?.receipt ?? (reader.firstParty === true ? builtValidationReceipt(index.build.sourceHash) : null);
   const indexHash = pinned?.digest ?? (candidate === null ? undefined : await reader.hash(await receiptBytes(input, reader.pause)));
   const receipt = pinned?.receipt ?? (indexHash === undefined ? null : builtValidationReceipt(index.build.sourceHash, indexHash));

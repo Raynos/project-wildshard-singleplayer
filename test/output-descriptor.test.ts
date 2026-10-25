@@ -4,6 +4,7 @@ import { encodeCanonicalJson as canonicalJson, hashImmutableBytes } from '../src
 import { parseOutputIndex, type OutputIndex } from '../src/format/outputIndex';
 import { OUTPUT_SECTIONS, outputSectionPayloads } from '../src/format/outputFields';
 import { parseShardfile, type Shardfile } from '../src/format/shardSchema';
+import { parseStateLineage } from '../src/format/stateLineage';
 import { readProductDescriptor, admitProduct, type CachedProduct, type ProductCache, type ProductOptions } from '../src/game/shardfile/product';
 import { provideHybridDeclaration, runtimeProduct } from '../src/game/shardfile/runtimeProduct';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
@@ -247,6 +248,59 @@ test('the complete blob bank is declared before the first section read, except f
     });
     expect(reads).toBe(index.sections.length);
   }
+});
+
+test('historical transport never loads current host grammar or grants a model proof', async () => {
+  const { index, wires, source } = fixture();
+  const grammar = vi.spyOn(await import('../src/format/outputIndex'), 'parseOutputDescriptorIndex');
+  // An old visit may name host, asset and cost declarations this build removed.
+  const historical = { ...index, admission: { obsolete: true }, runtime: { obsolete: true }, files: [{ obsolete: true }] };
+  const read = vi.fn(sectionReader(wires));
+  try {
+    const previous = await resolveOutputDescriptor(historical, { lineage: true, offline: false, hash, read });
+    expect(parseStateLineage(previous)).toEqual({ identity: { slug: source.identity.slug, revision: source.identity.revision }, state: source.state });
+    expect(grammar).not.toHaveBeenCalled();
+    expect(read.mock.calls.map(([path]) => path)).toEqual(index.sections.map(row => row.path));
+    expect(isBuildValidatedOutput(previous)).toBe(false);
+  } finally { grammar.mockRestore(); }
+});
+
+test.each(['version', 'duplicate', 'escape', 'state', 'hash', 'cap'] as const)('historical %s refusal precedes section reads', async kind => {
+  const { index, wires } = fixture(), first = index.sections[0];
+  if (first === undefined) throw new Error('Missing section');
+  const input = kind === 'version' ? { ...index, formatVersion: 3 }
+    : kind === 'duplicate' ? { ...index, sections: [...index.sections, first] }
+    : kind === 'escape' ? { ...index, sections: [{ ...first, path: '../escape.json' }, ...index.sections.slice(1)] }
+    : kind === 'state' ? { ...index, sections: index.sections.filter(row => row.name !== 'state/state') }
+    : kind === 'hash' ? { ...index, sections: [{ ...first, hash: 'bad' }, ...index.sections.slice(1)] }
+    : { ...index, sections: [{ ...first, bytes: 2_000_001 }, ...index.sections.slice(1)] };
+  const read = vi.fn(sectionReader(wires));
+  await expect(resolveOutputDescriptor(input, { lineage: true, offline: false, hash, read })).rejects.toThrow();
+  expect(read).not.toHaveBeenCalled();
+});
+
+test('historical reads retain cache completeness, immutable hashes and strict state semantics', async () => {
+  const { index, wires } = fixture(), state = index.sections.find(row => row.name === 'state/state');
+  if (state === undefined) throw new Error('Missing state');
+  const bank = new Map(index.sections.map(row => [row.hash, wires.get(row.path)])), read = vi.fn(sectionReader(wires));
+  const cached = vi.fn((ref: string) => Promise.resolve(ref === state.hash ? null : bank.get(ref) ?? null));
+  await expect(resolveOutputDescriptor(index, { lineage: true, offline: true, hash, read, cached })).rejects.toThrow('incomplete section cache');
+  expect(cached).toHaveBeenCalledTimes(index.sections.length);
+  expect(read).not.toHaveBeenCalled();
+  const corrupt = new Map(wires); corrupt.set(state.path, new Uint8Array(state.bytes));
+  await expect(resolveOutputDescriptor(index, { lineage: true, offline: false, hash, read: sectionReader(corrupt) })).rejects.toThrow('hash or size mismatch');
+  const bad = encodeCanonicalJson({ state: { version: 0 } }), sections = index.sections.map(row => row === state ? { ...row, hash: hashImmutableBytes(bad), bytes: bad.length } : row);
+  wires.set(state.path, bad);
+  const previous = await resolveOutputDescriptor({ ...index, sections }, { lineage: true, offline: false, hash, read: sectionReader(wires) });
+  expect(() => parseStateLineage(previous)).toThrow();
+});
+
+test('historical inventory rejects authored getters without invoking them', async () => {
+  const { index, wires } = fixture(); let reads = 0;
+  Object.defineProperty(index, 'admission', { enumerable: true, get: () => { reads++; return {}; } });
+  const read = vi.fn(sectionReader(wires));
+  await expect(resolveOutputDescriptor(index, { lineage: true, offline: false, hash, read })).rejects.toThrow('bounded plain JSON');
+  expect(reads).toBe(0); expect(read).not.toHaveBeenCalled();
 });
 
 test('admission preserves v2 addressing across parser copies and offline section reassembly', async () => {
