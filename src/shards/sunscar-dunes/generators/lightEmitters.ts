@@ -1,11 +1,11 @@
 import { parseLightEmitters } from '@wildshard/format/lightEmitters';
-import { placeBindings } from './restScene';
+import { placeEffects } from './placeEffects';
 import { FIRE_GRAPH_IDS } from './rows/fire';
 import { signalEmberBuffer } from './emberBuffers';
 import type { CardGroupRow } from './rows/fireCards';
 
 const rows: unknown[] = [];
-const bindings = placeBindings();
+const bindings = placeEffects();
 const material = (program: string): string => {
   const id = new Map(Object.entries(FIRE_GRAPH_IDS)).get(program); if (id === undefined) throw new Error('Undeclared emitter graph'); return id;
 };

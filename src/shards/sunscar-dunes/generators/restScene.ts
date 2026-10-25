@@ -1,3 +1,4 @@
+import { placeEffects, type PlaceEffects } from './placeEffects';
 import { REST_URLS } from './rows/restFiles';
 import { CylinderGeometry, PlaneGeometry, Group, Mesh, MeshStandardMaterial, SphereGeometry, Vector3 } from 'three';
 import { clientSceneGlb, type ClientSceneBake } from '@wildshard/sdk/bake/glb';
@@ -5,7 +6,7 @@ import { WELL_RIG, HD, CAMP_HD, COOK, LANTERN, WAYMARK_HD, DECK_BRAZIER } from '
 import { BRAZIERS, CARAVAN, TOWER, WELL } from "./layout";
 import { signalDunesTiles, signalDunesField } from './tiles';
 import { decodeTerrainTile, terrainTileHeight } from '@wildshard/format/terrainTileBytes';
-import { fireRows, lampRows, COOKFIRE, WAYMARK_FIRE, KEEPER_LAMP, SIGNAL_FIRE, type FirePool } from './rows/fire';
+import { fireRows, lampRows, COOKFIRE, WAYMARK_FIRE, type FirePool } from './rows/fire';
 import { towerAnchors } from './tower';
 import { waymarkFrame } from './places';
 import { parsePrivateScene, parseWorldScene, type PrivateScene, type WorldSceneRecipe } from '@wildshard/format/clientChannels';
@@ -150,13 +151,12 @@ export function fireRest(): ClientSceneBake {
 export function fireGlb(): Uint8Array { return fireRest().glb; }
 
 /** Place fields and live-effect attachments; geometry, frames and material ownership remain the existing recipes. */
-interface PlaceBinding { recipe:WorldSceneRecipe;fields:Record<string,unknown>;fires:{part:string;rows:ReturnType<typeof fireRows>;pool:string|null}[];lamps:{part:string;rows:ReturnType<typeof lampRows>;pool:string}[];lights:{id:string;color:number;intensity:number;distance:number;decay:number}[];glowAt:readonly number[]|null }
+interface PlaceBinding extends PlaceEffects { recipe:WorldSceneRecipe;fields:Record<string,unknown>;lights:{id:string;color:number;intensity:number;distance:number;decay:number}[];glowAt:readonly number[]|null }
 export function placeBindings():Record<'caravan'|'tower'|'well',PlaceBinding>&{braziers:PlaceBinding[]} {
   const places=placeRecipes(), recipe=(row:WorldSceneRecipe)=>({scene:row.scene,imports:row.imports});
   const group=(part:string)=>({kind:'group',part}), mesh=(part:string)=>({kind:'mesh',part}), vector=(value:readonly number[])=>({kind:'vector',value});
   const root={root:group('root'),colliders:{kind:'colliders',part:'baked'}};
-  const lamp=(part:string,glow:number,pool:string)=>({part,rows:lampRows(glow),pool});
-  const fire=(part:string,size:typeof COOKFIRE|typeof WAYMARK_FIRE|typeof KEEPER_LAMP|typeof SIGNAL_FIRE,pool:string|null)=>({part,rows:fireRows(size),pool});
+  const effects=placeEffects();
   const tower=recipe(places.tower);
   const fireNode=tower.scene.nodes.find(node=>node.id==='live.fire');
   if(fireNode===undefined)throw new Error('Missing tower fire anchor');
@@ -164,12 +164,12 @@ export function placeBindings():Record<'caravan'|'tower'|'well',PlaceBinding>&{b
   tower.scene.nodes.push({kind:'object',id:'native-light',source:'native-light',missing:'refuse',position:[0,1,0],rotation:[0,0,0],scale:[1,1,1],visible:true,castShadow:false,receiveShadow:false,frustumCulled:true,renderOrder:0,children:[]});
   return {
     caravan:{recipe:recipe(places.caravan),fields:{...root,logbookAt:vector(places.caravan.anchors.logbook),lampAt:vector(places.caravan.anchors.lamp)},
-      fires:[fire('live.cook',COOKFIRE,'pool-cook')],lamps:[lamp('live.lamp',0.5,'pool-caravan-lamp')],lights:[],glowAt:null},
-    well:{recipe:recipe(places.well),fields:{...root,bucket:group('live.bucket'),rope:mesh('live.rope'),jar:mesh('live.jar'),crankAt:vector(places.well.anchors.crank),jarAt:vector(places.well.anchors.jar),drop:{kind:'number',value:places.well.anchors.drop}},fires:[],lamps:[],lights:[],glowAt:null},
+      ...effects.caravan,lights:[],glowAt:null},
+    well:{recipe:recipe(places.well),fields:{...root,bucket:group('live.bucket'),rope:mesh('live.rope'),jar:mesh('live.jar'),crankAt:vector(places.well.anchors.crank),jarAt:vector(places.well.anchors.jar),drop:{kind:'number',value:places.well.anchors.drop}},...effects.well,lights:[],glowAt:null},
     tower:{recipe:tower,fields:{...root,fire:group('live.fire'),light:{kind:'point-light',part:'native-light'},brazierAt:vector(places.tower.anchors.brazier),deckY:{kind:'number',value:places.tower.anchors.deckY}},
-      fires:[fire('live.lamp-flame',KEEPER_LAMP,null),fire('live.fire',SIGNAL_FIRE,null)],lamps:[lamp('live.keeper-lamp',1.1,'pool-keeper-lamp')],
+      ...effects.tower,
       lights:[{id:'native-light',color:0xff8a3a,intensity:0,distance:40,decay:1.6}],glowAt:null},
-    braziers:places.braziers.map((row,index)=>({recipe:recipe(row),fields:{...root,fire:group('fire'),oil:mesh('live.oil'),bowlAt:vector(row.anchors.bowl),glowAt:vector(row.anchors.light)},
-      fires:[fire('fire',WAYMARK_FIRE,`pool-brazier-${String(index)}`)],lamps:[],lights:[],glowAt:row.anchors.light})),
+    braziers:places.braziers.map((row,index)=>{const effect=effects.braziers[index];if(effect===undefined)throw new Error('Missing brazier effects');return {recipe:recipe(row),fields:{...root,fire:group('fire'),oil:mesh('live.oil'),bowlAt:vector(row.anchors.bowl),glowAt:vector(row.anchors.light)},
+      fires:effect.fires,lamps:effect.lamps,lights:[],glowAt:row.anchors.light};}),
   };
 }

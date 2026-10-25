@@ -4753,7 +4753,8 @@
         "src/shards/sunscar-dunes/generators/rows/whip.ts",
         "src/shards/sunscar-dunes/generators/scene.ts",
         "src/shards/sunscar-dunes/generators/tiles.ts",
-        "src/shards/sunscar-dunes/generators/tower.ts"
+        "src/shards/sunscar-dunes/generators/tower.ts",
+        "src/shards/sunscar-dunes/generators/placeEffects.ts"
       ],
       "outputs": [
         "src/shards/sunscar-dunes/data/restScenes.generated.json"
@@ -4945,7 +4946,8 @@
         "src/shards/sunscar-dunes/generators/rows/whip.ts",
         "src/shards/sunscar-dunes/generators/scene.ts",
         "src/shards/sunscar-dunes/generators/tiles.ts",
-        "src/shards/sunscar-dunes/generators/tower.ts"
+        "src/shards/sunscar-dunes/generators/tower.ts",
+        "src/shards/sunscar-dunes/generators/placeEffects.ts"
       ],
       "outputs": [
         "src/shards/sunscar-dunes/data/restPools.generated.json"
@@ -5138,7 +5140,8 @@
         "src/shards/sunscar-dunes/generators/rows/whip.ts",
         "src/shards/sunscar-dunes/generators/scene.ts",
         "src/shards/sunscar-dunes/generators/tiles.ts",
-        "src/shards/sunscar-dunes/generators/tower.ts"
+        "src/shards/sunscar-dunes/generators/tower.ts",
+        "src/shards/sunscar-dunes/generators/placeEffects.ts"
       ],
       "outputs": [
         "public/assets/sunscar-dunes/baked/rest-well.glb"
@@ -5330,7 +5333,8 @@
         "src/shards/sunscar-dunes/generators/rows/whip.ts",
         "src/shards/sunscar-dunes/generators/scene.ts",
         "src/shards/sunscar-dunes/generators/tiles.ts",
-        "src/shards/sunscar-dunes/generators/tower.ts"
+        "src/shards/sunscar-dunes/generators/tower.ts",
+        "src/shards/sunscar-dunes/generators/placeEffects.ts"
       ],
       "outputs": [
         "public/assets/sunscar-dunes/baked/rest-oil.glb"
@@ -13549,7 +13553,8 @@
         "src/shards/sunscar-dunes/generators/rows/whip.ts",
         "src/shards/sunscar-dunes/generators/scene.ts",
         "src/shards/sunscar-dunes/generators/tiles.ts",
-        "src/shards/sunscar-dunes/generators/tower.ts"
+        "src/shards/sunscar-dunes/generators/tower.ts",
+        "src/shards/sunscar-dunes/generators/placeEffects.ts"
       ],
       "outputs": [
         "public/assets/sunscar-dunes/baked/rest-fire.glb"
