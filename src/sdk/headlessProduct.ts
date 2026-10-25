@@ -10,6 +10,7 @@ import { SHARDFILE_ADMISSION_LIMITS } from '@wildshard/format/admissionLimits';
 import { isOutputIndex } from '@wildshard/format/outputAddress';
 import { parseShardfile } from '@wildshard/format/shardSchema';
 import { carryOutputDescriptor, resolveOutputDescriptor, outputDescriptor } from '@wildshard/game/shardfile/outputDescriptor';
+import { nodeOutputDescriptorChecks } from '@wildshard/game/shardfile/outputChecksNode';
 import { shardProductData } from '@wildshard/game/shardfile/productData';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 
@@ -34,7 +35,7 @@ export async function loadHeadlessProduct(outDir: string): Promise<ShardProduct>
   };
   const input: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await read('shard.json', SHARDFILE_ADMISSION_LIMITS.sourceBytes)));
   if (!isOutputIndex(input)) throw new Error('Native product requires a format-2 output');
-  const assembled = await resolveOutputDescriptor(input, { offline: false, hash, read });
+  const assembled = await resolveOutputDescriptor(input, { offline: false, hash, read, checks: nodeOutputDescriptorChecks });
   const source = parseShardfile(assembled);
   carryOutputDescriptor(assembled, source);
   const descriptor = outputDescriptor(source);

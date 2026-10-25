@@ -2,8 +2,11 @@
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 // oxlint-disable-next-line import/no-nodejs-modules -- The fixture stays inside the repository's ignored scratch root.
 import { dirname, resolve } from 'node:path';
+// oxlint-disable-next-line import/no-nodejs-modules -- Load the real in-memory author build through an owned temporary module.
+import { pathToFileURL } from 'node:url';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
+import { build } from 'vite';
 import { emptyShardfile } from '../author';
 import { encodeCanonicalJson, hashImmutableBytes } from '../immutable';
 import { parseOutputIndex } from '@wildshard/format/outputIndex';
@@ -11,7 +14,30 @@ import { outputSectionPayloads } from '@wildshard/format/outputFields';
 import { loadHeadlessProduct } from '../headlessProduct';
 
 const bytes = (input: unknown): Uint8Array => new TextEncoder().encode(encodeCanonicalJson(input));
-test('native output admission supplies checked sections and hash-verified named blobs without a renderer', async () => {
+async function nativeReader(mode: 'direct' | 'author-bundle'): Promise<typeof loadHeadlessProduct> {
+  if (mode === 'direct') return loadHeadlessProduct;
+  const result = await build({ configFile: false, publicDir: false, logLevel: 'silent',
+    define: { 'import.meta.env.SSR': 'false' },
+    build: { write: false, minify: false, lib: { entry: new URL('../headlessProduct.ts', import.meta.url).pathname, formats: ['es'] },
+      rolldownOptions: { platform: 'node', external: [/^node:/u], output: { codeSplitting: false } } } });
+  const built = Array.isArray(result) ? result[0] : result;
+  if (built === undefined || !('output' in built)) throw new Error('Missing native author bundle');
+  const chunks = built.output.filter(row => row.type === 'chunk');
+  if (chunks.length !== 1 || chunks[0] === undefined) throw new Error('Expected one native author module');
+  await mkdir('tmp', { recursive: true });
+  const dir = await mkdtemp(resolve('tmp/headless-reader-')), file = resolve(dir, 'reader.mjs');
+  try {
+    await writeFile(file, chunks[0].code);
+    const loaded: unknown = await import(pathToFileURL(file).href);
+    if (!nativeModule(loaded)) throw new Error('Missing native author reader');
+    return loaded.loadHeadlessProduct;
+  } finally { await rm(dir, { recursive: true, force: true }); }
+}
+function nativeModule(input: unknown): input is { loadHeadlessProduct: typeof loadHeadlessProduct } {
+  return typeof input === 'object' && input !== null && 'loadHeadlessProduct' in input && typeof input.loadHeadlessProduct === 'function';
+}
+test.each(['direct', 'author-bundle'] as const)('%s native admission supplies checked sections and hash-verified named blobs without a renderer', async mode => {
+  const load = await nativeReader(mode);
   await mkdir('tmp', { recursive: true });
   const dir = await mkdtemp(resolve('tmp/headless-product-'));
   const put = async (path: string, wire: Uint8Array): Promise<void> => { const file = resolve(dir, path); await mkdir(dirname(file), { recursive: true }); await writeFile(file, wire); };
@@ -34,16 +60,23 @@ test('native output admission supplies checked sections and hash-verified named 
       sections, schemas: [{ path: 'schemas/custom/native.schema.json', hash: hashImmutableBytes(customSchema), bytes: customSchema.length }],
       files: source.files.map(file => ({ ...file, kind: 'bin', name: 'models/native.bin', path: `blobs/bin/${hash}.bin` })), runtime: null });
     await put('shard.json', bytes(index)); await put(`blobs/bin/${hash}.bin`, blob);
-    const product = await loadHeadlessProduct(dir);
+    const product = await load(dir);
     expect(product.shardfile).toEqual(source);
     expect(product.section('custom/native', { 'custom/native': v.strictObject({ count: v.number() }) })).toEqual({ count: 7 });
     expect(await product.file('models/native.bin')).toEqual(blob);
-    const checked = await loadHeadlessProduct(dir);
+    const checked = await load(dir);
     expect(() => checked.section('custom/native', { 'custom/native': v.strictObject({ count: v.string() }) })).toThrow('schema');
     await put(`blobs/bin/${hash}.bin`, new Uint8Array([3, 2, 1]));
     await expect(product.file('models/native.bin')).rejects.toThrow('hash or size');
+    const bad = bytes({ count: 'bad' });
+    const malformed = structuredClone(index), custom = malformed.sections.find(row => row.name === 'custom/native');
+    if (custom === undefined) throw new Error('Missing native custom section');
+    custom.hash = hashImmutableBytes(bad); custom.bytes = bad.length;
+    await put('sections/custom/native.json', bad);
+    await put('shard.json', bytes(malformed));
+    await expect(load(dir)).rejects.toThrow('refuses its schema');
     await put('shard.json', bytes(source));
-    await expect(loadHeadlessProduct(dir)).rejects.toThrow('format-2');
+    await expect(load(dir)).rejects.toThrow('format-2');
   } finally { await rm(dir, { recursive: true, force: true }); }
-  await expect(loadHeadlessProduct(resolve(dir, 'absent-output'))).rejects.toThrow('run `wildshard build absent-output`');
+  await expect(load(resolve(dir, 'absent-output'))).rejects.toThrow('run `wildshard build absent-output`');
 });

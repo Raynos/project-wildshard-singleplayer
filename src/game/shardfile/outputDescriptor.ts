@@ -3,13 +3,20 @@ import type { OutputIndex } from '@wildshard/format/outputIndex';
 import { assembleOutputTransport } from '@wildshard/format/outputFields';
 import { isJsonDataWithFileSchemas } from '@wildshard/format/json';
 import { builtValidationReceipt, validationSourceBytes, validationSourceBytesPaced, type ValidationReceipt } from '@wildshard/format/validationReceipt';
-import { loadingStage, loadingUnits, waitFor } from '@wildshard/engine/boot/waits';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { parseOutputLineageIndex } from '@wildshard/format/stateLineage';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 
+/** Trusted checked-ingestion capability, supplied explicitly by Node author readers. */
+export interface OutputDescriptorChecks {
+  readonly parseIndex: (input: unknown) => OutputIndex | null;
+  readonly custom: (index: OutputIndex, sections: ReadonlyMap<string, unknown>, schemas: ReadonlyMap<string, unknown>, pause: OutputDescriptorReader['pause']) => Promise<void>;
+  readonly assemble: (index: OutputIndex, sections: ReadonlyMap<string, unknown>) => Shardfile;
+}
 /** Byte readers are injected: the section adapter runs in browsers and renderer-free Node admission. */
 export interface OutputDescriptorReader {
+  /** Node author bundles supply their defining checked port; authored JSON cannot provide it. */
+  checks?: OutputDescriptorChecks;
   /** Admission will declare its device-selected asset bank after section verification. */
   deferAssetDeclarations?: boolean;
   /** Expected sizes come from the parsed product index, before any section reads. */
@@ -48,21 +55,12 @@ export interface OutputDescriptor {
 // also preserves location through the hosts' shallow presentation-only copies.
 const descriptors = new WeakMap<object, OutputDescriptor>();
 const buildValidated = new WeakSet();
-// Parallel product reads keep their transport overlap. Their synchronous
-// schema checks share one queue so independent readers cannot refill one
-// paint interval with several compiles. Node readers inject no paint policy.
-let schemaChecks = Promise.resolve();
-function checkCustomSection(work: () => unknown, pause: OutputDescriptorReader['pause']): Promise<unknown> {
-  if (pause === undefined) return Promise.resolve().then(work);
-  const checked = schemaChecks.then(async () => {
-    await pause();
-    const value = await loadingStage('admission', work);
-    // Keep the completed check separate from its consumer's assembly/hash work.
-    await pause();
-    return value;
-  });
-  schemaChecks = checked.then(() => undefined, () => undefined);
-  return checked;
+async function descriptorChecks(reader: OutputDescriptorReader): Promise<OutputDescriptorChecks> {
+  if (reader.checks !== undefined) return reader.checks;
+  // Vite erases this checked closure from client builds. Explicit native ports
+  // work in author bundles even when their Vite environment is client-shaped.
+  if (!(import.meta.env?.SSR ?? true)) throw new Error('Shardfile needs server validation before client admission');
+  return (await import('./outputChecksNode')).nodeOutputDescriptorChecks;
 }
 
 /** A visited index is not an offline copy when any of its section bytes were evicted. */
@@ -131,7 +129,7 @@ export async function resolveOutputDescriptor(input: unknown, reader: OutputDesc
   }
   const historical = reader.lineage === true ? parseOutputLineageIndex(input) : null;
   const pinned = historical === null ? await ownedBuildIndex(input, reader) : null;
-  const current = historical === null ? pinned?.index ?? (await import('@wildshard/format/outputIndex')).parseOutputDescriptorIndex(input) : null;
+  const current = historical === null ? pinned?.index ?? (await descriptorChecks(reader)).parseIndex(input) : null;
   const inventory = historical ?? current;
   if (inventory === null) return input;
   for (const file of [...inventory.sections, ...inventory.schemas]) reader.declare?.(file.path, file.bytes);
@@ -189,27 +187,14 @@ export async function resolveOutputDescriptor(input: unknown, reader: OutputDesc
   const indexHash = pinned?.digest ?? (candidate === null ? undefined : await reader.hash(await receiptBytes(input, reader.pause)));
   const receipt = pinned?.receipt ?? (indexHash === undefined ? null : builtValidationReceipt(index.build.sourceHash, indexHash));
   // G728: the exact build receipt proves custom schemas too; every section/schema
-  // byte above still passes its declared size and hash. Unproved inputs stay checked.
-  const custom = index.sections.filter(row => row.name.startsWith('custom/'));
-  if (receipt === null && custom.length > 0) await loadingStage('admission', async () => {
-    const { validateCustomSchema, validateCustomSchemaPaced } = await import('./customSchema');
-    const progress = loadingUnits('Product schemas', custom.length);
-    progress(0);
-    for (const [at, row] of custom.entries()) {
-      await waitFor(`Validate ${row.name}`, checkCustomSection(async () => {
-        const value = reader.pause === undefined
-          ? validateCustomSchema(schemas.get(row.schema), sections.get(row.name))
-          : await validateCustomSchemaPaced(schemas.get(row.schema), sections.get(row.name), reader.pause);
-        progress(at + 1, row.name);
-        return value;
-      }, reader.pause), 'admission');
-    }
-  });
+  // byte above still passes its declared size and hash. Unproved Node inputs
+  // stay checked; the default browser reader has already refused them.
+  if (receipt === null) await (await descriptorChecks(reader)).custom(index, sections, schemas, reader.pause);
   // Unproved products keep the original serialized schema phase before paced
   // hashing; only a possible CI receipt needs that digest to decide the fast path.
   const digest = indexHash ?? await reader.hash(await receiptBytes(input, reader.pause));
   let source: Shardfile;
-  if (receipt === null) source = (await import('@wildshard/format/outputIndex')).assembleOutputShardfile(index, sections);
+  if (receipt === null) source = (await descriptorChecks(reader)).assemble(index, sections);
   else {
     const fields = assembleOutputTransport(index, sections);
     const actual = await reader.hash(await receiptBytes(fields, reader.pause));

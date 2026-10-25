@@ -8635,15 +8635,14 @@ retry. `loadManifestProduct` runs at the standalone/plugin boundary;
 descriptor again. `loadFirstPartyProduct` uses the configured first-party
 base for early readers and requires the same live owner.
 
-Build receipts bind index/model hashes. Snapshot before pauses; proofs
-skip grammar, not byte integrity. Unproved input/read schemas parse;
-sidecars grant no trust.
-Pure format leaves: validationReceipt (bytes/clock/pause), outputAddress
-(paths), outputFields (unknown projection), memoryAdmission (policy),
-deviceMemoryCost (budgets), ktx2Cost (headers). stateLineage's
-`parseOutputLineageIndex` checks bounded old inventories; hash every cached
-section, return identity/state only, never admit a model. State/migration
-refusals remain.
+Build proofs bind index/model hashes. Snapshot before pauses; hash section
+and source bytes. Sidecars grant no trust. Pure format leaves:
+validationReceipt, outputAddress, outputFields, memoryAdmission,
+deviceMemoryCost, ktx2Cost. stateLineage checks old inventories/state,
+never admits models. Keep full-cache and migration refusals.
+Browser descriptors refuse unproved input. Node author readers inject
+`nodeOutputDescriptorChecks` through `OutputDescriptorReader.checks`;
+Node/CI defaults retain checked grammar, custom queue and assembly.
 
 `configuredShardfile(document, options)` awaits the same section reader
 for the SDK client's embedded index. Installed data-client manifests
