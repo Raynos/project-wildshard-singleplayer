@@ -71,6 +71,28 @@ test('fresh native places retain exact binaries and the original native metadata
   }
 });
 
+test('native dressing preparation does not read the old generated place rows', () => {
+  const source = `
+    import assert from 'node:assert/strict';
+    import fs from 'node:fs';
+    import { syncBuiltinESMExports } from 'node:module';
+    const prior=fs.readFileSync;
+    fs.readFileSync=(path,...options)=>{
+      if(String(path).replaceAll('\\\\','/').endsWith('/nalati-grasslands/data/places.json'))
+        throw new Error('Unexpected generated POI preparation input');
+      return prior(path,...options);
+    };
+    syncBuiltinESMExports();
+    try{
+      const { prepareNalatiDressing }=await import('./scripts/bake/nalatiDressing.mjs');
+      const { dressingRecipe }=await import('./src/shards/nalati-grasslands/generators/dressingPlan.ts');
+      const made=await prepareNalatiDressing(dressingRecipe);
+      assert.equal(made.plan.stumps.length,10);assert.ok(made.avoid>0);
+    }finally{fs.readFileSync=prior;syncBuiltinESMExports();}
+  `;
+  execFileSync(process.execPath, [...native, '--input-type=module', '--eval', source, '--', shard]);
+});
+
 test('the independent runtime scatter plan keeps every existing output byte', () => {
   execFileSync(process.execPath, [...native, 'scripts/bake/nalatiDressing.mjs', 'src/shards/nalati-grasslands/generators/dressingPlan.ts', shard, '--check']);
 });

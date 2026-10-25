@@ -24,7 +24,7 @@ export async function prepareNalatiDressing(dressingRecipe, forestMask) {
     const { pageScope } = await import('@wildshard/engine/app/resources');
     const { RIVER } = await import('../../src/shards/nalati-grasslands/generators/terrainRecipe.ts');
     configureGrassField({ ...NALATI_GRASS_LAYOUT, riverZ: RIVER.z, riverHalf: RIVER.half }, pageScope);
-    const [{ bakeForestPlacements }, { SPRUCE_SPECS }, { dressingRockColliders }] = await Promise.all([
+    const [{ bakeForestPlacements }, { SPRUCE_SPECS }, { dressingRockColliders, bakeNalatiPoiKeepouts }] = await Promise.all([
       import('@wildshard/sdk/bake/forest'), import('../../src/shards/nalati-grasslands/generators/spruceGeometry.ts'),
       import('../../src/shards/nalati-grasslands/generators/places.ts'),
     ]);
@@ -43,7 +43,7 @@ export async function prepareNalatiDressing(dressingRecipe, forestMask) {
     SPRUCE_SPECS.map(row => ({ trunkRadius: row.trunk, height: row.height })));
     const { trees } = forest;
     const plan = await planDressing(forest);
-    const placeRows = JSON.parse(readFileSync(resolve(root, 'src/shards/nalati-grasslands/data/places.json'), 'utf8')).rows;
+    const placeRows = bakeNalatiPoiKeepouts(heightAt);
     const sequence = JSON.parse(readFileSync(resolve(root, 'src/shards/nalati-grasslands/data/worldView.json'), 'utf8')).sequence;
     const poiColliders = dressingPoiColliders(placeRows, sequence, heightAt);
     const avoid = [...poiColliders, ...dressingRockColliders(heightAt,
