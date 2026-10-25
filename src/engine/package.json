@@ -308,6 +308,7 @@
     "./ui/HUD": "./ui/HUD.ts",
     "./ui/HurtArc": "./ui/HurtArc.ts",
     "./ui/Loading": "./ui/Loading.ts",
+    "./ui/loadProgress": "./ui/loadProgress.ts",
     "./ui/LockOn": "./ui/LockOn.ts",
     "./ui/Map": "./ui/Map.ts",
     "./ui/Menu": "./ui/Menu.ts",

@@ -3056,7 +3056,8 @@ opening a second room cannot replace another room's admitted parameters.
 | `Playground`, `PlaygroundHost`, `PlaygroundId` | the interface a playground implements, and what it gets: `registry`, `player`, `game` |
 | `manifest.explore` (`ExploreSpec`) | Explore's art for this shard: `{ art: { world, models, sets, practice } }` |
 | `manifest.roster` | `() => Promise<RosterEntry[]>`: the Model Explorer cards (`live(model)`) |
-| `boot/runtime`: `loadExplore`, `loadFeedback`, `loadPractice` | First-use modules with scoped progress; practice constructs on request |
+| `boot/runtime`: `loadExplore/Feedback/Practice` | First-use UI |
+| `ui/loadProgress.loadModuleWithProgress(label, load, scope?)` | Scoped code-fetch progress |
 
 The template's jump course:
 
