@@ -4,6 +4,21 @@ Lantern Square, halfway up a city stacked 500 m high: wet granite, a cinnabar ga
 Well dropping away into silk fog. A prototype fragment: the square, the Well's rim and the stair-street. Chongqing
 meets Kowloon Walled City (E169). Fourth card on the title deck.
 
+## Native decal inputs
+
+The checked phone/desktop decal PNGs live in `public/assets/nine-dragon/authored/`; `data/nativeDecals.json`
+pins their original bytes. `generators/nativeDecals.ts` admits them through explicit public-input roots and
+publishes owned image blobs. The existing output reader remains the CLI authority during GR3's partial conversion.
+
+To check native staleness without writing any source output:
+
+```sh
+bash scripts/browser-lane.sh node --experimental-transform-types --import ./scripts/bake-loader.mjs src/shards/nine-dragon-stack/generators/bake-decal-atlas.mjs --authored --check
+```
+
+Drop `--check` only for an intentional native asset rebuild; update the byte pins and retain the full pixel oracles.
+The legacy scheduled adapter remains until the source entry conversion is complete.
+
 ## What it declares
 
 | Field | Value |

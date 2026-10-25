@@ -3,9 +3,10 @@ import { resolve } from 'node:path';
 import { build } from 'vite';
 import { webkit, devices } from 'playwright';
 import { byteWriter, jsonBytes, outputHash } from '../../../../scripts/bake-output.mjs';
+import nativeDecals from '../data/nativeDecals.json' with { type: 'json' };
 import { readImagePixels } from '../../../../src/sdk/bake/image.ts';
 
-const root = resolve(import.meta.dirname, '../../../..');
+const root = resolve(import.meta.dirname, '../../../..'), authored = process.argv.includes('--authored');
 const result = await build({ configFile: false, logLevel: 'silent', publicDir: false, root,
   build: { write: false, target: 'esnext', minify: false,
     lib: { entry: resolve(import.meta.dirname, 'decalAtlasPage.ts'), formats: ['es'] },
@@ -25,10 +26,14 @@ try {
     const image = await readImagePixels(bytes);
     if (image.width !== raster.width || image.height !== raster.height || !Buffer.from(image.pixels).equals(original)) throw new Error(`Decal PNG changes ${tier} reference pixels`);
     const png = `assets/${outputHash(bytes)}`;
-    writer.put(resolve(root, 'src/shards/nine-dragon-stack', png), bytes);
+    if (authored) {
+      const source = nativeDecals[tier];
+      if (!/^\/assets\/nine-dragon\/authored\/[a-z-]+\.png$/u.test(source.url)) throw new Error('Invalid authored decal output');
+      writer.put(resolve(root, 'public', source.url.slice(1)), bytes);
+    } else writer.put(resolve(root, 'src/shards/nine-dragon-stack', png), bytes);
     rows[tier] = { width: raster.width, height: raster.height, png };
     console.log(`Nine ${tier} decal: ${raster.width}x${raster.height}, ${bytes.length} bytes, exact RGBA ${outputHash(original)}`);
   }
 } finally { await browser.close(); }
-writer.put(resolve(root, 'src/shards/nine-dragon-stack/data/heldDecals.generated.json'), jsonBytes(rows));
+if (!authored) writer.put(resolve(root, 'src/shards/nine-dragon-stack/data/heldDecals.generated.json'), jsonBytes(rows));
 writer.finish();

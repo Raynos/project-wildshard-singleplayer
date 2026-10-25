@@ -35,7 +35,7 @@ test('owned movers bytes replace only the file handoff and preserve all other em
   const burst = { name: 'fixture', shape: 'flake' as const, count: 1, life: .5 };
   const supplied = emitNineOutput({ hash, bytes }, { scriptRevisions: SCRIPT_V2_REVISIONS, graphArmsSchema: { type: 'object' },
     bursts: { muzzle: burst, bite: burst, dock: burst, sparks: burst }, entryProof: { lanes: 1, steps: 2, portalTransfers: 3 },
-    heldDecals: { phone: { width: 1, height: 1, png: 'phone.png' }, desktop: { width: 2, height: 2, png: 'desktop.png' } } });
+    decals: { sources: { phone: { width: 1, height: 1, png: 'phone.png' }, desktop: { width: 2, height: 2, png: 'desktop.png' } } } });
   expect(supplied.blobs.filter(row => row.name.startsWith('looks/jian-decal-')).map(row => row.source)).toEqual(['phone.png', 'desktop.png']);
   const constants = supplied.namedFiles.find(row => row.name === 'sim/headless-constants.json');
   const constantsBytes = constants === undefined ? undefined : supplied.assets.get(constants.hash);
