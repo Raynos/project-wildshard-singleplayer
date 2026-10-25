@@ -5,9 +5,9 @@ const name = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9.:-]*$/u), v.maxLength(
 /** Fixed admission limits for independent, read-only presentation expressions. */
 export const CLIENT_CHANNEL_LIMITS = { programs: 512, nodes: 128, reads: 32, channels: 12, locals: 8, totalLocals: 1024, prompts: 64, totalNodes: 16384, totalChannels: 4096 } as const;
 /** Only visual transforms and private visual scalars can be published; there is no state-write channel. */
-export const ClientChannelPropertySchema = v.picklist(['x', 'y', 'z', 'yaw', 'pitch', 'roll', 'scaleX', 'scaleY', 'scaleZ', 'value', 'turn', 'visible']);
+export const ClientChannelPropertySchema: v.GenericSchema<ClientChannelPropertyInput, ClientChannelProperty> = v.picklist(['x', 'y', 'z', 'yaw', 'pitch', 'roll', 'scaleX', 'scaleY', 'scaleZ', 'value', 'turn', 'visible']);
 /** Bound outputs name only private scene transforms or visibility, never player/shared scalar fields. */
-export const ClientChannelTransformSchema = v.picklist(['x', 'y', 'z', 'yaw', 'pitch', 'roll', 'scaleX', 'scaleY', 'scaleZ', 'visible']);
+export const ClientChannelTransformSchema: v.GenericSchema<ClientChannelTransformInput, ClientChannelTransform> = v.picklist(['x', 'y', 'z', 'yaw', 'pitch', 'roll', 'scaleX', 'scaleY', 'scaleZ', 'visible']);
 const binding = v.strictObject({ property: ClientChannelTransformSchema, target: name,
   order: v.exactOptional(v.picklist(['XYZ', 'YXZ', 'ZXY', 'ZYX', 'YZX', 'XZY'])) });
 const prompt = v.strictObject({
@@ -67,7 +67,7 @@ const connector = v.pipe(v.strictObject({
   && (row.turn?.alternate !== true || row.instances?.pitch !== undefined), 'bounded connector slots and alternating copies'));
 const inputPathKey = v.pipe(v.string(), v.regex(/^[A-Za-z][A-Za-z0-9_-]*$/u), v.maxLength(96),
   v.check(key => !['constructor', 'prototype', '__proto__', 'caller', 'callee', 'arguments'].includes(key), 'safe numeric input path'));
-const numericInputs = v.pipe(v.array(v.strictObject({ input: name, owner: v.pipe(name, v.maxLength(96)),
+const numericInputs: v.GenericSchema<ClientChannelInputsInput, ClientChannelInputs> = v.pipe(v.array(v.strictObject({ input: name, owner: v.pipe(name, v.maxLength(96)),
   path: v.pipe(v.array(v.union([inputPathKey, v.pipe(v.number(), v.safeInteger(), v.minValue(0), v.maxValue(1024))])), v.minLength(1), v.maxLength(16)),
 })), v.maxLength(128), v.check(rows => new Set(rows.map(row => row.input)).size === rows.length, 'unique numeric input bindings'));
 /** Explicit private visual fields, shared by numeric DAG groups and their restore phase. */
@@ -77,7 +77,7 @@ const poseScalarName = v.pipe(v.string(), v.regex(/^[a-zA-Z][a-zA-Z0-9.-]{0,63}$
   v.check(key => !['constructor', 'prototype', '__proto__', 'caller', 'callee', 'arguments'].includes(key), 'safe numeric record key'));
 const poseDimension = v.picklist(['bodyY', 'bodyHalfLen', 'bodyRadius', 'headRadius', 'legLen', 'halfWidth', 'bodyPitch']);
 /** Creature observations are finite typed values, never a path through an owner. */
-export const NumericPoseInputSchema = v.variant('kind', [
+export const NumericPoseInputSchema: v.GenericSchema<NumericPoseInputRowsInput, NumericPoseInputRows> = v.variant('kind', [
   v.strictObject({ input: name, kind: v.literal('frame'), field: v.picklist([
     't', 'dt', 'seed', 'scale', 'speed', 'strafe', 'phase', 'attack', 'brace', 'flinch', 'deathT', 'stateIndex', 'yaw', 'lookWeight',
   ]) }),
@@ -104,9 +104,9 @@ const programFields = {
   channels: v.pipe(v.array(v.strictObject({ property: ClientChannelPropertySchema, value: index })), v.minLength(0), v.maxLength(CLIENT_CHANNEL_LIMITS.channels)),
 };
 const baseProgram = v.strictObject({ id: name, ...programFields });
-const program = v.strictObject({ id: name, numeric: v.exactOptional(numericProgram), ...programFields });
+const program: v.GenericSchema<ClientChannelProgramInput, ClientChannelProgram> = v.strictObject({ id: name, numeric: v.exactOptional(numericProgram), ...programFields });
 /** Data-only client programme, with selected copied observations and visual outputs. */
-export type ClientChannelProgram = v.InferOutput<typeof program>;
+
 /** Each connector owns a complete private transform or a disjoint interval of instance slots. */
 function uniqueConnectorSlots(rows: readonly v.InferOutput<typeof baseProgram>[]): boolean {
   const targets = new Map<string, [number, number][]>(), bound = new Set(rows.flatMap(row => (row.bindings ?? []).map(item => item.target)));
@@ -168,7 +168,7 @@ function listOk(rows: readonly ClientChannelProgram[]): boolean {
     && rows.reduce((sum, row) => sum + row.channels.length, 0) <= CLIENT_CHANNEL_LIMITS.totalChannels;
 }
 /** Visual property identity, never an authoritative player or shared field. */
-export type ClientChannelProperty = v.InferOutput<typeof ClientChannelPropertySchema>;
+
 /** Strictly parse detached author data before the trusted view owner binds it. */
 export function parseClientChannels(input: unknown): ClientChannelProgram[] { return v.parse(ClientChannelsSchema, input); }
 
@@ -220,12 +220,12 @@ const privateTexture = v.variant('kind', [
     mipmaps:v.boolean(),anisotropy:v.pipe(v.number(),v.integer(),v.minValue(1),v.maxValue(16)),
   }),
 ]);
-const privateScene = v.strictObject({ version: v.literal(1), root: name,
+const privateScene: v.GenericSchema<PrivateSceneInput, PrivateScene> = v.strictObject({ version: v.literal(1), root: name,
   nodes: v.pipe(v.array(sceneNode), v.minLength(1), v.maxLength(128)), materials: v.pipe(v.array(sceneMaterial), v.maxLength(32)), textures:v.optional(v.pipe(v.array(privateTexture),v.maxLength(16)),[]) });
 /** Exact ordered private visual hierarchy, independent of state, collision and the world registry. */
-export type PrivateScene = v.InferOutput<typeof privateScene>;
+
 /** Refuse duplicate identities, crossed references, cycles and unreachable parts before allocating a scene. */
-export const PrivateSceneSchema = v.pipe(privateScene, v.check(row => {
+export const PrivateSceneSchema: v.GenericSchema<PrivateSceneInput, PrivateScene> = v.pipe(privateScene, v.check(row => {
   if (row.nodes.reduce((sum, entry) => sum + (entry.kind === 'mesh' ? entry.instances ?? 0 : 0), 0) > 8192) return false;
   const nodes = new Map(row.nodes.map(entry => [entry.id, entry])), materials = new Set(row.materials.map(material => material.id));
   if (nodes.size !== row.nodes.length || materials.size !== row.materials.length || !nodes.has(row.root) || !['group','mesh'].includes(nodes.get(row.root)?.kind ?? '')) return false;
@@ -267,10 +267,10 @@ const worldImport = v.variant('kind', [
   v.strictObject({ id: name, kind: v.literal('model'), model: name, fit: worldFit }),
 ]);
 /** An admitted private hierarchy plus named borrowed baked/model resources; no scripts or constructors in content. */
-export const WorldSceneSchema = v.pipe(v.strictObject({ scene: PrivateSceneSchema, imports: v.pipe(v.array(worldImport), v.maxLength(128)) }),
+export const WorldSceneSchema: v.GenericSchema<WorldSceneRecipeInput, WorldSceneRecipe> = v.pipe(v.strictObject({ scene: PrivateSceneSchema, imports: v.pipe(v.array(worldImport), v.maxLength(128)) }),
   v.check(row => new Set(row.imports.map(item => item.id)).size === row.imports.length, 'unique world scene imports'));
 /** Data for the shared world-scene resource binder. */
-export type WorldSceneRecipe = v.InferOutput<typeof WorldSceneSchema>;
+
 /** Validate every import and hierarchy before any host constructor runs. */
 export function parseWorldScene(input: unknown): WorldSceneRecipe { return v.parse(WorldSceneSchema, input); }
 
@@ -286,7 +286,7 @@ const heldPhaseCommon = {
   position: sceneVector, rotation: v.exactOptional(sceneVector), scale: v.exactOptional(v.pipe(phaseSeconds, v.maxValue(1000))),
 };
 /** Data-only contact/presentation scheduling; never a second contact controller or script host. */
-export const HeldMeleePhaseSchema = v.pipe(v.variant('mode', [
+export const HeldMeleePhaseSchema: v.GenericSchema<HeldMeleePhaseRowsInput, HeldMeleePhaseRows> = v.pipe(v.variant('mode', [
   v.strictObject({ mode: v.literal('immediate'), ...heldPhaseCommon,
     secondary: v.strictObject({ phase: heldPhase, action: heldAction }) }),
   v.strictObject({ mode: v.literal('delayed'), ...heldPhaseCommon,
@@ -305,7 +305,7 @@ export const HeldMeleePhaseSchema = v.pipe(v.variant('mode', [
 export function parseHeldMeleePhase(input: unknown): v.InferOutput<typeof HeldMeleePhaseSchema> { return v.parse(HeldMeleePhaseSchema, input); }
 
 /** Coefficients for an owned tube; caps are useful for authored closed strands. */
-const tubeProfile = v.pipe(v.strictObject({
+const tubeProfile: v.GenericSchema<TubeCurveProfileInput, TubeCurveProfile> = v.pipe(v.strictObject({
   segments: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(1024)),
   radial: v.pipe(v.number(), v.integer(), v.minValue(3), v.maxValue(64)),
   bend: v.tuple([coefficient, coefficient]), ripple: v.tuple([coefficient, coefficient, coefficient]),
@@ -314,7 +314,7 @@ const tubeProfile = v.pipe(v.strictObject({
     v.pipe(coefficient, v.minValue(0)), v.pipe(coefficient, v.minValue(0), v.maxValue(1)), v.pipe(coefficient, v.minValue(0))]),
   caps: v.exactOptional(v.boolean()),
 }), v.check(row => (row.segments + 1) * row.radial + (row.caps === true ? 2 * (row.radial + 1) : 0) <= 4096, 'bounded tube vertices'));
-export type TubeCurveProfile = v.InferOutput<typeof tubeProfile>;
+
 export interface TubeCurveFrame {
   readonly fromX: number; readonly fromY: number; readonly fromZ: number;
   readonly toX: number; readonly toY: number; readonly toZ: number;
@@ -366,13 +366,13 @@ export function compileTubeCurve(input: TubeCurveProfile): {
 }
 
 /** Named native ports on an admitted world scene; values never construct geometry or install services. */
-const worldBinding = v.variant('kind', [
+const worldBinding: v.GenericSchema<WorldSceneBindingRowsInput, WorldSceneBindingRows> = v.variant('kind', [
   ...(['group','mesh','object','point-light','standard-material','colliders'] as const).map(kind => v.strictObject({kind:v.literal(kind),part:name})),
   v.strictObject({kind:v.literal('vector'),value:v.tuple([sceneCoordinate,sceneCoordinate,sceneCoordinate])}),
   v.strictObject({kind:v.literal('number'),value:sceneCoordinate}),
 ]);
 export type WorldSceneBindingKind = v.InferOutput<typeof worldBinding>['kind'];
-export const WorldSceneBindingsSchema = v.pipe(v.record(name,worldBinding),v.check(rows=>Object.keys(rows).length<=128,'bounded world bindings'));
+export const WorldSceneBindingsSchema: v.GenericSchema<WorldSceneBindingsInput, WorldSceneBindings> = v.pipe(v.record(name,worldBinding),v.check(rows=>Object.keys(rows).length<=128,'bounded world bindings'));
 /** Refuse functions, unknown fields and unbounded anchor values before binding native parts. */
 export function parseWorldSceneBindings(input:unknown):v.InferOutput<typeof WorldSceneBindingsSchema>{return v.parse(WorldSceneBindingsSchema,input);}
 
@@ -380,14 +380,14 @@ const poseNumeric = v.strictObject({ group: name, outputs: v.pipe(v.array(numeri
   inputs: v.optional(typedPoseInputs, []),
   restoreOnly: v.optional(v.pipe(v.array(numericPort), v.maxLength(0)), []),
 });
-const poseProgram = v.pipe(v.strictObject({ id: name, ...programFields, numeric: poseNumeric }), v.check(row => {
+const poseProgram: v.GenericSchema<NumericPoseProgramRowsInput, NumericPoseProgramRows> = v.pipe(v.strictObject({ id: name, ...programFields, numeric: poseNumeric }), v.check(row => {
   const { numeric, ...base } = row;
   return structureOk(base)
     && numeric.outputs.every(output => row.channels.some(channel => channel.property === output.property))
     && numeric.inputs.length === row.reads.length && numeric.inputs.every(input => row.reads.includes(input.input));
 }, 'bounded typed creature pose program'));
 /** Same DAG and aggregate admission, with no legacy owner-path input dependency. */
-export const NumericPoseProgramsSchema = v.pipe(v.array(poseProgram), v.maxLength(CLIENT_CHANNEL_LIMITS.programs),
+export const NumericPoseProgramsSchema: v.GenericSchema<NumericPoseProgramsInput, NumericPosePrograms> = v.pipe(v.array(poseProgram), v.maxLength(CLIENT_CHANNEL_LIMITS.programs),
 v.check(rows => new Set(rows.map(row => row.id)).size === rows.length
     && new Set(rows.flatMap(row => row.prompt === undefined ? [] : [row.prompt.id])).size === rows.filter(row => row.prompt !== undefined).length
     && uniqueConnectorSlots(rows)
@@ -398,7 +398,7 @@ v.check(rows => new Set(rows.map(row => row.id)).size === rows.length
     && rows.reduce((sum, row) => sum + row.channels.length, 0) <= CLIENT_CHANNEL_LIMITS.totalChannels, 'unique bounded client channel programs'));
 
 /** Numeric creature-pose wire rows; the game retains joint evaluation and scalar admission. */
-export const NumericPoseSchema = v.strictObject({
+export const NumericPoseSchema: v.StrictObjectSchema<{ readonly programs: v.GenericSchema<NumericPoseRowsInput['programs'], NumericPoseRows['programs']>; readonly group: v.GenericSchema<NumericPoseRowsInput['group'], NumericPoseRows['group']>; readonly states: v.OptionalSchema<v.GenericSchema<Exclude<NumericPoseRowsInput['states'], undefined>, NumericPoseRows['states']>, readonly []>; readonly look: v.ExactOptionalSchema<v.GenericSchema<Exclude<NumericPoseRowsInput['look'], undefined>, Exclude<NumericPoseRows['look'], undefined>>, undefined>; readonly squash: v.ExactOptionalSchema<v.GenericSchema<Exclude<NumericPoseRowsInput['squash'], undefined>, Exclude<NumericPoseRows['squash'], undefined>>, undefined>; readonly variant: v.ExactOptionalSchema<v.GenericSchema<Exclude<NumericPoseRowsInput['variant'], undefined>, Exclude<NumericPoseRows['variant'], undefined>>, undefined>; readonly alive: v.ExactOptionalSchema<v.GenericSchema<Exclude<NumericPoseRowsInput['alive'], undefined>, Exclude<NumericPoseRows['alive'], undefined>>, undefined>; readonly scalars: v.OptionalSchema<v.GenericSchema<Exclude<NumericPoseRowsInput['scalars'], undefined>, NumericPoseRows['scalars']>, readonly []>; }, undefined> = v.strictObject({
   programs: NumericPoseProgramsSchema,
   group: v.pipe(v.string(), v.minLength(1), v.maxLength(128)),
   states: v.optional(v.pipe(v.array(v.pipe(v.string(), v.maxLength(128))), v.maxLength(64)), []),
@@ -413,3 +413,33 @@ export const NumericPoseSchema = v.strictObject({
     fallback: v.exactOptional(v.pipe(v.number(), v.finite())),
   })), v.maxLength(64)), []),
 });
+
+/** Admitted visual data independent of validator implementation metadata. */
+export type ClientChannelPropertyInput = ClientChannelProperty;
+export type ClientChannelProperty = 'x' | 'y' | 'z' | 'yaw' | 'pitch' | 'roll' | 'scaleX' | 'scaleY' | 'scaleZ' | 'value' | 'turn' | 'visible';
+export type ClientChannelTransformInput = ClientChannelTransform;
+export type ClientChannelTransform = 'x' | 'y' | 'z' | 'yaw' | 'pitch' | 'roll' | 'scaleX' | 'scaleY' | 'scaleZ' | 'visible';
+export type NumericPoseInputRowsInput = NumericPoseInputRows;
+export type NumericPoseInputRows = ({ input: string; kind: 'frame'; field: 't' | 'dt' | 'seed' | 'scale' | 'speed' | 'strafe' | 'phase' | 'attack' | 'brace' | 'flinch' | 'deathT' | 'stateIndex' | 'yaw' | 'lookWeight'; }) | ({ input: string; kind: 'scalar'; record: 'declared' | 'memory' | 'dimensions'; name: string; }) | ({ input: string; kind: 'look'; axis: 'yaw' | 'pitch'; }) | ({ input: string; kind: 'joint'; joint: string; transform: 'position' | 'rotation' | 'scale'; axis: 'x' | 'y' | 'z'; });
+export type ClientChannelProgramInput = { id: string; numeric?: { group: string; outputs: ({ property: ClientChannelPropertyInput; target: string; path: (string)[]; restore?: boolean; nullable?: boolean; })[]; inputs?: (ClientChannelInputsInput) | ((NumericPoseInputRowsInput)[]) | undefined; restoreOnly?: ({ property: ClientChannelPropertyInput; target: string; path: (string)[]; restore?: boolean; nullable?: boolean; })[] | undefined; }; } & { geometry?: { kind: 'tubeCurve'; target: string; segments: number; radial: number; from: [number, number, number]; to: [number, number, number]; extent: number; wave: number; bend: [number, number]; ripple: [number, number, number]; drop: [number, number]; radius: [number, number, number, number, number]; }; connectors?: ({ target: string; from: [number, number, number]; to: [number, number, number]; at?: [number, number, number]; scale: [number, number, number]; enabled: number; aim?: [number, number, number]; turn?: { axis: [number, number, number]; radians: number; alternate: boolean; }; instances?: { start: number; capacity: number; pitch?: number; }; cache?: number; })[]; prompt?: { id: string; label: string; radius: number; at: [number, number, number]; action: ({ kind: 'named'; name: string; }) | ({ kind: 'socketLift'; edge: 'north' | 'east' | 'south' | 'west'; action: 1 | 2 | 3; }); }; bindings?: ({ property: ClientChannelTransformInput; target: string; order?: 'XYZ' | 'YXZ' | 'ZXY' | 'ZYX' | 'YZX' | 'XZY'; })[]; mover?: string; reads: (string)[]; locals?: ({ initial: ({ op: 'constant'; value: number; }) | ({ op: 'read'; index: number; }); next: number; })[]; nodes: (({ op: 'constant'; value: number; }) | ({ op: 'clock'; value: 'time' | 'delta'; }) | ({ op: 'read'; index: number; }) | ({ op: 'local'; index: number; }) | ({ op: 'neg' | 'sin' | 'cos' | 'sqrt' | 'abs'; a: number; }) | ({ op: 'add' | 'sub' | 'mul' | 'div' | 'mod' | 'min' | 'max' | 'atan2' | 'hypot' | 'gt' | 'pow'; a: number; b: number; }) | ({ op: 'hypot3'; a: number; b: number; c: number; }) | ({ op: 'sample'; a: number; interpolation: 'linear' | 'smoothstep'; keys: ([number, number])[]; }) | ({ op: 'select'; test: number; yes: number; no: number; }))[]; channels: ({ property: ClientChannelPropertyInput; value: number; })[]; };
+export type ClientChannelProgram = { id: string; numeric?: { group: string; outputs: ({ property: ClientChannelProperty; target: string; path: (string)[]; restore?: boolean; nullable?: boolean; })[]; inputs: (ClientChannelInputs) | ((NumericPoseInputRows)[]); restoreOnly: ({ property: ClientChannelProperty; target: string; path: (string)[]; restore?: boolean; nullable?: boolean; })[]; }; } & { geometry?: { kind: 'tubeCurve'; target: string; segments: number; radial: number; from: [number, number, number]; to: [number, number, number]; extent: number; wave: number; bend: [number, number]; ripple: [number, number, number]; drop: [number, number]; radius: [number, number, number, number, number]; }; connectors?: ({ target: string; from: [number, number, number]; to: [number, number, number]; at?: [number, number, number]; scale: [number, number, number]; enabled: number; aim?: [number, number, number]; turn?: { axis: [number, number, number]; radians: number; alternate: boolean; }; instances?: { start: number; capacity: number; pitch?: number; }; cache?: number; })[]; prompt?: { id: string; label: string; radius: number; at: [number, number, number]; action: ({ kind: 'named'; name: string; }) | ({ kind: 'socketLift'; edge: 'north' | 'east' | 'south' | 'west'; action: 1 | 2 | 3; }); }; bindings?: ({ property: ClientChannelTransform; target: string; order?: 'XYZ' | 'YXZ' | 'ZXY' | 'ZYX' | 'YZX' | 'XZY'; })[]; mover?: string; reads: (string)[]; locals?: ({ initial: ({ op: 'constant'; value: number; }) | ({ op: 'read'; index: number; }); next: number; })[]; nodes: (({ op: 'constant'; value: number; }) | ({ op: 'clock'; value: 'time' | 'delta'; }) | ({ op: 'read'; index: number; }) | ({ op: 'local'; index: number; }) | ({ op: 'neg' | 'sin' | 'cos' | 'sqrt' | 'abs'; a: number; }) | ({ op: 'add' | 'sub' | 'mul' | 'div' | 'mod' | 'min' | 'max' | 'atan2' | 'hypot' | 'gt' | 'pow'; a: number; b: number; }) | ({ op: 'hypot3'; a: number; b: number; c: number; }) | ({ op: 'sample'; a: number; interpolation: 'linear' | 'smoothstep'; keys: ([number, number])[]; }) | ({ op: 'select'; test: number; yes: number; no: number; }))[]; channels: ({ property: ClientChannelProperty; value: number; })[]; };
+export type ClientChannelInputsInput = ClientChannelInputs;
+export type ClientChannelInputs = ({ input: string; owner: string; path: ((string) | (number))[]; })[];
+export interface PrivateSceneInput { version: 1; root: string; nodes: (({ kind: 'group'; id: string; } & { name?: string; children?: (string)[] | undefined; position?: [number, number, number]; rotation?: [number, number, number]; scale?: [number, number, number]; order?: 'XYZ' | 'YXZ' | 'ZXY' | 'ZYX' | 'YZX' | 'XZY'; visible?: boolean; castShadow?: boolean; receiveShadow?: boolean; frustumCulled?: boolean; renderOrder?: number; when?: { object: string; present: boolean; }; whenTexture?: { texture: string; present: boolean; }; visibleWhen?: { object: string; present: boolean; }; }) | ({ kind: 'mesh'; id: string; geometry: string; material: string; instances?: number; matrices?: (number)[]; missing: 'empty' | 'group' | 'omit'; } & { name?: string; children?: (string)[] | undefined; position?: [number, number, number]; rotation?: [number, number, number]; scale?: [number, number, number]; order?: 'XYZ' | 'YXZ' | 'ZXY' | 'ZYX' | 'YZX' | 'XZY'; visible?: boolean; castShadow?: boolean; receiveShadow?: boolean; frustumCulled?: boolean; renderOrder?: number; when?: { object: string; present: boolean; }; whenTexture?: { texture: string; present: boolean; }; visibleWhen?: { object: string; present: boolean; }; }) | ({ kind: 'object'; id: string; source: string; missing: 'omit' | 'refuse'; } & { name?: string; children?: (string)[] | undefined; position?: [number, number, number]; rotation?: [number, number, number]; scale?: [number, number, number]; order?: 'XYZ' | 'YXZ' | 'ZXY' | 'ZYX' | 'YZX' | 'XZY'; visible?: boolean; castShadow?: boolean; receiveShadow?: boolean; frustumCulled?: boolean; renderOrder?: number; when?: { object: string; present: boolean; }; whenTexture?: { texture: string; present: boolean; }; visibleWhen?: { object: string; present: boolean; }; }) | ({ kind: 'anchor'; id: string; source: string; path: (number)[]; missing: 'omit' | 'refuse'; children?: (string)[] | undefined; }))[]; materials: (({ kind: 'port'; id: string; source: string; }) | ({ kind: 'standard'; id: string; properties: { name?: string; envMapIntensity?: number; color?: number; emissive?: number; emissiveIntensity?: number; roughness?: number; metalness?: number; vertexColors?: boolean; flatShading?: boolean; fog?: boolean; transparent?: boolean; opacity?: number; depthWrite?: boolean; side?: 0 | 1 | 2; normalScale?: [number, number]; }; maps?: { map?: string; normalMap?: string; roughnessMap?: string; }; decorate?: string; userData?: Record<string, boolean>; }))[]; textures?: (({ kind: 'port'; id: string; source: string; }) | ({ kind: 'rgba'; id: string; source: string; width: number; height: number; offset: number; bytes: number; colorSpace: '' | 'srgb'; repeat: ([number, number]) | ({ port: string; }); wrapS: 1000 | 1001 | 1002; wrapT: 1000 | 1001 | 1002; magFilter: 1003 | 1006; minFilter: 1003 | 1004 | 1005 | 1006 | 1007 | 1008; mipmaps: boolean; anisotropy: number; }))[] | undefined; }
+export interface PrivateScene { version: 1; root: string; nodes: (({ kind: 'group'; id: string; } & { name?: string; children: (string)[]; position?: [number, number, number]; rotation?: [number, number, number]; scale?: [number, number, number]; order?: 'XYZ' | 'YXZ' | 'ZXY' | 'ZYX' | 'YZX' | 'XZY'; visible?: boolean; castShadow?: boolean; receiveShadow?: boolean; frustumCulled?: boolean; renderOrder?: number; when?: { object: string; present: boolean; }; whenTexture?: { texture: string; present: boolean; }; visibleWhen?: { object: string; present: boolean; }; }) | ({ kind: 'mesh'; id: string; geometry: string; material: string; instances?: number; matrices?: (number)[]; missing: 'empty' | 'group' | 'omit'; } & { name?: string; children: (string)[]; position?: [number, number, number]; rotation?: [number, number, number]; scale?: [number, number, number]; order?: 'XYZ' | 'YXZ' | 'ZXY' | 'ZYX' | 'YZX' | 'XZY'; visible?: boolean; castShadow?: boolean; receiveShadow?: boolean; frustumCulled?: boolean; renderOrder?: number; when?: { object: string; present: boolean; }; whenTexture?: { texture: string; present: boolean; }; visibleWhen?: { object: string; present: boolean; }; }) | ({ kind: 'object'; id: string; source: string; missing: 'omit' | 'refuse'; } & { name?: string; children: (string)[]; position?: [number, number, number]; rotation?: [number, number, number]; scale?: [number, number, number]; order?: 'XYZ' | 'YXZ' | 'ZXY' | 'ZYX' | 'YZX' | 'XZY'; visible?: boolean; castShadow?: boolean; receiveShadow?: boolean; frustumCulled?: boolean; renderOrder?: number; when?: { object: string; present: boolean; }; whenTexture?: { texture: string; present: boolean; }; visibleWhen?: { object: string; present: boolean; }; }) | ({ kind: 'anchor'; id: string; source: string; path: (number)[]; missing: 'omit' | 'refuse'; children: (string)[]; }))[]; materials: (({ kind: 'port'; id: string; source: string; }) | ({ kind: 'standard'; id: string; properties: { name?: string; envMapIntensity?: number; color?: number; emissive?: number; emissiveIntensity?: number; roughness?: number; metalness?: number; vertexColors?: boolean; flatShading?: boolean; fog?: boolean; transparent?: boolean; opacity?: number; depthWrite?: boolean; side?: 0 | 1 | 2; normalScale?: [number, number]; }; maps?: { map?: string; normalMap?: string; roughnessMap?: string; }; decorate?: string; userData?: Record<string, boolean>; }))[]; textures: (({ kind: 'port'; id: string; source: string; }) | ({ kind: 'rgba'; id: string; source: string; width: number; height: number; offset: number; bytes: number; colorSpace: '' | 'srgb'; repeat: ([number, number]) | ({ port: string; }); wrapS: 1000 | 1001 | 1002; wrapT: 1000 | 1001 | 1002; magFilter: 1003 | 1006; minFilter: 1003 | 1004 | 1005 | 1006 | 1007 | 1008; mipmaps: boolean; anisotropy: number; }))[]; }
+export interface WorldSceneRecipeInput { scene: PrivateSceneInput; imports: (({ id: string; kind: 'baked'; piece: string; only?: Record<string, (string) | (number) | (boolean)>; materials?: string; }) | ({ id: string; kind: 'model'; model: string; fit: { size: number; by: 'height' | 'span'; floor?: number; yaw?: number; centre?: 'base'; }; }))[]; }
+export interface WorldSceneRecipe { scene: PrivateScene; imports: (({ id: string; kind: 'baked'; piece: string; only?: Record<string, (string) | (number) | (boolean)>; materials?: string; }) | ({ id: string; kind: 'model'; model: string; fit: { size: number; by: 'height' | 'span'; floor?: number; yaw?: number; centre?: 'base'; }; }))[]; }
+export type HeldMeleePhaseRowsInput = HeldMeleePhaseRows;
+export type HeldMeleePhaseRows = ({ mode: 'immediate'; secondary: { phase: { id: string; move: number; seconds: number; channel: string; }; action: `${string}.${string}`; }; } & { version: 1; phases: [{ id: string; move: number; seconds: number; channel: string; }, { id: string; move: number; seconds: number; channel: string; }]; charge: number; spring: { gain: number; clampYaw: number; clampPitch: number; k: number; c: number; }; position: [number, number, number]; rotation?: [number, number, number]; scale?: number; }) | ({ mode: 'delayed'; channels: { root: string; rest: string; active: string; deformation: string; }; bindings: { moving: string; resting: string; deformation: string; }; unroll: number; second: number; show: number; overlap: number; caughtSeconds: number; reach: [number, number]; } & { version: 1; phases: [{ id: string; move: number; seconds: number; channel: string; }, { id: string; move: number; seconds: number; channel: string; }]; charge: number; spring: { gain: number; clampYaw: number; clampPitch: number; k: number; c: number; }; position: [number, number, number]; rotation?: [number, number, number]; scale?: number; });
+export type TubeCurveProfileInput = TubeCurveProfile;
+export interface TubeCurveProfile { segments: number; radial: number; bend: [number, number]; ripple: [number, number, number]; drop: [number, number]; radius: [number, number, number, number, number]; caps?: boolean; }
+export type WorldSceneBindingRowsInput = WorldSceneBindingRows;
+export type WorldSceneBindingRows = ({kind:'group'|'mesh'|'object'|'point-light'|'standard-material'|'colliders';part:string}) | ({kind:'vector';value:[number,number,number]}) | ({kind:'number';value:number});
+export type WorldSceneBindingsInput = Record<string, WorldSceneBindingRowsInput>;
+export type WorldSceneBindings = Record<string, WorldSceneBindingRows>;
+export type NumericPoseProgramRowsInput = { id: string; numeric: { group: string; outputs: ({ property: ClientChannelPropertyInput; target: string; path: (string)[]; restore?: boolean; nullable?: boolean; })[]; inputs?: (NumericPoseInputRowsInput)[] | undefined; restoreOnly?: ({ property: ClientChannelPropertyInput; target: string; path: (string)[]; restore?: boolean; nullable?: boolean; })[] | undefined; }; } & { geometry?: { kind: 'tubeCurve'; target: string; segments: number; radial: number; from: [number, number, number]; to: [number, number, number]; extent: number; wave: number; bend: [number, number]; ripple: [number, number, number]; drop: [number, number]; radius: [number, number, number, number, number]; }; connectors?: ({ target: string; from: [number, number, number]; to: [number, number, number]; at?: [number, number, number]; scale: [number, number, number]; enabled: number; aim?: [number, number, number]; turn?: { axis: [number, number, number]; radians: number; alternate: boolean; }; instances?: { start: number; capacity: number; pitch?: number; }; cache?: number; })[]; prompt?: { id: string; label: string; radius: number; at: [number, number, number]; action: ({ kind: 'named'; name: string; }) | ({ kind: 'socketLift'; edge: 'north' | 'east' | 'south' | 'west'; action: 1 | 2 | 3; }); }; bindings?: ({ property: ClientChannelTransformInput; target: string; order?: 'XYZ' | 'YXZ' | 'ZXY' | 'ZYX' | 'YZX' | 'XZY'; })[]; mover?: string; reads: (string)[]; locals?: ({ initial: ({ op: 'constant'; value: number; }) | ({ op: 'read'; index: number; }); next: number; })[]; nodes: (({ op: 'constant'; value: number; }) | ({ op: 'clock'; value: 'time' | 'delta'; }) | ({ op: 'read'; index: number; }) | ({ op: 'local'; index: number; }) | ({ op: 'neg' | 'sin' | 'cos' | 'sqrt' | 'abs'; a: number; }) | ({ op: 'add' | 'sub' | 'mul' | 'div' | 'mod' | 'min' | 'max' | 'atan2' | 'hypot' | 'gt' | 'pow'; a: number; b: number; }) | ({ op: 'hypot3'; a: number; b: number; c: number; }) | ({ op: 'sample'; a: number; interpolation: 'linear' | 'smoothstep'; keys: ([number, number])[]; }) | ({ op: 'select'; test: number; yes: number; no: number; }))[]; channels: ({ property: ClientChannelPropertyInput; value: number; })[]; };
+export type NumericPoseProgramRows = { id: string; numeric: { group: string; outputs: ({ property: ClientChannelProperty; target: string; path: (string)[]; restore?: boolean; nullable?: boolean; })[]; inputs: (NumericPoseInputRows)[]; restoreOnly: ({ property: ClientChannelProperty; target: string; path: (string)[]; restore?: boolean; nullable?: boolean; })[]; }; } & { geometry?: { kind: 'tubeCurve'; target: string; segments: number; radial: number; from: [number, number, number]; to: [number, number, number]; extent: number; wave: number; bend: [number, number]; ripple: [number, number, number]; drop: [number, number]; radius: [number, number, number, number, number]; }; connectors?: ({ target: string; from: [number, number, number]; to: [number, number, number]; at?: [number, number, number]; scale: [number, number, number]; enabled: number; aim?: [number, number, number]; turn?: { axis: [number, number, number]; radians: number; alternate: boolean; }; instances?: { start: number; capacity: number; pitch?: number; }; cache?: number; })[]; prompt?: { id: string; label: string; radius: number; at: [number, number, number]; action: ({ kind: 'named'; name: string; }) | ({ kind: 'socketLift'; edge: 'north' | 'east' | 'south' | 'west'; action: 1 | 2 | 3; }); }; bindings?: ({ property: ClientChannelTransform; target: string; order?: 'XYZ' | 'YXZ' | 'ZXY' | 'ZYX' | 'YZX' | 'XZY'; })[]; mover?: string; reads: (string)[]; locals?: ({ initial: ({ op: 'constant'; value: number; }) | ({ op: 'read'; index: number; }); next: number; })[]; nodes: (({ op: 'constant'; value: number; }) | ({ op: 'clock'; value: 'time' | 'delta'; }) | ({ op: 'read'; index: number; }) | ({ op: 'local'; index: number; }) | ({ op: 'neg' | 'sin' | 'cos' | 'sqrt' | 'abs'; a: number; }) | ({ op: 'add' | 'sub' | 'mul' | 'div' | 'mod' | 'min' | 'max' | 'atan2' | 'hypot' | 'gt' | 'pow'; a: number; b: number; }) | ({ op: 'hypot3'; a: number; b: number; c: number; }) | ({ op: 'sample'; a: number; interpolation: 'linear' | 'smoothstep'; keys: ([number, number])[]; }) | ({ op: 'select'; test: number; yes: number; no: number; }))[]; channels: ({ property: ClientChannelProperty; value: number; })[]; };
+export type NumericPoseProgramsInput = (NumericPoseProgramRowsInput)[];
+export type NumericPosePrograms = (NumericPoseProgramRows)[];
+export interface NumericPoseRowsInput { programs: NumericPoseProgramsInput; group: string; states?: (string)[] | undefined; look?: [number, number, number]; squash?: string; variant?: string; alive?: boolean; scalars?: ({ name: string; path: (['t' | 'seed' | 'speed' | 'strafe' | 'phase' | 'attack' | 'brace' | 'flinch' | 'deathT']) | (['mem', string]) | (['dims', 'bodyY' | 'bodyHalfLen' | 'bodyRadius' | 'headRadius' | 'legLen' | 'halfWidth' | 'bodyPitch']); fallback?: number; })[] | undefined; }
+export interface NumericPoseRows { programs: NumericPosePrograms; group: string; states: (string)[]; look?: [number, number, number]; squash?: string; variant?: string; alive?: boolean; scalars: ({ name: string; path: (['t' | 'seed' | 'speed' | 'strafe' | 'phase' | 'attack' | 'brace' | 'flinch' | 'deathT']) | (['mem', string]) | (['dims', 'bodyY' | 'bodyHalfLen' | 'bodyRadius' | 'headRadius' | 'legLen' | 'halfWidth' | 'bodyPitch']); fallback?: number; })[]; }
