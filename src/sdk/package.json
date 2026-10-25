@@ -9,6 +9,9 @@
     "./dist/*/**/*"
   ],
   "exports": {
+    "./bake/placement": "./bake/placement.ts",
+    "./bake/annulus": "./bake/annulus.ts",
+    "./noise": "./noise.ts",
     "./bake/groundMap": "./bake/groundMap.ts",
     "./bake/mapAssembly": "./bake/mapAssembly.ts",
     "./bake/species": "./bake/species.ts",
@@ -172,6 +175,18 @@
   },
   "publishConfig": {
     "exports": {
+      "./bake/placement": {
+        "types": "./dist/types/sdk/bake/placement.d.ts",
+        "default": "./dist/bake/placement.js"
+      },
+      "./bake/annulus": {
+        "types": "./dist/types/sdk/bake/annulus.d.ts",
+        "default": "./dist/bake/annulus.js"
+      },
+      "./noise": {
+        "types": "./dist/types/sdk/noise.d.ts",
+        "default": "./dist/noise.js"
+      },
       "./bake/groundMap": {
         "types": "./dist/types/sdk/bake/groundMap.d.ts",
         "default": "./dist/bake/groundMap.js"

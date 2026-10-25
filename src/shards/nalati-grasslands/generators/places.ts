@@ -1,15 +1,14 @@
 import dungeonLayout from '../data/kurganLayout.generated.json' with { type: 'json' };
-import { annulus } from '@wildshard/engine/fx/groundFx';
+import { annulus } from '@wildshard/sdk/bake/annulus';
 import { finGeometry, ribGeometry, towerGeometry, type CragKind } from './cragGeometry';
 import peopleFallbackFrames from '../data/peopleFrames.json' with { type: 'json' };
 import type { DressPlan } from './dressingPlan';
 import * as THREE from 'three';
 import { paramsOf, type ModelDef, type ModelBuild, type ModelContext, type Placement } from '@wildshard/engine/models/model';
-import { setTerrainHeight } from '@wildshard/engine/world/terrainHeight';
-import { bakedSamplers, parseBakedTerrain } from '@wildshard/engine/world/BakedTerrain';
+import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
 import { PaintKit, M, v3 } from './paint';
 import { pole, lathe, blob, mergeVerticesByPos } from './smoothGeometry';
-import type { ColliderDesc } from '@wildshard/engine/world/registry';
+import { specimenKey, type ColliderDesc, type Draw, type BoxSpec as Collider } from '@wildshard/sdk/bake/placement';
 import { graniteBlock } from './granite';
 import { painted, paintedSpecimen, isPainted, rememberPainted, type Paint, type PaintCtx, type Made, type Kit, type PaintAt } from './painted';
 import { cragLedgeFloor, leopardCaveFloor, kurganEntranceFloor, generatedBounds, instanceTris, type MemberData, type InstanceData, type GeneratedSpec } from './placement';
@@ -18,8 +17,6 @@ import { CAMP, CORRAL, HITCHING_RAIL, SUMMER_CAMP, BRIDGE, EAGLE_ROCK, WIND_CAIR
 import { boxDescs, prism, slab, supportHull, type Box } from './solid';
 import { placementMatrix } from './modelPlacement';
 import type { ModelPlacement, NalatiModelName } from '../data/modelTypes';
-import type { Draw } from '@wildshard/engine/models/place';
-import { specimenKey } from '@wildshard/game/models/specimenCatalogue';
 import { torFloor, type PlaceFloorRow, type DressingGeoRow, type EffectRow, type MemberRow, type PlaceMeshRow, type PlaceRow, type SpecimenRow } from './placeRows';
 import { EAGLE_PERCH_H, ribbonPolePainted, eaglePerchPainted, stovePainted, campBenchPainted, rugRackPainted, feltRugPainted, cartPainted, barrelPainted, hitchingRailPainted, waterTroughPainted, saddleRackPainted, corralPainted, hayPilePainted, feedTroughPainted, rugLinePainted, choppingBlockPainted, milkCansPainted, tetherLinePainted, kurtBoardPainted, ribbonPostPainted, graniteOutcropPainted, roundedBoulderPainted, fencePainted, fallenLogPainted, stumpPainted, ovooPainted, viewpointPolePainted, skyGatewayPainted, campClutterPainted, kokparGoalPainted, kokparPostPainted, stoneStepPainted, signpostPainted, fenceRun, logEnds, type RockTint } from './campProps';
 import { eagleRock, windCairn, cragLedge, leopardCave, kurganEntrance, kurganKerb, fieldstoneBaked, kazan, chest, firewood, kumisChurn, groundSaddle, perchedEagle, watchtower, saddledHorse, kokparRider } from './catalogue';
@@ -32,9 +29,7 @@ import { LEOPARD_CAVE, ARGYMAQ_PASTURE, SNOW_LOTUS, WATCHTOWER, KOKPAR, PASTURE,
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Rng } from '@wildshard/engine/core/rng';
 import { inPoiClearing,zoneAt,glacierMask,brookMask,riverMask,rimZAt,RIVER,outcropAt,edgeBermAt } from './terrainRecipe';
-import { CHUNK_HALF } from '@wildshard/engine/core/config';
-import { Noise2D, smoothstep } from '@wildshard/engine/core/noise';
-import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
+import { Noise2D, smoothstep } from '@wildshard/sdk/noise';
 import { normalAt, trailDistance } from '@wildshard/engine/world/Heightfield';
 
 
@@ -173,6 +168,8 @@ export class NalatiSet {
 
 }
 
+// Authored 500 m Nalati cell footprint; native construction pins its complete geometry.
+const CHUNK_HALF = 250;
 const FLIP = Math.PI;
 const towerSize = generatedBounds('watchtower').getSize(new THREE.Vector3());
 const kazanPlaced: ModelDef<object> = { ...kazan, build: generated({
@@ -1021,10 +1018,10 @@ const memberRow = (m: MemberData, headings?: readonly (readonly [number, number]
 });
 
 /** every painted model the places paint, for its Explorer specimens (its defaults, then each variant) */
-function specimenJobs(): ((blocks: Uint8Array[]) => SpecimenRow[])[] {
+function specimenJobs(ground: Ground): ((blocks: Uint8Array[]) => SpecimenRow[])[] {
   const job = <P extends object>(def: ModelDef<P>) => (blocks: Uint8Array[]): SpecimenRow[] => [undefined, ...(def.variants ?? []).map((v) => v.id)].map((variant) => {
     const params = paramsOf(def, variant, undefined);
-    const parts = paintedSpecimen(def, params).map(({ geometry, layer }, slot): PlaceMeshRow => ({ name: '', material: layer ?? 'poi', slot, geometry: writeGeometry(geometry, blocks, `${def.id} specimen`) }));
+    const parts = paintedSpecimen(def, params, ground).map(({ geometry, layer }, slot): PlaceMeshRow => ({ name: '', material: layer ?? 'poi', slot, geometry: writeGeometry(geometry, blocks, `${def.id} specimen`) }));
     return { key: specimenKey(def.id, params), parts };
   });
   return [job(yurtPainted), job(kunesBridgePainted), job(ribbonPolePainted), job(eaglePerchPainted), job(stovePainted), job(campBenchPainted),
@@ -1045,7 +1042,6 @@ const nativeSpecimenScope: SpecimenScope = (build) => build();
  * the dressing's scatter shapes (their own binary, `dressing.bin`).
  */
 export function bakeNalatiPlaces(ground: Ground, specimenScope: SpecimenScope = nativeSpecimenScope, dressing?: { readonly plan: DressPlan; readonly clutter: ClutterSpots }): { places: PlacesBake<PlaceRow>; specimens: PlacesBake<SpecimenRow>; dressing: PlacesBake<DressingGeoRow> } {
-  setTerrainHeight(ground);
   const blocks: Uint8Array[] = [];
   const rows = [nomadCamp, bridge, summerCamp, eagleRockPlace, cairnPlace, kurgansPlace, cragsPlace, roadsPlace, watchtowerPlace, kokparPlace, (ctx: PaintCtx) => finishBuild(outcropsPlace(ctx)), (ctx: PaintCtx) => finishBuild(dressingStatics(ctx, dressingInput(dressing).plan)), (ctx: PaintCtx) => finishBuild(dressingClutter(ctx, dressingInput(dressing).clutter))].map((build): PlaceRow => {
     const effects: EffectRow[] = [];
@@ -1075,16 +1071,15 @@ export function bakeNalatiPlaces(ground: Ground, specimenScope: SpecimenScope = 
   const places = { rows, bin: join(blocks) };
   const specimenBlocks: Uint8Array[] = [];
   // Native V8 trig differs on arm64/x64; even a final float32 UV can cross its rounding midpoint.
-  const specimens = specimenScope(() => specimenJobs().flatMap((run) => run(specimenBlocks)));
+  const specimens = specimenScope(() => specimenJobs(ground).flatMap((run) => run(specimenBlocks)));
   // the dressing's scatter shapes (generators/dressingGeos.ts): ground-free, indexed, kept as built
   return { places, specimens: { rows: specimens, bin: join(specimenBlocks) }, dressing: bakeDressing() };
 }
 
 /** the bake over the page's baked terrain grid (public/assets/baked/nalati-grasslands/terrain.bin), as the page samples it */
 export function bakeNalatiPlacesOnTerrain(terrain: ArrayBuffer, specimenScope: SpecimenScope = nativeSpecimenScope, dressing?: { readonly plan: DressPlan; readonly clutter: ClutterSpots }): ReturnType<typeof bakeNalatiPlaces> {
-  const grid = parseBakedTerrain(terrain);
-  if (grid === null) throw new Error('[nalati places] no Nalati terrain grid');
-  return bakeNalatiPlaces(bakedSamplers(grid).heightAt, specimenScope, dressing);
+  const source = readNativeTerrain(new Uint8Array(terrain));
+  return bakeNalatiPlaces(source.heightAt, specimenScope, dressing);
 }
 
 function watchtowerPlace(ctx: PaintCtx): BuiltPlace {

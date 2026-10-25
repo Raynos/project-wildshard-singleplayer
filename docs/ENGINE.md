@@ -3353,6 +3353,15 @@ initialization and any later identity addition require exact coordinator approva
 Trusted transition code in `runtime/` keeps legacy public engine/game/kit access; build-time generators never ship.
 The SDK cannot import shard content. Each module owns its exports; there is no barrel.
 
+Build-only `@wildshard/sdk/noise` defines seeded simplex noise, `fbm`,
+`ridged`, `smoothstep`, `clamp` and `lerp`. Its arithmetic is fenced against
+native noise; it installs no terrain or runtime services.
+`@wildshard/sdk/bake/annulus` defines horizontal ring geometry with the native
+vertex, UV and index order. `@wildshard/sdk/bake/placement` owns the authored
+`ColliderDesc`, `BoxSpec`, `Draw` and contact tags plus the ordered-JSON
+`specimenKey`. Compile-time parity checks keep those author contracts equal
+to the native registry/model data without importing their runtime owners.
+
 `src/engine/models/ownedGeometry.ts` defines `createOwnedGeometry(url, channels?)`:
 an explicit owned-template intake for a single identity-space offline GLB.
 `load(bytes?)` deduplicates fetch/parse, or clones an explicitly supplied

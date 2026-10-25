@@ -4,7 +4,6 @@ import type { ModelBuild, ModelContext, ModelDef } from '@wildshard/engine/model
 import type { BoxSpec } from '@wildshard/engine/physics/box';
 import type { Material } from '@wildshard/engine/physics/surface';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
-import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import type { Board } from './campParams';
 import { PaintKit, v3, type ColorLike, type FinishOpts, type Painter, type PaintOpts, type NalatiTexName } from './paint';
 
@@ -61,11 +60,11 @@ const ORIGIN: PaintAt = { x: 0, y: 0, z: 0, yaw: 0 };
 
 /** a painted specimen's geometry: one copy on a kit of its own, moved to the origin, each with its textured layer (null:
  *  the POI material) — `painted`'s build without its materials (the places bake's specimens, generators/places.ts) */
-function specimenParts<P extends object>(paint: Paint<P>, spec: PaintSpec, build: object, p: P): { geometry: THREE.BufferGeometry; layer: NalatiTexName | null }[] {
+function specimenParts<P extends object>(paint: Paint<P>, spec: PaintSpec, build: object, p: P, fittedGround: Ground): { geometry: THREE.BufferGeometry; layer: NalatiTexName | null }[] {
   const first = spec.fitted === true ? firsts.get(build) : undefined;
   const at = first?.at ?? ORIGIN;
   const params: P = first ? { ...p, ...first.p } : p;
-  const ground: Ground = first ? (x, z) => heightAt(x, z) : () => at.y;
+  const ground: Ground = first ? fittedGround : () => at.y;
   const kit = new PaintKit(spec.seed);
   paint(kit, at, params, { ground, flutter: { streamer: () => undefined, flag: () => undefined, strip: () => undefined }, smoke: { emitter: () => undefined } });
   const o: FinishOpts = { ...spec.finish, ground };
@@ -86,10 +85,10 @@ export function painted<P extends object>(paint: Paint<P>, spec: PaintSpec): Pai
 }
 
 /** a painted model's specimen geometry for `p` (its build's parts without materials); refuses any other model */
-export function paintedSpecimen<P extends object>(def: ModelDef<P>, p: P): { geometry: THREE.BufferGeometry; layer: NalatiTexName | null }[] {
+export function paintedSpecimen<P extends object>(def: ModelDef<P>, p: P, ground: Ground): { geometry: THREE.BufferGeometry; layer: NalatiTexName | null }[] {
   const b = def.build;
   if (!isPainted(b)) throw new Error(`paintedSpecimen: ${def.id} is not a painted model`);
-  return specimenParts(b.paint, b.spec, b, p);
+  return specimenParts(b.paint, b.spec, b, p, ground);
 }
 
 
