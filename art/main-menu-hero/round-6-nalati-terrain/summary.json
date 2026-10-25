@@ -1,0 +1,214 @@
+{
+  "source": "0ce626a8f5d5b0f9a96d6275e8ef446e05a83898",
+  "baseline": "1138f0564cf53b57f293cc02eddaac9adc888361",
+  "camera": {
+    "eye": [
+      805,
+      520,
+      0
+    ],
+    "target": [
+      0,
+      0,
+      0
+    ],
+    "lenses": [
+      62,
+      43
+    ]
+  },
+  "tier": "desktop",
+  "muted": true,
+  "shippedImagesReplaced": false,
+  "captures": [
+    {
+      "phase": "before",
+      "build": "1138f05-mvndi2ta",
+      "session": "1440x1440",
+      "complete": true,
+      "cameraWorld": [
+        805,
+        520,
+        0
+      ],
+      "direction": [
+        -0.8399898376135326,
+        -0.5426021311292385,
+        -2.2204460492503136e-16
+      ],
+      "fov": 62,
+      "entered": {
+        "instance": "nalati-grasslands",
+        "current": "nalati-grasslands",
+        "inside": "nalati-grasslands",
+        "feet": {
+          "x": 772.9999984422935,
+          "y": 0.018799999277689494,
+          "z": -2.7315991089557623e-07
+        },
+        "tiles": {
+          "l0": 18,
+          "l1": 0,
+          "sim": 2,
+          "rings": {
+            "frame": 1135,
+            "far": 25,
+            "l1": 16,
+            "l0": 22,
+            "refused": 0,
+            "inFlight": 0,
+            "queued": 0,
+            "ghosts": {
+              "count": 0,
+              "tiles": []
+            }
+          },
+          "ringsReady": true
+        }
+      },
+      "nalati": {
+        "instance": "nalati-grasslands",
+        "slug": "nalati-grasslands",
+        "cell": [
+          1,
+          0
+        ],
+        "shows": "playing",
+        "drawn": {
+          "far": true,
+          "near": false,
+          "l1": 0,
+          "l0": 18
+        }
+      },
+      "errors": [],
+      "consoleErrors": []
+    },
+    {
+      "phase": "after",
+      "build": "0ce626a-mvne9q1v",
+      "session": "1440x1440",
+      "complete": true,
+      "cameraWorld": [
+        805,
+        520,
+        0
+      ],
+      "direction": [
+        -0.8399898376135326,
+        -0.5426021311292385,
+        -2.2204460492503136e-16
+      ],
+      "fov": 62,
+      "entered": {
+        "instance": "nalati-grasslands",
+        "current": "nalati-grasslands",
+        "inside": "nalati-grasslands",
+        "feet": {
+          "x": 772.9999984238806,
+          "y": 0.014799999400565866,
+          "z": -2.8713058336168884e-07
+        },
+        "tiles": {
+          "l0": 18,
+          "l1": 0,
+          "sim": 2,
+          "rings": {
+            "frame": 1160,
+            "far": 25,
+            "l1": 16,
+            "l0": 22,
+            "refused": 0,
+            "inFlight": 0,
+            "queued": 0,
+            "ghosts": {
+              "count": 0,
+              "tiles": []
+            }
+          },
+          "ringsReady": true
+        }
+      },
+      "nalati": {
+        "instance": "nalati-grasslands",
+        "slug": "nalati-grasslands",
+        "cell": [
+          1,
+          0
+        ],
+        "shows": "playing",
+        "drawn": {
+          "far": true,
+          "near": false,
+          "l1": 0,
+          "l0": 18
+        }
+      },
+      "errors": [],
+      "consoleErrors": []
+    },
+    {
+      "phase": "after",
+      "build": "0ce626a-mvne9q1v",
+      "session": "1920x1080",
+      "complete": true,
+      "cameraWorld": [
+        805,
+        520,
+        0
+      ],
+      "direction": [
+        -0.8399898376135326,
+        -0.5426021311292385,
+        -2.2204460492503136e-16
+      ],
+      "fov": 43,
+      "entered": {
+        "instance": "nalati-grasslands",
+        "current": "nalati-grasslands",
+        "inside": "nalati-grasslands",
+        "feet": {
+          "x": 772.9999984210366,
+          "y": 0.015299999380658846,
+          "z": -2.86851277158523e-07
+        },
+        "tiles": {
+          "l0": 18,
+          "l1": 0,
+          "sim": 2,
+          "rings": {
+            "frame": 1230,
+            "far": 25,
+            "l1": 16,
+            "l0": 22,
+            "refused": 0,
+            "inFlight": 0,
+            "queued": 0,
+            "ghosts": {
+              "count": 0,
+              "tiles": []
+            }
+          },
+          "ringsReady": true
+        }
+      },
+      "nalati": {
+        "instance": "nalati-grasslands",
+        "slug": "nalati-grasslands",
+        "cell": [
+          1,
+          0
+        ],
+        "shows": "playing",
+        "drawn": {
+          "far": true,
+          "near": false,
+          "l1": 0,
+          "l0": 18
+        }
+      },
+      "errors": [],
+      "consoleErrors": []
+    }
+  ]
+}
