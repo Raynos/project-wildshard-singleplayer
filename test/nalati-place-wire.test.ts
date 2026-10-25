@@ -58,16 +58,18 @@ test('the authoring wire bundles without publication or runtime services', async
   expect(() => assertConfigBoundary([...chunk.imports, 'node:fs'])).toThrow('must use injected build capabilities');
 });
 
-for (const omitWire of [true, false]) {
-  test(`the native dressing adapter ${omitWire ? 'refuses the omitted wire producer' : 'keeps all original registered outputs'}`, async () => {
+for (const omission of ['wire', 'geometry', null] as const) {
+  test(`the native dressing adapter ${omission === null ? 'keeps all original registered outputs' : `refuses the omitted ${omission} producer`}`, async () => {
     const root = resolve('.'), job = discoverGeneration(root).jobs.find(row => row.id === 'nalati-dressing');
     if (job === undefined) throw new Error('Missing native dressing producer');
     const wire = 'src/shards/nalati-grasslands/generators/placeWire.ts';
-    expect(job.inputRoots).toContain(wire);
+    const geometry = 'src/shards/nalati-grasslands/generators/dressingGeometryRows.ts';
+    expect(job.inputRoots).toContain(wire); expect(job.inputRoots).toContain(geometry);
     const cacheDir = mkdtempSync(resolve('tmp', 'nalati-wire-stage-'));
     try {
-      if (omitWire) {
-        const descriptor = { ...job, inputRoots: job.inputRoots.filter(file => file !== wire) };
+      if (omission !== null) {
+        const absent = omission === 'wire' ? wire : geometry;
+        const descriptor = { ...job, inputRoots: job.inputRoots.filter(file => file !== absent) };
         const catalogPath = relative(root, resolve(cacheDir, 'omitted.json'));
         const catalog = v.parse(v.object({ schema: v.string(), notice: v.string(), jobs: v.array(v.unknown()) }),
           JSON.parse(readFileSync('scripts/generation-jobs.json', 'utf8')));

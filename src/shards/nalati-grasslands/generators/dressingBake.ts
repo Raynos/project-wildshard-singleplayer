@@ -1,9 +1,8 @@
 /** Nine dressing models, thirteen tier variants, authored as named three.js meshes. */
-import { BufferGeometry, Mesh, Scene } from 'three';
+import { Mesh, Scene } from 'three';
 import { PainterlyMaterial } from '@wildshard/sdk/materials';
 import { readScene } from '@wildshard/sdk/scene';
 import { DRESSING_GEOS } from './dressingGeos';
-import { join, writeGeometry, type PlaceGeometryRow } from './geometryWriter';
 
 /** Build the native dressing variants at the same origin, scale and recipe seeds. */
 export function dressingScene(): Scene {
@@ -18,20 +17,6 @@ export function dressingScene(): Scene {
     scene.add(mesh);
   }
   return scene;
-}
-
-function isGeometry(value: unknown): value is BufferGeometry { return value instanceof BufferGeometry; }
-
-/** Emit the exact binary read by the native page and its Model Explorer. */
-export function bakeDressing(): { readonly rows: readonly { readonly key: string; readonly geometry: PlaceGeometryRow }[]; readonly bin: Uint8Array } {
-  const blocks: Uint8Array[] = [], scene = dressingScene();
-  const rows = scene.children.map(child => {
-    if (!(child instanceof Mesh)) throw new Error('Nalati dressing must be named Mesh declarations');
-    const geometry: unknown = child.geometry;
-    if (!isGeometry(geometry)) throw new Error('Nalati dressing requires BufferGeometry');
-    return { key: child.name, geometry: writeGeometry(geometry, blocks, `dressing ${child.name}`) };
-  });
-  return { rows, bin: join(blocks) };
 }
 
 /** The same named geometry and material declarations in the standard scene.json format. */

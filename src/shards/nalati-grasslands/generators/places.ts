@@ -23,7 +23,7 @@ import { eagleRock, windCairn, cragLedge, leopardCave, kurganEntrance, kurganKer
 import { yurtPainted } from './yurt';
 import { kunesBridgePainted } from './kunesBridge';
 import { yardGeometry, wearDisc, wearPath } from './yard';
-import { bakeDressing } from './dressingBake';
+import { bakeDressing } from './dressingGeometryRows';
 import { writeGeometry, join } from './geometryWriter';
 import { LEOPARD_CAVE, ARGYMAQ_PASTURE, SNOW_LOTUS, WATCHTOWER, KOKPAR, PASTURE, HORSE_PLAINS, SUMMER_YURTS, RIM_N as RIM_Z, MELT_STREAM as BROOK } from './layout';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
