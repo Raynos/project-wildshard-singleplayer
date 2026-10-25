@@ -2,9 +2,9 @@
   "why": "Nine Dragon's map as its floors seen from above (G252, Jake's pick B): the stack's towers rise far over the playable levels and from straight up their roofs and the bridge blocks hide the square, the stair-street and the street, so the bake clips everything above 153 m (just over the deck at Y0 + 24) and the cut towers drop out; what is left is granite floors in cool greys, the plaza's cinnabar neon picked out, every change of level inked, the Well's drop dark with a blue lip, and the void transparent so the map's own dark frame shows through (as Sky Reach); the Well's dark water is only the Well (\"within\" its rectangle, layout.ts WELL plus 6 m): the road's four portal decks stand at road height, far under the 100 m water line, and were painted as water, black on the dark frame (SF66)",
   "inputs": [
     "generators",
-    "data/mapAssembly.generated.json",
-    "data/mapAssembly.generated.bin",
-    "../../../scripts/map-assembly.mjs",
+    "data",
+    "../../../public/assets/nine-dragon/lab",
+    "../../../scripts/map-geometry.mjs",
     "../../../scripts/map-scenes.mjs",
     "../../../scripts/map-painter.mjs",
     "../../../scripts/bake-data-maps.mjs"
@@ -86,15 +86,12 @@
   "painter": {
     "version": 1,
     "job": "nine-data-map",
-    "prerequisites": [
-      "nine-map-assembly"
-    ],
     "scenes": {
       "packs": [
         {
-          "file": "data/mapAssembly.generated.bin",
+          "file": "map/geometry.bin",
           "rows": {
-            "file": "data/mapAssembly.generated.json",
+            "file": "map/assembly.json",
             "path": [
               "pack"
             ]
@@ -107,7 +104,7 @@
       ],
       "recipes": [
         {
-          "file": "data/mapAssembly.generated.json",
+          "file": "map/assembly.json",
           "path": [
             "scene"
           ]

@@ -1,5 +1,6 @@
 {
   "DECK": {
+    "opening": 8,
     "depth": 16,
     "slab": 1.2,
     "railT": 0.6,

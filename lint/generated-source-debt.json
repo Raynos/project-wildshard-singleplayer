@@ -1862,8 +1862,6 @@
     "src/shards/nine-dragon-stack/data/glyphs-desktop-3.bin",
     "src/shards/nine-dragon-stack/data/glyphs-phone-0.bin",
     "src/shards/nine-dragon-stack/data/glyphs.generated.json",
-    "src/shards/nine-dragon-stack/data/mapAssembly.generated.bin",
-    "src/shards/nine-dragon-stack/data/mapAssembly.generated.json",
     "src/shards/nine-dragon-stack/data/signAtlas-desktop-colour.ktx2",
     "src/shards/nine-dragon-stack/data/signAtlas-desktop-mono.ktx2",
     "src/shards/nine-dragon-stack/data/signAtlas-desktop.bin",

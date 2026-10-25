@@ -122,5 +122,3 @@ export async function nineMapFiles() {
     return new Map([['map/assembly.json', json], ['map/geometry.bin', binary]]);
   } finally { for (const shape of assembly.shapes) { shape.geometry.dispose(); shape.material.dispose(); } }
 }
-
-if (import.meta.main) { const { assembly } = await nineMapAssembly(); assembly.write(resolve(base, 'data/mapAssembly.generated')); }

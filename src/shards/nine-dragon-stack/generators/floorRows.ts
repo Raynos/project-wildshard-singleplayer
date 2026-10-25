@@ -8,14 +8,14 @@
 // ENTRY_WIDTH (8 m) wide and DECK_DEPTH (16 m) deep, its top exactly at y = 0, so the platform's 8 × 15 m asphalt socket
 // lies on it flat, clear and dry. Low parapets stand just outside the 8 m opening (the canonical side walls the
 // footprint admits), and an end wall closes each deck.
-import { ENTRY_WIDTH, CHUNK_HALF } from '@wildshard/engine/core/config';
+import plan from '../data/layoutPlan.json' with { type: 'json' };
 import { type EdgeFrame, type FrameBox as DeckBox, deckParts as sdkDeckParts, edgeFrame, inFrame as sdkInFrame, spanCollider } from './edgeDecks';
 import decks from './decks.json' with { type: 'json' };
 
 const { DECK, DECK_CAP } = decks;
 
 /** half the deck's opening: the canonical ENTRY_WIDTH (8 m) entry, centred on the edge's midpoint */
-export const OPENING_HALF = ENTRY_WIDTH / 2;
+export const OPENING_HALF = DECK.opening / 2;
 /** how deep each deck runs in from the edge (generators/decks.json) */
 export const DECK_DEPTH = DECK.depth;
 /** a floor slab's thickness under its top (the decks' and the fragment's floors) */
@@ -30,7 +30,7 @@ export type Frame = EdgeFrame;
 /** an axis-aligned box in a deck's frame (its centre, size and vertical extent) */
 export type FrameBox = DeckBox;
 /** the four decks' frames, north, south, east, west */
-export const FRAMES: readonly Frame[] = (['north', 'south', 'east', 'west'] as const).map((edge) => edgeFrame(edge, CHUNK_HALF));
+export const FRAMES: readonly Frame[] = (['north', 'south', 'east', 'west'] as const).map((edge) => edgeFrame(edge, plan.CELL_HALF));
 /** an axis-aligned box in a deck's frame: `a0..a1` metres in from the edge, `c0..c1` across, `y0..y1` up */
 export const inFrame: typeof sdkInFrame = sdkInFrame;
 /** each deck's parts: the slab, the two parapets just outside the opening, the end wall past the socket */
