@@ -15,6 +15,9 @@ import { chromiumProcessPeaks, ownedResidencyBytes } from './grid-ready-memory.m
 
 const argument = (name, fallback = '') => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3) ?? fallback;
 const base = argument('base'), pin = argument('pin'), out = argument('out'), instance = argument('instance', 'open-plot-nw');
+const milestone = argument('milestone', 'RM2');
+if (!['RM2', 'RM3'].includes(milestone)) throw new Error('Invalid dome milestone');
+const label = milestone === 'RM2' ? 'RM2 BASELINE' : 'RM3 KIT PARITY';
 if (!base || !/^[a-f0-9]{40}$/u.test(pin) || !out) throw new Error('Requires --base, full --pin and --out');
 const selected = argument('domes', 'A1,A2,D1,D2').split(',');
 if (selected.some(value => !/^[A-D][12]$/u.test(value)) || new Set(selected).size !== selected.length) throw new Error('Invalid dome selection');
@@ -25,7 +28,7 @@ const plans = readdirSync(source, { withFileTypes: true }).filter(row => row.isD
 if (plans.length !== selected.length) throw new Error('Missing committed dome manifest');
 const version = await (await fetch(new URL('/version.json', base))).json();
 if (!version.build?.startsWith(pin.slice(0, 7))) throw new Error('Served SHA differs');
-const report = { source: pin, version, instance, protocol: {
+const report = { source: pin, version, instance, milestone, protocol: {
   device: 'iPhone 16 Pro', tier: 'phone', renderScale: 2, viewport: [402, 603], horizontalFov: 62,
   framing: '2:3 portrait dome viewport; exact committed eye/look, physical anchor at its ground projection',
   scene: 'Shipping tiles and LOD; normal grid entry before an in-cell pose; existing freeCamera suspends fixed gameplay',
@@ -124,16 +127,16 @@ try {
         if (ownBytes <= 0) throw new Error('Missing Night Market residency claims');
         row.views.push({ n: view.n, name: view.name, requestedCamera: camera, sample, state, ownedResidencyBytes: ownBytes });
         await page.evaluate(text => { document.querySelector('#dome-caption').textContent = text; },
-          `RM2 BASELINE · ${plan.dome} · ${view.n} ${view.name} · ${pin.slice(0, 7)}\n${sample.maxCalls} draws · ${sample.maxTriangles} tris · ${(ownBytes / 1048576).toFixed(1)} MiB claims`);
+          `${label} · ${plan.dome} · ${view.n} ${view.name} · ${pin.slice(0, 7)}\n${sample.maxCalls} draws · ${sample.maxTriangles} tris · ${(ownBytes / 1048576).toFixed(1)} MiB claims`);
         await page.screenshot({ path: join(folder, `view-${view.n}.jpg`), type: 'jpeg', quality: 74, scale: 'css' });
         save();
       }
       row.pageProcessBytes = await processMemory(session);
-      const heading = `<svg width="1206" height="40"><rect width="1206" height="40" fill="#071521"/><text x="16" y="26" fill="white" font-family="sans-serif" font-size="18">RM2 BASELINE · ${plan.dome} · ${pin.slice(0, 7)} · phone 2× · whole-scene counts</text></svg>`;
+      const heading = `<svg width="1206" height="40"><rect width="1206" height="40" fill="#071521"/><text x="16" y="26" fill="white" font-family="sans-serif" font-size="18">${label} · ${plan.dome} · ${pin.slice(0, 7)} · phone 2× · whole-scene counts</text></svg>`;
       await sharp({ create: { width: 1206, height: 1849, channels: 3, background: '#071521' } }).composite([
         { input: Buffer.from(heading), left: 0, top: 0 },
         ...plan.views.map(view => ({ input: join(folder, `view-${view.n}.jpg`), left: ((view.n - 1) % 3) * 402, top: 40 + Math.floor((view.n - 1) / 3) * 603 })),
-      ]).jpeg({ quality: 72 }).toFile(join(folder, 'sheet-baseline-3x3.jpg'));
+      ]).jpeg({ quality: 72 }).toFile(join(folder, milestone === 'RM2' ? 'sheet-baseline-3x3.jpg' : 'sheet-kit-3x3.jpg'));
       row.complete = true; save();
       console.info(JSON.stringify({ dome: row.dome, complete: row.complete, pageProcessBytes: row.pageProcessBytes,
         maxCalls: Math.max(...row.views.map(view => view.sample.maxCalls)), maxTriangles: Math.max(...row.views.map(view => view.sample.maxTriangles)) }));
