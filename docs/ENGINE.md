@@ -1104,11 +1104,12 @@ reset a stall. Loader diagnostics omit reload history and identify observed
 frame-update gaps as including JS, GC, layout and suspension; they do not claim
 CPU utilisation. Home-region counts come from the actual regional world.
 
-`Loading.setPath(path, calibrations)` selects the path table and timing-history key
-(tier, path, identity). `boot/weights` blends measured baseline and local
-stage timings; a running stage uses its reported units, or eases toward its
-expected time share when no units are known,
-while `Loading.done()` grants completion and stores exclusive durations.
+`Loading.setPath(path, calibrations)` keys timing history by tier/path/identity.
+`boot/weights` blends baseline/local times, using reported units or easing.
+`Loading.done()` stores exclusive durations, then fades. Developer's saved
+`holdLoading` pick freezes completed clock/rows until PLAY: `holdRequested`
+gates gameplay; `playRequested` identifies PLAY. Public/scoped cell loads
+auto-fade; disposal before entry rejects completion.
 The application supplies its committed timing table with Simulator receipts; paths
 without measurements use the declared step weights as a fallback.
 

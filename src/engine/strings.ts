@@ -204,6 +204,8 @@ export const ENGINE_STRINGS = {
   "s_01d5aca1d51d": "R to reload",
   "s_a210214fc7c6": "Spent · R to span",
   "s_5fa7aac5375c": "Ready",
+  "s_loading_hold": "Hold at loading screen",
+  "s_loading_play": "PLAY",
   "s_ef2a15f49495": "Nocked",
   "s_d01476dfee7e": "Loaded",
   "s_a4b350a14964": "Reloading",

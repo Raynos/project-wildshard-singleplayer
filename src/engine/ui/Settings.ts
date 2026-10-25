@@ -29,7 +29,7 @@ import { saveStorage } from '../saves/slots';
 import { onOwnerDispose } from '../app/ownership';
 import { isDev, onDev } from '../core/devMode';
 
-export type SettingKey = 'aimAssist' | 'tracers' | 'haptics' | 'autoLock' | 'huntersEye';
+export type SettingKey = 'aimAssist' | 'tracers' | 'haptics' | 'autoLock' | 'huntersEye' | 'holdLoading';
 export type NumberKey = 'volume' | 'music' | 'look' | 'swingLook' | 'lockCam';
 export const MUSIC_STYLES = ['piano', 'orchestral', 'folk', 'synth'] as const;
 export type MusicStyle = (typeof MUSIC_STYLES)[number];
@@ -38,7 +38,8 @@ export type SfxSet = 'best' | 'synth';
 
 const STORE = 'settings';
 // autoLock: a kill re-locks the next enemy (E50); huntersEye: the bow's dotted drop arc while drawing (Nalati, src/engine/player/Bow.ts) — on by default on touch, off with a mouse
-const DEFAULTS: Record<SettingKey, boolean> = { aimAssist: true, tracers: true, haptics: true, autoLock: true, huntersEye: typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches };
+const DEFAULTS: Record<SettingKey, boolean> = { aimAssist: true, tracers: true, haptics: true, autoLock: true, huntersEye: typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches,
+  holdLoading: false }; // Developer-only completion hold; public entry ignores the saved pick.
 const NUM_DEFAULTS: Record<NumberKey, number> = { volume: 0.8, music: 0.7, look: 1, swingLook: 0.7, lockCam: 0.5 }; // lockCam: the lock-on camera, Follow 1 / Gentle 0.5 / Off 0 (E50: Jake picked Gentle)
 export const NUM_RANGE: Record<NumberKey, readonly [number, number]> = { volume: [0, 1], music: [0, 1], look: [0.5, 2], swingLook: [0.5, 2], lockCam: [0, 1] };
 const clampNum = (k: NumberKey, v: number) => Math.min(NUM_RANGE[k][1], Math.max(NUM_RANGE[k][0], v));

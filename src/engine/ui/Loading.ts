@@ -13,6 +13,10 @@ import { LoadingTimeline, installLoadingTimeline, type LoadingPath, type Loading
 import { LoadingStall } from '../boot/stall';
 import { combinedLoadingFraction, loadingExpectations, loadingFraction, type LoadingTimings, type LoadingTimingKey, type LoadingCalibration } from '../boot/weights';
 import { loadPathTimings, savePathTimings } from '../boot/pathTiming';
+import { isDev, onDev } from '../core/devMode';
+import { getSetting, onSetting } from './Settings';
+import { listenTap } from '../input/dom';
+import { withOwner } from '../app/ownership';
 import './loading.css';
 
 const savedStorage = saveStorage('session');
@@ -77,6 +81,8 @@ export class Loading {
   private expectations: () => LoadingTimings = () => ({});
   private configured = false;
   private finished = false;
+  private completion: Promise<void> | undefined;
+  private playPicked = false;
   private shownSetup = 0;
   private readonly admissionPhases = new Set<string>();
   private readonly paintedRows: (LoadingRow | LoadingGap)[] = [];
@@ -382,23 +388,70 @@ export class Loading {
   }
 
   /**
-   * Complete the path, store its exclusive stage times, paint completion, then fade and resolve when gone.
+   * Complete the path and preserve its exclusive stage times. Developer's hold
+   * keeps a completed initial load until PLAY; scoped cell loads still fade.
+   * Resolves only after the panel leaves, so every entry path uses the same gate.
    * it used to hold that for 350 ms and fade for 700 — a second of nothing between a built world and
    * the title menu, on every launch. The fade (loading.css) is 250 ms; the menu is live under it.
    */
   done(): Promise<void> {
+    if (this.completion !== undefined) return this.completion;
     this.finished = true; this.phase?.end(); this.phase = undefined;
     const measured = Object.fromEntries(this.timeline.snapshot().rows.filter(row => row.state !== 'todo').map(row => [row.key, row.ms]));
     savePathTimings(this.timingKey, measured, this.baseline);
     if (this.view !== null) this.paint(this.view);
     else this.dirty = true;
     this.paintNow();
-    return new Promise((resolve) => {
+    this.completion = this.holdRequested
+      ? this.waitForPlay().then(() => this.fade()) : this.fade();
+    return this.completion;
+  }
+
+  private waitForPlay(): Promise<void> {
+    // Freeze the elapsed clock and completed rows, not the game's draw loop.
+    this.tickClock(); this.scope.cancelRaf(this.raf);
+    this.root.dataset['ready'] = 'true';
+    const play = document.createElement('button');
+    play.type = 'button'; play.className = 'ws-load-play'; play.textContent = engineString('s_loading_play');
+    const panel = this.root.querySelector('.ws-load-panel');
+    if (panel === null) throw new Error('Loading: missing completed panel');
+    panel.append(play);
+    return new Promise<void>((resolve, reject) => {
+      let waiting = true;
+      const proceed = (playRequested = false): void => {
+        if (!waiting || this.scope.disposed || this.scope.disposing) return;
+        this.playPicked = playRequested;
+        waiting = false; play.disabled = true;
+        delete this.root.dataset['ready']; resolve();
+      };
+      listenTap(this.scope, play, () => { proceed(true); });
+      withOwner(this.scope, () => {
+        this.scope.onDispose(onDev(() => { if (!isDev()) proceed(); }));
+        this.scope.onDispose(onSetting('holdLoading', (hold) => { if (!hold) proceed(); }));
+      });
+      this.scope.onDispose(() => {
+        if (waiting) { waiting = false; reject(new DOMException('Loading was disposed before PLAY', 'AbortError')); }
+      });
+      play.focus({ preventScroll: true });
+    });
+  }
+
+  /** An explicit PLAY choice also enters direct loads that would otherwise reopen their title. */
+  get playRequested(): boolean { return this.playPicked; }
+
+  /** Initial-session callers keep their gameplay frame gate closed during the completed-panel hold. */
+  get holdRequested(): boolean { return !this.scoped && isDev() && getSetting('holdLoading'); }
+
+  private fade(): Promise<void> {
+    if (this.scope.disposed || this.scope.disposing) return Promise.reject(new DOMException('Loading was disposed before entry', 'AbortError'));
+    return new Promise((resolve, reject) => {
+      let complete = false;
+      this.scope.onDispose(() => { if (!complete) reject(new DOMException('Loading was disposed before entry', 'AbortError')); });
       // Two animation callbacks put a painted completion frame between the
       // final DOM update and the fade, even when done runs inside a frame.
       this.scope.raf(() => { this.scope.raf(() => {
         this.root.classList.add('hide');
-        this.scope.timeout(250, () => { this.scope.cancelRaf(this.raf); this.scope.dispose(); resolve(); });
+        this.scope.timeout(250, () => { complete = true; this.scope.cancelRaf(this.raf); this.scope.dispose(); resolve(); });
       }); });
     });
   }

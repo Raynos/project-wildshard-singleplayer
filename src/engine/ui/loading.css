@@ -10,6 +10,8 @@
 /* A fresh-page handoff also covers a running page's title/menu layer. */
 .ws-load[data-navigation] { z-index: calc(var(--ws-layer-menu) + 1); opacity: 1; transition: none; pointer-events: auto; }
 .ws-load.hide { opacity: 0; pointer-events: none; }
+.ws-load .ws-load-play { display: block; width: 100%; min-height: 48px; margin-top: 18px; border: 1px solid var(--ws-cyan); background: rgba(9, 22, 36, 0.88); color: var(--ws-cyan); font: 700 18px var(--ws-display); letter-spacing: 0.18em; cursor: pointer; touch-action: manipulation; }
+.ws-load .ws-load-play:focus-visible { outline: 2px solid var(--ws-cyan); outline-offset: 3px; }
 .ws-load::before { content: ''; position: absolute; inset: 0; background-image: linear-gradient(180deg, rgba(3, 8, 15, 0.62), rgba(3, 8, 15, 0.84) 54%, rgba(3, 8, 15, 0.93)), var(--ws-load-portrait); background-position: center; background-size: cover; pointer-events: none; }
 .ws-load::after { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(143, 227, 255, 0.025) 0 1px, transparent 1px 3px); pointer-events: none; }
 .ws-load .ws-load-head, .ws-load .ws-load-body, .ws-load .ws-load-foot { position: relative; z-index: calc(var(--ws-layer-hud) + 1); }

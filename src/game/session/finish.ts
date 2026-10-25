@@ -130,7 +130,10 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   const drawnFrom = game.frameCount;
   const drawn = new Promise<void>((resolve) => { const check = (): void => { if (game.frameCount >= drawnFrom + 2) resolve(); else game.levelScope.raf(check); }; check(); });
   await Promise.race([Promise.all([drawn, ctx.minimap.prepare()]), new Promise<void>((resolve) => { game.levelScope.timeout(1500, resolve); })]);
-  await loading.done();
+  const readyFrameGate = game.frameGate, loadingFrameGate = (): boolean => false;
+  if (loading.holdRequested) game.frameGate = loadingFrameGate;
+  try { await loading.done(); }
+  finally { if (game.frameGate === loadingFrameGate) game.frameGate = readyFrameGate; }
   if (level === undefined) app.events.emit('level.loaded', { id: slug });
   // G554: the grid's whole known set into the disk cache, this cell and its neighbours first, in the background once play
   // starts (round 39: during the loading screen its ~4,000 cache checks queued ahead of the home region's own reads)
@@ -156,7 +159,7 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
     catch (error: unknown) { if (!levelScope.disposed) console.warn('[shaders] the in-play warm-up stopped:', error); }
   };
   void warmRest();
-  if (arrival?.mode === 'enter' || arrival?.mode === 'arena' || ctx.continuingGridEntry) enter();
+  if (arrival?.mode === 'enter' || arrival?.mode === 'arena' || ctx.continuingGridEntry || (arrival === null && loading.playRequested)) enter();
   else if (arrival?.mode === 'explore') hud.startExplore(); // import the viewer only after shader compilation and the loader's peak
   if (arrival?.mode === 'arena') hud.enterArenaNow();
   if (deferredAudio) {
