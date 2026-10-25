@@ -4,7 +4,8 @@ import { HEADLESS_CONTEXT_SECTIONS } from './headlessSections';
 import { existsSync, lstatSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Product paths are validated relative paths, never URLs.
 import { dirname, resolve } from 'node:path';
-import { assembleOutputShardfile, outputSectionPayloads, OUTPUT_SECTIONS, parseOutputIndex, parseOutputSection, validateOutputSection, type OutputFile, type OutputIndex } from '@wildshard/format/outputIndex';
+import { assembleOutputShardfile, parseOutputIndex, parseOutputSection, validateOutputSection, type OutputFile, type OutputIndex } from '@wildshard/format/outputIndex';
+import { outputSectionPayloads, OUTPUT_SECTIONS } from '@wildshard/format/outputFields';
 import { decisionModuleContracts, decisionScriptsFromSections, scriptAdmissionRows, type ScriptAdmissionRows, type ScriptContract } from '@wildshard/format/scriptContract';
 import type { DecisionScripts } from '@wildshard/format/decisionScripts';
 import { parseWorldTargets, worldTargetRules } from '@wildshard/format/worldTargets';

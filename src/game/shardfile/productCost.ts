@@ -9,7 +9,7 @@ import { frameBudgetSpent } from '@wildshard/engine/core/framePacing';
 import { preflightShardfile } from '@wildshard/format/preflight';
 import { isJsonData } from '@wildshard/format/json';
 import { outputDescriptor } from './outputDescriptor';
-import { isPlatformDataSection } from '@wildshard/format/outputIndex';
+import { isPlatformDataSection } from '@wildshard/format/outputFields';
 import { parseWorldScenes } from '@wildshard/format/worldScenes';
 import { parseWorldSceneModels, worldSceneModelGraphs, worldSceneModelResources } from '@wildshard/format/worldSceneModels';
 import { parseWorldSceneWeld } from '@wildshard/format/worldSceneWeld';

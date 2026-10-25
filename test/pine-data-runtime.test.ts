@@ -3,7 +3,7 @@ import {createHash} from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- Audit only this shard's authored runtime directory.
 import {existsSync,readdirSync} from 'node:fs';
 import {expect,test} from 'vitest';
-import {outputSectionPayloads} from '../src/format/outputIndex';
+import { outputSectionPayloads } from '../src/format/outputFields';
 import {runtimeBinds,withoutRuntimeRows} from '../src/game/plugin/headless';
 import {regionalRuntimeAccountedBytes} from '../src/game/grid/regionalRuntime';
 import {useOwnedGridHome} from '../src/game/grid/pageShell';

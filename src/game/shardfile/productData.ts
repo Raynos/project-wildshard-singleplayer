@@ -1,5 +1,5 @@
 import type { Shardfile } from '@wildshard/format/shardSchema';
-import { outputSectionPayloads } from '@wildshard/format/outputIndex';
+import { outputSectionPayloads } from '@wildshard/format/outputFields';
 import { outputBlobUrl, outputDescriptor } from './outputDescriptor';
 import { createShardProduct, type ShardProduct } from './shardProduct';
 

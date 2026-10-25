@@ -1,5 +1,6 @@
 import {sha256} from '../src/game/plugin/moduleHash';
-import {OUTPUT_SECTIONS,outputSectionPayloads,parseOutputIndex} from '../src/format/outputIndex';
+import { parseOutputIndex } from '../src/format/outputIndex';
+import { OUTPUT_SECTIONS, outputSectionPayloads } from '../src/format/outputFields';
 import {parseShardfile} from '../src/format/shardSchema';
 import {resolveOutputDescriptor,carryOutputDescriptor} from '../src/game/shardfile/outputDescriptor';
 import { ReturnProgram } from '../src/game/population/returnProgram';

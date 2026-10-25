@@ -6,7 +6,7 @@ import { resolve } from 'node:path';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { bootProductTotals, productDownloadTotal, homeClientModuleGroups } from '../vite/bootProducts';
 import {bootTierProductTotals} from '../vite/bootProductTiers';
-import {outputSectionPayloads} from '../src/format/outputIndex';
+import { outputSectionPayloads } from '../src/format/outputFields';
 // oxlint-disable-next-line import/no-nodejs-modules -- Record exact section hashes in the real output fixture.
 import { createHash } from 'node:crypto';
 

@@ -10,7 +10,7 @@ import { createHash } from 'node:crypto';
 import process from 'node:process';
 import { afterEach, expect, it } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
-import { outputSectionPayloads } from '../src/format/outputIndex';
+import { outputSectionPayloads } from '../src/format/outputFields';
 import { structuralGridEvidence } from '../src/format/gridReadiness';
 import { MILESTONE_SHARDS } from '../scripts/shard-milestones.mjs';
 import { buildShardfiles } from '../scripts/build-shardfiles.mjs';

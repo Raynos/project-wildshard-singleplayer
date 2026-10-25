@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Audit the actual removed authored entry files.
 import { existsSync } from 'node:fs';
 import { expect, test } from 'vitest';
-import { outputSectionPayloads } from '../src/format/outputIndex';
+import { outputSectionPayloads } from '../src/format/outputFields';
 import { runtimeAccountedBytes } from '../src/format/runtimeCost';
 import { runtimeBinds, withoutRuntimeRows } from '../src/game/plugin/headless';
 import { regionalRuntimeAccountedBytes } from '../src/game/grid/regionalRuntime';

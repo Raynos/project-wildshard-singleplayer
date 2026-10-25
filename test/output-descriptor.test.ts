@@ -1,7 +1,8 @@
 import { expect, test, vi } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
 import { encodeCanonicalJson as canonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
-import { OUTPUT_SECTIONS, outputSectionPayloads, parseOutputIndex, type OutputIndex } from '../src/format/outputIndex';
+import { parseOutputIndex, type OutputIndex } from '../src/format/outputIndex';
+import { OUTPUT_SECTIONS, outputSectionPayloads } from '../src/format/outputFields';
 import { parseShardfile, type Shardfile } from '../src/format/shardSchema';
 import { readProductDescriptor, admitProduct, type CachedProduct, type ProductCache, type ProductOptions } from '../src/game/shardfile/product';
 import { provideHybridDeclaration, runtimeProduct } from '../src/game/shardfile/runtimeProduct';

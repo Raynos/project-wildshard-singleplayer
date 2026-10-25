@@ -1,6 +1,6 @@
 import { expect, test, vi } from 'vitest';
 import { emptyShardfile } from '@wildshard/sdk/author';
-import { outputSectionPayloads } from '@wildshard/format/outputIndex';
+import { outputSectionPayloads } from '@wildshard/format/outputFields';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { readGridProductEdges, readGridProductFar, readGridProductNear } from '../src/game/grid/products';
 

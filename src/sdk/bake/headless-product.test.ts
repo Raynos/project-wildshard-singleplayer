@@ -6,7 +6,8 @@ import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { emptyShardfile } from '../author';
 import { encodeCanonicalJson, hashImmutableBytes } from '../immutable';
-import { outputSectionPayloads, parseOutputIndex } from '@wildshard/format/outputIndex';
+import { parseOutputIndex } from '@wildshard/format/outputIndex';
+import { outputSectionPayloads } from '@wildshard/format/outputFields';
 import { loadHeadlessProduct } from '../headlessProduct';
 
 const bytes = (input: unknown): Uint8Array => new TextEncoder().encode(encodeCanonicalJson(input));
