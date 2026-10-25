@@ -6,6 +6,7 @@ import { pathToFileURL } from 'node:url';
 import { installBakeEnvironment } from './environment.mjs';
 import { prepareNativeTerrain } from './nativeWorld.mjs';
 import { byteWriter, jsonBytes, outputHash } from '../bake-output.mjs';
+import { dressingPoiColliders } from '../../src/shards/nalati-grasslands/generators/dressingPlan.ts';
 
 /** Build fresh placement data; an original continuous forest law may be supplied by a native geometry author. */
 export async function prepareNalatiDressing(dressingRecipe, forestMask) {
@@ -42,11 +43,7 @@ export async function prepareNalatiDressing(dressingRecipe, forestMask) {
     const plan = await planDressing(forest);
     const placeRows = JSON.parse(readFileSync(resolve(root, 'src/shards/nalati-grasslands/data/places.json'), 'utf8')).rows;
     const sequence = JSON.parse(readFileSync(resolve(root, 'src/shards/nalati-grasslands/data/worldView.json'), 'utf8')).sequence;
-    const spots = placeRows.find(row => row.name === 'kurgans').anchors.balbalSpots;
-    const poiColliders = sequence.flatMap(row => row.name === 'balbals' ? spots.map(spot => {
-      const scale = spot.scale ?? 1, y = heightAt(spot.x, spot.z) - .18 * scale;
-      return { x: spot.x, z: spot.z, hw: .42 * scale, hd: .33 * scale, rot: -spot.yaw, yBottom: y - 1, yTop: y + 2.2 * scale, ghost: true };
-    }) : placeRows.find(place => place.name === row.name)?.colliders ?? []);
+    const poiColliders = dressingPoiColliders(placeRows, sequence, heightAt);
     const steps = outcropsPlace({ ground: heightAt, flutter: { streamer: noop, flag: noop, strip: noop }, smoke: { emitter: noop } });
     let step = steps.next(); while (!step.done) step = steps.next();
     const outcrops = step.value, crags = bakeCragRock((await import('@wildshard/engine/core/tier')).TIER_CONFIG.maxTexture <= 1024, heightAt);
