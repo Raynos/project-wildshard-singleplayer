@@ -43,3 +43,39 @@ test('the real pill reports a freeze from its timer without another game update'
   } finally { scope.dispose(); }
   expect(vi.getTimerCount()).toBe(beforeTimers);
 });
+
+
+function panelGame(): Game {
+  return legacyDouble<Game>({ app,
+    level: legacyDouble<Game['level']>({id:'lazy-panel',budgets:{}}),
+    renderer: legacyDouble<Game['renderer']>({getPixelRatio:()=>2,info:legacyDouble<Game['renderer']['info']>({memory:{textures:0,geometries:0},programs:[]})}),
+    frameCount:0,frameRafTime:null,lastFrame:{calls:2,triangles:3},onUpdate:()=>undefined,
+  });
+}
+
+test('performance details load on open, retain early counts, and retire with the original owner',async()=>{
+  const scope=new Scope('lazy-perf-panel'), meter=withOwner(scope,()=>new Perf(panelGame()));
+  const counts=vi.fn(()=>({animals:7}));
+  try{
+    meter.addCounts(counts);
+    expect(Reflect.has(window,'__perfHud')).toBe(false);expect(counts).not.toHaveBeenCalled();
+    meter.root.hidden=false;meter.root.dispatchEvent(new Event('pointerup'));
+    await vi.waitFor(()=>{expect(Reflect.has(window,'__perfHud')).toBe(true);});
+    const {PerfHud}=await import('./perfHud');
+    const hud:unknown=Reflect.get(window,'__perfHud');
+    if(!(hud instanceof PerfHud))throw new Error('Real performance details did not load');
+    expect(hud.counts()).toMatchObject({animals:7,calls:2,tris:3});
+    meter.addCounts(()=>({near:4}));expect(hud.counts()).toMatchObject({animals:7,near:4});
+    expect(hud.scope.disposed).toBe(false);
+    scope.dispose();expect(hud.scope.disposed).toBe(true);
+    expect(Reflect.has(window,'__perfHud')).toBe(false);
+  }finally{scope.dispose();}
+});
+
+test('retirement during the real import prevents late performance controls from mounting',async()=>{
+  const scope=new Scope('late-perf-panel'), meter=withOwner(scope,()=>new Perf(panelGame()));
+  meter.root.hidden=false;meter.root.dispatchEvent(new Event('pointerup'));scope.dispose();
+  await vi.dynamicImportSettled();
+  expect(Reflect.has(window,'__perfHud')).toBe(false);
+  expect(document.querySelector('.ws-perf-panel')).toBeNull();
+});

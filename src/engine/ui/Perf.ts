@@ -30,7 +30,9 @@ import { tierPickInfo, tierPickLine, forgetTierPick } from '../render/tierBoot';
 import { markReload } from '../boot/lastEnd';
 import { isDev, onDev } from '../core/devMode';
 import { runPerfProbe, probeLines, probeReport, probeSamples } from './perfProbe';
-import { PerfHud, type Counts } from './perfHud';
+import type { PerfHud, Counts } from './perfHud';
+import { loadModuleWithProgress } from './loadProgress';
+import { withOwner } from '../app/ownership';
 import { PerfLap } from './perfLap';
 import { FrameWindow } from './frameWindow';
 import './perf.css';
@@ -66,6 +68,7 @@ export class Perf {
   private readonly frameWindow: FrameWindow;
   constructor(game: Game) {
     this.game = game;
+    this.scope.onDispose(() => { this.pendingCounts.length = 0; });
     this.frameWindow = new FrameWindow(performance.now(), game.frameCount);
     const limit = frameBudget(game.level.id, TIER, game.level.budgets);
     this.budget.calls = limit.draws ?? Infinity; this.budget.tris = limit.tris ?? Infinity;
@@ -125,27 +128,11 @@ export class Perf {
     this.scope.listen(close, 'pointerup', (e) => { cancel(e); this.open(false); });
     // E142 aggro-perf: the timing / counts block, the sparkline, REC 30 S + COPY (src/engine/ui/perfHud.ts)
     const q = (sel: string): HTMLElement => { const e = panel.querySelector<HTMLElement>(sel); if (e === null) throw new Error(`Perf: missing ${sel}`); return e; };
-    const recBtn = q('.ws-perf-rec'), copyBtn = q('.ws-perf-copy'), recOut = q('.ws-perf-rec-out'), spark = q('.ws-perf-spark');
-    if (!(spark instanceof HTMLCanvasElement)) throw new Error('Perf: the sparkline is not a canvas');
-    this.recBtn = recBtn;
-    this.hud = new PerfHud(game, q('.ws-perf-stats'), spark, [root, panel]);
-    this.hud.mountSwitches(q('.ws-perf-abs'), cancel); // E142: take one suspect out mid-fight, read gpu~
-    if (this.hud.lastRecText !== '') recOut.textContent = engineString('s_1567ae2c94b8', [this.hud.lastRecText.split('\n').slice(0, 4).join('\n')]);
-    this.hud.onRecDone = (text) => { recOut.textContent = text; recBtn.textContent = engineString('s_df9d72a2dfbf'); console.info(`[perf rec]\n${text}`); };
-    for (const b of [recBtn, copyBtn]) {
-      for (const t of ['touchstart', 'touchmove', 'touchend'] as const) this.scope.listen(b, t, cancel, { passive: false });
-      this.scope.listen(b, 'pointerdown', cancel);
-    }
-    this.scope.listen(recBtn, 'pointerup', (e) => { cancel(e); if (!this.hud.recording && !this.lap.running) { this.hud.startRec(); recOut.textContent = engineString('s_309443a755a0'); } });
-    this.scope.listen(copyBtn, 'pointerup', (e) => {
-      cancel(e);
-      const text = this.hud.lastRecText !== '' ? this.hud.lastRecText : q('.ws-perf-stats').textContent;
-      const done = (ok: boolean): void => { copyBtn.textContent = ok ? engineString('s_2c9f6d96316f') : engineString('s_2221caed08d3'); this.scope.timeout(1500, () => { copyBtn.textContent = engineString('s_dc26bc50abf8'); }); };
-      const fallback = (): void => { recOut.textContent = text; const r = document.createRange(); r.selectNodeContents(recOut); const sel = getSelection(); sel?.removeAllRanges(); sel?.addRange(r); done(false); };
-      // (no clipboard API — an http page, an old WebKit — throws in here too: the text is selected for a manual copy)
-      const copy = async (): Promise<void> => { try { await navigator.clipboard.writeText(text); done(true); } catch { fallback(); } };
-      void copy();
-    });
+    this.prepareHud = async () => {
+      const loading = this.hudLoading ??= this.installHud(q, cancel);
+      try { await loading; }
+      catch (error) { this.hudLoading = null; throw error; }
+    };
     // E350 F-J1: PERF LAP — the six spots, one slow turn at each, the summary to COPY (src/engine/ui/perfLap.ts). The panel closes
     // while it runs (the reading is the frame as played, the pill up); a line at the top says where it is; a tap cancels
     const lapBtn = q('.ws-perf-lap'), lapCopy = q('.ws-perf-lap-copy'), lapOut = q('.ws-perf-lap-out');
@@ -163,7 +150,7 @@ export class Perf {
     this.scope.listen(lapBtn, 'pointerup', (e) => {
       cancel(e);
       this.open(false);
-      const why = this.lap.start(this.hud.recording);
+      const why = this.lap.start(this.hud?.recording ?? false);
       if (why !== null) { lapOut.textContent = why; this.open(true); }
     });
     this.scope.listen(lapCopy, 'pointerup', (e) => {
@@ -183,7 +170,6 @@ export class Perf {
     this.userHidden = hide(); this.root.hidden = this.userHidden;
     this.scope.onDispose(onDev(() => { this.userHidden = hide(); if (this.active) this.setActive(true); }));
     if (this.budgetOn) this.scope.expose(window, '__perfBudget', this.budget);
-    this.scope.expose(window, '__perfHud', this.hud);
     game.onUpdate(() => this.update(performance.now()), 'hud.perf');
     // A stalled game cannot drive its own meter. The existing widget timer
     // reads completed draws, including a growing gap when there are none.
@@ -202,6 +188,41 @@ export class Perf {
     if (!on || this.userHidden) this.open(false);
   }
   private readonly probeOut: HTMLElement;
+  private async installHud(q: (selector: string) => HTMLElement, cancel: (event: Event) => void): Promise<void> {
+    const { PerfHud } = await loadModuleWithProgress('Performance', () => import('./perfHud'));
+    if (this.scope.disposed) return;
+    const recBtn = q('.ws-perf-rec'), copyBtn = q('.ws-perf-copy'), recOut = q('.ws-perf-rec-out'), spark = q('.ws-perf-spark');
+    if (!(spark instanceof HTMLCanvasElement)) throw new Error('Perf: the sparkline is not a canvas');
+    this.recBtn = recBtn;
+    const hud = this.hud = withOwner(this.scope, () => new PerfHud(this.game, q('.ws-perf-stats'), spark, [this.root, this.panel]));
+    hud.mountSwitches(q('.ws-perf-abs'), cancel); // E142: take one suspect out mid-fight, read gpu~
+    if (hud.lastRecText !== '') recOut.textContent = engineString('s_1567ae2c94b8', [hud.lastRecText.split('\n').slice(0, 4).join('\n')]);
+    hud.onRecDone = (text) => { recOut.textContent = text; recBtn.textContent = engineString('s_df9d72a2dfbf'); console.info(`[perf rec]\n${text}`); };
+    for (const b of [recBtn, copyBtn]) {
+      for (const t of ['touchstart', 'touchmove', 'touchend'] as const) this.scope.listen(b, t, cancel, { passive: false });
+      this.scope.listen(b, 'pointerdown', cancel);
+    }
+    this.scope.listen(recBtn, 'pointerup', (e) => { cancel(e); if (!hud.recording && !this.lap.running) { hud.startRec(); recOut.textContent = engineString('s_309443a755a0'); } });
+    this.scope.listen(copyBtn, 'pointerup', (e) => {
+      cancel(e);
+      const text = hud.lastRecText !== '' ? hud.lastRecText : q('.ws-perf-stats').textContent;
+      const done = (ok: boolean): void => { copyBtn.textContent = ok ? engineString('s_2c9f6d96316f') : engineString('s_2221caed08d3'); this.scope.timeout(1500, () => { copyBtn.textContent = engineString('s_dc26bc50abf8'); }); };
+      const fallback = (): void => { recOut.textContent = text; const r = document.createRange(); r.selectNodeContents(recOut); const sel = getSelection(); sel?.removeAllRanges(); sel?.addRange(r); done(false); };
+      // (no clipboard API — an http page, an old WebKit — throws in here too: the text is selected for a manual copy)
+      const copy = async (): Promise<void> => { try { await navigator.clipboard.writeText(text); done(true); } catch { fallback(); } };
+      void copy();
+    });
+    for (const read of this.pendingCounts) hud.addCounts(read);
+    this.pendingCounts.length = 0;
+    this.scope.expose(window, '__perfHud', hud);
+    hud.setOpen(this.panel.classList.contains('open'));
+  }
+
+  private async openDetails(): Promise<void> {
+    try { await this.prepareHud(); }
+    catch (error) { console.warn('Performance controls unavailable', error); }
+  }
+
   /** the last probe's full report (COPY) */
   private probeText = '';
   /** run the on-device probe; its table stays in the panel (and the console, `window.__perfProbe`) */
@@ -238,23 +259,26 @@ export class Perf {
   }
   private active = true; // until the menu first hides it (main.ts)
   /** the details panel over the minimap (phones) */
-  private open(on: boolean): void { const show = on && this.root.hidden === false; this.panel.classList.toggle('open', show); this.root.classList.toggle('open', show); this.hud.setOpen(show); }
-  private readonly hud: PerfHud;
+  private open(on: boolean): void { const show = on && this.root.hidden === false; this.panel.classList.toggle('open', show); this.root.classList.toggle('open', show); this.hud?.setOpen(show); if (show) void this.openDetails(); }
+  private hud: PerfHud | null = null;
+  private hudLoading: Promise<void> | null = null;
+  private readonly prepareHud: () => Promise<void>;
+  private readonly pendingCounts: (() => Counts)[] = [];
   private readonly lap: PerfLap;
-  private readonly recBtn: HTMLElement;
+  private recBtn: HTMLElement | null = null;
   private lastStats = 0;
   /** main.ts: the game's counts for the panel (animals, the elite, Rapier …) — read ≤ 4× a second while it is open */
-  addCounts(fn: () => Counts): void { this.hud.addCounts(fn); }
+  addCounts(fn: () => Counts): void { if (this.hud === null) this.pendingCounts.push(fn); else this.hud.addCounts(fn); }
   private userHidden = false;
 
   private update(now: number) {
     this.frameWindow.observe(this.game.frameCount, this.game.frameRafTime);
-    this.hud.tick(now);
+    this.hud?.tick(now);
     this.lap.tick(now);
-    if ((this.panel.classList.contains('open') || this.hud.recording) && now - this.lastStats >= STATS_MS) {
+    if ((this.panel.classList.contains('open') || (this.hud?.recording ?? false)) && now - this.lastStats >= STATS_MS) {
       this.lastStats = now;
-      this.hud.paint();
-      if (this.hud.recording) this.recBtn.textContent = engineString('s_a9470d9be8b3');
+      this.hud?.paint();
+      if (this.hud?.recording === true && this.recBtn !== null) this.recBtn.textContent = engineString('s_a9470d9be8b3');
     }
   }
 
