@@ -2,7 +2,7 @@
 import { resolve } from 'node:path';
 import { build } from 'vite';
 import { webkit, devices } from 'playwright';
-import { byteWriter, outputHash } from '../../../../scripts/bake-output.mjs';
+import { byteWriter, outputHash, browserBakeBytes } from '../../../../scripts/bake-output.mjs';
 import nativeDecals from '../data/nativeDecals.json' with { type: 'json' };
 import { readImagePixels } from '../../../../src/sdk/bake/image.ts';
 
@@ -21,8 +21,21 @@ try {
   await page.addScriptTag({ type: 'module', content: code });
   await page.waitForFunction(() => typeof window.bakeNineDecal === 'function');
   for (const tier of ['phone', 'desktop']) {
-    const raster = await page.evaluate(value => window.bakeNineDecal(value), tier);
-    const bytes = Buffer.from(raster.png.split(',')[1], 'base64'), original = Buffer.from(raster.rgba, 'base64');
+    const sink = await browserBakeBytes(page);
+    let raster, bytes, original;
+    try {
+      raster = await page.evaluate(async ({ selected, url }) => {
+        const row = await window.bakeNineDecal(selected);
+        const send = async (id, body) => {
+          const response = await fetch(`${url}${id}`, { method: 'POST', body });
+          if (!response.ok) throw new Error('Decal byte handoff refused');
+        };
+        await send('png', row.png);
+        await send('rgba', new Uint8Array(row.rgba.buffer, row.rgba.byteOffset, row.rgba.byteLength));
+        return { width: row.width, height: row.height };
+      }, { selected: tier, url: sink.url });
+      bytes = sink.take('png'); original = sink.take('rgba');
+    } finally { await sink.dispose(); }
     const image = await readImagePixels(bytes);
     if (image.width !== raster.width || image.height !== raster.height || !Buffer.from(image.pixels).equals(original)) throw new Error(`Decal PNG changes ${tier} reference pixels`);
     const source = nativeDecals[tier];
