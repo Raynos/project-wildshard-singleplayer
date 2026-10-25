@@ -64,6 +64,8 @@ test('explicit linear colour output encodes the display without tone mapping', (
   } finally { material.dispose(); }
   expect(validateGraph({ ...graph, model: 'standard' }).ok).toBe(false);
   expect(validateGraph({ ...graph, effectState: { output: 'unknown' } }).ok).toBe(false);
+  expect(validateGraph({ ...graph, effectState: { output: 'colour', blend: 'alpha' } }).ok).toBe(false);
+  expect(validateGraph({ ...graph, stages: { surface: { colour: [1, 1, 1], targetAlpha: 0.5 } } }).ok).toBe(false);
 });
 
 // G478 OE2: three forces an opaque draw's alpha to 1, where the GLSL programs Nine's graphs replaced wrote near / viewZ

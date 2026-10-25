@@ -637,7 +637,7 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
     if (!isRecord(effect)) fail('graph: effectState is not an object');
     else {
       for (const k of Object.keys(effect)) if (!['blend', 'fog', 'depthWrite', 'depthBias', 'singlePass', 'output'].includes(k)) fail(`effectState: unknown field ${k}`);
-      if (effect.output !== undefined && (effect.output !== 'colour' || kind !== 'material' || input.model !== 'unlit')) fail('effectState: colour output requires an unlit material');
+      if (effect.output !== undefined && (effect.output !== 'colour' || kind !== 'material' || input.model !== 'unlit' || primitive === 'points' || effect.blend !== undefined || effect.depthWrite === false)) fail('effectState: colour output requires an opaque depth-writing unlit mesh');
       if (effect.blend !== undefined && effect.blend !== 'alpha' && effect.blend !== 'additive' && effect.blend !== 'premultiplied') fail('effectState: unsupported blend');
       if (effect.fog !== undefined && effect.fog !== false && !(typeof effect.fog === 'string' && GRAPH_FOG_ID.test(effect.fog))) fail('effectState: fog must be false or a fog graph\'s catalogue id');
       if (effect.depthWrite !== undefined && typeof effect.depthWrite !== 'boolean') fail('effectState: depthWrite must be boolean');
@@ -988,6 +988,7 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
       want(v, 'fragment', t, `stages.surface.${k}`);
     }
     if (isRecord(s) && s['targetAlpha'] !== undefined && (s['alpha'] !== undefined || (isRecord(input.effectState) && input.effectState.blend !== undefined))) fail('stages.surface.targetAlpha: an opaque draw only (no alpha, no blend)');
+    if (isRecord(s) && isRecord(input.effectState) && input.effectState.output === 'colour' && (s['targetAlpha'] !== undefined || s['alpha'] !== undefined)) fail('stages.surface: colour output owns the opaque alpha channel');
     const lit = stages.lighting;
     if (lit !== undefined) {
       if (input.model === 'toon') fail('stages.lighting: toon supplies its family lighting; use standard for an authored lighting stage');

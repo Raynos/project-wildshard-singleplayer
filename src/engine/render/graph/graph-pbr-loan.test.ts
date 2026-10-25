@@ -83,5 +83,6 @@ test('colour-or-vertex map loans preserve source sRGB and use the baked linear m
     expect(coarse.fragmentShader).toMatch(/sRGBTransferOETF/u);
     expect(full.fragmentShader).toMatch(/sRGBTransferOETF/u);
     expect(full.fragmentShader).not.toMatch(/ACESFilmicToneMapping/u);
+    expect(full.fragmentShader).toMatch(/-1\.0/u);
   } finally { scope.dispose(); compiled.material.dispose(); image.dispose(); mean.dispose(); texture.dispose(); }
 });

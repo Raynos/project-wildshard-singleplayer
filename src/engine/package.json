@@ -289,6 +289,7 @@
     "./render/precompile": "./render/precompile.ts",
     "./render/renderer": "./render/renderer.ts",
     "./render/shaderPatches": "./render/shaderPatches.ts",
+    "./render/displayColour": "./render/displayColour.ts",
     "./render/textureBytes": "./render/textureBytes.ts",
     "./core/memoryAttribution": "./core/memoryAttribution.ts",
     "./render/viewmodelFeel": "./render/viewmodelFeel.ts",

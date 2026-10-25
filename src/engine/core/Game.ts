@@ -18,6 +18,7 @@ import {
 } from 'postprocessing';
 import { N8AOPostPass } from 'n8ao';
 import { installAoTransparency } from '../render/aoTransparency';
+import { protectDisplayColour, protectDisplayColourAo } from '../render/displayColour';
 import { installedGraphBackend } from '../render/graphBackend';
 import { retried } from '../boot/retry';
 import { RegionCinematic } from '../render/regionCinematic';
@@ -557,6 +558,7 @@ export class Game {
       // its transparency pre-passes: without opaque multi-material meshes or depth-free transparents (PH-P2), and not at all
       // when nothing would draw in them (SF69, bit-identical) — aoTransparency.ts
       installAoTransparency(ao, this.rootScene, this.camera, { lean: () => this.aoLeanTransparency, skipEmpty: () => this.aoSkipEmptyTransparency });
+      protectDisplayColourAo(ao);
       composer.addPass(ao);
     }
 
@@ -619,6 +621,7 @@ export class Game {
       if (built.clean !== (kind === 'clean')) throw new Error(`[look] the engine chain is already built '${built.clean ? 'clean' : 'cinematic'}'; a compose asks one kind, and reading c.fx before c.engineChain() builds 'cinematic', so a look that wants 'clean' asks c.engineChain('clean') first`);
       return built;
     });
+    protectDisplayColour(colour);
     composer.addPass(colour);
     this.placeShardPasses(composer, colour); // a shard's own passes around the engine's (none without a render strategy)
     // FXAA reads its pass's input image, so it gets a pass of its own on the graded frame (EffectPass orders effects by kind)

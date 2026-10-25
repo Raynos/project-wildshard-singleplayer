@@ -5504,6 +5504,14 @@ roles; unsupported factor/alpha/texture semantics still refuse.
 An unlit graph can declare `effectState.output: "colour"` when its
 surface contains linear colour (including an sRGB-decoded image).
 It receives the target's colour-space encoding with tone mapping off.
+It is restricted to opaque, depth-writing meshes without authored alpha.
+Half-float scene alpha carries the display-colour mark;
+AO preserves that pixel, and the merged colour pass restores the original
+linear input after grading and before display encoding. No extra render
+target, pass, draw or texture read is allocated for this mark.
+`@wildshard/engine/render/displayColour.markDisplayColour` applies the same
+contract to an opaque native material. The engine chain attaches the AO
+and colour-pass protections, including AO material reconfiguration.
 Existing unlit graphs keep their legacy raw output when this is absent.
 `@wildshard/sdk/materials.meshMap` authors this input. The client compiler's
 optional second texture argument and declared props' colour slots bind it via

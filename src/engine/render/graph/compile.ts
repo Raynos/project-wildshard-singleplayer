@@ -1102,9 +1102,11 @@ function compileOwned(input: unknown, opts: CompileGraphOptions, owner: GraphNod
     };
     const lit = st.lighting, vertexNormal = out(st['vertex.normal']?.normal);
     const targetAlpha = out(s.targetAlpha);
-    const plain = vertexNormal === null && fogScale === undefined && targetAlpha === null;
+    const displayColour = ir.effectState?.output === 'colour';
+    const plain = vertexNormal === null && fogScale === undefined && targetAlpha === null && !displayColour;
     const m = ir.model === 'unlit' ? plain ? new MeshBasicNodeMaterial() : new GraphUnlitNormalMaterial() : ir.model === 'toon' ? new GraphLitMaterial(withScale(toonHooks())) : lit !== undefined ? new GraphLitMaterial(withScale(litHooks(lit))) : sunScale !== undefined ? new GraphLitMaterial(withScale(PHYSICAL_HOOKS)) : plain ? new MeshStandardNodeMaterial() : new GraphNormalMaterial();
     if (targetAlpha !== null && (m instanceof GraphNormalMaterial || m instanceof GraphUnlitNormalMaterial)) m.graphTargetAlpha = asFloat(targetAlpha);
+    if (displayColour && m instanceof GraphUnlitNormalMaterial) m.graphTargetAlpha = float(-1);
     if (vertexNormal !== null && (m instanceof GraphNormalMaterial || m instanceof GraphUnlitNormalMaterial)) m.vertexNormal = new ConvertNode<'vec3'>(vertexNormal.n, 'vec3');
     const colour = out(s.colour);
     if (colour !== null) m.colorNode = new ConvertNode<'vec3'>(widen(colour, 'vec3'), 'vec3');

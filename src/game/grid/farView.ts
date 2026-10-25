@@ -8,6 +8,7 @@
  */
 import { AdditiveBlending, NormalBlending, DataTexture, LinearFilter, LinearMipmapLinearFilter, Mesh, MeshBasicMaterial, MeshLambertMaterial, MeshStandardMaterial, RedFormat, RepeatWrapping, Vector2, type BufferGeometry, type Material, type Object3D } from 'three';
 import { patchShader } from '@wildshard/engine/render/shaderPatches';
+import { markDisplayColour } from '@wildshard/engine/render/displayColour';
 import { geometryBoundsSteps } from '@wildshard/engine/world/geometryBounds';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import { GRID_HAZE, type FarLookRuntime } from './farProxy';
@@ -133,6 +134,7 @@ if (vFarCliff > 0.5) {
 function farLightMaterial(mask: Float32Array, positionalMask: boolean, additive = true): MeshBasicMaterial {
   const material = new MeshBasicMaterial({ vertexColors: true, transparent: additive, blending: additive ? AdditiveBlending : NormalBlending, depthWrite: !additive, fog: false, toneMapped: additive });
   material.color.setScalar(additive ? 1.6 : 1); // opaque colour is already linear; only additive glow gets an intensity boost
+  if (!additive) markDisplayColour(material);
   if (positionalMask) patchShader(material, 'nm13-near-light', 0, (shader): void => {
     shader.uniforms['farMask'] = { value: mask };
     shader.vertexShader = shader.vertexShader.replace('#include <common>', '#include <common>\nvarying vec2 vFarLightP;')
