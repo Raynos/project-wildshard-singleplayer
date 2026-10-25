@@ -36,6 +36,7 @@
     "../../../public/assets/far-reach/baked/islet-rig.glb",
     "../../../scripts/map-scenes.mjs",
     "../../../scripts/map-painter.mjs",
+    "../../sdk/bake/mapRaster.ts",
     "../../../scripts/bake-data-maps.mjs",
     "../../../scripts/bake-map-rest.mjs",
     "../../../src/game/plugin/clientChannelView.ts",

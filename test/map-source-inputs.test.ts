@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Keep fixture trees under repository scratch.
 import { dirname, resolve } from 'node:path';
 import { expect, test } from 'vitest';
-import { mapInputHashes, mapTilesHash } from '../scripts/map-hash.mjs';
+import { mapInputHashes, mapTilesHash, mapInputRoots, mapSettings, mapShards } from '../scripts/map-hash.mjs';
 
 test('map keys ignore installed launchers while retaining source and lockfile bytes', () => {
   mkdirSync('tmp', { recursive: true });
@@ -24,5 +24,26 @@ test('map keys ignore installed launchers while retaining source and lockfile by
     put('sdk/terrain.ts', 'export const height = 13;'); expect(mapTilesHash(root)).not.toBe(isolated);
     put('sdk/terrain.ts', 'export const height = 12;'); expect(mapTilesHash(root)).toBe(isolated);
     put('pnpm-lock.yaml', 'compiler: pinned-2'); expect(mapTilesHash(root)).not.toBe(isolated);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+
+test('retained painter declarations track the defining raster source and invalidate on its edits', () => {
+  let tracked = 0;
+  for (const { dir } of mapShards(resolve('.'))) {
+    if (!mapSettings(dir).inputs.includes('../../../scripts/map-painter.mjs')) continue;
+    expect(mapInputRoots(dir)).toContain(resolve('src/sdk/bake/mapRaster.ts')); tracked++;
+  }
+  expect(tracked).toBe(8);
+  mkdirSync('tmp', { recursive: true });
+  const root = mkdtempSync(resolve('tmp/map-raster-source-')), shard = resolve(root, 'shards/fixture');
+  try {
+    mkdirSync(resolve(shard, 'look'), { recursive: true }); mkdirSync(resolve(root, 'sdk/bake'), { recursive: true });
+    const source = resolve(root, 'sdk/bake/mapRaster.ts');
+    writeFileSync(resolve(shard, 'look/map.json'), JSON.stringify({ why: 'raster source fixture', inputs: ['../../sdk/bake/mapRaster.ts'] }));
+    writeFileSync(source, 'export const source = 1;'); const original = mapTilesHash(shard);
+    expect(Object.keys(mapInputHashes(shard))).toEqual(['../../sdk/bake/mapRaster.ts', 'look/map.json']);
+    writeFileSync(source, 'export const source = 2;'); expect(mapTilesHash(shard)).not.toBe(original);
+    writeFileSync(source, 'export const source = 1;'); expect(mapTilesHash(shard)).toBe(original);
   } finally { rmSync(root, { recursive: true, force: true }); }
 });

@@ -47,6 +47,7 @@
     "layout.ts",
     "generators",
     "../../../scripts/map-painter.mjs",
+    "../../sdk/bake/mapRaster.ts",
     "../../../scripts/bake-data-maps.mjs",
     "data/terrain.json",
     "assets/48dea0598884687a6ce6a23b788761d098d18a5923911c2a8bdd6be0617da103",

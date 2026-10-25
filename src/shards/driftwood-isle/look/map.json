@@ -4,6 +4,7 @@
     "data/mapAssembly.generated.bin",
     "../../../scripts/map-scenes.mjs",
     "../../../scripts/map-painter.mjs",
+    "../../sdk/bake/mapRaster.ts",
     "../../../scripts/bake-data-maps.mjs"
   ],
   "why": "Driftwood's map in its toon palette (G252, Jake's pick B): flat blues for the sea, the shallows and the shore, sand, four grass bands by height, rock on steep ground, palm crowns as dots, sand paths cream with the old map's PATH brown edge, piers and decks as planks",

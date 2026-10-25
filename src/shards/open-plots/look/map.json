@@ -161,6 +161,7 @@
     "outputs.json",
     "assets",
     "../../../scripts/map-painter.mjs",
+    "../../sdk/bake/mapRaster.ts",
     "../../../scripts/bake-data-maps.mjs",
     "generators/bake-plots.mjs"
   ],

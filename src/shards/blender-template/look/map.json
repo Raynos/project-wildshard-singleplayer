@@ -47,6 +47,7 @@
     "data/source.ts",
     "assets/world.glb",
     "../../../scripts/map-painter.mjs",
+    "../../sdk/bake/mapRaster.ts",
     "../../../scripts/bake-data-maps.mjs",
     "generators/bake-map.mjs"
   ],

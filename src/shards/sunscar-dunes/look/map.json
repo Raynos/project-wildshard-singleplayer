@@ -14,6 +14,7 @@
     "assets/models.generated.json",
     "../../../scripts/map-scenes.mjs",
     "../../../scripts/map-painter.mjs",
+    "../../sdk/bake/mapRaster.ts",
     "../../../scripts/bake-data-maps.mjs",
     "../../../public/assets/sunscar-dunes/baked/rest-fire.glb",
     "../../../public/assets/sunscar-dunes/models/brazier-hd/brazier-hd.glb",

@@ -10,6 +10,7 @@
     "../../../scripts/map-world.mjs",
     "../../../scripts/map-scenes.mjs",
     "../../../scripts/map-painter.mjs",
+    "../../sdk/bake/mapRaster.ts",
     "../../../scripts/bake-data-maps.mjs"
   ],
   "style": {
