@@ -183,6 +183,20 @@ function lantern(w, x, z, p, height = 2.8) {
   w.box('Glow', [x - 0.3, height, z - 0.3], [x + 0.3, height + 0.75, z + 0.3], p.lantern, p.lantern);
   pool(w, x, z, 4.5, p.pool);
 }
+/** Build one existing lantern at the origin for GLB kit export. Palette colours stay in the vertex channels;
+ * named GLB materials are the palette slots. This does not consume the layout's moving-light seed stream. */
+export function lanternPiece(palette, height = 2.8) {
+  if (![2.2, 2.4, 2.6, 2.8].includes(height)) throw new Error('open-plots lantern: existing height required');
+  for (const name of ['wood', 'lantern', 'pool']) {
+    const colour = palette[name];
+    if (!Array.isArray(colour) || colour.length !== 3 || colour.some(value => !Number.isFinite(value) || value < 0 || value > 1)) {
+      throw new Error(`open-plots lantern: invalid ${name} colour`);
+    }
+  }
+  const parts = { Kit: new Soup(), Glow: new Soup(), Pool: new Soup(), solid: new Soup() };
+  lantern(writer(parts, [0, 0], 0), 0, 0, palette, height);
+  return parts;
+}
 /** A low-poly tree: trunk and a faceted crown (two hexagonal cones back to back). */
 function tree(w, x, z, size, p, spin) {
   w.sides('Kit', [x - 0.25, 0, z - 0.25], [x + 0.25, size * 0.45, z + 0.25], p.trunk);
