@@ -349,7 +349,7 @@ baked L1, and Pine/Nalati draw their terrain tiles with their own code. Rows add
 | Row | What | Done when |
 |---|---|---|
 | U1 | Every shard bakes all 64 L0 squares (empty sea / sky squares as near-empty tiles) | **done** `7093891d97`: exact `3c488ee9ab` preview, all 24 products have 64 L0 / full 5 × 5; strict receipts and section hashes |
-| U2 | Every shard bakes all 16 L1 squares (Driftwood and Sky first) | **in flight (2026-10-24, sp-x2):** L0-only exact-reader fences and 7 DW / 5 Sky proven-empty parents. Remaining 9 DW / 11 Sky occupied parents need real coarse proxies: Opus or Jake look pick, not a Codex row. All 16 L1 per shard remains the bar |
+| U2 | Every shard bakes all 16 L1 squares (Driftwood and Sky first) | **open (Opus/look work):** safe Codex slice done `9b179032ff`: L0-only exact-reader fences and 7 DW / 5 Sky proven-empty parents. Remaining 9 DW / 11 Sky occupied parents need real coarse proxies: Opus or Jake look pick, not a Codex row. All 16 L1 per shard remains the bar |
 | U3 | Pine and Nalati terrain tiles go through the one shared streamer (T2), not shard code | no shard-owned tile drawing left |
 
 U1 source slices (sp-x2, 2026-10-24): `6fc5b91533` completes the two full-world
@@ -375,7 +375,7 @@ hash/size passes the existing strict reader. The six primary products are:
 | Sunscar | 64 | 16 | 0 |
 
 U1 is done; U2 L1 completion and the remaining T8 streaming work stay open.
-U2's first safe slice (sp-x2, 2026-10-24) excludes L1 from exact
+U2's first safe slice (sp-x2, 2026-10-24, `9b179032ff`) excludes L1 from exact
 `readWholeGeometry` defaults and Sky's exact island file list; explicit refs
 keep their strict decoder and order. Complete, validated L0 rows prove only
 these empty parents (no files or costs):
@@ -392,6 +392,13 @@ row. Aliasing child files is not a proxy: e.g. DW parent 3/2 would sum
 2,343,200 B wire / 4,673,742 B resident / 19,551 triangles / 7 draws;
 Sky parent 2/1 sums 343,844 B / 661,096 B / 12,088 triangles / 9 draws.
 These are child sums, not proposed L1 measurements; caps stay unchanged.
+Both registered jobs reproduce all binary bytes: only their root tile metadata
+changes among 340 declared outputs. Retired 12 exact missing-parent allowances.
+19 focused cases pass; the related walk passed 1,612 cases plus its one repaired
+peer case on a fresh run (15 product suites explicitly CI-deferred). Layer/root
+types and named typed lint pass; the two-product build exits 0 in 23.02 s.
+Verified index receipts confirm DW 64/7 and Sky 64/5 L0/L1 counts. No runtime
+memory or frame-floor gain is claimed from empty declarations.
 Sparse library payloads, geometry, budgets and current L1 debt are unchanged.
 
 Isolated-stage repair `3a98cba178` adds the defining tileGrid input to all 13
