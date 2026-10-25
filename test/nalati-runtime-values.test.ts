@@ -53,3 +53,14 @@ test('the direct value producer stays in one config-safe source chunk', async ()
   const chunks = built.output.filter(row => row.type === 'chunk'); expect(chunks).toHaveLength(1);
   for (const chunk of chunks) expect(() => assertConfigBoundary([...chunk.imports, ...chunk.dynamicImports])).not.toThrow();
 });
+
+
+test('the shipping post file retains its complete predecessor capture values', async () => {
+  const { output } = await import('../src/shards/nalati-grasslands/generators/output');
+  const file = output.namedFiles.find(row => row.name === 'look/post.json');
+  if (file === undefined) throw new Error('Missing admitted Nalati post file');
+  const bytes = output.assets.get(file.hash);
+  if (bytes === undefined) throw new Error('Missing owned Nalati post bytes');
+  const document = v.parse(v.object({ painted: v.object({ capture: v.unknown() }) }), JSON.parse(new TextDecoder().decode(bytes)));
+  expect(document.painted.capture).toEqual(original('data/staticCapture.generated.json'));
+});

@@ -38,7 +38,7 @@ export async function nalatiMapAssembly() {
   }
   assembly.add('road-lettering', actor('sign-labels:roads'));
   assembly.add('glacier', actor('glacier-snout:world'));
-  const balbal = await asset(specimens.assets.balbal), size = read('boot/modelMetrics.generated.json').sizes.balbal[1], k = 2.15 / size;
+  const balbal = await asset(specimens.assets.balbal), size = read('data/modelMetrics.json').sizes.balbal[1], k = 2.15 / size;
   balbal.rotateY(Math.PI).scale(k, k, k);
   const statues = prepared.places.rows.find(row => row.name === 'kurgans').anchors.balbalSpots;
   assembly.add('balbals', balbal, statues.map(p => pose({ ...p, y: ground(p.x, p.z) - .18 * (p.scale ?? 1), roll: p.tilt ?? 0 })));

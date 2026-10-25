@@ -126,7 +126,7 @@ import { postChainRows } from './postChain';
 import { PANO_RIDGE_V } from './panoramaData';
 import paintedTextures from '../data/paintedTextures.generated.json' with { type: 'json' };
 import specimenRows from '../data/specimens.generated.json' with { type: 'json' };
-import captureRows from '../data/staticCapture.generated.json' with { type: 'json' };
+import captureRows from '../data/staticCapture.json' with { type: 'json' };
 import grassRows from '../data/grass.generated.json' with { type: 'json' };
 import geographyRows from '../data/geographySources.json' with {type:'json'};
 

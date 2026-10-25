@@ -14249,7 +14249,7 @@
         "src/shards/nalati-grasslands/boot/decorative.generated.json",
         "src/shards/nalati-grasslands/boot/geography.generated.json",
         "src/shards/nalati-grasslands/boot/layout.generated.json",
-        "src/shards/nalati-grasslands/boot/modelMetrics.generated.json",
+        "src/shards/nalati-grasslands/data/modelMetrics.json",
         "src/shards/nalati-grasslands/boot/poiPaint.json",
         "src/shards/nalati-grasslands/data/armsStyle.json",
         "src/shards/nalati-grasslands/data/discovery.json",
