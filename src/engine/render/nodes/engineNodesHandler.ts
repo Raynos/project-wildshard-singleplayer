@@ -131,12 +131,19 @@ class TargetTextureNode extends TextureNode {
 export function targetTexture(map: THREE.Texture, uvNode?: Node<'vec2'>): Node<'vec4'> {
   return nodeObject(new TargetTextureNode(map, uvNode ?? null));
 }
+/** Retargetable slots must not alias because they initially borrow one placeholder.
+ * TextureNode normally hashes the texture UUID, merging those distinct uniforms;
+ * a later retarget would then change the shader layout under a warm program key. */
+class RetargetableTextureNode extends TargetTextureNode {
+  override getUniformHash(): string { return this.getBase().uuid; }
+}
+
 /**
  * `targetTexture` whose texture can be swapped after the build (a post pass reads the composer's input buffer, which
  * ping-pongs between two targets): `retarget` moves the sampled texture, never the program.
  */
 export function retargetableTexture(map: THREE.Texture, uvNode?: Node<'vec2'>): { readonly node: Node<'vec4'>; readonly retarget: (next: THREE.Texture) => void } {
-  const texture = new TargetTextureNode(map, uvNode ?? null);
+  const texture = new RetargetableTextureNode(map, uvNode ?? null);
   return { node: nodeObject(texture), retarget: (next) => { texture.value = next; } };
 }
 

@@ -151,3 +151,39 @@ test('an equivalent scene refreshes the warm program uniform bindings', () => {
     handler.renderEnd();
   } finally { material.dispose(); geometry.dispose(); }
 });
+
+test('lent post inputs retain distinct sampler slots before and after placeholder retargeting', () => {
+  const renderer = rendererFixture(), handler = new EngineNodesHandler(); handler.setRenderer(renderer);
+  const graph = compileGraph({ version: 1, kind: 'post', params: {
+    source: { type: 'texture', role: 'lent', value: 'source' }, bloom: { type: 'texture', role: 'lent', value: 'bloom' },
+    gain: { type: 'float', value: .5 },
+  }, nodes: { uv: { op: 'screenUV' }, source: { op: 'texture', param: 'source', in: ['uv'] },
+    bloom: { op: 'texture', param: 'bloom', in: ['uv'] }, gain: { op: 'param', param: 'gain' },
+    rgbSource: { op: 'swizzle', in: ['source'], mask: 'xyz' }, rgbBloom: { op: 'swizzle', in: ['bloom'], mask: 'xyz' },
+    scaled: { op: 'mul', in: ['rgbBloom', 'gain'] }, sum: { op: 'add', in: ['rgbSource', 'scaled'] } },
+  stages: { post: { colour: 'sum' } } });
+  const geometry = new THREE.PlaneGeometry(), mesh = new THREE.Mesh(geometry, graph.material), camera = new THREE.PerspectiveCamera();
+  const source = new THREE.DataTexture(new Uint8Array([128, 32, 16, 255]), 1, 1);
+  const bloom = new THREE.DataTexture(new Uint8Array([16, 64, 32, 255]), 1, 1);
+  const build = (): THREE.WebGLProgramParametersWithUniforms => {
+    const scene = new THREE.Scene(); scene.add(mesh);
+    handler.renderStart(scene, camera); handler.updateLights([]); handler.setObject(mesh, graph.material);
+    try {
+      const input: object = { customProgramCacheKey: graph.material.customProgramCacheKey() };
+      const isParameters = (value: object): value is THREE.WebGLProgramParametersWithUniforms => !Array.isArray(value);
+      if (!isParameters(input)) throw new Error('Missing post parameters');
+      handler.build(graph.material, mesh, input); return input;
+    } finally { handler.renderEnd(); }
+  };
+  try {
+    const cold = build();
+    expect(cold.fragmentShader.match(/uniform sampler2D /gu)).toHaveLength(2);
+    graph.setTexture('source', source); graph.setTexture('bloom', bloom);
+    const ready = build();
+    expect(ready.fragmentShader).toBe(cold.fragmentShader);
+    expect(Object.keys(ready.uniforms)).toEqual(Object.keys(cold.uniforms));
+    const samplers: unknown[] = [];
+    for (const row of Object.values(ready.uniforms)) { const value: unknown = row.value; if (value instanceof THREE.Texture) samplers.push(value); }
+    expect(samplers).toEqual([source, bloom]);
+  } finally { graph.material.dispose(); geometry.dispose(); source.dispose(); bloom.dispose(); }
+});
