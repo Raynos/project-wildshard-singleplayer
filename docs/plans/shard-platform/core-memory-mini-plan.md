@@ -1,6 +1,9 @@
 # Core-game memory benchmax: mini plan (measured, G640)
 
-**State:** `measured` 2026-10-23 — HEAD 965b2bd1d6, measured by a plan-agent subagent; rows C1–C7 open, D1–D4 for Jake.
+**State:** `in flight` (2026-10-25, sp-x2) — menu G682 PASS at 93.476 MiB;
+C1.1 worker backing cut done `9108b14ec6`, C2 reading / C3 title isolation qualified
+in §10. Historical Chromium retention attribution and current selection/template
+floors remain open; C5 remains a look pick. Budgets stay fixed.
 An extra under G639 (after Nalati to zero and grid readiness).
 
 Jake, 2026-10-23, reading the tile streaming page (*"What tiles can't remove: the ~300 MB engine base, the ~320 MB of
@@ -11,11 +14,12 @@ the page components take 300, then that should show in template 1 and template 2
 
 ## Answer
 
-**Current G682 result (2026-10-24): all four floors miss the fixed budgets.**
-On `f4465ac4ab`, the 120-second combined WebContent + GPU readings are menu
-165.0 MiB, selection 169.5 MiB, Template 1 317.1 MiB and Template 2 304.6 MiB.
-The respective limits remain 148.5383 / 198.5383 MiB; see §7 for attribution
-and the complete cold cohort. The measurements below in §§1–3 are historical.
+**Current menu G682 PASS (2026-10-25): 93.476 MiB combined WebContent + GPU**
+on `59aaa985dd`, with all 24 products prefetched; see §10. Selection and templates
+have not been remeasured in this cohort: their last readings on `f4465ac4ab`
+were 169.5 / 317.1 / 304.6 MiB, all misses (§7). The respective limits remain
+148.5383 / 198.5383 MiB. No four-floor PASS or single-cut causal gain is claimed.
+The measurements below in §§1–3 are historical.
 
 **It doesn't show.** A template entered from SHARD SELECT uses **~290–300 MB in the Simulator** (WebContent + GPU process),
 and its own content is included in that. The ~620 MB is estimator constants: the 300 MB engine base, the ~321 MB of grid
@@ -352,8 +356,9 @@ Raw captures, streamed graphs, owner rows and full root paths remain locally in
 
 | Slice (at most 1 h) | Status | Result / remaining acceptance |
 |---|---|---|
-| C1.1 Worker streamed-body backing | done (this commit) | Copy chunks into the checked command's one declared-size buffer, rather than retain all chunks plus a concatenated output. Real-GC regression fails on the previous reader and passes on this one. A 16 MiB / 32-chunk Node kernel tracks 32 -> 17 MiB peak chunk/output backing, exact bytes unchanged. |
-| C1.2 Current footprint qualification | open | At the next coherent memory milestone, measure current menu prefetch with the existing readers against G682; distinguish main-page, worker, browser-native and persistent cache storage. C1 is not yet a footprint PASS. |
+| C1.1 Worker streamed-body backing | done `9108b14ec6` | Copy chunks into the checked command's one declared-size buffer, rather than retain all chunks plus a concatenated output. Real-GC regression fails on the previous reader and passes on this one. A 16 MiB / 32-chunk Node kernel tracks 32 -> 17 MiB peak chunk/output backing, exact bytes unchanged. |
+| C1.2 Current menu footprint / C2 reading | done (this commit), bounded | Existing official WebKit reader: 93.476 MiB / 148.538 MiB PASS, all 24 prefetch products durable. Single-floor selections now enforce their original budget, including incomplete/error readings. Historical Chromium Blink-holder attribution remains unproven. |
+| C3 Title import diet | done (existing J1–J5 source, qualified here) | All 12 current title graph contracts pass; the actual menu has 31 script resource URLs, including both cache/hash worker URLs, with no Three/loaders/shard-world URL. This is not a worker-heap census. |
 
 The current audit confirms the existing two-file concurrency and 32 MiB declared
 payload reservation remain held until durable storage acknowledges each file.
@@ -370,3 +375,49 @@ starts, within the existing payload reservation; cache snapshots and response
 internals remain additional memory. The kernel uses collection to count live
 explicit buffers, not to qualify process footprint. No WebKit, retained-memory,
 frame-time or all-floor gain is claimed.
+
+## 10. Current menu qualification (2026-10-25)
+
+One official cold menu visit on landed `59aaa985dd`, build
+`59aaa98-mvo9iwjx`, through `sim-lane.sh` and
+`sim-grid-entry.mjs --core-memory=menu --core-attribution=1 --runs=1 --modes=cold`.
+The reader resets service workers/caches, enables Developer and the actual menu
+prefetch, uses phone tier / 2× render / muted, and owns quiet. Preparation builds
+before quiet. No forced GC, heap snapshot or Network-body capture.
+
+| Original sample | WebContent bytes | GPU bytes | Combined MiB |
+|---|---:|---:|---:|
+| 10 s | 92,574,736 | 17,434,832 | 104.913 |
+| 60 s | 81,089,552 | 17,483,984 | 94.007 |
+| 120 s | 80,532,496 | 17,483,984 | **93.476 PASS** |
+
+All samples sum both WebContent processes plus the GPU process under the owned
+Simulator launchd. The original 120 s total is **98,016,480 B**, below the fixed
+**155,753,720 B** menu limit; the hello-world calibration is not rebased.
+At 10 s, prefetch was still running (17/24 products, 576,639,902 B stored).
+At 60 and 120 s it was done: **24/24 products, 4,332 files / 603,471,151 B
+stored, zero present-file shortcuts, zero bytes in flight**, no reason/refusal.
+Peak admitted payload was 24,767,753 B against the unchanged 33,554,432 B cap.
+
+Passive categories start only after the acceptance samples. The last event
+reports JavaScript/GC-owned 8,497,739 B, JIT 2,064,384 B, Page 38,884,789 B and
+Other 31,850,496 B; Images/Layers zero. Their proxy timestamps are zero, so these
+are category counts, not timed attribution or additive physical-footprint
+owners. Worker-specific retained bytes remain unknown. Historical §7 menu
+164.96 MiB and today's 93.476 MiB are different source cohorts, not a paired
+measurement of `9108b14ec6` alone.
+
+The original single-floor reader completed rc0/errors0 but omitted a budget
+verdict (only `all` emitted it). This slice routes every app-floor selection
+through the same existing budget calculation: a missing/failed reading stays
+unknown and fails; unselected/foreign results and hello-world calibration cannot
+be substituted. The saved visit passes that repaired calculation without a
+second capture. Default four-floor behavior and calibration remain unchanged.
+
+Two peer related-test jobs were already active during preparation (PIDs 62651
+and 91690), left to finish naturally; no isolated timing or causal claim is made.
+Safari, Inspector/proxy, the owned preview and Simulator were closed, quiet was
+absent and zero booted devices verified before source checks resumed. Raw
+samples/categories, the exact version and offline verdict remain locally at
+`tmp/sp-x2/core-c1-menu/`. Selection/template budgets and original Chromium
+retention attribution remain open.

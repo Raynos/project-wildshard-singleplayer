@@ -12,8 +12,8 @@ export function selectedCoreMemoryTargets(selection: string): readonly (typeof c
 export const compiledFloorSave: Readonly<{scope: 'device'; key: 'debug.global.legacyShardButtons'; data: 'on'}>;
 /** Distinct loaded script URLs, without fetching or retaining response bodies. */
 export function scriptResourceURLs(entries?: readonly {name: string}[]): string[];
-/** Compare the original 120-second renderer+GPU reading; missing/errors fail as unknown. */
-export function coreMemorySummary(input: unknown): {shard: string; name: string; limitBytes: number; totalBytes: number | null; passed: boolean}[];
+/** Compare the original 120-second renderer+GPU reading; missing/errors fail as unknown. Select one app floor or default to all four. */
+export function coreMemorySummary(input: unknown, selection?: string): {shard: string; name: string; limitBytes: number; totalBytes: number | null; passed: boolean}[];
 export interface SimulatorCoreProcess {pid: number; startAbstime: number; physicalFootprintBytes: number}
 export interface SimulatorCoreFootprint {webContent: SimulatorCoreProcess[]; gpu: SimulatorCoreProcess[]; rendererBytes: number; gpuBytes: number}
 export function simulatorCoreFootprint(input: unknown): SimulatorCoreFootprint;

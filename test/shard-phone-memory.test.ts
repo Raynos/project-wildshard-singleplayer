@@ -35,6 +35,34 @@ test('single-floor cohorts retain the original target and refuse unknown selecti
   }
 });
 
+test('single-floor verdicts enforce the same limit without requiring other visits', () => {
+  for (const target of coreMemoryTargets) {
+    const input = {shard: target.shard, errors: [], samples: [
+      {phase: '120s', rendererBytes: target.limitBytes - 1, gpuBytes: 1},
+    ]};
+    expect(coreMemorySummary([input], target.shard)).toEqual([
+      {...target, totalBytes: target.limitBytes, passed: true},
+    ]);
+    input.samples[0] = {phase: '120s', rendererBytes: target.limitBytes, gpuBytes: 1};
+    expect(coreMemorySummary([input], target.shard)).toEqual([
+      {...target, totalBytes: target.limitBytes + 1, passed: false},
+    ]);
+    expect(coreMemorySummary([], target.shard)).toEqual([
+      {...target, totalBytes: null, passed: false},
+    ]);
+    expect(coreMemorySummary([{...input, errors: ['reader failed']}], target.shard)).toEqual([
+      {...target, totalBytes: null, passed: false},
+    ]);
+  }
+});
+
+test('single-floor verdicts refuse foreign results and non-app targets', () => {
+  expect(() => coreMemorySummary(rows(), 'menu')).toThrow('Duplicate or unknown');
+  for (const selection of ['hello', 'unknown', '', 'menu,select']) {
+    expect(() => coreMemorySummary([], selection)).toThrow('Unknown app core memory floor');
+  }
+});
+
 test('uses original 120s values, counts GPU, and never substitutes a cache-clear improvement', () => {
   const input = rows();
   const menu = input[0], target = coreMemoryTargets[0];

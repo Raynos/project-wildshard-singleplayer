@@ -440,7 +440,7 @@ try {
 
 if (coreMemory !== undefined) {
   const summary = {coreMemory, base: BASE, rev: args.rev ?? null, at: new Date().toISOString(), results,
-    ...(coreMemory === 'all' ? {floors: coreMemorySummary(results.filter(row => row.error === undefined))} : {}),
+    ...(coreMemory !== 'hello' ? {floors: coreMemorySummary(results.filter(row => row.error === undefined), coreMemory)} : {}),
     ...(coreMemory === 'hello' && results.length === 1 && results[0].error === undefined ? {calibration: helloWorldMemoryFloor(results[0])} : {})};
   writeFileSync(resolvePath(out, 'summary.json'), `${JSON.stringify(summary, null, 1)}\n`);
   for (const row of results) for (const sample of row.samples ?? []) console.info(`WebKit ${row.shard} ${sample.phase}: WebContent ${(sample.rendererBytes / 1048576).toFixed(1)} MiB, GPU ${(sample.gpuBytes / 1048576).toFixed(1)} MiB`);

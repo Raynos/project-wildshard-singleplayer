@@ -94,15 +94,19 @@ export function helloWorldMemoryFloor(input) {
 
 /** Compare only the unmodified 120-second floor, never the cache-clear diagnostic.
  * Missing/failed readings stay unknown and fail; Chromium is not phone RAM.
- * @param {unknown} input */
-export function coreMemorySummary(input) {
+ * @param {unknown} input
+ * @param {string} [selection] One app floor, or all four by default. */
+export function coreMemorySummary(input, selection = 'all') {
+  const targets = coreMemoryTargets.filter(target => selection === 'all' || target.shard === selection);
+  if (targets.length === 0) throw new Error('Unknown app core memory floor');
   const rows = v.parse(floorRows, input);
-  if (new Set(rows.map(row => row.shard)).size !== rows.length || rows.some(row => !coreMemoryTargets.some(target => target.shard === row.shard))) throw new Error('Duplicate or unknown core memory floor');
-  return coreMemoryTargets.map(target => {
+  if (new Set(rows.map(row => row.shard)).size !== rows.length || rows.some(row => !targets.some(target => target.shard === row.shard))) throw new Error('Duplicate or unknown core memory floor');
+  return targets.map(target => {
     const row = rows.find(value => value.shard === target.shard), samples = row?.samples.filter(sample => sample.phase === '120s') ?? [];
     if (samples.length > 1) throw new Error(`Duplicate 120s floor: ${target.shard}`);
     const sample = samples[0], totalBytes = sample === undefined || row?.errors.length !== 0 ? null : sample.rendererBytes + sample.gpuBytes;
-    return {...target, totalBytes, passed: totalBytes !== null && totalBytes <= target.limitBytes};
+    return {shard: target.shard, name: target.name, limitBytes: target.limitBytes,
+      totalBytes, passed: totalBytes !== null && totalBytes <= target.limitBytes};
   });
 }
 
