@@ -24,7 +24,7 @@ import { soakInspector } from './soak/inspector.mjs';
 import { loadingCardIndex, loadingShardName } from './loading-benchmark/catalogue.mjs';
 import { observeTransport } from './loading-benchmark/transport.mjs';
 import { accuracyRecorder } from './loading-benchmark/accuracy-data.mjs';
-import { requireCompiledEntry, downloadEvidence, stepEvidence, transportEvidence, waitForWaitingWorker, recoveredGridControls, sampleCompiledFrame, compiledFrameMetrics, compiledEntryQualification, compiledPollDetails } from './loading-benchmark/sim-shard.mjs';
+import { requireCompiledEntry, downloadEvidence, stepEvidence, transportEvidence, waitForWaitingWorker, recoveredGridControls, sampleCompiledFrame, compiledFrameMetrics, compiledEntryQualification, compiledDocumentEvidence, compiledPollDetails } from './loading-benchmark/sim-shard.mjs';
 import { cachedBodyEvidence } from './loading-benchmark/cache-bodies.mjs';
 import { saveFixtureCode } from './debug-settings.mjs';
 import { readSimulatorCoreFootprint, selectedCoreMemoryTargets, coreMemorySummary, compiledFloorSave, scriptResourceURLs,
@@ -123,7 +123,7 @@ async function settle(body, ms = 30000) {
 // the entry page's own watcher, installed as soon as the inspector reaches it: one rAF loop, read by the polls
 const COMPILED_READY = `!!window.__wildshard?.world?.hud.entered && !window.__wildshard.world.hud.paused && window.__wildshard.world.game.frameGate() && ![...document.querySelectorAll('.ws-load')].some(panel => getComputedStyle(panel).display !== 'none' && Number(getComputedStyle(panel).opacity) > .05)`;
 const WATCH = `window.__simEntry ??= (() => {
-  const s = { seen: false, gone: null, rows: [], totals: [], downloads: [], worst: 0, worstAt: null,
+  const s = { documentToken: crypto.randomUUID(), seen: false, gone: null, rows: [], totals: [], downloads: [], worst: 0, worstAt: null,
     compiled: { controlsAt: null, last: null, worst: 0, worstAt: null, frames: 0, complete: false } };
   let last = performance.now();
   const tick = t => {
@@ -148,7 +148,7 @@ const WATCH = `window.__simEntry ??= (() => {
   requestAnimationFrame(tick);
   return s;
 })(); 1`;
-const READ = `JSON.stringify({ origin: performance.timeOrigin, at: performance.now(), entry: window.__simEntry ?? null, reveal: window.__wsReveal ?? null,
+const READ = `JSON.stringify({ origin: performance.timeOrigin, documentToken: window.__simEntry?.documentToken ?? null, at: performance.now(), entry: window.__simEntry ?? null, reveal: window.__wsReveal ?? null,
   fcp: performance.getEntriesByType('paint').find(e => e.name === 'first-contentful-paint')?.startTime ?? null, href: location.href,
   tap: Number(sessionStorage.getItem('sim.tap')),
   title: !!document.querySelector('.ws-main-select'), pill: document.querySelector('.ws-update')?.textContent ?? null,
@@ -344,7 +344,7 @@ async function run(mode, index, target) {
           break;
         }
         if (shard !== undefined) {
-          const current = JSON.parse(await page.evaluate(`JSON.stringify({ href: location.href, origin: performance.timeOrigin, at: performance.now(),
+          const current = JSON.parse(await page.evaluate(`JSON.stringify({ href: location.href, origin: performance.timeOrigin, documentToken: window.__simEntry?.documentToken ?? null, at: performance.now(),
             ready: (${COMPILED_READY}),
             ...(${compiledPollDetails.toString()})(${compiled === null}, window.__loadingAccuracy ?? null,
               () => performance.getEntriesByType('measure').map(row => ({ name: row.name, start: row.startTime, ms: row.duration }))) })`));
@@ -374,14 +374,14 @@ async function run(mode, index, target) {
   }
   if (shard !== undefined) {
     if (compiled === null || !compiledReady) throw new Error(`${label}: compiled entry never reached controls`);
-    if (compiled.origin !== sample.origin) throw new Error(`${label}: compiled frame window changed document`);
+    const document = compiledDocumentEvidence(compiled, sample);
     requireCompiledEntry(compiled.href, shard, compiled.accuracy);
     const observedUrls = [...new Set(compiled.accuracy.resources.map(row => row.name).filter(name => {
       try { return new URL(name).origin === new URL(compiled.href).origin; } catch { return false; }
     }))];
     const cachedBodies = await settle(`async () => (${cachedBodyEvidence.toString()})(${JSON.stringify(observedUrls)}, ${JSON.stringify(`/shardfiles/${shard}/shard.json`)})`, 10000);
     const receipts = transport.receipts.filter(row => row.endedAt >= compiled.origin && row.endedAt <= compiled.origin + compiled.accuracy.readyAt);
-    const result = { mode, run: index, shard, href: compiled.href, accuracy: compiled.accuracy, measures: compiled.measures,
+    const result = { mode, run: index, shard, href: compiled.href, document, accuracy: compiled.accuracy, measures: compiled.measures,
       download: downloadEvidence(compiled.accuracy.samples), steps: stepEvidence(compiled.accuracy.samples), transportUnits: transportEvidence(receipts), cachedBodies, transportReceipts: receipts, htmlFixtures: transport.htmlFixtures,
       rows: compiled.accuracy.final.rows.flatMap(row => Number.isFinite(Number(row.ms)) ? [{ key: row.key, ms: Number(row.ms), label: row.label, detail: row.detail }] : []),
       loaderPaintMs: sample.fcp === null ? null : Math.round(compiled.origin + sample.fcp - sample.tap),

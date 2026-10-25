@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { compiledEntryQualification, compiledFrameMetrics, compiledPollDetails, downloadEvidence, recoveredGridControls, requireCompiledEntry, sampleCompiledFrame, stepEvidence, transportEvidence, waitForWaitingWorker, type CompiledFrameWindow } from '../scripts/loading-benchmark/sim-shard.mjs';
+import { compiledDocumentEvidence, compiledEntryQualification, compiledFrameMetrics, compiledPollDetails, downloadEvidence, recoveredGridControls, requireCompiledEntry, sampleCompiledFrame, stepEvidence, transportEvidence, waitForWaitingWorker, type CompiledFrameWindow } from '../scripts/loading-benchmark/sim-shard.mjs';
 
 const frameWindow = (): CompiledFrameWindow => ({ controlsAt: null, last: null, worst: 0, worstAt: null, frames: 0, complete: false });
 
@@ -35,6 +35,17 @@ test('compiled refusals and missing frame evidence remain incomplete rather than
     expect(compiledEntryQualification(rows)).toEqual({ frameLimitMs: 100, complete: false, passed: false,
       worstFrameAfterControlsMs: null, exitCode: 1 });
   }
+});
+
+test('compiled document identity records the observed one-millisecond Safari origin drift', () => {
+  const first = {origin: 1792948830448, documentToken: 'same-live-document'};
+  expect(compiledDocumentEvidence(first, {...first, origin: 1792948830449}))
+    .toEqual({token: 'same-live-document', originDriftMs: 1});
+  expect(compiledDocumentEvidence(first, {...first, origin: first.origin - 1}).originDriftMs).toBe(-1);
+  expect(() => compiledDocumentEvidence(first, {...first, documentToken: 'replacement-document'})).toThrow('changed document');
+  expect(() => compiledDocumentEvidence(first, {origin: first.origin})).toThrow('identity');
+  expect(() => compiledDocumentEvidence({origin: first.origin}, {origin: first.origin})).toThrow('identity');
+  expect(() => compiledDocumentEvidence(first, {...first, origin: Number.NaN})).toThrow('identity');
 });
 
 test('compiled entry measures the full post-controls window without charging loading or shifting controls', () => {
