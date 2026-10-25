@@ -78,6 +78,29 @@ it('keeps another step\'s music out of the actual visible world footer', async (
   } finally { finish(); loading.scope.dispose(); }
 });
 
+it('keeps the current saved-file detail instead of an outer zero-file admission wrapper', async () => {
+  const loading = new Loading({id: 'product', name: 'Product'});
+  let finish = (): void => { throw new Error('Uninitialized admission'); };
+  const pending = new Promise<void>(resolve => { finish = resolve; });
+  const waits: Promise<void>[] = [];
+  try {
+    loading.setPath({id: 'shardfile', steps: [{key: 'modules', label: 'Modules', weight: 1},
+      {key: 'admission', label: 'Product admission', weight: 1}]});
+    loading.paintAdmission({phase: 'cache', detail: 'Checking saved 0123456789ab', bytesRead: 10,
+      bytesTotal: 10, filesDone: 1, filesTotal: 1});
+    waits.push(waitFor('Admit product', pending, 'admission'));
+    now = 400; vi.advanceTimersByTime(32);
+    const foot = (): string => loading.root.querySelector('[data-el="foot"]')?.textContent ?? '';
+    expect(foot()).toContain('Now working on: Product admission · Checking saved 0123456789ab');
+    expect(foot()).not.toContain('Admit product');
+    expect(loading.root.dataset['filesInFlight']).toBe('0');
+    waits.push(waitFor('Read /product/blob.bin', pending, 'file'));
+    now = 700; vi.advanceTimersByTime(32);
+    expect(foot()).toContain('Now waiting for: Read /product/blob.bin');
+    expect(foot()).toContain('1 files in flight');
+  } finally { finish(); await Promise.all(waits); loading.scope.dispose(); }
+});
+
 it('shows the actual declared ratio when a late dependency is discovered, without a 99 percent cap', () => {
   const loading = new Loading({ id: 'test', name: 'Test' }, { scoped: true });
   const view: ProgressView = { download: 0, setup: 0, done: false, error: null, step: 'audio', label: 'Audio', detail: '',

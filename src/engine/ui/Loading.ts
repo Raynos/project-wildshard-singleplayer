@@ -361,7 +361,9 @@ export class Loading {
     if (this.view?.error || this.failedReason !== null) return;
     const pending = this.scoped ? [] : loadingStepWaits(bootWaits(), timeline.display, timeline.current, this.timeline.waitOwner);
     const files = pending.filter(wait => wait.kind === 'file');
-    const wait = files[0] ?? pending.find(row => row.kind !== 'admission') ?? pending[0];
+    // The outer admission promise has no file identity. Let the current
+    // reported phase/hash explain its paced CPU/cache work between real waits.
+    const wait = files[0] ?? pending.find(row => row.kind !== 'admission');
     const transfer = this.downloads.snapshot();
     const current = timeline.rows.find(row => row.key === timeline.display);
     const signature = `${timeline.display}:${timeline.rows.map(row => `${row.state}:${row.detail}`).join('|')}:${transfer.networkBytes}:${transfer.cachedBytes}:${this.downloads.progressVersion}:${wait?.id ?? 0}`;
