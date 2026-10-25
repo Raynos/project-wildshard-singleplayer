@@ -3,7 +3,7 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { parseSync } from 'vite';
 import { legacyInventory } from './legacy-shards.mjs';
-import { shardProducts } from './shard-outputs.mjs';
+import { manifestFolders, outputManifest, shardProducts } from './shard-outputs.mjs';
 
 /** The SDK's named, value-level generate export is the conversion boundary.
  * Never execute a config just to discover its build mode.
@@ -58,4 +58,53 @@ export async function prepareProgramInputs(root, plan, concurrency) {
 export async function buildPrograms(root, plan, reuse = false) {
   const { buildShardfiles } = await import('./build-shardfiles.mjs');
   return buildShardfiles(root, { reuse, ...(plan.scoped ? { scope: plan.products } : {}) });
+}
+
+/** @param {unknown} value @returns {value is Record<string, unknown>} */
+const plain = value => value !== null && typeof value === 'object' && !Array.isArray(value);
+/** Only the admitted data binding slots can require generated product metadata.
+ * @param {unknown} metadata */
+export function usesProgramDiscovery(metadata) {
+  if (!plain(metadata) || !plain(metadata.bindings)) return false;
+  const values = metadata.bindings;
+  /** @param {unknown} value */
+  const program = value => plain(value) && value.program === true;
+  const boot = values.boot;
+  return ['budgets', 'navigation', 'mapPalette', 'poses', 'audioCues'].some(key => program(values[key]))
+    || plain(boot) && ['files', 'sources', 'lateReads', 'explore'].some(key => program(boot[key]));
+}
+/** Discovery and boot tables cover every manifest even for a scoped build.
+ * Read declarations only; a config is never executed to discover prerequisites.
+ * @param {string} root */
+export function programDiscoveryProducts(root) {
+  if (!existsSync(resolve(root, 'src/shards'))) return [];
+  return shardProducts(root, manifestFolders(root)).filter(product => {
+    const file = resolve(root, 'src/shards', product.folder, 'manifest.json');
+    return existsSync(file) && usesProgramDiscovery(product.output === null
+      ? JSON.parse(readFileSync(file, 'utf8')) : outputManifest(root, product.folder, product.output));
+  }).map(product => product.slug);
+}
+
+/** Include global discovery prerequisites in legacy input preparation too.
+ * @param {string} root @param {GenerationPlan} plan @returns {GenerationPlan} */
+export function programInputPlan(root, plan) {
+  if (!plan.scoped) return plan;
+  const products = [...new Set([...plan.products, ...programDiscoveryProducts(root)])];
+  return products.length === plan.products.length ? plan : generationPlan(root, products.join(','));
+}
+
+/** Build receipt-backed discovery inputs before their table consumers. An
+ * inputs-only invocation builds only those required products; it never invents
+ * placeholder values or treats an older receipt as current. With no program
+ * bindings the previous tables-before-products order stays unchanged.
+ * @param {string} root @param {GenerationPlan} plan
+ * @param {{inputsOnly:boolean,reuse?:boolean,writeTables:()=>Promise<void>,build?:typeof buildPrograms}} options */
+export async function emitProgramTables(root, plan, { inputsOnly, reuse = false, writeTables, build = buildPrograms }) {
+  const required = programDiscoveryProducts(root);
+  if (required.length > 0) {
+    const products = inputsOnly ? generationPlan(root, required.join(',')) : programInputPlan(root, plan);
+    await build(root, products, inputsOnly || reuse);
+  }
+  await writeTables();
+  if (!inputsOnly && required.length === 0) await build(root, plan, reuse);
 }

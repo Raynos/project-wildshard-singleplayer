@@ -9,6 +9,7 @@ import { genShardWords } from './gen-shard-words.mjs';
 import { legacyInventory, legacyPrimary } from './legacy-shards.mjs';
 import { genDecisionPolicies } from './gen-decision-policy.mjs';
 import { readProgramDiscovery } from './program-discovery.mjs';
+import { usesProgramDiscovery } from './gen-programs.mjs';
 
 /** Static runtime imports only: lazy plugin/look thunks and erased types stay out of the startup closure. */
 export function manifestClosure(root) {
@@ -182,9 +183,7 @@ export function manifestContract(root, closure, fields = false) {
 function discoverySource(root, product) {
   const composed = product.output === null ? null : outputManifest(root, product.folder, product.output);
   const metadata = composed ?? JSON.parse(readFileSync(resolve(root, `src/shards/${product.folder}/manifest.json`), 'utf8'));
-  const values = metadata.bindings;
-  const program = ['budgets', 'navigation', 'mapPalette', 'poses', 'audioCues'].some(key => values?.[key]?.program === true)
-    || ['files', 'sources', 'lateReads', 'explore'].some(key => values?.boot?.[key]?.program === true);
+  const program = usesProgramDiscovery(metadata);
   return authoredManifestSource(root, product.slug, { folder: product.folder, composed,
     ...(program ? { discovery: readProgramDiscovery(root, product.slug) } : {}) });
 }

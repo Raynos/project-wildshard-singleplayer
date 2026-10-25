@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { InputHashMemo } from './bake-input-hashes.mjs';
+import { programDiscoveryProducts } from './gen-programs.mjs';
 
 /** @typedef {'shards-before'|'boot'|'shards-after'} TailStep */
 /** @param {unknown} value */
@@ -27,7 +28,11 @@ function owns(step, file) {
  * @param {string} inputRoot @param {TailStep} step @param {()=>unknown} run
  * @returns {Promise<boolean>} True only for verified local reuse. */
 export async function generationTailCached(inputRoot, step, run) {
-  const root = realpathSync(resolve(inputRoot)), directory = resolve(root, '.cache/generation-tail');
+  const root = realpathSync(resolve(inputRoot));
+  // Product metadata is outside the source-table cache's input inventory.
+  // Always run the defining receipt reader; a table hit cannot vouch for it.
+  if (step !== 'boot' && programDiscoveryProducts(root).length > 0) { await run(); return false; }
+  const directory = resolve(root, '.cache/generation-tail');
   const memo = new InputHashMemo(root, resolve(directory, 'hashes.json'));
   const receipt = resolve(directory, `${step}.json`);
   const required = step === 'boot' ? bootFiles : shardFiles;

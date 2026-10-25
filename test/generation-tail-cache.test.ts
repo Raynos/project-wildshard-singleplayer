@@ -120,3 +120,23 @@ test('binds boot packs, transport bytes and the installed binary copies', async 
   expect(await generationTailCached(f.root, 'boot', run)).toBe(false);
   expect(calls).toBe(3);
 });
+
+
+test('source table reuse cannot grant authority to a replaced product discovery receipt', async () => {
+  const f = fixture();
+  f.put('src/shards/fixture/manifest.json', JSON.stringify({ bindings: { navigation: { program: true } } }));
+  f.put('out/fixture/validation.json', 'current product receipt');
+  const write = (): void => {
+    if (readFileSync(resolve(f.root, 'out/fixture/validation.json'), 'utf8') !== 'current product receipt') throw new Error('Product receipt refused');
+    f.run();
+  };
+  for (const step of ['shards-before', 'shards-after'] as const) {
+    expect(await generationTailCached(f.root, step, write)).toBe(false);
+    expect(await generationTailCached(f.root, step, write)).toBe(false);
+  }
+  expect(f.calls()).toBe(4);
+  // Neither source nor generated tables move; only the out-of-tree authority changes.
+  f.put('out/fixture/validation.json', 'invalid receipt');
+  await expect(generationTailCached(f.root, 'shards-before', write)).rejects.toThrow('Product receipt refused');
+  expect(f.calls()).toBe(4);
+});

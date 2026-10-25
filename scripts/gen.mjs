@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 import { genShards, refreshDiscovery } from './gen-shards.mjs';
 import { genBudgetDerivations } from './gen-budget-derivations.mjs';
 import { genAskIds } from './gen-ask-ids.mjs';
-import { generationPlan, prepareProgramInputs, buildPrograms } from './gen-programs.mjs';
+import { generationPlan, prepareProgramInputs, buildPrograms, emitProgramTables, programInputPlan } from './gen-programs.mjs';
 import { assertHeavyLease } from './heavy-lane-lease.mjs';
 import { generationConcurrency } from './generation-scheduling.mjs';
 import { generationTailCached } from './generation-tail-cache.mjs';
@@ -12,6 +12,7 @@ import { genStarterWeapons } from './gen-starter-weapons.mjs';
 import { genStarterBag } from './gen-starter-bag.mjs';
 import { genStarterEffects } from './gen-starter-effects.mjs';
 import { genDecisionPolicies } from './gen-decision-policy.mjs';
+import { genShardWords } from './gen-shard-words.mjs';
 import { quietCli } from './quiet-cli.mjs';
 import { beginPushInputs } from './push-post-inputs.mjs';
 import { checkGeneratedSourceTree } from './generated-source.mjs';
@@ -21,9 +22,10 @@ const root = resolve(import.meta.dirname, '..');
 const requests = process.argv.filter(arg => arg.startsWith('--shard='));
 if (requests.length > 1) throw new Error('Generation accepts one --shard= request');
 const shard = requests.at(0)?.slice(8);
-// Existing proof/build-input callers own their separate product phase.
+// Separate product phases own ordinary products; discovery providers are
+// required generation inputs even in an inputs-only invocation.
 const inputsOnly = ['--inputs-only', '--proof', '--build-inputs'].some(flag => process.argv.includes(flag));
-const plan = generationPlan(root, shard);
+const plan = generationPlan(root, shard), inputPlan = programInputPlan(root, plan);
 if (!inputsOnly && !process.env.CI && !process.env.GITHUB_ACTIONS) assertHeavyLease('build');
 const publishPushInputs = beginPushInputs(`${import.meta.dirname}/..`);
 function requireSourceOutputs() {
@@ -53,27 +55,38 @@ await step('starter-effects', () => genStarterEffects());
 // the phase invalidates its negative inventories in the next CI job.
 await step('decision-policies', () => genDecisionPolicies(`${import.meta.dirname}/..`));
 // G292 admitted outputs are ready before asset sizes, versions and shard packing read them.
-await step('generation', () => prepareProgramInputs(root, plan, concurrency));
+await step('generation', () => prepareProgramInputs(root, inputPlan, concurrency));
 await import('./bake-loader.mjs');
 // DS1.1: structural wire schemas are small deterministic authoring outputs, never committed.
 const { writeFormatJsonSchemas } = await import('./gen-format-schema.mjs');
 await step('format-schemas', () => writeFormatJsonSchemas(`${import.meta.dirname}/..`));
-const vocabularyShard = plan.scoped && plan.products.length === 1 ? plan.products[0] : undefined;
-await step('shards', () => generationTailCached(root, 'shards-before', () => genShards(undefined, false, false, vocabularyShard)));
-await step('ask-ids', () => genAskIds());
-const { generateBootTables } = await import('../vite/gen.ts');
-await step('boot-tables', () => generationTailCached(`${import.meta.dirname}/..`, 'boot', async () => {
-  if (buildInputs && process.env.WS_PRECOMMIT_BOOT_CACHE) {
-    const { generateBootTablesCached } = await import('./gen-boot-cache.mjs');
-    generateBootTablesCached(`${import.meta.dirname}/..`, process.env.WS_PRECOMMIT_BOOT_CACHE, generateBootTables);
-  } else generateBootTables();
-}));
-await step('budgets', async () => {
-  for (const selected of plan.scoped ? plan.products : [undefined]) await genBudgetDerivations(undefined, process.argv.includes('--check-budgets'), selected);
+const vocabularyShard = inputPlan.scoped && inputPlan.products.length === 1 ? inputPlan.products[0] : undefined;
+// Product programs may read the static vocabulary before discovery exists.
+await step('shard-vocabulary', () => genShardWords(root, false, vocabularyShard));
+await emitProgramTables(root, plan, {
+  inputsOnly, reuse: process.argv.includes('--proof') || process.argv.includes('--reuse'),
+  build: async (inputRoot, selected, reuse) => {
+    let count = 0;
+    await step('programs', async () => { count = await buildPrograms(inputRoot, selected, reuse); });
+    return count;
+  },
+  writeTables: async () => {
+    await step('shards', () => generationTailCached(root, 'shards-before', () => genShards(undefined, false, false, vocabularyShard)));
+    await step('ask-ids', () => genAskIds());
+    const { generateBootTables } = await import('../vite/gen.ts');
+    await step('boot-tables', () => generationTailCached(`${import.meta.dirname}/..`, 'boot', async () => {
+      if (buildInputs && process.env.WS_PRECOMMIT_BOOT_CACHE) {
+        const { generateBootTablesCached } = await import('./gen-boot-cache.mjs');
+        generateBootTablesCached(`${import.meta.dirname}/..`, process.env.WS_PRECOMMIT_BOOT_CACHE, generateBootTables);
+      } else generateBootTables();
+    }));
+    await step('budgets', async () => {
+      for (const selected of plan.scoped ? plan.products : [undefined]) await genBudgetDerivations(undefined, process.argv.includes('--check-budgets'), selected);
+    });
+    // Boot tables add static imports; derive the closure from the completed graph.
+    await step('shards', () => generationTailCached(root, 'shards-after', () => genShards(undefined, false, false, vocabularyShard)));
+  },
 });
-// Boot tables add static imports; derive the closure from the completed graph.
-await step('shards', () => generationTailCached(root, 'shards-after', () => genShards(undefined, false, false, vocabularyShard)));
-if (!inputsOnly) await step('programs', () => buildPrograms(root, plan, process.argv.includes('--proof') || process.argv.includes('--reuse')));
 requireSourceOutputs();
 try { publishPushInputs(); }
 catch (error) { console.warn(`push-inputs: completed cache unavailable: ${error instanceof Error ? error.message : String(error)}`); }
