@@ -361,9 +361,10 @@ export class LiveGridHost {
     finally { this.requests.delete(instance); }
   }
   private distance(cell: GridCell, p = this.worldFeet()): number { return Math.hypot(Math.max(0, Math.abs(p.x - cell.origin.x) - CHUNK_HALF), Math.max(0, Math.abs(p.z - cell.origin.z) - CHUNK_HALF)); }
-  /** Automatic retirement uses a wider release radius and a continuous five-second dwell; explicit durable departure
-   * still retires an exclusive runtime immediately before another foundation can allocate. */
+  /** Cold worlds use a wider release radius and five-second dwell. The last entered source stays warm on the road;
+   * a committed different destination still releases it before another whole foundation allocates. */
   private retireColdRegions(): void {
+    const kept = this.active === null ? this.lastSource() : null;
     for (const cell of this.assembly.cells) {
       const estimate = readinessModel(this.ports.readiness.bundle(cell), this.ports.readiness.link), distance = this.distance(cell);
       const resident = this.residents.get(cell.instance);
@@ -373,8 +374,8 @@ export class LiveGridHost {
         if (resident !== undefined) delete resident.outsideSince;
       } else if (resident !== undefined) resident.outsideSince ??= this.fixedTick;
       const dwelling = resident !== undefined && (resident.outsideSince === undefined || this.fixedTick - resident.outsideSince < COLD_DWELL_TICKS);
-      resident?.lease.update({ distance, needed: cell.instance === this.active || resident.reservations > 0 || resident.disposalFailed === true || dwelling });
-      if (!inside && !dwelling && resident !== undefined && cell.instance !== this.active && resident.reservations === 0 && !resident.evicting
+      resident?.lease.update({ distance, needed: cell.instance === this.active || cell.instance === kept || resident.reservations > 0 || resident.disposalFailed === true || dwelling });
+      if (!inside && !dwelling && resident !== undefined && cell.instance !== this.active && cell.instance !== kept && resident.reservations === 0 && !resident.evicting
         && !this.coldUnloadRefused.has(cell.instance) && !this.retire(cell.instance)) this.coldUnloadRefused.add(cell.instance); // O20: in steps
     }
   }
@@ -441,7 +442,7 @@ export class LiveGridHost {
       const estimate = readinessModel(this.ports.readiness.bundle(cell), this.ports.readiness.link), distance = this.distance(cell, feet);
       if (this.assembly.approaching(distance, estimate.distance) && !this.issues.has(cell.instance)) void background(cell.instance, this.prefetch([cell.instance]), () => !this.disposed);
     }
-    // Once the source has left, spend the road approach on the destination's admitted world rather than waiting
+    // Without a kept return, spend the road approach on the destination's admitted world rather than waiting
     // at its wall. Actual world-space movement selects the approaching cell: proximity alone would rebuild the
     // just-retired source behind the traveller. Stationary/missed first samples retain the original wall reach.
     if (this.active === null && this.requests.size === 0) {
@@ -479,9 +480,10 @@ export class LiveGridHost {
         // Opaque alternatives at an ambiguous junction stay product/module-only until the turn identifies one destination.
         const roadWidth = this.assembly.pitch - 2 * CHUNK_HALF;
         const reach = early === approach ? Infinity : moving === undefined ? wallReach : Math.max(wallReach, roadWidth);
-        // a destination that still has to build first releases the kept source (one whole world building beside the road,
-        // not two: Sim road pair loading peak 1961 -> under 1.8 GB)
-        if (this.distance(approach, feet) <= reach && !this.residents.has(approach.instance) && this.retireWarmSource(approach.instance)) void background(approach.instance, this.ensure(approach.instance, true), () => !this.disposed);
+        // G724: a prediction must not evict the immediate return. Keep product/module prefetch above;
+        // only a committed crossing to another cell releases this whole source before its replacement allocates.
+        const source = this.lastSource(), kept = source !== null && this.residents.has(source);
+        if (this.distance(approach, feet) <= reach && !this.residents.has(approach.instance) && !kept) void background(approach.instance, this.ensure(approach.instance, true), () => !this.disposed);
       }
     }
     const walls = this.active === null ? this.highway.walls : this.region(this.active)?.walls;
@@ -642,7 +644,7 @@ export class LiveGridHost {
       this.ports.player.motor = rider.motor; this.active = to;
       const host = this.region(to)?.host; if (host !== undefined) this.unbind = host.bindExternalPlayer(this.ports.player);
       this.ports.bindFrame({ instance: to, physics: this.physics(to), motor: rider.motor, origin, ...(host === undefined ? {} : { host }) });
-      this.residents.get(to ?? '')?.lease.update({ needed: true }); this.residents.get(from ?? '')?.lease.update({ needed: false });
+      this.residents.get(to ?? '')?.lease.update({ needed: true }); this.residents.get(from ?? '')?.lease.update({ needed: to === null });
       this.crossings++; this.transitions.push({ from, to }); if (this.transitions.length > 256) this.transitions.shift(); finish();
     } };
   }

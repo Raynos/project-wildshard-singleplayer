@@ -62,6 +62,7 @@ async function fixture() {
   };
   return { live, home, east, north, player, events, allocated, control, settle, enterHome, cross,
     claims: () => [...residency.allocator.claims()],
+    entries: () => residency.allocator.entries(),
     created: () => events.filter(event => event.startsWith('create:')).map(event => event.slice(7)),
     close: () => { control.dispose = true; live.dispose(); player.motor.dispose(); page.dispose(); residency.dispose(); } };
 }
@@ -139,7 +140,7 @@ test('prepared eviction closes readiness until its original abort restores it', 
   } finally { f.close(); }
 });
 
-test('T7: a committed crossing into another cell abandons a road-approach guess and builds the destination at once', async () => {
+test('T7: without a kept source a committed crossing abandons a road guess and builds the destination at once', async () => {
   const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
   const assembly = new GridAssembly({ developer: false, devserver: false });
   const home = assembly.cell('driftwood-isle');
@@ -168,8 +169,7 @@ test('T7: a committed crossing into another cell abandons a road-approach guess 
       } }),
   });
   try {
-    const enter = await live.prepare(null, home.instance); enter.commit();
-    const leave = await live.prepare(home.instance, null); leave.commit();
+    // Cold road-start: no entered source needs protection. A kept source is covered by G724 below.
     // on the road, heading straight at the east cell's mouth: the approach guesses east and starts its world
     player.position.x = CHUNK_HALF + 0.5; player.position.z = 0; travel(live, player.position, 1, 0);
     for (let i = 0; i < 4; i++) await new Promise(resolve => { setTimeout(resolve, 5); });
@@ -182,4 +182,35 @@ test('T7: a committed crossing into another cell abandons a road-approach guess 
     expect(live.state().residents).toEqual([north.instance]);
     expect(live.state().issues).toEqual({}); // no issue: east builds again when the traveller heads for it
   } finally { live.dispose(); player.motor.dispose(); page.dispose(); residency.dispose(); }
+});
+
+test('G724: road prediction preserves the last entered cell for a real U-turn', async () => {
+  const f = await fixture();
+  try {
+    await f.enterHome();
+    const leave = await f.live.prepare(f.home.instance, null); leave.commit();
+    f.player.position.x = CHUNK_HALF + .5; f.player.position.z = 0;
+    travel(f.live, f.player.position, 1, 0); await f.settle();
+    expect(f.live.state().residents).toEqual([f.home.instance]);
+    expect(f.created()).toEqual([f.home.instance]);
+    expect(f.events.filter(event => event.startsWith('retire:'))).toEqual([]);
+    const back = await f.live.prepare(null, f.home.instance); back.commit();
+    expect(f.live.current()).toBe(f.home.instance);
+    expect(f.created()).toEqual([f.home.instance]);
+  } finally { f.close(); }
+});
+
+test('G724: a long road excursion keeps exactly the last entered source warm', async () => {
+  const f = await fixture();
+  try {
+    await f.enterHome();
+    const leave = await f.live.prepare(f.home.instance, null); leave.commit();
+    f.player.position.x = f.east.origin.x * 4;
+    f.player.position.z = f.east.origin.x * 4;
+    for (let tick = 0; tick < 600; tick++) f.live.beforeFixed();
+    await f.settle();
+    expect(f.live.state().residents).toEqual([f.home.instance]);
+    expect(f.created()).toEqual([f.home.instance]);
+    expect(f.entries().find(row => row.owner === f.home.instance)?.needed).toBe(true);
+  } finally { f.close(); }
 });
