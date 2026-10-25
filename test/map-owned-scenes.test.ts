@@ -2,10 +2,11 @@
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Confine the fixture beneath the repository's tmp directory.
 import { resolve } from 'node:path';
-import { BufferGeometry, Float32BufferAttribute } from 'three';
+import { BufferGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial } from 'three';
 import { expect, test } from 'vitest';
 import { MapAssembly } from '../scripts/map-geometry.mjs';
 import { paintDataMap } from '../scripts/bake-data-maps.mjs';
+import { clientSceneGlb } from '../src/sdk/bake/glb';
 
 // No scene or pack file is published. The normal painter must read both from
 // this invocation's owned values, and keep file admission strict otherwise.
@@ -35,4 +36,47 @@ test('owned scene/pack bytes paint without files while undeclared fallback refus
       .rejects.toThrow('undeclared map input scene.bin');
     await expect(paintDataMap(root, 'fixture')).rejects.toThrow('undeclared map input scene.json');
   } finally { geometry.dispose(); rmSync(root, { recursive: true, force: true }); }
+});
+
+test('owned baked GLBs preserve selectors and placements without a physical file handoff', async () => {
+  mkdirSync('tmp', { recursive: true });
+  const root = mkdtempSync(resolve('tmp', 'map-owned-bake-')), dir = resolve(root, 'src/shards/fixture');
+  const geometry = new BufferGeometry(), material = new MeshStandardMaterial({ color: 0x737373 });
+  geometry.setAttribute('position', new Float32BufferAttribute([0, 4, 0, 0, 4, 20, 20, 4, 0], 3));
+  const group = new Group(); group.name = 'bake';
+  const kept = new Mesh(geometry, material), omitted = new Mesh(geometry, material);
+  kept.name = 'kept'; omitted.name = 'omitted'; omitted.position.y = 10; group.add(kept, omitted);
+  try {
+    const encoded = clientSceneGlb(group, new Map([[material, 'grey']])), text = new TextEncoder();
+    const recipe = { scene: { root: 'root', nodes: [
+      { kind: 'group', id: 'root', children: ['left', 'right', 'pooled'] },
+      { kind: 'object', id: 'left', source: 'selected', position: [-20, 0, 0] },
+      { kind: 'object', id: 'right', source: 'selected', position: [20, 0, 0] },
+      { kind: 'mesh', id: 'pooled', geometry: 'kept', position: [0, 0, 40] },
+    ], materials: [] }, imports: [{ id: 'selected', kind: 'baked', piece: 'fixture', only: { warm: true } }] };
+    const sources = new Map([
+      ['scene.json', text.encode(JSON.stringify(recipe))],
+      ['bake.json', text.encode(JSON.stringify({ kinds: [{ name: 'kept', warm: true }, { name: 'omitted', warm: false }] }))],
+      ['bakes/fixture.glb', encoded.glb],
+    ]);
+    const settings = { why: 'owned baked source fixture', inputs: [],
+      style: { kind: 'ground', void: 'transparent', classes: [{ match: '#737373', fill: '#cccccc' }] },
+      painter: { version: 1, scenes: { pools: ['bakes/fixture.glb'], bakes: [{ piece: 'fixture', rows: { file: 'bake.json', path: [] }, directory: 'bakes' }],
+        recipes: [{ file: 'scene.json', path: [] }] } } };
+    mkdirSync(resolve(dir, 'look'), { recursive: true });
+    const settingPath = resolve(dir, 'look/map.json'); writeFileSync(settingPath, JSON.stringify(settings));
+    const owned = await paintDataMap(root, 'fixture', { sources });
+    expect(owned.raster.triangles).toBe(3);
+    expect(owned.raster.height.reduce((highest, value) => Math.max(highest, value), -Infinity)).toBe(4 * 65536);
+    const image = readFileSync(resolve(root, 'public/assets/fixture/map/top.webp'));
+    await expect(paintDataMap(root, 'fixture', { sources: new Map(Array.from(sources).filter(([name]) => !name.endsWith('.glb'))) }))
+      .rejects.toThrow('undeclared map input bakes/fixture.glb');
+    mkdirSync(resolve(dir, 'bakes'), { recursive: true });
+    for (const [name, bytes] of sources) writeFileSync(resolve(dir, name), bytes);
+    writeFileSync(settingPath, JSON.stringify({ ...settings, inputs: Array.from(sources.keys()) }));
+    const physical = await paintDataMap(root, 'fixture');
+    expect(physical.raster.triangles).toBe(owned.raster.triangles);
+    expect(physical.stamp.pixelHash).toBe(owned.stamp.pixelHash);
+    expect(readFileSync(resolve(root, 'public/assets/fixture/map/top.webp'))).toEqual(image);
+  } finally { geometry.dispose(); material.dispose(); rmSync(root, { recursive: true, force: true }); }
 });
