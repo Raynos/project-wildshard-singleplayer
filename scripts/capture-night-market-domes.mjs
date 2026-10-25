@@ -124,14 +124,16 @@ try {
         if (ownBytes <= 0) throw new Error('Missing Night Market residency claims');
         row.views.push({ n: view.n, name: view.name, requestedCamera: camera, sample, state, ownedResidencyBytes: ownBytes });
         await page.evaluate(text => { document.querySelector('#dome-caption').textContent = text; },
-          `${plan.dome} · ${view.n} ${view.name} · ${pin.slice(0, 7)}\n${sample.maxCalls} draws · ${sample.maxTriangles} tris · ${(ownBytes / 1048576).toFixed(1)} MiB claims`);
+          `RM2 BASELINE · ${plan.dome} · ${view.n} ${view.name} · ${pin.slice(0, 7)}\n${sample.maxCalls} draws · ${sample.maxTriangles} tris · ${(ownBytes / 1048576).toFixed(1)} MiB claims`);
         await page.screenshot({ path: join(folder, `view-${view.n}.jpg`), type: 'jpeg', quality: 74, scale: 'css' });
         save();
       }
       row.pageProcessBytes = await processMemory(session);
-      await sharp({ create: { width: 1206, height: 1809, channels: 3, background: '#071521' } }).composite(plan.views.map(view => ({
-        input: join(folder, `view-${view.n}.jpg`), left: ((view.n - 1) % 3) * 402, top: Math.floor((view.n - 1) / 3) * 603,
-      }))).jpeg({ quality: 72 }).toFile(join(folder, 'sheet-baseline-3x3.jpg'));
+      const heading = `<svg width="1206" height="40"><rect width="1206" height="40" fill="#071521"/><text x="16" y="26" fill="white" font-family="sans-serif" font-size="18">RM2 BASELINE · ${plan.dome} · ${pin.slice(0, 7)} · phone 2× · whole-scene counts</text></svg>`;
+      await sharp({ create: { width: 1206, height: 1849, channels: 3, background: '#071521' } }).composite([
+        { input: Buffer.from(heading), left: 0, top: 0 },
+        ...plan.views.map(view => ({ input: join(folder, `view-${view.n}.jpg`), left: ((view.n - 1) % 3) * 402, top: 40 + Math.floor((view.n - 1) / 3) * 603 })),
+      ]).jpeg({ quality: 72 }).toFile(join(folder, 'sheet-baseline-3x3.jpg'));
       row.complete = true; save();
       console.info(JSON.stringify({ dome: row.dome, complete: row.complete, pageProcessBytes: row.pageProcessBytes,
         maxCalls: Math.max(...row.views.map(view => view.sample.maxCalls)), maxTriangles: Math.max(...row.views.map(view => view.sample.maxTriangles)) }));

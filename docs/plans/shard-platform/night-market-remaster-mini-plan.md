@@ -146,7 +146,7 @@ About 10 Opus lane-days, roughly 5 calendar days on two lanes.
 | RM1.4 40 m pair targets | in flight (2026-10-25, sp-x6) | B1 two candidates + 8/9 detailed targets; SW target 2 image-tool refusals twice, explicit sheet gap. B2 two candidates + 9/9 targets and labelled sheet; invented rear buildings removed |
 | RM1.5 100 m pair targets | done | C1/C2 each have two imagegen candidates, nine detailed targets and a labelled sheet; outer empty directions, bounded market edge and distinct forward/down views retained |
 | RM1.6 plaza pair targets | done | D1/D2 each have two candidates, nine detailed targets and a labelled sheet; eight-dome overview explicitly records 71/72 overall targets because B1.2 remains missing |
-| RM2.1 road / plaza baseline | in flight (2026-10-25, sp-x6) | Exact camera/lens admission and ready physical streaming anchors first; same source/cameras, then draw, triangle and memory readings |
+| RM2.1 road / plaza baseline | done | 36 exact views / four labelled sheets on `903baf53bc`; whole-scene maxima A1 139 draws / 307,798 tris, A2 148 / 339,674, D1 150 / 348,643, D2 156 / 361,596. Effective Night Market claims 65.1–114.8 MiB, separate page-wide CDP samples. Draw target still missed; no FPS/native-memory acceptance |
 | RM2.2 aerial baseline | open | 40 m / 100 m pairs and full baseline sheets |
 | RM3.1 existing kit extraction | open | First GLB kit pieces, no placement/look change |
 | RM3.2 variants / LOD intake | open | Palette slots, three variants, LOD0/LOD1/far bounds |
