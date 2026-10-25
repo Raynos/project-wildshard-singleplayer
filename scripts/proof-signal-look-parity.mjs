@@ -164,7 +164,7 @@ try {
       // The fixed frame can ground the player; finish that actual viewer's queue without another simulation tick.
       await within(page.evaluate(settlePresentationTerrain, 120000), 120000, `Signal ${tier}/${p.id} final terrain residency`);
       await sleep(300);
-      const shot = await page.evaluate(async v => {
+      const capture = await page.evaluateHandle(async v => {
         const w = window.__wildshard.world, g = w.game, r = g.renderer, gl = r.getContext(), scene = g.rootScene ?? g.scene, cam = g.camera;
         // the camera at the player's eye where the spawn put it, looking along the pose (yaw 0 = south, −z; +π/2 = east, −x)
         const at = w.player.position, cp = Math.cos(v.pitch);
@@ -195,11 +195,12 @@ try {
         for (const o of hidden) o.visible = true;
         let lit = 0; for (let i = 0; i < pixels.length; i += 4) if (pixels[i] + pixels[i + 1] + pixels[i + 2] > 0) lit++;
         const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', pixels));
-        let bin = ''; for (let i = 0; i < pixels.length; i += 0x8000) bin += String.fromCodePoint(...pixels.subarray(i, i + 0x8000));
-        return { player: [at.x, at.y, at.z], width: gl.drawingBufferWidth, height: gl.drawingBufferHeight, calls, triangles, lit, pixels: Array.from(digest, x => x.toString(16).padStart(2, '0')).join(''), data: btoa(bin) };
+        return { player: [at.x, at.y, at.z], width: gl.drawingBufferWidth, height: gl.drawingBufferHeight, calls, triangles, lit, pixels: Array.from(digest, x => x.toString(16).padStart(2, '0')).join(''), data: pixels };
       }, { yaw, pitch, frame });
+      const rawPath = raw === undefined ? undefined : join(raw, `${tier}-${p.id}.rgba`);
+      const shot = await readParityFrame(page, capture, rawPath);
       const row = { tier, pose: p.id, player: shot.player, clock: captureClock, width: shot.width, height: shot.height, calls: shot.calls, triangles: shot.triangles, lit: shot.lit, pixels: shot.pixels };
-      if (raw !== undefined) { row.raw = join(raw, `${tier}-${p.id}.rgba`); writeFileSync(row.raw, Buffer.from(shot.data, 'base64')); }
+      if (rawPath !== undefined) row.raw = rawPath;
       rows.push(row);
       console.log(`${tier} ${p.id} at ${shot.player.join(',')}: ${shot.calls} draws, ${shot.triangles} triangles, ${shot.lit} lit pixels`);
     }
