@@ -1,8 +1,8 @@
 import { expect, test, vi } from 'vitest';
 import { DecisionHost, type DecisionHostOptions, type DecisionScript, type DecisionTrace, type DecisionWorld } from '@wildshard/engine/script/decision';
-import { DecisionModule, prepareDecisionMemories } from '../src/engine/script/decisionModule';
-import { Scope } from '../src/engine/app/scope';
-import { pageScope } from '../src/engine/app/resources';
+import { DecisionModule, prepareDecisionMemories } from '@wildshard/engine/script/decisionModule';
+import { Scope } from '@wildshard/engine/app/scope';
+import { pageScope } from '@wildshard/engine/app/resources';
 import { compileScript } from '@wildshard/sdk/compileScript';
 import { scriptV1Layout } from '@wildshard/format/scriptAbiV1';
 import { createScriptScenario } from '@wildshard/sdk/scriptScenario';
