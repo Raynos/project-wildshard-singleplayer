@@ -34,20 +34,33 @@ interface LatticeBinding {
   sample: Sample | undefined;
   readonly read: Sample;
 }
+interface ChannelBinding {
+  readonly row: ScalarChannelRows;
+  values: Float32Array | Float64Array | undefined;
+  readonly read: (index: number) => number;
+}
+function scalarValue(values: Float32Array | Float64Array, index: number): number {
+  const value = values[index];
+  if (value === undefined) throw new Error('Scalar channel index outside declared count');
+  return value;
+}
 /** One definition's declared binary rasters. Registration performs no IO or
  * inflate; preparation validates every block before publishing any sampler. */
 export class ScalarLatticeBindings {
   private readonly bindings = new Map<string, LatticeBinding>();
+  private readonly channels = new Map<string, ChannelBinding>();
   private ready = false;
   private sealed = false;
-  get prepared(): boolean { return this.ready || this.bindings.size === 0; }
-  get files(): readonly string[] { return [...this.bindings.keys()]; }
+  get prepared(): boolean { return this.ready || this.bindings.size === 0 && this.channels.size === 0; }
+  get files(): readonly string[] { return [...new Set([...this.bindings.keys(), ...this.channels.keys()])]; }
   seal(): void { this.sealed = true; }
 
   lattice(input: unknown, bounds?: LatticeBounds): Sample {
     const row = v.parse(ScalarLatticeSchema, input);
-    if (typeof row.values.data === 'string') return this.decode(row, undefined, bounds);
+    if (typeof row.values.data === 'string') return this.sample(row, readScalarChannel(row.values), bounds);
     const file = row.values.data.file, prior = this.bindings.get(file);
+    const channel = this.channels.get(file);
+    if (channel !== undefined && (channel.row.type !== row.values.type || channel.row.count !== row.values.count)) throw new Error('Conflicting scalar block declaration');
     if (prior !== undefined) {
       if (prior.row.res !== row.res || prior.row.size !== row.size || prior.row.values.count !== row.values.count
         || prior.row.values.type !== row.values.type || prior.bounds?.min !== bounds?.min || prior.bounds?.max !== bounds?.max) {
@@ -56,7 +69,7 @@ export class ScalarLatticeBindings {
       return prior.read;
     }
     if (this.ready || this.sealed) throw new Error('Scalar declarations already sealed');
-    if (this.bindings.size >= 64) throw new Error('Too many scalar blocks');
+    if (this.files.length >= 64 && channel === undefined) throw new Error('Too many scalar blocks');
     const entry: LatticeBinding = {
       row, bounds: bounds === undefined ? undefined : { ...bounds }, sample: undefined,
       read: (x, z) => {
@@ -68,18 +81,50 @@ export class ScalarLatticeBindings {
     return entry.read;
   }
 
+  /** Exact indexed scalars, including f64 candidate values; no sampler or resampling.
+   * File-backed reads stay closed until every declared channel and lattice validates. */
+  channel(input: unknown): (index: number) => number {
+    const row = v.parse(ScalarChannelSchema, input);
+    if (typeof row.data === 'string') {
+      const values = readScalarChannel(row);
+      return index => scalarValue(values, index);
+    }
+    const file = row.data.file, prior = this.channels.get(file), lattice = this.bindings.get(file);
+    if (lattice !== undefined && (lattice.row.values.type !== row.type || lattice.row.values.count !== row.count)) throw new Error('Conflicting scalar block declaration');
+    if (prior !== undefined) {
+      if (prior.row.type !== row.type || prior.row.count !== row.count) throw new Error('Conflicting scalar block declaration');
+      return prior.read;
+    }
+    if (this.ready || this.sealed) throw new Error('Scalar declarations already sealed');
+    if (this.files.length >= 64 && lattice === undefined) throw new Error('Too many scalar blocks');
+    const entry: ChannelBinding = { row, values: undefined, read: index => {
+      if (entry.values === undefined) throw new Error('Scalar blocks are not prepared');
+      return scalarValue(entry.values, index);
+    } };
+    this.channels.set(file, entry);
+    return entry.read;
+  }
+
   prepare(blocks: ReadonlyMap<string, Uint8Array>): void {
     if (this.ready) return;
     this.seal();
+    const decoded = new Map<string, Float32Array | Float64Array>();
+    const storage = (row: ScalarChannelRows): Float32Array | Float64Array => {
+      if (typeof row.data === 'string') return readScalarChannel(row, blocks);
+      const prior = decoded.get(row.data.file);
+      if (prior !== undefined) return prior;
+      const values = readScalarChannel(row, blocks); decoded.set(row.data.file, values); return values;
+    };
     const candidates = [...this.bindings.values()].map(entry => ({
-      entry, sample: this.decode(entry.row, blocks, entry.bounds),
+      entry, sample: this.sample(entry.row, storage(entry.row.values), entry.bounds),
     }));
+    const channels = [...this.channels.values()].map(entry => ({ entry, values: storage(entry.row) }));
     for (const { entry, sample } of candidates) entry.sample = sample;
+    for (const { entry, values } of channels) entry.values = values;
     this.ready = true;
   }
 
-  private decode(row: ScalarLatticeRows, blocks: ReadonlyMap<string, Uint8Array> | undefined, bounds: LatticeBounds | undefined): Sample {
-    const values = readScalarChannel(row.values, blocks);
+  private sample(row: ScalarLatticeRows, values: Float32Array | Float64Array, bounds: LatticeBounds | undefined): Sample {
     if (!(values instanceof Float32Array)) throw new Error('Scalar lattice requires f32 storage');
     if (bounds !== undefined && !values.every(value => value >= bounds.min && value <= bounds.max)) {
       throw new Error('Scalar lattice outside declared bounds');

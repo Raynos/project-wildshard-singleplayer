@@ -12686,21 +12686,21 @@ same named {file,bytes} block to readScalarLattice; native preparation reads
 it through its original product before installing either owner. Original
 inline profiles and all sampler, motor, RNG and snapshot laws remain intact.
 
-ScalarLatticeBindings is one definition's raw-block intake. lattice(rows,
-{min,max}?) declares a stable sampler; seal() closes the declaration set
-(maximum 64 distinct files). A file's shape and range must agree at every
-reference. Queries refuse until prepare(blocks) has validated the whole set;
-a malformed suffix publishes nothing. Preparation retains decoded samplers,
-not the compressed transport map. Aliases reuse that same decoded storage.
+ScalarLatticeBindings owns one definition's raw blocks. lattice(rows,
+{min,max}?) binds a stable sampler; channel(rows) binds an exact indexed
+f32/f64 reader. Both refuse reads until prepare(blocks) validates every
+file. seal() closes declarations (64 distinct files); repeated paths must
+agree on type/count and lattice shape/bounds. Each file decodes once;
+readers retain decoded values, never the compressed transport map.
 
-defineShard constructs this intake only for referenced raw scalar rows and
-preserves its original ground, water and callback identities. Declaration
-performs no raw inflate or file read. prepareManifestScalarBlocks reads the
-same product's declared files, pinning identity, readers and a live scope
-through every await, then publishes the complete validated set. Standalone
-and regional world preparation call it before native construction. The
-offline prepareNativeScalarBlocks adapter lends the same authored files to
-the same intake. No shard branch, sampler law, clock or save is introduced.
+defineShard owns this intake. Optional forestRows declares exact forest
+candidates with f64 density; fixed/inline readers stay synchronous.
+Binary declaration performs no IO/inflate. Existing ground, water and
+callback identities stay intact. prepareManifestScalarBlocks pins the
+same product identity, readers and live scope through every await, then
+publishes the whole set. Standalone/regional preparation runs it before
+native construction; prepareNativeScalarBlocks is its offline adapter.
+No shard branch, sampling law, clock or save changes.
 
 Declared ground accepts an optional f32 pond-mask lattice with explicit res,
 size and scalar storage. Its sample count must equal res squared; values must

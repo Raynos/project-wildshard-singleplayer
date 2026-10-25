@@ -683,6 +683,8 @@ export type ShardManifestRows = Omit<ShardManifest, 'scalarBlocks' | 'load' | 'r
   readonly groundColourSamples?: ScalarTripletRows;
   readonly surfaceSamples?: ScalarTripletRows;
   readonly forestMaskSamples?: ScalarLatticeRows;
+  /** Exact candidate rows; binary density joins the manifest's verified scalar preparation. */
+  readonly forestRows?: unknown;
   readonly mapGroundSamples?: ScalarTripletRows;
 };
 /** Resolve admitted raster recipes in their original order, copied boot poses and entry metadata.
@@ -690,24 +692,26 @@ export type ShardManifestRows = Omit<ShardManifest, 'scalarBlocks' | 'load' | 'r
 export function defineShard(rows: ShardManifestRows,
   bindings: Pick<ShardManifest, 'load' | 'render' | 'roster' | 'ktx2' | 'dev'> & { readonly ground?: ShardManifest['ground'] }): ShardManifest {
   if ('runtimeEntry' in rows) throw new Error('Declared manifests do not name runtime modules');
-  for (const key of ['groundRows','groundColourSamples','surfaceSamples','forestMaskSamples','mapGroundSamples']) {
+  for (const key of ['groundRows','groundColourSamples','surfaceSamples','forestMaskSamples','mapGroundSamples','forestRows']) {
     const descriptor = Object.getOwnPropertyDescriptor(rows,key);
     if (key in rows && (descriptor === undefined || !descriptor.enumerable || !('value' in descriptor))) throw new Error('Manifest samples require own data fields');
   }
   if('scalarBlocks' in rows)throw new Error('Scalar intake is constructed by the manifest reader');
   const scalarBlocks=new ScalarLatticeBindings();
-  const { postLook,poses,groundColour,horizon,pois,minimap,groundRows,groundColourSamples,surfaceSamples,forestMaskSamples,mapGroundSamples,...data } = rows;
+  const { postLook,poses,groundColour,horizon,pois,minimap,groundRows,groundColourSamples,surfaceSamples,forestMaskSamples,mapGroundSamples,forestRows,...data } = rows;
   if (postLook !== undefined && bindings.render !== undefined) throw new Error('Conflicting manifest look bindings');
   const nativeGround = bindings.ground ?? data.ground,{ palette,...mapFields } = minimap ?? {};
   if (groundRows !== undefined && nativeGround !== undefined || groundColourSamples !== undefined && groundColour !== undefined
     || surfaceSamples !== undefined && data.surfaceAt !== undefined || forestMaskSamples !== undefined && (data.forest === undefined || 'mask' in data.forest)
-    || mapGroundSamples !== undefined && palette === undefined) throw new Error('Conflicting manifest sample bindings');
+    || mapGroundSamples !== undefined && palette === undefined
+    || forestRows !== undefined && (data.forest === undefined || 'density' in data.forest || 'scale' in data.forest || 'species' in data.forest)) throw new Error('Conflicting manifest sample bindings');
   if (nativeGround === undefined && groundRows === undefined) throw new Error('Shard boot needs its declared ground owner');
   const groundData = groundRows === undefined ? undefined : v.parse(GroundRowsSchema,groundRows),
     pigmentData = groundColourSamples === undefined ? undefined : v.parse(ScalarTripletSchema,groundColourSamples),
     surfaceData = surfaceSamples === undefined ? undefined : v.parse(ScalarTripletSchema,surfaceSamples),
     forestData = forestMaskSamples === undefined ? undefined : v.parse(ScalarLatticeSchema,forestMaskSamples),
-    mapData = mapGroundSamples === undefined ? undefined : v.parse(ScalarTripletSchema,mapGroundSamples);
+    mapData = mapGroundSamples === undefined ? undefined : v.parse(ScalarTripletSchema,mapGroundSamples),
+    forestCandidates = forestRows === undefined ? undefined : v.parse(ForestRowsSchema,forestRows);
   let audio = data.audio,boot = data.boot;
   if (audio?.catalogue !== undefined) {
     const { catalogue,...audioData } = audio,preload = audio.preload ?? (catalogue ? async () => {
@@ -724,13 +728,15 @@ export function defineShard(rows: ShardManifestRows,
     sampledColour = pigmentData === undefined ? undefined : declaredGroundColour(pigmentData,scalarBlocks),
     sampledSurface = surfaceData === undefined ? undefined : declaredSurface(surfaceData,scalarBlocks),
     ground = groundData === undefined ? nativeGround : declaredGround(groundData,scalarBlocks),
-    sampledMap = mapData === undefined ? undefined : declaredMapColour(mapData,scalarBlocks);
+    sampledMap = mapData === undefined ? undefined : declaredMapColour(mapData,scalarBlocks),
+    forestQueries = forestCandidates === undefined ? undefined : declaredForestQueries(forestCandidates,scalarBlocks);
   if (ground === undefined) throw new Error('Shard boot needs its declared ground owner');
   if(rows.navmesh?.ground!==undefined&&typeof rows.navmesh.ground.wet.values.data!=='string')scalarBlocks.lattice(rows.navmesh.ground.wet);
   const map = minimap === undefined ? undefined : { ...mapFields,...(palette === undefined ? {} : { palette: sampledMap === undefined ? mapPalette(palette) : { ...mapPalette(palette),ground: sampledMap } }) };
   const manifest: ShardManifest = { ...data, ...bindings, ground, spawns: [...data.spawns],
     trees,...(audio === undefined ? {} : { audio }),...(boot === undefined ? {} : { boot }),
-    ...(forestMask === undefined || data.forest === undefined ? {} : { forest: { ...data.forest,mask: forestMask } }),
+    ...(data.forest === undefined || forestMask === undefined && forestQueries === undefined ? {} : {
+      forest: { ...data.forest, ...forestQueries, ...(forestMask === undefined ? {} : { mask: forestMask }) } }),
     ...(sampledColour === undefined ? {} : { groundColor: sampledColour }),
     ...(sampledSurface === undefined ? {} : { surfaceAt: sampledSurface }),
     ...(map === undefined ? {} : { minimap: map }),
@@ -773,19 +779,22 @@ export function declaredGround(input: unknown,scalarBlocks?:ScalarLatticeBinding
 }
 
 /** A declared forest's queries (`ForestRowsSchema`, G4): each exact jittered candidate answers from its generated row. */
-export function declaredForestQueries(input: { readonly forest: unknown }): Required<Pick<ChunkForest, 'density' | 'scale' | 'species'>>;
-export function declaredForestQueries(input: v.InferOutput<typeof FixedForestQueriesSchema>): Required<Pick<ChunkForest, 'density'>>;
-export function declaredForestQueries(input: unknown): Pick<ChunkForest, 'density' | 'scale' | 'species'>;
-export function declaredForestQueries(input: unknown): Pick<ChunkForest, 'density' | 'scale' | 'species'> {
+export function declaredForestQueries(input: { readonly forest: unknown }, scalarBlocks?: ScalarLatticeBindings): Required<Pick<ChunkForest, 'density' | 'scale' | 'species'>>;
+export function declaredForestQueries(input: v.InferOutput<typeof FixedForestQueriesSchema>, scalarBlocks?: ScalarLatticeBindings): Required<Pick<ChunkForest, 'density'>>;
+export function declaredForestQueries(input: unknown, scalarBlocks?: ScalarLatticeBindings): Pick<ChunkForest, 'density' | 'scale' | 'species'>;
+export function declaredForestQueries(input: unknown, scalarBlocks?: ScalarLatticeBindings): Pick<ChunkForest, 'density' | 'scale' | 'species'> {
   if (v.is(FixedForestQueriesSchema, input)) { const { density } = input; return { density: () => density }; }
-  const rows = v.parse(ForestRowsSchema,input), density = rows.density === undefined ? null : readScalarChannel(rows.density);
+  const rows = v.parse(ForestRowsSchema,input), density = rows.density === undefined ? null
+    : typeof rows.density.data === 'string' ? readScalarChannel(rows.density) : scalarBlocks?.channel(rows.density);
+  if (density === undefined) throw new Error('Forest density requires its scalar intake');
   const at = new Map(rows.forest.map((row,index) => [`${String(row.x)},${String(row.z)}`,{ row,index }]));
   const row = (x: number, z: number) => {
     const found = at.get(`${String(x)},${String(z)}`);
     if (found === undefined) throw new Error('Forest candidate differs from its declared rows');
     return found;
   };
-  return { density: (x,z) => { const found = row(x,z), value = density === null && 'density' in found.row ? found.row.density : density?.[found.index];
+  return { density: (x,z) => { const found = row(x,z), value = density === null && 'density' in found.row ? found.row.density
+      : typeof density === 'function' ? density(found.index) : density?.[found.index];
     if (value === undefined) throw new Error('Missing forest density');return value; },
     scale: (x,z) => row(x,z).row.scale,species: (x,z) => row(x,z).row.species };
 }
