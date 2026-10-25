@@ -2913,7 +2913,6 @@
     "src/shards/sunscar-dunes/data/physicsPlacements.generated.json",
     "src/shards/sunscar-dunes/data/questPage.generated.json",
     "src/shards/sunscar-dunes/data/restPools.generated.json",
-    "src/shards/sunscar-dunes/data/restScenes.generated.json",
     "src/shards/sunscar-dunes/data/towerPhysics.generated.json",
     "src/shards/sunscar-dunes/data/worldBakes.generated.json"
   ]

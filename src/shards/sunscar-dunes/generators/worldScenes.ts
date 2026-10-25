@@ -1,7 +1,7 @@
-import { parseWorldScene } from '@wildshard/format/clientChannels';
+import type { placeBindings } from './restScene';
+import { parseWorldSceneBindings, parseWorldScene } from '@wildshard/format/clientChannels';
 import { parseWorldScenes } from '@wildshard/format/worldScenes';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
-import scenes from '../data/restScenes.generated.json' with { type: 'json' };
 import { SIGNAL_PIECES as pieces } from './rows/pieces';
 import { SIGNAL_SOURCE_LIBRARIES, type SceneWorldBakes } from './sceneSources';
 import { SIGNAL_SKIRT_BLOBS, SIGNAL_SKIRT_LIBRARY, SIGNAL_SKIRT_STEPS } from './skirtScenes';
@@ -13,18 +13,18 @@ const emitterFiles = new Set(SIGNAL_EMITTERS.rows.flatMap(row => row.draws.flatM
 /** One owned assembly result; every call creates its scene arrays anew. */
 export interface SignalWorldSceneFiles { blobs: NamedBlob[]; worldScenes: ReturnType<typeof parseWorldScenes> }
 /** Assemble the original scene files and bindings from the same explicit bake rows as their libraries. */
-export function signalWorldScenes(world: SceneWorldBakes, sources: readonly NamedBlob[]): SignalWorldSceneFiles {
+export function signalWorldScenes(world: SceneWorldBakes, sources: readonly NamedBlob[], bindings: ReturnType<typeof placeBindings>): SignalWorldSceneFiles {
   const blobs = [...sources, ...SIGNAL_SKIRT_BLOBS, ...SIGNAL_EMBER_BLOBS.filter(blob => emitterFiles.has(blob.file.name ?? ''))];
   const steps: unknown[] = [], effects: { readonly part: string; readonly pool: string | null; readonly rows: unknown }[] = [];
   /** Original order, native hierarchy and fields. Sources remain the existing
    * model libraries and kind bakes; this only declares their assembly bindings. */
   const definitions = [
-    ['tower', 'sunscar.tower', scenes.bindings.tower, world.tower.colliders],
-    ['caravan', 'sunscar.caravan', scenes.bindings.caravan, world.caravan.colliders],
-    ['well', 'sunscar.well', scenes.bindings.well, world.well.colliders],
+    ['tower', 'sunscar.tower', bindings.tower, world.tower.colliders],
+    ['caravan', 'sunscar.caravan', bindings.caravan, world.caravan.colliders],
+    ['well', 'sunscar.well', bindings.well, world.well.colliders],
     ['rocks', 'sunscar.rocks', null, world.rocks.colliders],
     ['dressing', 'sunscar.dressing', null, world.dressing.colliders],
-    ...scenes.bindings.braziers.map((row, index) => { const baked = world.braziers.braziers[index]; if (baked === undefined) throw new Error('Missing original brazier'); return [`brazier.${String(index)}`, `sunscar.brazier.${String(index)}`, row, baked.colliders] as const; }),
+    ...bindings.braziers.map((row, index) => { const baked = world.braziers.braziers[index]; if (baked === undefined) throw new Error('Missing original brazier'); return [`brazier.${String(index)}`, `sunscar.brazier.${String(index)}`, row, baked.colliders] as const; }),
   ] as const;
   for (const [id, piece, source, colliders] of definitions) {
     const file = `world/scenes/${id}.json`;
@@ -37,7 +37,7 @@ export function signalWorldScenes(world: SceneWorldBakes, sources: readonly Name
     blobs.push(json(file, recipe));
     const metadata = pieces.find(row => row.id === piece);
     if (metadata === undefined) throw new Error('Missing original place registration');
-    const publish = Object.fromEntries(Object.entries(source?.fields ?? {}).filter(([name]) => name !== 'root')
+    const publish = Object.fromEntries(Object.entries(parseWorldSceneBindings(source?.fields ?? {})).filter(([name]) => name !== 'root')
       .map(([name, binding]) => [name, binding.kind === 'colliders' ? { ...binding, part: piece } : binding] as const));
     for (const [from, to] of [['brazierAt', 'brazier-at'], ['lampAt', 'lamp-at'], ['bowlAt', 'bowl-at'], ['glowAt', 'glow-at'],
       ['logbookAt', 'logbook-at'], ['crankAt', 'crank-at'], ['jarAt', 'jar-at']]) {

@@ -6,6 +6,7 @@ import { signalWorldMetadata } from '../src/shards/sunscar-dunes/generators/worl
 import { whipHeldRecipe } from '../src/shards/sunscar-dunes/generators/rows/heldWeapon';
 import { gearSceneRows } from '../src/shards/sunscar-dunes/generators/rows/gearModels';
 import { signalSceneSources } from '../src/shards/sunscar-dunes/generators/sceneSources';
+import { placeBindings } from '../src/shards/sunscar-dunes/generators/restScene';
 import { signalWorldScenes } from '../src/shards/sunscar-dunes/generators/worldScenes';
 import { signalSceneOutput } from '../src/shards/sunscar-dunes/generators/sourceOutput';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
@@ -28,7 +29,7 @@ test('explicit world rows retain every original held, specimen, scene and output
   expect(gearSceneRows(world, held)).toEqual(GEAR_SCENE_ROWS);
   const sources = signalSceneSources(world, rigLibrary);
   expect(sources.map(blob => blob.file)).toEqual(SIGNAL_SOURCE_BLOBS.map(blob => blob.file));
-  const scene = signalWorldScenes(world, sources);
+  const scene = signalWorldScenes(world, sources, placeBindings());
   expect(scene.worldScenes).toEqual(SIGNAL_WORLD_SCENES);
   expect(scene.blobs.map(blob => blob.file)).toEqual(SIGNAL_SCENE_BLOBS.map(blob => blob.file));
   const output = signalSceneOutput(scene, SIGNAL_CLIENT_PLAN);
@@ -55,12 +56,12 @@ test('held and specimen factories read the supplied anchors and lash dimensions'
 
 test('each scene assembly owns its mutable arrays and refuses missing declared braziers', () => {
   const world = signalWorldMetadata(files), sources = signalSceneSources(world, rigLibrary);
-  const first = signalWorldScenes(world, sources), second = signalWorldScenes(world, sources);
+  const first = signalWorldScenes(world, sources, placeBindings()), second = signalWorldScenes(world, sources, placeBindings());
   first.worldScenes.steps.pop(); first.blobs.pop();
   expect(second.worldScenes).toEqual(SIGNAL_WORLD_SCENES);
   expect(second.blobs.map(blob => blob.file)).toEqual(SIGNAL_SCENE_BLOBS.map(blob => blob.file));
   world.braziers.braziers.pop();
-  expect(() => signalWorldScenes(world, sources)).toThrow('Missing original brazier');
+  expect(() => signalWorldScenes(world, sources, placeBindings())).toThrow('Missing original brazier');
 });
 
 test('quest policy reads the same verified world anchors without changing saved policy', () => {

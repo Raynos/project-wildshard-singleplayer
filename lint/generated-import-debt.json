@@ -285,7 +285,6 @@
     "src/shards/sunscar-dunes/generators/rows/sandFields.ts": 2,
     "src/shards/sunscar-dunes/generators/rows/spawns.ts": 1,
     "src/shards/sunscar-dunes/generators/sceneSources.ts": 6,
-    "src/shards/sunscar-dunes/generators/worldScenes.ts": 3,
     "test/adventure-persistence.test.ts": 1,
     "test/arena-field.test.ts": 1,
     "test/arena-room-fight.test.ts": 1,

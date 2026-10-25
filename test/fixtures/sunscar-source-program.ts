@@ -12,6 +12,7 @@ import { signalSand } from '../../src/shards/sunscar-dunes/generators/sandProgra
 import { signalWorldFiles } from '../../src/shards/sunscar-dunes/generators/worldProgram';
 import { signalWorldMetadata } from '../../src/shards/sunscar-dunes/generators/worldMetadata';
 import { signalSceneSources } from '../../src/shards/sunscar-dunes/generators/sceneSources';
+import { placeBindings } from '../../src/shards/sunscar-dunes/generators/restScene';
 import { signalWorldScenes } from '../../src/shards/sunscar-dunes/generators/worldScenes';
 import { signalSceneOutput } from '../../src/shards/sunscar-dunes/generators/sourceOutput';
 import { whipHeldRecipe } from '../../src/shards/sunscar-dunes/generators/rows/heldWeapon';
@@ -39,7 +40,7 @@ export const { generated, world, sand, rigLibrary, navigation } = built;
 /** Original public-name projection from the actual bake, for unchanged full-byte oracles. */
 export const held = whipHeldRecipe(world.lash), gear = gearSceneRows(world, held);
 export const markers = signalQuestMarkers(world), page = signalQuestPage(markers), client = signalClientPlan(page);
-export const sourceBlobs = signalSceneSources(world, rigLibrary), scene = signalWorldScenes(world, sourceBlobs);
+export const sourceBlobs = signalSceneSources(world, rigLibrary), scene = signalWorldScenes(world, sourceBlobs, placeBindings());
 export const originalOutput = signalSceneOutput(scene, client);
 const fireBytes = [...assets.values()].find(bytes => bytes[0] === 0xab && bytes[1] === 0x4b && bytes[2] === 0x54 && bytes[3] === 0x58);
 if (fireBytes === undefined || assets.size !== 18) throw new Error('Missing source-owned fire-book, pools, rigs or world');

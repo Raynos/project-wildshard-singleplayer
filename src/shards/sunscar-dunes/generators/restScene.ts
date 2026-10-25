@@ -36,8 +36,6 @@ export function oilRest(): ClientSceneBake {
   return { ...made, scene: { ...made.scene, materials: [{ kind: 'standard', id: 'oil', properties: { color: 0x1a120c, roughness: 0.2 } }] } };
 }
 
-/** The SDK JSON/byte driver owns I/O for these finite existing declarations. */
-export function restScenes(): { well: ClientSceneBake['scene']; oil: ClientSceneBake['scene']; frames: PlaceFrames; places: ReturnType<typeof placeRecipes>; bindings: ReturnType<typeof placeBindings> } { return { well: wellRest().scene, oil: oilRest().scene, frames: placeFrames(), places: placeRecipes(), bindings: placeBindings() }; }
 export function restPools(): readonly { readonly url: string; readonly parts: readonly string[] }[] { return [wellRest(), oilRest(), fireRest()].map((made,index) => {
   const url = REST_URLS[index]; if (url === undefined) throw new Error('Undeclared place pool');
   return { url, parts: made.scene.nodes.flatMap(node => node.kind === 'mesh' ? [node.geometry] : []) };
