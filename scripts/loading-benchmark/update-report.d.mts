@@ -33,6 +33,6 @@ export function updateReport(data: UpdateObservation): {
   limits: string;
 };
 export function updateProgressReport(rows: readonly UpdateProgressEvent[]): {
-  pass: boolean; firstVisibleMs: number; tapToPaintMs: number; longestGapMs: number;
+  pass: boolean; firstModalDomMs: number; tapToPaintMs: number; longestGapMs: number;
   actualChanges: number; phases: (string | undefined)[]; finalFact: string; limits: string;
 };

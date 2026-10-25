@@ -46,7 +46,7 @@ function progress(): UpdateProgressEvent[] {
     { kind: 'updateHidden', host: 1800, origin: 2 }, { kind: 'updateTitlePaint', host: 1868, origin: 2 }];
 }
 test('counts real phase/receipt changes across the navigation, with no elapsed-clock credit', () => {
-  expect(updateProgressReport(progress())).toMatchObject({ pass: true, firstVisibleMs: 2,
+  expect(updateProgressReport(progress())).toMatchObject({ pass: true, firstModalDomMs: 2,
     tapToPaintMs: 868, longestGapMs: 432, actualChanges: 3, phases: ['found', 'install', 'reload'], finalFact: '8 files' });
   const slow = progress(); const end = slow.at(-1);
   if (end === undefined) throw new Error('Missing title paint'); end.host = 2800;

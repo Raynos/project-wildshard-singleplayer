@@ -55,12 +55,8 @@ async function reload(): Promise<void> {
   // A newer service worker waiting: adopt it (SKIP_WAITING → controllerchange → reload, src/engine/boot/sw.ts).
   const sw = window.__ws_sw;
   const waiting = sw?.waiting;
-  // The new screen's first slice is Developer-only; persisted handoffs restore
-  // independently of the setting on the destination document.
-  if (isDev() || screen.active) {
-    screen.start(targetBuild, waiting !== undefined && waiting !== null && waiting.state !== 'redundant');
-    if (!await screen.present()) return;
-  }
+  screen.start(targetBuild, waiting !== undefined && waiting !== null && waiting.state !== 'redundant');
+  if (!await screen.present()) return;
   if (sw && waiting && waiting.state !== 'redundant') {
     screen.phase('install');
     if (navigator.serviceWorker !== undefined) attempt.listen(navigator.serviceWorker, 'controllerchange', () => {

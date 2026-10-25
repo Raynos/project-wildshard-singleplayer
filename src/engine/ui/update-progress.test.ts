@@ -94,6 +94,16 @@ test('new-document receipts add to the saved totals once and cannot go backwards
   expect(store.read()).toMatchObject({ files: 4, network: 2048, cached: 5120 });
 });
 
+test('unknown byte sizes remain unavailable while completed file steps move', () => {
+  const screen = new UpdateProgress(owner(), 'old-build', () => undefined, memory(), () => now);
+  screen.start('new-build', true);
+  const accounting = new DownloadAccounting('https://example.com');
+  accounting.resource({ name: 'https://example.com/boot.js', startTime: 0, responseEnd: 100,
+    transferSize: 0, encodedBodySize: 0, workerStart: 1, serverTiming: [] });
+  screen.downloads(accounting.snapshot());
+  expect(document.querySelector('[role="status"]')?.textContent).toBe('1 files completed · byte sizes not reported');
+});
+
 test('the paint fence settles on owner disposal and releases input and timers', async () => {
   const scope = owner(), screen = new UpdateProgress(scope, 'old-build', () => undefined, memory(), () => now);
   screen.start('new-build', false);

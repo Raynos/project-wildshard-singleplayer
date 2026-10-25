@@ -1,5 +1,8 @@
 // @vitest-environment happy-dom
 import {afterEach,expect,test,vi} from 'vitest';
+import { isDev, setDev } from '../core/devMode';
+
+const previousDeveloper = isDev();
 
 afterEach(async()=>{
   const button=document.querySelector('.ws-update');
@@ -7,11 +10,13 @@ afterEach(async()=>{
   (await import('../app/resources')).pageScope.dispose();
   document.body.replaceChildren();
   Reflect.deleteProperty(window,'__ws_sw');
+  setDev(previousDeveloper);
   vi.restoreAllMocks();vi.unstubAllGlobals();vi.useRealTimers();
 });
 
 test('one update reports completed files through adoption and a slow reload, then releases on pagehide',async()=>{
-  vi.useFakeTimers({toFake:['setTimeout','clearTimeout','setInterval','clearInterval','Date','performance']});
+  setDev(false);
+  vi.useFakeTimers({toFake:['setTimeout','clearTimeout','setInterval','clearInterval','Date','performance','requestAnimationFrame','cancelAnimationFrame']});
   vi.stubGlobal('__BUILD_ID__','fixture-before');
   vi.stubGlobal('fetch',()=>Promise.resolve(Response.json({build:'fixture-before'})));
   document.body.innerHTML='<div class="ws-load"></div>';
@@ -24,6 +29,9 @@ test('one update reports completed files through adoption and a slow reload, the
   const button=document.querySelector('.ws-update');
   if(!(button instanceof HTMLButtonElement))throw new Error('Missing update pill');
   button.click();button.dispatchEvent(new Event('pointerup'));
+  expect(document.querySelector('[role="dialog"]')).not.toBeNull();
+  expect(adopt).not.toHaveBeenCalled();
+  await vi.advanceTimersByTimeAsync(100);
   expect(adopt).toHaveBeenCalledTimes(1);expect(replace).not.toHaveBeenCalled();
   expect(button.textContent).toContain('0 files · 0.0s');
   const {receiveWorkerDownloads}=await import('../boot/download');

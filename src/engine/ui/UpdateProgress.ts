@@ -47,8 +47,6 @@ export class UpdateProgress {
   private readonly store: Storage;
   private readonly now: () => number;
 
-  get active(): boolean { return this.state !== null; }
-
   constructor(owner: Scope, build: string, retryUpdate: () => void,
     store: Storage = storage(), now: () => number = Date.now) {
     this.build = build; this.retryUpdate = retryUpdate; this.store = store; this.now = now;
@@ -188,8 +186,9 @@ export class UpdateProgress {
       }
     });
     if (this.clock !== undefined) this.clock.textContent = engineString('s_update_elapsed', [(elapsed / 1000).toFixed(1)]);
-    if (this.fact !== undefined) this.fact.textContent = engineString('s_update_bytes', [state.files,
-      Math.round(state.network / 1024), Math.round(state.cached / 1024)]);
+    if (this.fact !== undefined) this.fact.textContent = state.files > 0 && state.network === 0 && state.cached === 0
+      ? engineString('s_update_files_only', [state.files])
+      : engineString('s_update_bytes', [state.files, Math.round(state.network / 1024), Math.round(state.cached / 1024)]);
     if (this.failed || elapsed >= 30000) this.showRetry();
   }
 }

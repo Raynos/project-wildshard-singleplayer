@@ -80,9 +80,9 @@ export function updateProgressReport(rows) {
   const first = changes[0];
   if (first === undefined) throw new Error('Missing first progress');
   return { pass: first.host - tap.host <= 1000 && longestGapMs <= 1000,
-    firstVisibleMs: first.host - tap.host, tapToPaintMs: painted.host - tap.host,
+    firstModalDomMs: first.host - tap.host, tapToPaintMs: painted.host - tap.host,
     longestGapMs, actualChanges: changes.length,
     phases: [...new Set(changes.map(row => row.phase))],
     finalFact: changes.at(-1)?.fact ?? '',
-    limits: 'Only recorded phase/receipt changes count. Elapsed clock repaint is excluded; proxy HTML is diagnostic and uncompressed.' };
+    limits: 'Only recorded phase/receipt changes count. Modal appearance is DOM-observed; native video verifies paint. Elapsed clock repaint is excluded; proxy HTML is diagnostic and uncompressed.' };
 }
