@@ -1,0 +1,30 @@
+{
+  "sand/skirt.bin": {
+    "bytes": 553758,
+    "hash": "4fa732406a8790cac15758f3a28772a86b2b3f9330e2c9116cc4ff75a26ecb96"
+  },
+  "sand.json": {
+    "bytes": 72,
+    "hash": "297af71246ad797b1c9715590b223a38c8e89cbed251f2e55e582566753716cb"
+  },
+  "skirt.json": {
+    "bytes": 739,
+    "hash": "b21ae73d68213844d61bfe91d0940d9b4a4be56a8432dec19d1e1ed20a325fae"
+  },
+  "sandMaps.json": {
+    "bytes": 789,
+    "hash": "d0190f14c174ccb83253b1e8ee0fc765dfcb50ca3d9fc5041ce9493966cb25db"
+  },
+  "assets/f06ce9c2086da2cfe2341cfaaa4b8e22aabd8f40c05824598748b3896c2b8264": {
+    "bytes": 206243,
+    "hash": "f06ce9c2086da2cfe2341cfaaa4b8e22aabd8f40c05824598748b3896c2b8264"
+  },
+  "assets/823d66c32f8f945fc8f5ce7fad63307fd58530b5ad4036af05bb62d6a791efb3": {
+    "bytes": 2923,
+    "hash": "823d66c32f8f945fc8f5ce7fad63307fd58530b5ad4036af05bb62d6a791efb3"
+  },
+  "assets/a379e021cf8f6d7f141f29f554b6524ba0a0c2ff067dc5c0adb4ca12cc363700": {
+    "bytes": 8301,
+    "hash": "a379e021cf8f6d7f141f29f554b6524ba0a0c2ff067dc5c0adb4ca12cc363700"
+  }
+}
