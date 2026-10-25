@@ -178,6 +178,20 @@ export class ResidencyAllocator {
     const input = this.input(); return { ...contentCost(input), input };
   }
 
+  /** G723: read-only eligibility for speculative preparation beside a kept world.
+   * Existing claims and page costs stay charged; the incoming sim adds its whole
+   * admitted cost without assuming future coverage credit or eviction. Failure
+   * defers this optimization, never changes ordinary G556 admission policy. */
+  canPrepareAlongside(kept: string, incoming: string, bytes: number, limits: { readonly playing: number; readonly loading: number }): boolean {
+    if (kept.length === 0 || incoming.length === 0 || kept === incoming
+      || !Number.isSafeInteger(bytes) || bytes < 0 || !Number.isFinite(limits.playing) || limits.playing <= 0
+      || !Number.isFinite(limits.loading) || limits.loading <= 0) return false;
+    const input = this.input();
+    return contentCost({ ...input, sims: input.sims + bytes }).loading <= limits.loading
+      && shardCost(this.ownerTotal(kept), input).playing <= limits.playing
+      && shardCost(this.ownerTotal(incoming) + bytes, input).playing <= limits.playing;
+  }
+
   /** O14: every held claim's id, owner and bytes in admission order, unsorted and unsnapshotted: for per-tick totals (the
    * cell screens' claimed bytes) that `entries()` re-sorted and froze for every row while a cell's claims came and went. */
   claims(): IterableIterator<Readonly<Pick<ResidencyEntry, 'id' | 'owner' | 'bytes'>>> { return this.entries_.values(); }
