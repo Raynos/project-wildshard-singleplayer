@@ -40,6 +40,7 @@ const malformed: readonly [string, (row: Record<string, unknown>) => unknown][] 
   ['dressing', row => ({ ...row, kinds: [{ ...metadata.dressing.kinds[0], flat: 1 }] })],
   ['rocks', row => ({ ...row, kinds: [{ ...metadata.rocks.kinds[0], unknown: true }] })],
   ['well', row => ({ ...row, colliders: [{ kind: 'box', x: 0, y: 0, z: 0, hx: 'bad', hy: 1, hz: 1 }] })],
+  ['well', row => ({ ...row, colliders: [{ kind: 'box', x: 0, y: 0, z: 0, hx: 1, hy: 1, hz: 1 }] })],
   ['tower', row => ({ ...row, anchors: { deckY: 'bad', lampY: 1 } })],
   ['caravan', row => ({ ...row, anchors: { y: 0, logbook: [0, 0], lamp: [1, 2, 3] } })],
   ['well', row => ({ ...row, anchors: {} })],

@@ -1,4 +1,4 @@
-import { WHIP_HELD_RECIPE } from './heldWeapon';
+import { WHIP_HELD_RECIPE, type WhipHeldRecipe } from './heldWeapon';
 import * as LAYOUT from '../layout';
 import caravan from '../../data/caravan.json' with {type:'json'};
 import well from '../../data/well.json' with {type:'json'};
@@ -17,13 +17,30 @@ export const GEAR_MODEL_ROWS = [
 ] as const;
 
 export const CARAVAN_MODEL_Y = caravan.anchors.y, WELL_MODEL_Y = well.anchors.y, BRAZIER_MODEL_Y = braziers.braziers[0]?.y ?? 0;
+interface GearModel<Index extends number, Builder extends string> { readonly model: (typeof GEAR_MODEL_ROWS)[Index]; readonly builder: Builder }
+interface Positioned { readonly position: readonly [number, number, number] }
+/** Fixed catalogue order and the original shared specimen recipe shapes. */
+export type GearSceneRows = readonly [
+  GearModel<0, 'whip'> & { readonly show: readonly ['coil']; readonly specimen: { readonly kind: 'held'; readonly recipe: WhipHeldRecipe } },
+  GearModel<1, 'tower'> & Positioned & { readonly subtractY: 'deckY'; readonly show: readonly ['fire'] },
+  GearModel<2, 'caravan'> & Positioned, GearModel<3, 'well'> & Positioned,
+  GearModel<4, 'brazier'> & Positioned & { readonly show: readonly ['fire', 'oil'] },
+  GearModel<5, 'scout'> & { readonly specimen: { readonly kind: 'npc'; readonly npc: 'sunscar.scout';
+    readonly figure: { readonly kind: 'mesh'; readonly read: { readonly owner: 'npcModels'; readonly path: readonly ['mesh'] } };
+    readonly prepare: { readonly owner: 'npcModels'; readonly path: readonly ['preload'] } } },
+];
 /** Original lazy specimen framing and visible rest parts. */
-export const GEAR_SCENE_ROWS = [
-  {model:GEAR_MODEL_ROWS[0],builder:'whip',show:['coil'],specimen:{kind:'held',recipe:WHIP_HELD_RECIPE}},
+export function gearSceneRows(world: { readonly caravan: { readonly anchors: { readonly y: number } };
+  readonly well: { readonly anchors: { readonly y: number } }; readonly braziers: { readonly braziers: readonly { readonly y: number }[] } },
+  held: WhipHeldRecipe): GearSceneRows {
+  return [
+  {model:GEAR_MODEL_ROWS[0],builder:'whip',show:['coil'],specimen:{kind:'held',recipe:held}},
   {model:GEAR_MODEL_ROWS[1],builder:'tower',position:[-LAYOUT.TOWER.x,LAYOUT.TOWER.deck,-LAYOUT.TOWER.z],subtractY:'deckY',show:['fire']},
-  {model:GEAR_MODEL_ROWS[2],builder:'caravan',position:[-LAYOUT.CARAVAN.x,-CARAVAN_MODEL_Y,-LAYOUT.CARAVAN.z]},
-  {model:GEAR_MODEL_ROWS[3],builder:'well',position:[-LAYOUT.WELL.x,-WELL_MODEL_Y,-LAYOUT.WELL.z]},
-  {model:GEAR_MODEL_ROWS[4],builder:'brazier',position:[-(LAYOUT.BRAZIERS[0]?.x??0),-BRAZIER_MODEL_Y,-(LAYOUT.BRAZIERS[0]?.z??0)],show:['fire','oil']},
+  {model:GEAR_MODEL_ROWS[2],builder:'caravan',position:[-LAYOUT.CARAVAN.x,-world.caravan.anchors.y,-LAYOUT.CARAVAN.z]},
+  {model:GEAR_MODEL_ROWS[3],builder:'well',position:[-LAYOUT.WELL.x,-world.well.anchors.y,-LAYOUT.WELL.z]},
+  {model:GEAR_MODEL_ROWS[4],builder:'brazier',position:[-(LAYOUT.BRAZIERS[0]?.x??0),-(world.braziers.braziers[0]?.y??0),-(LAYOUT.BRAZIERS[0]?.z??0)],show:['fire','oil']},
   {model:GEAR_MODEL_ROWS[5],builder:'scout',specimen:{kind:'npc',npc:'sunscar.scout',
     figure:{kind:'mesh',read:{owner:'npcModels',path:['mesh']}},prepare:{owner:'npcModels',path:['preload']}}},
 ] as const;
+}
+export const GEAR_SCENE_ROWS = gearSceneRows({ caravan, well, braziers }, WHIP_HELD_RECIPE);

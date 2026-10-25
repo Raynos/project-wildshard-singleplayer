@@ -1,8 +1,9 @@
 import type { BakedKind } from '@wildshard/sdk/bake/kinds';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
-import type { SignalBox } from './kinds';
+import type { SignalBox, SignalSurface } from './kinds';
 
-interface WorldPiece { glb: string; kinds: BakedKind[]; colliders: SignalBox[] }
+type WorldBox = SignalBox & { readonly surface: SignalSurface };
+interface WorldPiece { glb: string; kinds: BakedKind[]; colliders: WorldBox[] }
 /** The existing world bake's seven metadata documents, with no published file dependency. */
 export interface SignalWorldMetadata {
   rocks: WorldPiece; dressing: WorldPiece;
@@ -10,7 +11,7 @@ export interface SignalWorldMetadata {
   caravan: WorldPiece & { anchors: { y: number; logbook: [number, number, number]; lamp: [number, number, number] } };
   well: WorldPiece & { anchors: { y: number } };
   lash: WorldPiece & { tip: [number, number, number]; along: number };
-  braziers: WorldPiece & { braziers: { y: number; colliders: SignalBox[] }[] };
+  braziers: WorldPiece & { braziers: { y: number; colliders: WorldBox[] }[] };
 }
 
 function record(value: unknown): value is Record<string, unknown> { return typeof value === 'object' && value !== null && !Array.isArray(value); }
@@ -34,13 +35,13 @@ function kind(value: unknown): value is BakedKind {
     && extraNumbers.every(key => !Object.hasOwn(value, key) || finite(value[key]))
     && extraFlags.every(key => !Object.hasOwn(value, key) || typeof value[key] === 'boolean');
 }
-function box(value: unknown): value is SignalBox {
-  return record(value) && keys(value, ['kind', 'x', 'y', 'z', 'hx', 'hy', 'hz'], ['yaw', 'surface']) && value['kind'] === 'box'
+function box(value: unknown): value is WorldBox {
+  return record(value) && keys(value, ['kind', 'x', 'y', 'z', 'hx', 'hy', 'hz', 'surface'], ['yaw']) && value['kind'] === 'box'
     && ['x', 'y', 'z', 'hx', 'hy', 'hz'].every(key => finite(value[key]))
     && (!Object.hasOwn(value, 'yaw') || finite(value['yaw']))
-    && (!Object.hasOwn(value, 'surface') || (typeof value['surface'] === 'string' && ['rock', 'stone', 'wood', 'metal', 'felt', 'flesh'].includes(value['surface'])));
+    && typeof value['surface'] === 'string' && ['rock', 'stone', 'wood', 'metal', 'felt', 'flesh'].includes(value['surface']);
 }
-function brazier(value: unknown): value is { y: number; colliders: SignalBox[] } {
+function brazier(value: unknown): value is { y: number; colliders: WorldBox[] } {
   return record(value) && keys(value, ['y', 'colliders']) && finite(value['y']) && list(value['colliders'], 65536, box);
 }
 function piece(files: ReadonlyMap<string, Uint8Array>, name: string, extra: readonly string[] = []): { rows: WorldPiece; value: Record<string, unknown> } {

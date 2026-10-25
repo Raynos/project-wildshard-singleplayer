@@ -13,14 +13,17 @@ import { SIGNAL_PIECES as pieces } from './rows/pieces';
 import { worldBakes } from './worldBakes';
 import * as surfaces from './rows/surfaces';
 import { SIGNAL_RIG_LIBRARY, SIGNAL_MODEL_SPECIMENS } from './rows/rigLibrary';
-import { GEAR_SCENE_ROWS } from './rows/gearModels';
-import { WHIP_HELD_RECIPE } from './rows/heldWeapon';
+import { gearSceneRows } from './rows/gearModels';
+import { whipHeldRecipe } from './rows/heldWeapon';
 import { HD_GLOVE_SIZE } from './rows/whip';
 
-const world = worldBakes();
-const { resources: _resources, ...whipRecipe } = WHIP_HELD_RECIPE;
-const { specimen: _whip, ...whip } = GEAR_SCENE_ROWS[0];
-const { specimen: scoutSource, ...scout } = GEAR_SCENE_ROWS[5];
+type ScenePiece = SceneBakeSource['rows'][string] & { readonly glb: string };
+/** Existing bake rows and the original specimen anchors; both published and owned inputs share this shape. */
+export type SceneWorldBakes = Readonly<Record<'rocks' | 'dressing' | 'tower' | 'caravan' | 'well' | 'lash' | 'braziers', ScenePiece>> & {
+  readonly caravan: { readonly anchors: { readonly y: number } }; readonly well: { readonly anchors: { readonly y: number } };
+  readonly lash: { readonly tip: readonly number[]; readonly along: number };
+  readonly braziers: { readonly braziers: readonly { readonly y: number; readonly colliders: ScenePiece['colliders'] }[] };
+};
 function effects(source: PlaceEffects | undefined) {
   if (source === undefined) throw new Error('Missing original specimen place');
   return [...source.lamps, ...source.fires].map(effect => {
@@ -40,27 +43,36 @@ function effects(source: PlaceEffects | undefined) {
 }
 const bindings = placeEffects();
 const inputs = { dusk: 'dusk', lights: 'firelights' };
-/** Original models and material decorations; no rendering builder is mirrored. */
-const library = { rows: { ...models.DUNE_MODELS, geometryPools: rest, rigs: SIGNAL_RIG_LIBRARY }, inputs, specimens: SIGNAL_MODEL_SPECIMENS,
-  held: [{ item: WHIP_HELD_RECIPE.equipment.id, definition: whip, recipe: whipRecipe, resources: {
-    geometry: ['coil', 'loop', 'cord', 'wrap'].map(id => ({ id, source: { library: 'bakes', model: id }, piece: 'lash', index: 'array' as const })),
-    objects: [{ id: 'hero', source: { library: 'models', model: 'glove-hd4' }, fit: { size: HD_GLOVE_SIZE, by: 'span' } }],
-    textures: [{ id: 'plait', source: { library: 'bakes', model: 'plait' }, resource: 'plait', bytes: 196608 }],
-    decorators: [{ id: 'plait', rows: surfaces.COIL_SURFACE }], repeats: WHIP_HELD_RECIPE.resources.repeats,
-  } }],
-  scenes: [{ part: 'tower.root', step: 'tower', materialLibrary: 'models', effects: effects(bindings.tower), definition: GEAR_SCENE_ROWS[1] }, { part: 'caravan.root', step: 'caravan', materialLibrary: 'models', effects: effects(bindings.caravan), definition: GEAR_SCENE_ROWS[2] }, { part: 'well.root', step: 'well', materialLibrary: 'models', effects: effects(bindings.well), definition: GEAR_SCENE_ROWS[3] }, { part: 'brazier.0.root', step: 'brazier.0', materialLibrary: 'models', effects: effects(bindings.braziers[0]), definition: GEAR_SCENE_ROWS[4] }],
-  npcs: [{ npc: scoutSource.npc, definition: scout, model: { kind: 'mesh', id: QUEST_NPC.npc.figure.model }, library: 'models' }],
-} satisfies SceneModelSource;
-const rows = Object.fromEntries(Object.entries(world).map(([id, row]) => [id, { ...row, kinds: row.kinds.map(kind => ({ ...kind,
-  ...('warm' in kind && kind.warm ? { surface: surfaces.CAMP_SURFACE } : {}) })) }]));
-const baked = { rows, urls: models.BAKED_URLS, inputs, resources: models.WORLD_BYTES,
-  placements: { rows: pieces, colliders: world.braziers.braziers.map((row, index) => ({ id: `sunscar.brazier.${String(index)}`, colliders: row.colliders })) } } satisfies SceneBakeSource;
 const json = (name: string, value: unknown) => nameBlob(name, 'json', new TextEncoder().encode(JSON.stringify(value)));
+/** Original models, material decorations and bakes from explicit world rows; no rendering builder is mirrored. */
+export function signalSceneSources(world: SceneWorldBakes, rigs: NonNullable<SceneModelSource['rows']['rigs']> = SIGNAL_RIG_LIBRARY): NamedBlob[] {
+  const held = whipHeldRecipe(world.lash), gear = gearSceneRows(world, held);
+  const { resources: _resources, ...whipRecipe } = held;
+  const { specimen: _whip, ...whip } = gear[0];
+  const { specimen: scoutSource, ...scout } = gear[5];
+  const library = { rows: { ...models.DUNE_MODELS, geometryPools: rest, rigs }, inputs, specimens: SIGNAL_MODEL_SPECIMENS,
+    held: [{ item: held.equipment.id, definition: whip, recipe: whipRecipe, resources: {
+      geometry: ['coil', 'loop', 'cord', 'wrap'].map(id => ({ id, source: { library: 'bakes', model: id }, piece: 'lash', index: 'array' as const })),
+      objects: [{ id: 'hero', source: { library: 'models', model: 'glove-hd4' }, fit: { size: HD_GLOVE_SIZE, by: 'span' } }],
+      textures: [{ id: 'plait', source: { library: 'bakes', model: 'plait' }, resource: 'plait', bytes: 196608 }],
+      decorators: [{ id: 'plait', rows: surfaces.COIL_SURFACE }], repeats: held.resources.repeats,
+    } }],
+    scenes: [{ part: 'tower.root', step: 'tower', materialLibrary: 'models', effects: effects(bindings.tower), definition: gear[1] }, { part: 'caravan.root', step: 'caravan', materialLibrary: 'models', effects: effects(bindings.caravan), definition: gear[2] }, { part: 'well.root', step: 'well', materialLibrary: 'models', effects: effects(bindings.well), definition: gear[3] }, { part: 'brazier.0.root', step: 'brazier.0', materialLibrary: 'models', effects: effects(bindings.braziers[0]), definition: gear[4] }],
+    npcs: [{ npc: scoutSource.npc, definition: scout, model: { kind: 'mesh', id: QUEST_NPC.npc.figure.model }, library: 'models' }],
+  } satisfies SceneModelSource;
+  const rows = Object.fromEntries(Object.entries(world).map(([id, row]) => [id, { ...row, kinds: row.kinds.map(kind => ({ ...kind,
+    ...('warm' in kind && kind.warm === true ? { surface: surfaces.CAMP_SURFACE } : {}) })) }]));
+  const baked = { rows, urls: models.BAKED_URLS, inputs, resources: models.WORLD_BYTES,
+    placements: { rows: pieces, colliders: world.braziers.braziers.map((row, index) => ({ id: `sunscar.brazier.${String(index)}`, colliders: row.colliders })) } } satisfies SceneBakeSource;
+  return [json('world/sources/models.json', library), json('world/sources/bakes.json', baked)];
+}
 /** Keep the original scene descriptor, replacing only its owned creature inputs. */
 export function signalModelSource(rigs: SceneModelSource['rows']['rigs']): NamedBlob {
   if (rigs === undefined) throw new Error('Missing creature library');
-  return json('world/sources/models.json', { ...library, rows: { ...library.rows, rigs } });
+  const model = signalSceneSources(worldBakes(), rigs)[0];
+  if (model === undefined) throw new Error('Missing original model descriptor');
+  return model;
 }
-export const SIGNAL_SOURCE_BLOBS = [json('world/sources/models.json', library), json('world/sources/bakes.json', baked)];
+export const SIGNAL_SOURCE_BLOBS = signalSceneSources(worldBakes());
 export const SIGNAL_SOURCE_LIBRARIES = [{ id: 'models', kind: 'models', file: 'world/sources/models.json' },
   { id: 'bakes', kind: 'baked', file: 'world/sources/bakes.json' }] as const;

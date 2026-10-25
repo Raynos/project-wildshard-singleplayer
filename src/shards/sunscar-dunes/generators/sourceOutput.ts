@@ -1,7 +1,7 @@
 import { SIGNAL_CLIENT_PLAN } from './clientPlan';
 import { signalPaintedPresentation } from './paintedLook';
-import { WHIP_HELD_RECIPE } from './rows/heldWeapon';
-import { SIGNAL_SCENE_BLOBS, SIGNAL_WORLD_SCENES } from './worldScenes';
+import { WHIP_ROW } from './rows/equipment';
+import { SIGNAL_SCENE_BLOBS, SIGNAL_WORLD_SCENES, type signalWorldScenes } from './worldScenes';
 import { emitNamedBlobs, type NamedBlob } from '@wildshard/sdk/blobs';
 import STRINGS from '../data/strings.json' with { type: 'json' };
 import { SIGNAL_PAGE_PROGRAM } from './rows/population';
@@ -20,23 +20,30 @@ type SectionName = Parameters<typeof emitPlatformSections>[0] extends ReadonlyMa
 // The retired JSON writer normalized signed zero before plain-data admission.
 const baked: unknown = JSON.parse(encodeCanonicalJson(SIGNAL_PHYSICS));
 
-/** Both page and native owners consume the same verified decision and mechanics. */
-const sources = emitNamedBlobs(SIGNAL_SCENE_BLOBS);
-export const output = { namedFiles: sources.files, assets: sources.assets, platform: emitPlatformSections(new Map<SectionName, unknown>([
-  ['ui/strings', STRINGS],
-  ['look/painted', signalPaintedPresentation()],
-  ['client/plan', SIGNAL_CLIENT_PLAN],
-    ['explore/catalogue', {"version": 1, "entries": [{"kind": "held", "item": WHIP_HELD_RECIPE.equipment.id}, {"kind": "rigs", "library": "models"}, {"kind": "npc", "npc": "sunscar.scout"}, {"kind": "scene", "part": "tower.root"}, {"kind": "scene", "part": "caravan.root"}, {"kind": "scene", "part": "well.root"}, {"kind": "scene", "part": "brazier.0.root"}]}],
-    ['world/scenes', SIGNAL_WORLD_SCENES],
-    ['actors/species-programs', { page: SIGNAL_PAGE_PROGRAM.species.page, native: [], program: SIGNAL_PAGE_PROGRAM.species.program }],
-    ['sim/runtime-plan', { kind: 'held-melee', recipe: SIGNAL_NATIVE_WORLD, baked }],
-  ['sim/scripts', [...MATRIARCH_DECISION, SKITTERER_DECISION]], ['actors/moves', [...MATRIARCH_MOVES, ...SKITTERER_MOVES]], ['actors/strikes', SIGNAL_STRIKES],
-  ['world/targets', SIGNAL_LASH_TARGETS],
-])) } satisfies ProjectOutput;
+const baseline = { blobs: SIGNAL_SCENE_BLOBS, worldScenes: SIGNAL_WORLD_SCENES };
+/** The original required scene output fields, without optional project-output widening. */
+export interface SignalSceneOutput { readonly namedFiles: ReturnType<typeof emitNamedBlobs>['files'];
+  readonly assets: ReturnType<typeof emitNamedBlobs>['assets']; readonly platform: ReturnType<typeof emitPlatformSections> }
+/** Both owners consume the same verified decisions and mechanics with explicit scene files and bindings. */
+export function signalSceneOutput(scene: ReturnType<typeof signalWorldScenes>): SignalSceneOutput {
+  const sources = emitNamedBlobs(scene.blobs);
+  return { namedFiles: sources.files, assets: sources.assets, platform: emitPlatformSections(new Map<SectionName, unknown>([
+    ['ui/strings', STRINGS],
+    ['look/painted', signalPaintedPresentation()],
+    ['client/plan', SIGNAL_CLIENT_PLAN],
+      ['explore/catalogue', {"version": 1, "entries": [{"kind": "held", "item": WHIP_ROW.id}, {"kind": "rigs", "library": "models"}, {"kind": "npc", "npc": "sunscar.scout"}, {"kind": "scene", "part": "tower.root"}, {"kind": "scene", "part": "caravan.root"}, {"kind": "scene", "part": "well.root"}, {"kind": "scene", "part": "brazier.0.root"}]}],
+      ['world/scenes', scene.worldScenes],
+      ['actors/species-programs', { page: SIGNAL_PAGE_PROGRAM.species.page, native: [], program: SIGNAL_PAGE_PROGRAM.species.program }],
+      ['sim/runtime-plan', { kind: 'held-melee', recipe: SIGNAL_NATIVE_WORLD, baked }],
+    ['sim/scripts', [...MATRIARCH_DECISION, SKITTERER_DECISION]], ['actors/moves', [...MATRIARCH_MOVES, ...SKITTERER_MOVES]], ['actors/strikes', SIGNAL_STRIKES],
+    ['world/targets', SIGNAL_LASH_TARGETS],
+  ])) } satisfies ProjectOutput;
+}
+export const output = signalSceneOutput(baseline);
 
 /** Preserve every original section and scene file while replacing owned model inputs. */
-export function signalSourceOutput(models: NamedBlob, rigs: readonly NamedBlob[]): ProjectOutput {
+export function signalSourceOutput(models: NamedBlob, rigs: readonly NamedBlob[], scene = baseline): ProjectOutput {
   if (models.file.name !== 'world/sources/models.json') throw new Error('Invalid model source replacement');
-  const owned = emitNamedBlobs([...SIGNAL_SCENE_BLOBS.filter(blob => blob.file.name !== models.file.name), models, ...rigs]);
-  return { ...output, namedFiles: owned.files, assets: owned.assets };
+  const owned = emitNamedBlobs([...scene.blobs.filter(blob => blob.file.name !== models.file.name), models, ...rigs]);
+  return { ...(scene === baseline ? output : signalSceneOutput(scene)), namedFiles: owned.files, assets: owned.assets };
 }
