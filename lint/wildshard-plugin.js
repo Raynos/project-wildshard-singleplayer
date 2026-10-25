@@ -679,11 +679,11 @@ const noAuthoredHtml = rule('Shardfile-sourced and unknown text uses textContent
     AssignmentExpression(node) { if (['innerHTML', 'outerHTML', 'srcdoc'].includes(propName(node.left) ?? stringOf(node.left?.property))) html = true; },
     CallExpression(node) { if (['insertAdjacentHTML', 'createContextualFragment', 'write', 'writeln', 'assign'].includes(calleeName(node.callee))) html = true; },
     Property(node) { if (['innerHTML', 'outerHTML', 'srcdoc', '__html'].includes(node.key?.name ?? stringOf(node.key))) html = true; },
-    'Program:exit'() {
-      // The typed pass also resolves computed HTML property names and aliases.
+    'Program:exit'(program) {
+      // Resolve computed HTML property names and aliases from the supplied AST.
       const text = context.sourceCode.text;
       if (!html && !/innerHTML|outerHTML|srcdoc|insertAdjacentHTML|createContextualFragment|document\.(write|writeln)/u.test(text)) return;
-      for (const site of authoredHtmlSites(process.cwd(), context.filename)) context.report({ loc: { line: site.line, column: site.column }, message: site.message });
+      for (const site of authoredHtmlSites(process.cwd(), context.filename, program)) context.report({ loc: { line: site.line, column: site.column }, message: site.message });
     },
   };
 });

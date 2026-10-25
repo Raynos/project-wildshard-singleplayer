@@ -47,9 +47,9 @@ JSON: full 10.3 s / 8 GB. Full typed + full JS plugin in one run: 180 s / 12.7 G
 
 | Slice | Status | Boundary |
 |---|---|---|
-| R3.1 | done (sp-x9, this commit) | Host callback lint uses the supplied AST plus syntax of reachable imports; the typed host catalogue stays a build tool. Alias, inherited-method, forwarded-type, shadowing, refusal and compiler-import tests preserve admission fences. |
-| R3.2 | in flight (sp-x9) | Replace the HTML rule's private TypeScript program without weakening numeric/text and trusted-port checks. |
-| R3.3 | open | Re-measure the complete typed path after both rewrites and R4; keep all five CI partitions until justified. |
+| R3.1 | done (sp-x9, `e2d40b583f` + `7fcb4f8917`) | Host callback lint uses the supplied AST plus syntax of reachable imports; the typed host catalogue stays a build tool. Alias, inherited-method, forwarded-type, shadowing, refusal and compiler-import tests preserve admission fences. |
+| R3.2 | done (sp-x9, this commit) | HTML lint uses the supplied AST and shared lexical resolver; numeric/boolean provenance, exact trusted ports, writes and private-helper callers stay checked. Unknowns refuse; a name-filtered syntax census detects open interface merges for `keyof`. Both analyzers report zero sites on 451 candidate files (448 have unchanged source bytes); the source-stable hostile kernel has 200 identical diagnostics. |
+| R3.3 | in flight (sp-x9) | Re-measure the complete typed path after both rewrites and R4; keep all five CI partitions until justified. Fast-rule admission remains a separate measured boundary. |
 
 ### Current-source boundary (2026-10-24)
 

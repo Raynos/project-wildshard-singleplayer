@@ -1,239 +1,313 @@
-// SF58: unknown runtime strings are text, not markup. Follow typed numeric values,
-// lexical aliases and local helpers; only static platform markup and the audited
-// icon ports are HTML. No shardfile field can select one of these trusted ports.
-import { existsSync, globSync, readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
-import ts from '@typescript/typescript6';
+// SF58 / G642: only proven static markup, scalar data and exact platform ports
+// reach HTML. Use the lint AST and reachable declaration syntax, never a checker.
+import { globSync, readFileSync } from 'node:fs';
+import { relative, resolve } from 'node:path';
+import { parseSync } from 'vite';
+import { createSyntaxGraph, syntaxChild as child, syntaxChildren as children, syntaxFunctions as functions } from './syntax-values.mjs';
 
-const cache = new Map();
-const SINKS = new Set(['innerHTML', 'outerHTML', 'srcdoc']);
-const normalized = (path) => path.replaceAll('\\', '/');
-const functionLike = (node) => ts.isFunctionDeclaration(node) || ts.isFunctionExpression(node) || ts.isArrowFunction(node) || ts.isMethodDeclaration(node);
-function unwrapped(node) {
-  let value = node;
-  while (value && (ts.isAsExpression(value) || ts.isSatisfiesExpression(value) || ts.isParenthesizedExpression(value) || ts.isNonNullExpression(value))) value = value.expression;
-  return value;
-}
-function property(node, checker) {
-  if (ts.isPropertyAccessExpression(node)) return node.name.text;
-  if (ts.isElementAccessExpression(node) && ts.isStringLiteral(node.argumentExpression)) return node.argumentExpression.text;
-  if (ts.isElementAccessExpression(node) && checker) {
-    const type = checker.getTypeAtLocation(node.argumentExpression);
-    if (type.isStringLiteral()) return type.value;
-    if (type.isUnion()) return type.types.find((part) => part.isStringLiteral() && SINKS.has(part.value))?.value ?? null;
-  }
-  return null;
-}
-// E454: every file the rule's AST pass can send here (a sink word, or a call named write / writeln / assign), so one
-// program serves the whole lint run. A file outside it used to rebuild the program from scratch: 24 of the ratchet's
-// 50 s. A scoped hook lists its actual lint files; retain all script/global
-// and augmentation candidates while real imports pull in module dependencies.
-// Extra root files never change another file's types (src files are modules; the merge files are always in).
-const CANDIDATE = /innerHTML|outerHTML|srcdoc|__html|insertAdjacentHTML|createContextualFragment|\bwrite(?:ln)?\b|\bassign\b/u;
-/** @param {import('@typescript/typescript6').Node} node @returns {boolean} */
-function hasAmbientEffects(node) {
-  if (ts.isModuleDeclaration(node) && ((node.flags & ts.NodeFlags.GlobalAugmentation) !== 0 || ts.isStringLiteral(node.name))) return true;
-  return ts.forEachChild(node, hasAmbientEffects) === true;
-}
-function checkerFor(root, filename) {
-  const scope = process.env.WS_HTML_LINT_FILES === undefined ? null : JSON.parse(process.env.WS_HTML_LINT_FILES);
-  if (scope !== null && (!Array.isArray(scope) || scope.some(file => typeof file !== 'string' || !file.startsWith('src/') || file.includes('\\') || file.split('/').some(part => part === '' || part === '.' || part === '..')))) throw new Error('Invalid HTML lint file scope');
-  const selected = scope === null ? null : new Set(scope.map(file => resolve(root, file)));
-  const key = JSON.stringify([resolve(root), scope]), file = resolve(filename), text = readFileSync(file, 'utf8');
-  const cached = cache.get(key);
-  if (cached?.program.getSourceFile(file)?.text === text) return cached;
-  const config = ts.findConfigFile(resolve(root), existsSync);
-  const parsed = config ? ts.parseJsonConfigFileContent(ts.readConfigFile(config, (path) => ts.sys.readFile(path)).config, ts.sys, resolve(root)) : null;
-  const names = cached?.names ?? new Set(globSync('src/**/*.{ts,tsx}', { cwd: root }).map((path) => resolve(root, path)).filter((path) => path.endsWith('.merge.d.ts') ? true : CANDIDATE.test(readFileSync(path, 'utf8'))));
-  names.add(file);
-  const options = { ...parsed?.options, noEmit: true, strict: true, skipLibCheck: true, allowJs: true };
-  // A rebuild (an edited file in a long-lived process) reparses only what changed.
-  const parsedFiles = cached?.parsedFiles ?? new Map(), base = ts.createCompilerHost(options);
-  const host = { ...base, getSourceFile: (name, language, onError, fresh) => {
-    const hit = parsedFiles.get(name);
-    if (hit !== undefined && !fresh && ts.sys.readFile(name) === hit.text) return hit;
-    const parsedFile = base.getSourceFile(name, language, onError, fresh);
-    if (parsedFile !== undefined) parsedFiles.set(name, parsedFile);
-    return parsedFile;
-  } };
-  const complete = ts.createProgram([...names], options, host);
-  let program = complete;
-  if (selected !== null) {
-    // Preserve ambient effects throughout the ORIGINAL dependency graph,
-    // including an augmentation imported only by an unselected HTML module.
-    // Discovery parses but does not construct a checker for unrelated roots.
-    const narrowed = new Set([...names].filter(name => selected.has(name) || name === file || name.endsWith('.merge.d.ts')));
-    for (const source of complete.getSourceFiles()) {
-      if (!ts.isExternalModule(source)) { narrowed.add(source.fileName); continue; }
-      if (hasAmbientEffects(source)) narrowed.add(source.fileName);
-    }
-    program = ts.createProgram([...narrowed], options, host);
-  }
-  const entry = { program, checker: program.getTypeChecker(), names, parsedFiles }; cache.set(key, entry); return entry;
-}
+const sinks = new Set(['innerHTML', 'outerHTML', 'srcdoc']);
+const sinkProperties = new Set([...sinks, '__html']);
+const indirectCalls = new Set(['call', 'apply']);
+const message = 'Authored or unknown runtime text reaches an HTML sink. Put it in textContent beside static platform markup (SF58).';
+const unwrap = input => {
+  let node = input;
+  while (['TSAsExpression', 'TSSatisfiesExpression', 'TSNonNullExpression', 'ParenthesizedExpression', 'ChainExpression', 'TSInstantiationExpression'].includes(node?.type)) node = node.expression;
+  return node;
+};
+const keyOf = node => node?.type === 'Identifier' ? node.name : node?.type === 'Literal' ? String(node.value) : null;
+const domNames = new Set(['Element', 'HTMLElement', 'SVGElement', 'SVGSVGElement', 'HTMLDivElement', 'HTMLSpanElement', 'HTMLButtonElement',
+  'HTMLInputElement', 'HTMLIFrameElement', 'HTMLParagraphElement', 'HTMLAnchorElement', 'HTMLStyleElement', 'Document', 'Range']);
+const numericMath = new Set(['abs','acos','acosh','asin','asinh','atan','atanh','atan2','cbrt','ceil','clz32','cos','cosh','exp','expm1','floor',
+  'fround','hypot','imul','log','log1p','log2','log10','max','min','pow','random','round','sign','sin','sinh','sqrt','tan','tanh','trunc']);
+const trusted = new Map([
+  ['src/engine/combat/Equipment.ts#WeaponUi.swapIcon', true], ['src/engine/ui/hudSlots.ts#DiscOpts.icon', true],
+  ['src/engine/ui/hudSlots.ts#TouchRelabel.icon', true], ['src/engine/input/InputService.ts#TouchVerb.icon', true],
+  ['src/engine/practice/playground/catalog.ts#PlaygroundCard.icon', true], ['src/engine/app/identity.ts#AppIdentity.wordmark', true],
+]);
 
-/** Conservative HTML-sink analysis; diagnostics point at the unsafe caller for a local markup helper. */
-export function authoredHtmlSites(root, filename) {
-  const { program, checker } = checkerFor(root, filename), source = program.getSourceFile(resolve(filename));
-  if (source === undefined) throw new Error(`Missing HTML lint source: ${filename}`);
-  const calls = [], sinks = [], sites = new Map(), writes = new Map();
-  const symbol = (node) => {
-    const value = checker.getSymbolAtLocation(node);
-    return value && (value.flags & ts.SymbolFlags.Alias) ? checker.getAliasedSymbol(value) : value;
+/** Analyze the supplied oxlint AST; standalone callers parse only their file. */
+export function authoredHtmlSites(root, filename, supplied = null) {
+  const absolute = resolve(root, filename), file = relative(root, absolute).replaceAll('\\', '/');
+  const source = readFileSync(absolute, 'utf8');
+  const parsed = supplied === null ? parseSync(file, source) : null;
+  if (parsed && parsed.errors.length > 0) throw new Error(`HTML lint source must parse: ${file}`);
+  const program = supplied ?? parsed.program;
+  const graph = createSyntaxGraph(root, file, program), { primary, make, values, property, lookup, origins } = graph;
+  const calls = [], pending = [], writes = new Map(), sites = new Map();
+  const openInterfaces = new Map();
+  const identity = ref => ref.node?.type === 'Identifier' ? lookup(ref.unit, ref.node, ref.node.name) : ref.node;
+  const global = (ref, name) => ref.node?.type === 'Identifier' && ref.node.name === name && lookup(ref.unit, ref.node, name) === null;
+  const isNull = ref => !ref?.node || ref.node.type === 'TSUndefinedKeyword' || ref.node.type === 'TSNullKeyword';
+  const memberNames = ref => {
+    const node = unwrap(ref.node);
+    if (node?.type !== 'MemberExpression') return [];
+    return node.computed ? values(child(ref, node.property)).filter(value => value.node.type === 'Literal').map(value => keyOf(value.node)) : [keyOf(node.property)];
   };
-  const symbolOfFunction = (node) => node.name ? symbol(node.name) : ts.isVariableDeclaration(node.parent) ? symbol(node.parent.name) : undefined;
-  const returned = (fn) => {
-    if (!fn.body) return [];
-    if (!ts.isBlock(fn.body)) return [fn.body];
-    const values = [];
-    const visit = (node) => {
-      if (node !== fn.body && functionLike(node)) return;
-      if (ts.isReturnStatement(node) && node.expression) values.push(node.expression);
-      ts.forEachChild(node, visit);
-    };
-    visit(fn.body); return values;
-  };
-  const privateHelper = (fn) => {
-    if (ts.isMethodDeclaration(fn) || ts.isConstructorDeclaration(fn)) return fn.modifiers?.some((modifier) => modifier.kind === ts.SyntaxKind.PrivateKeyword) === true;
-    let at = fn;
-    while (at && !ts.isSourceFile(at)) {
-      if (at.modifiers?.some((modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword)) return false;
-      if (ts.isVariableStatement(at) || ts.isFunctionDeclaration(at)) return true;
-      at = at.parent;
+  const keepOrigin = (value, ref) => ({ ...value, ownerName: ref.ownerName, member: ref.member });
+  const declared = ref => ref.annotation?.node ? values(ref.annotation).map(value => keepOrigin(value, ref)) : [ref];
+  function typed(ref, seen = new Set()) {
+    const node = unwrap(ref?.node);
+    if (!node || seen.has(node)) return [];
+    const next = new Set(seen).add(node);
+    if (ref.annotation?.node) return values(ref.annotation);
+    if (node.type === 'Identifier') {
+      const binding = lookup(ref.unit, node, node.name);
+      if (binding?.annotation?.node) return values(binding.annotation);
+      if (binding?.elementOf) return elements(binding.elementOf);
+      if (binding?.function) {
+        const call = ref.unit.parents.get(binding.function);
+        if (call?.type === 'CallExpression' && call.callee.type === 'MemberExpression' && binding.index === 0
+          && ['map','flatMap','forEach','filter','find','some','every'].includes(memberNames(make(ref.unit, call.callee))[0])) return elements(make(ref.unit, call.callee.object));
+      }
     }
-    return true;
-  };
-  const scalar = (type) => {
-    if (type.isUnion()) return type.types.every(scalar);
-    return Boolean(type.flags & (ts.TypeFlags.NumberLike | ts.TypeFlags.BooleanLike | ts.TypeFlags.StringLiteral | ts.TypeFlags.Undefined | ts.TypeFlags.Null));
-  };
-  function staticMarkup(input, env = new Map(), trail = new Set()) {
-    if (input === undefined) return true; // An omitted optional helper argument writes no HTML.
-    const node = unwrapped(input);
-    if (!node || trail.has(node) || trail.size > 96) return false;
-    const next = new Set(trail); next.add(node);
-    const safe = (value) => staticMarkup(value, env, next);
-    if (ts.isStringLiteralLike(node) || ts.isNumericLiteral(node) || [ts.SyntaxKind.TrueKeyword, ts.SyntaxKind.FalseKeyword, ts.SyntaxKind.NullKeyword].includes(node.kind)) return true;
-    if (ts.isIdentifier(node)) {
-      const binding = symbol(node);
-      if (env.has(binding)) return staticMarkup(env.get(binding), env, next);
-      if (scalar(checker.getTypeAtLocation(node))) return true;
-      if ((writes.get(binding) ?? []).some((value) => !safe(value))) return false;
-      const declaration = binding?.valueDeclaration;
-      if (declaration && ts.isVariableDeclaration(declaration) && declaration.initializer) return safe(declaration.initializer);
-      let parameter = declaration;
-      while (parameter && (ts.isBindingElement(parameter) || ts.isArrayBindingPattern(parameter) || ts.isObjectBindingPattern(parameter))) parameter = parameter.parent;
-      if (parameter && ts.isParameter(parameter) && functionLike(parameter.parent)) {
-        const callback = parameter.parent, call = callback.parent;
-        if (ts.isCallExpression(call) && ts.isPropertyAccessExpression(call.expression) && ['map', 'flatMap', 'filter'].includes(call.expression.name.text)) return safe(call.expression.expression);
-      }
-      if (declaration && ts.isParameter(declaration) && functionLike(declaration.parent) && privateHelper(declaration.parent)) {
-        const fn = declaration.parent, index = fn.parameters.indexOf(declaration);
-        const callers = calls.filter((call) => checker.getResolvedSignature(call)?.declaration === fn);
-        return callers.length > 0 && callers.every((call) => safe(call.arguments[index] ?? declaration.initializer));
-      }
-      return false;
+    if (node.type === 'MemberExpression') return typed(child(ref, node.object), next).flatMap(value => memberNames(ref).flatMap(name => property(value, name, next))).flatMap(declared);
+    return values(ref);
+  }
+  function elements(ref, seen = new Set()) {
+    const node = unwrap(ref?.node);
+    if (!node || seen.has(node)) return [];
+    const next = new Set(seen).add(node);
+    if (node.type === 'TSArrayType') return values(child(ref, node.elementType));
+    if (node.type === 'TSTypeOperator') return elements(child(ref, node.typeAnnotation), next);
+    if (node.type === 'TSTypeAliasDeclaration') return elements(child(ref, node.typeAnnotation), next);
+    if (node.type === 'ArrayExpression') return node.elements.flatMap(entry => entry?.type === 'SpreadElement' ? elements(child(ref, entry.argument), next) : entry ? [child(ref, entry)] : []);
+    if (node.type === 'TSTypeReference' && ['Array','ReadonlyArray'].includes(keyOf(node.typeName))) return (node.typeArguments?.params ?? []).flatMap(arg => values(child(ref, arg)));
+    const initial = origins(ref).filter(value => value.node !== node);
+    if (initial.length > 0) {
+      const found = initial.flatMap(value => elements(value, next));
+      if (found.length > 0) return found;
     }
-    if (scalar(checker.getTypeAtLocation(node))) return true;
-    if (ts.isTemplateExpression(node)) return node.templateSpans.every((span) => safe(span.expression));
-    if (ts.isBinaryExpression(node)) return safe(node.left) && safe(node.right);
-    if (ts.isConditionalExpression(node)) return safe(node.whenTrue) && safe(node.whenFalse);
-    if (ts.isArrayLiteralExpression(node)) return node.elements.every(safe);
-    if (ts.isObjectLiteralExpression(node)) return node.properties.every((entry) => ts.isPropertyAssignment(entry) && safe(entry.initializer));
-    if (ts.isPropertyAccessExpression(node) || ts.isElementAccessExpression(node)) {
-      const binding = symbol(ts.isPropertyAccessExpression(node) ? node.name : node.argumentExpression);
-      if ((writes.get(binding) ?? []).some((value) => !safe(value))) return false;
-      const declaration = binding?.valueDeclaration;
-      if (declaration && ts.isPropertySignature(declaration)) {
-        const file = normalized(declaration.getSourceFile().fileName), owner = declaration.parent.name?.text;
-        if ((file.endsWith('/src/engine/combat/Equipment.ts') && owner === 'WeaponUi' && property(node) === 'swapIcon')
-          || (file.endsWith('/src/engine/ui/hudSlots.ts') && owner === 'DiscOpts' && property(node) === 'icon')
-          || (file.endsWith('/src/engine/ui/hudSlots.ts') && owner === 'TouchRelabel' && property(node) === 'icon')
-          || (file.endsWith('/src/engine/input/InputService.ts') && owner === 'TouchVerb' && property(node) === 'icon')
-          || (file.endsWith('/src/engine/practice/playground/catalog.ts') && owner === 'PlaygroundCard' && property(node) === 'icon')
-          || (file.endsWith('/src/engine/app/identity.ts') && owner === 'AppIdentity' && property(node) === 'wordmark')) return true;
-      }
-      if (declaration && normalized(declaration.getSourceFile().fileName).endsWith('/lib.dom.d.ts') && property(node) === 'innerHTML') return true;
-      if (declaration && ts.isPropertyAssignment(declaration)) return safe(declaration.initializer);
-      return safe(node.expression); // Dynamic lookup in a table whose every value is static.
+    return typed(ref).flatMap(value => value.node === node ? [] : elements(value, next));
+  }
+  function builtinScalar(ref, seen = new Set()) {
+    const node = unwrap(ref?.node);
+    if (!node || seen.has(node)) return false;
+    const next = new Set(seen).add(node);
+    if (['TSNumberKeyword','TSBooleanKeyword','TSNullKeyword','TSUndefinedKeyword'].includes(node.type)) return true;
+    if (node.type === 'Literal') return !node.regex && (typeof node.value === 'number' || typeof node.value === 'boolean' || node.value === null || ref.literalType === true);
+    if (node.type === 'TSTypeAnnotation' || node.type === 'TSTypeAliasDeclaration') return builtinScalar(child(ref, node.typeAnnotation), next);
+    if (node.type === 'TSUnionType') return node.types.every(type => builtinScalar(child(ref, type), next));
+    if (node.type === 'TSLiteralType') return builtinScalar(child(ref, node.literal), next);
+    if (node.type === 'TSTypeOperator' && node.operator === 'keyof') {
+      const objects = values(child(ref, node.typeAnnotation));
+      return objects.length > 0 && objects.every(value => finiteKeys(value, next));
     }
-    if (ts.isCallExpression(node)) {
-      if (node.arguments.some(ts.isSpreadElement)) return false;
-      const declaration = checker.getResolvedSignature(node)?.declaration;
-      const file = declaration ? normalized(declaration.getSourceFile().fileName) : '';
-      if (file.endsWith('/src/engine/ui/icons.ts') && declaration?.name?.text === 'icon') return true;
-      if (file.endsWith('/src/engine/strings.ts') && declaration?.name?.text === 'engineString') return node.arguments.every(safe);
-      if (ts.isPropertyAccessExpression(node.expression) && ['map', 'flatMap'].includes(node.expression.name.text) && node.arguments.length > 0 && functionLike(node.arguments[0])) {
-        const values = returned(node.arguments[0]); return values.length > 0 && values.every(safe);
+    return typed(ref).some(value => value.node !== node && builtinScalar(value, next));
+  }
+  function finiteKeys(ref, seen) {
+    const node = ref.node;
+    if (!node || seen.has(node)) return false;
+    const next = new Set(seen).add(node);
+    if (node.type === 'TSTypeAliasDeclaration') {
+      const refs = values(child(ref, node.typeAnnotation));
+      return refs.length > 0 && refs.every(value => finiteKeys(value, next));
+    }
+    if (node.type === 'ObjectExpression') return node.properties.every(entry => entry.type === 'Property' && !entry.computed && keyOf(entry.key) !== null);
+    if (node.type === 'TSTypeLiteral') return node.members.every(entry => entry.type !== 'TSIndexSignature' && keyOf(entry.key) !== null);
+    if (node.type !== 'TSInterfaceDeclaration' || node.extends.length > 0) return false;
+    const name = node.id.name;
+    if (!openInterfaces.has(name)) {
+      // Open interfaces may acquire an index signature through another module.
+      // A cheap name-filtered source census refuses that ambiguity; it never
+      // builds or asks a compiler for the global program.
+      let open = false;
+      const pattern = new RegExp(String.raw`\binterface\s+${name.replaceAll('$', String.raw`\$`)}(?:\s|[<{])`, 'u');
+      for (const candidate of globSync('src/**/*.{ts,tsx,mts}', { cwd: root })) {
+        if (/\.generated\./u.test(candidate)) continue;
+        const candidateSource = readFileSync(resolve(root, candidate), 'utf8');
+        if (!pattern.test(candidateSource)) continue;
+        const result = parseSync(candidate, candidateSource);
+        if (result.errors.length > 0) { open = true; break; }
+        const check = current => {
+          if (current.type === 'TSInterfaceDeclaration' && current.id.name === name && (current.extends.length > 0 || current.body.body.some(entry => entry.type === 'TSIndexSignature'))) open = true;
+          for (const entry of children(current)) check(entry);
+        };
+        check(result.program);
       }
-      if (declaration && functionLike(declaration)) {
-        const bindings = new Map(env);
-        declaration.parameters.forEach((parameter, index) => { bindings.set(symbol(parameter.name), node.arguments[index] ?? parameter.initializer); });
-        const values = returned(declaration);
-        return values.length > 0 && values.every((value) => staticMarkup(value, bindings, next));
+      openInterfaces.set(name, open);
+    }
+    return !openInterfaces.get(name) && node.body.body.every(entry => keyOf(entry.key) !== null);
+  }
+  function dom(ref, env, seen = new Set()) {
+    const node = unwrap(ref?.node);
+    if (!node || seen.has(node)) return false;
+    const next = new Set(seen).add(node);
+    if (node.type === 'Identifier' && env.has(identity(ref))) return env.get(identity(ref)).every(value => dom(value, env, next));
+    if (global(ref, 'document')) return true;
+    if (node.type === 'TSTypeReference' && domNames.has(keyOf(node.typeName)) && lookup(ref.unit, node, keyOf(node.typeName)) === null) return true;
+    if (node.type === 'CallExpression') {
+      const callee = unwrap(node.callee), names = memberNames(child(ref, callee));
+      if (callee?.type === 'MemberExpression' && names.some(name => ['createElement','createElementNS','querySelector','getElementById','createRange'].includes(name))
+        && dom(child(ref, callee.object), env, next)) return true;
+    }
+    if (node.type === 'MemberExpression' && memberNames(ref).includes('document') && ['window','globalThis'].some(name => global(child(ref, node.object), name))) return true;
+    return typed(ref).some(value => value.node !== node && dom(value, env, next));
+  }
+  function actualRefs(ref, env) {
+    const node = unwrap(ref?.node);
+    if (node?.type === 'Identifier' && env.has(identity(ref))) return env.get(identity(ref));
+    return [ref];
+  }
+  function argumentsEnv(fn, args, outer) {
+    const env = new Map(outer);
+    function bind(pattern, refs) {
+      if (!pattern) return;
+      if (pattern.type === 'Identifier') env.set(lookup(fn.unit, pattern, pattern.name), refs);
+      else if (pattern.type === 'AssignmentPattern') bind(pattern.left, refs.every(isNull) ? [child(fn, pattern.right)] : refs);
+      else if (pattern.type === 'ObjectPattern') for (const entry of pattern.properties) {
+        if (entry.type !== 'RestElement') bind(entry.value, refs.flatMap(ref => actualRefs(ref, outer).flatMap(value => values(value).flatMap(row => property(row, keyOf(entry.key), new Set())))));
       }
-      // String methods preserve provenance. Escaping an authored value is not textContent.
-      if (ts.isPropertyAccessExpression(node.expression)) return safe(node.expression.expression) && node.arguments.every(safe);
-      return false;
+      else if (pattern.type === 'ArrayPattern') pattern.elements.forEach((entry, index) => bind(entry, refs.flatMap(ref => actualRefs(ref, outer).flatMap(value => values(value).flatMap(row => property(row, String(index), new Set()))))));
+    }
+    (fn.node.params ?? []).forEach((param, index) => bind(param, args[index] ?? [child(fn, param.type === 'AssignmentPattern' ? param.right : undefined)]));
+    return env;
+  }
+  function returnExpressions(fn) {
+    if (!fn.node.body) return [];
+    if (fn.node.body.type !== 'BlockStatement') return [child(fn, fn.node.body)];
+    const found = [];
+    function collect(node) {
+      if (functions.has(node.type) || ['ClassDeclaration','ClassExpression'].includes(node.type)) return;
+      if (node.type === 'ReturnStatement') found.push(child(fn, node.argument));
+      else for (const entry of children(node)) collect(entry);
+    }
+    collect(fn.node.body); return found;
+  }
+  function safe(input, env = new Map(), seen = new Set()) {
+    const node = unwrap(input?.node);
+    if (!node) return true; // Omitted optional arguments contribute no markup.
+    if (seen.has(node) || seen.size > 96) return false;
+    const ref = { ...input, node }, next = new Set(seen).add(node);
+    const check = value => safe(child(ref, value), env, next);
+    const resolved = refs => refs.length > 0 && refs.every(value => safe(value, env, next));
+    if (node.type === 'Literal') return typeof node.value !== 'bigint' && !node.regex;
+    if (['undefined','NaN','Infinity'].some(name => global(ref, name))) return true;
+    if (node.type === 'Identifier' && env.has(identity(ref))) return resolved(env.get(identity(ref)));
+    const changed = [identity(ref), ...values(ref).map(value => value.node)].filter(Boolean);
+    if (changed.some(key => (writes.get(key) ?? []).some(value => !safe(value, env, next)))) return false;
+    if (builtinScalar(ref)) return true;
+    if (node.type === 'TemplateLiteral') return node.expressions.every(check);
+    if (node.type === 'BinaryExpression') return ['-','*','/','%','**','<<','>>','>>>','&','|','^','<','>','<=','>=','==','===','!=','!==','in','instanceof'].includes(node.operator) || check(node.left) && check(node.right);
+    if (node.type === 'UnaryExpression') return ['!','+','-','~','typeof','void'].includes(node.operator);
+    if (node.type === 'ConditionalExpression') return check(node.consequent) && check(node.alternate);
+    if (node.type === 'LogicalExpression') return check(node.left) && check(node.right);
+    if (node.type === 'ArrayExpression') return node.elements.every(entry => entry !== null && check(entry.type === 'SpreadElement' ? entry.argument : entry));
+    if (node.type === 'ObjectExpression') return node.properties.every(entry => entry.type === 'Property' && check(entry.value));
+    if (node.type === 'Identifier') {
+      const binding = lookup(ref.unit, node, node.name);
+      if (binding?.elementOf) return resolved(elements(binding.elementOf));
+      // A private helper parameter is safe only when every actual caller is safe.
+      if (binding?.function) {
+        const fn = make(ref.unit, binding.function), index = binding.index;
+        if (privateHelper(fn)) {
+          const callers = calls.filter(call => values(make(primary, call.callee)).some(value => value.node === fn.node));
+          return callers.length > 0 && callers.every(call => safe(make(primary, call.arguments[index] ?? fn.node.params[index]?.right), env, next));
+        }
+      }
+      return resolved(origins(ref).filter(value => value.node !== node));
+    }
+    if (node.type === 'MemberExpression') {
+      const refs = [...typed(ref), ...actualRefs(child(ref, node.object), env).flatMap(value => values(value).flatMap(row => memberNames(ref).flatMap(name => property(row, name, new Set()))))];
+      if (refs.some(value => (writes.get(value.node) ?? []).some(write => !safe(write, env, next)))) return false;
+      if (refs.length > 0 && refs.every(value => trusted.has(`${value.unit.file}#${value.ownerName}.${value.member}`))) return true;
+      if (memberNames(ref).includes('length') && typed(child(ref, node.object)).some(value => value.node.type === 'TSStringKeyword' || value.node.type === 'TSArrayType' || value.node.type === 'TSTupleType')) return true;
+      if (memberNames(ref).some(name => ['width','height'].includes(name)) && typed(child(ref, node.object)).some(value => value.node.type === 'TSTypeReference'
+        && keyOf(value.node.typeName) === 'HTMLCanvasElement' && lookup(value.unit, value.node, 'HTMLCanvasElement') === null)) return true;
+      if (memberNames(ref).includes('innerHTML') && dom(child(ref, node.object), env)) return true;
+      if (resolved(refs.map(value => value.initial?.node ? value.initial : value))) return true;
+      return safe(child(ref, node.object), env, next); // Lookup in an entirely static table.
+    }
+    if (node.type === 'CallExpression') {
+      if (node.arguments.some(arg => arg.type === 'SpreadElement')) return false;
+      const callee = unwrap(node.callee), refs = values(child(ref, callee)), name = memberNames(child(ref, callee))[0];
+      if (refs.some(value => value.unit.file === 'src/engine/ui/icons.ts' && (value.node.id?.name ?? value.exportName) === 'icon')) return true;
+      if (refs.some(value => value.unit.file === 'src/engine/strings.ts' && (value.node.id?.name ?? value.exportName) === 'engineString')) return node.arguments.every(check);
+      if (callee.type === 'Identifier' && ['Number','parseInt','parseFloat','Boolean'].some(id => global(child(ref, callee), id))) return true;
+      if (global(child(ref, callee), 'String')) return node.arguments.every(check);
+      if (callee.type === 'MemberExpression' && global(child(ref, callee.object), 'Math') && numericMath.has(name)) return true;
+      if (callee.type === 'MemberExpression' && name === 'length') return false;
+      if (callee.type === 'MemberExpression' && ['map','flatMap'].includes(name)) {
+        const callbacks = values(child(ref, node.arguments[0])), rows = elements(child(ref, callee.object));
+        return callbacks.length > 0 && callbacks.every(fn => {
+          const out = returnExpressions(fn), bound = argumentsEnv(fn, [rows], env);
+          return rows.length > 0 && out.length > 0 && out.every(value => safe(value, bound, next));
+        });
+      }
+      const typedReturns = refs.flatMap(fn => fn.node.returnType ? values(child(fn, fn.node.returnType)) : []);
+      if (typedReturns.length > 0 && typedReturns.every(value => builtinScalar(value))) return true;
+      if (refs.length > 0 && refs.every(fn => functions.has(fn.node.type))) return refs.every(fn => {
+        const out = returnExpressions(fn), bound = argumentsEnv(fn, node.arguments.map(arg => [child(ref, arg)]), env);
+        return out.length > 0 && out.every(value => safe(value, bound, next));
+      });
+      return callee.type === 'MemberExpression' && safe(child(ref, callee.object), env, next) && node.arguments.every(check);
     }
     return false;
   }
-  const callTarget = (input, trail = new Set()) => {
-    const node = unwrapped(input); if (!node || trail.has(node)) return null;
-    const next = new Set(trail); next.add(node);
-    if (ts.isIdentifier(node)) {
-      const declaration = symbol(node)?.valueDeclaration;
-      return declaration && ts.isVariableDeclaration(declaration) ? callTarget(declaration.initializer, next) : null;
+  function privateHelper(fn) {
+    const method = fn.unit.parents.get(fn.node);
+    if (method?.type === 'MethodDefinition') return method.accessibility === 'private';
+    const name = fn.node.id?.name ?? (method?.type === 'VariableDeclarator' ? method.id.name : null);
+    if (name && [...fn.unit.exports.values()].some(entry => entry.local === name)) return false;
+    for (let parent = fn.node; parent; parent = fn.unit.parents.get(parent)) {
+      if (parent.type === 'ExportNamedDeclaration' || parent.type === 'ExportDefaultDeclaration') return false;
+      if (['VariableDeclaration','FunctionDeclaration'].includes(parent.type)) return fn.unit.parents.get(parent)?.type !== 'ExportNamedDeclaration';
     }
-    if (ts.isCallExpression(node) && property(node.expression, checker) === 'bind' && ts.isPropertyAccessExpression(node.expression)) return callTarget(node.expression.expression, next);
-    return property(node, checker);
-  };
-  const scan = (node) => {
-    if (ts.isCallExpression(node)) {
+    return true;
+  }
+  function target(ref, seen = new Set()) {
+    const node = unwrap(ref.node);
+    if (!node || seen.has(node)) return [];
+    const next = new Set(seen).add(node);
+    if (node.type === 'MemberExpression') return [ref];
+    if (node.type === 'Identifier') {
+      const binding = lookup(ref.unit, node, node.name);
+      return (binding?.refs ?? []).flatMap(value => target(value, next));
+    }
+    if (node.type === 'TSTypeAnnotation') return target(child(ref, node.typeAnnotation), next);
+    if (node.type === 'TSTypeQuery') return target(child(ref, node.exprName), next);
+    if (node.type === 'CallExpression' && memberNames(child(ref, node.callee)).includes('bind')) return target(child(ref, node.callee.object), next);
+    return [];
+  }
+  function scan(node) {
+    const ref = make(primary, node);
+    if (node.type === 'CallExpression') {
       calls.push(node);
-      const invoked = property(node.expression, checker);
-      const forwarding = invoked === 'call' || invoked === 'apply';
-      const target = forwarding && ts.isPropertyAccessExpression(node.expression) ? node.expression.expression : node.expression;
-      // SF74 speed 3: resolve the signature only when the answer needs it (an unnamed target, or write / writeln's
-      // declaring file); resolving every call of every candidate file was ~45 % of this pass.
-      const named = callTarget(target);
-      const declaration = named === null || named === 'write' || named === 'writeln' ? checker.getResolvedSignature(node)?.declaration : undefined;
-      const name = named ?? declaration?.name?.text;
+      const invoked = memberNames(child(ref, node.callee)), forwarding = invoked.some(name => indirectCalls.has(name));
+      const callee = forwarding ? node.callee.object : node.callee, targets = target(child(ref, callee)), names = new Set(targets.flatMap(memberNames));
       const args = forwarding ? node.arguments.slice(1) : node.arguments;
-      if (name === 'insertAdjacentHTML') sinks.push({ node, value: invoked === 'apply' ? args[0] : args[1] });
-      if (name === 'createContextualFragment' || ((name === 'write' || name === 'writeln') && (normalized(declaration?.getSourceFile().fileName ?? '').endsWith('/lib.dom.d.ts') || /\bdocument\.(write|writeln)\b/u.test(target.getText(source))))) {
-        for (const value of args) sinks.push({ node, value });
+      if (names.has('insertAdjacentHTML')) pending.push({ node, value: invoked.includes('apply') ? args[0] : args[1] });
+      if (names.has('createContextualFragment') || targets.some(value => memberNames(value).some(name => ['write','writeln'].includes(name)) && dom(child(value, value.node.object), new Map()))) {
+        for (const value of args) pending.push({ node, value });
       }
-      if (name === 'set' && ts.isPropertyAccessExpression(node.expression) && node.expression.expression.getText(source) === 'Reflect' && args.length > 2 && ts.isStringLiteralLike(args[1]) && SINKS.has(args[1].text)) sinks.push({ node, value: args[2] });
-      if (name === 'defineProperty' && ts.isPropertyAccessExpression(node.expression) && node.expression.expression.getText(source) === 'Object' && args.length > 2 && ts.isStringLiteralLike(args[1]) && SINKS.has(args[1].text)) {
-        const descriptor = args[2]; if (ts.isObjectLiteralExpression(descriptor)) {
-          for (const entry of descriptor.properties) if (ts.isPropertyAssignment(entry) && entry.name.getText(source) === 'value') sinks.push({ node, value: entry.initializer });
-        }
+      const object = node.callee.object;
+      if (invoked.includes('set') && global(child(ref, object), 'Reflect') && sinks.has(keyOf(args[1]))) pending.push({ node, value: args[2] });
+      if (invoked.includes('defineProperty') && global(child(ref, object), 'Object') && sinks.has(keyOf(args[1])) && args[2]?.type === 'ObjectExpression') {
+        for (const entry of args[2].properties) if (keyOf(entry.key) === 'value') pending.push({ node, value: entry.value });
       }
     }
-    if (ts.isBinaryExpression(node) && [ts.SyntaxKind.EqualsToken, ts.SyntaxKind.PlusEqualsToken].includes(node.operatorToken.kind)) {
-      const key = ts.isPropertyAccessExpression(node.left) ? symbol(node.left.name) : symbol(node.left);
-      const values = writes.get(key) ?? []; values.push(node.right); writes.set(key, values);
-      if (SINKS.has(property(node.left, checker))) sinks.push({ node, value: node.right });
+    if (node.type === 'AssignmentExpression' && ['=','+='].includes(node.operator)) {
+      const left = child(ref, node.left), keys = [identity(left), ...values(left).map(value => value.node)].filter(Boolean);
+      for (const key of keys) { const list = writes.get(key) ?? []; list.push(child(ref, node.right)); writes.set(key, list); }
+      if (memberNames(left).some(name => sinks.has(name))) pending.push({ node, value: node.right });
     }
-    if (ts.isPropertyAssignment(node) && [...SINKS, '__html'].includes(node.name.getText(source).replaceAll(/["']/gu, ''))) sinks.push({ node, value: node.initializer });
-    ts.forEachChild(node, scan);
-  };
-  scan(source);
-  const record = (node) => {
-    const { line, character } = source.getLineAndCharacterOfPosition(node.getStart(source));
-    sites.set(node.getStart(source), { line: line + 1, column: character, message: 'Authored or unknown runtime text reaches an HTML sink. Put it in textContent beside static platform markup (SF58).' });
-  };
-  for (const sink of sinks) {
-    let fn = sink.node.parent;
-    while (fn && !functionLike(fn)) fn = fn.parent;
-    const id = fn ? symbolOfFunction(fn) : undefined;
-    const callers = id && privateHelper(fn) ? calls.filter((call) => symbol(call.expression) === id) : [];
-    if (callers.length === 0) { if (!staticMarkup(sink.value)) record(sink.node); continue; }
-    for (const caller of callers) {
-      if (caller.arguments.some(ts.isSpreadElement) || fn.parameters.some((parameter) => parameter.dotDotDotToken)) { record(caller); continue; }
-      const env = new Map(); fn.parameters.forEach((parameter, index) => { env.set(symbol(parameter.name), caller.arguments[index] ?? parameter.initializer); });
-      if (!staticMarkup(sink.value, env)) record(caller);
+    if (node.type === 'Property' && sinkProperties.has(keyOf(node.key))) pending.push({ node, value: node.value });
+    for (const entry of children(node)) scan(entry);
+  }
+  scan(program);
+  function record(node) {
+    const start = node.start ?? node.range[0], loc = node.loc?.start ?? { line: source.slice(0, start).split('\n').length, column: start - source.lastIndexOf('\n', start - 1) - 1 };
+    sites.set(start, { line: loc.line, column: loc.column, message });
+  }
+  for (const sink of pending) {
+    let fn = primary.parents.get(sink.node);
+    while (fn && !functions.has(fn.type)) fn = primary.parents.get(fn);
+    const helper = fn ? make(primary, fn) : null;
+    const callers = helper && privateHelper(helper) ? calls.filter(call => values(make(primary, call.callee)).some(value => value.node === fn)) : [];
+    if (callers.length === 0) { if (!safe(make(primary, sink.value))) record(sink.node); continue; }
+    for (const call of callers) {
+      if (call.arguments.some(arg => arg.type === 'SpreadElement') || fn.params.some(param => param.type === 'RestElement')) { record(call); continue; }
+      const env = argumentsEnv(helper, call.arguments.map(arg => [make(primary, arg)]), new Map());
+      if (!safe(make(primary, sink.value), env)) record(call);
     }
   }
   return [...sites.values()].sort((a, b) => a.line - b.line || a.column - b.column);
