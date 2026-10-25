@@ -118,8 +118,9 @@ async function startSelected(): Promise<void> {
     await selection.prepareSelectedShard();
     return selection;
   });
-  const [{ completePageCatalogue }, { game }, { beginLoading }] = await Promise.all([
+  const [{ completePageCatalogue }, { game }, { beginLoading }, { TIER }] = await Promise.all([
     selected, retried(() => import('./game/shard/registry')), retried(() => import('@wildshard/engine/ui/Loading')),
+    retried(() => import('@wildshard/engine/core/tier')),
   ]);
   const loading = beginLoading({ id: game.shard.slug, name: game.shard.name, trace: game.shard.boot?.phone?.trace === true });
   const moduleText = document.getElementById('boot-module-files')?.textContent;
@@ -166,7 +167,7 @@ async function startSelected(): Promise<void> {
     await completePageCatalogue(page.mode);
     const path = page.mode === 'grid' ? 'grid' : source !== null || shardEntry(game.shard) === 'shardfile' ? 'shardfile' : 'legacy';
     // Publish every selected bank together before reading the descriptor.
-    if (source === null) reserveHomeDownload(typeof moduleRows === 'object' && moduleRows !== null && 'products' in moduleRows ? moduleRows.products : undefined, game.shard.shardfile, document.baseURI);
+    if (source === null) reserveHomeDownload(typeof moduleRows === 'object' && moduleRows !== null && 'products' in moduleRows ? moduleRows.products : undefined, game.shard.shardfile, document.baseURI, TIER);
     const extras = source === null && path === 'shardfile' ? prepareHomeExtras(
       typeof moduleRows === 'object' && moduleRows !== null && 'extras' in moduleRows ? moduleRows.extras : undefined,
       game.shard.shardfile, document.baseURI, entryScope) : null;

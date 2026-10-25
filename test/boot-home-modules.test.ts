@@ -4,6 +4,13 @@ import {prepareHomeModules,reserveHomeDownload} from '../src/bootDownloads';
 import {DownloadAccounting,installDownloadAccounting,declareModuleFiles,preloadModuleGroups} from '../src/engine/boot/download';
 
 afterEach(() => {document.body.replaceChildren();for(const link of document.querySelectorAll('link[rel="modulepreload"]'))link.remove();});
+test('a caller without a trusted tier reserves the full bank without selecting a device',()=>{
+  const accounting=new DownloadAccounting(document.baseURI),dispose=installDownloadAccounting(accounting);
+  try {
+    reserveHomeDownload({'/shardfiles/example/':[10,200,130,170]},'/shardfiles/example/shard.json',document.baseURI);
+    expect(accounting.snapshot().declaredBytes).toBe(200);
+  } finally {dispose();}
+});
 test.each(['phone','desktop'] as const)('the %s home reserves its selected product total before reading sections', tier => {
   const accounting=new DownloadAccounting(document.baseURI),dispose=installDownloadAccounting(accounting);
   try {
