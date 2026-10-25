@@ -1,4 +1,3 @@
-import fireBook from '../data/fireBook.generated.json' with { type: 'json' };
 /** The look every Signal fire shares (linear RGB). */
 export const FIRE_STYLE = {
   // round 18b (mockup C's thin plume drifts LEFT with the sparks): a light dusk breeze from the south-east, not the dune-forming wind
@@ -151,7 +150,7 @@ function smokeGraph(smoke: Smoke): object {
 }
 
 /** The flame: the flipbook on a leaning column, cross-faded, graded, its white-hot core gated by its place. */
-function flameGraph(): object {
+function flameGraph(bookHash: string): object {
   const k = kit('f'), { op, add, sub, mul, smooth, swz } = k, v = column(k, FIRE_STYLE.flame.drift);
   const { columns, rows, fps } = FIRE_STYLE.book, frames = columns * rows, { power, tint, core } = FIRE_STYLE.bookGrade;
   const raw = op('uv'), uv = op('clamp', [raw, [0.004, 0.004], [0.996, 0.996]]), ux = swz(uv, 'x'), uy = swz(uv, 'y');
@@ -171,7 +170,7 @@ function flameGraph(): object {
   const coreAt = mul(mul(op('oneMinus', [smooth(0.1, 0.42, ry)]), op('oneMinus', [smooth(0.12, 0.32, op('abs', [sub(rx, 0.5)]))])), smooth(0.3, 0.6, lum));
   const graded = mul(mul(op('pow', [c, power]), tint), add(1, mul(coreAt, core)));
   return { ...unlit(k.nodes, 'premultiplied', { 'vertex.offset': { offset: v.offset }, surface: { colour: mul(graded, fade), alpha: mul(cover, fade) } }),
-    params: { ...CLOCK, book: { type: 'texture', value: fireBook.hash } } };
+    params: { ...CLOCK, book: { type: 'texture', value: bookHash } } };
 }
 
 /** The embers: points rising and spreading downwind, each a dash along its own projected motion, cooling hot → cool. */
@@ -200,12 +199,12 @@ function emberGraph(): object {
 }
 
 /** The fire's material graphs by look.materials id (the fire effect's parts). */
-export const FIRE_GRAPHS = {
-  'fire-flame': flameGraph(),
+export function signalFireGraphs(bookHash: string): Readonly<Record<'fire-flame' | 'fire-smoke' | 'fire-wisp' | 'fire-glow' | 'fire-lamp-glow' | 'fire-embers' | 'fire-pool', object>> { return {
+  'fire-flame': flameGraph(bookHash),
   'fire-smoke': smokeGraph(FIRE_STYLE.plume),
   'fire-wisp': smokeGraph(FIRE_STYLE.wisp),
   'fire-glow': glowGraph(FIRE_STYLE.glow.gain),
   'fire-lamp-glow': glowGraph(FIRE_STYLE.glow.lampGain),
   'fire-embers': emberGraph(),
   'fire-pool': poolGraph(),
-} as const;
+} as const; }

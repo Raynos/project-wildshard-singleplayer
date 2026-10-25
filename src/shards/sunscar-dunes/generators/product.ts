@@ -17,8 +17,10 @@ import sandMaps from '../data/sandMaps.json' with { type: 'json' };
 import { SAND_FIELDS } from './rows/sandFields';
 import { SAND_DUSK } from './rows/dusk';
 import { STORM_FIELD, STORM_GRAPHS } from './rows/stormLook';
-import { FIRE_GRAPHS } from './fireLook';
+import { signalFireGraphs } from './fireLook';
 import fireBook from '../data/fireBook.generated.json' with { type: 'json' };
+
+const FIRE_GRAPHS = signalFireGraphs(fireBook.hash);
 
 // Legacy trusted runtime retains today's geometry/spawn; SF29 binds only its audio.
 // SF50-p / M3 (the runtime-owner binding): "The signal" quest, its ledger facts, the bullwhip and the creatures' homes and
