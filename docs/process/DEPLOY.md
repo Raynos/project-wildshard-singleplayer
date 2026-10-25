@@ -75,6 +75,23 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   Every served file retains its original bytes and SHA-256. Archive SHA-256, file inventory, SHA/run/leg binding,
   version, path and regular-file checks refuse corrupt or mixed transfers before extraction, without retry.
   Each receipt records transferred bytes and transfer-plus-verification seconds under the unchanged 20-minute cap.
+  First ordinary measurements (2026-10-25, source CI `40228094199`, exact tested `5b7f2466dd`,
+  smoke `40229204509`) follow. Download seconds are the artifact action's elapsed time, including extraction;
+  total seconds include manifest transfer and strict file verification. Artifact uploads already use deflate level 6.
+
+  | Leg | Raw tar bytes | Compressed artifact bytes | Download seconds | Transfer + verification seconds |
+  | --- | ---: | ---: | ---: | ---: |
+  | Public | 1,521,315,840 | 1,018,615,814 | 69 | 78.197 |
+  | Developer | 1,287,321,600 | 894,736,269 | 30 | 39.881 |
+  | Grid | 1,655,203,840 | 1,070,346,470 | 70 | 80.669 |
+  | Chromium HOVER | 1,655,203,840 | 1,070,346,470 | 41 | 49.350 |
+  | WebKit HOVER | 1,655,203,840 | 1,070,346,470 | 23 | 33.112 |
+  | Explorer | 1,655,203,840 | 1,070,346,470 | 35 | 46.526 |
+
+  The central job downloaded only the 822-byte compressed manifest in 0.236 seconds. All six transfers verified;
+  the later Nine image-decode failures in public, Developer and Explorer keep this smoke red. These measurements
+  establish the transport result, not release acceptance. The previous full-dist relay exhausted 1,191.6 seconds
+  downloading a 1,373,810,670-byte artifact in smoke `40217512944` before the unchanged outer deadline stopped it.
   Smoke verifies that provenance and the version stamp before serving the same selected bytes to each browser leg;
   it never regenerates products. Missing or expired artifacts refuse the proof: push a head containing the artifact
   publisher and prove that head; an older run without the artifact cannot supply this proof.
