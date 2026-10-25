@@ -11,9 +11,9 @@ Every row is decided work (Jake's G-rows); the refs are the brief.
 |---|---|
 | sp-x1 | G722 done 191aee7b15 -> hero retake done 0dd7ce4722 (board for Jake) -> G717 quiet misses (Nalati whole 287 ms, Pine whole, DW spawn) -> GR3 -> GR5 Far Reach -> GR7 Driftwood |
 | sp-x6 | CS0 done e463dc80af -> G719 done dcd3379372 + e45e75885c (25 first-open tiles; intentional G700 Night Market copies; phone 1x/2x/4x JPEGs) -> G726 Night Market remaster RM1 (current slice) -> G717 look misses done 60f2ba740c (48/48) -> RM2 -> RM3 (no look change; Opus RM4+ Tue 13:00) -> GR4 Sunscar -> GR6 Nalati -> GR8 Pine |
-| sp-x8 | SW11/G703 done ed647c4859 -> TypeScript T3 (current batch) -> G718 FPS pill done 537c352019 -> G734 L18 (1) done 8b74db3d22 (DW 107 -> 84 MB) -> G717 verdict ae146afe1d -> G723.2a/2b + containment 653f0abe85 -> G723.2d cancellation fix -> native two-resident visit (G717.3) -> G723 edge timings (< 5 s) -> T3 -> T4 (from sp-x2) -> T5 |
-| sp-x2 | G700 road B done 58e8609229 -> G720 done cb756b79df -> G721 done 22248f9b6a + 49af17b6b6 -> G724+G725 done d8598ec213 -> G630 Nalati aerial terrain done 0ce626a8f5 -> T4 (one warm DW grid Timeline; share shader cause with sp-x1) -> G734 L18 (2)-(4) on-demand/lighter/compressed (<= 1.5x LEGACY) -> T6 / T8 (T6 presentation, occupied L1: waits-Opus; T8.2 skipped, low value) |
-| sp-x9 | T1 done (G710) -> oxlint R1/R2 done 45126745a7 -> L16/G733/L17 and loading U1/U2/U4 done (native update 2,873 ms / max progress gap 253 ms; 748b5541d2 + f5bb8cec35) -> oxlint R3–R5 NOW (G709; preserve G675 and five CI partitions until R4 permits consolidation) -> no-binaries B1–B6 -> QW7 -> core-memory lazy-load code (G713) |
+| sp-x8 | G718 537c352019 -> L18.1 8b74db3d22 -> G717 verdict ae146afe1d -> G723 2a/2b/2d/4 (903cc6901d; sword fix 9dc10c2d58; G717.3 PASS 1.056 GB) -> G723 construction/afterPlay cuts (< 5 s edges) -> T3 -> T4 -> T5 |
+| sp-x2 | G720/G721/G724/G725/G630 terrain done -> T4 grid pair 653f (warm 201 ms; T4 open) -> L18.1-2c done (DW 78.3 MB; L18.3 lighter assets waits-Opus) -> loading-speed U1 -> U2 -> U4 (G715) -> T6 / T8 (T6 presentation, occupied L1: waits-Opus; T8.2 skipped) |
+| sp-x9 | L16 done 0dd7ce4722 -> render red e80c55ee25 + e9e5c444eb -> G733 acceptance (badges 94ef588da9) -> G732 L17 hold at loading screen -> oxlint R3-R5 -> no-binaries B1-B6 -> QW7 -> core-memory lazy-load code (G713) |
 | sp-x7 | releases only |
 
 ## 10-24 open rows (Jake's picks G679-G682, a2c1e9647b; SW10: one claimable row per live lane)
