@@ -17,7 +17,7 @@ export function viewTellShape(params: readonly string[]): ViewTellShape | null {
   return null;
 }
 /** A target: an object its owner lends by id, or the actor bound to one slot of a pool. */
-const ref = v.union([id, v.strictObject({ pool: id, slot: count(0, 63), part: v.exactOptional(id) })]);
+const ref: v.GenericSchema<ViewTargetRefInput, ViewTargetRef> = v.union([id, v.strictObject({ pool: id, slot: count(0, 63), part: v.exactOptional(id) })]);
 /**
  * G600 L7: a view module (SCRIPT-ABI v2, lane 3) and where its frame comes from and lands, as rows
  * (engine/script/viewProgram). `pools` name a native group's ordered actor slots (group, count, the named finite fields
@@ -41,7 +41,7 @@ const ref = v.union([id, v.strictObject({ pool: id, slot: count(0, 63), part: v.
  * per-instance attribute; a frame that writes none keeps the draw as it was. A program sampling a piece or a group its owner
  * lacks installs nothing. Client-only; nothing reaches the sim or a save.
  */
-export const ViewProgramSchema = v.pipe(v.strictObject({
+export const ViewProgramSchema: v.GenericSchema<ViewProgramRowsInput, ViewProgramRows> = v.pipe(v.strictObject({
   /** it runs in its own update system (`system`, ordered `before` others), or inline where its owner calls the frame slot
    * the owner lends (`slot`: the program builds once the owner has lent the slot, after the values, cells and tells it lends) */
   system: v.exactOptional(id), before: v.optional(v.pipe(v.array(id), v.maxLength(16)), []), slot: v.exactOptional(id),
@@ -81,7 +81,7 @@ export const ViewProgramSchema = v.pipe(v.strictObject({
 }), v.check(rows => (rows.system === undefined) !== (rows.slot === undefined) && (rows.slot === undefined || rows.before.length === 0),
   'A view program runs in one update system or one owner slot'), v.check(rows => {
   const pools = new Map(rows.pools.map(pool => [pool.id, pool.count]));
-  const refs = [...rows.channels, ...rows.transforms].flatMap(row => 'object' in row && typeof row.object === 'object' ? [row.object] : 'pool' in row ? [row] : []);
+  const refs = [...rows.channels, ...rows.transforms].flatMap<Exclude<ViewTargetRef, string>>(row => 'object' in row && typeof row.object === 'object' ? [row.object] : 'pool' in row ? [row] : []);
   return pools.size === rows.pools.length && rows.samples.every(row => row.kind !== 'pool' || pools.has(row.pool))
     && refs.every(row => row.slot < (pools.get(row.pool) ?? 0));
 }, 'Pools are unique and every pool reference names a declared slot'), v.check(rows => {
@@ -89,5 +89,241 @@ export const ViewProgramSchema = v.pipe(v.strictObject({
   for (const row of rows.channels) if (row.kind === 'tell') tells.set(row.tell, [...(tells.get(row.tell) ?? []), row.param]);
   return [...tells.values()].every(params => viewTellShape(params) !== null);
 }, 'Each tell names exactly one shape\'s parameters, each once'));
-export type ViewProgramRows = v.InferOutput<typeof ViewProgramSchema>;
-export type ViewTargetRef = v.InferOutput<typeof ref>;
+
+
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type ViewTargetRefInput = ViewTargetRef;
+export type ViewTargetRef = (string) | ({
+    pool: string;
+    slot: number;
+    part?: string;
+});
+interface ViewProgramRowsInputFields {
+    system?: string;
+    before?: (string)[] | undefined;
+    slot?: string;
+    budget: {
+        pages: number;
+        ioBytes: number;
+        fuel: number;
+        targetMs: number;
+    };
+    pools?: ({
+        id: string;
+        group: string;
+        count: number;
+        fields: (string)[];
+    })[] | undefined;
+    samples: (({
+        kind: 'player';
+        field: 'x' | 'y' | 'z' | 'yaw' | 'speed';
+    }) | ({
+        kind: 'floor';
+        piece: string;
+        field: 'present' | 'height';
+    }) | ({
+        kind: 'constant';
+        value: number;
+    }) | ({
+        kind: 'clock';
+    }) | ({
+        kind: 'pool';
+        pool: string;
+    }) | ({
+        kind: 'value';
+        source: string;
+        field: string;
+    }))[];
+    channels: (({
+        kind: 'camera';
+        field: 'x' | 'y' | 'z' | 'pitch' | 'yaw' | 'roll';
+    }) | ({
+        kind: 'look';
+        look: string;
+        param: string;
+    }) | ({
+        kind: 'visible';
+        object: ViewTargetRefInput;
+    }) | ({
+        kind: 'opacity';
+        object: ViewTargetRefInput;
+    }) | ({
+        kind: 'uniform';
+        object: ViewTargetRefInput;
+        uniform: string;
+    }) | ({
+        kind: 'color';
+        object: ViewTargetRefInput;
+        color: [
+            number,
+            number,
+            number
+        ];
+    }) | ({
+        kind: 'field';
+        pool: string;
+        slot: number;
+        field: string;
+    }) | ({
+        kind: 'attribute';
+        object: string;
+        attribute: string;
+        index: number;
+        component: number;
+    }) | ({
+        kind: 'cell';
+        cell: string;
+    }) | ({
+        kind: 'tell';
+        tell: string;
+        param: (typeof tellParams)[number];
+    }))[];
+    transforms: (({
+        kind: 'object';
+        object: ViewTargetRefInput;
+    }) | ({
+        kind: 'bone';
+        object: ViewTargetRefInput;
+        bone: string;
+    }) | ({
+        kind: 'instance';
+        object: string;
+        index: number;
+    }))[];
+    arrays?: ({
+        id: string;
+        length: number;
+    })[];
+    batches?: ({
+        draw: string;
+        capacity: number;
+        attribute?: {
+            name: string;
+            itemSize: number;
+        };
+    })[];
+    bounds: {
+        translation: number;
+        scale: [
+            number,
+            number
+        ];
+        shear: number;
+    };
+}
+export type ViewProgramRowsInput = { [Key in keyof ViewProgramRowsInputFields]: ViewProgramRowsInputFields[Key] };
+interface ViewProgramRowsFields {
+    system?: string;
+    before: (string)[];
+    slot?: string;
+    budget: {
+        pages: number;
+        ioBytes: number;
+        fuel: number;
+        targetMs: number;
+    };
+    pools: ({
+        id: string;
+        group: string;
+        count: number;
+        fields: (string)[];
+    })[];
+    samples: (({
+        kind: 'player';
+        field: 'x' | 'y' | 'z' | 'yaw' | 'speed';
+    }) | ({
+        kind: 'floor';
+        piece: string;
+        field: 'present' | 'height';
+    }) | ({
+        kind: 'constant';
+        value: number;
+    }) | ({
+        kind: 'clock';
+    }) | ({
+        kind: 'pool';
+        pool: string;
+    }) | ({
+        kind: 'value';
+        source: string;
+        field: string;
+    }))[];
+    channels: (({
+        kind: 'camera';
+        field: 'x' | 'y' | 'z' | 'pitch' | 'yaw' | 'roll';
+    }) | ({
+        kind: 'look';
+        look: string;
+        param: string;
+    }) | ({
+        kind: 'visible';
+        object: ViewTargetRef;
+    }) | ({
+        kind: 'opacity';
+        object: ViewTargetRef;
+    }) | ({
+        kind: 'uniform';
+        object: ViewTargetRef;
+        uniform: string;
+    }) | ({
+        kind: 'color';
+        object: ViewTargetRef;
+        color: [
+            number,
+            number,
+            number
+        ];
+    }) | ({
+        kind: 'field';
+        pool: string;
+        slot: number;
+        field: string;
+    }) | ({
+        kind: 'attribute';
+        object: string;
+        attribute: string;
+        index: number;
+        component: number;
+    }) | ({
+        kind: 'cell';
+        cell: string;
+    }) | ({
+        kind: 'tell';
+        tell: string;
+        param: (typeof tellParams)[number];
+    }))[];
+    transforms: (({
+        kind: 'object';
+        object: ViewTargetRef;
+    }) | ({
+        kind: 'bone';
+        object: ViewTargetRef;
+        bone: string;
+    }) | ({
+        kind: 'instance';
+        object: string;
+        index: number;
+    }))[];
+    arrays?: ({
+        id: string;
+        length: number;
+    })[];
+    batches?: ({
+        draw: string;
+        capacity: number;
+        attribute?: {
+            name: string;
+            itemSize: number;
+        };
+    })[];
+    bounds: {
+        translation: number;
+        scale: [
+            number,
+            number
+        ];
+        shear: number;
+    };
+}
+export type ViewProgramRows = { [Key in keyof ViewProgramRowsFields]: ViewProgramRowsFields[Key] };

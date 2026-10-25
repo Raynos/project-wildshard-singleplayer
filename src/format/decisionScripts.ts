@@ -9,13 +9,13 @@ const finite = v.pipe(v.number(), v.finite());
 const positive = v.pipe(finite, v.integer(), v.minValue(1), v.maxValue(0x7fffffff));
 const aliases = v.pipe(v.record(local, id), v.check(value => Object.keys(value).length <= 256, 'bounded script id map'));
 const unique = (values: readonly unknown[]): boolean => new Set(values).size === values.length;
-const readNames = [...keys(SCRIPT_V1_READS), ...keys(SCRIPT_V1_LISTS)];
+const readNames: ("x" | "y" | "z" | "yaw" | "hpShare" | "alive" | "field" | "distance" | "nearestPlayer" | "flag" | "timerLeft" | "random" | "actorInZone" | "playersInZone" | "moving" | "strikeState" | "playerFlag" | "spawnGroupAlive" | "bearing" | "bodyX" | "bodyY" | "bodyZ" | "bodyAlive" | "bodyYaw" | "bodyVisible" | "playerIntent" | "actorsInZone" | "playersWithin" | "groundHeight" | "nearestWalkable" | "path" | "radial" | "declaredFloor")[] = [...keys(SCRIPT_V1_READS), ...keys(SCRIPT_V1_LISTS)];
 const state = v.strictObject({ name: local, type: v.picklist(['bool', 'i32', 'f64']), default: v.union([v.boolean(), finite]),
   scope: v.picklist(['binding', 'actor', 'player']), min: v.exactOptional(finite), max: v.exactOptional(finite) });
 /** Named ids that must resolve in another platform section. Timers are binding-local names. */
 export const SCRIPT_V1_REFERENCE_KINDS = ['actors', 'moves', 'strikes', 'cues', 'fields', 'flags', 'zones', 'spots', 'targets', 'spawns', 'signals', 'facts', 'rewards', 'channels', 'impulses', 'weather', 'bodies', 'colliders'] as const;
 export type ScriptV1ReferenceKind = typeof SCRIPT_V1_REFERENCE_KINDS[number];
-const row = v.strictObject({
+const row: v.GenericSchema<DecisionScriptRowInput, DecisionScriptRow> = v.strictObject({
   // per-frame view is the v2 view lane's (view/modules, client view.program); a v1 script is simulation only
   id, abi: v.literal('1.0'), side: v.literal('sim'),
   module: v.pipe(v.string(), v.regex(/^blobs\/wasm\/[a-f0-9]{64}\.wasm$/u)),
@@ -37,7 +37,7 @@ const row = v.strictObject({
   stateVersion: positive, state: v.pipe(v.array(state), v.maxLength(16)),
   params: v.pipe(v.record(local, finite), v.check(value => Object.keys(value).length <= 32, 'bounded script parameters')),
 });
-export type DecisionScriptRow = v.InferOutput<typeof row>;
+
 /** Unused additive namespaces have no wire representation in pre-extension programs. */
 function omitEmptyBodyMaps(script: DecisionScriptRow): DecisionScriptRow {
   const { bodies, colliders, ...original } = script;
@@ -86,12 +86,12 @@ function safeInput(value: unknown): boolean {
 }
 
 /** Plain platform section: v1 script rows. Existing v0 bindings remain a separate format during the W1 migration. */
-export const DecisionScriptsSchema = v.pipe(v.unknown(), v.check(safeInput, 'plain JSON without unsafe property names'), v.array(v.pipe(row, v.check(value => decisionScriptRowRules(value).length === 0, 'script row semantic rules'))),
+export const DecisionScriptsSchema: v.GenericSchema<unknown, DecisionScripts> & { readonly pipe: readonly [unknown, unknown, v.ArraySchema<typeof row, undefined>, unknown, unknown, unknown, unknown, unknown] } = v.pipe(v.unknown(), v.check(safeInput, 'plain JSON without unsafe property names'), v.array(v.pipe(row, v.check(value => decisionScriptRowRules(value).length === 0, 'script row semantic rules'))),
   v.maxLength(64), v.check(rows => unique(rows.map(value => value.id)), 'unique script ids'),
   v.check(rows => rows.reduce((count, value) => count + ('spawnGroup' in value.binding ? Object.keys(value.actors).length : 1), 0) <= 64, 'at most 64 logical decision bindings'),
   v.check(rows => new Set(rows.map(value => value.module)).size <= 8, 'at most eight decision modules'),
   v.transform(rows => rows.map(omitEmptyBodyMaps)));
-export type DecisionScripts = v.InferOutput<typeof DecisionScriptsSchema>;
+
 /** Parse unknown direct input only after rejecting accessors, prototypes and non-JSON values. */
 export function parseDecisionScripts(input: unknown): DecisionScripts {
   if (!isJsonData(input)) throw new Error('Decision scripts must be plain JSON');
@@ -146,7 +146,7 @@ export function decisionScriptRules(scripts: readonly DecisionScriptRow[], refer
 /** A live species lends its existing body/encounter to one admitted decision script.
  * Presentation fields and contact impulses are names/numbers, never shard callbacks.
  */
-export const BorrowedDecisionSchema = v.pipe(v.strictObject({ script: id, actor: v.exactOptional(id), group: v.exactOptional(id), perch: v.exactOptional(id),
+export const BorrowedDecisionSchema: v.GenericSchema<BorrowedDecisionRowsInput, BorrowedDecisionRows> = v.pipe(v.strictObject({ script: id, actor: v.exactOptional(id), group: v.exactOptional(id), perch: v.exactOptional(id),
   leanField: v.exactOptional(local), bankField: v.exactOptional(local),
   marks: v.exactOptional(v.strictObject({ fight: local, phase: local })),
   idle: v.exactOptional(v.strictObject({ move: id, progress: local })),
@@ -154,3 +154,141 @@ export const BorrowedDecisionSchema = v.pipe(v.strictObject({ script: id, actor:
     lift: v.pipe(finite, v.minValue(0), v.maxValue(40)) })), v.maxLength(32)),
 }), v.check(value => (value.actor === undefined) !== (value.group === undefined), 'one actor or spawn group owner'));
 export type BorrowedDecision = v.InferOutput<typeof BorrowedDecisionSchema>;
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+interface DecisionScriptRowInputFields {
+    id: string;
+    abi: '1.0';
+    side: 'sim';
+    module: string;
+    source: string;
+    sourceHash?: string;
+    binding: ({
+        encounter: string;
+    }) | ({
+        quest: string;
+    }) | ({
+        zone: string;
+    }) | ({
+        shard: true;
+    }) | ({
+        spawnGroup: string;
+    });
+    pages?: number | undefined;
+    onFail: 'hold' | 'reset' | 'skip';
+    on: (keyof typeof SCRIPT_V1_EVENTS)[];
+    tick?: (1 | 2 | 5 | 10) | null | undefined;
+    reads: ((typeof readNames)[number])[];
+    commands: (keyof typeof SCRIPT_V1_COMMANDS)[];
+    actors?: Record<string, string> | undefined;
+    moves?: Record<string, string> | undefined;
+    strikes?: Record<string, string> | undefined;
+    cues?: Record<string, string> | undefined;
+    fields?: Record<string, string> | undefined;
+    flags?: Record<string, string> | undefined;
+    zones?: Record<string, string> | undefined;
+    spots?: Record<string, string> | undefined;
+    targets?: Record<string, string> | undefined;
+    spawns?: Record<string, string> | undefined;
+    signals?: Record<string, string> | undefined;
+    facts?: Record<string, string> | undefined;
+    rewards?: Record<string, string> | undefined;
+    channels?: Record<string, string> | undefined;
+    impulses?: Record<string, string> | undefined;
+    weather?: Record<string, string> | undefined;
+    bodies?: Record<string, string>;
+    colliders?: Record<string, string>;
+    timers?: (string)[] | undefined;
+    stateVersion: number;
+    state: ({
+        name: string;
+        type: 'bool' | 'i32' | 'f64';
+        default: (boolean) | (number);
+        scope: 'binding' | 'actor' | 'player';
+        min?: number;
+        max?: number;
+    })[];
+    params: Record<string, number>;
+}
+export type DecisionScriptRowInput = { [Key in keyof DecisionScriptRowInputFields]: DecisionScriptRowInputFields[Key] };
+interface DecisionScriptRowFields {
+    id: string;
+    abi: '1.0';
+    side: 'sim';
+    module: string;
+    source: string;
+    sourceHash?: string;
+    binding: ({
+        encounter: string;
+    }) | ({
+        quest: string;
+    }) | ({
+        zone: string;
+    }) | ({
+        shard: true;
+    }) | ({
+        spawnGroup: string;
+    });
+    pages: number;
+    onFail: 'hold' | 'reset' | 'skip';
+    on: (keyof typeof SCRIPT_V1_EVENTS)[];
+    tick: (1 | 2 | 5 | 10) | null;
+    reads: ((typeof readNames)[number])[];
+    commands: (keyof typeof SCRIPT_V1_COMMANDS)[];
+    actors: Record<string, string>;
+    moves: Record<string, string>;
+    strikes: Record<string, string>;
+    cues: Record<string, string>;
+    fields: Record<string, string>;
+    flags: Record<string, string>;
+    zones: Record<string, string>;
+    spots: Record<string, string>;
+    targets: Record<string, string>;
+    spawns: Record<string, string>;
+    signals: Record<string, string>;
+    facts: Record<string, string>;
+    rewards: Record<string, string>;
+    channels: Record<string, string>;
+    impulses: Record<string, string>;
+    weather: Record<string, string>;
+    bodies?: Record<string, string>;
+    colliders?: Record<string, string>;
+    timers: (string)[];
+    stateVersion: number;
+    state: ({
+        name: string;
+        type: 'bool' | 'i32' | 'f64';
+        default: (boolean) | (number);
+        scope: 'binding' | 'actor' | 'player';
+        min?: number;
+        max?: number;
+    })[];
+    params: Record<string, number>;
+}
+export type DecisionScriptRow = { [Key in keyof DecisionScriptRowFields]: DecisionScriptRowFields[Key] };
+export type BorrowedDecisionRowsInput = BorrowedDecisionRows;
+interface BorrowedDecisionRowsFields {
+    script: string;
+    actor?: string;
+    group?: string;
+    perch?: string;
+    leanField?: string;
+    bankField?: string;
+    marks?: {
+        fight: string;
+        phase: string;
+    };
+    idle?: {
+        move: string;
+        progress: string;
+    };
+    strikeEffects: ({
+        strike: string;
+        aimHeight: number;
+        speed: number;
+        lift: number;
+    })[];
+}
+export type BorrowedDecisionRows = { [Key in keyof BorrowedDecisionRowsFields]: BorrowedDecisionRowsFields[Key] };
+export type DecisionScriptsInput = unknown;
+export type DecisionScripts = (DecisionScriptRow)[];

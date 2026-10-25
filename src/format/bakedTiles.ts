@@ -14,7 +14,7 @@ const finite = v.pipe(v.number(), v.finite());
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128), v.regex(/^[a-zA-Z][a-zA-Z0-9._-]*$/u));
 const name = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
 /** A product's named file or an immutable public asset path (shared with the client plan's water rows). */
-export const BakedSourceSchema = v.union([v.strictObject({ file: v.pipe(v.string(), v.minLength(1), v.maxLength(256)) }),
+export const BakedSourceSchema: v.GenericSchema<BakedSourceRowsInput, BakedSourceRows> = v.union([v.strictObject({ file: v.pipe(v.string(), v.minLength(1), v.maxLength(256)) }),
   v.strictObject({ url: v.pipe(v.string(), v.maxLength(512), v.regex(/^\/assets\/[A-Za-z0-9_./-]+$/u), v.check(path => !path.includes('..'), 'no traversal')) })]);
 const source = BakedSourceSchema;
 const tiers = <T extends v.GenericSchema>(row: T) => v.strictObject({ phone: row, desktop: row });
@@ -30,12 +30,12 @@ const model = v.strictObject({
 /** per-vertex wear baked for a tile set (format/vertexWear, one file a tier): its part 0 worn by the world's ground mesh
  *  when `ground`, then one part per tile in order; each look row's look takes the wear's ground map and rect, and its
  *  tier's `fade` param */
-export const BakedWearSchema = v.strictObject({ files: tiers(VertexWearSchema), ground: v.boolean(),
+export const BakedWearSchema: v.GenericSchema<BakedWearRowsInput, BakedWearRows> = v.strictObject({ files: tiers(VertexWearSchema), ground: v.boolean(),
   looks: v.pipe(v.array(v.strictObject({ look: id, fade: tiers(v.tuple([finite, finite, finite])) })), v.maxLength(4)) });
 const cull = v.union([v.strictObject({ flat: v.boolean(), casters: v.pipe(finite, v.minValue(0)) }),
   v.strictObject({ far: v.pipe(finite, v.minValue(0)), cells: v.strictObject({ size: v.pipe(finite, v.minValue(1)), pad: v.pipe(finite, v.minValue(0)) }) })]);
 
-export const BakedTilesSchema = v.pipe(v.strictObject({
+export const BakedTilesSchema: v.GenericSchema<BakedTilesRowInput, BakedTilesRow> = v.pipe(v.strictObject({
   /** the group's name; pieces are `<id>-<family>` and `<id>-unclaimed` */
   id,
   glb: source,
@@ -69,16 +69,322 @@ export const BakedTilesSchema = v.pipe(v.strictObject({
   wear: v.exactOptional(BakedWearSchema),
 }), v.check(row => row.instances === null || (row.instances.families.every(family => Object.hasOwn(row.instances?.looks ?? {}, family.look))
   && new Set(row.instances.families.map(family => family.key)).size === row.instances.families.length), 'families name declared looks and unique keys'));
-export type BakedTilesRow = v.InferOutput<typeof BakedTilesSchema>;
+
 export type BakedSource = BakedTilesRow['glb'];
 
 const box = v.strictObject({ x: finite, z: finite, hw: finite, hd: finite, rot: finite, yTop: finite, yBottom: finite });
 const index = v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(50_000));
 /** A tier's placement plan: each family's copies (indices into the table) and collider boxes, and boxes no copy claims.
  *  A bake may carry fields of its own beside these. */
-export const BakedPlanSchema = v.object({
+export const BakedPlanSchema: v.ObjectSchema<{ readonly version: v.GenericSchema<BakedPlanInput['version'], BakedPlan['version']>; readonly used: v.GenericSchema<BakedPlanInput['used'], BakedPlan['used']>; readonly families: v.GenericSchema<BakedPlanInput['families'], BakedPlan['families']>; readonly unclaimed: v.GenericSchema<BakedPlanInput['unclaimed'], BakedPlan['unclaimed']>; }, undefined> = v.object({
   version: v.literal(1), used: index,
   families: v.pipe(v.array(v.object({ key: id, indices: v.pipe(v.array(index), v.maxLength(50_000)), colliders: v.pipe(v.array(box), v.maxLength(512)) })), v.maxLength(16)),
   unclaimed: v.pipe(v.array(box), v.maxLength(512)),
 });
-export type BakedPlan = v.InferOutput<typeof BakedPlanSchema>;
+
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type BakedSourceRowsInput = BakedSourceRows;
+export type BakedSourceRows = ({
+    file: string;
+}) | ({
+    url: string;
+});
+interface BakedWearRowsInputFields {
+    files: {
+        phone: v.InferInput<typeof VertexWearSchema>;
+        desktop: v.InferInput<typeof VertexWearSchema>;
+    };
+    ground: boolean;
+    looks: ({
+        look: string;
+        fade: {
+            phone: [
+                number,
+                number,
+                number
+            ];
+            desktop: [
+                number,
+                number,
+                number
+            ];
+        };
+    })[];
+}
+export type BakedWearRowsInput = { [Key in keyof BakedWearRowsInputFields]: BakedWearRowsInputFields[Key] };
+interface BakedWearRowsFields {
+    files: {
+        phone: v.InferOutput<typeof VertexWearSchema>;
+        desktop: v.InferOutput<typeof VertexWearSchema>;
+    };
+    ground: boolean;
+    looks: ({
+        look: string;
+        fade: {
+            phone: [
+                number,
+                number,
+                number
+            ];
+            desktop: [
+                number,
+                number,
+                number
+            ];
+        };
+    })[];
+}
+export type BakedWearRows = { [Key in keyof BakedWearRowsFields]: BakedWearRowsFields[Key] };
+interface BakedTilesRowInputFields {
+    id: string;
+    glb: BakedSourceRowsInput;
+    tiles: {
+        phone: string;
+        desktop: string;
+    };
+    look: string;
+    drop: number;
+    meshPrefix: string;
+    sky: boolean;
+    toonDay: boolean;
+    lightmaps: ({
+        param: string;
+        source: {
+            phone: BakedSourceRowsInput;
+            desktop: BakedSourceRowsInput;
+        };
+        channel: 0 | 1;
+        anisotropy: number;
+    })[];
+    sun: ({
+        param: string;
+        referenceY: number;
+        gain: number;
+    }) | null;
+    instances: ({
+        table: BakedSourceRowsInput;
+        protos: BakedSourceRowsInput;
+        plan: {
+            phone: {
+                source: BakedSourceRowsInput;
+                bytes: number;
+                used: number;
+            };
+            desktop: {
+                source: BakedSourceRowsInput;
+                bytes: number;
+                used: number;
+            };
+        };
+        names: (string)[];
+        looks: Record<string, {
+            look: string;
+            cull: {
+                phone: ({
+                    flat: boolean;
+                    casters: number;
+                }) | ({
+                    far: number;
+                    cells: {
+                        size: number;
+                        pad: number;
+                    };
+                });
+                desktop: ({
+                    flat: boolean;
+                    casters: number;
+                }) | ({
+                    far: number;
+                    cells: {
+                        size: number;
+                        pad: number;
+                    };
+                });
+            };
+        }>;
+        families: ({
+            key: string;
+            look: string;
+            model: {
+                id: string;
+                name: string;
+                file: string;
+                category: 'nature';
+                pipeline: ('cc0' | 'trellis' | 'blender') | (('cc0' | 'trellis' | 'blender')[]);
+                defaults: {
+                    proto: string;
+                };
+                variants: ({
+                    id: string;
+                    label: string;
+                    params: {
+                        proto: string;
+                    };
+                })[];
+                parts: Record<string, ({
+                    geometry: string;
+                    material: string;
+                    clone: boolean;
+                    castShadow: boolean;
+                    receiveShadow: boolean;
+                })[]>;
+                specimenMaterial: string;
+                lods: ({
+                    from: number;
+                    parts: Record<string, ({
+                        geometry: string;
+                        material: string;
+                        clone: boolean;
+                        castShadow: boolean;
+                        receiveShadow: boolean;
+                    })[]>;
+                })[];
+            };
+        })[];
+        surface: 'wood' | 'stone' | 'metal';
+        unclaimed: string;
+    }) | null;
+    wear?: BakedWearRowsInput;
+}
+export type BakedTilesRowInput = { [Key in keyof BakedTilesRowInputFields]: BakedTilesRowInputFields[Key] };
+interface BakedTilesRowFields {
+    id: string;
+    glb: BakedSourceRows;
+    tiles: {
+        phone: string;
+        desktop: string;
+    };
+    look: string;
+    drop: number;
+    meshPrefix: string;
+    sky: boolean;
+    toonDay: boolean;
+    lightmaps: ({
+        param: string;
+        source: {
+            phone: BakedSourceRows;
+            desktop: BakedSourceRows;
+        };
+        channel: 0 | 1;
+        anisotropy: number;
+    })[];
+    sun: ({
+        param: string;
+        referenceY: number;
+        gain: number;
+    }) | null;
+    instances: ({
+        table: BakedSourceRows;
+        protos: BakedSourceRows;
+        plan: {
+            phone: {
+                source: BakedSourceRows;
+                bytes: number;
+                used: number;
+            };
+            desktop: {
+                source: BakedSourceRows;
+                bytes: number;
+                used: number;
+            };
+        };
+        names: (string)[];
+        looks: Record<string, {
+            look: string;
+            cull: {
+                phone: ({
+                    flat: boolean;
+                    casters: number;
+                }) | ({
+                    far: number;
+                    cells: {
+                        size: number;
+                        pad: number;
+                    };
+                });
+                desktop: ({
+                    flat: boolean;
+                    casters: number;
+                }) | ({
+                    far: number;
+                    cells: {
+                        size: number;
+                        pad: number;
+                    };
+                });
+            };
+        }>;
+        families: ({
+            key: string;
+            look: string;
+            model: {
+                id: string;
+                name: string;
+                file: string;
+                category: 'nature';
+                pipeline: ('cc0' | 'trellis' | 'blender') | (('cc0' | 'trellis' | 'blender')[]);
+                defaults: {
+                    proto: string;
+                };
+                variants: ({
+                    id: string;
+                    label: string;
+                    params: {
+                        proto: string;
+                    };
+                })[];
+                parts: Record<string, ({
+                    geometry: string;
+                    material: string;
+                    clone: boolean;
+                    castShadow: boolean;
+                    receiveShadow: boolean;
+                })[]>;
+                specimenMaterial: string;
+                lods: ({
+                    from: number;
+                    parts: Record<string, ({
+                        geometry: string;
+                        material: string;
+                        clone: boolean;
+                        castShadow: boolean;
+                        receiveShadow: boolean;
+                    })[]>;
+                })[];
+            };
+        })[];
+        surface: 'wood' | 'stone' | 'metal';
+        unclaimed: string;
+    }) | null;
+    wear?: BakedWearRows;
+}
+export type BakedTilesRow = { [Key in keyof BakedTilesRowFields]: BakedTilesRowFields[Key] };
+export type BakedPlanInput = BakedPlan;
+interface BakedPlanFields {
+    version: 1;
+    used: number;
+    families: ({
+        key: string;
+        indices: (number)[];
+        colliders: ({
+            x: number;
+            z: number;
+            hw: number;
+            hd: number;
+            rot: number;
+            yTop: number;
+            yBottom: number;
+        })[];
+    })[];
+    unclaimed: ({
+        x: number;
+        z: number;
+        hw: number;
+        hd: number;
+        rot: number;
+        yTop: number;
+        yBottom: number;
+    })[];
+}
+export type BakedPlan = { [Key in keyof BakedPlanFields]: BakedPlanFields[Key] };

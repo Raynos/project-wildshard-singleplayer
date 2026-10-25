@@ -6,11 +6,11 @@ import { parsePanelDefinition, type PanelDefinition } from './panelTemplate';
 const text = v.pipe(v.string(), v.minLength(1), v.maxLength(400));
 const integer = v.pipe(v.number(), v.safeInteger(), v.minValue(0));
 const positive = v.pipe(integer, v.minValue(1));
-const reward = v.strictObject({ items: v.pipe(v.array(v.strictObject({ id: text, n: positive })), v.maxLength(16)),
+const reward: v.GenericSchema<ContractRewardInput, ContractReward> = v.strictObject({ items: v.pipe(v.array(v.strictObject({ id: text, n: positive })), v.maxLength(16)),
   bolts: integer, skin: v.exactOptional(text) });
 const target = v.strictObject({ kind: text, target: text });
 /** Deterministic contract board policy and content. Selection laws and identities are authored rows. */
-export const ContractCatalogueSchema = v.strictObject({
+export const ContractCatalogueSchema: v.GenericSchema<ContractCatalogueInput, ContractCatalogue> = v.strictObject({
   program: v.exactOptional(ReturnProgramSchema),
   id: text, store: text, slots: v.pipe(positive, v.maxValue(8)), attempts: v.pipe(positive, v.maxValue(256)),
   initial: v.array(target), fallback: target,
@@ -34,8 +34,8 @@ export const ContractCatalogueSchema = v.strictObject({
     title: text, goal: text, reward })), v.minLength(1), v.maxLength(256)),
 });
 /** Successful claims return ids for the existing inventory and cosmetic owners. */
-export type ContractReward = v.InferOutput<typeof reward>;
-export type ContractCatalogue = v.InferOutput<typeof ContractCatalogueSchema>;
+
+
 /** Admit the complete catalogue before creating state; duplicate and missing references refuse. */
 export function parseContractCatalogue(input: unknown): ContractCatalogue {
   if (!isJsonData(input)) throw new Error('Contract catalogue must be plain JSON');
@@ -59,7 +59,7 @@ const pageId = v.pipe(v.string(), v.minLength(1), v.maxLength(256)), finite = v.
 const caption = v.pipe(v.string(), v.maxLength(2048));
 /** Build admission for the existing board panel and feedback data. Panel bytes
  * are also admitted by the shared panel product before page construction. */
-export const ContractBoardPageSchema = v.strictObject({ contracts: ContractCatalogueSchema, panel: v.unknown(),
+export const ContractBoardPageSchema: v.StrictObjectSchema<{ readonly contracts: v.GenericSchema<ContractBoardPageDataInput['contracts'], ContractBoardPageData['contracts']>; readonly panel: v.GenericSchema<ContractBoardPageDataInput['panel'], ContractBoardPageData['panel']>; readonly store: v.GenericSchema<ContractBoardPageDataInput['store'], ContractBoardPageData['store']>; readonly at: v.GenericSchema<ContractBoardPageDataInput['at'], ContractBoardPageData['at']>; readonly label: v.GenericSchema<ContractBoardPageDataInput['label'], ContractBoardPageData['label']>; readonly filled: v.GenericSchema<ContractBoardPageDataInput['filled'], ContractBoardPageData['filled']>; readonly height: v.GenericSchema<ContractBoardPageDataInput['height'], ContractBoardPageData['height']>; readonly radius: v.GenericSchema<ContractBoardPageDataInput['radius'], ContractBoardPageData['radius']>; readonly ammunition: v.ExactOptionalSchema<v.GenericSchema<Exclude<ContractBoardPageDataInput['ammunition'], undefined>, Exclude<ContractBoardPageData['ammunition'], undefined>>, undefined>; readonly finishes: v.GenericSchema<ContractBoardPageDataInput['finishes'], ContractBoardPageData['finishes']>; readonly notices: v.GenericSchema<ContractBoardPageDataInput['notices'], ContractBoardPageData['notices']>; }, undefined> = v.strictObject({ contracts: ContractCatalogueSchema, panel: v.unknown(),
   store: v.strictObject({ slot: pageId, state: pageId }),
   at: v.strictObject({ x: finite, z: finite, yaw: finite }),
   label: caption, filled: caption, height: finite, radius: v.pipe(finite, v.minValue(Number.MIN_VALUE)),
@@ -80,3 +80,223 @@ export function parseContractBoardPage(input: unknown): ContractBoardPageRows {
   if (rows.ammunition === undefined && contracts.rows.some(row => row.reward.bolts > 0)) throw new Error('Quest board requires its declared ammunition owner');
   return { ...rows, contracts, panel };
 }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type ContractRewardInput = ContractReward;
+interface ContractRewardFields {
+    items: ({
+        id: string;
+        n: number;
+    })[];
+    bolts: number;
+    skin?: string;
+}
+export type ContractReward = { [Key in keyof ContractRewardFields]: ContractRewardFields[Key] };
+interface ContractCatalogueInputFields {
+    program?: v.InferInput<typeof ReturnProgramSchema>;
+    id: string;
+    store: string;
+    slots: number;
+    attempts: number;
+    initial: ({
+        kind: string;
+        target: string;
+    })[];
+    fallback: {
+        kind: string;
+        target: string;
+    };
+    draws: ({
+        below: number;
+        kind: string;
+        targets: (string)[];
+    })[];
+    ranks: Record<string, number>;
+    defaultRank: string;
+    tags?: ({
+        tag: string;
+        any: (({
+            kind: string;
+            variant?: string;
+            label?: string;
+        }) | ({
+            kind?: string;
+            variant: string;
+            label?: string;
+        }) | ({
+            kind?: string;
+            variant?: string;
+            label: string;
+        }))[];
+    })[];
+    matches: ({
+        kind: string;
+        match: 'species' | 'rarity' | 'elite' | 'tag';
+        excludeTags: (string)[];
+        excludeElite: boolean;
+        belowRank?: number;
+    })[];
+    milestones: ({
+        claimed: number;
+        skin: string;
+    })[];
+    species: ({
+        id: string;
+        plural: string;
+        need: number;
+        title: string;
+    })[];
+    rarity: ({
+        id: string;
+        need: number;
+        title: string;
+    })[];
+    elites: Record<string, {
+        name: string;
+        kind: string;
+        variant: string;
+    }>;
+    eliteIds: (string)[];
+    rows: ({
+        id: string;
+        kind: string;
+        target: string;
+        need: number;
+        title: string;
+        goal: string;
+        reward: ContractRewardInput;
+    })[];
+}
+export type ContractCatalogueInput = { [Key in keyof ContractCatalogueInputFields]: ContractCatalogueInputFields[Key] };
+interface ContractCatalogueFields {
+    program?: v.InferOutput<typeof ReturnProgramSchema>;
+    id: string;
+    store: string;
+    slots: number;
+    attempts: number;
+    initial: ({
+        kind: string;
+        target: string;
+    })[];
+    fallback: {
+        kind: string;
+        target: string;
+    };
+    draws: ({
+        below: number;
+        kind: string;
+        targets: (string)[];
+    })[];
+    ranks: Record<string, number>;
+    defaultRank: string;
+    tags?: ({
+        tag: string;
+        any: (({
+            kind: string;
+            variant?: string;
+            label?: string;
+        }) | ({
+            kind?: string;
+            variant: string;
+            label?: string;
+        }) | ({
+            kind?: string;
+            variant?: string;
+            label: string;
+        }))[];
+    })[];
+    matches: ({
+        kind: string;
+        match: 'species' | 'rarity' | 'elite' | 'tag';
+        excludeTags: (string)[];
+        excludeElite: boolean;
+        belowRank?: number;
+    })[];
+    milestones: ({
+        claimed: number;
+        skin: string;
+    })[];
+    species: ({
+        id: string;
+        plural: string;
+        need: number;
+        title: string;
+    })[];
+    rarity: ({
+        id: string;
+        need: number;
+        title: string;
+    })[];
+    elites: Record<string, {
+        name: string;
+        kind: string;
+        variant: string;
+    }>;
+    eliteIds: (string)[];
+    rows: ({
+        id: string;
+        kind: string;
+        target: string;
+        need: number;
+        title: string;
+        goal: string;
+        reward: ContractReward;
+    })[];
+}
+export type ContractCatalogue = { [Key in keyof ContractCatalogueFields]: ContractCatalogueFields[Key] };
+interface ContractBoardPageDataInputFields {
+    contracts: ContractCatalogueInput;
+    panel: unknown;
+    store: {
+        slot: string;
+        state: string;
+    };
+    at: {
+        x: number;
+        z: number;
+        yaw: number;
+    };
+    label: string;
+    filled: string;
+    height: number;
+    radius: number;
+    ammunition?: {
+        loadout: string;
+        kind: string;
+    };
+    finishes: Record<string, string>;
+    notices: {
+        claimed: string;
+        filled: string;
+        progress: string;
+    };
+}
+export type ContractBoardPageDataInput = { [Key in keyof ContractBoardPageDataInputFields]: ContractBoardPageDataInputFields[Key] };
+interface ContractBoardPageDataFields {
+    contracts: ContractCatalogue;
+    panel: unknown;
+    store: {
+        slot: string;
+        state: string;
+    };
+    at: {
+        x: number;
+        z: number;
+        yaw: number;
+    };
+    label: string;
+    filled: string;
+    height: number;
+    radius: number;
+    ammunition?: {
+        loadout: string;
+        kind: string;
+    };
+    finishes: Record<string, string>;
+    notices: {
+        claimed: string;
+        filled: string;
+        progress: string;
+    };
+}
+export type ContractBoardPageData = { [Key in keyof ContractBoardPageDataFields]: ContractBoardPageDataFields[Key] };

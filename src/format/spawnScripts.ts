@@ -10,7 +10,7 @@ import type { DecisionRegistries } from './decisionBindings';
 const key = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
 const finite = v.pipe(v.number(), v.finite());
 const handle = v.pipe(finite, v.integer(), v.minValue(1), v.maxValue(256));
-export const SpawnScriptRowSchema = v.strictObject({
+export const SpawnScriptRowSchema: v.StrictObjectSchema<{ readonly v2: v.ExactOptionalSchema<v.GenericSchema<Exclude<SpawnScriptRowDataInput['v2'], undefined>, Exclude<SpawnScriptRowData['v2'], undefined>>, undefined>; readonly step: v.GenericSchema<SpawnScriptRowDataInput['step'], SpawnScriptRowData['step']>; readonly roster: v.GenericSchema<SpawnScriptRowDataInput['roster'], SpawnScriptRowData['roster']>; readonly seed: v.GenericSchema<SpawnScriptRowDataInput['seed'], SpawnScriptRowData['seed']>; readonly script: v.GenericSchema<SpawnScriptRowDataInput['script'], SpawnScriptRowData['script']>; readonly bytes: v.GenericSchema<SpawnScriptRowDataInput['bytes'], SpawnScriptRowData['bytes']>; readonly controlState: v.GenericSchema<SpawnScriptRowDataInput['controlState'], SpawnScriptRowData['controlState']>; readonly maximum: v.GenericSchema<SpawnScriptRowDataInput['maximum'], SpawnScriptRowData['maximum']>; readonly slots: v.GenericSchema<SpawnScriptRowDataInput['slots'], SpawnScriptRowData['slots']>; readonly species: v.GenericSchema<SpawnScriptRowDataInput['species'], SpawnScriptRowData['species']>; readonly sites: v.GenericSchema<SpawnScriptRowDataInput['sites'], SpawnScriptRowData['sites']>; readonly spawns: v.GenericSchema<SpawnScriptRowDataInput['spawns'], SpawnScriptRowData['spawns']>; readonly fields: v.GenericSchema<SpawnScriptRowDataInput['fields'], SpawnScriptRowData['fields']>; readonly flags: v.GenericSchema<SpawnScriptRowDataInput['flags'], SpawnScriptRowData['flags']>; readonly cues: v.GenericSchema<SpawnScriptRowDataInput['cues'], SpawnScriptRowData['cues']>; readonly channels: v.GenericSchema<SpawnScriptRowDataInput['channels'], SpawnScriptRowData['channels']>; readonly strikes: v.ExactOptionalSchema<v.GenericSchema<Exclude<SpawnScriptRowDataInput['strikes'], undefined>, Exclude<SpawnScriptRowData['strikes'], undefined>>, undefined>; readonly moves: v.GenericSchema<SpawnScriptRowDataInput['moves'], SpawnScriptRowData['moves']>; readonly legacy: v.ExactOptionalSchema<v.GenericSchema<Exclude<SpawnScriptRowDataInput['legacy'], undefined>, Exclude<SpawnScriptRowData['legacy'], undefined>>, undefined>; }, undefined> = v.strictObject({
   v2: v.exactOptional(SpawnScriptV2Schema),
   step: key, roster: key, seed: v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(0xffffffff)), script: v.unknown(), bytes: v.string(), controlState: key, maximum: handle,
   slots: v.pipe(v.array(v.strictObject({ id: key, handle, authority: v.exactOptional(v.literal('observe')),release: v.exactOptional(v.picklist(['retain', 'detach'])) })), v.minLength(1), v.maxLength(8)),
@@ -95,5 +95,135 @@ export function parseSpawnScript(input: unknown): SpawnScriptRows {
 }
 
 /** Owned spawn directors are admitted separately from automatically installed actor decisions. */
-export const SpawnScriptsSchema = v.pipe(v.array(v.unknown()), v.maxLength(16), v.transform(input => input.map(parseSpawnScript)),
+export const SpawnScriptsSchema: v.GenericSchema<unknown[], SpawnScriptRows[]> = v.pipe(v.array(v.unknown()), v.maxLength(16), v.transform(input => input.map(parseSpawnScript)),
   v.check(input => input.every(row => row.bytes === '' && (row.v2 === undefined || row.v2.bytes === '')) && new Set(input.map(row => row.step)).size === input.length, 'Catalogue modules must use admitted product bytes and unique step ids'));
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+interface SpawnScriptRowDataInputFields {
+    v2?: v.InferInput<typeof SpawnScriptV2Schema>;
+    step: string;
+    roster: string;
+    seed: number;
+    script: unknown;
+    bytes: string;
+    controlState: string;
+    maximum: number;
+    slots: ({
+        id: string;
+        handle: number;
+        authority?: 'observe';
+        release?: 'retain' | 'detach';
+    })[];
+    species: ({
+        id: string;
+        kind: string;
+        variant: string;
+    })[];
+    sites: ({
+        id: string;
+        slot: string;
+        point?: [
+            number,
+            number
+        ];
+        face: ('player') | ([
+            number,
+            number
+        ]);
+    })[];
+    spawns: ({
+        id: string;
+        species: string;
+        site: string;
+    })[];
+    fields: ({
+        id: string;
+        source: 'x' | 'z' | 'scripted' | 'lookWeight' | 'night' | 'limit' | 'force' | 'value' | 'observed' | 'channel' | 'lookHeight' | 'hidden' | 'seed' | 'lastHit' | 'strikeTime';
+        channel?: string;
+        fallback?: number;
+    })[];
+    flags: (string)[];
+    cues: (string)[];
+    channels: (string)[];
+    strikes?: v.InferInput<typeof SpawnCombatSchema>;
+    moves: unknown;
+    legacy?: {
+        spec: string;
+        acc: string;
+        rng: string;
+        countChannel: string;
+        groups: ({
+            key: string;
+            active: string;
+            slots: (string)[];
+            values: (string)[];
+            value: string;
+            type: 'f64' | 'bool';
+        })[];
+    };
+}
+export type SpawnScriptRowDataInput = { [Key in keyof SpawnScriptRowDataInputFields]: SpawnScriptRowDataInputFields[Key] };
+interface SpawnScriptRowDataFields {
+    v2?: v.InferOutput<typeof SpawnScriptV2Schema>;
+    step: string;
+    roster: string;
+    seed: number;
+    script: unknown;
+    bytes: string;
+    controlState: string;
+    maximum: number;
+    slots: ({
+        id: string;
+        handle: number;
+        authority?: 'observe';
+        release?: 'retain' | 'detach';
+    })[];
+    species: ({
+        id: string;
+        kind: string;
+        variant: string;
+    })[];
+    sites: ({
+        id: string;
+        slot: string;
+        point?: [
+            number,
+            number
+        ];
+        face: ('player') | ([
+            number,
+            number
+        ]);
+    })[];
+    spawns: ({
+        id: string;
+        species: string;
+        site: string;
+    })[];
+    fields: ({
+        id: string;
+        source: 'x' | 'z' | 'scripted' | 'lookWeight' | 'night' | 'limit' | 'force' | 'value' | 'observed' | 'channel' | 'lookHeight' | 'hidden' | 'seed' | 'lastHit' | 'strikeTime';
+        channel?: string;
+        fallback?: number;
+    })[];
+    flags: (string)[];
+    cues: (string)[];
+    channels: (string)[];
+    strikes?: v.InferOutput<typeof SpawnCombatSchema>;
+    moves: unknown;
+    legacy?: {
+        spec: string;
+        acc: string;
+        rng: string;
+        countChannel: string;
+        groups: ({
+            key: string;
+            active: string;
+            slots: (string)[];
+            values: (string)[];
+            value: string;
+            type: 'f64' | 'bool';
+        })[];
+    };
+}
+export type SpawnScriptRowData = { [Key in keyof SpawnScriptRowDataFields]: SpawnScriptRowDataFields[Key] };

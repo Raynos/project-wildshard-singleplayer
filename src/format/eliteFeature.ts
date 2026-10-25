@@ -7,7 +7,7 @@ const finite = v.pipe(v.number(), v.finite());
 const nonnegative = v.pipe(finite, v.minValue(0));
 const radius = v.pipe(nonnegative, v.maxValue(1000));
 const text = v.pipe(v.string(), v.maxLength(4096));
-const definition = v.strictObject({ id, name: text, epithet: text,
+const definition: v.GenericSchema<RawRowsInput['fights'][number]['def'], RawRows['fights'][number]['def']> = v.strictObject({ id, name: text, epithet: text,
   lair: v.strictObject({ x: finite, z: finite, r: radius }),
   awareR: radius, engageR: radius, leashR: radius,
   rule: v.picklist(['always', 'dusk', 'night', 'storm']), respawnMin: nonnegative,
@@ -15,16 +15,16 @@ const definition = v.strictObject({ id, name: text, epithet: text,
   drop: v.strictObject({ skin: v.nullable(id), skinName: text, weapon: id, blurb: text, trophyName: v.exactOptional(text) }),
 });
 /** Entered elite pickup and score presentation; rewards and bodies retain their callers. */
-export const EliteEnteredPresentationSchema = v.record(id, v.strictObject({
+export const EliteEnteredPresentationSchema: v.GenericSchema<EliteEnteredPresentationInput, EliteEnteredPresentation> = v.record(id, v.strictObject({
   prompt: text, toast: text, hum: v.boolean(),
   sting: v.strictObject({ banner: v.pipe(finite, v.minValue(0), v.maxValue(1)), phase2: v.pipe(finite, v.minValue(0), v.maxValue(1)),
     kill: v.picklist(['pickup', 'death', 'chunk', 'dawn']) }),
 }));
-export type EliteEnteredPresentation = v.InferOutput<typeof EliteEnteredPresentationSchema>;
+
 const observation = v.strictObject({ field: id, source: v.picklist([
   'engaged', 'leashing', 'phase2', 'clock', 'god', 'dusk', 'night',
 ]) });
-export const EliteFeatureSchema = v.strictObject({
+export const EliteFeatureSchema: v.StrictObjectSchema<{ readonly step: v.GenericSchema<RawRowsInput['step'], RawRows['step']>; readonly version: v.GenericSchema<RawRowsInput['version'], RawRows['version']>; readonly bounds: v.GenericSchema<RawRowsInput['bounds'], RawRows['bounds']>; readonly streams: v.GenericSchema<RawRowsInput['streams'], RawRows['streams']>; readonly ordinary: v.GenericSchema<RawRowsInput['ordinary'], RawRows['ordinary']>; readonly legacy: v.ExactOptionalSchema<v.GenericSchema<Exclude<RawRowsInput['legacy'], undefined>, Exclude<RawRows['legacy'], undefined>>, undefined>; readonly view: v.ExactOptionalSchema<v.GenericSchema<Exclude<RawRowsInput['view'], undefined>, Exclude<RawRows['view'], undefined>>, undefined>; readonly fights: v.GenericSchema<RawRowsInput['fights'], RawRows['fights']> & { readonly pipe: readonly [v.ArraySchema<v.GenericSchema<RawRowsInput['fights'][number], RawRows['fights'][number]> & { readonly entries: { readonly def: typeof definition } }, undefined>, ...unknown[]] }; }, undefined> = v.strictObject({
   step: id, version: v.pipe(v.number(), v.safeInteger(), v.minValue(1)),
   bounds: v.tuple([finite, finite, finite, finite]),
   streams: v.strictObject({ spawn: id, fight: id, pickup: id }),
@@ -55,7 +55,7 @@ export const EliteFeatureSchema = v.strictObject({
     }),
   })), v.minLength(1), v.maxLength(8)),
 });
-type RawRows = v.InferOutput<typeof EliteFeatureSchema>;
+
 /** Named encounter content and v1 actor programs. Every observation names a platform fact, never a shard hook. */
 export type EliteFeatureRows = Omit<RawRows, 'fights'> & {
   fights: (Omit<RawRows['fights'][number], 'program'> & { program: SpawnScriptRows })[];
@@ -86,12 +86,12 @@ const externalCommon = { def: definition, tell: v.tuple([finite, finite, finite]
   adopted: v.strictObject({ scale: v.pipe(finite, v.minValue(.01), v.maxValue(10)), kind: text, variant: text, feed: text }), states: v.record(id, finite) };
 /** External body allocation and AS-projected encounter rows. All content is data;
  * native actor and herd adoption occurs through the existing owner. */
-export const ExternalEliteSchema = v.variant('mode', [
+export const ExternalEliteSchema: v.GenericSchema<ExternalEliteDataInput, ExternalEliteData> = v.variant('mode', [
   v.strictObject({ ...externalCommon, mode: v.literal('script'), spawn: v.strictObject({ source: v.literal('rider'), variant: v.picklist(['rider', 'captain']), yaw: finite }) }),
   v.strictObject({ ...externalCommon, mode: v.literal('herd'), spawn: v.strictObject({ source: v.literal('herd'), kind: id, variant: id, yaw: finite,
     offset: v.tuple([finite, finite]), mares: v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(256)), foals: v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(256)), stallion: v.boolean(), color: v.tuple([finite, finite, finite]) }) }),
 ]);
-export type ExternalEliteData = v.InferOutput<typeof ExternalEliteSchema>;
+
 export function parseExternalElite(input: unknown): ExternalEliteData { return v.parse(ExternalEliteSchema, input); }
 /**
  * Nalati zero R9 (G621): what an external elite lends its entry's view program (G600 L7), by its def id. The values
@@ -108,7 +108,7 @@ const outputSlot = v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(63));
 const outputOwner = { id: outputId, controller: outputSlot };
 /** Finite native effects selected by the admitted elite guest. IDs and slots
  * label actions and original controller results, never reflected owner paths. */
-export const EliteOutputActionsSchema = v.pipe(v.array(v.variant('kind', [
+export const EliteOutputActionsSchema: v.GenericSchema<EliteOutputActionsRowsInput, EliteOutputActionsRows> = v.pipe(v.array(v.variant('kind', [
   v.strictObject({ ...outputOwner, kind: v.literal('contact'), amount: nonnegative }),
   v.strictObject({ ...outputOwner, kind: v.literal('knockdown'), duration: nonnegative }),
   v.strictObject({ ...outputOwner, kind: v.literal('feed'), text }),
@@ -204,3 +204,402 @@ export function readEliteOutputV2(view: DataView, at: number, binding: number,
   if (output === undefined) throw new Error('Missing elite output');
   return output;
 }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type EliteEnteredPresentationInput = EliteEnteredPresentation;
+export type EliteEnteredPresentation = Record<string, {
+    prompt: string;
+    toast: string;
+    hum: boolean;
+    sting: {
+        banner: number;
+        phase2: number;
+        kill: 'pickup' | 'death' | 'chunk' | 'dawn';
+    };
+}>;
+export type RawRowsInput = RawRows;
+interface RawRowsFields {
+    step: string;
+    version: number;
+    bounds: [
+        number,
+        number,
+        number,
+        number
+    ];
+    streams: {
+        spawn: string;
+        fight: string;
+        pickup: string;
+    };
+    ordinary: Record<string, (string)[]>;
+    legacy?: {
+        versions: (number)[];
+        scripts: string;
+        stun: string;
+        upgrades: ({
+            version: number;
+            bindInstalled: boolean;
+            clearStun: boolean;
+            remove: (string)[];
+            defaults: Record<string, Record<string, (number) | (boolean) | (null)>>;
+        })[];
+    };
+    view?: {
+        puffPool: {
+            capacity: number;
+            segments: [
+                number,
+                number
+            ];
+            order: number;
+        };
+        tellColor: [
+            number,
+            number,
+            number
+        ];
+        puffColor: [
+            number,
+            number,
+            number
+        ];
+        cues: ({
+            id: string;
+            voice?: string;
+            trauma?: number;
+            signature?: boolean;
+            effect?: ({
+                kind: 'puff';
+                at: 'body' | 'head';
+                height: number;
+                speed: number;
+                size: number;
+                lifetime: number;
+                opacity: number;
+            }) | ({
+                kind: 'dirt';
+                height: number;
+                count: number;
+            });
+        })[];
+    };
+    fights: ({
+        def: {
+            id: string;
+            name: string;
+            epithet: string;
+            lair: {
+                x: number;
+                z: number;
+                r: number;
+            };
+            awareR: number;
+            engageR: number;
+            leashR: number;
+            rule: 'always' | 'dusk' | 'night' | 'storm';
+            respawnMin: number;
+            once?: boolean;
+            signature: string;
+            phase2: string;
+            drop: {
+                skin: (string) | null;
+                skinName: string;
+                weapon: string;
+                blurb: string;
+                trophyName?: string;
+            };
+        };
+        kind: string;
+        variant: string;
+        main: string;
+        spawn: string;
+        program: unknown;
+        observations: ({
+            field: string;
+            source: 'engaged' | 'leashing' | 'phase2' | 'clock' | 'god' | 'dusk' | 'night';
+        })[];
+        forces: Record<string, number>;
+        defaultForce: number;
+        modes: (string)[];
+        mode: string;
+        legacy: {
+            fields: ({
+                field: string;
+                slot: string;
+                kind: 'number' | 'boolean';
+                never?: number;
+            })[];
+            rivals: ({
+                slot: string;
+                field: string;
+                charge: string;
+            })[];
+            actorPrefix: string;
+            phase: string;
+            hidden?: string;
+            lanes: ({
+                slot: string;
+                strike: string;
+            })[];
+            rivalMode: number;
+        };
+    })[];
+}
+export type RawRows = { [Key in keyof RawRowsFields]: RawRowsFields[Key] };
+export type ExternalEliteDataInput = ExternalEliteData;
+export type ExternalEliteData = (Omit<{
+    def: {
+        id: string;
+        name: string;
+        epithet: string;
+        lair: {
+            x: number;
+            z: number;
+            r: number;
+        };
+        awareR: number;
+        engageR: number;
+        leashR: number;
+        rule: 'always' | 'dusk' | 'night' | 'storm';
+        respawnMin: number;
+        once?: boolean;
+        signature: string;
+        phase2: string;
+        drop: {
+            skin: (string) | null;
+            skinName: string;
+            weapon: string;
+            blurb: string;
+            trophyName?: string;
+        };
+    };
+    tell: [
+        number,
+        number,
+        number
+    ];
+    step: string;
+    ready: string;
+    damage: string;
+    broken: string;
+    cues: Record<string, {
+        signature?: boolean;
+        voice?: string;
+        feed?: string;
+    }>;
+    adopted: {
+        scale: number;
+        kind: string;
+        variant: string;
+        feed: string;
+    };
+    states: Record<string, number>;
+}, keyof ({
+    mode: 'script';
+    spawn: {
+        source: 'rider';
+        variant: 'rider' | 'captain';
+        yaw: number;
+    };
+})> & {
+    mode: 'script';
+    spawn: {
+        source: 'rider';
+        variant: 'rider' | 'captain';
+        yaw: number;
+    };
+}) | (Omit<{
+    def: {
+        id: string;
+        name: string;
+        epithet: string;
+        lair: {
+            x: number;
+            z: number;
+            r: number;
+        };
+        awareR: number;
+        engageR: number;
+        leashR: number;
+        rule: 'always' | 'dusk' | 'night' | 'storm';
+        respawnMin: number;
+        once?: boolean;
+        signature: string;
+        phase2: string;
+        drop: {
+            skin: (string) | null;
+            skinName: string;
+            weapon: string;
+            blurb: string;
+            trophyName?: string;
+        };
+    };
+    tell: [
+        number,
+        number,
+        number
+    ];
+    step: string;
+    ready: string;
+    damage: string;
+    broken: string;
+    cues: Record<string, {
+        signature?: boolean;
+        voice?: string;
+        feed?: string;
+    }>;
+    adopted: {
+        scale: number;
+        kind: string;
+        variant: string;
+        feed: string;
+    };
+    states: Record<string, number>;
+}, keyof ({
+    mode: 'herd';
+    spawn: {
+        source: 'herd';
+        kind: string;
+        variant: string;
+        yaw: number;
+        offset: [
+            number,
+            number
+        ];
+        mares: number;
+        foals: number;
+        stallion: boolean;
+        color: [
+            number,
+            number,
+            number
+        ];
+    };
+})> & {
+    mode: 'herd';
+    spawn: {
+        source: 'herd';
+        kind: string;
+        variant: string;
+        yaw: number;
+        offset: [
+            number,
+            number
+        ];
+        mares: number;
+        foals: number;
+        stallion: boolean;
+        color: [
+            number,
+            number,
+            number
+        ];
+    };
+});
+export type EliteOutputActionsRowsInput = EliteOutputActionsRows;
+export type EliteOutputActionsRows = ((Omit<{
+    id: number;
+    controller: number;
+}, keyof ({
+    kind: 'contact';
+    amount: number;
+})> & {
+    kind: 'contact';
+    amount: number;
+}) | (Omit<{
+    id: number;
+    controller: number;
+}, keyof ({
+    kind: 'knockdown';
+    duration: number;
+})> & {
+    kind: 'knockdown';
+    duration: number;
+}) | (Omit<{
+    id: number;
+    controller: number;
+}, keyof ({
+    kind: 'feed';
+    text: string;
+})> & {
+    kind: 'feed';
+    text: string;
+}) | (Omit<{
+    id: number;
+    controller: number;
+}, keyof ({
+    kind: 'sound';
+    cue: string;
+})> & {
+    kind: 'sound';
+    cue: string;
+}) | (Omit<{
+    id: number;
+    controller: number;
+}, keyof ({
+    kind: 'record';
+    actorKind: string;
+    variant: string;
+})> & {
+    kind: 'record';
+    actorKind: string;
+    variant: string;
+}) | (Omit<{
+    id: number;
+    controller: number;
+}, keyof ({
+    kind: 'patrol-rider';
+    variant: 'rider' | 'captain';
+})> & {
+    kind: 'patrol-rider';
+    variant: 'rider' | 'captain';
+}) | (Omit<{
+    id: number;
+    controller: number;
+}, keyof ({
+    kind: 'patrol-line';
+})> & {
+    kind: 'patrol-line';
+}) | (Omit<{
+    id: number;
+    controller: number;
+}, keyof ({
+    kind: 'patrol-dissolve';
+})> & {
+    kind: 'patrol-dissolve';
+}) | (Omit<{
+    id: number;
+    controller: number;
+}, keyof ({
+    kind: 'wildlife-pack';
+    variants: (string)[];
+})> & {
+    kind: 'wildlife-pack';
+    variants: (string)[];
+}) | (Omit<{
+    id: number;
+    controller: number;
+}, keyof ({
+    kind: 'wildlife-herd';
+    actorKind: string;
+    variant: string;
+    offset: [
+        number,
+        number
+    ];
+    mares: number;
+    foals: number;
+    stallion: boolean;
+})> & {
+    kind: 'wildlife-herd';
+    actorKind: string;
+    variant: string;
+    offset: [
+        number,
+        number
+    ];
+    mares: number;
+    foals: number;
+    stallion: boolean;
+}))[];

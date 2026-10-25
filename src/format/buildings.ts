@@ -115,7 +115,7 @@ const pair = v.tuple([finite, finite]);
 const triple = v.tuple([finite, finite, finite]);
 const waves = v.pipe(v.array(triple), v.maxLength(32));
 /** Clock presentation and reversible doors; validated without loading a client view. */
-export const BuildingLifeLookSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Building look requires plain JSON'), v.strictObject({
+export const BuildingLifeLookSchema: v.GenericSchema<BuildingLifeLookDataInput, BuildingLifeLookData> = v.pipe(v.unknown(), v.check(isJsonData, 'Building look requires plain JSON'), v.strictObject({
   wheel: finite, door: v.strictObject({ seconds: v.pipe(finite, v.minValue(0.001)), angle: finite, collision: v.exactOptional(v.strictObject({ name: id, file: id, surface: v.picklist(['wood', 'stone', 'metal']), rearmRadius: nonnegative })) }),
   flicker: v.strictObject({ depth: finite, waves }), fire: pair, lamp: pair, glass: pair,
   swing: v.strictObject({ z: waves, x: pair }),
@@ -143,16 +143,16 @@ const site = v.strictObject({ id, root: id, anchors: list(anchor),
   rooms: v.exactOptional(list(v.strictObject({ x: finite, z: finite, hw: nonnegative, hd: nonnegative }))),
   door: v.exactOptional(pair) });
 /** Typed resource ids, bounded before any prompt or motion owner is allocated. */
-export const BuildingLifeRowsSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Building life requires plain JSON'),
+export const BuildingLifeRowsSchema: v.GenericSchema<BuildingLifeRowsInput, BuildingLifeRows> = v.pipe(v.unknown(), v.check(isJsonData, 'Building life requires plain JSON'),
   v.strictObject({ doors: list(door), swings: list(v.strictObject({ pivot: id, seed: finite })), wheels: list(v.strictObject({ id, object: id })),
     colors: v.optional(list(materialPulse), []), params: v.optional(list(v.strictObject({ look: id, param: id })), []),
     flickers: list(light), lamps: list(v.strictObject({ material: id, full: finite })), sites: list(site), shared: v.pipe(v.array(id), v.maxLength(8)) }));
-export type BuildingLifeRows = v.InferOutput<typeof BuildingLifeRowsSchema>;
+
 /** Exact continuation includes in-flight reversal and accumulated wheel phase. */
-export const BuildingContinuationSchema = v.strictObject({ version: v.literal(1), speed: finite,
+export const BuildingContinuationSchema: v.GenericSchema<BuildingContinuationInput, BuildingContinuation> = v.strictObject({ version: v.literal(1), speed: finite,
   doors: list(v.strictObject({ id, open: v.boolean(), enabled: v.boolean(), t: v.pipe(finite, v.minValue(0), v.maxValue(1)) })),
   wheels: list(v.strictObject({ id, angle: finite })) });
-export type BuildingContinuation = v.InferOutput<typeof BuildingContinuationSchema>;
+
 /** A parsed empty batch is useful when a native/static assembler publishes its first row. */
 export function emptyBuildingLifeRows(): BuildingLifeRows { return { doors: [], swings: [], wheels: [], colors: [], params: [], flickers: [], lamps: [], sites: [], shared: [] }; }
 export function parseBuildingLifeLook(input: unknown): BuildingLifeLook { return v.parse(BuildingLifeLookSchema, input); }
@@ -162,15 +162,15 @@ export function parseBuildingLifeRows(input: unknown): BuildingLifeRows { return
 const cloudPose = { seeds: v.boolean(), name: v.pipe(v.string(), v.maxLength(256)), at: v.union([triple, ScenePointRefSchema]), center: triple,
   radius: nonnegative, order: finite, parent: v.exactOptional(id) };
 /** A parent converts only a scene point into its local frame, never a numeric point. */
-export const BuildingCloudPoseSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Building cloud requires plain JSON'), v.strictObject(cloudPose),
+export const BuildingCloudPoseSchema: v.GenericSchema<BuildingCloudPoseRowsInput, BuildingCloudPoseRows> = v.pipe(v.unknown(), v.check(isJsonData, 'Building cloud requires plain JSON'), v.strictObject(cloudPose),
   v.check(row => row.parent === undefined || !Array.isArray(row.at), 'Cloud parent requires a scene point reference'));
 /** Visual recipe for an ordinary seed or baked-quad cloud. */
-export const BuildingCloudSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Building cloud requires plain JSON'),
+export const BuildingCloudSchema: v.GenericSchema<BuildingCloudRowsInput, BuildingCloudRows> = v.pipe(v.unknown(), v.check(isJsonData, 'Building cloud requires plain JSON'),
   v.strictObject({ geometry: id, material: v.nullable(id), ...cloudPose, visible: v.boolean() }),
   v.check(row => row.parent === undefined || !Array.isArray(row.at), 'Cloud parent requires a scene point reference'));
 const frame = v.strictObject({ metalness: finite, roughness: finite, color: finite });
 /** Building appearance is independent of the shape library and the life clock. */
-export const BakedBuildingLookSchema = v.strictObject({ detail: list(id), far: list(id),
+export const BakedBuildingLookSchema: v.GenericSchema<BakedBuildingLookRowsInput, BakedBuildingLookRows> = v.strictObject({ detail: list(id), far: list(id),
   door: v.strictObject({ leaf: id, hinges: id, battens: id, reach: nonnegative, open: id, close: id }), wheel: id,
   lantern: v.strictObject({ ring: id, ringY: finite, drop: finite, scale: finite, glassName: id,
     glass: v.strictObject({ color: finite, emissive: triple, emissiveIntensity: finite, roughness: finite, metalness: finite, opacity: finite }), frame }),
@@ -202,3 +202,278 @@ const buildingAssembly = v.pipe(v.unknown(), v.check(isJsonData, 'Building assem
 /** Runtime admission for native and future Z2 publication; geometry/material references
  * are checked by the host against its platform-owned resource context next. */
 export function admitBuildingAssembly(input: unknown): void { v.parse(buildingAssembly, input); }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type BuildingLifeLookDataInput = unknown;
+interface BuildingLifeLookDataFields {
+    wheel: number;
+    door: {
+        seconds: number;
+        angle: number;
+        collision?: {
+            name: string;
+            file: string;
+            surface: 'wood' | 'stone' | 'metal';
+            rearmRadius: number;
+        };
+    };
+    flicker: {
+        depth: number;
+        waves: ([
+            number,
+            number,
+            number
+        ])[];
+    };
+    fire: [
+        number,
+        number
+    ];
+    lamp: [
+        number,
+        number
+    ];
+    glass: [
+        number,
+        number
+    ];
+    swing: {
+        z: ([
+            number,
+            number,
+            number
+        ])[];
+        x: [
+            number,
+            number
+        ];
+    };
+    indoor?: {
+        doorRadius: number;
+        ranks: (number)[];
+    };
+}
+export type BuildingLifeLookData = { [Key in keyof BuildingLifeLookDataFields]: BuildingLifeLookDataFields[Key] };
+export type BuildingLifeRowsInput = unknown;
+interface BuildingLifeRowsFields {
+    doors: ({
+        id: string;
+        pivot: string;
+        at: [
+            number,
+            number,
+            number
+        ];
+        reach: number;
+        open: string;
+        close: string;
+        slab: {
+            kind: 'box';
+            x: number;
+            y: number;
+            z: number;
+            hx: number;
+            hy: number;
+            hz: number;
+            yaw?: number;
+            surface?: 'stone' | 'wood';
+        };
+    })[];
+    swings: ({
+        pivot: string;
+        seed: number;
+    })[];
+    wheels: ({
+        id: string;
+        object: string;
+    })[];
+    colors: ({
+        material: string;
+        color: [
+            number,
+            number,
+            number
+        ];
+        offset: number;
+        gain: number;
+        pulse: [
+            number,
+            number
+        ];
+        waves: ([
+            number,
+            number
+        ])[];
+        night: [
+            number,
+            number
+        ];
+    })[];
+    params: ({
+        look: string;
+        param: string;
+    })[];
+    flickers: ({
+        light: string;
+        base: number;
+        seed: number;
+        kind: 'fire' | 'lamp';
+    })[];
+    lamps: ({
+        material: string;
+        full: number;
+    })[];
+    sites: ({
+        id: string;
+        root: string;
+        anchors: ({
+            anchor: string;
+            color: number;
+            intensity: number;
+            distance: number;
+            decay: number;
+            seed: number;
+            kind: 'fire' | 'lamp';
+            rank: number;
+        })[];
+        rooms?: ({
+            x: number;
+            z: number;
+            hw: number;
+            hd: number;
+        })[];
+        door?: [
+            number,
+            number
+        ];
+    })[];
+    shared: (string)[];
+}
+export type BuildingLifeRows = { [Key in keyof BuildingLifeRowsFields]: BuildingLifeRowsFields[Key] };
+export type BuildingContinuationInput = BuildingContinuation;
+interface BuildingContinuationFields {
+    version: 1;
+    speed: number;
+    doors: ({
+        id: string;
+        open: boolean;
+        enabled: boolean;
+        t: number;
+    })[];
+    wheels: ({
+        id: string;
+        angle: number;
+    })[];
+}
+export type BuildingContinuation = { [Key in keyof BuildingContinuationFields]: BuildingContinuationFields[Key] };
+export type BuildingCloudPoseRowsInput = unknown;
+interface BuildingCloudPoseRowsFields {
+    seeds: boolean;
+    name: string;
+    at: ([
+        number,
+        number,
+        number
+    ]) | (v.InferOutput<typeof ScenePointRefSchema>);
+    center: [
+        number,
+        number,
+        number
+    ];
+    radius: number;
+    order: number;
+    parent?: string;
+}
+export type BuildingCloudPoseRows = { [Key in keyof BuildingCloudPoseRowsFields]: BuildingCloudPoseRowsFields[Key] };
+export type BuildingCloudRowsInput = unknown;
+export type BuildingCloudRows = Omit<Omit<{
+    geometry: string;
+    material: (string) | null;
+}, keyof ({
+    seeds: boolean;
+    name: string;
+    at: ([
+        number,
+        number,
+        number
+    ]) | (v.InferOutput<typeof ScenePointRefSchema>);
+    center: [
+        number,
+        number,
+        number
+    ];
+    radius: number;
+    order: number;
+    parent?: string;
+})> & {
+    seeds: boolean;
+    name: string;
+    at: ([
+        number,
+        number,
+        number
+    ]) | (v.InferOutput<typeof ScenePointRefSchema>);
+    center: [
+        number,
+        number,
+        number
+    ];
+    radius: number;
+    order: number;
+    parent?: string;
+}, keyof ({
+    visible: boolean;
+})> & {
+    visible: boolean;
+};
+export type BakedBuildingLookRowsInput = BakedBuildingLookRows;
+interface BakedBuildingLookRowsFields {
+    detail: (string)[];
+    far: (string)[];
+    door: {
+        leaf: string;
+        hinges: string;
+        battens: string;
+        reach: number;
+        open: string;
+        close: string;
+    };
+    wheel: string;
+    lantern: {
+        ring: string;
+        ringY: number;
+        drop: number;
+        scale: number;
+        glassName: string;
+        glass: {
+            color: number;
+            emissive: [
+                number,
+                number,
+                number
+            ];
+            emissiveIntensity: number;
+            roughness: number;
+            metalness: number;
+            opacity: number;
+        };
+        frame: {
+            metalness: number;
+            roughness: number;
+            color: number;
+        };
+    };
+    particles: {
+        center: [
+            number,
+            number,
+            number
+        ];
+        radius: number;
+    };
+    deck: [
+        number,
+        number
+    ];
+}
+export type BakedBuildingLookRows = { [Key in keyof BakedBuildingLookRowsFields]: BakedBuildingLookRowsFields[Key] };

@@ -6,14 +6,14 @@ const time = bounded(0, 3600);
 const point = v.tuple([bounded(-250, 250), bounded(-250, 250), bounded(-250, 250)]);
 const rotation = v.pipe(v.tuple([finite, finite, finite, finite]), v.check(q => Math.abs(Math.hypot(...q) - 1) < 1e-5));
 /** Fixed driver identities preserve their guest ABI and continuation across row migrations. */
-export const MOVER_DRIVER_MODULES = Object.freeze({
+export const MOVER_DRIVER_MODULES: Readonly<{ ride: "f8f90ba2e03401910448a2af1e8b02420bc7b2e1003076bc6241d9cb0c688a22"; hinge: "1371d8959aebb567404fc8db59592b0d63f7afeb7060f0b74ea4f12389e6bafd"; waves: "9a5171bc3dd84488aae9de29ebd07fdb12dfbd2500c45cf91cf37e5bbbc712f0"; clip: "871aef47d9b0dd009d46ad41e5cb3c793625bc20325bdaca00134a8677b0c6f1"; }> = Object.freeze({
   ride: 'f8f90ba2e03401910448a2af1e8b02420bc7b2e1003076bc6241d9cb0c688a22',
   hinge: '1371d8959aebb567404fc8db59592b0d63f7afeb7060f0b74ea4f12389e6bafd',
   waves: '9a5171bc3dd84488aae9de29ebd07fdb12dfbd2500c45cf91cf37e5bbbc712f0',
   clip: '871aef47d9b0dd009d46ad41e5cb3c793625bc20325bdaca00134a8677b0c6f1',
 });
 /** Bounded real transform keys; both channels share their strictly increasing time grid. */
-export const MoverTrackSchema = v.pipe(v.strictObject({
+export const MoverTrackSchema: v.GenericSchema<MoverTrackRowsInput, MoverTrackRows> = v.pipe(v.strictObject({
   clip: v.pipe(v.string(), v.minLength(1), v.maxLength(128)),
   duration: bounded(0.005, 3600), loop: v.picklist(['once', 'repeat', 'pingpong']), speed: bounded(0.005, 100),
   times: v.pipe(v.array(time), v.minLength(2), v.maxLength(10)),
@@ -23,7 +23,7 @@ export const MoverTrackSchema = v.pipe(v.strictObject({
   && (t.position !== undefined || t.quaternion !== undefined) && (t.position === undefined || t.position.length === t.times.length)
   && (t.quaternion === undefined || t.quaternion.length === t.times.length), 'complete increasing mover keys'));
 /** Activation reads an actual grounded owner, explicit command, or admitted shared host field. */
-export const MoverTriggerSchema = v.variant('kind', [
+export const MoverTriggerSchema: v.GenericSchema<MoverTriggerRowsInput, MoverTriggerRows> = v.variant('kind', [
   v.strictObject({ kind: v.literal('always') }),
   v.strictObject({ kind: v.literal('interact'), permission: v.picklist([0, 3]) }),
   v.strictObject({ kind: v.literal('stand'), delay: bounded(0, 60) }),
@@ -31,7 +31,7 @@ export const MoverTriggerSchema = v.variant('kind', [
 ]);
 const wave = v.tuple([bounded(-1, 1), bounded(-1, 1), bounded(0, 10), bounded(0.005, 1000), bounded(-100, 100), bounded(0, 10)]);
 /** Numeric fixed policies compiled to the session's existing fenced guest driver. */
-export const MoverDriverSchema = v.variant('kind', [
+export const MoverDriverSchema: v.GenericSchema<MoverDriverRowsInput, MoverDriverRows> = v.variant('kind', [
   v.strictObject({ kind: v.literal('waves'), damping: bounded(0, 1), waves: v.tuple([wave, wave, wave, wave]) }),
   v.strictObject({ kind: v.literal('winch'), mode: v.literal('ride'), dwell: bounded(0.005, 3600), gate: v.boolean(),
     return: v.exactOptional(v.literal('command')), ease: v.exactOptional(v.literal('smoothstep')), snap: v.exactOptional(bounded(0, 0.01)) }),
@@ -41,7 +41,7 @@ export const MoverDriverSchema = v.variant('kind', [
   v.strictObject({ kind: v.literal('pendulum'), axis: v.picklist(['x', 'y', 'z']), amplitude: bounded(0, Math.PI), period: bounded(0.005, 3600) }),
 ]);
 /** Stop track, activation and fixed driver before ABI lowering. */
-export const MoverMotionSchema = v.strictObject({
+export const MoverMotionSchema: v.GenericSchema<MoverMotionRowsInput, MoverMotionRows> = v.strictObject({
   track: v.exactOptional(MoverTrackSchema), trigger: MoverTriggerSchema, driver: MoverDriverSchema,
 });
 /** Validated authored motion; no function or scene object crosses admission. */
@@ -49,7 +49,7 @@ export type MoverMotion = v.InferOutput<typeof MoverMotionSchema>;
 /** Validated stop keys from an ordinary three.js AnimationClip. */
 export type MoverTrack = v.InferOutput<typeof MoverTrackSchema>;
 /** A seated path borrows the same mover's position/phase, never a second controller. */
-export const MoverCarrySchema = v.strictObject({
+export const MoverCarrySchema: v.GenericSchema<MoverCarryRowsInput, MoverCarryRows> = v.strictObject({
   seat: bounded(-10, 10), landings: v.tuple([point, point]), yaw: bounded(-Math.PI, Math.PI),
   surface: v.strictObject({ level: bounded(-250, 250), bankRamp: bounded(0, 100), bob: v.tuple([bounded(0, 10), bounded(0, 1)]),
     pitch: v.tuple([bounded(0, 10), bounded(0, 1)]), roll: v.tuple([bounded(0, 10), bounded(0, 1), bounded(-10, 10)]) }),
@@ -102,3 +102,170 @@ export function lowerMoverMotion(input: unknown, rest: { at: { x: number; y: num
   if (driver.gate && from.some((value, i) => value !== to[i])) throw new Error('A road gate must stay stationary');
   return { module: MOVER_DRIVER_MODULES.ride, input: [...from, ...to, track.duration / track.speed, Number(driver.gate), driver.dwell] };
 }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type MoverTrackRowsInput = MoverTrackRows;
+interface MoverTrackRowsFields {
+    clip: string;
+    duration: number;
+    loop: 'once' | 'repeat' | 'pingpong';
+    speed: number;
+    times: (number)[];
+    position?: ([
+        number,
+        number,
+        number
+    ])[];
+    quaternion?: ([
+        number,
+        number,
+        number,
+        number
+    ])[];
+}
+export type MoverTrackRows = { [Key in keyof MoverTrackRowsFields]: MoverTrackRowsFields[Key] };
+export type MoverTriggerRowsInput = MoverTriggerRows;
+export type MoverTriggerRows = ({
+    kind: 'always';
+}) | ({
+    kind: 'interact';
+    permission: 0 | 3;
+}) | ({
+    kind: 'stand';
+    delay: number;
+}) | ({
+    kind: 'shared';
+    field: number;
+    equals: (boolean) | (number);
+});
+export type MoverDriverRowsInput = MoverDriverRows;
+export type MoverDriverRows = ({
+    kind: 'waves';
+    damping: number;
+    waves: [
+        [
+            number,
+            number,
+            number,
+            number,
+            number,
+            number
+        ],
+        [
+            number,
+            number,
+            number,
+            number,
+            number,
+            number
+        ],
+        [
+            number,
+            number,
+            number,
+            number,
+            number,
+            number
+        ],
+        [
+            number,
+            number,
+            number,
+            number,
+            number,
+            number
+        ]
+    ];
+}) | ({
+    kind: 'winch';
+    mode: 'ride';
+    dwell: number;
+    gate: boolean;
+    return?: 'command';
+    ease?: 'smoothstep';
+    snap?: number;
+}) | ({
+    kind: 'winch';
+    mode: 'hinge';
+    speed: number;
+}) | ({
+    kind: 'static';
+}) | ({
+    kind: 'track';
+}) | ({
+    kind: 'pendulum';
+    axis: 'x' | 'y' | 'z';
+    amplitude: number;
+    period: number;
+});
+interface MoverMotionRowsInputFields {
+    track?: MoverTrackRowsInput;
+    trigger: MoverTriggerRowsInput;
+    driver: MoverDriverRowsInput;
+}
+export type MoverMotionRowsInput = { [Key in keyof MoverMotionRowsInputFields]: MoverMotionRowsInputFields[Key] };
+interface MoverMotionRowsFields {
+    track?: MoverTrackRows;
+    trigger: MoverTriggerRows;
+    driver: MoverDriverRows;
+}
+export type MoverMotionRows = { [Key in keyof MoverMotionRowsFields]: MoverMotionRowsFields[Key] };
+export type MoverCarryRowsInput = MoverCarryRows;
+interface MoverCarryRowsFields {
+    seat: number;
+    landings: [
+        [
+            number,
+            number,
+            number
+        ],
+        [
+            number,
+            number,
+            number
+        ]
+    ];
+    yaw: number;
+    surface: {
+        level: number;
+        bankRamp: number;
+        bob: [
+            number,
+            number
+        ];
+        pitch: [
+            number,
+            number
+        ];
+        roll: [
+            number,
+            number,
+            number
+        ];
+    };
+    prompts: [
+        {
+            at: [
+                number,
+                number,
+                number
+            ];
+            radius: number;
+            label: string;
+        },
+        {
+            at: [
+                number,
+                number,
+                number
+            ];
+            radius: number;
+            label: string;
+        }
+    ];
+    arrival?: {
+        flag: string;
+        hint: string;
+    };
+}
+export type MoverCarryRows = { [Key in keyof MoverCarryRowsFields]: MoverCarryRowsFields[Key] };

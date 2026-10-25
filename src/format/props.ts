@@ -28,7 +28,7 @@ const box = v.pipe(boxData, v.check(boxWithinCell, 'collider within cell'));
 const treads = v.pipe(v.strictObject({ kind: v.literal('treads'), from: point, to: point, width: extent, count: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(256)), surface }), v.check((t) => Math.hypot(t.to.x - t.from.x, t.to.z - t.from.z) > 0 && t.to.y >= t.from.y && [t.from, t.to].every((p) => Math.abs(p.x) + t.width / 2 <= 250 && Math.abs(p.z) + t.width / 2 <= 250), 'bounded nondegenerate stair'));
 const collider = v.strictObject({ id, panel: v.nullable(id), initialActive: v.boolean(), shapes: v.pipe(v.array(v.variant('kind', [box, treads])), v.minLength(1), v.maxLength(256)) });
 /** Declared self-contained GLBs: merged tile meshes, EXT_mesh_gpu_instancing lists, far proxy and script-addressable panels. */
-export const PropsSchema = v.pipe(v.unknown(), v.check(isJsonData, 'JSON-only props'), v.strictObject({ version: v.literal(1), family: id,
+export const PropsSchema: v.GenericSchema<PropsDataInput, PropsData> = v.pipe(v.unknown(), v.check(isJsonData, 'JSON-only props'), v.strictObject({ version: v.literal(1), family: id,
   materials: v.exactOptional(PropMaterialsSchema),
   /** Explicit visual-only edge allowance in metres; absent preserves the fixed-cell refusal. */
   overhang: v.exactOptional(v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(1))),
@@ -65,3 +65,73 @@ export function validatePropsReferences(props: ShardProps, content: { files: rea
   }
 }
 
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type PropsDataInput = unknown;
+interface PropsDataFields {
+    version: 1;
+    family: string;
+    materials?: v.InferOutput<typeof PropMaterialsSchema>;
+    overhang?: number;
+    wholeLibrary?: (string)[];
+    splat?: v.InferOutput<typeof SplatTerrainSchema>;
+    tiles: ({
+        lod: 0 | 1;
+        x: number;
+        z: number;
+        file: string;
+        additionalFiles?: (string)[];
+    })[];
+    panels: ({
+        id: string;
+        file: string;
+        visible: boolean;
+    })[];
+    models: ({
+        id: string;
+        file: string;
+    })[];
+    far: (string) | null;
+    colliders: ({
+        id: string;
+        panel: (string) | null;
+        initialActive: boolean;
+        shapes: (({
+            kind: 'box';
+            x: number;
+            y: number;
+            z: number;
+            hx: number;
+            hy: number;
+            hz: number;
+            yaw?: number | undefined;
+            rot?: {
+                x: number;
+                y: number;
+                z: number;
+                w: number;
+            } | undefined;
+            surface?: 'wood' | 'stone' | 'grass' | 'sand' | 'rock' | 'metal' | 'earth' | 'felt' | undefined;
+        }) | ({
+            kind: 'treads';
+            from: {
+                x: number;
+                y: number;
+                z: number;
+            };
+            to: {
+                x: number;
+                y: number;
+                z: number;
+            };
+            width: number;
+            count: number;
+            surface?: 'wood' | 'stone' | 'grass' | 'sand' | 'rock' | 'metal' | 'earth' | 'felt' | undefined;
+        }))[];
+    })[];
+    textures: ({
+        model: string;
+        colour: string;
+    })[];
+}
+export type PropsData = { [Key in keyof PropsDataFields]: PropsDataFields[Key] };
