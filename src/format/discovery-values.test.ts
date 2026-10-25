@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { parseDiscoveryValues } from '../src/format/discoveryValues';
+import { parseDiscoveryValues } from './discoveryValues';
 
 const pose = { eye: [1, 2, 3], yaw: 0.5, pitch: -0.2, mockup: 'original', frame: 'portrait' };
 const files = { sky: ['sky.webp'], props: ['model.glb'] };
