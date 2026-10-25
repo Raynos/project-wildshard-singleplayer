@@ -166,6 +166,8 @@ in `public/assets/<slug>/` as real `.glb` / `.png` / `.ktx2` / `.bin`. App-wide 
 
 | View handoff retirement | done | Retire `signal-view-data` (12 → 11 jobs), its writer, obsolete sealed-writer test and all 20 source handoffs (48,373 B). Budgets, poses, cues and late reads now use the already-landed strict product discovery values; the actual cached skeleton remains explicit. All 20 original JSON/type-file hashes and complete original product/output oracles pass. Cold scoped generation passes in 13.30 s with every handoff absent. 33 related cases / five suites, touched shard/fixture types and scoped typed lint pass. No frozen source or runtime guard change. |
 
+| Navigation transport ownership | done | Prepare the next-largest `signal-navigation` (38,644 B / two outputs) by declaring the existing public transport URL as an exact shard-owned asset before its source consumer. The original 36,183 B WSNM hash is checked; no transport bytes or guard change. Five source-entry cases, touched shard/fixture types and scoped typed lint pass. Cached source operation and adoption follow; 11 jobs remain. |
+
 GR0–GR2 first, then one shard at a time, each an independent lane-task that lands in small commits. The gen plan's timings
 pick which steps get `cached`.
 

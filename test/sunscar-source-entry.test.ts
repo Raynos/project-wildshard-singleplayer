@@ -131,3 +131,12 @@ test('computed discovery removes only the retired public rig/world/fire/skirt UR
     desktop: { ...BOOT_SOURCES.tiers.desktop, terrain: BOOT_SOURCES.tiers.desktop.terrain.filter(url => url !== SAND_FILES.skirt), props: BOOT_SOURCES.tiers.desktop.props.filter(url => !rigs.has(url)) } } };
   expect(generated.discovery).toEqual({ budgets: BUDGETS, poses: SIGNAL_DEV_POSES, audioCues: cues, 'boot.lateReads': LATE_READS, 'boot.sources': expected, 'boot.files': { ...BOOT_FILES, sources: expected } });
 });
+
+
+test('the unchanged public navigation transport is explicitly owned by the shard', () => {
+  const manifest = v.parse(v.object({ assetGlobs: v.array(v.string()) }), JSON.parse(readFileSync('src/shards/sunscar-dunes/manifest.json', 'utf8')));
+  expect(manifest.assetGlobs).toContain('public/assets/baked/sunscar-dunes/navmesh.bin');
+  const bytes = new Uint8Array(readFileSync('public/assets/baked/sunscar-dunes/navmesh.bin'));
+  expect(bytes.length).toBe(36183);
+  expect(hashImmutableBytes(bytes)).toBe('9922f620591f1a29bd42ace6bce7829eb54604f977dfb86ae3b18b383b06fbb6');
+});
