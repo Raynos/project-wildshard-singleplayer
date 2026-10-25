@@ -324,7 +324,7 @@ class PreparedProducts(unittest.TestCase):
         self.assertFalse((self.root / 'public/generated.bin').exists())
 
 
-    def run_prepared_checks(self):
+    def run_prepared_checks(self, read_product=False):
         repo = Path(__file__).resolve().parents[1]
         for name in ['ci-checks.mjs', 'ci-products.py']:
             (self.root / 'scripts' / name).write_bytes((repo / 'scripts' / name).read_bytes())
@@ -336,8 +336,34 @@ class PreparedProducts(unittest.TestCase):
           writeFileSync('checks-ran','once');
         """)
         (self.root / 'extra.mjs').write_text("import {writeFileSync} from 'node:fs';writeFileSync('extra-ran','once');")
+        if read_product:
+            (self.root / 'check.mjs').write_text(f"""
+              import {{readBuiltShardfile}} from '{(repo/'scripts/built-product.mjs').as_uri()}';
+              import {{resolve}} from 'node:path';
+              import {{existsSync,writeFileSync}} from 'node:fs';
+              if(existsSync('absent-cache'))throw new Error('Unexpected local product cache');
+              const folder=readBuiltShardfile(process.cwd(),'fictional',{{cacheRoot:resolve('absent-cache')}});
+              if(folder!==resolve('out/fictional'))throw new Error('Did not use verified restored product');
+              writeFileSync('verified-env.json',JSON.stringify({{sha:process.env.WS_TEST_PRODUCTS_SHA,commit:process.env.VERCEL_GIT_COMMIT_SHA}}));
+              writeFileSync('checks-ran','once');
+            """)
         return subprocess.run(['node', 'scripts/ci-checks.mjs', '--prepared', 'node extra.mjs'],
                               cwd=self.root, text=True, capture_output=True)
+
+    def test_prepared_build_reads_restored_product_without_local_recipe_cache(self):
+        (self.root / self.shard / 'manifest.json').write_text('{}')
+        (self.root / self.shard / 'shard.config.ts').write_text('export default {};')
+        for name in ['pnpm-lock.yaml', 'pnpm-workspace.yaml']:
+            (self.root / name).write_text('{}')
+        products.pack(self.root)
+        with patch.dict(os.environ, {'WS_TEST_PRODUCTS_SHA': 'f' * 40,
+                                     'VERCEL_GIT_COMMIT_SHA': 'e' * 40}):
+            result = self.run_prepared_checks(read_product=True)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(json.loads((self.root / 'verified-env.json').read_text()),
+                         {'sha': self.sha, 'commit': self.sha})
+        self.assertFalse((self.root / 'absent-cache').exists())
+        self.assertNotIn('ci-checks: gen ', result.stdout)
 
     def test_prepared_checks_restore_exact_run_without_generation(self):
         (self.root / self.table).unlink()

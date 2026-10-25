@@ -64,6 +64,13 @@ if (prepared) {
   // This restores only a matching full SHA/run/checksum/inventory, refusing
   // missing or foreign artifacts before any checks/build can use their bytes.
   if (spawnSync('python3', ['scripts/ci-products.py','unpack'], { stdio:'inherit' }).status !== 0) process.exit(1);
+  const sha = process.env.GITHUB_SHA;
+  if (sha === undefined || !/^[a-f0-9]{40}$/u.test(sha)) throw new Error('Verified preparation requires the exact CI SHA');
+  // The unpacker has verified checkout SHA, run, checksum and full inventory.
+  // Its children consume that restored product, just like the product cohort;
+  // machine-local input/cache receipts are deliberately absent from artifacts.
+  process.env.WS_TEST_PRODUCTS_SHA = sha;
+  process.env.VERCEL_GIT_COMMIT_SHA = sha;
   console.log(`ci-checks: verified same-run preparation ${((Date.now()-t0)/1000).toFixed(0)} s; running ${commands.length} in parallel`);
 } else {
   if (spawnSync('pnpm', ['gen'], { stdio: 'inherit' }).status !== 0) process.exit(1);
