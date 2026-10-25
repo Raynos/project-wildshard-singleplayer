@@ -6,9 +6,11 @@
 // It also accepts menu or select as the target, with the real Developer prefetch on.
 // Use core --floor --pin=<sha> for all four independent milestone floors.
 // A single --floor --compiled --pin=<sha> target uses the same explicit compiled-entry contract.
+// Offline C6: node scripts/shard-phone-memory.mjs audit-estimate <floor> <estimated-bytes> < <native-summary.json>
+// Prints the fixed +/-15% model audit and independent G682 verdict; never re-bases either.
 import { spawnSync } from 'node:child_process';
 import { createServer } from 'node:http';
-import { writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve as resolvePath } from 'node:path';
 import { devices } from 'playwright';
 import * as v from 'valibot';
@@ -118,6 +120,25 @@ export function coreMemorySummary(input, selection = 'all') {
     forcedGC: v.literal(false), inspectorResponseBodyBytes: v.literal(0)})), input);
   return totals.map(({shard, name, limitBytes, totalBytes}) => ({shard, name, limitBytes, totalBytes,
     passed: totalBytes !== null && totalBytes <= limitBytes}));
+}
+
+/** Audit an explicit model prediction against an original native floor.
+ * The 15% comparison uses exact byte arithmetic; display rounding cannot pass
+ * a boundary miss. Model accuracy never changes the independent G682 verdict.
+ * @param {unknown} input
+ * @param {string} selection
+ * @param {number} estimate */
+export function coreMemoryEstimateAudit(input, selection, estimate) {
+  const estimatedBytes = v.parse(v.pipe(footprintBytes, v.minValue(1)), estimate);
+  const row = coreMemorySummary(input).find(floor => floor.shard === selection);
+  if (row === undefined) throw new Error('Unknown app core memory floor');
+  const measuredBytes = row.totalBytes === null ? null : v.parse(footprintBytes, row.totalBytes);
+  const known = measuredBytes !== null && measuredBytes > 0;
+  const difference = known ? BigInt(estimatedBytes) - BigInt(measuredBytes) : null;
+  const absolute = difference === null ? null : difference < 0n ? -difference : difference;
+  return {shard: row.shard, estimatedBytes, measuredBytes, budgetPassed: row.passed,
+    errorPercent: known ? (estimatedBytes / measuredBytes - 1) * 100 : null,
+    within15Percent: absolute === null || !known ? null : absolute * 100n <= BigInt(measuredBytes) * 15n};
 }
 
 /** Chromium diagnostics report totals without qualifying a WebKit budget.
@@ -277,6 +298,21 @@ return result;
 }
 
 async function main() {
+  if (process.argv[2] === 'audit-estimate') {
+    const [target, estimate] = process.argv.slice(3);
+    if (process.argv.length !== 5 || target === undefined || estimate === undefined || !/^[0-9]+$/u.test(estimate)) throw new Error('Expected audit-estimate <floor> <estimated-bytes> with the native summary on stdin');
+    const summary = v.parse(v.object({rev: v.pipe(v.string(), v.regex(/^[a-f0-9]{40}$/u)), coreMemory: v.string(),
+      results: v.array(v.looseObject({version: v.string()}))}), JSON.parse(readFileSync(0, 'utf8')));
+    if (summary.coreMemory !== 'all' && summary.coreMemory !== target) throw new Error('Native summary does not select the requested floor');
+    for (const row of summary.results) {
+      const version = v.parse(v.object({build: v.string()}), JSON.parse(row.version));
+      if (!version.build.startsWith(`${summary.rev.slice(0, 7)}-`)) throw new Error('Native summary source pin differs from its reading');
+    }
+    const audit = coreMemoryEstimateAudit(summary.results, target, Number(estimate));
+    console.info(JSON.stringify({sourcePin: summary.rev, ...audit}));
+    if (audit.within15Percent !== true || !audit.budgetPassed) process.exitCode = 1;
+    return;
+  }
   const [base, shard, label, out] = process.argv.slice(2), floor = process.argv.includes('--floor'), compiled = process.argv.includes('--compiled');
   const pin = process.argv.find(arg => arg.startsWith('--pin='))?.slice(6);
   if (!base || !shard || !label || !out || !out.endsWith('.json')) throw new Error('Expected <preview URL> <shard|menu|select|core> <label> <out.json>');

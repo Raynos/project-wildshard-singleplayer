@@ -14,6 +14,8 @@ export const compiledFloorSave: Readonly<{scope: 'device'; key: 'debug.global.le
 export function scriptResourceURLs(entries?: readonly {name: string}[]): string[];
 /** G682 requires the cold uncollected native WebKit protocol; missing/errors fail as unknown. Select one app floor or default to all four. */
 export function coreMemorySummary(input: unknown, selection?: string): {shard: string; name: string; limitBytes: number; totalBytes: number | null; passed: boolean}[];
+/** Exact +/-15% comparison with an explicit prediction; never changes the native G682 verdict. */
+export function coreMemoryEstimateAudit(input: unknown, selection: string, estimate: number): {shard: string; estimatedBytes: number; measuredBytes: number | null; budgetPassed: boolean; errorPercent: number | null; within15Percent: boolean | null};
 /** Chromium totals are diagnostics, never WebKit budget qualifications. */
 export function chromiumCoreMemorySummary(input: unknown): {shard: string; name: string; totalBytes: number | null}[];
 export interface SimulatorCoreProcess {pid: number; startAbstime: number; physicalFootprintBytes: number}

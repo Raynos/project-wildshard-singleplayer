@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Refusals must occur before launching a memory browser.
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { expect, test } from 'vitest';
-import { coreMemorySummary, chromiumCoreMemorySummary, coreMemoryTargets, selectedCoreMemoryTargets, scriptResourceURLs, simulatorCoreFootprint, webKitCoreMemoryFloorBytes,
+import { coreMemorySummary, coreMemoryEstimateAudit, chromiumCoreMemorySummary, coreMemoryTargets, selectedCoreMemoryTargets, scriptResourceURLs, simulatorCoreFootprint, webKitCoreMemoryFloorBytes,
   serveHelloWorldMemory, helloWorldMemoryHTML, helloWorldMemoryFloor } from '../scripts/shard-phone-memory.mjs';
 
 const MiB = 1048576;
@@ -15,6 +15,54 @@ test('script inventory keeps distinct complete JavaScript URLs only', () => {
 const nativeProtocol = {protocol: 'webkit-core-floor/1', mode: 'cold', forcedGC: false, inspectorResponseBodyBytes: 0};
 const rows = () => coreMemoryTargets.map(target => ({...nativeProtocol, shard: target.shard, errors: [],
   samples: [10, 60, 120].map(second => ({phase: `${second}s`, rendererBytes: target.limitBytes - 10 * MiB, gpuBytes: 10 * MiB}))}));
+
+test('saved estimate audits keep a one-byte tolerance miss separate from the native budget', () => {
+  const summary = {rev: '1'.repeat(40), coreMemory: '_template', results: [{...nativeProtocol, version: JSON.stringify({build: '1111111-fixture'}), shard: '_template', errors: [],
+    samples: [{phase: '120s', rendererBytes: 250_000_000, gpuBytes: 50_000_000}]}]};
+  const result = spawnSync('node', ['scripts/shard-phone-memory.mjs', 'audit-estimate', '_template', '345000001'],
+    {encoding: 'utf8', input: JSON.stringify(summary)});
+  expect(result.status).toBe(1);
+  expect(result.stdout).toContain('"within15Percent":false');
+  expect(result.stdout).toContain('"budgetPassed":false');
+  const accurate = spawnSync('node', ['scripts/shard-phone-memory.mjs', 'audit-estimate', '_template', '300000000'],
+    {encoding: 'utf8', input: JSON.stringify(summary)});
+  expect(accurate.status).toBe(1);
+  expect(accurate.stdout).toContain('"within15Percent":true');
+  expect(accurate.stdout).toContain('"budgetPassed":false');
+  const small = summary.results[0];
+  if (small === undefined) throw new Error('Missing native fixture');
+  const passing = spawnSync('node', ['scripts/shard-phone-memory.mjs', 'audit-estimate', '_template', '100000000'],
+    {encoding: 'utf8', input: JSON.stringify({...summary, results: [{...small,
+      samples: [{phase: '120s', rendererBytes: 90_000_000, gpuBytes: 10_000_000}]}]})});
+  expect(passing.status).toBe(0);
+  expect(passing.stdout).toContain('"within15Percent":true');
+  expect(passing.stdout).toContain('"budgetPassed":true');
+});
+
+test('model tolerance uses exact bytes in both directions and never grants a native budget pass', () => {
+  const input = [{...nativeProtocol, shard: '_template', errors: [],
+    samples: [{phase: '120s', rendererBytes: 250_000_000, gpuBytes: 50_000_000}]}];
+  for (const estimate of [255_000_000, 345_000_000]) {
+    expect(coreMemoryEstimateAudit(input, '_template', estimate)).toMatchObject({measuredBytes: 300_000_000,
+      within15Percent: true, budgetPassed: false});
+  }
+  for (const estimate of [254_999_999, 345_000_001]) {
+    expect(coreMemoryEstimateAudit(input, '_template', estimate)).toMatchObject({within15Percent: false, budgetPassed: false});
+  }
+  expect(coreMemoryEstimateAudit([], '_template', 300_000_000)).toMatchObject({measuredBytes: null, within15Percent: null, errorPercent: null, budgetPassed: false});
+  for (const estimate of [-1, 0, 1.5, Number.NaN, Infinity]) expect(() => coreMemoryEstimateAudit(input, '_template', estimate)).toThrow();
+  expect(() => coreMemoryEstimateAudit(input, 'other', 300_000_000)).toThrow('Unknown app');
+});
+
+test('saved estimate audits refuse mixed source pins before issuing a verdict', () => {
+  const summary = {rev: '1'.repeat(40), coreMemory: '_template', results: [{...nativeProtocol, version: JSON.stringify({build: '2222222-other'}), shard: '_template', errors: [],
+    samples: [{phase: '120s', rendererBytes: 1, gpuBytes: 1}]}]};
+  const result = spawnSync('node', ['scripts/shard-phone-memory.mjs', 'audit-estimate', '_template', '1'],
+    {encoding: 'utf8', input: JSON.stringify(summary)});
+  expect(result.status).toBe(1);
+  expect(result.stdout).toBe('');
+  expect(result.stderr).toContain('source pin differs');
+});
 
 test('four independent floors use the picked combined process limits', () => {
   expect(webKitCoreMemoryFloorBytes).toBe(87397464 + 15927456);

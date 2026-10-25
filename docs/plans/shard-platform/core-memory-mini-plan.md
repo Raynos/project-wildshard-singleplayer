@@ -1,12 +1,13 @@
 # Core-game memory benchmax: mini plan (measured, G640)
 
-**State:** `in flight` (2026-10-25, sp-x2) — menu G682 PASS at 93.476 MiB;
-C1.1 worker backing cut done `9108b14ec6`, C2 reading / C3 title isolation qualified
-in §10. Current Template 1 remains FAIL at 263.976 MiB (§12); idle workers retire
-but no native-byte gain is established. C4 native attribution and current
-selection/Template 2 floors remain open. C7 protocol separation is done (§12).
-C5 remains a look pick.
-Budgets stay fixed.
+**State:** `in flight` (2026-10-25, sp-x2) — coherent `50d155f897` native cohort
+is 2/4 PASS: menu 93.538 / selection 107.679 MiB; Template 1 260.664 and
+Template 2 249.679 MiB FAIL (§13). C1.1 backing cut done `9108b14ec6`;
+C3 title isolation qualified. Idle workers retire, without an established
+native-byte gain. C4 native holders and C6 calibration remain open. C6's
+pinned-product prediction is 15.000330% high; the exact audit refuses a rounded
+pass. C7 protocol separation is done `50d155f897`. C5 remains a look pick.
+Budgets stay fixed; this slice leaves the 250 MiB estimator base unchanged.
 An extra under G639 (after Nalati to zero and grid readiness).
 
 Jake, 2026-10-23, reading the tile streaming page (*"What tiles can't remove: the ~300 MB engine base, the ~320 MB of
@@ -17,12 +18,11 @@ the page components take 300, then that should show in template 1 and template 2
 
 ## Answer
 
-**Current menu G682 PASS (2026-10-25): 93.476 MiB combined WebContent + GPU**
-on `59aaa985dd`, with all 24 products prefetched; see §10. Template 1 is now
-**263.976 MiB FAIL** on `6436257c8e` (§12). Selection and Template 2 remain
-unremeasured since `f4465ac4ab`: 169.5 / 304.6 MiB, both misses (§7).
-The respective limits remain
-148.5383 / 198.5383 MiB. No four-floor PASS or single-cut causal gain is claimed.
+**Current native cohort (2026-10-25), `50d155f897`: 2/4 PASS.** Menu
+**93.538 MiB** and SHARD SELECT **107.679 MiB** pass the fixed 148.5383 MiB
+limit. Template 1 **260.664 MiB** and Template 2 **249.679 MiB** miss the fixed
+198.5383 MiB limit (§13). All values combine WebContent and GPU; all visits
+complete/errors0. No four-floor PASS or single-cut causal gain is claimed.
 The measurements below in §§1–3 are historical.
 
 **It doesn't show.** A template entered from SHARD SELECT uses **~290–300 MB in the Simulator** (WebContent + GPU process),
@@ -430,11 +430,14 @@ retention attribution remain open.
 
 | Slice (at most 1 h) | Status | Result / remaining acceptance |
 |---|---|---|
-| C4.1 Current native reading and cache lifetime | done (this commit), measured FAIL retained | Template 1 260.070 / 198.538 MiB; no runtime errors. New real-GC contracts prove settled downloads/write snapshots are released on success and quota refusal while the cache remains alive. No production release was justified. |
-| C4.2 Current main-page holders / idle decoders | done (this commit), bounded | One matching Chromium heap: 29,755,996 B rooted JS / 17,510,853 B unique backing, not a 55 MiB dead cache. Two idle tile-decode workers remain live; retire their pool after 30 s without queued/active jobs, recreate on the next decode. Three regressions fail before the cut; six worker contracts pass afterward. Native-byte gain remains unmeasured. |
-| C4.3 Remaining native/worker attribution | in flight (2026-10-25, sp-x2), milestone measured | Native Template 1 263.976 / 198.538 MiB FAIL. Chromium confirms zero live workers at 60/120 s, without a heap snapshot or forced GC. No native-byte gain established; native holder attribution remains open. |
+| C4.1 Current native reading and cache lifetime | done `b03613aa82`, measured FAIL retained | Template 1 260.070 / 198.538 MiB; no runtime errors. New real-GC contracts prove settled downloads/write snapshots are released on success and quota refusal while the cache remains alive. No production release was justified. |
+| C4.2 Current main-page holders / idle decoders | done `6436257c8e`, bounded | One matching Chromium heap: 29,755,996 B rooted JS / 17,510,853 B unique backing, not a 55 MiB dead cache. Two idle tile-decode workers remain live; retire their pool after 30 s without queued/active jobs, recreate on the next decode. Three regressions fail before the cut; six worker contracts pass afterward. Native-byte gain is not established. |
+| C4.3 Remaining native/worker attribution | in flight (2026-10-25, sp-x2), milestone measured | Current native Template 1 260.664 / 198.538 MiB FAIL. Chromium confirms zero live workers at 60/120 s, without a heap snapshot or forced GC. No native-byte gain established; native holder attribution remains open. |
 | C6 Model source | done previously `d2ef0c0848`, historical calibration | 250 MiB base, explicit grid-only page claims, unchanged caps. This visit does not silently recalibrate the estimator or establish current ±15% accuracy. |
-| C7.1 Reader protocol separation | done (this commit) | Only the original cold, uncollected WebKit protocol qualifies G682. Chromium retains diagnostic totals but cannot print a WebKit PASS/FAIL. Current four-floor qualification remains open. |
+| C6.1 Pinned product / exact model audit | done (this commit) | Same `50d155f897` product and estimator: 299.764 MiB predicted / 260.664 MiB observed, 15.000330% high. Offline native-only audit refuses the exact miss, independently of G682; no base/cap change. |
+| C6.2 Current calibration | open | One current paired product/observation does not justify fitting the shared engine base. Current prediction marginally misses the picked ±15% band; it is not marked accurate. |
+| C7.1 Reader protocol separation | done `50d155f897` | Only the original cold, uncollected WebKit protocol qualifies G682. Chromium retains diagnostic totals but cannot print a WebKit PASS/FAIL. |
+| C7.2 Coherent current four-floor reading | done (measurement), 2/4 PASS | `50d155f897`: 93.538 / 107.679 / 260.664 / 249.679 MiB. Both templates remain over G682; no repeated cohort or source-isolated gain claim. |
 
 One official cold compiled Template 1 visit used landed `87491b8aa7`, build
 `87491b8-mvo9ztg9`, with the existing reader's original title/select/SHARDFILE
@@ -583,3 +586,81 @@ and the official reader retains its budget-failure exit. A regression fails
 before the guard; 20 focused / 21 related cases pass afterward, with scripts
 types, scoped fixture types and named typed lint green. Re-admitting the saved
 native menu and both Template readings preserves PASS / FAIL / FAIL exactly.
+
+## 13. Current cohort and C6 prediction audit (2026-10-25)
+
+One coherent four-floor visit uses landed `50d155f897`, build
+`50d155f-mvochfy0`, through the original official `core-memory=all` reader.
+Each floor uses a cold Safari process, cache reset, Developer on, phone tier,
+2× render, muted audio and the real menu/select/compiled entry path. Every
+10/60/120 s sample counts two WebContent processes plus one GPU process under
+the owned Simulator launchd. All four visits complete/errors0. No forced GC,
+heap snapshot or Inspector response-body capture. **Exit 1 is the budget
+verdict, 2/4 PASS.**
+
+| Floor | 120 s WebContent B | 120 s GPU B | Combined MiB | Fixed limit MiB | Verdict |
+|---|---:|---:|---:|---:|---|
+| Menu | 80,221,176 | 17,860,792 | 93.538 | 148.538 | PASS |
+| SHARD SELECT | 94,376,976 | 18,532,632 | 107.679 | 148.538 | PASS |
+| Template 1 | 231,380,080 | 41,945,584 | 260.664 | 198.538 | FAIL |
+| Template 2 | 220,976,288 | 40,831,424 | 249.679 | 198.538 | FAIL |
+
+Menu prefetch completes all 24 products / 4,332 files / 603,471,203 B, with zero
+in flight at 120 s. These are observations on one current cohort, not isolated
+source-cut gains. CPU overlap disclosures are retained: sp-x6 finite checks /
+hooks about 16:32–16:34 local; sp-x9 commit gate 16:37:50–16:38:49 overlaps the
+16:38:25 floor marker, and its meadow-related run began at 16:34:35 and was
+still active at disclosure. No browser/Sim/build overlap was reported by those
+lanes. Before preparation, format-related PID 82261 and Nine-focus PID 86485
+were also active; their completion relative to quiet was not established.
+No timing or repeat-cohort credit. Official reader, Inspector/proxy, Safari,
+Simulator and owned preview all close; quiet absent / zero booted verified.
+Raw samples and compact overlap rollup: `tmp/sp-x2/core-c7-current-four/`.
+
+### C6: actual declared inputs, no fitted constant
+
+A read-only metadata check reopens the **same landed pin**, verifies the
+served version, and checks the 26,158 B `world/tiles` section's SHA-256. Its
+product index hash matches the retained product used around the milestone:
+`6331ad8e7152f59e1f79fd99a2ec38498cb2095289e73146aa2bf8968a364859`.
+Source hash is `078e32620b18d3d85c89e613272fd4bb15de9705b66deaca0e17f6e632acc613`.
+The 80 tile rows and admission budgets give the existing standalone model:
+
+| Input | Bytes |
+|---|---:|
+| L0 | 13,099,624 |
+| L1 | 2,749,512 |
+| Far | 1,141,664 |
+| Libraries | 14,013,259 |
+| Simulation | 16,006,225 |
+| Commons / overlap / grid-page claims | 0 |
+
+Both estimator source files match `50d155f897` byte-for-byte. Executing the
+existing `contentCost` with these inputs gives accounted **47,010,284 B** and
+playing/loading **314,325,416 B / 299.764 MiB**, with the unchanged 250 MiB base
+and 1.11 factor. The historical test fixture's 47,090,123 B is not substituted.
+The actual native Template 1 result is **273,325,664 B / 260.664 MiB**:
+prediction is **15.0003301556% high**, marginally outside the picked ±15% band.
+No current-accuracy PASS, engine-base adjustment, cap change or native gain is
+claimed from this single paired product/reading. Older different-pin visits
+are not treated as calibration replicates.
+
+The existing memory tool now audits that pair offline:
+
+```sh
+node scripts/shard-phone-memory.mjs audit-estimate _template 314325416 \
+  < tmp/sp-x2/core-c7-current-four/summary.json
+```
+
+It validates the original native protocol and summary revision/reading build
+prefixes, prints the explicit prediction, native bytes and signed percentage,
+and keeps `within15Percent` separate from `budgetPassed`. Exact integer byte
+arithmetic prevents display rounding from accepting a boundary miss. Missing
+or zero observations are unknown; inaccurate models, native budget failures
+and mixed source readings refuse success. An accurate prediction never
+overrides a failed G682 budget. No new app/Simulator visit is needed to audit
+a saved reading. Tests cover both exact tolerance boundaries and one byte
+beyond, unknown/invalid inputs, CLI pass/fail and mixed source refusal. The
+initial CLI regression fails before implementation; all 23 focused / 24 related
+cases, scripts project types, scoped fixture types and named typed lint pass.
+The metadata-only preview is closed, with no browser or Simulator launched.
