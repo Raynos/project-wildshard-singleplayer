@@ -2,28 +2,41 @@
 import { BufferGeometry, Float32BufferAttribute, MeshStandardMaterial } from 'three';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { normalizeWorldGlb } from '@wildshard/sdk/bake/world';
-import { lanternPiece } from './kit.mjs';
+import { architecturePiece, lanternPiece } from './kit.mjs';
 
 /** Export the existing post, glow, pool and collision triangles without changing their vertex colours.
  * Palette slots are named materials with a neutral factor; the three visual parts keep their existing shader roles.
  * No filesystem access, placement, light bake or moving-light seed is performed here. */
 export function lanternGlb(palette, height = 2.8) {
   const parts = lanternPiece(palette, height);
+  return encodeParts(parts, [
+    ['Kit', 'Kit', 'lantern_post', 'wood'], ['Glow', 'Glow', 'lantern_glow', 'lantern'],
+    ['Pool', 'Pool', 'lantern_pool', 'pool'], ['solid', 'Solid', 'collide_post', 'collision'],
+  ], 'lantern');
+}
+
+/** Own the existing house/stall GLB and the palette/ordinal bindings produced by that exact source invocation.
+ * Material names carry role and palette slot; far nodes retain the existing <= 40-triangle tile stand-in. */
+export function architectureGlb(type, palette, variant = 0) {
+  const { parts, bindings } = architecturePiece(type, palette, variant);
+  const entries = Array.from(bindings, ([name, binding]) => [binding.role, name, name, name]);
+  entries.push(['solid', 'Solid', 'collide_body', 'collision']);
+  return { bytes: encodeParts(parts, entries, `architecture_${type}_${variant}`), bindings };
+}
+
+function encodeParts(parts, entries, name) {
   const primitives = [];
   try {
-    for (const [source, partName, name, slot] of [
-      ['Kit', 'Kit', 'lantern_post', 'wood'], ['Glow', 'Glow', 'lantern_glow', 'lantern'],
-      ['Pool', 'Pool', 'lantern_pool', 'pool'], ['solid', 'Solid', 'collide_post', 'collision'],
-    ]) {
+    for (const [source, partName, nodeName, slot] of entries) {
       const part = parts[source].part(partName);
       const geometry = new BufferGeometry().setAttribute('position', new Float32BufferAttribute(part.positions, 3));
       const material = new MeshStandardMaterial({ roughness: source === 'Kit' ? 0.9 : 1, metalness: 0 });
       material.name = slot;
-      primitives.push({ name, geometry, material, compactIndex: true });
+      primitives.push({ name: nodeName, geometry, material, compactIndex: true });
       if (source !== 'solid') geometry.setAttribute('color', new Float32BufferAttribute(part.colours, 3));
       if (source === 'Kit' || source === 'Glow') geometry.setAttribute('normal', new Float32BufferAttribute(part.normals, 3));
     }
-    return staticGlb(primitives, 'lantern');
+    return staticGlb(primitives, name);
   } finally {
     for (const { geometry, material } of primitives) { geometry.dispose(); material.dispose(); }
   }

@@ -15,16 +15,16 @@ const normalize = (a) => { const l = Math.hypot(...a) || 1; return [a[0] / l, a[
 
 /** Plain triangle soup builder: positions, normals, colours, uvs, by material. */
 export class Soup {
-  constructor() { this.parts = new Map(); }
+  constructor(partKey) { this.parts = new Map(); this.partKey = partKey; }
   part(name) { let p = this.parts.get(name); if (p === undefined) { p = { positions: [], normals: [], colours: [], uvs: [] }; this.parts.set(name, p); } return p; }
   /** @param {string} name @param {number[]} a @param {number[]} b @param {number[]} c @param {number[]} [colour] @param {number[][] | null} [uv] */
   tri(name, a, b, c, colour = [1, 1, 1], uv = null) {
-    const p = this.part(name), e1 = sub(b, a), e2 = sub(c, a), n = normalize(cross(e1, e2));
+    const p = this.part(this.partKey?.(name, colour) ?? name), e1 = sub(b, a), e2 = sub(c, a), n = normalize(cross(e1, e2));
     for (const [i, v] of [a, b, c].entries()) { p.positions.push(...v); p.normals.push(...n); p.colours.push(...colour); p.uvs.push(...(uv === null ? [0, 0] : uv[i])); }
   }
   /** a triangle with a colour per corner (a light pool's falloff) @param {string} name @param {number[][]} corners @param {number[][]} colours */
   triColours(name, [a, b, c], colours) {
-    const p = this.part(name), n = normalize(cross(sub(b, a), sub(c, a)));
+    const p = this.part(this.partKey?.(name, colours[0]) ?? name), n = normalize(cross(sub(b, a), sub(c, a)));
     for (const [i, v] of [a, b, c].entries()) { p.positions.push(...v); p.normals.push(...n); p.colours.push(...(colours[i] ?? [0, 0, 0])); p.uvs.push(0, 0); }
   }
   /** @param {string} name @param {number[]} a @param {number[]} b @param {number[]} c @param {number[]} d @param {number[]} [colour] @param {number[][] | null} [uv] */
@@ -411,6 +411,39 @@ function farTile(w, p, type) {
 
 /** Every tile's border paving is the plot's (the generator's ground); a builder fills only its inner square. */
 const BUILDERS = { H: house, G: garden, S: stalls, C: canal, L: canal, N: forecourt, P: plaza };
+
+/** Export the existing static house/stall builders at the origin, split by their actual palette-array identity.
+ * Ordinals retain original triangle order when material slots are merged again. Equal RGB values never alias slots.
+ * These builders do not consume moving-light seeds; no current layout or source collider is changed. */
+export function architecturePiece(type, palette, variant = 0) {
+  if ((type !== 'H' && type !== 'S') || (type === 'H' ? ![0, 1].includes(variant) : variant !== 0)) {
+    throw new Error('open-plots architecture: existing type and variant required');
+  }
+  const slots = new Map();
+  for (const [key, colour] of Object.entries(palette)) {
+    if (!/^[a-z][A-Za-z0-9]{0,31}$/u.test(key) || !Array.isArray(colour) || colour.length !== 3
+      || colour.some(value => !Number.isFinite(value) || value < 0 || value > 1) || slots.has(colour)) {
+      throw new Error('open-plots architecture: distinct named RGB palette slots required');
+    }
+    slots.set(colour, key);
+  }
+  const bindings = new Map(), ordinals = new Map();
+  const partKey = (role, colour) => {
+    const slot = slots.get(colour);
+    if (slot === undefined) throw new Error('open-plots architecture: undeclared palette colour');
+    const name = `${role}_${slot}`, ordinal = ordinals.get(role) ?? 0;
+    let binding = bindings.get(name);
+    if (binding === undefined) { binding = { role, slot, ordinals: [] }; bindings.set(name, binding); }
+    binding.ordinals.push(ordinal); ordinals.set(role, ordinal + 1);
+    return name;
+  };
+  const parts = { Kit: new Soup(partKey), Glow: new Soup(partKey), Pool: new Soup(partKey), Water: new Soup(partKey),
+    far: new Soup(partKey), solid: new Soup() };
+  const w = writer(parts, [0, 0], 0);
+  BUILDERS[type](w, palette, variant);
+  farTile(w, palette, type);
+  return { parts, bindings };
+}
 
 /**
  * Build the whole layout into `parts` ({ Kit, Glow, far, solid } soups): tile (column c, row r) has its centre at
