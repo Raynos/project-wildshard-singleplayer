@@ -38,3 +38,10 @@ export function readRetirementResources(): {
   programCache: readonly { cacheKey: string; name: string; usedTimes: number }[];
   ledger: MemorySnapshot;
 };
+
+/** Diagnostic-clock build history; a finite ring may have truncated older rows. */
+export function readRetirementProgramBuilds(): {
+  readonly at: number; readonly builds: number; readonly captured: number;
+  readonly rows: readonly { readonly at: number; readonly material: string; readonly object: string;
+    readonly how: string; readonly keyChars: number; readonly numericReferences: readonly string[] }[];
+} | null;

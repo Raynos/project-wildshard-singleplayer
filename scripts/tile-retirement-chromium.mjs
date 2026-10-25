@@ -14,7 +14,7 @@ import { floorGridBenchmarkUrl, FLOOR_GRID_ENTER } from './frame-floor-navigatio
 import { gridFloorDocumentIdentity, runFloorGridRoute, gridFloorWitnessFailures,
   readFloorGridEntryways } from './frame-floor-grid.mjs';
 import { soakPortalPlan } from './soak/owned.mjs';
-import { tileRetirementRoute, tileRetirementTracker, gradeTileRetirement, readRetirementBoundary, seedTileRetirementHome, readRetirementResources } from './tile-retirement-proof.mjs';
+import { tileRetirementRoute, tileRetirementTracker, gradeTileRetirement, readRetirementBoundary, seedTileRetirementHome, readRetirementResources, readRetirementProgramBuilds } from './tile-retirement-proof.mjs';
 
 const arg = key => process.argv.find(value => value.startsWith(`--${key}=`))?.slice(key.length + 3);
 if (process.argv.includes('--help')) {
@@ -103,6 +103,9 @@ try {
   const boundary = async label => {
     // Forty-five seconds exceeds the original 30-second ghost grace. Never
     // trigger GC, change the ring, evict a cache or navigate to make it pass.
+    const programStart = diagnostic === undefined ? undefined : await page.evaluate(() => ({ at: performance.now(),
+      builds: window.__wildshard.world.game.nodeBuilds?.builds ?? null,
+      programs: window.__wildshard.world.game.renderer.info.programs?.length ?? null }));
     await sleep(45_000);
     const deadline = Date.now() + 120_000;
     let row = await read();
@@ -112,7 +115,8 @@ try {
     let resources;
     if (diagnostic !== undefined) {
       const heap = await cdp.send('Runtime.getHeapUsage');
-      resources = { ...await page.evaluate(readRetirementResources), heap };
+      resources = { ...await page.evaluate(readRetirementResources), heap,
+        programSteady: { start: programStart, end: await page.evaluate(readRetirementProgramBuilds) } };
       writeFileSync(resolvePath(out, `${label}-resources.json`), JSON.stringify(resources, null, 2));
     }
     const result = { ...row, process: await dump(label), ...(resources === undefined ? {} : { resources }) };

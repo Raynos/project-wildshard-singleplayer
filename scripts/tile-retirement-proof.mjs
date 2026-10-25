@@ -92,6 +92,22 @@ export function readRetirementResources() {
     })), ledger: memory.call(api) };
 }
 
+/** Existing graph-backend counters only, copied during an opt-in diagnostic.
+ * Names, numeric-reference text and timestamps identify new builds without
+ * retaining materials, nodes or complete additional program-key strings. */
+export function readRetirementProgramBuilds() {
+  const game = window.__wildshard.world.game, counts = game.nodeBuilds, keys = game.nodeBuildKeys;
+  if (counts === null || keys === null) return null;
+  if (counts.log.length !== keys.length) throw new Error('Graph build log/key alignment lost');
+  return { at: performance.now(), builds: counts.builds, captured: counts.log.length,
+    rows: counts.log.map((row, index) => {
+      const key = keys[index];
+      if (key === undefined) throw new Error('Graph build key unavailable');
+      return { at: row.at, material: row.material, object: row.object, how: row.how, keyChars: key.length,
+        numericReferences: key.split('\n').filter(line => line.includes('object={value:') && line.includes('uniformType=float')) };
+    }) };
+}
+
 /** Initial staging only, before warm-up or measured input. A new position can
  * publish streamed colliders after pose's first ground lookup; resolve again
  * only after that position's normal streaming and crossing have settled. */

@@ -2,7 +2,7 @@ import { test, expect } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- execute the real serialized reader without a browser or app fixture
 import { runInNewContext } from 'node:vm';
 import type { FloorGridState } from '../scripts/frame-floor-grid.mjs';
-import { gradeTileRetirement, tileRetirementRoute, tileRetirementTracker, readRetirementBoundary, seedTileRetirementHome, readRetirementResources, type RetirementBoundary } from '../scripts/tile-retirement-proof.mjs';
+import { gradeTileRetirement, tileRetirementRoute, tileRetirementTracker, readRetirementBoundary, seedTileRetirementHome, readRetirementResources, readRetirementProgramBuilds, type RetirementBoundary } from '../scripts/tile-retirement-proof.mjs';
 
 const state: Pick<FloorGridState, 'home' | 'pitch' | 'cells'> = { home: 'dw', pitch: 562.5, cells: [
   { instance: 'dw', slug: 'driftwood-isle', cell: [0, 0] },
@@ -161,4 +161,24 @@ test('T1 home staging refuses failed crossings, navigation and unending streamin
   context.performance.timeOrigin = 2;
   await expect(runInNewContext(expression, context)).rejects.toThrow(/navigated/u);
   expect(poses).toBe(1);
+});
+
+
+test('T1 build diagnostic copies scalar rows and refuses key misalignment', () => {
+  const log = [{ at: 10, material: 'graph:material', object: 'cover', how: 'build', native: { handle: true } }];
+  const keys = ['shape\nminified object={value:12.5} property=value uniformType=float\ntexture object=Texture uniformType=texture'];
+  const game = { nodeBuilds: { builds: 7, log }, nodeBuildKeys: keys };
+  const read = (): unknown => runInNewContext(`(${readRetirementProgramBuilds.toString()})()`, {
+    window: { __wildshard: { world: { game } } }, performance: { now: () => 20 },
+  });
+  const snapshot = read(), row = log[0];
+  if (row === undefined) throw new Error('Missing diagnostic row');
+  row.object = 'later'; keys[0] = 'later';
+  expect(snapshot).toEqual({ at: 20, builds: 7, captured: 1, rows: [{ at: 10, material: 'graph:material', object: 'cover',
+    how: 'build', keyChars: 110, numericReferences: ['minified object={value:12.5} property=value uniformType=float'] }] });
+  keys.length = 0;
+  expect(read).toThrow(/alignment/u);
+  expect(runInNewContext(`(${readRetirementProgramBuilds.toString()})()`, {
+    window: { __wildshard: { world: { game: { nodeBuilds: null, nodeBuildKeys: null } } } },
+  })).toBeNull();
 });
