@@ -96,6 +96,38 @@ export function downloadEvidence(samples) {
     downloadDrops: drops, maxPercentError: measured === 0 ? null : maximumError, finalDeclaredBytes: previous?.total ?? null };
 }
 
+/** Read the existing visible samples; this adds no page observer or timer.
+ * Step starts are first OBSERVED samples, not interpolated stage boundaries.
+ * The displayed clock is rounded to tenths, so its percentage is diagnostic.
+ * @param {readonly import('./sim-shard.mjs').StepSample[]} samples */
+export function stepEvidence(samples) {
+  /** @param {string | undefined} text */
+  const clockMs = text => typeof text === 'string' && /^\d+:\d{2}\.\d$/u.test(text)
+    ? text.split(':').reduce((minutes, value) => minutes * 60 + Number(value), 0) * 1000 : null;
+  const finalClock = clockMs(samples.at(-1)?.clock);
+  let previousNumber = 0, previousTotal = null, totalChanges = 0, numberRegressions = 0, numberedFrames = 0, lastSetupBeforeFade = null;
+  const starts = [];
+  for (const sample of samples) {
+    const setup = typeof sample.setup === 'string' && /^(?:100|\d{1,2})$/u.test(sample.setup) ? Number(sample.setup) : null;
+    if (sample.fading === false && setup !== null) lastSetupBeforeFade = setup;
+    const step = /^step (\d+) \/ (\d+) ·/u.exec(sample.detail ?? '');
+    if (step === null) continue;
+    const number = Number(step[1]), total = Number(step[2]);
+    if (!Number.isSafeInteger(number) || !Number.isSafeInteger(total) || number < 1 || number > total) continue;
+    numberedFrames++;
+    if (previousTotal !== null && total !== previousTotal) totalChanges++;
+    if (number < previousNumber) numberRegressions++;
+    if (number !== previousNumber) {
+      const elapsed = clockMs(sample.clock);
+      const elapsedPercent = elapsed !== null && finalClock !== null && finalClock > 0 ? 100 * elapsed / finalClock : null;
+      starts.push({ number, total, setup, elapsedPercent,
+        errorPoints: setup !== null && elapsedPercent !== null ? Math.abs(setup - elapsedPercent) : null });
+    }
+    previousNumber = number; previousTotal = total;
+  }
+  return { numberedFrames, totalSteps: previousTotal, totalChanges, numberRegressions, observedStarts: starts, lastSetupBeforeFade };
+}
+
 /** Never compare expected content (including cache hits) to compressed network
  * traffic. Retain both independent units and any missing decode evidence. */
 export function transportEvidence(receipts) {

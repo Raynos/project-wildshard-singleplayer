@@ -1,4 +1,11 @@
 export interface DownloadSample { step?: string; declaredBytes?: string; pendingBytes?: string; downloadPercent?: string }
+export interface StepSample { clock?: string; detail?: string; setup?: string; fading?: boolean }
+/** First observed step samples and rounded displayed-clock ratios; missing evidence stays null. */
+export function stepEvidence(samples: readonly StepSample[]): {
+  numberedFrames: number; totalSteps: number | null; totalChanges: number; numberRegressions: number;
+  observedStarts: { number: number; total: number; setup: number | null; elapsedPercent: number | null; errorPoints: number | null }[];
+  lastSetupBeforeFade: number | null;
+};
 export function compiledPollDetails<T extends {errors: readonly string[]}, U>(details: boolean, accuracy: T | null, measures: () => U): {accuracy: T | null; measures: U} | {errors: readonly string[]};
 export interface CompiledFrameWindow { controlsAt: number | null; last: number | null; worst: number; worstAt: number | null; frames: number; complete: boolean }
 export function sampleCompiledFrame(state: CompiledFrameWindow, at: number, ready: boolean): void;

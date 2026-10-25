@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { compiledEntryQualification, compiledFrameMetrics, compiledPollDetails, downloadEvidence, recoveredGridControls, requireCompiledEntry, sampleCompiledFrame, transportEvidence, waitForWaitingWorker, type CompiledFrameWindow } from '../scripts/loading-benchmark/sim-shard.mjs';
+import { compiledEntryQualification, compiledFrameMetrics, compiledPollDetails, downloadEvidence, recoveredGridControls, requireCompiledEntry, sampleCompiledFrame, stepEvidence, transportEvidence, waitForWaitingWorker, type CompiledFrameWindow } from '../scripts/loading-benchmark/sim-shard.mjs';
 
 const frameWindow = (): CompiledFrameWindow => ({ controlsAt: null, last: null, worst: 0, worstAt: null, frames: 0, complete: false });
 
@@ -103,6 +103,34 @@ test('download evidence retains regressions, denominator growth and missing meas
     downloadDrops: 1, maxPercentError: 49, finalDeclaredBytes: 200 });
   expect(downloadEvidence([]).maxPercentError).toBeNull();
   expect(downloadEvidence([{ declaredBytes: '100', pendingBytes: '', downloadPercent: '' }]).missingFrames).toBe(1);
+});
+
+test('compiled step evidence retains denominator changes and backwards numbers', () => {
+  const sample = (detail: string, setup: string, clock: string, fading = false) => ({detail, setup, clock, fading});
+  const report = stepEvidence([
+    sample('Loading application modules', '', '00:00.0'),
+    sample('step 1 / 3 · Modules', '0', '00:00.0'),
+    sample('step 1 / 3 · Modules', '10', '00:00.5'),
+    sample('step 2 / 3 · World', '25', '00:02.0'),
+    sample('step 1 / 4 · Modules', '60', '00:03.0'),
+    sample('gap after World', '94', '00:03.9'),
+    sample('gap after World', '100', '00:04.0', true),
+  ]);
+  expect(report).toEqual({numberedFrames: 4, totalSteps: 4, totalChanges: 1, numberRegressions: 1,
+    lastSetupBeforeFade: 94, observedStarts: [
+      {number: 1, total: 3, setup: 0, elapsedPercent: 0, errorPoints: 0},
+      {number: 2, total: 3, setup: 25, elapsedPercent: 50, errorPoints: 25},
+      {number: 1, total: 4, setup: 60, elapsedPercent: 75, errorPoints: 15},
+    ]});
+});
+
+test('step evidence does not invent skipped step starts, clocks or pre-fade completion', () => {
+  expect(stepEvidence([])).toEqual({numberedFrames: 0, totalSteps: null, totalChanges: 0,
+    numberRegressions: 0, observedStarts: [], lastSetupBeforeFade: null});
+  expect(stepEvidence([{detail: 'step 5 / 26 · Audio', setup: '', clock: 'bad', fading: true}]))
+    .toMatchObject({numberedFrames: 1, lastSetupBeforeFade: null,
+      observedStarts: [{number: 5, total: 26, setup: null, elapsedPercent: null, errorPoints: null}]});
+  expect(stepEvidence([{detail: 'step 4 / 3 · Invalid', setup: 'NaN'}]).numberedFrames).toBe(0);
 });
 
 
