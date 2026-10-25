@@ -46,9 +46,9 @@ const binding = v.strictObject({
   emissive: v.optional(v.nullable(slot), null),
 });
 /** `props.materials`: baked GLB material name → admitted material ID and its texture slots (1–256 names). */
-export const PropMaterialsSchema = v.pipe(v.record(glbName, binding), v.check((rows) => { const n = Object.keys(rows).length; return n >= 1 && n <= 256; }, '1–256 named prop materials'));
+export const PropMaterialsSchema: v.GenericSchema<PropMaterialsInput, PropMaterials> = v.pipe(v.record(glbName, binding), v.check((rows) => { const n = Object.keys(rows).length; return n >= 1 && n <= 256; }, '1–256 named prop materials'));
 /** Admitted named prop materials. */
-export type PropMaterials = v.InferOutput<typeof PropMaterialsSchema>;
+
 /** One admitted binding. */
 export type PropMaterialBinding = PropMaterials[string];
 /** One admitted texture slot with its sampler (and the normal scale / occlusion strength where the slot has one). */
@@ -145,3 +145,107 @@ export function checkPropMaterialNames(materials: PropMaterials, bytes: Uint8Arr
     if (typeof primitive !== 'object' || primitive === null || typeof Reflect.get(primitive, 'material') !== 'number') throw new Error('props GLB primitive has no material');
   }
 }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type PropMaterialsInput = Record<string, {
+    id: string;
+    colour?: ({
+        file: string;
+        wrapS?: 33071 | 33648 | 10497 | undefined;
+        wrapT?: 33071 | 33648 | 10497 | undefined;
+        minFilter?: (9728 | 9729 | 9984 | 9985 | 9986 | 9987) | null | undefined;
+        magFilter?: (9728 | 9729) | null | undefined;
+        anisotropy?: number | undefined;
+    }) | null | undefined;
+    normal?: (Omit<{
+        file: string;
+        wrapS?: 33071 | 33648 | 10497 | undefined;
+        wrapT?: 33071 | 33648 | 10497 | undefined;
+        minFilter?: (9728 | 9729 | 9984 | 9985 | 9986 | 9987) | null | undefined;
+        magFilter?: (9728 | 9729) | null | undefined;
+        anisotropy?: number | undefined;
+    }, keyof ({
+        scale?: number | undefined;
+    })> & {
+        scale?: number | undefined;
+    }) | null | undefined;
+    metallicRoughness?: ({
+        file: string;
+        wrapS?: 33071 | 33648 | 10497 | undefined;
+        wrapT?: 33071 | 33648 | 10497 | undefined;
+        minFilter?: (9728 | 9729 | 9984 | 9985 | 9986 | 9987) | null | undefined;
+        magFilter?: (9728 | 9729) | null | undefined;
+        anisotropy?: number | undefined;
+    }) | null | undefined;
+    occlusion?: (Omit<{
+        file: string;
+        wrapS?: 33071 | 33648 | 10497 | undefined;
+        wrapT?: 33071 | 33648 | 10497 | undefined;
+        minFilter?: (9728 | 9729 | 9984 | 9985 | 9986 | 9987) | null | undefined;
+        magFilter?: (9728 | 9729) | null | undefined;
+        anisotropy?: number | undefined;
+    }, keyof ({
+        strength?: number | undefined;
+    })> & {
+        strength?: number | undefined;
+    }) | null | undefined;
+    emissive?: ({
+        file: string;
+        wrapS?: 33071 | 33648 | 10497 | undefined;
+        wrapT?: 33071 | 33648 | 10497 | undefined;
+        minFilter?: (9728 | 9729 | 9984 | 9985 | 9986 | 9987) | null | undefined;
+        magFilter?: (9728 | 9729) | null | undefined;
+        anisotropy?: number | undefined;
+    }) | null | undefined;
+}>;
+export type PropMaterials = Record<string, {
+    id: string;
+    colour: ({
+        file: string;
+        wrapS: 33071 | 33648 | 10497;
+        wrapT: 33071 | 33648 | 10497;
+        minFilter: (9728 | 9729 | 9984 | 9985 | 9986 | 9987) | null;
+        magFilter: (9728 | 9729) | null;
+        anisotropy: number;
+    }) | null;
+    normal: (Omit<{
+        file: string;
+        wrapS: 33071 | 33648 | 10497;
+        wrapT: 33071 | 33648 | 10497;
+        minFilter: (9728 | 9729 | 9984 | 9985 | 9986 | 9987) | null;
+        magFilter: (9728 | 9729) | null;
+        anisotropy: number;
+    }, keyof ({
+        scale: number;
+    })> & {
+        scale: number;
+    }) | null;
+    metallicRoughness: ({
+        file: string;
+        wrapS: 33071 | 33648 | 10497;
+        wrapT: 33071 | 33648 | 10497;
+        minFilter: (9728 | 9729 | 9984 | 9985 | 9986 | 9987) | null;
+        magFilter: (9728 | 9729) | null;
+        anisotropy: number;
+    }) | null;
+    occlusion: (Omit<{
+        file: string;
+        wrapS: 33071 | 33648 | 10497;
+        wrapT: 33071 | 33648 | 10497;
+        minFilter: (9728 | 9729 | 9984 | 9985 | 9986 | 9987) | null;
+        magFilter: (9728 | 9729) | null;
+        anisotropy: number;
+    }, keyof ({
+        strength: number;
+    })> & {
+        strength: number;
+    }) | null;
+    emissive: ({
+        file: string;
+        wrapS: 33071 | 33648 | 10497;
+        wrapT: 33071 | 33648 | 10497;
+        minFilter: (9728 | 9729 | 9984 | 9985 | 9986 | 9987) | null;
+        magFilter: (9728 | 9729) | null;
+        anisotropy: number;
+    }) | null;
+}>;

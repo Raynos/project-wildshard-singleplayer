@@ -137,7 +137,7 @@ normal layer emission is the declaration-size authority. Continuation starts at 
 | Slice | Scope | Budget | Status |
 |---|---|---|---|
 | T4-F1 | Named weld, forest-page and elite-entry data contracts; retain weld material entries/omit and admitted defaults | 60 min | done (2026-10-25, sp-x8) |
-| T4-F2 | Remaining largest format validators, in bounded packets, until normal declarations are below 2 MB | 60 min per packet | in flight (2026-10-25, sp-x8) |
+| T4-F2 | Remaining largest format validators, in bounded packets, until normal declarations are below 2 MB | 60 min per packet | done (2026-10-25, sp-x8) |
 | T4-F2a | Weapon and Explorer data contracts; preserve family variants, held entries and contact-tag metadata | 60 min | done (2026-10-25, sp-x8) |
 | T4-F2b | Encounter contracts, preserving schedule omit and nested cloud-puff metadata | 60 min | done (2026-10-25, sp-x8) |
 | T4-F2c | Figure, brain and mover contracts with authored/admitted default refusals | 60 min | done (2026-10-25, sp-x8) |
@@ -151,6 +151,7 @@ normal layer emission is the declaration-size authority. Continuation starts at 
 | T4-F2k | Weather, checkpoint, encounter and world-entry contracts; preserve record inference, readonly tuples and schema checks | 60 min | done (2026-10-25, sp-x8) |
 | T4-F2l | Population, audio, placement and light contracts; preserve schema entries, clip arity and authored defaults | 60 min | done (2026-10-25, sp-x8) |
 | T4-F2m | Wire, brain, water, terrain and material contracts; preserve schema composition, transforms and authored defaults | 60 min | done (2026-10-25, sp-x8) |
+| T4-F2n | Scene buffers, population, journals and material rows; preserve variants, defaults and typed record laws | 60 min | done (2026-10-25, sp-x8) |
 | T4-I1 | Format isolated declarations, then engine and remaining layers, one bounded diagnostic family per slice | 60 min per family | open |
 
 T4 first format slices are on origin: schema expressions and emitted runtime JavaScript are unchanged.

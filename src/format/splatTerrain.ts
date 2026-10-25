@@ -36,7 +36,7 @@ export type SplatRole = keyof typeof SPLAT_ROLES;
 export const SPLAT_CHANNELS = { _SPLAT: { attribute: 'splat', itemSize: 4 }, _CANOPY: { attribute: 'canopy', itemSize: 1 } } as const;
 
 /** `props.splat`: the splat terrain material the props tiles' terrain primitives draw with. */
-export const SplatTerrainSchema = v.strictObject({
+export const SplatTerrainSchema: v.GenericSchema<SplatTerrainInput, SplatTerrain> = v.strictObject({
   /** the baked GLB material name every terrain primitive carries */
   material: glbName,
   /** per role, layer i's KTX2 file (the unflipped `#layer` twin); layer i is splat channel i */
@@ -49,7 +49,7 @@ export const SplatTerrainSchema = v.strictObject({
   boreal: v.nullable(v.strictObject({ normalK: four(factor), trailDust: four(factor) })),
 });
 /** Admitted splat terrain. */
-export type SplatTerrain = v.InferOutput<typeof SplatTerrainSchema>;
+
 
 const read = new WeakMap<object, SplatTerrain | undefined>();
 /** A props section's splat terrain, admitted (undefined: none). Reads the additive `splat` field whether or not `PropsSchema` declares it yet. */
@@ -104,3 +104,86 @@ export function checkTileMaterialNames(materials: PropMaterials | undefined, spl
   if (Object.hasOwn(materials, splat.material)) throw new Error(`props material "${splat.material}" is both the splat terrain and a named prop material`);
   checkPropMaterialNames({ ...materials, [splat.material]: { id: 'pbr', colour: null, normal: null, metallicRoughness: null, occlusion: null, emissive: null } }, bytes);
 }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type SplatTerrainInput = SplatTerrain;
+interface SplatTerrainFields {
+    material: string;
+    layers: {
+        colour: [
+            string,
+            string,
+            string,
+            string
+        ];
+        normal: [
+            string,
+            string,
+            string,
+            string
+        ];
+        arm: [
+            string,
+            string,
+            string,
+            string
+        ];
+    };
+    phone?: {
+        colour: [
+            string,
+            string,
+            string,
+            string
+        ];
+        normal: [
+            string,
+            string,
+            string,
+            string
+        ];
+        arm: [
+            string,
+            string,
+            string,
+            string
+        ];
+    };
+    tints: [
+        [
+            number,
+            number,
+            number
+        ],
+        [
+            number,
+            number,
+            number
+        ],
+        [
+            number,
+            number,
+            number
+        ],
+        [
+            number,
+            number,
+            number
+        ]
+    ];
+    boreal: ({
+        normalK: [
+            number,
+            number,
+            number,
+            number
+        ];
+        trailDust: [
+            number,
+            number,
+            number,
+            number
+        ];
+    }) | null;
+}
+export type SplatTerrain = { [Key in keyof SplatTerrainFields]: SplatTerrainFields[Key] };

@@ -22,7 +22,7 @@ const mesh = v.strictObject({ kind: v.picklist(['mesh', 'points']), geometry: id
 const draw = v.strictObject({ id, name: v.optional(v.pipe(v.string(), v.maxLength(256)), ''), at: v.optional(xyz, [0, 0, 0]),
   draw: v.exactOptional(mesh), levels: v.exactOptional(list(v.strictObject({ from: v.pipe(finite, v.minValue(0)), draw: v.exactOptional(mesh) }), 8)) });
 /** Client-only baked draw storage. References preserve typed buffers, attribute sharing and LOD order. */
-export const SceneBuffersSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Scene buffers require plain JSON'),
+export const SceneBuffersSchema: v.GenericSchema<SceneBuffersInput, SceneBuffers> = v.pipe(v.unknown(), v.check(isJsonData, 'Scene buffers require plain JSON'),
   v.strictObject({ version: v.literal(1), name: v.optional(v.pipe(v.string(), v.maxLength(256)), ''), buffers: list(buffer, 4096), attributes: list(attribute, 8192), geometries: list(geometry, 4096), draws: list(draw, 2048) }),
   v.check(row => {
     const buffers = new Map(row.buffers.map(entry => [entry.id, entry]));
@@ -42,6 +42,79 @@ export const SceneBuffersSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Scene
         && (entry.levels === undefined || entry.levels.length > 0 && new Set(entry.levels.map(level => level.from)).size === entry.levels.length
           && entry.levels.every(level => level.draw === undefined || geometries.has(level.draw.geometry))));
   }, 'Unique bounded buffer references and LOD bands'));
-export type SceneBuffers = v.InferOutput<typeof SceneBuffersSchema>;
+
 /** Validate all identities and storage extents before constructing any GPU resource. */
 export function parseSceneBuffers(input: unknown): SceneBuffers { return v.parse(SceneBuffersSchema, input); }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type SceneBuffersInput = unknown;
+interface SceneBuffersFields {
+    version: 1;
+    name: string;
+    buffers: ({
+        id: string;
+        storage: 'f32' | 'u16' | 'u8';
+        bytes?: string;
+        file?: string;
+        byteLength?: number;
+        stride?: number;
+        instanced: boolean;
+    })[];
+    attributes: ({
+        id: string;
+        buffer: string;
+        size: number;
+        offset: number;
+        normalized: boolean;
+    })[];
+    geometries: ({
+        id: string;
+        attributes: Record<string, string>;
+        index?: string;
+        instances?: (number) | ({
+            knob: string;
+            threshold: number;
+            below: number;
+            above: number;
+        });
+        sphere?: [
+            number,
+            number,
+            number,
+            number
+        ];
+    })[];
+    draws: ({
+        id: string;
+        name: string;
+        at: [
+            number,
+            number,
+            number
+        ];
+        draw?: {
+            kind: 'mesh' | 'points';
+            geometry: string;
+            at: [
+                number,
+                number,
+                number
+            ];
+            frustum: boolean;
+        };
+        levels?: ({
+            from: number;
+            draw?: {
+                kind: 'mesh' | 'points';
+                geometry: string;
+                at: [
+                    number,
+                    number,
+                    number
+                ];
+                frustum: boolean;
+            };
+        })[];
+    })[];
+}
+export type SceneBuffers = { [Key in keyof SceneBuffersFields]: SceneBuffersFields[Key] };

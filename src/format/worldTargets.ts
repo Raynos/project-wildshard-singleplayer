@@ -27,10 +27,10 @@ const target = v.pipe(v.strictObject({ id, weapon: id, at: v.tuple([coordinate, 
 const targets = v.pipe(v.array(target), v.maxLength(128),
   v.check(rows => new Set(rows.map(row => row.id)).size === rows.length, 'unique world target ids'),
   v.check(rows => rows.every(row => rows.every(other => row.weapon !== other.weapon || JSON.stringify(row.scan) === JSON.stringify(other.scan))), 'one scan law per weapon'));
-export const WorldTargetsSchema = v.pipe(v.unknown(), v.check(isJsonData, 'plain JSON world targets'), v.strictObject({ targets,
+export const WorldTargetsSchema: v.GenericSchema<WorldTargetsInput, WorldTargets> = v.pipe(v.unknown(), v.check(isJsonData, 'plain JSON world targets'), v.strictObject({ targets,
   spots: v.pipe(v.array(v.strictObject({ id, at: v.tuple([coordinate, coordinate, coordinate]), yaw: v.pipe(finite, v.minValue(-2 * Math.PI), v.maxValue(2 * Math.PI)) })),
     v.maxLength(256), v.check(rows => new Set(rows.map(row => row.id)).size === rows.length, 'unique world spot ids')) }));
-export type WorldTargets = v.InferOutput<typeof WorldTargetsSchema>;
+
 export type WorldTarget = WorldTargets['targets'][number];
 /** Refuse callbacks, malformed shapes and ambiguous rules before touching the existing world owners. */
 export function parseWorldTargets(input: unknown): WorldTargets { return v.parse(WorldTargetsSchema, input); }
@@ -55,3 +55,57 @@ export function worldTargetRules(input: WorldTargets, source: Pick<Shardfile, 'i
   }
   return [...errors];
 }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type WorldTargetsInput = unknown;
+interface WorldTargetsFields {
+    targets: ({
+        id: string;
+        weapon: string;
+        at: [
+            number,
+            number,
+            number
+        ];
+        radius: number;
+        needs?: {
+            all?: (string)[];
+            any?: (string)[];
+            none?: (string)[];
+        };
+        scan: ({
+            kind: 'cone';
+            reach: number;
+            halfAngle: number;
+            selection: 'all';
+        }) | ({
+            kind: 'ray';
+            selection: 'nearest';
+        });
+        rules: ({
+            move: string;
+            contact: number;
+            effects: (({
+                kind: 'flag';
+                id: string;
+            }) | ({
+                kind: 'interaction';
+                id: string;
+            }) | ({
+                kind: 'hint';
+                text: string;
+            }))[];
+            caught: 'always' | 'if-applied' | 'never';
+        })[];
+    })[];
+    spots: ({
+        id: string;
+        at: [
+            number,
+            number,
+            number
+        ];
+        yaw: number;
+    })[];
+}
+export type WorldTargets = { [Key in keyof WorldTargetsFields]: WorldTargetsFields[Key] };

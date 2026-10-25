@@ -8,10 +8,10 @@ const fieldType = v.picklist(['bool', 'i32', 'f64', 'string']);
 const scope = v.picklist(['shared', 'player']);
 const savedField = v.strictObject({ id: positive, name, type: fieldType, value: scalar });
 /** Stable ids and typed values are the portable part of a checkpoint; executable script memory is deliberately excluded. */
-export const LogicalStateSchema = v.strictObject({ version: positive, shared: v.pipe(v.array(savedField), v.maxLength(4096)),
+export const LogicalStateSchema: v.GenericSchema<LogicalStateInput, LogicalState> = v.strictObject({ version: positive, shared: v.pipe(v.array(savedField), v.maxLength(4096)),
   players: v.pipe(v.array(v.strictObject({ actorId: name, fields: v.pipe(v.array(savedField), v.maxLength(4096)) })), v.maxLength(10000)) });
 /** Detached declared state for additive or explicitly authored revision migration. */
-export type LogicalState = v.InferOutput<typeof LogicalStateSchema>;
+
 const operation = v.variant('op', [
   v.strictObject({ op: v.literal('default'), scope, field: savedField }),
   v.strictObject({ op: v.literal('rename'), scope, id: positive, name }),
@@ -22,7 +22,7 @@ const operation = v.variant('op', [
 const equipmentSlot = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9.-]*$/u), v.maxLength(256));
 const slotRename = v.strictObject({ from: equipmentSlot, to: v.pipe(equipmentSlot, v.regex(/^declared\.weapon\.[a-z][a-zA-Z0-9.-]*$/u)) });
 /** Sequential state-version rows are pure data. asHook is reserved and must remain null until an admitted AS migration ABI exists. */
-export const MigrationsSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Migrations require plain JSON'), v.array(v.strictObject({ from: positive, to: positive,
+export const MigrationsSchema: v.GenericSchema<DeclaredMigrationsInput, DeclaredMigrations> = v.pipe(v.unknown(), v.check(isJsonData, 'Migrations require plain JSON'), v.array(v.strictObject({ from: positive, to: positive,
   fields: v.pipe(v.array(operation), v.maxLength(256)), equipmentSlots: v.exactOptional(v.pipe(v.array(slotRename), v.maxLength(64))), asHook: v.optional(v.null(), null) })), v.maxLength(64),
   v.check((rows) => new Set(rows.map((row) => row.from)).size === rows.length && rows.every((row) => row.to === row.from + 1), 'Unique consecutive migration versions'),
   v.check((rows) => rows.every((row) => {
@@ -35,7 +35,7 @@ export const MigrationsSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Migrati
       && row.fields.every((field) => (field.op !== 'drop' && field.op !== 'default') || row.fields.filter((other) => identity(other) === identity(field)).length === 1);
   }), 'Unique migration edits and value sources; drop/default cannot combine with other edits'));
 /** Author migration rows accepted by both build-time admission and browser loading. */
-export type DeclaredMigrations = v.InferOutput<typeof MigrationsSchema>;
+
 /** Rename persisted equipment-slot keys before the cosmetics owner filters them against current rows.
  * Canonical keys win when an interrupted upgrade left both names. Repeated loads are idempotent. */
 export function migrateEquipmentSlots(input: Readonly<Record<string, string>>, migrations: DeclaredMigrations): Record<string, string> {
@@ -146,3 +146,64 @@ export function migrateLogicalState(input: unknown, target: { version: number; s
   return { version: target.version, shared: finish(state.shared, target.shared),
     players: state.players.map((player) => ({ actorId: player.actorId, fields: finish(player.fields, target.player) })) };
 }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type LogicalStateInput = LogicalState;
+interface LogicalStateFields {
+    version: number;
+    shared: ({
+        id: number;
+        name: string;
+        type: 'bool' | 'i32' | 'f64' | 'string';
+        value: (boolean) | (number) | (string);
+    })[];
+    players: ({
+        actorId: string;
+        fields: ({
+            id: number;
+            name: string;
+            type: 'bool' | 'i32' | 'f64' | 'string';
+            value: (boolean) | (number) | (string);
+        })[];
+    })[];
+}
+export type LogicalState = { [Key in keyof LogicalStateFields]: LogicalStateFields[Key] };
+export type DeclaredMigrationsInput = unknown;
+export type DeclaredMigrations = ({
+    from: number;
+    to: number;
+    fields: (({
+        op: 'default';
+        scope: 'shared' | 'player';
+        field: {
+            id: number;
+            name: string;
+            type: 'bool' | 'i32' | 'f64' | 'string';
+            value: (boolean) | (number) | (string);
+        };
+    }) | ({
+        op: 'rename';
+        scope: 'shared' | 'player';
+        id: number;
+        name: string;
+    }) | ({
+        op: 'drop';
+        scope: 'shared' | 'player';
+        id: number;
+    }) | ({
+        op: 'map';
+        scope: 'shared' | 'player';
+        id: number;
+        type: 'bool' | 'i32' | 'f64' | 'string';
+        values: ({
+            from: (boolean) | (number) | (string);
+            to: (boolean) | (number) | (string);
+        })[];
+        fallback: 'keep' | 'reject';
+    }))[];
+    equipmentSlots?: ({
+        from: string;
+        to: string;
+    })[];
+    asHook: null;
+})[];

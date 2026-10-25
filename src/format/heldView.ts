@@ -5,10 +5,22 @@ import { GraphArmsSchema } from './graphArmsRows';
 /** G601 C10: a held view (first-person arms and what they hold) as one row family, its look kind choosing how its rig is
  *  dressed: `toon` (toon-family looks, two blades and swimming hands lit by the day) or `graph` (graph looks with their
  *  maps, weave, decals, pendants, swing trail and per-frame writes). Rig, socket and material ids only; no callbacks. */
-export const HeldViewSchema = v.variant('kind', [
+export const HeldViewSchema: v.GenericSchema<HeldViewRowInput, HeldViewRow> = v.variant('kind', [
   v.strictObject({ kind: v.literal('toon'), ...ToonArmsLookSchema.entries }),
   v.strictObject({ kind: v.literal('graph'), ...GraphArmsSchema.entries }),
 ]);
-export type HeldViewRow = v.InferOutput<typeof HeldViewSchema>;
+
 /** Admit a held view before its rig loads or any look is borrowed. */
 export function parseHeldView(input: unknown): HeldViewRow { return v.parse(HeldViewSchema, input); }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type HeldViewRowInput = (Omit<{
+    kind: 'toon';
+}, keyof (v.InferInput<typeof ToonArmsLookSchema>)> & v.InferInput<typeof ToonArmsLookSchema>) | (Omit<{
+    kind: 'graph';
+}, keyof (v.InferInput<typeof GraphArmsSchema>)> & v.InferInput<typeof GraphArmsSchema>);
+export type HeldViewRow = (Omit<{
+    kind: 'toon';
+}, keyof (v.InferOutput<typeof ToonArmsLookSchema>)> & v.InferOutput<typeof ToonArmsLookSchema>) | (Omit<{
+    kind: 'graph';
+}, keyof (v.InferOutput<typeof GraphArmsSchema>)> & v.InferOutput<typeof GraphArmsSchema>);
