@@ -1,8 +1,8 @@
 import { expect, test } from 'vitest';
-import { GridAssembly } from '../src/game/grid/assembly';
-import { ResidencyAllocator } from '../src/game/grid/allocator';
-import { FAR_RING } from '../src/game/grid/farProxy';
-import { TileStreamer, type RingCatalogue, type RingPorts } from '../src/engine/world/tileStreamer';
+import { GridAssembly } from './assembly';
+import { ResidencyAllocator } from './allocator';
+import { FAR_RING } from './farProxy';
+import { TileStreamer, type RingCatalogue, type RingPorts } from '@wildshard/engine/world/tileStreamer';
 
 // ringsReady: ready() waits on every visible cell, and the far ring requests a proxy only while its charge fits the
 // 14.4 MB budget. Charging unloaded proxies the 1.6 MB cap left the 12th visible cell of a corner spawn unrequested (the

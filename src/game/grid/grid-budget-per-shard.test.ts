@@ -1,9 +1,9 @@
 import { expect, test } from 'vitest';
-import { CONTENT_CAPS } from '../src/engine/core/config';
-import { contentCost, type ContentCostInput } from '../src/format/contentCost';
-import { ResidencyAllocator, type ResidencyEntry } from '../src/game/grid/allocator';
-import { MemoryAdmission } from '../src/format/product';
-import { budgetPoints, shardLimit } from '../src/game/grid/budgetPoints';
+import { CONTENT_CAPS } from '@wildshard/engine/core/config';
+import { contentCost, type ContentCostInput } from '@wildshard/format/contentCost';
+import { ResidencyAllocator, type ResidencyEntry } from './allocator';
+import { MemoryAdmission } from '@wildshard/format/product';
+import { budgetPoints, shardLimit } from './budgetPoints';
 
 const entry = (owner: string, bytes: number): ResidencyEntry =>
   ({ id: `sim:${owner}`, category: 'sim', bytes, owner, distance: 0, needed: true, refs: 1, holds: 0, accountedBytes: bytes });

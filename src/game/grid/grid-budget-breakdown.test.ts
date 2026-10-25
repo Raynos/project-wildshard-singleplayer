@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
-import { CONTENT_CAPS } from '../src/engine/core/config';
-import { ResidencyAllocator } from '../src/game/grid/allocator';
-import { budgetBreakdown, PLATFORM_OWNER } from '../src/game/grid/budgetPoints';
+import { CONTENT_CAPS } from '@wildshard/engine/core/config';
+import { ResidencyAllocator } from './allocator';
+import { budgetBreakdown, PLATFORM_OWNER } from './budgetPoints';
 
 const MB = 1_000_000;
 

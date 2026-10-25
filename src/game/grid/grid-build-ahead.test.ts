@@ -1,12 +1,12 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the real regional physics and traveller transfer.
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
-import { CHUNK_HALF } from '../src/engine/core/config';
-import { loadRapier } from '../src/engine/physics/rapier';
-import { createSimHost, type SimLevel } from '../src/engine/sim';
-import { GridAssembly } from '../src/game/grid/assembly';
-import { LiveGridHost } from '../src/game/grid/live';
-import { PageResidency } from '../src/game/grid/pageResidency';
+import { CHUNK_HALF } from '@wildshard/engine/core/config';
+import { loadRapier } from '@wildshard/engine/physics/rapier';
+import { createSimHost, type SimLevel } from '@wildshard/engine/sim';
+import { GridAssembly } from './assembly';
+import { LiveGridHost } from './live';
+import { PageResidency } from './pageResidency';
 
 const level: SimLevel = { version: 1, id: 'platform', seed: 1, ground: { size: 500, height: 0 },
   player: { at: { x: 0, y: 0, z: 0 }, yaw: 0, speed: 30 }, entities: [], quests: [],

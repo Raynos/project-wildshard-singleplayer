@@ -1,8 +1,8 @@
 import { expect, test, vi } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
-import { TileDriver, tileKeys } from '../src/game/shardfile/tileDriver';
-import type { TileContent } from '../src/game/shardfile/tileContent';
-import { tileOrder } from '../src/game/shardfile/tileOrder';
+import { Scope } from '@wildshard/engine/app/scope';
+import { TileDriver, tileKeys } from './tileDriver';
+import type { TileContent } from './tileContent';
+import { tileOrder } from './tileOrder';
 
 // Tile streaming T4: an entered region's per-tile content follows the player. A made-up content with something in every
 // tile records each attach and each tile scope's end.

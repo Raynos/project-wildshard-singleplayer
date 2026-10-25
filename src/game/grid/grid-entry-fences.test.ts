@@ -1,19 +1,19 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Test the shipped Rapier WASM against the registered grid collider data.
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
-import { CHUNK_HALF } from '../src/engine/core/config';
-import { Physics } from '../src/engine/physics/Physics';
-import { CharacterMotor, PLAYER_BODY } from '../src/engine/physics/CharacterMotor';
-import { loadRapier } from '../src/engine/physics/rapier';
-import { ReadinessWalls } from '../src/engine/physics/readinessWalls';
-import { TransferWalls } from '../src/engine/physics/transferWalls';
-import { installStripCollider } from '../src/engine/physics/stripColliders';
-import { installEntrySockets } from '../src/engine/physics/entrySockets';
-import { generatePlatform } from '../src/engine/sim/strips';
-import { TraversalReadiness, readinessModel } from '../src/engine/sim/readiness';
-import { GridAssembly } from '../src/game/grid/assembly';
-import { neighbourEdges } from '../src/game/grid/readinessEdges';
+import { Scope } from '@wildshard/engine/app/scope';
+import { CHUNK_HALF } from '@wildshard/engine/core/config';
+import { Physics } from '@wildshard/engine/physics/Physics';
+import { CharacterMotor, PLAYER_BODY } from '@wildshard/engine/physics/CharacterMotor';
+import { loadRapier } from '@wildshard/engine/physics/rapier';
+import { ReadinessWalls } from '@wildshard/engine/physics/readinessWalls';
+import { TransferWalls } from '@wildshard/engine/physics/transferWalls';
+import { installStripCollider } from '@wildshard/engine/physics/stripColliders';
+import { installEntrySockets } from '@wildshard/engine/physics/entrySockets';
+import { generatePlatform } from '@wildshard/engine/sim/strips';
+import { TraversalReadiness, readinessModel } from '@wildshard/engine/sim/readiness';
+import { GridAssembly } from './assembly';
+import { neighbourEdges } from './readinessEdges';
 
 const assembly = new GridAssembly({ developer: false, devserver: false }), cell = assembly.cell('driftwood-isle');
 const empty = assembly.emptyNeighbour.edge;

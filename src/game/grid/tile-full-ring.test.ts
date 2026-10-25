@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
-import { TileStreamer, type RingCell, type RingTile } from '../src/engine/world/tileStreamer';
-import { ResidencyAllocator } from '../src/game/grid/allocator';
+import { TileStreamer, type RingCell, type RingTile } from '@wildshard/engine/world/tileStreamer';
+import { ResidencyAllocator } from './allocator';
 
 const camera = { x: -31.25, z: -31.25, vx: 0, vz: 0 };
 const home: RingCell = { instance: 'home', origin: { x: 0, z: 0 } };

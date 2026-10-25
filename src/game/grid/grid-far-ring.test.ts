@@ -1,8 +1,8 @@
 import { expect, test } from 'vitest';
-import { GridAssembly } from '../src/game/grid/assembly';
-import { ResidencyAllocator } from '../src/game/grid/allocator';
-import { FAR_RING } from '../src/game/grid/farProxy';
-import { TileStreamer, type RingCatalogue, type RingPorts } from '../src/engine/world/tileStreamer';
+import { GridAssembly } from './assembly';
+import { ResidencyAllocator } from './allocator';
+import { FAR_RING } from './farProxy';
+import { TileStreamer, type RingCatalogue, type RingPorts } from '@wildshard/engine/world/tileStreamer';
 
 // SF88c (G526): from anywhere on the 5 × 5's outer road, every cell of the layout keeps its far proxy (no whole cell pops), inside the
 // far ring's unchanged budget (9 charges of 1.6 MB), each proxy charged its own bytes once loaded.

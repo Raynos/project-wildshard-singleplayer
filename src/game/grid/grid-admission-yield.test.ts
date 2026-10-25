@@ -1,6 +1,6 @@
 import { afterEach, expect, test, vi } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
-import { yieldGridConstruction } from '../src/game/grid/admissionYield';
+import { Scope } from '@wildshard/engine/app/scope';
+import { yieldGridConstruction } from './admissionYield';
 
 afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 

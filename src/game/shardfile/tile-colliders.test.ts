@@ -1,8 +1,8 @@
 import { expect, test } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
-import { colliderTileKeys, SharedTileBuilds, tileKey, type TileContent } from '../src/game/shardfile/tileContent';
-import { TileDriver } from '../src/game/shardfile/tileDriver';
-import { tileOf } from '../src/game/shardfile/tileOrder';
+import { Scope } from '@wildshard/engine/app/scope';
+import { colliderTileKeys, SharedTileBuilds, tileKey, type TileContent } from './tileContent';
+import { TileDriver } from './tileDriver';
+import { tileOf } from './tileOrder';
 
 // Tile streaming T3 (the collider ring, D2 B): colliders follow the 3 x 3 around the player, apart from the 5 x 5 of draws.
 const key = (x: number, z: number): number => tileKey(tileOf(x, z));

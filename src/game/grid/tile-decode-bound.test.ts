@@ -1,6 +1,6 @@
 import { afterEach, expect, test, vi } from 'vitest';
-import { TileDecoder, type TileDecodeReply, type TileDecodeRequest } from '../src/game/grid/tileDecoder';
-import type { TerrainTileData } from '../src/format/terrainTileBytes';
+import { TileDecoder, type TileDecodeReply, type TileDecodeRequest } from './tileDecoder';
+import type { TerrainTileData } from '@wildshard/format/terrainTileBytes';
 
 const workers: ControlledWorker[] = [];
 const previousWorker = globalThis.Worker;

@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
-import { TileStreamer, type RingPorts, type RingLevel } from '../src/engine/world/tileStreamer';
-import { ResidencyAllocator } from '../src/game/grid/allocator';
+import { TileStreamer, type RingPorts, type RingLevel } from '@wildshard/engine/world/tileStreamer';
+import { ResidencyAllocator } from './allocator';
 
 const camera = { x: 10_000, z: 0, vx: 0, vz: 0 };
 function fixture(failing?: RingLevel) {

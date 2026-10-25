@@ -1,9 +1,9 @@
 // @vitest-environment happy-dom
 import { afterEach, expect, test, vi } from 'vitest';
 import { PerspectiveCamera } from 'three';
-import { Scope } from '../src/engine/app/scope';
-import { app } from '../src/engine/app/runtime';
-import { installGridReveal } from '../src/game/grid/reveal';
+import { Scope } from '@wildshard/engine/app/scope';
+import { app } from '@wildshard/engine/app/runtime';
+import { installGridReveal } from './reveal';
 
 const scopes: Scope[] = [];
 afterEach(() => {

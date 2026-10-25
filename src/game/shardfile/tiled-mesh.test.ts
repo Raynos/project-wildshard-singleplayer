@@ -1,9 +1,9 @@
 import { expect, test } from 'vitest';
 import { BufferAttribute, BufferGeometry, Matrix4, Mesh, MeshBasicMaterial } from 'three';
-import { Scope } from '../src/engine/app/scope';
-import { tiledMesh } from '../src/game/shardfile/tiledMesh';
-import { tileKey } from '../src/game/shardfile/tileContent';
-import { tileOf } from '../src/game/shardfile/tileOrder';
+import { Scope } from '@wildshard/engine/app/scope';
+import { tiledMesh } from './tiledMesh';
+import { tileKey } from './tileContent';
+import { tileOf } from './tileOrder';
 
 // Tile streaming T3: a merged recipe mesh keeps one draw; its index holds only the resident tiles' triangles. A made-up
 // mesh with one small triangle at each of three spots, two of them in the same tile.
