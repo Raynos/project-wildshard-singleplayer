@@ -9,7 +9,7 @@ import { parseGroupStepV2, groupStepLayoutV2 } from '../src/format/scriptGroupSt
 import { validateV2QueryRequest, prepareV2QueryReplies, type V2QueryBinding, type V2QueryRequest } from '../src/format/scriptQueriesV2';
 import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
 import { v2CoreSource } from '../src/sdk/as/wsV2';
-import { fixtureBytes } from './fixtures/nativeBytes';
+import { fixtureBytes } from '@wildshard/engine/test/nativeBytes';
 
 const rows = parseGroupStepV2({ bank: [{ kind: 'number', name: 'grassSum' }, { kind: 'number', name: 'normalSum' }],
   columns: [], members: 1, signals: ['step','overQuota'], actions: [], outputs: 1, pages: 1, fuel: 400000, queries: { pending: 2, scalars: 32 } });

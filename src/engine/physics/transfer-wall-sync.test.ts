@@ -1,11 +1,11 @@
 import { expect, test, vi } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
-import { Physics } from '../src/engine/physics/Physics';
-import { loadRapier } from '../src/engine/physics/rapier';
-import { TransferWalls } from '../src/engine/physics/transferWalls';
-import { fixtureBytes } from './fixtures/nativeBytes';
+import { Scope } from '../app/scope';
+import { Physics } from './Physics';
+import { loadRapier } from './rapier';
+import { TransferWalls } from './transferWalls';
+import { fixtureBytes } from '@wildshard/engine/test/nativeBytes';
 
-const wasm = new URL('../node_modules/@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm', import.meta.url);
+const wasm = new URL('../../../node_modules/@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm', import.meta.url);
 
 test('every sync resolves the current fences once in order and enables them', async () => {
   const R = await loadRapier(Uint8Array.from(fixtureBytes(wasm))), scope = new Scope('transfer-sync'), physics = new Physics(R);

@@ -1,14 +1,14 @@
 import { expect,test } from 'vitest';
-import { fixtureBytes } from './fixtures/nativeBytes';
-import { loadRapier } from '../src/engine/physics/rapier';
-import { Physics } from '../src/engine/physics/Physics';
-import { HeightPatch } from '../src/engine/physics/heightPatch';
-import { tagOf } from '../src/engine/physics/surface';
-import { Scope } from '../src/engine/app/scope';
-import { onGpuRestored,rebakeGpuContent } from '../src/engine/core/gpuOnly';
+import { fixtureBytes } from '@wildshard/engine/test/nativeBytes';
+import { loadRapier } from './rapier';
+import { Physics } from './Physics';
+import { HeightPatch } from './heightPatch';
+import { tagOf } from './surface';
+import { Scope } from '../app/scope';
+import { onGpuRestored,rebakeGpuContent } from '../core/gpuOnly';
 
 async function physics(): Promise<Physics> {
-  const R = await loadRapier(Uint8Array.from(fixtureBytes(new URL('../public/assets/physics/rapier.wasm',import.meta.url))));
+  const R = await loadRapier(Uint8Array.from(fixtureBytes(new URL('../../../public/assets/physics/rapier.wasm',import.meta.url))));
   return new Physics(R);
 }
 function heightAt(host: Physics,x: number,z: number): number | null {

@@ -5,7 +5,7 @@ import {ActorProjectionV2Schema,parseActorProjectionV2} from '../src/format/acto
 import {createSimHost} from '../src/engine/sim';
 import {loadRapier} from '../src/engine/physics/rapier';
 import type {AnimalSim} from '../src/engine/entities/AnimalSim';
-import {fixtureBytes} from './fixtures/nativeBytes';
+import {fixtureBytes} from '@wildshard/engine/test/nativeBytes';
 import {SIM_LEVEL} from './fixtures/sim-level/level';
 import {namedJsonSchema} from '../src/sdk/formatJsonSchema';
 import {validateNamedJsonSchema} from '../src/game/shardfile/customSchema';

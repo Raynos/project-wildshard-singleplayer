@@ -9,7 +9,7 @@ import { SimBatchV2 } from '../src/engine/script/simBatchV2';
 import { compileSimV2 } from './fixtures/compileSimV2';
 import { layoutV2 } from '../src/format/scriptWireV2';
 import { prepareV2QueryReplies,validateV2QueryRequest,type V2QueryBinding,type V2QueryOperation,type V2QueryRequest } from '../src/format/scriptQueriesV2';
-import { fixtureBytes } from './fixtures/nativeBytes';
+import { fixtureBytes } from '@wildshard/engine/test/nativeBytes';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
 async function nativeWorld() {

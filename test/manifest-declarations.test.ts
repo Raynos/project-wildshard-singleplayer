@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import nalati from '../src/shards/nalati-grasslands/discovery.generated';
 import { readNativeTerrain } from '../src/sdk/bake/terrain';
-import { fixtureBytes } from './fixtures/nativeBytes';
+import { fixtureBytes } from '@wildshard/engine/test/nativeBytes';
 import discovery from '../src/shards/nalati-grasslands/data/discovery.json' with { type: 'json' };
 import nine from '../src/shards/nine-dragon-stack/discovery.generated';
 

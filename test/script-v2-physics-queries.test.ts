@@ -1,6 +1,6 @@
 import { expect,test } from 'vitest';
 import { Vector3 } from 'three';
-import { fixtureBytes } from './fixtures/nativeBytes';
+import { fixtureBytes } from '@wildshard/engine/test/nativeBytes';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { Physics } from '../src/engine/physics/Physics';
 import { groups } from '../src/engine/physics/groups';

@@ -12,7 +12,7 @@ import { createSimHost } from '../src/engine/sim';
 import { Physics } from '../src/engine/physics/Physics';
 import { CharacterMotor } from '../src/engine/physics/CharacterMotor';
 import { loadRapier } from '../src/engine/physics/rapier';
-import { fixtureBytes } from './fixtures/nativeBytes';
+import { fixtureBytes } from '@wildshard/engine/test/nativeBytes';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { withOwner } from '../src/engine/app/ownership';
 import { app } from '../src/engine/app/runtime';

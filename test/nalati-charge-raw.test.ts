@@ -9,7 +9,7 @@ import {CharacterMotor} from '../src/engine/physics/CharacterMotor';
 import {createSimHost} from '../src/engine/sim';
 import {loadRapier} from '../src/engine/physics/rapier';
 import {SIM_LEVEL} from './fixtures/sim-level/level';
-import {fixtureBytes} from './fixtures/nativeBytes';
+import {fixtureBytes} from '@wildshard/engine/test/nativeBytes';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 import {sha256} from '../src/game/plugin/moduleHash';
 import {emptyShardfile} from '../src/sdk/author';

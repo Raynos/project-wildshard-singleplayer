@@ -2,7 +2,7 @@ import { expect,test,vi } from 'vitest';
 import { Scope } from '../src/engine/app/scope';
 import { createSimHost } from '../src/engine/sim';
 import { loadRapier } from '../src/engine/physics/rapier';
-import { fixtureBytes } from './fixtures/nativeBytes';
+import { fixtureBytes } from '@wildshard/engine/test/nativeBytes';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { PageWildEnvironment } from '../src/game/population/pageGroups';
 import { ObservationColumnsV2,type V2ColumnOwners,type V2ReferenceColumn } from '../src/engine/script/observationColumnsV2';

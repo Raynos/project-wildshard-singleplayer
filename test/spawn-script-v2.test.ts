@@ -12,7 +12,7 @@ import { PageWildEnvironment } from '../src/game/population/pageGroups';
 import type { AnimalManager } from '../src/engine/entities/AnimalManager';
 import { createSimHost } from '../src/engine/sim';
 import { loadRapier } from '../src/engine/physics/rapier';
-import { fixtureBytes } from './fixtures/nativeBytes';
+import { fixtureBytes } from '@wildshard/engine/test/nativeBytes';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { parseSpawnScript,spawnScriptRegistries } from '../src/format/spawnScripts';

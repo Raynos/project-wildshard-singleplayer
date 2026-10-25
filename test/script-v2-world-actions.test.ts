@@ -10,7 +10,7 @@ import { readV2WorldActions,V2_ACTION_OPS,type V2ActionBinding,type V2WorldActio
 import { layoutV2,writeV2Frame,validateV2Frame,type V2FrameAuthority } from '../src/format/scriptWireV2';
 import { prepareV2WorldActions, type V2WorldActionLoan } from '../src/game/shardfile/worldActionsV2';
 import { applyV2WorldActions } from './fixtures/applyWorldActionsV2';
-import { fixtureBytes } from './fixtures/nativeBytes';
+import { fixtureBytes } from '@wildshard/engine/test/nativeBytes';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
 const layout = layoutV2(1024,1,new Map([[1,1],[4,1],[5,1],[10,4]]));

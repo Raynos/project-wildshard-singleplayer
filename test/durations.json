@@ -2330,7 +2330,7 @@
  "test/template-source-layout.test.ts": 0.077,
  "test/terrain-baker.test.ts": 6.6,
  "test/terrain-chunk-steps.test.ts": 0.4,
- "test/terrain-primitives.test.ts": 0.104,
+ "src/engine/physics/terrain-primitives.test.ts": 0.104,
  "test/terrain-triplets.test.ts": 0.123,
  "test/texture-references.test.ts": 6.5,
  "test/texture-scope-lifetime.test.ts": 0.018,

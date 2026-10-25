@@ -5,7 +5,7 @@ import { createSimHost, type SimLevel } from '../src/engine/sim';
 import { GridAssembly, type GridPoint } from '../src/game/grid/assembly';
 import { LiveGridHost } from '../src/game/grid/live';
 import { PageResidency } from '../src/game/grid/pageResidency';
-import { fixtureBytes } from './fixtures/nativeBytes';
+import { fixtureBytes } from '@wildshard/engine/test/nativeBytes';
 
 const level: SimLevel = { version: 1, id: 'platform', seed: 1, ground: { size: 500, height: 0 },
   player: { at: { x: 0, y: 0, z: 0 }, yaw: 0, speed: 30 }, entities: [], quests: [],

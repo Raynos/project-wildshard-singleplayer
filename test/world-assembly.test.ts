@@ -17,7 +17,7 @@ import { RopeDeckSite } from '../src/game/models/ropeDeckSite';
 import type { FixedDraws } from '../src/game/models/fixedDraws';
 import { driftwoodRopeDeckSite } from '../src/shards/driftwood-isle/generators/ropeDeckSite';
 import { bridgeDeck } from '../src/shards/driftwood-isle/generators/ropeBridge';
-import { fixtureBytes } from './fixtures/nativeBytes';
+import { fixtureBytes } from '@wildshard/engine/test/nativeBytes';
 import { fakeWorld } from '@wildshard/engine/test/world';
 import { expect, test, vi } from 'vitest';
 import { Group, Mesh, type Object3D } from 'three';

@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import * as v from 'valibot';
 import { WorldScenePlacementSchema } from '../src/format/worldScenePlacement';
-import { fixtureBytes } from './fixtures/nativeBytes';
+import { fixtureBytes } from '@wildshard/engine/test/nativeBytes';
 import { expect, test } from 'vitest';
 import { BufferAttribute, type BufferGeometry } from 'three';
 import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';

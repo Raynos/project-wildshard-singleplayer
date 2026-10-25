@@ -10,7 +10,7 @@ import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
 import { bridgeDeck, bridgeUnitGeometries } from '../src/shards/driftwood-isle/generators/ropeBridge';
 
 import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
-import { fixtureBytes } from './fixtures/nativeBytes';
+import { fixtureBytes } from '@wildshard/engine/test/nativeBytes';
 import fixedBlobs from '../src/shards/driftwood-isle/data/fixedBlobs.generated.json' with { type: 'json' };
 
 const ROPE_BRIDGE = new RopeDeckSite(driftwoodRopeDeckSite(), ISLAND);

@@ -8,7 +8,7 @@ import { bakeSpecies } from '../src/sdk/bake/species';
 import { BOAR } from '../src/game/systems/species/boar';
 import { createSimHost } from '../src/engine/sim';
 import { loadRapier } from '../src/engine/physics/rapier';
-import { fixtureBytes } from './fixtures/nativeBytes';
+import { fixtureBytes } from '@wildshard/engine/test/nativeBytes';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { flatPopulationEnvironment } from './fixtures/population-environment';
 import { readSpeciesPrograms } from '../src/format/speciesPrograms';

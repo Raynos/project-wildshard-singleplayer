@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { fixtureBytes } from './fixtures/nativeBytes';
+import { fixtureBytes } from '@wildshard/engine/test/nativeBytes';
 import { createNativeBakeReader, nativeBakeGround, nativeBakeFloats, installNativeCollision } from '../src/game/population/nativeBake';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { readNamedBlob } from '../src/sdk/blobs';
