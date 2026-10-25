@@ -1,5 +1,5 @@
 import {expect, test} from 'vitest';
-import {NEAR_GRAIN_SIZE, nearGrainBytes} from '../src/game/grid/nearGrain';
+import {NEAR_GRAIN_SIZE, nearGrainBytes} from './nearGrain';
 
 async function sha256(bytes: Uint8Array): Promise<string> {
   const digest = await crypto.subtle.digest('SHA-256', Uint8Array.from(bytes));

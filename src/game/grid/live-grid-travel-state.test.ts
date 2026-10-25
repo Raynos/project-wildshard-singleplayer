@@ -1,5 +1,5 @@
 import {expect, test} from 'vitest';
-import {LiveGridSession} from '../src/game/grid/liveSession';
+import {LiveGridSession} from './liveSession';
 
 test('travel facts stay fresh without invoking retained-program and debug readers', () => {
   const value: unknown = Object.create(LiveGridSession.prototype);
