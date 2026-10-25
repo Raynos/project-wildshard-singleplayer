@@ -496,12 +496,10 @@
     },
     "boot": {
       "files": {
-        "module": "./assets/boot.generated.json",
-        "export": "default"
+        "program": true
       },
       "sources": {
-        "module": "./assets/bootSources.generated.json",
-        "export": "default"
+        "program": true
       },
       "lateReads": {
         "module": "./assets/lateReads.generated.json",

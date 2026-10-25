@@ -2,7 +2,7 @@ import { SIGNAL_CLIENT_PLAN } from './clientPlan';
 import { signalPaintedPresentation } from './paintedLook';
 import { WHIP_HELD_RECIPE } from './rows/heldWeapon';
 import { SIGNAL_SCENE_BLOBS, SIGNAL_WORLD_SCENES } from './worldScenes';
-import { emitNamedBlobs } from '@wildshard/sdk/blobs';
+import { emitNamedBlobs, type NamedBlob } from '@wildshard/sdk/blobs';
 import STRINGS from '../data/strings.json' with { type: 'json' };
 import { SIGNAL_PAGE_PROGRAM } from './rows/population';
 import { emitPlatformSections } from '@wildshard/sdk/platformSections';
@@ -33,3 +33,10 @@ export const output = { namedFiles: sources.files, assets: sources.assets, platf
   ['sim/scripts', [...MATRIARCH_DECISION, SKITTERER_DECISION]], ['actors/moves', [...MATRIARCH_MOVES, ...SKITTERER_MOVES]], ['actors/strikes', SIGNAL_STRIKES],
   ['world/targets', SIGNAL_LASH_TARGETS],
 ])) } satisfies ProjectOutput;
+
+/** Preserve every original section and scene file while replacing owned model inputs. */
+export function signalSourceOutput(models: NamedBlob, rigs: readonly NamedBlob[]): ProjectOutput {
+  if (models.file.name !== 'world/sources/models.json') throw new Error('Invalid model source replacement');
+  const owned = emitNamedBlobs([...SIGNAL_SCENE_BLOBS.filter(blob => blob.file.name !== models.file.name), models, ...rigs]);
+  return { ...output, namedFiles: owned.files, assets: owned.assets };
+}

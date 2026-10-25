@@ -5,7 +5,7 @@ import { signalEmberBuffer } from './emberBuffers';
 import { placeEffects, type PlaceEffects } from './placeEffects';
 import type { CardGroupRow } from './rows/fireCards';
 import { QUEST_NPC } from './questNpc';
-import { nameBlob } from '@wildshard/sdk/blobs';
+import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import type { SceneModelSource, SceneBakeSource } from '@wildshard/game/shardfile/sceneSources';
 import * as models from './rows/files';
 import rest from '../data/restPools.generated.json' with { type: 'json' };
@@ -56,6 +56,11 @@ const rows = Object.fromEntries(Object.entries(world).map(([id, row]) => [id, { 
 const baked = { rows, urls: models.BAKED_URLS, inputs, resources: models.WORLD_BYTES,
   placements: { rows: pieces, colliders: world.braziers.braziers.map((row, index) => ({ id: `sunscar.brazier.${String(index)}`, colliders: row.colliders })) } } satisfies SceneBakeSource;
 const json = (name: string, value: unknown) => nameBlob(name, 'json', new TextEncoder().encode(JSON.stringify(value)));
+/** Keep the original scene descriptor, replacing only its owned creature inputs. */
+export function signalModelSource(rigs: SceneModelSource['rows']['rigs']): NamedBlob {
+  if (rigs === undefined) throw new Error('Missing creature library');
+  return json('world/sources/models.json', { ...library, rows: { ...library.rows, rigs } });
+}
 export const SIGNAL_SOURCE_BLOBS = [json('world/sources/models.json', library), json('world/sources/bakes.json', baked)];
 export const SIGNAL_SOURCE_LIBRARIES = [{ id: 'models', kind: 'models', file: 'world/sources/models.json' },
   { id: 'bakes', kind: 'baked', file: 'world/sources/bakes.json' }] as const;

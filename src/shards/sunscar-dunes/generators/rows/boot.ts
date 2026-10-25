@@ -12,5 +12,12 @@ const sources = {
 export const BOOT_SOURCES = { tiers: { phone: sources, desktop: sources } };
 /** The original flattened inventory uses the phone image source. */
 export const BOOT_FILES = { sources: BOOT_SOURCES, tier: 'phone', tex: 'img' } as const;
+/** Owned rigs are preloaded by their admitted scene library, not retired public URLs. */
+export function signalRigBoot(): { files: typeof BOOT_FILES; sources: typeof BOOT_SOURCES } {
+  const rigs = new Set(Object.values(DUNE_RIG_URLS));
+  const owned = { ...sources, props: sources.props.filter(url => !rigs.has(url)) };
+  const boot = { tiers: { phone: owned, desktop: owned } };
+  return { sources: boot, files: { ...BOOT_FILES, sources: boot } };
+}
 /** The learned grade remains the only late read. */
 export const LATE_READS = ['/assets/lut/sunscar-dunes.bin'];

@@ -1,0 +1,22 @@
+{
+  "src/shards/sunscar-dunes/assets/models.generated.json": "0c1ff9a9ade5c35e65e56b5b6ea3de609ac034cd9f08c2a47da7cff1bc001c5c",
+  "src/shards/sunscar-dunes/assets/models.generated.d.json.ts": "cfe883e481289f61f051274291a5c6facd45c1e49c2bab72933be21465d9b787",
+  "src/shards/sunscar-dunes/assets/surfaces.generated.json": "8b5e36506e0f8089ea11b48175c75c1b427cd7261a138b66cd4b26f5e0cb529b",
+  "src/shards/sunscar-dunes/assets/surfaces.generated.d.json.ts": "c336bd39b0c554f77449ea89bc9b7e9b22c075f73c6c0d95e3f7f2916a254d16",
+  "src/shards/sunscar-dunes/assets/boot.generated.json": "9e55157e48d536676668a5aebad1d1f357deb376316dc8c332b01ed6d6d1ba46",
+  "src/shards/sunscar-dunes/assets/boot.generated.d.json.ts": "b0a3575c2844cc8f20d905383bd09858090aa707e51cbe09a62eb212c415ec3e",
+  "src/shards/sunscar-dunes/assets/bootSources.generated.json": "bdc1d38df594241b6994a85d25c8e444361e420e7fbe5363235cb3ce69264794",
+  "src/shards/sunscar-dunes/assets/bootSources.generated.d.json.ts": "bf2dc9e433b934ae6a190759261cf80929d68e2a0ae0badb5a4dcf7a3a89f7b1",
+  "src/shards/sunscar-dunes/assets/lateReads.generated.json": "378b89afd462e85daad94b8baaacb3b9b372c2cd778655538a7fdd535b8a96fe",
+  "src/shards/sunscar-dunes/assets/lateReads.generated.d.json.ts": "510fcafef33cc8ba1e3706cad3ac6cc11c97986aa3d645f51c6e6543e39966cd",
+  "src/shards/sunscar-dunes/assets/budgets.generated.json": "85865fdebbb5e1b001c9b473e59ee082451a4f860701879adccada25d1ff6a89",
+  "src/shards/sunscar-dunes/assets/budgets.generated.d.json.ts": "97aeaa47320b37fdd694f2b63bdc83c070931049f6dd934aebbe709ce6151dca",
+  "src/shards/sunscar-dunes/assets/devPoses.generated.json": "2e7e3a50650cb4b7b6400d36c1d058330e3b5d11316b33df1afd0e3455b3795b",
+  "src/shards/sunscar-dunes/assets/devPoses.generated.d.json.ts": "2937b015a12ba7e8ecfee4fde32604bc2c4104020d9a27beb5a63a03eb5c4a1b",
+  "src/shards/sunscar-dunes/assets/pieces.generated.json": "ec4edc6db90d731957513ea8f35507af79f22134596be56b7216d2786f2059c5",
+  "src/shards/sunscar-dunes/assets/pieces.generated.d.json.ts": "46eaac447d2e2871bb0fb6713752cd25f30d2a06ebeeacfbc2bc20c4e041a62c",
+  "src/shards/sunscar-dunes/assets/striderRig.generated.json": "d24181a9295c7040867ee733d5842e8543b7e255a13ccdea75b394979bb885c9",
+  "src/shards/sunscar-dunes/assets/striderRig.generated.d.json.ts": "0ba7656f958997c02e55112bef547065aecd3f18bc975645e06268b36ad44d12",
+  "src/shards/sunscar-dunes/assets/cues.generated.json": "721ce808d9c61c4a22147c5fe515d90efad21ef485eeafb3324f9b087f186237",
+  "src/shards/sunscar-dunes/assets/cues.generated.d.json.ts": "5e636155ede2c1df810ac31c8529c34e614d1399a31f7bbdb57a44957794f54c"
+}
