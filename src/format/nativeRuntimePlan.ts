@@ -54,7 +54,7 @@ const recipe = v.strictObject({
 
 /** Select the existing held-melee native interpreter using admitted data only.
  * Baked world metadata retains its owner-specific admission in that interpreter. */
-export const NativeRuntimePlanSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Native runtime plan must be plain bounded JSON'),
+export const NativeRuntimePlanSchema: v.GenericSchema<unknown, NativeRuntimePlanData> = v.pipe(v.unknown(), v.check(isJsonData, 'Native runtime plan must be plain bounded JSON'),
   v.strictObject({ kind: v.literal('held-melee'), recipe, baked: v.unknown(),
     ownerInputs: v.exactOptional(v.pipe(v.array(key), v.maxLength(16))) }),
   v.check(row => row.ownerInputs === undefined || (new Set(row.ownerInputs).size === row.ownerInputs.length
@@ -72,7 +72,7 @@ export const NativeRuntimePlanSchema = v.pipe(v.unknown(), v.check(isJsonData, '
     return { ...row, ownerInputs, recipe: { ...row.recipe, population: { ...row.recipe.population,
       owner: { ...owner, stages: { ...owner.stages, inputs } } } } };
   }));
-export type NativeRuntimePlanData = v.InferOutput<typeof NativeRuntimePlanSchema>;
+export interface NativeRuntimePlanData { kind: 'held-melee'; recipe: NativeRuntimeRecipeData; baked: unknown; ownerInputs: string[] }
 /** No module URL, callback, fallback or independent simulation owner is admitted. */
 export function parseNativeRuntimePlan(input: unknown): NativeRuntimePlanData { return v.parse(NativeRuntimePlanSchema, input); }
 
@@ -84,3 +84,6 @@ export function nativeRuntimeActorIds(input: unknown): readonly string[] {
   if (new Set(ids).size !== ids.length) throw new Error('Native roster has duplicate actor identities');
   return ids;
 }
+
+/** Admitted native recipe data; owner input ordering remains validated by the root schema. */
+export interface NativeRuntimeRecipeData { population: { rows: { program: { species: ({ id: string; kind: string; label: string; variants: ({ id: string; label: string; weight: number; rarity: 'common' | 'uncommon' | 'rare' | 'legendary'; scale: [number, number]; } & Record<string, unknown>)[]; brain?: v.InferOutput<typeof SpeciesBrainSchema>; body?: v.InferOutput<typeof CreatureBodyRecipeSchema>; } & Record<string, unknown>)[]; strikes: (v.InferOutput<typeof CreatureStrikeSchema>)[]; modules?: Record<string, string>; }; step: string; seed: number; homes: ({ id: string; kind: string; at: [number, number]; yaw: number; respawn: number; look?: string; late?: (boolean) | ('ground'); })[]; boss?: { id: string; kind: string; at: [number, number]; yaw: number; look?: string; }; attackers: (number) | null; think: ('legacy') | ({ every: number; dt: number; }); killY?: number; admission: 'prepare' | 'install'; placement?: { fallback: number; rows: ({ id: string; fromY: number; home: { x: number; z: number; r: number; y: number; }; })[]; }; holds?: ({ home: number; field: string; until: string; })[]; } & Record<string, unknown>; sources: 'actors' | 'actors+bosses'; seed: 'identity' | 'declared'; owner: v.InferOutput<typeof BossOwnerRowSchema>; }; terrain: 'none' | 'collider'; floor?: 'solids'; ground: { size: number; height: number; }; player: { speed: number; lift?: number; at?: [number, number, number]; yaw?: number; }; motion?: { systemId: string; skipPrefix?: string; composition: { sim: { bindings: v.InferOutput<typeof ScriptBindingsSchema>; scriptTickDivisor: number; }; state: Pick<v.InferOutput<(typeof StateSchema.pipe)[0]>, 'shared' | 'player'>; }; rules: { fields: Record<string, [number, number]>; archetypes: (number)[]; events: (number)[]; maxEntities: number; }; permissions: ({ mover: string; flags: ({ name: string; bit: number; })[]; })[]; } & Record<string, unknown>; runtime: { weapon: { id: string; stowOnBoard?: boolean; questWorld?: boolean; worldReactionAction?: number; }; quest: { spots: ('metadata') | ({ interact: ({ id: string; x: number; y: number; z: number; radius: number; })[]; crack: ({ id: string; x: number; y: number; z: number; radius: number; })[]; }); crack?: boolean; }; columns?: boolean; entries?: { lanes: number; walk: number; start: number; maxTicks: number; ramp?: { at: number; run: number; height: number; stride: number; look: number; halfWidths: { north: number; east: number; south: number; west: number; }; }; }; }; }
