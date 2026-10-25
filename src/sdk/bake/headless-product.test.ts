@@ -4,10 +4,10 @@ import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { emptyShardfile } from '../src/sdk/author';
-import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
-import { outputSectionPayloads, parseOutputIndex } from '../src/format/outputIndex';
-import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
+import { emptyShardfile } from '../author';
+import { encodeCanonicalJson, hashImmutableBytes } from '../immutable';
+import { outputSectionPayloads, parseOutputIndex } from '@wildshard/format/outputIndex';
+import { loadHeadlessProduct } from '../headlessProduct';
 
 const bytes = (input: unknown): Uint8Array => new TextEncoder().encode(encodeCanonicalJson(input));
 test('native output admission supplies checked sections and hash-verified named blobs without a renderer', async () => {

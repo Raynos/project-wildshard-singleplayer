@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
-import { emptyShardfile } from '../src/sdk/author';
-import { parseMovers } from '../src/format/movers';
-import { parseShardfile, shardfileRules } from '../src/format/shardSchema';
+import { emptyShardfile } from '../author';
+import { parseMovers } from '@wildshard/format/movers';
+import { parseShardfile, shardfileRules } from '@wildshard/format/shardSchema';
 
 // A valid primitive alone never grants the pure data client a joint restore owner.
 test('pure data chains refuse before a native restore owner is installed', () => {

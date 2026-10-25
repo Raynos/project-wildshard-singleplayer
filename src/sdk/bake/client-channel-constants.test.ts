@@ -1,6 +1,6 @@
 import { expect, test, vi } from 'vitest';
-import { ClientChannels } from '../src/sdk/clientChannels';
-import { admittedClientChannels, createClientChannels } from '../src/game/plugin/channels';
+import { ClientChannels } from '../clientChannels';
+import { admittedClientChannels, createClientChannels } from '@wildshard/game/plugin/channels';
 
 const observation = { time: 1, delta: 1 / 60, values: [1] };
 

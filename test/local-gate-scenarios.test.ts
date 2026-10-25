@@ -25,7 +25,7 @@ registry = json.load(open('scripts/test-products.json'))
 cases = [
  ['test/scripts/_template-boss.test.ts'],
  ['test/unit.test.ts', 'test/scripts/far-reach-roc.test.ts'],
- ['test/script-scenario.test.ts', 'test/shard-headless.test.ts'],
+ ['src/sdk/bake/script-scenario.test.ts', 'test/shard-headless.test.ts'],
  [], ['test/scripts-not-a-scenario.test.ts'],
  ['test/scripts/readme.md'], ['other/test/scripts/example.test.ts'],
  ['test/pine-npc-figure-product.test.ts', 'test/scripts/ground-encounters.test.ts'],

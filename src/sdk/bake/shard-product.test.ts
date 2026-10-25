@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { emptyShardfile } from '../src/sdk/author';
-import { absentShardProduct, createShardProduct, ProductError, type ShardProduct, type ShardProductInput } from '../src/game/shardfile/shardProduct';
+import { emptyShardfile } from '../author';
+import { absentShardProduct, createShardProduct, ProductError, type ShardProduct, type ShardProductInput } from '@wildshard/game/shardfile/shardProduct';
 
 // A runtime's custom section registry, as runtime/sections.ts declares it (P2a spec §3).
 const SECTIONS = {

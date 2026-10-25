@@ -1,6 +1,6 @@
 import { afterEach, expect, test } from 'vitest';
-import { ContentCache } from '../src/engine/boot/contentCache';
-import { hashImmutableBytes } from '../src/sdk/immutable';
+import { ContentCache } from '@wildshard/engine/boot/contentCache';
+import { hashImmutableBytes } from '../immutable';
 
 const stores: ContentCache[] = [];
 afterEach(async () => { for (const store of stores.splice(0)) await store.flush(); });
