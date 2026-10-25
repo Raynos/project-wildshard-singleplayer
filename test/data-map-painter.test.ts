@@ -12,7 +12,7 @@ import { decodeTerrainTile, terrainTileHeight } from '../src/format/terrainTileB
 import { templateTerrain } from '../src/shards/_template/generators/terrain';
 import { paintDataMap } from '../scripts/bake-data-maps.mjs';
 import { mapTilesHash } from '../scripts/map-hash.mjs';
-import { paintMapScenes } from '../scripts/map-scenes.mjs';
+import { paintMapScenes } from '../src/sdk/bake/mapScenes';
 import { mapRest } from '../scripts/bake-map-rest.mjs';
 import { parseClientChannels } from '../src/format/clientChannels';
 import isletScene from '../src/shards/far-reach/data/isletScenes.generated.json' with { type: 'json' };

@@ -34,7 +34,7 @@
     "data/millRest.generated.json",
     "../../../public/assets/far-reach/baked/isles.bin",
     "../../../public/assets/far-reach/baked/islet-rig.glb",
-    "../../../scripts/map-scenes.mjs",
+    "../../sdk/bake/mapScenes.ts",
     "../../../scripts/map-painter.mjs",
     "../../sdk/bake/mapRaster.ts",
     "../../../scripts/bake-data-maps.mjs",

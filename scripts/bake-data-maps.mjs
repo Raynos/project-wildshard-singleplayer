@@ -78,8 +78,8 @@ export async function rasterDataMap(settings, data, { output, glbs, label = 'map
   const exclude = own?.exclude === undefined ? [] : [own.exclude].flat(), drawn = exclude.length === 0 ? undefined : node => !exclude.some(prefix => node.getName().startsWith(prefix));
   for (const file of glbs ?? painter.glbs ?? []) await raster.glb(source(file), undefined, drawn);
   if (painter.scenes !== undefined) {
-    const { paintMapScenes } = await import('./map-scenes.mjs');
-    await paintMapScenes(raster, painter.scenes, settings, { input: source, json: rows, bytes: readBytes });
+    const { paintMapScenes } = await import('../src/sdk/bake/mapScenes.ts');
+    await paintMapScenes(raster, painter.scenes, settings, { input: source, model: url => source(`../../../public${url}`), json: rows, bytes: readBytes });
   }
   if (raster.triangles === 0) throw new Error(`${label}: data map is empty`);
   const style = own?.style ?? settings.style;

@@ -5,7 +5,7 @@
     "data",
     "../../../public/assets/nine-dragon/lab",
     "../../../scripts/map-geometry.mjs",
-    "../../../scripts/map-scenes.mjs",
+    "../../sdk/bake/mapScenes.ts",
     "../../../scripts/map-painter.mjs",
     "../../sdk/bake/mapRaster.ts",
     "../../../scripts/bake-data-maps.mjs"

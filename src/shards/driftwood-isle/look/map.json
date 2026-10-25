@@ -2,7 +2,7 @@
   "inputs": [
     "data/mapAssembly.generated.json",
     "data/mapAssembly.generated.bin",
-    "../../../scripts/map-scenes.mjs",
+    "../../sdk/bake/mapScenes.ts",
     "../../../scripts/map-painter.mjs",
     "../../sdk/bake/mapRaster.ts",
     "../../../scripts/bake-data-maps.mjs"

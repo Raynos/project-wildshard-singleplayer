@@ -35,15 +35,22 @@ test('retained painter declarations track the defining raster source and invalid
     expect(mapInputRoots(dir)).toContain(resolve('src/sdk/bake/mapRaster.ts')); tracked++;
   }
   expect(tracked).toBe(8);
+  for (const slug of ['sunscar-dunes', 'far-reach', 'nalati-grasslands', 'nine-dragon-stack', 'driftwood-isle']) {
+    const roots = mapInputRoots(resolve('src/shards', slug));
+    expect(roots).toContain(resolve('src/sdk/bake/mapScenes.ts'));
+  }
   mkdirSync('tmp', { recursive: true });
   const root = mkdtempSync(resolve('tmp/map-raster-source-')), shard = resolve(root, 'shards/fixture');
   try {
     mkdirSync(resolve(shard, 'look'), { recursive: true }); mkdirSync(resolve(root, 'sdk/bake'), { recursive: true });
     const source = resolve(root, 'sdk/bake/mapRaster.ts');
-    writeFileSync(resolve(shard, 'look/map.json'), JSON.stringify({ why: 'raster source fixture', inputs: ['../../sdk/bake/mapRaster.ts'] }));
+    writeFileSync(resolve(shard, 'look/map.json'), JSON.stringify({ why: 'raster source fixture', inputs: ['../../sdk/bake/mapRaster.ts', '../../sdk/bake/mapScenes.ts'] }));
+    const scenes = resolve(root, 'sdk/bake/mapScenes.ts'); writeFileSync(scenes, 'export const scenes = 1;');
     writeFileSync(source, 'export const source = 1;'); const original = mapTilesHash(shard);
-    expect(Object.keys(mapInputHashes(shard))).toEqual(['../../sdk/bake/mapRaster.ts', 'look/map.json']);
+    expect(Object.keys(mapInputHashes(shard))).toEqual(['../../sdk/bake/mapRaster.ts', '../../sdk/bake/mapScenes.ts', 'look/map.json']);
     writeFileSync(source, 'export const source = 2;'); expect(mapTilesHash(shard)).not.toBe(original);
     writeFileSync(source, 'export const source = 1;'); expect(mapTilesHash(shard)).toBe(original);
+    writeFileSync(scenes, 'export const scenes = 2;'); expect(mapTilesHash(shard)).not.toBe(original);
+    writeFileSync(scenes, 'export const scenes = 1;'); expect(mapTilesHash(shard)).toBe(original);
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
