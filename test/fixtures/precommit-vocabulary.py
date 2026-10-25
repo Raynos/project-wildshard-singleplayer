@@ -28,8 +28,7 @@ with tempfile.TemporaryDirectory(dir=repo/'tmp',prefix='staged-vocabulary-') as 
  put(manifest,declaration([base,committed,staged]));git('add',manifest)
  put('src/unit.ts',f'export const file = "/{staged}";\n');git('add','src/unit.ts')
  put(manifest,declaration(['public/assets/foreign/**']))
- # The loader and static generator resolve installed packages outside the tiny Git tree.
- (root/'node_modules').symlink_to(repo/'node_modules',target_is_directory=True)
+ # Node resolves installed packages through the fixture's repository ancestors.
  spec={'files':['src/unit.ts'],'changed':['src/unit.ts'],'closed':False,'deleted':False,'guards':[]}
  tree=root/'tmp/candidate';staged_source(root,tree,time.time()+5,specification=spec)
  value=json.loads((tree/'lint/shard-words.generated.json').read_text())
