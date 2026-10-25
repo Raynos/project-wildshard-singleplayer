@@ -38,6 +38,7 @@
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { resolve as resolvePath } from 'node:path';
 import { debugSettings } from './debug-settings.mjs';
+import { readHeatFrame } from './parity/heat-bytes.mjs';
 
 const { chromium, devices } = await import('playwright');
 
@@ -219,7 +220,7 @@ async function runAB([name, n]) {
 }
 
 /** in the page: overdraw — layers per pixel per channel (R opaque, G alpha-tested, B transparent), with / without the alpha test */
-function overdraw(wantHeat) {
+async function overdraw(wantHeat) {
   const w = window.__wildshard?.world, g = w.game, r = g.renderer, P = window.__gpu;
   const W = r.domElement.width, H = r.domElement.height;
   const RT = g.composer.inputBuffer.constructor; // THREE.WebGLRenderTarget (no THREE global in the page)
@@ -315,7 +316,12 @@ function overdraw(wantHeat) {
       img.data[di] = a[1] + (b[1] - a[1]) * f; img.data[di + 1] = a[2] + (b[2] - a[2]) * f; img.data[di + 2] = a[3] + (b[3] - a[3]) * f; img.data[di + 3] = 255;
     }
     ctx.putImageData(img, 0, 0);
-    heat = cv.toDataURL('image/jpeg', 0.8);
+    heat = await new Promise((resolve, reject) => {
+      cv.toBlob(blob => {
+        if (blob === null) reject(new Error('Heat image encoding refused'));
+        else resolve(blob);
+      }, 'image/jpeg', 0.8);
+    });
   }
   return { w: W, h: H, layers: stats(kept), raster: stats(raster), heat };
 }
@@ -373,12 +379,9 @@ try {
       console.log(`  saves when off (ms): ${sub.map(([k, v]) => `${k.replace('group:', '')} ${v.delta.toFixed(2)}`).join(' · ')}`);
     }
     if (OVERDRAW) {
-      const od = await page.evaluate(overdraw, HEAT !== '');
-      if (od.heat !== null) {
-        mkdirSync(HEAT, { recursive: true });
-        writeFileSync(resolvePath(HEAT, `overdraw-${TAG}-${p.id}.jpg`), Buffer.from(od.heat.split(',')[1], 'base64'));
-      }
-      delete od.heat;
+      if (HEAT !== '') mkdirSync(HEAT, { recursive: true });
+      const capture = await page.evaluateHandle(overdraw, HEAT !== '');
+      const od = await readHeatFrame(page, capture, HEAT === '' ? undefined : resolvePath(HEAT, `overdraw-${TAG}-${p.id}.jpg`));
       row.overdraw = od;
       const L = od.layers, R = od.raster;
       console.log(`  overdraw ${od.w}×${od.h}, layers/px mean (p95): opaque ${L.opaque.mean} (${L.opaque.p95}) · alpha-tested kept ${L.alpha.mean} (${L.alpha.p95}), rasterised ${R.alpha.mean} (${R.alpha.p95}) · transparent ${L.transparent.mean} · total rasterised ${R.total.mean} (p95 ${R.total.p95}, max ${R.total.max}, > 4 layers: ${(R.total.over4 * 100).toFixed(0)} % of px)`);
