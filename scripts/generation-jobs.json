@@ -14298,7 +14298,6 @@
         "src/shards/nalati-grasslands/generators/bake-crag-rock.mjs",
         "src/shards/nalati-grasslands/generators/bake-creature-views.mjs",
         "src/shards/nalati-grasslands/generators/bake-decorative.mjs",
-        "src/shards/nalati-grasslands/generators/bake-dressing-bakes.mjs",
         "src/shards/nalati-grasslands/generators/bake-elite-charge.mjs",
         "src/shards/nalati-grasslands/generators/bake-elite-views.mjs",
         "src/shards/nalati-grasslands/generators/bake-finds.mjs",
@@ -14926,31 +14925,6 @@
         "src/shards/nalati-grasslands/assets/world-terrain/ground-l1-1-3.generated.glb"
       ],
       "platform": "native"
-    },
-    {
-      "id": "nalati-dressing-blob",
-      "shard": "nalati-grasslands",
-      "entry": "src/shards/nalati-grasslands/generators/bake-dressing-bakes.mjs",
-      "command": [
-        "src/sdk/bake/json.mjs",
-        "src/shards/nalati-grasslands/generators/bake-dressing-bakes.mjs",
-        "dressingBytes",
-        "src/shards/nalati-grasslands/data/dressing.generated.bin",
-        "--bytes"
-      ],
-      "inputRoots": [
-        "src/shards/nalati-grasslands/generators/bake-dressing-bakes.mjs",
-        "src/sdk/bake/json.mjs",
-        "public/assets/nalati/baked/dressing.bin"
-      ],
-      "outputs": [
-        "src/shards/nalati-grasslands/data/dressing.generated.bin"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/nalati-grasslands/data/dressing.generated.bin"
-      ],
-      "platform": "portable",
-      "seedOutputs": []
     }
   ]
 }

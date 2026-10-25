@@ -4,7 +4,6 @@ import { PrivateSceneSchema } from '../src/format/clientChannels';
 import { lendLooks } from '../src/game/shardfile/lentLooks';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
-import { readNamedBlob } from '../src/sdk/blobs';
 import { decodeLaneBytes } from '../src/engine/core/deflate';
 import { expect, test, vi } from 'vitest';
 import type { ShardContext } from '../src/game/plugin/context';
@@ -16,7 +15,7 @@ import { zlibSync, unzlibSync } from 'fflate';
 import { writeGeometry, join } from '../src/shards/nalati-grasslands/generators/geometryWriter';
 import * as v from 'valibot';
 import { SceneDressingSchema } from '../src/format/sceneDressing';
-import { DRESSING_BAKE_SOURCES, DRESSING_PLACE_DECODED, DRESSING_CRAG_DECODED, dressingScene } from '../src/shards/nalati-grasslands/generators/dressingScene';
+import { DRESSING_PLACE_DECODED, DRESSING_CRAG_DECODED, DRESSING_DECODED, dressingScene } from '../src/shards/nalati-grasslands/generators/dressingScene';
 import { nalatiBakeBlob } from '../src/shards/nalati-grasslands/generators/placeBlobProgram';
 import { isJsonData } from '../src/format/json';
 import { readBakedGeometry } from '../src/game/plugin/geometry';
@@ -166,7 +165,9 @@ test('geometry source addresses remain binary while the JSON address word stays 
 });
 
 test('Nalati logical bakes admit the exact shipping compressed bytes and decoded costs',async()=>{
-  const sources=await Promise.all(DRESSING_BAKE_SOURCES.map(source=>readNamedBlob('src/shards/nalati-grasslands',source.name,source.source,source.kind,source.options)));
+  const sources=[await nalatiBakeBlob({cached:(_step,generate)=>Promise.resolve(generate(new Map([
+    ['/assets/nalati/baked/dressing.bin',readFileSync('public/assets/nalati/baked/dressing.bin')],
+  ])))},'dressing',DRESSING_DECODED)];
   sources.push(await nalatiBakeBlob({cached:(_step,generate)=>Promise.resolve(generate(new Map([
     ['/assets/nalati/baked/places.bin',readFileSync('public/assets/nalati/baked/places.bin')],
   ])))},'places',DRESSING_PLACE_DECODED));

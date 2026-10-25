@@ -60,9 +60,7 @@ const cragDecoded=Math.max(...Object.values(cragRows).flatMap(tier=>tier.meshes.
 })));
 export const DRESSING_PLACE_DECODED=preparedInput.places.bytes;
 export const DRESSING_CRAG_DECODED=cragDecoded;
-export const DRESSING_BAKE_SOURCES=[
-  {name:'world/dressing.bin',kind:'bin' as const,source:'data/dressing.generated.bin',options:{decoded:preparedInput.dressing.bytes}},
-];
+export const DRESSING_DECODED=preparedInput.dressing.bytes;
 const cover=v.parse(coverSchema,coverInput);
 // the places' anchors and the camp smoke's baked puffs (bake-place-runtime.mjs)
 const spot=v.object({x:number,y:number,z:number}),placed=v.parse(v.object({places:v.object({rows:v.array(v.object({name:text,
