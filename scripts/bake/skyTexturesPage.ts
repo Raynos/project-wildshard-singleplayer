@@ -7,7 +7,8 @@ import { cloudFieldPixels } from '../../src/engine/world/cloudField';
 import { cloudTexture, giantTexture, planetTexture } from '../../src/engine/world/skyTextures';
 
 /** One encoded texture, as scripts/bake-textures.mjs reads it back. */
-export interface SkyBake { dataUrl: string; lossless: boolean; width: number; height: number }
+export interface SkyBake { lossless: boolean; width: number; height: number }
+declare global { interface Window { bakeSkyTextures: typeof bakeSkyTextures } }
 
 const PAINTERS = new Map<string, () => CanvasTexture>([
   ['clouds', () => cloudTexture(cloudFieldPixels())],
@@ -16,21 +17,35 @@ const PAINTERS = new Map<string, () => CanvasTexture>([
 ]);
 
 /** Paint and encode the named sky textures (all lossy JPEG today, as their game call sites asked). */
-export function bakeSkyTextures(names: readonly string[]): Record<string, SkyBake> {
+export async function bakeSkyTextures(names: readonly string[], byteUrl: string): Promise<Record<string, SkyBake>> {
   const out: Record<string, SkyBake> = {};
   for (const name of names) {
     const paint = PAINTERS.get(name);
     if (paint === undefined) throw new Error(`sky bake: no painter for ${name} (${[...PAINTERS.keys()].join(', ')})`);
-    const img = paint().image;
+    out[name] = await bakeSkyTexture(name, paint(), byteUrl);
+  }
+  return out;
+}
+
+/** Encode and hand off one owned painted texture; release it on every outcome. */
+export async function bakeSkyTexture(name: string, texture: { readonly image: unknown; readonly dispose: () => void }, byteUrl: string): Promise<SkyBake> {
+  try {
+    const img: unknown = texture.image;
     if (!(img instanceof HTMLCanvasElement)) throw new Error(`sky bake: ${name} is not a canvas`);
     const canvas = document.createElement('canvas');
     canvas.width = img.width; canvas.height = img.height;
     const ctx = canvas.getContext('2d');
     if (ctx === null) throw new Error('sky bake: no 2d canvas context');
     ctx.drawImage(img, 0, 0);
-    out[name] = { dataUrl: canvas.toDataURL('image/jpeg', 0.92), lossless: false, width: img.width, height: img.height };
-  }
-  return out;
+    const blob = await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob(value => {
+        if (value === null) reject(new Error(`sky bake: ${name} encoding failed`)); else resolve(value);
+      }, 'image/jpeg', 0.92);
+    });
+    const response = await fetch(`${byteUrl}${name}`, { method: 'POST', body: blob });
+    if (!response.ok) throw new Error(`sky bake: ${name} byte handoff refused`);
+    return { lossless: false, width: img.width, height: img.height };
+  } finally { texture.dispose(); }
 }
 
 Object.assign(window, { bakeSkyTextures });

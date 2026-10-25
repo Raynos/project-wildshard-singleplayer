@@ -4,7 +4,6 @@
   "files": {
     "scripts/bake-maps.mjs": 2,
     "scripts/bake-template-shardfile.mjs": 1,
-    "scripts/bake-textures.mjs": 1,
     "scripts/bake-viewmodel-sets.mjs": 2,
     "scripts/bake/far-board.mjs": 2,
     "scripts/bake/rings-drive.mjs": 2,

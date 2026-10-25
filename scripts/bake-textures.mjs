@@ -12,7 +12,7 @@
 import { existsSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { build } from 'vite';
-import { byteWriter, outputHash, jsonBytes, toolVersion } from './bake-output.mjs';
+import { byteWriter, outputHash, jsonBytes, toolVersion, browserBakeBytes } from './bake-output.mjs';
 
 const ROOT = resolve(import.meta.dirname, '..');
 /** Which sky textures each shard ships baked (the rest paint at runtime): the sky pieces its look builds. */
@@ -47,24 +47,27 @@ try {
   for (const slug of slugs) {
     const dir = resolve(ROOT, 'public/assets/baked', slug, 'tex');
     const meta = resolve(ROOT, 'public/assets/baked', slug, 'textures.json');
-    /** @type {Record<string, { dataUrl: string; lossless: boolean; width: number; height: number }>} */
-    const out = await page.evaluate((names) => window.bakeSkyTextures(names), SHARDS[/** @type {keyof typeof SHARDS} */ (slug)]);
-    const files = {};
-    const buffers = [];
-    const wanted = new Set();
-    for (const [name, { dataUrl, lossless, width, height }] of Object.entries(out).sort(([a], [b]) => a.localeCompare(b))) {
-      const file = `${name}.${lossless ? 'png' : 'jpg'}`;
-      wanted.add(file);
-      const buf = Buffer.from(dataUrl.split(',')[1] ?? '', 'base64');
-      // a source edit that did not change the pixels keeps the file byte-identical (no commit noise, same SW cache entry)
-      output.put(resolve(dir, file), buf);
-      buffers.push(buf);
-      files[file] = { bytes: buf.length, width, height };
-    }
-    if (existsSync(dir)) for (const f of readdirSync(dir)) if (!wanted.has(f) && !f.includes('.phone.')) output.remove(resolve(dir, f));
-    const hash = outputHash(Buffer.concat(buffers));
-    output.put(meta, jsonBytes({ hash, files }));
-    console.log(`bake-textures: ${slug} ${Object.keys(files).join(' ')} (hash ${hash.slice(0, 12)})`);
+    const names = SHARDS[/** @type {keyof typeof SHARDS} */ (slug)], sink = await browserBakeBytes(page, { maxFiles: names.length });
+    try {
+      /** @type {Record<string, { lossless: boolean; width: number; height: number }>} */
+      const out = await page.evaluate(({ selected, url }) => window.bakeSkyTextures(selected, url), { selected: names, url: sink.url });
+      const files = {};
+      const buffers = [];
+      const wanted = new Set();
+      for (const [name, { lossless, width, height }] of Object.entries(out).sort(([a], [b]) => a.localeCompare(b))) {
+        const file = `${name}.${lossless ? 'png' : 'jpg'}`;
+        wanted.add(file);
+        const buf = sink.take(name);
+        // a source edit that did not change the pixels keeps the file byte-identical (no commit noise, same SW cache entry)
+        output.put(resolve(dir, file), buf);
+        buffers.push(buf);
+        files[file] = { bytes: buf.length, width, height };
+      }
+      if (existsSync(dir)) for (const f of readdirSync(dir)) if (!wanted.has(f) && !f.includes('.phone.')) output.remove(resolve(dir, f));
+      const hash = outputHash(Buffer.concat(buffers));
+      output.put(meta, jsonBytes({ hash, files }));
+      console.log(`bake-textures: ${slug} ${Object.keys(files).join(' ')} (hash ${hash.slice(0, 12)})`);
+    } finally { await sink.dispose(); }
   }
   if (errors.length > 0) throw new Error(`bake-textures: page errors: ${errors.join('; ')}`);
 } finally {
