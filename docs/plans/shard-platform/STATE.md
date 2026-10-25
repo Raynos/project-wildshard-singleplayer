@@ -2,9 +2,9 @@
 
 **Order (G639):** (1) live reds → (2) NALATI 0 → (3) grid / frame floor → extras.
 
-**(1) LIVE c13aa9df6 (19:38Z). Hourly releases (sp-x7, G705). Smoke per-leg bundles b77b802191 measured: 40-47 s per leg
-(was a 1,199 s relay timeout). CF2 capture stall: title tracing awaits a CI occurrence; programShare warning: sp-x9.
-Open reds: Nine level.world image-decode fatal (sp-x1, 20:39Z); T4 weather/entry types (sp-x8, 20:43Z).
+**(1) LIVE c13aa9df6 (19:38Z); 67ba880968 (CI + six legs green) releasing ~21:05Z. Hourly releases (sp-x7, G705). Smoke
+per-leg bundles b77b802191: 23-70 s per leg (was a 1,199 s timeout); JSON pack closure fix 67ba880968. CF2 capture stall:
+title tracing awaits a CI occurrence; programShare warning: sp-x9. No open release red.
 
 **(2) NALATI 0 done (27dd969127).** HOST-AUDIT (G679) parked until every mini plan finishes. Legacy waits (G606).
 
@@ -18,7 +18,7 @@ L18: DW declared 107 -> 78.3 MB (8b74db3d22, 8515b8049f, 37709250b2); brotli on;
 **Memory (G682: menu <= 148.5, Template <= 198.5 MiB):** f4465ac4ab menu 165, Template 317.
 G713: lazy-load code (js-payload J1-J10, sp-x2) + lighter post RT chain (Opus variant sheet, Tue).
 
-**For wildshard-v (G711):** Rows: GR3 9, GR4 19, T3 293 / 1,039, T4 format 5.5 MB (< 2). DONE: G720 cb756b79df (cap b8cf2c73da; in cell 7.4 s), G721 22248f9b6a+49af17b6b6
+**For wildshard-v (G711):** DONE: G720 cb756b79df (cap b8cf2c73da; in cell 7.4 s), G721 22248f9b6a+49af17b6b6
 (cap 0993a458aa), G719 dcd3379372 (caps a74b837aa0; NM twice = G700/RP3), G722 191aee7b15
 (board 95d25c95da), G724+G725 d8598ec213 (re-entry 17.7 ms, no panel/static, one world). L16 0dd7ce4722: hero
 0.48 s (was 1.43 s blank); the 0.32 s black is iOS's launch zoom, outside the page.
