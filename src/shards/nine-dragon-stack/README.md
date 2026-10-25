@@ -36,9 +36,9 @@ The legacy scheduled adapter remains until the source entry conversion is comple
 | `audio` | its own ambience and score (S1.5); the forest bed's shrine and island sounds omitted |
 | `assetGlobs`, `ktx2` | `public/assets/nine-dragon/**` and its KTX2, music, SFX and title folders; `ktx2.generated.ts` |
 
-Explore images, forest settings and boot policy live in `data/discovery.json`. The boot producer combines
-them with the existing metadata rows in `boot/declaration.generated.ts`; `manifest.ts` retains native bindings. The four camera recipes stay in
-`generators/mockupCameras.ts`, and the budget author in `data/budgets.ts` runs only in that producer.
+Explore images, forest settings and boot policy live in `data/discovery.json` and the authored manifest.
+`generators/bootDiscovery.ts` computes current boot inventories and camera discovery through the admitted source
+program; no intermediate boot files are written. The four camera recipes stay in `generators/mockupCameras.ts`.
 
 ## Its custom code, and why
 

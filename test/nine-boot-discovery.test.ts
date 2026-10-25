@@ -1,5 +1,5 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Reproduce only the original offline inventory facts for this pure factory's input.
-import { readdirSync, statSync, readFileSync } from 'node:fs';
+import { readdirSync, statSync, readFileSync, existsSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the same confined authored public roots as the predecessor writer.
 import { resolve } from 'node:path';
 import * as v from 'valibot';
@@ -58,4 +58,16 @@ test('the injected source reader retains every original value and refuses older 
     expect(hashImmutableBytes(new TextEncoder().encode(JSON.stringify(value))), row.slot).toBe(row.hash);
   }
   expect(() => nineBootProgram({})).toThrow('requires current inputFiles capability');
+});
+
+
+test('the retired boot job has no source handoffs or registered writer', () => {
+  const catalogue = v.parse(v.object({ jobs: v.array(v.object({ id: v.string(), outputs: v.array(v.string()) })) }),
+    JSON.parse(readFileSync('scripts/generation-jobs.json', 'utf8')));
+  expect(catalogue.jobs.some(job => job.id === 'nine-boot-metadata')).toBe(false);
+  const prefix = 'src/shards/nine-dragon-stack/boot/';
+  expect(catalogue.jobs.flatMap(job => job.outputs).filter(path => path.startsWith(prefix))).toEqual([]);
+  for (const name of ['metadata.generated.json', 'declaration.generated.ts', 'lookTypes.generated.d.ts', 'files.generated.json', 'sources.generated.json', 'explore.generated.json', 'poses.generated.json']) {
+    expect(existsSync(`${prefix}${name}`), name).toBe(false);
+  }
 });
