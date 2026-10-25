@@ -35,10 +35,11 @@ test('the source map retains the original complete image bytes and owned output 
   expect(hashImmutableBytes(again)).toBe(hashImmutableBytes(pixels));
 });
 
-test('only the practice job remains and every retired map source handoff stays absent', () => {
-  expect(discoverGeneration(resolve('.')).jobs.filter(job => job.shard === 'nine-dragon-stack').map(job => job.id)).toEqual(['nine-practice']);
+test('Nine has no scheduler jobs and all retired map and practice source handoffs stay absent', () => {
+  expect(discoverGeneration(resolve('.')).jobs.filter(job => job.shard === 'nine-dragon-stack').map(job => job.id)).toEqual([]);
   for (const name of ['generators/bake-map.mjs', 'generators/mapAssembly.mjs', 'generators/mapAssembly.d.mts',
-    'look/map.baked.json', 'look/map.json', 'data/mapPalette.json']) {
+    'look/map.baked.json', 'look/map.json', 'data/mapPalette.json', 'generators/practiceDecision.mjs',
+    'generators/practiceDecision.d.mts', 'behaviour/practice.generated.json', 'behaviour/practice.generated.wasm']) {
     expect(existsSync(resolve('src/shards/nine-dragon-stack', name)), name).toBe(false);
   }
 });

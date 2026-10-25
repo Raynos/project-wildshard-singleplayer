@@ -27,7 +27,9 @@ const cold = await ninePracticeProgram({ ...ctx, compileDecisionRows: (...args) 
   expect(args[2].get('behaviour/course.as')).toBe(readFileSync('src/commons/scripts/course.as', 'utf8'));
   return compiler(...args);
 } });
-const original = new Uint8Array(readFileSync('src/shards/nine-dragon-stack/behaviour/practice.generated.wasm'));
+const predecessor = await buildCourseProgram('checkpoints', {}, true);
+if (predecessor.binary === undefined) throw new Error('Missing original raw course module');
+const original = predecessor.binary;
 const contract = encodeCanonicalJson({ script: cold.script });
 const metadata = new TextEncoder().encode(encodeCanonicalJson({ script: cold.script, bytes: '' }));
 
