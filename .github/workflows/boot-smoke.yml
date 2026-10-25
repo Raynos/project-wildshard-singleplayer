@@ -119,7 +119,8 @@ jobs:
             boot-dist.tar
             boot-dist.sha256
             boot-dist-proof.json
-          compression-level: 0
+          # Browser legs receive the identical verified tar, compressed in transit.
+          compression-level: 6
           retention-days: 1
           if-no-files-found: error
 

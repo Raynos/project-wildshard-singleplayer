@@ -196,7 +196,8 @@ jobs:
             boot-dist.tar
             boot-dist.sha256
             boot-dist-proof.json
-          compression-level: 0
+          # Compress transport only; the tar and its checksum stay identical.
+          compression-level: 6
           retention-days: 3
           if-no-files-found: error
 
