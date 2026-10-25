@@ -2,8 +2,8 @@
 import { readFileSync } from 'node:fs';
 import ts from '@typescript/typescript6';
 import * as v from 'valibot';
-import type { SimValue } from '../src/engine/sim';
-import { ForagerContinuation } from '../src/format/ambientLife';
+import type { SimValue } from '../sim';
+import { ForagerContinuation } from '@wildshard/format/ambientLife';
 import { expect, test } from 'vitest';
 
 test('ambient declarations bound schema metadata and retain population entries for forest composition', () => {
