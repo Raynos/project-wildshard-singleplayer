@@ -37,6 +37,7 @@ import { readManifestSource, type ProjectManifestSource } from './projectManifes
 import { projectDecisionOptions } from './projectDecisions';
 import { projectDecisionBudget } from './projectPolicy';
 import { nameBlob } from './blobs';
+import { parseDiscoveryValues, type DiscoveryValues } from '@wildshard/format/discoveryValues';
 
 /** Stable JSON encoding: sorted object keys, no timestamps or host paths. */
 export function canonicalJson(value: unknown): string { return encodeCanonicalJson(value); }
@@ -72,7 +73,7 @@ function outputDeclaration(loaded: Record<string, unknown>, output: string): unk
   return Reflect.get(outputs, output);
 }
 
-async function projectModule(project: string, decisionLegacyLines?: number, selected?: string, mapSourceHash?: string, inputRoots: readonly ProjectGenerationInputRoot[] = []): Promise<{ map: Awaited<ReturnType<typeof generatedProjectMap>> | undefined; shard: Shardfile; commons: unknown; baked: ReadonlyMap<string, Uint8Array>; output: PreparedProjectOutput; mirrors: readonly RuntimeMirror[] }> {
+async function projectModule(project: string, decisionLegacyLines?: number, selected?: string, mapSourceHash?: string, inputRoots: readonly ProjectGenerationInputRoot[] = []): Promise<{ map: Awaited<ReturnType<typeof generatedProjectMap>> | undefined; discovery: DiscoveryValues | undefined; shard: Shardfile; commons: unknown; baked: ReadonlyMap<string, Uint8Array>; output: PreparedProjectOutput; mirrors: readonly RuntimeMirror[] }> {
   const program = await authorModule(project, 'shard.config.ts'), loaded = program.exports;
   if (!('default' in loaded)) throw new Error('config has no default export');
   if ('generate' in loaded && typeof loaded['generate'] !== 'function') throw new Error('config generate export must be a build function');
@@ -80,12 +81,14 @@ async function projectModule(project: string, decisionLegacyLines?: number, sele
   let shard: Shardfile;
   const baked = new Map<string, Uint8Array>(), root = realpathSync(project);
   let generatedOutput: unknown, map: Awaited<ReturnType<typeof generatedProjectMap>> | undefined;
+  let discovery: DiscoveryValues | undefined;
   if (isProjectGenerator(declaration)) {
     declaration = await declaration(createProjectGeneration(project,
       contentHash(new TextEncoder().encode(canonicalJson({ program: program.hash, output: selected ?? null }))), baked, undefined, inputRoots));
     if (typeof declaration === 'object' && declaration !== null && 'shard' in declaration) {
-      if (!('output' in declaration) || Object.keys(declaration).some(key => key !== 'shard' && key !== 'output' && key !== 'map')) throw new Error('Generated project requires shard, output and optional map');
+      if (!('output' in declaration) || Object.keys(declaration).some(key => !['shard', 'output', 'map', 'discovery'].includes(key))) throw new Error('Generated project requires shard, output and optional map/discovery');
       if ('map' in declaration) map = await generatedProjectMap(declaration.map, mapSourceHash ?? program.hash);
+      if ('discovery' in declaration) discovery = parseDiscoveryValues(declaration.discovery);
       generatedOutput = declaration.output;
       if (generatedOutput === undefined) throw new Error('Generated project output is absent');
       declaration = declaration.shard;
@@ -116,7 +119,7 @@ async function projectModule(project: string, decisionLegacyLines?: number, sele
   if (sidecar !== undefined && 'mirrors' in loaded && 'mirrors' in sidecar) throw new Error('Runtime mirrors declared by both the config and its output sidecar');
   const mirrors = projectMirrors('mirrors' in loaded ? loaded['mirrors'] : sidecar !== undefined && 'mirrors' in sidecar ? sidecar['mirrors'] : undefined);
   if (mapSourceHash !== undefined && map === undefined) throw new Error('Generated map source identity requires a generated map');
-  return { map, shard, commons: 'commons' in loaded ? loaded['commons'] : undefined, baked, output, mirrors };
+  return { map, discovery, shard, commons: 'commons' in loaded ? loaded['commons'] : undefined, baked, output, mirrors };
 }
 
 /** Compile authored geometry and read its remaining immutable inputs without writing hashes into the author folder. */
@@ -138,7 +141,7 @@ export async function readProjectAssets(project: string, map?: ProjectMap, manif
   const mapBlobs = loaded.map?.name === undefined ? [] : [nameBlob(loaded.map.name, 'image', loaded.map.map.bytes)];
   const merged = mergeProjectBlobs(shard, pinned, [...loaded.output.blobs, ...mapBlobs, ...(level?.blobs ?? [])], loaded.output.options.namedFiles);
   return { shard: merged.shard, assets: projectAssets(project, merged.shard, 'project', merged.assets),
-    output: { ...loaded.output.options, namedFiles: merged.namedFiles }, mirrors: loaded.mirrors };
+    output: { ...loaded.output.options, namedFiles: merged.namedFiles, ...(loaded.discovery === undefined ? {} : { discovery: loaded.discovery }) }, mirrors: loaded.mirrors };
 }
 
 function pinnedCommons(input: unknown, source: Shardfile, project: string): ReadonlyMap<string, Uint8Array> | undefined {

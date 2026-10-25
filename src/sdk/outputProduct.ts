@@ -21,6 +21,7 @@ import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
 import { readBoundedFile } from './sourceReader';
 import { validateRuntimeImports } from './runtimeImports';
 import { validateDefinedSection, validateDefinedJson, type EmittedSections } from './sections';
+import { parseDiscoveryValues, type DiscoveryValues } from '@wildshard/format/discoveryValues';
 
 const encoder = new TextEncoder();
 function jsonBytes(value: unknown): Uint8Array { return encoder.encode(encodeCanonicalJson(value)); }
@@ -61,6 +62,8 @@ function inspectBlob(file: OutputFile, bytes: Uint8Array, script?: ScriptContrac
 function put(destination: string, path: string, bytes: Uint8Array): void { const target = resolve(destination,path); mkdirSync(dirname(target),{recursive:true});writeFileSync(target,bytes); }
 /** Optional build-only extensions. Runtime bytes themselves are written by the P3 copier. */
 export interface OutputProductOptions {
+  /** Build metadata only; discovery inlines these admitted values after the product is built. */
+  readonly discovery?: DiscoveryValues;
   readonly custom?: EmittedSections;
   readonly platform?: EmittedSections;
   readonly namedFiles?: readonly OutputFile[];
@@ -144,7 +147,9 @@ export function writeOutputProduct(input: unknown, assets: ReadonlyMap<string,Ui
   put(destination,'shard.json',jsonBytes(index));
   validateOutputProduct(destination);
   const cost = preflightDeclaredCosts(source,offlineMemoryAdmission('warn')).worst;
-  put(destination,'validation.json',jsonBytes({revision:index.build.validator,sourceHash:hashImmutableBytes(validationSourceBytes(source)),indexHash:hashImmutableBytes(jsonBytes(index)),worst:cost,gridReady:structuralGridEvidence(source)}));
+  const discovery = options.discovery === undefined ? undefined : parseDiscoveryValues(options.discovery);
+  put(destination,'validation.json',jsonBytes({revision:index.build.validator,sourceHash:hashImmutableBytes(validationSourceBytes(source)),indexHash:hashImmutableBytes(jsonBytes(index)),worst:cost,gridReady:structuralGridEvidence(source),
+    ...(discovery === undefined ? {} : { discovery: { hash: hashImmutableBytes(jsonBytes(discovery)), values: discovery } }) }));
   return index;
 }
 /** Validate format, exact file inventory, bytes/kinds and platform/custom schemas.

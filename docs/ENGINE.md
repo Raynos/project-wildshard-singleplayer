@@ -13647,6 +13647,14 @@ cannot compete with it. Both forms cross the same shard, decision, asset,
 source-budget and output admission checks; no intermediate metadata file is
 needed to pass a generated hash to its consumer.
 
+`GeneratedProject.discovery` supplies computed discovery data alongside the
+product. The builder admits bounded JSON bindings, detaches their values and
+stores them with a canonical hash in the existing validation receipt. Discovery
+emission consumes only a current verified product and inlines those literals;
+it adds no runtime section, asset or source-file handoff. Missing or invalid
+program bindings refuse. Executable generator references remain forbidden in
+authored discovery metadata.
+
 `GeneratedProject.map` supplies the original 1000 × 1000 RGBA lattice and an
 optional logical name. `@wildshard/sdk/bake/groundMap.rasterGroundMap` paints
 actual L0 terrain and placed GLB triangles with the existing ground palette,

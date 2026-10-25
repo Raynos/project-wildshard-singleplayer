@@ -1,0 +1,57 @@
+import * as v from 'valibot';
+import { isJsonData } from './json';
+import { NavigationSchema } from './navigation';
+import { parseCapturePoses } from './minimap';
+
+const text = v.pipe(v.string(), v.minLength(1), v.maxLength(4096));
+const finite = v.pipe(v.number(), v.finite());
+const nonnegative = v.pipe(finite, v.minValue(0));
+const strings = v.pipe(v.array(text), v.maxLength(8192));
+const numbers = v.record(text, nonnegative);
+const tierBudget = v.strictObject({ fps: nonnegative, variability: nonnegative, cpuMs: nonnegative, gcMs: nonnegative,
+  systems: numbers, vertexShare: nonnegative, lanes: numbers, linkMs: nonnegative });
+const ceiling = v.strictObject({ draws: v.exactOptional(nonnegative), tris: v.exactOptional(nonnegative),
+  programs: v.exactOptional(nonnegative), gpuMB: v.exactOptional(nonnegative) });
+const ceilings = v.record(text, ceiling);
+const budgets = v.strictObject({ phone: v.exactOptional(tierBudget), desktop: v.exactOptional(tierBudget),
+  ceilings: v.exactOptional(v.strictObject({ phone: v.exactOptional(ceilings), desktop: v.exactOptional(ceilings) })),
+  load: v.exactOptional(v.strictObject({ coldPlay4G: v.nullable(nonnegative), fixedSeconds: nonnegative, cpuRatio: nonnegative, bytesPerSecond: nonnegative })) });
+const rgb = v.strictTuple([finite, finite, finite]), pair = v.strictTuple([finite, finite]);
+const stroke = v.strictObject({ width: finite, style: text, dash: v.exactOptional(pair) });
+const palette = v.object({ ground: v.object({ base: rgb, layers: v.array(v.object({ by: v.picklist(['height', 'slope', 'distance', 'wave']), color: v.union([rgb, v.object({ base: rgb, layers: v.array(v.unknown()) })]) })) }),
+  segments: v.array(v.object({ from: pair, to: pair, strokes: v.array(stroke) })), trails: v.array(stroke),
+  marks: v.array(v.object({ kind: v.picklist(['square', 'box', 'ring', 'dot']), x: finite, z: finite })),
+  pois: v.array(v.object({ x: finite, z: finite, label: text, color: text })) });
+const sourceRows = v.record(text, v.array(v.union([text, v.strictObject({ gpu: text })])));
+const modes = <S extends v.GenericSchema>(schema: S) => v.strictObject({ modes: v.strictObject({
+  phone: v.strictObject({ img: schema, ktx2: schema }), desktop: v.strictObject({ img: schema, ktx2: schema }),
+}) });
+const sources = v.union([modes(v.record(text, strings)), v.strictObject({
+  tiers: v.strictObject({ phone: sourceRows, desktop: sourceRows }), gpuFiles: v.exactOptional(v.record(text, v.unknown())),
+})]);
+const files = v.union([strings, modes(strings), v.strictObject({ sources, tier: v.picklist(['phone', 'desktop']), tex: v.picklist(['img', 'ktx2']) })]);
+
+// These are build results, never module paths or runtime loaders. Keep the
+// complete JSON values: the existing runtime contracts still own their values
+// and defaults; validation must not strip palette extensions or source modes.
+const fields = {
+  budgets: v.exactOptional(budgets),
+  navigation: v.exactOptional(v.objectWithRest({ navigation: NavigationSchema, url: text }, v.unknown())),
+  mapPalette: v.exactOptional(v.pipe(v.unknown(), v.check(input => v.is(palette, input), 'Invalid discovery palette'))),
+  poses: v.exactOptional(v.pipe(v.unknown(), v.transform(parseCapturePoses))),
+  audioCues: v.exactOptional(v.record(text, text)),
+  'boot.files': v.exactOptional(files), 'boot.sources': v.exactOptional(sources),
+  'boot.lateReads': v.exactOptional(v.union([strings, modes(strings)])),
+  'boot.explore': v.exactOptional(v.strictObject({ art: strings })),
+};
+const schema = v.strictObject(fields);
+export type DiscoveryValues = v.InferOutput<typeof schema>;
+/** Source programs may supply only these finite data bindings, not entry/load/render authority. */
+export type DiscoveryInput = Readonly<Partial<Record<keyof DiscoveryValues, unknown>>>;
+
+/** Admit and detach generated discovery values before storing them in the product receipt. */
+export function parseDiscoveryValues(input: unknown): DiscoveryValues {
+  if (!isJsonData(input)) throw new Error('Discovery values must be plain bounded JSON');
+  const checked = v.parse(schema, input);
+  return structuredClone(checked);
+}

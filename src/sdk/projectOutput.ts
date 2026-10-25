@@ -32,7 +32,7 @@ const output = v.strictObject({
 });
 
 /** Build-only config export: source paths are resolved by the CLI, never by author module side effects. */
-export interface ProjectOutput extends Omit<OutputProductOptions, 'runtime'> {
+export interface ProjectOutput extends Omit<OutputProductOptions, 'runtime' | 'discovery'> {
   readonly blobs?: readonly v.InferOutput<typeof declaration>[];
   readonly assets?: ReadonlyMap<string, Uint8Array>;
 }

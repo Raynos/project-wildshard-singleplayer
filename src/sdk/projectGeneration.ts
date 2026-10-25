@@ -18,6 +18,7 @@ import { compileDeclaredDecisionScripts } from './buildDecisionScripts';
 import { proveStaticPortalEntries } from './projectEntryProof';
 import type { Shardfile } from './shardfile';
 import type { ProjectOutput } from './projectOutput';
+import type { DiscoveryInput } from '@wildshard/format/discoveryValues';
 
 const hash = v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u));
 const Manifest = v.strictObject({ key: hash, files: v.pipe(v.array(v.strictObject({ name: v.string(), hash, bytes: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(256_000_000)) })), v.maxLength(4096)) });
@@ -38,6 +39,8 @@ export interface GeneratedProject {
   readonly shard: Shardfile;
   readonly output: ProjectOutput;
   readonly map?: { readonly pixels: Uint8Array; readonly name?: string };
+  /** Computed data bindings admitted into the product receipt, never imported at runtime. */
+  readonly discovery?: DiscoveryInput;
 }
 /** Build-only capabilities. No cache filename or intermediate source file enters a product. */
 export interface ProjectGenerationContext {
