@@ -11,11 +11,11 @@ const quaternion = v.pipe(v.strictObject({ x: finite, y: finite, z: finite, w: f
 const box = v.strictObject({ x: coordinate, y: coordinate, z: coordinate, hx: positive, hy: positive, hz: positive, rot: quaternion });
 const chain = v.strictObject({ segments: v.pipe(v.array(v.strictObject({ x: coordinate, y: coordinate, z: coordinate, rot: quaternion, hz: positive })), v.minLength(2), v.maxLength(40)), hx: positive, hy: positive, mass: v.pipe(finite, v.minValue(0.1), v.maxValue(1000)) });
 /** Physics owns the primitive; an admitted script owns its pose/activation. All colliders are numeric, local boxes. */
-export const MoversSchema = v.pipe(v.array(v.strictObject({ id: v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u), v.maxLength(128)), entity: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(0x7fffffff)), module: v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u)), execution: v.exactOptional(v.literal('native')), kind: v.picklist(['platform', 'chain', 'static', 'channel']), at: vector, euler, enabled: v.boolean(), boxes: v.pipe(v.array(box), v.maxLength(128)), chain: v.exactOptional(chain), track: v.exactOptional(MoverTrackSchema), trigger: v.exactOptional(MoverTriggerSchema), driver: v.exactOptional(MoverDriverSchema), carry: v.exactOptional(MoverCarrySchema), atEnd: v.exactOptional(MoverAtEndSchema), restoreFrom: v.exactOptional(MoverRestoreFromSchema), input: v.pipe(v.array(v.pipe(finite, v.minValue(-10000), v.maxValue(10000))), v.maxLength(96)) })), v.maxLength(32));
+export const MoversSchema: v.GenericSchema<MoverDataInput, MoverData> = v.pipe(v.array(v.strictObject({ id: v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u), v.maxLength(128)), entity: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(0x7fffffff)), module: v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u)), execution: v.exactOptional(v.literal('native')), kind: v.picklist(['platform', 'chain', 'static', 'channel']), at: vector, euler, enabled: v.boolean(), boxes: v.pipe(v.array(box), v.maxLength(128)), chain: v.exactOptional(chain), track: v.exactOptional(MoverTrackSchema), trigger: v.exactOptional(MoverTriggerSchema), driver: v.exactOptional(MoverDriverSchema), carry: v.exactOptional(MoverCarrySchema), atEnd: v.exactOptional(MoverAtEndSchema), restoreFrom: v.exactOptional(MoverRestoreFromSchema), input: v.pipe(v.array(v.pipe(finite, v.minValue(-10000), v.maxValue(10000))), v.maxLength(96)) })), v.maxLength(32));
 /** Validated mover declarations; no render object, collision callback or authored TypeScript occurs in the format. */
-export type MoverData = v.InferOutput<typeof MoversSchema>;
+
 /** Existing root envelope, also traversed by client feature schema admission. */
-export const WorldMoversSchema = v.strictObject({ movers: MoversSchema });
+export const WorldMoversSchema: v.GenericSchema<WorldMoversRowsInput, WorldMoversRows> = v.strictObject({ movers: MoversSchema });
 /** Admission proves identity, primitive shape and aggregate solver/body limits before allocating anything. */
 export function parseMovers(input: unknown): MoverData {
   const data = v.parse(MoversSchema, input);
@@ -48,7 +48,7 @@ const exportName = v.pipe(v.string(), v.regex(/^[A-Za-z_$][A-Za-z0-9_$]*$/u));
  * modules' hashes (passed in declared order), and any module whose hash its runtime imports as a generated constant
  * (`emit`: the file under the shard, the constant's name and its one-line note).
  */
-export const MoverBakeSchema = v.strictObject({
+export const MoverBakeSchema: v.GenericSchema<MoverBakeInput, MoverBake> = v.strictObject({
   capture: exportName,
   output: v.optional(v.picklist(['typescript', 'json']), 'typescript'),
   execution: v.exactOptional(v.literal('native')),
@@ -59,10 +59,158 @@ export const MoverBakeSchema = v.strictObject({
   })), v.minLength(1), v.maxLength(8), v.check(rows => new Set(rows.map(row => row.file)).size === rows.length, 'unique module labels')),
 });
 /** A shard's mover bake declaration (`MoverBakeSchema`). */
-export type MoverBake = v.InferOutput<typeof MoverBakeSchema>;
+
 /** Validate one shard's `MOVER_BAKE`, naming the shard on refusal. */
 export function moverBake(slug: string, value: unknown): MoverBake {
   const parsed = v.safeParse(MoverBakeSchema, value);
   if (!parsed.success) throw new Error(`${slug}: generators/moverBake.ts MOVER_BAKE: ${parsed.issues.map(issue => issue.message).join('; ')}`);
   return parsed.output;
+}
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type MoverDataInput = ({
+    id: string;
+    entity: number;
+    module: string;
+    execution?: 'native';
+    kind: 'platform' | 'chain' | 'static' | 'channel';
+    at: {
+        x: number;
+        y: number;
+        z: number;
+    };
+    euler: {
+        x: number;
+        y: number;
+        z: number;
+    };
+    enabled: boolean;
+    boxes: ({
+        x: number;
+        y: number;
+        z: number;
+        hx: number;
+        hy: number;
+        hz: number;
+        rot: {
+            x: number;
+            y: number;
+            z: number;
+            w: number;
+        };
+    })[];
+    chain?: {
+        segments: ({
+            x: number;
+            y: number;
+            z: number;
+            rot: {
+                x: number;
+                y: number;
+                z: number;
+                w: number;
+            };
+            hz: number;
+        })[];
+        hx: number;
+        hy: number;
+        mass: number;
+    };
+    track?: v.InferInput<typeof MoverTrackSchema>;
+    trigger?: v.InferInput<typeof MoverTriggerSchema>;
+    driver?: v.InferInput<typeof MoverDriverSchema>;
+    carry?: v.InferInput<typeof MoverCarrySchema>;
+    atEnd?: v.InferInput<typeof MoverAtEndSchema>;
+    restoreFrom?: v.InferInput<typeof MoverRestoreFromSchema>;
+    input: (number)[];
+})[];
+export type MoverData = ({
+    id: string;
+    entity: number;
+    module: string;
+    execution?: 'native';
+    kind: 'platform' | 'chain' | 'static' | 'channel';
+    at: {
+        x: number;
+        y: number;
+        z: number;
+    };
+    euler: {
+        x: number;
+        y: number;
+        z: number;
+    };
+    enabled: boolean;
+    boxes: ({
+        x: number;
+        y: number;
+        z: number;
+        hx: number;
+        hy: number;
+        hz: number;
+        rot: {
+            x: number;
+            y: number;
+            z: number;
+            w: number;
+        };
+    })[];
+    chain?: {
+        segments: ({
+            x: number;
+            y: number;
+            z: number;
+            rot: {
+                x: number;
+                y: number;
+                z: number;
+                w: number;
+            };
+            hz: number;
+        })[];
+        hx: number;
+        hy: number;
+        mass: number;
+    };
+    track?: v.InferOutput<typeof MoverTrackSchema>;
+    trigger?: v.InferOutput<typeof MoverTriggerSchema>;
+    driver?: v.InferOutput<typeof MoverDriverSchema>;
+    carry?: v.InferOutput<typeof MoverCarrySchema>;
+    atEnd?: v.InferOutput<typeof MoverAtEndSchema>;
+    restoreFrom?: v.InferOutput<typeof MoverRestoreFromSchema>;
+    input: (number)[];
+})[];
+export interface WorldMoversRowsInput {
+    movers: MoverDataInput;
+}
+export interface WorldMoversRows {
+    movers: MoverData;
+}
+export interface MoverBakeInput {
+    capture: string;
+    output?: 'typescript' | 'json' | undefined;
+    execution?: 'native';
+    modules: ({
+        file: string;
+        driver: 'ride' | 'hinge' | 'waves' | 'clip';
+        emit?: {
+            file: string;
+            name: string;
+            note: string;
+        };
+    })[];
+}
+export interface MoverBake {
+    capture: string;
+    output: 'typescript' | 'json';
+    execution?: 'native';
+    modules: ({
+        file: string;
+        driver: 'ride' | 'hinge' | 'waves' | 'clip';
+        emit?: {
+            file: string;
+            name: string;
+            note: string;
+        };
+    })[];
 }
