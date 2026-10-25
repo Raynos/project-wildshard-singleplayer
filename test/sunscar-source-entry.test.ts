@@ -10,6 +10,7 @@ import { worldBakes } from '../src/shards/sunscar-dunes/generators/worldBakes';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { readProjectAssets } from '../src/sdk/project';
 import before from './fixtures/sunscar-source-entry.json' with { type: 'json' };
+import originalProductAssets from './fixtures/sunscar-duplicate-product.json' with { type: 'json' };
 
 const signature = (value: unknown): { bytes: number; hash: string } => {
   const bytes = new TextEncoder().encode(encodeCanonicalJson(value));
@@ -32,8 +33,9 @@ test('direct world rows preserve the original ordered aggregate without its JSON
   expect(signature(worldBakes())).toEqual(before.raw.world);
   const registry = v.parse(v.object({ jobs: v.array(v.object({ id: v.string(), shard: v.nullable(v.string()), inputRoots: v.array(v.string()), outputs: v.array(v.string()) })) }),
     JSON.parse(readFileSync('scripts/generation-jobs.json', 'utf8')));
-  expect(registry.jobs.some(row => row.id === 'signal-world-bakes')).toBe(false);
-  expect(registry.jobs.filter(row => row.shard === 'sunscar-dunes')).toHaveLength(21);
+  expect(registry.jobs.some(row => row.id === 'signal-world-bakes' || row.id === 'signal-product')).toBe(false);
+  expect(registry.jobs.flatMap(row => row.inputRoots.concat(row.outputs)).some(path => path.startsWith('src/shards/sunscar-dunes/.wildshard/product/'))).toBe(false);
+  expect(registry.jobs.filter(row => row.shard === 'sunscar-dunes')).toHaveLength(20);
   expect(registry.jobs.flatMap(row => row.inputRoots.concat(row.outputs)).some(path => path.endsWith('/worldBakes.generated.json'))).toBe(false);
 });
 
@@ -41,7 +43,14 @@ test('direct world rows preserve the original ordered aggregate without its JSON
 test('the SDK admits all original physical bytes, platform metadata and mirrors through the source entry', async () => {
   const result = await readProjectAssets(resolve('src/shards/sunscar-dunes'));
   expect(signature(result.shard)).toEqual(before.shard);
-  expect(physical(result.assets)).toEqual(before.assets);
+  const assets = physical(result.assets);
+  expect(assets).toEqual(before.assets);
+  expect(originalProductAssets).toHaveLength(86);
+  for (const hash of originalProductAssets) {
+    const original = before.assets.find(row => row[0] === hash);
+    if (original === undefined) throw new Error('Original duplicate asset missing from admitted oracle');
+    expect(assets.find(row => row[0] === hash)).toEqual(original);
+  }
   const admitted = { ...result.output,
     ...(result.output.custom === undefined ? {} : { custom: { ...result.output.custom, files: physical(result.output.custom.files) } }),
     ...(result.output.platform === undefined ? {} : { platform: { ...result.output.platform, files: physical(result.output.platform.files) } }),
