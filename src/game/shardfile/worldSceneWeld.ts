@@ -212,6 +212,10 @@ export class WorldSceneWeldAssembly {
     this.staging = new Map(sources.geometry);
     this.sources = { ...sources, geometry: this.staging };
   }
+  /** Named-place sets and frozen contacts borrow complete placements, never a later streamed subset. */
+  usesPlacement(id: string): boolean {
+    return this.row.placements.includes(id) || this.row.sets.some(set => set.members.includes(id));
+  }
   assemble(): Promise<Object3D> {
     if (this.owner.disposed) return Promise.reject(new Error('Frozen scene owner is disposed'));
     this.pending ??= this.build(); return this.pending;

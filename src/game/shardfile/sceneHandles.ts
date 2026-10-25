@@ -60,6 +60,11 @@ export class SceneHandles {
     if (!this.has(`${id}.root`)) { this.publish(`${id}.root`, placed.object); this.publishColliders(`${id}.colliders`, placed.colliders); }
     return placed;
   }
+  /** Resolve the construction mode before the first entry row publishes a placement root. */
+  requiresWhole(id: string): boolean {
+    for (const value of this.values.values()) if (value instanceof WorldSceneWeldAssembly && value.usesPlacement(id)) return true;
+    return false;
+  }
   /**
    * Tile streaming T3: placement `id` by tile instead of whole: its stable container (published as `<id>.root`, empty until
    * tiles attach) and a TileContent the streamer drives; `tiled()` lists every element taken this way, in order. `coarse`

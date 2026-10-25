@@ -410,8 +410,9 @@ export class WorldAssembly {
     } else if (stage.kind === 'place') {
       // tile streaming T3: by tile, its stable root now and its copies as the tile driver attaches them (T4); it places
       // nothing whole: a GPU root naming it takes the stable root alone
-      const content = scenes.tile(stage.id);
-      publishEntryOwner(scope, 'object', stage.id, scenes.object(`${content.id}.root`)); publishEntryOwner(scope, 'placed', stage.id, []);
+      const whole = scenes.requiresWhole(stage.id) ? await scenes.place(stage.id) : null;
+      if (whole === null) scenes.tile(stage.id);
+      publishEntryOwner(scope, 'object', stage.id, scenes.object(`${stage.id}.root`)); publishEntryOwner(scope, 'placed', stage.id, whole === null ? [] : [whole]);
       publishEntryOwner(scope, 'floor', stage.id, (x, z) => scenes.floorAt(stage.id, x, z));
     } else if (stage.kind === 'site') {
       const sites = this.ports.sites; if (sites === undefined) throw new Error('World assembly site needs its catalogue');

@@ -79,6 +79,9 @@ export class WorldEntry {
       if (this.tiled.has(row.id) || this.restored.has(row.id)) throw new Error(`World entry placed ${row.id} twice`);
       const handles = scenes();
       if (handles.frozen(row.id)) { await handles.assemble(row.id); this.restored.add(row.id); return; }
+      // Frozen sets consume these complete placements later in the same build.
+      // Do not publish a tiled root first and then build its owner whole.
+      if (handles.requiresWhole(row.id)) { await handles.place(row.id); this.restored.add(row.id); return; }
       // tile streaming T3: a placement goes by tile; the resident's tile driver attaches its copies (T4)
       handles.tile(row.id); this.tiled.add(row.id);
       return;

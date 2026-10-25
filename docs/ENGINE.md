@@ -13488,6 +13488,10 @@ requirements share pins; releasing one cannot remove another's demand.
 Empty catalogue tiles need no publication. A failed prerequisite, pending
 release or streamer disposal rejects readiness and releases that demand.
 This promises render publication, not a runtime or collider admission.
+Scene entry resolves frozen graph placement dependencies before choosing
+tile ownership: a placement consumed whole by frozen contacts or a named
+place set builds once as a complete placement. Its earlier entry row must
+not also register tiled attachment. Unrelated placements still stream.
 Cells may declare `type: level | road | junction` and a centred `extent`
 with finite positive width/depth up to 500 m. Omitted extents retain the
 500 m lattice; kinds do not infer dimensions or install logic. L0

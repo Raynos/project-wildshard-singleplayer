@@ -6,6 +6,8 @@ import { WeldBatch, WeldView } from '../src/engine/models/weld';
 import { parsePlumbing } from '../src/format/plumbing';
 import { TIER, TIER_CONFIG } from '../src/engine/core/tier';
 import { SceneHandles } from '../src/game/shardfile/sceneHandles';
+import { WorldEntry } from '../src/game/shardfile/worldEntry';
+import { residentTiles } from '../src/game/shardfile/tileDriver';
 import { hydrateWorldSceneWeld, worldSceneWeldFile, admitWorldSceneModelGraphs, WorldSceneWeldAssembly } from '../src/game/shardfile/worldSceneWeld';
 import { parseWorldSceneWeld } from '../src/format/worldSceneWeld';
 import { SkyRig } from '../src/engine/world/skyRig';
@@ -210,8 +212,13 @@ test('deferred world assembly publishes live seeds before borrowing the living r
     expect(context.app.registry.pieces).toHaveLength(0);
     expect(handles.has('dormant.seeds')).toBe(false); expect(handles.has('dormant.root')).toBe(false);
     handles.publish('living.root', root);
+    // Nine declares its member placements before restoring the frozen fabric
+    // that needs those same complete placements for its named-place sets.
+    const entry = WorldEntry.admit({ blocks: { members: [{ kind: 'place', id: 'quay-piece' }] } }, { root, scenes: handles, tier: 'phone', scope: owner });
+    await entry.run('members');
     expect(await handles.assemble(graph.id)).toBe(root);
     expect(await handles.assemble(graph.id)).toBe(root);
+    await residentTiles(owner, handles.tiled(), { x: 0, z: 0 }, []);
     expect(context.app.registry.pieces).toHaveLength(1);
     owner.dispose(); expect(handles.object('living.root')).toBe(root);
   } finally { owner.dispose(); }
