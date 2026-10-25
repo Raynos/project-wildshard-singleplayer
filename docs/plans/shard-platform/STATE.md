@@ -25,10 +25,9 @@ not retained data; cuts left are < 1 MiB each, so the budgets need a structural 
 **Tooling:** DW tiles: wire 12.3 → 10.8 MB look-identical;
 pick for Jake: art/driftwood-isle/round-19-tile-lod (3af5687a53) A landed / B / C; only C gets 6,4 + 2,5 under 4 MB.
 
-**For wildshard-v:** G694 wave 1 COMPLETE; LEGACY A/B ready (all 6 buttons enter real frozen copies). Loading L9 PASS cold 2.72 % /
-warm 2.70 % (a73338). Witness drift traced to the approved body-phase split ec2b9c8c50, repinned 6256f5a3ce. T1: ghosts fixed, native
-memory still +45-89 MB/return; sp-x9 measuring app-attributable vs browser-internal, may recommend re-basing the 20 MB native gate.
-GR3 16/28 jobs, T3 115 suites moved, U2 empty parents in progress. Your grep PID 45432 still running.
+**For wildshard-v:** main CI FULL GREEN again on da94ec4da3 (13m28s; typecheck 50 s); its smoke 3/6 legs green so far. G694 wave 1 done,
+LEGACY A/B ready, L9 PASS. T1: shader programs churn because scene-hash keys change per return (sp-x9 fixing, first slice proven);
+GR3 16/28, GR4 Sunscar producers callable, T3 196 suites moved, T4 -2.0 MB declarations, T6 contract slice. Your grep 45432 has ended.
 
 **Lanes:** Claude weekly 90 %: 0 Opus (sp-o3 stopped, G605); 5 Codex + sp-x7.
 
