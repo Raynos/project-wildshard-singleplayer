@@ -120,7 +120,7 @@ in `public/assets/<slug>/` as real `.glb` / `.png` / `.ktx2` / `.bin`. App-wide 
 | GR0 | done (2026-10-24, sp-x1): existing import ban `7d9ada1bbb` plus generated-source guard; exact-path output debt only shrinks, G656 app sources remain separately reviewed | S | staged/push Git checks and pre/post-gen + CI tree checks refuse new source outputs; 138 focused cases pass |
 | GR1 | done (2026-10-24, sp-x1): SDK `ctx.cached` / `ctx.asset`, in-memory boss metadata and Template/Pastel map/world programs; `de4c2ed072` + `89dc5c0c07` + `ea96805666` | M | Exact `ea96805666` full preview passes all 24 products in 165.42 s; both folders have zero job rows and no new file under `src/` after generation/build |
 | GR2 | done (2026-10-24, sp-x1): `326950c025` + `78681f7cf5`; app tables then the existing per-product build pool, heavy-lane, scoped `--shard=`; preparation-only CI preserved | S | fresh Node refuses any scheduler import for a fully converted folder; 29 focused + 410 ready-related cases pass; exact `78681` generation builds all 24 products |
-| GR3 | in flight (2026-10-24, sp-x1): **Nine** (28 jobs at claim; 9 remain): direct row, physics and schema calls replace imports; `castHook` / `lightSpill` become cached `.glb` / `.bin`; dead `paintArray` retires (G416, closes B4); atlases per D2; its tests call functions | L | 0 Nine rows in the catalogue, 0 `*.generated.*` under its folder, product validates, boot smoke green |
+| GR3 | in flight (2026-10-24, sp-x1): **Nine** (28 jobs at claim; 8 remain): direct row, physics and schema calls replace imports; `castHook` / `lightSpill` become cached `.glb` / `.bin`; dead `paintArray` retires (G416, closes B4); atlases per D2; its tests call functions | L | 0 Nine rows in the catalogue, 0 `*.generated.*` under its folder, product validates, boot smoke green |
 | GR4 | **in flight (2026-10-24, sp-x6): Sunscar** (23 at claim; 19 remain). Four jobs retired with exact source-product parity; next largest is creature rigs. | M | same bar |
 | GR5 | **Far Reach** (47) | L | same bar |
 | GR6 | **Nalati** (47; 69 product imports, `poiPaint` / `grass` / `geography`) | L | same bar |
@@ -209,6 +209,13 @@ The dead job, 35,081,427 bytes across six outputs (including four declaration sh
 The live baseline pins all nine layers, four looks and 24 tier images (4,867,237 bytes); full admitted-file checks stay.
 The corrected sealed boot closure and scoped cold generation pass in 35.25 s (Nine product 21.2 s), with all six
 retired files absent before and after. Sixteen focused cases, full layers/root and named typed lint pass. Ready-related checks pass 156 cases / 44 suites; two product suites explicitly defer to CI.
+The casts now return owned raw/packed GLBs and checked hook metadata through the same source cache and asset capability.
+All 78 predecessor files (28,871,657 bytes) and the launcher retire; the single job removal takes Nine from nine to eight.
+Every predecessor hash, admitted asset/declaration byte and retained map/budget/world-row hash stays exact.
+Cold scoped inputs-only generation passes with all 78 retired files absent before and after; discovery equals every
+original navigation value. The final current-input receipt refresh after removing the obsolete scheduling hint also passes (38.67 s).
+Fifteen focused checks and 160 ready-related cases / 35 suites pass; one other-shards product suite explicitly defers.
+Touched shard/scripts types, named typed lint and the generated-source guard pass. No look or runtime policy changes.
 GR3's zero-row, zero-generated-source and final boot acceptance remain open.
 
 GR3 bounded slices (G711; each <= 1 h, one producer retirement per commit):
@@ -216,7 +223,7 @@ GR3 bounded slices (G711; each <= 1 h, one producer retirement per commit):
 | Slice | Status | Boundary |
 |---|---|---|
 | C1 casts source/cache and host fixtures | done | All 78 predecessor files, admitted costs, cold/hit/refusal checks; no job retirement |
-| C2 casts reader handoff and retirement | in flight (2026-10-24, sp-x1) | Retire only nine-casts; cold scoped generation and full live output parity |
+| C2 casts reader handoff and retirement | done | Nine 9 → 8; all 78 former files exact, cold scoped generation and full live output parity |
 | Practice | open | Direct course program, then remove its two source handoffs |
 | Declarations | open | Direct checked world rows; remove declaration adapter |
 | Boot metadata | open | Direct checked geometry/presentation metadata |

@@ -4,7 +4,7 @@ import { SIGN_POOL_LIBRARIES, SIGN_ATLAS_ROWS } from './signAtlasSources';
 import signTextures from '../data/signTextureSources.json' with { type: 'json' };
 import rawSignRows from '../data/signView.json' with { type: 'json' };
 import { parseSignView, LayoutRowsSchema, parseSpecimenProfiles } from './sections';
-import { CAST_LIBRARIES, CAST_WELD, castBlobs, CAST_MATERIALS, castLibrary } from './castSources';
+import { CAST_LIBRARIES, CAST_WELD, castBlobs, castMaterials, castLibrary } from './castSources';
 import crowdRows from '../data/crowdModels.json' with { type: 'json' };
 import lodRows from '../data/lod.json' with { type: 'json' };
 import hookRows from '../data/hookSpecimen.json' with { type: 'json' };
@@ -38,7 +38,7 @@ import { lightVolumeRows } from './lightVolumes';
 import paint from '../data/paint.json' with { type: 'json' };
 import canopy from '../data/canopy.json' with { type: 'json' };
 
-function buildWorldScenes(layout: NineSourceWorld['layout']) {
+function buildWorldScenes(layout: NineSourceWorld['layout'], hookMaterial: Parameters<typeof castMaterials>[0]) {
 const signRows = parseSignView(rawSignRows);
 const profiles = parseSpecimenProfiles(rawProfiles);
 
@@ -378,7 +378,7 @@ const FIXED_RECIPE = parseWorldScene({ imports: [], scene: { version: 1, root: '
 const FIXED_STEPS = (['open', 'capped'] as const).map(caps => ({ id: `fixed-${caps}`, cube: caps === 'open' ? 'cell' : 'standalone', scene: 'world/scenes/fixed.json',
   geometry: { entries: { library: castLibrary(`entries-${caps}`), model: `entries-${caps}` }, signs: { library: castLibrary('facade-signs'), model: 'facade-signs' } }, materials: { kit: 'kit' } }));
 const NINE_WORLD_SCENES = parseWorldScenes({ version: 1, catalogue: 'models/world-scenes.json', lent, uniforms: [NINE_SHARED], welds: [CAST_WELD, { id: 'fabric', file: 'world/fabric.json' }], placements: [...SET_PLACEMENTS, ...MOVER_PLACEMENTS, ...LAYOUT_PLACEMENTS.map(row => ({ id: row.id, file: layoutPlacementFile(row.id) }))], libraries: [...SIGN_POOL_LIBRARIES, ...CAST_LIBRARIES, ...portalLook.scenes.libraries, library('native'), library('native-explorer'), { id: 'shapes', kind: 'owned', models: shapes.map(([id]) => ({ id, file: `world/geometry/${id}.glb` })) }],
-  materials: [...CAST_MATERIALS, ...portalLook.scenes.materials, look('kit', 'nine-architecture'), look('kit-cut', 'nine-architecture-cut'), look('facade', 'nine-facade'), look('small', 'nine-facade-small'), look('windows', 'nine-windows'), look('lantern', 'nine-lantern'),
+  materials: [...castMaterials(hookMaterial), ...portalLook.scenes.materials, look('kit', 'nine-architecture'), look('kit-cut', 'nine-architecture-cut'), look('facade', 'nine-facade'), look('small', 'nine-facade-small'), look('windows', 'nine-windows'), look('lantern', 'nine-lantern'),
     look('canopy-core', 'nine-canopy-inner'), look('canopy-cards', 'nine-canopy-cards'), look('canopy-depth', 'nine-canopy-depth'), look('mist-sheet', 'nine-mist-sheet'), look('steam', 'nine-steam'), look('sky', 'nine-sky'), look('scroll', 'nine-scroll'), look('streaks', 'nine-streaks'), look('halo', 'nine-halo'),
     look('neon', 'nine-neon'), look('neon-board', 'nine-neon-board'), look('neon-tube', 'nine-neon-tube')],
   steps: [{ id: 'dressing', scene: 'world/scenes/dressing.json', geometry: { ...Object.fromEntries(dressing.map(({ model }) => [model, { library: libraryOf.get(model) ?? signLibrary.get(model) ?? 'shapes', model }])), ...windowStep([0, 1], layout).geometry },
@@ -391,5 +391,5 @@ const LAYOUT_PLACEMENT_BLOBS: NamedBlob[] = [...LAYOUT_PLACEMENTS.map(row => nam
 return { SET_TILES, NINE_SCENE_BLOBS, SET_PLACEMENTS, LION_PLACEMENTS, LAYOUT_PLACEMENTS, NINE_WORLD_SCENES, LAYOUT_PLACEMENT_BLOBS };
 }
 /** The same scene catalogue and placements from this invocation's checked layout. */
-export function nineWorldScenes(layout: NineSourceWorld['layout']): ReturnType<typeof buildWorldScenes> { return buildWorldScenes(layout); }
+export function nineWorldScenes(layout: NineSourceWorld['layout'], material: Parameters<typeof castMaterials>[0]): ReturnType<typeof buildWorldScenes> { return buildWorldScenes(layout, material); }
 export type NineWorldScenes = ReturnType<typeof nineWorldScenes>;

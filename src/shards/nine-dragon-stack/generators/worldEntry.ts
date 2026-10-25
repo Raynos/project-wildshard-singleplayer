@@ -4,9 +4,11 @@ import canopy from '../data/canopy.json' with { type: 'json' };
 import light from '../data/light.json' with { type: 'json' };
 import { nineWorldInstallRows, type NinePhysicsPlacement } from './physicsPlacements';
 import worldRows from '../data/worldRows.generated.json' with { type: 'json' };
-import deckFloors from '../data/deckFloors.generated.json' with { type: 'json' };
+import { deckFloorRows } from './floorRows';
 import windowBindings from '../data/windowBindings.json' with { type: 'json' };
 import type { NineWorldScenes } from './worldScenes';
+
+const deckFloors = deckFloorRows();
 
 /**
  * Nine Dragon Stack's world entry rows (format/worldEntry), per deck ending (`capped` standalone, `open` in a grid cell):

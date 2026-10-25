@@ -1,3 +1,4 @@
+import castBefore from './fixtures/nine-binary-outputs.json' with { type: 'json' };
 import oldOwnedAssets from './fixtures/nine-raw-owned-assets.json' with { type: 'json' };
 // oxlint-disable-next-line import/no-nodejs-modules -- Compile the actual authored guest source, without generated metadata.
 import { readFileSync } from 'node:fs';
@@ -34,13 +35,16 @@ test('source-owned files preserve the original complete output and executable by
   expect(signature(product)).toEqual({ bytes: 734805, hash: 'c80c8026c7662c9bc3dff769ce6d5306d0cd5b573558128c6d02aa9ac94c0562' });
   // Reconstruct only the two old source declarations for this unchanged raw-wire golden.
   // The effective admitted inventory is independently pinned for all 169 files.
+  const legacyCasts = castBefore.castFiles.filter(row => row.kind === 'glb').map(row => ({ name: row.name, kind: 'glb',
+    source: row.name === 'geometry/dragon-hook.glb' ? 'data/castHook.generated.glb' : `data/cast-${row.name.split('/').at(-1)?.replace('.glb', '')}.generated.glb` }));
+  const castHashes = new Set(castBefore.castFiles.filter(row => row.kind === 'glb').map(row => row.hash));
   const oldDecalSources = native.map(tier => ({ name: `looks/jian-decal-${tier}.png`, kind: 'image', source: `assets/${nativeDecals[tier].hash}` }));
-  expect(signature({ blobs: [...actual.blobs, ...oldDecalSources], namedFiles: actual.namedFiles.filter(row => row.name !== 'views/movers.wasm' && !nativeHashes.has(row.hash)),
+  expect(signature({ blobs: [...actual.blobs.slice(0, 2), ...legacyCasts, ...actual.blobs.slice(2), ...oldDecalSources], namedFiles: actual.namedFiles.filter(row => row.name !== 'views/movers.wasm' && !nativeHashes.has(row.hash) && !castHashes.has(row.hash)),
     assets: physical(actual.assets, true), platform: { ...actual.platform, files: physical(actual.platform.files) } }))
     .toEqual({ bytes: 140949, hash: 'c8ac0b097ca25d1af5317693b4f1966a1122f1e1357eb0fd443aa92219d3d181' });
   // Supply distinct proof and decal rows directly, without a file-reader fallback.
   const burst = { name: 'fixture', shape: 'flake' as const, count: 1, life: .5 };
-  const suppliedInputs = { ownedWorld: inputs.ownedWorld, scenes: inputs.scenes, held: inputs.held, construction: { seed: product.identity.seed, looks: Object.keys(product.look.materials) },
+  const suppliedInputs = { casts: inputs.casts, ownedWorld: inputs.ownedWorld, scenes: inputs.scenes, held: inputs.held, construction: { seed: product.identity.seed, looks: Object.keys(product.look.materials) },
     scriptRevisions: SCRIPT_V2_REVISIONS, graphArmsSchema: { type: 'object' },
     bursts: { muzzle: burst, bite: burst, dock: burst, sparks: burst }, entryProof: { lanes: 1, steps: 2, portalTransfers: 3 },
     decals: { sources: { phone: { width: 1, height: 1, png: 'phone.png' }, desktop: { width: 2, height: 2, png: 'desktop.png' } } } };

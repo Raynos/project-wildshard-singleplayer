@@ -13,6 +13,7 @@ async function sourceInputs(): Promise<Awaited<ReturnType<typeof readNineProduct
 }
 
 export const inputs = await sourceInputs();
+export const casts = inputs.casts;
 export const ownedWorld = inputs.ownedWorld;
 export const world = ownedWorld.metadata;
 export const layout = ownedWorld.layout;

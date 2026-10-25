@@ -11,15 +11,19 @@ import { banyanOut } from './banyanPlan.ts';
 import { worldRows } from './worldRows.ts';
 import { portalPlanRows } from './portalEntries.ts';
 import { MOVER_REST, MOVER_STAGES } from './moversView.ts';
+import { nineCastFiles } from './castsProgram.ts';
+import { fixedKitRows, readFixedSlots } from './casts.ts';
 import { tintAbove } from './lods.ts';
 import { NeonText } from './neonGeometry.ts';
 
 const base = resolve(import.meta.dirname, '..'), root = resolve(base, '../../..');
 const read = file => readMapJson(resolve(base, file));
-const cast = async name => {
+const castModel = async (name, files) => {
   const dyes = { 'walker-oxblood': ['walker-dark', 0x9a2e1c], 'walker-blue': ['walker-dark', 0x34507e], 'walker-paper': ['walker-light', 0xb07a34] };
   const dye = dyes[name];
-  const geometry = await mapModel(resolve(root, `public/assets/nine-dragon/baked/casts/${dye?.[0] ?? name}.glb`));
+  const bytes = files.get(`raw/${dye?.[0] ?? name}.glb`);
+  if (bytes === undefined) throw new Error(`Missing map cast ${name}`);
+  const geometry = await mapModel(bytes);
   if (dye === undefined) return geometry;
   const tinted = tintAbove(geometry, dye[1]); geometry.dispose(); return tinted;
 };
@@ -35,6 +39,8 @@ function atlasGeometry(source, bytes) {
 }
 
 export async function nineMapAssembly() {
+  const files = await nineCastFiles(url => new Uint8Array(readFileSync(resolve(root, `public${url}`))));
+  const cast = name => castModel(name, files);
   const atlas = read('data/signAtlas.generated.json').desktop, atlasBytes = new Uint8Array(readFileSync(resolve(base, 'data', atlas.buffer)));
   const assembly = new MapAssembly(), layout = withPortableMath(() => nineLayoutSource()), { rows, records } = layout;
   const world = await worldRows(rows, records, url => new Uint8Array(readFileSync(resolve(root, `public${url}`))));
@@ -69,7 +75,7 @@ export async function nineMapAssembly() {
     assembly.add(`wall:${key}`, specimen(`kit:${key.slice(0, key.indexOf('@'))}`), poses);
   }
   assembly.add('air-conditioners', specimen('kit:ac'), acs);
-  const fixed = read('data/fixedKits.generated.json'), lantern = read('data/lantern.json');
+  const fixed = fixedKitRows(readFixedSlots({ rows })), lantern = read('data/lantern.json');
   const hanging = [...lanterns, ...fixed.lanterns.map(row => frame(row, 0)), ...world.rows.portalLanterns.map(offset => frame(world.records, offset))];
   assembly.add('lanterns', specimen('lantern:near'), hanging.map(matrix => {
     const position = new Vector3(), scale = new Vector3(); matrix.decompose(position, new Quaternion(), scale);

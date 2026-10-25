@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { LayoutProjectionSchema, LayoutRowsSchema, type LayoutRows, type LayoutProjection } from './sections';
-import fixed from '../data/fixedKits.generated.json' with { type: 'json' };
+import { fixedKitRows } from './casts';
 import lantern from '../data/lantern.json' with { type: 'json' };
 
 /** One layout geometry's bounds as the layout bake measured them (worldProgram.ts): [x, y, z, radius], [min, max] */
@@ -23,7 +23,7 @@ function shortFloat32(value: number): number {
 }
 
 /** Decode the predecessor's mixed stream once at build time, retaining every double and signed zero. */
-export function layoutProjection(rows: LayoutRows, records: readonly number[], bounds: readonly LayoutBounds[], fixedRows: NineFixedLanterns = fixed): LayoutProjection {
+export function layoutProjection(rows: LayoutRows, records: readonly number[], bounds: readonly LayoutBounds[], fixedRows?: NineFixedLanterns): LayoutProjection {
   if (rows.kitxs.length > 0) throw new Error('Nine layout requires offline merged kits');
   const c = rows.counts;
   let at = (c.walkers + c.sitters) * 16;
@@ -55,7 +55,7 @@ export function layoutProjection(rows: LayoutRows, records: readonly number[], b
     return { id, box: row.box, s: [...box, radius] };
   }), kits: rows.kits.map(row => [row.name, row.geo]), alphaKits: rows.alphaKits.map(row => [row.name, row.geo]),
   farOf: rows.farOf, inKit: rows.inKit, shell: rows.shell, lanterns, acs, hooks, hookMounts, inst,
-  fixed: { lanterns: fixedRows.lanterns.map(row => row.map(Number)), drop: lantern.drop } });
+  fixed: { lanterns: (fixedRows ?? fixedKitRows(rows.slots)).lanterns.map(row => row.map(Number)), drop: lantern.drop } });
 }
 
 /** JSON keeps every double exactly but -0 and the non-finite: the bake writes those as strings */
@@ -71,7 +71,7 @@ export function bakedLayout(source: Pick<NineLayoutInput, 'rows' | 'records' | '
   return { rows, records: v.parse(v.array(v.number()), records) };
 }
 /** The page's layout projection (geometry/layout-projection.json), from the bake. */
-export function bakedLayoutProjection(source: NineLayoutInput, fixedRows: NineFixedLanterns = fixed): LayoutProjection {
+export function bakedLayoutProjection(source: NineLayoutInput, fixedRows?: NineFixedLanterns): LayoutProjection {
   const { rows, records } = bakedLayout(source); return layoutProjection(rows, records, source.bounds, fixedRows);
 }
 

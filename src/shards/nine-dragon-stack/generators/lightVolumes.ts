@@ -7,7 +7,7 @@ import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import { bakeLightVolume } from './lightVolume';
 import { neonSize } from './signMath';
 import type { NineSourceWorld } from './worldProgram';
-import fixed from '../data/fixedKits.generated.json' with { type: 'json' };
+import { fixedKitRows } from './casts';
 import signs from '../data/signAtlas.generated.json' with { type: 'json' };
 import pools from '../data/lightPools.json' with { type: 'json' };
 import lantern from '../data/lantern.json' with { type: 'json' };
@@ -72,7 +72,7 @@ export function volumeSources(tier: 'phone' | 'desktop', caps: boolean, layout: 
   };
   const num = (): number => numeric(records[cursor++]);
   const matrices = Array.from({ length: c.lanterns }, () => new Matrix4().fromArray(Array.from({ length: 16 }, num)));
-  if (caps) for (const matrix of fixed.lanterns) matrices.push(new Matrix4().fromArray(matrix.map(numeric)));
+  if (caps) for (const matrix of fixedKitRows(layout.rows.slots).lanterns) matrices.push(new Matrix4().fromArray(matrix.map(numeric)));
   const point = new Vector3(), rotation = new Quaternion(), scale = new Vector3();
   const lanterns = matrices.map(matrix => {
     matrix.decompose(point, rotation, scale);

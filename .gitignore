@@ -831,7 +831,6 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 /public/assets/nalati/baked/spruce-*.glb
 
 # Nine fixed geometry is rebuilt by its retained author.
-/public/assets/nine-dragon/baked/casts/
 
 # Z2 cheap scene-model build outputs
 /src/shards/pine-hollow/assets/crag-scenes/
@@ -904,7 +903,6 @@ src/shards/driftwood-isle/data/bridgeRows.d.json.ts
 /src/shards/nine-dragon-stack/data/signView.d.json.ts
 /src/shards/nine-dragon-stack/data/specimenProfiles.d.json.ts
 
-/src/shards/nine-dragon-stack/data/deckFloors.generated.json
 
 /src/shards/nalati-grasslands/data/eliteCharge.generated.json
 

@@ -1,4 +1,5 @@
 import { nineLayoutData } from './layoutSource.ts';
+import { fixedKitRows, readFixedSlots } from './casts.ts';
 // Native WebKit reference raster; portable product intake reads these retained bytes.
 import { resolve } from 'node:path';
 import { readFileSync } from 'node:fs';
@@ -18,9 +19,8 @@ const result = await build({ configFile: false, logLevel: 'silent', publicDir: f
     lib: { entry, formats: ['iife'], name: 'NineSignBake' }, rolldownOptions: { output: { codeSplitting: false } } } });
 const code = (Array.isArray(result) ? result : [result]).flatMap(b => 'output' in b ? b.output : []).find(c => c.type === 'chunk')?.code;
 if (code === undefined) throw new Error('Nine sign page failed to bundle');
-const revive = (_key, value) => value === '-0' ? -0 : value;
 const layout = nineLayoutData();
-const fixed = JSON.parse(readFileSync(resolve(root, 'src/shards/nine-dragon-stack/data/fixedKits.generated.json'), 'utf8'), revive);
+const fixed = fixedKitRows(readFixedSlots(layout));
 const calls = [...layout.rows.signs, ...fixed.signs];
 const signRows = parseSignView(JSON.parse(readFileSync(resolve(root, 'src/shards/nine-dragon-stack/data/signView.json'), 'utf8')));
 
