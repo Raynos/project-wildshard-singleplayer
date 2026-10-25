@@ -12,14 +12,25 @@ export function nearGrainBytes(): Uint8Array {
     // Keep the hash's double precision until interpolation reaches the original Float32 field.
     const lattice = new Float64Array(cells * cells), size = n / cells;
     for (let y = 0; y < cells; y++) for (let x = 0; x < cells; x++) lattice[y * cells + x] = hash(x, y, octave);
+    // Rows within one lattice cell use the same horizontal interpolation.
+    // Keep only the current pair at double precision, then apply each pixel
+    // row's vertical interpolation in the original Float32 accumulation order.
+    const horizontal = new Float64Array(n * 2);
+    let cached = -1;
     for (let y = 0; y < n; y++) {
       const v = y / size, j = Math.floor(v), fv = v - j, sv = fv * fv * (3 - 2 * fv);
-      const row = j * cells, nextRow = ((j + 1) % cells) * cells;
+      if (cached !== j) {
+        const row = j * cells, nextRow = ((j + 1) % cells) * cells;
+        for (let x = 0; x < n; x++) {
+          const u = x / size, i = Math.floor(u), fu = u - i, su = fu * fu * (3 - 2 * fu), next = (i + 1) % cells;
+          const a = lattice[row + i] ?? 0, b = lattice[row + next] ?? 0;
+          const c = lattice[nextRow + i] ?? 0, d = lattice[nextRow + next] ?? 0;
+          horizontal[x] = a + (b - a) * su; horizontal[n + x] = c + (d - c) * su;
+        }
+        cached = j;
+      }
       for (let x = 0; x < n; x++) {
-        const u = x / size, i = Math.floor(u), fu = u - i, su = fu * fu * (3 - 2 * fu), next = (i + 1) % cells;
-        const a = lattice[row + i] ?? 0, b = lattice[row + next] ?? 0;
-        const c = lattice[nextRow + i] ?? 0, d = lattice[nextRow + next] ?? 0;
-        const top = a + (b - a) * su, bottom = c + (d - c) * su;
+        const top = horizontal[x] ?? 0, bottom = horizontal[n + x] ?? 0;
         field[y * n + x] = (field[y * n + x] ?? 0) + weight * (top + (bottom - top) * sv);
       }
     }
