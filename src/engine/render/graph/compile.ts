@@ -1197,7 +1197,10 @@ function compileOwned(input: unknown, opts: CompileGraphOptions, owner: GraphNod
   if (st['vertex.position']?.shadow === true || st['vertex.offset']?.shadow === true) material.userData['graphShadowDepth'] = true;
   if (ir.kind === 'material' && ir.model !== 'unlit') material.userData['graphPbrMaps'] = true;
   // an unlit graph writes raw colour, as the GLSL program it stands for did: no output transform (engineNodesHandler, 1)
-  if (ir.kind === 'material' && ir.model === 'unlit') material.userData['graphRawOutput'] = true;
+  if (ir.kind === 'material' && ir.model === 'unlit') {
+    if (ir.effectState?.output === 'colour') material.toneMapped = false;
+    else material.userData['graphRawOutput'] = true;
+  }
   // This certificate removes only unused scene identity from the program key, never a scene-bound uniform.
   if (ir.kind === 'material' && ir.model === 'unlit' && ir.effectState?.fog === false && !readsSceneInputs(ir.nodes))
     material.userData['graphSceneIndependent'] = true;

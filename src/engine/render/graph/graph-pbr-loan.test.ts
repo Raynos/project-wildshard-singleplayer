@@ -61,7 +61,7 @@ test('mapped lit graphs retain native PBR slots and shared uniforms', () => {
 });
 
 test('colour-or-vertex map loans preserve source sRGB and use the baked linear mean only without a map', () => {
-  const graph: GraphIr = { version: 1, kind: 'material', model: 'unlit', effectState: { fog: false },
+  const graph: GraphIr = { version: 1, kind: 'material', model: 'unlit', effectState: { fog: false, output: 'colour' },
     nodes: { image: { op: 'meshMap', name: 'colourOrVertex' }, rgb: { op: 'swizzle', in: ['image'], mask: 'xyz' } },
     stages: { surface: { colour: 'rgb' } } };
   expect(validateGraph(graph).ok).toBe(true);
@@ -74,12 +74,14 @@ test('colour-or-vertex map loans preserve source sRGB and use the baked linear m
     expect(Reflect.get(mapped, 'map')).toBe(texture);
     expect(texture.colorSpace).toBe(THREE.SRGBColorSpace);
     expect(Reflect.get(mapped, 'fog')).toBe(false);
-    expect(mapped.userData['graphRawOutput']).toBe(true);
+    expect(mapped.userData['graphRawOutput']).not.toBe(true);
+    expect(mapped.toneMapped).toBe(false);
     const full = program(graph, image), coarse = program(graph, mean);
     expect(Object.values(full.uniforms).some(uniform => uniform.value === texture)).toBe(true);
     expect(full.vertexShader).not.toMatch(/in vec3 color;/u);
     expect(coarse.vertexShader).toMatch(/in vec3 color;/u);
-    expect(coarse.fragmentShader).not.toMatch(/sRGBTransferOETF/u);
-    expect(full.fragmentShader).not.toMatch(/sRGBTransferOETF/u);
+    expect(coarse.fragmentShader).toMatch(/sRGBTransferOETF/u);
+    expect(full.fragmentShader).toMatch(/sRGBTransferOETF/u);
+    expect(full.fragmentShader).not.toMatch(/ACESFilmicToneMapping/u);
   } finally { scope.dispose(); compiled.material.dispose(); image.dispose(); mean.dispose(); texture.dispose(); }
 });

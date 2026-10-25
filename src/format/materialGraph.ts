@@ -178,6 +178,8 @@ export interface GraphOutline {
 }
 /** Optional effect render state. Absent fields retain the existing material defaults. */
 export interface GraphEffectState {
+  /** Unlit linear colour: apply the target's colour encoding, without tone mapping. Absent keeps legacy raw output. */
+  readonly output?: 'colour';
   /** Alpha uses straight RGB; premultiplied expects RGB already multiplied by alpha. */
   readonly blend?: 'alpha' | 'additive' | 'premultiplied';
   /** false: bypass the engine fog epilogue for this effect only; a catalogue id: fog with that `kind: 'fog'` graph instead */
@@ -552,7 +554,7 @@ interface Raw {
   readonly interpolation?: unknown;
   readonly [k: string]: unknown;
   readonly version?: unknown; readonly kind?: unknown; readonly model?: unknown; readonly doubleSided?: unknown; readonly flipBackfaceNormals?: unknown; readonly toonCaustics?: unknown; readonly flatShading?: unknown;
-  readonly primitive?: unknown; readonly effectState?: unknown; readonly blend?: unknown; readonly fog?: unknown;
+  readonly primitive?: unknown; readonly effectState?: unknown; readonly blend?: unknown; readonly fog?: unknown; readonly output?: unknown;
   readonly depthWrite?: unknown; readonly singlePass?: unknown; readonly depthBias?: unknown; readonly factor?: unknown; readonly units?: unknown; readonly size?: unknown; readonly points?: unknown;
   readonly budget?: unknown; readonly arrays?: unknown; readonly params?: unknown; readonly nodes?: unknown; readonly stages?: unknown;
   readonly type?: unknown; readonly value?: unknown; readonly min?: unknown; readonly max?: unknown; readonly bind?: unknown; readonly role?: unknown;
@@ -634,7 +636,8 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
   if (effect !== undefined) {
     if (!isRecord(effect)) fail('graph: effectState is not an object');
     else {
-      for (const k of Object.keys(effect)) if (!['blend', 'fog', 'depthWrite', 'depthBias', 'singlePass'].includes(k)) fail(`effectState: unknown field ${k}`);
+      for (const k of Object.keys(effect)) if (!['blend', 'fog', 'depthWrite', 'depthBias', 'singlePass', 'output'].includes(k)) fail(`effectState: unknown field ${k}`);
+      if (effect.output !== undefined && (effect.output !== 'colour' || kind !== 'material' || input.model !== 'unlit')) fail('effectState: colour output requires an unlit material');
       if (effect.blend !== undefined && effect.blend !== 'alpha' && effect.blend !== 'additive' && effect.blend !== 'premultiplied') fail('effectState: unsupported blend');
       if (effect.fog !== undefined && effect.fog !== false && !(typeof effect.fog === 'string' && GRAPH_FOG_ID.test(effect.fog))) fail('effectState: fog must be false or a fog graph\'s catalogue id');
       if (effect.depthWrite !== undefined && typeof effect.depthWrite !== 'boolean') fail('effectState: depthWrite must be boolean');
@@ -1060,6 +1063,7 @@ function asGraph(input: Raw): GraphIr {
 function toEffectState(raw: Raw): GraphEffectState {
   const bias = raw.depthBias;
   return {
+    ...(raw.output === 'colour' ? { output: raw.output } : {}),
     ...(raw.blend === 'alpha' || raw.blend === 'additive' || raw.blend === 'premultiplied' ? { blend: raw.blend } : {}),
     ...(raw.fog === false || typeof raw.fog === 'string' ? { fog: raw.fog } : {}),
     ...(typeof raw.depthWrite === 'boolean' ? { depthWrite: raw.depthWrite } : {}),

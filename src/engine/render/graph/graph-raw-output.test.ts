@@ -52,6 +52,20 @@ test('a clone of an unlit graph keeps its raw output', () => {
   try { expect(material.clone().userData['graphRawOutput']).toBe(true); } finally { material.dispose(); }
 });
 
+test('explicit linear colour output encodes the display without tone mapping', () => {
+  const graph: GraphIr = { ...colour('unlit'), effectState: { fog: false, output: 'colour' } };
+  const checked = validateGraph(graph); expect(checked.ok).toBe(true);
+  if (!checked.ok) throw new Error('Invalid colour output');
+  expect(checked.graph.effectState?.output).toBe('colour');
+  const shader = onScreen(checked.graph), material = compileGraph(checked.graph).material;
+  try {
+    expect(shader.fragment).toMatch(/sRGBTransferOETF/u); expect(shader.key).not.toContain('|out:raw');
+    expect(material.toneMapped).toBe(false);
+  } finally { material.dispose(); }
+  expect(validateGraph({ ...graph, model: 'standard' }).ok).toBe(false);
+  expect(validateGraph({ ...graph, effectState: { output: 'unknown' } }).ok).toBe(false);
+});
+
 // G478 OE2: three forces an opaque draw's alpha to 1, where the GLSL programs Nine's graphs replaced wrote near / viewZ
 // (its post blends by it), so the graph lanterns took the post's full grade. `surface.targetAlpha` writes it again.
 test('an opaque graph writes its surface.targetAlpha; without one the alpha stays three\'s', () => {

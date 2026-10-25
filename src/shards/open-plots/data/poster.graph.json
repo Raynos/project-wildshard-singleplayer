@@ -2,7 +2,7 @@
   "version": 1,
   "kind": "material",
   "model": "unlit",
-  "effectState": { "fog": false },
+  "effectState": { "fog": false, "output": "colour" },
   "nodes": {
     "picture": { "op": "meshMap", "name": "colourOrVertex" },
     "rgb": { "op": "swizzle", "in": ["picture"], "mask": "xyz" }

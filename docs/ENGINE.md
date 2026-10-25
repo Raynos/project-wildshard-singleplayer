@@ -5501,6 +5501,10 @@ their existing separate glow layer.
 Static texture transport admits this explicit colour binding only with
 opaque unit base factors, zero authored emissive colour and no other map
 roles; unsupported factor/alpha/texture semantics still refuse.
+An unlit graph can declare `effectState.output: "colour"` when its
+surface contains linear colour (including an sRGB-decoded image).
+It receives the target's colour-space encoding with tone mapping off.
+Existing unlit graphs keep their legacy raw output when this is absent.
 `@wildshard/sdk/materials.meshMap` authors this input. The client compiler's
 optional second texture argument and declared props' colour slots bind it via
 `bindGraphMeshMap` in the existing engine graph backend. Equal graph/map pairs
