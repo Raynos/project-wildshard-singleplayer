@@ -279,7 +279,10 @@ GR3 bounded slices (G711; each <= 1 h, one producer retirement per commit):
 | D1 declarations source/cache | done | Both original canonical wires (3,470,533 B), checked partition owners and cache/refusal checks; no job retirement |
 | D2 declarations reader handoff | done | Nine 6 → 5; both source handoffs (3,470,533 B) absent, original canonical rows and full product bytes exact; cold scoped generation |
 | Boot metadata | open | Direct checked geometry/presentation metadata |
-| Glyphs | open | Preserve native raster bytes and replace source handoff |
+| Glyphs | in flight (2026-10-25, sp-x1) | G1 native producer/admission → G2 reader handoff → G3 retirement; each ≤ 1 h, original pixels/metrics retained |
+| G1 native glyph producer/admission | done | Six original native raster/metadata files (1,539,114 B) committed before readers. Both original complete pixel/metric hashes, detached cold/hit results, undeclared-root and malformed inventory/reference refusal cases pass with touched/fixture types, typed lint and related checks; no job retirement |
+| G2 native glyph reader handoff | open | Thread admitted glyph metadata/bytes through source signs and native refresh/map/test readers; full original pixels and metrics exact |
+| G3 glyph job retirement | open | Nine 4 → 3, six source handoffs absent through cold scoped generation; native refresh retained |
 | S1 sign-source cache | done | 28 files / 9,308,309 B and all 27 admitted rows exact; cold/hit/refusal and sealed adapter checks; no job retirement |
 | S2 sign-source reader handoff | done | Nine 7 → 6; 28 source files (9,308,309 B) absent; all original admitted rows and full product bytes exact; cold scoped generation |
 | A1 native sign-atlas admission | done | Defining metadata validator, seven-file cache admission and original native pixel/geometry checks; no job retirement |

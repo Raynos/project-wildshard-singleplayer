@@ -1,7 +1,7 @@
 import { ReturnProgramSchema } from '@wildshard/format/namedJsonContracts';
 import { PracticeSceneSchema,PracticeControllerSchema } from '@wildshard/format/practiceCourseRows';
 import * as v from 'valibot';
-import type { NineNativeAtlas } from './nativeSignMetadata';
+import type { NineNativeAtlas, NineNativeSignInputs } from './nativeSignMetadata';
 import type { GrappleRows } from '../data/grappleTypes';
 
 const BurstFieldSchema = v.strictObject({ name: v.string(), shape: v.picklist(['flake', 'streak']), count: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(24)), life: v.pipe(v.number(), v.minValue(0.001), v.maxValue(1)) });
@@ -264,3 +264,14 @@ export function parseNativeSignAtlas(input: unknown): NineNativeAtlas {
   return input;
 }
 
+
+/** Admit original native glyph metrics without changing property order or packed raster references. */
+export function parseNativeGlyphs(input: unknown): NineNativeSignInputs['glyphs'] {
+  const positive = v.pipe(v.number(), v.finite(), v.minValue(Number.MIN_VALUE));
+  const uv = v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(1));
+  const tier = v.object({ size: v.picklist([1024, 2048]), packed: v.array(v.string()), pixelHash: v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u)),
+    layout: v.object({ cell: positive, fontPx: positive, spread: positive, skeletonSpread: positive }),
+    rects: v.record(v.string(), v.object({ u0: uv, v0: uv, u1: uv, v1: uv })) });
+  v.assert(v.object({ phone: tier, desktop: tier }), input);
+  return input;
+}

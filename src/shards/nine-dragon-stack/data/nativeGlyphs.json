@@ -1,0 +1,38 @@
+[
+  {
+    "name": "glyphs.generated.json",
+    "input": "/assets/nine-dragon/authored/glyphs/glyphs.json",
+    "bytes": 10991,
+    "hash": "9dd6427746e2e023a6861016ab473ff4e7c64cb5576971cb9aa0c728b2f8b887"
+  },
+  {
+    "name": "glyphs-phone-0.bin",
+    "input": "/assets/nine-dragon/authored/glyphs/glyphs-phone-0.bin",
+    "bytes": 282685,
+    "hash": "dfa9f86ebb1f7b441b50ddc1c6512cf4c4779bbffe6e15fff33b6981f8179851"
+  },
+  {
+    "name": "glyphs-desktop-0.bin",
+    "input": "/assets/nine-dragon/authored/glyphs/glyphs-desktop-0.bin",
+    "bytes": 2069,
+    "hash": "b3a351b00c9ed949f579352468a501ec1f10d3d7ccc6591fcd368194088acfd0"
+  },
+  {
+    "name": "glyphs-desktop-1.bin",
+    "input": "/assets/nine-dragon/authored/glyphs/glyphs-desktop-1.bin",
+    "bytes": 171124,
+    "hash": "60f714e3b632599889863ed26b04169af795da721372d6325e9d6eba94c79a28"
+  },
+  {
+    "name": "glyphs-desktop-2.bin",
+    "input": "/assets/nine-dragon/authored/glyphs/glyphs-desktop-2.bin",
+    "bytes": 533754,
+    "hash": "03cb74701563f52ae04ea897d4c569a1f7fb5f1d67c0a9b8d24b779b01da48fc"
+  },
+  {
+    "name": "glyphs-desktop-3.bin",
+    "input": "/assets/nine-dragon/authored/glyphs/glyphs-desktop-3.bin",
+    "bytes": 538491,
+    "hash": "95af030d22b110bfe0b27ce4b8ddd6cf9df0df323a724ae016f9e9fe61f6bc5d"
+  }
+]
