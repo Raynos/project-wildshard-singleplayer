@@ -1,8 +1,8 @@
 import { expect, test, vi } from 'vitest';
-import { decisionMemoryPreparationPages, scriptAdmissionRows } from '../src/format/scriptContract';
-import { SCRIPT_V2_REVISIONS } from '../src/format/scriptAdmissionV2';
-import { prepareDecisionMemories } from '../src/engine/script/decisionModule';
-import { Scope } from '../src/engine/app/scope';
+import { decisionMemoryPreparationPages, scriptAdmissionRows } from '@wildshard/format/scriptContract';
+import { SCRIPT_V2_REVISIONS } from '@wildshard/format/scriptAdmissionV2';
+import { prepareDecisionMemories } from './decisionModule';
+import { Scope } from '../app/scope';
 
 const script = (id: string, hash = 'a'.repeat(64), pages = 1) => ({
   id, abi: '1.0', side: 'sim', module: `blobs/wasm/${hash}.wasm`, source: `behaviour/${id}.as`,

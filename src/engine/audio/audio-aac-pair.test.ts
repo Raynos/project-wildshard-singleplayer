@@ -1,10 +1,10 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Reads the shipped AAC pair for the native preparation fixture.
 import { readFileSync } from 'node:fs';
 import { expect, it, vi } from 'vitest';
-import { AacTrack } from '../src/engine/audio/aacTrack';
-import { indexRecordingAac } from '../src/format/aacIndex';
-import { parseManifest } from '../src/engine/audio/Stems';
-import type { AacCodecFactory } from '../src/engine/audio/aacPull';
+import { AacTrack } from './aacTrack';
+import { indexRecordingAac } from '@wildshard/format/aacIndex';
+import { parseManifest } from './Stems';
+import type { AacCodecFactory } from './aacPull';
 
 class Pcm {
   readonly sampleRate = 48000;

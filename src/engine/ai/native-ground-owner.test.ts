@@ -1,10 +1,10 @@
 import { expect,test } from 'vitest';
 import { Vector3 } from 'three';
-import { Rng } from '../src/engine/core/rng';
-import { HuntingStalkerCore,type HuntGround } from '../src/engine/ai/huntPattern';
-import type { AnimalSim } from '../src/engine/entities/AnimalSim';
-import { decodeTerrainTile,encodeTerrainTile,bilinearTerrainSamplers,type TerrainTileData } from '../src/format/terrainTileBytes';
-import { bakedSamplers } from '../src/format/bakedTerrainSampling';
+import { Rng } from '../core/rng';
+import { HuntingStalkerCore,type HuntGround } from './huntPattern';
+import type { AnimalSim } from '../entities/AnimalSim';
+import { decodeTerrainTile,encodeTerrainTile,bilinearTerrainSamplers,type TerrainTileData } from '@wildshard/format/terrainTileBytes';
+import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
 
 const tile = (resolution: number,size: number): TerrainTileData => ({ resolution,size,x: -size/2,z: -size/2,
   heights: Float32Array.from({ length: resolution*resolution },(_,i) => i === 0 ? -0 : Math.sin(i)*3),splat: new Uint8Array(resolution*resolution*4).fill(127) });

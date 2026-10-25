@@ -1,10 +1,10 @@
 import { afterAll, expect, test, vi } from 'vitest';
 import * as THREE from 'three';
-import { compileGraph } from '../src/engine/render/graph/compile';
-import { EngineNodesHandler } from '../src/engine/render/nodes/engineNodesHandler';
-import * as childTraversal from '../src/engine/render/nodes/nodeChildren';
-import { ToonLook } from '../src/engine/render/families/toon';
-import type { GraphIr } from '../src/format/materialGraph';
+import { compileGraph } from './compile';
+import { EngineNodesHandler } from '../nodes/engineNodesHandler';
+import * as childTraversal from '../nodes/nodeChildren';
+import { ToonLook } from '../families/toon';
+import type { GraphIr } from '@wildshard/format/materialGraph';
 
 vi.stubGlobal('ImageBitmap', class ImageBitmap { readonly width = 0; });
 afterAll(() => { vi.unstubAllGlobals(); });

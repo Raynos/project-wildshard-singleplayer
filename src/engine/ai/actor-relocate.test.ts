@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
-import { ActorMoveRunner } from '../src/engine/ai/moves';
-import { actorMoveRules, parseActorMoves } from '../src/format/actorMoves';
+import { ActorMoveRunner } from './moves';
+import { actorMoveRules, parseActorMoves } from '@wildshard/format/actorMoves';
 
 test('relocation requests one existing-body placement and never replays it after restore', () => {
   const body = { position: { x: 4, y: 1, z: 6 }, yaw: 0.3 };

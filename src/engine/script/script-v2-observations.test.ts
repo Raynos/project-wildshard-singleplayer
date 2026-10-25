@@ -1,6 +1,6 @@
 import { expect,test } from 'vitest';
-import { prepareV2Observations,type V2BindingInput,type V2ObservationBatch } from '../src/engine/script/observationsV2';
-import { layoutV2,writeV2Frame,validateV2Frame } from '../src/format/scriptWireV2';
+import { prepareV2Observations,type V2BindingInput,type V2ObservationBatch } from './observationsV2';
+import { layoutV2,writeV2Frame,validateV2Frame } from '@wildshard/format/scriptWireV2';
 
 const tick = 2**30+3, layout = layoutV2(1024,1,new Map([[1,2],[2,4],[3,4],[4,4],[5,2],[6,4],[7,2],[8,3],[9,3]]));
 function binding(identity: string,handle: number): V2BindingInput {

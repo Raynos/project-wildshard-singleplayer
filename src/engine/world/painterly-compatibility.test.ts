@@ -1,8 +1,8 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { ShaderLib, WebGLRenderer, type WebGLProgramParametersWithUniforms } from 'three';
-import { PainterlyMaterialSchema } from '../src/format/materialFamilies';
-import { painterlyKnobs, painterlyMaterial, painterlyUniforms } from '../src/engine/world/painterly';
+import { PainterlyMaterialSchema } from '@wildshard/format/materialFamilies';
+import { painterlyKnobs, painterlyMaterial, painterlyUniforms } from './painterly';
 
 test('the legacy bow retains its exact additive shade fill through the shared family', () => {
   // Frozen recurve viewmodels use 2.4 to add cool fill on the shade side.
