@@ -9,6 +9,7 @@ import { registerCaptureTrace } from './capture-trace.mjs';
 import { serve } from './serve.mjs';
 import { saveFixture } from '../debug-settings.mjs';
 import { captureBootFrame } from './black-frame.mjs';
+import { observeTitleCapture } from './title-trace.mjs';
 import { gridFloorDocumentIdentity, runFloorGridRoute, gridFloorWitnessFailures } from '../frame-floor-grid.mjs';
 
 /** A locked experimental card is not a public gameplay entry. Its direct chunk
@@ -330,7 +331,7 @@ export async function bootCase(browser, base, mode, out, shard = 'driftwood-isle
     await page.goto(url.href, { waitUntil: 'domcontentloaded', timeout: 30000 });
     await until(page, faults, async () => await page.locator('.ws-main-logo').isVisible() && !(await page.locator('.ws-load').isVisible()), 'rendered usable title', deadline);
     phases.titleMs = Date.now() - started;
-    await captureBootFrame(page, 'title', deadline, frames);
+    await observeTitleCapture(page, join(out, `${receipt}-title`), () => captureBootFrame(page, 'title', deadline, frames));
     if (mode !== 'grid') {
       await page.locator('.ws-main-select').click();
       // Admission enables the entry asynchronously. Developer cases prove the primary SHARDFILE,

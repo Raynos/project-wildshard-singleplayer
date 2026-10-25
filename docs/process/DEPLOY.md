@@ -95,6 +95,12 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   screenshots, snapshots and sources disabled. Logs retain capture duration and font-ready milestones;
   native layout/capture/PNG encoding/cleanup RPC durations are explicitly unavailable in this trace API.
   Chromium's separate protocol observer records layout and screenshot RPC round trips without retaining payloads.
+  Only the title capture also records native Chromium tracing through public `browser.startTracing` / `stopTracing`,
+  with `gpu`, `cc`, `viz`, `devtools.timeline` and `disabled-by-default-devtools.timeline` categories and no screenshots.
+  Existing smoke artifacts retain its gzip trace and wall-time receipt; raw and compressed retention are each capped
+  at 8 MiB. Oversize or unavailable evidence is reported, never silently trimmed or used to replace the capture verdict.
+  The public API returns the complete trace buffer before that retention cap can be checked. These diagnostic runs
+  establish no performance gain; a warm/compile explanation requires actual retained renderer/GPU events.
   Chromium captures the same device-scale viewport PNG through Playwright's public CDP session with
   `optimizeForSpeed: true`, then decodes it through the same pixel assertions. Fonts and one browser animation
   frame settle first without requesting a game draw; all stages share the original ten-second allowance.
