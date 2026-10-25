@@ -14583,7 +14583,6 @@
         "package.json",
         "pnpm-lock.yaml",
         "scripts/bake-output.mjs",
-        "scripts/browser-bake-bytes.mjs",
         "src/shards/nine-dragon-stack/generators/bake-glyphs.mjs",
         "src/shards/nine-dragon-stack/generators/glyphPage.ts",
         "src/shards/nine-dragon-stack/generators/glyphField.ts",

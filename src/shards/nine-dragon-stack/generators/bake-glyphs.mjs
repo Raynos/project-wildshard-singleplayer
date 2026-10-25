@@ -4,8 +4,7 @@ import { readFileSync } from 'node:fs';
 import { build } from 'vite';
 import { webkit, devices } from 'playwright';
 import { unzlibSync } from 'fflate';
-import { byteWriter, jsonBytes, outputHash } from '../../../../scripts/bake-output.mjs';
-import { browserBakeBytes } from '../../../../scripts/browser-bake-bytes.mjs';
+import { byteWriter, jsonBytes, outputHash, browserBakeBytes } from '../../../../scripts/bake-output.mjs';
 
 const root = resolve(import.meta.dirname, '../../../..');
 const result = await build({
