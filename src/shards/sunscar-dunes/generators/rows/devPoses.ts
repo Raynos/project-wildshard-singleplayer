@@ -1,6 +1,8 @@
 import STRINGS from '../../data/strings.json' with { type: 'json' };
 import * as LAYOUT from '../layout';
-import ground from '../../data/manifestGround.generated.json' with { type: 'json' };
+import { signalManifestMetadata } from '../manifestGround';
+
+const ground = signalManifestMetadata();
 
 const { towerY, heights } = ground;
 

@@ -2,9 +2,11 @@ import caravan from '../data/caravan.json' with { type: 'json' };
 import well from '../data/well.json' with { type: 'json' };
 import tower from '../data/tower.json' with { type: 'json' };
 import braziers from '../data/braziers.json' with { type: 'json' };
-import ground from '../data/manifestGround.generated.json' with { type: 'json' };
+import { signalManifestMetadata } from './manifestGround';
 import { SCOUT_AT } from './rows/flags';
 import { BRAZIERS, TOWER, WELL } from "./layout";
+
+const ground = signalManifestMetadata();
 
 const [logX, logY, logZ] = caravan.anchors.logbook;
 if (caravan.anchors.logbook.length !== 3 || logX === undefined || logY === undefined || logZ === undefined

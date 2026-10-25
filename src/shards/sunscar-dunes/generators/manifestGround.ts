@@ -7,16 +7,24 @@ import { SAND_TINT } from "./duneRows";
 /** Cold author queries that preserve the original manifest poses and sand tint.
  * Ring means remain f64: storing f32 or sampling the collision lattice would
  * change the original tint. No runtime/legacy/cache or generated seed is read. */
-export function signalManifestGround(): { metadata: { version: 1; seed: number; spawnY: number; towerY: number; heights: Record<string, number>; mean: { x: number; z: number; resolution: number; size: number; ring: number } }; means: Float64Array } {
+export function signalManifestGround(): { metadata: ReturnType<typeof signalManifestMetadata>; means: Float64Array } {
   return withPortableMath(() => {
   const height = signalHeightAt(), means = new Float64Array(257 ** 2), ring = SAND_TINT.ring;
   for (let z = 0; z < 257; z++) for (let x = 0; x < 257; x++) {
     const px = -250 + x * 500 / 256, pz = -250 + z * 500 / 256;
     means[z * 257 + x] = (height(px + ring, pz) + height(px - ring, pz) + height(px, pz + ring) + height(px, pz - ring)) / 4;
   }
-  return { metadata: { version: 1, seed: SEED, spawnY: height(SPAWN.x, SPAWN.z), towerY: height(TOWER.x, TOWER.z),
+  return { metadata: signalManifestMetadata(), means };
+  });
+}
+
+/** Point queries used by quests and capture poses do not need the tint lattice. */
+export function signalManifestMetadata(): { version: 1; seed: number; spawnY: number; towerY: number; heights: { scout: number; spawn: number; whip: number; ray: number; quest: number }; mean: { x: number; z: number; resolution: number; size: number; ring: number } } {
+  return withPortableMath(() => {
+    const height = signalHeightAt(), ring = SAND_TINT.ring;
+    return { version: 1, seed: SEED, spawnY: height(SPAWN.x, SPAWN.z), towerY: height(TOWER.x, TOWER.z),
     heights: { scout: height(SCOUT_AT.x, SCOUT_AT.z), spawn: height(SPAWN.x, SPAWN.z), whip: height(SPAWN.x, SPAWN.z - 4), ray: height(SPAWN.x, SPAWN.z), quest: height(TOWER.x - 4, TOWER.z + 12) },
-    mean: { x: -250, z: -250, resolution: 257, size: 500, ring } }, means };
+    mean: { x: -250, z: -250, resolution: 257, size: 500, ring } };
   });
 }
 
