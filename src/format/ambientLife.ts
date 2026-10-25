@@ -10,7 +10,7 @@ const burst=v.strictObject({phase:v.pipe(v.array(positive),v.minLength(2),v.maxL
 const posture=v.tuple([finite,finite,finite,finite,finite,finite]);
 /** One ambient forager row (G466 H6, `@wildshard/engine/ai/ambientForager`): grazing gait, scare radii, sentries and the
  *  escape (zig-zag bounds away, or a run home and down the burrow). Posture rows: [sit, rate, head pitch, rate, ears, rate]. */
-export const ForagerPolicySchema=v.strictObject({
+export const ForagerPolicySchema: v.GenericSchema<ForagerPolicyRows> =v.strictObject({
   scare:range,crouched:v.exactOptional(positive),alertMargin:finite,releaseMargin:finite,alertPause:range,grazePause:range,settlePause:range,turn:range,
   grazing:v.variant('gait',[v.strictObject({gait:v.literal('hop'),chance:v.pipe(finite,v.minValue(0),v.maxValue(1)),length:range,duration:positive,height:positive}),v.strictObject({gait:v.literal('walk'),speed:positive,wander:range})]),
   escape:v.variant('to',[v.strictObject({to:v.literal('away'),distance:range,pause:range,length:positive,duration:positive,height:positive,zigSteps:v.tuple([count,count]),spread:range,steer:positive}),
@@ -20,33 +20,38 @@ export const ForagerPolicySchema=v.strictObject({
   sentry:v.nullable(v.strictObject({chance:v.pipe(finite,v.minValue(0),v.maxValue(1)),duration:range,sight:positive,alarm:v.boolean()})),
   posture:v.strictObject({graze:posture,alert:posture,flee:posture,sentry:v.exactOptional(posture),hide:v.exactOptional(posture)}),
 });
-export type ForagerPolicyRows=v.InferOutput<typeof ForagerPolicySchema>;
+
 /** One forager population (`@wildshard/engine/ai/ambientForager#ForagerPopulation`): `count` rows at most, clock ids
  *  `<id>:<n>`, placed as `colonies` round burrow sites (size per site, ring radius, home offset, first timer) or `roam`ing
  *  round the viewer (seat / re-seat rings, draw range, visible range, re-seat retry, view cosines [draw, seat], blind range). */
-export const ForagerPopulationSchema=v.strictObject({id,count,policy:ForagerPolicySchema,place:v.variant('kind',[
+export const ForagerPopulationSchema: v.StrictObjectSchema<{
+ readonly id: v.GenericSchema<string>;
+ readonly count: v.GenericSchema<number>;
+ readonly policy: typeof ForagerPolicySchema;
+ readonly place: v.GenericSchema<ForagerPopulationRows['place']>;
+}, undefined> =v.strictObject({id,count,policy:ForagerPolicySchema,place:v.variant('kind',[
   v.strictObject({kind:v.literal('colonies'),size:v.tuple([count,count]),radius:range,home:finite,timer:range}),
   v.strictObject({kind:v.literal('roam'),seat:range,reseat:range,range:positive,visibleRange:positive,retry:positive,view:v.tuple([finite,finite,positive])})])});
 /** Native forager view: prepared model book, material tuning and body projection. */
-export const ForagerDrawSchema=v.strictObject({name:id,books:v.strictObject({phone:id,desktop:id}),model:id,
+export const ForagerDrawSchema: v.GenericSchema<ForagerDrawRows> =v.strictObject({name:id,books:v.strictObject({phone:id,desktop:id}),model:id,
   rim:finite,bands:finite,tilt:finite,sink:finite});
-export type ForagerPopulationRows=v.InferOutput<typeof ForagerPopulationSchema>;
+
 const uint=v.pipe(v.number(),v.integer(),v.minValue(0),v.maxValue(0xffffffff)),frame=v.pipe(v.number(),v.integer(),v.minValue(-1)),nonneg=v.pipe(finite,v.minValue(0));
 const clock=v.strictObject({elapsed:nonneg,credit:nonneg,frame,dt:nonneg,last:finite,due:v.boolean(),tickFrame:frame});
 /** A population's saved state: rows (state 0 graze, 1 sentry / alert, 2 flee, 3 hide), its Rng and band clocks. */
-export const ForagerContinuation=v.strictObject({
+export const ForagerContinuation: v.GenericSchema<ForagerSnapshot> =v.strictObject({
   retired:v.exactOptional(v.pipe(v.array(v.pipe(uint,v.maxValue(255))),v.maxLength(256))),
   rows:v.pipe(v.array(v.strictObject({x:finite,z:finite,bx:finite,bz:finite,yaw:finite,stand:finite,sink:finite,state:v.picklist([0,1,2,3]),t:finite,tx:finite,tz:finite})),v.maxLength(256)),acc:nonneg,
   rng:v.strictObject({version:v.literal(1),state:uint,initial:uint,scrambledFork:v.boolean()}),
   bands:v.strictObject({rates:uint,time:nonneg,frame:v.pipe(v.number(),v.integer(),v.minValue(0)),frameDt:nonneg,
     rows:v.pipe(v.array(v.strictObject({id:v.string(),rate:v.literal('fx'),brain:clock,body:clock})),v.maxLength(256))})});
-export type ForagerSnapshot=v.InferOutput<typeof ForagerContinuation>;
+
 const share=v.pipe(finite,v.minValue(0),v.maxValue(1));
 const offset=v.tuple([finite,finite,finite]);
 const channel=v.union([v.picklist(['flap','fold','head','legs','peck','body']),finite]);
 const depart=v.strictObject({distance:finite,up:range,speed:positive,lift:finite,spread:finite});
 /** One ambient flock (G466 H6): perched, wheeling, flushed and guiding flyers as rows; the platform owns the frame. */
-export const AmbientFlockSchema=v.strictObject({
+export const AmbientFlockSchema: v.GenericSchema<AmbientFlockData> =v.strictObject({
   seed:v.pipe(v.number(),v.integer(),v.minValue(0),v.maxValue(0xffffffff)),count,scale:positive,foot:finite,wingbeat:id,
   /** Optional presentation gates. Light is the night fraction; weather names numeric channels, never shard code. */
   when:v.exactOptional(v.strictObject({light:v.exactOptional(range),weather:v.exactOptional(v.pipe(v.record(id,range),v.check(rows=>Object.keys(rows).length<=16)))})),
@@ -85,13 +90,13 @@ export const AmbientFlockSchema=v.strictObject({
 });
 /** Numeric spawn/perch sites for an ambient group. Radius selects bark-clinging
  * arrival; weight biases site selection. No runtime function may cross the row. */
-export const AmbientPerchesSchema=v.pipe(v.array(v.strictObject({x:finite,y:finite,z:finite,r:v.exactOptional(positive),w:v.exactOptional(positive)})),v.maxLength(4096));
-export type AmbientPerches=v.InferOutput<typeof AmbientPerchesSchema>;
+export const AmbientPerchesSchema: v.GenericSchema<AmbientPerches> =v.pipe(v.array(v.strictObject({x:finite,y:finite,z:finite,r:v.exactOptional(positive),w:v.exactOptional(positive)})),v.maxLength(4096));
+
 export function parseAmbientPerches(value:unknown):AmbientPerches {return v.parse(AmbientPerchesSchema,value);}
-export type AmbientFlockData=v.InferOutput<typeof AmbientFlockSchema>;
+
 export function parseAmbientFlock(value:unknown):AmbientFlockData {return v.parse(AmbientFlockSchema,value);}
 /** Ambient populations borrow actual models and world owners. No resources or callbacks are encoded in rows. */
-export const ForestLifeSchema=v.pipe(v.strictObject({kind:v.literal('forest-community'),seed:v.pipe(v.number(),v.integer(),v.minValue(0),v.maxValue(0xffffffff)),
+export const ForestLifeSchema: v.GenericSchema<AmbientLifeData> =v.pipe(v.strictObject({kind:v.literal('forest-community'),seed:v.pipe(v.number(),v.integer(),v.minValue(0),v.maxValue(0xffffffff)),
   /** the kill's ravens: a scavenge flock; visitors per species, the body's half width, when they come, how far you may be */
   scavenger:v.strictObject({flock:AmbientFlockSchema,arrival:range,visitors:v.record(id,count),defaultVisitors:count,bodyWidths:v.record(id,positive),giveUp:positive,reach:positive}),
   /** visit flocks and their baked perches: the night sentinel on snag tops, the day trunk forager on bark sections (r, weight w) */
@@ -104,5 +109,15 @@ export const ForestLifeSchema=v.pipe(v.strictObject({kind:v.literal('forest-comm
   debug:v.strictObject({id,window:id}),sounds:v.strictObject({pair:id,call:id,flap:id,hoot:id,foragerCall:id,drum:id,cutA:id,cutB:id})}),
   v.check(row=>row.scavenger.flock.count+row.forager.count+2<=512,'bounded ambient population'),
   v.check(row=>row.harvest.kneelIn<row.harvest.rise&&row.harvest.rise<row.harvest.len&&row.harvest.cuts.every((value,index)=>value<row.harvest.len&&(index===0||value>(row.harvest.cuts[index-1]??0))),'ordered harvest timeline'));
-export type AmbientLifeData=v.InferOutput<typeof ForestLifeSchema>;
+
 export function parseAmbientLife(value:unknown):AmbientLifeData {return v.parse(ForestLifeSchema,value);}
+
+/** Validated ambient data independent of validator implementation metadata. */
+export interface ForagerPolicyRows { scare: [number, number]; crouched?: number; alertMargin: number; releaseMargin: number; alertPause: [number, number]; grazePause: [number, number]; settlePause: [number, number]; turn: [number, number]; grazing: ({ gait: 'hop'; chance: number; length: [number, number]; duration: number; height: number; }) | ({ gait: 'walk'; speed: number; wander: [number, number]; }); escape: ({ to: 'away'; distance: [number, number]; pause: [number, number]; length: number; duration: number; height: number; zigSteps: [number, number]; spread: [number, number]; steer: number; }) | ({ to: 'home'; speed: number; reach: number; hide: [number, number]; emerge: number; sink: number; }); ground: ({ margin: number; aboveWater: number; pond: number; cabin: number; stream: boolean; slope: number; trunk: number; }) | null; sentry: ({ chance: number; duration: [number, number]; sight: number; alarm: boolean; }) | null; posture: { graze: [number, number, number, number, number, number]; alert: [number, number, number, number, number, number]; flee: [number, number, number, number, number, number]; sentry?: [number, number, number, number, number, number]; hide?: [number, number, number, number, number, number]; }; }
+export interface ForagerPopulationRows { id: string; count: number; policy: ForagerPolicyRows; place: ({ kind: 'colonies'; size: [number, number]; radius: [number, number]; home: number; timer: [number, number]; }) | ({ kind: 'roam'; seat: [number, number]; reseat: [number, number]; range: number; visibleRange: number; retry: number; view: [number, number, number]; }); }
+export interface ForagerDrawRows { name: string; books: { phone: string; desktop: string; }; model: string; rim: number; bands: number; tilt: number; sink: number; }
+// oxlint-disable-next-line typescript/consistent-type-definitions -- The alias retains the implicit dictionary signature required by SimValue snapshots.
+export type ForagerSnapshot = { retired?: (number)[]; rows: ({ x: number; z: number; bx: number; bz: number; yaw: number; stand: number; sink: number; state: 0 | 1 | 2 | 3; t: number; tx: number; tz: number; })[]; acc: number; rng: { version: 1; state: number; initial: number; scrambledFork: boolean; }; bands: { rates: number; time: number; frame: number; frameDt: number; rows: ({ id: string; rate: 'fx'; brain: { elapsed: number; credit: number; frame: number; dt: number; last: number; due: boolean; tickFrame: number; }; body: { elapsed: number; credit: number; frame: number; dt: number; last: number; due: boolean; tickFrame: number; }; })[]; }; };
+export interface AmbientFlockData { seed: number; count: number; scale: number; foot: number; wingbeat: string; when?: { light?: [number, number]; weather?: Record<string, [number, number]>; }; flight: { wave: number; amplitude: number; pitch: number; pitchRate: number; bank: number; bankLimit: number; bankRate: number; directionEpsilon?: number; }; wingbeats: Record<string, { phase: (number)[]; amplitude: number; foldPhase: number; foldAmplitude: number; rest: [number, number]; rates: [number, number]; glide: [number, number]; beats: [number, number]; }>; wheeling: ({ centre: { x: number; z: number; }; radius: number; loops: ([number, number])[]; loopRadius: [number, number]; speed: [number, number]; altitude: [number, number]; bodyScale: [number, number]; bodyAltitude: [number, number]; perchAfter: [number, number]; bank: number; wheel: { xAmplitude: number; xFrequency: number; zScale: number; zAmplitude: number; zFrequency: number; altitudeFrequency: number; altitudeAmplitude: number; detailFrequency: number; detailAmplitude: number; }; }) | null; perch: ({ share: number; flush: number; flushJitter: [number, number]; settle: number; clear: number; idle: [number, number]; every: [number, number]; hop: { chance: number; duration: number; height: number; turn: number; }; head: { rate: number; range: number; duration: [number, number]; }; takeoff: { duration: number; out: number; up: number; beats: number; bank: number; }; landing: { speed: number; minimum: number; rise: number; flare: number; bank: number; }; }) | null; guide: ({ speed: number; borrow: number; start: [number, number, number]; pass: [number, number, number]; end: { min: number; max: number; up: number; }; formation: ([number, number, number])[]; stagger: number; call: (number) | null; bank: number; after: ({ ahead: number; up: number; speed: number; }) | null; }) | null; call: ({ cue: string; every: [number, number]; first: number; }) | null; scavenge: ({ arrive: { far: [number, number]; up: [number, number]; near: number; height: number; speed: number; lift: number; }; circle: { radius: [number, number]; low: [number, number]; high: [number, number]; speed: [number, number]; timer: [number, number]; beat: number; call: number; }; land: { speed: number; lift: number; ring: [number, number]; stand: number; pause: [number, number]; pitch: number; }; feed: { pecks: [number, number]; pause: [number, number]; hop: number; squabble: number; rate: number; time: [number, number]; leave: number; reland: number; look: [number, number]; wings: [number, number]; peck: [number, number, number]; hopTime: number; hopHeight: number; }; flush: [number, number]; lift: { up: [number, number]; side: number; speed: number; lift: number; }; depart: { distance: number; up: [number, number]; speed: number; lift: number; spread: number; }; voices: { call: string; pair: string; flap: string; gain: number; flapGain: number; gap: [number, number]; flapGap: number; }; }) | null; visit: ({ enter: [number, number]; stay: [number, number]; every: number; near: [number, number]; from: ({ kind: 'behind'; back: number; up: number; }) | ({ kind: 'beyond'; back: number; up: number; }); speed: number; lift: number; approach: [number, number]; cling: number; sag: number; pose: { pitch: number; body: number; legs: number; stand: number; peck: number; }; sway: number; stare: number; stareTurn: number; look: [number, number]; within: number; callCue: (string) | null; flushCall: boolean; gain: number; call: ({ cue: string; every: [number, number]; first: [number, number]; within: number; }) | null; acts: ({ first: [number, number]; every: [number, number]; hitch: [number, number]; call: number; drum: ({ cue: string; length: [number, number]; voiced: number; within: number; rate: number; peck: [number, number]; }) | null; }) | null; flush: number; flushLegs: number; relocate: [number, number]; aim: boolean; leave: number; leaveWait: number; depart: { distance: number; up: [number, number]; speed: number; lift: number; spread: number; }; }) | null; channels: [[('flap' | 'fold' | 'head' | 'legs' | 'peck' | 'body') | (number), ('flap' | 'fold' | 'head' | 'legs' | 'peck' | 'body') | (number), ('flap' | 'fold' | 'head' | 'legs' | 'peck' | 'body') | (number), ('flap' | 'fold' | 'head' | 'legs' | 'peck' | 'body') | (number)], ([('flap' | 'fold' | 'head' | 'legs' | 'peck' | 'body') | (number), ('flap' | 'fold' | 'head' | 'legs' | 'peck' | 'body') | (number), ('flap' | 'fold' | 'head' | 'legs' | 'peck' | 'body') | (number), ('flap' | 'fold' | 'head' | 'legs' | 'peck' | 'body') | (number)]) | null]; attributes: [string, (string) | null]; system: { id: string; after: (string)[]; before: (string)[]; }; }
+export type AmbientPerches = ({ x: number; y: number; z: number; r?: number; w?: number; })[];
+export interface AmbientLifeData { kind: 'forest-community'; seed: number; scavenger: { flock: AmbientFlockData; arrival: [number, number]; visitors: Record<string, number>; defaultVisitors: number; bodyWidths: Record<string, number>; giveUp: number; reach: number; }; sentinel: { flock: AmbientFlockData; perches: ({ x: number; y: number; z: number; })[]; }; trunkForager: { flock: AmbientFlockData; perches: ({ x: number; y: number; z: number; r: number; w: number; })[]; }; forager: { model: number; scale: number; } & ForagerPopulationRows; guide: { flock: AmbientFlockData; policy: { distance: 'centre'; min: number; max: number; schedule: { kind: 'periodic'; initial: number; period: [number, number]; }; }; }; harvest: { len: number; kneelIn: number; cuts: (number)[]; rise: number; }; system: { id: string; ambient: string; after: (string)[]; before: (string)[]; }; debug: { id: string; window: string; }; sounds: { pair: string; call: string; flap: string; hoot: string; foragerCall: string; drum: string; cutA: string; cutB: string; }; }
