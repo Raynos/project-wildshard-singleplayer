@@ -122,6 +122,12 @@ async function ownedBuildIndex(input: unknown, reader: OutputDescriptorReader): 
  * remain host inputs; disk readers separately require a format-2 index.
  */
 export async function resolveOutputDescriptor(input: unknown, reader: OutputDescriptorReader): Promise<unknown> {
+  // This root was reconstructed here already. Admission still rechecks exposed
+  // values; recognizing a model must not load the disk-index grammar again.
+  if (reader.firstParty === true && isBuildValidatedOutput(input)) {
+    if (!isJsonDataWithFileSchemas(input)) throw new Error('Shardfile descriptor requires bounded plain JSON');
+    return input;
+  }
   const pinned = reader.lineage === true ? null : await ownedBuildIndex(input, reader);
   const index = pinned?.index ?? (await import('@wildshard/format/outputIndex')).parseOutputDescriptorIndex(input);
   if (index === null) return input;

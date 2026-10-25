@@ -113,10 +113,27 @@ test('an exposed exact product retains graph validation on re-admission', async 
   const f = fixture(); trust(f.receipt);
   const source = await readProductDescriptor(f.options), offline = await import('../src/format/product');
   const graph = vi.spyOn(offline, 'preflightAssetGraph');
+  const grammar = vi.spyOn(await import('../src/format/outputIndex'), 'parseOutputDescriptorIndex');
   try {
     expect((await admitProduct(source, f.options)).source).toEqual(f.source);
     expect(graph).toHaveBeenCalled();
-  } finally { graph.mockRestore(); }
+    expect(grammar).not.toHaveBeenCalled();
+  } finally { graph.mockRestore(); grammar.mockRestore(); }
+});
+
+test('an exposed proved model still refuses accessors before re-admission', async () => {
+  const f = fixture(); trust(f.receipt);
+  const source = await readProductDescriptor(f.options); let reads = 0;
+  Object.defineProperty(source.identity, 'name', { enumerable: true, configurable: true, get: () => { reads++; return 'Changed'; } });
+  await expect(admitProduct(source, f.options)).rejects.toThrow('bounded plain JSON');
+  expect(reads).toBe(0);
+});
+
+test('an exposed proved model still refuses changed source values', async () => {
+  const f = fixture(); trust(f.receipt);
+  const source = await readProductDescriptor(f.options);
+  source.identity.name = 'Changed after publication';
+  await expect(admitProduct(source, f.options)).rejects.toThrow('Built shardfile changed after verification');
 });
 
 test('finished preparation releases synchronous inputs only through its explicit verified-reread authority', async () => {
