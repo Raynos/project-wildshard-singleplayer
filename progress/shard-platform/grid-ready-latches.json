@@ -1,4 +1,117 @@
 {
   "schema": "grid-ready-latches/1",
-  "entries": []
+  "entries": [
+    {
+      "shard": "driftwood-isle",
+      "criterion": "memory",
+      "source": "0dd7ce4722d2dedda19b0201d6679cb442382108",
+      "latchedAt": "2026-10-25T04:44:33.176Z",
+      "quiet": false,
+      "measurement": {
+        "when": "2026-10-25T04:35:37.153Z",
+        "surface": "chromium",
+        "metrics": {
+          "samples": 424,
+          "playingPeakBytes": 304404088,
+          "loadingPeakBytes": 304404088,
+          "browserProcessPeakBytes": 670468096,
+          "rendererProcessPeakBytes": 2001017856,
+          "gpuProcessPeakBytes": 1188677632
+        }
+      }
+    },
+    {
+      "shard": "driftwood-isle",
+      "criterion": "oneFrameLooks",
+      "source": "0dd7ce4722d2dedda19b0201d6679cb442382108",
+      "latchedAt": "2026-10-25T04:44:33.177Z",
+      "quiet": false,
+      "measurement": {
+        "when": "2026-10-25T04:35:37.153Z",
+        "surface": "chromium",
+        "metrics": {
+          "maxMs": 150,
+          "frames": 1700,
+          "windows": 3,
+          "skipped": 0,
+          "contextLost": 0
+        }
+      }
+    },
+    {
+      "shard": "pine-hollow",
+      "criterion": "memory",
+      "source": "0dd7ce4722d2dedda19b0201d6679cb442382108",
+      "latchedAt": "2026-10-25T04:44:33.177Z",
+      "quiet": false,
+      "measurement": {
+        "when": "2026-10-25T04:37:21.990Z",
+        "surface": "chromium",
+        "metrics": {
+          "samples": 200,
+          "playingPeakBytes": 184731107,
+          "loadingPeakBytes": 184731107,
+          "browserProcessPeakBytes": 673302528,
+          "rendererProcessPeakBytes": 2047384576,
+          "gpuProcessPeakBytes": 1184237568
+        }
+      }
+    },
+    {
+      "shard": "nalati-grasslands",
+      "criterion": "memory",
+      "source": "0dd7ce4722d2dedda19b0201d6679cb442382108",
+      "latchedAt": "2026-10-25T04:44:33.177Z",
+      "quiet": false,
+      "measurement": {
+        "when": "2026-10-25T04:38:10.493Z",
+        "surface": "chromium",
+        "metrics": {
+          "samples": 246,
+          "playingPeakBytes": 222792554,
+          "loadingPeakBytes": 222792554,
+          "browserProcessPeakBytes": 669140992,
+          "rendererProcessPeakBytes": 1775541248,
+          "gpuProcessPeakBytes": 1346013184
+        }
+      }
+    },
+    {
+      "shard": "nine-dragon-stack",
+      "criterion": "memory",
+      "source": "0dd7ce4722d2dedda19b0201d6679cb442382108",
+      "latchedAt": "2026-10-25T04:44:33.177Z",
+      "quiet": false,
+      "measurement": {
+        "when": "2026-10-25T04:39:10.515Z",
+        "surface": "chromium",
+        "metrics": {
+          "samples": 231,
+          "playingPeakBytes": 614353166,
+          "loadingPeakBytes": 614353166,
+          "browserProcessPeakBytes": 671729664,
+          "rendererProcessPeakBytes": 2558812160,
+          "gpuProcessPeakBytes": 1540704256
+        }
+      }
+    },
+    {
+      "shard": "nine-dragon-stack",
+      "criterion": "oneFrameLooks",
+      "source": "0dd7ce4722d2dedda19b0201d6679cb442382108",
+      "latchedAt": "2026-10-25T04:44:33.177Z",
+      "quiet": false,
+      "measurement": {
+        "when": "2026-10-25T04:39:10.515Z",
+        "surface": "chromium",
+        "metrics": {
+          "maxMs": 183.29999999998836,
+          "frames": 1448,
+          "windows": 3,
+          "skipped": 0,
+          "contextLost": 0
+        }
+      }
+    }
+  ]
 }

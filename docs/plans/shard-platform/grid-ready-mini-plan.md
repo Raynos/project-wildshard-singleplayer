@@ -13,8 +13,8 @@ Each slice is bounded to one hour; report misses and their observed owners first
 
 | Slice | Work | Status |
 |---|---|---|
-| G717.1 | Driftwood, Pine, Nalati and Nine: qualified Chromium phone memory/look and first-crossing step timings. | in flight (2026-10-24, sp-x8) |
-| G717.2 | Remaining shard and plot memory/look cohorts on the same pin; retain exact identities and only actual passes. | open |
+| G717.1 | Driftwood, Pine, Nalati and Nine: qualified Chromium phone memory/look and first-crossing step timings. | done (2026-10-24, sp-x8) |
+| G717.2 | Remaining shard and plot memory/look cohorts on the same pin; retain exact identities and only actual passes. | in flight (2026-10-24, sp-x8) |
 | G717.3 | One official quiet Simulator standing/road/crossing floor, then separate native memory with actual two-resident witnesses. | open |
 | G717.4 | Re-latch only qualified passes; report worst rows, preparation steps and source owners before proposing crossing cuts. | open |
 
