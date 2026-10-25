@@ -12,9 +12,11 @@ import signs from '../data/signAtlas.generated.json' with { type: 'json' };
 import pools from '../data/lightPools.json' with { type: 'json' };
 import lantern from '../data/lantern.json' with { type: 'json' };
 import rawSignRows from '../data/signView.json' with { type: 'json' };
-import { parseSignView } from './sections';
+import { parseSignView, parseNativeSignAtlas } from './sections';
+import type { NineNativeAtlas } from './nativeSignMetadata';
+import { encodeCanonicalJson, hashImmutableBytes } from '@wildshard/sdk/immutable';
 
-const signRows = parseSignView(rawSignRows);
+const signRows = parseSignView(rawSignRows), legacyAtlas = parseNativeSignAtlas(signs);
 
 interface EmitterLike { at: Vector3; color: Color; w: number; h: number; power: number; spill: number }
 interface WindowLike { m: Matrix4; win: Vector4; light: Color }
@@ -62,7 +64,7 @@ export function lightPoolRows(opt: { readonly lanterns: readonly EmitterLike[]; 
 }
 
 /** Restore the static pool inputs in the same order as the page's layout reader. */
-export function volumeSources(tier: 'phone' | 'desktop', caps: boolean, layout: NineSourceWorld['layout']): { lanterns: EmitterLike[]; ctxEmitters: EmitterLike[]; signs: EmitterLike[]; windows: WindowLike[] } {
+export function volumeSources(tier: 'phone' | 'desktop', caps: boolean, layout: NineSourceWorld['layout'], atlas: NineNativeAtlas = legacyAtlas): { lanterns: EmitterLike[]; ctxEmitters: EmitterLike[]; signs: EmitterLike[]; windows: WindowLike[] } {
   const c = layout.rows.counts, records = layout.records;
   let cursor = (c.walkers + c.sitters) * 16;
   const numeric = (value: unknown): number => {
@@ -86,7 +88,7 @@ export function volumeSources(tier: 'phone' | 'desktop', caps: boolean, layout: 
     return { m, win, light: new Color(num(), num(), num()) };
   });
   const neon: EmitterLike[] = [];
-  for (const { p, neon: calligraphy } of signs[tier].placed) {
+  for (const { p, neon: calligraphy } of atlas[tier].placed) {
     if (!calligraphy) continue;
     const { w, h } = neonSize(p.spec.text, p.size, p.spec.vertical);
     const gain = ((p.gain ?? signRows.model.calligraphyGain) / signRows.model.calligraphyGain) * signRows.model.tubeGain;
@@ -94,19 +96,25 @@ export function volumeSources(tier: 'phone' | 'desktop', caps: boolean, layout: 
     neon.push({ at: new Vector3().fromArray(p.at.map(numeric)).addScaledVector(new Vector3().fromArray(p.normal.map(numeric)).setY(0).normalize(), 0.09 / 2),
       color: new Color(p.spec.color), w, h, power, spill: 0.3 * power });
   }
-  const inflate = (e: { at: number[]; color: number[]; w: number; h: number; power: number; spill: number }): EmitterLike =>
+  const inflate = (e: { readonly at: readonly number[]; readonly color: readonly number[]; readonly w: number; readonly h: number; readonly power: number; readonly spill: number }): EmitterLike =>
     ({ ...e, at: new Vector3().fromArray(e.at), color: new Color(numeric(e.color[0]), numeric(e.color[1]), numeric(e.color[2])) });
-  return { lanterns, windows, ctxEmitters: layout.rows.emitters.map(inflate), signs: neon.concat(signs[tier].lights.map(inflate)) };
+  return { lanterns, windows, ctxEmitters: layout.rows.emitters.map(inflate), signs: neon.concat(atlas[tier].lights.map(inflate)) };
 }
 
 /** Exact RGBA8 irradiance bytes; compression only changes transfer size. No page bake remains. */
 interface VolumeRow { readonly file: string; readonly size: readonly [number, number, number]; readonly min: readonly number[]; readonly inv: readonly number[]; readonly maximum: number }
-const cached = new WeakMap<NineSourceWorld['layout'], { blobs: NamedBlob[]; rows: Record<string, VolumeRow> }>();
-function volumeData(layout: NineSourceWorld['layout']): { blobs: NamedBlob[]; rows: Record<string, VolumeRow> } {
-  const found = cached.get(layout); if (found !== undefined) return found;
+interface VolumeData { blobs: NamedBlob[]; rows: Record<string, VolumeRow> }
+const cached = new WeakMap<NineSourceWorld['layout'], { readonly atlas: string; readonly data: VolumeData }>();
+function volumeData(layout: NineSourceWorld['layout'], atlas: NineNativeAtlas): VolumeData {
+  // Hash the complete consumed native rows, including in-place edits. Retain one
+  // result per layout, so older native inputs do not accumulate cached volumes.
+  const identity = hashImmutableBytes(new TextEncoder().encode(encodeCanonicalJson([
+    atlas.phone.placed, atlas.phone.lights, atlas.desktop.placed, atlas.desktop.lights,
+  ])));
+  const found = cached.get(layout); if (found?.atlas === identity) return found.data;
   const blobs: NamedBlob[] = [], rows: Record<string, VolumeRow> = {};
   for (const tier of ['phone', 'desktop'] as const) for (const caps of [false, true]) {
-    const lights = new LightEmitters(lightPoolRows(volumeSources(tier, caps, layout), v.parse(LightPoolProfilesSchema, pools))).volume();
+    const lights = new LightEmitters(lightPoolRows(volumeSources(tier, caps, layout, atlas), v.parse(LightPoolProfilesSchema, pools))).volume();
     const key = `looks/volumes-${tier}-${caps ? 'capped' : 'open'}`;
     const boxes = [{ min: new Vector3(-30, 123, -175), max: new Vector3(110, 171, 28), cell: 1 },
       { min: new Vector3(-30, -100, -46), max: new Vector3(2, 123, 18), cell: 1.5 }];
@@ -124,7 +132,7 @@ function volumeData(layout: NineSourceWorld['layout']): { blobs: NamedBlob[]; ro
       tex.dispose();
     });
   }
-  const result = { blobs, rows }; cached.set(layout, result); return result;
+  const result = { blobs, rows }; cached.set(layout, {atlas: identity, data: result}); return result;
 }
-export function lightVolumeBlobs(layout: NineSourceWorld['layout']): NamedBlob[] { return volumeData(layout).blobs; }
-export function lightVolumeRows(layout: NineSourceWorld['layout']): Readonly<Record<string, VolumeRow>> { return volumeData(layout).rows; }
+export function lightVolumeBlobs(layout: NineSourceWorld['layout'], atlas: NineNativeAtlas = legacyAtlas): NamedBlob[] { return volumeData(layout, atlas).blobs; }
+export function lightVolumeRows(layout: NineSourceWorld['layout'], atlas: NineNativeAtlas = legacyAtlas): Readonly<Record<string, VolumeRow>> { return volumeData(layout, atlas).rows; }
