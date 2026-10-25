@@ -13655,6 +13655,13 @@ it adds no runtime section, asset or source-file handoff. Missing or invalid
 program bindings refuse. Executable generator references remain forbidden in
 authored discovery metadata.
 
+`encodeBuildBytes(input, codec, level?)` in `@wildshard/sdk/bake/byteCodec`
+provides deterministic build-only compression for cache-owned results. Deflate
+defaults to level 9 (range 0–9); Zstd defaults to level 19 (range 1–22). Inputs
+must be unshared, attached byte views of at most 256,000,000 bytes. It copies
+the selected view and returns independent bytes, without installing a service
+or adding runtime decoding or asset authority.
+
 `GeneratedProject.map` supplies the original 1000 × 1000 RGBA lattice and an
 optional logical name. `@wildshard/sdk/bake/groundMap.rasterGroundMap` paints
 actual L0 terrain and placed GLB triangles with the existing ground palette,
