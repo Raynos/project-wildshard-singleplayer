@@ -3,15 +3,13 @@
 **Order (G639):** (1) live reds → (2) NALATI 0 → (3) grid / frame floor → extras.
 
 **(1) LIVE c8e2a84b0e (09:13Z 10-25): full CI + six audited legs; adds G723 warm-ahead (594723dace) + sword fix
-9dc10c2d58 + dome fixture d9cc7ce103 on top of 653f0abe85 (07:41Z: tonight's render/Nine/Sunscar/title/starvation/atlas
-fixes, G719-G722/G724/G725, L16, L18.1, G717 looks). Hourly newest-CI-green releases (sp-x7, G705). CF2 Developer
-screenshot flake open: native PNG capture 10.8 s in CI; second change aa3b2781da (CDP optimizeForSpeed)
-awaits a smoke. RED: Explorer DW 49/61 cards stall on 3b5416a3a0 (sp-x2, 09:58Z).
+9dc10c2d58 + dome fixture d9cc7ce103 on top of 653f0abe85 (07:41Z, tonight's fixes). Hourly newest-CI-green releases (sp-x7, G705). 183bd85273 (CI + six legs
+green) releasing ~10:30Z: Explorer card fix 769f64dac7 + CF2 screenshot fix aa3b2781da (capture 10.8 s -> 0.75 s).
 
 **(2) NALATI 0 done (27dd969127).** HOST-AUDIT (G679) parked until every mini plan finishes. Legacy waits (G606).
 
-**(3) Frame floor: G717 verdict ae146afe1d (sp-x8): 48/48 latches after sp-x6's look fixes 60f2ba740c; quiet Sim 12/15.**
-Quiet misses -> sp-x1: Nalati whole max 287 ms (unattributed), Pine whole p95 45, DW spawn 37. Looks fixed (ms): NM 300->150,
+**(3) Frame floor: G717 verdict ae146afe1d (sp-x8): 48/48 latches after sp-x6's look fixes 60f2ba740c; quiet Sim 13/15 on a4b6.**
+Quiet misses -> sp-x1: DW spawn p95 42 / max 49, Pine whole 44/90 (Nalati whole now PASS 34/128). Looks fixed (ms): NM 300->150,
 Signal 267->117, Nalati 300->200, Sky 233->183, Alien 217->50, Thin Ice 250->50. G717.3 two-world memory
 PASS on 9dc10c2d58: DW + Nalati 1.056 GB upper envelope (< 1.8 GB). Native 1,312 MB playing. Edges on 903cc6901d: Nalati 11.6 / Nine 8.7 / DW 8.1 / Pine 2.6 s (< 5 s open; world + afterPlay dominate): sp-x8 G723 warm-ahead
 (cancel fix ff66c28901), <= 2 residents (kept + incoming) under a guard (loading <= 1.8 GB, 1.2 GB/shard, else retire first).
@@ -29,6 +27,6 @@ art/main-menu-hero/round-6-nalati-terrain/); G630 still needs Nine far proxy + S
 **Blocked on Jake:** LEGACY phone QA, memory budget call, road B pilot play, hero board. **On Opus:** G713 post RT sheet,
 G685 look row, NM RM4+, U2 occupied parents, L18.3 lighter DW assets, G630 Nine far + Sunscar glow, T3/T6 visual.
 
-**Lanes:** Claude weekly 99 %: 0 Opus (G605); 5 Codex + sp-x7 (Codex weekly reset: 1 %).
+**Lanes:** Claude weekly 99 %: 0 Opus (G605); 5 Codex + sp-x7 (Codex weekly 10 %).
 
 **Rules:** G704 (<= ~20 files/move commit, one big move: T3). G605. Fix forward, no reverts (G674). No new Debug rows (G669). G670. Never herdr wildshard-v.
