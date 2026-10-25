@@ -1,0 +1,133 @@
+# JS payload: ship less code per entry (E500)
+
+**State:** `draft` 2026-10-24, for Jake to read; not sent to the builder (Jake, ~22:05 Cancun: *"park those two new
+mini plans as draft for me to read … don't send them to builder overnight"*). A read-only audit by the plan agent's
+subagent. It gives the detail for G713's *lazy-load code* row (sp-x9 after QW7) and leaves G713's lighter post
+chain to its Opus row.
+
+Jake, 2026-10-24 ~22:00 Cancun (E500): *"Make a mini audit / mini plan to benchmaxx the JS PAYLOAD in prod way down in
+a subagent. What can we do? Can we minify? Can we exclude dev tools? Can we exclude server side / sim code? Can we
+just load what either infinite wildshard, shard select or legacy/shardfiles need? Can we lazy load the model / set /
+world explorer? What else can be lazy loaded?"*
+
+## How it was measured
+
+- **Build:** the pinned production preview of `eec878c1f4` (built 21:37 tonight, 12 commits behind HEAD
+  `b0e5948474`, none of which changes chunking). Vite 8.3 / Rolldown, oxc minifier, hidden source maps.
+- **Bytes per module:** every emitted chunk's hidden source map, decoded segment by segment, so each byte is
+  attributed to its source module; gzip -9 and brotli -11 per chunk with Node's zlib.
+- **Bytes per entry:** one muted browser lane (iPhone 16 Pro, service worker blocked so only the page's own
+  requests count), cold, one fresh context per entry. Every `.js` / `.wasm` response is recorded and summed
+  against the census.
+
+## Findings
+
+**Total shipped:** 636 JS chunks, **17.35 MB raw, 4.84 MB gzip, 4.06 MB brotli**. On top of that come the wasm
+files (Rapier 2.1 MB, the Basis transcoder 0.5 MB, the shardfiles' AssemblyScript blobs) and 631 hidden source maps
+(46 MB). The maps are served, but players never fetch them.
+
+### Bytes by layer (whole bundle)
+
+| Layer / package | raw KB | gzip KB | Notes |
+|---|---:|---:|---|
+| `src/game` | 6,657 | 1,262 | `game/grid` alone is 3,807 / 313: the seam-plan data inlined into `grid/session.ts` (finding 3) |
+| legacy shards (6) | 3,250 | 1,179 | Nalati 887, Nine 659, Pine 625, Driftwood 516, Far Reach 304, Sunscar 259 |
+| `src/engine` | 2,674 | 942 | render 451, world 292, ui 248, ai 232, audio 183, script 169, combat 121, boot 117, explore 107, calibration 128, sim 67 |
+| three.js | 1,354 | 380 | `three.core` 376, **`three.webgpu` 367**, `three.module` 346, loaders and libs |
+| `src/format` | 656 | 233 | shardfile schemas and validators |
+| Sentry | 398 | 132 | lazy; none of the measured entries loads it |
+| postprocessing + n8ao | 342 | 133 | every shard entry |
+| Rapier JS | 215 | 42 | plus 2.1 MB wasm, at shard entry only |
+| shardfile shards' remaining TS | 217 | 63 | Pine 105 (`fauna.generated.ts` 102), Nalati 46, Open Plots 35 |
+| ajv / valibot / navcat / meshoptimizer | 97 / 28 / 37 / 26 | 23 / 9 / 8 / 8 | ajv compiles JSON schemas at runtime |
+| `src/sdk` / `src/commons` | 2 / 0 | 1 / 0 | **no bake, headless, generator or test module ships** |
+
+### JS per entry today (cold, page requests only)
+
+| Entry | JS files | raw KB | gzip KB | brotli KB | Doesn't need |
+|---|---:|---:|---:|---:|---|
+| Title (public) | 59 | 1,222 | 393 | 319 | the four generated all-shard tables (367 raw / 89 gz), shard-format validators (378 raw / 124 gz, with valibot and the meshopt decoder) |
+| SHARD SELECT (public) | +0 | 1,222 | 393 | 319 | the same; the menu already holds everything |
+| Title (Developer) | 61 | 1,251 | 401 | 327 | also prefetches 12 shardfile wasm blobs (Driftwood, Pine); SHARD SELECT then fetches 25 more for every shard |
+| Infinite Wildshard grid | 515 | 12,732 | 3,223 | 2,686 | 3.4 MB of seam plans in JS, 144 KB of legacy code, 205 KB of other shards' code, Explore, calibration, ajv |
+| Driftwood shardfile (public) | 479 | 8,057 | 2,672 | 2,333 | Explore 107, calibration 128, playgrounds 59, ajv 97, `src/format` validators ~650, `three.webgpu` 367 (finding 4) |
+| Driftwood LEGACY | 432 | 8,328 | 2,689 | 2,309 | ~330 KB from six other shards' folders, `game/grid` 54 |
+| Explore (Driftwood) | 479 | 8,057 | 2,672 | 2,333 | the same set as the shardfile entry: Explore's code already ships in every shard entry |
+
+98 chunks (3.54 MB raw / 1.07 MB brotli) are fetched by none of these entries: the other legacy shards, Sentry and
+the playgrounds. The service worker still downloads all of them (finding 8).
+
+### Answers to Jake's questions
+
+1. **Can we minify? Already done; this is not a lever.** Vite 8 minifies with oxc and mangles identifiers (the output
+   reads `class e`, `function Dn(`). The `esbuild: { keepNames: true, minifyIdentifiers: false }` line in
+   `vite.config.ts` does nothing under Rolldown, so its comment's promise of readable stacks in the exception modal
+   is already untrue (D2). What is left is under 2 %: 33 `console.log/info/debug` calls. Property mangling is
+   unsafe here.
+2. **Can we exclude dev tools? Mostly they're already lazy chunks.** Developer is a runtime switch, so the answer is
+   dynamic-import roots, not a second build. The debug menu and its authored rows (18 KB) sit in the title. The real
+   Developer weight is legacy (3.25 MB) and Explore. Both are lazy, but public entries pull parts of them
+   (findings 4 and 5), and the service worker downloads all of them.
+3. **Can we exclude server / sim / bake code? Nothing leaks.** `src/sdk` is 2 KB in the bundle, `src/commons` 0, and
+   no `bake/`, `headless/`, `generators/` or test module ships. `engine/sim` (67 KB) is simulation the client really
+   runs. The actual leak is **data compiled into JS: about 4.3 MB raw**: seam plans 3.4 MB, boot tables 367 KB,
+   Sunscar-legacy audio 120 KB, render calibration 111 KB, Pine fauna 102 KB.
+4. **Can each entry load only what it needs? The title already does for code**: no three.js and no shard code
+   since the 10-23 audit. Its remaining weight is data and validators (J2). The grid, shardfile and LEGACY entries
+   still bleed into each other. The build log shows **6 `INEFFECTIVE_DYNAMIC_IMPORT` warnings**, each a module
+   that is both dynamically and statically imported, so nothing splits: pine-hollow-legacy and nalati-legacy
+   `runtime/index.ts`, `game/shard/pageBoot.ts` (via Pine's `discovery.generated.ts`), and four legacy
+   `ktx2.generated.ts`.
+5. **Can we lazy-load the Model / Set / World Explorer? It is lazy, but it gets preloaded.**
+   `src/engine/boot/extras.ts` imports `explore/Explore` and `ui/Feedback` during the loading bar whenever the shard
+   sets `def.boot.explore` (all six legacy shards), and the shardfile path also reaches `engine/explore`. Explore
+   should load on its button only (J3).
+6. **What else?**
+   - **Grid seam plans:** `vite/gridSeamPlans.ts` defines `__GRID_SEAM_PLANS__` and `__GRID_EDGES__` as JSON inside JS
+     strings. That makes one 3.85 MB chunk, 22 % of all JS, parsed and compiled on every grid entry (J1).
+   - **The node-material system ships both three.js renderers.** The game creates `WebGLRenderer`, but the
+     render nodes import `three/webgpu`, a 367 KB prebuilt bundle, into every shard (J7, Opus).
+   - **ajv** compiles custom-section schemas at runtime (`game/shardfile/customSchema.ts`), even for first-party
+     shardfiles the build has already verified (`__SHARDFILE_VERDICTS__`) (J5).
+   - **The service worker downloads everything:** `src/engine/pwa/sw.js` `warmBundle` fetches all 635 JS files plus
+     the Basis wasm after the title is usable. That is 4.06 MB brotli per fresh install, plus every changed hash
+     after each deploy (J6).
+   - **Caching:** `vercel.json` gives `/assets/*.js|css` `max-age=0, must-revalidate`, overriding the year-long
+     `immutable` rule for content-hashed code. Any entry not served by the worker pays about 480 conditional
+     requests, and `docs/design/cache-policy.md` doesn't explain the rule (J9).
+   - **Already fine:** Vercel serves brotli (16 % under gzip). Sentry loads only on demand. Rapier loads only at shard
+     entry. Workers are small.
+
+**Heap rule of thumb used below:** G682's census measured 14.4 MiB of code, bytecode and metadata for a shard
+entry of about 8 MB raw, so not parsing 1 MB of raw JS saves about 1.5–2 MiB of heap.
+
+## Rows
+
+Biggest saving first. Every row lands in small commits (G704) and has a measurable done-when. J10 lands its first
+ceiling with J1 and ratchets down after each row.
+
+| Row | What | Saves (est.) | Owner | Effort | Done when |
+|---|---|---|---|---|---|
+| J1 | Grid seam plans and edges out of JS: bake them to a content-hashed asset the grid session fetches at entry, and delete both defines | ~3.4 MB raw / ~250 KB gzip on the grid; ~5–7 MiB heap and the biggest compile | Codex | S–M | grid session chunk ≤ 450 KB raw; no `__GRID_SEAM_PLANS__` in `src/`; grid boot smoke green |
+| J2 | Title diet: move the four generated tables (bytes, versions, packs, audio) out of `pageServices` into per-shard fetched JSON read when a shard is picked; load the shard-format validators and meshopt decoder with the shard | ~250 KB gzip on the title (393 → ≤ 150); ~3–5 MiB title heap | Codex | M | title and SHARD SELECT load ≤ 150 KB gzip JS, no `src/format` schema chunk and no `*.generated` table in the pre-entry graph |
+| J3 | Shard entry diet: Explore and Feedback load on their button (drop the `extras.ts` preload); calibration tables, playgrounds and `perfHud` load on use; HUD panels (map, journal, settings) load on open | ~400 KB raw / ~140 KB gzip per shard entry; ~1 MiB | Codex | M | Driftwood shardfile entry loads no `engine/explore`, `engine/calibrate`, `practice` or `Feedback` module; Explore still opens |
+| J4 | Shard isolation: fix the 6 `INEFFECTIVE_DYNAMIC_IMPORT`s, so each legacy shard and each other shard's modules sit only in their own dynamic root; LEGACY keeps working (G606) | ~350 KB raw / ~110 KB gzip on the grid and LEGACY | Codex | M | build log has 0 `INEFFECTIVE_DYNAMIC_IMPORT`; LEGACY Driftwood loads no other shard's folder; the grid loads no `-legacy` module |
+| J5 | First-party validation from build verdicts (D3): runtime validators (`src/format` schemas, valibot, ajv) load only for external or unverified shardfiles; custom-section schemas are precompiled at build (ajv standalone) | ~650 KB raw / ~200 KB gzip per shard entry (beyond J2's title part) | Codex | M | Driftwood shardfile entry loads no ajv and no `shardSchema` chunk; an external shardfile still validates |
+| J6 | The service worker warms only public entry code (D1: title, select, grid, shardfile roots); legacy, Explore, Developer and Sentry chunks are cached on first use | ~1.07 MB brotli per install and per deploy, plus the phone's CacheStorage | Codex | S | the worker's warm list excludes chunks that only Developer roots reach; the offline public-play SW test passes |
+| J7 | Node-material spike: replace the whole-bundle `three/webgpu` imports with tree-shaken node imports, or load the node system only for products with node graphs | up to ~367 KB raw / ~105 KB gzip per shard entry | Opus | M (spike) | spike verdict with numbers; ships only if the look holds (G415) |
+| J8 | Within G713's lighter post-chain row: load n8ao only when the tier has AO on | ~155 KB raw / ~54 KB gzip on the phone tier | Opus | S | a phone-tier entry with AO off fetches no N8AO chunk |
+| J9 | Hygiene: delete the dead esbuild keepNames line (D2); make hashed `/assets/*.js` immutable, or write down in `cache-policy.md` why it revalidates | 0 bytes; ~480 conditional requests on an entry outside the worker | Codex | S | `vercel.json` hashed JS is immutable, or `cache-policy.md` has one line saying why not |
+| J10 | Guard (a tool refusal, not a report): `scripts/check-chunks.mjs` gets per-entry gzip ceilings, ratcheted in `lint/ratchet.json` (title closure, grid session chunk), plus forbidden-module lists (title: three, Rapier, `src/shards/**`, `src/format` validators, explore, `*.generated` tables; shardfile entry: `-legacy` and other shards' folders); the boot smoke records script bytes per entry (`scriptResourceURLs`, already in `scripts/shard-phone-memory.mjs`) and refuses anything over its ceiling | holds every saving | Codex | S–M | a commit that puts three.js or shard code into the title, or grows an entry past its ceiling, is refused by pre-commit or CI |
+
+**Expected after J1–J6, J10:** title ≤ 150 KB gzip (from 393), Driftwood shardfile ≈ 2.3 MB gzip (from 2.67),
+grid ≈ 2.5 MB gzip (from 3.22) and roughly 10 MiB less heap on grid entry. J7 and J8 would take shard entries
+about 160 KB gzip lower again.
+
+## Decisions for Jake
+
+| # | Question | Recommended |
+|---|---|---|
+| D1 | Should the service worker download only the public game's code, and cache Developer, LEGACY, Explore and Sentry code the first time they're used? (Offline Developer or LEGACY play would then need one online visit first.) | **Yes**: saves ~1 MB per install and per deploy on the phone |
+| D2 | Readable function names in on-phone error stacks: accept today's mangled names (true since Vite 8), or turn `keepNames` back on for about 3–5 % more JS? | **Accept mangled**: delete the dead config line; the hidden source maps resolve stacks on desktop |
+| D3 | Trust the build's validation verdicts for our own shardfiles and load the runtime validators (ajv, schemas) only for external or unverified ones? | **Yes**: the build already refuses an invalid first-party shardfile |
+| D4 | Opening Explore, LEGACY or the Debug page for the first time would cost a short code fetch (~0.3–1 s on the phone). OK? | **Yes**: the public entries get lighter in exchange |
