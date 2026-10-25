@@ -302,7 +302,10 @@ GR3 bounded slices (G711; each <= 1 h, one producer retirement per commit):
 |---|---|---|
 | C1 casts source/cache and host fixtures | done | All 78 predecessor files, admitted costs, cold/hit/refusal checks; no job retirement |
 | C2 casts reader handoff and retirement | done | Nine 9 → 8; all 78 former files exact, cold scoped generation and full live output parity |
-| Practice | open | Direct course program, then remove its two source handoffs |
+| Practice | in flight (2026-10-25, sp-x1) | P1 pure shared contract and injected source/cache → P2 product/test reader handoff → P3 one-job retirement; each ≤ 1 h; preserve both original shared course variants and full module/contract/admission oracles |
+| P1 practice source/cache | done | Pure shared declarations feed retained Node and injected compilation with the same fixed page, aliases and 256-line ceiling. Both original checkpoint/oval contracts and the complete 9,786 B module remain exact; owned raw cache, detached hits, missing capability/inventory/contract/publication refusals and actual bundle guard pass. Both retained catalogue roots include the new shared dependency. Nine focus/related cases, touched shard/commons/fixture types and typed lint pass; normal scoped generation passes in 37.46 s. No reader/job retirement |
+| P2 practice reader handoff | open | Feed the owned course into declaration budgets, scene/controller rows and product output; preserve complete original executable/contract and controller behavior |
+| P3 practice retirement | open | Nine 1 → 0; remove only nine-practice and both source handoffs after producer/reader adoption; strict normal generation and full product/boot milestone |
 | D1 declarations source/cache | done | Both original canonical wires (3,470,533 B), checked partition owners and cache/refusal checks; no job retirement |
 | D2 declarations reader handoff | done | Nine 6 → 5; both source handoffs (3,470,533 B) absent, original canonical rows and full product bytes exact; cold scoped generation |
 | Boot metadata | done | B1 factory, B2 admitted receipt-backed discovery and B3 predecessor-oracle handoff plus seven-file writer retirement complete; Nine 3 → 2 |

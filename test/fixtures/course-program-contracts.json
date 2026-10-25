@@ -1,0 +1,18 @@
+{
+  "oval": {
+    "parameters": {
+      "courseKind": 0,
+      "courseRadius": 38,
+      "courseWidth": 12,
+      "courseLine": 0,
+      "resetX": -13.2,
+      "resetZ": 36.1,
+      "resetYaw": -2.383214939379611,
+      "resetPitch": -0.28,
+      "resetPrevX": -13.2
+    },
+    "contractHash": "f2c993424e340783fb0ffb6838023a30412eae8cd903641a766dbeb54a3192c0",
+    "moduleHash": "6ffc72748c1709f4239ac983fdda5841a524a026512287fe16f0fa498b276102",
+    "bytes": 9786
+  }
+}

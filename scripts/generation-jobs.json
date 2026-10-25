@@ -23,6 +23,7 @@
         "src/format/decisionScripts.ts",
         "src/commons/package.json",
         "src/commons/practiceCourse.ts",
+        "src/commons/courseProgram.ts",
         "src/commons/scripts/course.as"
       ],
       "outputs": [
@@ -13284,6 +13285,7 @@
         "src/format/decisionScripts.ts",
         "src/commons/package.json",
         "src/commons/practiceCourse.ts",
+        "src/commons/courseProgram.ts",
         "src/commons/scripts/course.as",
         "scripts/bake-output.mjs"
       ],
