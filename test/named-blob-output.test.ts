@@ -10,7 +10,7 @@ import { execFileSync } from 'node:child_process';
 import * as v from 'valibot';
 import { namedBlobOutput } from '../scripts/named-blob-output.mjs';
 import { compileScript } from '@wildshard/sdk/compileScript';
-import { scriptSource } from './script/fixture';
+import { scriptSource } from '../src/sdk/test/scriptSource';
 import { prepareProjectOutput } from '../src/sdk/projectOutput';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 

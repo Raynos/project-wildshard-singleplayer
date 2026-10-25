@@ -4,7 +4,7 @@ import { instrumentV2Finite, inspectV2Finite } from '../src/sdk/bake/v2Finite';
 import { compileScript } from '../src/sdk/bake/compileScript';
 import { admitScript } from '../src/format/scriptAdmission';
 import { sha256 } from '../src/game/plugin/moduleHash';
-import { scriptSource } from './script/fixture';
+import { scriptSource } from '../src/sdk/test/scriptSource';
 
 function bytes(source: string): Uint8Array {
   const module = binaryen.parseText(source);

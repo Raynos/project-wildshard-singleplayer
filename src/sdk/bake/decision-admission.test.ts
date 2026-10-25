@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { admitScript } from '@wildshard/format/scriptAdmission';
 import { compileScript } from '@wildshard/sdk/compileScript';
-import { scriptSource } from './script/fixture';
+import { scriptSource } from '../test/scriptSource';
 
 const source = (body = 'return 0;', extra = '') => `${extra}
 export function ws_abi():i32 { return 1; }

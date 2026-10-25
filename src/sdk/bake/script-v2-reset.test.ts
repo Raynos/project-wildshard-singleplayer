@@ -1,10 +1,10 @@
 import { expect,test } from 'vitest';
-import { compileScript } from '../src/sdk/bake/compileScript';
-import { scriptSource } from './script/fixture';
-import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
-import { compileSimV2 } from '../src/sdk/test/compileSimV2';
-import { ScriptModuleV2 } from '../src/engine/script/moduleV2';
-import { validateV2FloatColumns } from '../src/format/scriptMemoryV2';
+import { compileScript } from './compileScript';
+import { scriptSource } from '../test/scriptSource';
+import { compileScriptV2 } from './compileScriptV2';
+import { compileSimV2 } from '../test/compileSimV2';
+import { ScriptModuleV2 } from '@wildshard/engine/script/moduleV2';
+import { validateV2FloatColumns } from '@wildshard/format/scriptMemoryV2';
 
 const source = `let transient:i32=5;
 export function ws_abi():i32{return 2;} export function ws_io():i32{return 1024;}

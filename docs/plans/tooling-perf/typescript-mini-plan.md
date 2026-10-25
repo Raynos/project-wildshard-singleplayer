@@ -92,6 +92,7 @@ implementation. Existing test identities, assertions and deadlines stay fixed.
 | T3-H3b | Move the shared ABI2 sim compiler fixture and its fourteen consumers atomically; root consumes SDK test declarations, no re-export shim or production compiler API | 60 min | done (2026-10-25, sp-x8) |
 | T3-V1 | Eight ABI2 sim, query, input and RNG suites into the SDK test project using its private compiler fixture; no new runtime exports | 60 min | done (2026-10-25, sp-x8) |
 | T3-H4 | Shared dual-ABI compiler fixture and its SDK unit suite; preserve root real-shard port inventory and its transitive fixture types | 45 min | done (2026-10-25, sp-x8) |
+| T3-H5 | Shared ABI source fixture plus SDK admission/reset suites; retain frozen compiler-hash and tooling producer regressions at root | 45 min | done (2026-10-25, sp-x8) |
 | T3-A1 | Direct-import and immediate-fixture ownership census; enumerate concrete batches while preserving accepted cross-layer integrations | 60 min | done (2026-10-25, sp-x8) |
 | T3-A2 | Audit transitive shared-fixture and source-string consumers; classify remaining root regressions and further bounded relocation batches | 60 min | in flight (2026-10-25, sp-x8) |
 | T3-C1 | Reconcile the final root inventory, workspace membership and CF1/CI selection; retain only classified root suites | 45 min | open |
