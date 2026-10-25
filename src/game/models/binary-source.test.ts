@@ -1,8 +1,8 @@
 import * as v from 'valibot';
 import {expect,test,vi} from 'vitest';
-import {Scope} from '../src/engine/app/scope';
-import {BinarySourceSchema} from '../src/format/binarySource';
-import {binarySourceBytes,prepareBinarySources} from '../src/game/models/binarySource';
+import {Scope} from '@wildshard/engine/app/scope';
+import {BinarySourceSchema} from '@wildshard/format/binarySource';
+import {binarySourceBytes,prepareBinarySources} from './binarySource';
 
 test('binary rows refuse ambiguity and getters before touching the file owner',async()=>{
   let getters=0;const source=Object.defineProperty({},'file',{enumerable:true,get:()=>{getters++;return 'shape';}}),file=vi.fn(()=>Promise.resolve(new Uint8Array(4)));

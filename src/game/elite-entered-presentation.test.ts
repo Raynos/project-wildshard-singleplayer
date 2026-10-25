@@ -2,14 +2,14 @@
 import { beforeEach, expect, test, vi } from 'vitest';
 import * as v from 'valibot';
 import { Group, PerspectiveCamera, Scene, Vector3 } from 'three';
-import { Scope } from '../src/engine/app/scope';
-import { withOwner } from '../src/engine/app/ownership';
-import { EliteBar } from '../src/engine/ui/EliteBar';
-import type { Interactable } from '../src/engine/world/interact/types';
-import type { Animal } from '../src/engine/entities/AnimalView';
-import { setTerrainHeight } from '../src/engine/world/terrainHeight';
-import { Elites, type EliteScript, type EliteEnteredOwners } from '../src/game/Elite';
-import { EliteEnteredPresentationSchema } from '../src/format/eliteFeature';
+import { Scope } from '@wildshard/engine/app/scope';
+import { withOwner } from '@wildshard/engine/app/ownership';
+import { EliteBar } from '@wildshard/engine/ui/EliteBar';
+import type { Interactable } from '@wildshard/engine/world/interact/types';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
+import { setTerrainHeight } from '@wildshard/engine/world/terrainHeight';
+import { Elites, type EliteScript, type EliteEnteredOwners } from './Elite';
+import { EliteEnteredPresentationSchema } from '@wildshard/format/eliteFeature';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { mockCanvas, portraitHeldFrame } from '@wildshard/engine/test/weaponParity';
 

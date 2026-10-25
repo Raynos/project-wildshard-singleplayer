@@ -3,9 +3,9 @@ import { readdirSync, readFileSync } from 'node:fs';
 import * as v from 'valibot';
 import { expect, test, vi } from 'vitest';
 import { Bone, BufferGeometry, Material, Mesh, MeshStandardMaterial, Skeleton } from 'three';
-import { MountedSpecimenSeatSchema } from '../src/format/mountedSpecimenRows';
-import { Scope } from '../src/engine/app/scope';
-import { SeatedFigure, seatedFigureView } from '../src/game/riding/seatedFigure';
+import { MountedSpecimenSeatSchema } from '@wildshard/format/mountedSpecimenRows';
+import { Scope } from '@wildshard/engine/app/scope';
+import { SeatedFigure, seatedFigureView } from './seatedFigure';
 
 // G603 L10 host bar, tests 2-6, for the riding host's rider seated on a mount, on a made-up lamplighter riding a donkey:
 // its own inline shapes, a scene-declared standard coat (no lent look), another joint, speed clock and two cue kinds.
