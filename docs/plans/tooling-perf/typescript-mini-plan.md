@@ -129,6 +129,17 @@ T4 handoff (G708): sp-x2's 24 defining modules are landed through `da9626ef21` (
 14,010,239 → 5,144,644 B, 286 input/output contracts preserved. Target <2 MB and isolated declarations remain open;
 88/285 modules pass the isolated audit (543 diagnostics remain). Sp-x8 owns continuation; no unlanded schema candidate.
 
+### T4 continuation slices (G711)
+
+Each source slice is at most one hour. Input/output contracts and runtime JavaScript stay identical;
+normal layer emission is the declaration-size authority. Continuation starts at 5,150,849 B / 294 live modules.
+
+| Slice | Scope | Budget | Status |
+|---|---|---|---|
+| T4-F1 | Named weld, forest-page and elite-entry data contracts; retain weld material entries/omit and admitted defaults | 60 min | done (2026-10-25, sp-x8) |
+| T4-F2 | Remaining largest format validators, in bounded packets, until normal declarations are below 2 MB | 60 min per packet | open |
+| T4-I1 | Format isolated declarations, then engine and remaining layers, one bounded diagnostic family per slice | 60 min per family | open |
+
 T4 first format slices are on origin: schema expressions and emitted runtime JavaScript are unchanged.
 Independent named data types replace exported validator implementation types; original/candidate input and output
 contracts remain mutually assignable (242 contracts, including the private item bridge nodes). No compiler option or admission fence changed.

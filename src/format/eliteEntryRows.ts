@@ -7,7 +7,7 @@ import { ObservationColumnsV2Schema, parseObservationColumnsV2, type Observation
 
 /** Fixed numeric inputs of the existing native kernels, explicitly declared
  * on the same H4 owner. These are selectors, never climate values or defaults. */
-export const ELITE_BODY_COLUMNS = [
+export const ELITE_BODY_COLUMNS: readonly [{ readonly name: 'playerCrouched'; readonly id: 1; readonly source: { readonly kind: 'player'; readonly field: 'crouched'; }; }, { readonly name: 'playerFwdX'; readonly id: 2; readonly source: { readonly kind: 'player'; readonly field: 'forwardX'; }; }, { readonly name: 'playerFwdZ'; readonly id: 3; readonly source: { readonly kind: 'player'; readonly field: 'forwardZ'; }; }, { readonly name: 'grassHeight'; readonly id: 4; readonly source: { readonly kind: 'grass'; readonly at: 'self'; }; }, { readonly name: 'windX'; readonly id: 5; readonly source: { readonly kind: 'wind'; readonly field: 'x'; }; }, { readonly name: 'windZ'; readonly id: 6; readonly source: { readonly kind: 'wind'; readonly field: 'z'; }; }] = [
   { name: 'playerCrouched', id: 1, source: { kind: 'player', field: 'crouched' } },
   { name: 'playerFwdX', id: 2, source: { kind: 'player', field: 'forwardX' } },
   { name: 'playerFwdZ', id: 3, source: { kind: 'player', field: 'forwardZ' } },
@@ -15,7 +15,7 @@ export const ELITE_BODY_COLUMNS = [
   { name: 'windX', id: 5, source: { kind: 'wind', field: 'x' } },
   { name: 'windZ', id: 6, source: { kind: 'wind', field: 'z' } },
 ] as const satisfies readonly ObservationColumnV2[];
-export const ELITE_CONDITION_COLUMNS = [
+export const ELITE_CONDITION_COLUMNS: readonly [{ readonly name: 'phase'; readonly id: 1; readonly source: { readonly kind: 'clock'; readonly field: 'dayPhase'; }; }, { readonly name: 'storm'; readonly id: 2; readonly source: { readonly kind: 'weather'; readonly field: 'stormActive'; }; }] = [
   { name: 'phase', id: 1, source: { kind: 'clock', field: 'dayPhase' } },
   { name: 'storm', id: 2, source: { kind: 'weather', field: 'stormActive' } },
 ] as const satisfies readonly ObservationColumnV2[];
@@ -45,7 +45,7 @@ const controller = v.variant('kind', [
 /** Source rows name fixed owners, never object paths, factories or callbacks.
  * Profile/definition data and concrete loans are admitted by the compiled
  * resolver, then cardinality/identity checked in engine before construction. */
-export const EliteEntryRowsSchema = v.strictObject({
+export const EliteEntryRowsSchema: v.GenericSchema<EliteEntryRowsInput, EliteEntryRows> = v.strictObject({
   version: v.literal(1),
   id: handle,
   ui: handle,
@@ -58,7 +58,7 @@ export const EliteEntryRowsSchema = v.strictObject({
     id: handle, condition: handle, controller,
   })), v.minLength(1), v.maxLength(64)),
 });
-export type EliteEntryRows = v.InferOutput<typeof EliteEntryRowsSchema>;
+
 
 export function parseEliteEntryRows(input: unknown): EliteEntryRows {
   if (!isJsonData(input)) throw new Error('Elite entry rows require plain JSON');
@@ -77,7 +77,7 @@ export function parseEliteEntryRows(input: unknown): EliteEntryRows {
 
 /** The existing page owner resolves these immutable selections into concrete
  * loans. Native profile admission remains in the engine kernel boundary. */
-export const EliteEntryPageRowsSchema = v.strictObject({
+export const EliteEntryPageRowsSchema: v.GenericSchema<EliteEntryPageRowsInput, EliteEntryPageRows> = v.strictObject({
   entry: EliteEntryRowsSchema,
   actions: EliteOutputActionsSchema,
   profiles: v.pipe(v.array(v.strictObject({ id: handle, value: v.unknown() })), v.maxLength(64)),
@@ -89,7 +89,7 @@ export const EliteEntryPageRowsSchema = v.strictObject({
   debug: v.exactOptional(handle),
   prewarm: v.pipe(v.array(v.strictObject({ kind: handle, variant: handle })), v.maxLength(64)),
 });
-export type EliteEntryPageRows = v.InferOutput<typeof EliteEntryPageRowsSchema>;
+
 export function parseEliteEntryPageRows(input: unknown): EliteEntryPageRows {
   if (!isJsonData(input)) throw new Error('Elite page rows require plain JSON');
   const rows = v.parse(EliteEntryPageRowsSchema, input);
@@ -102,4 +102,246 @@ export function parseEliteEntryPageRows(input: unknown): EliteEntryPageRows {
     || new Set(rows.observations.map(row => row.id)).size !== rows.observations.length
     || new Set(rows.strikes.map(row => row.amount)).size !== rows.strikes.length) throw new Error('Duplicate elite page selection');
   return rows;
+}
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export interface EliteEntryRowsInput {
+    version: 1;
+    id: v.InferInput<typeof HandleIdSchema>;
+    ui: v.InferInput<typeof HandleIdSchema>;
+    conditionObservations: v.InferInput<typeof HandleIdSchema>;
+    conditions: ({
+        id: v.InferInput<typeof HandleIdSchema>;
+        program: v.InferInput<typeof HandleIdSchema>;
+        signal: v.InferInput<typeof HandleIdSchema>;
+        observations: ({
+            field: v.InferInput<typeof HandleIdSchema>;
+            value: number;
+        })[];
+    })[];
+    entries: ({
+        id: v.InferInput<typeof HandleIdSchema>;
+        condition: v.InferInput<typeof HandleIdSchema>;
+        controller: ({
+            kind: 'pouncer';
+            contacts: ({
+                amount: number;
+                action: number;
+            })[];
+            knock: number;
+            opened: number;
+            growl: number;
+        } & {
+            profile: v.InferInput<typeof HandleIdSchema>;
+            body: v.InferInput<typeof HandleIdSchema>;
+            model: v.InferInput<typeof HandleIdSchema>;
+            observations: v.InferInput<typeof HandleIdSchema>;
+            spawn: {
+                kind: v.InferInput<typeof HandleIdSchema>;
+                variant: v.InferInput<typeof HandleIdSchema>;
+                yaw: number;
+                offset: [
+                    number,
+                    number
+                ];
+                memory: Record<string, number>;
+            };
+        }) | ({
+            kind: 'howler';
+            contacts: ({
+                amount: number;
+                action: number;
+            })[];
+            regrouped: number;
+            interrupted: number;
+            closed: number;
+            howl: number;
+        } & {
+            profile: v.InferInput<typeof HandleIdSchema>;
+            body: v.InferInput<typeof HandleIdSchema>;
+            model: v.InferInput<typeof HandleIdSchema>;
+            observations: v.InferInput<typeof HandleIdSchema>;
+            spawn: {
+                kind: v.InferInput<typeof HandleIdSchema>;
+                variant: v.InferInput<typeof HandleIdSchema>;
+                yaw: number;
+                offset: [
+                    number,
+                    number
+                ];
+                memory: Record<string, number>;
+            };
+        }) | ({
+            kind: 'wind';
+            contacts: ({
+                amount: number;
+                action: number;
+            })[];
+            knock: number;
+            grounded: number;
+            cry: number;
+        } & {
+            profile: v.InferInput<typeof HandleIdSchema>;
+            body: v.InferInput<typeof HandleIdSchema>;
+            model: v.InferInput<typeof HandleIdSchema>;
+            observations: v.InferInput<typeof HandleIdSchema>;
+            spawn: {
+                kind: v.InferInput<typeof HandleIdSchema>;
+                variant: v.InferInput<typeof HandleIdSchema>;
+                yaw: number;
+                offset: [
+                    number,
+                    number
+                ];
+                memory: Record<string, number>;
+            };
+        }) | ({
+            kind: 'borrowed';
+            controller: v.InferInput<typeof HandleIdSchema>;
+        });
+    })[];
+}
+export interface EliteEntryRows {
+    version: 1;
+    id: v.InferOutput<typeof HandleIdSchema>;
+    ui: v.InferOutput<typeof HandleIdSchema>;
+    conditionObservations: v.InferOutput<typeof HandleIdSchema>;
+    conditions: ({
+        id: v.InferOutput<typeof HandleIdSchema>;
+        program: v.InferOutput<typeof HandleIdSchema>;
+        signal: v.InferOutput<typeof HandleIdSchema>;
+        observations: ({
+            field: v.InferOutput<typeof HandleIdSchema>;
+            value: number;
+        })[];
+    })[];
+    entries: ({
+        id: v.InferOutput<typeof HandleIdSchema>;
+        condition: v.InferOutput<typeof HandleIdSchema>;
+        controller: ({
+            kind: 'pouncer';
+            contacts: ({
+                amount: number;
+                action: number;
+            })[];
+            knock: number;
+            opened: number;
+            growl: number;
+        } & {
+            profile: v.InferOutput<typeof HandleIdSchema>;
+            body: v.InferOutput<typeof HandleIdSchema>;
+            model: v.InferOutput<typeof HandleIdSchema>;
+            observations: v.InferOutput<typeof HandleIdSchema>;
+            spawn: {
+                kind: v.InferOutput<typeof HandleIdSchema>;
+                variant: v.InferOutput<typeof HandleIdSchema>;
+                yaw: number;
+                offset: [
+                    number,
+                    number
+                ];
+                memory: Record<string, number>;
+            };
+        }) | ({
+            kind: 'howler';
+            contacts: ({
+                amount: number;
+                action: number;
+            })[];
+            regrouped: number;
+            interrupted: number;
+            closed: number;
+            howl: number;
+        } & {
+            profile: v.InferOutput<typeof HandleIdSchema>;
+            body: v.InferOutput<typeof HandleIdSchema>;
+            model: v.InferOutput<typeof HandleIdSchema>;
+            observations: v.InferOutput<typeof HandleIdSchema>;
+            spawn: {
+                kind: v.InferOutput<typeof HandleIdSchema>;
+                variant: v.InferOutput<typeof HandleIdSchema>;
+                yaw: number;
+                offset: [
+                    number,
+                    number
+                ];
+                memory: Record<string, number>;
+            };
+        }) | ({
+            kind: 'wind';
+            contacts: ({
+                amount: number;
+                action: number;
+            })[];
+            knock: number;
+            grounded: number;
+            cry: number;
+        } & {
+            profile: v.InferOutput<typeof HandleIdSchema>;
+            body: v.InferOutput<typeof HandleIdSchema>;
+            model: v.InferOutput<typeof HandleIdSchema>;
+            observations: v.InferOutput<typeof HandleIdSchema>;
+            spawn: {
+                kind: v.InferOutput<typeof HandleIdSchema>;
+                variant: v.InferOutput<typeof HandleIdSchema>;
+                yaw: number;
+                offset: [
+                    number,
+                    number
+                ];
+                memory: Record<string, number>;
+            };
+        }) | ({
+            kind: 'borrowed';
+            controller: v.InferOutput<typeof HandleIdSchema>;
+        });
+    })[];
+}
+export interface EliteEntryPageRowsInput {
+    entry: EliteEntryRowsInput;
+    actions: v.InferInput<typeof EliteOutputActionsSchema>;
+    profiles: ({
+        id: v.InferInput<typeof HandleIdSchema>;
+        value: unknown;
+    })[];
+    borrowed: (v.InferInput<typeof ExternalEliteSchema>)[];
+    observations: ({
+        id: v.InferInput<typeof HandleIdSchema>;
+        rows: v.InferInput<typeof ObservationColumnsV2Schema>;
+    })[];
+    presentation: v.InferInput<typeof EliteEnteredPresentationSchema>;
+    strikes: ({
+        amount: number;
+        strike: v.InferInput<typeof CreatureStrikeSchema>;
+    })[];
+    fallbackStrike: v.InferInput<typeof CreatureStrikeSchema>;
+    debug?: v.InferInput<typeof HandleIdSchema>;
+    prewarm: ({
+        kind: v.InferInput<typeof HandleIdSchema>;
+        variant: v.InferInput<typeof HandleIdSchema>;
+    })[];
+}
+export interface EliteEntryPageRows {
+    entry: EliteEntryRows;
+    actions: v.InferOutput<typeof EliteOutputActionsSchema>;
+    profiles: ({
+        id: v.InferOutput<typeof HandleIdSchema>;
+        value: unknown;
+    })[];
+    borrowed: (v.InferOutput<typeof ExternalEliteSchema>)[];
+    observations: ({
+        id: v.InferOutput<typeof HandleIdSchema>;
+        rows: v.InferOutput<typeof ObservationColumnsV2Schema>;
+    })[];
+    presentation: v.InferOutput<typeof EliteEnteredPresentationSchema>;
+    strikes: ({
+        amount: number;
+        strike: v.InferOutput<typeof CreatureStrikeSchema>;
+    })[];
+    fallbackStrike: v.InferOutput<typeof CreatureStrikeSchema>;
+    debug?: v.InferOutput<typeof HandleIdSchema>;
+    prewarm: ({
+        kind: v.InferOutput<typeof HandleIdSchema>;
+        variant: v.InferOutput<typeof HandleIdSchema>;
+    })[];
 }

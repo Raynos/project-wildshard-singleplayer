@@ -19,7 +19,7 @@ const box = v.tuple([finite, finite, finite, finite, finite, finite]);
 const geometry = v.strictObject({ library: id, model: id });
 const knob = v.pipe(id, v.regex(/^[a-z][a-z0-9-]*(?:\.[a-z][a-zA-Z0-9-]*)+$/u));
 /** Distances remain live quality inputs after the geometry has been baked. */
-export const WorldSceneDistanceSchema = v.union([nonnegative, v.strictObject({ knob, multiply: v.optional(nonnegative, 1), add: v.optional(nonnegative, 0) })]);
+export const WorldSceneDistanceSchema: v.GenericSchema<WorldSceneDistanceRowsInput, WorldSceneDistanceRows> = v.union([nonnegative, v.strictObject({ knob, multiply: v.optional(nonnegative, 1), add: v.optional(nonnegative, 0) })]);
 const distance = WorldSceneDistanceSchema;
 const common = { id, parent: id, name: v.optional(v.string(), ''), matrixBits: v.exactOptional(bits(32)), transformBits: v.exactOptional(bits(20)),
   matrixAutoUpdate: v.optional(v.boolean(), true), layers: v.optional(layerMask, 1), visible: v.optional(v.boolean(), true),
@@ -27,7 +27,7 @@ const common = { id, parent: id, name: v.optional(v.string(), ''), matrixBits: v
   renderOrder: v.optional(finite, 0), until: v.exactOptional(distance), castFrom: v.exactOptional(distance) };
 const draw = { geometry, material: id, sphere, box: v.exactOptional(box) };
 /** Frozen draw topology, including ordinary weld batches and their shared-buffer selection views. */
-export const WorldSceneWeldNodeSchema = v.variant('kind', [
+export const WorldSceneWeldNodeSchema: v.GenericSchema<WorldSceneWeldNodeInput, WorldSceneWeldNode> = v.variant('kind', [
   v.strictObject({ ...common, kind: v.literal('group') }),
   v.strictObject({ ...common, kind: v.literal('anchor') }),
   v.strictObject({ ...common, ...draw, kind: v.literal('mesh') }),
@@ -41,7 +41,7 @@ export const WorldSceneWeldNodeSchema = v.variant('kind', [
 const hosted = v.strictObject({ meshes: list(id, 128), lists: list(v.strictObject({ unit: integer, matrixWords: list(word, 131072) }), 128) });
 /** Fresh specimen materials copy only declared maps, retaining native constructor defaults (a world-scenes section's
  *  `mapped` material row is the same grammar). */
-export const WorldSceneWeldMaterialSchema = v.strictObject({ id, kind: v.picklist(['standard', 'basic']),
+export const WorldSceneWeldMaterialSchema: v.StrictObjectSchema<{ readonly id: v.GenericSchema<WorldSceneWeldMaterialRowsInput['id'], WorldSceneWeldMaterialRows['id']>; readonly kind: v.GenericSchema<WorldSceneWeldMaterialRowsInput['kind'], WorldSceneWeldMaterialRows['kind']>; readonly source: v.ExactOptionalSchema<v.GenericSchema<Exclude<WorldSceneWeldMaterialRowsInput['source'], undefined>, Exclude<WorldSceneWeldMaterialRows['source'], undefined>>, undefined>; readonly properties: v.GenericSchema<WorldSceneWeldMaterialRowsInput['properties'], WorldSceneWeldMaterialRows['properties']>; readonly sky: v.OptionalSchema<v.GenericSchema<Exclude<WorldSceneWeldMaterialRowsInput['sky'], undefined>, Exclude<WorldSceneWeldMaterialRows['sky'], undefined>>, false>; readonly blending: v.ExactOptionalSchema<v.GenericSchema<Exclude<WorldSceneWeldMaterialRowsInput['blending'], undefined>, Exclude<WorldSceneWeldMaterialRows['blending'], undefined>>, undefined>; readonly fog: v.ExactOptionalSchema<v.GenericSchema<Exclude<WorldSceneWeldMaterialRowsInput['fog'], undefined>, Exclude<WorldSceneWeldMaterialRows['fog'], undefined>>, undefined>; }, undefined> = v.strictObject({ id, kind: v.picklist(['standard', 'basic']),
   source: v.exactOptional(v.strictObject({ material: id, maps: list(v.picklist(['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'aoMap']), 5) })),
   properties: WorldSceneSurfaceSchema.entries.properties, sky: v.optional(v.boolean(), false),
   blending: v.exactOptional(v.picklist([0, 1, 2, 3, 4, 5])), fog: v.exactOptional(v.boolean()) });
@@ -50,7 +50,7 @@ const cull = v.strictObject({ roots: list(id, 128), origins: list(finite, 384), 
 const setRow = v.strictObject({ id, name: id, file: id, place: v.exactOptional(id), members: list(id, 128) });
 const resource = v.variant('kind', [v.strictObject({ id, kind: v.literal('geometry'), source: geometry }),
   v.strictObject({ id, kind: v.literal('seeds'), words: v.pipe(list(word, 131072), v.check(values => values.length % 4 === 0 && finiteWords(values, false))) })]);
-export const WorldSceneWeldSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Frozen scenes require plain JSON'),
+export const WorldSceneWeldSchema: v.GenericSchema<WorldSceneWeldInput, WorldSceneWeld> = v.pipe(v.unknown(), v.check(isJsonData, 'Frozen scenes require plain JSON'),
   v.strictObject({ id, root: id, result: v.exactOptional(id), nodes: list(WorldSceneWeldNodeSchema, 4096), materials: v.optional(list(WorldSceneWeldMaterialSchema, 128), []), culls: v.optional(list(cull, 32), []),
     placements: v.optional(list(id, 128), []), sets: v.optional(list(setRow, 32), []), resources: v.optional(list(resource, 512), []) }),
   v.check(row => new Set(row.nodes.map(node => node.id)).size === row.nodes.length && new Set(row.materials.map(entry => entry.id)).size === row.materials.length
@@ -67,11 +67,11 @@ export const WorldSceneWeldSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Fro
       && entry.units.every(unit => unit < entry.origins.length / 3)
       && entry.hosted.every(set => set.lists.every(run => run.unit < entry.units.length && run.matrixWords.length % 16 === 0 && finiteWords(run.matrixWords, false))))
     && row.nodes.reduce((sum, node) => sum + (node.kind === 'instances' ? node.matrixWords.length : node.kind === 'cloud' ? node.seedWords.length : 0), 0) <= 1048576, 'Unique bounded frozen scene nodes and cull lanes'));
-export type WorldSceneWeld = v.InferOutput<typeof WorldSceneWeldSchema>;
-export type WorldSceneWeldNode = v.InferOutput<typeof WorldSceneWeldNodeSchema>;
+
+
 const file = v.union([id, v.strictObject({ phone: id, desktop: id })]);
 /** Geometry topology can follow an independent Debug quality override. */
-export const WorldSceneWeldSourceSchema = v.strictObject({ id, file: v.union([file, v.strictObject({ knob, false: file, true: file })]) });
+export const WorldSceneWeldSourceSchema: v.GenericSchema<WorldSceneWeldSourceRowsInput, WorldSceneWeldSourceRows> = v.strictObject({ id, file: v.union([file, v.strictObject({ knob, false: file, true: file })]) });
 const parsedWelds = new WeakMap<object, WorldSceneWeld>();
 function freezeWeldRows(value: unknown): void {
   if (typeof value !== 'object' || value === null) return;
@@ -87,4 +87,585 @@ export function parseWorldSceneWeld(input: unknown): WorldSceneWeld {
   freezeWeldRows(row);
   parsedWelds.set(row, row);
   return row;
+}
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type WorldSceneDistanceRowsInput = (number) | ({
+    knob: string;
+    multiply?: number | undefined;
+    add?: number | undefined;
+});
+export type WorldSceneDistanceRows = (number) | ({
+    knob: string;
+    multiply: number;
+    add: number;
+});
+export type WorldSceneWeldNodeInput = ({
+    kind: 'group';
+} & {
+    id: string;
+    parent: string;
+    name?: string | undefined;
+    matrixBits?: number[];
+    transformBits?: number[];
+    matrixAutoUpdate?: boolean | undefined;
+    layers?: number | undefined;
+    visible?: boolean | undefined;
+    frustumCulled?: boolean | undefined;
+    castShadow?: boolean | undefined;
+    receiveShadow?: boolean | undefined;
+    renderOrder?: number | undefined;
+    until?: WorldSceneDistanceRowsInput;
+    castFrom?: WorldSceneDistanceRowsInput;
+}) | ({
+    kind: 'anchor';
+} & {
+    id: string;
+    parent: string;
+    name?: string | undefined;
+    matrixBits?: number[];
+    transformBits?: number[];
+    matrixAutoUpdate?: boolean | undefined;
+    layers?: number | undefined;
+    visible?: boolean | undefined;
+    frustumCulled?: boolean | undefined;
+    castShadow?: boolean | undefined;
+    receiveShadow?: boolean | undefined;
+    renderOrder?: number | undefined;
+    until?: WorldSceneDistanceRowsInput;
+    castFrom?: WorldSceneDistanceRowsInput;
+}) | ({
+    kind: 'mesh';
+} & {
+    id: string;
+    parent: string;
+    name?: string | undefined;
+    matrixBits?: number[];
+    transformBits?: number[];
+    matrixAutoUpdate?: boolean | undefined;
+    layers?: number | undefined;
+    visible?: boolean | undefined;
+    frustumCulled?: boolean | undefined;
+    castShadow?: boolean | undefined;
+    receiveShadow?: boolean | undefined;
+    renderOrder?: number | undefined;
+    until?: WorldSceneDistanceRowsInput;
+    castFrom?: WorldSceneDistanceRowsInput;
+} & {
+    geometry: {
+        library: string;
+        model: string;
+    };
+    material: string;
+    sphere: [
+        number,
+        number,
+        number,
+        number
+    ];
+    box?: [
+        number,
+        number,
+        number,
+        number,
+        number,
+        number
+    ];
+}) | ({
+    kind: 'batch';
+} & {
+    id: string;
+    parent: string;
+    name?: string | undefined;
+    matrixBits?: number[];
+    transformBits?: number[];
+    matrixAutoUpdate?: boolean | undefined;
+    layers?: number | undefined;
+    visible?: boolean | undefined;
+    frustumCulled?: boolean | undefined;
+    castShadow?: boolean | undefined;
+    receiveShadow?: boolean | undefined;
+    renderOrder?: number | undefined;
+    until?: WorldSceneDistanceRowsInput;
+    castFrom?: WorldSceneDistanceRowsInput;
+} & {
+    geometry: {
+        library: string;
+        model: string;
+    };
+    material: string;
+    sphere: [
+        number,
+        number,
+        number,
+        number
+    ];
+    box?: [
+        number,
+        number,
+        number,
+        number,
+        number,
+        number
+    ];
+}) | ({
+    kind: 'instances';
+    capacity: number;
+    count: number;
+    matrixWords: (number)[];
+    instanceSphere: [
+        number,
+        number,
+        number,
+        number
+    ];
+    instanceBox?: [
+        number,
+        number,
+        number,
+        number,
+        number,
+        number
+    ];
+} & {
+    id: string;
+    parent: string;
+    name?: string | undefined;
+    matrixBits?: number[];
+    transformBits?: number[];
+    matrixAutoUpdate?: boolean | undefined;
+    layers?: number | undefined;
+    visible?: boolean | undefined;
+    frustumCulled?: boolean | undefined;
+    castShadow?: boolean | undefined;
+    receiveShadow?: boolean | undefined;
+    renderOrder?: number | undefined;
+    until?: WorldSceneDistanceRowsInput;
+    castFrom?: WorldSceneDistanceRowsInput;
+} & {
+    geometry: {
+        library: string;
+        model: string;
+    };
+    material: string;
+    sphere: [
+        number,
+        number,
+        number,
+        number
+    ];
+    box?: [
+        number,
+        number,
+        number,
+        number,
+        number,
+        number
+    ];
+}) | ({
+    kind: 'view';
+    batch: string;
+    start: number;
+    count: number;
+    sphere: [
+        number,
+        number,
+        number,
+        number
+    ];
+    box: [
+        number,
+        number,
+        number,
+        number,
+        number,
+        number
+    ];
+} & {
+    id: string;
+    parent: string;
+    name?: string | undefined;
+    matrixBits?: number[];
+    transformBits?: number[];
+    matrixAutoUpdate?: boolean | undefined;
+    layers?: number | undefined;
+    visible?: boolean | undefined;
+    frustumCulled?: boolean | undefined;
+    castShadow?: boolean | undefined;
+    receiveShadow?: boolean | undefined;
+    renderOrder?: number | undefined;
+    until?: WorldSceneDistanceRowsInput;
+    castFrom?: WorldSceneDistanceRowsInput;
+}) | ({
+    kind: 'cloud';
+    material: string;
+    seedWords: (number)[];
+    sphere: [
+        number,
+        number,
+        number,
+        number
+    ];
+} & {
+    id: string;
+    parent: string;
+    name?: string | undefined;
+    matrixBits?: number[];
+    transformBits?: number[];
+    matrixAutoUpdate?: boolean | undefined;
+    layers?: number | undefined;
+    visible?: boolean | undefined;
+    frustumCulled?: boolean | undefined;
+    castShadow?: boolean | undefined;
+    receiveShadow?: boolean | undefined;
+    renderOrder?: number | undefined;
+    until?: WorldSceneDistanceRowsInput;
+    castFrom?: WorldSceneDistanceRowsInput;
+}) | ({
+    kind: 'light';
+    color: number;
+    intensity: number;
+    distance: number;
+    decay: number;
+} & {
+    id: string;
+    parent: string;
+    name?: string | undefined;
+    matrixBits?: number[];
+    transformBits?: number[];
+    matrixAutoUpdate?: boolean | undefined;
+    layers?: number | undefined;
+    visible?: boolean | undefined;
+    frustumCulled?: boolean | undefined;
+    castShadow?: boolean | undefined;
+    receiveShadow?: boolean | undefined;
+    renderOrder?: number | undefined;
+    until?: WorldSceneDistanceRowsInput;
+    castFrom?: WorldSceneDistanceRowsInput;
+});
+export type WorldSceneWeldNode = ({
+    kind: 'group';
+} & {
+    id: string;
+    parent: string;
+    name: string;
+    matrixBits?: number[];
+    transformBits?: number[];
+    matrixAutoUpdate: boolean;
+    layers: number;
+    visible: boolean;
+    frustumCulled: boolean;
+    castShadow: boolean;
+    receiveShadow: boolean;
+    renderOrder: number;
+    until?: WorldSceneDistanceRows;
+    castFrom?: WorldSceneDistanceRows;
+}) | ({
+    kind: 'anchor';
+} & {
+    id: string;
+    parent: string;
+    name: string;
+    matrixBits?: number[];
+    transformBits?: number[];
+    matrixAutoUpdate: boolean;
+    layers: number;
+    visible: boolean;
+    frustumCulled: boolean;
+    castShadow: boolean;
+    receiveShadow: boolean;
+    renderOrder: number;
+    until?: WorldSceneDistanceRows;
+    castFrom?: WorldSceneDistanceRows;
+}) | ({
+    kind: 'mesh';
+} & {
+    id: string;
+    parent: string;
+    name: string;
+    matrixBits?: number[];
+    transformBits?: number[];
+    matrixAutoUpdate: boolean;
+    layers: number;
+    visible: boolean;
+    frustumCulled: boolean;
+    castShadow: boolean;
+    receiveShadow: boolean;
+    renderOrder: number;
+    until?: WorldSceneDistanceRows;
+    castFrom?: WorldSceneDistanceRows;
+} & {
+    geometry: {
+        library: string;
+        model: string;
+    };
+    material: string;
+    sphere: [
+        number,
+        number,
+        number,
+        number
+    ];
+    box?: [
+        number,
+        number,
+        number,
+        number,
+        number,
+        number
+    ];
+}) | ({
+    kind: 'batch';
+} & {
+    id: string;
+    parent: string;
+    name: string;
+    matrixBits?: number[];
+    transformBits?: number[];
+    matrixAutoUpdate: boolean;
+    layers: number;
+    visible: boolean;
+    frustumCulled: boolean;
+    castShadow: boolean;
+    receiveShadow: boolean;
+    renderOrder: number;
+    until?: WorldSceneDistanceRows;
+    castFrom?: WorldSceneDistanceRows;
+} & {
+    geometry: {
+        library: string;
+        model: string;
+    };
+    material: string;
+    sphere: [
+        number,
+        number,
+        number,
+        number
+    ];
+    box?: [
+        number,
+        number,
+        number,
+        number,
+        number,
+        number
+    ];
+}) | ({
+    kind: 'instances';
+    capacity: number;
+    count: number;
+    matrixWords: (number)[];
+    instanceSphere: [
+        number,
+        number,
+        number,
+        number
+    ];
+    instanceBox?: [
+        number,
+        number,
+        number,
+        number,
+        number,
+        number
+    ];
+} & {
+    id: string;
+    parent: string;
+    name: string;
+    matrixBits?: number[];
+    transformBits?: number[];
+    matrixAutoUpdate: boolean;
+    layers: number;
+    visible: boolean;
+    frustumCulled: boolean;
+    castShadow: boolean;
+    receiveShadow: boolean;
+    renderOrder: number;
+    until?: WorldSceneDistanceRows;
+    castFrom?: WorldSceneDistanceRows;
+} & {
+    geometry: {
+        library: string;
+        model: string;
+    };
+    material: string;
+    sphere: [
+        number,
+        number,
+        number,
+        number
+    ];
+    box?: [
+        number,
+        number,
+        number,
+        number,
+        number,
+        number
+    ];
+}) | ({
+    kind: 'view';
+    batch: string;
+    start: number;
+    count: number;
+    sphere: [
+        number,
+        number,
+        number,
+        number
+    ];
+    box: [
+        number,
+        number,
+        number,
+        number,
+        number,
+        number
+    ];
+} & {
+    id: string;
+    parent: string;
+    name: string;
+    matrixBits?: number[];
+    transformBits?: number[];
+    matrixAutoUpdate: boolean;
+    layers: number;
+    visible: boolean;
+    frustumCulled: boolean;
+    castShadow: boolean;
+    receiveShadow: boolean;
+    renderOrder: number;
+    until?: WorldSceneDistanceRows;
+    castFrom?: WorldSceneDistanceRows;
+}) | ({
+    kind: 'cloud';
+    material: string;
+    seedWords: (number)[];
+    sphere: [
+        number,
+        number,
+        number,
+        number
+    ];
+} & {
+    id: string;
+    parent: string;
+    name: string;
+    matrixBits?: number[];
+    transformBits?: number[];
+    matrixAutoUpdate: boolean;
+    layers: number;
+    visible: boolean;
+    frustumCulled: boolean;
+    castShadow: boolean;
+    receiveShadow: boolean;
+    renderOrder: number;
+    until?: WorldSceneDistanceRows;
+    castFrom?: WorldSceneDistanceRows;
+}) | ({
+    kind: 'light';
+    color: number;
+    intensity: number;
+    distance: number;
+    decay: number;
+} & {
+    id: string;
+    parent: string;
+    name: string;
+    matrixBits?: number[];
+    transformBits?: number[];
+    matrixAutoUpdate: boolean;
+    layers: number;
+    visible: boolean;
+    frustumCulled: boolean;
+    castShadow: boolean;
+    receiveShadow: boolean;
+    renderOrder: number;
+    until?: WorldSceneDistanceRows;
+    castFrom?: WorldSceneDistanceRows;
+});
+export interface WorldSceneWeldMaterialRowsInput {
+    id: string;
+    kind: 'standard' | 'basic';
+    source?: {
+        material: string;
+        maps: ('map' | 'normalMap' | 'roughnessMap' | 'metalnessMap' | 'aoMap')[];
+    };
+    properties: v.InferInput<typeof WorldSceneSurfaceSchema.entries.properties>;
+    sky?: boolean | undefined;
+    blending?: 0 | 1 | 2 | 3 | 4 | 5;
+    fog?: boolean;
+}
+export interface WorldSceneWeldMaterialRows {
+    id: string;
+    kind: 'standard' | 'basic';
+    source?: {
+        material: string;
+        maps: ('map' | 'normalMap' | 'roughnessMap' | 'metalnessMap' | 'aoMap')[];
+    };
+    properties: v.InferOutput<typeof WorldSceneSurfaceSchema.entries.properties>;
+    sky: boolean;
+    blending?: 0 | 1 | 2 | 3 | 4 | 5;
+    fog?: boolean;
+}
+export type WorldSceneWeldInput = unknown;
+export interface WorldSceneWeld {
+    id: string;
+    root: string;
+    result?: string;
+    nodes: (WorldSceneWeldNode)[];
+    materials: (WorldSceneWeldMaterialRows)[];
+    culls: ({
+        roots: (string)[];
+        origins: (number)[];
+        units: (number)[];
+        details: (WorldSceneDistanceRows)[];
+        hosted: ({
+            meshes: (string)[];
+            lists: ({
+                unit: number;
+                matrixWords: (number)[];
+            })[];
+        })[];
+    })[];
+    placements: (string)[];
+    sets: ({
+        id: string;
+        name: string;
+        file: string;
+        place?: string;
+        members: (string)[];
+    })[];
+    resources: (({
+        id: string;
+        kind: 'geometry';
+        source: {
+            library: string;
+            model: string;
+        };
+    }) | ({
+        id: string;
+        kind: 'seeds';
+        words: (number)[];
+    }))[];
+}
+export type WorldSceneWeldSourceRowsInput = WorldSceneWeldSourceRows;
+export interface WorldSceneWeldSourceRows {
+    id: string;
+    file: ((string) | ({
+        phone: string;
+        desktop: string;
+    })) | ({
+        knob: string;
+        false: (string) | ({
+            phone: string;
+            desktop: string;
+        });
+        true: (string) | ({
+            phone: string;
+            desktop: string;
+        });
+    });
 }
