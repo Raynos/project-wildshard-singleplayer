@@ -2,10 +2,9 @@
 
 **Order (G639):** (1) live reds → (2) NALATI 0 → (3) grid / frame floor → extras.
 
-**(1) LIVE 183bd85273 (10:33Z 10-25): full CI + six audited legs; Explorer card fix 769f64dac7 + CF2 screenshot fix
-aa3b2781da (CI capture 10.8 s -> 0.75 s) on c8e2a84b0e (09:13Z: G723 warm-ahead + sword fix 9dc10c2d58) and 653f0abe85
-(07:41Z, tonight's fixes). Hourly releases (sp-x7, G705; cron silent since 06:17,
-manual backstop each hour): b92412f040 releasing 11:18Z. No open release red.
+**(1) LIVE b92412f040 (11:38Z); 8d7fb5440c releasing 12:19Z. Since 07:41Z: 653f0abe85 (tonight's fixes), c8e2a84b0e
+(G723 warm-ahead + sword fix 9dc10c2d58), 183bd85273 (Explorer + CF2 screenshot fix aa3b2781da). Hourly releases (sp-x7,
+G705; deploy cron silent since 06:17, manual backstop each hour). No open release red.
 
 **(2) NALATI 0 done (27dd969127).** HOST-AUDIT (G679) parked until every mini plan finishes. Legacy waits (G606).
 
