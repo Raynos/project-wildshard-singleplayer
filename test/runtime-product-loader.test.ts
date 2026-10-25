@@ -510,6 +510,73 @@ function tierTransportFixture(retain: 'none' | 'critical' | 'dependency' | 'read
   return { ...f, desktop };
 }
 
+function manifestImageFixture(retain: 'none' | 'critical' | 'dependency' | 'reader' = 'none') {
+  const image = Uint8Array.from(readFileSync('test/fixtures/world-source/image.png'));
+  const imageCost = parseImageAsset(image), imageRef = hashImmutableBytes(image);
+  const f = fixture(false, source => {
+    source.files.push({ hash: imageRef, kind: 'image', compressed: image.length, decoded: imageCost.decoded,
+      gpu: imageCost.gpu, triangles: 0, draws: 0, dependencies: [], critical: false });
+    source.library.push(imageRef); source.budgets.library.compressed += image.length;
+    source.budgets.library.resident += imageCost.decoded + imageCost.gpu;
+    const original = parseManifestMetadata(metadata);
+    source.manifest = { ...original, explore: { ...original.explore,
+      art: { ...original.explore.art, world: `/shardfiles/runtime-loader/blobs/image/${imageRef}.png` } } };
+    if (retain === 'critical') source.critical.push(imageRef);
+    if (retain === 'dependency') source.files[0]?.dependencies.push(imageRef);
+    if (retain === 'reader') source.map = { image: imageRef, tilesHash: imageRef };
+    return new Map();
+  });
+  const imagePath = `blobs/image/${imageRef}.png`;
+  f.wires.set(imagePath, image);
+  return { ...f, image, imageRef, imagePath };
+}
+
+test('entry omits manifest-only image copies while keeping exact late reads and descriptor metadata', async () => {
+  const f = manifestImageFixture(); trust(f.receipt);
+  const urls: string[] = [], progress: {bytesTotal: number; filesTotal: number}[] = [];
+  const options = { ...f.options, tier: 'phone' as const,
+    fetch: (url: string) => { urls.push(url); return f.options.fetch(url); }, progress: (row: {bytesTotal: number; filesTotal: number}) => { progress.push(row); } };
+  const admitted = await admitProduct(f.index, options);
+  expect(admitted.assets.has(f.imageRef)).toBe(false);
+  expect(urls).not.toContain(new URL(f.imagePath, options.base).href);
+  expect(progress.at(-1)).toMatchObject({filesTotal: 1, bytesTotal: 3});
+  expect(admitted.source.manifest).toEqual(f.source.manifest);
+  expect(admitted.source.files).toHaveLength(2);
+  const reader = new ClientAssets(admitted.source, admitted.assets, options);
+  expect(await reader.read(f.imageRef)).toEqual(f.image);
+  f.wires.set(f.imagePath, new Uint8Array(f.image.length));
+  await expect(reader.read(f.imageRef)).rejects.toThrow('hash or size');
+  await expect(new ClientAssets(admitted.source, admitted.assets, {...options,offline: true}).read(f.imageRef)).rejects.toThrow('Missing cached');
+});
+
+test.each(['critical', 'dependency', 'reader'] as const)('a %s keeps a shared manifest image in entry admission', async retain => {
+  const f = manifestImageFixture(retain); trust(f.receipt);
+  expect((await admitProduct(f.index, { ...f.options, tier: 'phone' })).assets.has(f.imageRef)).toBe(true);
+});
+
+test('unproved manifest image bytes still undergo full asset admission', async () => {
+  const f = manifestImageFixture(); f.wires.set(f.imagePath, new Uint8Array(f.image.length));
+  await expect(admitProduct(f.index, { ...f.options, tier: 'phone' })).rejects.toThrow('Shardfile asset hash mismatch');
+});
+
+test('visited entry remains offline-ready without an unused manifest image body', async () => {
+  const f = manifestImageFixture(); trust(f.receipt);
+  let visited: Awaited<ReturnType<ProductCache['product']>> = null;
+  const stored = new Map<string, Uint8Array>();
+  const cache: ProductCache = { product: () => Promise.resolve(visited),
+    asset: (_base, hash) => Promise.resolve(stored.get(hash) ?? null),
+    putAsset: (_base, hash, wire) => { stored.set(hash, wire); return Promise.resolve(); },
+    putProduct: (_base, product) => { visited = product; return Promise.resolve(); } };
+  await admitProduct(f.index, { ...f.options, cache, tier: 'phone' });
+  expect(visited).not.toBeNull(); expect(stored.has(f.imageRef)).toBe(false);
+  const offline = { ...f.options, cache, tier: 'phone' as const, offline: true,
+    fetch: (): Promise<Response> => { throw new Error('Offline cannot fetch'); } };
+  const admitted = await admitProduct(f.index, offline);
+  expect(admitted.assets.get(f.ref)).toEqual(f.blob);
+  expect(admitted.source.manifest).toEqual(f.source.manifest);
+  await expect(new ClientAssets(admitted.source, admitted.assets, offline).read(f.imageRef)).rejects.toThrow('Missing cached');
+});
+
 test.each(['phone', 'desktop'] as const)('world construction admits only its %s cover-cell bank', async tier => {
   const f = tierTransportFixture('none', false, true); trust(f.receipt);
   const urls: string[] = [], progress: { bytesTotal: number; filesTotal: number }[] = [];
@@ -765,6 +832,8 @@ test.each(['manifest', 'journal'])('%s URL images retain pixels/wire and protect
   const source = schema.parseShardfile(raw); carryOutputDescriptor(raw, source);
   const assets = new Map([[ref, wire]]), before = source.budgets.library.resident;
   expect(urlImageLibrarySource(source, assets).budgets.library.resident).toBe(before - (image.decoded - image.gpu - wire.length));
+  expect(urlImageLibrarySource(source, new Map()).budgets.library.resident).toBe(before);
+  expect(urlImageLibrarySource(source, new Map(), new Set([ref]))).toEqual(urlImageLibrarySource(source, assets));
   expect(source.budgets.library.resident).toBe(before);
   source.map = { image: ref, tilesHash: ref };
   expect(urlImageLibrarySource(source, assets).budgets.library.resident).toBe(before);

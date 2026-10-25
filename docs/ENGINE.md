@@ -3432,9 +3432,9 @@ files still use the original transport/cache and missing-pack fallback.
 
 **Data-only catalogue cards.** `@wildshard/game/plugin/context` defines pure `sourceManifest(source, admittedAssets?)` card mapping. `@wildshard/game/shardfile/presentation` defines `PresentationSchema` and `presentationCard`; `@wildshard/game/shardfile/stillImage` defines `parseStillImage`, `stillImageUrl` and `STILL_IMAGE_LIMITS`. Bounded admitted PNG/JPEG/WebP bytes become inert MIME-sniffed data URLs; absent fields preserve existing cards. SDK `assetCost("image", bytes)` shares parsing and residency.
 
-`@wildshard/format/tierSelection` defines `tierLibrarySteps` and cooperative `stringsSteps`. Exact-receipt tier admission and boot totals share selection, including world-construction `cells[TIER]`; critical/shared/dependency reads remain. Offline tier misses refuse; online repairs reverify.
+`@wildshard/format/tierSelection` shares `tierLibrarySteps`, `entryFileSteps` and `stringsSteps` between boot totals and exact-receipt admission. Select `cells[TIER]`; omit manifest-only image copies whose live readers use authored URLs. Keep critical/shared/dependency reads and full metadata for verified late reads. Missing offline bodies refuse; online rereads verify.
 
-Device admission projects image encoding costs through `urlImageLibrarySource`: immutable manifest/journal URLs retain wire, CPU and compositor pixels, excluding unused base64. Card/map data URLs, other readers and dependencies retain the full envelope. Source ceilings and transport costs stay unchanged.
+`urlImageLibrarySource` reserves URL images as wire plus CPU/compositor pixels, without base64. An exact receipt proves the same three-times-wire saving without fetching a missing duplicate. Card/map data URLs, other readers and dependencies keep the full envelope; source ceilings stay unchanged.
 
 ### Declared water (SHARD-PLATFORM SF9d)
 

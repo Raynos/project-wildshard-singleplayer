@@ -19,17 +19,23 @@ const index = { format: 'wildshard.shardfile', formatVersion: 2, sdk: '0.2', ver
   schemas: [{ path: 'schemas/custom/first.schema.json', hash, bytes: 15 }],
   files: [{ kind: 'bin', path: `blobs/bin/${hash}.bin`, hash, compressed: 30, decoded: 300, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: false }], runtime: null };
 
-test.each([null,{kind:'client-plan'}].flatMap(runtime => [false, true].map(cover => ({runtime, cover}))))('compiler tier totals reserve the selected bank (runtime $runtime, cover $cover)',({runtime,cover})=>{
+const tierCases = [null,{kind:'client-plan'}].flatMap(runtime =>
+  [false,true].flatMap(cover => [false,true].map(sharedImage => ({runtime,cover,sharedImage}))));
+test.each(tierCases)('compiler entry totals retain selected/shared files (runtime $runtime, cover $cover, shared image $sharedImage)',({runtime,cover,sharedImage})=>{
   mkdirSync('tmp/vite-boot-products',{recursive:true});
   const root=mkdtempSync(resolve('tmp/vite-boot-products/tier-'));
   try {
     const row=emptyShardfile({slug:'tier-total',name:'Tier',author:'Test',revision:1,seed:9});
     const digest=(text:string)=>createHash('sha256').update(text).digest('hex');
-    const phone=digest('phone'),desktop=digest('desktop');
+    const phone=digest('phone'),desktop=digest('desktop'),image=digest('image');
     row.files.push(...[phone,desktop].map((assetHash,i)=>({hash:assetHash,kind:'binary' as const,compressed:i+1,decoded:i+1,gpu:0,triangles:0,draws:0,dependencies:[],critical:false})));
     row.library.push(phone,desktop);row.budgets.library={compressed:3,resident:3};
+    row.files.push({hash:image,kind:'image',compressed:13,decoded:56,gpu:4,triangles:0,draws:0,dependencies:[],critical:false});
+    row.library.push(image);row.budgets.library.compressed+=13;row.budgets.library.resident+=60;
     const product=resolve(root,'out/tier-total');mkdirSync(product,{recursive:true});
     const values=new Map(outputSectionPayloads(row));
+    values.set('ui/level',{manifest:{explore:{art:{world:`/shardfiles/tier-total/blobs/image/${image}.png`}}}});
+    if(sharedImage)values.set('look/map',{map:{image}});
     const selectedSection = cover ? 'client/plan' : 'world/scenes';
     values.set(selectedSection,cover ? {version:1,features:[{kind:'world.assembly',rows:{
       construction:{cells:{phone:'phone.bin',desktop:'desktop.bin'},seed:1,
@@ -44,14 +50,16 @@ test.each([null,{kind:'client-plan'}].flatMap(runtime => [false, true].map(cover
     const files=[];
     for(let i=0;i<row.files.length;i++) {
       const file=row.files[i];if(file===undefined)throw new Error('Missing tier fixture file');
-      files.push({...file,kind:'bin',name:i===0?'phone.bin':'desktop.bin',path:`blobs/bin/${file.hash}.bin`});
+      files.push(file.kind==='image'?{...file,path:`blobs/image/${file.hash}.png`}
+        :{...file,kind:'bin',name:i===0?'phone.bin':'desktop.bin',path:`blobs/bin/${file.hash}.bin`});
     }
     const data={...index,runtime,identity:row.identity,requires:row.requires,
       admission:{budgets:row.budgets,serverBudget:row.serverBudget,authorCaps:row.authorCaps,critical:row.critical,library:row.library},
       sections,schemas:[],files};
     const text=JSON.stringify(data);writeFileSync(resolve(product,'shard.json'),text);
     const full=productDownloadTotal(data,Buffer.byteLength(text));
-    expect(bootTierProductTotals(root)).toEqual({'/shardfiles/tier-total/':[full[0],full[1],full[1]-2,full[1]-1]});
+    const omittedImage=sharedImage?0:13;
+    expect(bootTierProductTotals(root)).toEqual({'/shardfiles/tier-total/':[full[0],full[1],full[1]-2-omittedImage,full[1]-1-omittedImage]});
     writeFileSync(resolve(product,`sections/${selectedSection}.json`),'{}');
     expect(()=>bootTierProductTotals(root)).toThrow('Boot tier section differs');
   } finally {rmSync(root,{recursive:true,force:true});}

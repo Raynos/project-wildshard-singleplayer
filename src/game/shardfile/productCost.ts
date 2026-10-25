@@ -1,4 +1,4 @@
-import { stringsSteps, tierLibrarySteps } from '@wildshard/format/tierSelection';
+import { stringsSteps, tierLibrarySteps, entryFileSteps } from '@wildshard/format/tierSelection';
 import { parseImageAsset } from '@wildshard/format/stillImage';
 import { journalImageRefs } from '@wildshard/format/compendiumRows';
 import type { Shardfile } from '@wildshard/format/shardSchema';
@@ -161,7 +161,7 @@ export function tierLibrarySourcePaced(source: Shardfile, tier: 'phone' | 'deskt
 export async function tierProductFilesPaced(source: Shardfile, tier: 'phone' | 'desktop', pause?: () => Promise<void>): Promise<Shardfile['files']> {
   const descriptor = outputDescriptor(source);
   if (descriptor === undefined) return source.files;
-  const inactive = await paced(tierLibrarySteps(source, tier, descriptor), pause ?? (() => Promise.resolve()));
+  const inactive = await paced(entryFileSteps(source, tier, descriptor), pause ?? (() => Promise.resolve()));
   return inactive.size === 0 ? source.files : source.files.filter(file => !inactive.has(file.hash));
 }
 function* tierLibrarySourceSteps(source: Shardfile, tier: 'phone' | 'desktop', assets?: ReadonlyMap<string, Uint8Array>): Generator<void, Shardfile> {
@@ -178,14 +178,14 @@ function* tierLibrarySourceSteps(source: Shardfile, tier: 'phone' | 'desktop', a
 
 /** Immutable manifest/journal URLs never create the data-URL string charged by image intake.
  * Keep one wire copy, CPU pixels and compositor pixels. Any other reader retains the full envelope. */
-export function urlImageLibrarySource(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>): Shardfile {
-  return drive(urlImageLibrarySourceSteps(source, assets));
+export function urlImageLibrarySource(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>, verifiedMissingImages: ReadonlySet<string> = new Set()): Shardfile {
+  return drive(urlImageLibrarySourceSteps(source, assets, verifiedMissingImages));
 }
 /** `urlImageLibrarySource`, paced like the admission's other projections. */
-export function urlImageLibrarySourcePaced(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>, pause: (() => Promise<void>) | undefined): Promise<Shardfile> {
-  return paced(urlImageLibrarySourceSteps(source, assets), pause ?? (() => Promise.resolve()));
+export function urlImageLibrarySourcePaced(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>, pause: (() => Promise<void>) | undefined, verifiedMissingImages: ReadonlySet<string> = new Set()): Promise<Shardfile> {
+  return paced(urlImageLibrarySourceSteps(source, assets, verifiedMissingImages), pause ?? (() => Promise.resolve()));
 }
-function* urlImageLibrarySourceSteps(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>): Generator<void, Shardfile> {
+function* urlImageLibrarySourceSteps(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>, verifiedMissingImages: ReadonlySet<string>): Generator<void, Shardfile> {
   const descriptor = outputDescriptor(source);
   if (descriptor === undefined) return source;
   const names = new Map<string, string>();
@@ -215,7 +215,14 @@ function* urlImageLibrarySourceSteps(source: Shardfile, assets: ReadonlyMap<stri
   let saving = 0;
   for (const file of source.files) {
     if (!library.has(file.hash) || !eligible.has(file.hash) || other.has(file.hash)) continue;
-    const bytes = assets.get(file.hash); if (bytes === undefined) continue;
+    const bytes = assets.get(file.hash);
+    if (bytes === undefined) {
+      // An exact receipt proves decoded >= pixels + 4 * wire. The URL path
+      // creates no base64 string, so the same saving is exactly 3 * wire;
+      // pixels and one wire copy stay reserved even before the URL is viewed.
+      if (verifiedMissingImages.has(file.hash)) saving += file.compressed * 3;
+      continue;
+    }
     const image = parseImageAsset(bytes);
     saving += Math.max(0, Math.min(file.decoded, image.decoded) - image.gpu - bytes.length);
   }

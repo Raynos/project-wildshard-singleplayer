@@ -27,6 +27,30 @@ export function* stringsSteps(roots: readonly unknown[], found: (text: string) =
   }
 }
 
+/** Entry transport omits manifest-only URL-image copies. Their authored URL
+ * readers do not consume admitted buffers; any other host or dependency does.
+ * Cost projection stays separate and retains URL-image pixels and wire. */
+export function* entryFileSteps(source: TierSelectionSource, tier: 'phone' | 'desktop', descriptor: Parameters<typeof tierLibrarySteps>[2]): Generator<void, ReadonlySet<string>> {
+  const alternatives = yield* tierLibrarySteps(source, tier, descriptor);
+  const inactive = new Set(alternatives);
+  if (source.manifest === undefined) return inactive;
+  const images = new Set(source.files.filter(file => file.kind === 'image').map(file => file.hash));
+  const names = new Map<string, string>();
+  for (const file of descriptor.index.files) if (images.has(file.hash)) {
+    for (const name of [file.hash, file.path, `/shardfiles/${source.identity.slug}/${file.path}`]) names.set(name, file.hash);
+    if (file.name !== undefined) names.set(file.name, file.hash);
+  }
+  const eligible = new Set<string>(), used = new Set(source.critical);
+  yield* stringsSteps([source.manifest], text => { const hash = names.get(text); if (hash !== undefined) eligible.add(hash); });
+  const { files: _files, library: _library, critical: _critical, manifest: _manifest, ...fields } = source;
+  const sections = [...descriptor.sections].map(([name, row]) => name === 'ui/level' && typeof row === 'object' && row !== null
+    ? Object.fromEntries(Object.entries(row).filter(([key]) => key !== 'manifest')) : row);
+  yield* stringsSteps([fields, ...sections], text => { const hash = names.get(text); if (hash !== undefined) used.add(hash); });
+  for (const file of source.files) for (const dependency of file.dependencies) used.add(dependency);
+  for (const hash of eligible) if (!used.has(hash)) inactive.add(hash);
+  return inactive;
+}
+
 export function* tierLibrarySteps(source: TierSelectionSource, tier: 'phone' | 'desktop', descriptor: { readonly index: { readonly files: readonly { readonly hash: string; readonly path: string; readonly name?: string }[] }; readonly sections: ReadonlyMap<string, unknown> }, assets?: ReadonlyMap<string, Uint8Array>): Generator<void, ReadonlySet<string>> {
   const names = new Map<string, string>();
   for (const file of descriptor.index.files) {

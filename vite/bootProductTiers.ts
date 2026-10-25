@@ -2,7 +2,7 @@
 import {readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {createHash} from 'node:crypto';
-import {tierLibrarySteps} from '../src/format/tierSelection';
+import {entryFileSteps} from '../src/format/tierSelection';
 import {bootProductTotals,readProductDownloadIndex} from './bootProducts';
 import * as v from 'valibot';
 
@@ -36,7 +36,7 @@ export function bootTierProductTotals(root:string): Readonly<Record<string,Total
     const runtimeFields=index.runtime===null?null:v.parse(v.object({kind:v.literal('client-plan'),cost:v.exactOptional(v.unknown()),binds:v.exactOptional(v.unknown())}),index.runtime);
     const source={...header,...admission,runtime:runtimeFields,...(manifest===undefined?{}:{manifest})};
     const total=(tier:'phone'|'desktop'):number=>{
-      const steps=tierLibrarySteps(source,tier,{index:{files:index.files},sections});
+      const steps=entryFileSteps(source,tier,{index:{files:index.files},sections});
       let result=steps.next();while(result.done!==true)result=steps.next();
       const inactive=result.value;
       return full[1]-index.files.reduce((sum,file)=>sum+(inactive.has(file.hash)?file.compressed:0),0);

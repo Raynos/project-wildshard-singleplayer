@@ -23,7 +23,7 @@ import { carryOutputDescriptor, IncompleteOutputCacheError, isBuildValidatedOutp
 
 const HASH = /^[a-f0-9]{64}$/u;
 const MAX_FILE_BYTES = 25_000_000;
-/** A visited product is published after every immutable asset selected for its admitted tier passes admission. */
+/** A visited product is published after every immutable asset selected for entry passes admission. */
 export interface CachedProduct { source: unknown; firstParty: boolean; validation?: ValidationReceipt }
 /** Storage is injected so offline admission uses the same path in browsers and tests. */
 export interface ProductCache {
@@ -399,7 +399,8 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
   if (receipt !== null && options.textures !== undefined) {
     const tierSource = options.tier === undefined ? source : await tierLibrarySourcePaced(source, options.tier, assets, options.pause);
     await options.pause?.();
-    const imageSource = await urlImageLibrarySourcePaced(tierSource, assets, options.pause);
+    const imageSource = await urlImageLibrarySourcePaced(tierSource, assets, options.pause,
+      new Set(source.files.filter(file => file.kind === 'image' && !assets.has(file.hash)).map(file => file.hash)));
     await options.pause?.();
     const scopedSource = await scopedSpecimenLibrarySourcePaced(imageSource, assets,
       options.tier === undefined ? undefined : { tier: options.tier, ...(options.quality === undefined ? {} : { overrides: options.quality }) }, options.pause);
