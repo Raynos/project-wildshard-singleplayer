@@ -15,17 +15,19 @@ Each slice is bounded to one hour; report misses and their observed owners first
 |---|---|---|
 | G717.1 | Driftwood, Pine, Nalati and Nine: qualified Chromium phone memory/look and first-crossing step timings. | done (2026-10-24, sp-x8) |
 | G717.2 | Remaining shard and plot memory/look cohorts; cause-corrected entries use the defining tile-priority fix, with exact identities and only actual passes retained. | done (2026-10-25, sp-x8) |
-| G717.3 | Official quiet Simulator floor and separate native visit completed. The actual two-resident condition was not observed; its memory reading remains unavailable. | open (two-resident witness not reached) |
+| G717.3 | Read the official quiet Simulator floor and separate native memory with two actual resident worlds. Keep frame misses and memory qualification separate. | done (2026-10-25, sp-x8) |
 | G717.4 | Re-latch only qualified passes; report worst rows, preparation steps and source owners before proposing crossing cuts. | done (2026-10-25, sp-x8) |
 | G723.1 | Measure first road-to-control waits and existing completed preparation stages for Driftwood, Pine, Nalati and Nine; separate prior preparation from edge wait. At most one hour. | done (2026-10-25, sp-x8) |
-| G723.2 | Coordinator approved kept plus one isolated incoming world, with strict preparation budgets and source retirement before destination entry; preserve the kept source on a U-turn. Bounded source slices below. | in flight (2026-10-25, sp-x8) |
+| G723.2 | Coordinator approved kept plus one isolated incoming world, with strict preparation budgets and source retirement before destination entry; preserve the kept source on a U-turn. Bounded source slices below. | done (2026-10-25, sp-x8) |
 | G723.2a | Read-only allocator projection: page loading and both owner limits, including already retained inputs; no admission, eviction or warning-policy mutation. At most one hour. | done (2026-10-25, sp-x8) |
-| G723.2b | Define explicit isolation, strict pair-budget and kept-source lifecycle contracts; production cancellation and actual crossing/native proofs are split into the bounded follow-up slices below. | in flight (2026-10-25, sp-x8) |
+| G723.2b | Define explicit isolation, strict pair-budget and kept-source lifecycle contracts; production cancellation and actual crossing/native proofs are split into the bounded follow-up slices below. | done (2026-10-25, sp-x8) |
 | G723.2c | Contain the release red: one unsettled constructor owns the prediction queue; production factories keep retire-before-allocation while the allocator guard and isolated contract tests remain. At most one hour. | done (2026-10-25, sp-x8) |
 | G723.2d | Prove yielded real construction settles on cancellation before re-enabling paired production preparation; include committed-destination queue priority and the original Template return. At most one hour. | done (2026-10-25, sp-x8) |
-| G723.2e | Restore only the bounded isolated production opt-in after real yielded-install cancellation/retry proof; retain one unsettled constructor and the full cancellation, durability, two-world and cost fences. Native two-resident reading follows before edge timings. At most one hour. | in flight (2026-10-25, sp-x8) |
+| G723.2e | Restore only the bounded isolated production opt-in after real yielded-install cancellation/retry proof; retain one unsettled constructor and the full cancellation, durability, two-world and cost fences. Native two-resident reading follows before edge timings. At most one hour. | done (2026-10-25, sp-x8) |
 | G723.2f | Repair the native held-pool lifetime mismatch exposed by preparation retirement: rehydrate evicted blade/polearm geometry before synchronous consumers while retaining admitted book data and every owner/product fence. At most one hour. | done (2026-10-25, sp-x8) |
-| G723.3 | Measure the defining warm-ahead slice against the same first-entry route and keep every durability, cancellation, claim and readiness fence. At most one hour. | open |
+| G723.3 | Measure the defining warm-ahead slice against the same first-entry route and keep every durability, cancellation, claim and readiness fence. At most one hour. | done (measurement only; 2026-10-25, sp-x8) |
+| G723.4 | Use direct-heading lead time inside an active source only for admitted isolated preparation within the existing pair budget. Keep the source authoritative and retire it before destination entry. At most one hour. | done (bounded source cut; 2026-10-25, sp-x8) |
+| G723.5 | Measure source-side preparation on the original first-entry routes; retain the under-five-second target as open wherever the actual edge wait misses. At most one hour. | open |
 
 ## G717 frame-floor misses (2026-10-25, sp-x1; G639)
 

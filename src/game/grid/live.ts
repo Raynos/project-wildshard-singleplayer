@@ -304,9 +304,9 @@ export class LiveGridHost {
   }
   /** Count retiring worlds too: their complete claims remain live until final disposal. */
   private canPrepareAlongside(instance: string, admission: LiveGridAdmission): boolean {
-    const source = this.lastSource(), limits = this.ports.preparationBudget;
+    const source = this.active ?? this.lastSource(), limits = this.ports.preparationBudget;
     return source !== null && source !== instance && this.residents.has(source)
-      && this.residents.size + this.retiring.size < 2 && this.active === null
+      && this.residents.size + this.retiring.size < 2
       && admission.isolatedPreparation === true && limits !== undefined
       && this.ports.allocator.canPrepareAlongside(source, instance, admission.bytes, limits);
   }
@@ -321,7 +321,7 @@ export class LiveGridHost {
       const admitted = await this.prefetchProduct(instance);
       admission = admitted;
       this.assertAlive(); abandoned();
-      const source = this.lastSource();
+      const source = this.active ?? this.lastSource();
       if (signal !== undefined && (this.residents.size + this.retiring.size >= 2
         || source !== null && source !== instance && this.residents.has(source) && !this.canPrepareAlongside(instance, admitted))) {
         // Recheck after queued/async work. Keep the metadata for a committed crossing's ordinary fallback.
@@ -464,12 +464,12 @@ export class LiveGridHost {
       const estimate = readinessModel(this.ports.readiness.bundle(cell), this.ports.readiness.link), distance = this.distance(cell, feet);
       if (this.assembly.approaching(distance, estimate.distance) && !this.issues.has(cell.instance)) void background(cell.instance, this.prefetch([cell.instance]), () => !this.disposed);
     }
-    // Spend a safe road approach on the destination's admitted world rather than waiting
+    // Spend a safe approach on the destination's admitted world rather than waiting
     // at its wall. Actual world-space movement selects the approaching cell: proximity alone would rebuild the
     // just-retired source behind the traveller. Stationary/missed first samples retain the original wall reach.
     // One constructor owns the queue until it settles. A predicted heading must not cancel yielded world work;
     // only an actual crossing may supersede it through the existing safe-point cancellation contract.
-    if (this.active === null && this.requests.size === 0) {
+    if (this.requests.size === 0) {
       const wallReach = 6 + this.ports.player.motor.opts.radius + 0.5 + this.ports.readiness.link.speed / 60;
       const moving = !travelled ? undefined : candidates.find(cell => headsToEntry(cell, feet, previous)
         && this.distance(cell, feet) < this.distance(cell, previous) - 0.000001);
@@ -509,9 +509,13 @@ export class LiveGridHost {
           : moving === undefined ? wallReach : Math.max(wallReach, roadWidth);
         // G723/G724: preserve the immediate return. Only explicitly isolated preparation that fits the strict
         // page/owner budgets may build beside it; ordinary factories retain retire-before-allocation ordering.
-        const source = this.lastSource(), kept = source !== null && this.residents.has(source);
+        const source = this.active ?? this.lastSource(), kept = source !== null && this.residents.has(source);
         const samePrediction = this.approach === null || this.approach.instance === approach.instance;
-        if (this.distance(approach, feet) <= reach && (samePrediction || travelled && this.abandonApproach(approach.instance))
+        // Inside a playing source, only a real direct heading and admitted isolated factory may use its lead time.
+        // Stationary proximity and ambiguous boulevard alternatives remain road-only; the source keeps its traveller.
+        const sourceApproach = this.active === null || moving === approach && approachedProduct !== undefined
+          && this.canPrepareAlongside(approach.instance, approachedProduct);
+        if (sourceApproach && this.distance(approach, feet) <= reach && (samePrediction || travelled && this.abandonApproach(approach.instance))
           && !this.residents.has(approach.instance) && (!kept || approachedProduct !== undefined && this.canPrepareAlongside(approach.instance, approachedProduct))) {
           void background(approach.instance, this.ensure(approach.instance, true), () => !this.disposed);
         }

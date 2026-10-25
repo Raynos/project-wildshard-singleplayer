@@ -159,3 +159,51 @@ test('abandoning a yielded isolated install restores bindings and permits a fres
   } finally { scope.dispose(); }
   expect(visible).toBe(false);
 });
+
+test('isolated preparation preserves the entered source while the neighbour yields and finishes', async () => {
+  const scope = new Scope('active-source-preparation'), app = new App(), visible = new Set<string>();
+  let release: (() => void) | undefined, started: (() => void) | undefined;
+  const warm = new Promise<void>(resolve => { release = resolve; });
+  const warming = new Promise<void>(resolve => { started = resolve; });
+  const resident = (instance: string): HybridResident => {
+    const owner = scope.child(instance), manifest = { ...TEMPLATE, slug: parseShardSlug(instance) };
+    const source = emptyShardfile({ slug: manifest.slug, name: instance, author: 'Fixture', revision: 1, seed: 7 });
+    const product = createShardProduct({ slug: manifest.slug, revision: 1, shardfile: source,
+      sections: new Map([['client/plan', { version: 1, features: [] }]]), files: new Map(),
+      read: () => Promise.reject(new Error('No fixture file')) });
+    const runtime: ShardRuntime = { world: null, step: null, play: null, interactables: [], overhead: [], objects: {}, hooks: {},
+      viewer: () => new Vector3(), horizonVeil: null };
+    return { instance, slug: manifest.slug, declaration: null, product, firstParty: true, retainRuntime: true, scope: owner, runtime,
+      context: (entry, local) => {
+        const level = createLevelInstallation(app, entry, {}, () => ({ set: () => undefined, detail: () => undefined }));
+        const context = shardContext(level.context, manifest, { shard: manifest, runtime: local, rows: new Map(),
+          bag: { tab: () => () => undefined, fragment: () => () => undefined } }, product);
+        return { ...level, context, prepareConstruction: () => () => undefined,
+          beforeWorld: entered => { installEnteredRuntimeService(entered, service => {
+            visible.add(instance); service.onDispose(() => { visible.delete(instance); });
+          }); }, afterWorld: entered => {
+            if (entered.game.runtime === undefined) throw new Error('Missing runtime');
+            entered.game.runtime.objects['built'] = instance;
+          }, afterPlay: async () => { if (instance === 'incoming') { started?.(); await warm; } } };
+      } };
+  };
+  const source = resident('source'), incoming = resident('incoming');
+  const session = new HybridRuntimeSession(new Map([['source', source], ['incoming', incoming]]), scope);
+  try {
+    expect(await session.enter({ instance: 'source', slug: source.slug })).toBe(true);
+    const preparing = session.installAhead('incoming'); await warming;
+    expect(session.state()).toEqual({ instance: 'source', ready: true });
+    expect(visible).toEqual(new Set(['source']));
+    expect(source.runtime.objects['built']).toBe('source');
+    expect(incoming.runtime.objects['built']).toBeUndefined();
+    release?.(); expect(await preparing).toBe(true);
+    expect(session.state()).toEqual({ instance: 'source', ready: true });
+    expect(visible).toEqual(new Set(['source']));
+    expect(incoming.runtime.objects['built']).toBeUndefined();
+    session.leave(); expect(visible.size).toBe(0);
+    expect(await session.enter({ instance: 'incoming', slug: incoming.slug })).toBe(true);
+    expect(visible).toEqual(new Set(['incoming']));
+    expect(incoming.runtime.objects['built']).toBe('incoming');
+  } finally { release?.(); scope.dispose(); }
+  expect(visible.size).toBe(0);
+});

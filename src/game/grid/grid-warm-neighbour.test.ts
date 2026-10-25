@@ -122,6 +122,69 @@ test('G723: explicitly isolated preparation keeps two charged worlds before the 
   } finally { f.close(); }
 });
 
+test('G723: isolated preparation uses a direct heading inside the source without transferring its traveller', async () => {
+  const f = await fixture({ paired: true });
+  try {
+    await f.enterHome(); await f.live.prefetch([f.east.instance]);
+    const sourceFrames = f.events.filter(event => event.startsWith('frame:'));
+    f.player.position.x = CHUNK_HALF - 30; travel(f.live, f.player.position, 1, 0); await f.settle();
+    expect(f.live.current()).toBe(f.home.instance);
+    expect(f.live.state().residents).toEqual([f.home.instance, f.east.instance].sort());
+    expect(f.live.ready(f.east.instance)).toBe(true);
+    expect(f.events.filter(event => event.startsWith('frame:'))).toEqual(sourceFrames);
+    expect(f.events).not.toContain(`retire:${f.home.instance}`);
+    expect(f.allocated.find(row => row.instance === f.east.instance)?.owners).toContain(f.home.instance);
+    await f.cross(f.home.instance, f.east.instance);
+    expect(f.events.indexOf(`disposed:${f.home.instance}`)).toBeLessThan(f.events.indexOf(`frame:${f.east.instance}`));
+    expect(f.live.state().residents).toEqual([f.east.instance]);
+  } finally { f.close(); }
+});
+
+test('G723: an active source keeps its ordinary ordering when isolation or the pair budget refuses', async () => {
+  for (const options of [{ paired: true, isolation: false }, { paired: true, loading: 1 }]) {
+    const f = await fixture(options);
+    try {
+      await f.enterHome(); await f.live.prefetch([f.east.instance]);
+      f.player.position.x = CHUNK_HALF - 30; travel(f.live, f.player.position, 1, 0); await f.settle();
+      expect(f.created()).toEqual([f.home.instance]);
+      expect(f.live.current()).toBe(f.home.instance);
+      await f.cross(f.home.instance, f.east.instance);
+      expect(f.events.indexOf(`disposed:${f.home.instance}`)).toBeLessThan(f.events.indexOf(`create:${f.east.instance}`));
+      expect(f.live.state().issues).toEqual({});
+    } finally { f.close(); }
+  }
+});
+
+test('G723: source-side preparation rechecks its budget after admission and keeps an immediate return', async () => {
+  const f = await fixture({ paired: true });
+  try {
+    await f.enterHome(); await f.live.prefetch([f.east.instance]);
+    f.player.position.x = CHUNK_HALF - 30; travel(f.live, f.player.position, 1, 0);
+    expect(f.live.state().pending).toContain(f.east.instance);
+    f.budget.loading = 1; await f.settle();
+    expect(f.created()).toEqual([f.home.instance]);
+    expect(f.live.state().issues).toEqual({});
+    f.budget.loading = 1_800_000_000; travel(f.live, f.player.position, 1, 0); await f.settle();
+    expect(f.live.ready(f.east.instance)).toBe(true);
+    const leave = await f.live.prepare(f.home.instance, null); leave.commit();
+    const back = await f.live.prepare(null, f.home.instance); back.commit(); await f.settle();
+    expect(f.created().filter(id => id === f.home.instance)).toHaveLength(1);
+    expect(f.live.state().residents).toEqual([f.home.instance]);
+    expect(f.events).toContain(`disposed:${f.east.instance}`);
+    expect(f.events).not.toContain(`retire:${f.home.instance}`);
+  } finally { f.close(); }
+});
+
+test('G723: standing inside a source never guesses its isolated neighbour', async () => {
+  const f = await fixture({ paired: true });
+  try {
+    await f.enterHome(); await f.live.prefetch([f.east.instance]);
+    f.player.position.x = CHUNK_HALF - 1; await f.settle();
+    expect(f.created()).toEqual([f.home.instance]);
+    expect(f.live.current()).toBe(f.home.instance);
+  } finally { f.close(); }
+});
+
 test('G723: a U-turn retires an already prepared guess and reuses the kept source', async () => {
   const f = await fixture({ paired: true });
   try {
