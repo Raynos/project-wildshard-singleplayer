@@ -58,16 +58,19 @@ test('performance details load on open, retain early counts, and retire with the
   const counts=vi.fn(()=>({animals:7}));
   try{
     meter.addCounts(counts);
-    expect(Reflect.has(window,'__perfHud')).toBe(false);expect(counts).not.toHaveBeenCalled();
+    expect(Reflect.has(window,'__perfHud')).toBe(false);expect(Reflect.has(window,'__perfLapRun')).toBe(false);expect(counts).not.toHaveBeenCalled();
     meter.root.hidden=false;meter.root.dispatchEvent(new Event('pointerup'));
     await vi.waitFor(()=>{expect(Reflect.has(window,'__perfHud')).toBe(true);});
     const {PerfHud}=await import('./perfHud');
+    const {PerfLap}=await import('./perfLap');
+    const lap:unknown=Reflect.get(window,'__perfLapRun');
+    if(!(lap instanceof PerfLap))throw new Error('Real performance lap did not load');
     const hud:unknown=Reflect.get(window,'__perfHud');
     if(!(hud instanceof PerfHud))throw new Error('Real performance details did not load');
     expect(hud.counts()).toMatchObject({animals:7,calls:2,tris:3});
     meter.addCounts(()=>({near:4}));expect(hud.counts()).toMatchObject({animals:7,near:4});
     expect(hud.scope.disposed).toBe(false);
-    scope.dispose();expect(hud.scope.disposed).toBe(true);
+    scope.dispose();expect(hud.scope.disposed).toBe(true);expect(lap.scope.disposed).toBe(true);
     expect(Reflect.has(window,'__perfHud')).toBe(false);
   }finally{scope.dispose();}
 });

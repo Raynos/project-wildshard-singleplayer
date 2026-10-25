@@ -29,11 +29,10 @@ import { frameBudget } from '../render/budgetReport';
 import { tierPickInfo, tierPickLine, forgetTierPick } from '../render/tierBoot';
 import { markReload } from '../boot/lastEnd';
 import { isDev, onDev } from '../core/devMode';
-import { runPerfProbe, probeLines, probeReport, probeSamples } from './perfProbe';
 import type { PerfHud, Counts } from './perfHud';
 import { loadModuleWithProgress } from './loadProgress';
 import { withOwner } from '../app/ownership';
-import { PerfLap } from './perfLap';
+import type { PerfLap } from './perfLap';
 import { FrameWindow } from './frameWindow';
 import './perf.css';
 
@@ -133,36 +132,6 @@ export class Perf {
       try { await loading; }
       catch (error) { this.hudLoading = null; throw error; }
     };
-    // E350 F-J1: PERF LAP — the six spots, one slow turn at each, the summary to COPY (src/engine/ui/perfLap.ts). The panel closes
-    // while it runs (the reading is the frame as played, the pill up); a line at the top says where it is; a tap cancels
-    const lapBtn = q('.ws-perf-lap'), lapCopy = q('.ws-perf-lap-copy'), lapOut = q('.ws-perf-lap-out');
-    const lapStatus = document.createElement('div');
-    lapStatus.className = 'ws-perf-lap-status'; lapStatus.hidden = true;
-    mountUi(lapStatus, this.scope, document.body);
-    this.lap = new PerfLap(game);
-    if (this.lap.lastText !== '') lapOut.textContent = engineString('s_f4bfc750414c', [this.lap.lastText.split('\n').slice(0, 2).join('\n')]);
-    this.lap.onStatus = (text) => { lapStatus.hidden = text === null; if (text !== null) lapStatus.textContent = text; };
-    this.lap.onDone = (text) => { lapOut.textContent = text; this.open(true); };
-    for (const b of [lapBtn, lapCopy]) {
-      for (const t of ['touchstart', 'touchmove', 'touchend'] as const) this.scope.listen(b, t, cancel, { passive: false });
-      this.scope.listen(b, 'pointerdown', cancel);
-    }
-    this.scope.listen(lapBtn, 'pointerup', (e) => {
-      cancel(e);
-      this.open(false);
-      const why = this.lap.start(this.hud?.recording ?? false);
-      if (why !== null) { lapOut.textContent = why; this.open(true); }
-    });
-    this.scope.listen(lapCopy, 'pointerup', (e) => {
-      cancel(e);
-      const text = this.lap.lastText;
-      if (text === '') { lapCopy.textContent = engineString('s_7acd554c3676'); this.scope.timeout(1500, () => { lapCopy.textContent = engineString('s_dc26bc50abf8'); }); return; }
-      const done = (ok: boolean): void => { lapCopy.textContent = ok ? engineString('s_2c9f6d96316f') : engineString('s_2221caed08d3'); this.scope.timeout(1500, () => { lapCopy.textContent = engineString('s_dc26bc50abf8'); }); };
-      const fallback = (): void => { lapOut.textContent = text; const r = document.createRange(); r.selectNodeContents(lapOut); const sel = getSelection(); sel?.removeAllRanges(); sel?.addRange(r); done(false); };
-      const copy = async (): Promise<void> => { try { await navigator.clipboard.writeText(text); done(true); } catch { fallback(); } };
-      void copy();
-    });
-    this.scope.expose(window, '__perfLapRun', this.lap);
     // a toggle (E142, Jake: "detail mode on, move around a lot and keep looking at it — it shouldn't just fade away"): only a
     // tap on the pill closes the panel; moving, looking and shooting leave it up
     const param = new URLSearchParams(location.search).get('perf');
@@ -182,14 +151,14 @@ export class Perf {
 
   /** Hidden while the menu is up (the world is not rendering, so there is nothing to measure). */
   setActive(on: boolean): void {
-    if (!on) this.lap.cancel('the menu opened');
+    if (!on) this.lap?.cancel('the menu opened');
     if (on !== this.active) { this.frameWindow.reset(performance.now(), this.game.frameCount); this.lastPaint = -Infinity; }
     this.active = on; this.root.hidden = on ? this.userHidden : true;
     if (!on || this.userHidden) this.open(false);
   }
   private readonly probeOut: HTMLElement;
   private async installHud(q: (selector: string) => HTMLElement, cancel: (event: Event) => void): Promise<void> {
-    const { PerfHud } = await loadModuleWithProgress('Performance', () => import('./perfHud'));
+    const [{ PerfHud }, { PerfLap }] = await loadModuleWithProgress('Performance', () => Promise.all([import('./perfHud'), import('./perfLap')]));
     if (this.scope.disposed) return;
     const recBtn = q('.ws-perf-rec'), copyBtn = q('.ws-perf-copy'), recOut = q('.ws-perf-rec-out'), spark = q('.ws-perf-spark');
     if (!(spark instanceof HTMLCanvasElement)) throw new Error('Perf: the sparkline is not a canvas');
@@ -202,7 +171,7 @@ export class Perf {
       for (const t of ['touchstart', 'touchmove', 'touchend'] as const) this.scope.listen(b, t, cancel, { passive: false });
       this.scope.listen(b, 'pointerdown', cancel);
     }
-    this.scope.listen(recBtn, 'pointerup', (e) => { cancel(e); if (!hud.recording && !this.lap.running) { hud.startRec(); recOut.textContent = engineString('s_309443a755a0'); } });
+    this.scope.listen(recBtn, 'pointerup', (e) => { cancel(e); if (!hud.recording && this.lap?.running !== true) { hud.startRec(); recOut.textContent = engineString('s_309443a755a0'); } });
     this.scope.listen(copyBtn, 'pointerup', (e) => {
       cancel(e);
       const text = hud.lastRecText !== '' ? hud.lastRecText : q('.ws-perf-stats').textContent;
@@ -214,6 +183,36 @@ export class Perf {
     });
     for (const read of this.pendingCounts) hud.addCounts(read);
     this.pendingCounts.length = 0;
+    // E350 F-J1: PERF LAP — the six spots, one slow turn at each, the summary to COPY (src/engine/ui/perfLap.ts). The panel closes
+    // while it runs (the reading is the frame as played, the pill up); a line at the top says where it is; a tap cancels
+    const lapBtn = q('.ws-perf-lap'), lapCopy = q('.ws-perf-lap-copy'), lapOut = q('.ws-perf-lap-out');
+    const lapStatus = document.createElement('div');
+    lapStatus.className = 'ws-perf-lap-status'; lapStatus.hidden = true;
+    mountUi(lapStatus, this.scope, document.body);
+    const lap = this.lap = withOwner(this.scope, () => new PerfLap(this.game));
+    if (lap.lastText !== '') lapOut.textContent = engineString('s_f4bfc750414c', [lap.lastText.split('\n').slice(0, 2).join('\n')]);
+    lap.onStatus = (text) => { lapStatus.hidden = text === null; if (text !== null) lapStatus.textContent = text; };
+    lap.onDone = (text) => { lapOut.textContent = text; this.open(true); };
+    for (const b of [lapBtn, lapCopy]) {
+      for (const t of ['touchstart', 'touchmove', 'touchend'] as const) this.scope.listen(b, t, cancel, { passive: false });
+      this.scope.listen(b, 'pointerdown', cancel);
+    }
+    this.scope.listen(lapBtn, 'pointerup', (e) => {
+      cancel(e);
+      this.open(false);
+      const why = lap.start(hud.recording);
+      if (why !== null) { lapOut.textContent = why; this.open(true); }
+    });
+    this.scope.listen(lapCopy, 'pointerup', (e) => {
+      cancel(e);
+      const text = lap.lastText;
+      if (text === '') { lapCopy.textContent = engineString('s_7acd554c3676'); this.scope.timeout(1500, () => { lapCopy.textContent = engineString('s_dc26bc50abf8'); }); return; }
+      const done = (ok: boolean): void => { lapCopy.textContent = ok ? engineString('s_2c9f6d96316f') : engineString('s_2221caed08d3'); this.scope.timeout(1500, () => { lapCopy.textContent = engineString('s_dc26bc50abf8'); }); };
+      const fallback = (): void => { lapOut.textContent = text; const r = document.createRange(); r.selectNodeContents(lapOut); const sel = getSelection(); sel?.removeAllRanges(); sel?.addRange(r); done(false); };
+      const copy = async (): Promise<void> => { try { await navigator.clipboard.writeText(text); done(true); } catch { fallback(); } };
+      void copy();
+    });
+    this.scope.expose(window, '__perfLapRun', lap);
     this.scope.expose(window, '__perfHud', hud);
     hud.setOpen(this.panel.classList.contains('open'));
   }
@@ -230,6 +229,8 @@ export class Perf {
     const out = this.probeOut, g = this.game;
     this.panel.classList.add('probed');
     const header = this.probeHeader(); // before the rows switch things off: the frame as played
+    const { runPerfProbe, probeLines, probeReport, probeSamples } = await loadModuleWithProgress('Performance probe', () => import('./perfProbe'));
+    if (this.scope.disposed) return;
     const rows = await runPerfProbe(g, (line) => { out.textContent = line; });
     if (this.scope.disposed || rows.length === 0) return;
     const head = `${g.renderer.domElement.width}×${g.renderer.domElement.height} · ${TIER} · ${Math.round(devicePixelRatio)}× screen`;
@@ -264,7 +265,7 @@ export class Perf {
   private hudLoading: Promise<void> | null = null;
   private readonly prepareHud: () => Promise<void>;
   private readonly pendingCounts: (() => Counts)[] = [];
-  private readonly lap: PerfLap;
+  private lap: PerfLap | null = null;
   private recBtn: HTMLElement | null = null;
   private lastStats = 0;
   /** main.ts: the game's counts for the panel (animals, the elite, Rapier …) — read ≤ 4× a second while it is open */
@@ -274,7 +275,7 @@ export class Perf {
   private update(now: number) {
     this.frameWindow.observe(this.game.frameCount, this.game.frameRafTime);
     this.hud?.tick(now);
-    this.lap.tick(now);
+    this.lap?.tick(now);
     if ((this.panel.classList.contains('open') || (this.hud?.recording ?? false)) && now - this.lastStats >= STATS_MS) {
       this.lastStats = now;
       this.hud?.paint();

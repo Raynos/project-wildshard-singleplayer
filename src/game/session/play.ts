@@ -80,14 +80,14 @@ import { pickInteractable } from '@wildshard/engine/world/interact/Interactables
 import { terrainDatum } from '@wildshard/engine/world/terrainHeight';
 
 async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
-  const { manifest, boot, session, kit, files, step, menuLoad, world, game, sky, player, params, chunk, registry, nolock, viewer, boundary, horizon, prepareAudio, animals, arena, swimArms, crossbow, rifle, longbow, weapons, lockSys, touchControls, hud } = ctx;
+  const { manifest, boot, session, kit, files, step, menuLoad, world, game, sky, player, params, chunk, registry, nolock, viewer, boundary, horizon, prepareAudio, animals, getArena, prepareArena, swimArms, crossbow, rifle, longbow, weapons, lockSys, touchControls, hud } = ctx;
   const leakPhysics = world.physics; // The borrowed page world outlives temporary active frames.
   // G628 M4: a shard page's Developer warning chip; a grid page's resident over-limit is a line of its memory strip instead,
   // and a neighbour's cold estimate shows nowhere (the G217 blocked cell screen reads the policy, not the chip)
   if (session.memory !== undefined && pageMode() !== 'grid') installMemoryWarning(session.memory, game.levelScope, hud.root, manifest.slug);
 
   let playground: Playground | null = null;
-  const away = (): boolean => arena.entered || playground?.entered === true;
+  const away = (): boolean => getArena()?.entered === true || playground?.entered === true;
   const weaponStrip = new WeaponStrip(weapons); // every shard's one swap control (E303 / E319): the SWAP ring + pie on touch, a hotbar on desktop
   const lockOn = new LockOn(game.camera); // sword lunge target brackets (meleeLock, Sword.ts)
   const speedLines = new SpeedLines(); // dodge / lunge edge streaks
@@ -128,7 +128,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   await step('menu', async (p) => { // the cards' art in memory before the title builds its deck (showIntro below)
     // + the practice room's dummies when this boot lands in it (a travel in arena mode): full on its first frame (E291). Any
     // other boot loads them when the room opens, in every mode (G187: −33.6 MB of GL on Pine; SF47 made it the only path).
-    const practice = isDev() && session.arrival?.mode === 'arena' ? arena.preload() : null;
+    const practice = isDev() && session.arrival?.mode === 'arena' ? prepareArena().then(room => room.preload()) : null;
     if (pageMode() !== 'grid') await (menuLoad ?? startMenuPreload(files, chunk)).wait(p); // the grid has no title deck (data.ts)
     await practice; // the grid's streaming is covered by its entry reveal (G98, below), not the loading screen
   });
@@ -273,7 +273,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   weapons.onReloadStart = () => { combatCues.reload(weapons.current.row); };
   weapons.onSwap = () => { combatCues.cue('cue.swap'); };
   weapons.onImpact = (surface, point) => {
-    if (surface !== 'flesh') arena.miss(point);
+    if (surface !== 'flesh') getArena()?.miss(point);
     const dx = point.x - player.position.x, dz = point.z - player.position.z, d = Math.hypot(dx, dz);
     const rx = Math.cos(player.yaw), rz = -Math.sin(player.yaw);
     const pan = d > 1 ? ((dx * rx + dz * rz) / d) * 0.7 : 0, gain = 1 / (1 + d / 12);
@@ -439,10 +439,17 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     if (tour.active && !params.has('tour')) { tour.active = false; respawn(); }
     if (!nolock) player.lock();
   };
-  hud.onArena = () => { arena.enter(player, weapons); setAimTargets(arena.targets); minimap.setPracticeArena(chunk.spawn); menu.setPractice(true); };
+  const enterArena = async (): Promise<void> => {
+    try {
+      const arena = await prepareArena();
+      if (game.levelScope.disposed || !hud.entered) return;
+      arena.enter(player, weapons); setAimTargets(arena.targets); minimap.setPracticeArena(chunk.spawn); menu.setPractice(true);
+    } catch (error) { console.warn('Practice room unavailable', error); if (!game.levelScope.disposed) hud.startExplore(); }
+  };
+  hud.onArena = () => { void enterArena(); };
   hud.onResume = enter;
   hud.onExitToMenu = () => {
-    arena.exit(); playground?.exit(); playground = null; minimap.setPracticeArena(null); menu.setPractice(false); setAimTargets(aimList); fromTitle = true; weapons.setEnabled(false); perf.setActive(false); audio.worldMuted = true; music.setState({ mode: 'menu' }); noteDisc.classList.remove('show');
+    getArena()?.exit(); playground?.exit(); playground = null; minimap.setPracticeArena(null); menu.setPractice(false); setAimTargets(aimList); fromTitle = true; weapons.setEnabled(false); perf.setActive(false); audio.worldMuted = true; music.setState({ mode: 'menu' }); noteDisc.classList.remove('show');
   };
 
   // ── Explore World (project/archive/2026-09-23-explore-world.md): the title's EXPLORE WORLD panel — the viewer over this same loaded shard (a

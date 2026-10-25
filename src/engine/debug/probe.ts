@@ -73,7 +73,7 @@ export interface HarnessPins {
   ktx2Probe?: 'skip';
 }
 export type ProbeWorld = World & {
-  animals: AnimalManager; weapons: EquipmentService; hud: HUD; audio: Audio; music: Music; arena: TrainingArena;
+  animals: AnimalManager; weapons: EquipmentService; hud: HUD; audio: Audio; music: Music; arena: TrainingArena | null;
   interactables: readonly Interactable[];
 } & Record<string, unknown>;
 export interface ProbePose { name?: string; x?: number; y?: number; z?: number; yaw?: number; pitch?: number }
@@ -446,7 +446,7 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): E
     combat: {
       equip: (id) => { requireHarness(); const weapon = world.weapons.list.find((w) => w.id === id); if (!weapon) throw new Error(`Weapon ${id} absent from ${world.game.level.id}`); world.weapons.select(weapon.id, true); },
       target: (kind, near) => {
-        requireHarness(); const candidates: CombatTarget[] = kind === 'training-dummy' ? world.arena.targets : world.animals.animals;
+        requireHarness(); const candidates: CombatTarget[] = kind === 'training-dummy' ? world.arena?.targets ?? [] : world.animals.animals;
         const target = candidates.filter((a) => a.alive && a.kind === kind).sort((a, b) => Math.hypot(a.position.x - near.x, a.position.z - near.z) - Math.hypot(b.position.x - near.x, b.position.z - near.z))[0];
         if (!target) throw new Error(`No live ${kind} in ${world.game.level.id}`);
         target.harnessHold = true; return target;

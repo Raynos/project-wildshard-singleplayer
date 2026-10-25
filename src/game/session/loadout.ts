@@ -2,7 +2,8 @@ import { bindEquipmentActors } from '../loadout/actors';
 import type { Targets } from '@wildshard/engine/combat/types';
 import type { Weapon } from '@wildshard/engine/combat/Weapon';
 import { weaponInputContext } from '@wildshard/engine/input/gameplay';
-import { type TrainingArena as Arena, TrainingArena } from '@wildshard/engine/practice/TrainingArena';
+import type { TrainingArena as Arena } from '@wildshard/engine/practice/TrainingArena';
+import { loadPractice } from '@wildshard/engine/boot/runtime';
 import type { DiscSpot } from '@wildshard/engine/ui/hudSlots';
 import { GAME_STRINGS } from '../strings';
 import { titleCards } from '../titleDeck';
@@ -115,7 +116,19 @@ async function buildLoadout(ctx: Awaited<ReturnType<typeof worldStage>>) {
   const shellHud = new Set(document.querySelectorAll('#hud *'));
   game.hudBaseline = shellHud.size;
   game.hudRetained = shellHud;
-  arena = new TrainingArena(game, registry, world.physics, { x: chunk.spawn.x, z: chunk.spawn.z });
+  let practiceReady: Promise<Arena> | null = null;
+  const readArena = async (): Promise<Arena> => {
+    const { TrainingArena } = await loadPractice();
+    if (game.levelScope.disposed) throw new Error('Practice owner retired while loading code');
+    arena = withOwner(game.levelScope, () => new TrainingArena(game, registry, world.physics, { x: chunk.spawn.x, z: chunk.spawn.z }));
+    return arena;
+  };
+  const prepareArena = async (): Promise<Arena> => {
+    const pending = practiceReady ??= readArena();
+    try { return await pending; }
+    catch (error) { practiceReady = null; throw error; }
+  };
+  const getArena = (): Arena | null => arena;
   // E307: the open feature playground (src/playgrounds/: Nine Dragon's grapple course, Nalati's horse track), entered from the
   // Explore hub like the arena. `away()`: the player is in a practice room, not the shard (no bounds, no map, no last place)
 
@@ -136,7 +149,7 @@ async function buildLoadout(ctx: Awaited<ReturnType<typeof worldStage>>) {
         app.levelAdapters.hud?.relabel(spot as DiscSpot, hint.label, hint.icon ?? '', hint) ?? (() => undefined));
     }
   }, game.levelScope);
-  return { ...ctx, animals, arena, swimArms, crossbow, rifle, longbow, weapons, enteredEquipment, lockSys, touchControls, hud };
+  return { ...ctx, animals, getArena, prepareArena, swimArms, crossbow, rifle, longbow, weapons, enteredEquipment, lockSys, touchControls, hud };
 }
 
 export const loadoutStage: typeof buildLoadout = buildLoadout;
