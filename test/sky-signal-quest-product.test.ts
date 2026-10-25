@@ -4,7 +4,7 @@ import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { parsePersistedQuestPage } from '../src/sdk/quests';
 import skyPage from '../src/shards/far-reach/data/questPage.generated.json' with { type: 'json' };
 import { SIGNAL_QUEST_PAGE as signalPage } from '../src/shards/sunscar-dunes/generators/questPage';
-import signalPhysics from '../src/shards/sunscar-dunes/data/physics.generated.json' with { type: 'json' };
+import { SIGNAL_PHYSICS as signalPhysics } from '../src/shards/sunscar-dunes/generators/physics';
 import skyPrompts from '../src/shards/far-reach/data/questPrompts.generated.json' with { type: 'json' };
 import { SKY_SPOTS, SKY_ACT, SKY_INTERACT, QUEST_STEP, ROOST_IDS } from '../src/shards/far-reach/generators/questPrompts';
 import { KEEPER_AT } from '../src/shards/far-reach/generators/quests';

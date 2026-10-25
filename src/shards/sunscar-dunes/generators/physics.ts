@@ -5,7 +5,6 @@ import STRINGS from '../data/strings.json' with { type: 'json' };
 import { SCOUT_ROW } from './questPresentation';
 import rows from '../data/physicsRows.json' with { type: 'json' };
 import { signalHeightAt } from './landscape';
-import { signalDunesField } from './tiles';
 import { signalPhysicsPlacements } from './physicsPlacements';
 import { signalTowerPhysicsPlacements } from './towerColliders';
 
@@ -35,10 +34,10 @@ function lobe(x: number, z: number, hw: number, hd: number, rot: number, yBottom
 
 /** G350-SD: Signal's physics product from authoring inputs only: the placement, tower, ridge and scout recipes, the species
  * scale ranges with the manager's seed stream, and the authored rows no recipe computes (arena, dressing tree, species, spots). */
-export function signalPhysics(): Record<string, unknown> {
-  const field = signalDunesField(), ridges = RIDGES.flatMap(r => [0, 1, 2].map(j => {
+export function signalPhysics(): Record<string, unknown> & { readonly spots: typeof rows.spots } {
+  const heightAt = signalHeightAt(), ridges = RIDGES.flatMap(r => [0, 1, 2].map(j => {
     const along = (j - 1) * r.len * 0.32, x = r.x + Math.sin(r.yaw) * along, z = r.z + Math.cos(r.yaw) * along;
-    const h = r.h * (j === 1 ? 1 : 0.7), half = r.len * (j === 1 ? 0.3 : 0.24), w = Math.max(1.6, r.h * 0.7), y = field.heightAt(x, z) - 0.6;
+    const h = r.h * (j === 1 ? 1 : 0.7), half = r.len * (j === 1 ? 0.3 : 0.24), w = Math.max(1.6, r.h * 0.7), y = heightAt(x, z) - 0.6;
     return lobe(x, z, w * 0.75, half * 0.8, -r.yaw, y - 1, y + h * 0.8);
   }));
   const rocks = { id: 'sunscar.rocks', name: STRINGS.rocks, category: 'nature', file: 'src/shards/sunscar-dunes/generators/rocks.ts', colliders: ridges,
@@ -61,3 +60,6 @@ export function signalPhysics(): Record<string, unknown> {
   return { version: 1, profile: 'authored rows', notice: 'DO NOT EDIT: regenerate with generators/physics.ts (signal-physics).', actors,
     pieces: [tower, caravan, well, rocks, rows.dressing, ...braziers, rows.arena, scout], spots: rows.spots, promptRegistrations, bosses };
 }
+
+/** One evaluated declaration shared by the product and its target rows. */
+export const SIGNAL_PHYSICS = signalPhysics();

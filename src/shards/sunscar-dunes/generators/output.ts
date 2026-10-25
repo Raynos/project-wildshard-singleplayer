@@ -11,10 +11,14 @@ import type { PlatformDataSectionName } from '@wildshard/format/platformDataSect
 import type { ProjectOutput } from '@wildshard/sdk/projectOutput';
 import { MATRIARCH_DECISION, MATRIARCH_MOVES } from './rows/matriarchDecision';
 import { SIGNAL_NATIVE_WORLD } from './rows/nativeWorld';
-import baked from '../data/physics.generated.json' with { type: 'json' };
+import { SIGNAL_PHYSICS } from './physics';
+import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
 import { SIGNAL_STRIKES } from './rows/brains';
 import { SIGNAL_LASH_TARGETS } from './lashTargets';
 import { SKITTERER_DECISION, SKITTERER_MOVES } from './rows/skittererDecision';
+
+// The retired JSON writer normalized signed zero before plain-data admission.
+const baked: unknown = JSON.parse(encodeCanonicalJson(SIGNAL_PHYSICS));
 
 /** Both page and native owners consume the same verified decision and mechanics. */
 const sources = emitNamedBlobs(SIGNAL_SCENE_BLOBS);

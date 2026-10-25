@@ -1,7 +1,7 @@
 import { parseWorldTargets } from '@wildshard/format/worldTargets';
 import { WHIP_ITEM } from './rows/items';
 import STRINGS from '../data/strings.json' with { type: 'json' };
-import baked from '../data/physics.generated.json' with { type: 'json' };
+import { SIGNAL_PHYSICS as baked } from './physics';
 
 /** Immutable contact points share the baked places' coordinates and authored nearest-target order. */
 export const SIGNAL_LASH_TARGETS = parseWorldTargets({ targets: baked.spots.crack.map(spot => ({
