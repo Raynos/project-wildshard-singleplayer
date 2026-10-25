@@ -12,7 +12,7 @@ Every row is decided work (Jake's G-rows); the refs are the brief.
 | sp-x1 | G722 done 191aee7b15 -> hero retake done 0dd7ce4722 (board for Jake) -> G717 quiet misses (Nalati whole 287 ms, Pine whole, DW spawn) -> GR3 -> GR5 Far Reach -> GR7 Driftwood |
 | sp-x6 | CS0 done e463dc80af -> G719 done dcd3379372 + e45e75885c (25 first-open tiles; intentional G700 Night Market copies; phone 1x/2x/4x JPEGs) -> G726 Night Market remaster RM1 (current slice) -> G717 look misses done 60f2ba740c (48/48) -> RM2 -> RM3 (no look change; Opus RM4+ Tue 13:00) -> GR4 Sunscar -> GR6 Nalati -> GR8 Pine |
 | sp-x8 | G717 verdict ae146afe1d; G723 2a-2d/4/11 (sword fix 9dc10c2d58; G717.3 PASS 1.056 GB; < 5 s edges open) -> TypeScript T3 (<= ~20 files/batch) -> T4 -> T5 |
-| sp-x2 | U1/U2/U4 done d9d068ce7f -> G713 JS payload J1-J4 done, J5 (finish) -> J6-J10 queued after extras (G730) -> tile T4 (warm grid 201 ms, cold DW 372 ms) -> T6 / T8 Codex slices (T6 presentation, occupied L1: waits-Opus; T8.2 skipped) |
+| sp-x2 | U1/U2/U4 done d9d068ce7f -> JS J1-J5 done e033628a5d (J6-J10 queued after extras, G730) -> tile T4 latest grid30f/compiled730f qualifications pass; T6 presentation/occupied L1 waits-Opus, T8.2 skipped/indexed transport dropped -> loading L9 worker receipts then open L10-L14 (G683); core C1 not claimed |
 | sp-x9 | L16 done 0dd7ce4722 -> render red e80c55ee25 + e9e5c444eb -> G733 acceptance (badges 94ef588da9) -> G732 L17 hold at loading screen -> programShare title warning -> ratchet at commit time + faster CF1 related walk (p90 43.8 s -> <= 30 s) -> oxlint R3-R5 -> no-binaries B1-B6 -> QW7 |
 | sp-x7 | releases only |
 

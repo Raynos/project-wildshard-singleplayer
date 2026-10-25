@@ -678,6 +678,13 @@ Simulator recording of HEAD (cold and warm Signal Dunes, the same tap path), fra
 | **L14** | Labels that mean what they say: TIER shows "worker ready" or the shard's cached state instead of "offline cache"; the footer prefers waits of the current step; the players' bar uses the same combined model (`Loading.ts:122/224/233/350`) | Codex | S | in every sampled frame the footer's wait belongs to the current step and no label claims a cache that is empty |
 | **L15** | No half-drawn world under the HUD: the loader leaves only after a complete first frame (ground drawn, minimap filled) | Opus | S | no frame between the loader and the world with missing ground or an empty minimap |
 
+### L9 worker-only durable receipt follow-up (2026-10-25)
+
+| Slice (≤1 h) | Status | Boundary |
+|---|---|---|
+| L9.1 Worker receipt credit | done (this code commit, sp-x2) | A worker `stored` reply returned before incrementing storedFiles/storedBytes. Credit once in the existing finally after reservation settlement, including the early return. Real SHA/cache/protocol regression: one durable3B file reports0/0 before,1/3 after; fetched:null remains exact. Page fallback still passes; no fetch, cap, body-retention or durability change.27focus +9related cases, touched-game/scoped fixture types and named typed lint pass. No native memory/byte gain claimed. |
+| L9.2 Remaining loading acceptance | in flight (sp-x2; G683) | Audit current L10–L14 source/proof states before changing them; preserve L11 owner work. Core C1 stays open and unclaimed: bounded prefetch and hash-history cleanup already exist, and this counter fix proves no retained-memory saving. |
+
 The update pill's static "UPDATING…" stays with U1-U3 in [loading-speed-mini-plan.md](loading-speed-mini-plan.md);
 this audit adds no update rows: the Simulator run shows the reload itself is 0.5 s, so U1's split (adopt wait,
 worker install, re-downloaded packs) is where the time goes.

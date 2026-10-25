@@ -171,8 +171,11 @@ class GridPrefetch {
       }
       if (bytes.length !== row.bytes || (actual ?? await hash(bytes)) !== row.hash) throw new Error('Prefetched file differs from its index');
       if (await cache.keepAsset(row.hash, bytes)) stored = bytes.length; else this.stop('content cache full', 'quota');
-    } finally { bytes = undefined; release?.(); reservation.finish(stored); }
-    if (stored > 0) { this.status.storedFiles++; this.status.storedBytes += stored; }
+    } finally {
+      bytes = undefined; release?.(); reservation.finish(stored);
+      // Worker-only replies return above; credit their durable write too.
+      if (stored > 0) { this.status.storedFiles++; this.status.storedBytes += stored; }
+    }
   }
 }
 
