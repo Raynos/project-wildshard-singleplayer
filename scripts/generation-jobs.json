@@ -11261,6 +11261,8 @@
         "src/sdk/bake/image.ts",
         "src/sdk/bake/json.mjs",
         "src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/rawTexture.ts",
+        "src/sdk/bake/byteCodec.ts",
         "src/sdk/bake/texture.ts",
         "src/sdk/bake/worldImage.ts",
         "src/sdk/immutable.ts",
