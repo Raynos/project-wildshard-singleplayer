@@ -150,7 +150,6 @@ src/**/*.generated.*
 
 # Cold-authored Signal manifest queries (SHA256 pins in generation-jobs.json).
 /public/assets/sunscar-dunes/ground/ring-mean.bin
-/src/shards/sunscar-dunes/data/manifestGround.generated.json
 /public/assets/pine-hollow/baked/wildlife.glb
 /public/assets/pine-hollow/baked/3d9b5fc17c7ac3e7fe148f4333b2ea62e2e9bf5999d89eea7f2ef0abf65e8220.glb
 
@@ -249,7 +248,6 @@ src/shards/far-reach/data/crownInstances.generated.json
 /src/shards/far-reach/data/product.generated.json
 
 # Signal static world metadata is rebuilt from its author declaration.
-/src/shards/sunscar-dunes/data/worldBakes.generated.json
 
 /public/assets/far-reach/baked/rest-books.glb
 
@@ -810,7 +808,6 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 # Shared saved-quest pages compile from author-only recipes.
 /src/shards/far-reach/data/questPage.generated.json
 /src/shards/far-reach/data/questPrompts.generated.json
-/src/shards/sunscar-dunes/data/questPage.generated.json
 
 /public/assets/nalati/baked/people/
 
@@ -942,7 +939,6 @@ src/shards/driftwood-isle/data/bridgeRows.d.json.ts
 
 # G508: sunscar-dunes data map outputs.
 /public/assets/sunscar-dunes/map/top.webp
-/src/shards/sunscar-dunes/look/map.baked.json
 /src/shards/sunscar-dunes/data/productMap.json
 /src/shards/sunscar-dunes/assets/map.webp
 
