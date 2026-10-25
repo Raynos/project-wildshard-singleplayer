@@ -68,7 +68,7 @@ const named = v.pipe(v.array(v.tuple([name, source])), v.maxLength(32));
  * weather "on" for its readers; `flash` names the register they may raise; `shelter` circles grow by `margin` and mark the
  * caller's `input.sheltered`.
  */
-export const WeatherReactionsSchema: v.GenericSchema<WeatherReactionRowsInput, WeatherReactionRows> = v.strictObject({
+export const WeatherReactionsSchema: v.StrictObjectSchema<WeatherReactionEntries, undefined> = v.strictObject({
   version: v.literal(1), hz: v.pipe(finite, v.minValue(1), v.maxValue(10)), script: v.unknown(), bytes: v.string(),
   actions: v.exactOptional(v.strictObject({ event: id, unless: v.exactOptional(name) })),
   active: v.pipe(v.array(id), v.maxLength(32)), flash: name,
@@ -405,3 +405,14 @@ interface WeatherReactionRowsFields {
     };
 }
 export type WeatherReactionRows = { [Key in keyof WeatherReactionRowsFields]: WeatherReactionRowsFields[Key] };
+
+/** Keep composition metadata available to inline module admission. */
+type WeatherReactionEntries = {
+    [Key in Exclude<keyof WeatherReactionRows, 'actions' | 'hud'>]:
+        v.GenericSchema<WeatherReactionRowsInput[Key], WeatherReactionRows[Key]>;
+} & {
+    actions: v.ExactOptionalSchema<v.GenericSchema<NonNullable<WeatherReactionRowsInput['actions']>,
+        NonNullable<WeatherReactionRows['actions']>>, undefined>;
+    hud: v.ExactOptionalSchema<v.GenericSchema<NonNullable<WeatherReactionRowsInput['hud']>,
+        NonNullable<WeatherReactionRows['hud']>>, undefined>;
+};
