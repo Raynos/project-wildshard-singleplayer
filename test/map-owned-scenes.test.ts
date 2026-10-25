@@ -1,12 +1,15 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Own and remove the isolated painter fixture.
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Confine the fixture beneath the repository's tmp directory.
 import { resolve } from 'node:path';
+// oxlint-disable-next-line import/no-nodejs-modules -- Bind direct RGBA to the existing dimension-prefixed map stamp.
+import { createHash } from 'node:crypto';
 import { BufferGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial } from 'three';
 import { expect, test } from 'vitest';
 import { MapAssembly } from '../scripts/map-geometry.mjs';
-import { paintDataMap } from '../scripts/bake-data-maps.mjs';
+import { paintDataMap, rasterDataMap } from '../scripts/bake-data-maps.mjs';
 import { clientSceneGlb } from '../src/sdk/bake/glb';
+import { hashImmutableBytes } from '../src/sdk/immutable';
 
 // No scene or pack file is published. The normal painter must read both from
 // this invocation's owned values, and keep file admission strict otherwise.
@@ -18,14 +21,28 @@ test('owned scene/pack bytes paint without files while undeclared fallback refus
   assembly.add('floor', geometry);
   try {
     mkdirSync(resolve(dir, 'look'), { recursive: true });
-    writeFileSync(resolve(dir, 'look/map.json'), JSON.stringify({ why: 'owned scene fixture', inputs: [],
+    const settings = { why: 'owned scene fixture', inputs: [],
       style: { kind: 'ground', void: 'transparent', classes: [{ match: '#737373', fill: '#cccccc' }] },
       painter: { version: 1, scenes: {
         packs: [{ file: 'scene.bin', rows: { file: 'scene.json', path: ['pack'] }, names: ['names'], deflated: true }],
         recipes: [{ file: 'scene.json', path: ['scene'] }],
-      } } }));
+      } } };
+    writeFileSync(resolve(dir, 'look/map.json'), JSON.stringify(settings));
     const encoded = assembly.encode(), sources = new Map([['scene.json', encoded.json], ['scene.bin', encoded.binary]]);
+    const need = (name: string): Uint8Array => {
+      const bytes = sources.get(name); if (bytes === undefined) throw new Error(`Missing owned input ${name}`); return bytes;
+    };
+    const readers = { input: need, bytes: need, json: (name: string): unknown => JSON.parse(new TextDecoder().decode(need(name))) };
+    const direct = await rasterDataMap(settings, readers);
+    const pixelsHash = hashImmutableBytes(direct.pixels);
+    expect(existsSync(resolve(root, 'public/assets/fixture/map/top.webp'))).toBe(false);
+    expect(direct.pixels.length).toBe(1000 * 1000 * 4);
+    const again = await rasterDataMap(settings, readers);
+    expect(again.pixels === direct.pixels).toBe(false);
+    direct.pixels.fill(0); direct.raster.height.fill(0);
+    expect(hashImmutableBytes(again.pixels)).toBe(pixelsHash);
     const result = await paintDataMap(root, 'fixture', { sources });
+    expect(result.stamp.pixelHash).toBe(createHash('sha256').update('map-rgba8/1\u00001000x1000\u0000').update(again.pixels).digest('hex'));
     expect(result.raster.triangles).toBe(1);
     expect(result.raster.height.some(height => height === 4 * 65536)).toBe(true);
     const image = readFileSync(resolve(root, 'public/assets/fixture/map/top.webp'));
@@ -36,6 +53,18 @@ test('owned scene/pack bytes paint without files while undeclared fallback refus
       .rejects.toThrow('undeclared map input scene.bin');
     await expect(paintDataMap(root, 'fixture')).rejects.toThrow('undeclared map input scene.json');
   } finally { geometry.dispose(); rmSync(root, { recursive: true, force: true }); }
+});
+
+test('direct raster keeps painter, empty geometry and whole-library refusals', async () => {
+  const style = { kind: 'ground', classes: [{ match: '#737373', fill: '#cccccc' }] };
+  const readers = { input: (): Uint8Array => { throw new Error('Undeclared source'); },
+    bytes: () => new Uint8Array(), json: () => ({ props: { wholeLibrary: {} } }) };
+  await expect(rasterDataMap({ painter: { version: 2 }, style }, readers, { label: 'fixture' }))
+    .rejects.toThrow('fixture: missing data map painter declaration');
+  await expect(rasterDataMap({ painter: { version: 1 }, style }, readers, { label: 'fixture' }))
+    .rejects.toThrow('fixture: data map is empty');
+  await expect(rasterDataMap({ painter: { version: 1, props: ['props'] }, style }, readers, { label: 'fixture' }))
+    .rejects.toThrow('fixture: whole-library props need an explicit map assembly');
 });
 
 test('owned baked GLBs preserve selectors and placements without a physical file handoff', async () => {

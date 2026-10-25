@@ -55,35 +55,21 @@ export function createDataMapPreparation(root) {
  * @param {string} root @param {readonly string[]} [only] */
 export async function prepareDataMaps(root,only) {await createDataMapPreparation(root)(only);}
 
-/** Paint the exact render lattice and placed prop triangles. Each address is
- * already world-space in the authored products; no second placement law exists.
- * SF88g: `output` paints one declared output of the folder (scripts/shard-outputs.mjs) from its own `glbs`, into
- * public/assets/<output>/map/top.webp with its stamp at look/map.<output>.baked.json. An output's own row in the map
- * settings' `outputs` (G633: a tiled open plot) gives its `style` (else the folder's) and `exclude`, node-name prefixes
- * its glbs leave out (its collision boxes stand over its roofs; its additive light pools are no ground). */
-export async function paintDataMap(root, slug, { output, glbs, sources } = {}) {
+/** Rasterize declared map geometry into owned RGBA without publishing an image or stamp.
+ * Readers retain input authority; both source-owned and validated file inputs use this same algorithm. */
+export async function rasterDataMap(settings, data, { output, glbs, label = 'map' } = {}) {
   const { decodeTerrainTile } = await import('../src/format/terrainTileBytes.ts');
-  const dir = resolve(root, 'src/shards', slug), settings = json(mapSettingsPath(dir));
-  const tilesHash = mapTilesHash(dir);
   const painter = settings.painter;
-  if (painter?.version !== 1 || settings.style === undefined) throw new Error(`${slug}: missing data map painter declaration`);
+  if (painter?.version !== 1 || settings.style === undefined) throw new Error(`${label}: missing data map painter declaration`);
   const raster = new MapRaster(1000, settings);
-  const declared = settings.inputs.map(file => resolve(dir, file));
-  const input = file => {
-    const path = resolve(dir, file);
-    if (!declared.some(source => path === source || path.startsWith(source + sep))) throw new Error(`${slug}: undeclared map input ${file}`);
-    return path;
-  };
-  const source = file => sources?.get(file) ?? input(file);
-  const readBytes = file => { const value = source(file); return value instanceof Uint8Array ? value : readFileSync(value); };
-  const rows = file => JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(readBytes(file)));
+  const source = data.input, rows = data.json, readBytes = data.bytes;
   for (const file of painter.terrain ?? []) {
     const row = rows(file);
     for (const tile of row.terrain.tiles.filter(entry => entry.lod === 0)) raster.terrain(decodeTerrainTile(readBytes(`assets/${tile.file}`)));
   }
   for (const file of painter.props ?? []) {
     const { props } = rows(file);
-    if (props.wholeLibrary !== undefined) throw new Error(`${slug}: whole-library props need an explicit map assembly`);
+    if (props.wholeLibrary !== undefined) throw new Error(`${label}: whole-library props need an explicit map assembly`);
     for (const tile of props.tiles.filter(entry => entry.lod === 0)) for (const ref of [tile.file, ...tile.additionalFiles ?? []]) await raster.glb(source(`assets/${ref}`));
     for (const panel of props.panels.filter(entry => entry.visible !== false)) await raster.glb(source(`assets/${panel.file}`));
   }
@@ -94,9 +80,32 @@ export async function paintDataMap(root, slug, { output, glbs, sources } = {}) {
     const { paintMapScenes } = await import('./map-scenes.mjs');
     await paintMapScenes(raster, painter.scenes, settings, { input: source, json: rows, bytes: readBytes });
   }
-  if (raster.triangles === 0) throw new Error(`${slug}: data map is empty`);
+  if (raster.triangles === 0) throw new Error(`${label}: data map is empty`);
   const style = own?.style ?? settings.style;
   const pixels = stylizeMap(raster, style);
+  return { raster, pixels };
+}
+
+/** Paint the exact render lattice and placed prop triangles. Each address is
+ * already world-space in the authored products; no second placement law exists.
+ * SF88g: `output` paints one declared output of the folder (scripts/shard-outputs.mjs) from its own `glbs`, into
+ * public/assets/<output>/map/top.webp with its stamp at look/map.<output>.baked.json. An output's own row in the map
+ * settings' `outputs` (G633: a tiled open plot) gives its `style` (else the folder's) and `exclude`, node-name prefixes
+ * its glbs leave out (its collision boxes stand over its roofs; its additive light pools are no ground). */
+export async function paintDataMap(root, slug, { output, glbs, sources } = {}) {
+  const dir = resolve(root, 'src/shards', slug), settings = json(mapSettingsPath(dir));
+  const tilesHash = mapTilesHash(dir);
+  const declared = settings.inputs.map(file => resolve(dir, file));
+  const input = file => {
+    const path = resolve(dir, file);
+    if (!declared.some(source => path === source || path.startsWith(source + sep))) throw new Error(`${slug}: undeclared map input ${file}`);
+    return path;
+  };
+  const source = file => sources?.get(file) ?? input(file);
+  const readBytes = file => { const value = source(file); return value instanceof Uint8Array ? value : readFileSync(value); };
+  const rows = file => JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(readBytes(file)));
+  const { raster, pixels } = await rasterDataMap(settings, { input: source, json: rows, bytes: readBytes }, { output, glbs, label: slug });
+  const own = output === undefined ? undefined : settings.outputs?.[output], style = own?.style ?? settings.style, painter = settings.painter;
   const product = output ?? slug, image = resolve(root, 'public/assets', product, 'map/top.webp');
   mkdirSync(dirname(image), { recursive: true });
   // Lossless VP8L stores precisely the integer raster; no lossy SIMD rounding.
