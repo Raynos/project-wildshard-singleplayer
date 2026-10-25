@@ -455,6 +455,9 @@
       {
         "instance": "open-plot-nw",
         "slug": "open-plot-night-market",
+        "edgeLook": {
+          "height": 1.2
+        },
         "cell": [
           -1,
           1
@@ -487,6 +490,9 @@
       {
         "instance": "open-plot-1-0",
         "slug": "open-plot-night-market",
+        "edgeLook": {
+          "height": 1.2
+        },
         "cell": [
           -1,
           -2

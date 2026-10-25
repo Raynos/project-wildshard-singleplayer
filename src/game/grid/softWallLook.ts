@@ -11,7 +11,7 @@ import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, DoubleSide, G
 import type { LookScope } from './roadLayout';
 
 /** A wall in the home frame: the edge's centre, the axis its thin side faces, its half length; whose wall it is. */
-export interface SoftWallEdge { readonly instance: string; readonly x: number; readonly z: number; readonly axis: 'x' | 'z'; readonly halfLength: number }
+export interface SoftWallEdge { readonly instance: string; readonly x: number; readonly z: number; readonly axis: 'x' | 'z'; readonly halfLength: number; readonly height?: number }
 /** What the look reads each fixed step. */
 export interface SoftWallPorts {
   readonly closed: (instance: string) => boolean;
@@ -23,11 +23,13 @@ const HEIGHT = 7, CYAN = new Color(0x38e6ff);
 
 const vertex = /* glsl */ `
 attribute float aClosed;
+attribute float aHeight;
 varying float vClosed;
+varying float vHeight;
 varying vec2 vUv;
 varying vec3 vWorld;
 void main() {
-  vClosed = aClosed; vUv = uv;
+  vClosed = aClosed; vHeight = aHeight; vUv = uv;
   vec4 world = modelMatrix * vec4(position, 1.0);
   vWorld = world.xyz;
   gl_Position = projectionMatrix * viewMatrix * world;
@@ -36,6 +38,7 @@ const fragment = /* glsl */ `
 uniform vec3 uColour;
 uniform float uTime;
 varying float vClosed;
+varying float vHeight;
 varying vec2 vUv;
 varying vec3 vWorld;
 // distance to the nearest hex cell edge (cells ~0.9 m)
@@ -58,24 +61,26 @@ void main() {
   float line = 1.0 - smoothstep(0.0, 0.06, e);
   float wave = 0.5 + 0.5 * sin(vUv.y * 1.3 - uTime * 2.2 + vUv.x * 0.15);
   float ground = 1.0 - smoothstep(0.0, 0.6, vUv.y); // a bright foot where the wall meets the ground
-  float top = 1.0 - smoothstep(${(HEIGHT * 0.55).toFixed(1)}, ${HEIGHT.toFixed(1)}, vUv.y);
+  float top = 1.0 - smoothstep(vHeight * ${(Number((HEIGHT * 0.55).toFixed(1)) / HEIGHT).toPrecision(16)}, vHeight, vUv.y);
   float a = (0.07 + line * (0.35 + 0.25 * wave) + ground * 0.35) * top * near;
   gl_FragColor = vec4(uColour * a, 1.0);
 }`;
 
 function curtain(edges: readonly SoftWallEdge[]): BufferGeometry {
-  const position = new Float32Array(edges.length * 12), uv = new Float32Array(edges.length * 8), closed = new Float32Array(edges.length * 4), index: number[] = [];
+  const position = new Float32Array(edges.length * 12), uv = new Float32Array(edges.length * 8), closed = new Float32Array(edges.length * 4), heights = new Float32Array(edges.length * 4), index: number[] = [];
   edges.forEach((edge, k) => {
     const along = edge.axis === 'x' ? { x: 0, z: 1 } : { x: 1, z: 0 }, h = edge.halfLength;
-    const corners = [[-h, 0], [h, 0], [h, HEIGHT], [-h, HEIGHT]] as const;
+    const height = edge.height ?? HEIGHT;
+    const corners = [[-h, 0], [h, 0], [h, height], [-h, height]] as const;
     corners.forEach(([s, y], c) => {
       position.set([edge.x + along.x * s, y, edge.z + along.z * s], (k * 4 + c) * 3);
       uv.set([s + h, y], (k * 4 + c) * 2);
+      heights[k * 4 + c] = height;
     });
     const b = k * 4; index.push(b, b + 1, b + 2, b, b + 2, b + 3);
   });
   const g = new BufferGeometry().setAttribute('position', new BufferAttribute(position, 3)).setAttribute('uv', new BufferAttribute(uv, 2))
-    .setAttribute('aClosed', new BufferAttribute(closed, 1)).setIndex(index);
+    .setAttribute('aClosed', new BufferAttribute(closed, 1)).setAttribute('aHeight', new BufferAttribute(heights, 1)).setIndex(index);
   g.computeBoundingSphere();
   return g;
 }

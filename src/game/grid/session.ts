@@ -446,7 +446,10 @@ export class GridSession {
     this.roadBudget = { view: () => { const camera = host.frame?.camera; return camera === undefined ? null : roadViewCost(this.roadRoots, camera, this.roadPlans); }, resident: () => roadResident(this.roadRoots, this.roadPlans) };
     // G85: a closed neighbour edge shows as a cyan hex shimmer
     this.softWalls = installSoftWallLook({ scene: host.scene, scope: host.scope, time: () => app.clock.now,
-      edges: this.neighbours.flatMap((cell) => neighbourEdges(cell, home).map((edge) => ({ instance: cell.instance, x: edge.x, z: edge.z, axis: edge.axis, halfLength: edge.halfLength }))),
+      edges: this.neighbours.flatMap((cell) => neighbourEdges(cell, home).map((edge) => {
+        const look = { instance: cell.instance, x: edge.x, z: edge.z, axis: edge.axis, halfLength: edge.halfLength };
+        return cell.edgeLook === undefined ? look : Object.assign(look, { height: cell.edgeLook.height });
+      })),
       ports: { closed: (id) => this.live === null || !this.live.live.ready(id) } });
     // G578: a waiting cell's loading steps on an in-world screen at the edge the traveller faces; the world stays live
     const screen = new CellScreen(host.scene, host.scope);

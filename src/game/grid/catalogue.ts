@@ -18,7 +18,8 @@ const copyPlot = v.strictObject({ x: local, z: local, half: v.pipe(v.number(), v
 /** G220 pass 2: the copy's layout, a seed and its plots; the seed picks each plot's landmark (copyLayout.ts) */
 const layout = v.strictObject({ seed: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(2 ** 31 - 1)), plots: v.pipe(v.array(copyPlot), v.maxLength(8)) });
 const identity = v.strictObject({ accent: AccentSchema, marks: v.pipe(v.array(mark), v.maxLength(8)), layout: v.optional(layout) });
-const placement = v.strictObject({ instance: id, slug: id, cell: v.tuple([signed, signed]), identity: v.optional(identity) });
+const edgeLook = v.strictObject({ height: v.pipe(v.number(), v.finite(), v.minValue(0.5), v.maxValue(7)) });
+const placement = v.strictObject({ instance: id, slug: id, cell: v.tuple([signed, signed]), identity: v.optional(identity), edgeLook: v.exactOptional(edgeLook) });
 const channel = v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(1));
 const colour = v.tuple([channel, channel, channel]);
 const distance = v.pipe(v.number(), v.finite(), v.minValue(0));
@@ -39,6 +40,8 @@ export const GridCatalogueSchema = v.pipe(v.strictObject({ version: v.literal(0)
 export type GridCatalogue = v.InferOutput<typeof GridCatalogueSchema>;
 /** A copy's declared identity: its accent and its number panels (copyIdentity.ts). */
 export type CopyIdentity = v.InferOutput<typeof identity>;
+/** Placement-only curtain appearance; collision and readiness keep their independent rules. */
+export type GridEdgeLook = v.InferOutput<typeof edgeLook>;
 /** Runtime switches originate from Settings and build-time DEVSERVER; unfinished cells require Developer; DEVSERVER can override independently. */
 export interface GridMode { developer: boolean; devserver: boolean; nineDragon?: boolean }
 /** Reject malformed or duplicate placement data before allocating an assembly. */

@@ -3896,6 +3896,13 @@ replays cover both real fights, damage ranges and save continuation.
 
 ### Seamless grid crossing (SF20a)
 
+Grid placement rows may set `edgeLook: { height }` (0.5–7 m) to lower only the
+cyan readiness curtain. Missing rows retain the 7 m curtain. `GridAssembly` copies
+and freezes this appearance separately from identity; `GridSession` passes it only
+to `installSoftWallLook`. Collision edges, readiness, closed flags, entry triggers
+and the loading screen retain their existing dimensions and rules. Night Market's
+two placements use a 1.2 m curtain so its road view remains open (G681/G700).
+
 Grid road construction uses one ordered builder for synchronous callers and the sliced
 `GridSession.create` path. Internal `roadCull.ts` step generators yield during exact
 byte planning, triangle clipping, attribute copies and bin/LOD sorting. The internal
