@@ -92,7 +92,9 @@ test('custom shader patches restore scene identity after an independent lookup',
   const key = keyReader(material), a = new THREE.Scene(), b = new THREE.Scene(), owner = new Scope('scene-patch');
   const lights = [new THREE.DirectionalLight()], plain = key(a, lights);
   patchShader(material, 'scene-reader', PATCH_ORDER.view, () => undefined, { scope: owner });
-  expect(key(a, lights)).not.toBe(key(b, [new THREE.DirectionalLight()]));
+  const patched = key(a, lights);
+  expect(patched).not.toBe(key(b, [new THREE.DirectionalLight()]));
+  expect(key(a, lights)).toBe(patched);
   owner.dispose();
   expect(key(a, lights)).toBe(plain);
   material.dispose();

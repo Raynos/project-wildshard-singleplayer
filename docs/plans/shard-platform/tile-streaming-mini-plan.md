@@ -351,6 +351,24 @@ keys only for identical content, prove pixel parity and flat warm program
 counts, then one T1 rerun. No look change or native-gate rebase. Region ghosts at returns 2/4 (one retired
 Driftwood each) clear at the next boundary; final ghosts are zero.
 
+The bounded first slice landed in `f2bcc81c08`, with custom-patch cache
+invalidation tightened in `41dbfacf01`. Only compiler-certified unlit graphs
+with fog disabled and no scene-reading ops omit the unused scene hash;
+material env/lights overrides, layer bindings and custom shader patches
+retain it. The [real Metal GL kernel](../../../progress/shard-platform/tile-streaming/t1-scene-key-kernel.json)
+reuses one program over six independent scenes (before: six), with all
+18 before/after RGBA pairs byte-identical. Lit and fog-input controls keep
+their six distinct programs. This is not a live program-count, memory or
+phone result. The corrected exact preview failed before any capture on
+Sunscar's transitive `node:fs` config dependency; GR4 owner notified. The
+one post-fix program diagnostic and plain T1 remain unstarted.
+
+The follow-up TIME-key audit is sizing only: 16 authored Driftwood look
+graphs use boxed wind-time/gust references. `graphShape` serializes the
+numeric payload, but `shareKeyOf` caches that shape per material. Advancing
+time alone does not re-key an existing material; steady new-key frequency
+is unmeasured. No ReferenceNode key or uniform binding has changed.
+
 Prior [fbb acceptance](../../../progress/shard-platform/tile-streaming/t1-retirement-fbb.json),
 [fbb resource evidence](../../../progress/shard-platform/tile-streaming/t1-resources-fbb.json),
 [794 acceptance](../../../progress/shard-platform/tile-streaming/t1-retirement-794.json)
