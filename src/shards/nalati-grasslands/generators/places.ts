@@ -28,7 +28,7 @@ import { writeGeometry, join } from './geometryWriter';
 import { LEOPARD_CAVE, ARGYMAQ_PASTURE, SNOW_LOTUS, WATCHTOWER, KOKPAR, PASTURE, HORSE_PLAINS, SUMMER_YURTS, RIM_N as RIM_Z, MELT_STREAM as BROOK } from './layout';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Rng } from '@wildshard/engine/core/rng';
-import { inPoiClearing,zoneAt,glacierMask,brookMask,riverMask,rimZAt,RIVER,outcropAt,edgeBermAt } from './terrainRecipe';
+import { inPoiClearing,zoneAt,glacierMask,brookMask,riverMask,rimZAt,RIVER,outcropAt,edgeBermAt,TERRAIN } from './terrainRecipe';
 import { Noise2D, smoothstep } from '@wildshard/sdk/noise';
 import { normalAt, trailDistance } from '@wildshard/engine/world/Heightfield';
 
@@ -1036,14 +1036,20 @@ export interface PlacesBake<R> { readonly rows: readonly R[]; readonly bin: Uint
 type SpecimenScope = (build: () => SpecimenRow[]) => SpecimenRow[];
 const nativeSpecimenScope: SpecimenScope = (build) => build();
 
+/** Explicit original terrain queries for an owned native placement build. */
+export interface PlaceQueries {
+  readonly normalAt: (x: number, z: number, epsilon?: number) => [number, number, number];
+  readonly trailDistance: (x: number, z: number) => number;
+}
+
 /**
  * The bake over the page's ground (its baked terrain sampler): the places in the page's order (the camp, the
  * bridge, the summer camp, Eagle Rock, the Wind Cairn), then the specimens (the bridge's fitted to its first placement, so after the places), then
  * the dressing's scatter shapes (their own binary, `dressing.bin`).
  */
-export function bakeNalatiPlaces(ground: Ground, specimenScope: SpecimenScope = nativeSpecimenScope, dressing?: { readonly plan: DressPlan; readonly clutter: ClutterSpots }): { places: PlacesBake<PlaceRow>; specimens: PlacesBake<SpecimenRow>; dressing: PlacesBake<DressingGeoRow> } {
+export function bakeNalatiPlaces(ground: Ground, specimenScope: SpecimenScope = nativeSpecimenScope, dressing?: { readonly plan: DressPlan; readonly clutter: ClutterSpots }, queries?: PlaceQueries): { places: PlacesBake<PlaceRow>; specimens: PlacesBake<SpecimenRow>; dressing: PlacesBake<DressingGeoRow> } {
   const blocks: Uint8Array[] = [];
-  const rows = [nomadCamp, bridge, summerCamp, eagleRockPlace, cairnPlace, kurgansPlace, cragsPlace, roadsPlace, watchtowerPlace, kokparPlace, (ctx: PaintCtx) => finishBuild(outcropsPlace(ctx)), (ctx: PaintCtx) => finishBuild(dressingStatics(ctx, dressingInput(dressing).plan)), (ctx: PaintCtx) => finishBuild(dressingClutter(ctx, dressingInput(dressing).clutter))].map((build): PlaceRow => {
+  const rows = [nomadCamp, bridge, summerCamp, eagleRockPlace, cairnPlace, kurgansPlace, cragsPlace, roadsPlace, watchtowerPlace, kokparPlace, (ctx: PaintCtx) => finishBuild(outcropsPlace(ctx, 0x0c7, queries)), (ctx: PaintCtx) => finishBuild(dressingStatics(ctx, dressingInput(dressing).plan)), (ctx: PaintCtx) => finishBuild(dressingClutter(ctx, dressingInput(dressing).clutter))].map((build): PlaceRow => {
     const effects: EffectRow[] = [];
     const ctx: PaintCtx = { ground, flutter: recordingFlutter(effects), smoke: recordingPlumes(effects) };
     const p = build(ctx, effects), { members, instances } = p.set.rows();
@@ -1079,7 +1085,9 @@ export function bakeNalatiPlaces(ground: Ground, specimenScope: SpecimenScope = 
 /** the bake over the page's baked terrain grid (public/assets/baked/nalati-grasslands/terrain.bin), as the page samples it */
 export function bakeNalatiPlacesOnTerrain(terrain: ArrayBuffer, specimenScope: SpecimenScope = nativeSpecimenScope, dressing?: { readonly plan: DressPlan; readonly clutter: ClutterSpots }): ReturnType<typeof bakeNalatiPlaces> {
   const source = readNativeTerrain(new Uint8Array(terrain));
-  return bakeNalatiPlaces(source.heightAt, specimenScope, dressing);
+  const trail = TERRAIN.trailDistance;
+  if (trail === undefined) throw new Error('Native places require authored trail queries');
+  return bakeNalatiPlaces(source.heightAt, specimenScope, dressing, { normalAt: source.normalAt, trailDistance: trail });
 }
 
 function watchtowerPlace(ctx: PaintCtx): BuiltPlace {
@@ -1366,8 +1374,11 @@ export function* dressingClutter(ctx: PaintCtx, spots: ClutterSpots): Generator<
 
 /** The original outcrop placement and paint, offline over native terrain. */
 
-export function* outcropsPlace(ctx: PaintCtx, seed = 0x0c7): Generator<void, BuiltPlace> {
+export function* outcropsPlace(ctx: PaintCtx, seed = 0x0c7, queries?: PlaceQueries): Generator<void, BuiltPlace> {
   const heightAt = ctx.ground;
+  // Legacy callers retain the live field; owned builds use only their supplied queries.
+  const sampleNormal = queries?.normalAt ?? ((x: number, z: number, epsilon?: number) => normalAt(x, z, epsilon));
+  const sampleTrail = queries?.trailDistance ?? ((x: number, z: number) => trailDistance(x, z));
   const kit = new PaintKit(seed);
   const rng = kit.rng;
   const set = new NalatiSet(kit, ctx);
@@ -1379,12 +1390,12 @@ export function* outcropsPlace(ctx: PaintCtx, seed = 0x0c7): Generator<void, Bui
   const step = 8;
   for (let gx = -244; gx <= 244; gx += step) for (let gz = RIM_Z - 10; gz <= 160; gz += step) {
     const x = gx + rng.range(-step * 0.45, step * 0.45), z = gz + rng.range(-step * 0.45, step * 0.45);
-    const [nx, ny, nz] = normalAt(x, z, 1.5);
+    const [nx, ny, nz] = sampleNormal(x, z, 1.5);
     const slope = 1 - ny;
     if (slope < 0.045) continue; // 1 − n.y: 0.045 ≈ 17°, 0.13 ≈ 30°
     const y0 = heightAt(x, z);
     if (y0 < -8.5 || y0 > 46) continue;
-    if (trailDistance(x, z) < 7 || riverMask(x, z) > 0 || inPoiClearing(x, z, 4)) continue;
+    if (sampleTrail(x, z) < 7 || riverMask(x, z) > 0 || inPoiClearing(x, z, 4)) continue;
     if (Math.abs(x) > 238 || Math.abs(z) > 238) continue;
     // clustered where the ground paints rock (the def's outcropAt: rock breaking through the turf), grass between
     const c = outcropAt(x, z) * 1.25 - 0.2;
@@ -1417,8 +1428,8 @@ export function* outcropsPlace(ctx: PaintCtx, seed = 0x0c7): Generator<void, Bui
     const c = cluster.fbm(x * 0.03 + 40, 3.3, 2);
     if (c < -0.12 || rng.next() > 0.75) continue;
     const z = rimZAt(x) + rng.range(4, 12);
-    if (trailDistance(x, z) < 8 || inPoiClearing(x, z, 4)) continue;
-    const [nx, ny, nz] = normalAt(x, z, 1.5);
+    if (sampleTrail(x, z) < 8 || inPoiClearing(x, z, 4)) continue;
+    const [nx, ny, nz] = sampleNormal(x, z, 1.5);
     if (1 - ny < 0.04) continue;
     const size = 1.2 + rng.next() * 2.2;
     const w = size * rng.range(1.6, 2.8), h = size * rng.range(0.9, 1.5), d = size * rng.range(1.0, 1.5);
@@ -1446,7 +1457,7 @@ export function* outcropsPlace(ctx: PaintCtx, seed = 0x0c7): Generator<void, Bui
       if (cluster.fbm(x * 0.025 + side * 17, 9.1, 2) < -0.05 || rng.next() > 0.6) continue;
       const bank = side * (RIVER.half(x) + rng.range(-3, 2.5));
       const bx = x + rng.range(-2, 2), bz = RIVER.z(bx) + bank;
-      if (trailDistance(bx, bz) < 6 || inPoiClearing(bx, bz, 2)) continue;
+      if (sampleTrail(bx, bz) < 6 || inPoiClearing(bx, bz, 2)) continue;
       const n = rng.int(1, 3);
       for (let k = 0; k < n; k++) {
         const r = rng.range(0.45, 1.3), ox = bx + rng.range(-2, 2), oz = bz + rng.range(-1.5, 1.5);
@@ -1463,7 +1474,7 @@ export function* outcropsPlace(ctx: PaintCtx, seed = 0x0c7): Generator<void, Bui
     const len = Math.hypot(b[0] - a[0], b[1] - a[1]), tx = (b[0] - a[0]) / len, tz = (b[1] - a[1]) / len;
     for (let d = rng.range(0, 2); d < len; d += rng.range(1.8, 3.6)) {
       const px = a[0] + tx * d, pz = a[1] + tz * d;
-      if (trailDistance(px, pz) < 5 || inPoiClearing(px, pz, 1)) continue;
+      if (sampleTrail(px, pz) < 5 || inPoiClearing(px, pz, 1)) continue;
       if (rng.next() < 0.45) {
         const r = rng.range(0.3, 0.75), u = rng.range(-0.9, 0.9);
         const bx = px - tz * u, bz = pz + tx * u;
@@ -1491,8 +1502,8 @@ export function* outcropsPlace(ctx: PaintCtx, seed = 0x0c7): Generator<void, Bui
       const x = side === 0 ? s : side === 1 ? -s : side === 2 ? CHUNK_HALF - d : -CHUNK_HALF + d;
       const z = side === 0 ? CHUNK_HALF - d : side === 1 ? -CHUNK_HALF + d : side === 2 ? -s : s;
       const rise = edgeBermAt(x, z);
-      if (rise < 4 || trailDistance(x, z) < 9 || inPoiClearing(x, z, 2)) continue;
-      const [nx, ny, nz] = normalAt(x, z, 1.5);
+      if (rise < 4 || sampleTrail(x, z) < 9 || inPoiClearing(x, z, 2)) continue;
+      const [nx, ny, nz] = sampleNormal(x, z, 1.5);
       const size = 1.1 + rng.next() * 2.4 * Math.min(1, rise / 12);
       const w = size * rng.range(1.3, 2.5), h = size * rng.range(0.9, 1.6), dd = size * rng.range(1.0, 1.5);
       const downYaw = Math.atan2(nx, nz), yaw = downYaw + Math.PI / 2 + rng.range(-0.5, 0.5);

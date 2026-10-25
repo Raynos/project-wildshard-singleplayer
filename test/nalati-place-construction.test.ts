@@ -60,3 +60,23 @@ test('continuous forest decisions retain the original static stump lost by the b
   const counts = v.parse(v.strictObject({ runtime: v.number(), original: v.number() }), JSON.parse(output));
   expect(counts).toEqual({ runtime: 10, original: 11 });
 });
+
+test('owned outcrops use only supplied queries without an active level', () => {
+  const source = `
+    import assert from 'node:assert/strict';
+    import { selectedLevel } from '@wildshard/engine/level/selection';
+    import { outcropsPlace } from './src/shards/nalati-grasslands/generators/places.ts';
+    assert.equal(selectedLevel(),null);
+    let normals=0,trails=0;
+    const noop=()=>undefined;
+    const steps=outcropsPlace({ground:()=>0,flutter:{streamer:noop,flag:noop,strip:noop},smoke:{emitter:noop}},0x0c7,{
+      normalAt:(_x,_z,epsilon)=>{assert.equal(epsilon,1.5);normals++;return [0,1,0];},
+      trailDistance:()=>{trails++;return Infinity;},
+    });
+    let step=steps.next();while(!step.done)step=steps.next();
+    assert.ok(normals>0);assert.ok(trails>0);
+    assert.equal(step.value.name,'outcrops');
+    for(const mesh of step.value.meshes)mesh.geometry.dispose();
+  `;
+  execFileSync(process.execPath, ['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', '--input-type=module', '--eval', source]);
+});
