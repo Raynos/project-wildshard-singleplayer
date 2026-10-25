@@ -2,8 +2,9 @@
 
 **State:** `in flight` (2026-10-25, sp-x2) — menu G682 PASS at 93.476 MiB;
 C1.1 worker backing cut done `9108b14ec6`, C2 reading / C3 title isolation qualified
-in §10. Historical Chromium retention attribution and current selection/template
-floors remain open; C5 remains a look pick. Budgets stay fixed.
+in §10. Current Template 1 remains FAIL at 260.070 MiB (§11); C4 holder attribution
+and current selection/Template 2 floors remain open. C5 remains a look pick.
+Budgets stay fixed.
 An extra under G639 (after Nalati to zero and grid readiness).
 
 Jake, 2026-10-23, reading the tile streaming page (*"What tiles can't remove: the ~300 MB engine base, the ~320 MB of
@@ -15,9 +16,10 @@ the page components take 300, then that should show in template 1 and template 2
 ## Answer
 
 **Current menu G682 PASS (2026-10-25): 93.476 MiB combined WebContent + GPU**
-on `59aaa985dd`, with all 24 products prefetched; see §10. Selection and templates
-have not been remeasured in this cohort: their last readings on `f4465ac4ab`
-were 169.5 / 317.1 / 304.6 MiB, all misses (§7). The respective limits remain
+on `59aaa985dd`, with all 24 products prefetched; see §10. Template 1 is now
+**260.070 MiB FAIL** on `87491b8aa7` (§11). Selection and Template 2 remain
+unremeasured since `f4465ac4ab`: 169.5 / 304.6 MiB, both misses (§7).
+The respective limits remain
 148.5383 / 198.5383 MiB. No four-floor PASS or single-cut causal gain is claimed.
 The measurements below in §§1–3 are historical.
 
@@ -421,3 +423,55 @@ absent and zero booted devices verified before source checks resumed. Raw
 samples/categories, the exact version and offline verdict remain locally at
 `tmp/sp-x2/core-c1-menu/`. Selection/template budgets and original Chromium
 retention attribution remain open.
+
+## 11. C4 Template holder audit (2026-10-25, sp-x2)
+
+| Slice (at most 1 h) | Status | Result / remaining acceptance |
+|---|---|---|
+| C4.1 Current native reading and cache lifetime | done (this commit), measured FAIL retained | Template 1 260.070 / 198.538 MiB; no runtime errors. New real-GC contracts prove settled downloads/write snapshots are released on success and quota refusal while the cache remains alive. No production release was justified. |
+| C4.2 Remaining holder attribution | open | Resolve current JS/GC-owned and Page storage into concrete holders before changing lifetime. The old 55 MiB cache-body / 23 MiB resource-cache explanation is not established by this visit. |
+| C6 Model source | done previously `d2ef0c0848`, historical calibration | 250 MiB base, explicit grid-only page claims, unchanged caps. This visit does not silently recalibrate the estimator or establish current ±15% accuracy. |
+
+One official cold compiled Template 1 visit used landed `87491b8aa7`, build
+`87491b8-mvo9ztg9`, with the existing reader's original title/select/SHARDFILE
+entry, phone tier, 2× render and muted audio. No forced GC, heap snapshot or
+Network-body capture. The selected-floor budget gate correctly exits **rc1**:
+complete samples/errors0, not a boot failure.
+
+| Original sample | WebContent bytes | GPU bytes | Combined MiB |
+|---|---:|---:|---:|
+| 10 s | 246,895,752 | 42,109,424 | 275.617 |
+| 60 s | 231,543,944 | 42,158,552 | 261.023 |
+| 120 s | 230,642,824 | 42,060,248 | **260.070 FAIL** |
+
+Every sample sums both WebContent processes plus GPU. The original 120 s
+total **272,703,072 B** exceeds the unchanged **208,182,520 B** limit by
+**64,520,552 B / 61.532 MiB**. This page has no active grid prefetch. The
+historical Chromium renderer-only 230 MiB criterion was not measured here;
+WebKit's 219.958 MiB WC alone must not replace the combined G682 verdict.
+
+Post-acceptance passive category events report last JavaScript/GC-owned
+106,849,980 B (101.900 MiB), Page 118,213,188 B (112.737 MiB), Other
+31,604,736 B and JIT 18,251,776 B; Images/Layers zero. Timestamps are zero.
+These are not a disjoint physical-footprint decomposition or a worker census.
+The weak allocation ledger names product backing 5,862,263 B, script backing
+2,883,584 B, physics 1,835,008 B, render targets 42,407,988 B and engine-scene
+GPU 12,766,900 B. Capacities/aliases and native process accounting are distinct;
+subtracting those rows cannot identify a removable 61.532 MiB holder.
+
+| Audited holder | Lifetime / readers | Decision |
+|---|---|---|
+| `ContentCache.inflight` + `pendingWrites` | Keep verified shared download through durable write acknowledgement; both entries leave on success/refusal. | Real-GC tests collect both internal download and write backing with the same cache alive, preserve independent caller mutation, verify exact durable reread and honest offline miss after refusal. No source change. |
+| Worker pending/deferred commands | Posted requests retain owned put snapshots until reply; fetch `stored` replies return no body. | Existing bounded request retirement stays. Current worker heap/backing bytes remain unknown. |
+| `ClientAssets.wire` / admitted product maps | Critical/library/ground bytes still feed synchronous/native/lazy readers; supported transport release has explicit ownership and reread fences. | Preserve; indiscriminate clear-after-boot would bypass these readers. Shared maps alone do not mean duplicate physical backing. |
+| Product request/index aliases | Scoped owners share one descriptor; last-owner retirement removes aliases. | No current leaking owner proved. |
+| Browser URL/content storage | URL cache is a verified hint; content persistence supports offline and revisits. | Native storage remains unattributed. Do not flush useful caches to manufacture a passing sample. |
+| Composer / render-target capacities | Active live renderer inputs. | C5 remains the separate Opus/Jake look variant; no visual or GPU policy edit here. |
+
+sp-x7 reported an artifact download/stream inspection and small Python regression
+overlap before noticing quiet around 20:25Z. It is retained as overlap; no clean
+timing or single-cut causal gain is claimed. Safari/Inspector/proxy, owned
+preview and Simulator closed; quiet absent and zero booted devices verified
+before source checks resumed. Release-red owners received the natural cleanup
+handoff. No retry or second native visit. Original data and compact offline
+rollup remain in `tmp/sp-x2/core-c4-template/`.
