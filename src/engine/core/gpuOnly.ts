@@ -8,6 +8,7 @@ import { enteredOwner } from '../app/ownership';
 import { resourceScope } from '../app/resources';
 import type { Scope } from '../app/scope';
 import { geometryBoundsSteps } from '../world/geometryBounds';
+import { onceTextureUploaded } from '../render/textureUploadEvents';
 
 const labels = new Set<string>();
 /** marks made outside any shard (at module load: KTX2 mode drops every texture's mips once uploaded) — the page's, never reset */
@@ -105,12 +106,6 @@ function releaseSource(t: Texture): void {
  * Only for a texture nothing updates again. A lost context reloads the page (`label`).
  */
 export function gpuOnlyTexture(t: Texture, label: string): void {
-  // oxlint-disable-next-line wildshard/no-hook-chain -- three.js's Texture.onUpdate is a third-party one-slot hook; the release runs once, then hands it back
-  const prev = t.onUpdate;
-  t.onUpdate = (tex: Texture): void => {
-    prev?.(tex);
-    releaseSource(tex);
-    t.onUpdate = prev;
-  };
+  onceTextureUploaded(t, releaseSource);
   markGpuOnly(label);
 }

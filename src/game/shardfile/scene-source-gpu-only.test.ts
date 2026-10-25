@@ -6,6 +6,7 @@ import * as rig from '@wildshard/engine/anim/rig';
 import { SkyRig } from '@wildshard/engine/world/skyRig';
 import { parseWorldScenes } from '@wildshard/format/worldScenes';
 import { worldSceneSourceMaterial } from './worldSceneMaterials';
+import { installTextureUploadEvents, type TextureUploadRenderer } from '@wildshard/engine/render/textureUploadEvents';
 
 // A source material row's file: two materials over one aliased texture (one's map and normal map, the other's map) and
 // a second texture, each with its own upload hook.
@@ -24,14 +25,20 @@ async function source() {
   return { shared, normal, hooks, a, b, geometry, file, sky, setup, row };
 }
 
-test('a GPU-only source arms each texture once across aliased slots and materials, then restores its upload hook', async () => {
+test('a GPU-only source releases once across aliased slots while keeping its native upload hook', async () => {
   const { shared, normal, hooks, a, file, sky, row } = await source(), owner = new Scope('sculpt');
   const load = vi.spyOn(rig, 'loadRigFile').mockResolvedValue(file);
+  const versions = new WeakMap<object, { __version: number }>();
+  const renderer: TextureUploadRenderer = { properties: { get: object => typeof object === 'object' && object !== null ? versions.get(object) : undefined },
+    initTexture: texture => { renderer.properties.get(texture); texture.onUpdate?.(texture); versions.set(texture, { __version: texture.version }); versions.set(texture.source, { __version: texture.source.version }); },
+    render: () => undefined };
+  installTextureUploadEvents(renderer);
   try {
     expect(await worldSceneSourceMaterial(row, sky, owner)).toBe(a);
     for (const texture of [shared, normal]) {
       const hook = hooks.get(texture);
-      texture.onUpdate?.(texture);
+      expect(texture.onUpdate).toBe(hook);
+      renderer.initTexture(texture);
       expect(hook).toHaveBeenCalledOnce(); expect(texture.onUpdate).toBe(hook);
       // one release: the CPU copy is gone and a later upload runs only the original hook
       expect(texture.image.data?.length).toBe(0);

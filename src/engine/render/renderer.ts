@@ -7,6 +7,7 @@
 import * as THREE from 'three';
 import { installGpuLabels, labelledCreation } from './gpuLabels';
 import { installFrameCounter } from './frameCounter';
+import { installTextureUploadEvents } from './textureUploadEvents';
 import { installDiagnosticJournal } from './diagnosticJournal';
 import { installDoubleElements } from './doubleElements';
 import { installCompileShadowSkip } from './compileShadows';
@@ -38,5 +39,6 @@ export function createRenderer(canvas: HTMLCanvasElement, context: WebGL2Renderi
   const dispose = renderer.dispose.bind(renderer);
   renderer.dispose = () => { try { dispose(); } finally { stopJournal(); } };
   installFrameCounter(renderer); // SF59: the engine counts its own renders (frameCounter.ts)
+  installTextureUploadEvents(renderer);
   return renderer;
 }
