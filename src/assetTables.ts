@@ -1,8 +1,8 @@
-import { installAssetTables, type AssetTables, type PackDef, type PackFile, type PackPart } from '@wildshard/engine/boot/tables';
+import { installAssetTables, publicBytes, assetVersions, musicManifests, sfxManifests, bootPacks, type AssetTables, type PackDef, type PackFile, type PackPart } from '@wildshard/engine/boot/tables';
 import { declareDownloadFile } from '@wildshard/engine/boot/download';
 
 interface Address { readonly url: string; readonly bytes: number; readonly sha256: string }
-declare const __BOOT_TABLE_ASSET__: Address;
+declare const __BOOT_TABLE_ASSETS__: { readonly common: Address; readonly all: Address; readonly packs: Readonly<Record<string, Address>> };
 const record = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
 const size = (value: unknown): value is number => typeof value === 'number' && Number.isSafeInteger(value) && value >= 0;
 const files = (value: unknown): value is readonly PackFile[] => Array.isArray(value) && value.every((row: unknown) => Array.isArray(row) && row.length === 4
@@ -42,7 +42,7 @@ export async function readAssetTables(address: Address, read: (url: string) => P
 let pending: Promise<void> | undefined;
 async function load(): Promise<void> {
   try {
-    const address = __BOOT_TABLE_ASSET__;
+    const address = __BOOT_TABLE_ASSETS__.common;
     declareDownloadFile(address.url, address.bytes);
     const line = document.querySelector<HTMLElement>('.ws-load [data-el="line"]');
     if (line !== null) line.textContent = 'Reading download inventory';
@@ -52,4 +52,24 @@ async function load(): Promise<void> {
 export function prepareAssetTables(): Promise<void> {
   pending ??= load();
   return pending;
+}
+
+const packReads = new Map<string, Promise<void>>();
+async function loadPacks(address: Address): Promise<void> {
+  try {
+    declareDownloadFile(address.url, address.bytes);
+    const incoming = await readAssetTables(address, url => fetch(url));
+    installAssetTables({ bytes: publicBytes(), versions: assetVersions(), music: musicManifests(), sfx: sfxManifests(),
+      packs: { ...bootPacks(), ...incoming.packs } });
+  } catch (error) { packReads.delete(address.url); throw error; }
+}
+/** Before session data or background downloads can call packFor. A grid/desktop
+ * page borrows the complete pack bank; a standalone phone borrows only its own. */
+export async function prepareAssetPacks(key?: string): Promise<void> {
+  await prepareAssetTables();
+  const address = key === undefined ? __BOOT_TABLE_ASSETS__.all : __BOOT_TABLE_ASSETS__.packs[key];
+  if (address === undefined) return; // The original packFor returns null for an unpacked shard.
+  let reading = packReads.get(address.url);
+  if (reading === undefined) { reading = loadPacks(address); packReads.set(address.url, reading); }
+  await reading;
 }

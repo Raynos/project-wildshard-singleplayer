@@ -165,6 +165,7 @@ async function startSelected(): Promise<void> {
     loading.setPrefetchSource(gridPrefetchStatus);
     const source = pageGridRecovery() === null ? await configuredShardfile(document, browserShardfileOptions(document.baseURI)) : null;
     page = preparePageResidency(game.shard, source?.identity.slug);
+    await (await retried(() => import('./assetTables'))).prepareAssetPacks(page.mode === 'grid' || TIER !== 'phone' ? undefined : game.shard.slug);
     await completePageCatalogue(page.mode);
     const path = page.mode === 'grid' ? 'grid' : source !== null || shardEntry(game.shard) === 'shardfile' ? 'shardfile' : 'legacy';
     // Publish every selected bank together before reading the descriptor.
