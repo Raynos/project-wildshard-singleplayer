@@ -87,6 +87,10 @@ JSON and raw packed geometry bytes without compression, file reads or
 publication. The caller retains geometry/material disposal ownership.
 The retained Node map adapter uses the same packer and applies its original
 zlib compression and file publication afterward.
+`mapModelBytes(bytes, slot?, world?)` in that module decodes one prepared
+GLB mesh with its original vertex/index order. Local geometry is the default;
+an explicit world flag applies the selected node's world matrix. External
+GLB resource URIs refuse; file adapters must supply every input byte.
 
 A cached step may also name a public asset URL beneath an input root explicitly
 supplied by the CLI's manifest intake. Each URL must select exactly one root;

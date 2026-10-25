@@ -1,5 +1,42 @@
 import { BufferGeometry, Float32BufferAttribute, Matrix4, MeshBasicMaterial } from 'three';
+import { WebIO } from '@gltf-transform/core';
+import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
+import { MeshoptDecoder } from 'meshoptimizer';
 import { GeometryPackWriter } from '../kit/geometryPack';
+
+class MapModelIO extends WebIO {
+  protected override readURI(uri: string, _type: 'view' | 'text'): Promise<never> {
+    return Promise.reject(new Error(`Map model must be self-contained: ${uri}`));
+  }
+}
+
+/** Decode one prepared mesh from owned GLB bytes, keeping its local pose unless world is explicit.
+ * External resources refuse; this build-only operation has no filesystem or URL authority. */
+export async function mapModelBytes(bytes: Uint8Array, slot = 0, world = false): Promise<BufferGeometry> {
+  await MeshoptDecoder.ready;
+  const io = new MapModelIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'meshopt.decoder': MeshoptDecoder });
+  const doc = await io.readBinary(bytes);
+  const node = doc.getRoot().listNodes().filter(row => row.getMesh() !== null).at(slot), mesh = node?.getMesh();
+  if (mesh?.listPrimitives().length !== 1) throw new Error(`Map model needs one primitive: ${slot}`);
+  const primitive = mesh.listPrimitives()[0];
+  if (primitive === undefined) throw new Error(`Missing map primitive: ${slot}`);
+  const geometry = new BufferGeometry();
+  for (const [semantic, name] of [['POSITION', 'position'], ['COLOR_0', 'color']] as const) {
+    const source = primitive.getAttribute(semantic); if (source === null) continue;
+    const values: number[] = [];
+    for (let i = 0; i < source.getCount(); i++) values.push(...source.getElement(i, []).slice(0, 3));
+    geometry.setAttribute(name, new Float32BufferAttribute(values, 3));
+  }
+  const index = primitive.getIndices(); if (index !== null) {
+    const values = index.getArray(); if (values === null) throw new Error('Missing map primitive indices');
+    geometry.setIndex(Array.from(values));
+  }
+  if (world) {
+    if (node === undefined) throw new Error(`Missing map model node: ${slot}`);
+    geometry.applyMatrix4(new Matrix4().fromArray(node.getWorldMatrix()));
+  }
+  return geometry;
+}
 
 interface MapShape { name: string; geometry: BufferGeometry; material: MeshBasicMaterial }
 interface MapNode {
