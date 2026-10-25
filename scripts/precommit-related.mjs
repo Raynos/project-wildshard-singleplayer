@@ -1,8 +1,9 @@
 // CF1: working-tree related tests and warm types, one bounded, fail-open attempt.
 import { execFileSync } from 'node:child_process';
-import { randomUUID } from 'node:crypto';
-import { existsSync, mkdirSync, mkdtempSync, rmSync } from 'node:fs';
-import { relative, resolve } from 'node:path';
+import { createHash, randomUUID } from 'node:crypto';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { basename, dirname, relative, resolve } from 'node:path';
+import ts from '@typescript/typescript6';
 import { runCommitJobs } from './precommit-jobs.mjs';
 import { stagedFiles, stagedProjectFailures, stagedProjects } from './precommit-projects.mjs';
 import { selectRelatedSuites } from './precommit-selection.mjs';
@@ -36,12 +37,47 @@ export function relatedTestFailed(result, token) {
 /** Override only differing tracked text modules, including peer WIP. Never
  * copy a tree or change loose files/the shared index. Generated inputs retain
  * the existing verified-product preflight and CI authority.
- * @param {string} root @param {ReturnType<typeof stagedFiles>} staged */
-export function stagedInputOverride(root, staged) {
+ * @param {string} repository @param {ReturnType<typeof stagedFiles>} staged */
+export function stagedInputOverride(repository, staged) {
+  const root = resolve(repository);
   const dirty = execFileSync('git', ['diff', '--name-only', '-z', '--no-renames'], { cwd: root, encoding: 'utf8' }).split('\0').filter(file => TEXT.test(file));
   const overrides = new Map(dirty.map(file => [resolve(root, file), staged.read(file)]));
+  // A cached transform also holds resolved imports. Inventory and export-map
+  // changes invalidate it even when the importing source itself is unchanged.
+  const identity = createHash('sha256').update(readFileSync(import.meta.filename)).update(JSON.stringify(
+    staged.paths.filter(path => /(?:^|\/)package\.json$/u.test(path)).map(path => [path, staged.blobs?.get(path) ?? staged.read(path)]),
+  )).digest('hex');
+  /** @type {Map<string, Set<string>>} */
+  const children = new Map();
+  for (const file of staged.paths) {
+    let path = resolve(root, file);
+    while (path !== root) {
+      const parent = dirname(path), names = children.get(parent) ?? new Set();
+      names.add(basename(path)); children.set(parent, names); path = parent;
+    }
+  }
+  const inventory = new Map([...children].map(([directory, names]) => [directory, [...names].sort()]));
   return {
-    name: 'wildshard:commit-inputs', enforce: /** @type {const} */ ('pre'),
+    name: 'wildshard:commit-inputs',
+    configureVitest(/** @type {import('vitest/node').VitestPluginContext} */ { defineCacheKeyGenerator }) {
+      defineCacheKeyGenerator(({ id, sourceCode }) => {
+        const path = id.split('?', 1)[0];
+        // Vitest hashes loose file bytes before plugin.load. Never reuse those
+        // transforms for an index override or a directory-sensitive glob.
+        if (path === undefined || overrides.has(path) || /import\s*\.\s*meta\s*\.\s*glob\b/u.test(sourceCode)) return false;
+        // Only relative resolution directories matter. An unrelated new file
+        // must not invalidate every module in the checkout's warm transform bank.
+        /** @type {Set<string>} */
+        const directories = new Set();
+        for (const imported of ts.preProcessFile(sourceCode, true, true).importedFiles) {
+          if (!imported.fileName.startsWith('.')) continue;
+          const target = resolve(dirname(path), imported.fileName.split(/[?#]/u)[0] ?? '');
+          directories.add(dirname(target)); directories.add(target);
+        }
+        return identity + JSON.stringify([...directories].sort().map(directory => [directory, inventory.get(directory) ?? []]));
+      });
+    },
+    enforce: /** @type {const} */ ('pre'),
     load(/** @type {string} */ id) {
       const path = id.split('?', 1)[0];
       if (path === undefined || !overrides.has(path)) return null;
@@ -78,6 +114,7 @@ export async function relatedWorker(root, files) {
   const executing = new WeakSet();
   const started = performance.now();
   const vitest = await createVitest({ root, run: true, watch: false, passWithNoTests: true,
+    fsModuleCache: true, fsModuleCachePath: resolve(root, '.git/commit-vitest-cache'),
     reporters: ['default', {
       onTestRunStart(specifications) {
         count = specifications.length;
