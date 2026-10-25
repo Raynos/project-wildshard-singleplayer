@@ -1,10 +1,10 @@
 import { expect, test } from 'vitest';
 import { BoxGeometry, InstancedBufferAttribute, InstancedMesh, Matrix4, MeshBasicMaterial, PerspectiveCamera, Vector3 } from 'three';
 import { parse } from 'valibot';
-import { Scope } from '../src/engine/app/scope';
-import { viewProgram } from '../src/engine/script/viewProgram';
-import { ViewProgramSchema } from '../src/format/viewProgram';
-import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
+import { Scope } from '@wildshard/engine/app/scope';
+import { viewProgram } from '@wildshard/engine/script/viewProgram';
+import { ViewProgramSchema } from '@wildshard/format/viewProgram';
+import { compileScriptV2 } from './compileScriptV2';
 
 // G600 L7 vocabulary (R6): a lent array the module reads (kind 23, f32) and a lent instanced draw it writes in bulk
 // (kind 24: total, first changed, changed, then `capacity` matrices and attribute items). The module's input array

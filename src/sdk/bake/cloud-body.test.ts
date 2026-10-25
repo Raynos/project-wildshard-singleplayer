@@ -1,12 +1,12 @@
 import { afterEach, expect, test } from 'vitest';
 import { BufferGeometry, IcosahedronGeometry, Matrix4, MeshBasicMaterial, PerspectiveCamera, Scene, SphereGeometry, TorusGeometry, Vector3, type Mesh } from 'three';
-import { Scope } from '../src/engine/app/scope';
-import { numericChannelPrograms } from '../src/sdk/clientChannels';
-import { parsePrivateScene } from '../src/format/clientChannels';
+import { Scope } from '@wildshard/engine/app/scope';
+import { numericChannelPrograms } from '../clientChannels';
+import { parsePrivateScene } from '@wildshard/format/clientChannels';
 import { parse } from 'valibot';
-import { CloudBodySchema } from '../src/format/encounterRows';
-import { CloudBody, cloudBodySpecimen } from '../src/game/boss/encounterView';
-import { lendLooks } from '../src/game/shardfile/lentLooks';
+import { CloudBodySchema } from '@wildshard/format/encounterRows';
+import { CloudBody, cloudBodySpecimen } from '@wildshard/game/boss/encounterView';
+import { lendLooks } from '@wildshard/game/shardfile/lentLooks';
 
 // A made-up sky whale (the cloud body's fixture second user): a two-bone body, a pearl that opens, its own look and rows.
 const geometry = (made: BufferGeometry) => { const { uuid: _uuid, ...row } = new BufferGeometry().copy(made).toJSON(); return row; };

@@ -55,7 +55,7 @@
   "test/platform-json-code.test.ts": [],
   "test/boss-fight-platform.test.ts": [],
   "src/engine/app/parked-viewmodels.test.ts": [],
-  "test/whole-geometry-pacing.test.ts": [],
+  "src/sdk/bake/whole-geometry-pacing.test.ts": [],
   "test/hybrid-product-rows.test.ts": [
     "far-reach",
     "sunscar-dunes"

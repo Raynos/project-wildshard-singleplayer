@@ -3,11 +3,11 @@ import { BoxGeometry, BufferAttribute, BufferGeometry, Mesh, MeshStandardMateria
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { MeshoptEncoder } from 'meshoptimizer/encoder';
-import { staticGlb } from '../src/sdk/bake/glb';
-import { compressGlb } from '../src/sdk/bake/glbCompression';
-import { nameBlob, emitNamedBlobs } from '../src/sdk/blobs';
-import { parseGlb, visitGlbTriangles } from '../src/format/product';
-import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
+import { staticGlb } from './glb';
+import { compressGlb } from './glbCompression';
+import { nameBlob, emitNamedBlobs } from '../blobs';
+import { parseGlb, visitGlbTriangles } from '@wildshard/format/product';
+import { createOwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
 
 const record = (value: unknown): Record<string, unknown> => {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) throw new Error('Fixture object required');

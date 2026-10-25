@@ -1,15 +1,15 @@
 import { afterEach, expect, test, vi } from 'vitest';
 import { BufferAttribute, BufferGeometry, Matrix4, MeshBasicMaterial } from 'three';
 import { zlibSync } from 'fflate';
-import { Scope } from '../src/engine/app/scope';
-import { pageScope } from '../src/engine/app/resources';
-import { enterOwner } from '../src/engine/app/ownership';
-import { fetchDeflatedBytes } from '../src/engine/core/deflate';
-import { fetchLaneBake, readWholeGeometry, unshuffleLanes } from '../src/game/plugin/geometry';
-import { provideRuntimeProduct } from '../src/game/shardfile/runtimeProduct';
-import { emptyShardfile } from '../src/sdk/author';
-import { staticGlb } from '../src/sdk/bake/glb';
-import { hashImmutableBytes } from '../src/sdk/immutable';
+import { Scope } from '@wildshard/engine/app/scope';
+import { pageScope } from '@wildshard/engine/app/resources';
+import { enterOwner } from '@wildshard/engine/app/ownership';
+import { fetchDeflatedBytes } from '@wildshard/engine/core/deflate';
+import { fetchLaneBake, readWholeGeometry, unshuffleLanes } from '@wildshard/game/plugin/geometry';
+import { provideRuntimeProduct } from '@wildshard/game/shardfile/runtimeProduct';
+import { emptyShardfile } from '../author';
+import { staticGlb } from './glb';
+import { hashImmutableBytes } from '../immutable';
 
 const owners: Scope[] = [], geometries: BufferGeometry[] = [], materials: MeshBasicMaterial[] = [];
 const nativeFetch = globalThis.fetch, nativeDecoder = globalThis.DecompressionStream;

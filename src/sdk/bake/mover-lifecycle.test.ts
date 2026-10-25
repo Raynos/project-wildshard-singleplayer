@@ -4,7 +4,7 @@ import { MoverLifecycle, moverEndState } from '@wildshard/engine/sim/moverLifecy
 import { parseMovers } from '@wildshard/format/movers';
 import { lowerMoverMotion } from '@wildshard/format/moverMotion';
 import { compileMoverDriver } from '@wildshard/sdk/compileMovers';
-import { createMoverHost, MoverRuntime } from '../src/game/plugin/mover';
+import { createMoverHost, MoverRuntime } from '@wildshard/game/shardfile/moverRuntime';
 
 const rest = { at: { x: 0, y: 3, z: 2 }, euler: { x: -1, y: -Math.PI / 4, z: 0 } };
 function hinge() {

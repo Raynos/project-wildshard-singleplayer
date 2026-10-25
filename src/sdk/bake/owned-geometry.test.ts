@@ -1,8 +1,8 @@
 import { expect, it, vi } from 'vitest';
 import { BoxGeometry, BufferAttribute, BufferGeometry, Float16BufferAttribute, Mesh, MeshStandardMaterial } from 'three';
-import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
-import { staticGlb } from '../src/sdk/bake/glb';
-import * as rigLoaders from '../src/engine/anim/rigParser';
+import { createOwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
+import { staticGlb } from './glb';
+import * as rigLoaders from '@wildshard/engine/anim/rigParser';
 
 it('copies borrowed input and transfers adopted geometry without retaining it', async () => {
   const source = new BoxGeometry(), intake = createOwnedGeometry('/owned.glb');

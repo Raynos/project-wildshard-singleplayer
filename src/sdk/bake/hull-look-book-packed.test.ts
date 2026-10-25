@@ -1,12 +1,12 @@
 import { zlibSync } from 'fflate';
 import { afterAll, expect, test, vi } from 'vitest';
-import { Rng } from '../src/engine/core/rng';
-import { HullLookBook } from '../src/game/looks/speciesBook';
+import { Rng } from '@wildshard/engine/core/rng';
+import { HullLookBook } from '@wildshard/game/looks/speciesBook';
 import { Bone, BufferGeometry, MeshBasicMaterial, Skeleton, SkinnedMesh, Vector3 } from 'three';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
-import type { Animal } from '../src/engine/entities/AnimalView';
-import type { AnimalDims } from '../src/engine/entities/species/registry';
-import { creaturePoseRows, numericChannelPrograms } from '../src/sdk/clientChannels';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
+import type { AnimalDims } from '@wildshard/engine/entities/species/registry';
+import { creaturePoseRows, numericChannelPrograms } from '../clientChannels';
 
 // G600 L8 / G602: the hull book's packed looks (Nalati's species book folds into it): compact bodies, coat rows, a
 // painterly material and post-pose programmes, from rows only

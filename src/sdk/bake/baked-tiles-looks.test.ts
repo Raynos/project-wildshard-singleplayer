@@ -1,18 +1,18 @@
 import { expect, test, vi } from 'vitest';
 import { BoxGeometry, Group, MeshBasicMaterial, MeshStandardMaterial, Texture, Vector3 } from 'three';
 import { parse } from 'valibot';
-import { staticGlb } from '../src/sdk/bake/glb';
-import { parseClientPlan } from '../src/format/clientPlan';
-import type { ShardContext } from '../src/game/plugin/context';
-import { Scope } from '../src/engine/app/scope';
-import { ToonLook } from '../src/engine/render/families/toon';
-import { emptyShardfile } from '../src/sdk/author';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
-import * as lookCompiler from '../src/game/shardfile/runtimeProduct';
-import { lendLooks, lentLook, setLentTexture, type LentLooks } from '../src/game/shardfile/lentLooks';
-import { installClientBakedTiles, lendBakedLooks, residentBakedTiles } from '../src/game/shardfile/bakedTiles';
-import { parseFamilyMaterial } from '../src/format/materialFamilies';
-import { BakedTilesSchema, type BakedTilesRow } from '../src/format/bakedTiles';
+import { staticGlb } from './glb';
+import { parseClientPlan } from '@wildshard/format/clientPlan';
+import type { ShardContext } from '@wildshard/game/shard/context';
+import { Scope } from '@wildshard/engine/app/scope';
+import { ToonLook } from '@wildshard/engine/render/families/toon';
+import { emptyShardfile } from '../author';
+import { createShardProduct } from '@wildshard/game/shardfile/shardProduct';
+import * as lookCompiler from '@wildshard/game/shardfile/runtimeProduct';
+import { lendLooks, lentLook, setLentTexture, type LentLooks } from '@wildshard/game/shardfile/lentLooks';
+import { installClientBakedTiles, lendBakedLooks, residentBakedTiles } from '@wildshard/game/shardfile/bakedTiles';
+import { parseFamilyMaterial } from '@wildshard/format/materialFamilies';
+import { BakedTilesSchema, type BakedTilesRow } from '@wildshard/format/bakedTiles';
 
 const lend = (id: string, material: MeshBasicMaterial, setTexture: LentLooks['setTexture']): Awaited<ReturnType<typeof lookCompiler.runtimeLookMaterials>> => ({
   materials: new Map([[id, material]]), setParam: () => undefined, setTexture, bindMeshMap: () => material,

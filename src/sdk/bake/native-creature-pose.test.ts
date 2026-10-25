@@ -1,10 +1,10 @@
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
-import { AnimalSim } from '../src/engine/entities/AnimalSim';
-import { createNativeCreaturePoses, NativeCreaturePose, type NativeCreaturePoseRecipe } from '../src/game/plugin/animation';
-import { numericCreaturePose, numericCreaturePoseFromBook } from '../src/game/plugin/channelPrograms';
-import { creaturePoseRows, numericChannelPrograms } from '../src/sdk/clientChannels';
-import { parsePackedCreatureLooks } from '../src/format/speciesLooks';
+import { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
+import { createNativeCreaturePoses, NativeCreaturePose, type NativeCreaturePoseRecipe } from '@wildshard/game/plugin/animation';
+import { numericCreaturePose, numericCreaturePoseFromBook } from '@wildshard/game/plugin/channelPrograms';
+import { creaturePoseRows, numericChannelPrograms } from '../clientChannels';
+import { parsePackedCreatureLooks } from '@wildshard/format/speciesLooks';
 
 const recipe: NativeCreaturePoseRecipe = { custom: true, joints: [
   { name: 'body', parent: -1, position: [0, 1, 0], order: 'YXZ', scale: [1, 1, 1] },

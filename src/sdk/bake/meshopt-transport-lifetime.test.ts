@@ -6,10 +6,10 @@ import { execFileSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the installed runner without shell interpolation.
 import { resolve } from 'node:path';
-import { createRigLoader } from '../src/engine/anim/rigParser';
-import { MemoryAttribution } from '../src/engine/core/memoryAttribution';
-import { staticGlb } from '../src/sdk/bake/glb';
-import { compressGlb } from '../src/sdk/bake/glbCompression';
+import { createRigLoader } from '@wildshard/engine/anim/rigParser';
+import { MemoryAttribution } from '@wildshard/engine/core/memoryAttribution';
+import { staticGlb } from './glb';
+import { compressGlb } from './glbCompression';
 
 function isMesh(node: Object3D): node is Mesh { return node instanceof Mesh; }
 
@@ -45,7 +45,7 @@ test('decoded props retain identical backing after raw and meshopt transport is 
     mkdirSync('tmp', { recursive: true }); const directory = mkdtempSync(resolve('tmp/meshopt-gc-'));
     try {
       const config = resolve(directory, 'vitest.config.mjs');
-      writeFileSync(config, `export default {root:${JSON.stringify(resolve('.'))},test:{include:['test/meshopt-transport-lifetime.test.ts'],setupFiles:[],pool:'forks',maxWorkers:1,execArgv:['--expose-gc']}};`);
+      writeFileSync(config, `export default {root:${JSON.stringify(resolve('.'))},test:{include:['src/sdk/bake/meshopt-transport-lifetime.test.ts'],setupFiles:[],pool:'forks',maxWorkers:1,execArgv:['--expose-gc']}};`);
       const output = execFileSync(process.execPath, ['--expose-gc', resolve('node_modules/vitest/vitest.mjs'), 'run', '--config', config], {
         env: { ...process.env, WS_MESHOPT_GC: '1', NO_COLOR: '1' }, encoding: 'utf8', stdio: 'pipe', timeout: 20_000,
       });
