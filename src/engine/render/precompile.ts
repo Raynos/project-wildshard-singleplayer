@@ -991,7 +991,9 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   for (const [i, job] of jobs.entries()) {
     // Job discovery and other builders may already have spent this drawn frame. Compile is atomic: don't start it
     // on a stale local slice, and don't append first-use/link preparation after a compile has consumed the budget.
-    if (frameBudgetSpent(sliceMs)) { await pause(); tFrame = performance.now(); programsAtFrame = programCount(renderer); }
+    // Another queued warm-up can spend the frame while this wait is pending.
+    // Recheck on delivery instead of admitting every waiter behind one draw.
+    while (frameBudgetSpent(sliceMs)) { await pause(); checkCurrent(); tFrame = performance.now(); programsAtFrame = programCount(renderer); }
     checkCurrent();
     const programsBefore = programCount(renderer);
     const prevRt = renderer.getRenderTarget(), prevTone = renderer.toneMapping;
