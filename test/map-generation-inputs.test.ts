@@ -83,6 +83,12 @@ describe('isolated open-plot map outputs', () => {
     expect(Object.keys(prepared.hashes).sort()).toEqual([...worlds.outputs].sort());
     return { cacheDir, catalogPath, forceCompare: true, preparation: { outputs: original.outputs, upstream: new Map([[worlds.id, prepared]]) } };
   };
+  test('all isolated map consumers borrow one verified cold world publication', async () => {
+    const first = await options(), second = await options();
+    const publication = first.preparation.upstream.get(worlds.id);
+    expect(publication === undefined).toBe(false);
+    expect(second.preparation.upstream.get(worlds.id) === publication).toBe(true);
+  });
   test('the declared map stage refuses the omitted painter before painting', async () => {
     const first = maps[0]; if (first === undefined) throw new Error('Missing map stage');
     expect(first.inputRoots).toContain(sceneSource);
