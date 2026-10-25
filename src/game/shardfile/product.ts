@@ -304,6 +304,7 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
   // of unselected alternatives. Keep the complete descriptor for verified late
   // reads and a later device tier; unknown, critical and shared references stay.
   const files = options.firstParty && receipt !== null && options.tier !== undefined
+    && (source.runtime === null || 'kind' in source.runtime)
     ? await tierProductFilesPaced(source, options.tier, options.pause) : source.files;
   const refs = [...files.map((file) => ({ ref: file.hash, cap: file.compressed })), ...source.requires.commons.map((hash) => ({ ref: `commons:${hash}`, cap: source.requires.commonsWire[hash] ?? 0 }))];
   // Reserve the complete product first, then overlap at most sixteen immutable transports. Validation and

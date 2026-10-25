@@ -69,7 +69,7 @@ function fixture(platformRef = false, extra?: (source: schema.Shardfile) => Read
     identity: source.identity, requires: source.requires, build: { sourceHash: hashImmutableBytes(bytes(source)), validator: 'test' },
     admission: { budgets: source.budgets, serverBudget: source.serverBudget, authorCaps: source.authorCaps, critical: source.critical, library: source.library },
     sections, schemas: [{ path: 'schemas/custom/facts.schema.json', hash: hashImmutableBytes(customSchema), bytes: customSchema.length }],
-    files: source.files.map(file => ({ ...file, kind: file.kind === 'image' ? 'image' : 'bin', name: logicalNames?.get(file.hash) ?? (file.hash === ref ? 'models/token.bin' : 'models/desktop.bin'), path: file.kind === 'image' ? `blobs/image/${file.hash}.png` : `blobs/bin/${file.hash}.bin` })), runtime: null });
+    files: source.files.map(file => ({ ...file, kind: file.kind === 'image' ? 'image' : 'bin', name: logicalNames?.get(file.hash) ?? (file.hash === ref ? 'models/token.bin' : 'models/desktop.bin'), path: file.kind === 'image' ? `blobs/image/${file.hash}.png` : `blobs/bin/${file.hash}.bin` })), runtime: source.runtime === null ? null : { ...source.runtime, trust:'first-party',files:[],lines:0 } });
   wires.set('shard.json', bytes(index)); wires.set(`blobs/bin/${ref}.bin`, blob);
   const base = 'https://test.example/shardfiles/runtime-loader/';
   const options: ProductOptions = { base, offline: false, firstParty: true,
@@ -486,9 +486,10 @@ test('shrinking residency cannot grow, underflow or revive a released claim', ()
   claim.release(); claim.shrink(1); expect(allocator.entries()).toHaveLength(0);
 });
 
-function tierTransportFixture(retain: 'none' | 'critical' | 'dependency' = 'none') {
+function tierTransportFixture(retain: 'none' | 'critical' | 'dependency' = 'none', legacy = false) {
   const desktopBytes = new Uint8Array([9]), desktop = hashImmutableBytes(desktopBytes);
   const f = fixture(false, source => {
+    if (legacy) source.runtime = { entry: 'runtime/index.ts' };
     source.files.push({ hash: desktop, kind: 'binary', compressed: 1, decoded: 700, gpu: 300, triangles: 0, draws: 0, dependencies: [], critical: false });
     source.library.push(desktop); source.budgets.library.resident += 1000; source.budgets.library.compressed += 1;
     if (retain === 'critical') source.critical.push(desktop);
@@ -553,6 +554,12 @@ test('a selected tier file still refuses corrupt network bytes', async () => {
   const f = tierTransportFixture(); trust(f.receipt);
   f.wires.set(`blobs/bin/${f.ref}.bin`, new Uint8Array([3, 2, 1]));
   await expect(admitProduct(f.index, { ...f.options, tier: 'phone' })).rejects.toThrow('Shardfile asset hash mismatch');
+});
+
+test('legacy constructors retain every immutable input despite typed tier alternatives', async () => {
+  const f=tierTransportFixture('none',true);trust(f.receipt);
+  const admitted=await admitProduct(f.index,{...f.options,tier:'phone'});
+  expect(admitted.assets.has(f.ref)).toBe(true);expect(admitted.assets.has(f.desktop)).toBe(true);
 });
 
 test('tier selection never bypasses full validation without an exact trusted receipt', async () => {
