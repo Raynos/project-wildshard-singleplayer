@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise real compiler projects in an owned fixture.
 import { spawnSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Own only small temporary compiler inputs and outputs.
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, utimesSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve compiler and fixture paths without shell commands.
 import { dirname, relative, resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Use the current Node executable for the compiler.
@@ -218,9 +218,13 @@ test('workspace Node tests consume declarations without giving production Node g
     expect(badProduction.status).not.toBe(0);
     expect(String(badProduction.stdout) + String(badProduction.stderr)).toContain('Cannot find name');
     put('src/engine/value.ts', 'export const value: number = 1;\n');
+    const unitFile = resolve(root, 'src/engine/value.test.ts'), unitTimes = statSync(unitFile);
     put('src/engine/value.test.ts', 'import {value} from "./value";export const result: string = value;\n');
-    const badTest = run('-b', 'src/engine/tsconfig.json');
-    expect(badTest.status).not.toBe(0);
+    // A preserved/coarse source mtime may make the incremental builder reuse its clean result.
+    // This negative checks the actual compiler refusal, independently of timestamp cache freshness.
+    utimesSync(unitFile, unitTimes.atime, unitTimes.mtime);
+    const badTest = run('-b', 'src/engine/tsconfig.json', '--force', '--verbose');
+    expect(badTest.status, String(badTest.stdout) + String(badTest.stderr)).not.toBe(0);
     expect(String(badTest.stdout) + String(badTest.stderr)).toContain('TS2322');
     put('src/engine/value.test.ts', 'export const result = JSON.parse("1");\n');
     const unsafe = lint();
