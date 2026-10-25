@@ -8,14 +8,10 @@
 // the SDK's authoring loader (no game, engine, runtime or look module; no public/ model; no committed output read back as a
 // seed). The lash's hand tip is a frozen row (data/whip.ts LASH_TIP), recomputed from the generated glove by its test.
 // Usage: node --experimental-transform-types --import ./src/sdk/bake/source-loader.mjs src/shards/sunscar-dunes/generators/bake-signal-world.mjs
-import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { signalDunesBake } from './scene.ts';
-import { facetModel, wellShell } from './facets.ts';
-import FACET_AO_FLOOR from '../data/facets.json' with { type: 'json' };
-import { pieceRows } from './kinds.ts';
-import { bakeSignalLash, plaitTexels } from './lash.ts';
+import { bakeSignalWorldSources } from './worldSources.ts';
+import { publishScene } from '@wildshard/sdk/bake';
 
 const root = resolve(import.meta.dirname, '../../../..'), project = resolve(root, 'src/shards/sunscar-dunes');
 const out = resolve(root, 'public/assets/sunscar-dunes/baked');
@@ -30,25 +26,13 @@ const keep = new Set();
 // SF80: the pieces are one three.js scene through the SDK's `bake(scene, identity)` (generators/scene.ts), which also writes
 // the inspectable .wildshard/cache/sunscar-dunes/scene.json (never committed)
 const source = readFileSync(new URL('../assets/models/dry-well.glb', import.meta.url));
-const baked = signalDunesBake(wellShell(await facetModel(source, FACET_AO_FLOOR)), root);
-for (const part of baked.pieces) {
-  const piece = part.name.replace(/^sunscar\./u, ''), { glb, ...rows } = pieceRows(part);
-  const hash = createHash('sha256').update(glb).digest('hex');
-  emit(resolve(out, `${piece}.glb`), glb); keep.add(`${piece}.glb`);
-  emit(resolve(project, `data/${piece}.json`), `${JSON.stringify({ glb: hash, ...rows }, null, 2)}\n`);
-  console.info(`sunscar-dunes ${piece}: ${String(glb.length)} bytes → baked/${piece}.glb (${hash}), ${String(rows.colliders.length)} colliders`);
+const { files, world } = await bakeSignalWorldSources(source);
+const scene = publishScene(world.scene, root, 'sunscar-dunes');
+for (const [name, bytes] of files) {
+  if (name.endsWith('.json')) emit(resolve(project, 'data', name), bytes);
+  else { emit(resolve(out, name), bytes); if (name.endsWith('.glb')) keep.add(name); }
+  console.info(`sunscar-dunes ${name}: ${String(bytes.length)} bytes`);
 }
-console.info(`sunscar-dunes scene.json: ${String(baked.scene.nodes.length)} nodes → ${String(baked.scenePath)}`);
-// the held lash (G345, generators/lash.ts): its tubes and where the lash leaves the hand (the frozen glove fit)
-{
-  const { glb, ...rows } = bakeSignalLash(), hash = createHash('sha256').update(glb).digest('hex');
-  emit(resolve(out, 'lash.glb'), glb); keep.add('lash.glb');
-  emit(resolve(project, 'data/lash.json'), `${JSON.stringify({ glb: hash, ...rows }, null, 2)}\n`);
-  console.info(`sunscar-dunes lash: ${String(glb.length)} bytes → baked/lash.glb (${hash})`);
-  // the hero coil's plait tile: its three tiles' texels, deflated (world/baked.ts reads them; runtime/items/lashHold.ts)
-  const texels = plaitTexels(), plait = new Uint8Array(await new Response(new Blob([texels]).stream().pipeThrough(new CompressionStream('deflate'))).arrayBuffer());
-  emit(resolve(out, 'plait.bin'), plait);
-  console.info(`sunscar-dunes plait: ${String(texels.length)} bytes → baked/plait.bin (${String(plait.length)} deflated)`);
-}
+console.info(`sunscar-dunes scene.json: ${String(world.scene.nodes.length)} nodes → ${scene.path}`);
 // the folder holds exactly this bake: no orphan GLB from an older bake ships
 for (const entry of readdirSync(out)) if (entry.endsWith('.glb') && !keep.has(entry)) { if (check) throw new Error(`Orphan bake ${entry}`); rmSync(resolve(out, entry)); }
