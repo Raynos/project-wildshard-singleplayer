@@ -1,6 +1,6 @@
 import { MaterialsSchema } from '../src/format/materials';
 import { parse } from 'valibot';
-import { withoutRuntimeRows } from '../src/game/plugin/headless';
+import { runtimeBoundWorldFiles, withoutRuntimeRows } from '../src/game/plugin/headless';
 import LOOT from '../src/shards/driftwood-isle/data/loot.generated.json' with { type: 'json' };
 import { parseRows } from '../src/format/rows';
 import { expect, test } from 'vitest';
@@ -8,6 +8,38 @@ import { emptyShardfile } from '@wildshard/sdk/author';
 import { ShardfileClient } from '../src/game/shardfile/client';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
 import NINE from './fixtures/nine-product-inputs';
+
+const boundA = 'a'.repeat(64), boundB = 'b'.repeat(64), boundC = 'c'.repeat(64), upperRef = 'A'.repeat(64);
+const boundRefs = [boundA, boundB, boundC, upperRef, 'named-ref', ''];
+test.each([
+  { name: 'no shared names', text: 'unshared', kept: [boundA, boundB, boundC, upperRef, 'named-ref'] },
+  { name: 'exact hash', text: boundA, kept: [boundB, boundC, upperRef, 'named-ref'] },
+  { name: 'hash embedded in a longer hexadecimal run', text: `b${boundA}c`, kept: [boundB, boundC, upperRef, 'named-ref'] },
+  { name: 'overlapping hashes in one run', text: 'a'.repeat(129), kept: [boundB, boundC, upperRef, 'named-ref'] },
+  { name: 'separate shared hashes', text: `${boundA}/${boundC}`, kept: [boundB, upperRef, 'named-ref'] },
+  { name: 'quoted and escaped metadata', text: `"${boundB}\n"`, kept: [boundA, boundC, upperRef, 'named-ref'] },
+  { name: 'caller-owned uppercase reference', text: upperRef, kept: [boundA, boundB, boundC, 'named-ref'] },
+  { name: 'caller-owned logical reference', text: 'path/named-ref.bin', kept: [boundA, boundB, boundC, upperRef] },
+])('bound file classification preserves substring ownership: $name', ({ text, kept }) => {
+  const source = emptyShardfile({ slug: 'bound-inventory', name: 'Bound inventory', author: 'Test', revision: 1, seed: 1 });
+  source.runtime = { entry: 'runtime/index.ts', binds: ['movers'] }; source.identity.name = text;
+  // The helper also serves caller-owned descriptors: their legacy logical/empty references retain the old substring law.
+  source.movers = boundRefs.map((module, index) => ({ id: `ref-${String(index)}`, entity: index + 1, module, kind: 'channel',
+    at: { x: 0, y: 0, z: 0 }, euler: { x: 0, y: 0, z: 0 }, enabled: true, boxes: [], input: [] }));
+  source.sim.scripts = [...boundRefs];
+  const before = JSON.stringify(source);
+  expect([...runtimeBoundWorldFiles(source)]).toEqual(kept);
+  expect([...runtimeBoundWorldFiles(source)]).toEqual(kept);
+  expect(JSON.stringify(source)).toBe(before);
+});
+
+test('bound file classification finds distinct overlapping hashes through the final window', () => {
+  const source = emptyShardfile({ slug: 'bound-overlap', name: `${boundA}b`, author: 'Test', revision: 1, seed: 1 });
+  source.runtime = { entry: 'runtime/index.ts', binds: ['movers'] };
+  source.movers = [boundA, `${'a'.repeat(63)}b`, boundB].map((module, index) => ({ id: `ref-${String(index)}`, entity: index + 1, module, kind: 'channel',
+    at: { x: 0, y: 0, z: 0 }, euler: { x: 0, y: 0, z: 0 }, enabled: true, boxes: [], input: [] }));
+  expect([...runtimeBoundWorldFiles(source)]).toEqual([boundB]);
+});
 
 // The callback is the public simulation-handoff contract, not a private mode probe.
 test('native blob inventory does not announce a data sim; declared behavior still does', () => {

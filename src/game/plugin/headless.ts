@@ -65,7 +65,16 @@ export function runtimeBoundWorldFiles(source: Shardfile): ReadonlySet<string> {
   const moverModules = new Set(binds.has('movers') ? source.movers.map(row => row.module) : []);
   const unbound = { ...source, movers: binds.has('movers') ? [] : source.movers, sim: { ...source.sim, scripts: source.sim.scripts.filter(ref => !moverModules.has(ref)) }, terrain: binds.has('terrain') ? null : source.terrain, props: binds.has('props') ? null : source.props, tiles: [], files: [], critical: [], library: [], far: null };
   const text = JSON.stringify(unbound);
-  for (const ref of files) if (text.includes(ref)) files.delete(ref);
+  let hashes = false;
+  for (const ref of files) {
+    if (/^[a-f0-9]{64}$/u.test(ref)) hashes = true;
+    else if (text.includes(ref)) files.delete(ref);
+  }
+  // Hashes are fixed-width substrings: scan each hexadecimal run once instead of the descriptor per file.
+  // Sliding windows preserve matches embedded in longer runs; caller-owned logical references keep includes above.
+  if (hashes) for (const [run] of text.matchAll(/[a-f0-9]{64,}/gu)) {
+    for (let at = 0; at <= run.length - 64; at++) files.delete(run.slice(at, at + 64));
+  }
   return files;
 }
 
