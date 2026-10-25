@@ -43,9 +43,10 @@ function effects(source: PlaceEffects | undefined) {
 }
 const bindings = placeEffects();
 const inputs = { dusk: 'dusk', lights: 'firelights' };
+const publicFiles = { urls: models.BAKED_URLS, resources: models.WORLD_BYTES };
 const json = (name: string, value: unknown) => nameBlob(name, 'json', new TextEncoder().encode(JSON.stringify(value)));
 /** Original models, material decorations and bakes from explicit world rows; no rendering builder is mirrored. */
-export function signalSceneSources(world: SceneWorldBakes, rigs: NonNullable<SceneModelSource['rows']['rigs']> = SIGNAL_RIG_LIBRARY): NamedBlob[] {
+export function signalSceneSources(world: SceneWorldBakes, rigs: NonNullable<SceneModelSource['rows']['rigs']> = SIGNAL_RIG_LIBRARY, files: { readonly urls: SceneBakeSource['urls']; readonly resources: NonNullable<SceneBakeSource['resources']> } = publicFiles): NamedBlob[] {
   const held = whipHeldRecipe(world.lash), gear = gearSceneRows(world, held);
   const { resources: _resources, ...whipRecipe } = held;
   const { specimen: _whip, ...whip } = gear[0];
@@ -62,7 +63,7 @@ export function signalSceneSources(world: SceneWorldBakes, rigs: NonNullable<Sce
   } satisfies SceneModelSource;
   const rows = Object.fromEntries(Object.entries(world).map(([id, row]) => [id, { ...row, kinds: row.kinds.map(kind => ({ ...kind,
     ...('warm' in kind && kind.warm === true ? { surface: surfaces.CAMP_SURFACE } : {}) })) }]));
-  const baked = { rows, urls: models.BAKED_URLS, inputs, resources: models.WORLD_BYTES,
+  const baked = { rows, urls: files.urls, inputs, resources: files.resources,
     placements: { rows: pieces, colliders: world.braziers.braziers.map((row, index) => ({ id: `sunscar.brazier.${String(index)}`, colliders: row.colliders })) } } satisfies SceneBakeSource;
   return [json('world/sources/models.json', library), json('world/sources/bakes.json', baked)];
 }

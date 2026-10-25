@@ -17,7 +17,7 @@ export const generated = await (async () => {
   finally { rmSync(cache, { recursive: true, force: true }); }
 })();
 const fireBytes = [...assets.values()].find(bytes => bytes[0] === 0xab && bytes[1] === 0x4b && bytes[2] === 0x54 && bytes[3] === 0x58);
-if (fireBytes === undefined || assets.size !== 5) throw new Error('Missing source-owned fire-book or rigs');
+if (fireBytes === undefined || assets.size !== 13) throw new Error('Missing source-owned fire-book, rigs or world');
 export const signalProductRows = () => product(fireBookFile(fireBytes));
 export const source = generated.shard;
 export const sourceAssets = projectAssets(root, source, 'project', assets);

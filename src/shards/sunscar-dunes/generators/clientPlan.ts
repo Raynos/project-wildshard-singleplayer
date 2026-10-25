@@ -1,6 +1,6 @@
 import { parseClientPlan } from '@wildshard/format/clientPlan';
 import { parsePersistedQuestPage } from '@wildshard/format/questStory';
-import { SIGNAL_QUEST_PAGE as page } from './questPage';
+import { SIGNAL_QUEST_PAGE as originalPage } from './questPage';
 import { SIGNAL_PAGE_PROGRAM } from './rows/population';
 import { WHIP_ITEMS } from './rows/items';
 import { SIGNAL_SCENE_MOTION } from './clientMotion';
@@ -8,12 +8,13 @@ import { SIGNAL_EMITTERS } from './lightEmitters';
 import { SIGNAL_WEATHER_FIELDS } from './weatherFields';
 import { FLAG } from './rows/flags';
 
-const { capture, ...quest } = parsePersistedQuestPage(page);
 const calls = new Map<string, unknown>([['dusk', { settle: 'weather.fields' }], ['logbook', { action: 'logbook' }],
   ['well.pull', { action: 'crank' }], ['well.take', { action: 'well' }],
   ...[0, 1, 2].flatMap(i => [`pour.${String(i)}`, `light.${String(i)}`].map(action => [action, { action }] as const))]);
 /** The original saved checkpoints invoke accepted page rules and native motion. */
-export const SIGNAL_CLIENT_PLAN = parseClientPlan({ version: 1, features: [
+export function signalClientPlan(page: unknown): ReturnType<typeof parseClientPlan> {
+const { capture, ...quest } = parsePersistedQuestPage(page);
+return parseClientPlan({ version: 1, features: [
   { kind: 'strings.register' }, { kind: 'world.scenes' }, { kind: 'motion.channels', rows: SIGNAL_SCENE_MOTION },
   { kind: 'player.enter', pitch: -0.1 },
   { kind: 'light.emitters', rows: SIGNAL_EMITTERS },
@@ -31,3 +32,6 @@ export const SIGNAL_CLIENT_PLAN = parseClientPlan({ version: 1, features: [
   { kind: 'population.homes', ...SIGNAL_PAGE_PROGRAM.population },
   { kind: 'debug.expose', name: 'sunscar' },
 ] });
+
+}
+export const SIGNAL_CLIENT_PLAN = signalClientPlan(originalPage);

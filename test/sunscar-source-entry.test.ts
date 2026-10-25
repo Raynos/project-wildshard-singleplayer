@@ -14,7 +14,7 @@ import before from './fixtures/sunscar-source-entry.json' with { type: 'json' };
 import originalProductAssets from './fixtures/sunscar-duplicate-product.json' with { type: 'json' };
 import rigFiles from './fixtures/sunscar-rig-files.json' with { type: 'json' };
 import { BOOT_FILES, BOOT_SOURCES } from '../src/shards/sunscar-dunes/generators/rows/boot';
-import { DUNE_RIG_URLS } from '../src/shards/sunscar-dunes/generators/rows/files';
+import { DUNE_RIG_URLS, BAKED_URLS } from '../src/shards/sunscar-dunes/generators/rows/files';
 
 const signature = (value: unknown): { bytes: number; hash: string } => {
   const bytes = new TextEncoder().encode(encodeCanonicalJson(value));
@@ -27,7 +27,7 @@ const physical = (values: ReadonlyMap<string, Uint8Array>) => [...values]
 test('the source entry owns both outputs with the complete original declaration and output bytes', () => {
   expect(entry).toBe(generate);
   const result = generated;
-  expect(result.output?.platform).toBe(output.platform);
+  expect(result.output?.platform).toEqual(output.platform);
   expect(signature(result.shard)).toEqual(before.raw.shard);
   expect(signature({ ...output, assets: physical(output.assets), platform: { ...output.platform, files: physical(output.platform.files) } }))
     .toEqual(before.raw.output);
@@ -48,33 +48,43 @@ test('direct world rows preserve the original ordered aggregate without its JSON
 
 test('the SDK admits all original physical bytes, platform metadata and mirrors through the source entry', async () => {
   const result = await readProjectAssets(resolve('src/shards/sunscar-dunes'));
-  const oldModel = output.namedFiles.find(file => file.name === 'world/sources/models.json');
-  const model = result.output.namedFiles?.find(file => file.name === 'world/sources/models.json');
-  if (oldModel === undefined || model === undefined) throw new Error('Missing model descriptor');
-  const rigs = result.output.namedFiles?.filter(file => file.name?.startsWith('geometry/rigs/')) ?? [];
-  expect(rigs).toHaveLength(4);
-  for (const rig of rigs) {
+  const changedNames = ['world/sources/models.json', 'world/sources/bakes.json'];
+  const descriptors = changedNames.map(name => {
+    const old = output.namedFiles.find(file => file.name === name), current = result.output.namedFiles?.find(file => file.name === name);
+    if (old === undefined || current === undefined) throw new Error('Missing scene descriptor');
+    return { old, current };
+  });
+  const owned = result.output.namedFiles?.filter(file => file.name?.startsWith('geometry/rigs/') === true
+    || file.name?.startsWith('geometry/world/') === true || file.name === 'textures/plait.bin') ?? [];
+  expect(owned).toHaveLength(12);
+  for (const rig of owned.filter(file => file.name?.startsWith('geometry/rigs/'))) {
     const expected = Object.entries(rigFiles).find(([name]) => rig.name === `geometry/rigs/${name}`)?.[1];
     expect({ bytes: rig.compressed, hash: rig.hash }).toEqual(expected);
   }
-  const hashes = new Set(rigs.map(file => file.hash));
-  const compressed = rigs.reduce((sum, file) => sum + file.compressed, model.compressed - oldModel.compressed);
-  const resident = rigs.reduce((sum, file) => sum + file.decoded + file.gpu, model.decoded + model.gpu - oldModel.decoded - oldModel.gpu);
-  const { name: _name, path: _path, jsonSchema: _schema, ...oldFile } = oldModel;
+  const hashes = new Set(owned.map(file => file.hash));
+  const compressed = owned.reduce((sum, file) => sum + file.compressed, descriptors.reduce((sum, row) => sum + row.current.compressed - row.old.compressed, 0));
+  const resident = owned.reduce((sum, file) => sum + file.decoded + file.gpu,
+    descriptors.reduce((sum, row) => sum + row.current.decoded + row.current.gpu - row.old.decoded - row.old.gpu, 0));
   const budget = result.shard.budgets.library;
   expect(signature({ ...result.shard,
-    files: result.shard.files.filter(file => !hashes.has(file.hash)).map(file => file.hash === model.hash ? oldFile : file),
-    library: result.shard.library.filter(hash => !hashes.has(hash)).map(hash => hash === model.hash ? oldModel.hash : hash),
+    files: result.shard.files.filter(file => !hashes.has(file.hash)).map(file => {
+      const row = descriptors.find(value => value.current.hash === file.hash);
+      if (row === undefined) return file;
+      const { name: _name, path: _path, jsonSchema: _schema, ...oldFile } = row.old; return oldFile;
+    }),
+    library: result.shard.library.filter(hash => !hashes.has(hash)).map(hash => descriptors.find(row => row.current.hash === hash)?.old.hash ?? hash),
     budgets: { ...result.shard.budgets, library: { ...budget, compressed: budget.compressed - compressed, resident: budget.resident - resident,
       ...(budget.downloadAllowance === undefined ? {} : { downloadAllowance: budget.downloadAllowance - compressed }) } },
   })).toEqual(before.shard);
   const assets = physical(result.assets);
-  expect(assets).toHaveLength(before.assets.length + 4);
+  expect(assets).toHaveLength(before.assets.length + 12);
   const projectedAssets = new Map(result.assets);
   for (const hash of hashes) projectedAssets.delete(hash);
-  projectedAssets.delete(model.hash);
-  const oldBytes = output.assets.get(oldModel.hash); if (oldBytes === undefined) throw new Error('Missing original model bytes');
-  projectedAssets.set(oldModel.hash, oldBytes);
+  for (const row of descriptors) {
+    projectedAssets.delete(row.current.hash);
+    const oldBytes = output.assets.get(row.old.hash); if (oldBytes === undefined) throw new Error('Missing original scene bytes');
+    projectedAssets.set(row.old.hash, oldBytes);
+  }
   expect(physical(projectedAssets)).toEqual(before.assets);
   expect(originalProductAssets).toHaveLength(86);
   for (const hash of originalProductAssets) {
@@ -85,15 +95,15 @@ test('the SDK admits all original physical bytes, platform metadata and mirrors 
   const admitted = { ...result.output,
     ...(result.output.custom === undefined ? {} : { custom: { ...result.output.custom, files: physical(result.output.custom.files) } }),
     ...(result.output.platform === undefined ? {} : { platform: { ...result.output.platform, files: physical(result.output.platform.files) } }),
-    namedFiles: result.output.namedFiles?.filter(file => !hashes.has(file.hash)).map(file => file.hash === model.hash ? oldModel : file),
+    namedFiles: result.output.namedFiles?.filter(file => !hashes.has(file.hash)).map(file => descriptors.find(row => row.current.hash === file.hash)?.old ?? file),
   };
   const { discovery: _discovery, ...previousOutput } = admitted;
   expect(signature(previousOutput)).toEqual(before.output);
   expect(signature(result.mirrors)).toEqual(before.mirrors);
 });
 
-test('computed discovery removes only the four retired public rig URLs in both tiers', () => {
-  const rigs = new Set(Object.values(DUNE_RIG_URLS));
+test('computed discovery removes only the eleven retired public rig/world URLs in both tiers', () => {
+  const rigs = new Set([...Object.values(DUNE_RIG_URLS), ...Object.values(BAKED_URLS)]);
   const expected = { tiers: { phone: { ...BOOT_SOURCES.tiers.phone, props: BOOT_SOURCES.tiers.phone.props.filter(url => !rigs.has(url)) },
     desktop: { ...BOOT_SOURCES.tiers.desktop, props: BOOT_SOURCES.tiers.desktop.props.filter(url => !rigs.has(url)) } } };
   expect(generated.discovery).toEqual({ 'boot.sources': expected, 'boot.files': { ...BOOT_FILES, sources: expected } });

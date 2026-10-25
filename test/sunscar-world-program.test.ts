@@ -7,7 +7,8 @@ import { build } from 'vite';
 import { createProjectGeneration } from '../src/sdk/projectGeneration';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
-import { signalWorldFiles } from '../src/shards/sunscar-dunes/generators/worldProgram';
+import { signalWorldFiles, signalWorld } from '../src/shards/sunscar-dunes/generators/worldProgram';
+import { BAKED_URLS } from '../src/shards/sunscar-dunes/generators/rows/files';
 import original from './fixtures/sunscar-world-files.json' with { type: 'json' };
 
 const signature = (files: ReadonlyMap<string, Uint8Array>) => Object.fromEntries([...files]
@@ -27,6 +28,20 @@ test('cold and cached world bakes retain all fifteen original files and detached
     well.fill(0); cold.get('well.json')?.fill(0);
     const hit = await signalWorldFiles(context()); expect(signature(hit)).toEqual(original); expect(bakes).toBe(1);
     expect(hit.get('well.glb') === well).toBe(false);
+    const assets = new Map<string, Uint8Array>();
+    const world = await signalWorld({ ...context(), asset: bytes => { const hash = hashImmutableBytes(bytes); assets.set(hash, bytes); return hash; } });
+    expect(world.blobs).toHaveLength(8); expect(assets.size).toBe(8); expect(bakes).toBe(1);
+    for (const blob of world.blobs) {
+      const name = blob.file.name?.split('/').at(-1), expected = Object.entries(original).find(([key]) => key === name)?.[1];
+      expect({ bytes: blob.bytes.length, hash: blob.file.hash }).toEqual(expected);
+      expect(blob.file.compressed).toBe(blob.bytes.length);
+      if (blob.file.kind === 'glb') {
+        expect(blob.file.decoded).toBeGreaterThan(0); expect(blob.file.triangles).toBeGreaterThan(0); expect(blob.file.draws).toBeGreaterThan(0);
+      } else expect([blob.file.decoded, blob.file.gpu]).toEqual([196608, 262140]);
+    }
+    expect(world.files.urls).toEqual(Object.fromEntries(Object.keys(BAKED_URLS).map(name => [name, `geometry/world/${name}.glb`])));
+    expect(world.files.resources[0]?.url).toBe('textures/plait.bin');
+    await expect(signalWorld({ ...context(), asset: () => '0'.repeat(64) })).rejects.toThrow('publication differs');
   } finally { rmSync(cache, { recursive: true, force: true }); }
 });
 

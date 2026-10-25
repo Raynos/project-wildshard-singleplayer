@@ -1,22 +1,35 @@
-import caravan from '../data/caravan.json' with { type: 'json' };
-import well from '../data/well.json' with { type: 'json' };
-import tower from '../data/tower.json' with { type: 'json' };
-import braziers from '../data/braziers.json' with { type: 'json' };
+import originalCaravan from '../data/caravan.json' with { type: 'json' };
+import originalWell from '../data/well.json' with { type: 'json' };
+import originalTower from '../data/tower.json' with { type: 'json' };
+import originalBraziers from '../data/braziers.json' with { type: 'json' };
 import { signalManifestMetadata } from './manifestGround';
 import { SCOUT_AT } from './rows/flags';
 import { BRAZIERS, TOWER, WELL } from "./layout";
 
+export type QuestMarkers = Readonly<Record<string, {poi:'world';x:number;y:number;z:number}>>;
+/** The original quest anchor fields, supplied by the same verified world bake as its scenes. */
+export interface QuestWorld {
+  readonly caravan: { readonly anchors: { readonly logbook: readonly number[] } };
+  readonly well: { readonly anchors: { readonly y: number } };
+  readonly tower: { readonly anchors: { readonly deckY: number } };
+  readonly braziers: { readonly braziers: readonly { readonly y: number }[] };
+}
+/** Quest points retain every numeric addition in the original order. */
+export function signalQuestMarkers(world: QuestWorld): QuestMarkers {
+const { caravan, well, tower, braziers } = world;
 const ground = signalManifestMetadata();
 
 const [logX, logY, logZ] = caravan.anchors.logbook;
 if (caravan.anchors.logbook.length !== 3 || logX === undefined || logY === undefined || logZ === undefined
   || !Number.isFinite(logX) || !Number.isFinite(logY) || !Number.isFinite(logZ)) throw new Error('Invalid authored logbook anchor');
 
-/** Quest points on immutable authored anchors, retaining every numeric addition in the original order. */
-export const QUEST_MARKERS: Readonly<Record<string, {poi:'world';x:number;y:number;z:number}>> = {
+return {
   scout: {poi:'world',x:SCOUT_AT.x,y:ground.heights.scout,z:SCOUT_AT.z},
   logbook: {poi:'world',x:logX,y:logY+0.4,z:logZ},
   well: {poi:'world',x:WELL.x,y:(well.anchors.y+1)+0.6,z:WELL.z},
   tower: {poi:'world',x:TOWER.x-0.4,y:(tower.anchors.deckY+1.1)+1,z:TOWER.z-0.5},
   ...Object.fromEntries(BRAZIERS.map((row,i)=>{const anchor=braziers.braziers[i];if(anchor===undefined)throw new Error('Missing authored waymark');return [`waymark.${String(i)}`,{poi:'world' as const,x:row.x,y:(anchor.y+1.6)+0.8,z:row.z}];})),
 };
+
+}
+export const QUEST_MARKERS = signalQuestMarkers({ caravan: originalCaravan, well: originalWell, tower: originalTower, braziers: originalBraziers });

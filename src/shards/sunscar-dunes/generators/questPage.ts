@@ -2,13 +2,14 @@ import { SCOUT_FLAG } from './rows/flags';
 import STRINGS from '../data/strings.json' with { type: 'json' };
 import { DISCOVERY_PLACES } from './questPresentation';
 import { SIGNAL_PERSISTENCE } from './persistence';
-import { QUEST_MARKERS } from './questMarkers';
+import { QUEST_MARKERS, type QuestMarkers } from './questMarkers';
 import { QUEST_REPAIR, QUEST_REPAIR_INITIAL } from './questRepair';
 
 /** Scout presentation and old-save repair over the original flag owner. */
-export const SIGNAL_QUEST_PAGE = {
+function questPageRows(markers: QuestMarkers) {
+return {
   id: 'sunscar.signal', rewardId: 'sunscar.reward', npc: 'sunscar.scout', strings: STRINGS,
-  persistence: SIGNAL_PERSISTENCE, places: DISCOVERY_PLACES, markers: QUEST_MARKERS, projectProgress: true,
+  persistence: SIGNAL_PERSISTENCE, places: DISCOVERY_PLACES, markers, projectProgress: true,
   model: { id: 'caravan-scout', kind: 'mesh' },
   capture: {
     logbook: [{ flag: SCOUT_FLAG }, { call: 'dusk' }],
@@ -18,3 +19,7 @@ export const SIGNAL_QUEST_PAGE = {
   },
   repair: { data: QUEST_REPAIR, initial: [QUEST_REPAIR_INITIAL], legacyObservation: 'event:legacy.sunscar.signal', advances: 3 },
 } as const;
+}
+/** Compose the unchanged saved page from explicit verified world markers. */
+export function signalQuestPage(markers: QuestMarkers): ReturnType<typeof questPageRows> { return questPageRows(markers); }
+export const SIGNAL_QUEST_PAGE = signalQuestPage(QUEST_MARKERS);

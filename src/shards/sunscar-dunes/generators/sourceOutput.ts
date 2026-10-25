@@ -25,12 +25,12 @@ const baseline = { blobs: SIGNAL_SCENE_BLOBS, worldScenes: SIGNAL_WORLD_SCENES }
 export interface SignalSceneOutput { readonly namedFiles: ReturnType<typeof emitNamedBlobs>['files'];
   readonly assets: ReturnType<typeof emitNamedBlobs>['assets']; readonly platform: ReturnType<typeof emitPlatformSections> }
 /** Both owners consume the same verified decisions and mechanics with explicit scene files and bindings. */
-export function signalSceneOutput(scene: ReturnType<typeof signalWorldScenes>): SignalSceneOutput {
+export function signalSceneOutput(scene: ReturnType<typeof signalWorldScenes>, plan = SIGNAL_CLIENT_PLAN): SignalSceneOutput {
   const sources = emitNamedBlobs(scene.blobs);
   return { namedFiles: sources.files, assets: sources.assets, platform: emitPlatformSections(new Map<SectionName, unknown>([
     ['ui/strings', STRINGS],
     ['look/painted', signalPaintedPresentation()],
-    ['client/plan', SIGNAL_CLIENT_PLAN],
+    ['client/plan', plan],
       ['explore/catalogue', {"version": 1, "entries": [{"kind": "held", "item": WHIP_ROW.id}, {"kind": "rigs", "library": "models"}, {"kind": "npc", "npc": "sunscar.scout"}, {"kind": "scene", "part": "tower.root"}, {"kind": "scene", "part": "caravan.root"}, {"kind": "scene", "part": "well.root"}, {"kind": "scene", "part": "brazier.0.root"}]}],
       ['world/scenes', scene.worldScenes],
       ['actors/species-programs', { page: SIGNAL_PAGE_PROGRAM.species.page, native: [], program: SIGNAL_PAGE_PROGRAM.species.program }],
@@ -42,8 +42,8 @@ export function signalSceneOutput(scene: ReturnType<typeof signalWorldScenes>): 
 export const output = signalSceneOutput(baseline);
 
 /** Preserve every original section and scene file while replacing owned model inputs. */
-export function signalSourceOutput(models: NamedBlob, rigs: readonly NamedBlob[], scene = baseline): ProjectOutput {
+export function signalSourceOutput(models: NamedBlob, rigs: readonly NamedBlob[], scene = baseline, plan = SIGNAL_CLIENT_PLAN): ProjectOutput {
   if (models.file.name !== 'world/sources/models.json') throw new Error('Invalid model source replacement');
   const owned = emitNamedBlobs([...scene.blobs.filter(blob => blob.file.name !== models.file.name), models, ...rigs]);
-  return { ...(scene === baseline ? output : signalSceneOutput(scene)), namedFiles: owned.files, assets: owned.assets };
+  return { ...(scene === baseline ? output : signalSceneOutput(scene, plan)), namedFiles: owned.files, assets: owned.assets };
 }

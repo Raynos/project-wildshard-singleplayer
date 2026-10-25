@@ -9,6 +9,9 @@ import { signalSceneSources, SIGNAL_SOURCE_BLOBS } from '../src/shards/sunscar-d
 import { signalWorldScenes, SIGNAL_WORLD_SCENES, SIGNAL_SCENE_BLOBS } from '../src/shards/sunscar-dunes/generators/worldScenes';
 import { signalSceneOutput } from '../src/shards/sunscar-dunes/generators/sourceOutput';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
+import { signalQuestMarkers, QUEST_MARKERS } from '../src/shards/sunscar-dunes/generators/questMarkers';
+import { signalQuestPage, SIGNAL_QUEST_PAGE } from '../src/shards/sunscar-dunes/generators/questPage';
+import { signalClientPlan, SIGNAL_CLIENT_PLAN } from '../src/shards/sunscar-dunes/generators/clientPlan';
 import before from './fixtures/sunscar-source-entry.json' with { type: 'json' };
 
 const { files } = await bakeSignalWorldSources(new Uint8Array(readFileSync('src/shards/sunscar-dunes/assets/models/dry-well.glb')));
@@ -55,4 +58,23 @@ test('each scene assembly owns its mutable arrays and refuses missing declared b
   expect(second.blobs.map(blob => blob.file)).toEqual(SIGNAL_SCENE_BLOBS.map(blob => blob.file));
   world.braziers.braziers.pop();
   expect(() => signalWorldScenes(world, sources)).toThrow('Missing original brazier');
+});
+
+test('quest policy reads the same verified world anchors without changing saved policy', () => {
+  const world = signalWorldMetadata(files), markers = signalQuestMarkers(world);
+  expect(markers).toEqual(QUEST_MARKERS);
+  const page = signalQuestPage(markers);
+  expect(page).toEqual(SIGNAL_QUEST_PAGE);
+  expect(hashImmutableBytes(new TextEncoder().encode(JSON.stringify(page))))
+    .toBe('50f8d95f610b2ab6faa67abe3ee7c83253ad3d4ca6d833c65a5a21143d27ed9b');
+  expect(signalClientPlan(page)).toEqual(SIGNAL_CLIENT_PLAN);
+  world.caravan.anchors.logbook[1] += 2;
+  world.well.anchors.y += 3; world.tower.anchors.deckY += 4;
+  expect(signalQuestMarkers(world)['logbook']?.y).toBe((markers['logbook']?.y ?? 0) + 2);
+  expect(signalQuestMarkers(world)['well']?.y).toBe((world.well.anchors.y + 1) + 0.6);
+  expect(signalQuestMarkers(world)['tower']?.y).toBe((world.tower.anchors.deckY + 1.1) + 1);
+  world.caravan.anchors.logbook.pop();
+  expect(() => signalQuestMarkers(world)).toThrow('Invalid authored logbook anchor');
+  const fresh = signalWorldMetadata(files); fresh.braziers.braziers.pop();
+  expect(() => signalQuestMarkers(fresh)).toThrow('Missing authored waymark');
 });
