@@ -32,7 +32,8 @@ export class GroundMerge {
   /** `onRebuild`: each new merged mesh, before it draws (its shadow flags, render order or a terrain's mesh slot) */
   constructor(private readonly parent: Object3D, private readonly material: Material, private readonly name: string, private readonly onRebuild?: (mesh: Mesh) => void) {}
 
-  /** The tile's ground `mesh` joins (hidden itself) until `scope` ends; `coarse` (its coarse tile) returns the quadrant setter. */
+  /** The tile's ground `mesh` joins (hidden itself) until `scope` ends. Detached meshes are already parent-local;
+   * attached meshes keep their scene transform. `coarse` returns the quadrant setter. */
   add(mesh: Mesh, scope: Scope, coarse?: { readonly x: number; readonly z: number }): (hidden: ReadonlySet<number>) => void {
     const corner = coarse === undefined ? null : { x: -HALF + coarse.x * COARSE, z: -HALF + coarse.z * COARSE };
     const member: Member = { mesh, corner, hidden: new Set(), attributes: new Map(), triangles: null };
@@ -60,7 +61,7 @@ export class GroundMerge {
       const geometry = member.mesh.geometry; if (geometry.boundingBox === null) geometry.computeBoundingBox();
       const centre = geometry.boundingBox?.getCenter(new Vector3()) ?? new Vector3();
       this.parent.updateWorldMatrix(true, false); member.mesh.updateWorldMatrix(true, false);
-      centre.applyMatrix4(new Matrix4().copy(this.parent.matrixWorld).invert().multiply(member.mesh.matrixWorld));
+      centre.applyMatrix4(member.mesh.parent === null ? member.mesh.matrix : new Matrix4().copy(this.parent.matrixWorld).invert().multiply(member.mesh.matrixWorld));
       x = centre.x; z = centre.z;
     }
     return `${String(Math.floor((x + HALF) / BLOCK))},${String(Math.floor((z + HALF) / BLOCK))}`;
@@ -88,7 +89,9 @@ export class GroundMerge {
     const drawn = [...block.members.values()].filter(member => member.hidden.size < 4);
     const parts = drawn.map(member => {
       const geometry = member.mesh.geometry, position = geometry.getAttribute('position');
-      member.mesh.updateWorldMatrix(true, false); toParent.multiplyMatrices(parentInverse, member.mesh.matrixWorld);
+      member.mesh.updateWorldMatrix(true, false);
+      if (member.mesh.parent === null) toParent.copy(member.mesh.matrix);
+      else toParent.multiplyMatrices(parentInverse, member.mesh.matrixWorld);
       const transform = toParent.elements.join(',');
       const attributes = names.map(name => {
         const attribute = geometry.getAttribute(name);

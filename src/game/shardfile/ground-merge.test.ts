@@ -58,3 +58,45 @@ test('tiles draw one mesh per 250 m block; a change rebuilds only its block', as
   a.dispose(); c.dispose(); await settle();
   expect(merge.meshes).toHaveLength(0); expect(parent.children).toHaveLength(0);
 });
+
+test('detached painted tiles stay cell-local after their region moves and rebuilds', async () => {
+  const parent = new THREE.Group(), scope = new Scope('painted region');
+  const merge = new GroundMerge(parent, new THREE.MeshBasicMaterial(), 'ground');
+  const coarse = tile(-250, -250), hide = merge.add(coarse, scope, { x: 0, z: 0 });
+  await settle();
+  try {
+    parent.position.set(562.5, 40, -562.5);
+    // The aerial camera moves the fine ring: its changed cover rebuilds the
+    // permanent coarse ground after the regional root acquired its grid pose.
+    hide(new Set([3])); await settle();
+    const mesh = merge.mesh;
+    if (mesh === null) throw new Error('Missing coarse ground');
+    expect(Array.from(mesh.geometry.getAttribute('position').array)).toEqual(Array.from(coarse.geometry.getAttribute('position').array));
+    expect(mesh.geometry.getIndex()?.count).toBe(3);
+    mesh.updateWorldMatrix(true, false);
+    expect(new THREE.Vector3().fromBufferAttribute(mesh.geometry.getAttribute('position'), 0).applyMatrix4(mesh.matrixWorld).toArray()).toEqual([313.5, 40, -811.5]);
+    // A later detached fine tile belongs to the same cell-local block.
+    const fine = tile(-125, -250); fine.position.set(5, 2, 3);
+    merge.add(fine, scope); await settle();
+    expect(merge.meshes).toHaveLength(1);
+    expect(merge.mesh?.geometry.getIndex()?.count).toBe(9);
+    const position = merge.mesh?.geometry.getAttribute('position');
+    if (position === undefined) throw new Error('Missing merged vertices');
+    expect(new THREE.Vector3().fromBufferAttribute(position, 6).toArray()).toEqual([-119, 2, -246]);
+  } finally { scope.dispose(); await settle(); }
+  expect(parent.children).toHaveLength(0);
+});
+
+test('attached ground retains its nested transform across grid rebasing', async () => {
+  const parent = new THREE.Group(), nested = new THREE.Group(), scope = new Scope('nested ground');
+  parent.position.set(562.5, 0, -562.5); parent.add(nested); nested.position.set(10, 2, 20);
+  const source = tile(-250, -250); nested.add(source);
+  const merge = new GroundMerge(parent, new THREE.MeshBasicMaterial(), 'ground');
+  merge.add(source, scope); await settle();
+  try {
+    const before = Array.from(merge.mesh?.geometry.getAttribute('position').array ?? []);
+    expect(before.slice(0, 3)).toEqual([-239, 2, -229]);
+    parent.position.set(-562.5, 0, 562.5); merge.rebuild();
+    expect(Array.from(merge.mesh?.geometry.getAttribute('position').array ?? [])).toEqual(before);
+  } finally { scope.dispose(); await settle(); }
+});
