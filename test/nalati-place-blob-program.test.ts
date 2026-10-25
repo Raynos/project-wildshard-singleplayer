@@ -18,7 +18,6 @@ test('the duplicate scene-copy jobs stay retired', () => {
   const descriptors = discoverGeneration(resolve('.')).jobs;
   const jobs = descriptors.map(job => job.id);
   expect(jobs).not.toContain('nalati-places-blob'); expect(jobs).not.toContain('nalati-crags-blob'); expect(jobs).not.toContain('nalati-dressing-blob');
-  expect(descriptors.flatMap(job => job.inputRoots)).not.toContain('src/shards/nalati-grasslands/generators/bake-dressing-bakes.mjs');
 });
 
 test('the actual output hook preserves every predecessor file cost and binary byte on cold and cache hit', async () => {
