@@ -5,19 +5,15 @@
 // loop (D → B) is written once, followed by the ring-out.
 import { writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { execSync } from 'node:child_process';
+import { ARRANGEMENTS, CHORDS } from '../../src/game/audio/theme.ts';
 
 const here = import.meta.dirname;
-const root = resolve(here, '../..');
 const name = process.argv[2] ?? 'theme';
 const out = resolve(process.argv[3] ?? `${here}/wildshard-${name}.mid`);
 
-// load the TypeScript score through Vite's transform (the dev server is up for the render anyway) — no build step, no deps
-const src = execSync(`curl -s http://localhost:5173/src/game/audio/theme.ts`, { cwd: root }).toString();
-const mod = await import(`data:text/javascript;base64,${Buffer.from(src.replaceAll(/^import\.meta\.hot.*$/gm, '')).toString('base64')}`);
-const arr = mod.ARRANGEMENTS[name];
+// The defining score is pure author data; Node 24 strips its type-only declarations.
+const arr = Object.entries(ARRANGEMENTS).find(([key]) => key === name)?.[1];
 if (!arr) throw new Error(`no arrangement ${name}`);
-const { CHORDS } = mod;
 
 const PPQ = 480;
 const LAYERS = ['drone', 'pad', 'pluck', 'marimba', 'bass', 'pulse', 'bell'];
