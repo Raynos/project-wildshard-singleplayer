@@ -10571,16 +10571,17 @@ specifies; this change does not introduce a second effect dispatcher.
 
 ## World scene assembly (Z2, G480/G483)
 
-An ordered scene step may include `draws` from `SceneDrawsSchema`. A
-`buffered` draw names a verified `SceneBuffersSchema` JSON file and material
-slot. Admission reads and validates those bytes before visual allocation.
-The client-only `sceneBuffers` constructor restores typed plain or instanced
-attributes, shared interleaved buffers, index storage, instance counts and
-authored bounds. A count may select its original prefix through an admitted
-numeric plumbing knob. Optional LOD rows retain child insertion order while
-three.js sorts the distance table. Geometry and scene roots retire with the
-resident scope; missing files and invalid storage refuse without fallback.
-The same buffered draw rows serve resident scenes and emitter presentation.
+`SceneDrawsSchema` buffered rows name verified `SceneBuffersSchema` JSON
+and a material. Each buffer supplies inline `bytes` or a relative `file`
+and exact `byteLength`; producers link binary file dependencies.
+`admitSceneBuffers(input, files)` and the sixth `files` argument
+of `createSceneBuffers` accept verified product bytes. Both validate
+lengths, alignment and finite words before GPU allocation; geometry
+copies binary storage, retaining typed/instanced sharing and bounds.
+Numeric plumbing knobs select instance prefixes. LOD children
+keep insertion order; three.js sorts distances. Geometry and roots
+retire with the resident scope. Missing files or invalid storage refuse
+without fallback. Scenes and emitters share this constructor.
 
 `@wildshard/game/shardfile/worldScenes.installWorldScenes(context, rows,
 resident)` builds the client-only `world/scenes` platform section once per

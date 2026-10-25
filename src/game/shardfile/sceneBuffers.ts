@@ -12,7 +12,7 @@ const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789
 for (let i = 0; i < ALPHABET.length; i++) BASE64[ALPHABET.codePointAt(i) ?? 0] = i;
 /** O25: a validated base64 text's bytes. `Uint8Array.from(atob(text), callback)` spent ~90 ms per decode on Sky Reach's
  *  2.4 MB scene draws (twice per admission), one frame of 300+ ms entering the cell; this is ~20× faster, same bytes. */
-function base64Bytes(text: string): Uint8Array {
+function base64Bytes(text: string): Uint8Array<ArrayBuffer> {
   const pad = text.endsWith('==') ? 2 : text.endsWith('=') ? 1 : 0, out = new Uint8Array(text.length / 4 * 3 - pad);
   for (let i = 0, o = 0; i < text.length; i += 4) {
     const a = BASE64[text.codePointAt(i) ?? 0] ?? 0, b = BASE64[text.codePointAt(i + 1) ?? 0] ?? 0;
@@ -25,11 +25,20 @@ function base64Bytes(text: string): Uint8Array {
   return out;
 }
 /** Decode every bounded source before scene allocation. Raw byte words retain signed zero and original storage. */
-function decode(row: SceneBuffers): ReadonlyMap<string, Storage> {
+function decode(row: SceneBuffers, files?: ReadonlyMap<string, Uint8Array>): ReadonlyMap<string, Storage> {
   const result = new Map<string, Storage>();
   for (const buffer of row.buffers) {
-    if (buffer.bytes.length % 4 !== 0 || /[^A-Za-z0-9+/=]/u.test(buffer.bytes) || /[=]/u.test(buffer.bytes.slice(0, -2))) throw new Error('Malformed scene buffer encoding');
-    const bytes = base64Bytes(buffer.bytes);
+    let bytes: Uint8Array<ArrayBuffer>;
+    if (buffer.bytes !== undefined) {
+      if (buffer.bytes.length % 4 !== 0 || /[^A-Za-z0-9+/=]/u.test(buffer.bytes) || /[=]/u.test(buffer.bytes.slice(0, -2))) throw new Error('Malformed scene buffer encoding');
+      bytes = base64Bytes(buffer.bytes);
+    } else {
+      const source = buffer.file === undefined ? undefined : files?.get(buffer.file);
+      if (source === undefined) throw new Error('Missing scene buffer binary file');
+      if (source.byteLength !== buffer.byteLength) throw new Error('Scene buffer binary length differs');
+      // Geometry owns its words; never lend a mutable view of the verified product cache.
+      bytes = new Uint8Array(source);
+    }
     const width = buffer.storage === 'f32' ? 4 : buffer.storage === 'u16' ? 2 : 1;
     if (bytes.byteLength % width !== 0) throw new Error('Misaligned scene buffer storage');
     const storage = buffer.storage === 'f32' ? new Float32Array(bytes.buffer) : buffer.storage === 'u16' ? new Uint16Array(bytes.buffer) : bytes;
@@ -43,9 +52,10 @@ function decode(row: SceneBuffers): ReadonlyMap<string, Storage> {
   }
   return result;
 }
-/** Client-only typed field admission, performed before allocating materials or geometry. */
-export function admitSceneBuffers(input: unknown): SceneBuffers {
-  const row = parseSceneBuffers(input); decode(row); return row;
+/** Client-only typed field admission, performed before allocating materials or geometry.
+ * Named sources require verified product files with their exact declared byte lengths. */
+export function admitSceneBuffers(input: unknown, files?: ReadonlyMap<string, Uint8Array>): SceneBuffers {
+  const row = parseSceneBuffers(input); decode(row, files); return row;
 }
 /** An admitted content URL and its authoritative resource owner, never an entered root or material. */
 export interface SceneBufferReuse {
@@ -59,8 +69,8 @@ function instanceCounts(row: SceneBuffers, plumbing: PlumbingData | null | undef
     return typeof count === 'object' ? plumbingKnob(plumbing, TIER, count.knob, 'number') >= count.threshold ? count.above : count.below : count;
   });
 }
-function buildGeometries(row: SceneBuffers, counts: readonly (number | undefined)[], own: (geometry: BufferGeometry) => void): ReadonlyMap<string, BufferGeometry> {
-  const storage = decode(row);
+function buildGeometries(row: SceneBuffers, counts: readonly (number | undefined)[], own: (geometry: BufferGeometry) => void, files?: ReadonlyMap<string, Uint8Array>): ReadonlyMap<string, BufferGeometry> {
+  const storage = decode(row, files);
   const buffers = new Map<string, InterleavedBuffer>();
   for (const buffer of row.buffers) {
     if (buffer.stride === undefined) continue;
@@ -108,13 +118,14 @@ function buildGeometries(row: SceneBuffers, counts: readonly (number | undefined
   return geometries;
 }
 /** Fresh draw objects can borrow fixed storage through charged, pressure-evictable assets.
- * Content identity, tier and every resolved instance count isolate reusable builds. */
-export function createSceneBuffers(input: unknown, material: Material, scope: Scope, plumbing?: PlumbingData | null, reuse?: SceneBufferReuse): Group {
+ * Content identity, tier and every resolved instance count isolate reusable builds.
+ * Binary files are verified product reads; decoded geometry never mutates their storage. */
+export function createSceneBuffers(input: unknown, material: Material, scope: Scope, plumbing?: PlumbingData | null, reuse?: SceneBufferReuse, files?: ReadonlyMap<string, Uint8Array>): Group {
   if (scope.disposed || scope.disposing) throw new Error('Scene buffer scope is disposed or retiring');
   const row = parseSceneBuffers(input), counts = instanceCounts(row, plumbing), owner = scope.child('buffered-draws');
   try {
     let geometries: ReadonlyMap<string, BufferGeometry>;
-    if (reuse === undefined) geometries = buildGeometries(row, counts, geometry => { owner.own(geometry); });
+    if (reuse === undefined) geometries = buildGeometries(row, counts, geometry => { owner.own(geometry); }, files);
     else {
       if (reuse.content.length === 0) throw new Error('Reusable scene buffers need admitted content identity');
       let memo = builds.get(reuse.assets);
@@ -137,7 +148,7 @@ export function createSceneBuffers(input: unknown, material: Material, scope: Sc
             const release = reuse.assets.acquireResource(geometry);
             if (release === null) throw new Error('New scene geometry has no owner');
             owner.onDispose(release);
-          });
+          }, files);
         } catch (error) {
           owner.dispose();
           for (const asset of registered) reuse.assets.evictCached(asset);

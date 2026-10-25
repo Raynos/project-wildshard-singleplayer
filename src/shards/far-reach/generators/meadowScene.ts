@@ -43,5 +43,8 @@ export function skyMeadowScene(): SceneBuffers {
 export const SKY_MEADOW_FILE = 'world/fields/meadow.json';
 const scene = skyMeadowScene();
 export const SKY_MEADOW_BLOB = nameBlob(SKY_MEADOW_FILE, 'json', new TextEncoder().encode(JSON.stringify(scene)), {
-  gpu: scene.buffers.reduce((sum, buffer) => sum + atob(buffer.bytes).length, 0),
+  gpu: scene.buffers.reduce((sum, buffer) => {
+    if (buffer.bytes === undefined) throw new Error('Meadow authoring requires its inline source');
+    return sum + atob(buffer.bytes).length;
+  }, 0),
 });

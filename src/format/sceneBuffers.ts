@@ -7,8 +7,13 @@ const natural = v.pipe(finite, v.integer(), v.minValue(0));
 const count = v.pipe(natural, v.maxValue(1_000_000));
 const xyz = v.tuple([finite, finite, finite]);
 const list = <T extends v.BaseSchema<unknown, unknown, v.BaseIssue<unknown>>>(schema: T, max: number) => v.pipe(v.array(schema), v.maxLength(max));
-const buffer = v.strictObject({ id, storage: v.picklist(['f32', 'u16', 'u8']), bytes: v.pipe(v.string(), v.maxLength(8_000_000)),
-  stride: v.exactOptional(v.pipe(natural, v.minValue(1), v.maxValue(16))), instanced: v.optional(v.boolean(), false) });
+const file = v.pipe(v.string(), v.maxLength(240), v.regex(/^(?:[A-Za-z0-9_-][A-Za-z0-9_.-]*\/)*[A-Za-z0-9_-][A-Za-z0-9_.-]*$/u));
+const byteLength = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(6_000_000));
+const buffer = v.pipe(v.strictObject({ id, storage: v.picklist(['f32', 'u16', 'u8']), bytes: v.exactOptional(v.pipe(v.string(), v.maxLength(8_000_000))),
+  file: v.exactOptional(file), byteLength: v.exactOptional(byteLength),
+  stride: v.exactOptional(v.pipe(natural, v.minValue(1), v.maxValue(16))), instanced: v.optional(v.boolean(), false) }),
+v.check(row => row.bytes === undefined ? row.file !== undefined && row.byteLength !== undefined : row.file === undefined && row.byteLength === undefined,
+  'Scene buffer needs exactly one inline or named binary source'));
 const attribute = v.strictObject({ id, buffer: id, size: v.pipe(natural, v.minValue(1), v.maxValue(4)), offset: v.optional(natural, 0), normalized: v.optional(v.boolean(), false) });
 const instances = v.union([count, v.strictObject({ knob: id, threshold: count, below: count, above: count })]);
 const geometry = v.strictObject({ id, attributes: v.pipe(v.record(id, id), v.maxEntries(16)), index: v.exactOptional(id), instances: v.exactOptional(instances),
@@ -25,7 +30,7 @@ export const SceneBuffersSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Scene
     const geometries = new Set(row.geometries.map(entry => entry.id));
     return buffers.size === row.buffers.length && attributes.size === row.attributes.length && geometries.size === row.geometries.length
       && new Set(row.draws.map(entry => entry.id)).size === row.draws.length
-      && row.buffers.reduce((sum, entry) => sum + entry.bytes.length, 0) <= 16_000_000
+      && row.buffers.reduce((sum, entry) => sum + (entry.bytes?.length ?? Math.ceil((entry.byteLength ?? 0) / 3) * 4), 0) <= 16_000_000
       && row.attributes.every(entry => {
         const source = buffers.get(entry.buffer);
         return source !== undefined && (source.stride === undefined ? entry.offset === 0 : entry.offset + entry.size <= source.stride);

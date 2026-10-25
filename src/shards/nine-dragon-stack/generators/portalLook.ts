@@ -18,8 +18,9 @@ export function portalLookRows(): { blobs: NamedBlob[]; scenes: WorldScenesSecti
     seeds.push((s * .618034 + i * .13) % 1, (s * .381966 + i * .29) % 1);
   }
   const channels = [['position', positions, 3], ['aAcross', across, 3], ['aSeed', seeds, 2]] as const;
+  const binary = channels.map(([id, values]) => nameBlob(`world/portals/${id}.bin`, 'bin', new Uint8Array(Float32Array.from(values).buffer)));
   const sparks = parseSceneBuffers({ version: 1, name: 'portal-sparks',
-    buffers: channels.map(([id, values]) => ({ id, storage: 'f32', bytes: btoa(Array.from(new Uint8Array(Float32Array.from(values).buffer), value => String.fromCodePoint(value)).join('')) })),
+    buffers: channels.map(([id, values]) => ({ id, storage: 'f32', file: `world/portals/${id}.bin`, byteLength: values.length * 4 })),
     attributes: channels.map(([id, , size]) => ({ id, buffer: id, size })),
     geometries: [{ id: 'sparks', attributes: { position: 'position', aAcross: 'aAcross', aSeed: 'aSeed' } }],
     draws: [{ id: 'sparks', name: 'portal-sparks', draw: { kind: 'points', geometry: 'sparks' } }] });
@@ -33,7 +34,7 @@ export function portalLookRows(): { blobs: NamedBlob[]; scenes: WorldScenesSecti
   const shapes = [['ring', new TorusGeometry(plan.ring.r, plan.ring.tube, 8, 48)], ['disc', new CircleGeometry(plan.ring.r - plan.ring.tube * .5, 40)]] as const;
   const blobs = shapes.map(([id, geometry]) => nameBlob(`world/portals/${id}.glb`, 'glb', compressGlb(staticGlb([{ geometry, material, nativeAttributes: true, compactIndex: true }], id))));
   for (const [, geometry] of shapes) geometry.dispose(); material.dispose();
-  return { blobs: [...blobs, nameBlob('world/portals/scene.json', 'json', json(scene)), nameBlob('world/portals/sparks.json', 'json', json(sparks))],
+  return { blobs: [...blobs, ...binary, nameBlob('world/portals/scene.json', 'json', json(scene)), nameBlob('world/portals/sparks.json', 'json', json(sparks), { dependencies: binary.map(row => row.file.hash) })],
     scenes: parseWorldScenes({ version: 1, libraries: [{ id: 'portals', kind: 'owned', models: shapes.map(([id]) => ({ id, file: `world/portals/${id}.glb` })) }],
     materials: ['ring', 'disc', 'sparks'].map(id => ({ id: `portal-${id}`, kind: 'look', look: `nine-portal-${id}` })),
     steps: [{ id: 'portals', scene: 'world/portals/scene.json', geometry: { ring: { library: 'portals', model: 'ring' }, disc: { library: 'portals', model: 'disc' } },

@@ -60,14 +60,15 @@ async function prepareColdOutput() {
 const fixture = await prepareColdOutput();
 afterAll(fixture.dispose);
 
-test('cold source output retains every original admitted file byte and contract', async () => {
+test('cold source output retains every admitted file byte and contract', async () => {
   expect(fixture.proofs.calls).toBe(1);
   const prepared = await prepareProjectOutput(fixture.project, fixture.cold);
   const originalAssets = new Set(before.assets.map(row => row.name));
   const worldFiles = originalWorld.filter(row => row.path.startsWith('assets/'));
   const actualKeys = new Set([...prepared.assets.keys(), ...prepared.blobs.map(row => row.file.hash)]);
   expect([...actualKeys].sort()).toEqual([...new Set([...originalAssets, ...worldFiles.map(row => row.hash)])].sort());
-  // The original 185 prepared assets retain their complete oracle. The 397
+  // The complete prepared-asset oracle includes the three binary portal channels.
+  // Every non-portal file retains its original bytes. The 397
   // world files move from the project reader into owned output and are
   // independently pinned byte-for-byte by nine-world-program's 399 rows.
   for (const row of worldFiles) {
