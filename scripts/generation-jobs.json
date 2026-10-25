@@ -8710,7 +8710,8 @@
         "src/format/scriptAdmission.ts",
         "src/format/scriptContract.ts",
         "src/sdk/bake/json.mjs",
-        "src/shards/sunscar-dunes/generators/sandSources.ts"
+        "src/shards/sunscar-dunes/generators/sandSources.ts",
+        "src/sdk/bake/byteCodec.ts"
       ],
       "outputs": [
         "public/assets/sunscar-dunes/sand/skirt.bin",

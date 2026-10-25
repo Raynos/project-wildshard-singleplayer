@@ -10,8 +10,7 @@
 // Usage: node --experimental-transform-types --import ./src/sdk/bake/source-loader.mjs src/shards/sunscar-dunes/generators/bake-signal-sand.mjs
 import { mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { constants, zstdCompressSync } from 'node:zlib';
-import { zlibSync } from 'fflate';
+import { encodeBuildBytes } from '@wildshard/sdk/bake/byteCodec';
 import { SAND_ZSTD_LEVEL } from './sand.ts';
 import { bakeSignalSandSources } from './sandSources.ts';
 
@@ -24,8 +23,8 @@ const emit = (file, bytes) => {
   } else writeFileSync(file, bytes);
 };
 if (!check) mkdirSync(out, { recursive: true });
-const files = bakeSignalSandSources(bytes => zlibSync(bytes, { level: 9 }),
-  bytes => new Uint8Array(zstdCompressSync(bytes, { params: { [constants.ZSTD_c_compressionLevel]: SAND_ZSTD_LEVEL } })));
+const files = bakeSignalSandSources(bytes => encodeBuildBytes(bytes, 'deflate'),
+  bytes => encodeBuildBytes(bytes, 'zstd', SAND_ZSTD_LEVEL));
 for (const [name, bytes] of files) {
   const target = name.startsWith('sand/') ? resolve(out, name.slice(5)) : resolve(project, name.startsWith('assets/') ? name : `data/${name}`);
   emit(target, bytes);
