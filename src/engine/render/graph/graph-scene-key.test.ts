@@ -147,6 +147,7 @@ test('an equivalent scene refreshes the warm program uniform bindings', () => {
     expect(Object.values(properties.uniforms ?? {}).some(uniform => typeof uniform === 'object' && uniform !== null
       && Reflect.get(uniform, 'value') === next.fog?.color)).toBe(true);
     expect(handler.builds).toBe(2);
+    expect(handler.buildLog.at(-1)?.how).toMatch(/^scene binding scene\+fog: /u);
     material.onBeforeRender(renderer, next, camera, geometry, mesh, new THREE.Group());
     expect(handler.builds).toBe(2);
     handler.renderEnd();
@@ -237,6 +238,7 @@ test.each(['fog', 'environment'] as const)('a restored scene %s keeps its existi
     borrow(); handler.renderStart(scene, camera); handler.updateLights([]); handler.setObject(mesh, material);
     material.onBeforeRender(renderer, scene, camera, geometry, mesh, new THREE.Group());
     expect(handler.builds).toBe(2);
+    expect(handler.buildLog.at(-1)?.how).toMatch(new RegExp(`^scene binding ${field}: `, 'u'));
     expect(properties.uniforms).not.toBe(before);
     expect(Object.values(properties.uniforms ?? {}).some(uniform => typeof uniform === 'object' && uniform !== null
       && Reflect.get(uniform, 'value') === scene.fog?.color)).toBe(true);

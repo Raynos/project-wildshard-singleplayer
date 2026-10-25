@@ -982,25 +982,41 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   }
 
   private sameSceneBinding(binding: SceneBinding | null): boolean {
-    if (binding === null) return true;
+    return this.sceneBindingMismatch(binding) === null;
+  }
+
+  private sceneBindingMismatch(binding: SceneBinding | null): string | null {
+    if (binding === null) return null;
     const facts = this.currentBindingFacts();
-    if (facts === null || binding.scene.deref() !== facts.scene || binding.lights !== facts.lights) return false;
-    if (binding.inputs === null || facts.inputs === null) return binding.rawKey === facts.rawKey;
+    if (facts === null) return 'frame';
+    let mismatch = '';
+    if (binding.scene.deref() !== facts.scene) mismatch += '+scene';
+    if (binding.lights !== facts.lights) mismatch += '+lights';
     // Stock SceneContext recreates its node wrappers after a borrowed fog or
     // environment is restored. The same scene, live resources and source lights
     // still supply the exact bound uniforms; only real owner replacements rebind.
-    return sameSceneInput(binding.inputs.fog, facts.inputs.fog) && sameSceneInput(binding.inputs.environment, facts.inputs.environment);
+    if (binding.inputs === null || facts.inputs === null) {
+      if (binding.rawKey !== facts.rawKey) mismatch += '+key';
+    } else {
+      if (!sameSceneInput(binding.inputs.fog, facts.inputs.fog)) mismatch += '+fog';
+      if (!sameSceneInput(binding.inputs.environment, facts.inputs.environment)) mismatch += '+environment';
+    }
+    return mismatch === '' ? null : mismatch.slice(1);
   }
 
   /** A scene with the same shader shape may reuse the native program, but not
    * a previous scene's lights, fog references, environment sampler or updates. */
   private refreshSceneBinding(material: THREE.Material, program: unknown): void {
     const bindings = this.sceneBindings.get(material), binding = bindings?.get(program);
-    if (binding === undefined || this.sameSceneBinding(binding)) return;
+    if (binding === undefined) return;
+    const mismatch = this.sceneBindingMismatch(binding);
+    if (mismatch === null) return;
     const object: unknown = this.frame.object;
     if (!isDrawObject(object)) return;
     const parameters = { ...binding.parameters };
     this.build(material, object, parameters);
+    const logged = this.buildLog.at(-1);
+    if (logged !== undefined) logged.how = `scene binding ${mismatch}: ${logged.how}`;
     const pending = this.pendingBuilds.get(material), build = pending?.pop();
     if (pending?.length === 0) this.pendingBuilds.delete(material);
     if (build === undefined || build.binding === null) throw new Error('Missing refreshed scene binding');
