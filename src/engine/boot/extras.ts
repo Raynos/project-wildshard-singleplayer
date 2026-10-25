@@ -14,8 +14,8 @@
  *                           memory; the other cards' and the Explore viewer's compressed files remain in the offline
  *                           cache until shown (round 39: decoding Driftwood's ten Explore and compare pictures held
  *                           Jake's phone 13.8 s on this step, one 10.8 s frame). On desktop the Explore panels are
- *                           decoded into <img>s that the viewer's own <img>s reuse; awaited by the 'menu' step, which also imports the lazy UI chunks
- *                           (Explore, Feedback) so opening them later makes no request.
+ *                           decoded into <img>s that the viewer's own <img>s reuse; awaited by the 'menu' step.
+ *                           Explore and Feedback code loads only on use, with preparation progress (G713/G729).
  *  - `startAudioPreload()`  only selected profile audio downloaded (the worker caches each on its way in),
  *                           the selected music style (title + this shard's slot +
  *                           stings) and sound-effect set decoded on an OfflineAudioContext as their bytes land; awaited by
@@ -121,7 +121,7 @@ const artLoaded = new Set<string>();
 
 export function startMenuPreload(files: ChunkFiles, def: BootLevel): Preload<void> {
   const art = files.art;
-  const c = counter(art.length + (def.boot?.explore === undefined ? 1 : 2));
+  const c = counter(art.length);
   const blobs = new Map<string, string>();
   // The phone page runs one shard at a time. Keep the other cards' and the Explore viewer's bytes in the offline cache,
   // but do not decode them into WebKit's image memory while the selected shard allocates its textures (E244, round 39).
@@ -149,11 +149,8 @@ export function startMenuPreload(files: ChunkFiles, def: BootLevel): Preload<voi
   });
   return {
     async wait(p) {
-      c.attach(p, 'pictures · UI');
-      // the lazy UI chunks, fetched and evaluated now: a later import() is answered from the module map
-      const code = [waitFor('Prepare feedback controls', import('../ui/Feedback')),
-        ...(def.boot?.explore === undefined ? [] : [waitFor('Prepare Explore controls', import('../explore/Explore'))])].map(async (m) => { await m; c.tick(); });
-      await Promise.all([...images, ...code]);
+      c.attach(p, 'pictures');
+      await Promise.all(images);
       swapCardArt(blobs);
     },
   };

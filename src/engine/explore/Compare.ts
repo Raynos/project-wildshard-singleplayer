@@ -1,6 +1,6 @@
 import { listenDom } from '../input/dom';
 import { app } from '../app/runtime';
-import { ExploreLoadProgress } from './loadProgress';
+import { LoadProgress } from '../ui/loadProgress';
 import { engineString } from '../strings';
 /**
  * World Explorer's static image comparison. Each target has a capture from the same authored
@@ -25,8 +25,8 @@ export class Compare {
   private readonly targetImg: HTMLImageElement;
   private readonly divider: HTMLElement;
   private readonly targets: readonly Target[];
-  private readonly pickerProgress: ExploreLoadProgress;
-  private readonly imageProgress: ExploreLoadProgress;
+  private readonly pickerProgress: LoadProgress;
+  private readonly imageProgress: LoadProgress;
   private split = 0.5;
   private current: Target | null = null;
 
@@ -53,8 +53,8 @@ export class Compare {
     this.liveImg = this.overlay.querySelector<HTMLImageElement>('.ws-x-compare-live') ?? document.createElement('img');
     this.targetImg = this.overlay.querySelector<HTMLImageElement>('.ws-x-compare-target') ?? document.createElement('img');
     this.divider = this.overlay.querySelector<HTMLElement>('.ws-x-divider') ?? this.overlay;
-    this.pickerProgress = new ExploreLoadProgress(this.picker);
-    this.imageProgress = new ExploreLoadProgress(this.overlay);
+    this.pickerProgress = new LoadProgress(this.picker);
+    this.imageProgress = new LoadProgress(this.overlay);
     this.uiScope.onDispose(() => { this.pickerProgress.dispose(); this.imageProgress.dispose(); });
     listenDom(this.uiScope, this.button, 'click', () => { this.togglePicker(); });
     listenDom(this.uiScope, this.picker.querySelector('.ws-x-picker-close'), 'click', () => { this.picker.classList.remove('show'); this.pickerProgress.clear(); });

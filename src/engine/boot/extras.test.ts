@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import {afterEach,beforeEach,expect,test,vi} from 'vitest';
-import {bootFiles,extraFetches,startDeferredAudioPreload} from './extras';
+import {bootFiles,extraFetches,startDeferredAudioPreload,startMenuPreload} from './extras';
 import {setBootCatalog,type BootLevel} from './catalog';
 import {prepareBootAudio} from './audioInventory';
 import {declareTotals,installByteCounter,releaseByteCounter,type ChunkFiles} from './bytes';
@@ -118,4 +118,12 @@ test('the declared audio-download row owns its original parallel reads before th
     expect(timeline.snapshot().display).toBe('world');
     world.end();
   }finally{restore();}
+});
+
+
+test('menu preparation counts pictures without reserving UI module work',async()=>{
+  const home:BootLevel={...level,boot:{...level.boot,files:[],explore:{art:[]}}};
+  const set=vi.fn<StepProgress['set']>();
+  await startMenuPreload(blank,home).wait({set,detail:()=>undefined});
+  expect(set).toHaveBeenLastCalledWith(0,0,'0 / 0 pictures');
 });

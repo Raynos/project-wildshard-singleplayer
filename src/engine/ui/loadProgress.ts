@@ -1,10 +1,12 @@
 import { engineString } from '../strings';
+import { app } from '../app/runtime';
+import { mountUi, uiScope } from './ownership';
 
 interface Attempt { readonly total: number; done: number; failed: boolean }
 
 /** Progress counts completed preparations, never elapsed time or estimated bytes.
  * A replacement or closed view cannot be painted by an older pending decoder. */
-export class ExploreLoadProgress {
+export class LoadProgress {
   readonly element = document.createElement('div');
   private readonly label = document.createElement('span');
   private readonly bar = document.createElement('progress');
@@ -46,4 +48,18 @@ export class ExploreLoadProgress {
 
   clear(): void { this.active = undefined; this.element.hidden = true; this.element.setAttribute('aria-busy', 'false'); }
   dispose(): void { this.clear(); this.element.remove(); }
+}
+
+/** A user-requested code feature owns visible preparation progress. Completion
+ * counts the import, not guessed network bytes. Retirement always removes UI. */
+export async function loadModuleWithProgress<T>(label: string, load: () => Promise<T>): Promise<T> {
+  const owner = uiScope('module-load'), host = document.createElement('div'), progress = new LoadProgress(host);
+  mountUi(host, owner, document.body);
+  app.ui.push('modal', { root: progress.element, embedded: true, back: () => undefined }, owner);
+  owner.onDispose(() => { progress.dispose(); });
+  try {
+    const reading = load();
+    await progress.watch(label, [reading]);
+    return await reading;
+  } finally { owner.dispose(); }
 }

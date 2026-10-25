@@ -7,7 +7,6 @@ import { releaseByteCounter } from '@wildshard/engine/boot/bytes';
 import { startAudioPreload } from '@wildshard/engine/boot/extras';
 import { macrotask } from '@wildshard/engine/boot/plan';
 import { loadingStage } from '@wildshard/engine/boot/waits';
-import { loadExplore } from '@wildshard/engine/boot/runtime';
 import { startShardPrefetch } from '@wildshard/engine/boot/shardPrefetch';
 import { installGpuRecovery } from '@wildshard/engine/core/GpuRecovery';
 import { TIER } from '@wildshard/engine/core/tier';
@@ -174,13 +173,12 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
     };
     game.levelScope.raf(() => { game.levelScope.timeout(0, () => { void decodeAfterBoot(); }); });
   }
-  // E183: while the title idles, fetch the Explore code and draw the world's first frame once under the title art. The
+  // E183: while the title idles, draw the world's first frame once under the title art. The
   // first frame after the title paid every first-time cost at once — Pine Hollow's four elites built, the cover filled,
   // textures that arrived after the boot uploaded: EXPLORE WORLD's first tap stalled ~1.3 s at 4× CPU (and ENTER WORLD's
   // first frame the same). A return from the background already draws such a frame on the title (Game.start).
   if (menuFirst) game.levelScope.timeout(1200, () => {
     if (hud.entered || exploring()) return;
-    if (chunk.explore !== undefined) void loadExplore();
     game.primeFrame();
   });
   const handle = { ...world, get physics() { return world.physics; }, boundary, water, streams: edgeDressing.streams, hands, props, animals, interactables, crossbow, hud, audio, music, lockSys, lockState, weapons, arena, playground: getPlayground, ...boot.runtime.objects };

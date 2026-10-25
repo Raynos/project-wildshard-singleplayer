@@ -1,11 +1,11 @@
 // @vitest-environment happy-dom
 import { expect, test } from 'vitest';
-import { ExploreLoadProgress } from './loadProgress';
+import { LoadProgress } from '../ui/loadProgress';
 
 function gate() { let done = (): void => { throw new Error('Missing preparation'); }; const pending = new Promise<void>(resolve => { done = resolve; }); return { pending, done }; }
 
 test('counts actual completed preparations and stays busy until the final one', async () => {
-  const host = document.createElement('div'), progress = new ExploreLoadProgress(host), first = gate(), second = gate();
+  const host = document.createElement('div'), progress = new LoadProgress(host), first = gate(), second = gate();
   const pending = progress.watch('Pictures', [first.pending, second.pending]);
   expect(progress.element.hidden).toBe(false); expect(progress.element.textContent).toBe('Pictures · 0 / 2');
   first.done(); await first.pending;
@@ -17,7 +17,7 @@ test('counts actual completed preparations and stays busy until the final one', 
 });
 
 test('a replaced or closed view ignores old decoders, including their failures', async () => {
-  const progress = new ExploreLoadProgress(document.createElement('div')), old = gate(), current = gate();
+  const progress = new LoadProgress(document.createElement('div')), old = gate(), current = gate();
   const before = progress.watch('Old', [old.pending]);
   const now = progress.watch('Current', [current.pending]);
   old.done(); await before;
@@ -30,7 +30,7 @@ test('a replaced or closed view ignores old decoders, including their failures',
 });
 
 test('failed preparation stays visible, never credits completion, and a new choice resets it', async () => {
-  const progress = new ExploreLoadProgress(document.createElement('div')), later = gate();
+  const progress = new LoadProgress(document.createElement('div')), later = gate();
   await expect(progress.watch('Model', [Promise.reject(new Error('bad bytes')), later.pending])).rejects.toThrow('bad bytes');
   later.done(); await later.pending;
   expect(progress.element.hidden).toBe(false); expect(progress.element.textContent).toBe('Model · 0 / 2 · Could not load');

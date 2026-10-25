@@ -1,7 +1,8 @@
+import { loadModuleWithProgress } from '../ui/loadProgress';
 import type * as ExploreModule from '../explore/Explore';
 import type * as FeedbackModule from '../ui/Feedback';
-/** Mechanisms loaded once after the composition root selects the level. */
+/** Optional UI code loads on its first request, with owned preparation progress. */
 
-export function loadExplore(): Promise<typeof ExploreModule> { return import('../explore/Explore'); }
-export function loadFeedback(): Promise<typeof FeedbackModule> { return import('../ui/Feedback'); }
+export function loadExplore(): Promise<typeof ExploreModule> { return loadModuleWithProgress('Explore', () => import('../explore/Explore')); }
+export function loadFeedback(): Promise<typeof FeedbackModule> { return loadModuleWithProgress('Feedback', () => import('../ui/Feedback')); }
 

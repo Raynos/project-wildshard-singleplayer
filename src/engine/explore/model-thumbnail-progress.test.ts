@@ -2,7 +2,7 @@
 import { expect, test, vi } from 'vitest';
 import { BoxGeometry, Group, Mesh, MeshBasicMaterial, PerspectiveCamera, Vector3 } from 'three';
 import { legacyDouble } from '../test/FakeGame';
-import { ExploreLoadProgress } from './loadProgress';
+import { LoadProgress } from '../ui/loadProgress';
 import { ModelExplorer } from './ModelExplorer';
 import type { CatalogEntry } from './catalog';
 
@@ -10,7 +10,7 @@ test('a completed async card publishes the actual composer canvas beside hidden 
   const grid = document.createElement('div');
   grid.innerHTML = '<button class="ws-x-model" data-id="fixture/house"><span class="ws-x-model-thumb"></span><small></small></button>';
   const slot = grid.querySelector<HTMLElement>('.ws-x-model-thumb'); if (slot === null) throw new Error('Missing card');
-  const progress = new ExploreLoadProgress(slot);
+  const progress = new LoadProgress(slot);
   let complete = (): void => { throw new Error('Missing preparation'); };
   const preparation = new Promise<void>(resolve => { complete = resolve; });
   const pending = progress.watch('House', [preparation]);

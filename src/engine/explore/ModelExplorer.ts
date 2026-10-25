@@ -39,7 +39,7 @@ import type { LightPreset, DayCycleClock } from '../world/dayCycle';
 import { app } from '../app/runtime';
 import { registeredSets } from './registry';
 import { bandWindow, fitOrbit, lensReset, lensShift, setsOf } from './setView';
-import { ExploreLoadProgress } from './loadProgress';
+import { LoadProgress } from '../ui/loadProgress';
 
 type View = 'solid' | 'wire' | 'facets' | 'paint' | 'tiers';
 const VIEWS: readonly [View, string][] = [['solid', 'Solid'], ['wire', 'Wireframe'], ['facets', 'Facets'], ['paint', 'Paint'], ['tiers', 'Tiers']];
@@ -162,13 +162,13 @@ export class ModelExplorer implements ExplorePane {
   private readonly explore: Explore;
   private readonly world: World;
   private readonly entries: CatalogEntry[];
-  private readonly preparation: ExploreLoadProgress;
+  private readonly preparation: LoadProgress;
   constructor(explore: Explore, world: World, entries: CatalogEntry[]) {
     this.explore = explore;
     this.world = world;
     this.entries = entries;
     this.el = html('div', 'ws-x-models');
-    this.preparation = new ExploreLoadProgress(this.el);
+    this.preparation = new LoadProgress(this.el);
     this.uiScope.onDispose(() => { this.preparation.dispose(); });
     this.grid = html('div', 'ws-x-catalog', '<div class="ws-x-filter"><button type="button" class="ws-x-lineup">Lineup</button></div><div class="ws-x-grid"></div>');
     const lineup = this.grid.querySelector('.ws-x-lineup'); if (lineup === null) throw new Error('ModelExplorer: missing lineup');
@@ -942,7 +942,7 @@ export class ModelExplorer implements ExplorePane {
 
   private async prepareThumbnail(e: CatalogEntry, root: THREE.Object3D, version: number): Promise<void> {
     const host = this.grid.querySelector<HTMLElement>(`.ws-x-model[data-id="${e.id}"] .ws-x-model-thumb`) ?? this.grid;
-    const progress = new ExploreLoadProgress(host), forget = this.uiScope.capture('disposers', () => { progress.dispose(); });
+    const progress = new LoadProgress(host), forget = this.uiScope.capture('disposers', () => { progress.dispose(); });
     let failed = false;
     try {
       await progress.watch(e.name, [e.ready?.() ?? Promise.resolve()]);
