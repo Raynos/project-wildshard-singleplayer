@@ -14,8 +14,8 @@ export function productManifestPath(root, product) {
  * their isolated exports, imports nothing more.
  * metadataOnly emits the identical TypeScript table for a source type check;
  * asset presence remains the ordinary build's responsibility.
- * @param {string} root @param {string} slug @param {{ generation?: boolean, metadataOnly?: boolean, folder?: string, composed?: Record<string, unknown> | null }} [options] */
-export function authoredManifestSource(root, slug, { generation = false, metadataOnly = false, folder = slug, composed = null } = {}) {
+ * @param {string} root @param {string} slug @param {{ generation?: boolean, metadataOnly?: boolean, folder?: string, composed?: Record<string, unknown> | null, discovery?: import('../src/format/discoveryValues').DiscoveryValues }} [options] */
+export function authoredManifestSource(root, slug, { generation = false, metadataOnly = false, folder = slug, composed = null, discovery } = {}) {
   const file = composed === null ? `src/shards/${folder}/manifest.json` : `src/shards/${folder}/outputs.json#${slug}`;
   if (existsSync(resolve(root, `src/shards/${folder}/manifest.ts`))) throw new Error(`${file}: duplicate authored manifest authority`);
   const data = composed ?? JSON.parse(readFileSync(resolve(root, file), 'utf8'));
@@ -39,6 +39,12 @@ export function authoredManifestSource(root, slug, { generation = false, metadat
   };
   for (const value of [data.card, data.sky, data.minimap, data.explore, data.horizonStrips]) visit(value);
   const imports = [], bound = new Map();
+  // The current-product reader admits these detached values before emission.
+  const supplied = discovery;
+  const program = (ref, key) => {
+    if (Object.keys(ref).length !== 1 || supplied === undefined || !Object.hasOwn(supplied, key)) throw new Error(`${file}: missing or invalid program discovery value ${key}`);
+    return supplied[key];
+  };
   const localPath = value => {
     if (typeof value !== 'string' || !/^\.\/[a-zA-Z0-9_./-]+$/u.test(value) || value.split('/').includes('..')) throw new Error(`${file}: invalid binding module`);
     const candidates = [value, `${value}.ts`, `${value}.js`, `${value}/index.ts`];
@@ -50,7 +56,8 @@ export function authoredManifestSource(root, slug, { generation = false, metadat
     if (typeof value !== 'string' || !/^\.\/[a-zA-Z0-9_-]+(?:[./][a-zA-Z0-9_-]+)*\.(?:json|generated)$/u.test(value)) throw new Error(`${file}: binding requires a JSON or generated module`);
     return localPath(value);
   };
-  const value = ref => {
+  const value = (ref, bindingKey) => {
+    if (ref?.program === true) return JSON.stringify(program(ref, bindingKey));
     const path = modulePath(ref?.module), name = ref?.export;
     if (typeof name !== 'string' || !/^[a-zA-Z_$][a-zA-Z0-9_$]*$/u.test(name)) throw new Error(`${file}: invalid binding export`);
     const key = JSON.stringify([path, name]);
@@ -69,11 +76,11 @@ export function authoredManifestSource(root, slug, { generation = false, metadat
   const b = data.bindings;
   if (!b || typeof b.accent !== 'string') throw new Error(`${file}: missing binding declarations`);
   if (b.boot?.explore) {
-    const ref = b.boot.explore, path = modulePath(ref.module);
-    if (!path.endsWith('.json') || ref.export !== 'default') throw new Error(`${file}: boot explore requires default JSON rows`);
-    const absolute = resolve(root, `src/shards/${folder}`, path);
-    if (!metadataOnly || existsSync(absolute)) {
-      const rows = JSON.parse(readFileSync(absolute, 'utf8'));
+    const ref = b.boot.explore, path = ref.program === true ? undefined : modulePath(ref.module);
+    if (path !== undefined && (!path.endsWith('.json') || ref.export !== 'default')) throw new Error(`${file}: boot explore requires default JSON rows`);
+    const absolute = path === undefined ? undefined : resolve(root, `src/shards/${folder}`, path);
+    if (absolute === undefined || !metadataOnly || existsSync(absolute)) {
+      const rows = absolute === undefined ? program(ref, 'boot.explore') : JSON.parse(readFileSync(absolute, 'utf8'));
       if (rows === null || typeof rows !== 'object' || Object.keys(rows).length !== 1 || !Array.isArray(rows.art) || rows.art.length > 256 || rows.art.some(image => typeof image !== 'string' || !/^(?:\/src\/|\/assets\/|data:image\/)/u.test(image))) throw new Error(`${file}: invalid boot explore art`);
       visit(rows.art);
     }
@@ -81,9 +88,10 @@ export function authoredManifestSource(root, slug, { generation = false, metadat
   const paths = [...images];
   // Build-only budget bindings become checked literals. Generated runtime discovery
   // never imports data/. Remove this bridge with catalog activation (P3).
-  const budgetPath = modulePath(b.budgets?.module);
+  const budgetPath = b.budgets?.program === true ? '' : modulePath(b.budgets?.module);
   if (budgetPath.endsWith('.json') && b.budgets.export !== 'default') throw new Error(`${file}: JSON bindings name their default export`);
-  const budget = metadataOnly && budgetPath.endsWith('.json') && !existsSync(resolve(root, `src/shards/${folder}`, budgetPath)) ? value(b.budgets)
+  const budget = b.budgets?.program === true ? value(b.budgets, 'budgets')
+    : metadataOnly && budgetPath.endsWith('.json') && !existsSync(resolve(root, `src/shards/${folder}`, budgetPath)) ? value(b.budgets)
     : budgetPath.endsWith('.json')
     ? JSON.stringify(JSON.parse(readFileSync(resolve(root, `src/shards/${folder}`, budgetPath), 'utf8')))
     : budgetPath.startsWith('./data/')
@@ -99,9 +107,9 @@ export function authoredManifestSource(root, slug, { generation = false, metadat
     if (declared.includes(key)) { rows.push(`${key}: ${built(key)}`); continue; }
     // Fixed palette JSON becomes a contextually checked literal, preserving tuple
     // arity without importing an executable coordinate recipe into discovery.
-    const palette = key === 'mapPalette' && modulePath(b[key].module).endsWith('.json') && (!metadataOnly || existsSync(resolve(root, `src/shards/${folder}`, b[key].module)));
+    const palette = key === 'mapPalette' && b[key].program !== true && modulePath(b[key].module).endsWith('.json') && (!metadataOnly || existsSync(resolve(root, `src/shards/${folder}`, b[key].module)));
     if (palette && b[key].export !== 'default') throw new Error(`${file}: JSON bindings name their default export`);
-    rows.push(`${key}: ${palette ? JSON.stringify(JSON.parse(readFileSync(resolve(root, `src/shards/${folder}`, b[key].module), 'utf8'))) : value(b[key])}`);
+    rows.push(`${key}: ${palette ? JSON.stringify(JSON.parse(readFileSync(resolve(root, `src/shards/${folder}`, b[key].module), 'utf8'))) : value(b[key], key)}`);
   }
   if (b.spawns) {
     const path = modulePath(b.spawns.module);
@@ -110,8 +118,8 @@ export function authoredManifestSource(root, slug, { generation = false, metadat
       : value(b.spawns);
     rows.push(`spawns: ${spawns}`);
   }
-  if (b.navigation) { const id = value(b.navigation);rows.push(`navigation: { row: ${id}.navigation, url: ${id}.url }`); }
-  if (b.audioCues || b.audioPreload) rows.push(`audioBindings: { ${[...(b.audioCues ? [`cues: ${value(b.audioCues)}`] : []), ...(b.audioPreload ? [`preload: async () => ${lazy(b.audioPreload, true)}`] : [])].join(', ')} }`);
+  if (b.navigation) { const id = value(b.navigation, 'navigation'), ref = b.navigation.program === true ? `(${id})` : id;rows.push(`navigation: { row: ${ref}.navigation, url: ${ref}.url }`); }
+  if (b.audioCues || b.audioPreload) rows.push(`audioBindings: { ${[...(b.audioCues ? [`cues: ${value(b.audioCues, 'audioCues')}`] : []), ...(b.audioPreload ? [`preload: async () => ${lazy(b.audioPreload, true)}`] : [])].join(', ')} }`);
   if (b.sword?.platform === 'graph') {
     rows.push(`sword: async () => (await (await import('@wildshard/game/systems/viewmodel/heldView')).HeldView.fromProduct(${JSON.stringify(slug)}, ${JSON.stringify(b.sword.file)})).sword()`);
   } else if (b.sword?.rows) {
@@ -121,7 +129,7 @@ export function authoredManifestSource(root, slug, { generation = false, metadat
   if (b.boot?.platform === 'page-mode') {
     imports.push("import { pageModeBoot } from '@wildshard/game/shard/pageBoot';");
     rows.push(`bootBindings: pageModeBoot(${value(b.boot.rows)})`);
-  } else if (b.boot) rows.push(`bootBindings: { ${['files', 'sources', 'lateReads', 'bakedUnread', 'audio', 'explore'].filter(key => b.boot[key]).map(key => key === 'audio' ? `audio: async () => ${lazy(b.boot[key], true)}` : `${key}: ${value(b.boot[key])}`).join(', ')} }`);
+  } else if (b.boot) rows.push(`bootBindings: { ${['files', 'sources', 'lateReads', 'bakedUnread', 'audio', 'explore'].filter(key => b.boot[key]).map(key => key === 'audio' ? `audio: async () => ${lazy(b.boot[key], true)}` : `${key}: ${value(b.boot[key], `boot.${key}`)}`).join(', ')} }`);
   const native = [];
   if (b.render?.platform === 'toon') native.push("render: async (product) => (await import('@wildshard/game/looks/toonLook')).toonLook(product)");
   if (declared.includes('ground')) native.push(`ground: { ...${built('ground')}, ...${JSON.stringify(data.ground ?? {})} }`);

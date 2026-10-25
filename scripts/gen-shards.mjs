@@ -8,6 +8,7 @@ import { outputManifest, shardProducts } from './shard-outputs.mjs';
 import { genShardWords } from './gen-shard-words.mjs';
 import { legacyInventory, legacyPrimary } from './legacy-shards.mjs';
 import { genDecisionPolicies } from './gen-decision-policy.mjs';
+import { readProgramDiscovery } from './program-discovery.mjs';
 
 /** Static runtime imports only: lazy plugin/look thunks and erased types stay out of the startup closure. */
 export function manifestClosure(root) {
@@ -179,7 +180,13 @@ export function manifestContract(root, closure, fields = false) {
 
 /** A product's discovery module source (its manifest.json bindings, its composed output when it declares one). */
 function discoverySource(root, product) {
-  return authoredManifestSource(root, product.slug, { folder: product.folder, composed: product.output === null ? null : outputManifest(root, product.folder, product.output) });
+  const composed = product.output === null ? null : outputManifest(root, product.folder, product.output);
+  const metadata = composed ?? JSON.parse(readFileSync(resolve(root, `src/shards/${product.folder}/manifest.json`), 'utf8'));
+  const values = metadata.bindings;
+  const program = ['budgets', 'navigation', 'mapPalette', 'poses', 'audioCues'].some(key => values?.[key]?.program === true)
+    || ['files', 'sources', 'lateReads', 'explore'].some(key => values?.boot?.[key]?.program === true);
+  return authoredManifestSource(root, product.slug, { folder: product.folder, composed,
+    ...(program ? { discovery: readProgramDiscovery(root, product.slug) } : {}) });
 }
 
 /**

@@ -197,6 +197,10 @@ const localModule = v.pipe(text, v.regex(/^\.\/[a-zA-Z0-9_-]+(?:[./][a-zA-Z0-9_-
 const bindingModule = v.pipe(localModule, v.regex(/\.(?:json|generated)$/u));
 const bindingName = v.pipe(text, v.regex(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/u));
 const binding = v.strictObject({module: bindingModule, export: bindingName});
+// A source program supplies these values in its admitted product receipt.
+// This is a data marker, never permission to import an executable generator.
+const programBinding = v.strictObject({ program: v.literal(true) });
+const dataBinding = v.union([binding, programBinding]);
 const moduleBinding = v.strictObject({module: bindingModule});
 /** G4: rows a shard generates for the game to build from (`declaredGround`, `declaredForestQueries`, `declaredStreamClip`) */
 const declared = v.strictObject({ platform: v.literal('declared'), rows: binding });
@@ -206,12 +210,12 @@ const pageBoot = v.strictObject({ platform: v.literal('page-mode'), rows: v.stri
 /** A constant density field; no executable forest recipe or species policy. */
 export const FixedForestQueriesSchema = v.strictObject({ platform: v.literal('fixed'), density: v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(1)) });
 const bindings = v.strictObject({
-  accent: text, budgets: binding, runtimeCost: v.exactOptional(binding), navigation: v.exactOptional(binding),
+  accent: text, budgets: dataBinding, runtimeCost: v.exactOptional(binding), navigation: v.exactOptional(dataBinding),
   // Finite sample declarations hydrate through defineShard in its original decode order.
   groundRows: v.exactOptional(binding), groundColourSamples: v.exactOptional(binding), surfaceSamples: v.exactOptional(binding),
   forestMaskSamples: v.exactOptional(binding), mapGroundSamples: v.exactOptional(binding), navmesh: v.exactOptional(binding),
-  mapPalette: v.exactOptional(binding), poses: v.exactOptional(binding), audioCues: v.exactOptional(binding),
-  boot: v.exactOptional(v.union([pageBoot, v.strictObject({files: binding, sources: binding, lateReads: v.exactOptional(binding), bakedUnread: v.exactOptional(binding), audio: v.exactOptional(binding), explore: v.exactOptional(v.strictObject({ module: v.pipe(bindingModule, v.regex(/\.json$/u)), export: v.literal('default') }))})])),
+  mapPalette: v.exactOptional(dataBinding), poses: v.exactOptional(dataBinding), audioCues: v.exactOptional(dataBinding),
+  boot: v.exactOptional(v.union([pageBoot, v.strictObject({files: dataBinding, sources: dataBinding, lateReads: v.exactOptional(dataBinding), bakedUnread: v.exactOptional(binding), audio: v.exactOptional(binding), explore: v.exactOptional(v.union([programBinding, v.strictObject({ module: v.pipe(bindingModule, v.regex(/\.json$/u)), export: v.literal('default') })]))})])),
   forestQueries: v.exactOptional(v.union([binding, declared, FixedForestQueriesSchema])),
   pondClip: v.exactOptional(v.union([binding, declared])), sword: v.exactOptional(v.union([binding, v.strictObject({ rows: bindingModule }), v.strictObject({ platform: v.literal('graph'), file: text })])), audioPreload: v.exactOptional(binding),
   posesLoader: v.exactOptional(binding), spawns: v.exactOptional(binding),
