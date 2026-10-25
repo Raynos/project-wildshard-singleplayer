@@ -6,7 +6,7 @@ import { nineWorldInstallRows, type NinePhysicsPlacement } from './physicsPlacem
 import worldRows from '../data/worldRows.generated.json' with { type: 'json' };
 import deckFloors from '../data/deckFloors.generated.json' with { type: 'json' };
 import windowBindings from '../data/windowBindings.json' with { type: 'json' };
-import { LAYOUT_PLACEMENTS, LION_PLACEMENTS, SET_PLACEMENTS } from './worldScenes';
+import type { NineWorldScenes } from './worldScenes';
 
 /**
  * Nine Dragon Stack's world entry rows (format/worldEntry), per deck ending (`capped` standalone, `open` in a grid cell):
@@ -16,7 +16,7 @@ import { LAYOUT_PLACEMENTS, LION_PLACEMENTS, SET_PLACEMENTS } from './worldScene
  * (the world assembly's entry stages, generators/worldAssembly.ts), and the square's stone pieces (`pieces`, the
  * world/scenes section's entry, run in the entered world once the assembly stands).
  */
-function nineEntryBlocks(): WorldEntryRows['blocks'] {
+function nineEntryBlocks({ LAYOUT_PLACEMENTS, LION_PLACEMENTS, SET_PLACEMENTS }: NineWorldScenes): WorldEntryRows['blocks'] {
   // the walkable square and stacks as one piece: its stone colliders for the ending, the world's floors then the decks' (first)
   const install = nineWorldInstallRows();
   const floors = (variant: 'capped' | 'open', rows: readonly NinePhysicsPlacement[]) => {
@@ -79,14 +79,14 @@ function nineEntryBlocks(): WorldEntryRows['blocks'] {
 }
 
 /** The world/scenes section's entry: the square's stone pieces, run in the entered world once the assembly stands. */
-export function nineWorldEntry(): WorldEntryRows {
-  const pieces = nineEntryBlocks()['pieces']; if (pieces === undefined) throw new Error('Missing Nine pieces block');
+export function nineWorldEntry(scenes: NineWorldScenes): WorldEntryRows {
+  const pieces = nineEntryBlocks(scenes)['pieces']; if (pieces === undefined) throw new Error('Missing Nine pieces block');
   return parseWorldEntry({ blocks: { pieces } });
 }
 
 /** The world assembly's entry blocks (generators/worldAssembly.ts). */
-export function nineBuildBlocks(): WorldEntryRows['blocks'] {
-  const { pieces: _pieces, ...build } = nineEntryBlocks();
+export function nineBuildBlocks(scenes: NineWorldScenes): WorldEntryRows['blocks'] {
+  const { pieces: _pieces, ...build } = nineEntryBlocks(scenes);
   return build;
 }
 

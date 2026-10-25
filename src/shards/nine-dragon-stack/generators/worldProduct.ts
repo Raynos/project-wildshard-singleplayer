@@ -1,3 +1,4 @@
+import { projectNineLayout } from './layoutSource';
 import { parseGlb } from '@wildshard/sdk/assets';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { nineScene } from './scene';
@@ -29,19 +30,13 @@ export function nineLayoutWord(_key: string, value: unknown): unknown {
 
 /** Project the source layout without also baking unrelated world GLBs and spill channels. */
 export function nineWorldLayout(layout: ReturnType<typeof nineScene>['layout']): NineWorldProduct['layout'] {
-  const bounds = layout.geometries.map(geometry => {
-    geometry.computeBoundingSphere(); geometry.computeBoundingBox();
-    const { boundingSphere: sphere, boundingBox: box } = geometry;
-    if (sphere === null || box === null) throw new Error('Nine layout geometry has no bounds');
-    return { sphere: [...sphere.center, sphere.radius], box: [...box.min, ...box.max] };
-  });
-  return { version: 1, count: layout.records.length, records: layout.records, rows: layout.rows, bounds };
+  return projectNineLayout(layout);
 }
 
 /** Original world bake as owned data and bytes, with no file writes or scene publication.
  * The retained file adapter and the source product call this same function. */
 export function nineWorldProduct(atlas?: NineSpillAtlas): NineWorldProduct {
-  const product = nineScene(undefined, atlas), { baked } = product;
+  const product = nineScene(atlas), { baked } = product;
   const libraries: Record<'layout' | 'boot' | 'explorer', string[]> = { layout: [], boot: [], explorer: [] };
   const assets = new Map(baked.assets), files = [...baked.shardfile.files];
   for (const part of baked.pieces) {

@@ -1,7 +1,7 @@
 import { withPortableMath } from '@wildshard/commons/bake/portableMath';
 import { InstancedMesh, Mesh, MeshStandardMaterial, Scene, Vector3, type BufferGeometry } from 'three';
 import { drawSpill, withSpill, type NineSpillAtlas } from './spillBake';
-import { bake, BakedPiece, WholeShape, type BakedScene } from '@wildshard/sdk/bake';
+import { bakeOwned, BakedPiece, WholeShape, type BakedScene } from '@wildshard/sdk/bake';
 import { partitionWholeGeometry, wholePartitionRuns } from '@wildshard/sdk/bake/props';
 import { nineLayoutSource } from './layout';
 import { bootSpecimen, specimenRecipes } from './specimens';
@@ -20,7 +20,7 @@ export function nineChannels(geometry: BufferGeometry): Record<string, string> {
 }
 
 /** Static fabric is drawn from whole L0 nodes; local specimens are standard instanced-kind library GLBs. */
-function buildNineScene(project?: string, atlas?: NineSpillAtlas): { baked: BakedScene; layout: ReturnType<typeof nineLayoutSource>; keys: { boot: string[]; explorer: string[] }; boxes: Record<string, boolean> } {
+function buildNineScene(atlas?: NineSpillAtlas): { baked: BakedScene; layout: ReturnType<typeof nineLayoutSource>; keys: { boot: string[]; explorer: string[] }; boxes: Record<string, boolean> } {
   const layout = nineLayoutSource(), scene = new Scene(); scene.name = 'nine-dragon-stack';
   const material = new MeshStandardMaterial({ vertexColors: true });
   // each kit's neon spill rides in its tiles as the aSpill channel (generators/spillBake.ts `drawSpill`)
@@ -68,9 +68,9 @@ function buildNineScene(project?: string, atlas?: NineSpillAtlas): { baked: Bake
     for (const [key, geometry] of entries) boxes[key] = geometry.boundingBox !== null;
     part(`specimens_${name}`, entries);
   }
-  const baked = bake(scene, { slug: 'nine-dragon-stack', name: 'Nine Dragon Stack' }, project === undefined ? {} : { project });
+  const baked = bakeOwned(scene, { slug: 'nine-dragon-stack', name: 'Nine Dragon Stack' });
   return { baked, layout, keys, boxes };
 }
 
 /** Portable author math keeps the exact scene reproducible across arm64 Mac and Linux x64. */
-export function nineScene(project?: string, atlas?: NineSpillAtlas): ReturnType<typeof buildNineScene> { return withPortableMath(() => buildNineScene(project, atlas)); }
+export function nineScene(atlas?: NineSpillAtlas): ReturnType<typeof buildNineScene> { return withPortableMath(() => buildNineScene(atlas)); }

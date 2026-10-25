@@ -27,7 +27,8 @@ import { headlessConstants } from './headless';
 import headlessAssembly from '../data/headlessAssembly.json' with { type: 'json' };
 import { lightVolumeBlobs } from './lightVolumes';
 import { plainWeaveBytes, silkWeaveBytes } from './silkWeave';
-import { LAYOUT_PLACEMENT_BLOBS, NINE_SCENE_BLOBS, NINE_WORLD_SCENES } from './worldScenes';
+import type { NineWorldScenes } from './worldScenes';
+import type { NineSourceWorld } from './worldProgram';
 import { nineWorldEntry } from './worldEntry';
 import { nineWorldAssembly } from './worldAssembly';
 import { nineMoversView } from './moversView';
@@ -46,6 +47,7 @@ type ViewContract = Extract<NonNullable<BlobOptions['script']>, { abi: 2 }>;
 
 /** Remaining file adapters supply these rows; the factory never imports their outputs. */
 export interface NineOutputInputs {
+  readonly ownedWorld: NineSourceWorld; readonly scenes: NineWorldScenes;
   readonly held: NineHeldInputs;
   readonly construction: Parameters<typeof nineWorldAssembly>[0];
   readonly scriptRevisions: { readonly compiler: ViewContract['compilerRevision']; readonly admission: ViewContract['admissionRevision'] };
@@ -68,7 +70,7 @@ const PRACTICE_WASM={name:'behaviour/practice.wasm',kind:'wasm' as const,source:
 /** Emit owned module bytes directly while the remaining legacy adapters are migrated. */
 export function nineOutput(movers: { readonly hash: string } & ({ readonly bytes: Uint8Array } | { readonly source: string }),
   inputs: NineOutputInputs): NineOutput {
-const heldGraphFiles = inputs.held.files;
+const heldGraphFiles = inputs.held.files, { LAYOUT_PLACEMENT_BLOBS, NINE_SCENE_BLOBS, NINE_WORLD_SCENES } = inputs.scenes;
 const MOVERS_OPTIONS = { critical: true, script: { abi: 2 as const, lane: 'view' as const, pages: 1, ioBytes: 4096, compilerRevision: inputs.scriptRevisions.compiler, admissionRevision: inputs.scriptRevisions.admission } };
 const equipmentRows = { portraitFov: 78, aim: { ...aim, ribbon: filamentGeometry(aim.ropePoints), filament: filamentRows, filamentState: lightRows.haloState }, bursts: inputs.bursts } satisfies GrappleRows;
 
@@ -79,7 +81,7 @@ const { entryProof, decals } = inputs;
 const decalSources = 'sources' in decals ? Object.entries(decals.sources).map(([tier, row]) => ({ name: `looks/jian-decal-${tier}.png`, kind: 'image' as const, source: row.png })) : [];
 const decalBlobs = 'blobs' in decals ? decals.blobs : [];
 if (rawMovers.some(row => row.file.hash !== movers.hash)) throw new Error('Nine movers bytes differ from module hash');
-const emitted = emitNamedBlobs(NINE_SCENE_BLOBS.concat(LAYOUT_PLACEMENT_BLOBS, lightVolumeBlobs(), layoutBlobs(), facadeWindowBlobs(), [
+const emitted = emitNamedBlobs(NINE_SCENE_BLOBS.concat(LAYOUT_PLACEMENT_BLOBS, lightVolumeBlobs(inputs.ownedWorld.layout), layoutBlobs(inputs.ownedWorld, inputs.scenes), facadeWindowBlobs(inputs.ownedWorld.layout), [
   nameBlob('looks/silk-weave.r8', 'bin', silkWeaveBytes(), { decoded: 65_536, gpu: 87_381 }),
   nameBlob('looks/plain-weave.r8', 'bin', plainWeaveBytes(), { decoded: 65_536, gpu: 87_381 }),
   nameBlob('geometry/fixed-kits.json', 'json', json(parseFixedPractice({ practice: grappleCourseScene(course) })),{jsonSchema:namedJsonSchema(FixedPracticeFileSchema)}),
@@ -90,7 +92,7 @@ const emitted = emitNamedBlobs(NINE_SCENE_BLOBS.concat(LAYOUT_PLACEMENT_BLOBS, l
   nameBlob('weapons/jian-halo.json', 'json', json({ geometry: { ...halo.geo.toJSON(), uuid: '96d3a000-0000-4000-8000-000000000001' }, material: { ...halo.mat.toJSON(), uuid: '96d3a000-0000-4000-8000-000000000002' } })),
 ], rawMovers, decalBlobs));
 
-return { blobs: [...moverSources,PRACTICE_WASM,{name:"practice/card.webp",kind:"image",source:"explore/playground-grapple.webp"},...CAST_BINARY_SOURCES,...SIGN_ATLAS_SOURCES,...decalSources], namedFiles: emitted.files, assets: new Map([...emitted.assets, ...heldGraphFiles.assets]),
-  platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['ui/strings', strings], ['world/scenes', { ...NINE_WORLD_SCENES, entry: nineWorldEntry() }], ['held/arms', heldPrimary], ['actors/return-scripts',[NINE_PRACTICE_MODULE.script]], ['view/modules', [{ id: 'nine.movers', module: `blobs/wasm/${movers.hash}.wasm`, side: 'view', ...MOVERS_OPTIONS.script }]], ['client/plan', {version:1,features:[practiceCard, {kind:'strings.register'}, {kind:'world.assembly', rows: nineWorldAssembly(inputs.construction), entered: { root: 'nine.root', blocks: ['pieces'] }}, {kind:'view.program', id:'movers', rows: nineMoversView(), module: 'views/movers.wasm'}, {kind:'world.runtime-hooks',overhead:[],bounds:{x:[-250,250],z:[-250,250],outer:{maxAbsXZ:200,floor:-20}}}, {kind:'held.claims.prepare',id:'held.primary'}, {kind:'held.claims.install',claims:'held.primary'}, {kind:'held.claims.enter',claims:'held.primary',grapple:{item:'tool.fei-zhua',source:'sim/headless-constants.json',presentation:'weapons/jian-row.json'}}, {kind:'portal.ride',source:'sim/headless-constants.json'}]}]])) };
+return { blobs: [...moverSources,PRACTICE_WASM,{name:"practice/card.webp",kind:"image",source:"explore/playground-grapple.webp"},...CAST_BINARY_SOURCES,...SIGN_ATLAS_SOURCES,...decalSources], namedFiles: emitted.files, assets: new Map([...emitted.assets, ...heldGraphFiles.assets, ...inputs.ownedWorld.assets]),
+  platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['ui/strings', strings], ['world/scenes', { ...NINE_WORLD_SCENES, entry: nineWorldEntry(inputs.scenes) }], ['held/arms', heldPrimary], ['actors/return-scripts',[NINE_PRACTICE_MODULE.script]], ['view/modules', [{ id: 'nine.movers', module: `blobs/wasm/${movers.hash}.wasm`, side: 'view', ...MOVERS_OPTIONS.script }]], ['client/plan', {version:1,features:[practiceCard, {kind:'strings.register'}, {kind:'world.assembly', rows: nineWorldAssembly(inputs.construction, inputs.scenes), entered: { root: 'nine.root', blocks: ['pieces'] }}, {kind:'view.program', id:'movers', rows: nineMoversView(), module: 'views/movers.wasm'}, {kind:'world.runtime-hooks',overhead:[],bounds:{x:[-250,250],z:[-250,250],outer:{maxAbsXZ:200,floor:-20}}}, {kind:'held.claims.prepare',id:'held.primary'}, {kind:'held.claims.install',claims:'held.primary'}, {kind:'held.claims.enter',claims:'held.primary',grapple:{item:'tool.fei-zhua',source:'sim/headless-constants.json',presentation:'weapons/jian-row.json'}}, {kind:'portal.ride',source:'sim/headless-constants.json'}]}]])) };
 }
 

@@ -1,3 +1,4 @@
+import { nineWorldProduct } from './worldProduct.ts';
 import { readFileSync } from 'node:fs';
 import { worldRows } from './worldRows.ts';
 import { ND_AUDIO } from './audio.ts';
@@ -6,13 +7,14 @@ import { byteWriter } from '../../../../scripts/bake-output.mjs';
 import { fileURLToPath } from 'node:url';
 
 // Compile author recipes once; both the admitted product and the decorative client read these exact rows.
-const layout = JSON.parse(readFileSync(new URL('../data/layout.generated.json', import.meta.url), 'utf8'), (_key, value) => value === '-0' ? -0 : value);
+const { layout, metadata: baked, assets } = nineWorldProduct();
 const world = await worldRows(layout.rows, layout.records, url => new Uint8Array(readFileSync(new URL(`../../../../public${url}`, import.meta.url))));
 // the layout bake's whole tiles: which tiles hold each partition, and whether the page loads it at boot (not Explorer-only)
-const baked = JSON.parse(readFileSync(new URL('../data/world.generated.json', import.meta.url), 'utf8')), wholeTiles = {};
+const wholeTiles = {};
 for (const [kind, hashes] of [...Object.entries(baked.libraries), ['layout', baked.props.tiles.flatMap(tile => [tile.file].concat(tile.additionalFiles ?? []))]]) for (const hash of hashes) {
-  const bytes = readFileSync(new URL(`../assets/${hash}`, import.meta.url));
-  for (const node of JSON.parse(new TextDecoder().decode(bytes.subarray(20, 20 + bytes.readUInt32LE(12)))).nodes ?? []) {
+  const bytes = assets.get(hash); if (bytes === undefined) throw new Error(`Missing Nine source geometry ${hash}`);
+  const jsonLength = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(12, true);
+  for (const node of JSON.parse(new TextDecoder().decode(bytes.subarray(20, 20 + jsonLength))).nodes ?? []) {
     const id = node.extras?.wholePartition?.id; if (typeof id !== 'string') continue;
     const row = wholeTiles[id] ??= { files: [], resident: false };
     if (!row.files.includes(hash)) row.files.push(hash);

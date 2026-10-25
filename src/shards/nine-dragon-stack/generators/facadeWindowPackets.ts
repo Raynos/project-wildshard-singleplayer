@@ -6,7 +6,7 @@ type InstanceAttribute = WorldScenesSection['steps'][number]['instanceAttributes
 export interface WindowPacketRow { readonly id: string; readonly count: number; readonly attributes: readonly InstanceAttribute[] }
 
 /** Binary instance sources retain the original column offsets and instance counts. */
-export function facadeWindowPackets(source?: NineWindowLayout): readonly WindowPacketRow[] {
+export function facadeWindowPackets(source: NineWindowLayout): readonly WindowPacketRow[] {
   return facadeWindowBlobs(source).map(({ file, bytes }, index) => {
     const name = file.name;
     if (name === undefined) throw new Error('Nine window packets require named files');

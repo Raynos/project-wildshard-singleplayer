@@ -1,3 +1,4 @@
+import { layout } from './fixtures/nine-product-inputs';
 // oxlint-disable-next-line import/no-nodejs-modules -- parse the generated pixel chunks at runtime instead of inferring their 47 MB JSON type
 import { readFileSync } from 'node:fs';
 import * as v from 'valibot';
@@ -23,9 +24,9 @@ vi.stubGlobal('ImageBitmap', class ImageBitmap { readonly width = 0; });
 afterAll(() => { vi.unstubAllGlobals(); });
 
 test('every admitted volume variant resolves its shared lossless voxel payload', () => {
-  const blobs = lightVolumeBlobs(), names = new Map(blobs.map(blob => [blob.file.name, blob]));
+  const blobs = lightVolumeBlobs(layout), names = new Map(blobs.map(blob => [blob.file.name, blob]));
   expect(new Set(blobs.map(blob => blob.file.hash)).size).toBe(blobs.length);
-  const rows = Object.values(lightVolumeRows());
+  const rows = Object.values(lightVolumeRows(layout));
   expect(rows).toHaveLength(8);
   for (const row of rows) {
     const payload = names.get(row.file); if (payload === undefined) throw new Error('Missing volume payload');

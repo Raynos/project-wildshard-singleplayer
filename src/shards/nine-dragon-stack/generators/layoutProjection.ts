@@ -2,9 +2,8 @@ import * as v from 'valibot';
 import { LayoutProjectionSchema, LayoutRowsSchema, type LayoutRows, type LayoutProjection } from './sections';
 import fixed from '../data/fixedKits.generated.json' with { type: 'json' };
 import lantern from '../data/lantern.json' with { type: 'json' };
-import layout from '../data/layout.generated.json' with { type: 'json' };
 
-/** One layout geometry's bounds as the layout bake measured them (bake-nine-layout.mjs): [x, y, z, radius], [min, max] */
+/** One layout geometry's bounds as the layout bake measured them (worldProgram.ts): [x, y, z, radius], [min, max] */
 export interface LayoutBounds { readonly sphere: readonly number[]; readonly box: readonly number[] }
 /** Owned source rows or the retained wire adapter; signed-zero words are admitted at this boundary. */
 export interface NineLayoutInput {
@@ -63,8 +62,8 @@ export function layoutProjection(rows: LayoutRows, records: readonly number[], b
 export function reviveLayout(_key: string, value: unknown): unknown {
   return value === '-0' ? -0 : value === 'Infinity' ? Infinity : value === '-Infinity' ? -Infinity : value;
 }
-/** The offline layout bake's rows and float64 records (data/layout.generated.json), revived and checked once. */
-export function bakedLayout(source: Pick<NineLayoutInput, 'rows' | 'records' | 'count'> = layout): { readonly rows: LayoutRows; readonly records: number[] } {
+/** The offline layout bake's rows and float64 records (owned layout data), revived and checked once. */
+export function bakedLayout(source: Pick<NineLayoutInput, 'rows' | 'records' | 'count'>): { readonly rows: LayoutRows; readonly records: number[] } {
   const rows = v.parse(LayoutRowsSchema, JSON.parse(JSON.stringify(source.rows, (_key, value: unknown) =>
     typeof value === 'number' && Object.is(value, -0) ? '-0' : value === Infinity ? 'Infinity' : value === -Infinity ? '-Infinity' : value), reviveLayout));
   const records = source.records.map(value => reviveLayout('', value));
@@ -72,7 +71,7 @@ export function bakedLayout(source: Pick<NineLayoutInput, 'rows' | 'records' | '
   return { rows, records: v.parse(v.array(v.number()), records) };
 }
 /** The page's layout projection (geometry/layout-projection.json), from the bake. */
-export function bakedLayoutProjection(source: NineLayoutInput = layout, fixedRows: NineFixedLanterns = fixed): LayoutProjection {
+export function bakedLayoutProjection(source: NineLayoutInput, fixedRows: NineFixedLanterns = fixed): LayoutProjection {
   const { rows, records } = bakedLayout(source); return layoutProjection(rows, records, source.bounds, fixedRows);
 }
 

@@ -2,10 +2,10 @@ import * as v from 'valibot';
 import worldRows from '../data/worldRows.generated.json' with { type: 'json' };
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import { formatJsonSchema } from '@wildshard/sdk/formatJsonSchema';
-import world from '../data/world.generated.json' with { type: 'json' };
+import type { NineSourceWorld } from './worldProgram';
 import { GeometryBootSchema } from './sections';
 import { bakedLayout } from './layoutProjection';
-import { SET_TILES } from './worldScenes';
+import type { NineWorldScenes } from './worldScenes';
 
 const json = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(value));
 
@@ -13,9 +13,10 @@ const json = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.strin
 export function layoutWireSchema(): ReturnType<typeof formatJsonSchema> { return formatJsonSchema(GeometryBootSchema, 'draft-07'); }
 
 /** Separate small author rows from raw float64 records; no megabyte JSON parse runs at native boot. */
-export function layoutBlobs(): NamedBlob[] {
-  const { rows, records: numeric } = bakedLayout();
-  const tiles = v.parse(v.array(v.object({ file: v.string(), additionalFiles: v.exactOptional(v.array(v.string())) })), world.props.tiles);
+export function layoutBlobs(source: NineSourceWorld, { SET_TILES }: NineWorldScenes): NamedBlob[] {
+  const world = source.metadata;
+  const { rows, records: numeric } = bakedLayout(source.layout);
+  const tiles = v.parse(v.array(v.object({ file: v.string(), additionalFiles: v.exactOptional(v.array(v.string())) })), world.props?.tiles);
   const library = { ...world.libraries, layout: [...tiles.flatMap(tile => [tile.file].concat(tile.additionalFiles ?? [])), ...world.libraries.layout.filter(hash => !SET_TILES.has(hash))],
     specimenBoxes: world.specimenBoxes, records: numeric.length, layoutDraws: rows.geometries.length };
   const negativeZeros: string[][] = [];

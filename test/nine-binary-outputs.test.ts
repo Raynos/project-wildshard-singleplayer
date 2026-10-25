@@ -1,3 +1,4 @@
+import { layout as sourceLayout } from './fixtures/nine-product-inputs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare generated binary files with the pre-conversion byte witnesses.
 import {readFileSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The fixture records hashes, never encoded binary payloads.
@@ -23,7 +24,7 @@ test('every named cast retains its exact original file metadata and GLB bytes',(
   }
 });
 test('the cold fixed-kit builder preserves the original neutral spill and every raw GLB byte',()=>{
-  const layout:unknown=JSON.parse(readFileSync('src/shards/nine-dragon-stack/data/layout.generated.json','utf8'));
+  const layout:unknown=sourceLayout;
   const fixed=bakeFixedKits(readFixedSlots(layout));
   for(const[name,bytes]of fixed.packs){
     const expected=baseline.casts.find(row=>row.name===name);

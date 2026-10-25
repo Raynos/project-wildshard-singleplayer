@@ -3,7 +3,7 @@ import * as v from 'valibot';
 import { SampledAudioSceneSchema } from '../src/format/audioScene';
 import { parseWorldScenePlacement } from '../src/format/worldScenePlacement';
 import { ND_AUDIO } from '../src/shards/nine-dragon-stack/generators/audio';
-import { LAYOUT_PLACEMENT_BLOBS } from '../src/shards/nine-dragon-stack/generators/worldScenes';
+import { LAYOUT_PLACEMENT_BLOBS } from './fixtures/nine-product-inputs';
 
 test('the lanterns hum where each deck ending hangs them: its placement file per world variant', () => {
   const scene = ND_AUDIO.sampledScene; if (scene === undefined) throw new Error('Expected the sampled scene');

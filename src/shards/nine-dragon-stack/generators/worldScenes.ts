@@ -29,7 +29,7 @@ import { Matrix4, MeshBasicMaterial, PlaneGeometry, Quaternion, SphereGeometry, 
 import { bakedLayoutProjection } from './layoutProjection';
 import explorer from '../data/explorerModels.json' with { type: 'json' };
 import worldRows from '../data/worldRows.generated.json' with { type: 'json' };
-import layout from '../data/layout.generated.json' with { type: 'json' };
+import type { NineSourceWorld } from './worldProgram';
 import rawProfiles from '../data/specimenProfiles.json' with { type: 'json' };
 import plan from '../data/layoutPlan.json' with { type: 'json' };
 import { presentationData } from './presentation';
@@ -38,6 +38,7 @@ import { lightVolumeRows } from './lightVolumes';
 import paint from '../data/paint.json' with { type: 'json' };
 import canopy from '../data/canopy.json' with { type: 'json' };
 
+function buildWorldScenes(layout: NineSourceWorld['layout']) {
 const signRows = parseSignView(rawSignRows);
 const profiles = parseSpecimenProfiles(rawProfiles);
 
@@ -61,7 +62,7 @@ const wholeTiles = v.parse(v.record(v.string(), v.strictObject({ files: v.array(
 const tiles = new Map(Object.entries(wholeTiles).map(([id, row]) => [id, row.files])), resident = new Set(Object.entries(wholeTiles).flatMap(([id, row]) => row.resident ? [id] : []));
 const sets = new Map(layout.rows.sets.map(row => [`set:${row.name}`, `layout_${row.geo}`]));
 /** the layout-set tiles: the catalogue's to read, never the layout restore's (generators/layoutBlobs.ts) */
-export const SET_TILES = new Set([...sets.values()].flatMap(part => tiles.get(part) ?? []));
+const SET_TILES = new Set([...sets.values()].flatMap(part => tiles.get(part) ?? []));
 
 // One alias per source: its partition, its tiles, its pose; resident or Explorer-only by where the bake put it.
 const aliases = { native: new Map<string, unknown>(), 'native-explorer': new Map<string, unknown>() };
@@ -182,12 +183,12 @@ dressing.push(dress('signs', 'world', 'neon', 0, 'signs'), dress('neon-boards', 
 const recipe = addWindowNodes(parseWorldScene({ imports: [], scene: { version: 1, root: 'root', textures: [],
   nodes: [{ kind: 'group', id: 'root', children: dressing.map(row => row.id) },
     ...dressing.map(row => ({ kind: 'mesh', id: row.id, geometry: row.model, material: row.material, missing: 'omit', name: row.name, renderOrder: row.order, frustumCulled: row.culled, ...row.pose }))],
-  materials: [...new Set(dressing.map(row => row.material))].map(material => ({ kind: 'port', id: material, source: material })) } }), [0, 1]);
+  materials: [...new Set(dressing.map(row => row.material))].map(material => ({ kind: 'port', id: material, source: material })) } }), [0, 1], layout);
 
 const look = (id: string, name: string) => ({ id, kind: 'look', look: name });
 const library = (id: keyof typeof aliases) => ({ id, kind: 'whole', ...(id === 'native' ? {} : { load: 'explorer' }), models: [...aliases[id].values()] });
 // the wet floor's reflection cards and the lanterns' halos (phone only), per deck ending: open in a grid cell, capped alone
-const cards = presentationData(), empty = addWindowNodes(parseWorldScene({ imports: [], scene: { version: 1, root: 'root', textures: [], materials: [], nodes: [{ kind: 'group', id: 'root', children: [] }] } }), [2]);
+const cards = presentationData(layout), empty = addWindowNodes(parseWorldScene({ imports: [], scene: { version: 1, root: 'root', textures: [], materials: [], nodes: [{ kind: 'group', id: 'root', children: [] }] } }), [2], layout);
 // one file per distinct buffer: an ending whose cards match the other's reads the same file
 const cardFiles = new Map<string, string>();
 const cardFile = (caps: 'open' | 'capped', kind: 'streaks' | 'halos'): string => {
@@ -198,18 +199,18 @@ const cardFile = (caps: 'open' | 'capped', kind: 'streaks' | 'halos'): string =>
 const cardSteps = (['open', 'capped'] as const).map(caps => {
   const step = { id: `cards-${caps}`, cube: caps === 'open' ? 'cell' : 'standalone', scene: 'world/scenes/cards.json',
     draws: [{ kind: 'buffered', file: cardFile(caps, 'streaks'), material: 'streaks', order: 4 }, { kind: 'buffered', file: cardFile(caps, 'halos'), material: 'halo', order: 5, tier: 'phone' }] };
-  return Object.assign(step, windowStep([2]));
+  return Object.assign(step, windowStep([2], layout));
 });
 const CARD_BLOBS = [...cardFiles].map(([text, file]) => nameBlob(file, 'json', new TextEncoder().encode(text)));
 const portalLook = portalLookRows();
-export const NINE_SCENE_BLOBS: NamedBlob[] = [...castBlobs(), ...portalLook.blobs, nameBlob('models/world-scenes.json', 'json', json(catalogue)), nameBlob('world/scenes/dressing.json', 'json', json(recipe)),
+const NINE_SCENE_BLOBS: NamedBlob[] = [...castBlobs(), ...portalLook.blobs, nameBlob('models/world-scenes.json', 'json', json(catalogue)), nameBlob('world/scenes/dressing.json', 'json', json(recipe)),
   nameBlob('world/scenes/cards.json', 'json', json(empty)), ...SHAPE_BLOBS, ...CARD_BLOBS];
 // the painted surfaces' texture array (data/paint.json), the canopy's leaf atlas and the scroll screen, lent to their looks
 const painted = Object.entries(architectureGraphs()).flatMap(([id, graph]) => graph.params !== undefined && 'uPaint' in graph.params ? [id] : []);
 // the light pools' two baked volumes (generators/lightVolumes.ts) per tier and deck ending, lent to every look that reads them
 const lit = Object.entries(architectureGraphs()).flatMap(([id, graph]) => graph.params !== undefined && 'uLpVolA' in graph.params ? [id] : []);
 const volumeOf = (caps: 'capped' | 'open', tier: 'phone' | 'desktop', index: number) => {
-  const row = lightVolumeRows()[`${tier}-${caps}-${index}`]; if (row === undefined) throw new Error(`Nine has no light volume ${tier}-${caps}-${index}`);
+  const row = lightVolumeRows(layout)[`${tier}-${caps}-${index}`]; if (row === undefined) throw new Error(`Nine has no light volume ${tier}-${caps}-${index}`);
   return { file: row.file, size: [...row.size], min: [...row.min], inv: [...row.inv], maximum: row.maximum };
 };
 const VOLUMES = (['A', 'B'] as const).map((suffix, index) => ({ kind: 'volume', looks: lit, label: 'Nine Dragon light volumes (GPU only)', publish: `light.${suffix}`,
@@ -232,15 +233,15 @@ const pavilionTurns = parseWorldSceneModels(explorer.catalogue).models.find(row 
 const authoredTurn = (turn: number): number => {
   const near = pavilionTurns.find(value => Math.abs(value - turn) < 1e-9); if (near === undefined) throw new Error(`Nine pavilion turn ${turn} is no authored choice`); return near;
 };
-export const SET_PLACEMENTS = worldRows.rows.sets.map(({ name, frames }) => {
+const SET_PLACEMENTS = worldRows.rows.sets.map(({ name, frames }) => {
   const model = SET_MODELS[name]; if (model === undefined) throw new Error(`Nine set ${name} has no catalogue model`);
   return { id: `nds-set-${name}`, model, name: `set:${name}`, draw: 'instanced' as const, cull: { bounds: 'sphere' as const }, piece: { id: `nds-set-${name}` },
     poses: frames.map(frame => { const matrix = Array.from({ length: 16 }, (_, k) => record(frame + k));
       return { x: matrix[12] ?? 0, y: matrix[13] ?? 0, z: matrix[14] ?? 0, matrix, ...(name === 'pavilion' ? { params: { turn: authoredTurn(Math.atan2(matrix[8] ?? 0, matrix[0] ?? 1)) } } : {}) }; }) };
 });
-const projection = bakedLayoutProjection();
+const projection = bakedLayoutProjection(layout);
 /** a layout placement's own file (world/build.ts reads the lanterns' poses from theirs) */
-export const layoutPlacementFile = (id: string): string => `world/placements/${id.replaceAll('@', '.')}.json`; // a blob name has no '@'
+const layoutPlacementFile = (id: string): string => `world/placements/${id.replaceAll('@', '.')}.json`; // a blob name has no '@'
 const frame = (offset: number): number[] => Array.from({ length: 16 }, (_, k) => record(offset + k));
 // plain JSON numbers: a signed zero (three's matrix maths) is written as 0
 const posed = (words: readonly number[], color?: readonly number[]) => { const matrix = words.map(value => value + 0);
@@ -272,7 +273,7 @@ function hungHooks() {
  *  the Well rim's Set, FABRIC); every lion stands in exactly one */
 const LION_SHARES: readonly (readonly [string, readonly number[]])[] = [['plaza', worldRows.rows.shares.plaza], ['street', worldRows.rows.shares.street], ['rim', worldRows.rows.shares.rim]];
 if (worldRows.rows.lions.some((_at, index) => LION_SHARES.filter(([, share]) => share.includes(index)).length !== 1)) throw new Error('Nine lions differ from their places');
-export const LION_PLACEMENTS = LION_SHARES.flatMap(([place, share]) => share.length === 0 ? [] : [{ id: `nds-lions-${place}`, model: 'guardianLion', name: 'glb:lion',
+const LION_PLACEMENTS = LION_SHARES.flatMap(([place, share]) => share.length === 0 ? [] : [{ id: `nds-lions-${place}`, model: 'guardianLion', name: 'glb:lion',
   draw: 'instanced' as const, cull: { bounds: 'sphere' as const }, piece: { id: `nds-lions-${place}` }, poses: share.map(index => posed(frame(worldRows.rows.lions[index] ?? Number.NaN))) }]);
 // the models drawn into the kits (E306 / E315 M4: the brass dragon hooks, stools, scooters, mahjong tables and brush-drawn
 // figures; the paifang, the banyan …; E346: the Well's balustrade, the crossings' lotus and lamp posts): per model and kit
@@ -300,7 +301,7 @@ const SIGN_PLACEMENTS = signAtlas.copies.map(({ neon, boxes, poses: hung }) => (
   drawnInto: { part: neon ? 'dressing.neon-boards' : 'dressing.signs', boxes }, piece: { id: neon ? signRows.model.pieces.neon : signRows.model.pieces.atlas },
   poses: hung.map(({ x, y, z, yaw, variant }) => { const row = signRows.variants.find(entry => entry.id === variant); if (row === undefined) throw new Error(`Nine sign variant ${variant} differs`);
     return { x, y, z, yxz: { yaw, scale: 1 }, variant, params: signParams(row) }; }) }));
-export const LAYOUT_PLACEMENTS = [
+const LAYOUT_PLACEMENTS = [
   ...SIGN_PLACEMENTS,
   { id: 'nds-inst-ac', model: 'airConBox', name: 'inst:ac', draw: 'instanced' as const, cull: { bounds: 'sphere' as const }, piece: { id: 'nds-inst-ac' }, poses: projection.acs.map(words => posed(words)) },
   ...(['open', 'capped'] as const).map(ending => ({ id: `nds-lanterns-${ending}`, model: 'paperLantern', draw: 'instanced' as const, cull: { bounds: 'sphere' as const },
@@ -376,13 +377,19 @@ const FIXED_RECIPE = parseWorldScene({ imports: [], scene: { version: 1, root: '
   materials: [{ kind: 'port', id: 'kit', source: 'kit' }] } });
 const FIXED_STEPS = (['open', 'capped'] as const).map(caps => ({ id: `fixed-${caps}`, cube: caps === 'open' ? 'cell' : 'standalone', scene: 'world/scenes/fixed.json',
   geometry: { entries: { library: castLibrary(`entries-${caps}`), model: `entries-${caps}` }, signs: { library: castLibrary('facade-signs'), model: 'facade-signs' } }, materials: { kit: 'kit' } }));
-export const NINE_WORLD_SCENES = parseWorldScenes({ version: 1, catalogue: 'models/world-scenes.json', lent, uniforms: [NINE_SHARED], welds: [CAST_WELD, { id: 'fabric', file: 'world/fabric.json' }], placements: [...SET_PLACEMENTS, ...MOVER_PLACEMENTS, ...LAYOUT_PLACEMENTS.map(row => ({ id: row.id, file: layoutPlacementFile(row.id) }))], libraries: [...SIGN_POOL_LIBRARIES, ...CAST_LIBRARIES, ...portalLook.scenes.libraries, library('native'), library('native-explorer'), { id: 'shapes', kind: 'owned', models: shapes.map(([id]) => ({ id, file: `world/geometry/${id}.glb` })) }],
+const NINE_WORLD_SCENES = parseWorldScenes({ version: 1, catalogue: 'models/world-scenes.json', lent, uniforms: [NINE_SHARED], welds: [CAST_WELD, { id: 'fabric', file: 'world/fabric.json' }], placements: [...SET_PLACEMENTS, ...MOVER_PLACEMENTS, ...LAYOUT_PLACEMENTS.map(row => ({ id: row.id, file: layoutPlacementFile(row.id) }))], libraries: [...SIGN_POOL_LIBRARIES, ...CAST_LIBRARIES, ...portalLook.scenes.libraries, library('native'), library('native-explorer'), { id: 'shapes', kind: 'owned', models: shapes.map(([id]) => ({ id, file: `world/geometry/${id}.glb` })) }],
   materials: [...CAST_MATERIALS, ...portalLook.scenes.materials, look('kit', 'nine-architecture'), look('kit-cut', 'nine-architecture-cut'), look('facade', 'nine-facade'), look('small', 'nine-facade-small'), look('windows', 'nine-windows'), look('lantern', 'nine-lantern'),
     look('canopy-core', 'nine-canopy-inner'), look('canopy-cards', 'nine-canopy-cards'), look('canopy-depth', 'nine-canopy-depth'), look('mist-sheet', 'nine-mist-sheet'), look('steam', 'nine-steam'), look('sky', 'nine-sky'), look('scroll', 'nine-scroll'), look('streaks', 'nine-streaks'), look('halo', 'nine-halo'),
     look('neon', 'nine-neon'), look('neon-board', 'nine-neon-board'), look('neon-tube', 'nine-neon-tube')],
-  steps: [{ id: 'dressing', scene: 'world/scenes/dressing.json', geometry: { ...Object.fromEntries(dressing.map(({ model }) => [model, { library: libraryOf.get(model) ?? signLibrary.get(model) ?? 'shapes', model }])), ...windowStep([0, 1]).geometry },
-    instanceAttributes: windowStep([0, 1]).instanceAttributes,
-    materials: Object.fromEntries(recipe.scene.materials.map(row => [row.id, row.id])), publish: { ...windowStep([0, 1]).publish, ...Object.fromEntries(['crown-core', 'crown-cards', 'signs', 'neon-boards'].filter(id => dressing.some(row => row.id === id)).map(id => [id, { kind: 'object', part: id }])) } }, ...cardSteps, ...FIXED_STEPS, ...portalLook.scenes.steps] });
+  steps: [{ id: 'dressing', scene: 'world/scenes/dressing.json', geometry: { ...Object.fromEntries(dressing.map(({ model }) => [model, { library: libraryOf.get(model) ?? signLibrary.get(model) ?? 'shapes', model }])), ...windowStep([0, 1], layout).geometry },
+    instanceAttributes: windowStep([0, 1], layout).instanceAttributes,
+    materials: Object.fromEntries(recipe.scene.materials.map(row => [row.id, row.id])), publish: { ...windowStep([0, 1], layout).publish, ...Object.fromEntries(['crown-core', 'crown-cards', 'signs', 'neon-boards'].filter(id => dressing.some(row => row.id === id)).map(id => [id, { kind: 'object', part: id }])) } }, ...cardSteps, ...FIXED_STEPS, ...portalLook.scenes.steps] });
 /** the layout placements' files (LAYOUT_PLACEMENTS) */
-export const LAYOUT_PLACEMENT_BLOBS: NamedBlob[] = [...LAYOUT_PLACEMENTS.map(row => nameBlob(layoutPlacementFile(row.id), 'json', new TextEncoder().encode(JSON.stringify(row)))),
+const LAYOUT_PLACEMENT_BLOBS: NamedBlob[] = [...LAYOUT_PLACEMENTS.map(row => nameBlob(layoutPlacementFile(row.id), 'json', new TextEncoder().encode(JSON.stringify(row)))),
   nameBlob('world/fabric.json', 'json', json(FABRIC)), nameBlob('world/scenes/fixed.json', 'json', json(FIXED_RECIPE))];
+
+return { SET_TILES, NINE_SCENE_BLOBS, SET_PLACEMENTS, LION_PLACEMENTS, LAYOUT_PLACEMENTS, NINE_WORLD_SCENES, LAYOUT_PLACEMENT_BLOBS };
+}
+/** The same scene catalogue and placements from this invocation's checked layout. */
+export function nineWorldScenes(layout: NineSourceWorld['layout']): ReturnType<typeof buildWorldScenes> { return buildWorldScenes(layout); }
+export type NineWorldScenes = ReturnType<typeof nineWorldScenes>;

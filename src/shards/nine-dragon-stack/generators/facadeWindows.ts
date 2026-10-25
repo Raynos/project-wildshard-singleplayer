@@ -1,5 +1,4 @@
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
-import layout from '../data/layout.generated.json' with { type: 'json' };
 import type { LayoutRows } from './sections';
 
 /** The original window packet depends only on these ordered layout counts and record words. */
@@ -10,7 +9,7 @@ export interface NineWindowLayout {
 
 /** Unit quads keep their original instance bases for interior mapping.
  * Native float32 packets split the 9,912 windows below the host cap. */
-export function facadeWindowBlobs(source: NineWindowLayout = layout): NamedBlob[] {
+export function facadeWindowBlobs(source: NineWindowLayout): NamedBlob[] {
   const c = source.rows.counts, start = (c.walkers + c.sitters + c.lanterns + c.acs) * 16
     + c.hooks * 3 + c.hookMounts * 6 + c.steam * 3 + c.pieces * 19;
   const records = source.records.map(value => value === '-0' ? -0 : Number(value));

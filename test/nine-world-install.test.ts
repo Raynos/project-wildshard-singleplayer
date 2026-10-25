@@ -1,4 +1,5 @@
 // @vitest-environment happy-dom
+import { layout as sourceLayout } from './fixtures/nine-product-inputs';
 // oxlint-disable-next-line import/no-nodejs-modules -- admit the generated world rows without inferring their full JSON type
 import { readFileSync } from 'node:fs';
 import * as v from 'valibot';
@@ -8,7 +9,6 @@ import { nineWorldInstallRows } from '../src/shards/nine-dragon-stack/generators
 import { deckCapRows } from '../src/shards/nine-dragon-stack/generators/portalFloors';
 import { fragmentFloor as authoredFloor } from '../src/shards/nine-dragon-stack/generators/fragmentFloor';
 import { LayoutRowsSchema, WorldRowsSchema } from '../src/shards/nine-dragon-stack/generators/sections';
-import { reviveLayout } from '../src/shards/nine-dragon-stack/generators/layoutProjection';
 import { floorAtRects } from '../src/engine/physics/box';
 import { stairFloor, stairPlanData } from '../src/shards/nine-dragon-stack/generators/stairPlan';
 import { BoxGeometry, InstancedMesh, MeshBasicMaterial, type Object3D, PerspectiveCamera } from 'three';
@@ -95,11 +95,11 @@ test('lantern sway seed follows the instance pose through native LOD packing', (
 test('facade window packets preserve bounded native channels', async () => {
   const { facadeWindowBlobs } = await import('../src/shards/nine-dragon-stack/generators/facadeWindows');
   const layout = v.parse(v.object({ rows: LayoutRowsSchema, records: v.array(v.pipe(v.number(), v.finite())) }),
-    JSON.parse(readFileSync('src/shards/nine-dragon-stack/data/layout.generated.json', 'utf8'), reviveLayout));
+    sourceLayout);
   const c = layout.rows.counts, start = (c.walkers + c.sitters + c.lanterns + c.acs) * 16
     + c.hooks * 3 + c.hookMounts * 6 + c.steam * 3 + c.pieces * 19;
   let windows = 0;
-  for (const blob of facadeWindowBlobs()) {
+  for (const blob of facadeWindowBlobs(layout)) {
     expect(blob.file.kind).toBe('bin'); expect(blob.bytes.length).toBeLessThanOrEqual(1_000_000);
     const words = new Float32Array(Uint8Array.from(blob.bytes).buffer), count = words.length / 26;
     expect(Number.isInteger(count)).toBe(true); expect(count).toBeGreaterThan(0); expect(count).toBeLessThanOrEqual(4096);

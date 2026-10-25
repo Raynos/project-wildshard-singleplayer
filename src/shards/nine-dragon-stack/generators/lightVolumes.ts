@@ -6,7 +6,7 @@ import type { LightPoolRow } from '@wildshard/format/lightEmitters';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import { bakeLightVolume } from './lightVolume';
 import { neonSize } from './signMath';
-import layout from '../data/layout.generated.json' with { type: 'json' };
+import type { NineSourceWorld } from './worldProgram';
 import fixed from '../data/fixedKits.generated.json' with { type: 'json' };
 import signs from '../data/signAtlas.generated.json' with { type: 'json' };
 import pools from '../data/lightPools.json' with { type: 'json' };
@@ -62,7 +62,7 @@ export function lightPoolRows(opt: { readonly lanterns: readonly EmitterLike[]; 
 }
 
 /** Restore the static pool inputs in the same order as the page's layout reader. */
-export function volumeSources(tier: 'phone' | 'desktop', caps: boolean): { lanterns: EmitterLike[]; ctxEmitters: EmitterLike[]; signs: EmitterLike[]; windows: WindowLike[] } {
+export function volumeSources(tier: 'phone' | 'desktop', caps: boolean, layout: NineSourceWorld['layout']): { lanterns: EmitterLike[]; ctxEmitters: EmitterLike[]; signs: EmitterLike[]; windows: WindowLike[] } {
   const c = layout.rows.counts, records = layout.records;
   let cursor = (c.walkers + c.sitters) * 16;
   const numeric = (value: unknown): number => {
@@ -101,12 +101,12 @@ export function volumeSources(tier: 'phone' | 'desktop', caps: boolean): { lante
 
 /** Exact RGBA8 irradiance bytes; compression only changes transfer size. No page bake remains. */
 interface VolumeRow { readonly file: string; readonly size: readonly [number, number, number]; readonly min: readonly number[]; readonly inv: readonly number[]; readonly maximum: number }
-let cached: { blobs: NamedBlob[]; rows: Record<string, VolumeRow> } | undefined;
-function volumeData(): { blobs: NamedBlob[]; rows: Record<string, VolumeRow> } {
-  if (cached !== undefined) return cached;
+const cached = new WeakMap<NineSourceWorld['layout'], { blobs: NamedBlob[]; rows: Record<string, VolumeRow> }>();
+function volumeData(layout: NineSourceWorld['layout']): { blobs: NamedBlob[]; rows: Record<string, VolumeRow> } {
+  const found = cached.get(layout); if (found !== undefined) return found;
   const blobs: NamedBlob[] = [], rows: Record<string, VolumeRow> = {};
   for (const tier of ['phone', 'desktop'] as const) for (const caps of [false, true]) {
-    const lights = new LightEmitters(lightPoolRows(volumeSources(tier, caps), v.parse(LightPoolProfilesSchema, pools))).volume();
+    const lights = new LightEmitters(lightPoolRows(volumeSources(tier, caps, layout), v.parse(LightPoolProfilesSchema, pools))).volume();
     const key = `looks/volumes-${tier}-${caps ? 'capped' : 'open'}`;
     const boxes = [{ min: new Vector3(-30, 123, -175), max: new Vector3(110, 171, 28), cell: 1 },
       { min: new Vector3(-30, -100, -46), max: new Vector3(2, 123, 18), cell: 1.5 }];
@@ -124,7 +124,7 @@ function volumeData(): { blobs: NamedBlob[]; rows: Record<string, VolumeRow> } {
       tex.dispose();
     });
   }
-  cached = { blobs, rows }; return cached;
+  const result = { blobs, rows }; cached.set(layout, result); return result;
 }
-export function lightVolumeBlobs(): NamedBlob[] { return volumeData().blobs; }
-export function lightVolumeRows(): Readonly<Record<string, VolumeRow>> { return volumeData().rows; }
+export function lightVolumeBlobs(layout: NineSourceWorld['layout']): NamedBlob[] { return volumeData(layout).blobs; }
+export function lightVolumeRows(layout: NineSourceWorld['layout']): Readonly<Record<string, VolumeRow>> { return volumeData(layout).rows; }

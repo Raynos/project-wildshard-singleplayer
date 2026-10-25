@@ -12,6 +12,8 @@ import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { SCRIPT_V2_REVISIONS } from '../src/format/scriptAdmissionV2';
 import { prepareAssetDecoders } from '../src/format/product';
 import { NINE_MOVERS_CONTRACT } from '../src/shards/nine-dragon-stack/generators/moversProgram';
+import originalWorld from './fixtures/nine-world-files.json' with { type: 'json' };
+import { hashImmutableBytes } from '../src/sdk/immutable';
 import { nineSourceOutput } from '../src/shards/nine-dragon-stack/generators/sourceOutput';
 import before from './fixtures/nine-admitted-output.json' with { type: 'json' };
 import { nineOutputReceipt } from './fixtures/nine-output-receipt';
@@ -54,14 +56,26 @@ test('cold and hit source output retain every original admitted file byte and co
       proveStaticPortalEntries: (...args) => { proofs++; return hitContext.proveStaticPortalEntries(...args); } });
     expect(proofs).toBe(2);
     sameOutput(hit, cold);
-    expect(nineOutputReceipt(await prepareProjectOutput(project, cold))).toEqual(before);
+    const prepared = await prepareProjectOutput(project, cold);
+    const originalAssets = new Set(before.assets.map(row => row.name));
+    const worldFiles = originalWorld.filter(row => row.path.startsWith('assets/'));
+    const actualKeys = new Set([...prepared.assets.keys(), ...prepared.blobs.map(row => row.file.hash)]);
+    expect([...actualKeys].sort()).toEqual([...new Set([...originalAssets, ...worldFiles.map(row => row.hash)])].sort());
+    // The original 185 prepared assets retain their complete oracle. The 397
+    // world files move from the project reader into owned output and are
+    // independently pinned byte-for-byte by nine-world-program's 399 rows.
+    for (const row of worldFiles) {
+      const owned = prepared.assets.get(row.hash); if (owned === undefined) throw new Error(`Missing owned world ${row.hash}`);
+      expect(owned.byteLength).toBe(row.bytes); expect(hashImmutableBytes(owned)).toBe(row.hash);
+    }
+    expect(nineOutputReceipt(prepared, originalAssets)).toEqual(before);
     expect(NINE_MOVERS_CONTRACT).toMatchObject({ compilerRevision: SCRIPT_V2_REVISIONS.compiler, admissionRevision: SCRIPT_V2_REVISIONS.admission });
   } finally { rmSync(cache, { recursive: true, force: true }); }
 });
 
 test('source output bundles without a filesystem or compiler service and preserves burst refusals', async () => {
   const result = await build({ configFile: false, logLevel: 'silent', build: { write: false, minify: false,
-    lib: { entry: resolve('src/shards/nine-dragon-stack/generators/sourceOutput.ts'), formats: ['es'] } } });
+    lib: { entry: resolve('src/shards/nine-dragon-stack/generators/sourceOutput.ts'), formats: ['es'] }, rolldownOptions: { external: [/^node:/u, 'assemblyscript/dist/asc.js'], output: { codeSplitting: false } } } });
   const built = Array.isArray(result) ? result[0] : result;
   if (built === undefined || !('output' in built)) throw new Error('Missing Nine source output bundle');
   const chunks = built.output.filter(row => row.type === 'chunk'); expect(chunks).toHaveLength(1);

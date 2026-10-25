@@ -2,7 +2,7 @@ import * as v from 'valibot';
 import { WorldAssemblySchema } from '@wildshard/format/worldAssembly';
 import { nineBuildBlocks } from './worldEntry';
 import { MOVER_STAGES } from './moversView';
-import { NINE_WORLD_SCENES } from './worldScenes';
+import type { NineWorldScenes } from './worldScenes';
 
 /** E264: the fabric's static geometry keeps only its positions (and index) in JS once it is on the GPU */
 const STATIC_GEOMETRY = 'Nine Dragon static geometry (only the positions stay in JS)';
@@ -14,8 +14,8 @@ const STATIC_GEOMETRY = 'Nine Dragon static geometry (only the positions stay in
  * where it paused, a work slice where it sliced) and its static geometry GPU-only. Each deck ending is a construction
  * variant: `capped` played alone, `open` in a grid cell.
  */
-export function nineWorldAssembly(source: { readonly seed: number; readonly looks: readonly string[] }): v.InferOutput<typeof WorldAssemblySchema> {
-  const blocks = nineBuildBlocks();
+export function nineWorldAssembly(source: { readonly seed: number; readonly looks: readonly string[] }, scenes: NineWorldScenes): v.InferOutput<typeof WorldAssemblySchema> {
+  const blocks = nineBuildBlocks(scenes);
   const entry = (id: string, label: string) => {
     const rows = blocks[id]; if (rows === undefined) throw new Error(`Missing Nine build block ${id}`);
     return { kind: 'entry' as const, id, label, rows };
@@ -26,7 +26,7 @@ export function nineWorldAssembly(source: { readonly seed: number; readonly look
   const progress = (label: string, done: number) => ({ kind: 'progress' as const, label, done });
   const lastMover = MOVER_STAGES[MOVER_STAGES.length - 1]; if (lastMover === undefined) throw new Error('Nine has no movers');
   // the banyan crown's parts, when the layout bake drew a crown (the dressing step publishes them)
-  const dressing = NINE_WORLD_SCENES.steps.find(step => step.id === 'dressing'), crown = ['crown-cards', 'crown-core'].filter(id => dressing?.publish[id] !== undefined);
+  const dressing = scenes.NINE_WORLD_SCENES.steps.find(step => step.id === 'dressing'), crown = ['crown-cards', 'crown-core'].filter(id => dressing?.publish[id] !== undefined);
   return v.parse(WorldAssemblySchema, {
     construction: {
       looks: { unbound: looks, bound: looks }, root: { id: 'nine.root', name: 'nine-dragon-stack' }, variant: { standalone: 'capped', cell: 'open' },

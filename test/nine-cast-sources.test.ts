@@ -10,7 +10,7 @@ import { readSourceModel } from '../src/sdk/bake/skinned';
 import { parseWorldSceneWeld } from '../src/format/worldSceneWeld';
 import { SceneHandles } from '../src/game/shardfile/sceneHandles';
 import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
-import { NINE_SCENE_BLOBS, NINE_WORLD_SCENES } from '../src/shards/nine-dragon-stack/generators/worldScenes';
+import { NINE_SCENE_BLOBS, NINE_WORLD_SCENES } from './fixtures/nine-product-inputs';
 import { parseWorldSceneModels } from '../src/format/worldSceneModels';
 import { BufferGeometry, Color, Mesh, MeshStandardMaterial, Texture, type Object3D } from 'three';
 import { weldSceneMaterial } from '../src/game/shardfile/worldSceneWeld';

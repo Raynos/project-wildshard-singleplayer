@@ -20,7 +20,7 @@ test('the source entry owns both outputs and preserves the complete original dec
 
 test('the real import closure seals source helpers without a manual scheduler root list', async () => {
   const options = { configFile: false as const, logLevel: 'silent' as const, build: { write: false as const, minify: false as const,
-    lib: { entry: resolve('src/shards/nine-dragon-stack/shard.config.ts'), formats: ['es' as const] } } };
+    lib: { entry: resolve('src/shards/nine-dragon-stack/shard.config.ts'), formats: ['es' as const] }, rolldownOptions: { external: [/^node:/u, 'assemblyscript/dist/asc.js'], output: { codeSplitting: false } } } };
   await expect(build({ ...options, plugins: [{ name: 'missing-source-helper', enforce: 'pre',
     resolveId(source) { if (source === './moversProgram') throw new Error('Missing source helper moversProgram'); } }] })).rejects.toThrow('Missing source helper moversProgram');
   const result = await build(options), built = Array.isArray(result) ? result[0] : result;

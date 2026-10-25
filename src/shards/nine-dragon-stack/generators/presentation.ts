@@ -1,3 +1,4 @@
+import type { NineSourceWorld } from './worldProgram';
 import { BufferAttribute, Color, InstancedBufferAttribute, InstancedBufferGeometry, Matrix4, type Mesh, Quaternion, Vector3, Vector4 } from 'three';
 import { parseSceneBuffers, type SceneBuffers } from '@wildshard/format/sceneBuffers';
 import { volumeSources } from './lightVolumes';
@@ -37,8 +38,8 @@ export function cardScene(list: readonly Mesh[], name: string): SceneBuffers {
 }
 
 /** All filtering, window-facing tests and card geometry run once on the author. */
-export function presentationRows(tier: 'phone' | 'desktop', caps: boolean): { streaks: SceneBuffers; halos: SceneBuffers } {
-  const source = volumeSources(tier, caps), position = new Vector3(), rotation = new Quaternion(), scale = new Vector3();
+export function presentationRows(tier: 'phone' | 'desktop', caps: boolean, layout: NineSourceWorld['layout']): { streaks: SceneBuffers; halos: SceneBuffers } {
+  const source = volumeSources(tier, caps, layout), position = new Vector3(), rotation = new Quaternion(), scale = new Vector3();
   for (const offset of world.rows.portalLanterns) {
     new Matrix4().fromArray(world.records, offset).decompose(position, rotation, scale);
     source.lanterns.push({ at: position.clone().add(new Vector3(0, -lantern.drop * scale.x, 0)), color: new Color(lantern.glow.color),
@@ -62,6 +63,6 @@ export function presentationRows(tier: 'phone' | 'desktop', caps: boolean): { st
   return { streaks: cardScene([floor, ...stairs], 'wet-receivers'), halos: cardScene([halo], 'halos') };
 }
 
-export function presentationData(): { open: ReturnType<typeof presentationRows>; capped: ReturnType<typeof presentationRows> } {
-  return { open: presentationRows('phone', false), capped: presentationRows('phone', true) };
+export function presentationData(layout: NineSourceWorld['layout']): { open: ReturnType<typeof presentationRows>; capped: ReturnType<typeof presentationRows> } {
+  return { open: presentationRows('phone', false, layout), capped: presentationRows('phone', true, layout) };
 }

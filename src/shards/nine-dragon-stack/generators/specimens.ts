@@ -1,12 +1,7 @@
 /**
- * Nine Dragon's specimens bake (G285, SF72 "bake the code-built worlds"): every code-built model's geometry, built here at
- * build time in its own space exactly as the model's `build` drew it live (each variant and the defaults), the facade
- * kit's pieces, the movers,
- * the wall kit's pieces, the balustrade panel's far copy, and the world's banyan crown over the layout's plan. Written
- * as one binary (a JSON head of keyed geometry rows, then each geometry's typed arrays, ./bakeWrite.ts);
- * `src/shards/nine-dragon-stack/generators/bake-nine-layout.mjs` deflates them to public/assets/nine-dragon/baked/specimens.bin (what the page builds
- * at load) and specimens-explorer.bin (what only the Explorer's specimens draw) and stamps ../data/specimens.json; the page reads it by key (../world/specimens.ts). The stale gate and the live-vs-baked parity:
- * test/shards/nine-dragon-stack/specimens-bake.test.ts.
+ * Nine Dragon's build-time model geometry in its original local space: facade
+ * and wall kits, balustrades, movers and the banyan crown. scene.ts bakes these
+ * recipes into owned world GLBs; worldProgram.ts caches and admits their bytes.
  */
 import { type BufferGeometry, Vector3 } from 'three';
 import { lanternLathe } from './lanternGeometry';

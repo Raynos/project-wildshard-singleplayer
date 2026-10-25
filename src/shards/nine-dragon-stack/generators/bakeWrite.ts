@@ -5,7 +5,9 @@
  * (./specimens.ts).
  */
 import { BufferAttribute, type BufferGeometry, Float16BufferAttribute } from 'three';
-import { BAKED_BYTES, type BakedType, pad4 } from '@wildshard/sdk/kit/bakedGeometry';
+import type { LayoutRows } from './sections';
+
+type BakedType = LayoutRows['geometries'][number]['attrs'][number][1];
 
 /** one written geometry's row (@wildshard/sdk/kit/bakedGeometry `BakedGeometryRow`) */
 export interface WrittenRow { attrs: [string, BakedType, number, boolean][]; count: number; index: 'u16' | 'u32' | null; indexCount: number; box: boolean }
@@ -29,8 +31,8 @@ export function geometryWriter(what: string): { add: (g: BufferGeometry) => Writ
       if (!(attr instanceof BufferAttribute)) throw new Error(`${what}: '${name}' is interleaved`);
       const type = bakedType(attr, what);
       attrs.push([name, type, attr.itemSize, attr.normalized]);
-      const bytes = new Uint8Array(attr.array.buffer, attr.array.byteOffset, attr.count * attr.itemSize * BAKED_BYTES[type]);
-      const block = new Uint8Array(pad4(bytes.length));
+      const bytes = new Uint8Array(attr.array.buffer, attr.array.byteOffset, attr.count * attr.itemSize * attr.array.BYTES_PER_ELEMENT);
+      const block = new Uint8Array(Math.ceil(bytes.length / 4) * 4);
       block.set(bytes);
       blocks.push(block);
     }

@@ -1,14 +1,10 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- validate the generated layout at runtime instead of inferring its full JSON type
-import { readFileSync } from 'node:fs';
 import * as v from 'valibot';
 import { expect, test } from 'vitest';
 import { parseWorldSceneModels } from '../src/format/worldSceneModels';
 import { parseWorldScenes } from '../src/format/worldScenes';
 import { defineWorldSceneCatalogue } from '../src/game/models/worldSceneCatalogue';
-import { NINE_SCENE_BLOBS, NINE_WORLD_SCENES } from '../src/shards/nine-dragon-stack/generators/worldScenes';
-import world from '../src/shards/nine-dragon-stack/data/world.generated.json' with { type: 'json' };
+import { NINE_SCENE_BLOBS, NINE_WORLD_SCENES, world, layout as sourceLayout } from './fixtures/nine-product-inputs';
 import { LayoutRowsSchema } from '../src/shards/nine-dragon-stack/generators/sections';
-import { reviveLayout } from '../src/shards/nine-dragon-stack/generators/layoutProjection';
 
 const blob = (name: string): unknown => {
   const row = NINE_SCENE_BLOBS.find(entry => entry.file.name === name);
@@ -17,7 +13,7 @@ const blob = (name: string): unknown => {
 };
 
 test('every Nine catalogue draw names a declared whole-library model on its own baked tiles', () => {
-  const layout=v.parse(v.object({rows:LayoutRowsSchema}),JSON.parse(readFileSync(new URL('../src/shards/nine-dragon-stack/data/layout.generated.json',import.meta.url),'utf8'),reviveLayout));
+  const layout=v.parse(v.object({rows:LayoutRowsSchema}),sourceLayout);
   const catalogue = parseWorldSceneModels(blob('models/world-scenes.json')), models = defineWorldSceneCatalogue(catalogue);
   for (const model of catalogue.models) expect(models.model(model.key).id).toBe(model.id);
   const libraries = new Map(NINE_WORLD_SCENES.libraries.flatMap(row => row.kind === 'whole' ? [[row.id, row] as const] : []));

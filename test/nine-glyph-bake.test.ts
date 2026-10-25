@@ -10,7 +10,7 @@ import { FONT_CHARS, WORDS } from '../src/shards/nine-dragon-stack/generators/wo
 import signRows from '../src/shards/nine-dragon-stack/data/signView.json' with { type: 'json' };
 import profiles from '../src/shards/nine-dragon-stack/data/specimenProfiles.json' with { type: 'json' };
 import { GLYPH_LAYOUT } from '../src/shards/nine-dragon-stack/generators/signs';
-import { NINE_WORLD_SCENES } from '../src/shards/nine-dragon-stack/generators/worldScenes';
+import { NINE_WORLD_SCENES } from './fixtures/nine-product-inputs';
 import { worldScenesForTier } from '../src/format/worldScenes';
 import { createModelLibrary } from '../src/game/plugin/geometry';
 

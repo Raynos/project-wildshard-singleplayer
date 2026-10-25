@@ -1,3 +1,4 @@
+import { layout } from './fixtures/nine-product-inputs';
 import { expect, test, vi } from 'vitest';
 import { GrappleTool, grappleGuard } from '../src/game/grapple/tool';
 import { heldEntry, enteredRows } from './fixtures/nineHeldEntry';
@@ -24,7 +25,7 @@ test('the entered claims feature adopts one Jian and adds its original grapple e
     expect(f.equipment.current === f.primary).toBe(true); expect(install).toHaveBeenCalledOnce(); expect(f.equipment.tools).toHaveLength(1);
     const tool = f.equipment.tools[0];
     if (!(tool instanceof GrappleTool)) throw new Error('Missing original grapple tool');
-    const { rows, records } = bakedLayout(), c = rows.counts;
+    const { rows, records } = bakedLayout(layout), c = rows.counts;
     const start = (c.walkers + c.sitters + c.lanterns + c.acs) * 16;
     expect(tool.hooks).toHaveLength(c.hooks);
     for (const [i, hook] of tool.hooks.entries()) for (const [axis, value] of [hook.x, hook.y, hook.z].entries()) expect(Object.is(value, records[start + i * 3 + axis])).toBe(true);

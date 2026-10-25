@@ -205,3 +205,18 @@ export type NineHeldMesh = v.InferOutput<typeof HeldMeshSchema>;
 export function parseHeldRigSource(value: unknown): v.InferOutput<typeof HeldRigSourceSchema> { return v.parse(HeldRigSourceSchema, value); }
 /** Admit complete original mesh rows and their existing 1..64 mesh bound. */
 export function parseHeldMeshes(value: unknown): readonly NineHeldMesh[] { return v.parse(HeldMeshesSchema, value); }
+
+
+const WorldHash = v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u));
+const WorldHeaderSchema = v.strictObject({
+  version: v.literal(1), notice: v.string(),
+  libraries: v.strictObject({ layout: v.array(WorldHash), boot: v.array(WorldHash), explorer: v.array(WorldHash) }),
+  specimenBoxes: v.record(v.string(), v.boolean()), shardfile: v.record(v.string(), v.unknown()),
+  props: v.nullable(v.record(v.string(), v.unknown())), report: v.array(v.record(v.string(), v.unknown())),
+});
+const WorldLayoutSchema = v.strictObject({ version: v.literal(1), count: v.pipe(v.number(), v.safeInteger(), v.minValue(0), v.maxValue(4_000_000)),
+  records: v.array(v.unknown()), rows: v.unknown(), bounds: v.array(v.strictObject({ sphere: v.pipe(v.array(finite), v.length(4)), box: v.pipe(v.array(finite), v.length(6)) })) });
+/** Admit the owned world envelope before the defining shardfile reader validates its file and tile rows. */
+export function parseWorldHeader(value: unknown): v.InferOutput<typeof WorldHeaderSchema> { return v.parse(WorldHeaderSchema, value); }
+/** Preserve signed/nonfinite layout words until the existing layout admission revives them. */
+export function parseWorldLayout(value: unknown): v.InferOutput<typeof WorldLayoutSchema> { return v.parse(WorldLayoutSchema, value); }

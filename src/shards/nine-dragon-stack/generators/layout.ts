@@ -1,10 +1,7 @@
 /**
- * Nine Dragon's layout bake (G285, SF72 "bake the code-built worlds"): the layout step — the square, the towers, the
- * Well — run at build time with a recording stand-in for the sign builder, and the build context it fills written as one
- * binary (a JSON head, float64 records, each built geometry's typed arrays). `src/shards/nine-dragon-stack/generators/bake-nine-layout.mjs` deflates it to
- * public/assets/nine-dragon/baked/layout.bin and stamps ../data/layout.json; the page restores it (../world/layoutBake.ts).
- * test/shards/nine-dragon-stack/layout-bake.test.ts re-runs it (the stale gate) and checks the restore against the
- * live builders.
+ * Nine Dragon's authored square, towers and Well, built with a recording sign sink.
+ * worldProgram.ts caches the checked layout rows, float64 records and immutable
+ * world GLBs. Product consumers receive those owned values directly.
  */
 import type { BufferGeometry, Color, Matrix4, Vector3 } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';

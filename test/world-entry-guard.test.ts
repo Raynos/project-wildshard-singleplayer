@@ -1,3 +1,4 @@
+import { scenes } from './fixtures/nine-product-inputs';
 import { expect, test } from 'vitest';
 import { Group } from 'three';
 import { Scope } from '../src/engine/app/scope';
@@ -26,7 +27,7 @@ test.each(['capped', 'open'] as const)('declared %s guard keeps original collide
   const install = nineWorldInstallRows(), original = (variant === 'capped' ? install.standalone : install.cell).find(row => row.id === 'nds-grapple-guard');
   if (original === undefined) throw new Error('Missing original guard');
   try {
-    await WorldEntry.admit(nineWorldEntry(), { scope, root, tier: 'phone', variant, piece: entry => { pieces.push(entry); } }).run('pieces');
+    await WorldEntry.admit(nineWorldEntry(scenes), { scope, root, tier: 'phone', variant, piece: entry => { pieces.push(entry); } }).run('pieces');
     const guard = pieces.at(-1);
     if (guard === undefined) throw new Error('Missing registered guard');
     expect(pieces.filter(entry => entry.id === original.id)).toHaveLength(1);

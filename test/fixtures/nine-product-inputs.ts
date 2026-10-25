@@ -13,6 +13,11 @@ async function sourceInputs(): Promise<Awaited<ReturnType<typeof readNineProduct
 }
 
 export const inputs = await sourceInputs();
+export const ownedWorld = inputs.ownedWorld;
+export const world = ownedWorld.metadata;
+export const layout = ownedWorld.layout;
+export const scenes = inputs.scenes;
+export const { NINE_SCENE_BLOBS, NINE_WORLD_SCENES, LAYOUT_PLACEMENT_BLOBS, SET_TILES, LAYOUT_PLACEMENTS, SET_PLACEMENTS, LION_PLACEMENTS } = scenes;
 export const heldProfile = inputs.held.profile;
 export const heldGraphFiles = inputs.held.files;
 /** Exercise the same pure factory with actual source results and the supplied fixed-page view contract. */

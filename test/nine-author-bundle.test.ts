@@ -1,3 +1,4 @@
+import { scenes } from './fixtures/nine-product-inputs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compile the real author entry without executing its runtime.
 import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Check the actual factory source with the defining import guard.
@@ -10,7 +11,7 @@ import { BLEND_ADD_KEEP_ALPHA } from '../src/game/plugin/shaderFamily';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 
 test('Nine authored streaks retain the original blend state without importing a runtime host', () => {
-  const row = Object.values(nineBuildBlocks()).flat().find(entry => entry.kind === 'look' && entry.look === 'nine-streaks');
+  const row = Object.values(nineBuildBlocks(scenes)).flat().find(entry => entry.kind === 'look' && entry.look === 'nine-streaks');
   expect(row).toMatchObject({ state: { transparent: true, ...BLEND_ADD_KEEP_ALPHA } });
 });
 

@@ -1,3 +1,4 @@
+import { ownedWorld, scenes, layout as sourceLayout } from '../fixtures/nine-product-inputs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Node-only golden proof hashes exact typed-array storage.
 import { createHash } from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- The offline proof reads retained GLBs and published layout inputs.
@@ -15,7 +16,7 @@ import type { PreparedGeometry } from '../../src/shards/nine-dragon-stack/data/c
 import castRows from '../../src/shards/nine-dragon-stack/data/casts.json' with { type: 'json' };
 import { layoutBlobs } from '../../src/shards/nine-dragon-stack/generators/layoutBlobs';
 import { bakeCasts, bakeFixedKits, castGeometry } from '../../src/shards/nine-dragon-stack/generators/casts';
-import { layoutProjection, restoreLayoutZeros, reviveLayout as layoutReviver } from '../../src/shards/nine-dragon-stack/generators/layoutProjection';
+import { layoutProjection, restoreLayoutZeros } from '../../src/shards/nine-dragon-stack/generators/layoutProjection';
 import { LayoutRowsSchema, GeometryBootSchema } from '../../src/shards/nine-dragon-stack/generators/sections';
 import * as v from 'valibot';
 import { Scope } from '../../src/engine/app/scope';
@@ -52,7 +53,7 @@ function drawnLevel(name: string, path: string, base: BufferGeometry, prepared: 
 let packs: Map<PreparedGeometry, Uint8Array>;
 let fixed: ReturnType<typeof bakeFixedKits>;
 beforeAll(async () => {
-  const layout: unknown = JSON.parse(readFileSync('src/shards/nine-dragon-stack/data/layout.generated.json', 'utf8'), layoutReviver);
+  const layout: unknown = sourceLayout;
   const row = v.parse(v.object({ rows: LayoutRowsSchema }), layout);
   fixed = bakeFixedKits(row.rows.slots);
   packs = await bakeCasts(url => new Uint8Array(readFileSync(`public${url}`)));
@@ -98,10 +99,10 @@ test('fixed sign words, RNG order and all eight cap lantern matrices preserve th
 
 
 test('layout blobs retain every float64 bit and signed author zero', () => {
-  const raw: unknown = JSON.parse(readFileSync('src/shards/nine-dragon-stack/data/layout.generated.json', 'utf8'), layoutReviver);
+  const raw: unknown = sourceLayout;
   const original = v.parse(v.object({ rows: LayoutRowsSchema, count: v.number(), records: v.array(v.number()),
     bounds: v.array(v.object({ sphere: v.array(v.number()), box: v.array(v.number()) })) }), raw);
-  const blobs = layoutBlobs(), rows = blobs.find(row => row.file.name === 'geometry/layout.json');
+  const blobs = layoutBlobs(ownedWorld, scenes), rows = blobs.find(row => row.file.name === 'geometry/layout.json');
   if (rows === undefined) throw new Error('Missing layout boot blobs');
   expect(blobs.some(row => row.file.name === 'geometry/layout-f64.bin')).toBe(false);
   const decoded: unknown = JSON.parse(new TextDecoder().decode(rows.bytes));

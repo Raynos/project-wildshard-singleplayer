@@ -1,3 +1,4 @@
+import { layout as originalLayout } from './fixtures/nine-product-inputs';
 import { expect, test } from 'vitest';
 import { prepareAssetDecoders } from '../src/format/product';
 import { hashImmutableBytes } from '../src/sdk/immutable';
@@ -13,14 +14,14 @@ import { parseWorldScene } from '../src/format/clientChannels';
 test('owned layout rows preserve every original projection and facade packet byte', async () => {
   await prepareAssetDecoders();
   const layout = withPortableMath(() => nineWorldLayout(nineLayoutSource()));
-  expect(bakedLayout(layout)).toEqual(bakedLayout());
-  expect(bakedLayoutProjection(layout)).toEqual(bakedLayoutProjection());
-  const packets = (source?: NineWindowLayout) => facadeWindowBlobs(source).map(row => ({
+  expect(bakedLayout(layout)).toEqual(bakedLayout(originalLayout));
+  expect(bakedLayoutProjection(layout)).toEqual(bakedLayoutProjection(originalLayout));
+  const packets = (source: NineWindowLayout) => facadeWindowBlobs(source).map(row => ({
     file: row.file, bytes: row.bytes.byteLength, hash: hashImmutableBytes(row.bytes),
   }));
-  expect(packets(layout)).toEqual(packets());
-  expect(facadeWindowPackets(layout)).toEqual(facadeWindowPackets());
-  expect(windowStep([0, 1, 2], layout)).toEqual(windowStep([0, 1, 2]));
+  expect(packets(layout)).toEqual(packets(originalLayout));
+  expect(facadeWindowPackets(layout)).toEqual(facadeWindowPackets(originalLayout));
+  expect(windowStep([0, 1, 2], layout)).toEqual(windowStep([0, 1, 2], originalLayout));
   expect(bakedLayoutProjection(layout, { lanterns: [] }).fixed.lanterns).toEqual([]);
   expect(() => bakedLayout({ ...layout, count: layout.count + 1 })).toThrow('record inventory');
   expect(() => bakedLayout({ ...layout, records: [undefined, ...layout.records.slice(1)] })).toThrow('record inventory');
