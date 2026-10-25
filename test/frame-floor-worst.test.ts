@@ -41,3 +41,22 @@ test('retains the six worst real cadence intervals without changing the measured
 test('keeps ties and reports only existing intervals in samples shorter than six', async () => {
   expect(await sampleIntervals([34, 34, 34])).toMatchObject({frames: 3, worstFrameMs: [34, 34, 34]});
 });
+
+test('attributes CPU samples on the native navigation clock after a delayed profiler start', () => {
+  const source = readFileSync(new URL('../scripts/frame-floor.mjs', import.meta.url), 'utf8');
+  const start = source.indexOf('function summarizeTravelProfile('), end = source.indexOf('\nfunction webkit(', start);
+  if (start === -1 || end <= start) throw new Error('CPU attribution function missing');
+  const profile = {startTime: 100_000_000, pageNavigationStartUs: 99_000_000,
+    nodes: [{id: 1, callFrame: {functionName: '(root)', url: '', lineNumber: -1}, children: [2]},
+      {id: 2, callFrame: {functionName: 'nativeLink', url: 'shader.js', lineNumber: 7}}],
+    samples: [2, 2], timeDeltas: [1_400_000, 10_000]};
+  const saved: string[] = [];
+  const context = {profile, cpuProfileDir: 'unused', join: (dir: string, file: string) => `${dir}/${file}`,
+    writeFileSync: (_path: string, bytes: string): void => { saved.push(bytes); }};
+  // The page evaluate after Profiler.start arrives at 2400 ms. Sampling has
+  // already started: using that as the profile origin shifts this task by 1400 ms.
+  const result: unknown = runInNewContext(`(${source.slice(start, end)})(profile, 2400, [[2400, 15]], 'drive')`, context);
+  expect(result).toMatchObject({longTasks: 1, tasks: [{start: 2400, ms: 15,
+    self: ['10 ms nativeLink shader.js:8'], inclusive: ['10 ms nativeLink shader.js:8']}]});
+  expect(saved).toEqual([JSON.stringify(profile)]);
+});

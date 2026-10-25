@@ -754,9 +754,11 @@ function summarizeTravelProfile(profile, startedAt, longTasks, name) {
   const nodes = new Map(profile.nodes.map((node) => [node.id, node])), parent = new Map();
   for (const node of profile.nodes) for (const child of node.children ?? []) parent.set(child, node.id);
   const label = (node) => { const f = node.callFrame; return `${f.functionName === '' ? '(anonymous)' : f.functionName} ${f.url.split('/').pop()}:${f.lineNumber + 1}`; };
-  // profile timestamps are µs on the CDP clock; anchor them to performance.now() at Profiler.start
+  // Native navigation time shares the CPU profiler's monotonic clock. The
+  // evaluate after Profiler.start can arrive seconds later while sampling starts.
+  const originUs = profile.pageNavigationStartUs;
   const samples = []; let t = profile.startTime;
-  for (let i = 0; i < profile.samples.length; i++) { t += profile.timeDeltas[i]; samples.push([startedAt + (t - profile.startTime) / 1000, profile.samples[i], (profile.timeDeltas[i + 1] ?? 0) / 1000]); }
+  for (let i = 0; i < profile.samples.length; i++) { t += profile.timeDeltas[i]; samples.push([typeof originUs === 'number' ? (t - originUs) / 1000 : startedAt + (t - profile.startTime) / 1000, profile.samples[i], (profile.timeDeltas[i + 1] ?? 0) / 1000]); }
   const end = samples.at(-1)?.[0] ?? startedAt;
   const tasks = longTasks.filter(([s, d]) => s + d >= startedAt && s <= end).map(([s, d]) => {
     const inclusive = new Map(), self = new Map();
@@ -880,8 +882,15 @@ async function worker() {
         evaluate: evaluator((expr) => page.evaluate(expr), observe), errors: () => Promise.resolve(errors), progress: () => lastRoute, followed: () => page.waitForURL((u) => !u.search.includes('mute=1') || u.search.includes('chunk='), { timeout: 60000 }).catch(() => undefined),
         unload: async () => { await page?.close(); },
         profile: cpuProfileDir === '' ? null : {
-          start: async () => { profiler = await page.context().newCDPSession(page); await profiler.send('Profiler.enable'); await profiler.send('Profiler.setSamplingInterval', { interval: 250 }); await profiler.send('Profiler.start'); return page.evaluate('performance.now()'); },
-          stop: async () => { const { profile } = await profiler.send('Profiler.stop'); await profiler.detach(); profiler = null; return profile; },
+          start: async () => { profiler = await page.context().newCDPSession(page); await profiler.send('Performance.enable'); await profiler.send('Profiler.enable'); await profiler.send('Profiler.setSamplingInterval', { interval: 250 }); await profiler.send('Profiler.start'); return page.evaluate('performance.now()'); },
+          stop: async () => {
+            const { profile } = await profiler.send('Profiler.stop');
+            const metrics = await profiler.send('Performance.getMetrics');
+            const navigationStart = metrics.metrics.find(row => row.name === 'NavigationStart')?.value;
+            if (navigationStart === undefined) throw new Error('CPU profile page clock unavailable');
+            await profiler.detach(); profiler = null;
+            return { ...profile, pageNavigationStartUs: navigationStart * 1e6 };
+          },
         },
         trace: gpuTraceDir === '' ? null : {
           // the anchor: a user-timing mark whose trace timestamp pins the page clock to the trace clock

@@ -35,7 +35,8 @@ official floor credit; sp-x8 owns the quiet rerun at the next milestone.
 | G717.N1 | Attribute Nalati's 287 / 243 ms official hitches using the original drive. Chromium phone4x reproduced max 483.3 ms: 176.2 ms sampled native first-use query plus 188.5 ms game phases; the independent afterPlay frame spent 106.5 ms resolving a link. | done (attribution only; 2026-10-25, sp-x1) |
 | G717.N2 | Fix the reproduced native first-use / activation work and compare the same Chromium route; no timing credit from the diagnostic. At most one hour per source cut. | in flight (2026-10-25, sp-x1) |
 | G717.P1 | Name and fix Pine whole-drive p95 45 ms; original-history Chromium phone4x reproduces p95 66.8 / max 333.3 ms, including 150.7 ms scene-binding refresh in the worst frame. At most one hour per source cut. | in flight (2026-10-25, sp-x1) |
-| G717.D1 | Driftwood spawn: pairing all acquired variants eagerly queried still-linking programs (147.1 ms of the Chromium 250 ms worst frame). Resolve only the selected variant; retain every pairing and error check. Focused regression refuses the old path. Chromium before p95 100 / max 250 ms; after comparison pending. | in flight (2026-10-25, sp-x1) |
+| G717.D1 | Driftwood spawn: pairing all acquired variants eagerly queried still-linking programs (147.1 ms of the Chromium 250 ms worst frame). `997273e20d` resolves only the selected variant, preserving every pairing and error check. Chromium original ALL before/after: p95 100 → 50.1 / max 250 → 66.7 ms; both complete/errors 0. Diagnostic only; remaining admission work is D2. | done (2026-10-25, sp-x1) |
+| G717.D2 | Attribute and cut the remaining Driftwood spawn admission/parser frames (26.9 ms sampled cost projection in the worst remaining 66.7 ms interval). Preserve complete costs, validation and reads. At most one hour per source cut. | in flight (2026-10-25, sp-x1) |
 
 ## Why it never completes today
 
