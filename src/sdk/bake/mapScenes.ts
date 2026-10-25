@@ -203,7 +203,8 @@ export async function paintMapScenes(raster: MapRaster, input: unknown, style: u
 
 const geometryDeclaration = v.object({ painter: v.object({ version: v.literal(1), terrain: v.exactOptional(v.array(v.string())),
   props: v.exactOptional(v.array(v.string())), glbs: v.exactOptional(v.array(v.string())), scenes: v.exactOptional(v.unknown()) }),
-  outputs: v.exactOptional(v.record(v.string(), v.object({ exclude: v.exactOptional(v.union([v.string(), v.array(v.string())])) }))) });
+  outputs: v.exactOptional(v.record(v.string(), v.unknown())) });
+const geometryOutput = v.object({ exclude: v.exactOptional(v.union([v.string(), v.array(v.string())])) });
 const terrainRows = v.object({ terrain: v.object({ tiles: v.array(v.object({ lod: v.number(), file: v.string() })) }) });
 const propsRows = v.object({ props: v.object({ wholeLibrary: v.exactOptional(v.unknown()),
   tiles: v.array(v.object({ lod: v.number(), file: v.string(), additionalFiles: v.exactOptional(v.array(v.string())) })),
@@ -223,7 +224,8 @@ export async function paintMapGeometry(raster: MapRaster, input: unknown, data: 
     for (const tile of props.tiles.filter(entry => entry.lod === 0)) for (const ref of [tile.file, ...tile.additionalFiles ?? []]) await raster.glb(data.input(`assets/${ref}`));
     for (const panel of props.panels.filter(entry => entry.visible !== false)) await raster.glb(data.input(`assets/${panel.file}`));
   }
-  const own = options.output === undefined ? undefined : config.outputs?.[options.output], excluded = own?.exclude;
+  const selected = options.output === undefined ? undefined : config.outputs?.[options.output];
+  const own = selected === undefined ? undefined : v.parse(geometryOutput, selected), excluded = own?.exclude;
   const exclude = typeof excluded === 'string' ? [excluded] : excluded ?? [];
   const drawn = exclude.length === 0 ? undefined : (node: Node) => !exclude.some(prefix => node.getName().startsWith(prefix));
   for (const file of options.glbs ?? painter.glbs ?? []) await raster.glb(data.input(file), undefined, drawn);

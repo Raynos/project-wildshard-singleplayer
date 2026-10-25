@@ -1,0 +1,24 @@
+{
+  "ink-cel-valley-data-map": {
+    "public/assets/ink-cel-valley/map/top.webp": "ea37cc913fc89637ff1adc2d6d34367a979b5af8470807ffc2a68425e332efcf"
+  },
+  "blender-template-data-map": {
+    "public/assets/blender-template/map/top.webp": "4b47420aff1ded28c9c6cf1eb92d6e2d7b01d057f2654654405445ff8d562e55"
+  },
+  "open-plots-world": {
+    "public/assets/open-plot-showcase-template/map/top.webp": "323aff2c03ee4fb9228de2ac8bed20c49d29f0b4ae7ac887194239450810fb1d",
+    "public/assets/open-plot-thin-ice/map/top.webp": "8190d2fb12a530499adfdbb073b3652e7cc70a3eac6fc9f2a608a53330d773e9",
+    "public/assets/open-plot-frostline-peaks/map/top.webp": "c3579b3c27c8496126cb020f491468e95ab6f9cca66f6051081a8e43416a56a4",
+    "public/assets/open-plot-ember-forge/map/top.webp": "b765cb27f4ae49a8ba09511b3a686bbff16c5053536354ac90e4fec19507ea38",
+    "public/assets/open-plot-lantern-bayou/map/top.webp": "1c37ed0e1ff84a78f64f05e3fdd36975206ee39bec8826ad2ad77f187ff6378d",
+    "public/assets/open-plot-sky-harbor/map/top.webp": "21e00aefc8f376e4019c15f81b16bf0aeaa71085c1a4140fdd85e9f80c01b8ff",
+    "public/assets/open-plot-coral-drift/map/top.webp": "46b58f4a2fe42059b152ab4677a8b5d133b07a38e9deab91b7db2a7f866fd97f",
+    "public/assets/open-plot-clockwork-canyon/map/top.webp": "2e9baa199e8dc5f76f912884a98c55733d67eae253d2307d9fe158913753532d",
+    "public/assets/open-plot-starfall-observatory/map/top.webp": "0bc5860d8814d64295a7e4ed83048d19a80ae170735e46fcc18b2ad60dfbf889",
+    "public/assets/open-plot-mosslight-ruins/map/top.webp": "22517fd4e351f51b46b0d4d5f989b0a81dd49be6c5784a8322c8400334754eda",
+    "public/assets/open-plot-alien-plain/map/top.webp": "5ecb0ddfddb22b51ffe5f855179dc2a36935defeadbad30c448aac0bc6a63167",
+    "public/assets/open-plot-desert-ruin/map/top.webp": "1a45612f974807322d272dca63bce3ab65c41b56451238b277a938b7a5e5cf72",
+    "public/assets/open-plot-night-market/map/top.webp": "1f81eb68c72836786fb30aaae164eb767f682e94b347cf44808bcedb30d0a1b6",
+    "public/assets/open-plot-sky-race/map/top.webp": "3c1e45082f161a0cde6d93aa654c7325f28ac5ab8caa562489739dd7cf2fabb9"
+  }
+}
