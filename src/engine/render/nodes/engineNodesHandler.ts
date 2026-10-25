@@ -1033,7 +1033,16 @@ export class EngineNodesHandler extends WebGLNodesHandler {
             const bindings = this.sceneBindings.get(material) ?? new Map<unknown, SceneBinding>();
             bindings.set(built, build.binding); this.sceneBindings.set(material, bindings);
           }
-          known.set(built, { uniformsGroups: build.uniformsGroups, uniforms: build.uniforms, uniformsList: uniformsListOf(built, build.uniforms), updateNodes: build.updateNodes });
+          // Pair every identity now, but resolve uniforms only when that variant
+          // is selected. Querying a different still-linking program here blocks
+          // the current road draw before precompile's readiness fence can run.
+          const uniforms = build.uniforms;
+          let uniformsList: unknown[] | undefined;
+          known.set(built, { uniformsGroups: build.uniformsGroups, uniforms,
+            get uniformsList(): unknown[] {
+              uniformsList ??= uniformsListOf(built, uniforms);
+              return uniformsList;
+            }, updateNodes: build.updateNodes });
         }
       }
     }

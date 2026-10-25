@@ -63,14 +63,21 @@ test('a live draw pairs every acquired variant with its own uniforms', async () 
     expect(collectTextures(jobs)).toEqual([]);
     properties.currentProgram = road.program;
     handler.onUpdateProgram(material, road.program, properties);
+    // Pairing inventory must not query another variant's still-linking native program.
+    expect(future.getUniforms).not.toHaveBeenCalled();
+    expect(later.getUniforms).not.toHaveBeenCalled();
     const uniforms = properties.uniforms, list = properties.uniformsList;
     compiled.setTexture('sample', replacement);
     expect(collectTextures(jobs)).toEqual([]);
     compiled.setTexture('sample', sample);
     handler.prepareProgram(material, future.program);
+    expect(future.getUniforms).not.toHaveBeenCalled();
+    expect(later.getUniforms).not.toHaveBeenCalled();
     expect(properties.currentProgram).toBe(road.program); expect(properties.uniforms).toBe(uniforms);
     expect(properties.uniformsList).toBe(list);
     handler.onUpdateProgram(material, future.program, properties);
+    expect(future.getUniforms).toHaveBeenCalled();
+    expect(later.getUniforms).not.toHaveBeenCalled();
     expect(properties.uniforms).toBe(future.uniforms);
     handler.prepareProgram(material, later.program); handler.onUpdateProgram(material, later.program, properties);
     expect(properties.uniforms).toBe(later.uniforms);

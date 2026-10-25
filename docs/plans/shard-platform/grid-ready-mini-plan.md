@@ -21,6 +21,20 @@ Each slice is bounded to one hour; report misses and their observed owners first
 | G723.2 | Agree the kept-return boundary with the streaming owner, then warm the unique approached neighbour before the edge using existing admission and memory claims. Contracts and one bounded source slice; at most one hour. | open |
 | G723.3 | Measure the defining warm-ahead slice against the same first-entry route and keep every durability, cancellation, claim and readiness fence. At most one hour. | open |
 
+## G717 frame-floor misses (2026-10-25, sp-x1; G639)
+
+Chromium phone-tier profiles use the original ALL route and the defining
+`1138f0564c` baseline. Each source slice is bounded to one hour and records
+its Chromium before/after numbers in the code commit. Diagnostics supply no
+official floor credit; sp-x8 owns the quiet rerun at the next milestone.
+
+| Slice | Work | Status |
+|---|---|---|
+| G717.N1 | Attribute Nalati's 287 / 243 ms official hitches using the original drive. Chromium phone4x reproduced max 483.3 ms: 176.2 ms sampled native first-use query plus 188.5 ms game phases; the independent afterPlay frame spent 106.5 ms resolving a link. | done (attribution only; 2026-10-25, sp-x1) |
+| G717.N2 | Fix the reproduced native first-use / activation work and compare the same Chromium route; no timing credit from the diagnostic. At most one hour per source cut. | in flight (2026-10-25, sp-x1) |
+| G717.P1 | Name and fix Pine whole-drive p95 45 ms; original-history Chromium phone4x reproduces p95 66.8 / max 333.3 ms, including 150.7 ms scene-binding refresh in the worst frame. At most one hour per source cut. | in flight (2026-10-25, sp-x1) |
+| G717.D1 | Driftwood spawn: pairing all acquired variants eagerly queried still-linking programs (147.1 ms of the Chromium 250 ms worst frame). Resolve only the selected variant; retain every pairing and error check. Focused regression refuses the old path. Chromium before p95 100 / max 250 ms; after comparison pending. | in flight (2026-10-25, sp-x1) |
+
 ## Why it never completes today
 
 At ruler ed51b1446 every shard passes four of the six M2 criteria (baked tiles, edge profile, four entries, HUD accent).
