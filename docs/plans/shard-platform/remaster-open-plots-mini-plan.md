@@ -47,6 +47,7 @@ The 19 grid cells use the 19 ideas once each (G629, G653).
 | Row | What | Done when |
 |---|---|---|
 | RP1 | Jake reviews the 19 mockups; any he wants changed get a new round | **done** 2026-10-24 (G712: "Mockups look good") |
+| RP1a | G712 follow-up: *"too many have the same orange/red glow as Night Market"*. Round 62 re-palettes all 18 other plots (same layout, landmark, billboards and cameras; its own sky, light and colours each), board `art/grid/round-62-open-plot-palettes/00-board.jpg` | **done** 2026-10-24, `art/grid/round-62-open-plot-palettes/<nn>-<slug>.jpg` supersede rounds 51 and 52 for palette; only Night Market keeps the red-and-gold lantern dusk |
 | RP2 | Per idea: kit, layout, landmark (Hunyuan3D 2.1 / TRELLIS.2, better wins), billboards, palette and map look, as the pilot did | the plot matches its mockup in a 4-angle capture |
 | RP3 | The five new ideas get `outputs.json` rows and replace the five repeated cells | all 19 cells unique |
 | RP4 | Delete the hologram path (hologram, plinth, sign inputs) once every plot is remastered | no hologram code or assets left |
