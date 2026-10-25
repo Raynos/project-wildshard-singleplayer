@@ -8794,10 +8794,10 @@ Browser descriptor caches use the v2 namespace and evict the old one;
 immutable content-addressed asset caches retain valid shared bytes.
 Normalized in-memory Shardfile inputs remain the current host API.
 
-`format/outputIndex.parseOutputDescriptorIndex(input)` checks bounded plain
-JSON before detecting a disk index, returning null for an in-memory model.
-Its index branch shares the strict inventory parser with `parseOutputIndex`,
-so descriptor admission needs only one plain-data walk before parsing.
+`format/outputIndex.parseOutputDescriptorIndex` checks bounded JSON once;
+in-memory models return null. `format/product.validationSourceBytesPaced`
+keeps receipt bytes exact, yielding through the reader during sorting.
+Native JSON encoding stays atomic; hashes and admission checks remain.
 
 ### G454 host callbacks and catalogue
 

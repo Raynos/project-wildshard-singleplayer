@@ -1,5 +1,5 @@
 import { assembleOutputFields, assembleOutputShardfile, outputBlobPath, parseOutputDescriptorIndex, type OutputIndex } from '@wildshard/format/outputIndex';
-import { builtValidationReceipt, validationSourceBytes, type ValidationReceipt } from '@wildshard/format/product';
+import { builtValidationReceipt, validationSourceBytes, validationSourceBytesPaced, type ValidationReceipt } from '@wildshard/format/product';
 import { validateCustomSchema, validateCustomSchemaPaced } from './customSchema';
 import { loadingStage, loadingUnits, waitFor } from '@wildshard/engine/boot/waits';
 import type { Shardfile } from '@wildshard/format/shardSchema';
@@ -157,13 +157,15 @@ export async function resolveOutputDescriptor(input: unknown, reader: OutputDesc
       }, reader.pause), 'admission');
     }
   });
-  const indexHash = await reader.hash(validationSourceBytes(input));
+  const sourceBytes = (value: unknown): Uint8Array | Promise<Uint8Array> => reader.pause === undefined
+    ? validationSourceBytes(value) : validationSourceBytesPaced(value, reader.pause);
+  const indexHash = await reader.hash(await sourceBytes(input));
   const receipt = reader.firstParty === true ? builtValidationReceipt(index.build.sourceHash, indexHash) : null;
   let source: Shardfile;
   if (receipt === null) source = assembleOutputShardfile(index, sections);
   else {
     const fields = assembleOutputFields(index, sections, false);
-    const actual = await reader.hash(validationSourceBytes(fields));
+    const actual = await reader.hash(await sourceBytes(fields));
     if (actual !== index.build.sourceHash || !buildValidatedSource(fields, actual, indexHash)) throw new Error('Built shardfile source receipt mismatch');
     source = fields;
     buildValidated.add(source);

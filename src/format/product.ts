@@ -420,6 +420,51 @@ export function validationSourceBytes(source: unknown): Uint8Array {
   };
   return new TextEncoder().encode(`${JSON.stringify(sort(source))}\n`);
 }
+interface SourceSortFrame {
+  readonly source: object;
+  readonly target: Record<string, unknown> | unknown[];
+  readonly entries?: readonly (readonly [string, unknown])[];
+  readonly values?: readonly unknown[];
+  at: number;
+}
+
+/** Exact receipt bytes with the caller's paint policy between sorting slices.
+ * Native JSON encoding and a single object's key enumeration remain atomic. */
+export async function validationSourceBytesPaced(source: unknown, pause: () => Promise<void>): Promise<Uint8Array> {
+  const stack: SourceSortFrame[] = [];
+  const active = new Set<object>();
+  const sorted = (value: unknown): unknown => {
+    if (typeof value !== 'object' || value === null) return value;
+    if (active.has(value)) throw new TypeError('Cannot serialize cyclic receipt source');
+    active.add(value);
+    const target: Record<string, unknown> | unknown[] = Array.isArray(value) ? [] : {};
+    if (Array.isArray(value) && Array.isArray(target)) { target.length = value.length; stack.push({ source: value, target, values: value, at: 0 }); }
+    else stack.push({ source: value, target, entries: Object.entries(value).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0), at: 0 });
+    return target;
+  };
+  const result = sorted(source);
+  let start = Date.now(), visited = 0;
+  while (stack.length > 0) {
+    const frame = stack[stack.length - 1];
+    if (frame === undefined) break;
+    const at = frame.at++;
+    const entry = frame.values === undefined ? frame.entries?.[at]
+      : at < frame.values.length ? [String(at), frame.values[at]] as const : undefined;
+    if (entry === undefined) {
+      stack.pop();
+      active.delete(frame.source);
+      continue;
+    }
+    const [key, value] = entry, child = sorted(value);
+    if (Array.isArray(frame.target)) frame.target[Number(key)] = child;
+    else if (key === '__proto__') Object.defineProperty(frame.target, key, { value: child, writable: true, enumerable: true, configurable: true });
+    else frame.target[key] = child;
+    if (++visited % 128 === 0 && Date.now() - start >= 4) { await pause(); start = Date.now(); }
+  }
+  // Do not join final native serialization to the last sorting slice.
+  await pause();
+  return new TextEncoder().encode(`${JSON.stringify(result)}\n`);
+}
 /** The build hashes the engine/game validator sources; unbundled clients always validate in full. */
 export function validationRevision(): string | null { return typeof __SHARDFILE_VALIDATOR__ === 'string' ? __SHARDFILE_VALIDATOR__ : null; }
 /** Cache metadata is trusted local storage, but stale or malformed verdicts are never accepted. */
