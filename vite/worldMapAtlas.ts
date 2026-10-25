@@ -18,8 +18,8 @@ export function productMapBytes(root: string, slug: string): Uint8Array | null {
   if (row === undefined) return null;
   const bytes = readFileSync(resolve(folder, row.path));
   if (bytes.length !== row.bytes || hash(bytes) !== row.hash) throw new Error('Atlas map section differs from its product');
-  const { map } = v.parse(v.object({ map: v.nullable(v.object({ image: v.string() })) }), JSON.parse(bytes.toString('utf8')));
-  if (map === null) return null;
+  const { map } = v.parse(v.object({ map: v.exactOptional(v.nullable(v.object({ image: v.string() }))) }), JSON.parse(bytes.toString('utf8')));
+  if (map === null || map === undefined) return null;
   const file = index.files.find(candidate => candidate.hash === map.image);
   if (file === undefined) throw new Error('Atlas map is absent from its product');
   const image = readFileSync(resolve(folder, file.path));

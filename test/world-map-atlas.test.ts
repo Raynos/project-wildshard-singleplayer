@@ -29,11 +29,11 @@ test('the app compiler emits one atlas with inlined geometry, verifies source ha
   const digest = (value: Uint8Array | string): string => createHash('sha256').update(value).digest('hex');
   try {
     mkdirSync(resolve(root, 'src/game/grid'), { recursive: true });
-    writeFileSync(resolve(root, 'src/game/grid/singleplayer.json'), JSON.stringify({ grid: { cells: [{ slug: 'base' }], developer: [{ slug: 'override' }], devserver: [{ slug: 'override' }] } }));
+    writeFileSync(resolve(root, 'src/game/grid/singleplayer.json'), JSON.stringify({ grid: { cells: [{ slug: 'base' }, { slug: 'plain' }], developer: [{ slug: 'override' }], devserver: [{ slug: 'override' }] } }));
     writeFileSync(resolve(root, 'entry.js'), 'export const atlas = __GRID_MAP_ATLAS__;');
     const image = await sharp({ create: { width: 8, height: 8, channels: 3, background: '#123456' } }).webp().toBuffer();
-    const map = JSON.stringify({ map: { image: digest(image) } });
-    for (const slug of ['base', 'override']) {
+    for (const slug of ['base', 'override', 'plain']) {
+      const map = JSON.stringify(slug === 'plain' ? {} : { map: { image: digest(image) } });
       const out = resolve(root, 'out', slug); mkdirSync(out, { recursive: true });
       writeFileSync(resolve(out, 'map.json'), map); writeFileSync(resolve(out, 'map.webp'), image);
       writeFileSync(resolve(out, 'shard.json'), JSON.stringify({ format: 'wildshard.shardfile', formatVersion: 2, runtime: null, schemas: [],
@@ -47,7 +47,7 @@ test('the app compiler emits one atlas with inlined geometry, verifies source ha
     const assets = built.output.filter(row => row.type === 'asset'); expect(assets).toHaveLength(1);
     expect(assets[0]?.fileName).toMatch(/^assets\/world-map-[a-f0-9]{16}\.webp$/u);
     const code = built.output.find(row => row.type === 'chunk')?.code;
-    expect(code).toContain(assets[0]?.fileName); expect(code).toContain('override'); expect(code).toContain('base');
+    expect(code).toContain(assets[0]?.fileName); expect(code).toContain('override'); expect(code).toContain('base'); expect(code).toContain('plain');
     writeFileSync(resolve(root, 'out/base/map.webp'), 'corrupt'); expect(() => productMapBytes(root, 'base')).toThrow('image differs');
     writeFileSync(resolve(root, 'out/base/map.json'), '{}'); expect(() => productMapBytes(root, 'base')).toThrow('section differs');
   } finally { rmSync(root, { recursive: true, force: true }); }
