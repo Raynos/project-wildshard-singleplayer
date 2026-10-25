@@ -1,22 +1,27 @@
 import { parseLightEmitters } from '@wildshard/format/lightEmitters';
-import rest from '../data/restScenes.generated.json' with { type: 'json' };
+import { placeBindings } from './restScene';
 import { FIRE_GRAPH_IDS } from './rows/fire';
 import { signalEmberBuffer } from './emberBuffers';
+import type { CardGroupRow } from './rows/fireCards';
 
 const rows: unknown[] = [];
+const bindings = placeBindings();
 const material = (program: string): string => {
   const id = new Map(Object.entries(FIRE_GRAPH_IDS)).get(program); if (id === undefined) throw new Error('Undeclared emitter graph'); return id;
 };
 /** The original draw order, geometry, scales and seeds; only construction ownership changes. */
 for (const [id, source] of [
-  ['tower', rest.bindings.tower], ['caravan', rest.bindings.caravan],
-  ...rest.bindings.braziers.map((row, index) => [`brazier.${String(index)}`, row] as const),
+  ['tower', bindings.tower], ['caravan', bindings.caravan],
+  ...bindings.braziers.map((row, index) => [`brazier.${String(index)}`, row] as const),
 ] as const) {
   for (const [index, effect] of [...source.lamps, ...source.fires].entries()) {
     const draws: unknown[] = [];
-    const cards = (group: { readonly name: string; readonly order: number; readonly cards: readonly { readonly program: string; readonly quad: string; readonly scale: number | readonly number[]; readonly at?: readonly number[]; readonly order?: number }[] }): void => {
-      for (const card of group.cards) draws.push({ kind: 'card', name: group.name, order: card.order ?? group.order, material: material(card.program),
-        geometry: { library: 'models', model: `fire-${card.quad}` }, scale: card.scale, at: card.at ?? [0, 0, 0] });
+    const cards = (group: CardGroupRow): void => {
+      for (const card of group.cards) {
+        if (card.quad === undefined || card.scale === undefined) throw new Error('Missing original fire card shape');
+        draws.push({ kind: 'card', name: group.name, order: card.order ?? group.order, material: material(card.program),
+          geometry: { library: 'models', model: `fire-${card.quad}` }, scale: card.scale, at: card.at ?? [0, 0, 0] });
+      }
     };
     if ('fire' in effect.rows) {
       cards(effect.rows.fire);
