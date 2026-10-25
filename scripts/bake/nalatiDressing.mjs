@@ -12,7 +12,6 @@ import { dressingPoiColliders } from '../../src/shards/nalati-grasslands/generat
 export async function prepareNalatiDressing(dressingRecipe, forestMask) {
   const root = resolve(import.meta.dirname, '../..');
   const environment = installBakeEnvironment(root);
-  const noop = () => undefined;
 
 
   try {
@@ -25,7 +24,7 @@ export async function prepareNalatiDressing(dressingRecipe, forestMask) {
     const { pageScope } = await import('@wildshard/engine/app/resources');
     const { RIVER } = await import('../../src/shards/nalati-grasslands/generators/terrainRecipe.ts');
     configureGrassField({ ...NALATI_GRASS_LAYOUT, riverZ: RIVER.z, riverHalf: RIVER.half }, pageScope);
-    const [{ placeForest }, { SPRUCE_SPECS }, { outcropsPlace, bakeCragRock }] = await Promise.all([
+    const [{ placeForest }, { SPRUCE_SPECS }, { dressingRockColliders }] = await Promise.all([
       import('@wildshard/engine/world/forest/placement'), import('../../src/shards/nalati-grasslands/generators/spruceGeometry.ts'),
       import('../../src/shards/nalati-grasslands/generators/places.ts'),
     ]);
@@ -44,11 +43,9 @@ export async function prepareNalatiDressing(dressingRecipe, forestMask) {
     const placeRows = JSON.parse(readFileSync(resolve(root, 'src/shards/nalati-grasslands/data/places.json'), 'utf8')).rows;
     const sequence = JSON.parse(readFileSync(resolve(root, 'src/shards/nalati-grasslands/data/worldView.json'), 'utf8')).sequence;
     const poiColliders = dressingPoiColliders(placeRows, sequence, heightAt);
-    const steps = outcropsPlace({ ground: heightAt, flutter: { streamer: noop, flag: noop, strip: noop }, smoke: { emitter: noop } });
-    let step = steps.next(); while (!step.done) step = steps.next();
-    const outcrops = step.value, crags = bakeCragRock((await import('@wildshard/engine/core/tier')).TIER_CONFIG.maxTexture <= 1024, heightAt);
-    const avoid = [...poiColliders, ...outcrops.colliders, ...crags.colliders];
-    for (const part of crags.meshes) part.geometry.dispose();
+    const avoid = [...poiColliders, ...dressingRockColliders(heightAt,
+      (await import('@wildshard/engine/core/tier')).TIER_CONFIG.maxTexture <= 1024,
+      { normalAt: heightfield.normalAt, trailDistance: heightfield.trailDistance })];
     const clutter = campClutterSpots(avoid);
     return { plan, clutter, trees: trees.length, avoid: avoid.length };
   } finally {
