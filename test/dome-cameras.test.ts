@@ -2,7 +2,8 @@ import { expect, test } from 'vitest';
 import { assertDomeAnchorReady, domeGroundAnchor, domeWorldCamera, parseDomeCameras } from '../scripts/dome-cameras.mjs';
 import type { FloorGridState } from '../scripts/frame-floor-grid.mjs';
 
-const manifests = import.meta.glob<unknown>('../art/grid/round-63-night-market-domes/*/cameras.json', { eager: true, import: 'default' });
+// Exact 903baf53bc camera blobs: test fixtures remain present in CI's sparse checkout, unlike art/.
+const manifests = import.meta.glob<unknown>('./fixtures/night-market-domes/*.json', { eager: true, import: 'default' });
 const plans = Object.values(manifests).map(parseDomeCameras);
 function cameras(id: string) {
   const found = plans.find(row => row.dome.startsWith(id));
