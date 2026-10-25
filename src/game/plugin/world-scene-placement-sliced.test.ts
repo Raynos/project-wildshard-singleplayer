@@ -1,16 +1,16 @@
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
 import { Box3, BoxGeometry, BufferGeometry, BufferAttribute, InstancedMesh, MeshStandardMaterial, Vector3, Group } from 'three';
-import { defineModel, modelContext } from '../src/engine/models/model';
-import { place, placeSliced } from '../src/engine/models/place';
-import { Scope } from '../src/engine/app/scope';
-import { withOwner, enteredOwner } from '../src/engine/app/ownership';
-import * as bootPlan from '../src/engine/boot/plan';
-import { SkyRig } from '../src/engine/world/skyRig';
-import type { ShardContext } from '../src/game/plugin/context';
-import { WorldScenePlacement } from '../src/game/shardfile/worldScenePlacement';
-import { parseWorldScenePlacement } from '../src/format/worldScenePlacement';
-import { WorldRegistry } from '../src/engine/world/registry';
+import { defineModel, modelContext } from '@wildshard/engine/models/model';
+import { place, placeSliced } from '@wildshard/engine/models/place';
+import { Scope } from '@wildshard/engine/app/scope';
+import { withOwner, enteredOwner } from '@wildshard/engine/app/ownership';
+import * as bootPlan from '@wildshard/engine/boot/plan';
+import { SkyRig } from '@wildshard/engine/world/skyRig';
+import type { ShardContext } from './context';
+import { WorldScenePlacement } from '../shardfile/worldScenePlacement';
+import { parseWorldScenePlacement } from '@wildshard/format/worldScenePlacement';
+import { WorldRegistry } from '@wildshard/engine/world/registry';
 
 test('existing sliced placer matches native output and RNG while preserving owner across every yield', async () => {
   async function build(sliced: boolean) {

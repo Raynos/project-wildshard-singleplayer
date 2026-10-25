@@ -1,10 +1,10 @@
 import { expect, test, vi } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
-import type { ShardContext } from '../src/game/plugin/context';
-import type { ForestPage } from '../src/game/shardfile/forestPage';
-import type { CaveInterior } from '../src/game/shardfile/caveInterior';
-import { publishEntryOwner } from '../src/game/shardfile/entryOwners';
-import { FOREST_PAGE_PORTS, enterClientForestPage, installClientForestPage, installClientForestWeather, installClientPageLife, type ForestPagePorts } from '../src/game/shardfile/clientForestPage';
+import { Scope } from '@wildshard/engine/app/scope';
+import type { ShardContext } from './context';
+import type { ForestPage } from '../shardfile/forestPage';
+import type { CaveInterior } from '../shardfile/caveInterior';
+import { publishEntryOwner } from '../shardfile/entryOwners';
+import { FOREST_PAGE_PORTS, enterClientForestPage, installClientForestPage, installClientForestWeather, installClientPageLife, type ForestPagePorts } from '../shardfile/clientForestPage';
 
 // sp-x8 QX on G571's forest page features: every installer stops when its owner retires (it left during an awaited read,
 // or an ancestor is retiring in slices), and borrows its owners only after a read.

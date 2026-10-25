@@ -1,20 +1,19 @@
 import { expect, test, vi } from 'vitest';
 import { Scene, Vector3 } from 'three';
-import { zlibSync } from 'fflate';
-import { Scope } from '../src/engine/app/scope';
-import type { Game } from '../src/engine/core/Game';
-import type { Player } from '../src/engine/player/Player';
-import type { Physics } from '../src/engine/physics/Physics';
-import type { SkyRig } from '../src/engine/world/skyRig';
-import { WorldRegistry } from '../src/engine/world/registry';
-import * as model from '../src/engine/models/model';
-import type { ShardContext } from '../src/game/plugin/context';
-import type { ShardWorld } from '../src/game/shard/world';
-import type { ShardRuntime } from '../src/game/shard/runtime';
-import type { ShardProduct } from '../src/game/shardfile/shardProduct';
-import { WorldAssembly } from '../src/game/shardfile/worldAssembly';
-import { entryOwner } from '../src/game/shardfile/entryOwners';
-import { productFixedDraws } from '../src/game/models/fixedDraws';
+import { Scope } from '@wildshard/engine/app/scope';
+import type { Game } from '@wildshard/engine/core/Game';
+import type { Player } from '@wildshard/engine/player/Player';
+import type { Physics } from '@wildshard/engine/physics/Physics';
+import type { SkyRig } from '@wildshard/engine/world/skyRig';
+import { WorldRegistry } from '@wildshard/engine/world/registry';
+import * as model from '@wildshard/engine/models/model';
+import type { ShardContext } from './context';
+import type { ShardWorld } from '../shard/world';
+import type { ShardRuntime } from '../shard/runtime';
+import type { ShardProduct } from '../shardfile/shardProduct';
+import { WorldAssembly } from '../shardfile/worldAssembly';
+import { entryOwner } from '../shardfile/entryOwners';
+import { productFixedDraws } from '../models/fixedDraws';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 const rows = { construction: { prelude: { draws: 'models/ornaments.json' }, seed: 0,
@@ -23,7 +22,7 @@ const rows = { construction: { prelude: { draws: 'models/ornaments.json' }, seed
 const data = new Uint8Array(48);
 new Float32Array(data.buffer, 0, 9).set([0, 0, 0, 1, 0, 0, 0, 1, 0]);
 new Int32Array(data.buffer, 36, 3).set([0, 1, 1]);
-const drawRows = [{ slot: 'triangle', channels: [], inline: btoa(String.fromCodePoint(...zlibSync(data))),
+const drawRows = [{ slot: 'triangle', channels: [], file: 'geometry/triangle.bin',
   baked: { attrs: [['position', 'f32', 3, false]], count: 3, index: 'u16', indexCount: 3, box: true, expand: false } }];
 function fixture() {
   const parent = new Scope('native-page'), scope = parent.child('world'), events: string[] = [];
@@ -34,7 +33,8 @@ function fixture() {
   let afterRead = (): void => undefined;
   function read<T>(name: string): Promise<T>;
   function read(name: string): Promise<unknown> { events.push(`read:${name}`); afterRead(); return Promise.resolve(drawRows); }
-  const productSurface = { json: read, file: () => Promise.reject(new Error('Unexpected bytes read')) };
+  const file = vi.fn(() => Promise.resolve(data));
+  const productSurface = { json: read, file, slug: 'fixture' };
   const product = legacyDouble<ShardProduct>(productSurface);
   const surface = { scope, product, game: legacyDouble<ShardContext['game']>({runtime}) }, ctx = legacyDouble<ShardContext>(surface);
   return { parent, scope, ctx, surface, nativeSurface, productSurface, product, runtime, events,
@@ -46,14 +46,18 @@ test('metadata precedes native program/progress while loading and publication st
   try {
     const draws = await WorldAssembly.prepareNative(rows, f.ctx);
     expect(draws.ready).toBe(false); expect(() => entryOwner(f.scope, 'fixed-draws', 'ornaments')).toThrow();
+    expect(f.productSurface.file).not.toHaveBeenCalled();
     f.events.push('program', 'progress:0');
     expect(await WorldAssembly.prepareNative(rows, f.ctx)).toBe(draws);
     const load = vi.spyOn(draws, 'load');
     await WorldAssembly.construct(rows, { native: f.ctx, runtime: f.runtime, product: f.product, scope: f.scope, draws, baked: new Map() });
     expect(f.events).toEqual(['read:models/ornaments.json', 'program', 'progress:0']);
     expect(load).toHaveBeenCalledTimes(1); expect(entryOwner(f.scope, 'fixed-draws', 'ornaments')).toBe(draws);
+    expect(f.productSurface.file).toHaveBeenCalledExactlyOnceWith('geometry/triangle.bin');
     const copy = draws.handle('triangle').copy();
-    expect(copy.getIndex()?.count).toBe(3); copy.dispose();
+    expect(copy.getIndex()?.count).toBe(3);
+    expect(Array.from(copy.getAttribute('position').array)).toEqual([0, 0, 0, 1, 0, 0, 0, 1, 0]);
+    expect(Array.from(copy.getIndex()?.array ?? [])).toEqual([0, 1, 2]); copy.dispose();
     draws.handle('triangle').take().dispose();
   } finally { context.mockRestore(); f.parent.dispose(); }
 });
@@ -87,7 +91,7 @@ test('construction refuses a different prepared library before stage allocation'
   const f = fixture();
   try {
     await WorldAssembly.prepareNative(rows, f.ctx);
-    const foreign = await productFixedDraws({json: () => Promise.resolve(drawRows)}, 'models/ornaments.json');
+    const foreign = await productFixedDraws({json: () => Promise.resolve(drawRows), file: f.productSurface.file, slug: 'fixture'}, 'models/ornaments.json');
     const admit = vi.spyOn(WorldAssembly, 'admit');
     await expect(WorldAssembly.construct(rows, { native:f.ctx, runtime:f.runtime, product:f.product, scope:f.scope, draws:foreign, baked:new Map() })).rejects.toThrow('replaced its native prelude draws');
     expect(admit).not.toHaveBeenCalled();

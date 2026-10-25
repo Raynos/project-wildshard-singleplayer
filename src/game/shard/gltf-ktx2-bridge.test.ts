@@ -3,10 +3,10 @@ import { afterEach, expect, test, vi } from 'vitest';
 import { CompressedTexture, Mesh, MeshStandardMaterial } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js';
-import { installGltfKtx2 } from '../src/engine/core/ktx2';
-import * as files from '../src/engine/boot/gpuFiles';
-import * as textures from '../src/engine/core/ktx2';
-import { withShardHooks } from '../src/game/shard/load';
+import { installGltfKtx2 } from '@wildshard/engine/core/ktx2';
+import * as files from '@wildshard/engine/boot/gpuFiles';
+import * as textures from '@wildshard/engine/core/ktx2';
+import { withShardHooks } from './load';
 
 afterEach(() => { vi.restoreAllMocks(); });
 

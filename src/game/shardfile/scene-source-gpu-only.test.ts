@@ -1,11 +1,11 @@
 import { expect, test, vi, type Mock } from 'vitest';
 import { BufferGeometry, DataTexture, Mesh, MeshStandardMaterial, type Texture } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { Scope } from '../src/engine/app/scope';
-import * as rig from '../src/engine/anim/rig';
-import { SkyRig } from '../src/engine/world/skyRig';
-import { parseWorldScenes } from '../src/format/worldScenes';
-import { worldSceneSourceMaterial } from '../src/game/shardfile/worldSceneMaterials';
+import { Scope } from '@wildshard/engine/app/scope';
+import * as rig from '@wildshard/engine/anim/rig';
+import { SkyRig } from '@wildshard/engine/world/skyRig';
+import { parseWorldScenes } from '@wildshard/format/worldScenes';
+import { worldSceneSourceMaterial } from './worldSceneMaterials';
 
 // A source material row's file: two materials over one aliased texture (one's map and normal map, the other's map) and
 // a second texture, each with its own upload hook.

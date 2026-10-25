@@ -1,11 +1,11 @@
 import { expect, test } from 'vitest';
 import { DataTexture, MeshBasicMaterial, RedFormat, RepeatWrapping, Vector3, type Texture } from 'three';
-import { Scope } from '../src/engine/app/scope';
-import { parseWorldScenes } from '../src/format/worldScenes';
-import { lendLooks, lentUniforms } from '../src/game/shardfile/lentLooks';
-import { SceneHandles } from '../src/game/shardfile/sceneHandles';
-import { lendWorldSceneTextures } from '../src/game/shardfile/worldSceneTextures';
-import { lendWorldSceneUniforms } from '../src/game/shardfile/worldSceneUniforms';
+import { Scope } from '@wildshard/engine/app/scope';
+import { parseWorldScenes } from '@wildshard/format/worldScenes';
+import { lendLooks, lentUniforms } from './lentLooks';
+import { SceneHandles } from './sceneHandles';
+import { lendWorldSceneTextures } from './worldSceneTextures';
+import { lendWorldSceneUniforms } from './worldSceneUniforms';
 
 /** an orchard's weave (2 x 2 r8) lent to its looks and published, and its live air set bound to the scene's handles */
 const scenes = (size: readonly [number, number] = [2, 2]) => parseWorldScenes({ version: 1, libraries: [], materials: [], steps: [],

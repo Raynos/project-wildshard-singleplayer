@@ -1,10 +1,10 @@
 import { expect, test, vi } from 'vitest';
 import { BufferAttribute, BufferGeometry, MeshBasicMaterial, Object3D } from 'three';
-import { Scope } from '../src/engine/app/scope';
-import { modelContext } from '../src/engine/models/model';
-import { Rng } from '../src/engine/core/rng';
-import { bindWorldSceneModelSources, defineWorldSceneCatalogue } from '../src/game/models/worldSceneCatalogue';
-import { parseWorldSceneModels, worldSceneModelResources } from '../src/format/worldSceneModels';
+import { Scope } from '@wildshard/engine/app/scope';
+import { modelContext } from '@wildshard/engine/models/model';
+import { Rng } from '@wildshard/engine/core/rng';
+import { bindWorldSceneModelSources, defineWorldSceneCatalogue } from './worldSceneCatalogue';
+import { parseWorldSceneModels, worldSceneModelResources } from '@wildshard/format/worldSceneModels';
 
 // A LOD level's draw over its full cast's shared vertex attributes (Nine's casts), and an empty far cutoff.
 const draw = { id: 'cast', library: 'casts', model: 'lion', material: 'kit' };

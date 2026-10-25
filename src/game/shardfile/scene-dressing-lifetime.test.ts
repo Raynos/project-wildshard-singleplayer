@@ -7,11 +7,11 @@ import { execFileSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the installed test runner without shell interpolation.
 import { resolve as resolvePath } from 'node:path';
-import { Scope } from '../src/engine/app/scope';
-import { withOwner } from '../src/engine/app/ownership';
-import { WorldRegistry } from '../src/engine/world/registry';
-import { SceneDressing } from '../src/game/shardfile/sceneDressing';
-import type { ShardContext } from '../src/game/plugin/context';
+import { Scope } from '@wildshard/engine/app/scope';
+import { withOwner } from '@wildshard/engine/app/ownership';
+import { WorldRegistry } from '@wildshard/engine/world/registry';
+import { SceneDressing } from './sceneDressing';
+import type { ShardContext } from '../plugin/context';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 const geometry = { attrs: [['position', 'f32', 3, false], ['normal', 'f32', 3, false]], count: 3, index: null, indexCount: 0, box: true, expand: false };
@@ -33,7 +33,7 @@ async function installed(): Promise<{ scope: Scope; registry: WorldRegistry; roo
   const ctx = legacyDouble<ShardContext>({ scope, root, product, system: () => undefined,
     app: legacyDouble<ShardContext['app']>({ registry }), game: legacyDouble<ShardContext['game']>({ runtime: legacyDouble<Runtime>({ world: legacyDouble<World>({ sky }) }) }) });
   await SceneDressing.install(ctx, { name: 'lifetime', packs: {},
-    catalogues: [{ rows: [{ key: 'triangle', model: { id: 'fixture/lifetime', name: 'Lifetime', file: 'test/scene-dressing-lifetime.test.ts', category: 'props', pipeline: 'code', defaults: {} },
+    catalogues: [{ rows: [{ key: 'triangle', model: { id: 'fixture/lifetime', name: 'Lifetime', file: 'src/game/shardfile/scene-dressing-lifetime.test.ts', category: 'props', pipeline: 'code', defaults: {} },
       source: { kind: 'file', file: 'specimen.bin', geometry, representation: 'parts', material: { id: 'lifetime', family: 'painterly' } } }] }],
     geometry: { shape: { kind: 'file', file: 'scene.bin', row: geometry } }, materials: {}, layers: [], animations: [],
     statics: [{ name: 'floor', tris: 1, geometry: {}, materials: {}, recipe: { version: 1, root: 'root', materials: [], nodes: [{ kind: 'group', id: 'root', children: [] }] },
@@ -50,7 +50,7 @@ test('live floor and specimen rebuilds do not retain consumed dressing source fi
     mkdirSync('tmp', { recursive: true });const directory = mkdtempSync(resolvePath('tmp/dressing-gc-'));
     try {
       const config = resolvePath(directory, 'vitest.config.mjs');
-      writeFileSync(config, `export default {root:${JSON.stringify(resolvePath('.'))},test:{include:['test/scene-dressing-lifetime.test.ts'],setupFiles:[],pool:'forks',maxWorkers:1,execArgv:['--expose-gc']}};`);
+      writeFileSync(config, `export default {root:${JSON.stringify(resolvePath('.'))},test:{include:['src/game/shardfile/scene-dressing-lifetime.test.ts'],setupFiles:[],pool:'forks',maxWorkers:1,execArgv:['--expose-gc']}};`);
       const output = execFileSync(process.execPath, ['--expose-gc', resolvePath('node_modules/vitest/vitest.mjs'), 'run', '--config', config], {
         env: { ...process.env, WS_DRESSING_GC: '1', NO_COLOR: '1' }, encoding: 'utf8', stdio: 'pipe', timeout: 30_000,
       });expect(output).toContain('1 passed');

@@ -1,6 +1,6 @@
 import { expect, test, vi } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
-import { WorldSceneReads } from '../src/game/shardfile/worldSceneReads';
+import { Scope } from '@wildshard/engine/app/scope';
+import { WorldSceneReads } from './worldSceneReads';
 
 function fixture(count = 20) {
   const scope = new Scope('entered'), resident = new Scope('resident'), names = Array.from({ length: count }, (_, index) => `scene-${index}`);

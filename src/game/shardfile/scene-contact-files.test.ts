@@ -1,16 +1,16 @@
 import {expect,test,vi} from 'vitest';
-import {SceneDressing} from '../src/game/shardfile/sceneDressing';
-import {Scope} from '../src/engine/app/scope';
-import type {ShardContext} from '../src/game/plugin/context';
-import type {ShardProduct} from '../src/game/shardfile/shardProduct';
-import type {ShardRuntime} from '../src/game/shard/runtime';
-import type {ShardWorld} from '../src/game/shard/world';
+import {SceneDressing} from './sceneDressing';
+import {Scope} from '@wildshard/engine/app/scope';
+import type {ShardContext} from '../plugin/context';
+import type {ShardProduct} from './shardProduct';
+import type {ShardRuntime} from '../shard/runtime';
+import type {ShardWorld} from '../shard/world';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 
 const rows={name:'pending-contacts',catalogues:[],packs:{},layers:[],animations:[],
   geometry:{shape:{kind:'inline',data:'unread',row:{attrs:[],count:0,index:null,indexCount:0,box:false,expand:false}}},
   materials:{paint:{kind:'painterly',rim:.2,bands:.5}},
-  staticModels:[{model:{id:'fixture/contact-file',name:'Contact',file:'test/scene-contact-files.test.ts',category:'props',pipeline:'code',defaults:{}},geometry:'shape',material:'paint'}],
+  staticModels:[{model:{id:'fixture/contact-file',name:'Contact',file:'src/game/shardfile/scene-contact-files.test.ts',category:'props',pipeline:'code',defaults:{}},geometry:'shape',material:'paint'}],
   statics:[{name:'contact',tris:0,geometry:{shape:'shape'},materials:{paint:'paint'},recipe:{version:1,root:'mesh',materials:[{kind:'port',id:'paint',source:'paint'}],nodes:[{kind:'mesh',id:'mesh',geometry:'shape',material:'paint',missing:'empty'}]},
     members:[{model:'fixture/contact-file',draw:'single',placements:[{x:0,y:0,z:0}],boxes:[-.5,-.5,-.5,.5,.5,.5],contacts:{kind:'packed-hulls',file:'contacts.bin',origins:[[0,0,0,12]],surface:'rock'}}]}]};
 function fixture(){

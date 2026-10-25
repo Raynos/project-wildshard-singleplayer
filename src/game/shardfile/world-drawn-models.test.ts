@@ -1,12 +1,12 @@
 import { expect, test, vi } from 'vitest';
 import { BufferAttribute, BufferGeometry, Group, Material, Mesh, Vector3 } from 'three';
-import type { SkyRig } from '../src/engine/world/skyRig';
-import { Scope } from '../src/engine/app/scope';
-import type { ModelContext } from '../src/engine/models/model';
-import type { OwnedGeometry } from '../src/engine/models/ownedGeometry';
-import { WorldAssembly } from '../src/game/shardfile/worldAssembly';
-import { entryOwner } from '../src/game/shardfile/entryOwners';
-import type { FixedDraws } from '../src/game/models/fixedDraws';
+import type { SkyRig } from '@wildshard/engine/world/skyRig';
+import { Scope } from '@wildshard/engine/app/scope';
+import type { ModelContext } from '@wildshard/engine/models/model';
+import type { OwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
+import { WorldAssembly } from './worldAssembly';
+import { entryOwner } from './entryOwners';
+import type { FixedDraws } from '../models/fixedDraws';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 // G603: a drawn-models stage on a made-up orchard: its two signs drawn from the loaded fixed draws in one painterly look.

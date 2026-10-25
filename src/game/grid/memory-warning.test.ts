@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
-import { MemoryAdmission } from '../src/format/product';
-import { memoryWarningChip, residentOverLimit } from '../src/game/grid/memoryWarning';
+import { MemoryAdmission } from '@wildshard/format/product';
+import { memoryWarningChip, residentOverLimit } from './memoryWarning';
 
 test('history retains a worst-location estimate while the HUD filters it by entered shard', () => {
   const memory = new MemoryAdmission(() => true);

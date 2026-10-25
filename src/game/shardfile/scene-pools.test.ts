@@ -1,6 +1,6 @@
 import { expect, test, vi } from 'vitest';
-import { parseWorldScenes, worldScenesForTier } from '../src/format/worldScenes';
-import { worldScenePool, type WorldScenePoolRow } from '../src/game/shardfile/scenePools';
+import { parseWorldScenes, worldScenesForTier } from '@wildshard/format/worldScenes';
+import { worldScenePool, type WorldScenePoolRow } from './scenePools';
 
 const file = (): WorldScenePoolRow['files'][number] => ({ file: 'geometry/tiles.glb', parts: ['tile', 'edge'], channels: [{ name: 'wind', source: '_wind', width: 1, parts: ['tile'] }] });
 function pool(): WorldScenePoolRow {

@@ -2,13 +2,13 @@
 import { deflateSync } from 'node:zlib';
 import { afterEach, expect, test, vi } from 'vitest';
 import { Data3DTexture, MeshBasicMaterial, type Texture } from 'three';
-import { Scope } from '../src/engine/app/scope';
-import { TIER } from '../src/engine/core/tier';
-import type { GraphLiteral } from '../src/format/materialGraph';
-import { parseWorldScenes } from '../src/format/worldScenes';
-import { lendLooks } from '../src/game/shardfile/lentLooks';
-import { SceneHandles } from '../src/game/shardfile/sceneHandles';
-import { lendWorldSceneTextures } from '../src/game/shardfile/worldSceneTextures';
+import { Scope } from '@wildshard/engine/app/scope';
+import { TIER } from '@wildshard/engine/core/tier';
+import type { GraphLiteral } from '@wildshard/format/materialGraph';
+import { parseWorldScenes } from '@wildshard/format/worldScenes';
+import { lendLooks } from './lentLooks';
+import { SceneHandles } from './sceneHandles';
+import { lendWorldSceneTextures } from './worldSceneTextures';
 
 afterEach(() => { vi.restoreAllMocks(); });
 

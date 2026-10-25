@@ -1,13 +1,13 @@
 // @vitest-environment happy-dom
 import { afterEach, expect, test, vi } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
-import { withOwner } from '../src/engine/app/ownership';
-import { setDev } from '../src/engine/core/devMode';
-import { contentCost, type ContentCostInput } from '../src/format/contentCost';
-import { MemoryAdmission } from '../src/format/product';
-import { memoryAttribution, type MemorySnapshot } from '../src/engine/core/memoryAttribution';
-import { installBudgetOverlay, memoryHeadline } from '../src/game/grid/budgetOverlay';
-import { installMemoryWarning } from '../src/game/grid/memoryWarning';
+import { Scope } from '@wildshard/engine/app/scope';
+import { withOwner } from '@wildshard/engine/app/ownership';
+import { setDev } from '@wildshard/engine/core/devMode';
+import { contentCost, type ContentCostInput } from '@wildshard/format/contentCost';
+import { MemoryAdmission } from '@wildshard/format/product';
+import { memoryAttribution, type MemorySnapshot } from '@wildshard/engine/core/memoryAttribution';
+import { installBudgetOverlay, memoryHeadline } from './budgetOverlay';
+import { installMemoryWarning } from './memoryWarning';
 
 const scopes: Scope[] = [];
 const owner = (): Scope => { const scope = new Scope('memory-diagnostics'); scopes.push(scope); return scope; };

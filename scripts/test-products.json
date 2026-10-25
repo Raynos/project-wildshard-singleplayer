@@ -15,7 +15,7 @@
   "test/boot-smoke-partition.test.ts": [],
   "src/engine/entities/far-herd-upload.test.ts": [],
   "test/hybrid-entry-preparation.test.ts": [],
-  "test/memory-warning.test.ts": [],
+  "src/game/grid/memory-warning.test.ts": [],
   "test/sdk-rigged-hull-files.test.ts": [],
   "test/frame-floor-output-entry.test.ts": [],
   "test/texture-scope-lifetime.test.ts": [],
