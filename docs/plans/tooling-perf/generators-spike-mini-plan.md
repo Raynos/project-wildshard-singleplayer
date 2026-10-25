@@ -158,6 +158,8 @@ in `public/assets/<slug>/` as real `.glb` / `.png` / `.ktx2` / `.bin`. App-wide 
 
 | Declaration handoff retirement | done | Retire `signal-declaration` (14 → 13 jobs), its unused JSON writer and 196,187 B handoff. The product already calls the defining source function; quest regressions now consume its actual result. Full original declaration bytes/hash remain exact; fire/sand cache ownership and refusal cases stay intact. Cold scoped generation passes in 30.12 s with the handoff absent. 80 ready-related cases / 15 suites, 13 focused cases, touched shard/fixture types and scoped typed lint pass; four stale product suites remain CI-deferred. No product/look/frozen-source change. |
 
+| Rest-fire cache and URL binding | done | Cache the next-largest `signal-rest-fire` GLB (72,196 B) and its actual primitive names; cold/hit full-byte hash, detached ownership, input/cache/publication refusals and one pure author chunk pass. The existing scene-source URL resolver binds admitted geometry pools as well as rigs, retaining public-row/part/channel identity and refusal propagation. Eight focused/related cases, game/shard production types, touched fixture types and named typed lint pass. No adoption/job removal yet; 13 jobs remain. |
+
 GR0–GR2 first, then one shard at a time, each an independent lane-task that lands in small commits. The gen plan's timings
 pick which steps get `cached`.
 
