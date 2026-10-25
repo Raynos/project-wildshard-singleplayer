@@ -10,9 +10,9 @@ const list = <T extends v.BaseSchema<unknown, unknown, v.BaseIssue<unknown>>>(sc
 const file = v.pipe(v.string(), v.maxLength(240), v.regex(/^(?:[A-Za-z0-9_-][A-Za-z0-9_.-]*\/)*[A-Za-z0-9_-][A-Za-z0-9_.-]*$/u));
 const byteLength = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(6_000_000));
 const buffer = v.pipe(v.strictObject({ id, storage: v.picklist(['f32', 'u16', 'u8']), bytes: v.exactOptional(v.pipe(v.string(), v.maxLength(8_000_000))),
-  file: v.exactOptional(file), byteLength: v.exactOptional(byteLength),
+  file: v.exactOptional(file), byteLength: v.exactOptional(byteLength), byteOffset: v.exactOptional(byteLength),
   stride: v.exactOptional(v.pipe(natural, v.minValue(1), v.maxValue(16))), instanced: v.optional(v.boolean(), false) }),
-v.check(row => row.bytes === undefined ? row.file !== undefined && row.byteLength !== undefined : row.file === undefined && row.byteLength === undefined,
+v.check(row => row.bytes === undefined ? row.file !== undefined && row.byteLength !== undefined : row.file === undefined && row.byteLength === undefined && row.byteOffset === undefined,
   'Scene buffer needs exactly one inline or named binary source'));
 const attribute = v.strictObject({ id, buffer: id, size: v.pipe(natural, v.minValue(1), v.maxValue(4)), offset: v.optional(natural, 0), normalized: v.optional(v.boolean(), false) });
 const instances = v.union([count, v.strictObject({ knob: id, threshold: count, below: count, above: count })]);
@@ -57,6 +57,8 @@ interface SceneBuffersFields {
         bytes?: string;
         file?: string;
         byteLength?: number;
+        /** An explicit bounded range; omission requires the complete named file. */
+        byteOffset?: number;
         stride?: number;
         instanced: boolean;
     })[];

@@ -35,9 +35,13 @@ function decode(row: SceneBuffers, files?: ReadonlyMap<string, Uint8Array>): Rea
     } else {
       const source = buffer.file === undefined ? undefined : files?.get(buffer.file);
       if (source === undefined) throw new Error('Missing scene buffer binary file');
-      if (source.byteLength !== buffer.byteLength) throw new Error('Scene buffer binary length differs');
+      const offset = buffer.byteOffset ?? 0, length = buffer.byteLength;
+      if (length === undefined || (buffer.byteOffset === undefined ? source.byteLength !== length : offset + length > source.byteLength))
+        throw new Error('Scene buffer binary length differs');
+      const width = buffer.storage === 'f32' ? 4 : buffer.storage === 'u16' ? 2 : 1;
+      if (offset % width !== 0) throw new Error('Misaligned scene buffer binary offset');
       // Geometry owns its words; never lend a mutable view of the verified product cache.
-      bytes = new Uint8Array(source);
+      bytes = new Uint8Array(source.subarray(offset, offset + length));
     }
     const width = buffer.storage === 'f32' ? 4 : buffer.storage === 'u16' ? 2 : 1;
     if (bytes.byteLength % width !== 0) throw new Error('Misaligned scene buffer storage');
@@ -53,7 +57,7 @@ function decode(row: SceneBuffers, files?: ReadonlyMap<string, Uint8Array>): Rea
   return result;
 }
 /** Client-only typed field admission, performed before allocating materials or geometry.
- * Named sources require verified product files with their exact declared byte lengths. */
+ * Named sources require exact whole files or explicit bounded, aligned byte ranges. */
 export function admitSceneBuffers(input: unknown, files?: ReadonlyMap<string, Uint8Array>): SceneBuffers {
   const row = parseSceneBuffers(input); decode(row, files); return row;
 }

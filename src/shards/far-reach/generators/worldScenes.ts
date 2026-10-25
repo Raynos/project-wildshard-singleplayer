@@ -13,11 +13,11 @@ import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 import ground from '../data/groundScene.generated.json' with { type: 'json' };
 import rest from '../data/restScenes.generated.json' with { type: 'json' };
 import { SKY_ISLAND_BLOBS, SKY_ISLAND_LIBRARY, SKY_ISLE_TILES } from './islandScenes';
-import { SKY_MEADOW_BLOB, SKY_MEADOW_FILE } from './meadowScene';
+import { SKY_MEADOW_BLOBS, SKY_MEADOW_FILE } from './meadowScene';
 
 interface Reference { readonly library: string; readonly model: string }
 const json = (name: string, value: unknown) => nameBlob(name, 'json', new TextEncoder().encode(JSON.stringify(value)));
-export const SKY_SCENE_BLOBS = [...SKY_SOURCE_BLOBS, ...SKY_ISLAND_BLOBS, SKY_MEADOW_BLOB];
+export const SKY_SCENE_BLOBS = [...SKY_SOURCE_BLOBS, ...SKY_ISLAND_BLOBS, ...SKY_MEADOW_BLOBS];
 const steps: unknown[] = [], materials = new Map<string, unknown>();
 const geometry = (name: string): Reference => SKY_ISLE_TILES.models.some(row => row.id === name) ? { library: 'isle-tiles', model: name }
   : SKY_ISLAND_LIBRARY.models.some(row => row.id === name) ? { library: 'islands', model: name }

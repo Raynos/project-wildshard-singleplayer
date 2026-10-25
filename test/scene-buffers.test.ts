@@ -76,9 +76,10 @@ test('scene decode keeps malformed, misaligned and nonfinite storage refused', (
 });
 
 test('Sky native meadow retains every byte, shared attribute, count, LOD and transform', () => {
-  const row = skyMeadowScene(), bytes = unzlibSync(bakeMeadowBlades()), material = new MeshBasicMaterial();
+  const files = new Map<string, Uint8Array>();
+  const row = skyMeadowScene((id, bytes) => { files.set(id, bytes); return { file: id, byteOffset: 0 }; }), bytes = unzlibSync(bakeMeadowBlades()), material = new MeshBasicMaterial();
   for (const blades of [1600, 3199, 3200, 4000]) {
-    const scope = new Scope('buffer-parity'), native = meadow(bytes, material, blades), candidate = createSceneBuffers(row, material, scope, plumbing(blades));
+    const scope = new Scope('buffer-parity'), native = meadow(bytes, material, blades), candidate = createSceneBuffers(row, material, scope, plumbing(blades), undefined, files);
     try {
       expect(candidate.name).toBe(native.group.name); expect(candidate.children.length).toBe(native.group.children.length);
       const originals = drawMeshes(native.group), copies = drawMeshes(candidate);

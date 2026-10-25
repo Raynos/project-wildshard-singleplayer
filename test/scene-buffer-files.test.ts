@@ -82,3 +82,25 @@ test('real portal binary dependencies retain all deterministic float32 words', a
     expect(binary.reduce((sum, blob) => sum + Math.ceil(blob.bytes.length / 3) * 4, 0)).toBe(7680);
   } finally { scope.dispose(); material.dispose(); }
 });
+
+test('packed binary ranges detach a subview and retain exact whole-file validation', () => {
+  const words = new Float32Array([900, 99, 0, -0, 1, -1, 2 ** -149, 3, 99, 900]);
+  const files = new Map([['channels/position.bin', new Uint8Array(words.buffer, 4, 32)]]);
+  const input = fixture();
+  const row = { ...input, buffers: input.buffers.map(buffer => ({ ...buffer, byteOffset: 4 })) };
+  const scope = new Scope('packed-buffer'), material = new MeshBasicMaterial();
+  try {
+    const group = createSceneBuffers(row, material, scope, undefined, undefined, files), [a, b] = group.children;
+    if (!isPoints(a) || !isPoints(b)) throw new Error('Missing packed range draws');
+    expect(a.geometry).toBe(b.geometry);
+    const position = a.geometry.getAttribute('position');
+    expect(Array.from(position.array)).toEqual([0, -0, 1, -1, 2 ** -149, 3]);
+    position.array[0] = 7; expect(words[2]).toBe(0);
+    expect(() => admitSceneBuffers(input, files)).toThrow('binary length differs');
+    for (const offset of [-1, 1, 1.5, 12, 36, 6000001]) {
+      expect(() => admitSceneBuffers({ ...row, buffers: row.buffers.map(buffer => ({ ...buffer, byteOffset: offset })) }, files)).toThrow();
+    }
+    expect(() => admitSceneBuffers({ ...row, buffers: [{ id: 'p', storage: 'f32', bytes: 'AAAAAAAAAAAAAAAA', byteOffset: 0 }] }, files)).toThrow();
+    expect(() => admitSceneBuffers({ ...row, buffers: [{ id: 'p', storage: 'f32', file: 'channels/position.bin', byteLength: 0, byteOffset: 32 }] }, files)).not.toThrow();
+  } finally { scope.dispose(); material.dispose(); }
+});

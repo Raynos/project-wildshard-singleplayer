@@ -10602,7 +10602,11 @@ specifies; this change does not introduce a second effect dispatcher.
 
 `SceneDrawsSchema` buffered rows name verified `SceneBuffersSchema` JSON
 and a material. Each buffer supplies inline `bytes` or a relative `file`
-and exact `byteLength`; producers link binary file dependencies.
+and exact `byteLength`; producers link binary file dependencies. An explicit
+`byteOffset` selects a bounded, storage-aligned range of a packed file;
+omitting it still requires the complete file length to match. Repeated
+ranges of one file share a single verified product read, while geometry
+retains its own detached channel words.
 `admitSceneBuffers(input, files)` and the sixth `files` argument
 of `createSceneBuffers` accept verified product bytes. Both validate
 lengths, alignment and finite words before GPU allocation; geometry
