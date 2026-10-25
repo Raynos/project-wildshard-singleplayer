@@ -15,7 +15,7 @@ export const BOOT_FILES = { sources: BOOT_SOURCES, tier: 'phone', tex: 'img' } a
 /** Owned rigs and world pieces are preloaded by their admitted scene library, not retired public URLs. */
 export function signalOwnedBoot(): { files: typeof BOOT_FILES; sources: typeof BOOT_SOURCES } {
   const rigs = new Set([...Object.values(DUNE_RIG_URLS), ...Object.values(BAKED_URLS)]);
-  const owned = { ...sources, props: sources.props.filter(url => !rigs.has(url)) };
+  const owned = { ...sources, terrain: sources.terrain.filter(url => url !== SAND_FILES.skirt), props: sources.props.filter(url => !rigs.has(url)) };
   const boot = { tiers: { phone: owned, desktop: owned } };
   return { sources: boot, files: { ...BOOT_FILES, sources: boot } };
 }

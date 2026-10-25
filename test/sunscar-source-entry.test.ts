@@ -14,6 +14,7 @@ import before from './fixtures/sunscar-source-entry.json' with { type: 'json' };
 import originalProductAssets from './fixtures/sunscar-duplicate-product.json' with { type: 'json' };
 import rigFiles from './fixtures/sunscar-rig-files.json' with { type: 'json' };
 import { BOOT_FILES, BOOT_SOURCES } from '../src/shards/sunscar-dunes/generators/rows/boot';
+import { SAND_FILES } from '../src/shards/sunscar-dunes/generators/rows/sand';
 import { DUNE_RIG_URLS, BAKED_URLS } from '../src/shards/sunscar-dunes/generators/rows/files';
 
 const signature = (value: unknown): { bytes: number; hash: string } => {
@@ -37,9 +38,9 @@ test('direct world rows preserve the original ordered aggregate without its JSON
   expect(signature(world)).toEqual(before.raw.world);
   const registry = v.parse(v.object({ jobs: v.array(v.object({ id: v.string(), shard: v.nullable(v.string()), inputRoots: v.array(v.string()), outputs: v.array(v.string()) })) }),
     JSON.parse(readFileSync('scripts/generation-jobs.json', 'utf8')));
-  expect(registry.jobs.some(row => ['signal-world-bakes', 'signal-product', 'signal-fire-book', 'signal-rigs', 'signal-manifest-ground', 'signal-world'].includes(row.id))).toBe(false);
+  expect(registry.jobs.some(row => ['signal-world-bakes', 'signal-product', 'signal-fire-book', 'signal-rigs', 'signal-manifest-ground', 'signal-world', 'signal-sand'].includes(row.id))).toBe(false);
   expect(registry.jobs.flatMap(row => row.inputRoots.concat(row.outputs)).some(path => path.startsWith('src/shards/sunscar-dunes/.wildshard/product/'))).toBe(false);
-  expect(registry.jobs.filter(row => row.shard === 'sunscar-dunes')).toHaveLength(16);
+  expect(registry.jobs.filter(row => row.shard === 'sunscar-dunes')).toHaveLength(15);
   const paths = registry.jobs.flatMap(row => row.inputRoots.concat(row.outputs));
   expect(paths.some(path => path.startsWith('src/shards/sunscar-dunes/') && /\/(?:manifestGround|nativeGround)\.generated\.json$/u.test(path))).toBe(false);
   expect(registry.jobs.flatMap(row => row.inputRoots.concat(row.outputs)).some(path => path.endsWith('/worldBakes.generated.json'))).toBe(false);
@@ -102,9 +103,9 @@ test('the SDK admits all original physical bytes, platform metadata and mirrors 
   expect(signature(result.mirrors)).toEqual(before.mirrors);
 });
 
-test('computed discovery removes only the eleven retired public rig/world URLs in both tiers', () => {
+test('computed discovery removes only the retired public rig/world/skirt URLs in both tiers', () => {
   const rigs = new Set([...Object.values(DUNE_RIG_URLS), ...Object.values(BAKED_URLS)]);
-  const expected = { tiers: { phone: { ...BOOT_SOURCES.tiers.phone, props: BOOT_SOURCES.tiers.phone.props.filter(url => !rigs.has(url)) },
-    desktop: { ...BOOT_SOURCES.tiers.desktop, props: BOOT_SOURCES.tiers.desktop.props.filter(url => !rigs.has(url)) } } };
+  const expected = { tiers: { phone: { ...BOOT_SOURCES.tiers.phone, terrain: BOOT_SOURCES.tiers.phone.terrain.filter(url => url !== SAND_FILES.skirt), props: BOOT_SOURCES.tiers.phone.props.filter(url => !rigs.has(url)) },
+    desktop: { ...BOOT_SOURCES.tiers.desktop, terrain: BOOT_SOURCES.tiers.desktop.terrain.filter(url => url !== SAND_FILES.skirt), props: BOOT_SOURCES.tiers.desktop.props.filter(url => !rigs.has(url)) } } };
   expect(generated.discovery).toEqual({ 'boot.sources': expected, 'boot.files': { ...BOOT_FILES, sources: expected } });
 });

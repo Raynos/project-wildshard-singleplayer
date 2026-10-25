@@ -13,15 +13,15 @@ import { SIGNAL_LEDGER } from './rows/ledger';
 import { WHIP_ITEMS } from './rows/items';
 import { SIGNAL_BUCKET_CHANNELS, SIGNAL_BUCKET_MOVERS } from './bucket';
 import { SIGNAL_QUESTS } from './quests';
-import sandMaps from '../data/sandMaps.json' with { type: 'json' };
-import { SAND_FIELDS } from './rows/sandFields';
+import type { SignalSandMetadata } from './sandMetadata';
+import { signalSandFields } from './rows/sandFields';
 import { SAND_DUSK } from './rows/dusk';
 import { STORM_FIELD, STORM_GRAPHS } from './rows/stormLook';
 import { signalFireGraphs } from './fireLook';
 import type { FireBookFile } from './fireBookPixels';
 
 /** Construct the original declaration from the source-owned texture metadata. */
-export function signalProductRows(fireBook: FireBookFile): Shardfile {
+export function signalProductRows(fireBook: FireBookFile, sandSource: SignalSandMetadata): Shardfile {
 const FIRE_GRAPHS = signalFireGraphs(fireBook.hash);
 
 // Legacy trusted runtime retains today's geometry/spawn; SF29 binds only its audio.
@@ -46,8 +46,9 @@ const collider = [...tiles.files, ...navigation.files].filter((file) => [...tile
 const decisionMemory = 4 * 65536; // The guest live/last-good fixed page images.
 const sim = { resident: decisionMemory + collider.reduce((sum, file) => sum + file.decoded + file.gpu, 0), compressed: collider.reduce((sum, file) => sum + file.compressed, 0) };
 
+const sandMaps = sandSource.maps;
 const maps = [...Object.values(sandMaps), fireBook], ref = (name: keyof typeof sandMaps): string => sandMaps[name].hash;
-const fields = structuredClone(SAND_FIELDS);
+const fields = signalSandFields(sandSource.means);
 const sand = { ...fields, ground: { ...fields.ground,
   grain: { map: ref('grain'), ...fields.ground.grain },
   trail: { map: ref('trail'), ...fields.ground.trail },

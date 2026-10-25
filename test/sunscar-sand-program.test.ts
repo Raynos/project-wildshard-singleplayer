@@ -7,7 +7,7 @@ import { build } from 'vite';
 import { createProjectGeneration } from '../src/sdk/projectGeneration';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { signalSandFiles } from '../src/shards/sunscar-dunes/generators/sandProgram';
+import { signalSandFiles, signalSand } from '../src/shards/sunscar-dunes/generators/sandProgram';
 import original from './fixtures/sunscar-sand-files.json' with { type: 'json' };
 
 const signature = (files: ReadonlyMap<string, Uint8Array>) => Object.fromEntries([...files]
@@ -25,6 +25,15 @@ test('cold and cached sand results preserve all seven original files and own the
     const cold = await signalSandFiles(context()); expect(signature(cold)).toEqual(original);
     for (const bytes of cold.values()) bytes.fill(0);
     const hit = await signalSandFiles(context()); expect(signature(hit)).toEqual(original); expect(bakes).toBe(1);
+    const owned = new Map<string, Uint8Array>();
+    const sand = await signalSand({ ...context(), asset: bytes => { const hash = hashImmutableBytes(bytes); owned.set(hash, bytes); return hash; } });
+    expect(owned.size).toBe(3); expect(bakes).toBe(1);
+    const text = new TextEncoder();
+    for (const [name, rows] of [['sand.json', sand.means], ['sandMaps.json', sand.maps]] as const) {
+      const bytes = text.encode(`${JSON.stringify(rows, null, 2)}\n`);
+      expect({ bytes: bytes.length, hash: hashImmutableBytes(bytes) }).toEqual(original[name]);
+    }
+    await expect(signalSand({ ...context(), asset: () => '0'.repeat(64) })).rejects.toThrow('Sand map publication differs');
     for (const [name, bytes] of hit) expect(bytes === cold.get(name)).toBe(false);
   } finally { rmSync(cache, { recursive: true, force: true }); }
 });

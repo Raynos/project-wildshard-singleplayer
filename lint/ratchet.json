@@ -787,7 +787,6 @@
     "src/shards/pine-hollow/generators/bake-pine-wildlife.mjs": 4,
     "src/shards/pine-hollow/generators/pine-world-inventory.mjs": 4,
     "src/shards/pine-hollow/generators/sections.ts": 10,
-    "src/shards/sunscar-dunes/generators/bake-signal-sand.mjs": 4,
     "src/shards/sunscar-dunes/generators/landscape.ts": 1,
     "src/shards/sunscar-dunes/generators/rows/headlessOwners.ts": 1
   },

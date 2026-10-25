@@ -2,12 +2,11 @@ import * as DUNES from '../duneRows';
 import * as LAYOUT from '../layout';
 import { SHADOW_HALF } from './sand';
 import { SKY_SUN } from './sky';
-import sandMeans from '../../data/sand.json' with { type: 'json' };
 
 const [sunX, sunY, sunZ] = SKY_SUN, toSun = 1 / Math.sqrt(sunX * sunX + sunY * sunY + sunZ * sunZ);
 
 /** Immutable sand numbers, shared by author products and the runtime map binder. */
-export const SAND_FIELDS = { family: 'pbr', vertexColours: true, roughness: 0.88, metalness: 0, ground: {
+function fieldRows(sandMeans: { readonly meanR: number; readonly meanGlint: number }) { return { family: 'pbr', vertexColours: true, roughness: 0.88, metalness: 0, ground: {
     // the ripples run with the dunes' wind; the faces turned from the set sun (data/sky.ts SKY_SUN) fall dark late
     wind: [DUNES.DUNE_FIELD.wind.x, DUNES.DUNE_FIELD.wind.z], away: { from: [sunX * toSun, sunZ * toSun], amount: 0 },
     // the grain tile's own means (data/sand.json): every faded grain term is zero-mean
@@ -19,3 +18,9 @@ export const SAND_FIELDS = { family: 'pbr', vertexColours: true, roughness: 0.88
     // round 8 / 23 / 24: each burning fire lights the sand orange round it, the caravan's lantern (a fraction of a fire) amber
     pools: { source: 'firelights', low: [1, 0.72, 0.32], high: [1, 0.42, 0.14], split: 0.5, radius: 10, gain: 0.17 },
   } };
+}
+
+/** Build the original material numbers from the same verified grain map as the product. */
+export function signalSandFields(means: { readonly meanR: number; readonly meanGlint: number }): ReturnType<typeof fieldRows> {
+  return fieldRows(means);
+}
