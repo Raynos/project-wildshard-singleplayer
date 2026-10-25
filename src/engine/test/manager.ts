@@ -1,8 +1,8 @@
-import { AnimalManager } from '../../src/engine/entities/AnimalManager';
-import { StalkerBrain } from '../../src/engine/ai/stalker';
+import { AnimalManager } from '../entities/AnimalManager';
+import { StalkerBrain } from '../ai/stalker';
 import { fakeWorld } from './world';
-import { TickScheduler, type TickActor } from '../../src/engine/app/scheduler';
-import type { Animal } from '../../src/engine/entities/AnimalView';
+import { TickScheduler, type TickActor } from '../app/scheduler';
+import type { Animal } from '../entities/AnimalView';
 
 /** Frozen pre-S2.6 clock for the existing approach goldens; new band tests use the real scheduler. */
 class LegacyClock extends TickScheduler {

@@ -8,7 +8,7 @@ import { QuestState } from '../src/engine/quest/core';
 import { overrideTerrain } from './fake/terrain';
 import { nameBlob } from '../src/sdk/blobs';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
-import { manager } from './fake/manager';
+import { manager } from '@wildshard/engine/test/manager';
 import { publishBoundQuest } from '../src/game/quest/boundState';
 import { buildQuestChapter } from '../src/game/quest/chapter';
 import { installChapterWakeEncounter } from '../src/game/quest/chapterDirector';

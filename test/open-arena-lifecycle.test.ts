@@ -17,7 +17,7 @@ import {Mount} from '../src/game/riding/mount';
 import {parseArenaScriptData} from '../src/format/arenaScriptRows';
 import type {ModelDef} from '../src/engine/models/model';
 import type {BossBar} from '../src/engine/ui/BossBar';
-import {manager} from './fake/manager';
+import {manager} from '@wildshard/engine/test/manager';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 import {overrideTerrain} from './fake/terrain';
 import {mockCanvas} from './fake/weaponParity';

@@ -45,7 +45,7 @@ import geometry from '../src/shards/nalati-grasslands/data/stormTitanGeometry.ge
 import king from '../src/shards/nalati-grasslands/data/goldenKing.generated.json' with { type: 'json' };
 import layout from '../src/shards/nalati-grasslands/data/kurganLayout.generated.json' with { type: 'json' };
 import world from '../src/shards/nalati-grasslands/boot/layout.generated.json' with { type: 'json' };
-import { manager } from './fake/manager';
+import { manager } from '@wildshard/engine/test/manager';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import {titanPrograms as programs} from './fixtures/titanInlineWitness';
 import { mockCanvas } from './fake/weaponParity';

@@ -5,6 +5,9 @@
   "exports": {
     "./test/FakeGame": "./test/FakeGame.ts",
     "./test/realGc": "./test/realGc.ts",
+    "./test/world": "./test/world.ts",
+    "./test/creature": "./test/creature.ts",
+    "./test/manager": "./test/manager.ts",
     "./anim/rigParser": "./anim/rigParser.ts",
     "./ai/eliteRoster": "./ai/eliteRoster.ts",
     "./ai/eliteLifecycle": "./ai/eliteLifecycle.ts",

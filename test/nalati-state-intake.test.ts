@@ -26,7 +26,7 @@ import { ReturnProgram } from '../src/game/population/returnProgram';
 import {ReturnModulesSchema} from '../src/format/scriptContract';
 import * as room from '../src/game/boss/arenaRoom';
 import { readProjectAssets } from '../src/sdk/project';
-import { fakeWorld } from './fake/world';
+import { fakeWorld } from '@wildshard/engine/test/world';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 // Run the shipped world feature and its real King stage. Unrelated prefix

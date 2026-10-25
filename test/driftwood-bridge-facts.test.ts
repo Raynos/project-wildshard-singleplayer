@@ -4,7 +4,7 @@ import { RopeDeckSite } from '../src/game/models/ropeDeckSite';
 import { driftwoodRopeDeckSite } from '../src/shards/driftwood-isle/generators/ropeDeckSite';
 
 import type { RopeDeckSpan as RopeBridgeSpec } from '../src/format/ropeDeckSite';
-import { fakeWorld } from './fake/world';
+import { fakeWorld } from '@wildshard/engine/test/world';
 import { fixedDraw, ISLAND } from './fixtures/driftwoodLegacyAssets';
 import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
 import { bridgeDeck, bridgeUnitGeometries } from '../src/shards/driftwood-isle/generators/ropeBridge';

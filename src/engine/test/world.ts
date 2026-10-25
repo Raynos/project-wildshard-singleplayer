@@ -1,15 +1,16 @@
 import * as THREE from 'three';
-import { Player } from '../../src/engine/player/Player';
-import type { SkyRig as Sky } from '../../src/engine/world/skyRig';
-import type { Forest } from '../../src/engine/world/forest/Forest';
-import type { CharacterMotor } from '../../src/engine/physics/CharacterMotor';
+import { Player } from '../player/Player';
+import type { SkyRig as Sky } from '../world/skyRig';
+import type { Forest } from '../world/forest/Forest';
+import type { CharacterMotor } from '../physics/CharacterMotor';
 import type { Collider } from '@dimforge/rapier3d-simd';
-import { WorldRegistry } from '../../src/engine/world/registry';
+import { WorldRegistry } from '../world/registry';
 import { FakeGame, legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 /** Query-only test double; THREE.Ray supplies box intersections, never a production collision path. */
 export class FakePhysics {
-  constructor(readonly boxes: readonly THREE.Box3[] = []) {}
+  readonly boxes: readonly THREE.Box3[];
+  constructor(boxes: readonly THREE.Box3[] = []) { this.boxes = boxes; }
   castRay(origin: THREE.Vector3, direction: THREE.Vector3, maxDist: number): { point: THREE.Vector3; distance: number } | null {
     const ray = new THREE.Ray(origin, direction), point = new THREE.Vector3();
     let nearest: { point: THREE.Vector3; distance: number } | null = null;

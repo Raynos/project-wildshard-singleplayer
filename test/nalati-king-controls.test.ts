@@ -7,7 +7,7 @@ import { arenaRoomSpeciesControl } from '../src/game/boss/arenaRoom';
 import speciesRows from '../src/shards/nalati-grasslands/data/speciesLooks.json';
 import { GOLDENKING_SPECIES as original } from './fixtures/species-oracle/goldenKingControl';
 import { overrideTerrain } from './fake/terrain';
-import { manager } from './fake/manager';
+import { manager } from '@wildshard/engine/test/manager';
 
 const GOLDEN_KING='golden-king';
 const control=speciesRows.find(row=>row.metadata.kind===GOLDEN_KING)?.control;

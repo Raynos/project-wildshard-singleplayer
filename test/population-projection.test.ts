@@ -13,7 +13,7 @@ import { PopulationProjection } from '../src/game/population/projection';
 import { ProjectedState, ReturnProgram } from '../src/game/population/returnProgram';
 import { ReturnGate } from '../src/game/population/respawn';
 import { populationProjectionRows } from '../src/shards/driftwood-isle/generators/populationProjection';
-import { manager } from './fake/manager';
+import { manager } from '@wildshard/engine/test/manager';
 import { mockCanvas } from './fake/weaponParity';
 import { readNativeTerrain } from '../src/sdk/bake/terrain';
 import { driftwoodGroundBytes } from '../src/shards/driftwood-isle/generators/groundRows';

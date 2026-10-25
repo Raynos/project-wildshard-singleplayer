@@ -3,7 +3,7 @@ import { Rng } from '../src/engine/core/rng';
 import { createCreatureSpawner } from '../src/game/plugin/brain';
 import { PageActorGroups } from '../src/game/population/pageGroups';
 import { ReturnGate } from '../src/game/population/respawn';
-import { manager as realManager } from './fake/manager';
+import { manager as realManager } from '@wildshard/engine/test/manager';
 import { speciesDef } from '../src/engine/entities/species/registry';
 import { Scope } from '../src/engine/app/scope';
 import {RETURN_PROGRAM as program} from '../src/shards/driftwood-isle/generators/returnProgram';

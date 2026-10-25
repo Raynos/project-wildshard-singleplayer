@@ -9,7 +9,7 @@ import type { DamageDealt } from '../src/engine/combat/pipeline';
 import { overrideTerrain } from './fake/terrain';
 import { PageCombatSession } from '../src/game/Boss';
 import type { ShardContext } from '../src/game/plugin/context';
-import { manager } from './fake/manager';
+import { manager } from '@wildshard/engine/test/manager';
 
 const rows = { god: false, bossKinds: ['boar'], stunEffect: 'effect.marsh-root', unlockSkins: [] };
 function marsh() {

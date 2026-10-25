@@ -5,7 +5,7 @@ import { WeatherContinuation } from '../src/engine/world/weatherContinuation';
 import { parseWeatherProgram, parseWeatherReactions } from '../src/format/weatherProgram';
 import { App } from '../src/engine/app/app';
 import { PlayerHealth } from '../src/engine/combat/health';
-import { fakeWorld } from './fake/world';
+import { fakeWorld } from '@wildshard/engine/test/world';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import type { ShardContext } from '../src/game/plugin/context';
 import { bindPageWeatherHit,installWeatherReactions } from '../src/game/weather/reactions';

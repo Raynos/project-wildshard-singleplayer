@@ -1,6 +1,6 @@
 import { Group } from 'three';
 import type { SwordArms, SwordWorld } from '../../src/engine/combat/view/melee';
-import { fakeWorld } from '../fake/world';
+import { fakeWorld } from '@wildshard/engine/test/world';
 
 /** Real native sword dependencies without a renderer or content model. */
 export function heldSwordWorld(): {world: SwordWorld; arms: SwordArms; dispose: () => void} {

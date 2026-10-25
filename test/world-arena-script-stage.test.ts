@@ -25,7 +25,7 @@ import { emptyShardfile } from '../src/sdk/author';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
 import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
-import { fakeWorld } from './fake/world';
+import { fakeWorld } from '@wildshard/engine/test/world';
 import { overrideTerrain } from './fake/terrain';
 import { mockCanvas, geometrySum } from './fake/weaponParity';
 import titan from '../src/shards/nalati-grasslands/data/stormTitanFight.generated.json' with { type: 'json' };

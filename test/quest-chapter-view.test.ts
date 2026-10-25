@@ -12,7 +12,7 @@ import { Mount } from '../src/game/riding/mount';
 import { parseArenaScriptData } from '../src/format/arenaScriptRows';
 import { lendLooks } from '../src/game/shardfile/lentLooks';
 import { CarriedQuestProp } from '../src/game/quest/carriedProp';
-import { manager } from './fake/manager';
+import { manager } from '@wildshard/engine/test/manager';
 import { bossArena } from './fake/bossArena';
 import { overrideTerrain } from './fake/terrain';
 import { mockCanvas } from './fake/weaponParity';

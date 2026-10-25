@@ -6,7 +6,7 @@ import { Rng } from '../src/engine/core/rng';
 import { pinBrain } from '../src/engine/ai/pinning';
 import { AnimalSim } from '../src/engine/entities/AnimalSim';
 import { followRing } from '../src/game/shardfile/tileDriver';
-import { manager } from './fake/manager';
+import { manager } from '@wildshard/engine/test/manager';
 import { overrideTerrain } from './fake/terrain';
 
 const cleanup: (() => void)[] = [];

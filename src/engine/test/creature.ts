@@ -1,9 +1,9 @@
 import * as THREE from 'three';
-import { Animal } from '../../src/engine/entities/AnimalView';
-import { AnimalFactory } from '../../src/engine/entities/AnimalFactory';
-import { speciesDef, type ThinkCtx, type EnemyWorld } from '../../src/engine/entities/species/registry';
-import { Rng } from '../../src/engine/core/rng';
-import type { SpeciesFlight } from '../../src/engine/ai/flight';
+import { Animal } from '../entities/AnimalView';
+import { AnimalFactory } from '../entities/AnimalFactory';
+import { speciesDef, type ThinkCtx, type EnemyWorld } from '../entities/species/registry';
+import { Rng } from '../core/rng';
+import type { SpeciesFlight } from '../ai/flight';
 import { fakeWorld } from './world';
 
 /** Actual legacy brain, attack clock and body; flat arena decisions are isolated from steering/terrain. */
