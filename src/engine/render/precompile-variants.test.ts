@@ -3,7 +3,7 @@ import { Bone, BoxGeometry, InstancedMesh, Mesh, MeshBasicMaterial, MeshDepthMat
 import { runPrecompile, sceneJobs, shadowJobs } from './precompile';
 import type { ProgramLike } from '../boot/perflog';
 import { loadGraphBackend } from './graphBackend';
-import { noteFrameDrawn } from '../core/framePacing';
+import { noteFrameDrawn, setBuildHeld } from '../core/framePacing';
 
 test('preparation retains both shadow-receiver variants of a shared material', () => {
   const scene = new Scene(), geometry = new BoxGeometry(), material = new MeshStandardMaterial();
@@ -18,6 +18,76 @@ test('preparation retains both shadow-receiver variants of a shared material', (
   expect(scene.children).toEqual([plain, receiver, duplicate]);
   expect(plain.receiveShadow).toBe(false); expect(receiver.receiveShadow).toBe(true);
   geometry.dispose(); material.dispose();
+});
+
+test.each([1, 6])('material-array preparation keeps at most %i program units per job', per => {
+  const scene = new Scene(), geometry = new BoxGeometry();
+  const materials = Array.from({length: 4}, () => new MeshStandardMaterial());
+  const plain = new Mesh(geometry, materials), receiver = new Mesh(geometry, [...materials]);
+  receiver.receiveShadow = true; scene.add(plain, receiver);
+  const prepared = sceneJobs(scene, null, per), inventory: {material: Material; receiver: boolean}[] = [];
+  try {
+    expect(prepared.materials).toBe(materials.length);
+    for (const job of prepared.jobs) {
+      const units: Material[] = [];
+      job.root.traverse(object => {
+        if (!(object instanceof Mesh)) return;
+        expect(object.geometry).toBe(geometry);
+        const value: unknown = object.material, list: readonly unknown[] = Array.isArray(value) ? value : [value];
+        for (const material of list) {
+          if (!(material instanceof MeshStandardMaterial)) throw new Error('Missing prepared material');
+          units.push(material); inventory.push({material, receiver: object.receiveShadow});
+        }
+      });
+      expect(units.length).toBeLessThanOrEqual(per);
+    }
+    expect(inventory).toEqual([false, true].flatMap(value => materials.map(material => ({material, receiver: value}))));
+    expect(plain.material).toBe(materials); expect(receiver.material).toEqual(materials);
+    expect(scene.children).toEqual([plain, receiver]);
+  } finally {geometry.dispose(); for (const material of materials) material.dispose();}
+});
+
+test.each([{cancel: false, held: false}, {cancel: true, held: false}, {cancel: false, held: true}, {cancel: true, held: true}])(
+  'a slow material array crosses drawn barriers (cancel $cancel, held $held)', async ({cancel, held}) => {
+  const renderer: unknown = Object.create(WebGLRenderer.prototype);
+  if (!(renderer instanceof WebGLRenderer)) throw new Error('Missing renderer');
+  const scene = new Scene(), geometry = new BoxGeometry();
+  const materials = Array.from({length: 4}, () => new MeshBasicMaterial());
+  const original = new Mesh(geometry, materials); scene.add(original);
+  let now = 1000, frame = 0, current = true;
+  const issued: {material: Material; frame: number}[] = [];
+  const costs: number[] = [], clock = vi.spyOn(performance, 'now').mockImplementation(() => now);
+  const fields: Record<string, unknown> = {
+    info: {programs: [], render: {frame: 0}}, extensions: {has: () => false},
+    properties: {get: () => ({}), has: () => false}, getRenderTarget: () => null, setRenderTarget: () => undefined,
+    compile: (root: Scene): void => {
+      const start = now;
+      root.traverse(object => {
+        if (!(object instanceof Mesh)) return;
+        const value: unknown = object.material, list: readonly unknown[] = Array.isArray(value) ? value : [value];
+        for (const material of list) {
+          if (!(material instanceof MeshBasicMaterial)) throw new Error('Missing compile material');
+          issued.push({material, frame}); now += 12;
+        }
+      });
+      costs.push(now - start);
+    },
+  };
+  for (const [key, value] of Object.entries(fields)) Reflect.set(renderer, key, value);
+  noteFrameDrawn(now, now, 30); setBuildHeld(held);
+  try {
+    const warm = runPrecompile(renderer, new PerspectiveCamera(), sceneJobs(scene, null, 1).jobs, materials.length,
+      undefined, [], () => current, true, () => {
+        frame++; now = 1000 + frame * (1000 / 30); noteFrameDrawn(now, now, 30);
+        if (cancel) current = false;
+        return Promise.resolve();
+      });
+    await (cancel ? expect(warm).rejects.toThrow('Shader warm-up owner left') : warm);
+    const expected = cancel ? materials.slice(0, 1) : materials;
+    expect(costs).toEqual(expected.map(() => 12));
+    expect(issued).toEqual(expected.map((material, index) => ({material, frame: index})));
+    expect(original.material).toBe(materials); expect(original.parent).toBe(scene);
+  } finally {setBuildHeld(false); clock.mockRestore(); noteFrameDrawn(Number.NEGATIVE_INFINITY); geometry.dispose(); for (const material of materials) material.dispose();}
 });
 
 test('preparation compiles a hidden level and its shadow depth: compile walks visible objects only', () => {
@@ -199,10 +269,12 @@ test.each([
 });
 
 test.each([
-  { query: 20, resolve: 7, cancel: false },
-  { query: 0, resolve: 20, cancel: false },
-  { query: 20, resolve: 7, cancel: true },
-])('slow native queries separate resolve/block preparation (query $query, resolve $resolve, cancel $cancel)', async ({ query, resolve, cancel }) => {
+  { query: 20, resolve: 7, cancel: false, held: false },
+  { query: 0, resolve: 20, cancel: false, held: false },
+  { query: 20, resolve: 7, cancel: true, held: false },
+  { query: 20, resolve: 20, cancel: false, held: true },
+  { query: 20, resolve: 20, cancel: true, held: true },
+])('slow native queries separate resolve/block preparation (query $query, resolve $resolve, cancel $cancel, held $held)', async ({ query, resolve, cancel, held }) => {
   const renderer: unknown = Object.create(WebGLRenderer.prototype);
   if (!(renderer instanceof WebGLRenderer)) throw new Error('Missing renderer');
   const geometry = new BoxGeometry(), material = new MeshStandardMaterial(), scene = new Scene();
@@ -223,10 +295,10 @@ test.each([
   const handler = await loadGraphBackend(renderer);
   const blocks = vi.spyOn(handler, 'prepareProgram').mockImplementation(() => { events.push({ kind: 'blocks', frame }); now += 2; });
   const clock = vi.spyOn(performance, 'now').mockImplementation(() => now);
-  noteFrameDrawn(now, now, 60);
+  noteFrameDrawn(now, now, 60); setBuildHeld(held);
   try {
     const warm = runPrecompile(renderer, new PerspectiveCamera(), sceneJobs(scene, null, 1).jobs, 1, undefined, [], () => current, true,
-      () => { frame++; now += 16; noteFrameDrawn(now, now, 60); if (cancel) current = false; return Promise.resolve(); });
+      () => { frame++; now += 16; noteFrameDrawn(now, now, 60); if (cancel) current = false; return Promise.resolve(); }, undefined, undefined, 6);
     if (cancel) { await expect(warm).rejects.toThrow('Shader warm-up owner left'); expect(events.map(event => event.kind)).toEqual(['query']); }
     else {
       await warm;
@@ -234,5 +306,5 @@ test.each([
       if (query > 0) expect(events[1]?.frame).toBeGreaterThan(events[0]?.frame ?? -1);
       expect(events[2]?.frame).toBeGreaterThan(events[1]?.frame ?? -1);
     }
-  } finally { clock.mockRestore(); blocks.mockRestore(); noteFrameDrawn(Number.NEGATIVE_INFINITY); geometry.dispose(); material.dispose(); }
+  } finally { setBuildHeld(false); clock.mockRestore(); blocks.mockRestore(); noteFrameDrawn(Number.NEGATIVE_INFINITY); geometry.dispose(); material.dispose(); }
 });

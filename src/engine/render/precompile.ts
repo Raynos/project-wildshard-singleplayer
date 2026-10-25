@@ -335,12 +335,15 @@ function* sceneJobSteps(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, 
     if (list.length === 0) { yield; continue; }
     const ok = programObjectKey(mesh);
     const wanted = list.filter((m) => { mats.add(m); const k = m.uuid + ok; if (seen.has(k)) return false; seen.add(k); return true; });
-    const first = wanted[0];
-    if (first === undefined) { yield; continue; }
-    const copy = standIn(mesh);
-    copy.material = Array.isArray(mesh.material) ? wanted : first;
-    clones.push(copy);
-    yield;
+    // A mesh's material array can contain many distinct programs. Count each
+    // as one unit too, so a live `per = 1` job cannot hide an atomic batch.
+    for (const material of wanted) {
+      const copy = standIn(mesh);
+      copy.material = material;
+      clones.push(copy);
+      yield;
+    }
+    if (wanted.length === 0) yield;
   }
   const jobs: CompileJob[] = [];
   for (let i = 0; i < clones.length; i += per) {
@@ -943,7 +946,9 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     return false;
   };
   const needsPreparation = (program: ProgramLike): boolean => !resolvedPrograms.has(program) || needsBlocks(program);
-  const spent = (start: number): boolean => performance.now() - start >= heldBudget(sliceMs) || frameBudgetSpent(sliceMs);
+  // Holding at a wall can lend builders more shared frame time, but must not
+  // enlarge this caller's explicit shader slice and join two slow native units.
+  const spent = (start: number): boolean => performance.now() - start >= sliceMs || frameBudgetSpent(sliceMs);
   const resolveProgram = async (program: ProgramLike, start: number): Promise<void> => {
     // Completion queries and first-use queries are separate native units. A slow ready() must not admit a second
     // expensive query, or its node-block preparation, into the same continuation. Cheap queries still batch.
