@@ -85,7 +85,7 @@ skipLibCheck policy as root and layers.
 
 T4 first format slices are on origin: schema expressions and emitted runtime JavaScript are unchanged.
 Independent named data types replace exported validator implementation types; original/candidate input and output
-contracts remain mutually assignable (130 contracts). No compiler option or admission fence changed.
+contracts remain mutually assignable (174 contracts). No compiler option or admission fence changed.
 
 | Declaration | Before bytes | After bytes | Commit |
 |---|---:|---:|---|
@@ -103,10 +103,13 @@ contracts remain mutually assignable (130 contracts). No compiler option or admi
 | questPageComposition | 240,388 | 6,836 | `0f8d5932dd` |
 | heldEquipment | 295,243 | 34,014 | `4c24dd5655` |
 | speciesPrograms | 469,653 | 11,819 | `cec79db9fd` |
+| arenaScriptRows | 361,835 | 15,375 | `62384533cf` |
+| specimenCatalogue | 192,406 | 15,522 | `7561b87a10` |
+| creatures | 353,724 | 15,751 | `44d7fc16d0` |
 
-These fourteen files save **5,221,951 bytes (96.4%)** (5,415,160 → 193,209 bytes). The same 285 live format modules
-emit **14,010,239 → 8,480,065 bytes**. This whole-layer number also includes dependent declaration shrinkage and
-peer changes; only the fourteen-file saving is attributed directly above. The <2 MB target remains open. The audio regression reproduces the original two TS2589 errors and
+These seventeen files save **6,083,268 bytes (96.2%)** (6,323,125 → 239,857 bytes). The same 285 live format modules
+emit **14,010,239 → 7,444,713 bytes**. This whole-layer number also includes dependent declaration shrinkage and
+peer changes; only the seventeen-file saving is attributed directly above. The <2 MB target remains open. The audio regression reproduces the original two TS2589 errors and
 checks isolated emission plus a strict emitted-declaration consumer with skipLibCheck disabled. Client-plan and
 dressing regressions pin isolated emission, bounded sizes and defining imported data contracts; existing admission,
 default, corruption and decoded-cost tests pass. One broad related run passed 3,217 tests and hit one peer sealed
@@ -125,13 +128,18 @@ Later slices preserve the native plan's owner normalization and extra properties
 object-type-alias dictionary compatibility required by SimValue. Quest rows retain the live guards.item schema path.
 Held equipment retains every root entry and the nested firearm.rows.view path. Species programs preserve the root
 pick/spread API, nested variant entries and exact optional keys. Real virtual-consumer compiler tests cover these
-structural APIs. Focused runtime/admission cases, new declaration regressions, named typed lint and format emission
-pass. The latest normal layers build passes; the owner repaired the sole Nine navigation-fixture root error and
-confirmed a fresh root pass. CF1 explicitly defers source-wide related selections above twenty suites; these are not
-full related passes. No schema expression, runtime JavaScript, producer bytes or admission check changed.
+structural APIs. Arena rows retain omit/program composition and loose-file properties. Specimen model entries retain
+the three live pick/spread consumers and optional fields. Creature strike tags retain their exact pipe/item path;
+the authored creature input remains an object type alias because Valibot's readonly default inference loses the
+implicit dictionary compatibility with an interface. A virtual consumer reproduces TS2322 with that interface and
+passes with the alias. Focused runtime/admission cases, declaration regressions, named typed lint and format emission
+pass. The arena packet has normal layers/root green. The subsequent full build stopped solely on a peer SDK fixture,
+which its owner repaired; the current root has three Nine callback callers undergoing that owner's migration, and is
+not reported green. CF1 explicitly defers source-wide related selections above twenty suites; these are not full
+related passes. No schema expression, runtime JavaScript, producer bytes or admission check changed.
 
-A per-file isolated-declaration audit finds **78/285 ready**, with 614 diagnostics remaining in 207 modules
-(572 missing variable annotations, 34 non-inferable expressions, one parameter, one spread object and six arrays).
+A per-file isolated-declaration audit finds **81/285 ready**, with 592 diagnostics remaining in 204 modules
+(550 missing variable annotations, 34 non-inferable expressions, one parameter, one spread object and six arrays).
 Global isolatedDeclarations remains off until the layer actually meets its contract. T4 is still in flight.
 
 ## Decisions (decided G655: D1 keep authored JSON typed, generated never imported via GR0; D2 leave to CI; D3 lint rule)
