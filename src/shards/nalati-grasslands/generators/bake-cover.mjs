@@ -1,20 +1,18 @@
 // Small-model construction runs offline; the client borrows immutable packed shapes.
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { deflateSync, inflateSync } from 'node:zlib';
+import { deflateSync } from 'node:zlib';
 import * as THREE from 'three';
 import { readSourceModel } from '@wildshard/sdk/bake/skinned';
 import { fitRock } from './fittedRock.ts';
 import { wingGeo, halfBirdGeo, buildMarmotGeometry } from './ambientGeometry.ts';
 import { writeGeometry, join } from './geometryWriter.ts';
+import { bakeDressing } from './dressingGeometryRows.ts';
 import { byteWriter, jsonBytes } from '../../../../scripts/bake-output.mjs';
 
 const root = resolve(import.meta.dirname, '../../../..'), shard = resolve(import.meta.dirname, '..');
 const read = path => JSON.parse(readFileSync(resolve(shard, path), 'utf8'));
-const dressing = read('data/dressingGeos.json');
-const lanes = inflateSync(readFileSync(resolve(root, 'public/assets/nalati/baked/dressing.bin')));
-const raw = new Uint8Array(lanes.length), words = raw.length / 4;
-for (let b = 0; b < 4; b++) for (let i = 0; i < words; i++) raw[i * 4 + b] = lanes[b * words + i];
+const dressing = bakeDressing(), raw = dressing.bin;
 const bytesOf = geometry => geometry.attrs.reduce((sum, [, type, size]) => sum + Math.ceil(geometry.count * size * (type === 'f32' ? 4 : type === 'u8' || type === 'i8' ? 1 : 2) / 4) * 4, 0) + geometry.indexCount * 4;
 const sources = new Map(); let offset = 0;
 for (const row of dressing.rows) { const bytes = bytesOf(row.geometry); sources.set(row.key, { geometry: row.geometry, bytes: raw.slice(offset, offset + bytes) }); offset += bytes; }

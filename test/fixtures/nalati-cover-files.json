@@ -1,0 +1,30 @@
+{
+  "src/shards/nalati-grasslands/boot/cover.generated.json": {
+    "bytes": 170572,
+    "hash": "39965ad2f287ec2377451f9d6203deb4f9773b0306d70c2c64f9dc3228649500"
+  },
+  "public/assets/nalati/baked/cover-phone.bin": {
+    "bytes": 84191,
+    "hash": "73fec4bfd0575d4e80a93d74742eb7941ac7aad353ffe7b5bf03c5c972ebf863"
+  },
+  "public/assets/nalati/baked/cover-desktop.bin": {
+    "bytes": 124737,
+    "hash": "77ddd5ac67770e0842ba60804185478bf1a4a343b0829a4aa5472dbf8472268d"
+  },
+  "public/assets/nalati/baked/cover-boulder-1.webp": {
+    "bytes": 68116,
+    "hash": "ed9620e6c7b6694493606b4ad54822cf53db6885eb1405afd707cf4e5ebd0a00"
+  },
+  "public/assets/nalati/baked/cover-boulder-2.webp": {
+    "bytes": 45530,
+    "hash": "9e503d313537f0ffaa9fa48a900356717cd57f2aea1f4ec922fcc272512f5279"
+  },
+  "public/assets/nalati/baked/cover-boulder-3.webp": {
+    "bytes": 45078,
+    "hash": "cee4ac036776d555d5fe457af2922e41ea8f294ee517d145b095a9d199e08caf"
+  },
+  "src/shards/nalati-grasslands/data/cover.generated.json": {
+    "bytes": 170572,
+    "hash": "39965ad2f287ec2377451f9d6203deb4f9773b0306d70c2c64f9dc3228649500"
+  }
+}

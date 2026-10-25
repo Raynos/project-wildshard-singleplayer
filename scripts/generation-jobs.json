@@ -12010,8 +12010,6 @@
         "src/shards/nalati-grasslands/generators/bake-cover.mjs",
         "src/shards/nalati-grasslands/generators/ambientGeometry.ts",
         "src/shards/nalati-grasslands/generators/geometryWriter.ts",
-        "src/shards/nalati-grasslands/data/dressingGeos.json",
-        "public/assets/nalati/baked/dressing.bin",
         "public/assets/nalati/baked/painted-models/boulder-1.glb",
         "public/assets/nalati/baked/painted-models/boulder-2.glb",
         "public/assets/nalati/baked/painted-models/boulder-3.glb",
@@ -12019,7 +12017,11 @@
         "src/shards/nalati-grasslands/generators/fittedRock.ts",
         "public/assets/nalati/baked/painted-models/boulder-1.phone.glb",
         "public/assets/nalati/baked/painted-models/boulder-2.phone.glb",
-        "public/assets/nalati/baked/painted-models/boulder-3.phone.glb"
+        "public/assets/nalati/baked/painted-models/boulder-3.phone.glb",
+        "src/shards/nalati-grasslands/generators/dressingGeometryRows.ts",
+        "src/shards/nalati-grasslands/generators/dressingGeos.ts",
+        "src/shards/nalati-grasslands/generators/dressingGeometry.ts",
+        "src/shards/nalati-grasslands/generators/dressingNoise.ts"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/boot/cover.generated.json",
@@ -14029,7 +14031,6 @@
         "pnpm-workspace.yaml",
         "public/assets/baked/nalati-grasslands/terrain.bin",
         "public/assets/nalati/baked/crags.bin",
-        "public/assets/nalati/baked/dressing.bin",
         "public/assets/nalati/baked/painted-models/balbal.glb",
         "public/assets/nalati/baked/painted-models/cauldron.glb",
         "public/assets/nalati/baked/painted-models/chest.glb",
@@ -14468,7 +14469,8 @@
         "src/shards/nalati-grasslands/generators/yurt.ts",
         "src/shards/nalati-grasslands/generators/zones.ts",
         "src/shards/nalati-grasslands/look/map.json",
-        "src/sdk/bake/byteCodec.ts"
+        "src/sdk/bake/byteCodec.ts",
+        "src/sdk/random.ts"
       ],
       "outputs": [
         "public/assets/nalati-grasslands/map/top.webp",

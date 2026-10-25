@@ -8,6 +8,7 @@ import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
 import { parseBakedTerrain } from '@wildshard/format/bakedTerrainBytes';
 import { buildTerrainMetadata } from '@wildshard/engine/world/terrainField';
 import { mapCloth } from './mapCloth.mjs';
+import { bakeDressing } from './dressingGeometryRows.ts';
 
 const base = resolve(import.meta.dirname, '..'), root = resolve(base, '../../..');
 const read = file => readMapJson(resolve(base, file));
@@ -54,7 +55,7 @@ export async function nalatiMapAssembly() {
     return pose({ x, z, y: ground(x, z) + (.5 + .5 * Math.sin(ph * 2 - .4)) * .16 - .06,
       rot: Math.atan2(tx * c + tz * s, -tx * s + tz * c) + Math.sin(ph) * .025, roll: -.14 + Math.sin(ph) * .03, pitch: Math.sin(ph + 1.1) * .07 });
   }));
-  const dressingBytes = mapBinary(resolve(root, 'public/assets/nalati/baked/dressing.bin'), true);
+  const dressingBytes = bakeDressing().bin;
   for (const [name, key] of [['boulder', 'boulder'], ['boulder-tall', 'boulder'], ['slab', 'slab'], ['stone', 'stone'], ['juniper', 'juniper'], ['rose', 'rose'], ['willow', 'willow'], ['lupin', 'lupin'], ['daisy', 'daisy'], ['reed', 'reed']]) {
     let list = read(`data/dressing-${key}.generated.json`);
     if (name === 'boulder') list = list.filter((_, i) => i % 3 !== 2);
