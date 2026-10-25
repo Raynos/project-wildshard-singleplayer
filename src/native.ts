@@ -9,5 +9,5 @@ import { nativeBoot } from './engine/native/boot';
 
 void nativeBoot({
   pageServices: async () => { (await import('./pageServices')).startPageServices(); },
-  main: () => import('./main'),
+  main: async () => { await (await import('./assetTables')).prepareAssetTables(); return import('./main'); },
 });

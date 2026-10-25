@@ -1,8 +1,8 @@
 /**
  * The app's asset tables (E405 E415): every shipped file's size and content hash, the music and sound-effect
  * manifests, and each level's boot pack. They list the game's own files (every shard's folders), so they are the
- * game's: vite/gen.ts and scripts/bake-packs.mjs write them to src/game/boot/*.generated.ts, and src/identity.ts
- * installs them with the app identity before any other module runs (a Node bake gets them through
+ * game's: vite/gen.ts and scripts/bake-packs.mjs write them to src/game/boot/*.generated.ts, and the page entry
+ * fetches them after selection, before gameplay imports (a Node bake gets them through
  * scripts/bake-loader.mjs). The engine reads them through these accessors, never by importing a table.
  *
  * Like the identity, they sit in one global slot, so a test that resets its modules still sees them; nothing has a
@@ -32,7 +32,7 @@ const isTables = (v: unknown): v is AssetTables => typeof v === 'object' && v !=
 export function installAssetTables(value: AssetTables): void { Reflect.set(globalThis, SLOT, value); }
 function tables(): AssetTables {
   const v: unknown = Reflect.get(globalThis, SLOT);
-  if (!isTables(v)) throw new Error('No asset tables installed: the page entry installs them first (src/identity.ts)');
+  if (!isTables(v)) throw new Error('No asset tables installed: selected-entry preparation installs them first');
   return v;
 }
 export const publicBytes = (): Readonly<Record<string, number>> => tables().bytes;

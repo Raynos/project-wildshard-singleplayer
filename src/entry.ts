@@ -63,6 +63,7 @@ async function enterPage(): Promise<unknown> {
 
   /** resolves once the title or the selected shard's entry has been evaluated */
   return (gridRecoveryRefused() || (titleOnly && document.getElementById('ws-shardfile') === null)) ? showPageTitle() : (async () => {
+    await retried(() => import('./assetTables')).then(module => module.prepareAssetTables());
     const { initializeTier } = await retried(() => import('./engine/core/tier'));
     await initializeTier();
     await retried(() => import('three')); 

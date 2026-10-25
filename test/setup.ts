@@ -33,6 +33,13 @@ vi.stubGlobal('location', new URL('http://localhost:5173/'));
 
 // the app identity and asset tables first: save keys, the probe's handles and the boot read them (E405 E414 / E415)
 await import('../src/identity');
+// Node tests enter below the browser's selected-entry transport. Install the
+// same generated values explicitly before any tested gameplay module reads them.
+const [{ installAssetTables }, { PUBLIC_BYTES }, { ASSET_VERSIONS }, audioTables, { PACKS }] = await Promise.all([
+  import('../src/engine/boot/tables'), import('../src/game/boot/bytes.generated'),
+  import('../src/game/boot/versions.generated'), import('../src/game/boot/audio.generated'), import('../src/game/boot/packs.generated'),
+]);
+installAssetTables({ bytes: PUBLIC_BYTES, versions: ASSET_VERSIONS, music: audioTables.MUSIC_MANIFESTS, sfx: audioTables.SFX_MANIFESTS, packs: PACKS });
 await import('../src/shardList');
 const {shards:scalarDefinitions}=await import('../src/game/shard/list');
 for(const definition of scalarDefinitions()){const intake=definition.scalarBlocks;if(intake!==undefined)intake.prepare(new Map(intake.files.map(file=>[file,readFileSync(`src/shards/${definition.slug}/${file}`)])));}
@@ -59,7 +66,7 @@ installKitIcons();
 installPickupCatalogue(PICKUP_CATALOGUE, await preparePickupCatalogue({ file: name => Promise.resolve(new Uint8Array(readFileSync(`public${name}`))) }, PICKUP_CATALOGUE));
 installKitProps();
 const { readLootTables, registerLootTable } = await import('../src/game/loot/tables');
-const { default: loot } = await import('../src/shards/driftwood-isle/data/loot.generated.json');
+const { DRIFTWOOD_LOOT: loot } = await import('../src/shards/driftwood-isle/generators/loot');
 for (const row of readLootTables(loot.economy.tables)) registerLootTable(row);
 const { DRIFTWOOD_LOOKS } = await import('./fake/driftwoodLooks');
 const { DRIFTWOOD_SPECIES } = await import('./fake/driftwoodSpecies');
@@ -112,7 +119,8 @@ const { pineElk } = await import('../src/shards/pine-hollow/generators/speciesRo
 registerSpecies(speciesWithLook(pineElk(), pineBook.look('elk')));
 // Pure inventory fixtures explicitly install the authored item catalogs.
 const { registerItemRow } = await import('../src/game/bag/itemCatalog');
-const { STARTER_BAG_ITEMS } = await import('../src/game/bag/starter.generated');
+const { default: starterItems } = await import('../src/game/bag/starterItems.json');
+const STARTER_BAG_ITEMS = v.parse(v.array(v.object({ id: v.string(), label: v.string(), icon: v.picklist(['meat', 'hide', 'tusk', 'antlers']), travels: v.boolean() })), starterItems);
 const { PINE_BAG_ITEMS: PINE_ITEMS } = await import('../src/shards/pine-hollow/generators/questInventory');
 for (const row of [...STARTER_BAG_ITEMS, ...PINE_ITEMS, ...DRIFTWOOD_ITEMS]) registerItemRow(row);
 
