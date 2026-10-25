@@ -4,7 +4,7 @@ import {mkdirSync,mkdtempSync,readFileSync,rmSync,writeFileSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Redirect the map reader into the owned fixture.
 import {dirname,resolve} from 'node:path';
 import * as v from 'valibot';
-import {readNalatiMapPlaces} from '../src/shards/nalati-grasslands/generators/mapAssembly.mjs';
+import {readNalatiMapPlaces} from './mapAssembly.mjs';
 
 const owned:string[]=[];
 afterEach(()=>{for(const root of owned.splice(0))rmSync(root,{recursive:true,force:true});});

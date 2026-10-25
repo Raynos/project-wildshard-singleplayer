@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import entry, { generate } from '../src/shards/_template/shard.config';
+import entry, { generate } from '../shard.config';
 
 test('Template has one executable product entry and no obsolete product report job', () => {
   const { jobs } = v.parse(v.object({ jobs: v.array(v.object({ id: v.string(), inputRoots: v.array(v.string()), outputs: v.array(v.string()) })) }),

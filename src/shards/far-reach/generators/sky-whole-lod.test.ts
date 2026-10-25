@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { SKY_ISLE_TILES, skyIsleTileLibrary } from '../src/shards/far-reach/generators/islandScenes';
+import { SKY_ISLE_TILES, skyIsleTileLibrary } from './islandScenes';
 
 test('every exact island library uses only the ordered fine payloads', () => {
   const library = skyIsleTileLibrary([{ lod: 0, file: 'a'.repeat(64) },

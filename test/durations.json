@@ -2326,7 +2326,7 @@
  "test/template-author-terrain.test.ts": 6.6,
  "test/template-baked-playground.test.ts": 2.1,
  "test/template-copy-scaffold.test.ts": 14.6,
- "test/template-generation-order.test.ts": 0.021,
+ "src/shards/_template/generators/template-generation-order.test.ts": 0.021,
  "test/template-source-layout.test.ts": 0.077,
  "test/terrain-baker.test.ts": 6.6,
  "test/terrain-chunk-steps.test.ts": 0.4,

@@ -4,9 +4,9 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { NodeIO } from '@gltf-transform/core';
 import { expect, test } from 'vitest';
-import declared from '../src/shards/open-plots/outputs.json' with { type: 'json' };
-import plot from '../src/shards/open-plots/data/plot.json' with { type: 'json' };
-import { outputs } from '../src/shards/open-plots/generators/product';
+import declared from '../outputs.json' with { type: 'json' };
+import plot from '../data/plot.json' with { type: 'json' };
+import { outputs } from './product';
 
 test('every plot product has no beam graph or beam-height rows', () => {
   expect(plot).not.toHaveProperty('beam');

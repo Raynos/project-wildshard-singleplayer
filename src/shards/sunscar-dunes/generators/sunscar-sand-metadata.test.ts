@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
-import { bakeSandSourceFiles } from '../src/shards/sunscar-dunes/generators/sandProgram';
-import { signalSandMetadata } from '../src/shards/sunscar-dunes/generators/sandMetadata';
+import { bakeSandSourceFiles } from './sandProgram';
+import { signalSandMetadata } from './sandMetadata';
 
 const files = bakeSandSourceFiles();
 const json = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(value));

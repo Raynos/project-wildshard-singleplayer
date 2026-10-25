@@ -1,7 +1,7 @@
 import { expect, test, vi } from 'vitest';
-import * as layout from '../src/shards/nine-dragon-stack/generators/layout';
-import * as casts from '../src/shards/nine-dragon-stack/generators/casts';
-import { drawSpill } from '../src/shards/nine-dragon-stack/generators/spillBake';
+import * as layout from './layout';
+import * as casts from './casts';
+import { drawSpill } from './spillBake';
 
 test('one spill draw prepares its independent source geometry once across all four tier and deck checks', () => {
   const layouts = vi.spyOn(layout, 'nineLayoutSource'), fixed = vi.spyOn(casts, 'bakeFixedKits');
