@@ -62,3 +62,37 @@ test('a disposed region cannot publish claims after a pending verified read comp
   await expect(pending).rejects.toThrow('owner left');
   expect(f.allocator.entries()).toHaveLength(0);
 });
+
+test.each(['missing', 'corrupt'] as const)('image residency preserves the full claim without a %s eager body read', async mode => {
+  const f = fixture(), file = f.source.files[0];
+  if (file === undefined) throw new Error('Missing image fixture');
+  file.kind = 'image';
+  if (mode === 'missing') f.cache.clear(); else f.cache.set(f.ref, new Uint8Array([3, 2, 1]));
+  const read = vi.fn(f.ports.read);
+  try {
+    await leaseClientLibrary(f.source, f.assets.retained, { ...f.ports, read });
+    expect(read).not.toHaveBeenCalled();
+    expect(f.assets.retained.size).toBe(0);
+    expect(f.allocator.cost().input.libraries).toBe(24);
+    expect(f.allocator.entries()).toHaveLength(1);
+    // The real image consumer still uses the original verified body reader.
+    await expect(f.assets.read(f.ref)).rejects.toThrow(mode === 'missing' ? 'Missing cached' : 'hash or size');
+    f.cache.set(f.ref, f.wire);
+    await expect(f.assets.read(f.ref)).resolves.toEqual(f.wire);
+    expect(f.fetch).not.toHaveBeenCalled();
+  } finally { f.scope.dispose(); }
+  expect(f.allocator.entries()).toHaveLength(0);
+});
+
+test('KTX2 residency still reads and parses bytes before publishing device-specific costs', async () => {
+  const f = fixture(), file = f.source.files[0];
+  if (file === undefined) throw new Error('Missing texture fixture');
+  file.kind = 'ktx2';
+  const read = vi.fn(f.ports.read);
+  try {
+    // This hash-valid three-byte body is not a KTX2 texture.
+    await expect(leaseClientLibrary(f.source, f.assets.retained, { ...f.ports, read })).rejects.toThrow();
+    expect(read).toHaveBeenCalledExactlyOnceWith(f.ref);
+    expect(f.allocator.entries()).toHaveLength(0);
+  } finally { f.scope.dispose(); }
+});

@@ -919,11 +919,11 @@ The initial grid boot registers its existing planned-reload capture before
 clearing its route; the live grid later replaces it with actual position
 and continuation capture. All paths retain the existing durable loop guard.
 
-`leaseClientLibrary` in `@wildshard/game/shardfile/clientLibrary` awaits verified
-rereads of released transport before charging the complete decoded/GPU library
-closure. Callers await it and supply the same `ClientAssets.read` used by runtime
-and tile owners. Missing/corrupt bytes or a disposed owner refuse before claims
-publish; disposal releases the existing allocator leases.
+`leaseClientLibrary` in `@wildshard/game/shardfile/clientLibrary` reserves the
+full decoded/GPU closure. Images use admitted cost metadata without fetching;
+consumers verify their bytes. Other released transport uses `ClientAssets.read`;
+KTX2 parses device GPU costs. Missing/corrupt rereads or disposed owners refuse
+before publication; disposal releases all leases.
 
 `declareDownloadFile(url, bytes)` and `recordCachedDownload(hash, bytes, url?)`
 in `@wildshard/engine/boot/download` report expected product-index sizes and verified
