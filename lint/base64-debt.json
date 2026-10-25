@@ -82,7 +82,6 @@
     "src/shards/pine-hollow-legacy/runtime/baked.ts": 1,
     "src/shards/pine-hollow/generators/bake-contracts.mjs": 1,
     "src/shards/pine-hollow/generators/bake-life.mjs": 1,
-    "src/shards/pine-hollow/generators/bake-pine-painted.mjs": 2,
     "src/shards/pine-hollow/generators/bake-shelter.mjs": 1,
     "src/shards/pine-hollow/generators/cabinPropMaterials.mjs": 1,
     "src/shards/pine-hollow/generators/codeParts.ts": 1,

@@ -9,9 +9,8 @@
  */
 import { Rng } from '@wildshard/engine/core/rng';
 import { JOURNAL } from './journalContent';
+import { sendPaintedCanvas, type PaintedBake } from './paintedBytes';
 
-/** One encoded texture, as bake-pine-painted.mjs reads it back. */
-export interface PaintedBake { readonly dataUrl: string; readonly width: number; readonly height: number }
 /** The chalk atlas's layout in pixels ([x, y, w, h]): each outline's 256² cell and each label's 256 × 64 strip (by entry id, "???" for an unknown slot). */
 export interface ChalkLayout { readonly size: readonly [number, number]; readonly outlines: Record<string, readonly number[]>; readonly labels: Record<string, readonly number[]> }
 
@@ -55,16 +54,12 @@ function glow(): HTMLCanvasElement {
   return canvas;
 }
 
-function encode(canvas: HTMLCanvasElement, type: 'image/png' | 'image/webp', quality?: number): PaintedBake {
-  return { dataUrl: canvas.toDataURL(type, quality), width: canvas.width, height: canvas.height };
-}
-
 function load(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => { const image = new Image(); image.onload = () => { resolve(image); }; image.onerror = () => { reject(new Error('chalk atlas did not decode')); }; image.src = src; });
 }
 
-/** Paint every texture: `seed` the level's, `chalkAtlas` the outline atlas and `font` the hand font (data URLs). */
-async function bakePinePainted(seed: number, chalkAtlas: string, font: string): Promise<{ textures: Record<string, PaintedBake>; chalk: ChalkLayout }> {
+/** Paint every texture: `seed` the level's, `chalkAtlas` the outline atlas and `font` the hand font (same-origin file URLs). */
+async function bakePinePainted(seed: number, chalkAtlas: string, font: string, byteUrl: string): Promise<{ textures: Record<string, PaintedBake>; chalk: ChalkLayout }> {
   const face = new FontFace('WS Hand', `url(${font}) format("woff2")`, { weight: '600' });
   document.fonts.add(await face.load());
   const img = await load(chalkAtlas), def = JOURNAL;
@@ -103,9 +98,9 @@ async function bakePinePainted(seed: number, chalkAtlas: string, font: string): 
   ctx.putImageData(data, 0, 0);
   return {
     textures: {
-      endGrain: encode(endGrain(seed), 'image/webp', 0.92),
-      glow: encode(glow(), 'image/png'),
-      chalk: encode(canvas, 'image/webp', 0.9),
+      endGrain: await sendPaintedCanvas('endGrain', endGrain(seed), 'image/webp', byteUrl, 0.92),
+      glow: await sendPaintedCanvas('glow', glow(), 'image/png', byteUrl),
+      chalk: await sendPaintedCanvas('chalk', canvas, 'image/webp', byteUrl, 0.9),
     },
     chalk: { size: SIZE, outlines, labels },
   };

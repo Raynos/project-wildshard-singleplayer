@@ -13302,6 +13302,7 @@
         "src/shards/pine-hollow/manifest.json",
         "src/shards/pine-hollow/generators/bake-pine-painted.mjs",
         "src/shards/pine-hollow/generators/paintedPage.ts",
+        "src/shards/pine-hollow/generators/paintedBytes.ts",
         "src/shards/pine-hollow/generators/undergrowthPaintPage.ts",
         "src/shards/pine-hollow/generators/undergrowthPaint.ts",
         "src/shards/pine-hollow/generators/coatCanvas.ts",

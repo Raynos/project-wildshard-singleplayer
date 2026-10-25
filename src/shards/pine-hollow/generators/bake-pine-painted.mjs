@@ -8,18 +8,23 @@
 // ../data/paintedTextures.generated.json holds their URLs, colour spaces and wraps, and the chalk atlas's layout.
 //
 //   scripts/browser-lane.sh node --experimental-transform-types --import ./src/sdk/bake/source-loader.mjs \
-//     src/shards/pine-hollow/generators/bake-pine-painted.mjs
+//     src/shards/pine-hollow/generators/bake-pine-painted.mjs [--check]
 import { createHash } from 'node:crypto';
-import { mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { build } from 'vite';
 import { writeImagePixels } from '@wildshard/sdk/bake/image';
 import { COAT_SIZE, coatPixels } from './coatCanvas.ts';
 
 const ROOT = resolve(import.meta.dirname, '../../../..');
-const OUT = resolve(ROOT, 'public/assets/pine-hollow/painted');
+const OUT = resolve(ROOT, 'public/assets/pine-hollow/painted'), check = process.argv.includes('--check');
+function publish(file, bytes) {
+  if (check) {
+    if (!existsSync(file) || !readFileSync(file).equals(Buffer.from(bytes))) throw new Error(`bake-pine-painted: stale output ${file}`);
+  } else writeFileSync(file, bytes);
+}
 const manifest = JSON.parse(readFileSync(resolve(ROOT, 'src/shards/pine-hollow/manifest.json'), 'utf8'));
-const dataUrl = (file, mime) => `data:${mime};base64,${readFileSync(resolve(ROOT, file)).toString('base64')}`;
+const ORIGIN = 'https://pine-painted.invalid/';
 
 /** the coat's maps, row 0 last (an image texture's top row is v = 1) */
 async function coat() {
@@ -51,16 +56,44 @@ async function page() {
     const tab = await (await browser.newContext(devices['iPhone 16 Pro'])).newPage();
     const errors = [];
     tab.on('pageerror', (e) => { errors.push(e.message); });
-    await tab.setContent('<!doctype html><meta charset="utf-8"><title>pine painted bake</title>');
+    const inputs = new Map([
+      ['chalk.webp', { mime: 'image/webp', bytes: readFileSync(resolve(ROOT, 'public/assets/pine-hollow/journal/chalk.webp')) }],
+      ['font.woff2', { mime: 'font/woff2', bytes: readFileSync(resolve(ROOT, 'public/fonts/caveat-600-latin.woff2')) }],
+    ]);
+    const expected = new Set(['endGrain', 'glow', 'chalk', 'ferns', 'shrubs', 'litter', 'stones', 'moss', 'reeds']);
+    const received = new Map(); let total = 0;
+    await tab.route(`${ORIGIN}**`, async route => {
+      const request = route.request(), path = request.url().slice(ORIGIN.length), input = inputs.get(path);
+      if (request.method() === 'GET' && path === '') {
+        await route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><meta charset="utf-8"><title>pine painted bake</title>' }); return;
+      }
+      if (request.method() === 'GET' && input !== undefined) {
+        await route.fulfill({ status: 200, contentType: input.mime, body: input.bytes }); return;
+      }
+      const name = path.startsWith('bytes/') ? path.slice(6) : '', bytes = request.postDataBuffer(), mime = request.headers()['content-type'];
+      const ext = mime === 'image/webp' ? 'webp' : mime === 'image/png' ? 'png' : undefined;
+      if (request.method() !== 'POST' || !expected.has(name) || received.has(name) || ext === undefined ||
+          bytes === null || bytes.length === 0 || total + bytes.length > 64_000_000) {
+        await route.fulfill({ status: 400, body: 'Invalid or over-budget Pine painted bytes' }); return;
+      }
+      received.set(name, { bytes, ext }); total += bytes.length;
+      await route.fulfill({ status: 204 });
+    });
+    await tab.goto(ORIGIN);
     await tab.addScriptTag({ content: code, type: 'module' });
     await tab.addScriptTag({ content: underCode, type: 'module' });
     await tab.waitForFunction(() => 'bakePinePainted' in window && 'bakePineUndergrowth' in window, undefined, { timeout: 60000 });
-    const made = await tab.evaluate(([seed, atlas, font]) => window.bakePinePainted(seed, atlas, font),
-      [manifest.seed, dataUrl('public/assets/pine-hollow/journal/chalk.webp', 'image/webp'), dataUrl('public/fonts/caveat-600-latin.woff2', 'font/woff2')]);
-    const under = await tab.evaluate((seed) => window.bakePineUndergrowth(seed), manifest.seed);
+    const made = await tab.evaluate(({ seed, origin }) => window.bakePinePainted(seed, `${origin}chalk.webp`, `${origin}font.woff2`, `${origin}bytes/`), { seed: manifest.seed, origin: ORIGIN });
+    const under = await tab.evaluate(({ seed, origin }) => window.bakePineUndergrowth(seed, `${origin}bytes/`), { seed: manifest.seed, origin: ORIGIN });
     if (errors.length > 0) throw new Error(`bake-pine-painted: page errors: ${errors.join('; ')}`);
     const textures = {};
-    for (const [key, { dataUrl: url }] of Object.entries({ ...made.textures, ...under })) textures[key] = { bytes: Buffer.from(url.split(',')[1] ?? '', 'base64'), ext: url.startsWith('data:image/webp') ? 'webp' : 'png' };
+    const metadata = { ...made.textures, ...under };
+    if (Object.keys(metadata).length !== expected.size || received.size !== expected.size) throw new Error('Pine painted byte roster changed');
+    for (const [key, row] of Object.entries(metadata)) {
+      const file = received.get(key);
+      if (file === undefined || file.ext !== row.ext) throw new Error(`Missing Pine painted bytes: ${key}`);
+      textures[key] = file;
+    }
     return { textures, chalk: made.chalk };
   } finally { await browser.close(); }
 }
@@ -74,14 +107,16 @@ const LOOK = {
 const NAME = { map: 'coatMap', normalMap: 'coatNormal', arm: 'coatArm' };
 
 const painted = await page(), files = { ...painted.textures, ...(await coat()) };
-mkdirSync(OUT, { recursive: true });
+if (!check) mkdirSync(OUT, { recursive: true });
 const textures = {}, keep = new Set();
 for (const [key, { bytes, ext }] of Object.entries(files).sort(([a], [b]) => a.localeCompare(b))) {
   const name = NAME[key] ?? key, file = `${name}-${createHash('sha256').update(bytes).digest('hex')}.${ext}`;
-  writeFileSync(resolve(OUT, file), bytes); keep.add(file);
+  publish(resolve(OUT, file), bytes); keep.add(file);
   textures[name] = { url: `/assets/pine-hollow/painted/${file}`, ...LOOK[key] };
   console.log(`bake-pine-painted: ${file} ${String(bytes.length)} B`);
 }
-for (const file of readdirSync(OUT)) if (!keep.has(file)) rmSync(resolve(OUT, file));
+for (const file of readdirSync(OUT)) if (!keep.has(file)) {
+  if (check) throw new Error(`bake-pine-painted: obsolete output ${file}`); else rmSync(resolve(OUT, file));
+}
 const urls = Object.values(textures).map((t) => t.url);
-writeFileSync(resolve(ROOT, 'src/shards/pine-hollow/data/paintedTextures.generated.json'), `${JSON.stringify({ textures, urls, chalk: painted.chalk }, null, 2)}\n`);
+publish(resolve(ROOT, 'src/shards/pine-hollow/data/paintedTextures.generated.json'), `${JSON.stringify({ textures, urls, chalk: painted.chalk }, null, 2)}\n`);

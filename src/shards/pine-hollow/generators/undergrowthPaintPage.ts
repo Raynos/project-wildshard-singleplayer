@@ -5,21 +5,23 @@
  * No game, no level, no shard runtime is loaded.
  */
 import { paintSteps, type CanvasAtlasRow } from '@wildshard/game/plugin/geometry';
-import type { PaintedBake } from './paintedPage';
+import { sendPaintedCanvas, type PaintedBake } from './paintedBytes';
 import { FERN_PAINT, LITTER_PAINT, MOSS_PAINT, REED_PAINT, SHRUB_PAINT, STONE_PAINT } from './undergrowthPaint';
 
 const ROWS: Readonly<Record<string, CanvasAtlasRow>> = { ferns: FERN_PAINT, shrubs: SHRUB_PAINT, litter: LITTER_PAINT, stones: STONE_PAINT, moss: MOSS_PAINT, reeds: REED_PAINT };
 
 /** Paint every ground-cover kind's texture from the level's `seed`, keyed by kind. */
-function bakePineUndergrowth(seed: number): Record<string, PaintedBake> {
-  return Object.fromEntries(Object.entries(ROWS).map(([kind, row]) => {
+async function bakePineUndergrowth(seed: number, byteUrl: string): Promise<Record<string, PaintedBake>> {
+  const out: Record<string, PaintedBake> = {};
+  for (const [kind, row] of Object.entries(ROWS)) {
     const canvas = document.createElement('canvas');
     canvas.width = row.w; canvas.height = row.h;
     const context = canvas.getContext('2d');
     if (context === null) throw new Error('2d canvas unavailable');
     paintSteps(context, row.steps, { SEED: seed });
-    return [kind, { dataUrl: canvas.toDataURL('image/webp', 0.92), width: canvas.width, height: canvas.height }];
-  }));
+    out[kind] = await sendPaintedCanvas(kind, canvas, 'image/webp', byteUrl, 0.92);
+  }
+  return out;
 }
 
 Object.assign(window, { bakePineUndergrowth });
