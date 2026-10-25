@@ -54,9 +54,12 @@ it adds no runtime section, asset or source-file handoff. Missing or invalid
 program bindings refuse. Executable generator references remain forbidden in
 authored discovery metadata.
 
-`encodeBuildBytes(input, codec, level?)` in `@wildshard/sdk/bake/byteCodec`
+`encodeBuildBytes(input, codec, level?, deflateBackend?)` in `@wildshard/sdk/bake/byteCodec`
 provides deterministic build-only compression for cache-owned results. Deflate
-defaults to level 9 (range 0–9); Zstd defaults to level 19 (range 1–22). Inputs
+defaults to level 9 (range 0–9); Zstd defaults to level 19 (range 1–22). Deflate
+keeps the portable backend by default; an explicit `native` backend preserves
+Node zlib streams and must use a native build-cache step. The backend is refused
+for Zstd. Inputs
 must be unshared, attached byte views of at most 256,000,000 bytes. It copies
 the selected view and returns independent bytes, without installing a service
 or adding runtime decoding or asset authority.

@@ -1,5 +1,5 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare the original pinned native codec bytes and decoding.
-import { constants, zstdCompressSync, zstdDecompressSync } from 'node:zlib';
+import { constants, deflateSync, zstdCompressSync, zstdDecompressSync } from 'node:zlib';
 import { zlibSync, unzlibSync } from 'fflate';
 import { expect, test } from 'vitest';
 import { encodeBuildBytes } from './byteCodec';
@@ -41,4 +41,29 @@ test('detached input refuses and empty owned input remains valid', () => {
   structuredClone(bytes.buffer, { transfer: [bytes.buffer] });
   expect(() => encodeBuildBytes(bytes, 'deflate')).toThrow();
   expect(unzlibSync(encodeBuildBytes(new Uint8Array(), 'deflate'))).toEqual(new Uint8Array());
+});
+
+
+test('explicit native deflate preserves every bounded Node level and owns the selected view', () => {
+  const source = input.slice(), view = source.subarray(17, 1031);
+  for (const level of [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]) {
+    const first = encodeBuildBytes(view, 'deflate', level, 'native');
+    expect(first).toEqual(new Uint8Array(deflateSync(view, { level })));
+    expect(unzlibSync(first)).toEqual(view);
+    first.fill(0);
+    expect(encodeBuildBytes(view, 'deflate', level, 'native')).toEqual(new Uint8Array(deflateSync(view, { level })));
+  }
+  expect(source).toEqual(input);
+  expect(encodeBuildBytes(view, 'deflate', undefined, 'native')).toEqual(new Uint8Array(deflateSync(view, { level: 9 })));
+});
+
+test('native selection retains codec, level and backing refusals', () => {
+  for (const args of [[input, 'deflate', 10, 'native'], [input, 'deflate', -1, 'native'],
+    [input, 'deflate', 0.5, 'native'], [input, 'deflate', Number.NaN, 'native'],
+    [input, 'zstd', 19, 'native'], [input, 'deflate', 9, 'other'], [input, 'deflate', 9, null],
+    [new Uint8Array(new SharedArrayBuffer(8)), 'deflate', 9, 'native']]) {
+    expect(() => { Reflect.apply(encodeBuildBytes, undefined, args); }).toThrow();
+  }
+  const detached = new Uint8Array(8); structuredClone(detached.buffer, { transfer: [detached.buffer] });
+  expect(() => encodeBuildBytes(detached, 'deflate', 9, 'native')).toThrow();
 });
