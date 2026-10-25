@@ -71,6 +71,30 @@ export function compiledDocumentEvidence(first, last) {
   return { token: first.documentToken, timeOrigin: first.origin, originDriftMs: last.origin - first.origin };
 }
 
+/** Read only this compiled phone path's persisted calibration. Serialized into
+ * the existing Inspector evaluation; unrelated save fields never leave it.
+ * @param {() => string | null} readDevice @param {string} identity
+ * @returns {import('./sim-shard.mjs').CompiledTimingHistory} */
+export function compiledTimingHistory(readDevice, identity) {
+  const key = `path:v3:phone:shardfile:${identity}`;
+  try {
+    const raw = readDevice();
+    if (raw === null) return {key, values: null};
+    if (raw.length > 1024 * 1024) throw new Error('Device record exceeds evidence limit');
+    const doc = JSON.parse(raw), slot = doc?.keys?.['boot.times'];
+    if (slot === undefined) return {key, values: null};
+    if (slot?.v !== 1 || slot.data === null || typeof slot.data !== 'object' || Array.isArray(slot.data)) throw new Error('Invalid timing record');
+    const values = slot.data[key];
+    if (values === undefined) return {key, values: null};
+    if (values === null || typeof values !== 'object' || Array.isArray(values)) throw new Error('Invalid path history');
+    const rows = Object.entries(values);
+    if (rows.length > 64 || rows.some(([name, ms]) => name.length > 128 || typeof ms !== 'number' || !Number.isFinite(ms) || ms <= 0)) throw new Error('Invalid path timings');
+    return {key, values: Object.fromEntries(rows)};
+  } catch (error) {
+    return {key, values: null, error: String(error).slice(0, 200)};
+  }
+}
+
 /** A saved-pose update skips descent; require actual unpaused gameplay rather than an invented reveal. */
 export function recoveredGridControls(sample) {
   return sample?.bootEntry?.reason === 'reload' && sample.bootEntry.saved === true

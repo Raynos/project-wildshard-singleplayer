@@ -18,6 +18,9 @@ export interface CompiledEntryQualification {
 }
 export function compiledEntryQualification(rows: readonly {error?: string; worstFrameAfterControlsMs?: number}[]): CompiledEntryQualification;
 export interface CompiledDocument { readonly origin: number; readonly documentToken?: string | null }
+export interface CompiledTimingHistory { key: string; values: Record<string, number> | null; error?: string }
+/** Bounded read-only evidence of the existing phone shardfile timing record. */
+export function compiledTimingHistory(readDevice: () => string | null, identity: string): CompiledTimingHistory;
 export function compiledDocumentEvidence(first: CompiledDocument, last: CompiledDocument): { token: string; timeOrigin: number; originDriftMs: number };
 export function recoveredGridControls(sample: {
   readonly bootEntry?: { readonly reason?: string; readonly saved?: boolean; readonly continuing?: boolean; readonly grid?: boolean } | null;

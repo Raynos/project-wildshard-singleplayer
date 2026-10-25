@@ -1,7 +1,33 @@
 import { expect, test } from 'vitest';
-import { compiledDocumentEvidence, compiledEntryQualification, compiledFrameMetrics, compiledPollDetails, downloadEvidence, recoveredGridControls, requireCompiledEntry, sampleCompiledFrame, stepEvidence, transportEvidence, waitForWaitingWorker, type CompiledFrameWindow } from '../scripts/loading-benchmark/sim-shard.mjs';
+import { compiledTimingHistory, compiledDocumentEvidence, compiledEntryQualification, compiledFrameMetrics, compiledPollDetails, downloadEvidence, recoveredGridControls, requireCompiledEntry, sampleCompiledFrame, stepEvidence, transportEvidence, waitForWaitingWorker, type CompiledFrameWindow } from '../scripts/loading-benchmark/sim-shard.mjs';
 
 const frameWindow = (): CompiledFrameWindow => ({ controlsAt: null, last: null, worst: 0, worstAt: null, frames: 0, complete: false });
+
+test('compiled timing evidence retains only the persisted selected path', () => {
+  const key = 'path:v3:phone:shardfile:sunscar-dunes';
+  const values = { loadout: 80, gameplay: 202.5 };
+  const read = () => JSON.stringify({keys: {other: {data: 'private'}, 'boot.times': {v: 1, data: {
+    [key]: values, 'path:v3:desktop:shardfile:sunscar-dunes': {gameplay: 999}, legacy: {world: 777},
+  }}}});
+  expect(compiledTimingHistory(read, 'sunscar-dunes')).toEqual({key, values});
+  expect(JSON.stringify(compiledTimingHistory(read, 'sunscar-dunes'))).not.toMatch(/private|legacy|999/u);
+  for (const readMissing of [() => null, () => '{"keys":{}}', read]) {
+    expect(compiledTimingHistory(readMissing, 'missing').values).toBeNull();
+    expect(compiledTimingHistory(readMissing, 'missing').error).toBeUndefined();
+  }
+});
+
+test('compiled timing evidence names denied, malformed and unbounded reads', () => {
+  const key = 'path:v3:phone:shardfile:sunscar-dunes';
+  for (const raw of ['{', 'x'.repeat(1024 * 1024 + 1), ...[null, [], {gameplay: 0}, {gameplay: '12'},
+    Object.fromEntries(Array.from({length: 65}, (_, n) => [String(n), 1]))].map(values => JSON.stringify({keys: {'boot.times': {v: 1, data: {[key]: values}}}})),
+    '{"keys":{"boot.times":{"v":2,"data":{}}}}']) {
+    const evidence = compiledTimingHistory(() => raw, 'sunscar-dunes');
+    expect(evidence).toMatchObject({key, values: null});
+    expect(typeof evidence.error).toBe('string');
+  }
+  expect(compiledTimingHistory(() => {throw new Error('Storage denied');}, 'sunscar-dunes').error).toContain('Storage denied');
+});
 
 test('post-controls polls stop reading the resource bank but still report late application errors', () => {
   let resourceReads = 0, measureReads = 0;

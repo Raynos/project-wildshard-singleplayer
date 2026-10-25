@@ -24,7 +24,7 @@ import { soakInspector } from './soak/inspector.mjs';
 import { loadingCardIndex, loadingShardName } from './loading-benchmark/catalogue.mjs';
 import { observeTransport } from './loading-benchmark/transport.mjs';
 import { accuracyRecorder } from './loading-benchmark/accuracy-data.mjs';
-import { requireCompiledEntry, downloadEvidence, stepEvidence, transportEvidence, waitForWaitingWorker, recoveredGridControls, sampleCompiledFrame, compiledFrameMetrics, compiledEntryQualification, compiledDocumentEvidence, compiledPollDetails } from './loading-benchmark/sim-shard.mjs';
+import { requireCompiledEntry, downloadEvidence, stepEvidence, transportEvidence, waitForWaitingWorker, recoveredGridControls, sampleCompiledFrame, compiledFrameMetrics, compiledEntryQualification, compiledDocumentEvidence, compiledPollDetails, compiledTimingHistory } from './loading-benchmark/sim-shard.mjs';
 import { cachedBodyEvidence } from './loading-benchmark/cache-bodies.mjs';
 import { saveFixtureCode } from './debug-settings.mjs';
 import { readSimulatorCoreFootprint, selectedCoreMemoryTargets, coreMemorySummary, compiledFloorSave, scriptResourceURLs,
@@ -270,6 +270,7 @@ async function run(mode, index, target) {
     const on = data => { if (/Recording started/iu.test(String(data))) resolve(Date.now()); };
     recorder.stdout.on('data', on); recorder.stderr.on('data', on); setTimeout(() => { resolve(Date.now()); }, 8000);
   });
+  let timingBefore = null;
   let sample = null, compiled = null, compiledReady = false, secondTapAt = null, recoveredAt = null;
   try {
     await sleep(1000);
@@ -323,6 +324,7 @@ async function run(mode, index, target) {
       if (typeof candidate !== 'string' || !candidate.startsWith(`${nextVersion.build}-`)) throw new Error(`New deployment worker is not waiting before the grid tap: ${String(candidate).slice(0, 200)}`);
       log(file, {ev: 'upgrade-waiting', build: candidate});
     }
+    timingBefore = shard === undefined ? null : JSON.parse(await page.evaluate(`JSON.stringify((${compiledTimingHistory.toString()})(() => localStorage.getItem('wildshard.save.v2.device'), ${JSON.stringify(shard)}))`));
     await gesture(`(() => { sessionStorage.setItem('sim.tap', String(performance.timeOrigin + performance.now())); setTimeout(() => document.querySelector('${button}').click(), 0); return true; })()`);
     const tapAt = Date.now(); log(file, { ev: 'tap', at: tapAt });
     await sleep(300);
@@ -380,8 +382,9 @@ async function run(mode, index, target) {
       try { return new URL(name).origin === new URL(compiled.href).origin; } catch { return false; }
     }))];
     const cachedBodies = await settle(`async () => (${cachedBodyEvidence.toString()})(${JSON.stringify(observedUrls)}, ${JSON.stringify(`/shardfiles/${shard}/shard.json`)})`, 10000);
+    const timingAfter = JSON.parse(await page.evaluate(`JSON.stringify((${compiledTimingHistory.toString()})(() => localStorage.getItem('wildshard.save.v2.device'), ${JSON.stringify(shard)}))`));
     const receipts = transport.receipts.filter(row => row.endedAt >= compiled.origin && row.endedAt <= compiled.origin + compiled.accuracy.readyAt);
-    const result = { mode, run: index, shard, href: compiled.href, document, accuracy: compiled.accuracy, measures: compiled.measures,
+    const result = { mode, run: index, shard, href: compiled.href, document, timingHistory: {before: timingBefore, after: timingAfter}, accuracy: compiled.accuracy, measures: compiled.measures,
       download: downloadEvidence(compiled.accuracy.samples), steps: stepEvidence(compiled.accuracy.samples), transportUnits: transportEvidence(receipts), cachedBodies, transportReceipts: receipts, htmlFixtures: transport.htmlFixtures,
       rows: compiled.accuracy.final.rows.flatMap(row => Number.isFinite(Number(row.ms)) ? [{ key: row.key, ms: Number(row.ms), label: row.label, detail: row.detail }] : []),
       loaderPaintMs: sample.fcp === null ? null : Math.round(compiled.origin + sample.fcp - sample.tap),
