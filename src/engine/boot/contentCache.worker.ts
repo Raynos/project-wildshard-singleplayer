@@ -1,6 +1,7 @@
 import * as v from 'valibot';
 import { ContentCache } from './contentCache';
 import { ContentCacheQueue } from './contentCacheQueue';
+import { readContentResponse as bounded } from './readContentResponse';
 import { CacheCommandSchema, type CacheCommand, type CacheValue, type FetchedContent } from './contentCacheProtocol';
 
 const cache = new ContentCache({ storage: caches, origin: self.location.origin,
@@ -12,25 +13,6 @@ const cache = new ContentCache({ storage: caches, origin: self.location.origin,
 });
 const leases = new Map<number, () => void>();
 type FetchCommand = Extract<CacheCommand, { op: 'fetch' }>;
-/** A body of at most `maximum` bytes, read whole into one owned buffer (it may be transferred to the page). */
-async function bounded(response: Response, maximum: number): Promise<Uint8Array<ArrayBuffer>> {
-  if (!response.ok) throw new Error(`Read failed: ${response.url}`);
-  if (response.body === null) return new Uint8Array();
-  const reader = response.body.getReader(), chunks: Uint8Array[] = [];
-  let length = 0;
-  try {
-    for (;;) {
-      const part = await reader.read(); if (part.done) break;
-      length += part.value.byteLength;
-      if (length > maximum) throw new Error('Read exceeds its declared size');
-      chunks.push(part.value);
-    }
-  } catch (error) { await reader.cancel().catch(() => undefined); throw error; }
-  finally { reader.releaseLock(); }
-  const bytes = new Uint8Array(length); let at = 0;
-  for (const chunk of chunks) { bytes.set(chunk, at); at += chunk.byteLength; }
-  return bytes;
-}
 // Receipts are read as soon as their body lands; a roomy buffer, cleared well before it fills, keeps later ones.
 performance.setResourceTimingBufferSize(4096);
 /** The browser's own network receipt of `url` (its latest read), for the page's download accounting. */

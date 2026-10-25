@@ -347,3 +347,26 @@ saved/default registry deletion was justified; no cut to either is claimed.
 Raw captures, streamed graphs, owner rows and full root paths remain locally in
 `tmp/core-memory-heaps/71b4/`; capture receipt
 `.git/proofs/20261024T143537-sp-x1-menu-template-heap-capture-93416.json`.
+
+## 9. C1 continuation (2026-10-25, sp-x2)
+
+| Slice (at most 1 h) | Status | Result / remaining acceptance |
+|---|---|---|
+| C1.1 Worker streamed-body backing | done (this commit) | Copy chunks into the checked command's one declared-size buffer, rather than retain all chunks plus a concatenated output. Real-GC regression fails on the previous reader and passes on this one. A 16 MiB / 32-chunk Node kernel tracks 32 -> 17 MiB peak chunk/output backing, exact bytes unchanged. |
+| C1.2 Current footprint qualification | open | At the next coherent memory milestone, measure current menu prefetch with the existing readers against G682; distinguish main-page, worker, browser-native and persistent cache storage. C1 is not yet a footprint PASS. |
+
+The current audit confirms the existing two-file concurrency and 32 MiB declared
+payload reservation remain held until durable storage acknowledges each file.
+Worker `stored` replies carry no body; the finished hash-history cleanup from
+§8 is already present. Neither observation identifies the original 218 MiB
+Blink holder. The main-page graph in §8 had only 0.013 MiB backing; it did not
+include worker heaps or browser-native cache storage.
+
+This cut changes the worker's network and URL-cache stream assembly only. It
+still checks exact length and SHA before use/storage, retries stale URL-cache
+bytes through the network, preserves the caller-owned transfer, and cancels
+oversize/failed streams. The full declared buffer is allocated when reading
+starts, within the existing payload reservation; cache snapshots and response
+internals remain additional memory. The kernel uses collection to count live
+explicit buffers, not to qualify process footprint. No WebKit, retained-memory,
+frame-time or all-floor gain is claimed.

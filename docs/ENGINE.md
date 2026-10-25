@@ -948,7 +948,9 @@ are not downloaded bytes.
 `PrefetchBytes(limit)` in `@wildshard/engine/boot/prefetchQuota` admits
 declared body bytes in FIFO order until its idempotent release runs. The grid
 holds a 32 MiB payload allowance through each durable cache acknowledgement;
-worker/store copies are additional memory. Its status exposes current, peak and
+worker/store copies are additional memory. Worker fetches copy streamed chunks
+directly into one declared-size buffer; exact-length and SHA checks still precede
+use or durable storage. Its status exposes current, peak and
 limit payload bytes. `readGridPrefetch(url, maximum, fetcher?)` streams with early
 size refusal and `cache: no-store`; the verified content cache owns persistence.
 No HTTP/cache receipt or process-memory estimate is invented by the allowance.
