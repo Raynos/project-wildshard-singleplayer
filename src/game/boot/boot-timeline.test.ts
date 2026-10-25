@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
-import { LoadingTimeline } from '../src/engine/boot/timeline';
-import { crossingLoadingRows, loadingPath } from '../src/game/boot/loadingPaths';
+import { LoadingTimeline } from '@wildshard/engine/boot/timeline';
+import { crossingLoadingRows, loadingPath } from './loadingPaths';
 
 it('partitions nested stages and gaps into the exact loading wall time', () => {
   let clock = 10;

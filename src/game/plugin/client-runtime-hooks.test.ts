@@ -1,11 +1,11 @@
 import { expect,test,vi } from 'vitest';
 import { BufferGeometry,Group,Mesh,MeshBasicMaterial,Object3D,Vector3 } from 'three';
-import type { Bounds } from '../src/engine/level/spec';
-import { Scope } from '../src/engine/app/scope';
-import type { ShardContext } from '../src/game/plugin/context';
-import type { ShardRuntime } from '../src/game/shard/runtime';
-import { installClientRuntimeHooks, runtimeLevelBounds } from '../src/game/shardfile/clientRuntimeHooks';
-import { lendEntryOwner,publishEntryOwner } from '../src/game/shardfile/entryOwners';
+import type { Bounds } from '@wildshard/engine/level/spec';
+import { Scope } from '@wildshard/engine/app/scope';
+import type { ShardContext } from './context';
+import type { ShardRuntime } from '../shard/runtime';
+import { installClientRuntimeHooks, runtimeLevelBounds } from '../shardfile/clientRuntimeHooks';
+import { lendEntryOwner,publishEntryOwner } from '../shardfile/entryOwners';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 function runtime():ShardRuntime{return {world:null,play:null,step:null,interactables:[],overhead:[],hooks:{},objects:{},viewer:()=>new Vector3(),horizonVeil:null};}

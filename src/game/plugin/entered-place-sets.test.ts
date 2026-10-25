@@ -1,13 +1,13 @@
 import { expect,test,vi } from 'vitest';
 import { Group,Vector3 } from 'three';
-import { Scope } from '../src/engine/app/scope';
-import type { Placed } from '../src/engine/models/place';
-import { WorldRegistry } from '../src/engine/world/registry';
-import type { ShardContext } from '../src/game/plugin/context';
-import type { QuestPageComposition } from '../src/game/quest/pageComposition';
-import { bindEnteredClientPlaceSets,installClientPlaceSets,requireClientPlaceSetsBound } from '../src/game/shardfile/clientPlaceSets';
-import { lendEntryOwner,publishEntryOwner } from '../src/game/shardfile/entryOwners';
-import * as workSlice from '../src/engine/core/workSlice';
+import { Scope } from '@wildshard/engine/app/scope';
+import type { Placed } from '@wildshard/engine/models/place';
+import { WorldRegistry } from '@wildshard/engine/world/registry';
+import type { ShardContext } from './context';
+import type { QuestPageComposition } from '../quest/pageComposition';
+import { bindEnteredClientPlaceSets,installClientPlaceSets,requireClientPlaceSetsBound } from '../shardfile/clientPlaceSets';
+import { lendEntryOwner,publishEntryOwner } from '../shardfile/entryOwners';
+import * as workSlice from '@wildshard/engine/core/workSlice';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 const placed=(model:string):Placed=>({model,object:new Group(),colliders:[],copies:1,drawnAs:'single',cull:()=>undefined,registered:Promise.resolve(),nearest:()=>-1,

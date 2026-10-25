@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
-import { isDev, setDev } from '../src/engine/core/devMode';
-import { timeClientPreparation } from '../src/game/shardfile/preparationTiming';
+import { isDev, setDev } from '@wildshard/engine/core/devMode';
+import { timeClientPreparation } from './preparationTiming';
 
 test('preparation spans replace reentry, preserve failures and skip public work', async () => {
   const dev = isDev(), name = 'wildshard.prepare:fixture:world.data';

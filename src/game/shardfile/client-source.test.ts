@@ -1,10 +1,10 @@
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
-import { configuredShardfile, preparePageResidency } from '../src/game/shardfile/clientSource';
-import { parseShardSlug } from '../src/game/shard/slug';
-import type { ProductOptions } from '../src/game/shardfile/product';
-import { MemoryAdmission } from '../src/format/product';
-import { SHARDFILE_ADMISSION_LIMITS } from '../src/format/admissionLimits';
+import { configuredShardfile, preparePageResidency } from './clientSource';
+import { parseShardSlug } from '../shard/slug';
+import type { ProductOptions } from './product';
+import { MemoryAdmission } from '@wildshard/format/product';
+import { SHARDFILE_ADMISSION_LIMITS } from '@wildshard/format/admissionLimits';
 
 function options(): ProductOptions {
   return { base: 'https://fixture.invalid/', firstParty: true, offline: false,

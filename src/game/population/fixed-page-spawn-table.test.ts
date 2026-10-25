@@ -1,10 +1,10 @@
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
-import { Scope } from '../src/engine/app/scope';
-import { EncounterRegistry, declaredSpawnTables } from '../src/engine/ai/encounters';
-import type { Animal } from '../src/engine/entities/AnimalView';
-import type { AnimalManager } from '../src/engine/entities/AnimalManager';
-import { FixedPageSpawnTable } from '../src/game/population/pageGroups';
+import { Scope } from '@wildshard/engine/app/scope';
+import { EncounterRegistry, declaredSpawnTables } from '@wildshard/engine/ai/encounters';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
+import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import { FixedPageSpawnTable } from './pageGroups';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 test('another encounter uses real table identities and retires only its own bodies', () => {

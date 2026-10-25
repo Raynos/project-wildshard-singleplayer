@@ -1,12 +1,12 @@
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
-import { Scope } from '../src/engine/app/scope';
-import type { ShardContext } from '../src/game/plugin/context';
-import type { ShardRuntime } from '../src/game/shard/runtime';
-import { CLIENT_FEATURES } from '../src/game/shardfile/clientPlan';
-import * as population from '../src/game/population/wildlife';
-import { parseClientPlan } from '../src/format/clientPlan';
+import { Scope } from '@wildshard/engine/app/scope';
+import type { ShardContext } from './context';
+import type { ShardRuntime } from '../shard/runtime';
+import { CLIENT_FEATURES } from '../shardfile/clientPlan';
+import * as population from '../population/wildlife';
+import { parseClientPlan } from '@wildshard/format/clientPlan';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 const row = parseClientPlan({version:1,features:[{kind:'population.wildlife',publish:'wildlife',file:'actors/wildlife.json',

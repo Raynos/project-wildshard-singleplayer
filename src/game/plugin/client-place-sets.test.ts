@@ -1,12 +1,12 @@
 import { expect,test } from 'vitest';
 import { Box3,Group,Vector3 } from 'three';
-import type { Placed } from '../src/engine/models/place';
-import { WorldRegistry } from '../src/engine/world/registry';
-import { Scope } from '../src/engine/app/scope';
-import { parseClientPlan } from '../src/format/clientPlan';
-import type { ShardContext } from '../src/game/plugin/context';
+import type { Placed } from '@wildshard/engine/models/place';
+import { WorldRegistry } from '@wildshard/engine/world/registry';
+import { Scope } from '@wildshard/engine/app/scope';
+import { parseClientPlan } from '@wildshard/format/clientPlan';
+import type { ShardContext } from './context';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
-import { bindClientPlaceSets,installClientPlaceSets } from '../src/game/shardfile/clientPlaceSets';
+import { bindClientPlaceSets,installClientPlaceSets } from '../shardfile/clientPlaceSets';
 
 const placement=(model:string,xs:number[]):Placed=>({model,object:new Group(),colliders:[],copies:xs.length,drawnAs:'instanced',cull:()=>undefined,registered:Promise.resolve(),nearest:()=>-1,
   copyBox:(index,target)=>{const x=xs[index];if(x===undefined)throw new Error('Missing fixture copy');return target.set(new Vector3(x-.5,0,-.5),new Vector3(x+.5,1,.5));}});

@@ -1,11 +1,11 @@
 import { expect, test } from 'vitest';
 import { Group } from 'three';
-import type { Placed } from '../src/engine/models/place';
-import { fixedDraws } from '../src/game/models/fixedDraws';
-import { Scope } from '../src/engine/app/scope';
-import { CollectionCatalogue } from '../src/game/models/collectionDisplay';
-import { SceneHandles } from '../src/game/shardfile/sceneHandles';
-import { entryOwner, lateEntryOwner, lendEntryOwner, publishEntryOwner } from '../src/game/shardfile/entryOwners';
+import type { Placed } from '@wildshard/engine/models/place';
+import { fixedDraws } from './fixedDraws';
+import { Scope } from '@wildshard/engine/app/scope';
+import { CollectionCatalogue } from './collectionDisplay';
+import { SceneHandles } from '../shardfile/sceneHandles';
+import { entryOwner, lateEntryOwner, lendEntryOwner, publishEntryOwner } from '../shardfile/entryOwners';
 
 test('entry ids resolve only their concrete kind and exact construction owner', () => {
   const owner = new Scope('construction'), other = new Scope('another cell');

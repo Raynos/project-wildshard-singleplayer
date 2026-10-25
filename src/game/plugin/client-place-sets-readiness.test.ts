@@ -1,9 +1,9 @@
 import { expect, test, vi } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
-import { WorldRegistry } from '../src/engine/world/registry';
-import type { ShardContext } from '../src/game/plugin/context';
-import { bindClientPlaceSets, installClientPlaceSets, requireClientPlaceSetsBound } from '../src/game/shardfile/clientPlaceSets';
-import * as workSlice from '../src/engine/core/workSlice';
+import { Scope } from '@wildshard/engine/app/scope';
+import { WorldRegistry } from '@wildshard/engine/world/registry';
+import type { ShardContext } from './context';
+import { bindClientPlaceSets, installClientPlaceSets, requireClientPlaceSetsBound } from '../shardfile/clientPlaceSets';
+import * as workSlice from '@wildshard/engine/core/workSlice';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 function fixture() {

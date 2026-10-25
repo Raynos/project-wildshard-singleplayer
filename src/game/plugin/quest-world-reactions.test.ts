@@ -1,9 +1,9 @@
 // @vitest-environment happy-dom
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
-import { Flags } from '../src/engine/world/interact/flags';
-import { bindQuestWorldReactions } from '../src/game/plugin/simulation';
-import { parseQuestWorldReactions } from '../src/format/questInteractions';
+import { Flags } from '@wildshard/engine/world/interact/flags';
+import { bindQuestWorldReactions } from './simulation';
+import { parseQuestWorldReactions } from '@wildshard/format/questInteractions';
 
 test('contact phase gates crank actions and cones turn an unlocked vane once', () => {
   const flags = new Flags('world-reactions', false), row = { kind: 'point', x: 0, y: 0, z: -2 } as const;

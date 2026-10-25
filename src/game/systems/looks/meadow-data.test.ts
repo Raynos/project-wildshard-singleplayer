@@ -1,8 +1,8 @@
 import { expect,test } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
-import { configureGrassFieldData,populationMeadow } from '../src/game/systems/looks/grassField';
+import { Scope } from '@wildshard/engine/app/scope';
+import { configureGrassFieldData,populationMeadow } from './grassField';
 import { parse } from 'valibot';
-import { PopulationFieldSchema } from '../src/format/populationEnvironment';
+import { PopulationFieldSchema } from '@wildshard/format/populationEnvironment';
 
 test('orchard meadow rows preserve river widths and clamp beyond the admitted profile',()=>{
   const scope=new Scope('orchard.meadow'),input={seed:29,world:{res:2,size:20,water:-100,wet:'raster',pond:'raster'},trails:[],

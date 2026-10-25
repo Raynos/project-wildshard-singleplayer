@@ -1,11 +1,11 @@
 // @vitest-environment happy-dom
 import {expect,test,vi} from 'vitest';
-import {Scope} from '../src/engine/app/scope';
-import {parseClientPlan} from '../src/format/clientPlan';
-import {CLIENT_FEATURES,installClientPhase} from '../src/game/shardfile/clientPlan';
-import {publishEntryOwner} from '../src/game/shardfile/entryOwners';
-import type {ShardContext} from '../src/game/plugin/context';
-import type {ForestWeatherRig} from '../src/game/weather/forest';
+import {Scope} from '@wildshard/engine/app/scope';
+import {parseClientPlan} from '@wildshard/format/clientPlan';
+import {CLIENT_FEATURES,installClientPhase} from './clientPlan';
+import {publishEntryOwner} from './entryOwners';
+import type {ShardContext} from '../plugin/context';
+import type {ForestWeatherRig} from '../weather/forest';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 
 test('weather diagnostics wait for the original play-phase weather publication',async()=>{

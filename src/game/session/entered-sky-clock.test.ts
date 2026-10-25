@@ -1,9 +1,9 @@
 import { expect, test, vi } from 'vitest';
-import { App } from '../src/engine/app/app';
-import { Scope } from '../src/engine/app/scope';
-import { DayCycle } from '../src/engine/world/dayCycle';
-import { createSettings, overrideSetting } from '../src/engine/ui/Settings';
-import { enterSkyClock, publishSkyClock, skyClockOf } from '../src/game/session/clockSettings';
+import { App } from '@wildshard/engine/app/app';
+import { Scope } from '@wildshard/engine/app/scope';
+import { DayCycle } from '@wildshard/engine/world/dayCycle';
+import { createSettings, overrideSetting } from '@wildshard/engine/ui/Settings';
+import { enterSkyClock, publishSkyClock, skyClockOf } from './clockSettings';
 
 const clock = (): DayCycle => new DayCycle({ units: 'hour', start: 13, sun: { maxElevation: 60, azimuthOffset: 0 },
   schedule: [{ phase: 'day', from: 0, to: 24, minutes: 12 }],
