@@ -14,6 +14,7 @@ import type { ResidencyAllocator, ResidencyLease, ResidencyEviction } from './al
 import type { PreparedGridCrossing } from './crossing';
 import { GridContinuationCache, GRID_CONTINUATION_CACHE_BYTES } from './continuations';
 import type { HomeResidencyClaim } from './pageResidency';
+import { clientPreparationBatch } from '../shardfile/preparationTiming';
 
 /** An owned region has authored colliders and logical player state, but no second traveller capsule. */
 export interface LiveGridRegion { host: SimHost; dispose: () => void;
@@ -253,21 +254,24 @@ export class LiveGridHost {
     const product = this.products.get(instance); if (product !== undefined) return Promise.resolve(product);
     const pending = this.productRequests.get(instance); if (pending !== undefined) return pending;
     const issue = this.issues.get(instance); if (issue !== undefined) return Promise.reject(new Error(issue));
+    const timing = clientPreparationBatch(cell.slug, `grid.product:${instance}`, ['admission', 'runtime']);
     const request = (async (): Promise<LiveGridAdmission> => {
       let admission: LiveGridAdmission | undefined;
       try {
         await Promise.resolve(); this.assertAlive();
-        admission = await this.ports.admit(cell); this.assertAlive();
+        const admitted = timing === undefined ? await this.ports.admit(cell) : await timing.run('admission', () => this.ports.admit(cell));
+        admission = admitted; this.assertAlive();
         const bundle = this.ports.readiness.bundle(cell);
         if ((bundle.hybridWireBytes > 0 || admission.exclusiveRuntime === true) && admission.prepareRuntime === undefined) throw new Error('Hybrid runtime admission is missing');
-        await admission.prepareRuntime?.(); this.assertAlive();
+        await (timing === undefined ? admission.prepareRuntime?.() : timing.run('runtime', async () => { await admitted.prepareRuntime?.(); }));
+        this.assertAlive();
         this.products.set(instance, admission); return admission;
       } catch (error) {
         this.issues.set(instance, error instanceof Error ? error.message : String(error)); this.refusals.set(instance, error);
         try { admission?.cancel?.(); }
         catch (cleanup) { throw new AggregateError([error, cleanup], 'Live product admission and cancellation failed', { cause: cleanup }); }
         throw error;
-      } finally { this.productRequests.delete(instance); }
+      } finally { this.productRequests.delete(instance); timing?.finish(); }
     })();
     this.productRequests.set(instance, request); return request;
   }
@@ -313,12 +317,13 @@ export class LiveGridHost {
   private assertAlive(): void { if (this.disposed) throw new Error('Live grid is disposed'); }
   private async settle(request: Promise<void>): Promise<void> { try { await request; } catch { /* The requesting owner receives the admission error. */ } }
   private async admitRegion(cell: GridCell, bundle: ReadinessBundle, ticket: ReadinessTicket, previous: Promise<void>, signal?: AbortSignal): Promise<void> {
-    const instance = cell.instance;
+    const instance = cell.instance, timing = clientPreparationBatch(cell.slug, `grid.prepare:${cell.instance}`, ['queue', 'metadata', 'create']);
     let admission: LiveGridAdmission | undefined;
     const abandoned = (): void => { if (signal?.aborted === true) throw new ApproachAbandonedError(`Road approach of ${instance} abandoned for another crossing`); };
     try {
-      await previous; this.assertAlive(); abandoned(); this.retireColdRegions();
-      const admitted = await this.prefetchProduct(instance);
+      await (timing === undefined ? previous : timing.run('queue', () => previous));
+      this.assertAlive(); abandoned(); this.retireColdRegions();
+      const admitted = timing === undefined ? await this.prefetchProduct(instance) : await timing.run('metadata', () => this.prefetchProduct(instance));
       admission = admitted;
       this.assertAlive(); abandoned();
       const source = this.active ?? this.lastSource();
@@ -353,7 +358,8 @@ export class LiveGridHost {
         this.assertAlive(); this.readiness.complete(ticket, 'runtime');
         if (this.ports.pause !== undefined) await this.ports.pause();
         this.assertAlive(); abandoned();
-        region = await admitted.create(prior, lease, signal); abandoned(); this.checkRegion(region);
+        region = timing === undefined ? await admitted.create(prior, lease, signal) : await timing.run('create', () => admitted.create(prior, lease, signal));
+        abandoned(); this.checkRegion(region);
         if (this.ports.pause !== undefined) await this.ports.pause();
         this.assertAlive(); abandoned();
         if (packed !== undefined) this.saved.store(instance, packed);
@@ -379,8 +385,7 @@ export class LiveGridHost {
       try { admission?.cancel?.(); }
       catch (cleanup) { throw new AggregateError([error, cleanup], 'Live admission and product cancellation failed', { cause: cleanup }); }
       throw gaveUp && !(error instanceof ApproachAbandonedError) ? new ApproachAbandonedError(`Road approach of ${instance} abandoned for another crossing`, { cause: error }) : error;
-    }
-    finally { this.requests.delete(instance); }
+    } finally { this.requests.delete(instance); timing?.finish(); }
   }
   private distance(cell: GridCell, p = this.worldFeet()): number { return Math.hypot(Math.max(0, Math.abs(p.x - cell.origin.x) - CHUNK_HALF), Math.max(0, Math.abs(p.z - cell.origin.z) - CHUNK_HALF)); }
   /** Cold worlds use a wider release radius and five-second dwell. The last entered source stays warm on the road;

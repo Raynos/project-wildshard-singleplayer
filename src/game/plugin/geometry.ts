@@ -1,5 +1,6 @@
 import { materialColourGraph } from '@wildshard/engine/render/graph/colourFunction';
 import { isJsonData } from '@wildshard/format/json';
+import { clientPreparationBatch } from '../shardfile/preparationTiming';
 import { unzlibSync } from 'fflate';
 import { type NativeAttributeSchema as WholeAttribute, NativeAttributesSchema as WholeNative, nativeWholeGeometry } from '@wildshard/engine/models/nativeGeometry';
 import { fetchDeflatedBytes, fetchLaneBytes, unshuffleLanes as restoreLanes } from '@wildshard/engine/core/deflate';
@@ -1750,6 +1751,7 @@ export function installPivotNpc(ctx: PivotNpcLevel, row: NpcRow, ports: PivotNpc
 
 /** Whole-geometry files read ahead of the one being assembled (bytes held at once stay bounded by this many files). */
 const WHOLE_READ_AHEAD = 4;
+const WHOLE_TIMING_PHASES = ['read-wait', 'decode', 'assemble', 'yield', 'release', 'finalize'] as const;
 /** A run list expands to at most this many ordinals (a 2 MB GLB JSON chunk cannot otherwise bound it). */
 const WHOLE_ORDINALS_MAX = 1 << 24;
 const WholeOrdinal = wholeV.pipe(wholeV.number(), wholeV.integer(), wholeV.minValue(0));
@@ -1884,6 +1886,7 @@ export async function readWholeGeometry(scope: ResourceScope, source: Shardfile 
   const { runtimeProduct, slugRuntimeProduct } = await import('../shardfile/runtimeProduct');
   const product = typeof source === 'string' ? slugRuntimeProduct(source) : runtimeProduct(source);
   if (product === null) throw new Error('Whole geometry needs an admitted or declared product');
+  const timing = clientPreparationBatch(product.source.identity.slug, 'whole', WHOLE_TIMING_PHASES);
   const props = typeof source === 'string' ? product.source.props : source.props;
   const hashes = refs ?? [...props?.tiles.filter(row => row.lod === 0).flatMap(row => [row.file].concat(row.additionalFiles ?? [])) ?? [],
     ...typeof source === 'string' ? props?.wholeLibrary ?? [] : []];
@@ -1914,8 +1917,10 @@ export async function readWholeGeometry(scope: ResourceScope, source: Shardfile 
       // started, not awaited here: each read already carries a catch, and its error surfaces where this loop awaits it
       for (let ahead = index; ahead < index + WHOLE_READ_AHEAD; ahead++) void readAt(ahead);
       const pending = readAt(index); if (pending === undefined) throw new Error('Whole geometry read missing');
-      const bytes = await pending; reads.delete(index);
-      const gltf = await (await prepareRigLoader()).createRigLoader().parseBytesAsync(bytes, ''), cleanup: (() => void)[] = [];
+      const bytes = timing === undefined ? await pending : await timing.run('read-wait', () => pending); reads.delete(index);
+      const gltf = timing === undefined ? await (await prepareRigLoader()).createRigLoader().parseBytesAsync(bytes, '')
+        : await timing.run('decode', async () => (await prepareRigLoader()).createRigLoader().parseBytesAsync(bytes, ''));
+      const cleanup: (() => void)[] = [];
       try {
         const meshes: Mesh[] = [];
         gltf.scene.traverse(object => {
@@ -1928,16 +1933,20 @@ export async function readWholeGeometry(scope: ResourceScope, source: Shardfile 
         for (const mesh of meshes) {
           // This reader owns the temporary GLB. Reuse its plain channels
           // until cleanup; the assembler still writes independent final arrays.
-          assembler.add(mesh, 'take');
-          await check();
+          if (timing === undefined) assembler.add(mesh, 'take');
+          else timing.sync('assemble', () => { assembler.add(mesh, 'take'); });
+          await (timing === undefined ? check() : timing.run('yield', check));
         }
         if (scope.disposed) throw new Error('Whole geometry unloaded while reading');
       } finally { for (const dispose of cleanup) dispose(); }
-      await product.releaseTransport([hash]);
+      await (timing === undefined ? product.releaseTransport([hash]) : timing.run('release', () => product.releaseTransport([hash])));
     }
     const steps = assembler.finishSteps();
-    let finished = steps.next();
-    while (!finished.done) { await check(); finished = steps.next(); }
+    let finished = timing === undefined ? steps.next() : timing.sync('finalize', () => steps.next());
+    while (!finished.done) {
+      await (timing === undefined ? check() : timing.run('yield', check));
+      finished = timing === undefined ? steps.next() : timing.sync('finalize', () => steps.next());
+    }
     const result = finished.value;
     for (const [id, view] of result) {
       const release = scope.capture('geometries', () => view.geometry.dispose());
@@ -1945,6 +1954,7 @@ export async function readWholeGeometry(scope: ResourceScope, source: Shardfile 
     }
     product.assets.releaseTiles(); return result;
   } catch (error) { assembler.dispose(); throw error; }
+  finally { timing?.finish(); }
 }
 
 /** Authored skinned assets and their ordered look declarations. */

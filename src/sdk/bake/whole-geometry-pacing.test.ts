@@ -3,6 +3,7 @@ import { BufferAttribute, BufferGeometry, Matrix4, Mesh, MeshBasicMaterial } fro
 import { zlibSync } from 'fflate';
 import { Scope } from '@wildshard/engine/app/scope';
 import { pageScope } from '@wildshard/engine/app/resources';
+import { isDev, setDev } from '@wildshard/engine/core/devMode';
 import { enterOwner } from '@wildshard/engine/app/ownership';
 import { fetchDeflatedBytes } from '@wildshard/engine/core/deflate';
 import { assembleWholeGeometryViews, fetchLaneBake, readWholeGeometry, unshuffleLanes } from '@wildshard/game/plugin/geometry';
@@ -103,6 +104,31 @@ test('the public assembler still borrows caller-owned channels without disposing
     expect(output.array).toEqual(original.array); expect(output.array.buffer).not.toBe(original.array.buffer);
     const first = original.getX(0); output.setX(0, first + 7); expect(original.getX(0)).toBe(first);
   } finally { view.geometry.dispose(); geometry.removeEventListener('dispose', disposed); }
+});
+
+test.each([true, false])('whole read phase totals are bounded and keep output and pause calls (Developer=%s)', async developer => {
+  const previous = isDev(), owner = new Scope('whole-phase-timing'), fixture = source(owner), pause = vi.fn(() => Promise.resolve());
+  const phases = ['read-wait', 'decode', 'assemble', 'yield', 'release', 'finalize'];
+  try {
+    setDev(developer);
+    const result = await readWholeGeometry(owner, 'whole-pace', [fixture.ref], pause);
+    expect(result.get('draw')?.geometry.getAttribute('position').array).toEqual(fixture.geometry.getAttribute('position').array);
+    for (const phase of phases) {
+      const spans = performance.getEntriesByName(`wildshard.prepare:whole-pace:whole.${phase}`), span = spans[0];
+      expect(spans).toHaveLength(developer ? 1 : 0);
+      if (developer) {
+        if (span === undefined) throw new Error('Missing whole read phase');
+        const detail: unknown = Reflect.get(span, 'detail');
+        expect(detail).toEqual(expect.objectContaining({ failures: 0 }));
+        if (detail === null || typeof detail !== 'object') throw new Error('Missing phase totals');
+        const calls: unknown = Reflect.get(detail, 'calls');
+        if (typeof calls !== 'number') throw new Error('Missing phase call count');
+        if (phase === 'finalize') expect(calls).toBeGreaterThan(4);
+        else expect(calls).toBe(phase === 'yield' ? pause.mock.calls.length : 1);
+      }
+    }
+    expect(pause.mock.calls.length).toBeGreaterThan(4);
+  } finally { setDev(previous); owner.dispose(); for (const phase of phases) performance.clearMeasures(`wildshard.prepare:whole-pace:whole.${phase}`); }
 });
 
 test('a scope closed during finalization disposes the unpublished reconstructed draw', async () => {

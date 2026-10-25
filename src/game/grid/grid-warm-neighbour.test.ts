@@ -1,6 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the real regional physics and traveller transfer.
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
+import { isDev, setDev } from '@wildshard/engine/core/devMode';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import { buildYield } from '@wildshard/engine/core/workSlice';
 import { loadRapier } from '@wildshard/engine/physics/rapier';
@@ -88,6 +89,31 @@ async function fixture(options: { paired?: boolean; loading?: number; isolation?
     created: () => events.filter(event => event.startsWith('create:')).map(event => event.slice(7)),
     close: () => { control.dispose = true; live.dispose(); player.motor.dispose(); page.dispose(); residency.dispose(); } };
 }
+
+test.each([true, false])('G723: admission timings keep one bounded phase per cell across re-entry (Developer=%s)', async developer => {
+  const previous = isDev(), f = await fixture({ paired: true });
+  const names = [
+    ...['admission', 'runtime'].map(phase => `wildshard.prepare:${f.east.slug}:grid.product:${f.east.instance}.${phase}`),
+    ...['queue', 'metadata', 'create'].map(phase => `wildshard.prepare:${f.east.slug}:grid.prepare:${f.east.instance}.${phase}`),
+  ];
+  try {
+    setDev(developer); await f.enterHome();
+    await f.live.prefetch([f.east.instance]);
+    await f.cross(f.home.instance, f.east.instance);
+    await f.cross(f.east.instance, f.home.instance);
+    await f.cross(f.home.instance, f.east.instance);
+    expect(f.live.current()).toBe(f.east.instance); expect(f.live.state().issues).toEqual({});
+    for (const name of names) {
+      const spans = performance.getEntriesByName(name), span = spans[0];
+      expect(spans).toHaveLength(developer ? 1 : 0);
+      if (developer) {
+        if (span === undefined) throw new Error('Missing grid admission phase');
+        const detail: unknown = Reflect.get(span, 'detail');
+        expect(detail).toEqual(expect.objectContaining({ calls: 1, failures: 0 }));
+      }
+    }
+  } finally { setDev(previous); f.close(); for (const name of names) performance.clearMeasures(name); }
+});
 
 test('G663: in a source no neighbour builds, whichever way the traveller heads, stands or teleports', async () => {
   const f = await fixture();
