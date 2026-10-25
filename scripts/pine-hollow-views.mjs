@@ -20,7 +20,9 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { resolve as resolvePath, relative } from 'node:path';
 import { tmpdir } from 'node:os';
+import { randomUUID } from 'node:crypto';
 import { debugSettings } from './debug-settings.mjs';
+import { browserBakeBytes } from './bake-output.mjs';
 
 const { chromium, devices } = await import('playwright');
 
@@ -155,30 +157,59 @@ try {
   const page = await (await browser.newContext()).newPage();
   for (const a of anchors) {
     const rows = (shots.get(a.id) ?? []).sort((x, y) => x.n - y.n);
-    const cells = rows.map((r) => ({ label: `${r.n} ${r.id} · ${r.calls} calls · ${(r.tris / 1e6).toFixed(2)} M`, src: `data:image/jpeg;base64,${readFileSync(r.file).toString('base64')}` }));
-    const b64 = await page.evaluate(async (args) => {
-      const load = (src) => new Promise((resolve, reject) => { const i = new Image(); i.onload = () => resolve(i); i.onerror = reject; i.src = src; });
-      const CW = 640, CH = 560, G = 6, TOPBAR = 26;
-      const c = document.createElement('canvas'); c.width = CW * 3 + G * 4; c.height = CH * 3 + G * 4 + TOPBAR;
-      const g = c.getContext('2d');
-      g.fillStyle = '#111'; g.fillRect(0, 0, c.width, c.height);
-      g.imageSmoothingQuality = 'high';
-      g.font = '600 15px ui-monospace, monospace'; g.fillStyle = '#ffd98a'; g.fillText(args.title, G + 4, 19);
-      g.font = '600 13px ui-monospace, monospace';
-      for (let i = 0; i < args.cells.length; i++) {
-        const cell = args.cells[i];
-        const x = G + (i % 3) * (CW + G), y = TOPBAR + G + Math.floor(i / 3) * (CH + G);
-        const img = await load(cell.src);
-        const k = Math.min(CW / img.width, (CH - 22) / img.height), dw = img.width * k, dh = img.height * k;
-        g.drawImage(img, x + (CW - dw) / 2, y + (CH - 22 - dh) / 2, dw, dh);
-        g.fillStyle = '#9fe6ff'; g.fillText(cell.label, x + 4, y + CH - 6);
-      }
-      for (let q = 0.86; q >= 0.4; q -= 0.04) { const u = c.toDataURL('image/jpeg', q); if (u.length * 0.75 < 490 * 1024) return u.split(',')[1]; }
-      return c.toDataURL('image/jpeg', 0.35).split(',')[1];
-    }, { cells, title: `Pine Hollow · ${a.name} · P (${a.P.x}, ${a.P.z}) · ${TAG === '' ? 'baseline' : TAG} · FP phone 390×844 · god desktop 1600×900` });
-    const out = resolvePath(OUT, `${TAG ? `${TAG}-` : ''}${a.id}-sheet.jpg`);
-    writeFileSync(out, Buffer.from(b64, 'base64'));
-    console.log(`sheet: ${relative(ROOT, out)}`);
+    const inputs = new Map(rows.map((r, i) => [String(i), readFileSync(r.file)]));
+    const url = `https://pine-view-images.invalid/${randomUUID()}/`, pattern = `${url}*`;
+    const cells = rows.map((r, i) => ({ label: `${r.n} ${r.id} · ${r.calls} calls · ${(r.tris / 1e6).toFixed(2)} M`, src: `${url}${i}` }));
+    /** @param {import('playwright').Route} route */
+    const read = async route => {
+      const request = route.request(), bytes = request.method() === 'GET' ? inputs.get(request.url().slice(url.length)) : undefined;
+      await route.fulfill({ status: bytes === undefined ? 404 : 200, headers: { 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store', 'Content-Type': 'image/jpeg' }, body: bytes ?? 'Missing view image' });
+    };
+    await page.route(pattern, read);
+    try {
+      const sink = await browserBakeBytes(page, { maxFiles: 1 });
+      try {
+        const size = await page.evaluate(async (args) => {
+          const load = (src) => new Promise((resolve, reject) => { const i = new Image(); i.crossOrigin = 'anonymous'; i.onload = () => resolve(i); i.onerror = reject; i.src = src; });
+          const CW = 640, CH = 560, G = 6, TOPBAR = 26;
+          const c = document.createElement('canvas'); c.width = CW * 3 + G * 4; c.height = CH * 3 + G * 4 + TOPBAR;
+          const g = c.getContext('2d');
+          g.fillStyle = '#111'; g.fillRect(0, 0, c.width, c.height);
+          g.imageSmoothingQuality = 'high';
+          g.font = '600 15px ui-monospace, monospace'; g.fillStyle = '#ffd98a'; g.fillText(args.title, G + 4, 19);
+          g.font = '600 13px ui-monospace, monospace';
+          for (let i = 0; i < args.cells.length; i++) {
+            const cell = args.cells[i];
+            const x = G + (i % 3) * (CW + G), y = TOPBAR + G + Math.floor(i / 3) * (CH + G);
+            const img = await load(cell.src);
+            const k = Math.min(CW / img.width, (CH - 22) / img.height), dw = img.width * k, dh = img.height * k;
+            g.drawImage(img, x + (CW - dw) / 2, y + (CH - 22 - dh) / 2, dw, dh);
+            g.fillStyle = '#9fe6ff'; g.fillText(cell.label, x + 4, y + CH - 6);
+          }
+          const encode = quality => new Promise((resolve, reject) => {
+            c.toBlob(blob => {
+              if (blob === null) reject(new Error('View sheet JPEG encoding refused'));
+              else resolve(blob);
+            }, 'image/jpeg', quality);
+          });
+          let image;
+          for (let q = 0.86; q >= 0.4; q -= 0.04) {
+            const blob = await encode(q);
+            // Preserve the old data-URL size test exactly, including its 23-character prefix and padding.
+            if ((23 + 4 * Math.ceil(blob.size / 3)) * 0.75 < 490 * 1024) { image = blob; break; }
+          }
+          image ??= await encode(0.35);
+          const response = await fetch(args.output, { method: 'POST', body: image });
+          if (!response.ok) throw new Error('View sheet byte upload refused');
+          return image.size;
+        }, { cells, output: `${sink.url}sheet`, title: `Pine Hollow · ${a.name} · P (${a.P.x}, ${a.P.z}) · ${TAG === '' ? 'baseline' : TAG} · FP phone 390×844 · god desktop 1600×900` });
+        const bytes = sink.take('sheet');
+        if (bytes.byteLength !== size) throw new Error('Incomplete view sheet JPEG');
+        const out = resolvePath(OUT, `${TAG ? `${TAG}-` : ''}${a.id}-sheet.jpg`);
+        writeFileSync(out, bytes);
+        console.log(`sheet: ${relative(ROOT, out)}`);
+      } finally { await sink.dispose(); }
+    } finally { await page.unroute(pattern, read); }
   }
 } finally {
   await browser.close();
