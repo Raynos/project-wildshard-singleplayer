@@ -1,8 +1,8 @@
 // @vitest-environment happy-dom
 import { beforeEach, expect, test, vi } from 'vitest';
 import { Group, PerspectiveCamera, Scene, Vector3 } from 'three';
-import { ItemPickup } from '../src/engine/player/WeaponPickup';
-import type { Interactable } from '../src/engine/world/interact/types';
+import { ItemPickup } from './WeaponPickup';
+import type { Interactable } from '../world/interact/types';
 import { mockCanvas } from '@wildshard/engine/test/weaponParity';
 
 class GuardedPickup extends ItemPickup {

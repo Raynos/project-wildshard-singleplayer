@@ -966,7 +966,7 @@
  "test/ground-borrowed-body.test.ts": 15.43,
  "test/ground-tell-wedge.test.ts": 0,
  "src/game/population/group-species.test.ts": 0.007,
- "test/guarded-pickup.test.ts": 0.037,
+ "src/engine/player/guarded-pickup.test.ts": 0.037,
  "test/headless-assembly.test.ts": 0.212,
  "test/headless-combat-motion.test.ts": 0.178,
  "src/sdk/headless-command-ports.test.ts": 0.005,
