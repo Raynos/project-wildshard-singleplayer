@@ -84,6 +84,7 @@ implementation. Existing test identities, assertions and deadlines stay fixed.
 | T3-G1 | Binary-source, entered-elite and seated-figure units; keep byte fixtures, public lower-layer imports and host-bar contracts | 60 min | done (2026-10-24, sp-x8) |
 | T3-E1 | Engine simulation consumer: ambient continuation declaration and value contracts | 30 min | done (2026-10-24, sp-x8) |
 | T3-G2 | Live travel-state and near-grain units; keep private lower-layer and legacy-encoding integrations at root | 45 min | done (2026-10-25, sp-x8) |
+| T3-S1 | Six Pine/Nine generator suites: cabin, bounds, encoding, profiles and spill inputs; keep credited artifact regressions at root | 60 min | done (2026-10-25, sp-x8) |
 | T3-A1 | Classify remaining root suites and fixture consumers; enumerate concrete ownership batches, preserving accepted cross-layer integrations | 60 min | open |
 | T3-C1 | Reconcile the final root inventory, workspace membership and CF1/CI selection; retain only classified root suites | 45 min | open |
 

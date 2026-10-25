@@ -1,10 +1,10 @@
 import * as v from 'valibot';
 import { expect, test } from 'vitest';
-import { CabinAppearanceSchema as CabinRowsSchema } from '../src/shards/pine-hollow/generators/sections';
-import { output } from '../src/shards/pine-hollow/generators/output';
-import { CABIN_LIFE } from '../src/shards/pine-hollow/generators/cabinLook';
-import { CABIN_LIGHT } from '../src/shards/pine-hollow/generators/cabinAssembly';
-import { HEARTH_LOOKS } from '../src/shards/pine-hollow/generators/hearthLook';
+import { CabinAppearanceSchema as CabinRowsSchema } from './sections';
+import { output } from './output';
+import { CABIN_LIFE } from './cabinLook';
+import { CABIN_LIGHT } from './cabinAssembly';
+import { HEARTH_LOOKS } from './hearthLook';
 
 test('admitted cabin JSON retains every authored material and life value and rejects malformed rows', () => {
   const section = output.custom.sections.find(row => row.name === 'custom/cabinAppearance');

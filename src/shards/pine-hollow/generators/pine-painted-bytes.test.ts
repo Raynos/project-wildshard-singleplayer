@@ -1,5 +1,5 @@
 import { expect, test, vi } from 'vitest';
-import { sendPaintedCanvas } from '../src/shards/pine-hollow/generators/paintedBytes';
+import { sendPaintedCanvas } from './paintedBytes';
 
 function canvas(blob: Blob | null) {
   return { width: 7, height: 3,

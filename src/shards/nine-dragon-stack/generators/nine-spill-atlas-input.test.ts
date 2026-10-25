@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { spillInputs, type NineSpillAtlas } from '../src/shards/nine-dragon-stack/generators/spillBake';
+import { spillInputs, type NineSpillAtlas } from './spillBake';
 
 test.each(['phone', 'desktop'] as const)('the %s spill consumes its supplied native atlas rows', tier => {
   const empty: NineSpillAtlas = { phone: { placed: [], lights: [] }, desktop: { placed: [], lights: [] } };

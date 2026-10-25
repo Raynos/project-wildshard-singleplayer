@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
-import signs from '../src/shards/nine-dragon-stack/data/signView.json' with { type: 'json' };
-import profiles from '../src/shards/nine-dragon-stack/data/specimenProfiles.json' with { type: 'json' };
-import { parseSignView, parseSpecimenProfiles } from '../src/shards/nine-dragon-stack/generators/sections';
+import signs from '../data/signView.json' with { type: 'json' };
+import profiles from '../data/specimenProfiles.json' with { type: 'json' };
+import { parseSignView, parseSpecimenProfiles } from './sections';
 
 test('checked author profiles retain their exact objects and byte-significant property order', () => {
   expect(parseSignView(signs)).toBe(signs);

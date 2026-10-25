@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
-import { skinGeometry } from '../src/shards/pine-hollow/generators/cragCodec';
-import { streamGeometry } from '../src/shards/pine-hollow/generators/streamCodec';
+import { skinGeometry } from './cragCodec';
+import { streamGeometry } from './streamCodec';
 
 test('Pine bounds only the edge coordinates, preserving native channels and triangle ordinals', () => {
   const position = new Float32Array([-250.98, 3, 4, 2, 5, 250.33, 6, 7, 8]);

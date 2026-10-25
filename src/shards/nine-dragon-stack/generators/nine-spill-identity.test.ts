@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { BufferGeometry, Float32BufferAttribute, Vector3, Color } from 'three';
-import { spillInputIdentity } from '../src/shards/nine-dragon-stack/generators/spillBake';
+import { spillInputIdentity } from './spillBake';
 
 function input() {
   const geometry = new BufferGeometry();
