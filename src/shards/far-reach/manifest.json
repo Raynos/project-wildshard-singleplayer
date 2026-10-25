@@ -262,16 +262,13 @@
     },
     "boot": {
       "files": {
-        "module": "./boot/files.generated.json",
-        "export": "default"
+        "program": true
       },
       "sources": {
-        "module": "./boot/sources.generated.json",
-        "export": "default"
+        "program": true
       },
       "lateReads": {
-        "module": "./boot/lateReads.generated.json",
-        "export": "default"
+        "program": true
       }
     },
     "render": {

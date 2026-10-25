@@ -106,7 +106,6 @@
     "src/shards/far-reach/generators/meadowBlades.ts": 2,
     "src/shards/far-reach/generators/millScene.ts": 1,
     "src/shards/far-reach/generators/modelFrames.ts": 1,
-    "src/shards/far-reach/generators/output.ts": 1,
     "src/shards/far-reach/generators/preparedModels.ts": 1,
     "src/shards/far-reach/generators/product.ts": 6,
     "src/shards/far-reach/generators/routeScene.ts": 2,

@@ -14,7 +14,7 @@ import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { sceneRigFiles } from '../src/game/shardfile/sceneRigFiles';
 import { skyProductRows } from '../src/shards/far-reach/generators/product';
-import { output, prepareOutput } from '../src/shards/far-reach/generators/output';
+import { output, prepareOutput } from '../src/shards/far-reach/generators/sourceOutput';
 
 const geometryName = 'world/geometry/prepared-models.glb', heroName = 'world/sources/heroes.json';
 const hash = 'bd1a0a75879e2f3e72e2ab2b8d0c18a79d7e7746478b3fedc6961199a714c580';
@@ -88,7 +88,7 @@ test('normal output admission and the actual native pool resolver consume the ow
 
 test('the active output preparation bundles without filesystem or compiler services', async () => {
   const result = await build({ configFile: false, logLevel: 'silent', build: { write: false, minify: false,
-    lib: { entry: resolve('src/shards/far-reach/generators/output.ts'), formats: ['es'] },
+    lib: { entry: resolve('src/shards/far-reach/generators/sourceOutput.ts'), formats: ['es'] },
     rolldownOptions: { external: [/^node:/u, 'assemblyscript/dist/asc.js'], output: { codeSplitting: false } } } });
   const built = Array.isArray(result) ? result[0] : result;
   if (built === undefined || !('output' in built)) throw new Error('Missing owned output bundle');

@@ -18,3 +18,19 @@ export const BOOT_SOURCES = { tiers: { phone: { sky: [PANO_URL.phone], ...shared
 export const BOOT_FILES = { sources: BOOT_SOURCES, tier: 'phone', tex: 'img' } as const;
 /** The learned grade remains the only late read. */
 export const LATE_READS = ['/assets/lut/far-reach.bin'];
+
+/** Active product reads retain the legacy ordering with only the owned geometry URL substituted. */
+export function skyProductBoot(geometry: string): {
+  readonly 'boot.files': { readonly sources: ReturnType<typeof productSources>; readonly tier: 'phone'; readonly tex: 'img' };
+  readonly 'boot.sources': ReturnType<typeof productSources>;
+  readonly 'boot.lateReads': typeof LATE_READS;
+} {
+  const sources = productSources(geometry);
+  return { 'boot.files': { sources, tier: 'phone', tex: 'img' }, 'boot.sources': sources, 'boot.lateReads': LATE_READS };
+}
+function productSources(geometry: string) {
+  const props = shared.props.map(row => row === PREPARED_MODELS_URL ? geometry : row);
+  return { ...BOOT_SOURCES, tiers: {
+    phone: { ...BOOT_SOURCES.tiers.phone, props }, desktop: { ...BOOT_SOURCES.tiers.desktop, props },
+  } };
+}
