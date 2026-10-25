@@ -53,7 +53,7 @@ test('selected extras enter the download denominator before prefetch and never i
   }finally{releaseByteCounter();dispose();}
 });
 
-test('a home declares its own card and Explore images while other cards retain demand URLs',()=>{
+test('active boot declares its own card; Explorer previews stay in background inventory',()=>{
   const own={thumb:'/assets/own-thumb.jpg',portrait:'/assets/own-portrait.jpg',landscape:'/assets/own-landscape.jpg'};
   const foreign={thumb:'/assets/other-thumb.jpg',portrait:'/assets/other-portrait.jpg',landscape:'/assets/other-landscape.jpg'};
   const home:BootLevel={...level,card:own,boot:{...level.boot,files:[],sources:()=>blank,explore:{art:['/assets/own-explore.webp']}}};
@@ -62,10 +62,21 @@ test('a home declares its own card and Explore images while other cards retain d
     [foreign.thumb]:1000,[foreign.portrait]:2000,[foreign.landscape]:3000 };
   setBootCatalog({levels:[other,home],playable:[other,home],find:()=>home,artBytes});
   const files=bootFiles({...home},'img',NO_AUDIO);
-  expect(files.art).toEqual([...Object.values(own),'/assets/own-explore.webp']);
+  expect(files.art).toEqual(Object.values(own));
   expect(extraFetches(files)).toEqual(files.art);
-  expect(declareTotals(files).art).toEqual({bytes:100,files:4});
+  expect(declareTotals(files).art).toEqual({bytes:60,files:3});
+  const background=bootFiles(home,'img');
+  expect(background.art).toEqual([...Object.values(own),'/assets/own-explore.webp']);
+  expect(declareTotals(background).art).toEqual({bytes:100,files:4});
   expect(other.card).toBe(foreign);expect(other.card.portrait).toBe('/assets/other-portrait.jpg');
+});
+
+test('an explicitly required boot image stays eager even when it is also Explorer art',()=>{
+  const critical='/assets/required.webp';
+  const home:BootLevel={...level,boot:{...level.boot,files:[],sources:()=>blank,
+    explore:{art:[critical]},precache:[critical]}};
+  setBootCatalog({levels:[home],playable:[home],find:()=>home,artBytes:{[critical]:7}});
+  expect(bootFiles(home,'img',NO_AUDIO).art).toEqual([critical]);
 });
 
 test('preload ignores foreign inventory and decodes selected compressed bytes offline without another fetch',async()=>{

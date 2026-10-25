@@ -49,13 +49,16 @@ const pathOf = (url: string): string => { try { return new URL(url, location.hre
 /** the shard cards' pictures among the art (the rest is the Explore viewer's) */
 const cardArt = new Set<string>();
 
-function artFor(def: BootLevel): { urls: string[]; bytes: Record<string, number> } {
+function artFor(def: BootLevel, background: boolean): { urls: string[]; bytes: Record<string, number> } {
   const urls: string[] = [], bytes: Record<string, number> = {};
   // Other cards retain their authored URLs; the deck requests their pictures
   // when shown. Playing one world does not preload every world's portraits.
   const cards = [def.card.thumb, def.card.portrait, def.card.landscape];
   const cardUrls = new Set(cards);
-  for (const url of new Set([...cards, ...(def.boot?.explore?.art ?? []), ...(def.boot?.precache ?? [])])) {
+  // Explorer owns its image readiness when opened; only background caching
+  // needs its preview bank before the player requests that UI.
+  const explore = background ? def.boot?.explore?.art ?? [] : [];
+  for (const url of new Set([...cards, ...explore, ...(def.boot?.precache ?? [])])) {
     if (url.startsWith('data:')) continue; // inlined into the bundle: nothing to fetch
     const p = pathOf(url);
     // Shards may keep card / Explore / precache art in their public asset folder instead of importing it.
@@ -67,11 +70,11 @@ function artFor(def: BootLevel): { urls: string[]; bytes: Record<string, number>
   return { urls, bytes };
 }
 
-/** this shard's declared files: the boot manifest's sources plus the bundled title / explore art */
+/** This shard's declared files; an active profile omits demand-loaded Explorer art. */
 const audioPriority = new WeakMap<ChunkFiles, ReadonlySet<string>>();
 
 export function bootFiles(def: BootLevel, tex: TexMode = texMode(), profile?: LevelAudioProfile): ChunkFiles {
-  const art = artFor(def);
+  const art = artFor(def, profile === undefined);
   addBytes(art.bytes);
   const inventory = profile?.files() ?? bootAudioFiles(def.boot) ?? audioFiles();
   const selected = profile === undefined ? undefined : new Set(profile.bootFiles(getMusicStyle()));
