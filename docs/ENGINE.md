@@ -121,6 +121,15 @@ Failed uploads and changed sources remain pending.
 
 `@wildshard/engine/world/BakedTerrain.installBakedGrid(grid, binding?)` installs original native samplers and undergrowth decisions into the selected binding without a second fetch. It refuses a mismatched seed. The Node authored-world bake uses this before forest/model construction; geometry capture still supplies the production terrain constructor and retains native collision ownership.
 
+`@wildshard/engine/world/forest/placement.placeForest(variants, source?)` and
+`placeForestSteps(variants, source?)` share one ordered placement algorithm.
+An explicit `ForestPlacementSource` supplies seed, tree count, forest policy
+and ground/normal/trail/cabin/pond queries for a renderer-free author. It never
+selects a level or installs a field; returned trees and their query grid belong
+to the caller. Omitting the source retains the page's current level and live
+terrain queries, including changes across sliced yields. An explicit source
+without a forest produces no trees rather than reading the page's forest.
+
 `@wildshard/game/grid/simulation` owns local physics residencies, prepared fixed-step frame changes and durable
 two-phase unloads through the session's one allocator. `@wildshard/engine/sim/strips` generates deterministic
 highway, strip and crossroads meshes with local duplicates; where an edge observes a sea at exactly 0 over seabed (the

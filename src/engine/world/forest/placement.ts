@@ -1,5 +1,5 @@
 import { TREE_SPECS, treeSetOf } from './treeSpec';
-import type { TreeSpec } from '../../level/data';
+import type { TreeSpec, ForestSpec, TerrainField } from '../../level/data';
 /**
  * Where the forest and the forest floor go — the pure part of Forest / Undergrowth, shared by the game
  * and by the build (scripts/bake-chunk.mjs, project/archive/2026-09-22-load-perf.md). Nothing here touches the GPU or
@@ -50,6 +50,14 @@ export function canopyMapOf(trees: readonly Pick<TreeInstance, 'x' | 'z' | 'heig
 /** What placement needs of a variant (TreeFactory's variants carry these; the build's bakes pass them from the specs). */
 export interface PlantSpec { trunkRadius: number; height: number; species?: TreeSpecies | undefined; collider?: number | undefined }
 
+/** Explicit forest construction inputs for renderer-free native authors.
+ * Supplying this never selects a level, installs terrain or changes page constants. */
+export interface ForestPlacementSource extends Pick<TerrainField, 'heightAt' | 'normalAt' | 'trailDistance' | 'cabinMask' | 'pondMask'> {
+  readonly seed: number;
+  readonly treeCount: number;
+  readonly forest?: ForestSpec;
+}
+
 /** The variants placement plants for a shard's trees (the bakes; TreeFactory builds the same list with geometry). */
 export function plantSpecs(trees: { factory: TreeSpec['factory']; set?: string | undefined; setVariants?: readonly TreeSetVariant[] | undefined }): PlantSpec[] {
   if (trees.factory === 'none') return [];
@@ -83,21 +91,21 @@ export class TreeGrid<T extends { readonly x: number; readonly z: number; readon
 }
 
 /** The active chunk's trees for these variants (none for an empty list: a treeless shard). */
-export function placeForest(variants: readonly PlantSpec[]): { trees: TreeInstance[]; grid: TreeGrid } {
-  const steps = placeForestSteps(variants);
+export function placeForest(variants: readonly PlantSpec[], source?: ForestPlacementSource): { trees: TreeInstance[]; grid: TreeGrid } {
+  const steps = placeForestSteps(variants, source);
   for (;;) { const step = steps.next(); if (step.done === true) return step.value; }
 }
 
 /** `placeForest` as steps (SF67: `Forest.buildSliced` pauses between them): a yield every 256 candidates, which draws
  *  nothing, so the same trees from the same stream */
-export function* placeForestSteps(variants: readonly PlantSpec[]): Generator<void, { trees: TreeInstance[]; grid: TreeGrid }> {
+export function* placeForestSteps(variants: readonly PlantSpec[], source?: ForestPlacementSource): Generator<void, { trees: TreeInstance[]; grid: TreeGrid }> {
   const trees: TreeInstance[] = [];
   const grid = new TreeGrid();
   if (variants.length === 0) return { trees, grid };
-  const F = activeLevel().forest;
+  const F = source === undefined ? activeLevel().forest : source.forest;
   if (!F) return { trees, grid }; // no ShardManifest.forest: no forest to place
-  const rng = new Rng(SEED + 99);
-  const density = new Noise2D(SEED + 5);
+  const rng = new Rng((source?.seed ?? SEED) + 99);
+  const density = new Noise2D((source?.seed ?? SEED) + 5);
   const cell = F.spacing; // metres between candidates → ~3400 candidates at 8.5, thinned by density
   const half = CHUNK_HALF - 6;
   const candidates: [number, number][] = [];
@@ -152,7 +160,7 @@ export function* placeForestSteps(variants: readonly PlantSpec[]): Generator<voi
   let tested = 0;
   for (const [x, z] of [...candidates, ...infill]) {
     if ((++tested & 255) === 0) yield;
-    if (trees.length >= TREE_COUNT) break;
+    if (trees.length >= (source?.treeCount ?? TREE_COUNT)) break;
     if (!inChunk(x, z, 4)) continue;
     const d = density.fbm(x * F.densityFreq, z * F.densityFreq, 3); // clearings & dense groves
     const keep = (smoothstep(F.clearings[0], F.clearings[1], d) * 0.92 + 0.08) * (F.density ? F.density(x, z) : 1);
@@ -160,12 +168,12 @@ export function* placeForestSteps(variants: readonly PlantSpec[]): Generator<voi
     if (F.mask && rng.next() > F.mask(x, z)) continue;          // a shard's own planting field (Nalati's spruce gullies)
     const roadEntry = (Math.abs(x) < 16 && Math.abs(z) > CHUNK_HALF - 95) || (Math.abs(z) < 16 && Math.abs(x) > CHUNK_HALF - 95);
     if (roadEntry) continue;
-    if (trailDistance(x, z) < 9 + rng.range(0, 4)) continue;
-    if (cabinMask(x, z) > 0.02) continue;
-    if (pondMask(x, z) > 0.03) continue;
-    const [, ny] = normalAt(x, z);
+    if ((source?.trailDistance ?? trailDistance)(x, z) < 9 + rng.range(0, 4)) continue;
+    if ((source?.cabinMask ?? cabinMask)(x, z) > 0.02) continue;
+    if ((source?.pondMask ?? pondMask)(x, z) > 0.03) continue;
+    const [, ny] = (source?.normalAt ?? normalAt)(x, z);
     if (ny < F.maxSlope) continue;                               // too steep
-    const y = heightAt(x, z);
+    const y = (source?.heightAt ?? heightAt)(x, z);
     if (mix) { plantSpecies(x, y, z, mix(x, z)); continue; }
     const variant = rng.next() < F.largeVariantChance ? 3 : rng.int(0, 2);
     const scale = rng.range(0.8, 1.2) * (F.scale ? F.scale(x, z) : 1);
