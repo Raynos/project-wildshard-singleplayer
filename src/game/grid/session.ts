@@ -74,7 +74,7 @@ import { collisionStrips, type CollisionStrip } from './collisionStrips';
 import { installSoftWallLook, type SoftWallState } from './softWallLook';
 import type { SeamLookState } from './seamLook';
 import { roadResident, roadViewCost, type CullPlan, type RoadResident, type RoadViewCost } from './roadCull';
-import { loadGridEdgeProfiles, type GridEdgeSource } from './edgeProfiles';
+import { loadGridEdgeProfiles } from './edgeProfiles';
 import { readGridEdges } from './edgeSources';
 import { findShard } from '../shard/registry';
 import { TileDecoder } from './tileDecoder';
@@ -96,6 +96,8 @@ import { GridCellWaitingError, classifyRefusal, pageShardRefusals, refusalReason
 import { TILE_RING } from '../shardfile/tileDriver';
 import { CellLoading, type CellLoadingInput } from './cellLoading';
 import { CellScreen, facingEdge } from './cellScreens';
+import { readGridSeamData, type GridSeamAddress } from './seamData';
+import { declareDownloadFile } from '@wildshard/engine/boot/download';
 
 /** The page lights kept for the grid's region lights (LightPool.reserve): the most one region shows at once, Pine Hollow's
  *  five cabin lights. A point light costs every lit fragment a loop step, so this is the grid's real maximum, not more;
@@ -103,9 +105,7 @@ import { CellScreen, facingEdge } from './cellScreens';
 export const GRID_REGION_POINT_LIGHTS = 5;
 const isScene = (node: Object3D): node is Scene => node instanceof Scene;
 
-declare const __GRID_SEAM_PLANS__: readonly (readonly [string, readonly number[][]])[];
-/** Each slug's declared edge source, baked by the build with the seam plans (scripts/bake-grid-seams.mjs, the same reader) */
-declare const __GRID_EDGES__: readonly (readonly [string, Extract<GridEdgeSource, { kind: 'declared' }>])[];
+declare const __GRID_SEAM_ASSET__: GridSeamAddress;
 
 declare const __BUILD_ID__: string; // vite.config.ts define; absent under Node
 
@@ -327,14 +327,20 @@ export class GridSession {
     const allocator = host.residency.allocator;
     const assembly = new GridAssembly(gridMode(DEVSERVER)), empty = assembly.emptyNeighbour.edge;
     let prepared = 0;
-    const baked = new Map(__GRID_EDGES__);
+    progress?.set(0, 3, 'Grid seam data · 0 / 1 files');
+    const address = __GRID_SEAM_ASSET__, abort = new AbortController();
+    declareDownloadFile(address.url, address.bytes);
+    const forget = host.scope.capture('disposers', () => { abort.abort(); });
+    const data = await readGridSeamData(address, url => fetch(url, { signal: abort.signal })).finally(forget);
+    if (host.scope.disposed) throw new Error('Grid session left during seam preparation');
+    const baked = new Map(data.edges);
     progress?.set(0, 3, `Cell edges · 0 / ${assembly.cells.length}`);
     const edges = await loadGridEdgeProfiles(assembly.cells, async (cell) => {
       try {
         const edge = baked.get(cell.slug) ?? await readGridEdges(cell, { edges: slug => gridShardfileEdges(slug, { allocator, scope: host.scope }), fetch: url => fetch(url) });
         const claim = allocator.reserve({ id: `product:grid:edge:${cell.instance}`, category: 'product', owner: cell.instance, bytes: jsonResidentBytes(edge), distance: 0, needed: true });
         if (claim === null) throw new Error('Grid edge metadata residency deferred');
-        host.scope.onDispose(() => { claim.release(); }); return edge;
+        host.scope.onDispose(claim.release); return edge;
       } catch (error) {
         console.warn(`[grid] ${cell.instance} edges stay at road level:`, error);
         const closed = { entryWidth: 0 };
@@ -349,7 +355,7 @@ export class GridSession {
     const construction = workSlice(30, host.scope);
     let batches = 0;
     progress?.set(1, 3, 'Terrain seams · 0 batches');
-    const seamPlans = new Map(__GRID_SEAM_PLANS__);
+    const seamPlans = new Map(data.plans);
     const strips = await platformStrips(assembly, edges, (platform, edge) => generatePlatformSliced(platform, edge, async () => {
       progress?.detail(`Terrain seams · ${++batches} batches`); await construction.check();
     }, 12, seamPlans));

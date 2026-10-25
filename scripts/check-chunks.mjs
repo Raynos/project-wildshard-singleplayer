@@ -8,7 +8,21 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-export function checkChunks(manifest, modules, closures) {
+/** Also runs inside the actual build, before a preview or deploy can publish. */
+export function gridSessionBudgetErrors(modules, budgets) {
+  const errors = [];
+  for (const [file, row] of Object.entries(modules)) if (row.moduleIds.includes('src/game/grid/session.ts')) {
+    for (const [unit, field] of [['raw', 'rawBytes'], ['gzip', 'gzBytes']]) {
+      const cap = budgets[`js/grid-session/${unit}`];
+      if (!Number.isSafeInteger(cap) || cap <= 0) errors.push(`missing grid session ${unit} ceiling`);
+      else if (!Number.isSafeInteger(row[field]) || row[field] < 0) errors.push(`missing grid session ${unit} bytes (${file})`);
+      else if (row[field] > cap) errors.push(`grid session ${unit} ${row[field]} exceeds ${cap} (${file})`);
+    }
+  }
+  return errors;
+}
+
+export function checkChunks(manifest, modules, closures, budgets = {}) {
   const errors = [];
   // SF16 keeps picker metadata; every authored template gameplay module is data loaded from its shardfile.
   const templateMetadata = new Set(['manifest.ts', 'manifest.json', 'discovery.generated.ts', 'boot/bindings.ts', 'budgets.ts', 'budgetCeilings.ts', 'data/budgets.ts', 'data/budgetCeilings.ts', 'data/spawn.ts', 'explore/art.ts'].map((path) => `src/shards/_template/${path}`));
@@ -62,6 +76,7 @@ export function checkChunks(manifest, modules, closures) {
   // Fail closed if the report was missing, incomplete or from a different build.
   for (const row of Object.values(manifest)) if ((row.name !== undefined || row.isEntry || row.isDynamicEntry || cold.has(row.file)) && row.file.endsWith('.js') && !modules[row.file]) errors.push(`missing module report for ${row.file}`);
   if (Object.keys(modules).length === 0) errors.push('empty chunk module report');
+  errors.push(...gridSessionBudgetErrors(modules, budgets));
   return { errors, table: Object.entries(modules).map(([file, row]) => ({ file, name: row.name, gzBytes: row.gzBytes, modules: row.moduleIds.length })) };
 }
 
@@ -69,7 +84,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   try {
     const dist = resolve(process.argv[2] ?? 'dist');
     const json = (path) => JSON.parse(readFileSync(path, 'utf8'));
-    const result = checkChunks(json(resolve(dist, '.vite/manifest.json')), json(resolve(dist, '.vite/chunk-modules.json')), json(resolve('src/game/shard/manifest-closure.generated.json')));
+    const result = checkChunks(json(resolve(dist, '.vite/manifest.json')), json(resolve(dist, '.vite/chunk-modules.json')), json(resolve('src/game/shard/manifest-closure.generated.json')), json(resolve('lint/ratchet.json')).budgets);
     for (const row of result.table) console.log(`${row.name.padEnd(32)} ${(row.gzBytes / 1024).toFixed(1).padStart(8)} gz KB  ${String(row.modules).padStart(4)} modules  ${row.file}`);
     for (const error of result.errors) console.error(`check-chunks: ${error}`);
     if (result.errors.length > 0) process.exitCode = 1;

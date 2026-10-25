@@ -3,6 +3,7 @@ import { gzipSync } from 'node:zlib';
 import { relative, resolve } from 'node:path';
 import { readFileSync } from 'node:fs';
 import { genShards, shardFolders } from '../scripts/gen-shards.mjs';
+import { gridSessionBudgetErrors } from '../scripts/check-chunks.mjs';
 
 /** Data closures share startup; plugin code stays in exactly one chunk per discovered shard. */
 interface ChunkGroup { name: string; test: RegExp | ((id: string) => boolean); priority: number; includeDependenciesRecursively: boolean }
@@ -24,11 +25,14 @@ export function chunkReport(): Plugin {
     name: 'wildshard-chunk-report',
     configResolved(config) { root = config.root; },
     generateBundle(_options, bundle) {
-      const report: Record<string, { name: string; moduleIds: string[]; gzBytes: number }> = {};
+      const report: Record<string, { name: string; moduleIds: string[]; rawBytes: number; gzBytes: number }> = {};
       for (const [file, chunk] of Object.entries(bundle)) {
         if (chunk.type !== 'chunk') continue;
-        report[file] = { name: chunk.name, moduleIds: Object.keys(chunk.modules).map((id) => relative(root, id).replaceAll('\\', '/')).sort(), gzBytes: gzipSync(chunk.code).byteLength };
+        report[file] = { name: chunk.name, moduleIds: Object.keys(chunk.modules).map((id) => relative(root, id).replaceAll('\\', '/')).sort(), rawBytes: Buffer.byteLength(chunk.code), gzBytes: gzipSync(chunk.code).byteLength };
       }
+      const policy = JSON.parse(readFileSync(resolve(root, 'lint/ratchet.json'), 'utf8')) as { budgets: Record<string, number> };
+      const errors = gridSessionBudgetErrors(report, policy.budgets);
+      if (errors.length > 0) this.error(errors.join('\n'));
       this.emitFile({ type: 'asset', fileName: '.vite/chunk-modules.json', source: JSON.stringify(report, null, 2) });
     },
   };

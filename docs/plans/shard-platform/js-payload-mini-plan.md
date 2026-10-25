@@ -1,6 +1,6 @@
 # JS payload: ship less code per entry (E500)
 
-**State:** `planned` 2026-10-24 — Jake ruled the decisions (G727–G730); built after the current extras (G683 order). Was: `draft` 2026-10-24, for Jake to read; not sent to the builder (Jake, ~22:05 Cancun: *"park those two new
+**State:** `in flight` 2026-10-25, sp-x2 — G713 reassigned after loading U1/U2/U4. Jake ruled G727–G730; LEGACY remains working (G606). Was: `draft` 2026-10-24, for Jake to read; not sent to the builder (Jake, ~22:05 Cancun: *"park those two new
 mini plans as draft for me to read … don't send them to builder overnight"*). A read-only audit by the plan agent's
 subagent. It gives the detail for G713's *lazy-load code* row (sp-x9 after QW7) and leaves G713's lighter post
 chain to its Opus row.
@@ -131,3 +131,19 @@ about 160 KB gzip lower again.
 | D2 | Readable function names in on-phone error stacks: accept today's mangled names (true since Vite 8), or turn `keepNames` back on for about 3–5 % more JS? | **Accept mangled**: delete the dead config line; the hidden source maps resolve stacks on desktop |
 | D3 | Trust the build's validation verdicts for our own shardfiles and load the runtime validators (ajv, schemas) only for external or unverified ones? | **Yes**: the build already refuses an invalid first-party shardfile |
 | D4 | Opening Explore, LEGACY or the Debug page for the first time would cost a short code fetch (~0.3–1 s on the phone). OK? | **Yes**: the public entries get lighter in exchange |
+
+## Implementation slices (G711, each ≤ 1 h)
+
+| Slice | Scope | Status |
+|---|---|---|
+| J1.1 | Emit the existing exact seam/edge bake as one immutable JSON asset; grid entry owns fetch/progress/cancellation, existing geometry certifiers unchanged. | in flight (2026-10-25, sp-x2); baseline `d9d068ce7f` session chunk 3,853,495 raw /289,897 gzip B |
+| J1.2 / J10.1 | Initial grid-session raw/gzip refusal in check-chunks; bytes from actual emitted code, not source estimates. | in flight with J1.1; 450,000 raw /100,000 gzip ceilings |
+| J1.3 | One pinned post-cut build and grid-entry proof; exact chunk bytes and a controlled module-compilation heap comparison. | open after source landing; final G682 native menu/Template cohort stays at end of the plan |
+| J2.1 | Audit title static closure and four generated-table readers before writes; separate loading data from code. | open after J1 |
+| J3.1 | Audit Explore/Feedback and panel readiness/progress; smallest source cut first. | open after J2 |
+| J4.1 | Audit each ineffective dynamic edge and frozen LEGACY reachability before caller rewrites. | open after J3 |
+| J5.1 | Trace exact build verdict/hash admission; retain untrusted refusal until its defining server path exists. | open after J4; G728 overrides draft D3 |
+| J6.1 | Public-entry warm closure plus Settings download-everything progress (G727). | open after J5 |
+| J7.1 | Non-graphical node import/byte spike; visual parity or look changes stay Opus. | open after J6 |
+| J9.1 | Exact cache headers and dead minifier configuration hygiene. | open after J7; J8 remains Opus |
+| J10.2 | Complete per-entry ceilings/forbidden closures and boot script-byte refusal; ratchet earlier ceilings down. | open after J9 |
