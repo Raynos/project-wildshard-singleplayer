@@ -1,6 +1,6 @@
 import {expect,it} from 'vitest';
 import {Box3,Vector3} from 'three';
-import {prototypeFacts} from '../src/shards/driftwood-isle/generators/islandFacts';
+import {prototypeFacts} from './islandFacts';
 
 it('keeps native bounds around every prototype vertex and fits wide rocks',()=>{
  const pos=new Float32Array([-2,-1,-1,3,2,1,1,0,4]);

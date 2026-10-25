@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { DataUtils } from 'three';
-import { AuthorCoverGrid } from '../src/shards/driftwood-isle/generators/coverGrid';
-import { coverTexture, terrainCoverBytes } from '../src/shards/driftwood-isle/generators/islandCover';
+import { AuthorCoverGrid } from './coverGrid';
+import { coverTexture, terrainCoverBytes } from './islandCover';
 
 it('bakes the cover map with an empty ring and each vertex its cover bytes', () => {
   const grid = new AuthorCoverGrid(); grid.data.set([0.2, 0.4, 0.6, 0.7, 0.1], (60 * grid.n + 60) * 5);

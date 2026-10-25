@@ -1,7 +1,7 @@
 import {expect,it} from 'vitest';
 import {BufferAttribute,BufferGeometry} from 'three';
-import {AuthorCoverGrid} from '../src/shards/driftwood-isle/generators/coverGrid';
-import {clipIslandDressing,retainedIslandRuns} from '../src/shards/driftwood-isle/generators/clipDressing';
+import {AuthorCoverGrid} from './coverGrid';
+import {clipIslandDressing,retainedIslandRuns} from './clipDressing';
 
 it('crops the lattice losslessly and keeps zero perimeter samples empty',()=>{
  const source=new AuthorCoverGrid();source.data.set([0.2,0.4,0.6,0.7,0.8],(60*source.n+60)*5);

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { decodeHibiscusWorld } from '../src/shards/driftwood-isle/generators/foliageGeometry';
+import { decodeHibiscusWorld } from './foliageGeometry';
 
 const phone = (): Uint8Array => {
   const buffer = new ArrayBuffer(16 + (6 + 3 * 11) * 4), header = new DataView(buffer);
