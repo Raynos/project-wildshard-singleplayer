@@ -57,7 +57,7 @@ export const QuestDataSchema: v.GenericSchema<{ [K in keyof QuestDataRowsInput]:
 export function parseQuestData(input: unknown): QuestData { return v.parse(QuestDataSchema, input); }
 
 /** Admitted data contracts, independent of validator implementation metadata. */
-export interface QuestDataInput {
+interface QuestDataInputFields {
     achievements?: ({
         id: string;
         name: string;
@@ -191,7 +191,8 @@ export interface QuestDataInput {
         })[];
     })[];
 }
-export interface QuestData {
+export type QuestDataInput = { [Key in keyof QuestDataInputFields]: QuestDataInputFields[Key] };
+interface QuestDataFields {
     achievements?: ({
         id: string;
         name: string;
@@ -325,5 +326,6 @@ export interface QuestData {
         })[];
     })[];
 }
+export type QuestData = { [Key in keyof QuestDataFields]: QuestDataFields[Key] };
 export type QuestDataRowsInput = QuestDataInput;
 export type QuestDataRows = QuestData;

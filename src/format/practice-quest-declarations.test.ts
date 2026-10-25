@@ -35,6 +35,10 @@ export const figure:QuestFigureRowsInput={id:'person',kit:'person',feet:{poi:'wo
 declare const figureOutput:QuestFigureRows;
 export const objects:number=figureOutput.objects.length;
 declare const quest:QuestData;
+export const questArrays=Object.values(quest);
+type QuestArrayIsAny=0 extends (1 & (typeof questArrays)[number])?true:false;
+export const questArraysAreTyped:QuestArrayIsAny=false;
+export const questRows=questArrays.reduce((sum,rows)=>sum+rows.length,0);
 export const quests:number=quest.quests.length;
 `;
  const options:ts.CompilerOptions={strict:true,exactOptionalPropertyTypes:true,noUncheckedIndexedAccess:true,
@@ -51,8 +55,10 @@ export const quests:number=quest.quests.length;
  expect(diagnostics()).toEqual([]);
  source+=`export const missingTraverse:ModeRows={};
 export const missingFigureDefaults:QuestFigureRows=figure;
-export const badPart:PracticeScene['parts'][number]={kind:'unknown'};`;
+export const badPart:PracticeScene['parts'][number]={kind:'unknown'};
+export const unknownQuest:QuestData['missingField']=true;`;
  const refused=diagnostics().map(diagnostic=>diagnostic.code);
  expect(refused).toContain(2741);
  expect(refused).toContain(2322);
+ expect(refused).toContain(2339);
 });
