@@ -69,7 +69,7 @@ test('owned outcrops use only supplied queries without an active level', () => {
     assert.equal(selectedLevel(),null);
     let normals=0,trails=0;
     const noop=()=>undefined;
-    const steps=outcropsPlace({ground:()=>0,flutter:{streamer:noop,flag:noop,strip:noop},smoke:{emitter:noop}},0x0c7,{
+    const steps=outcropsPlace({ground:()=>0,flutter:{streamer:noop,flag:noop,strip:noop},smoke:{emitter:noop}},{
       normalAt:(_x,_z,epsilon)=>{assert.equal(epsilon,1.5);normals++;return [0,1,0];},
       trailDistance:()=>{trails++;return Infinity;},
     });
@@ -77,6 +77,18 @@ test('owned outcrops use only supplied queries without an active level', () => {
     assert.ok(normals>0);assert.ok(trails>0);
     assert.equal(step.value.name,'outcrops');
     for(const mesh of step.value.meshes)mesh.geometry.dispose();
+  `;
+  execFileSync(process.execPath, ['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', '--input-type=module', '--eval', source]);
+});
+
+test('native places refuse omitted terrain queries before constructing geometry', () => {
+  const source = `
+    import assert from 'node:assert/strict';
+    import { selectedLevel } from '@wildshard/engine/level/selection';
+    import { bakeNalatiPlaces } from './src/shards/nalati-grasslands/generators/places.ts';
+    assert.equal(selectedLevel(),null);
+    assert.throws(()=>bakeNalatiPlaces(()=>{throw new Error('Unexpected ground access');}),/Native places require explicit terrain queries/);
+    assert.equal(selectedLevel(),null);
   `;
   execFileSync(process.execPath, ['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', '--input-type=module', '--eval', source]);
 });

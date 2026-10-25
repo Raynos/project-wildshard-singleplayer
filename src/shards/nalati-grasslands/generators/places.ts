@@ -30,7 +30,6 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { Rng } from '@wildshard/engine/core/rng';
 import { inPoiClearing,zoneAt,glacierMask,brookMask,riverMask,rimZAt,RIVER,outcropAt,edgeBermAt,TERRAIN } from './terrainRecipe';
 import { Noise2D, smoothstep } from '@wildshard/sdk/noise';
-import { normalAt, trailDistance } from '@wildshard/engine/world/Heightfield';
 
 
 /**
@@ -1048,8 +1047,9 @@ export interface PlaceQueries {
  * the dressing's scatter shapes (their own binary, `dressing.bin`).
  */
 export function bakeNalatiPlaces(ground: Ground, specimenScope: SpecimenScope = nativeSpecimenScope, dressing?: { readonly plan: DressPlan; readonly clutter: ClutterSpots }, queries?: PlaceQueries): { places: PlacesBake<PlaceRow>; specimens: PlacesBake<SpecimenRow>; dressing: PlacesBake<DressingGeoRow> } {
+  if (queries === undefined) throw new Error('Native places require explicit terrain queries');
   const blocks: Uint8Array[] = [];
-  const rows = [nomadCamp, bridge, summerCamp, eagleRockPlace, cairnPlace, kurgansPlace, cragsPlace, roadsPlace, watchtowerPlace, kokparPlace, (ctx: PaintCtx) => finishBuild(outcropsPlace(ctx, 0x0c7, queries)), (ctx: PaintCtx) => finishBuild(dressingStatics(ctx, dressingInput(dressing).plan)), (ctx: PaintCtx) => finishBuild(dressingClutter(ctx, dressingInput(dressing).clutter))].map((build): PlaceRow => {
+  const rows = [nomadCamp, bridge, summerCamp, eagleRockPlace, cairnPlace, kurgansPlace, cragsPlace, roadsPlace, watchtowerPlace, kokparPlace, (ctx: PaintCtx) => finishBuild(outcropsPlace(ctx, queries)), (ctx: PaintCtx) => finishBuild(dressingStatics(ctx, dressingInput(dressing).plan)), (ctx: PaintCtx) => finishBuild(dressingClutter(ctx, dressingInput(dressing).clutter))].map((build): PlaceRow => {
     const effects: EffectRow[] = [];
     const ctx: PaintCtx = { ground, flutter: recordingFlutter(effects), smoke: recordingPlumes(effects) };
     const p = build(ctx, effects), { members, instances } = p.set.rows();
@@ -1378,21 +1378,20 @@ export function* dressingClutter(ctx: PaintCtx, spots: ClutterSpots): Generator<
  * Only collision data escapes; every temporary outcrop/crag geometry is disposed here. */
 export function dressingRockColliders(ground: Ground, phone: boolean, queries: PlaceQueries): readonly Collider[] {
   const noop = (): void => undefined;
-  const steps = outcropsPlace({ ground, flutter: { streamer: noop, flag: noop, strip: noop }, smoke: { emitter: noop } }, 0x0c7, queries);
+  const steps = outcropsPlace({ ground, flutter: { streamer: noop, flag: noop, strip: noop }, smoke: { emitter: noop } }, queries);
   let step = steps.next(); while (!step.done) step = steps.next();
   const outcrops = step.value;
   try {
-    const crags = bakeCragRock(phone, ground, undefined, queries);
+    const crags = bakeCragRock(phone, ground, queries);
     try { return [...outcrops.colliders ?? [], ...crags.colliders]; }
     finally { for (const part of crags.meshes) part.geometry.dispose(); }
   } finally { for (const part of outcrops.meshes) part.geometry.dispose(); }
 }
 
-export function* outcropsPlace(ctx: PaintCtx, seed = 0x0c7, queries?: PlaceQueries): Generator<void, BuiltPlace> {
+export function* outcropsPlace(ctx: PaintCtx, queries: PlaceQueries, seed = 0x0c7): Generator<void, BuiltPlace> {
   const heightAt = ctx.ground;
-  // Legacy callers retain the live field; owned builds use only their supplied queries.
-  const sampleNormal = queries?.normalAt ?? ((x: number, z: number, epsilon?: number) => normalAt(x, z, epsilon));
-  const sampleTrail = queries?.trailDistance ?? ((x: number, z: number) => trailDistance(x, z));
+  const sampleNormal = queries.normalAt;
+  const sampleTrail = queries.trailDistance;
   const kit = new PaintKit(seed);
   const rng = kit.rng;
   const set = new NalatiSet(kit, ctx);
@@ -1891,11 +1890,11 @@ const RING = 7; // the crest test's radius (m)
 export function bakeCragRockOnTerrain(phone: boolean, terrain: Uint8Array, seed = 0xc4a9): CragRockBake {
   const source = readNativeTerrain(terrain), trail = TERRAIN.trailDistance;
   if (trail === undefined) throw new Error('Native crags require authored trail queries');
-  return bakeCragRock(phone, source.heightAt, seed, { trailDistance: trail });
+  return bakeCragRock(phone, source.heightAt, { trailDistance: trail }, seed);
 }
 
-export function bakeCragRock(phone: boolean, heightAt: Ground, seed = 0xc4a9, queries?: Pick<PlaceQueries, 'trailDistance'>): CragRockBake {
-  const sampleTrail = queries?.trailDistance ?? ((x: number, z: number) => trailDistance(x, z));
+export function bakeCragRock(phone: boolean, heightAt: Ground, queries: Pick<PlaceQueries, 'trailDistance'>, seed = 0xc4a9): CragRockBake {
+  const sampleTrail = queries.trailDistance;
   const rng = new Rng(seed), jitter = new Noise2D(seed + 3);
   const colliders: Collider[] = [];
   const descs: ColliderDesc[] = [];
