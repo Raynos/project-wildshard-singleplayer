@@ -16,7 +16,7 @@ const effectSchema = v.strictObject({ id: EconomyEffectIdSchema, kind: v.literal
 const goodSchema = v.strictObject({ id: key, name: text, does: text, icon: v.picklist(['whetstone', 'heart', 'chart', 'cape']), price: count, needs: v.exactOptional(key) });
 
 /** The unchanged effects/goods entries used by both loot and catalogue admission. */
-export const CatalogueEconomyRegistrationSchema = v.strictObject({
+export const CatalogueEconomyRegistrationSchema: v.StrictObjectSchema<{ readonly effects: v.GenericSchema<CatalogueEconomyRegistrationRowsInput['effects'], CatalogueEconomyRegistrationRows['effects']>; readonly goods: v.GenericSchema<CatalogueEconomyRegistrationRowsInput['goods'], CatalogueEconomyRegistrationRows['goods']>; }, undefined> = v.strictObject({
   effects: v.pipe(v.array(effectSchema), v.maxLength(128)), goods: v.pipe(v.array(goodSchema), v.maxLength(64)),
 });
 /** Shared identity/reference law; projection never changes the authored order. */
@@ -28,6 +28,38 @@ export function catalogueEconomyRules(row: v.InferOutput<typeof CatalogueEconomy
   return errors;
 }
 /** Bounded catalogue-only projection; the defining loot grammar stays shared. */
-export const CatalogueEconomySchema = v.pipe(CatalogueEconomyRegistrationSchema,
+export const CatalogueEconomySchema: v.GenericSchema<CatalogueEconomyInput, CatalogueEconomy> = v.pipe(CatalogueEconomyRegistrationSchema,
   v.check(row => catalogueEconomyRules(row).length === 0, 'Valid catalogue economy references'));
-export type CatalogueEconomy = v.InferOutput<typeof CatalogueEconomySchema>;
+
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type CatalogueEconomyRegistrationRowsInput = CatalogueEconomyRegistrationRows;
+interface CatalogueEconomyRegistrationRowsFields {
+    effects: ({
+        id: `effect.${string}`;
+        kind: 'permanent';
+        tags: (`${string}.${string}`)[];
+        modifiers: ({
+            attr: string;
+            op: 'add' | 'mul' | 'override';
+            value: number;
+        })[];
+        grants?: (`${string}.${string}`)[];
+        stacking: ('none') | ({
+            max: number;
+        });
+        group?: string;
+        removes?: (`effect.${string}`)[];
+    })[];
+    goods: ({
+        id: string;
+        name: string;
+        does: string;
+        icon: 'whetstone' | 'heart' | 'chart' | 'cape';
+        price: number;
+        needs?: string;
+    })[];
+}
+export type CatalogueEconomyRegistrationRows = { [Key in keyof CatalogueEconomyRegistrationRowsFields]: CatalogueEconomyRegistrationRowsFields[Key] };
+export type CatalogueEconomyInput = CatalogueEconomyRegistrationRowsInput;
+export type CatalogueEconomy = CatalogueEconomyRegistrationRows;

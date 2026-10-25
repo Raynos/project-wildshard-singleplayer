@@ -5,7 +5,7 @@ import { LootBagSchema } from './lootBag';
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(256));
 /** Client-only continuation over entered quest and collection owners. Every
  * model, economy and scheduling choice is an admitted data identity. */
-export const QuestContinuationSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Quest continuation requires JSON rows'), v.strictObject({
+export const QuestContinuationSchema: v.GenericSchema<QuestContinuationRowsInput, QuestContinuationRows> = v.pipe(v.unknown(), v.check(isJsonData, 'Quest continuation requires JSON rows'), v.strictObject({
   quest: id, collection: id,
   collections: v.pipe(id, v.regex(/^[a-zA-Z0-9_./-]+$/u)),
   cosmetics: v.strictObject({ file: id, models: v.pipe(v.record(id, id), v.maxEntries(32)) }),
@@ -20,3 +20,23 @@ export function parseQuestContinuationDocument(input: unknown): v.InferOutput<ty
   ])), input);
   return 'entryResources' in rows ? rows.entryResources.continuation : rows;
 }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type QuestContinuationRowsInput = unknown;
+interface QuestContinuationRowsFields {
+    quest: string;
+    collection: string;
+    collections: string;
+    cosmetics: {
+        file: string;
+        models: Record<string, string>;
+    };
+    loot: {
+        bag?: v.InferOutput<typeof LootBagSchema>;
+        id: string;
+        shop: string;
+        minimap: boolean;
+        before: (string)[];
+    };
+}
+export type QuestContinuationRows = { [Key in keyof QuestContinuationRowsFields]: QuestContinuationRowsFields[Key] };

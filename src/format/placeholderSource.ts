@@ -13,7 +13,7 @@ const rgb = v.tuple([byte, byte, byte]);
  * One stand-in tree shape, unit high (scaled by the placement's height): an optional stem (top, radius, colour) and the
  * crown's rings (height, radius) under its apex, in the crown colour; `species` matches the forest placement's species.
  */
-export const PlaceholderTreeSchema = v.strictObject({
+export const PlaceholderTreeSchema: v.GenericSchema<PlaceholderTreeInput, PlaceholderTree> = v.strictObject({
   species: v.pipe(v.string(), v.regex(/^[a-z][a-z0-9-]{0,31}$/u)),
   stem: v.nullable(v.tuple([unit, unit, rgb])),
   rings: v.pipe(v.array(v.tuple([unit, unit])), v.maxLength(6)),
@@ -30,7 +30,7 @@ const ModuleExportSchema = v.strictObject({
  * and optional model parts when its land is models (`(tools) => Promise<FarPart[]>`). Without a grid the bake reads the
  * shard's baked `terrain.bin`, else its shardfile terrain collider.
  */
-export const PlaceholderFarSchema = v.strictObject({
+export const PlaceholderFarSchema: v.GenericSchema<PlaceholderFarRowsInput, PlaceholderFarRows> = v.strictObject({
   look: ModuleExportSchema,
   grid: v.optional(ModuleExportSchema),
   parts: v.optional(ModuleExportSchema),
@@ -40,7 +40,7 @@ export const PlaceholderFarSchema = v.strictObject({
  * look): where its ground comes from, how its forest is stood in and how its far proxy is coloured; every field is
  * optional and an empty row means the bake's generic defaults.
  */
-export const PlaceholderSourceSchema = v.strictObject({
+export const PlaceholderSourceSchema: v.GenericSchema<PlaceholderSourceInput, PlaceholderSource> = v.strictObject({
   /** a ground built by the shard's own generator instead of its `terrain.bin`: a module under its `generators/` and the
    *  export that returns the native terrain bytes */
   ground: v.optional(v.strictObject({
@@ -62,9 +62,9 @@ export const PlaceholderSourceSchema = v.strictObject({
   })),
 });
 /** One admitted stand-in tree shape (`PlaceholderTreeSchema`): species, optional stem, crown rings and colour, unit high. */
-export type PlaceholderTree = v.InferOutput<typeof PlaceholderTreeSchema>;
+
 /** A shard's admitted placeholder steer (`PlaceholderSourceSchema`), as the near / far bake reads it. */
-export type PlaceholderSource = v.InferOutput<typeof PlaceholderSourceSchema>;
+
 
 /** Admit a shard's declared placeholder source; throws with the shard's name on a malformed row. */
 export function placeholderSource(slug: string, value: unknown): PlaceholderSource {
@@ -73,3 +73,74 @@ export function placeholderSource(slug: string, value: unknown): PlaceholderSour
   if (!result.success) throw new Error(`${slug}: invalid placeholder source: ${result.issues.map((issue) => issue.message).join('; ')}`);
   return result.output;
 }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type PlaceholderTreeInput = PlaceholderTree;
+interface PlaceholderTreeFields {
+    species: string;
+    stem: ([
+        number,
+        number,
+        [
+            number,
+            number,
+            number
+        ]
+    ]) | null;
+    rings: ([
+        number,
+        number
+    ])[];
+    crown: [
+        number,
+        number,
+        number
+    ];
+}
+export type PlaceholderTree = { [Key in keyof PlaceholderTreeFields]: PlaceholderTreeFields[Key] };
+export type PlaceholderFarRowsInput = PlaceholderFarRows;
+interface PlaceholderFarRowsFields {
+    look: {
+        module: string;
+        export: string;
+    };
+    grid?: {
+        module: string;
+        export: string;
+    } | undefined;
+    parts?: {
+        module: string;
+        export: string;
+    } | undefined;
+}
+export type PlaceholderFarRows = { [Key in keyof PlaceholderFarRowsFields]: PlaceholderFarRowsFields[Key] };
+interface PlaceholderSourceInputFields {
+    ground?: {
+        generator: string;
+        export: string;
+    } | undefined;
+    trees?: (PlaceholderTreeInput)[] | undefined;
+    far?: PlaceholderFarRowsInput | undefined;
+    near?: {
+        floors: ({
+            prototype: string;
+            triangles: number;
+        })[];
+    } | undefined;
+}
+export type PlaceholderSourceInput = { [Key in keyof PlaceholderSourceInputFields]: PlaceholderSourceInputFields[Key] };
+interface PlaceholderSourceFields {
+    ground?: {
+        generator: string;
+        export: string;
+    } | undefined;
+    trees?: (PlaceholderTree)[] | undefined;
+    far?: PlaceholderFarRows | undefined;
+    near?: {
+        floors: ({
+            prototype: string;
+            triangles: number;
+        })[];
+    } | undefined;
+}
+export type PlaceholderSource = { [Key in keyof PlaceholderSourceFields]: PlaceholderSourceFields[Key] };

@@ -12,14 +12,14 @@ const target = v.variant('kind', [v.strictObject({ kind: v.literal('creature'), 
 const emitter = v.strictObject({ id: positive, recipe: v.literal('platform.particles'), perTick: v.pipe(positive, v.maxValue(256)), live: v.pipe(positive, v.maxValue(4096)), lifetimeTicks: v.pipe(positive, v.maxValue(3600)),
   colour: v.tuple([channel, channel, channel]), size: v.pipe(finite, v.minValue(0.01), v.maxValue(4)), velocity: v.tuple([velocity, velocity, velocity]), gravity: v.pipe(finite, v.minValue(-30), v.maxValue(30)) });
 /** Presentation bytecode binds visual targets and selected numeric state; it never joins the authoritative script lane. */
-export const ClientScriptsSchema = v.strictObject({ divisor: v.pipe(positive, v.check((n) => 60 % n === 0, 'Client cadence divides 60')),
+export const ClientScriptsSchema: v.GenericSchema<ShardClientScriptsInput, ShardClientScripts> = v.strictObject({ divisor: v.pipe(positive, v.check((n) => 60 % n === 0, 'Client cadence divides 60')),
   bindings: v.pipe(v.array(v.strictObject({ module: ref, entity: positive, name, target,
     reads: v.pipe(v.array(v.strictObject({ scope: v.picklist(['shared', 'player']), id: positive })), v.maxLength(CLIENT_SCRIPT_LIMITS.fields)),
     parameters: v.pipe(v.array(finite), v.maxLength(CLIENT_SCRIPT_LIMITS.parameters)), pose: v.boolean(), maxOffset: v.pipe(finite, v.minValue(0), v.maxValue(50)),
     minScale: v.pipe(finite, v.minValue(0.01), v.maxValue(1)), maxScale: v.pipe(finite, v.minValue(1), v.maxValue(16)),
     emitters: v.pipe(v.array(emitter), v.maxLength(CLIENT_SCRIPT_LIMITS.emitters)) })), v.maxLength(CLIENT_SCRIPT_LIMITS.bindings)) });
 /** Renderer-neutral declaration consumed by the client and the frozen-neighbour presentation adapter. */
-export type ShardClientScripts = v.InferOutput<typeof ClientScriptsSchema>;
+
 /** Charge the bounded particle pool: 56 CPU bytes and 32 GPU bytes per live slot. */
 export function clientScriptViewCost(data: ShardClientScripts): { capacity: number; decoded: number; gpu: number; triangles: number; draws: number } {
   const capacity = Math.min(CLIENT_SCRIPT_LIMITS.particlesLive, data.bindings.reduce((sum, binding) => sum + binding.emitters.reduce((n, row) => n + row.live, 0), 0));
@@ -56,3 +56,61 @@ export function clientScriptRules(source: ClientScriptContent): string[] {
 }
 /** Parse detached strict data before host composition allocates any guest instance. */
 export function parseClientScripts(input: unknown): ShardClientScripts { return v.parse(ClientScriptsSchema, input); }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type ShardClientScriptsInput = ShardClientScripts;
+interface ShardClientScriptsFields {
+    divisor: number;
+    bindings: ({
+        module: string;
+        entity: number;
+        name: string;
+        target: ({
+            kind: 'creature';
+            id: string;
+        }) | ({
+            kind: 'panel';
+            id: string;
+        }) | ({
+            kind: 'prop';
+            id: string;
+        }) | ({
+            kind: 'particles';
+            id: string;
+            at: [
+                number,
+                number,
+                number
+            ];
+        });
+        reads: ({
+            scope: 'shared' | 'player';
+            id: number;
+        })[];
+        parameters: (number)[];
+        pose: boolean;
+        maxOffset: number;
+        minScale: number;
+        maxScale: number;
+        emitters: ({
+            id: number;
+            recipe: 'platform.particles';
+            perTick: number;
+            live: number;
+            lifetimeTicks: number;
+            colour: [
+                number,
+                number,
+                number
+            ];
+            size: number;
+            velocity: [
+                number,
+                number,
+                number
+            ];
+            gravity: number;
+        })[];
+    })[];
+}
+export type ShardClientScripts = { [Key in keyof ShardClientScriptsFields]: ShardClientScriptsFields[Key] };

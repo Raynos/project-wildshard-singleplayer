@@ -49,7 +49,7 @@ const source = v.variant('kind',[
 ]);
 /** Finite native observation selectors. Names label AS columns, never reflected
  * object paths. Clocks use explicit units; state codes are authored data. */
-export const ObservationColumnsV2Schema = v.pipe(v.array(v.strictObject({ name: key,
+export const ObservationColumnsV2Schema: v.GenericSchema<ObservationColumnsV2RowsInput, ObservationColumnsV2Rows> = v.pipe(v.array(v.strictObject({ name: key,
   id: v.pipe(finite,v.integer(),v.minValue(1),v.maxValue(0x7fffffff)),source })),v.maxLength(128));
 export type ObservationColumnV2 = v.InferOutput<typeof ObservationColumnsV2Schema>[number];
 export function parseObservationColumnsV2(input: unknown): readonly ObservationColumnV2[] {
@@ -62,3 +62,165 @@ export function parseObservationColumnsV2(input: unknown): readonly ObservationC
   }
   return rows;
 }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type ObservationColumnsV2RowsInput = ObservationColumnsV2Rows;
+export type ObservationColumnsV2Rows = ({
+    name: string;
+    id: number;
+    source: ({
+        kind: 'crowd';
+        field: 'cx' | 'cz' | 'present' | 'x' | 'y' | 'z';
+        distance: number;
+    }) | ({
+        kind: 'nearest';
+        roster: string;
+        at: 'crowd';
+        field: 'present' | 'distance' | 'x' | 'y' | 'z';
+    }) | ({
+        kind: 'player';
+        field: 'crouched' | 'forwardX' | 'forwardZ' | 'mounted' | 'healthShare';
+    }) | ({
+        kind: 'wind';
+        field: 'x' | 'z' | 'strength';
+    }) | ({
+        kind: 'environment';
+        field: 'light' | 'storm';
+    }) | ({
+        kind: 'grass';
+        at: 'self' | 'player';
+    }) | ({
+        kind: 'clock';
+        field: 'hour' | 'dayPhase' | 'night';
+    }) | ({
+        kind: 'time';
+        field: 't' | 'dt';
+    }) | ({
+        kind: 'weather';
+        field: 'stormActive';
+    }) | ({
+        kind: 'actor';
+        field: 'x' | 'y' | 'z' | 'yaw' | 'alive' | 'speed' | 'hpShare' | 'attackPhase' | 'lastHitValid' | 'lastHitSeconds' | 'scale' | 'yOffset' | 'hp' | 'maxHp' | 'seed' | 'stunned' | 'modSpeed';
+    }) | (({
+        kind: 'sense';
+        field: 'visibility';
+    }) | ({
+        kind: 'sense';
+        field: 'downwind';
+    }) | ({
+        kind: 'sense';
+        field: 'hearing';
+        radii: [
+            number,
+            number,
+            number,
+            number
+        ];
+    })) | ({
+        kind: 'memory';
+        key: string;
+        default: {
+            value: number;
+            source?: 'x' | 'z' | 'yaw';
+            when?: {
+                field: string;
+                equal: number;
+                value: number;
+            };
+        };
+        encoding?: {
+            kind: 'negative-infinity';
+            part: 'value' | 'valid';
+        };
+    }) | ({
+        kind: 'memory-present';
+        keys: (string)[];
+    }) | ({
+        kind: 'actor-state';
+        states: (string)[];
+    }) | ({
+        kind: 'player-position';
+        axis: 'x' | 'y' | 'z';
+    }) | ({
+        kind: 'context';
+        field: 'calm' | 'playerSpeed';
+    }) | ({
+        kind: 'hit';
+        axis: 'x' | 'y' | 'z';
+    }) | ({
+        kind: 'request';
+        field: 'present';
+    }) | ({
+        kind: 'request-tags';
+        tags: (string)[];
+    }) | ({
+        kind: 'equipment';
+        ids: (string)[];
+    }) | ({
+        kind: 'result';
+        channel: string;
+    }) | ({
+        kind: 'reference';
+        binding: string;
+        field: 'present' | 'handle' | 'x' | 'y' | 'z' | 'yaw' | 'alive';
+    }) | ({
+        kind: 'bearing';
+        target: ({
+            kind: 'self' | 'player' | 'hit';
+        }) | ({
+            kind: 'memory';
+            x: string;
+            z: string;
+            fallback: 'self' | 'zero';
+        });
+    }) | ({
+        kind: 'heading-offset';
+        target: ({
+            kind: 'player';
+        }) | ({
+            kind: 'memory';
+            key: string;
+        });
+    }) | ({
+        kind: 'distance-xz';
+        from: ({
+            kind: 'self' | 'player' | 'hit';
+        }) | ({
+            kind: 'memory';
+            x: string;
+            z: string;
+            fallback: 'self' | 'zero';
+        });
+        to: ({
+            kind: 'self' | 'player' | 'hit';
+        }) | ({
+            kind: 'memory';
+            x: string;
+            z: string;
+            fallback: 'self' | 'zero';
+        });
+    }) | ({
+        kind: 'heading-component';
+        axis: 'sin' | 'cos';
+        sign: -1 | 1;
+    }) | ({
+        kind: 'herd';
+        group: string;
+        slot: number;
+        field: 'cx' | 'cz' | 'trust' | 'alert' | 'beaten' | 'fleeing' | 'sameActor' | 'stallion';
+    }) | ({
+        kind: 'herd-state';
+        group: string;
+        slot: number;
+        states: ({
+            state: string;
+            value: number;
+        })[];
+    }) | ({
+        kind: 'taming';
+        field: 'bonded' | 'companion';
+    }) | ({
+        kind: 'mount';
+        field: 'mounted' | 'actor';
+    });
+})[];

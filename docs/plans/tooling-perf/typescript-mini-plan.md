@@ -152,7 +152,8 @@ normal layer emission is the declaration-size authority. Continuation starts at 
 | T4-F2l | Population, audio, placement and light contracts; preserve schema entries, clip arity and authored defaults | 60 min | done (2026-10-25, sp-x8) |
 | T4-F2m | Wire, brain, water, terrain and material contracts; preserve schema composition, transforms and authored defaults | 60 min | done (2026-10-25, sp-x8) |
 | T4-F2n | Scene buffers, population, journals and material rows; preserve variants, defaults and typed record laws | 60 min | done (2026-10-25, sp-x8) |
-| T4-I1 | Format isolated declarations, then engine and remaining layers, one bounded diagnostic family per slice | 60 min per family | open |
+| T4-I1 | Format isolated declarations, then engine and remaining layers, one bounded diagnostic family per slice | 60 min per family | in flight (2026-10-25, sp-x8) |
+| T4-I1a | Continuation, rig, catalogue and authored-page schemas; retain nested metadata and default laws | 60 min | done (2026-10-25, sp-x8) |
 
 T4 first format slices are on origin: schema expressions and emitted runtime JavaScript are unchanged.
 Independent named data types replace exported validator implementation types; original/candidate input and output

@@ -8,14 +8,61 @@ const tag=v.custom<`${string}.${string}`>(input=>typeof input==='string'&&/^[^.]
 const tags=v.pipe(v.array(tag),v.maxLength(64));
 const weapon=v.custom<`weapon.${string}`>(input=>typeof input==='string'&&/^weapon\.[a-z0-9.-]+$/u.test(input));
 /** Original source rules are evaluated only by the variant baker. */
-export const BowSourceMultipliersSchema=v.pipe(v.array(v.strictObject({id:text,when:v.strictObject({sourceTags:v.exactOptional(tags),targetTags:v.exactOptional(tags),weaponTags:v.exactOptional(tags),targetState:v.exactOptional(tags)}),mul:positive})),v.maxLength(128));
+export const BowSourceMultipliersSchema: v.GenericSchema<BowSourceMultipliersRowsInput, BowSourceMultipliersRows>=v.pipe(v.array(v.strictObject({id:text,when:v.strictObject({sourceTags:v.exactOptional(tags),targetTags:v.exactOptional(tags),weaponTags:v.exactOptional(tags),targetState:v.exactOptional(tags)}),mul:positive})),v.maxLength(128));
 const scales=v.strictTuple([positive,positive]);
 /** Build-only admission of the held variant; its native bow and actor owner stay charged. */
-export const BowVariantSchema=v.pipe(v.unknown(),v.check(isJsonData),v.strictObject({
+export const BowVariantSchema: v.GenericSchema<BowVariantRowsInput, BowVariantRows> & { readonly pipe: readonly [unknown, unknown, { readonly entries: { readonly id: v.GenericSchema<BowVariantRows['id'], BowVariantRows['id']>; readonly sourceTag: v.GenericSchema<BowVariantRows['sourceTag'], BowVariantRows['sourceTag']> } }] }=v.pipe(v.unknown(),v.check(isJsonData),v.strictObject({
   id:weapon,name:text,style:v.picklist(['recurve','golden','sky-wolf']),drawSpeed:v.pipe(positive,v.minValue(.001)),
   program:ReturnProgramSchema,signal:text,threshold:positive,pierce:positive,crush:positive,crushKinds:v.pipe(v.array(text),v.maxLength(32)),
   sourceTag:tag,damageScale:v.strictObject({base:scales,kinds:v.record(text,scales)}),
   flight:v.strictObject({base:positive,draw:positive,offset:positive,step:v.pipe(positive,v.minValue(.001)),from:positive,gap:v.pipe(positive,v.minValue(.001))}),
   trail:ProjectedTrailSchema,
 }));
-export type BowVariantRows=v.InferOutput<typeof BowVariantSchema>;
+
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type BowSourceMultipliersRowsInput = BowSourceMultipliersRows;
+export type BowSourceMultipliersRows = ({
+    id: string;
+    when: {
+        sourceTags?: (`${string}.${string}`)[];
+        targetTags?: (`${string}.${string}`)[];
+        weaponTags?: (`${string}.${string}`)[];
+        targetState?: (`${string}.${string}`)[];
+    };
+    mul: number;
+})[];
+export type BowVariantRowsInput = unknown;
+interface BowVariantRowsFields {
+    id: `weapon.${string}`;
+    name: string;
+    style: 'recurve' | 'golden' | 'sky-wolf';
+    drawSpeed: number;
+    program: v.InferOutput<typeof ReturnProgramSchema>;
+    signal: string;
+    threshold: number;
+    pierce: number;
+    crush: number;
+    crushKinds: (string)[];
+    sourceTag: `${string}.${string}`;
+    damageScale: {
+        base: [
+            number,
+            number
+        ];
+        kinds: Record<string, [
+            number,
+            number
+        ]>;
+    };
+    flight: {
+        base: number;
+        draw: number;
+        offset: number;
+        step: number;
+        from: number;
+        gap: number;
+    };
+    trail: v.InferOutput<typeof ProjectedTrailSchema>;
+}
+export type BowVariantRows = { [Key in keyof BowVariantRowsFields]: BowVariantRowsFields[Key] };
