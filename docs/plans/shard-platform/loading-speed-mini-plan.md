@@ -98,9 +98,10 @@ hinges on C1 + H2 + H3 together.
 
 ## The update pill (Jake, 2026-10-23 09:33, iPhone screenshot on ab93dccfe: *"Pressing the updating button takes forever. I just expected to refresh the page. I don't know why refreshing the page takes so long."*)
 
-The pill (`src/engine/ui/Update.ts`) shows "UPDATING…", waits up to the service worker's adopt cap for a waiting
-worker, then replaces the page with a cache-busted URL. The new build then boots with new content hashes, so every boot
-pack downloads again, and the new worker installs alongside. To Jake that is a refresh that takes as long as a cold start.
+The original report described a static "UPDATING…" and a cold-start-length refresh. The current pill
+(`src/engine/ui/Update.ts`) paints progress before adopting an installed worker; with none waiting it reloads immediately.
+The worker carries unchanged content-addressed packs and installs only the entry shell/static graph. The follow-up below
+checks the current larger build gap rather than assuming every unchanged pack downloads again.
 
 | Row | What | Owner | Done when |
 |---|---|---|---|
@@ -123,6 +124,8 @@ Prior U1/U2/U4 results above remain valid historical measurements. Recheck the l
 
 | Slice (≤ 1 h) | Scope | Status |
 |---|---|---|
-| U1.3 | One ff45b6a24 → newest pinned build Simulator visit; split install/adopt/reload/title, inspect stale/new art and Template admission. Stream response hashes to distinguish unchanged re-downloads from changed or unknown bytes. | in flight (2026-10-25, sp-x2); existing worker caches and deadlines retained |
-| U2.2 | Review current exact worker/update regressions and fix only a reproduced update failure or delay; retain stable content URLs. | open, after U1.3 |
-| U4.3 | Review current loading-style progress against actual phase/receipt evidence; preserve prior native handoff proof, fix a demonstrated gap only. | open, after U2.2 |
+| U1.3 | One ff45b6a24 → current pinned build Simulator visit; split install/adopt/reload/title, inspect stale/new art and Template admission. | done (2026-10-25, sp-x2): `ff45b6a24` → `07f473ffb8`, tap → title **720 ms** = adopt 1 + reload → inline 391 + inline → ready 291 + paint 37. Worker installing → installed 48 ms before tap; activation spans 385 ms after tap and overlaps reload, not additive. Application errors 0; stale/new 12 unique image URLs valid (11-thumb deck); blank art not reproduced. 101 cache URLs retained, no legacy pack URL requested. Update response bodies 733,156 B: 281,152 identical, 43,559 changed, 408,445 unknown/new; diagnostic HTML is injected/uncompressed, local telemetry 404 is separate. No cache-hit inference from missing requests. |
+| U2.2 | Preserve verified plain image aliases during static-cache migration; unchanged pack URLs and immediate reload remain unchanged. | done (this code commit): U1 found the same 280,723 B title hero downloaded again because migration kept only its verified `?v=hash` key while the inline title reads its plain URL. Keep both verified aliases in the current content-named cache; real shipped-worker regression proves zero fetches for either, while changed/removed images still refuse carry. This avoids the identified body in that fixture; no post-fix native timing/byte claim. Engine/test types, typed lint and 22 focused cases pass. |
+| U4.3 | Review current loading-style progress against actual phase/receipt evidence; preserve prior native handoff proof, fix a demonstrated gap only. | done (2026-10-25, sp-x2): Update/UpdateProgress/styles/sw boot code unchanged since the earlier 2,873 ms /15 changes /253 ms native proof except public enablement `5716145112`. Current direct reload, real receipt counts, handoff/retry/unknown-byte and worker install regressions pass; no new modal code or duplicate native recording. |
+
+**Template wait named:** current post-update Template is 3,547 ms tap → ready, with admission 981 ms. The `Parsing shard descriptor` label persists while `readProductInput` resolves the descriptor sections: `resolveOutputDescriptor` launches 39 section reads together. Its verified-read and worker waits are nested, giving the observed **39 files /78 waits**, not 78 transports or one 7.3 s JSON parse. The creatures label appeared at document +1,158 ms and the next snapshot was `Checking visited product` at +1,258 ms; the reported 7.3 s stall did not reproduce. Immutable assets then use the separate 16-read admission pool. No concurrency/deadline change.

@@ -52,7 +52,7 @@ function fixture(read?: (url: string, init?: RequestInit) => Promise<Response>) 
     .replace("'__BUNDLE__'", JSON.stringify(JSON.stringify([entry, dependency, css, lazy, later])))
     .replace("'__INSTALL__'", JSON.stringify(JSON.stringify([entry, dependency, css])))
     .replace("'__FONTS__'", JSON.stringify('[]'));
-  runInNewContext(`${owner}\n${worker}`, { self, caches, fetch, URL, Request, Response, Headers, AbortController, setTimeout, clearTimeout, Date, console });
+  runInNewContext(`${owner}\n${worker}`, { self, caches, fetch, URL, Request, Response, Headers, AbortController, setTimeout, clearTimeout, Date, console, crypto });
   const dispatch = async (kind: string, payload: Pick<WorkerEvent, 'data' | 'request'> = {}): Promise<void> => {
     const pending: Promise<unknown>[] = [];
     for (const listener of listeners.get(kind) ?? []) listener({ ...payload, source: { postMessage: (value: unknown) => { replies.push(value); } }, waitUntil: work => { pending.push(work); }, respondWith: work => { pending.push(work); } });
@@ -123,6 +123,29 @@ test('activation carries unchanged packs without downloading and fetches only a 
   await vi.waitFor(async () => {
     expect(await (await current.match(new URL(changed, base).href))?.text()).toBe('new pack bytes');
   });
+});
+
+test('verified plain image aliases survive migration without an identical download or stale carry', async () => {
+  const path = '/assets/title/hero.jpg', bytes = new TextEncoder().encode('unchanged hero');
+  const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', bytes));
+  const hash = Array.from(digest.subarray(0, 4), byte => byte.toString(16).padStart(2, '0')).join('');
+  const stale = '/assets/title/changed.jpg', removed = '/assets/title/removed.jpg';
+  const f = fixture(url => Promise.resolve(url.endsWith('/asset-manifest.json')
+    ? Response.json({ [path]: hash, [stale]: 'ffffffff' }) : new Response('new bytes')));
+  const old = await f.open('ws-static-previous');
+  await old.put(new URL(path, base).href, new Response(bytes));
+  await old.put(new URL(stale, base).href, new Response('old image'));
+  await old.put(new URL(removed, base).href, new Response('removed image'));
+  await f.dispatch('activate');
+  const current = await f.open('ws-static-unit-assets');
+  expect(await (await current.match(new URL(path, base).href))?.text()).toBe('unchanged hero');
+  expect(await (await current.match(new URL(`${path}?v=${hash}`, base).href))?.text()).toBe('unchanged hero');
+  expect(await current.match(new URL(stale, base).href)).toBeUndefined();
+  expect(await current.match(new URL(removed, base).href)).toBeUndefined();
+  f.fetch.mockClear();
+  await f.dispatch('fetch', { request: new Request(new URL(path, base)) });
+  await f.dispatch('fetch', { request: new Request(new URL(`${path}?v=${hash}`, base)) });
+  expect(f.fetch).not.toHaveBeenCalled();
 });
 
 test('background code is serial, yields its body to foreground reads, then supports offline access', async () => {

@@ -314,6 +314,10 @@ async function migrateStatic(named) {
         if (!res) continue;
         const to = named ? await verdict(req, res, named, true) : 'keep'; // offline: carry as is (verified next time)
         if (to === 'drop') { gc.entries++; gc.bytes += await sizeOf(res); continue; }
+        // A verified plain URL still has live readers (the inline title hero).
+        // Keep that alias in this content-named cache as well as its versioned
+        // key, instead of downloading identical bytes on the next document.
+        if (to !== 'keep' && !await next.match(req, MATCH_OPTS)) await next.put(req, res.clone());
         const key = to === 'keep' ? req : to;
         if (await next.match(key, MATCH_OPTS)) continue;
         await next.put(key, res);
