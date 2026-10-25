@@ -1,6 +1,17 @@
+import { TILES_PER_SIDE, type CellTile } from './tileOrder';
 import { expect, test } from 'vitest';
-import { bucketByTile, compactResident, followTile, ring, tileKey, tileRanges } from '../src/game/shardfile/tileContent';
-import { keyTile } from './fixtures/tileKey';
+import { bucketByTile, compactResident, followTile, ring, tileKey, tileRanges } from './tileContent';
+
+const TILES = TILES_PER_SIDE * TILES_PER_SIDE;
+
+// Historical contract oracle; production consumers use the data-driven owners.
+/** The tile of a key. */
+function keyTile(key: number): CellTile {
+  if (!Number.isInteger(key) || key < 0 || key >= TILES) throw new RangeError('Not a tile key');
+  return { i: key % TILES_PER_SIDE, j: Math.floor(key / TILES_PER_SIDE) };
+}
+
+
 
 test('T3: copies bucket by the tile of their pose, in input order', () => {
   const poses = [{ x: -249, z: -249 }, { x: 10, z: 10 }, { x: -240, z: -200 }, { x: 249, z: 249 }, { x: 300, z: 0 }];

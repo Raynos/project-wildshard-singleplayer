@@ -86,7 +86,9 @@ implementation. Existing test identities, assertions and deadlines stay fixed.
 | T3-G2 | Live travel-state and near-grain units; keep private lower-layer and legacy-encoding integrations at root | 45 min | done (2026-10-25, sp-x8) |
 | T3-S1 | Six Pine/Nine generator suites: cabin, bounds, encoding, profiles and spill inputs; keep credited artifact regressions at root | 60 min | done (2026-10-25, sp-x8) |
 | T3-S2 | Six shard generator suites: sand metadata, LOD rows, map input, spill preparation, plot output and Template generation; keep native/artifact assertions | 60 min | done (2026-10-25, sp-x8) |
-| T3-A1 | Classify remaining root suites and fixture consumers; enumerate concrete ownership batches, preserving accepted cross-layer integrations | 60 min | open |
+| T3-H1 | Three SDK geometry suites and game tile-content units; inline each sole-consumer fixture without changing its statements or test bodies | 60 min | done (2026-10-25, sp-x8) |
+| T3-H2 | Baked hunt-ground, creature stride and Script V2 grid units; audit their sole-consumer fixtures before colocation | 60 min | open |
+| T3-A1 | Classify remaining root suites and fixture consumers; enumerate concrete ownership batches, preserving accepted cross-layer integrations | 60 min | in flight (2026-10-25, sp-x8) |
 | T3-C1 | Reconcile the final root inventory, workspace membership and CF1/CI selection; retain only classified root suites | 45 min | open |
 
 T2 covered the 13 previously unowned top-level app roots and SDK `.d.mts`, preserving every old root input through
