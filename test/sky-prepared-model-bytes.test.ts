@@ -58,15 +58,15 @@ test('missing source reads refuse without a retained-file fallback', async () =>
   await expect(bakePreparedModels(() => { throw new Error('Missing explicit source'); }, inputs)).rejects.toThrow('Missing explicit source');
 });
 
-test('the pure byte producer bundles without generated fitting imports or filesystem services', async () => {
+test.each(['preparedModelBytes', 'preparedModels'])('%s bundles without generated fitting imports or filesystem services', async entry => {
   const result = await build({ configFile: false, logLevel: 'silent', build: { write: false, minify: false,
-    lib: { entry: resolve('src/shards/far-reach/generators/preparedModelBytes.ts'), formats: ['es'] },
+    lib: { entry: resolve(`src/shards/far-reach/generators/${entry}.ts`), formats: ['es'] },
     rolldownOptions: { external: [/^node:/u, 'assemblyscript/dist/asc.js'], output: { codeSplitting: false } } } });
   const output = Array.isArray(result) ? result[0] : result;
   if (output === undefined || !('output' in output)) throw new Error('Missing prepared-model byte bundle');
   const chunks = output.output.filter(row => row.type === 'chunk'); expect(chunks).toHaveLength(1);
   for (const chunk of chunks) {
     assertConfigBoundary([...chunk.imports, ...chunk.dynamicImports]);
-    expect(Object.keys(chunk.modules).some(path => path.endsWith('/modelFrames.ts') || path.endsWith('/skyIsleFrames.json') || path.includes('.generated.'))).toBe(false);
+    expect(Object.keys(chunk.modules).some(path => (entry === 'preparedModelBytes' && path.endsWith('/modelFrames.ts')) || path.endsWith('/skyIsleFrames.json') || path.includes('.generated.'))).toBe(false);
   }
 });

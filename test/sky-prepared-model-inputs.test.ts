@@ -12,6 +12,11 @@ test('retained prepared-model readers declare the pure leaf and the real sealed 
     const reader = jobs.find(row => row.id === id);
     if (reader === undefined) throw new Error(`Missing retained reader ${id}`);
     expect(reader.inputRoots).toContain(source);
+    for (const path of ['preparedModelProgram.ts', 'skyIsleFrames.ts', 'skyIsleProbe.ts', 'rows/skyIsles.ts', 'rows/layoutTypes.ts']) {
+      expect(reader.inputRoots).toContain(`src/shards/far-reach/generators/${path}`);
+    }
+    expect(reader.inputRoots).not.toContain('src/shards/far-reach/data/skyIsleFrames.json');
+    expect(reader.inputRoots).not.toContain('src/shards/far-reach/data/layout.generated.json');
   }
   const job = jobs.find(row => row.id === 'sky-prepared-models');
   if (job === undefined) throw new Error('Missing prepared-model producer');
@@ -27,6 +32,21 @@ test('retained prepared-model readers declare the pure leaf and the real sealed 
       expect(result.hit).toBe(false);
       expect(result.hashes).toEqual({ 'public/assets/far-reach/baked/prepared-models.glb': 'bd1a0a75879e2f3e72e2ab2b8d0c18a79d7e7746478b3fedc6961199a714c580' });
     } finally { result.release(); }
+  } finally { rmSync(cacheDir, { recursive: true, force: true }); }
+});
+
+test.each([
+  ['sky-vane-post', 'public/assets/far-reach/models/wind-vane/post.glb', 'a5b779f379598b3e6afbf7640a0c5c30c802a2f4f51b53bb0934c29260b46a74'],
+  ['sky-vane-rotor', 'public/assets/far-reach/models/wind-vane/rotor.glb', '13ad79dd37f10805d3450bbc59a450f27a3262065e85358c8e27f8d3e82b9ad5'],
+  ['sky-hero-library', 'src/shards/far-reach/data/heroLibrary.generated.json', '8636a32d64c0cffec7c174e8f3983ca6a5d585e3bea4bd00463084dd1d85ac12'],
+])('%s retains its complete original output with both generated fitting inputs absent', async (id, output, hash) => {
+  const root = resolve('.'), { jobs } = discoverGeneration(root), job = jobs.find(row => row.id === id);
+  if (job === undefined) throw new Error(`Missing retained reader ${id}`);
+  const cacheDir = mkdtempSync(resolve('tmp/sky-prepared-reader-'));
+  try {
+    const result = await generateShardJob(root, job, { cacheDir, forceCompare: true });
+    try { expect(result.hit).toBe(false); expect(result.hashes).toEqual({ [output]: hash }); }
+    finally { result.release(); }
   } finally { rmSync(cacheDir, { recursive: true, force: true }); }
 });
 

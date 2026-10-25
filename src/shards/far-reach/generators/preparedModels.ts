@@ -1,24 +1,15 @@
-import { MeshStandardMaterial, type BufferGeometry } from 'three';
+import { MeshStandardMaterial } from 'three';
 import { readSourceModel } from '@wildshard/sdk/bake/skinned';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
-import { HD_URLS, MODEL_URLS, SKY_HD, type SkyHdName } from './fileInventory';
-import { CARVED, MODEL_FITS } from './modelFrames';
-import frames from '../data/skyIsleFrames.json' with { type: 'json' };
+import { HD_URLS, MODEL_URLS, SKY_HD } from './fileInventory';
 import { facetedGeometry, hdGeometry } from './modelIntake';
 import { bakeKeeperFigure } from './keeperFigure';
 import { bakeVaneParts } from './vane';
-import { prepareModelFrame as prepareFrame, bakePreparedModels as prepareModels } from './preparedModelBytes';
+import { PREPARED_MODEL_INPUTS, preparedModelSource } from './preparedModelProgram';
 
-const preparedFrames = { frames, fits: MODEL_FITS, daisHeight: CARVED.daisH };
-
-/** Retained CLI adapter; the pure byte producer receives these existing rows explicitly. */
-export function prepareModelFrame(name: SkyHdName, geometry: BufferGeometry): BufferGeometry {
-  return prepareFrame(name, geometry, preparedFrames);
-}
-
-/** Preserve the registered writer until source-owned inputs and product readers migrate. */
+/** The retained writer consumes the same owned source program as future product readers. */
 export function bakePreparedModels(read: (url: string) => Uint8Array): Promise<Uint8Array> {
-  return prepareModels(read, preparedFrames);
+  return preparedModelSource(new Map(PREPARED_MODEL_INPUTS.map(url => [url, read(url)])));
 }
 
 async function bakeVanePart(read: (url: string) => Uint8Array, part: 0 | 1): Promise<Uint8Array> {
