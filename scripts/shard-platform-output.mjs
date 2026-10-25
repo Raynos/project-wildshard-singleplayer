@@ -109,7 +109,7 @@ function productSections(slug,products) {
     const content=readFileSync(resolve(folder,file.path));
     if(content.length!==file.compressed||digest(content)!==file.hash)throw new Error(`${slug}: named JSON hash/size mismatch: ${file.name}`);
     JSON.parse(content.toString('utf8'));
-    customSectionBytes+=content.length;customSections.push({name:file.name,bytes:content.length});
+    customSectionBytes+=content.length;customSections.push({name:file.name,bytes:content.length,...(file.jsonSchema===undefined?{}:{jsonSchema:file.jsonSchema})});
   }
   return {index,sections,customSections,customSectionBytes};
 }

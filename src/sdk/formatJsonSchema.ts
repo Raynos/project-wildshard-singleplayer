@@ -470,8 +470,16 @@ const namedSchemas = new WeakMap<GenericSchema, Readonly<Record<string, unknown>
 /** Build-only draft-07 structure for a named JSON producer's defining schema.
  * Like the custom-section bridge, omit documentation annotations that Ajv does
  * not implement; the producer and defining reader retain semantic admission.
- * Unknown checks and transforms still refuse conversion. Never infer from data. */
-export function namedJsonSchema(schema: GenericSchema): Readonly<Record<string, unknown>> {
+ * Unknown checks and transforms still refuse conversion. Never infer from data.
+ * New named JSON requests provenance: only an exact defining format root receives
+ * its source identity. The default preserves every existing schema byte. */
+export function namedJsonSchema(schema: GenericSchema, options: { provenance?: boolean } = {}): Readonly<Record<string, unknown>> {
+  if (options.provenance === true) {
+    const entry = Object.entries(wireRoots).find(([, root]) => root === schema);
+    if (entry === undefined) throw new Error('Named JSON provenance requires a defining shared format root');
+    const [key] = entry, split = key.indexOf('.');
+    return { ...namedJsonSchema(schema), $comment: `@wildshard/format/${key.slice(0, split)}#${key.slice(split + 1)}Schema` };
+  }
   const previous = namedSchemas.get(schema);
   if (previous !== undefined) return previous;
   const structural = (value: unknown): unknown => {
@@ -487,6 +495,14 @@ export function namedJsonSchema(schema: GenericSchema): Readonly<Record<string, 
   const result: Readonly<Record<string, unknown>> = Object.fromEntries(Object.entries(wire));
   namedSchemas.set(schema, result);
   return result;
+}
+
+/** Build-only provenance catalogue from the defining format objects, independently checked by the product freeze. */
+export function namedFormatJsonSchemas(): Readonly<Record<string, Readonly<Record<string, unknown>>>> {
+  return Object.fromEntries(Object.values(wireRoots).map(schema => {
+    const document = namedJsonSchema(schema, { provenance: true });
+    return [String(document['$comment']), document];
+  }));
 }
 
 /** The migrated wire roots, generated from their defining Valibot schemas; whole-shard extraction remains open. */

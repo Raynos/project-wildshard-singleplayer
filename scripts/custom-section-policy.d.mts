@@ -3,3 +3,6 @@ export const CUSTOM_SECTION_POLICY:'lint/custom-sections.json';
 export function customSectionGrowthFailures(budgets:Record<string,unknown>,before:Record<string,{count:number;bytes:number;bounds?:string[]}>,after:Record<string,{count:number;bytes:number}>):string[];
 /** Compare actual count/byte ceilings with an append-only adoption rise history. */
 export function compareCustomSections(beforeBudgets:Record<string,unknown>,afterBudgets:Record<string,unknown>,beforePolicy:unknown,afterPolicy:unknown):string[];
+
+/** Refuse new private identities; verify new generic JSON against defining format schemas. */
+export function customSectionIdentityFailures(policy:unknown,measures:Record<string,{customSections:{name:string;bytes:number;jsonSchema?:unknown}[]}>,formats:Record<string,unknown>):string[];

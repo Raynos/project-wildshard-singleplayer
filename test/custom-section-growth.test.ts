@@ -52,5 +52,29 @@ it('checks emitted products against committed base data and reuses exact receipt
   platformOutput(root,'demo');
   expect(checkCustomSectionGrowth(root,root,base,base,receipts)).toEqual([]);
   expect(JSON.parse(readFileSync(join(receipts,`${base}.json`),'utf8'))).toEqual({revision:base,shards:{demo:{count:0,bytes:0}}});
+  // Retired count/byte capacity cannot be spent on a new private identity.
+  writeFileSync(join(root,'lint/custom-sections.json'),JSON.stringify({version:1,baselineAt:base,baseline:{demo:{count:1,bytes:8}},freeze:{at:base,names:{demo:[]}}}));
+  platformOutput(root,'demo',{}, {'custom/new':'{}'});
+  expect(checkCustomSectionGrowth(root,root,base,revision,receipts)).toEqual(['demo: new custom section custom/new is frozen']);
+  platformOutput(root,'demo');
+  expect(checkCustomSectionGrowth(root,root,base,revision,receipts)).toEqual([]);
+  const source='@wildshard/format/demo#DemoSchema',document={$comment:source,type:'object'};
+  const hash='44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a';
+  const index:unknown=JSON.parse(readFileSync(join(root,'out/demo/shard.json'),'utf8'));
+  if(typeof index!=='object'||index===null)throw new Error('Missing output fixture');
+  const generic={name:'new.json',path:`blobs/json/${hash}.json`,hash,kind:'json',compressed:2,decoded:0,gpu:0,triangles:0,draws:0,dependencies:[],critical:false,jsonSchema:document};
+  Reflect.set(index,'files',[generic]);
+  mkdirSync(join(root,'out/demo/blobs/json'),{recursive:true});
+  writeFileSync(join(root,'out/demo',generic.path),'{}');
+  writeFileSync(join(root,'out/demo/shard.json'),JSON.stringify(index));
+  // Missing catalogue refuses, then an exact defining contract admits the new generic JSON.
+  expect(checkCustomSectionGrowth(root,root,base,revision,receipts)).toEqual(['demo: new named JSON new.json needs verified shared-format schema provenance']);
+  mkdirSync(join(root,'.wildshard/format'),{recursive:true});
+  writeFileSync(join(root,'.wildshard/format/named.json'),JSON.stringify({[source]:document}));
+  expect(checkCustomSectionGrowth(root,root,base,revision,receipts)).toEqual([]);
+  generic.jsonSchema={...document,type:'number'};
+  writeFileSync(join(root,'out/demo/shard.json'),JSON.stringify(index));
+  expect(checkCustomSectionGrowth(root,root,base,revision,receipts)).toHaveLength(1);
+
  }finally{rmSync(root,{recursive:true,force:true});}
 });

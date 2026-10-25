@@ -5,7 +5,7 @@ export const CUSTOM_SECTION_POLICY='lint/custom-sections.json';
 const natural=v.pipe(v.number(),v.integer(),v.minValue(0));
 const pair=v.strictObject({count:natural,bytes:natural});
 const revision=v.pipe(v.string(),v.regex(/^[a-f0-9]{40}$/u));
-const fields={version:v.literal(1),baselineAt:revision,baseline:v.record(v.string(),pair)};
+const fields={version:v.literal(1),baselineAt:revision,baseline:v.record(v.string(),pair),freeze:v.optional(v.strictObject({at:revision,names:v.record(v.string(),v.array(v.string()))}))};
 const schema=v.strictObject(fields), predecessor=v.object(fields);
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 const entries=budgets=>Object.fromEntries([...new Set(Object.keys(budgets).filter(key=>/^custom-sections\/[^/]+\/(?:count|bytes)$/u.test(key)).map(key=>key.split('/')[1]))].map(slug=>
@@ -59,5 +59,43 @@ export function compareCustomSections(beforeBudgets,afterBudgets,beforePolicy,af
   const previous=v.safeParse(predecessor,beforePolicy);
   if(!previous.success)return [...failures,'custom-section predecessor policy is malformed'];
   if(next.output.baselineAt!==previous.output.baselineAt||!same(next.output.baseline,previous.output.baseline))failures.push('custom-section initial baseline is immutable');
+  const frozen = previous.output.freeze, updated = next.output.freeze;
+  if (frozen !== undefined) {
+    if (updated === undefined || updated.at !== frozen.at) failures.push('custom-section name freeze cannot be removed or re-based');
+    else for (const [slug, names] of Object.entries(updated.names)) {
+      if (names.some(name => !frozen.names[slug]?.includes(name))) failures.push(`${slug}: frozen custom-section identities only shrink`);
+    }
+  }
+  if (updated !== undefined) for (const [slug, names] of Object.entries(updated.names)) {
+    if (new Set(names).size !== names.length || names.some(name => name.length === 0)) failures.push(`${slug}: invalid frozen custom-section identities`);
+  }
+  return failures;
+}
+
+const canonical = value => JSON.stringify(normalize(value));
+function normalize(value) {
+  if (Array.isArray(value)) return value.map(normalize);
+  if (value === null || typeof value !== 'object') return value;
+  return Object.fromEntries(Object.entries(value).sort(([a], [b]) => a.localeCompare(b)).map(([key, child]) => [key, normalize(child)]));
+}
+
+/** New identities cannot borrow retired capacity for private schemas. Format provenance is verified against
+ * the independently generated defining-schema catalogue, not trusted because of its label.
+ * @param {unknown} policy
+ * @param {Record<string,{customSections:{name:string;bytes:number;jsonSchema?:unknown}[]}>} measures
+ * @param {Record<string,unknown>} formats
+ * @returns {string[]} */
+export function customSectionIdentityFailures(policy, measures, formats) {
+  const parsed = v.parse(schema, policy), frozen = parsed.freeze;
+  if (frozen === undefined) return [];
+  const failures = [];
+  for (const [slug, row] of Object.entries(measures)) for (const section of row.customSections) {
+    if (frozen.names[slug]?.includes(section.name)) continue;
+    if (section.name.startsWith('custom/')) { failures.push(`${slug}: new custom section ${section.name} is frozen`); continue; }
+    const document = section.jsonSchema;
+    const source = document !== null && typeof document === 'object' ? Reflect.get(document, '$comment') : undefined;
+    if (typeof source !== 'string' || !Object.hasOwn(formats, source) || canonical(document) !== canonical(formats[source]))
+      failures.push(`${slug}: new named JSON ${section.name} needs verified shared-format schema provenance`);
+  }
   return failures;
 }

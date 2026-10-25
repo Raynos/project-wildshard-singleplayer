@@ -4,7 +4,7 @@ import {existsSync,mkdirSync,readFileSync,renameSync,writeFileSync} from 'node:f
 import {resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import * as v from 'valibot';
-import {customSectionGrowthFailures} from './custom-section-policy.mjs';
+import {customSectionGrowthFailures,customSectionIdentityFailures} from './custom-section-policy.mjs';
 import {outputSections} from './shard-platform-output.mjs';
 import {legacyInventory} from './legacy-shards.mjs';
 
@@ -20,8 +20,9 @@ export function checkCustomSectionGrowth(root,repo,base,revision,receipts) {
   const projects=execFileSync('git',['ls-tree','-r','--name-only',revision,'--','src/shards'],{cwd:repo,encoding:'utf8'})
     .split('\n').flatMap(path=>/^src\/shards\/([^/]+)\/shard.config.ts$/u.exec(path)?.slice(1)??[])
     .filter(slug=>!Object.hasOwn(frozen,slug));
+  const identities={};
   const after=Object.fromEntries(projects.map(slug=>{
-    const row=outputSections(root,slug);
+    const row=outputSections(root,slug); identities[slug]=row;
     return [slug,{count:row.customSections.length,bytes:row.customSectionBytes}];
   }));
   const previous=resolve(receipts,`${base}.json`);
@@ -38,6 +39,12 @@ export function checkCustomSectionGrowth(root,repo,base,revision,receipts) {
     throw new Error(`Missing custom-section measurement for pushed base ${base}; exact receipt required`);
   }
   const failures=customSectionGrowthFailures(budgets,before,after);
+  const policyFile=resolve(root,'lint/custom-sections.json');
+  if(existsSync(policyFile)) {
+    const catalogue=resolve(root,'.wildshard/format/named.json');
+    failures.push(...customSectionIdentityFailures(JSON.parse(readFileSync(policyFile,'utf8')),identities,
+      existsSync(catalogue)?JSON.parse(readFileSync(catalogue,'utf8')):{}));
+  }
   if(failures.length===0) {
     mkdirSync(receipts,{recursive:true});
     const destination=resolve(receipts,`${revision}.json`),temporary=`${destination}.${process.pid}`;

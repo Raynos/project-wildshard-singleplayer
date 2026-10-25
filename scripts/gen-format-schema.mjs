@@ -1,7 +1,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { formatJsonSchemas } from '../src/sdk/formatJsonSchema.ts';
+import { formatJsonSchemas, namedFormatJsonSchemas } from '../src/sdk/formatJsonSchema.ts';
 
 /** Build the migrated format documents into an ignored authoring-output folder, never into committed source.
  * @param {string} root
@@ -9,6 +9,7 @@ import { formatJsonSchemas } from '../src/sdk/formatJsonSchema.ts';
 export function writeFormatJsonSchemas(root) {
   const directory = resolve(root, '.wildshard/format');
   mkdirSync(directory, { recursive: true });
+  writeFileSync(resolve(directory, 'named.json'), JSON.stringify(namedFormatJsonSchemas()));
   for (const [name, schema] of Object.entries(formatJsonSchemas())) {
     writeFileSync(resolve(directory, `${name}.schema.json`), `${JSON.stringify(schema, null, 2)}\n`);
   }

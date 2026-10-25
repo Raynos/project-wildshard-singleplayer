@@ -4472,9 +4472,7 @@ DS1.1: `@wildshard/format/shardSections` defines root identity, requirements, bu
 
 `@wildshard/sdk/bake/rig` defines `readRigRest(glb)`: a bounded, single-skin triangle GLB becomes real Three `BufferGeometry`, ordered world-space rest joints and embedded colour image bytes. Positions stay mesh-local; normalized channels become Float32 exactly as in Three's GLTF loader. Meshopt and embedded WebP extensions are supported. Multiple skins/primitives, absent indices or atlas, and malformed input refuse. No renderer, registry or game service is installed.
 
-`@wildshard/sdk/bake/image` defines
-
-`readImagePixels(bytes, {flipY?})` and `writeImagePixels({width,height,pixels})`. The pinned Node decoder admits still PNG/JPEG/WebP up to 4096²; the writer emits lossless PNG with exact unpremultiplied RGBA, including transparent RGB. Source row order is preserved unless the caller asks to flip it. World texture baking uses this same reader. `readImagePixels(bytes, {flipY?})` and `writeImagePixels({width,height,pixels})`. The pinned Node decoder admits still PNG/JPEG/WebP up to 4096²; the writer emits lossless PNG with exact unpremultiplied RGBA, including transparent RGB. Source row order is preserved unless the caller asks to flip it. World texture baking uses this same reader.
+`@wildshard/sdk/bake/image` defines `readImagePixels(bytes, {flipY?})` and `writeImagePixels({width,height,pixels})`. The pinned Node decoder admits still PNG/JPEG/WebP up to 4096²; the writer emits lossless PNG with exact unpremultiplied RGBA, including transparent RGB. Source row order is preserved unless the caller asks to flip it. World texture baking uses this same reader.
 
 Starter equipment rows (`SWORD`, `WOODEN_SWORD`, `IRON_SWORD`) and melee profiles
 share the defining `game/weapons/starterMeleeProfile` module. Native simulations
@@ -13662,6 +13660,18 @@ static portal links. It admits the shard, installs the declared baked pieces,
 walks the real capsule routes and returns lane, step and transfer counts. Each
 call owns a fresh native physics world and disposes it on success or refusal.
 Ordinary edges and moving entry routes retain their world-specific proofs.
+
+`readImagePixels(bytes, {flipY?})` is the existing bounded still-image decoder
+injected at build time. It returns owned RGBA pixels; Sharp stays outside
+author module bundles. Programs may decode freshly and include the measured
+pixel/dimension identity in a cached packing step, preserving invalidation
+when decoded pixels change without adding a source-tree handoff.
+
+New named JSON uses `namedJsonSchema(schema, {provenance: true})` with an
+exact defining format root. The generated build-only schema catalogue checks
+both its identity and full schema structure; a source label alone grants
+nothing. Existing names stay under the shrink-only CS0 inventory, while new
+`custom/` sections refuse. Default schema emission preserves existing bytes.
 
 A build function may return a shard declaration or `GeneratedProject`:
 `{shard, output}`. The latter carries `ProjectOutput` named files and platform
