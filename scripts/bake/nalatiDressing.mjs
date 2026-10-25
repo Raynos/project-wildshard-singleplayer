@@ -19,11 +19,8 @@ export async function prepareNalatiDressing(dressingRecipe, forestMask) {
     if (forestMask !== undefined && NALATI_GRASSLANDS.forest === undefined) throw new Error('Missing Nalati forest definition');
     const definition = forestMask === undefined ? NALATI_GRASSLANDS : { ...NALATI_GRASSLANDS, forest: { ...NALATI_GRASSLANDS.forest, mask: forestMask } };
     await prepareNativeTerrain(definition, { root, bytes: readFileSync(resolve(root, 'public/assets/baked/nalati-grasslands/terrain.bin')) });
-    const { configureGrassField } = await import('@wildshard/game/systems/looks/grassField');
     const { default: NALATI_GRASS_LAYOUT } = await import('../../src/shards/nalati-grasslands/data/grassFieldLayout.json', { with: { type: 'json' } });
-    const { pageScope } = await import('@wildshard/engine/app/resources');
     const { RIVER } = await import('../../src/shards/nalati-grasslands/generators/terrainRecipe.ts');
-    configureGrassField({ ...NALATI_GRASS_LAYOUT, riverZ: RIVER.z, riverHalf: RIVER.half }, pageScope);
     const [{ bakeForestPlacements }, { SPRUCE_SPECS }, { dressingRockColliders, bakeNalatiPoiKeepouts }] = await Promise.all([
       import('@wildshard/sdk/bake/forest'), import('../../src/shards/nalati-grasslands/generators/spruceGeometry.ts'),
       import('../../src/shards/nalati-grasslands/generators/places.ts'),
@@ -32,11 +29,21 @@ export async function prepareNalatiDressing(dressingRecipe, forestMask) {
       import('../../src/shards/nalati-grasslands/generators/layout.ts'), import('../../src/shards/nalati-grasslands/generators/terrainRecipe.ts'),
       import('../../src/shards/nalati-grasslands/generators/terrainRecipe.ts'),
     ]);
-    const [noise, heightfield, grass, { terrainHeight: heightAt }] = await Promise.all([
+    const [noise, heightfield, { GrassField }, { terrainHeight: heightAt }] = await Promise.all([
       import('@wildshard/engine/core/noise'), import('@wildshard/engine/world/Heightfield'),
       import('@wildshard/game/systems/looks/grassField'), import('@wildshard/engine/world/terrainHeight'),
     ]);
-    const { planDressing, campClutterSpots } = dressingRecipe({ layout, ...terrain, ...noise, ...heightfield, ...grass, heightAt, inPoiClearing });
+    const meadow = new GrassField({ seed: definition.seed, half: 250, heightAt,
+      normalAt: heightfield.normalAt, splatAt: heightfield.splatAt, trailDistance: heightfield.trailDistance,
+      cabinMask: heightfield.cabinMask, pondMask: heightfield.pondMask, waterLevel: heightfield.waterLevel,
+      paint: (x, z, y, slope, out) => {
+        const paint = definition.groundColor, ground = definition.ground.terrain;
+        if (!paint || !ground) return false;
+        paint(x, z, y, slope, ground, out); return true;
+      }, layout: { ...NALATI_GRASS_LAYOUT, riverZ: RIVER.z, riverHalf: RIVER.half } });
+    const { planDressing, campClutterSpots } = dressingRecipe({ layout, ...terrain, ...noise, ...heightfield, heightAt, inPoiClearing,
+      grassBaseHeightAt: (x, z) => meadow.baseHeightAt(x, z), grassToneAt: (x, z) => meadow.sample(x, z, 1),
+      flowerPatchAt: (x, z) => meadow.sample(x, z, 2) });
     const forest = bakeForestPlacements({ seed: definition.seed, treeCount: definition.treeCount,
       forest: definition.forest, heightAt: heightfield.heightAt, normalAt: heightfield.normalAt,
       trailDistance: heightfield.trailDistance, cabinMask: heightfield.cabinMask, pondMask: heightfield.pondMask },
