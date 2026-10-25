@@ -10,5 +10,5 @@
   },
   "references": [{ "path": "./tsconfig.engine.json" }, { "path": "./tsconfig.format.json" }],
   "include": ["src/game", "src/game/**/*.json", "src/engine/**/*.d.ts"],
-  "exclude": ["src/game/**/*.test.ts"]
+  "exclude": ["src/game/**/*.test.ts", "src/game/test"]
 }

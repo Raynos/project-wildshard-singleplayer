@@ -47,6 +47,7 @@
     { "path": "./tsconfig.shards.json" },
     { "path": "./tsconfig.app.json" },
     { "path": "./src/engine/tsconfig.test.json" },
+    { "path": "./src/game/tsconfig.test.json" },
     { "path": "./src/sdk/tsconfig.test.json" }
   ],
   "include": ["test", "src/**/*.d.ts", "src/**/*.d.mts", "src/**/*.d.*.ts"],

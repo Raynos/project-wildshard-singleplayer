@@ -94,6 +94,8 @@ implementation. Existing test identities, assertions and deadlines stay fixed.
 | T3-H4 | Shared dual-ABI compiler fixture and its SDK unit suite; preserve root real-shard port inventory and its transitive fixture types | 45 min | done (2026-10-25, sp-x8) |
 | T3-H5 | Shared ABI source fixture plus SDK admission/reset suites; retain frozen compiler-hash and tooling producer regressions at root | 45 min | done (2026-10-25, sp-x8) |
 | T3-U1 | Map-scene baking and weak shader-map lifetime units; retain the mandatory real-GC child proof and its exact self-discovery | 30 min | done (2026-10-25, sp-x8) |
+| T3-H6a | Private game fixture project boundary; strict production imports, layer direction, Node isolation and declaration-only root consumption | 45 min | done (2026-10-25, sp-x8) |
+| T3-H6b | Extract the shared creature recipe once, preserving full simulation-level data, then relocate its two game units without moving scenario callers | 45 min | open |
 | T3-A1 | Direct-import and immediate-fixture ownership census; enumerate concrete batches while preserving accepted cross-layer integrations | 60 min | done (2026-10-25, sp-x8) |
 | T3-A2 | Audit transitive shared-fixture and source-string consumers; classify remaining root regressions and further bounded relocation batches | 60 min | in flight (2026-10-25, sp-x8) |
 | T3-C1 | Reconcile the final root inventory, workspace membership and CF1/CI selection; retain only classified root suites | 45 min | open |

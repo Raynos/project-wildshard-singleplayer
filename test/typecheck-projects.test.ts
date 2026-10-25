@@ -55,13 +55,59 @@ test('every source file has a layer owner, while the root covers all tests and a
     expect(tests.options.tsBuildInfoFile).not.toBe(production.options.tsBuildInfoFile);
     const implementations = new Set(production.fileNames.filter(file => !file.endsWith('.d.ts')));
     expect(tests.fileNames.filter(file => implementations.has(file))).toEqual([]);
-    if (layer === 'engine' || layer === 'sdk') {
+    if (layer === 'engine' || layer === 'game' || layer === 'sdk') {
       const testConfig = v.parse(v.object({ include: v.array(v.string()) }), JSON.parse(readFileSync(`src/${layer}/tsconfig.test.json`, 'utf8')));
       const productionConfig = v.parse(v.object({ exclude: v.array(v.string()) }), JSON.parse(readFileSync(`tsconfig.${layer}.json`, 'utf8')));
       expect(testConfig.include).toContain('test/**/*.ts');
       expect(productionConfig.exclude).toContain(`src/${layer}/test`);
     }
   }
+});
+
+test('private game fixtures stay Node-only and root consumers read their declarations', () => {
+  mkdirSync('tmp', { recursive: true });
+  const root = mkdtempSync(resolve('tmp/typecheck-game-fixture-'));
+  const put = (file: string, contents: string): void => {
+    mkdirSync(dirname(resolve(root, file)), { recursive: true });
+    writeFileSync(resolve(root, file), contents);
+  };
+  const compiler = resolve('node_modules/typescript/bin/tsc');
+  const run = (...args: string[]): ReturnType<typeof spawnSync> => spawnSync(execPath, [compiler, ...args], {
+    cwd: root, encoding: 'utf8', timeout: 10_000,
+  });
+  try {
+    const common = { strict: true, composite: true, declaration: true, emitDeclarationOnly: true,
+      module: 'ESNext', moduleResolution: 'bundler', target: 'ES2022', skipLibCheck: true };
+    put('tsconfig.game.json', JSON.stringify({ compilerOptions: { ...common, outDir: 'out', types: [] },
+      include: ['src/game'], exclude: ['**/*.test.ts', 'src/game/test'] }));
+    put('src/game/tsconfig.test.json', JSON.stringify({ compilerOptions: { ...common, outDir: '../../out',
+      rootDir: '../..', types: ['node'] }, include: ['**/*.test.ts', 'test/**/*.ts'],
+      references: [{ path: '../../tsconfig.game.json' }] }));
+    put('src/game/value.ts', 'export const value: number = 1;\n');
+    put('src/game/test/helper.ts', 'import {value} from "../value"; export const fixturePid: number = process.pid + value;\n');
+    const built = run('-b', 'src/game/tsconfig.test.json');
+    expect(built.status, String(built.stdout) + String(built.stderr)).toBe(0);
+    put('tsconfig.json', JSON.stringify({ compilerOptions: { strict: true, noEmit: true, types: [], skipLibCheck: true,
+      module: 'ESNext', moduleResolution: 'bundler' }, include: ['test'], references: [
+      { path: './tsconfig.game.json' }, { path: './src/game/tsconfig.test.json' },
+    ] }));
+    put('test/helper.ts', 'import {fixturePid} from "../src/game/test/helper"; import {value} from "../src/game/value"; export const result: number = fixturePid + value;\n');
+    const checked = run('--noEmit', '--listFiles');
+    expect(checked.status, String(checked.stdout) + String(checked.stderr)).toBe(0);
+    const files = String(checked.stdout).replaceAll('\\', '/').split('\n');
+    expect(files).toContain(`${root}/out/src/game/test/helper.d.ts`);
+    expect(files).toContain(`${root}/out/src/game/value.d.ts`);
+    expect(files).not.toContain(`${root}/src/game/test/helper.ts`);
+    expect(files).not.toContain(`${root}/src/game/value.ts`);
+    put('test/helper.ts', 'import {fixturePid} from "../src/game/test/helper"; import {value} from "../src/game/value"; export const result: string = fixturePid + value;\n');
+    const badConsumer = run('--noEmit');
+    expect(badConsumer.status, String(badConsumer.stdout) + String(badConsumer.stderr)).not.toBe(0);
+    expect(String(badConsumer.stdout) + String(badConsumer.stderr)).toContain('TS2322');
+    put('src/game/value.ts', 'export const value: number = process.pid;\n');
+    const badProduction = run('-b', 'tsconfig.game.json', '--force');
+    expect(badProduction.status, String(badProduction.stdout) + String(badProduction.stderr)).not.toBe(0);
+    expect(String(badProduction.stdout) + String(badProduction.stderr)).toContain('Cannot find name');
+  } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
 test('tests consume emitted declarations; source and test errors each still refuse', () => {

@@ -29,6 +29,7 @@
   ],
   "include": [
     "**/*.test.ts",
+    "test/**/*.ts",
     "**/*.d.ts",
     "../engine/**/*.d.ts",
     "../game/**/*.merge.d.ts"
