@@ -6,9 +6,19 @@ import { expect, test } from 'vitest';
 import { discoverGeneration, generateShardJob } from '../scripts/generate.mjs';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 
+test('prepared geometry has no scheduled writer or public handoff reader while frozen legacy bytes stay exact', () => {
+  const { jobs } = discoverGeneration(resolve('.')), handoff = 'public/assets/far-reach/baked/prepared-models.glb';
+  expect(jobs.some(row => row.id === 'sky-prepared-models')).toBe(false);
+  for (const job of jobs) {
+    expect(job.outputs, job.id).not.toContain(handoff);
+    expect(job.inputRoots, job.id).not.toContain(handoff);
+  }
+  expect(hashImmutableBytes(readFileSync(handoff))).toBe('bd1a0a75879e2f3e72e2ab2b8d0c18a79d7e7746478b3fedc6961199a714c580');
+});
+
 test('retained prepared-model readers declare the pure leaf and the real sealed producer refuses its omission', async () => {
   const root = resolve('.'), { jobs } = discoverGeneration(root), source = 'src/shards/far-reach/generators/preparedModelBytes.ts';
-  for (const id of ['sky-prepared-models', 'sky-vane-post', 'sky-vane-rotor', 'sky-hero-library']) {
+  for (const id of ['sky-vane-post', 'sky-vane-rotor', 'sky-hero-library']) {
     const reader = jobs.find(row => row.id === id);
     if (reader === undefined) throw new Error(`Missing retained reader ${id}`);
     expect(reader.inputRoots).toContain(source);
@@ -18,8 +28,8 @@ test('retained prepared-model readers declare the pure leaf and the real sealed 
     expect(reader.inputRoots).not.toContain('src/shards/far-reach/data/skyIsleFrames.json');
     expect(reader.inputRoots).not.toContain('src/shards/far-reach/data/layout.generated.json');
   }
-  const job = jobs.find(row => row.id === 'sky-prepared-models');
-  if (job === undefined) throw new Error('Missing prepared-model producer');
+  const job = jobs.find(row => row.id === 'sky-hero-library');
+  if (job === undefined) throw new Error('Missing retained hero-library producer');
   mkdirSync('tmp', { recursive: true }); const cacheDir = mkdtempSync(resolve('tmp/sky-prepared-inputs-'));
   try {
     const omitted = { ...job, inputRoots: job.inputRoots.filter(path => path !== source) };
@@ -30,7 +40,7 @@ test('retained prepared-model readers declare the pure leaf and the real sealed 
     const result = await generateShardJob(root, job, { cacheDir, forceCompare: true });
     try {
       expect(result.hit).toBe(false);
-      expect(result.hashes).toEqual({ 'public/assets/far-reach/baked/prepared-models.glb': 'bd1a0a75879e2f3e72e2ab2b8d0c18a79d7e7746478b3fedc6961199a714c580' });
+      expect(result.hashes).toEqual({ 'src/shards/far-reach/data/heroLibrary.generated.json': '8636a32d64c0cffec7c174e8f3983ca6a5d585e3bea4bd00463084dd1d85ac12' });
     } finally { result.release(); }
   } finally { rmSync(cacheDir, { recursive: true, force: true }); }
 });
