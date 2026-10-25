@@ -4,7 +4,7 @@
 
 **(1) LIVE 7b7f0b1f0b (12:54Z). Since 07:41Z: 653f0abe85 (tonight's fixes), c8e2a84b0e (G723 warm-ahead + sword fix
 9dc10c2d58), 183bd85273 (Explorer + CF2 fix aa3b2781da), b92412f040, 8d7fb5440c. Hourly releases (sp-x7, G705; cron back
-12:37Z). Open: Sunscar source-fixture rewrite red after GR4 (sp-x6, 13:41Z).
+12:37Z). 5c465d9b52 (CI + six legs) releasing 14:0xZ. No open red.
 
 **(2) NALATI 0 done (27dd969127).** HOST-AUDIT (G679) parked until every mini plan finishes. Legacy waits (G606).
 
@@ -23,8 +23,8 @@ G713: close structurally: lazy-load code (js-payload J1-J10, sp-x2) + lighter po
 (board 95d25c95da), G724+G725 d8598ec213 (re-entry 17.7 ms, no panel/static, one world). L16 0dd7ce4722: hero
 0.48 s (was 1.43 s blank); the 0.32 s black is iOS's launch zoom, outside the page.
 Hero retake 0dd7ce4722: art/main-menu-hero/round-5-retake/board.jpg; Nalati aerial terrain FIXED 0ce626a8f5 (board
-art/main-menu-hero/round-6-nalati-terrain/); G630 still needs Nine far proxy + Sunscar glow (Opus). Now: sp-x9 G733 -> L17; sp-x2 JS payload J5 (J1-J4 done; 7 frozen G606 warnings kept); sp-x6 NM RM2; sp-x1 G717 quiet misses.
-**Blocked on Jake:** LEGACY phone QA, memory budget call, road B pilot play, hero board. **On Opus:** G713 post RT sheet,
+art/main-menu-hero/round-6-nalati-terrain/); G630 still needs Nine far proxy + Sunscar glow (Opus). Now: sp-x9 G733 -> L17; sp-x2 J5 then tile T4 (G730: J6-J10 after extras); sp-x8 TS T3; sp-x6 NM RM2; sp-x1 G717 quiet misses.
+**Blocked on Jake:** LEGACY phone QA, road B pilot play, hero board. **On Opus:** G713 post RT sheet,
 G685 look row, NM RM4+, U2 occupied parents, L18.3 lighter DW assets, G630 Nine far + Sunscar glow, T3/T6 visual.
 
 **Lanes:** Claude weekly 99 %: 0 Opus (G605); 5 Codex + sp-x7 (Codex weekly 17 %).
