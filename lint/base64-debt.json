@@ -83,8 +83,6 @@
     "src/shards/nalati-grasslands/generators/product.ts": 1,
     "src/shards/nalati-grasslands/generators/reinsCard.ts": 1,
     "src/shards/nine-dragon-stack/generators/bake-glyphs.mjs": 2,
-    "src/shards/nine-dragon-stack/generators/heldGraphFiles.ts": 1,
-    "src/shards/nine-dragon-stack/generators/presentation.ts": 1,
     "src/shards/pine-hollow-legacy/runtime/baked.ts": 1,
     "src/shards/pine-hollow/generators/bake-contracts.mjs": 1,
     "src/shards/pine-hollow/generators/bake-geography.mjs": 1,

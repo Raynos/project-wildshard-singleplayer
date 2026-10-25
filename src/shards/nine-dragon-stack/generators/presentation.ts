@@ -10,14 +10,15 @@ import type { NineWorldDeclarations } from './worldRows';
 import lantern from '../data/lantern.json' with { type: 'json' };
 
 const { STAIR, WELL, Y0 } = plan;
-const encoded = (values: ArrayBufferView): string => btoa(Array.from(new Uint8Array(values.buffer, values.byteOffset, values.byteLength), value => String.fromCodePoint(value)).join(''));
-/** Native typed channels, index and receiver order become data for the existing scene-buffer reader. */
-export function cardScene(list: readonly Mesh[], name: string): SceneBuffers {
+/** Native typed channels, index and receiver order become data for the existing scene-buffer reader.
+ * Publication owns the exact bytes before returning their stable logical file name. */
+export function cardScene(list: readonly Mesh[], name: string, publish: (bytes: Uint8Array) => string): SceneBuffers {
   const buffers: SceneBuffers['buffers'] = [], attributes: SceneBuffers['attributes'] = [], geometries: SceneBuffers['geometries'] = [], draws: SceneBuffers['draws'] = [];
   const bufferId = (id: string, values: ArrayBufferView, storage: 'f32' | 'u16', instanced: boolean): string => {
-    const bytes = encoded(values), shared = buffers.find(row => row.storage === storage && row.instanced === instanced && row.bytes === bytes);
+    const bytes = new Uint8Array(values.buffer, values.byteOffset, values.byteLength), file = bytes.byteLength === 0 ? undefined : publish(bytes);
+    const shared = buffers.find(row => row.storage === storage && row.instanced === instanced && (file === undefined ? row.bytes === '' : row.file === file));
     if (shared !== undefined) return shared.id;
-    buffers.push({ id, storage, bytes, instanced }); return id;
+    buffers.push({ id, storage, ...(file === undefined ? { bytes: '' } : { file, byteLength: bytes.byteLength }), instanced }); return id;
   };
   for (const [i, mesh] of list.entries()) {
     const id = String(i), geometry = mesh.geometry, refs: Record<string, string> = {};
@@ -38,7 +39,7 @@ export function cardScene(list: readonly Mesh[], name: string): SceneBuffers {
 }
 
 /** All filtering, window-facing tests and card geometry run once on the author. */
-export function presentationRows(tier: 'phone' | 'desktop', caps: boolean, layout: NineSourceWorld['layout'], world: NineWorldDeclarations): { streaks: SceneBuffers; halos: SceneBuffers } {
+export function presentationRows(tier: 'phone' | 'desktop', caps: boolean, layout: NineSourceWorld['layout'], world: NineWorldDeclarations, publish: (bytes: Uint8Array) => string): { streaks: SceneBuffers; halos: SceneBuffers } {
   const source = volumeSources(tier, caps, layout), position = new Vector3(), rotation = new Quaternion(), scale = new Vector3();
   for (const offset of world.rows.portalLanterns) {
     new Matrix4().fromArray(world.records, offset).decompose(position, rotation, scale);
@@ -60,9 +61,9 @@ export function presentationRows(tier: 'phone' | 'desktop', caps: boolean, layou
   const stairs = stairStreaks(onStair, { flights: stair.FLIGHTS, landings: stair.LANDINGS, rise: stair.RISE, run: stair.RUN, z0: STAIR.z0, z1: STAIR.z1 });
   for (const mesh of stairs) mesh.name = 'streaks-stair';
   const halo = buildHalos({ lanterns: source.lanterns, shops: source.ctxEmitters, signs: source.signs });
-  return { streaks: cardScene([floor, ...stairs], 'wet-receivers'), halos: cardScene([halo], 'halos') };
+  return { streaks: cardScene([floor, ...stairs], 'wet-receivers', publish), halos: cardScene([halo], 'halos', publish) };
 }
 
-export function presentationData(layout: NineSourceWorld['layout'], world: NineWorldDeclarations): { open: ReturnType<typeof presentationRows>; capped: ReturnType<typeof presentationRows> } {
-  return { open: presentationRows('phone', false, layout, world), capped: presentationRows('phone', true, layout, world) };
+export function presentationData(layout: NineSourceWorld['layout'], world: NineWorldDeclarations, publish: (bytes: Uint8Array) => string): { open: ReturnType<typeof presentationRows>; capped: ReturnType<typeof presentationRows> } {
+  return { open: presentationRows('phone', false, layout, world, publish), capped: presentationRows('phone', true, layout, world, publish) };
 }

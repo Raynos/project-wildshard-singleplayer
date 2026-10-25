@@ -67,8 +67,8 @@ test('cold source output retains every admitted file byte and contract', async (
   const worldFiles = originalWorld.filter(row => row.path.startsWith('assets/'));
   const actualKeys = new Set([...prepared.assets.keys(), ...prepared.blobs.map(row => row.file.hash)]);
   expect([...actualKeys].sort()).toEqual([...new Set([...originalAssets, ...worldFiles.map(row => row.hash)])].sort());
-  // The complete prepared-asset oracle includes the three binary portal channels.
-  // Every non-portal file retains its original bytes. The 397
+  // The complete oracle includes binary portal and presentation channels.
+  // All other prepared files retain their original bytes. The 397
   // world files move from the project reader into owned output and are
   // independently pinned byte-for-byte by nine-world-program's 399 rows.
   for (const row of worldFiles) {

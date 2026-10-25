@@ -109,7 +109,11 @@ test('halo discs compile with additive alpha preservation inside the existing ca
   const { buildHalos } = await import('../src/shards/nine-dragon-stack/generators/haloCards');
   const source = buildHalos({ lanterns: [{ at: new THREE.Vector3(1, 130, 2), color: new THREE.Color(1, 0.5, 0.2), w: 0.5, h: 0.5, power: 1, spill: 1 }], shops: [], signs: [] });
   const owner = new Scope('halo-test');
-  const halos = createSceneBuffers(cardScene([source], 'halos'), compiled.material, owner);
+  const files = new Map<string, Uint8Array>();
+  const scene = cardScene([source], 'halos', bytes => {
+    const file = `channels/${files.size}.bin`; files.set(file, Uint8Array.from(bytes)); return file;
+  });
+  const halos = createSceneBuffers(scene, compiled.material, owner, undefined, undefined, files);
   const mesh = halos.children[0];
   if (!(mesh instanceof THREE.Mesh) || !(mesh.geometry instanceof THREE.InstancedBufferGeometry)) throw new Error('Halo draw missing');
   expect(mesh.geometry.getAttribute('aAt').getX(0)).toBe(1);

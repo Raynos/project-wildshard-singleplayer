@@ -1,0 +1,1336 @@
+[
+  {
+    "name": "world/cards/open-streaks.json",
+    "characters": 144044,
+    "inlineBytes": 155178,
+    "scene": {
+      "version": 1,
+      "name": "wet-receivers",
+      "buffers": [
+        {
+          "id": "0.position",
+          "storage": "f32",
+          "instanced": false,
+          "byteLength": 48,
+          "hash": "17b0761f87b081d5cf10757ccc89f12be355c70e2e29df288b65b30710dcbcd1"
+        },
+        {
+          "id": "0.aCorner",
+          "storage": "f32",
+          "instanced": false,
+          "byteLength": 32,
+          "hash": "c5c376cf8aac32be1ef537d91fb012b8f5eb71f90fa8e2ce4a42a600555abf62"
+        },
+        {
+          "id": "0.aE",
+          "storage": "f32",
+          "instanced": true,
+          "byteLength": 30024,
+          "hash": "c2fa9689faea044e6e67e79f842f5b72fdbbc1e45b2699ee65fd9898b4d556b8"
+        },
+        {
+          "id": "0.aCol",
+          "storage": "f32",
+          "instanced": true,
+          "byteLength": 30024,
+          "hash": "2bd8af10ae4c277e45fae959f0e4699e5c5c76779eebbd6e61bb6c0dfbdb1e65"
+        },
+        {
+          "id": "0.aSize",
+          "storage": "f32",
+          "instanced": true,
+          "byteLength": 30024,
+          "hash": "b9607462cd9c8299e3ba42da60f50d57e2ac10d8987ccd839cbd0750eaf9a1c7"
+        },
+        {
+          "id": "0.aPlaneO",
+          "storage": "f32",
+          "instanced": false,
+          "byteLength": 48,
+          "hash": "316255f30081626c9c349f75bea935a2789115c4254c23f5f64a088aacf6b65d"
+        },
+        {
+          "id": "0.aPlaneU",
+          "storage": "f32",
+          "instanced": false,
+          "byteLength": 48,
+          "hash": "afefd1546babde907f5c4bace310b6b87f0f72f5a3cd8832a5c61f477590e759"
+        },
+        {
+          "id": "0.aPlaneN",
+          "storage": "f32",
+          "instanced": false,
+          "byteLength": 48,
+          "hash": "e1812a32d71ab746aa25aee896a1790138ef313625fb873f2be3ec50e9191e2d"
+        },
+        {
+          "id": "0.aClip",
+          "storage": "f32",
+          "instanced": false,
+          "byteLength": 64,
+          "hash": "023abc1c1b5a799de8ea436cea317f69e333c0784876a16dfa216e93b421d54b"
+        },
+        {
+          "id": "0.aHole",
+          "storage": "f32",
+          "instanced": false,
+          "byteLength": 64,
+          "hash": "014b9d0dccec36312dd39da440ee84b1a4e80bf3643fb51d019b350b76cad12b"
+        },
+        {
+          "id": "0.aSpread",
+          "storage": "f32",
+          "instanced": false,
+          "byteLength": 64,
+          "hash": "56791fcfac8e3bb06eb0426d76c4610a9213e1690c581aeb67d99ec6c1636164"
+        },
+        {
+          "id": "0.aCardK",
+          "storage": "f32",
+          "instanced": false,
+          "byteLength": 64,
+          "hash": "80aa5ee09701eecd5b8c176e92bec0013fd94940383f9e56c8ec6a7c7244d550"
+        },
+        {
+          "id": "0.aLift",
+          "storage": "f32",
+          "instanced": false,
+          "byteLength": 16,
+          "hash": "374708fff7719dd5979ec875d56cd2286f6d3cf7ec317a3b25632aab28ec37bb"
+        },
+        {
+          "id": "0.index",
+          "storage": "u16",
+          "instanced": false,
+          "byteLength": 12,
+          "hash": "4a16b824acb5d55f3f9fcaca42323d856db13089fdde0166ae1699c89a2710b0"
+        },
+        {
+          "id": "1.aE",
+          "storage": "f32",
+          "instanced": true,
+          "byteLength": 5520,
+          "hash": "5c0410932e6e9836b1083e965314d0784f4f52eab9d6b3878f773ace427df7d8"
+        },
+        {
+          "id": "1.aCol",
+          "storage": "f32",
+          "instanced": true,
+          "byteLength": 5520,
+          "hash": "bcd8b0c77a7448c6fbbf2aaa3fa2b4ce99204ff21d0836a39d5b17f43754030f"
+        },
+        {
+          "id": "1.aSize",
+          "storage": "f32",
+          "instanced": true,
+          "byteLength": 5520,
+          "hash": "6320b07285f5c7b58f442493d208c431c2495bb80b4daa45a7513307b1077f63"
+        },
+        {
+          "id": "1.aPlaneO",
+          "storage": "f32",
+          "instanced": false,
+          "byteLength": 48,
+          "hash": "b711683c4e4287ebaf988867d6c4cc190f9a0d68b1a28ceeb372626e87477c4a"
+        },
+        {
+          "id": "1.aPlaneU",
+          "storage": "f32",
+          "instanced": false,
+          "byteLength": 48,
+          "hash": "718c0a1ceea727d5b83b9814be44d617e86aa24c3ca84ca62b49e5f6c8b2b017"
+        },
+        {
+          "id": "1.aPlaneN",
+          "storage": "f32",
+          "instanced": false,
+          "byteLength": 48,
+          "hash": "3e6f5b5b211494228f67d9997bf0ce93e61422f49065411b9ef1e8a1a7f1f8b2"
+        },
+        {
+          "id": "1.aClip",
+          "storage": "f32",
+          "instanced": false,
+          "byteLength": 64,
+          "hash": "ec835b904dcc13a60b26842f02a65b09d9559f8b36722484fe6b0468f1e8ad19"
+        },
+        {
+          "id": "1.aHole",
+          "storage": "f32",
+          "instanced": false,
+          "byteLength": 64,
+          "hash": "9ba3b531624710dece54456c2e5cb1cb31d7df8cfb6fee2b1180d0cb791ea049"
+        },
+        {
+          "id": "1.aSpread",
+          "storage": "f32",
+          "instanced": false,
+          "byteLength": 64,
+          "hash": "e8707c420983427630cff28de768fb29c22757c6720ecd766be5a34ce05a0058"
+        },
+        {
+          "id": "1.aCardK",
+          "storage": "f32",
+          "instanced": false,
+          "byteLength": 64,
+          "hash": "208bc647b5f6d0a5985ee293ba4915953fdde2ca86b99e31cf50db6a0b0ba0aa"
+        },
+        {
+          "id": "1.aLift",
+          "storage": "f32",
+          "instanced": false,
+          "byteLength": 16,
+          "hash": "e1a459222b8ce310d974466c0ecfeb0f20fc70720aee868f236a0ca6d94ed2bb"
+        },
+        {
+          "id": "2.aPlaneO",
+          "storage": "f32",
+          "instanced": false,
+          "byteLength": 48,
+          "hash": "2da8bb3946222dd5513c5ae18aa6fb703b225ab78bc2da25b5c3856fb0757979"
+        },
+        {
+          "id": "2.aClip",
+          "storage": "f32",
+          "instanced": false,
+          "byteLength": 64,
+          "hash": "cd118a0b10f96b403319e476ff522312f020da22577256c05a786836eeb3f1d8"
+        },
+        {
+          "id": "3.aPlaneO",
+          "storage": "f32",
+          "instanced": false,
+          "byteLength": 48,
+          "hash": "88c920c03f4cb0427c085a989f2cef0798e1c4e232db78c2b0b7c7dc209dade7"
+        },
+        {
+          "id": "3.aClip",
+          "storage": "f32",
+          "instanced": false,
+          "byteLength": 64,
+          "hash": "a63b0ad0aa1271b1f1ae6ddc8b71cb34024dfe4efc6501e25a88bda1d70e4609"
+        },
+        {
+          "id": "4.aPlaneO",
+          "storage": "f32",
+          "instanced": false,
+          "byteLength": 48,
+          "hash": "910652093c2b080c168f5c1f579903894b9e8ce8c1d558d2576d3c5db04db85f"
+        },
+        {
+          "id": "4.aClip",
+          "storage": "f32",
+          "instanced": false,
+          "byteLength": 64,
+          "hash": "8b027fa42d69cd46ae6013c5db7acdb518b38a71866012c55ff6d66f178ab640"
+        },
+        {
+          "id": "5.aPlaneO",
+          "storage": "f32",
+          "instanced": false,
+          "byteLength": 48,
+          "hash": "89ff3f675b705822a19c56fd4b19b93d0efd0f185f7b64430c2ef36a6826c0eb"
+        },
+        {
+          "id": "5.aClip",
+          "storage": "f32",
+          "instanced": false,
+          "byteLength": 64,
+          "hash": "12190a801f7c947e39276bc701a6614ef5e8968d519ec998a33d044f73afbb6d"
+        }
+      ],
+      "attributes": [
+        {
+          "id": "0.position",
+          "buffer": "0.position",
+          "size": 3,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "0.aCorner",
+          "buffer": "0.aCorner",
+          "size": 2,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "0.aE",
+          "buffer": "0.aE",
+          "size": 3,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "0.aCol",
+          "buffer": "0.aCol",
+          "size": 3,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "0.aSize",
+          "buffer": "0.aSize",
+          "size": 3,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "0.aPlaneO",
+          "buffer": "0.aPlaneO",
+          "size": 3,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "0.aPlaneU",
+          "buffer": "0.aPlaneU",
+          "size": 3,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "0.aPlaneN",
+          "buffer": "0.aPlaneN",
+          "size": 3,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "0.aClip",
+          "buffer": "0.aClip",
+          "size": 4,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "0.aHole",
+          "buffer": "0.aHole",
+          "size": 4,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "0.aSpread",
+          "buffer": "0.aSpread",
+          "size": 4,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "0.aCardK",
+          "buffer": "0.aCardK",
+          "size": 4,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "0.aLift",
+          "buffer": "0.aLift",
+          "size": 1,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "0.index",
+          "buffer": "0.index",
+          "size": 1,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "1.position",
+          "buffer": "0.position",
+          "size": 3,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "1.aCorner",
+          "buffer": "0.aCorner",
+          "size": 2,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "1.aE",
+          "buffer": "1.aE",
+          "size": 3,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "1.aCol",
+          "buffer": "1.aCol",
+          "size": 3,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "1.aSize",
+          "buffer": "1.aSize",
+          "size": 3,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "1.aPlaneO",
+          "buffer": "1.aPlaneO",
+          "size": 3,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "1.aPlaneU",
+          "buffer": "1.aPlaneU",
+          "size": 3,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "1.aPlaneN",
+          "buffer": "1.aPlaneN",
+          "size": 3,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "1.aClip",
+          "buffer": "1.aClip",
+          "size": 4,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "1.aHole",
+          "buffer": "1.aHole",
+          "size": 4,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "1.aSpread",
+          "buffer": "1.aSpread",
+          "size": 4,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "1.aCardK",
+          "buffer": "1.aCardK",
+          "size": 4,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "1.aLift",
+          "buffer": "1.aLift",
+          "size": 1,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "1.index",
+          "buffer": "0.index",
+          "size": 1,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "2.position",
+          "buffer": "0.position",
+          "size": 3,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "2.aCorner",
+          "buffer": "0.aCorner",
+          "size": 2,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "2.aE",
+          "buffer": "1.aE",
+          "size": 3,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "2.aCol",
+          "buffer": "1.aCol",
+          "size": 3,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "2.aSize",
+          "buffer": "1.aSize",
+          "size": 3,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "2.aPlaneO",
+          "buffer": "2.aPlaneO",
+          "size": 3,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "2.aPlaneU",
+          "buffer": "1.aPlaneU",
+          "size": 3,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "2.aPlaneN",
+          "buffer": "1.aPlaneN",
+          "size": 3,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "2.aClip",
+          "buffer": "2.aClip",
+          "size": 4,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "2.aHole",
+          "buffer": "1.aHole",
+          "size": 4,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "2.aSpread",
+          "buffer": "1.aSpread",
+          "size": 4,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "2.aCardK",
+          "buffer": "1.aCardK",
+          "size": 4,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "2.aLift",
+          "buffer": "1.aLift",
+          "size": 1,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "2.index",
+          "buffer": "0.index",
+          "size": 1,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "3.position",
+          "buffer": "0.position",
+          "size": 3,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "3.aCorner",
+          "buffer": "0.aCorner",
+          "size": 2,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "3.aE",
+          "buffer": "1.aE",
+          "size": 3,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "3.aCol",
+          "buffer": "1.aCol",
+          "size": 3,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "3.aSize",
+          "buffer": "1.aSize",
+          "size": 3,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "3.aPlaneO",
+          "buffer": "3.aPlaneO",
+          "size": 3,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "3.aPlaneU",
+          "buffer": "1.aPlaneU",
+          "size": 3,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "3.aPlaneN",
+          "buffer": "1.aPlaneN",
+          "size": 3,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "3.aClip",
+          "buffer": "3.aClip",
+          "size": 4,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "3.aHole",
+          "buffer": "1.aHole",
+          "size": 4,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "3.aSpread",
+          "buffer": "1.aSpread",
+          "size": 4,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "3.aCardK",
+          "buffer": "1.aCardK",
+          "size": 4,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "3.aLift",
+          "buffer": "1.aLift",
+          "size": 1,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "3.index",
+          "buffer": "0.index",
+          "size": 1,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "4.position",
+          "buffer": "0.position",
+          "size": 3,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "4.aCorner",
+          "buffer": "0.aCorner",
+          "size": 2,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "4.aE",
+          "buffer": "1.aE",
+          "size": 3,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "4.aCol",
+          "buffer": "1.aCol",
+          "size": 3,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "4.aSize",
+          "buffer": "1.aSize",
+          "size": 3,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "4.aPlaneO",
+          "buffer": "4.aPlaneO",
+          "size": 3,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "4.aPlaneU",
+          "buffer": "0.aPlaneU",
+          "size": 3,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "4.aPlaneN",
+          "buffer": "0.aPlaneN",
+          "size": 3,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "4.aClip",
+          "buffer": "4.aClip",
+          "size": 4,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "4.aHole",
+          "buffer": "1.aHole",
+          "size": 4,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "4.aSpread",
+          "buffer": "1.aSpread",
+          "size": 4,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "4.aCardK",
+          "buffer": "1.aCardK",
+          "size": 4,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "4.aLift",
+          "buffer": "0.aLift",
+          "size": 1,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "4.index",
+          "buffer": "0.index",
+          "size": 1,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "5.position",
+          "buffer": "0.position",
+          "size": 3,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "5.aCorner",
+          "buffer": "0.aCorner",
+          "size": 2,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "5.aE",
+          "buffer": "1.aE",
+          "size": 3,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "5.aCol",
+          "buffer": "1.aCol",
+          "size": 3,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "5.aSize",
+          "buffer": "1.aSize",
+          "size": 3,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "5.aPlaneO",
+          "buffer": "5.aPlaneO",
+          "size": 3,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "5.aPlaneU",
+          "buffer": "0.aPlaneU",
+          "size": 3,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "5.aPlaneN",
+          "buffer": "0.aPlaneN",
+          "size": 3,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "5.aClip",
+          "buffer": "5.aClip",
+          "size": 4,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "5.aHole",
+          "buffer": "1.aHole",
+          "size": 4,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "5.aSpread",
+          "buffer": "1.aSpread",
+          "size": 4,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "5.aCardK",
+          "buffer": "1.aCardK",
+          "size": 4,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "5.aLift",
+          "buffer": "0.aLift",
+          "size": 1,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "5.index",
+          "buffer": "0.index",
+          "size": 1,
+          "offset": 0,
+          "normalized": false
+        }
+      ],
+      "geometries": [
+        {
+          "id": "0",
+          "attributes": {
+            "position": "0.position",
+            "aCorner": "0.aCorner",
+            "aE": "0.aE",
+            "aCol": "0.aCol",
+            "aSize": "0.aSize",
+            "aPlaneO": "0.aPlaneO",
+            "aPlaneU": "0.aPlaneU",
+            "aPlaneN": "0.aPlaneN",
+            "aClip": "0.aClip",
+            "aHole": "0.aHole",
+            "aSpread": "0.aSpread",
+            "aCardK": "0.aCardK",
+            "aLift": "0.aLift"
+          },
+          "index": "0.index",
+          "instances": 2502
+        },
+        {
+          "id": "1",
+          "attributes": {
+            "position": "1.position",
+            "aCorner": "1.aCorner",
+            "aE": "1.aE",
+            "aCol": "1.aCol",
+            "aSize": "1.aSize",
+            "aPlaneO": "1.aPlaneO",
+            "aPlaneU": "1.aPlaneU",
+            "aPlaneN": "1.aPlaneN",
+            "aClip": "1.aClip",
+            "aHole": "1.aHole",
+            "aSpread": "1.aSpread",
+            "aCardK": "1.aCardK",
+            "aLift": "1.aLift"
+          },
+          "index": "1.index",
+          "instances": 460
+        },
+        {
+          "id": "2",
+          "attributes": {
+            "position": "2.position",
+            "aCorner": "2.aCorner",
+            "aE": "2.aE",
+            "aCol": "2.aCol",
+            "aSize": "2.aSize",
+            "aPlaneO": "2.aPlaneO",
+            "aPlaneU": "2.aPlaneU",
+            "aPlaneN": "2.aPlaneN",
+            "aClip": "2.aClip",
+            "aHole": "2.aHole",
+            "aSpread": "2.aSpread",
+            "aCardK": "2.aCardK",
+            "aLift": "2.aLift"
+          },
+          "index": "2.index",
+          "instances": 460
+        },
+        {
+          "id": "3",
+          "attributes": {
+            "position": "3.position",
+            "aCorner": "3.aCorner",
+            "aE": "3.aE",
+            "aCol": "3.aCol",
+            "aSize": "3.aSize",
+            "aPlaneO": "3.aPlaneO",
+            "aPlaneU": "3.aPlaneU",
+            "aPlaneN": "3.aPlaneN",
+            "aClip": "3.aClip",
+            "aHole": "3.aHole",
+            "aSpread": "3.aSpread",
+            "aCardK": "3.aCardK",
+            "aLift": "3.aLift"
+          },
+          "index": "3.index",
+          "instances": 460
+        },
+        {
+          "id": "4",
+          "attributes": {
+            "position": "4.position",
+            "aCorner": "4.aCorner",
+            "aE": "4.aE",
+            "aCol": "4.aCol",
+            "aSize": "4.aSize",
+            "aPlaneO": "4.aPlaneO",
+            "aPlaneU": "4.aPlaneU",
+            "aPlaneN": "4.aPlaneN",
+            "aClip": "4.aClip",
+            "aHole": "4.aHole",
+            "aSpread": "4.aSpread",
+            "aCardK": "4.aCardK",
+            "aLift": "4.aLift"
+          },
+          "index": "4.index",
+          "instances": 460
+        },
+        {
+          "id": "5",
+          "attributes": {
+            "position": "5.position",
+            "aCorner": "5.aCorner",
+            "aE": "5.aE",
+            "aCol": "5.aCol",
+            "aSize": "5.aSize",
+            "aPlaneO": "5.aPlaneO",
+            "aPlaneU": "5.aPlaneU",
+            "aPlaneN": "5.aPlaneN",
+            "aClip": "5.aClip",
+            "aHole": "5.aHole",
+            "aSpread": "5.aSpread",
+            "aCardK": "5.aCardK",
+            "aLift": "5.aLift"
+          },
+          "index": "5.index",
+          "instances": 460
+        }
+      ],
+      "draws": [
+        {
+          "id": "0",
+          "name": "streaks",
+          "at": [
+            0,
+            0,
+            0
+          ],
+          "draw": {
+            "kind": "mesh",
+            "geometry": "0",
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "frustum": false
+          }
+        },
+        {
+          "id": "1",
+          "name": "streaks-stair",
+          "at": [
+            0,
+            0,
+            0
+          ],
+          "draw": {
+            "kind": "mesh",
+            "geometry": "1",
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "frustum": false
+          }
+        },
+        {
+          "id": "2",
+          "name": "streaks-stair",
+          "at": [
+            0,
+            0,
+            0
+          ],
+          "draw": {
+            "kind": "mesh",
+            "geometry": "2",
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "frustum": false
+          }
+        },
+        {
+          "id": "3",
+          "name": "streaks-stair",
+          "at": [
+            0,
+            0,
+            0
+          ],
+          "draw": {
+            "kind": "mesh",
+            "geometry": "3",
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "frustum": false
+          }
+        },
+        {
+          "id": "4",
+          "name": "streaks-stair",
+          "at": [
+            0,
+            0,
+            0
+          ],
+          "draw": {
+            "kind": "mesh",
+            "geometry": "4",
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "frustum": false
+          }
+        },
+        {
+          "id": "5",
+          "name": "streaks-stair",
+          "at": [
+            0,
+            0,
+            0
+          ],
+          "draw": {
+            "kind": "mesh",
+            "geometry": "5",
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "frustum": false
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "world/cards/open-halos.json",
+    "characters": 166780,
+    "inlineBytes": 167931,
+    "scene": {
+      "version": 1,
+      "name": "halos",
+      "buffers": [
+        {
+          "id": "0.position",
+          "storage": "f32",
+          "instanced": false,
+          "byteLength": 48,
+          "hash": "17b0761f87b081d5cf10757ccc89f12be355c70e2e29df288b65b30710dcbcd1"
+        },
+        {
+          "id": "0.aCorner",
+          "storage": "f32",
+          "instanced": false,
+          "byteLength": 32,
+          "hash": "e18a0d2b8d669fc929b6393f7953a588dbe38661e2b2506950be48a6535d3b6d"
+        },
+        {
+          "id": "0.aAt",
+          "storage": "f32",
+          "instanced": true,
+          "byteLength": 46872,
+          "hash": "ab172aa89661fd6fe3c6649398bd5615f38d0c96d04f80b1f65f4dcf0b68b271"
+        },
+        {
+          "id": "0.aCol",
+          "storage": "f32",
+          "instanced": true,
+          "byteLength": 62496,
+          "hash": "c378bc0bb1eeebe102c9ae63b244eb46a87104b6b863f93832ac53a03347545d"
+        },
+        {
+          "id": "0.aR",
+          "storage": "f32",
+          "instanced": true,
+          "byteLength": 15624,
+          "hash": "849e81c2e6967af996a909088a28242f3232c60601e6bd44710e6d289f5feff0"
+        },
+        {
+          "id": "0.index",
+          "storage": "u16",
+          "instanced": false,
+          "byteLength": 12,
+          "hash": "4a16b824acb5d55f3f9fcaca42323d856db13089fdde0166ae1699c89a2710b0"
+        }
+      ],
+      "attributes": [
+        {
+          "id": "0.position",
+          "buffer": "0.position",
+          "size": 3,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "0.aCorner",
+          "buffer": "0.aCorner",
+          "size": 2,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "0.aAt",
+          "buffer": "0.aAt",
+          "size": 3,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "0.aCol",
+          "buffer": "0.aCol",
+          "size": 4,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "0.aR",
+          "buffer": "0.aR",
+          "size": 1,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "0.index",
+          "buffer": "0.index",
+          "size": 1,
+          "offset": 0,
+          "normalized": false
+        }
+      ],
+      "geometries": [
+        {
+          "id": "0",
+          "attributes": {
+            "position": "0.position",
+            "aCorner": "0.aCorner",
+            "aAt": "0.aAt",
+            "aCol": "0.aCol",
+            "aR": "0.aR"
+          },
+          "index": "0.index",
+          "instances": 3906
+        }
+      ],
+      "draws": [
+        {
+          "id": "0",
+          "name": "halos",
+          "at": [
+            0,
+            0,
+            0
+          ],
+          "draw": {
+            "kind": "mesh",
+            "geometry": "0",
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "frustum": false
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "world/cards/capped-halos.json",
+    "characters": 167124,
+    "inlineBytes": 168275,
+    "scene": {
+      "version": 1,
+      "name": "halos",
+      "buffers": [
+        {
+          "id": "0.position",
+          "storage": "f32",
+          "instanced": false,
+          "byteLength": 48,
+          "hash": "17b0761f87b081d5cf10757ccc89f12be355c70e2e29df288b65b30710dcbcd1"
+        },
+        {
+          "id": "0.aCorner",
+          "storage": "f32",
+          "instanced": false,
+          "byteLength": 32,
+          "hash": "e18a0d2b8d669fc929b6393f7953a588dbe38661e2b2506950be48a6535d3b6d"
+        },
+        {
+          "id": "0.aAt",
+          "storage": "f32",
+          "instanced": true,
+          "byteLength": 46968,
+          "hash": "970590d75c24461fcbd7c0cf7c6353a3b88e923c50dc55af863a485cac51f77f"
+        },
+        {
+          "id": "0.aCol",
+          "storage": "f32",
+          "instanced": true,
+          "byteLength": 62624,
+          "hash": "13b20adb782264b415d8695d964b296ae73ad236336ac9c86d36456ef9867962"
+        },
+        {
+          "id": "0.aR",
+          "storage": "f32",
+          "instanced": true,
+          "byteLength": 15656,
+          "hash": "58d95441f591f3bd96157c7e2a66d0023d0d0142bc806358b3c256c7c962a13e"
+        },
+        {
+          "id": "0.index",
+          "storage": "u16",
+          "instanced": false,
+          "byteLength": 12,
+          "hash": "4a16b824acb5d55f3f9fcaca42323d856db13089fdde0166ae1699c89a2710b0"
+        }
+      ],
+      "attributes": [
+        {
+          "id": "0.position",
+          "buffer": "0.position",
+          "size": 3,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "0.aCorner",
+          "buffer": "0.aCorner",
+          "size": 2,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "0.aAt",
+          "buffer": "0.aAt",
+          "size": 3,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "0.aCol",
+          "buffer": "0.aCol",
+          "size": 4,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "0.aR",
+          "buffer": "0.aR",
+          "size": 1,
+          "offset": 0,
+          "normalized": false
+        },
+        {
+          "id": "0.index",
+          "buffer": "0.index",
+          "size": 1,
+          "offset": 0,
+          "normalized": false
+        }
+      ],
+      "geometries": [
+        {
+          "id": "0",
+          "attributes": {
+            "position": "0.position",
+            "aCorner": "0.aCorner",
+            "aAt": "0.aAt",
+            "aCol": "0.aCol",
+            "aR": "0.aR"
+          },
+          "index": "0.index",
+          "instances": 3914
+        }
+      ],
+      "draws": [
+        {
+          "id": "0",
+          "name": "halos",
+          "at": [
+            0,
+            0,
+            0
+          ],
+          "draw": {
+            "kind": "mesh",
+            "geometry": "0",
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "frustum": false
+          }
+        }
+      ]
+    }
+  }
+]

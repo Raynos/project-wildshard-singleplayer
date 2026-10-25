@@ -189,12 +189,24 @@ const recipe = addWindowNodes(parseWorldScene({ imports: [], scene: { version: 1
 const look = (id: string, name: string) => ({ id, kind: 'look', look: name });
 const library = (id: keyof typeof aliases) => ({ id, kind: 'whole', ...(id === 'native' ? {} : { load: 'explorer' }), models: [...aliases[id].values()] });
 // the wet floor's reflection cards and the lanterns' halos (phone only), per deck ending: open in a grid cell, capped alone
-const cards = presentationData(layout, worldRows), empty = addWindowNodes(parseWorldScene({ imports: [], scene: { version: 1, root: 'root', textures: [], materials: [], nodes: [{ kind: 'group', id: 'root', children: [] }] } }), [2], layout);
+const cardBuffers = new Map<string, NamedBlob>();
+const publishCardBuffer = (bytes: Uint8Array): string => {
+  const source = nameBlob('world/cards/channel.bin', 'bin', bytes), file = `world/cards/${source.file.hash}.bin`;
+  if (!cardBuffers.has(file)) cardBuffers.set(file, nameBlob(file, 'bin', source.bytes));
+  return file;
+};
+const cards = presentationData(layout, worldRows, publishCardBuffer), empty = addWindowNodes(parseWorldScene({ imports: [], scene: { version: 1, root: 'root', textures: [], materials: [], nodes: [{ kind: 'group', id: 'root', children: [] }] } }), [2], layout);
 // one file per distinct buffer: an ending whose cards match the other's reads the same file
 const cardFiles = new Map<string, string>();
+const cardDependencies = new Map<string, string[]>();
 const cardFile = (caps: 'open' | 'capped', kind: 'streaks' | 'halos'): string => {
   const text = JSON.stringify(cards[caps][kind]), file = cardFiles.get(text) ?? `world/cards/${caps}-${kind}.json`;
   cardFiles.set(text, file);
+  cardDependencies.set(file, [...new Set(cards[caps][kind].buffers.map(buffer => {
+    const source = buffer.file === undefined ? undefined : cardBuffers.get(buffer.file);
+    if (source === undefined) throw new Error('Missing binary presentation channel');
+    return source.file.hash;
+  }))]);
   return file;
 };
 const cardSteps = (['open', 'capped'] as const).map(caps => {
@@ -202,10 +214,14 @@ const cardSteps = (['open', 'capped'] as const).map(caps => {
     draws: [{ kind: 'buffered', file: cardFile(caps, 'streaks'), material: 'streaks', order: 4 }, { kind: 'buffered', file: cardFile(caps, 'halos'), material: 'halo', order: 5, tier: 'phone' }] };
   return Object.assign(step, windowStep([2], layout));
 });
-const CARD_BLOBS = [...cardFiles].map(([text, file]) => nameBlob(file, 'json', new TextEncoder().encode(text)));
+const CARD_BLOBS = [...cardFiles].map(([text, file]) => {
+  const dependencies = cardDependencies.get(file);
+  if (dependencies === undefined) throw new Error('Missing presentation dependencies');
+  return nameBlob(file, 'json', new TextEncoder().encode(text), { dependencies });
+});
 const portalLook = portalLookRows();
 const NINE_SCENE_BLOBS: NamedBlob[] = [...castBlobs(), ...portalLook.blobs, nameBlob('models/world-scenes.json', 'json', json(catalogue)), nameBlob('world/scenes/dressing.json', 'json', json(recipe)),
-  nameBlob('world/scenes/cards.json', 'json', json(empty)), ...SHAPE_BLOBS, ...CARD_BLOBS];
+  nameBlob('world/scenes/cards.json', 'json', json(empty)), ...SHAPE_BLOBS, ...cardBuffers.values(), ...CARD_BLOBS];
 // the painted surfaces' texture array (data/paint.json), the canopy's leaf atlas and the scroll screen, lent to their looks
 const painted = Object.entries(architectureGraphs()).flatMap(([id, graph]) => graph.params !== undefined && 'uPaint' in graph.params ? [id] : []);
 // the light pools' two baked volumes (generators/lightVolumes.ts) per tier and deck ending, lent to every look that reads them
