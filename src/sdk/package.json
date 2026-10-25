@@ -11,6 +11,7 @@
   "exports": {
     "./bake/placement": "./bake/placement.ts",
     "./bake/forest": "./bake/forest.ts",
+    "./bake/meadow": "./bake/meadow.ts",
     "./bake/annulus": "./bake/annulus.ts",
     "./noise": "./noise.ts",
     "./bake/groundMap": "./bake/groundMap.ts",
@@ -183,6 +184,10 @@
       "./bake/forest": {
         "types": "./dist/types/sdk/bake/forest.d.ts",
         "default": "./dist/bake/forest.js"
+      },
+      "./bake/meadow": {
+        "types": "./dist/types/sdk/bake/meadow.d.ts",
+        "default": "./dist/bake/meadow.js"
       },
       "./bake/annulus": {
         "types": "./dist/types/sdk/bake/annulus.d.ts",

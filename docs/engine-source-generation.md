@@ -31,6 +31,13 @@ not runtime color objects) and the original padded spatial query over those
 same records. Nothing selects a level or installs terrain. The author owns
 the result and keys its native cache on all supplied source policies/samplers.
 
+`bakeMeadowField(source)` from `@wildshard/sdk/bake/meadow` bakes the
+original four-metre, eight-channel meadow lattice from explicit native
+samplers and authored policy. It returns an owned numeric snapshot and the
+original field queries; snapshot edits do not change query state. Independent
+builds share no mutable samples and never configure the page grass singleton.
+The author includes all supplied policy/samplers in its native source cache.
+
 `inputFiles(prefixes)` lists current file URL names beneath the context's
 explicit input roots without reading payloads. It accepts at most eight
 nonoverlapping directory prefixes and returns at most 4,096 sorted names;
