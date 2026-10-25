@@ -1,14 +1,11 @@
 import { parseAmbientLife } from '@wildshard/format/ambientLife';
 import { parsePageLife } from '@wildshard/format/pageLife';
-import { nameBlob } from '@wildshard/sdk/blobs';
 import program from '../behaviour/life.generated.json' with { type: 'json' };
 import { PINE_LIFE } from './ambientLife';
 
 const life = parseAmbientLife(PINE_LIFE);
-/** Admission budgets and pins the same fixed memory that the page prepares. */
-export const LIFE_WASM = nameBlob('behaviour/pine.life.wasm', 'wasm',
-  Uint8Array.from(atob(program.bytes), character => character.codePointAt(0) ?? 0),
-  { critical: true, script: { abi: 1, pages: 1 } });
+/** Metadata-only declaration; output preparation supplies the verified native module. */
+export const LIFE_PROGRAM = { script: program.script, bytes: '' };
 export const PAGE_LIFE = parsePageLife({
   version: 1, seed: life.seed, system: { id: life.system.id, after: life.system.after, before: life.system.before },
   draw: { library: 'look/wildlife-draw.json', capacity: life.scavenger.flock.count + life.forager.count + 2, glow: [0.45, 0.75] },
@@ -20,8 +17,8 @@ export const PAGE_LIFE = parsePageLife({
   ],
   foragers: [{ row: { id: life.forager.id, count: life.forager.count, place: life.forager.place, policy: life.forager.policy }, model: life.forager.model, scale: life.forager.scale, alertRate: 1.3, alertGain: 0.5, sitPitch: 0.2,
     combat: { target: { kind: life.forager.id, damage: 1 }, preyY: 0.2, hits: [[0, 0.2, 0.28]] } }],
-  // Both page owners borrow LIFE_WASM through actors/return-scripts.
-  program: { script: program.script, bytes: '' },
+  // Both page owners borrow the prepared life module through actors/return-scripts.
+  program: LIFE_PROGRAM,
   carcasses: { group: 'scavengers', arrival: life.scavenger.arrival, visitors: life.scavenger.visitors,
     bodyWidths: life.scavenger.bodyWidths, defaultWidth: 0.8, defaultVisitors: life.scavenger.defaultVisitors,
     giveUp: life.scavenger.giveUp, reach: life.scavenger.reach, tint: 0.62, untrackedAge: 60, harvestDelay: 0.5 },

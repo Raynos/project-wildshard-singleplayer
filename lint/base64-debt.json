@@ -67,10 +67,8 @@
     "src/shards/nine-dragon-stack/generators/bake-glyphs.mjs": 2,
     "src/shards/pine-hollow-legacy/runtime/baked.ts": 1,
     "src/shards/pine-hollow/generators/bake-contracts.mjs": 1,
-    "src/shards/pine-hollow/generators/bake-life.mjs": 1,
     "src/shards/pine-hollow/generators/cabinPropMaterials.mjs": 1,
     "src/shards/pine-hollow/generators/codeParts.ts": 1,
-    "src/shards/pine-hollow/generators/pageLife.ts": 1,
     "src/shards/sunscar-dunes/generators/emberBuffers.ts": 1
   }
 }

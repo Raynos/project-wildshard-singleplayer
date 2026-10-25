@@ -1,7 +1,7 @@
 import {Scope} from '../src/engine/app/scope';
 import { fixtureNativeRoster } from './fixtures/native-roster';
 import { ReturnProgram } from '../src/game/population/returnProgram';
-import program from '../src/shards/pine-hollow/behaviour/life.generated.json' with { type: 'json' };
+import { PINE_LIFE_ORIGINAL as program } from './fixtures/pine-life';
 import { PINE_SHELTER_ORIGINAL as shelterProgram } from './fixtures/pine-shelter';
 import { populationEnvironment } from '../src/game/population/environment';
 import { flatPopulationEnvironment } from './fixtures/population-environment';

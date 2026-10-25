@@ -22,7 +22,7 @@ import { beatFlags } from '../src/shards/pine-hollow/generators/questBeats';
 import { CHAPTER_DIRECTOR as pineRows } from '../src/shards/pine-hollow/generators/chapterDirector';
 import { CHAPTER_DIRECTOR as driftRows } from '../src/shards/driftwood-isle/generators/chapterDirector';
 
-import pineLife from '../src/shards/pine-hollow/behaviour/life.generated.json' with { type: 'json' };
+import { PINE_LIFE_ORIGINAL as pineLife } from './fixtures/pine-life';
 
 const products = new Map<string, ShardProduct>();
 

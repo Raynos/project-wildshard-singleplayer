@@ -11,11 +11,11 @@ import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { ReturnProgramSchema } from '../src/format/namedJsonContracts';
 import { ReturnModulesSchema } from '../src/format/scriptContract';
-import { parseDecisionScripts } from '../src/format/decisionScripts';
 import { outputPlatformPayloads } from '../src/sdk/outputProduct';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { prepareOutput } from '../src/shards/pine-hollow/generators/output';
 import { createProjectGeneration } from '../src/sdk/projectGeneration';
+import { PINE_LIFE_ORIGINAL } from './fixtures/pine-life';
 import { PINE_SHELTER_ORIGINAL } from './fixtures/pine-shelter';
 
 const cache = mkdtempSync('tmp/pine-return-');
@@ -24,13 +24,7 @@ const context = createProjectGeneration('src/shards/pine-hollow',
   hashImmutableBytes(new TextEncoder().encode('pine-shelter-original-v1')), new Map(), cache);
 const output = await prepareOutput(context);
 
-function originalProgram(name: string) {
-  const original = v.parse(ReturnProgramSchema, JSON.parse(readFileSync(`src/shards/pine-hollow/behaviour/${name}.generated.json`, 'utf8')));
-  const script = parseDecisionScripts([original.script])[0];
-  if (script === undefined) throw new Error(`Missing original Pine ${name} script`);
-  return { script, bytes: original.bytes };
-}
-const life = originalProgram('life'), shelter = PINE_SHELTER_ORIGINAL;
+const life = PINE_LIFE_ORIGINAL, shelter = PINE_SHELTER_ORIGINAL;
 
 function namedJson(name: string): unknown {
   const file = output.namedFiles.find(row => row.name === name);

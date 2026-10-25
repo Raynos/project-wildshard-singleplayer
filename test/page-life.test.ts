@@ -3,7 +3,7 @@ import { BufferGeometry, Float32BufferAttribute, MeshBasicMaterial, PerspectiveC
 import { Scope } from '../src/engine/app/scope';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { parsePageLife } from '../src/format/pageLife';
-import program from '../src/shards/pine-hollow/behaviour/life.generated.json' with { type: 'json' };
+import { PINE_LIFE_ORIGINAL as program } from './fixtures/pine-life';
 import { PAGE_LIFE } from '../src/shards/pine-hollow/generators/pageLife';
 import { PAGE_LIFE as coastLife } from '../src/shards/driftwood-isle/generators/pageLife';
 import { AmbientFlockDraw } from '../src/game/ambient/ambientFlock';

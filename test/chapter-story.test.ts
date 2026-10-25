@@ -29,7 +29,7 @@ import { FigureRows } from '../src/game/systems/npc/figureRows';
 import { SceneHandles } from '../src/game/shardfile/sceneHandles';
 import persistenceRows from '../src/shards/nalati-grasslands/data/persistence.generated.json' with { type: 'json' };
 import { publishBoundQuest } from '../src/game/quest/boundState';
-import pineProgram from '../src/shards/pine-hollow/behaviour/life.generated.json' with { type: 'json' };
+import { PINE_LIFE_ORIGINAL as pineProgram } from './fixtures/pine-life';
 import pinePage from '../src/shards/pine-hollow/data/forestStory.json' with { type: 'json' };
 import kokpar from '../src/shards/nalati-grasslands/data/kokpar.generated.json' with { type: 'json' };
 

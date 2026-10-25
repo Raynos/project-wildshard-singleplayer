@@ -19,7 +19,7 @@ const built = await compileDecisionScripts([row],{fields:registry(fields),channe
  readDecisionSources(fileURLToPath(new URL('../',import.meta.url))),{asLineCeiling:2130});
 const script=built.rows.at(0),blob=built.blobs.at(0);
 if(script===undefined||blob===undefined)throw new Error('Missing ambient program');
-const bytes=`${JSON.stringify({script,bytes:Buffer.from(blob.bytes).toString('base64')},null,2)}\n`;
+const bytes=`${JSON.stringify({script,bytes:''},null,2)}\n`;
 const target=new URL('../behaviour/life.generated.json',import.meta.url);
 if(process.argv.includes('--check')) {if(readFileSync(target,'utf8')!==bytes)throw new Error('Ambient program is stale');}
 else writeFileSync(target,bytes);

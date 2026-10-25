@@ -13,7 +13,7 @@ import type { ShardContext } from '../src/game/plugin/context';
 import type { QuestChapter } from '../src/game/quest/chapter';
 import { parseQuestLeadPage } from '../src/format/questSteps';
 import { ReturnProgram } from '../src/game/population/returnProgram';
-import program from '../src/shards/pine-hollow/behaviour/life.generated.json' with { type: 'json' };
+import { PINE_LIFE_ORIGINAL as program } from './fixtures/pine-life';
 import { parseQuestLeadRows } from '../src/shards/pine-hollow/generators/sections';
 import leadJson from '../src/shards/pine-hollow/data/questLead.json' with { type: 'json' };
 import { hashImmutableBytes } from '../src/sdk/immutable';
