@@ -1,6 +1,5 @@
 import { parseClientPlan } from '@wildshard/format/clientPlan';
 import { parsePersistedQuestPage } from '@wildshard/format/questStory';
-import { SIGNAL_QUEST_PAGE as originalPage } from './questPage';
 import { SIGNAL_PAGE_PROGRAM } from './rows/population';
 import { WHIP_ITEMS } from './rows/items';
 import { SIGNAL_SCENE_MOTION } from './clientMotion';
@@ -34,4 +33,3 @@ return parseClientPlan({ version: 1, features: [
 ] });
 
 }
-export const SIGNAL_CLIENT_PLAN = signalClientPlan(originalPage);

@@ -2,7 +2,7 @@ import { SCOUT_FLAG } from './rows/flags';
 import STRINGS from '../data/strings.json' with { type: 'json' };
 import { DISCOVERY_PLACES } from './questPresentation';
 import { SIGNAL_PERSISTENCE } from './persistence';
-import { QUEST_MARKERS, type QuestMarkers } from './questMarkers';
+import type { QuestMarkers } from './questMarkers';
 import { QUEST_REPAIR, QUEST_REPAIR_INITIAL } from './questRepair';
 
 /** Scout presentation and old-save repair over the original flag owner. */
@@ -22,4 +22,3 @@ return {
 }
 /** Compose the unchanged saved page from explicit verified world markers. */
 export function signalQuestPage(markers: QuestMarkers): ReturnType<typeof questPageRows> { return questPageRows(markers); }
-export const SIGNAL_QUEST_PAGE = signalQuestPage(QUEST_MARKERS);

@@ -1,7 +1,7 @@
-import { SIGNAL_CLIENT_PLAN } from './clientPlan';
+import type { signalClientPlan } from './clientPlan';
 import { signalPaintedPresentation } from './paintedLook';
 import { WHIP_ROW } from './rows/equipment';
-import { SIGNAL_SCENE_BLOBS, SIGNAL_WORLD_SCENES, type signalWorldScenes } from './worldScenes';
+import type { signalWorldScenes } from './worldScenes';
 import { emitNamedBlobs, type NamedBlob } from '@wildshard/sdk/blobs';
 import STRINGS from '../data/strings.json' with { type: 'json' };
 import { SIGNAL_PAGE_PROGRAM } from './rows/population';
@@ -20,12 +20,11 @@ type SectionName = Parameters<typeof emitPlatformSections>[0] extends ReadonlyMa
 // The retired JSON writer normalized signed zero before plain-data admission.
 const baked: unknown = JSON.parse(encodeCanonicalJson(SIGNAL_PHYSICS));
 
-const baseline = { blobs: SIGNAL_SCENE_BLOBS, worldScenes: SIGNAL_WORLD_SCENES };
 /** The original required scene output fields, without optional project-output widening. */
 export interface SignalSceneOutput { readonly namedFiles: ReturnType<typeof emitNamedBlobs>['files'];
   readonly assets: ReturnType<typeof emitNamedBlobs>['assets']; readonly platform: ReturnType<typeof emitPlatformSections> }
 /** Both owners consume the same verified decisions and mechanics with explicit scene files and bindings. */
-export function signalSceneOutput(scene: ReturnType<typeof signalWorldScenes>, plan = SIGNAL_CLIENT_PLAN): SignalSceneOutput {
+export function signalSceneOutput(scene: ReturnType<typeof signalWorldScenes>, plan: ReturnType<typeof signalClientPlan>): SignalSceneOutput {
   const sources = emitNamedBlobs(scene.blobs);
   return { namedFiles: sources.files, assets: sources.assets, platform: emitPlatformSections(new Map<SectionName, unknown>([
     ['ui/strings', STRINGS],
@@ -39,11 +38,10 @@ export function signalSceneOutput(scene: ReturnType<typeof signalWorldScenes>, p
     ['world/targets', SIGNAL_LASH_TARGETS],
   ])) } satisfies ProjectOutput;
 }
-export const output = signalSceneOutput(baseline);
 
 /** Preserve every original section and scene file while replacing owned model inputs. */
-export function signalSourceOutput(models: NamedBlob, rigs: readonly NamedBlob[], scene = baseline, plan = SIGNAL_CLIENT_PLAN): ProjectOutput {
+export function signalSourceOutput(models: NamedBlob, rigs: readonly NamedBlob[], scene: ReturnType<typeof signalWorldScenes>, plan: ReturnType<typeof signalClientPlan>): ProjectOutput {
   if (models.file.name !== 'world/sources/models.json') throw new Error('Invalid model source replacement');
   const owned = emitNamedBlobs([...scene.blobs.filter(blob => blob.file.name !== models.file.name), models, ...rigs]);
-  return { ...(scene === baseline ? output : signalSceneOutput(scene, plan)), namedFiles: owned.files, assets: owned.assets };
+  return { ...signalSceneOutput(scene, plan), namedFiles: owned.files, assets: owned.assets };
 }

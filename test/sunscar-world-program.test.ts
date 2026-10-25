@@ -1,5 +1,5 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Each real source-program proof owns and removes its isolated cache.
-import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Bind the cache and author folder explicitly, with no published bake inputs.
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
@@ -69,4 +69,17 @@ test('the world recipe bundles as one author chunk without filesystem or compile
   if (output === undefined || !('output' in output)) throw new Error('Missing world author bundle');
   const chunks = output.output.filter(row => row.type === 'chunk'); expect(chunks).toHaveLength(1);
   for (const chunk of chunks) expect(() => assertConfigBoundary([...chunk.imports, ...chunk.dynamicImports])).not.toThrow();
+});
+
+test('the five legacy-only public GLBs stay byte-exact until LD', () => {
+  const legacy = readFileSync('src/shards/sunscar-dunes-legacy/boot/files.ts', 'utf8');
+  let total = 0;
+  for (const name of ['rocks', 'dressing', 'tower', 'caravan', 'well']) {
+    const url = `/assets/sunscar-dunes/baked/${name}.glb`;
+    expect(legacy).toContain(url);
+    const bytes = new Uint8Array(readFileSync(`public${url}`)); total += bytes.length;
+    expect({ bytes: bytes.length, hash: hashImmutableBytes(bytes) })
+      .toEqual(Object.entries(original).find(([key]) => key === `${name}.glb`)?.[1]);
+  }
+  expect(total).toBe(380964);
 });

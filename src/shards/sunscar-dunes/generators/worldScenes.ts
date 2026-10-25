@@ -3,8 +3,7 @@ import { parseWorldScenes } from '@wildshard/format/worldScenes';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import scenes from '../data/restScenes.generated.json' with { type: 'json' };
 import { SIGNAL_PIECES as pieces } from './rows/pieces';
-import { worldBakes } from './worldBakes';
-import { SIGNAL_SOURCE_LIBRARIES, SIGNAL_SOURCE_BLOBS, type SceneWorldBakes } from './sceneSources';
+import { SIGNAL_SOURCE_LIBRARIES, type SceneWorldBakes } from './sceneSources';
 import { SIGNAL_SKIRT_BLOBS, SIGNAL_SKIRT_LIBRARY, SIGNAL_SKIRT_STEPS } from './skirtScenes';
 import { SIGNAL_EMBER_BLOBS } from './emberBuffers';
 import { SIGNAL_EMITTERS } from './lightEmitters';
@@ -62,6 +61,3 @@ export function signalWorldScenes(world: SceneWorldBakes, sources: readonly Name
 
   return { blobs, worldScenes };
 }
-const baseline = signalWorldScenes(worldBakes(), SIGNAL_SOURCE_BLOBS);
-export const SIGNAL_SCENE_BLOBS = baseline.blobs;
-export const SIGNAL_WORLD_SCENES = baseline.worldScenes;

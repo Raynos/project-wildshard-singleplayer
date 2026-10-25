@@ -10,7 +10,6 @@ import type { SceneModelSource, SceneBakeSource } from '@wildshard/game/shardfil
 import * as models from './rows/files';
 import rest from '../data/restPools.generated.json' with { type: 'json' };
 import { SIGNAL_PIECES as pieces } from './rows/pieces';
-import { worldBakes } from './worldBakes';
 import * as surfaces from './rows/surfaces';
 import { SIGNAL_RIG_LIBRARY, SIGNAL_MODEL_SPECIMENS } from './rows/rigLibrary';
 import { gearSceneRows } from './rows/gearModels';
@@ -67,13 +66,5 @@ export function signalSceneSources(world: SceneWorldBakes, rigs: NonNullable<Sce
     placements: { rows: pieces, colliders: world.braziers.braziers.map((row, index) => ({ id: `sunscar.brazier.${String(index)}`, colliders: row.colliders })) } } satisfies SceneBakeSource;
   return [json('world/sources/models.json', library), json('world/sources/bakes.json', baked)];
 }
-/** Keep the original scene descriptor, replacing only its owned creature inputs. */
-export function signalModelSource(rigs: SceneModelSource['rows']['rigs']): NamedBlob {
-  if (rigs === undefined) throw new Error('Missing creature library');
-  const model = signalSceneSources(worldBakes(), rigs)[0];
-  if (model === undefined) throw new Error('Missing original model descriptor');
-  return model;
-}
-export const SIGNAL_SOURCE_BLOBS = signalSceneSources(worldBakes());
 export const SIGNAL_SOURCE_LIBRARIES = [{ id: 'models', kind: 'models', file: 'world/sources/models.json' },
   { id: 'bakes', kind: 'baked', file: 'world/sources/bakes.json' }] as const;

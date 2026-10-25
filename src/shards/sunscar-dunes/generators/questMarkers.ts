@@ -1,7 +1,3 @@
-import originalCaravan from '../data/caravan.json' with { type: 'json' };
-import originalWell from '../data/well.json' with { type: 'json' };
-import originalTower from '../data/tower.json' with { type: 'json' };
-import originalBraziers from '../data/braziers.json' with { type: 'json' };
 import { signalManifestMetadata } from './manifestGround';
 import { SCOUT_AT } from './rows/flags';
 import { BRAZIERS, TOWER, WELL } from "./layout";
@@ -32,4 +28,3 @@ return {
 };
 
 }
-export const QUEST_MARKERS = signalQuestMarkers({ caravan: originalCaravan, well: originalWell, tower: originalTower, braziers: originalBraziers });

@@ -1,7 +1,6 @@
 import * as SURFACES from './surfaces';
 import { heldPlayback } from '../heldPlayback';
 
-import lash from '../../data/lash.json' with {type:'json'};
 import { WHIP_ROW } from './equipment';
 import { WHIP_PHASE } from './meleePhase';
 import { WHIP_SCENE, WHIP_WRAP_SCENE, HD_GLOVE_SIZE } from './whip';
@@ -31,4 +30,3 @@ export function whipHeldRecipe(dimensions: { readonly along: number; readonly ti
     resources:{...resources,repeats:[{id:'plait.repeat',value:[dimensions.along,1]}],decorators},
     tip:[dimensions.tip[0]??0,dimensions.tip[1]??0,dimensions.tip[2]??0],restingGroup:'glove',caught};
 }
-export const WHIP_HELD_RECIPE = whipHeldRecipe(lash);

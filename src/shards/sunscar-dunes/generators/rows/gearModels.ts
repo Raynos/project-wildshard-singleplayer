@@ -1,8 +1,5 @@
-import { WHIP_HELD_RECIPE, type WhipHeldRecipe } from './heldWeapon';
+import type { WhipHeldRecipe } from './heldWeapon';
 import * as LAYOUT from '../layout';
-import caravan from '../../data/caravan.json' with {type:'json'};
-import well from '../../data/well.json' with {type:'json'};
-import braziers from '../../data/braziers.json' with {type:'json'};
 import STRINGS from '../../data/strings.json' with { type: 'json' };
 
 const FILE = 'src/shards/sunscar-dunes/models/gear.ts';
@@ -16,7 +13,6 @@ export const GEAR_MODEL_ROWS = [
   {id:'sunscar-dunes/caravan-scout',name:STRINGS.scoutName,category:'people',pipeline:['hunyuan'],file:FILE},
 ] as const;
 
-export const CARAVAN_MODEL_Y = caravan.anchors.y, WELL_MODEL_Y = well.anchors.y, BRAZIER_MODEL_Y = braziers.braziers[0]?.y ?? 0;
 interface GearModel<Index extends number, Builder extends string> { readonly model: (typeof GEAR_MODEL_ROWS)[Index]; readonly builder: Builder }
 interface Positioned { readonly position: readonly [number, number, number] }
 /** Fixed catalogue order and the original shared specimen recipe shapes. */
@@ -43,4 +39,3 @@ export function gearSceneRows(world: { readonly caravan: { readonly anchors: { r
     figure:{kind:'mesh',read:{owner:'npcModels',path:['mesh']}},prepare:{owner:'npcModels',path:['preload']}}},
 ] as const;
 }
-export const GEAR_SCENE_ROWS = gearSceneRows({ caravan, well, braziers }, WHIP_HELD_RECIPE);
