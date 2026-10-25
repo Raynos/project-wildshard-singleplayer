@@ -1374,6 +1374,20 @@ export function* dressingClutter(ctx: PaintCtx, spots: ClutterSpots): Generator<
 
 /** The original outcrop placement and paint, offline over native terrain. */
 
+/** Original dressing rock keep-outs over explicit native queries, without world installation.
+ * Only collision data escapes; every temporary outcrop/crag geometry is disposed here. */
+export function dressingRockColliders(ground: Ground, phone: boolean, queries: PlaceQueries): readonly Collider[] {
+  const noop = (): void => undefined;
+  const steps = outcropsPlace({ ground, flutter: { streamer: noop, flag: noop, strip: noop }, smoke: { emitter: noop } }, 0x0c7, queries);
+  let step = steps.next(); while (!step.done) step = steps.next();
+  const outcrops = step.value;
+  try {
+    const crags = bakeCragRock(phone, ground, undefined, queries);
+    try { return [...outcrops.colliders ?? [], ...crags.colliders]; }
+    finally { for (const part of crags.meshes) part.geometry.dispose(); }
+  } finally { for (const part of outcrops.meshes) part.geometry.dispose(); }
+}
+
 export function* outcropsPlace(ctx: PaintCtx, seed = 0x0c7, queries?: PlaceQueries): Generator<void, BuiltPlace> {
   const heightAt = ctx.ground;
   // Legacy callers retain the live field; owned builds use only their supplied queries.

@@ -93,3 +93,31 @@ test('native crags keep all registered bytes without selecting a level', () => {
   `;
   execFileSync(process.execPath, ['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', '--input-type=module', '--eval', source, '--', '--check']);
 });
+
+test('native dressing rock keep-outs own their geometry and require no selected level', () => {
+  const source = `
+    import assert from 'node:assert/strict';
+    import { readFileSync } from 'node:fs';
+    import { BufferGeometry } from 'three';
+    import { selectedLevel } from '@wildshard/engine/level/selection';
+    import { readNativeTerrain } from './src/sdk/bake/terrain.ts';
+    import { dressingRockColliders } from './src/shards/nalati-grasslands/generators/places.ts';
+    import { TERRAIN } from './src/shards/nalati-grasslands/generators/terrainRecipe.ts';
+    assert.equal(selectedLevel(),null);
+    const native=readNativeTerrain(readFileSync('public/assets/baked/nalati-grasslands/terrain.bin'));
+    const queries={normalAt:native.normalAt,trailDistance:TERRAIN.trailDistance};
+    const original=BufferGeometry.prototype.dispose, disposed=new Set();
+    BufferGeometry.prototype.dispose=function(){disposed.add(this);return original.call(this);};
+    try{
+      const first=dressingRockColliders(native.heightAt,false,queries);
+      assert.ok(first.length>0);assert.ok(disposed.size>0);
+      const before=JSON.stringify(first),count=disposed.size;
+      const second=dressingRockColliders(native.heightAt,false,queries);
+      assert.equal(JSON.stringify(second),before);assert.ok(disposed.size>count);
+      assert.notEqual(first,second);assert.notEqual(first[0],second[0]);
+      first[0].x+=1;assert.equal(JSON.stringify(second),before);
+      assert.equal(selectedLevel(),null);
+    }finally{BufferGeometry.prototype.dispose=original;}
+  `;
+  execFileSync(process.execPath, ['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', '--input-type=module', '--eval', source]);
+});
