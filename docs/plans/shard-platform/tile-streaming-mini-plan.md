@@ -337,9 +337,18 @@ backing-capacity ledger, not retained/resident bytes. Heap is uncollected,
 backing includes external strings, and program storage is not byte-censused.
 **Browser-internal-only growth is not proven. Recommendation: do not rebase
 the ±20 MB native gate on this evidence.** T1 stays open; guard unchanged.
-Next authorized diagnostic: same build, scalar program cache keys/name/
-`usedTimes` per return, to distinguish new variants from missed warm-up.
-No cache fix before that key diff. Region ghosts at returns 2/4 (one retired
+The [same-build program-key diagnostic](../../../progress/shard-platform/tile-streaming/t1-program-keys-3d1.json)
+(`4fbe8d8958` scalar reader) completed 12 clean legs/errors 0, not acceptance.
+Programs: **445/522/579/584/586/588**. Returns 4/5 each add 67 keys and remove
+65; the net two are `graph:material`. Dome, unnamed and shadow-depth counts
+plateau after return 2. The recurring retained 32,517/40,055-character keys
+match earlier keys except the scene-hash substring; graph text, raw output,
+mesh shape and WebGL parameters match. The stock scene hash folds light/env/
+fog node cache keys. Not all 67 arrivals are proven hash-only changes.
+Baseline-surviving keys gain +688 `usedTimes`, +686 already at return 1.
+**Authorized follow-up (sp-x9):** identify the changing scene node, stabilize
+keys only for identical content, prove pixel parity and flat warm program
+counts, then one T1 rerun. No look change or native-gate rebase. Region ghosts at returns 2/4 (one retired
 Driftwood each) clear at the next boundary; final ghosts are zero.
 
 Prior [fbb acceptance](../../../progress/shard-platform/tile-streaming/t1-retirement-fbb.json),
