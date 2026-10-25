@@ -12,6 +12,7 @@ import { markDisplayColour } from '@wildshard/engine/render/displayColour';
 import { geometryBoundsSteps } from '@wildshard/engine/world/geometryBounds';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import { GRID_HAZE, type FarLookRuntime } from './farProxy';
+import { NEAR_GRAIN_SIZE, nearGrainBytes } from './nearGrain';
 import { installFarImpostor, type FarImpostorData } from './farImpostorView';
 
 /**
@@ -50,22 +51,7 @@ let grainTexture: DataTexture | null = null;
 /** The shared grain: tileable value noise, three octaves, stretched to the full 0–255 range. Built once, never disposed. */
 function nearGrainTexture(): DataTexture {
   if (grainTexture !== null) return grainTexture;
-  const n = 128, field = new Float32Array(n * n), hash = (x: number, y: number, o: number): number => {
-    let h = Math.imul(x ^ 0x27d4eb2f, 0x85ebca6b) ^ Math.imul(y ^ 0x165667b1, 0xc2b2ae35) ^ Math.imul(o + 1, 0x9e3779b9);
-    h = Math.imul(h ^ (h >>> 15), 0x2c1b3c6d); h = Math.imul(h ^ (h >>> 12), 0x297a2d39); h ^= h >>> 15; return (h >>> 0) / 4294967296;
-  };
-  for (const [cells, weight, octave] of [[8, 0.5, 0], [16, 0.3, 1], [32, 0.2, 2]] as const) {
-    const size = n / cells;
-    for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
-      const u = x / size, v = y / size, i = Math.floor(u), j = Math.floor(v), fu = u - i, fv = v - j, su = fu * fu * (3 - 2 * fu), sv = fv * fv * (3 - 2 * fv);
-      const at = (a: number, b: number): number => hash(a % cells, b % cells, octave);
-      const top = at(i, j) + (at(i + 1, j) - at(i, j)) * su, bottom = at(i, j + 1) + (at(i + 1, j + 1) - at(i, j + 1)) * su;
-      field[y * n + x] = (field[y * n + x] ?? 0) + weight * (top + (bottom - top) * sv);
-    }
-  }
-  let lo = Infinity, hi = -Infinity; for (const f of field) { lo = Math.min(lo, f); hi = Math.max(hi, f); }
-  const bytes = Uint8Array.from(field, f => Math.round(((f - lo) / Math.max(1e-6, hi - lo)) * 255));
-  const texture = new DataTexture(bytes, n, n, RedFormat);
+  const texture = new DataTexture(nearGrainBytes(), NEAR_GRAIN_SIZE, NEAR_GRAIN_SIZE, RedFormat);
   texture.wrapS = texture.wrapT = RepeatWrapping; texture.magFilter = LinearFilter; texture.minFilter = LinearMipmapLinearFilter;
   texture.generateMipmaps = true; texture.needsUpdate = true; texture.name = 'near-grain';
   grainTexture = texture;
