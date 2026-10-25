@@ -45,7 +45,6 @@
     "scripts/shard-progress.mjs": 2,
     "scripts/skin-playback/run.mjs": 2,
     "scripts/tsl-spike/run.mjs": 1,
-    "scripts/wildshard.mjs": 1,
     "src/commons/practiceCourse.ts": 1,
     "src/engine/core/deflate.ts": 1,
     "src/engine/native/updates.ts": 1,

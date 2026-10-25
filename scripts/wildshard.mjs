@@ -5,8 +5,8 @@ import { captureProductInputs, recordBundle, inputRecorderPlugin } from './shard
 import { basename, relative, resolve, sep } from 'node:path';
 import { existsSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
-import { Buffer } from 'node:buffer';
 import { createRequire } from 'node:module';
+import { importBundle } from './import-bundle.mjs';
 import { shardfileValidationRevision } from './shardfile-validation-revision.mjs';
 import { rapierAlias } from '../vite/rapier.ts';
 import { shardfileBoundaryViolations } from '../lint/shardfile-boundaries.mjs';
@@ -31,8 +31,8 @@ export async function runWildshard(args) {
     if (output === undefined || !('output' in output)) throw new Error('Author CLI build produced no output');
     const chunks = output.output.filter((chunk) => chunk.type === 'chunk');
     if (chunks.length !== 1) throw new Error('Author CLI must bundle to one module');
-    const cli = await import(`data:text/javascript;base64,${Buffer.from(chunks[0].code).toString('base64')}`);
-    if (typeof cli.runCli !== 'function') throw new Error('Author CLI has no runner');
+    const cli = await importBundle(chunks[0].code);
+    if (cli === null || typeof cli !== 'object' || !('runCli' in cli) || typeof cli.runCli !== 'function') throw new Error('Author CLI has no runner');
     if (process.env.GITHUB_ACTIONS === 'true') console.info(`author timing: ${JSON.stringify({ pid: process.pid, phase: 'compiler-bundle', product: args[1] ?? null, seconds: Number(((performance.now() - started) / 1000).toFixed(3)) })}`);
     return cli.runCli;
   })();

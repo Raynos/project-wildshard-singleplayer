@@ -192,10 +192,13 @@ export function installInputRecorder() {
       scope.observing=true;
       let source;
       try {source=functionSource(this);}finally {scope.observing=false;}
-      if(source?.startsWith('file:'))note('F',fileURLToPath(source));
-      // Native builtins are pinned by Node's version. A bundled data URL or
-      // unrecognized origin retains all raw compiler modules as a fallback.
-      else if(source?.startsWith('node:')!==true)for(const file of modules)note('F',file);
+      const file=source?.startsWith('file:')?fileURLToPath(source):undefined;
+      if(file!==undefined)note('F',file);
+      // Native builtins are pinned by Node's version. Emitted modules under
+      // tmp (including already removed bundles), data URLs and unrecognized
+      // origins retain the original raw compiler modules as a fallback.
+      if((file===undefined||inside(scope.root,file)===undefined)&&source?.startsWith('node:')!==true)
+        for(const input of modules)note('F',input);
     }
     return text;
   };
