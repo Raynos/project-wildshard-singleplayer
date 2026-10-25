@@ -4,8 +4,12 @@ import { assertHeavyLease } from './heavy-lane-lease.mjs';
 /** Local tests leave cores for the other lanes and the measurement lane (BUILD-SPEED 1.1: a dozen lanes each
  * spawning 6 workers put 18 workers on 18 cores); CI retains Vitest's runner default. */
 export function vitestMaxWorkers(env: NodeJS.ProcessEnv = process.env): number | undefined {
-  const { WS_VITEST_MAX_WORKERS: requested, CI: ci, GITHUB_ACTIONS: actions } = env;
-  if (requested === undefined) return ci || actions ? undefined : 2;
+  const { WS_VITEST_MAX_WORKERS: requested, CI: ci, GITHUB_ACTIONS: actions, WS_COMMIT_RELATED_TOKEN: commit } = env;
+  if (requested === undefined) {
+    if (ci || actions) return undefined;
+    // CF1 is serialized by the commit lock; ordinary parallel lane runs keep two.
+    return commit ? 4 : 2;
+  }
   if (!/^[1-9]\d*$/u.test(requested) || !Number.isSafeInteger(Number(requested))) {
     throw new Error('WS_VITEST_MAX_WORKERS must be a positive integer');
   }

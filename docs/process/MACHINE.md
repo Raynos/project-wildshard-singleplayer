@@ -91,8 +91,9 @@ Each child receives a private legacy marker view in `WS_HEAVY_ROOT`; the shared 
 `WS_HEAVY_SCHEDULER_ROOT`. Thus older Vite guards still read their owner's `build.active.json` in either slot,
 with the same token and process-ancestor checks. Marker views are removed when their owner finishes.
 Ordinary builds remain FIFO; independent full-test and build jobs may overlap. The gate takes its lease for `pnpm build`; its
-related-test run is focused and needs no lease (4 workers). Local Vitest defaults to six workers (`WS_VITEST_MAX_WORKERS`
-accepts a positive integer); CI keeps its runner default. Foreground generation/build pipelines retain normal QoS
+CF1 related-test run is focused, serialized by the commit lock and needs no heavy lease (4 workers). Ordinary local
+Vitest defaults to two workers (`WS_VITEST_MAX_WORKERS` accepts a positive integer and overrides either local default);
+CI keeps its runner default. Foreground generation/build pipelines retain normal QoS
 (G668), including previews and waiting lanes. Use `heavy-lane.py build --background -- <command>` for unattended
 generation: it and its nested builds retain utility QoS. Ruler builds retain normal QoS. Full-test jobs keep
 `nice -n 10` and utility QoS. Waiting is logged separately from the E454 gate time. Do not start a nested build inside a
