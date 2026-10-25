@@ -1,10 +1,34 @@
-import { defineSpecimenCatalogue } from '@wildshard/game/models/specimenCatalogue';
+import { SpecimenCatalogueSchema } from '@wildshard/format/specimenCatalogue';
 import rows from '../data/campCatalogue.json' with { type: 'json' };
-import materials from '../data/campMaterials.json' with { type: 'json' };
-import packed from '../data/placeSpecimens.json' with { type: 'json' };
 import type { CatalogueParams } from './campParams';
 
-const catalogue = defineSpecimenCatalogue<CatalogueParams>(rows, { ...packed, bin: '/assets/nalati/baked/specimens.bin' }, materials);
+// The defining schema's standard interface avoids a runtime catalogue and
+// admits every header before any author painter can use its parameter data.
+const checked = await SpecimenCatalogueSchema['~standard'].validate(rows);
+if (checked.issues !== undefined) throw new Error('Invalid Nalati author catalogue');
+const declarations = checked.value;
+if (declarations.length > 1024 || new Set(declarations.map(row => row.key)).size !== declarations.length
+  || new Set(declarations.map(row => row.model.id)).size !== declarations.length) throw new Error('Duplicate Nalati author model');
+const catalogue = {
+  model<K extends keyof CatalogueParams>(key: K) {
+    const row = declarations.find(candidate => candidate.key === key);
+    if (row === undefined) throw new Error(`Missing Nalati author model: ${key}`);
+    const { defaults, variants, surface: modelSurface, seed, specimenYaw, ...metadata } = row.model;
+    return { ...metadata,
+      ...(modelSurface === undefined ? {} : { surface: modelSurface }), ...(seed === undefined ? {} : { seed }),
+      ...(specimenYaw === undefined ? {} : { specimenYaw }),
+      // The author parameter map is the same constrained generic boundary used
+      // by the runtime host; geometry still comes from the defining painters.
+      defaults: defaults as CatalogueParams[K],
+      ...(variants === undefined ? {} : { variants: variants.map(variant => ({ id: variant.id, label: variant.label, params: variant.params as Partial<CatalogueParams[K]> })) }),
+      ...(row.colliders === undefined ? {} : { colliders: () => (row.colliders ?? []).map(collider => {
+        const { surface, yaw, ...shape } = collider;
+        return Object.assign(shape, surface === undefined ? {} : { surface }, yaw === undefined ? {} : { yaw });
+      }) }),
+      build: () => { throw new Error('Author metadata cannot construct a runtime specimen'); },
+    };
+  },
+};
 export const ribbonPole = catalogue.model('ribbonPole');
 export const eaglePerch = catalogue.model('eaglePerch');
 export const stove = catalogue.model('stove');
