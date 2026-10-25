@@ -1,10 +1,6 @@
 import { Group, InstancedMesh, Matrix4, Mesh, type Object3D } from 'three';
 import { readScene, type SceneDescription } from './scene';
-// oxlint-disable-next-line import/no-nodejs-modules -- scene.json, the inspectable intermediate, is written inside the author project.
-import { existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
-// oxlint-disable-next-line import/no-nodejs-modules -- Cache destinations must remain within the project.
-import { dirname, resolve, sep } from 'node:path';
-import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
+import { confinedScenePath, publishSceneDescription } from './bakePublication';
 import { Collider } from './physics';
 import { declareNavigation } from './bake/navigationAsset';
 import { bakeTerrain, type BakedTerrain, type TerrainBakeSource } from './bake/terrain';
@@ -38,28 +34,12 @@ export interface SynthResult {
   path: string;
 }
 
-/** A path under the author project, refused when it (or its nearest existing parent) resolves outside it. */
-export function confined(root: string, path: string): string {
-  const destination = resolve(root, path);
-  let existing = destination;
-  while (!existsSync(existing)) existing = dirname(existing);
-  const actual = realpathSync(existing);
-  if (actual !== root && !actual.startsWith(root + sep)) throw new Error('Scene synth path resolves outside project');
-  return destination;
-}
+/** A path under the author project, refused when it resolves outside it. */
+export function confined(root: string, path: string): string { return confinedScenePath(root, path); }
 
-/** Publish an already-read description as canonical scene.json (and its content-hash copy); `synth` and `bake` both write through it. */
+/** Publish the canonical description through the existing confined Node writer. */
 export function publishScene(description: SceneDescription, project: string, slug: string): SynthResult {
-  if (!/^[a-z][a-z0-9-]{0,127}$/u.test(slug)) throw new Error('Scene synth requires a bounded shard slug');
-  const root = realpathSync(project);
-  const bytes = new TextEncoder().encode(encodeCanonicalJson(description)), hash = hashImmutableBytes(bytes);
-  const cache = `.wildshard/cache/${slug}`, immutable = confined(root, `${cache}/${hash}/scene.json`);
-  const path = confined(root, `${cache}/scene.json`);
-  if (existsSync(immutable)) {
-    if (hashImmutableBytes(readFileSync(immutable)) !== hash) throw new Error('Scene synth cached bytes disagree with their content hash');
-  } else { mkdirSync(dirname(immutable), { recursive: true }); writeFileSync(immutable, bytes, { flag: 'wx' }); }
-  writeFileSync(path, bytes);
-  return { scene: description, hash, path };
+  return publishSceneDescription(description, project, slug);
 }
 
 /** The shard a scene bakes into (`shard.config.ts`'s identity). */
@@ -151,8 +131,20 @@ function placed(mesh: Mesh): Mesh {
   return proxy;
 }
 
-/** Walk `scene`, synthesize `scene.json` and bake the shardfile content it declares (see the module comment). */
+/** Bake the existing scene content, optionally publishing its canonical diagnostic description. */
 export function bake(scene: Object3D, identity: BakeIdentity, inputs: BakeInputs = {}): BakedScene {
+  const result = bakeOwned(scene, identity, inputs);
+  if (inputs.project !== undefined) {
+    const published = publishScene(result.scene, inputs.project, identity.slug);
+    result.sceneHash = published.hash; result.scenePath = published.path;
+  }
+  return result;
+}
+
+/** Build-only scene compilation into owned rows and bytes, without publishing
+ * files or installing services. Shares the complete algorithm with `bake`;
+ * source programs cache the returned values through their injected context. */
+export function bakeOwned(scene: Object3D, identity: BakeIdentity, inputs: Omit<BakeInputs, 'project'> = {}): BakedScene {
   if (!SLUG.test(identity.slug)) throw new Error('bake: identity needs a bounded shard slug');
   scene.updateMatrixWorld(true);
   const statics = new Group(), scatter: PropScatter[] = [], pieces: BakedPiece[] = [], whole: PropWhole[] = [...inputs.props?.whole ?? []];
@@ -182,7 +174,6 @@ export function bake(scene: Object3D, identity: BakeIdentity, inputs: BakeInputs
     if (node === undefined) throw new Error(`bake: scatter ${object.name} needs a unique name`);
     node.instances = object.transforms.map((m) => [...m.elements]);
   });
-  const published = inputs.project === undefined ? null : publishScene(description, inputs.project, identity.slug);
 
   const navigation = inputs.navigation === undefined ? null : declareNavigation(inputs.navigation);
   const terrain = inputs.terrain === undefined ? null : bakeTerrain(inputs.terrain);
@@ -197,6 +188,6 @@ export function bake(scene: Object3D, identity: BakeIdentity, inputs: BakeInputs
   const shardfile: BakedScene['shardfile'] = { tiles, files, critical: [...terrain?.critical ?? [], ...navigation?.critical ?? []],
     ...(navigation === null ? {} : { navigation: navigation.navigation }),
     ...(terrain === null ? {} : { terrain: terrain.terrain, edge: terrain.edge }), ...(props === null ? {} : { far: props.far, library: props.library }) };
-  return { identity, scene: description, sceneHash: published?.hash ?? null, scenePath: published?.path ?? null, terrain, props, pieces: baked, shardfile,
+  return { identity, scene: description, sceneHash: null, scenePath: null, terrain, props, pieces: baked, shardfile,
     colliders: { scene: description.colliders, props: props?.props.colliders ?? inputs.props?.colliders ?? [], pieces: baked.map((p) => ({ piece: p.name, colliders: p.colliders })) }, assets };
 }

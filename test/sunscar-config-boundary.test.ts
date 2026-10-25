@@ -5,7 +5,7 @@ import { build } from 'vite';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 
 for (const [entry, nativeBakeImport] of [['shard.config.ts', false], ['generators/output.ts', true], ['generators/output.ts', false]] as const) {
-  test(`Sunscar ${entry} ${nativeBakeImport ? 'refuses native bake imports' : 'keeps effect metadata data-only'}`, async () => {
+  test(`Sunscar ${entry} ${nativeBakeImport ? 'keeps unpublished native metadata config-safe' : 'keeps effect metadata data-only'}`, async () => {
     let rewrites = 0;
     const result = await build({ configFile: false, logLevel: 'silent',
       plugins: [{ name: 'original-effect-import', enforce: 'pre', transform(source, id) {
@@ -23,9 +23,13 @@ for (const [entry, nativeBakeImport] of [['shard.config.ts', false], ['generator
     const chunks = built.output.filter(row => row.type === 'chunk'); expect(chunks).toHaveLength(1);
     for (const chunk of chunks) {
       const boundary = () => assertConfigBoundary([...chunk.imports, ...chunk.dynamicImports]);
-      if (nativeBakeImport) expect(boundary).toThrow('file access (node:fs)');
+      expect(boundary).not.toThrow();
+      if (nativeBakeImport) {
+        // The publication split removes formerly retained, unused fs imports.
+        // Explicit publication remains refused by the SDK's negative bundle case.
+        expect(Object.keys(chunk.modules).some(path => path.endsWith('/generators/restScene.ts'))).toBe(true);
+      }
       else {
-        expect(boundary).not.toThrow();
         expect(Object.keys(chunk.modules).some(path => path.endsWith('/generators/restScene.ts'))).toBe(false);
       }
     }

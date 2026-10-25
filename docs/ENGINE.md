@@ -4190,6 +4190,12 @@ Omitted `raw` preserves the historical embedded representation.
 ### Node scene authoring core (DS1.3)
 
 `@wildshard/sdk/bake` compiles an authored scene with `bake(scene, identity)`.
+`bakeOwned(scene, identity, inputs)` uses the same compiler without file
+publication; its inputs omit `project` and its returned scene hash/path stay
+null. Source programs own/cache the returned rows and bytes. Existing `bake`
+adds the unchanged optional canonical `scene.json` publication after compilation.
+The private publication leaf alone is marked side-effect-free for unused imports;
+all other SDK modules keep their side-effect status.
 Wrap a static mesh in `new WholeShape(name, mesh)` to keep its original
 geometry in one owning L0 tile. Parent and child transforms are retained;
 the mesh is emitted once through the whole-prop path and is never also

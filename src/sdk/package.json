@@ -2,6 +2,12 @@
   "name": "@wildshard/sdk",
   "version": "0.0.0",
   "type": "module",
+  "sideEffects": [
+    "./!(bakePublication).*",
+    "./!(dist)/**/*",
+    "./dist/!(bakePublication).*",
+    "./dist/*/**/*"
+  ],
   "exports": {
     "./bake/groundMap": "./bake/groundMap.ts",
     "./bake/species": "./bake/species.ts",
