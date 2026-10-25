@@ -170,6 +170,18 @@ test('step evidence does not invent skipped step starts, clocks or pre-fade comp
   expect(stepEvidence([{detail: 'step 4 / 3 · Invalid', setup: 'NaN'}]).numberedFrames).toBe(0);
 });
 
+test('step evidence retains monotonic sample ratios separately from the rounded display clock', () => {
+  const first = {detail: 'step 2 / 3 · Admission', setup: '13', clock: '00:00.1', elapsedMs: 125, fading: false};
+  const last = {detail: 'gap after World', setup: '100', clock: '00:01.0', elapsedMs: 1000, fading: true};
+  expect(stepEvidence([first, last]).observedStarts).toEqual([{number: 2, total: 3, setup: 13,
+    elapsedPercent: 10, errorPoints: 3, pageElapsedPercent: 12.5, pageErrorPoints: 0.5}]);
+  for (const elapsedMs of [-1, 1001, Number.NaN, Infinity]) {
+    const report = stepEvidence([{...first, elapsedMs}, last]);
+    expect(report.observedStarts[0]?.pageElapsedPercent).toBeUndefined();
+  }
+  expect(stepEvidence([{detail: first.detail, setup: first.setup, clock: first.clock}, last]).observedStarts[0]?.pageElapsedPercent).toBeUndefined();
+});
+
 
 test('bare painted admission rows start the denominator boundary, while module subphases do not', () => {
   const sample = (step: string, declaredBytes: string) => ({ step, declaredBytes, pendingBytes: '0', downloadPercent: '100' });

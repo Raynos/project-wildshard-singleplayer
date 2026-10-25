@@ -20,7 +20,9 @@ export function accuracyRecorder() {
           duration: row.children.item(2)?.textContent ?? '', state: row.className,
           key: row.dataset.key, ms: row.dataset.ms,
         }));
-        const sample = { at: now, clock: text('clock'), tier: text('tier'), fading: root.classList.contains('hide'), detail: text('suFact'), download: text('dlFact'), footer: text('foot'), diagnostics: text('diagnostics'),
+        const startedAt = root.dataset.startedAt, started = Number(startedAt);
+        const elapsedMs = startedAt !== undefined && startedAt !== '' && Number.isFinite(started) && started >= 0 && started <= now ? now - started : null;
+        const sample = { at: now, elapsedMs, clock: text('clock'), tier: text('tier'), fading: root.classList.contains('hide'), detail: text('suFact'), download: text('dlFact'), footer: text('foot'), diagnostics: text('diagnostics'),
           waiting: root.dataset.waiting, filesInFlight: root.dataset.filesInFlight, stalled: root.dataset.stalled,
           path: root.dataset.path, step: root.dataset.step, setup: root.dataset.setup,
           networkBytes: root.dataset.networkBytes, cachedBytes: root.dataset.cachedBytes,

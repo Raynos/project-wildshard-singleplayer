@@ -134,13 +134,15 @@ export function downloadEvidence(samples) {
 
 /** Read the existing visible samples; this adds no page observer or timer.
  * Step starts are first OBSERVED samples, not interpolated stage boundaries.
- * The displayed clock is rounded to tenths, so its percentage is diagnostic.
+ * Keep rounded displayed-clock ratios and, when the existing panel origin is
+ * available, independent monotonic sample ratios. Neither invents a boundary.
  * @param {readonly import('./sim-shard.mjs').StepSample[]} samples */
 export function stepEvidence(samples) {
   /** @param {string | undefined} text */
   const clockMs = text => typeof text === 'string' && /^\d+:\d{2}\.\d$/u.test(text)
     ? text.split(':').reduce((minutes, value) => minutes * 60 + Number(value), 0) * 1000 : null;
   const finalClock = clockMs(samples.at(-1)?.clock);
+  const finalElapsed = samples.at(-1)?.elapsedMs;
   let previousNumber = 0, previousTotal = null, totalChanges = 0, numberRegressions = 0, numberedFrames = 0, lastSetupBeforeFade = null;
   const starts = [];
   for (const sample of samples) {
@@ -156,8 +158,13 @@ export function stepEvidence(samples) {
     if (number !== previousNumber) {
       const elapsed = clockMs(sample.clock);
       const elapsedPercent = elapsed !== null && finalClock !== null && finalClock > 0 ? 100 * elapsed / finalClock : null;
+      const pageElapsedPercent = typeof sample.elapsedMs === 'number' && Number.isFinite(sample.elapsedMs) && sample.elapsedMs >= 0
+        && typeof finalElapsed === 'number' && Number.isFinite(finalElapsed) && finalElapsed > 0 && sample.elapsedMs <= finalElapsed
+        ? 100 * sample.elapsedMs / finalElapsed : null;
       starts.push({ number, total, setup, elapsedPercent,
-        errorPoints: setup !== null && elapsedPercent !== null ? Math.abs(setup - elapsedPercent) : null });
+        errorPoints: setup !== null && elapsedPercent !== null ? Math.abs(setup - elapsedPercent) : null,
+        ...(pageElapsedPercent === null ? {} : {pageElapsedPercent,
+          pageErrorPoints: setup === null ? null : Math.abs(setup - pageElapsedPercent)}) });
     }
     previousNumber = number; previousTotal = total;
   }

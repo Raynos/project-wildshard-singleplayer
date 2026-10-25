@@ -1,9 +1,9 @@
 export interface DownloadSample { step?: string; declaredBytes?: string; pendingBytes?: string; downloadPercent?: string }
-export interface StepSample { clock?: string; detail?: string; setup?: string; fading?: boolean }
-/** First observed step samples and rounded displayed-clock ratios; missing evidence stays null. */
+export interface StepSample { clock?: string; detail?: string; setup?: string; fading?: boolean; elapsedMs?: number | null }
+/** First observed samples; monotonic ratios require a real panel clock origin. */
 export function stepEvidence(samples: readonly StepSample[]): {
   numberedFrames: number; totalSteps: number | null; totalChanges: number; numberRegressions: number;
-  observedStarts: { number: number; total: number; setup: number | null; elapsedPercent: number | null; errorPoints: number | null }[];
+  observedStarts: { number: number; total: number; setup: number | null; elapsedPercent: number | null; errorPoints: number | null; pageElapsedPercent?: number; pageErrorPoints?: number | null }[];
   lastSetupBeforeFade: number | null;
 };
 export function compiledPollDetails<T extends {errors: readonly string[]}, U>(details: boolean, accuracy: T | null, measures: () => U): {accuracy: T | null; measures: U} | {errors: readonly string[]};
