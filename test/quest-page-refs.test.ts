@@ -5,7 +5,7 @@ import { publishBoundQuest } from '../src/game/quest/boundState';
 import { EmitterPresentation } from '../src/game/shardfile/lightEmitters';
 import { parseLightEmitters } from '../src/format/lightEmitters';
 import type { MoverRuntime } from '../src/game/plugin/mover';
-import { client as SIGNAL_CLIENT_PLAN } from './fixtures/sunscar-source-program';
+import { client as SIGNAL_CLIENT_PLAN, signalProductRows } from './fixtures/sunscar-source-program';
 import sky from '../src/shards/far-reach/data/product.generated.json' with { type: 'json' };
 import { expect, test } from 'vitest';
 import { Group, Vector3 } from 'three';
@@ -19,7 +19,8 @@ import { bindDeclaredPage } from '../src/game/quest/declaredPage';
 import { SceneHandles } from '../src/game/shardfile/sceneHandles';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import type { ShardContext } from '../src/game/plugin/context';
-import signal from '../src/shards/sunscar-dunes/data/product.generated.json' with { type: 'json' };
+
+const signal = signalProductRows();
 
 const page = { version: 1, quest: 'sunscar.signal', prompts: [
   { id: 'read', action: 'read', label: 'Read', at: { point: 'place.read-at' }, radius: 2.4 },

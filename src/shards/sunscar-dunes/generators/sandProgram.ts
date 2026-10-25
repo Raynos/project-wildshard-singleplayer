@@ -20,7 +20,7 @@ export async function signalSandFiles(ctx: Pick<ProjectGenerationContext, 'cache
   return files;
 }
 
-/** The retained metadata writer uses the identical codec/bake algorithm, without publishing files. */
+/** Encode the source cache through the pinned codecs without publishing files. */
 export function bakeSandSourceFiles(): ReadonlyMap<string, Uint8Array> {
   return bakeSignalSandSources(bytes => encodeBuildBytes(bytes, 'deflate'),
     bytes => encodeBuildBytes(bytes, 'zstd', SAND_ZSTD_LEVEL));
