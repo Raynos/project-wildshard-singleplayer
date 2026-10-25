@@ -1,10 +1,11 @@
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
-import { hashImmutableBytes } from '@wildshard/sdk/immutable';
+import { encodeCanonicalJson, hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { nineWorldProduct, nineLayoutWord } from './worldProduct';
 import { parseWorldHeader, parseWorldLayout } from './sections';
 import { bakedLayout } from './layoutProjection';
+import type { NineSpillAtlas } from './spillBake';
 
 function admitWorld(value: unknown) {
   const header = parseWorldHeader(value);
@@ -23,10 +24,14 @@ export interface NineSourceWorld {
   readonly assets: ReadonlyMap<string, Uint8Array>;
 }
 
-/** Cache exact predecessor wires and raw GLBs outside source; every hit retains ordinary admission and publication. */
-export async function nineWorldProgram(ctx: Pick<ProjectGenerationContext, 'cached' | 'asset'>): Promise<NineSourceWorld> {
-  const files = await ctx.cached({ id: 'world-layout' }, () => {
-    const product = nineWorldProduct();
+/** Cache exact predecessor wires and raw GLBs outside source, including supplied native light rows in the identity.
+ * Every hit retains ordinary admission and publication. */
+export async function nineWorldProgram(ctx: Pick<ProjectGenerationContext, 'cached' | 'asset'>, atlas?: NineSpillAtlas): Promise<NineSourceWorld> {
+  const identity = atlas === undefined ? 'world-layout' : `world-${hashImmutableBytes(new TextEncoder().encode(encodeCanonicalJson([
+    atlas.phone.placed, atlas.phone.lights, atlas.desktop.placed, atlas.desktop.lights,
+  ])))}`;
+  const files = await ctx.cached({ id: identity }, () => {
+    const product = nineWorldProduct(atlas);
     const encode = (value: unknown, suffix = ''): Uint8Array => new TextEncoder().encode(JSON.stringify(value, nineLayoutWord) + suffix);
     return new Map([['world.json', encode(product.metadata, '\n')], ['layout.json', encode(product.layout)],
       ...[...product.assets].map(([hash, bytes]) => [`blobs/${hash}`, bytes] as const)]);

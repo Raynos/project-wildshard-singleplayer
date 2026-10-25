@@ -11,6 +11,10 @@ import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { nineLayoutWord } from '../src/shards/nine-dragon-stack/generators/worldProduct';
 import { nineWorldProgram } from '../src/shards/nine-dragon-stack/generators/worldProgram';
 import before from './fixtures/nine-world-files.json' with { type: 'json' };
+import nativeAtlas from '../public/assets/nine-dragon/authored/sign-atlas/signAtlas.json' with { type: 'json' };
+import { parseNativeSignAtlas } from '../src/shards/nine-dragon-stack/generators/sections';
+
+const atlas = parseNativeSignAtlas(nativeAtlas);
 
 /** Prepare one genuinely empty cache; production work is fixture setup, never an assertion-time benchmark. */
 async function coldWorldFixture() {
@@ -21,7 +25,7 @@ async function coldWorldFixture() {
     let captured: ReadonlyMap<string, Uint8Array> | undefined;
     const c = context(), cold = await nineWorldProgram({ ...c, cached: (step, generate) => c.cached(step, async inputs => {
       captured = await generate(inputs); return captured;
-    }) });
+    }) }, atlas);
     if (captured === undefined) throw new Error('Missing cold world receipt');
     return { captured, cold, context, dispose: () => { rmSync(cache, { recursive: true, force: true }); } };
   } catch (error) { rmSync(cache, { recursive: true, force: true }); throw error; }
@@ -41,11 +45,18 @@ test('cold source world preserves all 399 original wires and every geometry byte
 
 test('a cache hit never rebuilds and retains complete rows and independently owned geometry', async () => {
   const { cold, context } = fixture;
-  const h = context(), hit = await nineWorldProgram({ ...h, cached: step => h.cached(step, () => { throw new Error('A hit must not rebuild'); }) });
+  const h = context(), hit = await nineWorldProgram({ ...h, cached: step => h.cached(step, () => { throw new Error('A hit must not rebuild'); }) }, structuredClone(atlas));
   const digest = (value: unknown): string => hashImmutableBytes(new TextEncoder().encode(JSON.stringify(value, nineLayoutWord)));
   expect(digest(hit.metadata)).toBe(digest(cold.metadata)); expect(digest(hit.layout)).toBe(digest(cold.layout));
   expect(hit.assets.size).toBe(397); expect(cold.assets.size).toBe(397);
   for (const [hash, bytes] of hit.assets) { expect(hashImmutableBytes(bytes)).toBe(hash); expect(bytes === cold.assets.get(hash)).toBe(false); }
+});
+
+test('changed native lamps cannot hit an earlier world cache', async () => {
+  const h = fixture.context(), lamp = { at: [0, 130, 0], color: [1, 0, 0], w: 3, h: 3, power: 1, spill: 1 };
+  const changed = { ...atlas, phone: { ...atlas.phone, lights: [...atlas.phone.lights, lamp] } };
+  await expect(nineWorldProgram({ ...h, cached: step => h.cached(step, () => { throw new Error('Changed native atlas must rebuild'); }) }, changed))
+    .rejects.toThrow('Changed native atlas must rebuild');
 });
 
 test('missing, extra, corrupt and wrongly published world bytes remain refusals', async () => {
