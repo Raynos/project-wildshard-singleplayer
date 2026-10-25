@@ -255,7 +255,7 @@ Each engineering slice below is at most one hour; milestone measurements stay se
 | T4.1 Required entered tiles | done (`436b14b3ed`) | Rank-0 render/collider errors refuse boot; concurrent entries await the same preparation; failed/retired residents never publish a driver. Background movement cancellation and no-retry behavior stay pinned. |
 | T4.2 Standalone / grid caller coverage | done (this code commit) | Restore evicted rank-0 tiles on re-entry; attach appended scene stages to existing tile scopes; prepare each coarse stand-in once. Required callers await in-flight background errors. |
 | T4.3 Entered-stream milestone | in flight (sp-x2, after T4.2) | Defining preview plus DW standalone/grid tap-to-controls and worst-frame evidence against M1; retain any missing baseline explicitly. |
-| G720 Data-cell entry coverage | in flight (sp-x2, ≤1 h code/proof slices) | Await admitted neighbour views and required entry tiles before publishing a data-only cell. Keep uploaded views when the entry borrows the same root. Phone road → Night Market timing/capture follows the defining source commit. |
+| G720 Data-cell entry coverage | done (`cb756b79df` + this capture commit) | Data-only entry awaits admitted views and required coverage; existing uploaded views survive same-root borrowing. On phone tier, first in-cell sample has 16 L1/15 L0 and no far proxy, 0 ms waiting inside. [Capture and timings](../../../art/grid/round-63-night-market-entry/README.md); no frame-floor claim. |
 | T6.1 Dormancy / snapshot contract | done (contract-only slice below) | Current-position membership, exceptions and exact snapshot/RNG pins; no brain or native-sim schedule change. |
 | T6.2 Presentation lease / rebind | waits-Opus | Existing design below needs render parity for shared models, moving figures, native slots and held/boss pins before runtime changes. |
 | T8.1 Complete-L0 bake fences | done (`7093891d97`) | All 24 products declare 64 L0 slots; strict caps and the exact 6/4 exception remain. |
@@ -280,14 +280,17 @@ No global state, brain scheduling, geometry or render material changed; the
 loading/frame acceptance remains T4.3, not a claim from these Node contracts.
 
 **G720 repro (phone tier, `acf56cf5c4`):** Night Market committed at
-5.990 s after walking from the road; its far proxy remained visible until
-15.123 s (another 9.133 s), while the loading panel reported no wait.
+5.990 s after walking from the road; the first far-hidden sample was at
+15.123 s (+9.133 s), while the loading panel reported no wait.
 Data-only admissions previously awaited their simulation, while neighbour
 render admission ran independently. Required entry now awaits both the
 admitted view and the shared scheduler's coarse/entry coverage; failure
 refuses the crossing and disposes the uncommitted region. The existing
 per-frame upload budget is unchanged. No on-device or after-build timing
-claim is made by the source contract tests.
+claim is made by the source contract tests. The defining `e80c55ee25`
+phone-tier capture records entry at 6.038 s and geometric entry at 7.409 s;
+its first in-cell sample already has 16 L1/15 L0 tiles and no far proxy.
+All subsequent entered samples remain covered; no error/context loss.
 
 **T8 lossless route audit (2026-10-24, sp-x2):** the existing decoder
 releases both the original wire and its copied encoded BIN/parser. With the
