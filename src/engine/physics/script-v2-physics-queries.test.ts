@@ -1,14 +1,14 @@
 import { expect,test } from 'vitest';
 import { Vector3 } from 'three';
 import { fixtureBytes } from '@wildshard/engine/test/nativeBytes';
-import { loadRapier } from '../src/engine/physics/rapier';
-import { Physics } from '../src/engine/physics/Physics';
-import { groups } from '../src/engine/physics/groups';
-import { resolvePhysicsQueriesV2,type V2QueryWorld } from '../src/engine/physics/queryBatchV2';
-import type { V2QueryRequest } from '../src/format/scriptQueriesV2';
+import { loadRapier } from './rapier';
+import { Physics } from './Physics';
+import { groups } from './groups';
+import { resolvePhysicsQueriesV2,type V2QueryWorld } from './queryBatchV2';
+import type { V2QueryRequest } from '@wildshard/format/scriptQueriesV2';
 
 async function world(top = 0) {
-  const R = await loadRapier(Uint8Array.from(fixtureBytes(new URL('../public/assets/physics/rapier.wasm',import.meta.url)))), physics = new Physics(R);
+  const R = await loadRapier(Uint8Array.from(fixtureBytes(new URL('../../../public/assets/physics/rapier.wasm',import.meta.url)))), physics = new Physics(R);
   const floor = physics.world.createCollider(R.ColliderDesc.cuboid(10,.5,10).setTranslation(0,top-.5,0).setCollisionGroups(groups('WORLD')));
   const upper = physics.world.createCollider(R.ColliderDesc.cuboid(.5,.5,.5).setTranslation(0,top+14,0).setCollisionGroups(groups('WORLD')));
   const lower = physics.world.createCollider(R.ColliderDesc.cuboid(.5,.5,.5).setTranslation(0,top+12,0).setCollisionGroups(groups('WORLD')));

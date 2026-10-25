@@ -1704,7 +1704,7 @@
  "test/script-v2-owned-batch.test.ts": 2.452,
  "test/script-v2-owned-continuation.test.ts": 1.09,
  "test/script-v2-owned-queries.test.ts": 4.988,
- "test/script-v2-physics-queries.test.ts": 0.092,
+ "src/engine/physics/script-v2-physics-queries.test.ts": 0.092,
  "test/script-v2-ports.test.ts": 23.2,
  "test/script-v2-queries.test.ts": 3.266,
  "test/script-v2-query-ring.test.ts": 2.491,
