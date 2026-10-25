@@ -617,7 +617,7 @@
     }
   },
   "budgets": {
-    "js/grid-session/raw": 450000,
+    "js/grid-session/raw": 300000,
     "js/grid-session/gzip": 100000,
     "custom-sections/_template/count": 0,
     "custom-sections/_template/bytes": 0,

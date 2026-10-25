@@ -136,10 +136,10 @@ about 160 KB gzip lower again.
 
 | Slice | Scope | Status |
 |---|---|---|
-| J1.1 | Emit the existing exact seam/edge bake as one immutable JSON asset; grid entry owns fetch/progress/cancellation, existing geometry certifiers unchanged. | in flight (2026-10-25, sp-x2); baseline `d9d068ce7f` session chunk 3,853,495 raw /289,897 gzip B |
-| J1.2 / J10.1 | Initial grid-session raw/gzip refusal in check-chunks; bytes from actual emitted code, not source estimates. | in flight with J1.1; 450,000 raw /100,000 gzip ceilings |
-| J1.3 | One pinned post-cut build and grid-entry proof; exact chunk bytes and a controlled module-compilation heap comparison. | open after source landing; final G682 native menu/Template cohort stays at end of the plan |
-| J2.1 | Audit title static closure and four generated-table readers before writes; separate loading data from code. | open after J1 |
+| J1.1 | Emit the existing exact seam/edge bake as one immutable JSON asset; grid entry owns fetch/progress/cancellation, existing geometry certifiers unchanged. | done `0348087340`: 126 plans /24 edge sources; exact native-row and mesh parity, bounded/hash-checked transport, no module-held bank. |
+| J1.2 / J10.1 | Initial grid-session raw/gzip refusal in check-chunks; bytes from actual emitted code, not source estimates. | done `0348087340` + this ratchet: actual build hook refuses over-cap output; real Vite red/green fixture. Raw ceiling 450,000 →300,000 B after measurement; gzip remains 100,000 B. Full entry guards remain J10.2. |
+| J1.3 | One pinned post-cut build and grid-entry proof; exact chunk bytes and a controlled module-compilation heap comparison. | done (2026-10-25): pinned `0348087340` full preview + original grid smoke PASS25.041s/faults0, including Template return and Signal. Session `d9d068ce7f`→`0348087340`: **3,853,495→284,428 raw /289,897→96,347 gzip B**. New JSON 3,650,497 raw /193,916 gzip B; combined gzip +366 B, so this is a code/compilation cut, not a delivered-byte win. Controlled Node compile heap-only delta 280,712→850,240 B; external source delta 7,706,958→4 B; combined 7,987,670→850,244 B (−6.807 MiB). Imports unlinked/code unevaluated; not page/JSON/iOS memory. G682 native menu/Template cohort stays at end. |
+| J2.1 | Audit title static closure and four generated-table readers before writes; separate loading data from code. | in flight (2026-10-25, sp-x2): tables are rooted by identity.ts, not pageServices; title prefetch also imports descriptor validators. Preserve Node/native and frozen LEGACY readers. |
 | J3.1 | Audit Explore/Feedback and panel readiness/progress; smallest source cut first. | open after J2 |
 | J4.1 | Audit each ineffective dynamic edge and frozen LEGACY reachability before caller rewrites. | open after J3 |
 | J5.1 | Trace exact build verdict/hash admission; retain untrusted refusal until its defining server path exists. | open after J4; G728 overrides draft D3 |
