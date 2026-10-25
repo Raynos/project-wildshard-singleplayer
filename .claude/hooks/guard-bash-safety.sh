@@ -10,10 +10,33 @@
 
 set -euo pipefail
 
-cmd="$(jq -r '.tool_input.command // empty' 2>/dev/null || true)"
+input="$(cat)"
+cmd="$(printf '%s' "$input" | jq -r '.tool_input.command // empty' 2>/dev/null || true)"
 [ -z "$cmd" ] && exit 0
 
 has() { printf '%s' "$cmd" | grep -qE "$1"; }
+
+# ── SCOPE: this checkout only (Jake, 2026-10-24) ─────────────────────────────
+# These rules protect the shared wildshard tree. Git in any other repo (localai, weights, …) is not ours to police.
+# A command targets the dirs it `cd`s into or names with `git -C`, else the shell's cwd; the guard runs only when one
+# of those resolves to this repo's toplevel.
+has 'git' || exit 0
+repo="$(cd "$(dirname "$0")/../.." && pwd -P)"
+cwd="$(printf '%s' "$input" | jq -r '.cwd // empty' 2>/dev/null || true)"
+[ -n "$cwd" ] || cwd="$PWD"
+targets="$(printf '%s' "$cmd" | grep -oE '(^|[;&|[:space:]])(cd[[:space:]]+|git[[:space:]]+-C[[:space:]]+)[^;&|[:space:]]+' \
+  | sed -E 's/^[;&|[:space:]]*(cd|git[[:space:]]+-C)[[:space:]]+//; s/^["'\'']//; s/["'\'']$//' || true)"
+[ -n "$targets" ] || targets="$cwd"
+ours=0
+while IFS= read -r t; do
+  [ -n "$t" ] || continue
+  case "$t" in "~"*) t="$HOME${t#\~}" ;; "\$HOME"*) t="$HOME${t#\$HOME}" ;; /*) ;; *) t="$cwd/$t" ;; esac
+  top="$(git -C "$t" rev-parse --show-toplevel 2>/dev/null || true)"
+  [ -n "$top" ] && [ "$(cd "$top" && pwd -P)" = "$repo" ] && ours=1
+done <<EOF
+$targets
+EOF
+[ "$ours" = 1 ] || exit 0
 
 # A command boundary: start-of-string or after ; | & (handles && and |, too).
 B='(^|[;&|])[[:space:]]*'
