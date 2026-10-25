@@ -40,7 +40,6 @@ export function restPools(): readonly { readonly url: string; readonly parts: re
   const url = REST_URLS[index]; if (url === undefined) throw new Error('Undeclared place pool');
   return { url, parts: made.scene.nodes.flatMap(node => node.kind === 'mesh' ? [node.geometry] : []) };
 }); }
-export function oilGlb(): Uint8Array { return oilRest().glb; }
 
 /** The static place frames and model placements, authored beside the existing geometry pools. */
 interface PlaceFrames { readonly camp: PrivateScene; readonly tower: PrivateScene; readonly waymark: PrivateScene; readonly cookAt: readonly [number,number,number]; readonly brazierAt: readonly [number,number,number] }

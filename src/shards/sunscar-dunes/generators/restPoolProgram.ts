@@ -1,6 +1,6 @@
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
-import { fireRest, wellRest } from './restScene';
+import { fireRest, wellRest, oilRest } from './restScene';
 import type { ClientSceneBake } from '@wildshard/sdk/bake/glb';
 
 function readParts(value: unknown): string[] {
@@ -18,7 +18,10 @@ export const signalRestFire = (ctx: Pick<ProjectGenerationContext, 'cached' | 'a
 /** The existing rope, pail and jar bytes; live well motion still owns their transforms. */
 export const signalRestWell = (ctx: Pick<ProjectGenerationContext, 'cached' | 'asset'>): Promise<{ blob: NamedBlob; pool: { url: string; parts: string[] } }> => restPool(ctx, 'well', wellRest);
 
-async function restPool(ctx: Pick<ProjectGenerationContext, 'cached' | 'asset'>, id: 'fire' | 'well', bake: () => ClientSceneBake): Promise<{ blob: NamedBlob; pool: { url: string; parts: string[] } }> {
+/** The original hidden oil surface; its material and live visibility stay with the waymark owner. */
+export const signalRestOil = (ctx: Pick<ProjectGenerationContext, 'cached' | 'asset'>): Promise<{ blob: NamedBlob; pool: { url: string; parts: string[] } }> => restPool(ctx, 'oil', oilRest);
+
+async function restPool(ctx: Pick<ProjectGenerationContext, 'cached' | 'asset'>, id: 'fire' | 'well' | 'oil', bake: () => ClientSceneBake): Promise<{ blob: NamedBlob; pool: { url: string; parts: string[] } }> {
   const files = await ctx.cached({ id: `rest-${id}` }, inputs => {
     if (inputs.size > 0) throw new Error(`Unexpected rest-${id} input`);
     const made = bake(), parts = made.scene.nodes.flatMap(node => node.kind === 'mesh' ? [node.geometry] : []);

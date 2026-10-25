@@ -18,16 +18,16 @@ import { BUDGETS } from './rows/budgets';
 import { SIGNAL_DEV_POSES } from './rows/devPoses';
 import cues from '../data/cues.json' with { type: 'json' };
 import { LATE_READS, signalOwnedBoot } from './rows/boot';
-import { signalRestFire, signalRestWell } from './restPoolProgram';
+import { signalRestFire, signalRestWell, signalRestOil } from './restPoolProgram';
 import { REST_URLS } from './rows/restFiles';
 
 /** Build the original declaration and output together from their defining source functions. */
 export async function generate(ctx: ProjectGenerationContext): Promise<GeneratedProject> {
-  const navigation = await signalNavigation(ctx), fire = await signalFireBook(ctx), rigs = await signalRigs(ctx), world = await signalWorld(ctx), restFire = await signalRestFire(ctx), restWell = await signalRestWell(ctx), boot = signalOwnedBoot([REST_URLS[0], REST_URLS[2]]), sand = await signalSand(ctx);
-  const scene = signalWorldScenes(world.world, signalSceneSources(world.world, rigs.library, world.files, new Map([[REST_URLS[0], restWell.pool], [REST_URLS[2], restFire.pool]])), placeBindings());
+  const navigation = await signalNavigation(ctx), fire = await signalFireBook(ctx), rigs = await signalRigs(ctx), world = await signalWorld(ctx), restFire = await signalRestFire(ctx), restWell = await signalRestWell(ctx), restOil = await signalRestOil(ctx), boot = signalOwnedBoot(REST_URLS), sand = await signalSand(ctx);
+  const scene = signalWorldScenes(world.world, signalSceneSources(world.world, rigs.library, world.files, new Map([[REST_URLS[0], restWell.pool], [REST_URLS[1], restOil.pool], [REST_URLS[2], restFire.pool]])), placeBindings());
   const models = scene.blobs.find(blob => blob.file.name === 'world/sources/models.json');
   if (models === undefined) throw new Error('Missing world model descriptor');
-  return { shard: signalProductRows(fire.file, sand, navigation), output: signalSourceOutput(models, [...rigs.blobs, ...world.blobs, restFire.blob, restWell.blob], scene, signalClientPlan(signalQuestPage(signalQuestMarkers(world.world)))),
+  return { shard: signalProductRows(fire.file, sand, navigation), output: signalSourceOutput(models, [...rigs.blobs, ...world.blobs, restFire.blob, restWell.blob, restOil.blob], scene, signalClientPlan(signalQuestPage(signalQuestMarkers(world.world)))),
     map: { pixels: await signalMap(ctx), name: 'ui/map' },
     discovery: { navigation, mapPalette: SIGNAL_DUNES_MAP, budgets: BUDGETS, poses: SIGNAL_DEV_POSES, audioCues: cues, 'boot.lateReads': LATE_READS, 'boot.files': boot.files, 'boot.sources': boot.sources } };
 }

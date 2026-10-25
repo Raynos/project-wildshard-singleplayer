@@ -43,7 +43,7 @@ export const markers = signalQuestMarkers(world), page = signalQuestPage(markers
 export const sourceBlobs = signalSceneSources(world, rigLibrary), scene = signalWorldScenes(world, sourceBlobs, placeBindings());
 export const originalOutput = signalSceneOutput(scene, client);
 const fireBytes = [...assets.values()].find(bytes => bytes[0] === 0xab && bytes[1] === 0x4b && bytes[2] === 0x54 && bytes[3] === 0x58);
-if (fireBytes === undefined || assets.size !== 19) throw new Error('Missing source-owned fire-book, pools, rigs or world');
+if (fireBytes === undefined || assets.size !== 20) throw new Error('Missing source-owned fire-book, pools, rigs or world');
 export const signalProductRows = () => product(fireBookFile(fireBytes), sand, navigation);
 export const source = generated.shard;
 export const sourceAssets = projectAssets(root, source, 'project', assets);
