@@ -1,13 +1,35 @@
 import * as v from 'valibot';
-import { AudioMixExpressionSchema as expr } from './audioProfiles';
+import { AudioMixExpressionSchema as expr, type AudioMixExpr, type AudioMixValues } from './audioProfiles';
 
 const id=v.pipe(v.string(),v.minLength(1),v.maxLength(128));
 const n=v.pipe(v.number(),v.finite());
 const values=v.pipe(v.array(v.tuple([id,expr])),v.maxLength(32));
 const range=v.tuple([n,n]);
 const filter=v.tuple([v.picklist(['lowpass','bandpass','highpass']),n,n]);
+/** Validated voice data; the schema's implementation is not its public type. */
+export interface VoicePatches {
+ initial: Record<string, number>;
+ bed: string;
+ calls: { id: string; cue: string; gap?: number; reach?: [number, number]; sampled?: boolean; surface?: boolean }[];
+ cues: Record<string, {
+  defaults: Record<string, number>; values: AudioMixValues; when?: AudioMixExpr; tap?: string; throttle?: AudioMixExpr;
+  bus?: { gain: AudioMixExpr; cutoff: AudioMixExpr; pan: AudioMixExpr };
+  sample?: { id: string; surface: boolean; variants?: Record<string, string>; gain: AudioMixExpr; rate: AudioMixExpr;
+   delay: AudioMixExpr; when?: AudioMixExpr; cutoff?: AudioMixExpr; pan?: AudioMixExpr };
+  phrase?: string;
+  layers: { cue: string; count: number; values: AudioMixValues; afterSample: boolean }[];
+ }>;
+ groups: Record<string, {
+  persistent: boolean; active: AudioMixExpr; sampleSinks: string[]; sampleInputs: string[];
+  winds: { id: string; args: [number, number, number, number, number, number] }[];
+  noise: { id: string; rate: [number, number]; offset: number; filters: ['lowpass' | 'bandpass' | 'highpass', number, number][] }[];
+  lfos: { target: string; rate: number; depth: number }[];
+  controls: { target: string; param: 'gain' | 'frequency'; value: AudioMixExpr; tau: number }[];
+  schedules: { tick: string; wait: [number, number]; when: AudioMixExpr; cue: string; values: AudioMixValues }[];
+ }>;
+}
 /** Bounded client-only voice patches: sampled takes, synth phrases and ordered layers. */
-export const VoicePatchesSchema=v.strictObject({
+export const VoicePatchesSchema: v.GenericSchema<VoicePatches> = v.strictObject({
  initial:v.record(id,n),bed:id,
  calls:v.pipe(v.array(v.strictObject({id,cue:id,gap:v.exactOptional(n),reach:v.exactOptional(v.tuple([n,n])),sampled:v.exactOptional(v.boolean()),surface:v.exactOptional(v.boolean())})),v.maxLength(64)),
  cues:v.record(id,v.strictObject({defaults:v.record(id,n),values,when:v.exactOptional(expr),tap:v.exactOptional(id),
@@ -23,4 +45,3 @@ export const VoicePatchesSchema=v.strictObject({
   schedules:v.pipe(v.array(v.strictObject({tick:id,wait:range,when:expr,cue:id,values})),v.maxLength(8))
  }))
 });
-export type VoicePatches=v.InferOutput<typeof VoicePatchesSchema>;

@@ -11,7 +11,9 @@ const optionalIds = v.optional(v.pipe(v.array(id), v.maxLength(128), v.check((id
 const scalar = v.union([finite, v.boolean(), id, v.null()]);
 const conditions = v.pipe(v.array(v.strictObject({ field: id, op: v.picklist(['equals', 'not-equals', 'greater']), value: scalar })), v.maxLength(16));
 /** Bounded numerical mix expressions over supplied listener/clock/geometry values. */
-export type AudioMixOp = '+' | '-' | '*' | '/' | 'min' | 'max' | '%' | 'pow' | 'cos' | 'exp' | 'tanh' | 'lerp' | 'round' | 'floor' | 'abs' | 'sin' | 'hypot' | 'ss' | 'in' | 'lt' | 'gt' | 'if' | 'and' | 'or' | 'not' | 'clamp' | 'zone' | 'dist';
+export type AudioMixOp = '+' | '-' | '*' | '/' | 'min' | 'max' | '%' | 'pow' | 'cos' | 'exp' | 'tanh' | 'lerp' |
+  'round' | 'floor' | 'abs' | 'sin' | 'hypot' | 'ss' | 'in' | 'lt' | 'gt' | 'if' | 'and' | 'or' | 'not' |
+  'clamp' | 'zone' | 'dist';
 /** Recursive bounded scalar expression; schema metadata keeps its lazy factory opaque. */
 export type AudioMixExpr = number | string | readonly [AudioMixOp, ...AudioMixExpr[]];
 function boundedMix(expr:AudioMixExpr):boolean {
@@ -29,17 +31,31 @@ function boundedMix(expr:AudioMixExpr):boolean {
 }
 const mixExpr:v.GenericSchema<AudioMixExpr> = v.pipe(v.lazy(()=>v.union([finite,id,v.tupleWithRest([v.picklist(['+','-','*','/','min','max','%','pow','cos','exp','tanh','lerp','round','floor','abs','sin','hypot','ss','in','lt','gt','if','and','or','not','clamp','zone','dist'])],mixExpr)])),v.check(value=>boundedMix(value),'bounded mix expression'));
 /** Shared bounded numeric algebra for non-audio scalar programs too. */
-export const AudioMixExpressionSchema = mixExpr;
+export const AudioMixExpressionSchema: v.GenericSchema<AudioMixExpr> = mixExpr;
 const mixValues=(max:number)=>v.pipe(v.array(v.tuple([id,mixExpr])),v.maxLength(max));
+/** An ordered mix assignment; expressions are evaluated by the native owner. */
+export type AudioMixValues = [string, AudioMixExpr][];
+/** Validated mixer data, independent of the validator's implementation type. */
+export interface AudioMixRecipe {
+  values: AudioMixValues;
+  levels: AudioMixValues;
+  cutoffs: AudioMixValues;
+  rooms: { id: string; weight: AudioMixExpr; level: AudioMixExpr }[];
+  diag: AudioMixValues;
+  zones: AudioMixValues;
+  zoneMode: 'first' | 'max';
+  zoneFloor: number;
+  defaultZone: string;
+  shade?: [AudioMixExpr, AudioMixExpr];
+}
 /** Ordered weights, levels, filters, sends and diagnostics. All graph/geometry ports remain native. */
-export const AudioMixSchema = v.strictObject({values:mixValues(256),levels:mixValues(64),cutoffs:mixValues(16),
+export const AudioMixSchema: v.GenericSchema<AudioMixRecipe> = v.strictObject({values:mixValues(256),levels:mixValues(64),cutoffs:mixValues(16),
   rooms:v.pipe(v.array(v.strictObject({id,weight:mixExpr,level:mixExpr})),v.maxLength(16)),diag:mixValues(64),zones:mixValues(32),
   zoneMode:v.picklist(['first','max']),zoneFloor:v.pipe(finite,v.minValue(0),v.maxValue(1)),defaultZone:id,
   shade:v.exactOptional(v.tuple([mixExpr,mixExpr]))});
-export type AudioMixRecipe = v.InferOutput<typeof AudioMixSchema>;
 
 /** Bounded music catalogue selection; the engine keeps today's bar-grid calm/tension/boss stem decoding. */
-export const AudioMusicSchema = v.pipe(v.strictObject({ id, base: id, slots: list, bootSlots: list,
+export const AudioMusicSchema: v.GenericSchema<AudioMusic> = v.pipe(v.strictObject({ id, base: id, slots: list, bootSlots: list,
   setPlayback:v.exactOptional(v.strictObject({scene:v.pipe(v.record(id,scalar),v.check(rows=>Object.keys(rows).length<=16)),stateMode:v.boolean(),waitForBank:v.boolean()})),
   setCatalogue:v.exactOptional(v.strictObject({inventory:v.picklist(['base','title']),priority:v.boolean(),bootSynth:v.boolean(),titleStings:v.boolean(),baseSamples:v.boolean(),cueOverlay:v.boolean()})),
   lifecycle:v.exactOptional(v.strictObject({persistent:v.boolean(),dispose:v.boolean(),logChanges:v.boolean(),bossScene:v.exactOptional(id)})),
@@ -53,15 +69,18 @@ export const AudioMusicSchema = v.pipe(v.strictObject({ id, base: id, slots: lis
   && music.selection.every((row) => row.slots.every((slot) => music.slots.includes(slot)))
   && Object.keys(music.sets).every((slot) => music.slots.includes(slot)), 'every selected, base and boot slot belongs to the score (the platform title is allowed)'));
 /** Same-byte sample catalogue and loop gain selection, without author decoder callbacks. */
-export const AudioSamplesSchema = v.strictObject({ catalogue: v.exactOptional(catalogue), set: id, bed: id, loopGains: v.pipe(v.record(id, gain), v.check((gains) => Object.keys(gains).length <= 32, 'bounded loop gains')), omitLoops: optionalIds, omitShots: optionalIds, omitSlots: optionalIds });
+export const AudioSamplesSchema: v.GenericSchema<AudioSamples> = v.strictObject({ catalogue: v.exactOptional(catalogue), set: id, bed: id, loopGains: v.pipe(v.record(id, gain), v.check((gains) => Object.keys(gains).length <= 32, 'bounded loop gains')), omitLoops: optionalIds, omitShots: optionalIds, omitSlots: optionalIds });
+/** Supported native biquad types. */
+export type AudioFilterKind = 'lowpass' | 'highpass' | 'bandpass' | 'lowshelf' | 'highshelf' | 'peaking' |
+  'notch' | 'allpass';
 /** A biquad: its type, frequency (Hz) and Q (default 0.7). */
-export type SynthFilterRow = readonly [v.InferOutput<typeof synthFilters>[number][0], number, number?];
+export type SynthFilterRow = readonly [AudioFilterKind, number, number?];
 
 /** An LFO summed onto a parameter: rate (Hz), depth (the parameter's units) and waveform (default sine). */
 export interface SynthLfoRow {
   readonly rate: number;
   readonly depth: number;
-  readonly type?: v.InferOutput<typeof synthWave>;
+  readonly type?: 'sine' | 'square' | 'sawtooth' | 'triangle';
 }
 
 /** A gain stage after the filters: its level, LFOs on that level and a flutter (a noise through filters, × depth, onto it). */
@@ -112,14 +131,24 @@ export interface SynthBedGraph {
 }
 
 
+/** A validated native bus, filter or positional emitter. */
+export interface AudioNodeRow {
+  id: string;
+  out?: string;
+  input?: string;
+  gain?: AudioMixExpr;
+  filter?: [AudioFilterKind, number] | [AudioFilterKind, number, number];
+  panner?: [number, number, number];
+  at?: string;
+  follow?: { zone: string; rays: number; step: number; refine: number; diag: string };
+}
 /** Named buses, filters and positional emitters; output and point ids are native graph loans. */
-export const AudioNodeSchema = v.pipe(v.strictObject({id,out:v.exactOptional(id),input:v.exactOptional(id),gain:v.exactOptional(mixExpr),
+export const AudioNodeSchema: v.GenericSchema<AudioNodeRow> = v.pipe(v.strictObject({id,out:v.exactOptional(id),input:v.exactOptional(id),gain:v.exactOptional(mixExpr),
   filter:v.exactOptional(v.union([v.tuple([v.picklist(['lowpass','highpass','bandpass','lowshelf','highshelf','peaking','notch','allpass']),finite]),v.tuple([v.picklist(['lowpass','highpass','bandpass','lowshelf','highshelf','peaking','notch','allpass']),finite,finite])])),
   panner:v.exactOptional(v.tuple([finite,finite,finite])),at:v.exactOptional(id),
   follow:v.exactOptional(v.strictObject({zone:id,rays:v.pipe(finite,v.safeInteger(),v.minValue(1),v.maxValue(8192)),step:v.pipe(finite,v.minValue(0.001)),refine:v.pipe(finite,v.safeInteger(),v.minValue(0),v.maxValue(64)),diag:id}))}),
   v.check(row=>Number(row.gain!==undefined)+Number(row.filter!==undefined)+Number(row.panner!==undefined)===1,'one audio node kind'),
   v.check(row=>(row.at===undefined&&row.follow===undefined)||row.panner!==undefined,'positional emitter fields require a panner'));
-export type AudioNodeRow = v.InferOutput<typeof AudioNodeSchema>;
 /** Ordered bounded WebAudio graphs; output ids and scheduler marks are supplied by the native host. */
 const synthFrequency = v.pipe(finite,v.minValue(0),v.maxValue(96000));
 const synthWave = v.picklist(['sine','square','sawtooth','triangle']);
@@ -136,7 +165,7 @@ const synthChain = v.pipe(v.strictObject({noise:v.exactOptional(synthNoise),osc:
   stages:v.exactOptional(v.pipe(v.array(synthStage),v.maxLength(16))),pan:v.exactOptional(id),to:id}),
   v.check(row=>Number(row.noise!==undefined)+Number(row.osc!==undefined)+Number(row.sample!==undefined)===1,'one synth source'),
   v.check(row=>(row.sweeps??[]).every(([index])=>index<(row.filters?.length??0)),'declared sweep filter'));
-export const SynthBedGraphSchema = v.pipe(v.strictObject({tap:v.exactOptional(id),
+export const SynthBedGraphSchema: v.GenericSchema<SynthBedGraphData> = v.pipe(v.strictObject({tap:v.exactOptional(id),
   beds:v.pipe(v.array(v.strictObject({id,out:id,gain:v.exactOptional(gain),pan:v.exactOptional(v.pipe(finite,v.minValue(-1),v.maxValue(1))),
     lfos:v.exactOptional(v.pipe(v.array(synthLfo),v.maxLength(8)))})),v.minLength(1),v.maxLength(64)),
   chains:v.pipe(v.array(v.union([synthChain,v.strictObject({mark:id})])),v.maxLength(256))}),
@@ -153,22 +182,47 @@ const phraseBurst = v.strictObject({kind:v.literal('burst'),when:v.exactOptional
 const phraseValue = v.strictObject({kind:v.literal('value'),when:v.exactOptional(mixExpr),id,value:mixExpr});
 const phraseEnvelope = v.strictObject({kind:v.literal('envelope'),out:id,t:mixExpr,ramps:v.pipe(v.array(v.variant('kind',[v.strictObject({kind:v.literal('linear'),value:mixExpr,t:mixExpr}),v.strictObject({kind:v.literal('target'),value:mixExpr,t:mixExpr,tau:mixExpr})])),v.maxLength(16))});
 const phraseBody = v.variant('kind',[phraseValue,phraseTone,phraseBurst]);
-export const AudioPhraseProgramSchema = v.pipe(v.strictObject({tap:v.exactOptional(id),steps:v.pipe(v.array(v.variant('kind',[phraseValue,phraseTone,phraseBurst,phraseEnvelope,
+export const AudioPhraseProgramSchema: v.GenericSchema<AudioPhraseProgram> = v.pipe(v.strictObject({tap:v.exactOptional(id),steps:v.pipe(v.array(v.variant('kind',[phraseValue,phraseTone,phraseBurst,phraseEnvelope,
   v.strictObject({kind:v.literal('gainLfo'),out:id,t:mixExpr,duration:mixExpr,rate:mixExpr,depth:mixExpr}),
   v.strictObject({kind:v.literal('bus'),id,out:id,gain:mixExpr,pan:mixExpr,alwaysPan:v.exactOptional(v.boolean()),filter:v.exactOptional(v.strictObject({type:v.picklist(['lowpass','highpass','bandpass']),frequency:mixExpr,q:v.exactOptional(mixExpr)}))}),
   v.strictObject({kind:v.literal('repeat'),eachTest:v.exactOptional(v.boolean()),index:v.exactOptional(id),count:mixExpr,max:v.pipe(finite,v.safeInteger(),v.minValue(1),v.maxValue(32)),body:v.pipe(v.array(phraseBody),v.maxLength(64))})])),v.maxLength(64))}),
   v.check(program=>program.steps.reduce((sum,step)=>sum+(step.kind==='repeat'?step.max*step.body.length:1),0)<=1024,'bounded phrase work'));
 /** Validated tone/noise envelopes and owned filtered buses; no executable author callbacks. */
-export type AudioPhraseProgram = v.InferOutput<typeof AudioPhraseProgramSchema>;
+export interface AudioPhraseProgram { tap?: string; steps: ({ kind: 'value'; when?: AudioMixExpr; id: string;
+  value: AudioMixExpr; } | { kind: 'tone'; when?: AudioMixExpr; out: string; type?: 'sine' | 'square' |
+  'sawtooth' | 'triangle'; f0: AudioMixExpr; gain: AudioMixExpr; decay: AudioMixExpr; t?: AudioMixExpr; f1?:
+  AudioMixExpr; glide?: AudioMixExpr; attack?: AudioMixExpr; hold?: AudioMixExpr; pan?: AudioMixExpr; lowpass?:
+  AudioMixExpr; vibrato?: { rate: AudioMixExpr; depth: AudioMixExpr; }; envelope?: { end: AudioMixExpr; stop:
+  AudioMixExpr[]; }; } | { kind: 'burst'; when?: AudioMixExpr; out: string; type?: 'lowpass' | 'highpass' |
+  'bandpass' | 'lowshelf' | 'highshelf' | 'peaking' | 'notch' | 'allpass'; freq: AudioMixExpr; gain:
+  AudioMixExpr; decay: AudioMixExpr; t?: AudioMixExpr; freqEnd?: AudioMixExpr; q?: AudioMixExpr; attack?:
+  AudioMixExpr; hold?: AudioMixExpr; pan?: AudioMixExpr; rate?: AudioMixExpr; } | { kind: 'envelope'; out:
+  string; t: AudioMixExpr; ramps: ({ kind: 'linear'; value: AudioMixExpr; t: AudioMixExpr; } | { kind: 'target';
+  value: AudioMixExpr; t: AudioMixExpr; tau: AudioMixExpr; })[]; } | { kind: 'gainLfo'; out: string; t:
+  AudioMixExpr; duration: AudioMixExpr; rate: AudioMixExpr; depth: AudioMixExpr; } | { kind: 'bus'; id: string;
+  out: string; gain: AudioMixExpr; pan: AudioMixExpr; alwaysPan?: boolean; filter?: { type: 'lowpass' |
+  'highpass' | 'bandpass'; frequency: AudioMixExpr; q?: AudioMixExpr; }; } | { kind: 'repeat'; eachTest?:
+  boolean; index?: string; count: AudioMixExpr; max: number; body: ({ kind: 'value'; when?: AudioMixExpr; id:
+  string; value: AudioMixExpr; } | { kind: 'tone'; when?: AudioMixExpr; out: string; type?: 'sine' | 'square' |
+  'sawtooth' | 'triangle'; f0: AudioMixExpr; gain: AudioMixExpr; decay: AudioMixExpr; t?: AudioMixExpr; f1?:
+  AudioMixExpr; glide?: AudioMixExpr; attack?: AudioMixExpr; hold?: AudioMixExpr; pan?: AudioMixExpr; lowpass?:
+  AudioMixExpr; vibrato?: { rate: AudioMixExpr; depth: AudioMixExpr; }; envelope?: { end: AudioMixExpr; stop:
+  AudioMixExpr[]; }; } | { kind: 'burst'; when?: AudioMixExpr; out: string; type?: 'lowpass' | 'highpass' |
+  'bandpass' | 'lowshelf' | 'highshelf' | 'peaking' | 'notch' | 'allpass'; freq: AudioMixExpr; gain:
+  AudioMixExpr; decay: AudioMixExpr; t?: AudioMixExpr; freqEnd?: AudioMixExpr; q?: AudioMixExpr; attack?:
+  AudioMixExpr; hold?: AudioMixExpr; pan?: AudioMixExpr; rate?: AudioMixExpr; })[]; })[]; }
 /** A native graph mark scheduler; predicates read actual mixer observations. */
-export const AudioOneShotScheduleSchema = v.pipe(v.strictObject({mark:id,tick:id,every:v.tuple([v.pipe(finite,v.minValue(0.001),v.maxValue(600)),v.pipe(finite,v.minValue(0),v.maxValue(600)),v.pipe(finite,v.minValue(0),v.maxValue(10))]),when:v.exactOptional(mixExpr),
+export const AudioOneShotScheduleSchema: v.GenericSchema<AudioOneShotSchedule> = v.pipe(v.strictObject({mark:id,tick:id,every:v.tuple([v.pipe(finite,v.minValue(0.001),v.maxValue(600)),v.pipe(finite,v.minValue(0),v.maxValue(600)),v.pipe(finite,v.minValue(0),v.maxValue(10))]),when:v.exactOptional(mixExpr),
   start:v.exactOptional(v.picklist(['mark','built'])),entered:v.exactOptional(v.boolean()),random:v.exactOptional(v.picklist(['host','global'])),
   shot:v.exactOptional(v.strictObject({family:id,chance:mixExpr,gain:mixExpr,radius:v.tuple([v.pipe(finite,v.minValue(0),v.maxValue(2000)),v.pipe(finite,v.minValue(0),v.maxValue(2000))])})),
   program:v.exactOptional(id),targets:v.pipe(v.array(id),v.maxLength(32))}),v.check(row=>row.shot===undefined?(row.program!==undefined&&row.targets.length>0):row.program===undefined,'one scheduled phrase or sample'));
 
-export type AudioOneShotSchedule = v.InferOutput<typeof AudioOneShotScheduleSchema>;
+export interface AudioOneShotSchedule { mark: string; tick: string; every: [ number, number, number ]; when?:
+  AudioMixExpr; start?: 'mark' | 'built'; entered?: boolean; random?: 'host' | 'global'; shot?: { family:
+  string; chance: AudioMixExpr; gain: AudioMixExpr; radius: [ number, number ]; }; program?: string; targets:
+  string[]; }
 /** A scoped ambient scheduler for an admitted phrase. */
-export const AudioPhraseScheduleSchema = v.strictObject({tick:id,wait:v.pipe(v.tuple([finite,finite]),v.check(values=>values[0]>0&&values[1]>=values[0]&&values[1]<=600)),program:AudioPhraseProgramSchema});
+export const AudioPhraseScheduleSchema: v.GenericSchema<AudioPhraseSchedule> = v.strictObject({tick:id,wait:v.pipe(v.tuple([finite,finite]),v.check(values=>values[0]>0&&values[1]>=values[0]&&values[1]<=600)),program:AudioPhraseProgramSchema});
 
 const zone = v.pipe(v.strictObject({ id, x: finite, z: finite, inner: v.pipe(finite, v.minValue(0), v.maxValue(2000)), outer: v.pipe(finite, v.minValue(0), v.maxValue(2000)), gain,
   fade: v.optional(v.pipe(finite, v.minValue(0.001), v.maxValue(2000))), open: v.optional(v.boolean()), source: v.optional(id) }), v.check((row) => row.inner < row.outer && (row.fade === undefined || row.outer === row.inner + row.fade), 'audio zone fade must extend outside its inner radius'));
@@ -184,7 +238,7 @@ const audioSpatialProbe=v.variant('kind',[
 ]);
 /** Native mix ownership, borrowed numeric inputs and entered/source teardown. */
 const ambienceReference=v.strictObject({owner:id,path:v.pipe(v.array(id),v.minLength(1),v.maxLength(8))});
-export const AudioAmbienceLifecycleSchema = v.strictObject({
+export const AudioAmbienceLifecycleSchema: v.GenericSchema<AudioAmbienceLifecycle> = v.strictObject({
   scope:id,zone:id,childScope:v.boolean(),ownedZones:v.boolean(),dispose:v.picklist(['scope','samples']),
   bank:v.boolean(),wind:v.boolean(),logZone:v.boolean(),random:v.picklist(['audio','global']),
   values:v.pipe(v.record(id,finite),v.check(rows=>Object.keys(rows).length<=32)),
@@ -198,10 +252,15 @@ export const AudioAmbienceLifecycleSchema = v.strictObject({
     v.strictObject({kind:v.literal('value'),id,value:mixExpr}),
   ])),v.maxLength(32)),
 });
-export type AudioAmbienceLifecycle = v.InferOutput<typeof AudioAmbienceLifecycleSchema>;
+export interface AudioAmbienceLifecycle { scope: string; zone: string; childScope: boolean; ownedZones: boolean;
+  dispose: 'scope' | 'samples'; bank: boolean; wind: boolean; logZone: boolean; random: 'audio' | 'global';
+  values: Record<string, number>; surfaces: boolean; spots: boolean; points?: Record<string, { x:
+  AudioMixExpr; z: AudioMixExpr; height?: AudioMixExpr; }>; circles: Record<string, { owner: string; path:
+  string[]; }>; pointLists: Record<string, { owner: string; path: string[]; }>; spotBindings: Record<string, { zone: string; gain: { owner: string; path: string[]; }; above: number; }>; inputs: ({ kind: 'read'; id:
+  string; owner: string; path: string[]; } | { kind: 'value'; id: string; value: AudioMixExpr; })[]; }
 
 /** Native audio lifecycle policy; observations and decoded samples are supplied by the resident owner. */
-export const AudioAmbienceRoutingSchema = v.strictObject({
+export const AudioAmbienceRoutingSchema: v.GenericSchema<AudioAmbienceRouting> = v.strictObject({
   probes:v.exactOptional(v.pipe(v.array(audioSpatialProbe),v.maxLength(64))),probeFinite:v.exactOptional(v.pipe(v.array(id),v.maxLength(32))),
   warm:v.pipe(v.array(id),v.maxLength(32)),prewarm:v.pipe(v.array(id),v.maxLength(32)),listener:v.picklist(['context','port']),
   underwater:v.exactOptional(v.tuple([finite,finite])),
@@ -215,11 +274,22 @@ export const AudioAmbienceRoutingSchema = v.strictObject({
     beds:v.pipe(v.array(v.strictObject({id,out:id,panned:v.boolean()})),v.maxLength(32))})),
   activeGains:v.exactOptional(v.pipe(v.array(v.tuple([id,v.union([id,finite])])),v.maxLength(16)))
 });
-export type AudioAmbienceRouting = v.InferOutput<typeof AudioAmbienceRoutingSchema>;
+export interface AudioAmbienceRouting { probes?: ({ kind: 'bounds'; id: string; from: string; key: string; } | {
+  kind: 'near'; id: string; radius: number; } | { kind: 'footprint'; id: string; floor: string; sites: string;
+  minY: number; maxY: number; x: [ number, number ]; z: [ number, number ]; } | { kind: 'circle'; id: string;
+  source: string; inner: number; outer: number; pan?: string; } | { kind: 'spots'; source: string; ids:
+  string[]; fade: number; open: string; initial: AudioMixExpr; pans: string[]; } | { kind: 'maximum'; id:
+  string; source: string; initial: AudioMixExpr; inner: number; outer: number; gain: number; })[]; probeFinite?:
+  string[]; warm: string[]; prewarm: string[]; listener: 'context' | 'port'; underwater?: [ number, number ];
+  bounds: { id: string; from: string; key: string; }[]; near: { id: string; radius: number; }[]; steer: { pan:
+  string; toward: string; width: number; tau: number; }[]; rooms: { from: string; to: string; input?: string;
+  prewarmMissing?: boolean; list: { id: string; ir: string; weight: string; level: AudioMixExpr; feeds?:
+  string[]; }[]; }; zoneNames: string[]; samples?: { startDelay: number; tap: string; beds: { id: string; out:
+  string; panned: boolean; }[]; }; activeGains?: [ string, string | number ][]; }
 /** Bounded zone/mixer data. Terrain, moving emitters and bespoke synthesis remain trusted runtime ports. */
 /** Sampled loop levels and seeded distant calls; native mixers own playback. */
 const sampleInterval = v.pipe(v.tuple([v.pipe(finite,v.minValue(0),v.maxValue(600)),v.pipe(finite,v.minValue(0),v.maxValue(600))]),v.check(row=>row[0]<=row[1]));
-export const AudioSampleMixSchema = v.pipe(v.strictObject({
+export const AudioSampleMixSchema: v.GenericSchema<AudioSampleMix> = v.pipe(v.strictObject({
   random:v.variant('kind',[
     v.strictObject({kind:v.literal('seeded'),salt:id}),
     v.strictObject({kind:v.literal('stream'),id:v.literal('cosmetic')}),
@@ -234,8 +304,14 @@ export const AudioSampleMixSchema = v.pipe(v.strictObject({
       v.strictObject({kind:v.literal('cue'),id,gain}),
     ])})),v.maxLength(16)),
 }),v.check(rows=>new Set(rows.beds.map(row=>row.id)).size===rows.beds.length&&new Set(rows.zones.map(row=>row.id)).size===rows.zones.length&&rows.calls.every(row=>row.every[0]>0),'unique sample rows and positive call periods'));
-export type AudioSampleMix = v.InferOutput<typeof AudioSampleMixSchema>;
-export const AudioZonesSchema = v.strictObject({ id, sampleMix:v.exactOptional(AudioSampleMixSchema), lifecycle:v.exactOptional(AudioAmbienceLifecycleSchema), routing:v.exactOptional(AudioAmbienceRoutingSchema), nodes:v.exactOptional(v.pipe(v.array(AudioNodeSchema),v.maxLength(64))), schedules:v.exactOptional(v.pipe(v.array(AudioOneShotScheduleSchema),v.maxLength(32))), programs:v.exactOptional(v.pipe(v.record(id,AudioPhraseProgramSchema),v.check(rows=>Object.keys(rows).length<=32))), graph:v.exactOptional(SynthBedGraphSchema), mix:v.exactOptional(AudioMixSchema), smoothSeconds: v.pipe(finite, v.minValue(0.001), v.maxValue(10)), tickHz: v.pipe(finite, v.minValue(0.1), v.maxValue(120)),
+export interface AudioSampleMix { random: { kind: 'seeded'; salt: string; } | { kind: 'stream'; id: 'cosmetic'; };
+  initial: Record<string, number>; values: [ string, AudioMixExpr ][]; diagnostics: [ string, AudioMixExpr
+  ][]; pans: [ string, AudioMixExpr ][]; beds: { id: string; tap: string; ambient: boolean; panned: boolean;
+  level: AudioMixExpr; keepSilent: boolean; }[]; zones: { id: string; weight: AudioMixExpr; }[]; calls: { tick:
+  string | null; initial: [ number, number ]; every: [ number, number ]; advance: AudioMixExpr; when:
+  AudioMixExpr; reset: 'before' | 'after'; emit: { kind: 'animal'; choices: string[]; chance: number; distance:
+  [ number, number ]; up: number; } | { kind: 'cue'; id: string; gain: number; }; }[]; }
+export const AudioZonesSchema: v.GenericSchema<AudioZones> = v.strictObject({ id, sampleMix:v.exactOptional(AudioSampleMixSchema), lifecycle:v.exactOptional(AudioAmbienceLifecycleSchema), routing:v.exactOptional(AudioAmbienceRoutingSchema), nodes:v.exactOptional(v.pipe(v.array(AudioNodeSchema),v.maxLength(64))), schedules:v.exactOptional(v.pipe(v.array(AudioOneShotScheduleSchema),v.maxLength(32))), programs:v.exactOptional(v.pipe(v.record(id,AudioPhraseProgramSchema),v.check(rows=>Object.keys(rows).length<=32))), graph:v.exactOptional(SynthBedGraphSchema), mix:v.exactOptional(AudioMixSchema), smoothSeconds: v.pipe(finite, v.minValue(0.001), v.maxValue(10)), tickHz: v.pipe(finite, v.minValue(0.1), v.maxValue(120)),
   silentSeconds: v.pipe(finite, v.minValue(0), v.maxValue(600)), holdSeconds: v.pipe(finite, v.minValue(0), v.maxValue(60)),
   levels: v.pipe(v.record(id, gain), v.check((levels) => Object.keys(levels).length <= 64, 'bounded levels')),
   blendMetres: v.optional(v.pipe(finite, v.minValue(0.001), v.maxValue(2000))),
@@ -245,11 +321,28 @@ export const AudioZonesSchema = v.strictObject({ id, sampleMix:v.exactOptional(A
   wet: v.pipe(v.record(id, v.pipe(finite, v.minValue(0), v.maxValue(1))), v.check((levels) => Object.keys(levels).length <= 16, 'bounded rooms')),
   zones: v.pipe(v.array(zone), v.maxLength(512), v.check((zones) => new Set(zones.map((row) => row.id)).size === zones.length, 'unique audio zones')) });
 /** The validated score's stable catalogue slots and scene rules. */
-export type AudioMusic = v.InferOutput<typeof AudioMusicSchema>;
+export interface AudioMusic { id: string; base: string; slots: string[]; bootSlots: string[]; setPlayback?: {
+  scene: Record<string, string | number | boolean | null>; stateMode: boolean; waitForBank: boolean; };
+  setCatalogue?: { inventory: 'base' | 'title'; priority: boolean; bootSynth: boolean; titleStings: boolean;
+  baseSamples: boolean; cueOverlay: boolean; }; lifecycle?: { persistent: boolean; dispose: boolean; logChanges:
+  boolean; bossScene?: string; }; synthLead: 'pluck' | 'marimba'; minFade: number; source: { dir: string;
+  manifestKey: string; } | null; sets: Record<string, string>; selection: { slots: string[]; when: { field:
+  string; op: 'equals' | 'not-equals' | 'greater'; value: string | number | boolean | null; }[]; }[];
+  selectMode: 'first' | 'all'; catalogue?: { mode: 'slots' | 'bank'; extraStings: ('pickup' | 'death' | 'chunk'
+  | 'dawn')[]; stingSets: { pickup?: string; death?: string; chunk?: string; dawn?: string; }; }; }
 /** The validated same-byte sample selection. */
-export type AudioSamples = v.InferOutput<typeof AudioSamplesSchema>;
+export interface AudioSamples { catalogue?: { ownMusic: boolean; priorityOwn: boolean; overlaySamples: boolean;
+  inventoryOmitSlots: string[]; loopOrder: string[]; }; set: string; bed: string; loopGains: Record<string, number>; omitLoops?: string[] | undefined; omitShots?: string[] | undefined; omitSlots?: string[] |
+  undefined; }
 /** The validated mixer timing and named ambience zones. */
-export type AudioZones = v.InferOutput<typeof AudioZonesSchema>;
+export interface AudioZones { id: string; sampleMix?: AudioSampleMix; lifecycle?: AudioAmbienceLifecycle; routing?:
+  AudioAmbienceRouting; nodes?: AudioNodeRow[]; schedules?: AudioOneShotSchedule[]; programs?: Record<string, AudioPhraseProgram>; graph?: SynthBedGraphData; mix?: AudioMixRecipe; smoothSeconds: number; tickHz: number;
+  silentSeconds: number; holdSeconds: number; levels: Record<string, number>; blendMetres?: number |
+  undefined; rectangles?: { id: string; zone: string; x0: number; x1: number; z0: number; z1: number; }[] |
+  undefined; beds?: { id: string; zone: string; }[] | undefined; positional?: { sample: string; max: number;
+  reach: number; } | undefined; wet: Record<string, number>; zones: { id: string; x: number; z: number; inner:
+  number; outer: number; gain: number; fade?: number | undefined; open?: boolean | undefined; source?: string |
+  undefined; }[]; }
 
 /** Bounded offline DSP commands; the bank still supplies its actual sample rate and variant seed. */
 const pcmModes=v.pipe(v.array(v.tuple([mixExpr,mixExpr,mixExpr])),v.maxLength(16));
@@ -271,16 +364,50 @@ const pcmStep=v.variant('kind',[
   v.strictObject({kind:v.literal('flutter'),f:mixExpr,q:mixExpr,base:mixExpr,depth:mixExpr,drive:mixExpr}),
   v.strictObject({kind:v.literal('sine'),f:mixExpr,gain:mixExpr,envelope:mixExpr})
 ]);
-export const AudioPcmProgramSchema=v.pipe(v.strictObject({seed:v.tuple([finite,finite]),
+export const AudioPcmProgramSchema: v.GenericSchema<AudioPcmProgram> =v.pipe(v.strictObject({seed:v.tuple([finite,finite]),
   values:mixValues(32),duration:mixExpr,
   steps:v.pipe(v.array(v.variant('kind',[...pcmStep.options,
     v.strictObject({kind:v.literal('repeat'),count:mixExpr,max:v.pipe(finite,v.safeInteger(),v.minValue(1),v.maxValue(32)),index:id,while:v.exactOptional(mixExpr),body:v.pipe(v.array(pcmStep),v.maxLength(32))})])),v.maxLength(64)),
   finish:v.tuple([finite,finite])}),v.check(program=>program.steps.reduce((sum,row)=>sum+(row.kind==='repeat'?row.max*row.body.length:1),0)<=2048,'bounded PCM recipe'));
-export type AudioPcmProgram=v.InferOutput<typeof AudioPcmProgramSchema>;
+export interface AudioPcmProgram { seed: [ number, number ]; values: [ string, AudioMixExpr ][]; duration:
+  AudioMixExpr; steps: ({ kind: 'values'; rows: [ string, AudioMixExpr ][]; } | { kind: 'formants'; id: string;
+  rows: [ AudioMixExpr, AudioMixExpr, AudioMixExpr ][]; } | { kind: 'noise'; at: AudioMixExpr; type: 'lowpass' |
+  'highpass' | 'bandpass' | 'peaking' | 'notch'; f: AudioMixExpr; f1?: AudioMixExpr; q?: AudioMixExpr; attack:
+  AudioMixExpr; decay: AudioMixExpr; gain: AudioMixExpr; pink?: boolean; } | { kind: 'thump'; at: AudioMixExpr;
+  args: [ AudioMixExpr, AudioMixExpr, AudioMixExpr, AudioMixExpr ]; } | { kind: 'grains'; at: AudioMixExpr;
+  rate: AudioMixExpr; dur: AudioMixExpr; f: AudioMixExpr; q: AudioMixExpr; gain: AudioMixExpr; grain?:
+  AudioMixExpr; shape?: AudioMixExpr; } | { kind: 'strike'; at: AudioMixExpr; modes: [ AudioMixExpr,
+  AudioMixExpr, AudioMixExpr ][]; gain: AudioMixExpr; jitter?: AudioMixExpr; } | { kind: 'click'; at:
+  AudioMixExpr; args: [ AudioMixExpr, AudioMixExpr, AudioMixExpr ]; } | { kind: 'bubbles'; at: AudioMixExpr;
+  args: [ AudioMixExpr, AudioMixExpr, AudioMixExpr, AudioMixExpr, AudioMixExpr ]; } | { kind: 'voice'; at:
+  AudioMixExpr; dur: AudioMixExpr; f0: AudioMixExpr; tense: AudioMixExpr; breath: AudioMixExpr; vowel: string;
+  vowelIndex?: AudioMixExpr; blend?: { to: string; amount: AudioMixExpr; }; env: [ AudioMixExpr, AudioMixExpr,
+  AudioMixExpr ]; gain: AudioMixExpr; rough?: AudioMixExpr; jitter?: AudioMixExpr; shimmer?: AudioMixExpr; } | {
+  kind: 'saturate'; drive: AudioMixExpr; } | { kind: 'filter'; type: 'lowpass' | 'highpass' | 'bandpass' |
+  'peaking' | 'notch'; f: AudioMixExpr; q: AudioMixExpr; } | { kind: 'flutter'; f: AudioMixExpr; q:
+  AudioMixExpr; base: AudioMixExpr; depth: AudioMixExpr; drive: AudioMixExpr; } | { kind: 'sine'; f:
+  AudioMixExpr; gain: AudioMixExpr; envelope: AudioMixExpr; } | { kind: 'repeat'; count: AudioMixExpr; max:
+  number; index: string; while?: AudioMixExpr; body: ({ kind: 'values'; rows: [ string, AudioMixExpr ][]; } | {
+  kind: 'formants'; id: string; rows: [ AudioMixExpr, AudioMixExpr, AudioMixExpr ][]; } | { kind: 'noise'; at:
+  AudioMixExpr; type: 'lowpass' | 'highpass' | 'bandpass' | 'peaking' | 'notch'; f: AudioMixExpr; f1?:
+  AudioMixExpr; q?: AudioMixExpr; attack: AudioMixExpr; decay: AudioMixExpr; gain: AudioMixExpr; pink?: boolean;
+  } | { kind: 'thump'; at: AudioMixExpr; args: [ AudioMixExpr, AudioMixExpr, AudioMixExpr, AudioMixExpr ]; } | {
+  kind: 'grains'; at: AudioMixExpr; rate: AudioMixExpr; dur: AudioMixExpr; f: AudioMixExpr; q: AudioMixExpr;
+  gain: AudioMixExpr; grain?: AudioMixExpr; shape?: AudioMixExpr; } | { kind: 'strike'; at: AudioMixExpr; modes:
+  [ AudioMixExpr, AudioMixExpr, AudioMixExpr ][]; gain: AudioMixExpr; jitter?: AudioMixExpr; } | { kind:
+  'click'; at: AudioMixExpr; args: [ AudioMixExpr, AudioMixExpr, AudioMixExpr ]; } | { kind: 'bubbles'; at:
+  AudioMixExpr; args: [ AudioMixExpr, AudioMixExpr, AudioMixExpr, AudioMixExpr, AudioMixExpr ]; } | { kind:
+  'voice'; at: AudioMixExpr; dur: AudioMixExpr; f0: AudioMixExpr; tense: AudioMixExpr; breath: AudioMixExpr;
+  vowel: string; vowelIndex?: AudioMixExpr; blend?: { to: string; amount: AudioMixExpr; }; env: [ AudioMixExpr,
+  AudioMixExpr, AudioMixExpr ]; gain: AudioMixExpr; rough?: AudioMixExpr; jitter?: AudioMixExpr; shimmer?:
+  AudioMixExpr; } | { kind: 'saturate'; drive: AudioMixExpr; } | { kind: 'filter'; type: 'lowpass' | 'highpass'
+  | 'bandpass' | 'peaking' | 'notch'; f: AudioMixExpr; q: AudioMixExpr; } | { kind: 'flutter'; f: AudioMixExpr;
+  q: AudioMixExpr; base: AudioMixExpr; depth: AudioMixExpr; drive: AudioMixExpr; } | { kind: 'sine'; f:
+  AudioMixExpr; gain: AudioMixExpr; envelope: AudioMixExpr; })[]; })[]; finish: [ number, number ]; }
 
 /** Ordered gameplay observations; the native owner lends scalar/actor readers and existing sound operations. */
 const observationNames=v.pipe(v.array(id),v.maxLength(32));
-export const AudioObservationSystemSchema=v.strictObject({id,before:observationNames,after:observationNames,
+export const AudioObservationSystemSchema: v.GenericSchema<AudioObservationSystem> =v.strictObject({id,before:observationNames,after:observationNames,
   inputs:v.pipe(v.array(v.strictObject({id,source:id,path:v.pipe(v.array(id),v.maxLength(8)),op:v.picklist(['number','truth','present','equals']),value:v.exactOptional(scalar),fallback:v.exactOptional(finite)})),v.maxLength(64)),
   interval:v.pipe(finite,v.minValue(0),v.maxValue(60)),initial:v.pipe(v.record(id,finite),v.check(rows=>Object.keys(rows).length<=64)),
   frame:v.pipe(v.array(v.strictObject({write:id,value:mixExpr,when:v.exactOptional(mixExpr)})),v.maxLength(32)),
@@ -290,42 +417,80 @@ export const AudioObservationSystemSchema=v.strictObject({id,before:observationN
     v.strictObject({kind:v.literal('entities'),list:id,actorKind:id,state:id,exclude:observationNames,
       gap:v.pipe(finite,v.minValue(0),v.maxValue(600)),radius:v.pipe(finite,v.minValue(0),v.maxValue(2000)),remember:id,call:id})
   ])),v.maxLength(64))});
-export type AudioObservationSystem=v.InferOutput<typeof AudioObservationSystemSchema>;
+export interface AudioObservationSystem { id: string; before: string[]; after: string[]; inputs: { id: string;
+  source: string; path: string[]; op: 'number' | 'truth' | 'present' | 'equals'; value?: string | number |
+  boolean | null; fallback?: number; }[]; interval: number; initial: Record<string, number>; frame: { write:
+  string; value: AudioMixExpr; when?: AudioMixExpr; }[]; steps: ({ kind: 'state'; id: string; value:
+  AudioMixExpr; when?: AudioMixExpr; changed?: string; } | { kind: 'call'; call: string; when?: AudioMixExpr;
+  remember?: string; } | { kind: 'entities'; list: string; actorKind: string; state: string; exclude: string[];
+  gap: number; radius: number; remember: string; call: string; })[]; }
 
 /** Ordered persistent oscillator graphs. The caller owns the output and all fade/stop policy. */
-export const AudioLoopGraphSchema=v.pipe(v.array(v.variant('kind',[
+export const AudioLoopGraphSchema: v.GenericSchema<AudioLoopGraph> =v.pipe(v.array(v.variant('kind',[
   v.strictObject({kind:v.literal('gain'),id,value:finite}),
   v.strictObject({kind:v.literal('filter'),id,type:v.picklist(['lowpass','highpass','bandpass']),frequency:finite,q:finite}),
   v.strictObject({kind:v.literal('oscillator'),id,type:v.picklist(['sine','triangle','square','sawtooth']),frequency:finite,midi:v.exactOptional(finite),detune:v.exactOptional(finite)}),
   v.strictObject({kind:v.literal('connect'),from:id,to:id,param:v.exactOptional(v.picklist(['gain','frequency','detune']))}),
   v.strictObject({kind:v.literal('start'),id})
 ])),v.maxLength(64));
-export type AudioLoopGraph=v.InferOutput<typeof AudioLoopGraphSchema>;
+export type AudioLoopGraph = ({ kind: 'gain'; id: string; value: number; } | { kind: 'filter'; id: string; type:
+  'lowpass' | 'highpass' | 'bandpass'; frequency: number; q: number; } | { kind: 'oscillator'; id: string; type:
+  'sine' | 'triangle' | 'square' | 'sawtooth'; frequency: number; midi?: number; detune?: number; } | { kind:
+  'connect'; from: string; to: string; param?: 'gain' | 'frequency' | 'detune'; } | { kind: 'start'; id: string;
+  })[];
 
 /** Ordered footstep probes over actual floors and terrain; queries remain lazy and native. */
-export const AudioSurfaceSchema = v.strictObject({ fallback:id, rules:v.pipe(v.array(v.variant('kind',[
+export const AudioSurfaceSchema: v.GenericSchema<AudioSurfaceRecipe> = v.strictObject({ fallback:id, rules:v.pipe(v.array(v.variant('kind',[
   v.strictObject({kind:v.literal('floor'),source:id,tolerance:v.pipe(finite,v.minValue(0),v.maxValue(10)),surface:id}),
   v.strictObject({kind:v.literal('value'),source:id,op:v.picklist(['lt','gt']),threshold:finite,surface:id,when:v.exactOptional(mixExpr)}),
   v.strictObject({kind:v.literal('circle'),source:id,padding:finite,surface:id})
 ])),v.maxLength(32)) });
-export type AudioSurfaceRecipe = v.InferOutput<typeof AudioSurfaceSchema>;
+export interface AudioSurfaceRecipe { fallback: string; rules: ({ kind: 'floor'; source: string; tolerance: number;
+  surface: string; } | { kind: 'value'; source: string; op: 'lt' | 'gt'; threshold: number; surface: string;
+  when?: AudioMixExpr; } | { kind: 'circle'; source: string; padding: number; surface: string; })[]; }
 
 /** Native generated or recorded playback, with ordered scalar controls and no author callbacks. */
-export const AudioPlaybackSchema = v.strictObject({ mode:v.picklist(['voices','samples']),initial:v.pipe(v.record(id,finite),v.check(rows=>Object.keys(rows).length<=32)),
+export const AudioPlaybackSchema: v.GenericSchema<AudioPlaybackRecipe> = v.strictObject({ mode:v.picklist(['voices','samples']),initial:v.pipe(v.record(id,finite),v.check(rows=>Object.keys(rows).length<=32)),
   prewarm:v.pipe(v.array(id),v.maxLength(128)),tables:v.pipe(v.record(id,v.record(id,finite)),v.check(rows=>Object.keys(rows).length<=32&&Object.values(rows).every(table=>Object.keys(table).length<=128))),
   actions:v.pipe(v.record(id,v.strictObject({family:v.strictObject({prefix:v.pipe(v.string(),v.maxLength(128)),param:v.exactOptional(id)}),
     warm:v.exactOptional(v.boolean()),state:mixValues(16),values:mixValues(32),
     options:v.pipe(v.array(v.tuple([v.picklist(['gain','rate','pan','panTo','delay','jitter']),mixExpr])),v.maxLength(6)),tap:v.exactOptional(id)})),v.check(rows=>Object.keys(rows).length<=128)),
   sample:v.exactOptional(v.strictObject({reach:v.pipe(finite,v.minValue(0)),scale:v.pipe(finite,v.minValue(0.001)),power:v.pipe(finite,v.minValue(0)),cutoffScale:v.pipe(finite,v.minValue(0.001)),delay:v.pipe(finite,v.minValue(0)),jitter:v.pipe(finite,v.minValue(0)),outOfRangeHandled:v.boolean()})) });
-export type AudioPlaybackRecipe = v.InferOutput<typeof AudioPlaybackSchema>;
+export interface AudioPlaybackRecipe { mode: 'voices' | 'samples'; initial: Record<string, number>; prewarm:
+  string[]; tables: Record<string, Record<string, number>>; actions: Record<string, { family: { prefix:
+  string; param?: string; }; warm?: boolean; state: [ string, AudioMixExpr ][]; values: [ string, AudioMixExpr
+  ][]; options: [ 'gain' | 'rate' | 'pan' | 'panTo' | 'delay' | 'jitter', AudioMixExpr ][]; tap?: string; }>;
+  sample?: { reach: number; scale: number; power: number; cutoffScale: number; delay: number; jitter: number;
+  outOfRangeHandled: boolean; }; }
 
 /** Recorded/synth loop ownership and fades, with optional native proximity and music ducking. */
 const emitterFade=v.strictObject({mode:v.picklist(['linear','target']),seconds:v.pipe(finite,v.minValue(0.001),v.maxValue(60))});
-export const AudioLoopEmitterSchema=v.pipe(v.strictObject({scope:id,sample:id,graph:id,out:v.picklist(['ambient','sfx']),
+export const AudioLoopEmitterSchema: v.GenericSchema<AudioLoopEmitterRecipe> =v.pipe(v.strictObject({scope:id,sample:id,graph:id,out:v.picklist(['ambient','sfx']),
   tap:v.exactOptional(id),level:gain,initial:v.picklist(['value','scheduled']),connect:v.picklist(['always','sample']),offset:v.picklist(['random','fixed']),
   fadeIn:emitterFade,fadeOut:emitterFade,
   stop:v.strictObject({mode:v.picklist(['scheduled','timer']),after:v.pipe(finite,v.minValue(0),v.maxValue(60)),order:v.pipe(v.array(v.pipe(finite,v.safeInteger(),v.minValue(0),v.maxValue(63))),v.maxLength(64))}),
   disconnect:v.strictObject({after:v.pipe(finite,v.minValue(0),v.maxValue(60)),node:v.picklist(['out','panner'])}),
   proximity:v.exactOptional(v.pipe(v.strictObject({reference:v.pipe(finite,v.minValue(0)),max:v.pipe(finite,v.minValue(0)),build:v.pipe(finite,v.minValue(0)),drop:v.pipe(finite,v.minValue(0)),
     duckNear:v.pipe(finite,v.minValue(0)),duckFar:v.pipe(finite,v.minValue(0)),duckGain:v.pipe(finite,v.minValue(0),v.maxValue(1))}),v.check(row=>row.reference<row.max&&row.build<row.drop&&row.duckNear<row.duckFar))) }),v.check(row=>row.disconnect.node==='out'?(row.stop.mode==='timer'&&row.disconnect.after===row.stop.after):(row.stop.mode==='scheduled'&&row.proximity!==undefined),'native loop disconnect policy')); 
-export type AudioLoopEmitterRecipe=v.InferOutput<typeof AudioLoopEmitterSchema>;
+export interface AudioLoopEmitterRecipe { scope: string; sample: string; graph: string; out: 'ambient' | 'sfx';
+  tap?: string; level: number; initial: 'value' | 'scheduled'; connect: 'always' | 'sample'; offset: 'random' |
+  'fixed'; fadeIn: { mode: 'linear' | 'target'; seconds: number; }; fadeOut: { mode: 'linear' | 'target';
+  seconds: number; }; stop: { mode: 'scheduled' | 'timer'; after: number; order: number[]; }; disconnect: {
+  after: number; node: 'out' | 'panner'; }; proximity?: { reference: number; max: number; build: number; drop:
+  number; duckNear: number; duckFar: number; duckGain: number; }; }
+
+/** Mutable validated synth graph; authored readonly graph inputs remain separate. */
+export interface SynthBedGraphData { tap?: string; beds: { id: string; out: string; gain?: number; pan?: number;
+  lfos?: { rate: number; depth: number; type?: 'sine' | 'square' | 'sawtooth' | 'triangle'; }[]; }[]; chains: ({
+  noise?: 'noise-white' | 'noise-pink' | 'native-white'; osc?: number; sample?: string; filters?: (['lowpass' |
+  'highpass' | 'bandpass' | 'lowshelf' | 'highshelf' | 'peaking' | 'notch' | 'allpass', number] | ['lowpass' |
+  'highpass' | 'bandpass' | 'lowshelf' | 'highshelf' | 'peaking' | 'notch' | 'allpass', number, number])[];
+  sweeps?: [number, { rate: number; depth: number; type?: 'sine' | 'square' | 'sawtooth' | 'triangle'; }][];
+  stages?: { gain: number; lfos?: { rate: number; depth: number; type?: 'sine' | 'square' | 'sawtooth' |
+  'triangle'; }[]; flutter?: { noise: 'noise-white' | 'noise-pink' | 'native-white'; filters: (['lowpass' |
+  'highpass' | 'bandpass' | 'lowshelf' | 'highshelf' | 'peaking' | 'notch' | 'allpass', number] | ['lowpass' |
+  'highpass' | 'bandpass' | 'lowshelf' | 'highshelf' | 'peaking' | 'notch' | 'allpass', number, number])[];
+  depth: number; }; }[]; pan?: string; to: string; } | { mark: string; })[]; }
+
+/** One admitted phrase with its bounded scheduling interval. */
+export interface AudioPhraseSchedule { tick: string; wait: [number, number]; program: AudioPhraseProgram }
