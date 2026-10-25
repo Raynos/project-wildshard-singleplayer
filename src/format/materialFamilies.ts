@@ -35,7 +35,7 @@ export type Rgb = readonly [number, number, number];
  * The toon family's look: a two-band ramp with coloured shade, a terminator band and a banded rim, plus the environment
  * inputs (drifting cloud shade, caustics under a water level) a runtime adapter feeds.
  */
-export const ToonLookSchema = v.strictObject({
+export const ToonLookSchema: v.GenericSchema<ToonLookParamsInput, ToonLookParams> = v.strictObject({
   /** N·L edge of the lit band (a facet is lit or in shade) */
   faceEdge: v.optional(edge, [0.14, 0.2]),
   /** cast-shadow edge (soft, so a dithered penumbra does not speckle) */
@@ -58,10 +58,10 @@ export const ToonLookSchema = v.strictObject({
   caustics: v.optional(v.strictObject({ level: v.nullable(v.pipe(v.number(), v.finite())), strength: nonNegative }), { level: null, strength: 0.5 }),
 });
 /** A toon look with every default filled. */
-export type ToonLookParams = v.InferOutput<typeof ToonLookSchema>;
+
 
 /** One toon surface: flat-shaded, vertex-coloured facets by default (no textures). */
-export const ToonMaterialSchema = v.strictObject({
+export const ToonMaterialSchema: v.StrictObjectSchema<{ readonly family: v.GenericSchema<ToonMaterialParamsInput['family'], ToonMaterialParams['family']>; readonly colour: v.OptionalSchema<v.GenericSchema<Exclude<ToonMaterialParamsInput['colour'], undefined>, ToonMaterialParams['colour']>, MaterialSchemaDefault<Exclude<ToonMaterialParamsInput['colour'], undefined>>>; readonly vertexColours: v.OptionalSchema<v.GenericSchema<Exclude<ToonMaterialParamsInput['vertexColours'], undefined>, ToonMaterialParams['vertexColours']>, MaterialSchemaDefault<Exclude<ToonMaterialParamsInput['vertexColours'], undefined>>>; readonly faceted: v.OptionalSchema<v.GenericSchema<Exclude<ToonMaterialParamsInput['faceted'], undefined>, ToonMaterialParams['faceted']>, MaterialSchemaDefault<Exclude<ToonMaterialParamsInput['faceted'], undefined>>>; readonly doubleSided: v.OptionalSchema<v.GenericSchema<Exclude<ToonMaterialParamsInput['doubleSided'], undefined>, ToonMaterialParams['doubleSided']>, MaterialSchemaDefault<Exclude<ToonMaterialParamsInput['doubleSided'], undefined>>>; readonly roughness: v.OptionalSchema<v.GenericSchema<Exclude<ToonMaterialParamsInput['roughness'], undefined>, ToonMaterialParams['roughness']>, MaterialSchemaDefault<Exclude<ToonMaterialParamsInput['roughness'], undefined>>>; readonly metalness: v.OptionalSchema<v.GenericSchema<Exclude<ToonMaterialParamsInput['metalness'], undefined>, ToonMaterialParams['metalness']>, MaterialSchemaDefault<Exclude<ToonMaterialParamsInput['metalness'], undefined>>>; }, undefined> = v.strictObject({
   family: v.literal('toon'),
   /** sRGB, multiplies the vertex colours */
   colour: v.optional(srgb, [1, 1, 1]),
@@ -73,7 +73,7 @@ export const ToonMaterialSchema = v.strictObject({
   metalness: v.optional(unit, 0),
 });
 /** A toon material entry with every default filled. */
-export type ToonMaterialParams = v.InferOutput<typeof ToonMaterialSchema>;
+
 
 const finite = v.pipe(v.number(), v.finite());
 const positive = v.pipe(v.number(), v.finite(), v.minValue(1e-3));
@@ -89,7 +89,7 @@ const span = v.pipe(v.tuple([nonNegative, nonNegative]), v.check((e) => e[0] < e
  * a uniform; a runtime adapter (Signal Dunes' dusk) may move them with `updateGround`. The key is the scene's first
  * directional light. The defaults are Signal Dunes' sand at the first dusk step.
  */
-export const GroundLayerSchema = v.strictObject({
+export const GroundLayerSchema: v.GenericSchema<GroundLayerParamsInput, GroundLayerParams> = v.strictObject({
   /** the wind's direction over the ground (x, z; normalised when compiled): ripples run across it */
   wind: v.optional(v.tuple([finite, finite]), [1, 0]),
   /** the ripples' and the megaripples' wavelengths (m) */
@@ -142,7 +142,7 @@ export const GroundLayerSchema = v.strictObject({
   pools: v.optional(v.nullable(v.strictObject({ low: linear, high: linear, split: unit, radius: positive, gain: nonNegative, source: v.exactOptional(v.pipe(v.string(), v.minLength(1), v.maxLength(128))) })), null),
 });
 /** A ground layer with every default filled. */
-export type GroundLayerParams = v.InferOutput<typeof GroundLayerSchema>;
+
 
 const metres = (max: number) => v.pipe(v.number(), v.finite(), v.minValue(1e-3), v.maxValue(max));
 /**
@@ -153,7 +153,7 @@ const metres = (max: number) => v.pipe(v.number(), v.finite(), v.minValue(1e-3),
  * prop) is floor, gridded in world space on the plane its normal faces. A surface that declares the layer always draws it
  * (G163: Jake picked the dev map).
  */
-export const MeasureLayerSchema = v.strictObject({
+export const MeasureLayerSchema: v.GenericSchema<MeasureLayerParamsInput, MeasureLayerParams> = v.strictObject({
   /** sRGB: walls, structures and props (role 1) */
   structure: v.optional(srgb, [1, 0.58, 0.12]),
   /** sRGB: structural surfaces and trim (role 2) */
@@ -170,7 +170,7 @@ export const MeasureLayerSchema = v.strictObject({
   lift: v.optional(unit, 0.4),
 });
 /** A measure layer with every default filled. */
-export type MeasureLayerParams = v.InferOutput<typeof MeasureLayerSchema>;
+
 /** The measure layer's surface roles: 1 = structure (orange), 2 = trim (grey). */
 export type MeasureRole = 1 | 2;
 /** the UV slot a measure UV packs into: role and size sit in multiples of it, the face's own metres (+1) below it */
@@ -187,7 +187,7 @@ export function measureUv(role: MeasureRole, u: number, up: number, w: number, h
 }
 
 /** One PBR surface: metal / rough with colour, normal and packed ORM maps (occlusion r, roughness g, metalness b). */
-export const PbrMaterialSchema = v.strictObject({
+export const PbrMaterialSchema: v.StrictObjectSchema<{ readonly family: v.GenericSchema<PbrMaterialParamsInput['family'], PbrMaterialParams['family']>; readonly colour: v.OptionalSchema<v.GenericSchema<Exclude<PbrMaterialParamsInput['colour'], undefined>, PbrMaterialParams['colour']>, MaterialSchemaDefault<Exclude<PbrMaterialParamsInput['colour'], undefined>>>; readonly roughness: v.OptionalSchema<v.GenericSchema<Exclude<PbrMaterialParamsInput['roughness'], undefined>, PbrMaterialParams['roughness']>, MaterialSchemaDefault<Exclude<PbrMaterialParamsInput['roughness'], undefined>>>; readonly metalness: v.OptionalSchema<v.GenericSchema<Exclude<PbrMaterialParamsInput['metalness'], undefined>, PbrMaterialParams['metalness']>, MaterialSchemaDefault<Exclude<PbrMaterialParamsInput['metalness'], undefined>>>; readonly maps: v.OptionalSchema<v.GenericSchema<Exclude<PbrMaterialParamsInput['maps'], undefined>, PbrMaterialParams['maps']>, MaterialSchemaDefault<Exclude<PbrMaterialParamsInput['maps'], undefined>>>; readonly normalScale: v.OptionalSchema<v.GenericSchema<Exclude<PbrMaterialParamsInput['normalScale'], undefined>, PbrMaterialParams['normalScale']>, MaterialSchemaDefault<Exclude<PbrMaterialParamsInput['normalScale'], undefined>>>; readonly occlusion: v.OptionalSchema<v.GenericSchema<Exclude<PbrMaterialParamsInput['occlusion'], undefined>, PbrMaterialParams['occlusion']>, MaterialSchemaDefault<Exclude<PbrMaterialParamsInput['occlusion'], undefined>>>; readonly envStrength: v.OptionalSchema<v.GenericSchema<Exclude<PbrMaterialParamsInput['envStrength'], undefined>, PbrMaterialParams['envStrength']>, MaterialSchemaDefault<Exclude<PbrMaterialParamsInput['envStrength'], undefined>>>; readonly vertexColours: v.OptionalSchema<v.GenericSchema<Exclude<PbrMaterialParamsInput['vertexColours'], undefined>, PbrMaterialParams['vertexColours']>, MaterialSchemaDefault<Exclude<PbrMaterialParamsInput['vertexColours'], undefined>>>; readonly faceted: v.OptionalSchema<v.GenericSchema<Exclude<PbrMaterialParamsInput['faceted'], undefined>, PbrMaterialParams['faceted']>, MaterialSchemaDefault<Exclude<PbrMaterialParamsInput['faceted'], undefined>>>; readonly doubleSided: v.OptionalSchema<v.GenericSchema<Exclude<PbrMaterialParamsInput['doubleSided'], undefined>, PbrMaterialParams['doubleSided']>, MaterialSchemaDefault<Exclude<PbrMaterialParamsInput['doubleSided'], undefined>>>; readonly alphaCutoff: v.OptionalSchema<v.GenericSchema<Exclude<PbrMaterialParamsInput['alphaCutoff'], undefined>, PbrMaterialParams['alphaCutoff']>, MaterialSchemaDefault<Exclude<PbrMaterialParamsInput['alphaCutoff'], undefined>>>; readonly ground: v.OptionalSchema<v.GenericSchema<Exclude<PbrMaterialParamsInput['ground'], undefined>, PbrMaterialParams['ground']>, MaterialSchemaDefault<Exclude<PbrMaterialParamsInput['ground'], undefined>>>; readonly measure: v.OptionalSchema<v.GenericSchema<Exclude<PbrMaterialParamsInput['measure'], undefined>, PbrMaterialParams['measure']>, MaterialSchemaDefault<Exclude<PbrMaterialParamsInput['measure'], undefined>>>; }, undefined> = v.strictObject({
   family: v.literal('pbr'),
   /** sRGB, multiplies the colour map */
   colour: v.optional(srgb, [1, 1, 1]),
@@ -213,14 +213,14 @@ export const PbrMaterialSchema = v.strictObject({
   measure: v.optional(v.nullable(MeasureLayerSchema), null),
 });
 /** A PBR material entry with every default filled. */
-export type PbrMaterialParams = v.InferOutput<typeof PbrMaterialSchema>;
+
 
 /**
  * The display grade a painterly look applies per pixel, in the material (no full-screen pass): a gentle filmic shoulder
  * `x(1 + x/shoulder)/(1 + x)` on gain × exposure, saturation, a cool-shadow / warm-light split by luminance and a mild
  * S-curve, then the hour's saturation on top. The defaults are Nalati Grasslands' grade.
  */
-export const GradeSchema = v.strictObject({
+export const GradeSchema: v.GenericSchema<GradeParamsInput, GradeParams> = v.strictObject({
   exposure: v.optional(v.pipe(nonNegative, v.maxValue(16)), 1),
   /** the fixed pre-gain on exposure */
   gain: v.optional(v.pipe(nonNegative, v.maxValue(16)), 1.12),
@@ -237,7 +237,7 @@ export const GradeSchema = v.strictObject({
   lookSaturation: v.optional(v.pipe(nonNegative, v.maxValue(4)), 1),
 });
 /** A grade with every default filled. */
-export type GradeParams = v.InferOutput<typeof GradeSchema>;
+
 
 const DEFAULT_GRADE: GradeParams = { exposure: 1, gain: 1.12, shoulder: 9, saturation: 1.05, shadowTint: [0.92, 0.96, 1.05], lightTint: [1.07, 0.99, 0.84], split: [0.05, 0.6], contrast: 0.35, lookSaturation: 1 };
 
@@ -245,7 +245,7 @@ const DEFAULT_GRADE: GradeParams = { exposure: 1, gain: 1.12, shoulder: 9, satur
  * The painterly family's look (Nalati Grasslands, style B): soft cel bands, shade painted with a sky tint, a warm
  * terminator, a painted floor that keeps dark paint off black, wetness, wind for swaying foliage, and the per-pixel grade.
  */
-export const PainterlyLookSchema = v.strictObject({
+export const PainterlyLookSchema: v.GenericSchema<PainterlyLookParamsInput, PainterlyLookParams> = v.strictObject({
   /** the colour painted into the shadow side (linear, added × albedo where the sun does not reach) */
   shade: v.optional(linear, [0.1, 0.14, 0.3]),
   /** rim light colour (linear, HDR allowed) */
@@ -262,7 +262,7 @@ export const PainterlyLookSchema = v.strictObject({
   grade: v.optional(v.nullable(GradeSchema), DEFAULT_GRADE),
 });
 /** A painterly look with every default filled. */
-export type PainterlyLookParams = v.InferOutput<typeof PainterlyLookSchema>;
+
 
 /*
  * The painterly family's painted-terrain layer (SHARD-PLATFORM G227; the mechanism is `paintedTerrain.ts`). A painted
@@ -298,7 +298,7 @@ export const PAINTED_TERRAIN_ATTRIBUTES = {
 const zoneTint = v.strictObject({ tint: linear, amount: unit });
 
 /** The painted-terrain layer of a painterly surface. */
-export const PaintedTerrainSchema = v.strictObject({
+export const PaintedTerrainSchema: v.GenericSchema<PaintedTerrainParamsInput, PaintedTerrainParams> = v.strictObject({
   /** the five painted tileable textures (sRGB colour), by layer */
   maps: v.strictObject({ base: textureRef, track: textureRef, gravel: textureRef, rock: textureRef, snow: textureRef }),
   /** the metres one repeat of each texture spans on the ground */
@@ -317,7 +317,7 @@ export const PaintedTerrainSchema = v.strictObject({
   bakeKeyLight: v.optional(v.picklist(['phone', 'always', 'never']), 'phone'),
 });
 /** A painted-terrain layer with every default filled. */
-export type PaintedTerrainParams = v.InferOutput<typeof PaintedTerrainSchema>;
+
 
 /** Validate a painted-terrain layer and fill its defaults; throws a readable error on bad data. */
 export function parsePaintedTerrain(input: unknown): PaintedTerrainParams {
@@ -332,7 +332,7 @@ export function paintedTerrainTextureRefs(params: PaintedTerrainParams): string[
 }
 
 /** One painterly surface: vertex-coloured, no specular, a per-surface rim, cel strength, shade share and sway. */
-export const PainterlyMaterialSchema = v.strictObject({
+export const PainterlyMaterialSchema: v.StrictObjectSchema<{ readonly family: v.GenericSchema<PainterlyMaterialParamsInput['family'], PainterlyMaterialParams['family']>; readonly colour: v.OptionalSchema<v.GenericSchema<Exclude<PainterlyMaterialParamsInput['colour'], undefined>, PainterlyMaterialParams['colour']>, MaterialSchemaDefault<Exclude<PainterlyMaterialParamsInput['colour'], undefined>>>; readonly rim: v.OptionalSchema<v.GenericSchema<Exclude<PainterlyMaterialParamsInput['rim'], undefined>, PainterlyMaterialParams['rim']>, MaterialSchemaDefault<Exclude<PainterlyMaterialParamsInput['rim'], undefined>>>; readonly bands: v.OptionalSchema<v.GenericSchema<Exclude<PainterlyMaterialParamsInput['bands'], undefined>, PainterlyMaterialParams['bands']>, MaterialSchemaDefault<Exclude<PainterlyMaterialParamsInput['bands'], undefined>>>; readonly shade: v.OptionalSchema<v.GenericSchema<Exclude<PainterlyMaterialParamsInput['shade'], undefined>, PainterlyMaterialParams['shade']>, MaterialSchemaDefault<Exclude<PainterlyMaterialParamsInput['shade'], undefined>>>; readonly floor: v.OptionalSchema<v.GenericSchema<Exclude<PainterlyMaterialParamsInput['floor'], undefined>, PainterlyMaterialParams['floor']>, MaterialSchemaDefault<Exclude<PainterlyMaterialParamsInput['floor'], undefined>>>; readonly sway: v.OptionalSchema<v.GenericSchema<Exclude<PainterlyMaterialParamsInput['sway'], undefined>, PainterlyMaterialParams['sway']>, MaterialSchemaDefault<Exclude<PainterlyMaterialParamsInput['sway'], undefined>>>; readonly emissive: v.OptionalSchema<v.GenericSchema<Exclude<PainterlyMaterialParamsInput['emissive'], undefined>, PainterlyMaterialParams['emissive']>, MaterialSchemaDefault<Exclude<PainterlyMaterialParamsInput['emissive'], undefined>>>; readonly emissiveIntensity: v.OptionalSchema<v.GenericSchema<Exclude<PainterlyMaterialParamsInput['emissiveIntensity'], undefined>, PainterlyMaterialParams['emissiveIntensity']>, MaterialSchemaDefault<Exclude<PainterlyMaterialParamsInput['emissiveIntensity'], undefined>>>; readonly map: v.OptionalSchema<v.GenericSchema<Exclude<PainterlyMaterialParamsInput['map'], undefined>, PainterlyMaterialParams['map']>, MaterialSchemaDefault<Exclude<PainterlyMaterialParamsInput['map'], undefined>>>; readonly vertexColours: v.OptionalSchema<v.GenericSchema<Exclude<PainterlyMaterialParamsInput['vertexColours'], undefined>, PainterlyMaterialParams['vertexColours']>, MaterialSchemaDefault<Exclude<PainterlyMaterialParamsInput['vertexColours'], undefined>>>; readonly doubleSided: v.OptionalSchema<v.GenericSchema<Exclude<PainterlyMaterialParamsInput['doubleSided'], undefined>, PainterlyMaterialParams['doubleSided']>, MaterialSchemaDefault<Exclude<PainterlyMaterialParamsInput['doubleSided'], undefined>>>; readonly alphaCutoff: v.OptionalSchema<v.GenericSchema<Exclude<PainterlyMaterialParamsInput['alphaCutoff'], undefined>, PainterlyMaterialParams['alphaCutoff']>, MaterialSchemaDefault<Exclude<PainterlyMaterialParamsInput['alphaCutoff'], undefined>>>; readonly terrain: v.ExactOptionalSchema<v.GenericSchema<Exclude<PainterlyMaterialParamsInput['terrain'], undefined>, Exclude<PainterlyMaterialParams['terrain'], undefined>>, undefined>; }, undefined> = v.strictObject({
   family: v.literal('painterly'),
   /** sRGB, multiplies the vertex colours (and the map) */
   colour: v.optional(srgb, [1, 1, 1]),
@@ -359,23 +359,23 @@ export const PainterlyMaterialSchema = v.strictObject({
   terrain: v.exactOptional(PaintedTerrainSchema),
 });
 /** A painterly material entry with every default filled. */
-export type PainterlyMaterialParams = v.InferOutput<typeof PainterlyMaterialSchema>;
+
 
 /** The emissive family's look: one gain over every emitter (exposure by the hour) and the stage blend a sky reads. */
-export const EmissiveLookSchema = v.strictObject({
+export const EmissiveLookSchema: v.GenericSchema<EmissiveLookParamsInput, EmissiveLookParams> = v.strictObject({
   /** multiplies every emitter under this look */
   gain: v.optional(v.pipe(nonNegative, v.maxValue(64)), 1),
   /** 0 … 1: a sky's blend from its first map to its second (a runtime adapter feeds it: Signal Dunes' dusk) */
   blend: v.optional(unit, 0),
 });
 /** An emissive look with every default filled. */
-export type EmissiveLookParams = v.InferOutput<typeof EmissiveLookSchema>;
+
 
 /**
  * A neon tube drawn from a distance field (R: the glyph's fill, 0.5 on its edge; G: the distance to its skeleton): a
  * whitened core, a darker glass rim, an optional seam and a short halo, all in em (the field's cell height = 1).
  */
-export const NeonTubeSchema = v.strictObject({
+export const NeonTubeSchema: v.GenericSchema<NeonTubeParamsInput, NeonTubeParams> = v.strictObject({
   field: textureRef,
   /** em of fill distance one unit of R spans either side of 0.5, and em per unit of G */
   fillSpread: positive,
@@ -401,7 +401,7 @@ export const NeonTubeSchema = v.strictObject({
  * `elevation` degrees), blended by the look's `blend`; under `hold` degrees the colour is averaged round the heading (the
  * 3-D horizon owns the silhouette); over the top it eases into the strip's top row; crisp stars where the sky is dark.
  */
-export const SkyDomeSchema = v.strictObject({
+export const SkyDomeSchema: v.GenericSchema<SkyDomeParamsInput, SkyDomeParams> = v.strictObject({
   maps: v.tuple([textureRef, v.nullable(textureRef)]),
   /** the strip's bottom and top elevation (degrees) */
   elevation: v.optional(v.pipe(v.tuple([v.pipe(finite, v.minValue(-90)), v.pipe(finite, v.maxValue(90))]), v.check((e) => e[0] < e[1], 'elevation low < high')), [-8, 45]),
@@ -421,7 +421,7 @@ export const SkyDomeSchema = v.strictObject({
  * One emissive surface: unlit light. `colour` × `intensity` (HDR) × the vertex colours × an optional map, flickering by a
  * seed, fogged at a share of the fog. With `tube` it draws a neon glyph from a distance field; with `sky`, a sky dome.
  */
-export const EmissiveMaterialSchema = v.strictObject({
+export const EmissiveMaterialSchema: v.StrictObjectSchema<{ readonly family: v.GenericSchema<EmissiveMaterialParamsInput['family'], EmissiveMaterialParams['family']>; readonly colour: v.OptionalSchema<v.GenericSchema<Exclude<EmissiveMaterialParamsInput['colour'], undefined>, EmissiveMaterialParams['colour']>, MaterialSchemaDefault<Exclude<EmissiveMaterialParamsInput['colour'], undefined>>>; readonly intensity: v.OptionalSchema<v.GenericSchema<Exclude<EmissiveMaterialParamsInput['intensity'], undefined>, EmissiveMaterialParams['intensity']>, MaterialSchemaDefault<Exclude<EmissiveMaterialParamsInput['intensity'], undefined>>>; readonly vertexColours: v.OptionalSchema<v.GenericSchema<Exclude<EmissiveMaterialParamsInput['vertexColours'], undefined>, EmissiveMaterialParams['vertexColours']>, MaterialSchemaDefault<Exclude<EmissiveMaterialParamsInput['vertexColours'], undefined>>>; readonly map: v.OptionalSchema<v.GenericSchema<Exclude<EmissiveMaterialParamsInput['map'], undefined>, EmissiveMaterialParams['map']>, MaterialSchemaDefault<Exclude<EmissiveMaterialParamsInput['map'], undefined>>>; readonly blend: v.OptionalSchema<v.GenericSchema<Exclude<EmissiveMaterialParamsInput['blend'], undefined>, EmissiveMaterialParams['blend']>, MaterialSchemaDefault<Exclude<EmissiveMaterialParamsInput['blend'], undefined>>>; readonly doubleSided: v.OptionalSchema<v.GenericSchema<Exclude<EmissiveMaterialParamsInput['doubleSided'], undefined>, EmissiveMaterialParams['doubleSided']>, MaterialSchemaDefault<Exclude<EmissiveMaterialParamsInput['doubleSided'], undefined>>>; readonly fog: v.OptionalSchema<v.GenericSchema<Exclude<EmissiveMaterialParamsInput['fog'], undefined>, EmissiveMaterialParams['fog']>, MaterialSchemaDefault<Exclude<EmissiveMaterialParamsInput['fog'], undefined>>>; readonly flicker: v.OptionalSchema<v.GenericSchema<Exclude<EmissiveMaterialParamsInput['flicker'], undefined>, EmissiveMaterialParams['flicker']>, MaterialSchemaDefault<Exclude<EmissiveMaterialParamsInput['flicker'], undefined>>>; readonly tube: v.OptionalSchema<v.GenericSchema<Exclude<EmissiveMaterialParamsInput['tube'], undefined>, EmissiveMaterialParams['tube']>, MaterialSchemaDefault<Exclude<EmissiveMaterialParamsInput['tube'], undefined>>>; readonly sky: v.OptionalSchema<v.GenericSchema<Exclude<EmissiveMaterialParamsInput['sky'], undefined>, EmissiveMaterialParams['sky']>, MaterialSchemaDefault<Exclude<EmissiveMaterialParamsInput['sky'], undefined>>>; }, undefined> = v.strictObject({
   family: v.literal('emissive'),
   /** sRGB tint */
   colour: v.optional(srgb, [1, 1, 1]),
@@ -441,15 +441,15 @@ export const EmissiveMaterialSchema = v.strictObject({
   sky: v.optional(v.nullable(SkyDomeSchema), null),
 });
 /** An emissive material entry with every default filled. */
-export type EmissiveMaterialParams = v.InferOutput<typeof EmissiveMaterialSchema>;
+
 
 /** Any family's material entry, discriminated by `family` (an emissive surface is a tube or a sky, never both). */
-export const FamilyMaterialSchema = v.pipe(
+export const FamilyMaterialSchema: v.GenericSchema<FamilyMaterialParamsInput, FamilyMaterialParams> = v.pipe(
   v.variant('family', [ToonMaterialSchema, PbrMaterialSchema, PainterlyMaterialSchema, EmissiveMaterialSchema]),
   v.check((m) => m.family !== 'emissive' || m.tube === null || m.sky === null, 'an emissive surface is a tube or a sky, not both'),
 );
 /** Any family's validated material entry (what a compiler receives). */
-export type FamilyMaterialParams = v.InferOutput<typeof FamilyMaterialSchema>;
+
 
 /** the preset reference version a material names (`{ family: "graph", preset, version }`); another version is refused */
 export const GRAPH_PRESET_VERSION = 1;
@@ -506,3 +506,40 @@ export function parseGroundLayer(input: unknown): GroundLayerParams {
   if (!r.success) throw new Error(`ground layer: ${r.issues.map((i) => `${v.getDotPath(i) ?? '(root)'}: ${i.message}`).join('; ')}`);
   return r.output;
 }
+
+/** Data defaults retain Valibot's readonly tuple/object inputs without admitting an undefined result. */
+type MaterialSchemaDefault<T> = Exclude<v.Default<v.GenericSchema<T>, undefined>, undefined | ((...args: never[]) => unknown)>;
+
+/** Admitted material data independent of validator implementation metadata. */
+export interface ToonLookParamsInput { faceEdge?: [number, number] | undefined; shadowEdge?: [number, number] | undefined; litGrade?: number | undefined; shadeGrade?: number | undefined; lift?: [number, number, number] | undefined; rim?: [number, number, number] | undefined; terminator?: [number, number, number] | undefined; glossBelow?: number | undefined; cloudShade?: { strength: number; scale: number; wind: [number, number]; } | undefined; caustics?: { level: (number) | null; strength: number; } | undefined; }
+export interface ToonLookParams { faceEdge: [number, number]; shadowEdge: [number, number]; litGrade: number; shadeGrade: number; lift: [number, number, number]; rim: [number, number, number]; terminator: [number, number, number]; glossBelow: number; cloudShade: { strength: number; scale: number; wind: [number, number]; }; caustics: { level: (number) | null; strength: number; }; }
+export interface ToonMaterialParamsInput { family: 'toon'; colour?: [number, number, number] | undefined; vertexColours?: boolean | undefined; faceted?: boolean | undefined; doubleSided?: boolean | undefined; roughness?: number | undefined; metalness?: number | undefined; }
+// oxlint-disable-next-line typescript/consistent-type-definitions -- Graph admission requires the material alias's implicit dictionary compatibility.
+export type ToonMaterialParams = { family: 'toon'; colour: [number, number, number]; vertexColours: boolean; faceted: boolean; doubleSided: boolean; roughness: number; metalness: number; };
+export interface GroundLayerParamsInput { wind?: [number, number] | undefined; wavelength?: [number, number] | undefined; lump?: number | undefined; depth?: [number, number] | undefined; relief?: [number, number, number] | undefined; contrast?: { near: number; far: number; window: [number, number]; strength: number; } | undefined; fade?: [number, number] | undefined; slip?: [number, number] | undefined; flat?: [number, number] | undefined; patches?: { floor: number; near: number; window: [number, number]; } | undefined; grain?: { map: (string) | null; mean: number; glintMean: number; strength: number; } | undefined; macro?: [[number, number, number], [number, number, number]] | undefined; albedo?: number | undefined; streaks?: { tint: [number, number, number]; amount: number; } | undefined; trail?: ({ map: string; rect: [number, number, number, number]; ripples: number; tint: [number, number, number]; amount: number; }) | null | undefined; keyShadow?: ({ map: string; rect: [number, number, number, number]; edge: [number, number]; floor: number; }) | null | undefined; terminator?: number | undefined; crest?: { band: [number, number]; gain: number; } | undefined; sheen?: number | undefined; shade?: { tint: [number, number, number]; gain: number; lift: [number, number, number]; amount: number; edge: number; floor: [number, number, number]; } | undefined; saturation?: { flat: number; facing: number; coolTint: [number, number, number]; keep: number; } | undefined; away?: { from: [number, number]; amount: number; } | undefined; pools?: ({ low: [number, number, number]; high: [number, number, number]; split: number; radius: number; gain: number; source?: string; }) | null | undefined; }
+export interface GroundLayerParams { wind: [number, number]; wavelength: [number, number]; lump: number; depth: [number, number]; relief: [number, number, number]; contrast: { near: number; far: number; window: [number, number]; strength: number; }; fade: [number, number]; slip: [number, number]; flat: [number, number]; patches: { floor: number; near: number; window: [number, number]; }; grain: { map: (string) | null; mean: number; glintMean: number; strength: number; }; macro: [[number, number, number], [number, number, number]]; albedo: number; streaks: { tint: [number, number, number]; amount: number; }; trail: ({ map: string; rect: [number, number, number, number]; ripples: number; tint: [number, number, number]; amount: number; }) | null; keyShadow: ({ map: string; rect: [number, number, number, number]; edge: [number, number]; floor: number; }) | null; terminator: number; crest: { band: [number, number]; gain: number; }; sheen: number; shade: { tint: [number, number, number]; gain: number; lift: [number, number, number]; amount: number; edge: number; floor: [number, number, number]; }; saturation: { flat: number; facing: number; coolTint: [number, number, number]; keep: number; }; away: { from: [number, number]; amount: number; }; pools: ({ low: [number, number, number]; high: [number, number, number]; split: number; radius: number; gain: number; source?: string; }) | null; }
+export interface MeasureLayerParamsInput { structure?: [number, number, number] | undefined; trim?: [number, number, number] | undefined; floor?: [number, number, number] | undefined; line?: { colour: [number, number, number]; alpha: number; floorAlpha: number; width: number; } | undefined; sub?: { step: number; alpha: number; } | undefined; label?: { colour: [number, number, number]; height: number; } | undefined; lift?: number | undefined; }
+export interface MeasureLayerParams { structure: [number, number, number]; trim: [number, number, number]; floor: [number, number, number]; line: { colour: [number, number, number]; alpha: number; floorAlpha: number; width: number; }; sub: { step: number; alpha: number; }; label: { colour: [number, number, number]; height: number; }; lift: number; }
+export interface PbrMaterialParamsInput { family: 'pbr'; colour?: [number, number, number] | undefined; roughness?: number | undefined; metalness?: number | undefined; maps?: { colour: (string) | null; normal: (string) | null; orm: (string) | null; } | undefined; normalScale?: number | undefined; occlusion?: number | undefined; envStrength?: number | undefined; vertexColours?: boolean | undefined; faceted?: boolean | undefined; doubleSided?: boolean | undefined; alphaCutoff?: number | undefined; ground?: (GroundLayerParamsInput) | null | undefined; measure?: (MeasureLayerParamsInput) | null | undefined; }
+// oxlint-disable-next-line typescript/consistent-type-definitions -- Graph admission requires the material alias's implicit dictionary compatibility.
+export type PbrMaterialParams = { family: 'pbr'; colour: [number, number, number]; roughness: number; metalness: number; maps: { colour: (string) | null; normal: (string) | null; orm: (string) | null; }; normalScale: number; occlusion: number; envStrength: number; vertexColours: boolean; faceted: boolean; doubleSided: boolean; alphaCutoff: number; ground: (GroundLayerParams) | null; measure: (MeasureLayerParams) | null; };
+export interface GradeParamsInput { exposure?: number | undefined; gain?: number | undefined; shoulder?: number | undefined; saturation?: number | undefined; shadowTint?: [number, number, number] | undefined; lightTint?: [number, number, number] | undefined; split?: [number, number] | undefined; contrast?: number | undefined; lookSaturation?: number | undefined; }
+export interface GradeParams { exposure: number; gain: number; shoulder: number; saturation: number; shadowTint: [number, number, number]; lightTint: [number, number, number]; split: [number, number]; contrast: number; lookSaturation: number; }
+export interface PainterlyLookParamsInput { shade?: [number, number, number] | undefined; rim?: [number, number, number] | undefined; warm?: number | undefined; floor?: number | undefined; wet?: number | undefined; wind?: { direction: [number, number]; strength: number; } | undefined; grade?: (GradeParamsInput) | null | undefined; }
+export interface PainterlyLookParams { shade: [number, number, number]; rim: [number, number, number]; warm: number; floor: number; wet: number; wind: { direction: [number, number]; strength: number; }; grade: (GradeParams) | null; }
+export interface PaintedTerrainParamsInput { maps: { base: string; track: string; gravel: string; rock: string; snow: string; }; metres: { base: number; track: number; gravel: number; rock: number; snow: number; }; means: { base: [number, number, number]; rock: [number, number, number]; }; snow: { line: number; high: [number, number]; }; wet: [number, number]; ice?: ({ from: [number, number]; to: [number, number]; half: number; }) | null | undefined; zones?: { a: { tint: [number, number, number]; amount: number; }; b: { tint: [number, number, number]; amount: number; }; } | undefined; bakeKeyLight?: 'phone' | 'always' | 'never' | undefined; }
+export interface PaintedTerrainParams { maps: { base: string; track: string; gravel: string; rock: string; snow: string; }; metres: { base: number; track: number; gravel: number; rock: number; snow: number; }; means: { base: [number, number, number]; rock: [number, number, number]; }; snow: { line: number; high: [number, number]; }; wet: [number, number]; ice: ({ from: [number, number]; to: [number, number]; half: number; }) | null; zones: { a: { tint: [number, number, number]; amount: number; }; b: { tint: [number, number, number]; amount: number; }; }; bakeKeyLight: 'phone' | 'always' | 'never'; }
+export interface PainterlyMaterialParamsInput { family: 'painterly'; colour?: [number, number, number] | undefined; rim?: number | undefined; bands?: number | undefined; shade?: number | undefined; floor?: number | undefined; sway?: number | undefined; emissive?: [number, number, number] | undefined; emissiveIntensity?: number | undefined; map?: (string) | null | undefined; vertexColours?: boolean | undefined; doubleSided?: boolean | undefined; alphaCutoff?: number | undefined; terrain?: PaintedTerrainParamsInput; }
+// oxlint-disable-next-line typescript/consistent-type-definitions -- Graph admission requires the material alias's implicit dictionary compatibility.
+export type PainterlyMaterialParams = { family: 'painterly'; colour: [number, number, number]; rim: number; bands: number; shade: number; floor: number; sway: number; emissive: [number, number, number]; emissiveIntensity: number; map: (string) | null; vertexColours: boolean; doubleSided: boolean; alphaCutoff: number; terrain?: PaintedTerrainParams; };
+export interface EmissiveLookParamsInput { gain?: number | undefined; blend?: number | undefined; }
+export interface EmissiveLookParams { gain: number; blend: number; }
+export interface NeonTubeParamsInput { field: string; fillSpread: number; skeletonSpread: number; mono?: number | undefined; radius?: number | undefined; rim?: number | undefined; thicken?: number | undefined; seam?: number | undefined; seamWidth?: number | undefined; haloReach?: number | undefined; haloGain?: number | undefined; core?: number | undefined; rimShade?: number | undefined; cell?: ([number, number]) | null | undefined; }
+export interface NeonTubeParams { field: string; fillSpread: number; skeletonSpread: number; mono: number; radius: number; rim: number; thicken: number; seam: number; seamWidth: number; haloReach: number; haloGain: number; core: number; rimShade: number; cell: ([number, number]) | null; }
+export interface SkyDomeParamsInput { maps: [string, (string) | null]; elevation?: [number, number] | undefined; window?: [number, number] | undefined; firstGain?: [number, number] | undefined; hold?: number | undefined; stars?: { density: number; gain: number; elevation: [number, number]; appear: [number, number]; } | undefined; dither?: number | undefined; }
+export interface SkyDomeParams { maps: [string, (string) | null]; elevation: [number, number]; window: [number, number]; firstGain: [number, number]; hold: number; stars: { density: number; gain: number; elevation: [number, number]; appear: [number, number]; }; dither: number; }
+export interface EmissiveMaterialParamsInput { family: 'emissive'; colour?: [number, number, number] | undefined; intensity?: number | undefined; vertexColours?: boolean | undefined; map?: (string) | null | undefined; blend?: 'opaque' | 'additive' | undefined; doubleSided?: boolean | undefined; fog?: number | undefined; flicker?: number | undefined; tube?: (NeonTubeParamsInput) | null | undefined; sky?: (SkyDomeParamsInput) | null | undefined; }
+// oxlint-disable-next-line typescript/consistent-type-definitions -- Graph admission requires the material alias's implicit dictionary compatibility.
+export type EmissiveMaterialParams = { family: 'emissive'; colour: [number, number, number]; intensity: number; vertexColours: boolean; map: (string) | null; blend: 'opaque' | 'additive'; doubleSided: boolean; fog: number; flicker: number; tube: (NeonTubeParams) | null; sky: (SkyDomeParams) | null; };
+export type FamilyMaterialParamsInput = (ToonMaterialParamsInput) | (PbrMaterialParamsInput) | (PainterlyMaterialParamsInput) | (EmissiveMaterialParamsInput);
+export type FamilyMaterialParams = (ToonMaterialParams) | (PbrMaterialParams) | (PainterlyMaterialParams) | (EmissiveMaterialParams);
