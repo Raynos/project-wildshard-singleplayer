@@ -12,6 +12,7 @@ import type { SurfaceLook } from '@wildshard/format/surfaceLooks';
 import { bakedMeshWorld, type BakedMeshKindRow, type BakedMeshWorld, type BakedByteResource, type WorldPieceRow, type BakedColliderInput, type BakedPieceRows } from './bakedKinds';
 import { fetchDeflatedBytes } from '@wildshard/engine/core/deflate';
 import type { ShardProduct } from './shardProduct';
+import { sceneRigFiles } from './sceneRigFiles';
 
 type Library = ModelLibrary<string, string>;
 type Kind = BakedMeshKindRow & { readonly surface?: readonly SurfaceLook[]; readonly look?: string };
@@ -56,8 +57,9 @@ export function prepareSceneSources(product: ShardProduct): Promise<void> {
     const rows = product.section('world/scenes');
     for (const row of rows.libraries) {
       if (row.kind !== 'models') continue;
-      const source = await product.json<SceneModelSource>(row.file);
-      if (!isJsonData(source) || source.rows.meshes.length > 256 || source.rows.hd.length > 256) throw new Error('Invalid declared model source');
+      const declared = await product.json<SceneModelSource>(row.file);
+      if (!isJsonData(declared) || declared.rows.meshes.length > 256 || declared.rows.hd.length > 256) throw new Error('Invalid declared model source');
+      const source = { ...declared, rows: sceneRigFiles(declared.rows, product) };
       const name = key(product.slug, row.id);
       modelRows.set(name, source);
       if (!libraries.has(name)) {
