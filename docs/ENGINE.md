@@ -8639,6 +8639,8 @@ schemas; every section/schema byte still passes its size and hash.
 Unproved inputs retain checked admission with custom validators loaded
 on request. Explicit schema arguments still parse checked/proof products
 on read. No network sidecar or authored receipt grants this trust.
+The defining receipt API is `format/validationReceipt`; paced encoding
+receives the caller's wall clock and cancellation pause.
 
 `configuredShardfile(document, options)` awaits the same section reader
 for the SDK client's embedded index. Installed data-client manifests

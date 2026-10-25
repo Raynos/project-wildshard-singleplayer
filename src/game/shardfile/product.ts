@@ -4,7 +4,8 @@ import { waitFor } from '@wildshard/engine/boot/waits';
 import { scriptAdmissionRows } from '@wildshard/format/scriptContract';
 import type { TextureTranscodeSupport } from '@wildshard/format/contentBounds';
 import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
-import { builtValidationReceipt, readValidationReceipt, validationRevision, validationSourceBytes, type ValidationReceipt, assertStateCompatibility, parseStateLineage, preflightAssetGraph, prepareAssetDecoders, type MemoryAdmission } from "@wildshard/format/product";
+import { builtValidationReceipt, readValidationReceipt, validationRevision, validationSourceBytes, type ValidationReceipt } from "@wildshard/format/validationReceipt";
+import { assertStateCompatibility, parseStateLineage, preflightAssetGraph, prepareAssetDecoders, type MemoryAdmission } from "@wildshard/format/product";
 import { SHARDFILE_VERSION, shardfileRevision } from '@wildshard/format/version';
 import { isOutputIndex } from '@wildshard/format/outputIndex';
 

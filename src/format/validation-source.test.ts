@@ -1,5 +1,5 @@
 import { expect, test, vi } from 'vitest';
-import { validationSourceBytes, validationSourceBytesPaced } from './product';
+import { validationSourceBytes, validationSourceBytesPaced } from './validationReceipt';
 
 test.each([
   null,
@@ -8,7 +8,7 @@ test.each([
   [undefined, Number.NaN, Number.POSITIVE_INFINITY, -0],
 ])('paced receipt sorting preserves original bytes for %j', async source => {
   const pause = vi.fn(() => Promise.resolve());
-  expect(await validationSourceBytesPaced(source, pause)).toEqual(validationSourceBytes(source));
+  expect(await validationSourceBytesPaced(source, pause, () => 0)).toEqual(validationSourceBytes(source));
   expect(pause).toHaveBeenCalled();
 });
 
@@ -19,32 +19,26 @@ test('large array receipt sorting yields before the full source is visited', asy
   const expected = validationSourceBytes(source);
   read = 0;
   const checkpoints: number[] = [];
-  const clock = vi.spyOn(Date, 'now');
   let now = 0;
-  clock.mockImplementation(() => { now += 5; return now; });
-  try {
-    const actual = await validationSourceBytesPaced(source, () => { checkpoints.push(read); return Promise.resolve(); });
-    expect(actual).toEqual(expected);
-    expect(checkpoints.length).toBeGreaterThan(10);
-    expect(checkpoints[0]).toBeGreaterThan(0);
-    expect(checkpoints[0]).toBeLessThan(2000);
-    expect(Math.max(...checkpoints.map((count, at) => count - (checkpoints[at - 1] ?? 0)))).toBeLessThanOrEqual(128);
-  } finally { clock.mockRestore(); }
+  const clock = (): number => { now += 5; return now; };
+  const actual = await validationSourceBytesPaced(source, () => { checkpoints.push(read); return Promise.resolve(); }, clock);
+  expect(actual).toEqual(expected);
+  expect(checkpoints.length).toBeGreaterThan(10);
+  expect(checkpoints[0]).toBeGreaterThan(0);
+  expect(checkpoints[0]).toBeLessThan(2000);
+  expect(Math.max(...checkpoints.map((count, at) => count - (checkpoints[at - 1] ?? 0)))).toBeLessThanOrEqual(128);
 });
 
 test('receipt pacing propagates owner cancellation before finishing the source', async () => {
   const source = Array.from({ length: 2000 }, (_, index) => ({ index }));
   const cancelled = new Error('owner disposed');
-  const clock = vi.spyOn(Date, 'now');
   let now = 0;
-  clock.mockImplementation(() => { now += 5; return now; });
-  try {
-    await expect(validationSourceBytesPaced(source, () => Promise.reject(cancelled))).rejects.toBe(cancelled);
-  } finally { clock.mockRestore(); }
+  const clock = (): number => { now += 5; return now; };
+  await expect(validationSourceBytesPaced(source, () => Promise.reject(cancelled), clock)).rejects.toBe(cancelled);
 });
 
 test('cyclic receipt sources still refuse instead of publishing partial bytes', async () => {
   const source: { self?: unknown } = {};
   source.self = source;
-  await expect(validationSourceBytesPaced(source, () => Promise.resolve())).rejects.toBeInstanceOf(TypeError);
+  await expect(validationSourceBytesPaced(source, () => Promise.resolve(), () => 0)).rejects.toBeInstanceOf(TypeError);
 });

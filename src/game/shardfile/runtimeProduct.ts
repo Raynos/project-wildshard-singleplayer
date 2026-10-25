@@ -1,6 +1,6 @@
 import { lendLooks } from './lentLooks';
 import { recoverStaleClient } from '@wildshard/engine/boot/stuck';
-import { builtIndexHashes } from '@wildshard/format/product';
+import { builtIndexHashes } from '@wildshard/format/builtIndexes';
 import type { Material } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Renderer } from '@wildshard/engine/render/renderer';

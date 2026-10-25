@@ -1,6 +1,7 @@
 import { assembleOutputFields, assembleOutputShardfile, outputBlobPath, parseOutputDescriptorIndex, type OutputIndex } from '@wildshard/format/outputIndex';
-import { builtValidationReceipt, validationSourceBytes, validationSourceBytesPaced, type ValidationReceipt } from '@wildshard/format/product';
+import { builtValidationReceipt, validationSourceBytes, validationSourceBytesPaced, type ValidationReceipt } from '@wildshard/format/validationReceipt';
 import { loadingStage, loadingUnits, waitFor } from '@wildshard/engine/boot/waits';
+import { diagnosticNow } from '@wildshard/engine/core/clock';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 
 /** Byte readers are injected: the section adapter runs in browsers and renderer-free Node admission. */
@@ -142,7 +143,7 @@ export async function resolveOutputDescriptor(input: unknown, reader: OutputDesc
   }
   if (reader.lineage === true) return assembleOutputFields(index, sections, false);
   const sourceBytes = (value: unknown): Uint8Array | Promise<Uint8Array> => reader.pause === undefined
-    ? validationSourceBytes(value) : validationSourceBytesPaced(value, reader.pause);
+    ? validationSourceBytes(value) : validationSourceBytesPaced(value, reader.pause, diagnosticNow);
   const candidate = reader.firstParty === true ? builtValidationReceipt(index.build.sourceHash) : null;
   const indexHash = candidate === null ? undefined : await reader.hash(await sourceBytes(input));
   const receipt = indexHash === undefined ? null : builtValidationReceipt(index.build.sourceHash, indexHash);
