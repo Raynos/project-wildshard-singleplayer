@@ -1,6 +1,5 @@
 import { assembleOutputFields, assembleOutputShardfile, outputBlobPath, parseOutputDescriptorIndex, type OutputIndex } from '@wildshard/format/outputIndex';
 import { builtValidationReceipt, validationSourceBytes, validationSourceBytesPaced, type ValidationReceipt } from '@wildshard/format/product';
-import { validateCustomSchema, validateCustomSchemaPaced } from './customSchema';
 import { loadingStage, loadingUnits, waitFor } from '@wildshard/engine/boot/waits';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 
@@ -142,9 +141,16 @@ export async function resolveOutputDescriptor(input: unknown, reader: OutputDesc
     (result.value[0].startsWith('schemas/') ? schemas : sections).set(...result.value);
   }
   if (reader.lineage === true) return assembleOutputFields(index, sections, false);
-  // G491: a build receipt never bypasses an authored custom schema at load.
+  const sourceBytes = (value: unknown): Uint8Array | Promise<Uint8Array> => reader.pause === undefined
+    ? validationSourceBytes(value) : validationSourceBytesPaced(value, reader.pause);
+  const candidate = reader.firstParty === true ? builtValidationReceipt(index.build.sourceHash) : null;
+  const indexHash = candidate === null ? undefined : await reader.hash(await sourceBytes(input));
+  const receipt = indexHash === undefined ? null : builtValidationReceipt(index.build.sourceHash, indexHash);
+  // G728: the exact build receipt proves custom schemas too; every section/schema
+  // byte above still passes its declared size and hash. Unproved inputs stay checked.
   const custom = index.sections.filter(row => row.name.startsWith('custom/'));
-  if (custom.length > 0) await loadingStage('admission', async () => {
+  if (receipt === null && custom.length > 0) await loadingStage('admission', async () => {
+    const { validateCustomSchema, validateCustomSchemaPaced } = await import('./customSchema');
     const progress = loadingUnits('Product schemas', custom.length);
     progress(0);
     for (const [at, row] of custom.entries()) {
@@ -157,20 +163,19 @@ export async function resolveOutputDescriptor(input: unknown, reader: OutputDesc
       }, reader.pause), 'admission');
     }
   });
-  const sourceBytes = (value: unknown): Uint8Array | Promise<Uint8Array> => reader.pause === undefined
-    ? validationSourceBytes(value) : validationSourceBytesPaced(value, reader.pause);
-  const indexHash = await reader.hash(await sourceBytes(input));
-  const receipt = reader.firstParty === true ? builtValidationReceipt(index.build.sourceHash, indexHash) : null;
+  // Unproved products keep the original serialized schema phase before paced
+  // hashing; only a possible CI receipt needs that digest to decide the fast path.
+  const digest = indexHash ?? await reader.hash(await sourceBytes(input));
   let source: Shardfile;
   if (receipt === null) source = assembleOutputShardfile(index, sections);
   else {
     const fields = assembleOutputFields(index, sections, false);
     const actual = await reader.hash(await sourceBytes(fields));
-    if (actual !== index.build.sourceHash || !buildValidatedSource(fields, actual, indexHash)) throw new Error('Built shardfile source receipt mismatch');
+    if (actual !== index.build.sourceHash || !buildValidatedSource(fields, actual, digest)) throw new Error('Built shardfile source receipt mismatch');
     source = fields;
     buildValidated.add(source);
   }
-  descriptors.set(source.files, { index, sections, get cached() { return cached && pendingStores === 0; }, indexHash,
+  descriptors.set(source.files, { index, sections, get cached() { return cached && pendingStores === 0; }, indexHash: digest,
     ...(stores.length === 0 ? {} : { cacheStored: Promise.all(stores).then(() => cached) }),
     ...(receipt === null ? {} : { receipt }) });
   return source;

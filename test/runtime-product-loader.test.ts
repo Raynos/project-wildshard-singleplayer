@@ -23,6 +23,7 @@ import { parseManifestMetadata } from '../src/format/minimap';
 import { parseImageAsset } from '../src/format/stillImage';
 import { Scope } from '../src/engine/app/scope';
 import { bootWaits } from '../src/engine/boot/waits';
+import * as customValidators from '../src/game/shardfile/customSchema';
 import { DownloadAccounting, observeDownloadAccounting } from '../src/engine/boot/download';
 
 const scopes: Scope[] = [];
@@ -241,6 +242,27 @@ test('a pinned product still refuses missing and changed custom schema bytes', a
   const changed = fixture(); trust(changed.receipt);
   changed.wires.set('schemas/custom/facts.schema.json', bytes({ $schema: 'http://json-schema.org/draft-07/schema#' }));
   await expect(loadShardProduct(changed.source.identity.slug, changed.options, own())).rejects.toThrow('hash or size');
+});
+
+test('an exact build proof does not rerun custom section validators in play', async () => {
+  const f = fixture(); trust(f.receipt);
+  const synchronous = vi.spyOn(customValidators, 'validateCustomSchema');
+  const paced = vi.spyOn(customValidators, 'validateCustomSchemaPaced');
+  try {
+    const product = await loadShardProduct(f.source.identity.slug, f.options, own());
+    expect(product.section<{ count: number }>('custom/facts')).toEqual({ count: 3 });
+    expect(synchronous).not.toHaveBeenCalled(); expect(paced).not.toHaveBeenCalled();
+  } finally { synchronous.mockRestore(); paced.mockRestore(); }
+});
+
+test('an unproved custom section still refuses a schema violation after its bytes are verified', async () => {
+  const f = fixture(); trust(f.receipt);
+  const row = f.index.sections.find(section => section.name === 'custom/facts');
+  if (row === undefined) throw new Error('Missing custom section fixture');
+  const changed = bytes({ count: 'wrong' });
+  row.hash = hashImmutableBytes(changed); row.bytes = changed.length;
+  f.wires.set(row.path, changed); f.wires.set('shard.json', bytes(f.index));
+  await expect(readProductDescriptor({ ...f.options, firstParty: false })).rejects.toThrow('refuses its schema');
 });
 
 test('a wrong index receipt never bypasses parsing and custom checks', async () => {

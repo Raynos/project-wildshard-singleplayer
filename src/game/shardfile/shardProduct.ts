@@ -2,7 +2,6 @@ import * as v from 'valibot';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { CustomSectionName, PlatformSectionName, PlatformSections, SectionName } from '@wildshard/format/sections';
 import { pacedResolve } from '@wildshard/engine/core/workSlice';
-import { validateNamedJsonSchemaPaced } from './customSchema';
 import { parseNamedJson } from '@wildshard/format/json';
 
 /**
@@ -138,7 +137,7 @@ export function createShardProduct(input: ShardProductInput): ShardProduct {
     const bytes = await input.read(file.hash);
     // a read in play lets a due frame through between its parse, schema compile and validation (pacedResolve)
     const decoded: unknown = file.jsonSchema === undefined ? JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes))
-      : input.builtJson === true ? parseNamedJson(bytes) : await validateNamedJsonSchemaPaced(file.jsonSchema, bytes, () => pacedResolve(undefined));
+      : input.builtJson === true ? parseNamedJson(bytes) : await (await import('./customSchema')).validateNamedJsonSchemaPaced(file.jsonSchema, bytes, () => pacedResolve(undefined));
     return input.check === true ? deepFreeze(decoded) : decoded;
   }
   return {
