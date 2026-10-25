@@ -17,6 +17,7 @@ import { ShadowFade, installShadowFadeChunk, sunFadeUniform } from './shadowFade
 import { patchPointLightSkip } from './pointLightSkip';
 import { registerCascades } from './cascadeLights';
 import { patchCSMShaderChunk } from './csmLightBlock';
+import {WeakShaderMap} from './weakShaderMap';
 import type { DayCycleClock } from './dayCycle';
 import { ShadowMaps } from './shadowVariants';
 import type { LookStrategy, SkyBackdrop, SkyBackdropContext, SkyBackdropFactory, SkyBackdropPost, SkyBackdropTargets, SkyDressing } from '../render/look';
@@ -50,44 +51,6 @@ export function shadowRig(phoneSplits: boolean): ShadowRig {
   return { ...PHONE_SHADOW, cascades: splits.length + 1, splits, margin: base.margin, phone: true };
 }
 
-/**
- * SF57: CSM's material → shader map, holding its materials weakly. CSM kept every material `setupMaterial` ever saw (a
- * retired shard's, never disposed while the page owned them) and walked them all every frame for the page's life. The
- * same calls CSM makes (set / get / has / delete / clear / forEach); a collected material drops out on the next walk.
- * O18: the shader lives in the material-keyed WeakMap, not beside the WeakRef: its uniforms reach the material's maps and
- * the material, so a strong value kept every retired material alive (13 MB per Nalati visit on the desktop tour).
- */
-class WeakShaderMap<V> {
-  private readonly refs = new Set<WeakRef<object>>();
-  private readonly entries = new WeakMap<object, { readonly ref: WeakRef<object>; value: V }>();
-  get size(): number { return this.refs.size; }
-  set(material: object, value: V): this {
-    const entry = this.entries.get(material);
-    if (entry !== undefined) { entry.value = value; return this; }
-    const ref = new WeakRef(material);
-    this.entries.set(material, { ref, value }); this.refs.add(ref);
-    return this;
-  }
-  get(material: object): V | undefined { return this.entries.get(material)?.value; }
-  has(material: object): boolean { return this.entries.has(material); }
-  delete(material: object): boolean {
-    const entry = this.entries.get(material);
-    if (entry === undefined) return false;
-    this.entries.delete(material); this.refs.delete(entry.ref);
-    return true;
-  }
-  clear(): void {
-    for (const ref of this.refs) { const material = ref.deref(); if (material !== undefined) this.entries.delete(material); }
-    this.refs.clear();
-  }
-  /** Map.forEach's contract, thisArg included: CSM calls `shaders.forEach(function () { this._getExtendedBreaks… }, this)`. */
-  forEach(fn: (this: unknown, value: V, material: object, map: this) => void, thisArg?: unknown): void {
-    for (const ref of this.refs) {
-      const material = ref.deref(), entry = material === undefined ? undefined : this.entries.get(material);
-      if (material === undefined || entry === undefined) this.refs.delete(ref); else fn.call(thisArg, entry.value, material, this);
-    }
-  }
-}
 
 /**
  * Lighting rig: HDRI sky for IBL + background, a cascaded-shadow sun matched to the
