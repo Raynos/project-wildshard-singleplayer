@@ -7,6 +7,7 @@ import { parseSync } from 'vite';
 import { ratchetApprovalFailures } from './ratchet-approval.mjs';
 import { linkNodeModules } from './link-node-modules.mjs';
 import { commitCheckFailed, commitGuards, runCommitJobs } from './precommit-jobs.mjs';
+import { guardIndexTree } from './guard-index-tree.mjs';
 
 /** Only exact declared generated imports may be absent from a cold sealed
  * snapshot. Ordinary missing modules remain failures of the selected guard.
@@ -46,7 +47,7 @@ export async function precommitInputs(root = resolve(import.meta.dirname, '..'),
   const source = changed.filter(path => /\.[cm]?[jt]sx?$/u.test(path) && !deleted.includes(path));
   const config = initial.includes('\t.oxlintrc.json\0') ? git(['show', ':.oxlintrc.json']) : '{}';
   const patterns = /"ignorePatterns"\s*:\s*\[([^\]]*)\]/u.exec(config)?.[1] ?? '';
-  const ignored = [...patterns.matchAll(/"([^"]+)"/gu)].map(match => match[1]);
+  const ignored = [...patterns.matchAll(/"([^"]+)"/gu)].flatMap(match => match[1] === undefined ? [] : [match[1]]);
   const files = source.filter(path => !ignored.some(pattern => {
     if (posix.matchesGlob(path, pattern) || path.startsWith(pattern)) return true;
     return !pattern.slice(0, -1).includes('/') && path.includes(`/${pattern}`);
@@ -58,20 +59,28 @@ export async function precommitInputs(root = resolve(import.meta.dirname, '..'),
     const pending = existsSync(path) ? v.parse(v.record(v.string(), v.array(v.string())), JSON.parse(readFileSync(path, 'utf8'))) : {};
     for (const file of paths) {
       const blob = git(['rev-parse', `:${file}`]).trim();
-      pending[file] = [...new Set([...(Object.hasOwn(pending, file) ? pending[file] : []), blob])];
+      pending[file] = [...new Set([...(Object.hasOwn(pending, file) ? pending[file] ?? [] : []), blob])];
     }
     const temporary = `${path}.${process.pid}`;
     writeFileSync(temporary, JSON.stringify(pending)); renameSync(temporary, path);
   };
   const defer = (check = 'typed lint') => {
     recordDeferred('push-deferred-types.json', files);
-    if (sourcePolicy && ['staged source', 'closed components', 'ratchet'].includes(check))
+    if (sourcePolicy && ['staged source', 'closed components', 'ratchet', 'staged debt'].includes(check))
       recordDeferred('push-deferred-policy.json', changed.filter(path => !deleted.includes(path)));
   };
   const same = files.length > 0 && git(['diff', '--name-only', '--', ...files]).trim() === '';
   /** @type {import('./precommit-jobs.mjs').CommitJob[]} */
   const early = [];
   if (existsSync(resolve(root, 'scripts/repo-size.mjs'))) early.push({ name: 'storage', command: [process.execPath, 'scripts/repo-size.mjs', '--index'] });
+  // Count exact candidate blobs before the source-closure walk can exhaust its
+  // budget. Reuse the push counter, never a loose policy or generated snapshot.
+  if (files.some(file => file.startsWith('src/')) && initial.includes('\t.oxlintrc.ratchet.json\0')
+    && initial.includes('\tlint/ratchet.json\0') && initial.includes('\tscripts/committed-fast-checks.mjs\0')) {
+    const candidate = guardIndexTree(root), parent = git(['rev-parse', 'HEAD']).trim();
+    early.push({ name: 'staged debt', command: [process.execPath, resolve(import.meta.dirname, 'committed-fast-checks.mjs'),
+      root, parent, candidate, 'ratchet', JSON.stringify(files)] });
+  }
   if (same) early.push({ name: 'typed lint', command: [executable, '--type-aware', '-c', '.oxlintrc.json', ...files] });
   else if (files.length > 0) { defer(); console.warn('pre-commit: staged patch differs from working files; exact typed checks deferred to push'); }
   // Inspect exact staged JSON and generated-source declarations, including

@@ -1,13 +1,14 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise exact Git inputs in owned tiny repositories.
 import { execFileSync, spawnSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Tiny fixtures are removed after each test.
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
+import { chmodSync, mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- All fixture paths remain beneath tmp/.
 import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- The fixture invokes the real platform policy comparator.
 import { pathToFileURL } from 'node:url';
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { linkNodeModules } from '../scripts/link-node-modules.mjs';
+import { precommitInputs } from '../scripts/precommit-inputs.mjs';
 
 const repository=resolve('.');
 function fixture() {
@@ -51,6 +52,29 @@ test('lint refuses exact bad text and openly defers dirty or staged inputs',()=>
     expect(readFileSync(resolve(f.root,'src/main.ts'),'utf8')).toBe(before);expect(f.git('write-tree')).toBe(index);
     expect(f.run('fast-lint',f.base).status).toBe(0);
   }finally{f.close();}
+});
+
+test('the commit hook refuses staged debt before source checks can defer it',async()=>{
+  const f=fixture(),output=vi.spyOn(console,'error').mockImplementation(()=>undefined);try {
+    f.put('scripts/committed-fast-checks.mjs','// Registered exact-input counter entry.\n');
+    f.put('lint/plugin.mjs',`import{readFileSync}from'node:fs';import{resolve}from'node:path';
+export default {meta:{name:'wildshard'},rules:{marker:{meta:{type:'problem',schema:[]},create(context){return {Program(node){
+ for(let i=0;i<Number(readFileSync(resolve('lint/marker.json'),'utf8'));i++)context.report({node,message:'Counted existing debt'});
+}};}}}};`);
+    f.put('lint/ratchet.json',JSON.stringify({'wildshard/marker':{'src/main.ts':1}}));
+    f.put('lint/marker.json','1');f.commit();
+    f.put('lint/marker.json','2');f.put('src/main.ts','export const value=2;');f.git('add','lint/marker.json','src/main.ts');
+    const index=readFileSync(resolve(f.root,'.git/index'));
+    const lint=resolve(f.root,'ordinary-lint.sh');f.put('ordinary-lint.sh','#!/bin/sh\nexit 0\n');chmodSync(lint,0o755);
+    // A peer's loose rescue and broken plugin must not hide exact staged growth.
+    f.put('lint/marker.json','0');f.put('lint/plugin.mjs','throw Error("foreign plugin");');
+    await expect(precommitInputs(f.root,lint)).rejects.toThrow('staged debt: refused');
+    expect(output.mock.calls.some(args=>String(args[0]).includes('was 1, now 2'))).toBe(true);
+    expect(output.mock.calls.some(args=>String(args[0]).includes('Error: foreign plugin'))).toBe(false);
+    expect(readFileSync(resolve(f.root,'.git/index'))).toEqual(index);
+    expect(readFileSync(resolve(f.root,'lint/marker.json'),'utf8')).toBe('0');
+    expect(readFileSync(resolve(f.root,'lint/plugin.mjs'),'utf8')).toContain('foreign plugin');
+  }finally{output.mockRestore();f.close();}
 });
 
 test('plugin executable and policy reads stay on Git even when both are dirty',()=>{

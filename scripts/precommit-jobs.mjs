@@ -48,5 +48,5 @@ export function commitCheckFailed(result) {
   if (!result.timedOut && result.code !== 124) return true;
   // oxlint-disable-next-line no-control-regex -- Strip terminal escapes before preserving observed failures at the deadline.
   const output = result.output.replaceAll(/\u001B\[[0-9;]*m/gu, '');
-  return /(?:FAIL\s+|Tests\s+\d+ failed|Test Files\s+\d+ failed|error\[|\berror [\w-]+[(/]|BINARY-JSON |GENERATED-SOURCE |MISSING STAGED MODULE |CLOSED |SHRINK-ONLY |staged allowance rose|deleted path)/u.test(output);
+  return /(?:FAIL\s+|Tests\s+\d+ failed|Test Files\s+\d+ failed|error\[|\berror [\w-]+[(/]|BINARY-JSON |GENERATED-SOURCE |MISSING STAGED MODULE |CLOSED |SHRINK-ONLY |staged allowance rose|was \d+, now \d+|deleted path)/u.test(output);
 }
