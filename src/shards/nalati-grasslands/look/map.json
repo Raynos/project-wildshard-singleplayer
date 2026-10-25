@@ -7,7 +7,7 @@
     "assets/world-terrain/ground.generated.glb",
     "assets/world-terrain/slab.generated.glb",
     "assets/world-terrain/water.generated.glb",
-    "../../../scripts/map-assembly.mjs",
+    "../../../scripts/map-world.mjs",
     "../../../scripts/map-scenes.mjs",
     "../../../scripts/map-painter.mjs",
     "../../../scripts/bake-data-maps.mjs"

@@ -1,5 +1,12 @@
 // Build-only rest assembly of admitted model, private-scene and frozen-weld data.
 import { resolve } from 'node:path';
+import { readFileSync } from 'node:fs';
+import { inflateSync } from 'node:zlib';
+import { readBakedGeometry } from '../src/sdk/kit/bakedGeometry.ts';
+import { _applyChunkConstants } from '../src/engine/core/config.ts';
+import { configureLevel } from '../src/engine/level/selection.ts';
+import { placeForest } from '../src/engine/world/forest/placement.ts';
+
 import { BufferGeometry, Euler, Float32BufferAttribute, Matrix4, Quaternion, Vector3 } from 'three';
 import { MapRaster } from './map-painter.mjs';
 import { mapModel, readMapJson } from './map-geometry.mjs';
@@ -132,4 +139,23 @@ export async function mapPool(file, world = false) {
     const id = node.getName() === '' ? mesh.getName() : node.getName(); if (result.has(id)) throw new Error(`Duplicate map pool geometry ${id}`); result.set(id, geometry);
   }
   return result;
+}
+
+export function mapForest(constants, field, forest, variants) {
+  _applyChunkConstants(constants);
+  configureLevel({ id: constants.slug, ground: { terrain: field }, forest });
+  return placeForest(variants).trees;
+}
+
+export function mapBinary(file, shuffled = false) {
+  const bytes = new Uint8Array(inflateSync(readFileSync(file)));
+  if (!shuffled) return bytes;
+  const out = new Uint8Array(bytes.length), n = bytes.length / 4;
+  for (let b = 0; b < 4; b++) for (let i = 0; i < n; i++) out[i * 4 + b] = bytes[b * n + i];
+  return out;
+}
+export function mapGeometry(bytes, offset, row) {
+  const geometry = readBakedGeometry(bytes, offset, row);
+  if (!row.expand || geometry.index === null) return geometry;
+  const expanded = geometry.toNonIndexed(); geometry.dispose(); return expanded;
 }
