@@ -7,7 +7,7 @@ import { neonSize } from './signMath';
 import type { SignCallRow } from './contracts/signPlacement';
 
 
-interface PackedGeometry { readonly attributes: Record<string, { width: number; data: string }>; readonly index: string; readonly sphere: number[] | null }
+interface PackedGeometry { readonly attributes: Record<string, { width: number; data: Uint8Array }>; readonly index: Uint8Array; readonly sphere: number[] | null }
 interface BakedSignAtlas extends ReturnType<SignAtlas['snapshot']> {
   readonly keys: Record<string, string>; readonly geometries: Record<string, PackedGeometry>;
   readonly placed: { p: Omit<SignPlace<SignStyle>, 'at' | 'normal'> & { at: number[]; normal: number[] }; w: number; h: number; neon: boolean }[];
@@ -31,18 +31,14 @@ export function bakeSignAtlasPage(tier: 'phone' | 'desktop', calls: readonly Sig
     else builder.tube(vec(call.a), vec(call.b), vec(call.f), call.width, call.color, call.gain, call.flicker);
   }
   const snapshot = atlas.snapshot();
-  const base64 = (array: ArrayBufferView): string => {
-    const bytes = new Uint8Array(array.buffer, array.byteOffset, array.byteLength);
-    let raw = ''; for (let i = 0; i < bytes.length; i += 32768) raw += String.fromCodePoint(...bytes.subarray(i, i + 32768));
-    return btoa(raw);
-  };
+  const bytes = (array: ArrayBufferView): Uint8Array => new Uint8Array(new Uint8Array(array.buffer, array.byteOffset, array.byteLength));
   const serialize = (geometry: ReturnType<SignBuilder['build']>): PackedGeometry => {
     const attributes = Object.fromEntries(Object.entries(geometry.attributes).map(([name, attribute]) => {
       if (!(attribute instanceof BufferAttribute)) throw new Error('Nine sign has an interleaved attribute');
-      return [name, { width: attribute.itemSize, data: base64(attribute.array) }];
+      return [name, { width: attribute.itemSize, data: bytes(attribute.array) }];
     }));
     if (geometry.index === null) throw new Error('Nine sign has no original index');
-    return { attributes, index: base64(geometry.index.array), sphere: geometry.boundingSphere === null ? null : [...geometry.boundingSphere.center, geometry.boundingSphere.radius] };
+    return { attributes, index: bytes(geometry.index.array), sphere: geometry.boundingSphere === null ? null : [...geometry.boundingSphere.center, geometry.boundingSphere.radius] };
   };
   const geometries: Record<string, ReturnType<typeof serialize>> = { world: serialize(builder.build()) };
   const params: SignModelParams<SignStyle>[] = [];

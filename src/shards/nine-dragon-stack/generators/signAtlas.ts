@@ -93,9 +93,9 @@ export class SignAtlas<S extends string = string> {
 
   row(style: S): SignStyleRow { return rowOf(this.styles, style); }
 
-  /** Offline pixels and exact cell allocations, captured before any GPU upload. */
-  snapshot(): { mono: string; colour: string; cells: Record<string, SignCell> } {
-    return { mono: this.mono.toDataURL('image/png'), colour: this.colour.toDataURL('image/png'), cells: Object.fromEntries(this.cache) };
+  /** Native authoring canvases and exact cell allocations, before any GPU upload. */
+  snapshot(): { mono: HTMLCanvasElement; colour: HTMLCanvasElement; cells: Record<string, SignCell> } {
+    return { mono: this.mono, colour: this.colour, cells: Object.fromEntries(this.cache) };
   }
 
   private allocMono(w: number, h: number, vertical: boolean): { x: number; y: number } {

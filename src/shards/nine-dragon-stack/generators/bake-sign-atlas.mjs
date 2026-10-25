@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs';
 import { constants, zstdCompressSync } from 'node:zlib';
 import { build } from 'vite';
 import { webkit, devices } from 'playwright';
-import { byteWriter, outputHash } from '../../../../scripts/bake-output.mjs';
+import { byteWriter, outputHash, browserBakeBytes } from '../../../../scripts/bake-output.mjs';
 import { readImagePixels } from '../../../../src/sdk/bake/image.ts';
 import { parseSignView } from './sections.ts';
 
@@ -29,7 +29,7 @@ const signRows = parseSignView(JSON.parse(readFileSync(resolve(root, 'src/shards
 
 // Single-level lossless R8/RGBA8 KTX2. Both retain the old bottom-up raster and GPU mip law.
 async function ktx(png, mono, file) {
-  const image = await readImagePixels(Buffer.from(png.split(',')[1], 'base64'), { flipY: true });
+  const image = await readImagePixels(png, { flipY: true });
   const pixels = mono ? Uint8Array.from({ length: image.width * image.height }, (_, i) => image.pixels[i * 4]) : image.pixels;
   const packed = zstdCompressSync(pixels, { params: { [constants.ZSTD_c_compressionLevel]: 19 } });
   const descriptor = mono ? 44 : 92, offset = 104 + descriptor, out = new Uint8Array(offset + packed.length), view = new DataView(out.buffer);
@@ -51,15 +51,39 @@ try {
   await page.setContent('<!doctype html><meta charset="utf-8"><title>Nine sign bake</title>');
   await page.addScriptTag({ content: code });
   for (const tier of ['phone', 'desktop']) {
-    const { mono, colour, ...row } = await page.evaluate(input => window.bakeNineSigns(input.tier, input.calls, input.signRows), { tier, calls, signRows });
-    const chunks = []; let byteOffset = 0;
-    const pack = encoded => { const bytes = Buffer.from(encoded, 'base64'), range = { byteOffset, byteLength: bytes.length }; chunks.push(bytes); byteOffset += bytes.length; return range; };
-    for (const geometry of Object.values(row.geometries)) {
-      for (const attribute of Object.values(geometry.attributes)) attribute.data = pack(attribute.data);
-      geometry.index = pack(geometry.index);
-    }
+    const sink = await browserBakeBytes(page);
+    let row, geometryBytes, mono, colour;
+    try {
+      row = await page.evaluate(async input => {
+        const { mono: monoCanvas, colour: colourCanvas, ...metadata } = window.bakeNineSigns(input.tier, input.calls, input.signRows);
+        const chunks = []; let byteOffset = 0;
+        const pack = bytes => { const range = { byteOffset, byteLength: bytes.byteLength }; chunks.push(bytes); byteOffset += bytes.byteLength; return range; };
+        const geometries = Object.fromEntries(Object.entries(metadata.geometries).map(([key, geometry]) => [key, { ...geometry,
+          attributes: Object.fromEntries(Object.entries(geometry.attributes).map(([name, attribute]) => [name, { ...attribute, data: pack(attribute.data) }])),
+          index: pack(geometry.index),
+        }]));
+        const all = new Uint8Array(byteOffset); let offset = 0;
+        for (const bytes of chunks) { all.set(bytes, offset); offset += bytes.byteLength; }
+        const send = async (id, bytes) => {
+          const response = await fetch(`${input.url}${id}`, { method: 'POST', body: bytes });
+          if (!response.ok) throw new Error('Sign atlas byte handoff refused');
+        };
+        await send('geometry', all);
+        const raster = async canvas => {
+          const blob = await new Promise((_resolve, reject) => {
+            canvas.toBlob(value => {
+              if (value === null) reject(new Error('Sign atlas PNG encoding failed')); else _resolve(value);
+            }, 'image/png');
+          });
+          return new Uint8Array(await blob.arrayBuffer());
+        };
+        await send('mono', await raster(monoCanvas)); await send('colour', await raster(colourCanvas));
+        return { ...metadata, geometries };
+      }, { tier, calls, signRows, url: sink.url });
+      geometryBytes = sink.take('geometry'); mono = sink.take('mono'); colour = sink.take('colour');
+    } finally { await sink.dispose(); }
     const buffer = `signAtlas-${tier}.bin`;
-    writer.put(resolve(outputData, buffer), Buffer.concat(chunks));
+    writer.put(resolve(outputData, buffer), geometryBytes);
     tiers[tier] = { ...row, mono: await ktx(mono, true, `signAtlas-${tier}-mono.ktx2`), colour: await ktx(colour, false, `signAtlas-${tier}-colour.ktx2`), buffer };
     console.log(`Nine ${tier}: ${Object.keys(row.cells).length} cells, ${row.placed.length} signs, ${Object.keys(row.keys).length} specimens; R8 ${tiers[tier].mono.pixelHash}, RGBA8 ${tiers[tier].colour.pixelHash}`);
   }
