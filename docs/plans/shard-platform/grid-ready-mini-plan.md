@@ -49,8 +49,8 @@ gate unchanged; diagnostics identify callers and do not qualify as passes.
 
 | Slice | Work | Status |
 |---|---|---|
-| G717.L1 | Night Market entry: retained 300.1 ms miss; independent diagnostic 350 ms. Mesh entry validation accounts for 205 ms inclusive in a second, browser-overlapped diagnostic. Disjoint triangle bounds preserve exact clearance, continuous ground and wire admission. Actual 64-chunk / 32,585-triangle kernel median 22.31 → 1.87 ms (21 alternating pairs); unchanged entry gate pending landed-source preview. | in flight (2026-10-25, sp-x6) |
-| G717.L2 | Attribute and fix Signal, Nalati, Sky, Alien and Thin Ice entry-look misses, one measured cause per bounded source cut. | open |
+| G717.L1 | `7274c0de3f` rejects only disjoint collision projections; exact clearance, continuous ground and wire admission remain. Actual 64-chunk / 32,585-triangle kernel median 22.31 → 1.87 ms (21 alternating pairs). Retained G717 entry miss 300.1 ms; uninstrumented `653f0abe85` entry/look/leave 150.1 / 33.5 / 66.6 ms PASS, errors/skips 0, context intact. Another browser's CPU profile overlapped, so no isolated causal frame claim. [Portrait](../../../art/grid/g717-entry-looks/night-market.jpg). | done (2026-10-25, sp-x6) |
+| G717.L2 | Uninstrumented `653f0abe85` five-entry cohort completes/errors 0; strict grader passes all entry/look/leave windows. Worst ms before → after: Signal 266.6 → 116.7, Nalati 300 → 200 (exact limit), Sky 233.3 → 183.3, Alien 216.6 → 50.1, Thin Ice 249.9 → 50.1 (old miss was leave). The shared batch includes selected-uniform, channel-admission and collision-bounds cuts; no isolated per-shard causal claim or additional source cut. Six new look latches preserve all 42 prior entries: 48/48 total. [Captures and protocol](../../../art/grid/g717-entry-looks/README.md). | done (2026-10-25, sp-x6) |
 
 ## Why it never completes today
 

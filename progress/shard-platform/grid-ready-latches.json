@@ -780,6 +780,174 @@
           "gpuProcessPeakBytes": 1090406400
         }
       }
+    },
+    {
+      "shard": "far-reach",
+      "criterion": "oneFrameLooks",
+      "source": "653f0abe856bd6019818ba92f8ee9c8910bbe7d1",
+      "measurement": {
+        "when": "2026-10-25T07:03:19.859Z",
+        "surface": "chromium",
+        "metrics": {
+          "grid-far-reach-road-entry-drive.frames": 624,
+          "grid-far-reach-road-entry-drive.maxMs": 183.29999999998836,
+          "grid-far-reach-road-entry-drive.p95Ms": 50,
+          "grid-far-reach-road-entry-drive.medianFps": 30.03003003001428,
+          "grid-far-reach-road-entry-drive.skipped": 0,
+          "grid-far-reach-road-entry.frames": 171,
+          "grid-far-reach-road-entry.maxMs": 50.09999999997672,
+          "grid-far-reach-road-entry.p95Ms": 50,
+          "grid-far-reach-road-entry.medianFps": 30.03003003001428,
+          "grid-far-reach-road-entry.skipped": 0,
+          "grid-far-reach-road-entry-travel.frames": 146,
+          "grid-far-reach-road-entry-travel.maxMs": 50,
+          "grid-far-reach-road-entry-travel.p95Ms": 33.40000000002328,
+          "grid-far-reach-road-entry-travel.medianFps": 30.03003003001428,
+          "grid-far-reach-road-entry-travel.skipped": 0
+        }
+      },
+      "latchedAt": "2026-10-25T07:08:45.742Z",
+      "quiet": false
+    },
+    {
+      "shard": "nalati-grasslands",
+      "criterion": "oneFrameLooks",
+      "source": "653f0abe856bd6019818ba92f8ee9c8910bbe7d1",
+      "measurement": {
+        "when": "2026-10-25T07:02:19.212Z",
+        "surface": "chromium",
+        "metrics": {
+          "grid-nalati-grasslands-road-entry-drive.frames": 1018,
+          "grid-nalati-grasslands-road-entry-drive.maxMs": 200,
+          "grid-nalati-grasslands-road-entry-drive.p95Ms": 50.09999999999127,
+          "grid-nalati-grasslands-road-entry-drive.medianFps": 30.030030030027405,
+          "grid-nalati-grasslands-road-entry-drive.skipped": 0,
+          "grid-nalati-grasslands-road-entry.frames": 164,
+          "grid-nalati-grasslands-road-entry.maxMs": 83.30000000000291,
+          "grid-nalati-grasslands-road-entry.p95Ms": 50,
+          "grid-nalati-grasslands-road-entry.medianFps": 29.940119760484258,
+          "grid-nalati-grasslands-road-entry.skipped": 0,
+          "grid-nalati-grasslands-road-entry-travel.frames": 403,
+          "grid-nalati-grasslands-road-entry-travel.maxMs": 50.10000000000582,
+          "grid-nalati-grasslands-road-entry-travel.p95Ms": 50,
+          "grid-nalati-grasslands-road-entry-travel.medianFps": 30.030030030027405,
+          "grid-nalati-grasslands-road-entry-travel.skipped": 0
+        }
+      },
+      "latchedAt": "2026-10-25T07:08:45.741Z",
+      "quiet": false
+    },
+    {
+      "shard": "open-plot-alien-plain",
+      "criterion": "oneFrameLooks",
+      "source": "653f0abe856bd6019818ba92f8ee9c8910bbe7d1",
+      "measurement": {
+        "when": "2026-10-25T07:03:56.838Z",
+        "surface": "chromium",
+        "metrics": {
+          "grid-open-plot-alien-plain-road-entry-drive.frames": 751,
+          "grid-open-plot-alien-plain-road-entry-drive.maxMs": 50.10000000000582,
+          "grid-open-plot-alien-plain-road-entry-drive.p95Ms": 33.40000000002328,
+          "grid-open-plot-alien-plain-road-entry-drive.medianFps": 30.03003003001428,
+          "grid-open-plot-alien-plain-road-entry-drive.skipped": 0,
+          "grid-open-plot-alien-plain-road-entry.frames": 181,
+          "grid-open-plot-alien-plain-road-entry.maxMs": 33.40000000002328,
+          "grid-open-plot-alien-plain-road-entry.p95Ms": 33.40000000002328,
+          "grid-open-plot-alien-plain-road-entry.medianFps": 30.03003003001428,
+          "grid-open-plot-alien-plain-road-entry.skipped": 0,
+          "grid-open-plot-alien-plain-road-entry-travel.frames": 414,
+          "grid-open-plot-alien-plain-road-entry-travel.maxMs": 33.5,
+          "grid-open-plot-alien-plain-road-entry-travel.p95Ms": 33.40000000002328,
+          "grid-open-plot-alien-plain-road-entry-travel.medianFps": 30.03003003001428,
+          "grid-open-plot-alien-plain-road-entry-travel.skipped": 0
+        }
+      },
+      "latchedAt": "2026-10-25T07:08:45.743Z",
+      "quiet": false
+    },
+    {
+      "shard": "open-plot-night-market",
+      "criterion": "oneFrameLooks",
+      "source": "653f0abe856bd6019818ba92f8ee9c8910bbe7d1",
+      "latchedAt": "2026-10-25T07:07:53.726Z",
+      "quiet": false,
+      "measurement": {
+        "when": "2026-10-25T06:56:01.782Z",
+        "surface": "chromium",
+        "metrics": {
+          "grid-open-plot-night-market-road-entry-drive.frames": 710,
+          "grid-open-plot-night-market-road-entry-drive.maxMs": 150.09999999999854,
+          "grid-open-plot-night-market-road-entry-drive.p95Ms": 50,
+          "grid-open-plot-night-market-road-entry-drive.medianFps": 30.030030030027405,
+          "grid-open-plot-night-market-road-entry-drive.skipped": 0,
+          "grid-open-plot-night-market-road-entry.frames": 181,
+          "grid-open-plot-night-market-road-entry.maxMs": 33.5,
+          "grid-open-plot-night-market-road-entry.p95Ms": 33.400000000001455,
+          "grid-open-plot-night-market-road-entry.medianFps": 30.030030030027405,
+          "grid-open-plot-night-market-road-entry.skipped": 0,
+          "grid-open-plot-night-market-road-entry-travel.frames": 413,
+          "grid-open-plot-night-market-road-entry-travel.maxMs": 66.59999999999854,
+          "grid-open-plot-night-market-road-entry-travel.p95Ms": 33.400000000001455,
+          "grid-open-plot-night-market-road-entry-travel.medianFps": 30.030030030027405,
+          "grid-open-plot-night-market-road-entry-travel.skipped": 0
+        }
+      }
+    },
+    {
+      "shard": "open-plot-thin-ice",
+      "criterion": "oneFrameLooks",
+      "source": "653f0abe856bd6019818ba92f8ee9c8910bbe7d1",
+      "measurement": {
+        "when": "2026-10-25T07:04:44.482Z",
+        "surface": "chromium",
+        "metrics": {
+          "grid-open-plot-thin-ice-road-entry-drive.frames": 740,
+          "grid-open-plot-thin-ice-road-entry-drive.maxMs": 50.09999999997672,
+          "grid-open-plot-thin-ice-road-entry-drive.p95Ms": 33.40000000002328,
+          "grid-open-plot-thin-ice-road-entry-drive.medianFps": 30.03003003001428,
+          "grid-open-plot-thin-ice-road-entry-drive.skipped": 0,
+          "grid-open-plot-thin-ice-road-entry.frames": 181,
+          "grid-open-plot-thin-ice-road-entry.maxMs": 33.5,
+          "grid-open-plot-thin-ice-road-entry.p95Ms": 33.40000000002328,
+          "grid-open-plot-thin-ice-road-entry.medianFps": 30.03003003001428,
+          "grid-open-plot-thin-ice-road-entry.skipped": 0,
+          "grid-open-plot-thin-ice-road-entry-travel.frames": 414,
+          "grid-open-plot-thin-ice-road-entry-travel.maxMs": 50,
+          "grid-open-plot-thin-ice-road-entry-travel.p95Ms": 33.40000000002328,
+          "grid-open-plot-thin-ice-road-entry-travel.medianFps": 30.03003003001428,
+          "grid-open-plot-thin-ice-road-entry-travel.skipped": 0
+        }
+      },
+      "latchedAt": "2026-10-25T07:08:45.743Z",
+      "quiet": false
+    },
+    {
+      "shard": "sunscar-dunes",
+      "criterion": "oneFrameLooks",
+      "source": "653f0abe856bd6019818ba92f8ee9c8910bbe7d1",
+      "measurement": {
+        "when": "2026-10-25T07:01:24.912Z",
+        "surface": "chromium",
+        "metrics": {
+          "grid-sunscar-dunes-road-entry-drive.frames": 869,
+          "grid-sunscar-dunes-road-entry-drive.maxMs": 116.70000000000437,
+          "grid-sunscar-dunes-road-entry-drive.p95Ms": 50,
+          "grid-sunscar-dunes-road-entry-drive.medianFps": 30.030030030027405,
+          "grid-sunscar-dunes-road-entry-drive.skipped": 0,
+          "grid-sunscar-dunes-road-entry.frames": 181,
+          "grid-sunscar-dunes-road-entry.maxMs": 33.5,
+          "grid-sunscar-dunes-road-entry.p95Ms": 33.400000000001455,
+          "grid-sunscar-dunes-road-entry.medianFps": 30.030030030027405,
+          "grid-sunscar-dunes-road-entry.skipped": 0,
+          "grid-sunscar-dunes-road-entry-travel.frames": 414,
+          "grid-sunscar-dunes-road-entry-travel.maxMs": 33.5,
+          "grid-sunscar-dunes-road-entry-travel.p95Ms": 33.400000000001455,
+          "grid-sunscar-dunes-road-entry-travel.medianFps": 30.030030030027405,
+          "grid-sunscar-dunes-road-entry-travel.skipped": 0
+        }
+      },
+      "latchedAt": "2026-10-25T07:08:45.739Z",
+      "quiet": false
     }
   ]
 }
