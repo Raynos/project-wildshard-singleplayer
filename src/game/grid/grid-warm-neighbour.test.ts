@@ -2,6 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
+import { buildYield } from '@wildshard/engine/core/workSlice';
 import { loadRapier } from '@wildshard/engine/physics/rapier';
 import { createSimHost, type SimLevel } from '@wildshard/engine/sim';
 import { GridAssembly } from './assembly';
@@ -28,7 +29,9 @@ async function fixture(options: { paired?: boolean; loading?: number; isolation?
   if (east === undefined || north === undefined) throw new Error('Missing neighbours');
   const page = createSimHost(level, { rapier }), residency = new PageResidency(), events: string[] = [];
   const allocated: { instance: string; owners: string[] }[] = [];
-  const control: { dispose: boolean; holdIncoming: boolean; finish: (() => void) | undefined; aborted: string[] } = { dispose: true, holdIncoming: false, finish: undefined, aborted: [] };
+  const control: { dispose: boolean; holdIncoming: boolean; finish: (() => void) | undefined; aborted: string[]; ownedYield: boolean; yielding: boolean } = {
+    dispose: true, holdIncoming: false, finish: undefined, aborted: [], ownedYield: false, yielding: false,
+  };
   const budget = { playing: 1_200_000_000, loading: options.loading ?? 1_800_000_000 };
   const player = { position: page.player.position, yaw: -Math.PI / 2, health: page.player.health, owner: page.player, motor: page.releasePlayerMotor() };
   const live = new LiveGridHost(assembly, {
@@ -54,6 +57,13 @@ async function fixture(options: { paired?: boolean; loading?: number; isolation?
           if (cell.instance === home.instance && !control.dispose) throw new Error('kept disposal refused');
           host.dispose(); events.push(`disposed:${cell.instance}`);
         } };
+        if (cell.instance === east.instance && control.ownedYield) return (async () => {
+          const cancel = (): void => { host.scope.dispose(); };
+          signal?.addEventListener('abort', cancel, { once: true });
+          try { control.yielding = true; await buildYield(host.scope); return region; }
+          catch (error) { region.dispose(); throw error; }
+          finally { signal?.removeEventListener('abort', cancel); }
+        })();
         return cell.instance === east.instance && control.holdIncoming
           ? new Promise<typeof region>(resolve => { control.finish = () => { resolve(region); }; }) : Promise.resolve(region);
       } }),
@@ -243,6 +253,25 @@ test('G723: an unsettled preparation owns the queue until its own cleanup finish
     expect(f.live.state().residents).toEqual([f.home.instance]);
     expect(f.live.state().issues).toEqual({});
   } finally { f.control.finish?.(); f.close(); }
+});
+
+test('G723: actual owned yield cancellation releases the claim and unblocks the committed destination', async () => {
+  const f = await fixture({ paired: true });
+  try {
+    await f.enterHome(); const leave = await f.live.prepare(f.home.instance, null); leave.commit();
+    await f.live.prefetch([f.east.instance]); f.control.ownedYield = true;
+    f.player.position.x = CHUNK_HALF + .5; travel(f.live, f.player.position, 1, 0);
+    // Reach the real scoped timer without firing it. The committed crossing cancels this owner mid-yield.
+    for (let i = 0; i < 20 && !f.control.yielding; i++) await Promise.resolve();
+    expect(f.control.yielding).toBe(true);
+    expect(f.claims().some(row => row.owner === f.east.instance)).toBe(true);
+    const enter = await f.live.prepare(null, f.north.instance); enter.commit();
+    expect(f.live.current()).toBe(f.north.instance);
+    expect(f.claims().some(row => row.owner === f.east.instance)).toBe(false);
+    expect(f.events).toContain(`disposed:${f.east.instance}`);
+    expect(f.live.state().pending).toEqual([]);
+    expect(f.live.state().issues).toEqual({});
+  } finally { f.close(); }
 });
 
 test('G723: failed source retirement blocks entry even when the destination was prepared', async () => {

@@ -74,12 +74,17 @@ export function frameBudgetSpent(budgetMs: number, now: number = diagnosticNow()
 }
 
 
-/** Resolve after the loop has drawn a frame later than now (rAF, then a scoped task after paint), or after `WAIT_CAP_MS`. */
+/** Resolve after a later drawn frame (rAF, then a scoped task), or its cap. Retirement also settles the wait;
+ * the awaiting builder must reach its own cancellation fence rather than hang on a removed frame callback. */
 export function nextDrawnFrame(owner?: Scope): Promise<void> {
   const scope = owner ?? resourceScope(), since = lastDrawn, start = diagnosticNow();
   return new Promise<void>((resolve) => {
+    let done = false, forget = (): void => undefined;
+    const finish = (): void => { if (done) return; done = true; forget(); resolve(); };
+    forget = scope.capture('disposers', finish);
     const check = (): void => {
-      if (lastDrawn > since || diagnosticNow() - start >= WAIT_CAP_MS || typeof globalThis.requestAnimationFrame !== 'function') { resolve(); return; }
+      if (done) return;
+      if (lastDrawn > since || diagnosticNow() - start >= WAIT_CAP_MS || typeof globalThis.requestAnimationFrame !== 'function') { finish(); return; }
       // A task after rAF leaves paint first. A nested timer costs 4 ms of the next build's frame before any work starts.
       scope.raf(() => {
         if (typeof globalThis.MessageChannel !== 'function') { scope.timeout(0, check); return; }

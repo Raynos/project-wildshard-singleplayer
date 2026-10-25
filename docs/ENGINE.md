@@ -820,12 +820,12 @@ the download numerator still reports all actual bytes. `slicer(budgetMs, progres
 returns a yield callback accepting `(done?, total?, detail?)`, so builders report
 completed authored work units before the budget check without changing yield timing.
 
-In play (a grid cell built on the road while the engine loop draws frames), builders always pace themselves to the
-frame floor. `@wildshard/engine/core/framePacing` learns each drawn frame from `Game`'s loop; `presenting()` is true
-while it keeps drawing, and `slicer()` caps its stretches at `WORK_SLICE_MS`. `macrotask()`, `slicer()` and a
-`workSlice()` yield all go through `paceYield`: when a frame is due they wait until the loop has drawn it (rAF, then a
-scoped MessageChannel task after paint, without a nested timer clamp). Loading screens, Node bakers and other callers
-without recent drawn frames retain their ordinary task yields.
+Live grid builders pace to the drawn frame floor. `core/framePacing` learns each frame from `Game`;
+`presenting()` reports recent draws and `slicer()` caps live stretches at `WORK_SLICE_MS`.
+`macrotask()`, `slicer()` and `workSlice()` use `paceYield`: a due frame waits for rAF then a
+scoped MessageChannel task after paint, without a nested timer. Other callers retain task yields.
+Scoped task/frame waits settle on retirement; `buildYield()` and `workSlice().yield()` then
+refuse further construction. Awaiting cancellation never strands a removed callback.
 
 Build pacing uses the actual drawn frame's rAF timestamp and active fps cap to set the next deadline.
 `noteFrameDrawn(done, rafAt, cap, cadenceAt)` optionally receives the capped loop's recovery anchor.

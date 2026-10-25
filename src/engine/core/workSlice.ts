@@ -32,7 +32,14 @@ export interface WorkSlice {
  *  queued port messages in one task until its own yield threshold, which merged 8 ms slices into ~100 ms tasks with no
  *  frame between them (measured, Nine Dragon's cell entry). Nested timers clamp to 4 ms: idle time, not frame time. */
 export function yieldTask(owner?: Scope): Promise<void> {
-  return new Promise<void>((resolve) => { (owner ?? resourceScope()).timeout(0, resolve); });
+  const scope = owner ?? resourceScope();
+  return new Promise<void>(resolve => {
+    let done = false, forget = (): void => undefined;
+    const finish = (): void => { if (done) return; done = true; forget(); resolve(); };
+    // Disposal clears the timer. Settle its promise too so the caller can reach its cancellation fence.
+    forget = scope.capture('disposers', finish);
+    if (!done) scope.timeout(0, finish);
+  });
 }
 
 // Live construction checks the shared budget at every hop. A message turn therefore cannot
@@ -76,7 +83,12 @@ export function workSlice(budgetMs: number = WORK_SLICE_MS, owner?: Scope): Work
     // stretch never follows the first one's before the frame they both owe is drawn
     due: () => { const now = diagnosticNow(); return now - start >= heldBudget(budgetMs) || frameBudgetSpent(budgetMs, now); },
     // in play with a frame due, the stretch ends only once the loop has drawn it (op-hitch26: timer tasks ran back to back)
-    yield: async () => { await paceYield(() => yieldTask(owner), owner, budgetMs); start = diagnosticNow(); },
+    yield: async () => {
+      const scope = owner ?? resourceScope();
+      await paceYield(() => yieldTask(scope), scope, budgetMs);
+      if (scope.disposed) throw new Error('build stopped: its scope has closed');
+      start = diagnosticNow();
+    },
     check: () => (slice.due() ? slice.yield() : undefined),
   };
   return slice;
