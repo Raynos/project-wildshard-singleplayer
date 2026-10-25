@@ -5,10 +5,22 @@ claims it with a one-line pathspec commit to this file (`<lane> <HH:MM>`), sends
 A brief sent by wildshard-new always wins over this queue. The coordinator keeps at least five open rows per type.
 Every row is decided work (Jake's G-rows); the refs are the brief.
 
+## Lane plans (G709, Jake 2026-10-24 ~21:55): one plan per lane, end to end; nothing mid-plan but a blocking red
+
+| Lane | Plan, in order |
+|---|---|
+| sp-x1 | generators GR3 -> GR5 Far Reach -> GR7 Driftwood |
+| sp-x6 | CS0 (G698, freed first) -> GR4 Sunscar -> GR6 Nalati -> GR8 Pine |
+| sp-x8 | SW11/G703 (in flight) -> TypeScript T3 -> T4 (from sp-x2) -> T5 |
+| sp-x2 | G700 road B (finishing) -> tile streaming T4 -> T6 / T8 |
+| sp-x9 | close T1 on a settled sample (G710) -> oxlint R1-R5 -> no-binaries B1-B6 -> QW7 |
+| sp-x7 | releases only |
+
 ## 10-24 open rows (Jake's picks G679-G682, a2c1e9647b; SW10: one claimable row per live lane)
 
 | # | Task | Refs | Taken |
 |---|---|---|---|
+| G700 | Night Market road B (G681): lower / see-through barrier at open-plot edges as an open-plot layout row; road-entry capture for Jake's pilot play (G684) | decisions.md G681/G684/G700 | sp-x2 (2026-10-24 21:25, after T4 rows.ts) |
 | SW11/G703 | CF1 related run never skipped: replace the >20-suite CI deferral with a cheaper bounded selection | shared-waits-mini-plan.md SW11, G703 | in flight (2026-10-24, sp-x8) |
 | G679 | (Jake correction 13:20) RECORD ONLY: the 114 recommendations are HOST-AUDIT's accepted starting point; HOST-AUDIT is a parked plan that starts after all SHARD-PLATFORM mini plans. No listings / folds / chargebacks now | docs/reviews/host-audit-inventory.md -> archive | sp-x6 (record only) |
 | G680 | Driftwood tile LOD option B: apply variant-B.patch; tile 6,4 at 4.67 MB gets an exact storage pin | art/driftwood-isle/round-19-tile-lod | sp-x2 (brief) |
