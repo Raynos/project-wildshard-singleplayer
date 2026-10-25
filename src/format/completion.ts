@@ -10,7 +10,7 @@ const metric = v.variant('kind', [v.strictObject({ kind: v.literal('time') }), v
   v.strictObject({ kind: v.literal('group'), group: text, total: natural }),
   v.strictObject({ kind: v.literal('title'), fallback: text })]);
 /** One product's completion card and bounded live-stat policy; positions are resolved by its generator. */
-export const CompletionSchema = v.pipe(v.strictObject({
+export const CompletionSchema: v.GenericSchema<CompletionRowsInput, CompletionRows> = v.pipe(v.strictObject({
   doneFlag: text, seenFlag: text, trigger: v.picklist(['reward', 'quest']), system: text,
   before: v.pipe(v.array(text), v.maxLength(32)), after: v.pipe(v.array(text), v.maxLength(32)),
   title: text, card: v.strictObject({ kicker: text, flavour: v.pipe(v.array(text), v.maxLength(16)) }),
@@ -23,6 +23,61 @@ export const CompletionSchema = v.pipe(v.strictObject({
 }), v.check(row => new Set(row.groups.map(group => group.id)).size === row.groups.length
   && row.stats.every(stat => { const value = stat.value; return value.kind !== 'group' || row.groups.some(group => group.id === value.group); }), 'Declared completion groups'));
 /** Admitted completion policy, independent of rendering, live flags and progress ownership. */
-export type CompletionRows = v.InferOutput<typeof CompletionSchema>;
+
 /** Strict author and disk validation; admission never accepts functions or per-shard event callbacks. */
 export function parseCompletion(input: unknown): CompletionRows { return v.parse(CompletionSchema, input); }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type CompletionRowsInput = CompletionRows;
+interface CompletionRowsFields {
+    doneFlag: string;
+    seenFlag: string;
+    trigger: 'reward' | 'quest';
+    system: string;
+    before: (string)[];
+    after: (string)[];
+    title: string;
+    card: {
+        kicker: string;
+        flavour: (string)[];
+    };
+    menuSubtitle: string;
+    toastSuffix: string;
+    safeRadius: number;
+    pollSeconds: number;
+    maximumTodo: number;
+    more: string;
+    coveredEvents: (string)[];
+    groups: ({
+        id: string;
+        todo: 'count' | 'individual';
+        label: string;
+        spots: ({
+            flag: string;
+            label: string;
+            short: string;
+            anchor?: string;
+            x: number;
+            z: number;
+        })[];
+    })[];
+    stats: ({
+        label: string;
+        value: ({
+            kind: 'time';
+        }) | ({
+            kind: 'achievements';
+        }) | ({
+            kind: 'flags';
+            flags: (string)[];
+        }) | ({
+            kind: 'group';
+            group: string;
+            total: number;
+        }) | ({
+            kind: 'title';
+            fallback: string;
+        });
+    })[];
+}
+export type CompletionRows = { [Key in keyof CompletionRowsFields]: CompletionRowsFields[Key] };

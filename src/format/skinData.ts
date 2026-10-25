@@ -6,22 +6,22 @@ export type SkinClipName = `${'idle' | 'walk' | 'run' | 'attack' | 'hit' | 'die'
 const id = v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u), v.maxLength(128));
 const hash = v.pipe(v.string(), v.regex(/^[0-9a-f]{64}$/u));
 /** Admitted clip family and optional lowercase action suffix; its transform is an identity type narrowing. */
-export const SkinClipNameSchema = v.pipe(v.string(), v.regex(/^(idle|walk|run|attack|hit|die|turn|swim|fly)(\.[a-z][a-z0-9-]*)?$/u), v.transform((name) => name as SkinClipName));
+export const SkinClipNameSchema: v.GenericSchema<SkinClipNameRowsInput, SkinClipNameRows> & { readonly pipe: readonly [unknown, unknown, v.TransformAction<string, SkinClipName>] } = v.pipe(v.string(), v.regex(/^(idle|walk|run|attack|hit|die|turn|swim|fly)(\.[a-z][a-z0-9-]*)?$/u), v.transform((name) => name as SkinClipName));
 const joint = v.pipe(v.string(), v.regex(/^[A-Za-z][A-Za-z0-9_.-]*$/u), v.maxLength(64));
 const bytes = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(25_000_000));
 
 /** One exported skin as the export half writes it (`public/assets/baked/<shard>/skins.json`): the GLB's content hash and its rig. */
-export const SkinRowSchema = v.object({
+export const SkinRowSchema: v.GenericSchema<SkinRowInput, SkinRow> = v.object({
   id, file: hash, family: v.picklist(['toon', 'pbr']),
   rig: v.strictObject({ skeleton: v.pipe(v.string(), v.regex(/^[a-z][A-Za-z0-9.]*$/u), v.maxLength(128)), joints: v.pipe(v.array(v.pipe(v.array(joint), v.minLength(1), v.maxLength(128))), v.length(1)), clips: v.pipe(v.array(SkinClipNameSchema), v.minLength(1), v.maxLength(32)), sockets: v.pipe(v.array(joint), v.maxLength(32)) }),
   cost: v.strictObject({ decoded: bytes, gpu: bytes, triangles: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(400_000)), draws: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(512)) }),
 });
 /** A validated exported skin row. */
-export type SkinRow = v.InferOutput<typeof SkinRowSchema>;
+
 /** How a skin plays and draws: the family material entry (SF10a, validated by the family registry) the clips that loop and independent numeric pose clocks. */
-export const SkinBindingSchema = v.strictObject({ skin: id, material: v.record(v.string(), v.unknown()), loops: v.pipe(v.array(SkinClipNameSchema), v.maxLength(32)), poseLayers: v.exactOptional(v.record(SkinClipNameSchema, v.pipe(v.array(SkinPoseLayerSchema), v.maxLength(32)))) });
+export const SkinBindingSchema: v.GenericSchema<SkinBindingInput, SkinBinding> = v.strictObject({ skin: id, material: v.record(v.string(), v.unknown()), loops: v.pipe(v.array(SkinClipNameSchema), v.maxLength(32)), poseLayers: v.exactOptional(v.record(SkinClipNameSchema, v.pipe(v.array(SkinPoseLayerSchema), v.maxLength(32)))) });
 /** A validated skin binding. */
-export type SkinBinding = v.InferOutput<typeof SkinBindingSchema>;
+
 
 /** Every creature kind, including flying/custom rigs, exposes body and head for collision and view binding. */
 export function validateCreatureBones(species: string, names: readonly string[]): void {
@@ -51,3 +51,57 @@ export function parseSkinBindings(input: unknown, rows: readonly SkinRow[]): Ski
   return r.output;
 }
 
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type SkinClipNameRowsInput = string;
+export type SkinClipNameRows = SkinClipName;
+interface SkinRowInputFields {
+    id: string;
+    file: string;
+    family: 'toon' | 'pbr';
+    rig: {
+        skeleton: string;
+        joints: ((string)[])[];
+        clips: (SkinClipNameRowsInput)[];
+        sockets: (string)[];
+    };
+    cost: {
+        decoded: number;
+        gpu: number;
+        triangles: number;
+        draws: number;
+    };
+}
+export type SkinRowInput = { [Key in keyof SkinRowInputFields]: SkinRowInputFields[Key] };
+interface SkinRowFields {
+    id: string;
+    file: string;
+    family: 'toon' | 'pbr';
+    rig: {
+        skeleton: string;
+        joints: ((string)[])[];
+        clips: (SkinClipNameRows)[];
+        sockets: (string)[];
+    };
+    cost: {
+        decoded: number;
+        gpu: number;
+        triangles: number;
+        draws: number;
+    };
+}
+export type SkinRow = { [Key in keyof SkinRowFields]: SkinRowFields[Key] };
+interface SkinBindingInputFields {
+    skin: string;
+    material: Record<string, unknown>;
+    loops: (SkinClipNameRowsInput)[];
+    poseLayers?: v.InferInput<v.RecordSchema<v.GenericSchema<SkinClipNameRowsInput, SkinClipNameRows>, v.GenericSchema<(v.InferInput<typeof SkinPoseLayerSchema>)[], (v.InferOutput<typeof SkinPoseLayerSchema>)[]>, undefined>>;
+}
+export type SkinBindingInput = { [Key in keyof SkinBindingInputFields]: SkinBindingInputFields[Key] };
+interface SkinBindingFields {
+    skin: string;
+    material: Record<string, unknown>;
+    loops: (SkinClipNameRows)[];
+    poseLayers?: v.InferOutput<v.RecordSchema<v.GenericSchema<SkinClipNameRowsInput, SkinClipNameRows>, v.GenericSchema<(v.InferInput<typeof SkinPoseLayerSchema>)[], (v.InferOutput<typeof SkinPoseLayerSchema>)[]>, undefined>>;
+}
+export type SkinBinding = { [Key in keyof SkinBindingFields]: SkinBindingFields[Key] };

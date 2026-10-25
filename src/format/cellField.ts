@@ -9,7 +9,7 @@ const name = v.pipe(v.string(),v.minLength(1),v.maxLength(64),v.regex(/^[A-Za-z]
 const state = v.pipe(finite,v.integer(),v.minValue(0),v.maxValue(255));
 /** The host supplies x/z, dt/count and neighbour cell/x/z. Every law-specific
  * state code, scalar channel and event name is explicit data. */
-export const CellFieldSchema = v.strictObject({
+export const CellFieldSchema: v.GenericSchema<CellFieldRowsInput, CellFieldRows> = v.strictObject({
   x: finite,z: finite,width: count,depth: count,cell: v.pipe(finite,v.minValue(.01)),
   observations: v.pipe(v.record(name,finite),v.maxEntries(32)),
   states: v.strictObject({ idle: state,active: state,spent: state }),
@@ -19,4 +19,80 @@ export const CellFieldSchema = v.strictObject({
   contact: v.optional(v.strictObject({ law: EncounterScheduleSchema,
     samples: v.pipe(v.array(v.strictObject({ x: finite,z: finite })),v.maxLength(8)) })),
 });
-export type CellFieldRows = v.InferOutput<typeof CellFieldSchema>;
+
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+interface CellFieldRowsInputFields {
+    x: number;
+    z: number;
+    width: number;
+    depth: number;
+    cell: number;
+    observations: Record<string, number>;
+    states: {
+        idle: number;
+        active: number;
+        spent: number;
+    };
+    channels: {
+        state: string;
+        lifetime: string;
+        clock: string;
+        pulse: string;
+        neighbours: string;
+    };
+    neighbours: ([
+        number,
+        number
+    ])[];
+    signals: {
+        activate: string;
+        step: string;
+        clock: string;
+    };
+    contact?: {
+        law: v.InferInput<typeof EncounterScheduleSchema>;
+        samples: ({
+            x: number;
+            z: number;
+        })[];
+    } | undefined;
+}
+export type CellFieldRowsInput = { [Key in keyof CellFieldRowsInputFields]: CellFieldRowsInputFields[Key] };
+interface CellFieldRowsFields {
+    x: number;
+    z: number;
+    width: number;
+    depth: number;
+    cell: number;
+    observations: Record<string, number>;
+    states: {
+        idle: number;
+        active: number;
+        spent: number;
+    };
+    channels: {
+        state: string;
+        lifetime: string;
+        clock: string;
+        pulse: string;
+        neighbours: string;
+    };
+    neighbours: ([
+        number,
+        number
+    ])[];
+    signals: {
+        activate: string;
+        step: string;
+        clock: string;
+    };
+    contact?: {
+        law: v.InferOutput<typeof EncounterScheduleSchema>;
+        samples: ({
+            x: number;
+            z: number;
+        })[];
+    } | undefined;
+}
+export type CellFieldRows = { [Key in keyof CellFieldRowsFields]: CellFieldRowsFields[Key] };

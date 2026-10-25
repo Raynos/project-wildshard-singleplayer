@@ -2,13 +2,13 @@ import * as v from 'valibot';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from './admissionLimits';
 
 const positive = v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(Number.MAX_SAFE_INTEGER));
-const finite = v.pipe(v.number(), v.finite());
-const field = v.strictObject({ id: v.pipe(positive, v.maxValue(0x7fffffff)), name: v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u), v.maxLength(limits.idCharacters)),
+const finite: v.GenericSchema<number, number> & { readonly pipe: readonly [unknown, v.FiniteAction<number, undefined>] } = v.pipe(v.number(), v.finite());
+const field: v.StrictObjectSchema<{ readonly id: v.GenericSchema<StateFieldRowsInput['id'], StateFieldRows['id']>; readonly name: v.GenericSchema<string, string> & { readonly pipe: readonly [unknown, v.RegexAction<string, undefined>, unknown] }; readonly type: v.GenericSchema<StateFieldRowsInput['type'], StateFieldRows['type']>; readonly privacy: v.GenericSchema<StateFieldRowsInput['privacy'], StateFieldRows['privacy']>; readonly default: v.GenericSchema<StateFieldRowsInput['default'], StateFieldRows['default']> & { readonly options: readonly [unknown, typeof finite, unknown] }; readonly min: v.OptionalSchema<v.GenericSchema<Exclude<StateFieldRowsInput['min'], undefined>, Exclude<StateFieldRows['min'], undefined>>, undefined>; readonly max: v.OptionalSchema<v.GenericSchema<Exclude<StateFieldRowsInput['max'], undefined>, Exclude<StateFieldRows['max'], undefined>>, undefined>; }, undefined> = v.strictObject({ id: v.pipe(positive, v.maxValue(0x7fffffff)), name: v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u), v.maxLength(limits.idCharacters)),
   type: v.picklist(['bool', 'i32', 'f64', 'string']), privacy: v.picklist(['public', 'owner', 'host']),
   default: v.union([v.boolean(), finite, v.pipe(v.string(), v.maxLength(limits.textCharacters))]), min: v.optional(finite), max: v.optional(finite) });
-const fieldList = v.pipe(v.array(field), v.maxLength(limits.stateFields));
-const declaration = v.strictObject({ version: positive, sharedOwner: v.literal('host'), playerKey: v.literal('actorId'), shared: fieldList, player: fieldList });
-type State = v.InferOutput<typeof declaration>;
+const fieldList: v.GenericSchema<StateInput['shared'], State['shared']> & { readonly pipe: readonly [v.ArraySchema<typeof field, undefined>, unknown] } = v.pipe(v.array(field), v.maxLength(limits.stateFields));
+const declaration: v.StrictObjectSchema<{ readonly version: v.GenericSchema<StateInput['version'], State['version']>; readonly sharedOwner: v.GenericSchema<StateInput['sharedOwner'], State['sharedOwner']>; readonly playerKey: v.GenericSchema<StateInput['playerKey'], State['playerKey']>; readonly shared: typeof fieldList; readonly player: typeof fieldList; }, undefined> = v.strictObject({ version: positive, sharedOwner: v.literal('host'), playerKey: v.literal('actorId'), shared: fieldList, player: fieldList });
+
 /** Portable state declarations have the same typed defaults, bounds, identity and capacity rules as current full-format admission. */
 export function stateRules(state: State): string[] {
   const errors: string[] = [], fields = [...state.shared, ...state.player];
@@ -29,4 +29,35 @@ export function stateRules(state: State): string[] {
   return [...new Set(errors)];
 }
 /** Strict renderer-neutral state projection; validating it never admits a cached product's geometry or scripts. */
-export const StateSchema = v.pipe(declaration, v.check((state) => stateRules(state).length === 0, 'state declaration semantic rules'));
+export const StateSchema: v.SchemaWithPipe<readonly [typeof declaration, v.CheckAction<State, 'state declaration semantic rules'>]> = v.pipe(declaration, v.check((state) => stateRules(state).length === 0, 'state declaration semantic rules'));
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type StateFieldRowsInput = StateFieldRows;
+interface StateFieldRowsFields {
+    id: number;
+    name: string;
+    type: 'bool' | 'i32' | 'f64' | 'string';
+    privacy: 'public' | 'owner' | 'host';
+    default: (boolean) | (number) | (string);
+    min?: number | undefined;
+    max?: number | undefined;
+}
+export type StateFieldRows = { [Key in keyof StateFieldRowsFields]: StateFieldRowsFields[Key] };
+interface StateInputFields {
+    version: number;
+    sharedOwner: 'host';
+    playerKey: 'actorId';
+    shared: (StateFieldRowsInput)[];
+    player: (StateFieldRowsInput)[];
+}
+export type StateInput = { [Key in keyof StateInputFields]: StateInputFields[Key] };
+interface StateFields {
+    version: number;
+    sharedOwner: 'host';
+    playerKey: 'actorId';
+    shared: (StateFieldRows)[];
+    player: (StateFieldRows)[];
+}
+export type State = { [Key in keyof StateFields]: StateFields[Key] };
+export type StateRowsInput = StateInput;
+export type StateRows = State;

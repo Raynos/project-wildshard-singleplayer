@@ -8,12 +8,12 @@ const positive = v.pipe(v.number(), v.finite(), v.minValue(Number.MIN_VALUE), v.
 const coordinate = v.pipe(v.number(), v.integer(), v.minValue(-1024), v.maxValue(1024));
 const point = v.tuple([finite, finite, finite]);
 /** Exact immutable WSNM layout, global bounds and per-agent voxel/tile grids. */
-export const NavigationSchema = v.strictObject({ version: v.literal(1), layout: v.literal('wsnm-v1-le-quantized'),
+export const NavigationSchema: v.GenericSchema<NavigationInput, Navigation> = v.strictObject({ version: v.literal(1), layout: v.literal('wsnm-v1-le-quantized'),
   file: v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u)), bounds: v.tuple([finite, finite, finite, finite, finite, finite]),
   layers: v.pipe(v.array(v.strictObject({ radius: positive, height: positive, climb: v.pipe(finite, v.minValue(0)), cellSize: positive, cellHeight: positive,
     origin: point, tileSize: positive, tiles: v.pipe(v.array(v.tuple([coordinate, coordinate])), v.maxLength(4096)) })), v.minLength(1), v.maxLength(16)) });
 /** An admitted immutable navigation declaration, with exact WSNM bounds and ordered agent tile grids. */
-export type Navigation = v.InferOutput<typeof NavigationSchema>;
+
 /** Trusted level transport: admitted product bytes or the manifest's declared immutable URL. */
 export type NavigationContent = { row: unknown; bytes: Uint8Array } | { row: unknown; url: string };
 /** Validate a declaration supplied by a trusted manifest or author boundary before any transport read. */
@@ -51,7 +51,49 @@ export function validateNavigationAssets(source: { navigation: Navigation | null
 }
 
 /** Offline terrain-triangle exclusion only; no live navigation or collider policy. */
-export const NavmeshGroundSchema = v.pipe(v.unknown(),v.check(isJsonData,'Navmesh ground requires plain JSON'),v.strictObject({
+export const NavmeshGroundSchema: v.GenericSchema<NavmeshGroundRowsInput, NavmeshGroundRows> = v.pipe(v.unknown(),v.check(isJsonData,'Navmesh ground requires plain JSON'),v.strictObject({
   waterMargin: v.pipe(finite,v.minValue(0)),wet: ScalarLatticeSchema,wetThreshold: finite,trailClearance: v.pipe(finite,v.minValue(0)),
 }));
-export type NavmeshGroundRows = v.InferOutput<typeof NavmeshGroundSchema>;
+
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type NavigationInput = Navigation;
+interface NavigationFields {
+    version: 1;
+    layout: 'wsnm-v1-le-quantized';
+    file: string;
+    bounds: [
+        number,
+        number,
+        number,
+        number,
+        number,
+        number
+    ];
+    layers: ({
+        radius: number;
+        height: number;
+        climb: number;
+        cellSize: number;
+        cellHeight: number;
+        origin: [
+            number,
+            number,
+            number
+        ];
+        tileSize: number;
+        tiles: ([
+            number,
+            number
+        ])[];
+    })[];
+}
+export type Navigation = { [Key in keyof NavigationFields]: NavigationFields[Key] };
+export type NavmeshGroundRowsInput = unknown;
+interface NavmeshGroundRowsFields {
+    waterMargin: number;
+    wet: v.InferOutput<typeof ScalarLatticeSchema>;
+    wetThreshold: number;
+    trailClearance: number;
+}
+export type NavmeshGroundRows = { [Key in keyof NavmeshGroundRowsFields]: NavmeshGroundRowsFields[Key] };

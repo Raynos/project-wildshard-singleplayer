@@ -13,9 +13,9 @@ const encounter = v.pipe(v.strictObject({ id, entity: id, kind: v.picklist(['eli
   respawn: v.strictObject({ at: point, yaw: finite }), phases: v.pipe(v.array(phase), v.minLength(1), v.maxLength(16)) }),
 v.check((e) => e.phases[0]?.at === 1 && e.phases.every((p, i) => i === 0 || p.at < (e.phases[i - 1]?.at ?? 0)), 'descending phase thresholds starting at 1'));
 /** Elite/boss phase tables with checkpoints/retry, neutral steering data and declared panel references. */
-export const EncountersSchema = v.pipe(v.array(encounter), v.maxLength(64), v.check((rows) => new Set(rows.map((e) => e.id)).size === rows.length && new Set(rows.map((e) => e.entity)).size === rows.length, 'unique encounter ids and actors'));
+export const EncountersSchema: v.GenericSchema<ShardEncountersInput, ShardEncounters> = v.pipe(v.array(encounter), v.maxLength(64), v.check((rows) => new Set(rows.map((e) => e.id)).size === rows.length && new Set(rows.map((e) => e.entity)).size === rows.length, 'unique encounter ids and actors'));
 /** Validated data-only encounter tables. */
-export type ShardEncounters = v.InferOutput<typeof EncountersSchema>;
+
 /** Full-loader references: declared actor spawn and the existing SF7f boss panel (if any). */
 export function encounterRules(rows: ShardEncounters, entities: readonly string[], panels: readonly { id: string; encounter: string }[]): string[] {
   const errors: string[] = [];
@@ -25,3 +25,41 @@ export function encounterRules(rows: ShardEncounters, entities: readonly string[
   }
   return [...new Set(errors)];
 }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type ShardEncountersInput = ShardEncounters;
+export type ShardEncounters = ({
+    id: string;
+    entity: string;
+    kind: 'elite' | 'boss';
+    panel: (string) | null;
+    name: string;
+    title: string;
+    retry: string;
+    arena: {
+        at: [
+            number,
+            number,
+            number
+        ];
+        radius: number;
+    };
+    intro: number;
+    introShort: number;
+    respawn: {
+        at: [
+            number,
+            number,
+            number
+        ];
+        yaw: number;
+    };
+    phases: ({
+        at: number;
+        name: string;
+        caption: string;
+        speed: number;
+        stopDistance: number;
+        turnRate: number;
+    })[];
+})[];

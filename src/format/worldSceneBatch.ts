@@ -13,7 +13,7 @@ const instance = v.strictObject({ near: distance, far: distance,
   sphere: v.tuple([finite, finite, finite, v.pipe(finite, v.minValue(0))]), merge: v.exactOptional(v.literal(true)) });
 
 /** One reserved client draw shared by named placements and ordered fixed LOD instances. */
-export const WorldSceneBatchSchema = v.pipe(v.strictObject({ id, tier: v.exactOptional(v.picklist(['phone', 'desktop'])), material: id, name: v.optional(id, 'world-scene-batch'),
+export const WorldSceneBatchSchema: v.GenericSchema<WorldSceneBatchRowInput, WorldSceneBatchRow> = v.pipe(v.strictObject({ id, tier: v.exactOptional(v.picklist(['phone', 'desktop'])), material: id, name: v.optional(id, 'world-scene-batch'),
   capacity: v.strictObject({ instances: v.pipe(count, v.maxValue(8192)), vertices: count, indices: count }),
   sortObjects: v.optional(v.boolean(), false), perObjectFrustumCulled: v.optional(v.boolean(), true),
   castShadow: v.optional(v.boolean(), false), receiveShadow: v.optional(v.boolean(), false),
@@ -23,4 +23,84 @@ export const WorldSceneBatchSchema = v.pipe(v.strictObject({ id, tier: v.exactOp
   fixed: v.optional(v.pipe(v.array(instance), v.maxLength(8192)), []),
 }), v.check(row => row.fixed.length <= row.capacity.instances
   && row.fixed.every(part => part.lod0 < row.geometry.length && part.lod1 < row.geometry.length), 'Fixed batch slots fit their declaration'));
-export type WorldSceneBatchRow = v.InferOutput<typeof WorldSceneBatchSchema>;
+
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+interface WorldSceneBatchRowInputFields {
+    id: string;
+    tier?: 'phone' | 'desktop';
+    material: string;
+    name?: string | undefined;
+    capacity: {
+        instances: number;
+        vertices: number;
+        indices: number;
+    };
+    sortObjects?: boolean | undefined;
+    perObjectFrustumCulled?: boolean | undefined;
+    castShadow?: boolean | undefined;
+    receiveShadow?: boolean | undefined;
+    cull?: {
+        frustum?: boolean;
+        radiusBias?: number;
+        step?: number;
+    } | undefined;
+    geometry?: ({
+        library: string;
+        model: string;
+    })[] | undefined;
+    fixed?: ({
+        near: number;
+        far: number;
+        lod0: number;
+        lod1: number;
+        matrix: (number)[];
+        sphere: [
+            number,
+            number,
+            number,
+            number
+        ];
+        merge?: true;
+    })[] | undefined;
+}
+export type WorldSceneBatchRowInput = { [Key in keyof WorldSceneBatchRowInputFields]: WorldSceneBatchRowInputFields[Key] };
+interface WorldSceneBatchRowFields {
+    id: string;
+    tier?: 'phone' | 'desktop';
+    material: string;
+    name: string;
+    capacity: {
+        instances: number;
+        vertices: number;
+        indices: number;
+    };
+    sortObjects: boolean;
+    perObjectFrustumCulled: boolean;
+    castShadow: boolean;
+    receiveShadow: boolean;
+    cull: {
+        frustum?: boolean;
+        radiusBias?: number;
+        step?: number;
+    };
+    geometry: ({
+        library: string;
+        model: string;
+    })[];
+    fixed: ({
+        near: number;
+        far: number;
+        lod0: number;
+        lod1: number;
+        matrix: (number)[];
+        sphere: [
+            number,
+            number,
+            number,
+            number
+        ];
+        merge?: true;
+    })[];
+}
+export type WorldSceneBatchRow = { [Key in keyof WorldSceneBatchRowFields]: WorldSceneBatchRowFields[Key] };

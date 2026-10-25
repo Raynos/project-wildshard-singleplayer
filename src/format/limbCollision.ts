@@ -7,7 +7,7 @@ const matrix = v.pipe(v.array(finite), v.length(16));
 const joint = (parent: -1 | 0 | 1 | 2) => v.strictObject({ parent: v.literal(parent), position: triple });
 
 /** Generated from authored collision rows. Unknown fields or invalid framing are never defaulted. */
-export const LimbCollisionBake = v.strictObject({
+export const LimbCollisionBake: v.StrictObjectSchema<{ readonly version: v.GenericSchema<LimbCollisionBakeRowsInput['version'], LimbCollisionBakeRows['version']>; readonly hz: v.GenericSchema<LimbCollisionBakeRowsInput['hz'], LimbCollisionBakeRows['hz']>; readonly joints: v.GenericSchema<LimbCollisionBakeRowsInput['joints'], LimbCollisionBakeRows['joints']>; readonly rest: v.GenericSchema<LimbCollisionBakeRowsInput['rest'], LimbCollisionBakeRows['rest']>; readonly volumes: v.GenericSchema<LimbCollisionBakeRowsInput['volumes'], LimbCollisionBakeRows['volumes']>; readonly clips: v.GenericSchema<LimbCollisionBakeRowsInput['clips'], LimbCollisionBakeRows['clips']>; }, undefined> = v.strictObject({
   version: v.literal(1), hz: v.literal(60),
   joints: v.tuple([joint(-1), joint(0), joint(1), joint(2)]),
   rest: v.strictObject({ at: v.record(v.string(), point), rootPos: point,
@@ -34,3 +34,103 @@ export function readLimbCollisionBake(input: unknown): v.InferOutput<typeof Limb
   }
   return bake;
 }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type LimbCollisionBakeRowsInput = LimbCollisionBakeRows;
+interface LimbCollisionBakeRowsFields {
+    version: 1;
+    hz: 60;
+    joints: [
+        {
+            parent: -1 | 0 | 1 | 2;
+            position: [
+                number,
+                number,
+                number
+            ];
+        },
+        {
+            parent: -1 | 0 | 1 | 2;
+            position: [
+                number,
+                number,
+                number
+            ];
+        },
+        {
+            parent: -1 | 0 | 1 | 2;
+            position: [
+                number,
+                number,
+                number
+            ];
+        },
+        {
+            parent: -1 | 0 | 1 | 2;
+            position: [
+                number,
+                number,
+                number
+            ];
+        }
+    ];
+    rest: {
+        at: Record<string, {
+            x: number;
+            y: number;
+            z: number;
+        }>;
+        rootPos: {
+            x: number;
+            y: number;
+            z: number;
+        };
+        H: number;
+        walkStride: number;
+        chargeStride: number;
+    };
+    volumes: {
+        head: [
+            number,
+            number,
+            number
+        ];
+        body: {
+            at: [
+                number,
+                number,
+                number
+            ];
+            pitch: number;
+            halfLength: number;
+        };
+        fore: {
+            at: [
+                number,
+                number,
+                number
+            ];
+            halfLength: number;
+        };
+        ribs: [
+            number,
+            number,
+            number
+        ];
+    };
+    clips: ({
+        name: string;
+        duration: number;
+        frames: ({
+            tick: number;
+            phase: number;
+            transforms: [
+                (number)[],
+                (number)[],
+                (number)[],
+                (number)[]
+            ];
+        })[];
+    })[];
+}
+export type LimbCollisionBakeRows = { [Key in keyof LimbCollisionBakeRowsFields]: LimbCollisionBakeRowsFields[Key] };

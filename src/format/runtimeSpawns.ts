@@ -19,13 +19,13 @@ const boss = v.strictObject({ id, kind, look: id, at, yaw: finite });
  * The platform keeps the homes (`bindRuntimeHomes`, `bindRuntimeBoss` in ./hybridRows.ts); this is not the local sim's
  * `creatures` section (no brain, strike or species-catalogue rows: those stay the runtime's).
  */
-export const RuntimeSpawnsSchema = v.pipe(v.strictObject({ homes: v.pipe(v.array(home), v.maxLength(256)), bosses: v.pipe(v.array(boss), v.maxLength(16)),
+export const RuntimeSpawnsSchema: v.GenericSchema<RuntimeSpawnsInput, RuntimeSpawns> = v.pipe(v.strictObject({ homes: v.pipe(v.array(home), v.maxLength(256)), bosses: v.pipe(v.array(boss), v.maxLength(16)),
   actors: v.exactOptional(v.pipe(v.array(boss), v.maxLength(256))) }), v.check((rows) => {
   const ids = [...rows.homes, ...rows.bosses, ...(rows.actors ?? [])].map((row) => row.id);
   return new Set(ids).size === ids.length;
 }, 'unique runtime spawn identities'));
 /** Validated runtime-bound homes, boss bodies and optional one-shot actors; admission never changes row order. */
-export type RuntimeSpawns = v.InferOutput<typeof RuntimeSpawnsSchema>;
+
 /** One declared home row. */
 export type RuntimeHomeRow = RuntimeSpawns['homes'][number];
 /** One declared boss row. */
@@ -34,3 +34,40 @@ export type RuntimeBossRow = RuntimeSpawns['bosses'][number];
 export type RuntimeActorRow = NonNullable<RuntimeSpawns['actors']>[number];
 /** Validate runtime spawn rows at the author boundary. */
 export function parseRuntimeSpawns(input: unknown): RuntimeSpawns { return v.parse(RuntimeSpawnsSchema, input); }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type RuntimeSpawnsInput = RuntimeSpawns;
+interface RuntimeSpawnsFields {
+    homes: ({
+        id: string;
+        kind: string;
+        look: string;
+        at: [
+            number,
+            number
+        ];
+        yaw: number;
+        respawn: number;
+    })[];
+    bosses: ({
+        id: string;
+        kind: string;
+        look: string;
+        at: [
+            number,
+            number
+        ];
+        yaw: number;
+    })[];
+    actors?: ({
+        id: string;
+        kind: string;
+        look: string;
+        at: [
+            number,
+            number
+        ];
+        yaw: number;
+    })[];
+}
+export type RuntimeSpawns = { [Key in keyof RuntimeSpawnsFields]: RuntimeSpawnsFields[Key] };

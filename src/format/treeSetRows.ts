@@ -11,7 +11,7 @@ const paint = v.strictObject({ rim: n, bands: n, sway: v.pipe(n, v.minValue(0)) 
  * set's card, impostor and bark textures from `/assets/models/<set>/` at the atlases' anisotropy) or painterly
  * vertex-coloured surfaces (rim, bands and wind sway each, no textures; G601 C5).
  */
-export const TreeSetSchema = v.strictObject({
+export const TreeSetSchema: v.GenericSchema<TreeSetRowsInput, TreeSetRows> = v.strictObject({
   product: id, set: id,
   geometry: v.strictObject({ url: id, parts: ids(128),
     channels: v.pipe(v.array(v.strictObject({ name: id, source: id, width: v.pipe(n, v.integer(), v.minValue(1), v.maxValue(4)), parts: v.exactOptional(ids(128)) })), v.maxLength(16)) }),
@@ -25,4 +25,69 @@ export const TreeSetSchema = v.strictObject({
   variants: v.pipe(v.array(v.strictObject({ name: id, label: id, species: id, height: n, trunk: n, collider: n })), v.minLength(1), v.maxLength(32)),
 });
 /** A validated tree set. */
-export type TreeSetRows = v.InferOutput<typeof TreeSetSchema>;
+
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type TreeSetRowsInput = TreeSetRows;
+interface TreeSetRowsFields {
+    product: string;
+    set: string;
+    geometry: {
+        url: string;
+        parts: string[];
+        channels: ({
+            name: string;
+            source: string;
+            width: number;
+            parts?: string[];
+        })[];
+    };
+    looks: ({
+        kind: 'graphs';
+        bark: string;
+        needles: string;
+        twigs: string;
+        far: string;
+        anisotropy: {
+            cards: number;
+            far: number;
+        };
+    }) | ({
+        kind: 'painterly';
+        bark: {
+            rim: number;
+            bands: number;
+            sway: number;
+        };
+        needles: {
+            rim: number;
+            bands: number;
+            sway: number;
+        };
+        twigs: {
+            rim: number;
+            bands: number;
+            sway: number;
+        };
+        far: {
+            rim: number;
+            bands: number;
+            sway: number;
+        };
+    });
+    tintBark: boolean;
+    model: {
+        id: string;
+        name: string;
+        file: string;
+    };
+    variants: ({
+        name: string;
+        label: string;
+        species: string;
+        height: number;
+        trunk: number;
+        collider: number;
+    })[];
+}
+export type TreeSetRows = { [Key in keyof TreeSetRowsFields]: TreeSetRowsFields[Key] };

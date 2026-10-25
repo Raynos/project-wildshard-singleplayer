@@ -20,9 +20,9 @@ const bagPanel = v.strictObject({ kind: v.literal('bagPanel'), id,
 const bossPanel = v.strictObject({ kind: v.literal('bossPanel'), id, encounter: id, name: label, title: label, retry: label });
 const relabel = v.strictObject({ kind: v.literal('relabel'), id, spot: v.picklist(SPOTS), label, icon: v.nullable(v.picklist(ICONS)) });
 /** The declared UI kinds of shardfile v0: plain data the platform draws in its own HUD style and slots. */
-export const UiSchema = v.pipe(v.array(v.variant('kind', [marker, counter, bagPanel, bossPanel, relabel])), v.maxLength(UI_DECLARATIONS_MAX));
+export const UiSchema: v.GenericSchema<ShardUiInput, ShardUi> = v.pipe(v.array(v.variant('kind', [marker, counter, bagPanel, bossPanel, relabel])), v.maxLength(UI_DECLARATIONS_MAX));
 /** a validated `ui` section */
-export type ShardUi = v.InferOutput<typeof UiSchema>;
+
 
 interface StateField { name: string; type: 'bool' | 'i32' | 'f64' | 'string' }
 /** Reference rules: unique ids, counters read a declared numeric field, one boss panel per encounter, one relabel per disc, one spec per bag tab. */
@@ -42,3 +42,49 @@ export function uiRules(ui: ShardUi, state: { shared: readonly StateField[]; pla
   }
   return errors;
 }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+export type ShardUiInput = ShardUi;
+export type ShardUi = (({
+    kind: 'marker';
+    id: string;
+    label: string;
+    at: [
+        number,
+        number,
+        number
+    ];
+}) | ({
+    kind: 'counter';
+    id: string;
+    label: string;
+    band: 'band.2' | 'band.3' | 'band.4' | 'band.5';
+    order: number;
+    min: number;
+    max: number;
+    field: string;
+}) | ({
+    kind: 'bagPanel';
+    id: string;
+    tab: {
+        id: string;
+        title: string;
+        icon: (typeof ICONS)[number];
+        order: number;
+    };
+    order: number;
+    paragraphs: (string)[];
+}) | ({
+    kind: 'bossPanel';
+    id: string;
+    encounter: string;
+    name: string;
+    title: string;
+    retry: string;
+}) | ({
+    kind: 'relabel';
+    id: string;
+    spot: (typeof SPOTS)[number];
+    label: string;
+    icon: ((typeof ICONS)[number]) | null;
+}))[];
