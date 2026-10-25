@@ -85,7 +85,7 @@ skipLibCheck policy as root and layers.
 
 T4 first format slices are on origin: schema expressions and emitted runtime JavaScript are unchanged.
 Independent named data types replace exported validator implementation types; original/candidate input and output
-contracts remain mutually assignable (76 contracts). No compiler option or admission fence changed.
+contracts remain mutually assignable (130 contracts). No compiler option or admission fence changed.
 
 | Declaration | Before bytes | After bytes | Commit |
 |---|---:|---:|---|
@@ -96,9 +96,17 @@ contracts remain mutually assignable (76 contracts). No compiler option or admis
 | worldAssembly | 294,929 | 10,127 | `9d03402c65` |
 | worldScenes | 305,851 | 12,875 | `0379ab78a4` |
 | speciesBookRows | 508,433 | 11,191 | `bfc9a2b448` |
+| nativeRuntimePlan | 292,727 | 5,782 | `91e960a36c` |
+| ambientLife | 379,519 | 14,643 | `b96b292d41` |
+| questSteps | 307,393 | 15,987 | `82ff5a5b4c` |
+| worldSceneModels | 243,730 | 5,948 | `0f8d5932dd` |
+| questPageComposition | 240,388 | 6,836 | `0f8d5932dd` |
+| heldEquipment | 295,243 | 34,014 | `4c24dd5655` |
+| speciesPrograms | 469,653 | 11,819 | `cec79db9fd` |
 
-These seven files save **3,088,327 bytes (96.9%)** (3,186,507 → 98,180 bytes). The same 285 live format modules
-emit **14,010,239 → 10,921,409 bytes**, including a separate net −503 bytes of peer changes, so the <2 MB target remains open. The audio regression reproduces the original two TS2589 errors and
+These fourteen files save **5,221,951 bytes (96.4%)** (5,415,160 → 193,209 bytes). The same 285 live format modules
+emit **14,010,239 → 8,480,065 bytes**. This whole-layer number also includes dependent declaration shrinkage and
+peer changes; only the fourteen-file saving is attributed directly above. The <2 MB target remains open. The audio regression reproduces the original two TS2589 errors and
 checks isolated emission plus a strict emitted-declaration consumer with skipLibCheck disabled. Client-plan and
 dressing regressions pin isolated emission, bounded sizes and defining imported data contracts; existing admission,
 default, corruption and decoded-cost tests pass. One broad related run passed 3,217 tests and hit one peer sealed
@@ -113,8 +121,17 @@ All three latest slices have focused admission/runtime tests and typed lint gree
 passes, including peer source changes. The final normal compiler emission is the size authority (worldScenes is
 12,875 bytes; its commit body used the isolated-emitter estimate of 12,886).
 
-A per-file isolated-declaration audit finds **71/285 ready**, with 641 diagnostics remaining in 214 modules
-(599 missing variable annotations, 34 non-inferable expressions, one parameter, one spread object and six arrays).
+Later slices preserve the native plan's owner normalization and extra properties; ambient snapshots retain the
+object-type-alias dictionary compatibility required by SimValue. Quest rows retain the live guards.item schema path.
+Held equipment retains every root entry and the nested firearm.rows.view path. Species programs preserve the root
+pick/spread API, nested variant entries and exact optional keys. Real virtual-consumer compiler tests cover these
+structural APIs. Focused runtime/admission cases, new declaration regressions, named typed lint and format emission
+pass. The latest normal layers build passes; the owner repaired the sole Nine navigation-fixture root error and
+confirmed a fresh root pass. CF1 explicitly defers source-wide related selections above twenty suites; these are not
+full related passes. No schema expression, runtime JavaScript, producer bytes or admission check changed.
+
+A per-file isolated-declaration audit finds **78/285 ready**, with 614 diagnostics remaining in 207 modules
+(572 missing variable annotations, 34 non-inferable expressions, one parameter, one spread object and six arrays).
 Global isolatedDeclarations remains off until the layer actually meets its contract. T4 is still in flight.
 
 ## Decisions (decided G655: D1 keep authored JSON typed, generated never imported via GR0; D2 leave to CI; D3 lint rule)
