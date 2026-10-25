@@ -34,8 +34,9 @@
 // browsers on this Mac).
 import { execFileSync } from 'node:child_process';
 import { debugSettings } from './debug-settings.mjs';
+import { browserBakeBytes } from './bake-output.mjs';
+import { stopSpinRecording, uploadSpinRecording } from './model-spin-recording.mjs';
 import { mkdirSync, mkdtempSync, rmSync, statSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
 import { dirname, join, resolve as resolvePath } from 'node:path';
 
 const argv = process.argv.slice(2);
@@ -85,9 +86,12 @@ const url = new URL(BASE);
 for (const [k, v] of Object.entries({ chunk: SHARD, tier: 'phone', touch: '1', mute: '1', nolock: '1', sw: '0', explore: 'model' })) url.searchParams.set(k, v);
 
 const { chromium } = await import('playwright');
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
-const work = mkdtempSync(join(tmpdir(), 'model-spin-'));
+const scratch = resolvePath(import.meta.dirname, '../tmp'); mkdirSync(scratch, { recursive: true });
+const work = mkdtempSync(join(scratch, 'model-spin-'));
+/** @type {import('playwright').Browser|undefined} */
+let browser;
 try {
+  browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
   const ctx = await browser.newContext({ viewport: { width: VW, height: VH }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
   if (Object.keys(DEBUG).length > 0) await debugSettings(ctx, DEBUG);
   const page = await ctx.newPage();
@@ -224,16 +228,6 @@ try {
           this.rec = { rec, parts, frames: () => frames, off: () => { state.on = false; }, size: [w, h] };
           return started.then(() => true);
         },
-        async stop() {
-          const r = this.rec;
-          r.off();
-          await new Promise((resolve) => { r.rec.onstop = resolve; r.rec.stop(); });
-          for (const t of r.rec.stream.getTracks()) t.stop();
-          const buf = new Uint8Array(await new Blob(r.parts, { type: 'video/webm' }).arrayBuffer());
-          let s = '';
-          for (let i = 0; i < buf.length; i += 0x8000) s += String.fromCodePoint(...buf.subarray(i, i + 0x8000));
-          return { b64: btoa(s), size: r.size, drawn: r.frames() };
-        },
         /** the explorer's DOM on its own: canvas hidden, page background transparent (for a screenshot) */
         bare(on, label) {
           canvas.style.visibility = on ? 'hidden' : '';
@@ -281,9 +275,17 @@ try {
       await page.evaluate(([px, ms]) => { window.__spin.spin(px, ms); }, [(TURNS * Math.PI * 2) / RAD_PER_PX, seg * 1000]);
       await sleep(seg * 1000 + 120);
       const turned = await page.evaluate(() => { window.__spin.release(); return window.__spin.turned; });
-      const { b64, size, drawn } = await page.evaluate(() => window.__spin.stop());
+      const clip = await page.evaluate(stopSpinRecording), { size, drawn } = clip;
       const webm = join(work, `seg-${i}.webm`);
-      writeFileSync(webm, Buffer.from(b64, 'base64'));
+      try {
+        const sink = await browserBakeBytes(page, { maxBytes: Math.max(1, clip.bytes), maxFiles: 1 });
+        try {
+          await page.evaluate(uploadSpinRecording, { source: clip.url, destination: `${sink.url}clip` });
+          const bytes = sink.take('clip');
+          if (bytes.byteLength !== clip.bytes) throw new SpinError('Recorded clip byte count changed');
+          writeFileSync(webm, bytes);
+        } finally { await sink.dispose(); }
+      } finally { await page.evaluate(source => { URL.revokeObjectURL(source); }, clip.url); }
       const deg = Math.round((Math.abs(turned) * 180) / Math.PI);
       console.log(`model-spin: ${i + 1}/${ids.length} ${id} — ${facts.name}${facts.variant !== '' ? ` (${facts.variant})` : ''} · ${facts.tris} tris · ${facts.calls} calls · build ${facts.build} · turned ${deg}° · ${Math.round(drawn / seg)} fps drawn · ${facts.file}`);
       if (Math.abs(deg - TURNS * 360) > 20) console.log(`model-spin:   the turntable turned ${deg}°, not ${TURNS * 360}° (did ModelExplorer's drag rate change from ${RAD_PER_PX} rad/px?)`);
@@ -292,7 +294,7 @@ try {
     }
 
     // ── compose: each segment + its overlay, cut to its share, concatenated; the phone encode ──
-    const [cw = 0, ch = 0] = segments[0]?.size ?? [];
+    const [cw, ch] = segments[0]?.size ?? [0, 0];
     const W = Math.floor(cw / 2) * 2, H = Math.floor(ch / 2) * 2;
     const inputs = segments.flatMap((s) => ['-i', s.webm, '-i', s.overlay]);
     const chains = segments.map((_, i) => `[${i * 2}:v]trim=duration=${seg.toFixed(3)},setpts=PTS-STARTPTS,fps=${FPS},scale=${W}:${H}:flags=lanczos,setsar=1[v${i}];`
@@ -319,6 +321,6 @@ try {
   console.error(`model-spin: ${error.message}`);
   process.exitCode = 1;
 } finally {
-  await browser.close();
-  rmSync(work, { recursive: true, force: true });
+  try { await browser?.close(); }
+  finally { rmSync(work, { recursive: true, force: true }); }
 }

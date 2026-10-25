@@ -13,7 +13,6 @@
     "scripts/hero-shots.mjs": 1,
     "scripts/loading-benchmark/capture.mjs": 1,
     "scripts/look-parity-creatures.mjs": 1,
-    "scripts/model-spin.mjs": 2,
     "scripts/music/export-midi.mjs": 1,
     "scripts/music/render.mjs": 1,
     "scripts/nalati-bow-capture.mjs": 3,
