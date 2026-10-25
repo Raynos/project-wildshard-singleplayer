@@ -1,5 +1,6 @@
 import { expect, it } from 'vitest';
-import { LoadingTimeline } from '@wildshard/engine/boot/timeline';
+import { installLoadingTimeline, LoadingTimeline } from '@wildshard/engine/boot/timeline';
+import { loadingStage } from '@wildshard/engine/boot/waits';
 import { crossingLoadingRows, loadingPath } from './loadingPaths';
 
 it('partitions nested stages and gaps into the exact loading wall time', () => {
@@ -39,6 +40,27 @@ it('uses actual path rows and keeps unnamed work visible', () => {
   expect(loadingPath('shardfile', undefined, true).id).toBe('shardfile');
   expect(loadingPath('shardfile', undefined, true).steps.map(row => row.key)).toContain('props');
   expect(loadingPath('crossing').steps.map(row => row.key)).toContain('checkpoint');
+});
+
+it.each(['legacy', 'shardfile', 'grid'] as const)('attributes the real level.play bridge to gameplay on %s', async path => {
+  let clock = 0;
+  const timeline = new LoadingTimeline(loadingPath(path), 0, () => clock);
+  const release = installLoadingTimeline(timeline);
+  try {
+    await loadingStage('level.kit', () => { clock += 20; });
+    await loadingStage('level.play', async () => {
+      expect(timeline.snapshot()).toMatchObject({ current: 'gameplay', display: 'gameplay' });
+      clock += 100;
+      await loadingStage('menu', () => { clock += 5; });
+      expect(timeline.snapshot().display).toBe('gameplay');
+      clock += 10;
+    });
+    const rows = timeline.snapshot().rows;
+    expect(rows.find(row => row.key === 'loadout')).toMatchObject({ state: 'ok', ms: 20 });
+    expect(rows.find(row => row.key === 'gameplay')).toMatchObject({ state: 'ok', ms: 110 });
+    expect(rows.find(row => row.key === 'menu')).toMatchObject({ state: 'ok', ms: 5 });
+    expect(rows.reduce((sum, row) => sum + row.ms, 0)).toBe(clock);
+  } finally { release(); }
 });
 
 it('accounts for destination preparation, boundary wait, save, commit and activation separately', () => {

@@ -26,7 +26,7 @@ export function loadingPath(id: LoadingPathId, own?: Readonly<Record<string, { l
     step('checkpoint', 'Save source state'), step('commit', 'Enter destination'), step('activate', 'Activate destination')], ignored: [] };
   const selected = new Set(['renderer', 'weapon', 'menu', 'shaders', 'firstFrame', 'audio', ...(id === 'grid' ? ['assembly'] : [])]);
   return { id, steps: [...early, world, ...(native ? worldKeys : ['renderer'] as const).map(leaf),
-    loadout, leaf('weapon'), step('gameplay', 'Gameplay and saved state'),
+    loadout, leaf('weapon'), step('gameplay', 'Gameplay and saved state', ['level.play']),
     ...(native || id === 'grid' ? [leaf('assembly')] : []), leaf('menu'), step('finish', 'Final activation', ['finish']),
     ...(id === 'grid' ? [step('home', 'Home region', ['crossing']),
       ...[admission, world, loadout].map(row => repeatedStep(row, 2)),
