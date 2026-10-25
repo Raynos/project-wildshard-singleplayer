@@ -291,6 +291,9 @@ function sample(n, timeline = false) {
           const i = (g.frameI + g.frameMs.length - 1) % g.frameMs.length;
           ring.push(g.frameMs[i]); work.push(g.workMs[i]); calls.push(g.lastFrame.calls); triangles.push(g.lastFrame.triangles);
           if (timeline && timelineFrames.length < timelineLimit) timelineFrames.push({
+            // These are completed-draw identities at the interval's two ends,
+            // not array indices: a skipped draw must not shift diagnostic joins.
+            drawnFrame: g.frameCount, priorDrawnFrame: count,
             startMs: last, endMs: timestamp, intervalMs: timestamp - last,
             callbackAtMs: now, callbackDelayMs: now - timestamp, callbackIntervalMs: now - lastCallback,
             gameRafMs: g.frameRafTime, frameDelta: delta,

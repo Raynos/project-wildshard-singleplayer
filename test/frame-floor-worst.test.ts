@@ -4,14 +4,14 @@ import {readFileSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- isolate the real page sampler with controlled drawn-frame timestamps
 import {runInNewContext} from 'node:vm';
 
-async function sampleIntervals(intervals: number[]): Promise<unknown> {
+async function sampleIntervals(intervals: number[], options: {timeline?: boolean; frameDeltas?: number[]} = {}): Promise<unknown> {
   const source = readFileSync(new URL('../scripts/frame-floor.mjs', import.meta.url), 'utf8');
   const start = source.indexOf('function sample(n, timeline = false) {');
   const end = source.indexOf('/** the whole-drive sampler', start);
   if (start === -1 || end <= start) throw new Error('Serialized sampler not found');
   const callbacks: ((at: number) => void)[] = [];
   let now = 100;
-  const game = {frameCount: 0, frameI: 1, frameMs: [33], workMs: [1], lastFrame: {calls: 1, triangles: 1},
+  const game = {frameCount: 0, frameI: 1, frameMs: [33], workMs: [1], updateMs: [0.25], renderMs: [0.75], lastFrame: {calls: 1, triangles: 1},
     app: {cpu: {enabled: false, snapshot: () => ({enabled: true, frame: 0, owners: []})}},
     renderer: {getContext: () => ({isContextLost: () => false})}};
   const context = {window: {__wildshard: {world: {game, player: {position: {x: 0, y: 0, z: 0}}}}},
@@ -20,9 +20,9 @@ async function sampleIntervals(intervals: number[]): Promise<unknown> {
     cancelAnimationFrame: () => undefined, requestAnimationFrame: (callback: (at: number) => void) => {
       callbacks.push(callback); return callbacks.length;
     }};
-  const result: unknown = runInNewContext(`(${source.slice(start, end)})(${intervals.length})`, context);
-  for (const delta of [0, ...intervals]) {
-    now += delta; game.frameCount++;
+  const result: unknown = runInNewContext(`(${source.slice(start, end)})(${intervals.length},${options.timeline === true})`, context);
+  for (const [index, delta] of [0, ...intervals].entries()) {
+    now += delta; game.frameCount += options.frameDeltas?.[index] ?? 1;
     const callback = callbacks.shift();
     if (callback === undefined) throw new Error('Sampler stopped before every drawn frame');
     // oxlint-disable-next-line promise/prefer-await-to-callbacks -- deliver the retained native rAF callback at the controlled frame timestamp
@@ -40,6 +40,16 @@ test('retains the six worst real cadence intervals without changing the measured
 
 test('keeps ties and reports only existing intervals in samples shorter than six', async () => {
   expect(await sampleIntervals([34, 34, 34])).toMatchObject({frames: 3, worstFrameMs: [34, 34, 34]});
+});
+
+test('identifies both endpoint draws without inventing skipped-frame measurements', async () => {
+  expect(await sampleIntervals([33, 67, 34], {timeline: true, frameDeltas: [1, 1, 2, 1]}))
+    .toMatchObject({frames: 3, skipped: 1, worstFrameMs: [67, 34, 33], frameTimeline: {frames: [
+      {drawnFrame: 2, priorDrawnFrame: 1, frameDelta: 1, intervalMs: 33},
+      {drawnFrame: 4, priorDrawnFrame: 2, frameDelta: 2, intervalMs: 67},
+      {drawnFrame: 5, priorDrawnFrame: 4, frameDelta: 1, intervalMs: 34},
+    ]}});
+  expect(await sampleIntervals([33])).not.toHaveProperty('frameTimeline');
 });
 
 test('attributes CPU samples on the native navigation clock after a delayed profiler start', () => {
