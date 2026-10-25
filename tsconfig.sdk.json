@@ -23,5 +23,5 @@
     "src/engine/**/*.d.ts",
     "src/game/**/*.merge.d.ts"
   ],
-  "exclude": ["src/sdk/**/*.test.ts"]
+  "exclude": ["src/sdk/**/*.test.ts", "src/sdk/test"]
 }
