@@ -1,0 +1,32 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- The guard checks actual source imports, not a parallel list.
+import { readFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Resolve only the real factory source under test.
+import { resolve } from 'node:path';
+import { expect, test } from 'vitest';
+import { parseSync } from 'vite';
+import { generatorImportViolation } from '../lint/shard-imports.mjs';
+import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
+import { nineProductFrom } from '../src/shards/nine-dragon-stack/generators/productDefinition';
+import product, { nineProduct, readNineProductInputs } from '../src/shards/nine-dragon-stack/generators/product';
+
+const inputs = readNineProductInputs();
+
+test('owned inputs preserve the complete original Nine declaration and view contract', () => {
+  const declaration = nineProductFrom(inputs);
+  expect(declaration).toEqual(product);
+  const bytes = new TextEncoder().encode(encodeCanonicalJson(declaration));
+  expect(bytes.byteLength).toBe(734805);
+  expect(hashImmutableBytes(bytes)).toBe('c80c8026c7662c9bc3dff769ce6d5306d0cd5b573558128c6d02aa9ac94c0562');
+  expect(nineProductFrom(inputs, { pages: 3 })).toEqual(nineProduct({ pages: 3 }));
+});
+
+test('the declaration factory admits supplied inputs instead of consulting a generated file', () => {
+  expect(() => nineProductFrom({ ...inputs, navigation: { ...inputs.navigation, navigation: { file: 'bad' } } })).toThrow();
+  const path = resolve('src/shards/nine-dragon-stack/generators/productDefinition.ts');
+  const parsed = parseSync(path, readFileSync(path, 'utf8'));
+  expect(parsed.errors).toEqual([]);
+  for (const node of parsed.program.body) if (node.type === 'ImportDeclaration') {
+    expect(node.source.value).not.toContain('.generated.');
+    expect(generatorImportViolation(path, node.source.value), node.source.value).toBeNull();
+  }
+});
