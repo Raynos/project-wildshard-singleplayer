@@ -1,10 +1,10 @@
 import { afterAll, expect, test, vi } from 'vitest';
 import * as THREE from 'three';
-import { Scope } from '../src/engine/app/scope';
-import { compileGraph } from '../src/engine/render/graph/compile';
-import { bindGraphMeshMap, graphMeshMapBase } from '../src/engine/render/graphBackend';
-import { EngineNodesHandler } from '../src/engine/render/nodes/engineNodesHandler';
-import type { GraphIr } from '../src/format/materialGraph';
+import { Scope } from '../../app/scope';
+import { compileGraph } from './compile';
+import { bindGraphMeshMap, graphMeshMapBase } from '../graphBackend';
+import { EngineNodesHandler } from '../nodes/engineNodesHandler';
+import type { GraphIr } from '@wildshard/format/materialGraph';
 
 vi.stubGlobal('ImageBitmap', class ImageBitmap { readonly width = 0; });
 afterAll(() => { vi.unstubAllGlobals(); });

@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import * as THREE from 'three';
-import { compileGraph } from '../src/engine/render/graph/compile';
-import type { GraphIr } from '../src/format/materialGraph';
+import { compileGraph } from './compile';
+import type { GraphIr } from '@wildshard/format/materialGraph';
 
 const glow = (effectState: NonNullable<GraphIr['effectState']>, doubleSided = true): GraphIr =>
   ({ version: 1, kind: 'material', model: 'unlit', nodes: {}, stages: { surface: { colour: [1, 0.5, 0] } }, doubleSided, effectState });

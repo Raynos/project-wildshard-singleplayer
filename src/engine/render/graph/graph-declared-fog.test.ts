@@ -1,9 +1,9 @@
 import { afterAll, expect, test, vi } from 'vitest';
 import * as THREE from 'three';
-import { compileGraph } from '../src/engine/render/graph/compile';
-import { EngineNodesHandler } from '../src/engine/render/nodes/engineNodesHandler';
-import { validateGraph, type GraphIr } from '../src/format/materialGraph';
-import { materialNodeFogOf } from '../src/engine/render/fogPatches';
+import { compileGraph } from './compile';
+import { EngineNodesHandler } from '../nodes/engineNodesHandler';
+import { validateGraph, type GraphIr } from '@wildshard/format/materialGraph';
+import { materialNodeFogOf } from '../fogPatches';
 
 vi.stubGlobal('ImageBitmap', class ImageBitmap { readonly width = 0; });
 afterAll(() => { vi.unstubAllGlobals(); });

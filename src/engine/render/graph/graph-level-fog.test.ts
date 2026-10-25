@@ -1,13 +1,13 @@
 import { afterAll, expect, test, vi } from 'vitest';
 import * as THREE from 'three';
 import { length, mix, reference, smoothstep, vec4 } from 'three/tsl';
-import { Scope } from '../src/engine/app/scope';
-import { compileGraph } from '../src/engine/render/graph/compile';
-import { EngineNodesHandler } from '../src/engine/render/nodes/engineNodesHandler';
-import { FogPatchRegistry, installFogPatch, materialNodeFogOf, type NodeFogPatch } from '../src/engine/render/fogPatches';
-import { noLookChunks, scopeLookChunks } from '../src/engine/render/regionLook';
-import { installAtmosphere } from '../src/engine/world/Atmosphere';
-import type { GraphIr } from '../src/format/materialGraph';
+import { Scope } from '../../app/scope';
+import { compileGraph } from './compile';
+import { EngineNodesHandler } from '../nodes/engineNodesHandler';
+import { FogPatchRegistry, installFogPatch, materialNodeFogOf, type NodeFogPatch } from '../fogPatches';
+import { noLookChunks, scopeLookChunks } from '../regionLook';
+import { installAtmosphere } from '../../world/Atmosphere';
+import type { GraphIr } from '@wildshard/format/materialGraph';
 
 vi.stubGlobal('ImageBitmap', class ImageBitmap { readonly width = 0; });
 afterAll(() => { vi.unstubAllGlobals(); });

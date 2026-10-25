@@ -1,9 +1,9 @@
 import { afterAll, expect, it, vi } from 'vitest';
 import * as THREE from 'three';
 import { UniformArrayNode } from 'three/webgpu';
-import { GRAPH_ARRAY_MAX, validateGraph, type GraphIr } from '../src/format/materialGraph';
-import { compileGraph } from '../src/engine/render/graph/compile';
-import { EngineNodesHandler } from '../src/engine/render/nodes/engineNodesHandler';
+import { GRAPH_ARRAY_MAX, validateGraph, type GraphIr } from '@wildshard/format/materialGraph';
+import { compileGraph } from './compile';
+import { EngineNodesHandler } from '../nodes/engineNodesHandler';
 
 vi.stubGlobal('ImageBitmap', class ImageBitmap { readonly width = 0; });
 afterAll(() => { vi.unstubAllGlobals(); });

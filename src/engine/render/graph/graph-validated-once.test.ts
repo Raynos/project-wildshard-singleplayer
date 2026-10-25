@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
-import { compileGraph } from '../src/engine/render/graph/compile';
-import { validateGraph, type GraphIr } from '../src/format/materialGraph';
+import { compileGraph } from './compile';
+import { validateGraph, type GraphIr } from '@wildshard/format/materialGraph';
 
 const glow = (): GraphIr => ({ version: 1, kind: 'material', model: 'unlit', nodes: {}, stages: { surface: { colour: [1, 0.5, 0] } } });
 
