@@ -8,6 +8,7 @@ export interface CaptureOptions {
 export interface CaptureSession {
   layout:()=>Promise<{visualViewport:{pageX:number;pageY:number;scale:number}}>;
   capture:(options:CaptureOptions)=>Promise<{data:string}>;
+  scripts:(enabled:boolean)=>Promise<void>;
   detach:()=>Promise<void>;
 }
 export type OpenCaptureSession = (page:Page)=>Promise<CaptureSession>;

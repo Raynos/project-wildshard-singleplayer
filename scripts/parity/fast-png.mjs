@@ -4,7 +4,9 @@ import { Buffer } from 'node:buffer';
 const openProtocolSession = async page => {
   const session = await page.context().newCDPSession(page);
   return { layout: () => session.send('Page.getLayoutMetrics'),
-    capture: options => session.send('Page.captureScreenshot', options), detach: () => session.detach() };
+    capture: options => session.send('Page.captureScreenshot', options),
+    scripts: async enabled => { await session.send('Emulation.setScriptExecutionDisabled', { value: !enabled }); },
+    detach: () => session.detach() };
 };
 
 /** Capture the same Chromium viewport PNG, choosing fast lossless encoding.
@@ -30,6 +32,9 @@ export async function captureViewportPng(page, label, deadline, openSession = op
     }
   };
   const session = await stage('cdp-session', () => openSession(page));
+  let scriptsSuspended = false, completed = false;
+  /** @type {{failure?:unknown}} */ const cleanup = {};
+  const captured = await (async () => {
   try {
     await stage('fonts-ready', () => page.evaluate(async () => { await document.fonts.ready; }));
     await stage('compositor-frame', () => page.evaluate(() => new Promise(resolve => {
@@ -45,14 +50,39 @@ export async function captureViewportPng(page, label, deadline, openSession = op
     // Match Playwright 1.63's device-scale viewport clip, including zoom rounding.
     const clip = { x: pageX, y: pageY, width: Math.floor(viewport.width / scale + 1e-3),
       height: Math.floor(viewport.height / scale + 1e-3), scale };
+    // A retained failed title trace showed 6.19s of synchronous shader status
+    // waits competing with the compositor. Capture the current title surface
+    // without admitting another script task; no game state or scheduler changes.
+    // Fonts, the original rAF and layout settle first. Suspension shares the
+    // original capture deadline, and always ends before pixel analysis/entry.
+    if (label === 'title') {
+      scriptsSuspended = true;
+      await stage('title-warm-suspend', () => session.scripts(false));
+    }
     const { data } = await stage('native-capture', () => session.capture({
       format: 'png', clip, fromSurface: true, captureBeyondViewport: false, optimizeForSpeed: true,
     }));
-    return await stage('transport-decode', () => Promise.resolve(Buffer.from(data, 'base64')));
+    const bytes = await stage('transport-decode', () => Promise.resolve(Buffer.from(data, 'base64')));
+    completed = true;
+    return bytes;
   } finally {
     const started = performance.now(); let state = 'complete';
-    try { await session.detach(); }
-    catch (error) { state = 'unavailable'; console.log(`boot-capture cleanup unavailable: ${String(error)}`); }
-    console.log(`boot-capture ${JSON.stringify({ label, stage: 'native-cleanup', state, ms: performance.now() - started })}`);
+    try {
+      if (scriptsSuspended) {
+        try { await session.scripts(true); }
+        catch (error) {
+          state = 'unavailable';
+          console.log(`boot-capture resume unavailable: ${String(error)}`);
+          if (completed) cleanup.failure = error; // A PNG cannot hide a paused page.
+        }
+      }
+    } finally {
+      try { await session.detach(); }
+      catch (error) { state = 'unavailable'; console.log(`boot-capture cleanup unavailable: ${String(error)}`); }
+      console.log(`boot-capture ${JSON.stringify({ label, stage: 'native-cleanup', state, ms: performance.now() - started })}`);
+    }
   }
+  })();
+  if (Object.hasOwn(cleanup, 'failure')) throw cleanup.failure;
+  return captured;
 }

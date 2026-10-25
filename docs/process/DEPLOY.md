@@ -136,6 +136,18 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   Chromium captures the same device-scale viewport PNG through Playwright's public CDP session with
   `optimizeForSpeed: true`, then decodes it through the same pixel assertions. Fonts and one browser animation
   frame settle first without requesting a game draw; all stages share the original ten-second allowance.
+  CF2's retained failure on exact `b8721bd4c0` (smoke `40243550276`, Developer artifact `12618296342`)
+  shows a 7,440.530 ms renderer animation task, including 6,191.577 ms across shader-program status waits;
+  the longest query took 1,826.850 ms. Fonts took 11.557 ms and layout 58.148 ms, while the native PNG hit
+  the shared 10,027.200 ms deadline. This establishes competing renderer/GPU work, rather than an idle GPU.
+  Only the initial title PNG temporarily suspends script execution through CDP after fonts, rAF and layout;
+  it captures that same surface and restores scripts before pixel analysis or entry, including on refusal.
+  Suspension consumes the original allowance. A PNG whose script resumption fails is also a refusal.
+  No game scheduler, draw, clock, readiness row, viewport or pixel gate is replaced. Gameplay captures retain
+  the ordinary path. One real Chromium fixture through the maintained browser lane measured suspension at
+  1.297 ms, native PNG RPC at 19.706 ms and capture round trip at 49.696 ms; the original pixel analysis passed
+  and script execution resumed. This proves the protocol path, not Nine's post-change performance. The next
+  ordinary CI smoke supplies that actual result; no retry is dispatched.
   A stalled stage refuses without accepting a late PNG or requesting a replacement. The failure JPEG remains diagnostic.
   The composited image, pixel checks and 10-second screenshot timeout remain unchanged; a missing diagnostic
   trace is reported without substituting a successful frame or retrying the capture.

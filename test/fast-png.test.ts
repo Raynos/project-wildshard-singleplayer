@@ -18,11 +18,61 @@ function fixture() {
   const layout=vi.fn<CaptureSession['layout']>().mockResolvedValue(metrics);
   const capture=vi.fn<CaptureSession['capture']>().mockResolvedValue({data:bytes.toString('base64')});
   const detach=vi.fn<CaptureSession['detach']>().mockResolvedValue(undefined);
-  const newCDPSession=vi.fn<OpenCaptureSession>().mockResolvedValue({layout,capture,detach});
+  const scripts=vi.fn<CaptureSession['scripts']>().mockResolvedValue(undefined);
+  const newCDPSession=vi.fn<OpenCaptureSession>().mockResolvedValue({layout,capture,scripts,detach});
   const evaluate=vi.fn<Page['evaluate']>().mockResolvedValue(true), screenshot=vi.fn();
   const page=legacyDouble<Page>({viewportSize:()=>viewport,evaluate,screenshot});
-  return {page,metrics,viewport,bytes,layout,capture,detach,newCDPSession,evaluate,screenshot};
+  return {page,metrics,viewport,bytes,layout,capture,scripts,detach,newCDPSession,evaluate,screenshot};
 }
+
+test('title capture suspends competing script work only after readiness and resumes before analysis', async () => {
+  const f=fixture(), events:string[]=[];
+  let enabled=true;
+  f.evaluate.mockImplementation(()=>{events.push('ready');return Promise.resolve(true);});
+  f.layout.mockImplementation(()=>{events.push('layout');return Promise.resolve(f.metrics);});
+  f.scripts.mockImplementation(value=>{enabled=value;events.push(value?'resume':'suspend');return Promise.resolve();});
+  f.capture.mockImplementation(()=>{
+    events.push('capture');
+    if(enabled)throw new Error('Background program work still competes with title capture');
+    return Promise.resolve({data:f.bytes.toString('base64')});
+  });
+  f.detach.mockImplementation(()=>{events.push('detach');return Promise.resolve();});
+  expect(await captureViewportPng(f.page,'title',Date.now()+10000,f.newCDPSession)).toEqual(f.bytes);
+  expect(events).toEqual(['ready','ready','layout','suspend','capture','resume','detach']);
+  expect(enabled).toBe(true);
+  expect(f.capture).toHaveBeenCalledOnce();
+  expect(f.screenshot).not.toHaveBeenCalled();
+});
+
+test('title native timeout restores scripts without retrying or accepting a late frame', async () => {
+  vi.useFakeTimers();vi.setSystemTime(0);
+  const f=fixture();
+  f.capture.mockReturnValueOnce(new Promise<{data:string}>(()=>{ /* Native reply stays pending. */ }));
+  const refused=expect(captureViewportPng(f.page,'title',10000,f.newCDPSession)).rejects.toThrow('Boot deadline: title native-capture');
+  await vi.advanceTimersByTimeAsync(10000);await refused;
+  expect(f.scripts.mock.calls).toEqual([[false],[true]]);
+  expect(f.capture).toHaveBeenCalledOnce();
+  expect(f.detach).toHaveBeenCalledOnce();
+  expect(vi.getTimerCount()).toBe(0);
+});
+
+test('title suspension consumes the original deadline and still restores an unacknowledged suspend', async () => {
+  vi.useFakeTimers();vi.setSystemTime(0);
+  const f=fixture();f.scripts.mockReturnValueOnce(new Promise<undefined>(()=>{ /* Suspend acknowledgement stays pending. */ }));
+  const refused=expect(captureViewportPng(f.page,'title',10000,f.newCDPSession)).rejects.toThrow('Boot deadline: title title-warm-suspend');
+  await vi.advanceTimersByTimeAsync(10000);await refused;
+  expect(f.scripts.mock.calls).toEqual([[false],[true]]);
+  expect(f.capture).not.toHaveBeenCalled();
+  expect(f.detach).toHaveBeenCalledOnce();
+});
+
+test('an otherwise successful title PNG refuses if script execution cannot resume', async () => {
+  const f=fixture(), failure=new Error('Resume refused');
+  f.scripts.mockResolvedValueOnce(undefined).mockRejectedValueOnce(failure);
+  await expect(captureViewportPng(f.page,'title',Date.now()+10000,f.newCDPSession)).rejects.toBe(failure);
+  expect(f.capture).toHaveBeenCalledOnce();
+  expect(f.detach).toHaveBeenCalledOnce();
+});
 
 test('font readiness precedes one fast lossless capture with the original device-scale viewport clip', async () => {
   vi.useFakeTimers(); vi.setSystemTime(0);
