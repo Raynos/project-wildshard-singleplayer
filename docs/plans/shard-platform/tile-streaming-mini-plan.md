@@ -272,31 +272,49 @@ outputs restored. Jake's B, the exact 6/4 exception, all eight wire debts,
 the grid and caps remain unchanged. U2 parent/decoder audit proceeds next.
 
 **T1 in flight (2026-10-24, sp-x9):** the latest [plain retirement cohort](../../../progress/shard-platform/tile-streaming/t1-retirement-3d1.json)
-on `3d1d45f087` (includes `75d81fca9b`) completed 12 clean route legs / 199
-observed tile lifetimes, errors 0. All six boundaries have **zero tile/region
-ghosts**. It still **FAILS** the unchanged ±20 MB native gate: renderer + GPU
-private-footprint deltas are +74.777/+70.517/+45.171/+67.060/+89.326 MB above
-the 2,587,942,912-byte warm baseline. Coordinator-approved finite Node proofs
-and hooks overlapped this memory-only visit; no CPU/FPS or causal claim.
+on `3d1d45f087` (includes `75d81fca9b`) completed 12 clean legs / 199 observed
+tile lifetimes, errors 0, all six boundaries zero tile/region ghosts. It still
+**FAILS** the unchanged ±20 MB native gate: +74.777/+70.517/+45.171/+67.060/
++89.326 MB. Approved finite Node proofs/hooks overlapped; no timing claim.
 
-The prior [joint cohort](../../../progress/shard-platform/tile-streaming/t1-retirement-fbb.json)
-and [same-source diagnostic](../../../progress/shard-platform/tile-streaming/t1-resources-fbb.json)
-stay separate: sites and LUTs did not accumulate, but composer depth added
-4,380,192 bytes per return despite `acda59debf`. `75d81fca9b` now excludes
-generated depth from eager content-image preparation, which can revive a
-retired uniform after its target releases it. The [real-Three/Metal kernel](../../../progress/shard-platform/tile-streaming/t1-depth-preparation-kernel.json)
-leaves 32,000 bytes after five 40×40 retired preparations before the fix and
-zero afterward; ordinary/sliced controls stay unchanged. That is not a live
-memory clearance. **Next authorized diagnostic (sp-x9, after L9):** one
-opt-in resource cohort on the same `3d1d45f087` source to confirm depth is flat
-and separate tracked app allocations from unattributed native growth. Any
-proposal to rebase the native gate is a plan decision; the guard stays intact.
+The authorized [same-source resource diagnostic](../../../progress/shard-platform/tile-streaming/t1-resources-3d1.json)
+completed 12 clean legs / 207 observed lifetimes, errors 0, after L9. **Depth
+accumulation is absent:** `EffectComposer.Buffer/depth/Texture` is zero at all
+six boundaries; the live depthbuffer stays exactly 4,380,192 B throughout.
+The former +4,380,192 B/return is gone. `75d81fca9b` excludes generated depth
+from eager image preparation; the [Metal kernel](../../../progress/shard-platform/tile-streaming/t1-depth-preparation-kernel.json)
+independently proves retired preuploads stay released. This is no acceptance
+or isolated causal claim.
 
-Earlier [794 acceptance](../../../progress/shard-platform/tile-streaming/t1-retirement-794.json)
-and [resource evidence](../../../progress/shard-platform/tile-streaming/t1-resources-794.json)
-remain retained. Lifecycle landings: hidden touch callbacks `7941053755`, site
-construction ownership `0e3432322b`, borrowed backdrop LUTs `67b5ab6f2d`, stable
-composer depth `acda59debf`. No Simulator or physical-device clearance here.
+Diagnostic deltas from its warm baseline (decimal MB; columns overlap):
+
+| Return | Native renderer + GPU | Tracked GPU | Tracked RAM | Used JS heap | Programs |
+|---|---:|---:|---:|---:|---:|
+| 1 | -97.321 | -21.774 | -41.801 | +65.956 | 520 (+79) |
+| 2 | +41.697 | +3.863 | +17.613 | +131.244 | 575 (+134) |
+| 3 | +94.405 | +3.863 | +63.236 | +66.997 | 580 (+139) |
+| 4 | +96.993 | +3.863 | +25.972 | +150.353 | 582 (+141) |
+| 5 | +59.032 | +3.863 | +4.841 | +63.865 | 584 (+143) |
+
+Final native growth is renderer **+0.426 MB**, GPU process **+58.606 MB**;
+backing storage is +4.184 MB. The net GPU ledger increase is near-placeholder
+buffers; other owners churn/relabel. RAM peaks then falls; it is a weak
+backing-capacity ledger, not retained/resident bytes. Heap is uncollected,
+backing includes external strings, and program storage is not byte-censused.
+**Browser-internal-only growth is not proven. Recommendation: do not rebase
+the ±20 MB native gate on this evidence.** T1 stays open; guard unchanged.
+Next authorized diagnostic: same build, scalar program cache keys/name/
+`usedTimes` per return, to distinguish new variants from missed warm-up.
+No cache fix before that key diff. Region ghosts at returns 2/4 (one retired
+Driftwood each) clear at the next boundary; final ghosts are zero.
+
+Prior [fbb acceptance](../../../progress/shard-platform/tile-streaming/t1-retirement-fbb.json),
+[fbb resource evidence](../../../progress/shard-platform/tile-streaming/t1-resources-fbb.json),
+[794 acceptance](../../../progress/shard-platform/tile-streaming/t1-retirement-794.json)
+and [794 resource evidence](../../../progress/shard-platform/tile-streaming/t1-resources-794.json)
+remain separate. Lifecycle fixes: touch callbacks `7941053755`, site clones
+`0e3432322b`, borrowed LUTs `67b5ab6f2d`, stable depth `acda59debf`, retired
+preparation `75d81fca9b`. No Simulator or physical-device clearance here.
 
 Order: T0 + T1 + T2 at once → T3 (DW) + T4 + T5 = **the first playable slice on Driftwood (SHARD SELECT, then the grid
 home)** → T6, T7 (the memory fix on crossings) → T8 → T9 → T10.
