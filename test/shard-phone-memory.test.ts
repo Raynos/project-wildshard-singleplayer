@@ -94,6 +94,20 @@ test('single-floor cohorts retain the original target and refuse unknown selecti
   }
 });
 
+test('Template-only cohorts retain both original floors and refuse mixed or missing evidence', () => {
+  const targets = selectedCoreMemoryTargets('templates');
+  expect(targets.map(target => target.shard)).toEqual(['_template', 'blender-template']);
+  expect(targets[0]).toBe(coreMemoryTargets[2]); expect(targets[1]).toBe(coreMemoryTargets[3]);
+  const input = rows().slice(2);
+  expect(coreMemorySummary(input, 'templates')).toEqual(coreMemorySummary(rows()).slice(2));
+  expect(coreMemorySummary(input.slice(0, 1), 'templates')[1]).toMatchObject({totalBytes: null, passed: false});
+  expect(() => coreMemorySummary(rows(), 'templates')).toThrow('Duplicate or unknown');
+  const first = input[0];
+  if (first === undefined) throw new Error('Missing native Template fixture');
+  expect(() => coreMemorySummary([{...first, forcedGC: true}], 'templates')).toThrow();
+  expect(() => coreMemorySummary([{...first, protocol: 'chromium-phone-core/1'}], 'templates')).toThrow();
+});
+
 test('single-floor verdicts enforce the same limit without requiring other visits', () => {
   for (const target of coreMemoryTargets) {
     const input = {...nativeProtocol, shard: target.shard, errors: [], samples: [

@@ -57,13 +57,14 @@ export async function serveHelloWorldMemory() {
     });
   }};
 }
-/** Select only an existing floor; preserve its original target object and order.
+/** Select existing floors; the Template pair preserves original objects/order.
  * @param {string} selection */
 export function selectedCoreMemoryTargets(selection) {
   if (selection === 'all') return coreMemoryTargets;
   if (selection === 'hello') return [helloWorldMemoryTarget];
+  if (selection === 'templates') return coreMemoryTargets.slice(2);
   const target = coreMemoryTargets.find(row => row.shard === selection);
-  if (target === undefined) throw new Error('Expected --core-memory=all or an existing core floor');
+  if (target === undefined) throw new Error('Expected --core-memory=all, templates or an existing core floor');
   return [target];
 }
 /** Existing Developer-tools fixture: expose the explicit compiled button, never fall back to LEGACY. */
@@ -96,9 +97,10 @@ export function helloWorldMemoryFloor(input) {
 
 /** Read only the original 120-second floor, never the cache-clear diagnostic.
  * @param {unknown} input
- * @param {string} [selection] One app floor, or all four by default. */
+ * @param {string} [selection] One app floor, the Template pair, or all four by default. */
 function coreFloorTotals(input, selection = 'all') {
-  const targets = coreMemoryTargets.filter(target => selection === 'all' || target.shard === selection);
+  const targets = selection === 'templates' ? coreMemoryTargets.slice(2)
+    : coreMemoryTargets.filter(target => selection === 'all' || target.shard === selection);
   if (targets.length === 0) throw new Error('Unknown app core memory floor');
   const rows = v.parse(floorRows, input);
   if (new Set(rows.map(row => row.shard)).size !== rows.length || rows.some(row => !targets.some(target => target.shard === row.shard))) throw new Error('Duplicate or unknown core memory floor');
@@ -113,7 +115,7 @@ function coreFloorTotals(input, selection = 'all') {
 /** G682 applies only to the cold, uncollected native WebKit reader.
  * Missing/failed floors stay unknown and fail; Chromium is not phone RAM.
  * @param {unknown} input
- * @param {string} [selection] One app floor, or all four by default. */
+ * @param {string} [selection] One app floor, the Template pair, or all four by default. */
 export function coreMemorySummary(input, selection = 'all') {
   const totals = coreFloorTotals(input, selection);
   v.parse(v.array(v.object({protocol: v.literal('webkit-core-floor/1'), mode: v.literal('cold'),

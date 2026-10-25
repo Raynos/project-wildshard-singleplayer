@@ -439,6 +439,7 @@ retention attribution remain open.
 | C6.2 Current calibration | open | One current paired product/observation does not justify fitting the shared engine base. Current prediction marginally misses the picked ±15% band; it is not marked accurate. |
 | C7.1 Reader protocol separation | done `50d155f897` | Only the original cold, uncollected WebKit protocol qualifies G682. Chromium retains diagnostic totals but cannot print a WebKit PASS/FAIL. |
 | C7.2 Coherent current four-floor reading | done (measurement), 2/4 PASS | `50d155f897`: 93.538 / 107.679 / 260.664 / 249.679 MiB. Both templates remain over G682; no repeated cohort or source-isolated gain claim. |
+| C7.3 Template-only requalification selector | done (this code commit), reading pending | `sim-grid-entry.mjs --core-memory=templates` visits only the existing Template1/2 targets in their original order and applies the same G682 caps/protocol. Missing, collected, foreign-protocol or mixed menu evidence cannot pass. No third/fourth visit or new calibration. |
 
 One official cold compiled Template 1 visit used landed `87491b8aa7`, build
 `87491b8-mvo9ztg9`, with the existing reader's original title/select/SHARDFILE

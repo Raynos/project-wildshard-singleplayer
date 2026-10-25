@@ -5,7 +5,7 @@
 //     [--runs=3] [--modes=cold,warm] [--out=tmp/sim-grid-entry/<label>] [--keep-video]
 //     [--shard=sunscar-dunes] selects the explicit compiled card, never legacy, and samples eight seconds after controls.
 //     [--upgrade-from=<old-origin>] installs the old worker, switches this same origin to the new build, then taps grid.
-//     [--core-memory=menu|select|_template|blender-template|all] reads independent Developer-on floors at 10/60/120s, no Network capture or GC.
+//     [--core-memory=menu|select|_template|blender-template|templates|all] reads independent Developer-on floors at 10/60/120s, no Network capture or GC.
 //     --core-memory=hello serves its own plain hello-world fixture (no --base/--rev), using the same native floor sampler.
 //     --core-attribution=1 adds passive WebKit categories only AFTER the last native sample; no heap snapshot or GC.
 // --base drives a served build or live; --rev serves that commit (scripts/serve-build.sh --rev) and stops it after.
