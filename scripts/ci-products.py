@@ -12,6 +12,7 @@ import tarfile
 ARCHIVE = 'test-products.tar'
 PROOF = 'test-products-proof.json'
 PHASE = '.cache/generation-phase.json'
+DERIVED_BUDGET = 'budgets/ceiling-sources.json'
 GENERATED_ROOTS = ['src', 'public', 'out', 'docs/api', 'lint']
 EXCLUDED = {'.git', 'node_modules', '.cache', '__pycache__'}
 
@@ -29,7 +30,9 @@ def identity(root):
 
 def admitted_path(name):
     path = PurePosixPath(name)
-    if name == PHASE:
+    # gen refreshes only this budget file's derived rows; carry its exact bytes
+    # under the existing SHA/run/checksum proof, never the whole policy folder.
+    if name in {PHASE, DERIVED_BUDGET}:
         return path
     if (not name or path.is_absolute() or '..' in path.parts
             or any(part in EXCLUDED or part.startswith('.env') for part in path.parts)

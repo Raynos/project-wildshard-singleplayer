@@ -84,6 +84,35 @@ class PreparedProducts(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'missing its verified phase receipt'):
             products.pack(self.root, generated=True)
 
+    def test_modified_derived_budget_round_trip_keeps_complete_provenance(self):
+        name = 'budgets/ceiling-sources.json'
+        path = self.root / name
+        path.parent.mkdir()
+        before = {'measured': {'gpuMB': 512, 'receipt': 'original capture'},
+                  'derived': {'fictional': {'phone': 10}}}
+        path.write_text(json.dumps(before))
+        subprocess.run(['git', '-C', str(self.root), 'add', name], check=True)
+        subprocess.run(['git', '-C', str(self.root), '-c', 'user.name=Fixture',
+                        '-c', 'user.email=fixture@example.com', 'commit', '-qm', 'budget source'], check=True)
+        os.environ['GITHUB_SHA'] = products.git(self.root, 'rev-parse', 'HEAD').decode().strip()
+        after = {**before, 'derived': {'fictional': {'phone': 11}}}
+        expected = (json.dumps(after) + '\n').encode()
+        path.write_bytes(expected)
+        products.pack(self.root, generated=True)
+        path.write_text(json.dumps(before))
+        products.unpack(self.root, generated=True)
+        self.assertEqual(path.read_bytes(), expected)
+        self.assertEqual(json.loads(path.read_text())['measured'], before['measured'])
+
+    def test_derived_budget_transport_does_not_admit_other_policy_paths(self):
+        self.assertEqual(str(products.admitted_path('budgets/ceiling-sources.json')),
+                         'budgets/ceiling-sources.json')
+        for name in ['budgets/calibration.json', 'budgets/other.json',
+                     'budgets/../ceiling-sources.json', '/budgets/ceiling-sources.json',
+                     'budgets/.env/ceiling-sources.json']:
+            with self.subTest(name=name), self.assertRaisesRegex(ValueError, 'Unexpected prepared output path'):
+                products.admitted_path(name)
+
 
     def test_round_trip_restores_inputs_and_products(self):
         declared, required = products.catalogue_outputs(self.root)
