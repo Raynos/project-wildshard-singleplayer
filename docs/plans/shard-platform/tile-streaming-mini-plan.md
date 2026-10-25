@@ -270,7 +270,7 @@ Each engineering slice below is at most one hour; milestone measurements stay se
 | T6.1 Dormancy / snapshot contract | done (contract-only slice below) | Current-position membership, exceptions and exact snapshot/RNG pins; no brain or native-sim schedule change. |
 | T6.2 Presentation lease / rebind | waits-Opus | Existing design below needs render parity for shared models, moving figures, native slots and held/boss pins before runtime changes. |
 | T8.1 Complete-L0 bake fences | done (`7093891d97`) | All 24 products declare 64 L0 slots; strict caps and the exact 6/4 exception remain. |
-| T8.2 Driftwood lossless route | in flight (sp-x2) | Only 2/4 has a delivered-byte saving; size a compiler-output slice, preserve resident ledger/bitwise views. 3/1 and 3/3 remain held as documented below. |
+| T8.2 Driftwood lossless route | waits: low value (50–80 build-only lines for 6,778 B delivered) | Read-only sizing complete: tile 2/4 bypasses named-blob compression and needs an opt-in encoder before the compiler derives hashes/costs, plus parity/GC proofs and registered-job output refresh. Coordinator says skip this route; no implementation or geometry writes. 3/1 and 3/3 remain held because gzip grows. Seek a larger delivered-byte or frame saving. |
 | T8.3 Occupied L1 appearance | waits-Opus | U2's empty parents are complete; occupied parents require genuine coarse proxies and an Opus design or Jake pick. |
 
 **T4 caller audit:** the non-native `clientWorldAssembly.ts` awaits `residentTiles`
@@ -315,7 +315,7 @@ geometry reader's release already retire transport through verified rereads.
 
 | B tile | Raw GLB B | Meshopt GLB B | Raw gzip-9 B | Meshopt gzip-9 B | Decision |
 |---|---:|---:|---:|---:|---|
-| 2/4 | 421,392 | 204,840 | 112,760 | 105,982 | Later compiler-output slice only; -6,778 B delivered |
+| 2/4 | 421,392 | 204,840 | 112,760 | 105,982 | Skip: 50–80 build-only lines for -6,778 B delivered is low value |
 | 3/1 | 375,648 | 188,156 | 96,999 | 101,823 | Hold tested lossless route; +4,824 B delivered |
 | 3/3 | 308,860 | 156,748 | 83,325 | 97,667 | Hold tested lossless route; +14,342 B delivered |
 
