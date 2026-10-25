@@ -75,6 +75,7 @@ import { buildWithInstanceAttributes, instanceAttributeShader, nodeInstanceKey }
 import { TextureUpdates } from './textureUpdates';
 import { withNodeChildSnapshots } from './nodeChildren';
 import { SceneShaderKeys } from './sceneShaderKey';
+import { GraphCodeKeys } from './graphCodeKeys';
 import { NodeProgramVariants } from './nodeProgramVariants';
 import { classicModelUniform } from './nodeObjectUniforms';
 import { registerShadowDepthResolver } from '../shadowDepthVariants';
@@ -451,6 +452,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   private real: Renderer | null = null;
   private bindingFacts: { readonly stamp: number; readonly context: object; readonly scene: object; readonly rawKey: unknown; readonly lights: string; readonly inputs: SceneInputs | null } | null = null;
   private readonly sceneShaderKeys = new SceneShaderKeys();
+  private readonly graphCodeKeys = new GraphCodeKeys();
   private readonly sceneBindings = new WeakMap<THREE.Material, Map<unknown, SceneBinding>>();
   private warnedLevelFog = false;
   /** the node programs' uniforms, sent per draw as plain program uniforms (`nodePlainUniforms.ts`); null without a WebGL 2
@@ -914,9 +916,9 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   }
 
   /**
-   * A graph material's program key leads with its type and
-   * its graph's shape (`graphShape`: every node its compile made, with its class, code-bearing fields, constants and
-   * texture kinds) instead of the hash of its node ids: three files programs by key (acquireProgram), so equal graphs
+   * A graph material's program key leads with its type and a bounded exact name
+   * for its graph's shape (`graphShape`: every node its compile made, with its class, code-bearing fields, constants
+   * and texture kinds) instead of the hash of its node ids: three files programs by key (acquireProgram), so equal graphs
    * under the same scene, target, fog, layer and object then link ONE GL program, each material with its own uniforms.
    * Null (its own nodes key it) for any other material, or a shape whose builds wrote other code under one key.
    */
@@ -926,7 +928,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     if (owner === undefined) return null;
     let shape = this.shapes.get(material);
     if (shape === undefined) { shape = graphShape(material, owner); this.shapes.set(material, shape); }
-    return this.unshared.has(shape.signature) ? null : `${material.type}~${shape.signature}`;
+    return this.unshared.has(shape.signature) ? null : `${material.type}~${this.graphCodeKeys.key(shape)}`;
   }
 
   /** the build an earlier material of the same program key and graph shape left, bound to `material`'s own nodes; null

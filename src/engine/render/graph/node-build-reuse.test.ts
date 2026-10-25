@@ -55,6 +55,10 @@ test('an equal program reuses the first build with its own params and textures',
   try {
     const first = build(a.material), second = build(b.material);
     expect(handler.reuses).toBe(1);
+    // Complete shape validation stays in reuse; stock keys must not copy that
+    // potentially hundreds-of-KB signature on each warm compilation.
+    expect(first.customProgramCacheKey.length).toBeLessThan(1000);
+    expect(second.customProgramCacheKey).toBe(first.customProgramCacheKey);
     expect(second.vertexShader).toBe(first.vertexShader);
     expect(second.fragmentShader).toBe(first.fragmentShader);
     const [k] = named(first, 0.25), [sampler] = named(first, ta);
