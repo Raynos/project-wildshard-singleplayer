@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createHash } from 'node:crypto';
@@ -70,7 +71,8 @@ export function homeExtraFiles(root: string, directory: string, bundle: Bundle, 
     for (const row of rows.geometries) if ('file' in row) urls.push(row.file);
   }
   for (const url of Object.values(object(field(manifest, 'card')))) urls.push(text(url));
-  if (field(manifest, 'explore') !== undefined) for (const url of Object.values(object(field(object(field(manifest, 'explore')), 'art') ?? {}))) urls.push(text(url));
+  // The live boot omits Explorer previews. Reserving their bytes here would
+  // leave a pending bank for images requested only after the player opens it.
   const boot = object(field(manifest, 'boot') ?? {});
   for (const url of array(field(boot, 'precache') ?? [])) urls.push(text(url));
   const painted = section('look/painted');

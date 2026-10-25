@@ -31,7 +31,8 @@ test('a real emitted image and admitted source produce only the selected home ba
     mkdirSync(resolve(root, 'public/assets/physics'), { recursive: true });
     mkdirSync(resolve(root, 'out/home'), { recursive: true });
     writeFileSync(resolve(root, 'src/card.svg'), '<svg xmlns="http://www.w3.org/2000/svg"><path d="M0 0L1 1"/></svg>');
-    writeFileSync(resolve(root, 'src/card.ts'), 'import url from "./card.svg"; export const value = url;');
+    writeFileSync(resolve(root, 'src/preview.svg'), '<svg xmlns="http://www.w3.org/2000/svg"><circle r="2"/></svg>');
+    writeFileSync(resolve(root, 'src/card.ts'), 'import url from "./card.svg"; import preview from "./preview.svg"; export const value = [url, preview];');
     mkdirSync(resolve(root, 'src/game/shardfile'), { recursive: true });
     writeFileSync(resolve(root, 'src/game/shardfile/client.ts'), 'export const client = 1;');
     mkdirSync(resolve(root, 'src/game/grid'), { recursive: true });
@@ -40,7 +41,9 @@ test('a real emitted image and admitted source produce only the selected home ba
     writeFileSync(resolve(root, 'src/shardList.ts'), 'export { default as home } from "./shards/home/discovery.generated";');
     writeFileSync(resolve(root, 'src/entry.ts'), "window.client = () => import('./game/shardfile/client'); window.grid = () => import('./game/grid/session'); window.selected = () => import('./shards/home/discovery.generated'); window.catalogue = () => import('./shardList'); async function startSelected() { return import('./card'); } void startSelected();");
     writeFileSync(resolve(root, 'index.html'), '<html><head></head><body><script type="module" src="/src/entry.ts"></script></body></html>');
-    writeFileSync(resolve(root, 'src/shards/home/manifest.json'), JSON.stringify({ card: { thumb: '/src/card.svg', portrait: 'data:,', landscape: 'data:,' }, boot: {} }));
+    writeFileSync(resolve(root, 'src/shards/home/manifest.json'), JSON.stringify({ card: { thumb: '/src/card.svg', portrait: 'data:,', landscape: 'data:,' },
+      explore: { art: { world: '/src/preview.svg' } }, boot: { precache: ['/assets/required.webp'] } }));
+    writeFileSync(resolve(root, 'public/assets/required.webp'), new Uint8Array(3));
     writeFileSync(resolve(root, 'public/assets/model.glb'), new Uint8Array(11));
     mkdirSync(resolve(root, 'src/game/data'), { recursive: true });
     writeFileSync(resolve(root, 'public/assets/pickup.bin'), new Uint8Array(17));
@@ -81,9 +84,12 @@ test('a real emitted image and admitted source produce only the selected home ba
     if (Array.isArray(result) || !('output' in result)) throw new Error('Missing fixture bundle');
     const bundle = Object.fromEntries(result.output.map(file => [file.fileName, file]));
     const rows = homeExtraFiles(root, 'home', bundle, 0);
-    const image = result.output.find(file => file.type === 'asset' && file.fileName.endsWith('.svg'));
+    const image = result.output.find(file => file.type === 'asset' && file.originalFileNames.includes('src/card.svg'));
     if (image?.type !== 'asset') throw new Error('Missing emitted image');
-    expect(rows).toEqual([[`/${image.fileName}`, typeof image.source === 'string' ? Buffer.byteLength(image.source) : image.source.byteLength], ['/assets/model.glb', 11], ['/assets/pickup.bin', 17], ['/assets/physics/rapier.wasm', 13], ['/assets/early.webp', 5], ['/assets/late.webp', 7]].sort(([left], [right]) => String(left).localeCompare(String(right))));
+    const preview = result.output.find(file => file.type === 'asset' && file.originalFileNames.includes('src/preview.svg'));
+    if (preview?.type !== 'asset') throw new Error('Missing demand image');
+    expect(rows).not.toContainEqual([`/${preview.fileName}`, typeof preview.source === 'string' ? Buffer.byteLength(preview.source) : preview.source.byteLength]);
+    expect(rows).toEqual([[`/${image.fileName}`, typeof image.source === 'string' ? Buffer.byteLength(image.source) : image.source.byteLength], ['/assets/required.webp', 3], ['/assets/model.glb', 11], ['/assets/pickup.bin', 17], ['/assets/physics/rapier.wasm', 13], ['/assets/early.webp', 5], ['/assets/late.webp', 7]].sort(([left], [right]) => String(left).localeCompare(String(right))));
     const metadata = result.output.find(file => file.type === 'asset' && /^assets\/boot-home-[a-f0-9]{8}\.json$/u.test(file.fileName));
     if (metadata?.type !== 'asset' || typeof metadata.source !== 'string') throw new Error('Missing per-home metadata');
     expect(JSON.parse(metadata.source)).toEqual(rows);
