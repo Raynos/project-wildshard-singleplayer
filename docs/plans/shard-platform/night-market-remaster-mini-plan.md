@@ -141,10 +141,11 @@ About 10 Opus lane-days, roughly 5 calendar days on two lanes.
 | Slice | Status | Deliverable |
 |---|---|---|
 | RM1.1 camera grounding | done | Eight exact plot-local camera manifests / 72 views and labelled floor plans in `art/grid/round-63-night-market-domes/`; actual 64-tile layout, z north, four G726 pairs only |
-| RM1.2 road pair targets | in flight (2026-10-24, sp-x6) | A1/A2 two imagegen candidates each, chosen grids and detailed targets |
-| RM1.3 40 m pair targets | open | B1/B2 grids and targets |
-| RM1.4 100 m pair targets | open | C1/C2 grids and targets |
-| RM1.5 plaza pair targets | open | D1/D2 grids and targets; overview |
+| RM1.2 road stand targets | done | A1: two imagegen candidates, chosen B, nine individually detailed targets and labelled sheet; rejected rear-gate and photographic-ground variants documented |
+| RM1.3 road look targets | in flight (2026-10-24, sp-x6) | A2 two candidates, chosen grid and nine targets |
+| RM1.4 40 m pair targets | open | B1/B2 grids and targets |
+| RM1.5 100 m pair targets | open | C1/C2 grids and targets |
+| RM1.6 plaza pair targets | open | D1/D2 grids and targets; overview |
 | RM2.1 road / plaza baseline | open | Same source/cameras; draw, triangle and memory readings |
 | RM2.2 aerial baseline | open | 40 m / 100 m pairs and full baseline sheets |
 | RM3.1 existing kit extraction | open | First GLB kit pieces, no placement/look change |
