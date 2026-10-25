@@ -28,6 +28,7 @@ export function showStartTitle(buildDeck: StartTitleDeck): void {
     const index = deck.cards.map((card): string => card.slug).indexOf(selected ?? '');
     if (index !== -1) deck.select(index, false);
     deck.start();
+    document.querySelector('[data-title-shell]')?.remove();
   };
   refresh();
   scope.onDispose(onDev(refresh));

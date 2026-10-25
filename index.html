@@ -14,13 +14,34 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
+    <script>
+      // Plain launch: the shard selector is the first screen, with no world or loading panel underneath it.
+      const homeParams = new URLSearchParams(location.search);
+      if (homeParams.size === 0 || (homeParams.size === 1 && homeParams.has('v'))) document.documentElement.classList.add('title-first');
+      if (document.documentElement.classList.contains('title-first')) {
+        const hero = document.createElement('link');
+        hero.rel = 'preload'; hero.as = 'image'; hero.fetchPriority = 'high';
+        hero.href = '/assets/title/main-crossroads-' + (matchMedia('(orientation: portrait)').matches ? 'square' : 'landscape') + '.jpg';
+        document.head.appendChild(hero);
+      }
+    </script>
     <!-- fonts: self-hosted woff2 subsets (public/fonts, cache-first in the service worker), the @font-face rules
          Google's css2 API served for Rajdhani 400-700 + JetBrains Mono 400/500 minus Devanagari. No third-party
          origin on the critical path; the two faces the loading panel paints first are preloaded. -->
     <link rel="preload" href="/fonts/rajdhani-700-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin />
     <style>
+      html, body { margin: 0; width: 100%; height: 100%; background: #0b1622; }
       html.title-first #game, html.title-first .ws-load { display: none; }
+      .ws-launch { display: none; }
+      html.title-first .ws-launch { position: fixed; inset: 0; z-index: 90; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; background: #0b1622; color: #eaf8ff; font-family: Rajdhani, system-ui, sans-serif; }
+      .ws-launch-hero { position: absolute; inset: 0; background: url('/assets/title/main-crossroads-landscape.jpg') center / cover no-repeat; }
+      .ws-launch-brand { position: relative; margin: calc(24px + env(safe-area-inset-top, 0px)) 24px 0; font-size: 44px; font-weight: 700; line-height: 1; letter-spacing: .16em; text-shadow: 0 0 18px #8fe3ff73; }
+      .ws-launch-progress { position: relative; height: 44px; margin: auto 24px calc(44px + env(safe-area-inset-bottom, 0px)); border-bottom: 2px solid #8fe3ff66; }
+      .ws-launch-boat { position: absolute; bottom: 2px; width: 40px; height: 40px; color: #8fe3ff; animation: ws-launch-sail 2.4s ease-in-out infinite alternate; }
+      @keyframes ws-launch-sail { from { transform: translateX(0); } to { transform: translateX(calc(100vw - 88px)); } }
+      @media (orientation: portrait) { .ws-launch-hero { top: 50%; bottom: auto; width: 100%; aspect-ratio: 1; transform: translateY(-50%); background-image: url('/assets/title/main-crossroads-square.jpg'); } }
+      @media (prefers-reduced-motion: reduce) { .ws-launch-boat { animation: none; left: calc(50% - 20px); } }
       @font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/jetbrains-mono-cyrillic-ext.woff2) format('woff2');unicode-range:U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F}
       @font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/jetbrains-mono-cyrillic.woff2) format('woff2');unicode-range:U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116}
       @font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/jetbrains-mono-greek.woff2) format('woff2');unicode-range:U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF}
@@ -62,9 +83,6 @@
       document.addEventListener('gesturestart', (e) => e.preventDefault());
       // home-screen PWA vs Safari tab: the page runs under the status bar only in standalone mode (CSS --ws-top handles the offset)
       if (navigator.standalone || matchMedia('(display-mode: standalone)').matches) document.documentElement.classList.add('standalone');
-      // Plain launch: the shard selector is the first screen, with no world or loading panel underneath it.
-      const homeParams = new URLSearchParams(location.search);
-      if (homeParams.size === 0 || (homeParams.size === 1 && homeParams.has('v'))) document.documentElement.classList.add('title-first');
       // The loader uses a small, already-approved portrait of the selected shard from its first paint.
       // Whitelist the filename: ?chunk is a shard selector, never an arbitrary asset path.
       const loadShard = homeParams.get('chunk') || 'driftwood-isle';
@@ -75,6 +93,15 @@
       // build id show only under <html data-dev> — set here, before the first paint of the loading panel. No URL switch (E162)
       try { if (JSON.parse(localStorage.getItem('wildshard.save.v2.device') || '{}').keys?.devMode?.data === true) document.documentElement.setAttribute('data-dev', ''); } catch { /* storage blocked: player mode */ }
     </script>
+    <!-- Plain launches paint this approved title art without waiting for a bundle.
+         StartTitle removes it only after the real title has mounted. -->
+    <div class="ws-launch" data-title-shell>
+      <div class="ws-launch-hero" aria-hidden="true"></div>
+      <div class="ws-launch-brand">WILDSHARD</div>
+      <div class="ws-launch-progress" role="progressbar" aria-label="Loading title">
+        <svg class="ws-launch-boat" viewBox="0 0 48 48" fill="none" aria-hidden="true"><path d="M24 4v29M20 9 6 29h14V9Zm8 4v16h13L28 13ZM5 35h38l-7 8H13l-8-8Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+      </div>
+    </div>
     <canvas id="game"></canvas>
     <div id="hud"></div>
     <!-- the loading panel from the first HTML bytes (src/engine/boot/shell.ts — test/shell.test.ts keeps the two identical); src/engine/ui/Loading.ts adopts it -->
