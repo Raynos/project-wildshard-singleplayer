@@ -3,7 +3,7 @@
 // Run it inside the Simulator lane; each official reading owns its quiet window:
 //   scripts/sim-lane.sh run --max 45 wildshard-iphone node scripts/sim-grid-entry.mjs --base=<url> | --rev=<sha>
 //     [--runs=3] [--modes=cold,warm] [--out=tmp/sim-grid-entry/<label>] [--keep-video]
-//     [--shard=sunscar-dunes] selects the explicit compiled card, never legacy.
+//     [--shard=sunscar-dunes] selects the explicit compiled card, never legacy, and samples eight seconds after controls.
 //     [--upgrade-from=<old-origin>] installs the old worker, switches this same origin to the new build, then taps grid.
 //     [--core-memory=menu|select|_template|blender-template|all] reads independent Developer-on floors at 10/60/120s, no Network capture or GC.
 //     --core-memory=hello serves its own plain hello-world fixture (no --base/--rev), using the same native floor sampler.
@@ -24,7 +24,7 @@ import { soakInspector } from './soak/inspector.mjs';
 import { loadingCardIndex, loadingShardName } from './loading-benchmark/catalogue.mjs';
 import { observeTransport } from './loading-benchmark/transport.mjs';
 import { accuracyRecorder } from './loading-benchmark/accuracy-data.mjs';
-import { requireCompiledEntry, downloadEvidence, transportEvidence, waitForWaitingWorker, recoveredGridControls } from './loading-benchmark/sim-shard.mjs';
+import { requireCompiledEntry, downloadEvidence, transportEvidence, waitForWaitingWorker, recoveredGridControls, sampleCompiledFrame, compiledFrameMetrics } from './loading-benchmark/sim-shard.mjs';
 import { cachedBodyEvidence } from './loading-benchmark/cache-bodies.mjs';
 import { saveFixtureCode } from './debug-settings.mjs';
 import { readSimulatorCoreFootprint, selectedCoreMemoryTargets, coreMemorySummary, compiledFloorSave, scriptResourceURLs,
@@ -121,8 +121,10 @@ async function settle(body, ms = 30000) {
 }
 
 // the entry page's own watcher, installed as soon as the inspector reaches it: one rAF loop, read by the polls
+const COMPILED_READY = `!!window.__wildshard?.world?.hud.entered && !window.__wildshard.world.hud.paused && window.__wildshard.world.game.frameGate() && ![...document.querySelectorAll('.ws-load')].some(panel => getComputedStyle(panel).display !== 'none' && Number(getComputedStyle(panel).opacity) > .05)`;
 const WATCH = `window.__simEntry ??= (() => {
-  const s = { seen: false, gone: null, rows: [], totals: [], downloads: [], worst: 0, worstAt: null };
+  const s = { seen: false, gone: null, rows: [], totals: [], downloads: [], worst: 0, worstAt: null,
+    compiled: { controlsAt: null, last: null, worst: 0, worstAt: null, frames: 0, complete: false } };
   let last = performance.now();
   const tick = t => {
     const gap = t - last; last = t;
@@ -138,6 +140,9 @@ const WATCH = `window.__simEntry ??= (() => {
     } else if (s.seen && s.gone === null) s.gone = t;
     const r = window.__wsReveal;
     if (r != null && r.endedMs != null) { const at = r.startedAt + r.endedMs; if (t > at && t < at + 8000 && gap > s.worst) { s.worst = gap; s.worstAt = t - at; } }
+    if (${shard !== undefined}) {
+      (${sampleCompiledFrame.toString()})(s.compiled, t, ${COMPILED_READY});
+    }
     requestAnimationFrame(tick);
   };
   requestAnimationFrame(tick);
@@ -265,7 +270,7 @@ async function run(mode, index, target) {
     const on = data => { if (/Recording started/iu.test(String(data))) resolve(Date.now()); };
     recorder.stdout.on('data', on); recorder.stderr.on('data', on); setTimeout(() => { resolve(Date.now()); }, 8000);
   });
-  let sample = null, compiled = null, secondTapAt = null, recoveredAt = null;
+  let sample = null, compiled = null, compiledReady = false, secondTapAt = null, recoveredAt = null;
   try {
     await sleep(1000);
     const setup = shard === undefined && upgradeFrom === undefined ? '' : [
@@ -339,10 +344,15 @@ async function run(mode, index, target) {
           break;
         }
         if (shard !== undefined) {
-          compiled = JSON.parse(await page.evaluate(`JSON.stringify({ href: location.href, origin: performance.timeOrigin, at: performance.now(), accuracy: window.__loadingAccuracy ?? null,
-            ready: !!window.__wildshard?.world?.hud.entered && !window.__wildshard.world.hud.paused && window.__wildshard.world.game.frameGate() && ![...document.querySelectorAll('.ws-load')].some(panel => getComputedStyle(panel).display !== 'none' && Number(getComputedStyle(panel).opacity) > .05),
+          const current = JSON.parse(await page.evaluate(`JSON.stringify({ href: location.href, origin: performance.timeOrigin, at: performance.now(), accuracy: window.__loadingAccuracy ?? null,
+            ready: (${COMPILED_READY}),
             measures: performance.getEntriesByType('measure').map(row => ({ name: row.name, start: row.startTime, ms: row.duration })) })`));
-          if ((compiled.accuracy?.readyAt > 0 && compiled.ready) || compiled.accuracy?.errors.length > 0) break;
+          compiledReady = current.ready;
+          if (current.accuracy?.errors.length > 0) { compiled = current; break; }
+          // Keep the original first-ready byte/phase sample, not eight seconds
+          // of later background traffic, while the frame window completes.
+          if (compiled === null && current.accuracy?.readyAt > 0 && current.ready) compiled = current;
+          if (compiled !== null && compiledReady && sample.entry?.compiled.complete === true) break;
         }
         if (upgradeFrom !== undefined && recoveredAt === null && recoveredGridControls(sample)) recoveredAt = sample.origin + sample.at;
         if ((typeof sample.reveal?.endedMs === 'number' || recoveredAt !== null) && ended === null) ended = Date.now();
@@ -361,7 +371,8 @@ async function run(mode, index, target) {
     if (controller.activationStage !== 'complete') throw new Error('New deployment worker did not complete activation');
   }
   if (shard !== undefined) {
-    if (compiled === null || !compiled.ready) throw new Error(`${label}: compiled entry never reached controls`);
+    if (compiled === null || !compiledReady) throw new Error(`${label}: compiled entry never reached controls`);
+    if (compiled.origin !== sample.origin) throw new Error(`${label}: compiled frame window changed document`);
     requireCompiledEntry(compiled.href, shard, compiled.accuracy);
     const observedUrls = [...new Set(compiled.accuracy.resources.map(row => row.name).filter(name => {
       try { return new URL(name).origin === new URL(compiled.href).origin; } catch { return false; }
@@ -373,7 +384,7 @@ async function run(mode, index, target) {
       rows: compiled.accuracy.final.rows.flatMap(row => Number.isFinite(Number(row.ms)) ? [{ key: row.key, ms: Number(row.ms), label: row.label, detail: row.detail }] : []),
       loaderPaintMs: sample.fcp === null ? null : Math.round(compiled.origin + sample.fcp - sample.tap),
       loaderEndMs: Math.round(compiled.origin + compiled.accuracy.readyAt - sample.tap),
-      controlsMs: Math.round(compiled.origin + compiled.at - sample.tap), controlsObservationIntervalMs: 500 };
+      ...compiledFrameMetrics(sample.entry?.compiled, compiled.origin, sample.tap) };
     if (!keepVideo) rmSync(video, { force: true });
     writeFileSync(resolvePath(out, `${label}.json`), `${JSON.stringify(result, null, 1)}\n`);
     return result;

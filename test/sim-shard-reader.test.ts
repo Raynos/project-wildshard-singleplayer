@@ -1,5 +1,35 @@
 import { expect, test } from 'vitest';
-import { downloadEvidence, recoveredGridControls, requireCompiledEntry, transportEvidence, waitForWaitingWorker } from '../scripts/loading-benchmark/sim-shard.mjs';
+import { compiledFrameMetrics, downloadEvidence, recoveredGridControls, requireCompiledEntry, sampleCompiledFrame, transportEvidence, waitForWaitingWorker, type CompiledFrameWindow } from '../scripts/loading-benchmark/sim-shard.mjs';
+
+const frameWindow = (): CompiledFrameWindow => ({ controlsAt: null, last: null, worst: 0, worstAt: null, frames: 0, complete: false });
+
+test('compiled entry measures the full post-controls window without charging loading or shifting controls', () => {
+  const state = frameWindow();
+  sampleCompiledFrame(state, 100, false); sampleCompiledFrame(state, 900, false);
+  expect(() => compiledFrameMetrics(state, 10000, 10000)).toThrow('Incomplete');
+  sampleCompiledFrame(state, 1000, true);
+  sampleCompiledFrame(state, 1016, true); sampleCompiledFrame(state, 1216, true);
+  for (let at = 1232; at <= 9000; at += 16) sampleCompiledFrame(state, at, true);
+  sampleCompiledFrame(state, 9000, true);
+  expect(compiledFrameMetrics(state, 10000, 10000)).toMatchObject({ controlsMs: 1000,
+    worstFrameAfterControlsMs: 200, worstFrameAfterControlsAtMs: 216, postControlsWindowMs: 8000, postControlsObservedMs: 8000 });
+  const finished = { ...state };
+  sampleCompiledFrame(state, 20000, true);
+  expect(state).toEqual(finished);
+});
+
+test('a compiled frame freezing across the end of the window remains a measured miss', () => {
+  const state = frameWindow();
+  sampleCompiledFrame(state, 0, true);
+  for (let at = 16; at <= 7904; at += 16) sampleCompiledFrame(state, at, true);
+  sampleCompiledFrame(state, 8500, true);
+  expect(compiledFrameMetrics(state, 10000, 10000)).toMatchObject({ controlsMs: 0, worstFrameAfterControlsMs: 596, postControlsFrames: 495, postControlsObservedMs: 8500 });
+  expect(() => sampleCompiledFrame(frameWindow(), Number.NaN, true)).toThrow('clock');
+  const incomplete = frameWindow(); sampleCompiledFrame(incomplete, 100, true);
+  expect(() => sampleCompiledFrame(incomplete, 99, true)).toThrow('clock');
+  expect(() => compiledFrameMetrics(incomplete, 10000, 10000)).toThrow('Incomplete');
+  expect(() => compiledFrameMetrics(undefined, 10000, 10000)).toThrow('Incomplete');
+});
 
 test('saved-pose upgrade evidence requires real controls and refuses the observed paused-world failure', () => {
   const ready = { origin: 1000, at: 200, bootEntry: { reason: 'reload', saved: true, continuing: true, grid: true },

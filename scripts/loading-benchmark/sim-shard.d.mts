@@ -1,4 +1,10 @@
 export interface DownloadSample { step?: string; declaredBytes?: string; pendingBytes?: string; downloadPercent?: string }
+export interface CompiledFrameWindow { controlsAt: number | null; last: number | null; worst: number; worstAt: number | null; frames: number; complete: boolean }
+export function sampleCompiledFrame(state: CompiledFrameWindow, at: number, ready: boolean): void;
+export function compiledFrameMetrics(state: CompiledFrameWindow | null | undefined, origin: number, tap: number): {
+  controlsMs: number; controlsObservationIntervalMs: number; worstFrameAfterControlsMs: number; worstFrameAfterControlsAtMs: number | null;
+  postControlsFrames: number; postControlsWindowMs: number; postControlsObservedMs: number;
+};
 export function recoveredGridControls(sample: {
   readonly bootEntry?: { readonly reason?: string; readonly saved?: boolean; readonly continuing?: boolean; readonly grid?: boolean } | null;
   readonly world?: { readonly entered?: boolean; readonly paused?: boolean; readonly frameGate?: boolean } | null;

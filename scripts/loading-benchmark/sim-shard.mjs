@@ -1,5 +1,36 @@
 import { loadingShardName } from './catalogue.mjs';
 
+/** Sample the compiled card's actual controls, then eight seconds of rAF gaps.
+ * Loading gaps before the first ready frame are excluded; a frame straddling
+ * the window end keeps its full duration rather than hiding a long freeze.
+ * @param {import('./sim-shard.mjs').CompiledFrameWindow} state
+ * @param {number} at @param {boolean} ready */
+export function sampleCompiledFrame(state, at, ready) {
+  if (!Number.isFinite(at) || at < 0 || state.last !== null && at < state.last) throw new Error('Invalid compiled frame clock');
+  if (state.complete) return;
+  if (state.controlsAt === null) {
+    if (ready) { state.controlsAt = at; state.last = at; }
+    return;
+  }
+  if (state.last === null) throw new Error('Missing compiled frame start');
+  const gap = at - state.last;
+  if (gap > 0) {
+    state.frames++;
+    if (gap > state.worst) { state.worst = gap; state.worstAt = at - state.controlsAt; }
+  }
+  state.last = at; state.complete = at - state.controlsAt >= 8000;
+}
+
+/** Keep the controls timestamp fixed while the post-controls sample drains.
+ * @param {import('./sim-shard.mjs').CompiledFrameWindow | null | undefined} state
+ * @param {number} origin @param {number} tap */
+export function compiledFrameMetrics(state, origin, tap) {
+  if (state === null || state === undefined || !state.complete || state.controlsAt === null || state.last === null || state.frames === 0 || !Number.isFinite(origin) || !Number.isFinite(tap)) throw new Error('Incomplete compiled frame window');
+  return { controlsMs: Math.round(origin + state.controlsAt - tap), controlsObservationIntervalMs: 500,
+    worstFrameAfterControlsMs: state.worst, worstFrameAfterControlsAtMs: state.worstAt,
+    postControlsFrames: state.frames, postControlsWindowMs: 8000, postControlsObservedMs: state.last - state.controlsAt };
+}
+
 /** A saved-pose update skips descent; require actual unpaused gameplay rather than an invented reveal. */
 export function recoveredGridControls(sample) {
   return sample?.bootEntry?.reason === 'reload' && sample.bootEntry.saved === true
