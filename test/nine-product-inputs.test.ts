@@ -20,7 +20,7 @@ test('owned inputs preserve the complete original Nine declaration and view cont
 });
 
 test('the declaration factory admits supplied inputs instead of consulting a generated file', () => {
-  expect(() => nineProductFrom({ ...inputs, navigation: { ...inputs.navigation, navigation: { file: 'bad' } } })).toThrow();
+  expect(() => nineProductFrom({ ...inputs, navigation: { ...inputs.navigation, navigation: { ...inputs.navigation.navigation, file: 'bad' } } })).toThrow();
   const path = resolve('src/shards/nine-dragon-stack/generators/productDefinition.ts');
   const parsed = parseSync(path, readFileSync(path, 'utf8'));
   expect(parsed.errors).toEqual([]);

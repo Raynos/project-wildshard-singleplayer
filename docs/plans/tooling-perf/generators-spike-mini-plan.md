@@ -120,7 +120,7 @@ in `public/assets/<slug>/` as real `.glb` / `.png` / `.ktx2` / `.bin`. App-wide 
 | GR0 | done (2026-10-24, sp-x1): existing import ban `7d9ada1bbb` plus generated-source guard; exact-path output debt only shrinks, G656 app sources remain separately reviewed | S | staged/push Git checks and pre/post-gen + CI tree checks refuse new source outputs; 138 focused cases pass |
 | GR1 | done (2026-10-24, sp-x1): SDK `ctx.cached` / `ctx.asset`, in-memory boss metadata and Template/Pastel map/world programs; `de4c2ed072` + `89dc5c0c07` + `ea96805666` | M | Exact `ea96805666` full preview passes all 24 products in 165.42 s; both folders have zero job rows and no new file under `src/` after generation/build |
 | GR2 | done (2026-10-24, sp-x1): `326950c025` + `78681f7cf5`; app tables then the existing per-product build pool, heavy-lane, scoped `--shard=`; preparation-only CI preserved | S | fresh Node refuses any scheduler import for a fully converted folder; 29 focused + 410 ready-related cases pass; exact `78681` generation builds all 24 products |
-| GR3 | in flight (2026-10-24, sp-x1): **Nine** (28 jobs at claim; 12 remain): direct row, physics and schema calls replace imports; `castHook` / `lightSpill` / `paintArray` become cached `.glb` / `.bin` (closes B4); atlases per D2; its tests call functions | L | 0 Nine rows in the catalogue, 0 `*.generated.*` under its folder, product validates, boot smoke green |
+| GR3 | in flight (2026-10-24, sp-x1): **Nine** (28 jobs at claim; 11 remain): direct row, physics and schema calls replace imports; `castHook` / `lightSpill` / `paintArray` become cached `.glb` / `.bin` (closes B4); atlases per D2; its tests call functions | L | 0 Nine rows in the catalogue, 0 `*.generated.*` under its folder, product validates, boot smoke green |
 | GR4 | **Sunscar** (23 jobs) | M | same bar |
 | GR5 | **Far Reach** (47) | L | same bar |
 | GR6 | **Nalati** (47; 69 product imports, `poiPaint` / `grass` / `geography`) | L | same bar |
@@ -179,11 +179,14 @@ Native decal inputs are pinned real PNGs under `public/assets/nine-dragon/author
 check and cold/hit image admission. The author entry now returns owned output: movers compile through the injected
 cache, portal evidence is freshly proved, and pinned native PNGs enter as owned bytes. Three scheduler rows and
 their old handoffs retire. Every original admitted file hash/length/contract and PNG pixel oracle is retained;
-the real SDK product build passes in 13.1 s. Twelve legacy rows remain for world/course/discovery and other
+the real SDK product build passes in 13.1 s. Eleven legacy rows remain for world/course/discovery and other
 native assets. Source navigation now derives the exact ordered WSNM declaration and publishes all 6,047 original
 bytes through the build capability; the world assembly receives this invocation's seed/material IDs as data.
-The full declaration/file/pixel oracles and actual SDK build pass (11.1 s). Its legacy discovery binding/job stays
-until the shared cold-product discovery bootstrap is resolved; the import allowance shrinks from three to two.
+The full declaration/file/pixel oracles and actual SDK build pass (11.1 s). Discovery now consumes the source program's
+validated navigation receipt: the marker replaces the generated JSON reader,
+and the navigation row, duplicate blob and old scene wrapper retire. A real cold scoped inputs-only generation, with
+both old outputs absent, builds Nine before discovery/boot and passes in 36.8 s (product 15.1 s). Its strict current
+receipt equals every original navigation value and all 6,047 bytes. The import allowance shrinks from three to two.
 The held profile now reads all 14 original mesh/channel/transform rows from the authored GLB through the injected cache;
 the 209-byte linear black texel is packed as owned binary, with no base64 JSON. Its graph/declaration/output consumers
 receive this invocation's profile. All original declaration, admitted-file and material byte oracles remain pinned.

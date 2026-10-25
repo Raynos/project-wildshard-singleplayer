@@ -1,3 +1,4 @@
+import type { NineNavigation } from './navigationProgram';
 import type { NineHeldInputs } from './heldGraphFiles';
 import { filamentGraph } from './filamentGraph';
 import { haloGraph } from './haloGraph';
@@ -35,7 +36,7 @@ const DEFAULT_MOVERS = { pages: 1 };
 export interface NineProductInputs {
   readonly held: NineHeldInputs;
   readonly courseProgram: { readonly compiled: { readonly bytes: number }; readonly script: { readonly pages: number } };
-  readonly navigation: { readonly navigation: unknown; readonly files: readonly NineInputFile[]; readonly critical: readonly string[] };
+  readonly navigation: NineNavigation;
   readonly world: { readonly shardfile: { readonly library: readonly string[]; readonly files: readonly NineInputFile[]; readonly tiles: unknown }; readonly props: Readonly<Record<string, unknown>> | null | undefined };
 }
 

@@ -1,3 +1,4 @@
+import { inputs } from './fixtures/nine-product-inputs';
 import { expect, test } from 'vitest';
 import { MANIFEST } from '../src/shards/nine-dragon-stack/discovery.generated';
 import { DECLARATION, POSES } from '../src/shards/nine-dragon-stack/boot/declaration.generated';
@@ -32,7 +33,10 @@ test('Nine preserves its exact authored boot inventory, modes, art and structure
   expect(density(50, -50)).toBe(0);
   expect(Object.hasOwn(MANIFEST, 'trustedRuntime')).toBe(false);
   expect(MANIFEST.clientPlanRuntime).toBe(true);
-  const source = authoredManifestSource(resolve(import.meta.dirname, '..'), 'nine-dragon-stack');
+  const root = resolve(import.meta.dirname, '..');
+  expect(() => authoredManifestSource(root, 'nine-dragon-stack')).toThrow('missing or invalid program discovery value navigation');
+  const source = authoredManifestSource(root, 'nine-dragon-stack', { discovery: { navigation: { ...inputs.navigation } } });
+  expect(source).not.toContain('navigation.generated');
   expect(source).toContain('.declaredClientPlanEntry({"retainHomeRuntime":true,"stagesOwner":"declared"})');
   expect(source).not.toContain('nativeModule');
   expect(source).not.toContain('./plugin');

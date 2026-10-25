@@ -403,8 +403,7 @@
       "export": "default"
     },
     "navigation": {
-      "module": "./data/navigation.generated.json",
-      "export": "default"
+      "program": true
     },
     "poses": {
       "module": "./boot/poses.generated.json",

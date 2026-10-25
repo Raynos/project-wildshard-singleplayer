@@ -69,3 +69,13 @@ test('the source navigation closure bundles without filesystem, decoder services
   const chunks = built.output.filter(row => row.type === 'chunk'); expect(chunks).toHaveLength(1);
   for (const chunk of chunks) assertConfigBoundary([...chunk.imports, ...chunk.dynamicImports]);
 });
+
+test('the real source program supplies every original discovery value without a generated navigation reader', async () => {
+  const manifest = v.parse(v.object({ bindings: v.object({ navigation: v.strictObject({ program: v.literal(true) }) }) }),
+    JSON.parse(readFileSync(resolve(project, 'manifest.json'), 'utf8')));
+  expect(manifest.bindings.navigation).toEqual({ program: true });
+  const { generated } = await import('./fixtures/nine-source-program');
+  expect(generated.discovery).toEqual({ navigation: before });
+  expect(generated.shard.navigation).toEqual(before.navigation);
+  expect(generated.shard.critical).toEqual(before.critical);
+});
