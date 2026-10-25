@@ -9,7 +9,7 @@ import { createModelLibrary } from '../../src/game/plugin/geometry';
 import { readSourceModel } from '../../src/sdk/bake/skinned';
 import { parseKtx2 } from '../../src/format/product';
 import { rawKtx2, bakeSignalSand } from '../../src/shards/sunscar-dunes/generators/sand';
-import { signAtlasBlobs } from '../../src/shards/nine-dragon-stack/generators/signAtlasOutput';
+import { signAtlasBlobs, parseNativeSignAtlas } from '../../src/shards/nine-dragon-stack/generators/signAtlasOutput';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read the original atlas bytes without a generated JSON type program.
 import { readFileSync } from 'node:fs';
 import { nineSignBlobs } from '../fixtures/nine-sign-blobs';
@@ -17,21 +17,9 @@ import binaryReference from '../fixtures/nine-sign-binary.json' with { type: 'js
 import reference from '../fixtures/nine-sign-atlas.json' with { type: 'json' };
 
 const finite=v.pipe(v.number(),v.finite());
-const range=v.object({byteOffset:finite,byteLength:finite});
-const signPlacement = v.object({ w: finite, h: finite, neon: v.boolean(), p: v.object({
-  at: v.array(v.union([finite, v.string()])), normal: v.array(v.union([finite, v.string()])), size: finite,
-  spec: v.object({ text: v.string(), color: v.string(), vertical: v.boolean(), style: v.string(), ink: v.exactOptional(v.string()) }),
-  gain: v.exactOptional(finite), flicker: v.exactOptional(finite), blade: v.exactOptional(v.boolean()),
-  board: v.exactOptional(finite), fogK: v.exactOptional(finite), clear: v.exactOptional(finite),
-}) });
-const atlasTier=v.object({buffer:v.string(),cells:v.record(v.string(),v.unknown()),placed:v.array(signPlacement),
-  lights:v.array(v.object({at:v.array(finite),color:v.array(finite),w:finite,h:finite,power:finite,spill:finite})),
-  keys:v.record(v.string(),v.string()),mono:v.object({packed:v.string(),bytes:finite}),colour:v.object({packed:v.string(),bytes:finite}),
-  geometries:v.record(v.string(),v.object({attributes:v.record(v.string(),v.object({width:finite,data:range})),
-    index:range,sphere:v.nullable(v.array(finite))}))});
 const atlas=(()=>{
   const value:unknown=JSON.parse(readFileSync('src/shards/nine-dragon-stack/data/signAtlas.generated.json','utf8'));
-  v.assert(v.object({phone:atlasTier,desktop:atlasTier}),value);return value;
+  return parseNativeSignAtlas(value);
 })();
 
 const glyphTier = v.object({ size: finite, packed: v.array(v.string()),
@@ -48,6 +36,12 @@ const digest = (value: unknown): string => hash(JSON.stringify(value));
 const read = (file: string): Uint8Array => new Uint8Array(readFileSync(`src/shards/nine-dragon-stack/data/${file}`));
 const blobs = await nineSignBlobs();
 const slice = (bytes: Uint8Array, row: { byteOffset: number; byteLength: number }): Uint8Array => bytes.slice(row.byteOffset, row.byteOffset + row.byteLength);
+
+test('native metadata refuses missing tiers, invalid ranges and non-finite light rows', () => {
+  expect(() => parseNativeSignAtlas({ phone: atlas.phone })).toThrow();
+  expect(() => parseNativeSignAtlas({ ...atlas, phone: { ...atlas.phone, geometries: { invalid: { attributes: {}, index: { byteOffset: -1, byteLength: 4 }, sphere: null } } } })).toThrow();
+  expect(() => parseNativeSignAtlas({ ...atlas, desktop: { ...atlas.desktop, lights: [{ at: [0, 0, 0], color: [1, 1, 1], w: 1, h: 1, power: Number.NaN, spill: 0 }] } })).toThrow();
+});
 
 test('portable sign assembly retains every original named byte and cost', () => {
   expect(blobs.map(row => row.file)).toStrictEqual(binaryReference.files);

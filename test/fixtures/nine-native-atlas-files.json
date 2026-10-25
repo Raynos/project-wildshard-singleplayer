@@ -1,0 +1,44 @@
+[
+  {
+    "name": "signAtlas.generated.json",
+    "input": "data/signAtlas.generated.json",
+    "bytes": 1040973,
+    "hash": "3b497bfa59db1ab9b016362e11b29bf09ae568a8d8aa877baa8607cd79593f6e"
+  },
+  {
+    "name": "signAtlas-phone.bin",
+    "input": "data/signAtlas-phone.bin",
+    "bytes": 370392,
+    "hash": "4dd029b1683af2f6ccfabf63650c8ec088243998564bacb50301cbbb3152f4c9"
+  },
+  {
+    "name": "signAtlas-phone-mono.ktx2",
+    "input": "data/signAtlas-phone-mono.ktx2",
+    "bytes": 59218,
+    "hash": "ed70ef638d67e10d71716f43a7f90aebc34e5b4319ddd5ad0086f510d085e4e6"
+  },
+  {
+    "name": "signAtlas-phone-colour.ktx2",
+    "input": "data/signAtlas-phone-colour.ktx2",
+    "bytes": 53275,
+    "hash": "9dc34d63d213db9398e88992cbfec9f6301ff72c9ae19f3499b2e967a7a48684"
+  },
+  {
+    "name": "signAtlas-desktop.bin",
+    "input": "data/signAtlas-desktop.bin",
+    "bytes": 370392,
+    "hash": "24763ba9a4370d01e5ad0589a9dae7aad2ea54b395ff9a084a68e78fb86014ea"
+  },
+  {
+    "name": "signAtlas-desktop-mono.ktx2",
+    "input": "data/signAtlas-desktop-mono.ktx2",
+    "bytes": 126264,
+    "hash": "93ce696c4b801d68d4b8480a002636957b534867a20d6b11cef3bb770e87d0d0"
+  },
+  {
+    "name": "signAtlas-desktop-colour.ktx2",
+    "input": "data/signAtlas-desktop-colour.ktx2",
+    "bytes": 106458,
+    "hash": "66b02edd38b79512bc000973f755a5d322ecba1469512e1d21521d99a09010d5"
+  }
+]

@@ -237,7 +237,10 @@ GR3 bounded slices (G711; each <= 1 h, one producer retirement per commit):
 | Glyphs | open | Preserve native raster bytes and replace source handoff |
 | S1 sign-source cache | done | 28 files / 9,308,309 B and all 27 admitted rows exact; cold/hit/refusal and sealed adapter checks; no job retirement |
 | S2 sign-source reader handoff | done | Nine 7 → 6; 28 source files (9,308,309 B) absent; all original admitted rows and full product bytes exact; cold scoped generation |
-| Sign atlas | open | Own original atlas bytes and remove native handoff |
+| A1 native sign-atlas admission | done | Defining metadata validator, seven-file cache admission and original native pixel/geometry checks; no job retirement |
+| A2 GD2 native sign-atlas inputs | in flight | Commit the original seven native files (2,126,972 B), explicit input ownership and standalone staleness check; no job retirement |
+| A3 native sign-atlas reader handoff | open | Supply native metadata/bytes to scene, spill, light and sign builders without generated readers |
+| A4 native sign-atlas retirement | open | Remove native scheduler handoff and seven source files (Nine 5 → 4); cold scoped generation |
 | M1 map geometry/encoding separation | done | Pure defining geometry module; all original scene/pack bytes and native map image exact; no job retirement |
 | M2 map assembly reader handoff/retirement | done | Nine 8 → 7; both former source files absent, exact scene/pack and WebP bytes; cold scoped generation |
 | Data map | open | Own original PNG and metadata through source entry |
