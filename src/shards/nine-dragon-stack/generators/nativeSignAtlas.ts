@@ -1,6 +1,6 @@
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
-import { parseNativeSignAtlas, type NineNativeAtlas } from './signAtlasOutput';
+import { parseNativeSignAtlas, type NineNativeAtlas } from './nativeSignMetadata';
 
 /** Native assets keep logical names; their declared input paths belong to the author CLI. */
 export interface NineNativeAtlasFile {
