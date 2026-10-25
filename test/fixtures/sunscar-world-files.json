@@ -1,0 +1,62 @@
+{
+  "rocks.glb": {
+    "bytes": 11552,
+    "hash": "6d086b333d977e96e8721ac62f817aa9c20d4567c7c17b13e8e9e68fa916258f"
+  },
+  "dressing.glb": {
+    "bytes": 127120,
+    "hash": "ce5da45133af709d5a329ffe0b4b94239bdda09a5c40c0e5a7f12406cd484545"
+  },
+  "tower.glb": {
+    "bytes": 27540,
+    "hash": "4d937a502808a271475f76f820dcefd074a4baf21a56cd71f2db0b52b23bd372"
+  },
+  "caravan.glb": {
+    "bytes": 28508,
+    "hash": "3200bd2f7802608da58aebb9b2f2227231eca460ff540bd318331cfe829b88ea"
+  },
+  "well.glb": {
+    "bytes": 186244,
+    "hash": "51d36e84d4f99f00400d62093f9b2bd9f66ec2f928a759907f6f51acdad650c8"
+  },
+  "braziers.glb": {
+    "bytes": 26592,
+    "hash": "daf253c6818575b665bef51f110b623f8e081bb28d1aa525d176156c31ff3fa0"
+  },
+  "lash.glb": {
+    "bytes": 357220,
+    "hash": "038f9844fe769aaf65e3f55a66162769c479e5fd33270c5987c843458b4ddeba"
+  },
+  "plait.bin": {
+    "bytes": 20679,
+    "hash": "e639b9a3713a917ada2b1e6ab29bd79b9eadc1161b3e5165a03375923b219c96"
+  },
+  "rocks.json": {
+    "bytes": 7375,
+    "hash": "ad5fc45ad089b8a2db95d8a39b0359225afb2635c91532506f88b85e64ea83ac"
+  },
+  "dressing.json": {
+    "bytes": 1124,
+    "hash": "0a8cc628df3ac5923534cdb03a35365edf047d753338ae73859b3f90a575ed71"
+  },
+  "tower.json": {
+    "bytes": 10274,
+    "hash": "544334788efb23e467e49c3a51af4e3a55bf3d3288e3a1b57f496abf6bbe347c"
+  },
+  "caravan.json": {
+    "bytes": 3845,
+    "hash": "54fdc15435f47b6e94c677a3793baaa24fcb108cefc16b93da571c1e0d211be5"
+  },
+  "well.json": {
+    "bytes": 4939,
+    "hash": "04104371bc445bb6d8f9f95c20abd5d84eac7a604a9283d53b44d29faccdb421"
+  },
+  "lash.json": {
+    "bytes": 1239,
+    "hash": "279e2b2f251c79ae00e006e24c95b1b52405441b3b0a2cb90a94f8b4fb8e9733"
+  },
+  "braziers.json": {
+    "bytes": 4434,
+    "hash": "0b55d1469119edb67df72185a4e4f0f2cccee56b4f2ff28a8b4dfe0d71ad4f22"
+  }
+}
