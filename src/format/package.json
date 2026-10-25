@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./glbCost": "./glbCost.ts",
     "./stateLineage": "./stateLineage.ts",
     "./ktx2Cost": "./ktx2Cost.ts",
     "./deviceMemoryCost": "./deviceMemoryCost.ts",
