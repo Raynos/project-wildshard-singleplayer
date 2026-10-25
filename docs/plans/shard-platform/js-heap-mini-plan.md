@@ -1,6 +1,6 @@
 # JS heap mini plan: what the Template allocates, and the clean path to measure it (E501)
 
-**State:** draft 2026-10-24, for Jake to read; not sent to the builder (Jake, ~22:05). Ask
+**State:** `planned` 2026-10-24 — Jake ruled the decisions (G731); built after the current extras (G683 order). Was: draft 2026-10-24, for Jake to read; not sent to the builder (Jake, ~22:05). Ask
 [E501](../../tasks/asks/E501.md). Mini plan of [SHARD-PLATFORM](../SHARD-PLATFORM.md).
 
 Jake (2026-10-24): *"Separate mini plan / mini audit to benchmaxx the JavaScript heap allocator in the browser,

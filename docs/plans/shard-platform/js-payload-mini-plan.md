@@ -1,6 +1,6 @@
 # JS payload: ship less code per entry (E500)
 
-**State:** `draft` 2026-10-24, for Jake to read; not sent to the builder (Jake, ~22:05 Cancun: *"park those two new
+**State:** `planned` 2026-10-24 — Jake ruled the decisions (G727–G730); built after the current extras (G683 order). Was: `draft` 2026-10-24, for Jake to read; not sent to the builder (Jake, ~22:05 Cancun: *"park those two new
 mini plans as draft for me to read … don't send them to builder overnight"*). A read-only audit by the plan agent's
 subagent. It gives the detail for G713's *lazy-load code* row (sp-x9 after QW7) and leaves G713's lighter post
 chain to its Opus row.
