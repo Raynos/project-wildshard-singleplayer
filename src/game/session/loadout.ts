@@ -1,3 +1,29 @@
+
+import type { SwimArms } from '@wildshard/engine/player/Hands';
+import type { EnteredEquipment as DeclarationEnteredEquipment } from '../grid/enteredEquipment';
+import type { World } from '@wildshard/engine/core/bootstrap';
+import type { ShardManifest, FieldModelsContext } from '../shard/manifest';
+import type { Game } from '@wildshard/engine/core/Game';
+import type { SkyRig } from '@wildshard/engine/world/skyRig';
+import type { Player } from '@wildshard/engine/player/Player';
+import type { Forest } from '@wildshard/engine/world/forest/Forest';
+import type { WorldRegistry } from '@wildshard/engine/world/registry';
+import type { Vector3 } from 'three';
+import type { Boundary } from '@wildshard/engine/world/Boundary';
+import type { Water } from '@wildshard/engine/world/pond';
+import type { Horizon } from '@wildshard/engine/world/Horizon';
+import type { Interactable } from '@wildshard/engine/world/interact/types';
+import type { Audio } from '@wildshard/engine/audio/Audio';
+import type { Music } from '@wildshard/engine/audio/Music';
+import type { LevelContext } from '@wildshard/engine/level/context';
+import type { Loading } from '@wildshard/engine/ui/Loading';
+import type { LevelAudioProfile } from '@wildshard/engine/audio/levelAudio';
+
+import type { Preload, AudioBanks } from '@wildshard/engine/boot/extras';
+
+import type { LoadStage } from '../shard/load';
+import type { StagedBoot, SessionState, KitPorts } from './context';
+import type { ShardProduct } from '../shardfile/shardProduct';
 import { bindEquipmentActors } from '../loadout/actors';
 import type { Targets } from '@wildshard/engine/combat/types';
 import type { Weapon } from '@wildshard/engine/combat/Weapon';
@@ -18,7 +44,7 @@ import { primaryShardManifest } from '../shard/legacy';
 import type { worldStage } from './world';
 import { withOwner } from '@wildshard/engine/app/ownership';
 import { app } from '@wildshard/engine/app/runtime';
-import { macrotask } from '@wildshard/engine/boot/plan';
+import { macrotask, type Plan, type StepRunner } from '@wildshard/engine/boot/plan';
 import { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
 import { authoredTargets } from '@wildshard/engine/combat/targets';
 import { viewmodelTexturesReady } from '@wildshard/engine/combat/view/ranged';
@@ -27,12 +53,12 @@ import { listShardModels } from '@wildshard/engine/models/roster';
 import { LockOnSystem } from '@wildshard/engine/player/LockOnTarget';
 import { TouchControls } from '@wildshard/engine/player/TouchControls';
 import { HUD } from '@wildshard/engine/ui/HUD';
-import { setting } from '@wildshard/engine/ui/Settings';
+import { setting, type getMusicStyle } from '@wildshard/engine/ui/Settings';
 import { hudAdapters } from '@wildshard/engine/ui/hudAdapters';
 import { bindClockSettings } from './clockSettings';
 import { followRing } from '../shardfile/tileDriver';
 
-async function buildLoadout(ctx: Awaited<ReturnType<typeof worldStage>>) {
+async function buildLoadout(ctx: Awaited<ReturnType<typeof worldStage>>) : Promise<{ animals: AnimalManager; getArena: () => Arena | null; prepareArena: () => Promise<Arena>; swimArms: SwimArms | undefined; crossbow: Weapon; rifle: Weapon | null; longbow: Weapon | null; weapons: EquipmentService; enteredEquipment: DeclarationEnteredEquipment | undefined; lockSys: LockOnSystem; touchControls: TouchControls; hud: HUD; world: World & { chunk: ShardManifest; }; game: Game; sky: SkyRig; player: Player; forest: Forest; params: URLSearchParams; chunk: ShardManifest; registry: WorldRegistry; fragileBoot: boolean; failGpuBoot: (reason: string, stack?: string) => void; onBootContextLost: (event: Event) => void; nolock: boolean; viewer: () => Vector3; edgeDressing: { boundary: Boundary; water: Water | null; streams: null; horizon: Horizon; }; boundary: Boundary; water: Water | null; horizon: Horizon; interactables: Interactable[]; props: null; prepareAudio: () => { audio: Audio; music: Music; }; disableBootGpuGuard: () => void; level: LevelContext | undefined; loading: Loading; audioProfile: LevelAudioProfile | undefined; files: Readonly<Record<"sky" | "baked" | "terrain" | "trees" | "physics" | "cabins" | "props" | "art" | "music" | "sfx", readonly string[]>>; bootSteps: Record<string, number>; plan: Plan<"audio" | "sky" | "terrain" | "physics" | "cabins" | "props" | "renderer" | "cards" | "forest" | "edge" | "grass" | "animals" | "weapon" | "assembly" | "menu" | "shaders" | "firstFrame">; step: StepRunner; menuLoad: Preload<void> | null; audioLoad: Preload<AudioBanks> | null; deferredAudio: (Preload<void> & { readonly style: ReturnType<typeof getMusicStyle>; decode: () => Promise<AudioBanks>; }) | null; fieldModels: Promise<(ctx: FieldModelsContext) => void> | null; manifest: ShardManifest; slug: string; stage: LoadStage; boot: StagedBoot; session: SessionState; kit: KitPorts; product: ShardProduct; }> {
   const { kit, stage, boot, step, fieldModels, world, game, sky, player, forest, chunk, registry, nolock, product } = ctx;
 
 

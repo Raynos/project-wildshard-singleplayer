@@ -1,14 +1,20 @@
+
+import type { getMusicStyle } from '@wildshard/engine/ui/Settings';
+import type { FieldModelsContext, ShardManifest } from '../shard/manifest';
+
+
+import type { ShardProduct } from '../shardfile/shardProduct';
 import { declareProductClientModules } from '../shardfile/clientModules';
 import { declareModuleGroups } from '@wildshard/engine/boot/download';
 import { imagesFirstPlayingBytes } from '../grid/runtimeCost';
 import { consumeTravelHandoff } from '../travel/travel';
-import { type StepRunner, createBootPlan } from '@wildshard/engine/boot/plan';
-import { prepareShardAssets } from '../shard/load';
-import type { SessionContext } from './context';
+import { type StepRunner, createBootPlan, type Plan } from '@wildshard/engine/boot/plan';
+import { prepareShardAssets, type LoadStage } from '../shard/load';
+import type { SessionContext, StagedBoot, SessionState, KitPorts } from './context';
 import { currentOwner } from '@wildshard/engine/app/ownership';
 import { app } from '@wildshard/engine/app/runtime';
 import { declareTotals, installByteCounter } from '@wildshard/engine/boot/bytes';
-import { bootFiles, extraFetches, startAudioPreload, startDeferredAudioPreload, startMenuPreload } from '@wildshard/engine/boot/extras';
+import { bootFiles, extraFetches, startAudioPreload, startDeferredAudioPreload, startMenuPreload, type Preload, type AudioBanks } from '@wildshard/engine/boot/extras';
 import { registerGpuFiles, setTexturePolicy } from '@wildshard/engine/boot/gpuFiles';
 import { packFor, streamPack } from '@wildshard/engine/boot/pack';
 import { bootFetches, prefetch, prefetchAfter, whenPrefetched } from '@wildshard/engine/boot/prefetch';
@@ -16,13 +22,13 @@ import { useShardSteps } from '@wildshard/engine/boot/steps';
 import { startViewmodelTextures } from '@wildshard/engine/combat/view/ranged';
 import { TIER } from '@wildshard/engine/core/tier';
 import { isDev } from '@wildshard/engine/core/devMode';
-import { beginLoading } from '@wildshard/engine/ui/Loading';
+import { beginLoading, type Loading } from '@wildshard/engine/ui/Loading';
 import { gridPrefetchStatus } from '../grid/prefetch';
 import { currentPageMode } from '../grid/pageMode';
 import { resumeProgress, resumeScreen } from '@wildshard/engine/ui/Resume';
-import { NO_AUDIO } from '@wildshard/engine/audio/levelAudio';
+import { NO_AUDIO, type LevelAudioProfile } from '@wildshard/engine/audio/levelAudio';
 
-async function buildData(ctx: SessionContext) {
+async function buildData(ctx: SessionContext) : Promise<{ loading: Loading; audioProfile: LevelAudioProfile | undefined; files: Readonly<Record<"sky" | "baked" | "terrain" | "trees" | "physics" | "cabins" | "props" | "art" | "music" | "sfx", readonly string[]>>; bootSteps: Record<string, number>; plan: Plan<"audio" | "sky" | "terrain" | "physics" | "cabins" | "props" | "renderer" | "cards" | "forest" | "edge" | "grass" | "animals" | "weapon" | "assembly" | "menu" | "shaders" | "firstFrame">; step: StepRunner; menuLoad: Preload<void> | null; audioLoad: Preload<AudioBanks> | null; deferredAudio: (Preload<void> & { readonly style: ReturnType<typeof getMusicStyle>; decode: () => Promise<AudioBanks>; }) | null; fieldModels: Promise<(ctx: FieldModelsContext) => void> | null; manifest: ShardManifest; slug: string; stage: LoadStage; boot: StagedBoot; session: SessionState; kit: KitPorts; product: ShardProduct; }> {
   const { manifest, stage, boot, session } = ctx;
 
   // level.data consumes the per-tab intent before any expensive build can fail.

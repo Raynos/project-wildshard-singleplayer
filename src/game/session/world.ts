@@ -1,3 +1,20 @@
+
+import type { ShardManifest, FieldModelsContext } from '../shard/manifest';
+import type { Game } from '@wildshard/engine/core/Game';
+import type { SkyRig } from '@wildshard/engine/world/skyRig';
+import type { Player } from '@wildshard/engine/player/Player';
+import type { Forest } from '@wildshard/engine/world/forest/Forest';
+import type { WorldRegistry } from '@wildshard/engine/world/registry';
+import type { Water as DeclarationWater } from '@wildshard/engine/world/pond';
+import type { Interactable } from '@wildshard/engine/world/interact/types';
+import type { Loading } from '@wildshard/engine/ui/Loading';
+import type { LevelAudioProfile } from '@wildshard/engine/audio/levelAudio';
+
+import type { Preload, AudioBanks } from '@wildshard/engine/boot/extras';
+import type { getMusicStyle } from '@wildshard/engine/ui/Settings';
+import type { LoadStage } from '../shard/load';
+import type { StagedBoot, SessionState, KitPorts } from './context';
+import type { ShardProduct } from '../shardfile/shardProduct';
 import { INPUT_CONTEXTS } from '../inputContexts';
 import { type Audio as LevelAudio, Audio } from '@wildshard/engine/audio/Audio';
 import { type Music as LevelMusic, Music } from '@wildshard/engine/audio/Music';
@@ -10,8 +27,8 @@ import type { dataStage } from './data';
 import { asShell } from '@wildshard/engine/app/ownership';
 import { app } from '@wildshard/engine/app/runtime';
 import { markBootContextLost, markBootHandledError } from '@wildshard/engine/boot/bootTrace';
-import { macrotask } from '@wildshard/engine/boot/plan';
-import { bootstrap } from '@wildshard/engine/core/bootstrap';
+import { macrotask, type Plan, type StepRunner } from '@wildshard/engine/boot/plan';
+import { bootstrap, type World } from '@wildshard/engine/core/bootstrap';
 import { TIER } from '@wildshard/engine/core/tier';
 import { cachedResourceAllocations } from '@wildshard/engine/render/textureBytes';
 import { installEntrySockets } from '@wildshard/engine/physics/entrySockets';
@@ -22,7 +39,7 @@ import { hasPond } from '@wildshard/engine/world/Heightfield';
 import { Horizon } from '@wildshard/engine/world/Horizon';
 import { HorizonMatte } from '@wildshard/engine/world/HorizonMatte';
 
-async function buildWorld(ctx: Awaited<ReturnType<typeof dataStage>>, level: LevelContext | undefined) {
+async function buildWorld(ctx: Awaited<ReturnType<typeof dataStage>>, level: LevelContext | undefined) : Promise<{ world: World & { chunk: ShardManifest; }; game: Game; sky: SkyRig; player: Player; forest: Forest; params: URLSearchParams; chunk: ShardManifest; registry: WorldRegistry; fragileBoot: boolean; failGpuBoot: (reason: string, stack?: string) => void; onBootContextLost: (event: Event) => void; nolock: boolean; viewer: () => THREE.Vector3; edgeDressing: { boundary: Boundary; water: DeclarationWater | null; streams: null; horizon: Horizon; }; boundary: Boundary; water: DeclarationWater | null; horizon: Horizon; interactables: Interactable[]; props: null; prepareAudio: () => { audio: LevelAudio; music: LevelMusic; }; disableBootGpuGuard: () => void; level: LevelContext | undefined; loading: Loading; audioProfile: LevelAudioProfile | undefined; files: Readonly<Record<"sky" | "baked" | "terrain" | "trees" | "physics" | "cabins" | "props" | "art" | "music" | "sfx", readonly string[]>>; bootSteps: Record<string, number>; plan: Plan<"audio" | "sky" | "terrain" | "physics" | "cabins" | "props" | "renderer" | "cards" | "forest" | "edge" | "grass" | "animals" | "weapon" | "assembly" | "menu" | "shaders" | "firstFrame">; step: StepRunner; menuLoad: Preload<void> | null; audioLoad: Preload<AudioBanks> | null; deferredAudio: (Preload<void> & { readonly style: ReturnType<typeof getMusicStyle>; decode: () => Promise<AudioBanks>; }) | null; fieldModels: Promise<(ctx: FieldModelsContext) => void> | null; manifest: ShardManifest; slug: string; stage: LoadStage; boot: StagedBoot; session: SessionState; kit: KitPorts; product: ShardProduct; }> {
   const { manifest, boot, session, audioProfile, plan, step, product } = ctx;
 
   const selected = { ...manifest, spawn: boot.handoff?.arrive ?? manifest.spawn };

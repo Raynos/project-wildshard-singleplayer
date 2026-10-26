@@ -1,3 +1,39 @@
+
+import type { GridSession as DeclarationGridSession } from '../grid/session';
+import type { Physics } from '@wildshard/engine/physics/Physics';
+import type { Audio } from '@wildshard/engine/audio/Audio';
+import type { Music } from '@wildshard/engine/audio/Music';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
+import type { TitleArrival } from '@wildshard/engine/boot/titleArrival';
+import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import type { TrainingArena } from '@wildshard/engine/practice/TrainingArena';
+
+import type { Weapon } from '@wildshard/engine/combat/Weapon';
+import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
+import type { EnteredEquipment } from '../grid/enteredEquipment';
+import type { LockOnSystem } from '@wildshard/engine/player/LockOnTarget';
+import type { TouchControls } from '@wildshard/engine/player/TouchControls';
+import type { HUD } from '@wildshard/engine/ui/HUD';
+import type { World } from '@wildshard/engine/core/bootstrap';
+import type { ShardManifest, FieldModelsContext } from '../shard/manifest';
+import type { Game } from '@wildshard/engine/core/Game';
+import type { SkyRig } from '@wildshard/engine/world/skyRig';
+import type { Player } from '@wildshard/engine/player/Player';
+import type { Forest } from '@wildshard/engine/world/forest/Forest';
+import type { WorldRegistry } from '@wildshard/engine/world/registry';
+import type { Boundary } from '@wildshard/engine/world/Boundary';
+import type { Water } from '@wildshard/engine/world/pond';
+import type { Horizon } from '@wildshard/engine/world/Horizon';
+import type { Interactable } from '@wildshard/engine/world/interact/types';
+import type { LevelContext } from '@wildshard/engine/level/context';
+import type { Loading } from '@wildshard/engine/ui/Loading';
+import type { LevelAudioProfile } from '@wildshard/engine/audio/levelAudio';
+
+
+
+import type { LoadStage } from '../shard/load';
+import type { StagedBoot, SessionState, KitPorts } from './context';
+import type { ShardProduct } from '../shardfile/shardProduct';
 import { resolveLevelBounds } from '../shard/runtime';
 import { shardEntry } from '../shard/entryMode';
 import { SkinLocker } from '../cosmetics/locker';
@@ -29,8 +65,8 @@ import { animalPositions } from './positions';
 import { describeKeyBindings } from '../keyBindings';
 import { app } from '@wildshard/engine/app/runtime';
 import { beginExploreEntry, recordBootCheckpoint } from '@wildshard/engine/boot/bootTrace';
-import { startMenuPreload } from '@wildshard/engine/boot/extras';
-import { macrotask } from '@wildshard/engine/boot/plan';
+import { startMenuPreload, type Preload, type AudioBanks } from '@wildshard/engine/boot/extras';
+import { macrotask, type Plan, type StepRunner } from '@wildshard/engine/boot/plan';
 import { waitFor } from '@wildshard/engine/boot/waits';
 import { loadExplore, loadFeedback as loadFeedbackModule, loadPlayground } from '@wildshard/engine/boot/runtime';
 import { CombatCues } from '@wildshard/engine/combat/cues';
@@ -45,7 +81,7 @@ import { TIER } from '@wildshard/engine/core/tier';
 import { Impacts } from '@wildshard/engine/fx/Impacts';
 import { floorBelow, lineOfSight } from '@wildshard/engine/physics/query';
 import { CameraFX } from '@wildshard/engine/player/CameraFX';
-import { Hands } from '@wildshard/engine/player/Hands';
+import { Hands, type SwimArms } from '@wildshard/engine/player/Hands';
 import { Combat, aimReadout } from '@wildshard/engine/ui/Combat';
 import { DeathFade } from '@wildshard/engine/ui/DeathFade';
 import { FirstHints } from '@wildshard/engine/ui/FirstHints';
@@ -56,7 +92,7 @@ import { GameMenu } from '@wildshard/engine/ui/Menu';
 import { Minimap } from '@wildshard/engine/ui/Minimap';
 import { Perf } from '@wildshard/engine/ui/Perf';
 import { rotateGated } from '@wildshard/engine/ui/RotateGate';
-import { getNumber, onNumber } from '@wildshard/engine/ui/Settings';
+import { getNumber, onNumber, type getMusicStyle } from '@wildshard/engine/ui/Settings';
 import { SpeedLines } from '@wildshard/engine/ui/SpeedLines';
 import { WeaponStrip } from '@wildshard/engine/ui/WeaponStrip';
 import { WindupWarn } from '@wildshard/engine/ui/WindupWarn';
@@ -78,7 +114,7 @@ import type { LiveGridSession } from '../grid/liveSession';
 import { pickInteractable } from '@wildshard/engine/world/interact/Interactables';
 import { terrainDatum } from '@wildshard/engine/world/terrainHeight';
 
-async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
+async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) : Promise<{ grid: DeclarationGridSession | null; gridLive: LiveGridSession | null; leakPhysics: Physics; perf: Perf; audio: Audio; music: Music; playerHealth: PlayerHealth; exploring: () => boolean; hands: Hands; windupWarn: WindupWarn<Animal> | null; resuming: boolean; continuingGridEntry: boolean; arrival: TitleArrival | null; menuFirst: boolean; enter: () => void; getPlayground: () => Playground | null; minimap: Minimap; startExplore: (() => void) | undefined; animals: AnimalManager; getArena: () => TrainingArena | null; prepareArena: () => Promise<TrainingArena>; swimArms: SwimArms | undefined; crossbow: Weapon; rifle: Weapon | null; longbow: Weapon | null; weapons: EquipmentService; enteredEquipment: EnteredEquipment | undefined; lockSys: LockOnSystem; touchControls: TouchControls; hud: HUD; world: World & { chunk: ShardManifest; }; game: Game; sky: SkyRig; player: Player; forest: Forest; params: URLSearchParams; chunk: ShardManifest; registry: WorldRegistry; fragileBoot: boolean; failGpuBoot: (reason: string, stack?: string) => void; onBootContextLost: (event: Event) => void; nolock: boolean; viewer: () => THREE.Vector3; edgeDressing: { boundary: Boundary; water: Water | null; streams: null; horizon: Horizon; }; boundary: Boundary; water: Water | null; horizon: Horizon; interactables: Interactable[]; props: null; prepareAudio: () => { audio: Audio; music: Music; }; disableBootGpuGuard: () => void; level: LevelContext | undefined; loading: Loading; audioProfile: LevelAudioProfile | undefined; files: Readonly<Record<"sky" | "baked" | "terrain" | "trees" | "physics" | "cabins" | "props" | "art" | "music" | "sfx", readonly string[]>>; bootSteps: Record<string, number>; plan: Plan<"audio" | "sky" | "terrain" | "physics" | "cabins" | "props" | "renderer" | "cards" | "forest" | "edge" | "grass" | "animals" | "weapon" | "assembly" | "menu" | "shaders" | "firstFrame">; step: StepRunner; menuLoad: Preload<void> | null; audioLoad: Preload<AudioBanks> | null; deferredAudio: (Preload<void> & { readonly style: ReturnType<typeof getMusicStyle>; decode: () => Promise<AudioBanks>; }) | null; fieldModels: Promise<(ctx: FieldModelsContext) => void> | null; manifest: ShardManifest; slug: string; stage: LoadStage; boot: StagedBoot; session: SessionState; kit: KitPorts; product: ShardProduct; }> {
   const { manifest, boot, session, kit, files, step, menuLoad, world, game, sky, player, params, chunk, registry, nolock, viewer, boundary, horizon, prepareAudio, animals, getArena, prepareArena, swimArms, crossbow, rifle, longbow, weapons, lockSys, touchControls, hud } = ctx;
   const leakPhysics = world.physics; // The borrowed page world outlives temporary active frames.
   // G628 M4: a shard page's Developer warning chip; a grid page's resident over-limit is a line of its memory strip instead,
