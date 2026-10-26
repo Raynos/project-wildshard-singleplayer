@@ -61,6 +61,15 @@ function restBones(bones: readonly Bone[], inverses: readonly Matrix4[], id: str
   });
 }
 
+/** Future instances need the family entry, not the parsed binding's consumed pose tables. */
+function materialFactory(compile: (entry: unknown) => Material, entry: unknown): () => MeshStandardMaterial | MeshLambertMaterial {
+  return () => {
+    const compiled = compile(entry);
+    if (!(compiled instanceof MeshStandardMaterial) && !(compiled instanceof MeshLambertMaterial)) throw new Error('Creature surface requires a lit platform material');
+    return compiled;
+  };
+}
+
 /**
  * Load every skin look of `source` from admitted bytes (`assets`, the library closure) with its binding's family
  * material (`compile`, the loader's material compiler). Keyed by look row id; everything is disposed with `scope`.
@@ -74,11 +83,7 @@ export async function loadClientSkins(source: Pick<Shardfile, 'rows' | 'files'>,
     const { row, binding } = parseSkinFile(json), declared = source.files.find((file) => file.hash === parameters.skin);
     if (declared?.dependencies.length !== 1 || declared.dependencies[0] !== row.file) throw new Error(`skin look ${look.id}: the skin file must depend on exactly its GLB`);
     const glb = assets.get(row.file); if (glb === undefined) throw new Error(`skin look ${look.id}: missing admitted skin GLB`);
-    const material = (): MeshStandardMaterial | MeshLambertMaterial => {
-      const compiled = compile(binding.material);
-      if (!(compiled instanceof MeshStandardMaterial) && !(compiled instanceof MeshLambertMaterial)) throw new Error('Creature surface requires a lit platform material');
-      return compiled;
-    };
+    const material = materialFactory(compile, binding.material);
     const player = await loadSkin(glb, row, binding, material(), scope);
     await macrotask(); // the GLB's parse and the clips' sampling a task apart
     const geometry = player.mesh.geometry, joints = player.mesh.skeleton.bones;
