@@ -130,12 +130,42 @@ test('named wet rasters refuse missing, malformed, nonfinite and duplicate loans
 });
 
 
-test('shipped wet publication is named and reconstructs the complete predecessor metadata',()=>{
-  expect(shipped.world.wet).toEqual({type:'f32',count:65536,data:{file:wetBlock.file}});
-  const input:unknown=JSON.parse(readFileSync('src/shards/nalati-grasslands/data/populationField.generated.json','utf8'));
+/** Frozen pre-bd671 river recipe: native Math may differ across hosts.
+ * Check every host result exactly before using the historical river bytes in
+ * the complete metadata oracle. No rounding or tolerance enters either check.
+ */
+function predecessorRiver(): {from:number;step:number;values:[number,number][]} {
+  return {from:-250,step:1,values:Array.from({length:501},(_,i):[number,number]=>{
+    const x=i-250,s=Math.min(1,Math.max(0,(Math.abs(x)-8)/52));
+    return [168+4*Math.exp(-((x/70)**2))+5*Math.sin(x*.017)+3*Math.sin(x*.041+1.3)-3*Math.sin(1.3),
+      (15+3*Math.sin(x*.009+2.1)+2*Math.sin(x*.031))*(.62+.38*s*s*(3-2*s))];
+  })};
+}
+
+function assertPredecessorMetadata(input:unknown):void {
   const rows=v.parse(v.record(v.string(),v.unknown()),input),world=v.parse(v.record(v.string(),v.unknown()),rows['world']);
-  const originalRows={...rows,world:{...world,wet:shippedWet}};
+  expect(rows['river']).toEqual(predecessorRiver());
+  const frozen:unknown=JSON.parse(readFileSync('test/fixtures/nalati-headless-original.json','utf8'));
+  const root=v.parse(v.record(v.string(),v.unknown()),frozen),constants=v.parse(v.record(v.string(),v.unknown()),root['constants']);
+  const historical=v.parse(PopulationFieldSchema,constants['nativeField']);
+  const originalRows={...rows,world:{...world,wet:shippedWet},river:historical.river};
   const bytes=new TextEncoder().encode(`${JSON.stringify(originalRows)}\n`);
   expect(bytes.byteLength).toBe(22395);
   expect(sha256(bytes)).toBe('f1dfb3e8112839ba54538171edce6f113309fb0a32d6f57848b2be28287d58d3');
+}
+
+test('shipped wet publication is named and reconstructs the complete predecessor metadata',()=>{
+  expect(shipped.world.wet).toEqual({type:'f32',count:65536,data:{file:wetBlock.file}});
+  const input:unknown=JSON.parse(readFileSync('src/shards/nalati-grasslands/data/populationField.generated.json','utf8'));
+  assertPredecessorMetadata(input);
+});
+
+test('metadata provenance refuses a changed river sample or any other field',()=>{
+  const input:unknown=JSON.parse(readFileSync('src/shards/nalati-grasslands/data/populationField.generated.json','utf8'));
+  const rows=v.parse(v.record(v.string(),v.unknown()),input),river=predecessorRiver();
+  const first=river.values[0];
+  if(!first)throw new Error('Missing predecessor river sample');
+  first[1]+=Number.EPSILON*16;
+  expect(()=>assertPredecessorMetadata({...rows,river})).toThrow();
+  expect(()=>assertPredecessorMetadata({...rows,seed:0})).toThrow();
 });
