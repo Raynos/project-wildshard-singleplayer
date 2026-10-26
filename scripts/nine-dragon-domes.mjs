@@ -20,6 +20,8 @@ import { closeSync, existsSync, mkdirSync, openSync, readFileSync, unlinkSync, w
 import { join, resolve as resolvePath } from 'node:path';
 import { tmpdir } from 'node:os';
 import { chromium } from 'playwright';
+import { jpegImageRoutes } from './parity/image-routes.mjs';
+import { saveCanvasJpeg } from './parity/canvas-bytes.mjs';
 
 const ROOT = join(import.meta.dirname, '..');
 const argv = process.argv.slice(2);
@@ -58,8 +60,6 @@ process.on('exit', release);
 for (const s of ['SIGINT', 'SIGTERM']) process.on(s, () => { release(); process.exit(1); });
 
 const { MOCKUP_CAMERAS } = await import(join(ROOT, 'src/shards/nine-dragon-stack/generators/mockupCameras.ts'));
-const jpg64 = (p) => `data:image/jpeg;base64,${readFileSync(p).toString('base64')}`;
-const save = (p, dataUrl) => { writeFileSync(p, Buffer.from(dataUrl.slice(dataUrl.indexOf(',') + 1), 'base64')); };
 
 const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist', '--enable-gpu-rasterization'] });
 const stats = { url: base, when: new Date().toISOString(), poses: {}, memory: null };
@@ -156,32 +156,34 @@ try {
       stats.poses[`${d.slice(0, 2)}·${v.n}`] = f;
       const file = join(OUT, `${d}-${v.n}.jpg`);
       await page.screenshot({ path: file, type: 'jpeg', quality: 90 });
-      const url = jpg64(file);
-      pairs.push({ n: v.n, name: v.name, target: jpg64(`${ART}/${d}/target-${v.n}.jpg`), engine: url, f });
+      pairs.push({ n: v.n, name: v.name, target: readFileSync(`${ART}/${d}/target-${v.n}.jpg`), engine: readFileSync(file), f });
       console.info(`${d.slice(0, 2)}·${v.n} ${v.name}: ${f.calls} draws, ${(f.tris / 1e6).toFixed(2)} M tris`);
     }
-    const sheet = await page.evaluate(async ([title, ps]) => {
-      const load = (src) => new Promise((resolve) => { const im = new Image(); im.onload = () => resolve(im); im.src = src; });
-      const TW = 300, TH = 450, G = 8, HEAD = 44, LAB = 26;
-      const cv = document.createElement('canvas');
-      cv.width = G + 6 * (TW + G); cv.height = HEAD + 3 * (TH + LAB + G) + G;
-      const c = cv.getContext('2d');
-      c.fillStyle = '#0a0f16'; c.fillRect(0, 0, cv.width, cv.height);
-      c.fillStyle = '#8fe3ff'; c.font = 'bold 24px sans-serif'; c.fillText(title, G + 4, 30);
-      for (const [i, p] of ps.entries()) {
-        const col = (i % 3) * 2, row = Math.floor(i / 3);
-        const y = HEAD + row * (TH + LAB + G);
-        for (const [j, src] of [p.target, p.engine].entries()) {
-          const im = await load(src), x = G + (col + j) * (TW + G);
-          const s = Math.max(TW / im.width, TH / im.height), w = im.width * s, h = im.height * s;
-          c.save(); c.beginPath(); c.rect(x, y, TW, TH); c.clip(); c.drawImage(im, x + (TW - w) / 2, y + (TH - h) / 2, w, h); c.restore();
-          c.fillStyle = j ? '#8fe3ff' : '#ffbe5a'; c.font = 'bold 15px sans-serif';
-          c.fillText(j ? `engine · ${p.f.calls} dr · ${(p.f.tris / 1e6).toFixed(2)} M` : `${p.n} · ${p.name} · target`, x + 2, y + TH + 18);
+    const inputs = await jpegImageRoutes(page, pairs.flatMap(pair => [pair.target, pair.engine]));
+    try {
+      const sheet = await page.evaluateHandle(async ([title, ps]) => {
+        const load = async (src) => { const im = new Image(); im.crossOrigin = 'anonymous'; im.src = src; await im.decode(); return im; };
+        const TW = 300, TH = 450, G = 8, HEAD = 44, LAB = 26;
+        const cv = document.createElement('canvas');
+        cv.width = G + 6 * (TW + G); cv.height = HEAD + 3 * (TH + LAB + G) + G;
+        const c = cv.getContext('2d');
+        c.fillStyle = '#0a0f16'; c.fillRect(0, 0, cv.width, cv.height);
+        c.fillStyle = '#8fe3ff'; c.font = 'bold 24px sans-serif'; c.fillText(title, G + 4, 30);
+        for (const [i, p] of ps.entries()) {
+          const col = (i % 3) * 2, row = Math.floor(i / 3);
+          const y = HEAD + row * (TH + LAB + G);
+          for (const [j, src] of [p.target, p.engine].entries()) {
+            const im = await load(src), x = G + (col + j) * (TW + G);
+            const s = Math.max(TW / im.width, TH / im.height), w = im.width * s, h = im.height * s;
+            c.save(); c.beginPath(); c.rect(x, y, TW, TH); c.clip(); c.drawImage(im, x + (TW - w) / 2, y + (TH - h) / 2, w, h); c.restore();
+            c.fillStyle = j ? '#8fe3ff' : '#ffbe5a'; c.font = 'bold 15px sans-serif';
+            c.fillText(j ? `engine · ${p.f.calls} dr · ${(p.f.tris / 1e6).toFixed(2)} M` : `${p.n} · ${p.name} · target`, x + 2, y + TH + 18);
+          }
         }
-      }
-      return cv.toDataURL('image/jpeg', 0.85);
-    }, [`${d} · target | engine${TAG ? ` · ${TAG}` : ''}`, pairs]);
-    save(join(OUT, `${d}-sheet.jpg`), sheet);
+        return cv;
+      }, [`${d} · target | engine${TAG ? ` · ${TAG}` : ''}`, pairs.map((pair, index) => ({ n: pair.n, name: pair.name, f: pair.f, target: inputs.urls[index * 2], engine: inputs.urls[index * 2 + 1] }))]);
+      await saveCanvasJpeg(page, sheet, join(OUT, `${d}-sheet.jpg`), 0.85);
+    } finally { await inputs.dispose(); }
   }
 
   // the mockup cameras: the phone frame, as played
@@ -201,31 +203,34 @@ try {
     stats.poses[`mockup ${k}`] = f;
     const file = join(OUT, `mockup-${k}.jpg`);
     await page.screenshot({ path: file, type: 'jpeg', quality: 88 });
-    mshots.push({ k, mock: jpg64(join(ROOT, 'art/nine-dragon-stack/round-6-baseline-hud', c.mockup)), engine: jpg64(file), f });
+    mshots.push({ k, mock: readFileSync(join(ROOT, 'art/nine-dragon-stack/round-6-baseline-hud', c.mockup)), engine: readFileSync(file), f });
     console.info(`mockup ${k}: ${f.calls} draws, ${(f.tris / 1e6).toFixed(2)} M tris`);
   }
   if (mshots.length > 0) {
-    const sheet = await page.evaluate(async ([title, ms]) => {
-      const load = (src) => new Promise((resolve) => { const im = new Image(); im.onload = () => resolve(im); im.src = src; });
-      const TW = 360, TH = Math.round((360 * 874) / 402), G = 10, HEAD = 44, LAB = 24;
-      const cv = document.createElement('canvas');
-      cv.width = G + ms.length * (TW + G); cv.height = HEAD + 2 * (TH + LAB + G) + G;
-      const c = cv.getContext('2d');
-      c.fillStyle = '#0a0f16'; c.fillRect(0, 0, cv.width, cv.height);
-      c.fillStyle = '#8fe3ff'; c.font = 'bold 24px sans-serif'; c.fillText(title, G + 4, 30);
-      for (const [i, m] of ms.entries()) {
-        const x = G + i * (TW + G);
-        for (const [j, src] of [m.mock, m.engine].entries()) {
-          const im = await load(src), y = HEAD + j * (TH + LAB + G);
-          const s = Math.max(TW / im.width, TH / im.height), w = im.width * s, h = im.height * s;
-          c.save(); c.beginPath(); c.rect(x, y, TW, TH); c.clip(); c.drawImage(im, x + (TW - w) / 2, y + (TH - h) / 2, w, h); c.restore();
-          c.fillStyle = j ? '#8fe3ff' : '#ffbe5a'; c.font = 'bold 16px sans-serif';
-          c.fillText(j ? `${m.k} engine · ${m.f.calls} dr · ${(m.f.tris / 1e6).toFixed(2)} M` : `${m.k} · mockup`, x + 2, y + TH + 18);
+    const inputs = await jpegImageRoutes(page, mshots.flatMap(shot => [shot.mock, shot.engine]));
+    try {
+      const sheet = await page.evaluateHandle(async ([title, ms]) => {
+        const load = async (src) => { const im = new Image(); im.crossOrigin = 'anonymous'; im.src = src; await im.decode(); return im; };
+        const TW = 360, TH = Math.round((360 * 874) / 402), G = 10, HEAD = 44, LAB = 24;
+        const cv = document.createElement('canvas');
+        cv.width = G + ms.length * (TW + G); cv.height = HEAD + 2 * (TH + LAB + G) + G;
+        const c = cv.getContext('2d');
+        c.fillStyle = '#0a0f16'; c.fillRect(0, 0, cv.width, cv.height);
+        c.fillStyle = '#8fe3ff'; c.font = 'bold 24px sans-serif'; c.fillText(title, G + 4, 30);
+        for (const [i, m] of ms.entries()) {
+          const x = G + i * (TW + G);
+          for (const [j, src] of [m.mock, m.engine].entries()) {
+            const im = await load(src), y = HEAD + j * (TH + LAB + G);
+            const s = Math.max(TW / im.width, TH / im.height), w = im.width * s, h = im.height * s;
+            c.save(); c.beginPath(); c.rect(x, y, TW, TH); c.clip(); c.drawImage(im, x + (TW - w) / 2, y + (TH - h) / 2, w, h); c.restore();
+            c.fillStyle = j ? '#8fe3ff' : '#ffbe5a'; c.font = 'bold 16px sans-serif';
+            c.fillText(j ? `${m.k} engine · ${m.f.calls} dr · ${(m.f.tris / 1e6).toFixed(2)} M` : `${m.k} · mockup`, x + 2, y + TH + 18);
+          }
         }
-      }
-      return cv.toDataURL('image/jpeg', 0.85);
-    }, [`mockup cameras · mockup / engine${TAG ? ` · ${TAG}` : ''}`, mshots]);
-    save(join(OUT, 'mockups-sheet.jpg'), sheet);
+        return cv;
+      }, [`mockup cameras · mockup / engine${TAG ? ` · ${TAG}` : ''}`, mshots.map((shot, index) => ({ k: shot.k, f: shot.f, mock: inputs.urls[index * 2], engine: inputs.urls[index * 2 + 1] }))]);
+      await saveCanvasJpeg(page, sheet, join(OUT, 'mockups-sheet.jpg'), 0.85);
+    } finally { await inputs.dispose(); }
   }
   writeFileSync(join(OUT, `${TAG ? `${TAG}-` : ''}stats.json`), `${JSON.stringify(stats, null, 1)}\n`);
 } finally {
