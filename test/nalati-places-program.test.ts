@@ -27,7 +27,17 @@ test('fresh owned places retain native bytes and metadata with detached cache hi
     };
     const pins=JSON.parse(readFileSync('test/fixtures/nalati-place-wires.json','utf8'));
     const check=files=>{
-      assert.deepEqual([...files.keys()].sort(),['placeSpecimens.json','places.bin','places.json','specimens.bin']);
+      assert.deepEqual([...files.keys()].sort(),['actor:balbal:0:2977.bin','actor:balbal:1:2977.bin','actor:goat.bin','placeParts.json','placeSpecimens.json','places.bin','places.json','specimens.bin']);
+      const parts=JSON.parse(new TextDecoder().decode(files.get('placeParts.json')));
+      const runtime=JSON.parse(readFileSync('src/shards/nalati-grasslands/data/placeRuntime.generated.json','utf8'));
+      for(const [name,path,hash] of [
+        ['actor:balbal:0:2977','balbal-carving-0.generated.bin','822694b3287b5b09781e531c2edfbc5def284a757fc097dcc23061b09e79f85c'],
+        ['actor:balbal:1:2977','balbal-carving-1.generated.bin','45ac62fdf44b83dd06ed55de034577712732a535385de1718e16862279b4634f'],
+        ['actor:goat','quest-prop.generated.bin','ec1282219cd79471dbbdfa8d58e801ebb4b95e73d44106f7e325eb0fc9028440']]){
+        const bytes=files.get(name+'.bin'); assert.equal(hashImmutableBytes(bytes),hash);
+        assert.equal(Buffer.compare(bytes,readFileSync('src/shards/nalati-grasslands/data/'+path)),0);
+        assert.deepEqual(parts[name],runtime.places.rows.find(row=>row.name===name).meshes[0].geometry);
+      }
       for(const [name,file] of [['places','places.json'],['specimens','placeSpecimens.json']]){
         const binary=files.get(name+'.bin'),document=files.get(file);
         const pin=pins.find(row=>row.path==='public/assets/nalati/baked/'+name+'.bin');
@@ -55,7 +65,7 @@ test('fresh owned places retain native bytes and metadata with detached cache hi
 test('missing terrain and incomplete or extra cached outputs refuse', async () => {
   await expect(nalatiPlacesProgram({ cached: (_step, make) => Promise.resolve(make(new Map())) })).rejects.toThrow('Missing original Nalati placement terrain');
   await expect(nalatiPlacesProgram({ cached: () => Promise.resolve(new Map()) })).rejects.toThrow('Owned Nalati placement inventory differs');
-  const names = ['places.bin', 'places.json', 'specimens.bin', 'placeSpecimens.json'];
+  const names = ['places.bin', 'places.json', 'specimens.bin', 'placeSpecimens.json', 'placeParts.json', 'actor:balbal:0:2977.bin', 'actor:balbal:1:2977.bin', 'actor:goat.bin'];
   for (const files of [new Map(names.map(name => [name, new Uint8Array()])), new Map([...names, 'extra'].map(name => [name, new Uint8Array([1])]))]) {
     await expect(nalatiPlacesProgram({ cached: () => Promise.resolve(files) })).rejects.toThrow('Owned Nalati placement inventory differs');
   }

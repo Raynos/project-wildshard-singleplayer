@@ -3,12 +3,14 @@ import { encodeBuildBytes } from '@wildshard/sdk/bake/byteCodec';
 import { withPortableMath } from '@wildshard/commons/bake/portableMath';
 import { bakeNalatiPlacesOnTerrain } from './places';
 import { encodeNalatiPart } from './placeWire';
+import { nalatiNativePlaceParts } from './placeParts';
 import { prepareNalatiDressingInputs } from './dressingInputs';
 import { bakeNalatiDressingSource } from './dressingSource';
 
 const terrain = '/assets/baked/nalati-grasslands/terrain.bin';
 const scalarInputs = ['pond', 'red', 'green', 'blue'].map(name => `data/geography-${name}.bin`);
-const names = ['places.bin', 'places.json', 'specimens.bin', 'placeSpecimens.json'];
+const partNames = ['actor:balbal:0:2977', 'actor:balbal:1:2977', 'actor:goat'];
+const names = ['places.bin', 'places.json', 'specimens.bin', 'placeSpecimens.json', 'placeParts.json', ...partNames.map(name => `${name}.bin`)];
 
 /** Cache fresh native construction as owned byte files; never publishes a source/public handoff.
  * The native cache key includes the bundled dressing recipe, original specimen arithmetic and codec. */
@@ -22,7 +24,10 @@ export async function nalatiPlacesProgram(ctx: Pick<ProjectGenerationContext, 'c
     const made = bakeNalatiPlacesOnTerrain(Uint8Array.from(bytes).buffer, withPortableMath, dressing);
     const compress = (value: Uint8Array): Uint8Array => encodeBuildBytes(value, 'deflate', 9, 'native');
     const places = encodeNalatiPart(made.places, compress), specimens = encodeNalatiPart(made.specimens, compress);
-    return new Map([['places.bin', places.binary], ['places.json', places.document], ['specimens.bin', specimens.binary], ['placeSpecimens.json', specimens.document]]);
+    const parts = nalatiNativePlaceParts(made.places.rows, made.places.bin, partNames);
+    const geometry = Object.fromEntries([...parts].map(([name, part]) => [name, part.geometry]));
+    return new Map([['places.bin', places.binary], ['places.json', places.document], ['specimens.bin', specimens.binary], ['placeSpecimens.json', specimens.document],
+      ['placeParts.json', new TextEncoder().encode(`${JSON.stringify(geometry)}\n`)], ...[...parts].map(([name, part]): [string, Uint8Array] => [`${name}.bin`, part.bytes])]);
   });
   if (files.size !== names.length || [...files.keys()].some(name => !names.includes(name)) || names.some(name => (files.get(name)?.length ?? 0) === 0)) {
     throw new Error('Owned Nalati placement inventory differs');

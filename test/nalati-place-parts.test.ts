@@ -9,7 +9,7 @@ import * as v from 'valibot';
 import { SceneBakedGeometrySchema } from '../src/format/sceneDressing';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
-import { nalatiPlaceParts } from '../src/shards/nalati-grasslands/generators/placeParts';
+import { nalatiNativePlaceParts, nalatiPlaceParts } from '../src/shards/nalati-grasslands/generators/placeParts';
 
 const root = 'src/shards/nalati-grasslands/';
 const inputSchema = v.object({ places: v.object({ rows: v.array(v.object({ name: v.string(), meshes: v.array(v.object({
@@ -51,6 +51,11 @@ test('padding, index words and every missing/ambiguous/out-of-range part retain 
   expect(() => nalatiPlaceParts(input, new Uint8Array(3), ['part'])).toThrow('whole words');
   for (const offset of [-1, 3, 12]) expect(() => nalatiPlaceParts({ places: { rows: [{ ...row, meshes: [{ offset, geometry }] }] } }, raw, ['part'])).toThrow();
   expect(() => v.parse(inputSchema, {})).toThrow();
+  const native = [{ name: 'unselected', meshes: [{ geometry }] }, { name: 'part', meshes: [{ geometry }] }];
+  const words = Uint8Array.from({ length: 32 }, (_, i) => i);
+  expect(nalatiNativePlaceParts(native, words, ['part']).get('part')?.bytes).toEqual(words.slice(16));
+  expect(() => nalatiNativePlaceParts(native, words.slice(4), ['part'])).toThrow('complete raw span');
+  expect(() => nalatiNativePlaceParts(native, words, ['missing'])).toThrow('Missing or ambiguous');
 });
 
 test('part extraction remains one config-safe author chunk', async () => {
