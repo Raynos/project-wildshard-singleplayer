@@ -316,8 +316,12 @@ there is no newer exact smoke or release proof.
   predates G750's1d4a4f738f removal of the sole-use cloud comparison code.
   Current source-only closed-component check passes. The full strict output
   census still requires current products; no green claim substitutes for it.
-  G750 owner confirmation/proof was routed to the coordinator; sp-x7 retains
-  release-red duty until the containing gate proves this boundary.
+  O3 confirms sole ownership and the exact charge: toonClouds.ts contains
+  37 non-comment lines minus six imports, hence31 counted sole-user lines.
+  Defining G750 fix1d4a4f738f is verified on origin and deletes that module
+  plus the variant branch. The source fix is present; full products/census
+  acceptance remains pending on a containing ordinary run. No redundant
+  local rebuild, guard allowance or CI-success claim is made.
 - Types: quantized GLB tests passed ArrayBuffer|SharedArrayBuffer to
   GLTFLoader, first21:43:49. O3 fix732273c60f is on origin, local strict
   SDK test types and both cases pass, within22:13:49 source deadline.
