@@ -198,7 +198,7 @@ for the kit before the families switch on; `tiledPlot.mjs` `KIT_FAMILIES` lists 
 | RM4.6 street props | done (opt-in) | Planters with flowers, benches, crates and goods, banners |
 | RM4.7 trees | in flight (2026-10-26, sp-o1) | Round-crown trees, TRELLIS.2 vs Hunyuan3D-2 (better wins), three variants |
 | RM4.8 figures | open | Static posed figures at stalls and on bridges (image-to-3D) |
-| RM4.9 boards | open | A labelled 4-angle board per family beside its mockup crop; A2 / D2 captures for bars 2 and 5 |
+| RM4.9 boards | done for 7 families (`art/grid/round-69-night-market-kit/`); trees and the in-game A2 / D2 captures follow RM8.1 | A labelled 4-angle board per family beside its mockup crop; A2 / D2 captures for bars 2 and 5 |
 | RM7.1 canal coping | done (opt-in) | 2 m coping blocks with a lip over the water on every rim, a bollard every fifth, water steps every ninth |
 | RM7.2 water light | done (opt-in, straight canals) | Each bank lantern doubled on the water, a soft additive streak from the wall |
 | RM7.3 kerbs and block edges | open | Raised kerbs round the blocks, the lanes' edges |
