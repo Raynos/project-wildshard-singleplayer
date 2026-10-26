@@ -3851,7 +3851,7 @@ These one-user implementations and their SDK facades returned to Signal under DS
 
 `@wildshard/sdk/bake/export` samples poses at 30–120 Hz, preserving root motion, joint order and local TRS. `skinnedGlb` writes deterministic geometry, weights, inverse binds and named clips with explicit external KTX2 bindings. Playback uses `GLTFLoader`, `bindRig` and `AnimationMixer`. Runtime: await `prepareGlbCost()` from `@wildshard/format/glbCost`, then `parseGlbData(bytes)` without whole-product initialization. Admission checks node trees, skin indices/normalized weights, finite inverse binds, ordered clip times and rotations. Residency includes palettes/matrices and decoded tracks; clip accessors remain GPU-counted. Embedded WebP/Basis KTX2 needs matching declared extensions, MIME, bounded images and valid sampler/material references. URIs, ambiguous/non-Basis bindings refuse. Decoded images and RGBA8 mip bounds share the 25 MB GLB cap. Library commons keep byte-derived costing.
 
-`@wildshard/sdk/bake/basisGlb`: `basisGlbVariant(source, encode)` rewrites WebP to raw-geometry Basis GLB. Copies isolate mutation; dimensions/full mips and admission stay strict. Encoder is injected. `@wildshard/format/glbBuffers` returns bounded decoded views, mutating caller-owned JSON.
+`@wildshard/sdk/bake/basisGlb`: `basisGlbVariant(source, encode)` copies WebP to admitted Basis GLBs with matching full mips/dimensions. Build `ctx.basisEncoder()` pins tools/decoder/recipe. `@wildshard/format/glbBuffers` decodes views and mutates caller JSON.
 
 
 ### Traversal readiness (SHARD-PLATFORM SF18d)
