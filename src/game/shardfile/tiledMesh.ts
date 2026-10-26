@@ -51,6 +51,8 @@ export function tiledMesh(id: string, mesh: Mesh, toCell: Matrix4): TileContent 
 }
 
 function instanced(mesh: Mesh): mesh is InstancedMesh { return mesh instanceof InstancedMesh; }
+/** geometries whose per-instance channels a tiled part already compacts (a shared geometry is never compacted twice) */
+const claimed = new WeakSet();
 
 /** An instanced part by tile: each instance's position (cell-local, through `toCell`) picks its tile; the first `count`
  *  instances drawn are the resident tiles', every per-instance attribute rewritten from its CPU copy. */
@@ -68,6 +70,11 @@ function tiledInstances(id: string, mesh: InstancedMesh, toCell: Matrix4): TileC
   // the instance matrices, colours and per-instance geometry channels (a seed, a sway phase) move together
   const channels = [mesh.instanceMatrix, ...(mesh.instanceColor === null ? [] : [mesh.instanceColor]),
     ...Object.values(mesh.geometry.attributes).filter((attribute): attribute is InstancedBufferAttribute => attribute instanceof InstancedBufferAttribute)];
+  // every channel must hold the part's instances (a per-instance channel on a geometry shared with another part may hold
+  // fewer: compacting it would overrun), and a geometry's own channels are compacted by one part only
+  const shared = channels.length > 1 + (mesh.instanceColor === null ? 0 : 1);
+  if (channels.some(channel => channel.array.length < n * channel.itemSize) || (shared && claimed.has(mesh.geometry))) return null;
+  if (shared) claimed.add(mesh.geometry);
   const copies = channels.map(channel => ({ channel, source: channel.array.slice(0, n * channel.itemSize) })), resident = new Set<number>();
   const draw = (): void => {
     let count = 0;

@@ -68,3 +68,17 @@ test('an instanced part draws only its resident tiles\' instances, every channel
   culled.onBeforeRender = () => undefined;
   expect(tiledMesh('culled', culled, new Matrix4())).toBeNull();
 });
+
+test('an instanced part whose channel holds fewer instances, or whose geometry another part compacts, stays whole', () => {
+  const geometry = new BufferGeometry();
+  geometry.setAttribute('position', new BufferAttribute(Float32Array.from([0, 0, 0, 1, 0, 0, 0, 0, 1]), 3));
+  geometry.setAttribute('aSeed', new InstancedBufferAttribute(Float32Array.from([10, 20, 30]), 1));
+  const place = (mesh: InstancedMesh): InstancedMesh => { spots.forEach(([x, z], i) => { mesh.setMatrixAt(i, new Matrix4().makeTranslation(x, 0, z)); }); return mesh; };
+  const first = place(new InstancedMesh(geometry, new MeshBasicMaterial(), 3)), second = place(new InstancedMesh(geometry, new MeshBasicMaterial(), 3));
+  expect(tiledMesh('first', first, new Matrix4())).not.toBeNull();
+  expect(tiledMesh('second', second, new Matrix4())).toBeNull();
+  const short = new BufferGeometry();
+  short.setAttribute('position', new BufferAttribute(Float32Array.from([0, 0, 0, 1, 0, 0, 0, 0, 1]), 3));
+  short.setAttribute('aSeed', new InstancedBufferAttribute(Float32Array.from([10, 20]), 1));
+  expect(tiledMesh('short', place(new InstancedMesh(short, new MeshBasicMaterial(), 3)), new Matrix4())).toBeNull();
+});
