@@ -1,4 +1,5 @@
 import { parseStillImage } from './stillImage';
+import { parseKtx2 } from './ktx2Cost';
 
 const record = (value: unknown): Record<string, unknown> => {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) throw new Error('GLB image object required');
@@ -24,20 +25,30 @@ function mipBytes(width: number, height: number): number {
   }
 }
 
-/** Admit only bounded buffer-view WebP paint through EXT_texture_webp; external/data URIs and other image
- * bindings still refuse. Charge every decoded image and a full RGBA8 mip chain per texture/material use,
+/** Admit bounded embedded WebP or Basis KTX2 through their matching texture extensions; external/data URIs
+ * and other bindings still refuse. Charge decoded images and conservative RGBA8 mips per texture/material use,
  * conservatively covering loader clones for different material colour spaces. The GLB aggregate cap also applies. */
 export function glbImageCost(doc: Record<string, unknown>, views: readonly Record<string, unknown>[], binary: Uint8Array): { decoded: number; gpu: number } {
   let decoded = 0;
   const images = list(doc['images'] ?? [], 16).map(value => {
     const image = record(value); noExtensions(image);
-    if (image['uri'] !== undefined || image['mimeType'] !== 'image/webp') throw new Error('GLB images require embedded WebP bytes');
+    if (image['uri'] !== undefined || (image['mimeType'] !== 'image/webp' && image['mimeType'] !== 'image/ktx2')) throw new Error('GLB images require embedded WebP or Basis KTX2 bytes');
     const view = views[count(image['bufferView'])];
     if (view === undefined || view['byteStride'] !== undefined || view['target'] !== undefined) throw new Error('Invalid GLB image view');
     const offset = count(view['byteOffset'] ?? 0), length = count(view['byteLength']);
     if (offset + length > binary.length) throw new Error('GLB image outside buffer');
-    const parsed = parseStillImage(binary.subarray(offset, offset + length));
-    if (parsed.mime !== image['mimeType']) throw new Error('GLB image MIME differs from its bytes');
+    const bytes = binary.subarray(offset, offset + length);
+    let parsed: { mime: string; decoded: number; gpu: number };
+    if (image['mimeType'] === 'image/ktx2') {
+      const cost = parseKtx2(bytes), header = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+      const model = header.getUint8(header.getUint32(48, true) + 12);
+      if (header.getUint32(12, true) !== 0 || (model !== 163 && model !== 166)) throw new Error('GLB KTX2 requires Basis LDR encoding');
+      parsed = { mime: 'image/ktx2', decoded: cost.decoded, gpu: cost.gpu };
+    } else {
+      const paint = parseStillImage(bytes);
+      if (paint.mime !== image['mimeType']) throw new Error('GLB image MIME differs from its bytes');
+      parsed = { mime: paint.mime, decoded: paint.decoded, gpu: mipBytes(paint.width, paint.height) };
+    }
     decoded += parsed.decoded;
     if (decoded > 25_000_000) throw new Error('GLB image resource cap');
     return parsed;
@@ -52,13 +63,15 @@ export function glbImageCost(doc: Record<string, unknown>, views: readonly Recor
   });
   const textures = list(doc['textures'] ?? [], 32).map(value => {
     const texture = record(value), extensions = record(texture['extensions']);
-    if (texture['source'] !== undefined || Object.keys(extensions).length !== 1 || extensions['EXT_texture_webp'] === undefined
-      || !list(doc['extensionsUsed'] ?? [], 32).includes('EXT_texture_webp')) throw new Error('GLB texture requires unambiguous WebP extension');
-    const binding = record(extensions['EXT_texture_webp']);
-    if (Object.keys(binding).some(key => key !== 'source')) throw new Error('Unsupported GLB WebP binding');
+    const extension = extensions['EXT_texture_webp'] === undefined ? 'KHR_texture_basisu' : 'EXT_texture_webp';
+    if (texture['source'] !== undefined || Object.keys(extensions).length !== 1 || extensions[extension] === undefined
+      || !list(doc['extensionsUsed'] ?? [], 32).includes(extension)) throw new Error('GLB texture requires an unambiguous declared image extension');
+    const binding = record(extensions[extension]);
+    if (Object.keys(binding).some(key => key !== 'source')) throw new Error('Unsupported GLB image binding');
     const image = images[count(binding['source'])];
     if (image === undefined || (texture['sampler'] !== undefined && samplers[count(texture['sampler'])] === undefined)) throw new Error('Missing GLB texture image or sampler');
-    return { bytes: mipBytes(image.width, image.height), uses: 0 };
+    if (image.mime !== (extension === 'KHR_texture_basisu' ? 'image/ktx2' : 'image/webp')) throw new Error('GLB texture extension differs from image MIME');
+    return { bytes: image.gpu, uses: 0 };
   });
   if (images.length === 0 && textures.length === 0) return { decoded: 0, gpu: 0 };
   const bind = (value: unknown): void => {
