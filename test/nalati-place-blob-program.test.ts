@@ -1,3 +1,4 @@
+import { nativePlaceFile } from './fixtures/nalati-native-place-files';
 import { nalatiSpecimens } from './fixtures/nalati-specimens';
 import { nalatiBalbal } from './fixtures/nalati-balbal';
 // oxlint-disable-next-line import/no-nodejs-modules -- Own the real immutable cache and compare the original shipping bytes.
@@ -66,7 +67,7 @@ test('the actual output hook preserves every predecessor file cost and binary by
       });
     } };
   };
-  const before = readFileSync('public/assets/nalati/baked/places.bin');
+  const before = nativePlaceFile('places.bin');
   try {
     for (const [name, pin] of [['crags', cragOriginal]] as const) {
       const cold = await nalatiBakeBlob(context(), name, pin.decoded);

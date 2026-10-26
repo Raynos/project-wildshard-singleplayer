@@ -1,3 +1,4 @@
+import { nativePlaceFile } from './fixtures/nalati-native-place-files';
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the real native CLI without publishing fixture outputs.
 import { execFileSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify all four shipped native wire files independently.
@@ -69,7 +70,7 @@ test('fresh native places retain exact binaries and the original native metadata
   `;
   execFileSync(process.execPath, ['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', '--input-type=module', '--eval', source]);
   for (const expected of before.slice(0, 4)) {
-    const bytes = readFileSync(expected.path.endsWith('/places.json') ? 'test/fixtures/nalati-places-original.json' : expected.path.endsWith('/placeSpecimens.json') ? 'test/fixtures/nalati-packed-specimens-original.json' : expected.path);
+    const bytes = expected.path.endsWith('/places.bin') ? nativePlaceFile('places.bin') : expected.path.endsWith('/specimens.bin') ? nativePlaceFile('specimens.bin') : readFileSync(expected.path.endsWith('/places.json') ? 'test/fixtures/nalati-places-original.json' : expected.path.endsWith('/placeSpecimens.json') ? 'test/fixtures/nalati-packed-specimens-original.json' : expected.path);
     expect({ path: expected.path, bytes: bytes.byteLength, hash: hashImmutableBytes(bytes) }).toEqual(expected);
   }
 });

@@ -13,25 +13,19 @@ import { hashImmutableBytes } from '../src/sdk/immutable';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { discoverGeneration, generateShardJob, generationInputs } from '../scripts/generate.mjs';
 import beforeWires from './fixtures/nalati-place-wires.json' with { type: 'json' };
-import { nalatiPlacesProgram } from '../src/shards/nalati-grasslands/generators/placesProgram';
+import { nativePlaceFile } from './fixtures/nalati-native-place-files';
 
 const original = committedPlaces();
 const compress = (bytes: Uint8Array): Uint8Array => new Uint8Array(deflateSync(bytes, { level: 9 }));
 // A sealed native publisher owns current-machine metadata. Independent frozen
 // wire tests below still require every complete original metadata/binary pin.
-const nativeInputs = new Map<string, Uint8Array>([
-  ['/assets/baked/nalati-grasslands/terrain.bin', readFileSync('public/assets/baked/nalati-grasslands/terrain.bin')],
-  ...['pond', 'red', 'green', 'blue'].map((name): [string, Uint8Array] => [
-    `data/geography-${name}.bin`, readFileSync(`src/shards/nalati-grasslands/data/geography-${name}.bin`)]),
-]);
-const nativeDocuments = await nalatiPlacesProgram({ cached: (_step, make) => Promise.resolve(make(nativeInputs)) });
 for (const [name, document] of [['places', 'places.json'], ['specimens', 'placeSpecimens.json'], ['dressing', 'nalati-dressing-geos.json']] as const) {
   test(`the pure ${name} wire preserves every committed geometry and metadata byte`, () => {
     const before = original[name], inputHash = hashImmutableBytes(before.raw);
     const encoded = encodeNalatiPart({ rows: before.rows.rows, bin: before.raw }, compress);
     const binaryPath = name === 'dressing' ? 'test/fixtures/nalati-dressing.bin' : `public/assets/nalati/baked/${name}.bin`;
     const documentPath = name === 'dressing' ? `test/fixtures/${document}` : `src/shards/nalati-grasslands/data/${document}`;
-    const binary = readFileSync(binaryPath), rows = readFileSync(name === 'places' ? 'test/fixtures/nalati-places-original.json' : name === 'specimens' ? 'test/fixtures/nalati-packed-specimens-original.json' : documentPath);
+    const binary = name === 'dressing' ? readFileSync(binaryPath) : nativePlaceFile(`${name}.bin`), rows = readFileSync(name === 'places' ? 'test/fixtures/nalati-places-original.json' : name === 'specimens' ? 'test/fixtures/nalati-packed-specimens-original.json' : documentPath);
     for (const [path, actual, committed] of [[binaryPath, encoded.binary, binary], [documentPath, encoded.document, rows]] as const) {
       const expected = beforeWires.find(row => row.path === path);
       if (expected === undefined) throw new Error('Missing predecessor wire oracle');
@@ -96,7 +90,7 @@ for (const omission of ['wire', 'geometry', null] as const) {
           for (const file of job.outputs) {
             const actual = readFileSync(resolve(result.directory, file));
             expect(result.hashes[file], file).toBe(hashImmutableBytes(actual));
-            const expected = file.endsWith('.json') ? nativeDocuments.get(file.slice(file.lastIndexOf('/') + 1)) : undefined;
+            const expected = file.endsWith('.json') ? nativePlaceFile(file.slice(file.lastIndexOf('/') + 1)) : undefined;
             if (expected !== undefined) {
               expect(Buffer.compare(actual, expected), file).toBe(0);
             } else {
