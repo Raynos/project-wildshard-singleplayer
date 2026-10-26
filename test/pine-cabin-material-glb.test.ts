@@ -7,7 +7,7 @@ import { Buffer } from 'node:buffer';
 import { expect, test, vi } from 'vitest';
 import { Mesh, Texture, type Object3D } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { pineCabinMaterialFiles, pineCabinMaterialGlbs } from '../src/shards/pine-hollow/generators/cabinPropMaterials.mjs';
+import { pineCabinMaterialFiles } from '../src/shards/pine-hollow/generators/cabinPropMaterials.mjs';
 
 function materialMesh(node: Object3D): node is Mesh {
   return node instanceof Mesh;
@@ -19,58 +19,52 @@ function bytes(files: ReturnType<typeof pineCabinMaterialFiles>, path: string): 
   return value;
 }
 
-test('the live writer retains all sixteen complete original aliases, costs and files', () => {
+test('the registered writer publishes all sixteen exact native recipes', () => {
   const files = pineCabinMaterialFiles();
-  const rows = Object.entries(files.aliases).map(([source, target]) => {
+  expect(Object.keys(files.aliases)).toHaveLength(16);
+  expect(Object.values(files.outputs).reduce((size, row) => size + row.length, 0)).toBe(27048);
+  for (const target of Object.values(files.aliases)) {
     const wire = bytes(files, target);
     expect(Buffer.from(wire).equals(readFileSync(`public${target}`))).toBe(true);
-    return { source, target, bytes: wire.length, sha: createHash('sha256').update(wire).digest('hex') };
-  });
-  expect(rows).toHaveLength(16);
-  expect(rows.reduce((size, row) => size + row.bytes, 0)).toBe(27824);
-  expect(createHash('sha256').update(JSON.stringify({ rows, costs: files.costs })).digest('hex'))
-    .toBe('680597af0f9d5b4601864897b68998a4dc2a8c34bc9de87340199b980a4e402d');
+    expect(target).toBe(`/assets/pine-hollow/baked/cabin-materials/${createHash('sha256').update(wire).digest('hex')}.glb`);
+  }
+  const metadata: unknown = JSON.parse(readFileSync('src/shards/pine-hollow/data/timberWorld.generated.json', 'utf8'));
+  if (metadata === null || typeof metadata !== 'object' || !('propMaterials' in metadata) || !('propMaterialCosts' in metadata))
+    throw new Error('Missing registered material metadata');
+  expect(metadata.propMaterials).toMatchObject(files.aliases);
+  expect(metadata.propMaterialCosts).toEqual(expect.arrayContaining([...files.costs]));
 });
 
-test('binary recipes preserve every material/image/sampler/accessor field and all geometry bytes', () => {
-  const before = pineCabinMaterialFiles(), after = pineCabinMaterialGlbs();
-  expect(Object.keys(after.aliases)).toEqual(Object.keys(before.aliases));
-  for (const [source, target] of Object.entries(after.aliases)) {
-    const oldTarget = before.aliases[source];
-    if (oldTarget === undefined) throw new Error('Missing predecessor recipe');
-    const old = bytes(before, oldTarget), wire = bytes(after, target);
-    const view = new DataView(wire.buffer, wire.byteOffset, wire.byteLength);
+test('every original material/image/sampler/accessor field and geometry byte stays exact', () => {
+  const files = pineCabinMaterialFiles();
+  const documents = Object.entries(files.aliases).map(([source, target]) => {
+    const wire = bytes(files, target), view = new DataView(wire.buffer, wire.byteOffset, wire.byteLength);
     expect([view.getUint32(0, true), view.getUint32(4, true), view.getUint32(8, true)])
       .toEqual([0x46546c67, 2, wire.length]);
-    const length = view.getUint32(12, true), binary = wire.subarray(28 + length);
+    const length = view.getUint32(12, true);
     expect(view.getUint32(16, true)).toBe(0x4e4f534a);
     expect([view.getUint32(20 + length, true), view.getUint32(24 + length, true)]).toEqual([96, 0x004e4942]);
-    expect(Buffer.from(binary).equals(Buffer.alloc(96))).toBe(true);
-    const original: unknown = JSON.parse(new TextDecoder().decode(old));
-    if (original === null || typeof original !== 'object') throw new Error('Invalid predecessor recipe');
+    expect(Buffer.from(wire.subarray(28 + length)).equals(Buffer.alloc(96))).toBe(true);
     const document: unknown = JSON.parse(new TextDecoder().decode(wire.subarray(20, 20 + length)));
-    expect(document).toEqual({ ...original, buffers: [{ byteLength: 96 }] });
-    expect(target).toBe(`/assets/pine-hollow/baked/cabin-materials/${createHash('sha256').update(wire).digest('hex')}.glb`);
-    expect(wire.byteLength).toBeLessThan(old.byteLength);
-    expect(after.costs.find(row => row.original === source)).toEqual({
-      original: source, before: before.costs.find(row => row.original === source)?.before, after: wire.byteLength,
-    });
-  }
+    return { source, document };
+  });
+  // Recorded from every predecessor glTF, removing only its buffer URI.
+  expect(createHash('sha256').update(JSON.stringify(documents)).digest('hex'))
+    .toBe('f213e25a223e214c58b3b6fc5c51232e576f7e76356d8158f892c5194a52c4b6');
+  expect(createHash('sha256').update(JSON.stringify(files.costs.map(({ original, before }) => ({ original, before })))).digest('hex'))
+    .toBe('ad04dfe3b8a81103e8c5570906f0f2bad7c618c113c190abf40eb8fe23777e72');
 });
 
-test('the binary producer never invokes the old buffer encoder', () => {
+test('the producer never invokes a buffer encoder', () => {
   const encoding = vi.spyOn(Buffer.prototype, 'toString');
   try {
     pineCabinMaterialFiles();
-    expect(encoding.mock.calls.filter(call => call[0] === 'base64')).toHaveLength(16);
-    encoding.mockClear();
-    pineCabinMaterialGlbs();
     expect(encoding.mock.calls.filter(call => call[0] === 'base64')).toHaveLength(0);
   } finally { encoding.mockRestore(); }
 });
 
 test('the real GLTF decoder reads all native geometry without an external buffer request', async () => {
-  const files = pineCabinMaterialGlbs();
+  const files = pineCabinMaterialFiles();
   for (const wire of Object.values(files.outputs)) {
     // Image identities are checked byte-for-byte above. Borrow inert textures
     // here to exercise the actual binary/attribute parser without a DOM decoder.

@@ -7,12 +7,7 @@ import { CABIN_PROP_SOURCES } from './cabinPropShapes.ts';
 
 const root = resolve(import.meta.dirname, '../../../..');
 export function pineCabinMaterialFiles() {
-  return materialFiles(false);
-}
-
-/** Binary material recipes for the producer-first migration; live aliases stay on the original writer until publication. */
-export function pineCabinMaterialGlbs() {
-  return materialFiles(true);
+  return materialFiles();
 }
 
 /** @param {Record<string,unknown>} doc */
@@ -26,8 +21,8 @@ function materialGlb(doc) {
   return packed;
 }
 
-/** @param {boolean} binary */
-function materialFiles(binary) {
+/** Material recipes carry geometry in the native GLB BIN chunk. */
+function materialFiles() {
   const aliases = {}, outputs = {}, costs = [];
   for (const id of ['wooden_crate_02', 'wine_barrel_01', 'wooden_bucket_01', 'hatchet']) {
     const original = `/assets/models/${id}/${id}.gltf`, folder = `/assets/models/${id}/`;
@@ -38,11 +33,11 @@ function materialFiles(binary) {
       for (const image of doc.images) image.uri = new URL(image.uri, `https://author.invalid${folder}`).pathname;
       const compact = { asset: doc.asset, images: doc.images, textures: doc.textures, samplers: doc.samplers, materials: doc.materials,
         ...(doc.extensionsUsed === undefined ? {} : { extensionsUsed: doc.extensionsUsed }), ...(doc.extensionsRequired === undefined ? {} : { extensionsRequired: doc.extensionsRequired }),
-        buffers: [{ byteLength: 96, ...(binary ? {} : { uri: `data:application/octet-stream;base64,${Buffer.alloc(96).toString('base64')}` }) }],
+        buffers: [{ byteLength: 96 }],
         bufferViews: [{ buffer: 0, byteOffset: 0, byteLength: 36 }, { buffer: 0, byteOffset: 36, byteLength: 36 }, { buffer: 0, byteOffset: 72, byteLength: 24 }],
         accessors: [{ bufferView: 0, componentType: 5126, count: 3, type: 'VEC3', min: [0,0,0], max: [0,0,0] }, { bufferView: 1, componentType: 5126, count: 3, type: 'VEC3' }, { bufferView: 2, componentType: 5126, count: 3, type: 'VEC2' }],
         meshes: [{ primitives: [{ attributes: { POSITION: 0, NORMAL: 1, TEXCOORD_0: 2 }, material: 0, mode: 4 }] }], nodes: [{ mesh: 0 }], scenes: [{ nodes: [0] }], scene: 0 };
-      const packed = binary ? materialGlb(compact) : Buffer.from(JSON.stringify(compact)), hash = createHash('sha256').update(packed).digest('hex'), target = `/assets/pine-hollow/baked/cabin-materials/${hash}.${binary ? 'glb' : 'gltf'}`;
+      const packed = materialGlb(compact), hash = createHash('sha256').update(packed).digest('hex'), target = `/assets/pine-hollow/baked/cabin-materials/${hash}.glb`;
       aliases[url] = target; outputs[`public${target}`] = packed;
       costs.push({ original: url, before: bytes.length + doc.buffers.reduce((size, buffer) => size + buffer.byteLength, 0), after: packed.length });
     }
