@@ -1,6 +1,5 @@
 import { expect, test, vi } from 'vitest';
 import { BoxGeometry, Group } from 'three';
-import { zlibSync } from 'fflate';
 import { Scope } from '../src/engine/app/scope';
 import { WorldRegistry } from '../src/engine/world/registry';
 import { captureScatterSource } from '../src/engine/render/scatterInstances';
@@ -36,16 +35,17 @@ test('sliced binary scatter retains selection and rejects a late excluded invali
   const rows = Array.from({ length: 514 }, (_, i) => ({ x: i / 2, y: i % 4, z: -i / 8, yaw: 0, sx: 1, sy: 1, sz: 1, far: 90, r: 1, g: .5, b: .25, solid: 1 }));
   const source = new BoxGeometry(1, 1, 1); source.clearGroups();
   const blocks: Uint8Array[] = [], geometry = writeGeometry(source, blocks, 'numeric-scatter'); source.dispose();
-  let binary = ''; for (const byte of zlibSync(join(blocks))) binary += String.fromCodePoint(byte);
+  const shapeBytes=join(blocks);
   for (const invalid of [false, true]) {
     const scope = new Scope('numeric-scatter'), registry = new WorldRegistry(), root = new Group();
     const input = rows.slice(), last = input[513];
     if (invalid && last !== undefined) input[513] = { ...last, solid: 2 };
     const bytes = table(input);
-    const file = vi.fn().mockResolvedValue(bytes), json = vi.fn(), ctx = {} as ShardContext;
-    Object.assign(ctx, { scope, root, system: vi.fn(), app: { registry }, product: { slug: 'numeric-fixture', hasFile: () => true, file, json }, game: { runtime: { world: { sky: null } } } });
+    const file=vi.fn<(name:string)=>Promise<Uint8Array>>().mockResolvedValue(bytes),shapeFile=vi.fn<(name:string)=>Promise<Uint8Array>>().mockResolvedValue(shapeBytes),json = vi.fn(),ctx = {} as ShardContext;
+    const read=(name:string)=>name==='shape.bin'?shapeFile(name):file(name);
+    Object.assign(ctx, { scope, root, system: vi.fn(), app: { registry }, product: { slug: 'numeric-fixture', hasFile: () => true, file:read, json }, game: { runtime: { world: { sky: null } } } });
     const model = `fixture/numeric-${String(invalid)}`;
-    const dressing = { name: 'numeric', catalogues: [], packs: {}, geometry: { shape: { kind: 'inline', data: btoa(binary), row: geometry } }, materials: { paint: { kind: 'painterly', rim: .2, bands: .5 } },
+    const dressing = { name: 'numeric', catalogues: [], packs: {}, geometry: { shape: { kind: 'file', file: 'shape.bin', row: geometry } }, materials: { paint: { kind: 'painterly', rim: .2, bands: .5 } },
       staticModels: [{ model: { id: model, name: 'Numeric', file: 'test/scene-numeric-table.test.ts', category: 'props', pipeline: 'code', defaults: {} }, geometry: 'shape', material: 'paint' }],
       layers: [{ id: 'numeric', model, geometry: 'shape', material: 'paint', file: 'poses.bin', binary: true, far: 1, castShadow: false, keepNear: 26, contacts: [], select: { modulo: 2, remainder: 0, equal: true } }], statics: [], animations: [] };
     try {
@@ -64,7 +64,7 @@ test('sliced binary scatter retains selection and rejects a late excluded invali
         }
         expect(owner.placed[0]?.copies).toBe(257);
       }
-      expect(file).toHaveBeenCalledOnce(); expect(json).not.toHaveBeenCalled();
+      expect(file).toHaveBeenCalledExactlyOnceWith('poses.bin');expect(shapeFile).toHaveBeenCalledExactlyOnceWith('shape.bin');expect(json).not.toHaveBeenCalled();
     } finally { scope.dispose(); }
   }
 });

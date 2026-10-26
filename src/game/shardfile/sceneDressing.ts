@@ -1,5 +1,5 @@
 import {prepareBinarySources,binarySourceBytes} from '../models/binarySource';
-import { base64Bytes, decodeLaneBytes } from '@wildshard/engine/core/deflate';
+import { decodeLaneBytes } from '@wildshard/engine/core/deflate';
 import { floorAtRects } from '@wildshard/engine/physics/box';
 import { timeClientPreparation } from './preparationTiming';
 import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
@@ -132,6 +132,7 @@ export class SceneDressing {
 
   static async install(ctx: ShardContext, input: unknown): Promise<SceneDressing> {
     const rows=v.parse(SceneDressingSchema,input);
+    if(Object.values(rows.geometry).some(source=>source.kind==='inline'))throw new Error('Scene geometry requires named files');
     const contactRows=[...rows.layers.map(row=>row.contacts),...rows.statics.flatMap(row=>row.members.map(member=>member.contacts))];
     if(contactRows.some(row=>!Array.isArray(row)&&'data'in row))throw new Error('Scene contacts require named files');
     let products=books.get(ctx.scope);if(products===undefined){products=new WeakMap();books.set(ctx.scope,products);}
@@ -202,7 +203,7 @@ export class SceneDressing {
       }else{
         let raw:Uint8Array;
         if(source.kind==='file')raw=binarySourceBytes({file:source.file},files);
-        else if(source.kind==='inline')raw=unzlibSync(base64Bytes(source.data));
+        else if(source.kind==='inline')throw new Error('Scene geometry requires named files');
         else if(source.kind==='baked-file'){let pending=bytes.get(source.file);if(pending===undefined){pending=ctx.product.file(source.file).then(decodeLaneBytes);bytes.set(source.file,pending);}raw=await pending;}
         else{let pending=bytes.get(source.url);if(pending===undefined){pending=fetchLaneBake(source.url);bytes.set(source.url,pending);}raw=await pending;}
         let offset=0;if(source.kind==='baked'||source.kind==='baked-file'){let pending=addresses.get(source.address.file);if(pending===undefined){pending=ctx.product.file(source.address.file);addresses.set(source.address.file,pending);}offset=readSceneGeometryAddress(await pending,source.address.word);}
@@ -210,7 +211,7 @@ export class SceneDressing {
         const decoded=readBakedGeometry(raw,offset,source.row);
         shape=source.row.expand?await expandBakedGeometrySliced(decoded,workSlice(undefined,ctx.scope)):decoded;
       }
-      if((source.kind==='inline'||source.kind==='file'||source.kind==='baked-file')&&source.sphere!==undefined)shape.boundingSphere=new THREE.Sphere(new THREE.Vector3(...source.sphere.slice(0,3)),source.sphere[3]);
+      if((source.kind==='file'||source.kind==='baked-file')&&source.sphere!==undefined)shape.boundingSphere=new THREE.Sphere(new THREE.Vector3(...source.sphere.slice(0,3)),source.sphere[3]);
       geometry.set(key,shape);ctx.scope.own(shape);await pause();
     }
     });

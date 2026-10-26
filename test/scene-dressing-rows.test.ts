@@ -99,13 +99,14 @@ test('an unrelated orchard declares the same dressing contract without any nativ
   expect(()=>v.parse(SceneDressingSchema,{...row,build:()=>null})).toThrow();
 });
 
-test.each(['inline','file']as const)('the orchard fixture constructs and retires the shared client projection (%s)',async mode=>{
+test.each(['ordinary','offset']as const)('the orchard fixture constructs and retires the shared client projection (%s)',async mode=>{
   const shape=new THREE.BoxGeometry(1,2,1);shape.clearGroups();
   const blocks:Uint8Array[]=[],layout=writeGeometry(shape,blocks,'orchard');shape.dispose();
-  let encoded='';for(const byte of zlibSync(join(blocks)))encoded+=String.fromCodePoint(byte);
+  const bytes=join(blocks),backing=new Uint8Array(bytes.length+4);backing.set(bytes,4);
+  const loan=mode==='offset'?backing.subarray(4):bytes;expect(Buffer.compare(loan,bytes)).toBe(0);
   const scope=new Scope('orchard-row-fixture'),root=new THREE.Group(),camera=new THREE.PerspectiveCamera();
-  const system=vi.fn<ShardContext['system']>(),ctx={} as ShardContext;Object.assign(ctx,{system,scope,root,app:{registry:new WorldRegistry()},product:mode==='file'?{file:()=>Promise.resolve(join(blocks)),hasFile:()=>true}:{},game:{runtime:{world:{sky:null,player:{position:new THREE.Vector3()},game:{camera}}}}});
-  const rows={name:'orchard',catalogues:[],packs:{},geometry:{marker:mode==='inline'?{kind:'inline',data:btoa(encoded),row:layout}:{kind:'file',file:'orchard.bin',row:layout}},materials:{white:{kind:'painterly',rim:.2,bands:.5}},layers:[],animations:[],statics:[{name:'gate',tris:12,members:[],geometry:{shape:'marker'},materials:{paint:'white'},recipe:{version:1,root:'root',materials:[{kind:'port',id:'paint',source:'paint'}],nodes:[{kind:'group',id:'root',children:['marker']},{kind:'mesh',id:'marker',geometry:'shape',material:'paint',missing:'empty',position:[1,2,3]}]}}]};
+  const system=vi.fn<ShardContext['system']>(),ctx={} as ShardContext;Object.assign(ctx,{system,scope,root,app:{registry:new WorldRegistry()},product:{file:()=>Promise.resolve(loan),hasFile:()=>true},game:{runtime:{world:{sky:null,player:{position:new THREE.Vector3()},game:{camera}}}}});
+  const rows={name:'orchard',catalogues:[],packs:{},geometry:{marker:{kind:'file',file:'orchard.bin',row:layout}},materials:{white:{kind:'painterly',rim:.2,bands:.5}},layers:[],animations:[],statics:[{name:'gate',tris:12,members:[],geometry:{shape:'marker'},materials:{paint:'white'},recipe:{version:1,root:'root',materials:[{kind:'port',id:'paint',source:'paint'}],nodes:[{kind:'group',id:'root',children:['marker']},{kind:'mesh',id:'marker',geometry:'shape',material:'paint',missing:'empty',position:[1,2,3]}]}}]};
   const host=await SceneDressing.install(ctx,rows);expect(root.children).toContain(host.group);
   expect(host.group.getObjectByProperty('type','Mesh')?.position.toArray()).toEqual([1,2,3]);
   expect(host.stats().propTris).toBe(12);
@@ -120,11 +121,11 @@ test.each(['inline','file']as const)('the orchard fixture constructs and retires
 test('uploaded dressing channels retire while picking and cloneable templates retain their arrays',async()=>{
   const source=new THREE.BoxGeometry(1,2,1);source.clearGroups();
   const blocks:Uint8Array[]=[],layout=writeGeometry(source,blocks,'dressing-upload');source.dispose();
-  let encoded='';for(const byte of zlibSync(join(blocks)))encoded+=String.fromCodePoint(byte);
+  const raw=join(blocks);
   for(const template of [false,true]){
     const scope=new Scope('dressing-upload'),root=new THREE.Group(),ctx={} as ShardContext;
-    Object.assign(ctx,{scope,root,system:vi.fn(),app:{registry:new WorldRegistry()},product:{},game:{runtime:{world:{sky:null}}}});
-    const rows={name:'upload',catalogues:[],packs:{},geometry:{shape:{kind:'inline',data:btoa(encoded),row:layout}},materials:{paint:{kind:'painterly',rim:.2,bands:.5}},layers:[],animations:[],
+    Object.assign(ctx,{scope,root,system:vi.fn(),app:{registry:new WorldRegistry()},product:{hasFile:()=>true,file:()=>Promise.resolve(raw)},game:{runtime:{world:{sky:null}}}});
+    const rows={name:'upload',catalogues:[],packs:{},geometry:{shape:{kind:'file',file:'upload.bin',row:layout}},materials:{paint:{kind:'painterly',rim:.2,bands:.5}},layers:[],animations:[],
       staticModels:template?[{model:{id:'fixture/upload',name:'Upload',file:'test/scene-dressing-rows.test.ts',category:'props',pipeline:'code',defaults:{}},geometry:'shape',material:'paint'}]:[],
       statics:[{name:'draw',tris:12,members:[],geometry:{shape:'shape'},materials:{paint:'paint'},recipe:{version:1,root:'mesh',materials:[{kind:'port',id:'paint',source:'paint'}],nodes:[{kind:'mesh',id:'mesh',geometry:'shape',material:'paint',missing:'empty'}]}}]};
     const owner=await SceneDressing.install(ctx,rows),mesh=owner.group.children[0];
@@ -147,11 +148,11 @@ test.each([false,true])('packed dressing hulls register exact independent float 
   const packed=zlibSync(new Uint8Array(points.buffer)),backing=new Uint8Array(packed.byteLength+4);backing.set(packed,4);
   const loan=offset?backing.subarray(4):packed;expect(unzlibSync(loan)).toEqual(new Uint8Array(points.buffer));
   const shape=new THREE.BoxGeometry(1,1,1);shape.clearGroups();const blocks:Uint8Array[]=[],layout=writeGeometry(shape,blocks,'packed-contact');shape.dispose();
-  let modelEncoded='';for(const byte of zlibSync(join(blocks)))modelEncoded+=String.fromCodePoint(byte);
+  const modelBytes=join(blocks);
   const scope=new Scope('packed-dressing'),registry=new WorldRegistry(),ctx={} as ShardContext,shardfile={spawn:{x:0,y:0,z:0},entryways:[]};
-  const product={shardfile,hasFile:(name:string)=>name==='contacts.bin',file(name:string):Promise<Uint8Array>{expect(this).toBe(product);expect(name).toBe('contacts.bin');return Promise.resolve(loan);}};
+  const product={shardfile,hasFile:(name:string)=>name==='contacts.bin'||name==='shape.bin',file(name:string):Promise<Uint8Array>{expect(this).toBe(product);expect(['contacts.bin','shape.bin']).toContain(name);return Promise.resolve(name==='contacts.bin'?loan:modelBytes);}};
   Object.assign(ctx,{scope,root:new THREE.Group(),system:vi.fn(),app:{registry},product,game:{runtime:{world:{sky:null}}}});
-  const dressing=await SceneDressing.install(ctx,{name:'packed',catalogues:[],packs:{},geometry:{shape:{kind:'inline',data:btoa(modelEncoded),row:layout}},materials:{paint:{kind:'painterly',rim:.2,bands:.5}},layers:[],animations:[],
+  const dressing=await SceneDressing.install(ctx,{name:'packed',catalogues:[],packs:{},geometry:{shape:{kind:'file',file:'shape.bin',row:layout}},materials:{paint:{kind:'painterly',rim:.2,bands:.5}},layers:[],animations:[],
     staticModels:[{model:{id:'fixture/packed-contact',name:'Packed',file:'test/scene-dressing-rows.test.ts',category:'props',pipeline:'code',defaults:{}},geometry:'shape',material:'paint'}],
     statics:[{name:'contact',tris:12,geometry:{shape:'shape'},materials:{paint:'paint'},recipe:{version:1,root:'mesh',materials:[{kind:'port',id:'paint',source:'paint'}],nodes:[{kind:'mesh',id:'mesh',geometry:'shape',material:'paint',missing:'empty'}]},
       members:[{model:'fixture/packed-contact',draw:'single',placements:[{x:0,y:0,z:0}],boxes:[-.5,-.5,-.5,.5,.5,.5],contacts:{kind:'packed-hulls',file:'contacts.bin',origins,surface:'rock'}}]}]});
@@ -269,7 +270,7 @@ test.each(['world','retire','length']as const)('raw floor preflight refuses %s b
   let finish:(bytes:Uint8Array)=>void=()=>{throw new Error('Missing floor read');};
   const read=vi.fn((name:string)=>name==='bad.bin'?Promise.resolve(new Uint8Array(0)):new Promise<Uint8Array>(resolve=>{finish=resolve;}));
   const ctx=legacyDouble<ShardContext>({scope,root,system,product:legacyDouble<ShardContext['product']>({file:read,hasFile:()=>true}),game:legacyDouble<ShardContext['game']>({runtime})});
-  const rows={name:'floor',catalogues:[],packs:{},geometry:{shape:{kind:'inline',data:'',row:{attrs:[],count:0,index:null,indexCount:0,box:false,expand:false}}},materials:{paint:{kind:'painterly',rim:.2,bands:.5}},layers:[],animations:[],
+  const rows={name:'floor',catalogues:[],packs:{},geometry:{shape:{kind:'file',file:'floor.bin',row:{attrs:[['position','f32',1,false]],count:4,index:null,indexCount:0,box:false,expand:false}}},materials:{paint:{kind:'painterly',rim:.2,bands:.5}},layers:[],animations:[],
     staticModels:[{model:{id:'orchard/floor',name:'Floor',file:'fixture.ts',category:'nature',pipeline:'code',defaults:{}},geometry:'shape',material:'paint'}],
     statics:[{name:'surface',recipe:{version:1,root:'root',materials:[],nodes:[{kind:'group',id:'root',children:[]}]},geometry:{},materials:{},tris:0,
       members:[{model:'orchard/floor',draw:'merged',placements:[],boxes:[],contacts:[],floors:[{x:0,z:0,size:2,res:2,file:'floor.bin'},...(failure==='length'?[{x:0,z:0,size:2,res:2,file:'bad.bin'}]:[])]}]}]};

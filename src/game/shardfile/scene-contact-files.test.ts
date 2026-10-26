@@ -8,7 +8,7 @@ import type {ShardWorld} from '../shard/world';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 
 const rows={name:'pending-contacts',catalogues:[],packs:{},layers:[],animations:[],
-  geometry:{shape:{kind:'inline',data:'unread',row:{attrs:[],count:0,index:null,indexCount:0,box:false,expand:false}}},
+  geometry:{shape:{kind:'file',file:'unread.bin',row:{attrs:[],count:0,index:null,indexCount:0,box:false,expand:false}}},
   materials:{paint:{kind:'painterly',rim:.2,bands:.5}},
   staticModels:[{model:{id:'fixture/contact-file',name:'Contact',file:'src/game/shardfile/scene-contact-files.test.ts',category:'props',pipeline:'code',defaults:{}},geometry:'shape',material:'paint'}],
   statics:[{name:'contact',tris:0,geometry:{shape:'shape'},materials:{paint:'paint'},recipe:{version:1,root:'mesh',materials:[{kind:'port',id:'paint',source:'paint'}],nodes:[{kind:'mesh',id:'mesh',geometry:'shape',material:'paint',missing:'empty'}]},
