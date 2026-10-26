@@ -73,7 +73,7 @@ const stoppedVector = v.tuple([stoppedFinite, stoppedFinite, stoppedFinite]);
 const stoppedSavedSlot = v.strictObject({ position: stoppedVector, direction: stoppedVector, body: v.nullable(v.string()),
   local: stoppedVector, localDirection: stoppedVector, recoverable: v.boolean() });
 const stoppedSavedFields = { version: v.literal(1), frame: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(Number.MAX_SAFE_INTEGER)) };
-const stoppedSavedSchema = v.strictObject({ ...stoppedSavedFields, stuck: v.array(stoppedSavedSlot) });
+const stoppedSavedSchema: v.GenericSchema<StoppedProjectileSaveDataInput, StoppedProjectileSaveData> = v.strictObject({ ...stoppedSavedFields, stuck: v.array(stoppedSavedSlot) });
 export type StoppedProjectileSaved = v.InferOutput<typeof stoppedSavedSchema>;
 export function stoppedProjectileSaved(capacity: number): v.GenericSchema<unknown, StoppedProjectileSaved> {
   return v.strictObject({ ...stoppedSavedFields, stuck: v.pipe(v.array(stoppedSavedSlot), v.maxLength(capacity)) });
@@ -241,3 +241,35 @@ export class ProjectileContact<T extends ProjectileContactSlot, H = TargetHit> {
     slot.pos.copy(at); slot.glanced = true; return false;
   }
 }
+
+/** Complete admitted continuation, independent of validator implementation metadata. */
+type StoppedProjectileSaveDataInput = StoppedProjectileSaveData;
+interface StoppedProjectileSaveDataFields {
+    stuck: {
+        position: [
+            number,
+            number,
+            number
+        ];
+        direction: [
+            number,
+            number,
+            number
+        ];
+        body: string | null;
+        local: [
+            number,
+            number,
+            number
+        ];
+        localDirection: [
+            number,
+            number,
+            number
+        ];
+        recoverable: boolean;
+    }[];
+    version: 1;
+    frame: number;
+}
+type StoppedProjectileSaveData = { [Key in keyof StoppedProjectileSaveDataFields]: StoppedProjectileSaveDataFields[Key] };

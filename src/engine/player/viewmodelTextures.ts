@@ -62,7 +62,7 @@ export function makeNoise(seed: number): Noise {
   return { hash, n, fbm };
 }
 export const clamp01 = (v: number): number => (v < 0 ? 0 : Math.min(1, v));
-export const sstep = smoothstep;   // the one smoothstep (E357 X5)
+export const sstep: (a: number, b: number, x: number) => number = smoothstep;   // the one smoothstep (E357 X5)
 
 /** tangent-space normal map (RGBA8) from a wrapping height field */
 export function normalPixels(h: Float32Array, w: number, hgt: number, strength: number): Uint8Array {

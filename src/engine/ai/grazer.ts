@@ -93,7 +93,7 @@ function validateHerd(spec: GuardedHerdSpec): GuardedHerdSpec {
   return { ...spec, hearing: [...spec.hearing] };
 }
 const herdFinite = v.pipe(v.number(), v.finite());
-const herdContinuation = v.strictObject({ contract: v.string(), group: v.string(), lead: v.nullable(v.string()), stallion: v.nullable(v.string()),
+const herdContinuation: v.StrictObjectSchema<{ readonly [Key in Exclude<keyof HerdContinuationData, 'state'>]: v.GenericSchema<HerdContinuationDataInput[Key], HerdContinuationData[Key]> } & { readonly state: v.StrictObjectSchema<{ readonly [Key in keyof HerdContinuationData['state']]: v.GenericSchema<HerdContinuationDataInput['state'][Key], HerdContinuationData['state'][Key]> }, undefined> }, undefined> = v.strictObject({ contract: v.string(), group: v.string(), lead: v.nullable(v.string()), stallion: v.nullable(v.string()),
   ridden: v.nullable(v.string()), chargeTarget: v.nullable(v.string()), foals: v.array(v.string()), mothers: v.array(v.tuple([v.string(), v.string()])),
   state: v.strictObject({ initialized: v.boolean(), mode: v.picklist(['graze', 'drift', 'alert', 'flee', 'settle']), stampeding: v.boolean(),
     stallionState: v.picklist(GUARDED_STALLION_STATES), trust: herdFinite, alert: herdFinite,
@@ -1192,3 +1192,46 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
     if (w !== null) { _t.set(Math.sin(a.yaw), 0, Math.cos(a.yaw)); w.applyDamage(30, w.position, _t);if(this.guest!==undefined)this.validateHerdGuest(); w.stagger(_t, 1);if(this.guest!==undefined)this.validateHerdGuest(); }
   }
 }
+
+/** Complete admitted continuation, independent of validator implementation metadata. */
+type HerdContinuationDataInput = HerdContinuationData;
+interface HerdContinuationDataFields {
+    contract: string;
+    group: string;
+    lead: string | null;
+    stallion: string | null;
+    ridden: string | null;
+    chargeTarget: string | null;
+    foals: string[];
+    mothers: [
+        string,
+        string
+    ][];
+    state: {
+        initialized: boolean;
+        mode: "graze" | "drift" | "alert" | "flee" | "settle";
+        stampeding: boolean;
+        stallionState: "lead" | "ridden" | "watch" | "warn" | "display" | "charge" | "wheel" | "beaten";
+        trust: number;
+        alert: number;
+        alertOwned: boolean;
+        cx: number;
+        cz: number;
+        spotX: number;
+        spotZ: number;
+        spotT: number;
+        fleeX: number;
+        fleeZ: number;
+        fleeRun: number;
+        fleeLen: number;
+        fleeFromX: number;
+        fleeFromZ: number;
+        modeT: number;
+        sT: number;
+        chargeCd: number;
+        beatenT: number;
+        beaten: boolean;
+        knockCd: number;
+    };
+}
+type HerdContinuationData = { [Key in keyof HerdContinuationDataFields]: HerdContinuationDataFields[Key] };

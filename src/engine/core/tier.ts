@@ -50,7 +50,7 @@ export const gfxPrefs: GfxPrefs = readGfxPrefs();
 export function saveGfxPrefs(): void { try { savedStorage.setItem(GFX_KEY, JSON.stringify(gfxPrefs)); } catch { /* private mode */ } }
 
 // 'native' = the screen's own density (the renderer caps at min(devicePixelRatio, dpr)): sharpest, and the costliest fill
-export let MOBILE_DEVICE = mobileUA || TIER === 'phone';
+export let MOBILE_DEVICE: boolean = mobileUA || TIER === 'phone';
 
 export function initializeTier(tier: Tier): void;
 export function initializeTier(): Promise<void>;

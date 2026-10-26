@@ -13,7 +13,7 @@
 import * as THREE from 'three';
 import { DUMMY_VARIANTS, TRAINING_DUMMY_HEIGHT } from '../practice/dummyMetadata';
 import type { DummyVariant } from '../practice/TrainingDummy';
-import { defineModel } from './model';
+import { defineModel, type ModelDef } from './model';
 
 export interface TrainingDummyParams { readonly variant: DummyVariant }
 
@@ -26,7 +26,7 @@ function loadingBox(): THREE.Mesh {
   return box;
 }
 
-export const trainingDummy = defineModel<TrainingDummyParams>({
+export const trainingDummy: ModelDef<TrainingDummyParams> = defineModel<TrainingDummyParams>({
   id: 'shared/training-dummy', name: 'Training dummy', category: 'props', pipeline: ['trellis', 'blender'], file: 'src/engine/models/trainingDummy.ts', surface: 'wood',
   defaults: { variant: 'wood' },
   variants: DUMMY_VARIANTS.map((v) => ({ id: v.id, label: v.label, params: { variant: v.id } })),

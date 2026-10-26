@@ -90,7 +90,7 @@ import { FlickTracker, addLockOffset, type LockOnSystem } from './LockOnTarget';
 import { getSetting } from '../ui/Settings';
 import { hudSlots, type DiscSpot, type TouchRelabel } from '../ui/hudSlots';
 
-export const IS_TOUCH = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
+export const IS_TOUCH: boolean = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
 
 const STICK_RADIUS = 48;      // px from base to full deflection — the ring's radius, so the knob's centre reaches the ring at full push
 const DEADZONE = 0.12;

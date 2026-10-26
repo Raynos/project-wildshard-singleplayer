@@ -224,4 +224,4 @@ export interface FrameRecord {
   buckets: Float32Array; subs: Float32Array; nav: number; top: string; topMs: number;
 }
 
-export const frameCost = new FrameCost();
+export const frameCost: FrameCost = new FrameCost();

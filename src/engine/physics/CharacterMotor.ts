@@ -46,7 +46,7 @@ export interface MotorOptions {
  * world, creatures and ITEM bodies (the puzzle barrel, coconuts, which its 80 kg mass pushes), pressing 80 kg on a
  * riding body. (PLAYER never meets PLAYER: groups.ts's filter.)
  */
-export const PLAYER_BODY = { group: 'PLAYER', blockedBy: ['WORLD', 'CREATURE', 'ITEM'], weight: 80 } as const satisfies Pick<MotorOptions, 'group' | 'blockedBy' | 'weight'>;
+export const PLAYER_BODY: { readonly group: "PLAYER"; readonly blockedBy: readonly ["WORLD", "CREATURE", "ITEM"]; readonly weight: 80; } = { group: 'PLAYER', blockedBy: ['WORLD', 'CREATURE', 'ITEM'], weight: 80 } as const satisfies Pick<MotorOptions, 'group' | 'blockedBy' | 'weight'>;
 
 /** dynamic bodies a character rides like a kinematic one (feet pinned to it) and loads with its weight */
 const RIDEABLE = new WeakSet<RigidBody>();

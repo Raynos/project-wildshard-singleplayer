@@ -71,7 +71,7 @@ export function riseSteering(row: { readonly from: number; readonly to: number; 
   return { yaw: body.yaw + row.yawLead, speed: k > 0 ? row.speed : 0, altitude: row.from + (row.to - row.from) * k, turn: row.turn, ground: row.ground };
 }
 const finite = v.pipe(v.number(), v.finite());
-const saved = v.strictObject({ version: v.literal(1), contract: v.string(), elapsed: v.pipe(finite, v.minValue(0)), angle: finite, complete: v.boolean(), strikeIssued: v.exactOptional(v.boolean()) });
+const saved: v.GenericSchema<ActorMoveSavedDataInput, ActorMoveSavedData> = v.strictObject({ version: v.literal(1), contract: v.string(), elapsed: v.pipe(finite, v.minValue(0)), angle: finite, complete: v.boolean(), strikeIssued: v.exactOptional(v.boolean()) });
 function point(value: MovePoint): void { if (![value.x, value.y, value.z].every(Number.isFinite)) throw new Error('Nonfinite move observation'); }
 
 /** One replaceable sim-side move. It emits data requests; platform flight/physics/combat applies them in fixed-step order.
@@ -173,3 +173,15 @@ export class ActorMoveRunner {
   }
   private finish(ok: boolean): { done: boolean } { this.complete = true; return { done: ok }; }
 }
+
+/** Complete admitted continuation, independent of validator implementation metadata. */
+type ActorMoveSavedDataInput = ActorMoveSavedData;
+interface ActorMoveSavedDataFields {
+    version: 1;
+    contract: string;
+    elapsed: number;
+    angle: number;
+    complete: boolean;
+    strikeIssued?: boolean;
+}
+type ActorMoveSavedData = { [Key in keyof ActorMoveSavedDataFields]: ActorMoveSavedDataFields[Key] };

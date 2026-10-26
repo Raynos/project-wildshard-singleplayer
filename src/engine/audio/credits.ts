@@ -11,7 +11,7 @@ import type { SfxSet } from '../ui/Settings';
 import { shipped } from './Stems';
 import { onOwnerDispose } from '../app/ownership';
 
-export const MUSIC_CREDIT = engineString('s_7fc7e56bbd7f');
+export const MUSIC_CREDIT: string = engineString('s_7fc7e56bbd7f');
 const STABILITY = engineString('s_ef691a454428');
 const NAMES: Record<Exclude<SfxSet, 'synth'>, string> = {
   best: engineString('s_9c6373f9a730'),

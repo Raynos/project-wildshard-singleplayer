@@ -142,7 +142,7 @@ export function staleClientRecovery(recent: () => number, reload: () => Promise<
   };
 }
 /** The page's one stale-client recovery (staleClientRecovery). */
-export const recoverStaleClient = staleClientRecovery(() => recentReloads().length, recover);
+export const recoverStaleClient: () => Promise<boolean> = staleClientRecovery(() => recentReloads().length, recover);
 
 const STYLE = `
   #wsstuck { position: fixed; left: 50%; bottom: max(24px, calc(env(safe-area-inset-bottom) + 16px)); z-index: var(--ws-layer-error, 2147482500); transform: translateX(-50%); box-sizing: border-box; width: min(360px, calc(100% - 32px)); padding: 16px 16px 14px; background: rgba(13, 27, 38, 0.86); border: 1px solid rgba(143, 227, 255, 0.35); color: #e6f2f8; font: 12px/1.5 "JetBrains Mono", ui-monospace, Menlo, monospace; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }

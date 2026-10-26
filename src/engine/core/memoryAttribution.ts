@@ -127,7 +127,7 @@ export class MemoryAttribution {
 }
 
 /** The installed allocation paths and Developer/report readers share this ledger; importing creates no service. */
-export const memoryAttribution = new MemoryAttribution();
+export const memoryAttribution: MemoryAttribution = new MemoryAttribution();
 let creation: MemoryLabel | null = null;
 /** Synchronous allocation labels share the existing labelledCreation path, including renderer initialization. */
 export function memoryCreationLabel(): MemoryLabel | null { return creation; }

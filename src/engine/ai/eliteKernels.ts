@@ -13,7 +13,7 @@ import { StrikeRunner, type StrikeSpec } from './strikes';
 import { canReach } from './reach';
 
 const finite = v.pipe(v.number(), v.finite()), handle = HandleIdSchema;
-const rowSchema = v.strictObject({
+const rowSchema: v.GenericSchema<NativeEliteKernelPayloadInput, NativeEliteKernelPayload> = v.strictObject({
   id: handle, profile: v.variant('pattern', [
     v.strictObject({ pattern: v.literal('pouncer'), spec: v.unknown() }),
     v.strictObject({ pattern: v.literal('howler'), spec: v.unknown() }),
@@ -146,3 +146,33 @@ export class NativeEliteKernels {
     actor.combatActor().damageMul = request => { if (this.scope.disposed || this.scope.disposing) return 1; this.validate(); return controller.damage(actor, request.point); };
   }
 }
+
+/** Complete admitted continuation, independent of validator implementation metadata. */
+type NativeEliteKernelPayloadInput = NativeEliteKernelPayload;
+interface NativeEliteKernelPayloadFields {
+    id: string;
+    profile: {
+        pattern: "pouncer";
+        spec: unknown;
+    } | {
+        pattern: "howler";
+        spec: unknown;
+    };
+    lair: {
+        x: number;
+        z: number;
+    };
+    awareRadius: number;
+    contacts: {
+        amount: number;
+        strike: string;
+    }[];
+    fallbackStrike: string;
+    knockdown: {
+        speed: number;
+        min: number;
+        max: number;
+        seconds: number;
+    };
+}
+type NativeEliteKernelPayload = { [Key in keyof NativeEliteKernelPayloadFields]: NativeEliteKernelPayloadFields[Key] };

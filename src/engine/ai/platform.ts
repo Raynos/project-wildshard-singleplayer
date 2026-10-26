@@ -21,7 +21,7 @@ export interface PlatformBrainPorts {
 const mode = v.picklist(['idle', 'wander', 'pursue', 'attack', 'return', 'dead']);
 const finite = v.pipe(v.number(), v.finite());
 const natural = v.pipe(finite, v.integer(), v.minValue(0));
-const stateSchema = v.strictObject({ mode, target: v.nullable(v.string()), cooldown: natural, wanderUntil: natural, waypoint: v.tuple([finite, finite, finite]), tick: natural });
+const stateSchema: v.GenericSchema<PursuitBrainStateDataInput, PursuitBrainStateData> = v.strictObject({ mode, target: v.nullable(v.string()), cooldown: natural, wanderUntil: natural, waypoint: v.tuple([finite, finite, finite]), tick: natural });
 const brainCheckpoint = v.strictObject({ contract: v.string(), state: stateSchema });
 type BrainState = v.InferOutput<typeof stateSchema>;
 const distance = (a: BrainTarget['position'], b: BrainTarget['position']): number => Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
@@ -122,3 +122,19 @@ export function preparePlatformBrains(sim: SimHost, rows: readonly PlatformSpawn
   }
   return result;
 }
+
+/** Complete admitted continuation, independent of validator implementation metadata. */
+type PursuitBrainStateDataInput = PursuitBrainStateData;
+interface PursuitBrainStateDataFields {
+    mode: "idle" | "wander" | "pursue" | "attack" | "return" | "dead";
+    target: string | null;
+    cooldown: number;
+    wanderUntil: number;
+    waypoint: [
+        number,
+        number,
+        number
+    ];
+    tick: number;
+}
+type PursuitBrainStateData = { [Key in keyof PursuitBrainStateDataFields]: PursuitBrainStateDataFields[Key] };

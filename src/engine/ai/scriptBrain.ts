@@ -7,7 +7,7 @@ import type { ScriptModule } from '../script/lane';
 import type { ScriptRole, ScriptSchedule, ScheduledScriptBinding } from '../script/composition';
 
 /** Numeric motion intentions; the guest cannot write positions, spawn actors or deal damage. */
-export const BRAIN_FIELD = Object.freeze({ yaw: 1, speed: 2, strafe: 3, turnRate: 4 });
+export const BRAIN_FIELD: Readonly<{ yaw: 1; speed: 2; strafe: 3; turnRate: 4; }> = Object.freeze({ yaw: 1, speed: 2, strafe: 3, turnRate: 4 });
 /** One trusted actor binding, with admitted motion bounds and a finite catalogue of strike requests. */
 export interface ScriptBrainBinding {
   module: string; entity: number; actorId: string; maxSpeed: number; maxStrafe: number; maxTurnRate: number;
