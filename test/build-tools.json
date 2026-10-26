@@ -1,0 +1,4 @@
+{
+  "test/basis-build-provider.test.ts": ["basis"],
+  "test/sky-creature-rig-output.test.ts": ["basis"]
+}

@@ -7,6 +7,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { relative, resolve } from 'node:path';
 import { BaseSequencer, type TestSpecification } from 'vitest/node';
 import * as v from 'valibot';
+import { prepareTestBuildTools } from './test-build-tools';
 
 export const DURATIONS_FILE = 'test/durations.json';
 const FILE_OVERHEAD_S = 0.3;
@@ -60,7 +61,7 @@ export class DurationSequencer extends BaseSequencer {
     return files.filter(spec=>selected.has(key(spec)));
   }
   override async sort(candidates: TestSpecification[]): Promise<TestSpecification[]> {
-    const files=this.cohort(candidates);
+    let files=this.cohort(candidates);
     const { root } = this.ctx.config;
     const registry = resolve(root, 'scripts/test-products.json');
     if (existsSync(registry)) {
@@ -78,13 +79,15 @@ export class DurationSequencer extends BaseSequencer {
             console.warn(`Local related: skipping ${selection.blocked.length} product suites (CI still runs them): ${selection.blocked.join(', ')}. Missing current products: ${selection.missing.join(', ')}. Build: python3 scripts/heavy-lane.py build -- ${selection.buildCommand}`);
             if(selection.ready.length===0)throw new Error('No runnable related suites; build the named products first');
             const ready=new Set(selection.ready);
-            return super.sort(files.filter(spec=>ready.has(relative(root,spec.moduleId).replaceAll('\\','/'))));
+            files=files.filter(spec=>ready.has(relative(root,spec.moduleId).replaceAll('\\','/')));
           }
-          return super.sort(files);
-        }
-        assertBuiltTestProducts(root, selected);
+        } else assertBuiltTestProducts(root, selected);
       }
     }
+    const started = performance.now();
+    const tools = await prepareTestBuildTools(files.map(spec => relative(root, spec.moduleId).replaceAll('\\', '/')),
+      JSON.parse(readFileSync(resolve(root, 'test/build-tools.json'), 'utf8')));
+    if (tools.length > 0) console.info(`Test build prerequisites: ${tools.join(', ')} ready in ${Math.round(performance.now() - started)} ms (before test workers)`);
     return super.sort(files);
   }
   override shard(candidates: TestSpecification[]): Promise<TestSpecification[]> {
