@@ -1,5 +1,5 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- Compare every original atlas byte and own isolated producer/cache fixtures.
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Prove handoff absence and own isolated source/cache fixtures.
+import { existsSync, mkdtempSync, readdirSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Confine the real sealed producer and source bundle to this checkout.
 import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare full rasters without expanding millions of assertion elements.
@@ -12,7 +12,7 @@ import { parseKtx2 } from '../src/format/ktx2Cost';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { createProjectGeneration, type ProjectGenerationContext } from '../src/sdk/projectGeneration';
-import { discoverGeneration, generateShardJob } from '../scripts/generate.mjs';
+import { discoverGeneration } from '../scripts/generate.mjs';
 import { bakeSkySwardAtlas, bakeSwardAtlasTexture } from '../src/shards/far-reach/generators/swardAtlas';
 import { skySwardAtlasProgram } from '../src/shards/far-reach/generators/swardAtlasProgram';
 
@@ -23,10 +23,7 @@ const check = (bytes: Uint8Array): void => {
 };
 
 test('the original sward texture preserves every numerical strand channel and its linear single-level costs', async () => {
-  const original = readFileSync(`src/shards/far-reach/assets/${originalHash}`);
-  check(original);
   const made = await bakeSwardAtlasTexture(); check(made);
-  expect(Buffer.compare(made, original)).toBe(0);
   const view = new DataView(made.buffer, made.byteOffset, made.byteLength);
   expect([view.getUint32(12, true), view.getUint32(20, true), view.getUint32(24, true), view.getUint32(40, true)])
     .toEqual([37, 1152, 512, 1]);
@@ -52,10 +49,10 @@ test.each(['swardAtlas', 'swardAtlasProgram'])('%s bundles without generated imp
 });
 
 test('cold and persistent atlas hits preserve the complete original texture and detach caller mutations', async () => {
-  const cache = mkdtempSync(resolve('tmp/sky-sward-cache-'));
+  const cache = mkdtempSync(resolve('tmp/sky-sward-cache-')), project = mkdtempSync(resolve(cache, 'project-'));
   let builds = 0;
   const context = (identity = 'a'): Pick<ProjectGenerationContext, 'cached'> => {
-    const ctx = createProjectGeneration(resolve('src/shards/far-reach'), identity.repeat(64), new Map(), cache);
+    const ctx = createProjectGeneration(project, identity.repeat(64), new Map(), resolve(cache, 'cache'));
     return { cached: (step, generate) => {
       expect(step).toEqual({ id: 'sward-atlas', native: true, inputs: [] });
       return ctx.cached(step, inputs => { expect(inputs.size).toBe(0); builds++; return generate(inputs); });
@@ -65,6 +62,7 @@ test('cold and persistent atlas hits preserve the complete original texture and 
     const first = await skySwardAtlasProgram(context()); check(first); first.fill(0);
     check(await skySwardAtlasProgram(context())); expect(builds).toBe(1);
     check(await skySwardAtlasProgram(context('b'))); expect(builds).toBe(2);
+    expect(readdirSync(project)).toEqual([]);
   } finally { rmSync(cache, { recursive: true, force: true }); }
 });
 
@@ -77,15 +75,12 @@ test('unexpected source inputs and missing, empty or extra cached atlas files re
   }
 });
 
-test('the real cold sealed atlas writer retains the complete original output', async () => {
-  const root = resolve('.'), job = discoverGeneration(root).jobs.find(row => row.id === 'sky-sward-atlas');
-  if (job === undefined) throw new Error('Missing retained sward producer');
-  const cacheDir = mkdtempSync(resolve('tmp/sky-sward-sealed-'));
-  try {
-    const result = await generateShardJob(root, job, { cacheDir, forceCompare: true });
-    try {
-      expect(result.hit).toBe(false);
-      expect(result.hashes).toEqual({ [`src/shards/far-reach/assets/${originalHash}`]: originalHash });
-    } finally { result.release(); }
-  } finally { rmSync(cacheDir, { recursive: true, force: true }); }
+test('the atlas scheduler and all declared handoff readers are retired', () => {
+  const handoff = `src/shards/far-reach/assets/${originalHash}`;
+  for (const job of discoverGeneration(resolve('.')).jobs) {
+    expect(job.id).not.toBe('sky-sward-atlas');
+    expect(job.outputs, job.id).not.toContain(handoff);
+    expect(job.inputRoots, job.id).not.toContain(handoff);
+  }
+  expect(existsSync(handoff)).toBe(false);
 });
