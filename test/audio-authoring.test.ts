@@ -16,7 +16,7 @@ it.each([
   expect(cove.audioBounds).toEqual(islandCoveSpec().caveBounds);
   expect(cove.audioFall.foot).toEqual(islandCoveSpec().fall.foot);
   expect(islandCoveSpec().cave).toMatchObject(cove.audioCave);
-  const product=await readProjectAssets(`src/shards/${slug}`);
+  const product=await readProjectAssets(`src/shards/${slug}`,undefined,{folder:slug,imageRoots:[{prefix:'/assets/',directory:'public/assets'}]});
   expect(product.shard.audio).toEqual(rows);
   // The producer uses the public wire parser: invalid PCM or zone rows still refuse.
   expect(()=>parseAudioData({...source.audio,pcm:{bad:{seed:[1,2],values:[],samples:0}}})).toThrow();
