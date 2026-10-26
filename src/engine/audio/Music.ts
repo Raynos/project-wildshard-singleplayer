@@ -649,8 +649,15 @@ export class Music {
     if (name === 'theme' && this.stemsReady()) { this.sync(); return; } // the decoded deck from silence — no synth bridge
     this.startSynth(t, 0);
     const arr = arrangementOf(name);
-    const idle = (window as unknown as { requestIdleCallback?: (fn: () => void) => void }).requestIdleCallback;
-    if (idle) idle(() => this.engine.warm(arr)); else this.scope.timeout(300, () => this.engine.warm(arr));
+    const warm = (): void => {
+      if (!this.scope.disposed && !this.scope.disposing) this.engine.warm(arr);
+    };
+    const w: { requestIdleCallback?: (run: () => void) => number; cancelIdleCallback?: (id: number) => void } = window;
+    if (w.requestIdleCallback) {
+      let forget = (): void => { /* Filled after native scheduling. */ };
+      const id = w.requestIdleCallback(() => { forget(); warm(); });
+      forget = this.scope.capture('disposers', () => { w.cancelIdleCallback?.(id); });
+    } else this.scope.timeout(300, warm);
     if (name === 'theme') this.sync();
   }
   private stemsReady(): boolean {
