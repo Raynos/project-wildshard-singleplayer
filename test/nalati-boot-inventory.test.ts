@@ -1,6 +1,7 @@
 import { expect, test } from 'vitest';
 import { bootFileList, bootLateReads, bootSourceFiles } from '@wildshard/engine/boot/filePolicy';
 import { publicBytes } from '@wildshard/engine/boot/tables';
+import originalBoot from './fixtures/nalati-boot-original.json' with { type: 'json' };
 import metadata from '../src/shards/nalati-grasslands/bootMetadata.generated.json' with { type: 'json' };
 import { DECLARATION } from '../src/shards/nalati-grasslands/boot/declaration.generated';
 import { nalatiBootInventory } from '../src/shards/nalati-grasslands/generators/bootInventory';
@@ -60,14 +61,26 @@ test('prepared camp skins stay in the late-read phase before their original orde
 });
 
 test('explicit declared body locators own selection and refuse malformed identities', () => {
-  const assets = nalatiBootAssets(metadata.assetFiles.bodies);
-  expect(assets).toEqual(metadata.assetFiles);
+  const originalFile = originalBoot.assetFiles.bodies;
+  const assets = nalatiBootAssets(originalFile);
+  expect(assets).toEqual(originalBoot.assetFiles);
   const other = nalatiBootAssets(`/assets/nalati/baked/bodies-${'a'.repeat(64)}.bin`);
-  const rows = nalatiBootInventory(other, { [assets.bodies]: true, [other.bodies]: true });
+  const rows = nalatiBootInventory(other, { [originalFile]: true, [`/assets/nalati/baked/bodies-${'a'.repeat(64)}.bin`]: true });
   expect(rows.assetFiles).toEqual(other);
   const props = bootSourceFiles(rows.sources, 'phone', 'img').props;
-  expect(props).toEqual([other.bodies]); expect(props).not.toContain(assets.bodies);
-  rows.assetFiles.bodies = assets.bodies; expect(other.bodies).not.toBe(assets.bodies);
+  expect(props).toEqual([other.bodies]); expect(props).not.toContain(originalFile);
+  rows.assetFiles.bodies = originalFile; expect(other.bodies).not.toBe(originalFile);
   for (const name of ['', 'bodies.bin', '/assets/nalati/baked/bodies.bin', `/assets/other/bodies-${'a'.repeat(64)}.bin`,
     `/assets/nalati/baked/bodies-${'A'.repeat(64)}.bin`, `${other.bodies}?copy=1`]) expect(() => nalatiBootAssets(name)).toThrow('Invalid declared species body locator');
+});
+
+
+test('the admitted body bank is absent from every public boot mode even when its old URL exists', () => {
+  const assets = nalatiBootAssets(), originalFile = originalBoot.assetFiles.bodies;
+  expect(assets).toEqual({ coats: originalBoot.assetFiles.coats });
+  const rows = nalatiBootInventory(assets, { [originalFile]: true });
+  for (const tier of ['phone', 'desktop'] as const) for (const tex of ['img', 'ktx2'] as const) {
+    expect(bootSourceFiles(rows.sources, tier, tex).props).not.toContain(originalFile);
+    expect(bootFileList({ sources: rows.sources, tier, tex }, tier)).not.toContain(originalFile);
+  }
 });

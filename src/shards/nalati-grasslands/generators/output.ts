@@ -115,7 +115,7 @@ import titanFireViewBytes from '../behaviour/titanFireView.generated.json' with 
 import { nalatiTitanFireView } from './titanFireView';
 import titanWhirlsViewBytes from '../behaviour/titanWhirlsView.generated.json' with { type: 'json' };
 import { nalatiTitanWhirlsView } from './titanWhirlsView';
-import { encodeCanonicalJson, hashImmutableBytes } from '@wildshard/sdk/immutable';
+import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
 import worldAssembly from '../data/worldAssembly.json' with { type: 'json' };
 import { FixedDrawRowsSchema } from '@wildshard/format/fixedDraws';
 import { postChainRows } from './postChain';
@@ -216,7 +216,7 @@ const speciesInputSchema = v.object({
   admission: v.looseObject({ script: v.record(v.string(), v.unknown()), bytes: v.string(), compiled: v.optional(v.unknown()), v2: v.optional(v.unknown()) }),
   strike: v.unknown(), kingPose: v.object({ programs: v.unknown(), group: v.string() }),
 });
-const speciesOutputSchema = v.object({ packedBodies: v.object({ file: v.string() }), crackBytes: v.array(v.number()), looks: v.unknown(), presentation: v.unknown(), hullBook: v.unknown(),
+const speciesOutputSchema = v.object({ packedBodies: v.object({ file: v.string(), bytes: v.pipe(v.number(), v.safeInteger(), v.minValue(1)) }), crackBytes: v.array(v.number()), looks: v.unknown(), presentation: v.unknown(), hullBook: v.unknown(),
   program: v.object({ script: v.object({ module: v.string(), pages: v.number() }), bytes: v.string() }), witnessBytes: v.number() });
 function admitSpeciesInput(input: unknown): NalatiSpeciesSourceInputs {
   // Validate in place: the native packer preserves the upstream metadata assignment order.
@@ -229,21 +229,12 @@ export async function prepareSpecies(ctx: ProjectGenerationContext): Promise<{
   readonly rows: v.InferOutput<typeof speciesOutputSchema>;
   readonly files: ReadonlyMap<string, Uint8Array>;
 }> {
-  const prefix = '/assets/nalati/baked/';
-  const inventory = ctx.inputFiles?.([prefix]);
-  if (inventory === undefined) throw new Error('Species source requires injected public input inventory');
-  const bodyFile = (hash: string): string => {
-    const matches = inventory.filter(file => file.startsWith(prefix) && file.slice(prefix.length) === `bodies-${hash}.bin`);
-    const selected = matches[0];
-    if (matches.length !== 1 || selected === undefined) throw new Error('Missing unique published species body bank');
-    return selected;
-  };
-  const files = await nalatiSpeciesProgram(ctx, admitSpeciesInput, input => v.parse(CreatureGuestSchema, input), bodyFile);
+  const files = await nalatiSpeciesProgram(ctx, admitSpeciesInput, input => v.parse(CreatureGuestSchema, input), () => 'actors/bodies.bin');
   const metadata = files.get('species.json'), witness = files.get('held-witness.bin');
   if (metadata === undefined || witness === undefined) throw new Error('Missing owned species metadata or witness');
   const rows = v.parse(speciesOutputSchema, JSON.parse(new TextDecoder().decode(metadata)));
   const bank = files.get('bodies.bin');
-  if (bank === undefined || rows.packedBodies.file !== bodyFile(hashImmutableBytes(bank))) throw new Error('Species body locator differs from owned bytes');
+  if (bank === undefined || rows.packedBodies.file !== 'actors/bodies.bin') throw new Error('Species body locator differs from named output');
   if (rows.witnessBytes !== witness.byteLength) throw new Error('Species witness cost differs from owned bytes');
   return { rows, files };
 }
@@ -255,6 +246,7 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Nala
     const bytes = species.get(name); if (bytes === undefined) throw new Error(`Missing owned species output: ${name}`);
     return bytes;
   };
+  const speciesBank = nameBlob('actors/bodies.bin', 'bin', speciesFile('bodies.bin'), { decoded: speciesRows.packedBodies.bytes });
   const freshEmission = emitSpeciesOutput(speciesRows);
   const template = outputRowsFrom(speciesRows, freshEmission), platform = template.platform;
   const held = [nameBlob(heldWitness.name, 'bin', speciesFile('held-witness.bin'), heldWitness.options),
@@ -344,5 +336,5 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Nala
   const scenes = emitNamedBlobs(sceneBlobs.map(blob => blob.file.name === undefined ? blob : ownedBooks.get(blob.file.name) ?? blob));
   const namedFiles = [...sourceFiles.filter(file => file.name !== 'quests/carried.json'), carriedBlob.file, ...ownedMetadata.files, ...placements.files, ...scenes.files].sort((a, b) => (a.name ?? '') < (b.name ?? '') ? -1 : (a.name ?? '') > (b.name ?? '') ? 1 : 0);
   const sources = await nalatiOutputInputs(ctx, outputBlobs(shapeBook.sources, runtime.floors.map(floor => nameBlob(floor.name, 'bin', floor.bytes)), [propBlob], carvings, held));
-  return { ...template, platform, blobs: [], namedFiles: [...sources.map(source => source.file), ...modelBlobs.map(source => source.file), ...namedFiles, ...taming.files, places.file, crags.file, dressingBlob.file, specimenBank.file], assets: new Map([...template.assets, ...freshEmission.assets, ...[...ownedBooks.values()].map(blob => [blob.file.hash, blob.bytes] as const), ...sources.map(source => [source.file.hash, source.bytes] as const), ...modelBlobs.map(source => [source.file.hash, source.bytes] as const), ...ownedMetadata.assets, ...placements.assets, ...scenes.assets, [carriedBlob.file.hash, carriedBlob.bytes], [places.file.hash, places.bytes], [crags.file.hash, crags.bytes], [dressingBlob.file.hash, dressingBlob.bytes], [specimenBank.file.hash, specimenBank.bytes]]) };
+  return { ...template, platform, blobs: [], namedFiles: [...sources.map(source => source.file), ...modelBlobs.map(source => source.file), ...namedFiles, ...taming.files, places.file, crags.file, dressingBlob.file, specimenBank.file, speciesBank.file], assets: new Map([...template.assets, ...freshEmission.assets, ...[...ownedBooks.values()].map(blob => [blob.file.hash, blob.bytes] as const), ...sources.map(source => [source.file.hash, source.bytes] as const), ...modelBlobs.map(source => [source.file.hash, source.bytes] as const), ...ownedMetadata.assets, ...placements.assets, ...scenes.assets, [carriedBlob.file.hash, carriedBlob.bytes], [places.file.hash, places.bytes], [crags.file.hash, crags.bytes], [dressingBlob.file.hash, dressingBlob.bytes], [specimenBank.file.hash, specimenBank.bytes], [speciesBank.file.hash, speciesBank.bytes]]) };
 }

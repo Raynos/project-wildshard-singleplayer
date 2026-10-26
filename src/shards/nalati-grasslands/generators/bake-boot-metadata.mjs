@@ -46,12 +46,8 @@ for (const job of catalogue.jobs) for (const path of [...Object.keys(job.buildOu
 }
 // The page's generated PUBLIC_BYTES table has this exact lexical ordering.
 const ordered = Object.fromEntries(Object.keys(bytes).filter(path => !path.endsWith('.DS_Store')).sort().map(path => [path, bytes[path]]));
-const speciesJob = catalogue.jobs.find(job => job.id === 'nalati-species');
-const bodies = [...Object.keys(speciesJob?.buildOutputs ?? {}), ...(speciesJob?.buildTimeOutputs ?? [])].filter(path => /^public\/assets\/nalati\/baked\/bodies-[a-f0-9]{64}\.bin$/u.test(path));
-if (bodies.length !== 1) throw new Error('Boot requires exactly one declared species body output');
-const bodyFile = bodies[0];
-if (bodyFile === undefined) throw new Error('Missing declared species body output');
-const inventory = nalatiBootInventory(nalatiBootAssets(bodyFile.slice('public'.length)), ordered);
+// The admitted critical species bank owns this read; public prefetch would load it twice.
+const inventory = nalatiBootInventory(nalatiBootAssets(), ordered);
 const writer = byteWriter(process.argv.includes('--check'), 'nalati-boot-metadata');
 writer.put(resolve(root, 'src/shards/nalati-grasslands/boot/explore.generated.json'), jsonBytes({ art: [...Object.values(discovery.explore.art), ...discovery.extraArt, ...discovery.explore.compare.flatMap(({ live, image }) => [live, image])] }));
 writer.put(resolve(root, 'src/shards/nalati-grasslands/bootMetadata.generated.json'), jsonBytes({ assetFiles: inventory.assetFiles, postChain: postChainRows(), panoramaRidge: PANO_RIDGE_V }));

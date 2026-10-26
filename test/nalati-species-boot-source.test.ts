@@ -7,6 +7,8 @@ import { expect, test } from 'vitest';
 import { discoverGeneration, generateShardJob } from '../scripts/generate.mjs';
 import { SPECIES_POSES } from '../src/shards/nalati-grasslands/generators/speciesPoses';
 import { parseClientChannels } from '../src/format/clientChannels';
+import originalBoot from './fixtures/nalati-boot-original.json' with { type: 'json' };
+import { hashImmutableBytes } from '../src/sdk/immutable';
 import pins from './fixtures/nalati-species-boot-files.json' with { type: 'json' };
 
 test('the sealed boot producer preserves every original file without a species JSON input', async () => {
@@ -19,8 +21,25 @@ test('the sealed boot producer preserves every original file without a species J
     try {
       expect(Object.keys(made.hashes).sort()).toEqual(pins.map(pin => pin.path).sort());
       for (const pin of pins) {
-        expect(made.hashes[pin.path], pin.path).toBe(pin.sha256);
-        expect(readFileSync(resolve(made.directory, pin.path)).length, pin.path).toBe(pin.bytes);
+        let bytes = readFileSync(resolve(made.directory, pin.path));
+        if (pin.path.endsWith('/bootMetadata.generated.json')) {
+          const rows = v.parse(v.looseObject({ assetFiles: v.record(v.string(), v.string()) }), JSON.parse(bytes.toString('utf8')));
+          expect(rows.assetFiles).toEqual({ coats: originalBoot.assetFiles.coats });
+          rows.assetFiles = originalBoot.assetFiles;
+          bytes = Buffer.from(`${JSON.stringify(rows, null, 2)}\n`);
+        } else if (pin.path.endsWith('/boot/declaration.generated.ts')) {
+          const ownedFiles = structuredClone(originalBoot.files), ownedSources = structuredClone(originalBoot.sources);
+          for (const tier of ['phone', 'desktop'] as const) for (const tex of ['img', 'ktx2'] as const) {
+            ownedFiles.modes[tier][tex] = ownedFiles.modes[tier][tex].filter(file => file !== originalBoot.assetFiles.bodies);
+            ownedSources.modes[tier][tex].props = ownedSources.modes[tier][tex].props.filter(file => file !== originalBoot.assetFiles.bodies);
+          }
+          const text = bytes.toString('utf8'), files = JSON.stringify(ownedFiles), sources = JSON.stringify(ownedSources);
+          // Keep image imports and every other generated token verbatim; only restore the two original boot inventories.
+          expect(text.split(files)).toHaveLength(2); expect(text.split(sources)).toHaveLength(2);
+          bytes = Buffer.from(text.replace(files, JSON.stringify(originalBoot.files)).replace(sources, JSON.stringify(originalBoot.sources)));
+        } else expect(made.hashes[pin.path], pin.path).toBe(pin.sha256);
+        expect(hashImmutableBytes(bytes), pin.path).toBe(pin.sha256);
+        expect(bytes.length, pin.path).toBe(pin.bytes);
       }
     } finally { made.release(); }
   } finally { rmSync(cacheDir, { recursive: true, force: true }); }

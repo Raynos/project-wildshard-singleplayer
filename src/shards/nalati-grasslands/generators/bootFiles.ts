@@ -6,11 +6,11 @@ import { publicBytes } from '@wildshard/engine/boot/tables';
 import type { Tier } from '@wildshard/engine/core/tier';
 import { GPU_FILES } from '../ktx2.generated';
 
-/** URLs needed before product admission by both boot and creature readers. */
-export interface NalatiBootAssets { coats: string; bodies: string }
-export function nalatiBootAssets(bodyFile: string): NalatiBootAssets {
-  if (!/^\/assets\/nalati\/baked\/bodies-[a-f0-9]{64}\.bin$/u.test(bodyFile)) throw new Error('Invalid declared species body locator');
-  return { coats: '/assets/nalati/models/coats/', bodies: bodyFile };
+/** Public boot inputs. Omit bodies when an admitted product file owns their read. */
+export interface NalatiBootAssets { coats: string; bodies?: string }
+export function nalatiBootAssets(bodyFile?: string): NalatiBootAssets {
+  if (bodyFile !== undefined && !/^\/assets\/nalati\/baked\/bodies-[a-f0-9]{64}\.bin$/u.test(bodyFile)) throw new Error('Invalid declared species body locator');
+  return { coats: '/assets/nalati/models/coats/', ...(bodyFile === undefined ? {} : { bodies: bodyFile }) };
 }
 
 const rigs = ['horse-wild', 'horse-saddled', 'wolf', 'snow-leopard', 'sheep', 'eagle', 'collie', 'ghost-horse', 'golden-king'];
@@ -25,7 +25,7 @@ export function worldFiles(tier: Tier, assets: NalatiBootAssets, inventory: Read
     ...rigs.map((name) => `/assets/nalati/models/${name}${tier === 'phone' ? '.phone' : ''}.rigged.glb`),
     ...coatFiles(assets, inventory),
     // the species bodies' offline bake (SHARD-PLATFORM M3, species/bodies.ts)
-    assets.bodies,
+    ...(assets.bodies === undefined ? [] : [assets.bodies]),
   ].filter((url) => phone(url) in inventory || url in inventory);
 }
 export function bootSources(tier: Tier, assets: NalatiBootAssets, tex: TexMode = 'img', inventory: Readonly<Record<string, number | true>> = publicBytes()): ChunkFiles {

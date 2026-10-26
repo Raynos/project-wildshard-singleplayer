@@ -19,6 +19,8 @@ import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { nalatiBakeBlob } from '../src/shards/nalati-grasslands/generators/placeBlobProgram';
 import { prepareOutput, prepareSpecies } from '../src/shards/nalati-grasslands/generators/output';
 import { build as buildNalati } from '../src/shards/nalati-grasslands/generators/build';
+import { originalSpeciesBank, originalSpeciesMetadata } from './fixtures/nalati-species-bank-transport';
+import speciesPins from './fixtures/nalati-species-files.json' with { type: 'json' };
 import headerPin from './fixtures/nalati-species-product-header.json' with { type: 'json' };
 import original from './fixtures/nalati-place-blob.json' with { type: 'json' };
 import cragOriginal from './fixtures/nalati-crag-blob.json' with { type: 'json' };
@@ -350,13 +352,31 @@ test('the output hook refuses all original missing and malformed producer invent
 });
 
 
-test('species source checks declared publication on every cached loan', async () => {
+test('the owned species bank preserves its full predecessor and needs no public inventory loan', async () => {
   const ctx = coldOutputFixture.context();
   const withoutInventory: ReturnType<typeof createProjectGeneration> = { ...ctx };
   delete withoutInventory.inputFiles;
-  await expect(prepareSpecies(withoutInventory)).rejects.toThrow('injected public input inventory');
-  await expect(prepareSpecies({ ...ctx, inputFiles: () => [] })).rejects.toThrow('Missing unique published species body bank');
-  const inventory = ctx.inputFiles?.(['/assets/nalati/baked/']);
-  if (inventory === undefined) throw new Error('Missing test input inventory');
-  await expect(prepareSpecies({ ...ctx, inputFiles: () => [...inventory, ...inventory] })).rejects.toThrow('Missing unique published species body bank');
-});
+  const species = await prepareSpecies(withoutInventory), bank = species.files.get('bodies.bin'), metadata = species.files.get('species.json');
+  if (bank === undefined || metadata === undefined) throw new Error('Missing owned species bank');
+  expect(bank.byteLength).toBe(originalSpeciesBank.bytes);
+  expect(hashImmutableBytes(bank)).toBe(originalSpeciesBank.sha256);
+  expect(Buffer.compare(bank, readFileSync(originalSpeciesBank.path))).toBe(0);
+  const before = speciesPins.find(pin => pin.path.endsWith('/species.generated.json'));
+  if (before === undefined) throw new Error('Missing full original species metadata pin');
+  const originalRows = new TextEncoder().encode(`${JSON.stringify(originalSpeciesMetadata(JSON.parse(new TextDecoder().decode(metadata))), null, 2)}\n`);
+  expect(originalRows.length).toBe(before.bytes); expect(hashImmutableBytes(originalRows)).toBe(before.sha256);
+  const expected = nameBlob('actors/bodies.bin', 'bin', bank, { decoded: species.rows.packedBodies.bytes });
+  expect(coldOutputFixture.output.namedFiles.filter(file => file.name === 'actors/bodies.bin')).toEqual([expected.file]);
+  const bytes = coldOutputFixture.output.assets.get(expected.file.hash);
+  if (bytes === undefined) throw new Error('Missing admitted named body bytes');
+  expect(Buffer.compare(bytes, bank)).toBe(0);
+  await expect(prepareSpecies({ ...ctx, cached: (step, make) => ctx.cached(step, make).then(files => {
+    if (step.id !== 'species') return files;
+    const changed = new Map(files), rows = JSON.parse(new TextDecoder().decode(metadata)) as unknown;
+    const shape = v.looseObject({ packedBodies: v.looseObject({ file: v.string() }) });
+    if (!v.is(shape, rows)) throw new Error('Missing source body locator');
+    rows.packedBodies.file = originalSpeciesBank.path.slice('public'.length);
+    changed.set('species.json', new TextEncoder().encode(JSON.stringify(rows)));
+    return changed;
+  }) })).rejects.toThrow('Species body locator differs');
+}, 30000);
