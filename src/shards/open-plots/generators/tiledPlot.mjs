@@ -110,16 +110,15 @@ async function tiledPlot(root, repo, layoutName) {
   const grid = parseLayout(layout.rows), parts = { Paving: new Soup(), Kit: new Soup(), Water: new Soup(), Glow: new Soup(), Pool: new Soup(), Poster: new Soup(), far: new Soup(), solid: new Soup() };
   // the plot's ground: the outer ring, then each tile's paving inside it (the lanes a shade lighter, the canals open)
   for (const [x0, z0, x1, z1] of [[-250, RING, 250, 250], [-250, -250, 250, -RING], [-250, -RING, -RING, RING], [RING, -RING, 250, RING]]) {
-    parts.Paving.quad('Paving', [x0, 0, z0], [x0, 0, z1], [x1, 0, z1], [x1, 0, z0], [1, 1, 1]);
+    parts.Paving.quad('Paving', [x0, 0, z0], [x0, 0, z1], [x1, 0, z1], [x1, 0, z0], palette.paving);
   }
-  // NM8: the paving in 10 m slabs on the plot's grid, two shades in a checker (the lanes their own pair), as the mockup's stone
+  // NM8 / RM5.1: the paving in 10 m slabs on the plot's grid, each its region's colour (the lanes their own); the Paving
+  // material rules the flagstones, joints and wear over it (data/paving.graph.json)
   const SLAB = 10, cut = (a0, a1) => { const out = [a0]; for (let v = Math.ceil(a0 / SLAB) * SLAB; v < a1; v += SLAB) if (v > a0) out.push(v); out.push(a1); return out; };
   for (const [x0, z0, x1, z1, lane] of paving(grid, RING)) {
-    const xs = cut(x0, x1), zs = cut(z0, z1);
+    const xs = cut(x0, x1), zs = cut(z0, z1), colour = lane ? palette.lane : palette.paving;
     for (let i = 0; i + 1 < xs.length; i++) for (let k = 0; k + 1 < zs.length; k++) {
-      const odd = (Math.floor(xs[i] / SLAB) + Math.floor(zs[k] / SLAB)) % 2 !== 0;
-      const colour = lane ? (odd ? palette.laneAlt : palette.lane) : (odd ? palette.pavingAlt : palette.paving);
-      parts.Kit.quad('Kit', [xs[i], 0, zs[k]], [xs[i], 0, zs[k + 1]], [xs[i + 1], 0, zs[k + 1]], [xs[i + 1], 0, zs[k]], colour);
+      parts.Paving.quad('Tile', [xs[i], 0, zs[k]], [xs[i], 0, zs[k + 1]], [xs[i + 1], 0, zs[k + 1]], [xs[i + 1], 0, zs[k]], colour);
     }
   }
   // the kerb in the ring, open at the four entries (the lanes on the x = 0 and z = 0 seams)
@@ -202,6 +201,7 @@ export async function writeTiledWorld(root, repo, idea) {
     scene.addChild(doc.createNode(name).setMesh(doc.createMesh(name).addPrimitive(primitive)));
   };
   node('ws_terrain_floor', parts.Paving.part('Paving'), materials.Paving);
+  node('draw_paving', parts.Paving.part('Tile'), materials.Paving); // RM5.1: the tiles' paving, ruled in its material
   node('draw_kit', parts.Kit.part('Kit'), materials.Kit);
   node('draw_water', parts.Water.part('Water'), materials.Water);
   node('draw_glow', parts.Glow.part('Glow'), materials.Glow);

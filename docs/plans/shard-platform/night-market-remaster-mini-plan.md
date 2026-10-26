@@ -157,6 +157,23 @@ About 10 Opus lane-days, roughly 5 calendar days on two lanes.
 | RM3.3b tile budget report | done | `node scripts/night-market-kit-budget.mjs` prints all 64 L0 / 16 L1 rows from the current sealed product, verifies each dependency’s wire bytes and separately counts 82 unique files across both levels. L0 maxima: 5,164 tris / 9 draws / 2,491,498 B compressed; L1: 9,343 / 6 / 2,990,246 B. Eight L0 rows miss RM8’s 300,000 B target; existing cap debt remains visible, no waiver/cap change. Four related cases incl plain Node and corrupt-wire refusals, scoped types/lint pass. Actual selected product passes; neutral bake’s source world remains byte-exact (12,115,608 B, SHA256 57679eab…) |
 | RM3.4 milestone | done | One `a4b6d8b47f` preview and 652 s capture: all 72 original eye/look/lens poses, 8,640 drawn frames, eight inspected phone sheets and no page errors/context loss. Static kit look and every per-view draw/triangle maximum match RM2; entered claims exact, outside A1/B1/C1 +88 B each. Whole-scene maxima remain 122–193 draws / 287,121–361,596 tris; no FPS/native-memory pass. Sheets and separate page-memory numbers linked in the art index; browser/preview closed |
 
+### RM5–RM12 slices (G711, ≤ 1 h each; sp-o2, stand-dome lane: materials, light, life, near/far, perf)
+
+| Slice | Status | Deliverable |
+|---|---|---|
+| RM5.1 ruled paving | done | `data/paving.graph.json`: flagstones in a 3.2 × 2.4 m running bond, antialiased dark joints that fade under a pixel, a hashed shade per flag and noise wear, over each region's vertex colour (no texture); the tiles' paving in its own `draw_paving` node (the 10 m checker and its `pavingAlt` / `laneAlt` go) |
+| RM5.2 palette to round 46 | open | Each palette region within ΔE00 ≤ 8 of round 46's mockups (red-and-gold lantern dusk, G714), measured per region |
+| RM5.3 trim sheet | open | One generated trim sheet per style (roof tile, timber, plaster, awning stripe, stone), KTX2 with phone mips, and its UV-rect table for sp-o1's RM4 models (producer before reader) |
+| RM5.4 kit reads the trim sheet | waits-Opus (sp-o1 RM4 UVs) | The kit material takes the sheet once the new models carry its UVs |
+| RM6.1 bloom | open | Open plots' grade: bloom ~0.5 / 0.9 (data) |
+| RM6.2 round pools | open | Smooth round pools sized to their light (smoothstep fan or a pool graph) |
+| RM6.3 light bake | open | RM3's vertex bake tuned on the kit and the paving |
+| RM6.4 gate light | open | Gate lanterns, emissive gold trim, uplight (shared hunks agreed with sp-o1) |
+| RM6.5 dusk fill | open | Warmer hemisphere ground colour |
+| RM10.1–10.5 life | open | Round paper sky lanterns, stall steam, fireflies, banner sway, static posed figures |
+| RM11.1–11.2 near / far | open | Near view from the trim-sheet colours; far stand-ins from the new kit |
+| RM12.1–12.3 perf | open | Per-dome Chromium counts, fixes, one Simulator reading |
+
 ## 4. Decisions for Jake
 
 - **D1 Fidelity bar.** 1 Skip · **2 Match the mockup's look at eye height in all ten domes (rec):** stylised and

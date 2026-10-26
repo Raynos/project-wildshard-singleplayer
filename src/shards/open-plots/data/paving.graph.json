@@ -1,0 +1,419 @@
+{
+ "version": 1,
+ "kind": "material",
+ "model": "standard",
+ "doubleSided": false,
+ "params": {
+  "flag": {
+   "type": "float",
+   "value": 3.2,
+   "min": 0.5,
+   "max": 20
+  },
+  "row": {
+   "type": "float",
+   "value": 2.4,
+   "min": 0.5,
+   "max": 20
+  },
+  "joint": {
+   "type": "float",
+   "value": 0.045,
+   "min": 0,
+   "max": 1
+  },
+  "jointShade": {
+   "type": "float",
+   "value": 0.42,
+   "min": 0,
+   "max": 1
+  },
+  "spread": {
+   "type": "float",
+   "value": 0.14,
+   "min": 0,
+   "max": 1
+  },
+  "wear": {
+   "type": "float",
+   "value": 0.1,
+   "min": 0,
+   "max": 1
+  },
+  "roughness": {
+   "type": "float",
+   "value": 0.86,
+   "min": 0,
+   "max": 1
+  }
+ },
+ "nodes": {
+  "flag": {
+   "op": "param",
+   "param": "flag"
+  },
+  "row": {
+   "op": "param",
+   "param": "row"
+  },
+  "joint": {
+   "op": "param",
+   "param": "joint"
+  },
+  "jointShade": {
+   "op": "param",
+   "param": "jointShade"
+  },
+  "spread": {
+   "op": "param",
+   "param": "spread"
+  },
+  "wear": {
+   "op": "param",
+   "param": "wear"
+  },
+  "roughness": {
+   "op": "param",
+   "param": "roughness"
+  },
+  "wp": {
+   "op": "positionWorld"
+  },
+  "x": {
+   "op": "swizzle",
+   "in": [
+    "wp"
+   ],
+   "mask": "x"
+  },
+  "z": {
+   "op": "swizzle",
+   "in": [
+    "wp"
+   ],
+   "mask": "z"
+  },
+  "wxz": {
+   "op": "swizzle",
+   "in": [
+    "wp"
+   ],
+   "mask": "xz"
+  },
+  "zr": {
+   "op": "div",
+   "in": [
+    "z",
+    "row"
+   ]
+  },
+  "ri": {
+   "op": "floor",
+   "in": [
+    "zr"
+   ]
+  },
+  "v": {
+   "op": "fract",
+   "in": [
+    "zr"
+   ]
+  },
+  "odd": {
+   "op": "mod",
+   "in": [
+    "ri",
+    2
+   ]
+  },
+  "shift": {
+   "op": "mul",
+   "in": [
+    "odd",
+    0.5
+   ]
+  },
+  "xr0": {
+   "op": "div",
+   "in": [
+    "x",
+    "flag"
+   ]
+  },
+  "xr": {
+   "op": "add",
+   "in": [
+    "xr0",
+    "shift"
+   ]
+  },
+  "ci": {
+   "op": "floor",
+   "in": [
+    "xr"
+   ]
+  },
+  "u": {
+   "op": "fract",
+   "in": [
+    "xr"
+   ]
+  },
+  "u1": {
+   "op": "oneMinus",
+   "in": [
+    "u"
+   ]
+  },
+  "um": {
+   "op": "min",
+   "in": [
+    "u",
+    "u1"
+   ]
+  },
+  "du": {
+   "op": "mul",
+   "in": [
+    "um",
+    "flag"
+   ]
+  },
+  "v1": {
+   "op": "oneMinus",
+   "in": [
+    "v"
+   ]
+  },
+  "vm": {
+   "op": "min",
+   "in": [
+    "v",
+    "v1"
+   ]
+  },
+  "dv": {
+   "op": "mul",
+   "in": [
+    "vm",
+    "row"
+   ]
+  },
+  "d": {
+   "op": "min",
+   "in": [
+    "du",
+    "dv"
+   ]
+  },
+  "aa0": {
+   "op": "fwidth",
+   "in": [
+    "d"
+   ]
+  },
+  "aa": {
+   "op": "max",
+   "in": [
+    "aa0",
+    0.0001
+   ]
+  },
+  "lo": {
+   "op": "sub",
+   "in": [
+    "joint",
+    "aa"
+   ]
+  },
+  "hi": {
+   "op": "add",
+   "in": [
+    "joint",
+    "aa"
+   ]
+  },
+  "edge": {
+   "op": "smoothstep",
+   "in": [
+    "lo",
+    "hi",
+    "d"
+   ]
+  },
+  "line0": {
+   "op": "oneMinus",
+   "in": [
+    "edge"
+   ]
+  },
+  "keep0": {
+   "op": "div",
+   "in": [
+    "joint",
+    "aa"
+   ]
+  },
+  "keep": {
+   "op": "saturate",
+   "in": [
+    "keep0"
+   ]
+  },
+  "line": {
+   "op": "mul",
+   "in": [
+    "line0",
+    "keep"
+   ]
+  },
+  "hc": {
+   "op": "mul",
+   "in": [
+    "ci",
+    12.9898
+   ]
+  },
+  "hr": {
+   "op": "mul",
+   "in": [
+    "ri",
+    78.233
+   ]
+  },
+  "hs": {
+   "op": "add",
+   "in": [
+    "hc",
+    "hr"
+   ]
+  },
+  "hsin": {
+   "op": "sin",
+   "in": [
+    "hs"
+   ]
+  },
+  "hm": {
+   "op": "mul",
+   "in": [
+    "hsin",
+    43758.5453
+   ]
+  },
+  "h": {
+   "op": "fract",
+   "in": [
+    "hm"
+   ]
+  },
+  "half": {
+   "op": "mul",
+   "in": [
+    "spread",
+    0.5
+   ]
+  },
+  "base": {
+   "op": "sub",
+   "in": [
+    1,
+    "half"
+   ]
+  },
+  "hv": {
+   "op": "mul",
+   "in": [
+    "h",
+    "spread"
+   ]
+  },
+  "tint": {
+   "op": "add",
+   "in": [
+    "base",
+    "hv"
+   ]
+  },
+  "np": {
+   "op": "mul",
+   "in": [
+    "wxz",
+    0.27
+   ]
+  },
+  "nz0": {
+   "op": "noise",
+   "in": [
+    "np"
+   ]
+  },
+  "nz": {
+   "op": "saturate",
+   "in": [
+    "nz0"
+   ]
+  },
+  "worn": {
+   "op": "mul",
+   "in": [
+    "nz",
+    "wear"
+   ]
+  },
+  "shade": {
+   "op": "sub",
+   "in": [
+    "tint",
+    "worn"
+   ]
+  },
+  "vc": {
+   "op": "vertexColour"
+  },
+  "stone": {
+   "op": "mul",
+   "in": [
+    "vc",
+    "shade"
+   ]
+  },
+  "dark": {
+   "op": "mul",
+   "in": [
+    "vc",
+    "jointShade"
+   ]
+  },
+  "colour": {
+   "op": "mix",
+   "in": [
+    "stone",
+    "dark",
+    "line"
+   ]
+  },
+  "rj": {
+   "op": "add",
+   "in": [
+    "roughness",
+    0.08
+   ]
+  },
+  "rough": {
+   "op": "mix",
+   "in": [
+    "roughness",
+    "rj",
+    "line"
+   ]
+  }
+ },
+ "stages": {
+  "surface": {
+   "colour": "colour",
+   "roughness": "rough",
+   "metalness": 0
+  }
+ }
+}
