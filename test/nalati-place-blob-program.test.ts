@@ -5,7 +5,9 @@ import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
 import { createProjectGeneration } from '../src/sdk/projectGeneration';
-import { hashImmutableBytes } from '../src/sdk/immutable';
+import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
+import { nameBlob } from '../src/sdk/blobs';
+import { PopulationFieldSchema } from '../src/format/populationEnvironment';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { nalatiBakeBlob } from '../src/shards/nalati-grasslands/generators/placeBlobProgram';
 import { prepareOutput } from '../src/shards/nalati-grasslands/generators/output';
@@ -17,6 +19,21 @@ import assemblyOriginal from './fixtures/nalati-headless-assembly.json' with { t
 import shapeBookOriginal from './fixtures/nalati-shape-book.json' with { type: 'json' };
 import * as v from 'valibot';
 import { discoverGeneration } from '../scripts/generate.mjs';
+
+const originalAssembly: unknown = JSON.parse(readFileSync('test/fixtures/nalati-headless-original.json', 'utf8'));
+const fieldInput: unknown = JSON.parse(readFileSync('src/shards/nalati-grasslands/data/populationField.generated.json', 'utf8'));
+const originalAssemblyRows = v.parse(v.looseObject({ constants: v.looseObject({ nativeField: PopulationFieldSchema }) }), originalAssembly);
+const assemblyForField = (field: unknown) => nameBlob(assemblyOriginal.name, 'json', new TextEncoder().encode(encodeCanonicalJson({
+  ...originalAssemblyRows, constants: { ...originalAssemblyRows.constants, nativeField: v.parse(PopulationFieldSchema, field) },
+})));
+
+test('the full frozen assembly pin and exact current geography input retain separate ownership', () => {
+  expect(assemblyForField(originalAssemblyRows.constants.nativeField).file).toEqual(assemblyOriginal);
+  const current = assemblyForField(fieldInput);
+  const rows = v.parse(v.object({ constants: v.object({ nativeField: PopulationFieldSchema }) }), JSON.parse(new TextDecoder().decode(current.bytes)));
+  expect(rows.constants.nativeField).toStrictEqual(v.parse(PopulationFieldSchema, fieldInput));
+  expect(() => assemblyForField({})).toThrow();
+});
 
 test('native dressing and duplicate scene-copy jobs stay retired', () => {
   const descriptors = discoverGeneration(resolve('.')).jobs;
@@ -47,11 +64,13 @@ test('the actual output hook preserves every predecessor file cost and binary by
     requested.length = 0;
     const hit = await prepareOutput(context());
     const assembly = hit.namedFiles.find(row => row.name === assemblyOriginal.name);
-    expect(assembly).toEqual(assemblyOriginal);
-    const assemblyBytes = hit.assets.get(assemblyOriginal.hash);
+    const expectedAssembly = assemblyForField(fieldInput);
+    expect(assembly).toEqual(expectedAssembly.file);
+    const assemblyBytes = hit.assets.get(expectedAssembly.file.hash);
     if (assemblyBytes === undefined) throw new Error('Missing original native assembly bytes');
-    expect(assemblyBytes.length).toBe(assemblyOriginal.compressed);
-    expect(hashImmutableBytes(assemblyBytes)).toBe(assemblyOriginal.hash);
+    expect(assemblyBytes.length).toBe(expectedAssembly.file.compressed);
+    expect(hashImmutableBytes(assemblyBytes)).toBe(expectedAssembly.file.hash);
+    expect(Buffer.compare(assemblyBytes, expectedAssembly.bytes)).toBe(0);
     const shapeBook = hit.namedFiles.find(row => row.name === shapeBookOriginal.name);
     expect(shapeBook).toEqual(shapeBookOriginal);
     const shapeBytes = hit.assets.get(shapeBookOriginal.hash);
