@@ -22,6 +22,8 @@ import { SKY_WORLD_TILE_ROWS } from './worldTileRows';
 import { skyBridgeRestProgram } from './bridgeRestProgram';
 import { skyMillRestProgram } from './millRestProgram';
 import { skyFanPoolProgram } from './fanPoolProgram';
+import { skySwardAtlasProgram } from './swardAtlasProgram';
+import { SWARD_ATLAS_FILE } from './rows/swardAtlas';
 
 type SectionName = Parameters<Parameters<typeof emitPlatformSections>[0]['get']>[0];
 /** Build-only declarations; the compiled client features own all presentation. */
@@ -67,6 +69,7 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<type
     assets.delete(previous.hash); assets.set(replacement.file.hash, replacement.bytes);
   }
   for (const blob of [geometry, ...world, bridge, mill, fan]) assets.set(blob.file.hash, blob.bytes);
+  assets.set(SWARD_ATLAS_FILE.hash, await skySwardAtlasProgram(ctx));
   const tiles = await skyWorldTileProgram(ctx);
   if (tiles.size !== SKY_WORLD_TILE_ROWS.files.length + 1) throw new Error('Sky world tile publication inventory differs');
   for (const file of SKY_WORLD_TILE_ROWS.files) {

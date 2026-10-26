@@ -1,5 +1,5 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Own the isolated cache and retain the original complete GLB oracle.
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Bind the real author folder and declared native input root.
 import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare complete byte arrays without expanding assertion objects.
@@ -22,6 +22,9 @@ import { skyProductRows } from '../src/shards/far-reach/generators/product';
 import { SKY_WORLD_TILE_ROWS } from '../src/shards/far-reach/generators/worldTileRows';
 import { skyWorldTileSource } from '../src/shards/far-reach/generators/worldTileBytes';
 import { output, prepareOutput } from '../src/shards/far-reach/generators/sourceOutput';
+import { emptyShardfile } from '../src/sdk/author';
+import { projectAssets } from '../src/sdk/project';
+import { SWARD_ATLAS_FILE, SWARD_ATLAS_SAMPLER } from '../src/shards/far-reach/generators/rows/swardAtlas';
 
 const geometryName = 'world/geometry/prepared-models.glb', heroName = 'world/sources/heroes.json', bakeName = 'world/sources/bakes.json', skyName = 'world/sources/sky.json', bridgeName = 'world/geometry/bridge-rest.glb';
 const hash = 'bd1a0a75879e2f3e72e2ab2b8d0c18a79d7e7746478b3fedc6961199a714c580';
@@ -87,6 +90,10 @@ test('owned geometry preserves all original bytes and costs, changing only its s
     expect(hashImmutableBytes(fanBytes)).toBe(fanHash);
     fanBytes.fill(0);
 
+    const atlas = owned.assets.get(SWARD_ATLAS_FILE.hash);
+    if (atlas === undefined) throw new Error('Missing owned sward atlas');
+    expect(hashImmutableBytes(atlas)).toBe(SWARD_ATLAS_FILE.hash); atlas.fill(0);
+
     const before = output.namedFiles.find(file => file.name === heroName), after = owned.namedFiles.find(file => file.name === heroName);
     if (before === undefined || after === undefined) throw new Error('Missing original or owned hero library');
     const beforeBytes = output.assets.get(before.hash), afterBytes = owned.assets.get(after.hash);
@@ -119,7 +126,7 @@ test('owned geometry preserves all original bytes and costs, changing only its s
     bytes.fill(0);
     const hit = await prepareOutput(context()), hitBytes = hit.assets.get(hash);
     if (hitBytes === undefined) throw new Error('Missing cache-hit GLB');
-    expect(Buffer.compare(hitBytes, original)).toBe(0); expect(builds).toBe(6);
+    expect(Buffer.compare(hitBytes, original)).toBe(0); expect(builds).toBe(7);
     for (const file of SKY_WORLD_TILE_ROWS.files) {
       const tile = hit.assets.get(file.hash);
       if (tile === undefined) throw new Error('Missing cache-hit island tile');
@@ -141,6 +148,9 @@ test('owned geometry preserves all original bytes and costs, changing only its s
     const hitFan = hit.assets.get(fanHash);
     if (hitFan === undefined) throw new Error('Missing cache-hit fan pool');
     expect(hashImmutableBytes(hitFan)).toBe(fanHash);
+    const hitAtlas = hit.assets.get(SWARD_ATLAS_FILE.hash);
+    if (hitAtlas === undefined) throw new Error('Missing cache-hit sward atlas');
+    expect(hashImmutableBytes(hitAtlas)).toBe(SWARD_ATLAS_FILE.hash);
 
   } finally { rmSync(cache, { recursive: true, force: true }); }
 });
@@ -205,6 +215,39 @@ test('the active output preparation bundles without filesystem or compiler servi
   if (built === undefined || !('output' in built)) throw new Error('Missing owned output bundle');
   const chunks = built.output.filter(row => row.type === 'chunk'); expect(chunks).toHaveLength(1);
   for (const chunk of chunks) assertConfigBoundary([...chunk.imports, ...chunk.dynamicImports]);
+});
+
+test('the original atlas admits from owned output in an empty project with unchanged sampling and costs', async () => {
+  const cache = mkdtempSync(resolve('tmp/sky-atlas-admission-'));
+  try {
+    const ctx = createProjectGeneration(resolve('src/shards/far-reach'), 'f'.repeat(64), new Map(), cache,
+      [{ prefix: '/assets/', directory: resolve('public/assets') }]);
+    const owned = await prepareOutput(ctx), bytes = owned.assets.get(SWARD_ATLAS_FILE.hash);
+    if (bytes === undefined) throw new Error('Missing owned sward atlas');
+    expect(hashImmutableBytes(bytes)).toBe('607c53f28dbdd88423b39fd32419ba735f9a13c3c1ecabaf1cadb68715d63f0b');
+    const prepared = await prepareProjectOutput(resolve('src/shards/far-reach'), owned);
+    const base = emptyShardfile({ slug: 'atlas-publication', name: 'Atlas', author: 'Fixture', revision: 1, seed: 6417 });
+    const shard = { ...base, files: [{ ...SWARD_ATLAS_FILE, dependencies: [] }], library: [SWARD_ATLAS_FILE.hash],
+      budgets: { ...base.budgets, library: { compressed: 663_989, resident: 2_359_296 } } };
+    const empty = mkdtempSync(resolve(cache, 'project-'));
+    const admitted = projectAssets(empty, shard, 'project', prepared.assets);
+    expect(readdirSync(empty)).toEqual([]);
+    expect([...admitted.keys()]).toEqual([SWARD_ATLAS_FILE.hash]);
+    expect(hashImmutableBytes(admitted.get(SWARD_ATLAS_FILE.hash) ?? new Uint8Array())).toBe(SWARD_ATLAS_FILE.hash);
+    const declaration = skyProductRows();
+    expect(declaration.files.find(file => file.hash === SWARD_ATLAS_FILE.hash)).toEqual(SWARD_ATLAS_FILE);
+    const samplers = declaration.look.samplers;
+    if (samplers === undefined) throw new Error('Missing original sampler declarations');
+    expect(samplers[SWARD_ATLAS_FILE.hash]).toEqual({ filter: 'linear', mips: 'gpu', anisotropy: 4 });
+    expect(SWARD_ATLAS_SAMPLER).toEqual(samplers[SWARD_ATLAS_FILE.hash]);
+    const missing = new Map(prepared.assets); missing.delete(SWARD_ATLAS_FILE.hash);
+    expect(() => projectAssets(empty, shard, 'project', missing)).toThrow('ENOENT');
+    const short = new Map(prepared.assets); short.set(SWARD_ATLAS_FILE.hash, new Uint8Array());
+    expect(() => projectAssets(empty, shard, 'project', short)).toThrow('Project asset differs from its declared wire size');
+    const corrupt = new Map(owned.assets); corrupt.set(SWARD_ATLAS_FILE.hash, new Uint8Array(bytes.byteLength));
+    await expect(prepareProjectOutput(resolve('src/shards/far-reach'), { ...owned, assets: corrupt }))
+      .rejects.toThrow('Authored output asset hash differs from its bytes');
+  } finally { rmSync(cache, { recursive: true, force: true }); }
 });
 
 

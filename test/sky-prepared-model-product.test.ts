@@ -56,6 +56,13 @@ test('the actual SDK-built product binds receipt-verified discovery to the admit
     compressed: 683_792, decoded: 683_764, gpu: 666_216, triangles: 15_136, draws: 28, dependencies: [], critical: false });
   expect(hashImmutableBytes(readFileSync(resolve(folder, fan.path)))).toBe(fan.hash);
 
+  const atlasHash = '607c53f28dbdd88423b39fd32419ba735f9a13c3c1ecabaf1cadb68715d63f0b';
+  const atlas = index.files.find(row => row.hash === atlasHash);
+  if (atlas === undefined) throw new Error('Missing original owned sward atlas');
+  expect(atlas).toEqual({ hash: atlasHash, kind: 'ktx2', path: `blobs/ktx2/${atlasHash}.ktx2`,
+    compressed: 663_989, decoded: 0, gpu: 2_359_296, triangles: 0, draws: 0, dependencies: [], critical: false });
+  expect(hashImmutableBytes(readFileSync(resolve(folder, atlas.path)))).toBe(atlasHash);
+
   const meadow = [
   {
     "compressed": 1736792,
