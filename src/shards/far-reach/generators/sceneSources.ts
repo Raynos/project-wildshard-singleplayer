@@ -8,7 +8,7 @@ import { BRIDGE_REST_URL, MILL_REST_URL, ISLET_POOL } from './restFiles';
 import heroes from '../data/heroLibrary.generated.json' with { type: 'json' };
 import rest from '../data/restPools.generated.json' with { type: 'json' };
 import { bridgeRestPool } from './bridgeRest';
-import mill from '../data/millRest.generated.json' with { type: 'json' };
+import { millRestRows } from './millModel';
 import world from '../data/worldRows.generated.json' with { type: 'json' };
 import fixed from '../data/staticScenes.generated.json' with { type: 'json' };
 import type { WorldPieceRow } from '@wildshard/game/shardfile/bakedKinds';
@@ -19,7 +19,7 @@ import { FAN_HELD_RECIPE } from './rows/heldWeapon';
 const { resources: _resources, attachments: _attachments, ...fanRecipe } = FAN_HELD_RECIPE;
 const { specimen: _fan, ...fan } = GEAR_SCENE_ROWS[0];
 const { specimen: keeperSource, ...keeper } = GEAR_SCENE_ROWS[3];
-const bridgePool = bridgeRestPool();
+const bridgePool = bridgeRestPool(), mill = millRestRows();
 
 /** The original library definitions, shared by native view and declared scenes. */
 const sky = { rows: { meshes: files.SKY_MESHES, preparedMeshes: files.SKY_MESHES, meshUrls: files.MODEL_URLS,

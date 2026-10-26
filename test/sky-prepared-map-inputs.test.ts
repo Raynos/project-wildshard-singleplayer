@@ -13,6 +13,7 @@ import { BAKED_PIECES } from '../src/shards/far-reach/generators/fileInventory';
 import { expect, test } from 'vitest';
 import { discoverGeneration, generateShardJob } from '../scripts/generate.mjs';
 import { hashImmutableBytes } from '../src/sdk/immutable';
+import { MILL_REST_INPUTS } from '../src/shards/far-reach/generators/millRestProgram';
 import { PREPARED_MODEL_INPUTS } from '../src/shards/far-reach/generators/preparedModelProgram';
 
 const handoff = 'public/assets/far-reach/baked/prepared-models.glb';
@@ -20,6 +21,7 @@ const image = 'public/assets/far-reach/map/top.webp';
 const hash = 'a4d2c58042946dc131c67027993aa567121d45bab1e33759248acb8aa704728d';
 const worldHandoffs = [...BAKED_PIECES.map(piece => `../../../public/assets/far-reach/baked/${piece}.glb`),
   '../../../public/assets/far-reach/baked/isles.bin', 'data/isles.json', 'data/geometries.json'];
+const millHandoffs = ['public/assets/far-reach/baked/mill-rest.glb', 'src/shards/far-reach/data/millRest.generated.json'];
 const bridgeHandoffs = ['public/assets/far-reach/baked/bridge-rest.glb', 'src/shards/far-reach/data/bridgeRest.generated.json'];
 const rootPath = (file: string): string => file.startsWith('../../../public/') ? file.slice(9) : `src/shards/far-reach/${file}`;
 
@@ -27,16 +29,16 @@ test('the sealed map owns all prepared-model inputs and retains every original i
   const root = resolve('.'), job = discoverGeneration(root).jobs.find(row => row.id === 'sky-data-map');
   if (job === undefined) throw new Error('Missing retained Sky map');
   expect(job.inputRoots).not.toContain(handoff);
-  for (const file of bridgeHandoffs) expect(job.inputRoots).not.toContain(file);
+  for (const file of [...bridgeHandoffs, ...millHandoffs]) expect(job.inputRoots).not.toContain(file);
   for (const file of worldHandoffs) expect(job.inputRoots).not.toContain(rootPath(file));
-  for (const url of PREPARED_MODEL_INPUTS) expect(job.inputRoots).toContain(`public${url}`);
+  for (const url of [...PREPARED_MODEL_INPUTS, ...MILL_REST_INPUTS]) expect(job.inputRoots).toContain(`public${url}`);
   mkdirSync('tmp', { recursive: true });
   const cacheDir = mkdtempSync(resolve('tmp/sky-map-source-'));
   try {
     const result = await generateShardJob(root, job, { cacheDir, forceCompare: true });
     try {
       for (const file of worldHandoffs) expect(existsSync(resolve(result.directory, rootPath(file))), file).toBe(false);
-      for (const file of bridgeHandoffs) expect(existsSync(resolve(result.directory, file)), file).toBe(false);
+      for (const file of [...bridgeHandoffs, ...millHandoffs]) expect(existsSync(resolve(result.directory, file)), file).toBe(false);
       expect(result.hit).toBe(false);
       expect(result.hashes[image]).toBe(hash);
       expect(existsSync(resolve(result.directory, handoff))).toBe(false);
@@ -74,6 +76,9 @@ test('owned map world inputs preserve every original native payload and metadata
   if (typeof settings !== 'object' || settings === null || !('inputs' in settings) || !Array.isArray(settings.inputs)) {
     throw new Error('Missing map input authority');
   }
+  expect(settings.inputs).not.toContain('data/millRest.generated.json');
+  expect(settings.inputs).not.toContain('../../../public/assets/far-reach/baked/mill-rest.glb');
+  for (const url of MILL_REST_INPUTS) expect(settings.inputs).toContain(`../../../public${url}`);
   const check = (files: ReadonlyMap<string, Uint8Array>): void => {
     expect([...files.keys()].sort()).toEqual([...worldHandoffs].sort());
     for (const file of worldHandoffs) {
@@ -117,4 +122,17 @@ test('the map world source bundles without generated imports or file/compiler se
     assertConfigBoundary([...chunk.imports, ...chunk.dynamicImports]);
     expect(Object.keys(chunk.modules).some(path => path.includes('.generated.'))).toBe(false);
   }
+});
+
+test.each(MILL_REST_INPUTS)('the actual sealed map refuses omitted native mill model %s', async url => {
+  const root = resolve('.'), { jobs } = discoverGeneration(root), job = jobs.find(row => row.id === 'sky-data-map');
+  if (job === undefined) throw new Error('Missing retained Sky map');
+  const input = `public${url}`; expect(job.inputRoots).toContain(input);
+  const omitted = { ...job, inputRoots: job.inputRoots.filter(path => path !== input) }, cacheDir = mkdtempSync(resolve('tmp/sky-map-mill-'));
+  try {
+    const catalogPath = relative(root, resolve(cacheDir, 'omitted.json'));
+    writeFileSync(catalogPath, JSON.stringify({ schema: 'generation-jobs/1', notice: 'DO NOT EDIT native mill omission',
+      jobs: jobs.map(row => row.id === job.id ? omitted : row) }));
+    await expect(generateShardJob(root, omitted, { cacheDir, catalogPath, forceCompare: true })).rejects.toThrow('Generator exited 1');
+  } finally { rmSync(cacheDir, { recursive: true, force: true }); }
 });
