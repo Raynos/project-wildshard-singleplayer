@@ -12,6 +12,7 @@ import { prepareOutput } from '../src/shards/nalati-grasslands/generators/output
 import original from './fixtures/nalati-place-blob.json' with { type: 'json' };
 import cragOriginal from './fixtures/nalati-crag-blob.json' with { type: 'json' };
 import dressingOriginal from './fixtures/nalati-dressing-blob.json' with { type: 'json' };
+import sceneOriginal from './fixtures/nalati-dressing-scenes.json' with { type: 'json' };
 import { discoverGeneration } from '../scripts/generate.mjs';
 
 test('native dressing and duplicate scene-copy jobs stay retired', () => {
@@ -22,13 +23,13 @@ test('native dressing and duplicate scene-copy jobs stay retired', () => {
 
 test('the actual output hook preserves every predecessor file cost and binary byte on cold and cache hit', async () => {
   const cache = mkdtempSync(resolve('tmp/nalati-place-blob-'));
-  const requested: string[] = [];
+  const requested: string[] = [], steps: string[] = [];
   const context = () => {
     const ctx = createProjectGeneration(resolve('src/shards/nalati-grasslands'), 'a'.repeat(64), new Map(), cache,
       [{ prefix: '/assets/nalati/baked/', directory: resolve('public/assets/nalati/baked') },
         { prefix: '/assets/baked/nalati-grasslands/', directory: resolve('public/assets/baked/nalati-grasslands') }]);
     return { ...ctx, cached: (step: Parameters<typeof ctx.cached>[0], make: Parameters<typeof ctx.cached>[1]) => {
-      requested.push(...(step.inputs ?? [])); return ctx.cached(step, make);
+      requested.push(...(step.inputs ?? [])); steps.push(step.id); return ctx.cached(step, make);
     } };
   };
   const before = readFileSync('public/assets/nalati/baked/places.bin');
@@ -41,6 +42,15 @@ test('the actual output hook preserves every predecessor file cost and binary by
     }
     requested.length = 0;
     const hit = await prepareOutput(context());
+    expect(steps).toContain('decorative');
+    for (const pin of sceneOriginal) {
+      const file = hit.namedFiles.find(row => row.name === pin.name), bytes = file === undefined ? undefined : hit.assets.get(file.hash);
+      if (file === undefined || bytes === undefined) throw new Error('Missing owned dressing scene');
+      expect({ name: file.name, bytes: bytes.length, hash: hashImmutableBytes(bytes) }).toEqual(pin);
+    }
+    const ctx = context();
+    await expect(prepareOutput({ ...ctx, cached: (step, make) => step.id === 'decorative'
+      ? Promise.resolve(new Map()) : ctx.cached(step, make) })).rejects.toThrow('Owned Nalati decorative inventory differs');
     expect(requested).not.toContain('/assets/nalati/baked/dressing.bin');
     expect(requested).not.toContain('/assets/nalati/baked/places.bin');
     expect(requested).toContain('/assets/baked/nalati-grasslands/terrain.bin');
