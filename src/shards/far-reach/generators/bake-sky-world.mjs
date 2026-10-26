@@ -5,7 +5,6 @@
 // src/shards/far-reach/data/<rows>.json, which the client reads (world/baked.ts). test/shards/far-reach/world-bake.test.ts
 // is the byte-exact stale gate (it re-runs the generators).
 // Usage: node --import ./scripts/bake-loader.mjs src/shards/far-reach/generators/bake-sky-world.mjs
-import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { constants, deflateSync, zstdCompressSync, zstdDecompressSync } from 'node:zlib';
@@ -41,21 +40,15 @@ const keep = new Set(['fan.glb', 'prepared-models.glb']);
     console.info(`far-reach ${name}: ${String(bytes.length)} bytes`);
   }
 }
-// the rope bridges: every rope span from the kit's two source models, as a deflated geometry pack (world/shapes.ts ropeBridge)
+// The original native bridge, island and mill packs; the source owns bytes, this adapter owns files.
 {
-  const { bakeSkyBridges } = await import('./bridges.ts');
-  const { bin, rows } = await bakeSkyBridges((url) => new Uint8Array(readFileSync(resolve(root, `public${url}`)))), packed = deflateSync(bin, { level: 9 });
-  emit(resolve(out, 'bridges.bin'), packed);
-  emit(resolve(project, 'data/bridges.json'), `${JSON.stringify({ pack: createHash('sha256').update(bin).digest('hex'), ...rows })}\n`);
-  console.info(`far-reach bridges: ${String(bin.length)} bytes → baked/bridges.bin (${String(packed.length)} deflated), ${String(rows.spans.length)} spans, ${String(rows.geometries.length)} geometries`);
-}
-// every island the page draws from the builder, as a deflated geometry pack (world/isle.ts islandMesh)
-{
-  const { bakeSkyIsles } = await import('./isles.ts');
-  const { bin, rows } = bakeSkyIsles(), packed = deflateSync(bin, { level: 9 });
-  emit(resolve(out, 'isles.bin'), packed);
-  emit(resolve(project, 'data/isles.json'), `${JSON.stringify({ pack: createHash('sha256').update(bin).digest('hex'), ...rows })}\n`);
-  console.info(`far-reach isles: ${String(bin.length)} bytes → baked/isles.bin (${String(packed.length)} deflated), ${String(rows.isles.length)} islands`);
+  const { WORLD_PACK_INPUTS, skyWorldPackSource } = await import('./worldPackBytes.ts');
+  const inputs = new Map(WORLD_PACK_INPUTS.map(url => [url, new Uint8Array(readFileSync(resolve(root, `public${url}`)))]));
+  const files = await skyWorldPackSource(inputs, bytes => new Uint8Array(deflateSync(bytes, { level: 9 })));
+  for (const [name, bytes] of files) {
+    emit(name.startsWith('baked/') ? resolve(out, name.slice(6)) : resolve(project, name), bytes);
+    console.info(`far-reach ${name}: ${String(bytes.length)} bytes`);
+  }
 }
 // the twelve static islands as compiled props tiles, each island whole (generators/isleProps.ts): data/props.json and the
 // tile GLBs under assets/<hash>, the shardfile's declared files (shard.config.ts); the runtime draws them (world/isle.ts)
@@ -69,14 +62,6 @@ const keep = new Set(['fan.glb', 'prepared-models.glb']);
   const files = [...baked.files].sort((a, b) => a.hash.localeCompare(b.hash)), tiles = completeEmptyL1Tiles(completeL0Tiles([...baked.tiles].sort((a, b) => a.lod - b.lod || a.x - b.x || a.z - b.z)));
   emit(resolve(project, 'data/props.json'), canonicalJson({ props: baked.props, tiles, files, report: baked.report }));
   console.info(`far-reach isle props: ${String(baked.props.tiles.length)} tiles, ${String(baked.report.reduce((n, r) => n + r.draws, 0))} draws`);
-}
-// the windmill's modelled tower and foot, fitted from their GLBs (world/mill.ts modelledSet)
-{
-  const { bakeSkyMillModel } = await import('./millModel.ts');
-  const { bin, rows } = await bakeSkyMillModel((url) => new Uint8Array(readFileSync(resolve(root, `public${url}`)))), packed = deflateSync(bin, { level: 9 });
-  emit(resolve(out, 'mill-model.bin'), packed);
-  emit(resolve(project, 'data/millModel.json'), `${JSON.stringify({ pack: createHash('sha256').update(bin).digest('hex'), ...rows })}\n`);
-  console.info(`far-reach mill model: ${String(bin.length)} bytes → baked/mill-model.bin (${String(packed.length)} deflated), hub ${String(rows.hubAt.y)} / ${String(rows.hubAt.z)}`);
 }
 // the sky-isle models' unit frames (world/skyIsleHd.ts skyIsleUnit), found from each model's GLB
 {

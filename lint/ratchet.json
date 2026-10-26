@@ -723,7 +723,7 @@
     "src/shards/driftwood-isle/generators/trailside.ts": 4,
     "src/shards/driftwood-isle/generators/trophyPlaques.ts": 2,
     "src/shards/far-reach/generators/bake-sky-rigs.mjs": 3,
-    "src/shards/far-reach/generators/bake-sky-world.mjs": 5,
+    "src/shards/far-reach/generators/bake-sky-world.mjs": 4,
     "src/shards/far-reach/generators/creatures.ts": 1,
     "src/shards/far-reach/generators/movers.ts": 3,
     "src/shards/far-reach/generators/rows/items.ts": 1,
