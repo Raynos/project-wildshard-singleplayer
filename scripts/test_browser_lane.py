@@ -1,5 +1,6 @@
 """Admission deadlines against isolated process/device fixtures; no browsers."""
 import os
+import fcntl
 from pathlib import Path
 import subprocess
 import sys
@@ -51,6 +52,25 @@ class BrowserAdmissionTests(unittest.TestCase):
         self.command('ps', 'pass\n')
         self.assertEqual(self.lane('wait').returncode, 0)
         self.assertEqual(self.lane('wait', BROWSER_LANE_WAIT_SECONDS='301').returncode, 64)
+
+    def test_reaper_preserves_build_output_during_registry_handoff(self):
+        builds = ROOT / 'tmp/serve'
+        builds.mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=builds, prefix='reaper-fixture-') as fixture:
+            output = Path(fixture) / '20261025-120000-45001'
+            output.mkdir()
+            log = output / 'build.log'
+            log.write_text('active build')
+            registry = self.root / 'registry'
+            registry.mkdir()
+            with (registry / '.port-45001.lock').open('a+') as lease:
+                fcntl.flock(lease, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                result = self.lane('reap', SERVE_BUILD_DIR=fixture, SERVE_REG_DIR=str(registry))
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertTrue(log.exists(), 'active port lease must protect an output without its registry row')
+            result = self.lane('reap', SERVE_BUILD_DIR=fixture, SERVE_REG_DIR=str(registry))
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertFalse(output.exists(), 'an unleased orphan must still be cleaned')
 
 
 if __name__ == '__main__':

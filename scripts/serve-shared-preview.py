@@ -9,6 +9,7 @@ import os
 from pathlib import Path
 import re
 import shlex
+import shutil
 import signal
 import subprocess
 import sys
@@ -142,12 +143,14 @@ def run(registry, sha, mode, owner, command):
             raise
 
 
-def retire(registry, port, observed, command):
+def retire(registry, port, observed, command, busy_ok=False):
     """Bind teardown to one registry row while excluding port reassignment."""
     with (registry / ('.port-%s.lock' % port)).open('a+') as lease:
         try:
             fcntl.flock(lease, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError:
+            if busy_ok:
+                return 0
             raise ValueError('Preview reservation still owns port %s; refusing teardown: %s' % (port, observed.strip()))
         entry = registry / port
         if not entry.exists() or entry.read_text() != observed:
@@ -156,6 +159,46 @@ def retire(registry, port, observed, command):
         row = observed.split(maxsplit=4)
         env = dict(os.environ, SERVE_SHARED_STOP='1', SERVE_STOP_PID=row[0], SERVE_STOP_OUT=row[2])
         return subprocess.run(command, env=env, check=False).returncode
+
+
+def reap_entry(registry, port, pid, output, command):
+    """A stale PID observation cannot retire a replacement registry row."""
+    try:
+        observed = (registry / port).read_text()
+    except FileNotFoundError:
+        return 0
+    row = observed.split(maxsplit=4)
+    if len(row) < 5 or row[0] != pid or row[2] != output:
+        return 0
+    return retire(registry, port, observed, command, busy_ok=True)
+
+
+def reap_output(registry, base, output, dry=False):
+    """Port leases protect build directories even during registry handoff."""
+    path = Path(output)
+    match = re.fullmatch(r'.*-(\d+)', path.name.split('.stopped-', 1)[0])
+    if path.is_symlink() or path.parent.resolve() != Path(base).resolve() or match is None:
+        return 0
+    port = match[1]
+    if not 1 <= int(port) <= 65535 or not path.is_dir():
+        return 0
+    registry.mkdir(parents=True, exist_ok=True)
+    with (registry / ('.port-%s.lock' % port)).open('a+') as lease:
+        try:
+            fcntl.flock(lease, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            return 0
+        for entry in registry.glob('[0-9]*'):
+            if entry.is_file():
+                row = entry.read_text().split(maxsplit=4)
+                if len(row) >= 3 and row[2] == str(path):
+                    return 0
+        if dry:
+            print('would remove %s' % path)
+        else:
+            shutil.rmtree(path)
+            print('reaped orphan preview output %s' % path)
+    return 0
 
 
 def release(registry, port, owner, all_mine, command):
@@ -223,6 +266,12 @@ def main():
         if action == 'run':
             sha, mode, owner, *command = args
             return run(registry, sha, mode, owner, command)
+        if action == 'reap-entry':
+            port, pid, output, *command = args
+            return reap_entry(registry, port, pid, output, command)
+        if action == 'reap-output':
+            base, output, *flags = args
+            return reap_output(registry, base, output, flags == ['--dry-run'])
         port, owner, all_mine, *command = args
         return release(registry, port, owner, all_mine == '1', command)
     except TimeoutError as error:

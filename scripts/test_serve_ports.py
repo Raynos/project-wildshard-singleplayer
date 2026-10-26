@@ -455,6 +455,36 @@ class SharedReleaseTests(unittest.TestCase):
         self.assertEqual((self.registry / self.port).read_text(), self.row)
         self.assertTrue(self.path.exists())
 
+    def test_reaper_preserves_replaced_rows_and_active_build_leases(self):
+        with patch.object(self.module.subprocess, 'run') as child:
+            self.assertEqual(self.module.reap_entry(self.registry, self.port, '12345', str(self.out), ['unused']), 0)
+            with (self.registry / ('.port-' + self.port + '.lock')).open('a+') as lease:
+                self.module.fcntl.flock(lease, self.module.fcntl.LOCK_EX)
+                self.assertEqual(self.module.reap_entry(self.registry, self.port, str(os.getpid()), str(self.out), ['unused']), 0)
+            child.assert_not_called()
+        self.assertEqual((self.registry / self.port).read_text(), self.row)
+        self.assertTrue(self.out.exists())
+
+    def test_orphan_reaper_rechecks_registry_and_preserves_dry_run(self):
+        output = self.registry / ('20261025-120000-' + self.port)
+        output.mkdir()
+        entry = self.registry / self.port
+        entry.write_text(self.row.replace(str(self.out), str(output)))
+        self.assertEqual(self.module.reap_output(self.registry, self.registry, str(output)), 0)
+        self.assertTrue(output.exists())
+        entry.unlink()
+        self.assertEqual(self.module.reap_output(self.registry, self.registry, str(output), dry=True), 0)
+        self.assertTrue(output.exists())
+        self.assertEqual(self.module.reap_output(self.registry, self.registry, str(output)), 0)
+        self.assertFalse(output.exists())
+
+    def test_orphan_reaper_never_follows_an_output_symlink(self):
+        output = self.registry / ('20261025-120000-' + self.port)
+        output.symlink_to(self.out, target_is_directory=True)
+        self.assertEqual(self.module.reap_output(self.registry, self.registry, str(output)), 0)
+        self.assertTrue(output.is_symlink())
+        self.assertTrue(self.out.exists())
+
     def test_official_reader_release_keeps_its_parent_preview(self):
         command = "import {compiledPreviewEnvironment} from './scripts/loading-benchmark/sim-shard.mjs'; process.stdout.write(compiledPreviewEnvironment({SERVE_OWNER:'lane-a'},123).SERVE_OWNER);"
         borrower = subprocess.check_output(['node', '--input-type=module', '-e', command], cwd=ROOT, text=True)

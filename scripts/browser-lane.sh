@@ -127,11 +127,13 @@ reap() {
   # `vite build` is left alone. A served dir is only ever deleted under the repo's tmp/serve (or legacy /private/tmp/).
   local reg="${SERVE_REG_DIR:-$HOME/.dev-servers}" f rpid exp dir rcwd name why serve_root
   serve_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/tmp/serve"
-  rm_dir() { [[ "$1" == /private/tmp/?*/?* || "$1" == "$serve_root"/?* ]] && [ -d "$1" ] && rm -rf "$1"; return 0; }
   for f in "$reg"/*; do
     [ -f "$f" ] || continue
     read -r rpid exp dir rcwd name < "$f"
-    if ! kill -0 "$rpid" 2>/dev/null; then [ "$dry" = "--dry-run" ] || { rm -f "$f"; rm_dir "$dir"; }; continue; fi
+    if ! kill -0 "$rpid" 2>/dev/null; then
+      [ "$dry" = "--dry-run" ] || python3 "$(dirname "$SELF")/serve-shared-preview.py" reap-entry "$reg" "$(basename "$f")" "$rpid" "$dir" bash "$(dirname "$SELF")/serve-build.sh" stop "$(basename "$f")"
+      continue
+    fi
     why=""
     if [ "$exp" -lt "$(date +%s)" ]; then why="expired"
     elif [ "$(age_s "$rpid")" -gt $((PREVIEW_MAX_AGE_H * 3600)) ]; then why="older than ${PREVIEW_MAX_AGE_H} h"; fi
@@ -139,7 +141,7 @@ reap() {
     n=$((n + 1))
     if [ "$dry" = "--dry-run" ]; then echo "would reap preview :$(basename "$f") ($name, $why)"; continue; fi
     log "reap preview :$(basename "$f") pid $rpid ($name): $why"; echo "reaped preview :$(basename "$f") ($name, $why)"
-    kill_tree "$rpid"; rm -f "$f"; rm_dir "$dir"
+    python3 "$(dirname "$SELF")/serve-shared-preview.py" reap-entry "$reg" "$(basename "$f")" "$rpid" "$dir" bash "$(dirname "$SELF")/serve-build.sh" stop "$(basename "$f")"
   done
   while read -r pid; do
     [ -z "$pid" ] && continue
@@ -161,7 +163,9 @@ reap() {
   find "${SERVE_BUILD_DIR:-$serve_root}" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | while read -r d; do
     grep -qs " ${d%.stopped-*} " "$reg"/* && [[ "$d" != *.stopped-* ]] && continue
     pgrep -f "$d" >/dev/null 2>&1 && continue
-    [ "$dry" = "--dry-run" ] && echo "would remove $d" || rm_dir "$d"
+    local removed
+    removed="$(python3 "$(dirname "$SELF")/serve-shared-preview.py" reap-output "$reg" "${SERVE_BUILD_DIR:-$serve_root}" "$d" ${dry:+"$dry"})"
+    if [ -n "$removed" ]; then echo "$removed"; [ "$dry" = "--dry-run" ] || log "$removed"; fi
   done
   [ "$dry" = "--dry-run" ] && [ $n -eq 0 ] && echo "no browser or vite server to reap"
   # iOS Simulators (E316)
