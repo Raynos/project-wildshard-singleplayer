@@ -39,6 +39,15 @@ export interface SkinPlayer {
 
 const isSkin = (node: Object3D): node is SkinnedMesh => (node as Partial<SkinnedMesh>).isSkinnedMesh === true;
 
+/** Scope teardown needs the owned resources, not a player's private playback tables. */
+function skinDisposer(mesh: SkinnedMesh, machine: AnimMachine): () => void {
+  let live = true;
+  return () => {
+    if (!live) return;
+    live = false; machine.dispose(); mesh.geometry.dispose(); mesh.skeleton.dispose(); mesh.removeFromParent();
+  };
+}
+
 /**
  * Admit, load and bind one exported skin. Refuses bytes whose hash-addressed rig differs from the row (skeleton, joint
  * order, clips, sockets) or whose parsed cost exceeds the row's declared cost. `scope` disposes it with its owner.
@@ -62,7 +71,8 @@ export async function loadSkin(glb: Uint8Array, row: SkinRow, binding: SkinBindi
   const states: Record<string, { clip: ClipName; fade: number }> = {};
   for (const name of row.rig.clips) states[name] = { clip: name, fade: 0 };
   const machine = new AnimMachine({ states, loops: binding.loops }, rig);
-  let current: ClipName | null = null, live = true, time = 0;
+  let current: ClipName | null = null, time = 0;
+  const dispose = skinDisposer(mesh, machine);
   const layers = new Map(Object.entries(binding.poseLayers ?? {}).filter((entry): entry is [string, NonNullable<typeof entry[1]>] => entry[1] !== undefined).map(([name, data]) => [name, skinPoseLayers(mesh, data)]));
   let activeLayers: ReturnType<typeof skinPoseLayers> | undefined;
   const player: SkinPlayer = {
@@ -77,11 +87,8 @@ export async function loadSkin(glb: Uint8Array, row: SkinRow, binding: SkinBindi
       activeLayers = layers.get(name); activeLayers?.apply(time);
     },
     update: (dt) => { if (!Number.isFinite(dt) || dt < 0) throw new Error('Invalid skin step'); activeLayers?.restore(); machine.update(dt); time += dt; activeLayers?.apply(time); },
-    dispose: () => {
-      if (!live) return;
-      live = false; machine.dispose(); mesh.geometry.dispose(); mesh.skeleton.dispose(); mesh.removeFromParent();
-    },
+    dispose,
   };
-  scope?.onDispose(() => { player.dispose(); });
+  scope?.onDispose(dispose);
   return player;
 }
