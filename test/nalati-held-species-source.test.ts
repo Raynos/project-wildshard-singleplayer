@@ -1,3 +1,4 @@
+import { originalSpeciesOutput } from './fixtures/nalati-original-species';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare complete outputs inside the existing sealed generation boundary.
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Keep isolated generation caches below repository tmp.
@@ -27,7 +28,7 @@ for (const omitted of [undefined, 'src/shards/nalati-grasslands/generators/bake-
         writeFileSync(resolve(root, catalogPath), JSON.stringify({ ...catalog, jobs: catalog.jobs.map(row =>
           typeof row === 'object' && row !== null && Reflect.get(row, 'id') === job.id ? missing : row) }));
         await expect(generateShardJob(root, missing, { cacheDir, catalogPath, forceCompare: true })).rejects.toThrow('Generator exited 1');
-        for (const pin of speciesPins) expect(hashImmutableBytes(readFileSync(pin.path))).toBe(pin.sha256);
+        for (const pin of speciesPins) expect(hashImmutableBytes(originalSpeciesOutput(pin.path))).toBe(pin.sha256);
       } else {
         const result = await generateShardJob(root, job, { cacheDir, forceCompare: true });
         try {

@@ -1,3 +1,4 @@
+import { originalSpeciesOutput } from './fixtures/nalati-original-species';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read only the authored raw body and immutable original output pins.
 import { readFileSync } from 'node:fs';
 import * as v from 'valibot';
@@ -50,7 +51,7 @@ function originalFiles(made: NalatiSpeciesPreparation): void {
   for (const pin of originals) {
     const bytes = actual.get(pin.path); if (bytes === undefined) throw new Error(`Missing original species output ${pin.path}`);
     expect(bytes.length, pin.path).toBe(pin.bytes); expect(hashImmutableBytes(bytes), pin.path).toBe(pin.sha256);
-    expect(Buffer.compare(bytes, readFileSync(pin.path)), pin.path).toBe(0);
+    expect(Buffer.compare(bytes, originalSpeciesOutput(pin.path)), pin.path).toBe(0);
   }
 }
 
@@ -84,10 +85,10 @@ test('missing supplied AS refuses before a guest can be admitted despite complet
 
 test('guest admission refusal remains fatal and cannot borrow an already generated species document', async () => {
   await expect(prepareNalatiSpecies(raw, authored, input, () => { throw new Error('Original guest refuses'); }, bodyFile, compileReturnProjectionV2)).rejects.toThrow('Original guest refuses');
-  for (const pin of originals) expect(hashImmutableBytes(readFileSync(pin.path)), pin.path).toBe(pin.sha256);
+  for (const pin of originals) expect(hashImmutableBytes(originalSpeciesOutput(pin.path)), pin.path).toBe(pin.sha256);
 });
 
 test('missing supplied raw bodies refuses despite the complete retained packed bank on disk', async () => {
   await expect(prepareNalatiSpecies(new Uint8Array(), authored, input, admitGuest, bodyFile, compileReturnProjectionV2)).rejects.toThrow('Creature body source byte length differs');
-  for (const pin of originals) expect(hashImmutableBytes(readFileSync(pin.path)), pin.path).toBe(pin.sha256);
+  for (const pin of originals) expect(hashImmutableBytes(originalSpeciesOutput(pin.path)), pin.path).toBe(pin.sha256);
 });

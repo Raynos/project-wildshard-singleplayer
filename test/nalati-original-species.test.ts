@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise a genuinely cold, private immutable test oracle cache.
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Keep the entire proof below repository tmp.
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
@@ -18,7 +18,7 @@ test('cold source oracle and every detached warm loan retain all five complete o
       const name = names[index], bytes = name === undefined ? undefined : cold.get(name);
       if (bytes === undefined) throw new Error('Missing complete original species fixture');
       expect(bytes.length).toBe(pin.bytes); expect(hashImmutableBytes(bytes)).toBe(pin.sha256);
-      expect(Buffer.compare(bytes, readFileSync(pin.path))).toBe(0);
+      expect(Buffer.compare(bytes, originalSpeciesFile(name ?? 'missing'))).toBe(0);
       bytes.fill(0);
     }
     const warm = originalSpeciesFiles(cache);

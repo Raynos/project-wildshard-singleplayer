@@ -18,6 +18,7 @@ test('cold, persistent and rebuilt species preserve all five original files and 
     import {createProjectGeneration} from './src/sdk/projectGeneration.ts';
     import {hashImmutableBytes} from './src/sdk/immutable.ts';
     import {nalatiSpeciesProgram} from './src/shards/nalati-grasslands/generators/speciesProgram.ts';
+    import {originalSpeciesFile} from './test/fixtures/nalati-original-species.ts';
     const pins=JSON.parse(readFileSync('test/fixtures/nalati-species-files.json','utf8'));
     const names=['species.json','bodies.bin','boot.json','held-weapons.wasm','held-witness.bin'];
     const cache=mkdtempSync(resolve('tmp/nalati-species-program-'));
@@ -36,7 +37,7 @@ test('cold, persistent and rebuilt species preserve all five original files and 
       for(const [i,pin]of pins.entries()){
         const bytes=files.get(names[i]);assert.ok(bytes,pin.path);
         assert.equal(bytes.length,pin.bytes,pin.path);assert.equal(hashImmutableBytes(bytes),pin.sha256,pin.path);
-        assert.equal(Buffer.compare(bytes,readFileSync(pin.path)),0,pin.path);
+        assert.equal(Buffer.compare(bytes,originalSpeciesFile(names[i])),0,pin.path);
       }
     };
     try{
@@ -52,7 +53,7 @@ test('cold, persistent and rebuilt species preserve all five original files and 
       for(const name of ['data/species.generated.json','boot/speciesRows.generated.json','behaviour/held-weapons.generated.wasm','behaviour/held-witness.generated.bin'])assert.ok(!inputs.includes(name),name);
       const noCompiler=context('c');delete noCompiler.compileReturnProjection;
       await assert.rejects(build(noCompiler),/requires injected projection compilation/);
-      // All complete originals remain present: an omitted raw or authored input must still refuse.
+      // All complete pinned originals remain available: an omitted raw or authored input must still refuse.
       for(const omitted of ['/assets/nalati/baked/bodies.bin','behaviour/heldWeapons.as','data/bodies.json']){
         await assert.rejects(build({cached:async(step,make)=>{
           const bytes=new Map(step.inputs.filter(name=>name!==omitted).map(name=>[name,readFileSync(name.startsWith('/')?'public'+name:'src/shards/nalati-grasslands/'+name)]));

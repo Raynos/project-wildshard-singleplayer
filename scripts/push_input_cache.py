@@ -133,12 +133,9 @@ def publish(repo, revision, generated, deadline=None):
     blobs = cache / 'blobs'
     blobs.mkdir(parents=True, exist_ok=True)
     files, test_files = {}, {}
-    bootstrap = set()
-    species = generated / 'src/shards/nalati-grasslands/data/species.generated.json'
-    if species.exists():
-        packed = json.loads(species.read_text()).get('packedBodies', {}).get('file')
-        if isinstance(packed, str) and packed.startswith('/assets/') and '..' not in Path(packed).parts:
-            bootstrap.add('public' + packed)
+    # Original species fixtures construct their packed bank from this declared
+    # raw source. Publish it only through the same verified phase-output path.
+    bootstrap = {'public/assets/nalati/baked/bodies.bin'}
     for name, expected in verified.items():
         if deadline is not None and time.monotonic() >= deadline:
             raise TimeoutError('Type-input cache publication exceeded budget')

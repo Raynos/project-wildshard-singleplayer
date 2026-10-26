@@ -1,3 +1,4 @@
+import { originalSpeciesJson } from './fixtures/nalati-original-species';
 // oxlint-disable-next-line import/no-nodejs-modules -- Check original boot files through an isolated sealed producer.
 import { readFileSync, mkdtempSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Confine the producer cache to this test's scratch directory.
@@ -47,8 +48,8 @@ test('the sealed boot producer preserves every original file without a species J
 
 test('authored pose rows retain the entire original serialized graph and parsed header channels', () => {
   const before = v.parse(v.object({ poses: v.record(v.string(), v.object({ programs: v.unknown() })) }),
-    JSON.parse(readFileSync('src/shards/nalati-grasslands/data/species.generated.json', 'utf8')));
-  const original = v.parse(v.object({ poses: v.unknown() }), JSON.parse(readFileSync('src/shards/nalati-grasslands/data/species.generated.json', 'utf8')));
+    originalSpeciesJson('species.json'));
+  const original = v.parse(v.object({ poses: v.unknown() }), originalSpeciesJson('species.json'));
   expect(JSON.stringify(SPECIES_POSES)).toBe(JSON.stringify(original.poses));
   expect(Object.values(SPECIES_POSES).flatMap(pose => parseClientChannels(pose.programs)))
     .toEqual(Object.values(before.poses).flatMap(pose => parseClientChannels(pose.programs)));

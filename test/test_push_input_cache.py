@@ -63,6 +63,13 @@ class PushInputCache(unittest.TestCase):
         saved = {'schema': 'generation-phase/1', 'root': str(generated), 'identity': '0' * 64,
                  'inputs': {'src/base.ts': hashlib.sha256(source.encode()).hexdigest()},
                  'trees': {'src': ['src/base.ts']}, 'outputs': {'src/value.generated.json': digest}}
+        body_name = 'public/assets/nalati/baked/bodies.bin'
+        body = b'original raw species source'
+        body_digest = hashlib.sha256(body).hexdigest()
+        saved['outputs'][body_name] = body_digest
+        body_path = generated / body_name
+        body_path.parent.mkdir(parents=True)
+        body_path.write_bytes(body)
         discovery = b'export default {seed:42};\n'
         saved['inputs']['src/shards/fixture/discovery.generated.ts'] = hashlib.sha256(discovery).hexdigest()
         asset = b'intrinsic asset bytes'
@@ -103,6 +110,12 @@ class PushInputCache(unittest.TestCase):
             post_file.write_text(json.dumps({**post, 'seal': hashlib.sha256(encoded.encode()).hexdigest()}))
         seal_post()
         self.assertEqual(CACHE['publish'](self.root, tip, generated), 3)
+        cached = json.loads((self.root / 'tmp/push-input-cache/entries.json').read_text())
+        self.assertEqual(cached['testFiles'], {body_name: body_digest})
+        body_path.write_bytes(b'corrupt raw source')
+        with self.assertRaisesRegex(ValueError, 'output changed'):
+            CACHE['publish'](self.root, tip, generated)
+        body_path.write_bytes(body)
         asset_path.write_bytes(b'corrupt addressed asset')
         with self.assertRaisesRegex(ValueError, 'input changed'):
             CACHE['publish'](self.root, tip, generated)
@@ -119,12 +132,14 @@ class PushInputCache(unittest.TestCase):
         self.assertEqual((target / 'src/value.generated.json').read_bytes(), output)
         self.assertEqual((target / 'src/shards/fixture/discovery.generated.ts').read_bytes(), discovery)
         self.assertEqual((target / 'src/post.generated.ts').read_bytes(), post_bytes)
+        self.assertFalse((target / body_name).exists())
         self.assertFalse(CACHE['restore'](self.root, target, [*records, b'100644 blob new\tsrc/new.ts'], time.monotonic() + 5))
         previous = self.root / 'previous-check'
         previous.mkdir()
         changed = [*records, b'100644 blob new\tsrc/new.ts']
         self.assertEqual(CACHE['restore_tests'](self.root, previous, changed, time.monotonic() + 5), tip)
         self.assertEqual((previous / 'src/value.generated.json').read_bytes(), output)
+        self.assertEqual((previous / body_name).read_bytes(), body)
         selected = self.root / 'selected-check'
         selected.mkdir()
         self.assertEqual(CACHE['restore_tests'](self.root, selected, changed, time.monotonic() + 5,

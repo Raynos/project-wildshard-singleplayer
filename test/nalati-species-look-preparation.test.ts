@@ -1,7 +1,7 @@
+import { originalSpeciesJson, originalSpeciesOutput } from './fixtures/nalati-original-species';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read the complete retained metadata and frozen output pins.
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-// oxlint-disable-next-line import/no-nodejs-modules -- The retained author must reproduce every original publication.
-import { execFileSync } from 'node:child_process';
+import { checkNalatiSpeciesSource } from './fixtures/check-nalati-species-source';
 // oxlint-disable-next-line import/no-nodejs-modules -- Keep isolated producer caches within this checkout's tmp directory.
 import { relative, resolve } from 'node:path';
 import * as v from 'valibot';
@@ -10,9 +10,10 @@ import { hashImmutableBytes } from '../src/sdk/immutable';
 import { prepareNalatiSpeciesLooks } from '../src/shards/nalati-grasslands/generators/speciesLookPreparation';
 import { discoverGeneration, generateShardJob } from '../scripts/generate.mjs';
 import originals from './fixtures/nalati-species-files.json' with { type: 'json' };
+import heldOriginals from './fixtures/nalati-held-files.json' with { type: 'json' };
 
 const original = v.parse(v.object({ hullBook: v.unknown(), looks: v.unknown() }),
-  JSON.parse(readFileSync('src/shards/nalati-grasslands/data/species.generated.json', 'utf8')));
+  originalSpeciesJson('species.json'));
 const compactBody = v.parse(v.object({ compactBody: v.unknown() }), original.hullBook).compactBody;
 const rows = v.parse(v.object({ rows: v.array(v.looseObject({ kind: v.string(), attachments: v.optional(v.array(v.object({ geometry: v.unknown() }))) })) }), original.looks);
 const crackRow = rows.rows.find(row => row.kind === 'balbal')?.attachments?.[0]?.geometry;
@@ -46,26 +47,25 @@ test('metadata loans own every nested input and rebuild without sharing authored
   expect(JSON.stringify(rebuilt.hullBook)).toBe(JSON.stringify(original.hullBook));
 });
 
-test('the delegated retained author preserves all five complete original files', () => {
-  execFileSync(process.execPath, ['--experimental-transform-types', '--import', './src/sdk/bake/source-loader.mjs',
-    'src/shards/nalati-grasslands/generators/bake-species.mjs', '--check']);
+test('the actual source constructor preserves all five complete original files', () => {
+  checkNalatiSpeciesSource();
   expect(originals).toHaveLength(5);
   for (const pin of originals) {
-    const bytes = readFileSync(pin.path); expect(bytes.length, pin.path).toBe(pin.bytes);
+    const bytes = originalSpeciesOutput(pin.path); expect(bytes.length, pin.path).toBe(pin.bytes);
     expect(hashImmutableBytes(bytes), pin.path).toBe(pin.sha256);
   }
 });
 
-test('the declared sealed species producer preserves all five files with the exact new source root', async () => {
-  const root = resolve('.'), job = discoverGeneration(root).jobs.find(row => row.id === 'nalati-species');
+test('the declared held consumer seals the exact original species look source closure', async () => {
+  const root = resolve('.'), job = discoverGeneration(root).jobs.find(row => row.id === 'nalati-held-weapons');
   if (job === undefined) throw new Error('Missing species producer');
   expect(job.inputRoots.filter(name => name.endsWith('/speciesLookPreparation.ts'))).toHaveLength(1);
   const cacheDir = mkdtempSync(resolve('tmp/nalati-species-looks-'));
   try {
     const result = await generateShardJob(root, job, { cacheDir, forceCompare: true });
     try {
-      expect(Object.keys(result.hashes).sort()).toEqual(originals.map(pin => pin.path).sort((a, b) => a.localeCompare(b)));
-      for (const pin of originals) {
+      expect(Object.keys(result.hashes).sort()).toEqual(heldOriginals.map(pin => pin.path).sort((a, b) => a.localeCompare(b)));
+      for (const pin of heldOriginals) {
         const bytes = readFileSync(resolve(result.directory, pin.path));
         expect(bytes.length, pin.path).toBe(pin.bytes); expect(hashImmutableBytes(bytes), pin.path).toBe(pin.sha256);
       }
@@ -74,7 +74,7 @@ test('the declared sealed species producer preserves all five files with the exa
 });
 
 test('an omitted look source refuses despite all original complete outputs remaining in the checkout', async () => {
-  const root = resolve('.'), job = discoverGeneration(root).jobs.find(row => row.id === 'nalati-species');
+  const root = resolve('.'), job = discoverGeneration(root).jobs.find(row => row.id === 'nalati-held-weapons');
   if (job === undefined) throw new Error('Missing species producer');
   const omitted = { ...job, inputRoots: job.inputRoots.filter(name => !name.endsWith('/speciesLookPreparation.ts')) };
   expect(omitted.inputRoots.length).toBe(job.inputRoots.length - 1);
@@ -87,7 +87,7 @@ test('an omitted look source refuses despite all original complete outputs remai
       typeof row === 'object' && row !== null && Reflect.get(row, 'id') === job.id ? omitted : row) }));
     await expect(generateShardJob(root, omitted, { cacheDir, catalogPath, forceCompare: true })).rejects.toThrow('Generator exited 1');
     for (const pin of originals) {
-      const bytes = readFileSync(pin.path); expect(bytes.length, pin.path).toBe(pin.bytes);
+      const bytes = originalSpeciesOutput(pin.path); expect(bytes.length, pin.path).toBe(pin.bytes);
       expect(hashImmutableBytes(bytes), pin.path).toBe(pin.sha256);
     }
   } finally { rmSync(cacheDir, { recursive: true, force: true }); }

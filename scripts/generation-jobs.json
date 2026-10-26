@@ -361,64 +361,6 @@
       "platform": "portable"
     },
     {
-      "id": "nalati-species",
-      "shard": "nalati-grasslands",
-      "entry": "src/shards/nalati-grasslands/generators/bake-species.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/shards/nalati-grasslands/generators/bake-species.mjs"
-      ],
-      "inputRoots": [
-        "src/shards/nalati-grasslands/generators/bake-species.mjs",
-        "src/shards/nalati-grasslands/generators/returnProgramRows.ts",
-        "src/shards/nalati-grasslands/data/speciesRows.json",
-        "src/shards/nalati-grasslands/generators/speciesPoses.ts",
-        "src/shards/nalati-grasslands/generators/balbalCracks.ts",
-        "src/shards/nalati-grasslands/behaviour/balbal.as",
-        "src/shards/nalati-grasslands/data/bodies.json",
-        "src/shards/nalati-grasslands/data/strikeProfiles.generated.json",
-        "src/shards/nalati-grasslands/data/goldenKingPose.generated.json",
-        "public/assets/nalati/baked/bodies.bin",
-        "src/sdk",
-        "src/format",
-        "src/sdk/bake/source-loader.mjs",
-        "scripts/bake-output.mjs",
-        "package.json",
-        "pnpm-lock.yaml",
-        "src/shards/nalati-grasslands/behaviour",
-        "src/shards/nalati-grasslands/data/speciesLooks.json",
-        "src/shards/nalati-grasslands/behaviour/admission.generated.json",
-        "src/sdk/decisionScriptBindings.ts",
-        "src/format/scriptAbiV1.ts",
-        "src/format/decisionScripts.ts",
-        "src/shards/nalati-grasslands/generators/actorProjection.ts",
-        "src/shards/nalati-grasslands/generators/speciesBodyPacking.ts",
-        "src/shards/nalati-grasslands/generators/speciesLookPreparation.ts",
-        "src/shards/nalati-grasslands/generators/speciesPreparation.ts",
-        "src/shards/nalati-grasslands/generators/speciesProgram.ts"
-      ],
-      "outputs": [
-        "src/shards/nalati-grasslands/data/species.generated.json",
-        "public/assets/nalati/baked/bodies-e726016c96012cee10c1b352bca450cccda2dc387410a11732a26edab74235b6.bin",
-        "src/shards/nalati-grasslands/boot/speciesRows.generated.json",
-        "src/shards/nalati-grasslands/behaviour/held-weapons.generated.wasm",
-        "src/shards/nalati-grasslands/behaviour/held-witness.generated.bin"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/nalati-grasslands/data/species.generated.json",
-        "public/assets/nalati/baked/bodies-e726016c96012cee10c1b352bca450cccda2dc387410a11732a26edab74235b6.bin",
-        "src/shards/nalati-grasslands/boot/speciesRows.generated.json",
-        "src/shards/nalati-grasslands/behaviour/held-weapons.generated.wasm",
-        "src/shards/nalati-grasslands/behaviour/held-witness.generated.bin"
-      ],
-      "platform": "portable",
-      "catalogueDependencies": [
-        "nalati-kurgan"
-      ]
-    },
-    {
       "id": "nalati-boot-metadata",
       "catalogueOutputsOnly": true,
       "shard": "nalati-grasslands",

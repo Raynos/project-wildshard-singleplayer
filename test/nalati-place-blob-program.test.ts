@@ -20,6 +20,7 @@ import { nalatiBakeBlob } from '../src/shards/nalati-grasslands/generators/place
 import { prepareOutput, prepareSpecies } from '../src/shards/nalati-grasslands/generators/output';
 import { build as buildNalati } from '../src/shards/nalati-grasslands/generators/build';
 import { originalSpeciesBank, originalSpeciesMetadata } from './fixtures/nalati-species-bank-transport';
+import { originalSpeciesOutput } from './fixtures/nalati-original-species';
 import speciesPins from './fixtures/nalati-species-files.json' with { type: 'json' };
 import headerPin from './fixtures/nalati-species-product-header.json' with { type: 'json' };
 import original from './fixtures/nalati-place-blob.json' with { type: 'json' };
@@ -360,7 +361,7 @@ test('the owned species bank preserves its full predecessor and needs no public 
   if (bank === undefined || metadata === undefined) throw new Error('Missing owned species bank');
   expect(bank.byteLength).toBe(originalSpeciesBank.bytes);
   expect(hashImmutableBytes(bank)).toBe(originalSpeciesBank.sha256);
-  expect(Buffer.compare(bank, readFileSync(originalSpeciesBank.path))).toBe(0);
+  expect(Buffer.compare(bank, originalSpeciesOutput(originalSpeciesBank.path))).toBe(0);
   const before = speciesPins.find(pin => pin.path.endsWith('/species.generated.json'));
   if (before === undefined) throw new Error('Missing full original species metadata pin');
   const originalRows = new TextEncoder().encode(`${JSON.stringify(originalSpeciesMetadata(JSON.parse(new TextDecoder().decode(metadata))), null, 2)}\n`);

@@ -1,9 +1,9 @@
+import { originalSpeciesJson, originalSpeciesFile, originalSpeciesOutput } from './fixtures/nalati-original-species';
 // oxlint-disable-next-line import/no-nodejs-modules -- Check complete original species files and authored body bytes.
 import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Preserve the existing native compression stream exactly.
 import { deflateSync, inflateSync } from 'node:zlib';
-// oxlint-disable-next-line import/no-nodejs-modules -- Run the original retained author in check-only mode.
-import { execFileSync } from 'node:child_process';
+import { checkNalatiSpeciesSource } from './fixtures/check-nalati-species-source';
 // oxlint-disable-next-line import/no-nodejs-modules -- Bundle only the pure source entry without publishing a file.
 import { resolve } from 'node:path';
 import * as v from 'valibot';
@@ -20,7 +20,7 @@ const bodyRows=v.parse(v.object({bytes:v.number(),bodies:v.array(v.object({key:v
   JSON.parse(readFileSync('src/shards/nalati-grasslands/data/bodies.json','utf8')));
 const raw=unshuffleLanes(inflateSync(readFileSync('public/assets/nalati/baked/bodies.bin')));
 const original=v.parse(v.object({packedBodies:v.object({file:v.string(),bytes:v.number(),bodies:v.unknown()}),
-  presentation:v.object({packedBodies:CompactSpeciesBodiesSchema})}),JSON.parse(readFileSync('src/shards/nalati-grasslands/data/species.generated.json','utf8')));
+  presentation:v.object({packedBodies:CompactSpeciesBodiesSchema})}),originalSpeciesJson('species.json'));
 
 test('pure packing preserves all 27 bodies, complete metadata and original compressed bytes with detached results',()=>{
   const sourceJson=JSON.stringify(bodyRows),sourceHash=hashImmutableBytes(raw);
@@ -29,7 +29,7 @@ test('pure packing preserves all 27 bodies, complete metadata and original compr
   expect(made.bodies).toHaveLength(27);
   expect({file:original.packedBodies.file,bytes:made.bytes.length,bodies:made.bodies}).toEqual(original.packedBodies);
   expect({file:original.packedBodies.file,bytes:made.bytes.length,attrs:made.attrs,skeletons:made.skeletons,rows:made.rows}).toEqual(original.presentation.packedBodies);
-  const packed=readFileSync(`public${original.packedBodies.file}`),expanded=inflateSync(packed);
+  const packed=originalSpeciesFile('bodies.bin'),expanded=inflateSync(packed);
   expect(Buffer.compare(made.bytes,expanded)).toBe(0);
   expect(Buffer.compare(deflateSync(made.bytes,{level:9}),packed)).toBe(0);
   expect(hashImmutableBytes(packed)).toBe(original.packedBodies.file.split('bodies-')[1]?.replace('.bin',''));
@@ -69,11 +69,10 @@ test('truncated bytes, incomplete layouts, fractional counts and corrupt indices
   expect(()=>packNalatiSpeciesBodies({bytes:80,bodies:[{key:'bad:x',bones:[],dims:{},fur:[[1,3]],hard:[],eye:[]}]},bytes)).toThrow('index exceeds its source part');
 });
 
-test('the retained species author preserves all five complete original files',()=>{
-  execFileSync(process.execPath,['--experimental-transform-types','--import','./src/sdk/bake/source-loader.mjs',
-    'src/shards/nalati-grasslands/generators/bake-species.mjs','--check']);
+test('the actual species source preserves all five complete original files',()=>{
+  checkNalatiSpeciesSource();
   expect(originals).toHaveLength(5);
-  for(const pin of originals){const bytes=readFileSync(pin.path);expect(bytes.length,pin.path).toBe(pin.bytes);expect(hashImmutableBytes(bytes),pin.path).toBe(pin.sha256);}
+  for(const pin of originals){const bytes=originalSpeciesOutput(pin.path);expect(bytes.length,pin.path).toBe(pin.bytes);expect(hashImmutableBytes(bytes),pin.path).toBe(pin.sha256);}
 });
 
 test('body packing remains one pure publication-free author chunk',async()=>{

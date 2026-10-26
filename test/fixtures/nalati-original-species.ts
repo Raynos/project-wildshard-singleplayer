@@ -43,3 +43,10 @@ export function originalSpeciesJson(name: 'species.json' | 'boot.json'): unknown
   const value: unknown = JSON.parse(new TextDecoder().decode(originalSpeciesFile(name)));
   return value;
 }
+
+/** Historical output identities select pinned bytes without reopening retired publications. */
+export function originalSpeciesOutput(path: string): Uint8Array<ArrayBuffer> {
+  const name = names[pins.findIndex(pin => pin.path === path)];
+  if (name === undefined) throw new Error(`Unknown original species output: ${path}`);
+  return originalSpeciesFile(name);
+}

@@ -17,7 +17,7 @@ test('explicit CI concurrency stays four and ambiguous or unbounded requests ref
 });
 
 test('audited long work ranks first; equal and unknown work keeps catalogue ties', () => {
-  expect(generationOrder(['unknown-a', 'nalati-species', 'nine-layout', 'open-plots-world', 'unknown-b'])).toEqual([2, 3, 1, 0, 4]);
+  expect(generationOrder(['unknown-a', 'nalati-rifle-rows', 'nine-layout', 'open-plots-world', 'unknown-b'])).toEqual([2, 3, 1, 0, 4]);
   expect(generationOrder(['short', 'long', 'tie'], { short: 1, long: 5, tie: 5 })).toEqual([1, 2, 0]);
 });
 
