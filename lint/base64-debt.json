@@ -10,7 +10,6 @@
     "scripts/nalati-camp9.mjs": 3,
     "scripts/nalati-hud-capture.mjs": 7,
     "scripts/nalati-parity.mjs": 4,
-    "scripts/nalati-ride-capture.mjs": 3,
     "scripts/nalati-ride-physics.mjs": 2,
     "scripts/nalati-walk.mjs": 1,
     "scripts/ota-release.mjs": 4,

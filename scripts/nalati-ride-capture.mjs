@@ -8,7 +8,9 @@
 // a 70° glance left, frames every 0.6 s as it drifts back (<tag>-free-look.jpg) → GALLOP held + stick forward 3 s →
 // stick up-right (x 0.8, y 0.6) for 3 s, a frame every 0.75 s from the turn's start → stick released 5 s (the coast to a stop).
 // Then a standing pivot: stick hard left 2 s. Every page is muted (--mute-audio + &mute=1) and rendered on Metal.
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync } from 'node:fs';
+import { jpegImageRoutes } from './parity/image-routes.mjs';
+import { saveCanvasJpeg } from './parity/canvas-bytes.mjs';
 import { resolve as resolvePath } from 'node:path';
 
 const { chromium } = await import('playwright');
@@ -42,7 +44,7 @@ try {
   const shot = async (label) => {
     const s = await state();
     log.push({ label, ...s });
-    frames.push({ label: `${label} · ${s.gait} ${s.speed} m/s · view ${s.off > 0 ? '+' : ''}${s.off}° off the horse`, b64: (await page.screenshot({ type: 'jpeg', quality: 80 })).toString('base64') });
+    frames.push({ label: `${label} · ${s.gait} ${s.speed} m/s · view ${s.off > 0 ? '+' : ''}${s.off}° off the horse`, image: await page.screenshot({ type: 'jpeg', quality: 80 }) });
   };
   // the free look: cantering straight, glance 70° left (a LOOK drag), then let go — the view drifts back behind the ears
   const look = [];
@@ -53,7 +55,7 @@ try {
   for (let i = 0; i < 5; i++) {
     const s = await state();
     log.push({ label: `free look +${(i * 0.6).toFixed(1)} s`, ...s });
-    look.push({ label: `looked left, +${(i * 0.6).toFixed(1)} s · ${s.gait} ${s.speed} m/s · view ${s.off > 0 ? '+' : ''}${s.off}° off the horse`, b64: (await page.screenshot({ type: 'jpeg', quality: 80 })).toString('base64') });
+    look.push({ label: `looked left, +${(i * 0.6).toFixed(1)} s · ${s.gait} ${s.speed} m/s · view ${s.off > 0 ? '+' : ''}${s.off}° off the horse`, image: await page.screenshot({ type: 'jpeg', quality: 80 }) });
     await sleep(600);
   }
   await input(0, 0, false);
@@ -78,21 +80,27 @@ try {
   const W = DESKTOP ? 640 : 390, H = DESKTOP ? 360 : 844;
   const strip = await ctx.newPage();
   await strip.setViewportSize({ width: 800, height: 600 });
-  const compose = (list) => strip.evaluate(async ({ fs, w, h }) => {
-    const cv = document.createElement('canvas'); cv.width = w * fs.length; cv.height = h + 44;
-    const g = cv.getContext('2d'); g.fillStyle = '#0d1b26'; g.fillRect(0, 0, cv.width, cv.height);
-    for (let i = 0; i < fs.length; i++) {
-      const im = new Image(); im.src = `data:image/jpeg;base64,${fs[i].b64}`; await im.decode();
-      g.drawImage(im, i * w, 0, w - 4, h);
-      g.fillStyle = '#8fe3ff'; g.font = '13px monospace';
-      const words = fs[i].label.split(' · ');
-      g.fillText(words[0], i * w + 6, h + 17); g.fillStyle = '#c9d3da'; g.fillText(words.slice(1).join(' · '), i * w + 6, h + 35);
-    }
-    return cv.toDataURL('image/jpeg', 0.72).slice('data:image/jpeg;base64,'.length);
-  }, { fs: list, w: W, h: H });
+  const compose = async (list, file) => {
+    const inputs = await jpegImageRoutes(strip, list.map(frame => frame.image));
+    try {
+      const canvas = await strip.evaluateHandle(async ({ fs, w, h }) => {
+        const cv = document.createElement('canvas'); cv.width = w * fs.length; cv.height = h + 44;
+        const g = cv.getContext('2d'); g.fillStyle = '#0d1b26'; g.fillRect(0, 0, cv.width, cv.height);
+        for (let i = 0; i < fs.length; i++) {
+          const im = new Image(); im.crossOrigin = 'anonymous'; im.src = fs[i].src; await im.decode();
+          g.drawImage(im, i * w, 0, w - 4, h);
+          g.fillStyle = '#8fe3ff'; g.font = '13px monospace';
+          const words = fs[i].label.split(' · ');
+          g.fillText(words[0], i * w + 6, h + 17); g.fillStyle = '#c9d3da'; g.fillText(words.slice(1).join(' · '), i * w + 6, h + 35);
+        }
+        return cv;
+      }, { fs: list.map((frame, index) => ({ label: frame.label, src: inputs.urls[index] })), w: W, h: H });
+      await saveCanvasJpeg(strip, canvas, file, 0.72);
+    } finally { await inputs.dispose(); }
+  };
   for (const [name, list] of [['gallop-turn', frames], ['free-look', look]]) {
     const file = resolvePath(OUT, `${TAG}-${name}${DESKTOP ? '-desktop' : ''}.jpg`);
-    writeFileSync(file, Buffer.from(await compose(list), 'base64'));
+    await compose(list, file);
     console.log(file);
   }
   for (const l of log) console.log(`${l.label.padEnd(34)} heading ${String(l.heading).padStart(7)}°  view off ${String(l.off).padStart(7)}°  ${l.gait} ${l.speed} m/s`);
