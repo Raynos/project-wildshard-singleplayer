@@ -8,7 +8,54 @@ interface Scanned { readonly inputs: readonly Attribute[]; readonly versions: re
 const scans = new WeakMap<BufferGeometry, Scanned[]>();
 const version = (attribute: Attribute): number => 'isInterleavedBufferAttribute' in attribute ? attribute.data.version : attribute.version;
 
+/** A plain (non-interleaved) channel's array and the scale its normalized integers read at (1 when not normalized);
+ *  null for a storage the fast scan does not read (three's own accessors then do). */
+function plainChannel(attribute: Attribute, width: number): { array: ArrayLike<number>; scale: number } | null {
+  if ('isInterleavedBufferAttribute' in attribute || attribute.itemSize !== width) return null;
+  const array = attribute.array;
+  if (!attribute.normalized) return array instanceof Float32Array || array instanceof Uint8Array || array instanceof Uint16Array || array instanceof Uint32Array ? { array, scale: 1 } : null;
+  return array instanceof Uint8Array ? { array, scale: 255 } : array instanceof Uint16Array ? { array, scale: 65535 } : null;
+}
+
+/** scanSkin over plain typed arrays: the same values and the same float operations in the same order as the accessor walk
+ *  (Vector3.applyMatrix4's homogeneous divide, Box3.expandByPoint's min / max), several times faster: Pine's roaming herd
+ *  scan was one 124 ms task at phone CPU speed. */
+function scanPlainSkin(mesh: SkinnedMesh, position: Attribute, indices: Attribute, weights: Attribute): Scan | null | undefined {
+  const p = plainChannel(position, 3), s = plainChannel(indices, 4), w = plainChannel(weights, 4);
+  if (p === null || p.scale !== 1 || !(p.array instanceof Float32Array) || s === null || s.scale !== 1 || w === null) return undefined;
+  const bones = mesh.skeleton.bones.length, box = new Float64Array(bones * 6).fill(Infinity), e = mesh.bindMatrix.elements;
+  for (let b = 0; b < bones; b++) { box[b * 6 + 3] = -Infinity; box[b * 6 + 4] = -Infinity; box[b * 6 + 5] = -Infinity; }
+  const pos = p.array, index = s.array, weight = w.array, scale = w.scale;
+  const [e0, e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15] = e;
+  let minSum = Infinity, maxSum = 0;
+  for (let i = 0; i < position.count; i++) {
+    let sum = 0;
+    const x = pos[i * 3] ?? 0, y = pos[i * 3 + 1] ?? 0, z = pos[i * 3 + 2] ?? 0;
+    const inv = 1 / (e3 * x + e7 * y + e11 * z + e15);
+    const px = (e0 * x + e4 * y + e8 * z + e12) * inv, py = (e1 * x + e5 * y + e9 * z + e13) * inv, pz = (e2 * x + e6 * y + e10 * z + e14) * inv;
+    for (let j = 0; j < 4; j++) {
+      const raw = weight[i * 4 + j] ?? 0, k = index[i * 4 + j] ?? 0, value = scale === 1 ? raw : raw / scale;
+      if (!Number.isFinite(value) || value < 0) return null;
+      sum += value; if (value === 0) continue;
+      if (!Number.isInteger(k) || k < 0 || k >= bones) return null;
+      const o = k * 6;
+      box[o] = Math.min(box[o] ?? Infinity, px); box[o + 1] = Math.min(box[o + 1] ?? Infinity, py); box[o + 2] = Math.min(box[o + 2] ?? Infinity, pz);
+      box[o + 3] = Math.max(box[o + 3] ?? -Infinity, px); box[o + 4] = Math.max(box[o + 4] ?? -Infinity, py); box[o + 5] = Math.max(box[o + 5] ?? -Infinity, pz);
+    }
+    minSum = Math.min(minSum, sum); maxSum = Math.max(maxSum, sum);
+  }
+  const parts: Scan['parts'][number][] = [], one = new Box3();
+  for (let b = 0; b < bones; b++) {
+    const o = b * 6;
+    one.min.set(box[o] ?? Infinity, box[o + 1] ?? Infinity, box[o + 2] ?? Infinity); one.max.set(box[o + 3] ?? -Infinity, box[o + 4] ?? -Infinity, box[o + 5] ?? -Infinity);
+    if (!one.isEmpty()) parts.push({ index: b, centre: one.getCenter(new Vector3()), extent: one.getSize(new Vector3()).multiplyScalar(0.5) });
+  }
+  return { minSum, maxSum, parts };
+}
+
 function scanSkin(mesh: SkinnedMesh, position: Attribute, indices: Attribute, weights: Attribute): Scan | null {
+  const plain = scanPlainSkin(mesh, position, indices, weights);
+  if (plain !== undefined) return plain;
   const boxes = mesh.skeleton.bones.map(() => new Box3()), point = new Vector3();
   let minSum = Infinity, maxSum = 0;
   for (let i = 0; i < position.count; i++) {
