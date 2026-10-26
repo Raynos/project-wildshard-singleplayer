@@ -50,7 +50,7 @@ function grab(scene, camera) {
   const g = c.getContext('2d');
   if (g === null) throw new Error('no 2d context');
   g.drawImage(renderer.domElement, 0, 0);
-  return { url: c.toDataURL('image/png'), pixels: g.getImageData(0, 0, W, H).data };
+  return { canvas: c, pixels: g.getImageData(0, 0, W, H).data };
 }
 
 function compare(a, b) {
@@ -123,7 +123,7 @@ function threeWay(scene, camera, sides) {
   const reference = grab(scene, camera);
   show('before');
   const before = grab(scene, camera);
-  return { before: before.url, after: after.url, reference: reference.url, diff: { afterVsReference: compare(after.pixels, reference.pixels), beforeVsReference: compare(before.pixels, reference.pixels) }, precompile: reading };
+  return { before: before.canvas, after: after.canvas, reference: reference.canvas, diff: { afterVsReference: compare(after.pixels, reference.pixels), beforeVsReference: compare(before.pixels, reference.pixels) }, precompile: reading };
 }
 
 async function toon() {

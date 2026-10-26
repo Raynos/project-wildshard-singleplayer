@@ -12,6 +12,7 @@ import { createServer } from 'node:http';
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { extname, join, sep, resolve as resolvePath } from 'node:path';
+import { saveBoardFrames } from './frames.mjs';
 
 const { chromium, devices } = await import('playwright');
 const ROOT = resolvePath(new URL('../..', import.meta.url).pathname);
@@ -54,8 +55,8 @@ try {
     page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
     await page.goto(`${base}/index.html`);
     await page.waitForFunction(() => typeof window.familyPropsBoard === 'function', undefined, { timeout: 60000 });
-    const r = await page.evaluate((k) => window.familyPropsBoard(k), kind);
-    for (const side of ['before', 'after', 'reference']) writeFileSync(join(SCRATCH, `${kind}-${side}.png`), Buffer.from(r[side].split(',')[1], 'base64'));
+    const frames = await page.evaluateHandle((k) => window.familyPropsBoard(k), kind);
+    const r = await saveBoardFrames(page, frames, { before: join(SCRATCH, `${kind}-before.png`), after: join(SCRATCH, `${kind}-after.png`), reference: join(SCRATCH, `${kind}-reference.png`) });
     const row = { kind, diff: r.diff, precompile: r.precompile, tiles: r.tiles, errors };
     rows.push(row);
     console.log(JSON.stringify(row));
