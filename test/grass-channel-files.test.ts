@@ -1,3 +1,5 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- Decode only the frozen predecessor transport for native parity.
+import {Buffer} from 'node:buffer';
 import {unzlibSync,zlibSync} from 'fflate';
 import {BufferAttribute,InstancedBufferAttribute,InstancedBufferGeometry,Mesh,MeshBasicMaterial,type Group} from 'three';
 import {expect,test,vi} from 'vitest';
@@ -56,7 +58,14 @@ for(const tier of ['phone','desktop']as const)test(`${tier} compressed native ba
   let disposed=0;
   try{
     for(const key of ['blades','flowers','cards']as const){
-      const old=createSceneBuffers(original.scene(original.input[tier].scenes[key]),material,scope);
+      const source=structuredClone(original.scene(original.input[tier].scenes[key])),priorFiles=new Map<string,Uint8Array>();
+      for(const buffer of source.buffers){
+        const bytes=buffer.bytes;if(bytes===undefined)throw new Error('Missing predecessor inline channel');
+        if(bytes==='')continue;
+        const file=`predecessor/${buffer.id}.bin`,raw=Uint8Array.from(Buffer.from(bytes,'base64'));
+        priorFiles.set(file,raw);delete buffer.bytes;buffer.file=file;buffer.byteLength=raw.byteLength;
+      }
+      const old=createSceneBuffers(source,material,scope,undefined,undefined,priorFiles);
       const current=createSceneBuffers(native.scene(native.input[tier].scenes[key]),material,scope,undefined,undefined,channels);
       const expected=inventory(old);expect(inventory(current)).toEqual(expected);
       for(const child of current.children){

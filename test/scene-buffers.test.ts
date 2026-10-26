@@ -79,10 +79,13 @@ test('scene decoding retains every byte, padding length and typed storage bit', 
 
 test('scene decode keeps malformed, misaligned and nonfinite storage refused', () => {
   for (const text of ['AAA', 'AA?=', 'AAé=', 'A=AA', 'AA\n=']) {
-    expect(() => admitSceneBuffers(inlineByteFixture(text))).toThrow('Malformed scene buffer encoding');
+    expect(() => admitSceneBuffers(inlineByteFixture(text))).toThrow('Scene buffers require named binary files');
   }
-  for (const storage of ['u16', 'f32']) expect(() => admitSceneBuffers(inlineByteFixture('AA==', storage))).toThrow('Misaligned scene buffer storage');
-  expect(() => admitSceneBuffers(inlineByteFixture('AACAfw==', 'f32'))).toThrow('Nonfinite scene buffer');
+  for (const storage of ['u16', 'f32']) {
+    const {row,files}=byteFixture(new Uint8Array([0]),storage);expect(() => admitSceneBuffers(row,files)).toThrow('Misaligned scene buffer storage');
+  }
+  const {row,files}=byteFixture(new Uint8Array(new Float32Array([Infinity]).buffer),'f32');
+  expect(() => admitSceneBuffers(row,files)).toThrow('Nonfinite scene buffer');
 });
 
 test('Sky native meadow retains every byte, shared attribute, count, LOD and transform', () => {

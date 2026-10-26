@@ -10653,15 +10653,17 @@ specifies; this change does not introduce a second effect dispatcher.
 ## World scene assembly (Z2, G480/G483)
 
 `SceneDrawsSchema` buffered rows name verified `SceneBuffersSchema` JSON
-and a material. Each buffer supplies inline `bytes` or a relative `file`
-and exact `byteLength`; producers link binary file dependencies. An explicit
+and a material. Buffers name a relative file and byteLength.
+Empty markers (`bytes: ""`) need no file; producers link dependencies.
+An explicit
 `byteOffset` selects a bounded, storage-aligned range of a packed file;
 omitting it still requires the complete file length to match. Repeated
 ranges of one file share a single verified product read, while geometry
 retains its own detached channel words.
 `admitSceneBuffers(input, files)` and the sixth `files` argument
-of `createSceneBuffers` accept verified product bytes. Both validate
-lengths, alignment and finite words before GPU allocation; geometry
+of `createSceneBuffers` borrow verified bytes. Both reject inline content
+before reads/cache access, then validate length, alignment and finite words
+before GPU allocation; geometry
 copies binary storage, retaining typed/instanced sharing and bounds.
 Numeric plumbing knobs select instance prefixes. LOD children
 keep insertion order; three.js sorts distances. Geometry and roots

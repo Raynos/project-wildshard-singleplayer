@@ -8,21 +8,11 @@ import type { PlumbingData } from '@wildshard/format/plumbing';
 import { plumbingKnob } from '../shard/declaredPlumbing';
 
 type Storage = Float32Array | Uint16Array | Uint8Array;
-const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/', BASE64 = new Uint8Array(128);
-for (let i = 0; i < ALPHABET.length; i++) BASE64[ALPHABET.codePointAt(i) ?? 0] = i;
-/** O25: a validated base64 text's bytes. `Uint8Array.from(atob(text), callback)` spent ~90 ms per decode on Sky Reach's
- *  2.4 MB scene draws (twice per admission), one frame of 300+ ms entering the cell; this is ~20× faster, same bytes. */
-function base64Bytes(text: string): Uint8Array<ArrayBuffer> {
-  const pad = text.endsWith('==') ? 2 : text.endsWith('=') ? 1 : 0, out = new Uint8Array(text.length / 4 * 3 - pad);
-  for (let i = 0, o = 0; i < text.length; i += 4) {
-    const a = BASE64[text.codePointAt(i) ?? 0] ?? 0, b = BASE64[text.codePointAt(i + 1) ?? 0] ?? 0;
-    const c = BASE64[text.codePointAt(i + 2) ?? 0] ?? 0, d = BASE64[text.codePointAt(i + 3) ?? 0] ?? 0;
-    const word = (a << 18) | (b << 12) | (c << 6) | d;
-    out[o++] = word >> 16;
-    if (o < out.length) out[o++] = (word >> 8) & 255;
-    if (o < out.length) out[o++] = word & 255;
-  }
-  return out;
+/** Empty effect markers carry no encoded content and need no phantom file. */
+function namedSceneBuffers(input:unknown):SceneBuffers {
+  const row=parseSceneBuffers(input);
+  if(row.buffers.some(buffer=>buffer.bytes!==undefined&&buffer.bytes!==''))throw new Error('Scene buffers require named binary files');
+  return row;
 }
 /** Decode every bounded source before scene allocation. Raw byte words retain signed zero and original storage. */
 function decode(row: SceneBuffers, files?: ReadonlyMap<string, Uint8Array>): ReadonlyMap<string, Storage> {
@@ -30,8 +20,7 @@ function decode(row: SceneBuffers, files?: ReadonlyMap<string, Uint8Array>): Rea
   for (const buffer of row.buffers) {
     let bytes: Uint8Array<ArrayBuffer>;
     if (buffer.bytes !== undefined) {
-      if (buffer.bytes.length % 4 !== 0 || /[^A-Za-z0-9+/=]/u.test(buffer.bytes) || /[=]/u.test(buffer.bytes.slice(0, -2))) throw new Error('Malformed scene buffer encoding');
-      bytes = base64Bytes(buffer.bytes);
+      bytes = new Uint8Array(0);
     } else {
       const source = buffer.file === undefined ? undefined : files?.get(buffer.file);
       if (source === undefined) throw new Error('Missing scene buffer binary file');
@@ -59,7 +48,7 @@ function decode(row: SceneBuffers, files?: ReadonlyMap<string, Uint8Array>): Rea
 /** Client-only typed field admission, performed before allocating materials or geometry.
  * Named sources require exact whole files or explicit bounded, aligned byte ranges. */
 export function admitSceneBuffers(input: unknown, files?: ReadonlyMap<string, Uint8Array>): SceneBuffers {
-  const row = parseSceneBuffers(input); decode(row, files); return row;
+  const row = namedSceneBuffers(input); decode(row, files); return row;
 }
 /** An admitted content URL and its authoritative resource owner, never an entered root or material. */
 export interface SceneBufferReuse {
@@ -126,7 +115,7 @@ function buildGeometries(row: SceneBuffers, counts: readonly (number | undefined
  * Binary files are verified product reads; decoded geometry never mutates their storage. */
 export function createSceneBuffers(input: unknown, material: Material, scope: Scope, plumbing?: PlumbingData | null, reuse?: SceneBufferReuse, files?: ReadonlyMap<string, Uint8Array>): Group {
   if (scope.disposed || scope.disposing) throw new Error('Scene buffer scope is disposed or retiring');
-  const row = parseSceneBuffers(input), counts = instanceCounts(row, plumbing), owner = scope.child('buffered-draws');
+  const row = namedSceneBuffers(input), counts = instanceCounts(row, plumbing), owner = scope.child('buffered-draws');
   try {
     let geometries: ReadonlyMap<string, BufferGeometry>;
     if (reuse === undefined) geometries = buildGeometries(row, counts, geometry => { owner.own(geometry); }, files);
