@@ -1,3 +1,4 @@
+import { originalSpeciesFile } from './nalati-original-species';
 import {afterEach} from 'vitest';
 import {parseDecisionScripts} from '../../src/format/decisionScripts';
 import type {SimHost} from '../../src/engine/sim';
@@ -29,8 +30,8 @@ const held=v.parse(v.object({program:v.strictObject({...ReturnProgramSchema.entr
   JSON.parse(readFileSync('src/shards/nalati-grasslands/data/heldWeapons.generated.json','utf8')));
 const mounts=v.parse(v.object({approach:v.strictObject({...ReturnProgramSchema.entries,v2:ReturnProjectionV2Schema})}),
   JSON.parse(readFileSync('src/shards/nalati-grasslands/behaviour/riding.generated.json','utf8')));
-export const heldWitnessBytes=Uint8Array.from(readFileSync('src/shards/nalati-grasslands/behaviour/held-witness.generated.bin'));
-export const heldModuleBytes=Uint8Array.from(readFileSync('src/shards/nalati-grasslands/behaviour/held-weapons.generated.wasm'));
+export const heldWitnessBytes=originalSpeciesFile('held-witness.bin');
+export const heldModuleBytes=originalSpeciesFile('held-weapons.wasm');
 export const ridingWitnessBytes=Uint8Array.from(readFileSync('src/shards/nalati-grasslands/behaviour/riding-witness.generated.bin'));
 export const ridingModuleBytes=Uint8Array.from(readFileSync('src/shards/nalati-grasslands/behaviour/riding.generated.wasm'));
 export const titanModuleBytes=Uint8Array.from(readFileSync('src/shards/nalati-grasslands/behaviour/titan.generated.wasm'));

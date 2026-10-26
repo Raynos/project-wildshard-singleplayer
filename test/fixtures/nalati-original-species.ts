@@ -14,11 +14,11 @@ const original = metadata;
 
 /** Source-built immutable predecessor oracle; never evidence for the current producer's correctness.
  * The cold construction uses the real compiler in Node. Every hit checks all five complete original pins. */
-export function originalSpeciesFiles(directory = `tmp/nalati-original-species/${original.sha256}`): ReadonlyMap<string, Uint8Array> {
+export function originalSpeciesFiles(directory = `tmp/nalati-original-species/${original.sha256}`): ReadonlyMap<string, Uint8Array<ArrayBuffer>> {
   const root = resolve(directory);
   if (!existsSync(root)) execFileSync(process.execPath, ['--experimental-transform-types', '--import', './scripts/bake-loader.mjs',
     'test/fixtures/prepare-nalati-original-species.ts', root], { stdio: ['ignore', 'pipe', 'pipe'] });
-  const files = new Map<string, Uint8Array>();
+  const files = new Map<string, Uint8Array<ArrayBuffer>>();
   for (const [index, pin] of pins.entries()) {
     const name = names[index];
     if (name === undefined) throw new Error('Unknown original species file');
@@ -29,11 +29,17 @@ export function originalSpeciesFiles(directory = `tmp/nalati-original-species/${
   return files;
 }
 
-let prepared: ReadonlyMap<string, Uint8Array> | undefined;
+let prepared: ReadonlyMap<string, Uint8Array<ArrayBuffer>> | undefined;
 /** Each legacy fixture borrows detached bytes from the same full pinned source oracle. */
-export function originalSpeciesFile(name: string): Uint8Array {
+export function originalSpeciesFile(name: string): Uint8Array<ArrayBuffer> {
   prepared ??= originalSpeciesFiles();
   const bytes = prepared.get(name);
   if (bytes === undefined) throw new Error(`Unknown original species file: ${name}`);
   return bytes.slice();
+}
+
+/** Admit the full original JSON at each existing fixture's own schema boundary. */
+export function originalSpeciesJson(name: 'species.json' | 'boot.json'): unknown {
+  const value: unknown = JSON.parse(new TextDecoder().decode(originalSpeciesFile(name)));
+  return value;
 }

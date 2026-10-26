@@ -1,5 +1,4 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- validate generated guest rows without inferring the complete JSON type
-import { readFileSync } from 'node:fs';
+import { originalSpeciesJson } from './fixtures/nalati-original-species';
 import { afterEach,beforeEach,expect,test,vi } from 'vitest';
 import { Scope } from '../src/engine/app/scope';
 import { app } from '../src/engine/app/runtime';
@@ -10,7 +9,7 @@ import { program } from './fixtures/projectedCreature';
 import * as strikes from '../src/engine/ai/strikeRows';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 
-const generated=parse(object({presentation:object({guest:CreatureGuestSchema})}),JSON.parse(readFileSync('src/shards/nalati-grasslands/data/species.generated.json','utf8')));
+const generated=parse(object({presentation:object({guest:CreatureGuestSchema})}),originalSpeciesJson('species.json'));
 
 let scope:Scope;
 beforeEach(()=>{scope=new Scope('balbal-program');scope.expose(app,'levelScope',scope);lendNalatiHeld(scope);});

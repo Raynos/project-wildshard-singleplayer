@@ -1,7 +1,6 @@
+import { originalSpeciesJson } from './fixtures/nalati-original-species';
 import { heldModuleBytes, heldWitnessBytes, lendNalatiHeld } from './fixtures/nalati-return-modules';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-// oxlint-disable-next-line import/no-nodejs-modules -- validate generated species rows without inferring the complete JSON type
-import { readFileSync } from 'node:fs';
 import { array, boolean, literal, number, object, parse, strictObject, string } from 'valibot';
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
@@ -25,7 +24,7 @@ import { NALATI_SCRIPT_SECTIONS } from '../src/shards/nalati-grasslands/generato
 
 const generated=parse(object({presentation:object({guest:CreatureGuestSchema}),
   program:strictObject({...ReturnProgramSchema.entries,v2:ReturnProjectionV2Schema})}),
-  JSON.parse(readFileSync('src/shards/nalati-grasslands/data/species.generated.json','utf8')));
+  originalSpeciesJson('species.json'));
 
 function controls(row: typeof BALBAL_SPECIES): Required<Pick<typeof row, 'think' | 'damageMul'>> {
   if (row.think === undefined || row.damageMul === undefined) throw new Error('Missing native creature binding');

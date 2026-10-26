@@ -1,6 +1,5 @@
+import { originalSpeciesJson } from './fixtures/nalati-original-species';
 import {lendNalatiHeld,admission as sourceAdmission} from './fixtures/nalati-return-modules';
-// oxlint-disable-next-line import/no-nodejs-modules -- validate generated species rows without inferring the complete JSON type
-import { readFileSync } from 'node:fs';
 import { Scope } from '../src/engine/app/scope';
 import { app } from '../src/engine/app/runtime';
 import { array,number,object,parse,tuple } from 'valibot';
@@ -19,7 +18,7 @@ import { ReturnProgramSchema } from '../src/format/namedJsonContracts';
 import rows from '../src/shards/nalati-grasslands/data/speciesRows.json' with { type:'json' };
 
 const generated=parse(object({presentation:object({guest:CreatureGuestSchema,lookBook:object({program:ReturnProgramSchema})})}),
-  JSON.parse(readFileSync('src/shards/nalati-grasslands/data/species.generated.json','utf8')));
+  originalSpeciesJson('species.json'));
 
 let scope: Scope;
 beforeEach(() => { scope = new Scope('creature-guest.fixture'); lendNalatiHeld(scope); scope.expose(app, 'levelScope', scope); });

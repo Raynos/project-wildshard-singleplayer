@@ -1,7 +1,6 @@
+import { originalSpeciesJson } from './fixtures/nalati-original-species';
 import { Scope } from '../src/engine/app/scope';
 import { lendNalatiHeld } from './fixtures/nalati-return-modules';
-// oxlint-disable-next-line import/no-nodejs-modules -- validate generated pose/program rows without inferring the full species JSON type
-import { readFileSync } from 'node:fs';
 import { object, parse, record, string } from 'valibot';
 import { NumericPoseSchema } from '../src/format/clientChannels';
 import { ReturnProgramSchema } from '../src/format/namedJsonContracts';
@@ -19,7 +18,7 @@ import type { Animal } from '../src/engine/entities/AnimalView';
 import type { RigAnimCtx } from '../src/engine/entities/species/registry';
 
 const speciesRows=parse(object({poses:record(string(),NumericPoseSchema),program:ReturnProgramSchema}),
-  JSON.parse(readFileSync('src/shards/nalati-grasslands/data/species.generated.json','utf8')));
+  originalSpeciesJson('species.json'));
 
 const names = ['body', 'spine', 'chest', 'head', 'crown', 'cape', ...['L', 'R'].flatMap(side =>
   ['sh', 'el', 'hand'].map(joint => `arm${side}_${joint}`).concat(['hip', 'knee', 'foot'].map(joint => `leg${side}_${joint}`)))];

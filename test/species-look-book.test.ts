@@ -1,8 +1,7 @@
+import { originalSpeciesJson, originalSpeciesFile } from './fixtures/nalati-original-species';
 import { object, parse, string } from 'valibot';
 import { NativeSpeciesLookBookSchema, SpeciesPresentationSchema } from '@wildshard/format/speciesBookRows';
 import { expect,test,vi } from 'vitest';
-// oxlint-disable-next-line import/no-nodejs-modules -- Use the admitted packed source bytes through its ordinary fetch port.
-import { readFileSync } from 'node:fs';
 import { HullLookBook, speciesBehaviour } from '../src/game/looks/speciesBook';
 import { Rng } from '../src/engine/core/rng';
 import rows from '../src/shards/nalati-grasslands/data/speciesLooks.json' with {type:'json'};
@@ -10,14 +9,14 @@ import { HullLookBookSchema, PackedCreatureLooksSchema } from '../src/format/spe
 
 const source=parse(object({hullBook:HullLookBookSchema,looks:PackedCreatureLooksSchema,
   packedBodies:object({file:string()}),presentation:SpeciesPresentationSchema}),
-  JSON.parse(readFileSync('src/shards/nalati-grasslands/data/species.generated.json','utf8')));
+  originalSpeciesJson('species.json'));
 
 // G600 L8: the species looks are the hull book's packed looks; the behaviour rows stay outside the look book
 test('orchard creature data owns body copies and look identities without control hooks',async()=>{
   const first=rows[0],look0=source.looks.rows[0];if(first===undefined||look0===undefined)throw new Error('Missing packed source fixture');
   const book=new HullLookBook({...source.hullBook,slug:'orchard'}),fetch=vi.spyOn(globalThis,'fetch').mockImplementation(url=>{
     if(url!==source.packedBodies.file)throw new Error('Unexpected body source');
-    return Promise.resolve(new Response(new Uint8Array(readFileSync(`public${source.packedBodies.file}`))));
+    return Promise.resolve(new Response(originalSpeciesFile('bodies.bin')));
   });
   try{await book.packed.preload();}finally{fetch.mockRestore();}
   const looks=book.packedLooks({poses:source.looks.poses,rows:[{...look0,id:'look.orchard.guard',species:'species.orchard.guard',kind:'orchard-guard'}]});

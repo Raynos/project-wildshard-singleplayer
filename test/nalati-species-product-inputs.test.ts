@@ -1,5 +1,4 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- Read the complete original species metadata as an independent header fixture.
-import { readFileSync } from 'node:fs';
+import { originalSpeciesJson } from './fixtures/nalati-original-species';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { nalatiProductRows } from '../src/shards/nalati-grasslands/generators/product';
@@ -9,7 +8,7 @@ import pin from './fixtures/nalati-species-product-header.json' with { type: 'js
 const original = v.parse(v.object({
   program: v.object({ script: v.object({ module: v.string(), pages: v.number() }), bytes: v.string() }),
   witnessBytes: v.number(),
-}), JSON.parse(readFileSync('src/shards/nalati-grasslands/data/species.generated.json', 'utf8')));
+}), originalSpeciesJson('species.json'));
 const product = nalatiProductRows(original);
 const encode = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(value));
 

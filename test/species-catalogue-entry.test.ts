@@ -1,7 +1,6 @@
+import { originalSpeciesJson } from './fixtures/nalati-original-species';
 import { expect, test, vi } from 'vitest';
 import { object, parse } from 'valibot';
-// oxlint-disable-next-line import/no-nodejs-modules -- Exercise the existing admitted catalogue data without a product build.
-import { readFileSync } from 'node:fs';
 import { ClientSpeciesProgramSchema } from '../src/format/clientNative';
 import { HullLookBookSchema, PackedCreatureLooksSchema } from '../src/format/speciesLooks';
 import { SpeciesPresentationSchema } from '../src/format/speciesBookRows';
@@ -17,7 +16,7 @@ import type { ShardWorld } from '../src/game/shard/world';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 const source = parse(object({hullBook: HullLookBookSchema, looks: PackedCreatureLooksSchema, presentation: SpeciesPresentationSchema}),
-  JSON.parse(readFileSync('src/shards/nalati-grasslands/data/species.generated.json', 'utf8')));
+  originalSpeciesJson('species.json'));
 const row = {kind: 'species.program', catalogue: {owner: 'orchard.species', actors: 'actors/catalogue.json', looks: 'actors/looks.json'}} as const;
 
 function fixture() {

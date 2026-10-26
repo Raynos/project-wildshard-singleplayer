@@ -1,3 +1,4 @@
+import { originalSpeciesJson, originalSpeciesFile } from './fixtures/nalati-original-species';
 import * as v from 'valibot';
 import { SpeciesPresentationSchema } from '@wildshard/format/speciesBookRows';
 import { HullLookBookSchema } from '@wildshard/format/speciesLooks';
@@ -13,7 +14,7 @@ import { prepareNativeScalarBlocks } from '../scripts/bake/nativeWorld.mjs';
  * to throw (iOS private mode) spies on it (`restoreMocks` in vitest.config.ts undoes the spy).
  */
 import { beforeEach, vi } from 'vitest';
-// oxlint-disable-next-line import/no-nodejs-modules -- the setup reads Nalati's committed bodies bake (species/bodies.ts)
+// oxlint-disable-next-line import/no-nodejs-modules -- The shared pickup fixture reads its explicitly declared public assets.
 import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Decode the exact pinned original lane-shuffled stream.
 import { inflateSync } from 'node:zlib';
@@ -81,13 +82,13 @@ for (let i = 0; i < DRIFTWOOD_SPECIES.length; i++) {
   if (row !== undefined && look !== undefined) registerSpecies(speciesWithLook(row, look.kind === 'monkey' ? { ...look, animate: monkeyAnimate } : look));
 }
 const { nalatiSpeciesCatalogue, prepareNalatiSpecies } = await import('./fake/nalatiSpecies');
-// Admit the generated envelope at runtime; its looks retain their defining
+// Admit the complete original envelope; its looks retain their defining
 // packed-look admission inside productSpeciesCatalogue.
 const speciesPresentation = v.parse(v.object({
   hullBook: HullLookBookSchema, presentation: SpeciesPresentationSchema, looks: v.unknown(),
   crackBytes: v.array(v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(255))),
   packedBodies: v.object({ file: v.string() }),
-}), JSON.parse(readFileSync('src/shards/nalati-grasslands/data/species.generated.json', 'utf8')));
+}), originalSpeciesJson('species.json'));
 const { productSpeciesCatalogue } = await import('../src/game/looks/speciesBook');
 prepareNalatiSpecies(productSpeciesCatalogue({section:()=>speciesPresentation.hullBook,
   file: name => name === 'actors/balbal-cracks.bin' ? Promise.resolve(Uint8Array.from(speciesPresentation.crackBytes)) : Promise.reject(new Error(`Unexpected product file ${name}`)) },speciesPresentation.presentation,speciesPresentation.looks));
@@ -100,7 +101,7 @@ for(const row of nalatiSpeciesCatalogue().rows){
 const speciesBodies = speciesPresentation.packedBodies;
 const bodyFetch = vi.spyOn(globalThis, 'fetch').mockImplementation(input => {
   if (input !== speciesBodies.file) throw new Error('Unexpected packed-body preload');
-  return Promise.resolve(new Response(new Uint8Array(readFileSync(`public${speciesBodies.file}`))));
+  return Promise.resolve(new Response(originalSpeciesFile('bodies.bin')));
 });
 try { await nalatiSpeciesCatalogue().preload(); } finally { bodyFetch.mockRestore(); }
 const { unshuffleLanes: unshuffleBodyLanes } = await import('../src/engine/core/deflate');

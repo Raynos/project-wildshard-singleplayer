@@ -1,5 +1,4 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- admit the generated presentation without inferring its complete JSON type
-import { readFileSync } from 'node:fs';
+import { originalSpeciesJson } from '../fixtures/nalati-original-species';
 import { object, parse } from 'valibot';
 import { SpeciesActorsFileSchema, SpeciesPresentationSchema } from '@wildshard/format/speciesBookRows';
 import { namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
@@ -12,7 +11,7 @@ import type { SpeciesActorsFileRows } from '../../src/format/speciesBookRows';
 import { bakeSheepBody } from '../../src/shards/nalati-grasslands/generators/sheepBody';
 
 const species=parse(object({presentation:SpeciesPresentationSchema}),
-  JSON.parse(readFileSync('src/shards/nalati-grasslands/data/species.generated.json','utf8')));
+  originalSpeciesJson('species.json'));
 
 type SheepMetadata = SpeciesActorsFileRows;
 /** The real baked sheep channels, admitted through the same named-file grammar as play. */
