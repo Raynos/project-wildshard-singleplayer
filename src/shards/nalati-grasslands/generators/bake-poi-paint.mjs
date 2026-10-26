@@ -1,6 +1,7 @@
 import { riderGeometry } from './ghostFigure.ts';
 // Retain the exact Mac/V8 float bytes of the former live callers; readers are portable.
 import { readFileSync } from 'node:fs';
+import { bakeModelPaint } from './modelPaint.mjs';
 import { resolve } from 'node:path';
 import { deflateSync } from 'node:zlib';
 import { createHash } from 'node:crypto';
@@ -45,7 +46,8 @@ for (const tier of ['phone', 'desktop']) {
     ['boulder-tall', 'boulder-2', [0.9, 0.95, 0.9], rebakeContacts?read('dressing-boulder.generated.json').filter((_, i) => i % 3 === 2):[]],
     ['slab', 'boulder-3', [1.45, 0.5, 0.95], rebakeContacts?read('dressing-slab.generated.json'):[]],
   ]) {
-    const source = await readSourceModel(readFileSync(resolve(root, `public/assets/nalati/baked/painted-models/${file}${tier === 'phone' ? '.phone' : ''}.glb`)));
+    const authored = readFileSync(resolve(root, `public/assets/nalati/models/${file}${tier === 'phone' ? '.phone' : ''}.glb`));
+    const source = await readSourceModel(await bakeModelPaint(authored, file));
     const mesh = source.gltf.scene.children.find(child => child instanceof THREE.Mesh);
     if (mesh === undefined) throw new Error(`Missing prepared rock ${file}`);
     mesh.geometry.deleteAttribute('_paint_clone');

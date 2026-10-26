@@ -8,9 +8,20 @@ import { fitRock } from './fittedRock.ts';
 import { wingGeo, halfBirdGeo, buildMarmotGeometry } from './ambientGeometry.ts';
 import { writeGeometry, join } from './geometryWriter.ts';
 import { bakeDressing } from './dressingGeometryRows.ts';
+import { bakeModelPaint } from './modelPaint.mjs';
 import { byteWriter, jsonBytes } from '../../../../scripts/bake-output.mjs';
 
 const root = resolve(import.meta.dirname, '../../../..'), shard = resolve(import.meta.dirname, '..');
+const paintedModels = new Map();
+async function paintedModelBytes(name, phone = false) {
+  const file = `${name}${phone ? '.phone' : ''}.glb`;
+  let bytes = paintedModels.get(file);
+  if (bytes === undefined) {
+    bytes = Buffer.from(await bakeModelPaint(readFileSync(resolve(root, 'public/assets/nalati/models', file)), name));
+    paintedModels.set(file, bytes);
+  }
+  return bytes;
+}
 const read = path => JSON.parse(readFileSync(resolve(shard, path), 'utf8'));
 const dressing = bakeDressing(), raw = dressing.bin;
 const bytesOf = geometry => geometry.attrs.reduce((sum, [, type, size]) => sum + Math.ceil(geometry.count * size * (type === 'f32' ? 4 : type === 'u8' || type === 'i8' ? 1 : 2) / 4) * 4, 0) + geometry.indexCount * 4;
@@ -18,7 +29,7 @@ const sources = new Map(); let offset = 0;
 for (const row of dressing.rows) { const bytes = bytesOf(row.geometry); sources.set(row.key, { geometry: row.geometry, bytes: raw.slice(offset, offset + bytes) }); offset += bytes; }
 if (offset !== raw.length) throw new Error('Cover shapes do not cover dressing bytes');
 for (const tier of ['phone', 'desktop']) for (const [name, model, half] of [['boulder', 'boulder-1', [1, 0.74, 1]], ['boulder-tall', 'boulder-2', [0.9, 0.95, 0.9]], ['slab', 'boulder-3', [1.45, 0.5, 0.95]]]) {
-  const loaded = await readSourceModel(readFileSync(resolve(root, `public/assets/nalati/baked/painted-models/${model}${tier === 'phone' ? '.phone' : ''}.glb`)));
+  const loaded = await readSourceModel(await paintedModelBytes(model, tier === 'phone'));
   const mesh = loaded.gltf.scene.children.find(child => child instanceof THREE.Mesh);
   if (mesh === undefined) throw new Error(`Missing prepared cover rock ${model}`);
   mesh.geometry.deleteAttribute('_paint_clone'); mesh.geometry.computeBoundingBox();
@@ -101,7 +112,7 @@ for (const phone of [true, false]) {
 }
 const writer = byteWriter(process.argv.includes('--check'), 'nalati-cover');
 for (const name of ['boulder-1', 'boulder-2', 'boulder-3']) {
-  const glb = readFileSync(resolve(root, `public/assets/nalati/baked/painted-models/${name}.glb`)), size = glb.readUInt32LE(12), document = JSON.parse(glb.subarray(20, 20 + size).toString()), binary = 28 + size;
+  const glb = await paintedModelBytes(name), size = glb.readUInt32LE(12), document = JSON.parse(glb.subarray(20, 20 + size).toString()), binary = 28 + size;
   const image = document.images[0], view = document.bufferViews[image.bufferView], url = `/assets/nalati/baked/cover-${name}.webp`;
   if (image.mimeType !== 'image/webp') throw new Error('Prepared cover atlas must be WebP');
   writer.put(resolve(root, `public${url}`), glb.subarray(binary + (view.byteOffset ?? 0), binary + (view.byteOffset ?? 0) + view.byteLength));
