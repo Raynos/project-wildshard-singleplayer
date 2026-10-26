@@ -1,9 +1,11 @@
 import { expect, test } from 'vitest';
-import boulders from '../src/shards/nalati-grasslands/data/dressing-boulder.generated.json' with { type: 'json' };
+import * as v from 'valibot';
+import { nativeDressingRows } from './fixtures/nalati-dressing-placements';
 import { nalatiDressingBlob, DRESSING_SCHEMAS } from '../src/shards/nalati-grasslands/generators/dressingSchemas';
 import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
 
-test('Nalati dressing schemas reject a corrupt field and an unregistered producer', () => {
+test('Nalati dressing schemas reject a corrupt field and an unregistered producer', async () => {
+  const boulders = v.parse(v.array(v.record(v.string(), v.unknown())), await nativeDressingRows('boulder'));
   expect(Object.keys(DRESSING_SCHEMAS)).toHaveLength(16);
   const encode = (value: unknown) => new TextEncoder().encode(JSON.stringify(value));
   const blob = nalatiDressingBlob('world/dressing-boulder.json', 'json', encode(boulders));

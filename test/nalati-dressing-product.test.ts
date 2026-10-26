@@ -1,6 +1,5 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- validate generated numeric rows inside their byte-parity test
-import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
+import { nativeDressingRows } from './fixtures/nalati-dressing-placements';
 import { packDressingTable } from '../src/shards/nalati-grasslands/generators/dressingTable';
 import * as v from 'valibot';
 import { readProjectAssets } from '../src/sdk/project';
@@ -68,10 +67,10 @@ test('Nalati admits every shipping dressing groups and camp keep-out population'
 }, 30_000);
 
 
-test('numeric dressing tables retain every authored double and reject corrupt payloads', () => {
+test('numeric dressing tables retain every authored double and reject corrupt payloads', async () => {
   for (const kind of ['stone','daisy']) {
     const rows=v.parse(v.array(SceneScatterPoseSchema),
-      JSON.parse(readFileSync(`src/shards/nalati-grasslands/data/dressing-${kind}.generated.json`,'utf8')));
+      await nativeDressingRows(kind));
     const packed = packDressingTable(rows);
     expect(readDressingTable(packed)).toEqual(rows);
     expect(packed.length).toBeLessThan(new TextEncoder().encode(JSON.stringify(rows)).length);

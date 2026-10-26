@@ -17,6 +17,7 @@ import { fitRock } from './fittedRock.ts';
 import { hullCandidates, hullAt } from './solid.ts';
 import { writeGeometry, join } from './geometryWriter.ts';
 import { byteWriter, jsonBytes } from '../../../../scripts/bake-output.mjs';
+import { nativeNalatiDressingPlacements } from './nativeDressingPlacements.mjs';
 
 const root = resolve(import.meta.dirname, '../../../..');
 const read = file => JSON.parse(readFileSync(resolve(root, 'src/shards/nalati-grasslands/data', file), 'utf8'));
@@ -37,14 +38,20 @@ const meshes = [
 ];
 // Shape conversion retains the native contact bake. Its explicit authoring mode is a separate physics change.
 const rebakeContacts=process.argv.includes('--rebake-contacts'),retained=read('poiContacts.json');
+const placements=rebakeContacts?await nativeNalatiDressingPlacements(file=>readFileSync(resolve(root,file))):new Map();
+const placementRows=key=>{
+  const bytes=placements.get(`dressing-${key}.json`);
+  if(bytes===undefined)throw new Error(`Missing native contact placements: ${key}`);
+  return JSON.parse(new TextDecoder().decode(bytes));
+};
 const contacts=rebakeContacts?{}:retained.contacts;
 const sources=rebakeContacts?[]:retained.sources,writer = byteWriter(process.argv.includes('--check'), 'nalati-poi-paint');
 for (const tier of ['phone', 'desktop']) {
   const layers = {};
   for (const [name, file, half, list] of [
-    ['boulder', 'boulder-1', [1, 0.74, 1], rebakeContacts?read('dressing-boulder.generated.json').filter((_, i) => i % 3 !== 2):[]],
-    ['boulder-tall', 'boulder-2', [0.9, 0.95, 0.9], rebakeContacts?read('dressing-boulder.generated.json').filter((_, i) => i % 3 === 2):[]],
-    ['slab', 'boulder-3', [1.45, 0.5, 0.95], rebakeContacts?read('dressing-slab.generated.json'):[]],
+    ['boulder', 'boulder-1', [1, 0.74, 1], rebakeContacts?placementRows('boulder').filter((_, i) => i % 3 !== 2):[]],
+    ['boulder-tall', 'boulder-2', [0.9, 0.95, 0.9], rebakeContacts?placementRows('boulder').filter((_, i) => i % 3 === 2):[]],
+    ['slab', 'boulder-3', [1.45, 0.5, 0.95], rebakeContacts?placementRows('slab'):[]],
   ]) {
     const authored = readFileSync(resolve(root, `public/assets/nalati/models/${file}${tier === 'phone' ? '.phone' : ''}.glb`));
     const source = await readSourceModel(await bakeModelPaint(authored, file));

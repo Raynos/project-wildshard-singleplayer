@@ -9,7 +9,7 @@ import { discoverGeneration, generateShardJob } from '../scripts/generate.mjs';
 import { runGenerationJob } from '../scripts/generation-cache.mjs';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 
-for (const entry of ['bake-cover', 'bake-poi-paint']) {
+for (const entry of ['bake-cover','bake-poi-paint']) {
   test(`${entry} preserves its complete existing outputs without public painted models or repeated authored reads`, () => {
     const source = `
       import assert from 'node:assert/strict';
@@ -19,6 +19,7 @@ for (const entry of ['bake-cover', 'bake-poi-paint']) {
       fs.readFileSync=(path,...options)=>{
         const file=String(path).replaceAll('\\\\','/');
         assert.ok(!file.includes('/public/assets/nalati/baked/painted-models/'),'Unexpected public painted model input');
+        assert.ok(!/data\\/dressing-[a-z]+\\.generated\\.json/.test(file),'Unexpected generated contact placement input');
         if(file.includes('/public/assets/nalati/models/'))reads.set(file,(reads.get(file)??0)+1);
         return prior(path,...options);
       };
