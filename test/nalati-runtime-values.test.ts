@@ -8,6 +8,8 @@ import * as v from 'valibot';
 import { nalatiRuntimeRows } from '../src/shards/nalati-grasslands/generators/runtimeRows';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { hashImmutableBytes } from '../src/sdk/immutable';
+import { nalatiRuntimeWire } from './fixtures/nalati-runtime-wire';
+import shapeBook from './fixtures/nalati-shape-book-original.json' with { type: 'json' };
 import pins from './fixtures/nalati-place-runtime-files.json' with { type: 'json' };
 
 const prefix = 'src/shards/nalati-grasslands/';
@@ -16,18 +18,19 @@ const inputs = { places: original('data/places.json'), paint: original('data/poi
 
 test('source values retain every predecessor metadata field and complete floor byte', () => {
   const packet = nalatiRuntimeRows(inputs);
-  const before = v.parse(v.looseObject({ floorSources: v.array(v.object({ name: v.string(), source: v.string() })) }), original('data/placeRuntime.generated.json'));
-  const { floorSources, ...runtime } = before;
-  expect(packet.runtime).toEqual(runtime);
-  expect(packet.metrics).toEqual(original('boot/modelMetrics.generated.json'));
-  expect(packet.capture).toEqual(original('data/staticCapture.generated.json'));
-  expect(packet.shapeBook).toEqual(original('data/shapeBook.generated.json'));
-  expect(packet.floors.map(floor => floor.name)).toEqual(floorSources.map(floor => floor.name));
+  const files = nalatiRuntimeWire(packet);
+  expect([...files.keys()].map(path => `${prefix}${path}`).sort()).toEqual(Object.keys(pins).sort());
+  for (const [path, hash] of Object.entries(pins)) {
+    const bytes = files.get(path.slice(prefix.length));
+    if (bytes === undefined) throw new Error('Missing original runtime wire');
+    expect(hashImmutableBytes(bytes), path).toBe(hash);
+  }
+  expect(packet.metrics).toEqual(original('data/modelMetrics.json'));
+  expect(packet.capture).toEqual(original('data/staticCapture.json'));
+  expect(packet.shapeBook).toEqual(shapeBook);
+  expect(packet.floors.map(floor => floor.name)).toEqual(['world/floors/0.bin', 'world/floors/1.bin']);
   for (const [index, floor] of packet.floors.entries()) {
-    const beforeFloor = floorSources[index]; if (beforeFloor === undefined) throw new Error('Missing predecessor floor');
-    const path = `${prefix}${beforeFloor.source}`;
-    const expected = Object.entries(pins).find(([name]) => name === path)?.[1];
-    expect(expected).toBeDefined(); expect(hashImmutableBytes(floor.bytes)).toBe(expected);
+    const path = `test/fixtures/nalati-floor-original-${String(index)}.bin`;
     expect(Buffer.compare(floor.bytes, readFileSync(path))).toBe(0);
   }
 });
@@ -39,7 +42,7 @@ test('separate source builds own their metadata and floor backing', () => {
   if (first.capture === null || typeof first.capture !== 'object') throw new Error('Missing static capture rows');
   Reflect.set(first.capture, 'layer', 999);
   const second = nalatiRuntimeRows(inputs);
-  expect(second.capture).toEqual(original('data/staticCapture.generated.json'));
+  expect(second.capture).toEqual(original('data/staticCapture.json'));
   expect(second.floors.map(floor => hashImmutableBytes(floor.bytes))).toEqual(before);
 });
 
@@ -62,5 +65,5 @@ test('the shipping post file retains its complete predecessor capture values', a
   const bytes = output.assets.get(file.hash);
   if (bytes === undefined) throw new Error('Missing owned Nalati post bytes');
   const document = v.parse(v.object({ painted: v.object({ capture: v.unknown() }) }), JSON.parse(new TextDecoder().decode(bytes)));
-  expect(document.painted.capture).toEqual(original('data/staticCapture.generated.json'));
+  expect(document.painted.capture).toEqual(original('data/staticCapture.json'));
 });

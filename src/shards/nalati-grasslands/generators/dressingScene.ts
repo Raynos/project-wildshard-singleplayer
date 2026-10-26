@@ -58,7 +58,7 @@ const cragDecoded=Math.max(...Object.values(cragRows).flatMap(tier=>tier.meshes.
 })));
 export const DRESSING_CRAG_DECODED=cragDecoded;
 const cover=v.parse(coverSchema,coverInput);
-// the places' anchors and the camp smoke's baked puffs (bake-place-runtime.mjs)
+// The owning runtime preparation supplies place anchors and baked camp smoke.
 const spot=v.object({x:number,y:number,z:number}),placedSchema=v.object({places:v.object({rows:v.array(v.object({name:text,
   anchors:v.optional(v.object({entrance:v.exactOptional(v.object({...spot.entries,facing:number})),ledges:v.exactOptional(v.array(v.object({...spot.entries,r:number}))),
     balbalSpots:v.exactOptional(v.array(v.object({x:number,z:number,yaw:number,scale:number})))}),{}),

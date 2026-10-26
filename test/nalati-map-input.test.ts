@@ -25,12 +25,12 @@ test('a missing declared data copy refuses rather than reading stale boot metada
  expect(()=>readMapJson(resolve(root,'data/placeRuntime.generated.json'))).toThrow('ENOENT');
 });
 
-test('the canonical data copy is produced with the exact same pinned bytes as the boot alias',()=>{
- const catalog=v.parse(v.object({jobs:v.array(v.object({id:v.string(),outputs:v.array(v.string()),buildOutputs:v.optional(v.record(v.string(),v.string()))}))}),JSON.parse(readFileSync('scripts/generation-jobs.json','utf8')));
- const job=catalog.jobs.find(row=>row.id==='nalati-place-runtime');
- const data='src/shards/nalati-grasslands/data/placeRuntime.generated.json',boot='src/shards/nalati-grasslands/boot/placeRuntime.generated.json';
- expect(job?.outputs).toEqual(expect.arrayContaining([data,boot]));
- expect(job?.buildOutputs?.[data]).toMatch(/^[a-f0-9]{64}$/u);expect(job?.buildOutputs?.[data]).toBe(job?.buildOutputs?.[boot]);
+test('the runtime publication job and both aliases stay retired',()=>{
+ const catalog=v.parse(v.object({jobs:v.array(v.object({id:v.string(),outputs:v.array(v.string())}))}),JSON.parse(readFileSync('scripts/generation-jobs.json','utf8')));
+ expect(catalog.jobs.map(job=>job.id)).not.toContain('nalati-place-runtime');
+ const outputs=catalog.jobs.flatMap(job=>job.outputs);
+ expect(outputs).not.toContain('src/shards/nalati-grasslands/data/placeRuntime.generated.json');
+ expect(outputs).not.toContain('src/shards/nalati-grasslands/boot/placeRuntime.generated.json');
 });
 
 test('the map freshness recipe names native source inputs instead of retired handoffs',()=>{

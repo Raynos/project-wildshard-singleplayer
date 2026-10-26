@@ -1,18 +1,21 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare every original byte and confine actual isolated producers.
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Declare sealed fixture roots below repository tmp.
-import { relative, resolve } from 'node:path';
+import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
 import * as v from 'valibot';
-import { preparePlaceRuntime, placeRuntimeRows, type PlaceRuntimeInput } from '../src/shards/nalati-grasslands/generators/placeRuntimeSource.mjs';
+import { placeRuntimeRows, type PlaceRuntimeInput } from '../src/shards/nalati-grasslands/generators/placeRuntimeSource.mjs';
 import { jsonBytes } from '../scripts/bake-output.mjs';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
-import { discoverGeneration, generateShardJob } from '../scripts/generate.mjs';
+import { discoverGeneration } from '../scripts/generate.mjs';
+import { nalatiRuntimeWire } from './fixtures/nalati-runtime-wire';
+import shapeBook from './fixtures/nalati-shape-book-original.json' with { type: 'json' };
 import pins from './fixtures/nalati-place-runtime-files.json' with { type: 'json' };
 
 const prefix = 'src/shards/nalati-grasslands/';
+const normalize = (value: unknown): unknown => { const result: unknown = JSON.parse(new TextDecoder().decode(jsonBytes(value))); return result; };
 function read(name: PlaceRuntimeInput): unknown { const path = name === 'dressing' ? 'test/fixtures/nalati-dressing-geos.json' : `${prefix}${name}`; const input: unknown = JSON.parse(readFileSync(path, 'utf8')); return input; }
 
 test('pure runtime preparation preserves all seven complete output pins and input records', () => {
@@ -20,51 +23,49 @@ test('pure runtime preparation preserves all seven complete output pins and inpu
   for (const name of ['data/campCatalogue.json', 'data/places.json', 'dressing', 'data/worldView.json', 'data/modelMetrics.json', 'data/staticCapture.json', 'data/poiPaint.json'] as const) inputs.set(name, read(name));
   const select = (name: PlaceRuntimeInput): unknown => inputs.get(name);
   const before = JSON.stringify([...inputs]);
-  const files = preparePlaceRuntime(select, jsonBytes);
+  const files = nalatiRuntimeWire(placeRuntimeRows(select, normalize));
   expect([...files.keys()].map(name => `${prefix}${name}`).sort()).toEqual(Object.keys(pins).sort());
   for (const [path, hash] of Object.entries(pins)) {
     const bytes = files.get(path.slice(prefix.length));
     if (bytes === undefined) throw new Error(`Missing original runtime output ${path}`);
     expect(hashImmutableBytes(bytes), path).toBe(hash);
-    const original = readFileSync(path);
-    expect(hashImmutableBytes(original), path).toBe(hash);
-    expect(Buffer.compare(bytes, original), path).toBe(0);
+    if (path.endsWith('.bin')) {
+      const index = path.includes('floor-0') ? 0 : 1;
+      const original = readFileSync(`test/fixtures/nalati-floor-original-${String(index)}.bin`);
+      expect(hashImmutableBytes(original), path).toBe(hash);
+      expect(Buffer.compare(bytes, original), path).toBe(0);
+    }
   }
   expect(JSON.stringify([...inputs])).toBe(before);
 });
 
 test('structured preparation keeps metadata and independent owned floor bytes', () => {
-  const normalize = (value: unknown): unknown => { const result: unknown = JSON.parse(new TextDecoder().decode(jsonBytes(value))); return result; };
   const first = placeRuntimeRows(read, normalize);
-  const prepared = v.parse(v.looseObject({ floorSources: v.array(v.unknown()) }), JSON.parse(readFileSync(`${prefix}data/placeRuntime.generated.json`, 'utf8')));
-  const { floorSources, ...runtime } = prepared;
-  expect(first.runtime).toEqual(runtime);
+  expect(nalatiRuntimeWire(first).get('data/placeRuntime.generated.json')).toBeDefined();
   expect(first.metrics).toEqual(read('data/modelMetrics.json'));
   expect(first.capture).toEqual(read('data/staticCapture.json'));
-  expect(first.shapeBook).toEqual(JSON.parse(readFileSync(`${prefix}data/shapeBook.generated.json`, 'utf8')));
-  expect(first.floors.map(floor => floor.name)).toEqual(floorSources.map(row => v.parse(v.object({ name: v.string() }), row).name));
+  expect(first.shapeBook).toEqual(shapeBook);
+  expect(first.floors.map(floor => floor.name)).toEqual(['world/floors/0.bin', 'world/floors/1.bin']);
   for (const [index, floor] of first.floors.entries()) {
-    const row = v.parse(v.object({ source: v.string() }), floorSources[index]);
-    expect(Buffer.compare(floor.bytes, readFileSync(`${prefix}${row.source}`))).toBe(0);
+    expect(Buffer.compare(floor.bytes, readFileSync(`test/fixtures/nalati-floor-original-${String(index)}.bin`))).toBe(0);
     floor.bytes.fill(0);
   }
   const second = placeRuntimeRows(read, normalize);
   for (const [index, floor] of second.floors.entries()) {
-    const row = v.parse(v.object({ source: v.string() }), floorSources[index]);
-    expect(Buffer.compare(floor.bytes, readFileSync(`${prefix}${row.source}`))).toBe(0);
+    expect(Buffer.compare(floor.bytes, readFileSync(`test/fixtures/nalati-floor-original-${String(index)}.bin`))).toBe(0);
   }
 });
 
 test('original asset and binary coverage refusals remain', () => {
-  expect(() => preparePlaceRuntime(name => name === 'data/campCatalogue.json' ? [] : read(name), jsonBytes)).toThrow('Missing asset declaration');
+  expect(() => placeRuntimeRows(name => name === 'data/campCatalogue.json' ? [] : read(name), normalize)).toThrow('Missing asset declaration');
   for (const file of ['data/places.json', 'dressing'] as const) {
-    expect(() => preparePlaceRuntime(name => {
+    expect(() => placeRuntimeRows(name => {
       if (name !== file) return read(name);
       const row = v.parse(v.looseObject({ bytes: v.number() }), read(name));
       return { ...row, bytes: row.bytes + 4 };
-    }, jsonBytes)).toThrow('rows do not cover their binary');
+    }, normalize)).toThrow('rows do not cover their binary');
   }
-  expect(() => preparePlaceRuntime(name => name === 'data/modelMetrics.json' ? new Uint8Array([1]) : read(name), jsonBytes)).toThrow('BINARY-JSON');
+  expect(() => placeRuntimeRows(name => name === 'data/modelMetrics.json' ? new Uint8Array([1]) : read(name), normalize)).toThrow('BINARY-JSON');
 });
 
 test('the preparation source bundles as one config-safe chunk', async () => {
@@ -81,26 +82,12 @@ test('the preparation source bundles as one config-safe chunk', async () => {
   }
 });
 
-for (const omission of ['preparation', 'geometry', null] as const) {
-  test(`sealed runtime producer ${omission === null ? 'preserves every original output' : `refuses the missing ${omission} source`}`, async () => {
-    const root = resolve('.'), job = discoverGeneration(root).jobs.find(row => row.id === 'nalati-place-runtime');
-    if (job === undefined) throw new Error('Missing retained place-runtime producer');
-    const source = `${prefix}generators/placeRuntimeSource.mjs`;
-    const geometry = `${prefix}generators/dressingGeometryRows.ts`;
-    expect(job.inputRoots).toContain(source); expect(job.inputRoots).toContain(geometry);
-    const cacheDir = mkdtempSync(resolve('tmp/nalati-runtime-pure-'));
-    try {
-      if (omission !== null) {
-        const absent = omission === 'preparation' ? source : geometry;
-        const descriptor = { ...job, inputRoots: job.inputRoots.filter(file => file !== absent) };
-        const catalogPath = relative(root, resolve(cacheDir, 'omitted.json'));
-        const catalog = v.parse(v.object({ schema: v.string(), notice: v.string(), jobs: v.array(v.unknown()) }), JSON.parse(readFileSync('scripts/generation-jobs.json', 'utf8')));
-        writeFileSync(resolve(root, catalogPath), JSON.stringify({ ...catalog, jobs: catalog.jobs.map(row => typeof row === 'object' && row !== null && Reflect.get(row, 'id') === job.id ? descriptor : row) }));
-        await expect(generateShardJob(root, descriptor, { cacheDir, catalogPath, forceCompare: true })).rejects.toThrow('Generator exited 1');
-      } else {
-        const made = await generateShardJob(root, job, { cacheDir, forceCompare: true });
-        try { expect(made.hashes).toEqual(pins); } finally { made.release(); }
-      }
-    } finally { rmSync(cacheDir, { recursive: true, force: true }); }
-  });
-}
+test('the runtime publisher and every handoff stay retired from the catalogue', () => {
+  const jobs = discoverGeneration(resolve('.')).jobs;
+  expect(jobs.map(job => job.id)).not.toContain('nalati-place-runtime');
+  const retired = new Set(Object.keys(pins));
+  for (const job of jobs) {
+    expect(job.inputRoots.filter(path => retired.has(path)), job.id).toEqual([]);
+    expect(job.outputs.filter(path => retired.has(path)), job.id).toEqual([]);
+  }
+});

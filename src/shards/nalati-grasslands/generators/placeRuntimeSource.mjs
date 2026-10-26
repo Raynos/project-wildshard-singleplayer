@@ -54,17 +54,3 @@ export function placeRuntimeRows(read,normalize) {
   const {floors,runtime,metrics,capture,shapeBook}=buildPlaceRuntimeRows(read);
   return {floors,runtime:normalize(runtime),metrics:normalize(metrics),capture:normalize(capture),shapeBook:normalize(shapeBook)};
 }
-
-/** Preserve existing CLI byte publication while source readers adopt the structured preparation above. */
-export function preparePlaceRuntime(read,jsonBytes) {
-  const {floors,runtime,metrics,capture,shapeBook}=buildPlaceRuntimeRows(read);
-  const floorSources=floors.map((floor,index)=>({name:floor.name,kind:'bin',source:`data/place-floor-${index}.generated.bin`}));
-  const files=new Map(floors.map((floor,index)=>[floorSources[index].source,floor.bytes]));
-  const prepared={floorSources,...runtime};
-  files.set('boot/placeRuntime.generated.json',jsonBytes(prepared));
-  files.set('data/placeRuntime.generated.json',jsonBytes(prepared));
-  files.set('boot/modelMetrics.generated.json',jsonBytes(metrics));
-  files.set('data/staticCapture.generated.json',jsonBytes(capture));
-  files.set('data/shapeBook.generated.json',jsonBytes(shapeBook));
-  return files;
-}
