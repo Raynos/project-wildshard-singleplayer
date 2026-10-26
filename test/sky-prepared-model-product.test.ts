@@ -17,6 +17,7 @@ import { prepareOutput } from '../src/shards/far-reach/generators/sourceOutput';
 import { SKY_WORLD_TILE_ROWS } from '../src/shards/far-reach/generators/worldTileRows';
 import { BAKED_PIECES } from '../src/shards/far-reach/generators/fileInventory';
 import { nameBlob } from '../src/sdk/blobs';
+import { MILL_REST_URL } from '../src/shards/far-reach/generators/restFiles';
 import { skyProductBoot } from '../src/shards/far-reach/generators/bootInventory';
 
 test('the actual SDK-built product binds receipt-verified discovery to the admitted complete geometry', () => {
@@ -39,6 +40,11 @@ test('the actual SDK-built product binds receipt-verified discovery to the admit
     path: 'blobs/glb/1a31cb2c7b426d9ffb14db4e39792aeb0bde86f6f01d0b1796130a3a0c7d8bf0.glb',
     compressed: 2_109_968, decoded: 2_109_940, gpu: 2_031_804, triangles: 35_709, draws: 126, dependencies: [], critical: false });
   expect(hashImmutableBytes(readFileSync(resolve(folder, bridge.path)))).toBe(bridge.hash);
+
+  const millOriginal = readFileSync(`public${MILL_REST_URL}`), mill = nameBlob('world/geometry/mill-rest.glb', 'glb', millOriginal);
+  expect(mill.file.hash).toBe('3b12beff5b5ae8fbb51433b27890591e85bdc9049dd999e19cc4700400603b37');
+  expect(index.files.find(row => row.name === mill.file.name)).toEqual(mill.file);
+  expect(Buffer.compare(readFileSync(resolve(folder, mill.file.path)), millOriginal)).toBe(0);
 
   for (const piece of BAKED_PIECES) {
     const name = `world/geometry/pieces/${piece}.glb`, original = readFileSync(`public/assets/far-reach/baked/${piece}.glb`);

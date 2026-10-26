@@ -4,7 +4,7 @@ import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import type { SceneModelSource, SceneBakeSource } from '@wildshard/game/shardfile/sceneSources';
 import * as files from './fileInventory';
 import { SKY_AO_FLOOR } from './modelFrames';
-import { BRIDGE_REST_URL, ISLET_POOL } from './restFiles';
+import { BRIDGE_REST_URL, MILL_REST_URL, ISLET_POOL } from './restFiles';
 import heroes from '../data/heroLibrary.generated.json' with { type: 'json' };
 import rest from '../data/restPools.generated.json' with { type: 'json' };
 import { bridgeRestPool } from './bridgeRest';
@@ -44,10 +44,11 @@ const json = (name: string, rows: unknown) => nameBlob(name, 'json', new TextEnc
 export function skyHeroSource(geometry: string): NamedBlob {
   return json('world/sources/heroes.json', { ...hero, rows: { ...hero.rows, geometryPools: [{ ...heroes.pool, url: geometry }] } });
 }
-/** Preserve the complete native library while replacing only its owned bridge pool address. */
-export function skyModelSource(bridgeGeometry: string): NamedBlob {
+/** Preserve the complete native library while replacing only its owned bridge and mill pool addresses. */
+export function skyModelSource(bridgeGeometry: string, millGeometry: string): NamedBlob {
   return json('world/sources/sky.json', { ...sky, rows: { ...sky.rows,
-    geometryPools: sky.rows.geometryPools.map(pool => pool.url === BRIDGE_REST_URL ? { ...pool, url: bridgeGeometry } : pool) } });
+    geometryPools: sky.rows.geometryPools.map(pool => pool.url === BRIDGE_REST_URL ? { ...pool, url: bridgeGeometry }
+      : pool.url === MILL_REST_URL ? { ...pool, url: millGeometry } : pool) } });
 }
 /** Retain every bake row and binding while the caller supplies its admitted geometry names. */
 export function skyBakeSource(urls: SceneBakeSource['urls']): NamedBlob {

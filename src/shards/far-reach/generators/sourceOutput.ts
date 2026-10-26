@@ -20,6 +20,7 @@ import { BAKED_PIECES } from './fileInventory';
 import { skyWorldTileProgram } from './worldTileProgram';
 import { SKY_WORLD_TILE_ROWS } from './worldTileRows';
 import { skyBridgeRestProgram } from './bridgeRestProgram';
+import { skyMillRestProgram } from './millRestProgram';
 
 type SectionName = Parameters<Parameters<typeof emitPlatformSections>[0]['get']>[0];
 /** Build-only declarations; the compiled client features own all presentation. */
@@ -54,13 +55,16 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<type
   const bridgeFiles = await skyBridgeRestProgram(ctx), bridgeBytes = bridgeFiles.get('bridge-rest.glb');
   if (bridgeBytes === undefined) throw new Error('Missing owned bridge geometry');
   const bridgeName = 'world/geometry/bridge-rest.glb', bridge = nameBlob(bridgeName, 'glb', bridgeBytes);
-  const assets = new Map(output.assets), replacements = [hero, bakes, skyModelSource(bridgeName)];
+  const millFiles = await skyMillRestProgram(ctx), millBytes = millFiles.get('mill-rest.glb');
+  if (millBytes === undefined) throw new Error('Missing owned mill geometry');
+  const millName = 'world/geometry/mill-rest.glb', mill = nameBlob(millName, 'glb', millBytes);
+  const assets = new Map(output.assets), replacements = [hero, bakes, skyModelSource(bridgeName, millName)];
   for (const replacement of replacements) {
     const previous = output.namedFiles.find(file => file.name === replacement.file.name);
     if (previous === undefined) throw new Error('Missing original scene source output');
     assets.delete(previous.hash); assets.set(replacement.file.hash, replacement.bytes);
   }
-  for (const blob of [geometry, ...world, bridge]) assets.set(blob.file.hash, blob.bytes);
+  for (const blob of [geometry, ...world, bridge, mill]) assets.set(blob.file.hash, blob.bytes);
   const tiles = await skyWorldTileProgram(ctx);
   if (tiles.size !== SKY_WORLD_TILE_ROWS.files.length + 1) throw new Error('Sky world tile publication inventory differs');
   for (const file of SKY_WORLD_TILE_ROWS.files) {
@@ -69,5 +73,5 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<type
     assets.set(file.hash, bytes);
   }
   return { ...output, namedFiles: [...output.namedFiles.map(file => replacements.find(row => row.file.name === file.name)?.file ?? file),
-    geometry.file, ...world.map(blob => blob.file), bridge.file], assets };
+    geometry.file, ...world.map(blob => blob.file), bridge.file, mill.file], assets };
 }

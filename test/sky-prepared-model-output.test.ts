@@ -16,7 +16,7 @@ import { sceneBakeFiles } from '../src/game/shardfile/sceneBakeFiles';
 import type { SceneBakeSource } from '../src/game/shardfile/sceneSources';
 import { BAKED_PIECES, BAKED_URLS } from '../src/shards/far-reach/generators/fileInventory';
 import { nameBlob } from '../src/sdk/blobs';
-import { BRIDGE_REST_URL } from '../src/shards/far-reach/generators/restFiles';
+import { BRIDGE_REST_URL, MILL_REST_URL } from '../src/shards/far-reach/generators/restFiles';
 import { sceneRigFiles } from '../src/game/shardfile/sceneRigFiles';
 import { skyProductRows } from '../src/shards/far-reach/generators/product';
 import { SKY_WORLD_TILE_ROWS } from '../src/shards/far-reach/generators/worldTileRows';
@@ -28,6 +28,8 @@ const hash = 'bd1a0a75879e2f3e72e2ab2b8d0c18a79d7e7746478b3fedc6961199a714c580';
 const bridgeHash = '1a31cb2c7b426d9ffb14db4e39792aeb0bde86f6f01d0b1796130a3a0c7d8bf0';
 const bridgeFile = { name: bridgeName, path: `blobs/glb/${bridgeHash}.glb`, kind: 'glb', hash: bridgeHash,
   compressed: 2_109_968, decoded: 2_109_940, gpu: 2_031_804, triangles: 35_709, draws: 126, dependencies: [], critical: false };
+const millName = 'world/geometry/mill-rest.glb', millHash = '3b12beff5b5ae8fbb51433b27890591e85bdc9049dd999e19cc4700400603b37';
+const millOriginal = readFileSync(`public${MILL_REST_URL}`), mill = nameBlob(millName, 'glb', millOriginal);
 const original = readFileSync('public/assets/far-reach/baked/prepared-models.glb'), text = new TextDecoder();
 const HeroRows = v.object({ rows: v.object({ meshes: v.array(v.string()), meshUrls: v.record(v.string(), v.string()),
   hd: v.array(v.string()), hdUrls: v.record(v.string(), v.string()), hdLooks: v.record(v.string(), v.never()), aoFloor: v.number(),
@@ -49,7 +51,7 @@ test('owned geometry preserves all original bytes and costs, changing only its s
       compressed: 10_134_100, decoded: 10_134_072, gpu: 10_096_780, triangles: 203_025, draws: 48, critical: false, dependencies: [] });
     const bytes = owned.assets.get(hash); if (bytes === undefined) throw new Error('Missing owned GLB bytes');
     expect(Buffer.compare(bytes, original)).toBe(0);
-    expect(owned.namedFiles).toHaveLength(output.namedFiles.length + 12);
+    expect(owned.namedFiles).toHaveLength(output.namedFiles.length + 13);
     for (const file of output.namedFiles) {
       if (file.name === heroName || file.name === bakeName || file.name === skyName) continue;
       expect(owned.namedFiles.find(row => row.name === file.name)).toEqual(file);
@@ -59,13 +61,20 @@ test('owned geometry preserves all original bytes and costs, changing only its s
     const oldSky = output.namedFiles.find(file => file.name === skyName), newSky = owned.namedFiles.find(file => file.name === skyName);
     if (oldSky === undefined || newSky === undefined) throw new Error('Missing native library descriptor');
     expect(text.decode(owned.assets.get(newSky.hash))).toBe(text.decode(output.assets.get(oldSky.hash))
-      .replace(JSON.stringify(BRIDGE_REST_URL), JSON.stringify(bridgeName)));
+      .replace(JSON.stringify(BRIDGE_REST_URL), JSON.stringify(bridgeName))
+      .replace(JSON.stringify(MILL_REST_URL), JSON.stringify(millName)));
     expect(owned.assets.has(oldSky.hash)).toBe(false);
     const bridge = { file: bridgeFile };
     expect(owned.namedFiles.find(file => file.name === bridgeName)).toEqual(bridge.file);
     const bridgeBytes = owned.assets.get(bridge.file.hash);
     if (bridgeBytes === undefined) throw new Error('Missing owned bridge geometry');
     expect(hashImmutableBytes(bridgeBytes)).toBe(bridgeHash); bridgeBytes.fill(0);
+
+    expect(mill.file.hash).toBe(millHash);
+    expect(owned.namedFiles.find(file => file.name === millName)).toEqual(mill.file);
+    const millBytes = owned.assets.get(millHash);
+    if (millBytes === undefined) throw new Error('Missing owned mill geometry');
+    expect(Buffer.compare(millBytes, millOriginal)).toBe(0); millBytes.fill(0);
 
     const before = output.namedFiles.find(file => file.name === heroName), after = owned.namedFiles.find(file => file.name === heroName);
     if (before === undefined || after === undefined) throw new Error('Missing original or owned hero library');
@@ -99,7 +108,7 @@ test('owned geometry preserves all original bytes and costs, changing only its s
     bytes.fill(0);
     const hit = await prepareOutput(context()), hitBytes = hit.assets.get(hash);
     if (hitBytes === undefined) throw new Error('Missing cache-hit GLB');
-    expect(Buffer.compare(hitBytes, original)).toBe(0); expect(builds).toBe(4);
+    expect(Buffer.compare(hitBytes, original)).toBe(0); expect(builds).toBe(5);
     for (const file of SKY_WORLD_TILE_ROWS.files) {
       const tile = hit.assets.get(file.hash);
       if (tile === undefined) throw new Error('Missing cache-hit island tile');
@@ -115,6 +124,9 @@ test('owned geometry preserves all original bytes and costs, changing only its s
     const hitBridge = hit.assets.get(bridge.file.hash);
     if (hitBridge === undefined) throw new Error('Missing cache-hit bridge geometry');
     expect(hashImmutableBytes(hitBridge)).toBe(bridgeHash);
+    const hitMill = hit.assets.get(millHash);
+    if (hitMill === undefined) throw new Error('Missing cache-hit mill geometry');
+    expect(Buffer.compare(hitMill, millOriginal)).toBe(0);
 
   } finally { rmSync(cache, { recursive: true, force: true }); }
 });
@@ -146,6 +158,11 @@ test('normal output admission and the actual native pool resolver consume the ow
     expect(poolIndex).toBeGreaterThanOrEqual(0);
     expect(native.geometryPools?.[poolIndex]?.url).toBe(`/shardfiles/far-reach/${bridge.file.path}`);
     expect(hashImmutableBytes(await product.file(bridgeName))).toBe(bridgeHash);
+
+    const millPool = sky.rows.geometryPools.findIndex(pool => pool.url === millName);
+    expect(millPool).toBeGreaterThanOrEqual(0);
+    expect(native.geometryPools?.[millPool]?.url).toBe(`/shardfiles/far-reach/${mill.file.path}`);
+    expect(Buffer.compare(await product.file(millName), millOriginal)).toBe(0);
 
     const bakes = await product.json<SceneBakeSource>(bakeName), bakeFiles = sceneBakeFiles(bakes, product);
     expect(Object.keys(bakes.urls)).toEqual([...BAKED_PIECES]);
