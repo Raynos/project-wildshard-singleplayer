@@ -71,6 +71,9 @@ export interface HarnessPins {
    *  probe vetoes the KTX2 path every real iPhone runs; a frame floor pins this to time that path on the Simulator. The
    *  Simulator's pixels are wrong with it: never a look proof. */
   ktx2Probe?: 'skip';
+  /** G717.O3.1, measurement only: each full node build records where its uniforms and update nodes come from
+   *  (`EngineNodesHandler.buildLog[].census`) */
+  nodeBuildCensus?: true;
 }
 export type ProbeWorld = World & {
   animals: AnimalManager; weapons: EquipmentService; hud: HUD; audio: Audio; music: Music; arena: TrainingArena | null;

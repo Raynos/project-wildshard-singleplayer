@@ -79,7 +79,8 @@ import { GraphCodeKeys } from './graphCodeKeys';
 import { NodeProgramVariants } from './nodeProgramVariants';
 import { classicModelUniform } from './nodeObjectUniforms';
 import { registerShadowDepthResolver } from '../shadowDepthVariants';
-import { bindLazy, captureBuild, graphNodeOwner, graphShape, lazyReads, pairShapes, rebindBuild, reuseKey, unboundReads, type BuildOutput, type GraphShape, type LazyUniform } from './nodeBuildReuse';
+import { bindLazy, buildCensus, captureBuild, graphNodeOwner, graphShape, lazyReads, pairShapes, rebindBuild, recordBuild, reuseKey, unboundReads, type BuildCensus, type BuildOutput, type GraphShape, type LazyUniform } from './nodeBuildReuse';
+import { harnessPins } from '../../app/identity';
 
 /** Depth displacement reads the same authored local normal as its surface. */
 class GraphShadowDepthMaterial extends MeshBasicNodeMaterial {
@@ -413,7 +414,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
    *  to runtime hooks: a build after an entry's warm-up is a missed warm program.
    *  prepareMs covers shape/key/reuse lookup; frontendMs is only the stock
    *  builder call (null on reuse), both within the existing total ms. */
-  readonly buildLog: { at: number; ms: number; prepareMs: number; frontendMs: number | null; material: string; object: string; how: string }[] = [];
+  readonly buildLog: { at: number; ms: number; prepareMs: number; frontendMs: number | null; material: string; object: string; how: string; census?: BuildCensus }[] = [];
   /** each `buildLog` row's program parameters (`reuseKey`: the object class, the custom key's tail, the parameters and
    *  defines), at the same index; '' where none could be read. Two builds of one material diff here (what moved its key). */
   readonly buildKeys: string[] = [];
@@ -859,12 +860,14 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     const reused = key === null || shape === null ? null : this.reusedBuild(key, material, object, shape);
     let how = shape === null ? 'no graph shape' : key === null ? 'no reuse key' : typeof reused === 'string' ? reused : 'first of its key';
     const prepareMs = diagnosticNow() - t0;
-    let frontendMs: number | null = null;
+    let frontendMs: number | null = null, made: ReturnType<typeof recordBuild> | null = null;
     if (typeof reused === 'object' && reused !== null) { this.applyReused(material, object, parameters, reused); this.reuses++; how = 'reused'; }
     else {
       const buildFrontend = (): void => {
         const frontendAt = diagnosticNow();
-        super.build(material, object, parameters);
+        // G717.O3.1: the harness's census pin records the nodes the build makes (measurement only; off when shipped)
+        if (harnessPins()?.nodeBuildCensus === true) made = recordBuild(() => { super.build(material, object, parameters); });
+        else super.build(material, object, parameters);
         frontendMs = diagnosticNow() - frontendAt;
       };
       if (material instanceof NodeMaterial) buildWithInstanceAttributes(material, buildFrontend);
@@ -889,7 +892,9 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     this.buildMs += buildMs;
     this.builds++;
     if (this.buildLog.length >= BUILD_LOG_CAP) { this.buildLog.shift(); this.buildKeys.shift(); }
-    this.buildLog.push({ at: t0, ms: buildMs, prepareMs, frontendMs, material: material.name || material.type, object: object.name || object.type, how });
+    const censusOutput = made === null ? null : captureBuild(Reflect.get(material, '_latestBuilder'));
+    this.buildLog.push({ at: t0, ms: buildMs, prepareMs, frontendMs, material: material.name || material.type, object: object.name || object.type, how,
+      ...(made === null || censusOutput === null ? {} : { census: buildCensus(censusOutput, shape, made) }) });
     this.buildKeys.push(program ?? reuseKey(parameters, object, material, this.shareKeyOf(material)) ?? '');
     // WebGLRenderer.getProgram calls build only for a key its material has no program for, then files the acquired
     // program under that key: the program lands at the map's current size

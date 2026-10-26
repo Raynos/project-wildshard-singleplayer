@@ -43,14 +43,19 @@ const running: GraphNodeOwner[] = [];
  * each node made, keeps the id as the node's own field and hands the node to the running owner. Removed when the last
  * owner returns.
  */
+/** G717.O3.1: every node the current recorded build makes, in order (`recordBuild`; null: none recording) */
+let buildRecord: Node[] | null = null;
+/** owners running plus recorded builds: the prototype hook stays while either needs it */
+let holds = 0;
 function recordNodes(on: boolean): void {
   const prototype: unknown = Reflect.get(Node, 'prototype');
   if (typeof prototype !== 'object' || prototype === null) throw new Error('Node prototype is missing');
-  if (!on) { Reflect.deleteProperty(prototype, 'id'); return; }
+  if (!on) { if (--holds === 0) Reflect.deleteProperty(prototype, 'id'); return; }
+  if (holds++ > 0) return;
   // the getter answers only before a node's constructor assigns its own id
   Reflect.defineProperty(prototype, 'id', { configurable: true, get(): undefined { return undefined; }, set(this: object, value: unknown): void {
     Reflect.defineProperty(this, 'id', { value, writable: true, enumerable: true, configurable: true });
-    if (isNode(this)) running.at(-1)?.note(this);
+    if (isNode(this)) { running.at(-1)?.note(this); buildRecord?.push(this); }
   } });
 }
 
@@ -63,9 +68,9 @@ export class GraphNodeOwner {
   private compiling = true;
   /** run `fn`, owning every node it makes */
   run<T>(fn: () => T): T {
-    if (running.length === 0) recordNodes(true);
+    recordNodes(true);
     running.push(this);
-    try { return fn(); } finally { running.pop(); if (running.length === 0) recordNodes(false); }
+    try { return fn(); } finally { running.pop(); recordNodes(false); }
   }
   /** the compile returned: what its code makes from now on, it makes inside a build */
   seal(): void { this.compiling = false; }
@@ -281,4 +286,27 @@ export function rebindBuild(output: BuildOutput, twins: ReadonlyMap<Node, Node>)
     uniforms: { vertex: output.uniforms.vertex.map(uniform), fragment: output.uniforms.fragment.map(uniform) },
     uniformGroups, updateNodes: output.updateNodes.map(node => twins.get(node) ?? node),
   };
+}
+
+/** G717.O3.1 (diagnostic): run a build, recording every node it makes in the order it makes them */
+export function recordBuild(fn: () => void): Node[] {
+  const outer = buildRecord, nodes: Node[] = [];
+  buildRecord = nodes; recordNodes(true);
+  try { fn(); } finally { recordNodes(false); buildRecord = outer; }
+  return nodes;
+}
+/** Where a build's uniform and update nodes come from: the compile (by graph position), the build itself (by the order it
+ *  made them), or neither (older shared nodes: cached lights, camera and object singletons, by class). A program-source
+ *  pack can restore a build positionally only when `other` is empty. */
+export interface BuildCensus { readonly compile: number; readonly made: number; readonly other: readonly string[] }
+export function buildCensus(output: BuildOutput, shape: GraphShape | null, made: readonly Node[]): BuildCensus {
+  const compiled = new Set(shape?.nodes), built = new Set(made), other: string[] = [];
+  let compile = 0, fresh = 0;
+  const entries = [...output.uniforms.vertex, ...output.uniforms.fragment, ...Object.values(output.uniformGroups).flatMap(group => group.uniforms.map(member => member.nodeUniform))];
+  for (const node of new Set([...entries.map(entry => entry.node), ...output.updateNodes])) {
+    if (compiled.has(node)) compile++;
+    else if (built.has(node)) fresh++;
+    else other.push(node.name === '' ? node.constructor.name : `${node.constructor.name}:${node.name}`);
+  }
+  return { compile, made: fresh, other };
 }
