@@ -22,3 +22,7 @@
 export const SKY_DOME_LOOK = 'driftwood-sky-dome';
 /** the look.materials id of the cumulus ring */
 export const SKY_CLOUD_LOOK = 'driftwood-sky-cumulus';
+/** G685 (Jake's pick A on art/clouds/round-1-three-styles): the toon cel cumulus, an A / B against the faceted ring above
+ *  until he has chosen: smooth puff normals in three hard sun bands (lit white, a pale mid, a cool blue-grey shade), flat
+ *  shaded bellies, the same silver lining and horizon melt, on its own higher, rounder layout (data/cumulusToonPuffs.json) */
+export const SKY_CLOUD_TOON_LOOK = 'driftwood-sky-cumulus-toon';

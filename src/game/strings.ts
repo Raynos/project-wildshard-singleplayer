@@ -91,6 +91,11 @@ export const GAME_STRINGS = {
     off: 'Off',
     on: 'On',
   },
+  /** G685: the Debug row that shows a toon sky's toon cel cumulus against its faceted clouds until Jake has picked */
+  toonClouds: {
+    label: 'Toon sky clouds', faceted: 'A: Faceted (today)', toon: 'B: Toon cumulus',
+    note: 'G685: today\'s faceted cumulus ring or the toon cel cumulus (Jake\'s pick A on the cloud styles board); live',
+  },
   summary: {
     label: 'Wildshard progress',
     selected: (name: string, earned: number | null): string => `${name.toUpperCase()} · ${earned === null ? 'NOT VISITED' : `${earned} FEATS`}`,

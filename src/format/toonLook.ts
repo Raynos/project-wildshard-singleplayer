@@ -40,7 +40,11 @@ export const ToonLookSchema: v.GenericSchema<ToonLookRowInput, ToonLookRow> = v.
   ground: v.strictObject({ materials: v.strictObject({ ground: id, slab: id }), files: v.strictObject({ ground: id, slab: id }), kit: v.record(id, id) }),
   sky: v.strictObject({ day: ToonDaySchema, cycleSeconds: positive, name: id, channels: id,
     dome: v.strictObject({ look: id, radius: positive, segments: v.tuple([v.pipe(positive, v.integer()), v.pipe(positive, v.integer())]), order: n }),
-    clouds: v.strictObject({ look: id, order: n, puffs: v.pipe(v.array(v.tuple([n, n, n, positive, n, n, n])), v.minLength(1), v.maxLength(8192)) }),
+    clouds: v.strictObject({ look: id, order: n, puffs: v.pipe(v.array(v.tuple([n, n, n, positive, n, n, n])), v.minLength(1), v.maxLength(8192)),
+      // G685: Jake's toon cel cumulus, drawn instead of these faceted clouds while one live Debug row picks it, until he
+      // has chosen between them (the loser is then deleted with this field): its own graph, puff layout and puff detail
+      toon: v.exactOptional(v.strictObject({ look: id, puffs: v.pipe(v.array(v.tuple([n, n, n, positive, n, n, n])), v.minLength(1), v.maxLength(8192)),
+        detail: v.pipe(n, v.integer(), v.minValue(1), v.maxValue(3)) })) }),
     midday: v.strictObject({ zenith: rgb, horizon: rgb, cloudLit: rgb, sunGlow: rgb }),
     environment: v.strictObject({ near: positive, far: positive }), crisp: n,
   }),
@@ -294,6 +298,19 @@ interface ToonLookRowFields {
                 number,
                 number
             ])[];
+            toon?: {
+                look: string;
+                puffs: ([
+                    number,
+                    number,
+                    number,
+                    number,
+                    number,
+                    number,
+                    number
+                ])[];
+                detail: number;
+            };
         };
         midday: {
             zenith: [
