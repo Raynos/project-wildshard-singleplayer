@@ -9,11 +9,11 @@
   "migrationBase": "51a68db06eeaceda20a1c571e509724f535a7086",
   "pins": [
     {
-      "path": "public/assets/title/launch-1206x2622-e78cd1eb93eb.png",
-      "oid": "6cae66727a099497d8c19592e73f3cccf82efaf7",
-      "bytes": 1627294,
+      "path": "public/assets/title/launch-1206x2622-880e3aa07fa7.png",
+      "oid": "d738573a32113ccc9d4cfd5bda39ee0b668c72c6",
+      "bytes": 1625877,
       "kind": "runtime",
-      "purpose": "G716 native pre-document launch hero with phone status-area inset, rendered from index.html by scripts/generate-title-launch.mjs"
+      "purpose": "G744 approved 5x5 native pre-document launch hero with unchanged phone status-area inset, rendered from index.html by scripts/generate-title-launch.mjs"
     },
     {
       "path": "src/shards/driftwood-isle/assets/a3fca362de406d3063f6aff3083eb852967dfbb73afb7ff67daaaddaed262e3a",

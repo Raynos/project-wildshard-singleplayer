@@ -4,6 +4,7 @@
 import { readFileSync, mkdirSync, writeFileSync, unlinkSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { createHash } from 'node:crypto';
+import sharp from 'sharp';
 import { browserPool } from './parity/pool.mjs';
 
 const root = resolve(import.meta.dirname, '..');
@@ -34,7 +35,9 @@ try {
     const page = await context.newPage();
     await page.goto('http://launch.test/', { waitUntil: 'networkidle' });
     await page.evaluate(async () => { await document.fonts.ready; });
-    const png = await page.screenshot({ animations: 'disabled' });
+    // Keep the exact rendered pixels inside the existing native launch byte pin.
+    const png = await sharp(await page.screenshot({ animations: 'disabled' }))
+      .png({ compressionLevel: 9, adaptiveFiltering: true }).toBuffer();
     const hash = createHash('sha256').update(png).digest('hex').slice(0, 12);
     const url = `/assets/title/launch-1206x2622-${hash}.png`;
     const output = resolve(root, `public${url}`);
