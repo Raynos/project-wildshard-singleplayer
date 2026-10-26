@@ -11,10 +11,21 @@ import { hashImmutableBytes } from '../src/sdk/immutable';
 import { nalatiRuntimeWire } from './fixtures/nalati-runtime-wire';
 import shapeBook from './fixtures/nalati-shape-book-original.json' with { type: 'json' };
 import pins from './fixtures/nalati-place-runtime-files.json' with { type: 'json' };
+import placePins from './fixtures/nalati-place-wires.json' with { type: 'json' };
 
 const prefix = 'src/shards/nalati-grasslands/';
-function original(path: string): unknown { const value: unknown = JSON.parse(readFileSync(`${prefix}${path}`, 'utf8')); return value; }
+function original(path: string): unknown { const value: unknown = JSON.parse(readFileSync(path === 'data/places.json' ? 'test/fixtures/nalati-places-original.json' : `${prefix}${path}`, 'utf8')); return value; }
 const inputs = { places: original('data/places.json'), paint: original('data/poiPaint.json') };
+
+test('frozen placement metadata retains both complete original file hashes', () => {
+  for (const [current, former] of [['nalati-places-original.json', 'places.json'], ['nalati-packed-specimens-original.json', 'placeSpecimens.json']]) {
+    const pin = placePins.find(row => row.path === `${prefix}data/${String(former)}`);
+    if (pin === undefined) throw new Error('Missing original placement metadata pin');
+    const bytes = readFileSync(`test/fixtures/${String(current)}`);
+    expect(bytes.byteLength, pin.path).toBe(pin.bytes);
+    expect(hashImmutableBytes(bytes), pin.path).toBe(pin.hash);
+  }
+});
 
 test('source values retain every predecessor metadata field and complete floor byte', () => {
   const packet = nalatiRuntimeRows(inputs);

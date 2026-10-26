@@ -13,7 +13,7 @@ import { painterlyKnobs } from '../src/engine/world/painterly';
 import { unshuffleLanes, readBakedGeometry, bakedGeometryBytes } from '../src/game/plugin/geometry';
 import { createPackedSpecimens, defineSpecimenCatalogue, specimenMaterial } from '../src/game/models/specimenCatalogue';
 import { PackedSpecimenSchema } from '@wildshard/format/specimenCatalogue';
-import packedRows from '../src/shards/nalati-grasslands/data/placeSpecimens.json' with { type: 'json' };
+import packedRows from './fixtures/nalati-packed-specimens-original.json' with { type: 'json' };
 import campMaterialRows from '../src/shards/nalati-grasslands/data/campMaterials.json' with { type: 'json' };
 import type { CatalogueParams } from '../src/shards/nalati-grasslands/generators/campParams';
 import type { CatalogueParams as TrailParams } from '../src/shards/driftwood-isle/boot/specimenParams.generated';
@@ -21,7 +21,7 @@ import { nalatiSpecimens as campData } from './fixtures/nalati-specimens';
 import trailRows from '../src/shards/driftwood-isle/data/trailCatalogue.json' with { type: 'json' };
 
 import { SceneFloorSchema } from '../src/format/sceneDressing';
-import sourcePlaces from '../src/shards/nalati-grasslands/data/places.json' with { type: 'json' };
+import sourcePlaces from './fixtures/nalati-places-original.json' with { type: 'json' };
 import layout from '../src/shards/nalati-grasslands/boot/layout.generated.json' with { type: 'json' };
 import { readSceneFloors } from '../src/game/shardfile/sceneDressing';
 import { deckFloor, torFloor, type PlaceRow } from '../src/shards/nalati-grasslands/generators/placeRows';

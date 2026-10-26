@@ -16,7 +16,7 @@ const catalogue: unknown = JSON.parse(readFileSync(`${project}data/campCatalogue
 const materials: unknown = JSON.parse(readFileSync(`${project}data/campMaterials.json`, 'utf8'));
 if (!v.is(SpecimenCatalogueSchema, catalogue) || !v.is(v.record(v.string(), SpecimenMaterialSchema), materials)) throw new Error('Invalid original Nalati declarations');
 const original: unknown = JSON.parse(readFileSync('test/fixtures/nalati-specimens-original.json', 'utf8'));
-const packed = v.parse(v.record(v.string(), v.unknown()), JSON.parse(readFileSync(`${project}data/placeSpecimens.json`, 'utf8')));
+const packed = v.parse(v.record(v.string(), v.unknown()), JSON.parse(readFileSync('test/fixtures/nalati-packed-specimens-original.json', 'utf8')));
 const make = () => nalatiSpecimenRows(catalogue, materials, packed);
 const pins = new Map([
   [`${project}data/specimens.generated.json`, '301801ce71966a97e7526c7298b441f9c590c5213aa4052897d7ef748c132771'],

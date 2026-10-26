@@ -4,4 +4,4 @@ import { nalatiDressingSpecimens } from '../../src/shards/nalati-grasslands/gene
 
 const read = (name: string): unknown => JSON.parse(readFileSync(`src/shards/nalati-grasslands/data/${name}.json`, 'utf8'));
 /** Original specimen values come from the source composer, without the generated specimen declaration. */
-export const nalatiSpecimens = nalatiDressingSpecimens(read('campCatalogue'), read('campMaterials'), read('placeSpecimens'));
+export const nalatiSpecimens = nalatiDressingSpecimens(read('campCatalogue'), read('campMaterials'), JSON.parse(readFileSync('test/fixtures/nalati-packed-specimens-original.json', 'utf8')));
