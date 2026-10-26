@@ -8,7 +8,7 @@ import { PAINTED_TERRAIN_ATTRIBUTES as ATTR } from '@wildshard/format/materialFa
 import { buildPainterlyGeometry } from './terrainPainter';
 import { TERRAIN, SEED, groundColor, surfaceAt } from './terrainRecipe';
 
-export const TERRAIN_PAINT_SOURCE = { seed: SEED, terrain: TERRAIN, groundColor, surfaceAt };
+export const TERRAIN_PAINT_SOURCE: { seed: number; terrain: typeof TERRAIN; groundColor: typeof groundColor; surfaceAt: typeof surfaceAt } = { seed: SEED, terrain: TERRAIN, groundColor, surfaceAt };
 
 const CHANNELS = { normal: 3, color: 3, surf: 4, rdir: 2, zone: 3 } as const;
 /** the painter names its masks as the painted-terrain layer reads them */

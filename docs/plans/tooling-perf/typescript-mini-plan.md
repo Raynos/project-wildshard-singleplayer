@@ -226,7 +226,7 @@ normal layer emission is the declaration-size authority. Continuation starts at 
 | T4-I6v | Sunscar page, population, graph and rig declarations; preserve readonly owner fields, mutable collections and original host contracts | 60 min | done (2026-10-26, sp-x8) |
 | T4-I6w | Nalati catalogue, riding, weather and creature declarations; retain generic concrete model parameters, mutable rows and optional matrix output | 60 min | done (2026-10-26, sp-x8) |
 | T4-I6x | Nalati geometry, population and pose declarations; retain mutable native rows, readonly spruce identities and original resource contracts | 60 min | done (2026-10-26, sp-x8) |
-| T4-I6xg | Nalati ground declaration annotation: producer import repair `750ef84be5` is on origin; retain its exact lattice/painter and annotate the remaining source value separately | 60 min | open (producer ready, 2026-10-26; sp-x8) |
+| T4-I6xg | Nalati ground declaration annotation: producer import repair `750ef84be5` is on origin; retain its exact lattice/painter and annotate the remaining source value separately | 60 min | done (2026-10-26, sp-x8) |
 | T4-I6legacy | Frozen legacy declaration annotations: read-only census finds 391/935 modules with 1,018 isolated diagnostics; exact bytes stay unchanged until G606/LD is lifted, modern slices continue | 60 min | waits-Jake (2026-10-26; G606, sp-x8) |
 
 T4 first format slices are on origin: schema expressions and emitted runtime JavaScript are unchanged.
