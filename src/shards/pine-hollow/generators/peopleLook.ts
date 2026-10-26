@@ -1,3 +1,4 @@
+
 /**
  * The people's numbers (@wildshard/game/systems/npc/figureRows): a 0.56 m square collider from 0.3 m under the feet to 1.8 m
  * over them, the talk prompt at 1.6 m, drawn inside 140 m and casting a shadow inside 45 m, turning to face you inside
@@ -6,9 +7,9 @@
  * product's people/catalogue.json; the shared figure host admits the same rows.
  */
 import * as v from 'valibot';
-import { NpcFigureRowsSchema } from '@wildshard/format/figures';
+import { NpcFigureRowsSchema , type FigureMotionRow as FigureMotionRowType } from '@wildshard/format/figures';
 
-export const NPC_FIGURE = v.parse(NpcFigureRowsSchema, {
+export const NPC_FIGURE: FigureMotionRowType = v.parse(NpcFigureRowsSchema, {
   collider: { half: 0.28, top: 1.8, bottom: 0.3 },
   talkHeight: 1.6,
   drawDistance: 140,

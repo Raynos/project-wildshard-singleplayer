@@ -1,4 +1,5 @@
-import { nameBlob } from '@wildshard/sdk/blobs';
+
+import { nameBlob , type NamedBlob as NamedBlobType } from '@wildshard/sdk/blobs';
 import { parseWorldScene } from '@wildshard/format/clientChannels';
 import type { WorldScenesSection } from '@wildshard/format/worldScenes';
 import models from '../data/questRideModels.json' with { type: 'json' };
@@ -6,13 +7,13 @@ import { FIGURE_CATALOGUE } from './figureCatalogue';
 
 const surface = FIGURE_CATALOGUE.material;
 if (surface === undefined) throw new Error('Quest rides need their original figure surface');
-export const QUEST_RIDE_MODEL_BLOBS = models.map(row => ({ name: row.file, kind: 'glb', source: row.source }));
+export const QUEST_RIDE_MODEL_BLOBS: { name: string; kind: string; source: string; }[] = models.map(row => ({ name: row.file, kind: 'glb', source: row.source }));
 const scene = parseWorldScene({ scene: { version: 1, root: 'root', nodes: [
   { kind: 'group', id: 'root', children: models.map(row => row.id) },
   ...models.map(row => ({ kind: 'mesh', id: row.id, geometry: row.id, material: 'body', missing: 'empty',
     name: row.part, castShadow: true, visible: row.id !== 'canoe' })),
 ], materials: [{ kind: 'port', id: 'body', source: 'body' }] }, imports: [] });
-export const QUEST_RIDE_BLOBS = [nameBlob('scenes/quest-rides.json', 'json', new TextEncoder().encode(JSON.stringify(scene)))];
+export const QUEST_RIDE_BLOBS: NamedBlobType[] = [nameBlob('scenes/quest-rides.json', 'json', new TextEncoder().encode(JSON.stringify(scene)))];
 export const QUEST_RIDE_LIBRARY: WorldScenesSection['libraries'][number] = {
   id: 'quest-rides', kind: 'owned', models: models.map(row => ({ id: row.id, file: row.file, attributes: {} })),
 };

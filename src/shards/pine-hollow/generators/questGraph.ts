@@ -5,7 +5,7 @@ import { parseInteractionRows } from '@wildshard/sdk/interactions';
 import { PINE_GRAPH_DATA, PINE_TABLE_ACTIONS, PINE_LANTERN_ROWS } from './interactions';
 
 /** Admit the authored command protocol with the existing shared row parser. */
-export const PINE_GRAPH = parseQuestGraph(PINE_GRAPH_DATA);
+export const PINE_GRAPH: ReturnType<typeof parseQuestGraph> = parseQuestGraph(PINE_GRAPH_DATA);
 /** The table owns its flag vocabulary. Geometry, sitting, inventory, LOS and modal input keep their existing owners. */
 export function pineQuestRows(table: InteractTable): ReturnType<typeof parseInteractionRows> {
   const compiled = compileQuestTable(table, PINE_TABLE_ACTIONS);

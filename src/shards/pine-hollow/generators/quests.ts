@@ -3,7 +3,7 @@ import { WARDENS_HOLLOW, QUEST_EXTERNAL, ERRAND_EXTERNAL } from './wardensHollow
 import wardens from '../data/wardensHollow.json' with { type: 'json' };
 
 /** The shipping seven-step chapter; native NPC presentation and the dawn camera remain runtime recipes. */
-export const PINE_QUESTS = parseQuestData({
+export const PINE_QUESTS: ReturnType<typeof parseQuestData> = parseQuestData({
   flags: [...QUEST_EXTERNAL, ...ERRAND_EXTERNAL, 'errand:paid', wardens.QUEST_DONE, 'taken:pond-glass'],
   quests: [{ ...WARDENS_HOLLOW, onComplete: { fact: 'pine.feat.quest' } }],
   triggers: [], dialogue: [],

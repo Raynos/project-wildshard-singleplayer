@@ -1,7 +1,7 @@
 /** Named-place membership is authored once; runtime only selects placed copies. */
 import layout from '../data/layout.generated.json' with { type: 'json' };
 
-export const PINE_HOLLOW_QUEST_PLACES = [{ id: 'west-road', name: 'The west road', x: 30, z: -2, r: 16 }];
+export const PINE_HOLLOW_QUEST_PLACES: { id: string; name: string; x: number; z: number; r: number; }[] = [{ id: 'west-road', name: 'The west road', x: 30, z: -2, r: 16 }];
 const declared = [
   { at: 'gate', place: 'pine-hollow/gate' }, { at: 'crossroads', place: 'pine-hollow/crossroads' },
   { at: 'cabin-1', place: 'pine-hollow/cabin-1' }, { at: 'cabin-2', place: 'pine-hollow/cabin-2' }, { at: 'cabin-3', place: 'pine-hollow/cabin-3' },
@@ -12,7 +12,7 @@ const declared = [
   { at: 'west-road', place: 'pine-hollow/west-road' },
 ];
 const locations = new Map([...layout.PINE_HOLLOW_POIS, ...PINE_HOLLOW_QUEST_PLACES].map(row => [row.id, row]));
-export const PLACE_SETS = declared.map(row => {
+export const PLACE_SETS: { id: string; place: string; name: string; x: number; z: number; r: number; }[] = declared.map(row => {
   const at = locations.get(row.at);
   if (at === undefined) throw new Error(`Missing named place: ${row.at}`);
   return { id: row.place, place: row.place, name: at.name, x: at.x, z: at.z, r: at.r };

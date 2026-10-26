@@ -1,8 +1,9 @@
+
 import { QUEST_PRESENTATION } from './questPresentation';
 import journal from '../data/questJournal.json' with { type: 'json' };
 import bench from '../data/questBench.json' with { type: 'json' };
 import page from '../data/forestStory.json' with { type: 'json' };
-import { parseQuestStory } from '@wildshard/format/questStory';
+import { parseQuestStory , type QuestStory as QuestStoryType } from '@wildshard/format/questStory';
 import steps from '../data/questSteps.json' with { type: 'json' };
 import { PINE_QUEST_SERVICES } from './questConsequences';
 
@@ -14,7 +15,7 @@ const base = parseQuestStory({
 });
 
 /** One admitted chapter uses the same saved state, notices and objective owner as the other page entries. */
-export const PAGE_STORY = parseQuestStory({ ...base, chapters: {
+export const PAGE_STORY: QuestStoryType = parseQuestStory({ ...base, chapters: {
   chapters: [base.quest.id], talks: [], rewards: {}, flagEvents: [], introTitle: base.presentation.introTitle,
   chapterTitle: '{title}', completedObjective: '{objective}', completedHint: '', rewardKicker: '', rewardSubtitle: '',
   started: '', objective: '', rewardMs: 0, messages: base.presentation.messages,

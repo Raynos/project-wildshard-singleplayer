@@ -1,4 +1,5 @@
-import { parseQuestHost } from '@wildshard/format/questHost';
+
+import { parseQuestHost , type QuestHostRow as QuestHostRowType } from '@wildshard/format/questHost';
 import { pineTableFromPlacements } from './questTable';
 import { PINE_GRAPH, pineQuestRows } from './questGraph';
 import spots from '../data/spots.generated.json' with { type: 'json' };
@@ -6,7 +7,7 @@ import policy from '../data/nativeStory.json' with { type: 'json' };
 import { contractCatalogue } from './contractRows';
 
 /** The root graph and presentation use the same placed interaction table. */
-export const PINE_QUEST_TABLE = pineTableFromPlacements(spots.rows);
+export const PINE_QUEST_TABLE: ReturnType<typeof pineTableFromPlacements> = pineTableFromPlacements(spots.rows);
 const interactions = pineQuestRows(PINE_QUEST_TABLE);
 const flags = [...new Set(interactions.rows.flatMap(row => [
   ...row.sets, ...row.needs?.flatMap(need => [...need.all ?? [], ...need.any ?? [], ...need.none ?? []]) ?? [],
@@ -38,7 +39,7 @@ const routes = [
 
 /** Original modal priority and actor routing are admitted data; the native owner
  * dispatches each command in order at its existing continuation phase. */
-export const PINE_QUEST_HOST = parseQuestHost({
+export const PINE_QUEST_HOST: QuestHostRowType = parseQuestHost({
   version: 1, graph: PINE_GRAPH, interactions, flags, npcs: [], drive: 'external',
   actors: { ids: [], error: 'Missing quest actor' },
   observations: [{ binding: 'event:quest.riding', kind: 'cable', cable: policy.cable, state: 'riding' },

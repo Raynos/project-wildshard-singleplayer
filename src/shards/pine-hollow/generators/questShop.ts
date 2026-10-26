@@ -1,10 +1,11 @@
+
 import * as v from 'valibot';
-import { QuestTraderSchema } from '@wildshard/format/namedJsonContracts';
+import { QuestTraderSchema , type QuestTraderRows as QuestTraderRowsType } from '@wildshard/format/namedJsonContracts';
 import stall from '../data/traderStall.json' with { type: 'json' };
 import { TRADES } from './trades';
 
 /** The original barter grants precede wear, the trader's bark, chime and toast. */
-export const TRADER_STALL = v.parse(QuestTraderSchema, { ...stall, shop: {
+export const TRADER_STALL: QuestTraderRowsType = v.parse(QuestTraderSchema, { ...stall, shop: {
   place: 'Pine Hollow', barter: true, lifetime: 'entered', ammunition: { loadout: 'pine.loadout', bolts: 'iron' },
   after: Object.fromEntries(TRADES.map(trade => [trade.id, [
     ...('skin' in trade.get ? [{ kind: 'wear', finish: trade.get.skin }] : []),

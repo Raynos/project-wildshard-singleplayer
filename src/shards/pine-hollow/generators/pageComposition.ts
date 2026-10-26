@@ -1,8 +1,10 @@
+
+
 import * as v from 'valibot';
-import { QuestPageSchema } from '@wildshard/format/questPageComposition';
+import { QuestPageSchema , type QuestPageRows as QuestPageRowsType } from '@wildshard/format/questPageComposition';
 import { FOREST_STORY } from './forestStory';
 import { PINE_QUEST_RUNTIME } from './questRuntime';
-import { nameBlob } from '@wildshard/sdk/blobs';
+import { nameBlob , type NamedBlob as NamedBlobType } from '@wildshard/sdk/blobs';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
 import { namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 
@@ -14,7 +16,7 @@ import { namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
  */
 const story = FOREST_STORY, cable = story.cable, at = ([x, y, z]: readonly [number, number, number]) => ({ x, y, z });
 const before = ['hud.combat', 'main.frame'];
-export const PINE_QUEST_PAGE = v.parse(QuestPageSchema, {
+export const PINE_QUEST_PAGE: QuestPageRowsType = v.parse(QuestPageSchema, {
   id: 'pine.quest-page', debug: story.debug.id, placement: { registryReach: 20 },
   files: { services: story.files.services, stall: story.files.stall, contracts: story.files.contracts, director: story.files.director },
   kit: { section: story.content, registryReach: 20 },
@@ -42,5 +44,5 @@ export const PINE_QUEST_PAGE = v.parse(QuestPageSchema, {
   systems: { kit: 'quest.kit', kitAfter: ['engine.compendium.installCompendium'], talks: 'quest', cable: 'quest.cable', places: 'quest.places', before },
 });
 /** the page's published rows (game shard install reads them as Driftwood's: quests/page-composition.json) */
-export const PINE_QUEST_PAGE_BLOB = nameBlob('quests/page-composition.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PINE_QUEST_PAGE)),
+export const PINE_QUEST_PAGE_BLOB: NamedBlobType = nameBlob('quests/page-composition.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PINE_QUEST_PAGE)),
   { jsonSchema: namedJsonSchema(QuestPageSchema) });

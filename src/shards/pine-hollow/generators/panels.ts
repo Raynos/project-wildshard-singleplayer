@@ -1,4 +1,5 @@
-import { parsePanelDefinition, type PanelTemplate, type PanelValue } from '@wildshard/format/panelTemplate';
+
+import { parsePanelDefinition, type PanelTemplate, type PanelValue , type PanelDefinition as PanelDefinitionType } from '@wildshard/format/panelTemplate';
 import { contractCatalogue } from './contractRows';
 import { itemName } from './trades';
 
@@ -30,7 +31,7 @@ const boardBody: PanelTemplate[] = [
   { cls: 'ws-ph-foot', text: 'A filled notice is claimed here. Tearing one down posts the next and ends your run.' },
 ];
 /** Static markup, display strings and input policy; live draws and rewards remain with their existing owners. */
-export const PINE_PANELS = {
+export const PINE_PANELS: { board: PanelDefinitionType; count: PanelDefinitionType; } = {
   board: parsePanelDefinition({ lifetime: 'persistent', showClass: 'show', closeRef: 'close', closeKeys: ['Escape', 'KeyE'], stopEvents: ['pointerdown'],
     frame: { cls: 'ws-ph-panel ws-ph-board', children: [
       { cls: 'ws-ph-frame', children: [
