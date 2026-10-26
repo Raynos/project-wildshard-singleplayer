@@ -17,6 +17,10 @@ test('fresh and persistent placement rows retain all eighteen complete native pr
     import {selectedLevel} from '@wildshard/engine/level/selection';
     import {nalatiDressingPlacementProgram} from './src/shards/nalati-grasslands/generators/dressingPlacementProgram.ts';
     import {prepareNalatiDressing} from './scripts/bake/nalatiDressing.mjs';
+    import {nalatiDressingPlacementBlobs,nalatiDressingBlob} from './src/shards/nalati-grasslands/generators/dressingSchemas.ts';
+    import {packDressingTable} from './src/shards/nalati-grasslands/generators/dressingTable.ts';
+    import {nameBlob} from './src/sdk/blobs.ts';
+    import {encodeCanonicalJson} from './src/sdk/immutable.ts';
     const cache=mkdtempSync(resolve('tmp/nalati-dressing-placement-'));
     let constructions=0;
     const context=program=>{
@@ -47,6 +51,15 @@ test('fresh and persistent placement rows retain all eighteen complete native pr
         return{file:'dressing-'+group+'.json',bytes,hash:hashImmutableBytes(bytes)};
       });
       assert.equal(originals.length,18);check(originalCold);check(hit);check(rebuilt);
+      const expected=Object.entries({...predecessor.plan,clutter:predecessor.clutter}).map(([key,native])=>{
+        const rows=JSON.parse(JSON.stringify(native));
+        return key==='stone'||key==='daisy'
+          ?nameBlob('world/dressing-'+key+'.bin','bin',packDressingTable(rows))
+          :nalatiDressingBlob('world/dressing-'+key+'.json','json',new TextEncoder().encode(encodeCanonicalJson(rows)));
+      });
+      const actual=nalatiDressingPlacementBlobs(originalCold);
+      assert.deepEqual(actual.map(row=>row.file),expected.map(row=>row.file));
+      for(const [i,row]of actual.entries())assert.equal(Buffer.compare(row.bytes,expected[i].bytes),0,row.file.name);
     }finally{rmSync(cache,{recursive:true,force:true});}
   `;
   execFileSync(process.execPath, ['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', '--import', './scripts/generation-level.mjs', '--input-type=module', '--eval', source, '--', '--generation-shard=nalati-grasslands']);

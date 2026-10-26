@@ -122,6 +122,7 @@ test('the actual output hook preserves every predecessor file cost and binary by
     }
     expect(constructions.get('model-parts')).toBe(1);
     expect(constructions.get('places')).toBe(1);
+    expect(constructions.get('dressing-placement')).toBe(1);
     const beforeWarm = new Map(constructions), warm = await prepareOutput(context());
     expect(constructions).toEqual(beforeWarm);
     expect(warm.namedFiles).toEqual(hit.namedFiles);
@@ -146,6 +147,8 @@ test('the actual output hook preserves every predecessor file cost and binary by
       expect(hashImmutableBytes(bytes)).toBe(file.hash);
     }
     expect(steps).toContain('model-parts');
+    expect(steps).toContain('dressing-placement');
+    expect(requested).toContain('data/geography-forest.bin');
     for (const file of modelNames) expect(requested).toContain(`/assets/nalati/models/${file}`);
     expect(hit.namedFiles.filter(file=>file.name===expectedBank.file.name)).toEqual([expectedBank.file]);
     const bankBytes = hit.assets.get(expectedBank.file.hash);
@@ -251,6 +254,15 @@ test('the actual output hook preserves every predecessor file cost and binary by
       expect(Buffer.compare(bytes, expected.bytes)).toBe(0);
     }
     const ctx = context();
+    await expect(prepareOutput({ ...ctx, cached: (step, make) => step.id === 'dressing-placement'
+      ? Promise.resolve(new Map()) : ctx.cached(step, make) })).rejects.toThrow('Owned Nalati dressing placement inventory differs');
+    await expect(prepareOutput({ ...ctx, cached: async (step, make) => {
+      const files = await ctx.cached(step, make);
+      if (step.id !== 'dressing-placement') return files;
+      const changed = new Map(files);
+      changed.set('dressing-boulder.json', new TextEncoder().encode('{}'));
+      return changed;
+    } })).rejects.toThrow();
     await expect(prepareOutput({ ...ctx, cached: (step, make) => step.id === 'model-parts'
       ? Promise.resolve(new Map()) : ctx.cached(step, make) })).rejects.toThrow('Nalati model-part inventory differs');
     await expect(prepareOutput({ ...ctx, cached: (step, make) => step.id === 'decorative'

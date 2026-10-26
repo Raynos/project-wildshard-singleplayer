@@ -1,6 +1,8 @@
 import * as v from 'valibot';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import { namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
+import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
+import { packDressingTable } from './dressingTable';
 
 const number = v.number(), xz = { x: number, z: number };
 /** Wire forms of dressingPlan.ts's Inst, LogSpec, Spot and DressPlan rows. */
@@ -24,4 +26,17 @@ export function nalatiDressingBlob(name: string, kind: 'json', bytes: Uint8Array
   const schema = key === undefined ? undefined : DRESSING_SCHEMAS[key];
   if (schema === undefined) throw new Error(`Missing dressing schema: ${name}`);
   return nameBlob(name, kind, bytes, { jsonSchema: namedJsonSchema(schema) });
+}
+
+/** Pack source-owned native placement rows with their original file names, exact doubles and admission schemas. */
+export function nalatiDressingPlacementBlobs(files: ReadonlyMap<string, Uint8Array>): readonly NamedBlob[] {
+  return [...files].map(([name, bytes]) => {
+    const key = /^dressing-([a-z]+)\.json$/u.exec(name)?.[1];
+    if (key === undefined) throw new Error('Invalid owned dressing placement name');
+    const rows: unknown = JSON.parse(new TextDecoder().decode(bytes));
+    if (key === 'stone' || key === 'daisy') return nameBlob(`world/dressing-${key}.bin`, 'bin', packDressingTable(rows));
+    const schema = DRESSING_SCHEMAS[key];
+    if (schema === undefined) throw new Error('Missing owned dressing placement schema');
+    return nalatiDressingBlob(`world/dressing-${key}.json`, 'json', new TextEncoder().encode(encodeCanonicalJson(v.parse(schema, rows))));
+  });
 }
