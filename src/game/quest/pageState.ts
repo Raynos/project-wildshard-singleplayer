@@ -9,7 +9,7 @@ type MarkerRow = NonNullable<Shardfile['quests']['quests'][number]['steps'][numb
 /** Bind a declared quest to the actual flag/ledger owners. The caller chooses
  * its admitted mode rows; this function never constructs a runtime declaration. */
 export function bindPageQuest(ctx: Pick<ShardContext, 'app' | 'scope'>, source: Shardfile, id: string,
-  ports: RuntimeQuestPorts, modes = source.modes): RuntimeQuest {
+  ports: RuntimeQuestPorts, modes: typeof source.modes = source.modes): RuntimeQuest {
   const declared = source.quests.quests.find((row) => row.id === id);
   if (declared === undefined) throw new Error(`Undeclared quest ${id}`);
   const fact = declared.onComplete?.fact ?? null, facts = ports.facts;

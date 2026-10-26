@@ -67,7 +67,7 @@ export class DirectorLane {
     this.pending.push({ type: row.id, value });
   }
   /** Stable input ordering and the engine's unchanged fuel, event, query and memory ceilings. */
-  step(tick: number, observation: Readonly<Record<string, number>>, dt = 1 / 60): readonly DirectorEvent[] {
+  step(tick: number, observation: Readonly<Record<string, number>>, dt: number = 1 / 60): readonly DirectorEvent[] {
     const input = this.observation(observation, dt);
     this.host.beginTick(tick);
     this.currentTick = tick;

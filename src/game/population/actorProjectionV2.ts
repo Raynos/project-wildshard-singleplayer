@@ -63,7 +63,7 @@ export class ActorProjectionV2 {
   }
   /** Strike admission precedes publishing the shared programme, as at the
   * original native bind slot. The original ReturnProgram scope owns caching. */
-  program(scope=this.page?.levelScope??undefined):ReturnProgram{
+  program(scope: Scope | undefined=this.page?.levelScope??undefined):ReturnProgram{
     for(const operation of this.rows.step?.operations??[])if(operation.kind==='contact'&&!this.strikes.has(operation)){
       const strike=strikeFromData(operation.strike);
       if(operation.length!==undefined&&strike.shape.kind!=='wedge')throw new Error('Scaled contact requires wedge');

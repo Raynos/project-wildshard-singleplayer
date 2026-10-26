@@ -87,7 +87,7 @@ export class PageWildlife<T extends CrowdTargets = CrowdTargets> {
     }
     this.flocks.push(view); return dog;
   }
-  sound(cue: string,x: number,z: number,height = this.rows.soundHeight): void { app.events.emit('creature.sound',{ cue,x,y: terrainHeight(x,z)+height,z }); }
+  sound(cue: string,x: number,z: number,height: number = this.rows.soundHeight): void { app.events.emit('creature.sound',{ cue,x,y: terrainHeight(x,z)+height,z }); }
   /** Observe before advancing declared crowds, without a per-crowd callback. */
   beginFrame(dt: number,player: { position: Vector3; forward: Vector3; crouching: boolean },extra: { mounted?: boolean }): number {
     const p = player.position,speed = this.motion.update(dt,p.x,p.z),length = Math.hypot(player.forward.x,player.forward.z);

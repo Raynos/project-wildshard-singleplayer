@@ -69,7 +69,7 @@ export type RefusedShard = (slug: string) => ShardRefusal | null;
 const sessionRefusals: RefusedShard = (slug) => pageShardRefusals().read(slug);
 
 /** Developer mode reveals hidden levels after every player-facing card. */
-export function titleCards(showHidden = isDev(), upgradeNeeded: UpgradeNeeded = noUpgrades, refused: RefusedShard = sessionRefusals): readonly TitleCard[] {
+export function titleCards(showHidden: boolean = isDev(), upgradeNeeded: UpgradeNeeded = noUpgrades, refused: RefusedShard = sessionRefusals): readonly TitleCard[] {
   const hidden = (m: TitleManifest): boolean => m.status === 'hidden' || m.slug.startsWith('_');
   const registered = titleManifests(), ordinary = ordinaryShardManifests(registered).filter(m => m.shardSelect !== false);
   const visible = ordinary.filter((m) => !hidden(m));

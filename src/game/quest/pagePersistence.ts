@@ -22,7 +22,7 @@ function pageState(ctx: Pick<ShardContext, 'app' | 'scope'>, source: Shardfile, 
 /** Bind a boss's original legacy seed once, retaining its admitted state or flag
  * owner as the only writer. Both declared browser encounter patterns use this path. */
 export function bindPageBossRecord(ctx: Pick<ShardContext, 'app' | 'scope'> & Partial<Pick<ShardContext, 'manifest'>>, source: Shardfile, row: BossRecordRow,
-  flags?: BossRowFlags, instance = source.identity.slug): {
+  flags?: BossRowFlags, instance: string = source.identity.slug): {
   readonly read: () => ReturnType<typeof parseBossRecord>; readonly write: (saved: ReturnType<typeof parseBossRecord>) => void; readonly flush: () => boolean;
 } {
   if (row.kind === 'flags') {

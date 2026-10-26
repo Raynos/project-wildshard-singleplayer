@@ -47,7 +47,7 @@ export interface RoadSkyPage {
 export interface RoadSkyHost { readonly scene: Object3D; readonly sky?: () => RoadSkyPage | null }
 
 /** A direction from compass degrees (the engine's `compassDir`: azimuth from +z toward −x, elevation up). */
-export function roadSunDir(azimuth: number, elevation: number, out = new Vector3()): Vector3 {
+export function roadSunDir(azimuth: number, elevation: number, out: Vector3 = new Vector3()): Vector3 {
   const az = azimuth * Math.PI / 180, el = elevation * Math.PI / 180;
   return out.set(-Math.sin(az) * Math.cos(el), Math.sin(el), Math.cos(az) * Math.cos(el)).normalize();
 }

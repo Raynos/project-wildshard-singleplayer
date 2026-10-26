@@ -86,7 +86,7 @@ export class PageResidency {
     rendererScope.onDispose(() => { detach(); release(); });
   }
 
-  constructor(allocator = new ResidencyAllocator()) { this.allocator = allocator; }
+  constructor(allocator: ResidencyAllocator = new ResidencyAllocator()) { this.allocator = allocator; }
 
   /** SF57: a measured whole-page home was read through this same composer, so it covers the composer while it lives, but
    * only while the composer still fits inside that reading beside what the home already covers (its retained commons).

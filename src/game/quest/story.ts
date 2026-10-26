@@ -130,7 +130,7 @@ type StoryContext = Pick<ShardContext, 'app' | 'scope' | 'product'>;
 type JournalProgress = Partial<Pick<Progress, 'bindLedger' | 'refreshLedger'>> & { readonly rows?: readonly { readonly def: { readonly id: string }; readonly count: number }[] };
 /** The existing journal and ledger keep their saves; rows select the original migration and refresh boundaries. */
 export async function bindStoryAchievements(ctx: StoryContext, story: QuestStory, progress: JournalProgress | undefined,
-  instance = ctx.product.shardfile.identity.slug): Promise<{ facts: RuntimeFacts; count: (id: string, total: number) => void; kill: (kind: string, variant?: string) => void; event: (name: string, total?: number) => void; syncFlags: (flags: Parameters<ReturnType<typeof createAchievementCounters>['syncFlags']>[0]) => void }> {
+  instance: string = ctx.product.shardfile.identity.slug): Promise<{ facts: RuntimeFacts; count: (id: string, total: number) => void; kill: (kind: string, variant?: string) => void; event: (name: string, total?: number) => void; syncFlags: (flags: Parameters<ReturnType<typeof createAchievementCounters>['syncFlags']>[0]) => void }> {
   const rows = await ctx.product.json<AchievementCounterData>('quests/achievements.json');
   if (ctx.scope.disposed) throw new Error('Quest achievement owner left during admission');
   const source = ctx.product.shardfile, policy = story.journal, emit = bindRuntimeLedger(ctx, source, instance);

@@ -51,7 +51,7 @@ export function travelService(ports: TravelPorts): { travel: (request: TravelReq
   };
 }
 const handoffDefinition: SaveKeyDef<TravelHandoff | null> = { key: 'travel.handoff', scope: 'session', version: 1, schema, initial: () => null };
-export function travelSlot(store = saves): SaveSlot<TravelHandoff | null> { return store.define(handoffDefinition); }
+export function travelSlot(store: typeof saves = saves): SaveSlot<TravelHandoff | null> { return store.define(handoffDefinition); }
 let running: TravelSource | null = null;
 /** The composition root binds the live Bag and rows; the cold title has no running shard. */
 export function bindTravelInventory(source: TravelSource): () => void {

@@ -114,7 +114,7 @@ export class CollisionPose {
 
   /** Resolve once after posing; the caller supplies its existing world frame, including terrain tilt and scale.
    * `through` stops after that joint (parent-first), so its descendants keep their previously solved worlds. */
-  solve(frame: Matrix4, through = this.joints.length - 1): void {
+  solve(frame: Matrix4, through: number = this.joints.length - 1): void {
     for (let i = 0; i < this.joints.length; i++) {
       if (i > through) break;
       const joint = this.joints[i], local = this.local[i], world = this.world[i];

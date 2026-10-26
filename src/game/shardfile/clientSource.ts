@@ -50,7 +50,7 @@ export interface PageResidencyBoot {
  * against their declared sim cost, then their actual library and tile claims. The root disposes failed hydration; the
  * successful session installs the owner's level lifetime.
  */
-export function preparePageResidency(manifest: Pick<ShardManifest, 'slug' | 'shardfile' | 'runtimeCost'>, configuredSlug?: string, memory = new MemoryAdmission(() => MEMORY_GATES.reportOnly || isDev())): PageResidencyBoot {
+export function preparePageResidency(manifest: Pick<ShardManifest, 'slug' | 'shardfile' | 'runtimeCost'>, configuredSlug?: string, memory: MemoryAdmission = new MemoryAdmission(() => MEMORY_GATES.reportOnly || isDev())): PageResidencyBoot {
   const mode = bootPageMode(configuredSlug ?? manifest.slug);
   const measuredHome = configuredSlug === undefined && manifest.shardfile === undefined;
   if (mode !== 'grid' && (!measuredHome || manifest.runtimeCost === undefined)) return { mode, instance: null, memory };

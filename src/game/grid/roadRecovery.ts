@@ -67,7 +67,7 @@ export class RoadRecovery {
   constructor(grid: RoadGrid) { this.grid = grid; }
 
   /** Once per 60 Hz fixed step: world feet, ground contact, admitted openings, and contact with that shard's own ground. */
-  observe(feet: { readonly x: number; readonly y: number; readonly z: number }, yaw: number, grounded: boolean, cell?: RoadRecoveryCell, shardGround = grounded): void {
+  observe(feet: { readonly x: number; readonly y: number; readonly z: number }, yaw: number, grounded: boolean, cell?: RoadRecoveryCell, shardGround: boolean = grounded): void {
     const previous = this.previous; this.previous = { ...feet, grounded };
     if (cell !== undefined) {
       if (this.candidate !== cell.instance) { this.candidate = cell.instance; this.groundTicks = 0; if (this.owner !== cell.instance) this.owner = null; }

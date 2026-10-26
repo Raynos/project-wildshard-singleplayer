@@ -57,7 +57,7 @@ export class SeatedFigure {
     bone.add(this.root); this.seat = mount;
   }
   /** Once a frame: this frame's cue kinds, then the seated mount's speed. */
-  update(dt: number, signals: readonly string[], speed = this.seat?.speed ?? 0): void {
+  update(dt: number, signals: readonly string[], speed: number = this.seat?.speed ?? 0): void {
     const frame = this.frame, mem = frame.mem;
     for (let s = 0; s < SIGNALS; s++) {
       const kind = signals[s]; if (kind === undefined) break;

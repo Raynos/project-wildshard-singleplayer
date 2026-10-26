@@ -36,7 +36,7 @@ export function fmtPlayTime(s: number): string {
 }
 /** Renderer-free projection of admitted find groups and current progress. No flag, save or world writes occur. */
 export function completionProjection(rows: CompletionRows, flags: Pick<Flags, 'has'>, progress: CompletionProgress | undefined,
-  title = rows.title, next?: string, anchors?: ReadonlyMap<string, { readonly x: number; readonly z: number }>): { data: ShardCompleteData; markers: LiveMarker[] } {
+  title: string = rows.title, next?: string, anchors?: ReadonlyMap<string, { readonly x: number; readonly z: number }>): { data: ShardCompleteData; markers: LiveMarker[] } {
   const groups = rows.groups.map(group => ({ ...group, left: group.spots.map(spot => { const at = spot.anchor === undefined ? undefined : anchors?.get(spot.anchor); return at === undefined ? spot : { ...spot, x: at.x, z: at.z }; }).filter(spot => !flags.has(spot.flag)) }));
   const todo = groups.flatMap(group => group.todo === 'count' ? group.left.length === 0 ? [] : [`${group.left.length} ${group.label}`] : group.left.map(spot => spot.label));
   for (const row of progress?.rows ?? []) if (!row.earned && !rows.coveredEvents.includes(row.def.event ?? ''))

@@ -149,7 +149,7 @@ export const TILE_RING = 2;
  * viewer's cell-local position, whether (x, z) lies in the ring of `radius` tiles around the viewer's tile, the tile followed
  * with the same hysteresis as the tile driver's.
  */
-export function followRing(radius = TILE_RING): (viewer: { readonly x: number; readonly z: number }) => (x: number, z: number) => boolean {
+export function followRing(radius: number = TILE_RING): (viewer: { readonly x: number; readonly z: number }) => (x: number, z: number) => boolean {
   let centre: CellTile | null = null, resident = (_x: number, _z: number): boolean => true;
   return viewer => {
     const next = followTile(centre, viewer.x, viewer.z);

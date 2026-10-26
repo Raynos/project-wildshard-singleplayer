@@ -89,7 +89,7 @@ export class TileDecoder {
     for (const worker of this.workers) { worker.onmessage = null; worker.onerror = null; worker.terminate(); }
     this.workers.length = 0; this.tails.length = 0;
   }
-  dispose(reason = new Error('tile decoder is disposed')): void {
+  dispose(reason: Error = new Error('tile decoder is disposed')): void {
     if (this.disposed) return; this.disposed = true;
     this.scope.dispose(); this.retire();
     for (const waiter of this.pending.values()) waiter.reject(reason);

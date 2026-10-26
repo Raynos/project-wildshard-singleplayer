@@ -25,7 +25,7 @@ export interface MenuMode { readonly developer: boolean; readonly devserver: boo
 export function menuMode(): MenuMode { return { developer: isDev(), devserver: DEVSERVER }; }
 
 /** Infinite Wildshard is on the title only with Settings ▸ Developer on, until SF22's gates pass (G61 E1) */
-export function gridEntryShown(mode: MenuMode = menuMode(), gatesPassed = GRID_GATES_PASSED): boolean {
+export function gridEntryShown(mode: MenuMode = menuMode(), gatesPassed: boolean = GRID_GATES_PASSED): boolean {
   return gatesPassed || mode.developer;
 }
 
