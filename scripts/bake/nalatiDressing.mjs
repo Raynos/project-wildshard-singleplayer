@@ -1,10 +1,8 @@
 // Retain the shipping placement recipe offline over the real native ground and spruce roster.
 import { readFileSync } from 'node:fs';
-import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
 import { resolve } from 'node:path';
 import { installBakeEnvironment } from './environment.mjs';
 import { prepareNativeTerrain } from './nativeWorld.mjs';
-import { byteWriter, jsonBytes, outputHash } from '../bake-output.mjs';
 
 /** Build fresh placement data; an original continuous forest law may be supplied by a native geometry author. */
 export async function prepareNalatiDressing(forestMask) {
@@ -50,16 +48,4 @@ export async function prepareNalatiDressing(forestMask) {
 
 }
 
-if (import.meta.main) {
-  const recipe = process.argv[2];
-  if (recipe !== 'src/shards/nalati-grasslands/generators/dressingPlan.ts') throw new Error('Requires the retained Nalati dressing recipe');
-  const { plan, clutter, trees, avoid } = await prepareNalatiDressing();
-  const root = resolve(import.meta.dirname, '../..');
-  const writer = byteWriter(process.argv.includes('--check'), 'nalati-dressing-plan');
-  for (const [key, rows] of Object.entries({ ...plan, clutter })) {
-    writer.put(resolve(root, `src/shards/nalati-grasslands/data/dressing-${key}.generated.json`), jsonBytes(rows, 0));
-  }
-  writer.finish();
-  console.log(JSON.stringify({ trees, avoid, rows: Object.fromEntries(Object.entries({ ...plan, clutter }).map(([key, rows]) => [key, rows.length])),
-    sha256: outputHash(jsonBytes({ plan, clutter }, 0)), canonical: outputHash(new TextEncoder().encode(encodeCanonicalJson({ plan, clutter }))) }));
-}
+if (import.meta.main) throw new Error('Nalati dressing publication is retired; call the source-owned placement producer');

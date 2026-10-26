@@ -96,8 +96,26 @@ test('native dressing preparation does not read the old generated place rows', (
   execFileSync(process.execPath, [...native, '--input-type=module', '--eval', source, '--', shard]);
 });
 
-test('the independent runtime scatter plan keeps every existing output byte', () => {
-  execFileSync(process.execPath, [...native, 'scripts/bake/nalatiDressing.mjs', 'src/shards/nalati-grasslands/generators/dressingPlan.ts', shard, '--check']);
+test('the independent runtime scatter predecessor keeps every source-owned output byte', () => {
+  const source = `
+    import assert from 'node:assert/strict';
+    import {readFileSync} from 'node:fs';
+    import {nativeNalatiDressingPlacements} from './src/shards/nalati-grasslands/generators/nativeDressingPlacements.mjs';
+    const files=await nativeNalatiDressingPlacements(file=>readFileSync(file));
+    const {prepareNalatiDressing}=await import('./scripts/bake/nalatiDressing.mjs');
+    const before=await prepareNalatiDressing(), rows=Object.entries({...before.plan,clutter:before.clutter});
+    assert.equal(rows.length,18);assert.equal(files.size,18);
+    for(const [name,value]of rows){
+      const expected=Buffer.from(JSON.stringify(value)+'\\n'),actual=files.get('dressing-'+name+'.json');
+      assert.ok(actual,name);assert.equal(actual.length,expected.length,name);assert.equal(Buffer.compare(actual,expected),0,name);
+    }
+  `;
+  execFileSync(process.execPath, [...native, '--input-type=module', '--eval', source, '--', shard]);
+});
+
+test('the retired dressing CLI refuses publication rather than rebuilding handoff files', () => {
+  expect(()=>execFileSync(process.execPath, ['--experimental-transform-types','--import','./scripts/bake-loader.mjs',
+    'scripts/bake/nalatiDressing.mjs','src/shards/nalati-grasslands/generators/dressingPlan.ts',shard,'--check'])).toThrow('Nalati dressing publication is retired');
 });
 
 test('continuous forest decisions retain the original static stump lost by the bilinear mask', () => {

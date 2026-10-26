@@ -30,3 +30,13 @@ it('owns grass keep-outs through explicit native terrain and scalar inputs',()=>
  expect(grass.inputRoots).toContain('public/assets/baked/nalati-grasslands/terrain.bin');
  for(const field of ['pond','red','green','blue','forest'])expect(grass.inputRoots).toContain(`src/shards/nalati-grasslands/data/geography-${field}.bin`);
 });
+
+it('retires the dressing publisher and all eighteen physical row handoffs',()=>{
+ const {jobs}=v.parse(v.object({jobs:v.array(v.object({id:v.string(),inputRoots:v.array(v.string()),outputs:v.array(v.string())}))}),
+  JSON.parse(readFileSync('scripts/generation-jobs.json','utf8')));
+ expect(jobs.some(job=>job.id==='nalati-dressing-plan')).toBe(false);
+ for(const job of jobs)for(const file of [...job.inputRoots,...job.outputs])expect(file.includes('/dressing-')&&file.endsWith('.generated.json'),job.id).toBe(false);
+ const groups=['boulder','slab','stone','juniper','rose','willow','lupin','daisy','reed','logs','stumps','ovoos','poles','fences','gates','drifts','colliders','clutter'];
+ expect(groups).toHaveLength(18);
+ for(const group of groups)expect(existsSync(`src/shards/nalati-grasslands/data/dressing-${group}.generated.json`),group).toBe(false);
+});
