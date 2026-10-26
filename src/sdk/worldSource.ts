@@ -23,7 +23,7 @@ function plainWorldData(input: unknown): boolean {
 }
 
 /** Build-only authored geometry input in metres and glTF Y-up axes; it is never a compiled shardfile section. */
-export const WorldSourceSchema = v.pipe(v.unknown(), v.check(plainWorldData, 'world source is plain JSON with safe mapping keys'), v.strictObject({
+export const WorldSourceSchema: v.GenericSchema<BoundedWorldSourceInput, BoundedWorldSource> = v.pipe(v.unknown(), v.check(plainWorldData, 'world source is plain JSON with safe mapping keys'), v.strictObject({
   glb,
   materials: v.pipe(v.record(name, id), v.check((rows) => Object.keys(rows).length > 0 && Object.keys(rows).length <= 256, 'one to 256 explicit material mappings')),
   colliders,
@@ -53,3 +53,22 @@ export type WorldSource = v.InferOutput<typeof WorldSourceSchema>;
 
 /** Validate a build-only world declaration without opening files or executing getters or serializers. */
 export function parseWorldSource(input: unknown): WorldSource { return v.parse(WorldSourceSchema, input); }
+
+/** Complete admitted data, independent of validator implementation metadata. */
+type BoundedWorldSourceInput = unknown;
+interface BoundedWorldSourceFields {
+    glb: string;
+    materials: Record<string, string>;
+    colliders: string;
+    objects: Record<string, string>;
+    interactive: {
+        node: string;
+        id: string;
+        colliderId: string;
+    }[];
+    undrawn?: string | undefined;
+    far?: string | undefined;
+    farMode: "add" | "replace";
+    near?: "coarse" | undefined;
+}
+type BoundedWorldSource = { [Key in keyof BoundedWorldSourceFields]: BoundedWorldSourceFields[Key] };

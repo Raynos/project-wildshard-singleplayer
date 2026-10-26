@@ -1,4 +1,4 @@
-import { DecisionPublicationSchema } from '@wildshard/format/decisionPublication';
+import { DecisionPublicationSchema, type DecisionPublication } from '@wildshard/format/decisionPublication';
 import type { SimCommand } from '@wildshard/engine/sim';
 import * as v from 'valibot';
 
@@ -6,7 +6,7 @@ const text = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
 const finite = v.pipe(v.number(), v.finite());
 const natural = v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(0x7fffffff));
 /** Strict bounded player, script and event inputs admitted at the worker tick boundary. */
-export const TickCommandSchema = v.variant('kind', [
+export const TickCommandSchema: v.GenericSchema<BoundedTickCommandInput, BoundedTickCommand> = v.variant('kind', [
   // `hover: true` is the HOVER press this tick: on or off the hoverboard (SimCommand.hover); `jump: true` / `dodge: true`
   // the JUMP / DODGE press (SimCommand.jump / .dodge). `heavy` is a HELD state, not a press: the HEAVY hold is down this
   // tick (the touch ATTACK hold, the desktop latch), aimed at `targetId` when the crosshair is on one; the first tick
@@ -38,7 +38,7 @@ export function simPlayerCommand(command: Extract<HeadlessCommand, { kind: 'play
 /** Command provenance is retained for auditing; splitting a batch never grants another allowance. */
 export interface HeadlessCommandSource { source: string; commands: readonly HeadlessCommand[] }
 /** Detached gameplay facts and coin effects published only after a completed tick. */
-export const TickEffectSchema = v.variant('kind', [
+export const TickEffectSchema: v.GenericSchema<BoundedTickEffectInput, BoundedTickEffect> = v.variant('kind', [
   v.strictObject({ kind: v.literal('fact'), name: text, actorId: text }),
   v.strictObject({ kind: v.literal('coins'), amount: finite, actorId: text }),
   v.strictObject({ kind: v.literal('hint'), text: v.pipe(v.string(),v.minLength(1),v.maxLength(4096)) }),
@@ -46,11 +46,11 @@ export const TickEffectSchema = v.variant('kind', [
 /** Only completed, in-budget ticks can expose these durable quest requests to the parent. */
 export type HeadlessEffect = v.InferOutput<typeof TickEffectSchema>;
 /** Validated tick result carrying its continuation, effects and optional script cost observations. */
-export const TickCommitSchema = v.strictObject({ tick: natural, snapshot: v.pipe(v.string(), v.maxLength(32_000_000)), effects: v.pipe(v.array(TickEffectSchema), v.maxLength(1024)), fuelUsed: v.exactOptional(natural), scriptMicros: v.exactOptional(v.pipe(finite, v.minValue(0))), decisions: v.exactOptional(DecisionPublicationSchema) });
+export const TickCommitSchema: v.GenericSchema<BoundedTickCommitInput, BoundedTickCommit> = v.strictObject({ tick: natural, snapshot: v.pipe(v.string(), v.maxLength(32_000_000)), effects: v.pipe(v.array(TickEffectSchema), v.maxLength(1024)), fuelUsed: v.exactOptional(natural), scriptMicros: v.exactOptional(v.pipe(finite, v.minValue(0))), decisions: v.exactOptional(DecisionPublicationSchema) });
 /** Complete same-engine continuation and effects from one atomically committed worker tick. */
 export type HeadlessTickCommit = v.InferOutput<typeof TickCommitSchema>;
 /** A finite author tape: no host modules, synthetic facts or configurable physics ports. */
-export const AuthorProofPlanSchema = v.pipe(v.strictObject({ version: v.literal(1),
+export const AuthorProofPlanSchema: v.GenericSchema<BoundedAuthorProofPlanInput, BoundedAuthorProofPlan> = v.pipe(v.strictObject({ version: v.literal(1),
   tape: v.pipe(v.array(v.pipe(v.array(TickCommandSchema), v.maxLength(1024))), v.minLength(1), v.maxLength(4096)),
   checkpointTick: v.pipe(natural, v.minValue(1)),
   requiredFacts: v.pipe(v.array(text), v.minLength(1), v.maxLength(128)),
@@ -58,7 +58,7 @@ export const AuthorProofPlanSchema = v.pipe(v.strictObject({ version: v.literal(
 /** Author-owned input; the host derives every filed fact from real quest completion. */
 export type AuthorProofPlan = v.InferOutput<typeof AuthorProofPlanSchema>;
 /** Strict host evidence for actual grid admission, save refusal, unload, restore and atomic ledger filing. */
-export const AuthorProofReportSchema = v.strictObject({
+export const AuthorProofReportSchema: v.GenericSchema<BoundedAuthorProofReportInput, BoundedAuthorProofReport> = v.strictObject({
   version: v.literal(1), ticks: natural, checkpointTick: natural,
   grid: v.strictObject({ reserveBeforePhysics: v.literal(true), runtimeFence: v.literal(true), refusedSave: v.literal(true),
     restored: v.literal(true), frozenTicks: v.literal(5), loads: v.literal(2), leasesAfterDispose: v.literal(0) }),
@@ -68,7 +68,7 @@ export const AuthorProofReportSchema = v.strictObject({
 /** Detached evidence: booleans are published only after the native assertions succeed. */
 export type AuthorProofReport = v.InferOutput<typeof AuthorProofReportSchema>;
 /** Worker request grammar for a bounded command step or an explicit finish proof. */
-export const WorkerRequestSchema = v.variant('kind', [
+export const WorkerRequestSchema: v.GenericSchema<BoundedWorkerRequestInput, BoundedWorkerRequest> = v.variant('kind', [
   v.strictObject({ kind: v.literal('step'), commands: v.pipe(v.array(TickCommandSchema), v.maxLength(1024)) }),
   v.strictObject({ kind: v.literal('finish') }),
   v.strictObject({ kind: v.literal('authorProof'), plan: AuthorProofPlanSchema }),
@@ -80,3 +80,238 @@ export function tickCommands(sources: readonly HeadlessCommandSource[], limit: n
   for (const source of sources) { v.parse(text, source.source); count += source.commands.length; if (count > limit) throw new Error('Aggregate commandsPerTick exceeded'); }
   return sources.flatMap(source => source.commands.map(command => v.parse(TickCommandSchema, command)));
 }
+
+/** Complete admitted data, independent of validator implementation metadata. */
+type BoundedTickCommandInput = BoundedTickCommand;
+type BoundedTickCommand = {
+    kind: "player";
+    moveX: number;
+    moveZ: number;
+    yaw: number;
+    attack?: {
+        targetId: string;
+    } | undefined;
+    hover?: true | undefined;
+    jump?: true | undefined;
+    dodge?: true | undefined;
+    heavy?: {
+        targetId?: string | undefined;
+    } | undefined;
+    dive?: boolean;
+    surface?: boolean;
+    commandVersion?: 1;
+    steer?: {
+        keyX: number;
+        keyY: number;
+        stickX: number;
+        stickY: number;
+    };
+    sprint?: boolean;
+    crouch?: boolean;
+} | {
+    kind: "interact";
+    id: string;
+} | {
+    kind: "script";
+    actorId: string;
+    value: number;
+} | {
+    kind: "event";
+    type: number;
+    target: number;
+    value: number;
+};
+type BoundedTickEffectInput = BoundedTickEffect;
+type BoundedTickEffect = {
+    kind: "fact";
+    name: string;
+    actorId: string;
+} | {
+    kind: "coins";
+    amount: number;
+    actorId: string;
+} | {
+    kind: "hint";
+    text: string;
+};
+type BoundedTickCommitInput = BoundedTickCommit;
+interface BoundedTickCommitFields {
+    tick: number;
+    snapshot: string;
+    effects: ({
+        kind: "fact";
+        name: string;
+        actorId: string;
+    } | {
+        kind: "coins";
+        amount: number;
+        actorId: string;
+    } | {
+        kind: "hint";
+        text: string;
+    })[];
+    fuelUsed?: number;
+    scriptMicros?: number;
+    decisions?: DecisionPublication;
+}
+type BoundedTickCommit = { [Key in keyof BoundedTickCommitFields]: BoundedTickCommitFields[Key] };
+type BoundedAuthorProofPlanInput = BoundedAuthorProofPlan;
+interface BoundedAuthorProofPlanFields {
+    version: 1;
+    tape: ({
+        kind: "player";
+        moveX: number;
+        moveZ: number;
+        yaw: number;
+        attack?: {
+            targetId: string;
+        } | undefined;
+        hover?: true | undefined;
+        jump?: true | undefined;
+        dodge?: true | undefined;
+        heavy?: {
+            targetId?: string | undefined;
+        } | undefined;
+        dive?: boolean;
+        surface?: boolean;
+        commandVersion?: 1;
+        steer?: {
+            keyX: number;
+            keyY: number;
+            stickX: number;
+            stickY: number;
+        };
+        sprint?: boolean;
+        crouch?: boolean;
+    } | {
+        kind: "interact";
+        id: string;
+    } | {
+        kind: "script";
+        actorId: string;
+        value: number;
+    } | {
+        kind: "event";
+        type: number;
+        target: number;
+        value: number;
+    })[][];
+    checkpointTick: number;
+    requiredFacts: string[];
+}
+type BoundedAuthorProofPlan = { [Key in keyof BoundedAuthorProofPlanFields]: BoundedAuthorProofPlanFields[Key] };
+type BoundedAuthorProofReportInput = BoundedAuthorProofReport;
+interface BoundedAuthorProofReportFields {
+    version: 1;
+    ticks: number;
+    checkpointTick: number;
+    grid: {
+        reserveBeforePhysics: true;
+        runtimeFence: true;
+        refusedSave: true;
+        restored: true;
+        frozenTicks: 5;
+        loads: 2;
+        leasesAfterDispose: 0;
+    };
+    ledger: {
+        facts: {
+            name: string;
+            actorId: string;
+            tick: number;
+        }[];
+        granted: number;
+        durableReload: true;
+        duplicateStable: true;
+    };
+}
+type BoundedAuthorProofReport = { [Key in keyof BoundedAuthorProofReportFields]: BoundedAuthorProofReportFields[Key] };
+type BoundedWorkerRequestInput = BoundedWorkerRequest;
+type BoundedWorkerRequest = {
+    kind: "step";
+    commands: ({
+        kind: "player";
+        moveX: number;
+        moveZ: number;
+        yaw: number;
+        attack?: {
+            targetId: string;
+        } | undefined;
+        hover?: true | undefined;
+        jump?: true | undefined;
+        dodge?: true | undefined;
+        heavy?: {
+            targetId?: string | undefined;
+        } | undefined;
+        dive?: boolean;
+        surface?: boolean;
+        commandVersion?: 1;
+        steer?: {
+            keyX: number;
+            keyY: number;
+            stickX: number;
+            stickY: number;
+        };
+        sprint?: boolean;
+        crouch?: boolean;
+    } | {
+        kind: "interact";
+        id: string;
+    } | {
+        kind: "script";
+        actorId: string;
+        value: number;
+    } | {
+        kind: "event";
+        type: number;
+        target: number;
+        value: number;
+    })[];
+} | {
+    kind: "finish";
+} | {
+    kind: "authorProof";
+    plan: {
+        version: 1;
+        tape: ({
+            kind: "player";
+            moveX: number;
+            moveZ: number;
+            yaw: number;
+            attack?: {
+                targetId: string;
+            } | undefined;
+            hover?: true | undefined;
+            jump?: true | undefined;
+            dodge?: true | undefined;
+            heavy?: {
+                targetId?: string | undefined;
+            } | undefined;
+            dive?: boolean;
+            surface?: boolean;
+            commandVersion?: 1;
+            steer?: {
+                keyX: number;
+                keyY: number;
+                stickX: number;
+                stickY: number;
+            };
+            sprint?: boolean;
+            crouch?: boolean;
+        } | {
+            kind: "interact";
+            id: string;
+        } | {
+            kind: "script";
+            actorId: string;
+            value: number;
+        } | {
+            kind: "event";
+            type: number;
+            target: number;
+            value: number;
+        })[][];
+        checkpointTick: number;
+        requiredFacts: string[];
+    };
+};
