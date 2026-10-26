@@ -1,4 +1,6 @@
 import { readFileSync } from 'node:fs';
+import { encodeBuildBytes } from '@wildshard/sdk/bake/byteCodec';
+import { skyMapWorldSources } from './mapWorldSources.ts';
 import { paintDataMap } from '../../../../scripts/bake-data-maps.mjs';
 import { PREPARED_MODEL_INPUTS, preparedModelSource } from './preparedModelProgram.ts';
 
@@ -6,6 +8,6 @@ import { PREPARED_MODEL_INPUTS, preparedModelSource } from './preparedModelProgr
 // reads remain confined to the source program's explicit declared URL list.
 const inputs = new Map(PREPARED_MODEL_INPUTS.map(url => [url,
   new Uint8Array(readFileSync(new URL(`../../../../public${url}`, import.meta.url)))]));
-await paintDataMap(process.cwd(), 'far-reach', {
-  sources: new Map([['prepared-models.glb', await preparedModelSource(inputs)]]),
-});
+const sources = skyMapWorldSources(bytes => encodeBuildBytes(bytes, 'deflate', 9, 'native'));
+sources.set('prepared-models.glb', await preparedModelSource(inputs));
+await paintDataMap(process.cwd(), 'far-reach', { sources });
