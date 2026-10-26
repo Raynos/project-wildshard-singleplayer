@@ -145,10 +145,10 @@ export interface EntryPreparation {
 }
 
 export class Game {
-  readonly app = app;
+  readonly app: typeof app = app;
   renderer: Renderer;
   /** The page's one rendered scene: the render pass, AO, shadows, the sky and the leak census read this root. */
-  readonly rootScene = new THREE.Scene();
+  readonly rootScene: THREE.Scene = new THREE.Scene();
   private readonly sceneFrames: { scene: THREE.Scene }[] = [];
   /**
    * Where frame-local content goes: the root scene, or the scene subtree of the regional frame the traveller is in
@@ -205,17 +205,17 @@ export class Game {
   }
   private _sky: Sky | null = null;
   // oxlint-disable-next-line typescript/no-deprecated -- Clock→Timer changes getDelta semantics; migrate separately
-  clock = new THREE.Clock();
+  clock: THREE.Clock = new THREE.Clock();
   // Frame phases (PHYSICS P2 / ENGINE-FIT E2): input → fixed steps (pre → step → post, × 0‥3) → update (`onUpdate`) → late → render.
   // Every entry is a GameSystem (src/engine/core/faults.ts, E133): called inside its own try/catch, switched off if it keeps throwing.
-  readonly engineScope = app.engineScope.child('game');
-  readonly levelScope = currentOwner() ?? new Scope('level');
+  readonly engineScope: Scope = app.engineScope.child('game');
+  readonly levelScope: Scope = currentOwner() ?? new Scope('level');
   /** Original player/camera lifetime; scoped world facades cannot replace it with a regional lifetime. */
-  readonly playerScope = this.levelScope;
+  readonly playerScope: Scope = this.levelScope;
   get tier(): Tier { return TIER; }
   private ownership: SceneOwnership | null = null;
   private readonly uploads = new UploadOwnership(this.levelScope, app.assets);
-  readonly leakBaseline = new Scope('baseline').census;
+  readonly leakBaseline: Scope['census'] = new Scope('baseline').census;
   hudBaseline = 0;
   hudRetained: ReadonlySet<Element> = new Set();
   retainedHudCount(): number {
@@ -293,7 +293,7 @@ export class Game {
     this.levelScope.dispose();
     this.app.events.emit('level.unloaded', { id: this.levelId });
   }
-  registrationScope = this.engineScope;
+  registrationScope: Scope = this.engineScope;
   private readonly fixed: Record<FixedPhase, Phase> = { pre: 'fixed.pre', step: 'fixed.step', post: 'fixed.post' };
   /** SF57: each live system's fault record, keyed by the app's own system row, so a retired world's systems (and the closures
    *  they hold) go with their row; a re-registered id starts a fresh record. */
@@ -332,11 +332,11 @@ export class Game {
   fixedSteps = 0;
   stats = { fps: 0, frames: 0, acc: 0 };
   /** last 120 frame times in ms (ring; `frameI` is the next slot) — the perf meter reads p50/p95 from it */
-  frameMs = new Float32Array(120); frameI = 0;
+  frameMs: Float32Array<ArrayBuffer> = new Float32Array(120); frameI = 0;
   /** the same frames' main-thread time in ms (input → the frame submitted), slot for slot with `frameMs` (src/engine/ui/perfProbe.ts) */
-  workMs = new Float32Array(120);
+  workMs: Float32Array<ArrayBuffer> = new Float32Array(120);
   /** …of which the game logic (input → fixed steps → updaters → late) and the draw's CPU side (sky + composer.render) */
-  updateMs = new Float32Array(120); renderMs = new Float32Array(120);
+  updateMs: Float32Array<ArrayBuffer> = new Float32Array(120); renderMs: Float32Array<ArrayBuffer> = new Float32Array(120);
   /** frames drawn since start() */
   frameCount = 0;
   /** Browser rAF timestamp of the last completed draw; null for the initial synchronous draw.

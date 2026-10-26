@@ -172,6 +172,7 @@ normal layer emission is the declaration-size authority. Continuation starts at 
 | T4-I2i | Native geometry, dialogue and weather saves; retain complete data contracts | 60 min | done (2026-10-25, sp-x8) |
 | T4-I2j | Native channels, shadow filters and body constants; retain literals and aliases | 60 min | done (2026-10-25, sp-x8) |
 | T4-I2k | Motion and audio defaults; retain mutable arrays, resource owners and optional arguments | 60 min | done (2026-10-25, sp-x8) |
+| T4-I2l | Simulation and application resource fields; retain mutable storage and scoped owners | 60 min | done (2026-10-25, sp-x8) |
 
 T4 first format slices are on origin: schema expressions and emitted runtime JavaScript are unchanged.
 Independent named data types replace exported validator implementation types; original/candidate input and output

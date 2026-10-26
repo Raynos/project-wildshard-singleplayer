@@ -81,7 +81,7 @@ interface Part {
 }
 
 export class Live {
-  readonly position = new THREE.Vector3();
+  readonly position: THREE.Vector3 = new THREE.Vector3();
   yaw = 0;
   shown = true;
   /** 0 closed / off / up … 1 open / on / pressed — eased toward `target` */
@@ -89,20 +89,20 @@ export class Live {
   target = 0;
   parts: Part[] = [];
   collider: Collider | null = null;
-  readonly object = new THREE.Object3D();
+  readonly object: THREE.Object3D = new THREE.Object3D();
   piece: Piece | null = null;
   prompt: Interactable | null = null;
   dirty = true;
   /** barrel: its start (the leash is measured from here) */
-  home = new THREE.Vector3();
+  home: THREE.Vector3 = new THREE.Vector3();
   /** barrel: its full turn (PHYSICS P7-L1: it tips and rolls), `position` being its base centre under that turn */
-  readonly rot = new THREE.Quaternion();
+  readonly rot: THREE.Quaternion = new THREE.Quaternion();
   /** barrel: its dynamic body (PHYSICS P7); null without a physics world (node tests) */
   body: Body | null = null;
   /** barrel: when it has to go home (lost, wedged, past its leash) */
   watch: BarrelWatch | null = null;
   /** glow tint (pickups' `color`) */
-  tint = new THREE.Color(1, 1, 1);
+  tint: THREE.Color = new THREE.Color(1, 1, 1);
   readonly rules:ReturnType<typeof bindInteractionState>;
   readonly def: InteractDef;
   constructor(def: InteractDef,flags:Flags) {
@@ -126,7 +126,7 @@ const parked = (c: Collider): boolean => c.yTop < -1e5;
  */
 export interface Sight { slack: number; body?: object | null }
 /** the slack of a prompt nobody described (a pickup orb, an NPC's head, a zipline platform) */
-export const SIGHT_SLACK = PROMPT_SIGHT_SLACK;
+export const SIGHT_SLACK: 0.5 = PROMPT_SIGHT_SLACK;
 export function setSight(it: Interactable, s: Sight): void { setPromptSight(it, s); }
 
 /** Does `eye` see the prompt? — no world surface between them but its own body. No physics world (boot, node) → yes. */

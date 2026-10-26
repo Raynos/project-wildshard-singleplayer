@@ -167,9 +167,9 @@ export class SimHost {
   readonly rng: RngService;
   readonly flags: Flags;
   readonly quests: QuestState[];
-  readonly entities = new Map<string, AnimalSim>();
-  readonly strikes = new Map<string, StrikeRunner>();
-  readonly adapters = new Map<string, SimStateAdapter>();
+  readonly entities: Map<string, AnimalSim> = new Map<string, AnimalSim>();
+  readonly strikes: Map<string, StrikeRunner> = new Map<string, StrikeRunner>();
+  readonly adapters: Map<string, SimStateAdapter> = new Map<string, SimStateAdapter>();
   readonly state = { tick: 0, accumulator: 0, timers: {} as Record<string, number> };
   readonly slots: SimSlots = { scriptMemory: {}, scriptGlobals: {}, questState: {}, ledgerDedupe: [] };
   readonly combat: CombatPipeline;
@@ -185,7 +185,7 @@ export class SimHost {
   private readonly targetIds = new Map<string, string>();
   private readonly wanted = new Vector3();
   /** The owned player's transient world velocity (m/s), the client Player's impulse law (player/impulse.ts). */
-  readonly playerImpulse = new Vector3();
+  readonly playerImpulse: Vector3 = new Vector3();
   /** The owned player's vertical speed (m/s, negative = falling) and whether the motor last stood it on ground, the client
    * Player's on-foot fall law (player/fall.ts). At rest (grounded, still) an idle tick leaves the player untouched. */
   readonly playerFall = { vy: 0, grounded: true };
@@ -195,12 +195,12 @@ export class SimHost {
    * instead of the walk, and the board-only colliders (boardColliders) collide. Off by default. */
   readonly playerBoard: BoardState & { on: boolean } = { on: false, hoverAir: false, hoverBob: 0, onGround: false };
   /** The riding board's world velocity (m/s), the client Player's `velocity` while it hovers; zero on foot. */
-  readonly boardVelocity = new Vector3();
+  readonly boardVelocity: Vector3 = new Vector3();
   /** SF34: the owned player's swim (player/swim.ts, the client Player's water law), only on a host with water
    *  (useWater): on once the feet float, with the law's dive, haul-out and stroke clocks. */
   readonly playerSwim: SwimState & { on: boolean; stood: boolean } = { on: false, diving: false, climbTo: null, climbCooldown: 0, strokeTime: 0, stood: false };
   /** The swimming player's world velocity (m/s), the client Player's `velocity` while it swims; zero otherwise. */
-  readonly swimVelocity = new Vector3();
+  readonly swimVelocity: Vector3 = new Vector3();
   /**
    * SF34: the player's modes, the page Player's own registry (player/modes.ts) over this host's player: the motor mode
    * (foot, board, swim, wade) read from the host's own state, and a driven mode a runtime declares and enters
@@ -208,7 +208,7 @@ export class SimHost {
    * ahead of any usePlayerDriver driver until `modes.exit`. The entered driver is not snapshot state: the installer
    * re-enters it from its own adapter's continuation before native restore, as usePlayerDriver's.
    */
-  readonly modes = new PlayerModes<SimPlayerDriver>(this.modePlayer());
+  readonly modes: PlayerModes<SimPlayerDriver> = new PlayerModes<SimPlayerDriver>(this.modePlayer());
   private modeDriver: SimPlayerDriver | null = null;
   private water: SimWater | undefined;
   private readonly swimOut: { water: number | null } = { water: null };

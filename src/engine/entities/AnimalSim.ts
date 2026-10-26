@@ -66,7 +66,7 @@ const hitHead = new Vector3();
 /** Creature state and motion. All world services arrive as ports; there is no scene, rig or active app. */
 export class AnimalSim {
   protected readonly flight: FlightMotion | null;
-  protected readonly impulseVelocity = new Vector3();
+  protected readonly impulseVelocity: Vector3 = new Vector3();
   protected falling = false;
   protected fallVelocity = 0;
   harnessHold = false;
@@ -74,20 +74,20 @@ export class AnimalSim {
   mods: VariantMods;
   alive = true;
   hp: number; maxHp: number;
-  position = new Vector3();
+  position: Vector3 = new Vector3();
   yaw = 0; speed = 0; state: AnimalState = 'idle'; herd = 0;
   desiredYaw = 0; desiredSpeed = 0; turnRate = 2.5;
-  lastHitT = -Infinity;
-  lookTarget = new Vector3(); lookWeight = 0;
+  lastHitT: typeof Infinity = -Infinity;
+  lookTarget: Vector3 = new Vector3(); lookWeight = 0;
   seed: number; scale: number;
   strafe = 0; desiredStrafe = 0; yOffset = 0;
   driven = false; levelGround = false;
   groundHeight?: (x: number, z: number, fromY: number) => number;
   mem: Record<string, number> = {};
   protected attackT = -1; protected attackDur = 1;
-  attackTurnCap = Infinity;
+  attackTurnCap: typeof Infinity = Infinity;
   protected flinch = 0; protected flinchRoll = 0; protected flinchPitch = 0;
-  protected stunT = 0; protected pushT = 0; protected pushDist = 0; protected pushDir = new Vector3(); protected brace = 0;
+  protected stunT = 0; protected pushT = 0; protected pushDist = 0; protected pushDir: Vector3 = new Vector3(); protected brace = 0;
   protected deathT = -1; protected deathSide = 1;
   protected groundY = 0;
   protected tiltRollT = 0;

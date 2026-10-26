@@ -67,14 +67,14 @@ export class AnimalPoseLaw {
     yaw:0,lookWeight:0,flinch:0,flinchRoll:0,flinchPitch:0,brace:0,stunT:0,deathT:-1,deathSide:1,
     attackT:-1,attackDur:1,groundY:0,tiltRollT:0,levelGround:false,flying:false,advanceAttack:true,desiredSpeed:0,debugGait:undefined,
   };
-  readonly pose=new Float32Array(P_COUNT);
+  readonly pose: Float32Array<ArrayBuffer>=new Float32Array(P_COUNT);
   private readonly tmp=new Float32Array(P_COUNT);
-  readonly gaitW=new Float32Array(5);
+  readonly gaitW: Float32Array<ArrayBuffer>=new Float32Array(5);
   private readonly gaitTarget=new Float32Array(5);
-  readonly lastFootPhase=new Float32Array(4);
+  readonly lastFootPhase: Float32Array<ArrayBuffer>=new Float32Array(4);
   phase=0;lookAmt=0;tiltPitch=0;tiltRoll=0;tiltPitchT=0;
-  readonly footDelta=new Float32Array(4);
-  readonly footDeltaT=new Float32Array(4);
+  readonly footDelta: Float32Array<ArrayBuffer>=new Float32Array(4);
+  readonly footDeltaT: Float32Array<ArrayBuffer>=new Float32Array(4);
   poseFrozen=false;
   onFootfall: ((strength:number)=>void)|undefined;
   private readonly look=new Vector3();

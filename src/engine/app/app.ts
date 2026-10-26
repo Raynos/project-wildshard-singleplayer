@@ -62,7 +62,7 @@ class AppWorld {
 }
 
 export class App {
-  params = new URLSearchParams();
+  params: URLSearchParams = new URLSearchParams();
   private currentState: AppState = 'boot';
   private systems = new Map<string, SystemSpec>();
   private readonly systemScopes = new Map<string, Scope>();
@@ -74,8 +74,8 @@ export class App {
   readonly events: Events;
   readonly combat: CombatPipeline;
   readonly aggression: AggressionService;
-  readonly encounters = new EncounterRegistry(() => this.levelScope);
-  readonly species = new SpeciesService(() => this.levelScope);
+  readonly encounters: EncounterRegistry = new EncounterRegistry(() => this.levelScope);
+  readonly species: SpeciesService = new SpeciesService(() => this.levelScope);
   private readonly equipmentByLevel = new WeakMap<Scope, EquipmentService>();
   get equipment(): EquipmentService | null { return this.levelScope === null ? null : this.equipmentByLevel.get(this.levelScope) ?? null; }
   registerEquipment(equipment: EquipmentService, scope: Scope): void {
@@ -97,8 +97,8 @@ export class App {
     scope.onDispose(() => { this.players.delete(scope); });
   }
   /** Offline benchmarks enable this; trusted content registration alone chooses the charged owner. */
-  readonly cpu = new ScopedCpuMeter();
-  readonly input = new InputService(() => this.clock.now * 1000);
+  readonly cpu: ScopedCpuMeter = new ScopedCpuMeter();
+  readonly input: InputService = new InputService(() => this.clock.now * 1000);
   private readonly equipmentHosts = new WeakMap<Scope, EquipmentHost>();
   get equipmentHost(): EquipmentHost | null { return this.levelScope === null ? null : this.equipmentHosts.get(this.levelScope) ?? null; }
   registerEquipmentHost(host: EquipmentHost, scope: Scope): void {
@@ -119,17 +119,17 @@ export class App {
     };
     lend(this.players); lend(this.effectsByLevel); lend(this.equipmentHosts);
   }
-  readonly engineScope = new Scope('engine');
+  readonly engineScope: Scope = new Scope('engine');
   levelScope: Scope | null = null;
   private sorted: SystemsByPhase | null = null;
-  readonly clock = new GameClock();
-  readonly rng = new RngService();
-  readonly assets = new AssetService();
+  readonly clock: GameClock = new GameClock();
+  readonly rng: RngService = new RngService();
+  readonly assets: InstanceType<typeof AssetService> = new AssetService();
   readonly anim: AnimService = { load: loadRig, machine: (def, rig, scope) => new AnimMachine(def, rig, scope) };
   scene: Scene | null = null;
   render: Game | null = null;
   audio: Audio | null = null;
-  readonly levelRegistrations = new LevelRegistrations();
+  readonly levelRegistrations: LevelRegistrations = new LevelRegistrations();
   private readonly levelLoader = new LevelLoader(this);
   levelDriver: LevelDriver | null = null;
   levelAdapters: LevelAdapters = {};
@@ -151,7 +151,7 @@ export class App {
   navmeshId: string | null = null;
   private readonly clocks = new WeakMap<Scope, DayCycleClock>();
   private readonly trampleFields = new WeakMap<Scope, TrampleField>();
-  readonly world = new AppWorld(() => this.dayCycle, () => this.levelScope === null ? null : this.trampleFields.get(this.levelScope) ?? null);
+  readonly world: AppWorld = new AppWorld(() => this.dayCycle, () => this.levelScope === null ? null : this.trampleFields.get(this.levelScope) ?? null);
   registerTrample(field: TrampleField, scope: Scope): void {
     this.trampleFields.set(scope, field);
     scope.onDispose(() => { this.trampleFields.delete(scope); });
@@ -183,13 +183,13 @@ export class App {
     this.registryValue = this.registryFactory();
     return this.registryValue;
   }
-  readonly gradeFor = resolveGrade;
-  readonly saves = saves;
-  readonly debug = new AppDebug();
-  readonly ui = new AppUi(() => this.levelScope, () => this.clock.real * 1000);
-  readonly scheduler = new TickScheduler();
+  readonly gradeFor: <Grade extends object, Look extends { grade: Partial<Grade>; }>(spec: { grade: Grade; look?: Look; }) => { grade: Grade; look: Look | null; } = resolveGrade;
+  readonly saves: typeof saves = saves;
+  readonly debug: AppDebug = new AppDebug();
+  readonly ui: AppUi = new AppUi(() => this.levelScope, () => this.clock.real * 1000);
+  readonly scheduler: TickScheduler = new TickScheduler();
 
-  constructor(events = new Events()) { this.events = events; this.combat = new CombatPipeline(events, this.engineScope, () => this.physics); this.aggression = new AggressionService(events, this.engineScope); }
+  constructor(events: Events = new Events()) { this.events = events; this.combat = new CombatPipeline(events, this.engineScope, () => this.physics); this.aggression = new AggressionService(events, this.engineScope); }
   get state(): AppState { return this.currentState; }
 
   setState(next: AppState): void {
