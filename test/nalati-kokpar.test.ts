@@ -2,7 +2,6 @@ import {carriedPropFiles} from './fixtures/carriedPropFiles';
 import {lendNalatiKokpar} from './fixtures/nalati-return-modules';
 import { parseDecisionScripts } from '../src/format/decisionScripts';
 import { writeGeometry, join } from '../src/shards/nalati-grasslands/generators/geometryWriter';
-import { zlibSync } from 'fflate';
 import { expect, it, vi } from 'vitest';
 import * as THREE from 'three';
 import { ReturnProgram } from '../src/game/population/returnProgram';
@@ -117,19 +116,19 @@ it('an orchard delivery uses its own shape, program profile and quest effects',(
   Object.assign(ctx,{scope,game:{runtime:{world:{sky,registry,player:{position,yaw:0}},play:{hud:{toast:(text:string)=>{events.push(text);}},music:{sting:()=>undefined}}}}});
   const script=parseDecisionScripts([carriedQuestRows.program.script])[0],model=carriedQuestRows.model[0];if(script===undefined||model===undefined)throw new Error('Missing fixture rows');
   const shape=new THREE.BoxGeometry(1,1,1);shape.clearGroups();const blocks:Uint8Array[]=[],layout=writeGeometry(shape,blocks,'orchard crate');
-  let compressed='';for(const byte of zlibSync(join(blocks)))compressed+=String.fromCodePoint(byte);
+  const files=new Map(carriedPropFiles);files.set('test/orchard-crate.bin',join(blocks));
   const orchardRows={...carriedQuestRows,quest:'orchard',objectName:'harvest-crate',home:{x:4,z:6},goals:[{x:12,z:6},{x:-4,z:6}],
-    model:[{...model,model:{...model.model,id:'orchard/crate',name:'Harvest crate'},source:{kind:'inline',data:btoa(compressed),geometry:layout,material:{id:'orchard-crate',family:'painterly',rim:.2,bands:.5}}}],
+    model:[{...model,model:{...model.model,id:'orchard/crate',name:'Harvest crate'},source:{kind:'file',file:'test/orchard-crate.bin',geometry:layout,material:{id:'orchard-crate',family:'painterly',rim:.2,bands:.5}}}],
     program:{...carriedQuestRows.program,script:{...script,id:'orchard.carry',params:{...script.params,homeX:4,homeZ:6,goal0X:12,goal0Z:6,goal1X:-4,goal1Z:6}}},
     events:[{value:1,effects:[{kind:'toast',text:'Harvest loaded'}]},{value:7,effects:[{kind:'toast',text:'Harvest delivered'},{kind:'flag',flag:'harvest:delivered'}]}],
   };
   try{
-    const prop=new CarriedQuestProp(ctx,orchardRows,carriedPropFiles);prop.update(.1);expect(prop.carrying).toBe(true);expect(events).toEqual(['Harvest loaded']);
+    const prop=new CarriedQuestProp(ctx,orchardRows,files);prop.update(.1);expect(prop.carrying).toBe(true);expect(events).toEqual(['Harvest loaded']);
     horse.position.set(12,0,6);prop.update(.1);expect(prop.carrying).toBe(false);expect(flags.has('harvest:delivered')).toBe(true);
     expect(events).toEqual(['Harvest loaded','Harvest delivered']);expect(prop.object.position.x).toBe(12);expect(prop.object.name).toBe('harvest-crate');
     for(const [window,height,expected] of [[.75,.5,.5],[.75,.75,0],[.75,0,0],[.75,-.5,0],[2,1.5,1.5],[0,.5,0]] as const){
       deck=height;
-      const sample=new CarriedQuestProp(ctx,{...orchardRows,floorWindow:window},carriedPropFiles);
+      const sample=new CarriedQuestProp(ctx,{...orchardRows,floorWindow:window},files);
       expect(sample.object.position.y).toBe(expected+orchardRows.poses.home.height);
     }
     const {floorWindow,...missingWindow}=orchardRows;

@@ -2,7 +2,6 @@ import {DRESSING_ATLAS_SOURCES} from '../src/shards/nalati-grasslands/generators
 import {readNamedBlob} from '../src/sdk/blobs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the exact committed atlas files through the product reader.
 import {readFileSync} from 'node:fs';
-import {zlibSync} from 'fflate';
 import {prepareBinarySources} from '../src/game/models/binarySource';
 // oxlint-disable-next-line import/no-nodejs-modules -- compare the pre-conversion runtime's exact attribute bytes
 import { createHash } from 'node:crypto';
@@ -81,14 +80,15 @@ describe('Nalati fixed POI paint', () => {
     bodyGeometry.dispose(); armGeometry.dispose(); material.dispose();
   });
 
-  it.each([false,true])('adopts exact atlas pixels and sampling before entering the world (inline=%s)', async inline => {
+  it.each([false,true])('adopts exact atlas pixels and sampling before entering the world (offset=%s)', async offset => {
     const files=await prepareBinarySources({file:name=>{const row=Object.values(atlases).find(candidate=>candidate.file===name);if(row===undefined)throw new Error('Missing atlas source');return Promise.resolve(new Uint8Array(readFileSync(`src/shards/nalati-grasslands/${row.source}`)));}},Object.values(atlases).map(row=>({source:{file:row.file},bytes:row.width*row.height*4})));
+    const prepared=new Map(files);
+    if(offset)for(const [name,bytes]of prepared){const backing=new Uint8Array(bytes.byteLength+4);backing.set(bytes,4);prepared.set(name,backing.subarray(4));}
     const sky = testSky();
     for (const key of ['roads', 'specimen'] as const) {
       const row=atlases[key],raw=files.get(row.file);if(raw===undefined)throw new Error('Missing raw atlas');
-      let data='';if(inline)for(const byte of zlibSync(raw))data+=String.fromCodePoint(byte);
-      const source=inline?{data:btoa(data)}:{file:row.file};
-      const mesh = new Mesh(SHAPES.handle(`sign-labels:${key}`).copy(), letteringMaterial(sky, { ...source,width:row.width,height:row.height, rim: 0.2 },files)), material: unknown = mesh.material, expected = oracle.atlases[key];
+      const source={file:row.file};
+      const mesh = new Mesh(SHAPES.handle(`sign-labels:${key}`).copy(), letteringMaterial(sky, { ...source,width:row.width,height:row.height, rim: 0.2 },prepared)), material: unknown = mesh.material, expected = oracle.atlases[key];
       if (!(material instanceof MeshLambertMaterial) || !(material.map instanceof DataTexture)) throw new Error('Sign lettering needs its Lambert atlas');
       const atlas = material.map, image: unknown = atlas.image;
       if (typeof image !== 'object' || image === null) throw new Error('Missing atlas image');

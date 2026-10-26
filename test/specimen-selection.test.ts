@@ -2,7 +2,6 @@
 import {readFileSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Pin the exact former inline blocks.
 import {createHash} from 'node:crypto';
-import {zlibSync} from 'fflate';
 import { place } from '../src/engine/models/place';
 import { parse } from 'valibot';
 import { SpecimenAssetSchema } from '../src/format/specimenCatalogue';
@@ -89,9 +88,8 @@ test('both raw carving variants retain the exact old bytes, layouts and native p
     const bytes=files.get(source.file);if(bytes===undefined)throw new Error('Missing prepared carving');
     expect(bytes.byteLength).toBe(length);expect(createHash('sha256').update(bytes).digest('hex')).toBe(hash);
     expect(createHash('sha256').update(JSON.stringify(source.geometry)).digest('hex')).toBe(layout);expect(createHash('sha256').update(JSON.stringify(source.material)).digest('hex')).toBe('a44e6f8597d9daab29cce6adf17ca404fe8c32d9c544458dd98be0ff58693b4d');
-    let encoded='';for(const byte of zlibSync(bytes))encoded+=String.fromCodePoint(byte);
-    const {file:_file,kind:_kind,...original}=source;
-    const witness=defineSpecimenCatalogue<{old:object}>([{key:'old',model:{id:'fixture/old-carving',name:'Old carving',category:'props',pipeline:'code',file:'fixture.json',defaults:{}},source:{...original,kind:'inline',data:btoa(encoded)}}]).model('old');
+    const backing=new Uint8Array(bytes.byteLength+4);backing.set(bytes,4);
+    const witness=defineSpecimenCatalogue<{old:object}>([{key:'old',model:{id:'fixture/old-carving',name:'Old carving',category:'props',pipeline:'code',file:'fixture.json',defaults:{}},source:{...source,file:'witness.bin'}}],undefined,{},new Map([['witness.bin',backing.subarray(4)]])).model('old');
     const before=witness.build(ctx,{},new Rng(1)),after=balbal.build(ctx,{carved:id},new Rng(1));
     if(before instanceof THREE.Object3D||after instanceof THREE.Object3D)throw new Error('Carvings retain parts');
     expect(after).toHaveLength(before.length);

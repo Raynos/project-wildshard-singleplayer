@@ -9,7 +9,6 @@ import * as THREE from 'three';
 import * as v from 'valibot';
 // oxlint-disable-next-line import/no-nodejs-modules -- Pin original raw geometry bytes independently of the file names.
 import { createHash } from 'node:crypto';
-import { zlibSync } from 'fflate';
 import { Scope } from '../src/engine/app/scope';
 import { Rng } from '../src/engine/core/rng';
 import { modelContext, type ModelPart } from '../src/engine/models/model';
@@ -156,10 +155,11 @@ it('retiring an ancestor during a raw read refuses before later reads or install
   for(const _step of steps){ /* finish the original owner retirement */ }
 });
 
-it('legacy inline pickup rows retain the original decoder and fresh native geometry',()=>{
-  const inline={...data,geometries:data.geometries.map(({file,...row})=>({ ...row,data:Buffer.from(zlibSync(pickupFiles.get(file)??new Uint8Array())).toString('base64') }))};
+it('offset pickup loans retain the original words and fresh native geometry',()=>{
+  const files=new Map<string,Uint8Array>();
+  for(const [name,bytes]of pickupFiles){const backing=new Uint8Array(bytes.byteLength+4);backing.set(bytes,4);files.set(name,backing.subarray(4));}
   try{
-    installPickupCatalogue(inline);
+    installPickupCatalogue(data,files);
     const recipe=authoredPickups.find(row=>row.id==='coin')?.parts[0];if(recipe===undefined)throw new Error('Missing coin');
     const a=coinModel(0xc01),b=recipe.geometry(0xc01);sameGeometry(a,b);a.dispose();b.dispose();
   }finally{installPickupCatalogue(data,pickupFiles);}

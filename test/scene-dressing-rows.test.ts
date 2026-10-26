@@ -10,6 +10,7 @@ import { lendLooks } from '../src/game/shardfile/lentLooks';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { decodeLaneBytes } from '../src/engine/core/deflate';
+import {bakedSamplers} from '../src/format/bakedTerrainSampling';
 import { expect, test, vi } from 'vitest';
 import type { ShardContext } from '../src/game/plugin/context';
 import * as THREE from 'three';
@@ -212,10 +213,10 @@ test('look bindings remain declared data on an unrelated static scene',async()=>
 test('an orchard floor table shares the native highest-deck and sampled-height laws',()=>{
   const [deck]=readSceneFloors([{rects:[{x:8,z:5,hw:2,hd:3,y:4},{x:8,z:5,hw:1,hd:1,y:6,slope:.5}]}]);
   expect(deck?.(8,5)).toBe(6);expect(deck?.(8,5.5)).toBe(6.25);expect(deck?.(10,5)).toBe(4);expect(deck?.(20,5)).toBeUndefined();
-  const heights=new Float32Array([2,4,6,8]);let data='';for(const byte of zlibSync(new Uint8Array(heights.buffer)))data+=String.fromCodePoint(byte);
-  const [ground]=readSceneFloors([{x:30,z:40,size:2,res:2,data:btoa(data)}]);
+  const heights=new Float32Array([2,4,6,8]),files=new Map([['orchard-floor.bin',new Uint8Array(heights.buffer)]]);
+  const [ground]=readSceneFloors([{x:30,z:40,size:2,res:2,file:'orchard-floor.bin'}],files);
   expect(ground?.(30,40)).toBe(5);expect(ground?.(29,39)).toBe(2);expect(ground?.(31,41)).toBe(8);
-  expect(()=>readSceneFloors([{x:0,z:0,size:2,res:3,data:btoa(data)}])).toThrow('Floor sample byte count differs');
+  expect(()=>readSceneFloors([{x:0,z:0,size:2,res:3,file:'orchard-floor.bin'}],files)).toThrow('Floor sample byte count differs');
 });
 
 test('dressing keeps its small animation and mote rows live after construction',async()=>{
@@ -245,7 +246,9 @@ test('raw floor grids preserve legacy NaN holes, interpolation and shifted buffe
   const bytes=new Uint8Array(new Float32Array([2,Number.NaN,6,8]).buffer);
   let packed='';for(const byte of zlibSync(bytes))packed+=String.fromCodePoint(byte);
   const row={x:30,z:40,size:2,res:2},files=new Map([['floor.bin',bytes]]);
-  const legacy=readSceneFloors([{...row,data:btoa(packed)}])[0];
+  const decoded=unzlibSync(Uint8Array.from(atob(btoa(packed)),value=>value.codePointAt(0)??0));
+  const sample=bakedSamplers({res:row.res,size:row.size,heights:new Float32Array(decoded.buffer,decoded.byteOffset,decoded.byteLength/4),seed:0,landscapeHash:0,splat:new Uint8Array(),undergrowth:null}).heightAt;
+  const legacy=(x:number,z:number):number|undefined=>{const height=sample(x-row.x,z-row.z);return Number.isFinite(height)?height:undefined;};
   const raw=readSceneFloors([{...row,file:'floor.bin'}],files)[0];
   expect(legacy).toBeDefined();expect(raw).toBeDefined();
   for(let x=28;x<=32;x+=.1)for(let z=38;z<=42;z+=.1)expect(raw?.(x,z)).toBe(legacy?.(x,z));

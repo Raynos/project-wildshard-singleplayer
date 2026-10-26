@@ -5929,16 +5929,19 @@ distinct. Disposal/rejection invalidates caches without URL fallback.
 admits inflated bytes; each build owns fresh arrays with original indices,
 optional expansion and bounds.
 
-`installPickupCatalogue(rows)` explicitly installs prepared pickup looks
-for interaction tables and the loot coin model. `PickupCatalogueSchema`
-declares each model's identity, specimen height, ordered lit/glow parts,
-bob/pulse values and finite seed-qualified geometries. Each geometry stores
-zlib-compressed base64 bytes with the existing packed-geometry metadata;
-an owner receives fresh arrays through `readBakedGeometry`. Registration
-keeps only encoded bytes, never decoded templates. Missing seeds refuse.
-Driftwood's glyphs/glass and Pine's flint/resin/tokens use the same host;
-the offline producer runs the real interaction cache to retain spawn order
-and includes Explorer, loot-burst and frozen shelf seeds.
+`prepareBinarySources(product,requests,scope?)` rejects inline requests
+before reading product capabilities, then lends each named raw file once.
+Lengths, reader identity and scope remain checked across reads.
+`binarySourceBytes(row,files)` borrows prepared storage without IO/decode;
+format grammar stays available to predecessor fixtures.
+
+`preparePickupCatalogue` prepares named raw geometry for
+`installPickupCatalogue(rows,files?)`. Model identity, height, ordered
+lit/glow parts, bob/pulse and finite seed geometries remain declared data.
+`readBakedGeometry` gives each build fresh arrays, never cached templates.
+Missing seeds refuse. Driftwood glyphs/glass and Pine flint/resin/tokens
+share this host; native production retains spawn order, Explorer,
+loot-burst and frozen shelf seeds.
 Parts bind their declared material slots in order and announce model-ready
 after their group fills. `specimenMaterial(sky, row)`,
 `loadSpecimenTexture(row)` and `loadBoundSpecimen(sky, row)` share material,
@@ -12536,11 +12539,10 @@ the same compressed bytes and preserves independent float32 point lanes,
 origin order and native registration; the temporary byte loan adds no
 registry, clock or persistence. Retiring ancestors refuse before reads.
 
-Sampled SceneFloorSchema rows may name a raw f32 file instead of legacy
-compressed data. readSceneFloors(rows, files?) consumes that same prepared
-byte loan. The existing installer validates all floor lengths (res squared
-times four) before allocating dressing. NaN holes, bilinear sampling and
-highest-floor selection are unchanged; missing or mixed sources refuse.
+Sampled SceneFloorSchema runtime rows require raw f32 files.
+readSceneFloors(rows,files?) borrows prepared bytes; res squared times four
+must match before allocation. NaN holes, bilinear sampling, highest-floor
+selection and missing/mixed-source refusals stay unchanged.
 
 Native construction may also borrow installed water-surface and dressing
 owners through its original ShardContext. water-surface names an installed

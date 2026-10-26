@@ -1,6 +1,5 @@
 import {expect,test,vi} from 'vitest';
 import * as THREE from 'three';
-import {zlibSync} from 'fflate';
 import * as v from 'valibot';
 import {createShardProduct} from '../src/game/shardfile/shardProduct';
 import {explorerRoster} from '../src/game/models/explorerCatalogue';
@@ -14,19 +13,19 @@ import {WorldRegistry} from '../src/engine/world/registry';
 import {modelContext} from '../src/engine/models/model';
 import {SkyRig} from '../src/engine/world/skyRig';
 
-function fixture(raw=false){
-  const vertices=Float32Array.from([0,0,0,1,0,0,0,1,0]);let data='';for(const byte of zlibSync(new Uint8Array(vertices.buffer)))data+=String.fromCodePoint(byte);
-  const book={rows:[{key:'leaf',model:{id:'orchard/leaf',name:'Pear leaf',file:'orchard.json',category:'nature',pipeline:'code',defaults:{}},source:{...(raw?{kind:'file',file:'models/leaf.bin'}:{kind:'inline',data:btoa(data)}),geometry:{attrs:[['position','f32',3,false]],count:3,index:null,indexCount:0,box:false,expand:false},material:{id:'orchard-leaf',family:'painterly',side:'double'}}}],materials:{}};
-  const declared=emitNamedBlobs([nameBlob('models/leaves.json','json',new TextEncoder().encode(JSON.stringify(book)),{jsonSchema:namedJsonSchema(SpecimenBookSchema)}),...(raw?[nameBlob('models/leaf.bin','bin',new Uint8Array(vertices.buffer))]:[])]);
+function fixture(offset=false){
+  const vertices=Float32Array.from([0,0,0,1,0,0,0,1,0]);
+  const book={rows:[{key:'leaf',model:{id:'orchard/leaf',name:'Pear leaf',file:'orchard.json',category:'nature',pipeline:'code',defaults:{}},source:{kind:'file',file:'models/leaf.bin',geometry:{attrs:[['position','f32',3,false]],count:3,index:null,indexCount:0,box:false,expand:false},material:{id:'orchard-leaf',family:'painterly',side:'double'}}}],materials:{}};
+  const declared=emitNamedBlobs([nameBlob('models/leaves.json','json',new TextEncoder().encode(JSON.stringify(book)),{jsonSchema:namedJsonSchema(SpecimenBookSchema)}),nameBlob('models/leaf.bin','bin',new Uint8Array(vertices.buffer))]);
   const catalogue=parseExplorerCatalogue({version:1,entries:[{kind:'specimen',books:{phone:'models/leaves.json',desktop:'models/leaves.json'},model:'leaf',tierCopies:{phone:7,desktop:18},drawnAs:'instanced'}]});
-  return createShardProduct({slug:'orchard',revision:1,shardfile:emptyShardfile({slug:'orchard',name:'Orchard',author:'Fixture',revision:1,seed:7}),sections:new Map([['explore/catalogue',catalogue]]),files:new Map(declared.files.flatMap(row=>row.name===undefined?[]:[[row.name,{hash:row.hash,url:row.hash,...(row.jsonSchema===undefined?{}:{jsonSchema:row.jsonSchema})}]])),read:hash=>{const bytes=declared.assets.get(hash);if(bytes===undefined)throw new Error('Missing leaf book');return Promise.resolve(bytes);},check:true});
+  return createShardProduct({slug:'orchard',revision:1,shardfile:emptyShardfile({slug:'orchard',name:'Orchard',author:'Fixture',revision:1,seed:7}),sections:new Map([['explore/catalogue',catalogue]]),files:new Map(declared.files.flatMap(row=>row.name===undefined?[]:[[row.name,{hash:row.hash,url:row.hash,...(row.jsonSchema===undefined?{}:{jsonSchema:row.jsonSchema})}]])),read:hash=>{const bytes=declared.assets.get(hash);if(bytes===undefined)throw new Error('Missing leaf book');if(offset){const backing=new Uint8Array(bytes.byteLength+4);backing.set(bytes,4);return Promise.resolve(backing.subarray(4));}return Promise.resolve(bytes);},check:true});
 }
 
-test.each([false,true])('an unrelated shard lists and builds its cold specimen book at both tiers (raw=%s)',async raw=>{
+test.each([false,true])('an unrelated shard lists and builds its cold specimen book at both tiers (offset=%s)',async offset=>{
   const previous=TIER;
   try{
     for(const tier of ['phone','desktop']as const){
-      initializeTier(tier);const product=fixture(raw),entries=await explorerRoster(product),registry=new WorldRegistry();
+      initializeTier(tier);const product=fixture(offset),entries=await explorerRoster(product),registry=new WorldRegistry();
       const sky:unknown=Object.create(SkyRig.prototype);if(!(sky instanceof SkyRig))throw new Error('Missing sky');
       Object.assign(sky,{csm:{lights:[]},sunDir:new THREE.Vector3(0,1,0)});vi.spyOn(sky,'setupMaterial').mockImplementation(()=>undefined);
       const entry=entries[0];if(entry===undefined)throw new Error('Missing leaf card');entry.list(modelContext(sky),()=>[],registry);
