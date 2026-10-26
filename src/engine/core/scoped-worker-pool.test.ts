@@ -26,9 +26,12 @@ test('an idle live texture worker releases its completed reply backing', async (
     try {
       const backing = await (async () => {
         const bytes = new Uint8Array(1024 * 1024), pending = pool.postMessage({job: 1}, []);
-        worker.reply({mipmaps: [{data: bytes}]});
+        const reply = {mipmaps: [{data: bytes}]};
+        worker.reply(reply);
         const result = await pending;
-        expect(result.data).toEqual({mipmaps: [{data: bytes}]});
+        // Preserve the exact payload without enumerating a million typed-array
+        // indices before the real-GC assertion's unchanged five-second deadline.
+        expect(result.data).toBe(reply);
         return new WeakRef(bytes.buffer);
       })();
       await collect(backing);
