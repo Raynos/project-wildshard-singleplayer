@@ -91,12 +91,12 @@ export function setUniforms(live: UniformMap, preset: UniformRows): void {
 }
 
 /** Keeps the target's alpha (e.g. a silhouette's inverse depth) under a transparent pass: colour blends over, alpha stays. */
-export const BLEND_KEEP_ALPHA = {
+export const BLEND_KEEP_ALPHA: { readonly blending: 5; readonly blendEquation: 100; readonly blendSrc: 204; readonly blendDst: 205; readonly blendEquationAlpha: 100; readonly blendSrcAlpha: 200; readonly blendDstAlpha: 201; } = {
   blending: CustomBlending, blendEquation: AddEquation, blendSrc: SrcAlphaFactor, blendDst: OneMinusSrcAlphaFactor,
   blendEquationAlpha: AddEquation, blendSrcAlpha: ZeroFactor, blendDstAlpha: OneFactor,
 } as const;
 /** Adds colour and keeps the target's alpha. */
-export const BLEND_ADD_KEEP_ALPHA = {
+export const BLEND_ADD_KEEP_ALPHA: { readonly blending: 5; readonly blendEquation: 100; readonly blendSrc: 201; readonly blendDst: 201; readonly blendEquationAlpha: 100; readonly blendSrcAlpha: 200; readonly blendDstAlpha: 201; } = {
   blending: CustomBlending, blendEquation: AddEquation, blendSrc: OneFactor, blendDst: OneFactor,
   blendEquationAlpha: AddEquation, blendSrcAlpha: ZeroFactor, blendDstAlpha: OneFactor,
 } as const;

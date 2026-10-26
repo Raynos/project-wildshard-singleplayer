@@ -10,10 +10,10 @@ import { captureLiftRider, restoreLiftRider } from './liftRider';
 import { portalTransitioning } from './portalTraversal';
 import type { SimSnapshot } from '@wildshard/engine/sim/snapshot';
 
-import { ClientCheckpointSchema, ItemCheckpointStatesSchema as itemsSchema, LogicalClientCheckpointSchema as logicalCheckpoint, type ClientCheckpoint } from '@wildshard/format/clientState';
+import { ClientCheckpointSchema, ItemCheckpointStatesSchema as itemsSchema, LogicalClientCheckpointSchema as logicalCheckpoint, type ClientCheckpoint, type ClientCheckpointInput } from '@wildshard/format/clientState';
 
 /** Logical level progress, independent of the Game's borrowed physics world and player motor. */
-export const clientStateSave = { key: 'platform.continuation', scope: 'shard' as const, version: 1,
+export const clientStateSave: { key: string; scope: "shard"; version: number; schema: v.NullableSchema<v.GenericSchema<ClientCheckpointInput, ClientCheckpoint>, undefined>; initial: () => ClientCheckpoint | null; } = { key: 'platform.continuation', scope: 'shard' as const, version: 1,
   schema: v.nullable(ClientCheckpointSchema), initial: (): ClientCheckpoint | null => null };
 type Runtimes = DeclaredItems['runtimes'];
 
@@ -60,7 +60,7 @@ export function captureClientState(source: Shardfile, sim: ShardfileSimulation, 
     quests: sim.quest.quests.map((quest) => quest.snapshot()), dialogue: sim.quest.snapshot() });
 }
 /** Persist a portable companion to a same-engine region snapshot, so later revisions never need its old Rapier bytes. Legacy regions supply their known state-version-1 origin. */
-export function clientStateFromRegion(source: Shardfile, snapshot: Omit<SimSnapshot, 'physics'>, revision = source.identity.revision, stateVersion = source.state.version, props: Readonly<Record<string, boolean>> = {}): ClientCheckpoint {
+export function clientStateFromRegion(source: Shardfile, snapshot: Omit<SimSnapshot, 'physics'>, revision: number = source.identity.revision, stateVersion: number = source.state.version, props: Readonly<Record<string, boolean>> = {}): ClientCheckpoint {
   v.parse(v.literal(source.identity.slug), snapshot.levelId);
   const lane = snapshot.adapters.find((adapter) => adapter.id === 'script.declared')?.state ?? null;
   if (lane !== null && typeof lane !== 'string') throw new Error('Invalid regional script state');

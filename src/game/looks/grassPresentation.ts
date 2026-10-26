@@ -83,7 +83,11 @@ export class GrassPresentationProfile {
     const ready = this.prepared.get(encoded); this.prepared.delete(encoded);
     return ready === undefined || ready instanceof Uint8Array ? sceneRows(this.decode(encoded)) : ready;
   }
-readonly uniforms = {
+readonly uniforms: { uSunView: { value: THREE.Vector3; }; uHemiSky: { value: THREE.Color; }; uHemiGround: { value: THREE.Color; }; uHemiI: { value: number; }; uGrassGain: { value: number; }; 
+/** the grass's own saturation (1 by day; the hour / storm pull it down — `grassMood`) */
+uGrassSat: { value: number; }; 
+/** …and its tint (white by day; moonlit blue at night, slate in the storm) */
+uGrassTint: { value: THREE.Color; }; uTime: { value: number; }; } = {
   uSunView: { value: new THREE.Vector3(0, 0.4, 1).normalize() },
   uHemiSky: { value: new THREE.Color(0.4, 0.46, 0.62) },
   uHemiGround: { value: new THREE.Color(0.3, 0.3, 0.16) },
@@ -120,7 +124,7 @@ mood(night: number, dusk: number, overcast: number): void {
 const _frustum = new THREE.Frustum(), _pv = new THREE.Matrix4(), _box = new THREE.Box3(), _origin = new THREE.Vector3();
 
 export class GrassPresentation {
-  readonly group = new THREE.Group();
+  readonly group: THREE.Group = new THREE.Group();
   private readonly maps: { tHeight: THREE.DataTexture; tMask: THREE.DataTexture; tField: THREE.DataTexture; tGround: THREE.DataTexture };
   private readonly maskData: Uint8Array;
   private rings: Ring[] = [];

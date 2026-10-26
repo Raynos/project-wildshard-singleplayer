@@ -11,7 +11,7 @@ import { lentToon } from '../shardfile/lentLooks';
 import { followToonLighting, toonLighting } from './toonLighting';
 import { toonSkyBackdrop } from './toonSky';
 
-function createState(row: ToonLookRow) { return { dayLight: toonLighting(row.lighting), rampFog: new ColourRampFog(row.fog) }; }
+function createState(row: ToonLookRow) : { dayLight: { uToonLift: { value: THREE.Color; }; uToonRim: { value: THREE.Color; }; uCloudShadow: { value: number; }; uToonNight: { value: number; }; uSeaLevel: { value: number; }; uCloudTime: { value: number; }; }; rampFog: ColourRampFog; } { return { dayLight: toonLighting(row.lighting), rampFog: new ColourRampFog(row.fog) }; }
 const states = new Map<string, ReturnType<typeof createState>>();
 /** Row admission happens in render setup, before any native material or stream is built. */
 export function prepareToonLook(input: unknown): ReturnType<typeof createState> {

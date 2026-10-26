@@ -46,7 +46,7 @@ export class TamingSession<A extends TamingHorse,H extends TamingHerd<A>> {
   private readonly actors=new Map<string,A>(); private state:Record<string,number>;private readonly program:ReturnProgram;private readonly project:NonNullable<ReturnProgram['prepareWorld']>;
   private readonly lenders:readonly unknown[];private readonly ear=new THREE.Vector3();private readonly direction=new THREE.Vector3();private readonly toward=new THREE.Vector3();
   private readonly visual={trust:-1,alert:0,ear:0,earOffset:0,round:-1,balance:0,danger:0,offer:0,radius:0,beaten:0,roll:0,shake:0};
-  readonly interactable={position:new THREE.Vector3(0,-1e4,0),radius:0,label:'',onInteract:():void=>{this.startBreaking();}};
+  readonly interactable: { position: THREE.Vector3; radius: number; label: string; onInteract: () => void; }={position:new THREE.Vector3(0,-1e4,0),radius:0,label:'',onInteract:():void=>{this.startBreaking();}};
   readonly view:TamingObservation={trust:null,alert:0,ear:null,round:null,balance:0,danger:false,offer:false};
   onBonded?:((horse:A)=>void)|undefined;onBreaking?:((on:boolean)=>void)|undefined;
   input:{readonly held:(action:'ride.offer'|'lean.right'|'lean.left')=>boolean}|null=null;

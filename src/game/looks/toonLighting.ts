@@ -2,7 +2,7 @@ import { Color } from 'three';
 import type { ToonLook } from '@wildshard/engine/render/families/toon';
 import type { ToonLightingRow } from '@wildshard/format/toonLighting';
 
-function createLighting(row: ToonLightingRow['initial']) {
+function createLighting(row: ToonLightingRow['initial']) : { uToonLift: { value: Color; }; uToonRim: { value: Color; }; uCloudShadow: { value: number; }; uToonNight: { value: number; }; uSeaLevel: { value: number; }; uCloudTime: { value: number; }; } {
   return { uToonLift: { value: new Color(...row.uToonLift) }, uToonRim: { value: new Color(...row.uToonRim) },
     uCloudShadow: { value: row.uCloudShadow }, uToonNight: { value: row.uToonNight },
     uSeaLevel: { value: row.uSeaLevel }, uCloudTime: { value: row.uCloudTime } };

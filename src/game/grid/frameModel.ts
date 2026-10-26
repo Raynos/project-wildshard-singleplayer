@@ -31,7 +31,7 @@ export const NEUTRAL_GRADE: RegionGrade = { exposure: 0, saturation: 1, contrast
  */
 export const HIGHWAY_GRADE: RegionGrade = { exposure: 0, saturation: 0.8, contrast: 1, tint: [0.95, 0.99, 1.07] };
 /** The neutral road look: its grey-blue grade, and its air is the home horizon with half its colour taken out. */
-export const HIGHWAY_LOOK = { grade: HIGHWAY_GRADE, fogDesaturate: 0.5 } as const;
+export const HIGHWAY_LOOK: { readonly grade: RegionGrade; readonly fogDesaturate: 0.5; } = { grade: HIGHWAY_GRADE, fogDesaturate: 0.5 } as const;
 /**
  * G165 (Jake: "A, road light over everything") and G242 (Jake's pick B, "grid dawn", `art/grid/round-26-road-sky/B-grid-dawn.jpg`):
  * the road's own sky and key light, which replace the page's while the player is on the road (`roadSky.ts`). One shader

@@ -21,7 +21,7 @@ type ChordName = 'Dmaj7#11' | 'E7' | 'Bm9' | 'A' | 'Dm9' | 'Gm' | 'Am' | 'Bb';
 // ─────────────────────────────────────────── pitch material ───────────────────────────────────────────
 const D4 = 62, E4 = 64, Gs4 = 68, A4 = 69, B4 = 71;
 /** D Lydian: D E F# G# A B C# — the raised 4th is the wonder note */
-export const LYDIAN = [0, 2, 4, 6, 7, 9, 11];
+export const LYDIAN: number[] = [0, 2, 4, 6, 7, 9, 11];
 export const ROOT = 62; // D4
 
 /** the motif: `D A G# A | E D · · | D A B A | G# E D ·` — 16 beats, two of question, two of answer */
@@ -53,7 +53,7 @@ export const CHORD_ROOT: Record<ChordName, number> = { 'Dmaj7#11': 38, 'E7': 40,
 export function dorianPitch(n: number): number { return (n - ROOT) % 12 === 6 || (n - ROOT) % 12 === -6 ? n - 1 : n; }
 
 /** the diatonic third above `n` in D Lydian (the build harmonises the motif in thirds) */
-export function thirdAbove(n: number, scale = LYDIAN): number {
+export function thirdAbove(n: number, scale: number[] = LYDIAN): number {
   const rel = n - ROOT, oct = Math.floor(rel / 12), pc = ((rel % 12) + 12) % 12;
   let deg = scale.indexOf(pc); if (deg < 0) deg = scale.findIndex((s) => s > pc) - 1;
   const up = deg + 2, o = oct + Math.floor(up / 7);
@@ -205,7 +205,7 @@ const T15: Segment[] = [
 ];
 export const TRAILER15: Arrangement = { name: 'trailer15', segments: T15, driven: true };
 
-export const ARRANGEMENTS = { theme: THEME, trailer30: TRAILER30, trailer15: TRAILER15 } as const;
+export const ARRANGEMENTS: { readonly theme: Arrangement; readonly trailer30: Arrangement; readonly trailer15: Arrangement; } = { theme: THEME, trailer30: TRAILER30, trailer15: TRAILER15 } as const;
 export type ArrangementName = keyof typeof ARRANGEMENTS;
 
 /** the pickup sting: the first four motif notes on the bell, eighths */
