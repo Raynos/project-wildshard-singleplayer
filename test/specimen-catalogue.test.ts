@@ -1,4 +1,5 @@
 import { nalatiRuntime } from './fixtures/nalati-runtime';
+import { nativePlaceFile } from './fixtures/nalati-native-place-files';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare against shipped specimen bytes.
 import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Decode the original committed lane bake.
@@ -46,7 +47,7 @@ function testSky(): SkyRig {
   vi.spyOn(sky, 'setupMaterial').mockImplementation(() => undefined);
   return sky;
 }
-const binary = (): Uint8Array => unshuffleLanes(new Uint8Array(inflateSync(readFileSync('public/assets/nalati/baked/specimens.bin'))));
+const binary = (): Uint8Array => unshuffleLanes(new Uint8Array(inflateSync(nativePlaceFile('specimens.bin'))));
 const bake = v.parse(PackedSpecimenSchema, { ...packedRows, bin: '/assets/nalati/baked/specimens.bin' });
 
 describe('declared specimen catalogue', () => {
