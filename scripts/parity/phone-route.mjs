@@ -142,6 +142,7 @@ export async function phoneRoute(page, base, sha, out) {
     receipt.failures = phoneRouteFailures(receipt);
   } catch (error) {
     receipt.failures.push(String(error));
+    receipt.stop = await page.evaluate(`(()=>{const api=window.__wildshard,grid=api?.shard.grid;if(!grid||typeof grid.state!=='function')return null;const state=grid.state();return {drive:window.__frameFloorGridStop??null,ringsReady:state.ringsReady,ringsWait:state.ringsWait,crossing:state.live?.crossing,live:state.live?.live};})()`).catch((/** @type {unknown} */ diagnosticError) => ({ unavailable: String(diagnosticError) }));
     await page.screenshot(join(out, 'phone-route-failure.jpg')).catch(() => undefined);
   } finally { writeFileSync(join(out, 'phone-route.json'), `${JSON.stringify(receipt, null, 2)}\n`); }
   if (receipt.failures.length > 0) throw new Error(receipt.failures.join('\n'));

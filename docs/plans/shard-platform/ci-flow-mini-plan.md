@@ -214,6 +214,14 @@ socket and follows the west perimeter road. That actual departure completed
 on live `14a3d5d93`; the complete return/wall proof remains pending. Thirteen
 focused JS cases (including eleven archive Python cases), scripts/root types,
 named typed lint and actionlint pass for the report-only source boundary.
+Report-only source `893f149908` is on origin. The live14a south-departure
+visit retained 295 draws/10.001 s in Driftwood and 298/10 s on the road,
+then stopped at the Night Market preparation barrier (world feet
+`-656.3,0.4,288.2`, current road) under the unchanged 150 s driver limit.
+No held-await attribution or complete route pass is claimed. Failure receipts
+now retain the existing ring preparation/wait and crossing state; one current
+exact preview is building before another development visit. Ordinary dry-run
+and gating promotion remain open; no retry of the old CI smoke was requested.
 
 ## Decisions for Jake
 

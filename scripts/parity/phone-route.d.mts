@@ -20,7 +20,7 @@ export interface PhoneReceipt {
   protocol:string; rollout?:string; sha:string; version:{build:string}; engine:PhonePage['engine']; steps:string[];
   paint:{heroMs:number|null;fcpMs:number|null;heroURL:string|null}; entry:PhoneEntry|null; wall:PhoneWall|null;
   fps:PhoneFps[]; observations:PhoneObservation[]; frames:{label:string;width:number;height:number;darkShare:number}[];
-  faults:string[]; routes:FloorGridWitness[]; failures:string[];
+  faults:string[]; routes:FloorGridWitness[]; failures:string[]; stop?:unknown;
 }
 export function phoneRoutePlans(state:PhoneObservation):{market:string;plans:FloorGridPlan[]};
 export function phoneRouteFailures(receipt:PhoneReceipt):string[];
