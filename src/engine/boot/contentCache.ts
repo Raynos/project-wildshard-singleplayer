@@ -20,21 +20,27 @@ export interface ContentCacheStats { bytes: number; entries: number }
 export const CONTENT_CACHE_NAME = 'ws-content-v0';
 const MAX_FILE = 25_000_000, MAX_INDEX = 2_000_000;
 
-async function read(response: Response, maximum: number): Promise<Uint8Array> {
+/** The index size is an allocation hint, never authority over the stream/hash.
+ * Consume chunks into one bounded destination instead of retaining them all. */
+async function read(response: Response, maximum: number, expected = 0): Promise<Uint8Array> {
   if (!response.ok) throw new Error('Unavailable cached content');
   if (response.body === null) return new Uint8Array();
-  const reader = response.body.getReader(), chunks: Uint8Array[] = []; let bytes = 0;
+  const reader = response.body.getReader(); let bytes = 0, result = new Uint8Array(Math.min(maximum, expected));
+  let part: ReadableStreamReadResult<Uint8Array> | undefined;
   try {
     for (;;) {
-      const part = await reader.read(); if (part.done) break;
-      bytes += part.value.length; if (bytes > maximum) throw new Error('Cached content exceeds wire cap');
-      chunks.push(part.value);
+      part = await reader.read(); if (part.done) break;
+      const next = bytes + part.value.length; if (next > maximum) throw new Error('Cached content exceeds wire cap');
+      if (next > result.length) {
+        const grown = new Uint8Array(Math.min(maximum, Math.max(next, result.length * 2)));
+        grown.set(result); result = grown;
+      }
+      result.set(part.value, bytes); bytes = next;
+      part = undefined; // A pending next read must not retain the consumed native chunk.
     }
   } catch (error) { await reader.cancel().catch(() => undefined); throw error; }
   finally { reader.releaseLock(); }
-  const result = new Uint8Array(bytes); let at = 0;
-  for (const chunk of chunks) { result.set(chunk, at); at += chunk.length; }
-  return result;
+  return bytes === result.length ? result : result.slice(0, bytes);
 }
 
 /** Hash-verified Cache Storage with durable LRU, quota headroom and leases for active critical content. */
@@ -175,7 +181,7 @@ export class ContentCache {
     const response = await cache.match(key);
     if (response === undefined && this.index[hash] === undefined) return null;
     let bytes: Uint8Array | undefined;
-    try { if (response !== undefined) bytes = await read(response, MAX_FILE); }
+    try { if (response !== undefined) bytes = await read(response, MAX_FILE, this.index[hash]?.bytes); }
     catch { bytes = undefined; }
     if (bytes === undefined || await this.ports.hash(bytes) !== hash) { this.repair(hash, cache); return null; }
     const length = bytes.length;
@@ -190,7 +196,7 @@ export class ContentCache {
       // Recheck after pending writes: an old miss/corrupt response cannot erase a new durable put.
       const key = this.key(hash), response = await cache.match(key);
       if (response !== undefined) {
-        try { if (await this.ports.hash(await read(response, MAX_FILE)) === hash) return; }
+        try { if (await this.ports.hash(await read(response, MAX_FILE, this.index[hash]?.bytes)) === hash) return; }
         catch { /* Invalid disk bytes are removed below. */ }
         await cache.delete(key);
       }

@@ -83,6 +83,18 @@ test('a verified read repairs stale byte totals and browser eviction removes the
   expect(await reopened.stats()).toEqual({ bytes: 0, entries: 0 });
 });
 
+test.each([0, 1, 9])('a stale %i-byte index remains an allocation hint', async expected => {
+  const ports = fixture(), store = ports.open(), input = Uint8Array.of(3, 4, 5), hash = hashImmutableBytes(input);
+  await store.put(hash, input); await store.flush();
+  ports.disk.set(ports.key('index'), Response.json({ [hash]: { bytes: expected, used: 1 } }));
+  const reopened = ports.open();
+  expect(await reopened.stats()).toEqual({ bytes: expected, entries: 1 });
+  const bytes = await reopened.get(hash);
+  expect(bytes).toEqual(input);
+  expect(bytes?.buffer.byteLength).toBe(input.byteLength);
+  expect(await reopened.stats()).toEqual({ bytes: input.byteLength, entries: 1 });
+});
+
 test('recent reads and reopening preserve durable least-recent eviction order', async () => {
   const ports = fixture({ maxEntries: 2 }), store = ports.open();
   const rows = [Uint8Array.of(1), Uint8Array.of(2, 3), Uint8Array.of(4, 5, 6), Uint8Array.of(7)];

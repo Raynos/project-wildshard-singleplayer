@@ -83,3 +83,45 @@ test('transferred durable content releases backing after its returned owner reti
 test('transferred quota refusal returns verified online bytes and then releases backing', async () => {
   await lifetime('transferred quota refusal returns verified online bytes and then releases backing', true, true);
 });
+
+test('disk reads release consumed chunks before the next part arrives', async () => {
+  await realGc(file, 'disk reads release consumed chunks before the next part arrives', async collect => {
+    const hash = await digest(new Uint8Array(size * 2).fill(7));
+    const root = 'https://cache.test/__ws_content__/v0/';
+    let first: WeakRef<object> | undefined, part = 0;
+    let release = (): void => { throw new Error('Missing stream release'); };
+    let signal = (): void => { throw new Error('Missing consumed signal'); };
+    const blocked = new Promise<void>(resolve => { release = resolve; });
+    const consumed = new Promise<void>(resolve => { signal = resolve; });
+    const chunk = (): Uint8Array => {
+      const bytes = new Uint8Array(size).fill(7); first = new WeakRef(bytes.buffer); return bytes;
+    };
+    const stream = new ReadableStream<Uint8Array>({
+      pull: controller => {
+        if (part++ === 0) { controller.enqueue(chunk()); return Promise.resolve(); }
+        signal();
+        return blocked.then(() => { controller.enqueue(new Uint8Array(size).fill(7)); controller.close(); return undefined; });
+      },
+    }, { highWaterMark: 0 });
+    const cache = new ContentCache({ origin: 'https://cache.test', maxBytes: size * 4, reserveBytes: 0,
+      hash: digest, storage: { open: () => Promise.resolve({
+        match: input => Promise.resolve((input instanceof Request ? input.url : String(input)).endsWith('/index')
+          ? Response.json({ [hash]: { bytes: size * 2, used: 1 } }) : new Response(stream)),
+        keys: () => Promise.resolve([new Request(root + hash)]),
+        put: () => Promise.resolve(), delete: () => Promise.resolve(true),
+      }) },
+    });
+    const read = cache.get(hash);
+    try {
+      await consumed;
+      if (first === undefined) throw new Error('No streamed backing observed');
+      await collect(first);
+    } finally { release(); }
+    const bytes = await read;
+    expect(bytes?.byteLength).toBe(size * 2);
+    expect(bytes?.buffer.byteLength).toBe(size * 2);
+    expect(bytes?.every(value => value === 7)).toBe(true);
+    expect(await cache.stats()).toEqual({ entries: 1, bytes: size * 2 });
+    await cache.flush();
+  });
+});
