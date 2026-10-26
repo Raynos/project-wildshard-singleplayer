@@ -80,6 +80,16 @@ export async function bakeAuthoredWorld(input: unknown, bytes: Uint8Array): Prom
   const catalogue = new StaticMaterialCatalogue(world.materials, materials, (map, role) => {
     const texture = encoded.get(`${map.image}/${role}`); if (texture === undefined) throw new Error('World GLB missing encoded texture'); return texture;
   });
+  // RM12 (night-market-remaster): light casts no shadow. A tile primitive whose material is a light (additive, the emissive
+  // family, or an unlit graph drawing no texture: a lantern's glow, a pool, a rim) stays out of the shadow maps; a textured
+  // unlit surface (a poster, a landmark) still casts. Night Market's tiles spent ~41 shadow-map draws a frame on them.
+  const lights = new Set(world.materials.flatMap(row => {
+    const entry = materials[row.id]; if (entry === undefined) return [];
+    const graph = entry.family === 'graph' && 'graph' in entry ? entry.graph : null;
+    const light = (graph !== null && (graph.effectState?.blend === 'additive' || (graph.model === 'unlit' && !Object.values(graph.nodes).some(node => node.op === 'meshMap'))))
+      || (entry.family === 'emissive');
+    return light ? [row.name] : [];
+  }));
   const pack = new WorldBakeRows(), geometry: BufferGeometry[] = [], library: string[] = [];
   try {
     const bindings = catalogue.snapshot();
@@ -96,7 +106,7 @@ export async function bakeAuthoredWorld(input: unknown, bytes: Uint8Array): Prom
         const list = groups.get(name) ?? []; list.push(part); groups.set(name, list);
       }
       const primitives: GlbPrimitive[] = [];
-      for (const [name, parts] of groups) { const merged = mergeWorldGeometry(parts); transient.push(merged); primitives.push(catalogue.primitive(name, merged, { castShadow })); }
+      for (const [name, parts] of groups) { const merged = mergeWorldGeometry(parts); transient.push(merged); primitives.push(catalogue.primitive(name, merged, { castShadow: castShadow && !lights.has(name) })); }
       return { bytes: primitives.length === 0 ? new Uint8Array() : staticGlb(primitives), dependencies: catalogue.dependencies([...groups.keys()]), box };
       } finally { transient.forEach(part => part.dispose()); }
     };
