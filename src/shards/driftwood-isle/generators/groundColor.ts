@@ -6,7 +6,10 @@
 import * as THREE from 'three';
 
 // ── low-poly palette (sRGB in, linear out via THREE.Color) ──
-export const LP = {
+export const LP: { seabed: THREE.Color; // the lagoon floor as seen through the water (Beer–Lambert's green-cyan baked in: the sea over it is clear)
+wetSand: THREE.Color; // the swash tint: a shade darker than the dry sand, not mud
+sand: THREE.Color; // warm golden (E43 round 6: matched to the mockups by palette-delta.py)
+grass: THREE.Color; grassDark: THREE.Color; grassHigh: THREE.Color; rock: THREE.Color; rockLight: THREE.Color; path: THREE.Color; } = {
   seabed: new THREE.Color('#15a0b4'),   // the lagoon floor as seen through the water (Beer–Lambert's green-cyan baked in: the sea over it is clear)
   wetSand: new THREE.Color('#caa66c'),   // the swash tint: a shade darker than the dry sand, not mud
   sand: new THREE.Color('#ffd98c'),   // warm golden (E43 round 6: matched to the mockups by palette-delta.py)

@@ -1,13 +1,13 @@
 /** Authored completion copy; the existing platform card owns safety, progress and its page lifetime. */
 import { parseCompletion, type CompletionRows } from '@wildshard/format/completion';
-import { createQuestPlacements } from '@wildshard/engine/world/interact/types';
+import { createQuestPlacements, type Place } from '@wildshard/engine/world/interact/types';
 import frames from '../data/questFrames.json' with { type: 'json' };
 import { DRIFTWOOD_PLACES } from './discovery';
 import placeSets from '../data/placeSets.json' with { type: 'json' };
 import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
 import { SHARD_FLAGS, SEA_GLASS_COUNT, SEA_GLASS_POINTS, SEA_GLASS_FLAG, REEF_TREASURE } from './interactables';
 
-export const COMPLETE_CONTENT = {
+export const COMPLETE_CONTENT: { seenFlag: string; shardName: string; safeRadius: number; pollSeconds: number; maximumTodo: number; coveredEvents: string[]; more: string; titleFallback: string; stats: { time: string; achievements: string; shards: string; glass: string; places: string; title: string; }; menuSubtitle: string; toastSuffix: string; card: { kicker: string; flavour: string[]; }; glass: { label: string; short: string; flagPrefix: string; points: [number, number][]; }; extras: { label: string; short: string; flag: string; at: Place; }[]; } = {
   seenFlag: 'seen:complete',
   shardName: 'Driftwood Isle',
   safeRadius: 25,

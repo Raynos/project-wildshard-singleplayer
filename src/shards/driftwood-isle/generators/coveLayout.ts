@@ -25,7 +25,7 @@ export const RAMP = { z0: 5.8, z1: 6.8 };
 export const STEPS = { z0: 5.65, z1: 7.15 };
 /** the antechamber and alcove floors: authored over the +0.8 m waterline, lowered with the whole world by G164's drop
  *  (world/sea.ts) like the terrain they are cut into */
-export const ANTE_FLOOR = 1.2 - WORLD_DROP, ALC_FLOOR = 2.2 - WORLD_DROP;
+export const ANTE_FLOOR: number = 1.2 - WORLD_DROP, ALC_FLOOR: number = 2.2 - WORLD_DROP;
 /**
  * PHYSICS P4: the baked terrain rises through the cave floor from lz ≈ 5 and stands over the alcove floor from lz ≈ 7,
  * so the physics heightfield is pushed under the cave inside this rectangle (local, from the mouth). It starts 1 m in
@@ -33,8 +33,8 @@ export const ANTE_FLOOR = 1.2 - WORLD_DROP, ALC_FLOOR = 2.2 - WORLD_DROP;
  * wall; ±4.2 m takes every grid column whose triangles reach the floor. `BACKFILL` walls off the triangles that climb
  * back out of the cut behind the back wall (one grid cell, ~2 m, past its far edge).
  */
-export const CUT = { hw: 4.2, z0: 1.0, z1: 10.2, below: ANTE_FLOOR - 0.6 };
-export const BACKFILL = { hw: CUT.hw + 2.0, z1: CUT.z1 + 2.0 };
+export const CUT: { hw: number; z0: number; z1: number; below: number; } = { hw: 4.2, z0: 1.0, z1: 10.2, below: ANTE_FLOOR - 0.6 };
+export const BACKFILL: { hw: number; z1: number; } = { hw: CUT.hw + 2.0, z1: CUT.z1 + 2.0 };
 
   /** the cave's floor under local lz (the antechamber, the ramp through the passage, the raised alcove) */
 export function coveFloorAt(lz: number): number {

@@ -18,7 +18,9 @@ import { log, wobble } from '@wildshard/engine/world/geometryKit';
 import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
 
 /** the body tones (one per log), the facet leans, the crack and the end grain */
-export const DRIFT = {
+export const DRIFT: { readonly tones: readonly ["#ab9d85", "#9d8e75", "#b4a894"]; readonly silver: THREE.Color; readonly brown: THREE.Color; readonly crack: THREE.Color; readonly end: THREE.Color; 
+/** a snapped branch stub */
+readonly stub: "#978870"; } = {
   tones: ['#ab9d85', '#9d8e75', '#b4a894'],
   silver: new THREE.Color('#b2a998'),
   brown: new THREE.Color('#86735a'),

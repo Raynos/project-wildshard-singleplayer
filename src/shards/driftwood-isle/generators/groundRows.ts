@@ -6,7 +6,7 @@ import { buildDriftwoodField, landscapeHash } from './groundField';
 import { driftwoodLandscape } from './landscape';
 
 /** Retained unquantized author field for original mover rows and cold lattice compilation. */
-export function driftwoodGroundField(seed = SEED): ReturnType<typeof buildDriftwoodField> {
+export function driftwoodGroundField(seed: number = SEED): ReturnType<typeof buildDriftwoodField> {
   return buildDriftwoodField(seed, { landscape: driftwoodLandscape, oceanLevel: SHORE_LEVEL,
     graded: GRADED, trails: TRAILS, cabinSites: [] });
 }
@@ -17,7 +17,7 @@ export interface DriftwoodGroundRows {
 }
 
 /** Cold native floor lattice compiled from retained equations, with no terrain.bin or runtime seed. */
-export function driftwoodGroundRows(seed = SEED): DriftwoodGroundRows {
+export function driftwoodGroundRows(seed: number = SEED): DriftwoodGroundRows {
   const field = driftwoodGroundField(seed);
   const heightAt: TerrainBakeSource['heightAt'] = field.heightAt;
   const resolution = 256, size = CHUNK_HALF * 2, stride = size / (resolution - 1), heights = new Float32Array(resolution ** 2);

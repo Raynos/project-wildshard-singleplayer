@@ -206,6 +206,7 @@ normal layer emission is the declaration-size authority. Continuation starts at 
 | T4-I6c | Driftwood catalogue, pose and native author contracts; retain exact parameters, defaults and admission | 60 min | done (2026-10-26, sp-x8) |
 | T4-I6d | Driftwood story, scene and native policy declarations; retain readonly literals, parser output and program rows | 60 min | done (2026-10-26, sp-x8) |
 | T4-I7a | Require isolated application composition output after defining discovery producers; retain original source/test membership and browser types | 60 min | done (2026-10-26, sp-x8) |
+| T4-I6e | Driftwood decision, ground and author-storage declarations; retain readonly literals, default arguments and mutable buffers | 60 min | done (2026-10-26, sp-x8) |
 | T4-I6legacy | Frozen legacy declaration annotations: exact inventory bytes stay unchanged until G606/LD is lifted; modern slices continue | 60 min | waits-Jake (2026-10-26; G606, sp-x8) |
 
 T4 first format slices are on origin: schema expressions and emitted runtime JavaScript are unchanged.

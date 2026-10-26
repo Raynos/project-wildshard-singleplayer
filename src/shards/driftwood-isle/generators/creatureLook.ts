@@ -9,6 +9,6 @@ export const CREATURE_LOOKS = { body: 'driftwood-creature', glowing: 'driftwood-
 
 /** `actors/creature-install.json` (@wildshard/game/population/productCreatures): the monkey's perch poses, the practice
  *  spawn, the packed look kinds then the hull-book boar and bear, each on its lent body (the captain on his own). */
-export const CREATURE_INSTALL = { perch: 'poses/monkey.json', practice: 'spawn.driftwood.practice', projection: 'actors/projection.json',
+export const CREATURE_INSTALL: { perch: string; practice: string; projection: string; packed: { file: string; kinds: string[]; }; hulls: string[]; lent: { body: "driftwood-creature"; glowing: "driftwood-creature-glowing"; kinds: { captain: "driftwood-creature-captain"; }; }; } = { perch: 'poses/monkey.json', practice: 'spawn.driftwood.practice', projection: 'actors/projection.json',
   packed: { file: 'look/creature-looks.json', kinds: ['crab', 'monkey', 'sailor', 'captain'] }, hulls: ['boar', 'bear'],
   lent: { body: CREATURE_LOOKS.body, glowing: CREATURE_LOOKS.glowing, kinds: { captain: CREATURE_LOOKS.captain } } };

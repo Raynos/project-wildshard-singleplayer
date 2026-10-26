@@ -95,7 +95,7 @@ function entryRoadMask(x: number, z: number): number {
  * can never be installed over the analytic field.
  */
 /** Native millimetre fingerprint of the retained author field. */
-export function landscapeHash(t: Pick<TerrainField, 'heightAt'>, size = CHUNK_HALF * 2): number {
+export function landscapeHash(t: Pick<TerrainField, 'heightAt'>, size: number = CHUNK_HALF * 2): number {
   let h = 0x811c9dc5;
   const n = 16, d = size / (n - 1);
   for (let iz = 0; iz < n; iz++) for (let ix = 0; ix < n; ix++) {

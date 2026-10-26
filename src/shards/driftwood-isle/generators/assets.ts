@@ -30,7 +30,7 @@ for (const manifest of manifests) for (const [url, declared] of Object.entries<s
   byUrl[url] = name;
 }
 /** Stable draw slots are authored asset-index aliases, resolved only after product admission. */
-export const DRIFTWOOD_FIXED_SOURCES = Object.fromEntries(Object.entries(FIXED_MODEL_FILES).map(([slot, url]) => {
+export const DRIFTWOOD_FIXED_SOURCES: Record<string, string> = Object.fromEntries(Object.entries(FIXED_MODEL_FILES).map(([slot, url]) => {
   const name = byUrl[url];
   if (name === undefined) throw new Error(`Missing fixed source: ${slot}`);
   return [slot, name];
@@ -54,9 +54,9 @@ const retiredFoliage = new Set(['world/palms/phone.bin', 'world/palms/desktop.bi
   'world/hibiscus/phone.bin', 'world/hibiscus/desktop.bin', 'world/reef.bin']);
 const activeByUrl = Object.fromEntries(Object.entries(byUrl).filter(([, name]) => !retiredFoliage.has(name)));
 /** Build-only mapping for the runtime's checked logical-name mirrors. */
-export const DRIFTWOOD_ASSET_NAMES = activeByUrl;
+export const DRIFTWOOD_ASSET_NAMES: Record<string, string> = activeByUrl;
 /** Build-only source declarations and an explicit, retiring URL-to-name bridge. */
-export const DRIFTWOOD_OUTPUT = {
+export const DRIFTWOOD_OUTPUT: { blobs: { name: string; kind: string; source: string; }[]; } = {
   blobs: [...canonical.values()].filter(row => !retiredFoliage.has(row.name)).map(row => {
     if (row.kind !== 'glb') return row;
     const result = { ...row };

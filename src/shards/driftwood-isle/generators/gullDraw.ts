@@ -12,7 +12,7 @@ const geometry = gullGeometry(); geometry.computeBoundingBox();
 const box = geometry.boundingBox, file = DRIFTWOOD_ASSET_NAMES['fixed:gull'];
 if (box === null || file === undefined) throw new Error('The gull draw needs its baked template');
 const [wings, fold] = GULL_FLOCK.wingbeats.gull.rest;
-export const GULL_DRAW = {
+export const GULL_DRAW: { name: string; attributes: (string | null | undefined)[]; channels: (string[] | null | undefined)[]; assets: { name: string; channels: { name: string; source: string; width: number; }[]; ranges: { kind: number; start: number; count: number; box: number[]; }[]; }; tiers: { phone: { geometry: string; }; desktop: { geometry: string; }; }; models: { id: string; name: string; pipeline: string; file: string; kind: number; copies: number; box: number[]; pose: { flap: number | undefined; head: number; fold: number | undefined; legs: number; y: number; scale: number; }; }[]; } = {
   name: GULL_GRAPH_LOOK, attributes: [GULL_FLOCK.attributes[0]], channels: [GULL_FLOCK.channels[0]],
   assets: { name: 'gull', channels: [{ name: 'position', source: 'position', width: 3 }, { name: 'color', source: 'color', width: 3 }, { name: 'aPart', source: '_apart', width: 1 }],
     ranges: [{ kind: 0, start: 0, count: geometry.getAttribute('position').count, box: [...box.min, ...box.max] }] },

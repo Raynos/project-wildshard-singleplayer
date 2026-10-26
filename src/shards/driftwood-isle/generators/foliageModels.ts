@@ -3,12 +3,12 @@ import type { ColliderDesc } from '@wildshard/engine/world/registry';
 
 export interface PalmParams { readonly h: number; readonly lean: number; readonly leanDir: number; readonly rot: number; readonly fronds: number }
 export interface HibiscusBushParams { readonly r: number; readonly flowers: boolean; readonly phase: number }
-export const palm = { id: 'driftwood-isle/palm', seed: 0x5ea1 ^ 0x9a,
+export const palm: { id: string; seed: number; defaults: { h: number; lean: number; leanDir: number; rot: number; fronds: number; }; variants: ({ id: string; label: string; params: { h?: never; lean?: never; fronds?: never; }; } | { id: string; label: string; params: { h: number; lean: number; fronds: number; }; })[]; } = { id: 'driftwood-isle/palm', seed: 0x5ea1 ^ 0x9a,
   defaults: { h: 8, lean: 0.2, leanDir: 0, rot: 0, fronds: 11 }, variants: [
     { id: 'tall', label: 'Tall', params: {} }, { id: 'young', label: 'Young', params: { h: 5.5, lean: 0.1, fronds: 9 } },
     { id: 'leaning', label: 'Leaning', params: { h: 9.5, lean: 0.35, fronds: 13 } },
   ] };
-export const hibiscusBush = { id: 'driftwood-isle/hibiscus-bush', seed: 0x5ea1 ^ 0xb5 ^ 0xe116,
+export const hibiscusBush: { id: string; seed: number; defaults: { r: number; flowers: boolean; phase: number; }; variants: ({ id: string; label: string; params: { flowers?: never; r?: never; }; } | { id: string; label: string; params: { flowers: boolean; r?: never; }; } | { id: string; label: string; params: { r: number; flowers?: never; }; })[]; } = { id: 'driftwood-isle/hibiscus-bush', seed: 0x5ea1 ^ 0xb5 ^ 0xe116,
   defaults: { r: 1.3, flowers: true, phase: 0 }, variants: [
     { id: 'flowering', label: 'In flower', params: {} }, { id: 'leaf', label: 'Leaf only', params: { flowers: false } },
     { id: 'small', label: 'Small', params: { r: 0.8 } },

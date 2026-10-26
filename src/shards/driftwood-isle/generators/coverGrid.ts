@@ -17,8 +17,8 @@ const KIND_DENSITY = GROUND_COVER.kinds.map(k => DENSITY[k.name] ?? (() => 0));
 /** Build-only mutable lattice; runtime borrows its already completed file. */
 export class AuthorCoverGrid {
   readonly step = 4;
-  readonly n = Math.ceil(CHUNK_SIZE / this.step) + 1;
-  readonly data = new Float32Array(this.n * this.n * 5);
+  readonly n: number = Math.ceil(CHUNK_SIZE / this.step) + 1;
+  readonly data: Float32Array<ArrayBuffer> = new Float32Array(this.n * this.n * 5);
   private ix(at: number): number { return Math.max(0, Math.min(this.n - 1, Math.round((at + CHUNK_HALF) / this.step))); }
   blockLength(x0: number, x1: number, z0: number, z1: number): number { return (this.ix(x1) - this.ix(x0) + 1) * (this.ix(z1) - this.ix(z0) + 1) * 5; }
   fill(at: (x: number, z: number, out: CoverSample) => void, x0: number, x1: number, z0: number, z1: number): void {

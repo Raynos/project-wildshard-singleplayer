@@ -3,7 +3,7 @@ import { SEA_GLASS_COUNT, SEA_GLASS_FLAG, SHARD_FLAGS } from './interactables';
 
 const glass = { prefix: SEA_GLASS_FLAG, count: SEA_GLASS_COUNT };
 /** Original Bag counters, sticker order, glass palette and whole-charm milestone. */
-export const DRIFTWOOD_FINDS = {
+export const DRIFTWOOD_FINDS: { readonly counters: readonly [{ readonly label: "Sea glass"; readonly flags: { prefix: string; count: number; }; }, { readonly label: "Places"; readonly flags: string[]; }, { readonly label: "Glyph shards"; readonly flags: readonly ["shard:lookout", "shard:wreck", "shard:cave"]; }]; readonly next: { readonly counter: 0; readonly every: 5; readonly max: number; readonly text: "Next charm at"; }; readonly sections: readonly [{ readonly title: "Trophies"; readonly items: readonly [{ readonly label: "Bear claw"; readonly icon: "talon"; readonly owned: "bear-claw"; }, { readonly label: "Boar tusk"; readonly icon: "tusk"; readonly owned: "boar-tusk"; }, { readonly label: "Captain's hat"; readonly icon: "hat"; readonly owned: "captain-hat"; }]; }, { readonly title: "Treasures"; readonly items: readonly [{ readonly label: "Pearl necklace"; readonly icon: "necklace"; readonly flag: "found:reef-treasure"; }]; }]; readonly glass: { readonly flags: { prefix: string; count: number; }; readonly colors: readonly ["#7df0d0", "#8fd8ff", "#b7f59a", "#9fb8ff", "#f0f7a0"]; readonly fallback: "#7df0d0"; }; } = {
   counters: [
     { label: 'Sea glass', flags: glass },
     { label: 'Places', flags: DRIFTWOOD_PLACES.map(place => `seen:${place.id}`) },
