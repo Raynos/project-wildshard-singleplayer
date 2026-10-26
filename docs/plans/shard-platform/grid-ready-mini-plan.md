@@ -114,6 +114,22 @@ native acceptance or isolated scheduling-gain claim. Retain prior milestones.
 Raw qualification: `tmp/sp-x8-g717/g743-equipment-qualification.json`;
 cleanup proof: `20261026T174829-sp-x8-g743-equipment-milestone-27494`.
 
+| Shard | 4cb76663c7 cold | warm |
+|---|---:|---:|
+| Driftwood | 10.288 s | 8.027 s |
+| Pine | 15.586 s | 6.963 s |
+| Nalati | 10.864 s | 12.613 s |
+| Nine | 13.854 s | 9.966 s |
+
+The 4cb76663c7 milestone prepares the page/depth/post program inventory
+after kit while play constructs. All eight entries complete with controls
+ready/errors 0; 0/8 five-second targets pass and 8 frame gates miss.
+The original cold/warm protocols, deadlines and final whole inventory stay
+unchanged. These are combined-source Chromium phone readings; no retry,
+native acceptance or isolated scheduling-gain claim. Retain prior milestones.
+Raw qualification: `tmp/sp-x8-g717/g743-page-programs-qualification.json`;
+cleanup proof: `20261026T181050-sp-x8-g743-page-programs-milestone-33145`.
+
 | Slice | Work | Status |
 |---|---|---|
 | G743.1 | Select the nearest upcoming boulevard junction; meaningful lateral motion resolves its side before the mouth ray, while equal choices and contact jitter remain undecided. Preserve one constructor, pair budgets, kept-source return and all entry fences. At most one hour. | done (bounded source; 817 milestone retains all four timing misses) |
@@ -126,7 +142,7 @@ cleanup proof: `20261026T174829-sp-x8-g743-equipment-milestone-27494`.
 | G743.2d | Census parked-draw lights and shadow casters only through the visible page hierarchy after revealing the exact destination/equipment. Refresh every slice, retaining newly visible peers and all shadow/flag restoration. Hidden-world and between-slice controls are RED before; focus, touched engine/test types and typed lint pass. At most one hour. | done (bounded source; 2026-10-26, sp-x8); 5c4 cold/warm timing recorded above; no isolated census-gain claim |
 | G743.2e | Prepare completed staged equipment while play builds quests/encounters, after the world-root warm. Use the same entered-frame bound, owner disposal and final complete inventory; never gate kit/play on the early work. At most one hour. | done (bounded source; 2026-10-26, sp-x8); 5 new scheduling controls plus 14 retained cases, touched game/test types and typed lint pass; 8ce cold/warm timing recorded above; all four targets remain open |
 | G743.2e1 | Keep early equipment preparation owner-only: omit its unused exterior road variants through the existing root helper. Default world/streamed roots retain every exterior layout; final whole inventory remains mandatory. Actual caller forwarding is RED before; 15 focus cases, touched engine/game tests and typed lint pass. At most one hour. | done (bounded source; 2026-10-26, sp-x8); 8ce cold/warm timing recorded above; all four targets remain open |
-| G743.2f | Prepare the complete page/depth/post program inventory after kit completes while play constructs. Share the final preparation helper, page lighting/PMREM, six-ms live slices, upload and drawn-frame fences; never draw or publish early. Repeat full inventory after play for late content. At most one hour. | done (bounded source; 2026-10-26, sp-x8); 24 focus cases, touched engine/game tests and typed lint pass; cold/warm milestone pending |
+| G743.2f | Prepare the complete page/depth/post program inventory after kit completes while play constructs. Share the final preparation helper, page lighting/PMREM, six-ms live slices, upload and drawn-frame fences; never draw or publish early. Repeat full inventory after play for late content. At most one hour. | done (bounded source; 2026-10-26, sp-x8); 24 focus cases, touched engine/game tests and typed lint pass; 4cb76663c7 cold/warm timing recorded above; 0/8 under-five-second readings pass |
 | G743.2g | Remove the separate regional root-only pass now covered by complete page preparation. After kit is ready, settle the sky/look and start that inventory immediately; a prior root pass cannot consume its overlap window. Keep the shared deadline, cancellation and final complete inventory. At most one hour. | done (bounded source; 2026-10-26, sp-x8); 5 scheduling controls are RED before; 14 focus cases, touched game/test types and typed lint pass; combined cold/warm timing pending |
 | G743.3 | ONE original phone-tier DW/Pine/Nalati/Nine road-entry cohort per source milestone; report each request-to-commit time and keep all misses open until each is under five seconds. | open |
 
