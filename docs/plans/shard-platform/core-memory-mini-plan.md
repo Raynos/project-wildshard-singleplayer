@@ -118,7 +118,7 @@ the target.
 | C5.3 | Variant B behind one Debug row (Look ▸ Post render targets, default A): 8-bit output after the tone map, quarter bloom, half ray mask, FXAA for SMAA (no stable-depth copy on these pages) | done `11ba2489f8` |
 | C5.4 | GPU MiB + frame time, A vs B, phone tier per shard (numbers shared with sp-x2's C4) | done: Template / DW 70.1 → 60.3, Pine 61.3 → 33.7, Sky 63.8 → 36.2, Signal 49.2 → 22.6 MiB; GPU and frame ms unchanged within noise (art/post/round-1-lighter-rt/README.md) |
 | C5.5 | One labelled A / B variant sheet per shard look, `art/post/round-1-lighter-rt/` | done: five boards, the commit that marks this |
-| C5.6 | Jake's pick: the winner becomes the default and the row, the option and the losing code go | waits-Jake |
+| C5.6 | Jake's pick: the winner becomes the default and the row, the option and the losing code go | done (G749, Jake picked B for every shard): the commit that marks this deletes the row and A |
 
 ## 5. Decisions (G658; M1 replaced by G682)
 

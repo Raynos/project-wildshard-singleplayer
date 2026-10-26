@@ -18,7 +18,6 @@ import { setPoseProvider } from '@wildshard/engine/ui/ReloadPrompt';
 import { registerBeforeReload } from '@wildshard/engine/boot/lastEnd';
 import { gridPrefetchOrder, startGridPrefetch } from '../grid/prefetch';
 import { enterSkyClock } from './clockSettings';
-import { postTargetsPick } from '../looks/postTargets';
 import { settleEntryPrograms } from './settlePrograms';
 import { harnessPins } from '@wildshard/engine/app/identity';
 
@@ -62,7 +61,6 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   // R12: a standalone page's own sky clock (a painted sky, published by its runtime) is the day cycle while the level lives
   // and takes the pinned time; on the grid each entered cell registers its own (hybrid.ts)
   if (ctx.grid === null) enterSkyClock(app, [game.levelScope], game.levelScope);
-  game.postTargets = postTargetsPick(); // G713: the Debug row's render-target chain (reload)
   await game.prepareComposer();
   game.buildComposer();
   // The first live late/render phases would otherwise publish the home PMREM and install its grade only after

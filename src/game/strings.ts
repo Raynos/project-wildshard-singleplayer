@@ -101,9 +101,4 @@ export const GAME_STRINGS = {
     selected: (name: string, earned: number | null): string => `${name.toUpperCase()} · ${earned === null ? 'NOT VISITED' : `${earned} FEATS`}`,
     total: (earned: number): string => `WILDSHARD · ${earned} FEATS`,
   },
-  /** G713 (core-memory C5): the Debug row that builds the engine composer's lighter render targets until Jake has picked */
-  postTargets: {
-    label: 'Post render targets', today: 'A: Today', lighter: 'B: Lighter',
-    note: 'G713: today\'s post-processing targets, or 8-bit output, quarter-size bloom, half-size ray mask and FXAA (about 10–28 MiB less GPU)',
-  },
 } as const;

@@ -18,7 +18,7 @@
  * A context loss reloads the page (gpuOnly.ts: the released copies cannot be uploaded again).
  */
 import * as THREE from 'three';
-import { RenderPass, type BloomEffect, type EffectComposer, type Pass } from 'postprocessing';
+import { RenderPass, type EffectComposer, type Pass } from 'postprocessing';
 import { markGpuOnly } from '../core/gpuOnly';
 import { arrayReleased, markArrayReleased, markArrayRestored } from './releasedArrays';
 import type { Renderer } from './renderer';
@@ -251,8 +251,6 @@ export function shadowLights(lights: readonly THREE.Light[], drop: (rt: THREE.We
   }
 }
 
-/** bloom's luminance (the threshold pass the mip blur reads) at half resolution: −6.6 MB at the phone's frame */
-export function halfLuminance(bloom: BloomEffect): void { bloom.luminancePass.resolution.scale = 0.5; }
 
 /**
  * The composer's output buffer loses its depth buffer when no pass draws geometry into it (every pass after the scene

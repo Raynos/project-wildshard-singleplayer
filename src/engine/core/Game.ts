@@ -12,8 +12,8 @@ import * as THREE from 'three';
 import { createRenderer, type Renderer } from '../render/renderer';
 import { CAMERA_FOV } from './config';
 import {
-  EffectComposer, type RenderPass, EffectPass, BloomEffect, SMAAEffect, FXAAEffect, VignetteEffect, ToneMappingEffect,
-  ToneMappingMode, BlendFunction, GodRaysEffect, LUT3DEffect, KernelSize, SMAAPreset, EdgeDetectionMode, ChromaticAberrationEffect, HueSaturationEffect, BrightnessContrastEffect, NoiseEffect,
+  EffectComposer, type RenderPass, EffectPass, BloomEffect, FXAAEffect, VignetteEffect, ToneMappingEffect,
+  ToneMappingMode, BlendFunction, GodRaysEffect, LUT3DEffect, KernelSize, ChromaticAberrationEffect, HueSaturationEffect, BrightnessContrastEffect, NoiseEffect,
   type Effect, Pass,
 } from 'postprocessing';
 import type { N8AOPostPass } from 'n8ao';
@@ -46,7 +46,7 @@ import { diagnosticNow } from './clock';
 import { buildHeld, noteFrameDrawn } from './framePacing';
 import { buildYield } from './workSlice';
 import { boundEntryWarmup } from '../render/entryWarmupBound';
-import { dropOutputDepth, halfLuminance, installMemorySaver, shadowLights } from '../render/memorySaver';
+import { dropOutputDepth, installMemorySaver, shadowLights } from '../render/memorySaver';
 import { dropShadowColour } from '../world/shadowVariants';
 import { recordGpuCheckpoint, traceBootPasses } from '../boot/gpuTrace';
 import { exploreEntryPending, recordExploreFrame, recordBootCheckpoint, bootTraceActive } from '../boot/bootTrace';
@@ -529,9 +529,6 @@ export class Game {
     return composer;
   }
 
-  /** G713 (core-memory C5): the render-target chain buildComposer builds, 'today' or variant B 'lighter' (lighterTargets.ts),
-   *  set before it from the game's Debug row */
-  postTargets: 'today' | 'lighter' = 'today';
   /** n8ao's pass, fetched by prepareComposer only when this tier and level draw AO (J8: a phone entry loads no AO code) */
   private aoPass: typeof N8AOPostPass | null = null;
   /** Load what buildComposer will build from: the AO module when the tier and level have AO on (null: never fetched). */
@@ -585,10 +582,9 @@ export class Game {
     // the tier knobs `aa` and `godRays` (E189, Jake's picks from the before / after boards, progress/282–283, 2026-09-26:
     // "no regression"): a level's phone frame may run one FXAA pass on the graded frame instead of SMAA's three, and leave
     // out the god rays (the warm iPhone's grass frame was 48 ms with the post chain and 17 without)
-    const lighter = this.postTargets === 'lighter';
-    // G713 B: one FXAA pass on the graded frame in place of SMAA's edge and weight targets (E189's phone option)
-    const tierAa = knobs.aa ?? (TIER_CONFIG.smaa === 'off' ? 'off' : 'smaa'), aa = lighter && tierAa === 'smaa' ? 'fxaa' : tierAa;
-    const fxaa = aa === 'fxaa' ? new FXAAEffect() : null;
+    // G749 (Jake's pick of the G713 lighter render targets): anti-aliasing is one FXAA pass on the graded frame wherever the
+    // tier or level has it on (SMAA's edge and weight targets are gone, E189's phone option for every tier)
+    const fxaa = (knobs.aa ?? (TIER_CONFIG.smaa === 'off' ? 'off' : 'fxaa')) === 'off' ? null : new FXAAEffect();
     const raysOn = knobs.godRays ?? true;
     const chain = (clean: boolean): BuiltChain => {
       const godRays = new GodRaysEffect(this.camera, this.sky.sunDisc, {
@@ -596,10 +592,10 @@ export class Game {
         exposure: 0.4, samples: TIER_CONFIG.godRaysSamples, clampMax: 1.0, resolutionScale: TIER_CONFIG.godRaysScale,
       });
       if (knobs.skipRaysOffscreen === true) skipRaysOffscreen(godRays, this.camera, this.sky.sunDisc); // the disc off screen = no rays to draw (E142, E189)
-      if (lighter) halfGodRaysMask(godRays); // G713 B
+      halfGodRaysMask(godRays); // G749: the rays' light mask at half the frame (lighterTargets.ts)
       const tuning = ENGINE_CHAIN_TUNING[clean ? 'clean' : 'cinematic'];
       const bloom = new BloomEffect({ intensity: G.bloomIntensity, luminanceThreshold: G.bloomThreshold, luminanceSmoothing: tuning.bloomSmoothing, mipmapBlur: true, radius: 0.6, levels: TIER_CONFIG.bloomLevels });
-      if (lighter) quarterBloom(bloom); else halfLuminance(bloom); // SF22d; G713 B a quarter
+      quarterBloom(bloom); // G749: luminance at a quarter of the frame, its mip chain one level smaller (lighterTargets.ts)
       skipWhileTransparent(bloom); skipWhileTransparent(godRays); skipWhileTransparent(vol);
       const vignette = new VignetteEffect({ offset: 0.32, darkness: tuning.vignette });
       const tone = new ToneMappingEffect({ mode: ToneMappingMode.AGX });
@@ -643,16 +639,12 @@ export class Game {
     this.placeShardPasses(composer, colour); // a shard's own passes around the engine's (none without a render strategy)
     // FXAA reads its pass's input image, so it gets a pass of its own on the graded frame (EffectPass orders effects by kind)
     if (fxaa !== null) composer.addPass(new EffectPass(this.camera, fxaa));
-    if (aa === 'smaa') {
-      const smaa = new SMAAEffect({ preset: TIER_CONFIG.smaa === 'high' ? SMAAPreset.HIGH : SMAAPreset.LOW, edgeDetectionMode: EdgeDetectionMode.COLOR });
-      composer.addPass(new EffectPass(this.camera, smaa));
-    }
     // the depth slices: every depth reader reads the scene target's own depth texture (the world + the weapon, no copy)
     const sceneDepth = composer.inputBuffer.depthTexture;
     if (slices && sceneDepth !== null) for (const p of composer.passes) if (p !== this.renderPass) p.setDepthTexture(sceneDepth);
     dropOutputDepth(composer, this.renderPass); // SF22d: one composer depth buffer
-    // G713 B: with nothing between the scene and the colour pass, the output buffer only ever holds the graded frame
-    if (lighter && aoPass === null && composer.passes.indexOf(colour) === composer.passes.indexOf(this.renderPass) + 1) ldrOutputBuffer(composer);
+    // G749: with nothing between the scene and the colour pass, the output buffer only ever holds the graded frame
+    if (aoPass === null && composer.passes.indexOf(colour) === composer.passes.indexOf(this.renderPass) + 1) ldrOutputBuffer(composer);
     this._composer = composer;
   }
 

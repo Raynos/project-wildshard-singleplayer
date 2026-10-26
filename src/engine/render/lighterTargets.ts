@@ -1,6 +1,6 @@
 /**
- * G713 (core-memory C5): the lighter render-target chain, variant B of the engine composer for Jake's pick. Each cut keeps
- * the passes, their order and their programs' work; only the targets they draw into shrink:
+ * G713 / G749 (Jake picked B, the lighter render-target chain, for every shard): the engine composer's targets. Each cut
+ * keeps the passes, their order and their programs' work; only the targets they draw into shrink:
  *
  * - the composer's output buffer holds 8-bit sRGB when every pass that writes it runs after the tone map (the scene pass
  *   draws into the input buffer; with no AO or shard pass between the scene and the colour pass, the output only ever
@@ -10,7 +10,7 @@
  * - the god rays' light mask (the sun disc against the scene's depth) at half the frame: the rays themselves are drawn at
  *   the tier's `godRaysScale` and blurred, from that mask.
  *
- * Variant A (today) calls none of these. Jake's pick deletes the losing side.
+ * and anti-aliasing is one FXAA pass (Game.buildComposer), never SMAA's edge and weight targets.
  */
 import * as THREE from 'three';
 import type { BloomEffect, EffectComposer, GodRaysEffect } from 'postprocessing';
