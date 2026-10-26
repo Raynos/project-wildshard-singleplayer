@@ -1,6 +1,8 @@
 # Debug rows burn-down: mini plan (G669)
 
-**State:** `open` 2026-10-23. Audit only, read at HEAD c145edf02a: no row built yet. Rows DR1–DR17 below.
+**State:** `done` 2026-10-26 (G742 reconciliation, sp-x9). All DR1–DR19 already landed and are verified ancestors of `origin/main`; the former 0/19 count was stale. This reconciliation changes no runtime code or look. Their defining commits total **1,361 net lines and 102,100 bytes removed under `src/`** (Git parent-to-commit deltas, not bundle or memory measurements).
+
+DR19's retained portrait Simulator recordings cover staging, no reload, undo and reachable Apply. A fresh six-suite UI check collected zero because Far Reach/Nine generated discovery was absent after a peer's refused generation. That prerequisite refusal is retained, not a new UI failure or a passing current witness. The owning lane is restoring discovery; no duplicate build or capture was started.
 
 Jake, 2026-10-23 ~10:05 Cancun: *"What's the default state? … are these all improvements that we need to be on and we
 should just default them on? … default on whatever should be on, like whatever setting is the best setting. Even if that
@@ -13,7 +15,7 @@ code go in the same commit (E451). "Best" means the measured or intended improve
 get fixed forward. This overrides AGENTS.md's "risky render change stays default-off until a device reading" for these
 rows. A row survives only if it is a look A/B Jake hasn't judged yet, or a pure diagnostic tool.
 
-## What's there today
+## Original audit (2026-10-23, c145edf02a)
 
 27 rows in total. 19 are engine rows (`src/engine/ui/debugOptions.ts`) and 4 are game-wide rows (measure clay, Pine
 score, legacy buttons, template). 4 are legacy-shard rows: 3 can be reached through Developer ▸ Legacy shard buttons,
@@ -119,16 +121,47 @@ Jake, 2026-10-23 ~10:50 Cancun: *"Debug rows mini plan. That's big because it's 
 | **DR18** | Delete Template shard (the template already has its SHARD SELECT card), Time of day and Weather (captures hold the clock and weather through the harness), with their code, strings and tests. **Clear downloads and Legacy shard buttons stay** (G673, Jake: *"we do need a dev section with the ability to clear downloads and turn the legacy shard buttons on and off"*) in one Settings section named Developer, shown with Developer on; Clear downloads takes over the Storage readout | Codex | S | Settings shows only player settings plus the Developer section with exactly those two; types, lint, `vitest related` pass |
 | **DR19** | **The Settings page applies on a button.** A toggle never reloads the page: changes that need a reload are staged and an "APPLY & RELOAD" button appears (with how many changes wait); taps answer on pointerup within one frame; nothing re-renders the whole page per tap. Check the slowness on the phone tier first (what runs per tap) and fix that cause | Codex (Opus if it's render-side) | S | a Simulator recording: a reload toggle shows APPLY & RELOAD and no reload; every tap answers within 100 ms |
 
-When DR1–DR19 are done, Settings keeps player settings plus a Developer section with Clear downloads and Legacy shard buttons.
+DR1–DR19 are done. Settings keeps player settings plus a Developer section with Clear downloads and Legacy shard buttons. Capture-only Time/Weather APIs intentionally remain for harnesses and frozen legacy callers; their menu rows are gone.
+
+### Defining landings (G742)
+
+All SHAs below are on origin. Counts are net source-tree deletions in the named commit, including strings and source-colocated tests; this reconciliation adds no new source savings.
+
+| Row | Status / defining SHA | Net src lines removed | Net src bytes removed |
+|---|---|---:|---:|
+| DR1 | done `30a6cde323` | 265 | 16,278 |
+| DR2 | done `c391756c84` | 11 | 1,320 |
+| DR3 | done `9cd55b1591` | 78 | 6,118 |
+| DR4 | done `76918daa83` | 149 | 11,613 |
+| DR5 | done `4181600771` | 4 | 699 |
+| DR6 | done `4317319d11` | 10 | 1,668 |
+| DR7 | done `229f8d3a62` | 7 | 1,001 |
+| DR8 | done `c7a9b7b458` | 7 | 1,122 |
+| DR9 | done `48eb955b6e` | 8 | 1,221 |
+| DR10 | done `488ca90929` | 13 | 1,531 |
+| DR11 | done `070d9d96f0` | 75 | 6,405 |
+| DR12 | done `7a54a395be` | 17 | 2,353 |
+| DR13 | done `e0fa9db838` | 31 | 3,082 |
+| DR14 | done `db440b20c2` | 63 | 4,536 |
+| DR15 | done `866572a3a6` | 129 | 6,905 |
+| DR16 | done `85692a2df7` | 424 | 29,244 |
+| DR17 | done `d355c20d3c` | 26 | 2,795 |
+| DR18 | done `892004cd85` | 28 | 2,198 |
+| DR19 | done `78b5f111e7` | 16 | 2,011 |
+| **Total** | **19/19 done** | **1,361** | **102,100** |
+
+DR3/DR12's required Signal checks are recorded in their defining commit bodies: reuse off/on was equally lit, and graphs on/off were both lit. The reported darkness was quest dusk state `7dfa08ba3e`; no unjudged look pick remains in these rows.
+
+### DR19 retained acceptance
+
+- `78b5f111e7` ships staged reload picks and pointerup activation; `4081790d50` pins Apply outside the scroll. Both and the final observed runtime `4317319d11` are on origin.
+- `tmp/sp-x8-settings/dr19.mp4` and `dr19-pinned.mp4` retain the Simulator recordings; matching `dr19-receipt.json` and `dr19-pinned-receipt.json` report `pass: true`.
+- Method: iPhone Simulator Safari, portrait 402 × 714 / DPR 3, WebKit user-gesture pointerup at the hit-tested control centre. Native HID was unavailable; no physical finger or home-screen PWA claim.
+- First recording: toggle handler 0 ms / next frame 13 ms; Apply & reload (1) visible, no navigation, undo hides Apply. Pinned follow-up: handler 1 ms / next frame 2 ms; Apply reachable at y=617, height=51, bottom gutter=46. Title Settings, SHARD SELECT Settings and DEV first-tap handlers are 3/0/13 ms, with 44 px targets and 60 px gutters.
 
 ## For Jake
 
-One question:
-
-- **Memory saver on for everyone?** **Recommended: yes.** Its cuts change no look: the CPU copies go once they are on
-  the GPU, the shadow maps keep depth only, and the bloom luminance runs at half size. G669 asks for every improvement.
-  But it reverses G271 ("off everywhere, full quality"), and a lost GPU context reloads the page while it is on. DR17
-  builds last, so his answer decides it without holding anything.
+No pick remains. G674 resolved Memory saver **on for everyone**, shipped by DR17 (`d355c20d3c`).
 
 Two notes that need no answer:
 
