@@ -80,20 +80,24 @@ export function loadImage(url: string, maxSize: number = TIER_CONFIG.maxTexture)
  * uploads it once (rock_ground's terrain slab and cabin rubble were two GL textures) and the decoded image goes once that
  * source is on the GPU: the cache lets go of it when the last source made from it has uploaded (a later ask decodes again).
  */
-const sharedSources = new Map<string, { source: THREE.TextureSource<unknown>; flipY: boolean }>();
-const imageUsers = new Map<string, number>();
+// Live textures own a source; a prepared texture retired before upload must
+// not leave its decoded pixels rooted by this cross-request identity memo.
+const sharedSources = new Map<string, { source: WeakRef<THREE.TextureSource<unknown>>; flipY: boolean }>();
+const imageUsers = new WeakMap<ImageBitmap | HTMLImageElement, Set<WeakRef<THREE.TextureSource<unknown>>>>();
 const sourceKey = (url: string, srgb: boolean): string => `${url}|${srgb ? 'srgb' : 'linear'}`;
 function shareSource(t: THREE.Texture, key: string, srgb: boolean, image: ImageBitmap | HTMLImageElement): void {
   // `key` is the decode cache's own key (`imageKey`: `url@size` for a trimmed decode): it is released under that same key
-  const shared = sourceKey(key, srgb), source = t.source;
+  const shared = sourceKey(key, srgb), source = new WeakRef(t.source);
   sharedSources.set(shared, { source, flipY: t.flipY });
-  imageUsers.set(key, (imageUsers.get(key) ?? 0) + 1);
+  const users = imageUsers.get(image) ?? new Set<WeakRef<THREE.TextureSource<unknown>>>();
+  users.add(source);imageUsers.set(image, users);
   const done = (): void => {
     if (sharedSources.get(shared)?.source === source) sharedSources.delete(shared);
-    const left = (imageUsers.get(key) ?? 1) - 1;
-    if (left > 0) { imageUsers.set(key, left); return; }
-    imageUsers.delete(key);
-    images.delete(key);
+    users.delete(source);
+    for (const user of users) if (user.deref() === undefined) users.delete(user);
+    if (users.size > 0) return;
+    imageUsers.delete(image);
+    if (images.get(key)?.deref() === image) images.delete(key);
     if (typeof ImageBitmap !== 'undefined' && image instanceof ImageBitmap) image.close();
   };
   releaseOnUpload(t.source, done);
@@ -119,15 +123,16 @@ export async function loadTexture(url: string, srgb = false, repeat = 1, maxSize
   }
   const key = imageKey(url, maxSize);
   const shared = sharedSources.get(sourceKey(key, srgb));
+  const source = shared?.source.deref();
   let t: THREE.Texture;
-  if (shared === undefined) {
+  if (shared === undefined || source === undefined) {
     const image = await loadImage(url, maxSize);
     t = new THREE.Texture(image);
     t.flipY = !(typeof ImageBitmap !== 'undefined' && image instanceof ImageBitmap); // bitmaps are flipped at decode
     shareSource(t, key, srgb, image);
   } else {
     t = new THREE.Texture();
-    t.source = shared.source;
+    t.source = source;
     t.flipY = shared.flipY;
   }
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
