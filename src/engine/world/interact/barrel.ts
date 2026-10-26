@@ -28,7 +28,7 @@ const PLAYER_R = 0.35;
  * capsule walking into it tips it (grippy wood on sand: it tips before it slides), and on its side it rolls — across
  * the push, or down a slope steeper than ~3.5° (its rolling resistance, packed sand's); along its length it is shoved.
  */
-export const BARREL_BODY = {
+export const BARREL_BODY: { readonly shape: { readonly cylinder: { readonly radius: 0.38; readonly halfHeight: 0.475; }; }; readonly material: "wood"; readonly density: 250; readonly friction: 1; readonly angularDamping: 0.2; readonly rolling: 0.06; readonly keep: true; } = {
   shape: { cylinder: { radius: BARREL_R, halfHeight: BARREL_HALF } }, material: 'wood', density: 250, friction: 1.0,
   angularDamping: 0.2, rolling: 0.06, keep: true,
 } as const satisfies Omit<BodySpec, 'owner'>;

@@ -1,3 +1,4 @@
+import type { FnNode, ProxiedObject } from 'three/src/nodes/tsl/TSLCore.js';
 /**
  * The engine's shadow filter as nodes (SHARD-PLATFORM SF59 step 2, fix 3; sf59-tsl-spike.md §2.2): Castaño's optimised
  * PCF tent (shadowFilter.ts, E138), the same taps, weights and receiver-plane depth bias, for graph materials. three's node
@@ -26,7 +27,7 @@ interface FilterInputs {
 }
 
 /** the tent as a node shadow filter (a light's `shadow.filterNode`); EngineNodesHandler assigns it */
-export const tentShadowFilter = Fn<FilterInputs, Node<'float'>>(({ depthTexture, shadowCoord, shadow }: FilterInputs): Node<'float'> => {
+export const tentShadowFilter: FnNode<[ProxiedObject<FilterInputs>], Node<'float'>> = Fn<FilterInputs, Node<'float'>>(({ depthTexture, shadowCoord, shadow }: FilterInputs): Node<'float'> => {
   const mapSize = reference('mapSize', 'vec2', shadow);
   const tuv = shadowCoord.xy.mul(mapSize);
   const tb = floor(tuv.add(0.5));

@@ -197,7 +197,7 @@ export function parseManifest(value: unknown, config: UpdateConfig, host: Update
 }
 
 /** Verify the exact signed bytes before trusting any URL, native bound or save contract inside them. */
-export async function verifyUpdate(envelope: unknown, config: UpdateConfig, host: UpdateHost, subtle: SubtleCrypto, now = Date.now()): Promise<UpdateManifest> {
+export async function verifyUpdate(envelope: unknown, config: UpdateConfig, host: UpdateHost, subtle: SubtleCrypto, now: number = Date.now()): Promise<UpdateManifest> {
   if (!isRecord(envelope)) throw new Error('Invalid signed update');
   const payload = decodeBase64Url(envelope['payload']);
   const signature = decodeBase64Url(envelope['signature']);

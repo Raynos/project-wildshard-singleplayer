@@ -34,7 +34,7 @@ import { TIER } from '../core/tier';
 /** the band's radius (m): inside the camera's far plane (2600) even at the top edge (R / cos 24° ≈ 2520) */
 const RADIUS = CONTENT_HORIZON_RADIUS;
 /** the band's radius: the sea (Ocean.ts) fades out just inside it, so the painted islands stand on its far edge (E125) */
-export const HORIZON_RADIUS = RADIUS;
+export const HORIZON_RADIUS: typeof CONTENT_HORIZON_RADIUS = RADIUS;
 const FADE_IN = 1.5;
 
 /**
@@ -230,7 +230,7 @@ export class PaintedHorizon {
   private loaded = false;
   private ready = false;
   /** the weather's veil (PH-L10, src/shards/pine-hollow/world/weather.ts): x a rain deck over the whole band, y the dawn fog on its low rows */
-  readonly veil = { value: new THREE.Vector2(0, 0) };
+  readonly veil: {value:THREE.Vector2} = { value: new THREE.Vector2(0, 0) };
   private readonly u = {
     tDay: { value: placeholder() },
     tNight: { value: placeholder() },

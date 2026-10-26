@@ -268,7 +268,7 @@ export class Bodies {
   }
 
   /** before the world steps: keep the last pose; rolling things lose spin; the water lifts what floats */
-  pre(dt = 1 / 60): void {
+  pre(dt: number = 1 / 60): void {
     for (const b of this.list) {
       b.keepPrev();
       if (b.rollDecel > 0 && b.rb.isEnabled() && !b.rb.isSleeping()) b.rollResist(dt);
@@ -563,7 +563,7 @@ export class RowBodySlots<T extends { readonly entityId: string } = never> {
 
 /** a dropped item's body: a small ball that bounces a little and stops rolling soon (DEBRIS: the player walks through
  *  it, it never shoves you); removed by the cap before anything that lasts */
-export const DROP_BODY = {
+export const DROP_BODY: { readonly shape: { readonly ball: 0.2; }; readonly material: "wood"; readonly group: "DEBRIS"; readonly density: 400; readonly friction: 0.8; readonly restitution: 0.4; readonly angularDamping: 2; readonly rolling: 0.3; readonly ccd: true; readonly expendable: true; } = {
   shape: { ball: 0.2 }, material: 'wood', group: 'DEBRIS', density: 400, friction: 0.8, restitution: 0.4,
   angularDamping: 2, rolling: 0.3, ccd: true, expendable: true,
 } as const satisfies Omit<BodySpec, 'owner'>;

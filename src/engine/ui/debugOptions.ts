@@ -129,7 +129,7 @@ export function action(id: string, group: DebugGroupId, label: string, text: str
 
 /** params that skip the title (dev / deep links): a reload meant to land on the title drops them (the title's Apply &
  *  reload, src/engine/ui/BootSettings.ts; Clear downloads) */
-export const TITLE_SKIPPERS = ['skipintro', 'tour', 'explore', 'cam', 'model', 'at', RELOAD_PARAM, 'v'];
+export const TITLE_SKIPPERS: string[] = ['skipintro', 'tour', 'explore', 'cam', 'model', 'at', RELOAD_PARAM, 'v'];
 
 /** E172 (the user: "I need a button to nuke the cache so i can test it"): every downloaded file gone, the saves kept
  *  (src/engine/boot/clearDownloads.ts), then a reload to the title like a fresh launch — the running shard's ?chunk= stays */

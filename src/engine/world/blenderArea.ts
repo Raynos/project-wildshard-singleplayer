@@ -10,9 +10,9 @@
 import { CHUNK_SIZE, TERRAIN_RES } from '../core/config';
 
 /** one procedural terrain cell, metres */
-export const CELL = CHUNK_SIZE / (TERRAIN_RES - 1);
+export const CELL: number = CHUNK_SIZE / (TERRAIN_RES - 1);
 /** the Blender terrain's grid step, metres */
-export const STEP = CELL / 2;
+export const STEP: number = CELL / 2;
 
 /** a level's Blender area: world bounds in metres */
 export interface BlenderArea { x0: number; x1: number; z0: number; z1: number }

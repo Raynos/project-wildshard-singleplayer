@@ -264,7 +264,7 @@ export function flagsRead(d: InteractDef): string[] {
 }
 
 /** flags that describe a moment, not progress — never persisted */
-export const TRANSIENT_PREFIXES = ['plate:'];
+export const TRANSIENT_PREFIXES: string[] = ['plate:'];
 
 /** Weak actions yield to another reachable prompt. */
 export interface Interactable { position: Vector3; radius: number; label: string; onInteract: () => void; weak?: boolean }

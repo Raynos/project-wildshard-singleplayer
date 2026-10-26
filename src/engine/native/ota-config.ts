@@ -11,7 +11,7 @@
 export const OTA_ORIGIN = 'https://wildshard-updates.vercel.app';
 
 /** One signed channel per platform. The `v1` segment is the native runtime line (OTA_RUNTIME). */
-export const OTA_CHANNELS = {
+export const OTA_CHANNELS: { readonly ios: "https://wildshard-updates.vercel.app/ios/v1/manifest.json"; readonly android: "https://wildshard-updates.vercel.app/android/v1/manifest.json"; } = {
   ios: `${OTA_ORIGIN}/ios/v1/manifest.json`,
   android: `${OTA_ORIGIN}/android/v1/manifest.json`,
 } as const;

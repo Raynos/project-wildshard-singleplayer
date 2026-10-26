@@ -1,3 +1,4 @@
+import type { FnNode, ProxiedObject } from 'three/src/nodes/tsl/TSLCore.js';
 /**
  * three's 5-tap Vogel PCF with the receiver-plane depth bias, as nodes (E435, the shadow acne fix): the node side of
  * `installPlaneBiasShadowFilter` (world/shadowFilter.ts), so graph materials keep the classic materials' penumbra.
@@ -22,7 +23,7 @@ interface FilterInputs {
 }
 
 /** the biased PCF as a node shadow filter (a light's `shadow.filterNode`); EngineNodesHandler assigns it */
-export const planeBiasShadowFilter = Fn<FilterInputs, Node<'float'>>(({ depthTexture, shadowCoord, shadow }: FilterInputs): Node<'float'> => {
+export const planeBiasShadowFilter: FnNode<[ProxiedObject<FilterInputs>], Node<'float'>> = Fn<FilterInputs, Node<'float'>>(({ depthTexture, shadowCoord, shadow }: FilterInputs): Node<'float'> => {
   const mapSize = reference('mapSize', 'vec2', shadow);
   const radius = reference('radius', 'float', shadow);
   const radiusScaled = radius.div(mapSize.x);
