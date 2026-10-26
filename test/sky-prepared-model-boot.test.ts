@@ -6,7 +6,7 @@ import { expect, test } from 'vitest';
 import { bootFileList, bootSourceFiles, bootLateReads } from '../src/engine/boot/filePolicy';
 import { parseDiscoveryValues } from '../src/format/discoveryValues';
 import { BOOT_FILES, BOOT_SOURCES, LATE_READS, skyProductBoot } from '../src/shards/far-reach/generators/bootInventory';
-import { BAKED_PIECES, BAKED_URLS, FAN_URL } from '../src/shards/far-reach/generators/fileInventory';
+import { BAKED_PIECES, BAKED_URLS, FAN_URL, SKY_CREATURE_RIGS } from '../src/shards/far-reach/generators/fileInventory';
 import { PREPARED_MODELS_URL } from '../src/shards/far-reach/generators/modelFrames';
 import { BRIDGE_REST_URL, MILL_REST_URL } from '../src/shards/far-reach/generators/restFiles';
 import { output } from '../src/shards/far-reach/generators/sourceOutput';
@@ -23,8 +23,10 @@ const ownedPublic = [PREPARED_MODELS_URL, ...BAKED_PIECES.map(piece => BAKED_URL
 const publicFiles = (urls: readonly string[]): string[] => urls.filter(url => !ownedPublic.includes(url));
 
 test('public boot pack inputs exist before owned products are published', () => {
-  const boot = skyProductBoot();
+  const blobs = [...originalSkyRigs()].map(([name, bytes]) => nameBlob(`world/rigs/${name}`, 'glb', bytes));
+  const boot = skyProductBoot(skyRigAssetSources(blobs.map(blob => blob.file), GPU_FILES));
   for (const tier of ['phone', 'desktop'] as const) {
+    for (const url of Object.values(SKY_CREATURE_RIGS)) expect(bootFileList(boot['boot.files'], tier), url).not.toContain(url);
     for (const url of bootFileList(boot['boot.files'], tier)) {
       expect(existsSync(resolve('public', `.${url}`)), url).toBe(true);
     }
