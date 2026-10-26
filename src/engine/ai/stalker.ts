@@ -60,7 +60,7 @@ const howlerPositive = v.pipe(howlerScalar, v.minValue(Number.MIN_VALUE));
 const speedValue = v.pipe(howlerScalar, v.maxValue(40)), turn = v.pipe(howlerScalar, v.maxValue(30));
 const fraction = v.pipe(howlerScalar, v.maxValue(1));
 const howlerField = v.pipe(v.string(), v.regex(/^[a-z][a-z0-9._:-]{0,127}$/u));
-const HowlerSpecSchema = v.pipe(v.strictObject({
+const HowlerSpecSchema: v.GenericSchema<BoundedHowlerSpecInput, BoundedHowlerSpec> = v.pipe(v.strictObject({
   initialHowl: howlerScalar, engagedHowl: howlerScalar, phaseCooldown: howlerScalar, interruptedHowl: howlerScalar,
   nextHowl: howlerScalar, randomHowl: howlerScalar, pathSeconds: howlerPositive, pathNear: howlerScalar, homePathSeconds: howlerPositive,
   homeStop: howlerPositive, homeReset: howlerPositive, meleeRadius: howlerPositive, grassHeight: howlerScalar, hiddenDamage: howlerScalar,
@@ -79,7 +79,7 @@ export type HowlerSpec = v.InferOutput<typeof HowlerSpecSchema>;
 export function readHowlerSpec(value: unknown): HowlerSpec { return v.parse(HowlerSpecSchema, value); }
 
 const howlerFinite = v.pipe(v.number(), v.finite());
-const HowlerSaved = v.strictObject({ st: v.picklist(['den', 'hold', 'howl', 'hunt', 'home']), howlT: howlerFinite, stT: howlerFinite,
+const HowlerSaved: v.GenericSchema<BoundedHowlerSaveInput, BoundedHowlerSave> = v.strictObject({ st: v.picklist(['den', 'hold', 'howl', 'hunt', 'home']), howlT: howlerFinite, stT: howlerFinite,
   howlHit: v.union([howlerFinite, v.literal(-Infinity)]), cd: howlerFinite, bit: v.boolean() });
 
 /** One solid ledge observed by the native world; at most six are admitted per pouncer. */
@@ -98,7 +98,7 @@ export interface PouncerPorts<A> {
 const pouncerScalar = v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(600));
 const pouncerPositive = v.pipe(pouncerScalar, v.minValue(Number.MIN_VALUE));
 const pouncerField = v.pipe(v.string(), v.regex(/^[a-z][a-z0-9._:-]{0,127}$/u));
-const PouncerSpecSchema = v.pipe(v.strictObject({
+const PouncerSpecSchema: v.GenericSchema<BoundedPouncerSpecInput, BoundedPouncerSpec> = v.pipe(v.strictObject({
   initialCooldown: pouncerScalar, awareCooldown: pouncerScalar, lookIdle: pouncerScalar, homeRadius: pouncerPositive, pathSeconds: pouncerPositive,
   ledgeMargin: pouncerScalar, standRate: pouncerPositive, openSeconds: pouncerPositive, openCooldown: pouncerScalar,
   fields: v.strictObject({ low: pouncerField, leap: pouncerField, snarl: pouncerField }),
@@ -122,7 +122,7 @@ export type PouncerSpec = v.InferOutput<typeof PouncerSpecSchema>;
 export function readPouncerSpec(value: unknown): PouncerSpec { return v.parse(PouncerSpecSchema, value); }
 
 const pouncerFinite = v.pipe(v.number(), v.finite()), pouncerTriple = v.tuple([pouncerFinite, pouncerFinite, pouncerFinite]);
-const PouncerSaved = v.strictObject({ st: v.picklist(['lurk', 'stalk', 'tell', 'leap', 'open', 'swipe', 'perch', 'home']), stT: pouncerFinite, cd: pouncerFinite,
+const PouncerSaved: v.GenericSchema<BoundedPouncerSaveInput, BoundedPouncerSave> = v.strictObject({ st: v.picklist(['lurk', 'stalk', 'tell', 'leap', 'open', 'swipe', 'perch', 'home']), stT: pouncerFinite, cd: pouncerFinite,
   from: pouncerTriple, to: pouncerTriple, goal: v.nullable(v.strictObject({ x: pouncerFinite, z: pouncerFinite, y: pouncerFinite })), hitDone: v.picklist([0, 1, 2]) });
 
 /** Parameters for a circling melee archetype with idle wandering and subordinate scattering. */
@@ -1287,3 +1287,193 @@ export class StalkerBrain<A extends AnimalSim> extends HuntingStalkerCore<A> {
     c.steer(a, Math.atan2(vx, vz), speed, turnRate);
   }
 }
+
+/** Complete admitted data, independent of validator implementation metadata. */
+type BoundedHowlerSpecInput = BoundedHowlerSpec;
+interface BoundedHowlerSpecFields {
+    initialHowl: number;
+    engagedHowl: number;
+    phaseCooldown: number;
+    interruptedHowl: number;
+    nextHowl: number;
+    randomHowl: number;
+    pathSeconds: number;
+    pathNear: number;
+    homePathSeconds: number;
+    homeStop: number;
+    homeReset: number;
+    meleeRadius: number;
+    grassHeight: number;
+    hiddenDamage: number;
+    fields: {
+        howl: string;
+        low: string;
+        snarl: string;
+    };
+    speeds: {
+        home: number;
+        watched: number;
+        hold: number;
+        hunt: number;
+        bite: number;
+    };
+    turns: {
+        home: number;
+        den: number;
+        hold: number;
+        howl: number;
+        hunt: number;
+        bite: number;
+    };
+    hold: {
+        watchedDot: number;
+        minRadius: number;
+        maxRadius: number;
+        sidestep: number;
+        arrival: number;
+        watchedLow: number;
+        low: number;
+    };
+    hunt: {
+        snarlDistance: number;
+        attackDistance: number;
+        moveDistance: number;
+    };
+    bite: {
+        seconds: number;
+        phase: number;
+        range: number;
+        damage: number;
+        cooldown: number;
+    };
+    howl: {
+        growSeconds: number;
+        seconds: number;
+        radius: number;
+        speed: number;
+        span: number;
+        strength: number;
+        stagger: number;
+        scare: number;
+    };
+}
+type BoundedHowlerSpec = { [Key in keyof BoundedHowlerSpecFields]: BoundedHowlerSpecFields[Key] };
+type BoundedHowlerSaveInput = BoundedHowlerSave;
+interface BoundedHowlerSaveFields {
+    st: "howl" | "home" | "hold" | "hunt" | "den";
+    howlT: number;
+    stT: number;
+    howlHit: number;
+    cd: number;
+    bit: boolean;
+}
+type BoundedHowlerSave = { [Key in keyof BoundedHowlerSaveFields]: BoundedHowlerSaveFields[Key] };
+type BoundedPouncerSpecInput = BoundedPouncerSpec;
+interface BoundedPouncerSpecFields {
+    initialCooldown: number;
+    awareCooldown: number;
+    lookIdle: number;
+    homeRadius: number;
+    pathSeconds: number;
+    ledgeMargin: number;
+    standRate: number;
+    openSeconds: number;
+    openCooldown: number;
+    fields: {
+        low: string;
+        leap: string;
+        snarl: string;
+    };
+    pose: {
+        stalk: number;
+        perch: number;
+        open: number;
+        leapSwing: number;
+        leapBase: number;
+    };
+    speeds: {
+        home: number;
+        perch: number;
+        stalk: number;
+        back: number;
+    };
+    turns: {
+        home: number;
+        idle: number;
+        swipeStart: number;
+        perch: number;
+        stalk: number;
+        tell: number;
+        open: number;
+        swipe: number;
+    };
+    stalk: {
+        far: number;
+        near: number;
+    };
+    perch: {
+        minHeight: number;
+        maxHeight: number;
+        minDistance: number;
+        maxDistance: number;
+        arrival: number;
+        retreatHeight: number;
+        retreatDistance: number;
+        cooldown: number;
+        waitSeconds: number;
+    };
+    damage: {
+        airborne: number;
+        openHead: number;
+        perched: number;
+    };
+    swipe: {
+        from: number;
+        seconds: number;
+        first: number;
+        second: number;
+        range: number;
+        damage: number;
+        cooldown: number;
+    };
+    pounce: {
+        minDistance: number;
+        maxDistance: number;
+        seconds: number;
+        arcHeight: number;
+        range: number;
+        damage: number;
+        cooldown: number;
+    };
+    tell: {
+        radius: number;
+        strength: number;
+        growth: number;
+        growSeconds: number;
+        seconds: number;
+    };
+}
+type BoundedPouncerSpec = { [Key in keyof BoundedPouncerSpecFields]: BoundedPouncerSpecFields[Key] };
+type BoundedPouncerSaveInput = BoundedPouncerSave;
+interface BoundedPouncerSaveFields {
+    st: "home" | "leap" | "stalk" | "perch" | "open" | "tell" | "swipe" | "lurk";
+    stT: number;
+    cd: number;
+    from: [
+        number,
+        number,
+        number
+    ];
+    to: [
+        number,
+        number,
+        number
+    ];
+    goal: {
+        x: number;
+        z: number;
+        y: number;
+    } | null;
+    hitDone: 0 | 1 | 2;
+}
+type BoundedPouncerSave = { [Key in keyof BoundedPouncerSaveFields]: BoundedPouncerSaveFields[Key] };

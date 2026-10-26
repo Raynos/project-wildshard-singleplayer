@@ -16,7 +16,7 @@ const projectionRows = v.strictObject({ signal: v.pipe(v.string(), v.minLength(1
   bondedState: v.string(), brokenState: v.exactOptional(v.string()),
   adoption: v.exactOptional(v.strictObject({ variant: v.string(), scale: v.pipe(finite, v.minValue(.000001)) })) });
 const point = v.tuple([finite, finite, finite]);
-const projectionSaved = v.strictObject({ laneT: finite, runT: finite, lastState: v.string(), elapsed: v.optional(finite, 0), laneFrom: point, laneTo: point });
+const projectionSaved: v.GenericSchema<BoundedEliteProjectionInput, BoundedEliteProjection> = v.strictObject({ laneT: finite, runT: finite, lastState: v.string(), elapsed: v.optional(finite, 0), laneFrom: point, laneTo: point });
 /** The original admitted numeric programme, lent without an alternate module or clock. */
 export interface NativeEliteProgram {
   readonly project: (signal: string, fields: Readonly<Record<string, number>>) => Readonly<Record<string, number>>;
@@ -54,10 +54,10 @@ export class NativeEliteProjection {
   prepareRestore(input: unknown): () => void { this.live(); const state = v.parse(projectionSaved, input); return () => { this.live(); this.state = state; }; }
   restore(input: unknown): void { this.prepareRestore(input)(); }
 }
-const definition = v.object({ id: HandleIdSchema, lair: v.object({ x: finite, z: finite, r: finite }),
+const definition: v.GenericSchema<BoundedEliteDefinitionInput, BoundedEliteDefinition> = v.object({ id: HandleIdSchema, lair: v.object({ x: finite, z: finite, r: finite }),
   awareR: finite, engageR: finite, leashR: finite, rule: v.picklist(['always', 'dusk', 'night', 'storm']), respawnMin: finite });
 const rowSchema = v.object({ ...EliteContinuationRowsSchema.entries.rows.item.entries, def: definition });
-const rowsSchema = v.strictObject({ step: HandleIdSchema, version: finite, wire: EliteContinuationRowsSchema.entries.wire,
+const rowsSchema: v.GenericSchema<BoundedEliteRosterInput, BoundedEliteRoster> = v.strictObject({ step: HandleIdSchema, version: finite, wire: EliteContinuationRowsSchema.entries.wire,
   rows: v.pipe(v.array(rowSchema), v.minLength(1), v.maxLength(64)), roles: v.array(v.picklist(['native', 'borrowed'])), kernels: v.unknown(), projections: v.exactOptional(v.record(HandleIdSchema, projectionRows)) });
 type Definition = v.InferOutput<typeof definition>;
 type ReadonlyRows<T> = T extends object ? { readonly [K in keyof T]: ReadonlyRows<T[K]> } : T;
@@ -235,3 +235,107 @@ export class NativeEliteRoster {
   initialize(): void { this.validate(); if (!this.installed) throw new Error('Uninstalled elite roster'); if (this.projected.length > 0 && this.bond === null) throw new Error('Missing elite bond owner'); this.core.initialize(); }
   bindPopulation(population: NativeElitePopulation): void { this.validate(); if (!this.installed) throw new Error('Uninstalled elite roster'); this.lifecycle?.bindPopulation(population); }
 }
+
+/** Complete admitted data, independent of validator implementation metadata. */
+interface BoundedEliteProjectionInputFields {
+    laneT: number;
+    runT: number;
+    lastState: string;
+    elapsed?: number | undefined;
+    laneFrom: [
+        number,
+        number,
+        number
+    ];
+    laneTo: [
+        number,
+        number,
+        number
+    ];
+}
+type BoundedEliteProjectionInput = { [Key in keyof BoundedEliteProjectionInputFields]: BoundedEliteProjectionInputFields[Key] };
+interface BoundedEliteProjectionFields {
+    laneT: number;
+    runT: number;
+    lastState: string;
+    elapsed: number;
+    laneFrom: [
+        number,
+        number,
+        number
+    ];
+    laneTo: [
+        number,
+        number,
+        number
+    ];
+}
+type BoundedEliteProjection = { [Key in keyof BoundedEliteProjectionFields]: BoundedEliteProjectionFields[Key] };
+type BoundedEliteDefinitionInput = BoundedEliteDefinition;
+interface BoundedEliteDefinitionFields {
+    id: string;
+    lair: {
+        x: number;
+        z: number;
+        r: number;
+    };
+    awareR: number;
+    engageR: number;
+    leashR: number;
+    rule: "always" | "dusk" | "night" | "storm";
+    respawnMin: number;
+}
+type BoundedEliteDefinition = { [Key in keyof BoundedEliteDefinitionFields]: BoundedEliteDefinitionFields[Key] };
+type BoundedEliteRosterInput = BoundedEliteRoster;
+interface BoundedEliteRosterFields {
+    step: string;
+    version: number;
+    wire: {
+        detached?: string;
+    };
+    rows: {
+        def: {
+            id: string;
+            lair: {
+                x: number;
+                z: number;
+                r: number;
+            };
+            awareR: number;
+            engageR: number;
+            leashR: number;
+            rule: "always" | "dusk" | "night" | "storm";
+            respawnMin: number;
+        };
+        snapshot: string;
+        member: {
+            kind: string;
+            variant: string;
+        };
+        pack?: {
+            variants: (string)[];
+            kind: string;
+            idPrefix: string;
+        };
+        continuation?: {
+            detachable?: true;
+            borrowed?: {
+                group: number;
+                role: "guard";
+            };
+        };
+    }[];
+    roles: ("native" | "borrowed")[];
+    kernels: unknown;
+    projections?: Record<string, {
+            signal: string;
+            states: Record<string, number>;
+            bondedState: string;
+            brokenState?: string;
+            adoption?: {
+                variant: string;
+                scale: number;
+            };
+        }>;
+}
+type BoundedEliteRoster = { [Key in keyof BoundedEliteRosterFields]: BoundedEliteRosterFields[Key] };

@@ -14,11 +14,11 @@ const V = (x: number, y: number, z: number): Vector3 => new Vector3(x, y, z);
 /** the zipline's layout on its ends: the launch deck, the cable's two ends and its sag (world) */
 export class CableLayout {
   /** the cable's two ends (world) */
-  readonly a = new Vector3();
-  readonly b = new Vector3();
+  readonly a: Vector3 = new Vector3();
+  readonly b: Vector3 = new Vector3();
   readonly len: number;
   readonly sag: number;
-  readonly dir = new Vector3();
+  readonly dir: Vector3 = new Vector3();
   /** the flat direction down the line */
   readonly flat: Vector3;
   readonly deck = { x: 0, z: 0, yaw: 0, y: 0, hw: 1.2, hd: 1.8 };
@@ -58,7 +58,7 @@ export interface ZiplineRideState { s: number; v: number }
 const finite = v.pipe(v.number(), v.finite());
 const bounded = (low: number, high: number) => v.pipe(finite, v.minValue(low), v.maxValue(high));
 const Landing = v.strictObject({ x: finite, y: finite, z: finite });
-const Saved = v.strictObject({ riding: v.boolean(), s: v.pipe(finite, v.minValue(0)), v: bounded(0, 32) });
+const Saved: v.GenericSchema<BoundedCableSaveInput, BoundedCableSave> = v.strictObject({ riding: v.boolean(), s: v.pipe(finite, v.minValue(0)), v: bounded(0, 32) });
 /** One cable's gravity/drag law and carry/release pose. Uses the caller's update phase and clock. */
 export class ZiplineDriver {
   private readonly layout: CableLayout;
@@ -275,3 +275,12 @@ export class CableTraversal {
   snapshot(id: string): ReturnType<ZiplineDriver['snapshot']> { return this.entry(id).driver.snapshot(); }
   restore(id: string, value: unknown): void { const entry = this.entry(id); entry.driver.restore(value); entry.events.length = 0; }
 }
+
+/** Complete admitted data, independent of validator implementation metadata. */
+type BoundedCableSaveInput = BoundedCableSave;
+interface BoundedCableSaveFields {
+    riding: boolean;
+    s: number;
+    v: number;
+}
+type BoundedCableSave = { [Key in keyof BoundedCableSaveFields]: BoundedCableSaveFields[Key] };
