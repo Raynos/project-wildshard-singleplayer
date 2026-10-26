@@ -510,7 +510,7 @@ async function run() {
   }
   // a fixed-time parity frame (the sway variant at t = 0 is still the static layout)
   frame();
-  const shot = renderer.domElement.toDataURL('image/png');
+  const shot = new Promise(resolve => { renderer.domElement.toBlob(resolve, 'image/png'); });
   const err = gl.getError();
   if (err !== gl.NO_ERROR) errors.push(`gl error ${err}`);
   return {
@@ -535,7 +535,12 @@ window.addEventListener('error', (e) => { consoleErrors.push(e.message.slice(0, 
 async function report() {
   let result;
   try {
-    result = await run();
+    const { shot, ...measured } = await run();
+    const png = await shot;
+    if (!(png instanceof Blob) || png.type !== 'image/png' || png.size === 0) throw new Error('TSL parity PNG encoding failed');
+    const upload = await fetch(`/shot/${encodeURIComponent(VARIANT)}`, { method: 'POST', body: png });
+    if (!upload.ok) throw new Error('TSL parity PNG upload failed');
+    result = measured;
     result.errors.push(...consoleErrors);
   } catch (e) {
     result = { variant: VARIANT, failed: String(e instanceof Error ? e.stack : e).slice(0, 2000), errors: consoleErrors };

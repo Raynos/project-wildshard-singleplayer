@@ -6,7 +6,6 @@
     "scripts/loading-benchmark/capture.mjs": 1,
     "scripts/ota-release.mjs": 4,
     "scripts/parity/fast-png.mjs": 1,
-    "scripts/tsl-spike/run.mjs": 1,
     "src/commons/practiceCourse.ts": 1,
     "src/engine/core/deflate.ts": 1,
     "src/engine/native/updates.ts": 1,

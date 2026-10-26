@@ -20,13 +20,14 @@ import { existsSync, mkdirSync, readFileSync, rmSync, statSync, symlinkSync, wri
 import { extname, join, resolve as resolvePath } from 'node:path';
 import { gzipSync } from 'node:zlib';
 import { setTimeout as sleep } from 'node:timers/promises';
+import { pngReceiver } from './png-upload.mjs';
 
 const ROOT = resolvePath(new URL('../..', import.meta.url).pathname);
 const argv = process.argv.slice(2);
 const flag = (name, d) => { const a = argv.find((x) => x.startsWith(`--${name}=`)); return a ? a.slice(name.length + 3) : d; };
 const SURFACE = flag('surface', 'desktop');
 const VARIANTS = flag('variants', 'family,tsl,tsl-raw,tsl-post,tsl-sway,plain,tsl-plain,tsl-pcf,family-csm,tsl-csm,family-fade,tsl-fade,graph,family-roles,graph-roles,family-labels,graph-labels,family-emit,graph-emit,family-tube,graph-tube,family-sf,graph-sf,family-toon,graph-toon,family-paint,graph-paint,graph-pastel,graph-ink,family-toonwater,graph-toonwater,family-paintsway,graph-paintsway').split(',');
-const SCRATCH = resolvePath(flag('scratch', `/private/tmp/claude-501/sp-builders/sf59-tsl/run-${process.pid}`));
+const SCRATCH = resolvePath(flag('scratch', join(ROOT, 'tmp', `tsl-spike-${process.pid}`)));
 const OUT_DIR = join(ROOT, 'progress/shard-platform/sf59');
 const TAG = flag('tag', ''); // --tag=graph writes tsl-spike-<surface>-graph.{json,jpg}, beside the spike's own results
 mkdirSync(SCRATCH, { recursive: true });
@@ -70,7 +71,9 @@ await build({
 
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json' };
 const results = new Map();
+const shots = pngReceiver(new Map([['warmup', null], ...VARIANTS.map(variant => [variant, join(SCRATCH, `${variant}.png`)])]));
 const server = createServer((req, res) => {
+  if (shots.handle(req, res)) return;
   if (req.method === 'POST' && req.url === '/result') {
     let body = '';
     req.on('data', (d) => { body += d; });
@@ -119,13 +122,12 @@ try {
     }
     try { xcrun(['terminate', udid, 'com.apple.mobilesafari']); } catch { /* not running */ }
   }
-} finally { server.close(); }
+} finally { shots.dispose(); server.close(); server.closeAllConnections(); }
 
 // shots → scratch PNGs; parity diffs and a contact sheet (PIL)
 const rows = [];
 for (const v of VARIANTS) {
   const r = results.get(v) ?? { variant: v, failed: 'no result' };
-  if (typeof r.shot === 'string') { writeFileSync(join(SCRATCH, `${v}.png`), Buffer.from(r.shot.split(',')[1], 'base64')); delete r.shot; }
   rows.push(r);
 }
 const PY = String.raw`
