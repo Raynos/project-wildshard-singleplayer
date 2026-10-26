@@ -39,5 +39,6 @@ const surface=parts.Kit.part('Kit');
 assert.deepEqual(bakeLanternVertices(surface,before,{gain:0,radius:1.5,cut:3}),surface.colours);
 console.log(before.length);`;
   const output = execFileSync(process.execPath, ['--import', './scripts/bake-loader.mjs', '--input-type=module', '-e', program], { encoding: 'utf8' });
-  expect(Number(output.trim())).toBe(5484);
+  // RM8.4's plaza beds add 16 lanterns when the lantern family is on
+  expect(Number(output.trim())).toBe(5500);
 });

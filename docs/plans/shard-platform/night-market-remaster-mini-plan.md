@@ -208,7 +208,8 @@ for the kit before the families switch on; `tiledPlot.mjs` `KIT_FAMILIES` lists 
 | RM8.1 quantized tiles | sp-x2 (wildshard-new's routing, 2026-10-26) | Quantized tile geometry in the authored-world bake (KHR_mesh_quantization + meshopt, near-view and cost readers taught): ~10–15 B a triangle and about half the resident. Measured and dropped first: lossless meshopt alone (0.30–0.35 of the wire, but the near view's reader refuses EXT_meshopt and resident rises) and per-model instancing (fine wire, but 2 draws a model: tiles at 13–31 of 8 draws) |
 | RM8.2 authored L1 | open | World-source prefixes: detail rows draw at L0 only, `coarse_` rows only in L1; each kit family carries a ≤ 12-triangle LOD1 (the lit head, the roof block) |
 | RM8.3 plaza resident | open | Savings in the four plaza L0 tiles (landmark and poster textures, with RM9) so their kit fits the pinned resident rows; then `KIT_FAMILIES` switches on |
-| RM8.4–8.6 density | open | Every tile re-packed to the mockup, ≤ 15k triangles and ≤ 0.3 MB per L0 tile |
+| RM8.4 plaza beds | done | r7's raised lawn beds flanking the lanes into the gate (8, two a plaza quarter); trees, planters and lanterns on them with the kit |
+| RM8.5–8.6 density | open | Every other tile re-packed to the mockup, ≤ 15k triangles and ≤ 0.3 MB per L0 tile (with every family on today: mean 10,057, max 18,826 triangles) |
 | RM13.1–13.2 board and walk | open | 5 cameras × MOCKUP · BEFORE · NOW, a 30 s road-to-plaza walk |
 
 ## 4. Decisions for Jake

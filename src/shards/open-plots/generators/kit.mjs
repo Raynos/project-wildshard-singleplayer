@@ -524,6 +524,21 @@ function plaza(w, p) {
       w.placeModel('props', 1, x, z, { yaw: Math.atan2(HALF - x, -HALF - z) }); w.solid([x - 0.8, 0, z - 0.8], [x + 0.8, 0.5, z + 0.8]);
     }
   }
+  // RM8.4: r7's plaza beds, a raised lawn either side of each lane into the gate (the gate's corner is (HALF, -HALF)):
+  // one along the tile's east lane, one along its south; with the kit, round trees on them, planters at their ends and
+  // lanterns at their outer corners
+  for (const [x0, z0, x1, z1] of [[HALF - 16, -HALF + 16, HALF - 9, -HALF + 34], [HALF - 34, -HALF + 9, HALF - 16, -HALF + 16]]) {
+    w.box('Kit', [x0, 0, z0], [x1, 0.45, z1], p.stone, p.lawn); w.solid([x0, 0, z0], [x1, 0.45, z1]);
+    const along = z1 - z0 > x1 - x0, mx = (x0 + x1) / 2, mz = (z0 + z1) / 2;
+    if (w.hasModel('trees')) for (const t of [-0.25, 0.25]) {
+      const [x, z] = along ? [mx, mz + t * (z1 - z0)] : [mx + t * (x1 - x0), mz];
+      w.placeModel('trees', 0, x, z, { y: 0.45, yaw: x + z, scale: 6.5 * 1.1 / 8 }); w.solid([x - 0.3, 0.45, z - 0.3], [x + 0.3, 3, z + 0.3]);
+    }
+    if (w.hasModel('props')) for (const [x, z] of along ? [[mx, z0 - 1.2], [mx, z1 + 1.2]] : [[x0 - 1.2, mz], [x1 + 1.2, mz]]) {
+      w.placeModel('props', 0, x, z); w.solid([x - 0.9, 0, z - 0.9], [x + 0.9, 0.65, z + 0.9]);
+    }
+    if (w.hasModel('lanterns')) for (const [x, z] of along ? [[x0 - 0.8, z0], [x0 - 0.8, z1]] : [[x0, z1 + 0.8], [x1, z1 + 0.8]]) lantern(w, x, z, p, 2.6);
+  }
   // NM10: a few sky lanterns floating over the plaza
   for (const [x, y, z] of [[-14, 22, -8], [6, 31, 12], [16, 40, -18]]) skyLantern(w, x, y, z);
 }
