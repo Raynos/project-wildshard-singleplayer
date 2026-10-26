@@ -115,3 +115,64 @@ test(retirement, async () => {
     } finally { registration.dispose(); f.owner.dispose(); }
   });
 });
+
+test('pool retirement cancels its idle handle and a late callback cannot render or schedule', () => {
+  const f = fixture(), idle = new Map<number, () => void>(), cancelled: number[] = [];
+  let sequence = 0, rendered = 0;
+  const previous = Object.getOwnPropertyDescriptor(globalThis, 'window');
+  Object.defineProperty(globalThis, 'window', { configurable: true, value: {
+    requestIdleCallback: (run: () => void): number => { const id = ++sequence; idle.set(id, run); return id; },
+    cancelIdleCallback: (id: number): void => { cancelled.push(id); idle.delete(id); },
+  } });
+  try {
+    f.pool.register({ queued: { n: 2, ch: 1, gen: () => { rendered++; return new Float32Array(16); } } });
+    f.pool.prewarm(['queued']);
+    const late = idle.get(1); if (late === undefined) throw new Error('Missing queued callback');
+    f.owner.dispose();
+    expect(cancelled).toEqual([1]); expect(idle.size).toBe(0);
+    late(); f.pool.prewarm(['hurt']);
+    expect(rendered).toBe(0); expect(idle.size).toBe(0); expect(sequence).toBe(1);
+    expect(f.pool.buffer('hurt')).toBeUndefined(); expect(f.pool.play('hurt')).toBeUndefined();
+    expect(f.pool.sample([{ buffer: new Pcm(1, 16, 48000), offset: 0, duration: 16 / 48000 }])).toBeUndefined();
+    f.pool.register({ late: family(0.5) }); expect(f.pool.buffer('late')).toBeUndefined();
+    expect(f.pool.has('hurt')).toBe(false); expect(f.pool.rendering('hurt')).toBe(false);
+    expect(f.pool.rendered).toEqual({});
+  } finally {
+    f.owner.dispose();
+    if (previous === undefined) Reflect.deleteProperty(globalThis, 'window');
+    else Object.defineProperty(globalThis, 'window', previous);
+  }
+});
+
+test('sliced ancestor retirement blocks new PCM before the child cleanup runs', () => {
+  const f = fixture();
+  f.owner.onDispose(() => { /* First sliced cleanup, before the VoicePool child. */ });
+  const steps = f.owner.disposeSteps();
+  try {
+    expect(steps.next().done).toBe(false);
+    expect(f.pool.buffer('hurt')).toBeUndefined();
+    expect(f.pool.play('hurt')).toBeUndefined(); expect(f.pool.has('hurt')).toBe(false);
+    f.pool.prewarm(['hurt']);
+    expect(f.pool.rendered).toEqual({});
+  } finally { for (const _step of steps) { /* Drain the original sliced retirement. */ } }
+});
+
+const poolRetirement = 'a retained retired pool releases default and private PCM backing';
+test(poolRetirement, async () => {
+  await realGc('src/engine/audio/voice-pool-lifetime.test.ts', poolRetirement, async collect => {
+    const f = fixture(), other = fixture();
+    try {
+      const live = other.pool.buffer('hurt');
+      const retired = (() => {
+        f.pool.register({ private: family(0.25, 256 * 1024) });
+        const custom = f.pool.buffer('private'), builtIn = f.pool.buffer('noise-white');
+        if (custom === undefined || builtIn === undefined) throw new Error('Missing pooled PCM');
+        return [new WeakRef(custom), new WeakRef(custom.getChannelData(0).buffer), new WeakRef(builtIn), new WeakRef(builtIn.getChannelData(0).buffer)];
+      })();
+      f.owner.dispose();
+      for (const ref of retired) await collect(ref);
+      expect(f.pool.rendered).toEqual({}); expect(f.pool.buffer('noise-white')).toBeUndefined();
+      expect(other.pool.buffer('hurt')).toBe(live);
+    } finally { f.owner.dispose(); other.owner.dispose(); }
+  });
+});

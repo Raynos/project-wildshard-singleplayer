@@ -92,7 +92,12 @@ export class VoicePool {
   private readonly host: Host;
   constructor(host: Host) {
     this.host = host;
+    this.scope.onDispose(() => {
+      this.bufs.clear(); this.warm.length = 0; this.warming = false;
+      this.last.clear(); this.done.clear(); this.tables.clear();
+    });
   }
+  private get live(): boolean { return !this.scope.disposed && !this.scope.disposing; }
   /** PCM belongs to the definition that rendered it, not a reused family name.
    * Playing sources keep their own buffers; only the retired cache is cleared. */
   private forgetFamily(id: string): void {
@@ -102,6 +107,7 @@ export class VoicePool {
     this.warm = this.warm.filter(([name]) => name !== id);
   }
   register(table: VoiceTable, scope?: Scope): () => void {
+    if (!this.live) return () => undefined;
     for (const [id, entry] of Object.entries(table)) {
       if (this.tables.get(id) !== entry) this.forgetFamily(id);
       this.tables.set(id, entry);
@@ -112,10 +118,10 @@ export class VoicePool {
     scope?.onDispose(remove);
     return remove;
   }
-  private family(id: string): Family | undefined { const entry = this.tables.get(id); return entry && 'gen' in entry ? entry : FAMILIES[id]; }
+  private family(id: string): Family | undefined { if (!this.live) return undefined; const entry = this.tables.get(id); return entry && 'gen' in entry ? entry : FAMILIES[id]; }
   /** Sample selection and generated rendering share the same source, roll-off and output chain. Content owns its tap. */
   sample(clips: readonly SampleVoice[], o: SamplePlay = {}, policy: SamplePolicy = {}, random: () => number = audioRandom, scope?: Scope): AudioBufferSourceNode | undefined {
-    if (!this.host.ready || scope?.disposed) return undefined;
+    if (!this.live || !this.host.ready || scope?.disposed) return undefined;
     const clip = clips[Math.floor(random() * clips.length)];
     if (!clip) return undefined;
     let gain = (clip.gain ?? 1) * (o.gain ?? 1), pan = o.pan ?? 0, cutoff = policy.cutoff ?? 20000;
@@ -193,16 +199,22 @@ export class VoicePool {
 
   /** render these families' variants in the background, one per idle slice, in the order given */
   prewarm(names: readonly string[]): void {
-    if (!this.host.ready) return;
+    if (!this.live || !this.host.ready) return;
     for (const n of names) { const f = this.family(n); if (f && !this.warm.some(job => job[0] === n)) for (let v = 0; v < f.n; v++) for (let c = 0; c < f.ch; c++) this.warm.push([n, v * 2 + c]); }
     // even the first slice waits for an idle moment: an ambience built on a frame must not render an impulse inside it
     if (!this.warming) { this.warming = true; this.next(); }
   }
   private next(): void {
-    const w: { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number } = window;
-    if (w.requestIdleCallback) w.requestIdleCallback(() => this.slice(), { timeout: 400 }); else this.scope.timeout(16, () => this.slice());
+    if (!this.live) return;
+    const w: { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number; cancelIdleCallback?: (id: number) => void } = window;
+    if (w.requestIdleCallback) {
+      let forget = (): void => undefined;
+      const id = w.requestIdleCallback(() => { forget(); this.slice(); }, { timeout: 400 });
+      forget = this.scope.capture('disposers', () => { w.cancelIdleCallback?.(id); });
+    } else this.scope.timeout(16, () => this.slice());
   }
   private slice(): void {
+    if (!this.live) return;
     const job = this.warm.shift();
     if (!job) { this.warming = false; return; }
     const [name, vc] = job;
@@ -233,7 +245,7 @@ export class VoicePool {
 
   /** a family's first variant (the IRs, the bubble bed), rendered now if it is not yet */
   buffer(name: FamilyName): AudioBuffer | undefined {
-    if (!this.host.ready) return undefined;
+    if (!this.live || !this.host.ready) return undefined;
     const entry = this.tables.get(name);
     return entry && 'clips' in entry ? entry.clips()?.[0]?.buffer : this.variant(name, 0);
   }
