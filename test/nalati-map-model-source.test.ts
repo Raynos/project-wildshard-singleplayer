@@ -12,6 +12,7 @@ test('native map models preserve both full geometry pins without public painted 
     fs.readFileSync=(path,...options)=>{
       const file=String(path).replaceAll('\\\\','/');
       assert.ok(!file.includes('/public/assets/nalati/baked/painted-models/'),'Unexpected public painted model read');
+      assert.ok(!/data\\/dressing-[a-z]+\\.generated\\.json/.test(file),'Unexpected generated map dressing input');
       if(file.includes('/public/assets/nalati/models/'))reads.set(file,(reads.get(file)??0)+1);
       return prior(path,...options);
     };

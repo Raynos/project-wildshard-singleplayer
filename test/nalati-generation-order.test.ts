@@ -18,17 +18,15 @@ it('retires public painted publication while cover and map use defining authored
  for(const pin of originals)expect(existsSync(`public/assets/nalati/baked/painted-models/${pin.file}`),pin.file).toBe(false);
 });
 
-it('prepares the dressing keep-outs before the grass coverage reader',()=>{
+it('owns grass keep-outs through explicit native terrain and scalar inputs',()=>{
  const {jobs}=v.parse(v.object({jobs:v.array(v.object({id:v.string(),inputRoots:v.array(v.string()),outputs:v.array(v.string()),buildTimeOutputs:v.optional(v.array(v.string()),[])}))}),
   JSON.parse(readFileSync('scripts/generation-jobs.json','utf8')));
- const dressing=jobs.find(job=>job.id==='nalati-dressing-plan');
  const grass=jobs.find(job=>job.id==='nalati-grass');
- if(dressing===undefined||grass===undefined)throw new Error('Missing Nalati producer');
+ if(grass===undefined)throw new Error('Missing Nalati producer');
  const coverInputs=grass.inputRoots.filter(file=>file.includes('/dressing-')&&file.endsWith('.generated.json'));
- expect(coverInputs.length).toBeGreaterThan(0);
- expect(jobs.indexOf(dressing)).toBeLessThan(jobs.indexOf(grass));
- for(const file of coverInputs){
-  expect(dressing.outputs).toContain(file);
-  expect(dressing.buildTimeOutputs).toContain(file);
- }
+ expect(coverInputs).toEqual([]);
+ expect(grass.inputRoots).toContain('src/shards/nalati-grasslands/generators/nativeDressingPlacements.mjs');
+ expect(grass.inputRoots).toContain('src/shards/nalati-grasslands/generators/dressingPlacementProgram.ts');
+ expect(grass.inputRoots).toContain('public/assets/baked/nalati-grasslands/terrain.bin');
+ for(const field of ['pond','red','green','blue','forest'])expect(grass.inputRoots).toContain(`src/shards/nalati-grasslands/data/geography-${field}.bin`);
 });

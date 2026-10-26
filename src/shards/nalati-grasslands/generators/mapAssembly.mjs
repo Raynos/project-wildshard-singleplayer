@@ -11,6 +11,7 @@ import { mapCloth } from './mapCloth.mjs';
 import { bakeDressing } from './dressingGeometryRows.ts';
 import { decorativeRowsOnGround } from './decorative.ts';
 import { withPortableMath } from '@wildshard/commons/bake/portableMath';
+import { nativeNalatiDressingPlacements } from './nativeDressingPlacements.mjs';
 
 const base = resolve(import.meta.dirname, '..'), root = resolve(base, '../../..');
 const read = file => readMapJson(resolve(base, file));
@@ -71,6 +72,7 @@ async function nativeMapPlaces() {
 
 export async function nalatiMapAssembly() {
   const assembly = new MapAssembly(), { prepared, bytes, specimens } = await nativeMapPlaces();
+  const placements = await nativeNalatiDressingPlacements(file => readFileSync(resolve(root, file)));
   const asset = ownedModelReader();
   const fixed = read('boot/poiPaint.json');
   const native = parseBakedTerrain(Uint8Array.from(readFileSync(resolve(root, 'public/assets/baked/nalati-grasslands/terrain.bin'))).buffer);
@@ -107,7 +109,9 @@ export async function nalatiMapAssembly() {
   }));
   const dressingBytes = bakeDressing().bin;
   for (const [name, key] of [['boulder', 'boulder'], ['boulder-tall', 'boulder'], ['slab', 'slab'], ['stone', 'stone'], ['juniper', 'juniper'], ['rose', 'rose'], ['willow', 'willow'], ['lupin', 'lupin'], ['daisy', 'daisy'], ['reed', 'reed']]) {
-    let list = read(`data/dressing-${key}.generated.json`);
+    const placementBytes = placements.get(`dressing-${key}.json`);
+    if (placementBytes === undefined) throw new Error(`Missing native map dressing: ${key}`);
+    let list = JSON.parse(new TextDecoder().decode(placementBytes));
     if (name === 'boulder') list = list.filter((_, i) => i % 3 !== 2);
     if (name === 'boulder-tall') list = list.filter((_, i) => i % 3 === 2);
     const fitted = ['boulder', 'boulder-tall', 'slab'].includes(name);
