@@ -9,12 +9,13 @@ export function saveCanvasPng(page, canvas, file) {
   return saveCanvasImage(page, canvas, file, { mime: 'image/png', quality: undefined, label: 'Board PNG' });
 }
 
-/** Publish the playback tool's original quality-0.9 JPEG without a data URL.
+/** Publish a JPEG at its caller's original quality without a data URL.
  * @param {import('../bake-output.mjs').ByteSinkPage} page
  * @param {Pick<import('playwright').JSHandle<HTMLCanvasElement>,'evaluateHandle'|'dispose'>} canvas
- * @param {string} file */
-export function saveCanvasJpeg(page, canvas, file) {
-  return saveCanvasImage(page, canvas, file, { mime: 'image/jpeg', quality: 0.9, label: 'Playback JPEG' });
+ * @param {string} file
+ * @param {number} [quality] */
+export function saveCanvasJpeg(page, canvas, file, quality = 0.9) {
+  return saveCanvasImage(page, canvas, file, { mime: 'image/jpeg', quality, label: 'Playback JPEG' });
 }
 
 /** Publish an already frozen PNG snapshot, retiring its native handle.

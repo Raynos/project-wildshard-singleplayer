@@ -9,7 +9,8 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync, mkdirSync, symlinkSync, rmSync, statSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import { homedir } from 'node:os';
-import { Buffer } from 'node:buffer';
+import { saveCanvasJpeg } from '../parity/canvas-bytes.mjs';
+import { jpegImageRoutes } from '../parity/image-routes.mjs';
 
 const repo = resolve(import.meta.dirname, '../..'), tag = `sf23-far-${process.pid}`, scratch = `/private/tmp/claude-501/sp-builders/sf23/${tag}`;
 const out = resolve(repo, 'progress/shard-platform/sf23');
@@ -30,7 +31,7 @@ try {
   await page.waitForFunction(() => window.farView?.ready(), undefined, { timeout: 120000, polling: 250 });
   const keys = await page.evaluate(() => window.farView.views());
   const pose = JSON.parse(process.env.SF23_POSE ?? 'null'); if (pose !== null) await page.evaluate((p) => { window.farView.pose(p[0], p[1], p[2]); }, pose);
-  /** @type {{ key: string; shot: Buffer }[]} */ const shots = [];
+  /** @type {{ key: string; shot: import('node:buffer').Buffer }[]} */ const shots = [];
   for (const key of keys) {
     await page.evaluate((k) => { window.farView.show(k); }, key);
     await page.waitForTimeout(400);
@@ -39,16 +40,20 @@ try {
   const stats = await page.evaluate(() => window.farView.stats());
   // board order: N row first, as the neighbours sit around the centre
   const order = ['-1,1', '0,1', '1,1', '1,0', '1,-1', '0,-1', '-1,-1', '-1,0'], sorted = order.map((k) => shots.find((s) => s.key === k)).filter((s) => s !== undefined);
-  const board = await page.evaluate(async (frames) => {
-    const images = await Promise.all(frames.map(async (data) => { const im = new Image(); im.src = `data:image/jpeg;base64,${data}`; await im.decode(); return im; }));
-    const w = 250, h = Math.round(w * images[0].height / images[0].width), gap = 6, canvas = document.createElement('canvas'); canvas.width = w * 4 + gap * 3; canvas.height = (h + gap) * 2 + 34;
-    const g = canvas.getContext('2d'); if (g === null) throw new Error('no 2d context');
-    g.fillStyle = '#15181d'; g.fillRect(0, 0, canvas.width, canvas.height); g.fillStyle = '#e8e8e8'; g.font = 'bold 15px sans-serif';
-    g.fillText('SF23 far view: from the centre cell (Driftwood) to each neighbour · far proxies only · iPhone 16 Pro portrait', 6, 22);
-    images.forEach((im, i) => { g.drawImage(im, (i % 4) * (w + gap), 32 + Math.floor(i / 4) * (h + gap), w, h); });
-    return canvas.toDataURL('image/jpeg', 0.82).split(',')[1] ?? '';
-  }, sorted.map((s) => s.shot.toString('base64')));
-  const file = join(out, 'board.jpg'); writeFileSync(file, Buffer.from(board, 'base64'));
+  const inputs = await jpegImageRoutes(page, sorted.map(s => s.shot));
+  const file = join(out, 'board.jpg');
+  try {
+    const board = await page.evaluateHandle(async (frames) => {
+      const images = await Promise.all(frames.map(async (src) => { const im = new Image(); im.crossOrigin = 'anonymous'; im.src = src; await im.decode(); return im; }));
+      const w = 250, h = Math.round(w * images[0].height / images[0].width), gap = 6, canvas = document.createElement('canvas'); canvas.width = w * 4 + gap * 3; canvas.height = (h + gap) * 2 + 34;
+      const g = canvas.getContext('2d'); if (g === null) throw new Error('no 2d context');
+      g.fillStyle = '#15181d'; g.fillRect(0, 0, canvas.width, canvas.height); g.fillStyle = '#e8e8e8'; g.font = 'bold 15px sans-serif';
+      g.fillText('SF23 far view: from the centre cell (Driftwood) to each neighbour · far proxies only · iPhone 16 Pro portrait', 6, 22);
+      images.forEach((im, i) => { g.drawImage(im, (i % 4) * (w + gap), 32 + Math.floor(i / 4) * (h + gap), w, h); });
+      return canvas;
+    }, inputs.urls);
+    await saveCanvasJpeg(page, board, file, 0.82);
+  } finally { await inputs.dispose(); }
   const evidence = { views: sorted.map((s) => s.key), ...stats, boardKB: Math.round(statSync(file).size / 1000), errors,
     source: 'scripts/bake/far-board.mjs', method: 'the sim-level far fixture (test/fixtures/sim-level/far); Chromium (Metal), iPhone 16 Pro portrait, render scale 2, muted; camera 120 m over the centre cell, 100 m back from it, far plane FAR_RING.drawDistance' };
   writeFileSync(join(out, 'board.json'), `${JSON.stringify(evidence, null, 2)}\n`);
