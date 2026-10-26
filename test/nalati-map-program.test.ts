@@ -22,6 +22,26 @@ const inputHashes = new InputHashMemo(resolve('.'));
 const inputs = new Map(files);
 for (const file of settings.painter.glbs) inputs.set(file, readFileSync(resolve('src/shards/nalati-grasslands', file)));
 
+// Fresh sealed production is fixture preparation, like native construction
+// above. Keep the actual empty-cache execution and its cleanup outside the
+// assertion clock; failed production still refuses collection.
+const sealedImage = await (async () => {
+  const root = resolve('.'), job = discoverGeneration(root).jobs.find(row => row.id === 'nalati-data-map');
+  if (job === undefined) throw new Error('Missing Nalati map producer');
+  const cacheDir = mkdtempSync(resolve('tmp', 'nalati-map-positive-'));
+  try {
+    const result = await generateShardJob(root, job, { cacheDir, forceCompare: true, inputHashes });
+    try {
+      const stamp = v.parse(v.object({ tilesHash: v.string() }), JSON.parse(readFileSync(resolve(result.directory,
+        'src/shards/nalati-grasslands/look/map.baked.json'), 'utf8')));
+      // Compare the same preparation moment: later peer edits must not be
+      // mistaken for a difference between the sealed and source inventories.
+      const fullTreeHash = mapTilesHash(resolve(root, 'src/shards/nalati-grasslands'));
+      return { hashes: result.hashes, stamp, fullTreeHash };
+    } finally { result.release(); }
+  } finally { rmSync(cacheDir, { recursive: true, force: true }); }
+})();
+
 test('Nalati owns the complete original scene and packed geometry bytes', () => {
   for (const [index, name] of ['map/assembly.json', 'map/geometry.bin'].entries()) {
     const bytes = files.get(name), before = original[index];
@@ -59,9 +79,9 @@ for (const omitted of ['scripts/map-geometry.mjs', 'src/sdk/bake/annulus.ts', 's
     expect(job.inputRoots).not.toContain('public/assets/nalati/baked/places.bin');
     expect(job.inputRoots).not.toContain('src/shards/nalati-grasslands/data/specimens.generated.json');
     expect(job.catalogueDependencies).not.toContain('camp-specimen-catalogue');
-    const cacheDir = mkdtempSync(resolve('tmp', 'nalati-map-stage-'));
-    try {
-      if (omitted !== undefined) {
+    if (omitted !== undefined) {
+      const cacheDir = mkdtempSync(resolve('tmp', 'nalati-map-stage-'));
+      try {
         expect(job.inputRoots).toContain(omitted);
         const descriptor = { ...job, inputRoots: job.inputRoots.filter(file => file !== omitted) };
         const catalogPath = relative(root, resolve(cacheDir, 'omitted.json'));
@@ -70,19 +90,14 @@ for (const omitted of ['scripts/map-geometry.mjs', 'src/sdk/bake/annulus.ts', 's
         writeFileSync(resolve(root, catalogPath), JSON.stringify({ ...catalog, jobs: catalog.jobs.map(row =>
           typeof row === 'object' && row !== null && Reflect.get(row, 'id') === job.id ? descriptor : row) }));
         await expect(generateShardJob(root, descriptor, { cacheDir, catalogPath, forceCompare: true, inputHashes })).rejects.toThrow('Generator exited 1');
-      } else {
-        const result = await generateShardJob(root, job, { cacheDir, forceCompare: true, inputHashes });
-        try {
-          const before = original[2]; if (before === undefined) throw new Error('Missing native image oracle');
-          expect(result.hashes[before.path]).toBe(before.hash);
-          expect(Object.keys(result.hashes).sort()).toEqual([...job.outputs].sort());
-          // The sealed producer and the full product tree must describe the
-          // same world, including canonical metadata rather than boot aliases.
-          const stamp = v.parse(v.object({ tilesHash: v.string() }), JSON.parse(readFileSync(resolve(result.directory,
-            'src/shards/nalati-grasslands/look/map.baked.json'), 'utf8')));
-          expect(stamp.tilesHash).toBe(mapTilesHash(resolve(root, 'src/shards/nalati-grasslands')));
-        } finally { result.release(); }
-      }
-    } finally { rmSync(cacheDir, { recursive: true, force: true }); }
+      } finally { rmSync(cacheDir, { recursive: true, force: true }); }
+    } else {
+      const before = original[2]; if (before === undefined) throw new Error('Missing native image oracle');
+      expect(sealedImage.hashes[before.path]).toBe(before.hash);
+      expect(Object.keys(sealedImage.hashes).sort()).toEqual([...job.outputs].sort());
+      // The sealed producer and the full product tree must describe the
+      // same world, including canonical metadata rather than boot aliases.
+      expect(sealedImage.stamp.tilesHash).toBe(sealedImage.fullTreeHash);
+    }
   });
 }
