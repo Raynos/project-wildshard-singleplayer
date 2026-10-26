@@ -8,6 +8,8 @@ import { saveFixture, debugSettings } from './debug-settings.mjs';
 //   scripts/browser-lane.sh node scripts/playground-grapple.mjs --url=http://127.0.0.1:5173
 import { execFileSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
+import { browserBakeBytes } from './bake-output.mjs';
+import { uploadRecordedClip } from './model-spin-recording.mjs';
 
 export const sleep = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });
 
@@ -95,15 +97,27 @@ export async function startRecording(page) {
 }
 
 export async function stopRecording(page, file) {
-  const { b64, size } = await page.evaluate(async () => {
+  const clip = await page.evaluate(async () => {
     const r = window.__pgRec;
-    await new Promise((resolve) => { r.rec.onstop = resolve; r.rec.stop(); });
+    try {
+      await new Promise((resolve) => { r.rec.onstop = resolve; r.rec.stop(); });
+    } finally {
+      for (const track of r.rec.stream.getTracks()) track.stop();
+      delete window.__pgRec;
+    }
     const blob = new Blob(r.parts, { type: 'video/webm' });
-    const url = await new Promise((resolve) => { const f = new FileReader(); f.onload = () => { resolve(typeof f.result === 'string' ? f.result : ''); }; f.readAsDataURL(blob); });
-    return { b64: url.slice(url.indexOf(',') + 1), size: r.size };
+    return { url: URL.createObjectURL(blob), bytes: blob.size, size: r.size };
   });
-  writeFileSync(file, Buffer.from(b64, 'base64'));
-  return size;
+  try {
+    const sink = await browserBakeBytes(page, { maxBytes: Math.max(1, clip.bytes), maxFiles: 1 });
+    try {
+      await page.evaluate(uploadRecordedClip, { source: clip.url, destination: `${sink.url}clip` });
+      const bytes = sink.take('clip');
+      if (bytes.byteLength !== clip.bytes) throw new Error('Playground clip byte count changed');
+      writeFileSync(file, bytes);
+      return clip.size;
+    } finally { await sink.dispose(); }
+  } finally { await page.evaluate(url => { URL.revokeObjectURL(url); }, clip.url); }
 }
 
 /** the phone encode: H.264 ~4.5 Mb/s, 30 fps, faststart — what SendUserFile and the art folder take (< 30 MB) */
