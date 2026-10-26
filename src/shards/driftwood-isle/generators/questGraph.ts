@@ -2,11 +2,11 @@ import { parseInteractionRows } from '@wildshard/format/questInteractions';
 import { parseQuestGraph } from '@wildshard/format/questGraph';
 
 /** Native prompt command identity; physical controllers retain their shipping update order. */
-export const DRIFTWOOD_GRAPH = parseQuestGraph({ actor: 'driftwood.interact', step: 'driftwood.quest.graph', actions: [] });
+export const DRIFTWOOD_GRAPH: ReturnType<typeof parseQuestGraph> = parseQuestGraph({ actor: 'driftwood.interact', step: 'driftwood.quest.graph', actions: [] });
 
 /** Ordered flag effects of the shipping prompts. Chest contents follow the open event in the native keeper;
  * plates, the barrel, sluice and zipline retain their physical controllers. */
-export const DRIFTWOOD_ACTIONS = parseInteractionRows({ marks: [], rows: [
+export const DRIFTWOOD_ACTIONS: ReturnType<typeof parseInteractionRows> = parseInteractionRows({ marks: [], rows: [
   {"id": "castaway.talk", "act": 0, "at": "castaway", "needs": [{"none": ["talked:castaway"]}], "sets": ["talked:castaway"]},
   {"id": "castaway-chest", "act": 100, "at": "castaway-chest", "needs": [{"all": ["talked:castaway"]}, {"none": ["open:castaway-chest"]}], "sets": ["open:castaway-chest"]},
   {"id": "beacon", "act": 101, "at": "beacon", "needs": [{"all": ["has:flint"]}, {"none": ["lit:beacon"]}], "sets": ["lit:beacon"]},

@@ -37,4 +37,4 @@ function foam(): Box[] {
   return boxes.filter(b => b.yBottom < level + foamBand && b.yTop > level - foamBand)
     .map(({ x, z, hw, hd, rot, yTop, yBottom }) => ({ x: cm(x), z: cm(z), hw: cm(hw), hd: cm(hd), rot: cm(rot), yTop: cm(yTop), yBottom: cm(yBottom) }));
 }
-export const OCEAN_FOAM = foam();
+export const OCEAN_FOAM: Box[] = foam();

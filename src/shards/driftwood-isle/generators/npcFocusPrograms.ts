@@ -67,4 +67,4 @@ export function kitFocusProgram(name: string, facing: Facing, head: Head): Clien
 }
 
 /** The castaway's and the trader's attention programs (product clientChannels). */
-export const NPC_FOCUS_PROGRAMS = [kitFocusProgram('castaway', CASTAWAY_FACING, CASTAWAY_HEAD_FOCUS), kitFocusProgram('trader', TRADER_FACING, TRADER_HEAD_FOCUS)];
+export const NPC_FOCUS_PROGRAMS: ClientChannelProgram[] = [kitFocusProgram('castaway', CASTAWAY_FACING, CASTAWAY_HEAD_FOCUS), kitFocusProgram('trader', TRADER_FACING, TRADER_HEAD_FOCUS)];

@@ -8,7 +8,7 @@ const effects = (id: string) => {
   return row.effects;
 };
 /** Existing AS finale cues bind the native encounter and baseline bar. */
-export const WAKE_ENCOUNTER = parseChapterWake({ version: 1, quest: 'sealed-ring', spawn: 'driftwood.captain',
+export const WAKE_ENCOUNTER: ReturnType<typeof parseChapterWake> = parseChapterWake({ version: 1, quest: 'sealed-ring', spawn: 'driftwood.captain',
   director: 'quests/chapter-director.json', encounter,
   cues: [
     { id: 'captain.restore', operation: 'restore', effects: [] },

@@ -12,7 +12,7 @@ const base = parseQuestStory({
 });
 
 /** The same chapter presenter as the multi-chapter adventures, retaining the island's original single-quest messages. */
-export const PAGE_STORY = parseQuestStory({ ...base, chapters: {
+export const PAGE_STORY: ReturnType<typeof parseQuestStory> = parseQuestStory({ ...base, chapters: {
   chapters: [base.quest.id], talks: [], rewards: {}, flagEvents: [], introTitle: base.presentation.introTitle,
   chapterTitle: '{title}', completedObjective: '{objective}', completedHint: '', rewardKicker: '', rewardSubtitle: '',
   started: '', objective: '', rewardMs: 0, messages: base.presentation.messages,

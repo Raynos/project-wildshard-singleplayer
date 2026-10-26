@@ -157,4 +157,4 @@ function compileRecipe(outputs: NumericChannelOutput[], pass: number) {
     }) });
 
 }
-export const MONKEY_CLIPS = [compileRecipe(rows, 0), compileRecipe(overlays, 1)];
+export const MONKEY_CLIPS: ReturnType<typeof creaturePoseRows>[] = [compileRecipe(rows, 0), compileRecipe(overlays, 1)];

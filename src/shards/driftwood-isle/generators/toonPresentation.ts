@@ -15,7 +15,7 @@ function draw(id: string): string {
   return file;
 }
 /** Build-only composition of authored rows; the admitted host receives no native owner or callback. */
-export const TOON_LOOK = parseToonLook({
+export const TOON_LOOK: ReturnType<typeof parseToonLook> = parseToonLook({
   id: 'driftwood.toon', lighting: held.look.lighting,
   fog: { ...RAMP_FOG, order: 200 },
   shadows: { rig: 'phoneSplits', filter: 'tent', fade: true, normalBias: .14, radius: .6, texelBias: 'phone', depth16: 'phone' },
