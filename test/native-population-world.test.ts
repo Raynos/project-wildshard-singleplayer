@@ -19,9 +19,10 @@ import pine from '../src/shards/pine-hollow/data/weather.json' with { type: 'jso
 import {weatherWitness as storm} from './fixtures/weatherInlineWitness';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
-const raster = (values: readonly number[]): string => btoa(String.fromCodePoint(...zlibSync(new Uint8Array(Float32Array.from(values).buffer))));
+const raster = (values: readonly number[],file:string) => ({row:{type:'f32',count:values.length,data:{file}},block:{file,bytes:zlibSync(new Uint8Array(Float32Array.from(values).buffer))}});
+const wet=raster([1,1,1,1],'test/orchard-wet.bin'),pond=raster([0,0,0,0],'test/orchard-pond.bin');
 const grid = { res: 2,size: 32,seed: 9,landscapeHash: 0,heights: new Float32Array(4),splat: Uint8Array.from([255,0,0,0,255,0,0,0,255,0,0,0,255,0,0,0]),undergrowth: null };
-const fieldRows = { seed: 9,world: { res: 2,size: 32,water: -10,wet: raster([1,1,1,1]),pond: raster([0,0,0,0]) },
+const fieldRows = { seed: 9,world: { res: 2,size: 32,water: -10,wet: wet.row,pond: pond.row },
   trails: [],river: { from: -16,step: 32,values: [[8,1],[8,1]] },meadow: { short: [],tall: [],bare: [],valley: .5,plateau: .6 } };
 
 test('orchard native boot joins its own bake, raster senses and weather continuation', async () => {
@@ -29,7 +30,7 @@ test('orchard native boot joins its own bake, raster senses and weather continua
   const host = createSimHost({ ...SIM_LEVEL,entities: [],quests: [] },{ rapier }), sample = SIM_LEVEL.entities[0];
   if (sample === undefined) throw new Error('Missing orchard actor');
   try {
-    const field = new NativePopulationField(grid,fieldRows,[[3,4,1]],[12]), stream = new Rng(9).snapshot();
+    const field = new NativePopulationField(grid,fieldRows,[[3,4,1]],[12],pond.block,wet.block), stream = new Rng(9).snapshot();
     expect(field.hunt.wetAt(0,0)).toBe(true); expect(field.queries.surfaceAt(0,0)).toBeNull();
     expect(field.queries.inBounds(16,0,0)).toBe(false); expect(field.hunt.inChunk(16,0,0)).toBe(true);
     expect(field.trees.nearby(3,4,1)[0]?.top).toBe(12); expect(field.grass.field.baseHeightAt(0,0)).toBeGreaterThan(0);

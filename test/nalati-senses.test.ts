@@ -36,9 +36,9 @@ test('native and page probes preserve the original sensory boundaries in Nalati 
     trailDistance: () => Infinity, cabinMask: () => 0, pondMask: () => 0, waterLevel: () => -100, paint: () => false, layout: null });
   const native = new NativeWildEnvironment(field,new TrampleField(),{ wind: { x: -.8,z: .6,strength: .5 },flatten: .85 },author);
   const page = new PageWildEnvironment();
-  const wet = btoa(String.fromCodePoint(...zlibSync(new Uint8Array(16))));
+  const file='test/senses-wet.bin',bytes=zlibSync(new Uint8Array(16)),wet={type:'f32',count:4,data:{file}};
   page.enter(scope,{ pack: { ...brains.pack,members: ['probe'],home: [0,0] },herd: { ...brains.herd,members: ['probe'] },contacts: { pack: strikes.wolf,herd: strikes.stallion },
-    world: { res: 2,size: 32,water: -1,wet,pond: wet },wind: native.wind,prey: 'senses',damage: admission },author);
+    world: { res: 2,size: 32,water: -1,wet,pond: wet },wind: native.wind,prey: 'senses',damage: admission },author,{file,bytes});
   try {
     const player = new Vector3(2,0,-3), radii = [1.25,3.5,7,14] as const;
     for (const env of [native,page]) {

@@ -1,7 +1,8 @@
 import {scalarBlockBytes} from './fixtures/nalati-scalar-blocks';
 import { expect,test } from 'vitest';
 import { unzlibSync,zlibSync } from 'fflate';
-import { navmeshGroundExclusion } from '../scripts/bake/navmeshGround';
+import { navmeshGroundExclusion as exclusionInput } from '../scripts/bake/navmeshGround';
+import {ScalarLatticeBindings} from '../src/engine/world/scalarChannel';
 import { NavmeshGroundSchema } from '../src/format/navigation';
 import { formatJsonSchema } from '../src/sdk/formatJsonSchema';
 import { bakedSamplers } from '../src/format/bakedTerrainSampling';
@@ -12,7 +13,14 @@ import nalati from '../src/shards/nalati-grasslands/discovery.generated';
 
 const geography=readNalatiGeography();
 
-const encode = (values: readonly number[]): string => btoa(String.fromCodePoint(...zlibSync(new Uint8Array(Float32Array.from(values).buffer))));
+const files=new Map<string,Uint8Array>();
+const encode = (values: readonly number[]): {file:string} => {
+  const file=`test/navmesh-${files.size}.bin`;files.set(file,zlibSync(new Uint8Array(Float32Array.from(values).buffer)));return {file};
+};
+function navmeshGroundExclusion(input:unknown,terrain:Parameters<typeof exclusionInput>[1],scalars?:ScalarLatticeBindings){
+  const bindings=scalars??new ScalarLatticeBindings(),exclude=exclusionInput(input,terrain,bindings);
+  if(scalars===undefined)bindings.prepare(files);return exclude;
+}
 const mask = { res: 2,size: 32,values: { type: 'f32',count: 4,data: encode([.5,.50000006,0,1]) } };
 const rows = { ground: { waterMargin: .25,wet: mask,wetThreshold: .5,trailClearance: 3.5 } };
 

@@ -4,7 +4,8 @@ import { readFileSync } from 'node:fs';
 import * as v from 'valibot';
 import { expect,test } from 'vitest';
 import { zlibSync,unzlibSync } from 'fflate';
-import { declaredGroundColour,declaredSurface } from '../src/game/shard/manifest';
+import { declaredGroundColour as declaredGroundColourInput,declaredSurface as declaredSurfaceInput } from '../src/game/shard/manifest';
+import {ScalarLatticeBindings} from '../src/engine/world/scalarChannel';
 import { ScalarTripletSchema } from '../src/format/scalarChannel';
 import { bakedSamplers } from '../src/format/bakedTerrainSampling';
 import { formatJsonSchema } from '../src/sdk/formatJsonSchema';
@@ -16,7 +17,12 @@ const geography=v.parse(v.object({res:finite,size:finite,seed:finite,pigment:Sca
 
 const TERRAIN = GROUND.terrain;
 
-const encode = (values: Float32Array): string => btoa(String.fromCodePoint(...zlibSync(new Uint8Array(values.buffer))));
+const files=new Map<string,Uint8Array>();
+const encode = (values: Float32Array): {file:string} => {
+  const file=`test/terrain-triplets-${files.size}.bin`;files.set(file,zlibSync(new Uint8Array(values.buffer)));return {file};
+};
+function declaredGroundColour(input:unknown){const bindings=new ScalarLatticeBindings(),sample=declaredGroundColourInput(input,bindings);bindings.prepare(files);return sample;}
+function declaredSurface(input:unknown){const bindings=new ScalarLatticeBindings(),sample=declaredSurfaceInput(input,bindings);bindings.prepare(files);return sample;}
 const raster = (value: number) => ({ res: 2,size: 500,values: { type: 'f32',count: 4,data: encode(new Float32Array(4).fill(value)) } });
 const triplet = [raster(-2),raster(.25),raster(3)];
 

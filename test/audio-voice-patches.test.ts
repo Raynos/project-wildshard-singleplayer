@@ -61,16 +61,17 @@ it('uses scene geometry and surfaces from an unrelated orchard fixture',()=>{
  expect(audioPathProbe([[0,0],[0,10]],3,5)).toEqual({distance:3,x:-1,z:0});
 });
 
-it('admits chunked fields under the fixed text bound and decodes the original field lattice',()=>{
+it('retains bounded predecessor text grammar and decodes named field lattices',()=>{
  expect(()=>preflightShardfile({...emptyShardfile({slug:'audio-fixture',name:'Audio fixture',author:'Test',revision:1,seed:1}),audio:audio.audio})).not.toThrow();
- const data=parseAudioData(audio.audio);if(data.scene===undefined)throw new Error('Missing scene');
+ const data=parseAudioData(audio.audio),named=parseAudioData(audio.audio),blocks=new Map<string,Uint8Array>();if(data.scene===undefined)throw new Error('Missing scene');
  for(const [id,row]of Object.entries(data.scene.fields.channels)){
   if(Array.isArray(row)||typeof row.data==='string')throw new Error('Missing raw scene field');
-  const bytes=readFileSync(`src/shards/nalati-grasslands/data/audio-${id}.bin`).toString('base64');
+  const raw=readFileSync(`src/shards/nalati-grasslands/data/audio-${id}.bin`),bytes=raw.toString('base64');blocks.set(row.data.file,raw);
   data.scene.fields.channels[id]=bytes.match(/.{1,4096}/gu)??[];
  }
  const profile=parse(AudioSceneSchema,data.scene);
  for(const chunks of Object.values(profile.fields.channels)){if(!Array.isArray(chunks))throw new Error('Missing legacy chunks');expect(chunks.every(chunk=>chunk.length<=4096)).toBe(true);expect(chunks.join('').length).toBeGreaterThan(4096);}
- const scene=new AudioSceneDirector(data,legacyDouble<Player>({position:new Vector3(),yaw:0}));expect(['grass','wood','gravel']).toContain(scene.surfaceAt(0,0));
+ expect(()=>new AudioSceneDirector(data,legacyDouble<Player>({position:new Vector3(),yaw:0}))).toThrow('Scalar channels require binary files');
+ const scene=new AudioSceneDirector(named,legacyDouble<Player>({position:new Vector3(),yaw:0}));scene.prepareFields(blocks);expect(['grass','wood','gravel']).toContain(scene.surfaceAt(0,0));
  const broken=structuredClone(profile);broken.fields.channels['invalid']=['A'.repeat(4097)];expect(()=>parse(AudioSceneSchema,broken)).toThrow();
 });

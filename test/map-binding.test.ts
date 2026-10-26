@@ -1,7 +1,8 @@
 import {scalarBlockBytes} from './fixtures/nalati-scalar-blocks';
 import { expect,test } from 'vitest';
 import { zlibSync,unzlibSync } from 'fflate';
-import { declaredMapColour } from '../src/game/shard/manifest';
+import { declaredMapColour as declaredMapColourInput } from '../src/game/shard/manifest';
+import {ScalarLatticeBindings} from '../src/engine/world/scalarChannel';
 import { bakedSamplers } from '../src/format/bakedTerrainSampling';
 import { mapPalette } from '../src/format/minimap';
 import { readNalatiGeography } from './fixtures/nalati-geography';
@@ -10,7 +11,11 @@ import { NALATI_MINIMAP } from './fixtures/nalati-terrain';
 
 const geography=readNalatiGeography();
 
-const encode = (values: Float32Array): string => btoa(String.fromCodePoint(...zlibSync(new Uint8Array(values.buffer))));
+const files=new Map<string,Uint8Array>();
+const encode = (values: Float32Array): {file:string} => {
+  const file=`test/map-binding-${files.size}.bin`;files.set(file,zlibSync(new Uint8Array(values.buffer)));return {file};
+};
+function declaredMapColour(input:unknown){const bindings=new ScalarLatticeBindings(),sample=declaredMapColourInput(input,bindings);bindings.prepare(files);return sample;}
 const raster = (value: number) => ({ res: 2,size: 500,values: { type: 'f32',count: 4,data: encode(new Float32Array(4).fill(value)) } });
 const rows = [raster(-2),raster(.25),raster(300)];
 

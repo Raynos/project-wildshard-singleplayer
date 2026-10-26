@@ -21,13 +21,13 @@ import type {SimHost} from '../src/engine/sim';
 import type {BakedGrid} from '../src/format/bakedTerrainBytes';
 
 const wetFile='world/wet.bin',wetBytes=zlibSync(new Uint8Array(Float32Array.from([0,.5,.6,1]).buffer));
-const inline=btoa(String.fromCodePoint(...wetBytes));
+const pond={type:'f32',count:4,data:{file:'data/geography-pond.bin'}};
 const feature=parseClientPlan({version:1,features:[{kind:'population.wildlife',file:'actors/wildlife.json',
   crowd:{json:'actors/crowd.json',binary:'actors/crowd.bin'},navSteer:true,frame:{id:'wildlife',after:[],before:[]}}]}).features[0];
 
 function wildlife(owner:Scope,read:()=>Promise<Uint8Array>){
   owner.expose(app,'levelScope',owner);lendNalatiPasture(owner);
-  const worldRows={res:2,size:32,water:-1,wet:{type:'f32',count:4,data:{file:wetFile}},pond:inline};
+  const worldRows={res:2,size:32,water:-1,wet:{type:'f32',count:4,data:{file:wetFile}},pond};
   const original=headlessAssembly.constants.pageWildlife,rows={...original,groups:{...original.groups,world:worldRows}};
   const reads:string[]=[],systems=vi.fn<ShardContext['system']>();
   const source=emptyShardfile({slug:'wet-loan',name:'Wet loan',author:'Fixture',revision:1,seed:7});
@@ -71,13 +71,13 @@ for(const changed of ['ancestor','world','runtime'] as const){
 
 test('native preparation lends one verified wet block to both existing native owners',async()=>{
   const grid:BakedGrid={res:2,size:32,seed:7,landscapeHash:0,heights:new Float32Array(4),splat:new Uint8Array(16),undergrowth:null};
-  const fieldRows={seed:7,world:{res:2,size:32,water:-1,wet:{type:'f32',count:4,data:{file:wetFile}},pond:inline},trails:[],
+  const fieldRows={seed:7,world:{res:2,size:32,water:-1,wet:{type:'f32',count:4,data:{file:wetFile}},pond},trails:[],
     river:{from:-16,step:32,values:[[8,1],[8,1]]},meadow:{short:[],tall:[],bare:[],valley:.5,plateau:.6}};
   const reads:string[]=[],OriginalField=population.NativePopulationField;
   const field=vi.spyOn(population,'NativePopulationField').mockImplementation(class extends OriginalField{}),stop=new Error('native mounted boundary');
   const mount=vi.spyOn(riding,'installMountedPlayer').mockImplementation(()=>{throw stop;});
   try{
-    const prepared=await prepareNalatiPopulation({file:name=>{reads.push(name);return Promise.resolve(name===wetFile?wetBytes:zlibSync(new Uint8Array(16)));}},grid,{nativeField:fieldRows},{trees:[],tops:[]});
+    const prepared=await prepareNalatiPopulation({file:name=>{reads.push(name);return Promise.resolve(wetBytes);}},grid,{nativeField:fieldRows},{trees:[],tops:[]});
     const host=legacyDouble<SimHost>({}),profile={world:fieldRows.world};expect(()=>prepared.installMounted(host,profile)).toThrow(stop);
     const loan=field.mock.calls[0]?.[5];expect(loan?.file).toBe(wetFile);expect(loan?.bytes).toBe(wetBytes);expect(mount.mock.calls[0]?.[3]).toBe(loan);
     expect(reads).toEqual(['data/geography-pond.bin',wetFile]);expect(prepared.field.hunt.wetAt(16,16)).toBe(true);

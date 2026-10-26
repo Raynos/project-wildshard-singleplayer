@@ -12727,12 +12727,12 @@ in its own save; restore validates the stable-id continuation without Wasm
 or event replay and remaps transient handles on delivery. Fixed-memory
 capacities bound the queue. No scheduler, native body or RNG is installed.
 
-Scalar channels are strict little-endian f32/f64 zlib rows with an explicit
-count. readScalarChannel performs one bounded inflate and returns the original
-typed storage, refusing length mismatch and non-finite values. It introduces
-no sampler, cache or owner. Nalati continues to use bakedSamplers; declared
-forest queries retain exact coordinate lookup and candidate order, with f64
-density rows preserving every original double and the legacy inline form.
+Scalar channels require named little-endian f32/f64 zlib blocks with an
+explicit count. readScalarChannel refuses inline storage before block access,
+then performs one bounded inflate and returns native typed storage. Length
+mismatch and non-finite values refuse. Nalati retains bakedSamplers; forest
+queries retain exact coordinate lookup, candidate order and f64 density bits.
+The format's predecessor string grammar remains for historical fixtures.
 
 The native bake reader requires named ground and collider binaries. The
 format retains its predecessor string grammar for historical fixtures;
@@ -12763,8 +12763,8 @@ NativePopulationField(..., pondBlock?, wetBlock?) and
 installMountedPlayer(host, rows, pondBlock?, wetBlock?) borrow verified
 {file,bytes} blocks; duplicate paths refuse. PageWildEnvironment.enter(scope,
 rows, author, wetBlock?) and bindPageGroups(ctx, rows, wetBlock?) accept the
-same wet loan. Existing inline profiles retain their sampler, motor, RNG,
-snapshot and entered-state re-entry laws. Producers adopt these ports separately.
+same wet loan. Named profiles retain their sampler, motor, RNG, snapshot and
+entered-state re-entry laws. Inline channel/lattice registration refuses.
 
 ScalarLatticeBindings owns one definition's raw blocks. lattice(rows,
 {min,max}?) binds a stable sampler; channel(rows) binds an exact indexed
@@ -12774,7 +12774,7 @@ agree on type/count and lattice shape/bounds. Each file decodes once;
 readers retain decoded values, never the compressed transport map.
 
 defineShard owns this intake. Optional forestRows declares exact forest
-candidates with f64 density; fixed/inline readers stay synchronous.
+candidates with f64 density; fixed readers stay synchronous.
 Binary declaration performs no IO/inflate. Existing ground, water and
 callback identities stay intact. prepareManifestScalarBlocks pins the
 same product identity, readers and live scope through every await, then

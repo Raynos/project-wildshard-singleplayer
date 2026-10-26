@@ -23,14 +23,14 @@ test('marsh page groups resolve native ids, adoption and water from rows without
     yaw: 0,scale: 1,lastHitT: -Infinity,maxHp: 100,hp: 100,mem: {},alive: true });
   const scout = make('marsh.scout','reed',0),kid = make('marsh.kid','fawn',3),buck = make('marsh.buck','antlered',5);
   const manager = legacyDouble<AnimalManager>({ animals: [scout,kid,buck] });
-  const wet = btoa(String.fromCodePoint(...zlibSync(new Uint8Array(Float32Array.from([1,1,1,1]).buffer))));
+  const file='test/marsh-wet.bin',bytes=zlibSync(new Uint8Array(Float32Array.from([1,1,1,1]).buffer)),wet={type:'f32',count:4,data:{file}};
   const rows = { pack: { ...brains.pack,id: 'marsh.pack',members: ['unused'],home: [0,0],leaderVariant: 'reed',runSpeed: 6 },
     herd: { ...brains.herd,id: 'marsh.herd',members: ['unused'],stallionVariant: 'antlered',foalPrefix: 'fawn' },
     contacts: { pack: strikes.wolf,herd: strikes.stallion },world: { res: 2,size: 32,water: -1,wet,pond: wet },
     wind: { x: 0,z: 1,strength: .5 },prey: 'marsh',damage: admission };
   const scope = new Scope('marsh');
   try {
-    wildEnv.enter(scope,rows,admissionPage(scope)); const groups = new PageGroups(manager,[],rows),pack = groups.pack([scout.entityId],0,0),herd = groups.herd([kid.entityId]);
+    wildEnv.enter(scope,rows,admissionPage(scope),{file,bytes}); const groups = new PageGroups(manager,[],rows),pack = groups.pack([scout.entityId],0,0),herd = groups.herd([kid.entityId]);
     herd.adoptStallion(buck);
     expect(renderedPackOf(scout)).toBe(pack); expect(renderedHerdOf(kid)).toBe(herd); expect(renderedHerdOf(buck)).toBe(herd);
     expect(pack.findPrey?.(0,0,10)).toBe(kid); expect(herd.findThreat?.(3,0,10)).toBe(scout);

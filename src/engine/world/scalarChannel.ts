@@ -10,7 +10,8 @@ export function readScalarChannel(input: unknown,blocks?:ReadonlyMap<string,Uint
  * owner/cache or second intake. Reject short, oversized and non-finite rows. */
 export function readScalarChannel(input: unknown,blocks?:ReadonlyMap<string,Uint8Array>): Float32Array | Float64Array {
   const row = v.parse(ScalarChannelSchema,input);
-  const source=typeof row.data==='string'?Uint8Array.from(atob(row.data),value=>value.codePointAt(0)??0):blocks?.get(row.data.file);
+  if(typeof row.data==='string')throw new Error('Scalar channels require binary files');
+  const source=blocks?.get(row.data.file);
   if(source===undefined)throw new Error('Missing scalar block');
   return decodeScalarStorage(row, source, (bytes, out) => unzlibSync(bytes, { out }));
 }
@@ -53,7 +54,7 @@ export class ScalarLatticeBindings {
 
   lattice(input: unknown, bounds?: LatticeBounds): Sample {
     const row = v.parse(ScalarLatticeSchema, input);
-    if (typeof row.values.data === 'string') return this.sample(row, readScalarChannel(row.values), bounds);
+    if (typeof row.values.data === 'string') throw new Error('Scalar channels require binary files');
     const file = row.values.data.file, prior = this.bindings.get(file);
     const channel = this.channels.get(file);
     if (channel !== undefined && (channel.row.type !== row.values.type || channel.row.count !== row.values.count)) throw new Error('Conflicting scalar block declaration');
@@ -81,10 +82,7 @@ export class ScalarLatticeBindings {
    * File-backed reads stay closed until every declared channel and lattice validates. */
   channel(input: unknown): (index: number) => number {
     const row = v.parse(ScalarChannelSchema, input);
-    if (typeof row.data === 'string') {
-      const values = readScalarChannel(row);
-      return index => scalarValue(values, index);
-    }
+    if (typeof row.data === 'string') throw new Error('Scalar channels require binary files');
     const file = row.data.file, prior = this.channels.get(file), lattice = this.bindings.get(file);
     if (lattice !== undefined && (lattice.row.values.type !== row.type || lattice.row.values.count !== row.count)) throw new Error('Conflicting scalar block declaration');
     if (prior !== undefined) {
@@ -106,7 +104,7 @@ export class ScalarLatticeBindings {
     this.seal();
     const decoded = new Map<string, Float32Array | Float64Array>();
     const storage = (row: ScalarChannelRows): Float32Array | Float64Array => {
-      if (typeof row.data === 'string') return readScalarChannel(row, blocks);
+      if (typeof row.data === 'string') throw new Error('Scalar channels require binary files');
       const prior = decoded.get(row.data.file);
       if (prior !== undefined) return prior;
       const values = readScalarChannel(row, blocks); decoded.set(row.data.file, values); return values;

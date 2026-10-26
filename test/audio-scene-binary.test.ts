@@ -4,6 +4,8 @@ import {createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';
 import {afterEach,expect,test,vi} from 'vitest';
 import {Vector3} from 'three';
+import {unzlibSync} from 'fflate';
+import {bakedSamplers} from '../src/format/bakedTerrainSampling';
 import {AudioSceneSchema} from '../src/format/audioScene';
 import {namedJsonSchema} from '../src/sdk/formatJsonSchema';
 import {readProjectAssets} from '../src/sdk/project';
@@ -49,19 +51,22 @@ function context(read:(name:string)=>Promise<Uint8Array>,named=false){
 function block(name:string){const bytes=blocks.get(name);if(bytes===undefined)throw new Error('Missing fixture block');return bytes;}
 
 test('raw fields retain original compressed bytes, float storage and surface decisions',()=>{
- const raw=data(),old=data();if(raw.scene===undefined||old.scene===undefined)throw new Error('Missing audio scene');
+ const raw=data();if(raw.scene===undefined)throw new Error('Missing audio scene');
+ const originalFields=new Map<string,(x:number,z:number)=>number>();
  for(const [id,compressed,decoded]of originals){
   const row=raw.scene.fields.channels[id];if(row===undefined||Array.isArray(row))throw new Error('Missing raw row');
   const bytes=block(`audio/fields/${id}.bin`),values=readScalarChannel(row,blocks);
   expect(createHash('sha256').update(bytes).digest('hex')).toBe(compressed);
   expect(createHash('sha256').update(new Uint8Array(values.buffer,values.byteOffset,values.byteLength)).digest('hex')).toBe(decoded);
-  old.scene.fields.channels[id]=Buffer.from(bytes).toString('base64').match(/.{1,4096}/gu)??[];
+  const inflated=unzlibSync(bytes),heights=new Float32Array(inflated.buffer,inflated.byteOffset,inflated.byteLength/4);
+  originalFields.set(id,bakedSamplers({res:raw.scene.fields.res,size:raw.scene.fields.size,heights,seed:0,landscapeHash:0,splat:new Uint8Array(0),undergrowth:null}).heightAt);
  }
- const actual=new AudioSceneDirector(raw,player),oracle=new AudioSceneDirector(old,player);
- expect(actual.fieldFiles).toHaveLength(4);expect(oracle.fieldFiles).toEqual([]);actual.prepareFields(blocks);
+ const actual=new AudioSceneDirector(raw,player);
+ expect(actual.fieldFiles).toHaveLength(4);actual.prepareFields(blocks);
  for(const [id]of originals)for(const above of [0,.01,.1,.25,.5,.75,.9,.99,1]){
-  actual.rows.surfaces.rules=[{kind:'field',id,above,surface:'wood'}];oracle.rows.surfaces.rules=[{kind:'field',id,above,surface:'wood'}];
-  for(const x of [-249,-170,-80,0,80,170,249])for(const z of [-249,-170,-80,0,80,170,249])expect(actual.surfaceAt(x,z)).toBe(oracle.surfaceAt(x,z));
+  actual.rows.surfaces.rules=[{kind:'field',id,above,surface:'wood'}];
+  const original=originalFields.get(id);if(original===undefined)throw new Error('Missing original sampler');
+  for(const x of [-249,-170,-80,0,80,170,249])for(const z of [-249,-170,-80,0,80,170,249])expect(actual.surfaceAt(x,z)).toBe(original(x,z)>above?'wood':raw.scene.surfaces.fallback);
  }
 });
 
