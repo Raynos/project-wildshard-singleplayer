@@ -1,15 +1,6 @@
 import type { BakedPiece } from './fileInventory';
 import type { WorldPieceRow } from '@wildshard/game/shardfile/bakedKinds';
-import winchHouse from '../data/winchHouse.json' with { type: 'json' };
-import roost from '../data/roost.json' with { type: 'json' };
-import docks from '../data/docks.json' with { type: 'json' };
-import crown from '../data/crown.json' with { type: 'json' };
-import mill from '../data/mill.json' with { type: 'json' };
-import bookStand from '../data/bookStand.json' with { type: 'json' };
-import knolls from '../data/knolls.json' with { type: 'json' };
-import geometries from '../data/geometries.json' with { type: 'json' };
-import isletRig from '../data/isletRig.json' with { type: 'json' };
-import dressing from '../data/dressing.json' with { type: 'json' };
+import { skyWorldPieceValues, type SkyWorldPieceRows } from './worldPieceBytes';
 import { FALLEN_BRIDGE, MILL, NOTES, STEP, VANES, WINCH, WINCH_HOUSE } from "./layout";
 import STRINGS from '../data/strings.json' with { type: 'json' };
 import groundScene from '../data/groundScene.generated.json' with { type: 'json' };
@@ -17,9 +8,16 @@ import routeScene from '../data/routeScene.generated.json' with { type: 'json' }
 
 const { SKY_GROUND } = groundScene;
 const { SKY_ROUTES } = routeScene;
+const pieces = skyWorldPieceValues();
+function piece(name: BakedPiece): SkyWorldPieceRows {
+  const value = pieces.get(name);
+  if (value === undefined) throw new Error(`Missing owned Sky world piece ${name}`);
+  return value;
+}
+const mill = piece('mill');
 /** Authored static kind, pose, material and collider rows, in their original preload order. */
-export const WORLD_BAKES = { 'winch-house': winchHouse, roost, docks, crown, mill: { ...mill, kinds: mill.kinds.map(kind => kind.name.startsWith('cloth-') ? Object.assign(structuredClone(kind), { look: 'mill-canvas' }) : kind) }, 'book-stand': bookStand,
-  knolls, geometries, 'islet-rig': isletRig, dressing } as const satisfies Readonly<Record<BakedPiece, unknown>>;
+export const WORLD_BAKES = { 'winch-house': piece('winch-house'), roost: piece('roost'), docks: piece('docks'), crown: piece('crown'), mill: { ...mill, kinds: mill.kinds.map(kind => kind.name.startsWith('cloth-') ? Object.assign(structuredClone(kind), { look: 'mill-canvas' }) : kind) }, 'book-stand': piece('book-stand'),
+  knolls: piece('knolls'), geometries: piece('geometries'), 'islet-rig': piece('islet-rig'), dressing: piece('dressing') } as const satisfies Readonly<Record<BakedPiece, unknown>>;
 
 
 const FILE = 'src/shards/far-reach/world/build.ts';
@@ -47,10 +45,16 @@ export const SKY_PIECES = [
 ] as const satisfies readonly WorldPieceRow<BakedPiece>[];
 
 /** Fixed placements and baked paint assignment are emitted before client boot. */
+function lookKey(kind: SkyWorldPieceRows['kinds'][number], key: 'shack' | 'dressing'): string {
+  const value = kind[key];
+  if (typeof value !== 'string') throw new Error(`Invalid Sky ${key} look key`);
+  return value;
+}
+
 export function skyWorldRows(): { readonly bakes: Readonly<Record<string, unknown>>; readonly pieces: typeof SKY_PIECES } {
   const dressingLooks: Readonly<Record<string, string>> = { clump: 'dressing-clump', lip: 'dressing-clump', flower: 'dressing-flower', stone: 'dressing-stone' };
   const bakes = Object.fromEntries(Object.entries(WORLD_BAKES).map(([id, row]) => [id, { ...row, kinds: row.kinds.map(kind => 'look' in kind ? kind
-    : 'shack' in kind ? { ...kind, look: `shack-${kind.shack}` }
-    : 'dressing' in kind ? { ...kind, look: dressingLooks[kind.dressing] ?? '' } : kind) }]));
+    : 'shack' in kind ? { ...kind, look: `shack-${lookKey(kind, 'shack')}` }
+    : 'dressing' in kind ? { ...kind, look: dressingLooks[lookKey(kind, 'dressing')] ?? '' } : kind) }]));
   return { bakes, pieces: SKY_PIECES };
 }

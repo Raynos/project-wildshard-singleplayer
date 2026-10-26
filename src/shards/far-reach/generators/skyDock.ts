@@ -1,5 +1,4 @@
-import { ENTRY_ASPHALT } from '@wildshard/engine/core/config';
-import type { ColliderDesc } from '@wildshard/engine/world/registry';
+import { ENTRY_ASPHALT } from '@wildshard/format/contentBounds';
 import { BoxGeometry, Color, InstancedMesh, Matrix4, Quaternion, Vector3 } from 'three';
 import type { PieceBake } from '@wildshard/sdk/bake/kinds';
 import { bakeSkyPiece, SkyPiece } from './piece';
@@ -45,7 +44,7 @@ export function dockBox(entry: RisingIslet, t0: number, t1: number, u0: number, 
  * One dock's collision: the deck (top y = 0, flush with the lip), the two side rails and the far-end rail, the lip's open
  * outer-edge corners beside the jetty and its two ends, the beacon mast and the bollards. The lip's inner edge stays open.
  */
-export function dockColliders(entry: RisingIslet): ColliderDesc[] {
+export function dockColliders(entry: RisingIslet): ReturnType<typeof dockBox>[] {
   const D = DOCK, w = D.wall, h = D.half, r = D.rail;
   return [
     dockBox(entry, -h - w, h + w, D.u0, U1, -0.42, 0),
@@ -94,7 +93,7 @@ function dockParts(): Part[] {
   return parts;
 }
 
-export interface SkyDocks { readonly timber: InstancedMesh; readonly beacon: InstancedMesh; readonly colliders: ColliderDesc[] }
+export interface SkyDocks { readonly timber: InstancedMesh; readonly beacon: InstancedMesh; readonly colliders: ReturnType<typeof dockBox>[] }
 
 /** The four docks' look (the timber boxes with their per-instance colours, the beacon glass) and collision, in world space. */
 export function buildSkyDocks(entries: readonly RisingIslet[] = RISING_ISLETS): SkyDocks {
