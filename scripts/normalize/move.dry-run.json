@@ -138,7 +138,6 @@
     "scripts/music/export-midi.mjs",
     "scripts/music/gen/sfx_nalati.py",
     "scripts/music/gen/sfx_sprite.py",
-    "scripts/music/render.mjs",
     "scripts/nalati-hud-capture.mjs",
     "scripts/nalati-panorama.py",
     "scripts/nalati-ragdoll-check.mjs",
