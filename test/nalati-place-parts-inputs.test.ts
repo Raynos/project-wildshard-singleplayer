@@ -23,15 +23,16 @@ const pins = [
 ] as const;
 
 for (const [id, files] of pins) {
-  for (const omitted of [true, false]) {
-    test(`${id} ${omitted ? 'refuses the omitted extractor' : 'preserves every original wire byte in isolation'}`, async () => {
+  for (const omitted of [leaf, ...(id === 'nalati-quest-prop' ? ['src/shards/nalati-grasslands/generators/questProp.ts'] : []), undefined]) {
+    test(`${id} ${omitted === undefined ? 'preserves every original wire byte in isolation' : `refuses omitted ${omitted}`}`, async () => {
       const job = discoverGeneration(root).jobs.find(row => row.id === id);
       if (job === undefined) throw new Error('Missing retained place part producer');
       expect(job.inputRoots).toContain(leaf);
       const cacheDir = mkdtempSync(resolve('tmp', 'nalati-place-parts-'));
       try {
-        if (omitted) {
-          const descriptor = { ...job, inputRoots: job.inputRoots.filter(file => file !== leaf) };
+        if (omitted !== undefined) {
+          expect(job.inputRoots).toContain(omitted);
+          const descriptor = { ...job, inputRoots: job.inputRoots.filter(file => file !== omitted) };
           const catalogPath = relative(root, resolve(cacheDir, 'omitted.json'));
           const catalog = v.parse(v.object({ schema: v.string(), notice: v.string(), jobs: v.array(v.unknown()) }),
             JSON.parse(readFileSync('scripts/generation-jobs.json', 'utf8')));

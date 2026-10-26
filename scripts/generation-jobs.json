@@ -14859,7 +14859,8 @@
         "scripts/bake-output.mjs",
         "package.json",
         "pnpm-lock.yaml",
-        "src/shards/nalati-grasslands/generators/placeParts.ts"
+        "src/shards/nalati-grasslands/generators/placeParts.ts",
+        "src/shards/nalati-grasslands/generators/questProp.ts"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/data/questProp.generated.json",

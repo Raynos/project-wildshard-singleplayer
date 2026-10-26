@@ -5,6 +5,7 @@ import * as v from 'valibot';
 import { SpecimenCatalogueSchema } from '@wildshard/format/specimenCatalogue';
 import { byteWriter, jsonBytes } from '../../../../scripts/bake-output.mjs';
 import { nalatiPlaceParts } from './placeParts.ts';
+import { nalatiQuestProp } from './questProp.ts';
 
 const root=resolve(import.meta.dirname,'../../../..'),shard='src/shards/nalati-grasslands';
 const read=file=>JSON.parse(readFileSync(resolve(root,shard,file),'utf8'));
@@ -13,8 +14,7 @@ const lanes=inflateSync(readFileSync(resolve(root,'public/assets/nalati/baked/pl
 if(lanes.length%4!==0)throw new Error('Place bake requires whole words');
 for(let b=0;b<4;b++)for(let i=0;i<lanes.length/4;i++)bytes[i*4+b]=lanes[b*lanes.length/4+i];
 const part=nalatiPlaceParts(places,bytes,['actor:goat']).get('actor:goat');if(part===undefined)throw new Error('Missing carried prop');
-const g=part.geometry;
-const rows=v.parse(SpecimenCatalogueSchema,[{key:'prop',model:{id:'nalati-grasslands/kokpar-goat',name:'Kokpar goat',category:'props',pipeline:'code',file:'src/shards/nalati-grasslands/generators/carriedQuest.ts',defaults:{}},source:{kind:'file',file:'models/specimens/quest-prop.bin',geometry:g,material:specimens.materials.poi}}]);
+const rows=v.parse(SpecimenCatalogueSchema,[nalatiQuestProp(part.geometry,specimens.materials.poi)]);
 const writer=byteWriter(process.argv.includes('--check'),'nalati-quest-prop');
 writer.put(resolve(root,shard,'data/quest-prop.generated.bin'),part.bytes);
 writer.put(resolve(root,shard,'data/questProp.generated.json'),jsonBytes(rows[0]));writer.finish();

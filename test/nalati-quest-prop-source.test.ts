@@ -1,0 +1,29 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- Verify the complete original admitted prop bytes.
+import { readFileSync } from 'node:fs';
+import { expect, test } from 'vitest';
+import * as v from 'valibot';
+import { SpecimenCatalogueSchema } from '../src/format/specimenCatalogue';
+import { SceneBakedGeometrySchema } from '../src/format/sceneDressing';
+import { hashImmutableBytes } from '../src/sdk/immutable';
+import { nalatiQuestProp } from '../src/shards/nalati-grasslands/generators/questProp';
+
+const root = 'src/shards/nalati-grasslands/data/';
+const read = (file: string): unknown => JSON.parse(readFileSync(`${root}${file}`, 'utf8'));
+
+test('computed carried-prop geometry and admitted material preserve the whole original declaration', () => {
+  const places = v.parse(v.object({ places: v.object({ rows: v.array(v.object({ name: v.string(),
+    meshes: v.array(v.object({ geometry: SceneBakedGeometrySchema })) })) }) }), read('placeRuntime.generated.json'));
+  const specimens = v.parse(v.object({ materials: v.object({ poi: v.unknown() }) }), read('specimens.generated.json'));
+  const geometry = places.places.rows.find(row => row.name === 'actor:goat')?.meshes[0]?.geometry;
+  if (geometry === undefined) throw new Error('Missing computed quest prop geometry');
+  const row = nalatiQuestProp(geometry, specimens.materials.poi), admitted = v.parse(SpecimenCatalogueSchema, [row])[0];
+  const bytes = new TextEncoder().encode(`${JSON.stringify(admitted, null, 2)}\n`);
+  const original = readFileSync(`${root}questProp.generated.json`);
+  expect(hashImmutableBytes(original)).toBe('b65315ab0b84892f1e20542608c722b5a379d44783a5940b2d85dcef00081782');
+  expect(Buffer.compare(bytes, original)).toBe(0);
+  expect(row.source.geometry).not.toBe(geometry);
+  expect(row.source.material).not.toBe(specimens.materials.poi);
+  expect(() => v.parse(SpecimenCatalogueSchema, [nalatiQuestProp(geometry, {})])).toThrow();
+  expect(row.source.geometry).toEqual(geometry);
+  expect(() => v.parse(SpecimenCatalogueSchema, [nalatiQuestProp({ ...geometry, count: -1 }, specimens.materials.poi)])).toThrow();
+});
