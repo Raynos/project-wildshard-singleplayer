@@ -20,12 +20,14 @@ const image = 'public/assets/far-reach/map/top.webp';
 const hash = 'a4d2c58042946dc131c67027993aa567121d45bab1e33759248acb8aa704728d';
 const worldHandoffs = [...BAKED_PIECES.map(piece => `../../../public/assets/far-reach/baked/${piece}.glb`),
   '../../../public/assets/far-reach/baked/isles.bin', 'data/isles.json', 'data/geometries.json'];
+const bridgeHandoffs = ['public/assets/far-reach/baked/bridge-rest.glb', 'src/shards/far-reach/data/bridgeRest.generated.json'];
 const rootPath = (file: string): string => file.startsWith('../../../public/') ? file.slice(9) : `src/shards/far-reach/${file}`;
 
 test('the sealed map owns all prepared-model inputs and retains every original image byte without the public GLB', async () => {
   const root = resolve('.'), job = discoverGeneration(root).jobs.find(row => row.id === 'sky-data-map');
   if (job === undefined) throw new Error('Missing retained Sky map');
   expect(job.inputRoots).not.toContain(handoff);
+  for (const file of bridgeHandoffs) expect(job.inputRoots).not.toContain(file);
   for (const file of worldHandoffs) expect(job.inputRoots).not.toContain(rootPath(file));
   for (const url of PREPARED_MODEL_INPUTS) expect(job.inputRoots).toContain(`public${url}`);
   mkdirSync('tmp', { recursive: true });
@@ -34,6 +36,7 @@ test('the sealed map owns all prepared-model inputs and retains every original i
     const result = await generateShardJob(root, job, { cacheDir, forceCompare: true });
     try {
       for (const file of worldHandoffs) expect(existsSync(resolve(result.directory, rootPath(file))), file).toBe(false);
+      for (const file of bridgeHandoffs) expect(existsSync(resolve(result.directory, file)), file).toBe(false);
       expect(result.hit).toBe(false);
       expect(result.hashes[image]).toBe(hash);
       expect(existsSync(resolve(result.directory, handoff))).toBe(false);

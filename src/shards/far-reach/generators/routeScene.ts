@@ -1,5 +1,5 @@
 import { parsePrivateScene, type PrivateScene } from '@wildshard/format/clientChannels';
-import BRIDGES from '../data/bridgeRest.generated.json' with { type: 'json' };
+import { bridgeRestValues } from './bridgeRest';
 import REST from '../data/restScenes.generated.json' with { type: 'json' };
 import { FALLEN_BRIDGE, NOTES, SPANS, UPDRAFT, VANES, WINCH } from "./layout";
 import { FALLEN_ANGLE } from './rows/moverBindings';
@@ -18,7 +18,8 @@ const KIT_DECK: SceneMaterial = { kind: 'standard', id: 'deck', properties: { co
 const declared = (materials: readonly SceneMaterial[], own: readonly SceneMaterial[]): SceneMaterial[] => materials.map(row => own.find(entry => entry.id === row.id) ?? row);
 
 /** Place the static spans and board-only updraft in their original world frames. */
-export function skyRouteSource(): Uint8Array {
+export async function skyRouteSource(read: (url: string) => Uint8Array): Promise<Uint8Array> {
+  const BRIDGES = await bridgeRestValues(read);
   const root = { kind: 'group' as const, id: 'routes', children: [] as string[] };
   const nodes: PrivateScene['nodes'] = [root];
   const registry = [], bindings = [];

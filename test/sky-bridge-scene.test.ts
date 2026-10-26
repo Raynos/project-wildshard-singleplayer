@@ -3,13 +3,16 @@ import { BoxGeometry, Group, InstancedMesh, MeshStandardMaterial } from 'three';
 import { createClientScene } from '../src/game/plugin/scene';
 import { worldPieces, type WorldPieceRow } from '../src/game/shardfile/bakedKinds';
 import type { Piece } from '../src/engine/world/registry';
-import BRIDGES from '../src/shards/far-reach/data/bridgeRest.generated.json' with { type: 'json' };
+// oxlint-disable-next-line import/no-nodejs-modules -- Supply the original authored native model directly to its owner.
+import { readFileSync } from 'node:fs';
+import { bridgeRestValues } from '../src/shards/far-reach/generators/bridgeRest';
 import COLLIDERS from '../src/shards/far-reach/data/bridgePhysics.generated.json' with { type: 'json' };
 import routeScene from '../src/shards/far-reach/data/routeScene.generated.json' with { type: 'json' };
 
 const { SKY_ROUTE_SCENE, SKY_ROUTES } = routeScene;
 
-it('assembles an authored bridge with borrowed materials and optional painted posts', () => {
+it('assembles an authored bridge with borrowed materials and optional painted posts', async () => {
+  const BRIDGES = await bridgeRestValues(url => new Uint8Array(readFileSync(`public${url}`)));
   const span = BRIDGES.spans.find(row => row.id === 'kit');
   if (span === undefined) throw new Error('Explorer bridge recipe absent');
   const geometry = new BoxGeometry(), deck = new MeshStandardMaterial(), rails = new MeshStandardMaterial();
