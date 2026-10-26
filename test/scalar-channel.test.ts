@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import * as v from 'valibot';
 import { expect,test } from 'vitest';
 import { zlibSync,unzlibSync } from 'fflate';
-import { readScalarChannel,readScalarLattice } from '../src/engine/world/scalarChannel';
+import { readScalarChannel,readScalarLattice,ScalarLatticeBindings } from '../src/engine/world/scalarChannel';
 import { ScalarChannelSchema, ScalarLatticeSchema, ScalarTripletSchema } from '../src/format/scalarChannel';
 import { ForestRowsSchema } from '../src/format/terrain';
 import { declaredForestQueries } from '../src/game/shard/manifest';
@@ -20,13 +20,16 @@ const geography=v.parse(v.object({res:finite,size:finite,seed:finite,pigment:Sca
 
 const TERRAIN = GROUND.terrain,wetMask = readScalarLattice(geography.channels.wet,scalarBlocks);
 
-function encode(values: Float32Array | Float64Array): string {
-  return btoa(String.fromCodePoint(...zlibSync(new Uint8Array(values.buffer,values.byteOffset,values.byteLength))));
+const files=new Map<string,Uint8Array>();
+function encode(values: Float32Array | Float64Array): {file:string} {
+  const file=`test/scalar-${files.size}.bin`;
+  files.set(file,zlibSync(new Uint8Array(values.buffer,values.byteOffset,values.byteLength)));
+  return {file};
 }
 test('both numeric widths retain every bit, signed zero and independent storage without conversion or a cache', () => {
   for (const values of [new Float32Array([0,-0,Math.PI,Number.MIN_VALUE,-123.5]),new Float64Array([0,-0,Math.PI,Number.MIN_VALUE,-123.5])]) {
     const row = { type: values instanceof Float32Array ? 'f32' as const : 'f64' as const,count: values.length,data: encode(values) };
-    const first = readScalarChannel(row), second = readScalarChannel(row);
+    const first = readScalarChannel(row,files), second = readScalarChannel(row,files);
     expect(first.constructor).toBe(values.constructor);expect(new Uint8Array(first.buffer,first.byteOffset,first.byteLength)).toEqual(new Uint8Array(values.buffer));
     for (const [i,value] of values.entries()) expect(Object.is(first[i],value)).toBe(true);
     first[0] = 17;expect(second[0]).toBe(0);
@@ -35,21 +38,23 @@ test('both numeric widths retain every bit, signed zero and independent storage 
 
 test('length, overflow, non-finite, JSON accessors and undeclared fields refuse before decoding a usable channel', () => {
   const valid = { type: 'f64' as const,count: 1,data: encode(new Float64Array([Math.PI])) };
-  for (const row of [{ ...valid,count: 2 },{ ...valid,count: 0 },{ ...valid,count: -1 },{ ...valid,count: 1.5 },{ ...valid,count: 4194305 },{ ...valid,type: 'f16' },{ ...valid,data: 'bad!' },{ ...valid,extra: true },{ ...valid,data: encode(new Float64Array([Infinity])) },{ ...valid,data: encode(new Float64Array([Number.NaN])) },{ ...valid,data: encode(new Float64Array([1,2,3])) }]) expect(() => readScalarChannel(row)).toThrow();
+  for (const row of [{ ...valid,count: 2 },{ ...valid,count: 0 },{ ...valid,count: -1 },{ ...valid,count: 1.5 },{ ...valid,count: 4194305 },{ ...valid,type: 'f16' },{ ...valid,data: 'bad!' },{ ...valid,extra: true },{ ...valid,data: encode(new Float64Array([Infinity])) },{ ...valid,data: encode(new Float64Array([Number.NaN])) },{ ...valid,data: encode(new Float64Array([1,2,3])) }]) expect(() => readScalarChannel(row,files)).toThrow();
   let calls = 0;const accessor = { type: 'f64',count: 1,get data() { calls++;return valid.data; } };
-  expect(() => readScalarChannel(accessor)).toThrow();expect(calls).toBe(0);
+  expect(() => readScalarChannel(accessor,files)).toThrow();expect(calls).toBe(0);
 });
 
 test('packed and legacy forest candidates keep exact lookup, duplicate-coordinate source order and f64 precision', () => {
   const forest = [{ x: -0,z: 0,density: Math.PI,scale: 1,species: { tree: 1 } },{ x: 0,z: 0,density: Number.MIN_VALUE,scale: 2,species: { tree: .5 } }];
   const packed = { forest: forest.map(({ density: _density,...row }) => row),density: { type: 'f64' as const,count: 2,data: encode(new Float64Array(forest.map(row => row.density))) } };
-  const legacy = declaredForestQueries({ forest }), actual = declaredForestQueries(packed);
+  const intake=new ScalarLatticeBindings();
+  const legacy = declaredForestQueries({ forest }), actual = declaredForestQueries(packed,intake);
+  expect(()=>actual.density(0,0)).toThrow('not prepared');intake.prepare(files);
   expect(actual.density(0,0)).toBe(Number.MIN_VALUE);expect(actual.density(-0,0)).toBe(legacy.density(-0,0));
   expect(actual.scale(0,0)).toBe(legacy.scale(0,0));expect(actual.species(0,0)).toEqual(legacy.species(0,0));
   expect(() => actual.density(.1,0)).toThrow('candidate');
-  expect(() => declaredForestQueries({ forest,density: packed.density })).toThrow();
-  expect(() => declaredForestQueries({ ...packed,density: { ...packed.density,count: 1 } })).toThrow();
-  expect(() => declaredForestQueries({ ...packed,density: { ...packed.density,type: 'f32' } })).toThrow();
+  expect(() => declaredForestQueries({ forest,density: packed.density },new ScalarLatticeBindings())).toThrow();
+  expect(() => declaredForestQueries({ ...packed,density: { ...packed.density,count: 1 } },new ScalarLatticeBindings())).toThrow();
+  expect(() => declaredForestQueries({ ...packed,density: { ...packed.density,type: 'f32' } },new ScalarLatticeBindings())).toThrow();
 });
 
 test('actual Nalati channels and every existing sampler retain exact boundary, signed-zero, pigment and minimap answers', () => {

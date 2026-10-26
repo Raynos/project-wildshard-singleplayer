@@ -1,10 +1,11 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Exact original compressed bytes and named-file admission.
 import {createHash} from 'node:crypto';
 import {expect,test,vi} from 'vitest';
-import {zlibSync} from 'fflate';
+import {zlibSync,unzlibSync} from 'fflate';
+import {bakedSamplers} from '../src/format/bakedTerrainSampling';
 import {Scope} from '../src/engine/app/scope';
 import type {ScalarLatticeRows} from '../src/format/scalarChannel';
-import {ScalarLatticeBindings,readScalarLattice,readScalarChannel} from '../src/engine/world/scalarChannel';
+import {ScalarLatticeBindings,readScalarChannel} from '../src/engine/world/scalarChannel';
 import {defineShard,prepareManifestScalarBlocks,type ShardManifestRows} from '../src/game/shard/manifest';
 import {absentShardProduct,type ShardProduct} from '../src/game/shardfile/shardProduct';
 import {readNamedBlob} from '../src/sdk/blobs';
@@ -44,7 +45,8 @@ test('raw manifest declarations perform no reads and publish the original native
   await prepareManifestScalarBlocks(f.manifest,f.product,f.scope);expect(f.file).toHaveBeenCalledTimes(5);
   expect(f.manifest.ground).toBe(ground);expect(f.manifest.ground.terrain).toBe(terrain);
   for(const name of f.manifest.scalarBlocks?.files??[]){const value=f.blocks.get(name);if(value===undefined)throw new Error('Missing original block');
-    const old=readScalarLattice({res:2,size:500,values:{type:'f32',count:4,data:btoa(String.fromCodePoint(...value))}});
+    const decoded=unzlibSync(value),heights=new Float32Array(decoded.buffer,decoded.byteOffset,decoded.byteLength/4);
+    const old=bakedSamplers({res:2,size:500,heights,seed:0,landscapeHash:0,splat:new Uint8Array(0),undergrowth:null}).heightAt;
     const raw=f.manifest.scalarBlocks?.lattice(raster(name),name==='data/pond.bin'?{min:0,max:1}:undefined);
     for(const x of [-500,-250,-0,0,250,500,Number.NaN])for(const z of [-500,-250,-0,0,250,500])expect(Object.is(raw?.(x,z),old(x,z))).toBe(true);
   }
