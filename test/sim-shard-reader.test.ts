@@ -1,8 +1,44 @@
 import { expect, test } from 'vitest';
-import { admissionFrameEvidence, compiledTimingHistory, compiledDocumentEvidence, compiledEntryQualification, compiledFrameMetrics, compiledPollDetails, downloadEvidence, recoveredGridControls, requireCompiledEntry, sampleCompiledFrame, stepEvidence, transportEvidence, waitForWaitingWorker, type CompiledFrameWindow } from '../scripts/loading-benchmark/sim-shard.mjs';
+import { admissionFrameEvidence, compiledTimingHistory, compiledDocumentEvidence, compiledEntryQualification, compiledFrameMetrics, compiledPollDetails, downloadEvidence, recoveredGridControls, requireCompiledEntry, sampleCompiledFrame, stepEvidence, stepBoundaryEvidence, transportEvidence, waitForWaitingWorker, type CompiledFrameWindow } from '../scripts/loading-benchmark/sim-shard.mjs';
 import type { AdmissionFrames } from '../scripts/loading-benchmark/accuracy-data.d.mts';
 
 const frameWindow = (): CompiledFrameWindow => ({ controlsAt: null, last: null, worst: 0, worstAt: null, frames: 0, complete: false });
+
+test('step boundaries use retained first-entry facts, including steps missed by sampled rows', () => {
+  const report = stepBoundaryEvidence({at: 1100, elapsedMs: 1000, fading: true, rows: [
+    {key: 'first', startedAt: '100', setupAtStart: '0'},
+    {key: 'short', startedAt: '350', setupAtStart: '40'},
+    {key: 'gap', startedAt: '', setupAtStart: ''},
+    {key: 'gap', startedAt: '', setupAtStart: ''},
+    {key: 'last', startedAt: '900', setupAtStart: '80'},
+  ]});
+  expect(report).toMatchObject({complete: true, reason: null, executedRows: 3, measuredStarts: 3,
+    missingStarts: [], maxErrorPoints: 15, within15Points: true});
+  expect(report.starts[1]).toEqual({key: 'short', startedAt: 350, setup: 40, elapsedPercent: 25, errorPoints: 15});
+});
+
+test('step boundaries keep missing coverage unknown while retaining a measured miss', () => {
+  const final = {at: 1100, elapsedMs: 1000, fading: true};
+  const unknown = {key: 'modules', startedAt: '100'};
+  const known = {key: 'short', startedAt: '350', setupAtStart: '25'};
+  expect(stepBoundaryEvidence({...final, rows: [unknown, known]})).toMatchObject({complete: false,
+    reason: 'missing step facts', executedRows: 2, measuredStarts: 1, missingStarts: ['modules'], within15Points: null});
+  expect(stepBoundaryEvidence({...final, rows: [unknown, {...known, setupAtStart: '41'}]}))
+    .toMatchObject({complete: false, maxErrorPoints: 16, within15Points: false});
+  for (const sample of [undefined, null, {}, {...final, fading: false}, {...final, elapsedMs: 0},
+    {...final, elapsedMs: Number.NaN}, {...final, at: 900}, {...final, rows: []}])
+    expect(stepBoundaryEvidence(sample)).toMatchObject({complete: false, within15Points: null});
+});
+
+test('step boundaries refuse invalid clocks, percentages, duplicate rows and unbounded lists', () => {
+  const final = {at: 1100, elapsedMs: 1000, fading: true};
+  const row = {key: 'world', startedAt: '500', setupAtStart: '40'};
+  for (const bad of [{...row, startedAt: '99'}, {...row, startedAt: '1101'}, {...row, startedAt: 'NaN'},
+    {...row, setupAtStart: '-1'}, {...row, setupAtStart: '101'}, {...row, setupAtStart: '4.5'}])
+    expect(() => stepBoundaryEvidence({...final, rows: [bad]})).toThrow('step boundary');
+  expect(() => stepBoundaryEvidence({...final, rows: [row, row]})).toThrow('Duplicate step boundary');
+  expect(() => stepBoundaryEvidence({...final, rows: Array.from({length: 257}, () => row)})).toThrow('step boundary rows');
+});
 
 test('admission callback evidence preserves unknowns, blank facts and incomplete coverage', () => {
   const record = (): AdmissionFrames => ({protocol: 'loading-admission-raf/1', frames: 2, droppedFrames: 0,

@@ -198,6 +198,42 @@ export function stepEvidence(samples) {
   return { numberedFrames, totalSteps: previousTotal, totalChanges, numberRegressions, observedStarts: starts, lastSetupBeforeFade };
 }
 
+/** Grade retained DOM setup facts against their actual first-entry clocks.
+ * Missing coverage never turns a partial good result into acceptance; a known
+ * miss remains a miss even when another boundary is unknown. No paint claim.
+ * @param {import('./sim-shard.mjs').StepBoundarySample | null | undefined} final */
+export function stepBoundaryEvidence(final) {
+  const empty = {complete: false, reason: 'missing completed clock', executedRows: 0, measuredStarts: 0,
+    missingStarts: [], maxErrorPoints: null, within15Points: null, starts: []};
+  if (final?.fading !== true || typeof final.at !== 'number' || !Number.isFinite(final.at)
+    || typeof final.elapsedMs !== 'number' || !Number.isFinite(final.elapsedMs) || final.elapsedMs <= 0
+    || final.at < final.elapsedMs) return empty;
+  const rows = final.rows;
+  if (rows === undefined || rows.length === 0) return {...empty, reason: 'missing rows'};
+  if (rows.length > 256) throw new Error('Invalid step boundary rows');
+  const origin = final.at - final.elapsedMs, keys = new Set(), missingStarts = [], starts = [];
+  let maximum = null;
+  for (const row of rows) {
+    if (row.key === undefined || row.key === '' || row.key === 'gap') continue;
+    if (keys.has(row.key)) throw new Error('Duplicate step boundary');
+    keys.add(row.key);
+    if (row.startedAt === undefined || row.startedAt === '' || row.setupAtStart === undefined || row.setupAtStart === '') {
+      missingStarts.push(row.key); continue;
+    }
+    const startedAt = Number(row.startedAt), setup = Number(row.setupAtStart);
+    if (!Number.isFinite(startedAt) || startedAt < origin || startedAt > final.at
+      || !/^(?:100|\d{1,2})$/u.test(row.setupAtStart)) throw new Error('Invalid step boundary facts');
+    const elapsedPercent = 100 * (startedAt - origin) / final.elapsedMs;
+    const errorPoints = Math.abs(setup - elapsedPercent);
+    maximum = Math.max(maximum ?? 0, errorPoints);
+    starts.push({key: row.key, startedAt, setup, elapsedPercent, errorPoints});
+  }
+  const complete = keys.size > 0 && missingStarts.length === 0;
+  return {complete, reason: keys.size === 0 ? 'missing rows' : complete ? null : 'missing step facts',
+    executedRows: keys.size, measuredStarts: starts.length, missingStarts, starts, maxErrorPoints: maximum,
+    within15Points: maximum !== null && maximum > 15 ? false : complete ? true : null};
+}
+
 /** Never compare expected content (including cache hits) to compressed network
  * traffic. Retain both independent units and any missing decode evidence. */
 export function transportEvidence(receipts) {

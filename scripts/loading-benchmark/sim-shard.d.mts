@@ -2,6 +2,16 @@ import type { AdmissionFrames } from './accuracy-data.d.mts';
 
 export interface DownloadSample { step?: string; declaredBytes?: string; pendingBytes?: string; downloadPercent?: string }
 export interface StepSample { clock?: string; detail?: string; setup?: string; fading?: boolean; elapsedMs?: number | null }
+export interface StepBoundarySample {
+  at?: number; elapsedMs?: number | null; fading?: boolean;
+  rows?: readonly {key?: string; startedAt?: string; setupAtStart?: string}[];
+}
+/** Exact retained DOM facts at first entry, never reconstructed from samples. */
+export function stepBoundaryEvidence(final: StepBoundarySample | null | undefined): {
+  complete: boolean; reason: string | null; executedRows: number; measuredStarts: number;
+  missingStarts: string[]; maxErrorPoints: number | null; within15Points: boolean | null;
+  starts: {key: string; startedAt: number; setup: number; elapsedPercent: number; errorPoints: number}[];
+};
 /** First observed samples; monotonic ratios require a real panel clock origin. */
 export function stepEvidence(samples: readonly StepSample[]): {
   numberedFrames: number; totalSteps: number | null; totalChanges: number; numberRegressions: number;
