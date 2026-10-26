@@ -303,6 +303,39 @@ change. Driftwood's subsequent dressing output ENOENT is fixed by dca731cde4
 declared output names. O4 identifies those L18 commits as sp-o3's. A matching
 ready preview is reported; no second source patch or duplicate build is needed.
 
+### Release reading — 2026-10-26 21:58 UTC (sp-x7)
+
+Full push CI40405743789 on a3b00cc68d finished red in four jobs. Generated
+inputs, derived docs and all six lint jobs passed. Live remains14a3d5d93;
+there is no newer exact smoke or release proof.
+
+- Products: the earlier CMake defect now has actual Linux cold acceptance.
+  Checked Basis preparation took70.869s, ready before workers in71.466s;
+  all24 products built. The later refusal is distinct: CLOSED Driftwood C2
+  Looks has31 custom lines, first21:51:49, deadline22:21:49. Tested a3b
+  predates G750's1d4a4f738f removal of the sole-use cloud comparison code.
+  Current source-only closed-component check passes. The full strict output
+  census still requires current products; no green claim substitutes for it.
+  G750 owner confirmation/proof was routed to the coordinator; sp-x7 retains
+  release-red duty until the containing gate proves this boundary.
+- Types: quantized GLB tests passed ArrayBuffer|SharedArrayBuffer to
+  GLTFLoader, first21:43:49. O3 fix732273c60f is on origin, local strict
+  SDK test types and both cases pass, within22:13:49 source deadline.
+- Behaviour3: the public boot-pack test omitted the admitted five-rig
+  metadata used by production, first21:47:49. X1 fix095787aa7077 is on
+  origin before22:17:49; public-file existence and no-retired-rig URL
+  assertions remain strict. Eight focused cases/types/lint and CF1 pass.
+- Behaviour11: foliage expected raw float attributes after the explicit
+  quantized-storage change, first21:47:46. O3 fix1992f8b8fa is on origin;
+  full compact-channel, copy-box and trunk-contact checks pass. Companion
+  rock consumer repair49773e33d1 is also on origin with four fresh-product
+  cases, preserving positions, bounds, colliders and complete world rows.
+
+The separate tiled-buffer usage fixture narrowing04be474cc6 is on origin;
+it preserves DynamicDrawUsage without a cast. G745 transfers to sp-x9 under
+the lane audit; sp-x7 starts no further feature work while main is red.
+This reading is a source/provenance receipt, not a containing-CI success.
+
 ## Decisions for Jake
 
 - **D1** Should `commit.sh` run `vitest related` (and the touched layer's types) on every commit, capped at 60 s,
