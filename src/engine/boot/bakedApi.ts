@@ -7,6 +7,8 @@ import type { LookupTexture } from 'postprocessing';
  * that lists it among its boot's `baked` files gets the sky's cloud texture without marching it (boot/bakedTextures.ts bakedBytes).
  */
 export const CLOUD_FIELD_URL = '/assets/baked/common/cloud-field.bin';
+/** The pond's tiling ripple normal + foam map baked at build (world/water/ripplePixels.ts, scripts/bake-water-ripples.mjs): raw RGBA bytes. */
+export const WATER_RIPPLES_URL = '/assets/baked/common/water-ripples.bin';
 
 export async function preloadBakedTextures(): Promise<number> {
   return (await import('./bakedTextures')).preloadBakedTextures();

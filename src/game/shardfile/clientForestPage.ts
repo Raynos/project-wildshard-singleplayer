@@ -40,6 +40,7 @@ import { placeForestPageModels, prepareForestPage, prepareForestPageLooks, type 
 import { lendLooks, type LentLooks } from './lentLooks';
 import { punchPageTerrain } from './pagePreparation';
 import { bindPageWater } from './pageWater';
+import { preloadWaterRipples } from '@wildshard/engine/world/water/ripples';
 import { runtimeLookMaterials } from './runtimeProduct';
 import { timeClientPreparation } from './preparationTiming';
 
@@ -63,8 +64,11 @@ export async function installClientForestPage(ctx: ShardContext, row: ForestPage
   const runtime = ctx.game.runtime, world = runtime?.world;
   if (runtime === undefined || world === undefined || world === null) throw new Error('Forest page requires its world');
   if (ended(ctx)) return;
+  // the baked ripple map arrives with the rows, so binding the water never marches its fbm (~70 ms at phone CPU)
+  const ripples = preloadWaterRipples();
   const input = await ctx.product.json<ForestPageRows>(row.file); if (ended(ctx)) return;
   await timeClientPreparation(ctx.product.slug, 'forest.looks', () => ports.prepareForestPageLooks(ctx, input)); if (ended(ctx)) return;
+  await ripples; if (ended(ctx)) return;
   ports.bindPageWater(ctx, input.water);
   const wildlife = await timeClientPreparation(ctx.product.slug, 'forest.wildlife', () => ports.library(ctx.product, input.wildlife)); if (ended(ctx)) return;
   const looks = await timeClientPreparation(ctx.product.slug, 'forest.wildlife-looks', () => ports.runtimeLookMaterials(ctx, ctx.product.shardfile, true, [wildlife.name])); if (ended(ctx)) return;
