@@ -6,6 +6,7 @@ import {MeshStandardMaterial} from 'three';
 import {parseWorldScene} from '@wildshard/format/clientChannels';
 import {staticGlb} from '@wildshard/sdk/bake/glb';
 import {bakeRockScenes} from './rockScenes.ts';
+import {compactChannels} from './compactChannels.ts';
 import {byteWriter,jsonBytes} from '../../../../scripts/bake-output.mjs';
 
 const project=new URL('../',import.meta.url),root=new URL('../../../../',import.meta.url);
@@ -20,7 +21,8 @@ try{
  const models=[];
  for(const [id,geometry] of bake.geometry){
   const file=`models/rocks/${id}.glb`,source=`assets/rock-scenes/${id}.glb`;
-  writer.put(fileURLToPath(new URL(source,project)),staticGlb([{geometry,material,compactIndex:true}]));
+  // L18.3b: exact positions, compact normals and colours (compactChannels.ts); the intake restores the typed channels
+  writer.put(fileURLToPath(new URL(source,project)),staticGlb([{geometry:compactChannels(geometry.clone()),material,compactIndex:true,quantizedChannels:true}]));
   models.push({id,file,source});
  }
  const sphere=id=>{const geometry=bake.geometry.get(id);if(geometry===undefined)throw new Error(`Missing rock bounds: ${id}`);geometry.computeBoundingSphere();const bound=geometry.boundingSphere;if(bound===null)throw new Error(`Missing rock sphere: ${id}`);return {center:[...bound.center],radius:bound.radius};};

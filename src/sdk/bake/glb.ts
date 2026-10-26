@@ -122,6 +122,10 @@ export interface GlbPrimitive {
   extras?: Readonly<Record<string, Json>>;
   /** `true` writes the index as built: none for a non-indexed geometry, 16-bit when it is 16-bit; absent always writes a 32-bit index (the old byte path). */
   compactIndex?: true;
+  /** `true` writes a normalized Int8 normal and a normalized Uint8 / Uint16 colour as they are (KHR_mesh_quantization,
+   *  tightly packed), which three's GLTFLoader reads back into the same typed attributes;
+   *  positions stay float32. Other storage refuses. Absent: the old float32 byte path. */
+  quantizedChannels?: true;
 }
 /** A deterministic self-contained static GLB; names and vertex colours survive the ordinary engine GLTFLoader. */
 export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): Uint8Array {
@@ -176,6 +180,21 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
       ...(attribute.normalized ? { normalized: true } : {}) });
     return accessors.length - 1;
   };
+  // KHR_mesh_quantization: a normalized integer vertex channel, tightly packed (each view starts 4-byte aligned): WebGL
+  // needs only component alignment, and three's GLTFLoader reads a packed view back as a plain typed attribute (a padded
+  // stride would come back interleaved)
+  let quantized = false;
+  const packedAccessor = (attribute: BufferAttribute): number => {
+    const array = attribute.array;
+    const componentType = array instanceof Int8Array ? 5120 : array instanceof Uint8Array ? 5121 : array instanceof Uint16Array ? 5123 : null;
+    if (componentType === null || !attribute.normalized) throw new Error('Quantized GLB channels must be normalized Int8, Uint8 or Uint16');
+    const length = attribute.count * attribute.itemSize * array.BYTES_PER_ELEMENT, bytes = new Uint8Array(Math.ceil(length / 4) * 4);
+    bytes.set(new Uint8Array(array.buffer, array.byteOffset, length));
+    const view = views.length; views.push({ buffer: 0, byteOffset: offset, byteLength: length }); chunks.push(bytes); offset += bytes.length;
+    accessors.push({ bufferView: view, componentType, normalized: true, count: attribute.count, type: `VEC${attribute.itemSize}` });
+    quantized = true;
+    return accessors.length - 1;
+  };
   const trs = (matrix: Matrix4): { position: Vector3; rotation: Quaternion; scale: Vector3 } => {
     const position = new Vector3(), scale = new Vector3(), rotation = new Quaternion();
     matrix.decompose(position, rotation, scale);
@@ -183,7 +202,8 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
     if (matrix.elements.some((n, i) => !Number.isFinite(n) || Math.abs(n - (composed.elements[i] ?? Infinity)) > 1e-5) || scale.x <= 0 || scale.y <= 0 || scale.z <= 0) throw new Error('Instance must be a finite positive TRS transform');
     return { position, rotation, scale };
   };
-  for (const { geometry, material, instances, exactInstances, instanceColours, castShadow = true, customAttributes = {}, name: nodeName = name, transform, compactIndex, nativeAttributes, extras } of primitives) {
+  for (const { geometry, material, instances, exactInstances, instanceColours, castShadow = true, customAttributes = {}, name: nodeName = name, transform, compactIndex, nativeAttributes, extras, quantizedChannels } of primitives) {
+    if (quantizedChannels === true && nativeAttributes === true) throw new Error('A GLB primitive takes quantized or native channels, not both');
     if (material.map !== null || material.alphaMap !== null || (!(material instanceof MeshBasicMaterial) && (material.normalMap !== null || material.roughnessMap !== null || material.metalnessMap !== null))) throw new Error('GLB textures must be external KTX2 declarations');
     if (!geometry.hasAttribute('position')) throw new Error('Missing GLB positions');
     const p = geometry.getAttribute('position'); if ( p.count > 400_000) throw new Error('Unsupported GLB geometry');
@@ -194,6 +214,10 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
       // retain the original vec4 as an application accessor below, never misdeclare the portable semantic.
       if (nativeAttributes === true && key === 'normal' && a.itemSize === 4 && a.count === p.count) continue;
       if (a.itemSize !== width || a.count !== p.count || (key === 'color' && width !== 3 && width !== 4)) throw new Error('Mismatched GLB attributes');
+      if (quantizedChannels === true && (key === 'normal' || key === 'color')) {
+        if (!(a instanceof BufferAttribute) || (key === 'normal' && !(a.array instanceof Int8Array))) throw new Error('Quantized GLB normals must be normalized Int8');
+        attributes[semantic] = packedAccessor(a); continue;
+      }
       attributes[semantic] = accessor(a, width, `VEC${width}`, false, key === 'position');
     }
     const custom = Object.entries(customAttributes).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0);
@@ -262,7 +286,7 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
     nodes.push(node);
   }
   const doc: Record<string, Json> = { asset: { version: '2.0', generator: 'wildshard-static-v1' }, scene: 0, scenes: [{ nodes: nodes.map((_, i) => i) }], nodes, meshes, materials, accessors, bufferViews: views, buffers: [{ byteLength: offset }] };
-  const extensions = [...(primitives.some(p => p.instances !== undefined) ? ['EXT_mesh_gpu_instancing'] : []), ...(primitives.some(p => p.material instanceof MeshBasicMaterial) ? ['KHR_materials_unlit'] : [])];
+  const extensions = [...(primitives.some(p => p.instances !== undefined) ? ['EXT_mesh_gpu_instancing'] : []), ...(primitives.some(p => p.material instanceof MeshBasicMaterial) ? ['KHR_materials_unlit'] : []), ...(quantized ? ['KHR_mesh_quantization'] : [])];
   if (extensions.length > 0) { doc['extensionsUsed'] = extensions; doc['extensionsRequired'] = extensions; }
   const raw = new TextEncoder().encode(JSON.stringify(doc)), length = Math.ceil(raw.length / 4) * 4, bytes = new Uint8Array(28 + length + offset), v = new DataView(bytes.buffer);
   v.setUint32(0, 0x46546c67, true); v.setUint32(4, 2, true); v.setUint32(8, bytes.length, true); v.setUint32(12, length, true); v.setUint32(16, 0x4e4f534a, true); bytes.fill(32, 20, 20 + length); bytes.set(raw, 20);
