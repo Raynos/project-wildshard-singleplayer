@@ -19,6 +19,13 @@ import assemblyOriginal from './fixtures/nalati-headless-assembly.json' with { t
 import shapeBookOriginal from './fixtures/nalati-shape-book.json' with { type: 'json' };
 import * as v from 'valibot';
 import { discoverGeneration } from '../scripts/generate.mjs';
+import { dressingSceneBlobs } from '../src/shards/nalati-grasslands/generators/dressingScene';
+import { nalatiRuntimeRows } from '../src/shards/nalati-grasslands/generators/runtimeRows';
+import { nalatiRuntime } from './fixtures/nalati-runtime';
+import { nalatiDecorative } from './fixtures/nalati-decorative';
+import { sceneWithNativeOutcrops } from './fixtures/nalati-scene-provenance';
+
+const paintInput: unknown = JSON.parse(readFileSync('src/shards/nalati-grasslands/data/poiPaint.json', 'utf8'));
 
 const originalAssembly: unknown = JSON.parse(readFileSync('test/fixtures/nalati-headless-original.json', 'utf8'));
 const fieldInput: unknown = JSON.parse(readFileSync('src/shards/nalati-grasslands/data/populationField.generated.json', 'utf8'));
@@ -45,12 +52,16 @@ test('native dressing and duplicate scene-copy jobs stay retired', () => {
 test('the actual output hook preserves every predecessor file cost and binary byte on cold and cache hit', async () => {
   const cache = mkdtempSync(resolve('tmp/nalati-place-blob-'));
   const requested: string[] = [], steps: string[] = [];
+  let nativePlaces: Uint8Array | undefined;
   const context = () => {
     const ctx = createProjectGeneration(resolve('src/shards/nalati-grasslands'), 'a'.repeat(64), new Map(), cache,
       [{ prefix: '/assets/nalati/baked/', directory: resolve('public/assets/nalati/baked') },
         { prefix: '/assets/baked/nalati-grasslands/', directory: resolve('public/assets/baked/nalati-grasslands') }]);
     return { ...ctx, cached: (step: Parameters<typeof ctx.cached>[0], make: Parameters<typeof ctx.cached>[1]) => {
-      requested.push(...(step.inputs ?? [])); steps.push(step.id); return ctx.cached(step, make);
+      requested.push(...(step.inputs ?? [])); steps.push(step.id); return ctx.cached(step, make).then(files => {
+        if (step.id === 'places') nativePlaces = files.get('places.json');
+        return files;
+      });
     } };
   };
   const before = readFileSync('public/assets/nalati/baked/places.bin');
@@ -63,6 +74,13 @@ test('the actual output hook preserves every predecessor file cost and binary by
     }
     requested.length = 0;
     const hit = await prepareOutput(context());
+    if (nativePlaces === undefined) throw new Error('Missing observed native place metadata');
+    const ownedPlaces: unknown = JSON.parse(new TextDecoder().decode(nativePlaces));
+    const ownedRuntime = nalatiRuntimeRows({ places: ownedPlaces, paint: paintInput }).runtime;
+    const frozenScenes = dressingSceneBlobs(nalatiDecorative, nalatiRuntime);
+    expect(frozenScenes.map(blob => ({ name: blob.file.name, bytes: blob.bytes.length, hash: blob.file.hash }))
+      .sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '')))
+      .toEqual([...sceneOriginal].sort((a, b) => a.name.localeCompare(b.name)));
     expect(requested).not.toContain('data/placeRuntime.generated.json');
     for (const index of [0, 1]) {
       expect(requested).not.toContain(`data/place-floor-${String(index)}.generated.bin`);
@@ -124,7 +142,13 @@ test('the actual output hook preserves every predecessor file cost and binary by
     for (const pin of sceneOriginal) {
       const file = hit.namedFiles.find(row => row.name === pin.name), bytes = file === undefined ? undefined : hit.assets.get(file.hash);
       if (file === undefined || bytes === undefined) throw new Error('Missing owned dressing scene');
-      expect({ name: file.name, bytes: bytes.length, hash: hashImmutableBytes(bytes) }).toEqual(pin);
+      const frozen = frozenScenes.find(blob => blob.file.name === pin.name);
+      if (frozen === undefined) throw new Error('Missing frozen complete scene pin');
+      const expected = pin.name.endsWith('.json') ? sceneWithNativeOutcrops(frozen, ownedRuntime) : frozen;
+      expect(file).toEqual(expected.file);
+      expect(bytes.length).toBe(expected.file.compressed);
+      expect(hashImmutableBytes(bytes)).toBe(expected.file.hash);
+      expect(Buffer.compare(bytes, expected.bytes)).toBe(0);
     }
     const ctx = context();
     await expect(prepareOutput({ ...ctx, cached: (step, make) => step.id === 'decorative'
