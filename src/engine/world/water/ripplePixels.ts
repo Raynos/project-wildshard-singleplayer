@@ -4,7 +4,7 @@
  *
  * A pure function of this file, so `scripts/bake-water-ripples.mjs` writes it once to `WATER_RIPPLES_URL`
  * (boot/bakedApi.ts) and bake-check fails when the bytes go stale. A page that fetched that file gets the texture without
- * the ~17 ms march (Mac; ~70 ms of a forest page's world step at phone 4× CPU); any other page marches it here, byte for
+ * the ~17 ms march (Mac; ~25 ms of a forest page's world step at phone 4× CPU); any other page marches it here, byte for
  * byte the same in V8.
  */
 export const WATER_RIPPLES_N = 256;

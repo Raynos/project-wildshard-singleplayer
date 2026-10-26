@@ -2,7 +2,7 @@
 // bake-water-ripples.mjs — the pond's tiling ripple normal + foam map at build time (SHARD-PLATFORM frame floor).
 //
 // src/engine/world/water/ripples.ts marched a 256² nine-octave value-noise fbm on the main thread the first time a
-// pond or a forest page's water asked for it (~70 ms of Pine's forest-page world step at 4× CPU). The pixels are a pure
+// pond or a forest page's water asked for it (~25 ms of Pine's forest-page world step at 4× CPU). The pixels are a pure
 // function of src/engine/world/water/ripplePixels.ts, so this runs the page's own function in Node (V8, as Chromium) and
 // writes the raw RGBA bytes to public/assets/baked/common/water-ripples.bin. A page that fetched it
 // (ripples.ts preloadWaterRipples, boot/bakedTextures.ts bakedBytes) builds the byte-identical texture without the

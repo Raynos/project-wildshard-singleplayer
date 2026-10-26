@@ -25,7 +25,7 @@ function fixture(hold: (file: string) => boolean) {
   Object.assign(rows, { id: 'fixture.forest' }); Object.assign(page, { rows, finish: () => Promise.resolve(), update: () => undefined });
   Object.assign(library, { name: 'wildlife' });
   const ports: ForestPagePorts = { ...FOREST_PAGE_PORTS,
-    prepareForestPageLooks: () => { calls.looks++; return Promise.resolve(); }, bindPageWater: () => undefined,
+    prepareForestPageLooks: () => { calls.looks++; return Promise.resolve(); }, bindPageWater: () => undefined, preparePageWater: () => Promise.resolve(),
     library: () => { calls.library++; return Promise.resolve(library); },
     runtimeLookMaterials: () => Promise.resolve({} as Awaited<ReturnType<ForestPagePorts['runtimeLookMaterials']>>), lendLooks: () => undefined,
     prepareForestPage: () => { calls.page++; return Promise.resolve(page); }, placeForestPageModels: () => Promise.resolve(),

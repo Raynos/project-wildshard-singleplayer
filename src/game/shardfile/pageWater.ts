@@ -4,10 +4,16 @@ import * as v from 'valibot';
 import { PageWaterBindingSchema } from '@wildshard/format/pagePreparation';
 import { POND, waterLevel } from '@wildshard/engine/world/Heightfield';
 import { waterTexture } from '@wildshard/engine/world/water/ripples';
-import { lentLook, setLentParam, setLentTexture } from './lentLooks';
+import { lentLook, prepareLentLooks, setLentParam, setLentTexture } from './lentLooks';
 import type { ShardContext } from '../plugin/context';
 
 function isTexture(value: unknown): value is THREE.Texture { return value instanceof THREE.Texture; }
+
+/** Compile the looks the ripples are lent to one a step, before `bindPageWater` binds them all in one task (a grid page's
+ *  water: ~49 ms at phone CPU). The pond's own look is left to the binding, which a cell never makes. */
+export async function preparePageWater(input: unknown): Promise<void> {
+  await prepareLentLooks(v.parse(PageWaterBindingSchema, input).looks);
+}
 
 export function bindPageWater(ctx: ShardContext, input: unknown): void {
   const row = v.parse(PageWaterBindingSchema, input), game = ctx.game.runtime?.world?.game;

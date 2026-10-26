@@ -39,7 +39,7 @@ import { entryOwner, presentEntryOwner, publishEntryOwner, type EntryOwnerKind, 
 import { placeForestPageModels, prepareForestPage, prepareForestPageLooks, type ForestPage } from './forestPage';
 import { lendLooks, type LentLooks } from './lentLooks';
 import { punchPageTerrain } from './pagePreparation';
-import { bindPageWater } from './pageWater';
+import { bindPageWater, preparePageWater } from './pageWater';
 import { preloadWaterRipples } from '@wildshard/engine/world/water/ripples';
 import { runtimeLookMaterials } from './runtimeProduct';
 import { timeClientPreparation } from './preparationTiming';
@@ -48,8 +48,8 @@ type ForestPageRow = Extract<ClientFeatureRow, { kind: 'world.forest-page' }>;
 type PageLifeRow = Extract<ClientFeatureRow, { kind: 'page.life' }>;
 
 /** The platform owners the installers drive (tests pass fakes in; E422: no module mocks). */
-export const FOREST_PAGE_PORTS: { prepareForestPageLooks: (ctx: ShardContext, input: unknown) => Promise<void>; bindPageWater: (ctx: ShardContext, input: unknown) => void; prepareForestPage: (ctx: ShardContext, input: unknown) => Promise<ForestPage>; placeForestPageModels: (ctx: ShardContext, id: string) => Promise<void>; punchPageTerrain: (ctx: ShardContext, input: unknown) => Promise<void>; lendLooks: (scope: { onDispose: (run: () => void) => unknown; }, looks: LentLooks) => void; runtimeLookMaterials: (ctx: Pick<ShardContext, "scope" | "game"> | { readonly scope: Scope; readonly renderer: Renderer; }, source: Shardfile, graphs?: boolean, ids?: readonly string[]) => ReturnType<typeof clientMaterials>; library: (product: ShardContext["product"], name: string) => ReturnType<typeof PosedDraw.library>; loadCave: (rows: unknown, cap: number) => Promise<CaveInterior>; installForestWeather: (ctx: ShardContext, input: unknown) => Promise<ForestWeatherRig | null>; installPageLife: (ctx: ShardContext, input: unknown, journal?: CompendiumState | null, sounds?: DeclaredSoundBank | null, borrowed?: ReadonlyMap<string, AmbientFlockDraw>) => Promise<PageLife>; rangedPage: (scope: Scope, id: string) => RangedPage; entryOwner: <K extends EntryOwnerKind>(scope: Scope, kind: K, id: string) => EntryOwnerTypes[K]; publishEntryOwner: <K extends EntryOwnerKind>(scope: Scope, kind: K, id: string, value: EntryOwnerTypes[K]) => void; } = {
-  prepareForestPageLooks, bindPageWater, prepareForestPage, placeForestPageModels, punchPageTerrain, lendLooks, runtimeLookMaterials,
+export const FOREST_PAGE_PORTS: { prepareForestPageLooks: (ctx: ShardContext, input: unknown) => Promise<void>; bindPageWater: (ctx: ShardContext, input: unknown) => void; preparePageWater: (input: unknown) => Promise<void>; prepareForestPage: (ctx: ShardContext, input: unknown) => Promise<ForestPage>; placeForestPageModels: (ctx: ShardContext, id: string) => Promise<void>; punchPageTerrain: (ctx: ShardContext, input: unknown) => Promise<void>; lendLooks: (scope: { onDispose: (run: () => void) => unknown; }, looks: LentLooks) => void; runtimeLookMaterials: (ctx: Pick<ShardContext, "scope" | "game"> | { readonly scope: Scope; readonly renderer: Renderer; }, source: Shardfile, graphs?: boolean, ids?: readonly string[]) => ReturnType<typeof clientMaterials>; library: (product: ShardContext["product"], name: string) => ReturnType<typeof PosedDraw.library>; loadCave: (rows: unknown, cap: number) => Promise<CaveInterior>; installForestWeather: (ctx: ShardContext, input: unknown) => Promise<ForestWeatherRig | null>; installPageLife: (ctx: ShardContext, input: unknown, journal?: CompendiumState | null, sounds?: DeclaredSoundBank | null, borrowed?: ReadonlyMap<string, AmbientFlockDraw>) => Promise<PageLife>; rangedPage: (scope: Scope, id: string) => RangedPage; entryOwner: <K extends EntryOwnerKind>(scope: Scope, kind: K, id: string) => EntryOwnerTypes[K]; publishEntryOwner: <K extends EntryOwnerKind>(scope: Scope, kind: K, id: string, value: EntryOwnerTypes[K]) => void; } = {
+  prepareForestPageLooks, bindPageWater, preparePageWater, prepareForestPage, placeForestPageModels, punchPageTerrain, lendLooks, runtimeLookMaterials,
   library: (product: ShardContext['product'], name: string): ReturnType<typeof PosedDraw.library> => PosedDraw.library(product, name),
   loadCave: (rows: unknown, cap: number): Promise<CaveInterior> => CaveInterior.load(rows, cap),
   installForestWeather, installPageLife, rangedPage, entryOwner, publishEntryOwner,
@@ -64,11 +64,12 @@ export async function installClientForestPage(ctx: ShardContext, row: ForestPage
   const runtime = ctx.game.runtime, world = runtime?.world;
   if (runtime === undefined || world === undefined || world === null) throw new Error('Forest page requires its world');
   if (ended(ctx)) return;
-  // the baked ripple map arrives with the rows, so binding the water never marches its fbm (~70 ms at phone CPU)
+  // the baked ripple map arrives with the rows, so binding the water never marches its fbm (~25 ms at phone CPU)
   const ripples = preloadWaterRipples();
   const input = await ctx.product.json<ForestPageRows>(row.file); if (ended(ctx)) return;
   await timeClientPreparation(ctx.product.slug, 'forest.looks', () => ports.prepareForestPageLooks(ctx, input)); if (ended(ctx)) return;
   await ripples; if (ended(ctx)) return;
+  await ports.preparePageWater(input.water); if (ended(ctx)) return;
   ports.bindPageWater(ctx, input.water);
   const wildlife = await timeClientPreparation(ctx.product.slug, 'forest.wildlife', () => ports.library(ctx.product, input.wildlife)); if (ended(ctx)) return;
   const looks = await timeClientPreparation(ctx.product.slug, 'forest.wildlife-looks', () => ports.runtimeLookMaterials(ctx, ctx.product.shardfile, true, [wildlife.name])); if (ended(ctx)) return;
