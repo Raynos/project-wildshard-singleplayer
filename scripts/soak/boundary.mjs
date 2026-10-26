@@ -40,7 +40,7 @@ export const boundaryExpression = `(() => {
 /** WebKit v3 includes external payload estimates: these bytes are a subset of WC, never another total to add. */
 export function summarizeHeap(text) {
   const data = JSON.parse(text);
-  if (data.version !== 3 || !Array.isArray(data.nodes) || data.nodes.length % 4 !== 0 || !Array.isArray(data.nodeClassNames)) {
+  if (data.version !== 3 || (data.type !== undefined && data.type !== 'Inspector') || !Array.isArray(data.nodes) || data.nodes.length % 4 !== 0 || !Array.isArray(data.nodeClassNames)) {
     throw new Error('Unsupported WebKit heap snapshot');
   }
   const classes = new Map(); let bytes = 0;

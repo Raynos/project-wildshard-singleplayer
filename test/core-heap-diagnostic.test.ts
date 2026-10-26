@@ -105,3 +105,18 @@ test('the actual reader refuses heap mode before touching a fake Simulator', () 
     expect(result.stderr).not.toContain('Core floor reset failed');
   }
 });
+
+
+test('foreign snapshot layouts retain raw bytes but refuse Inspector estimates', async () => {
+  for (const type of ['GCDebugging', 'FutureInspector']) {
+    const f = fixture(), text = JSON.stringify({type, version: 3,
+      nodes: type === 'GCDebugging' ? [0, 0, 0, 0, 0, 0, 0, 1, 32, 1, 0, 0, 0, 0, 2, 32, 1, 0, 0, 0, 0, 3, 32, 1, 0, 0, 0, 0] : [1, 100, 0, 0],
+      nodeClassNames: Array.from({length: 33}, (_, i) => `Class${i}`)});
+    f.driver.send = method => { f.calls.push(method); return Promise.resolve({snapshotData: text}); };
+    const result = await captureCoreHeap(f.driver, target, 'tmp/owned-core-heap', samples, f.write);
+    expect(f.writes.get('tmp/owned-core-heap/_template-heap.json')).toBe(text);
+    expect(result.snapshot?.summary).toBeNull();
+    expect(result.errors).toEqual([expect.stringContaining('Unsupported WebKit heap snapshot')]);
+    expect(f.calls.at(-1)).toBe('Heap.disable');
+  }
+});

@@ -61,7 +61,8 @@ void test('boundary refuses PID/navigation/region changes before touching native
 });
 void test('heap summary counts class estimates and refuses malformed/negative/nonfinite snapshots', () => {
   assert.deepEqual(summarizeHeap(heap).classes, [{ kind: 'ArrayBuffer', bytes: 200, nodes: 1 }, { kind: 'Object', bytes: 140, nodes: 2 }]);
-  for (const input of [{ version: 2, nodes: [], nodeClassNames: [] }, { version: 3, nodes: [0], nodeClassNames: [] },
+  for (const input of [{ version: 3, type: 'GCDebugging', nodes: [1, 100, 0, 0], nodeClassNames: ['Object'] },
+    { version: 3, type: 'FutureInspector', nodes: [1, 100, 0, 0], nodeClassNames: ['Object'] }, { version: 2, nodes: [], nodeClassNames: [] }, { version: 3, nodes: [0], nodeClassNames: [] },
     { version: 3, nodes: [1, -1, 0, 0], nodeClassNames: ['Object'] }, { version: 3, nodes: [1, 3, 9, 0], nodeClassNames: [] }]) {
     assert.throws(() => summarizeHeap(JSON.stringify(input)), /WebKit heap/);
   }
