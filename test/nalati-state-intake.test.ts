@@ -4,7 +4,7 @@ import {parseHeldSlots} from '../src/format/heldArms';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare emitted slot metadata with its exact generated authoring input.
 import {readFileSync} from 'node:fs';
 import { NALATI_WEATHER_PAGE } from '../src/shards/nalati-grasslands/generators/weatherPage';
-// @vitest-environment happy-dom
+// @vitest-environment node
 import { expect,test,vi } from 'vitest';
 import * as v from 'valibot';
 import { Scope } from '../src/engine/app/scope';
@@ -32,8 +32,11 @@ import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 // Run the shipped world feature and its real King stage. Unrelated prefix
 // resources retain their separate native/product construction oracles.
-// Prepare the complete live source product before the unchanged timed
-// assertions; compiler/native setup failures still refuse collection.
+// Prepare the complete live source product in its real Node build realm.
+// AssemblyScript loads its parser WASM through native streaming; a DOM
+// Response is not a Node Response. This King intake stops before UI creation.
+// Compiler/native setup failures still refuse collection before the unchanged
+// timed assertions.
 const nalatiEnvelope=await readProjectAssets('src/shards/nalati-grasslands', undefined, { folder: 'nalati-grasslands', imageRoots: [
     { prefix: '/assets/nalati/baked/', directory: 'public/assets/nalati/baked' },
     { prefix: '/assets/nalati/models/', directory: 'public/assets/nalati/models' },
