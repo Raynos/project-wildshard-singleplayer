@@ -81,7 +81,7 @@ test('progress records only appended canvases and still requires the whole displ
 test('the Explorer leg retains every primary, including Signal and Developer-only rows, once', () => {
   expect(explorerCases(catalogue)).toEqual(['driftwood-isle','nine-dragon-stack','sunscar-dunes','_template','open-plot-alien-plain']);
   const workflow = readFileSync('.github/workflows/boot-smoke.yml','utf8');
-  expect(workflow).toContain('part: [boot-public, boot-developer, boot-grid, hover-chromium, hover-webkit, explorer]');
+  expect(workflow).toContain('part: [boot-public, boot-developer, boot-grid, hover-chromium, hover-webkit, explorer, phone-route]');
   expect(workflow).toContain("if: matrix.part == 'explorer'");
   expect(workflow).toContain('run: node scripts/parity/explorer-smoke.mjs');
   expect(workflow).toContain('needs: [build, boot-smoke]');
