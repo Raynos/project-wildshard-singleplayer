@@ -22,7 +22,8 @@ function extension(row: Record<string, unknown>): Record<string, unknown> | unde
 }
 
 /** Bound physical and virtual meshopt buffers before decoding. Return ordinary contiguous views so all existing
- * finite-position, index, skin, animation and triangle checks inspect the decoded bytes, never compressed bytes. */
+ * finite-position, index, skin, animation and triangle checks inspect the decoded bytes, never compressed bytes.
+ * The caller owns doc: normalization updates its buffer views in place. */
 export function glbBuffers(doc: Record<string, unknown>, physical: Uint8Array): { views: Record<string, unknown>[]; bytes: Uint8Array; decoded: number } {
   const buffers = list(doc['buffers'] ?? []).map(record), views = list(doc['bufferViews'] ?? []).map(record);
   const lengths = buffers.map((buffer, index) => {

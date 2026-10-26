@@ -9,6 +9,7 @@
     "./dist/*/**/*"
   ],
   "exports": {
+    "./bake/basisGlb": "./bake/basisGlb.ts",
     "./bake/placement": "./bake/placement.ts",
     "./bake/forest": "./bake/forest.ts",
     "./bake/meadow": "./bake/meadow.ts",
@@ -178,6 +179,10 @@
   },
   "publishConfig": {
     "exports": {
+      "./bake/basisGlb": {
+        "types": "./dist/types/sdk/bake/basisGlb.d.ts",
+        "default": "./dist/bake/basisGlb.js"
+      },
       "./bake/placement": {
         "types": "./dist/types/sdk/bake/placement.d.ts",
         "default": "./dist/bake/placement.js"
