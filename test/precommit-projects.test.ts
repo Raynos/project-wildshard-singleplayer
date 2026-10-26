@@ -7,7 +7,37 @@ import { dirname, resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Do not inherit the enclosing commit's temporary Git index.
 import { env } from 'node:process';
 import { expect, test } from 'vitest';
+import ts from '@typescript/typescript6';
 import { stagedProjectFailures } from '../scripts/precommit-projects.mjs';
+
+test.each([
+  ['.d.ts', '.js', '.ts'],
+  ['.d.mts', '.mjs', '.mts'],
+  ['.d.cts', '.cjs', '.cts'],
+])('project membership follows compiler declaration ownership for %s', (declaration, imported, implementation) => {
+  mkdirSync('tmp', { recursive: true });
+  const root = mkdtempSync(resolve('tmp/cf1-declarations-'));
+  const environment = Object.fromEntries(Object.entries(env).filter(([key]) => !key.startsWith('GIT_')));
+  const git = (...args: string[]): void => { execFileSync('git', args, { cwd: root, env: environment }); };
+  const put = (name: string, text: string): void => { mkdirSync(dirname(resolve(root, name)), { recursive: true }); writeFileSync(resolve(root, name), text); };
+  try {
+    git('init', '-q');
+    put('tsconfig.sdk.json', '{"compilerOptions":{"composite":true,"strict":true,"moduleResolution":"bundler","module":"esnext","noEmit":true},"include":["src/sdk/**/*.ts"]}');
+    put(`types/contract${declaration}`, 'export function contract(): string;');
+    put('src/sdk/subject.ts', `import {contract} from '../../types/contract${imported}';export const value: string = contract();`);
+    git('add', '.');
+    const config = ts.readConfigFile(resolve(root, 'tsconfig.sdk.json'), file => ts.sys.readFile(file));
+    const parsed = ts.parseJsonConfigFileContent(config.config, ts.sys, root);
+    const diagnostics = (): readonly ts.Diagnostic[] => ts.getPreEmitDiagnostics(ts.createProgram(parsed.fileNames, parsed.options));
+    expect(diagnostics()).toEqual([]);
+    expect(stagedProjectFailures(root, ['src/sdk/subject.ts'])).toEqual([]);
+    put(`types/implementation${implementation}`, 'export function contract(): string {return "value";}');
+    put('src/sdk/subject.ts', `import {contract} from '../../types/implementation${imported}';export const value: string = contract();`);
+    git('add', '.');
+    expect(diagnostics().some(diagnostic => diagnostic.code === 6307)).toBe(true);
+    expect(stagedProjectFailures(root, ['src/sdk/subject.ts'])).toHaveLength(1);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
 
 test('staged project membership keeps includes, excludes, type imports and references exact', () => {
   mkdirSync('tmp', { recursive: true });

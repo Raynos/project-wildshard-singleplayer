@@ -127,7 +127,7 @@ export function stagedProjectFailures(root, files) {
           }
         }
         if (dependency === undefined) continue;
-        if (staged.paths.includes(dependency) && !dependency.endsWith('.d.ts') && !allowed.has(dependency))
+        if (staged.paths.includes(dependency) && !/\.d\.[cm]?ts$/u.test(dependency) && !allowed.has(dependency))
           failures.push(`TS6307 ${file}: ${imported.fileName} -> ${dependency} is outside ${config} and its references`);
       }
     }
