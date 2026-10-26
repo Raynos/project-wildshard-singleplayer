@@ -9,7 +9,8 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync, mkdirSync, symlinkSync, rmSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import { homedir } from 'node:os';
-import { Buffer } from 'node:buffer';
+import { jpegImageRoutes } from '../parity/image-routes.mjs';
+import { saveCanvasJpeg } from '../parity/canvas-bytes.mjs';
 
 const repo = resolve(import.meta.dirname, '../..'), tag = `sf18b-rings-${process.pid}`, scratch = `/private/tmp/claude-501/sp-builders/sf18b/${tag}`;
 const out = resolve(repo, 'progress/shard-platform/sf18b');
@@ -27,7 +28,7 @@ try {
   /** @type {string[]} */ const errors = []; page.on('pageerror', (e) => { errors.push(e.message); console.error(e.message); });
   page.on('console', (m) => { if (m.type() === 'error') { errors.push(m.text()); console.error(m.text()); } });
   await page.goto(`${url}/sf18b-rings/`);
-  /** @type {Buffer[]} */ const shots = [];
+  /** @type {import('node:buffer').Buffer[]} */ const shots = [];
   for (const at of [5, 25, 45]) {
     await page.waitForFunction((s) => window.ringsDrive.elapsed() >= s, at, { timeout: 120000, polling: 250 });
     shots.push(await page.screenshot({ type: 'jpeg', quality: 80 }));
@@ -35,16 +36,19 @@ try {
   await page.waitForFunction(() => window.ringsDrive.done, undefined, { timeout: 120000, polling: 500 });
   const result = await page.evaluate(() => window.ringsDrive.result);
   const sorted = [...result.frameMs].sort((a, b) => a - b), pick = (/** @type {number} */ q) => sorted[Math.min(sorted.length - 1, Math.floor(q * sorted.length))] ?? 0;
-  const board = await page.evaluate(async (frames) => {
-    const images = await Promise.all(frames.map(async (data) => { const im = new Image(); im.src = `data:image/jpeg;base64,${data}`; await im.decode(); return im; }));
-    const w = 260, h = Math.round(w * images[0].height / images[0].width), canvas = document.createElement('canvas'); canvas.width = w * 3 + 12; canvas.height = h + 36;
-    const g = canvas.getContext('2d'); if (g === null) throw new Error('no 2d context');
-    g.fillStyle = '#15181d'; g.fillRect(0, 0, canvas.width, canvas.height); g.fillStyle = '#e8e8e8'; g.font = 'bold 14px sans-serif';
-    g.fillText('SF18b rings drive, 30 m/s: 5 s · 25 s · 45 s (HUD: holes, resident MB)', 6, 22);
-    images.forEach((im, i) => { g.drawImage(im, i * (w + 6), 32, w, h); });
-    return canvas.toDataURL('image/jpeg', 0.8).split(',')[1] ?? '';
-  }, shots.map((s) => s.toString('base64')));
-  writeFileSync(join(out, 'drive.jpg'), Buffer.from(board, 'base64'));
+  const inputs = await jpegImageRoutes(page, shots);
+  try {
+    const board = await page.evaluateHandle(async (frames) => {
+      const images = await Promise.all(frames.map(async (src) => { const im = new Image(); im.crossOrigin = 'anonymous'; im.src = src; await im.decode(); return im; }));
+      const w = 260, h = Math.round(w * images[0].height / images[0].width), canvas = document.createElement('canvas'); canvas.width = w * 3 + 12; canvas.height = h + 36;
+      const g = canvas.getContext('2d'); if (g === null) throw new Error('no 2d context');
+      g.fillStyle = '#15181d'; g.fillRect(0, 0, canvas.width, canvas.height); g.fillStyle = '#e8e8e8'; g.font = 'bold 14px sans-serif';
+      g.fillText('SF18b rings drive, 30 m/s: 5 s · 25 s · 45 s (HUD: holes, resident MB)', 6, 22);
+      images.forEach((im, i) => { g.drawImage(im, i * (w + 6), 32, w, h); });
+      return canvas;
+    }, inputs.urls);
+    await saveCanvasJpeg(page, board, join(out, 'drive.jpg'), 0.8);
+  } finally { await inputs.dispose(); }
   const { frameMs: _frameMs, ...rest } = result;
   const evidence = { ...rest, fps: { median: Math.round(1000 / pick(0.5)), p95ms: Number(pick(0.95).toFixed(2)) }, errors,
     source: 'scripts/bake/rings-drive.mjs', method: 'the sim-level rings fixture (test/fixtures/sim-level/rings); Chromium (Metal), iPhone 16 Pro viewport, render scale 2, muted; 5 Mbit/s serial link model with a 10 s stall; frame ms are rAF-paced (display-capped)' };

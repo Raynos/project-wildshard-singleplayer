@@ -2,7 +2,6 @@
   "schema": "no-base64/1",
   "source": "8183c3df1d0baf41bcc75c7c5097fb4c12a800ca",
   "files": {
-    "scripts/bake/rings-drive.mjs": 2,
     "scripts/bake/species-scripts.mjs": 1,
     "scripts/families-board/run.mjs": 1,
     "scripts/loading-benchmark/capture.mjs": 1,
