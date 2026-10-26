@@ -14,7 +14,9 @@ import type { AnimalSpecies, BoneDef, VariantDef } from '@wildshard/engine/entit
  * Palette keys (VariantDef.tint): base grizzle dark black snout tusk hoof eye cheek scar.
  */
 
-export const BOAR_PALETTE = {   // exported: pineCoats.ts recolours the rigged hull per variant from it
+export const BOAR_PALETTE: { // exported: pineCoats.ts recolours the rigged hull per variant from it
+// dark grey-brown with grizzled pale bristle tips along the spine, pale tusks
+base: [number, number, number]; grizzle: [number, number, number]; dark: [number, number, number]; black: [number, number, number]; snout: [number, number, number]; tusk: [number, number, number]; hoof: [number, number, number]; eye: [number, number, number]; cheek: [number, number, number]; scar: [number, number, number]; } = {   // exported: pineCoats.ts recolours the rigged hull per variant from it
   // dark grey-brown with grizzled pale bristle tips along the spine, pale tusks
   base: [0.36, 0.29, 0.225], grizzle: [0.58, 0.50, 0.40], dark: [0.16, 0.13, 0.10], black: [0.06, 0.05, 0.045],
   snout: [0.16, 0.09, 0.08], tusk: [0.90, 0.86, 0.74], hoof: [0.09, 0.075, 0.065], eye: [0.02, 0.015, 0.01], cheek: [0.40, 0.36, 0.30],

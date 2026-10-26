@@ -187,6 +187,7 @@ normal layer emission is the declaration-size authority. Continuation starts at 
 | T4-I3f | Game look and recovery contracts; retain tier keys, bounded tuples and custom ids | 60 min | done (2026-10-25, sp-x8) |
 | T4-I3g | Game save slots and context aliases; retain exact read/write types and singleton identity | 60 min | done (2026-10-25, sp-x8) |
 | T4-I3h | Arena and riding continuation data; retain native program, action and save contracts | 60 min | done (2026-10-25, sp-x8) |
+| T4-I3i | Game rig fields and diagnostic defaults; retain mutable tuple palettes and resource owners | 60 min | done (2026-10-25, sp-x8) |
 
 T4 first format slices are on origin: schema expressions and emitted runtime JavaScript are unchanged.
 Independent named data types replace exported validator implementation types; original/candidate input and output

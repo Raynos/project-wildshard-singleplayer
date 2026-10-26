@@ -24,7 +24,9 @@ import type { RGB } from '@wildshard/engine/level/data';
  * bodyDark neck mane belly rump legDark nose muzzle eyeRing earIn antler antlerTip hoof eye.
  */
 
-export const ELK_PALETTE = {   // exported: pineCoats.ts recolours the rigged hull per variant from it
+export const ELK_PALETTE: { // exported: pineCoats.ts recolours the rigged hull per variant from it
+// pale tan barrel, dark chocolate neck + legs + belly, straw-cream rump patch, near-black mane
+body: [number, number, number]; bodyDark: [number, number, number]; neck: [number, number, number]; mane: [number, number, number]; belly: [number, number, number]; rump: [number, number, number]; legDark: [number, number, number]; nose: [number, number, number]; muzzle: [number, number, number]; eyeRing: [number, number, number]; earIn: [number, number, number]; antler: [number, number, number]; antlerTip: [number, number, number]; hoof: [number, number, number]; eye: [number, number, number]; } = {   // exported: pineCoats.ts recolours the rigged hull per variant from it
   // pale tan barrel, dark chocolate neck + legs + belly, straw-cream rump patch, near-black mane
   body: [0.47, 0.37, 0.25], bodyDark: [0.35, 0.27, 0.18],
   neck: [0.19, 0.125, 0.08], mane: [0.11, 0.075, 0.05], belly: [0.26, 0.20, 0.14], rump: [0.82, 0.76, 0.62],

@@ -23,18 +23,18 @@ export class GhostWorlds {
   });
 
   /** `instance` retired now; watch `roots` until every one is collected */
-  retired(instance: string, roots: readonly object[], now = diagnosticNow()): void {
+  retired(instance: string, roots: readonly object[], now: number = diagnosticNow()): void {
     if (roots.length === 0) return;
     const id = this.next++;
     this.alive.set(id, { instance, at: now, left: roots.length });
     for (const root of roots) this.registry.register(root, id);
   }
   /** the retired regions with a root still alive, oldest first */
-  regions(now = diagnosticNow()): GhostRegion[] {
+  regions(now: number = diagnosticNow()): GhostRegion[] {
     return [...this.alive.values()].map((row) => ({ instance: row.instance, ageS: Math.round((now - row.at) / 100) / 10 }));
   }
   /** the ghosts: retired regions alive GHOST_AFTER_MS or longer after their retirement */
-  count(now = diagnosticNow()): number {
+  count(now: number = diagnosticNow()): number {
     let n = 0;
     for (const row of this.alive.values()) if (now - row.at >= GHOST_AFTER_MS) n++;
     return n;

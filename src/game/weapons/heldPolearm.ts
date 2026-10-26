@@ -80,7 +80,7 @@ const _vThrow = new THREE.Vector3(), _qThrow = new THREE.Quaternion(), _vCock = 
 const _qSway = new THREE.Quaternion(), _qHol = new THREE.Quaternion(), _vArm = new THREE.Vector3(), _vEl = new THREE.Vector3();
 
 export class HeldPolearm<P extends HeldPolearmProfile = HeldPolearmProfile> extends Melee<P> {
-  override readonly reach = this.profile.reach;
+  override readonly reach: number = this.profile.reach;
   readonly state: WeaponState;
   enabled = true;
   allowUnlocked = false;
@@ -105,7 +105,7 @@ export class HeldPolearm<P extends HeldPolearmProfile = HeldPolearmProfile> exte
   onThrow?: () => void;
   onPickup?: (n: number) => void;
 
-  readonly model = new THREE.Group();
+  readonly model: THREE.Group = new THREE.Group();
   private game: Game; private sky: Sky; private player: Player;
   private targets: Targets | undefined;
   private spearRig = new THREE.Group(); private handRig = new THREE.Group();

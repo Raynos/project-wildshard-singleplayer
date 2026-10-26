@@ -1198,7 +1198,7 @@ export async function fetchBuildFile(url: string): Promise<Uint8Array> {
 // so), deflated. A shard's generator writes them; the page reads them here.
 
 /** Restore byte lanes, optionally filling a word range in a distinct complete output. */
-export function unshuffleLanes(lanes: Uint8Array, out = new Uint8Array(lanes.length), wordStart = 0, wordEnd = lanes.length / 4): Uint8Array {
+export function unshuffleLanes(lanes: Uint8Array, out: Uint8Array<ArrayBuffer> = new Uint8Array(lanes.length), wordStart = 0, wordEnd: number = lanes.length / 4): Uint8Array {
   return restoreLanes(lanes, out, wordStart, wordEnd);
 }
 

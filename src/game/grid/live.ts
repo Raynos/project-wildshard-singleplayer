@@ -153,7 +153,7 @@ async function background(instance: string, admission: Promise<unknown>, alive: 
 /** One page traveller with frozen owned regions. Borrowed homes keep the existing standalone composition;
  * owned homes begin on neutral page physics and transfer the sole preallocation claim to their first runtime. */
 export class LiveGridHost {
-  readonly readiness = new TraversalReadiness();
+  readonly readiness: TraversalReadiness = new TraversalReadiness();
   private readonly residents = new Map<string, Resident>();
   private readonly saved = new GridContinuationCache();
   private readonly cacheLease: ResidencyLease | undefined;

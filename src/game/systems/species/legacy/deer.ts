@@ -15,7 +15,9 @@ import type { RGB } from '@wildshard/engine/level/data';
  * earIn antler antlerTip hoof eye.
  */
 
-export const DEER_PALETTE = {   // exported: pineCoats.ts recolours the rigged hull per variant from it
+export const DEER_PALETTE: { // exported: pineCoats.ts recolours the rigged hull per variant from it
+// autumn coat: ~#7a5a3c body, greyer neck/legs, cream belly + throat, pale rump patch with a dark tail stripe
+body: [number, number, number]; bodyDark: [number, number, number]; grey: [number, number, number]; greyDark: [number, number, number]; belly: [number, number, number]; cream: [number, number, number]; rump: [number, number, number]; legDark: [number, number, number]; nose: [number, number, number]; muzzle: [number, number, number]; eyeRing: [number, number, number]; earIn: [number, number, number]; antler: [number, number, number]; antlerTip: [number, number, number]; hoof: [number, number, number]; eye: [number, number, number]; } = {   // exported: pineCoats.ts recolours the rigged hull per variant from it
   // autumn coat: ~#7a5a3c body, greyer neck/legs, cream belly + throat, pale rump patch with a dark tail stripe
   body: [0.40, 0.335, 0.265], bodyDark: [0.30, 0.25, 0.20], grey: [0.38, 0.34, 0.30], greyDark: [0.29, 0.255, 0.22],
   belly: [0.68, 0.62, 0.52], cream: [0.74, 0.68, 0.56], rump: [0.62, 0.57, 0.47],

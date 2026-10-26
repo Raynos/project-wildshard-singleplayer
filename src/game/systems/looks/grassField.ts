@@ -181,7 +181,7 @@ export class GrassField {
    * (the seeder skips it for cells far from any trail: pass Infinity). `exact` also tests the chunk's splat at the
    * point (the seeder does on edge cells; the senses need not).
    */
-  baseHeightAt(x: number, z: number, td = this.ports.trailDistance(x, z), exact = false): number {
+  baseHeightAt(x: number, z: number, td: number = this.ports.trailDistance(x, z), exact = false): number {
     const P = this.ports;
     if (!this.inChunk(x, z, 0.5)) return 0;
     if (P.heightAt(x, z) < P.waterLevel() + 0.15) return 0;
@@ -247,7 +247,7 @@ export function trailGrass(h: number, td: number): number {
  * Grass height before trampling, metres (0 = no grass), on the page's field (GrassField.baseHeightAt). `td` =
  * trailDistance(x, z) when the caller has it (pass Infinity far from any trail); `exact` also tests the splat at the point.
  */
-export function grassBaseHeightAt(x: number, z: number, td = trailDistance(x, z), exact = false): number {
+export function grassBaseHeightAt(x: number, z: number, td: number = trailDistance(x, z), exact = false): number {
   return page().baseHeightAt(x, z, td, exact);
 }
 

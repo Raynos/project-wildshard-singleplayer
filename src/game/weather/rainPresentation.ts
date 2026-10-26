@@ -40,7 +40,7 @@ import { lentLook, pushLentParams, setLentParam, setLentTexture } from '../shard
  */
 export class RainPresentation {
   /** everything it draws (hidden while dry) */
-  readonly group = new THREE.Group();
+  readonly group: THREE.Group = new THREE.Group();
   /** the curtain */
   rain!: THREE.Mesh;
   /** the merged puddle discs */

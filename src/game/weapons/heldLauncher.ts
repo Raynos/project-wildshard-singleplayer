@@ -165,10 +165,10 @@ export class HeldLauncher<P extends HeldLauncherProfile = HeldLauncherProfile> e
   override get ammoLabel(): string { return this.row.ui.ammo?.label ?? ''; }
   override set ammoLabel(label: string) { if (this.row.ui.ammo) this.row = { ...this.row, ui: { ...this.row.ui, ammo: { ...this.row.ui.ammo, label } } }; }
 
-  readonly model = new THREE.Group();
+  readonly model: THREE.Group = new THREE.Group();
   readonly adsPose = { px: 0, py: 0, pz: 0, rx: 0, scale: 0, tipDepth: 0, eyeAboveRail: 0, nutDepth: 0, nutNdcY: 0, limbNdcX: 0, tipNdcY: 0, peepY: 0, peepZ: 0, peepDepth: 0, peepR: 0 };
   readonly tipL: THREE.Vector3; readonly tipR: THREE.Vector3; readonly nockRest: THREE.Vector3; readonly nockDrawn: THREE.Vector3;
-  readonly tipModel = new THREE.Vector3(); readonly tipLocal = new THREE.Vector3();
+  readonly tipModel: THREE.Vector3 = new THREE.Vector3(); readonly tipLocal: THREE.Vector3 = new THREE.Vector3();
   /** the string's draw (1 = spanned) */
   draw = 1;
   private drawVel = 0; private drawTarget = 1;

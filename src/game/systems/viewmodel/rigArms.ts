@@ -30,7 +30,7 @@ import type { SwordArms, Move } from '@wildshard/engine/combat/view/melee';
 export const VM_FOV = 70;
 
 /** the root's x / y scale that draws a rig framed for `vmFov` through a camera of vertical field `worldFov` (degrees) */
-export function vmScale(worldFov: number, vmFov = VM_FOV): number {
+export function vmScale(worldFov: number, vmFov: number = VM_FOV): number {
   return Math.tan((worldFov * Math.PI) / 360) / Math.tan((vmFov * Math.PI) / 360);
 }
 
@@ -76,10 +76,10 @@ export interface RigState {
 
 /** first-person arms on a skinned rig, posed by the weapon's moves (walk bob, look lag) */
 export class RigArms {
-  readonly root = new Group();
+  readonly root: Group = new Group();
   readonly meta: RigMeta;
   /** the rig's nodes by name (joints, R_weapon, the weapon meshes) */
-  readonly nodes = new Map<string, Object3D>();
+  readonly nodes: Map<string, Object3D> = new Map<string, Object3D>();
   private readonly mixer: AnimMachine;
   private readonly actions = new Map<string, AnimationAction>();
   private readonly right: ClipChannel | null = null;
@@ -183,7 +183,7 @@ export class RigArms {
   }
 
   /** the swim clips: `stroke` 0 (treading water) … 1 (the breaststroke), the stroke at `phase` (0..1 of a cycle) */
-  swim(dt: number, stroke: number, phase: number, treadDt = dt): void {
+  swim(dt: number, stroke: number, phase: number, treadDt: number = dt): void {
     const st = this.actions.get('swimStroke'), tr = this.actions.get('swimTread');
     if (st === undefined || tr === undefined) return;
     st.setEffectiveWeight(stroke);

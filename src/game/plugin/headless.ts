@@ -114,7 +114,7 @@ export function withoutRuntimeRows(source: Shardfile): Shardfile {
 
 /** Bind one declared host state field; legacy scalar/JSON-string data migrates once, never written by the shard again. */
 export function bindRuntimeState(ctx: Pick<ShardContext, 'app' | 'scope'>, source: Shardfile, key: string,
-  legacyRead: () => RuntimeStateValue | null, instance = source.identity.slug): RuntimeState {
+  legacyRead: () => RuntimeStateValue | null, instance: string = source.identity.slug): RuntimeState {
   requireBound(source, 'state');
   // Frozen copies never existed under the primary save namespace; fresh fields start from declared defaults.
   const content = legacyContentIdentity(source.identity.slug);
@@ -125,7 +125,7 @@ export function bindRuntimeState(ctx: Pick<ShardContext, 'app' | 'scope'>, sourc
 /** A typed JSON record on one declared state field. Legacy reads run only at first initialization;
  * namespaces cannot escape the bound placement, and refused writes remain explicit boolean results. */
 export function bindRuntimeJsonRecord<S extends v.GenericSchema>(ctx: Pick<ShardContext, 'app' | 'scope'>, source: Shardfile,
-  key: string, schema: S, legacyRead: () => v.InferOutput<S>, instance = source.identity.slug): {
+  key: string, schema: S, legacyRead: () => v.InferOutput<S>, instance: string = source.identity.slug): {
   readonly read: (namespace?: string) => v.InferOutput<S>; readonly write: (value: v.InferOutput<S>, namespace?: string) => boolean;
 } {
   const field = bindRuntimeState(ctx, source, key, () => JSON.stringify(legacyRead()), instance);
