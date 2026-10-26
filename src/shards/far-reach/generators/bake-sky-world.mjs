@@ -60,20 +60,12 @@ const keep = new Set(['fan.glb', 'prepared-models.glb']);
 }
 // the sky-isle models' unit frames (world/skyIsleHd.ts skyIsleUnit), found from each model's GLB
 {
-  const { bakeSkyIsleFrames } = await import('./skyIsleFrames.ts');
-  const frames = await bakeSkyIsleFrames((url) => new Uint8Array(readFileSync(resolve(root, `public${url}`))));
-  emit(resolve(project, 'data/skyIsleFrames.json'), `${JSON.stringify(frames, null, 2)}\n`);
-  console.info(`far-reach sky isle frames: ${frames.map((f) => f.model).join(', ')}`);
-  // the firs on the sky isles, stood on the models' turf (world/build.ts reads the rows)
-  const { bakeSkyIslePines } = await import('./skyIslePines.ts');
-  const pines = await bakeSkyIslePines((url) => new Uint8Array(readFileSync(resolve(root, `public${url}`))), frames);
-  emit(resolve(project, 'data/skyIslePines.json'), `${JSON.stringify(pines, null, 2)}\n`);
-  console.info(`far-reach sky isle pines: ${String(Object.values(pines).flat().length)} firs`);
-  // where the static instanced things stand: the sky isles, the keels, the falls, the trees, the meadow's holes and paths
-  const { bakeSkyPlacements } = await import('./placements.ts');
-  const placements = await bakeSkyPlacements((url) => new Uint8Array(readFileSync(resolve(root, `public${url}`))), frames, pines);
-  emit(resolve(project, 'data/placements.json'), `${JSON.stringify(placements)}\n`);
-  console.info(`far-reach placements: ${String(placements.standalone.trees.reduce((n, t) => n + t.m.length / 16, 0))} trees, ${String(placements.standalone.falls.length / 16)} falls`);
+  const { WORLD_PLACEMENT_INPUTS, skyWorldPlacementSource } = await import('./worldPlacementBytes.ts');
+  const inputs = new Map(WORLD_PLACEMENT_INPUTS.map(url => [url, new Uint8Array(readFileSync(resolve(root, `public${url}`)))]));
+  for (const [name, bytes] of await skyWorldPlacementSource(inputs)) {
+    emit(resolve(project, name), bytes);
+    console.info(`far-reach ${name}: ${String(bytes.length)} bytes`);
+  }
 }
 // the folder holds this bake and the rest bakes (the sky-rest-* and sky-islet-rest jobs): an orphan is a GLB no other
 // generation job declares as its output, from an older run of this bake, and never ships
