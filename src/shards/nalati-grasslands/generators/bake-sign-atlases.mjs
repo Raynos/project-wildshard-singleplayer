@@ -3,11 +3,12 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { chromium, devices } from 'playwright';
 import { paintSignAtlas } from './signLettering.ts';
+import { nalatiRoadSignSites } from './roadSigns.ts';
 import { byteWriter, outputHash, jsonBytes } from '../../../../scripts/bake-output.mjs';
 
 const root = resolve(import.meta.dirname, '../../../..');
 const read = file => JSON.parse(readFileSync(resolve(root, 'src/shards/nalati-grasslands/data', file), 'utf8'));
-const roads = read('places.json').rows.find(row => row.name === 'roads').anchors.signposts;
+const roads = nalatiRoadSignSites();
 const specimen = read('campCatalogue.json').find(row => row.key === 'signpostBaked').model.defaults;
 const labels = { roads: roads.flatMap(post => post.boards.map(board => board.text)), specimen: specimen.boards.map(board => board.text) };
 const writer = byteWriter(process.argv.includes('--check'), 'nalati-sign-atlases');
