@@ -50,7 +50,7 @@ export function phoneRouteFailures(receipt) {
   if (entry === null || entry.cell?.slug !== 'open-plot-night-market' || entry.current !== entry.cell?.instance || entry.inside !== entry.cell?.instance || entry.ready !== true || entry.cell.drawn.far || !Number.isSafeInteger(entry.cell.drawn.l0) || !Number.isSafeInteger(entry.cell.drawn.l1) || entry.cell.drawn.l0 + entry.cell.drawn.l1 <= 0) failures.push('Night Market near tiles absent on first geometric entry');
   const wall = receipt.wall;
   const along = (/** @type {{x:number,z:number}} */ point) => wall===null ? 0 : (point.x-wall.from.x)*wall.direction.x+(point.z-wall.from.z)*wall.direction.z;
-  if (wall === null || !Number.isFinite(wall.wallDistance) || wall.wallDistance < 1 || wall.wallDistance > 25 || !Number.isFinite(wall.collider) || !Object.values(wall.halfExtents).every(Number.isFinite) || wall.halfExtents.y < .75 || Math.max(wall.halfExtents.x,wall.halfExtents.z)<2 || Math.hypot(wall.direction.x,wall.direction.z)!==1 || !Number.isFinite(wall.elapsedMs) || wall.elapsedMs<3950 || wall.finalFrame - wall.startedFrame < 10 || !wall.hover || wall.samples.length < 10 || wall.samples.some(row => !row.hover || !Number.isFinite(along(row)) || along(row) >= wall.wallDistance - .1)) failures.push('Board did not remain blocked outside the real wall');
+  if (wall === null || !Number.isFinite(wall.wallDistance) || wall.wallDistance < 1 || wall.wallDistance > 25 || !Number.isFinite(wall.collider) || wall.material==='edge' || wall.material==='' || wall.surface.width<2 || wall.surface.height<1.2 || !Object.values(wall.surface.normal).every(Number.isFinite) || Math.abs(wall.surface.normal.y)>.2 || Math.hypot(wall.direction.x,wall.direction.z)!==1 || !Number.isFinite(wall.elapsedMs) || wall.elapsedMs<3950 || wall.finalFrame - wall.startedFrame < 10 || !wall.hover || wall.samples.length < 10 || wall.samples.some(row => !row.hover || !Number.isFinite(along(row)) || along(row) >= wall.wallDistance - .1)) failures.push('Board did not remain blocked outside the real wall');
   if (wall !== null) {
     const tail = wall.samples.filter(row => row.ms >= wall.elapsedMs - 1000);
     if (along(wall.final) < 1 || tail.length < 2 || Math.max(...tail.map(along)) - Math.min(...tail.map(along)) > .15) failures.push('Board wall contact did not settle after actual forward movement');
@@ -111,8 +111,12 @@ export async function phoneRoute(page, base, sha, out) {
   try {
     const url = new URL(base);
     for (const [key, value] of Object.entries({ tier: 'phone', touch: '1', mute: '1', nolock: '1', sw: '0' })) url.searchParams.set(key, value);
+    const titleDeadline=Date.now()+150000;
     await page.cold(url.href, `(${installPhoneTitlePaint.toString()})()`);
-    await until(page, `document.querySelector('.ws-main-select')!==null && (()=>{const load=document.querySelector('.ws-load');return load===null||getComputedStyle(load).display==='none'||getComputedStyle(load).visibility==='hidden'||getComputedStyle(load).opacity==='0';})()`, 'title', Date.now() + 150000);
+    await until(page, `document.querySelector('.ws-main-select')!==null && (()=>{const load=document.querySelector('.ws-load');return load===null||getComputedStyle(load).display==='none'||getComputedStyle(load).visibility==='hidden'||getComputedStyle(load).opacity==='0';})()`, 'title', titleDeadline);
+    // The shell can hydrate before the image-load/rAF witness publishes.
+    // Await that FIRST recorded paint under the same deadline; never resample it.
+    await until(page,'window.__phoneRoutePaint?.heroMs!==null && window.__phoneRoutePaint?.heroMs!==undefined','first title paint witness',titleDeadline);
     receipt.paint = /** @type {typeof receipt.paint} */ (await page.evaluate('window.__phoneRoutePaint'));
     receipt.steps.push('title'); await shot('title');
     await page.click('.ws-main-select');

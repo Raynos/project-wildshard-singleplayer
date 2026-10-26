@@ -8,8 +8,9 @@ export interface PhoneObservation {
   hover:boolean; fps:number; pill:string|null; fatal:(string|null)[]; contextLost:boolean;
 }
 export interface PhoneEntry { at:number; frame:number; inside:string|null; current?:string|null; ready?:boolean; cell?:PhoneCell; grain:number }
-export interface PhoneWallTarget {direction:{x:number;z:number};collider:number;halfExtents:{x:number;y:number;z:number};approach:{x:number;z:number}}
-export interface PhoneWall { from:{x:number;y:number;z:number}; wallDistance:number; direction:{x:number;z:number};collider:number;halfExtents:{x:number;y:number;z:number};elapsedMs:number; startedFrame:number; finalFrame:number;
+export interface PhoneWallSurface {width:number;height:number;normal:{x:number;y:number;z:number}}
+export interface PhoneWallTarget {direction:{x:number;z:number};collider:number;material:string|null;surface:PhoneWallSurface;approach:{x:number;z:number}}
+export interface PhoneWall { from:{x:number;y:number;z:number}; wallDistance:number; direction:{x:number;z:number};collider:number;material:string|null;surface:PhoneWallSurface;elapsedMs:number; startedFrame:number; finalFrame:number;
   final:{x:number;y:number;z:number}; hover:boolean; samples:{ms:number;x:number;z:number;hover:boolean;frame:number}[]; previous:{yaw:number;hover:boolean} }
 export interface PhoneFps { label:string; elapsedMs:number; frames:number; worstMs:number; pillFps:number; pill:string|null }
 export interface PhonePage {

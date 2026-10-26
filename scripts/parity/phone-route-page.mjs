@@ -62,8 +62,8 @@ export function watchPhoneEntry(instance) {
   requestAnimationFrame(frame);
 }
 
-/** Find a real building wall from the entered public avenue, rather than
- * teleporting into the old G721 room. The held driver walks up to it. */
+/** Find a player-blocking vertical wall patch in the shipping collision mesh.
+ * The plot's collide_ geometry is a triangle mesh, not separate box colliders. */
 export function phoneWallTarget() {
   const api = window.__wildshard, world = api.requireWorld(), player = world.player, physics = world.physics;
   const exposed = api.shard.grid;
@@ -72,18 +72,27 @@ export function phoneWallTarget() {
   const feet = state.live?.live.worldFeet;
   if (feet === undefined) throw new Error('Missing actual wall approach feet');
   const origin = { x: player.position.x, y: player.position.y + .8, z: player.position.z };
-  const walls = [{x:1,z:0},{x:-1,z:0},{x:0,z:1},{x:0,z:-1}].map(direction => ({ direction,
-    hit: physics.world.castRay(new physics.R.Ray(origin, { ...direction, y:0 }), 120, true,
-      physics.R.QueryFilterFlags.EXCLUDE_SENSORS, undefined, player.motor.collider, undefined,
-      collider => { const shape=collider.shape;return shape instanceof physics.R.Cuboid && shape.halfExtents.y >= .75 && Math.max(shape.halfExtents.x,shape.halfExtents.z) >= 2; })
-  })).filter(row => row.hit !== null && row.hit.timeOfImpact >= 1).sort((a,b)=>(a.hit?.timeOfImpact??Infinity)-(b.hit?.timeOfImpact??Infinity));
+  /** @param {{x:number,z:number}} direction @param {number} vertical @param {number} side */
+  const ray = (direction,vertical=0,side=0) => physics.world.castRayAndGetNormal(
+    new physics.R.Ray({x:origin.x-direction.z*side,y:origin.y+vertical,z:origin.z+direction.x*side},{...direction,y:0}),120,true,
+    physics.R.QueryFilterFlags.EXCLUDE_SENSORS,player.motor.collider.collisionGroups(),player.motor.collider,undefined,
+    collider=>physics.colliderTag(collider)?.material!=='edge');
+  const walls = [{x:1,z:0},{x:-1,z:0},{x:0,z:1},{x:0,z:-1}].map(direction=>({direction,hit:ray(direction,0,0)}))
+    .filter(row=>{
+      const hit=row.hit;if(hit===null||hit.timeOfImpact<1||Math.abs(hit.normal.y)>.2)return false;
+      // A 2m-wide, 1.2m-tall vertical patch on the SAME native collider;
+      // no assumption that the collider is a box or has retained JS tags.
+      return [[1.2,0],[0,-1],[0,1]].every(([up,side])=>{
+        const sample=ray(row.direction,up,side);
+        return sample!==null&&sample.collider.handle===hit.collider.handle&&Math.abs(sample.normal.y)<=.2&&Math.abs(sample.timeOfImpact-hit.timeOfImpact)<=.15;
+      });
+    }).sort((a,b)=>(a.hit?.timeOfImpact??Infinity)-(b.hit?.timeOfImpact??Infinity));
   const wall=walls[0];
   if(wall?.hit===null||wall?.hit===undefined)throw new Error('No real building wall on the public approach');
-  const shape=wall.hit.collider.shape;
-  if(!(shape instanceof physics.R.Cuboid))throw new Error('Wall shape changed during observation');
+  const tag=physics.colliderTag(wall.hit.collider);
   const distance=Math.max(0,wall.hit.timeOfImpact-10);
-  return { direction:wall.direction, collider:wall.hit.collider.handle,
-    halfExtents:{x:shape.halfExtents.x,y:shape.halfExtents.y,z:shape.halfExtents.z},
+  return { direction:wall.direction, collider:wall.hit.collider.handle,material:tag?.material??null,
+    surface:{width:2,height:1.2,normal:{x:wall.hit.normal.x,y:wall.hit.normal.y,z:wall.hit.normal.z}},
     approach:{x:feet.x+wall.direction.x*distance,z:feet.z+wall.direction.z*distance} };
 }
 
@@ -94,7 +103,7 @@ export async function phoneBoardWall(milliseconds, target) {
   const start = performance.now(), startedFrame = world.game.frameCount, yaw = player.yaw, hover = player.hover;
   const from = { x: player.position.x, y: player.position.y, z: player.position.z }, physics = world.physics;
   const {direction}=target;
-  const hit = physics.world.castRay(new physics.R.Ray({ x: from.x, y: from.y + .8, z: from.z }, { ...direction,y:0 }), 25, true, physics.R.QueryFilterFlags.EXCLUDE_SENSORS, undefined, player.motor.collider);
+  const hit = physics.world.castRay(new physics.R.Ray({ x: from.x, y: from.y + .8, z: from.z }, { ...direction,y:0 }), 25, true, physics.R.QueryFilterFlags.EXCLUDE_SENSORS, player.motor.collider.collisionGroups(), player.motor.collider);
   if (hit === null || hit.collider.handle !== target.collider) throw new Error('Original building wall unavailable after actual approach');
   /** @type {{ms:number,x:number,z:number,hover:boolean,frame:number}[]} */ const samples = [];
   if (!player.hover) throw new Error('Board must be mounted through the actual touch control');
@@ -104,7 +113,7 @@ export async function phoneBoardWall(milliseconds, target) {
     await new Promise(resolve => { setTimeout(resolve, milliseconds); });
   } finally { input.clear(); stop(); }
   // Sample on real game frames, including the preceding held-input window.
-  return { from, wallDistance:hit.timeOfImpact, direction,collider:target.collider,halfExtents:target.halfExtents,elapsedMs: performance.now() - start, startedFrame, finalFrame: world.game.frameCount,
+  return { from, wallDistance:hit.timeOfImpact, direction,collider:target.collider,material:target.material,surface:target.surface,elapsedMs: performance.now() - start, startedFrame, finalFrame: world.game.frameCount,
     final: { x: player.position.x, y: player.position.y, z: player.position.z }, hover: player.hover, samples, previous: { yaw, hover } };
 }
 

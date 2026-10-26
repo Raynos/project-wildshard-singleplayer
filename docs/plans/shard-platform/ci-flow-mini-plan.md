@@ -237,6 +237,43 @@ HOVER and requires the same collider for four seconds of blocked board input.
 Directional projection also verifies west/north/south contacts without assuming
 a positive-X wall. Six focused cases/types/lint pass; complete return and the
 ordinary report remain pending. Development visits are not CI smoke retries.
+The boxed locator was not valid for the shipped `collide_plot` triangle mesh:
+its broad query first found a creature-only border (the player correctly
+crossed it); requiring a Cuboid then found no building. The corrected query
+uses the actual player's collision groups and confirms a vertical2m×1.2m
+surface patch on the same native collider using multiple rays. Missing JS
+surface tags remain null, never fabricated. Platform edge hits refuse;
+the structural mesh is tagged `ground`, so its vertical walls remain eligible
+while horizontal surfaces refuse by their observed normals. The existing real
+board-mesh collision regression retains both fresh and restored wall contacts.
+all real board containment/settling checks stay. The first-paint read also
+awaits the observer's first published image/rAF timestamp under the SAME title
+deadline, avoiding a null read while the shell hydrates. No later frame can
+replace that recorded first paint or relax the500ms gate.
+
+### Release reading — 2026-10-26 21:35 UTC (sp-x7)
+
+Live remains `14a3d5d93-mvpm835t`, published18:54UTC with exact six-leg
+smoke40377284254 and full push CI. No newer release is proved. Scheduled
+release-only successes are not counted as main CI greens. The completed
+40401413261 red on99537535fc contains three known classes: products' native
+CMake120s timeout, Inspector lint, and retired Sky rig fixture paths.
+
+Products has sole owner sp-x1: configuration ran20:59:04→21:01:04 under
+the six-worker product pool. The generic shard.config/compileScript checks
+are fallout from that native prerequisite failure. Fix a8ba821b87 is on
+origin before the21:31:04 source deadline: checked selected-product native
+preparation precedes workers, with both120s stage caps and recipe unchanged.
+Local preparation was warm; Linux cold acceptance remains pending. Inspector
+fix28c061d9b0 and complete Sky fixture repair0f62b4a703 are also on origin.
+The separate transfer fixture repair eee46861ce is pushed and locally checked;
+its source does not make the failed older run green. Containing CI is pending.
+
+The Showcase4B tile refusal is source-fixed by3450616487 without a budget
+change. Driftwood's subsequent dressing output ENOENT is fixed by dca731cde4
+(origin ancestry verified):552bb9196f changed cove bytes without matching
+declared output names. O4 identifies those L18 commits as sp-o3's. A matching
+ready preview is reported; no second source patch or duplicate build is needed.
 
 ## Decisions for Jake
 
