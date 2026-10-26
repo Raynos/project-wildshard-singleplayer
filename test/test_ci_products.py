@@ -2,6 +2,7 @@
 import importlib.util
 import json
 import os
+import shutil
 from pathlib import Path
 import subprocess
 import tarfile
@@ -15,39 +16,55 @@ spec.loader.exec_module(products)
 
 
 class PreparedProducts(unittest.TestCase):
-    def setUp(self):
-        self.scratch = tempfile.TemporaryDirectory(dir=Path(__file__).resolve().parents[1] / 'tmp')
-        self.addCleanup(self.scratch.cleanup)
-        self.root = Path(self.scratch.name)
-        subprocess.run(['git', 'init', '-q', str(self.root)], check=True)
+    @classmethod
+    def setUpClass(cls):
+        # This is a tiny synthetic Git fixture, never a copy of the project.
+        # Its real Node phase publisher and initial pack run once. Restoring
+        # the same work path keeps the receipt root valid without forging it.
+        scratch = tempfile.TemporaryDirectory(dir=Path(__file__).resolve().parents[1] / 'tmp')
+        cls.addClassCleanup(scratch.cleanup)
+        cls.root = Path(scratch.name) / 'work'
+        cls.pristine = Path(scratch.name) / 'pristine'
+        cls.root.mkdir()
+        subprocess.run(['git', 'init', '-q', str(cls.root)], check=True)
         source = Path('src')
-        self.table = (source / 'table.generated.ts').as_posix()
-        self.shard = source / 'shards' / 'fictional'
-        self.asset = (self.shard / 'assets' / 'hash').as_posix()
-        self.policy = (self.shard / '.wildshard' / 'build-policy.json').as_posix()
-        (self.root / '.gitignore').write_text(f'{source}/*.generated.ts\npublic/generated.bin\nout/\nnode_modules/\nlint/*.generated.json\n')
-        (self.root / 'scripts').mkdir()
-        self.catalogue = {'jobs': [{'outputs': [self.asset],
+        cls.table = (source / 'table.generated.ts').as_posix()
+        cls.shard = source / 'shards' / 'fictional'
+        cls.asset = (cls.shard / 'assets' / 'hash').as_posix()
+        cls.policy = (cls.shard / '.wildshard' / 'build-policy.json').as_posix()
+        (cls.root / '.gitignore').write_text(f'{source}/*.generated.ts\npublic/generated.bin\nout/\nnode_modules/\nlint/*.generated.json\n')
+        (cls.root / 'scripts').mkdir()
+        cls.catalogue = {'jobs': [{'outputs': [cls.asset],
                                    'buildOutputs': {'public/generated.bin': 'hash'},
-                                   'buildTimeOutputs': [self.table]}]}
-        (self.root / 'scripts/generation-jobs.json').write_text(json.dumps(self.catalogue))
-        subprocess.run(['git', '-C', str(self.root), 'add', '.gitignore'], check=True)
-        subprocess.run(['git', '-C', str(self.root), '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.com', 'commit', '-qm', 'fixture'], check=True)
-        self.sha = products.git(self.root, 'rev-parse', 'HEAD').decode().strip()
+                                   'buildTimeOutputs': [cls.table]}]}
+        (cls.root / 'scripts/generation-jobs.json').write_text(json.dumps(cls.catalogue))
+        subprocess.run(['git', '-C', str(cls.root), 'add', '.gitignore'], check=True)
+        subprocess.run(['git', '-C', str(cls.root), '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.com', 'commit', '-qm', 'fixture'], check=True)
+        cls.sha = products.git(cls.root, 'rev-parse', 'HEAD').decode().strip()
+        for name, content in {cls.table: b'export const value=7;', 'public/generated.bin': b'\0\x01', 'out/fictional/shard.json': b'{"format":2}',
+                              cls.asset: b'retained bytes',
+                              'lint/shard-words.generated.json': b'{"slugs":["fictional"]}',
+                              cls.policy: b'{"version":1,"decisionLegacyLines":100}'}.items():
+            path = cls.root / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(content)
+        with patch.dict(os.environ, {'GITHUB_SHA': cls.sha, 'GITHUB_RUN_ID': '123'}):
+            cls.create_phase_receipt()
+            products.pack(cls.root)
+        shutil.copytree(cls.root, cls.pristine)
+
+    def setUp(self):
+        # Every case gets independent Git objects, mutable bytes and archives.
+        # copytree copies files; no hard links or state survive a prior case.
+        shutil.rmtree(self.root)
+        shutil.copytree(self.pristine, self.root)
+        self.catalogue = json.loads((self.root / 'scripts/generation-jobs.json').read_text())
         self.env = patch.dict(os.environ, {'GITHUB_SHA': self.sha, 'GITHUB_RUN_ID': '123'})
         self.env.start()
         self.addCleanup(self.env.stop)
-        for name, content in {self.table: b'export const value=7;', 'public/generated.bin': b'\0\x01', 'out/fictional/shard.json': b'{"format":2}',
-                              self.asset: b'retained bytes',
-                              'lint/shard-words.generated.json': b'{"slugs":["fictional"]}',
-                              self.policy: b'{"version":1,"decisionLegacyLines":100}'}.items():
-            path = self.root / name
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_bytes(content)
-        self.create_phase_receipt()
-        products.pack(self.root)
 
-    def phase_probe(self, action):
+    @classmethod
+    def phase_probe(cls, action):
         repo = Path(__file__).resolve().parents[1]
         probe = f"""
           import {{InputHashMemo}} from '{(repo/'scripts/bake-input-hashes.mjs').as_uri()}';
@@ -58,11 +75,12 @@ class PreparedProducts(unittest.TestCase):
           if(action==='create'){{memo.hash('src/table.generated.ts');publishGenerationSnapshot(path,identity,memo,{{'public/generated.bin':memo.hash('public/generated.bin',true)}});}}
           else console.log(verifiedGenerationSnapshot(path,identity,memo,['public/generated.bin']));
         """
-        return subprocess.run(['node','--input-type=module','-e',probe,str(self.root),action],
+        return subprocess.run(['node','--input-type=module','-e',probe,str(cls.root),action],
                               text=True,capture_output=True,check=True).stdout.strip()
 
-    def create_phase_receipt(self):
-        self.phase_probe('create')
+    @classmethod
+    def create_phase_receipt(cls):
+        cls.phase_probe('create')
 
     def test_phase_receipt_transfers_and_rechecks_real_inputs_and_outputs(self):
         products.pack(self.root, generated=True)
