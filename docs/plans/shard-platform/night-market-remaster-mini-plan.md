@@ -191,7 +191,7 @@ for the kit before the families switch on; `tiledPlot.mjs` `KIT_FAMILIES` lists 
 | Slice | Status | Deliverable |
 |---|---|---|
 | RM4.1 kit pipeline + lanterns | done (99959f0ced; opt-in since aba65405bb) | Blender target, model reader, lantern family (stone post, paper-lantern bracket, banner post) on every `lantern()` |
-| RM4.2 stalls | open | Hero stall (striped awning, valance, goods), red-roof row stall, food cart; S tiles and forecourt kiosks |
+| RM4.2 stalls | done (opt-in) | Hero stall (striped awning, valance, goods), red-roof row stall, food cart; S tiles and forecourt kiosks |
 | RM4.3 string lights | open | Round bulbs and red paper lanterns on sagging cords; banner posts at the lane crossings |
 | RM4.4 houses | open | Three cottages (tiled hip roofs with upturned eaves, timber frame, plaster, lit windows) filling the H courts |
 | RM4.5 bridges | open | Arched stone bridge halves with balustrades at the canal borders |
@@ -201,7 +201,7 @@ for the kit before the families switch on; `tiledPlot.mjs` `KIT_FAMILIES` lists 
 | RM4.9 boards | open | A labelled 4-angle board per family beside its mockup crop; A2 / D2 captures for bars 2 and 5 |
 | RM7.1–7.3 ground and canals | open | Kerbs and raised block edges; canal walls with stone coping; water streak cards |
 | RM9.1–9.3 gate | open | r7 reference, Hunyuan3D 2.1 vs TRELLIS.2, hanging kit lanterns and trim (light with sp-o2's RM6.4) |
-| RM8.1 compressed tiles | in flight (2026-10-26, sp-o1) | Authored-world tiles as lossless meshopt GLBs (`compressGlb`, decoded by the props loader): Night Market's geometry tiles fall to 0.30–0.35 of their bytes, every authored product's wire with them |
+| RM8.1 instanced kit | in flight (2026-10-26, sp-o1) | Authored-world instance nodes: a kit model's mesh is stored once and its placements kept as instances in the L0 tile holding each origin (`staticGlb` `instances` + per-instance colour for the lantern bake), out of L1 and the far proxy, so the kit costs bytes and resident memory once per tile. Lossless meshopt tiles (`compressGlb`) were measured and dropped: geometry tiles fall to 0.30–0.35 of their bytes, but the near view's reader refuses EXT_meshopt and resident cost rises (Thin Ice's resident rows refused) |
 | RM8.2 authored L1 | open | World-source prefixes: detail rows draw at L0 only, `coarse_` rows only in L1; each kit family carries a ≤ 12-triangle LOD1 (the lit head, the roof block) |
 | RM8.3 plaza resident | open | Savings in the four plaza L0 tiles (landmark and poster textures, with RM9) so their kit fits the pinned resident rows; then `KIT_FAMILIES` switches on |
 | RM8.4–8.6 density | open | Every tile re-packed to the mockup, ≤ 15k triangles and ≤ 0.3 MB per L0 tile |

@@ -38,6 +38,10 @@ assert.ok(Math.abs(tall.lights[0].at[1]-short.lights[0].at[1]-0.6)<1e-6);
 const low=t=>Math.min(...t.tris.flatMap(x=>x.points.map(p=>p[1])));assert.equal(low(tall),low(short));
 for(const bad of [()=>kit.placeModel(writer(),'lanterns',3,0,0),()=>kit.placeModel(writer(),'stalls',0,0,0),()=>kit.placeModel(writer(),'lanterns',0,NaN,0)])assert.throws(bad,/invalid placement/);
 await assert.rejects(()=>prepareModelKit({},new Map([['stalls',bytes]])),/invalid family record/);
+// RM4.2: the stall family (hero stall, row stall, food cart), each lit by its own lanterns
+const stalls=await prepareModelKit({},new Map([['stalls',new Uint8Array(readFileSync('public/assets/open-plots/kit/stalls.glb'))]]));
+const lit=[0,1,2].map(variant=>{const w=writer();stalls.placeModel(w,'stalls',variant,0,0);assert.ok(w.tris.length>200&&w.tris.length<800);return w.lights.length;});
+assert.deepEqual(lit,[3,1,1]);
 await assert.rejects(()=>prepareModelKit({},new Map()),/no model families/);
 await assert.rejects(()=>prepareModelKit({},new Map([['lanterns',new Uint8Array()]])),/missing GLB bytes/);
 console.log('ok');`;

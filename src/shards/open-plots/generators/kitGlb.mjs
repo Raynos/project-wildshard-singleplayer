@@ -102,6 +102,8 @@ export async function prepareModelKit(palette, files) {
       }
       for (const { at, slot } of source.emitters) w.lanternEmitter?.(place(at[0], at[1], at[2]), [...colourOf(family, model, slot)]);
     },
+    /** whether this kit has a family */
+    has(family) { return families.has(family); },
     /** how many variants a family has */
     variants(family) { const model = families.get(family); if (model === undefined) throw new Error(`open-plots kit: no family ${family}`); return model.variants.length; },
   });

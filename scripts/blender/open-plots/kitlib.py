@@ -79,6 +79,44 @@ class Piece:
     def prism(self, cx, cy, r0, r1, z0, z1, sides, slot, spin=0.0, cap_top=True, cap_bottom=False):
         self.lathe(cx, cy, [(r0, z0), (r1, z1)], sides, [slot], spin, cap_top, cap_bottom)
 
+    def panel(self, points, slot, back=None):
+        """A thin sheet seen from both sides (cloth, a valance): the face and its reverse."""
+        self.face(points, slot)
+        self.face(list(reversed(points)), back or slot)
+
+    def slab(self, corners, thickness, slot, under=None):
+        """A sloped slab (a roof, an awning): `corners` its top face counter-clockwise from above, extruded down."""
+        low = [(x, y, z - thickness) for x, y, z in corners]
+        self.face(corners, slot)
+        self.face(list(reversed(low)), under or slot)
+        for i in range(len(corners)):
+            j = (i + 1) % len(corners)
+            self.face([low[i], low[j], corners[j], corners[i]], under or slot)
+
+    def wheel(self, cx, cy, cz, radius, width, sides, slot, hub=None):
+        """A wheel turning about the y axis (rolling along x), capped both sides."""
+        ring = [(cx + radius * math.cos(2 * math.pi * i / sides), cz + radius * math.sin(2 * math.pi * i / sides))
+                for i in range(sides)]
+        y0, y1 = cy - width / 2, cy + width / 2
+        for i in range(sides):
+            j = (i + 1) % sides
+            (xa, za), (xb, zb) = ring[i], ring[j]
+            self.face([(xa, y0, za), (xb, y0, zb), (xb, y1, zb), (xa, y1, za)], slot)
+        self.face([(x, y0, z) for x, z in ring], hub or slot)
+        self.face([(x, y1, z) for x, z in reversed(ring)], hub or slot)
+
+    def paper_lantern(self, x, y, top, radius=0.3, sides=8):
+        """A round red paper lantern hanging from `top` (gold caps, a red tassel), its light an emitter."""
+        h = radius * 1.8
+        z1 = top - 0.04
+        z0 = z1 - h
+        profile = [(radius * 0.25, z0 - 0.04), (radius * 0.55, z0), (radius * 0.9, z0 + h * 0.18), (radius, z0 + h * 0.5),
+                   (radius * 0.9, z0 + h * 0.82), (radius * 0.55, z1), (radius * 0.25, z1 + 0.04)]
+        self.lathe(x, y, profile, sides, ['Kit.gold', 'Glow.paper', 'Glow.paper', 'Glow.paper', 'Glow.paper', 'Kit.gold'],
+                   cap_bottom=True)
+        self.prism(x, y, radius * 0.08, radius * 0.18, z0 - 0.04 - radius * 0.6, z0 - 0.04, 4, 'Kit.stall')
+        self.emitter((x, y, z0 + h * 0.5), 'paper')
+
     def emitter(self, at, slot):
         self.emitters.append((at, slot))
 
@@ -183,14 +221,14 @@ def export_family(path, family, objects, emitters, extras, trims, floor=0.42):
                 corners = [mesh.vertices[mesh.loops[loop].vertex_index].co for loop in poly.loop_indices]
                 uvs.extend(face_uvs([(c.x, c.y, c.z) for c in corners], (n.x, n.y, n.z), bands[trim], width,
                                     trim == 'roofTile'))
-                for loop, c in zip(poly.loop_indices, corners):
+                # a corner buried in another part bakes black; no corner falls below 0.6 x its face's brightest
+                ao = [max(0.0, min(1.0, shade[loop].color[0])) for loop in poly.loop_indices]
+                ao = [max(a, 0.6 * max(ao)) for a in ao]
+                for a, c in zip(ao, corners):
                     pos.append((c.x, c.z, -c.y))
                     nor.append((n.x, n.z, -n.y))
-                    if role == 'Glow':
-                        col.append((1.0, 1.0, 1.0))
-                    else:
-                        s = floor + (1 - floor) * max(0.0, min(1.0, shade[loop].color[0]))
-                        col.append((s, s, s))
+                    s = 1.0 if role == 'Glow' else floor + (1 - floor) * a
+                    col.append((s, s, s))
             meshes.append((f'{variant}.{slot}', {
                 'POSITION': np.array(pos, dtype=np.float32), 'NORMAL': np.array(nor, dtype=np.float32),
                 'TEXCOORD_0': np.array(uvs, dtype=np.float32), 'COLOR_0': np.array(col, dtype=np.float32),

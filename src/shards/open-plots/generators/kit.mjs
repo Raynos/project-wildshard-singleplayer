@@ -132,9 +132,13 @@ function writer(parts, centre, turns, kit) {
   };
   const lanternEmitter = kit?.lanternEmitter === undefined ? undefined
     : (at, colour) => kit.lanternEmitter(turn(at), [...colour]);
-  const w = { tri, triColours, triChannels, quad, box, sides, floor, solid, lanternEmitter, placeModel: undefined };
-  // RM4: a kit model (kitGlb.mjs) at tile-local (x, z), through this writer's turn and lantern bake
-  if (kit?.placeModel !== undefined) w.placeModel = (family, variant, x, z, options) => kit.placeModel(w, family, variant, x, z, options);
+  const w = { tri, triColours, triChannels, quad, box, sides, floor, solid, lanternEmitter, placeModel: undefined, hasModel: () => false };
+  // RM4: a kit model (kitGlb.mjs) at tile-local (x, z), through this writer's turn and lantern bake; a builder uses its
+  // family's models only when the kit placed has that family (tiledPlot.mjs KIT_FAMILIES)
+  if (kit?.placeModel !== undefined) {
+    w.placeModel = (family, variant, x, z, options) => kit.placeModel(w, family, variant, x, z, options);
+    w.hasModel = (family) => kit.has(family);
+  }
   return w;
 }
 /** A stable variant (0 to count - 1) for a piece at tile-local (x, z), so neighbours differ and every bake repeats. */
@@ -207,7 +211,7 @@ function placeMovingLight(w, kind, position) {
  *  light; without them, the low-poly post and lit box that fit the pinned tile bytes until RM8's instancing pays for
  *  the models. */
 function lantern(w, x, z, p, height = 2.8) {
-  if (w.placeModel !== undefined) {
+  if (w.hasModel('lanterns')) {
     w.placeModel('lanterns', pick(x, z, 3), x, z, { height, yaw: pick(x, z, 4, 1) * Math.PI / 2 });
   } else {
     w.lanternEmitter?.([x, height + 0.375, z], [...p.lantern]);
@@ -290,6 +294,7 @@ function garden(w, p, variant) {
 /** S stall row (NM9: the mockup's density): two rows of five red stalls facing each other across the tile's aisle, each
  *  awning lit with lanterns along its eave, and food carts with lanterns down the aisle. */
 function stalls(w, p) {
+  if (w.hasModel('stalls')) { modelStalls(w, p); return; }
   for (const side of [-1, 1]) for (let i = 0; i < 5; i++) {
     const z = -22 + i * 11, outer = side * 27, inner = side * 15;
     const x0 = Math.min(outer, inner), x1 = Math.max(outer, inner), front = inner, out = -side;
@@ -324,6 +329,23 @@ function stalls(w, p) {
     w.box('Glow', [x - 0.25, 1.5, z - 0.25], [x + 0.25, 2.1, z + 0.25], p.lantern, p.lantern);
     pool(w, x, z, 4, p.pool);
     w.solid([x - 1.4, 0, z - 0.9], [x + 1.4, 1.3, z + 0.9]);
+  }
+}
+/** RM4.2: the S tile from the kit's stall models (opt-in, tiledPlot.mjs KIT_FAMILIES): ten stalls a side every 5.5 m
+ *  facing the aisle (the hero stall and the red-roofed row stall, by place), a pool before every other one, and food carts
+ *  staggered down the aisle; each model emits its own lanterns. */
+function modelStalls(w, p) {
+  for (const side of [-1, 1]) for (let i = 0; i < 10; i++) {
+    const z = -24.75 + i * 5.5, x = side * 17.5;
+    w.placeModel('stalls', pick(x, z, 2), x, z, { yaw: -side * Math.PI / 2 });
+    w.solid([x - 1.5, 0, z - 2.1], [x + 1.5, 1.1, z + 2.1]);
+    if (i % 2 === 0) pool(w, x - side * 3.4, z + 2.75, 5, p.pool);
+  }
+  for (let i = 0; i < 4; i++) {
+    const z = -16.5 + i * 11, x = i % 2 === 0 ? -4 : 4;
+    w.placeModel('stalls', 2, x, z, { yaw: i % 2 === 0 ? Math.PI / 2 : -Math.PI / 2 });
+    w.solid([x - 0.8, 0, z - 1.3], [x + 0.8, 1.1, z + 1.3]);
+    pool(w, x, z, 4, p.pool);
   }
 }
 /** The water region of a canal tile at rotation 0, as rectangles (x0, z0, x1, z1); `C` runs north-south, `L` south to east. */
