@@ -8,6 +8,8 @@ import { registerHooks } from 'node:module';
 import { readFileSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Content hash of executable inputs.
 import { createHash } from 'node:crypto';
+// oxlint-disable-next-line import/no-nodejs-modules -- Fingerprint the exact pinned product consumed by native forks.
+import { pathToFileURL } from 'node:url';
 
 assert.equal(typeof document, 'undefined'); assert.equal(typeof window, 'undefined');
 const ROOT = new URL('../../../', import.meta.url), loaded = new Set();
@@ -20,11 +22,13 @@ await import('../../fixtures/driftwood-headless.ts');
 await import('./worker.ts');
 const witness = await import('./witness.ts');
 const { default: source } = await import('../../../src/shards/driftwood-isle/shard.config.ts');
-function inputFiles() { return new Set([...loaded, ...source.files.map(file => new URL(`src/shards/driftwood-isle/assets/${file.hash}`, ROOT).href), ...['src/shards/driftwood-isle/data/headlessAssembly.json', 'test/proof/driftwood-isle/run.mjs', 'test/fixtures/headless/worker.ts', 'scripts/sim-node-loader.mjs', 'pnpm-lock.yaml', 'public/assets/physics/rapier.wasm'].map(path => new URL(path, ROOT).href)]); }
+const productIndex = new URL('out/driftwood-isle/shard.json', ROOT);
+const pinnedProductIndex = new URL('shard.json', pathToFileURL(`${witness.witnessProductDirectory()}/`));
+function inputFiles() { return new Set([...loaded, productIndex.href, ...source.files.map(file => new URL(`src/shards/driftwood-isle/assets/${file.hash}`, ROOT).href), ...['src/shards/driftwood-isle/data/headlessAssembly.json', 'test/proof/driftwood-isle/run.mjs', 'test/fixtures/headless/worker.ts', 'scripts/sim-node-loader.mjs', 'pnpm-lock.yaml', 'public/assets/physics/rapier.wasm'].map(path => new URL(path, ROOT).href)]); }
 function inputs() {
   const files = inputFiles();
   const hash = createHash('sha256');
-  for (const url of [...files].sort((a, b) => a < b ? -1 : a > b ? 1 : 0)) hash.update(url.slice(ROOT.href.length)).update('\0').update(readFileSync(new URL(url))).update('\0');
+  for (const url of [...files].sort((a, b) => a < b ? -1 : a > b ? 1 : 0)) hash.update(url.slice(ROOT.href.length)).update('\0').update(readFileSync(url === productIndex.href ? pinnedProductIndex : new URL(url))).update('\0');
   return hash.digest('hex');
 }
 const { generateWitness } = await import('../../../scripts/witness-generation.mjs');

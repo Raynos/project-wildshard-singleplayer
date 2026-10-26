@@ -233,6 +233,8 @@ in `public/assets/<slug>/` as real `.glb` / `.png` / `.ktx2` / `.bin`. App-wide 
 
 | Authored audio native-root fixture | Source complete: the dynamic Pine/Driftwood audio fixture now supplies its explicit public native-input capability to readProjectAssets, matching ordinary product construction. Both original island model inputs are tracked; all three original authored-audio, cove and parser-refusal cases, scoped types and named typed lint pass. No audio bytes, oracle, timeout, production source or guard change. | Continue remaining GR5/GR7 producers. |
 
+| Native witness product identity | Source complete: the routed Darwin checkpoint refusal differs only in serialized decision-contract channels (temporary sky A/B product: ten channels; shipped product: nine). Spawn, command tape, tick/effect outcomes and every other decoded snapshot field/physics are unchanged. The witness cache omitted the actual built product index, and restore forks reopened a mutable out alias; a concurrent scoped build removed that alias during one controlled attempt. Fingerprint the actual index and pin one resolved product directory across record/restore/worker forks. After the defined 17.47 s current-product refresh, all three original regenerate/replay/envelope cases pass in 66 s with every original compressed checkpoint SHA, canonical digest and manifest unchanged. Scoped fixture types and named typed lint pass; no terrain-filter, production, oracle, timeout, manifest or refusal change. | Continue the generator plan; original routed refusal and failed product-lifetime control remain retained. |
+
 ### GR6 current ≤ 1 h slices (G711)
 
 | Slice | Status | Boundary |
