@@ -5,7 +5,8 @@ import * as v from 'valibot';
 import { SpecimenCatalogueSchema } from '../src/format/specimenCatalogue';
 import { SceneBakedGeometrySchema } from '../src/format/sceneDressing';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
-import { makeCarriedQuestRows, carriedQuestRows } from '../src/shards/nalati-grasslands/generators/carriedQuest';
+import { makeCarriedQuestRows } from '../src/shards/nalati-grasslands/generators/carriedQuest';
+import { carriedQuestRows } from './fixtures/nalati-carried-quest';
 import { nalatiQuestProp } from '../src/shards/nalati-grasslands/generators/questProp';
 
 const root = 'src/shards/nalati-grasslands/data/';
@@ -19,7 +20,7 @@ test('computed carried-prop geometry and admitted material preserve the whole or
   if (geometry === undefined) throw new Error('Missing computed quest prop geometry');
   const row = nalatiQuestProp(geometry, specimens.materials.poi), admitted = v.parse(SpecimenCatalogueSchema, [row])[0];
   const bytes = new TextEncoder().encode(`${JSON.stringify(admitted, null, 2)}\n`);
-  const original = readFileSync(`${root}questProp.generated.json`);
+  const original = readFileSync('test/fixtures/nalati-quest-prop-original.json');
   expect(hashImmutableBytes(original)).toBe('b65315ab0b84892f1e20542608c722b5a379d44783a5940b2d85dcef00081782');
   expect(Buffer.compare(bytes, original)).toBe(0);
   expect(row.source.geometry).not.toBe(geometry);
@@ -30,7 +31,7 @@ test('computed carried-prop geometry and admitted material preserve the whole or
 });
 
 test('supplied prop declarations retain the complete carried quest with strict refusal', () => {
-  const supplied = read('questProp.generated.json');
+  const supplied: unknown = JSON.parse(readFileSync('test/fixtures/nalati-quest-prop-original.json', 'utf8'));
   const rows = makeCarriedQuestRows(supplied);
   expect(encodeCanonicalJson(rows)).toBe(encodeCanonicalJson(carriedQuestRows));
   expect(rows.model).not.toBe(carriedQuestRows.model);

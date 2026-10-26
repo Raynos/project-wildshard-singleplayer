@@ -45,7 +45,7 @@ test('the full frozen assembly pin and exact current geography input retain sepa
 test('native dressing and duplicate scene-copy jobs stay retired', () => {
   const descriptors = discoverGeneration(resolve('.')).jobs;
   const jobs = descriptors.map(job => job.id);
-  expect(jobs).not.toContain('nalati-decorative');
+  expect(jobs).not.toContain('nalati-decorative'); expect(jobs).not.toContain('nalati-quest-prop');
   expect(jobs).not.toContain('nalati-dressing'); expect(jobs).not.toContain('nalati-places-blob'); expect(jobs).not.toContain('nalati-crags-blob'); expect(jobs).not.toContain('nalati-dressing-blob');
 });
 
@@ -83,7 +83,7 @@ test('the actual output hook preserves every predecessor file cost and binary by
       .toEqual([...sceneOriginal].sort((a, b) => a.name.localeCompare(b.name)));
     expect(requested).not.toContain('data/placeRuntime.generated.json');
     expect(requested).not.toContain('data/quest-prop.generated.bin');
-    const propBefore = readFileSync('src/shards/nalati-grasslands/data/quest-prop.generated.bin');
+    const propBefore = readFileSync('test/fixtures/nalati-quest-prop-original.bin');
     const propPin = nameBlob('models/specimens/quest-prop.bin', 'bin', propBefore);
     expect(hit.namedFiles.find(file => file.name === propPin.file.name)).toEqual(propPin.file);
     const propBytes = hit.assets.get(propPin.file.hash);

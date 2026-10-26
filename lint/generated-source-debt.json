@@ -995,8 +995,6 @@
     "src/shards/nalati-grasslands/data/poiLayout.generated.json",
     "src/shards/nalati-grasslands/data/poiPaint.json",
     "src/shards/nalati-grasslands/data/populationField.generated.json",
-    "src/shards/nalati-grasslands/data/quest-prop.generated.bin",
-    "src/shards/nalati-grasslands/data/questProp.generated.json",
     "src/shards/nalati-grasslands/data/renderTiles.json",
     "src/shards/nalati-grasslands/data/rifle.generated.json",
     "src/shards/nalati-grasslands/data/sabre.generated.json",

@@ -14426,7 +14426,6 @@
         "src/shards/nalati-grasslands/generators/bake-persistence.mjs",
         "src/shards/nalati-grasslands/generators/bake-place-runtime.mjs",
         "src/shards/nalati-grasslands/generators/bake-poi-paint.mjs",
-        "src/shards/nalati-grasslands/generators/bake-quest-prop.mjs",
         "src/shards/nalati-grasslands/generators/bake-recurve-pool.mjs",
         "src/shards/nalati-grasslands/generators/bake-render-tiles.mjs",
         "src/shards/nalati-grasslands/generators/bake-riding.mjs",
@@ -14833,42 +14832,6 @@
         "src/shards/nalati-grasslands/data/balbalSpecimen.generated.json",
         "src/shards/nalati-grasslands/data/balbal-carving-0.generated.bin",
         "src/shards/nalati-grasslands/data/balbal-carving-1.generated.bin"
-      ],
-      "platform": "portable",
-      "catalogueDependencies": [
-        "nalati-place-runtime",
-        "camp-specimen-catalogue"
-      ]
-    },
-    {
-      "id": "nalati-quest-prop",
-      "shard": "nalati-grasslands",
-      "entry": "src/shards/nalati-grasslands/generators/bake-quest-prop.mjs",
-      "command": [
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/shards/nalati-grasslands/generators/bake-quest-prop.mjs"
-      ],
-      "inputRoots": [
-        "src/shards/nalati-grasslands/generators/bake-quest-prop.mjs",
-        "src/shards/nalati-grasslands/data/placeRuntime.generated.json",
-        "src/shards/nalati-grasslands/data/specimens.generated.json",
-        "public/assets/nalati/baked/places.bin",
-        "src/format",
-        "src/sdk/bake/source-loader.mjs",
-        "scripts/bake-output.mjs",
-        "package.json",
-        "pnpm-lock.yaml",
-        "src/shards/nalati-grasslands/generators/placeParts.ts",
-        "src/shards/nalati-grasslands/generators/questProp.ts"
-      ],
-      "outputs": [
-        "src/shards/nalati-grasslands/data/questProp.generated.json",
-        "src/shards/nalati-grasslands/data/quest-prop.generated.bin"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/nalati-grasslands/data/questProp.generated.json",
-        "src/shards/nalati-grasslands/data/quest-prop.generated.bin"
       ],
       "platform": "portable",
       "catalogueDependencies": [

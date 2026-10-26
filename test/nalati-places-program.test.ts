@@ -35,7 +35,7 @@ test('fresh owned places retain native bytes and metadata with detached cache hi
         ['actor:balbal:1:2977','balbal-carving-1.generated.bin','45ac62fdf44b83dd06ed55de034577712732a535385de1718e16862279b4634f'],
         ['actor:goat','quest-prop.generated.bin','ec1282219cd79471dbbdfa8d58e801ebb4b95e73d44106f7e325eb0fc9028440']]){
         const bytes=files.get(name+'.bin'); assert.equal(hashImmutableBytes(bytes),hash);
-        assert.equal(Buffer.compare(bytes,readFileSync('src/shards/nalati-grasslands/data/'+path)),0);
+        assert.equal(Buffer.compare(bytes,readFileSync(name==='actor:goat'?'test/fixtures/nalati-quest-prop-original.bin':'src/shards/nalati-grasslands/data/'+path)),0);
         assert.deepEqual(parts[name],runtime.places.rows.find(row=>row.name===name).meshes[0].geometry);
       }
       for(const [name,file] of [['places','places.json'],['specimens','placeSpecimens.json']]){

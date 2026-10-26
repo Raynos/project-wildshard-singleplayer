@@ -14,7 +14,7 @@ import {parseDecisionScripts} from '../src/format/decisionScripts';
 import * as terrain from '../src/engine/world/terrainHeight';
 import * as riding from '../src/game/riding/client';
 import type {ShardContext} from '../src/game/plugin/context';
-import {carriedQuestRows} from '../src/shards/nalati-grasslands/generators/carriedQuest';
+import {carriedQuestRows} from './fixtures/nalati-carried-quest';
 
 function fixture(){
   const construction=new Scope('delivery construction'),scope=new Scope('delivery entered'),sky:unknown=Object.create(SkyRig.prototype),quest:unknown=Object.create(QuestState.prototype);

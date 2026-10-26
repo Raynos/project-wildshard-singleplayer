@@ -16,14 +16,11 @@ const pins = [
     ['balbal-carving-0.generated.bin', '822694b3287b5b09781e531c2edfbc5def284a757fc097dcc23061b09e79f85c'],
     ['balbal-carving-1.generated.bin', '45ac62fdf44b83dd06ed55de034577712732a535385de1718e16862279b4634f'],
   ]],
-  ['nalati-quest-prop', [
-    ['questProp.generated.json', 'b65315ab0b84892f1e20542608c722b5a379d44783a5940b2d85dcef00081782'],
-    ['quest-prop.generated.bin', 'ec1282219cd79471dbbdfa8d58e801ebb4b95e73d44106f7e325eb0fc9028440'],
-  ]],
+
 ] as const;
 
 for (const [id, files] of pins) {
-  for (const omitted of [leaf, ...(id === 'nalati-quest-prop' ? ['src/shards/nalati-grasslands/generators/questProp.ts'] : []), undefined]) {
+  for (const omitted of [leaf, undefined]) {
     test(`${id} ${omitted === undefined ? 'preserves every original wire byte in isolation' : `refuses omitted ${omitted}`}`, async () => {
       const job = discoverGeneration(root).jobs.find(row => row.id === id);
       if (job === undefined) throw new Error('Missing retained place part producer');

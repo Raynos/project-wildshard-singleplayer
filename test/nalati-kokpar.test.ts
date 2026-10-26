@@ -8,7 +8,7 @@ import * as THREE from 'three';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { parseCarriedQuest } from '../src/format/questSteps';
 import { CarriedQuestProp } from '../src/game/quest/carriedProp';
-import { carriedQuestRows } from '../src/shards/nalati-grasslands/generators/carriedQuest';
+import { carriedQuestRows } from './fixtures/nalati-carried-quest';
 import * as ridingService from '../src/game/riding/client';
 import { Mount } from '../src/game/riding/mount';
 import { WorldRegistry } from '../src/engine/world/registry';

@@ -1,9 +1,6 @@
 import kokpar from '../data/kokpar.generated.json' with {type:'json'};
-import prop from '../data/questProp.generated.json' with {type:'json'};
 import { parseCarriedQuest } from '@wildshard/format/questSteps';
 
-/** Original prop geometry enters through the existing named binary source path. */
-export const CARRIED_QUEST_SOURCES=[{name:prop.source.file,kind:'bin' as const,source:'data/quest-prop.generated.bin'}];
 /** The existing round program chooses poses and existing quest service effects. */
 export function makeCarriedQuestRows(input: unknown): ReturnType<typeof parseCarriedQuest> {
   return parseCarriedQuest({
@@ -17,5 +14,3 @@ export function makeCarriedQuestRows(input: unknown): ReturnType<typeof parseCar
 });
 }
 
-/** Retained prepared reader until the source-owned product cut. */
-export const carriedQuestRows = makeCarriedQuestRows(prop);
