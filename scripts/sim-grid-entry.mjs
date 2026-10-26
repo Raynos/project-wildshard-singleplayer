@@ -31,7 +31,7 @@ import { requireCompiledEntry, downloadEvidence, stepEvidence, stepBoundaryEvide
 import { cachedBodyEvidence } from './loading-benchmark/cache-bodies.mjs';
 import { saveFixtureCode } from './debug-settings.mjs';
 import { readSimulatorCoreFootprint, selectedCoreMemoryTargets, coreMemorySummary, compiledFloorSave, scriptResourceURLs,
-  serveHelloWorldMemory, helloWorldMemoryFloor, webGLMemoryFloor, threeMemoryFloor, coreMemoryProductIdentity } from './shard-phone-memory.mjs';
+  serveHelloWorldMemory, helloWorldMemoryFloor, contextMemoryDiagnostic, coreMemoryProductIdentity } from './shard-phone-memory.mjs';
 import { pageMemoryAttributionExpression } from './memory-report-snapshot.mjs';
 import { memoryCategories } from './soak/memory-categories.mjs';
 
@@ -471,14 +471,18 @@ try {
 }
 
 if (coreMemory !== undefined) {
+  const diagnostics = calibrationMode && coreMemory !== 'hello'
+    ? results.filter(row => row.error === undefined).map(contextMemoryDiagnostic) : [];
   const summary = {coreMemory, base: BASE, rev: args.rev ?? null, at: new Date().toISOString(), results,
     ...(!calibrationMode ? {floors: coreMemorySummary(results.filter(row => row.error === undefined), coreMemory)} : {}),
-    ...(calibrationMode && coreMemory !== 'hello' ? {contextCalibrations: results.filter(row => row.error === undefined).map(row => {
-      const sample = row.shard === 'hello' ? helloWorldMemoryFloor(row) : row.shard === 'three' ? threeMemoryFloor(row) : webGLMemoryFloor(row);
-      return {shard: row.shard, phase: sample.phase, rendererBytes: sample.rendererBytes, gpuBytes: sample.gpuBytes, totalBytes: sample.totalBytes};
-    })} : {}),
+    ...(calibrationMode && coreMemory !== 'hello' ? {contextCalibrations: diagnostics.flatMap(row => row.calibration === null ? [] : [row.calibration]),
+      calibrationErrors: diagnostics.flatMap(row => row.error === null ? [] : [row.error])} : {}),
     ...(coreMemory === 'hello' && results.length === 1 && results[0].error === undefined ? {calibration: helloWorldMemoryFloor(results[0])} : {})};
   writeFileSync(resolvePath(out, 'summary.json'), `${JSON.stringify(summary, null, 1)}\n`);
+  if ((summary.calibrationErrors?.length ?? 0) > 0) {
+    for (const error of summary.calibrationErrors ?? []) console.error(`Core diagnostic refused: ${error}`);
+    process.exitCode = 1;
+  }
   for (const row of results) for (const sample of row.samples ?? []) console.info(`WebKit ${row.shard} ${sample.phase}: WebContent ${(sample.rendererBytes / 1048576).toFixed(1)} MiB, GPU ${(sample.gpuBytes / 1048576).toFixed(1)} MiB`);
   if (summary.floors !== undefined) {
     for (const row of summary.floors) console.info(`WebKit ${row.name}: ${row.totalBytes === null ? 'unknown' : `${(row.totalBytes / 1048576).toFixed(1)} MiB`} / ${row.limitBytes / 1048576} MiB: ${row.passed ? 'PASS' : 'FAIL'}`);

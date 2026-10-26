@@ -446,7 +446,8 @@ retention attribution remain open.
 | C4.15 Native prerequisite / fixture confinement (≤1 h) | done `eca478b02d`, native0/2 FAIL (§18) | Exact ee607 preview completed134s and served its version, then its whole output disappeared while its registered PID stayed live (all requests404); no reader/quiet/native sample. Found a destructive test-fixture path: fake HOME selected an empty test registry while the reaper still scanned real tmp/serve. A non-destructive find probe fails on that wrong root; confine both preview roots/registry and the handoff fixture to the owned temporary tree.4 Python contracts and the existing Vitest wrapper pass; production reaping stays unchanged. This proves a matching destructive path, not the first unlinking process. A separate muted Metal pixel kernel confirms the lightmap release:0/16,384 changed readback bytes on both first/next draws,3,600 distinct colours/GLerror0; its raw payload passed though the CLI wrapper misread quoted JSON. Browser/server closed, no repeated kernel or native saving claim. |
 | C4.16 Concurrent decoded-source publication (≤1 h) | source done (this code commit), native impact unmeasured | Two concurrent requests checked shared-source identity before awaiting one decode, then published separate sources. Immediate upload could also close the shared bitmap before the other colour-space source was registered. Coalesce only in-flight source creation and publish each decode wave's source users before returning; warm images acquire synchronously. Settled/rejected source promises leave the map, while completed identities stay weak. Red-before/green-after tests cover one source per colour space with independent repeat, cold/warm immediate upload and failed-wave retry; existing real-GC release/live-source contracts remain.11 focused cases/3 suites plus touched engine/test types and named typed lint pass. The eca native milestone predates this slice; no GPU-allocation count or native-byte saving claimed. |
 | C4.17 Pending-image/lightmap native milestone (≤1 h) | done (measurement oneca478b02d),0/2 FAIL | One original compiled cold pair complete275s/errors0/all6samples,2WC+1GPU each.120s272,211,528/262,495,912B against208,182,520B each. Both post120 product index/source hashes match the independently prepared same-build metadata. No forced GC/snapshot/Network; passive attribution after120 only. Priorbd5 changes -1.344/+7.719MiB do not isolate either cut. Newere9debf concurrency fix is outside the pin. All quiet/Sim/browser/owned preview resources released; no repeat. |
-| C4.18 Empty Three.js renderer attribution (≤1 h) | in flight (2026-10-26, sp-x2), tool source | Complete the explicit irreducible-floor audit with only the two installed Three.js modules and one empty renderer. Same official native10/60/120s sampler,2× pixels, matching raw-context attributes and one clear; no app/composer/scene/render loop. Record exact module wire hashes; refuse foreign scripts, geometry/textures/programs/draws, missing clocks or collected evidence. Separate diagnostic target only: app cohorts, G682 limits and estimator base unchanged. First4fab native visit complete136s/errors0/all3samples but correctly unqualified: r186 requested alpha:true despite renderer alpha:false. Preserve raw evidence; pass an explicitly created opaque context, matching the raw-GL fixture. Executed-module regression reproduces the original default and passes only with context injection. No qualified byte result or repeat yet. |
+| C4.18 Empty Three.js renderer attribution (≤1 h) | done `4fab477c61` + `918f482b21`, diagnostic only | Corrected original native visit complete136s/rc0/errors0/all3samples:120s44,258,080B WC +16,369,848B GPU =60,627,928B (57.819MiB),2WC+1GPU. Exact2 installed r186 modules/one804×1428 opaque context/oneclear/0loss;0geometry/textures/programs/draws. First4fab visit preserved unqualified: r186 created alpha:true despite renderer alpha:false; explicit context injection matches the original raw-GL contract, strict validator unchanged. No app floor/base/cap qualification or app-memory subtraction. All resources released; no repeat. |
+| C4.19 Refused diagnostic summaries (≤1 h) | done (this code commit) | Strict post-capture validation previously threw before summary.json was written, despite complete raw samples and cleanup. Return an explicit refused diagnostic alongside raw rows, write the summary, then exit nonzero. Regression retains the actual alpha-mismatch shape unchanged, still refuses it and admits all three original diagnostic types; no guard relaxation, native repeat or evidence rewrite. |
 | C6 Model source | done previously `d2ef0c0848`, historical calibration | 250 MiB base, explicit grid-only page claims, unchanged caps. This visit does not silently recalibrate the estimator or establish current ±15% accuracy. |
 | C6.1 Pinned product / exact model audit | done (this commit) | Same `50d155f897` product and estimator: 299.764 MiB predicted / 260.664 MiB observed, 15.000330% high. Offline native-only audit refuses the exact miss, independently of G682; no base/cap change. |
 | C6.2 Current calibration | open | Same-sourceeca metadata predicts314,325,416 /310,301,961B versus native272,211,528 /262,495,912B: +15.471016% /+18.212112%. Both miss ±15% and native budgets. Both post120 index/source hashes match the prepared same-build metadata; all three model files match the source pin and current bytes. Historicalbd5 Template1 metadata remains unavailable in its raw reading. No base fit or whole-model PASS. |
@@ -889,3 +890,38 @@ preview stopped before final BOTH release. No repeat. Raw samples and compact
 comparison: `tmp/sp-x2/core-c4-images/`; model and product inputs:
 `tmp/sp-x2/core-c6-images-{model,products}.json`. C4/C6 remain open;
 menu/select were not repeated and C5 remains waits-Opus.
+
+
+## 19. Empty Three.js renderer floor (2026-10-26, sp-x2)
+
+The explicit irreducible-floor audit is complete through Three.js alone.
+`4fab477c61` adds a separate diagnostic with only the two installed r186
+modules; it creates no app, scene, composer, geometry, textures, shader
+programs, draws or render loop. Module wire sizes/hashes are captured.
+
+Its first136s visit captured all samples/errors0 but correctly failed
+admission: Three.js internally requested alpha:true despite renderer
+alpha:false. Raw evidence remains `tmp/sp-x2/core-c4-three/`; it is not a
+qualified opaque-context comparison. `918f482b21` explicitly creates the
+original opaque context and lends it to the renderer. The executed-module
+regression fails before this correction; the validator remains unchanged.
+
+One corrected cold native visit completed136s/rc0/errors0, all10/60/120s
+samples,2WC+1GPU each. At120s: WebContent44,258,080B +GPU16,369,848B =
+**60,627,928B /57.819MiB**. One804×1428 context (2×402×714),alpha:false,
+one clear,0loss;0geometry/textures/programs/draws. Exactly the two original
+module resources loaded:662,772 +1,458,113B, with independent SHA-256s.
+
+The earlier raw-context floor is52.413MiB; its difference is not an
+isolated code-cost measurement. This diagnostic uses the installed complete
+Three.js modules, while app builds bundle their own dependency graph.
+Neither figure identifies removable app memory or justifies subtracting
+from the Template totals. Fixed G682 budgets and250MiB model base remain
+unchanged; C4/C6 native acceptance is still open.
+
+Official quiet absent, zero booted Simulators, reader/proxy/Safari and owned
+loopback server closed before final BOTH release. No overlap reported, no
+repeat queued. Original corrected evidence:
+`tmp/sp-x2/core-c4-three-opaque/summary.json`. The reporting follow-up keeps
+refused raw captures in future summaries and exits nonzero; past evidence
+is not rewritten.

@@ -8,7 +8,7 @@ import { expect, test, vi } from 'vitest';
 import { coreMemorySummary, coreMemoryEstimateAudit, chromiumCoreMemorySummary, coreMemoryTargets, selectedCoreMemoryTargets, scriptResourceURLs, simulatorCoreFootprint, webKitCoreMemoryFloorBytes,
   serveHelloWorldMemory, helloWorldMemoryHTML, helloWorldMemoryFloor, coreMemoryProductIdentity,
   webGLMemoryTarget, webGLMemoryHTML, webGLMemoryFloor,
-  threeMemoryTarget, threeMemoryHTML, threeMemoryFloor } from '../scripts/shard-phone-memory.mjs';
+  threeMemoryTarget, threeMemoryHTML, threeMemoryFloor, contextMemoryDiagnostic } from '../scripts/shard-phone-memory.mjs';
 
 const MiB = 1048576;
 test('script inventory keeps distinct complete JavaScript URLs only', () => {
@@ -491,6 +491,18 @@ test('empty Three.js diagnostic cannot qualify an app floor or rebase G682', () 
   expect(() => helloWorldMemoryFloor(threeCalibration())).toThrow();
   expect(() => webGLMemoryFloor(threeCalibration())).toThrow();
   expect(webKitCoreMemoryFloorBytes).toBe(103324920);
+});
+
+test('diagnostic refusal remains explicit without losing or mutating completed captures', () => {
+  const raw = threeCalibration();
+  raw.calibrationDocument.attributes.alpha = true;
+  const original = JSON.stringify(raw), result = contextMemoryDiagnostic(raw);
+  expect(result.calibration).toBeNull();
+  expect(result.error).toContain('Expected false');
+  expect(JSON.stringify(raw)).toBe(original);
+  for (const valid of [helloCalibration(), webGLCalibration(), threeCalibration()]) {
+    expect(contextMemoryDiagnostic(valid)).toEqual({calibration: {shard: valid.shard, phase: '120s', rendererBytes: 30 * MiB, gpuBytes: 7 * MiB, totalBytes: 37 * MiB}, error: null});
+  }
 });
 
 test('Three.js diagnostic refuses foreign resources, content, incomplete clocks and collection', () => {

@@ -14,6 +14,8 @@ export function helloWorldMemoryFloor(input: unknown): {phase: string; rendererB
 export function webGLMemoryFloor(input: unknown): {phase: string; rendererBytes: number; gpuBytes: number; totalBytes: number};
 /** Empty renderer diagnostic, separate from every app budget and G682 base. */
 export function threeMemoryFloor(input: unknown): {phase: string; rendererBytes: number; gpuBytes: number; totalBytes: number};
+/** A refused diagnostic retains its raw row in the caller's summary and remains a failing result. */
+export function contextMemoryDiagnostic(input: unknown): {calibration: {shard: string; phase: string; rendererBytes: number; gpuBytes: number; totalBytes: number} | null; error: string | null};
 /** Select one target, all four app floors, or the separate hello-world calibration. */
 export function selectedCoreMemoryTargets(selection: string): readonly (typeof coreMemoryTargets[number] | typeof helloWorldMemoryTarget | typeof webGLMemoryTarget | typeof threeMemoryTarget)[];
 /** Existing device fixture exposing the explicit SHARDFILE button for compiled-only floors. */

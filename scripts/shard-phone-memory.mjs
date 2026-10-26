@@ -251,6 +251,19 @@ export function threeMemoryFloor(input) {
     totalBytes: v.parse(footprintBytes, sample.rendererBytes + sample.gpuBytes)};
 }
 
+/** Keep completed raw captures reportable when strict diagnostic admission
+ * refuses. The reader writes the summary, reports the error and exits nonzero.
+ * @param {unknown} input */
+export function contextMemoryDiagnostic(input) {
+  try {
+    const {shard} = v.parse(v.object({shard: v.picklist(['hello', 'webgl', 'three'])}), input);
+    const sample = shard === 'hello' ? helloWorldMemoryFloor(input) : shard === 'three' ? threeMemoryFloor(input) : webGLMemoryFloor(input);
+    return {calibration: {shard, phase: sample.phase, rendererBytes: sample.rendererBytes, gpuBytes: sample.gpuBytes, totalBytes: sample.totalBytes}, error: null};
+  } catch (error) {
+    return {calibration: null, error: String(error).slice(0, 400)};
+  }
+}
+
 /** Read only the original 120-second floor, never the cache-clear diagnostic.
  * @param {unknown} input
  * @param {string} [selection] One app floor, the Template pair, or all four by default. */
