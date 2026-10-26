@@ -74,6 +74,9 @@ export interface HarnessPins {
   /** G717.O3.1, measurement only: each full node build records where its uniforms and update nodes come from
    *  (`EngineNodesHandler.buildLog[].census`) */
   nodeBuildCensus?: true;
+  /** G717 A, measurement only until it ships: the phone tier's initial entry settles its first frames' programs under the
+   *  loader (game/session/settlePrograms.ts) */
+  entrySettle?: true;
 }
 export type ProbeWorld = World & {
   animals: AnimalManager; weapons: EquipmentService; hud: HUD; audio: Audio; music: Music; arena: TrainingArena | null;

@@ -19,6 +19,8 @@ import { registerBeforeReload } from '@wildshard/engine/boot/lastEnd';
 import { gridPrefetchOrder, startGridPrefetch } from '../grid/prefetch';
 import { enterSkyClock } from './clockSettings';
 import { postTargetsPick } from '../looks/postTargets';
+import { settleEntryPrograms } from './settlePrograms';
+import { harnessPins } from '@wildshard/engine/app/identity';
 
 /** how often the in-play warm-up asks whether an arrival's Explorer has closed, and how long it waits for one to open */
 const EXPLORER_POLL_MS = 1000, EXPLORER_OPEN_MS = 30_000;
@@ -132,6 +134,9 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   const drawnFrom = game.frameCount;
   const drawn = new Promise<void>((resolve) => { const check = (): void => { if (game.frameCount >= drawnFrom + 2) resolve(); else game.levelScope.raf(check); }; check(); });
   await Promise.race([Promise.all([drawn, ctx.minimap.prepare()]), new Promise<void>((resolve) => { game.levelScope.timeout(1500, resolve); })]);
+  // G717 A: the phone tier builds its first played frames' programs under the loader (settlePrograms.ts)
+  // until its added seconds are measured it runs only under the measurement pin (G717: <= ~2 s cold before it ships)
+  if (TIER === 'phone' && harnessPins()?.entrySettle === true) await settleEntryPrograms(game, (detail) => { loading.waiting(detail); });
   const readyFrameGate = game.frameGate, loadingFrameGate = (): boolean => false;
   if (loading.holdRequested) game.frameGate = loadingFrameGate;
   try { await loading.done(); }

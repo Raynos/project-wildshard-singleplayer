@@ -132,7 +132,9 @@ const texturesPin = flag('textures', '');
 if (!['', 'ktx2', 'img'].includes(texturesPin)) throw new Error('--textures=ktx2|img');
 const ktx2ProbePin = flag('ktx2-probe', '');
 if (!['', 'skip'].includes(ktx2ProbePin)) throw new Error('--ktx2-probe=skip');
-const HARNESS_PINS = JSON.stringify({ seed: 357, capture: null, ...(texturesPin === '' ? {} : { textures: texturesPin }), ...(ktx2ProbePin === '' ? {} : { ktx2Probe: ktx2ProbePin }) });
+// G717 A diagnostic: `--entry-settle` pins the phone entry's program settle (game/session/settlePrograms.ts) until it ships
+const entrySettle = args.includes('--entry-settle');
+const HARNESS_PINS = JSON.stringify({ seed: 357, capture: null, ...(texturesPin === '' ? {} : { textures: texturesPin }), ...(ktx2ProbePin === '' ? {} : { ktx2Probe: ktx2ProbePin }), ...(entrySettle ? { entrySettle: true } : {}) });
 // Optional bounded clock/ring reads, without wrapping rAF or changing the frame gate.
 // A sampler callback is not an entire rAF batch: its delay cannot partition tasks, idle or GPU waits.
 const frameTimeline = args.includes('--frame-timeline');
@@ -422,12 +424,15 @@ async function standingSample(driver, pose) {
   const started = driver.profile ? await driver.profile.start() : null;
   const stopScript = driver.scriptProfile && safariWindow === null && safariSteadyPose === '' && safariDrive === '' && safariPrefix === '' ? await driver.scriptProfile.start() : undefined;
   let result, raw, script;
+  const buildsFrom = chromiumPhone ? await driver.evaluate('performance.now()') : 0;
   try { result = await driver.evaluate(`(${sample.toString()})(${frames},${frameTimeline})`); }
   finally {
     if (stopScript !== undefined) script = await stopScript();
     if (driver.profile && started !== null) raw = await driver.profile.stop();
   }
   assertStandingPosition(pose, result);
+  // G717 diagnostic (--chromium-phone): the node builds inside this standing window
+  if (chromiumPhone) result.standingBuilds = await driver.evaluate(`(window.__wildshard.world.game.nodeBuilds?.log ?? []).filter(row => row.at >= ${buildsFrom}).map(row => ({ at: Math.round(row.at), ms: Math.round(row.ms), object: row.object, how: row.how }))`);
   if (raw !== undefined) { await saveProfileMaps(raw); writeFileSync(join(cpuProfileDir, `${pose.name}-${Date.now()}.cpuprofile`), JSON.stringify(raw)); }
   const cpuProfile = raw === undefined ? undefined : summarizeTravelProfile(raw, started, await driver.evaluate('window.__frameFloorLongTasks ?? []'), pose.name);
   const scriptProfile = script === undefined ? undefined : await saveSafariProfile(pose.name, script, result.sampleRange);
@@ -1069,6 +1074,7 @@ async function main() {
       const out = join(scratch, `frame-floor-${s}-${sha.slice(0, 9)}.json`); temporary.push(out);
       const workerArgs = [SCRIPT, '--worker', ...(devserverBuild ? ['--devserver'] : []), `--surface=${s}`, `--developer=${developer}`, `--standing-poses=${standingPoses.join(',')}`, `--base=${base}`, `--shards=${shards.join(',')}`, `--grid-scenario=${gridScenario}`, ...(gridRoutes.length === 0 ? [] : [`--grid-routes=${gridRoutes.join(',')}`]), ...(gridCell === '' ? [] : [`--grid-cell=${gridCell}`]), ...(roadApproach ? ['--road-approach'] : []), ...(entrySocket ? ['--entry-socket'] : []), ...(risingIslet === '' ? [] : [`--rising-islet=${risingIslet}`]), ...(gridCellPoseArg === '' ? [] : [`--grid-cell-pose=${gridCellPoseArg}`]), `--gl-observer=${glObserver}`, ...(texturesPin === '' ? [] : [`--textures=${texturesPin}`]), ...(ktx2ProbePin === '' ? [] : [`--ktx2-probe=${ktx2ProbePin}`]), ...(glTime ? ['--gl-time'] : []), ...(gpuBisectOn ? ['--gpu-bisect'] : []), ...(frameTimeline ? ['--frame-timeline'] : []), ...(taskClock ? ['--task-clock'] : []), ...(cpuProfileDir === '' ? [] : [`--cpu-profile=${cpuProfileDir}`]), ...(safariProfileDir === '' ? [] : [`--safari-profile=${safariProfileDir}`]), ...(gpuTraceDir === '' ? [] : [`--gpu-trace=${gpuTraceDir}`]), `--frames=${frames}`, `--settle=${settleMs / 1000}`, `--deadline=${start + 600000}`, `--worker-out=${out}`, ...settingArgs, ...deviceSaveArgs, ...systemArgs];
       if (chromiumPhone) workerArgs.push('--chromium-phone');
+      if (entrySettle) workerArgs.push('--entry-settle');
       if (jscGcDirectory !== '') workerArgs.push(`--jsc-gc-log=${jscGcDirectory}`);
       if (jscRamSize > 0) workerArgs.push(`--jsc-ram-size=${jscRamSize}`);
       if (nativeDirectory !== '') workerArgs.push(`--native-memory=${nativeDirectory}`);
