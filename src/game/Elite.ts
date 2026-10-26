@@ -371,12 +371,14 @@ export interface GroundTellWedgeStyle {
   alpha: { value: number };
 }
 
+type OptionalWedgeStyle = GroundTellWedgeStyle | undefined;
+
 export class GroundTell {
   readonly mesh: THREE.Mesh;
   private readonly mat: FxMaterial | null;
   private readonly base: Float32Array;
   private readonly pos: THREE.BufferAttribute;
-  constructor(scene: THREE.Scene, kind: 'ring' | 'lane' | 'wedge', color: THREE.ColorRepresentation, private readonly wedgeStyle?: GroundTellWedgeStyle) {
+  constructor(scene: THREE.Scene, kind: 'ring' | 'lane' | 'wedge', color: THREE.ColorRepresentation, private readonly wedgeStyle?: OptionalWedgeStyle) {
     let g: THREE.BufferGeometry;
     if (kind === 'ring') g = annulus(0.86, 1, 64);
     else if (kind === 'wedge') {
