@@ -22,9 +22,14 @@ const painted = row => mapGeometry(new Uint8Array(readFileSync(resolve(base,row.
 function ownedModelReader() {
   const models = new Map();
   return async row => {
-    const prefix = '/assets/nalati/baked/painted-models/';
-    if (!row.url.startsWith(prefix)) return mapModel(resolve(root, `public${row.url}`), row.geometrySlot ?? 0);
-    const name = row.url.slice(prefix.length);
+    const path = typeof row.url === 'string' ? row.url : row.url?.file;
+    const prefix = typeof row.url === 'string' ? '/assets/nalati/baked/painted-models/' : 'models/painted/';
+    if (typeof path !== 'string') throw new Error('Map model requires a declared source');
+    if (!path.startsWith(prefix)) {
+      if (typeof row.url !== 'string') throw new Error('Map model requires its painted file');
+      return mapModel(resolve(root, `public${path}`), row.geometrySlot ?? 0);
+    }
+    const name = path.slice(prefix.length);
     let bytes = models.get(name);
     if (bytes === undefined) {
       const { nalatiModelPaintProgram } = await import('./modelPaintProgram.ts');
@@ -37,6 +42,7 @@ function ownedModelReader() {
       if (bytes === undefined) throw new Error(`Missing owned map model ${name}`);
       models.set(name, bytes);
     }
+    if (typeof row.url !== 'string' && bytes.byteLength !== row.url.bytes) throw new Error(`Map model byte count differs: ${name}`);
     return mapModel(bytes, row.geometrySlot ?? 0);
   };
 }

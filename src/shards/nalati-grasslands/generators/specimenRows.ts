@@ -32,7 +32,7 @@ export function nalatiSpecimenRows<Catalogue extends readonly CatalogueRow[], Pa
   }
   const rider = assets['kokparRider'];
   if (rider === undefined) throw new Error('Missing original Nalati rider asset');
-  assets['kokparRiderFar'] = { ...rider, url: '/assets/nalati/baked/painted-models/kokpar-rider.far.glb', phoneUrl: '/assets/nalati/baked/painted-models/kokpar-rider.far.glb',
+  assets['kokparRiderFar'] = { ...rider, url: { file: 'models/painted/kokpar-rider.far.glb', bytes: 26384 }, phoneUrl: { file: 'models/painted/kokpar-rider.far.glb', bytes: 26384 },
     material: { ...rider.material, id: 'nalati-model:kokpar-rider|far|0.8|0.85||ffffff' } };
   return { ...rows, assets };
 }

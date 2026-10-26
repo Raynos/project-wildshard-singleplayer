@@ -1,5 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Bundle the actual author graph from its source path.
 import { resolve } from 'node:path';
+// oxlint-disable-next-line import/no-nodejs-modules -- Supply original authored GLBs to the defining native painter.
+import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
 import { defineSpecimenCatalogue } from '@wildshard/game/models/specimenCatalogue';
@@ -7,13 +9,23 @@ import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import * as author from '../src/shards/nalati-grasslands/generators/catalogue';
 import rows from '../src/shards/nalati-grasslands/data/campCatalogue.json' with { type: 'json' };
 import type { CatalogueParams } from '../src/shards/nalati-grasslands/generators/campParams';
+import { nalatiModelPaintProgram } from '../src/shards/nalati-grasslands/generators/modelPaintProgram';
 
 function metadata(value: object): object {
   return Object.fromEntries(Object.entries(value).filter(([, entry]) => typeof entry !== 'function'));
 }
 
-test('all 53 author headers retain complete runtime catalogue metadata', () => {
-  const runtime = defineSpecimenCatalogue<CatalogueParams>(rows);
+test('all 53 author headers retain complete runtime catalogue metadata', async () => {
+  const models = await nalatiModelPaintProgram({ cached: (step, make) => {
+    const inputs = new Map<string, Uint8Array>();
+    for (const path of step.inputs ?? []) {
+      if (!path.startsWith('/assets/nalati/models/')) throw new Error('Unexpected authored model root');
+      inputs.set(path, new Uint8Array(readFileSync(resolve(`public${path}`))));
+    }
+    return Promise.resolve(make(inputs));
+  } }, ['horse-wild.far.glb']);
+  const files = new Map([...models].map(([file, bytes]) => [`models/painted/${file}`, bytes]));
+  const runtime = defineSpecimenCatalogue<CatalogueParams>(rows, undefined, {}, files);
   expect(Object.keys(author)).toHaveLength(53);
   expect(Object.keys(author).sort()).toEqual(rows.map(row => row.key).sort());
   for (const key of Object.keys(author)) {

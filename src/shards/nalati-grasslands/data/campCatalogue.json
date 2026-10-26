@@ -1260,7 +1260,10 @@
     "source": {
       "kind": "asset",
       "asset": {
-        "url": "/assets/nalati/baked/painted-models/horse-wild.far.glb",
+        "url": {
+          "file": "models/painted/horse-wild.far.glb",
+          "bytes": 19940
+        },
         "geometrySlot": 0,
         "materialSlot": 0,
         "retainedAttribute": "_paint_clone",

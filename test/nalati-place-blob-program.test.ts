@@ -31,6 +31,8 @@ import { nalatiRuntimeRows } from '../src/shards/nalati-grasslands/generators/ru
 import { nalatiRuntime } from './fixtures/nalati-runtime';
 import { nalatiDecorative } from './fixtures/nalati-decorative';
 import { sceneWithNativeOutcrops } from './fixtures/nalati-scene-provenance';
+import { withOwnedModelFiles } from './fixtures/nalati-owned-models';
+import modelOriginal from './fixtures/nalati-model-paint.json' with { type: 'json' };
 
 const paintInput: unknown = JSON.parse(readFileSync('src/shards/nalati-grasslands/data/poiPaint.json', 'utf8'));
 const productShapeRow = (row: typeof shapeBookRowsOriginal.draws[number]) => 'lane' in row ? { ...row, lane: { file: 'world/places.bin', offset: row.lane.offset } } : row;
@@ -51,6 +53,14 @@ function sceneWithSpecimenBank(before:NamedBlob,bank:NamedBlob):NamedBlob {
   if(packed===undefined||packed.bin!=='/assets/nalati/baked/specimens.bin')throw new Error('Missing original specimen bank locator');
   packed.bin={file,bytes:bank.bytes.byteLength};
   return nameBlob(name,'json',new TextEncoder().encode(encodeCanonicalJson(rows)),before.file.jsonSchema===undefined?{}:{jsonSchema:before.file.jsonSchema});
+}
+
+function sceneWithOwnedModels(before: NamedBlob): NamedBlob {
+  const name = before.file.name;
+  if (name === undefined) throw new Error('Missing named scene');
+  const rows: unknown = JSON.parse(new TextDecoder().decode(before.bytes));
+  return nameBlob(name, 'json', new TextEncoder().encode(encodeCanonicalJson(withOwnedModelFiles(rows))),
+    before.file.jsonSchema === undefined ? {} : { jsonSchema: before.file.jsonSchema });
 }
 
 test('the full frozen assembly pin and exact current geography input retain separate ownership', () => {
@@ -96,6 +106,16 @@ test('the actual output hook preserves every predecessor file cost and binary by
     }
     requested.length = 0;
     const hit = await prepareOutput(context());
+    const modelFiles = hit.namedFiles.filter(file => file.name?.startsWith('models/painted/'));
+    expect(modelFiles.map(file => file.name).sort((a, b) => (a ?? '').localeCompare(b ?? ''))).toEqual(['models/painted/horse-wild.far.glb', 'models/painted/kokpar-rider.far.glb']);
+    for (const file of modelFiles) {
+      const pin = modelOriginal.find(row => `models/painted/${row.file}` === file.name);
+      const bytes = hit.assets.get(file.hash);
+      if (pin === undefined || bytes === undefined || file.name === undefined) throw new Error('Missing original far model');
+      expect(bytes.byteLength).toBe(pin.bytes);
+      expect(hashImmutableBytes(bytes)).toBe(pin.sha256);
+      expect(file).toEqual(nameBlob(file.name, 'glb', bytes).file);
+    }
     expect(hit.namedFiles.filter(file=>file.name===expectedBank.file.name)).toEqual([expectedBank.file]);
     const bankBytes = hit.assets.get(expectedBank.file.hash);
     if (bankBytes === undefined) throw new Error('Missing owned specimen bank bytes');
@@ -193,7 +213,7 @@ test('the actual output hook preserves every predecessor file cost and binary by
       if (file === undefined || bytes === undefined) throw new Error('Missing owned dressing scene');
       const frozen = frozenScenes.find(blob => blob.file.name === pin.name);
       if (frozen === undefined) throw new Error('Missing frozen complete scene pin');
-      const expected = pin.name.endsWith('.json') ? sceneWithSpecimenBank(sceneWithNativeOutcrops(frozen, ownedRuntime),expectedBank) : frozen;
+      const expected = pin.name.endsWith('.json') ? sceneWithOwnedModels(sceneWithSpecimenBank(sceneWithNativeOutcrops(frozen, ownedRuntime),expectedBank)) : frozen;
       expect(file).toEqual(expected.file);
       expect(bytes.length).toBe(expected.file.compressed);
       expect(hashImmutableBytes(bytes)).toBe(expected.file.hash);

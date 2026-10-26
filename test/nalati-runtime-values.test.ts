@@ -9,6 +9,8 @@ import { nalatiRuntimeRows } from '../src/shards/nalati-grasslands/generators/ru
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { nalatiRuntimeWire } from './fixtures/nalati-runtime-wire';
+import {nalatiRuntimePacket} from './fixtures/nalati-runtime';
+import {withOwnedModelFiles} from './fixtures/nalati-owned-models';
 import shapeBook from './fixtures/nalati-shape-book-original.json' with { type: 'json' };
 import pins from './fixtures/nalati-place-runtime-files.json' with { type: 'json' };
 import placePins from './fixtures/nalati-place-wires.json' with { type: 'json' };
@@ -29,13 +31,14 @@ test('frozen placement metadata retains both complete original file hashes', () 
 
 test('source values retain every predecessor metadata field and complete floor byte', () => {
   const packet = nalatiRuntimeRows(inputs);
-  const files = nalatiRuntimeWire(packet);
+  const files = nalatiRuntimeWire(nalatiRuntimePacket);
   expect([...files.keys()].map(path => `${prefix}${path}`).sort()).toEqual(Object.keys(pins).sort());
   for (const [path, hash] of Object.entries(pins)) {
     const bytes = files.get(path.slice(prefix.length));
     if (bytes === undefined) throw new Error('Missing original runtime wire');
     expect(hashImmutableBytes(bytes), path).toBe(hash);
   }
+  expect(packet.runtime).toStrictEqual(withOwnedModelFiles(nalatiRuntimePacket.runtime));
   expect(packet.metrics).toEqual(original('data/modelMetrics.json'));
   expect(packet.capture).toEqual(original('data/staticCapture.json'));
   expect(packet.shapeBook).toEqual(shapeBook);
