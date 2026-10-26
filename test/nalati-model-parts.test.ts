@@ -9,7 +9,7 @@ import { parseGlb, parseKtx2 } from '../src/sdk/assets';
 import { readSourceModel } from '../src/sdk/bake/skinned';
 import { readImagePixels } from '../src/sdk/bake/image';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { nalatiModelParts } from '../src/shards/nalati-grasslands/generators/modelParts';
+import { nalatiModelParts, nalatiModelSourceParts } from '../src/shards/nalati-grasslands/generators/modelParts';
 import pins from './fixtures/nalati-model-paint.json' with { type: 'json' };
 
 function isGeometry(value: unknown): value is BufferGeometry { return value instanceof BufferGeometry; }
@@ -24,9 +24,12 @@ function geometryOf(value: unknown): BufferGeometry {
 test.each(pins)('separates $file with every original geometry byte and decoded atlas pixel', async pin => {
   const input = new Uint8Array(readFileSync(`public/assets/nalati/baked/painted-models/${pin.file}`));
   expect(input.byteLength).toBe(pin.bytes); expect(hashImmutableBytes(input)).toBe(pin.sha256);
-  const beforeHash = hashImmutableBytes(input), parts = await nalatiModelParts(input);
+  const beforeHash = hashImmutableBytes(input), source = nalatiModelSourceParts(input), parts = await nalatiModelParts(input);
   expect(hashImmutableBytes(input)).toBe(beforeHash);
   expect(parts.geometry.buffer).not.toBe(input.buffer);
+  expect(source.geometry.buffer).not.toBe(input.buffer);
+  expect(source.geometry.buffer).not.toBe(parts.geometry.buffer);
+  expect(Buffer.compare(source.geometry, parts.geometry)).toBe(0);
   expect(() => parseGlb(parts.geometry)).not.toThrow();
   const original = await readSourceModel(input), current = await readSourceModel(parts.geometry);
   const originalMesh = original.gltf.scene.children[0], currentMesh = current.gltf.scene.children[0];
@@ -50,8 +53,12 @@ test.each(pins)('separates $file with every original geometry byte and decoded a
     if (!isMaterial(material)) throw new Error('Missing original painted material');
     const texture = original.texture(material);
     if (texture === null) {
+      expect(source.webp).toBeNull();
       expect(parts.atlas).toBeNull(); expect(Buffer.compare(parts.geometry, input)).toBe(0);
     } else {
+      const webp = source.webp; if (webp === null) throw new Error('Missing original WebP atlas');
+      expect(webp.buffer).not.toBe(input.buffer);
+      expect(Buffer.compare(webp, texture.image)).toBe(0);
       expect(texture.sampler).toEqual({ magFilter: 9729, minFilter: 9987, wrapS: 10497, wrapT: 10497 });
       const atlas = parts.atlas; if (atlas === null) throw new Error('Missing separate atlas');
       expect(() => parseKtx2(atlas)).not.toThrow();

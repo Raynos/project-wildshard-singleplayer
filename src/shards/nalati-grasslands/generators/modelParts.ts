@@ -27,8 +27,14 @@ export interface NalatiModelParts {
   readonly atlas: Uint8Array | null;
 }
 
-/** Inverse of the fixed painter's atlas append. No runtime or scheduler reader adopts this compiler yet. */
-export async function nalatiModelParts(bytes: Uint8Array): Promise<NalatiModelParts> {
+/** Original WebP bytes and geometry from the fixed painter, before any texture encoding. */
+export interface NalatiModelSourceParts {
+  readonly geometry: Uint8Array;
+  readonly webp: Uint8Array | null;
+}
+
+/** Inverse of the fixed painter's atlas append; native readers share this exact geometry validation. */
+export function nalatiModelSourceParts(bytes: Uint8Array): NalatiModelSourceParts {
   if (!(bytes.buffer instanceof ArrayBuffer) || bytes.length < 28 || bytes.length > 25_000_000) throw new Error('Invalid painted model extent');
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   if (view.getUint32(0, true) !== 0x46546c67 || view.getUint32(4, true) !== 2 || view.getUint32(8, true) !== bytes.length
@@ -50,7 +56,7 @@ export async function nalatiModelParts(bytes: Uint8Array): Promise<NalatiModelPa
   if (doc['images'] === undefined) {
     if (doc['textures'] !== undefined || doc['samplers'] !== undefined || pbr['baseColorTexture'] !== undefined) throw new Error('Incomplete painted atlas');
     parseGlb(bytes);
-    return { geometry: bytes.slice(), atlas: null };
+    return { geometry: bytes.slice(), webp: null };
   }
   const image = one(doc['images']), sampler = one(doc['samplers']), texture = one(doc['textures']);
   keys(image, ['bufferView', 'mimeType']); keys(sampler, ['magFilter', 'minFilter', 'wrapS', 'wrapT']); keys(texture, ['sampler', 'extensions']);
@@ -79,6 +85,12 @@ export async function nalatiModelParts(bytes: Uint8Array): Promise<NalatiModelPa
   header.setUint32(12, padded, true); header.setUint32(16, 0x4e4f534a, true); geometry.fill(32, 20, 20 + padded); geometry.set(json, 20);
   header.setUint32(20 + padded, geometryBytes.length, true); header.setUint32(24 + padded, 0x004e4942, true); geometry.set(geometryBytes, 28 + padded);
   parseGlb(geometry);
-  const atlas = await bakeRawColourTexture(imageBytes, { flipY: false, colourSpace: 'srgb' });
-  return { geometry, atlas };
+  return { geometry, webp: imageBytes };
+}
+
+/** Compile the detached original atlas as lossless raw KTX2 without changing geometry. */
+export async function nalatiModelParts(bytes: Uint8Array): Promise<NalatiModelParts> {
+  const parts = nalatiModelSourceParts(bytes);
+  const atlas = parts.webp === null ? null : await bakeRawColourTexture(parts.webp, { flipY: false, colourSpace: 'srgb' });
+  return { geometry: parts.geometry, atlas };
 }
