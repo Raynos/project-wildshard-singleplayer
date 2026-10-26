@@ -10,8 +10,19 @@ import { join, writeGeometry } from './geometryWriter';
 // the Explorer's straps as the rider sees them: crest, head and muzzle of the camp horse, the phone's 70° portrait view
 const CREST = new THREE.Vector3(0, -.5, -1.05), HEAD = new THREE.Vector3(0, -.55, -1.75), MUZZLE = new THREE.Vector3(0, -1, -2.1), FOV = 70, ASPECT = 9 / 19.5;
 
-/** The reins card (G600 L7): the live straps' ribbon baked once, from the rider's hands to the bit, feet at y 0. */
+/** Keep the current cover-book transport until its binary reader switches atomically. */
 export function reinsCard(): ReturnType<typeof parse<typeof SpecimenBookSchema>> {
+  const { book, bytes } = reinsCardBinary(), row = book.rows[0];
+  if (row?.source.kind !== 'file') throw new Error('Missing native reins card');
+  let text = ''; for (const byte of zlibSync(bytes)) text += String.fromCodePoint(byte);
+  return parse(SpecimenBookSchema, { ...book, rows: [{ ...row, source: {
+    kind: 'inline', data: btoa(text), geometry: row.source.geometry, material: row.source.material,
+  } }] });
+}
+
+/** The original live straps as raw geometry and a named-file specimen declaration.
+ * Publication remains with the cover-book producer; callers own the returned bytes. */
+export function reinsCardBinary(): { book: ReturnType<typeof parse<typeof SpecimenBookSchema>>; bytes: Uint8Array } {
   const profile = parse(ReinPresentationSchema, reins), { mesh, pos } = buildReinsRibbon(profile), tan = Math.tan(THREE.MathUtils.degToRad(FOV) / 2);
   const left = new THREE.Vector3(-1, 0, 0), up = new THREE.Vector3(0, 1, 0);
   for (let r = 0; r < 2; r++) {
@@ -26,10 +37,10 @@ export function reinsCard(): ReturnType<typeof parse<typeof SpecimenBookSchema>>
   const box = geometry.boundingBox ?? new THREE.Box3();
   geometry.translate(-(box.min.x + box.max.x) / 2, -box.min.y, -(box.min.z + box.max.z) / 2); geometry.computeBoundingBox();
   const blocks: Uint8Array[] = [], row = writeGeometry(geometry, blocks, 'reins card');
-  let text = ''; for (const byte of zlibSync(join(blocks))) text += String.fromCodePoint(byte);
+  const bytes = join(blocks);
   geometry.dispose();
-  return parse(SpecimenBookSchema, { materials: {}, rows: [{ key: 'reins',
+  return { bytes, book: parse(SpecimenBookSchema, { materials: {}, rows: [{ key: 'reins',
     model: { id: 'nalati-grasslands/reins', name: 'Reins', file: 'src/shards/nalati-grasslands/generators/reinsCard.ts', category: 'gear', pipeline: 'code', defaults: {} },
-    source: { kind: 'inline', data: btoa(text), geometry: row,
-      material: { id: 'nalati-reins', family: 'painterly', rim: profile.paint.rim, bands: profile.paint.bands, side: 'double' } } }] });
+    source: { kind: 'file', file: 'models/specimens/reins.bin', geometry: row,
+      material: { id: 'nalati-reins', family: 'painterly', rim: profile.paint.rim, bands: profile.paint.bands, side: 'double' } } }] }) };
 }
