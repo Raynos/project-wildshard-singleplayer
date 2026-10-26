@@ -3623,7 +3623,7 @@ body, RNG or presentation owner.
 (`@wildshard/game/plugin/brain`): an AssemblyScript module (`module`, its SHA-256) with up to 64 parameters,
 up to 8 numeric `slots` (its state, with spawn values), up to 4 actor `memory` fields it reads and writes (a pose's
 `mem`, with spawn values), `maxSpeed` / `maxTurnRate` and a catalogue of 1–8 `{ event, strike }`. `speciesBrains(species,
-strikes, modules)` takes the module as the base64 its bake wrote (`scripts/bake/species-scripts.mjs`), checks its hash
+strikes, modules)` takes module bytes from a `ReadonlyMap<string, Uint8Array>` keyed by SHA-256, checks their hash
 (synchronous `sha256`) and admits it on its own `ScriptHost` under the unchanged ABI-v0 ceilings. Each think / act is one
 pure call (`ScriptHost.rewind` returns the module to its admitted memory and globals in place afterwards), its inputs the
 phase, alive, calm, clock, the distance and yaw to the player, both positions, the actor's yaw and `seedHash`, its strike
@@ -3632,9 +3632,9 @@ at most one declared strike event, which the host turns into reach, then an atta
 `StrikeRunner`'s pick and start. Trigonometry goes through the math query (kind 1, `SPECIES_MATH_QUERY`: sin, cos,
 atan2 on the host's Math, a large argument split at multiples of 8192), so a script matches the TypeScript policy it
 replaces bit for bit. `ScriptSpeciesPolicy` holds the slots and the strike clock; its continuation is those two, never
-module memory. Signal's skitterer is the first (`behaviour/skitterer.as`), held to its old policy by
-`test/shards/sunscar-dunes/skitterer-script.test.ts`. The `modules` argument is a plain row (SHA-256 → base64), so a
-shard keeps it in `data/`.
+module memory. The original Signal skitterer was the first ABI-v0 user. Current Signal uses
+`behaviour/skitterer-decision.as` under `sim/scripts`; `test/scripts/skitterer-pack.test.ts` covers its independent
+pack decisions. Current Signal module bytes remain binary through authoring and admission.
 
 **Marked spawned boss fights.** Decisions belong to admitted `sim/scripts`
 guests on the existing species body; the encounter keeps its memory marks.
