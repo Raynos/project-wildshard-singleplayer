@@ -35,6 +35,7 @@ import { applyKtx2Probe, ktx2ProbeResult, linearAstcSurvives } from '../render/k
 import { workSlice } from './workSlice';
 import { TIER } from './tier';
 import { unsupercompressKtx2 } from './ktx2Zstd';
+import { parseKtx2 } from '@wildshard/format/ktx2Cost';
 
 /** where vite/basis.ts copies three's transcoder: versioned by three's revision, so the SW / HTTP caches never mix two */
 export const BASIS_PATH: Parameters<KTX2Loader['setTranscoderPath']>[0] = `/basis/r${THREE.REVISION}/`;
@@ -272,6 +273,18 @@ export async function ktx2File(url: string): Promise<THREE.CompressedTexture> {
   t.generateMipmaps = false;
   sources.share(t, url, 0);
   return labelAsset(releaseAfterUpload(t), 'engine/ktx2File', url);
+}
+
+/** Parse bounded borrowed KTX2 bytes on the configured loader, including its off-thread Zstd path.
+ * Copies the selected view before decoding; performs no URL read. The caller owns the returned texture,
+ * sets its sampler/colour space, and applies its existing upload/release policy. */
+export function parseKtx2Bytes(input: Uint8Array): Promise<THREE.Texture> {
+  if (!(input.buffer instanceof ArrayBuffer)) throw new Error('KTX2 bytes require an owned buffer');
+  parseKtx2(input);
+  const bytes = Uint8Array.from(input);
+  return new Promise<THREE.Texture>((resolve, reject) => {
+    ktx2Loader().parse(bytes.buffer, texture => { texture.flipY = false; resolve(texture); }, reject);
+  });
 }
 
 /**

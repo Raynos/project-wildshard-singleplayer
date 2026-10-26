@@ -5892,21 +5892,23 @@ fits or poses geometry. Pine crags and Driftwood cove prototypes use it.
 
 `@wildshard/game/models/specimenCatalogue.defineSpecimenCatalogue<Params>(rows,
 packed?, materials?, files?)` registers data models and returns `.model(key)`. Each
-`SpecimenModelRow` declares metadata, parameters, collider rows and one
-source: `owned` selects an identity-space GLB, `packed` selects bake parts,
-and `asset` borrows direct-child geometry/material slots, optional phone
-source and retained attribute. Unknown parameters refuse; registration performs no I/O or callbacks.
-`loadSpecimenAsset(row,input?)` and `loadBoundSpecimen(sky,row,input?)`
-accept owned GLB bytes or a prepared file map. Asset `url`/`phoneUrl` may be
-legacy paths or `{file,bytes}`. Preparation verifies only the selected tier,
-lengths, headers and embedded resources before publishing models; file
-forms require their prepared bytes and never fetch URLs. Byte identity
-isolates caches; disposal/failure invalidates them, and geometry releases inputs. `awaitSpecimenAssets` includes pending loads.
-The renderer-free `@wildshard/format/specimenCatalogue` module exports
-`SpecimenCatalogueSchema`, `PackedSpecimenSchema` and
-`SpecimenMaterialSchema` for Node/schema discovery. The render binder
-imports these pure declarations; constructors also refuse non-JSON values, accessors,
-cycles, callbacks, unbounded catalogues and paths outside `/assets/`.
+`SpecimenModelRow` supplies metadata, parameters, colliders and an `owned`
+identity-space GLB, `packed` bake parts, or `asset` direct-child geometry/material
+slots with optional phone source and retained attribute. Unknown parameters
+refuse; registration does no I/O or callbacks.
+`loadSpecimenAsset(row,input?)` and `loadBoundSpecimen(sky,row,input?)` accept
+owned GLB bytes or prepared files. `url`/`phoneUrl` are legacy paths or
+`{file,bytes}`. Selected-tier length/header/resource checks precede publication; owned
+files require prepared bytes without URL reads. Byte identity isolates caches; disposal/failure invalidates them,
+and geometry releases inputs.
+`@wildshard/format/specimenCatalogue` exports renderer-free
+`SpecimenCatalogueSchema`, `PackedSpecimenSchema` and `SpecimenMaterialSchema`. Constructors refuse non-JSON values, accessors, cycles,
+callbacks, unbounded catalogues and paths outside `/assets/`.
+
+`@wildshard/engine/core/ktx2.parseKtx2Bytes(bytes)` validates bounded KTX2,
+copies its view and uses the configured loader/Zstd worker without asset URL
+reads. Callers own the texture (flipY false), set colour/samplers, and apply
+their existing upload/release policy.
 
 `createPackedSpecimens(bake, files?)` checks decoded length/coverage.
 `bin:{file,bytes}` names a compressed product bank;
