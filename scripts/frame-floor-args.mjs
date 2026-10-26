@@ -1,4 +1,4 @@
-const switches = new Set(['help', 'worker', 'quiet', 'devserver', 'gl-time', 'gpu-bisect', 'frame-timeline', 'task-clock', 'road-approach', 'entry-socket', 'wasm-memory-probe', 'pause-ablation', 'buffer-ablation']);
+const switches = new Set(['help', 'worker', 'quiet', 'devserver', 'chromium-phone', 'gl-time', 'gpu-bisect', 'frame-timeline', 'task-clock', 'road-approach', 'entry-socket', 'wasm-memory-probe', 'pause-ablation', 'buffer-ablation']);
 const values = new Set(['base', 'cpu-profile', 'deadline', 'developer', 'device', 'frames', 'gl-observer', 'gpu-trace',
   'grid-cell', 'grid-cell-pose', 'grid-routes', 'grid-scenario', 'regrade', 'rev', 'rising-islet', 'safari-profile', 'safari-steady', 'safari-drive', 'safari-prefix', 'safari-window',
   'settle', 'shards', 'surface', 'scratch-dir', 'worker-out', 'device-save', 'expect-system', 'setting', 'output-dir',
@@ -17,6 +17,8 @@ export function validateFrameFloorArgs(args) {
     throw new Error('Milestone floor requires --devserver (the complete Developer catalogue includes Nine)');
   if (args.includes('--quiet') && (args.filter(arg => arg.startsWith('--surface=')).length !== 1 || !args.includes('--surface=sim')))
     throw new Error('Quiet frame floors require --surface=sim');
+  if (args.includes('--chromium-phone') && !args.includes('--surface=desktop'))
+    throw new Error('--chromium-phone measures the phone tier on the Chromium surface: requires --surface=desktop');
   if (args.some(arg => arg.startsWith('--webkit-timeline=')) && !args.includes('--surface=sim'))
     throw new Error('WebKit timelines require --surface=sim');
   if (args.some(arg => arg.startsWith('--wasm-constructors=')) && !args.includes('--surface=sim'))

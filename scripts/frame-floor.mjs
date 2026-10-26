@@ -169,7 +169,10 @@ const picks = Object.fromEntries(settingArgs.map((arg) => {
   if (!match || ['tier', 'fps'].includes(match[1])) throw new Error('Invalid Debug setting; tier and fps belong to the floor protocol');
   return [match[1], match[2]];
 }));
-const settings = { ...picks, tier: surface === 'sim' ? 'phone' : 'desktop', fps: 'auto' };
+// G717 diagnostic: the phone tier on the Chromium surface (iPhone 17 Pro portrait, render scale 2), graded at the
+// Simulator's 30 fps floor; a profile proxy for a Simulator miss, never a floor reading
+const chromiumPhone = args.includes('--chromium-phone');
+const settings = { ...picks, tier: surface === 'sim' || chromiumPhone ? 'phone' : 'desktop', fps: 'auto' };
 const deviceSaveArgs = args.filter((arg) => arg.startsWith('--device-save='));
 const deviceSaves = Object.fromEntries(deviceSaveArgs.map((arg) => {
   const match = /^--device-save=([a-zA-Z][a-zA-Z0-9._-]*)=(.+)$/u.exec(arg);
@@ -193,7 +196,8 @@ const query = (shard) => (shard === 'grid' && !publicGrid ? '?mute=1&nolock=1&sw
 const errorText = (e) => e instanceof Error ? e.message : String(e);
 
 // Jake's SF0 clarification (2026-10-04): allow vsync quantization, retain the original strict verdict.
-function assess(result, surfaceName) {
+function assess(result, measuredOn) {
+  const surfaceName = chromiumPhone ? 'chromium-phone' : measuredOn;
   const floorFps = surfaceName === 'desktop' ? 60 : 30;
   // The milestone gates every observed frame, including spawn, short travel and interiors.
   const maxFrameLimitMs = surfaceName === 'desktop' ? 100 : 200;
@@ -451,7 +455,7 @@ async function measureShard(driver, shard, deadline) {
     if (shard === 'grid' && gridScenario !== 'baseline') await driver.evaluate(`(${installFloorGridProgress.toString()})()`);
     await sleep(settleMs);
     const meta = await driver.evaluate(`(${metadata.toString()})()`);
-    if (meta.developer !== (developer === 'on') || meta.deviceSaves.devMode !== (developer === 'on') || meta.clock !== 'live' || meta.renderScale !== 2 || meta.settings.tier !== (surface === 'sim' ? 'phone' : 'desktop') || meta.settings.fps !== 'auto' || Object.entries(picks).some(([key, value]) => meta.settings[key] !== value) || Object.entries(deviceSaves).some(([key, value]) => meta.deviceSaves[key] !== value)) throw new Error(`Invalid measurement configuration: ${JSON.stringify(meta)}`);
+    if (meta.developer !== (developer === 'on') || meta.deviceSaves.devMode !== (developer === 'on') || meta.clock !== 'live' || meta.renderScale !== 2 || meta.settings.tier !== settings.tier || meta.settings.fps !== 'auto' || Object.entries(picks).some(([key, value]) => meta.settings[key] !== value) || Object.entries(deviceSaves).some(([key, value]) => meta.deviceSaves[key] !== value)) throw new Error(`Invalid measurement configuration: ${JSON.stringify(meta)}`);
     for (const expected of expectedSystems.filter((row) => row.shard === shard)) if (meta.systems.includes(expected.id) !== expected.present) throw new Error(`Activation witness failed: ${expected.id} expected ${expected.present ? 'on' : 'off'}; installed ${meta.systems.join(', ')}`);
     if (surface === 'sim' && (meta.viewport[0] >= meta.viewport[1] || !meta.userAgent.includes('iPhone'))) throw new Error('Simulator must be portrait iPhone Safari');
     if (surface === 'desktop' && !meta.renderer.includes('ANGLE Metal Renderer')) throw new Error(`Metal required, got ${meta.renderer}`);
@@ -589,6 +593,8 @@ async function measureShard(driver, shard, deadline) {
         }));
         const { glFrames, ...wholeValue } = whole.value;
         const builds = nodeBuildsByHook(await driver.evaluate('(window.__wildshard.world.game.nodeBuilds?.log ?? []).filter(row => row.at >= window.__frameFloorBuildsFrom)'), hookTimes);
+        // G717 diagnostic (--chromium-phone): each build's program key, to tell a churned variant from a first build
+        if (chromiumPhone) builds.keys = await driver.evaluate('(() => { const g = window.__wildshard.world.game, log = g.nodeBuilds?.log ?? [], keys = g.nodeBuildKeys ?? []; return log.map((row, i) => ({ at: row.at, object: row.object, how: row.how, key: keys[i] ?? null })).filter(row => row.at >= window.__frameFloorBuildsFrom); })()');
         const driveRow = { pose: { name: `grid-${plan.name}-drive` }, window: 'whole-drive', ...wholeValue, longFrameHooks: longFrameHooks(whole.value.longFrames.at, hookTimes), nodeBuilds: builds,
           ...(wasmConstructorsDir === '' ? {} : { scriptMemoryPool: { before: scriptMemoryBefore, after: scriptMemoryAfter } }),
           over35Hooks: longFrameHooks(whole.value.slowFrames, hookTimes).map((row) => ({ hook: row.hook, frames: row.frames, maxMs: row.maxMs, totalMs: row.totalMs })),
@@ -888,8 +894,8 @@ async function worker() {
     if (surface === 'desktop') {
       const { chromium } = await import('playwright');
       browser = await chromium.launch({ channel: 'chromium', args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
-      context = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2, serviceWorkers: 'block' });
-      await context.addInitScript({ content: `${fixture('desktop')};window.__wildshardHarness=${HARNESS_PINS};${ERROR_SCRIPT}${CONSOLE_SCRIPT}${LONGTASK_SCRIPT}${GL_TIME_SCRIPT}${TASK_CLOCK}${travelGl}` });
+      context = await browser.newContext({ ...(chromiumPhone ? { viewport: { width: 402, height: 874 }, deviceScaleFactor: 3 } : { viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2 }), serviceWorkers: 'block' });
+      await context.addInitScript({ content: `${fixture(settings.tier)};window.__wildshardHarness=${HARNESS_PINS};${ERROR_SCRIPT}${CONSOLE_SCRIPT}${LONGTASK_SCRIPT}${GL_TIME_SCRIPT}${TASK_CLOCK}${travelGl}` });
       let errors = [], profiler = null;
       driver = {
         load: async (shard) => { errors = []; page = await context.newPage(); page.on('pageerror', (e) => errors.push(e.message.slice(0, 240))); page.on('console', (message) => { if (message.type() === 'error' && message.text().includes('[faults]')) errors.push(message.text().slice(0, 1000)); }); await page.goto(`${base}${query(shard)}`, { waitUntil: 'domcontentloaded' }); },
@@ -1062,6 +1068,7 @@ async function main() {
     for (const s of surface === 'both' ? ['desktop', 'sim'] : [surface]) {
       const out = join(scratch, `frame-floor-${s}-${sha.slice(0, 9)}.json`); temporary.push(out);
       const workerArgs = [SCRIPT, '--worker', ...(devserverBuild ? ['--devserver'] : []), `--surface=${s}`, `--developer=${developer}`, `--standing-poses=${standingPoses.join(',')}`, `--base=${base}`, `--shards=${shards.join(',')}`, `--grid-scenario=${gridScenario}`, ...(gridRoutes.length === 0 ? [] : [`--grid-routes=${gridRoutes.join(',')}`]), ...(gridCell === '' ? [] : [`--grid-cell=${gridCell}`]), ...(roadApproach ? ['--road-approach'] : []), ...(entrySocket ? ['--entry-socket'] : []), ...(risingIslet === '' ? [] : [`--rising-islet=${risingIslet}`]), ...(gridCellPoseArg === '' ? [] : [`--grid-cell-pose=${gridCellPoseArg}`]), `--gl-observer=${glObserver}`, ...(texturesPin === '' ? [] : [`--textures=${texturesPin}`]), ...(ktx2ProbePin === '' ? [] : [`--ktx2-probe=${ktx2ProbePin}`]), ...(glTime ? ['--gl-time'] : []), ...(gpuBisectOn ? ['--gpu-bisect'] : []), ...(frameTimeline ? ['--frame-timeline'] : []), ...(taskClock ? ['--task-clock'] : []), ...(cpuProfileDir === '' ? [] : [`--cpu-profile=${cpuProfileDir}`]), ...(safariProfileDir === '' ? [] : [`--safari-profile=${safariProfileDir}`]), ...(gpuTraceDir === '' ? [] : [`--gpu-trace=${gpuTraceDir}`]), `--frames=${frames}`, `--settle=${settleMs / 1000}`, `--deadline=${start + 600000}`, `--worker-out=${out}`, ...settingArgs, ...deviceSaveArgs, ...systemArgs];
+      if (chromiumPhone) workerArgs.push('--chromium-phone');
       if (jscGcDirectory !== '') workerArgs.push(`--jsc-gc-log=${jscGcDirectory}`);
       if (jscRamSize > 0) workerArgs.push(`--jsc-ram-size=${jscRamSize}`);
       if (nativeDirectory !== '') workerArgs.push(`--native-memory=${nativeDirectory}`);
