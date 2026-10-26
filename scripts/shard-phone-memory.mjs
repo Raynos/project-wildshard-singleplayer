@@ -36,6 +36,8 @@ export const coreMemoryTargets = Object.freeze([
 export const helloWorldMemoryTarget = Object.freeze({shard: 'hello', name: 'Hello, world', limitBytes: null});
 /** Context-only diagnostic, never an app target or a replacement G682 base. */
 export const webGLMemoryTarget = Object.freeze({shard: 'webgl', name: 'WebGL context', limitBytes: null});
+/** Three.js code plus an empty renderer, without app/composer/content allocations. */
+export const threeMemoryTarget = Object.freeze({shard: 'three', name: 'Three.js renderer', limitBytes: null});
 /** No app, script, canvas, font, style or external asset is loaded by the calibration page. */
 export const helloWorldMemoryHTML = '<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Hello, world</title><body>Hello, world.</body></html>';
 /** One WebGL2 context and one clear at 2x viewport pixels; no app or external assets. */
@@ -51,21 +53,42 @@ export const webGLMemoryHTML = `<!doctype html><html lang="en"><meta charset="ut
   gl.clearColor(0.1,0.1,0.1,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);state.clears++;
   state.ready=gl.getError()===gl.NO_ERROR;
 })();</script></body></html>`;
+/** Same context attributes and clear as the raw WebGL fixture; no render loop or scene. */
+export const threeMemoryHTML = `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Three.js renderer</title><style>html,body{margin:0;height:100%;overflow:hidden}canvas{width:100%;height:100%;display:block}</style><body><canvas></canvas><script type="module">
+import {WebGLRenderer,REVISION} from '/three.module.js';
+const canvas=document.querySelector('canvas');
+const state=window.__ws_coreThree={ready:false,contexts:0,clears:0,losses:0,viewportWidth:innerWidth,viewportHeight:innerHeight,revision:REVISION};
+canvas.addEventListener('webglcontextlost',()=>{state.losses++;});
+try {
+ const renderer=window.__ws_coreRenderer=new WebGLRenderer({canvas,alpha:false,antialias:false,depth:true,stencil:false,preserveDrawingBuffer:false});
+ state.contexts++;
+ renderer.setPixelRatio(2);renderer.setSize(innerWidth,innerHeight,false);
+ const gl=renderer.getContext();
+ gl.clearColor(0.1,0.1,0.1,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);state.clears++;
+ state.ready=gl.getError()===gl.NO_ERROR;
+}catch(error){state.error=String(error);}
+</script></body></html>`;
 /** One loopback fixture owned by the official reader; no app preview/build is needed.
- * @returns {Promise<{url: string, close: () => Promise<void>}>} */
-export async function serveHelloWorldMemory() {
+ * @param {boolean} [three] Serve only the two installed Three.js modules when explicitly requested.
+ * @returns {Promise<{url: string, modules: {path: string, bytes: number, sha256: string}[], close: () => Promise<void>}>} */
+export async function serveHelloWorldMemory(three = false) {
+  const modules = new Map(three ? ['three.module.js', 'three.core.js'].map(name =>
+    [`/${name}`, readFileSync(new URL(`../node_modules/three/build/${name}`, import.meta.url))]) : []);
   const server = createServer((request, response) => {
     const path = new URL(request.url ?? '/', 'http://localhost').pathname;
     response.setHeader('Cache-Control', 'no-store');
     if (path === '/' || path === '/webgl') { response.setHeader('Content-Type', 'text/html; charset=utf-8'); response.end(path === '/' ? helloWorldMemoryHTML : webGLMemoryHTML); }
+    else if (three && path === '/three') { response.setHeader('Content-Type', 'text/html; charset=utf-8'); response.end(threeMemoryHTML); }
+    else if (modules.has(path)) { response.setHeader('Content-Type', 'text/javascript; charset=utf-8'); response.end(modules.get(path)); }
     else if (path === '/version.json' || path === '/clear-cache.json') {
-      response.setHeader('Content-Type', 'application/json'); response.end(JSON.stringify({build: 'webkit-hello-world-v1'}));
+      response.setHeader('Content-Type', 'application/json'); response.end(JSON.stringify({build: three ? 'webkit-three-renderer-v1' : 'webkit-hello-world-v1'}));
     } else { response.statusCode = 404; response.end(); }
   });
   await new Promise((resolve, reject) => { server.once('error', reject); server.listen(0, '127.0.0.1', () => { resolve(); }); });
   const address = server.address();
   if (address === null || typeof address === 'string') { server.close(); throw new Error('Missing hello-world fixture address'); }
-  return {url: `http://127.0.0.1:${address.port}`, close: async () => {
+  return {url: `http://127.0.0.1:${address.port}`, modules: [...modules].map(([path, bytes]) =>
+    ({path, bytes: bytes.length, sha256: createHash('sha256').update(bytes).digest('hex')})), close: async () => {
     await new Promise((resolve, reject) => {
       /** @param {Error} [error] */
       const done = error => { if (error === undefined) resolve(); else reject(error); };
@@ -79,10 +102,11 @@ export function selectedCoreMemoryTargets(selection) {
   if (selection === 'all') return coreMemoryTargets;
   if (selection === 'hello') return [helloWorldMemoryTarget];
   if (selection === 'webgl') return [webGLMemoryTarget];
+  if (selection === 'three') return [threeMemoryTarget];
   if (selection === 'contexts') return [helloWorldMemoryTarget, webGLMemoryTarget];
   if (selection === 'templates') return coreMemoryTargets.slice(2);
   const target = coreMemoryTargets.find(row => row.shard === selection);
-  if (target === undefined) throw new Error('Expected --core-memory=all, templates, contexts, hello, webgl or an existing core floor');
+  if (target === undefined) throw new Error('Expected --core-memory=all, templates, contexts, hello, webgl, three or an existing core floor');
   return [target];
 }
 /** Existing Developer-tools fixture: expose the explicit compiled button, never fall back to LEGACY. */
@@ -188,6 +212,40 @@ export function webGLMemoryFloor(input) {
   if (row.errors.length > 0 || row.samples.map(sample => sample.phase).join(',') !== '10s,60s,120s') throw new Error('Incomplete WebGL calibration');
   const sample = row.samples.at(2);
   if (sample === undefined) throw new Error('Missing WebGL 120s sample');
+  return {phase: '120s', rendererBytes: sample.rendererBytes, gpuBytes: sample.gpuBytes,
+    totalBytes: v.parse(footprintBytes, sample.rendererBytes + sample.gpuBytes)};
+}
+
+/** Empty Three.js renderer only; this attribution diagnostic has no budget and
+ * cannot replace the pinned hello-world calibration or qualify an app floor.
+ * @param {unknown} input */
+export function threeMemoryFloor(input) {
+  const dimension = v.pipe(v.number(), v.safeInteger(), v.minValue(1), v.maxValue(8192));
+  const row = v.parse(v.object({shard: v.literal('three'), protocol: v.literal('webkit-core-floor/1'),
+    mode: v.literal('cold'), forcedGC: v.literal(false), inspectorResponseBodyBytes: v.literal(0),
+    scriptURLs: v.pipe(v.array(v.string()), v.length(2)),
+    fixtureModules: v.pipe(v.array(v.object({path: v.string(), bytes: v.pipe(footprintBytes, v.minValue(1)),
+      sha256: v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u))})), v.length(2)),
+    calibrationDocument: v.object({title: v.literal('Three.js renderer'), scripts: v.literal(1), canvases: v.literal(1),
+      ready: v.literal(true), contexts: v.literal(1), clears: v.literal(1), losses: v.literal(0), lost: v.literal(false),
+      revision: v.pipe(v.string(), v.regex(/^\d+$/u)),
+      rendererInfo: v.object({geometries: v.literal(0), textures: v.literal(0), programs: v.literal(0), calls: v.literal(0)}),
+      width: dimension, height: dimension, viewportWidth: dimension, viewportHeight: dimension,
+      attributes: v.object({alpha: v.literal(false), antialias: v.literal(false), depth: v.literal(true), stencil: v.literal(false), preserveDrawingBuffer: v.literal(false)})}),
+    errors: v.array(v.string()), samples: v.array(v.object({phase: v.string(), rendererBytes: footprintBytes, gpuBytes: footprintBytes,
+      page: v.object({href: v.string(), prefetch: v.literal(null), resources: v.literal(2)})}))}), input);
+  const paths = ['/three.core.js', '/three.module.js'];
+  if (row.fixtureModules.map(module => module.path).sort().join(',') !== paths.join(',')) throw new Error('Unexpected Three.js fixture modules');
+  const scripts = row.scriptURLs.map(url => new URL(url));
+  const origin = scripts[0]?.origin;
+  if (scripts.some(url => url.origin !== origin || url.protocol !== 'http:' || url.hostname !== '127.0.0.1' || url.search !== '' || url.hash !== '')
+    || scripts.map(url => url.pathname).sort().join(',') !== paths.join(',')) throw new Error('Unexpected Three.js script closure');
+  const doc = row.calibrationDocument;
+  if (doc.width !== doc.viewportWidth * 2 || doc.height !== doc.viewportHeight * 2) throw new Error('Three.js calibration requires 2x viewport pixels');
+  if (row.errors.length > 0 || row.samples.map(sample => sample.phase).join(',') !== '10s,60s,120s') throw new Error('Incomplete Three.js calibration');
+  for (const sample of row.samples) if (sample.page.href !== `${origin}/three`) throw new Error('Foreign Three.js fixture page');
+  const sample = row.samples.at(2);
+  if (sample === undefined) throw new Error('Missing Three.js 120s sample');
   return {phase: '120s', rendererBytes: sample.rendererBytes, gpuBytes: sample.gpuBytes,
     totalBytes: v.parse(footprintBytes, sample.rendererBytes + sample.gpuBytes)};
 }

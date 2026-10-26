@@ -5,7 +5,8 @@ import { createHash } from 'node:crypto';
 import { expect, test } from 'vitest';
 import { coreMemorySummary, coreMemoryEstimateAudit, chromiumCoreMemorySummary, coreMemoryTargets, selectedCoreMemoryTargets, scriptResourceURLs, simulatorCoreFootprint, webKitCoreMemoryFloorBytes,
   serveHelloWorldMemory, helloWorldMemoryHTML, helloWorldMemoryFloor, coreMemoryProductIdentity,
-  webGLMemoryTarget, webGLMemoryHTML, webGLMemoryFloor } from '../scripts/shard-phone-memory.mjs';
+  webGLMemoryTarget, webGLMemoryHTML, webGLMemoryFloor,
+  threeMemoryTarget, threeMemoryHTML, threeMemoryFloor } from '../scripts/shard-phone-memory.mjs';
 
 const MiB = 1048576;
 test('script inventory keeps distinct complete JavaScript URLs only', () => {
@@ -417,9 +418,69 @@ test('context diagnostic refuses missing clocks, collection and extra content', 
 test('context calibration refuses app revisions, attribution and repeat modes before Simulator access', () => {
   const run = (selection: string, flag: string): string => execFileSync('node', ['scripts/sim-grid-entry.mjs', `--core-memory=${selection}`, flag],
     {encoding: 'utf8', stdio: 'pipe', env: {...process.env, SIM_UDID: 'no-device-opened'}});
-  for (const selection of ['webgl', 'contexts']) {
+  for (const selection of ['webgl', 'contexts', 'three']) {
     for (const flag of ['--base=http://127.0.0.1:1', '--rev=abc']) expect(() => run(selection, flag)).toThrow('serves its own fixture');
     expect(() => run(selection, '--core-attribution=1')).toThrow('requires an app');
     for (const flag of ['--runs=2', '--modes=warm']) expect(() => run(selection, flag)).toThrow('exactly one cold');
+  }
+});
+
+const threeCalibration = () => ({...webGLCalibration(), shard: 'three',
+  scriptURLs: ['http://127.0.0.1:4400/three.module.js', 'http://127.0.0.1:4400/three.core.js'],
+  fixtureModules: ['three.module.js', 'three.core.js'].map(path => ({path: `/${path}`, bytes: 100, sha256: 'a'.repeat(64)})),
+  samples: webGLCalibration().samples.map(sample => Object.assign(sample, {page: {prefetch: null, resources: 2, href: 'http://127.0.0.1:4400/three'}})),
+  calibrationDocument: {...webGLCalibration().calibrationDocument, title: 'Three.js renderer', revision: '186',
+    rendererInfo: {geometries: 0, textures: 0, programs: 0, calls: 0}}});
+
+test('Three.js fixture serves only installed module bytes with independent wire hashes', async () => {
+  const plain = await serveHelloWorldMemory();
+  try {
+    expect((await fetch(`${plain.url}/three`)).status).toBe(404);
+    expect((await fetch(`${plain.url}/three.module.js`)).status).toBe(404);
+    expect(plain.modules).toEqual([]);
+  } finally { await plain.close(); }
+  const fixture = await serveHelloWorldMemory(true);
+  try {
+    expect(await (await fetch(`${fixture.url}/three`)).text()).toBe(threeMemoryHTML);
+    expect(await (await fetch(`${fixture.url}/version.json`)).json()).toEqual({build: 'webkit-three-renderer-v1'});
+    expect(threeMemoryHTML).not.toMatch(/(?:new Scene|new Mesh|requestAnimationFrame|\.render\(|fetch\(|\/src\/)/u);
+    expect(fixture.modules.map(module => module.path).sort()).toEqual(['/three.core.js', '/three.module.js']);
+    for (const module of fixture.modules) {
+      const response = await fetch(`${fixture.url}${module.path}`), bytes = new Uint8Array(await response.arrayBuffer());
+      expect(response.headers.get('content-type')).toContain('javascript');
+      expect(bytes.length).toBe(module.bytes);
+      expect(createHash('sha256').update(bytes).digest('hex')).toBe(module.sha256);
+      expect(bytes.length).toBeGreaterThan(100_000);
+    }
+    for (const path of ['/assets/main.js', '/three.cjs', '/three.webgpu.js', '/src/entry.ts']) expect((await fetch(`${fixture.url}${path}`)).status).toBe(404);
+  } finally { await fixture.close(); }
+});
+
+test('empty Three.js diagnostic cannot qualify an app floor or rebase G682', () => {
+  expect(selectedCoreMemoryTargets('three')).toEqual([threeMemoryTarget]);
+  expect(selectedCoreMemoryTargets('all')).toHaveLength(4);
+  expect(threeMemoryFloor(threeCalibration())).toEqual({phase: '120s', rendererBytes: 30 * MiB, gpuBytes: 7 * MiB, totalBytes: 37 * MiB});
+  expect(() => coreMemorySummary([threeCalibration()])).toThrow('unknown');
+  expect(() => helloWorldMemoryFloor(threeCalibration())).toThrow();
+  expect(() => webGLMemoryFloor(threeCalibration())).toThrow();
+  expect(webKitCoreMemoryFloorBytes).toBe(103324920);
+});
+
+test('Three.js diagnostic refuses foreign resources, content, incomplete clocks and collection', () => {
+  for (const patch of [{forcedGC: true}, {mode: 'warm'}, {protocol: 'chromium-phone-core/1'}, {errors: ['failed']},
+    {inspectorResponseBodyBytes: 1}, {fixtureModules: []}, {scriptURLs: ['app.js', 'three.core.js']},
+    {scriptURLs: ['https://other.test/three.module.js', 'https://other.test/three.core.js']},
+    {scriptURLs: ['http://127.0.0.1:4400/three.core.js', 'http://127.0.0.1:4400/three.core.js']},
+    {samples: threeCalibration().samples.slice(1)}, {samples: [...threeCalibration().samples, ...threeCalibration().samples]},
+    {samples: threeCalibration().samples.map(sample => Object.assign(sample, {page: Object.assign(sample.page, {resources: 3})}))},
+    {samples: threeCalibration().samples.map(sample => Object.assign(sample, {page: Object.assign(sample.page, {href: 'http://other.test/three'})}))}]) {
+    expect(() => threeMemoryFloor({...threeCalibration(), ...patch})).toThrow();
+  }
+  for (const patch of [{ready: false}, {contexts: 2}, {clears: 2}, {losses: 1}, {lost: true}, {width: 402},
+    {rendererInfo: {geometries: 0, textures: 1, programs: 0, calls: 0}},
+    {rendererInfo: {geometries: 1, textures: 0, programs: 0, calls: 0}},
+    {rendererInfo: {geometries: 0, textures: 0, programs: 1, calls: 0}},
+    {rendererInfo: {geometries: 0, textures: 0, programs: 0, calls: 1}}]) {
+    expect(() => threeMemoryFloor({...threeCalibration(),calibrationDocument: {...threeCalibration().calibrationDocument,...patch}})).toThrow();
   }
 });

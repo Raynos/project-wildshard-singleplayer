@@ -8,6 +8,7 @@
 //     [--core-memory=menu|select|_template|blender-template|templates|all] reads independent Developer-on floors at 10/60/120s, no Network capture or GC.
 //     --core-memory=hello serves its own plain hello-world fixture (no --base/--rev), using the same native floor sampler.
 //     --core-memory=contexts visits hello then one empty WebGL2 context, each cold at 10/60/120s; diagnostic only.
+//     --core-memory=three visits only the installed Three.js modules and one empty renderer; diagnostic only.
 //     --core-attribution=1 adds passive WebKit categories only AFTER the last native sample; no heap snapshot or GC.
 // Template product index identity is read from Node only after acceptance; unavailable metadata never changes the floor.
 // --base drives a served build or live; --rev serves that commit (scripts/serve-build.sh --rev) and stops it after.
@@ -30,7 +31,7 @@ import { requireCompiledEntry, downloadEvidence, stepEvidence, stepBoundaryEvide
 import { cachedBodyEvidence } from './loading-benchmark/cache-bodies.mjs';
 import { saveFixtureCode } from './debug-settings.mjs';
 import { readSimulatorCoreFootprint, selectedCoreMemoryTargets, coreMemorySummary, compiledFloorSave, scriptResourceURLs,
-  serveHelloWorldMemory, helloWorldMemoryFloor, webGLMemoryFloor, coreMemoryProductIdentity } from './shard-phone-memory.mjs';
+  serveHelloWorldMemory, helloWorldMemoryFloor, webGLMemoryFloor, threeMemoryFloor, coreMemoryProductIdentity } from './shard-phone-memory.mjs';
 import { pageMemoryAttributionExpression } from './memory-report-snapshot.mjs';
 import { memoryCategories } from './soak/memory-categories.mjs';
 
@@ -40,7 +41,7 @@ const args = Object.fromEntries(process.argv.slice(2).map(arg => /^--([^=]+)(?:=
 const udid = process.env.SIM_UDID;
 if (udid === undefined || udid === '') throw new Error('Run under scripts/sim-lane.sh run (it sets SIM_UDID)');
 const coreMemory = args['core-memory'];
-const calibrationMode = ['hello', 'webgl', 'contexts'].includes(coreMemory ?? '');
+const calibrationMode = ['hello', 'webgl', 'contexts', 'three'].includes(coreMemory ?? '');
 if (calibrationMode) {
   if (args.base !== undefined || args.rev !== undefined) throw new Error('Core calibration serves its own fixture; omit --base/--rev');
 } else if ((args.base === undefined) === (args.rev === undefined)) throw new Error('Pass exactly one of --base=<url> or --rev=<sha>');
@@ -78,7 +79,7 @@ function serve(rev) {
 }
 
 const served = args.rev === undefined ? null : serve(args.rev);
-const helloFixture = calibrationMode ? await serveHelloWorldMemory() : null;
+const helloFixture = calibrationMode ? await serveHelloWorldMemory(coreMemory === 'three') : null;
 const upstream = helloFixture?.url ?? served?.url ?? (args.base ?? '').replace(/\/$/u, '');
 // The existing independent HTTP observer injects a first-HTML recorder only.
 // Asset and worker bytes pass through unchanged. Grid recordings keep their URL.
@@ -191,7 +192,7 @@ function log(file, row) { appendFileSync(file, `${JSON.stringify({ t: Date.now()
 
 async function runCoreMemory(mode, index, target) {
   if (mode !== 'cold') throw new Error('Core floor reading requires a cold Safari process');
-  const hello = target === 'hello', webgl = target === 'webgl', calibration = hello || webgl;
+  const hello = target === 'hello', webgl = target === 'webgl', three = target === 'three', calibration = hello || webgl || three;
   const template = !calibration && target !== 'menu' && target !== 'select';
   try { execFileSync('xcrun', ['simctl', 'terminate', udid, 'com.apple.mobilesafari'], {stdio: 'ignore'}); } catch { /* Not running. */ }
   await sleep(2000);
@@ -210,10 +211,14 @@ async function runCoreMemory(mode, index, target) {
     saveFixtureCode({...compiledFloorSave, data: template ? 'on' : 'off'}),
     saveFixtureCode({scope: 'global', key: 'settings', merge: true, data: {tier: 'phone', volume: 0}}),
     saveFixtureCode({scope: 'global', key: 'gfx', data: {dpr: '2', aa: 'auto'}})].join(';');
-  await page.evaluate(`${setup};setTimeout(() => location.replace(${JSON.stringify(webgl ? '/webgl' : hello ? '/' : '/?sw=0')}), 50);true`);
+  await page.evaluate(`${setup};setTimeout(() => location.replace(${JSON.stringify(three ? '/three' : webgl ? '/webgl' : hello ? '/' : '/?sw=0')}), 50);true`);
   await sleep(800); await connect(`${BASE}/`);
   if (hello) {
     if (!await until(`document.title === 'Hello, world' && document.body.textContent.trim() === 'Hello, world.' && document.scripts.length === 0 && document.querySelector('canvas') === null`, 30000)) throw new Error('Hello-world fixture never became ready');
+  } else if (three) {
+    if (!await until(`document.title === 'Three.js renderer' && (window.__ws_coreThree?.ready === true || !!window.__ws_coreThree?.error)`, 30000)) throw new Error('Three.js fixture never became ready');
+    const failure = await page.evaluate(`window.__ws_coreThree?.error ?? null`);
+    if (failure) throw new Error(`Three.js renderer calibration failed: ${failure}`);
   } else if (webgl) {
     if (!await until(`document.title === 'WebGL context' && (window.__ws_coreWebGL?.ready === true || !!window.__ws_coreWebGL?.error)`, 30000)) throw new Error('WebGL fixture never became ready');
     if (await page.evaluate(`window.__ws_coreWebGL?.error ?? null`)) throw new Error('WebGL2 unavailable in calibration');
@@ -249,9 +254,11 @@ async function runCoreMemory(mode, index, target) {
   const postSampleCategories = args['core-attribution'] === '1' ? await memoryCategories(page) : null;
   const productIdentity = await coreMemoryProductIdentity(BASE, target, version);
   const calibrationDocument = hello ? JSON.parse(await page.evaluate(`JSON.stringify({title:document.title,text:document.body.textContent.trim(),scripts:document.scripts.length,canvases:document.querySelectorAll('canvas').length})`))
+    : three ? JSON.parse(await page.evaluate(`JSON.stringify((()=>{const r=window.__ws_coreRenderer,g=r.getContext();return {title:document.title,scripts:document.scripts.length,canvases:document.querySelectorAll('canvas').length,...window.__ws_coreThree,width:g.drawingBufferWidth,height:g.drawingBufferHeight,lost:g.isContextLost(),attributes:g.getContextAttributes(),rendererInfo:{...r.info.memory,programs:r.info.programs.length,calls:r.info.render.calls}};})())`))
     : webgl ? JSON.parse(await page.evaluate(`JSON.stringify({title:document.title,scripts:document.scripts.length,canvases:document.querySelectorAll('canvas').length,...window.__ws_coreWebGL,width:window.__ws_coreContext.drawingBufferWidth,height:window.__ws_coreContext.drawingBufferHeight,currentViewportWidth:innerWidth,currentViewportHeight:innerHeight,lost:window.__ws_coreContext.isContextLost(),attributes:window.__ws_coreContext.getContextAttributes()})`)) : null;
   const result = {mode, run: index, shard: target, protocol: 'webkit-core-floor/1', version, reset, samples, attribution, postSampleCategories, productIdentity, errors: [], compiledEntryRequired: template, calibrationDocument,
     scriptURLs: JSON.parse(await page.evaluate(`JSON.stringify((${scriptResourceURLs.toString()})())`)),
+    ...(three ? {fixtureModules: helloFixture?.modules ?? []} : {}),
     inspectorResponseBodyBytes: 0, forcedGC: false, scope: 'all WebContent and GPU processes under the owned Simulator launchd; not phone GPU evidence'};
   writeFileSync(resolvePath(out, `${target}-${mode}-${index}.json`), `${JSON.stringify(result, null, 1)}\n`);
   return result;
@@ -467,7 +474,7 @@ if (coreMemory !== undefined) {
   const summary = {coreMemory, base: BASE, rev: args.rev ?? null, at: new Date().toISOString(), results,
     ...(!calibrationMode ? {floors: coreMemorySummary(results.filter(row => row.error === undefined), coreMemory)} : {}),
     ...(calibrationMode && coreMemory !== 'hello' ? {contextCalibrations: results.filter(row => row.error === undefined).map(row => {
-      const sample = row.shard === 'hello' ? helloWorldMemoryFloor(row) : webGLMemoryFloor(row);
+      const sample = row.shard === 'hello' ? helloWorldMemoryFloor(row) : row.shard === 'three' ? threeMemoryFloor(row) : webGLMemoryFloor(row);
       return {shard: row.shard, phase: sample.phase, rendererBytes: sample.rendererBytes, gpuBytes: sample.gpuBytes, totalBytes: sample.totalBytes};
     })} : {}),
     ...(coreMemory === 'hello' && results.length === 1 && results[0].error === undefined ? {calibration: helloWorldMemoryFloor(results[0])} : {})};

@@ -4,14 +4,18 @@ export const webKitCoreMemoryFloorBytes: number;
 export const coreMemoryTargets: readonly Readonly<{shard: string; name: string; limitBytes: number}>[];
 export const helloWorldMemoryTarget: Readonly<{shard: 'hello'; name: string; limitBytes: null}>;
 export const webGLMemoryTarget: Readonly<{shard: 'webgl'; name: string; limitBytes: null}>;
+export const threeMemoryTarget: Readonly<{shard: 'three'; name: string; limitBytes: null}>;
 export const helloWorldMemoryHTML: string;
 export const webGLMemoryHTML: string;
-export function serveHelloWorldMemory(): Promise<{url: string; close: () => Promise<void>}>;
+export const threeMemoryHTML: string;
+export function serveHelloWorldMemory(three?: boolean): Promise<{url: string; modules: {path: string; bytes: number; sha256: string}[]; close: () => Promise<void>}>;
 export function helloWorldMemoryFloor(input: unknown): {phase: string; rendererBytes: number; gpuBytes: number; totalBytes: number; menuLimitBytes: number; templateLimitBytes: number};
 /** Diagnostic context-only native total; no app budget or fitted estimator base. */
 export function webGLMemoryFloor(input: unknown): {phase: string; rendererBytes: number; gpuBytes: number; totalBytes: number};
+/** Empty renderer diagnostic, separate from every app budget and G682 base. */
+export function threeMemoryFloor(input: unknown): {phase: string; rendererBytes: number; gpuBytes: number; totalBytes: number};
 /** Select one target, all four app floors, or the separate hello-world calibration. */
-export function selectedCoreMemoryTargets(selection: string): readonly (typeof coreMemoryTargets[number] | typeof helloWorldMemoryTarget | typeof webGLMemoryTarget)[];
+export function selectedCoreMemoryTargets(selection: string): readonly (typeof coreMemoryTargets[number] | typeof helloWorldMemoryTarget | typeof webGLMemoryTarget | typeof threeMemoryTarget)[];
 /** Existing device fixture exposing the explicit SHARDFILE button for compiled-only floors. */
 export const compiledFloorSave: Readonly<{scope: 'device'; key: 'debug.global.legacyShardButtons'; data: 'on'}>;
 /** Distinct loaded script URLs, without fetching or retaining response bodies. */
