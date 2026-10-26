@@ -12,20 +12,24 @@ import { prepareProjectOutput } from '../src/sdk/projectOutput';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { sceneBakeFiles } from '../src/game/shardfile/sceneBakeFiles';
+import type { SceneBakeSource } from '../src/game/shardfile/sceneSources';
+import { BAKED_PIECES, BAKED_URLS } from '../src/shards/far-reach/generators/fileInventory';
+import { nameBlob } from '../src/sdk/blobs';
 import { sceneRigFiles } from '../src/game/shardfile/sceneRigFiles';
 import { skyProductRows } from '../src/shards/far-reach/generators/product';
 import { SKY_WORLD_TILE_ROWS } from '../src/shards/far-reach/generators/worldTileRows';
 import { skyWorldTileSource } from '../src/shards/far-reach/generators/worldTileBytes';
 import { output, prepareOutput } from '../src/shards/far-reach/generators/sourceOutput';
 
-const geometryName = 'world/geometry/prepared-models.glb', heroName = 'world/sources/heroes.json';
+const geometryName = 'world/geometry/prepared-models.glb', heroName = 'world/sources/heroes.json', bakeName = 'world/sources/bakes.json';
 const hash = 'bd1a0a75879e2f3e72e2ab2b8d0c18a79d7e7746478b3fedc6961199a714c580';
 const original = readFileSync('public/assets/far-reach/baked/prepared-models.glb'), text = new TextDecoder();
 const HeroRows = v.object({ rows: v.object({ meshes: v.array(v.string()), meshUrls: v.record(v.string(), v.string()),
   hd: v.array(v.string()), hdUrls: v.record(v.string(), v.string()), hdLooks: v.record(v.string(), v.never()), aoFloor: v.number(),
   geometryPools: v.array(v.object({ url: v.string(), parts: v.array(v.string()) })) }) });
 
-test('owned output preserves the full GLB and measured costs, with only its hero pool identity changing', async () => {
+test('owned geometry preserves all original bytes and costs, changing only its source addresses', async () => {
   const cache = mkdtempSync(resolve('tmp/sky-prepared-output-'));
   let builds = 0;
   const context = () => {
@@ -41,9 +45,9 @@ test('owned output preserves the full GLB and measured costs, with only its hero
       compressed: 10_134_100, decoded: 10_134_072, gpu: 10_096_780, triangles: 203_025, draws: 48, critical: false, dependencies: [] });
     const bytes = owned.assets.get(hash); if (bytes === undefined) throw new Error('Missing owned GLB bytes');
     expect(Buffer.compare(bytes, original)).toBe(0);
-    expect(owned.namedFiles).toHaveLength(output.namedFiles.length + 1);
+    expect(owned.namedFiles).toHaveLength(output.namedFiles.length + 11);
     for (const file of output.namedFiles) {
-      if (file.name === heroName) continue;
+      if (file.name === heroName || file.name === bakeName) continue;
       expect(owned.namedFiles.find(row => row.name === file.name)).toEqual(file);
       expect(owned.assets.get(file.hash)).toEqual(output.assets.get(file.hash));
     }
@@ -62,15 +66,35 @@ test('owned output preserves the full GLB and measured costs, with only its hero
       expect(Buffer.compare(tile, readFileSync(`src/shards/far-reach/assets/${file.hash}`))).toBe(0);
       tile.fill(0);
     }
+    const oldBakes = output.namedFiles.find(file => file.name === bakeName), newBakes = owned.namedFiles.find(file => file.name === bakeName);
+    if (oldBakes === undefined || newBakes === undefined) throw new Error('Missing original or owned bake descriptor');
+    let expectedBakes = text.decode(output.assets.get(oldBakes.hash));
+    for (const piece of BAKED_PIECES) expectedBakes = expectedBakes.replace(JSON.stringify(BAKED_URLS[piece]), JSON.stringify(`world/geometry/pieces/${piece}.glb`));
+    expect(text.decode(owned.assets.get(newBakes.hash))).toBe(expectedBakes);
+    expect(owned.assets.has(oldBakes.hash)).toBe(false);
+    for (const piece of BAKED_PIECES) {
+      const name = `world/geometry/pieces/${piece}.glb`, originalPiece = readFileSync(`public/assets/far-reach/baked/${piece}.glb`);
+      const expected = nameBlob(name, 'glb', originalPiece), file = owned.namedFiles.find(row => row.name === name);
+      expect(file).toEqual(expected.file);
+      const pieceBytes = owned.assets.get(expected.file.hash);
+      if (pieceBytes === undefined) throw new Error('Missing owned world piece');
+      expect(Buffer.compare(pieceBytes, originalPiece)).toBe(0); pieceBytes.fill(0);
+    }
     // Returned geometry cannot poison a later source-cache hit or the baseline output.
     bytes.fill(0);
     const hit = await prepareOutput(context()), hitBytes = hit.assets.get(hash);
     if (hitBytes === undefined) throw new Error('Missing cache-hit GLB');
-    expect(Buffer.compare(hitBytes, original)).toBe(0); expect(builds).toBe(2);
+    expect(Buffer.compare(hitBytes, original)).toBe(0); expect(builds).toBe(3);
     for (const file of SKY_WORLD_TILE_ROWS.files) {
       const tile = hit.assets.get(file.hash);
       if (tile === undefined) throw new Error('Missing cache-hit island tile');
       expect(Buffer.compare(tile, readFileSync(`src/shards/far-reach/assets/${file.hash}`))).toBe(0);
+    }
+    for (const piece of BAKED_PIECES) {
+      const originalPiece = readFileSync(`public/assets/far-reach/baked/${piece}.glb`);
+      const pieceBytes = hit.assets.get(hashImmutableBytes(originalPiece));
+      if (pieceBytes === undefined) throw new Error('Missing cache-hit world piece');
+      expect(Buffer.compare(pieceBytes, originalPiece)).toBe(0);
     }
     expect(text.decode(output.assets.get(before.hash))).toBe(baseline);
   } finally { rmSync(cache, { recursive: true, force: true }); }
@@ -97,6 +121,15 @@ test('normal output admission and the actual native pool resolver consume the ow
     expect(resolved.geometryPools?.[0]?.url).toBe(`/shardfiles/far-reach/blobs/glb/${hash}.glb`);
     expect(hero.rows.geometryPools[0]?.url).toBe(geometryName);
     expect(Buffer.compare(await product.file(geometryName), original)).toBe(0);
+    const bakes = await product.json<SceneBakeSource>(bakeName), bakeFiles = sceneBakeFiles(bakes, product);
+    expect(Object.keys(bakes.urls)).toEqual([...BAKED_PIECES]);
+    for (const piece of BAKED_PIECES) {
+      const name = `world/geometry/pieces/${piece}.glb`, file = prepared.blobs.find(row => row.file.name === name);
+      if (file === undefined) throw new Error('Missing admitted world piece');
+      expect(bakes.urls[piece]).toBe(name);
+      expect(bakeFiles.urls[piece]).toBe(`/shardfiles/far-reach/${file.file.path}`);
+      expect(Buffer.compare(await product.file(name), readFileSync(`public/assets/far-reach/baked/${piece}.glb`))).toBe(0);
+    }
   } finally { rmSync(cache, { recursive: true, force: true }); }
 });
 

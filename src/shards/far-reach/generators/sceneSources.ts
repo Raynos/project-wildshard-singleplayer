@@ -43,6 +43,10 @@ const json = (name: string, rows: unknown) => nameBlob(name, 'json', new TextEnc
 export function skyHeroSource(geometry: string): NamedBlob {
   return json('world/sources/heroes.json', { ...hero, rows: { ...hero.rows, geometryPools: [{ ...heroes.pool, url: geometry }] } });
 }
-export const SKY_SOURCE_BLOBS = [json('world/sources/sky.json', sky), skyHeroSource(heroes.pool.url), json('world/sources/bakes.json', baked)];
+/** Retain every bake row and binding while the caller supplies its admitted geometry names. */
+export function skyBakeSource(urls: SceneBakeSource['urls']): NamedBlob {
+  return json('world/sources/bakes.json', { ...baked, urls });
+}
+export const SKY_SOURCE_BLOBS = [json('world/sources/sky.json', sky), skyHeroSource(heroes.pool.url), skyBakeSource(files.BAKED_URLS)];
 export const SKY_SOURCE_LIBRARIES = [{ id: 'sky', kind: 'models', file: 'world/sources/sky.json' },
   { id: 'heroes', kind: 'models', file: 'world/sources/heroes.json' }, { id: 'bakes', kind: 'baked', file: 'world/sources/bakes.json' }] as const;

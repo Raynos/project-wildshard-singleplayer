@@ -14,7 +14,9 @@ import { SKY_NATIVE_WORLD } from './rows/nativeWorld';
 import { skyPhysics } from './physics';
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import { preparedModelProgram } from './preparedModelProgram';
-import { skyHeroSource } from './sceneSources';
+import { skyHeroSource, skyBakeSource } from './sceneSources';
+import { skyWorldPieceProgram } from './worldPieceProgram';
+import { BAKED_PIECES } from './fileInventory';
 import { skyWorldTileProgram } from './worldTileProgram';
 import { SKY_WORLD_TILE_ROWS } from './worldTileRows';
 
@@ -37,14 +39,24 @@ export const output = { blobs:SKY_PAINTED_ATTRIBUTE_SOURCES,namedFiles: sources.
   ])),
 } satisfies ProjectOutput;
 
-/** Publish original prepared geometry and island tiles through normal owned-asset admission. */
+/** Publish original prepared geometry, world pieces and island tiles through normal owned-asset admission. */
 export async function prepareOutput(ctx: ProjectGenerationContext): Promise<typeof output> {
   const name = 'world/geometry/prepared-models.glb';
   const geometry = nameBlob(name, 'glb', await preparedModelProgram(ctx)), hero = skyHeroSource(name);
-  const previous = output.namedFiles.find(file => file.name === hero.file.name);
-  if (previous === undefined) throw new Error('Missing original hero library output');
-  const assets = new Map(output.assets);
-  assets.delete(previous.hash); assets.set(geometry.file.hash, geometry.bytes); assets.set(hero.file.hash, hero.bytes);
+  const pieces = await skyWorldPieceProgram(ctx);
+  const world = BAKED_PIECES.map(piece => {
+    const bytes = pieces.get(`baked/${piece}.glb`);
+    if (bytes === undefined) throw new Error('Missing owned world piece');
+    return nameBlob(`world/geometry/pieces/${piece}.glb`, 'glb', bytes);
+  });
+  const bakes = skyBakeSource(Object.fromEntries(BAKED_PIECES.map(piece => [piece, `world/geometry/pieces/${piece}.glb`])));
+  const assets = new Map(output.assets), replacements = [hero, bakes];
+  for (const replacement of replacements) {
+    const previous = output.namedFiles.find(file => file.name === replacement.file.name);
+    if (previous === undefined) throw new Error('Missing original scene source output');
+    assets.delete(previous.hash); assets.set(replacement.file.hash, replacement.bytes);
+  }
+  for (const blob of [geometry, ...world]) assets.set(blob.file.hash, blob.bytes);
   const tiles = await skyWorldTileProgram(ctx);
   if (tiles.size !== SKY_WORLD_TILE_ROWS.files.length + 1) throw new Error('Sky world tile publication inventory differs');
   for (const file of SKY_WORLD_TILE_ROWS.files) {
@@ -52,5 +64,6 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<type
     if (bytes === undefined) throw new Error('Sky world tile publication misses a declared asset');
     assets.set(file.hash, bytes);
   }
-  return { ...output, namedFiles: [...output.namedFiles.map(file => file.name === hero.file.name ? hero.file : file), geometry.file], assets };
+  return { ...output, namedFiles: [...output.namedFiles.map(file => replacements.find(row => row.file.name === file.name)?.file ?? file),
+    geometry.file, ...world.map(blob => blob.file)], assets };
 }

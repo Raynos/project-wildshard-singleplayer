@@ -15,6 +15,8 @@ import { prepareProjectOutput } from '../src/sdk/projectOutput';
 import { createProjectGeneration } from '../src/sdk/projectGeneration';
 import { prepareOutput } from '../src/shards/far-reach/generators/sourceOutput';
 import { SKY_WORLD_TILE_ROWS } from '../src/shards/far-reach/generators/worldTileRows';
+import { BAKED_PIECES } from '../src/shards/far-reach/generators/fileInventory';
+import { nameBlob } from '../src/sdk/blobs';
 import { skyProductBoot } from '../src/shards/far-reach/generators/bootInventory';
 
 test('the actual SDK-built product binds receipt-verified discovery to the admitted complete geometry', () => {
@@ -30,6 +32,12 @@ test('the actual SDK-built product binds receipt-verified discovery to the admit
   expect(hashImmutableBytes(bytes)).toBe(hash);
   expect(Buffer.compare(bytes, readFileSync('public/assets/far-reach/baked/prepared-models.glb'))).toBe(0);
   expect(file).toMatchObject({ compressed: 10_134_100, decoded: 10_134_072, gpu: 10_096_780, triangles: 203_025, draws: 48 });
+  for (const piece of BAKED_PIECES) {
+    const name = `world/geometry/pieces/${piece}.glb`, original = readFileSync(`public/assets/far-reach/baked/${piece}.glb`);
+    const expected = nameBlob(name, 'glb', original), actual = index.files.find(row => row.name === name);
+    expect(actual).toEqual(expected.file);
+    expect(Buffer.compare(readFileSync(resolve(folder, expected.file.path)), original)).toBe(0);
+  }
 });
 
 
