@@ -46,6 +46,11 @@ assert.deepEqual(lit,[3,1,1]);
 const houses=await prepareModelKit({},new Map([['houses',new Uint8Array(readFileSync('public/assets/open-plots/kit/houses.glb'))]]));
 const windows=[0,1,2].map(variant=>{const w=writer();houses.placeModel(w,'houses',variant,0,0);assert.ok(w.tris.length>200&&w.tris.length<700);return w.lights.length;});
 assert.deepEqual(windows,[3,8,5]);
+// RM4.5: the arched half-bridges (rails, parapet, crown lanterns), every one spanning the 23 m border
+const bridges=await prepareModelKit({},new Map([['bridges',new Uint8Array(readFileSync('public/assets/open-plots/kit/bridges.glb'))]]));
+const crowns=[0,1,2].map(variant=>{const w=writer();bridges.placeModel(w,'bridges',variant,0,0);const xs=w.tris.flatMap(t=>t.points.map(q=>q[0]));
+ assert.ok(Math.min(...xs)<-11.4&&Math.max(...xs)>11.4);return w.lights.length;});
+assert.deepEqual(crowns,[0,0,2]);
 await assert.rejects(()=>prepareModelKit({},new Map()),/no model families/);
 await assert.rejects(()=>prepareModelKit({},new Map([['lanterns',new Uint8Array()]])),/missing GLB bytes/);
 console.log('ok');`;

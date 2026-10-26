@@ -121,7 +121,7 @@ class Piece:
         self.emitters.append((at, slot))
 
 
-def reset_scene():
+def reset_scene(ground=0.0):
     bpy.ops.wm.read_factory_settings(use_empty=True)
     scene = bpy.context.scene
     scene.render.engine = 'CYCLES'
@@ -133,9 +133,9 @@ def reset_scene():
     sky.use_nodes = True
     sky.node_tree.nodes['Background'].inputs['Color'].default_value = (1, 1, 1, 1)
     sky.light_settings.distance = 0.8
-    ground = bpy.data.meshes.new('ground')
-    ground.from_pydata([(-500, -500, 0), (500, -500, 0), (500, 500, 0), (-500, 500, 0)], [], [(0, 1, 2, 3)])
-    scene.collection.objects.link(bpy.data.objects.new('ground', ground))
+    plane = bpy.data.meshes.new('ground')  # the occluding floor at `ground` (a bridge's is the canal's water)
+    plane.from_pydata([(-500, -500, ground), (500, -500, ground), (500, 500, ground), (-500, 500, ground)], [], [(0, 1, 2, 3)])
+    scene.collection.objects.link(bpy.data.objects.new('ground', plane))
     return scene
 
 

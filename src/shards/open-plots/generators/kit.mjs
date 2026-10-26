@@ -404,9 +404,12 @@ function halfBridge(w, p, side) {
   // built for the north border (the lane runs east-west over z in [INNER, HALF]), then turned for the others
   const turnPoint = ([x, y, z]) => { let px = x, pz = z; for (let i = 0; i < side; i++) [px, pz] = [pz, -px]; return [px, y, pz]; };
   const at = (u) => { const x = -half + 2 * half * u; return [x, rise * Math.sin(Math.PI * u)]; };
+  // RM4.5 (opt-in, tiledPlot.mjs KIT_FAMILIES): the kit's arched half-bridge, its seam edge on the border, turned with it
+  const model = w.hasModel('bridges');
+  if (model) { const [ox, , oz] = turnPoint([0, 0, HALF]); w.placeModel('bridges', pick(ox, oz, 3), ox, oz, { yaw: side * Math.PI / 2 }); }
   for (let i = 0; i < steps; i++) {
     const [xa, ya] = at(i / steps), [xb, yb] = at((i + 1) / steps);
-    const q = (a, b, c, d, colour) => w.quad('Kit', turnPoint(a), turnPoint(b), turnPoint(c), turnPoint(d), colour);
+    const q = (a, b, c, d, colour) => { if (!model) w.quad('Kit', turnPoint(a), turnPoint(b), turnPoint(c), turnPoint(d), colour); };
     q([xa, ya + deck, INNER], [xa, ya + deck, HALF], [xb, yb + deck, HALF], [xb, yb + deck, INNER], p.stoneTop);
     q([xb, yb - 0.4, INNER], [xa, ya - 0.4, INNER], [xa, ya + deck, INNER], [xb, yb + deck, INNER], p.stone);
     q([xa, ya - 0.4, HALF], [xb, yb - 0.4, HALF], [xb, yb + deck, HALF], [xa, ya + deck, HALF], p.stone);

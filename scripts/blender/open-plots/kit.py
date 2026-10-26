@@ -3,6 +3,7 @@
 Each family is one GLB of three variants (kitlib.py has the format). Targets: art/grid/round-63-night-market-domes/
 (A2 and D2: stone post lanterns, round paper lanterns, red banners). Run: bash scripts/blender/build.sh open-plots/kit.
 """
+import math
 import os
 import sys
 
@@ -13,9 +14,10 @@ from kitlib import Piece, build_family, reset_scene  # noqa: E402
 SLOTS = {'iron': '#2b2b33', 'gold': '#d8a23e', 'paper': '#ff5b32', 'stone': '#8a8a94', 'stoneTop': '#a6a6b0',
          'stall': '#c0222b', 'lantern': '#ffb347', 'wood': '#5b3a24', 'cloth': '#c8242c', 'stallRoof': '#b0262a',
          'fruit': '#e8892a', 'greens': '#5e9e3e', 'crate': '#8a5a34', 'board': '#14203f', 'awning': '#ff7a2e',
-         'roof': '#1c2858', 'wall': '#e9d6b0', 'window': '#ffc96a', 'door': '#4a2a1a'}
+         'roof': '#1c2858', 'wall': '#e9d6b0', 'window': '#ffc96a', 'door': '#4a2a1a', 'bridge': '#d9d5cc',
+         'bridgeTop': '#c9c4ba'}
 # Each lit slot's ruled trim (data/trim.json, sp-o2's RM5.3 kit material); every other slot and all Glow faces are plain.
-TRIMS = {'stone': 'stone', 'roof': 'roofTile', 'stallRoof': 'roofTile', 'wood': 'timber', 'timber': 'timber',
+TRIMS = {'stone': 'stone', 'bridge': 'stone', 'bridgeTop': 'stone', 'roof': 'roofTile', 'stallRoof': 'roofTile', 'wood': 'timber', 'timber': 'timber',
          'wall': 'plaster', 'plaster': 'plaster', 'cloth': 'awningStripe'}
 # A lantern's post height in the generator moves its head; vertices between these heights stretch, those above shift.
 LANTERN = {'nominal': 2.6, 'stretch': [0.5, 2.0]}
@@ -308,6 +310,86 @@ def hall():
     return p
 
 
+BRIDGE = {'half': 11.5, 'rise': 2.0, 'deck': 0.3, 'width': 4.0, 'water': -0.45, 'open': 10.0}
+
+
+def deck_top(x):
+    u = (x + BRIDGE['half']) / (2 * BRIDGE['half'])
+    return BRIDGE['rise'] * math.sin(math.pi * max(0.0, min(1.0, u))) + BRIDGE['deck']
+
+
+def soffit(x):
+    """The arch's underside: an elliptical arch over the water, the abutments solid beyond it."""
+    t = abs(x) / BRIDGE['open']
+    if t >= 1:
+        return BRIDGE['water']
+    return min(BRIDGE['water'] + 2.05 * math.sqrt(1 - t * t), deck_top(x) - 0.4)
+
+
+def bridge_body(p, steps=18):
+    """Half of an 8 m arched stone bridge along x: its deck from the seam (y = 0, the lane's middle) to y = width (the
+    tile's side), the arch soffit over the canal and the spandrel face on the tile's side."""
+    w, n = BRIDGE['width'], steps
+    xs = [-BRIDGE['half'] + 2 * BRIDGE['half'] * i / n for i in range(n + 1)]
+    for x0, x1 in zip(xs, xs[1:]):
+        t0, t1, s0, s1 = deck_top(x0), deck_top(x1), soffit(x0), soffit(x1)
+        p.face([(x0, 0, t0), (x1, 0, t1), (x1, w, t1), (x0, w, t0)], 'Kit.bridgeTop')
+        p.face([(x1, w, s1), (x0, w, s0), (x0, w, t0), (x1, w, t1)], 'Kit.bridge')
+        p.face([(x0, 0, s0), (x0, w, s0), (x1, w, s1), (x1, 0, s1)], 'Kit.bridge')
+    for x in (xs[0], xs[-1]):  # the abutment ends, down to the water
+        z = deck_top(x)
+        pts = [(x, 0, BRIDGE['water']), (x, w, BRIDGE['water']), (x, w, z), (x, 0, z)]
+        p.face(pts if x > 0 else list(reversed(pts)), 'Kit.bridge')
+    return xs
+
+
+def railing(p, xs, solid=False, lanterns=False):
+    """The balustrade on the tile's side (y 3.55 to 3.85): stone posts every other step with a top and a mid rail, or a
+    solid parapet with a coping; `lanterns` hangs paper lanterns from the two crown posts."""
+    y0, y1 = 3.55, 3.85
+    coarse = xs[::2]
+    for x0, x1 in zip(coarse, coarse[1:]):
+        t0, t1 = deck_top(x0), deck_top(x1)
+        bands = [(0.0, 0.85)] if solid else [(0.82, 0.95), (0.3, 0.4)]
+        for lo, hi in bands:
+            p.face([(x0, y0, t0 + hi), (x1, y0, t1 + hi), (x1, y1, t1 + hi), (x0, y1, t0 + hi)], 'Kit.bridgeTop')
+            p.face([(x0, y0, t0 + lo), (x1, y0, t1 + lo), (x1, y0, t1 + hi), (x0, y0, t0 + hi)], 'Kit.bridge')
+            p.face([(x1, y1, t1 + lo), (x0, y1, t0 + lo), (x0, y1, t0 + hi), (x1, y1, t1 + hi)], 'Kit.bridge')
+            if lo > 0:
+                p.face([(x0, y1, t0 + lo), (x1, y1, t1 + lo), (x1, y0, t1 + lo), (x0, y0, t0 + lo)], 'Kit.bridge')
+        if solid:
+            p.face([(x0, y0 - 0.06, t0 + 0.92), (x1, y0 - 0.06, t1 + 0.92), (x1, y1 + 0.06, t1 + 0.92), (x0, y1 + 0.06, t0 + 0.92)], 'Kit.gold')
+    for x in coarse:
+        t = deck_top(x)
+        p.box((x - 0.15, y0 - 0.03, t - 0.05), (x + 0.15, y1 + 0.03, t + 1.05), 'Kit.bridge', top='Kit.bridgeTop')
+    if lanterns:
+        for x in (coarse[len(coarse) // 2 - 1], coarse[len(coarse) // 2]):
+            t = deck_top(x)
+            p.box((x - 0.02, y0 - 0.32, t + 1.05), (x + 0.02, y0 - 0.02, t + 1.09), 'Kit.iron', bottom=True)
+            p.paper_lantern(x, y0 - 0.3, t + 1.05, radius=0.18)
+
+
+def bridge_rails():
+    """D2's white arched bridge: posts and rails."""
+    p = Piece()
+    railing(p, bridge_body(p))
+    return p
+
+
+def bridge_parapet():
+    """A solid parapet with a gold-edged coping."""
+    p = Piece()
+    railing(p, bridge_body(p), solid=True)
+    return p
+
+
+def bridge_lanterns():
+    """Posts and rails with red paper lanterns hung at the crown."""
+    p = Piece()
+    railing(p, bridge_body(p), lanterns=True)
+    return p
+
+
 def main():
     out = sys.argv[sys.argv.index('--') + 1]
     os.makedirs(out, exist_ok=True)
@@ -317,6 +399,8 @@ def main():
     build_family(out, 'stalls', [hero_stall, row_stall, food_cart], TRIMS, {'slots': SLOTS})
     reset_scene()
     build_family(out, 'houses', [cottage, two_storey, hall], TRIMS, {'slots': SLOTS})
+    reset_scene(ground=BRIDGE['water'])
+    build_family(out, 'bridges', [bridge_rails, bridge_parapet, bridge_lanterns], TRIMS, {'slots': SLOTS})
 
 
 if __name__ == '__main__':

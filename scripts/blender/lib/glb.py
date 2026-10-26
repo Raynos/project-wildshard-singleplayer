@@ -23,8 +23,9 @@ def write_glb(path, meshes, extras=None, materials=None):
         width = 1 if arr.ndim == 1 else arr.shape[1]
         acc = {'bufferView': len(views) - 1, 'componentType': comp, 'count': int(arr.shape[0]), 'type': TYPES[width]}
         if minmax:
-            acc['min'] = [float(x) for x in arr.min(axis=0)]
-            acc['max'] = [float(x) for x in arr.max(axis=0)]
+            # + 0.0 turns -0.0 into 0.0: the world reader refuses a negative zero in GLB JSON
+            acc['min'] = [float(x) + 0.0 for x in arr.min(axis=0)]
+            acc['max'] = [float(x) + 0.0 for x in arr.max(axis=0)]
         accessors.append(acc)
         return len(accessors) - 1
 

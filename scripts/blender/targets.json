@@ -235,9 +235,9 @@
    "sources": ["scripts/blender/open-plots/kitlib.py", "scripts/blender/lib/glb.py"],
    "inputs": ["src/shards/open-plots/data/trim.json"],
    "lock": true,
-   "build": ["lanterns.glb", "stalls.glb", "houses.glb"],
-   "copy": [["lanterns.glb", "public/assets/open-plots/kit/lanterns.glb"], ["stalls.glb", "public/assets/open-plots/kit/stalls.glb"], ["houses.glb", "public/assets/open-plots/kit/houses.glb"]],
-   "outputs": ["public/assets/open-plots/kit/lanterns.glb", "public/assets/open-plots/kit/stalls.glb", "public/assets/open-plots/kit/houses.glb"],
+   "build": ["lanterns.glb", "stalls.glb", "houses.glb", "bridges.glb"],
+   "copy": [["lanterns.glb", "public/assets/open-plots/kit/lanterns.glb"], ["stalls.glb", "public/assets/open-plots/kit/stalls.glb"], ["houses.glb", "public/assets/open-plots/kit/houses.glb"], ["bridges.glb", "public/assets/open-plots/kit/bridges.glb"]],
+   "outputs": ["public/assets/open-plots/kit/lanterns.glb", "public/assets/open-plots/kit/stalls.glb", "public/assets/open-plots/kit/houses.glb", "public/assets/open-plots/kit/bridges.glb"],
    "feeds": ["src/shards/open-plots/generators/kitGlb.mjs"]
   }
  }
