@@ -2,6 +2,8 @@ import { WorkerPool } from 'three/examples/jsm/utils/WorkerPool.js';
 import type { Scope } from '../app/scope';
 import { waitFor } from '../boot/waits';
 
+const completedReply = (): undefined => undefined;
+
 /** Keep Three's queue and concurrency, with explicit ownership of its worker message subscriptions. */
 export class ScopedWorkerPool extends WorkerPool {
   private readonly scope: Scope;
@@ -15,6 +17,13 @@ export class ScopedWorkerPool extends WorkerPool {
 
   override postMessage(message: unknown, transfer?: Transferable[]): Promise<MessageEvent<unknown>> {
     return waitFor('Texture transcode worker', super.postMessage(message, transfer), 'worker');
+  }
+
+  override _onMessage(workerId: number, event: MessageEvent<unknown>): void {
+    super._onMessage(workerId, event);
+    // A queued successor replaces this slot; only an idle slot holds the
+    // completed promise and its transferred texture reply unnecessarily.
+    if ((this.workerStatus & (1 << workerId)) === 0) this.workersResolve[workerId] = completedReply;
   }
 
   override _initWorker(workerId: number): void {
