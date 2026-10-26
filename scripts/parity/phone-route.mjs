@@ -5,7 +5,7 @@ import { resolve as resolvePath, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import sharp from 'sharp';
 import { runFloorGridRoute, gridFloorDocumentIdentity, gridFloorWitnessFailures } from '../frame-floor-grid.mjs';
-import { phoneRouteObservation, phoneBoardWall, watchPhoneEntry, installPhoneTitlePaint } from './phone-route-page.mjs';
+import { phoneRouteObservation, phoneBoardWall, phoneWallTarget, watchPhoneEntry, installPhoneTitlePaint } from './phone-route-page.mjs';
 import { openPhoneBrowser } from './phone-route-browser.mjs';
 import { serve } from './serve.mjs';
 
@@ -32,7 +32,7 @@ export function phoneRoutePlans(state) {
   const plans = [
     { name: 'phone-driftwood-road', from: home.instance, to: null, movement: 'road-hover', waypoints: [road], requiredResidents: [] },
     { name: 'phone-road-night-market', from: null, to: market.instance, movement: 'road-hover', waypoints: [southwestRoad, northwestRoad, marketRoad, wallStart], requiredResidents: [market.instance] },
-    { name: 'phone-night-market-road', from: market.instance, to: null, movement: 'road-hover', waypoints: [marketRoad, northwestRoad, southwestRoad, road], requiredResidents: [] },
+    { name: 'phone-night-market-road', from: market.instance, to: null, movement: 'road-hover', waypoints: [wallStart, marketRoad, northwestRoad, southwestRoad, road], requiredResidents: [] },
     { name: 'phone-road-driftwood-return', from: null, to: home.instance, movement: 'road-hover', waypoints: [{ x: origin.x, z: origin.z - 242.5 }], requiredResidents: [home.instance] },
   ];
   return { market: market.instance, plans };
@@ -49,10 +49,11 @@ export function phoneRouteFailures(receipt) {
   const entry = receipt.entry;
   if (entry === null || entry.cell?.slug !== 'open-plot-night-market' || entry.current !== entry.cell?.instance || entry.inside !== entry.cell?.instance || entry.ready !== true || entry.cell.drawn.far || !Number.isSafeInteger(entry.cell.drawn.l0) || !Number.isSafeInteger(entry.cell.drawn.l1) || entry.cell.drawn.l0 + entry.cell.drawn.l1 <= 0) failures.push('Night Market near tiles absent on first geometric entry');
   const wall = receipt.wall;
-  if (wall === null || !Number.isFinite(wall.wallX) || wall.wallX - wall.from.x < 1 || wall.wallX - wall.from.x > 25 || wall.finalFrame - wall.startedFrame < 10 || !wall.hover || wall.samples.length < 10 || wall.samples.some(row => !row.hover || row.x >= wall.wallX - .1)) failures.push('Board did not remain blocked outside the real wall');
+  const along = (/** @type {{x:number,z:number}} */ point) => wall===null ? 0 : (point.x-wall.from.x)*wall.direction.x+(point.z-wall.from.z)*wall.direction.z;
+  if (wall === null || !Number.isFinite(wall.wallDistance) || wall.wallDistance < 1 || wall.wallDistance > 25 || !Number.isFinite(wall.collider) || !Object.values(wall.halfExtents).every(Number.isFinite) || wall.halfExtents.y < .75 || Math.max(wall.halfExtents.x,wall.halfExtents.z)<2 || Math.hypot(wall.direction.x,wall.direction.z)!==1 || !Number.isFinite(wall.elapsedMs) || wall.elapsedMs<3950 || wall.finalFrame - wall.startedFrame < 10 || !wall.hover || wall.samples.length < 10 || wall.samples.some(row => !row.hover || !Number.isFinite(along(row)) || along(row) >= wall.wallDistance - .1)) failures.push('Board did not remain blocked outside the real wall');
   if (wall !== null) {
     const tail = wall.samples.filter(row => row.ms >= wall.elapsedMs - 1000);
-    if (wall.final.x - wall.from.x < 1 || tail.length < 2 || Math.max(...tail.map(row => row.x)) - Math.min(...tail.map(row => row.x)) > .15) failures.push('Board wall contact did not settle after actual forward movement');
+    if (along(wall.final) < 1 || tail.length < 2 || Math.max(...tail.map(along)) - Math.min(...tail.map(along)) > .15) failures.push('Board wall contact did not settle after actual forward movement');
   }
   if (receipt.fps.length !== 3 || receipt.fps.some(row => !Number.isFinite(row.elapsedMs) || !Number.isSafeInteger(row.frames) || row.elapsedMs < 9500 || row.frames <= 0 || Math.round(row.frames * 1000 / row.elapsedMs) < 30 || !Number.isFinite(row.pillFps) || row.pillFps <= 0 || !Number.isFinite(row.worstMs) || row.worstMs <= 0)) failures.push('G718 completed draws per wall-clock second below 30 fps or pill unavailable');
   if (receipt.observations.length < 5 || receipt.observations.some(row => !row.frameAvailable || row.grain !== 0 || row.contextLost || row.fatal.length > 0)) failures.push('Full-screen grain, lost context or fatal route state');
@@ -135,9 +136,13 @@ export async function phoneRoute(page, base, sha, out) {
       if (index === 1) {
         receipt.entry = /** @type {import('./phone-route.mjs').PhoneReceipt['entry']} */ (await page.evaluate('window.__phoneRouteEntry?.entry??null'));
         receipt.fps.push(await fpsWindow(page, 'Night Market'));
+        const wallTarget=/** @type {import('./phone-route.mjs').PhoneWallTarget} */ (await page.evaluate(`(${phoneWallTarget.toString()})()`));
+        const approach=await runFloorGridRoute(page,{name:'phone-wall-approach',from:market,to:market,movement:'road-hover',waypoints:[wallTarget.approach],requiredResidents:[market]},identity);
+        receipt.routes.push(approach);
+        const approachFailures=gridFloorWitnessFailures(approach);if(approachFailures.length>0)throw new Error(approachFailures.join('; '));
         await page.click('.ws-touch-hover');
         await until(page, 'window.__wildshard.requireWorld().player.hover===true', 'actual touch HOVER', Date.now()+5000);
-        receipt.wall = /** @type {import('./phone-route.mjs').PhoneWall} */ (await page.evaluate(`(${phoneBoardWall.toString()})(4000)`));
+        receipt.wall = /** @type {import('./phone-route.mjs').PhoneWall} */ (await page.evaluate(`(${phoneBoardWall.toString()})(4000,${JSON.stringify(wallTarget)})`));
         await shot('board-wall');
       }
     }

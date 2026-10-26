@@ -62,24 +62,49 @@ export function watchPhoneEntry(instance) {
   requestAnimationFrame(frame);
 }
 
-/** Wall probe uses the actual board and held forward input at the route's endpoint; no pose/enterNow.
- * @param {number} milliseconds */
-export async function phoneBoardWall(milliseconds) {
+/** Find a real building wall from the entered public avenue, rather than
+ * teleporting into the old G721 room. The held driver walks up to it. */
+export function phoneWallTarget() {
+  const api = window.__wildshard, world = api.requireWorld(), player = world.player, physics = world.physics;
+  const exposed = api.shard.grid;
+  if (typeof exposed !== 'object' || exposed === null || !('state' in exposed) || typeof exposed.state !== 'function') throw new Error('Missing wall approach grid');
+  const state = /** @type {import('./phone-route.mjs').PhoneGrid} */ (exposed.state());
+  const feet = state.live?.live.worldFeet;
+  if (feet === undefined) throw new Error('Missing actual wall approach feet');
+  const origin = { x: player.position.x, y: player.position.y + .8, z: player.position.z };
+  const walls = [{x:1,z:0},{x:-1,z:0},{x:0,z:1},{x:0,z:-1}].map(direction => ({ direction,
+    hit: physics.world.castRay(new physics.R.Ray(origin, { ...direction, y:0 }), 120, true,
+      physics.R.QueryFilterFlags.EXCLUDE_SENSORS, undefined, player.motor.collider, undefined,
+      collider => { const shape=collider.shape;return shape instanceof physics.R.Cuboid && shape.halfExtents.y >= .75 && Math.max(shape.halfExtents.x,shape.halfExtents.z) >= 2; })
+  })).filter(row => row.hit !== null && row.hit.timeOfImpact >= 1).sort((a,b)=>(a.hit?.timeOfImpact??Infinity)-(b.hit?.timeOfImpact??Infinity));
+  const wall=walls[0];
+  if(wall?.hit===null||wall?.hit===undefined)throw new Error('No real building wall on the public approach');
+  const shape=wall.hit.collider.shape;
+  if(!(shape instanceof physics.R.Cuboid))throw new Error('Wall shape changed during observation');
+  const distance=Math.max(0,wall.hit.timeOfImpact-10);
+  return { direction:wall.direction, collider:wall.hit.collider.handle,
+    halfExtents:{x:shape.halfExtents.x,y:shape.halfExtents.y,z:shape.halfExtents.z},
+    approach:{x:feet.x+wall.direction.x*distance,z:feet.z+wall.direction.z*distance} };
+}
+
+/** Wall probe uses the actual board and held forward input; no pose/enterNow.
+ * @param {number} milliseconds @param {import('./phone-route.mjs').PhoneWallTarget} target */
+export async function phoneBoardWall(milliseconds, target) {
   const world = window.__wildshard.requireWorld(), player = world.player, input = world.game.app.input;
   const start = performance.now(), startedFrame = world.game.frameCount, yaw = player.yaw, hover = player.hover;
   const from = { x: player.position.x, y: player.position.y, z: player.position.z }, physics = world.physics;
-  const hit = physics.world.castRay(new physics.R.Ray({ x: from.x, y: from.y + .8, z: from.z }, { x: 1, y: 0, z: 0 }), 25, true, physics.R.QueryFilterFlags.EXCLUDE_SENSORS, undefined, player.motor.collider);
-  if (hit === null) throw new Error('No real wall collider ahead of the board route');
-  const wallX = from.x + hit.timeOfImpact;
+  const {direction}=target;
+  const hit = physics.world.castRay(new physics.R.Ray({ x: from.x, y: from.y + .8, z: from.z }, { ...direction,y:0 }), 25, true, physics.R.QueryFilterFlags.EXCLUDE_SENSORS, undefined, player.motor.collider);
+  if (hit === null || hit.collider.handle !== target.collider) throw new Error('Original building wall unavailable after actual approach');
   /** @type {{ms:number,x:number,z:number,hover:boolean,frame:number}[]} */ const samples = [];
   if (!player.hover) throw new Error('Board must be mounted through the actual touch control');
-  player.yaw = -Math.PI / 2; input.setHeld('move.forward', true);
+  player.yaw = Math.atan2(-direction.x,-direction.z); input.setHeld('move.forward', true);
   const stop = world.game.watchFrames(() => { samples.push({ ms: performance.now() - start, x: player.position.x, z: player.position.z, hover: player.hover, frame: world.game.frameCount }); });
   try {
     await new Promise(resolve => { setTimeout(resolve, milliseconds); });
   } finally { input.clear(); stop(); }
   // Sample on real game frames, including the preceding held-input window.
-  return { from, wallX, elapsedMs: performance.now() - start, startedFrame, finalFrame: world.game.frameCount,
+  return { from, wallDistance:hit.timeOfImpact, direction,collider:target.collider,halfExtents:target.halfExtents,elapsedMs: performance.now() - start, startedFrame, finalFrame: world.game.frameCount,
     final: { x: player.position.x, y: player.position.y, z: player.position.z }, hover: player.hover, samples, previous: { yaw, hover } };
 }
 

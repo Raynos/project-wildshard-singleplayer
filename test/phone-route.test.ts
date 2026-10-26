@@ -41,7 +41,7 @@ function receipt(): PhoneReceipt {
     steps:['title','SHARD SELECT','grid','Driftwood','road','Night Market','road return','Driftwood return'],
     paint:{heroMs:420,fcpMs:300,heroURL:'/assets/title/main-crossroads-square.jpg'},
     entry:{at:1000,frame:100,inside:'market',current:'market',ready:true,cell:market,grain:0},
-    wall:{from:{x:-93.75,y:.45,z:-218.75},wallX:-82.75,elapsedMs:4000,startedFrame:0,finalFrame:120,
+    wall:{from:{x:-93.75,y:.45,z:-218.75},wallDistance:11,direction:{x:1,z:0},collider:1,halfExtents:{x:.5,y:1.5,z:10},elapsedMs:4000,startedFrame:0,finalFrame:120,
       final:{x:-83.15,y:.45,z:-218.75},hover:true,previous:{yaw:0,hover:false},
       samples:Array.from({length:120},(_,i)=>({ms:(i+1)*1000/30,x:i<80?-93.75+10.6*i/80:-83.15,z:-218.75,hover:true,frame:i+1}))},
     fps:['Driftwood','road','Night Market'].map(label=>({label,elapsedMs:10000,frames:300,worstMs:34,pillFps:30,pill:'30 fps'})),
@@ -79,15 +79,23 @@ test('complete receipt passes, while a near proxy, zero tiles or late readiness 
 });
 
 test('wall gate refuses a board crossing, no collider, no movement, or a nonsettling endpoint',()=>{
-  for(const mode of ['cross','no-collider','no-movement','no-frames','unmounted'] as const){
+  for(const mode of ['cross','no-collider','no-movement','no-frames','unmounted','not-a-wall','short-contact'] as const){
     const r=receipt();if(r.wall===null)throw new Error('Missing fixture wall');
     if(mode==='cross')r.wall.samples.push({ms:4000,x:-80,z:-218.75,hover:true,frame:121});
-    if(mode==='no-collider')r.wall.wallX=Number.NaN;
+    if(mode==='no-collider')r.wall.collider=Number.NaN;
     if(mode==='no-movement')r.wall.final.x=r.wall.from.x;
     if(mode==='no-frames')r.wall.finalFrame=1;
     if(mode==='unmounted')r.wall.hover=false;
+    if(mode==='not-a-wall')r.wall.halfExtents={x:.1,y:.2,z:.1};
+    if(mode==='short-contact')r.wall.elapsedMs=500;
     expect(phoneRouteFailures(r).some(row=>row.startsWith('Board'))).toBe(true);
   }
+  const west=receipt();if(west.wall===null)throw new Error('Missing wall');
+  const wall=west.wall;wall.direction={x:-1,z:0};wall.final.x=2*wall.from.x-wall.final.x;
+  wall.samples=wall.samples.map(row=>({...row,x:2*wall.from.x-row.x}));
+  expect(phoneRouteFailures(west)).toEqual([]);
+  wall.samples.push({ms:4000,x:wall.from.x-12,z:wall.from.z,hover:true,frame:121});
+  expect(phoneRouteFailures(west)).toContain('Board did not remain blocked outside the real wall');
 });
 
 test('wall-clock freezes, missing pill, slow hero, missing return, grain, black frames and wrong SHA remain red',()=>{

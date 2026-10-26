@@ -228,6 +228,15 @@ aimed off the declared midpoint turn-in and hit the road kerb. Its waypoint now
 uses the actual cell-edge midpoint before approaching the wall; no app source,
 readiness guard, collision or clock changes. That visit's local presented hero
 was151ms/FCP87ms, which qualifies only that development observation.
+The corrected held visit reached Night Market with first-entry ready/current
+and inside all `open-plot-nw`, L0=15/L1=16, far=false and grain0. The public
+avenue has no east wall within25m, so the old posed G721 room coordinates are
+not used. The probe now queries actual building-sized box colliders in four
+directions, walks to a ten-metre approach with the maintained driver, taps
+HOVER and requires the same collider for four seconds of blocked board input.
+Directional projection also verifies west/north/south contacts without assuming
+a positive-X wall. Six focused cases/types/lint pass; complete return and the
+ordinary report remain pending. Development visits are not CI smoke retries.
 
 ## Decisions for Jake
 
