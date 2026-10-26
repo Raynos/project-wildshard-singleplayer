@@ -63,6 +63,16 @@ test('the actual output hook preserves every predecessor file cost and binary by
     }
     requested.length = 0;
     const hit = await prepareOutput(context());
+    expect(requested).not.toContain('data/placeRuntime.generated.json');
+    for (const index of [0, 1]) {
+      expect(requested).not.toContain(`data/place-floor-${String(index)}.generated.bin`);
+      const beforeFloor = readFileSync(`src/shards/nalati-grasslands/data/place-floor-${String(index)}.generated.bin`);
+      const expectedFloor = nameBlob(`world/floors/${String(index)}.bin`, 'bin', beforeFloor);
+      expect(hit.namedFiles.find(file => file.name === expectedFloor.file.name)).toEqual(expectedFloor.file);
+      const floorBytes = hit.assets.get(expectedFloor.file.hash);
+      if (floorBytes === undefined) throw new Error('Missing owned native floor bytes');
+      expect(Buffer.compare(floorBytes, beforeFloor)).toBe(0);
+    }
     const assembly = hit.namedFiles.find(row => row.name === assemblyOriginal.name);
     const expectedAssembly = assemblyForField(fieldInput);
     expect(assembly).toEqual(expectedAssembly.file);

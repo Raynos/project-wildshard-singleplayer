@@ -13,7 +13,6 @@ import { namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import { nameBlob } from '@wildshard/sdk/blobs';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
 import { writeGeometry, join } from './geometryWriter';
-import preparedInput from '../data/placeRuntime.generated.json' with {type:'json'};
 import { nalatiPoiScenes } from './poiScenes';
 import specimensInput from '../data/specimens.generated.json' with {type:'json'};
 import paintInput from '../data/poiPaint.json' with {type:'json'};
@@ -49,8 +48,6 @@ const paint=v.parse(paintSchema,paintInput);
 /** Exact raw contact files, read only by the SDK's normal named-file intake. */
 export const DRESSING_CONTACT_SOURCES=v.parse(v.array(v.object({name:text,kind:v.literal('bin'),source:text,
   options:v.object({decoded:v.pipe(number,v.integer(),v.minValue(0))})})), 'sources'in paintInput?paintInput.sources:[]);
-/** Exact precomputed floor grids share the existing raw binary source path. */
-export const DRESSING_FLOOR_SOURCES=v.parse(v.array(v.object({name:text,kind:v.literal('bin'),source:text})),preparedInput.floorSources);
 /** Prepared carving files share the SDK's named geometry intake. */
 export const DRESSING_SPECIMEN_SOURCES=v.parse(v.array(v.object({name:text,kind:v.literal('bin'),source:text})),balbal.sources);
 /** Both exact sign rasters enter through the same named binary source path; two base planes bound the rectangular mip chain. */

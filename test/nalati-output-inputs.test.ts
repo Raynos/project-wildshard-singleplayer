@@ -1,5 +1,5 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Own the isolated immutable input cache and compare shipping files.
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Keep cache fixtures inside the repository tmp directory.
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
@@ -25,6 +25,8 @@ test('ordered owned floors and all declared raw inputs preserve exact normal SDK
   try {
     const declarations: NonNullable<ProjectOutput['blobs']>[number][] = [];
     for (const row of output.blobs) declarations.push({ ...row, kind: v.parse(v.picklist(['audio', 'bin', 'glb', 'image', 'json', 'ktx2', 'tile', 'wasm']), row.kind) });
+    const floors = v.parse(v.object({ floorSources: v.array(v.object({ name: v.string(), source: v.string(), kind: v.literal('bin') })) }), JSON.parse(readFileSync(resolve(project, 'data/placeRuntime.generated.json'), 'utf8')));
+    declarations.splice(1, 0, ...floors.floorSources);
     const originals = await Promise.all(declarations.map(row => readNamedBlob(project, row.name, row.source, row.kind, row.options)));
     const sources = declarations.map((row, index) => {
       const blob = originals[index]; if (blob === undefined) throw new Error('Missing original input');
