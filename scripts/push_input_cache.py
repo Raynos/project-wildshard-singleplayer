@@ -133,7 +133,7 @@ def publish(repo, revision, generated, deadline=None):
     blobs = cache / 'blobs'
     blobs.mkdir(parents=True, exist_ok=True)
     files, test_files = {}, {}
-    bootstrap = {'public/assets/nalati/baked/places.bin'}
+    bootstrap = set()
     species = generated / 'src/shards/nalati-grasslands/data/species.generated.json'
     if species.exists():
         packed = json.loads(species.read_text()).get('packedBodies', {}).get('file')

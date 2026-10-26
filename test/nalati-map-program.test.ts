@@ -12,6 +12,10 @@ import { mapTilesHash } from '../scripts/map-hash.mjs';
 import * as v from 'valibot';
 import settings from '../src/shards/nalati-grasslands/look/map.json' with { type: 'json' };
 import original from './fixtures/nalati-map-files.json' with { type: 'json' };
+import predecessorWires from './fixtures/nalati-place-wires.json' with { type: 'json' };
+
+const originalPlaces = predecessorWires.find(row => row.path.endsWith('/places.bin'));
+if (originalPlaces === undefined) throw new Error('Missing original Places predecessor pin');
 
 // Cold native construction precedes the timed assertions; every resulting byte
 // is checked against the predecessor, rather than a copied authored projection.
@@ -76,7 +80,7 @@ for (const omitted of ['scripts/map-geometry.mjs', 'src/sdk/bake/annulus.ts', 's
     if (job === undefined) throw new Error('Missing Nalati map producer');
     expect(job.inputRoots).toContain('scripts/map-geometry.mjs');
     expect(job.inputRoots).not.toContain('src/shards/nalati-grasslands/data/placeRuntime.generated.json');
-    expect(job.inputRoots).not.toContain('public/assets/nalati/baked/places.bin');
+    expect(job.inputRoots).not.toContain(originalPlaces.path);
     expect(job.inputRoots).not.toContain('src/shards/nalati-grasslands/data/specimens.generated.json');
     expect(job.catalogueDependencies).not.toContain('camp-specimen-catalogue');
     if (omitted !== undefined) {

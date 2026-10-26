@@ -146,9 +146,10 @@ def committed_source(repo, revision, tooling_revision, deadline):
         available = cache['restore'](repo, tree, records, input_deadline)
         available = available and not missing_generated(tree)
         test_revision = cache['restore_tests'](repo, tree, records, input_deadline)
-        # Runtime setup has two explicit disk preloads plus native physics.
+        # Runtime setup keeps native physics and the current species preload.
+        # The original Places test bank is now source-prepared, not a disk input.
         # Supply tracked bytes from Git, never from the shared working tree.
-        bootstrap = {'public/assets/nalati/baked/places.bin', 'public/assets/physics/rapier.wasm'}
+        bootstrap = {'public/assets/physics/rapier.wasm'}
         species = tree / 'src/shards/nalati-grasslands/data/species.generated.json'
         if species.exists():
             packed = json.loads(species.read_text()).get('packedBodies', {}).get('file')

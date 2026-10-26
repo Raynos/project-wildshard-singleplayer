@@ -8,7 +8,7 @@ import * as source from './fixtures/nalati-native-place-files';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import pins from './fixtures/nalati-place-wires.json' with { type: 'json' };
 
-const pin = pins.find(row => row.path === 'public/assets/nalati/baked/places.bin');
+const pin = pins.find(row => row.path.endsWith('/places.bin'));
 if (pin === undefined) throw new Error('Missing original Places fixture pin');
 const original = pin;
 
