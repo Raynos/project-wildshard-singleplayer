@@ -12,7 +12,7 @@ test('quantized normals and colours read back as the same normalized typed chann
  geometry.setAttribute('color',new BufferAttribute(new Uint16Array([0,65535,1234,65535,0,4321,32768,16384,8192]),3,true));
  const material=new MeshStandardMaterial({vertexColors:true});
  const bytes=staticGlb([{geometry,material,compactIndex:true,quantizedChannels:true}]);
- const gltf=await new GLTFLoader().parseAsync(bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength),'');
+ const gltf=await new GLTFLoader().parseAsync(Uint8Array.from(bytes).buffer,'');
  const isGeometry=(value:unknown):value is BufferGeometry=>value instanceof BufferGeometry;
  const geometries:BufferGeometry[]=[];gltf.scene.traverse(node=>{if(node instanceof Mesh){const found:unknown=node.geometry;if(isGeometry(found))geometries.push(found);}});
  const read=geometries[0];
@@ -37,7 +37,7 @@ test('quantized channels compose with native attributes and restore through nati
  geometry.setAttribute('aSway',new BufferAttribute(new Float32Array([0.5,1,0.25,0,1,0.75]),2));
  const material=new MeshStandardMaterial({vertexColors:true});
  const bytes=staticGlb([{geometry,material,customAttributes:{_SWAY:'aSway'},compactIndex:true,nativeAttributes:true,quantizedChannels:true}]);
- const gltf=await new GLTFLoader().parseAsync(bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength),'');
+ const gltf=await new GLTFLoader().parseAsync(Uint8Array.from(bytes).buffer,'');
  const isMesh=(value:unknown):value is Mesh=>value instanceof Mesh;
  const meshes:Mesh[]=[];gltf.scene.traverse(node=>{if(isMesh(node))meshes.push(node);});
  const mesh=meshes[0];
