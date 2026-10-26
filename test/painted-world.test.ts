@@ -7,7 +7,7 @@ import * as v from 'valibot';
 import { paintedWorld, paintedWorldOf, postGraphLook } from '../src/game/looks/postGraphLook';
 import { PaintedWorldSchema } from '../src/format/postGraphLook';
 import paintedTextures from '../src/shards/nalati-grasslands/data/paintedTextures.generated.json' with { type: 'json' };
-import specimenData from '../src/shards/nalati-grasslands/data/specimens.generated.json' with { type: 'json' };
+import { nalatiSpecimens as specimenData } from './fixtures/nalati-specimens';
 import { GrassPresentationSchema } from '../src/format/fieldPresentation';
 import capture from '../src/shards/nalati-grasslands/data/staticCapture.json' with { type: 'json' };
 

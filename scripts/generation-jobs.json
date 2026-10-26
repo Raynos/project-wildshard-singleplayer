@@ -13939,7 +13939,6 @@
         "src/shards/nalati-grasslands/data/poi-shape-7.bin",
         "src/shards/nalati-grasslands/data/poi-shape-8.bin",
         "src/shards/nalati-grasslands/data/poi-shape-9.bin",
-        "src/shards/nalati-grasslands/data/specimens.generated.json",
         "src/shards/nalati-grasslands/data/spruceRest.generated.json",
         "src/shards/nalati-grasslands/generators",
         "src/shards/nalati-grasslands/generators/actorProjection.ts",
@@ -14199,7 +14198,8 @@
         "src/format/wireLimits.ts",
         "src/game/systems/looks/grassField.ts",
         "src/shards/nalati-grasslands/data/peopleFrames.json",
-        "src/shards/nalati-grasslands/data/poiPaint.json"
+        "src/shards/nalati-grasslands/data/poiPaint.json",
+        "src/shards/nalati-grasslands/data/campMaterials.json"
       ],
       "outputs": [
         "public/assets/nalati-grasslands/map/top.webp",
@@ -14214,7 +14214,6 @@
         "nalati-poi-paint",
         "nalati-crags",
         "nalati-spruce",
-        "camp-specimen-catalogue",
         "nalati-terrain-scene",
         "nalati-kurgan",
         "nalati-layout",

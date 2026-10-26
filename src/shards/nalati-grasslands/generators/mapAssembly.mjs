@@ -32,14 +32,17 @@ export function readNalatiMapScalar(source, directory = base) {
 async function nativeMapPlaces() {
   const { nativeNalatiPlaces } = await import('./bake-nalati-painted.mjs');
   const { nalatiRuntimeRows } = await import('./runtimeRows.ts');
+  const { nalatiSpecimenRows } = await import('./specimenRows.ts');
   const made = await nativeNalatiPlaces();
   const places = { rows: made.places.rows, bytes: made.places.bin.byteLength };
   const prepared = nalatiRuntimeRows({ places, paint: read('data/poiPaint.json') }).runtime;
-  return { prepared, bytes: made.places.bin };
+  const specimens = nalatiSpecimenRows(read('data/campCatalogue.json'), read('data/campMaterials.json'),
+    { rows: made.specimens.rows, bytes: made.specimens.bin.byteLength });
+  return { prepared, bytes: made.places.bin, specimens };
 }
 
 export async function nalatiMapAssembly() {
-  const assembly = new MapAssembly(), { prepared, bytes } = await nativeMapPlaces(), specimens = read('data/specimens.generated.json');
+  const assembly = new MapAssembly(), { prepared, bytes, specimens } = await nativeMapPlaces();
   const fixed = read('boot/poiPaint.json');
   const native = parseBakedTerrain(Uint8Array.from(readFileSync(resolve(root, 'public/assets/baked/nalati-grasslands/terrain.bin'))).buffer);
   if (native === null) throw new Error('Map requires native Nalati terrain');

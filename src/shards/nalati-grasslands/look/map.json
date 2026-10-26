@@ -2,7 +2,6 @@
   "why": "Nalati's map in its painterly palette as flat colours (G252, Jake's pick B): the green and gold steppe, the river's stone bed and blue water with an edge (two water matches: the dark pools and ponds, and the light river the 'nalati-water' look graph draws in display colour since 4c967cd0f, where the old shader wrote linear values straight to the screen), the snowfields in two whites, the trails picked out with an edge; yurts, trees and rocks raised with an edge and a shadow Native Places geometry and metadata are constructed from the explicitly named source closure; prepared runtime and public Places binary handoffs do not define this bake.",
   "inputs": [
     "generators",
-    "data/specimens.generated.json",
     "boot/poiPaint.json",
     "data/modelMetrics.json",
     "boot/layout.generated.json",
@@ -140,7 +139,9 @@
     "data/poiPaint.json",
     "../../../package.json",
     "../../../pnpm-lock.yaml",
-    "../../commons/bake/portableMath.ts"
+    "../../commons/bake/portableMath.ts",
+    "data/campCatalogue.json",
+    "data/campMaterials.json"
   ],
   "style": {
     "kind": "ground",

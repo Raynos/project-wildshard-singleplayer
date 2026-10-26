@@ -50,13 +50,15 @@ test('owned assembly and terrain preserve the full original native map image', a
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
-for (const omitted of ['scripts/map-geometry.mjs', 'src/sdk/bake/annulus.ts', undefined]) {
+for (const omitted of ['scripts/map-geometry.mjs', 'src/sdk/bake/annulus.ts', 'src/shards/nalati-grasslands/data/campMaterials.json', undefined]) {
   test(`the sealed map producer ${omitted === undefined ? 'preserves the original image without runtime/public places handoffs' : `refuses omitted ${omitted}`}`, async () => {
     const root = resolve('.'), job = discoverGeneration(root).jobs.find(row => row.id === 'nalati-data-map');
     if (job === undefined) throw new Error('Missing Nalati map producer');
     expect(job.inputRoots).toContain('scripts/map-geometry.mjs');
     expect(job.inputRoots).not.toContain('src/shards/nalati-grasslands/data/placeRuntime.generated.json');
     expect(job.inputRoots).not.toContain('public/assets/nalati/baked/places.bin');
+    expect(job.inputRoots).not.toContain('src/shards/nalati-grasslands/data/specimens.generated.json');
+    expect(job.catalogueDependencies).not.toContain('camp-specimen-catalogue');
     const cacheDir = mkdtempSync(resolve('tmp', 'nalati-map-stage-'));
     try {
       if (omitted !== undefined) {
