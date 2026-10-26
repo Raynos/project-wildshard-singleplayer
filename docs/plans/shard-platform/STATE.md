@@ -20,10 +20,11 @@ L18: DW 107 -> 78 MB; rest is lighter assets (Opus).
 G630 done: Sunscar glow 006d87b0fa, Nine near view 7e4f33be44 + d56e767bf3. G733 badges 94ef588da9 (blank thumbnails never reproduced; U1: updates apply in 720 ms); L17
 2511ddea95 + f30e0be71c. Now: sp-x8 G743 crossings; sp-x9 G742: 0/19 was stale, DR1-DR19 already landed (only 'Clear downloads' left), reconciling the plan; sp-x1 GR5 Far Reach 38 jobs (Nine GR3 0); sp-x6 GR6 Nalati 41 (Sunscar GR4 0);
 sp-x2 RM8.1 quantized tile geometry -> C4; GR7 DW 41 / GR8 Pine 61 queued.
-**Blocked on Jake:** road B pilot play, C6.2; boards as they land. Picked: G749 lighter RT B (sp-o4), G750 toon clouds B (sp-o3).
+**Blocked on Jake:** road B pilot play, C6.2; boards as they land. Picked: G749 lighter RT B (sp-o4); G750 toon clouds
+shipped 1d4a4f738f. Bridge question: no clipping bug, the capture stood past the pier deck's end (capture.mjs fixed).
 G744 hero shipped (1873e9ca2c + capture f577daebff).
 
-**Lanes (G735, Jake 10-26 14:46: overrides G605):** 5 Opus + 5 Codex + sp-x7. sp-o1 NM remaster models (RM4/7/9/8/13),
+**Lanes (G735):** Claude active account 9 %, Codex 32 %; 5 Opus + 5 Codex + sp-x7. sp-o1 NM remaster models (RM4/7/9/8/13),
 sp-o2 NM look (RM5/6/10/11/12), sp-o3 G685 Driftwood toon clouds, sp-o4 G713 lighter post RT sheet (C5/J8), sp-o5 G630
 Nine far + Sunscar glow -> L18.3 -> U2 parents -> T3/T6 visual.
 

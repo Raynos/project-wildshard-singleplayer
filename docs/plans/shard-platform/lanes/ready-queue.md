@@ -17,8 +17,8 @@ Every row is decided work (Jake's G-rows); the refs are the brief.
 | sp-x7 | releases only |
 | sp-o1 | G735: Night Market remaster models RM4 -> RM7 -> RM9 -> RM8 -> RM13 (board + walk video) |
 | sp-o2 | G735: Night Market remaster look RM5 -> RM6 -> RM10 -> RM11 -> RM12 |
-| sp-o3 | G685 Driftwood toon cel cumulus clouds (Debug A/B + board) + L18.3 lighter DW assets (e2cac37ae6, 7d327e5a88, 552bb9196f, dca731cde4) |
-| sp-o4 | G713 lighter RT sheet done c4607318c9 (C5.6 waits-Jake) -> G717 A (spawn holds controls until queued builds drain) -> B cheaper lit programs (Debug A/B + board) |
+| sp-o3 | G750 toon clouds done 1d4a4f738f; L18.3 rocks e2cac37ae6 / foliage 7d327e5a88 (protos -> sp-x1 GR0) -> G717 B cheaper lit programs Pine + DW (Debug A/B + board) |
+| sp-o4 | G749 lighter RT only-path -> G717 A spawn controls hold with 2 s cap (ship if DW spawn passes) |
 | sp-o5 | G630 done (006d87b0fa Sunscar glow; 7e4f33be44 + d56e767bf3 Nine near view); T3 06d63e5b21; T6.2 parked low value -> G748 coarse L1 stand-ins for occupied tiles per shard (near/far boards first) |
 
 ## 10-24 open rows (Jake's picks G679-G682, a2c1e9647b; SW10: one claimable row per live lane)

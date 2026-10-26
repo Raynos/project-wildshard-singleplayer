@@ -41,8 +41,9 @@ running out of Claude with Codex to spare is worse.
 - **Graphical work is Opus-only:** rendering, shaders / GLSL, three.js, materials, looks, sky, post effects, captures, boards, pixel
   proofs. Codex lanes do **non-graphical engineering only**: data, loaders, sim, physics, residency, harnesses, CI, tests, memory
   accounting, tooling.
-- **Read the budgets before dispatching new work:** `openusage` (JSON, 5-minute cache): `providers.claude.resources.weekly.remaining`
-  and `providers.codex.resources.weekly.remaining`, each with its `resetsAt`.
+- **Read the budgets before dispatching new work:** `openusage` (JSON, 5-minute cache): the active Claude account is
+  `providers[claudeActive].resources.weekly.remaining` (`providers.claude` can be a stale second login), and
+  `providers.codex.resources.weekly.remaining`, each with its `resetsAt`.
 - **Pace each provider to its target:**
   - Claude may spend `weekly.remaining − 10` points before its reset.
   - Codex may spend all of its `weekly.remaining` before its reset.
