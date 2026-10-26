@@ -5,6 +5,7 @@
     "noEmit": false,
     "emitDeclarationOnly": true,
     "declaration": true,
+    "isolatedDeclarations": true,
     "outDir": ".tsc-layers/sdk",
     "tsBuildInfoFile": ".tsc-layers/sdk.tsbuildinfo"
   },

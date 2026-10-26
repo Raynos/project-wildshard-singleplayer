@@ -198,9 +198,10 @@ normal layer emission is the declaration-size authority. Continuation starts at 
 | T4-I4a | SDK schema aliases and build bindings; retain defining validator metadata and public identities | 60 min | done (2026-10-25, sp-x8) |
 | T4-I4b | SDK author resources and defaults; retain node kinds, endpoint owners and numeric arguments | 60 min | done (2026-10-26, sp-x8) |
 | T4-I4c | SDK worker and world wire contracts; retain variants, normalized defaults and complete proofs | 60 min | done (2026-10-26, sp-x8) |
-| T4-I4d | Require isolated SDK output; retain existing production and separate test owners | 60 min | in flight (2026-10-25, sp-x8) |
+| T4-I4d | Require isolated SDK output; retain existing production and separate test owners | 60 min | done (2026-10-26, sp-x8) |
 | T4-I4e | Match CF1 declaration ownership for all module suffixes; retain implementation membership refusals | 60 min | done (2026-10-26, sp-x8) |
-| T4-I5a | Require isolated commons output; retain portable math identities and Node authoring owners | 60 min | in flight (2026-10-25, sp-x8) |
+| T4-I5a | Require isolated commons output; retain portable math identities and Node authoring owners | 60 min | in flight (2026-10-25; partition 13 blocked on Nalati reader fixture, sp-x8) |
+| T4-I6a | Template and Driftwood author declarations; retain generated project overlays, readonly inputs and mutable resources | 60 min | in flight (2026-10-26, sp-x8) |
 
 T4 first format slices are on origin: schema expressions and emitted runtime JavaScript are unchanged.
 Independent named data types replace exported validator implementation types; original/candidate input and output
