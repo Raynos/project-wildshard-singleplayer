@@ -79,6 +79,10 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   A per-file Vite override uses candidate-index bytes for differing tracked
   modules, including peer edits; loose files and the index stay untouched.
   An executed failing test refuses even if another test later times out.
+  After the related worker exits with its own executed-test refusal, CF1
+  drains remaining warm type jobs immediately. It never stops the selected
+  test run for a test failure; green workers and nested fixture reds retain
+  their normal type checks. Cancelled type work cannot turn a refusal green.
   Staged layer imports outside the project's includes and referenced projects
   refuse as TS6307, including type imports. Collection/runner failures, missing
   prerequisites, cold types and deadline exhaustion print **DEFERRED TO CI**

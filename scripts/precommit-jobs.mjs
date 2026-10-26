@@ -5,8 +5,11 @@ import { execFileSync, spawn } from 'node:child_process';
 
 /** Every child shares one wall deadline, including its complete process group.
  * @param {string} root @param {CommitJob[]} jobs @param {number} deadline
- * @param {Record<string, string | undefined>} [env] @param {AbortSignal} [signal] @returns {Promise<CommitResult[]>} */
-export function runCommitJobs(root, jobs, deadline, env, signal) {
+ * The observer runs once after a child closes (or fails to spawn), never on
+ * partial output. Callers can drain advisory work after a completed fatal check.
+ * @param {Record<string, string | undefined>} [env] @param {AbortSignal} [signal]
+ * @param {(result: CommitResult) => void} [onResult] @returns {Promise<CommitResult[]>} */
+export function runCommitJobs(root, jobs, deadline, env, signal, onResult) {
   const environment = env ?? process.env;
   return Promise.all(jobs.map(job => new Promise(resolve => {
     if (signal?.aborted) { resolve({ name: job.name, code: 130, timedOut: false, cancelled: true, output: '' }); return; }
@@ -44,9 +47,15 @@ export function runCommitJobs(root, jobs, deadline, env, signal) {
     signal?.addEventListener('abort', cancel, { once: true });
     const timer = setTimeout(() => { timedOut = true; stop(); }, Math.max(0, deadline - performance.now()));
     const clean = () => { clearTimeout(timer); signal?.removeEventListener('abort', cancel); };
-    child.once('error', error => { clean(); resolve({ name: job.name, code: 1, timedOut, output: output + error.message }); });
+    let finished = false;
+    const finish = (/** @type {CommitResult} */ result) => {
+      if (finished) return;
+      finished = true;
+      clean(); resolve(result); onResult?.(result);
+    };
+    child.once('error', error => { finish({ name: job.name, code: 1, timedOut, output: output + error.message }); });
     child.once('close', code => {
-      clean(); resolve({ name: job.name, code: cancelled ? 130 : timedOut ? 124 : code ?? 1, timedOut, output, ...(cancelled ? { cancelled } : {}) });
+      finish({ name: job.name, code: cancelled ? 130 : timedOut ? 124 : code ?? 1, timedOut, output, ...(cancelled ? { cancelled } : {}) });
     });
   })));
 }

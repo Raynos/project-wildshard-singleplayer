@@ -15,9 +15,11 @@ const TEXT = /\.(?:[cm]?[jt]sx?|json|glsl|wgsl|css|sh)$/u;
 /** Consume one invocation budget, including time already spent waiting for the
  * commit lock and running mandatory guards. Direct callers get the same cap.
  * @param {string} [started] @param {number} [wall] @param {number} [clock] */
-export function relatedDeadline(started = process.env.WS_COMMIT_STARTED_AT, wall = Date.now(), clock = performance.now()) {
-  if (started === undefined) return clock + 60_000;
-  const timestamp = Number(started);
+export function relatedDeadline(started, wall = Date.now(), clock = performance.now()) {
+  const { WS_COMMIT_STARTED_AT: entry } = process.env;
+  const since = started ?? entry;
+  if (since === undefined) return clock + 60_000;
+  const timestamp = Number(since);
   return clock + (Number.isFinite(timestamp) && timestamp >= 0
     ? Math.max(0, 60_000 - Math.max(0, wall - timestamp)) : 0);
 }
@@ -40,7 +42,8 @@ export function relatedTestFailed(result, token) {
  * @param {string} repository @param {ReturnType<typeof stagedFiles>} staged */
 export function stagedInputOverride(repository, staged) {
   const root = resolve(repository);
-  const readSet = process.env.WS_COMMIT_READ_SET, observed = new Set();
+  const { WS_COMMIT_READ_SET: readSet } = process.env;
+  const observed = new Set();
   const record = (/** @type {string} */ id) => {
     const file = relative(root, id.split('?', 1)[0] ?? '');
     if (readSet !== undefined && staged.paths.includes(file) && !observed.has(file)) {
@@ -110,7 +113,7 @@ export async function relatedWorker(root, files) {
   const candidate = candidateImportSources(root, staged);
   // Selection reads import syntax, not every unrelated module's body. Loaded
   // modules are recorded separately above, including transform-cache hits.
-  const readSet = process.env.WS_COMMIT_READ_SET;
+  const { WS_COMMIT_READ_SET: readSet } = process.env;
   if (readSet !== undefined) appendFileSync(readSet, `${JSON.stringify({root, inventory:true, imports:Object.fromEntries(candidate.imports), paths: [
     'scripts/precommit-related.mjs', 'scripts/precommit-imports.mjs', 'scripts/precommit-selection.mjs', 'scripts/precommit-projects.mjs',
     ...[...candidate.sources.keys()].filter(path => path.endsWith('package.json')),
@@ -178,7 +181,7 @@ export function warmTypeJobs(root, files) {
       console.warn(`CF1 DEFERRED TO CI: cold type project ${config}`); continue;
     }
     mkdirSync(resolve(root, 'node_modules/.cache'), { recursive: true });
-    const readSet = process.env.WS_COMMIT_READ_SET;
+    const { WS_COMMIT_READ_SET: readSet } = process.env;
     if (readSet !== undefined) appendFileSync(readSet, `${JSON.stringify({root, paths:parsed.fileNames.map(name)})}\n`);
     jobs.push({ name: `types ${config}`, command: [resolve(root, 'node_modules/.bin/tsc'), '-p', config, '--noEmit',
       '--incremental', '--tsBuildInfoFile', config === 'tsconfig.json' ? cache : `node_modules/.cache/commit-${config.replaceAll('/', '-')}.tsbuildinfo`] });
@@ -188,7 +191,8 @@ export function warmTypeJobs(root, files) {
 
 /** The injected deadline is for deterministic cap regressions; hooks use 60s.
  * Tooling fails open, observed test reds and staged TS6307 edges refuse.
- * Cancellation is a refusal too; only an already-fatal sibling guard uses it.
+ * Cancellation refuses too: a fatal guard or completed test red drains only
+ * this invocation. A test failure never cancels the selected test worker.
  * @param {string} root @param {string[]} changed @param {number} [deadline] @param {AbortSignal} [signal] */
 export async function commitRelated(root, changed, deadline, signal) {
   const until = deadline ?? relatedDeadline();
@@ -213,16 +217,24 @@ export async function commitRelated(root, changed, deadline, signal) {
     const env = resolve(root) === process.cwd() ? process.env
       : Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_')));
     const token = randomUUID();
+    const testRefusal = new AbortController();
+    const checking = signal === undefined ? testRefusal.signal : AbortSignal.any([signal, testRefusal.signal]);
     let results;
-    try { results = await runCommitJobs(root, jobs, until, { ...env, VITEST_TMP_ROOT: temporary, WS_COMMIT_RELATED_TOKEN: token }, signal); }
-    finally { rmSync(temporary, { recursive: true, force: true }); }
+    try {
+      results = await runCommitJobs(root, jobs, until, { ...env, VITEST_TMP_ROOT: temporary, WS_COMMIT_RELATED_TOKEN: token }, checking, result => {
+        // Only after the test worker exits may this reporter's executed red
+        // drain remaining warm types. Deadlines/cancellation keep their policy.
+        if (!result.timedOut && result.cancelled !== true && relatedTestFailed(result, token)) testRefusal.abort();
+      });
+    } finally { rmSync(temporary, { recursive: true, force: true }); }
     for (const result of results) {
       if (result.output !== '') console.error(result.output.trimEnd());
       if (relatedTestFailed(result, token)) failures.push('Related tests refused the staged selection');
       // Static candidate membership above is authoritative. A warm working-tree
       // compiler can also see unstaged peer files, so its diagnostics defer.
       else if (result.cancelled) {
-        const message = `${result.name} cancelled after another commit guard refused`;
+        const reason = testRefusal.signal.aborted ? 'completed related tests refused' : 'another commit guard refused';
+        const message = `${result.name} cancelled after ${reason}`;
         console.warn(`CF1: ${message}`); failures.push(message);
       }
       else if (result.timedOut || result.code === 124) console.warn(`CF1 DEFERRED TO CI: ${result.name} reached the 60-second wall cap`);
