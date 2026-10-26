@@ -8999,6 +8999,10 @@ page `createImageBitmap` API, then the existing image-element fallback. KTX2
 transcoding and its format probe are independent of this image decode path.
 KTX2 uses one Basis worker on the phone (four on desktop), bounding simultaneous
 transcodes and retained Wasm heaps without serializing network reads or changing formats.
+After 30 seconds with no active or queued transcodes, its scoped pool removes
+message subscriptions and terminates the idle workers. The loader retains its
+original factory/configuration and recreates workers for the next request;
+busy jobs, FIFO order, transfer lists and uploaded textures are unchanged.
 Page bitmap fallbacks also share one decode slot, released on success or failure;
 counted network reads remain parallel.
 
