@@ -9,7 +9,7 @@ import type { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
 export interface LadderCommand { x: number; z: number; release: boolean }
 /** The page retains its actual Player, controls and registry when lending a simulation. */
 export interface LadderClientPorts { modes: Pick<PlayerModes<never>, 'register'>; enabled: () => boolean; command: () => LadderCommand; claimed: () => void }
-const Saved = v.strictObject({ recipe: v.pipe(v.string(), v.maxLength(65_536)), route: v.nullable(v.string()), exit: v.boolean(), latched: v.boolean() });
+const Saved: v.GenericSchema<BoundedLadderSaveInput, BoundedLadderSave> = v.strictObject({ recipe: v.pipe(v.string(), v.maxLength(65_536)), route: v.nullable(v.string()), exit: v.boolean(), latched: v.boolean() });
 
 /** Fixed-step climb law shared by the real page and Node; every translation goes through the real capsule motor. */
 export class LadderDriver {
@@ -96,3 +96,13 @@ export function installLadders(host: SimHost, rows: readonly LadderMode[], clien
   else client.modes.register({ id: 'climb', hud: 'none', traverse }, host.scope, { events: host.events });
   host.onStep('modes.ladder', () => undefined, { snapshot: () => driver.snapshot(), restore: value => { driver.restore(value); } });
 }
+
+/** Complete admitted data, independent of validator implementation metadata. */
+type BoundedLadderSaveInput = BoundedLadderSave;
+interface BoundedLadderSaveFields {
+    recipe: string;
+    route: string | null;
+    exit: boolean;
+    latched: boolean;
+}
+type BoundedLadderSave = { [Key in keyof BoundedLadderSaveFields]: BoundedLadderSaveFields[Key] };

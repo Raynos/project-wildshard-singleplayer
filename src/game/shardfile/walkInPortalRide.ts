@@ -40,7 +40,7 @@ export interface PortalRideState {
 }
 const finite = v.pipe(v.number(), v.finite());
 /** Strict versioned native portal fields; the installed director validates its own complete contract/cursor. */
-export const PortalRideStateSchema = v.strictObject({
+export const PortalRideStateSchema: v.GenericSchema<BoundedPortalRideSaveInput, BoundedPortalRideSave> = v.strictObject({
   version: v.literal(2), director: v.string(),
   entered: v.nullable(v.picklist(['north', 'east', 'south', 'west'])), armed: v.boolean(), t: finite, from: v.string(), moved: v.boolean(),
   rides: v.array(v.strictObject({ from: v.string(), to: v.string(), yaw: finite })), refused: v.array(v.string()),
@@ -139,3 +139,22 @@ export function createPortalRide(rings: RideRings): PortalRideLane {
   return { entered: () => entered, busy: () => t >= 0, rides: () => done, refused: () => refused, observe: (dt: number, feet: typeof position) => { position = feet; commands.length = 0; advance(dt); return { commands: [...commands], veil: opacity }; }, complete, refuse: (reason: string): void => { refused.push(reason); }, snapshot, restore };
 }
 
+
+/** Complete admitted data, independent of validator implementation metadata. */
+type BoundedPortalRideSaveInput = BoundedPortalRideSave;
+interface BoundedPortalRideSaveFields {
+    version: 2;
+    director: string;
+    entered: "north" | "east" | "south" | "west" | null;
+    armed: boolean;
+    t: number;
+    from: string;
+    moved: boolean;
+    rides: {
+        from: string;
+        to: string;
+        yaw: number;
+    }[];
+    refused: string[];
+}
+type BoundedPortalRideSave = { [Key in keyof BoundedPortalRideSaveFields]: BoundedPortalRideSaveFields[Key] };

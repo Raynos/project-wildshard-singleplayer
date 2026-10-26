@@ -8,7 +8,7 @@ const triple = v.tuple([finite, finite, finite]);
 const scalarPose = v.strictObject({ rootY: finite, rootZ: finite, rootPitch: finite, rootRoll: finite, rootYaw: finite,
   chestPitch: finite, chestYaw: finite, chestRoll: finite, neckPitch: finite, neckYaw: finite,
   headPitch: finite, headYaw: finite, headRoll: finite });
-const savedPose = v.strictObject({ version: v.literal(1), staged: scalarPose,
+const savedPose: v.GenericSchema<BoundedLimbPoseInput, BoundedLimbPose> = v.strictObject({ version: v.literal(1), staged: scalarPose,
   published: v.strictObject({ head: triple, ribs: triple, rear: triple, front: triple, left: triple, right: triple }) });
 export type LimbQueryPoseSaved = v.InferOutput<typeof savedPose>;
 type Publication = 'body' | 'ribs' | 'head';
@@ -85,3 +85,57 @@ export class LimbQueryPose {
     this.left.set(...saved.published.left); this.right.set(...saved.published.right);
   }
 }
+
+/** Complete admitted data, independent of validator implementation metadata. */
+type BoundedLimbPoseInput = BoundedLimbPose;
+interface BoundedLimbPoseFields {
+    version: 1;
+    staged: {
+        rootY: number;
+        rootZ: number;
+        rootPitch: number;
+        rootRoll: number;
+        rootYaw: number;
+        chestPitch: number;
+        chestYaw: number;
+        chestRoll: number;
+        neckPitch: number;
+        neckYaw: number;
+        headPitch: number;
+        headYaw: number;
+        headRoll: number;
+    };
+    published: {
+        head: [
+            number,
+            number,
+            number
+        ];
+        ribs: [
+            number,
+            number,
+            number
+        ];
+        rear: [
+            number,
+            number,
+            number
+        ];
+        front: [
+            number,
+            number,
+            number
+        ];
+        left: [
+            number,
+            number,
+            number
+        ];
+        right: [
+            number,
+            number,
+            number
+        ];
+    };
+}
+type BoundedLimbPose = { [Key in keyof BoundedLimbPoseFields]: BoundedLimbPoseFields[Key] };

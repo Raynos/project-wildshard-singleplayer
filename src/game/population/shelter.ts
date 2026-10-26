@@ -23,7 +23,7 @@ interface Herd {
 interface Tree { x: number; z: number; r: number; height: number; cover: number; [field: string]: number }
 const finite = v.pipe(v.number(), v.finite());
 const point = v.strictObject({ x: finite, z: finite });
-const saved = v.strictObject({ version: v.literal(1), shelters: v.array(v.nullable(v.strictObject({
+const saved: v.GenericSchema<BoundedShelterSaveInput, BoundedShelterSave> = v.strictObject({ version: v.literal(1), shelters: v.array(v.nullable(v.strictObject({
   home: point, spot: v.nullable(point), hold: v.pipe(finite, v.minValue(0))
 }))) });
 
@@ -164,3 +164,21 @@ export function installNativeHerdShelter(host: SimHost, trees: readonly NativeSh
   });
   return shelter;
 }
+
+/** Complete admitted data, independent of validator implementation metadata. */
+type BoundedShelterSaveInput = BoundedShelterSave;
+interface BoundedShelterSaveFields {
+    version: 1;
+    shelters: ({
+        home: {
+            x: number;
+            z: number;
+        };
+        spot: {
+            x: number;
+            z: number;
+        } | null;
+        hold: number;
+    } | null)[];
+}
+type BoundedShelterSave = { [Key in keyof BoundedShelterSaveFields]: BoundedShelterSaveFields[Key] };

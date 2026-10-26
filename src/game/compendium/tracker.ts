@@ -28,7 +28,7 @@ export const REACH = 3;
 const PERIOD = 0.25;
 const ids = v.pipe(v.array(v.pipe(v.string(), v.minLength(1), v.maxLength(256))), v.maxLength(1024),
   v.check(values => new Set(values).size === values.length));
-const Saved = v.strictObject({ version: v.literal(1), acc: v.pipe(v.number(), v.finite(), v.minValue(0), v.check(value => value < PERIOD)),
+const Saved: v.GenericSchema<BoundedCompendiumSaveInput, BoundedCompendiumSave> = v.strictObject({ version: v.literal(1), acc: v.pipe(v.number(), v.finite(), v.minValue(0), v.check(value => value < PERIOD)),
   heard: ids, spotted: ids, inside: ids });
 /** Session identity sets and the exact polling clock, separate from durable entry statistics. */
 export type CompendiumTrackerSnapshot = v.InferOutput<typeof Saved>;
@@ -124,3 +124,14 @@ export class CompendiumTracker {
     }
   }
 }
+
+/** Complete admitted data, independent of validator implementation metadata. */
+type BoundedCompendiumSaveInput = BoundedCompendiumSave;
+interface BoundedCompendiumSaveFields {
+    version: 1;
+    acc: number;
+    heard: string[];
+    spotted: string[];
+    inside: string[];
+}
+type BoundedCompendiumSave = { [Key in keyof BoundedCompendiumSaveFields]: BoundedCompendiumSaveFields[Key] };

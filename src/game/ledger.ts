@@ -4,7 +4,7 @@ import type { SimHost, SimValue } from '@wildshard/engine/sim';
 import { LedgerFactSchema, parseLedgerRules, type LedgerFact, type LedgerRule } from '@wildshard/format/ledger';
 
 const natural = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(Number.MAX_SAFE_INTEGER));
-const schema = v.strictObject({ facts: v.record(v.string(), LedgerFactSchema),
+const schema: v.GenericSchema<BoundedLedgerSaveInput, BoundedLedgerSave> = v.strictObject({ facts: v.record(v.string(), LedgerFactSchema),
   entitlements: v.optional(v.record(v.string(), v.strictObject({ grants: natural, lastTick: natural })), {}),
   items: v.record(v.string(), v.strictObject({ item: v.string(), tier: natural, quantity: natural })),
   achievements: v.record(v.string(), v.strictObject({ shard: v.string(), id: v.string(), title: v.string(), count: natural, threshold: natural, earned: v.boolean() })) });
@@ -132,3 +132,47 @@ export function installLedgerEmitter(host: SimHost, ledger: Ledger, identity: { 
   host.onStep(`ledger.${origin.kind}.${origin.source}`, () => { ledger.flush(); }, { snapshot: () => emitter.snapshot(), restore: (state) => { emitter.restore(state); } });
   return emitter;
 }
+
+/** Complete admitted data, independent of validator implementation metadata. */
+interface BoundedLedgerSaveInputFields {
+    facts: Record<string, LedgerFact>;
+    entitlements?: Record<string, {
+            grants: number;
+            lastTick: number;
+        }> | undefined;
+    items: Record<string, {
+            item: string;
+            tier: number;
+            quantity: number;
+        }>;
+    achievements: Record<string, {
+            shard: string;
+            id: string;
+            title: string;
+            count: number;
+            threshold: number;
+            earned: boolean;
+        }>;
+}
+type BoundedLedgerSaveInput = { [Key in keyof BoundedLedgerSaveInputFields]: BoundedLedgerSaveInputFields[Key] };
+interface BoundedLedgerSaveFields {
+    facts: Record<string, LedgerFact>;
+    entitlements: Record<string, {
+            grants: number;
+            lastTick: number;
+        }>;
+    items: Record<string, {
+            item: string;
+            tier: number;
+            quantity: number;
+        }>;
+    achievements: Record<string, {
+            shard: string;
+            id: string;
+            title: string;
+            count: number;
+            threshold: number;
+            earned: boolean;
+        }>;
+}
+type BoundedLedgerSave = { [Key in keyof BoundedLedgerSaveFields]: BoundedLedgerSaveFields[Key] };

@@ -7,7 +7,7 @@ import { inventoryKey, purseKey } from '../localSaveKeys';
 const name = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
 const natural = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(Number.MAX_SAFE_INTEGER));
 const finite = v.pipe(v.number(), v.finite(), v.minValue(0));
-const packSchema = v.strictObject({ counts: v.record(name, natural), order: v.array(name) });
+const packSchema: v.GenericSchema<BoundedWalletSaveInput, BoundedWalletSave> = v.strictObject({ counts: v.record(name, natural), order: v.array(name) });
 const itemSchema = v.strictObject({ id: name, tick: v.pipe(v.number(), v.integer(), v.minValue(-1), v.maxValue(Number.MAX_SAFE_INTEGER)), cooldown: finite,
   fuel: v.pipe(finite, v.maxValue(1)), lit: v.boolean() });
 const loadoutSchema = v.pipe(v.strictObject({ selected: v.nullable(name), items: v.pipe(v.array(itemSchema), v.maxLength(64)) }),
@@ -92,3 +92,11 @@ export interface GridLoadout {
   stow: () => void;
   interior: () => void;
 }
+
+/** Complete admitted data, independent of validator implementation metadata. */
+type BoundedWalletSaveInput = BoundedWalletSave;
+interface BoundedWalletSaveFields {
+    counts: Record<string, number>;
+    order: string[];
+}
+type BoundedWalletSave = { [Key in keyof BoundedWalletSaveFields]: BoundedWalletSaveFields[Key] };

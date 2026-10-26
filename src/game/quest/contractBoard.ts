@@ -3,7 +3,7 @@ import type { ContractCatalogue, ContractReward } from '@wildshard/format/contra
 import { claim, contractFor, loadBoard, recordKill, reroll, projectContract, type Board, type KillInfo } from './contracts';
 
 const integer = v.pipe(v.number(), v.finite(), v.safeInteger(), v.minValue(0));
-const BoardState = v.strictObject({ next: integer,
+const BoardState: v.GenericSchema<BoundedContractBoardSaveInput, BoundedContractBoardSave> = v.strictObject({ next: integer,
   slots: v.pipe(v.array(v.strictObject({ serial: integer, kind: v.string(), target: v.string(), have: integer })), v.maxLength(8)),
   claimed: integer, streak: integer, best: integer });
 const Saved = v.strictObject({ version: v.literal(1), open: v.boolean(), board: BoardState });
@@ -88,3 +88,19 @@ export class ContractBoard {
   }
   restore(value: unknown): void { this.prepareRestore(value)(); }
 }
+
+/** Complete admitted data, independent of validator implementation metadata. */
+type BoundedContractBoardSaveInput = BoundedContractBoardSave;
+interface BoundedContractBoardSaveFields {
+    next: number;
+    slots: {
+        serial: number;
+        kind: string;
+        target: string;
+        have: number;
+    }[];
+    claimed: number;
+    streak: number;
+    best: number;
+}
+type BoundedContractBoardSave = { [Key in keyof BoundedContractBoardSaveFields]: BoundedContractBoardSaveFields[Key] };

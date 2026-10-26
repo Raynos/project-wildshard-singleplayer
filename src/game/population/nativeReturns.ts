@@ -7,7 +7,7 @@ import { RespawnQueue } from './respawn';
 import { ReturnProgram } from './returnProgram';
 
 const finite = v.pipe(v.number(), v.finite());
-const savedEntry = v.strictObject({ kind: v.string(), variant: v.string(), herd: finite,
+const savedEntry: v.GenericSchema<BoundedNativeReturnSaveInput, BoundedNativeReturnSave> = v.strictObject({ kind: v.string(), variant: v.string(), herd: finite,
   x: finite, z: finite, due: finite, night: v.boolean(), id: v.string() });
 interface ReturnBody { readonly id: string; readonly kind: string; readonly variant: string; readonly herd: number; readonly actor: HuntBody | null }
 type ReturnEntry = v.InferOutput<typeof savedEntry>;
@@ -71,3 +71,17 @@ export class NativeReturns {
     for (const { id, ...entry } of state.pending) { this.queue.pending.push(entry); this.predecessors.set(entry, id); }
   }
 }
+
+/** Complete admitted data, independent of validator implementation metadata. */
+type BoundedNativeReturnSaveInput = BoundedNativeReturnSave;
+interface BoundedNativeReturnSaveFields {
+    kind: string;
+    variant: string;
+    herd: number;
+    x: number;
+    z: number;
+    due: number;
+    night: boolean;
+    id: string;
+}
+type BoundedNativeReturnSave = { [Key in keyof BoundedNativeReturnSaveFields]: BoundedNativeReturnSaveFields[Key] };
