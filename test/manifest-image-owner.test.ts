@@ -4,6 +4,7 @@ import { expect, test, vi } from 'vitest';
 import { Scope } from '../src/engine/app/scope';
 import { sourceManifest } from '../src/game/plugin/context';
 import { emptyShardfile } from '../src/sdk/author';
+import { hashImmutableBytes } from '../src/sdk/immutable';
 
 const original = Uint8Array.from(readFileSync('test/fixtures/world-source/image.png'));
 const hash = 'a'.repeat(64);
@@ -26,9 +27,8 @@ test('owned manifest shares one detached image across all card and map reference
     expect(create).toHaveBeenCalledTimes(1);
     expect(manifest.biome).toBe('Image biome');
     expect(manifest.blurb).toBe('Original image card');
-    const predecessor = sourceManifest(fixture(), new Map([[hash, original]]));
-    expect(JSON.stringify({ ...manifest, card: predecessor.card, minimap: predecessor.minimap }))
-      .toBe(JSON.stringify(predecessor));
+    const metadata = JSON.stringify({ ...manifest, card: { thumb: hash, portrait: hash, landscape: hash }, minimap: { image: hash } });
+    expect(hashImmutableBytes(new TextEncoder().encode(metadata))).toBe('e5e3bc4fc5eb0b0d0b4324297c1279852f651f96a0324d61d352246a9601564f');
     storage.fill(0);
     const response = await fetch(manifest.card.thumb);
     expect(response.headers.get('content-type')).toBe('image/png');
@@ -82,12 +82,12 @@ test('removing images retires the previous batch without allocating URLs', async
   } finally { owner.dispose(); }
 });
 
-test('retired owners refuse before URL allocation and preserve the unowned path', () => {
+test('retired or missing owners refuse before URL allocation', () => {
   const owner = new Scope('manifest'), assets = new Map([[hash, original]]), create = vi.spyOn(URL, 'createObjectURL');
   owner.dispose();
   expect(() => sourceManifest(fixture(), assets, owner)).toThrow('Image owner retired');
   expect(create).not.toHaveBeenCalled();
-  expect(sourceManifest(fixture(), assets).card.thumb).toMatch(/^data:image\/png;base64,/u);
+  expect(() => sourceManifest(fixture(), assets)).toThrow('Image owner required');
 });
 
 test('retiring ancestors refuse before URL allocation', () => {

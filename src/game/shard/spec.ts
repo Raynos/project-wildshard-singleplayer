@@ -42,7 +42,7 @@ export function toLevelSpec(manifest: ShardManifest, product?: ShardProduct): Le
     minimap: ((map) => {
       const { image: path, ...look } = map ?? {};
       const built = manifest.shardfile !== undefined || manifest.entries?.shardfile === true;
-      const image = path === undefined || (built && !path.startsWith('data:')) ? undefined : bakedMapUrl(path);
+      const image = path === undefined || (built && !path.startsWith('data:') && !path.startsWith('blob:')) ? undefined : bakedMapUrl(path);
       return image === undefined ? look : { ...look, image };
     })(manifest.minimap),
     kitLook: manifest.kitLook ?? 'pbr',

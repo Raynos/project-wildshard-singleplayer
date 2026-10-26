@@ -297,7 +297,7 @@ export class HybridShardPlugin extends ShardPlugin {
 export async function prepareHybridShard(input: ShardProduct | Pick<Shardfile, 'identity'>, options: ProductOptions | { firstParty: true },
   bindings: Omit<ShardfileClientBindings, 'instance' | 'trustedRuntime'> & {
     /** The game adapter forwards the page owner; the shard need not read or own another service. */
-    readonly residencyContext?: Pick<ShardContext, 'game'>;
+    readonly residencyContext?: Pick<ShardContext, 'game' | 'scope'>;
     /** Retain an adapted borrowed home runtime across road visits; neighbours remain fenced. */
     readonly retainHomeRuntime?: boolean;
     /** First-party transition whose runtime installs every admitted world/kit/play declaration.
@@ -323,7 +323,9 @@ export async function prepareHybridShard(input: ShardProduct | Pick<Shardfile, '
   if (residency !== undefined && providedBindings.residency !== undefined && residency !== providedBindings.residency) {
     throw new Error('Hybrid installation and bindings must share one page residency owner');
   }
-  const clientBindings = residency === undefined ? providedBindings : { ...providedBindings, residency };
+  const imageOwner = providedBindings.imageOwner ?? residencyContext?.scope;
+  const clientBindings = { ...providedBindings, ...(residency === undefined ? {} : { residency }),
+    ...(imageOwner === undefined ? {} : { imageOwner }) };
   const gridInstance = pageGridInstance(), instance = gridInstance ?? source.identity.slug;
   // The data client announces only when it will actually build a simulation. An empty trusted transition runs its
   // legacy gameplay directly and has no handoff; promising one would hold the reveal until its safety ceiling.

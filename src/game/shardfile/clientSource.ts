@@ -100,7 +100,7 @@ function clientSource(admitted: AdmittedProduct, options: ProductOptions, bindin
     ...(options.firstParty ? {} : { instance: admitted.instance ?? '' }) };
   const residency = clientResidency(source, ownedBindings);
   const assets = new ClientAssets(source, admitted.assets, options);
-  const manifest = sourceManifest(source, admitted.assets);
+  const manifest = sourceManifest(source, admitted.assets, bindings.imageOwner);
   const clientBindings = { ...ownedBindings, allocator: residency.allocator };
   const result: ShardManifest = { ...manifest, ...(source.presentation === undefined ? { biome: 'Authored world', blurb: source.identity.name } : {}),
     // Traversal belongs to the platform, independently of authored item rows or Developer mode.

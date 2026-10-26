@@ -30,6 +30,7 @@ import { bootRoute } from './bootRoute';
 import { lastEnd } from './engine/boot/lastEnd';
 
 const entryScope = new Scope('entry');
+let selectedImages: Scope | undefined;
 const task = (): Promise<void> => new Promise((resolve) => { entryScope.timeout(0, resolve); });
 /** The plain home URL paints only the title. No renderer, world, or Three.js is imported until a shard is chosen. */
 startPageServices();
@@ -160,6 +161,7 @@ async function startSelected(): Promise<void> {
     calibrationModule, prefetchModule,
   ]).catch(imports.refuse);
   let page: ReturnType<typeof preparePageResidency> | undefined;
+  const imageOwner = entryScope.child('manifest images');
   try {
     imports.check();
     loading.setPrefetchSource(gridPrefetchStatus);
@@ -182,6 +184,7 @@ async function startSelected(): Promise<void> {
     loading.setPath(loadingPath(path, game.shard.boot?.steps, path === 'shardfile' && source === null && game.shard.shardfile === undefined), calibration);
     const declaredIcons = ['lock', 'check', 'poi', 'you', 'map', 'pack', 'star', 'book', 'heart', 'pin', 'laurel', 'sword', 'glyph', 'coin', 'purse', 'crossbow', 'rifle', 'lever', 'longbow', 'grapple', 'horse'] as const;
     const bindings: Parameters<typeof installShardfileProduct>[2] = {
+      imageOwner,
       instance: page.instance ?? (source === null ? 'template-solo' : `standalone-${source.identity.slug}`), catalogue: [], items: declaredKitItemFamilies(), voices: declaredWeaponVoices,
       ...(page.residency === undefined ? {} : { residency: page.residency }),
       icon: (name) => { const id = declaredIcons.find((entry) => entry === name); if (id === undefined) throw new Error(`Unknown catalogue item icon ${name}`); return id; },
@@ -191,6 +194,9 @@ async function startSelected(): Promise<void> {
     const manifest = source === null
       ? await installManifestShardfile(game.shard, { ...browserShardfileOptions(document.baseURI, true), memory: page.memory, progress: (progress) => { loading.paintAdmission(progress); } }, bindings, imports.ready)
       : await installShardfileProduct(source, { ...browserShardfileOptions(document.baseURI), memory: page.memory, progress: (progress) => { loading.paintAdmission(progress); } }, bindings, imports.ready);
+    const previousImages = selectedImages;
+    selectedImages = imageOwner;
+    previousImages?.dispose();
     const [{ installKitSpecies, installLegacyKitSpecies }, { installKitIcons, BAG_ICONS }, { installPickupCatalogue, preparePickupCatalogue },
       { default: PICKUP_CATALOGUE }, { installKitProps }, { STARTER_BAG_ITEMS }, { HOVERBOARD_TOOL }, , { sharedCombatCues }] = await imports.ready();
     if (source !== null || manifest.shardfile !== undefined) document.documentElement.classList.remove('title-first');
@@ -217,6 +223,9 @@ async function startSelected(): Promise<void> {
     }, { mode: page.mode, memory: page.memory, ...(page.recovery === undefined ? {} : { recovery: page.recovery }), ...(page.residency === undefined ? {} : { residency: page.residency }) });
   } catch (error) {
     try { return await imports.refuse(error); }
-    finally { page?.residency?.dispose(); page?.memory.dispose(); }
+    finally {
+      if (selectedImages === imageOwner) selectedImages = undefined;
+      imageOwner.dispose(); page?.residency?.dispose(); page?.memory.dispose();
+    }
   }
 }

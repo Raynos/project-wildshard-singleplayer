@@ -1,4 +1,5 @@
 import type * as ScriptPresentation from '../plugin/ui';
+import type { Scope } from '@wildshard/engine/app/scope';
 import type * as LootPresentation from '../loot/runtime';
 import type * as CompendiumPresentation from '../compendium/install';
 import { declareModuleGroups } from '@wildshard/engine/boot/download';
@@ -87,6 +88,8 @@ export interface ShardfileClientBindings {
   voices: (audio: ShardPlayHost['audio']) => DeclaredAudioPorts['voices']; catalogue: readonly LedgerCatalogueItem[];
   instance: string;
   allocator?: ResidencyAllocator;
+  /** Own admitted card/map URLs through hydration, replacement and final retirement. */
+  imageOwner?: Scope;
   /** Optional grid-page owner, created before hydration. Runtime homes reuse its reviewed early claim. */
   residency?: PageResidency;
   /** Explicit trusted native actor recipes for declared brain families. */

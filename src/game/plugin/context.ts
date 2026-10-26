@@ -18,8 +18,7 @@ import type { AudioData } from '@wildshard/format/audio';
 import { RuntimeSchema, type RuntimeDeclaration } from '@wildshard/format/runtime';
 import { parseShardSlug } from '../shard/slug';
 import type { Shardfile } from '@wildshard/format/shardSchema';
-import { stillImageUrl } from '../shardfile/stillImage';
-import { ownedPresentationImages, presentationCard } from '../shardfile/presentation';
+import { ownedPresentationImages } from '../shardfile/presentation';
 import { absentShardProduct, type ShardProduct } from '../shardfile/shardProduct';
 
 
@@ -173,10 +172,11 @@ export function compiledPageBoot(authored: ShardManifest['boot'], compiled: Shar
 
 /** Map parsed data and admitted immutable image bytes into catalogue/level metadata.
  * No fetch, browser decode, world allocation or service installation occurs here. Absent presentation keeps the empty card.
- * An optional image owner atomically replaces its per-identity URL batch; an omitted owner retains the original inert URLs.
+ * Image-bearing manifests require an owner that atomically replaces its per-identity URL batch.
  * The caller owns asset admission and the library lease; the returned hooks enter the ordinary session later. */
 export function sourceManifest(source: Pick<Shardfile, 'identity' | 'accent' | 'spawn' | 'look' | 'presentation' | 'map'> & Partial<Pick<Shardfile, 'navigation'>>, assets: ReadonlyMap<string, Uint8Array> = new Map(), imageOwner?: Scope): ShardManifest {
   const presentation = source.presentation;
+  if (imageOwner === undefined && (presentation !== undefined || source.map !== undefined)) throw new Error('Image owner required');
   const navigation = source.navigation === null || source.navigation === undefined ? undefined : assets.get(source.navigation.file);
   if (source.navigation !== null && source.navigation !== undefined && navigation === undefined) throw new Error('Navigation is missing admitted bytes');
   const map = source.map === undefined ? undefined : assets.get(source.map.image);
@@ -188,13 +188,13 @@ export function sourceManifest(source: Pick<Shardfile, 'identity' | 'accent' | '
     ...(source.navigation === null || source.navigation === undefined || navigation === undefined ? {} : { navigation: { row: source.navigation, bytes: navigation } }),
     api: 1, accent: source.accent, slug, name: source.identity.name, seed: source.identity.seed,
     order: 0, status: 'live', label: '(0, 0)', biome: presentation?.biome ?? 'Empty world', blurb: presentation?.blurb ?? 'An empty shardfile world.',
-    card: presentation === undefined ? { thumb: card, portrait: card, landscape: card } : images?.card ?? presentationCard(presentation, assets), style: 'greybox', kitLook: 'toon', hands: 'toon', weapon: 'custom',
+    card: images?.card ?? { thumb: card, portrait: card, landscape: card }, style: 'greybox', kitLook: 'toon', hands: 'toon', weapon: 'custom',
     treeCount: 0, trees: { factory: 'none', noun: 'trees' }, ground: { structures: true, paths: 'plugin' }, horizon: { rings: [], cloudSea: false },
     spawn: { ...source.spawn }, spawns: [], species: [], uses: [], boundary: { visible: false },
     sky: { sunColor: [1, 1, 1], sunIntensity: 1, envIntensity: 0.5, bgIntensity: 1, fogSunColor: [1, 1, 1], cloudSunColor: [1, 1, 1], hemiSky: 0x9ca7b4, hemiGround: 0x606060, hemiIntensity: 0.7, sun: { azimuth: 35, elevation: 45 } },
     atmosphere: { fogHeight: -20, fogHeightFalloff: 0, fogHeightDensity: 0, fogDistDensity: 0, volumetricSunColor: [1, 1, 1] },
     grade: { saturation: source.look.grade.saturation - 1, brightness: 0, contrast: source.look.grade.contrast - 1, bloomIntensity: 0, bloomThreshold: 1, shadowTint: [1, 1, 1], highTint: [1, 1, 1], lift: [0, 0, 0], gain: [1, 1, 1], gamma: 1 },
-    budgets: {}, fight: {}, loadout: { weapons: [], tools: [], start: [] }, minimap: map === undefined ? {} : { image: images?.map ?? stillImageUrl(map) },
+    budgets: {}, fight: {}, loadout: { weapons: [], tools: [], start: [] }, minimap: images?.map === undefined ? {} : { image: images.map },
     render: async () => source.look.keys.length === 0 ? (await import('../shardfile/emptyLook')).emptyLook(source.look.dayOverride) : (await import('../shardfile/look')).shardfileLook(source.look), tiers: { phone: { ao: false, godRays: false }, desktop: { ao: false, godRays: false } },
     audio: { ambience: 'none', score: 'none' },
     boot: { files: () => [], sources: () => ({ sky: [], baked: [], terrain: [], trees: [], physics: [], cabins: [], props: [], art: [], music: [], sfx: [] }), viewmodelSets: [], audio: () => Promise.resolve([]), precache: [] },
