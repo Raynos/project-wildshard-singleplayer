@@ -6,7 +6,7 @@ import type { Renderer } from './renderer';
 export interface ProgramReference { readonly cacheKey: string; usedTimes: number }
 export const RETAINED_PROGRAM_LIMIT = 512;
 /** Conservative admission estimate; native driver storage remains a measured, report-only quantity. */
-export const RETAINED_PROGRAM_BYTES = 256 * 1024;
+export const RETAINED_PROGRAM_BYTES: number = 256 * 1024;
 
 /** Add one material-owned reference per unique compiled key. Preflight before changing any reference count. */
 export function pinProgramReferences(held: Map<string, ProgramReference>, programs: readonly ProgramReference[]): number {
@@ -78,7 +78,7 @@ export interface ProgramKeeper {
  * last; past `limit` distinct programs the oldest holders are disposed, and three's ordinary disposal releases only the
  * programs nothing else uses. `owner` ends every pin.
  */
-export function createProgramKeeper(renderer: ProgramRenderer, owner: Scope, camera: Camera, scene: Scene, limit = RETAINED_PROGRAM_LIMIT): ProgramKeeper {
+export function createProgramKeeper(renderer: ProgramRenderer, owner: Scope, camera: Camera, scene: Scene, limit: number = RETAINED_PROGRAM_LIMIT): ProgramKeeper {
   const holders = new Map<string, ReturnType<typeof programHolder>>();
   const distinct = (): number => { const keys = new Set<string>(); for (const holder of holders.values()) for (const key of holder.held.keys()) keys.add(key); return keys.size; };
   return {

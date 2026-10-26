@@ -8,12 +8,12 @@
  */
 import * as THREE from 'three';
 import { buildHoverboard } from '../render/hoverboardGeometry';
-import { defineModel } from './model';
+import { defineModel, type ModelDef } from './model';
 
 /** how far the halos hang under the deck's centre (Hoverboard.ts: THICK / 2 + 0.045 + the halo's own 0) */
 const UNDER = 0.032 / 2 + 0.045;
 
-export const hoverboard = defineModel<object>({
+export const hoverboard: ModelDef<object> = defineModel<object>({
   id: 'shared/hoverboard', name: 'Hoverboard', category: 'gear', pipeline: 'code', file: 'src/engine/models/hoverboard.ts', surface: 'metal',
   defaults: {},
   build: () => {

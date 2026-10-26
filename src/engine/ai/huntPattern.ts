@@ -106,7 +106,7 @@ const CHARGE_WHEN_HIT_DIST = 25;   // a wounded boar this close turns on you ins
 /** melee shards: the charge wind-up per species (s) when the species declares none */
 const CHARGE_WINDUP_DEFAULT = 0.5;
 /** melee shards: the contact arc (half-angle, rad), the self-thinking species' strike arc, the turn cap while attacking (rad/s) */
-export const CHARGE_ARC = MathUtils.degToRad(50), HURT_ARC = MathUtils.degToRad(70), ATTACK_TURN = 1.5;
+export const CHARGE_ARC: number = MathUtils.degToRad(50), HURT_ARC: number = MathUtils.degToRad(70), ATTACK_TURN = 1.5;
 const CHARGE_COMMIT = 4.5, CHARGE_COMMIT_TURN = 1.1;   // m from the player inside which a charge stops tracking, and its turn rate there (rad/s)
 /** E297 fight rules: the stalk a boar gets when it has none (it comes for you instead of bolting); its circling / back-off speeds (m/s) */
 const RULES_STALK: NonNullable<HuntTuning['stalk']> = { detect: 0, speed: 3.0, giveUp: 45, rechargeCd: RULES_CD_HIT, huffMin: 2.5, huffMax: 5, roar: '', fleeBelowHp: BREAK_OFF_HP, fleeChance: BREAK_OFF_CHANCE };

@@ -1217,7 +1217,7 @@ export const CLAIM_MARGIN = 0.15;
 export const LIVE_SPLIT_EVERY = 12;
 /** In play, a piece with more colliders than this and no `split` of its own splits by LIVE_SPLIT_EVERY on the engine's
  *  paced yield (OP5): Pine's 69 stump hulls landed as one unsplit registration inside a grid cell's travel window. */
-export const LIVE_SPLIT_OVER = 2 * LIVE_SPLIT_EVERY;
+export const LIVE_SPLIT_OVER: number = 2 * LIVE_SPLIT_EVERY;
 const _claim = new THREE.Box3();
 
 /** the smallest of `p`'s copy boxes holding `pt` (grown by CLAIM_MARGIN), or null when `pt` is on none of them */

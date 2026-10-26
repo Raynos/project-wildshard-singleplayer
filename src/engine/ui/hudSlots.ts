@@ -127,4 +127,4 @@ export class HudSlots {
 }
 interface HudSlotsState { bands?: readonly HudBand[]; placements?: ReadonlyMap<HTMLElement, { band: HudBand; order: number }>; layer: HTMLElement | null; status: HTMLElement | null; pending: ((layer: HTMLElement, status: HTMLElement) => void)[] }
 
-export const hudSlots = new HudSlots();
+export const hudSlots: HudSlots = new HudSlots();

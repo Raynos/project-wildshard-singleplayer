@@ -10,14 +10,14 @@ import { engineString } from '../strings';
  */
 import * as THREE from 'three';
 import { buildSwimGloves, ELBOW, IDLE, type SwimStyle } from '../player/Hands';
-import { defineModel } from './model';
+import { defineModel, type ModelDef } from './model';
 
 export interface SwimHandsParams { readonly style: SwimStyle }
 
 const FWD = new THREE.Vector3(0, 0, -1);
 
 /** the first-person swimming hands, smooth or faceted */
-export const swimHands = defineModel<SwimHandsParams>({
+export const swimHands: ModelDef<SwimHandsParams> = defineModel<SwimHandsParams>({
   id: 'shared/swim-hands', name: 'Swimming hands', category: 'gear', pipeline: 'code', file: 'src/engine/models/swimHands.ts', surface: 'flesh',
   defaults: { style: 'pbr' },
   variants: [{ id: 'smooth', label: engineString('s_da5193877772'), params: { style: 'pbr' } }, { id: 'faceted', label: engineString('s_e272f5b4fded'), params: { style: 'toon' } }],

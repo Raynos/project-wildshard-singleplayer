@@ -6,7 +6,7 @@ let report: ((failure: SchemaFailure) => void) | null = null;
 const pending: SchemaFailure[] = [];
 let forget: ((keys: readonly string[]) => void) | null = null;
 /** The same service exposed as app.saves, available before the app/renderer graph evaluates. */
-export const saves = new SaveStore({
+export const saves: SaveStore = new SaveStore({
   build: (() => { try { return __BUILD_ID__; } catch { return ''; } })(),
   report: (failure) => { if (report) report(failure); else { pending.push(failure); if (pending.length > 32) pending.shift(); } },
   forgetLegacy: (keys) => { forget?.(keys); },
@@ -26,4 +26,4 @@ export function homeScreenPersistence(standalone: () => boolean = standaloneDisp
   };
 }
 /** the page's: the entry calls it at boot */
-export const persistHomeScreen = homeScreenPersistence();
+export const persistHomeScreen: (store?: Pick<SaveStore, "persist">) => void = homeScreenPersistence();

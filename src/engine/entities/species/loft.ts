@@ -41,7 +41,7 @@ export type RGB = [number, number, number];
 const _t = new THREE.Vector3(), _side = new THREE.Vector3(), _up = new THREE.Vector3(), _n = new THREE.Vector3(), _c = new THREE.Color();
 
 /** shared low-frequency noise for coat mottling / patches (fbm ≈ -1..1) */
-export const paintNoise = new Noise2D(4242);
+export const paintNoise: Noise2D = new Noise2D(4242);
 
 export const srgb = (r: number, g: number, b: number): THREE.Color => new THREE.Color().setRGB(r, g, b, THREE.SRGBColorSpace);
 export const mix = (out: THREE.Color, a: THREE.Color, b: THREE.Color, t: number): THREE.Color => { out.copy(a).lerp(b, THREE.MathUtils.clamp(t, 0, 1)); return out; };
@@ -55,7 +55,7 @@ export function paletteColors<K extends string>(base: Record<K, RGB>, tint: Reco
 }
 
 /** station helper */
-export const S = (x: number, y: number, z: number, rx: number, ry: number, b0: number, b1 = b0, w1 = 0, top = 1, bot = 1): Station => ({ x, y, z, rx, ry, top, bot, b0, b1, w1 });
+export const S: (x: number, y: number, z: number, rx: number, ry: number, b0: number, b1?: number, w1?: number, top?: number, bot?: number) => Station = (x: number, y: number, z: number, rx: number, ry: number, b0: number, b1: number = b0, w1 = 0, top = 1, bot = 1): Station => ({ x, y, z, rx, ry, top, bot, b0, b1, w1 });
 
 /** name → index lookup for a BoneDef list (throws on a typo) */
 export function boneIndex(bones: { name: string }[]): (name: string) => number {

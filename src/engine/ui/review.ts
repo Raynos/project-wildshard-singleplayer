@@ -27,7 +27,7 @@ const QUEUE_KEY = 'review.queue';
 /** a queued note carries a ≤ 300 KB screenshot; localStorage holds ~5 MB, shared with the saves */
 export const QUEUE_MAX = 6;
 /** the native shells (Capacitor) have no same-origin /api: they post to production (CORS in api/inbox.ts) */
-export const INBOX_URL = import.meta.env.MODE === 'native' ? 'https://wildshard-singleplayer.vercel.app/api/inbox' : '/api/inbox';
+export const INBOX_URL: string = import.meta.env.MODE === 'native' ? 'https://wildshard-singleplayer.vercel.app/api/inbox' : '/api/inbox';
 
 interface ReviewState { password: string | null; quick: boolean }
 

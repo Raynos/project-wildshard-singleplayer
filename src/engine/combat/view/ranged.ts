@@ -23,7 +23,7 @@ export interface RangedOptions { row: EquipmentRow; allowUnlocked?: boolean }
 export type CrossbowWorld = RangedWorld;
 export type CrossbowOptions = RangedOptions;
 export const TRACER_ORDER = 1200;
-export const TRACER_RED = new THREE.Color(1.0, 0.0, 0.0);
+export const TRACER_RED: THREE.Color = new THREE.Color(1.0, 0.0, 0.0);
 /** The impact sound / puff family of what was hit (three sample sets): bark and planks are wood, everything else ground. */
 export function impactSurfaceOf(m: Material): ImpactSurface {
   return m === 'flesh' ? 'flesh' : m === 'wood' || m === 'planks' ? 'wood' : 'ground';

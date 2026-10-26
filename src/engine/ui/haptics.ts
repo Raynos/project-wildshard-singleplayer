@@ -8,9 +8,11 @@
  */
 import { getSetting } from './Settings';
 
-export const CAN_VIBRATE = typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function' && matchMedia('(pointer: coarse)').matches;
+export const CAN_VIBRATE: boolean = typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function' && matchMedia('(pointer: coarse)').matches;
 
-export const HAPTIC = {
+export const HAPTIC: { readonly hit: 14; readonly kill: readonly [22, 40, 34]; readonly dodge: 10; readonly lunge: 8; readonly lock: 12; // lock-on (E50): lock …
+readonly lockSwitch: 6; // … switch …
+readonly lockBreak: 20; } = {
   hit: 14,
   kill: [22, 40, 34],
   dodge: 10,

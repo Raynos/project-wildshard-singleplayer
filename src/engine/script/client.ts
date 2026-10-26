@@ -5,9 +5,9 @@ import { ScriptWorld, type ScriptEffect, type EffectTransaction } from './effect
 import type { ScriptModule } from './lane';
 
 /** Presentation-only operations. Authoritative field, position, spawn, event and shared/player writes are refused. */
-export const CLIENT_SCRIPT_OP = Object.freeze({ offset: 101, rotation: 102, scale: 103, particle: 104 });
+export const CLIENT_SCRIPT_OP: Readonly<{ offset: 101; rotation: 102; scale: 103; particle: 104; }> = Object.freeze({ offset: 101, rotation: 102, scale: 103, particle: 104 });
 /** Aggregate presentation ceilings; emitted particles are visual instances, never simulation entities. */
-export const CLIENT_SCRIPT_LIMITS = Object.freeze({ bindings: 128, particlesPerTick: 256, particlesLive: 4096, emitters: 16, fields: 24, parameters: 64 });
+export const CLIENT_SCRIPT_LIMITS: Readonly<{ bindings: 128; particlesPerTick: 256; particlesLive: 4096; emitters: 16; fields: 24; parameters: 64; }> = Object.freeze({ bindings: 128, particlesPerTick: 256, particlesLive: 4096, emitters: 16, fields: 24, parameters: 64 });
 /** An admitted visual emitter; its recipe, lifetime and limits are host declarations rather than script effects. */
 export interface ClientScriptEmitter { id: number; perTick: number; live: number; lifetimeTicks: number }
 /** One stable visual target. Parameters and read count are fixed before any bytecode is instantiated. */

@@ -31,7 +31,7 @@ export const wrapClock = (n: number, period: number): number => ((n % period) + 
 /** A clock's period in its own units. */
 export const clockPeriod = (law: Pick<DayClockLaw, 'units'>): number => law.units === 'phase' ? 1 : 24;
 /** Every named phase, in order. */
-export const DAY_CLOCK_PHASES = ['dawn', 'day', 'golden', 'dusk', 'night'] as const satisfies readonly DayClockPhase[];
+export const DAY_CLOCK_PHASES: readonly ["dawn", "day", "golden", "dusk", "night"] = ['dawn', 'day', 'golden', 'dusk', 'night'] as const satisfies readonly DayClockPhase[];
 
 /** The fixed hour table a phase clock names its phase by. */
 export function hourPhase(h: number): DayClockPhase {
