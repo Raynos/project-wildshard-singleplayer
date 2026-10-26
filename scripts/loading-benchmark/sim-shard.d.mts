@@ -19,6 +19,10 @@ export function stepEvidence(samples: readonly StepSample[]): {
   lastSetupBeforeFade: number | null;
 };
 export function compiledPollDetails<T extends {errors: readonly string[]}, U>(details: boolean, accuracy: T | null, measures: () => U): {accuracy: T | null; measures: U} | {errors: readonly string[]};
+/** A visible boot fault stays fatal even without an injected accuracy recorder. */
+export function compiledVisibleFailure(sample: {error?: string | null}, read: () => Promise<unknown>): Promise<{
+  error: string; state: unknown; captureError?: string;
+} | null>;
 /** Callback coverage only; never painted-frame or L11 acceptance. */
 export function admissionFrameEvidence(record: AdmissionFrames | undefined): {
   callbackRecordComplete: boolean; reason: string | null; observedFrames: number; blankFooterFrames: number | null;

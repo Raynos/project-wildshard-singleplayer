@@ -10,6 +10,16 @@ export function compiledPollDetails(details, accuracy, measures) {
   return details ? { accuracy, measures: measures() } : { errors: accuracy?.errors ?? [] };
 }
 
+/** Stop on the actual visible fault even when a warm worker served HTML
+ * without the diagnostic recorder. A failed state read cannot hide the fault.
+ * @param {{error?: string | null}} sample @param {() => Promise<unknown>} read */
+export async function compiledVisibleFailure(sample, read) {
+  const error = sample.error;
+  if (typeof error !== 'string' || error.trim() === '') return null;
+  try { return {error, state: await read()}; }
+  catch (captureError) { return {error, state: null, captureError: String(captureError)}; }
+}
+
 /** Keep callback coverage separate from painted frames and label correctness.
  * Missing/overflowed/truncated records cannot qualify complete observation.
  * @param {import('./accuracy-data.d.mts').AdmissionFrames | undefined} record */

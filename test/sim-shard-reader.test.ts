@@ -1,8 +1,22 @@
 import { expect, test } from 'vitest';
-import { admissionFrameEvidence, compiledTimingHistory, compiledDocumentEvidence, compiledEntryQualification, compiledFrameMetrics, compiledPollDetails, downloadEvidence, recoveredGridControls, requireCompiledEntry, sampleCompiledFrame, stepEvidence, stepBoundaryEvidence, transportEvidence, waitForWaitingWorker, type CompiledFrameWindow } from '../scripts/loading-benchmark/sim-shard.mjs';
+import { admissionFrameEvidence, compiledTimingHistory, compiledDocumentEvidence, compiledEntryQualification, compiledFrameMetrics, compiledPollDetails, compiledVisibleFailure, downloadEvidence, recoveredGridControls, requireCompiledEntry, sampleCompiledFrame, stepEvidence, stepBoundaryEvidence, transportEvidence, waitForWaitingWorker, type CompiledFrameWindow } from '../scripts/loading-benchmark/sim-shard.mjs';
 import type { AdmissionFrames } from '../scripts/loading-benchmark/accuracy-data.d.mts';
 
 const frameWindow = (): CompiledFrameWindow => ({ controlsAt: null, last: null, worst: 0, worstAt: null, frames: 0, complete: false });
+
+test('a visible warm boot fault refuses without depending on accuracy injection or state capture', async () => {
+  let reads = 0;
+  const read = () => { reads++; return Promise.resolve({accuracy: null, stack: 'actual asset caller'}); };
+  expect(await compiledVisibleFailure({}, read)).toBeNull();
+  for (const error of [null, '', '  ']) expect(await compiledVisibleFailure({error}, read)).toBeNull();
+  expect(reads).toBe(0);
+  const error = 'Error: Unavailable or oversized shardfile asset';
+  expect(await compiledVisibleFailure({error}, read)).toEqual({error, state: {accuracy: null, stack: 'actual asset caller'}});
+  expect(reads).toBe(1);
+  const failure = await compiledVisibleFailure({error}, () => Promise.reject(new Error('Inspector disconnected')));
+  expect(failure).toEqual({error, state: null, captureError: 'Error: Inspector disconnected'});
+  expect(compiledEntryQualification([{error: failure?.error ?? 'missing failure'}])).toMatchObject({complete: false, exitCode: 1});
+});
 
 test('step boundaries use retained first-entry facts, including steps missed by sampled rows', () => {
   const report = stepBoundaryEvidence({at: 1100, elapsedMs: 1000, fading: true, rows: [

@@ -24,7 +24,7 @@ import { soakInspector } from './soak/inspector.mjs';
 import { loadingCardIndex, loadingShardName } from './loading-benchmark/catalogue.mjs';
 import { observeTransport } from './loading-benchmark/transport.mjs';
 import { accuracyRecorder } from './loading-benchmark/accuracy-data.mjs';
-import { requireCompiledEntry, downloadEvidence, stepEvidence, stepBoundaryEvidence, transportEvidence, waitForWaitingWorker, recoveredGridControls, sampleCompiledFrame, compiledFrameMetrics, compiledEntryQualification, compiledDocumentEvidence, compiledPollDetails, compiledTimingHistory, admissionFrameEvidence } from './loading-benchmark/sim-shard.mjs';
+import { requireCompiledEntry, downloadEvidence, stepEvidence, stepBoundaryEvidence, transportEvidence, waitForWaitingWorker, recoveredGridControls, sampleCompiledFrame, compiledFrameMetrics, compiledEntryQualification, compiledDocumentEvidence, compiledPollDetails, compiledVisibleFailure, compiledTimingHistory, admissionFrameEvidence } from './loading-benchmark/sim-shard.mjs';
 import { cachedBodyEvidence } from './loading-benchmark/cache-bodies.mjs';
 import { saveFixtureCode } from './debug-settings.mjs';
 import { readSimulatorCoreFootprint, selectedCoreMemoryTargets, coreMemorySummary, compiledFloorSave, scriptResourceURLs,
@@ -271,7 +271,7 @@ async function run(mode, index, target) {
     recorder.stdout.on('data', on); recorder.stderr.on('data', on); setTimeout(() => { resolve(Date.now()); }, 8000);
   });
   let timingBefore = null;
-  let sample = null, compiled = null, compiledReady = false, secondTapAt = null, recoveredAt = null;
+  let sample = null, compiled = null, compiledReady = false, compiledFault = null, secondTapAt = null, recoveredAt = null;
   try {
     await sleep(1000);
     const setup = shard === undefined && upgradeFrom === undefined ? '' : [
@@ -335,6 +335,20 @@ async function run(mode, index, target) {
         await page.evaluate(WATCH);
         sample = JSON.parse(await page.evaluate(READ));
         log(file, { ev: 'poll', ...sample });
+        if (shard !== undefined && sample.error) {
+          const failure = await compiledVisibleFailure(sample, async () => JSON.parse(await page.evaluate(`JSON.stringify({
+            stack: document.querySelector('#wserr pre')?.textContent?.slice(0, 65536) ?? null,
+            accuracy: window.__loadingAccuracy ?? null,
+            resources: performance.getEntriesByType('resource').slice(-64).map(row => ({name: row.name,
+              startTime: row.startTime, duration: row.duration, transferSize: row.transferSize,
+              decodedBodySize: row.decodedBodySize, responseStatus: row.responseStatus}))})`)));
+          if (failure !== null) {
+            compiledFault = failure.error;
+            try { writeFileSync(resolvePath(out, `${label}-failure-state.json`), `${JSON.stringify({sample, ...failure}, null, 1)}\n`); }
+            catch (error) { log(file, {ev: 'failure-state-write-error', error: String(error)}); }
+            break;
+          }
+        }
         if (secondTapDiagnostic && secondTapAt === null && sample.title && new URL(sample.href).searchParams.has('v')) {
           log(file, {ev: 'upgrade-first-entry-failed', href: sample.href, worker: sample.worker});
           await gesture(`(() => {sessionStorage.setItem('sim.tap',String(performance.timeOrigin+performance.now()));document.querySelector('.ws-main-grid').click();return true;})()`);
@@ -375,6 +389,7 @@ async function run(mode, index, target) {
     if (controller.activationStage !== 'complete') throw new Error('New deployment worker did not complete activation');
   }
   if (shard !== undefined) {
+    if (compiledFault !== null) throw new Error(`${label}: ${compiledFault}`);
     if (compiled === null || !compiledReady) throw new Error(`${label}: compiled entry never reached controls`);
     const document = compiledDocumentEvidence(compiled, sample);
     requireCompiledEntry(compiled.href, shard, compiled.accuracy);
