@@ -141,7 +141,7 @@ async function frame(i) {
   if (k !== seg) { await begin(k); } else { advance(s, c); advance(s, c); }
   const err = errOf(c);
   draw(s, c, step / 60, err);
-  return { jpeg: overlay.toDataURL('image/jpeg', 0.9), err, kind: s.kind, clip: s.clip, t: step / 60 };
+  return { canvas: overlay, err, kind: s.kind, clip: s.clip, t: step / 60 };
 }
 
 // a still pair (full-resolution square) for the board: each side alone at clip time t, and the pixel difference

@@ -14,13 +14,13 @@ import { createServer } from 'node:http';
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { extname, join, resolve as resolvePath } from 'node:path';
-import { tmpdir } from 'node:os';
+import { saveCanvasJpeg } from '../parity/canvas-bytes.mjs';
 
 const { chromium, devices } = await import('playwright');
 const ROOT = resolvePath(new URL('../..', import.meta.url).pathname);
 const argv = process.argv.slice(2);
 const flag = (name, d) => { const a = argv.find((x) => x.startsWith(`--${name}=`)); return a ? a.slice(name.length + 3) : d; };
-const SCRATCH = resolvePath(flag('scratch', join(tmpdir(), `skin-playback-${process.pid}`)));
+const SCRATCH = resolvePath(flag('scratch', `tmp/skin-playback/run-${process.pid}`));
 const DIST = join(SCRATCH, 'dist'), FRAMES = join(SCRATCH, 'frames'), OUT = join(ROOT, 'progress/shard-platform/sf9c');
 mkdirSync(FRAMES, { recursive: true }); mkdirSync(OUT, { recursive: true });
 
@@ -61,8 +61,12 @@ try {
     for (const s of segments) {
       let worst = 0, afterWrap = 0;
       for (let f = 0; f < s.frames; f++, at++) {
-        const r = await page.evaluate((i) => window.skinPlayback.frame(i), at);
-        writeFileSync(join(FRAMES, `${String(at).padStart(5, '0')}.jpg`), Buffer.from(r.jpeg.split(',')[1], 'base64'));
+        const frame = await page.evaluateHandle((i) => window.skinPlayback.frame(i), at);
+        let r;
+        try {
+          r = await frame.evaluate(({ canvas: _canvas, ...metadata }) => metadata);
+          await saveCanvasJpeg(page, await frame.getProperty('canvas'), join(FRAMES, `${String(at).padStart(5, '0')}.jpg`));
+        } finally { await frame.dispose(); }
         // a looping clip's wrap (its end frame and the repeat after it) is where today's closure runs on past the window
         if (s.loop && r.t >= s.duration - 1e-6) afterWrap = Math.max(afterWrap, r.err); else worst = Math.max(worst, r.err);
       }
