@@ -22,9 +22,12 @@ const SETTLE_CAP_MS = 2000;
  *  boot steps are done: it shows the first frame's last line). Returns what it added (ms) and the node builds it caught. */
 export async function settleEntryPrograms(game: Game): Promise<{ ms: number; builds: number }> {
   const start = diagnosticNow(), scope = game.levelScope, built = (): number => game.nodeBuilds?.builds ?? 0, from = built();
-  await precompileLevel(game, undefined, { sliceMs: 12, current: () => !scope.disposed });
+  const inTime = (): boolean => diagnosticNow() - start < SETTLE_CAP_MS;
+  // the cap bounds the warm-up too: past it the warm-up stops here and the in-play warm-up finishes the rest, as before
+  try { await precompileLevel(game, undefined, { sliceMs: 12, current: () => !scope.disposed && inTime() }); }
+  catch (error) { if (scope.disposed || inTime()) throw error; }
   let quiet = 0, last = built();
-  while (!scope.disposed && quiet < QUIET_FRAMES && diagnosticNow() - start < SETTLE_CAP_MS) {
+  while (!scope.disposed && quiet < QUIET_FRAMES && inTime()) {
     await new Promise<void>((resolve) => { scope.raf(() => { resolve(); }); });
     const now = built();
     if (now === last) quiet++; else { quiet = 0; last = now; }
