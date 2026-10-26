@@ -222,6 +222,12 @@ No held-await attribution or complete route pass is claimed. Failure receipts
 now retain the existing ring preparation/wait and crossing state; one current
 exact preview is building before another development visit. Ordinary dry-run
 and gating promotion remain open; no retry of the old CI smoke was requested.
+The containing893 preview's stop evidence corrects the earlier barrier label:
+rings were ready, preparation/waits empty and crossing settled. The driver
+aimed off the declared midpoint turn-in and hit the road kerb. Its waypoint now
+uses the actual cell-edge midpoint before approaching the wall; no app source,
+readiness guard, collision or clock changes. That visit's local presented hero
+was151ms/FCP87ms, which qualifies only that development observation.
 
 ## Decisions for Jake
 

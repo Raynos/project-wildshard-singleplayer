@@ -24,8 +24,10 @@ export function phoneRoutePlans(state) {
   const road = { x: origin.x, z: origin.z - state.pitch / 2 };
   const southwestRoad = { x: origin.x - state.pitch / 2, z: road.z };
   const northwestRoad = { x: southwestRoad.x, z: origin.z + state.pitch / 2 };
-  const marketRoad = { x: target.x - 93.75, z: target.z - state.pitch / 2 };
-  const wallStart = { x: target.x - 93.75, z: target.z - 218.75 };
+  // Road kerbs open only at the shard edge midpoint (roadLayout G93).
+  // Enter there before the wall probe, rather than aiming at a room through a kerb.
+  const marketRoad = { x: target.x, z: target.z - state.pitch / 2 };
+  const wallStart = { x: target.x, z: target.z - 218.75 };
   /** @type {import('../frame-floor-grid.mjs').FloorGridPlan[]} */
   const plans = [
     { name: 'phone-driftwood-road', from: home.instance, to: null, movement: 'road-hover', waypoints: [road], requiredResidents: [] },
