@@ -21,7 +21,7 @@ export const OCEAN: OceanDef = {
 };
 
 /** Where the south pier lands (the crescent beach) — the island's origin for the later pieces. */
-export const PIER = { x: 0, z: -CHUNK_HALF, length: ROAD_LENGTH, width: 4, deckAbove: 1.2 };
+export const PIER: { x: number; z: number; length: number; width: number; deckAbove: number; } = { x: 0, z: -CHUNK_HALF, length: ROAD_LENGTH, width: 4, deckAbove: 1.2 };
 /** the other three jetties at the N / W / E edge midpoints (the mandated entry roads are their sandbars); the E one runs on into Wreck Cove.
  *  `landing`: the deck runs on to the dry sand and ramps down onto it, like the south pier (agent playtest round 1, #6: the
  *  north jetty ended 1.45 m over the beach, a step the hoverboard could not climb back up) */
@@ -35,15 +35,15 @@ export const JETTIES: readonly { readonly x: number; readonly z: number; readonl
 
 
 /** the hut site on the plateau (rot: which way the door faces — south, toward the pier) */
-export const HUT = { x: PLATEAU.x + 2, z: PLATEAU.z - 2, rot: 0 };
+export const HUT: { x: number; z: number; rot: number; } = { x: PLATEAU.x + 2, z: PLATEAU.z - 2, rot: 0 };
 
 
-export const WRECK = WRECK_SITES.world;
+export const WRECK: { x: number; z: number; heading: number; roll: number; pitch: number; floorY: number; } = WRECK_SITES.world;
 /** the ring shrine on a knoll in the north-west jungle (rot: its stair faces south-east toward the hut path; its back points at the planet, so the ring frames it from the stair head) */
-export const SHRINE = SHRINE_SITES.world;
+export const SHRINE: { x: number; z: number; rot: number; } = SHRINE_SITES.world;
 
-export const BRIDGE = BRIDGE_SPANS.world;
+export const BRIDGE: { a: [number, number]; b: [number, number]; sag: number; } = BRIDGE_SPANS.world;
 /** the lookout tower on the headland summit (rot: the stair faces south-west, toward the hut) */
-export const LOOKOUT = { x: HEADLAND.x - 4, z: HEADLAND.z - 2, rot: 0.6 };
+export const LOOKOUT: { x: number; z: number; rot: number; } = { x: HEADLAND.x - 4, z: HEADLAND.z - 2, rot: 0.6 };
 
 

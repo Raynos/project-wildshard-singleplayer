@@ -38,6 +38,6 @@ export const OCEAN_NO_DRY: readonly [number, number, number, number] = [1e9, 1e9
 export const SEA_RES = 512;
 
 /** the sea as a water-surface row (G466 H7, @wildshard/sdk/looks/waterSurface; world/Ocean.ts draws it) */
-export const OCEAN_SURFACE = { look: OCEAN_LOOK, name: OCEAN_LOOK, renderOrder: 4, culled: false, waves: true,
+export const OCEAN_SURFACE: { readonly look: "driftwood-ocean"; readonly name: "driftwood-ocean"; readonly renderOrder: 4; readonly culled: false; readonly waves: true; readonly bind: { readonly clock: "clock"; readonly waterHalf: "waterHalf"; readonly chunkHalf: "chunkHalf"; }; readonly floor: { readonly texture: "tSea"; readonly res: 512; readonly foamReach: 3; readonly foamBand: 0.3; }; readonly dry: { readonly prefix: "dry"; readonly slots: 4; readonly none: readonly [number, number, number, number]; }; } = { look: OCEAN_LOOK, name: OCEAN_LOOK, renderOrder: 4, culled: false, waves: true,
   bind: { clock: 'clock', waterHalf: 'waterHalf', chunkHalf: 'chunkHalf' },
   floor: { texture: 'tSea', res: SEA_RES, foamReach: 3, foamBand: 0.3 }, dry: { prefix: 'dry', slots: OCEAN_DRY_SLOTS, none: OCEAN_NO_DRY } } as const;

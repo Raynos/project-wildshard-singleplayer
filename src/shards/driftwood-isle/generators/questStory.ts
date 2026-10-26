@@ -1,3 +1,4 @@
+
 /**
  * Driftwood Isle's quest and its castaway — pure data (D5: castaway + three glyph shards → Ring Shrine → the Drowned
  * Captain → the golden-hour reward view). The flags it reads are raised by the interactables table
@@ -5,7 +6,7 @@
  * `dead:captain` on the kills, `seen:reward` after the reward view).
  */
 import { SHARD_FLAGS } from './interactables';
-import { parseNpcDialogueRow } from '@wildshard/format/npcs';
+import { parseNpcDialogueRow , type NpcDialogueRow as NpcDialogueRowType } from '@wildshard/format/npcs';
 import type { QuestData } from '@wildshard/sdk/quests';
 import { QUEST_DONE } from './questConstants';
 
@@ -70,10 +71,10 @@ export const DRIFTWOOD_QUEST: NativeStory = {
 };
 
 /** the flags the quest reads that come from Adventure.ts, not the table */
-export const QUEST_EXTERNAL = ['talked:castaway', 'dead:sailor', 'dead:captain', 'seen:reward'];
+export const QUEST_EXTERNAL: string[] = ['talked:castaway', 'dead:sailor', 'dead:captain', 'seen:reward'];
 
 /** Validated dialogue for Wendell's native pivot figure; its rig and motion remain unchanged. */
-export const CASTAWAY = parseNpcDialogueRow({
+export const CASTAWAY: NpcDialogueRowType = parseNpcDialogueRow({
   id: 'castaway',
   name: 'Wendell, castaway',
   dialogue: [

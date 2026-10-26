@@ -8,6 +8,6 @@ const { DRY_ENTRIES } = authoredEntryRows;
 export const SHORE_LEVEL = 0.8;
 export const WORLD_DROP = 0.8;
 /** The original whole-bay start of each native entry pier. */
-export const PIER_START = Math.floor(ENTRY_ASPHALT / 3) * 3;
+export const PIER_START: number = Math.floor(ENTRY_ASPHALT / 3) * 3;
 /** One declared sea row, read by the product and native water owner. */
-export const DECLARED_SEA = { id: 'sea', kind: 'sea', level: SHORE_LEVEL - WORLD_DROP, waves: true, dryEntries: DRY_ENTRIES } as const;
+export const DECLARED_SEA: { readonly id: "sea"; readonly kind: "sea"; readonly level: number; readonly waves: true; readonly dryEntries: ["north", "east", "south", "west"]; } = { id: 'sea', kind: 'sea', level: SHORE_LEVEL - WORLD_DROP, waves: true, dryEntries: DRY_ENTRIES } as const;

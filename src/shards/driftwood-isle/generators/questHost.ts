@@ -2,7 +2,7 @@ import { DRIFTWOOD_GRAPH, DRIFTWOOD_ACTIONS } from './questGraph';
 import policy from '../data/nativeQuest.json' with { type: 'json' };
 
 /** Native command routes retain page prompt order and borrow each live physical owner. */
-export const QUEST_HOST = {
+export const QUEST_HOST: { version: number; graph: typeof DRIFTWOOD_GRAPH; interactions: typeof DRIFTWOOD_ACTIONS; npcs: never[]; drive: string; actors: { ids: never[]; error: string; }; observations: ({ binding: string; kind: string; owner: string; cable?: never; state?: never; } | { binding: string; kind: string; cable: string; state: string; owner?: never; })[]; stages: never[]; summons: never[]; commands: { step: string; inputs: { sword: string; riding: string; }; routes: ({ value: number; spot: string; when: string; action: { kind: string; id: string; cable?: never; command?: never; }; } | { value: number; spot: string; when: string; action: { kind: string; cable: string; command: string; id?: never; }; })[]; }; } = {
   version: 1, graph: DRIFTWOOD_GRAPH, interactions: DRIFTWOOD_ACTIONS, npcs: [], drive: 'external',
   actors: { ids: [], error: 'Missing Driftwood quest body' },
   observations: [
@@ -30,4 +30,4 @@ export const QUEST_HOST = {
 };
 
 /** The admitted graph's durable flag vocabulary; it adds no state or save owner. */
-export const QUEST_FLAGS = ["talked:castaway", "open:castaway-chest", "lit:beacon", "has:flint", "taken:shard-lookout", "shard:lookout", "key:hold", "taken:hold-key", "dead:sailor", "lever:hold-pump", "lever:hold-winch", "winch:up", "open:strongbox", "taken:shard-cave", "shard:cave", "open:sluice", "used:altar", "quest:shrine-set", "shard:wreck", "open:reef-treasure", "used:vista-bench", "taken:glass-1", "glass:1", "taken:glass-2", "glass:2", "taken:glass-3", "glass:3", "taken:glass-4", "glass:4", "taken:glass-5", "glass:5", "taken:glass-6", "glass:6", "taken:glass-7", "glass:7", "taken:glass-8", "glass:8", "taken:glass-9", "glass:9", "taken:glass-10", "glass:10", "taken:glass-11", "glass:11", "taken:glass-12", "glass:12", "taken:glass-13", "glass:13", "taken:glass-14", "glass:14", "taken:glass-15", "glass:15"];
+export const QUEST_FLAGS: string[] = ["talked:castaway", "open:castaway-chest", "lit:beacon", "has:flint", "taken:shard-lookout", "shard:lookout", "key:hold", "taken:hold-key", "dead:sailor", "lever:hold-pump", "lever:hold-winch", "winch:up", "open:strongbox", "taken:shard-cave", "shard:cave", "open:sluice", "used:altar", "quest:shrine-set", "shard:wreck", "open:reef-treasure", "used:vista-bench", "taken:glass-1", "glass:1", "taken:glass-2", "glass:2", "taken:glass-3", "glass:3", "taken:glass-4", "glass:4", "taken:glass-5", "glass:5", "taken:glass-6", "glass:6", "taken:glass-7", "glass:7", "taken:glass-8", "glass:8", "taken:glass-9", "glass:9", "taken:glass-10", "glass:10", "taken:glass-11", "glass:11", "taken:glass-12", "glass:12", "taken:glass-13", "glass:13", "taken:glass-14", "glass:14", "taken:glass-15", "glass:15"];

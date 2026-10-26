@@ -21,7 +21,7 @@ export function islandClipFacts(grid: { vertices: number; x0: number; x1: number
 
 /** The native grid's index with the baked island's cells dropped (its terrain tiles stand there), the retained runs in
  *  order, so every kept triangle keeps its provoking vertex. */
-export function islandClippedIndex(index: ArrayLike<number>, clip = islandClipFacts()): Uint16Array {
+export function islandClippedIndex(index: ArrayLike<number>, clip: { sourceVertices: number; sourceIndices: number; outputIndices: number; ranges: { start: number; count: number; }[]; } = islandClipFacts()): Uint16Array {
   if (index.length !== clip.sourceIndices) throw new Error('Baked island terrain topology differs');
   const out = new Uint16Array(clip.outputIndices); let at = 0;
   for (const { start, count } of clip.ranges) for (let i = start; i < start + count; i++) out[at++] = index[i] ?? 0;

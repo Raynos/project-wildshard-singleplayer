@@ -23,7 +23,7 @@ export const ISLAND_TIERS = {
  * placements set apart (E114: the shore boulders are Boulders.ts's, the small rocks rockKit's), which kinds cast, which
  * cover is big. `protoPrefix`: the prototypes' mesh names in island.glb.
  */
-export const ISLAND_LOOK = {
+export const ISLAND_LOOK: { lod: number; far: { ratio: number; error: number; }; coverDepth: number; names: { casterKinds: string[]; skip: string; apart: string; big: string; }; protoPrefix: string; meshPrefix: string; palmCell: number; } = {
   lod: 110,
   far: { ratio: 0.25, error: 0.01 },
   coverDepth: 0.6,
