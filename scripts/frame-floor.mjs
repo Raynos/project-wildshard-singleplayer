@@ -246,6 +246,7 @@ function metadata() {
   const saved = JSON.parse(localStorage.getItem('wildshard.save.v2.global') ?? '{}');
   const deviceSaved = JSON.parse(localStorage.getItem('wildshard.save.v2.device') ?? '{}');
   return { renderer: ext ? String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)) : String(gl.getParameter(gl.RENDERER)),
+    entrySettle: performance.getEntriesByName('wildshard.entry.programs-settled')[0]?.detail ?? null, entryControls: performance.getEntriesByName('wildshard.grid.entry-policy')[0]?.startTime ?? null,
     viewport: [innerWidth, innerHeight], devicePixelRatio, renderScale: g.renderer.getPixelRatio(), canvas: [g.canvas.width, g.canvas.height], developer: Object.hasOwn(document.documentElement.dataset,'dev'),
     settings: saved.keys?.settings?.data, effectiveDebugSettings: window.__wildshard.debugSettings?.() ?? null, settingsReset: 'replace-settings-and-clear-debug-overrides', gfx: saved.keys?.gfx?.data, deviceSaves: Object.fromEntries(Object.entries(deviceSaved.keys ?? {}).map(([key, value]) => [key, value.data])), clock: g.app.clock.mode,
     bootTrace: deviceSaved.keys?.['boot.trace']?.data, console: window.__frameFloorConsole ?? [],

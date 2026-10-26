@@ -136,7 +136,7 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   await Promise.race([Promise.all([drawn, ctx.minimap.prepare()]), new Promise<void>((resolve) => { game.levelScope.timeout(1500, resolve); })]);
   // G717 A: the phone tier builds its first played frames' programs under the loader (settlePrograms.ts)
   // until its added seconds are measured it runs only under the measurement pin (G717: <= ~2 s cold before it ships)
-  if (TIER === 'phone' && harnessPins()?.entrySettle === true) await settleEntryPrograms(game, (detail) => { loading.waiting(detail); });
+  if (TIER === 'phone' && harnessPins()?.entrySettle === true) await settleEntryPrograms(game);
   const readyFrameGate = game.frameGate, loadingFrameGate = (): boolean => false;
   if (loading.holdRequested) game.frameGate = loadingFrameGate;
   try { await loading.done(); }
