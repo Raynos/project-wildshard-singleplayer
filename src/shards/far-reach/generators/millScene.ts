@@ -1,8 +1,9 @@
 import type { PrivateScene, WorldSceneRecipe } from '@wildshard/format/clientChannels';
-import model from '../data/millModel.json' with { type: 'json' };
+import { bakeSkyMillModel } from './millModel';
 
 /** Mill hierarchy and native motion ports; geometry and painted materials remain borrowed. */
-export function millSceneSource(): Uint8Array {
+export async function millSceneSource(read: (url: string) => Uint8Array): Promise<Uint8Array> {
+  const { rows: model } = await bakeSkyMillModel(read);
   const hub = [0, model.hubAt.y, model.hubAt.z], shaft: [number, number, number] = [0, model.hubAt.y, model.hubAt.z - 0.6];
   const parts = ['shaft', 'boss', 'frame', 'cloth-0', 'cloth-1', 'cloth-2', 'cloth-3'];
   const cloth = parts.filter(name => name.startsWith('cloth-'));

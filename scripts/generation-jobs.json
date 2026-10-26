@@ -9606,7 +9606,13 @@
         "src/format",
         "src/sdk",
         "src/shards/far-reach/generators/millScene.ts",
-        "src/shards/far-reach/data/millModel.json"
+        "public/assets/far-reach/models/mill/mill-foot.glb",
+        "public/assets/far-reach/models/mill/mill-tower.glb",
+        "src/shards/far-reach/generators/fileInventory.ts",
+        "src/shards/far-reach/generators/millModel.ts",
+        "src/shards/far-reach/generators/modelIntake.ts",
+        "src/shards/far-reach/generators/restFiles.ts",
+        "src/shards/far-reach/generators/rows/millShape.ts"
       ],
       "outputs": [
         "src/shards/far-reach/data/millScene.generated.json"
