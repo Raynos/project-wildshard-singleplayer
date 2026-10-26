@@ -1,5 +1,6 @@
 import type { AppState, Phase } from '../app/systems';
-import type { Actor } from '../combat/pipeline';
+import type { Vector3 } from 'three';
+import type { Actor, DamageDealt, DamageRequest, DeathCause } from '../combat/pipeline';
 
 export interface FaultEvent { source: string; message: string; phase?: Phase; limit?: number; error?: unknown }
 export interface EventMap {
@@ -10,6 +11,10 @@ export interface EventMap {
   'level.unloaded': { id: string };
   'creature.signal': { name: string; x: number; z: number };
   'ai.windup': { actor: Actor; duration: number };
+  'damage.dealt': DamageDealt;
+  'actor.died': { actor: Actor; req: DamageRequest };
+  'player.died': { actor: Actor; checkpoint: boolean; cause?: DeathCause };
+  'player.respawned': { at: Vector3; checkpoint: boolean };
   'practice.active': boolean;
   'explore.studio': boolean;
   'explore.turntable': { on: boolean; key?: { x: number; y: number; z: number } };
@@ -29,6 +34,10 @@ export interface CrouchAnswer { allowed: boolean; latched: boolean }
 export interface AskMap {
   'player.traversal': readonly [number | boolean, boolean];
   'player.crouch': readonly [CrouchRequest, CrouchAnswer];
+  /** Scope-owned admission precedes reaction callbacks, cover and damage modifiers; absent rules pass through. */
+  'damage.admit': [DamageRequest | null, DamageRequest | null];
+  'damage.modify': [DamageRequest | null, DamageRequest | null];
+  'death.checkpoint': [{ cause?: DeathCause } | boolean, boolean];
 }
 // oxlint-disable-next-line typescript/no-empty-interface, typescript/no-empty-object-type -- Consumers extend this registry by declaration merging.
 export interface TagMap {}

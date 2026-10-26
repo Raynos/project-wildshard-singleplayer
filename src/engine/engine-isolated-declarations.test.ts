@@ -43,3 +43,21 @@ test('every owned engine implementation emits isolated declarations',()=>{
   expect(emitted.outputText.length,file).toBeGreaterThan(0);
  }
 });
+
+// A single-file transpile cannot see imports which augment their importer.
+test('event maps cold-emit their complete merged declarations',()=>{
+ const project=engineProject(),outputs=new Map<string,string>();
+ const host=ts.createCompilerHost(project.options);
+ host.writeFile=(file,text)=>{outputs.set(file,text);};
+ const program=ts.createProgram(project.fileNames,{...project.options,incremental:false},host);
+ const maps=program.getSourceFile(resolve('src/engine/events/maps.ts'));
+ if(maps===undefined)throw new Error('Missing defining event maps');
+ expect(program.getDeclarationDiagnostics(maps).map(row=>({code:row.code,message:ts.flattenDiagnosticMessageText(row.messageText,' ')}))).toEqual([]);
+ const result=program.emit(maps);
+ expect(result.diagnostics).toEqual([]);
+ const declaration=[...outputs].find(([file])=>file.endsWith('/events/maps.d.ts'))?.[1];
+ expect(declaration).toBeDefined();
+ for(const key of ['ai.windup','damage.dealt','actor.died','player.died','player.respawned','damage.admit','damage.modify','death.checkpoint']){
+  expect(declaration).toContain(`'${key}'`);
+ }
+});

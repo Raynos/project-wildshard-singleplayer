@@ -45,20 +45,6 @@ export interface DamageRuleDef {
   when: { sourceTags?: readonly CombatTag[]; targetTags?: readonly CombatTag[]; weaponTags?: readonly CombatTag[]; targetState?: readonly CombatTag[] };
   op: 'cap' | 'add' | 'mul' | 'negate' | 'override'; value: number;
 }
-declare module '../events/maps' {
-  interface EventMap {
-    'damage.dealt': DamageDealt;
-    'actor.died': { actor: Actor; req: DamageRequest };
-    'player.died': { actor: Actor; checkpoint: boolean; cause?: DeathCause };
-    'player.respawned': { at: Vector3; checkpoint: boolean };
-  }
-  interface AskMap {
-    /** Scope-owned admission precedes reaction callbacks, cover and damage modifiers; absent rules pass through. */
-    'damage.admit': [DamageRequest | null, DamageRequest | null];
-    'damage.modify': [DamageRequest | null, DamageRequest | null];
-    'death.checkpoint': [{ cause?: DeathCause } | boolean, boolean];
-  }
-}
 const matches = (tags: readonly CombatTag[], pattern: CombatTag): boolean =>
   pattern.endsWith('.*') ? tags.some((tag) => tag.startsWith(pattern.slice(0, -1))) : tags.includes(pattern);
 const any = (tags: readonly CombatTag[], patterns: readonly CombatTag[] | undefined): boolean =>
