@@ -55,18 +55,24 @@ function tileGeometry(g: InstancedBufferGeometry, cells: number[], name: string,
 
 
 const encoded = (array: ArrayBufferView): string => btoa(Array.from(new Uint8Array(array.buffer, array.byteOffset, array.byteLength), byte => String.fromCodePoint(byte)).join(''));
-function scene(list: readonly THREE.InstancedBufferGeometry[]): SceneBuffers {
+type GrassBufferPublisher = (id: string, bytes: Uint8Array) => { file: string; byteOffset: number };
+function scene(list: readonly THREE.InstancedBufferGeometry[], prefix: string, publish?: GrassBufferPublisher): SceneBuffers {
+  const source = (id: string, array: ArrayBufferView): Pick<SceneBuffers['buffers'][number], 'bytes' | 'file' | 'byteOffset' | 'byteLength'> => {
+    if (publish === undefined) return { bytes: encoded(array) };
+    const bytes = new Uint8Array(array.buffer, array.byteOffset, array.byteLength).slice();
+    return { ...publish(`${prefix}-${id}`, bytes), byteLength: array.byteLength };
+  };
   const buffers: SceneBuffers['buffers'] = [], attributes: SceneBuffers['attributes'] = [], geometries: SceneBuffers['geometries'] = [], draws: SceneBuffers['draws'] = [];
   for (const [i, geo] of list.entries()) {
     const id = String(i), refs: Record<string,string> = {};
     for (const [name, value] of Object.entries(geo.attributes)) {
       if (!(value instanceof THREE.BufferAttribute)) throw new Error('Grass geometry needs plain channels');
       const key = `${id}.${name}`; refs[name] = key;
-      buffers.push({ id: key, storage: 'f32', bytes: encoded(value.array), instanced: value instanceof THREE.InstancedBufferAttribute });
+      buffers.push({ id: key, storage: 'f32', ...source(key, value.array), instanced: value instanceof THREE.InstancedBufferAttribute });
       attributes.push({ id: key, buffer: key, size: value.itemSize, offset: 0, normalized: false });
     }
     const index = geo.getIndex(); if (index === null) throw new Error('Grass triangles missing');
-    const key = `${id}.index`; buffers.push({ id: key, storage: 'u16', bytes: encoded(Uint16Array.from(index.array)), instanced: false });
+    const key = `${id}.index`; buffers.push({ id: key, storage: 'u16', ...source(key, Uint16Array.from(index.array)), instanced: false });
     attributes.push({ id: key, buffer: key, size: 1, offset: 0, normalized: false });
     geometries.push({ id, attributes: refs, index: key, instances: geo.instanceCount });
     draws.push({ id, name: id, at: [0,0,0], draw: { kind: 'mesh', geometry: id, at: [0,0,0], frustum: false } });
@@ -74,7 +80,8 @@ function scene(list: readonly THREE.InstancedBufferGeometry[]): SceneBuffers {
   }
   return { version: 1, name: 'grass-field', buffers, attributes, geometries, draws };
 }
-export function grassRows(phone: boolean): { rings: RingCfg[]; flowers: { T: number; G: number; s: number }; cards: { T: number; across: number; s: number }; near: readonly [number,number]; per: number; scenes: { blades: SceneBuffers; flowers: SceneBuffers; cards: SceneBuffers } } {
+/** Optionally publish detached raw channels; the default retains the existing inline bake contract. */
+export function grassRows(phone: boolean, publish?: GrassBufferPublisher): { rings: RingCfg[]; flowers: { T: number; G: number; s: number }; cards: { T: number; across: number; s: number }; near: readonly [number,number]; per: number; scenes: { blades: SceneBuffers; flowers: SceneBuffers; cards: SceneBuffers } } {
 
 const RINGS: RingCfg[] = phone
   ? [{ T: 4, G: 8, s: 0.085, w: 0.047, seg: 3 }, { T: 8, G: 12, s: 0.2, w: 0.1, seg: 2 }, { T: 16, G: 14, s: 0.45, w: 0.2, seg: 1 }]
@@ -92,5 +99,8 @@ const NEAR = [2.3, 3.4] as const;
   const cfg = FLOWERS, half = cfg.G * cfg.T / 2;
   const flowers = flowerTile(Math.round(cfg.T / cfg.s), cfg.s, [half * .6,half * .96], [NEAR[0]-.4,NEAR[1]-.2,0]);
   const per = Math.round(CARDS.T / CARDS.s), cards = tileFieldGeometry({ across: CARDS.across, layers: 0, seed: 0x4a1a, grid: per, card: CLUMP }, per * per);
-  return { rings: RINGS, flowers: FLOWERS, cards: CARDS, near: NEAR, per, scenes: { blades: scene(blades), flowers: scene([flowers]), cards: scene([cards]) } };
+  const tier = phone ? 'phone' : 'desktop';
+  return { rings: RINGS, flowers: FLOWERS, cards: CARDS, near: NEAR, per, scenes: {
+    blades: scene(blades, `${tier}-blades`, publish), flowers: scene([flowers], `${tier}-flowers`, publish), cards: scene([cards], `${tier}-cards`, publish),
+  } };
 }
