@@ -54,7 +54,7 @@ function atlasGeometry(source: NineNativeAtlas['desktop']['geometries'][string] 
 }
 
 /** Assemble the original map from explicit owned bytes; no file handoff or ambient reader. */
-export async function nineMapAssemblyFrom(inputs: NineMapAssemblyInputs, assembly = new MapAssembly()): Promise<NineMapAssembly> {
+export async function nineMapAssemblyFrom(inputs: NineMapAssemblyInputs, assembly: MapAssembly = new MapAssembly()): Promise<NineMapAssembly> {
   const cast = (name: string): Promise<BufferGeometry> => castModel(name, inputs.casts);
   const atlas = inputs.native.atlas.desktop, atlasBytes = inputs.native.files.get(atlas.buffer);
   if (atlasBytes === undefined) throw new Error('Missing native map atlas geometry');
