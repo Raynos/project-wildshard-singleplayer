@@ -14,7 +14,7 @@ import { Document, NodeIO } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import { MeshoptDecoder } from 'meshoptimizer';
 import { readImagePixels, writeImagePixels } from '@wildshard/sdk/bake/image';
-import { bakeLanternVertices, buildLayout, parseLayout, paving, pool, Soup } from './kit.mjs';
+import { bakeLanternVertices, buildLayout, parseLayout, paving, placePlotModels, pool, Soup } from './kit.mjs';
 import { prepareModelKit } from './kitGlb.mjs';
 
 /** the kit's model families placed, each `public/assets/open-plots/kit/<family>.glb`. RM4: none yet; the models
@@ -143,6 +143,9 @@ async function tiledPlot(root, repo, layoutName) {
   const lanterns = [], kit = files.size === 0 ? {} : await prepareModelKit(palette, files);
   buildLayout(grid, parts, palette, (r, c) => (r * 7 + c * 3) % 2,
     { ...kit, lanternEmitter: (at, colour) => lanterns.push({ at, colour }) });
+  // RM9.2: the gate's paper lanterns hung under its bays' lintels (the layout's landmark.lanterns, with the kit's strings)
+  placePlotModels(parts, { ...kit, lanternEmitter: (at, colour) => lanterns.push({ at, colour }) },
+    (layout.landmark.lanterns ?? []).map(at => ({ family: 'strings', variant: 1, at, scale: layout.landmark.lanternScale ?? 1 })));
   // a pool at the plot's edge (an entry forecourt's lanterns) keeps to the cell: its rim (black, it adds nothing) stops at it
   const pools = parts.Pool.part('Pool').positions, EDGE = 249.5;
   for (let i = 0; i < pools.length; i += 3) for (const k of [0, 2]) pools[i + k] = Math.max(-EDGE, Math.min(EDGE, pools[i + k] ?? 0));

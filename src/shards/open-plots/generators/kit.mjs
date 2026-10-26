@@ -552,6 +552,13 @@ export function buildLayout(grid, parts, p, seed, kit) {
   }
 }
 
+/** RM9.2: kit models at plot positions outside the tiles (the gate's hanging lanterns), each placed only when the kit has
+ *  its family: `placements` rows of { family, variant, at: [x, y, z] plot metres, scale }. */
+export function placePlotModels(parts, kit, placements) {
+  const w = writer(parts, [0, 0], 0, kit);
+  for (const { family, variant, at, scale } of placements) if (w.hasModel(family)) w.placeModel(family, variant, at[0], at[2], { y: at[1], scale });
+}
+
 /** Bake linear RGB into owned Kit colours with E = gain*(1-d²/(radius*cut)²)²/(1+d²/radius²).
  * The compact taper is Nine's falloff law, evaluated at vertices without a runtime light or volume.
  * Neutral gain preserves old words exactly; RM6 owns visible tuning. Refusals never mutate input. */
