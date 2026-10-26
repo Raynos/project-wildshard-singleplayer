@@ -1227,8 +1227,8 @@ including sky/post callers outside an entered-frame warm-up. Disposing its owner
 `Game.warmEnteredFrame(owner, futureRoot?, before?)` captures the installing content scene before yielding. Regional callers
 pass their whole view root so authored sibling lights outside the native scene are included. Only that root's parked
 visibility is ignored; hidden descendants remain hidden. The bound native scene supplies the PMREM independently.
-`before(prepare)` may prepare roots during construction, then await all content;
-the same bound and final readiness stages apply.
+`before(prepare)` warms early roots, then waits for content. Early/final programs
+share page lights, regional PMREM, bound and readiness fences.
 The owner's staged camera equipment also receives sliced first draws before entry. The staging group, its direct
 equipment roots and the destination lighting root are temporarily revealed; authored detail visibility stays intact.
 Only selected equipment draws. Each 1×1-scissored draw restores visibility, layers, culling, shadows, environment

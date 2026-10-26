@@ -48,9 +48,9 @@ Each slice is bounded to one hour; report misses and their observed owners first
 ## G743 request-to-commit crossing cuts (2026-10-26, sp-x8)
 
 Keep the G723 two-resident admission and every durability/cancellation fence.
-The routed phone-tier baseline is DW 8.1 s, Pine 2.6 s, Nalati 11.6 s and
-Nine 8.7 s; only Pine is below five seconds. One original four-edge cohort
-qualifies each milestone, without profiler, new observers or gate changes.
+Historical routed edges were DW 8.1 s, Pine 2.6 s, Nalati 11.6 s and
+Nine 8.7 s. That Pine case was primed; the current baseline below keeps
+all four targets open. Milestones retain the original counters and gates.
 The first 817 milestone completes all entries/errors 0: Nalati 17.873 s,
 Pine 13.984 s, Nine 11.468 s, DW 11.133 s; all four timing rows remain open.
 World/after-Play envelopes are DW 2.981/6.191 s, Pine 19.568/8.984 s,
@@ -60,14 +60,27 @@ T4's remaining source and qualification rows resume after these edge misses.
 
 The coordinator stopped the historical Pine bisect after calibration: the
 903 single-edge cold visit was 49.577 s and 22e was 34.490 s. The old 2.6 s
-Pine row followed a prior traversal and aborted preparation; it is not a
-first-visit baseline. New defining baseline pin is `dca731cde4`: each cold
-edge uses a fresh browser and admitted planned Template 2 recovery, before
-any target construction. Cold DW/Pine/Nalati/Nine request-to-commit is
-9.201/17.661/14.648/12.228 s, all controls ready/errors 0; frame gates still
-fail. The same-pin original warm four-edge cohort was already active at
-G440 wrap; retain its receipt and summarize next turn, without a repeat.
-These are Chromium phone-tier readings, not native acceptance or causal gains.
+Pine row followed a prior traversal and aborted preparation, so it does not
+measure first entry. Cold below means a fresh browser and admitted planned
+Template 2 recovery, before any target construction. Warm is the original
+shared-document DW/Pine/Nalati/Nine cohort from a fresh Driftwood boot;
+it is not four deliberately primed prior visits. Both pins use the same
+phone4x/DPR2/live route and existing counters, with no new observer.
+
+| Shard | dca731cde4 cold | dca warm | 095787aa70 cold | 095 warm |
+|---|---:|---:|---:|---:|
+| Driftwood | 9.201 s | 8.490 s | 22.283 s | 10.883 s |
+| Pine | 17.661 s | 5.533 s | 23.702 s | 11.195 s |
+| Nalati | 14.648 s | 14.014 s | 19.745 s | 18.079 s |
+| Nine | 12.228 s | 12.717 s | 18.768 s | 16.585 s |
+
+All sixteen entries completed with controls ready/errors 0; frame gates
+fail. 095 contains the overlap seam and other intervening source changes;
+this is a slower milestone, not an isolated source gain or native verdict.
+Its early-world stage ran in every case (cold 2.822/5.210/2.415/2.872 s).
+The 691 source audit found early compilation targeted the bound region,
+whereas final compilation targets the page scene with borrowed regional
+PMREM. G743.2c1 corrects those inputs; post-fix timing remains unmeasured.
 
 | Slice | Work | Status |
 |---|---|---|
@@ -77,6 +90,7 @@ These are Chromium phone-tier readings, not native acceptance or causal gains.
 | G743.2a | A real crossing demand owns its pending preparation; a later speculative heading cannot abort it. Keep explicit crossing supersession, safe-point cancellation, claim accounting and reserved-entry fences. New refusal is RED before, all 47 related cases/four files plus touched types/lint pass. At most one hour. | done (2026-10-26, sp-x8) |
 | G743.2b | Release decoded runtime-owned wires through existing explicit online cache-or-fetch authority, avoiding per-file durable-presence waits during world construction. Retain runtime-bound filtering, shared inputs, scope leases, offline durability and hash/size reread refusals. RED-before online fixture; online/offline/shared controls pass. At most one hour. | done (bounded source; latest DW/Pine/Nalati/Nine edges 11.133/13.984/17.873/11.468 s remain open) |
 | G743.2c | Start exact parked world-root programs afterWorld while kit/play constructs. Sky/look preparation and final complete inventory share the original single 30 s presented bound, owner cancellation and drawn-frame slices. Four new overlap/deadline/retirement/refusal controls plus 16 existing cases pass; touched production/engine-test types and scoped typed lint pass. Guard, admission and final readiness unchanged. At most one hour. | done (bounded source; 2026-10-26, sp-x8); timing qualification remains open for next turn under G440 |
+| G743.2c1 | Fix forward the 691 early-program target mismatch: compile against the rendered page scene and borrow the installing scene PMREM, matching final preparation. Two new caller/real-root preparation controls are RED before; all 22 focused cases, touched engine/test declarations and typed lint pass. Keep one original deadline, owner fences and final full readiness. At most one hour. | done (bounded source; 2026-10-26, sp-x8); corrected timing remains open |
 | G743.3 | ONE original phone-tier DW/Pine/Nalati/Nine road-entry cohort per source milestone; report each request-to-commit time and keep all misses open until each is under five seconds. | open |
 
 ## G717 frame-floor misses (2026-10-25, sp-x1; G639)

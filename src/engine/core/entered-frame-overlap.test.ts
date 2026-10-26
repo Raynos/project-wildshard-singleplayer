@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 import { stripTypeScriptTypes } from 'node:module';
 // oxlint-disable-next-line import/no-nodejs-modules -- Execute repository source with explicit preparation ports, never a copied implementation.
 import { runInNewContext } from 'node:vm';
-import { Group, Scene, type Object3D } from 'three';
+import { DataTexture, Group, Scene, type Object3D } from 'three';
 import { Scope } from '../app/scope';
 import { installScopeEnvironment, scopeEnvironment } from '../app/scopeEnvironment';
 import { boundEntryWarmup } from '../render/entryWarmupBound';
@@ -98,4 +98,26 @@ test('an early program refusal propagates without publishing a final frame', asy
     await expect(f.run(prepare => prepare([f.root]))).rejects.toThrow('exact program refused');
     expect(f.calls).toEqual(['world']);
   } finally { f.owner.dispose(); }
+});
+
+test('early programs use the rendered page scene and the installing region environment', async () => {
+  const source = readFileSync(new URL('Game.ts', import.meta.url), 'utf8');
+  const start = source.indexOf('  private async warmEnteredRoots('), end = source.indexOf('\n  private async ', start + 1);
+  if (start === -1 || end < start) throw new Error('Early-root method missing');
+  const loader = "await import('../render/precompile')", body = source.slice(start, end);
+  if (!body.includes(loader)) throw new Error('Early-root loader port missing');
+  const calls: unknown[][] = [];
+  // Replace only module loading; execute the actual caller and capture its render inputs.
+  const method: unknown = runInNewContext(stripTypeScriptTypes(`class Harness { ${body.replace(loader, 'preparation')} }\nHarness.prototype.warmEnteredRoots`),
+    { preparation: { prepareSceneRoots: (...args: unknown[]): Promise<void> => { calls.push(args); return Promise.resolve(); },
+      waitForDrawnFrame: () => Promise.resolve(), LIVE_UPLOAD_BUDGET: { ms: 6, bytes: 1 } } });
+  if (typeof method !== 'function') throw new Error('Early-root method is not callable');
+  const rootScene = new Scene(), regional = new Scene(), root = new Group(), owner = new Scope('regional-programs');
+  const environment = new DataTexture(new Uint8Array(8), 1, 2); regional.environment = environment;
+  const composer = { inputBuffer: null }, game = { rootScene, scene: regional, renderer: {}, camera: {}, frameCount: 1, _composer: composer };
+  try {
+    await Reflect.apply(method, game, [owner, composer, [root], root, () => !owner.disposed]);
+    expect(calls).toHaveLength(1); expect(calls[0]?.[2]).toBe(rootScene);
+    expect(calls[0]?.[4]).toEqual([root]); expect(calls[0]?.[9]).toBe(root); expect(calls[0]?.[10]).toBe(environment);
+  } finally { owner.dispose(); environment.dispose(); }
 });

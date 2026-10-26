@@ -81,3 +81,14 @@ test('costly light discovery yields between objects and cancellation stops befor
     expect(f.root.visible).toBe(false); expect(f.root.parent).toBe(f.scene);
   } finally {time.mockRestore(); f.dispose();}
 });
+
+test('a parked group borrows its installing scene environment while retaining page lighting', async () => {
+  const f = fixture(), road = new DataTexture(new Uint8Array(4), 1, 1), regional = new DataTexture(new Uint8Array(8), 1, 2);
+  f.scene.environment = road;
+  try {
+    await prepareSceneRoots(f.renderer, f.camera, f.scene, null, [f.root], () => true, () => Promise.resolve(), undefined, true, f.root, regional);
+    expect(f.compiled.slice(0, 2).map(row => row.environment)).toEqual([regional, regional]);
+    expect(f.compiled.slice(0, 2).every(row => row.lights === 1 && row.fog === f.scene.fog)).toBe(true);
+    expect(f.scene.environment).toBe(road); expect(f.root.visible).toBe(false);
+  } finally { f.dispose(); road.dispose(); regional.dispose(); }
+});

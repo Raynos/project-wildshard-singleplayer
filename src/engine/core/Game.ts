@@ -904,12 +904,13 @@ export class Game {
   /** Early roots use the enclosing entry's bound; they cannot renew its deadline or publish readiness. */
   private async warmEnteredRoots(owner: Scope, composer: EffectComposer, roots: readonly THREE.Object3D[],
     futureLighting: THREE.Object3D | undefined, current: () => boolean): Promise<void> {
-    const scene = this.scene;
+    // The installing scene lends its PMREM; program lights/fog come from the page the renderer actually draws.
+    const scene = this.rootScene, futureEnvironment = this.scene.environment;
     const { prepareSceneRoots, waitForDrawnFrame, LIVE_UPLOAD_BUDGET } = await import('../render/precompile');
     const live = (): boolean => current() && this._composer === composer;
     const pause = this.frameCount > 0 ? () => waitForDrawnFrame(owner, () => this.frameCount, live) : undefined;
     await prepareSceneRoots(this.renderer, this.camera, scene, composer.inputBuffer, roots, live, pause,
-      LIVE_UPLOAD_BUDGET, this.frameCount > 0, futureLighting);
+      LIVE_UPLOAD_BUDGET, this.frameCount > 0, futureLighting, futureEnvironment ?? undefined);
   }
 
   private async warmEnteredStages(owner: Scope, composer: EffectComposer, trace: EntryPreparation,

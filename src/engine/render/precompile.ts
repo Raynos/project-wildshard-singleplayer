@@ -404,10 +404,11 @@ export const LIVE_PRECOMPILE_SLICE_MS = 6;
  * Borrow original materials and object flags in the ordinary painted compile/link/upload slices. Live parents,
  * visibility, uniforms, lighting and render targets stay unchanged; the resident owner fences every slice.
  * An optional live-draw barrier spaces batches; initial boot uses ordinary browser paint opportunities.
- * An optional upload budget batches the isolated image uploads per drawn frame (op-hitch32). */
+ * An optional upload budget batches the isolated image uploads per drawn frame (op-hitch32).
+ * A whole parked group may borrow its installing scene's environment independently of the page lighting. */
 export async function prepareSceneRoots(renderer: Renderer, camera: THREE.Camera, scene: THREE.Scene,
   target: THREE.WebGLRenderTarget | null, roots: readonly THREE.Object3D[], current: () => boolean, pause?: () => Promise<void>,
-  uploadBudget?: UploadBudget, scenePrograms = true, futureLighting?: THREE.Object3D): Promise<void> {
+  uploadBudget?: UploadBudget, scenePrograms = true, futureLighting?: THREE.Object3D, futureEnvironment?: THREE.Texture): Promise<void> {
   await prepareSceneResources(roots, camera, current);
   // `scenePrograms` false: the roots' resources and exterior variants only (the boot's Shaders step builds what its first
   // frame draws, and the rest is warmed in play)
@@ -416,7 +417,7 @@ export async function prepareSceneRoots(renderer: Renderer, camera: THREE.Camera
     : await pacedPreparation(sceneJobSteps(scene, target, 1, roots), current, pageScope, pause);
   // a parked region's content compiles against the lights its first visible frame has (G639: a Nalati clip variant made
   // during entry was prepared under the road's lights and linked again at its first lit draw, 134 ms)
-  if (futureLighting !== undefined) includeFutureLights(jobs, scene, futureLighting);
+  if (futureLighting !== undefined) includeFutureLights(jobs, scene, futureLighting, futureEnvironment);
   // Keep the existing discovery barriers. Within discovery, only a spent measured budget waits for a completed draw;
   // cheap objects stay together. Exterior light collection never walks the excluded residents' material inventories.
   if (pause !== undefined) await pause();
