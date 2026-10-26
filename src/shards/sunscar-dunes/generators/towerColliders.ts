@@ -17,7 +17,7 @@ function box(c: FootBox, surface: 'wood' | 'metal'): BoxColliderData {
 /** Compile the tower legs, deck, rails, thirty open stairs and bowl from authored terrain.
  * No model, material, scene, retained tower JSON or world constructor supplies a collider.
  */
-export function signalTowerPhysicsPlacements(seed = SEED): SignalPhysicsPlacement[] {
+export function signalTowerPhysicsPlacements(seed: number = SEED): SignalPhysicsPlacement[] {
   const groundAt = signalHeightAt(seed), { x: cx, z: cz, deck, half } = TOWER;
   const y = groundAt(cx, cz), deckY = y + deck, colliders: BoxColliderData[] = [];
   for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]] as const) {

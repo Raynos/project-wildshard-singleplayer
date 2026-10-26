@@ -41,4 +41,4 @@ for (const [id, source] of [
 }
 rows.push({ id: 'caravan.pool', parent: 'caravan.live.lamp', at: { point: 'caravan.lamp-at' }, pool: { slot: 3, gain: 0.22 }, initially: true, draws: [],
   light: { at: { point: 'caravan.lamp-at' }, colour: 0xffd27a, gain: 5, distance: 10, decay: 2, shared: true, waves: [[11, 0, 0.07], [23, 1, 0.05]] } });
-export const SIGNAL_EMITTERS = parseLightEmitters({ version: 1, input: 'firelights', clock: 'firetime', rows });
+export const SIGNAL_EMITTERS: ReturnType<typeof parseLightEmitters> = parseLightEmitters({ version: 1, input: 'firelights', clock: 'firetime', rows });

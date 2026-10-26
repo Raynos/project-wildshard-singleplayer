@@ -222,6 +222,7 @@ normal layer emission is the declaration-size authority. Continuation starts at 
 | T4-I6r | Open Plots factory and output-map declarations; retain exact base fields, both material variants and all mapped-value guards | 60 min | done (2026-10-26, sp-x8) |
 | T4-I6s | Sunscar audio, quest, creature and layout declarations; preserve readonly identities, mutable budgets and original parser contracts | 60 min | done (2026-10-26, sp-x8) |
 | T4-I6t | Sunscar held, species and world declarations; preserve readonly resources, original catalogue mutability and numeric caravan coordinates | 60 min | done (2026-10-26, sp-x8) |
+| T4-I6u | Sunscar terrain, collider, quest and map declarations; retain arbitrary optional numeric seeds, mutable input arrays and original parsers | 60 min | done (2026-10-26, sp-x8) |
 | T4-I6legacy | Frozen legacy declaration annotations: exact inventory bytes stay unchanged until G606/LD is lifted; modern slices continue | 60 min | waits-Jake (2026-10-26; G606, sp-x8) |
 
 T4 first format slices are on origin: schema expressions and emitted runtime JavaScript are unchanged.

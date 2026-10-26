@@ -10,7 +10,7 @@ import tiles from '../data/tiles.json' with { type: 'json' };
 
 const models = ['brazier-hd', 'crates-hd', 'horse-hd', 'sacks-hd', 'wagon-hd2'] as const;
 /** The original L0 terrain and five model inputs, plus the well input binding the captured upstream world bake. */
-export const SIGNAL_MAP_INPUTS = ['data/tiles.json', 'assets/models/dry-well.glb',
+export const SIGNAL_MAP_INPUTS: string[] = ['data/tiles.json', 'assets/models/dry-well.glb',
   ...tiles.terrain.tiles.filter(tile => tile.lod === 0).map(tile => `assets/${tile.file}`), ...models.map(model => DUNE_HD_URLS[model])];
 
 /** Resolve the painter's existing logical addresses to actual bake results and explicit input bytes; never read a handoff. */

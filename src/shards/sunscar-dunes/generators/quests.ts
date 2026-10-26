@@ -6,14 +6,14 @@ import { MATRIARCH_FLAG, COMPLETE_FLAG, PAID_FLAG, MATRIARCH_DEFEATED_FLAG, MATR
 
 const waymarks = LAYOUT.BRAZIERS.map((_, i) => `${FLAG.brazierPrefix}${String(i)}`);
 /** Any step after Sefa's: a save from before her (loop 2), or a player who walked past her, counts her step done. */
-export const LATER_FLAGS = [FLAG.logbook, FLAG.oil, ...waymarks, FLAG.lit, MATRIARCH_FLAG] as const;
+export const LATER_FLAGS: readonly ["sunscar.logbook", "sunscar.oil", ...string[], "sunscar.lit", "sunscar.matriarch.down"] = [FLAG.logbook, FLAG.oil, ...waymarks, FLAG.lit, MATRIARCH_FLAG] as const;
 
 /**
  * "The signal" as declared quest data (SHARD-PLATFORM SF50-p, the template's quest rows): flags, the six steps, their
  * done conditions, chips, hints and markers, and the reward (a fact and five coins). Markers on world pieces carry their
  * layout spot here; the trusted runtime places them on the built piece (quest/install.ts), as the world decides its height.
  */
-export const SIGNAL_QUESTS = parseQuestData({
+export const SIGNAL_QUESTS: ReturnType<typeof parseQuestData> = parseQuestData({
   flags: [SCOUT_FLAG, ...LATER_FLAGS, COMPLETE_FLAG, PAID_FLAG, MATRIARCH_DEFEATED_FLAG, MATRIARCH_PAID_FLAG],
   quests: [{ id: 'sunscar.signal', title: STRINGS.quest, completeFlag: COMPLETE_FLAG, onComplete: { fact: FACT.signal, coins: 5 }, steps: [
     { id: 'scout', objective: STRINGS.stepScout, chip: STRINGS.chipScout, hint: STRINGS.hintScout, done: { any: [SCOUT_FLAG, ...LATER_FLAGS] },

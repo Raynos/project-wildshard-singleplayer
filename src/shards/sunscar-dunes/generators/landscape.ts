@@ -29,7 +29,7 @@ export function signalTrailDistance(x: number, z: number): number {
 
 /** The retained Signal author height law: crescent dunes, trail bed, flat roads and entry ramps.
  * No runtime field, registry, render service or captured height grid is read. */
-export function signalHeightAt(seed = SEED): (x: number, z: number) => number {
+export function signalHeightAt(seed: number = SEED): (x: number, z: number) => number {
   const noise = { n: signalNoise(seed) }, landscape = duneField(DUNE_FIELD);
   return (x, z) => {
     let height = landscape(x, z, noise);
