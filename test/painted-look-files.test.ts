@@ -17,7 +17,10 @@ const attributes=card.instances;
 const files=new Map(SKY_PAINTED_ATTRIBUTE_SOURCES.map(row=>[row.name,new Uint8Array(readFileSync(`src/shards/far-reach/${row.source}`))]));
 const hashes=['8563553704ebb3b2c27816b8ce1059402c8b9fed2dc670331cc18febe0ebad23',
   'c92ae573ee25873c2373da9f82c0300753f2fb9a6bfdedf93ba258097aeb7112',
-  '732dc156d8ce01332313d0190fd3e7d307e4942e1a79b39a42bd28d6e905baf1'];
+  '732dc156d8ce01332313d0190fd3e7d307e4942e1a79b39a42bd28d6e905baf1',
+  'caacc971c63b3c6050bdb7d50712f6b83096aa4b70476e553ee6ceda87d60660',
+  'df5e6568ca3a3da969d339ffe722480aff89f29615661fe56fc371502d09b457',
+  '06400506d05c177941624d073953a275ac73948fa298bf94b80017d7bea8b094'];
 function rows(instances:unknown):PaintedLookRow {
   return parsePaintedLook({look:skyPaintedPresentation().look,images:{},dressing:{name:'finite-cloud',draws:[
     {name:'copies',graph:'sky-cumulus',order:-5,geometry:{kind:'plane',size:[2,2],instances}}]}});
@@ -31,16 +34,16 @@ function product(input:unknown,bank:ReadonlyMap<string,Uint8Array>=files){
 }
 afterEach(()=>vi.restoreAllMocks());
 
-test('all three declared files preserve original bytes, order, width and honest GPU costs',async()=>{
+test('all six declared files preserve original bytes, order, width and honest GPU costs',async()=>{
   expect(Object.keys(attributes)).toEqual(['aFar','aAt','aCell']);
   expect(Object.values(attributes).map(row=>[row.size,row.count])).toEqual([[1,738],[4,2952],[2,1476]]);
   let total=0;
-  for(const [i,row] of SKY_PAINTED_ATTRIBUTE_SOURCES.filter(source=>source.name.startsWith('look/cumulus-')).entries()){
+  for(const [i,row] of SKY_PAINTED_ATTRIBUTE_SOURCES.entries()){
     const blob=await readNamedBlob('src/shards/far-reach',row.name,row.source,row.kind,row.options);
     expect(blob.file.hash).toBe(hashes[i]);expect(blob.bytes).toEqual(files.get(row.name));
     expect(blob.file.gpu).toBe(blob.bytes.byteLength);total+=blob.bytes.byteLength;
   }
-  expect(total).toBe(20664);
+  expect(total).toBe(21236);
 });
 
 test('named attributes retain complete predecessor buffers and independently owned native arrays',async()=>{
