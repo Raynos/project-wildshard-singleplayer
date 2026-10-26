@@ -4,7 +4,6 @@
   "files": {
     "scripts/families-board/run.mjs": 1,
     "scripts/loading-benchmark/capture.mjs": 1,
-    "scripts/music/render.mjs": 1,
     "scripts/ota-release.mjs": 4,
     "scripts/parity/fast-png.mjs": 1,
     "scripts/tsl-spike/run.mjs": 1,

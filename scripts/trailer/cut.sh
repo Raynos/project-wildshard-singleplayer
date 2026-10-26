@@ -1,7 +1,7 @@
 #!/bin/bash
 # Editor's cuts from the same frame folders. usage: cut.sh <frames dir> <edl file> <out.mp4> [bpm] [score.wav]
 # EDL lines:  card <id> <secs>   |   vision <file> <start> <secs>   |   shot <name> <startFrame> <nFrames>
-# With a 5th arg the score (scripts/music/render.mjs → score-30.wav / score-15.wav: the real theme rendered to the cut)
+# With a 5th arg the supplied WAV score
 # is the audio track, faded out over the last second, instead of the lavfi synth bed.
 set -e
 cd "$(dirname "$0")"

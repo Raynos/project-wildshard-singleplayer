@@ -106,7 +106,7 @@ class Engine {
   private segIdx = 0; private beat0 = 0; private nextT = 0;
   private bars: Bar[] = [];
   state: MusicState = { mode: 'menu', intensity: 0, underwater: false };
-  /** dev: only these layers sound (scripts/music/render.mjs --solo for per-layer level checks) */
+  /** Only these layers sound during per-layer offline level checks. */
   solo: Set<string> | undefined;
   /** diagnostics: scheduled notes / bars, scheduler main-thread time; `liveOsc(now)` counts the oscillators sounding at `now` */
   stats = { notes: 0, bars: 0, schedMs: 0, schedMax: 0 };
@@ -922,7 +922,7 @@ export class Music {
   }
   renderOffline(name: ArrangementName, seconds: number, opts?: { state?: Partial<MusicState> | undefined; solo?: string[] | undefined }): Promise<AudioBuffer> { return Music.renderOffline(name, seconds, opts); }
 
-  /** WAV bytes (16-bit PCM) of an AudioBuffer — for scripts/music/render.mjs */
+  /** Native WAV bytes (16-bit PCM) of an offline AudioBuffer. */
   static toWav(buf: AudioBuffer): ArrayBuffer {
     const ch = buf.numberOfChannels, n = buf.length, sr = buf.sampleRate, bytes = 44 + n * ch * 2;
     const ab = new ArrayBuffer(bytes), dv = new DataView(ab);
