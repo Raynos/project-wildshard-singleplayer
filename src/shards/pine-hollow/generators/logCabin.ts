@@ -147,7 +147,7 @@ export const PINE_SEED = 1337;
  * (../world/cabinBake.ts).
  */
 export class CabinBuilder {
-  root = new THREE.Group();
+  root: THREE.Group = new THREE.Group();
   rooms: Room[] = [];
   doorAt: [number, number];
   readonly floors: Floor[] = [];

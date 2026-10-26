@@ -8,7 +8,7 @@ if (chapter === undefined) throw new Error('Pine requires its compiled chapter')
 const { onComplete: _completion, ...WARDENS_HOLLOW } = chapter;
 
 export interface PineQuestContent {
-  id: string; chapters: (typeof WARDENS_HOLLOW)[]; board: { id: string; rows: ContractCatalogue['rows'] };
+  id: string; chapters: Omit<(typeof PINE_QUESTS)["quests"][number], "onComplete">[]; board: { id: string; rows: ContractCatalogue['rows'] };
   trader: { id: string; rows: Trade[] }; npcs: (typeof RANGER)[];
 }
 

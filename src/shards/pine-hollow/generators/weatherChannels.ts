@@ -1244,7 +1244,7 @@ const PINE_WEATHER_CHANNELS = [
 ] as const;
 
 /** Build-only: emit the existing straight-line weather DAGs in the platform client-channel section. */
-export const PINE_WEATHER_PROGRAMS=parseClientChannels(PINE_WEATHER_CHANNELS.flatMap(row=>row.program===null?[]:[{
+export const PINE_WEATHER_PROGRAMS: ReturnType<typeof parseClientChannels>=parseClientChannels(PINE_WEATHER_CHANNELS.flatMap(row=>row.program===null?[]:[{
  ...row.program,numeric:{group:'weather',outputs:[{property:'value',target:row.owner,path:[...row.path],restore:row.restore,nullable:row.owner==='volume'}],
  restoreOnly:row===PINE_WEATHER_CHANNELS[0]?PINE_WEATHER_CHANNELS.filter(extra=>extra.program===null&&extra.restore).map(extra=>({property:'value',target:extra.owner,path:[...extra.path],restore:true})):[]},
 }]));

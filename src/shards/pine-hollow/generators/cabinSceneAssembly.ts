@@ -1,8 +1,9 @@
+
 /** Author-only native building operations, isolated from all live owners/services.
  * The independent native assembly oracle checks these geometry and append-order
  * operations; this module never imports runtime, engine or game code. */
 import * as THREE from 'three';
-import { admitBuildingAssembly, emptyBuildingLifeRows, type BuildingAssemblyRows, type BakedBuildingLight, type BakedBuildingNode, type BakedBuildingRecord, type BakedBuildingLook, type BakedBuildingRole, type BakedBuildingTier, type BuildingFloor, type BuildingRoom, type BuildingBox, type BuildingCollider, type BuildingCloudRow, type Xyz } from '@wildshard/format/buildings';
+import { admitBuildingAssembly, emptyBuildingLifeRows, type BuildingAssemblyRows, type BakedBuildingLight, type BakedBuildingNode, type BakedBuildingRecord, type BakedBuildingLook, type BakedBuildingRole, type BakedBuildingTier, type BuildingFloor, type BuildingRoom, type BuildingBox, type BuildingCollider, type BuildingCloudRow, type Xyz , type BuildingLifeRows as BuildingLifeRowsType } from '@wildshard/format/buildings';
 import { cabinShadowProxy, cabinFlatPositions, cabinTwoSidedPositions, type CabinWeldPart, type CabinWeldCopy } from './cabinWeld';
 
 const isMesh = (node: THREE.Object3D): node is THREE.Mesh => node instanceof THREE.Mesh;
@@ -15,7 +16,7 @@ export class CabinAuthorResources {
   private readonly values = new Map<string, THREE.Object3D | THREE.Material | THREE.BufferGeometry>();
   private readonly names = new Map<THREE.Object3D | THREE.Material | THREE.BufferGeometry, string>();
   readonly materials: CabinDerivedMaterial[] = [];
-  readonly clouds = new Map<THREE.Mesh, Float32Array>();
+  readonly clouds: Map<THREE.Mesh, Float32Array> = new Map<THREE.Mesh, Float32Array>();
   readonly sky = { setupMaterial(material: THREE.Material): void { void material; } };
   constructor(readonly prefix: string, readonly shadow: THREE.Material) {}
   register(id: string, value: THREE.Object3D | THREE.Material | THREE.BufferGeometry): string {
@@ -53,7 +54,7 @@ function createCabinCloud(resources: CabinAuthorResources, row: BuildingCloudRow
 }
 
 export class CabinAuthorAssembly<K extends string = string, P extends string = string> {
-  readonly root = new THREE.Group();
+  readonly root: THREE.Group = new THREE.Group();
   /** small parts drawn only within the detail distance (tagged `userData.until` by `band`) */
   readonly detail: THREE.Object3D[] = [];
   /** mid parts drawn only within twice the detail distance */
@@ -76,7 +77,7 @@ export class CabinAuthorAssembly<K extends string = string, P extends string = s
   private readonly legacy: BuildingBox[];
   private readonly doorBoxes = new Set<BuildingBox>();
   private readonly role: BakedBuildingRole;
-  readonly lifeRows = emptyBuildingLifeRows();
+  readonly lifeRows: BuildingLifeRowsType = emptyBuildingLifeRows();
   private readonly id: string;
   private readonly mats: { parts: Record<K, THREE.Material>; particles: Record<P, THREE.Material>; glass: THREE.MeshStandardMaterial; glow: THREE.MeshBasicMaterial };
   private readonly sky: CabinAuthorResources['sky'];

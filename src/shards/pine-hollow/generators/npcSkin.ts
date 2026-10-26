@@ -10,7 +10,7 @@ export const LEG_BONE_NAMES = [
   'clavicleL', 'shoulderL', 'twistL', 'elbowL', 'handL',
   'thighR', 'shinR', 'footR', 'thighL', 'shinL', 'footL',
 ] as const;
-export const PARENT = [-1, 0, 1, 2, 3, 2, 5, 6, 7, 8, 2, 10, 11, 12, 13, 0, 15, 16, 0, 18, 19];
+export const PARENT: number[] = [-1, 0, 1, 2, 3, 2, 5, 6, 7, 8, 2, 10, 11, 12, 13, 0, 15, 16, 0, 18, 19];
 const J = {
   hips: 0, spine: 1, chest: 2, neck: 3, head: 4,
   clR: 5, shR: 6, twR: 7, elR: 8, haR: 9, clL: 10, shL: 11, twL: 12, elL: 13, haL: 14,

@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import type { NativeTerrainSource } from '@wildshard/sdk/bake/terrain';
 import { pineCragScene } from './cragScene';
-import type { CragPlace, CragTier } from './cragRows';
+import type { CragPlace, CragTier, CragId as CragIdType } from './cragRows';
 import type { SkinBake } from './crags';
 import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 
@@ -75,7 +75,7 @@ export function pineCragAssembly(kit: ReadonlyMap<string, THREE.BufferGeometry>,
 }
 
 /** Model recipes and pose inputs retain original kind/variant/copy order. */
-function cragKinds(tier: CragTier, kit: ReadonlyMap<string, THREE.BufferGeometry>, hulls: CragAssembly['hulls'], places: readonly CragPlace[]) {
+function cragKinds(tier: CragTier, kit: ReadonlyMap<string, THREE.BufferGeometry>, hulls: CragAssembly['hulls'], places: readonly CragPlace[]) : { far: number; model: { hulls?: Record<string, { cap: number; points: number[]; }>; id: string; name: string; file: string; defaults: { module: string; }; variants: { id: string; label: string; params: { module: string; }; }[]; parts: Record<string, { material: string; castShadow: boolean; receiveShadow: boolean; fallback?: string; geometry: string; }[]>; lods: { from: number; parts: Record<string, { material: string; castShadow: boolean; receiveShadow: boolean; fallback?: string; geometry: string; }[]>; }[]; }; placements: { x: number; y: number; z: number; variant: CragIdType; yaw: number; scale: number; pitch: number; roll: number; }[]; }[] {
   const rows = [
     { id: 'crag-cliff', name: 'Ridge crag', near: tier === 'phone' ? 95 : 170, far: 900, modules: { 'cliff-a': 'Cliff band A', 'cliff-b': 'Cliff band B', 'cliff-c': 'Cliff band C', buttress: 'Buttress', slab: 'Slab', 'tor-a': 'Tor A', 'tor-b': 'Tor B', hero: 'Hero crag' } },
     { id: 'crag-boulder', name: 'Crag boulder', near: tier === 'phone' ? 38 : 70, far: tier === 'phone' ? 170 : 320, modules: { 'boulder-a': 'Boulder A', 'boulder-b': 'Boulder B', 'boulder-c': 'Boulder C' } },

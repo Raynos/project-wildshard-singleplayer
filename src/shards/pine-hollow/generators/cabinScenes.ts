@@ -54,8 +54,8 @@ function need<T>(value: T | undefined, label: string): T { if (value === undefin
 
 /** Accumulate every tier/shadow variant into one native geometry inventory. */
 export class CabinSceneRecorder {
-  readonly geometry = new Map<string, THREE.BufferGeometry>();
-  readonly sourceMaterials = new Map<string, { readonly id: string; readonly url: string; readonly part: number }>();
+  readonly geometry: Map<string, THREE.BufferGeometry> = new Map<string, THREE.BufferGeometry>();
+  readonly sourceMaterials: Map<string, { readonly id: string; readonly url: string; readonly part: number; }> = new Map<string, { readonly id: string; readonly url: string; readonly part: number }>();
   private readonly references = new WeakMap<THREE.BufferGeometry, GeometryRef>();
   private readonly materialIds = new Map<THREE.Material, string>();
   private readonly shadow = new THREE.MeshBasicMaterial({ colorWrite: false });

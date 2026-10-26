@@ -211,7 +211,7 @@ function buildLookout(t: TimberBuilder): void {
 }
 
 /** The bake: the lookout built at the level seed, its parts' and glass's attribute blocks in one binary, the rest as rows. */
-export function bakeFireLookout(recorder = new TimberRecorder()): { bin: Uint8Array; rows: Omit<LookoutRows, 'bin' | 'bytes'> } {
+export function bakeFireLookout(recorder: TimberRecorder = new TimberRecorder()): { bin: Uint8Array; rows: Omit<LookoutRows, 'bin' | 'bytes'> } {
   const t = new TimberBuilder(LOOKOUT_SEED);
   buildLookout(t);
   const row = recorder.record(t);

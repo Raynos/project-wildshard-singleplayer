@@ -114,7 +114,7 @@ function siteGround(frame: THREE.Matrix4, y: number, heightAt: (x: number, z: nu
 }
 
 /** The bake: each timber at its site and on the turntable (the landing on flat ground, the bridge 1.2 m over its gully). */
-export function bakeSiteTimbers(heightAt: (x: number, z: number) => number, recorder = new TimberRecorder()): { bin: Uint8Array; rows: Omit<SiteTimberRows, 'bin' | 'bytes'> } {
+export function bakeSiteTimbers(heightAt: (x: number, z: number) => number, recorder: TimberRecorder = new TimberRecorder()): { bin: Uint8Array; rows: Omit<SiteTimberRows, 'bin' | 'bytes'> } {
   const landing = (g: Ground): ReturnType<TimberRecorder['record']> => { const t = new TimberBuilder(LANDING.seed); buildLanding(t, g); return recorder.record(t); };
   const bridge = (g: Ground): ReturnType<TimberRecorder['record']> => { const t = new TimberBuilder(BRIDGE.seed); buildBridge(t, BRIDGE_HALF, g); return recorder.record(t); };
   const ls = landingSite(heightAt), bs = bridgeSite(heightAt);

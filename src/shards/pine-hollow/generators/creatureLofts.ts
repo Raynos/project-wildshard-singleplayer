@@ -500,4 +500,4 @@ function buildElk(v: VariantDef, _rng: Rng): AnimalSpecies {
 }
 
 /** The deer's and the elk's procedural builds (a variant's traits pick the antlers). */
-export const PINE_LOFTS = { deer: buildDeer, elk: buildElk } as const;
+export const PINE_LOFTS: { readonly deer: (v: VariantDef, _rng: Rng) => AnimalSpecies; readonly elk: (v: VariantDef, _rng: Rng) => AnimalSpecies; } = { deer: buildDeer, elk: buildElk } as const;
