@@ -1,5 +1,5 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Deterministic native compression is build-only.
-import { constants, deflateSync, zstdCompressSync } from 'node:zlib';
+import { constants, deflateSync, inflateSync, zstdCompressSync } from 'node:zlib';
 import { encodePortableBytes } from '@wildshard/sdk/bake/portableBytes';
 
 /** Encode bounded owned build results with the pinned codecs; never installs a runtime service.
@@ -19,4 +19,15 @@ export function encodeBuildBytes(input: Uint8Array, codec: 'deflate' | 'zstd', l
   const selected = level ?? 19;
   if (!Number.isInteger(selected) || selected < 1 || selected > 22) throw new Error('Zstd level must be an integer from 1 to 22');
   return new Uint8Array(zstdCompressSync(bytes, { params: { [constants.ZSTD_c_compressionLevel]: selected } }));
+}
+
+/** Decode one bounded build-time zlib stream into an owned buffer of exactly the declared size.
+ * The native inflater enforces the bound during decoding, before an oversized result can allocate. */
+export function decodeBuildDeflate(input: Uint8Array, expectedBytes: number): Uint8Array<ArrayBuffer> {
+  if (!(input instanceof Uint8Array) || !(input.buffer instanceof ArrayBuffer) || input.byteLength > 256_000_000) throw new Error('Build codec requires bounded unshared bytes');
+  if (!Number.isSafeInteger(expectedBytes) || expectedBytes < 0 || expectedBytes > 256_000_000) throw new Error('Invalid decoded build byte length');
+  const bytes = new Uint8Array(input); // Own the selected view; detached inputs refuse here.
+  const decoded = inflateSync(bytes, { maxOutputLength: Math.max(1, expectedBytes) });
+  if (decoded.byteLength !== expectedBytes) throw new Error('Decoded build byte length differs');
+  return Uint8Array.from(decoded);
 }

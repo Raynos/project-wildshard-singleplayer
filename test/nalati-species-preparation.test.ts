@@ -5,6 +5,7 @@ import { expect, test } from 'vitest';
 import { unzlibSync } from 'fflate';
 import { CreatureGuestSchema } from '../src/format/speciesBookRows';
 import { unshuffleLanes } from '../src/engine/core/deflate';
+import { compileReturnProjectionV2 } from '../src/sdk/returnProjectionV2';
 import { readDecisionSources } from '../src/sdk/buildDecisionScripts';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { prepareNalatiSpecies, type NalatiSpeciesPreparation, type NalatiSpeciesSourceInputs } from '../src/shards/nalati-grasslands/generators/speciesPreparation';
@@ -55,7 +56,7 @@ function originalFiles(made: NalatiSpeciesPreparation): void {
 
 test('explicit source composition reproduces all five complete original files and both original modules', async () => {
   const before = JSON.stringify([...authored]), beforeInput = JSON.stringify(input), rawHash = hashImmutableBytes(raw);
-  const made = await prepareNalatiSpecies(raw, authored, input, admitGuest, bodyFile);
+  const made = await prepareNalatiSpecies(raw, authored, input, admitGuest, bodyFile, compileReturnProjectionV2);
   originalFiles(made);
   expect(WebAssembly.validate(made.selected)).toBe(true); expect(WebAssembly.validate(made.witness)).toBe(true);
   expect(JSON.stringify([...authored])).toBe(before); expect(JSON.stringify(input)).toBe(beforeInput); expect(hashImmutableBytes(raw)).toBe(rawHash);
@@ -63,30 +64,30 @@ test('explicit source composition reproduces all five complete original files an
 });
 
 test('rebuilding has no shared byte or metadata loan after a prior result is mutated', async () => {
-  const made = await prepareNalatiSpecies(raw, authored, input, admitGuest, bodyFile);
+  const made = await prepareNalatiSpecies(raw, authored, input, admitGuest, bodyFile, compileReturnProjectionV2);
   made.selected.fill(0); made.witness.fill(0); made.body.bytes.fill(0);
   const data = v.parse(v.object({ poses: v.unknown() }), made.data);
   // The actual object is preserved by unknown admission; mutating its top-level
   // programme table must never affect the authored module or the next build.
   if (typeof data.poses !== 'object' || data.poses === null) throw new Error('Missing authored poses');
   Reflect.set(data.poses, 'horse', { changed: true });
-  originalFiles(await prepareNalatiSpecies(raw, authored, input, admitGuest, bodyFile));
+  originalFiles(await prepareNalatiSpecies(raw, authored, input, admitGuest, bodyFile, compileReturnProjectionV2));
 });
 
 test('missing supplied AS refuses before a guest can be admitted despite complete original files on disk', async () => {
   for (const name of ['heldWeapons', 'balbal']) {
     const missing = new Map(authored); missing.delete(`behaviour/${name}.as`);
-    await expect(prepareNalatiSpecies(raw, missing, input, () => { throw new Error('Unexpected guest admission'); }, bodyFile))
+    await expect(prepareNalatiSpecies(raw, missing, input, () => { throw new Error('Unexpected guest admission'); }, bodyFile, compileReturnProjectionV2))
       .rejects.toThrow(`Missing authored species source: ${name}`);
   }
 });
 
 test('guest admission refusal remains fatal and cannot borrow an already generated species document', async () => {
-  await expect(prepareNalatiSpecies(raw, authored, input, () => { throw new Error('Original guest refuses'); }, bodyFile)).rejects.toThrow('Original guest refuses');
+  await expect(prepareNalatiSpecies(raw, authored, input, () => { throw new Error('Original guest refuses'); }, bodyFile, compileReturnProjectionV2)).rejects.toThrow('Original guest refuses');
   for (const pin of originals) expect(hashImmutableBytes(readFileSync(pin.path)), pin.path).toBe(pin.sha256);
 });
 
 test('missing supplied raw bodies refuses despite the complete retained packed bank on disk', async () => {
-  await expect(prepareNalatiSpecies(new Uint8Array(), authored, input, admitGuest, bodyFile)).rejects.toThrow('Creature body source byte length differs');
+  await expect(prepareNalatiSpecies(new Uint8Array(), authored, input, admitGuest, bodyFile, compileReturnProjectionV2)).rejects.toThrow('Creature body source byte length differs');
   for (const pin of originals) expect(hashImmutableBytes(readFileSync(pin.path)), pin.path).toBe(pin.sha256);
 });

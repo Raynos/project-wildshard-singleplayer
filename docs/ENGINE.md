@@ -4138,12 +4138,9 @@ entry and hiding it again on leave.
 
 ## Trusted game plugin imports (SF78 / G307)
 
-`@wildshard/game` publishes its plugin modules in `src/game/package.json`'s
-`exports` map. That map is the public surface; there is no second runtime SDK,
-wrapper layer or separate module allowlist. Trusted shard `runtime/` files import
-the defining game module directly. Type imports follow the same boundary.
-`data/` and `generators/` use the authoring SDK and build-time commons, never game
-runtime modules. Frozen registered legacy copies retain their compatibility inputs.
+Game plugins are the `src/game/package.json` exports: trusted shard `runtime/` and type imports name defining modules, with no second runtime SDK, wrappers or allowlist. Authoring uses SDK/commons, never game runtime modules; frozen legacy inputs remain.
+
+`@wildshard/sdk/bake/byteCodec.decodeBuildDeflate` returns owned bounded zlib bytes. `ProjectGenerationContext.compileReturnProjection` injects dual AS compilation with unchanged source/ABI checks.
 
 The current migration inventory is reproducible with `node scripts/game-plugins.mjs`:
 it follows primary shards' runtime closures to their SDK facade imports and lists

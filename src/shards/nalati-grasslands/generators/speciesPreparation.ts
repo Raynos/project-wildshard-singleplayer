@@ -1,5 +1,5 @@
 import { BufferAttribute } from 'three';
-import { compileReturnProjectionV2 } from '@wildshard/sdk/returnProjectionV2';
+import type { compileReturnProjectionV2 } from '@wildshard/sdk/returnProjectionV2';
 import { encodeBuildBytes } from '@wildshard/sdk/bake/byteCodec';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import speciesRows from '../data/speciesRows.json' with { type: 'json' };
@@ -29,7 +29,7 @@ export interface NalatiSpeciesPreparation {
 }
 
 /** Construct from explicit source inputs. The adapter owns guest admission and publication naming. */
-export async function prepareNalatiSpecies(raw: Uint8Array, sources: ReadonlyMap<string, string>, input: NalatiSpeciesSourceInputs, admitGuest: (candidate: unknown) => Guest, bodyFile: (hash: string) => string): Promise<NalatiSpeciesPreparation> {
+export async function prepareNalatiSpecies(raw: Uint8Array, sources: ReadonlyMap<string, string>, input: NalatiSpeciesSourceInputs, admitGuest: (candidate: unknown) => Guest, bodyFile: (hash: string) => string, compileProjection: typeof compileReturnProjectionV2): Promise<NalatiSpeciesPreparation> {
   const authored = new Map(sources), weak = speciesRows.weak, radius = speciesRows.balbalGuest.radius;
   // Preserve the original finite triplets, 32-point ceiling and nonnegative radius before compiling.
   if (weak.length > 32 || weak.some(row => row.length !== 3 || row.some(value => !Number.isFinite(value)))
@@ -49,7 +49,7 @@ export async function prepareNalatiSpecies(raw: Uint8Array, sources: ReadonlyMap
     binding: { shard: true }, pages: 1, onFail: 'hold', on: ['signal'], tick: null, stateVersion: 1, state: [], params: {}, reads: ['field'], commands: ['channel'],
     fields: aliases(fields), channels: aliases(channels), signals: aliases(signals) };
   // 3,184 checked-in lines plus the same five generated weak-point lines.
-  const dual = await compileReturnProjectionV2(source, { fields: registry(fields), channels: registry(channels), signals: registry(signals) }, authored, { asLineCeiling: 3189 });
+  const dual = await compileProjection(source, { fields: registry(fields), channels: registry(channels), signals: registry(signals) }, authored, { asLineCeiling: 3189 });
   const crackBody = input.body.bodies.find(row => row.key.startsWith('balbal:'));
   if (crackBody === undefined) throw new Error('Missing species program or skeleton');
   const cracks = buildCracks(crackBody.bones);

@@ -6,6 +6,7 @@ import { readDecisionSources } from '@wildshard/sdk/buildDecisionScripts';
 import { fileURLToPath } from 'node:url';
 import { byteWriter, jsonBytes } from '../../../../scripts/bake-output.mjs';
 import { CreatureGuestSchema } from '@wildshard/format/speciesBookRows';
+import { compileReturnProjectionV2 } from '@wildshard/sdk/returnProjectionV2';
 import { prepareNalatiSpecies } from './speciesPreparation.ts';
 import bodyRows from '../data/bodies.json' with { type: 'json' };
 import admissionInput from '../behaviour/admission.generated.json' with { type: 'json' };
@@ -17,7 +18,7 @@ if(lanes.length%4!==0)throw new Error('Creature body source is not whole words')
 const words=lanes.length/4,raw=new Uint8Array(lanes.length);
 for(let i=0;i<words;i++)for(let byte=0;byte<4;byte++)raw[i*4+byte]=lanes[byte*words+i];
 const authored=readDecisionSources(fileURLToPath(new URL('../',import.meta.url)));
-const made=await prepareNalatiSpecies(raw,authored,{body:bodyRows,admission:admissionInput,strike:strikes.balbal,kingPose},input=>v.parse(CreatureGuestSchema,input),hash=>`/assets/nalati/baked/bodies-${hash}.bin`);
+const made=await prepareNalatiSpecies(raw,authored,{body:bodyRows,admission:admissionInput,strike:strikes.balbal,kingPose},input=>v.parse(CreatureGuestSchema,input),hash=>`/assets/nalati/baked/bodies-${hash}.bin`,compileReturnProjectionV2);
 const writer=byteWriter(process.argv.includes('--check'),'nalati-species');
 writer.put(fileURLToPath(new URL('../behaviour/held-weapons.generated.wasm',import.meta.url)),made.selected);
 writer.put(fileURLToPath(new URL('../behaviour/held-witness.generated.bin',import.meta.url)),made.witness);

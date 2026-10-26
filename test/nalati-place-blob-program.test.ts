@@ -120,6 +120,7 @@ test('the actual output hook preserves every predecessor file cost and binary by
       expect(Buffer.compare(cold.bytes, readFileSync(`public/assets/nalati/baked/${name}.bin`))).toBe(0);
       cold.bytes.fill(0);
     }
+    expect(constructions.get('species')).toBe(1);
     expect(constructions.get('model-parts')).toBe(1);
     expect(constructions.get('places')).toBe(1);
     expect(constructions.get('dressing-placement')).toBe(1);
@@ -146,6 +147,9 @@ test('the actual output hook preserves every predecessor file cost and binary by
       expect(bytes.byteLength).toBe(file.compressed);
       expect(hashImmutableBytes(bytes)).toBe(file.hash);
     }
+    expect(steps).toContain('species');
+    expect(requested).toContain('/assets/nalati/baked/bodies.bin');
+    for (const source of ['data/species.generated.json', 'boot/speciesRows.generated.json', 'behaviour/held-weapons.generated.wasm', 'behaviour/held-witness.generated.bin']) expect(requested).not.toContain(source);
     expect(steps).toContain('model-parts');
     expect(steps).toContain('dressing-placement');
     expect(requested).toContain('data/geography-forest.bin');
@@ -254,6 +258,8 @@ test('the actual output hook preserves every predecessor file cost and binary by
       expect(Buffer.compare(bytes, expected.bytes)).toBe(0);
     }
     const ctx = context();
+    await expect(prepareOutput({ ...ctx, cached: (step, make) => step.id === 'species'
+      ? Promise.resolve(new Map()) : ctx.cached(step, make) })).rejects.toThrow('Owned species inventory differs');
     await expect(prepareOutput({ ...ctx, cached: (step, make) => step.id === 'dressing-placement'
       ? Promise.resolve(new Map()) : ctx.cached(step, make) })).rejects.toThrow('Owned Nalati dressing placement inventory differs');
     await expect(prepareOutput({ ...ctx, cached: async (step, make) => {

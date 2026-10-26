@@ -2,7 +2,7 @@
 import { constants, deflateSync, zstdCompressSync, zstdDecompressSync } from 'node:zlib';
 import { zlibSync, unzlibSync } from 'fflate';
 import { expect, test } from 'vitest';
-import { encodeBuildBytes } from './byteCodec';
+import { decodeBuildDeflate, encodeBuildBytes } from './byteCodec';
 
 const input = Uint8Array.from({ length: 4096 }, (_, index) => (index * 13) % 256);
 test('default deflate is the original level9 stream, including view offsets', () => {
@@ -66,4 +66,28 @@ test('native selection retains codec, level and backing refusals', () => {
   }
   const detached = new Uint8Array(8); structuredClone(detached.buffer, { transfer: [detached.buffer] });
   expect(() => encodeBuildBytes(detached, 'deflate', 9, 'native')).toThrow();
+});
+
+test('bounded build decoding owns the selected zlib view and accepts an exact empty stream', () => {
+  const encoded = deflateSync(input), backing = new Uint8Array(encoded.length + 17);
+  backing.set(encoded, 11);
+  const view = backing.subarray(11, 11 + encoded.length), before = view.slice();
+  const decoded = decodeBuildDeflate(view, input.length);
+  expect(decoded).toEqual(input); decoded.fill(0);
+  expect(view).toEqual(before); expect(decodeBuildDeflate(view, input.length)).toEqual(input);
+  expect(decodeBuildDeflate(deflateSync(new Uint8Array()), 0)).toEqual(new Uint8Array());
+});
+
+test('build decoding refuses corrupt, truncated, undersized and oversized declarations', () => {
+  const encoded = deflateSync(input);
+  for (const bytes of [new Uint8Array(), encoded.subarray(0, -1), new Uint8Array([1, 2, 3])]) {
+    expect(() => decodeBuildDeflate(bytes, input.length)).toThrow();
+  }
+  for (const size of [0, input.length - 1, input.length + 1, -1, 0.5, Infinity, Number.NaN, 256_000_001]) {
+    expect(() => decodeBuildDeflate(encoded, size)).toThrow();
+  }
+  const detached = new Uint8Array(encoded); structuredClone(detached.buffer, { transfer: [detached.buffer] });
+  for (const bytes of [detached, [], new Uint8Array(new SharedArrayBuffer(8))]) {
+    expect(() => { Reflect.apply(decodeBuildDeflate, undefined, [bytes, input.length]); }).toThrow();
+  }
 });
