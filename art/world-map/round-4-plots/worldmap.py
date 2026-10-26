@@ -11,7 +11,10 @@ Boulevard breaks off where content stops, and past the rim is the void.
 
 Style: the Isle of Vaelmora map Jake approved (x.com/xikhar/status/2114455448946700694). Every shard is invented.
 
-    python3 art/world-map/round-4-plots/worldmap.py tmp/world-map/full.png
+    python3 art/world-map/round-4-plots/worldmap.py tmp/world-map/full.png [scale]
+
+The optional scale redraws the same chart larger (2 gives 8800 x 10600): every coordinate, width and font is in
+design units of the 4400 x 5300 sheet, and SDraw multiplies them onto a canvas that many times bigger.
 """
 import math
 import sys
@@ -20,11 +23,13 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
 OUT = sys.argv[1] if len(sys.argv) > 1 else 'tmp/world-map/full.png'
+SCALE = float(sys.argv[2]) if len(sys.argv) > 2 else 1.0
 SEED = 2025
 C, G = 320, 40                 # a 500 m cell and its 62.5 m gap, full-res pixels
 P = C + G
 N = 10
 W, H = 4400, 5300
+WS, HS = int(W * SCALE), int(H * SCALE)
 GX0 = (W - (N * C + (N - 1) * G)) // 2
 GY0 = 780
 HEART = (GX0 + 5 * P - G / 2, GY0 + 5 * P - G / 2)
@@ -42,7 +47,52 @@ FONTS = '/System/Library/Fonts/Supplemental/'
 
 
 def font(name, size, index=0):
-    return ImageFont.truetype(FONTS + name, size, index=index)
+    return ImageFont.truetype(FONTS + name, max(1, round(size * SCALE)), index=index)
+
+
+class SDraw:
+    """ImageDraw in design units on a canvas SCALE times larger: coordinates, widths and text all scale."""
+
+    def __init__(self, im):
+        self.d = ImageDraw.Draw(im, 'RGBA')
+
+    @staticmethod
+    def _xy(xy):
+        xy = list(xy)
+        if xy and isinstance(xy[0], (tuple, list)):
+            return [(x * SCALE, y * SCALE) for x, y in xy]
+        return [v * SCALE for v in xy]
+
+    @staticmethod
+    def _kw(kw):
+        for k in ('width', 'stroke_width'):
+            if k in kw and kw[k]:
+                kw[k] = max(1, int(round(kw[k] * SCALE)))
+        return kw
+
+    def line(self, xy, **kw):
+        self.d.line(self._xy(xy), **self._kw(kw))
+
+    def ellipse(self, xy, **kw):
+        self.d.ellipse(self._xy(xy), **self._kw(kw))
+
+    def rectangle(self, xy, **kw):
+        self.d.rectangle(self._xy(xy), **self._kw(kw))
+
+    def polygon(self, xy, **kw):
+        self.d.polygon(self._xy(xy), **self._kw(kw))
+
+    def pieslice(self, xy, start, end, **kw):
+        self.d.pieslice(self._xy(xy), start, end, **self._kw(kw))
+
+    def arc(self, xy, start, end, **kw):
+        self.d.arc(self._xy(xy), start, end, **self._kw(kw))
+
+    def text(self, xy, text, **kw):
+        self.d.text((xy[0] * SCALE, xy[1] * SCALE), text, **self._kw(kw))
+
+    def textlength(self, text, font):
+        return self.d.textlength(text, font=font) / SCALE
 
 
 # ---------------------------------------------------------------- raster helpers
@@ -1241,47 +1291,50 @@ def edge_marks(d, cells, F):
 
 def space(rng):
     """The void the world floats in: night ink, a little nebula, stars."""
-    neb = up(rng.random((40, 34)), W, H) * 0.6 + up(rng.random((160, 134)), W, H) * 0.4
+    neb = up(rng.random((40, 34)), WS, HS) * 0.6 + up(rng.random((160, 134)), WS, HS) * 0.4
     base = mix((16, 20, 38), (34, 34, 64), smooth(0.45, 0.85, neb))
     base = mix(base, (64, 46, 88), smooth(0.72, 0.95, neb) * 0.5)
-    n = 4200
-    ys = rng.integers(0, H, n)
-    xs = rng.integers(0, W, n)
+    n = int(4200 * SCALE * SCALE)
+    ys = rng.integers(0, HS, n)
+    xs = rng.integers(0, WS, n)
     b = rng.random(n) ** 3
     star = np.array([244, 236, 210], np.float32)
-    for dy, dx, k in ((0, 0, 1.0), (0, 1, 0.4), (1, 0, 0.4)):
-        yy, xx = np.clip(ys + dy, 0, H - 1), np.clip(xs + dx, 0, W - 1)
+    sz = max(1, int(round(SCALE)))
+    for dy, dx, k in [(a, b, 1.0) for a in range(sz) for b in range(sz)] + [(0, sz, 0.4), (sz, 0, 0.4)]:
+        yy, xx = np.clip(ys + dy, 0, HS - 1), np.clip(xs + dx, 0, WS - 1)
         base[yy, xx] = base[yy, xx] * (1 - b[:, None] * k) + star * b[:, None] * k
     return base
 
 
 def plate_mask(allcells):
-    m = np.zeros((H, W), bool)
+    m = np.zeros((HS, WS), bool)
     fx1, fy1 = FX0 + FN * FS, FY0 + FN * FS
     for (i, j) in allcells:
         x0, y0 = cell_xy(i, j)
         a, b = max(FX0, x0 - G), min(fx1, x0 + C + G)
         c, e = max(FY0, y0 - G), min(fy1, y0 + C + G)
-        m[c:e, a:b] = True
+        m[int(c * SCALE):int(e * SCALE), int(a * SCALE):int(b * SCALE)] = True
     return m
 
 
 def plate_rim(arr, m):
     """The plate's thickness shows below its rim, layered like the cut earth it is, with a faint glow on the void."""
     face = np.zeros(m.shape, np.int16)
-    for k in range(1, 27):
+    depth = int(26 * SCALE)
+    for k in range(1, depth + 1):
         sh = np.zeros_like(m)
         sh[k:] = m[:-k]
         new = sh & ~m & (face == 0)
         face[new] = k
     f = face > 0
-    t = (face[f] / 26.0)[:, None]
-    strata = ((face[f] % 7) == 0)[:, None]
+    t = (face[f] / float(depth))[:, None]
+    strata = ((face[f] % max(1, int(7 * SCALE))) < max(1, int(SCALE)))[:, None]
     col = np.array([150, 116, 84], np.float32) * (1 - t) + np.array([70, 52, 40], np.float32) * t
     col = np.where(strata, col * 0.8, col)
     arr[f] = col
-    small = m[::8, ::8].astype(np.float32)
-    glow = up(blur(small, 6), W, H)
+    st = int(8 * SCALE)
+    small = m[::st, ::st].astype(np.float32)
+    glow = up(blur(small, 6), WS, HS)
     arr[:] = mix(arr, (90, 100, 150), (glow * 0.35 * (~m & ~f))[..., None] * np.ones(3, np.float32))
     return arr
 
@@ -1306,14 +1359,16 @@ def main():
     ys = np.arange(FN, dtype=np.float32) * FS + FY0
     X, Y = np.meshgrid(xs, ys)
 
+    EXT = int(FN * FS * SCALE)
+
     def U(a):
-        return up(a, FN * FS, FN * FS)
+        return up(a, EXT, EXT)
     Hf, WETf, CLf, LAVf = U(h), U(wet), U(cloud), U(F['lava'])
     COLf = np.stack([U(F['col'][..., k]) for k in range(3)], -1)
     WCf = np.stack([U(F['wcol'][..., k]) for k in range(3)], -1)
     land = smooth(-0.004, 0.004, WETf)
 
-    gy, gx = np.gradient(Hf * 330)
+    gy, gx = np.gradient(Hf * 330 * SCALE)
     lx, ly, lz = -0.62, -0.62, 0.48
     ln = math.sqrt(lx * lx + ly * ly + lz * lz)
     s = (-gx * lx - gy * ly + lz) / (np.sqrt(gx * gx + gy * gy + 1) * ln) - lz / ln
@@ -1331,17 +1386,18 @@ def main():
     depth = np.clip(-WETf, 0, None)
     water = mix(WCf, SEA_DEEP, smooth(0.0, 0.28, depth) * 0.75)
     for lev, a in ((0.02, 0.3), (0.05, 0.22), (0.1, 0.14)):
-        water = mix(water, (82, 114, 138), contour(-WETf, lev, 0.9) * a)
-    cl = up(fbm(rng, FN // 2, 12, 5), FN * FS, FN * FS)
+        water = mix(water, (82, 114, 138), contour(-WETf, lev, 0.9 * SCALE) * a)
+    cl = up(fbm(rng, FN // 2, 12, 5), EXT, EXT)
     clouds = mix((206, 216, 228), (248, 250, 252), smooth(0.3, 0.8, cl))
-    clouds = mix(clouds, (178, 194, 210), np.clip(sum(contour(cl, lv, 0.7) for lv in (0.45, 0.62, 0.78)), 0, 1) * 0.45)
-    isle_shadow = np.roll(np.roll(land, 16, 0), 10, 1)
-    clouds = mix(clouds, (150, 160, 182), up(blur(isle_shadow[::FS, ::FS], 4), FN * FS, FN * FS) * 0.5)
+    clouds = mix(clouds, (178, 194, 210), np.clip(sum(contour(cl, lv, 0.7 * SCALE) for lv in (0.45, 0.62, 0.78)), 0, 1) * 0.45)
+    isle_shadow = np.roll(np.roll(land, int(16 * SCALE), 0), int(10 * SCALE), 1)
+    st = int(FS * SCALE)
+    clouds = mix(clouds, (150, 160, 182), up(blur(isle_shadow[::st, ::st], 4), EXT, EXT) * 0.5)
     under = mix(water, clouds, smooth(0.35, 0.65, CLf))
-    cliff = np.clip(np.roll(land, 8, 0) - land, 0, 1) * smooth(0.35, 0.65, CLf)
+    cliff = np.clip(np.roll(land, int(8 * SCALE), 0) - land, 0, 1) * smooth(0.35, 0.65, CLf)
     under = mix(under, (128, 100, 76), cliff)
     rgb = mix(under, lcol, land)
-    coast = contour(WETf, 0.0, 1.1) * (1 - smooth(0.4, 0.7, CLf) * 0.6)
+    coast = contour(WETf, 0.0, 1.1 * SCALE) * (1 - smooth(0.4, 0.7, CLf) * 0.6)
     rgb = mix(rgb, (70, 60, 50), coast * 0.8)
     rgb = rgb * 0.88 + np.array(PAPER, np.float32) * 0.12
     rr = np.hypot(X - HEART[0], Y - HEART[1])
@@ -1355,11 +1411,12 @@ def main():
     canvas_arr = space(rng)
     plate = plate_mask(allcells)
     canvas_arr = plate_rim(canvas_arr, plate)
-    sub = plate[FY0:FY0 + FN * FS, FX0:FX0 + FN * FS]
-    region = canvas_arr[FY0:FY0 + FN * FS, FX0:FX0 + FN * FS]
-    region[sub] = rgb[sub]
+    oy, ox = int(FY0 * SCALE), int(FX0 * SCALE)
+    sub = plate[oy:oy + EXT, ox:ox + EXT]
+    region = canvas_arr[oy:oy + EXT, ox:ox + EXT]
+    region[sub] = rgb[:sub.shape[0], :sub.shape[1]][sub]
     canvas = Image.fromarray(np.clip(canvas_arr, 0, 255).astype(np.uint8), 'RGB')
-    d = ImageDraw.Draw(canvas, 'RGBA')
+    d = SDraw(canvas)
     edge_marks(d, cells, F)
 
     clear = Image.new('L', (FN, FN), 0)
@@ -1718,7 +1775,7 @@ def ring_labels(d):
 
 
 def furniture(canvas):
-    d = ImageDraw.Draw(canvas, 'RGBA')
+    d = SDraw(canvas)
     cream = (240, 232, 212)
     tw, th = 2100, 300
     tx, ty = (W - tw) // 2, 150
@@ -1895,12 +1952,12 @@ def compass(d, x, y, R):
 
 def finish(canvas, rng):
     arr = np.asarray(canvas).astype(np.float32)
-    yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
-    v = np.hypot((xx - W / 2) / (W / 2), (yy - H / 2) / (H / 2))
+    yy, xx = np.mgrid[0:HS, 0:WS].astype(np.float32)
+    v = np.hypot((xx - WS / 2) / (WS / 2), (yy - HS / 2) / (HS / 2))
     arr *= (1 - 0.16 * smooth(0.7, 1.45, v))[..., None]
-    arr *= (0.975 + 0.05 * up(rng.random((H // 8, W // 8)), W, H))[..., None]
+    arr *= (0.975 + 0.05 * up(rng.random((H // 8, W // 8)), WS, HS))[..., None]
     out = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8), 'RGB')
-    d = ImageDraw.Draw(out, 'RGBA')
+    d = SDraw(out)
     m = 56
     for box in ([0, 0, W, m], [0, H - m, W, H], [0, 0, m, H], [W - m, 0, W, H]):
         d.rectangle(box, fill=(226, 214, 186))
