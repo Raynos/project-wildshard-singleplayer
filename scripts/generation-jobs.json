@@ -9556,7 +9556,6 @@
         "src/sdk/bake/json.mjs",
         "src/sdk/bake/source-loader.mjs",
         "src/sdk/package.json",
-        "src/shards/far-reach/data/dressing.json",
         "src/shards/far-reach/data/layout.generated.json",
         "src/shards/far-reach/data/skyMapSources.json",
         "src/shards/far-reach/data/strings.json",
@@ -9579,7 +9578,12 @@
         "src/shards/far-reach/generators/risingIslets.ts",
         "src/shards/far-reach/generators/rows/falls.ts",
         "src/shards/far-reach/generators/rows/trees.ts",
-        "src/shards/far-reach/generators/rows/isletDesign.ts"
+        "src/shards/far-reach/generators/rows/isletDesign.ts",
+        "src/shards/far-reach/generators/dressing.ts",
+        "src/shards/far-reach/generators/fallGeometry.ts",
+        "src/shards/far-reach/generators/geometries.ts",
+        "src/shards/far-reach/generators/palette.ts",
+        "src/shards/far-reach/generators/piece.ts"
       ],
       "outputs": [
         "public/assets/far-reach/baked/851f80fb000e621ab1b6e22edd9a9ac7fbcb6ecfeda1047a86f3f919d779e33f.bin"
