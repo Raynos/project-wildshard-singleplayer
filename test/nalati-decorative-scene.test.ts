@@ -6,12 +6,18 @@ import { nalatiDecorative } from './fixtures/nalati-decorative';
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { decorativeRows } from '../src/shards/nalati-grasslands/generators/decorativeInput';
-import { dressingScene, dressingSceneBlobs } from '../src/shards/nalati-grasslands/generators/dressingScene';
+import { dressingScene, dressingSceneBlobs as namedDressingSceneBlobs } from '../src/shards/nalati-grasslands/generators/dressingScene';
+import {originalDressingContactTransport} from './fixtures/nalati-contact-transport';
 import * as v from 'valibot';
 import { withPortableMath } from '../src/commons/bake/portableMath';
 import original from './fixtures/nalati-dressing-scenes.json' with { type: 'json' };
 import { sceneWithNativeOutcrops } from './fixtures/nalati-scene-provenance';
 import { hashImmutableBytes } from '../src/sdk/immutable';
+
+function dressingSceneBlobs(...args:Parameters<typeof namedDressingSceneBlobs>):ReturnType<typeof namedDressingSceneBlobs>{
+  return originalDressingContactTransport(namedDressingSceneBlobs(...args),new Map((['phone','desktop']as const)
+    .map(tier=>[`world/dressing-${tier}.json`,dressingScene(tier,...args)])));
+}
 
 for (const fresh of [false, true]) test(`${fresh ? 'fresh native' : 'prepared native'} profiles preserve all complete dressing scenes and addresses`, () => {
   const profiles = fresh ? withPortableMath(() => decorativeRows(readFileSync('public/assets/baked/nalati-grasslands/terrain.bin'))) : nalatiDecorative;

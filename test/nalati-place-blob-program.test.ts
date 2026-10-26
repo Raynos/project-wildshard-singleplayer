@@ -12,6 +12,7 @@ import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { nameBlob, type NamedBlob } from '../src/sdk/blobs';
 import { PackedSpecimenSchema } from '../src/format/specimenCatalogue';
 import { FixedDrawRowsSchema } from '../src/format/fixedDraws';
+import {SceneDressingSchema} from '../src/format/sceneDressing';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
 import { PopulationFieldSchema } from '../src/format/populationEnvironment';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
@@ -26,7 +27,8 @@ import shapeBookOriginal from './fixtures/nalati-shape-book.json' with { type: '
 import shapeBookRowsOriginal from './fixtures/nalati-shape-book-original.json' with { type: 'json' };
 import * as v from 'valibot';
 import { discoverGeneration } from '../scripts/generate.mjs';
-import { dressingSceneBlobs } from '../src/shards/nalati-grasslands/generators/dressingScene';
+import { dressingScene, dressingSceneBlobs } from '../src/shards/nalati-grasslands/generators/dressingScene';
+import {originalDressingContactTransport} from './fixtures/nalati-contact-transport';
 import { nalatiRuntimeRows } from '../src/shards/nalati-grasslands/generators/runtimeRows';
 import { nalatiRuntime } from './fixtures/nalati-runtime';
 import { nalatiDecorative } from './fixtures/nalati-decorative';
@@ -163,7 +165,8 @@ test('the actual output hook preserves every predecessor file cost and binary by
     if (nativePlaces === undefined) throw new Error('Missing observed native place metadata');
     const ownedPlaces: unknown = JSON.parse(new TextDecoder().decode(nativePlaces));
     const ownedRuntime = nalatiRuntimeRows({ places: ownedPlaces, paint: paintInput }).runtime;
-    const frozenScenes = dressingSceneBlobs(nalatiDecorative, nalatiRuntime,nalatiBalbal,nalatiSpecimens);
+    const frozenScenes = originalDressingContactTransport(dressingSceneBlobs(nalatiDecorative, nalatiRuntime,nalatiBalbal,nalatiSpecimens),
+      new Map((['phone','desktop']as const).map(tier=>[`world/dressing-${tier}.json`,dressingScene(tier,nalatiDecorative,nalatiRuntime,nalatiBalbal,nalatiSpecimens)])));
     expect(frozenScenes.map(blob => ({ name: blob.file.name, bytes: blob.bytes.length, hash: blob.file.hash }))
       .sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '')))
       .toEqual([...sceneOriginal].sort((a, b) => a.name.localeCompare(b.name)));
@@ -246,12 +249,19 @@ test('the actual output hook preserves every predecessor file cost and binary by
       return changed;
     } })).rejects.toThrow();
     expect(steps).toContain('decorative');
-    for (const pin of sceneOriginal) {
-      const file = hit.namedFiles.find(row => row.name === pin.name), bytes = file === undefined ? undefined : hit.assets.get(file.hash);
-      if (file === undefined || bytes === undefined) throw new Error('Missing owned dressing scene');
+    const expectedScenes = new Map(sceneOriginal.map(pin=>{
       const frozen = frozenScenes.find(blob => blob.file.name === pin.name);
       if (frozen === undefined) throw new Error('Missing frozen complete scene pin');
       const expected = pin.name.endsWith('.json') ? sceneWithOwnedModels(sceneWithSpecimenBank(sceneWithNativeOutcrops(frozen, ownedRuntime),expectedBank)) : frozen;
+      return[pin.name,expected]as const;
+    }));
+    const projectedScenes=originalDressingContactTransport(hit.namedFiles.map(file=>{
+      const bytes=hit.assets.get(file.hash);if(bytes===undefined)throw new Error('Missing owned output bytes');return{file,bytes};
+    }),new Map([...expectedScenes].filter(([name])=>name.endsWith('.json')).map(([name,blob])=>[name,v.parse(SceneDressingSchema,JSON.parse(new TextDecoder().decode(blob.bytes)))])));
+    for (const [name,expected] of expectedScenes) {
+      const projected=projectedScenes.find(row=>row.file.name===name);
+      if(projected===undefined)throw new Error('Missing owned dressing scene');
+      const {file,bytes}=projected;
       expect(file).toEqual(expected.file);
       expect(bytes.length).toBe(expected.file.compressed);
       expect(hashImmutableBytes(bytes)).toBe(expected.file.hash);

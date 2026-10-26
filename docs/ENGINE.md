@@ -12527,14 +12527,12 @@ name} publishes the new construction Group before the stage walk; its scoped
 object loan is preflighted and lent with the completed stages. No empty book
 or extra intake substitutes for the original scene catalogue.
 
-SceneDressing packed-hulls contacts may name an admitted binary `file`
-instead of inline compressed `data`. The entered installer preflights all
-names, then reads each distinct file once through the concrete product
-before constructing any dressing. Scope, product, world and both file
-capabilities remain pinned across every read. The existing decoder consumes
-the same compressed bytes and preserves independent float32 point lanes,
-origin order and native registration; the temporary byte loan adds no
-registry, clock or persistence. Retiring ancestors refuse before reads.
+SceneDressing packed-hulls contacts accept admitted compressed `file` loans.
+Nalati publishes content-addressed files shared across both tiers; all point
+lanes and origins stay exact. Inline data remains for retained callers.
+The installer preflights names and reads each file once before construction,
+pinning scope, product, world and both readers across awaits. Native contact
+registration stays unchanged; retiring ancestors refuse before reads.
 
 Sampled SceneFloorSchema runtime rows require raw f32 files.
 readSceneFloors(rows,files?) borrows prepared bytes; res squared times four

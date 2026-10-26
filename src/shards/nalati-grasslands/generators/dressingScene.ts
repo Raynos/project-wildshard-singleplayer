@@ -11,7 +11,7 @@ import { zlibSync } from 'fflate';
 import { SceneDressingSchema, SceneBakedGeometrySchema,SceneFloorSchema, SceneDressingContactsSchema, type SceneDressingRows } from '@wildshard/format/sceneDressing';
 import { namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import { nameBlob } from '@wildshard/sdk/blobs';
-import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
+import { encodeCanonicalJson, hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { writeGeometry, join } from './geometryWriter';
 import { nalatiPoiScenes } from './poiScenes';
 import { nalatiSpecimenRows } from './specimenRows';
@@ -81,17 +81,19 @@ function readPreparedDressing(input:unknown) {
 }
 
 const encoded=(raw:Uint8Array):string=>{let encodedText='';for(const byte of zlibSync(raw))encodedText+=String.fromCodePoint(byte);return btoa(encodedText);};
+type ContactSource=(raw:Uint8Array)=>{data:string}|{file:string};
+const inlineContact:ContactSource=raw=>({data:encoded(raw)});
 const id=(name:string)=>`nalati-grasslands/${name}`;
-const preparedContacts=(inputs:readonly unknown[])=>{
+const preparedContacts=(inputs:readonly unknown[],source:ContactSource)=>{
   const contacts=v.parse(SceneDressingContactsSchema,inputs.map(input=>{const parsed=v.parse(v.looseObject({heading:v.exactOptional(v.tuple([number,number]))}),input),{heading,...contact}=parsed;return heading===undefined?contact:Object.assign(contact,{yaw:Math.atan2(...heading)});}));
   const hulls=contacts.filter(row=>row.kind==='hull');
   if(hulls.length===0||hulls.length!==contacts.length||hulls.some(row=>row.surface!=='rock'||row.yaw!==undefined||row.rot!==undefined))return contacts;
-  return{kind:'packed-hulls',data:encoded(new Uint8Array(Float32Array.from(hulls.flatMap(row=>row.points)).buffer)),origins:hulls.map(row=>[row.x,row.y,row.z,row.points.length]),surface:'rock'};
+  return{kind:'packed-hulls',...source(new Uint8Array(Float32Array.from(hulls.flatMap(row=>row.points)).buffer)),origins:hulls.map(row=>[row.x,row.y,row.z,row.points.length]),surface:'rock'};
 };
 
 
 /** Existing baked shapes and placements become Z2 rows; no page-side scatter or model constructors. */
-function compileDressingScene(tier:'phone'|'desktop',profiles:v.InferOutput<typeof decorativeProfiles>,input:ReturnType<typeof readPreparedDressing>,balbal:v.InferOutput<typeof balbalSchema>,specimens:v.InferOutput<typeof specimensSchema>) {
+function compileDressingScene(tier:'phone'|'desktop',profiles:v.InferOutput<typeof decorativeProfiles>,input:ReturnType<typeof readPreparedDressing>,balbal:v.InferOutput<typeof balbalSchema>,specimens:v.InferOutput<typeof specimensSchema>,contactSource:ContactSource=inlineContact) {
   const {prepared,scenes,placed}=input;
   const phone=tier==='phone',profile=cover[tier];
   const geometry:Record<string,unknown>={},materials:Record<string,unknown>={},addresses:number[]=[];
@@ -133,7 +135,7 @@ function compileDressingScene(tier:'phone'|'desktop',profiles:v.InferOutput<type
       const key=`${name}.instance.${index}`;geometry[key]={kind:'asset',row:instance.asset};materials[key]={kind:'asset',row:instance.asset};geo[key]=key;mats[key]=key;
       copied.materials.push({kind:'port',id:key,source:key});copied.nodes.push({...mesh,id:key,geometry:key,material:key});root.children.push(key);
     }
-    return{name,recipe:copied,geometry:geo,materials:mats,anchors:placeAnchors(name,placed),tris:row.tris+(name==='kokpar'?6*(phone?metrics.farTriangles['kokpar-rider']:metrics.triangles['kokpar-rider']):0),members:row.members.map(([model,member])=>({model,draw:member.draw,placements:member.placements,boxes:member.boxes,floors:member.floors,contacts:preparedContacts([...member.solid,...member.descs])}))};
+    return{name,recipe:copied,geometry:geo,materials:mats,anchors:placeAnchors(name,placed),tris:row.tris+(name==='kokpar'?6*(phone?metrics.farTriangles['kokpar-rider']:metrics.triangles['kokpar-rider']):0),members:row.members.map(([model,member])=>({model,draw:member.draw,placements:member.placements,boxes:member.boxes,floors:member.floors,contacts:preparedContacts([...member.solid,...member.descs],contactSource)}))};
   });
   const cloth=clothGeometry(prepared);geometry['cloth']={kind:'inline',...cloth};materials['cloth']={kind:'look',look:'nalati-cloth'};
   statics.push({name:'cloth',recipe:{version:1,root:'root',materials:[{kind:'port',id:'paint',source:'paint'}],nodes:[{kind:'group',id:'root',children:['cloth']},{kind:'mesh',id:'cloth',geometry:'shape',material:'paint',missing:'empty',castShadow:true,receiveShadow:true}]},geometry:{shape:'cloth'},materials:{paint:'cloth'},tris:cloth.row.indexCount/3,members:[]});
@@ -147,7 +149,7 @@ function compileDressingScene(tier:'phone'|'desktop',profiles:v.InferOutput<type
   materials['crag']={kind:'look',look:phone?'nalati-crag-phone':'nalati-crag',params:{rockMean:paintedTextures.mean.rock,scale:[1/paintedTextures.metres.rock,1/paintedTextures.metres.snow],snowBand:[layout.SNOW_LINE-14,layout.SNOW_LINE-2]},textures:{rock:rockTexture,snow:snowTexture}};
   const firstCrag=crags.meshes[0];if(firstCrag===undefined)throw new Error('Missing prepared crag shape');
   const cragModel={model:{id:'nalati-grasslands/crag-rock',name:'Crag rock',category:'nature',pipeline:'code',file:'src/shards/nalati-grasslands/generators/bake-crag-rock.mjs',surface:'rock',defaults:{kind:'fin'},variants:[{id:'fin',label:'Fin',params:{}},{id:'rib',label:'Rib',params:{kind:'rib'}},{id:'tower',label:'Tower',params:{kind:'tower'}}]},geometry:firstCrag.key,material:'crag'};
-  const cragPoints=Float32Array.from(crags.hulls.flatMap(row=>row.points)),cragContacts={kind:'packed-hulls',data:encoded(new Uint8Array(cragPoints.buffer)),origins:crags.hulls.map(row=>[row.x,row.y,row.z,row.points.length]),surface:'rock'};
+  const cragPoints=Float32Array.from(crags.hulls.flatMap(row=>row.points)),cragContacts={kind:'packed-hulls',...contactSource(new Uint8Array(cragPoints.buffer)),origins:crags.hulls.map(row=>[row.x,row.y,row.z,row.points.length]),surface:'rock'};
   statics.push({name:'cragRocks',recipe:crags.recipe,geometry:cragGeometry,materials:{crag:'crag'},tris:crags.triangles,members:[{model:'nalati-grasslands/crag-rock',draw:'merged',placements:crags.placements,boxes:crags.boxes,contacts:cragContacts}]});
   const result={instances:bowl.instances,staticModels:[...bowl.staticModels,cragModel],name:'nalati-dressing',catalogues:[{rows:specimens.catalogue,packed:specimens.packed,materials:specimens.materials},{rows:balbal.catalogue},{rows:profile.catalogue,pack:'cover'}],packs:{cover:{rows:profile.packed,materials:cover.materials}},geometry,materials,layers,statics,
     wings:{groups:profile.life,layers:[{id:'butterfly',capacity:cover.butterflies[tier],palette:cover.hue,flap:[12,1.15,.25],geometry:'wing',material:'butterfly'},{id:'raptor',capacity:cover.raptors,palette:[],flap:null,geometry:'halfBird',material:'raptor'}]},
@@ -194,8 +196,17 @@ function clothGeometry(prepared:ReturnType<typeof readPreparedDressing>['prepare
   return{row,data:encoded(join(blocks)),sphere:[sphere.center.x,sphere.center.y,sphere.center.z,sphere.radius]};
 }
 
-/** Supplied native runtime rows and profiles become separate tier JSON loans under the existing bounded budget. */
-export function dressingSceneBlobs(input:unknown,runtime:unknown,balbal:unknown,specimens:unknown):ReturnType<typeof nameBlob>[] {const profiles=v.parse(decorativeProfiles,input),prepared=readPreparedDressing(runtime);return(['phone','desktop']as const).flatMap(tier=>{const result=compileDressingScene(tier,profiles,prepared,v.parse(balbalSchema,balbal),v.parse(specimensSchema,specimens));return[nameBlob(`world/dressing-${tier}.json`,'json',new TextEncoder().encode(encodeCanonicalJson(result.rows)),{jsonSchema:namedJsonSchema(SceneDressingSchema)}),nameBlob(`world/dressing-addresses-${tier}.bin`,'bin',result.addresses)];});}
+/** Supplied profiles retain exact tier rows; packed hulls share content-addressed compressed binary loans. */
+export function dressingSceneBlobs(input:unknown,runtime:unknown,balbal:unknown,specimens:unknown):ReturnType<typeof nameBlob>[] {
+  const profiles=v.parse(decorativeProfiles,input),prepared=readPreparedDressing(runtime),contacts=new Map<string,ReturnType<typeof nameBlob>>();
+  const source:ContactSource=raw=>{
+    const bytes=zlibSync(raw),file=`world/dressing-contacts/${hashImmutableBytes(bytes)}.bin`;
+    if(!contacts.has(file))contacts.set(file,nameBlob(file,'bin',bytes,{decoded:raw.byteLength}));
+    return{file};
+  };
+  const tiers=(['phone','desktop']as const).flatMap(tier=>{const result=compileDressingScene(tier,profiles,prepared,v.parse(balbalSchema,balbal),v.parse(specimensSchema,specimens),source);return[nameBlob(`world/dressing-${tier}.json`,'json',new TextEncoder().encode(encodeCanonicalJson(result.rows)),{jsonSchema:namedJsonSchema(SceneDressingSchema)}),nameBlob(`world/dressing-addresses-${tier}.bin`,'bin',result.addresses)];});
+  return[...tiers,...contacts.values()];
+}
 
 /** Admitted tier rows from caller-owned runtime metadata for catalogue and format consumers. */
 export function dressingScene(tier:'phone'|'desktop',input:unknown,runtime:unknown,balbal:unknown,specimens:unknown):SceneDressingRows{return compileDressingScene(tier,v.parse(decorativeProfiles,input),readPreparedDressing(runtime),v.parse(balbalSchema,balbal),v.parse(specimensSchema,specimens)).rows;}
