@@ -1,5 +1,6 @@
+
 import * as v from 'valibot';
-import { FigureCatalogueSchema } from '@wildshard/format/figures';
+import { FigureCatalogueSchema , type FigureCatalogueRow as FigureCatalogueRowType } from '@wildshard/format/figures';
 import { NPC_FIGURE } from './peopleLook';
 import { NATIVE_VIEW } from './nativeView';
 import { LEG_BONE_NAMES } from './npcSkin';
@@ -8,7 +9,7 @@ import packed from '../data/codeParts.json' with { type: 'json' };
 import metadata from '../data/explorerMetadata.generated.json' with { type: 'json' };
 
 /** The live people and Explorer consume one set of baked figures and anchors. */
-export const FIGURE_CATALOGUE = v.parse(FigureCatalogueSchema, {
+export const FIGURE_CATALOGUE: FigureCatalogueRowType = v.parse(FigureCatalogueSchema, {
   pack: { url: packed.url, rows: packed.rows },
   material: { name: 'ph-npc', roughness: 0.86, metalness: 0 },
   figures: Object.fromEntries((['ranger', 'miller', 'trader'] as const).map(kind => {

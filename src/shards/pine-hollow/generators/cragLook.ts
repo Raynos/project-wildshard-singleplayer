@@ -15,7 +15,7 @@ export const CRAG_LOOK = 'pine-crag';
  * fill is 0.05 + 1.6 × day; the shaft is 0.2 × day × min(1, 0.4 + 2 × max(0, sun.y)) + 0.02; each drip forms on a
  * 1.7 s + (i mod 5) × 0.53 s clock, then falls.
  */
-export const CAVE_LOOK = {
+export const CAVE_LOOK: { readonly near: 60; readonly under: { readonly height: 7; readonly lzMin: -4; readonly lzMax: 36; }; readonly fill: readonly [0.05, 1.6]; readonly surface: "rock"; readonly shaft: { readonly look: "pine-cave-shaft"; readonly radialSegments: 20; readonly heightSegments: 6; readonly renderOrder: 7; readonly gain: 0.2; readonly sunBase: 0.4; readonly sunGain: 2; readonly floor: 0.02; }; readonly drips: { readonly color: 13621468; readonly size: 0.045; readonly opacity: 0.85; readonly period: 1.7; readonly periodStep: 0.53; readonly kinds: 5; readonly phaseStep: 0.37; readonly gravity: 9.8; readonly hang: 0.04; readonly minDrop: 0.2; }; } = {
   near: 60,
   under: { height: 7, lzMin: -4, lzMax: 36 },
   fill: [0.05, 1.6],

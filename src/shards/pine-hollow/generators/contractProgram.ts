@@ -9,7 +9,7 @@ const aliases=(names:readonly string[])=>Object.fromEntries(names.map(name=>[nam
 const script=parseDecisionScripts([{id:'pine.contracts',abi:'1.0',side:'sim',source:'behaviour/contracts.as',module:`blobs/wasm/${'0'.repeat(64)}.wasm`,binding:{shard:true},pages:1,onFail:'hold',on:['signal'],tick:null,reads:['field'],commands:['channel'],fields:aliases(fields),signals:aliases(signals),channels:aliases(channels),params:{},stateVersion:1,state:[]}])[0];
 if(script===undefined)throw new Error('Missing contract guest declaration');
 /** Stateless decisions only; the original board and its native save remain authoritative. */
-export const CONTRACT_PROGRAM_SCRIPT=script;
+export const CONTRACT_PROGRAM_SCRIPT: DecisionScriptRow=script;
 /** ReturnProgram reads the same sorted identities as the generated ABI header. */
 export function contractProgramRegistries(row:DecisionScriptRow=CONTRACT_PROGRAM_SCRIPT):DecisionRegistries{
  const ids=(values:Readonly<Record<string,string>>)=>new Map(Object.values(values).sort().map((id,i)=>[id,i+1]));

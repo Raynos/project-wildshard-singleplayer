@@ -1,9 +1,10 @@
+
 import PINE_SKY from '../data/sky.json' with { type: 'json' };
-import { parseChapterDirector } from '@wildshard/format/chapterDirector';
+import { parseChapterDirector , type ChapterDirectorRows as ChapterDirectorRowsType } from '@wildshard/format/chapterDirector';
 import director from '../data/director.json' with { type: 'json' };
 
 /** The director publishes closed chapter effects; the existing sky owns phase keys. */
-export const CHAPTER_DIRECTOR = parseChapterDirector({
+export const CHAPTER_DIRECTOR: ChapterDirectorRowsType = parseChapterDirector({
   "version": 1,
   "quest": "wardens-hollow",
   "caption": {
@@ -132,7 +133,7 @@ export const CHAPTER_DIRECTOR = parseChapterDirector({
 
 /** Preserve the original renderer-free projection, including its quiet
  * presentation-only events, using the same closed chapter contract. */
-export const NATIVE_CHAPTER_DIRECTOR = parseChapterDirector({ ...CHAPTER_DIRECTOR,
+export const NATIVE_CHAPTER_DIRECTOR: ChapterDirectorRowsType = parseChapterDirector({ ...CHAPTER_DIRECTOR,
   actions: Object.fromEntries(director.events.filter(row => row.direction === 'output').map(({ key }) =>
     [key, (CHAPTER_DIRECTOR.actions[key] ?? []).filter(effect => effect.kind === 'flag' || effect.kind === 'phase')])),
 });

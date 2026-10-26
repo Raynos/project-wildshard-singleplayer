@@ -1,6 +1,8 @@
+
+
 import * as v from 'valibot';
-import { ForestPageSchema } from '@wildshard/format/forestPage';
-import { nameBlob } from '@wildshard/sdk/blobs';
+import { ForestPageSchema , type ForestPageRows as ForestPageRowsType } from '@wildshard/format/forestPage';
+import { nameBlob , type NamedBlob as NamedBlobType } from '@wildshard/sdk/blobs';
 import { CABIN_LIFE } from './cabinLook';
 import { CABIN_LIGHT } from './cabinAssembly';
 import { HEARTH_LOOKS } from './hearthLook';
@@ -10,7 +12,7 @@ import FOREST_LOOKS from '../data/forestLook.json' with { type: 'json' };
 import water from '../data/waterLook.json' with { type: 'json' };
 import looks from '../data/lookMaterials.generated.json' with { type: 'json' };
 
-export const FOREST_PAGE = v.parse(ForestPageSchema, {
+export const FOREST_PAGE: ForestPageRowsType = v.parse(ForestPageSchema, {
   treeLooks: [{ look: FOREST_LOOKS.bark, band: 'trunk' }, { look: FOREST_LOOKS.needles, band: 'cards' }, { look: FOREST_LOOKS.twigs, band: 'twigs' }, { look: FOREST_LOOKS.far, band: 'far' }].map(row => ({ look: row.look, band: row.band, fade: 'fade', viewer: 'viewer' })),
   water: { object: 'pond', look: water.looks.pond, looks: Object.values(water.looks), ripples: 'ripples', skyline: 'skyline', centre: 'skyC', probe: 'waterSkyline' },
   id: 'pine.forest', sliceMs: 30, graphs: looks.runtime, wildlife: 'look/wildlife-draw.json',
@@ -35,5 +37,5 @@ export const FOREST_PAGE = v.parse(ForestPageSchema, {
     ...(['phone', 'desktop'] as const).flatMap(tier => ['crag-cliff', 'crag-boulder', 'scree'].map((kind): { place: string; tier: string } | { object: string; tier: string } => ({ place: `crags.${tier}.${kind}`, tier }))
       .concat([{ object: `crags.${tier}`, tier }]))],
 });
-export const LANDMARK_VIEW_BLOB = nameBlob('world/landmark-view.json', 'json', new TextEncoder().encode(JSON.stringify(timbers.landmarks)));
-export const FOREST_PAGE_BLOB = nameBlob('world/forest-page.json', 'json', new TextEncoder().encode(JSON.stringify(FOREST_PAGE)));
+export const LANDMARK_VIEW_BLOB: NamedBlobType = nameBlob('world/landmark-view.json', 'json', new TextEncoder().encode(JSON.stringify(timbers.landmarks)));
+export const FOREST_PAGE_BLOB: NamedBlobType = nameBlob('world/forest-page.json', 'json', new TextEncoder().encode(JSON.stringify(FOREST_PAGE)));

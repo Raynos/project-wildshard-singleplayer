@@ -1,21 +1,23 @@
+
+
 /** Native living graphs are separate from the sealed shell/specimen inventory. */
 import * as v from 'valibot';
 import { WorldSceneWeldSchema, type WorldSceneWeld } from '@wildshard/format/worldSceneWeld';
-import { BuildingLifeRowsSchema } from '@wildshard/format/buildings';
-import { nameBlob } from '@wildshard/sdk/blobs';
+import { BuildingLifeRowsSchema , type BuildingLifeRows as BuildingLifeRowsType } from '@wildshard/format/buildings';
+import { nameBlob , type NamedBlob as NamedBlobType } from '@wildshard/sdk/blobs';
 import baked from '../data/cabinLivingScenes.generated.json' with { type: 'json' };
 import cabins from '../data/cabins.json' with { type: 'json' };
 
 const id = v.string(), geometry = v.object({ key: id, id, source: v.object({ library: id, model: id }) });
-export const CabinLivingProfileSchema = v.object({ tier: v.picklist(['phone', 'desktop']), shadow: v.boolean(), shared: v.boolean(), file: id,
+export const CabinLivingProfileSchema: v.ObjectSchema<{ readonly tier: v.PicklistSchema<["phone", "desktop"], undefined>; readonly shadow: v.BooleanSchema<undefined>; readonly shared: v.BooleanSchema<undefined>; readonly file: v.StringSchema<undefined>; readonly graph: v.GenericSchema<unknown, WorldSceneWeld>; readonly life: v.GenericSchema<unknown, BuildingLifeRowsType>; readonly geometry: v.ArraySchema<v.ObjectSchema<{ readonly key: v.StringSchema<undefined>; readonly id: v.StringSchema<undefined>; readonly source: v.ObjectSchema<{ readonly library: v.StringSchema<undefined>; readonly model: v.StringSchema<undefined>; }, undefined>; }, undefined>, undefined>; }, undefined> = v.object({ tier: v.picklist(['phone', 'desktop']), shadow: v.boolean(), shared: v.boolean(), file: id,
   graph: WorldSceneWeldSchema, life: BuildingLifeRowsSchema, geometry: v.array(geometry) });
 const rows = v.parse(v.object({ profiles: v.array(CabinLivingProfileSchema), geometry: v.array(v.object({ id, library: id, file: id, attributes: v.record(id, id) })) }), baked);
 if (rows.profiles.length !== 8 || new Set(rows.profiles.map(row => `${row.tier}/${String(row.shadow)}/${String(row.shared)}`)).size !== 8) throw new Error('Missing complete cabin living topology');
-export const CABIN_LIVING_LIBRARIES = [...new Set(rows.geometry.map(row => row.library))].map(library => ({ id: library, kind: 'owned' as const,
+export const CABIN_LIVING_LIBRARIES: { id: string; kind: "owned"; models: { id: string; file: string; attributes: Record<string, string>; }[]; }[] = [...new Set(rows.geometry.map(row => row.library))].map(library => ({ id: library, kind: 'owned' as const,
   models: rows.geometry.filter(row => row.library === library).map(({ library: _library, ...row }) => row) }));
-export const CABIN_LIVING_BLOBS = rows.profiles.map(row => nameBlob(row.file, 'json', new TextEncoder().encode(JSON.stringify({ graph: row.graph, life: row.life, geometry: row.geometry }))));
+export const CABIN_LIVING_BLOBS: NamedBlobType[] = rows.profiles.map(row => nameBlob(row.file, 'json', new TextEncoder().encode(JSON.stringify({ graph: row.graph, life: row.life, geometry: row.geometry }))));
 /** Native facts consumed by world wiring, quests, the map and the collection wall. */
-export const CABIN_SITES = {
+export const CABIN_SITES: { buildings: { id: string; index: number; root: string; standalone: boolean; }[]; roofs: { x: number; z: number; rot: number; w: number; d: number; }[]; } = {
   buildings: [...cabins.buildings.filter(row => !row.hamlet), ...cabins.buildings.filter(row => row.hamlet)].map(row => ({ id: row.id, index: row.index, root: `cabins.${row.id}.root`, standalone: !row.hamlet })),
   roofs: cabins.buildings.filter(row => row.hamlet).map(row => ({ x: row.at[0], z: row.at[2], rot: row.rot, w: row.size[1] + 1, d: row.size[0] + 1 })),
 };

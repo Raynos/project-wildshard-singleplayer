@@ -1,8 +1,9 @@
-import { parseExplorerCatalogue } from '@wildshard/format/explorerCatalogue';
+
+import { parseExplorerCatalogue , type ExplorerCatalogue as ExplorerCatalogueType } from '@wildshard/format/explorerCatalogue';
 import { ANTLER_KING_CARD } from './kingCard';
 
 /** Ordered references retain the original native specimen order. */
-export const EXPLORER_CATALOGUE = parseExplorerCatalogue({
+export const EXPLORER_CATALOGUE: ExplorerCatalogueType = parseExplorerCatalogue({
   "version": 1,
   "entries": [
     {

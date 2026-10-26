@@ -19,7 +19,7 @@ import authored from '../data/creatureHulls.json' with { type: 'json' };
 
 const num = v.pipe(v.number(), v.finite());
 const rgb = v.tuple([num, num, num]);
-const flap = v.strictObject({ yMin: num, y0: num, z0: num, slope: num, keep: num, bulge: num });
+const flap: v.StrictObjectSchema<{ readonly yMin: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>]>; readonly y0: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>]>; readonly z0: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>]>; readonly slope: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>]>; readonly keep: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>]>; readonly bulge: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>]>; }, undefined> = v.strictObject({ yMin: num, y0: num, z0: num, slope: num, keep: num, bulge: num });
 const coat = v.strictObject({
   /** the species default palette (the variant's `tint` overrides keys of it) */
   palette: v.picklist(['deer', 'elk', 'boar', 'bear']),
@@ -30,7 +30,15 @@ const coat = v.strictObject({
   /** per variant id, the coat keys' target tones (sRGB; a `grizzle` entry paints silver guard-hair tips) */
   measured: v.exactOptional(v.record(v.string(), v.record(v.string(), rgb))),
 });
-const RiggedHullsSchema = v.strictObject({
+const RiggedHullsSchema: v.StrictObjectSchema<{ readonly label: v.StringSchema<undefined>; readonly rigs: v.ArraySchema<v.StringSchema<undefined>, undefined>; readonly hulls: v.RecordSchema<v.StringSchema<undefined>, v.StringSchema<undefined>, undefined>; readonly coats: v.RecordSchema<v.StringSchema<undefined>, v.StrictObjectSchema<{ 
+/** the species default palette (the variant's `tint` overrides keys of it) */
+readonly palette: v.PicklistSchema<["deer", "elk", "boar", "bear"], undefined>; 
+/** the variant the hull was generated as: [kind, variant id] (its tint, over `palette`, is the atlas's coat) */
+readonly source: v.TupleSchema<[v.StringSchema<undefined>, v.StringSchema<undefined>], undefined>; 
+/** the palette keys: [dark, body, light] */
+readonly keys: v.TupleSchema<[v.StringSchema<undefined>, v.StringSchema<undefined>, v.StringSchema<undefined>], undefined>; 
+/** per variant id, the coat keys' target tones (sRGB; a `grizzle` entry paints silver guard-hair tips) */
+readonly measured: v.ExactOptionalSchema<v.RecordSchema<v.StringSchema<undefined>, v.RecordSchema<v.StringSchema<undefined>, v.TupleSchema<[v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>]>, v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>]>, v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>]>], undefined>, undefined>, undefined>, undefined>; }, undefined>, undefined>; readonly flaps: v.ExactOptionalSchema<v.RecordSchema<v.StringSchema<undefined>, v.StrictObjectSchema<{ readonly yMin: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>]>; readonly y0: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>]>; readonly z0: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>]>; readonly slope: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>]>; readonly keep: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>]>; readonly bulge: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>]>; }, undefined>, undefined>, undefined>; readonly fur: v.ExactOptionalSchema<v.RecordSchema<v.StringSchema<undefined>, v.RecordSchema<v.StringSchema<undefined>, v.StrictObjectSchema<{ readonly rim: v.TupleSchema<[v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>]>, v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>]>, v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>]>], undefined>; readonly sheenColor: v.TupleSchema<[v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>]>, v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>]>, v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>]>], undefined>; }, undefined>, undefined>, undefined>, undefined>; }, undefined> = v.strictObject({
   label: v.string(),
   rigs: v.array(v.string()),
   hulls: v.record(v.string(), v.string()),
