@@ -18,13 +18,13 @@
   },
   "joint": {
    "type": "float",
-   "value": 0.045,
+   "value": 0.02,
    "min": 0,
    "max": 1
   },
   "jointShade": {
    "type": "float",
-   "value": 0.42,
+   "value": 0.62,
    "min": 0,
    "max": 1
   },

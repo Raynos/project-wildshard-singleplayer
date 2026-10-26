@@ -30,8 +30,8 @@
   "flagstone": {
     "flag": 3.2,
     "row": 2.4,
-    "joint": 0.045,
-    "jointShade": 0.42,
+    "joint": 0.02,
+    "jointShade": 0.62,
     "spread": 0.14,
     "wear": 0.1,
     "under": 0.045

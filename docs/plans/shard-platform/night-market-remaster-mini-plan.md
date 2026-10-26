@@ -162,7 +162,7 @@ About 10 Opus lane-days, roughly 5 calendar days on two lanes.
 | Slice | Status | Deliverable |
 |---|---|---|
 | RM5.1 ruled paving | done | Flagstones in a 3.2 × 2.4 m running bond, antialiased dark joints that fade under a pixel, a hashed shade per flag, over each region's vertex colour (no texture, no UV, no new draw or byte: the kit graph rules every up-facing kit face below 0.045 m; the ring floor's `paving.graph.json` adds wear); the 10 m checker and `pavingAlt` / `laneAlt` go |
-| RM5.2 palette to round 46 | open | Each palette region within ΔE00 ≤ 8 of round 46's mockups (red-and-gold lantern dusk, G714), measured per region |
+| RM5.2 palette to round 46 | in flight (2026-10-26, sp-o2) | Ground regions warmed to the D1 targets' stone (cool blue-grey → warm grey-pink; the rest of the gap is lantern light, RM6.3); roof, wall, stall, lawn and water after sp-o1's models; ΔE00 ≤ 8 per region at the end |
 | RM5.3 ruled trim | done | The trims drawn in the kit's material instead of a KTX2 sheet (Nine's ruled-kit method: no texture memory, retinted by palette for RM14): `data/kit.graph.json` draws plain / roof tile / timber / plaster / awning stripe / stone by the face's band in TEXCOORD_0 (box-projected metres + 32 m × band, `data/trim.json`); band 0 keeps today's kit. Source: `scripts/open-plots/ruled-graphs.py` |
 | RM5.4 kit models carry trim bands | waits-Opus (sp-o1 RM4) | sp-o1's models map each palette slot to a trim band (`data/trim.json`) in their UVs |
 | RM6.1 bloom | done | Open plots' manifest grade: bloom 0.5 / threshold 0.9 (was 0 / 1), carried on the grid as each cell's chain knobs |
@@ -179,12 +179,18 @@ About 10 Opus lane-days, roughly 5 calendar days on two lanes.
 Kit models are Blender scripts (`scripts/blender/open-plots/kit.py` + `kitlib.py`, target `open-plots/kit`), one GLB per
 family of three variants in `public/assets/open-plots/kit/`: nodes `<variant>.<Role>.<slot>`, flat normals, Cycles AO in
 `COLOR_0`, `data/trim.json`'s trim bands in `TEXCOORD_0`; `kitGlb.mjs` places them through the tile writer, coloured
-palette[slot] × shade. The product's L1 is its automatic 50 % simplification, so an authored LOD1 needs an SDK reader first
-(RM4.10). RM3's tile-GLB roundtrip goes in RM4.1: it cannot carry model-placed triangles.
+palette[slot] × shade. RM3's tile-GLB roundtrip went in RM4.1: it cannot carry model-placed triangles.
+
+**The kit is opt-in until the tiles can pay for it** (aba65405bb, wildshard-new: contain, no cap raise). Placed as merged
+world geometry, the lanterns alone broke Night Market's pinned tile rows (`lint/tile-bake-debt.json`). Three limits bind, measured on
+the contained product: tile blobs are raw and unwelded (~121 B a triangle, so a plain tile has ~550 triangles of room
+under 0.3 MB); the central L1 tiles sit at 8.9k of their 10k triangles (the landmark); the plaza L0 tiles carry pinned
+resident debt (0/3/3 10.1 MB: landmark and poster textures), so any geometry there needs a saving beside it. RM8.1–8.3 pay
+for the kit before the families switch on; `tiledPlot.mjs` `KIT_FAMILIES` lists the families placed.
 
 | Slice | Status | Deliverable |
 |---|---|---|
-| RM4.1 kit pipeline + lanterns | in flight (2026-10-26, sp-o1) | Blender target, model reader, lantern family (stone post, paper-lantern bracket, banner post) on every `lantern()` |
+| RM4.1 kit pipeline + lanterns | done (99959f0ced; opt-in since aba65405bb) | Blender target, model reader, lantern family (stone post, paper-lantern bracket, banner post) on every `lantern()` |
 | RM4.2 stalls | open | Hero stall (striped awning, valance, goods), red-roof row stall, food cart; S tiles and forecourt kiosks |
 | RM4.3 string lights | open | Round bulbs and red paper lanterns on sagging cords; banner posts at the lane crossings |
 | RM4.4 houses | open | Three cottages (tiled hip roofs with upturned eaves, timber frame, plaster, lit windows) filling the H courts |
@@ -193,10 +199,12 @@ palette[slot] × shade. The product's L1 is its automatic 50 % simplification, s
 | RM4.7 trees | open | Round-crown trees, TRELLIS.2 vs Hunyuan3D-2 (better wins), three variants |
 | RM4.8 figures | open | Static posed figures at stalls and on bridges (image-to-3D) |
 | RM4.9 boards | open | A labelled 4-angle board per family beside its mockup crop; A2 / D2 captures for bars 2 and 5 |
-| RM4.10 authored LOD1 | open | An SDK reader for authored L1 nodes, only if the automatic L1 looks wrong |
 | RM7.1–7.3 ground and canals | open | Kerbs and raised block edges; canal walls with stone coping; water streak cards |
 | RM9.1–9.3 gate | open | r7 reference, Hunyuan3D 2.1 vs TRELLIS.2, hanging kit lanterns and trim (light with sp-o2's RM6.4) |
-| RM8.1–8.4 density | open | Every tile re-packed to the mockup, ≤ 15k triangles and ≤ 0.3 MB per L0 tile |
+| RM8.1 compressed tiles | in flight (2026-10-26, sp-o1) | Authored-world tiles as lossless meshopt GLBs (`compressGlb`, decoded by the props loader): Night Market's geometry tiles fall to 0.30–0.35 of their bytes, every authored product's wire with them |
+| RM8.2 authored L1 | open | World-source prefixes: detail rows draw at L0 only, `coarse_` rows only in L1; each kit family carries a ≤ 12-triangle LOD1 (the lit head, the roof block) |
+| RM8.3 plaza resident | open | Savings in the four plaza L0 tiles (landmark and poster textures, with RM9) so their kit fits the pinned resident rows; then `KIT_FAMILIES` switches on |
+| RM8.4–8.6 density | open | Every tile re-packed to the mockup, ≤ 15k triangles and ≤ 0.3 MB per L0 tile |
 | RM13.1–13.2 board and walk | open | 5 cameras × MOCKUP · BEFORE · NOW, a 30 s road-to-plaza walk |
 
 ## 4. Decisions for Jake
