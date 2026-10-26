@@ -910,35 +910,6 @@
       ]
     },
     {
-      "id": "camp-specimen-catalogue",
-      "shard": "nalati-grasslands",
-      "entry": "src/shards/nalati-grasslands/generators/bake-specimens.mjs",
-      "command": [
-        "src/shards/nalati-grasslands/generators/bake-specimens.mjs"
-      ],
-      "inputRoots": [
-        "src/shards/nalati-grasslands/generators/bake-specimens.mjs",
-        "scripts/bake-output.mjs",
-        "src/shards/nalati-grasslands/data/campCatalogue.json",
-        "src/shards/nalati-grasslands/generators/campParams.ts",
-        "src/shards/nalati-grasslands/data/campMaterials.json",
-        "src/shards/nalati-grasslands/data/placeSpecimens.json",
-        "src/shards/nalati-grasslands/data/specimenBindings.d.ts",
-        "src/shards/nalati-grasslands/generators/specimenRows.ts"
-      ],
-      "outputs": [
-        "src/shards/nalati-grasslands/boot/specimenParams.generated.d.ts",
-        "src/shards/nalati-grasslands/data/specimens.generated.d.json.ts",
-        "src/shards/nalati-grasslands/data/specimens.generated.json"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/nalati-grasslands/boot/specimenParams.generated.d.ts",
-        "src/shards/nalati-grasslands/data/specimens.generated.d.json.ts",
-        "src/shards/nalati-grasslands/data/specimens.generated.json"
-      ],
-      "platform": "portable"
-    },
-    {
       "id": "sky-fixed-layouts",
       "shard": "far-reach",
       "entry": "src/shards/far-reach/generators/fixedLayouts.ts",
@@ -13979,7 +13950,6 @@
         "src/shards/nalati-grasslands/generators/bake-sign-atlases.mjs",
         "src/shards/nalati-grasslands/generators/bake-spear.mjs",
         "src/shards/nalati-grasslands/generators/bake-species.mjs",
-        "src/shards/nalati-grasslands/generators/bake-specimens.mjs",
         "src/shards/nalati-grasslands/generators/bake-spruce.mjs",
         "src/shards/nalati-grasslands/generators/bake-storm-titan.mjs",
         "src/shards/nalati-grasslands/generators/bake-taming-poses.mjs",
