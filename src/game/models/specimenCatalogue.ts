@@ -4,7 +4,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import { SpecimenCatalogueSchema, PackedSpecimenSchema, SpecimenMaterialSchema, PickupCatalogueSchema, assertSpecimenJson as jsonData } from '@wildshard/format/specimenCatalogue';
 import * as THREE from 'three';
 import * as v from 'valibot';
-import type { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import type { RigLoader } from '@wildshard/engine/anim/rigParser';
 import { prepareRigLoader } from '@wildshard/engine/anim/rig';
 import { forgetWhenDisposed } from '@wildshard/engine/app/cachedAssets';
 import { loadTexture } from '@wildshard/engine/core/assets';
@@ -135,15 +135,38 @@ export interface SpecimenAsset {
 }
 const raw = new Map<string, Promise<SpecimenAsset>>();
 const bound = new WeakMap<SkyRig, Map<string, Promise<SpecimenAsset & { readonly material: THREE.Material }>>>();
-let loader: GLTFLoader | undefined;
+const ownedRaw = new WeakMap<Uint8Array, Map<string, Promise<SpecimenAsset>>>();
+const ownedBound = new WeakMap<Uint8Array, WeakMap<SkyRig, Map<string, Promise<SpecimenAsset & { readonly material: THREE.Material }>>>>();
+const ownedLoading = new Set<Promise<unknown>>();
+let loader: RigLoader | undefined;
 const assetUrl = (row: Pick<SpecimenAssetRow, 'url' | 'phoneUrl'>): string => TIER === 'phone' ? row.phoneUrl ?? row.url : row.url;
 
-/** Borrow a prepared primitive once. No fitting, painting, channel conversion or geometry copy. */
-export function loadSpecimenAsset(row: Pick<SpecimenAssetRow, 'url' | 'phoneUrl' | 'geometrySlot' | 'materialSlot' | 'retainedAttribute'>): Promise<SpecimenAsset> {
+function selfContainedSpecimen(bytes: Uint8Array): void {
+  if(bytes.byteLength<28||bytes.byteLength>25_000_000)throw new Error('Owned specimen GLB outside byte cap');
+  const header=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength),length=header.getUint32(12,true);
+  if(header.getUint32(0,true)!==0x46546c67||header.getUint32(4,true)!==2||header.getUint32(8,true)!==bytes.byteLength||header.getUint32(16,true)!==0x4e4f534a||length%4!==0||20+length>bytes.byteLength)throw new Error('Invalid owned specimen GLB');
+  const document:unknown=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes.subarray(20,20+length)));
+  const resources=v.parse(v.object({buffers:v.optional(v.array(v.object({uri:v.optional(v.unknown())})),[]),images:v.optional(v.array(v.object({uri:v.optional(v.unknown())})),[])}),document);
+  if([...resources.buffers,...resources.images].some(resource=>resource.uri!==undefined))throw new Error('Owned specimen GLB requires embedded resources');
+}
+function trackOwned<T>(pending:Promise<T>):Promise<T>{
+  ownedLoading.add(pending);
+  void pending.then(()=>{ownedLoading.delete(pending);return undefined;},()=>{ownedLoading.delete(pending);return undefined;});
+  return pending;
+}
+
+/** Borrow a prepared primitive once. Explicit owned bytes use the same parser, with no URL read.
+ * Owned caches are keyed by byte identity; all sources retain slot and disposal policy. */
+export function loadSpecimenAsset(row: Pick<SpecimenAssetRow, 'url' | 'phoneUrl' | 'geometrySlot' | 'materialSlot' | 'retainedAttribute'>, bytes?:Uint8Array): Promise<SpecimenAsset> {
   const url = assetUrl(row), key = `${url}|${row.geometrySlot ?? 0}|${row.materialSlot ?? 0}|${row.retainedAttribute ?? ''}`;
-  let pending = raw.get(key);
+  let memo=raw;
+  if(bytes!==undefined){const known=ownedRaw.get(bytes);if(known===undefined){memo=new Map();ownedRaw.set(bytes,memo);}else memo=known;}
+  let pending = memo.get(key);
   if (pending === undefined) {
-    pending = prepareRigLoader().then(({ createRigLoader }) => (loader ??= createRigLoader()).loadAsync(url)).then(({ scene }) => {
+    if(bytes!==undefined)selfContainedSpecimen(bytes);
+    pending = prepareRigLoader().then(({ createRigLoader }) => {
+      loader??=createRigLoader();return bytes===undefined?loader.loadAsync(url):loader.parseBytesAsync(bytes,'');
+    }).then(({ scene }) => {
       const found = scene.children.filter((child): child is THREE.Mesh => child instanceof THREE.Mesh)[row.geometrySlot ?? 0];
       if (found === undefined) throw new Error(`Prepared specimen has no mesh: ${url}`);
       const geometry = found.geometry, retained = row.retainedAttribute === undefined ? undefined : geometry.getAttribute(row.retainedAttribute);
@@ -157,25 +180,29 @@ export function loadSpecimenAsset(row: Pick<SpecimenAssetRow, 'url' | 'phoneUrl'
         ...(retained instanceof THREE.BufferAttribute ? { retainedAttribute: retained } : {}) };
       return out;
     });
-    raw.set(key, pending);
+    if(bytes!==undefined)void trackOwned(pending);
+    memo.set(key, pending);
     // A live cached geometry must not own the consumed loader declaration.
-    forgetWhenDisposed(pending, raw, key, pending);
+    forgetWhenDisposed(pending, memo, key, pending);
   }
   return pending;
 }
 
 /** A prepared asset and its per-world material have one lifetime and one shared promise. */
-export function loadBoundSpecimen(sky: SkyRig, row: SpecimenAssetRow): Promise<SpecimenAsset & { readonly material: THREE.Material }> {
-  let bySky = bound.get(sky);
-  if (bySky === undefined) { bySky = new Map(); bound.set(sky, bySky); }
+export function loadBoundSpecimen(sky: SkyRig, row: SpecimenAssetRow, bytes?:Uint8Array): Promise<SpecimenAsset & { readonly material: THREE.Material }> {
+  let owners=bound;
+  if(bytes!==undefined){const known=ownedBound.get(bytes);if(known===undefined){owners=new WeakMap();ownedBound.set(bytes,owners);}else owners=known;}
+  let bySky = owners.get(sky);
+  if (bySky === undefined) { bySky = new Map(); owners.set(sky, bySky); }
   const key = `${assetUrl(row)}|${row.geometrySlot ?? 0}|${row.materialSlot ?? 0}|${row.material.id}|${JSON.stringify(row.transform??null)}`;
   let pending = bySky.get(key);
   if (pending === undefined) {
-    pending = loadSpecimenAsset(row).then(asset => {
+    pending = loadSpecimenAsset(row,bytes).then(asset => {
       const transform=row.transform,geometry=transform===undefined?asset.geometry:asset.geometry.clone().rotateY(transform.yaw).scale(transform.scale,transform.scale,transform.scale);
       const out = { ...asset,geometry, material: specimenMaterial(sky, row.material, asset.map) };
       return out;
     });
+    if(bytes!==undefined)void trackOwned(pending);
     bySky.set(key, pending);
     forgetWhenDisposed(pending, bySky, key, pending);
   }
@@ -196,7 +223,7 @@ export function replaceSpecimenInstances(sky:SkyRig,row:SpecimenAssetRow,meshes:
 export async function awaitSpecimenAssets(sky: SkyRig): Promise<void> {
   const observed = new Set<Promise<unknown>>();
   for (;;) {
-    const pending = [...raw.values(), ...bound.get(sky)?.values() ?? []].filter(promise => !observed.has(promise));
+    const pending = [...raw.values(), ...bound.get(sky)?.values() ?? [],...ownedLoading].filter(promise => !observed.has(promise));
     if (pending.length === 0) return;
     for (const promise of pending) observed.add(promise);
     await Promise.all(pending);

@@ -5892,18 +5892,18 @@ fits or poses geometry. Pine crags and Driftwood cove prototypes use it.
 
 `@wildshard/game/models/specimenCatalogue.defineSpecimenCatalogue<Params>(rows,
 packed?, materials?, files?)` registers data models and returns `.model(key)`. Each
-`SpecimenModelRow` declares its model metadata, defaults, partial variants,
-optional own-space collider rows and one specimen source. `owned` selects a
-bounded exact parameter record and an identity-space GLB with a loading-box
-size; `packed` selects the model id plus its ordered JSON parameters in a
-`PackedSpecimenBake`; `asset` borrows declared direct-child geometry and
-material-atlas slots from a prepared GLB, with an optional phone file and
-retained authoring attribute. An optional inert `instance` name and LOD
-marker lets existing placement owners read the same declared material look.
-Unknown owned parameters refuse. Registration fetches/builds nothing and
-accepts no shard callbacks. Data/type declarations keep pre-admission
-Explorer free of authoring imports. Driftwood uses owned GLBs; Nalati
-uses packed parts and prepared assets.
+`SpecimenModelRow` declares metadata, defaults, variants, optional collider
+rows and one source. `owned` selects exact parameters and an identity-space
+GLB/loading size; `packed` selects ordered JSON parameters in a bake;
+`asset` borrows direct-child geometry/material slots, an optional phone
+source and retained attribute. Its inert `instance` name/LOD lends the
+same look to placement owners. Unknown parameters refuse. Registration
+fetches/builds nothing and accepts no callbacks. Driftwood uses owned GLBs;
+Nalati uses packed parts and prepared assets.
+`loadSpecimenAsset(row,bytes?)` and `loadBoundSpecimen(sky,row,bytes?)`
+parse bounded self-contained GLBs without URL reads. Byte identity isolates
+caches; disposal/failure invalidates them. Live geometry releases inputs;
+`awaitSpecimenAssets` includes pending owned loads.
 The renderer-free `@wildshard/format/specimenCatalogue` module exports
 `SpecimenCatalogueSchema`, `PackedSpecimenSchema` and
 `SpecimenMaterialSchema` for Node/schema discovery. The render binder
