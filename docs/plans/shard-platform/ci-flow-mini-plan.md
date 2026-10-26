@@ -187,10 +187,18 @@ contains the phone producer `893f149908`. Its downloaded manifest binds the
 full SHA/run, build `0402808-mvpu8uth` and all seven checksummed legs; the
 phone archive is 1,951,764,480 B with SHA-256
 `fb3bab314aa51fb16a4e1fa42daaad897824b8d6c441459d7a6d7d4ea64b5677`.
-Ordinary smoke workflow `40414562022` is already queued; no duplicate was
-dispatched. Its actual transfer identity and first phone report still need
-review before promotion. The older `14a3d5d93` artifact remains unqualified
-for this trial. The final functional `8b8a5bf7fc` visit completed
+First ordinary report `40414562022`, phone job `121893583870`, refused at
+22:49:29Z before the route command. Its transfer receipt independently binds
+full `0402808e41` / source run `40411836950` / 1,951,764,480 B (61.484 s
+transfer+verification). The runner selected available iOS 26.2, created
+`wildshard-iphone`, then the original 120 s Safari URL-readiness probe hung
+in `openurl` and exited 124. Only engine/transfer/timing artifacts exist;
+there is no route receipt or first-paint/entry/collision/fps result. This
+is a Simulator startup refusal, not a Night Market crossing stall or a
+route pass. **Promotion stays pending a defining startup repair and an
+executed ordinary report.** Original log/artifact remain on that exact
+job; no duplicate dispatch, retry, cap increase or fallback was requested.
+The older `14a3d5d93` artifact remains unqualified for this trial. The final functional `8b8a5bf7fc` visit completed
 all route stages with no faults, 294 ms hero paint, resident near tiles
 and real four-second wall containment, but correctly failed G718:
 Driftwood 294 completed draws / 10.005 s. Road 295 / 10.001 s and Night
