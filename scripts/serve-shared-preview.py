@@ -178,8 +178,14 @@ def release(registry, port, owner, all_mine, command):
             raise ValueError('Invalid shared preview marker; refusing legacy teardown')
         paths = [registry / '.shared' / (sha + '.json')]
     else:
-        paths = [path for path in (registry / '.shared').glob('*.json')
-                 if str(read(path).get('port')) == port]
+        candidates = [(path, read(path)) for path in (registry / '.shared').glob('*.json')]
+        candidates = [(path, state) for path, state in candidates if str(state.get('port')) == port]
+        # A missing output also removes its marker. Ports are reused, so an
+        # older record for this port cannot select its borrower or teardown.
+        paths = [path for path, state in candidates
+                 if state.get('pid') == int(row[0]) and state.get('out') == row[2]]
+        if candidates and not paths:
+            raise ValueError('No matching shared preview identity; refusing teardown')
     for path in paths:
         with lock(path):
             state = read(path)

@@ -482,6 +482,35 @@ class SharedReleaseTests(unittest.TestCase):
             child.assert_not_called()
         self.assertEqual((self.registry / self.port).read_text(), self.row)
 
+    def test_missing_output_ignores_old_shared_records_for_the_same_port(self):
+        stale = self.registry / '.shared' / ('b' * 40 + '.json')
+        old = dict(status='ready', port=int(self.port), owners=['foreign-lane'],
+            owner='foreign-lane', pid=12345, out=str(self.registry / 'old-output'))
+        self.module.write(stale, old)
+        self.shared()
+        (self.out / '.shared-preview').unlink()
+        self.out.rmdir()
+        with patch.object(self.module.subprocess, 'run', return_value=subprocess.CompletedProcess([], 0)) as child:
+            self.assertEqual(self.module.release(self.registry, self.port, 'lane-a', False, ['unused']), 0)
+            child.assert_called_once()
+            self.assertEqual(child.call_args.kwargs['env']['SERVE_STOP_PID'], str(os.getpid()))
+            self.assertEqual(child.call_args.kwargs['env']['SERVE_STOP_OUT'], str(self.out))
+        self.assertFalse(self.path.exists())
+        self.assertEqual(self.module.read(stale), old)
+
+    def test_stale_shared_port_without_matching_identity_refuses_teardown(self):
+        self.shared()
+        (self.out / '.shared-preview').unlink()
+        state = self.module.read(self.path)
+        state['pid'] = 12345
+        self.module.write(self.path, state)
+        with patch.object(self.module.subprocess, 'run') as child:
+            with self.assertRaisesRegex(ValueError, 'No matching shared preview identity'):
+                self.module.release(self.registry, self.port, 'lane-a', False, ['unused'])
+            child.assert_not_called()
+        self.assertEqual((self.registry / self.port).read_text(), self.row)
+        self.assertEqual(self.module.read(self.path), state)
+
     def test_teardown_holds_port_lease_and_passes_exact_registry_identity(self):
         self.shared()
         def stopped(_command, **kwargs):
