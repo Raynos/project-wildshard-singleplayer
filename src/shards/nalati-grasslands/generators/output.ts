@@ -225,6 +225,11 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<type
   if (specimenDocument === undefined) throw new Error('Missing owned native specimen metadata');
   const packedSpecimens: unknown = JSON.parse(new TextDecoder().decode(specimenDocument));
   const specimenRows = nalatiDressingSpecimens(campCatalogue, campMaterials, packedSpecimens);
+  const specimenBytes = placeFiles.get('specimens.bin');
+  if (specimenBytes === undefined) throw new Error('Missing owned native specimen bank');
+  const specimenFile = 'models/specimens/camp.bin';
+  const specimenBank = nameBlob(specimenFile, 'bin', specimenBytes, { decoded: specimenRows.packed.bytes });
+  specimenRows.packed.bin = { file: specimenFile, bytes: specimenBytes.byteLength };
   const poiMaterial = specimenRows.materials['poi'], balbalAsset = specimenRows.assets['balbal'];
   if (poiMaterial === undefined || balbalAsset === undefined) throw new Error('Missing admitted native specimen bindings');
   const carried = makeCarriedQuestRows(nalatiQuestProp(geometry['actor:goat'], poiMaterial));
@@ -253,5 +258,5 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<type
   const scenes = emitNamedBlobs(dressingSceneBlobs(profiles,runtime.runtime,balbal,specimenRows));
   const namedFiles = [...emitted.files.filter(file => file.name !== 'quests/carried.json'), carriedBlob.file, ...ownedMetadata.files, ...scenes.files].sort((a, b) => (a.name ?? '') < (b.name ?? '') ? -1 : (a.name ?? '') > (b.name ?? '') ? 1 : 0);
   const sources = await nalatiOutputInputs(ctx, outputBlobs(shapeBook.sources, runtime.floors.map(floor => nameBlob(floor.name, 'bin', floor.bytes)), [propBlob], carvings));
-  return { ...output, blobs: [], namedFiles: [...sources.map(source => source.file), ...namedFiles, ...taming.files, places.file, crags.file, dressingBlob.file], assets: new Map([...output.assets, ...sources.map(source => [source.file.hash, source.bytes] as const), ...ownedMetadata.assets, ...scenes.assets, [carriedBlob.file.hash, carriedBlob.bytes], [places.file.hash, places.bytes], [crags.file.hash, crags.bytes], [dressingBlob.file.hash, dressingBlob.bytes]]) };
+  return { ...output, blobs: [], namedFiles: [...sources.map(source => source.file), ...namedFiles, ...taming.files, places.file, crags.file, dressingBlob.file, specimenBank.file], assets: new Map([...output.assets, ...sources.map(source => [source.file.hash, source.bytes] as const), ...ownedMetadata.assets, ...scenes.assets, [carriedBlob.file.hash, carriedBlob.bytes], [places.file.hash, places.bytes], [crags.file.hash, crags.bytes], [dressingBlob.file.hash, dressingBlob.bytes], [specimenBank.file.hash, specimenBank.bytes]]) };
 }

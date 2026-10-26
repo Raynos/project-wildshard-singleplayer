@@ -9,7 +9,8 @@ import { expect, test } from 'vitest';
 import { build } from 'vite';
 import { createProjectGeneration } from '../src/sdk/projectGeneration';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
-import { nameBlob } from '../src/sdk/blobs';
+import { nameBlob, type NamedBlob } from '../src/sdk/blobs';
+import { PackedSpecimenSchema } from '../src/format/specimenCatalogue';
 import { PopulationFieldSchema } from '../src/format/populationEnvironment';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { nalatiBakeBlob } from '../src/shards/nalati-grasslands/generators/placeBlobProgram';
@@ -36,6 +37,17 @@ const originalAssemblyRows = v.parse(v.looseObject({ constants: v.looseObject({ 
 const assemblyForField = (field: unknown) => nameBlob(assemblyOriginal.name, 'json', new TextEncoder().encode(encodeCanonicalJson({
   ...originalAssemblyRows, constants: { ...originalAssemblyRows.constants, nativeField: v.parse(PopulationFieldSchema, field) },
 })));
+
+/** Only the packed bank locator changes; every predecessor scene field remains strict. */
+function sceneWithSpecimenBank(before:NamedBlob,bank:NamedBlob):NamedBlob {
+  const name=before.file.name,file=bank.file.name;
+  if(name===undefined||file===undefined||before.file.kind!=='json')throw new Error('Missing named scene or bank');
+  const rows=v.parse(v.looseObject({catalogues:v.array(v.looseObject({packed:v.exactOptional(PackedSpecimenSchema)}))}),JSON.parse(new TextDecoder().decode(before.bytes)));
+  const packed=rows.catalogues[0]?.packed;
+  if(packed===undefined||packed.bin!=='/assets/nalati/baked/specimens.bin')throw new Error('Missing original specimen bank locator');
+  packed.bin={file,bytes:bank.bytes.byteLength};
+  return nameBlob(name,'json',new TextEncoder().encode(encodeCanonicalJson(rows)),before.file.jsonSchema===undefined?{}:{jsonSchema:before.file.jsonSchema});
+}
 
 test('the full frozen assembly pin and exact current geography input retain separate ownership', () => {
   expect(assemblyForField(originalAssemblyRows.constants.nativeField).file).toEqual(assemblyOriginal);
@@ -68,6 +80,8 @@ test('the actual output hook preserves every predecessor file cost and binary by
     } };
   };
   const before = nativePlaceFile('places.bin');
+  const beforeBank=nativePlaceFile('specimens.bin');
+  const expectedBank=nameBlob('models/specimens/camp.bin','bin',beforeBank,{decoded:nalatiSpecimens.packed.bytes});
   try {
     for (const [name, pin] of [['crags', cragOriginal]] as const) {
       const cold = await nalatiBakeBlob(context(), name, pin.decoded);
@@ -77,6 +91,8 @@ test('the actual output hook preserves every predecessor file cost and binary by
     }
     requested.length = 0;
     const hit = await prepareOutput(context());
+    expect(hit.namedFiles.filter(file=>file.name===expectedBank.file.name)).toEqual([expectedBank.file]);
+    expect(hit.assets.get(expectedBank.file.hash)).toEqual(beforeBank);
     if (nativePlaces === undefined) throw new Error('Missing observed native place metadata');
     const ownedPlaces: unknown = JSON.parse(new TextDecoder().decode(nativePlaces));
     const ownedRuntime = nalatiRuntimeRows({ places: ownedPlaces, paint: paintInput }).runtime;
@@ -163,7 +179,7 @@ test('the actual output hook preserves every predecessor file cost and binary by
       if (file === undefined || bytes === undefined) throw new Error('Missing owned dressing scene');
       const frozen = frozenScenes.find(blob => blob.file.name === pin.name);
       if (frozen === undefined) throw new Error('Missing frozen complete scene pin');
-      const expected = pin.name.endsWith('.json') ? sceneWithNativeOutcrops(frozen, ownedRuntime) : frozen;
+      const expected = pin.name.endsWith('.json') ? sceneWithSpecimenBank(sceneWithNativeOutcrops(frozen, ownedRuntime),expectedBank) : frozen;
       expect(file).toEqual(expected.file);
       expect(bytes.length).toBe(expected.file.compressed);
       expect(hashImmutableBytes(bytes)).toBe(expected.file.hash);
@@ -172,8 +188,14 @@ test('the actual output hook preserves every predecessor file cost and binary by
     const ctx = context();
     await expect(prepareOutput({ ...ctx, cached: (step, make) => step.id === 'decorative'
       ? Promise.resolve(new Map()) : ctx.cached(step, make) })).rejects.toThrow('Owned Nalati decorative inventory differs');
+    await expect(prepareOutput({ ...ctx, cached: async (step, make) => {
+      const source=await ctx.cached(step,make);
+      if(step.id!=='places')return source;
+      const missing=new Map(source);missing.delete('specimens.bin');return missing;
+    } })).rejects.toThrow('Owned Nalati placement inventory differs');
     expect(requested).not.toContain('/assets/nalati/baked/dressing.bin');
     expect(requested).not.toContain('/assets/nalati/baked/places.bin');
+    expect(requested).not.toContain('/assets/nalati/baked/specimens.bin');
     expect(requested).toContain('/assets/baked/nalati-grasslands/terrain.bin');
     for (const field of ['pond', 'red', 'green', 'blue']) expect(requested).toContain(`data/geography-${field}.bin`);
     const files = hit.namedFiles.filter(file => file.name === 'world/places.bin');
