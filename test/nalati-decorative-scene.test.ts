@@ -1,3 +1,4 @@
+import { nalatiBalbal } from './fixtures/nalati-balbal';
 import { nalatiRuntime } from './fixtures/nalati-runtime';
 import { nalatiDecorative } from './fixtures/nalati-decorative';
 // oxlint-disable-next-line import/no-nodejs-modules -- Supply the complete original native terrain bytes.
@@ -13,7 +14,7 @@ import { hashImmutableBytes } from '../src/sdk/immutable';
 
 for (const fresh of [false, true]) test(`${fresh ? 'fresh native' : 'prepared native'} profiles preserve all complete dressing scenes and addresses`, () => {
   const profiles = fresh ? withPortableMath(() => decorativeRows(readFileSync('public/assets/baked/nalati-grasslands/terrain.bin'))) : nalatiDecorative;
-  const blobs = dressingSceneBlobs(profiles,nalatiRuntime);
+  const blobs = dressingSceneBlobs(profiles,nalatiRuntime,nalatiBalbal);
   const actual = blobs.map(blob => {
     const name = blob.file.name;
     if (name === undefined) throw new Error('Missing original dressing file name');
@@ -38,11 +39,11 @@ test('the two observed Linux outcrop input values reconstruct both complete scen
   if (member.solid.length > 166) member.solid[166] = contact;
   else member.descs[166 - member.solid.length] = contact;
   row.members[0] = [pair[0], member];
-  const compiled = dressingSceneBlobs(nalatiDecorative, source);
+  const compiled = dressingSceneBlobs(nalatiDecorative, source,nalatiBalbal);
   for (const [tier, hash] of [['phone', '3d176427025a70af86f0a9a39a4fd61d14874e20be6c0145282e6de7ca2305be'],
     ['desktop', 'f7958d4001242d1a99cb5a18f8034cda31fae3b69aeefaa6b9ec77f1a4a9b5cd']] as const) {
     const name = `world/dressing-${tier}.json`;
-    const frozen = dressingSceneBlobs(nalatiDecorative, nalatiRuntime).find(blob => blob.file.name === name);
+    const frozen = dressingSceneBlobs(nalatiDecorative, nalatiRuntime,nalatiBalbal).find(blob => blob.file.name === name);
     const actual = compiled.find(blob => blob.file.name === name);
     if (frozen === undefined || actual === undefined) throw new Error('Missing complete dressing wire');
     const projected = sceneWithNativeOutcrops(frozen, source);
@@ -55,15 +56,15 @@ test('the two observed Linux outcrop input values reconstruct both complete scen
 });
 
 test('supplied incomplete decorative profiles refuse without falling back to the retained copy', () => {
-  expect(() => dressingSceneBlobs({},nalatiRuntime)).toThrow();
-  expect(() => dressingSceneBlobs({ phone: {}, desktop: {} },nalatiRuntime)).toThrow();
-  expect(() => dressingSceneBlobs(null,nalatiRuntime)).toThrow();
-  expect(() => dressingSceneBlobs(undefined,nalatiRuntime)).toThrow();
+  expect(() => dressingSceneBlobs({},nalatiRuntime,nalatiBalbal)).toThrow();
+  expect(() => dressingSceneBlobs({ phone: {}, desktop: {} },nalatiRuntime,nalatiBalbal)).toThrow();
+  expect(() => dressingSceneBlobs(null,nalatiRuntime,nalatiBalbal)).toThrow();
+  expect(() => dressingSceneBlobs(undefined,nalatiRuntime,nalatiBalbal)).toThrow();
 });
 
 test('missing or malformed supplied runtime metadata refuses without a retained fallback', () => {
   for (const runtime of [undefined, null, {}, { places: { rows: [] } }]) {
-    expect(() => dressingSceneBlobs(nalatiDecorative, runtime)).toThrow();
+    expect(() => dressingSceneBlobs(nalatiDecorative, runtime,nalatiBalbal)).toThrow();
   }
 });
 
@@ -75,9 +76,9 @@ test('supplied place addresses drive both tier wires without mutating their sour
   const mesh = input.places.rows.find(row => row.name === 'camp')?.meshes[0];
   if (mesh === undefined) throw new Error('Missing native camp mesh');
   mesh.offset += 4;
-  const before = JSON.stringify(input), blobs = dressingSceneBlobs(nalatiDecorative, input);
+  const before = JSON.stringify(input), blobs = dressingSceneBlobs(nalatiDecorative, input,nalatiBalbal);
   for (const tier of ['phone', 'desktop'] as const) {
-    const geometry = dressingScene(tier, nalatiDecorative, input).geometry['camp.0'];
+    const geometry = dressingScene(tier, nalatiDecorative, input,nalatiBalbal).geometry['camp.0'];
     if (geometry?.kind !== 'baked-file') throw new Error('Missing supplied camp geometry');
     const bytes = blobs.find(blob => blob.file.name === geometry.address.file)?.bytes;
     if (bytes === undefined) throw new Error('Missing supplied camp address bytes');
@@ -85,4 +86,14 @@ test('supplied place addresses drive both tier wires without mutating their sour
   }
   expect(JSON.stringify(input)).toBe(before);
   expect(JSON.stringify(nalatiRuntime)).toBe(beforeRuntime);
+});
+
+test('scene construction requires the supplied balbal catalogue and encounter owner', () => {
+  expect(() => dressingSceneBlobs(nalatiDecorative, nalatiRuntime, undefined)).toThrow();
+  expect(() => dressingSceneBlobs(nalatiDecorative, nalatiRuntime, {})).toThrow();
+  const supplied = structuredClone(nalatiBalbal);
+  supplied.generated.transform.scale = 7;
+  const scene = dressingScene('phone', nalatiDecorative, nalatiRuntime, supplied);
+  expect(scene.sites[0]?.rows.generated?.transform?.scale).toBe(7);
+  expect(nalatiBalbal.generated.transform.scale).not.toBe(7);
 });

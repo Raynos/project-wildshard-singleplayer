@@ -1,3 +1,4 @@
+import { nalatiBalbal } from './fixtures/nalati-balbal';
 // oxlint-disable-next-line import/no-nodejs-modules -- Own the real immutable cache and compare the original shipping bytes.
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Declare the exact public input root without inferring an asset path.
@@ -77,12 +78,21 @@ test('the actual output hook preserves every predecessor file cost and binary by
     if (nativePlaces === undefined) throw new Error('Missing observed native place metadata');
     const ownedPlaces: unknown = JSON.parse(new TextDecoder().decode(nativePlaces));
     const ownedRuntime = nalatiRuntimeRows({ places: ownedPlaces, paint: paintInput }).runtime;
-    const frozenScenes = dressingSceneBlobs(nalatiDecorative, nalatiRuntime);
+    const frozenScenes = dressingSceneBlobs(nalatiDecorative, nalatiRuntime,nalatiBalbal);
     expect(frozenScenes.map(blob => ({ name: blob.file.name, bytes: blob.bytes.length, hash: blob.file.hash }))
       .sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '')))
       .toEqual([...sceneOriginal].sort((a, b) => a.name.localeCompare(b.name)));
     expect(requested).not.toContain('data/placeRuntime.generated.json');
     expect(requested).not.toContain('data/quest-prop.generated.bin');
+    for (const index of [0, 1]) {
+      expect(requested).not.toContain(`data/balbal-carving-${String(index)}.generated.bin`);
+      const originalPart = readFileSync(`src/shards/nalati-grasslands/data/balbal-carving-${String(index)}.generated.bin`);
+      const pin = nameBlob(`models/specimens/balbal-${String(index)}.bin`, 'bin', originalPart);
+      expect(hit.namedFiles.find(file => file.name === pin.file.name)).toEqual(pin.file);
+      const ownedPart = hit.assets.get(pin.file.hash);
+      if (ownedPart === undefined) throw new Error('Missing owned balbal carving bytes');
+      expect(Buffer.compare(ownedPart, originalPart)).toBe(0);
+    }
     const propBefore = readFileSync('test/fixtures/nalati-quest-prop-original.bin');
     const propPin = nameBlob('models/specimens/quest-prop.bin', 'bin', propBefore);
     expect(hit.namedFiles.find(file => file.name === propPin.file.name)).toEqual(propPin.file);

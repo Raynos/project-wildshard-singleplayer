@@ -18,7 +18,7 @@ import specimensInput from '../data/specimens.generated.json' with {type:'json'}
 import paintInput from '../data/poiPaint.json' with {type:'json'};
 import coverInput from '../data/cover.generated.json' with {type:'json'};
 import atlases from '../data/signAtlases.json' with {type:'json'};
-import balbal from '../data/balbalSpecimen.generated.json' with {type:'json'};
+import balbalInput from '../data/balbalSpecimen.generated.json' with {type:'json'};
 import * as v from 'valibot';
 import { SpecimenCatalogueSchema, PackedSpecimenSchema, SpecimenMaterialSchema, SpecimenAssetSchema } from '@wildshard/format/specimenCatalogue';
 import { AmbientFlockSchema, AmbientPerchesSchema } from '@wildshard/format/ambientLife';
@@ -43,13 +43,14 @@ const paintContact={origins:v.array(v.tuple([number,number,number,number]))};
 const paintSchema=v.object({glacierSnout:v.object({x:number,y:number,z:number}),rows:v.array(v.object({key:text,name:text,geometry:SceneBakedGeometrySchema,bounds:v.exactOptional(v.tuple([number,number,number,number,number,number]))})),contacts:v.record(text,v.record(text,v.union([
   v.object({...paintContact,file:text}),v.object({...paintContact,points:text}),
 ])))});
+const balbalSchema=v.object({catalogue:SpecimenCatalogueSchema,generated:SpecimenAssetSchema,sites:v.record(text,v.unknown())});
 const specimens=v.parse(specimensSchema,specimensInput);
 const paint=v.parse(paintSchema,paintInput);
 /** Exact raw contact files, read only by the SDK's normal named-file intake. */
 export const DRESSING_CONTACT_SOURCES=v.parse(v.array(v.object({name:text,kind:v.literal('bin'),source:text,
   options:v.object({decoded:v.pipe(number,v.integer(),v.minValue(0))})})), 'sources'in paintInput?paintInput.sources:[]);
 /** Prepared carving files share the SDK's named geometry intake. */
-export const DRESSING_SPECIMEN_SOURCES=v.parse(v.array(v.object({name:text,kind:v.literal('bin'),source:text})),balbal.sources);
+export const DRESSING_SPECIMEN_SOURCES=v.parse(v.array(v.object({name:text,kind:v.literal('bin'),source:text})),balbalInput.sources);
 /** Both exact sign rasters enter through the same named binary source path; two base planes bound the rectangular mip chain. */
 export const DRESSING_ATLAS_SOURCES=v.parse(v.array(v.object({name:text,kind:v.literal('bin'),source:text,options:v.object({gpu:number})})),Object.values(atlases).map(row=>({name:row.file,kind:'bin',source:row.source,options:{gpu:row.width*row.height*8}})));
 /** Exact existing compressed byte lanes, admitted under logical product names before client decoding. */
@@ -88,7 +89,7 @@ const preparedContacts=(inputs:readonly unknown[])=>{
 
 
 /** Existing baked shapes and placements become Z2 rows; no page-side scatter or model constructors. */
-function compileDressingScene(tier:'phone'|'desktop',profiles:v.InferOutput<typeof decorativeProfiles>,input:ReturnType<typeof readPreparedDressing>) {
+function compileDressingScene(tier:'phone'|'desktop',profiles:v.InferOutput<typeof decorativeProfiles>,input:ReturnType<typeof readPreparedDressing>,balbal:v.InferOutput<typeof balbalSchema>) {
   const {prepared,scenes,placed}=input;
   const phone=tier==='phone',profile=cover[tier];
   const geometry:Record<string,unknown>={},materials:Record<string,unknown>={},addresses:number[]=[];
@@ -192,10 +193,10 @@ function clothGeometry(prepared:ReturnType<typeof readPreparedDressing>['prepare
 }
 
 /** Supplied native runtime rows and profiles become separate tier JSON loans under the existing bounded budget. */
-export function dressingSceneBlobs(input:unknown,runtime:unknown):ReturnType<typeof nameBlob>[] {const profiles=v.parse(decorativeProfiles,input),prepared=readPreparedDressing(runtime);return(['phone','desktop']as const).flatMap(tier=>{const result=compileDressingScene(tier,profiles,prepared);return[nameBlob(`world/dressing-${tier}.json`,'json',new TextEncoder().encode(encodeCanonicalJson(result.rows)),{jsonSchema:namedJsonSchema(SceneDressingSchema)}),nameBlob(`world/dressing-addresses-${tier}.bin`,'bin',result.addresses)];});}
+export function dressingSceneBlobs(input:unknown,runtime:unknown,balbal:unknown):ReturnType<typeof nameBlob>[] {const profiles=v.parse(decorativeProfiles,input),prepared=readPreparedDressing(runtime);return(['phone','desktop']as const).flatMap(tier=>{const result=compileDressingScene(tier,profiles,prepared,v.parse(balbalSchema,balbal));return[nameBlob(`world/dressing-${tier}.json`,'json',new TextEncoder().encode(encodeCanonicalJson(result.rows)),{jsonSchema:namedJsonSchema(SceneDressingSchema)}),nameBlob(`world/dressing-addresses-${tier}.bin`,'bin',result.addresses)];});}
 
 /** Admitted tier rows from caller-owned runtime metadata for catalogue and format consumers. */
-export function dressingScene(tier:'phone'|'desktop',input:unknown,runtime:unknown):SceneDressingRows{return compileDressingScene(tier,v.parse(decorativeProfiles,input),readPreparedDressing(runtime)).rows;}
+export function dressingScene(tier:'phone'|'desktop',input:unknown,runtime:unknown,balbal:unknown):SceneDressingRows{return compileDressingScene(tier,v.parse(decorativeProfiles,input),readPreparedDressing(runtime),v.parse(balbalSchema,balbal)).rows;}
 
 /** Decorative poses keep the existing visual programs and RNG continuation; none owns gameplay actors. */
 function bowlScene(tier:'phone'|'desktop',data:v.InferOutput<typeof decorativeProfile>,geometry:Record<string,unknown>,materials:Record<string,unknown>,prepared:ReturnType<typeof readPreparedDressing>['prepared']){
