@@ -7,7 +7,7 @@
  * One draw for every wall (a curtain quad per edge, additive, faded out past ~70 m so a 500 m wall never dominates the
  * view). Which walls are closed comes from the session each fixed step; a wall opens the moment its neighbour is ready.
  */
-import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, DoubleSide, Group, Mesh, type Object3D, ShaderMaterial } from 'three';
+import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, DoubleSide, DynamicDrawUsage, Group, Mesh, type Object3D, ShaderMaterial } from 'three';
 import type { LookScope } from './roadLayout';
 
 /** A wall in the home frame: the edge's centre, the axis its thin side faces, its half length; whose wall it is. */
@@ -80,7 +80,9 @@ function curtain(edges: readonly SoftWallEdge[]): BufferGeometry {
     const b = k * 4; index.push(b, b + 1, b + 2, b, b + 2, b + 3);
   });
   const g = new BufferGeometry().setAttribute('position', new BufferAttribute(position, 3)).setAttribute('uv', new BufferAttribute(uv, 2))
-    .setAttribute('aClosed', new BufferAttribute(closed, 1)).setAttribute('aHeight', new BufferAttribute(heights, 1)).setIndex(index);
+    .setAttribute('aClosed', new BufferAttribute(closed, 1).setUsage(DynamicDrawUsage)).setAttribute('aHeight', new BufferAttribute(heights, 1)).setIndex(index);
+  // aClosed is rewritten whenever a wall opens or closes: dynamic, so the memory saver never releases it (a write after
+  // its release read the buffer back from the GPU, a 136 ms stall on Pine's crossing at phone CPU speed)
   g.computeBoundingSphere();
   return g;
 }
