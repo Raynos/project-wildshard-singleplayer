@@ -59,7 +59,7 @@ interface Run {
 }
 
 export class PerfLap {
-  readonly scope = uiScope('PerfLap');
+  readonly scope: ReturnType<typeof uiScope> = uiScope('PerfLap');
   private run: Run | null = null;
   private readonly onInput = (): void => { this.cancel('touch / key'); };
   private readonly onHidden = (): void => { if (document.visibilityState === 'hidden') this.cancel('the app went to the background'); };

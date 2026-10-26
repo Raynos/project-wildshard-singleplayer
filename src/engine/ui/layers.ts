@@ -19,7 +19,7 @@ const PRIORITY: Record<UiLayer, number> = { hud: 0, gameMenu: 1, menu: 2, modal:
 export class UiLayers {
   private readonly now: () => number;
   constructor(now: () => number = () => 0) { this.now = now; }
-  closedAt = Number.NEGATIVE_INFINITY;
+  closedAt: number = Number.NEGATIVE_INFINITY;
   private entries: Entry[] = [];
   private changed: (() => void) | undefined;
   private owner: (() => Scope | null) | undefined;

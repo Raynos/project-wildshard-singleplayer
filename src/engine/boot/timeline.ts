@@ -24,7 +24,7 @@ export function repeatedStep(step: Pick<LoadingStep, 'key' | 'label'>, pass: num
 /** Nested/parallel waits never double-count elapsed seconds: the most recently entered stage owns each interval. */
 export class LoadingTimeline {
   /** Attempt identity for wait attribution; it carries no work or serialized state. */
-  readonly waitOwner = Symbol('loading-waits');
+  readonly waitOwner: symbol = Symbol('loading-waits');
   private path: LoadingPath;
   private readonly rows = new Map<string, { ms: number; started: boolean; detail: string; fraction?: number; startedAt?: number; setupAtStart?: number }>();
   private readonly active = new Map<number, Stage>();

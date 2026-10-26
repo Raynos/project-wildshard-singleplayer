@@ -63,7 +63,7 @@ export class Bow<Style extends string = string> extends Weapon {
   // ── the saddle's knobs (B7) — see the header ──
   drawSpeedScale = 1;
   extraSpreadDeg = 0;
-  readonly carrierVelocity = new THREE.Vector3();
+  readonly carrierVelocity: THREE.Vector3 = new THREE.Vector3();
   arcAllowed = true;
   damageMultiplier: ((hit: TargetHit) => number) | undefined;
 
@@ -76,7 +76,7 @@ export class Bow<Style extends string = string> extends Weapon {
   /** the loose with its power (always 1 since N18: every loose is a full draw) — audio can scale the twang */
   onLoose?: ((power: number) => void) | undefined;
 
-  readonly model = new THREE.Group();
+  readonly model: THREE.Group = new THREE.Group();
   readonly arrows: Projectiles;
   private readonly game: Game; private readonly sky: Sky; private readonly player: Player;
   private readonly targets: Targets | undefined;

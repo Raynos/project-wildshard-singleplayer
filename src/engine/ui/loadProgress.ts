@@ -8,7 +8,7 @@ interface Attempt { readonly total: number; done: number; failed: boolean }
 /** Progress counts completed preparations, never elapsed time or estimated bytes.
  * A replacement or closed view cannot be painted by an older pending decoder. */
 export class LoadProgress {
-  readonly element = document.createElement('div');
+  readonly element: HTMLDivElement = document.createElement('div');
   private readonly label = document.createElement('span');
   private readonly bar = document.createElement('progress');
   private active: Attempt | undefined;

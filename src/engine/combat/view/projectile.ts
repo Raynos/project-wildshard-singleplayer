@@ -158,7 +158,7 @@ export class Projectiles {
    * (not animals — the preview shows where the arrow goes, not who is in the way). Returns the dot count; `landing` /
    * `landingNormal` get the hit point and the surface's facing (or the last point when it flew past 4 s), `landed` says which.
    */
-  readonly landing = new THREE.Vector3(); readonly landingNormal = new THREE.Vector3(0, 1, 0); landed = false;
+  readonly landing: THREE.Vector3 = new THREE.Vector3(); readonly landingNormal: THREE.Vector3 = new THREE.Vector3(0, 1, 0); landed = false;
   predict(origin: THREE.Vector3, velocity: THREE.Vector3, out: Float32Array, max: number, spacing: number, skip = 0): number {
     const pos = _v1.copy(origin), vel = _v2.copy(velocity);
     const h = 1 / 90;

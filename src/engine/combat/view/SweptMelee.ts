@@ -186,7 +186,7 @@ export class SweptMelee extends Melee {
    *  chain); the kit manager never touches it, unlike onHit */
   onMoveHitEvent?: (move: Move, killed: boolean) => void;
 
-  readonly model = new THREE.Group();
+  readonly model: THREE.Group = new THREE.Group();
   protected game: Game; protected sky: Sky; protected player: Player;
   private targets: Targets | undefined;
   private rig = new THREE.Group(); private armRig = new THREE.Group();

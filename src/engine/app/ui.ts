@@ -5,7 +5,7 @@ import { hudSlots } from '../ui/hudSlots';
 
 /** Displayed UI state follows the active resident level. */
 export class AppUi extends UiLayers {
-  readonly hud = hudSlots;
+  readonly hud: typeof hudSlots = hudSlots;
   private inputConnected = false;
   private readonly prompts = new WeakMap<Scope, () => string>();
   private readonly active: () => Scope | null;

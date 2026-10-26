@@ -48,7 +48,7 @@ const HINTS = ['', '<b>Space</b>Dive', '<b>Space</b>Dive <b>Shift</b>Surface'] a
 export interface WaterLineView { update: (eyeAboveSurface: number, dt: number) => void; setHint: (state: 0 | 1 | 2) => void }
 
 export class WaterLine implements WaterLineView {
-  readonly scope = uiScope('waterLine');
+  readonly scope: ReturnType<typeof uiScope> = uiScope('waterLine');
   private el: HTMLDivElement;
   private deep: HTMLElement;
   private hint?: HTMLElement;

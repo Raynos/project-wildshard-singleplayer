@@ -136,7 +136,7 @@ export interface ContactFamilyPorts<T extends ContactScanTarget> {
  */
 export class ContactFamily<T extends ContactScanTarget = ContactScanTarget> {
   /** The existing held clock belongs to this contact owner on page and native hosts. */
-  readonly hold = new HeldWeaponClock();
+  readonly hold: HeldWeaponClock = new HeldWeaponClock();
   readonly host: ContactWeaponHost;
   moves: readonly ContactMoveRow[];
   /** The timed move playing, seconds since its swing (−1: idle) and how many of its contacts landed. */

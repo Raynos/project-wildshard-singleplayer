@@ -35,9 +35,9 @@ interface FixedGuestResume {readonly states:readonly number[];readonly allowed:R
 export class GroupBrain<A extends GroupMember> {
   readonly tickClass = 'ai';
   readonly members: A[];
-  readonly blackboard = new Map<string, unknown>();
+  readonly blackboard: Map<string, unknown> = new Map<string, unknown>();
   private readonly guestResumes=new WeakMap<object,FixedGuestResume>();
-  protected groupTime = -Infinity;
+  protected groupTime: typeof Infinity = -Infinity;
   private directors: Map<number, AggressionDirector<A>> | undefined;
   constructor(members: A[]) { this.members = members; }
   /** Member callbacks may arrive together; the group makes one decision per simulation instant. */

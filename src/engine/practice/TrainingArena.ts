@@ -282,7 +282,7 @@ function makeRoom(cx: number, cz: number): { root: THREE.Group; colliders: Colli
 }
 
 export class TrainingArena {
-  readonly scope = uiScope('trainingArena');
+  readonly scope: ReturnType<typeof uiScope> = uiScope('trainingArena');
   /** E357 F2 read-only practice state for the pause/resume snapshot. */
   get isActive(): boolean { return this.active; }
   readonly targets: TrainingTarget[];

@@ -115,7 +115,7 @@ class CyclingAction {
 /** Trigger, cooldown and automatic reload owner, composing the existing transfer controller. */
 export class RangedAction {
   /** Data-only per-round cycle owner; callers consume phase events on their original clock. */
-  static readonly Cycle = CyclingAction;
+  static readonly Cycle: typeof CyclingAction = CyclingAction;
   private static readonly clocks = v.object({ reloadT: finite, cooldown: finite, sinceFire: finite });
   private cooldown = 0;
   private sinceAction = 99;

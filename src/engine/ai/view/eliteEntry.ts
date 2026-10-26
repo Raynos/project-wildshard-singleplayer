@@ -441,7 +441,7 @@ export function prepareEliteEntry<S extends BorrowedEliteController = BorrowedEl
  * beyond the original bounded condition owner; kernels retain native cadence. */
 export class DeclaredEliteEntry<S extends BorrowedEliteController = BorrowedElite> {
   readonly rows: EliteEntryRows;
-  readonly skins = new Set<string>();
+  readonly skins: Set<string> = new Set<string>();
   get scripts(): readonly (NativeEliteController | S)[] { return this.live() ? this.binding?.scripts ?? [] : []; }
   get bar(): NativeEliteServices['bar'] | null { return this.live() ? this.servicesBar : null; }
   private servicesBar: NativeEliteServices['bar'] | null = null;

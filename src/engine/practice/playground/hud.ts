@@ -33,7 +33,7 @@ export function clock(s: number): string {
 
 /** the playgrounds' one HUD chip: the name, the run's time and best, ↺ and the status */
 export class PlaygroundChip {
-  readonly scope = uiScope('playgroundChip');
+  readonly scope: ReturnType<typeof uiScope> = uiScope('playgroundChip');
   readonly el: HTMLElement;
   private readonly timeEl: HTMLElement;
   private readonly bestEl: HTMLElement;

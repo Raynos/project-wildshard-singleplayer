@@ -36,7 +36,7 @@ type Mode = 'bar' | 'sheet' | 'tab';
 interface Stroke { pts: number[] } // normalised x, y pairs (0..1 of the frame)
 
 export const SHOT_MAX_W = 1280;
-export const SHOT_MAX_BYTES = 300 * 1024;
+export const SHOT_MAX_BYTES: number = 300 * 1024;
 const PEN_PX = 4; // stroke width at 1280 px wide
 const LABEL: Record<Category, string> = { bug: engineString('s_703a5028367b'), art: engineString('s_75df3579c730'), feel: engineString('s_cd1e23876319'), perf: engineString('s_10eda87ca497'), idea: engineString('s_b202bcb90ca5') };
 
@@ -89,7 +89,7 @@ export function bake(shot: HTMLCanvasElement, strokes: readonly Stroke[]): strin
 }
 
 export class Feedback {
-  readonly scope = uiScope('Feedback');
+  readonly scope: ReturnType<typeof uiScope> = uiScope('Feedback');
   private layer: UiHandle | null = null;
   private viewScope = this.scope.child('view');
   private root: HTMLElement | null = null;
