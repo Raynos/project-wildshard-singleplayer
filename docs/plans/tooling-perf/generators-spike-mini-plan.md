@@ -221,6 +221,12 @@ in `public/assets/<slug>/` as real `.glb` / `.png` / `.ktx2` / `.bin`. App-wide 
 
 | F11c2 bounded transfer fixture setup | done | Preserve the routed RM8.1 wrapper status-null refusal at its original 10 s Python-child cap; an unchanged standalone recovery is not a cause claim. Profile all 28 real cases: 235 Git subprocess calls take 4.56 s of 8.30 s total. Six retained-output cases repeat identical real Git commit and initial pack setup. Build that second pristine state once, then copy separate Git objects, mutable files and archives into the same receipt-valid work path for each case. Reset the wrong-run fixture from its original proof bytes instead of rebuilding the unchanged pack. All transfer, mode, provenance, corruption, link, duplicate and no-write refusal assertions remain, with no production helper or timeout change. The same 28 cases pass in 6.84 s profiled, with Git calls 235 → 188 and all subprocess calls 270 → 213. The actual unchanged Vitest wrapper passes, its child taking 5.6 s inside the original 10 s cap. Parallel CPU/load differences remain a timing limitation; no exclusive attribution from the earlier 26 dots. |
 
+### GR7 current ≤ 1 h slices (G711)
+
+| Slice | State / evidence | Next |
+| --- | --- | --- |
+| Island prototype owned bytes | **Source complete (2026-10-26, sp-x1).** The blocking loose prototype GLB now belongs to the existing native owned-byte cache outside `src`, constructed from the original island GLB + metadata. Both output and map adapters consume that source; the retained dressing job no longer publishes its prototype handoff (44 declared outputs, 41 jobs unchanged). Removed the old exact handoff allowance and debt entry. Against pinned `dca731cde4`, all **323 file records / 61 sections** and every cost are exact; the same 300 library hashes remain, with the prototype's insertion order moved by named-file admission. No geometry, look, collider or cap change. Four cold/warm/cache/refusal cases + 11 existing consumer cases, defining/scoped types, typed lint and path guards pass. Checked normal generation/product restored discovery in 67 s (`163918-sp-x1-dw-protos-map-restore-73384`). Original compaction/revert pin mismatch and missing map adapter refusal are retained; the corrected adapter and failed-only six-suite collection both pass. | Continue GR5, then the remaining GR7 chain; prototype compaction remains its separate owner’s work. |
+
 ### GR6 current ≤ 1 h slices (G711)
 
 | Slice | Status | Boundary |

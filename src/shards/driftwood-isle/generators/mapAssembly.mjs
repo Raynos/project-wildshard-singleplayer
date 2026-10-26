@@ -8,6 +8,7 @@ import { WORLD_SCENES, SCENE_MODEL_BLOBS } from './worldScenes.ts';
 import { DRIFTWOOD_OUTPUT, DRIFTWOOD_FIXED_SOURCES } from './assets.ts';
 import { siteCatalogue } from './siteCatalogue.ts';
 import { WORLD_DROP } from './sea.ts';
+import { ISLAND_PROTO_INPUTS, driftwoodIslandProtoSource } from './islandProtoProgram.ts';
 
 const base = resolve(import.meta.dirname, '..'), root = resolve(base, '../../..');
 const read = file => readMapJson(resolve(base, file));
@@ -92,8 +93,9 @@ export async function driftwoodMapAssembly() {
     assembly.add(`island:${name}`, geometry, [new Matrix4().makeTranslation(0, -WORLD_DROP, 0)]);
   }
   const planFiles = read('data/islandPlanFiles.json'), plan = readMapJson(resolve(root, `public${planFiles.desktop.url}`));
-  const protoFile = files.get('world/island/protos.glb'); if (protoFile === undefined) throw new Error('Missing map island prototypes');
-  const prototypes = await mapPool(protoFile), placements = new Float32Array(Uint8Array.from(readFileSync(resolve(islandBase, 'placements.bin'))).buffer);
+  const protoFiles = await driftwoodIslandProtoSource(new Map(ISLAND_PROTO_INPUTS.map(name => [name, new Uint8Array(readFileSync(resolve(root, `public${name}`)))])));
+  const protoBytes = protoFiles.get('world/island/protos.glb'); if (protoBytes === undefined) throw new Error('Missing map island prototypes');
+  const prototypes = await mapPool(protoBytes), placements = new Float32Array(Uint8Array.from(readFileSync(resolve(islandBase, 'placements.bin'))).buffer);
   const byProto = new Map();
   for (const family of plan.families) for (const i of family.indices) {
     const o = i * 10, name = islandMeta.protos[placements[o]].name, scale = placements[o + 8];

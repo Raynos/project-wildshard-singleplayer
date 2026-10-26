@@ -22,7 +22,7 @@ const originals = {
 const hash = (value: unknown): string => hashImmutableBytes(new TextEncoder().encode(encodeCanonicalJson(value)));
 
 test('the retained DW producer preserves story, POI anchors, NPC policy and ordered command routes', async () => {
-  const loaded = await readProjectAssets('src/shards/driftwood-isle');
+  const loaded = await readProjectAssets('src/shards/driftwood-isle', undefined, { folder: 'driftwood-isle', imageRoots: [{ prefix: '/assets/', directory: 'public/assets' }] });
   expect(hash(DRIFTWOOD_QUESTS)).toBe(originals.DRIFTWOOD_QUESTS);
   const { achievements, ...originalQuests } = loaded.shard.quests;
   expect(hash(originalQuests)).toBe(originals.DRIFTWOOD_QUESTS);

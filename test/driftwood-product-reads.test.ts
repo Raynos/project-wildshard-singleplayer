@@ -23,7 +23,7 @@ const CHIME_PIECES = collectionRows().keepsakes.flags.count;
 // The Driftwood client's product reads (sp-o277, W2b): every custom section runtime/ asks the built output for is
 // emitted and parses against the runtime registry, with the shapes its readers rely on.
 test('Driftwood client reads resolve against the emitted output', async () => {
-  const loaded = await readProjectAssets('src/shards/driftwood-isle'), custom = loaded.output.custom;
+  const loaded = await readProjectAssets('src/shards/driftwood-isle', undefined, { folder: 'driftwood-isle', imageRoots: [{ prefix: '/assets/', directory: 'public/assets' }] }), custom = loaded.output.custom;
   if (custom === undefined) throw new Error('Driftwood custom sections absent');
   const value = <K extends keyof typeof SECTIONS>(name: K): v.InferOutput<(typeof SECTIONS)[K]> => {
     const row = custom.sections.find(entry => entry.name === name), bytes = row === undefined ? undefined : custom.files.get(row.path);

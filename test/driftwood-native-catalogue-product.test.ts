@@ -10,7 +10,7 @@ import native from '../src/shards/driftwood-isle/data/nativeSpecimens.generated.
 test('native cards bind the same catalogue and owned sources at boot and product admission', async () => {
   const boot=parse(object({siteCatalogue:WorldSceneModelsSchema}),
     JSON.parse(readFileSync('src/shards/driftwood-isle/boot/modelCatalogue.generated.json','utf8')));
-  const loaded = await readProjectAssets('src/shards/driftwood-isle');
+  const loaded = await readProjectAssets('src/shards/driftwood-isle', undefined, { folder: 'driftwood-isle', imageRoots: [{ prefix: '/assets/', directory: 'public/assets' }] });
   const catalogueFile = loaded.output.namedFiles?.find(file => file.name === 'models/world-scenes.json');
   const catalogueBytes = catalogueFile === undefined ? undefined : loaded.assets.get(catalogueFile.hash);
   const platform = loaded.output.platform, section = platform?.sections.find(row => row.name === 'world/scenes');

@@ -6,7 +6,7 @@ import { SECTIONS } from '../src/shards/driftwood-isle/generators/sections';
 import { BAKED_COVE } from '../src/shards/driftwood-isle/generators/bakedCove';
 
 test('Driftwood fixed draws and island cover files name admitted product blobs (no legacy URL table)', async () => {
-  const loaded = await readProjectAssets('src/shards/driftwood-isle'), custom = loaded.output.custom;
+  const loaded = await readProjectAssets('src/shards/driftwood-isle', undefined, { folder: 'driftwood-isle', imageRoots: [{ prefix: '/assets/', directory: 'public/assets' }] }), custom = loaded.output.custom;
   const row = custom?.sections.find(value => value.name === 'custom/fixedLayouts');
   if (custom === undefined || row === undefined) throw new Error('Fixed layouts absent');
   expect(custom.sections.some(value => value.name === 'custom/assets')).toBe(false);

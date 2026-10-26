@@ -2,7 +2,6 @@ import {namedBlobOutput} from '../../../../scripts/named-blob-output.mjs';
 import {mkdirSync,readFileSync,writeFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import {bakeIslandPlan,islandPlacements} from './islandCover.ts';
-import {islandProtoGlb} from './islandProtos.ts';
 import {islandDressing} from './islandDressing.ts';
 import {palmGeometry} from './palm.ts';
 import {palm,hibiscusBush} from './foliageModels.ts';
@@ -62,7 +61,6 @@ for(const tier of ['phone','desktop']){
 }
 writeFileSync(new URL('../data/islandPlanFiles.json',import.meta.url),`${JSON.stringify(planFiles,null,2)}\n`);
 console.log(`island-plan-files ${JSON.stringify(planFiles)}`);
-// SHARD-PLATFORM C2: the cove's prototypes with their far copies simplified at build; the page only clones them
-blobs.add('world/island/protos.glb','glb',await islandProtoGlb(new Uint8Array(readFileSync(new URL('island.glb',islandBase))),islandMeta));
+// Prototype geometry is owned by islandProtoProgram and the product output hook; no src handoff.
 
 blobs.finish(new URL('../data/dressingBlobs.generated.json',import.meta.url));

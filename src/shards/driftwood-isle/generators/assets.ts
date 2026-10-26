@@ -57,7 +57,7 @@ const activeByUrl = Object.fromEntries(Object.entries(byUrl).filter(([, name]) =
 export const DRIFTWOOD_ASSET_NAMES: Record<string, string> = activeByUrl;
 /** Build-only source declarations and an explicit, retiring URL-to-name bridge. */
 export const DRIFTWOOD_OUTPUT: { blobs: { name: string; kind: string; source: string; }[]; } = {
-  blobs: [...canonical.values()].filter(row => !retiredFoliage.has(row.name)).map(row => {
+  blobs: [...canonical.values()].filter(row => !retiredFoliage.has(row.name) && row.name !== 'world/island/protos.glb').map(row => {
     if (row.kind !== 'glb') return row;
     const result = { ...row };
     return Object.assign(result, { options: { meshopt: true } });
