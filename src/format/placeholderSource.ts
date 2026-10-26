@@ -55,7 +55,8 @@ export const PlaceholderSourceSchema: v.GenericSchema<PlaceholderSourceInput, Pl
    *  `--report` lists it) is simplified to, on top of the cell's content budget (a palm whose trunk the common ratio
    *  removes keeps its silhouette); `world: 'tiles'`, its world is its shardfile's coarse tiles (a world built from its
    *  product, with no authored host to visit); `owns`, its near view owns its cell over its own tiles (G630: tiles whose
-   *  looks are lit only inside their world, Nine Dragon's night city, never refine over it) */
+   *  looks are lit only inside their world, Nine Dragon's night city, never refine over it); `floor`, the flat floor such a
+   *  world stands on (its height in metres and its linear colour) when its streets are not in its tiles */
   near: v.optional(v.strictObject({
     floors: v.optional(v.pipe(v.array(v.strictObject({
       prototype: v.pipe(v.string(), v.regex(/^[A-Za-z0-9][A-Za-z0-9_./-]{0,63}$/u)),
@@ -63,6 +64,10 @@ export const PlaceholderSourceSchema: v.GenericSchema<PlaceholderSourceInput, Pl
     })), v.minLength(1), v.maxLength(16))),
     world: v.optional(v.literal('tiles')),
     owns: v.optional(v.boolean()),
+    floor: v.optional(v.strictObject({
+      y: v.pipe(v.number(), v.minValue(-50), v.maxValue(50)),
+      colour: v.tuple([v.pipe(v.number(), v.minValue(0), v.maxValue(1)), v.pipe(v.number(), v.minValue(0), v.maxValue(1)), v.pipe(v.number(), v.minValue(0), v.maxValue(1))]),
+    })),
   })),
 });
 /** One admitted stand-in tree shape (`PlaceholderTreeSchema`): species, optional stem, crown rings and colour, unit high. */
@@ -132,6 +137,14 @@ interface PlaceholderSourceInputFields {
         })[] | undefined;
         world?: 'tiles' | undefined;
         owns?: boolean | undefined;
+        floor?: {
+            y: number;
+            colour: [
+                number,
+                number,
+                number
+            ];
+        } | undefined;
     } | undefined;
 }
 export type PlaceholderSourceInput = { [Key in keyof PlaceholderSourceInputFields]: PlaceholderSourceInputFields[Key] };
@@ -149,6 +162,14 @@ interface PlaceholderSourceFields {
         })[] | undefined;
         world?: 'tiles' | undefined;
         owns?: boolean | undefined;
+        floor?: {
+            y: number;
+            colour: [
+                number,
+                number,
+                number
+            ];
+        } | undefined;
     } | undefined;
 }
 export type PlaceholderSource = { [Key in keyof PlaceholderSourceFields]: PlaceholderSourceFields[Key] };

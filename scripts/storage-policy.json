@@ -122,8 +122,8 @@
     },
     {
       "path": "public/assets/baked/nine-dragon-stack/near.glb",
-      "oid": "d80f4a3cf6e79fa5513a37f17611ca6bf982369c",
-      "bytes": 2278152,
+      "oid": "b6c288c24eedc2efcf4d4dd89fde4051c226eb9a",
+      "bytes": 2278148,
       "kind": "runtime",
       "purpose": "G630 / G607 Nine Dragon's near view (every cell near): its 181 L0 tile meshes reduced to the near budget, 42,142 triangles, one draw, 4.56 MB resident; baked by scripts/bake/near-placeholder.mjs (the other shards' near bakes are 0.35-4.2 MB)"
     }

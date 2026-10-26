@@ -251,10 +251,14 @@ const land = source.far?.parts === undefined ? [] : await (await exported(source
 // grid under them would only repeat their skyline as a crude height field)
 const flat = source.near?.world === 'tiles' || source.far?.grid === undefined && project?.shard.terrain === null && !existsSync(terrainBin);
 const ground = source.far?.grid !== undefined || flat ? null : placeholderGridBytes(root, resolve(root, 'src/shards', slug), slug);
-const grid = flat ? null : ground === null ? (await exported(source.far.grid))() : ground.kind === 'baked' ? sdk.bakedTerrainGrid(ground.bytes) : sdk.colliderGrid(ground.bytes);
+// G630: a declared floor (near.floor) is that flat floor at its own height, in its own colour (the bake's floor stands under
+// the lowest placed point, a well shaft's bottom, in the far look's colour there)
+const floor = source.near?.floor;
+const grid = floor !== undefined ? { res: 2, size: 500, heights: new Float32Array(4).fill(floor.y), splat: null }
+  : flat ? null : ground === null ? (await exported(source.far.grid))() : ground.kind === 'baked' ? sdk.bakedTerrainGrid(ground.bytes) : sdk.colliderGrid(ground.bytes);
 // round 3: the ground at the height field's own density, reduced by geometric error (--ground-error=<m> to measure)
 const arg = (name) => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3);
-const { bytes, manifest: baked, reduced } = await sdk.bakeNearPlaceholder({ grid, look, prototypes, parts: land, trees: forestTrees, stands: source.trees, floors: source.near?.floors,
+const { bytes, manifest: baked, reduced } = await sdk.bakeNearPlaceholder({ grid, look: floor === undefined ? look : { ...look, quads: 1, colourAt: () => [...floor.colour] }, prototypes, parts: land, trees: forestTrees, stands: source.trees, floors: source.near?.floors,
   groundError: Number(arg('ground-error') ?? sdk.NEAR_BAKE.groundError), residentBytes: Number(arg('resident') ?? sdk.NEAR_BAKE.residentBytes), log: line => console.log(`${slug}: ${line}`) });
 // G630: a shard that declares `near.owns` (its tiles draw lit only inside its world) keeps its near view over its tiles
 const row = fromTiles && prototypes.length > 0 && source.near?.owns !== true ? { ...baked, near: { ...baked.near, tiles: true } } : baked;
