@@ -9,6 +9,7 @@ import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
 import { placeCollider, poseOf } from '../src/engine/models/colliders';
 import { decodePalmWorld, decodeHibiscusWorld, decodeReefWorld } from '../src/shards/driftwood-isle/generators/foliageGeometry';
 import { palmColliders } from '../src/shards/driftwood-isle/generators/foliageModels';
+import { compactChannels } from '../src/shards/driftwood-isle/generators/compactChannels';
 import { withPortableMath } from '../src/commons/bake/portableMath';
 import foliage from '../src/shards/driftwood-isle/data/foliagePlacements.generated.json' with { type: 'json' };
 import reef from '../src/shards/driftwood-isle/data/reefLayout.generated.json' with { type: 'json' };
@@ -50,7 +51,7 @@ function sameGeometry(actual: BufferGeometry, expected: BufferGeometry): void {
   expect(actual.index).toEqual(expected.index);
 }
 
-test('finished foliage scene GLBs preserve every native channel, full copy box and bent trunk contact', async () => {
+test('finished foliage scene GLBs preserve every (compact) native channel, full copy box and bent trunk contact', async () => {
   for (const tier of ['phone', 'desktop'] as const) {
     for (const kind of ['palms', 'hibiscus', 'reef'] as const) {
       if (kind === 'reef' && tier === 'desktop') continue;
@@ -62,15 +63,16 @@ test('finished foliage scene GLBs preserve every native channel, full copy box a
       const decode = kind === 'palms' ? decodePalmWorld : kind === 'hibiscus' ? decodeHibiscusWorld : decodeReefWorld;
       const expected = decode(fixtureBytes(new URL(source.source, project)), rows?.specs.length ?? reef.items.length);
       const intake = createOwnedGeometry(blob.name); await intake.load(fixtureBytes(new URL(blob.source, project)));
-      const actual = intake.take();
+      // L18.3c: the bake ships the decode in compact storage (Int8 normals, Uint16 colours); every channel is that exactly
+      const actual = intake.take(), compact = compactChannels(expected.geometry.clone());
       try {
-        sameGeometry(actual, expected.geometry);
+        sameGeometry(actual, compact);
         if (kind !== 'reef') expect(data.placements[tier][kind].drawnInto.boxes).toEqual([...expected.boxes]);
         if (kind === 'palms') {
           const contacts = withPortableMath(() => foliage.tiers[tier].palms.placements.flatMap(pose => palmColliders(pose.params).map(shape => placeCollider(shape, poseOf(pose)))));
           expect(JSON.stringify(data.placements[tier].palms.colliders)).toBe(JSON.stringify(contacts));
         }
-      } finally { actual.dispose(); expected.geometry.dispose(); }
+      } finally { actual.dispose(); compact.dispose(); expected.geometry.dispose(); }
     }
   }
 });
