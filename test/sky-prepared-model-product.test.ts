@@ -15,9 +15,11 @@ import { prepareProjectOutput } from '../src/sdk/projectOutput';
 import { createProjectGeneration } from '../src/sdk/projectGeneration';
 import { prepareOutput } from '../src/shards/far-reach/generators/sourceOutput';
 import { SKY_WORLD_TILE_ROWS } from '../src/shards/far-reach/generators/worldTileRows';
-import { BAKED_PIECES } from '../src/shards/far-reach/generators/fileInventory';
+import { BAKED_PIECES, SKY_CREATURES } from '../src/shards/far-reach/generators/fileInventory';
 import { nameBlob } from '../src/sdk/blobs';
 import { skyProductBoot } from '../src/shards/far-reach/generators/bootInventory';
+import { skyRigAssetSources } from '../src/shards/far-reach/generators/rigAssetSources';
+import { GPU_FILES } from '../src/shards/far-reach/ktx2.generated';
 
 test('the actual SDK-built product binds receipt-verified discovery to the admitted complete geometry', () => {
   const root = resolve('.'), folder = readBuiltShardfile(root, 'far-reach');
@@ -27,7 +29,14 @@ test('the actual SDK-built product binds receipt-verified discovery to the admit
   const hash = 'bd1a0a75879e2f3e72e2ab2b8d0c18a79d7e7746478b3fedc6961199a714c580';
   expect(file.hash).toBe(hash);
   expect(`/shardfiles/far-reach/${file.path}`).toBe(`/shardfiles/far-reach/blobs/glb/${hash}.glb`);
-  expect(readProgramDiscovery(root, 'far-reach')).toEqual(skyProductBoot());
+  expect(readProgramDiscovery(root, 'far-reach')).toEqual(skyProductBoot(skyRigAssetSources(index.files, GPU_FILES)));
+  for (const [name, path] of [...SKY_CREATURES.map(creature => [creature, `public/assets/far-reach/rigs/${creature}.glb`]),
+    ['storm-roc.phone', 'public/assets/gpu/far-reach/rigs/storm-roc-70e5655f.glb']]) {
+    if (name === undefined || path === undefined) throw new Error('Missing original rig oracle');
+    const originalRig = readFileSync(path), expected = nameBlob(`world/rigs/${name}.glb`, 'glb', originalRig);
+    expect(index.files.find(row => row.name === expected.file.name)).toEqual(expected.file);
+    expect(Buffer.compare(readFileSync(resolve(folder, expected.file.path)), originalRig)).toBe(0);
+  }
   const bytes = readFileSync(resolve(folder, file.path));
   expect(hashImmutableBytes(bytes)).toBe(hash);
   expect(Buffer.compare(bytes, readFileSync('public/assets/far-reach/baked/prepared-models.glb'))).toBe(0);

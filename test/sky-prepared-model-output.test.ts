@@ -14,7 +14,7 @@ import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { sceneBakeFiles } from '../src/game/shardfile/sceneBakeFiles';
 import type { SceneBakeSource } from '../src/game/shardfile/sceneSources';
-import { BAKED_PIECES, BAKED_URLS, FAN_URL, FAN_POOL } from '../src/shards/far-reach/generators/fileInventory';
+import { BAKED_PIECES, BAKED_URLS, FAN_URL, FAN_POOL, SKY_CREATURES, SKY_CREATURE_RIGS } from '../src/shards/far-reach/generators/fileInventory';
 import { nameBlob } from '../src/sdk/blobs';
 import { BRIDGE_REST_URL, MILL_REST_URL } from '../src/shards/far-reach/generators/restFiles';
 import { sceneRigFiles } from '../src/game/shardfile/sceneRigFiles';
@@ -58,7 +58,7 @@ test('owned geometry preserves all original bytes and costs, changing only its s
       compressed: 10_134_100, decoded: 10_134_072, gpu: 10_096_780, triangles: 203_025, draws: 48, critical: false, dependencies: [] });
     const bytes = owned.assets.get(hash); if (bytes === undefined) throw new Error('Missing owned GLB bytes');
     expect(Buffer.compare(bytes, original)).toBe(0);
-    expect(owned.namedFiles).toHaveLength(output.namedFiles.length + 14);
+    expect(owned.namedFiles).toHaveLength(output.namedFiles.length + 19);
     for (const file of output.namedFiles) {
       if (file.name === heroName || file.name === bakeName || file.name === skyName) continue;
       expect(owned.namedFiles.find(row => row.name === file.name)).toEqual(file);
@@ -67,10 +67,21 @@ test('owned geometry preserves all original bytes and costs, changing only its s
     expect(owned.platform).toBe(output.platform); expect(owned.blobs).toBe(output.blobs);
     const oldSky = output.namedFiles.find(file => file.name === skyName), newSky = owned.namedFiles.find(file => file.name === skyName);
     if (oldSky === undefined || newSky === undefined) throw new Error('Missing native library descriptor');
-    expect(text.decode(owned.assets.get(newSky.hash))).toBe(text.decode(output.assets.get(oldSky.hash))
+    let expectedSky = text.decode(output.assets.get(oldSky.hash))
       .replace(JSON.stringify(BRIDGE_REST_URL), JSON.stringify(bridgeName))
       .replace(JSON.stringify(MILL_REST_URL), JSON.stringify(millName))
-      .replace(JSON.stringify(FAN_URL), JSON.stringify(fanName)));
+      .replace(JSON.stringify(FAN_URL), JSON.stringify(fanName));
+    for (const creature of SKY_CREATURES) expectedSky = expectedSky.replace(JSON.stringify(SKY_CREATURE_RIGS[creature]), JSON.stringify(`world/rigs/${creature}.glb`));
+    expect(text.decode(owned.assets.get(newSky.hash))).toBe(expectedSky);
+    for (const [name, path] of [...SKY_CREATURES.map(creature => [creature, `public/assets/far-reach/rigs/${creature}.glb`]),
+      ['storm-roc.phone', 'public/assets/gpu/far-reach/rigs/storm-roc-70e5655f.glb']]) {
+      if (name === undefined || path === undefined) throw new Error('Missing original rig oracle');
+      const originalRig = readFileSync(path), declared = nameBlob(`world/rigs/${name}.glb`, 'glb', originalRig);
+      expect(owned.namedFiles.find(file => file.name === declared.file.name)).toEqual(declared.file);
+      const rigBytes = owned.assets.get(declared.file.hash);
+      if (rigBytes === undefined) throw new Error('Missing published rig bytes');
+      expect(Buffer.compare(rigBytes, originalRig)).toBe(0);
+    }
     expect(owned.assets.has(oldSky.hash)).toBe(false);
     const bridge = { file: bridgeFile };
     expect(owned.namedFiles.find(file => file.name === bridgeName)).toEqual(bridge.file);
@@ -126,7 +137,7 @@ test('owned geometry preserves all original bytes and costs, changing only its s
     bytes.fill(0);
     const hit = await prepareOutput(context()), hitBytes = hit.assets.get(hash);
     if (hitBytes === undefined) throw new Error('Missing cache-hit GLB');
-    expect(Buffer.compare(hitBytes, original)).toBe(0); expect(builds).toBe(7);
+    expect(Buffer.compare(hitBytes, original)).toBe(0); expect(builds).toBe(9);
     for (const file of SKY_WORLD_TILE_ROWS.files) {
       const tile = hit.assets.get(file.hash);
       if (tile === undefined) throw new Error('Missing cache-hit island tile');

@@ -6,13 +6,15 @@ import { expect, test } from 'vitest';
 import { bootFileList, bootSourceFiles, bootLateReads } from '../src/engine/boot/filePolicy';
 import { parseDiscoveryValues } from '../src/format/discoveryValues';
 import { BOOT_FILES, BOOT_SOURCES, LATE_READS, skyProductBoot } from '../src/shards/far-reach/generators/bootInventory';
-import { BAKED_PIECES, BAKED_URLS, FAN_URL } from '../src/shards/far-reach/generators/fileInventory';
+import { BAKED_PIECES, BAKED_URLS, FAN_URL, SKY_CREATURES } from '../src/shards/far-reach/generators/fileInventory';
 import { PREPARED_MODELS_URL } from '../src/shards/far-reach/generators/modelFrames';
 import { BRIDGE_REST_URL, MILL_REST_URL } from '../src/shards/far-reach/generators/restFiles';
 import { output } from '../src/shards/far-reach/generators/sourceOutput';
 import { GPU_FILES } from '../src/shards/far-reach/ktx2.generated';
 import { MANIFEST } from '../src/shards/far-reach/discovery.generated';
 import { prepareShardAssets } from '../src/game/shard/load';
+import { nameBlob } from '../src/sdk/blobs';
+import { skyRigAssetSources } from '../src/shards/far-reach/generators/rigAssetSources';
 
 const hash = 'bd1a0a75879e2f3e72e2ab2b8d0c18a79d7e7746478b3fedc6961199a714c580';
 const owned = `/shardfiles/far-reach/blobs/glb/${hash}.glb`;
@@ -53,20 +55,26 @@ test('public boot omits all fourteen owned geometry files across both tiers and 
 });
 
 
-test('receipt-owned GPU discovery keeps the original native table for both tiers', async () => {
-  const boot = skyProductBoot();
-  expect(boot.ktx2).toEqual(GPU_FILES);
-  expect(parseDiscoveryValues(boot).ktx2).toEqual(GPU_FILES);
+test('receipt-owned GPU discovery registers the admitted rig table for both tiers', async () => {
+  const blobs = [...SKY_CREATURES.map(creature => nameBlob(`world/rigs/${creature}.glb`, 'glb',
+    readFileSync(`public/assets/far-reach/rigs/${creature}.glb`))),
+  nameBlob('world/rigs/storm-roc.phone.glb', 'glb', readFileSync('public/assets/gpu/far-reach/rigs/storm-roc-70e5655f.glb'))];
+  const expected = skyRigAssetSources(blobs.map(blob => blob.file), GPU_FILES), boot = skyProductBoot(expected);
+  expect(boot.ktx2).toEqual(expected.gpuFiles);
+  expect(parseDiscoveryValues(boot).ktx2).toEqual(expected.gpuFiles);
   if (MANIFEST.ktx2 === undefined) throw new Error('Missing native GPU callback');
-  expect((await MANIFEST.ktx2()).GPU_FILES).toEqual(GPU_FILES);
+  expect((await MANIFEST.ktx2()).GPU_FILES).toEqual(expected.gpuFiles);
+  expect(MANIFEST.boot?.sources).toEqual(boot['boot.sources']);
   const registered: unknown[] = [];
   await prepareShardAssets(MANIFEST, table => { registered.push(table); });
   await prepareShardAssets(MANIFEST, table => { registered.push(table); });
-  expect(registered).toEqual([GPU_FILES]);
+  expect(registered).toEqual([expected.gpuFiles]);
   for (const tier of ['phone', 'desktop'] as const) {
     for (const [source, target] of Object.entries(boot.ktx2[tier])) {
-      expect(existsSync(resolve('public', `.${source}`)), source).toBe(true);
-      expect(existsSync(resolve('public', `.${target}`)), target).toBe(true);
+      for (const url of [source, target]) {
+        if (url.startsWith('/shardfiles/far-reach/')) expect(blobs.some(blob => `/shardfiles/far-reach/${blob.file.path}` === url), url).toBe(true);
+        else expect(existsSync(resolve('public', `.${url}`)), url).toBe(true);
+      }
     }
   }
 });

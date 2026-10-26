@@ -24,6 +24,10 @@ import { skyMillRestProgram } from './millRestProgram';
 import { skyFanPoolProgram } from './fanPoolProgram';
 import { skySwardAtlasProgram } from './swardAtlasProgram';
 import { SWARD_ATLAS_FILE } from './rows/swardAtlas';
+import { skyCreatureRigOutput } from './creatureRigOutput';
+import { skyRigAssetSources } from './rigAssetSources';
+import { skyRigLibrary } from './rigLibrary';
+import { GPU_FILES } from '../ktx2.generated';
 
 type SectionName = Parameters<Parameters<typeof emitPlatformSections>[0]['get']>[0];
 /** Build-only declarations; the compiled client features own all presentation. */
@@ -46,6 +50,8 @@ export const output = { blobs:SKY_PAINTED_ATTRIBUTE_SOURCES,namedFiles: sources.
 
 /** Publish original prepared geometry, world pieces and island tiles through normal owned-asset admission. */
 export async function prepareOutput(ctx: ProjectGenerationContext): Promise<typeof output> {
+  const rigs = await skyCreatureRigOutput(ctx);
+  const rigSources = skyRigAssetSources(rigs.files, GPU_FILES);
   const name = 'world/geometry/prepared-models.glb';
   const geometry = nameBlob(name, 'glb', await preparedModelProgram(ctx)), hero = skyHeroSource(name);
   const pieces = await skyWorldPieceProgram(ctx);
@@ -62,7 +68,8 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<type
   if (millBytes === undefined) throw new Error('Missing owned mill geometry');
   const millName = 'world/geometry/mill-rest.glb', mill = nameBlob(millName, 'glb', millBytes);
   const fanName = 'world/geometry/fan.glb', fan = nameBlob(fanName, 'glb', await skyFanPoolProgram(ctx));
-  const assets = new Map(output.assets), replacements = [hero, bakes, skyModelSource(bridgeName, millName, fanName)];
+  const assets = new Map([...output.assets, ...rigs.assets]), replacements = [hero, bakes,
+    skyModelSource(bridgeName, millName, fanName, skyRigLibrary(rigSources.urls))];
   for (const replacement of replacements) {
     const previous = output.namedFiles.find(file => file.name === replacement.file.name);
     if (previous === undefined) throw new Error('Missing original scene source output');
@@ -78,5 +85,5 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<type
     assets.set(file.hash, bytes);
   }
   return { ...output, namedFiles: [...output.namedFiles.map(file => replacements.find(row => row.file.name === file.name)?.file ?? file),
-    geometry.file, ...world.map(blob => blob.file), bridge.file, mill.file, fan.file], assets };
+    geometry.file, ...world.map(blob => blob.file), bridge.file, mill.file, fan.file, ...rigs.files], assets };
 }
