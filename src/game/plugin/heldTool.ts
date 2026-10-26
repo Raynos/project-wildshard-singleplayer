@@ -70,7 +70,7 @@ function dressAtlas(m: THREE.MeshPhysicalMaterial, tex: HeldToolFile['tex'], env
 
 /** A first-person tool held through its beat (see the module comment): parented to the camera, hidden until `update`. */
 export class HeldTool {
-  readonly group = new THREE.Group();
+  readonly group: THREE.Group = new THREE.Group();
   private readonly pivot = new THREE.Group();
   private mesh: THREE.Mesh | null = null;
   private ownsGeometry = true;

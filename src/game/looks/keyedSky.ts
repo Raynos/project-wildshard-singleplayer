@@ -103,8 +103,8 @@ class KeyedSky {
   /** the dome (the host adds it and keeps it on the camera) */
   readonly dome: THREE.Mesh;
   /** the environment pass: the same sky, one texel per direction of an equirect */
-  readonly envScene = new THREE.Scene();
-  readonly envCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  readonly envScene: THREE.Scene = new THREE.Scene();
+  readonly envCam: THREE.OrthographicCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
   readonly envEquirect: THREE.WebGLRenderTarget;
   private readonly style: KeyedSkyStyle;
   /** the two keys the graphs blend */

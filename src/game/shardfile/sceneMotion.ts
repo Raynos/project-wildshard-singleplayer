@@ -18,7 +18,7 @@ const books = new WeakMap<Scope, Map<string, SceneMotionBinding>>();
  * mover owner retains every body, fixed step, command and continuation. */
 export class SceneMotionBinding {
   readonly channels: Channels;
-  readonly prompts = new Map<string, ReturnType<Channels['prompt']>>();
+  readonly prompts: Map<string, ReturnType<Channels['prompt']>> = new Map<string, ReturnType<Channels['prompt']>>();
   private readonly groups = new Map<string, Channels>();
   private readonly frames: readonly {
     readonly id: string;

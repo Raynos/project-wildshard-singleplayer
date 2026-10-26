@@ -180,13 +180,13 @@ export class HeldFirearm<P extends HeldFirearmProfile = HeldFirearmProfile> exte
   readonly state: WeaponState & { ammo: number };
   enabled = true; allowUnlocked = false; adsHeld = false; holster = 0;
   aimInfo: AimInfo | null = null;
-  readonly model = new THREE.Group();
+  readonly model: THREE.Group = new THREE.Group();
   /** the cycle is thrown (a lever's 'leverCycle' sound) / a round went through the gate */
   onCycle?: () => void; onRoundIn?: () => void;
   /** dev (the evidence strip): hold the cycle at u (0..1); null = live */
   freezeCycle: number | null = null;
   /** dev: > 0 keeps the sighted-hidden parts shown, turned `inspectYaw` */
-  inspect = 0; inspectYaw = Math.PI / 2;
+  inspect = 0; inspectYaw: number = Math.PI / 2;
   readonly parts: Record<string, THREE.Mesh> = {};
   readonly anchors: Readonly<Record<string, THREE.Vector3>>;
   readonly gate: THREE.Vector3;

@@ -49,7 +49,7 @@ export interface EncounterSite { readonly x:number; readonly z:number; readonly 
 /** A slot encounter's sites on the ground: drawn instanced, solid while they stand, hidden while their actor is out. */
 export class EncounterSites {
   readonly sites: EncounterSite[] = [];
-  readonly object = new THREE.Group();
+  readonly object: THREE.Group = new THREE.Group();
   private readonly rows: v.InferOutput<typeof EncounterSitesSchema>;
   private readonly awake: boolean[] = [];
   private meshes: THREE.InstancedMesh[] = [];
@@ -405,8 +405,8 @@ const at = new THREE.Vector3(), up = new THREE.Vector3(0, 1, 0), turn = new THRE
 export class CloudBody {
   /** what the look reads: the fight raises `flash`, fades `alpha` and keeps the fog's colour and density */
   readonly alpha = { value: 1 }; readonly flash = { value: 0 }; readonly glow = { value: 0.4 };
-  readonly fogColour = new THREE.Color(0.3, 0.32, 0.4); readonly fog = { value: 0.1 };
-  readonly focusPoint = new THREE.Vector3();
+  readonly fogColour: THREE.Color = new THREE.Color(0.3, 0.32, 0.4); readonly fog = { value: 0.1 };
+  readonly focusPoint: THREE.Vector3 = new THREE.Vector3();
   visible = false;
   private readonly rows: CloudBodyRows;
   private readonly parts: ReadonlyMap<string, THREE.Object3D>;

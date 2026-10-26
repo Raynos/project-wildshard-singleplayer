@@ -11,7 +11,7 @@ import type { SpawnScript } from '../population/spawnScript';
 type Fight = EliteFeatureRows['fights'][number];
 /** Internal lifecycle adapter. Only built-in page/native feature factories supply an already bound script owner. */
 export class EliteDecisions implements EliteCoreScript<AnimalSim> {
-  readonly def;
+  readonly def: { id: string; name: string; epithet: string; lair: { x: number; z: number; r: number; }; awareR: number; engageR: number; leashR: number; rule: "always" | "dusk" | "night" | "storm"; respawnMin: number; once?: boolean; signature: string; phase2: string; drop: { skin: (string) | null; skinName: string; weapon: string; blurb: string; trophyName?: string; }; };
   readonly spawnStream: Rng;
   private phase2 = false;
   constructor(readonly row: Fight, readonly program: SpawnScript, feature: EliteFeatureRows, seed: number) {

@@ -41,7 +41,7 @@ const NEEDLE_COUNT = 200;
 
 
 export class Particles {
-  group = new THREE.Group();
+  group: THREE.Group = new THREE.Group();
   motes!: THREE.Points;
   mist!: THREE.InstancedMesh;
   needles!: THREE.InstancedMesh;

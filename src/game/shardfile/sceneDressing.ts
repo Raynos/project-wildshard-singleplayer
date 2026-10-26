@@ -101,12 +101,12 @@ export function readSceneGeometryAddress(bytes:Uint8Array,word:number):number{
 
 /** Client-only Z2 projection over baked geometry, immutable scatter rows and the existing ambient host. */
 export class SceneDressing {
-  readonly group = new THREE.Group();
+  readonly group: THREE.Group = new THREE.Group();
   readonly layers: ScatterLayer[] = [];
   readonly placed: Placed[] = [];
-  readonly pieces=new Map<string,{name:string;object:THREE.Object3D;tris:number;placed:Placed[];anchors:SceneDressingRows['statics'][number]['anchors']}>();
+  readonly pieces: Map<string, { name: string; object: THREE.Object3D; tris: number; placed: Placed[]; anchors: SceneDressingRows["statics"][number]["anchors"]; }>=new Map<string,{name:string;object:THREE.Object3D;tris:number;placed:Placed[];anchors:SceneDressingRows['statics'][number]['anchors']}>();
   /** the encounter sites by name, with what each placed */
-  readonly sites=new Map<string,{sites:EncounterSites;placed:Placed}>();
+  readonly sites: Map<string, { sites: EncounterSites; placed: Placed; }>=new Map<string,{sites:EncounterSites;placed:Placed}>();
   readonly props: THREE.Mesh[] = [];
   propTris = 0;
   private readonly frame = new FrameCamera(this.group);

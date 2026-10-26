@@ -61,8 +61,8 @@ const wallTextures = new ResourceMemo<string, THREE.Texture>();
 
 
 export class TrophyWall {
-  readonly scope = uiScope('trophyWall');
-  readonly group = new THREE.Group();
+  readonly scope: Scope = uiScope('trophyWall');
+  readonly group: THREE.Group = new THREE.Group();
   /** one prompt for the whole wall: it moves to the slot you look at ("[E] Examine Old Ironhide"), radius 0 otherwise */
   readonly interactable: { position: THREE.Vector3; radius: number; label: string; onInteract: () => void };
   onExamine?: (entryId: string) => void;

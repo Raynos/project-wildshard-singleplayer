@@ -41,7 +41,7 @@ export class FigureRows {
   /** The same data anchors are usable by the model registry before a draw exists. */
   static collidersFor(input: unknown): readonly ColliderDesc[] { return anchorColliders(v.parse(FigureRowSchema, input).collider); }
   readonly group: THREE.Group;
-  readonly talkPoint = new THREE.Vector3();
+  readonly talkPoint: THREE.Vector3 = new THREE.Vector3();
   readonly collider: BoxSpec;
   readonly colliders: readonly ColliderDesc[];
   readonly ready: Promise<void>;

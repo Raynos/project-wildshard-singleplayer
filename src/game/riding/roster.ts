@@ -28,7 +28,7 @@ const sampleTerrain = (): void => undefined;
  * the guest, while allocation, native effects and retirement have one owner. */
 export class BondedMountRoster {
   readonly records: BondedMount[] = [];
-  readonly hidden = new Set<string>();
+  readonly hidden: Set<string> = new Set<string>();
   private readonly program: ReturnProgram;
   private readonly spec: AnimalSimSpec;
   private readonly floor: ReturnType<typeof creatureFloor>;

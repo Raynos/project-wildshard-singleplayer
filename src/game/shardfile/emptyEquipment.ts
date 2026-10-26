@@ -3,7 +3,7 @@ import { Weapon, type WeaponState } from '@wildshard/engine/combat/Weapon';
 
 /** Inert, asset-free equipment satisfies the current session's mandatory primary port. */
 export class EmptyEquipment extends Weapon {
-  readonly model = new Group();
+  readonly model: Group = new Group();
   readonly state: WeaponState = { ammo: undefined, magazine: 0, reserve: 0, loaded: false, reloading: false, reloadProgress: 0, ads: false };
   adsHeld = false;
   aimInfo = null;

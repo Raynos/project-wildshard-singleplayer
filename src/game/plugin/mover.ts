@@ -209,7 +209,7 @@ export class MoverRuntime {
   private readonly carryPoses = new Map<string, CarryPose>();
   private readonly previousRides = new Map<string, boolean>();
   private readonly flags: Pick<Flags, 'has' | 'set'> | undefined;
-  readonly chains = new Map<string, RopeChain>();
+  readonly chains: Map<string, RopeChain> = new Map<string, RopeChain>();
   private readonly sinks = new Map<string, (pose: MoverPose) => void>();
   /** the presentation-only views (adopted rows), for {@link showRest} */
   private readonly views = new Map<string, (pose: MoverPose) => void>();

@@ -49,7 +49,7 @@ export function waterSurfaceLook(looks: { readonly materials: ReadonlyMap<string
 
 /** One water body drawn on its graph (see the module comment). */
 export class WaterSurface {
-  readonly group = new THREE.Group();
+  readonly group: THREE.Group = new THREE.Group();
   readonly row: WaterSurfaceRow;
   /** the still level (m) the surface stands at */
   level = 0;

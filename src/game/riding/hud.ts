@@ -38,7 +38,7 @@ const arcPath = (cx: number, cy: number, r: number, a0: number, a1: number): str
 const _p = new THREE.Vector3();
 
 export class RideHUD {
-  readonly scope = uiScope('RideHUD');
+  readonly scope: ReturnType<typeof uiScope> = uiScope('RideHUD');
   private state: RideHudState = { mounted: false, breaking: false, steed: 100, winded: false, gait: 'stand', leanLow: 0, beat: false, spurFlash: 0, spur: { latched: false, streak: 0 }, horse: null, mountables: [] };
   /** touch discs held: LEAN (−1 left, +1 right, 0 none) and OFFER */
   lean = 0;

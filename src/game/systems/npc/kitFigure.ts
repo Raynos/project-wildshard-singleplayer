@@ -29,7 +29,7 @@ function ease(u: number): number {
  * owner `figure` the pose they keep) and the pose clips. `companions` hide with a `hide` figure.
  */
 export class KitFigure {
-  readonly group = new THREE.Group();
+  readonly group: THREE.Group = new THREE.Group();
   readonly companions: THREE.Object3D[] = [];
   readonly presentation: FigureRows;
   private readonly rows: KitFigureRows;

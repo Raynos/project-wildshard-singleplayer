@@ -11,7 +11,7 @@ export class Hoverboard extends Tool {
   readonly slot = 'tool' as const;
   readonly actions = ['hover'] as const;
   enabled = true; holster = 0;
-  readonly model = new THREE.Group();
+  readonly model: THREE.Group = new THREE.Group();
   private blend = 0;                // 0..1 fade
   private lean = 0; private pitch = 0; private bob = 0; private kick = 0; private land = 0;
   private t = 0;

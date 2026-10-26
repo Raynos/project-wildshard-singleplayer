@@ -73,7 +73,7 @@ export function fillRein(pos: Float32Array, r: number, K: readonly THREE.Vector3
 
 /** Client-only camera projection. All mount observations and appearance are numeric rows. */
 export class ReinRibbon {
-  readonly group = new THREE.Group();
+  readonly group: THREE.Group = new THREE.Group();
   private readonly pos: Float32Array;
   private readonly posAttr: THREE.BufferAttribute;
   private readonly ribbon: THREE.Mesh;
