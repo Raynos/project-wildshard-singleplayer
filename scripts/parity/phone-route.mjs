@@ -27,7 +27,9 @@ export function phoneRoutePlans(state) {
   // Road kerbs open only at the shard edge midpoint (roadLayout G93).
   // Enter there before the wall probe, rather than aiming at a room through a kerb.
   const marketRoad = { x: target.x, z: target.z - state.pitch / 2 };
-  const wallStart = { x: target.x, z: target.z - 218.75 };
+  // c27ec452e8's three-bay gate is centred on the plot. The avenue at
+  // x=0 reaches its open central bay; the stone plinth faces block west/east.
+  const wallStart = { x: target.x, z: target.z };
   /** @type {import('../frame-floor-grid.mjs').FloorGridPlan[]} */
   const plans = [
     { name: 'phone-driftwood-road', from: home.instance, to: null, movement: 'road-hover', waypoints: [road], requiredResidents: [] },

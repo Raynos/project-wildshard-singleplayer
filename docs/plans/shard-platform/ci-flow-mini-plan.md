@@ -260,6 +260,14 @@ Browser cleanup completed and the owned4405 preview was stopped. No ordinary
 smoke retry or gating promotion follows this refusal. O1 was asked for a
 source-defined reachable wall approach before another functional visit.
 
+O1 supplied the authored gate boundary: c27ec452e8's three-bay gate has an
+open central avenue and solid stone plinth faces at plot-local x=±5.4,
+z=-2.6..2.6. The maintained held-input route now reaches the actual plot
+centre before querying the existing collider, then returns along the same
+avenue. The earlier avenue stop at local z=-218.75 was outside that wall's
+ray range. A containing exact preview is required; the old893 visit cannot
+qualify this changed geometry. No posed start, synthetic wall or gate waiver.
+
 ### Release reading — 2026-10-26 21:35 UTC (sp-x7)
 
 Live remains `14a3d5d93-mvpm835t`, published18:54UTC with exact six-leg

@@ -61,7 +61,8 @@ test('route follows the served lattice and uses held input for all four actual c
   expect(plans.map(p=>[p.from,p.to])).toEqual([['home',null],[null,'market'],['market',null],[null,'home']]);
   expect(plans.every(p=>p.start===undefined&&p.finishOnArrival!==true)).toBe(true);
   expect(plans[0]?.waypoints).toEqual([{x:0,z:-281.25}]);
-  expect(plans[1]?.waypoints).toEqual([{x:-281.25,z:-281.25},{x:-281.25,z:281.25},{x:-562.5,z:281.25},{x:-562.5,z:343.75}]);
+  expect(plans[1]?.waypoints).toEqual([{x:-281.25,z:-281.25},{x:-281.25,z:281.25},{x:-562.5,z:281.25},{x:-562.5,z:562.5}]);
+  expect(plans[2]?.waypoints[0]).toEqual({x:-562.5,z:562.5});
   expect(plans[1]?.waypoints.at(-2)?.x).toBe(-observation().pitch);
   const invalid=observation();invalid.cells=[];expect(()=>phoneRoutePlans(invalid)).toThrow('unambiguous');
 });
