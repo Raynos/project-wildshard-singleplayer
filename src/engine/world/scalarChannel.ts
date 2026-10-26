@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import { unzlibSync } from 'fflate';
 import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
-import { ScalarChannelSchema,ScalarLatticeSchema,type ScalarChannelRows,type ScalarLatticeRows } from '@wildshard/format/scalarChannel';
+import { decodeScalarStorage,ScalarChannelSchema,ScalarLatticeSchema,type ScalarChannelRows,type ScalarLatticeRows } from '@wildshard/format/scalarChannel';
 
 export function readScalarChannel(input: ScalarChannelRows & { readonly type: 'f32' },blocks?:ReadonlyMap<string,Uint8Array>): Float32Array;
 export function readScalarChannel(input: ScalarChannelRows & { readonly type: 'f64' },blocks?:ReadonlyMap<string,Uint8Array>): Float64Array;
@@ -9,14 +9,10 @@ export function readScalarChannel(input: unknown,blocks?:ReadonlyMap<string,Uint
 /** One bounded inflate and one typed view, with no conversion, interpolation,
  * owner/cache or second intake. Reject short, oversized and non-finite rows. */
 export function readScalarChannel(input: unknown,blocks?:ReadonlyMap<string,Uint8Array>): Float32Array | Float64Array {
-  const row = v.parse(ScalarChannelSchema,input), length = row.count*(row.type === 'f32' ? 4 : 8);
-  if (new Uint8Array(new Uint16Array([1]).buffer)[0] !== 1) throw new Error('Scalar channel requires little-endian storage');
+  const row = v.parse(ScalarChannelSchema,input);
   const source=typeof row.data==='string'?Uint8Array.from(atob(row.data),value=>value.codePointAt(0)??0):blocks?.get(row.data.file);
   if(source===undefined)throw new Error('Missing scalar block');
-  const bytes = unzlibSync(source,{ out: new Uint8Array(length+1) });
-  if (bytes.length !== length) throw new Error('Scalar channel length mismatch');
-  const values = row.type === 'f32' ? new Float32Array(bytes.buffer,bytes.byteOffset,row.count) : new Float64Array(bytes.buffer,bytes.byteOffset,row.count);
-  if (!values.every(Number.isFinite)) throw new Error('Non-finite scalar channel');return values;
+  return decodeScalarStorage(row, source, (bytes, out) => unzlibSync(bytes, { out }));
 }
 
 /** Decode once and borrow that same native typed storage for the defining bilinear sampler. */

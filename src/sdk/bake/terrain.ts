@@ -7,8 +7,8 @@ import * as v from 'valibot';
 import { hashImmutableBytes as contentHash } from '../immutable';
 import { parseBakedTerrain, type BakedGrid } from '@wildshard/format/bakedTerrainBytes';
 import { bakedSamplers, type BakedTerrainSamplers } from '@wildshard/format/bakedTerrainSampling';
-import { ScalarLatticeSchema } from '@wildshard/format/scalarChannel';
-import { readScalarChannel } from '@wildshard/engine/world/scalarChannel';
+import { ScalarLatticeSchema, decodeScalarStorage } from '@wildshard/format/scalarChannel';
+import { unzlibSync } from 'fflate';
 
 /** Original renderer lattice and its defining native queries; this is not a physics-grid substitute. */
 export interface NativeTerrainSource extends BakedTerrainSamplers { readonly grid: BakedGrid }
@@ -41,7 +41,11 @@ export interface NativeScalarField {
  * Decode once with the defining scalar intake; preserve every f32 bit and the original sampling law.
  * Separate calls own their storage, never select a page or install terrain, and retain no input block. */
 export function readNativeScalarField(input: unknown, blocks: ReadonlyMap<string, Uint8Array>): NativeScalarField {
-  const row = v.parse(ScalarLatticeSchema, input), values = readScalarChannel(row.values, blocks);
+  const row = v.parse(ScalarLatticeSchema, input);
+  if (typeof row.values.data === 'string') throw new Error('Native scalar field requires a declared block');
+  const block = blocks.get(row.values.data.file);
+  if (block === undefined) throw new Error('Missing scalar block');
+  const values = decodeScalarStorage(row.values, block, (bytes, out) => unzlibSync(bytes, { out }));
   if (!(values instanceof Float32Array)) throw new Error('Native scalar fields require f32 storage');
   const { heightAt } = bakedSamplers({ res: row.res, size: row.size, heights: values, seed: 0,
     landscapeHash: 0, splat: new Uint8Array(0), undergrowth: null });

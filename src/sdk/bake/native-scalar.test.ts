@@ -7,6 +7,8 @@ import { readScalarLattice } from '@wildshard/engine/world/scalarChannel';
 import { selectedLevel } from '@wildshard/engine/level/selection';
 import { readNativeScalarField } from './terrain';
 import { assertConfigBoundary } from '../configBoundary';
+// oxlint-disable-next-line import/no-nodejs-modules -- Exercise the unchanged confined authoring resolver.
+import { execFileSync } from 'node:child_process';
 
 const values = new Float32Array([-0, 1, 2, 3, 4, 5, 6, 7, 8]);
 const bytes = new Uint8Array(values.buffer), compressed = zlibSync(bytes);
@@ -28,6 +30,8 @@ test('native scalar intake owns all original f32 bytes and exact clamped query r
 
 test('native scalar intake retains count, missing-block, finite, type and path refusals', () => {
   expect(() => readNativeScalarField(rows, new Map())).toThrow('Missing scalar block');
+  expect(() => readNativeScalarField({ ...rows, values: { ...rows.values, data: 'AAAAAAAA' } }, blocks))
+    .toThrow('declared block');
   for (const input of [
     { ...rows, res: 1 }, { ...rows, res: 2049 }, { ...rows, size: Infinity },
     { ...rows, values: { ...rows.values, count: 8 } }, { ...rows, values: { ...rows.values, type: 'f64' } },
@@ -38,6 +42,21 @@ test('native scalar intake retains count, missing-block, finite, type and path r
     expect(() => readNativeScalarField(rows, new Map([['fields/native.bin', zlibSync(new Uint8Array(array.buffer))]]))).toThrow();
   }
   expect(() => readNativeScalarField(rows, new Map([['fields/native.bin', compressed.subarray(0, 4)]]))).toThrow();
+});
+
+test('the complete terrain author graph resolves under the unchanged source-only loader', () => {
+  execFileSync(process.execPath, ['--experimental-transform-types', '--import', './src/sdk/bake/source-loader.mjs',
+    '--input-type=module', '--eval', `
+      import assert from 'node:assert/strict';
+      import { zlibSync } from 'fflate';
+      import { readNativeScalarField } from '@wildshard/sdk/bake/terrain';
+      import { templateTerrain } from './src/shards/_template/generators/terrain.ts';
+      const raw = new Float32Array([-0,1,2,3]);
+      const rows={res:2,size:500,values:{type:'f32',count:4,data:{file:'scalar.bin'}}};
+      const made=readNativeScalarField(rows,new Map([['scalar.bin',zlibSync(new Uint8Array(raw.buffer))]]));
+      assert.equal(typeof templateTerrain,'function');
+      assert.equal(Object.is(made.values[0],-0),true);assert.equal(made.sample(0,0),1.5);
+    `, 'src/shards/_template/generators/terrain.ts']);
 });
 
 test('the terrain author module keeps one config-safe chunk with scalar intake included', async () => {
