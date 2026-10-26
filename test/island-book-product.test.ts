@@ -36,7 +36,7 @@ test('the resolved book retains every original fixed byte reference and the orig
 
 test('the real plan owns one complete assembly before updates and uses compiled runtime metadata without a source module',()=>{
   const plan=parseClientPlan(section('client/plan')),assembly=plan.features.filter(row=>row.kind==='world.assembly');
-  expect(assembly).toEqual([{kind:'world.assembly',library:'driftwood.island',catalogue:'models/world-scenes.json',rows:v.parse(WorldAssemblySchema,WORLD_STAGES)}]);
+  expect(assembly).toEqual([{kind:'world.assembly',library:'driftwood.island',catalogue:'models/world-scenes.json',farStandIn:true,rows:v.parse(WorldAssemblySchema,WORLD_STAGES)}]);
   expect(source.runtime).toMatchObject({kind:'client-plan',binds:['state','quests','ledger','items','spawns','modes','props','terrain','movers','loot','clientChannels']});
   expect(source.runtime).not.toHaveProperty('entry');expect(manifest).not.toHaveProperty('runtimeEntry');expect(manifest.bindings).not.toHaveProperty('roster');
   expect(manifest.bindings.entry).toEqual({platform:'client-plan',retainHomeRuntime:false,stagesOwner:'declared'});

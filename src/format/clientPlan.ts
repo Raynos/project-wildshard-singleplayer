@@ -56,7 +56,9 @@ export const ClientFeatureSchema: v.GenericSchema<ClientFeatureInput, ClientFeat
       v.check(rows => new Set(rows.map(row => row.id)).size === rows.length && new Set(rows.map(row => row.owner)).size === rows.length, 'unique ambient ids and owners')) }),
   v.strictObject({ kind: v.literal('world.updates'), rows: WorldUpdatesSchema }),
   DeclaredCombatTargetsSchema,
-  v.pipe(v.strictObject({ kind: v.literal('world.assembly'), native: v.exactOptional(v.strictObject({ groups: id })), library: v.exactOptional(id), catalogue: v.exactOptional(label), entered: v.exactOptional(v.strictObject({ root: id, blocks: v.pipe(v.array(id), v.minLength(1), v.maxLength(64), v.check(blocks => new Set(blocks).size === blocks.length, 'unique entered blocks')) })), rows: WorldAssemblySchema }),
+  // G748 farStandIn: beyond the render ring the entered cell draws its own near view for its occupied tiles (a shard whose
+  // drawn world is tiled; one that draws its world whole leaves it out)
+  v.pipe(v.strictObject({ kind: v.literal('world.assembly'), native: v.exactOptional(v.strictObject({ groups: id })), library: v.exactOptional(id), catalogue: v.exactOptional(label), farStandIn: v.exactOptional(v.literal(true)), entered: v.exactOptional(v.strictObject({ root: id, blocks: v.pipe(v.array(id), v.minLength(1), v.maxLength(64), v.check(blocks => new Set(blocks).size === blocks.length, 'unique entered blocks')) })), rows: WorldAssemblySchema }),
     v.check(row => (row.library === undefined) === (row.catalogue === undefined), 'World assembly library and catalogue must be declared together'),
     v.check(row => row.native === undefined || row.library === undefined && row.catalogue === undefined && row.entered === undefined, 'Native assembly retains its original context without a library or entered-piece adapter')),
   v.strictObject({ kind: v.literal('world.runtime-hooks'), bounds: v.exactOptional(RuntimeBoundsSchema), floor: v.exactOptional(id),
@@ -150,7 +152,7 @@ export type ClientFeatureInput = { kind: 'strings.register'; } | { kind: 'conten
   progress?: true; } | { kind: 'world.meadow'; file: string; } | { kind: 'world.ambient-life'; file: string;
   flocks: ({ id: string; owner: string; })[]; } | { kind: 'world.updates'; rows: v.InferInput<typeof
   WorldUpdatesSchema>; } | v.InferInput<typeof DeclaredCombatTargetsSchema> | { kind: 'world.assembly'; native?:
-  { groups: string; }; library?: string; catalogue?: string; entered?: { root: string; blocks: (string)[]; };
+  { groups: string; }; library?: string; catalogue?: string; farStandIn?: true; entered?: { root: string; blocks: (string)[]; };
   rows: v.InferInput<typeof WorldAssemblySchema>; } | { kind: 'world.runtime-hooks'; bounds?: RuntimeBounds;
   floor?: string; overhead: (string)[]; meleeSilent?: boolean; } | { kind: 'world.movers'; system: string;
   bindings: ({ kind: 'object'; id: string; owner: string; order?: 'XYZ' | 'YXZ'; visibility?: 'enabled'; moor?:
@@ -214,7 +216,7 @@ export type ClientFeatureRow = { kind: 'strings.register'; } | { kind: 'content.
   progress?: true; } | { kind: 'world.meadow'; file: string; } | { kind: 'world.ambient-life'; file: string;
   flocks: ({ id: string; owner: string; })[]; } | { kind: 'world.updates'; rows: v.InferOutput<typeof
   WorldUpdatesSchema>; } | v.InferOutput<typeof DeclaredCombatTargetsSchema> | { kind: 'world.assembly';
-  native?: { groups: string; }; library?: string; catalogue?: string; entered?: { root: string; blocks:
+  native?: { groups: string; }; library?: string; catalogue?: string; farStandIn?: true; entered?: { root: string; blocks:
   (string)[]; }; rows: v.InferOutput<typeof WorldAssemblySchema>; } | { kind: 'world.runtime-hooks'; bounds?:
   RuntimeBounds; floor?: string; overhead: (string)[]; meleeSilent?: boolean; } | { kind: 'world.movers';
   system: string; bindings: ({ kind: 'object'; id: string; owner: string; order?: 'XYZ' | 'YXZ'; visibility?:
