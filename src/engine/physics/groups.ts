@@ -3,7 +3,15 @@
  * u32 — membership in the high 16 bits, the filter (what it may touch) in the low 16 — and two colliders interact only
  * when each one's membership is in the other's filter, so every row below lists the full set it meets.
  */
-export const GROUP = {
+export const GROUP: { readonly WORLD: number; // terrain, structures, props — static or kinematic
+readonly PLAYER: number; // the player's capsule
+readonly CREATURE: number; // animals and enemies (their movement capsule)
+readonly HITBOX: number; // a creature's head / body hit volumes (queries only)
+readonly PROJECTILE: number; // bolts, thrown things in flight
+readonly ITEM: number; // coconuts, the barrel, drops, pickups — dynamic bodies the player can push
+readonly DEBRIS: number; // small short-lived bodies (never touch the player)
+readonly BORDER: number; // grid home boundary: unmounted creatures only
+readonly SENSOR: number; } = {
   WORLD: 1 << 0,      // terrain, structures, props — static or kinematic
   PLAYER: 1 << 1,     // the player's capsule
   CREATURE: 1 << 2,   // animals and enemies (their movement capsule)

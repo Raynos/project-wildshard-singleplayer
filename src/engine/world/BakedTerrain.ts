@@ -25,7 +25,7 @@ export type BakedGrid = terrainBytes.BakedGrid;
 /** Existing runtime placement type is defined by the pure byte reader. */
 export type BakedPlacement = terrainBytes.BakedPlacement;
 /** Existing runtime parser is the identical defining format function. */
-export const parseBakedTerrain = terrainBytes.parseBakedTerrain;
+export const parseBakedTerrain: (input: ArrayBuffer | Uint8Array, expected?: { res?: number; size?: number; seed?: number; }) => terrainBytes.BakedGrid | null = terrainBytes.parseBakedTerrain;
 
 export const bakedTerrainUrl = (slug: string): string | null => {
   const url = `/assets/baked/${slug}/terrain.bin`;

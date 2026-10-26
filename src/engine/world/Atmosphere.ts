@@ -5,7 +5,15 @@ import * as THREE from 'three';
 import { setInheritedPatch } from '../render/shaderPatches';
 import { FOG_SLOT, installFogPatch, type NodeFogPanorama, type NodeFogPatch } from '../render/fogPatches';
 
-export const fogUniforms = {
+export const fogUniforms: { fogSunDir: { value: THREE.Vector3; }; fogSunColor: { value: THREE.Color; }; fogHeight: { value: number; }; // metres; fog is densest below this
+fogHeightFalloff: { value: number; }; fogHeightDensity: { value: number; }; fogDistDensity: { value: number; }; 
+/**
+ * The slab's edge dissolving into the horizon's haze (Pine Hollow PH-L5, after Nalati N19's method): x = strength (0 =
+ * off, the other shards), y / z = where it starts / is full (m from the slab centre, the larger of
+ * |x| |z|), w = how far below the eye the ground must lie for it (looking down over the edge from the lookout, not along
+ * the ground). Compiled into the fog chunk on Pine Hollow only, so no other shard's program source changes.
+ */
+fogEdge: { value: THREE.Vector4; }; } = {
   fogSunDir: { value: new THREE.Vector3(0, 1, 0) },
   fogSunColor: { value: new THREE.Color(1.0, 0.72, 0.42) },
   fogHeight: { value: -14.0 },          // metres; fog is densest below this
@@ -29,7 +37,7 @@ export const fogUniforms = {
  *               standard program includes and none of the shard's custom materials replace; the water overrides it after)
  *   fogBlob     a local fog bank (xyz, radius) of strength fogBlobAmt: the dawn fog closing round the Ghost Stag (PH-C7)
  */
-export const weatherUniforms = {
+export const weatherUniforms: { uWet: { value: number; }; fogBlob: { value: THREE.Vector4; }; fogBlobAmt: { value: number; }; } = {
   uWet: { value: 0 },
   fogBlob: { value: new THREE.Vector4(0, -1e4, 0, 1) },
   fogBlobAmt: { value: 0 },
@@ -38,7 +46,7 @@ let pineWeather = false;
 
 /** A painted panorama's live re-grade (`NodeFogPanorama['tint']`): × key, a cool monochrome by moon, × light, into
  *  veilColour by veil, + flash. One set per page, shared by the panorama fog, the panorama dome and a painted sky's rows. */
-export const panoramaTint = { key: { value: new THREE.Color(1, 1, 1) }, moon: { value: 0 }, light: { value: new THREE.Color(1, 1, 1) }, veil: { value: 0 },
+export const panoramaTint: { key: { value: THREE.Color; }; moon: { value: number; }; light: { value: THREE.Color; }; veil: { value: number; }; veilColour: { value: THREE.Color; }; flash: { value: number; }; } = { key: { value: new THREE.Color(1, 1, 1) }, moon: { value: 0 }, light: { value: new THREE.Color(1, 1, 1) }, veil: { value: 0 },
   veilColour: { value: new THREE.Color(0.2, 0.21, 0.26) }, flash: { value: 0 } };
 
 /**
@@ -47,7 +55,7 @@ export const panoramaTint = { key: { value: new THREE.Color(1, 1, 1) }, moon: { 
  * backdrop's clock, the underwater blend), since it never writes their uniforms. Compiled only into a level that sets
  * `atmosphere.weather`, so every other level's program source stays byte-for-byte. Drive it with `weatherFog()`.
  */
-export const weatherFogUniforms = {
+export const weatherFogUniforms: { fogWeather: { value: THREE.Vector4; }; fogWeatherColor: { value: THREE.Color; }; } = {
   fogWeather: { value: new THREE.Vector4(0, 0, 0, 0) },
   fogWeatherColor: { value: new THREE.Color(1, 1, 1) },
 };

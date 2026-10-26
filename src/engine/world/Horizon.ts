@@ -14,7 +14,7 @@ import { PATCH_ORDER, patchShader } from '../render/shaderPatches';
  * The far light, shared by every ring and the cloud sea: the fixed skies keep these values; Pine Hollow's day / night clock
  * (PineDayNight.ts) turns them with the hour (uniform objects, so no program changes).
  */
-export const horizonLight = {
+export const horizonLight: { uHazeCol: { value: THREE.Color; }; uSeaSky: { value: THREE.Color; }; uSeaSun: { value: THREE.Color; }; uSeaSunDir: { value: THREE.Vector3; }; } = {
   uHazeCol: { value: new THREE.Color(0.5, 0.58, 0.74) },
   uSeaSky: { value: new THREE.Color(0.55, 0.62, 0.75) },
   uSeaSun: { value: new THREE.Color(1.0, 0.75, 0.45) },
@@ -30,7 +30,7 @@ export const horizonLight = {
  */
 export class Horizon {
   private readonly scope = resourceScope().child('Horizon');
-  group = new THREE.Group();
+  group: THREE.Group = new THREE.Group();
   /** Pine Hollow's painted horizon (PH-L5), in place of the rings and the cloud sea */
   painted: PaintedHorizon | null = null;
   private cloudSea!: THREE.Mesh;

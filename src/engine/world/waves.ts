@@ -2,7 +2,7 @@ import * as waterWaves from '@wildshard/format/waterWaves';
 
 
 /** Existing renderer/physics swell rows retain the same immutable format array. */
-export const WAVES = waterWaves.WAVES;
+export const WAVES: readonly (readonly [number, number, number, number, number, number])[] = waterWaves.WAVES;
 
 export const waveClock = { t: 0 };
 
@@ -13,7 +13,7 @@ export const WATER_UNBOUNDED = 1e9;
  * surface and any sea surface shader that reads `uWaterHalf` (a shared uniform, live). Unbounded unless a host confines it
  * (a level placed among others keeps its sea inside its own square).
  */
-export const waterExtent = { uWaterHalf: { value: WATER_UNBOUNDED } };
+export const waterExtent: { uWaterHalf: { value: number; }; } = { uWaterHalf: { value: WATER_UNBOUNDED } };
 /** The open water's rest surface reaches (x, z) (inside the confining square, or anywhere when unbounded). */
 export function insideWaterExtent(x: number, z: number): boolean { return Math.max(Math.abs(x), Math.abs(z)) <= waterExtent.uWaterHalf.value; }
 
@@ -26,7 +26,7 @@ export function seaDamp(depth: number): number {
 const TAU = Math.PI * 2;
 
 /** Shared CPU/material-graph Gerstner coefficients, derived once from the immutable wave rows. */
-export const GERSTNER_TERMS = Object.freeze(WAVES.map(([x, z, amplitude, length, speed, q]) => {
+export const GERSTNER_TERMS: readonly Readonly<{ x: number; z: number; amplitude: number; k: number; speed: number; horizontalX: number; horizontalZ: number; }>[] = Object.freeze(WAVES.map(([x, z, amplitude, length, speed, q]) => {
   const k = TAU / length, qa = (q / (k * amplitude * WAVES.length)) * amplitude;
   return Object.freeze({ x, z, amplitude, k, speed, horizontalX: x * qa, horizontalZ: z * qa });
 }));
@@ -48,14 +48,16 @@ export function waveDisplace(x: number, z: number, t: number, damp: number, out:
 
 const _o = { x: 0, y: 0, z: 0 };
 /** surface height above the still level at world (x, z) — what a floating thing should ride */
-export function waveHeight(x: number, z: number, t = waveClock.t, damp = 1): number {
+export function waveHeight(x: number, z: number, t: number = waveClock.t, damp = 1): number {
   let px = x, pz = z;
   for (let i = 0; i < 2; i++) { waveDisplace(px, pz, t, damp, _o); px = x - _o.x; pz = z - _o.z; }
   return waveDisplace(px, pz, t, damp, _o).y;
 }
 
+type GlslSource = string;
+
 /** the same waves in GLSL: `vec3 gerstner(vec2 p, float t, float damp)` → displacement */
-export const WAVES_GLSL = /* glsl */`
+export const WAVES_GLSL: GlslSource = /* glsl */`
 vec3 gerstner(vec2 p, float t, float damp) {
   vec3 d = vec3(0.0);
 ${WAVES.map(([wx, wz, a, len, speed, q]) => {
@@ -71,7 +73,7 @@ ${WAVES.map(([wx, wz, a, len, speed, q]) => {
  * so the sea can be lit and graded smoothly per pixel instead of per 4 m grid facet (the phone's big light / dark
  * triangles). Standalone: it evaluates the table itself (src/gpu/ocean.ts mirrors it in TSL).
  */
-export const WAVES_NORMAL_GLSL = /* glsl */`
+export const WAVES_NORMAL_GLSL: GlslSource = /* glsl */`
 vec3 gerstnerNormal(vec2 p, float t, float damp) {
   vec3 tx = vec3(0.0), tz = vec3(0.0);
 ${WAVES.map(([wx, wz, a, len, speed, q]) => {

@@ -79,13 +79,15 @@ export function swayByHeight(g: THREE.BufferGeometry, w: number, y0: number, y1:
  * meadow together. Driftwood's `patchSway` above is untouched: this is a separate chunk on the same two uniforms.
  */
 /** metres between gust fronts, their speed downwind (m/s), and the second front family's length (× FRONT_LEN) */
-export const FRONT_LEN = 150, FRONT_SPEED = 11, FRONT2_LEN = 0.61 * FRONT_LEN;
+export const FRONT_LEN = 150, FRONT_SPEED = 11, FRONT2_LEN: number = 0.61 * FRONT_LEN;
 /** the prevailing wind, unit xz, blowing toward (x, z) — the same as Driftwood's sway */
 export const WIND_DIR: { readonly x: number; readonly z: number } = { x: WX, z: WZ };
 const TAU = 6.283185307;
 
+type GlslSource = string;
+
 /** GLSL: `uWindTime`, `uGust`, `windDirXZ()`, `windGustAt(worldXZ)`; `windGustAt` below is its CPU mirror */
-export const WIND_FIELD_GLSL = /* glsl */`
+export const WIND_FIELD_GLSL: GlslSource = /* glsl */`
   uniform float uWindTime; uniform float uGust;
   vec2 windDirXZ() { return vec2( ${WX.toFixed(3)}, ${WZ.toFixed(3)} ); }
   // one front per unit of s: peak at s = 0, a quick rise just ahead of it, a long tail behind (w is monotonic in s)
@@ -116,6 +118,6 @@ export function patchWindField(shader: { uniforms: Record<string, THREE.IUniform
 
 const CPU_FIELD = { x: WX, z: WZ, frontLength: FRONT_LEN, frontSpeed: FRONT_SPEED, secondaryLength: FRONT2_LEN };
 /** CPU mirror of the GLSL `windGustAt` (sound, tests): the gust strength at world (x, z) now, or at clock `t` / gust `gust` */
-export function windGustAt(x: number, z: number, t = windUniforms.uWindTime.value, gust = windUniforms.uGust.value): number {
+export function windGustAt(x: number, z: number, t: number = windUniforms.uWindTime.value, gust: number = windUniforms.uGust.value): number {
   return fieldGustAt(x, z, t, gust, CPU_FIELD);
 }

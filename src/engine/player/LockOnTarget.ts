@@ -32,7 +32,19 @@ import { lineOfSight } from '../physics/query';
 import { getNumber, getSetting } from '../ui/Settings';
 
 const DEG = Math.PI / 180;
-export const LOCK = {
+export const LOCK: { readonly ACQUIRE: 12; // m, feet → body edge
+readonly BREAK: 18; // m: 1.5 × ACQUIRE (OoT's release ratio)
+readonly FLY_ACQUIRE: 24; // m, eye → body edge; species.flight.lockRange overrides this
+readonly FLY_PITCH: 1.45; // player's full pitch envelope; flyers can dive above/below the old ground clamp
+readonly CONE: number; // ± of the view, 3D
+readonly NEXT_R: 8; // m: a kill re-locks within this …
+readonly NEXT_CONE: number; // … and this of the view …
+readonly NEXT_DELAY: 0.35; // … after this beat, so the kill reads
+readonly LOS_GRACE: 1; // s out of sight before the lock drops (a palm trunk passing doesn't)
+readonly SCAN: 0.1; // s between candidate scans
+readonly ENGAGE_T: 0.45; // s of the fast engage ease after a lock / switch
+readonly ENGAGE_RATE: 8; readonly ENGAGE_CAP: number; readonly HOLD_RATE: 6; readonly HOLD_CAP: number; readonly DEAD: number; readonly PITCH_MIN: number; readonly PITCH_MAX: number; readonly TALL_PITCH_MAX: number; readonly OFF_YAW: number; readonly OFF_PITCH: number; readonly OFF_RETURN: 12; // /s: the glance springs back in ~0.25 s
+readonly REFRACTORY: 0.25; } = {
   ACQUIRE: 12,           // m, feet → body edge
   BREAK: 18,             // m: 1.5 × ACQUIRE (OoT's release ratio)
   FLY_ACQUIRE: 24,       // m, eye → body edge; species.flight.lockRange overrides this

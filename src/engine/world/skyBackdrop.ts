@@ -81,8 +81,8 @@ export function cloudLayer(tex: THREE.Texture, uniforms: CloudLayerUniforms, big
 export class SkyBackdropView {
   sunDisc!: THREE.Mesh;
   sunHalo: THREE.Sprite | null = null;
-  readonly planet = new THREE.Group();
-  readonly planetDir = new THREE.Vector3(-0.75, 0.33, 0.55).normalize();
+  readonly planet: THREE.Group = new THREE.Group();
+  readonly planetDir: THREE.Vector3 = new THREE.Vector3(-0.75, 0.33, 0.55).normalize();
   clouds: THREE.Object3D | null = null;
   lut: LookupTexture | null = null;
   private level!: LevelSpec;
@@ -102,7 +102,7 @@ export class SkyBackdropView {
   configure(level: LevelSpec, dressing: SkyDressing | null): void { this.level = level; this.dressing = dressing; }
   attachClouds(clouds: THREE.Object3D): void { this.clouds = clouds; if (clouds.parent !== this.scene) this.scene.add(clouds); }
   /** uCloudLit / uCloudAlpha: the lit / shade tint and the cover's opacity (the forest clock's clock turns them; 1 = the fixed sky) */
-  readonly cloudUniforms = { uTime: { value: 0 }, uSunDir: { value: new THREE.Vector3() }, uSunColor: { value: new THREE.Color() }, uLight: { value: new THREE.Color(1, 1, 1) }, uCloudLit: { value: new THREE.Color(1, 1, 1) }, uCloudAlpha: { value: 1 } };
+  readonly cloudUniforms: { uTime: { value: number; }; uSunDir: { value: THREE.Vector3; }; uSunColor: { value: THREE.Color; }; uLight: { value: THREE.Color; }; uCloudLit: { value: THREE.Color; }; uCloudAlpha: { value: number; }; } = { uTime: { value: 0 }, uSunDir: { value: new THREE.Vector3() }, uSunColor: { value: new THREE.Color() }, uLight: { value: new THREE.Color(1, 1, 1) }, uCloudLit: { value: new THREE.Color(1, 1, 1) }, uCloudAlpha: { value: 1 } };
 
   /** the default rig (no backdrop): the HDRI is the background and the IBL; returns the fog colour. */
   async setupHDRI(): Promise<THREE.Color> {
@@ -392,7 +392,7 @@ export class SkyBackdropView {
     this.scene.add(this.planet);
   }
   /** uHazeAmt / uGain / uFar: the island look's giant is 1 / 1 / 0; a `ChunkSky.painted` sky draws it brighter, clearer and at the far plane (behind the ranges); uCrisp: the stylized (low-poly) sky's crisp, opaque disc */
-  readonly giantUniforms = { uTime: { value: 0 }, uSunDir: { value: new THREE.Vector3() }, uHaze: { value: new THREE.Color() }, uAxis: { value: new THREE.Vector3(0, 1, 0) }, uRadius: { value: 1 }, uLight: { value: new THREE.Color(1, 1, 1) }, uOpacity: { value: 1 }, uHazeAmt: { value: 1 }, uGain: { value: 1 }, uFar: { value: 0 }, uCrisp: { value: 0 } };
+  readonly giantUniforms: { uTime: { value: number; }; uSunDir: { value: THREE.Vector3; }; uHaze: { value: THREE.Color; }; uAxis: { value: THREE.Vector3; }; uRadius: { value: number; }; uLight: { value: THREE.Color; }; uOpacity: { value: number; }; uHazeAmt: { value: number; }; uGain: { value: number; }; uFar: { value: number; }; uCrisp: { value: number; }; } = { uTime: { value: 0 }, uSunDir: { value: new THREE.Vector3() }, uHaze: { value: new THREE.Color() }, uAxis: { value: new THREE.Vector3(0, 1, 0) }, uRadius: { value: 1 }, uLight: { value: new THREE.Color(1, 1, 1) }, uOpacity: { value: 1 }, uHazeAmt: { value: 1 }, uGain: { value: 1 }, uFar: { value: 0 }, uCrisp: { value: 0 } };
 }
 
 /** compass degrees (0 = north = +Z, 90 = east = −X) + elevation → a unit direction (the `ChunkSky.planet` convention) */

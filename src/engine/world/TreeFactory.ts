@@ -25,7 +25,7 @@ export interface TreeVariant {
 
 /** `uTime` IS wind.ts's clock (PH-L6, one wind: Forest.update advances it with updateWind); `uWindStrength` scales the
  * forest's sway (pines, grass, undergrowth) */
-export const windUniforms = { uTime: sharedWind.uWindTime, uWindStrength: windStrength };
+export const windUniforms: { uTime: { value: number; }; uWindStrength: { value: number; }; } = { uTime: sharedWind.uWindTime, uWindStrength: windStrength };
 
 /**
  * The forest's LOD fades (E94): Forest writes the viewer (its LOD centre) here every frame and sets each material's band.
@@ -35,7 +35,7 @@ export const windUniforms = { uTime: sharedWind.uWindTime, uWindStrength: windSt
  * −1 sides share, so across a cross-fade band every pixel is drawn by exactly one of the two LODs. Only the forest's
  * instanced / batched draws fade: a single pine (Explore's specimen) is always whole.
  */
-export const forestFade = { uViewer: { value: new THREE.Vector3(1e9, 0, 1e9) } };
+export const forestFade: { uViewer: { value: THREE.Vector3; }; } = { uViewer: { value: new THREE.Vector3(1e9, 0, 1e9) } };
 export interface FadeBand { value: THREE.Vector3 }
 const noFade = (): FadeBand => ({ value: new THREE.Vector3(1e9, 1e9, 0) });
 export function patchFade(shader: { vertexShader: string; fragmentShader: string; uniforms: Record<string, THREE.IUniform> }, band: FadeBand): void {
@@ -87,7 +87,7 @@ export class TreeFactory {
   /** far-tree impostor: albedo + normal atlas, one column per variant (baked from the hi tree at load) */
   farMaterial!: TreeMaterial;
   /** each material's dissolve band (`forestFade`): Forest sets them from the tier's LOD distances */
-  readonly fade = { cards: noFade(), trunk: noFade(), far: noFade(), twigs: noFade() };
+  readonly fade: { cards: FadeBand; trunk: FadeBand; far: FadeBand; twigs: FadeBand; } = { cards: noFade(), trunk: noFade(), far: noFade(), twigs: noFade() };
   /** the species set's "Crowns from above" pick (E322 F-L3): 0 = A today, 1 = B (treeSet.ts patchImpostorCrownTop) */
   readonly crownTop: CrownTop = crownTopUniforms();
   variants: TreeVariant[] = [];

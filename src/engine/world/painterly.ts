@@ -40,7 +40,7 @@ export interface PainterlyLook {
 
 /** Compatibility handles on the shared family look; the shader lives in render/families/painterly. */
 const worldLook = new MaterialLook({ grade: null });
-export const painterlyUniforms = {
+export const painterlyUniforms: { uPSunRef: { value: THREE.Color; }; uPSunDir: { value: THREE.Vector3; }; uPShade: THREE.IUniform<THREE.Color>; uPRimColor: THREE.IUniform<THREE.Color>; uPTime: THREE.IUniform<number>; uPWind: THREE.IUniform<THREE.Vector3>; uPWarm: THREE.IUniform<number>; uPFloor: THREE.IUniform<number>; uPWet: THREE.IUniform<number>; } = {
   uPSunRef: { value: new THREE.Color(3, 3, 3) },
   uPSunDir: { value: new THREE.Vector3(0.5, 0.5, 0.5).normalize() },
   uPShade: worldLook.uniforms.famPaintShade, uPRimColor: worldLook.uniforms.famPaintRimColour,

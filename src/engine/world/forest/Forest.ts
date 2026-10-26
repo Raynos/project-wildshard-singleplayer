@@ -27,7 +27,7 @@ const CULL_FOV_PAD = 24;                    // degrees added to the camera FOV f
  * twigs to `hi`, lo cards to `far`, the impostor from `far` (dissolving in over the `fade` metres before it), the twigs
  * only within `twig` — the same distances the dissolve shaders are set to below.
  */
-export const FOREST_BANDS = { get hi() { return TIER_CONFIG.treeHiDist; }, get far() { return TIER_CONFIG.treeLoDist; }, get twig() { return TIER_CONFIG.treeTwigDist; }, fade: FAR_FADE } as const;
+export const FOREST_BANDS: { readonly hi: number; readonly far: number; readonly twig: number; readonly fade: 12; } = { get hi() { return TIER_CONFIG.treeHiDist; }, get far() { return TIER_CONFIG.treeLoDist; }, get twig() { return TIER_CONFIG.treeTwigDist; }, fade: FAR_FADE } as const;
 
 /**
  * A tree's trunk as the capsule it collides as (PHYSICS P3): its centre `y` above the tree's foot, half its straight
@@ -56,7 +56,7 @@ export class Forest {
   private readonly twigDist = TIER_CONFIG.treeTwigDist;
   private readonly keepNear = Math.max(45, TIER_CONFIG.shadowFar * 0.5);
   private readonly shadowKeep = Math.min(TIER_CONFIG.shadowFar, 110);
-  group = new THREE.Group();
+  group: THREE.Group = new THREE.Group();
   trees: TreeInstance[] = [];
   private hi: THREE.InstancedMesh[] = [];
   private lo: THREE.InstancedMesh[] = [];

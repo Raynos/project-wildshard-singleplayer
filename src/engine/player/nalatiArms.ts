@@ -3,7 +3,7 @@ import {lin} from '../math/color';
 import * as arms from './firstPersonArms';
 
 // only *-legacy imports this; deleted with the legacy copies (SHARD-PLATFORM-NEXT N5)
-export const ARM_PAL = {
+export const ARM_PAL: { leather: THREE.Color; leatherLight: THREE.Color; leatherDark: THREE.Color; leatherEdge: THREE.Color; thread: THREE.Color; jade: THREE.Color; jadeDark: THREE.Color; fleece: THREE.Color; fleeceShade: THREE.Color; fleeceDeep: THREE.Color; wool: THREE.Color; woolShade: THREE.Color; red: THREE.Color; redDeep: THREE.Color; redLine: THREE.Color; gold: THREE.Color; } = {
   leather: lin(0x9c7454), leatherLight: lin(0xc49c74), leatherDark: lin(0x5c4230), leatherEdge: lin(0x6e5038),
   thread: lin(0xf0dcae), jade: lin(0xbfe0c4), jadeDark: lin(0x7aa88a),
   fleece: lin(0xf4eee2), fleeceShade: lin(0xcabda6), fleeceDeep: lin(0x9a8c78),

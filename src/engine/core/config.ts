@@ -1,27 +1,27 @@
 import * as contentBounds from '@wildshard/format/contentBounds';
 
 // Chunk spec from sources/wildshard/FUNDAMENTALS.md — fixed for every shard.
-export const CHUNK_SIZE = contentBounds.CHUNK_SIZE;
-export const CHUNK_HALF = contentBounds.CHUNK_HALF;
+export const CHUNK_SIZE: 500 = contentBounds.CHUNK_SIZE;
+export const CHUNK_HALF: number = contentBounds.CHUNK_HALF;
 /** The page camera's vertical field of view at boot (degrees): what a level draws with until a weapon of its kit writes its own. */
 export const CAMERA_FOV = 72;
 export const CHUNK_DEPTH = 100;       // metres of rock under the surface (the floating slab)
 export const ROAD_WIDTH = 15;         // entry road at each edge midpoint
 export const ROAD_LENGTH = 60;        // must be >= 50m into the chunk
 /** Legal midpoint entry opening, independent from the boulevard's width (metres). */
-export const ENTRY_WIDTH = contentBounds.ENTRY_WIDTH;
+export const ENTRY_WIDTH: 8 = contentBounds.ENTRY_WIDTH;
 /** Neutral platform asphalt reserved inside each legal midpoint entry (metres). */
-export const ENTRY_ASPHALT = contentBounds.ENTRY_ASPHALT;
+export const ENTRY_ASPHALT: 15 = contentBounds.ENTRY_ASPHALT;
 // The cell every level fits in (Jake, 2026-10-03, MMO-REQUIREMENTS W1 / O1): 500 × 500 × 500 m, split evenly around
 // the highway level y = 0. Validation reads these (SHARD-PLATFORM SP4); CHUNK_DEPTH above is only the drawn rock slab.
-export const CELL_HEIGHT = contentBounds.CELL_HEIGHT;
-export const CELL_BELOW = contentBounds.CELL_BELOW;
-export const CELL_ABOVE = contentBounds.CELL_ABOVE;
+export const CELL_HEIGHT: 500 = contentBounds.CELL_HEIGHT;
+export const CELL_BELOW: 250 = contentBounds.CELL_BELOW;
+export const CELL_ABOVE: number = contentBounds.CELL_ABOVE;
 
 /** Decimal bytes per MB in the streaming cost model. */
-export const CONTENT_MB = contentBounds.CONTENT_MB;
+export const CONTENT_MB: 1000000 = contentBounds.CONTENT_MB;
 /** Provisional phone caps v1 (SF22a); shadow draws count in each draw cap. */
-export const CONTENT_CAPS = contentBounds.CONTENT_CAPS;
+export const CONTENT_CAPS: { readonly l0: { readonly size: 62.5; readonly resident: number; readonly compressed: number; readonly triangles: 40000; readonly draws: 8; }; readonly l1: { readonly size: 125; readonly resident: number; readonly compressed: number; readonly triangles: 10000; readonly draws: 2; }; readonly far: { readonly resident: number; readonly compressed: 1000000; readonly triangles: 8000; readonly draws: 1; }; readonly library: { readonly resident: number; readonly compressed: number; }; readonly sim: { readonly resident: number; readonly compressed: number; }; readonly engineBase: number; readonly playing: number; readonly loading: number; readonly l0Count: 40; readonly l1Count: 32; readonly farCount: 9; readonly simCount: 4; readonly libraryCount: 4; readonly overlap: number; readonly residentFactor: 1.11; readonly nearRadius: 150; readonly shadowRadius: 80; readonly pitch: 562.5; } = contentBounds.CONTENT_CAPS;
 
 export const TERRAIN_RES = 256;       // vertices per side
 

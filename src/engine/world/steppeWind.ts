@@ -65,8 +65,8 @@ export class Wind {
   speed = 5;
   /** radians, heading the wind blows toward (Player.yaw convention) */
   dir = 1.95; // from the WSW (the Ili valley), toward the ENE — Nalati's prevailing westerly
-  dirX = -Math.sin(1.95);
-  dirZ = -Math.cos(1.95);
+  dirX: number = -Math.sin(1.95);
+  dirZ: number = -Math.cos(1.95);
   /** 0..1, how strongly the gust fronts add to the base speed */
   gustiness = 0.6;
   /** seconds since start */
@@ -76,7 +76,7 @@ export class Wind {
   /** set false to freeze the self-wander (a scripted storm phase, a test) */
   wander = true;
 
-  readonly uniforms = {
+  readonly uniforms: { uWindDir: { value: THREE.Vector2; }; uWindSpeed: { value: number; }; uWindGustiness: { value: number; }; uWindTravel: { value: number; }; uWindTime: { value: number; }; } = {
     uWindDir: { value: new THREE.Vector2(this.dirX, this.dirZ) },
     uWindSpeed: { value: this.speed },
     uWindGustiness: { value: this.gustiness },
@@ -116,7 +116,7 @@ export class Wind {
   }
 
   /** Ease toward a new wind over ~`seconds` (weather, storms, a dev switch). */
-  setTarget(speed: number, dir: number, gustiness = this.target.gustiness, seconds = 8): void {
+  setTarget(speed: number, dir: number, gustiness: number = this.target.gustiness, seconds = 8): void {
     this.target.speed = Math.max(0, speed);
     this.target.dir = dir;
     this.target.gustiness = Math.min(1, Math.max(0, gustiness));
@@ -124,7 +124,7 @@ export class Wind {
   }
 
   /** Jump straight to a wind (spawn, `?wind=` dev param). */
-  set(speed: number, dir: number, gustiness = this.gustiness): void {
+  set(speed: number, dir: number, gustiness: number = this.gustiness): void {
     this.setTarget(speed, dir, gustiness);
     this.baseSpeed = this.speed = this.target.speed;
     this.baseDir = this.dir = dir;
@@ -160,7 +160,7 @@ export class Wind {
   }
 
   /** gust field 0..1 at (x, z) — identical to WIND_GLSL `windGust` */
-  gustAt(x: number, z: number, t = this.time): number {
+  gustAt(x: number, z: number, t: number = this.time): number {
     const travel = this.travel + (t - this.time) * (this.speed * 0.85 + 1.2);
     const dx = this.dirX, dz = this.dirZ;
     const s = x * dx + z * dz - travel;
@@ -173,12 +173,12 @@ export class Wind {
   }
 
   /** wind speed m/s at (x, z) including the gust fronts */
-  at(x: number, z: number, t = this.time): number {
+  at(x: number, z: number, t: number = this.time): number {
     return this.speed * (1 + this.gustiness * (this.gustAt(x, z, t) * 1.6 - 0.35));
   }
 
   /** wind velocity (m/s, world xz) at a point including gusts; writes into and returns `out` */
-  vecAt<T extends { x: number; z: number }>(x: number, z: number, out: T, t = this.time): T {
+  vecAt<T extends { x: number; z: number }>(x: number, z: number, out: T, t: number = this.time): T {
     const s = this.at(x, z, t);
     out.x = this.dirX * s; out.z = this.dirZ * s;
     return out;
@@ -208,4 +208,4 @@ export class Wind {
 }
 
 /** the world's wind (a singleton — every system reads the same one) */
-export const wind = new Wind();
+export const wind: Wind = new Wind();
