@@ -92,7 +92,11 @@ test('the actual output hook preserves every predecessor file cost and binary by
     requested.length = 0;
     const hit = await prepareOutput(context());
     expect(hit.namedFiles.filter(file=>file.name===expectedBank.file.name)).toEqual([expectedBank.file]);
-    expect(hit.assets.get(expectedBank.file.hash)).toEqual(beforeBank);
+    const bankBytes = hit.assets.get(expectedBank.file.hash);
+    if (bankBytes === undefined) throw new Error('Missing owned specimen bank bytes');
+    expect(bankBytes.byteLength).toBe(beforeBank.byteLength);
+    expect(hashImmutableBytes(bankBytes)).toBe(expectedBank.file.hash);
+    expect(Buffer.compare(bankBytes, beforeBank)).toBe(0);
     if (nativePlaces === undefined) throw new Error('Missing observed native place metadata');
     const ownedPlaces: unknown = JSON.parse(new TextDecoder().decode(nativePlaces));
     const ownedRuntime = nalatiRuntimeRows({ places: ownedPlaces, paint: paintInput }).runtime;
