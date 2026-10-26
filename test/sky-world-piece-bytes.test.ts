@@ -66,7 +66,8 @@ test.each(['worldPieceBytes', 'worldPieceProgram'])('%s bundles without generate
   }
 });
 
-test.each(['sky-world', 'sky-look-maps'])('the real cold sealed %s writer preserves its entire original output inventory', async id => {
+test('the real cold sealed texture writer preserves its entire original output inventory', async () => {
+  const id = 'sky-look-maps';
   const root = resolve('.'), job = discoverGeneration(root).jobs.find(row => row.id === id);
   if (job === undefined) throw new Error(`Missing retained producer ${id}`);
   const expected = Object.fromEntries(job.outputs.map(path => [path, hashImmutableBytes(readFileSync(path))]));

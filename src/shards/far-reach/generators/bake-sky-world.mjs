@@ -1,79 +1,11 @@
-#!/usr/bin/env node
-// SHARD-PLATFORM SF72 (SF67 fix 3, "bake the code-built worlds"): Sky Reach's code-built world pieces baked offline. The
-// generators (src/shards/far-reach/generators/*.ts) run here only; each piece's static GLB goes to
-// public/assets/far-reach/baked/<piece>.glb and its rows (the GLB's content hash, the instanced kinds, the colliders) to
-// src/shards/far-reach/data/<rows>.json, which the client reads (world/baked.ts). test/shards/far-reach/world-bake.test.ts
-// is the byte-exact stale gate (it re-runs the generators).
-// Usage: node --import ./scripts/bake-loader.mjs src/shards/far-reach/generators/bake-sky-world.mjs
-import { mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+// The world scheduler is retired. This module retains only the independent authored texture-library writer.
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
-import { constants, deflateSync, zstdCompressSync, zstdDecompressSync } from 'node:zlib';
+import { constants, zstdCompressSync, zstdDecompressSync } from 'node:zlib';
 import * as v from 'valibot';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { parseKtx2 } from '@wildshard/sdk/assets';
 import { readImagePixels, writeImagePixels } from '@wildshard/sdk/bake/image';
-
-const invokedFile = process.argv.at(1);
-if (invokedFile !== undefined && resolve(invokedFile) === import.meta.filename) {
-const root = resolve(import.meta.dirname, '../../../..'), project = resolve(root, 'src/shards/far-reach');
-const out = resolve(root, 'public/assets/far-reach/baked');
-const check = process.argv.includes('--check');
-const emit = (file, bytes) => {
-  if (check) {
-    if (!readFileSync(file).equals(Buffer.from(bytes))) throw new Error(`STALE ${file}`);
-  } else writeFileSync(file, bytes);
-};
-if (!check) mkdirSync(out, { recursive: true });
-// This independently owned author product shares the output directory.
-const keep = new Set(['fan.glb', 'prepared-models.glb']);
-// SF80: the pieces as one three.js scene through the SDK's bake(scene, identity), which also writes its scene.json to
-// .wildshard/cache/far-reach/ (gitignored, the inspectable middle step)
-{
-  const { skyWorldPieceFiles } = await import('./worldPieceBytes.ts');
-  const { skyReachBake } = await import('./scene.ts');
-  const baked = skyReachBake(check ? undefined : root);
-  for (const [name, bytes] of skyWorldPieceFiles(baked.pieces)) {
-    const file = name.startsWith('baked/') ? resolve(out, name.slice(6)) : resolve(project, name);
-    emit(file, bytes);
-    if (name.startsWith('baked/')) keep.add(name.slice(6));
-    console.info(`far-reach ${name}: ${String(bytes.length)} bytes`);
-  }
-}
-// The original native bridge, island and mill packs; the source owns bytes, this adapter owns files.
-{
-  const { WORLD_PACK_INPUTS, skyWorldPackSource } = await import('./worldPackBytes.ts');
-  const inputs = new Map(WORLD_PACK_INPUTS.map(url => [url, new Uint8Array(readFileSync(resolve(root, `public${url}`)))]));
-  const files = await skyWorldPackSource(inputs, bytes => new Uint8Array(deflateSync(bytes, { level: 9 })));
-  for (const [name, bytes] of files) {
-    emit(name.startsWith('baked/') ? resolve(out, name.slice(6)) : resolve(project, name), bytes);
-    console.info(`far-reach ${name}: ${String(bytes.length)} bytes`);
-  }
-}
-// the twelve static islands as compiled props tiles, each island whole (generators/isleProps.ts): data/props.json and the
-// tile GLBs under assets/<hash>, the shardfile's declared files (shard.config.ts); the runtime draws them (world/isle.ts)
-{
-  const { skyWorldTileSource } = await import('./worldTileBytes.ts');
-  const files = skyWorldTileSource();
-  if (!check) mkdirSync(resolve(project, 'assets'), { recursive: true });
-  for (const [name, bytes] of files) emit(resolve(project, name), bytes);
-  console.info(`far-reach isle props: ${String(files.size - 1)} assets`);
-}
-// the sky-isle models' unit frames (world/skyIsleHd.ts skyIsleUnit), found from each model's GLB
-{
-  const { WORLD_PLACEMENT_INPUTS, skyWorldPlacementSource } = await import('./worldPlacementBytes.ts');
-  const inputs = new Map(WORLD_PLACEMENT_INPUTS.map(url => [url, new Uint8Array(readFileSync(resolve(root, `public${url}`)))]));
-  for (const [name, bytes] of await skyWorldPlacementSource(inputs)) {
-    emit(resolve(project, name), bytes);
-    console.info(`far-reach ${name}: ${String(bytes.length)} bytes`);
-  }
-}
-// the folder holds this bake and the rest bakes (the sky-rest-* and sky-islet-rest jobs): an orphan is a GLB no other
-// generation job declares as its output, from an older run of this bake, and never ships
-const declared = new Set(v.parse(v.object({ jobs: v.array(v.object({ id: v.string(), outputs: v.array(v.string()) })) }),
-  JSON.parse(readFileSync(resolve(root, 'scripts/generation-jobs.json'), 'utf8'))).jobs.filter(job => job.id !== 'sky-world').flatMap(job => job.outputs));
-for (const entry of readdirSync(out)) if (entry.endsWith('.glb') && !keep.has(entry) && !declared.has(`public/assets/far-reach/baked/${entry}`)) { if (check) throw new Error(`Orphan bake ${entry}`); rmSync(resolve(out, entry)); }
-
-}
 
 /** Repack existing zstd KTX2 mip payloads without changing a decoded byte.
  * Keep each original block if it is smaller; preserve metadata and physical

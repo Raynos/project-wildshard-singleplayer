@@ -44,8 +44,8 @@ describe('Sky pre-admission boot metadata', () => {
       const dependency = jobs.findIndex(job => job.outputs.includes(input));
       if (dependency !== -1) expect(dependency).toBeLessThan(producer);
     }
-    expect(jobs.findIndex(job => job.id === 'sky-world')).toBeLessThan(producer);
-    for (const job of jobs.filter(row => row.id === 'sky-rigs' || row.id === 'sky-world')) {
+    expect(jobs.some(job => job.id === 'sky-world')).toBe(false);
+    for (const job of jobs.filter(row => row.id === 'sky-rigs')) {
       expect(job.command).not.toContain('./scripts/generation-level.mjs');
       expect(job.inputRoots.some(input => metadata.outputs.includes(input))).toBe(false);
     }
