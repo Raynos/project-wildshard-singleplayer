@@ -37,7 +37,7 @@ export class LightPool {
     return p;
   }
 
-  readonly group = new THREE.Group();
+  readonly group: THREE.Group = new THREE.Group();
   private lights: THREE.PointLight[] = [];
   private busy = new Set<THREE.PointLight>();
   private readonly owners = new Map<THREE.PointLight, THREE.Object3D>();

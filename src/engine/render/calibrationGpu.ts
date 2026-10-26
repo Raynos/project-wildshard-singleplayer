@@ -4,8 +4,8 @@ import { median } from '../calibrate/math';
 export interface Timing { submitMs: number; throughputMs: number; samples: number[]; batchDraws: number; calls: number; tris: number }
 export interface Work { draw: () => void; dispose: () => void }
 export class CalibrationGpu {
-  readonly renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
-  readonly camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.01, 20);
+  readonly renderer: THREE.WebGLRenderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
+  readonly camera: THREE.OrthographicCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.01, 20);
   private linkSerial = 0;
   private readonly pixel = new Uint8Array(4);
   constructor() {

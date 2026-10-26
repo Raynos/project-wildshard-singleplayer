@@ -143,7 +143,7 @@ const _q2 = new THREE.Quaternion(), _qIdentity = new THREE.Quaternion(), _xAxis 
 
 /** an item lying in the world in a glowing orb, taken with USE (also exported as WeaponPickup) */
 export class ItemPickup {
-  readonly group = new THREE.Group();
+  readonly group: THREE.Group = new THREE.Group();
   /** Public prompt view; a subclass may wrap it while the orb keeps its original proximity/take state. */
   readonly interactable: Interactable;
   private readonly pickupInteraction: Interactable;

@@ -269,7 +269,7 @@ function release(this: THREE.BufferAttribute): void {
 }
 
 export class FarHerd<M extends FarMember = FarMember> {
-  readonly group = new THREE.Group();
+  readonly group: THREE.Group = new THREE.Group();
   /** per batch key (keyOf): its pages, or null when it cannot be batched (no material / no vertex colours) */
   private readonly batches = new Map<object, FarPages | null>();
   /** pages opened since the last `end` while paced (at most one a frame) */

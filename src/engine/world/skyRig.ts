@@ -59,9 +59,9 @@ export function shadowRig(phoneSplits: boolean): ShadowRig {
  */
 export class SkyRig {
   private readonly scope = resourceScope().child('Sky');
-  sunDir = new THREE.Vector3(0.3, 0.6, 0.4).normalize();
+  sunDir: THREE.Vector3 = new THREE.Vector3(0.3, 0.6, 0.4).normalize();
   /** the level's sun colour (SkySpec.sunColor), set by build() */
-  sunColor = new THREE.Color();
+  sunColor: THREE.Color = new THREE.Color();
   csm!: CSM;
   private readonly visual: SkyBackdropView;
   get sunDisc(): THREE.Mesh { return this.visual.sunDisc; }

@@ -103,12 +103,12 @@ const bilerp = (a: number, b: number, c: number, d: number, u: number, v: number
 
 export class Grass {
   private readonly slots = TIER_CONFIG.grassSlots;
-  group = new THREE.Group();
+  group: THREE.Group = new THREE.Group();
   mesh!: THREE.InstancedMesh;
   material!: THREE.MeshStandardMaterial;
   /** small white / blue / yellow flower heads in ~4 % of clearing clumps (same cell scheme) */
   flowers!: THREE.InstancedMesh;
-  readonly radius = RADIUS;
+  readonly radius: number = RADIUS;
   /** live tunables */
   params = { budget: 6, windStrength: 1.0 };
   /** the level look's own grass (LookStrategy.grass); then nothing below is built */

@@ -78,9 +78,9 @@ export class FreeCam {
   maxPitch: number;
   pointerLock: boolean;
   /** what orbit turns around and the wheel dollies toward; follows the camera otherwise */
-  readonly pivot = new Vector3();
+  readonly pivot: Vector3 = new Vector3();
   /** analogue input from the touch layer: x strafe, y up, z forward (−1..1 each); added to the keys */
-  readonly move = new Vector3();
+  readonly move: Vector3 = new Vector3();
   /** set by the touch layer while its boost chip is on */
   boosted = false;
   /** a floor under the camera (terrain / sea) — the camera never goes below `floor(x, z) + clearance` */

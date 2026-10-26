@@ -191,7 +191,7 @@ export interface RopeDeckRows {
 }
 
 export class RopeDeck {
-  readonly group = new Group();
+  readonly group: Group = new Group();
   private readonly holders: Bone[];
   private readonly view: RopeDeckView;
   private readonly facts: RopeDeckFacts;

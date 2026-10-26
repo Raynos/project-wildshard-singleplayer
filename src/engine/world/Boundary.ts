@@ -26,7 +26,7 @@ function heightAt(x: number, z: number): number {
 interface BeaconMats { pole: THREE.Material; head: THREE.Material; beam: THREE.Material }
 /** the level's edge: cyan light-lines, corner beacons and beams, and a gate across each entry road */
 export class Boundary {
-  group = new THREE.Group();
+  group: THREE.Group = new THREE.Group();
   private mats: THREE.ShaderMaterial[] = [];
   private beaconLights: THREE.PointLight[] = [];
 

@@ -360,7 +360,7 @@ function painterField(binding: HeightfieldBinding, onBound: () => void): Painter
 }
 
 export class Terrain {
-  group = new THREE.Group();
+  group: THREE.Group = new THREE.Group();
   private builtMesh: THREE.Mesh | undefined;
   get mesh(): THREE.Mesh {
     if (this.builtMesh === undefined) throw new Error('Terrain: this world has no terrain mesh');

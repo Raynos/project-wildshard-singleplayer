@@ -21,7 +21,7 @@ export const LOCATED: LineStyle = { core: 0xffb547, coreWidth: 2, halo: 0x06121c
 
 /** screen-space line segments (LineSegments2: a width in CSS px, not 1 px GL lines), drawn over everything, core over halo */
 export class FatLines {
-  readonly group = new THREE.Group();
+  readonly group: THREE.Group = new THREE.Group();
   private readonly geo = new LineSegmentsGeometry();
   private readonly mats: LineMaterial[];
 

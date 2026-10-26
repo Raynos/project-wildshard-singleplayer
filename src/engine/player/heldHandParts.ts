@@ -21,7 +21,7 @@ export interface HeldHandPartsOptions {
  * Local grip solving, pose clocks, palettes and baked-key admission remain with the caller.
  */
 export class HeldHandParts {
-  readonly group = new Group();
+  readonly group: Group = new Group();
   private readonly up = new Vector3(0, 1, 0);
   private readonly fists: Mesh[] = [];
   private readonly extra: Mesh[] = [];

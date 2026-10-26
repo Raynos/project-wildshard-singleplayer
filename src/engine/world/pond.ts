@@ -115,7 +115,7 @@ function buildLilies(sky: Sky, exclusions: readonly { x: number; z: number; r: n
  * reflection, a mirrored second scene render, went in E162.)
  */
 export class Water {
-  readonly group = new THREE.Group();
+  readonly group: THREE.Group = new THREE.Group();
   /** the pond's surface */
   mesh!: THREE.Mesh;
   /** the lily pads + a few flowers (one mesh, bobbing on the wind) */

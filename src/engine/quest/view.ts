@@ -22,7 +22,7 @@ export interface ChipSource {
 
 /** the quest chip under the minimap (QuestUI's ObjectiveLine) fed from a quest: goal + nearest marker, ~10 Hz */
 export class QuestChip {
-  readonly line = new ObjectiveLine();
+  readonly line: ObjectiveLine = new ObjectiveLine();
   private navT = 0;
   private readonly src: ChipSource;
   constructor(src: ChipSource) {

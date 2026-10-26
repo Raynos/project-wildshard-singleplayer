@@ -213,7 +213,7 @@ export interface BackdropLayerState {
 
 export class BackdropLayer {
   /** the scene the backdrop factory is handed: its dome and its environment land here, never on the page scene */
-  readonly holder = new Scene();
+  readonly holder: Scene = new Scene();
   /** the private targets the layered backdrop is bound to */
   readonly targets: SkyBackdropTargets;
   private readonly slots: Slot[];

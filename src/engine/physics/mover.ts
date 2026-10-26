@@ -9,7 +9,7 @@ export interface MoverBox { x: number; y: number; z: number; hx: number; hy: num
 export interface MoverPose { position: { x: number; y: number; z: number }; euler: { x: number; y: number; z: number }; enabled: boolean }
 /** A kinematic deck moves before the world step and carries the existing CharacterMotor without another collision path. */
 export class KinematicMover {
-  readonly body;
+  readonly body: ReturnType<Physics['world']['getRigidBody']>;
   private readonly physics: Physics;
   private readonly q = new Quaternion();
   private readonly e = new Euler(0, 0, 0, 'YXZ');
