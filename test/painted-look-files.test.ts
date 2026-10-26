@@ -35,7 +35,7 @@ test('all three declared files preserve original bytes, order, width and honest 
   expect(Object.keys(attributes)).toEqual(['aFar','aAt','aCell']);
   expect(Object.values(attributes).map(row=>[row.size,row.count])).toEqual([[1,738],[4,2952],[2,1476]]);
   let total=0;
-  for(const [i,row] of SKY_PAINTED_ATTRIBUTE_SOURCES.entries()){
+  for(const [i,row] of SKY_PAINTED_ATTRIBUTE_SOURCES.filter(source=>source.name.startsWith('look/cumulus-')).entries()){
     const blob=await readNamedBlob('src/shards/far-reach',row.name,row.source,row.kind,row.options);
     expect(blob.file.hash).toBe(hashes[i]);expect(blob.bytes).toEqual(files.get(row.name));
     expect(blob.file.gpu).toBe(blob.bytes.byteLength);total+=blob.bytes.byteLength;
@@ -131,4 +131,39 @@ test('modern painted products refuse inline attributes before any read or look a
     await expect(load).rejects.toThrow('Painted attributes require named binary files');
     expect(source.read).not.toHaveBeenCalled();expect(factory).not.toHaveBeenCalled();
   }
+});
+
+
+test('the complete shipped Far Reach dressing uses only its admitted binary attribute sources',()=>{
+  const presentation=skyPaintedPresentation(),sources=new Map(SKY_PAINTED_ATTRIBUTE_SOURCES.map(row=>[row.name,row]));
+  let count=0;
+  for(const draw of presentation.dressing?.draws??[])if(draw.geometry.kind==='plane')
+    for(const attribute of Object.values(draw.geometry.instances??{})){
+      expect('file'in attribute).toBe(true);
+      if(!('file'in attribute))throw new Error('Inline shipped painted attribute');
+      const source=sources.get(attribute.file);expect(source).toBeDefined();
+      if(source===undefined)throw new Error('Missing shipped attribute source');
+      const bytes=readFileSync(`src/shards/far-reach/${source.source}`);
+      expect(bytes.byteLength).toBe(attribute.count*4);count++;
+    }
+  expect(count).toBe(6);
+});
+
+
+test('glow attributes retain every predecessor byte and reconstruct the full authored dressing',()=>{
+  const original=structuredClone(dressing);
+  const pins=['caacc971c63b3c6050bdb7d50712f6b83096aa4b70476e553ee6ceda87d60660',
+    'df5e6568ca3a3da969d339ffe722480aff89f29615661fe56fc371502d09b457',
+    '06400506d05c177941624d073953a275ac73948fa298bf94b80017d7bea8b094'];
+  let total=0,index=0;
+  for(const glowCard of original.glow.cards.cards)for(const [name,row]of Object.entries(glowCard.instances)){
+    const source=SKY_PAINTED_ATTRIBUTE_SOURCES.find(item=>item.name===row.file);
+    if(source===undefined)throw new Error('Missing original glow source');
+    const bytes=readFileSync(`src/shards/far-reach/${source.source}`);total+=bytes.byteLength;
+    expect(hashImmutableBytes(bytes)).toBe(pins[index++]);
+    const parent:Record<string,unknown>=glowCard.instances;
+    parent[name]={size:row.size,float32:Buffer.from(bytes).toString('base64')};
+  }
+  expect(total).toBe(572);
+  expect(hashImmutableBytes(new TextEncoder().encode(JSON.stringify(original)))).toBe('6a71db3ad59d25188c6fe203f943f94ddda910e181b0bffbb297712f7a19f248');
 });
