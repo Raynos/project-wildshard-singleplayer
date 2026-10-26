@@ -18,7 +18,7 @@ export interface ZoneBed {
 }
 /** Shared loop lifecycle; profiles keep their zone weights, fade constants and literal taps. */
 export class AmbienceZones {
-  readonly beds = new Map<string, ZoneVoice>();
+  readonly beds: Map<string, ZoneVoice> = new Map<string, ZoneVoice>();
   private readonly audio: AudioMixer;
   private readonly scope: Scope | undefined;
   private readonly random: () => number;
@@ -35,7 +35,7 @@ export class AmbienceZones {
     const bed: ZoneVoice = { gain, pan, src: undefined, buf: undefined, level: 0, quiet: 0 };
     this.beds.set(def.id, bed); return bed;
   }
-  start(def: ZoneBed, sample: SampleLoop, time = this.audio.ctx.currentTime, scale = 1): ZoneVoice {
+  start(def: ZoneBed, sample: SampleLoop, time: number = this.audio.ctx.currentTime, scale = 1): ZoneVoice {
     const bed = this.ensure(def), c = this.audio.ctx;
     const source = this.scope ? c.createBufferSource() : ownAudioSource(c.createBufferSource());
     let scaled: GainNode | undefined;
@@ -490,7 +490,7 @@ export interface LoopEmitterVoice {
 export interface LoopEmitterPorts {position?:{x:number;y:number;z:number};duck?:(gain:number)=>void;scope?:Scope}
 /** Shared loop source, fade and proximity lifecycle. Construction never unlocks an audio context. */
 export class LoopEmitter {
-  dist=Infinity;
+  dist: typeof Infinity=Infinity;
   private nodes:LoopEmitterVoice|undefined;
   private readonly audio:Audio;private readonly recipe:AudioLoopEmitterRecipe;private readonly graph:AudioLoopGraph;private readonly ports:LoopEmitterPorts;
   private readonly scope:Scope;private readonly ownsScope:boolean;

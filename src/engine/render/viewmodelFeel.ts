@@ -124,7 +124,7 @@ export class RangedTrace {
     this.geo.setPositions(this.buf); this.mat.opacity = 1; this.line.visible = true; this.t0 = time;
   }
   /** Published at the old after-pose phase; segment users may retain their existing live life knob. */
-  publish(time: number, camera: PerspectiveCamera, resolution: Vector2, life = this.row.lifetime): void {
+  publish(time: number, camera: PerspectiveCamera, resolution: Vector2, life: number = this.row.lifetime): void {
     if (this.row.mode === 'segment') {
       if (this.t0 < 0) return;
       this.mat.resolution.copy(resolution);
@@ -277,7 +277,7 @@ export interface RangedFlashShape {
 interface RangedFlashProfile { readonly frames: number; readonly lightTime: number; readonly light: number; readonly size?: number }
 /** One build/fire/fade owner for the original two quads and borrowed pooled light. */
 export class RangedFlash {
-  readonly group = new Group(); readonly quads: Mesh[] = [];
+  readonly group: Group = new Group(); readonly quads: Mesh[] = [];
   private frames = 0; private lightTime = 0;
   private readonly profile: RangedFlashProfile; private readonly shape: RangedFlashShape;
   private readonly muzzle: { readonly muzzleZ: number }; readonly light: PointLight;
@@ -331,7 +331,7 @@ export interface HitscanPresentationRow {
  */
 export class HitscanPresentation {
   readonly flash: RangedFlash;
-  readonly puffs = new Puffs();
+  readonly puffs: Puffs = new Puffs();
   private cases: BrassCase[] = [];
   private traces: RangedTrace[] = [];
   private readonly port: Vector3;

@@ -41,7 +41,7 @@ const cellKey = (cx: number, cz: number): number => (cx + 512) * 1024 + (cz + 51
 const wrap = (a: number): number => Math.atan2(Math.sin(a), Math.cos(a));
 
 /** A forager at rest at (x, z) facing `yaw`, home at (bx, bz) (default: where it stands). */
-export function foragerState(x: number, z: number, yaw: number, bx = x, bz = z): ForagerState {
+export function foragerState(x: number, z: number, yaw: number, bx: number = x, bz: number = z): ForagerState {
   return { mode: 'graze', x, z, yaw, bx, bz, fx: x, fz: z, tx: x, tz: z, t: 1, dur: 1, h: 0, timer: 0, fleeLeft: 0, zig: 0, headPitch: 0.5, ears: 0.2, sit: 0, sink: 0 };
 }
 
@@ -180,8 +180,8 @@ type Roam = Extract<ForagerPopulationRows['place'], { kind: 'roam' }>;
 export class ForagerPopulation {
   readonly rows: ForagerState[] = [];
   readonly motion: ForagerMotion[] = [];
-  readonly due = new Uint8Array(MAX);
-  readonly shown = new Uint8Array(MAX);
+  readonly due: Uint8Array<ArrayBuffer> = new Uint8Array(MAX);
+  readonly shown: Uint8Array<ArrayBuffer> = new Uint8Array(MAX);
   readonly brain: AmbientForager;
   private readonly retired = new Set<number>();
   private readonly active = new Uint8Array(MAX);

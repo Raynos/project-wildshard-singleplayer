@@ -25,8 +25,8 @@ const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, parent?:
 
 /** the quest chip: one slim glass line under the minimap with the goal, its count and the nearest marker's bearing */
 export class ObjectiveLine {
-  readonly scope = uiScope('objective');
-  readonly root = el('div', 'ws-quest-obj');
+  readonly scope: Scope = uiScope('objective');
+  readonly root: HTMLDivElement = el('div', 'ws-quest-obj');
   private goal = el('span', 'ws-quest-obj-goal', this.root);
   private label = el('span', 'ws-quest-obj-label', this.goal);
   private count = el('span', 'ws-quest-obj-count', this.goal);
@@ -100,7 +100,7 @@ export class ObjectiveLine {
 
 /** the NPC dialogue panel: the speaker's name and the typed-out lines, advanced with E or a tap */
 export class DialogueBox {
-  readonly root = el('div', 'ws-quest-talk');
+  readonly root: HTMLDivElement = el('div', 'ws-quest-talk');
   private name = el('div', 'ws-quest-talk-name', this.root);
   private text = el('div', 'ws-quest-talk-text', this.root);
   private foot = el('div', 'ws-quest-talk-foot', this.root);
@@ -116,7 +116,7 @@ export class DialogueBox {
   cps = 60;
 
   /** E (desktop) and a tap anywhere on the box (touch) advance it; the game's "[E]" prompt is hidden while it is open */
-  constructor(scope = uiScope('dialogue')) {
+  constructor(scope: Scope = uiScope('dialogue')) {
     this.scope = scope;
     mountUi(this.root, this.scope, hudRoot());
     scope.listen(this.root, 'pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); this.advance(); });
@@ -170,8 +170,8 @@ export class DialogueBox {
 
 /** the reward caption: a kicker, a title and a sub line, shown when a quest pays out */
 export class RewardCaption {
-  readonly scope = uiScope('reward');
-  readonly root = el('div', 'ws-quest-reward');
+  readonly scope: Scope = uiScope('reward');
+  readonly root: HTMLDivElement = el('div', 'ws-quest-reward');
   constructor(kicker: string, title: string, sub: string) {
     el('div', 'ws-quest-reward-kicker', this.root).textContent = kicker;
     el('div', 'ws-quest-reward-title', this.root).textContent = title;

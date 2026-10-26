@@ -6,7 +6,7 @@ const PACKED: Readonly<Record<number, number>> = { 0x8363: 2, 0x8033: 2, 0x8034:
 const SMALL_BLOCKS = new Set([0x83f0, 0x83f1, 0x8c4c, 0x8c4d, 0x8dbb, 0x8dbc, 0x9270, 0x9271, 0x9274, 0x9275, 0x9276, 0x9277, 0x8d64]);
 const LARGE_BLOCKS = new Set([0x83f2, 0x83f3, 0x8c4e, 0x8c4f, 0x8dbd, 0x8dbe, 0x8e8c, 0x8e8d, 0x8e8e, 0x8e8f, 0x9272, 0x9273, 0x9278, 0x9279]);
 const ASTC = [[4, 4], [5, 4], [5, 5], [6, 5], [6, 6], [8, 5], [8, 6], [8, 8], [10, 5], [10, 6], [10, 8], [10, 10], [12, 10], [12, 12]] as const;
-export function allocationImageBytes(format: number, width: number, height: number, depth = 1, external = format, type = 0x1401): number {
+export function allocationImageBytes(format: number, width: number, height: number, depth = 1, external: number = format, type = 0x1401): number {
   const astc = ASTC[format >= 0x93d0 ? format - 0x93d0 : format - 0x93b0];
   if (astc !== undefined) return Math.ceil(width / astc[0]) * Math.ceil(height / astc[1]) * 16 * depth;
   if (SMALL_BLOCKS.has(format) || LARGE_BLOCKS.has(format)) return Math.ceil(width / 4) * Math.ceil(height / 4) * (SMALL_BLOCKS.has(format) ? 8 : 16) * depth;

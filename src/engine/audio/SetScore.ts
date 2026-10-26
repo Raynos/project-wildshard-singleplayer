@@ -98,7 +98,7 @@ export class SetScore<Scene> implements ScoreSource {
   readonly minFade?: number;
   readonly synthLead?: 'pluck' | 'marimba';
   readonly slots: readonly string[];
-  stings = new Map<StemSting, AudioBuffer>();
+  stings: Map<StemSting, AudioBuffer> = new Map<StemSting, AudioBuffer>();
   private readonly residentSlots = new Map<string, SlotAudio>();
   private readonly failed = new Set<string>();
   private decoding: string | undefined;
@@ -130,7 +130,7 @@ export class SetScore<Scene> implements ScoreSource {
     if (bank.stings.size > 0) this.stings = bank.stings;
     this.options.onReady();
   }
-  target(state = this.state): string | undefined {
+  target(state: MusicState | undefined = this.state): string | undefined {
     this.state = state;
     if (this.disposed) return undefined;
     return this.options.pick(this.scene, state).find((key) => this.slots.includes(key) && !this.failed.has(key));
@@ -200,8 +200,8 @@ export class CatalogueScore implements ScoreSource {
   protected profile: AudioMusicProfile;
   protected scope: Scope | undefined;
   private retired = false;
-  readonly stings = new Map<StemSting,AudioBuffer>();
-  readonly failures = new Set<string>();
+  readonly stings: Map<StemSting, AudioBuffer> = new Map<StemSting,AudioBuffer>();
+  readonly failures: Set<string> = new Set<string>();
   sceneName = 'day';
   phase: BossPhase = 1;
   private theme: SlotAudio | undefined;

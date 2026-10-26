@@ -61,7 +61,7 @@ export function decodedImageCount(): number {
   for (const [key, image] of images) if (image.deref() === undefined) images.delete(key);
   return images.size + imageLoads.size;
 }
-export function loadImage(url: string, maxSize = TIER_CONFIG.maxTexture): Promise<ImageBitmap | HTMLImageElement> {
+export function loadImage(url: string, maxSize: number = TIER_CONFIG.maxTexture): Promise<ImageBitmap | HTMLImageElement> {
   const key = imageKey(url, maxSize);
   const image = images.get(key)?.deref();
   if (image !== undefined) return Promise.resolve(image);
@@ -104,7 +104,7 @@ function shareSource(t: THREE.Texture, key: string, srgb: boolean, image: ImageB
  * for less (Pine Hollow's 512² building sets, G180); a KTX2 stand-in drops its top mips, an image decodes smaller.
  * Configure a custom sampler before its compressed upload fence, while its mip chain still exists.
  */
-export async function loadTexture(url: string, srgb = false, repeat = 1, maxSize = TIER_CONFIG.maxTexture,
+export async function loadTexture(url: string, srgb = false, repeat = 1, maxSize: number = TIER_CONFIG.maxTexture,
   configure?: (texture: THREE.Texture) => void): Promise<THREE.Texture> {
   // E157: the KTX2 stand-in, when the build has one and KTX2 is on; on the image fallback, a linear file's ASTC stand-in (src/engine/core/ktx2.ts)
   const k = await ktx2Texture(tierUrl(url), maxSize) ?? (srgb ? null : await linearKtx2Texture(tierUrl(url), maxSize));
@@ -154,7 +154,7 @@ export const pbrUrls = (id: string): string[] => (['diffuse', 'nor_gl', 'arm'] a
 
 /** Poly Haven texture set: diffuse + GL normal + ARM (ao / roughness / metal). Textures are shared per url; `repeat` is per
  *  call; `maxSize` as loadTexture's (a level's memory trim). */
-export async function loadPBR(id: string, repeat = 1, maxSize = TIER_CONFIG.maxTexture): Promise<PBRSet> {
+export async function loadPBR(id: string, repeat = 1, maxSize: number = TIER_CONFIG.maxTexture): Promise<PBRSet> {
   const [map, normalMap, armMap] = await Promise.all([
     loadTexture(texUrl(id, 'diffuse'), true, repeat, maxSize),
     loadTexture(texUrl(id, 'nor_gl'), false, repeat, maxSize),
@@ -191,7 +191,7 @@ export function loadHDR(url: string): Promise<THREE.DataTexture> {
  * were most of the phone's terrain step. The array is allocated empty (`dataReady = false`) and
  * mipmapped once after the last layer. Without a renderer (dev harnesses) the canvas path remains.
  */
-export async function loadPBRArray(ids: string[], size = TIER_CONFIG.layerSize): Promise<{ map: THREE.DataArrayTexture | THREE.CompressedArrayTexture; normalMap: THREE.DataArrayTexture | THREE.CompressedArrayTexture; armMap: THREE.DataArrayTexture | THREE.CompressedArrayTexture }> {
+export async function loadPBRArray(ids: string[], size: number = TIER_CONFIG.layerSize): Promise<{ map: THREE.DataArrayTexture | THREE.CompressedArrayTexture; normalMap: THREE.DataArrayTexture | THREE.CompressedArrayTexture; armMap: THREE.DataArrayTexture | THREE.CompressedArrayTexture }> {
   const kinds = ['diffuse', 'nor_gl', 'arm'] as const;
   // decoded straight to the layer size (no flip: the layer keeps the file's orientation either way)
   const load = (url: string) => fetchImage(url, size, false, true); // exact: the phone's half-res ARM planes scale up off-thread

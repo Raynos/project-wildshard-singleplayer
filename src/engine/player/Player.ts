@@ -60,8 +60,8 @@ const DODGE_FOV_KICK = 5;             // ° wider while a dodge runs …
 const LUNGE_FOV_KICK = 7;             // … and a lunge (Sword.ts reads `fovKick`)
 
 export class Player {
-  position = new THREE.Vector3(0, 0, 0);
-  velocity = new THREE.Vector3();
+  position: THREE.Vector3 = new THREE.Vector3(0, 0, 0);
+  velocity: THREE.Vector3 = new THREE.Vector3();
   yaw = 0;
   pitch = 0;
   onGround = true;
@@ -76,7 +76,7 @@ export class Player {
   /** the world's hand-made boxes; src/engine/physics/bridge.ts mirrors them into Rapier until P4 / P3 replace them */
   /** extra walkable surfaces (cabin floors, porch decks): return a world y or undefined */
   platforms: ((x: number, z: number) => number | undefined)[] = [];
-  keys = new Set<string>();
+  keys: Set<string> = new Set<string>();
   /** analog input from on-screen controls (TouchControls): x = strafe (+right), y = forward (+ahead), both -1..1 */
   touchMove = { x: 0, y: 0 };
   touchSprint = false;
@@ -135,7 +135,7 @@ export class Player {
   strokeTime = 0; climbTo: number | null = null; climbCooldown = 0;
   private readonly waterLine: WaterLineView;
   /** Ground grace window, authored by the active level. */
-  coyoteMs = COYOTE_MS;
+  coyoteMs: number = COYOTE_MS;
   private eyeOffset = EYE;
   private landImpulse = 0;
   private roll = 0; private pitchLean = 0;

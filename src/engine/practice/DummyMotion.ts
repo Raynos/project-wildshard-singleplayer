@@ -65,19 +65,19 @@ export interface DummyHit {
 
 export class DummyMotion {
   /** the post / pelvis: the whole upper figure rocks on it */
-  readonly rock = Spring.of(7.4, 0.26, 0.5);
+  readonly rock: Spring = Spring.of(7.4, 0.26, 0.5);
   /** spine and chest follow-through, relative to their parent */
-  readonly spine = Spring.of(12, 0.34, 0.3);
-  readonly chest = Spring.of(15, 0.34, 0.25);
+  readonly spine: Spring = Spring.of(12, 0.34, 0.3);
+  readonly chest: Spring = Spring.of(15, 0.34, 0.25);
   /** the head on the neck: stiff, but a headshot snaps it */
-  readonly head = Spring.of(14, 0.27, 0.7);
+  readonly head: Spring = Spring.of(14, 0.27, 0.7);
   /** each arm: a loose pendulum at the shoulder, a stiffer elbow and a light hand */
-  readonly armL = Spring.of(6.2, 0.15, 0.7);
-  readonly armR = Spring.of(6.2, 0.15, 0.7);
-  readonly foreL = Spring.of(9, 0.14, 0.6);
-  readonly foreR = Spring.of(9, 0.14, 0.6);
-  readonly handL = Spring.of(13, 0.2, 0.45);
-  readonly handR = Spring.of(13, 0.2, 0.45);
+  readonly armL: Spring = Spring.of(6.2, 0.15, 0.7);
+  readonly armR: Spring = Spring.of(6.2, 0.15, 0.7);
+  readonly foreL: Spring = Spring.of(9, 0.14, 0.6);
+  readonly foreR: Spring = Spring.of(9, 0.14, 0.6);
+  readonly handL: Spring = Spring.of(13, 0.2, 0.45);
+  readonly handR: Spring = Spring.of(13, 0.2, 0.45);
   /** which side of the figure (model X sign) the Left* bones hang on: rigs differ (Blender's LeftArm sat at −X) */
   leftSign = -1;
   private acc = 0;

@@ -83,7 +83,7 @@ export class Navmesh {
    * point first and the goal (or, when the goal can't be reached or the search ran past MAX_SEARCH_NODES, the reachable
    * point nearest it) last. Written into `out` (reused vectors); null when `from` is nowhere near the mesh.
    */
-  findPath(from: XYZ, to: XYZ, agentRadius: number, out: THREE.Vector3[] = [], maxNodes = MAX_SEARCH_NODES): THREE.Vector3[] | null {
+  findPath(from: XYZ, to: XYZ, agentRadius: number, out: THREE.Vector3[] = [], maxNodes: number = MAX_SEARCH_NODES): THREE.Vector3[] | null {
     const t0 = performance.now();
     try {
       const { mesh } = this.layerFor(agentRadius);
@@ -106,7 +106,7 @@ export class Navmesh {
   }
 
   /** The nearest walkable point to `p` (within ±2 m across, ±3 m vertically) for a creature of `agentRadius`, or null. */
-  closestWalkable(p: XYZ, agentRadius = 0, out = new THREE.Vector3()): THREE.Vector3 | null {
+  closestWalkable(p: XYZ, agentRadius = 0, out: THREE.Vector3 = new THREE.Vector3()): THREE.Vector3 | null {
     const t0 = performance.now();
     try {
       const r = findNearestPoly(this.nearest, this.layerFor(agentRadius).mesh, toVec3(p, this.a, this.datum()), SNAP, DEFAULT_QUERY_FILTER);
@@ -120,7 +120,7 @@ export class Navmesh {
    * navcat bounds the polys it searches, not the point: in open ground one big poly can put the point 2× `radius` away
    * (E143's thinner forest: 46 m for 20 asked), so up to 4 draws, the first within 1.5 × `radius`, else the nearest.
    */
-  randomPointNear(p: XYZ, radius: number, agentRadius = 0, rand: () => number = Math.random, out = new THREE.Vector3()): THREE.Vector3 | null {
+  randomPointNear(p: XYZ, radius: number, agentRadius = 0, rand: () => number = Math.random, out: THREE.Vector3 = new THREE.Vector3()): THREE.Vector3 | null {
     const t0 = performance.now();
     try {
       const { mesh } = this.layerFor(agentRadius);

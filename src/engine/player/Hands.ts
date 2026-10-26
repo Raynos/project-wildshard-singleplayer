@@ -43,8 +43,8 @@ const STROKE = new THREE.CatmullRomCurve3([
   new THREE.Vector3(0.30, -0.35, -0.42),
   new THREE.Vector3(0.11, -0.31, -0.48),
 ], true, 'catmullrom', 0.6);
-export const IDLE = new THREE.Vector3(0.27, -0.32, -0.56); // treading water: hands out to the sides at the surface
-export const ELBOW = new THREE.Vector3(0.30, -0.70, 0.02); // where the (off-screen) elbow hangs; the forearm points from here to the wrist
+export const IDLE: THREE.Vector3 = new THREE.Vector3(0.27, -0.32, -0.56); // treading water: hands out to the sides at the surface
+export const ELBOW: THREE.Vector3 = new THREE.Vector3(0.30, -0.70, 0.02); // where the (off-screen) elbow hangs; the forearm points from here to the wrist
 
 /** a skinned arm rig's swimming (ShardSword.swim): drawn under `root` in the camera's viewmodel queue */
 export interface SwimArms {
@@ -121,7 +121,7 @@ export function buildSwimGloves(sky: Sky, look: SwimStyle): [THREE.Group, THREE.
 
 /** the first-person swimming hands: two gloved forearms doing a looping breaststroke at the water line */
 export class Hands {
-  readonly group = new THREE.Group();
+  readonly group: THREE.Group = new THREE.Group();
   visible = false;
   readonly style: SwimStyle;
   private arms: [THREE.Group, THREE.Group] | null = null;

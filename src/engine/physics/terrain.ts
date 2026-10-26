@@ -15,7 +15,7 @@ import { groups } from './groups';
 import { tagCollider } from './surface';
 
 /** The mesh's vertex heights, row-major (index iz × res + ix), x and z from −size/2 to +size/2. */
-export function terrainGrid(res = TERRAIN_RES, size = CHUNK_SIZE): Float32Array {
+export function terrainGrid(res: number = TERRAIN_RES, size: number = CHUNK_SIZE): Float32Array {
   const out = new Float32Array(res * res);
   const d = size / (res - 1), half = size / 2;
   for (let iz = 0; iz < res; iz++) for (let ix = 0; ix < res; ix++) out[iz * res + ix] = heightAt(ix * d - half, iz * d - half);
@@ -44,7 +44,7 @@ function buildGround(physics: Physics, grid: Float32Array, res: number, size: nu
   return ground;
 }
 
-export function addTerrain(physics: Physics, grid: Float32Array = terrainGrid(), res = TERRAIN_RES, size = CHUNK_SIZE): Collider {
+export function addTerrain(physics: Physics, grid: Float32Array = terrainGrid(), res: number = TERRAIN_RES, size: number = CHUNK_SIZE): Collider {
   const collider = buildGround(physics, grid, res, size);
   grounds.set(physics, { collider, grid, res, size });
   return collider;

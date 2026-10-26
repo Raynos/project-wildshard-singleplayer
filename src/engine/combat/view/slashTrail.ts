@@ -11,7 +11,7 @@ export interface FollowTrailProfile {
 /** Client-only point sampling shared by world ribbons and projected lines.
  * Rendering, material ownership and source clocks remain with their hosts. */
 export class FollowPointTrail {
-  readonly head = new Vector3(); readonly previous = new Vector3();
+  readonly head: Vector3 = new Vector3(); readonly previous: Vector3 = new Vector3();
   private readonly history: Vector3[];
   private clock = 0; private seeded = false;
   private readonly profile: FollowTrailProfile;
@@ -53,7 +53,7 @@ export class FollowPointTrail {
 export class SlashTrail {
   /** Point-following profile alongside the existing two-point blade ribbon. */
   static follow(profile: FollowTrailProfile): FollowPointTrail { return new FollowPointTrail(profile); }
-  readonly geometry = new BufferGeometry();
+  readonly geometry: BufferGeometry = new BufferGeometry();
   readonly pos: BufferAttribute;
   readonly value: BufferAttribute;
   readonly uv: BufferAttribute | null;

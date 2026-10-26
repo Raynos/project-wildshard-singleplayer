@@ -37,7 +37,7 @@ import { TIER } from './tier';
 import { unsupercompressKtx2 } from './ktx2Zstd';
 
 /** where vite/basis.ts copies three's transcoder: versioned by three's revision, so the SW / HTTP caches never mix two */
-export const BASIS_PATH = `/basis/r${THREE.REVISION}/`;
+export const BASIS_PATH: Parameters<KTX2Loader['setTranscoderPath']>[0] = `/basis/r${THREE.REVISION}/`;
 
 let loader: KTX2Loader | null = null;
 let gameRenderer: Renderer | null = null;
@@ -181,7 +181,7 @@ function ktx2Loader(): KTX2Loader {
  * Set its colour space, sampler and version first. Raw KTX2 layer inputs stay unuploaded until assembled.
  * A loader whose consumer still configures its sampler passes final=false to keep its CPU mip chain.
  * Node/bake callers without a game renderer retain their existing renderer-free path. */
-export async function prepareCompressedTexture<T extends THREE.Texture>(texture: T, renderer = gameRenderer,
+export async function prepareCompressedTexture<T extends THREE.Texture>(texture: T, renderer: Renderer | null = gameRenderer,
   current: () => boolean = () => true, final = true): Promise<T> {
   if (renderer !== null) await uploadCompressedTexture(renderer, texture, current, final);
   return texture;
@@ -280,7 +280,7 @@ export async function ktx2File(url: string): Promise<THREE.CompressedTexture> {
  * remain on every returned texture until upload, including after disposal or for a different sampler.
  * `maxSize` (the tier's texture cap, as loadImage applies it to a decode): a larger file starts at the first mip that fits.
  */
-export async function ktx2Texture(served: string, maxSize = Infinity): Promise<THREE.CompressedTexture | null> {
+export async function ktx2Texture(served: string, maxSize: typeof Infinity = Infinity): Promise<THREE.CompressedTexture | null> {
   const url = gpuFile(served);
   if (url === undefined) return null;
   const base = await load(url, true);
@@ -321,7 +321,7 @@ function linearKtx2Loader(): KTX2Loader {
   linearLoader = made;
   return made;
 }
-export async function linearKtx2Texture(served: string, maxSize = Infinity): Promise<THREE.CompressedTexture | null> {
+export async function linearKtx2Texture(served: string, maxSize: typeof Infinity = Infinity): Promise<THREE.CompressedTexture | null> {
   if (texMode() !== 'img' || !linearAstcSurvives(ktx2ProbeResult())) return null;
   if (!LINEAR_NAME.test(served.slice(served.lastIndexOf('/') + 1).toLowerCase())) return null;
   const url = standIn(served, 'ktx2');
@@ -402,7 +402,7 @@ export function layerArrayMips(layers: readonly ({ readonly format: THREE.Compre
  * sRGB target, rows top-first like a canvas's getImageData; null without a renderer. Nalati's sky reads its zenith colour
  * this way, the painted horizon its floor.
  */
-export function readTexturePixels(tex: THREE.Texture, w: number, h: number, renderer = gameRenderer): Uint8Array | null {
+export function readTexturePixels(tex: THREE.Texture, w: number, h: number, renderer: Renderer | null = gameRenderer): Uint8Array | null {
   if (renderer === null) return null;
   const read = drawForRead(tex, w, h, renderer);
   try { renderer.readRenderTargetPixels(read.rt, 0, 0, w, h, read.out); } finally { read.dispose(); }
@@ -414,7 +414,7 @@ export function readTexturePixels(tex: THREE.Texture, w: number, h: number, rend
  * waits for every draw queued before it: on a software GPU (CI's SwiftShader) the painted horizon's floor read held the
  * Explorer's Pine page for 7-9 s behind the frames still rasterizing.
  */
-export async function readTexturePixelsAsync(tex: THREE.Texture, w: number, h: number, renderer = gameRenderer): Promise<Uint8Array | null> {
+export async function readTexturePixelsAsync(tex: THREE.Texture, w: number, h: number, renderer: Renderer | null = gameRenderer): Promise<Uint8Array | null> {
   if (renderer === null) return null;
   const read = drawForRead(tex, w, h, renderer);
   try { await renderer.readRenderTargetPixelsAsync(read.rt, 0, 0, w, h, read.out); } finally { read.dispose(); }
