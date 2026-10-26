@@ -1,9 +1,9 @@
 import { afterEach, expect, test, vi } from 'vitest';
-import { RepeatWrapping, SRGBColorSpace } from 'three';
+import { RepeatWrapping, SRGBColorSpace, type Texture } from 'three';
 import * as bytes from '../boot/bytes';
 import * as gpuFiles from '../boot/gpuFiles';
 import * as ktx2 from './ktx2';
-import { loadTexture } from './assets';
+import { loadTexture, loadImage } from './assets';
 import { legacyDouble } from '../test/FakeGame';
 import { realGc } from '../test/realGc';
 import type { Renderer } from '../render/renderer';
@@ -103,3 +103,41 @@ test('a collected unuploaded colour source does not pin the remaining bitmap use
       finally { replacement.dispose(); }
     } finally { linear.dispose(); }
   }));
+
+test('concurrent texture requests share one source per colour space after decoding', async () => {
+  const read = images(), url = '/shared-source-lifetime/concurrent.image';
+  const textures = await Promise.all([loadTexture(url, true, 2), loadTexture(url, true, 3), loadTexture(url, false)]);
+  try {
+    const [first, second, linear] = textures;
+    if (first === undefined || second === undefined || linear === undefined) throw new Error('Missing concurrent texture');
+    expect(read).toHaveBeenCalledOnce();expect(first.source).toBe(second.source);expect(linear.source).not.toBe(first.source);
+    expect(first.repeat.x).toBe(2);expect(second.repeat.x).toBe(3);expect(first.image).toBe(linear.image);
+  } finally { for (const texture of textures) texture.dispose(); }
+});
+
+test.each([false, true])('concurrent decode preserves upload ownership with cached image %s', async cached => {
+  images();vi.stubGlobal('WebGL2RenderingContext', EventTarget);
+  const renderer = uploadRenderer();installMemorySaver(renderer);
+  const seen: number[] = [], url = `/shared-source-lifetime/concurrent-upload-${String(cached)}.image`;
+  if (cached) await loadImage(url);
+  const upload = (texture: Texture): void => {
+    const image: unknown = texture.image;
+    if (!(image instanceof DecodedImage)) throw new Error('Missing concurrent image');
+    seen.push(image.closes);renderer.properties.get(texture);texture.onUpdate?.(texture);
+  };
+  const textures = await Promise.all([loadTexture(url, true, 1, undefined, upload), loadTexture(url, false, 1, undefined, upload)]);
+  try { expect(seen).toEqual([0, 0]); }
+  finally { for (const texture of textures) texture.dispose(); }
+});
+
+
+test('a failed concurrent source load is forgotten before the next request', async () => {
+  const read = images(), url = '/shared-source-lifetime/retry.image';
+  read.mockRejectedValueOnce(new Error('Decode refused'));
+  const results = await Promise.allSettled([loadTexture(url, true), loadTexture(url, true)]);
+  expect(results.map(result => result.status)).toEqual(['rejected', 'rejected']);
+  expect(read).toHaveBeenCalledOnce();
+  const retry = await loadTexture(url, true);
+  try { expect(read).toHaveBeenCalledTimes(2);expect(retry.image).toBeInstanceOf(DecodedImage); }
+  finally { retry.dispose(); }
+});

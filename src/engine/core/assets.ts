@@ -84,11 +84,13 @@ export function loadImage(url: string, maxSize: number = TIER_CONFIG.maxTexture)
 // not leave its decoded pixels rooted by this cross-request identity memo.
 const sharedSources = new Map<string, { source: WeakRef<THREE.TextureSource<unknown>>; flipY: boolean }>();
 const imageUsers = new WeakMap<ImageBitmap | HTMLImageElement, Set<WeakRef<THREE.TextureSource<unknown>>>>();
+interface SharedSource { readonly source: THREE.TextureSource<unknown>; readonly flipY: boolean }
+const sourceLoads = new Map<string, Promise<SharedSource>>();
 const sourceKey = (url: string, srgb: boolean): string => `${url}|${srgb ? 'srgb' : 'linear'}`;
-function shareSource(t: THREE.Texture, key: string, srgb: boolean, image: ImageBitmap | HTMLImageElement): void {
+function shareSource(owned: THREE.TextureSource<unknown>, flipY: boolean, key: string, srgb: boolean, image: ImageBitmap | HTMLImageElement): void {
   // `key` is the decode cache's own key (`imageKey`: `url@size` for a trimmed decode): it is released under that same key
-  const shared = sourceKey(key, srgb), source = new WeakRef(t.source);
-  sharedSources.set(shared, { source, flipY: t.flipY });
+  const shared = sourceKey(key, srgb), source = new WeakRef(owned);
+  sharedSources.set(shared, { source, flipY });
   const users = imageUsers.get(image) ?? new Set<WeakRef<THREE.TextureSource<unknown>>>();
   users.add(source);imageUsers.set(image, users);
   const done = (): void => {
@@ -100,7 +102,28 @@ function shareSource(t: THREE.Texture, key: string, srgb: boolean, image: ImageB
     if (images.get(key)?.deref() === image) images.delete(key);
     if (typeof ImageBitmap !== 'undefined' && image instanceof ImageBitmap) image.close();
   };
-  releaseOnUpload(t.source, done);
+  releaseOnUpload(owned, done);
+}
+
+/** Register all source users before their awaiting callers may upload. A warm
+ * image is acquired synchronously, so no caller can borrow a bitmap closed
+ * during an intervening await. In-flight source ownership ends on settlement. */
+function loadTextureSource(url: string, srgb: boolean, maxSize: number): Promise<SharedSource> {
+  const key = imageKey(url, maxSize), shared = sourceKey(key, srgb);
+  const make = (image: ImageBitmap | HTMLImageElement): SharedSource => {
+    const source = new THREE.TextureSource(image), flipY = !(typeof ImageBitmap !== 'undefined' && image instanceof ImageBitmap);
+    shareSource(source, flipY, key, srgb, image);
+    return { source, flipY };
+  };
+  const pending = sourceLoads.get(shared);
+  if (pending !== undefined) return pending;
+  const decoding = imageLoads.get(key), image = images.get(key)?.deref();
+  if (decoding === undefined && image !== undefined) return Promise.resolve(make(image));
+  const loading = (decoding ?? loadImage(url, maxSize)).then(make);
+  sourceLoads.set(shared, loading);
+  const settled = (): void => { if (sourceLoads.get(shared) === loading) sourceLoads.delete(shared); };
+  void loading.then(settled, settled);
+  return loading;
 }
 
 /**
@@ -126,10 +149,8 @@ export async function loadTexture(url: string, srgb = false, repeat = 1, maxSize
   const source = shared?.source.deref();
   let t: THREE.Texture;
   if (shared === undefined || source === undefined) {
-    const image = await loadImage(url, maxSize);
-    t = new THREE.Texture(image);
-    t.flipY = !(typeof ImageBitmap !== 'undefined' && image instanceof ImageBitmap); // bitmaps are flipped at decode
-    shareSource(t, key, srgb, image);
+    const decoded = await loadTextureSource(url, srgb, maxSize);
+    t = new THREE.Texture(); t.source = decoded.source; t.flipY = decoded.flipY;
   } else {
     t = new THREE.Texture();
     t.source = source;
