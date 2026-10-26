@@ -16,10 +16,10 @@ Every row is decided work (Jake's G-rows); the refs are the brief.
 | sp-x9 | G742 debug-rows-mini-plan.md (0/19; best option ships, row + dead code deleted, smallest first) -> programShare done d247df6cf03 (final-code check; 1→0 warnings, 4→1 programs) -> ratchet at commit time -> faster CF1 walk -> oxlint R3-R5 -> no-binaries B5-B6 -> QW7 |
 | sp-x7 | releases only |
 | sp-o1 | G735: Night Market remaster models RM4 -> RM7 -> RM9 -> RM8 -> RM13 (board + walk video) |
-| sp-o2 | G735: Night Market remaster look RM5 -> RM6 -> RM10 -> RM11 -> RM12 -> G748 coarse L1 stand-ins for occupied tiles per shard (U2/T8.3; near/far board first) |
-| sp-o3 | G735: G685 Driftwood toon cel cumulus clouds (Debug A/B + board for Jake) |
-| sp-o4 | G713 lighter RT sheet done c4607318c9 (C5.6 waits-Jake) -> G717 quiet misses DW spawn p95 42 / Pine whole 44/90 -> L18.3 lighter DW assets (A/B + board) |
-| sp-o5 | G735: G630 Nine far proxy + Sunscar glow -> T3/T6 visual tile rows |
+| sp-o2 | G735: Night Market remaster look RM5 -> RM6 -> RM10 -> RM11 -> RM12 |
+| sp-o3 | G685 Driftwood toon cel cumulus clouds (Debug A/B + board) + L18.3 lighter DW assets (e2cac37ae6, 7d327e5a88, 552bb9196f, dca731cde4) |
+| sp-o4 | G713 lighter RT sheet done c4607318c9 (C5.6 waits-Jake) -> G717 A (spawn holds controls until queued builds drain) -> B cheaper lit programs (Debug A/B + board) |
+| sp-o5 | G630 done (006d87b0fa Sunscar glow; 7e4f33be44 + d56e767bf3 Nine near view); T3 06d63e5b21; T6.2 parked low value -> G748 coarse L1 stand-ins for occupied tiles per shard (near/far boards first) |
 
 ## 10-24 open rows (Jake's picks G679-G682, a2c1e9647b; SW10: one claimable row per live lane)
 
