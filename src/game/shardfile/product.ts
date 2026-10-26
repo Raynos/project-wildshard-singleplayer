@@ -164,7 +164,10 @@ export function boundedResponse(response: Response, maximum: number, read?: (byt
   return waitFor(`Read ${response.url ? new URL(response.url).pathname : 'asset bytes'}`, readBoundedResponse(response, maximum, read), 'file');
 }
 async function readBoundedResponse(response: Response, maximum: number, read?: (bytes: number) => void): Promise<Uint8Array> {
-  if (!response.ok || !Number.isSafeInteger(maximum) || maximum < 0 || maximum > MAX_FILE_BYTES) throw new Error('Unavailable or oversized shardfile asset');
+  if (!response.ok || !Number.isSafeInteger(maximum) || maximum < 0 || maximum > MAX_FILE_BYTES) {
+    const path = response.url ? new URL(response.url).pathname : 'asset bytes';
+    throw new Error(`Unavailable or oversized shardfile asset: ${path} (HTTP ${response.status}, cap ${maximum} B)`);
+  }
   const length = response.headers.get('content-length');
   if (length !== null && (!/^[0-9]+$/u.test(length) || Number(length) > maximum)) throw new Error('Shardfile wire size exceeds cap');
   if (response.body === null) return new Uint8Array();
