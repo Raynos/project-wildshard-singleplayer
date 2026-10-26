@@ -51,7 +51,8 @@ refuses after consumption. The original wire cap, SHA, quota, keep-write,
 eviction and durability rules still apply. The result `{ stored, bytes }`
 returns verified owned bytes after persistence settles, including when
 quota refusal returns `stored: false`. Mutating those returned bytes cannot
-change the durable response. This producer precedes its worker adoption.
+change the durable response. The fetch worker uses this only for its private,
+exact-length body; ordinary posted puts keep the defensive snapshot.
 
 ## Paced browser storage
 

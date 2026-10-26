@@ -23,7 +23,8 @@ function timing(url: string): FetchedContent['timing'] {
     transferSize: entry.transferSize, encodedBodySize: entry.encodedBodySize } : null;
 }
 /** Read, verify and store one immutable file without the page touching its stream, hash or store copy (G639). The URL
- * cache is a hint like the page's (cachedTransport); the content cache's put re-hashes the bytes and refuses a mismatch. */
+ * cache is a hint like the page's (cachedTransport). Native transfer gives persistence exclusive body ownership for
+ * SHA verification, then returns the same backing for page handoff; a mismatch still refuses. */
 async function fetchVerified(command: FetchCommand): Promise<FetchedContent> {
   const url = new URL(command.url);
   if (url.origin !== self.location.origin) throw new Error('Cache reads stay on this origin');
@@ -40,7 +41,10 @@ async function fetchVerified(command: FetchCommand): Promise<FetchedContent> {
   }
   if (body.length !== command.bytes) throw new Error('Read differs from its declared size');
   let stored: boolean;
-  try { stored = await cache.put(command.hash, body, command.keep === true); }
+  try {
+    const persisted = await cache.putTransferred(command.hash, body, command.keep === true);
+    body = persisted.bytes; stored = persisted.stored;
+  }
   catch (error) {
     // A stale URL cache entry is only a hint: read the network once before refusing.
     if (!cached) throw error;
