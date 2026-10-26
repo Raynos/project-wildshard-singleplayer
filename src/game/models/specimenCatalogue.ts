@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import * as v from 'valibot';
 import type { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { prepareRigLoader } from '@wildshard/engine/anim/rig';
-import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
+import { forgetWhenDisposed } from '@wildshard/engine/app/cachedAssets';
 import { loadTexture } from '@wildshard/engine/core/assets';
 import { TIER, TIER_CONFIG } from '@wildshard/engine/core/tier';
 import { defineModel, announceModelReady, type ModelContext, type ModelBuild, type ModelDef } from '@wildshard/engine/models/model';
@@ -84,7 +84,7 @@ export function loadSpecimenTexture(row: NonNullable<SpecimenMaterialRow['textur
   if (pending === undefined) {
     pending = loadTexture(url, true).then(loaded => { loaded.name = row.name; return loaded; });
     textures.set(url, pending);
-    const kept = pending; void cacheUntilDisposed(kept, () => { if (textures.get(url) === kept) textures.delete(url); });
+    forgetWhenDisposed(pending, textures, url, pending);
   }
   return pending;
 }
@@ -110,7 +110,7 @@ export function specimenMaterial(sky: SkyRig, input: unknown, map?: THREE.Textur
     void loadSpecimenTexture(row.texture).then(loaded => { material.map = loaded; return undefined; }).catch(() => undefined);
   }
   bySky.set(row.id, material);
-  const cache = bySky; cacheUntilDisposed(material, () => { if (cache.get(row.id) === material) cache.delete(row.id); });
+  forgetWhenDisposed(material, bySky, row.id, material);
   return material;
 }
 
@@ -154,10 +154,11 @@ export function loadSpecimenAsset(row: Pick<SpecimenAssetRow, 'url' | 'phoneUrl'
       if (map !== null) { map.colorSpace = THREE.SRGBColorSpace; map.anisotropy = 4; }
       const out: SpecimenAsset = { geometry, map, box: geometry.boundingBox?.clone() ?? new THREE.Box3(),
         ...(retained instanceof THREE.BufferAttribute ? { retainedAttribute: retained } : {}) };
-      cacheUntilDisposed(out, () => { if (raw.get(key) === pending) raw.delete(key); });
       return out;
     });
     raw.set(key, pending);
+    // A live cached geometry must not own the consumed loader declaration.
+    forgetWhenDisposed(pending, raw, key, pending);
   }
   return pending;
 }
@@ -172,10 +173,10 @@ export function loadBoundSpecimen(sky: SkyRig, row: SpecimenAssetRow): Promise<S
     pending = loadSpecimenAsset(row).then(asset => {
       const transform=row.transform,geometry=transform===undefined?asset.geometry:asset.geometry.clone().rotateY(transform.yaw).scale(transform.scale,transform.scale,transform.scale);
       const out = { ...asset,geometry, material: specimenMaterial(sky, row.material, asset.map) };
-      const cache = bySky; cacheUntilDisposed(out, () => { cache.delete(key); });
       return out;
     });
     bySky.set(key, pending);
+    forgetWhenDisposed(pending, bySky, key, pending);
   }
   return pending;
 }
