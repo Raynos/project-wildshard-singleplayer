@@ -46,7 +46,7 @@ function sameRng(a: RngState, b: RngState): boolean {
 }
 export class GroupStepV2 {
   private readonly rows;
-  readonly layout;
+  readonly layout: V2Layout;
   private readonly profiles;
   private readonly module: ScriptModuleV2;
   private readonly writeFrame: ReturnType<typeof createV2FrameWriter>;

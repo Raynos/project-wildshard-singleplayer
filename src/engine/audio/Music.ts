@@ -114,7 +114,7 @@ class Engine {
   private spanOf = new WeakMap<AudioScheduledSourceNode, { t0: number; t1: number }>();
   /** an oscillator's stop time moved (a pad released, a bar cancelled): keep the live count honest */
   private restop(o: AudioScheduledSourceNode, t1: number) { const sp = this.spanOf.get(o); if (sp) sp.t1 = t1; }
-  liveOsc(now = this.ctx.currentTime): number {
+  liveOsc(now: number = this.ctx.currentTime): number {
     this.oscSpans = this.oscSpans.filter((o) => o.t1 > now - 1);
     let n = 0; for (const o of this.oscSpans) if (o.t0 <= now && o.t1 > now) n++;
     return n;
@@ -178,7 +178,7 @@ class Engine {
 
   // ─────────────── the seven patches ───────────────
   /** drone: D2 and D3 saws, the upper one 6 cents flat, through a low-pass that breathes between ~170 and ~400 Hz */
-  startDrone(t: number) {
+  startDrone(t: number): void {
     tap.sound?.('music.drone');
     this.stopDrone();
     const c = this.ctx, far = 1e9;
@@ -190,7 +190,7 @@ class Engine {
     a.connect(ga).connect(lp); b.connect(gb).connect(lp); lp.connect(this.gains.drone);
     this.droneNodes = [a, b, lfo];
   }
-  stopDrone() { for (const n of this.droneNodes) { try { n.stop(); } catch { /* not started */ } } this.droneNodes = []; }
+  stopDrone(): void { for (const n of this.droneNodes) { try { n.stop(); } catch { /* not started */ } } this.droneNodes = []; }
 
   /** pad: 4 voices, the root a sine and the rest triangles, each a few cents off, a slow attack; released when the next chord lands */
   padVoice(chord: ChordName, t: number, attack: number, out: AudioNode = this.padFilter): PadVoice {
@@ -327,7 +327,7 @@ class Engine {
     if (cp.cancelAndHoldAtTime) cp.cancelAndHoldAtTime(t); else p.cancelScheduledValues(t);
   }
   /** ramp a layer / effect to `level` starting at `t` over `ramp` seconds (bar-aligned when the sequencer calls it) */
-  setLevel(key: MixKey, level: number, t: number, ramp = 0.02) {
+  setLevel(key: MixKey, level: number, t: number, ramp = 0.02): void {
     const target = this.solo && key !== 'lpf' && key !== 'chorus' && !this.solo.has(key) ? 0 : level;
     const p = this.param(key), from = this.targets[key] ?? p.value;
     this.hold(p, t);
@@ -356,18 +356,18 @@ class Engine {
 
   // ─────────────── sequencer ───────────────
   /** fill the Karplus-Strong cache for every pluck pitch the arrangement uses (and their Dorian forms) — ~1 ms each, off the bar schedule */
-  warm(arr: Arrangement) {
+  warm(arr: Arrangement): void {
     for (const seg of arr.segments) for (const n of seg.notes.pluck ?? []) { this.ksBuffer(midiHz(n.n)); this.ksBuffer(midiHz(score().dorianPitch(n.n))); }
   }
   /** start `arr` at time `t` (the drone comes up with it) */
-  begin(arr: Arrangement, t: number) {
+  begin(arr: Arrangement, t: number): void {
     this.arrangement = arr; this.segIdx = 0; this.beat0 = 0; this.nextT = t; this.bars = []; this.lastChord = undefined;
     this.pad = undefined;
     for (const k of GAIN_KEYS) if (k !== 'pulse') { this.gains[k].gain.cancelScheduledValues(t); this.gains[k].gain.setValueAtTime(0, t); this.targets[k] = 0; }
     this.startDrone(t);
   }
   /** schedule every bar that starts before `until` (the live pump calls this with now + 2 bars; offline, with the render length) */
-  pump(until: number) {
+  pump(until: number): void {
     const arr = this.arrangement; if (!arr) return;
     const now = this.ctx.currentTime;
     let head = this.bars[0];
@@ -440,7 +440,7 @@ class Engine {
     g.setValueAtTime(1, Math.max(0, t - 0.003)); g.linearRampToValueAtTime(0.32, t + 0.012); g.linearRampToValueAtTime(1, t + 0.24);
   }
   /** drop every bar that has not started yet and rewind the cursor to the first of them (state changes take effect on the next bar) */
-  cancelPending(now: number) {
+  cancelPending(now: number): void {
     const i = this.bars.findIndex((b) => b.t0 > now + 0.03);
     if (i === -1) return;
     const first = this.bars[i];
@@ -456,7 +456,7 @@ class Engine {
   nextBarAfter(now: number): number { const b = this.bars.find((x) => x.t0 > now); return b ? b.t0 : now; }
   currentSpb(): number { const b = this.bars[this.bars.length - 1]; return b ? b.spb : 60 / TEMPO[this.state.mode]; }
   /** silence everything; the bars already scheduled stop at `t` */
-  end(t: number) {
+  end(t: number): void {
     if (this.pad) this.pad.release(t, 0.4);
     for (const b of this.bars) for (const v of b.voices) { try { v.out.gain.setValueAtTime(v.out.gain.value, t); v.out.gain.linearRampToValueAtTime(0, t + 0.05); } catch { /* */ } for (const s of v.srcs) { try { s.stop(t + 0.1); } catch { /* */ } this.restop(s, t + 0.1); } }
     this.bars = []; this.arrangement = undefined; this.pad = undefined;
@@ -464,7 +464,7 @@ class Engine {
   }
 
   // ─────────────── stings (their own bus, so the death duck never swallows them) ───────────────
-  sting(sting: StingName, t: number) {
+  sting(sting: StingName, t: number): void {
     const spb = this.currentSpb(), name = sting === 'dawn' ? 'chunk' : sting; // the synth has no dawn sting: the discovery chord
     if (name === 'pickup') { for (const n of score().stings.pickup) this.bell(n.n, t + n.t * spb, n.d * spb, n.v ?? 0.6, this.stingBus); return; }
     if (name === 'chunk') {

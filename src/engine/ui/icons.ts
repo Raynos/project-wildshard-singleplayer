@@ -14,7 +14,7 @@ const wrap = (body: string, extra = '') => `<svg viewBox="0 0 64 64" fill="curre
 const S = 'fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"';
 
 /** a row of legs: side-view creatures stand on y≈56 */
-const legs = (xs: number[], top: number, h: number, w = 3.2) => xs.map((x) => `<rect x="${x}" y="${top}" width="${w}" height="${h}" rx="1"/>`).join('');
+const legs: (xs: number[], top: number, h: number, w?: number) => string = (xs: number[], top: number, h: number, w = 3.2) => xs.map((x) => `<rect x="${x}" y="${top}" width="${w}" height="${h}" rx="1"/>`).join('');
 
 const circle = (cx: number, cy: number, r: number) => `M${cx - r} ${cy} a${r} ${r} 0 1 0 ${2 * r} 0 a${r} ${r} 0 1 0 ${-2 * r} 0 Z`;
 
@@ -59,4 +59,4 @@ export function registerIcons(table: Partial<Readonly<Record<IconId, string>>>):
 export function icon(id: IconId): string { return SVG.get(id) ?? wrap(''); }
 
 /** the pieces a content icon is drawn from: the 64×64 SVG frame, the stroke attributes, legs and circles */
-export const iconParts = { svg: wrap, stroke: S, legs, circle } as const;
+export const iconParts: { readonly svg: (body: string, extra?: string) => string; readonly stroke: "fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\""; readonly legs: (xs: number[], top: number, h: number, w?: number) => string; readonly circle: (cx: number, cy: number, r: number) => string; } = { svg: wrap, stroke: S, legs, circle } as const;

@@ -12,15 +12,15 @@ interface Vec3 { x: number; y: number; z: number }
 /** m of water over the ground: shallower = wade on foot, deeper = swim (hysteresis below). */
 export const WADE_MAX = 1.1;
 /** Ground depth at which walking becomes swimming … */
-export const SWIM_IN = WADE_MAX + 0.1;
+export const SWIM_IN: number = WADE_MAX + 0.1;
 /** … and swimming becomes wading again (the seabed / a beach rising under you). */
-export const SWIM_OUT = WADE_MAX - 0.05;
+export const SWIM_OUT: number = WADE_MAX - 0.05;
 /** Knee-deep and up: no sprint. */
 export const NO_SPRINT_DEPTH = 0.6;
 /** The feet float this far under the surface: the eye (1.68 m) sits 0.35 m above it. */
-export const FLOAT_DEPTH = 1.68 - 0.35;
+export const FLOAT_DEPTH: number = 1.68 - 0.35;
 /** m/s, 60 % of walking (Hands.ts paces the stroke against it). */
-export const SWIM_SPEED = 4.3 * 0.6;
+export const SWIM_SPEED: number = 4.3 * 0.6;
 /** /s: sluggish in water. */
 const SWIM_ACCEL = 5;
 /** The spring to the float height (ω ≈ 3.7 rad/s) … */
