@@ -3,8 +3,10 @@ import { spawn } from 'node:child_process';
 import { resolve as resolvePath } from 'node:path';
 import {shardfileCacheRoot} from './shardfile-cache.mjs';
 
-/** @template T @param {readonly T[]} items @param {(item:T,signal:AbortSignal)=>Promise<void>} work */
-export async function runShardBuildPool(items, work) {
+/** @template T @param {readonly T[]} items @param {(item:T,signal:AbortSignal)=>Promise<void>} work
+ * @param {()=>Promise<unknown>} [prepare] */
+export async function runShardBuildPool(items, work, prepare) {
+  if (prepare !== undefined) await prepare();
   const controller = new AbortController();
   let next = 0;
   /** @type {{failed:boolean,failure:unknown}} */

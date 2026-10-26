@@ -18,6 +18,7 @@ import { quietCli } from './quiet-cli.mjs';
 import { productFolder, shardOutputs } from './shard-outputs.mjs';
 import { shardfileValidationRevision } from './shardfile-validation-revision.mjs';
 import { runShardBuild, runShardBuildPool } from './shard-build-pool.mjs';
+import { prepareProductBuildTools } from './product-build-tools.mjs';
 import { checkTileBake } from './tile-bakes.mjs';
 import { runtimeCopyIssues, productMapInput, publishProductMap, productFlags, productRecipe, readBuiltShardfile as selectBuiltShardfile } from './built-product.mjs';
 
@@ -147,7 +148,7 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
       rmSync(resolve(outputRoot,name),{recursive:true,force:true});
       onFailure(name,error);
     }
-  });
+  }, recorded ? () => prepareProductBuildTools(products.filter(row => selected === undefined || selected.includes(row.name)).map(row => row.name)) : undefined);
   } finally { inputHashes.flush(); }
   runtimeReport.sort((a,b)=>a.slug.localeCompare(b.slug));
   if (copyRuntime === 'closed') for (const report of runtimeReport) console.info(`runtime copy: ${JSON.stringify(report)}`);
