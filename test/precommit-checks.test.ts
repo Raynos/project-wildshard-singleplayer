@@ -1,5 +1,5 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- These tests own real tiny Git indexes and child processes.
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawn, spawnSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Fixture trees are removed when each check completes.
 import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve owned fixture paths.
@@ -39,6 +39,52 @@ test('parallel jobs share a deadline; a failed check survives another timeout', 
   expect(results[0]).toMatchObject({ code: 1, timedOut: false, output: 'observed refusal\n' });
   expect(results[1]).toMatchObject({ code: 124, timedOut: true });
   expect(performance.now() - start).toBeLessThan(900);
+});
+
+test('guard refusal cancellation drains only its own jobs without changing the deadline', async () => {
+  const controller = new AbortController();
+  const pending = runCommitJobs(resolve('.'), [
+    { name: 'owned pending job', command: [execPath, '-e', 'setTimeout(()=>{},10000)'] },
+  ], performance.now() + 30_000, undefined, controller.signal);
+  controller.abort();
+  expect(await pending).toEqual([{ name: 'owned pending job', code: 130, timedOut: false, cancelled: true, output: '' }]);
+  const skipped = await runCommitJobs(resolve('.'), [
+    { name: 'never start', command: [execPath, '-e', 'throw Error("must not start")'] },
+  ], performance.now() + 30_000, undefined, controller.signal);
+  expect(skipped).toEqual([{ name: 'never start', code: 130, timedOut: false, cancelled: true, output: '' }]);
+  expect(commitCheckFailed({ name: 'related tests', code: 130, timedOut: false, cancelled: true, output: 'observed refusal' })).toBe(true);
+});
+
+test('cancellation drains a detached descendant and preserves an unrelated owned control', async () => {
+  const controller = new AbortController(), cancel = (): void => { controller.abort(); };
+  const control = spawn(execPath, ['-e', 'setInterval(()=>{},1000)'], { stdio: 'ignore' });
+  const closed = new Promise<void>(_resolve => { control.once('close', () => { _resolve(); }); });
+  let descendant: number | undefined;
+  process.once('SIGUSR2', cancel);
+  try {
+    const result = await runCommitJobs(resolve('.'), [{ name: 'nested owner', command: [execPath, '-e',
+      `const {spawn}=require('node:child_process');const {writeSync}=require('node:fs');
+const child=spawn(process.execPath,['-e','setInterval(()=>{},1000)'],{detached:true,stdio:'ignore'});
+writeSync(1,String(child.pid));process.kill(${process.pid},'SIGUSR2');setTimeout(()=>{},10000);`],
+    }], performance.now() + 30_000, undefined, controller.signal);
+    expect(result[0]).toMatchObject({ code: 130, cancelled: true, timedOut: false });
+    const pid = Number(result[0]?.output);
+    if (Number.isSafeInteger(pid) && pid > 1) descendant = pid;
+    expect(Number.isSafeInteger(pid) && pid > 1).toBe(true);
+    const state = spawnSync('ps', ['-p', String(pid), '-o', 'stat='], { encoding: 'utf8' });
+    expect(state.status === 1 || /^\s*Z/u.test(state.stdout)).toBe(true);
+    const controlPid = control.pid;
+    if (controlPid === undefined) throw new Error('Missing independent fixture process');
+    expect(() => process.kill(controlPid, 0)).not.toThrow();
+  } finally {
+    process.removeListener('SIGUSR2', cancel);
+    control.kill('SIGKILL');
+    if (descendant !== undefined) {
+      try { process.kill(descendant, 'SIGKILL'); }
+      catch (error) { expect(error).toMatchObject({ code: 'ESRCH' }); }
+    }
+    await closed;
+  }
 });
 
 test('staged deletions are checked even while their working file still exists', async () => {

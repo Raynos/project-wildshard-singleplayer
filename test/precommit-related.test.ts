@@ -120,9 +120,20 @@ test('a beforeAll prerequisite refusal is not labelled an executed test failure'
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
+test('cancelling a related check cannot be used as a passing test skip', async () => {
+  const { root } = fixture(), controller = new AbortController();
+  try {
+    const index = readFileSync(resolve(root, '.git/index'));
+    controller.abort();
+    await expect(commitRelated(root, ['src/value.ts'], undefined, controller.signal)).rejects.toThrow('cancelled after another commit guard refused');
+    expect(readFileSync(resolve(root, '.git/index'))).toEqual(index);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
 test('a deadline preserves this worker red without mistaking nested fixture output for it', () => {
   const timedOut = { name: 'related tests', code: 124, timedOut: true, output: 'CF1 TEST FAILURE: own-token test/unit.test.ts: red' };
   expect(relatedTestFailed(timedOut, 'own-token')).toBe(true);
+  expect(relatedTestFailed({ ...timedOut, cancelled: true, code: 130 }, 'own-token')).toBe(true);
   expect(relatedTestFailed({ ...timedOut, output: '' }, 'own-token')).toBe(false);
   expect(relatedTestFailed(timedOut, 'outer-token')).toBe(false);
   expect(relatedTestFailed({ ...timedOut, name: 'types' }, 'own-token')).toBe(false);

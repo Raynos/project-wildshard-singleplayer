@@ -170,8 +170,10 @@ export function warmTypeJobs(root, files) {
 
 /** The injected deadline is for deterministic cap regressions; hooks use 60s.
  * Tooling fails open, observed test reds and staged TS6307 edges refuse.
- * @param {string} root @param {string[]} changed @param {number} [deadline] */
-export async function commitRelated(root, changed, deadline = relatedDeadline()) {
+ * Cancellation is a refusal too; only an already-fatal sibling guard uses it.
+ * @param {string} root @param {string[]} changed @param {number} [deadline] @param {AbortSignal} [signal] */
+export async function commitRelated(root, changed, deadline, signal) {
+  const until = deadline ?? relatedDeadline();
   const started = performance.now(), files = changed.filter(file => SOURCE.test(file));
   if (files.length === 0) { console.info('CF1: 0 staged source paths, 0 suites, 0 ms'); return; }
   console.info(`CF1: ${files.length} staged paths; related suite count follows collection`);
@@ -184,7 +186,7 @@ export async function commitRelated(root, changed, deadline = relatedDeadline())
     throw new CommitRelatedRefusalError(failures);
   }
   try {
-    if (performance.now() >= deadline) throw new Error('60-second commit deadline reached before selection');
+    if (performance.now() >= until) throw new Error('60-second commit deadline reached before selection');
     if (!existsSync(resolve(root, 'node_modules/vitest/vitest.mjs'))) throw new Error('Vitest is not installed');
     const jobs = warmTypeJobs(root, files);
     jobs.unshift({ name: 'related tests', command: [process.execPath, import.meta.filename, '--worker', JSON.stringify(files)] });
@@ -194,13 +196,17 @@ export async function commitRelated(root, changed, deadline = relatedDeadline())
       : Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_')));
     const token = randomUUID();
     let results;
-    try { results = await runCommitJobs(root, jobs, deadline, { ...env, VITEST_TMP_ROOT: temporary, WS_COMMIT_RELATED_TOKEN: token }); }
+    try { results = await runCommitJobs(root, jobs, until, { ...env, VITEST_TMP_ROOT: temporary, WS_COMMIT_RELATED_TOKEN: token }, signal); }
     finally { rmSync(temporary, { recursive: true, force: true }); }
     for (const result of results) {
       if (result.output !== '') console.error(result.output.trimEnd());
       if (relatedTestFailed(result, token)) failures.push('Related tests refused the staged selection');
       // Static candidate membership above is authoritative. A warm working-tree
       // compiler can also see unstaged peer files, so its diagnostics defer.
+      else if (result.cancelled) {
+        const message = `${result.name} cancelled after another commit guard refused`;
+        console.warn(`CF1: ${message}`); failures.push(message);
+      }
       else if (result.timedOut || result.code === 124) console.warn(`CF1 DEFERRED TO CI: ${result.name} reached the 60-second wall cap`);
       else if (result.code !== 0) console.warn(`CF1 DEFERRED TO CI: ${result.name} tooling/prerequisite failed (exit ${result.code})`);
     }

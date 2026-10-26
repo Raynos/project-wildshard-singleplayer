@@ -6,5 +6,5 @@ export function stagedInputOverride(root: string, staged: StagedFiles): Plugin;
 export function relatedDeadline(started?: string, wall?: number, clock?: number): number;
 export function relatedWorker(root: string, files: string[]): Promise<void>;
 export function warmTypeJobs(root: string, files: string[]): CommitJob[];
-export function commitRelated(root: string, changed: string[], deadline?: number): Promise<void>;
+export function commitRelated(root: string, changed: string[], deadline?: number, signal?: AbortSignal): Promise<void>;
 export function relatedTestFailed(result: CommitResult, token: string): boolean;

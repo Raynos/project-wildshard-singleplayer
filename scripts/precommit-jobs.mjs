@@ -1,30 +1,53 @@
-import { spawn } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
 
 /** @typedef {{name: string, command: string[], cwd?: string}} CommitJob */
-/** @typedef {{name: string, code: number, timedOut: boolean, output: string}} CommitResult */
+/** @typedef {{name: string, code: number, timedOut: boolean, output: string, cancelled?: boolean}} CommitResult */
 
 /** Every child shares one wall deadline, including its complete process group.
  * @param {string} root @param {CommitJob[]} jobs @param {number} deadline
- * @param {Record<string, string | undefined>} env @returns {Promise<CommitResult[]>} */
-export function runCommitJobs(root, jobs, deadline, env = process.env) {
+ * @param {Record<string, string | undefined>} [env] @param {AbortSignal} [signal] @returns {Promise<CommitResult[]>} */
+export function runCommitJobs(root, jobs, deadline, env, signal) {
+  const environment = env ?? process.env;
   return Promise.all(jobs.map(job => new Promise(resolve => {
+    if (signal?.aborted) { resolve({ name: job.name, code: 130, timedOut: false, cancelled: true, output: '' }); return; }
     const executable = job.command.at(0);
     if (executable === undefined) { resolve({ name: job.name, code: 1, timedOut: false, output: 'Empty commit command' }); return; }
-    const child = spawn(executable, job.command.slice(1), { cwd: job.cwd ?? root, env, detached: true, stdio: ['ignore', 'pipe', 'pipe'] });
-    let output = '', timedOut = false;
+    const child = spawn(executable, job.command.slice(1), { cwd: job.cwd ?? root, env: environment, detached: true, stdio: ['ignore', 'pipe', 'pipe'] });
+    let output = '', timedOut = false, cancelled = false;
     child.stdout.setEncoding('utf8'); child.stderr.setEncoding('utf8');
     /** @param {string} value */
     const append = value => { output += value; };
     child.stdout.on('data', append); child.stderr.on('data', append);
-    const timer = setTimeout(() => {
-      timedOut = true;
+    const stop = (descendants = false) => {
       if (child.pid !== undefined) {
+        // Nested hook fixtures can own detached grandchildren. Enumerate only
+        // this live child's ancestry before killing anything, so those jobs
+        // cannot survive cancellation by escaping its original process group.
+        if (descendants) try {
+          const rows = execFileSync('ps', ['-axo', 'pid=,ppid='], { encoding: 'utf8', timeout: 1000 }).trim().split('\n')
+            .map(row => row.trim().split(/\s+/u).map(Number));
+          const owned = [child.pid], seen = new Set(owned);
+          for (let index = 0; index < owned.length; index++) for (const [pid, parent] of rows) {
+            if (pid === undefined || !Number.isSafeInteger(pid) || pid <= 1 || parent !== owned[index] || seen.has(pid)) continue;
+            owned.push(pid); seen.add(pid);
+          }
+          for (const pid of owned.slice(1).reverse()) {
+            try { process.kill(pid, 'SIGKILL'); }
+            catch (error) { if (!(error instanceof Error && 'code' in error && error.code === 'ESRCH')) output += String(error); }
+          }
+        } catch (error) { output += `Owned descendant cleanup: ${String(error)}\n`; }
         try { process.kill(-child.pid, 'SIGKILL'); }
         catch (error) { if (!(error instanceof Error && 'code' in error && error.code === 'ESRCH')) output += String(error); }
       }
-    }, Math.max(0, deadline - performance.now()));
-    child.once('error', error => { clearTimeout(timer); resolve({ name: job.name, code: 1, timedOut, output: output + error.message }); });
-    child.once('close', code => { clearTimeout(timer); resolve({ name: job.name, code: timedOut ? 124 : code ?? 1, timedOut, output }); });
+    };
+    const cancel = () => { cancelled = true; stop(true); };
+    signal?.addEventListener('abort', cancel, { once: true });
+    const timer = setTimeout(() => { timedOut = true; stop(); }, Math.max(0, deadline - performance.now()));
+    const clean = () => { clearTimeout(timer); signal?.removeEventListener('abort', cancel); };
+    child.once('error', error => { clean(); resolve({ name: job.name, code: 1, timedOut, output: output + error.message }); });
+    child.once('close', code => {
+      clean(); resolve({ name: job.name, code: cancelled ? 130 : timedOut ? 124 : code ?? 1, timedOut, output, ...(cancelled ? { cancelled } : {}) });
+    });
   })));
 }
 
