@@ -2,15 +2,24 @@ import { expect,test,vi } from 'vitest';
 import { zlibSync } from 'fflate';
 import * as channels from '../src/engine/world/scalarChannel';
 import { defineShard,declaredGround,type ShardManifestRows } from '../src/game/shard/manifest';
-import { ScalarChannelSchema,ScalarLatticeSchema,type ScalarLatticeRows } from '../src/format/scalarChannel';
-import * as v from 'valibot';
+import type { ScalarLatticeRows } from '../src/format/scalarChannel';
 import nalati from '../src/shards/nalati-grasslands/discovery.generated';
 import { readNalatiGeography } from './fixtures/nalati-geography';
 
 const geography=readNalatiGeography();
 
-const raster = (value: number): ScalarLatticeRows => ({ res: 2,size: 500,values: { type: 'f32',count: 4,data: btoa(String.fromCodePoint(...zlibSync(new Uint8Array(new Float32Array(4).fill(value).buffer)))) } });
-const { scalarBlocks:_scalars,ground: _ground,groundColor: _colour,surfaceAt: _surface,forest: authoredForest,minimap: _map,...fixed } = nalati;
+const files=new Map<string,Uint8Array>();
+const raster = (value: number): ScalarLatticeRows => {
+  const file=`test/raster-${String(value)}.bin`;
+  files.set(file,zlibSync(new Uint8Array(new Float32Array(4).fill(value).buffer)));
+  return {res:2,size:500,values:{type:'f32',count:4,data:{file}}};
+};
+const prepare=(manifest:ReturnType<typeof defineShard>):void=>{
+  if(manifest.scalarBlocks===undefined)throw new Error('Missing sampled file intake');
+  for(const file of manifest.scalarBlocks.files)if(!files.has(file))throw new Error(`Fixture missing ${file}`);
+  manifest.scalarBlocks.prepare(files);
+};
+const { scalarBlocks:_scalars,ground: _ground,groundColor: _colour,surfaceAt: _surface,forest: authoredForest,minimap: _map,navmesh: _nav,...fixed } = nalati;
 if (authoredForest === undefined) throw new Error('Missing forest metadata');
 const { mask: _mask,...forest } = authoredForest;
 const base: ShardManifestRows = { ...fixed,forest,minimap: { palette: geography.map } };
@@ -20,11 +29,12 @@ function sampled(): ShardManifestRows {
 }
 
 test('manifest recipes retain the original complete decoder order and one native field',() => {
-  const order: (string|{file:string})[] = [],read = channels.readScalarLattice,decode = channels.readScalarChannel;
-  vi.spyOn(channels,'readScalarLattice').mockImplementation(input => { order.push(v.parse(ScalarLatticeSchema,input).values.data);return read(input); });
-  vi.spyOn(channels,'readScalarChannel').mockImplementation(input => { order.push(v.parse(ScalarChannelSchema,input).data);return decode(input); });
   const input = sampled(),manifest = defineShard(input,{}),terrain = manifest.ground.terrain,out: [number,number,number] = [0,0,0];
-  expect(order).toEqual([1,2,3,4,5,6,7,.25,8,9,10].map(value => raster(value).values.data));
+  const read=vi.spyOn(files,'get');
+  expect(()=>manifest.forest?.mask?.(0,0)).toThrow('not prepared');
+  prepare(manifest);
+  expect(read.mock.calls.map(([file])=>({file}))).toEqual([1,2,3,4,5,6,7,.25,8,9,10].map(value => raster(value).values.data));
+  read.mockRestore();
   if (terrain === undefined || manifest.groundColor === undefined || manifest.surfaceAt === undefined || manifest.minimap?.palette === undefined) throw new Error('Missing sampled bindings');
   expect(manifest.groundColor(0,0,Number.NaN,Infinity,terrain,out)).toBe(out);expect(out).toEqual([2,3,4]);
   expect(manifest.surfaceAt(0,0,Number.NaN,Infinity)).toEqual([5,6,7]);expect(manifest.forest?.mask?.(0,0)).toBe(1);
@@ -51,6 +61,7 @@ test('all sample shapes and mixed owner forms refuse before the first decode',()
 
 test('data mutations and independent declarations cannot redirect existing sampled callbacks',() => {
   const input = sampled(),first = defineShard(input,{}),second = defineShard(sampled(),{}),terrain = first.ground.terrain,out: [number,number,number] = [0,0,0];
+  prepare(first);prepare(second);
   if (terrain === undefined || first.groundColor === undefined) throw new Error('Missing native sample');
   if (input.groundColourSamples === undefined) throw new Error('Missing input samples');
   input.groundColourSamples[0].values.data = raster(99).values.data;
