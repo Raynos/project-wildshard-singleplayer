@@ -2,7 +2,7 @@
 import { mkdtempSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Bind only the explicitly authored model input root.
 import { resolve } from 'node:path';
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { build } from 'vite';
 import { createProjectGeneration, type ProjectGenerationContext } from '../src/sdk/projectGeneration';
 import { hashImmutableBytes } from '../src/sdk/immutable';
@@ -46,6 +46,46 @@ test('cold and new-context cache hits retain all original bytes and detached own
 test('missing authored models retain a named refusal before painting', async () => {
   const context: Pick<ProjectGenerationContext, 'cached'> = { cached: (_step, generate) => Promise.resolve(generate(new Map())) };
   await expect(nalatiModelPaintProgram(context)).rejects.toThrow('Missing authored Nalati model: horse-saddled.glb');
+});
+
+test('selected consumers keep original bytes, detached hits and distinct cache identities', async () => {
+  const cache = mkdtempSync(resolve('tmp/nalati-model-selection-'));
+  let generated = 0;
+  const context = (): Pick<ProjectGenerationContext, 'cached'> => {
+    const real = createProjectGeneration(resolve('src/shards/nalati-grasslands'), 'c'.repeat(64), new Map(), cache,
+      [{ prefix: '/assets/nalati/models/', directory: resolve('public/assets/nalati/models') }]);
+    return { cached: (step, make) => real.cached(step, inputs => { generated++; return make(inputs); }) };
+  };
+  const exact = (files: ReadonlyMap<string, Uint8Array>, names: readonly string[]): void => {
+    expect([...files.keys()]).toEqual(names);
+    for (const name of names) {
+      const bytes = files.get(name), pin = originals.find(row => row.file === name);
+      if (bytes === undefined || pin === undefined) throw new Error('Missing original selected model');
+      expect(bytes.byteLength, name).toBe(pin.bytes);
+      expect(hashImmutableBytes(bytes), name).toBe(pin.sha256);
+    }
+  };
+  const names = ['cauldron.glb', 'balbal.glb'];
+  try {
+    const selected = [...names], pending = nalatiModelPaintProgram(context(), selected);
+    selected.splice(0);
+    const cold = await pending; exact(cold, names);
+    for (const bytes of cold.values()) bytes.fill(0);
+    const hit = await nalatiModelPaintProgram(context(), names); exact(hit, names);
+    expect(generated).toBe(1);
+    exact(await nalatiModelPaintProgram(context(), ['cauldron.glb']), ['cauldron.glb']);
+    expect(generated).toBe(2);
+    exact(await nalatiModelPaintProgram(context(), names), names);
+    expect(generated).toBe(2);
+  } finally { rmSync(cache, { recursive: true, force: true }); }
+});
+
+test('invalid selections refuse before any authored input or cache request', async () => {
+  const cached = vi.fn(() => Promise.resolve(new Map<string, Uint8Array>()));
+  for (const selected of [[], ['cauldron.glb', 'cauldron.glb'], ['unknown.glb'], ['../cauldron.glb']]) {
+    await expect(nalatiModelPaintProgram({ cached }, selected)).rejects.toThrow('Invalid Nalati painted model selection');
+  }
+  expect(cached).not.toHaveBeenCalled();
 });
 
 for (const defect of ['missing', 'extra', 'truncated', 'magic', 'version', 'length'] as const) {
