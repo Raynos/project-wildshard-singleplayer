@@ -1,3 +1,6 @@
+import type { Game } from '@wildshard/engine/core/Game';
+import type { SkyRig } from '@wildshard/engine/world/skyRig';
+import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { BossBrain, type BossScript } from '@wildshard/engine/ai/BossBrain';
 import { app } from '@wildshard/engine/app/runtime';
@@ -29,7 +32,7 @@ export function pageCombatSession(scope: Scope, id: string): PageCombatSession {
  * Content supplies ids and policy values; callbacks, renderers and save owners
  * are never author inputs. Existing encounters retain their own update phase. */
 export class PageCombatSession {
-  readonly context;
+  readonly context: { game: Game; sky: SkyRig; player: Player; animals: AnimalManager; god: boolean; reach: (actor: Animal, target: { x: number; y: number; z: number; }) => boolean; hurt: (actor: Animal, amount: number, throughWalls?: boolean) => void; stun: (seconds: number) => void; trauma: (amount: number) => void; sound: (name: string, at: THREE.Vector3) => void; shot: (name: string, at: THREE.Vector3) => void; toast: (text: string) => void; feed: (text: string) => void; addItem: (id: ItemId, count?: number) => void; ownSkin: (id: SkinId) => void; dusk: () => number; night: () => number; };
   private readonly legsOwner;
   private readonly equipment;
   private readonly rows;

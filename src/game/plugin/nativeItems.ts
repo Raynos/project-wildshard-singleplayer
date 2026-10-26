@@ -14,7 +14,7 @@ import { worldHit, floorBelow } from '@wildshard/engine/physics/query';
 import { fieldGustAt, type WindFieldSpec } from '@wildshard/engine/world/windField';
 import { BowWeaponProfileSchema, parseNativeFirearmProfile } from '@wildshard/format/weaponProfiles';
 import { NativeRangedRowSchema } from '@wildshard/format/nativeItems';
-import { createNativeTargetQueries, installNativeMelee, type NativeTargetPose, type NativeSweptMeleeInput, type NativeSweptMeleeOwner } from './simulation';
+import { createNativeTargetQueries, installNativeMelee, type NativeTargetPose, type NativeSweptMeleeInput, type NativeSweptMeleeOwner, type NativeTargetHit } from './simulation';
 
 /** Mutable tick data owned by the native input boundary. It contains no clocks or executable shard hooks. */
 export interface NativeCombatFrame {
@@ -51,7 +51,7 @@ function published(body: AnimalSim): NativeTargetPose {
 }
 const targetQueries = createNativeTargetQueries<AnimalSim>({ pose: published });
 /** Same bounded ray/nearest-volume law, reading published contacts in roster order. */
-export const nativeRangedHit = targetQueries.ray;
+export const nativeRangedHit: (bodies: readonly AnimalSim[], origin: Vector3, direction: Vector3, max: number) => NativeTargetHit<AnimalSim> | null = targetQueries.ray;
 type BodyHit = NonNullable<ReturnType<typeof nativeRangedHit>>;
 const capRear = new Vector3(), capFront = new Vector3();
 function hasRibs(body: AnimalSim): body is AnimalSim & { ribsWorld: (out: Vector3) => Vector3 } {
@@ -78,7 +78,7 @@ function windAt(frame: NativeCombatFrame, x: number, z: number, out: Vector3): V
   out.x = wind.field.x * speed; out.z = wind.field.z * speed; return out;
 }
 
-function boltItem(host: SimHost, frame: NativeCombatFrame, row: Policy, input: unknown) {
+function boltItem(host: SimHost, frame: NativeCombatFrame, row: Policy, input: unknown) : { state: { loaded: boolean; quiver: number; reloading: boolean; reloadProgress: number; ammo: undefined; reserve: number; bolts: number; }; flying: () => number; addBolts: (amount: number) => void; } {
   const raw = parseNativeFirearmProfile(input, 'bolt'), projectile = raw.projectile;
   if (frame.ammo === '') frame.ammo = row.defaultAmmo;
   if (projectile.muzzle === undefined || raw.spreadAxisScale === undefined) throw new Error('Missing bolt launch');
@@ -214,7 +214,7 @@ const bowSaved = (profile: v.InferOutput<typeof BowWeaponProfileSchema>, capacit
   stuck: stoppedProjectileSaved(capacity),
 });
 
-function bowItem(host: SimHost, frame: NativeCombatFrame, row: Policy, input: unknown) {
+function bowItem(host: SimHost, frame: NativeCombatFrame, row: Policy, input: unknown) : { draw: BowDraw; state: { arrows: number; aim: string | null; }; flying: () => number; stuck: StoppedProjectileSlots<null, string>; } {
   const profile = v.parse(BowWeaponProfileSchema, input);
   if (row.shaft === undefined) throw new Error('Missing stopped projectile policy');
   const shaft = row.shaft;

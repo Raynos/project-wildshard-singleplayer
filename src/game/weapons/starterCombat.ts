@@ -4,7 +4,7 @@ import type { MeleeWeaponProfileSchema } from '@wildshard/format/weaponProfiles'
 type Swing = v.InferOutput<typeof MeleeWeaponProfileSchema>['moves']['combo'][number];
 
 /** Shared starter swords' authored combat parameters; the separate move recipes own poses, trails and camera response. */
-export const STARTER_MELEE_PROFILE = {
+export const STARTER_MELEE_PROFILE: { family: "melee"; damage: number; reach: number; swingScale: number; cooldown: number; comboGap: number; chainLag: number; heavyCharge: number; moves: { combo: [{ windup: number; slashEnd: number; total: number; damage: number; stagger: number; sweep: number; }, { windup: number; slashEnd: number; total: number; damage: number; stagger: number; sweep: number; }, { windup: number; slashEnd: number; total: number; damage: number; stagger: number; sweep: number; }]; heavy: { windup: number; slashEnd: number; total: number; damage: number; stagger: number; sweep: number; }; }; lunge: { range: number; heavyRange: number; cone: number; stop: number; speed: number; minTime: number; maxTime: number; }; sweep: { rays: number; extensions: number[]; step: number; maxSamples: number; maxHits: number; }; } = {
   family: 'melee', damage: 12, reach: 2.2, swingScale: 1,
   cooldown: 0.08, comboGap: 0.6, chainLag: 0.02, heavyCharge: 0.45,
   moves: { combo: [
@@ -16,4 +16,4 @@ export const STARTER_MELEE_PROFILE = {
   sweep: { rays: 5, extensions: [0.12, 0.24, 0.36, 0.48], step: 0.09, maxSamples: 6, maxHits: 8 },
 } satisfies v.InferOutput<typeof MeleeWeaponProfileSchema>;
 /** Existing iron upgrade changes only base contact damage. */
-export const IRON_MELEE_PROFILE = { ...STARTER_MELEE_PROFILE, damage: 28 };
+export const IRON_MELEE_PROFILE: { damage: number; family: "melee"; reach: number; swingScale: number; cooldown: number; comboGap: number; chainLag: number; heavyCharge: number; moves: { combo: [{ windup: number; slashEnd: number; total: number; damage: number; stagger: number; sweep: number; }, { windup: number; slashEnd: number; total: number; damage: number; stagger: number; sweep: number; }, { windup: number; slashEnd: number; total: number; damage: number; stagger: number; sweep: number; }]; heavy: { windup: number; slashEnd: number; total: number; damage: number; stagger: number; sweep: number; }; }; lunge: { range: number; heavyRange: number; cone: number; stop: number; speed: number; minTime: number; maxTime: number; }; sweep: { rays: number; extensions: number[]; step: number; maxSamples: number; maxHits: number; }; } = { ...STARTER_MELEE_PROFILE, damage: 28 };

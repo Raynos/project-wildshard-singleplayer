@@ -1,3 +1,14 @@
+import type { Scope } from '@wildshard/engine/app/scope';
+import type { Renderer } from '@wildshard/engine/render/renderer';
+import type { Shardfile } from '@wildshard/format/shardSchema';
+import type { clientMaterials } from './clientMaterials';
+
+import type { CompendiumState } from '../compendium/state';
+import type { DeclaredSoundBank } from '@wildshard/engine/audio/declaredBank';
+import type { AmbientFlockDraw } from '../ambient/ambientFlock';
+
+
+
 /**
  * G571 client features over a shard's declared forest page (Pine Hollow first; client-only):
  *
@@ -20,13 +31,13 @@ import type { ForestPageRows } from '@wildshard/format/forestPage';
 import type { ShardContext } from '../plugin/context';
 import { pageModeCap } from '../shard/pagePolicy';
 import { PosedDraw } from '../looks/posedInstances';
-import { rangedPage } from '../loadout/rangedPage';
-import { forestWeatherOwner, installForestWeather } from '../weather/forest';
-import { installPageLife } from '../population/pageLife';
+import { rangedPage, type RangedPage } from '../loadout/rangedPage';
+import { forestWeatherOwner, installForestWeather, type ForestWeatherRig } from '../weather/forest';
+import { installPageLife, type PageLife } from '../population/pageLife';
 import { CaveInterior } from './caveInterior';
-import { entryOwner, presentEntryOwner, publishEntryOwner } from './entryOwners';
-import { placeForestPageModels, prepareForestPage, prepareForestPageLooks } from './forestPage';
-import { lendLooks } from './lentLooks';
+import { entryOwner, presentEntryOwner, publishEntryOwner, type EntryOwnerKind, type EntryOwnerTypes } from './entryOwners';
+import { placeForestPageModels, prepareForestPage, prepareForestPageLooks, type ForestPage } from './forestPage';
+import { lendLooks, type LentLooks } from './lentLooks';
 import { punchPageTerrain } from './pagePreparation';
 import { bindPageWater } from './pageWater';
 import { runtimeLookMaterials } from './runtimeProduct';
@@ -36,7 +47,7 @@ type ForestPageRow = Extract<ClientFeatureRow, { kind: 'world.forest-page' }>;
 type PageLifeRow = Extract<ClientFeatureRow, { kind: 'page.life' }>;
 
 /** The platform owners the installers drive (tests pass fakes in; E422: no module mocks). */
-export const FOREST_PAGE_PORTS = {
+export const FOREST_PAGE_PORTS: { prepareForestPageLooks: (ctx: ShardContext, input: unknown) => Promise<void>; bindPageWater: (ctx: ShardContext, input: unknown) => void; prepareForestPage: (ctx: ShardContext, input: unknown) => Promise<ForestPage>; placeForestPageModels: (ctx: ShardContext, id: string) => Promise<void>; punchPageTerrain: (ctx: ShardContext, input: unknown) => Promise<void>; lendLooks: (scope: { onDispose: (run: () => void) => unknown; }, looks: LentLooks) => void; runtimeLookMaterials: (ctx: Pick<ShardContext, "scope" | "game"> | { readonly scope: Scope; readonly renderer: Renderer; }, source: Shardfile, graphs?: boolean, ids?: readonly string[]) => ReturnType<typeof clientMaterials>; library: (product: ShardContext["product"], name: string) => ReturnType<typeof PosedDraw.library>; loadCave: (rows: unknown, cap: number) => Promise<CaveInterior>; installForestWeather: (ctx: ShardContext, input: unknown) => Promise<ForestWeatherRig | null>; installPageLife: (ctx: ShardContext, input: unknown, journal?: CompendiumState | null, sounds?: DeclaredSoundBank | null, borrowed?: ReadonlyMap<string, AmbientFlockDraw>) => Promise<PageLife>; rangedPage: (scope: Scope, id: string) => RangedPage; entryOwner: <K extends EntryOwnerKind>(scope: Scope, kind: K, id: string) => EntryOwnerTypes[K]; publishEntryOwner: <K extends EntryOwnerKind>(scope: Scope, kind: K, id: string, value: EntryOwnerTypes[K]) => void; } = {
   prepareForestPageLooks, bindPageWater, prepareForestPage, placeForestPageModels, punchPageTerrain, lendLooks, runtimeLookMaterials,
   library: (product: ShardContext['product'], name: string): ReturnType<typeof PosedDraw.library> => PosedDraw.library(product, name),
   loadCave: (rows: unknown, cap: number): Promise<CaveInterior> => CaveInterior.load(rows, cap),
