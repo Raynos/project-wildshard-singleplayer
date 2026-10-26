@@ -14,6 +14,7 @@ import cragOriginal from './fixtures/nalati-crag-blob.json' with { type: 'json' 
 import dressingOriginal from './fixtures/nalati-dressing-blob.json' with { type: 'json' };
 import sceneOriginal from './fixtures/nalati-dressing-scenes.json' with { type: 'json' };
 import assemblyOriginal from './fixtures/nalati-headless-assembly.json' with { type: 'json' };
+import shapeBookOriginal from './fixtures/nalati-shape-book.json' with { type: 'json' };
 import * as v from 'valibot';
 import { discoverGeneration } from '../scripts/generate.mjs';
 
@@ -51,6 +52,12 @@ test('the actual output hook preserves every predecessor file cost and binary by
     if (assemblyBytes === undefined) throw new Error('Missing original native assembly bytes');
     expect(assemblyBytes.length).toBe(assemblyOriginal.compressed);
     expect(hashImmutableBytes(assemblyBytes)).toBe(assemblyOriginal.hash);
+    const shapeBook = hit.namedFiles.find(row => row.name === shapeBookOriginal.name);
+    expect(shapeBook).toEqual(shapeBookOriginal);
+    const shapeBytes = hit.assets.get(shapeBookOriginal.hash);
+    if (shapeBytes === undefined) throw new Error('Missing original native shape book');
+    expect(shapeBytes.length).toBe(shapeBookOriginal.compressed);
+    expect(hashImmutableBytes(shapeBytes)).toBe(shapeBookOriginal.hash);
     const readShelters = (output: Awaited<ReturnType<typeof prepareOutput>>) => {
       const file = output.namedFiles.find(row => row.name === assemblyOriginal.name);
       const bytes = file === undefined ? undefined : output.assets.get(file.hash);
@@ -63,7 +70,17 @@ test('the actual output hook preserves every predecessor file cost and binary by
       const files = await suppliedContext.cached(step, make);
       if (step.id !== 'places') return files;
       const changed = new Map(files);
-      changed.set('places.json', new TextEncoder().encode(JSON.stringify({ rows: [{ colliders: [{ x: 18, z: -25, hw: 3, hd: 3, yTop: 4, yBottom: 0 }] }] })));
+      const document = files.get('places.json');
+      if (document === undefined) throw new Error('Missing supplied native places');
+      const metadata = v.parse(v.looseObject({ rows: v.array(v.looseObject({ colliders: v.array(v.unknown()) })) }),
+        JSON.parse(new TextDecoder().decode(document)));
+      const rows: typeof metadata.rows = [];
+      for (const [index, row] of metadata.rows.entries()) {
+        const copy = { ...row };
+        copy.colliders = index === 0 ? [{ x: 18, z: -25, hw: 3, hd: 3, yTop: 4, yBottom: 0 }] : [];
+        rows.push(copy);
+      }
+      changed.set('places.json', new TextEncoder().encode(JSON.stringify({ ...metadata, rows })));
       return changed;
     } });
     expect(readShelters(supplied)).toEqual([[18, -25, 3 / .93]]);
