@@ -9608,7 +9608,6 @@
         "src/sdk/entries.ts",
         "src/sdk/package.json",
         "src/sdk/sceneTransform.ts",
-        "src/shards/far-reach/data/knolls.json",
         "src/shards/far-reach/data/layout.generated.json",
         "src/shards/far-reach/data/skyMapSources.json",
         "src/shards/far-reach/data/strings.json",
@@ -9619,7 +9618,10 @@
         "src/shards/far-reach/generators/rows/isletDesign.ts",
         "src/shards/far-reach/generators/rows/layoutTypes.ts",
         "src/shards/far-reach/generators/rows/skyIsles.ts",
-        "src/shards/far-reach/generators/rows/skyLook.ts"
+        "src/shards/far-reach/generators/rows/skyLook.ts",
+        "src/shards/far-reach/generators/knoll.ts",
+        "src/shards/far-reach/generators/piece.ts",
+        "src/shards/far-reach/generators/layoutMath.ts"
       ],
       "outputs": [
         "src/shards/far-reach/data/groundScene.generated.json"
