@@ -298,7 +298,10 @@ export function recordBuild(fn: () => void): Node[] {
 /** Where a build's uniform and update nodes come from: the compile (by graph position), the build itself (by the order it
  *  made them), or neither (older shared nodes: cached lights, camera and object singletons, by class). A program-source
  *  pack can restore a build positionally only when `other` is empty. */
-export interface BuildCensus { readonly compile: number; readonly made: number; readonly other: readonly string[] }
+export interface BuildCensus { readonly compile: number; readonly made: number; readonly other: readonly string[];
+  /** the graph's shape signature, hashed (FNV-1a, hex; null: no graph shape): builds of one graph share it (G743) */
+  readonly shape: string | null }
+const fnv = (text: string): string => { let h = 0x811c9dc5; for (let i = 0; i < text.length; i++) h = Math.imul(h ^ (text.codePointAt(i) ?? 0), 0x01000193); return (h >>> 0).toString(16); };
 export function buildCensus(output: BuildOutput, shape: GraphShape | null, made: readonly Node[]): BuildCensus {
   const compiled = new Set(shape?.nodes), built = new Set(made), other: string[] = [];
   let compile = 0, fresh = 0;
@@ -308,5 +311,5 @@ export function buildCensus(output: BuildOutput, shape: GraphShape | null, made:
     else if (built.has(node)) fresh++;
     else other.push(node.name === '' ? node.constructor.name : `${node.constructor.name}:${node.name}`);
   }
-  return { compile, made: fresh, other };
+  return { compile, made: fresh, other, shape: shape === null ? null : fnv(shape.signature) };
 }

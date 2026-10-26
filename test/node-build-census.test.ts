@@ -18,7 +18,8 @@ test('a build census splits uniform and update nodes into compile, build-made an
   expect(made).toContain(fresh);
   expect(made).not.toContain(compiled);
   const census = buildCensus(output([compiled, fresh, shared], [fresh]), { nodes: owner.compiled, signature: '' }, made);
-  expect(census).toEqual({ compile: 1, made: 1, other: ['UniformNode'] });
+  expect([census.compile, census.made, census.other]).toEqual([1, 1, ['UniformNode']]);
+  expect(census.shape).toMatch(/^[0-9a-f]+$/u);
 });
 
 test('recording nests with an owner run and leaves node ids as plain fields afterwards', () => {
