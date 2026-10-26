@@ -97,7 +97,7 @@ export const PLATFORM_DATA_SECTIONS: Readonly<{ [Name in keyof PlatformDataSecti
 
 /** Client feature inputs that remain legacy root envelopes. These defining
  * schemas do not become independent platform sections or leave root assembly. */
-export const CLIENT_ENVELOPE_SECTIONS = { 'world/movers': { schema: WorldMoversSchema } } as const;
+export const CLIENT_ENVELOPE_SECTIONS: { readonly 'world/movers': { readonly schema: typeof WorldMoversSchema } } = { 'world/movers': { schema: WorldMoversSchema } } as const;
 
 /** An explicitly declared new platform-section name; no shard-private name is inferred. */
 export type PlatformDataSectionName = keyof PlatformDataSections;

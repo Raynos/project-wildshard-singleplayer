@@ -56,11 +56,11 @@ import { PostStackSchema, postStackRules } from '@wildshard/format/postStack';
 const channel = v.pipe(finite, v.minValue(0), v.maxValue(1));
 const colour = v.tuple([channel, channel, channel]);
 const unsigned = v.pipe(finite, v.minValue(0));
-const key = v.strictObject({ time: channel, sky: v.strictObject({ zenith: colour, horizon: colour }), fog: v.strictObject({ colour, density: unsigned, near: v.optional(unsigned), far: v.optional(unsigned) }), sun: v.strictObject({ colour, intensity: unsigned }), ambient: v.strictObject({ sky: colour, ground: colour, intensity: unsigned }) });
-const day = v.strictObject({ minutes: v.pipe(finite, v.minValue(1), v.maxValue(1440)), start: channel, maxElevation: v.pipe(finite, v.minValue(0), v.maxValue(90)), azimuth: v.pipe(finite, v.minValue(-180), v.maxValue(180)) });
+const key: v.GenericSchema<DayKeyRowsInput, DayKeyRows> = v.strictObject({ time: channel, sky: v.strictObject({ zenith: colour, horizon: colour }), fog: v.strictObject({ colour, density: unsigned, near: v.optional(unsigned), far: v.optional(unsigned) }), sun: v.strictObject({ colour, intensity: unsigned }), ambient: v.strictObject({ sky: colour, ground: colour, intensity: unsigned }) });
+const day: v.GenericSchema<DayRowsInput, DayRows> = v.strictObject({ minutes: v.pipe(finite, v.minValue(1), v.maxValue(1440)), start: channel, maxElevation: v.pipe(finite, v.minValue(0), v.maxValue(90)), azimuth: v.pipe(finite, v.minValue(-180), v.maxValue(180)) });
 /** A colour LUT file's exact wire size: 33³ RGBA8 (the engine's render/lut format). */
-export const LOOK_LUT_BYTES = 33 ** 3 * 4;
-const rawSchema = v.strictObject({
+export const LOOK_LUT_BYTES: number = 33 ** 3 * 4;
+const rawSchema: v.GenericSchema<ShardfileRowsInput, ShardfileRows> & { readonly entries: { readonly [Key in keyof ShardfileRows]-?: v.GenericSchema<ShardfileRowsInput[Key], ShardfileRows[Key]> } } = v.strictObject({
   version: v.literal(SHARDFILE_VERSION),
   accent: AccentSchema,
   identity: IdentitySchema,
@@ -344,3 +344,253 @@ export const ShardfileSchema: v.GenericSchema<unknown, Shardfile> = v.pipe(v.unk
   v.check((s) => entrywayRules(s).length === 0, 'illegal shard: entryway openings must meet road height y=0'), v.check((s) => shardfileRules(s).length === 0, 'shardfile semantic rules'));
 /** Parse untrusted JSON as a validated shardfile, or throw a Valibot error. */
 export function parseShardfile(input: unknown): Shardfile { return v.parse(ShardfileSchema, input); }
+
+/** Admitted data contracts, independent of validator implementation metadata. */
+interface ShardfileRowsInputFields {
+    version: (typeof SHARDFILE_VERSION);
+    accent: v.InferInput<typeof AccentSchema>;
+    identity: v.InferInput<typeof IdentitySchema>;
+    presentation?: v.InferInput<typeof PresentationSchema>;
+    manifest?: v.InferInput<typeof ManifestMetadataSchema>;
+    map?: v.InferInput<typeof MapSchema>;
+    requires: v.InferInput<typeof RequiresSchema>;
+    budgets: v.InferInput<typeof BudgetsSchema>;
+    look: {
+        families: v.InferInput<typeof names>;
+        materials?: v.InferInput<typeof MaterialsSchema> | undefined;
+        familyLooks?: v.InferInput<typeof FamilyLooksSchema> | undefined;
+        curves?: v.InferInput<typeof MaterialCurvesSchema>;
+        samplers?: v.InferInput<typeof TextureSamplersSchema>;
+        post?: v.InferInput<typeof PostStackSchema>;
+        grade: {
+            exposure: v.InferInput<typeof finite>;
+            saturation: v.InferInput<typeof finite>;
+            contrast: v.InferInput<typeof finite>;
+            lut: (v.InferInput<typeof ref>) | null;
+        };
+        clock: 'engine';
+        day?: DayRowsInput | undefined;
+        dayOverride: (v.InferInput<typeof finite>) | null;
+        keys: (DayKeyRowsInput)[];
+    };
+    sim: v.InferInput<typeof SimSchema>;
+    state: v.InferInput<typeof StateSchema>;
+    migrations?: unknown;
+    authorCaps: v.InferInput<typeof AuthorCapsSchema>;
+    serverBudget: v.InferInput<typeof ServerBudgetSchema>;
+    edge: v.InferInput<typeof EdgeProfilesSchema>;
+    entryways: v.InferInput<typeof EntrywaysSchema>;
+    movers?: v.InferInput<typeof MoversSchema> | undefined;
+    modes?: v.InferInput<typeof ModesSchema>;
+    files: v.InferInput<typeof FilesSchema>;
+    tiles: v.InferInput<typeof TilesSchema>;
+    library: v.InferInput<typeof LibrarySchema>;
+    critical: v.InferInput<typeof CriticalSchema>;
+    far: v.InferInput<typeof FarSchema>;
+    near?: v.InferInput<typeof NearPlaceholderSchema>;
+    ui?: v.InferInput<typeof UiSchema> | undefined;
+    rows?: unknown;
+    terrain?: (v.InferInput<typeof TerrainSchema>) | null | undefined;
+    meshCollision?: (v.InferInput<typeof MeshCollisionSchema>) | null | undefined;
+    navigation?: (v.InferInput<typeof NavigationSchema>) | null | undefined;
+    nativeGround?: (v.InferInput<typeof NativeGroundSchema>) | null | undefined;
+    water?: v.InferInput<typeof WaterSchema> | undefined;
+    creatures?: v.InferInput<typeof CreaturesSchema> | undefined;
+    crowds?: (v.InferInput<typeof FlockSchema>)[] | undefined;
+    encounters?: v.InferInput<typeof EncountersSchema> | undefined;
+    directors?: v.InferInput<typeof DirectorsSchema>;
+    quests?: v.InferInput<typeof QuestDataSchema> | undefined;
+    questNpcs?: v.InferInput<typeof QuestNpcBindingsSchema>;
+    questHost?: unknown;
+    audio?: unknown;
+    ledger?: v.InferInput<typeof LedgerRulesSchema> | undefined;
+    hooks?: v.InferInput<typeof HooksSchema> | undefined;
+    plumbing?: unknown;
+    items?: unknown;
+    props?: unknown;
+    targets?: v.InferInput<typeof TargetsSchema> | undefined;
+    traversal?: v.InferInput<typeof TraversalSchema> | undefined;
+    clientScripts?: v.InferInput<typeof ClientScriptsSchema> | undefined;
+    clientChannels?: v.InferInput<typeof ClientChannelsSchema>;
+    runtime?: (v.InferInput<typeof RuntimeSchema>) | null | undefined;
+    spawn?: v.InferInput<typeof SpawnSchema> | undefined;
+}
+export type ShardfileRowsInput = { [Key in keyof ShardfileRowsInputFields]: ShardfileRowsInputFields[Key] };
+interface ShardfileRowsFields {
+    version: (typeof SHARDFILE_VERSION);
+    accent: v.InferOutput<typeof AccentSchema>;
+    identity: v.InferOutput<typeof IdentitySchema>;
+    presentation?: v.InferOutput<typeof PresentationSchema>;
+    manifest?: v.InferOutput<typeof ManifestMetadataSchema>;
+    map?: v.InferOutput<typeof MapSchema>;
+    requires: v.InferOutput<typeof RequiresSchema>;
+    budgets: v.InferOutput<typeof BudgetsSchema>;
+    look: {
+        families: v.InferOutput<typeof names>;
+        materials: v.InferOutput<typeof MaterialsSchema>;
+        familyLooks: v.InferOutput<typeof FamilyLooksSchema>;
+        curves?: v.InferOutput<typeof MaterialCurvesSchema>;
+        samplers?: v.InferOutput<typeof TextureSamplersSchema>;
+        post?: v.InferOutput<typeof PostStackSchema>;
+        grade: {
+            exposure: v.InferOutput<typeof finite>;
+            saturation: v.InferOutput<typeof finite>;
+            contrast: v.InferOutput<typeof finite>;
+            lut: (v.InferOutput<typeof ref>) | null;
+        };
+        clock: 'engine';
+        day?: DayRows | undefined;
+        dayOverride: (v.InferOutput<typeof finite>) | null;
+        keys: (DayKeyRows)[];
+    };
+    sim: v.InferOutput<typeof SimSchema>;
+    state: v.InferOutput<typeof StateSchema>;
+    migrations: v.InferOutput<typeof MigrationsSchema>;
+    authorCaps: v.InferOutput<typeof AuthorCapsSchema>;
+    serverBudget: v.InferOutput<typeof ServerBudgetSchema>;
+    edge: v.InferOutput<typeof EdgeProfilesSchema>;
+    entryways: v.InferOutput<typeof EntrywaysSchema>;
+    movers: v.InferOutput<typeof MoversSchema>;
+    modes?: v.InferOutput<typeof ModesSchema>;
+    files: v.InferOutput<typeof FilesSchema>;
+    tiles: v.InferOutput<typeof TilesSchema>;
+    library: v.InferOutput<typeof LibrarySchema>;
+    critical: v.InferOutput<typeof CriticalSchema>;
+    far: v.InferOutput<typeof FarSchema>;
+    near?: v.InferOutput<typeof NearPlaceholderSchema>;
+    ui: v.InferOutput<typeof UiSchema>;
+    rows: v.InferOutput<typeof RowsSchema>;
+    terrain: (v.InferOutput<typeof TerrainSchema>) | null;
+    meshCollision: (v.InferOutput<typeof MeshCollisionSchema>) | null;
+    navigation: (v.InferOutput<typeof NavigationSchema>) | null;
+    nativeGround: (v.InferOutput<typeof NativeGroundSchema>) | null;
+    water: v.InferOutput<typeof WaterSchema>;
+    creatures: v.InferOutput<typeof CreaturesSchema>;
+    crowds: (v.InferOutput<typeof FlockSchema>)[];
+    encounters: v.InferOutput<typeof EncountersSchema>;
+    directors?: v.InferOutput<typeof DirectorsSchema>;
+    quests: v.InferOutput<typeof QuestDataSchema>;
+    questNpcs?: v.InferOutput<typeof QuestNpcBindingsSchema>;
+    questHost?: (v.InferOutput<typeof QuestHostSchema>) | null;
+    audio: v.InferOutput<typeof AudioDataSchema>;
+    ledger: v.InferOutput<typeof LedgerRulesSchema>;
+    hooks: v.InferOutput<typeof HooksSchema>;
+    plumbing: (v.InferOutput<typeof PlumbingSchema>) | null;
+    items: v.InferOutput<typeof ItemsSchema>;
+    props: (v.InferOutput<typeof PropsSchema>) | null;
+    targets: v.InferOutput<typeof TargetsSchema>;
+    traversal: v.InferOutput<typeof TraversalSchema>;
+    clientScripts: v.InferOutput<typeof ClientScriptsSchema>;
+    clientChannels?: v.InferOutput<typeof ClientChannelsSchema>;
+    runtime: (v.InferOutput<typeof RuntimeSchema>) | null;
+    spawn: v.InferOutput<typeof SpawnSchema>;
+}
+export type ShardfileRows = { [Key in keyof ShardfileRowsFields]: ShardfileRowsFields[Key] };
+interface DayKeyRowsInputFields {
+    time: v.InferInput<typeof finite>;
+    sky: {
+        zenith: [
+            v.InferInput<typeof finite>,
+            v.InferInput<typeof finite>,
+            v.InferInput<typeof finite>
+        ];
+        horizon: [
+            v.InferInput<typeof finite>,
+            v.InferInput<typeof finite>,
+            v.InferInput<typeof finite>
+        ];
+    };
+    fog: {
+        colour: [
+            v.InferInput<typeof finite>,
+            v.InferInput<typeof finite>,
+            v.InferInput<typeof finite>
+        ];
+        density: v.InferInput<typeof finite>;
+        near?: v.InferInput<typeof finite> | undefined;
+        far?: v.InferInput<typeof finite> | undefined;
+    };
+    sun: {
+        colour: [
+            v.InferInput<typeof finite>,
+            v.InferInput<typeof finite>,
+            v.InferInput<typeof finite>
+        ];
+        intensity: v.InferInput<typeof finite>;
+    };
+    ambient: {
+        sky: [
+            v.InferInput<typeof finite>,
+            v.InferInput<typeof finite>,
+            v.InferInput<typeof finite>
+        ];
+        ground: [
+            v.InferInput<typeof finite>,
+            v.InferInput<typeof finite>,
+            v.InferInput<typeof finite>
+        ];
+        intensity: v.InferInput<typeof finite>;
+    };
+}
+export type DayKeyRowsInput = { [Key in keyof DayKeyRowsInputFields]: DayKeyRowsInputFields[Key] };
+interface DayKeyRowsFields {
+    time: v.InferOutput<typeof finite>;
+    sky: {
+        zenith: [
+            v.InferOutput<typeof finite>,
+            v.InferOutput<typeof finite>,
+            v.InferOutput<typeof finite>
+        ];
+        horizon: [
+            v.InferOutput<typeof finite>,
+            v.InferOutput<typeof finite>,
+            v.InferOutput<typeof finite>
+        ];
+    };
+    fog: {
+        colour: [
+            v.InferOutput<typeof finite>,
+            v.InferOutput<typeof finite>,
+            v.InferOutput<typeof finite>
+        ];
+        density: v.InferOutput<typeof finite>;
+        near?: v.InferOutput<typeof finite> | undefined;
+        far?: v.InferOutput<typeof finite> | undefined;
+    };
+    sun: {
+        colour: [
+            v.InferOutput<typeof finite>,
+            v.InferOutput<typeof finite>,
+            v.InferOutput<typeof finite>
+        ];
+        intensity: v.InferOutput<typeof finite>;
+    };
+    ambient: {
+        sky: [
+            v.InferOutput<typeof finite>,
+            v.InferOutput<typeof finite>,
+            v.InferOutput<typeof finite>
+        ];
+        ground: [
+            v.InferOutput<typeof finite>,
+            v.InferOutput<typeof finite>,
+            v.InferOutput<typeof finite>
+        ];
+        intensity: v.InferOutput<typeof finite>;
+    };
+}
+export type DayKeyRows = { [Key in keyof DayKeyRowsFields]: DayKeyRowsFields[Key] };
+interface DayRowsInputFields {
+    minutes: v.InferInput<typeof finite>;
+    start: v.InferInput<typeof finite>;
+    maxElevation: v.InferInput<typeof finite>;
+    azimuth: v.InferInput<typeof finite>;
+}
+export type DayRowsInput = { [Key in keyof DayRowsInputFields]: DayRowsInputFields[Key] };
+interface DayRowsFields {
+    minutes: v.InferOutput<typeof finite>;
+    start: v.InferOutput<typeof finite>;
+    maxElevation: v.InferOutput<typeof finite>;
+    azimuth: v.InferOutput<typeof finite>;
+}
+export type DayRows = { [Key in keyof DayRowsFields]: DayRowsFields[Key] };

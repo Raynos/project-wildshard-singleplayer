@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import { isJsonData } from './json';
 import { NavigationSchema } from './navigation';
-import { parseCapturePoses } from './minimap';
+import { parseCapturePoses, type CapturePoseRows } from './minimap';
 
 const text = v.pipe(v.string(), v.minLength(1), v.maxLength(4096));
 const finite = v.pipe(v.number(), v.finite());
@@ -44,8 +44,8 @@ const fields = {
   'boot.lateReads': v.exactOptional(v.union([strings, modes(strings)])),
   'boot.explore': v.exactOptional(v.strictObject({ art: strings })),
 };
-const schema = v.strictObject(fields);
-export type DiscoveryValues = v.InferOutput<typeof schema>;
+const schema: v.GenericSchema<DiscoveryValuesInput, DiscoveryValues> = v.strictObject(fields);
+
 /** Source programs may supply only these finite data bindings, not entry/load/render authority. */
 export type DiscoveryInput = Readonly<Partial<Record<keyof DiscoveryValues, unknown>>>;
 
@@ -55,3 +55,315 @@ export function parseDiscoveryValues(input: unknown): DiscoveryValues {
   const checked = v.parse(schema, input);
   return structuredClone(checked);
 }
+
+/** Exact admitted data, independent of validator implementation metadata. */
+interface DiscoveryValuesInputFields {
+    budgets?: {
+        phone?: {
+            fps: number;
+            variability: number;
+            cpuMs: number;
+            gcMs: number;
+            systems: Record<string, number>;
+            vertexShare: number;
+            lanes: Record<string, number>;
+            linkMs: number;
+        };
+        desktop?: {
+            fps: number;
+            variability: number;
+            cpuMs: number;
+            gcMs: number;
+            systems: Record<string, number>;
+            vertexShare: number;
+            lanes: Record<string, number>;
+            linkMs: number;
+        };
+        ceilings?: {
+            phone?: Record<string, {
+                    draws?: number;
+                    tris?: number;
+                    programs?: number;
+                    gpuMB?: number;
+                }>;
+            desktop?: Record<string, {
+                    draws?: number;
+                    tris?: number;
+                    programs?: number;
+                    gpuMB?: number;
+                }>;
+        };
+        load?: {
+            coldPlay4G: number | null;
+            fixedSeconds: number;
+            cpuRatio: number;
+            bytesPerSecond: number;
+        };
+    };
+    navigation?: {
+        navigation: {
+            version: 1;
+            layout: "wsnm-v1-le-quantized";
+            file: string;
+            bounds: [
+                number,
+                number,
+                number,
+                number,
+                number,
+                number
+            ];
+            layers: {
+                radius: number;
+                height: number;
+                climb: number;
+                cellSize: number;
+                cellHeight: number;
+                origin: [
+                    number,
+                    number,
+                    number
+                ];
+                tileSize: number;
+                tiles: [
+                    number,
+                    number
+                ][];
+            }[];
+        };
+        url: string;
+    } & Record<string, unknown>;
+    mapPalette?: unknown;
+    poses?: unknown;
+    audioCues?: Record<string, string>;
+    'boot.files'?: string[] | {
+        modes: {
+            phone: {
+                img: string[];
+                ktx2: string[];
+            };
+            desktop: {
+                img: string[];
+                ktx2: string[];
+            };
+        };
+    } | {
+        sources: {
+            modes: {
+                phone: {
+                    img: Record<string, string[]>;
+                    ktx2: Record<string, string[]>;
+                };
+                desktop: {
+                    img: Record<string, string[]>;
+                    ktx2: Record<string, string[]>;
+                };
+            };
+        } | {
+            tiers: {
+                phone: Record<string, (string | {
+                        gpu: string;
+                    })[]>;
+                desktop: Record<string, (string | {
+                        gpu: string;
+                    })[]>;
+            };
+            gpuFiles?: Record<string, unknown>;
+        };
+        tier: "phone" | "desktop";
+        tex: "img" | "ktx2";
+    };
+    'boot.sources'?: {
+        modes: {
+            phone: {
+                img: Record<string, string[]>;
+                ktx2: Record<string, string[]>;
+            };
+            desktop: {
+                img: Record<string, string[]>;
+                ktx2: Record<string, string[]>;
+            };
+        };
+    } | {
+        tiers: {
+            phone: Record<string, (string | {
+                    gpu: string;
+                })[]>;
+            desktop: Record<string, (string | {
+                    gpu: string;
+                })[]>;
+        };
+        gpuFiles?: Record<string, unknown>;
+    };
+    'boot.lateReads'?: string[] | {
+        modes: {
+            phone: {
+                img: string[];
+                ktx2: string[];
+            };
+            desktop: {
+                img: string[];
+                ktx2: string[];
+            };
+        };
+    };
+    'boot.explore'?: {
+        art: string[];
+    };
+}
+export type DiscoveryValuesInput = { [Key in keyof DiscoveryValuesInputFields]: DiscoveryValuesInputFields[Key] };
+interface DiscoveryValuesFields {
+    budgets?: {
+        phone?: {
+            fps: number;
+            variability: number;
+            cpuMs: number;
+            gcMs: number;
+            systems: Record<string, number>;
+            vertexShare: number;
+            lanes: Record<string, number>;
+            linkMs: number;
+        };
+        desktop?: {
+            fps: number;
+            variability: number;
+            cpuMs: number;
+            gcMs: number;
+            systems: Record<string, number>;
+            vertexShare: number;
+            lanes: Record<string, number>;
+            linkMs: number;
+        };
+        ceilings?: {
+            phone?: Record<string, {
+                    draws?: number;
+                    tris?: number;
+                    programs?: number;
+                    gpuMB?: number;
+                }>;
+            desktop?: Record<string, {
+                    draws?: number;
+                    tris?: number;
+                    programs?: number;
+                    gpuMB?: number;
+                }>;
+        };
+        load?: {
+            coldPlay4G: number | null;
+            fixedSeconds: number;
+            cpuRatio: number;
+            bytesPerSecond: number;
+        };
+    };
+    navigation?: {
+        navigation: {
+            version: 1;
+            layout: "wsnm-v1-le-quantized";
+            file: string;
+            bounds: [
+                number,
+                number,
+                number,
+                number,
+                number,
+                number
+            ];
+            layers: {
+                radius: number;
+                height: number;
+                climb: number;
+                cellSize: number;
+                cellHeight: number;
+                origin: [
+                    number,
+                    number,
+                    number
+                ];
+                tileSize: number;
+                tiles: [
+                    number,
+                    number
+                ][];
+            }[];
+        };
+        url: string;
+    } & Record<string, unknown>;
+    mapPalette?: unknown;
+    poses?: CapturePoseRows;
+    audioCues?: Record<string, string>;
+    'boot.files'?: string[] | {
+        modes: {
+            phone: {
+                img: string[];
+                ktx2: string[];
+            };
+            desktop: {
+                img: string[];
+                ktx2: string[];
+            };
+        };
+    } | {
+        sources: {
+            modes: {
+                phone: {
+                    img: Record<string, string[]>;
+                    ktx2: Record<string, string[]>;
+                };
+                desktop: {
+                    img: Record<string, string[]>;
+                    ktx2: Record<string, string[]>;
+                };
+            };
+        } | {
+            tiers: {
+                phone: Record<string, (string | {
+                        gpu: string;
+                    })[]>;
+                desktop: Record<string, (string | {
+                        gpu: string;
+                    })[]>;
+            };
+            gpuFiles?: Record<string, unknown>;
+        };
+        tier: "phone" | "desktop";
+        tex: "img" | "ktx2";
+    };
+    'boot.sources'?: {
+        modes: {
+            phone: {
+                img: Record<string, string[]>;
+                ktx2: Record<string, string[]>;
+            };
+            desktop: {
+                img: Record<string, string[]>;
+                ktx2: Record<string, string[]>;
+            };
+        };
+    } | {
+        tiers: {
+            phone: Record<string, (string | {
+                    gpu: string;
+                })[]>;
+            desktop: Record<string, (string | {
+                    gpu: string;
+                })[]>;
+        };
+        gpuFiles?: Record<string, unknown>;
+    };
+    'boot.lateReads'?: string[] | {
+        modes: {
+            phone: {
+                img: string[];
+                ktx2: string[];
+            };
+            desktop: {
+                img: string[];
+                ktx2: string[];
+            };
+        };
+    };
+    'boot.explore'?: {
+        art: string[];
+    };
+}
+export type DiscoveryValues = { [Key in keyof DiscoveryValuesFields]: DiscoveryValuesFields[Key] };

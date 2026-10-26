@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { isJsonData } from './json';
-import { NativeGroundFileSchema, nativeBodySchema, nativeColliderRecordSchema } from './nativePhysics';
+import { NativeGroundFileSchema, nativeBodySchema, nativeColliderRecordSchema, type NativeGroundFile, type NativeColliderRecord, type NativeArrayStorage } from './nativePhysics';
 
 const finite = v.pipe(v.number(), v.finite());
 const triple = v.tuple([finite, finite, finite]);
@@ -24,7 +24,7 @@ function world(rig: 'segments' | 'axis', provenance: 'piece' | 'tagged') {
     herds: v.pipe(v.array(v.strictObject({ kind: v.string(), members: v.pipe(v.array(v.string()), v.maxLength(4096)) })), v.maxLength(4096)) });
 }
 
-const raw = v.union([world('segments', 'piece'), world('axis', 'tagged')]);
+const raw: v.GenericSchema<NativeWorldInput, NativeWorld> = v.union([world('segments', 'piece'), world('axis', 'tagged')]);
 /** Common raw native world bytes; owner metadata and decoded buffers never enter this platform section. */
 export type WorldPhysics = v.InferOutput<typeof raw>;
 
@@ -38,3 +38,255 @@ export const WorldPhysicsSchema: v.GenericSchema<unknown, WorldPhysics> = v.pipe
 
 /** Admission before section emission or publication; consumer-owned byte/lattice/encounter checks still run. */
 export function parseWorldPhysics(input: unknown): WorldPhysics { return v.parse(WorldPhysicsSchema, input); }
+
+/** Exact admitted data, independent of validator implementation metadata. */
+interface NativeWorldInputFields {
+    version: 1;
+    rig: "segments" | "axis";
+    provenance: "piece" | "tagged";
+    ground: {
+        rows: number;
+        cols: number;
+        heights: unknown;
+        friction: number;
+        groups: number;
+        scale: {
+            x: number;
+            y: number;
+            z: number;
+        };
+        at: {
+            x: number;
+            y: number;
+            z: number;
+        };
+    };
+    solids: unknown[];
+    actors: {
+        herd: number;
+        scripted?: boolean;
+        pose?: {
+            joints: {
+                name: string;
+                parent: number;
+                position: [
+                    number,
+                    number,
+                    number
+                ];
+                order: "XYZ" | "YXZ" | "ZXY" | "ZYX" | "YZX" | "XZY";
+                scale: [
+                    number,
+                    number,
+                    number
+                ];
+            }[];
+            custom: boolean;
+            gait?: {
+                trot: number;
+                gallop: number;
+            };
+            pose?: {
+                grazeNeck: number;
+                gallopTail: number;
+            };
+        };
+        at?: {
+            x: number;
+            z: number;
+        } | null;
+        id: string;
+        kind: string;
+        variant: string;
+        spec: unknown;
+        seed: number;
+        scale: number;
+    }[];
+    parked?: {
+        id: string;
+        kind: string;
+        variant: string;
+        spec: unknown;
+        seed: number;
+        scale: number;
+    }[];
+    herds: {
+        kind: string;
+        members: string[];
+    }[];
+}
+export type NativeWorldInput = { [Key in keyof NativeWorldInputFields]: NativeWorldInputFields[Key] };
+interface NativeWorldFields {
+    version: 1;
+    rig: "segments" | "axis";
+    provenance: "piece" | "tagged";
+    ground: {
+        rows: number;
+        cols: number;
+        heights: string | NativeGroundFile;
+        friction: number;
+        groups: number;
+        scale: {
+            x: number;
+            y: number;
+            z: number;
+        };
+        at: {
+            x: number;
+            y: number;
+            z: number;
+        };
+    };
+    solids: NativeColliderRecord<1 | 2 | 6 | 9, NativeArrayStorage>[];
+    actors: {
+        herd: number;
+        scripted?: boolean;
+        pose?: {
+            joints: {
+                name: string;
+                parent: number;
+                position: [
+                    number,
+                    number,
+                    number
+                ];
+                order: "XYZ" | "YXZ" | "ZXY" | "ZYX" | "YZX" | "XZY";
+                scale: [
+                    number,
+                    number,
+                    number
+                ];
+            }[];
+            custom: boolean;
+            gait?: {
+                trot: number;
+                gallop: number;
+            };
+            pose?: {
+                grazeNeck: number;
+                gallopTail: number;
+            };
+        };
+        at?: {
+            x: number;
+            z: number;
+        } | null;
+        id: string;
+        kind: string;
+        variant: string;
+        spec: {
+            kind: string;
+            label: string;
+            variant: string;
+            rarity: "common" | "uncommon" | "rare" | "legendary";
+            hp: number;
+            aggressive: boolean;
+            lockable?: boolean;
+            dims: {
+                bodyY: number;
+                bodyHalfLen: number;
+                bodyRadius: number;
+                headRadius: number;
+                legLen: number;
+                feet: [
+                    number,
+                    number
+                ][];
+                halfWidth: number;
+                capsuleAxis?: "y" | "z";
+                headAt?: [
+                    number,
+                    number,
+                    number
+                ];
+                bodyAt?: [
+                    number,
+                    number,
+                    number
+                ];
+                bodyPitch?: number;
+                fore?: {
+                    bone: string;
+                    at: [
+                        number,
+                        number,
+                        number
+                    ];
+                    halfLen: number;
+                    radius: number;
+                };
+            };
+            mods: {
+                speed: number;
+                chargeDist: number;
+                damageTaken: number;
+                chargeDamage: number;
+                relentless: boolean;
+            };
+        };
+        seed: number;
+        scale: number;
+    }[];
+    parked?: {
+        id: string;
+        kind: string;
+        variant: string;
+        spec: {
+            kind: string;
+            label: string;
+            variant: string;
+            rarity: "common" | "uncommon" | "rare" | "legendary";
+            hp: number;
+            aggressive: boolean;
+            lockable?: boolean;
+            dims: {
+                bodyY: number;
+                bodyHalfLen: number;
+                bodyRadius: number;
+                headRadius: number;
+                legLen: number;
+                feet: [
+                    number,
+                    number
+                ][];
+                halfWidth: number;
+                capsuleAxis?: "y" | "z";
+                headAt?: [
+                    number,
+                    number,
+                    number
+                ];
+                bodyAt?: [
+                    number,
+                    number,
+                    number
+                ];
+                bodyPitch?: number;
+                fore?: {
+                    bone: string;
+                    at: [
+                        number,
+                        number,
+                        number
+                    ];
+                    halfLen: number;
+                    radius: number;
+                };
+            };
+            mods: {
+                speed: number;
+                chargeDist: number;
+                damageTaken: number;
+                chargeDamage: number;
+                relentless: boolean;
+            };
+        };
+        seed: number;
+        scale: number;
+    }[];
+    herds: {
+        kind: string;
+        members: string[];
+    }[];
+}
+export type NativeWorld = { [Key in keyof NativeWorldFields]: NativeWorldFields[Key] };

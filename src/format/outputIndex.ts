@@ -7,7 +7,7 @@ import { ShardfileFieldSchemas, parseShardfile, type Shardfile } from './shardSc
 import { LegacyRuntimeSchema, ClientPlanRuntimeSchema } from './runtime';
 import { RuntimeSpawnsSchema } from './runtimeSpawns';
 import { RowsSchema } from './rows';
-import { ShardHashSchema, ShardNaturalSchema, IdentitySchema, RequiresSchema, FilesSchema } from './shardSections';
+import { ShardHashSchema, ShardNaturalSchema, IdentitySchema, RequiresSchema, FilesSchema, type ShardIdentityInput, type ShardRequiresInput, type ShardReferencesInput, type ShardIdentity, type ShardRequires, type ShardReferences } from './shardSections';
 import { SHARDFILE_VERSION } from './version';
 import { isJsonData, isJsonDataWithFileSchemas } from './json';
 import { clientOwnershipRules } from './clientOwnership';
@@ -25,7 +25,7 @@ const runtime = v.union([
   v.strictObject({ ...v.omit(ClientPlanRuntimeSchema.pipe[0], ['spawns']).entries, trust: v.literal('first-party'), files: v.pipe(v.array(v.strictObject({ ...measuredFile, lines: ShardNaturalSchema })), v.maxLength(0)), lines: v.literal(0) }),
 ]);
 /** Format 2 inventories every emitted byte except its index and validation receipt. */
-export const OutputIndexSchema = v.strictObject({
+export const OutputIndexSchema: v.GenericSchema<OutputIndexRowsInput, OutputIndexRows> & { readonly entries: { readonly [Key in keyof OutputIndexRows]-?: v.GenericSchema<OutputIndexRowsInput[Key], OutputIndexRows[Key]> } } = v.strictObject({
   format: v.literal('wildshard.shardfile'), formatVersion: v.literal(2), sdk: v.literal('0.2'), version: v.literal(SHARDFILE_VERSION),
   identity: IdentitySchema, build: v.strictObject({ sourceHash: ShardHashSchema, validator: v.pipe(v.string(), v.minLength(1), v.maxLength(160)) }), requires: RequiresSchema,
   admission: v.strictObject({ budgets: ShardfileFieldSchemas.budgets, serverBudget: ShardfileFieldSchemas.serverBudget, authorCaps: ShardfileFieldSchemas.authorCaps, critical: ShardfileFieldSchemas.critical, library: ShardfileFieldSchemas.library }),
@@ -107,3 +107,217 @@ export function assembleOutputShardfile(input: unknown, sections: ReadonlyMap<st
   return source;
 }
 
+
+/** Exact admitted data, independent of validator implementation metadata. */
+interface OutputIndexRowsInputFields {
+    format: "wildshard.shardfile";
+    formatVersion: 2;
+    sdk: "0.2";
+    version: "0.1";
+    identity: ShardIdentityInput;
+    build: {
+        sourceHash: string;
+        validator: string;
+    };
+    requires: ShardRequiresInput;
+    admission: {
+        budgets: unknown;
+        serverBudget: unknown;
+        authorCaps: unknown;
+        critical: unknown;
+        library: unknown;
+    };
+    sections: {
+        name: string;
+        schema: string;
+        path: string;
+        hash: string;
+        bytes: number;
+    }[];
+    schemas: {
+        path: string;
+        hash: string;
+        bytes: number;
+    }[];
+    files: {
+        path: string;
+        kind: "audio" | "glb" | "ktx2" | "json" | "wasm" | "image" | "tile" | "bin";
+        name?: string;
+        commons?: true;
+        jsonSchema?: Record<string, unknown>;
+        critical: boolean;
+        hash: string;
+        compressed: number;
+        decoded: number;
+        gpu: number;
+        triangles: number;
+        draws: number;
+        dependencies: ShardReferencesInput;
+    }[];
+    runtime: {
+        trust: "first-party";
+        files: {
+            lines: number;
+            path: string;
+            hash: string;
+            bytes: number;
+        }[];
+        lines: number;
+        entry: string;
+        cost?: {
+            imagesFirst?: {
+                webContentMB: number;
+                glMB: number;
+                engineBaseMB: number;
+                residentBaseMB?: number;
+                rev: string;
+                device: string;
+                evidence: string;
+            } | undefined;
+            webContentMB: number;
+            glMB: number;
+            engineBaseMB: number;
+            residentBaseMB?: number;
+            rev: string;
+            device: string;
+            evidence: string;
+        } | undefined;
+        binds?: ("state" | "movers" | "modes" | "terrain" | "quests" | "ledger" | "items" | "props" | "clientChannels" | "spawns" | "loot")[] | undefined;
+    } | {
+        trust: "first-party";
+        files: {
+            lines: number;
+            path: string;
+            hash: string;
+            bytes: number;
+        }[];
+        lines: 0;
+        kind: "client-plan";
+        cost: {
+            imagesFirst?: {
+                webContentMB: number;
+                glMB: number;
+                engineBaseMB: number;
+                residentBaseMB?: number;
+                rev: string;
+                device: string;
+                evidence: string;
+            } | undefined;
+            webContentMB: number;
+            glMB: number;
+            engineBaseMB: number;
+            residentBaseMB?: number;
+            rev: string;
+            device: string;
+            evidence: string;
+        };
+        binds: ("state" | "movers" | "modes" | "terrain" | "quests" | "ledger" | "items" | "props" | "clientChannels" | "spawns" | "loot")[];
+    } | null;
+}
+export type OutputIndexRowsInput = { [Key in keyof OutputIndexRowsInputFields]: OutputIndexRowsInputFields[Key] };
+interface OutputIndexRowsFields {
+    format: "wildshard.shardfile";
+    formatVersion: 2;
+    sdk: "0.2";
+    version: "0.1";
+    identity: ShardIdentity;
+    build: {
+        sourceHash: string;
+        validator: string;
+    };
+    requires: ShardRequires;
+    admission: {
+        budgets: unknown;
+        serverBudget: unknown;
+        authorCaps: unknown;
+        critical: unknown;
+        library: unknown;
+    };
+    sections: {
+        name: string;
+        schema: string;
+        path: string;
+        hash: string;
+        bytes: number;
+    }[];
+    schemas: {
+        path: string;
+        hash: string;
+        bytes: number;
+    }[];
+    files: {
+        path: string;
+        kind: "audio" | "glb" | "ktx2" | "json" | "wasm" | "image" | "tile" | "bin";
+        name?: string;
+        commons?: true;
+        jsonSchema?: Record<string, unknown>;
+        critical: boolean;
+        hash: string;
+        compressed: number;
+        decoded: number;
+        gpu: number;
+        triangles: number;
+        draws: number;
+        dependencies: ShardReferences;
+    }[];
+    runtime: {
+        trust: "first-party";
+        files: {
+            lines: number;
+            path: string;
+            hash: string;
+            bytes: number;
+        }[];
+        lines: number;
+        entry: string;
+        cost?: {
+            imagesFirst?: {
+                webContentMB: number;
+                glMB: number;
+                engineBaseMB: number;
+                residentBaseMB?: number;
+                rev: string;
+                device: string;
+                evidence: string;
+            } | undefined;
+            webContentMB: number;
+            glMB: number;
+            engineBaseMB: number;
+            residentBaseMB?: number;
+            rev: string;
+            device: string;
+            evidence: string;
+        } | undefined;
+        binds?: ("state" | "movers" | "modes" | "terrain" | "quests" | "ledger" | "items" | "props" | "clientChannels" | "spawns" | "loot")[] | undefined;
+    } | {
+        trust: "first-party";
+        files: {
+            lines: number;
+            path: string;
+            hash: string;
+            bytes: number;
+        }[];
+        lines: 0;
+        kind: "client-plan";
+        cost: {
+            imagesFirst?: {
+                webContentMB: number;
+                glMB: number;
+                engineBaseMB: number;
+                residentBaseMB?: number;
+                rev: string;
+                device: string;
+                evidence: string;
+            } | undefined;
+            webContentMB: number;
+            glMB: number;
+            engineBaseMB: number;
+            residentBaseMB?: number;
+            rev: string;
+            device: string;
+            evidence: string;
+        };
+        binds: ("state" | "movers" | "modes" | "terrain" | "quests" | "ledger" | "items" | "props" | "clientChannels" | "spawns" | "loot")[];
+    } | null;
+}
+export type OutputIndexRows = { [Key in keyof OutputIndexRowsFields]: OutputIndexRowsFields[Key] };

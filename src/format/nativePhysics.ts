@@ -6,7 +6,7 @@ const xyz = v.strictObject({ x: finite, y: finite, z: finite });
 const materials = ['sand', 'wetSand', 'grass', 'rock', 'planks', 'stone', 'water', 'wood', 'metal', 'flesh', 'shell', 'ground', 'edge', 'felt', 'earth'] as const;
 
 /** Strict numeric native body recipe. Decoding and actor construction belong to the native host. */
-const body = v.strictObject({ kind: v.string(), label: v.string(), variant: v.string(), rarity: v.picklist(['common', 'uncommon', 'rare', 'legendary']),
+const body: v.GenericSchema<NativeBodyInput, NativeBody> = v.strictObject({ kind: v.string(), label: v.string(), variant: v.string(), rarity: v.picklist(['common', 'uncommon', 'rare', 'legendary']),
   hp: finite, aggressive: v.boolean(), lockable: v.exactOptional(v.boolean()),
   dims: v.strictObject({ bodyY: finite, bodyHalfLen: finite, bodyRadius: finite, headRadius: finite, legLen: finite, feet: v.array(v.tuple([finite, finite])), halfWidth: finite,
     capsuleAxis: v.exactOptional(v.picklist(['z', 'y'])), headAt: v.exactOptional(triple), bodyAt: v.exactOptional(triple), bodyPitch: v.exactOptional(finite),
@@ -84,3 +84,57 @@ export function nativeColliderRecordSchema<const S extends readonly (1 | 2 | 6 |
     v.check(row => owner === 'piece' ? Object.hasOwn(row, 'body') && !Object.hasOwn(row, 'owner')
       : !['body', 'ownerId', 'indices'].some(key => Object.hasOwn(row, key)), 'Unsupported native collider provenance'));
 }
+
+/** Exact admitted data, independent of validator implementation metadata. */
+export type NativeBodyInput = NativeBody;
+interface NativeBodyFields {
+    kind: string;
+    label: string;
+    variant: string;
+    rarity: "common" | "uncommon" | "rare" | "legendary";
+    hp: number;
+    aggressive: boolean;
+    lockable?: boolean;
+    dims: {
+        bodyY: number;
+        bodyHalfLen: number;
+        bodyRadius: number;
+        headRadius: number;
+        legLen: number;
+        feet: [
+            number,
+            number
+        ][];
+        halfWidth: number;
+        capsuleAxis?: "z" | "y";
+        headAt?: [
+            number,
+            number,
+            number
+        ];
+        bodyAt?: [
+            number,
+            number,
+            number
+        ];
+        bodyPitch?: number;
+        fore?: {
+            bone: string;
+            at: [
+                number,
+                number,
+                number
+            ];
+            halfLen: number;
+            radius: number;
+        };
+    };
+    mods: {
+        speed: number;
+        chargeDist: number;
+        damageTaken: number;
+        chargeDamage: number;
+        relentless: boolean;
+    };
+}
+export type NativeBody = { [Key in keyof NativeBodyFields]: NativeBodyFields[Key] };
