@@ -13,7 +13,7 @@ Every row is decided work (Jake's G-rows); the refs are the brief.
 | sp-x6 | CS0 done e463dc80af → G719 done → G717 look misses done 60f2ba740c → RM1/RM2/RM3 done aab5aca4737 → GR4 Sunscar done (23 → 0; exact743e preview/boot pass) → GR6 Nalati in flight (54 at claim) → GR8 Pine |
 | sp-x8 | G743 grid crossings < 5 s (DW 8.1, Nine 8.7, Nalati 11.6; Pine 2.6 passes): world + afterPlay stages -> T4 tail (I6y/I6z) -> T5 |
 | sp-x2 | RM8.1 quantized tile geometry (KHR_mesh_quantization + meshopt; near-view/cost readers; all authored shards) -> core memory C4 (Template native 268/246 vs 198.5 MiB) -> tile T4 to the milestone -> T10 delete the whole-shard path (G747) -> T6/T8 Codex slices; JS payload J6-J10 after extras (G730/G741) |
-| sp-x9 | G742 debug-rows-mini-plan.md (0/19; best option ships, row + dead code deleted, smallest first) -> programShare finding -> ratchet at commit time -> faster CF1 walk -> oxlint R3-R5 -> no-binaries B5-B6 -> QW7 |
+| sp-x9 | G742 debug-rows-mini-plan.md (0/19; best option ships, row + dead code deleted, smallest first) -> programShare done d247df6cf03 (final-code check; 1→0 warnings, 4→1 programs) -> ratchet at commit time -> faster CF1 walk -> oxlint R3-R5 -> no-binaries B5-B6 -> QW7 |
 | sp-x7 | releases only |
 | sp-o1 | G735: Night Market remaster models RM4 -> RM7 -> RM9 -> RM8 -> RM13 (board + walk video) |
 | sp-o2 | G735: Night Market remaster look RM5 -> RM6 -> RM10 -> RM11 -> RM12 -> G748 coarse L1 stand-ins for occupied tiles per shard (U2/T8.3; near/far board first) |
