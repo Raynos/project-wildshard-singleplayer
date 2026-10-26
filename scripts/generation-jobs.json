@@ -13705,6 +13705,7 @@
         "src/engine/render/allocationJournal.ts",
         "src/engine/render/compileShadows.ts",
         "src/engine/render/compressedMipmaps.ts",
+        "src/engine/render/compressedTextureRetirement.ts",
         "src/engine/render/compressedUpload.ts",
         "src/engine/render/diagnosticJournal.ts",
         "src/engine/render/doubleElements.ts",

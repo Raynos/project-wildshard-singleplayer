@@ -11,6 +11,7 @@ export function compressedTextureKey(texture: Texture): string {
 
 const retained = new WeakSet<Texture>();
 const releasable = new WeakSet<Texture>();
+const immutable = new WeakSet<Texture>();
 const SAMPLER_FIELDS = ['wrapS', 'wrapT', 'wrapR', 'magFilter', 'minFilter', 'anisotropy', 'internalFormat',
   'format', 'type', 'generateMipmaps', 'premultiplyAlpha', 'flipY', 'unpackAlignment', 'colorSpace'] as const;
 const retired = new WeakMap<Texture, { sampler: readonly unknown[]; version: number; sourceVersion: number }>();
@@ -28,8 +29,14 @@ export function assertCompressedMipmapsUnchanged(texture: Texture): void {
   if (changed) throw new Error(`Compressed texture ${texture.name || texture.id} changed after mip retirement; configure its sampler before first draw`);
 }
 
-/** Register the loader's CPU-copy retirement, without making an early upload final. */
-export function registerCompressedMipmaps(texture: Texture): void { releasable.add(texture); }
+/** Loader registrations keep their preparation fence. An explicit GPU-only declaration
+ * has already finalized its sampler, but still waits for a successful native draw. */
+export function registerCompressedMipmaps(texture: Texture, gpuOnly = false): void {
+  releasable.add(texture);
+  if (gpuOnly && !retired.has(texture)) immutable.add(texture);
+}
+/** Whether an explicit immutable declaration may retire at its first native draw. */
+export function immutableCompressedMipmaps(texture: Texture): boolean { return immutable.has(texture); }
 
 /** A provisional upload keeps the pixels needed by the consumer's final sampler. */
 export function retainCompressedMipmaps(texture: Texture): void { retained.add(texture); }
@@ -43,6 +50,7 @@ export function compressedMipmapsUploaded(texture: Texture): void {
 export function finalizeCompressedMipmaps(texture: Texture): void {
   retained.delete(texture);
   if (releasable.has(texture)) {
+    immutable.delete(texture);
     retired.set(texture, { sampler: SAMPLER_FIELDS.map((field): unknown => Reflect.get(texture, field)), version: texture.version, sourceVersion: texture.source.version });
     texture.mipmaps = [];
   }

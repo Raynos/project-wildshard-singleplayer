@@ -115,7 +115,7 @@ export function gpuOnlyTexture(t: Texture, label: string): void {
   // Compressed storage keeps the existing final-sampler / successful-draw fence.
   // Cubes own separate face mip lists and retain their existing lifetime.
   if (t instanceof CompressedTexture) {
-    if (!(t instanceof CompressedCubeTexture)) registerCompressedMipmaps(t);
+    if (!(t instanceof CompressedCubeTexture)) registerCompressedMipmaps(t, true);
   } else onceTextureUploaded(t, releaseSource);
   markGpuOnly(label);
 }

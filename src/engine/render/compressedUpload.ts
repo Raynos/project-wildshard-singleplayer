@@ -3,7 +3,8 @@ import { pageScope } from '../app/resources';
 import { recordBootCheckpoint } from '../boot/bootTrace';
 import { presenting } from '../core/framePacing';
 import type { Renderer } from './renderer';
-import { retainCompressedMipmaps, finalizeCompressedMipmaps, assertCompressedMipmapsUnchanged, compressedTextureKey } from './compressedMipmaps';
+import { retainCompressedMipmaps, assertCompressedMipmapsUnchanged, compressedTextureKey } from './compressedMipmaps';
+import { installCompressedTextureRetirement } from './compressedTextureRetirement';
 
 /** The actual renderer operations needed to isolate a compressed texture upload. */
 type UploadTarget = Pick<Renderer, 'initTexture' | 'getContext' | 'properties' | 'renderBufferDirect'>;
@@ -19,53 +20,6 @@ const frame = (): Promise<void> => new Promise(resolve => {
   pageScope.raf(() => { pageScope.timeout(0, resolve); });
 });
 
-// A loader upload is not a draw: its caller may still change the sampler. Observe the
-// textures Three actually binds, including shader-injected uniforms, and retire only
-// after that first real draw succeeds. No source walk or second frame scheduler.
-function installDrawRetirement(renderer: UploadTarget, state: UploadState): void {
-  const get = renderer.properties.get.bind(renderer.properties);
-  const draw = renderer.renderBufferDirect.bind(renderer);
-  const bound = new Set<THREE.Texture>();
-  const retired = new WeakMap<THREE.Texture, unknown>();
-  /** the draw each texture was last checked in: a draw asks for a bound texture's properties several times, and the
-   *  retirement checks (its sampler fields, its allocation) need one look a draw (G639); outside a draw, every time */
-  const checked = new WeakMap<THREE.Texture, number>();
-  let depth = 0, drawGen = 0;
-  renderer.properties.get = object => {
-    if (object instanceof THREE.CompressedTexture) {
-      // three's own lookup, once: it returns the same properties object every time (G639: a draw asks several times)
-      if (depth > 0 && checked.get(object) === drawGen) { const properties: unknown = get(object); if (state.final.has(object)) bound.add(object); return properties; }
-      if (depth > 0) checked.set(object, drawGen);
-      assertCompressedMipmapsUnchanged(object);
-      const native = retired.get(object);
-      const properties: unknown = get(object);
-      if (native !== undefined && (typeof properties !== 'object' || properties === null || Reflect.get(properties, '__webglTexture') !== native)) {
-        throw new Error(`Compressed texture ${object.name || object.id} lost its allocation after mip retirement`);
-      }
-      if (depth > 0 && state.final.has(object)) bound.add(object);
-      return properties;
-    }
-    return get(object);
-  };
-  renderer.renderBufferDirect = (camera, scene, geometry, material, object, group) => {
-    if (depth === 0) drawGen++;
-    depth++; let complete = false;
-    try { draw(camera, scene, geometry, material, object, group); complete = true; }
-    finally {
-      depth--;
-      if (depth === 0) {
-        if (complete && bound.size > 0) for (const texture of bound) {
-          const properties: unknown = get(texture);
-          if (typeof properties === 'object' && properties !== null) retired.set(texture, Reflect.get(properties, '__webglTexture'));
-          finalizeCompressedMipmaps(texture); state.final.delete(texture);
-        }
-        bound.clear();
-      }
-    }
-  };
-}
-
-
 /** Upload one compressed 2D/array texture outside a draw, with a real paint on each side and, while loading, an error round trip.
  * Concurrent warm-up and late-load callers share one queue. A consumer may bind the texture only after this resolves.
  * Already resident versions reuse the result; cancellation and graphics faults never publish readiness.
@@ -76,9 +30,8 @@ export function uploadCompressedTexture(renderer: UploadTarget, texture: THREE.T
   try { assertCompressedMipmapsUnchanged(texture); } catch (error) { return Promise.reject(error instanceof Error ? error : new Error(String(error))); }
   let state = states.get(renderer);
   if (state === undefined) {
-    state = { tail: Promise.resolve(), pending: new WeakMap(), failed: new WeakMap(), final: new WeakSet() };
+    state = { tail: Promise.resolve(), pending: new WeakMap(), failed: new WeakMap(), final: installCompressedTextureRetirement(renderer) };
     states.set(renderer, state);
-    installDrawRetirement(renderer, state);
   }
   const queue = state, version = texture.version, signature = compressedTextureKey(texture);
   const allocation = (): unknown => {
