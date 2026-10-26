@@ -77,7 +77,7 @@ test('weather policy holds the titan storm and restores calm after its wind ends
 });
 
 test('the actual return-script catalogue admits the shared weather/night module once', async () => {
-  const { output } = await import('../src/shards/nalati-grasslands/generators/output');
+  const { output } = await import('./fixtures/nalati-output-original');
   const bytes = output.platform.files.get('sections/actors/return-scripts.json');
   if (bytes === undefined) throw new Error('Missing return-script catalogue');
   const rows = v.parse(ReturnModulesSchema, JSON.parse(new TextDecoder().decode(bytes)));

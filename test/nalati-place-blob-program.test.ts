@@ -17,7 +17,9 @@ import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
 import { PopulationFieldSchema } from '../src/format/populationEnvironment';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { nalatiBakeBlob } from '../src/shards/nalati-grasslands/generators/placeBlobProgram';
-import { prepareOutput } from '../src/shards/nalati-grasslands/generators/output';
+import { prepareOutput, prepareSpecies } from '../src/shards/nalati-grasslands/generators/output';
+import { build as buildNalati } from '../src/shards/nalati-grasslands/generators/build';
+import headerPin from './fixtures/nalati-species-product-header.json' with { type: 'json' };
 import original from './fixtures/nalati-place-blob.json' with { type: 'json' };
 import cragOriginal from './fixtures/nalati-crag-blob.json' with { type: 'json' };
 import dressingOriginal from './fixtures/nalati-dressing-blob.json' with { type: 'json' };
@@ -90,8 +92,9 @@ const coldOutputFixture = await (async () => {
   try {
     const crags = await nalatiBakeBlob(context(), 'crags', cragOriginal.decoded);
     requested.length = 0;
-    const output = await prepareOutput(context());
-    return { cache, requested, steps, constructions, context, crags, output, get nativePlaces() { return nativePlaces; } };
+    const shared = context(), header = await buildNalati(shared);
+    const output = await prepareOutput(shared);
+    return { cache, requested, steps, constructions, context, crags, header, output, get nativePlaces() { return nativePlaces; } };
   } catch (error) { rmSync(cache, { recursive: true, force: true }); throw error; }
 })();
 afterAll(() => { rmSync(coldOutputFixture.cache, { recursive: true, force: true }); });
@@ -122,6 +125,9 @@ test('the actual output hook preserves every predecessor file cost and binary by
       expect(Buffer.compare(cold.bytes, readFileSync(`public/assets/nalati/baked/${name}.bin`))).toBe(0);
       cold.bytes.fill(0);
     }
+    const headerBytes = new TextEncoder().encode(JSON.stringify(coldOutputFixture.header));
+    expect(headerBytes.length).toBe(headerPin.bytes);
+    expect(hashImmutableBytes(headerBytes)).toBe(headerPin.sha256);
     expect(constructions.get('species')).toBe(1);
     expect(constructions.get('model-parts')).toBe(1);
     expect(constructions.get('places')).toBe(1);
@@ -215,39 +221,6 @@ test('the actual output hook preserves every predecessor file cost and binary by
     expect(shapeBytes.length).toBe(expectedShapes.file.compressed);
     expect(hashImmutableBytes(shapeBytes)).toBe(expectedShapes.file.hash);
     expect(Buffer.compare(shapeBytes, expectedShapes.bytes)).toBe(0);
-    const readShelters = (output: Awaited<ReturnType<typeof prepareOutput>>) => {
-      const file = output.namedFiles.find(row => row.name === assemblyOriginal.name);
-      const bytes = file === undefined ? undefined : output.assets.get(file.hash);
-      if (bytes === undefined) throw new Error('Missing owned native assembly');
-      return v.parse(v.object({ constants: v.object({ nativeShelters: v.array(v.tuple([v.number(), v.number(), v.number()])) }) }),
-        JSON.parse(new TextDecoder().decode(bytes))).constants.nativeShelters;
-    };
-    const suppliedContext = context();
-    const supplied = await prepareOutput({ ...suppliedContext, cached: async (step, make) => {
-      const files = await suppliedContext.cached(step, make);
-      if (step.id !== 'places') return files;
-      const changed = new Map(files);
-      const document = files.get('places.json');
-      if (document === undefined) throw new Error('Missing supplied native places');
-      const metadata = v.parse(v.looseObject({ rows: v.array(v.looseObject({ colliders: v.array(v.unknown()) })) }),
-        JSON.parse(new TextDecoder().decode(document)));
-      const rows: typeof metadata.rows = [];
-      for (const [index, row] of metadata.rows.entries()) {
-        const copy = { ...row };
-        copy.colliders = index === 0 ? [{ x: 18, z: -25, hw: 3, hd: 3, yTop: 4, yBottom: 0 }] : [];
-        rows.push(copy);
-      }
-      changed.set('places.json', new TextEncoder().encode(JSON.stringify({ ...metadata, rows })));
-      return changed;
-    } });
-    expect(readShelters(supplied)).toEqual([[18, -25, 3 / .93]]);
-    await expect(prepareOutput({ ...suppliedContext, cached: async (step, make) => {
-      const files = await suppliedContext.cached(step, make);
-      if (step.id !== 'places') return files;
-      const changed = new Map(files);
-      changed.set('places.json', new TextEncoder().encode('{"rows":[{"colliders":[{"x":null}]}]}'));
-      return changed;
-    } })).rejects.toThrow();
     expect(steps).toContain('decorative');
     const expectedScenes = new Map(sceneOriginal.map(pin=>{
       const frozen = frozenScenes.find(blob => blob.file.name === pin.name);
@@ -267,27 +240,6 @@ test('the actual output hook preserves every predecessor file cost and binary by
       expect(hashImmutableBytes(bytes)).toBe(expected.file.hash);
       expect(Buffer.compare(bytes, expected.bytes)).toBe(0);
     }
-    const ctx = context();
-    await expect(prepareOutput({ ...ctx, cached: (step, make) => step.id === 'species'
-      ? Promise.resolve(new Map()) : ctx.cached(step, make) })).rejects.toThrow('Owned species inventory differs');
-    await expect(prepareOutput({ ...ctx, cached: (step, make) => step.id === 'dressing-placement'
-      ? Promise.resolve(new Map()) : ctx.cached(step, make) })).rejects.toThrow('Owned Nalati dressing placement inventory differs');
-    await expect(prepareOutput({ ...ctx, cached: async (step, make) => {
-      const files = await ctx.cached(step, make);
-      if (step.id !== 'dressing-placement') return files;
-      const changed = new Map(files);
-      changed.set('dressing-boulder.json', new TextEncoder().encode('{}'));
-      return changed;
-    } })).rejects.toThrow();
-    await expect(prepareOutput({ ...ctx, cached: (step, make) => step.id === 'model-parts'
-      ? Promise.resolve(new Map()) : ctx.cached(step, make) })).rejects.toThrow('Nalati model-part inventory differs');
-    await expect(prepareOutput({ ...ctx, cached: (step, make) => step.id === 'decorative'
-      ? Promise.resolve(new Map()) : ctx.cached(step, make) })).rejects.toThrow('Owned Nalati decorative inventory differs');
-    await expect(prepareOutput({ ...ctx, cached: async (step, make) => {
-      const source=await ctx.cached(step,make);
-      if(step.id!=='places')return source;
-      const missing=new Map(source);missing.delete('specimens.bin');return missing;
-    } })).rejects.toThrow('Owned Nalati placement inventory differs');
     expect(requested).not.toContain('/assets/nalati/baked/dressing.bin');
     expect(requested).not.toContain('/assets/nalati/baked/places.bin');
     expect(requested).not.toContain('/assets/nalati/baked/specimens.bin');
@@ -330,4 +282,81 @@ test('the owned places source stays in one config-safe author chunk', async () =
   if (built === undefined || !('output' in built)) throw new Error('Missing places source bundle');
   const chunks = built.output.filter(row => row.type === 'chunk'); expect(chunks).toHaveLength(1);
   for (const chunk of chunks) expect(() => assertConfigBoundary([...chunk.imports, ...chunk.dynamicImports])).not.toThrow();
+});
+
+// Each independent control retains the same real source/cache path and 30 s case cap.
+test('the output hook consumes supplied shelters and refuses malformed native metadata', async () => {
+  const { context } = coldOutputFixture;
+    const readShelters = (output: Awaited<ReturnType<typeof prepareOutput>>) => {
+      const file = output.namedFiles.find(row => row.name === assemblyOriginal.name);
+      const bytes = file === undefined ? undefined : output.assets.get(file.hash);
+      if (bytes === undefined) throw new Error('Missing owned native assembly');
+      return v.parse(v.object({ constants: v.object({ nativeShelters: v.array(v.tuple([v.number(), v.number(), v.number()])) }) }),
+        JSON.parse(new TextDecoder().decode(bytes))).constants.nativeShelters;
+    };
+    const suppliedContext = context();
+    const supplied = await prepareOutput({ ...suppliedContext, cached: async (step, make) => {
+      const files = await suppliedContext.cached(step, make);
+      if (step.id !== 'places') return files;
+      const changed = new Map(files);
+      const document = files.get('places.json');
+      if (document === undefined) throw new Error('Missing supplied native places');
+      const metadata = v.parse(v.looseObject({ rows: v.array(v.looseObject({ colliders: v.array(v.unknown()) })) }),
+        JSON.parse(new TextDecoder().decode(document)));
+      const rows: typeof metadata.rows = [];
+      for (const [index, row] of metadata.rows.entries()) {
+        const copy = { ...row };
+        copy.colliders = index === 0 ? [{ x: 18, z: -25, hw: 3, hd: 3, yTop: 4, yBottom: 0 }] : [];
+        rows.push(copy);
+      }
+      changed.set('places.json', new TextEncoder().encode(JSON.stringify({ ...metadata, rows })));
+      return changed;
+    } });
+    expect(readShelters(supplied)).toEqual([[18, -25, 3 / .93]]);
+    await expect(prepareOutput({ ...suppliedContext, cached: async (step, make) => {
+      const files = await suppliedContext.cached(step, make);
+      if (step.id !== 'places') return files;
+      const changed = new Map(files);
+      changed.set('places.json', new TextEncoder().encode('{"rows":[{"colliders":[{"x":null}]}]}'));
+      return changed;
+    } })).rejects.toThrow();
+
+});
+
+test('the output hook refuses all original missing and malformed producer inventories', async () => {
+  const { context } = coldOutputFixture;
+    const ctx = context();
+    await expect(prepareOutput({ ...ctx, cached: (step, make) => step.id === 'species'
+      ? Promise.resolve(new Map()) : ctx.cached(step, make) })).rejects.toThrow('Owned species inventory differs');
+    await expect(prepareOutput({ ...ctx, cached: (step, make) => step.id === 'dressing-placement'
+      ? Promise.resolve(new Map()) : ctx.cached(step, make) })).rejects.toThrow('Owned Nalati dressing placement inventory differs');
+    await expect(prepareOutput({ ...ctx, cached: async (step, make) => {
+      const files = await ctx.cached(step, make);
+      if (step.id !== 'dressing-placement') return files;
+      const changed = new Map(files);
+      changed.set('dressing-boulder.json', new TextEncoder().encode('{}'));
+      return changed;
+    } })).rejects.toThrow();
+    await expect(prepareOutput({ ...ctx, cached: (step, make) => step.id === 'model-parts'
+      ? Promise.resolve(new Map()) : ctx.cached(step, make) })).rejects.toThrow('Nalati model-part inventory differs');
+    await expect(prepareOutput({ ...ctx, cached: (step, make) => step.id === 'decorative'
+      ? Promise.resolve(new Map()) : ctx.cached(step, make) })).rejects.toThrow('Owned Nalati decorative inventory differs');
+    await expect(prepareOutput({ ...ctx, cached: async (step, make) => {
+      const source=await ctx.cached(step,make);
+      if(step.id!=='places')return source;
+      const missing=new Map(source);missing.delete('specimens.bin');return missing;
+    } })).rejects.toThrow('Owned Nalati placement inventory differs');
+
+});
+
+
+test('species source checks declared publication on every cached loan', async () => {
+  const ctx = coldOutputFixture.context();
+  const withoutInventory: ReturnType<typeof createProjectGeneration> = { ...ctx };
+  delete withoutInventory.inputFiles;
+  await expect(prepareSpecies(withoutInventory)).rejects.toThrow('injected public input inventory');
+  await expect(prepareSpecies({ ...ctx, inputFiles: () => [] })).rejects.toThrow('Missing unique published species body bank');
+  const inventory = ctx.inputFiles?.(['/assets/nalati/baked/']);
+  if (inventory === undefined) throw new Error('Missing test input inventory');
+  await expect(prepareSpecies({ ...ctx, inputFiles: () => [...inventory, ...inventory] })).rejects.toThrow('Missing unique published species body bank');
 });

@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import product, { nalatiProductRows } from '../src/shards/nalati-grasslands/generators/product';
+import { nalatiProductRows } from '../src/shards/nalati-grasslands/generators/product';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import pin from './fixtures/nalati-species-product-header.json' with { type: 'json' };
 
@@ -10,6 +10,7 @@ const original = v.parse(v.object({
   program: v.object({ script: v.object({ module: v.string(), pages: v.number() }), bytes: v.string() }),
   witnessBytes: v.number(),
 }), JSON.parse(readFileSync('src/shards/nalati-grasslands/data/species.generated.json', 'utf8')));
+const product = nalatiProductRows(original);
 const encode = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(value));
 
 test('explicit species costs retain the entire pre-factory product header and default contract', () => {

@@ -3,7 +3,7 @@ import { Scope } from '../src/engine/app/scope';
 import { app } from '../src/engine/app/runtime';
 import { bindAdventurePersistence } from '../src/game/quest/persistence';
 import { readQuestObservation } from '../src/game/quest/chapterBindings';
-import source from '../src/shards/nalati-grasslands/shard.config';
+import source from './fixtures/nalati-product-source';
 import rows from '../src/shards/nalati-grasslands/data/persistence.generated.json' with { type: 'json' };
 
 const saved = { kokbori: { timer: 0, discovered: false, skinTaken: false, kills: 1, retired: false },

@@ -3,7 +3,7 @@ import { loadHeadlessProduct } from '../../../src/sdk/headlessProduct';
 import assert from 'node:assert/strict';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read the admitted in-repository native terrain and navmesh.
 import { readFileSync } from 'node:fs';
-import source from '../../../src/shards/nalati-grasslands/shard.config';
+import source from '../../fixtures/nalati-product-source';
 import { nalatiNativeAssets } from './nativeAssets';
 import { createSimHost, type SimHost } from '../../../src/engine/sim';
 import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHost, type SimSnapshot } from '../../../src/engine/sim/snapshot';

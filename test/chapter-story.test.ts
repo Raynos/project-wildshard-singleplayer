@@ -16,7 +16,7 @@ import { parseChapterStoryPresentation } from '../src/format/questStory';
 import { parseQuestData } from '../src/format/quests';
 import content from '../src/shards/nalati-grasslands/data/questContent.json' with { type: 'json' };
 import policy from '../src/shards/nalati-grasslands/data/chapterStory.json' with { type: 'json' };
-import nalati from '../src/shards/nalati-grasslands/shard.config';
+import nalati from './fixtures/nalati-product-source';
 import drift from '../src/shards/driftwood-isle/shard.config';
 import pine from '../src/shards/pine-hollow/shard.config';
 import { MANIFEST } from '../src/shards/_template/discovery.generated';

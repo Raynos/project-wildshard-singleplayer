@@ -38,7 +38,7 @@ test('the raw admission file retains the exact complete inline descriptor and se
   expect(wire.v2?.bytes).toBe('');
   const original={...wire,bytes:admissionLegacy.bytes,v2:{...wire.v2,bytes:btoa(String.fromCodePoint(...admissionModuleBytes))}};
   expect(contentHash(new TextEncoder().encode(JSON.stringify(original)))).toBe('680ff5770a009920b97ced733cc077c75672123b9a13b9a2fdf791ce6aba3fbe');
-  const {output}=await import('../src/shards/nalati-grasslands/generators/output');
+  const {output}=await import('./fixtures/nalati-output-original');
   const source=output.blobs.find(row=>row.name==='behaviour/nalati.admission.wasm');
   expect(source).toMatchObject({source:compiled.source,kind:'wasm',options:{dependencies:[contentHash(admissionWitnessBytes)]}});
   expect(output.blobs.find(row=>row.name==='behaviour/admission-witness.bin')).toMatchObject({source:'behaviour/admission-witness.generated.bin',kind:'bin',options:{critical:true}});

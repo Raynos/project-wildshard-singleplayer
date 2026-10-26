@@ -6,7 +6,7 @@ import { readProjectAssets } from '../src/sdk/project';
 import feats from '../src/shards/nalati-grasslands/data/feats.json' with { type: 'json' };
 import content from '../src/shards/nalati-grasslands/data/questContent.json' with { type: 'json' };
 import kokpar from '../src/shards/nalati-grasslands/data/kokpar.generated.json' with { type: 'json' };
-import source from '../src/shards/nalati-grasslands/shard.config';
+import source from './fixtures/nalati-product-source';
 import chapters from '../src/shards/nalati-grasslands/data/chapterStory.json' with { type: 'json' };
 import view from '../src/shards/nalati-grasslands/data/chapterView.json' with { type: 'json' };
 import figures from '../src/shards/nalati-grasslands/data/peopleFrames.generated.json' with { type: 'json' };

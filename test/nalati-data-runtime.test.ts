@@ -7,7 +7,7 @@ import { runtimeBinds, withoutRuntimeRows } from '../src/game/plugin/headless';
 import { regionalRuntimeAccountedBytes } from '../src/game/grid/regionalRuntime';
 import { useOwnedGridHome } from '../src/game/grid/pageShell';
 import { MANIFEST } from '../src/shards/nalati-grasslands/discovery.generated';
-import source from '../src/shards/nalati-grasslands/shard.config';
+import source from './fixtures/nalati-product-source';
 import spawns from '../src/shards/nalati-grasslands/data/spawns.json' with { type: 'json' };
 import cost from '../src/shards/nalati-grasslands/data/runtimeCost.json' with { type: 'json' };
 

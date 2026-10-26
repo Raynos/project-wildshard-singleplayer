@@ -10,7 +10,7 @@ import { app } from '../src/engine/app/runtime';
 import { bossesSave, elitesSave, progressSave } from '../src/game/saves';
 import { legacyAdventureNames,legacyAdventureCosmetics,legacyAdventureBond } from '../src/game/quest/legacyRecords';
 import { bindAdventurePersistence, installClientAdventurePersistence } from '../src/game/quest/persistence';
-import source from '../src/shards/nalati-grasslands/shard.config';
+import source from './fixtures/nalati-product-source';
 import rows from '../src/shards/nalati-grasslands/data/persistence.generated.json' with { type: 'json' };
 import { CLIENT_FEATURES } from '../src/game/shardfile/clientPlan';
 

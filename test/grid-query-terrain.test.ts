@@ -4,7 +4,7 @@ import { Scope } from '../src/engine/app/scope';
 import { clientMaterials } from '../src/game/shardfile/clientMaterials';
 import { clientTileViews } from '../src/game/shardfile/clientViews';
 import driftwood from '../src/shards/driftwood-isle/shard.config';
-import nalati from '../src/shards/nalati-grasslands/shard.config';
+import nalati from './fixtures/nalati-product-source';
 import sky from '../src/shards/far-reach/shard.config';
 import { source as signal } from './fixtures/sunscar-source-program';
 import pine from '../src/shards/pine-hollow/shard.config';

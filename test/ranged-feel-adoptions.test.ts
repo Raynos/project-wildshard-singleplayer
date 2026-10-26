@@ -13,7 +13,7 @@ import { admitClientPlan } from '../src/game/shardfile/clientPlan';
 import { PINE_ITEMS } from '../src/shards/pine-hollow/generators/items';
 import pinePlan from '../src/shards/pine-hollow/data/clientPlan.json';
 import nalatiItems from '../src/shards/nalati-grasslands/data/items.json';
-import { output as nalatiOutput } from '../src/shards/nalati-grasslands/generators/output';
+import { output as nalatiOutput } from './fixtures/nalati-output-original';
 
 test('Pine and Nalati declare the real ranged-feel host with nonzero live equipment rows', () => {
   const nalatiPlan = outputPlatformPayloads(nalatiOutput.platform, ['client/plan']).get('client/plan');

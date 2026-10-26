@@ -18,7 +18,9 @@ test('default products retain the complete admitted shardfile contract',()=>{
  const consumer=resolve('src/shards/t4-default-product-consumer.ts');
  let source=`import driftwood from './driftwood-isle/generators/product';
 import ink from './ink-cel-valley/generators/product';
-import nalati from './nalati-grasslands/generators/product';
+import nalatiProduct from './nalati-grasslands/generators/product';
+import species from './nalati-grasslands/data/species.generated.json';
+const nalati=nalatiProduct(species);
 import pine from './pine-hollow/generators/product';
 import type {Shardfile} from '@wildshard/sdk/shardfile';
 export const products:Shardfile[]=[driftwood,ink,nalati,pine];

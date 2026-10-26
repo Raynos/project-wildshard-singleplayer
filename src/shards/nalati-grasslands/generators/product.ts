@@ -4,7 +4,6 @@ import ridingPrograms from '../behaviour/riding.generated.json' with { type: 'js
 import heldWeapons from '../data/heldWeapons.generated.json' with {type:'json'};
 import stealth from '../data/stealth.generated.json' with {type:'json'};
 import { compactChannels } from './channelRows';
-import speciesData from '../data/species.generated.json' with { type: 'json' };
 import { SPECIES_POSES } from './speciesPoses';
 import skyDome from '../data/skyDome.json' with { type: 'json' };
 import weatherDecision from '../behaviour/weather.generated.json' with { type: 'json' };
@@ -97,6 +96,5 @@ export function nalatiProductRows(species: NalatiSpeciesProgramCosts): ReturnTyp
     edge: { north: row('north'), east: row('east'), south: row('south'), west: row('west') } });
 }
 
-const authoredProduct: ReturnType<typeof parseShardfile> = nalatiProductRows(speciesData);
-// oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
-export default authoredProduct;
+// oxlint-disable-next-line import/no-default-export -- Offline callers supply the same explicit admitted species costs.
+export default nalatiProductRows;

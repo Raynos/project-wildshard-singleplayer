@@ -9,7 +9,7 @@ import { EquipmentService } from '../src/engine/combat/EquipmentService';
 import { INPUT_CONTEXTS } from '../src/game/inputContexts';
 import { bindRuntimeEquipment } from '../src/game/plugin/headless';
 import { ItemCatalogue } from '../src/game/loadout/itemCatalogue';
-import source from '../src/shards/nalati-grasslands/shard.config';
+import source from './fixtures/nalati-product-source';
 import { MANIFEST as manifest } from '../src/shards/nalati-grasslands/discovery.generated';
 import items from '../src/shards/nalati-grasslands/data/items.json' with { type: 'json' };
 

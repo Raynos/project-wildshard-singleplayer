@@ -10,7 +10,7 @@ import { hashImmutableBytes } from '../src/sdk/immutable';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import type { ProjectOutput } from '../src/sdk/projectOutput';
 import * as v from 'valibot';
-import { output } from '../src/shards/nalati-grasslands/generators/output';
+import { output } from './fixtures/nalati-output-original';
 import { nalatiOutputInputs } from '../src/shards/nalati-grasslands/generators/outputInputs';
 
 test('ordered owned floors and all declared raw inputs preserve exact normal SDK intake on cold and hit', async () => {

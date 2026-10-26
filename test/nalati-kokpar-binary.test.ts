@@ -39,7 +39,7 @@ test('the original quest and bow guest retains every metadata and module byte',(
 });
 
 test('the original named ABI1 file ships directly from its registered raw producer',async()=>{
-  const {output}=await import('../src/shards/nalati-grasslands/generators/output');
+  const {output}=await import('./fixtures/nalati-output-original');
   const row=output.blobs.find(file=>file.name==='behaviour/nalati.kokpar.wasm');
   expect(row).toMatchObject({kind:'wasm',source:stored.compiled.source,options:{critical:true,script:{abi:1,pages:1}}});
   expect(output.namedFiles.some(file=>file.name==='behaviour/nalati.kokpar.wasm')).toBe(false);

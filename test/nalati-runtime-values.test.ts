@@ -73,7 +73,7 @@ test('the direct value producer stays in one config-safe source chunk', async ()
 
 
 test('the shipping post file retains its complete predecessor capture values', async () => {
-  const { output } = await import('../src/shards/nalati-grasslands/generators/output');
+  const { output } = await import('./fixtures/nalati-output-original');
   const file = output.namedFiles.find(row => row.name === 'look/post.json');
   if (file === undefined) throw new Error('Missing admitted Nalati post file');
   const bytes = output.assets.get(file.hash);

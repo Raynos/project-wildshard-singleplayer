@@ -9,7 +9,7 @@ import { snapshotSimHost, serializeSimSnapshot } from '../../../src/engine/sim/s
 import type { Rapier } from '../../../src/engine/physics/rapier';
 import { createNativeProofResident } from '../../fixtures/headless-native';
 import type { HeadlessCommand } from '../../../src/sdk/tickProtocol';
-import source from '../../../src/shards/nalati-grasslands/shard.config';
+import source from '../../fixtures/nalati-product-source';
 import { prepareHeadlessRuntime } from '../../fixtures/nalati-headless';
 import { createNativeBakeReader } from '../../../src/game/population/nativeBake';
 import { nativeTamingOf } from '@wildshard/game/riding/nativeTaming';

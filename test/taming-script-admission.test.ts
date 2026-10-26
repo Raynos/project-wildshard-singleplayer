@@ -32,7 +32,7 @@ test('mounted ABI2 replaces one executable in the complete return/spawn inventor
   const file=`blobs/wasm/${candidate.artifact.hash}.wasm`;expect(active.has(file)).toBe(true);expect(rows.filter(row=>row.module===file)).toHaveLength(1);
   expect(decisionModuleContracts(rows,rows.map(row=>({kind:'wasm',path:row.module,hash:row.module.slice(11,-5)}))).get(candidate.artifact.hash)).toMatchObject({abi:2,lane:'project',pages:1,ioBytes:candidate.artifact.ioBytes});
   const scope=new Scope('mounted.program');lendNalatiRiding(scope);try{expect(ReturnProgram.page(programs.approach,scope)).toBe(ReturnProgram.page(programs.breaking,scope));expect(ReturnProgram.page(programs.riding,scope)).toBe(ReturnProgram.page(programs.approach,scope));}finally{scope.dispose();}
-  const {output}=await import('../src/shards/nalati-grasslands/generators/output');
+  const {output}=await import('./fixtures/nalati-output-original');
   const declaration=v.parse(v.object({name:v.string(),kind:v.literal('wasm'),source:v.string(),options:v.object({dependencies:v.array(v.string()),critical:v.boolean(),
     script:v.object({abi:v.literal(2),lane:v.literal('project'),pages:v.number(),ioBytes:v.number(),compilerRevision:v.literal(1),admissionRevision:v.literal(1)})})}),
     output.blobs.find(blob=>blob.name==='behaviour/nalati.mounts.wasm'));

@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { nalatiNativeWitness, nalatiTamingNativeWitness } from './proof/nalati-grasslands/witness';
-import source from '../src/shards/nalati-grasslands/shard.config';
+import source from './fixtures/nalati-product-source';
 import { createSimHost, type SimHost } from '../src/engine/sim';
 import { snapshotSimHost, serializeSimSnapshot, decodeSimSnapshot, restoreSimHost } from '../src/engine/sim/snapshot';
 import { loadRapier } from '../src/engine/physics/rapier';

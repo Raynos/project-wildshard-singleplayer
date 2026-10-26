@@ -9,7 +9,7 @@ import { loadRapier } from '../src/engine/physics/rapier';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { builtProduct } from './fixtures/builtProduct';
 import { nalatiNativeAssets } from './proof/nalati-grasslands/nativeAssets';
-import source from '../src/shards/nalati-grasslands/shard.config';
+import source from './fixtures/nalati-product-source';
 import { NALATI_STRIKES, sampleStrike } from './fixtures/nalati-strikes';
 import ecology from '../src/shards/nalati-grasslands/data/ecology.generated.json' with { type: 'json' };
 

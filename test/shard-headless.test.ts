@@ -15,7 +15,7 @@ import { TEMPLATE_SOURCE as template } from './fixtures/templateSource';
 import { PASTEL_SOURCE as pastel } from './fixtures/pastelSource';
 import driftwood from '../src/shards/driftwood-isle/shard.config';
 import pine from '../src/shards/pine-hollow/shard.config';
-import nalati from '../src/shards/nalati-grasslands/shard.config';
+import nalati from './fixtures/nalati-product-source';
 import nine from './fixtures/nine-product-inputs';
 import { source as signal } from './fixtures/sunscar-source-program';
 import sky from '../src/shards/far-reach/shard.config';

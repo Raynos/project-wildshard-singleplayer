@@ -3,7 +3,7 @@ import {createHash} from 'node:crypto';
 import {expect,test} from 'vitest';
 import {readNamedBlob} from '../src/sdk/blobs';
 import {admitScriptV2} from '../src/format/scriptAdmissionV2';
-import {output} from '../src/shards/nalati-grasslands/generators/output';
+import {output} from './fixtures/nalati-output-original';
 import {outputPlatformPayloads} from '../src/sdk/outputProduct';
 
 const originals = [

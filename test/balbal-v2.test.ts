@@ -125,7 +125,7 @@ test('the selected creature artifact is admitted in the complete emitted invento
   expect(new Set(rows.filter(item => item.side === 'sim').map(item => item.module)).size).toBe(8);
   expect(rows.some(item => item.module === module.file.path && item.abi === 2)).toBe(true);
   expect(decisionModuleContracts(rows,rows.map(item => item.module === module.file.path ? module.file : { kind: 'wasm', path: item.module, hash: item.module.slice(11,-5) })).get(candidate.artifact.hash)).toMatchObject({ abi:2,lane:'project' });
-  const { output }=await import('../src/shards/nalati-grasslands/generators/output');
+  const { output }=await import('./fixtures/nalati-output-original');
   const declaration=parse(object({name:string(),kind:literal('wasm'),source:string(),options:object({dependencies:array(string()),critical:boolean(),
     script:object({abi:literal(2),lane:literal('project'),pages:number(),ioBytes:number(),compilerRevision:literal(1),admissionRevision:literal(1)})})}),
     output.blobs.find(blob=>blob.name==='behaviour/nalati.held-weapons.wasm'));

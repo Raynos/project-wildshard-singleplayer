@@ -137,7 +137,7 @@ test('look-only trusted hybrids retain native kit and play ownership', async () 
 });
 
 test.each([
-  ['Nalati', () => import('../src/shards/nalati-grasslands/shard.config')],
+  ['Nalati', () => import('./fixtures/nalati-product-source')],
   ['Nine', () => Promise.resolve({ default: NINE })],
 ] as const)('%s look-only native rows never request a second simulation', async (_name, load) => {
   const source = (await load()).default;

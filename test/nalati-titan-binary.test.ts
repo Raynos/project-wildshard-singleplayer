@@ -81,7 +81,7 @@ test('binary witnesses add no executable to the complete return and spawn invent
 });
 
 test('every witness dependency stays in the critical cohort with its executable',async()=>{
-  const {output}=await import('../src/shards/nalati-grasslands/generators/output');
+  const {output}=await import('./fixtures/nalati-output-original');
   for(const name of ['titan','pasture','held','riding']){
     const row=output.blobs.find(file=>file.name===`behaviour/${name}-witness.bin`);
     expect(row,`${name} witness must not become a render-library root`).toMatchObject({kind:'bin',options:{critical:true}});
