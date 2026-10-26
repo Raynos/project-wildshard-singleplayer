@@ -3,12 +3,13 @@
  * only on the GPU, so an in-place WebGL restore brings it back empty. A module that makes such a bake marks it here, and
  * src/engine/core/GpuRecovery.ts reloads the page on a context loss instead of restoring in place (E54).
  */
-import { BufferAttribute, BufferGeometry, Data3DTexture, DataArrayTexture, DataTexture, Mesh, type Object3D, SkinnedMesh, StaticDrawUsage, type Texture } from 'three';
+import { BufferAttribute, BufferGeometry, CompressedCubeTexture, CompressedTexture, Data3DTexture, DataArrayTexture, DataTexture, Mesh, type Object3D, SkinnedMesh, StaticDrawUsage, type Texture } from 'three';
 import { enteredOwner } from '../app/ownership';
 import { resourceScope } from '../app/resources';
 import type { Scope } from '../app/scope';
 import { geometryBoundsSteps } from '../world/geometryBounds';
 import { onceTextureUploaded } from '../render/textureUploadEvents';
+import { registerCompressedMipmaps } from '../render/compressedMipmaps';
 
 const labels = new Set<string>();
 /** marks made outside any shard (at module load: KTX2 mode drops every texture's mips once uploaded) — the page's, never reset */
@@ -107,10 +108,14 @@ function releaseSource(t: Texture): void {
 
 /**
  * E264: a texture whose CPU source (decoded image, canvas or pixel array) nothing reads after its upload: it is released
- * the moment the texture is uploaded (its size and format stay, the GPU copy is untouched). Set it before the first draw.
+ * after native upload (compressed mips wait for the first finalized draw). Size, format and GPU copy stay. Set before drawing.
  * Only for a texture nothing updates again. A lost context reloads the page (`label`).
  */
 export function gpuOnlyTexture(t: Texture, label: string): void {
-  onceTextureUploaded(t, releaseSource);
+  // Compressed storage keeps the existing final-sampler / successful-draw fence.
+  // Cubes own separate face mip lists and retain their existing lifetime.
+  if (t instanceof CompressedTexture) {
+    if (!(t instanceof CompressedCubeTexture)) registerCompressedMipmaps(t);
+  } else onceTextureUploaded(t, releaseSource);
   markGpuOnly(label);
 }
