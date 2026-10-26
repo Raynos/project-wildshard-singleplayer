@@ -1,3 +1,4 @@
+import { nalatiSpecimens } from './fixtures/nalati-specimens';
 import { nalatiRuntime } from './fixtures/nalati-runtime';
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify the complete original admitted prop bytes.
 import { readFileSync } from 'node:fs';
@@ -10,13 +11,10 @@ import { makeCarriedQuestRows } from '../src/shards/nalati-grasslands/generators
 import { carriedQuestRows } from './fixtures/nalati-carried-quest';
 import { nalatiQuestProp } from '../src/shards/nalati-grasslands/generators/questProp';
 
-const root = 'src/shards/nalati-grasslands/data/';
-const read = (file: string): unknown => JSON.parse(readFileSync(`${root}${file}`, 'utf8'));
-
 test('computed carried-prop geometry and admitted material preserve the whole original declaration', () => {
   const places = v.parse(v.object({ places: v.object({ rows: v.array(v.object({ name: v.string(),
     meshes: v.array(v.object({ geometry: SceneBakedGeometrySchema })) })) }) }), nalatiRuntime);
-  const specimens = v.parse(v.object({ materials: v.object({ poi: v.unknown() }) }), read('specimens.generated.json'));
+  const specimens = v.parse(v.object({ materials: v.object({ poi: v.unknown() }) }), nalatiSpecimens);
   const geometry = places.places.rows.find(row => row.name === 'actor:goat')?.meshes[0]?.geometry;
   if (geometry === undefined) throw new Error('Missing computed quest prop geometry');
   const row = nalatiQuestProp(geometry, specimens.materials.poi), admitted = v.parse(SpecimenCatalogueSchema, [row])[0];

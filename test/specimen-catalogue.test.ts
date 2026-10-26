@@ -15,9 +15,9 @@ import { createPackedSpecimens, defineSpecimenCatalogue, specimenMaterial } from
 import { PackedSpecimenSchema } from '@wildshard/format/specimenCatalogue';
 import packedRows from '../src/shards/nalati-grasslands/data/placeSpecimens.json' with { type: 'json' };
 import campMaterialRows from '../src/shards/nalati-grasslands/data/campMaterials.json' with { type: 'json' };
-import type { CatalogueParams } from '../src/shards/nalati-grasslands/boot/specimenParams.generated';
+import type { CatalogueParams } from '../src/shards/nalati-grasslands/generators/campParams';
 import type { CatalogueParams as TrailParams } from '../src/shards/driftwood-isle/boot/specimenParams.generated';
-import campData from '../src/shards/nalati-grasslands/data/specimens.generated.json' with { type: 'json' };
+import { nalatiSpecimens as campData } from './fixtures/nalati-specimens';
 import trailRows from '../src/shards/driftwood-isle/data/trailCatalogue.json' with { type: 'json' };
 
 import { SceneFloorSchema } from '../src/format/sceneDressing';
@@ -130,7 +130,7 @@ describe('declared specimen catalogue', () => {
     const sky = testSky(), built = catalogue.model('ribbonPole').build(modelContext(sky), {}, new Rng(1));
     if (!(built instanceof THREE.Group)) throw new Error('Expected lazy group');
     const mesh = built.children[0]; if (!(mesh instanceof THREE.Mesh)) throw new Error('Expected painted specimen');
-    expect(mesh.material).toBe(specimenMaterial(sky, campData.materials.poi));
+    expect(mesh.material).toBe(specimenMaterial(sky, campData.materials['poi']));
     expect(mesh.castShadow).toBe(true); expect(mesh.receiveShadow).toBe(true);
   });
 
@@ -156,7 +156,7 @@ describe('declared specimen catalogue', () => {
   it('shares material identities with the world and recreates disposed material caches', () => {
     const sky = testSky(), row = campMaterialRows.poi;
     const material = specimenMaterial(sky, row);
-    expect(material).toBe(specimenMaterial(sky, campData.materials.poi));
+    expect(material).toBe(specimenMaterial(sky, campData.materials['poi']));
     expect(painterlyKnobs(material)?.uPRim.value).toBe(0.35);
     expect(painterlyKnobs(material)?.uPFloorAmt.value).toBe(1);
     expect(specimenMaterial(testSky(), row)).not.toBe(material);

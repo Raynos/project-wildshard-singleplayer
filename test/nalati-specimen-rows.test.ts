@@ -15,7 +15,7 @@ const project = 'src/shards/nalati-grasslands/';
 const catalogue: unknown = JSON.parse(readFileSync(`${project}data/campCatalogue.json`, 'utf8'));
 const materials: unknown = JSON.parse(readFileSync(`${project}data/campMaterials.json`, 'utf8'));
 if (!v.is(SpecimenCatalogueSchema, catalogue) || !v.is(v.record(v.string(), SpecimenMaterialSchema), materials)) throw new Error('Invalid original Nalati declarations');
-const original: unknown = JSON.parse(readFileSync(`${project}data/specimens.generated.json`, 'utf8'));
+const original: unknown = JSON.parse(readFileSync('test/fixtures/nalati-specimens-original.json', 'utf8'));
 const packed = v.parse(v.record(v.string(), v.unknown()), JSON.parse(readFileSync(`${project}data/placeSpecimens.json`, 'utf8')));
 const make = () => nalatiSpecimenRows(catalogue, materials, packed);
 const pins = new Map([
@@ -30,7 +30,7 @@ test('supplied packed metadata retains every original declaration byte with deta
   const first = make(), bytes = new TextEncoder().encode(`${JSON.stringify(first, null, 2)}\n`);
   expect(bytes.byteLength).toBe(110932);
   expect(hashImmutableBytes(bytes)).toBe(pins.get(`${project}data/specimens.generated.json`));
-  expect(Buffer.compare(bytes, readFileSync(`${project}data/specimens.generated.json`))).toBe(0);
+  expect(Buffer.compare(bytes, readFileSync('test/fixtures/nalati-specimens-original.json'))).toBe(0);
   expect(first.catalogue).not.toBe(catalogue); expect(first.packed['rows']).not.toBe(packed['rows']);
   const poi = first.materials['poi']; if (poi === undefined) throw new Error('Missing original POI material');
   Reflect.set(poi, 'rim', 99);
