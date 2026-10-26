@@ -10,7 +10,7 @@ export const DRIFTWOOD_FAUNA_TUNING = {
 };
 
 /** The five original anchor searches share the manifest's admitted data order. */
-export const DRIFTWOOD_FAUNA_PLANS = manifest.spawns;
+export const DRIFTWOOD_FAUNA_PLANS: { kind: string; count: number; variants: string[]; anchor: { x: number; z: number; rMin: number; rMax: number; }; canopy: boolean; trailBand: number[]; }[] = manifest.spawns;
 
 /** Historical fauna continuation fields; future fields remain on their existing native defaults. */
 export const DRIFTWOOD_HUNT_MEMORY_FIELDS=['timer','tx','tz','fleeT','fleeUntil','chargeCd','callT','awareness','freeze',

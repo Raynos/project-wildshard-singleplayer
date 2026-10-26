@@ -17,7 +17,7 @@ export interface DeckPlacement { x: number; y: number; z: number; yaw: number; p
 export interface EntryDeckRows { notice: string; rows: { edge: DryEntryEdge; rect: DeckRect; slab: DeckSlab; placement: DeckPlacement }[] }
 
 /** how far in from the cell edge each deck runs: the 15 m socket plus the declared landing */
-export const DECK_RUN = ENTRY_ASPHALT + LANDING_RUN;
+export const DECK_RUN: number = ENTRY_ASPHALT + LANDING_RUN;
 
 /** an entry's frame: its edge midpoint, the inward unit axis and the model's yaw (its +Z turned to run in) */
 function frame(edge: DryEntryEdge): { mx: number; mz: number; ix: number; iz: number; yaw: number } {

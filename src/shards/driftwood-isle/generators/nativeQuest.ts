@@ -3,7 +3,7 @@ import authored from '../data/nativeQuest.json' with { type: 'json' };
 import spots from '../data/spots.generated.json' with { type: 'json' };
 
 /** Existing native mechanics retain the world frame and exact legacy save order. */
-export const DRIFTWOOD_NATIVE_QUEST = parseNativeQuestComposition({
+export const DRIFTWOOD_NATIVE_QUEST: ReturnType<typeof parseNativeQuestComposition> = parseNativeQuestComposition({
   step: authored.step, cable: authored.cable, eye: 0, counts: 'declared',
   phases: ['props', 'transitions', 'cable', 'director', 'reward'],
   saved: { names: {}, snapshot: ['key', 'finale', 'iron', 'pack', 'zipline', 'reward', 'counts', 'barrel'],

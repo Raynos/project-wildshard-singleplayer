@@ -5,12 +5,12 @@ import { driftwoodGroundSampler } from './groundSampling';
 import { Rng } from '@wildshard/engine/core/rng';
 import volleyData from '../data/coconutSlots.json' with { type: 'json' };
 import { BodySlotsSchema } from '@wildshard/format/bodySlots';
-import { parse } from 'valibot';
+import { parse, type InferOutput } from 'valibot';
 import { sampleCreatureGroup, selectCreatureSites } from '@wildshard/game/plugin/brain';
 import { ENEMY_COUNTS } from './fauna';
 import { driftwoodPhysicsGroundBytes } from './physics';
 
-const volley = parse(BodySlotsSchema, volleyData);
+const volley: InferOutput<typeof BodySlotsSchema> = parse(BodySlotsSchema, volleyData);
 
 /** manifest.ts's `WRECK` site and heading, `PRACTICE_CRAB` and the troops' default keep-away point (creatures/Enemies.ts),
  *  spelled here because the manifest imports views; test/shards/driftwood-isle/physics-bake.test.ts holds them equal. */

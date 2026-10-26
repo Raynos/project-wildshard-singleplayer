@@ -94,5 +94,5 @@ function compile(captain: boolean) {
       { name: 'bodyY', path: ['dims', 'bodyY'] }, ...['init', 'rise', ...(captain ? ['phase'] : [])].map(key => ({ name: key === 'phase' ? 'ragePhase' : key, path: ['mem', key], fallback: 0 }))],
     programs: [...groups.values()].flatMap((outputs, i) => numericChannelPrograms(`${captain ? 'captain' : 'sailor'}.${i}`, 'creature.pose', outputs.map(out => ({ ...out, target: `joint.${out.target.replaceAll('_', '.')}` })))) });
 }
-export const SAILOR_CLIPS = compile(false);
-export const CAPTAIN_CLIPS = compile(true);
+export const SAILOR_CLIPS: ReturnType<typeof creaturePoseRows> = compile(false);
+export const CAPTAIN_CLIPS: ReturnType<typeof creaturePoseRows> = compile(true);

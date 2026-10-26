@@ -85,5 +85,5 @@ bone('head', (b, r) => { const e = expressions(b, r); return e.add(e.mul(e.neg(r
 const groups = new Map<string, NumericChannelOutput[]>();
 for (const row of outputs) { const group = groups.get(row.target) ?? []; group.push(row); groups.set(row.target, group); }
 /** One bone per program permits optional pivots and keeps the existing admission bounds. */
-export const CRAB_CLIPS = creaturePoseRows({ group: 'creature.pose', states: ['sidestep', 'attack', 'alert'], look: [.36, 1, .5], squash: 'body',
+export const CRAB_CLIPS: ReturnType<typeof creaturePoseRows> = creaturePoseRows({ group: 'creature.pose', states: ['sidestep', 'attack', 'alert'], look: [.36, 1, .5], squash: 'body',
   programs: [...groups.values()].flatMap((rows, i) => numericChannelPrograms(`crab.${i}`, 'creature.pose', rows.map(out => ({ ...out, target: `joint.${out.target.replaceAll('_', '.')}` })))) });

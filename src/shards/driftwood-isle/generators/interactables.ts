@@ -38,7 +38,7 @@ const glass: PickupDef[] = SEA_GLASS_POINTS.map(([x, z], i) => ({
   color: COLORS[i % COLORS.length] ?? '#7df0d0', at: { poi: 'world', x, z }, sets: [`${SEA_GLASS_FLAG}${i + 1}`],
 }));
 /** The original number of authored shore pickups. */
-export const SEA_GLASS_COUNT = SEA_GLASS_POINTS.length;
+export const SEA_GLASS_COUNT: number = SEA_GLASS_POINTS.length;
 
 /** The authored reef find shared by the kit and completion content. */
 export const REEF_TREASURE: Extract<InteractTable['rows'][number], { kind: 'chest' }> = { kind: 'chest', id: 'reef-treasure', look: 'treasure', reach: 1.6, at: { poi: 'world', x: 232, z: 48 }, contents: [{ item: 'doubloon', n: 8 }, { flag: 'found:reef-treasure', label: 'a pearl necklace' }],

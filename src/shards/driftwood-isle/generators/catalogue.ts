@@ -2,7 +2,7 @@ import { defineSpecimenCatalogue } from '@wildshard/game/models/specimenCatalogu
 import rows from '../data/trailCatalogue.json' with { type: 'json' };
 import type { CatalogueParams } from './trailParams';
 
-const catalogue = defineSpecimenCatalogue<CatalogueParams>(rows);
-export const fencePost = catalogue.model('fencePost');
-export const signpost = catalogue.model('signpost');
-export const plankStep = catalogue.model('plankStep');
+const catalogue: ReturnType<typeof defineSpecimenCatalogue<CatalogueParams>> = defineSpecimenCatalogue<CatalogueParams>(rows);
+export const fencePost: ReturnType<typeof catalogue.model<'fencePost'>> = catalogue.model('fencePost');
+export const signpost: ReturnType<typeof catalogue.model<'signpost'>> = catalogue.model('signpost');
+export const plankStep: ReturnType<typeof catalogue.model<'plankStep'>> = catalogue.model('plankStep');

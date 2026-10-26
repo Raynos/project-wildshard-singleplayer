@@ -22,6 +22,6 @@ const TRADER_KIT = { scene: scenes.trader, material: 'default', neck: 1.48, hide
       offer: { yaw: -0.35, pitch: 0.3, within: 11 } }] };
 
 /** The same figure-row admission as skinned people, over the existing pivot kit, with each figure's kit rows. */
-export const FIGURE_CATALOGUE = v.parse(FigureCatalogueSchema, { figures: {
+export const FIGURE_CATALOGUE: v.InferOutput<typeof FigureCatalogueSchema> = v.parse(FigureCatalogueSchema, { figures: {
   castaway: { phone: castaway, desktop: castaway, kit: CASTAWAY_KIT }, trader: { phone: trader, desktop: trader, kit: TRADER_KIT },
 } });

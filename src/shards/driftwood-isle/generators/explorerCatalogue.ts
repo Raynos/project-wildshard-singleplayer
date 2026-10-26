@@ -2,7 +2,7 @@ import { HELD_ARMS } from './heldArms';
 import { parseExplorerCatalogue } from '@wildshard/format/explorerCatalogue';
 
 /** Ordered references retain the original native specimen order. */
-export const EXPLORER_CATALOGUE = parseExplorerCatalogue({
+export const EXPLORER_CATALOGUE: ReturnType<typeof parseExplorerCatalogue> = parseExplorerCatalogue({
   "version": 1,
   "entries": [
     {
