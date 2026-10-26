@@ -34,6 +34,13 @@ export function saveJpegBlob(page, blob, file) {
   return saveImageBlob(page, blob, file, { mime: 'image/jpeg', label: 'Board JPEG' });
 }
 
+/** Return native JPEG bytes to an existing buffer consumer, retiring its handle.
+ * @param {import('../bake-output.mjs').ByteSinkPage} page
+ * @param {import('playwright').JSHandle<Blob>} blob */
+export function jpegBlobBytes(page, blob) {
+  return withImageBlob(page, blob, { mime: 'image/jpeg', label: 'Board JPEG' }, bytes => bytes);
+}
+
 /** @param {import('../bake-output.mjs').ByteSinkPage} page
  * @param {Pick<import('playwright').JSHandle<HTMLCanvasElement>,'evaluateHandle'|'dispose'>} canvas
  * @param {string} file
@@ -60,7 +67,16 @@ async function saveCanvasImage(page, canvas, file, encoding) {
  * @param {import('playwright').JSHandle<Blob>} blob
  * @param {string} file
  * @param {{mime:'image/png'|'image/jpeg',label:string}} encoding */
-async function saveImageBlob(page, blob, file, encoding) {
+function saveImageBlob(page, blob, file, encoding) {
+  return withImageBlob(page, blob, encoding, bytes => writeFileSync(file, bytes));
+}
+
+/** @template T
+ * @param {import('../bake-output.mjs').ByteSinkPage} page
+ * @param {import('playwright').JSHandle<Blob>} blob
+ * @param {{mime:'image/png'|'image/jpeg',label:string}} encoding
+ * @param {(bytes:Uint8Array)=>T} consume */
+async function withImageBlob(page, blob, encoding, consume) {
   try {
     const size = await blob.evaluate((value, mime) => {
       if (!(value instanceof Blob) || value.type !== mime || value.size === 0) throw new Error('Invalid native image');
@@ -74,7 +90,7 @@ async function saveImageBlob(page, blob, file, encoding) {
       }, { url: `${sink.url}frame`, label: encoding.label });
       const bytes = sink.take('frame');
       if (bytes.byteLength !== size) throw new Error(encoding.mime === 'image/png' ? 'Incomplete board PNG' : 'Incomplete playback JPEG');
-      writeFileSync(file, bytes);
+      return consume(bytes);
     } finally { await sink.dispose(); }
   } finally { await blob.dispose(); }
 }

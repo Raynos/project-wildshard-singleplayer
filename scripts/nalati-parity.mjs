@@ -24,6 +24,8 @@ import { mkdirSync, mkdtempSync, readFileSync, writeFileSync, existsSync, rmSync
 import { tmpdir } from 'node:os';
 import { resolve as resolvePath, join } from 'node:path';
 import { POSES } from './nalati-poses.mjs';
+import { imageRoutes } from './parity/image-routes.mjs';
+import { jpegBlobBytes } from './parity/canvas-bytes.mjs';
 
 const { chromium } = await import('playwright');
 
@@ -158,47 +160,60 @@ function paintoverFor(pose, tier) {
   return null;
 }
 
-/** a data URL for an image file (png / jpg) */
-function dataUrl(path) { return `data:image/${path.endsWith('.png') ? 'png' : 'jpeg'};base64,${readFileSync(path).toString('base64')}`; }
-
 /**
  * engine PNG + the targets (paint-over, mockup — each scaled to the same height, labelled) → one JPEG ≤ 500 KB,
  * composed in a blank page's canvas. Also returns the engine frame as a JPEG (the paint-over source, `--engine-frames`).
  */
 async function composite(page, enginePng, targets, caption) {
-  const eng = `data:image/png;base64,${enginePng.toString('base64')}`;
-  const panels = targets.map((t) => ({ src: dataUrl(t.path), label: t.label }));
   const p2 = await page.context().newPage();
   try {
-    const out = await p2.evaluate(async (args) => {
-      const load = (src) => new Promise((resolve, reject) => { const i = new Image(); i.onload = () => resolve(i); i.onerror = reject; i.src = src; });
-      const a = await load(args.eng);
-      const imgs = [];
-      for (const pn of args.panels) imgs.push({ img: await load(pn.src), label: pn.label });
-      const H = Math.min(1100, a.height);
-      const aw = Math.round(a.width * (H / a.height));
-      const ws = imgs.map((p) => Math.round(p.img.width * (H / p.img.height)));
-      const gap = 8;
-      const c = document.createElement('canvas'); c.width = aw + ws.reduce((s, w) => s + w + gap, 0); c.height = H;
-      const g = c.getContext('2d');
-      g.fillStyle = '#111'; g.fillRect(0, 0, c.width, H);
-      g.imageSmoothingQuality = 'high';
-      g.drawImage(a, 0, 0, aw, H);
-      g.font = '600 14px ui-monospace, monospace';
-      const tag = (x, text, color) => { const tw = g.measureText(text).width; g.fillStyle = 'rgba(0,0,0,0.6)'; g.fillRect(x, H - 24, tw + 16, 24); g.fillStyle = color; g.fillText(text, x + 8, H - 7); };
-      tag(0, args.caption, '#9fe6ff');
-      let x = aw + gap;
-      imgs.forEach((p, i) => { const w = ws[i] ?? 0; g.drawImage(p.img, x, 0, w, H); tag(x, p.label, '#ffd98a'); x += w + gap; });
-      let side = null;
-      for (let q = 0.86; q >= 0.4; q -= 0.06) {
-        const url = c.toDataURL('image/jpeg', q);
-        if (url.length * 0.75 < 490 * 1024) { side = url.split(',')[1]; break; }
-      }
-      const e = document.createElement('canvas'); e.width = a.width; e.height = a.height;
-      e.getContext('2d').drawImage(a, 0, 0);
-      return { side: side ?? c.toDataURL('image/jpeg', 0.35).split(',')[1], engine: e.toDataURL('image/jpeg', 0.92).split(',')[1] };
-    }, { eng, panels, caption });
-    return { side: Buffer.from(out.side, 'base64'), engine: Buffer.from(out.engine, 'base64') };
+    /** @type {{bytes:Uint8Array,mime:'image/png'|'image/jpeg'}[]} */
+    const images = [{ bytes: enginePng, mime: 'image/png' }, ...targets.map(t => ({ bytes: readFileSync(t.path), mime: t.path.endsWith('.png') ? 'image/png' : 'image/jpeg' }))];
+    const inputs = await imageRoutes(p2, images);
+    try {
+      const panels = targets.map((target, index) => ({ src: inputs.urls[index + 1], label: target.label }));
+      const out = await p2.evaluateHandle(async (args) => {
+        const load = async (src) => { const i = new Image(); i.crossOrigin = 'anonymous'; i.src = src; await i.decode(); return i; };
+        const a = await load(args.eng);
+        const imgs = [];
+        for (const pn of args.panels) imgs.push({ img: await load(pn.src), label: pn.label });
+        const H = Math.min(1100, a.height);
+        const aw = Math.round(a.width * (H / a.height));
+        const ws = imgs.map((p) => Math.round(p.img.width * (H / p.img.height)));
+        const gap = 8;
+        const c = document.createElement('canvas'); c.width = aw + ws.reduce((s, w) => s + w + gap, 0); c.height = H;
+        const g = c.getContext('2d');
+        g.fillStyle = '#111'; g.fillRect(0, 0, c.width, H);
+        g.imageSmoothingQuality = 'high';
+        g.drawImage(a, 0, 0, aw, H);
+        g.font = '600 14px ui-monospace, monospace';
+        const tag = (x, text, color) => { const tw = g.measureText(text).width; g.fillStyle = 'rgba(0,0,0,0.6)'; g.fillRect(x, H - 24, tw + 16, 24); g.fillStyle = color; g.fillText(text, x + 8, H - 7); };
+        tag(0, args.caption, '#9fe6ff');
+        let x = aw + gap;
+        imgs.forEach((p, i) => { const w = ws[i] ?? 0; g.drawImage(p.img, x, 0, w, H); tag(x, p.label, '#ffd98a'); x += w + gap; });
+        /** @param {HTMLCanvasElement} canvas @param {number} quality @returns {Promise<Blob>} */
+        const encode = (canvas, quality) => new Promise((resolve, reject) => {
+          canvas.toBlob(bytes => {
+            if (bytes === null || bytes.type !== 'image/jpeg' || bytes.size === 0) reject(new Error('Parity JPEG encoding failed'));
+            else resolve(bytes);
+          }, 'image/jpeg', quality);
+        });
+        let side = null;
+        for (let q = 0.86; q >= 0.4; q -= 0.06) {
+          const bytes = await encode(c, q);
+          // Preserve the original data-URL threshold, including its prefix.
+          if ((23 + 4 * Math.ceil(bytes.size / 3)) * 0.75 < 490 * 1024) { side = bytes; break; }
+        }
+        const e = document.createElement('canvas'); e.width = a.width; e.height = a.height;
+        e.getContext('2d').drawImage(a, 0, 0);
+        return { side: side ?? await encode(c, 0.35), engine: await encode(e, 0.92) };
+      }, { eng: inputs.urls[0], panels, caption });
+      try {
+        const side = await jpegBlobBytes(p2, await out.getProperty('side'));
+        const engine = await jpegBlobBytes(p2, await out.getProperty('engine'));
+        return { side: Buffer.from(side.buffer, side.byteOffset, side.byteLength), engine: Buffer.from(engine.buffer, engine.byteOffset, engine.byteLength) };
+      } finally { await out.dispose(); }
+    } finally { await inputs.dispose(); }
   } finally { await p2.close(); }
 }
 

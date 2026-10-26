@@ -9,3 +9,5 @@ export function savePngBlob(page:ByteSinkPage,blob:JSHandle<Blob>,file:string):P
 
 /** Publish a frozen JPEG and always retire its owned handle/route. */
 export function saveJpegBlob(page:ByteSinkPage,blob:JSHandle<Blob>,file:string):Promise<void>;
+/** Read native JPEG bytes and always retire its owned handle/route. */
+export function jpegBlobBytes(page:ByteSinkPage,blob:JSHandle<Blob>):Promise<Uint8Array>;
