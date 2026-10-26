@@ -3,6 +3,7 @@ import { resolve } from 'node:path';
 import { Document, WebIO } from '@gltf-transform/core';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
+import { BufferAttribute, BufferGeometry, Matrix4, Vector3 } from 'three';
 import { assertConfigBoundary } from '../configBoundary';
 import { MapRaster } from './mapRaster';
 
@@ -50,4 +51,26 @@ test('the canonical raster bundles without filesystem, module or compiler servic
   if (output === undefined || !('output' in output)) throw new Error('Missing raster author bundle');
   const chunks = output.output.filter(row => row.type === 'chunk'); expect(chunks).toHaveLength(1);
   for (const chunk of chunks) expect(() => assertConfigBoundary([...chunk.imports, ...chunk.dynamicImports])).not.toThrow();
+});
+
+test('indexed and direct faces retain complete transformed depth and colour buffers', () => {
+  const positions = new Float32Array([-120, 4, -120, 120, 8, 120, 120, 6, -120, -120, 9, -120, 120, 9, -120, 120, 9, 120]);
+  for (const indexed of [false, true]) {
+    const geometry = new BufferGeometry();
+    geometry.setAttribute('position', new BufferAttribute(positions, 3));
+    geometry.setAttribute('color', new BufferAttribute(new Float32Array(positions.length).fill(1), 3));
+    if (indexed) geometry.setIndex([2, 1, 0, 5, 4, 3]);
+    const matrix = new Matrix4().makeRotationY(.27).setPosition(7, -2, 11);
+    const actual = new MapRaster(32, { clipBelow: 0, clipAbove: 20 }), expected = new MapRaster(32, { clipBelow: 0, clipAbove: 20 });
+    actual.geometry(geometry, matrix);
+    const points = Array.from({ length: 6 }, (_, index) => new Vector3().fromArray(positions, index * 3).applyMatrix4(matrix).toArray());
+    const indices = indexed ? [2, 1, 0, 5, 4, 3] : [0, 1, 2, 3, 4, 5];
+    for (const offset of [0, 3]) expected.triangle(indices.slice(offset, offset + 3).map(index => {
+      const point = points[index]; if (point === undefined) throw new Error('Missing reference point'); return point;
+    }), [[255, 255, 255], [255, 255, 255], [255, 255, 255]]);
+    expect(actual.triangles).toBe(2);
+    expect(actual.height.some(height => height !== -2147483648)).toBe(true);
+    expect(actual.height).toEqual(expected.height); expect(actual.colour).toEqual(expected.colour);
+    geometry.dispose();
+  }
 });

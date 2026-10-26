@@ -97,9 +97,12 @@ export class MapRaster {
       points.push(new Vector3().fromBufferAttribute(position, i).applyMatrix4(matrix).toArray());
       colours.push(colour === undefined ? [180, 180, 180] : [colour.getX(i), colour.getY(i), colour.getZ(i)].map(srgb));
     }
+    const facePoints: number[][] = [[], [], []], faceColours: number[][] = [[], [], []];
     for (let i = 0; i < (indices?.count ?? position.count); i += 3) {
-      const ids = [0, 1, 2].map(k => indices?.getX(i + k) ?? i + k);
-      this.triangle(ids.map(id => at(points, id)), ids.map(id => at(colours, id)));
+      const a = indices?.getX(i) ?? i, b = indices?.getX(i + 1) ?? i + 1, c = indices?.getX(i + 2) ?? i + 2;
+      facePoints[0] = at(points, a); facePoints[1] = at(points, b); facePoints[2] = at(points, c);
+      faceColours[0] = at(colours, a); faceColours[1] = at(colours, b); faceColours[2] = at(colours, c);
+      this.triangle(facePoints, faceColours);
     }
   }
   /** Keep native mesh order, selectors, local/world transforms and instanced placements. */
@@ -132,9 +135,12 @@ export class MapRaster {
             const c = colour?.getElement(i, []) ?? [1, 1, 1];
             colours.push([0, 1, 2].map(k => srgb(at(base, k) * at(c, k))));
           }
+          const facePoints: number[][] = [[], [], []], faceColours: number[][] = [[], [], []];
           for (let i = 0; i < (indices?.getCount() ?? position.getCount()); i += 3) {
-            const ids = [0, 1, 2].map(k => indices?.getScalar(i + k) ?? i + k);
-            this.triangle(ids.map(id => at(points, id)), ids.map(id => at(colours, id)));
+            const a = indices?.getScalar(i) ?? i, b = indices?.getScalar(i + 1) ?? i + 1, c = indices?.getScalar(i + 2) ?? i + 2;
+            facePoints[0] = at(points, a); facePoints[1] = at(points, b); facePoints[2] = at(points, c);
+            faceColours[0] = at(colours, a); faceColours[1] = at(colours, b); faceColours[2] = at(colours, c);
+            this.triangle(facePoints, faceColours);
           }
         }
       }
