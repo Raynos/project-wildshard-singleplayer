@@ -6,12 +6,19 @@ import { Bone, BufferGeometry, Material, Mesh, MeshStandardMaterial, Skeleton } 
 import { MountedSpecimenSeatSchema } from '@wildshard/format/mountedSpecimenRows';
 import { Scope } from '@wildshard/engine/app/scope';
 import { SeatedFigure, seatedFigureView } from './seatedFigure';
+import {sha256} from '../plugin/moduleHash';
 
 // G603 L10 host bar, tests 2-6, for the riding host's rider seated on a mount, on a made-up lamplighter riding a donkey:
-// its own inline shapes, a scene-declared standard coat (no lent look), another joint, speed clock and two cue kinds.
+// its own named shapes, a scene-declared standard coat (no lent look), another joint, speed clock and two cue kinds.
 // Exact original zlib wires: position [x, 0, 0, 1, 0, 0, 0, 1, 0], index deltas [0, 1, 1].
-const shape = (key: string, x: 2 | 3) => ({ key,
-  data: x === 2 ? 'eJxjYGBwAGIoaLBHsFH5jFAMADHKAcE=' : 'eJxjYHBwYICDBnsEG5XPCMUAPUoCAQ==',
+const shapeBytes=(x:2|3):Uint8Array=>{
+  const bytes=new Uint8Array(48);
+  new Float32Array(bytes.buffer,0,9).set([x,0,0,1,0,0,0,1,0]);
+  new Int32Array(bytes.buffer,36,3).set([0,1,1]);
+  return bytes;
+};
+const files=new Map([["shapes/2.bin",shapeBytes(2)],["shapes/3.bin",shapeBytes(3)]]);
+const shape = (key: string, x: 2 | 3) => ({ key,file:`shapes/${String(x)}.bin`,
   geometry: { attrs: [['position', 'f32', 3, false]], count: 3, index: 'u16', indexCount: 3, box: true, expand: false } });
 const lamplighter = () => ({ mount: 'saddle',
   figure: { version: 1, root: 'rider', materials: [{ kind: 'standard', id: 'coat', properties: { color: 0x334455, roughness: 0.8 } }],
@@ -31,8 +38,12 @@ const mesh = (figure: SeatedFigure, index: number): Mesh => {
   return part;
 };
 
+test('named host shapes keep the exact predecessor compressed-wire payloads',()=>{
+  expect([...files.values()].map(bytes=>sha256(bytes))).toEqual(['a648af4212ef3b0ce38f7794202a368b2080d2387f810286878b51cfd537c968','8e5fccd646e846bd87baf0ea9bac27a0fa4f06139e047ddd182ad787673d9beb']);
+});
+
 test('a lamplighter seats on its own joint, leans on its speed clock and swings on either cue (tests 3, 5)', () => {
-  const scope = new Scope('lamplighter'), figure = new SeatedFigure(v.parse(MountedSpecimenSeatSchema, lamplighter()), scope);
+  const scope = new Scope('lamplighter'), figure = new SeatedFigure(v.parse(MountedSpecimenSeatSchema, lamplighter()), scope,files);
   const saddle = new Bone(); saddle.name = 'saddle';
   figure.attach({ mesh: { skeleton: new Skeleton([saddle]) }, speed: 3 });
   expect(saddle.children).toEqual([figure.root]);
@@ -54,7 +65,7 @@ test('a lamplighter seats on its own joint, leans on its speed clock and swings 
 
 test('the rider is client presentation: its scope owns every decoded shape and made material (test 4)', () => {
   const owned: (BufferGeometry | Material)[] = [];
-  const view = seatedFigureView(v.parse(MountedSpecimenSeatSchema, painted()), resource => { owned.push(resource); });
+  const view = seatedFigureView(v.parse(MountedSpecimenSeatSchema, painted()), resource => { owned.push(resource); },files);
   expect(owned.filter(resource => resource instanceof BufferGeometry)).toHaveLength(2);
   const look = owned.find(resource => resource instanceof Material);
   if (look === undefined) throw new Error('The lent look makes the port material');
@@ -62,7 +73,7 @@ test('the rider is client presentation: its scope owns every decoded shape and m
   if (!isMesh(torso)) throw new Error('Missing torso');
   expect(torso.material).toBe(look);
   view.dispose();
-  const scope = new Scope('lamplighter'), figure = new SeatedFigure(v.parse(MountedSpecimenSeatSchema, lamplighter()), scope);
+  const scope = new Scope('lamplighter'), figure = new SeatedFigure(v.parse(MountedSpecimenSeatSchema, lamplighter()), scope,files);
   const coat: unknown = mesh(figure, 0).material, shapeGeometry = mesh(figure, 0).geometry;
   if (!(coat instanceof Material)) throw new Error('Missing coat');
   const coatDisposed = vi.spyOn(coat, 'dispose'), shapeDisposed = vi.spyOn(shapeGeometry, 'dispose');

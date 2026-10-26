@@ -2,7 +2,6 @@ import type { BufferGeometry, Material, Object3D } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import type { MountedSpecimenSeatRows } from '@wildshard/format/mountedSpecimenRows';
-import { inlineFixedDraw } from '../models/fixedDraws';
 import { bakedGeometryBytes,readBakedGeometry,expandBakedGeometry } from '../plugin/geometry';
 import { prepareBinarySources,type BinaryFileReader } from '../models/binarySource';
 import { playClips, type ClipCtx } from '../plugin/animation';
@@ -13,17 +12,25 @@ const GESTURES = 16, SIGNALS = 8;
 /** A mount the figure sits on: its skeleton (the declared joint) and its speed. */
 interface Mount { readonly mesh: { readonly skeleton: { getBoneByName: (name: string) => Object3D | undefined } }; readonly speed: number }
 
-/** Prepare only raw shape files, using the original product and optional construction scope. */
-export function prepareSeatedFigure(product:BinaryFileReader,row:MountedSpecimenSeatRows,scope?:Scope):Promise<ReadonlyMap<string,Uint8Array>> {
-  return prepareBinarySources(product,row.shapes.flatMap(shape=>'file'in shape?[{source:{file:shape.file},bytes:bakedGeometryBytes(shape.geometry)}]:[]),scope);
+/** Validate the complete source list before reads or resource allocation. */
+function namedShapes(row:MountedSpecimenSeatRows) {
+  return row.shapes.map(shape=>{
+    if(!('file'in shape))throw new Error('Seated shapes require named binary files');
+    return shape;
+  });
 }
 
-/** The figure's private scene drawn from prepared raw files or legacy inline shapes, its port material made from the row's lent look (or none:
+/** Prepare all raw shape files, using the original product and optional construction scope. */
+export async function prepareSeatedFigure(product:BinaryFileReader,row:MountedSpecimenSeatRows,scope?:Scope):Promise<ReadonlyMap<string,Uint8Array>> {
+  const files=await prepareBinarySources(product,namedShapes(row).map(shape=>({source:{file:shape.file},bytes:bakedGeometryBytes(shape.geometry)})),scope);
+  return files;
+}
+
+/** The figure's private scene drawn from prepared raw files, its port material made from the row's lent look (or none:
  *  the scene's own standard materials); `own` takes each decoded geometry and the made material. The live seat and the
  *  cold mounted specimen build the same view. Client-only presentation (G603 L10: the riding host's rider on a mount). */
 export function seatedFigureView(row: MountedSpecimenSeatRows, own: (resource: BufferGeometry | Material) => void = () => undefined, files:ReadonlyMap<string,Uint8Array>=new Map()): ReturnType<typeof createClientScene> {
-  const geometry = new Map(row.shapes.map(shape => {
-    if('data'in shape)return[shape.key,inlineFixedDraw({slot:shape.key,channels:[],inline:shape.data,baked:shape.geometry})] as const;
+  const geometry = new Map(namedShapes(row).map(shape => {
     const bytes=files.get(shape.file);if(bytes===undefined||bytes.byteLength!==bakedGeometryBytes(shape.geometry))throw new Error('Seated shape was not prepared');
     const decoded=readBakedGeometry(bytes,0,shape.geometry);return[shape.key,shape.geometry.expand?expandBakedGeometry(decoded):decoded] as const;
   }));
