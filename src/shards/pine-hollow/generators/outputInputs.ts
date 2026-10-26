@@ -26,7 +26,7 @@ import kingKit from '../data/kingKit.generated.json' with {type:'json'};
 
 const names:Readonly<Record<string,string>>={...client.byUrl,...held.byUrl,...king.byUrl,...birds.byUrl,...streams.byUrl};
 function named(url:string):string{const name=names[url];if(name===undefined)throw new Error(`Pine output has no named blob: ${url}`);return name;}
-const values={
+const values: { 'custom/heldPlayback': typeof playback; 'custom/heldInputs': typeof inputs; 'custom/heldSights': typeof sights; 'custom/leverPlayback': typeof leverPlayback; 'custom/leverDetails': typeof leverDetails; 'custom/heldToolPlayback': typeof toolPlayback; 'custom/paintedTextures': { textures: Record<string, { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; }>; urls: typeof painted.urls; chalk: typeof painted.chalk; }; 'custom/trophyMounts': { url: string; notice: string; sha256: string; rows: typeof trophies.rows; slots: typeof trophies.slots; }; 'custom/crossbowPool': typeof crossbow; 'custom/handsPool': { pool: typeof hands.pool; hands: typeof hands.hands; heldBow: typeof PINE_HELD_BOW; presentation: { hands: typeof HANDS_MATERIAL; coat: typeof COAT_MATERIAL; }; }; 'custom/kingKit': typeof kingKit; }={
  'custom/heldPlayback':playback,'custom/heldInputs':inputs,'custom/heldSights':sights,'custom/leverPlayback':leverPlayback,
  'custom/leverDetails':{...leverDetails,pool:{...leverDetails.pool,url:named(leverDetails.pool.url)}},
  'custom/heldToolPlayback':toolPlayback,
@@ -48,13 +48,13 @@ function checkPrograms(value:unknown):void{
  else for(const child of Object.values(value))checkPrograms(child);
 }
 for(const value of [playback,inputs,sights,leverPlayback,toolPlayback])checkPrograms(value);
-function withGeometryCosts(row:(typeof client.blobs)[number]){
+function withGeometryCosts(row:(typeof client.blobs)[number]): (typeof client.blobs)[number] | { options: { decoded: number; gpu: number; triangles: number; draws: number; }; name: string; kind: string; source: string; }{
  if(row.name!=='models/trophies/mounts.bin')return row;
  return {...row,options:{decoded:trophies.rows.bytes,gpu:trophies.rows.bytes,
   triangles:trophies.rows.geometries.reduce((sum,geometry)=>sum+geometry.count/3,0),draws:trophies.rows.geometries.length}};
 }
 /** Authored input rows, never imported by a client runtime. */
-export const PINE_OUTPUT={
+export const PINE_OUTPUT: { blobs: ((typeof journal.blobs)[number] | ReturnType<typeof withGeometryCosts> | (typeof held.blobs)[number] | (typeof king.blobs)[number] | (typeof creatures.blobs)[number] | (typeof rigs.blobs)[number] | (typeof birds.blobs)[number] | (typeof streams.blobs)[number] | { name: string; kind: "wasm"; source: string; options: { critical: boolean; script: { abi: 1; pages: number; }; }; } | { name: string; kind: "wasm"; source: string; options: { script: { abi: 0; }; }; })[]; custom: typeof values; }={
  blobs:[...journal.blobs,...client.blobs.map(withGeometryCosts),...held.blobs,...king.blobs,...creatures.blobs,...rigs.blobs,...birds.blobs,...streams.blobs,
  ...elites.fights.map(fight => ({name:`behaviour/elites/${fight.def.id}.wasm`,kind:'wasm' as const,source:`assets/${fight.program.script.module.slice('blobs/wasm/'.length, -'.wasm'.length)}`,options:{critical:true,script:{abi:1 as const,pages:1}}})),
  {name:'behaviour/night.wasm',kind:'wasm' as const,source:`assets/${night.script.module.slice('blobs/wasm/'.length, -'.wasm'.length)}`,options:{critical:true,script:{abi:1 as const,pages:1}}},
