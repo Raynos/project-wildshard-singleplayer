@@ -17,6 +17,7 @@ import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
 import { byteWriter, jsonBytes } from '../../../../scripts/bake-output.mjs';
 import { nalatiBootInventory } from './bootInventory.ts';
+import { nalatiBootAssets } from './bootFiles.ts';
 import * as v from 'valibot';
 
 /** @type {import('@wildshard/engine/level/spec').LevelSpec['budgets']} */
@@ -36,6 +37,7 @@ for (const folder of roots) for (const file of readdirSync(resolve(root, 'public
 // Generation verifies and publishes these outputs before writing PUBLIC_BYTES.
 // Their declared presence is independent of which cache outputs a warm slot retains.
 const catalogue = v.parse(v.object({ jobs: v.array(v.object({
+  id: v.string(),
   buildOutputs: v.optional(v.record(v.string(), v.string()), {}),
   buildTimeOutputs: v.optional(v.array(v.string()), []),
 })) }), JSON.parse(readFileSync(resolve(root, 'scripts/generation-jobs.json'), 'utf8')));
@@ -44,7 +46,12 @@ for (const job of catalogue.jobs) for (const path of [...Object.keys(job.buildOu
 }
 // The page's generated PUBLIC_BYTES table has this exact lexical ordering.
 const ordered = Object.fromEntries(Object.keys(bytes).filter(path => !path.endsWith('.DS_Store')).sort().map(path => [path, bytes[path]]));
-const inventory = nalatiBootInventory(ordered);
+const speciesJob = catalogue.jobs.find(job => job.id === 'nalati-species');
+const bodies = [...Object.keys(speciesJob?.buildOutputs ?? {}), ...(speciesJob?.buildTimeOutputs ?? [])].filter(path => /^public\/assets\/nalati\/baked\/bodies-[a-f0-9]{64}\.bin$/u.test(path));
+if (bodies.length !== 1) throw new Error('Boot requires exactly one declared species body output');
+const bodyFile = bodies[0];
+if (bodyFile === undefined) throw new Error('Missing declared species body output');
+const inventory = nalatiBootInventory(nalatiBootAssets(bodyFile.slice('public'.length)), ordered);
 const writer = byteWriter(process.argv.includes('--check'), 'nalati-boot-metadata');
 writer.put(resolve(root, 'src/shards/nalati-grasslands/boot/explore.generated.json'), jsonBytes({ art: [...Object.values(discovery.explore.art), ...discovery.extraArt, ...discovery.explore.compare.flatMap(({ live, image }) => [live, image])] }));
 writer.put(resolve(root, 'src/shards/nalati-grasslands/bootMetadata.generated.json'), jsonBytes({ assetFiles: inventory.assetFiles, postChain: postChainRows(), panoramaRidge: PANO_RIDGE_V }));

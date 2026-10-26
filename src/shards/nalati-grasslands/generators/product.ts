@@ -5,6 +5,7 @@ import heldWeapons from '../data/heldWeapons.generated.json' with {type:'json'};
 import stealth from '../data/stealth.generated.json' with {type:'json'};
 import { compactChannels } from './channelRows';
 import speciesData from '../data/species.generated.json' with { type: 'json' };
+import { SPECIES_POSES } from './speciesPoses';
 import skyDome from '../data/skyDome.json' with { type: 'json' };
 import weatherDecision from '../behaviour/weather.generated.json' with { type: 'json' };
 import pasture from '../behaviour/pasture.generated.json' with { type: 'json' };
@@ -81,7 +82,7 @@ const authoredProduct: ReturnType<typeof parseShardfile> = parseShardfile({ ...b
   budgets: { ...base.budgets, library: { ...base.budgets.library, resident: base.budgets.library.resident + viewMemory }, sim: { resident: files.reduce((sum, file) => sum + file.decoded + file.gpu, 0) + programMemory, compressed: files.reduce((sum, file) => sum + file.compressed, 0) + programBytes + heldWeapons.compiled.bytes + ridingPrograms.compiled.bytes+titanProgram.compiled.pasture.bytes+admission.compiled.bytes } },
   look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries({ ...lookGraphs, ...presentationGraphs, 'nalati-sky-dome': skyDome }).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) } },
   accent: 'ember', runtime: { kind: 'client-plan', cost: NALATI_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns', 'modes', 'clientChannels', 'terrain', 'props'], spawns: NALATI_RUNTIME_SPAWNS },
-  clientChannels: compactChannels([...Object.values(speciesData.poses).flatMap(pose => parseClientChannels(pose.programs)),...kingPose.programs,...herdChannels.clientChannels,...weatherChannels.clientChannels,...peopleChannels.clientChannels]),
+  clientChannels: compactChannels([...Object.values(SPECIES_POSES).flatMap(pose => parseClientChannels(pose.programs)),...kingPose.programs,...herdChannels.clientChannels,...weatherChannels.clientChannels,...peopleChannels.clientChannels]),
   modes: ecology.modes, quests: {...questContent.quests,achievements:NALATI_FEATS}, ledger: parseLedgerRules(NALATI_LEDGER), state: NALATI_STATE, items, audio: {...audioRows,sceneFile:'audio/scene.json'}, spawn: { x: 0, y: 0, z: 232, yaw: 0 },
   edge: { north: row('north'), east: row('east'), south: row('south'), west: row('west') } });
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.

@@ -1,4 +1,3 @@
-import species from '../data/species.generated.json' with { type: 'json' };
 import type { ChunkFiles } from '@wildshard/engine/boot/bytes';
 import { CLOUD_FIELD_URL } from '@wildshard/engine/boot/bakedApi';
 import { filePolicy } from '@wildshard/engine/boot/filePolicy';
@@ -8,24 +7,28 @@ import type { Tier } from '@wildshard/engine/core/tier';
 import { GPU_FILES } from '../ktx2.generated';
 
 /** URLs needed before product admission by both boot and creature readers. */
-export const assetFiles = { coats: '/assets/nalati/models/coats/', bodies: species.packedBodies.file };
+export interface NalatiBootAssets { coats: string; bodies: string }
+export function nalatiBootAssets(bodyFile: string): NalatiBootAssets {
+  if (!/^\/assets\/nalati\/baked\/bodies-[a-f0-9]{64}\.bin$/u.test(bodyFile)) throw new Error('Invalid declared species body locator');
+  return { coats: '/assets/nalati/models/coats/', bodies: bodyFile };
+}
 
 const rigs = ['horse-wild', 'horse-saddled', 'wolf', 'snow-leopard', 'sheep', 'eagle', 'collie', 'ghost-horse', 'golden-king'];
 /** the baked creature coats (species/rigs.ts nalatiCoatUrl; the rigs adopt them as they load): their desktop names, in order */
-const coatFiles = (inventory: Readonly<Record<string, number | true>>): string[] => Object.keys(inventory).filter((url) => url.startsWith(assetFiles.coats) && url.endsWith('.coat.webp')).sort();
+const coatFiles = (assets: NalatiBootAssets, inventory: Readonly<Record<string, number | true>>): string[] => Object.keys(inventory).filter((url) => url.startsWith(assets.coats) && url.endsWith('.coat.webp')).sort();
 /** Original ordered painted-world reads, with an explicit tier. */
-export function worldFiles(tier: Tier, inventory: Readonly<Record<string, number | true>> = publicBytes()): string[] {
+export function worldFiles(tier: Tier, assets: NalatiBootAssets, inventory: Readonly<Record<string, number | true>> = publicBytes()): string[] {
   const { phone } = filePolicy(tier, 'img', GPU_FILES, inventory);
   const painted = (name: string): string => `/assets/nalati/${name}${tier === 'phone' ? '.phone' : ''}.webp`;
   return [
     ...['meadow', 'path', 'gravel', 'rock', 'snow', 'felt'].map((name) => painted(`tex/${name}`)), painted('cards'), painted('panorama'),
     ...rigs.map((name) => `/assets/nalati/models/${name}${tier === 'phone' ? '.phone' : ''}.rigged.glb`),
-    ...coatFiles(inventory),
+    ...coatFiles(assets, inventory),
     // the species bodies' offline bake (SHARD-PLATFORM M3, species/bodies.ts)
-    assetFiles.bodies,
+    assets.bodies,
   ].filter((url) => phone(url) in inventory || url in inventory);
 }
-export function bootSources(tier: Tier, tex: TexMode = 'img', inventory: Readonly<Record<string, number | true>> = publicBytes()): ChunkFiles {
+export function bootSources(tier: Tier, assets: NalatiBootAssets, tex: TexMode = 'img', inventory: Readonly<Record<string, number | true>> = publicBytes()): ChunkFiles {
   const { gpu } = filePolicy(tier, tex, GPU_FILES, inventory);
   const root = '/assets/baked/nalati-grasslands/';
   return {
@@ -34,7 +37,7 @@ export function bootSources(tier: Tier, tex: TexMode = 'img', inventory: Readonl
     terrain: [], trees: [],
     // the creatures' navigation is the shardfile's admitted WSNM file (G384), read once from the product, never navmesh.bin
     physics: ['/assets/physics/rapier.wasm'], cabins: [],
-    props: worldFiles(tier, inventory).map(gpu), art: [], music: [], sfx: [],
+    props: worldFiles(tier, assets, inventory).map(gpu), art: [], music: [], sfx: [],
   };
 }
 /** Camp people keep their original late-read timing and ordered identities. */

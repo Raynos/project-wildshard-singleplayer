@@ -10,7 +10,7 @@ import { assertConfigBoundary } from '../../../src/sdk/configBoundary';
 import { MODEL_FILES, bakeModelPaint, cloneFrame } from '../../../src/shards/nalati-grasslands/generators/modelPaint.mjs';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import originals from '../../fixtures/nalati-model-paint.json' with { type: 'json' };
-import { worldFiles } from '../../../src/shards/nalati-grasslands/generators/bootFiles';
+import { worldFiles, nalatiBootAssets } from '../../../src/shards/nalati-grasslands/generators/bootFiles';
 import { rawFromGltf, bakeVertexAO } from '../../../src/shards/nalati-grasslands/generators/modelPainting';
 
 const words = (a: THREE.BufferAttribute | THREE.InterleavedBufferAttribute): Uint8Array => {
@@ -50,7 +50,7 @@ describe('Nalati fixed model paint', () => {
     const inventory = { [`${prepared}boulder-1.glb`]: 1, [`${prepared}boulder-1.phone.glb`]: 1,
       [`${prepared}horse-wild.far.glb`]: 1, '/assets/nalati/models/boulder-1.glb': 1, [rig]: 1, [phoneRig]: 1 };
     for (const tier of ['phone', 'desktop'] as const) {
-      const files = worldFiles(tier, inventory);
+      const files = worldFiles(tier, nalatiBootAssets(`/assets/nalati/baked/bodies-${'0'.repeat(64)}.bin`), inventory);
       expect(files).not.toContain(`${prepared}boulder-1.glb`);
       expect(files).not.toContain(`${prepared}boulder-1.phone.glb`);
       expect(files).not.toContain(`${prepared}horse-wild.far.glb`);
