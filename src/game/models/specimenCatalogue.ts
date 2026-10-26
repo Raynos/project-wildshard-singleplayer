@@ -1,4 +1,5 @@
 import { prepareBinarySources,binarySourceBytes,type BinaryFileReader } from './binarySource';
+import { decodeLaneBytes } from '@wildshard/engine/core/deflate';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { SpecimenCatalogueSchema, PackedSpecimenSchema, SpecimenMaterialSchema, PickupCatalogueSchema, assertSpecimenJson as jsonData } from '@wildshard/format/specimenCatalogue';
 import * as THREE from 'three';
@@ -209,33 +210,35 @@ export interface PackedSpecimenRow {
   readonly parts: readonly { readonly material: string; readonly geometry: PackedSpecimenGeometry }[];
 }
 export interface PackedSpecimenBake {
-  readonly bin: string; readonly bytes: number; readonly rows: readonly PackedSpecimenRow[];
+  readonly bin: string | { readonly file:string; readonly bytes:number }; readonly bytes: number; readonly rows: readonly PackedSpecimenRow[];
 }
 /** Stable wire key: model identity and the authored parameter property order. */
 export function specimenKey(id: string, params: object): string { return `${id} ${JSON.stringify(params)}`; }
 interface PackedBakeState { readonly bytes: Uint8Array; readonly offsets: readonly number[] }
 
 /** A packed specimen binary is immutable; builds decode fresh attributes just as the bake declares. */
-export function createPackedSpecimens(input: unknown): {
+export function createPackedSpecimens(input: unknown,files:ReadonlyMap<string,Uint8Array>=new Map()): {
   readonly use: (raw: Uint8Array) => void;
   readonly load: () => Promise<void>;
   readonly parts: (key: string, ctx: ModelContext, materials: Readonly<Record<string, SpecimenMaterialRow>>) => readonly { readonly geometry: THREE.BufferGeometry; readonly material: THREE.Material }[] | null;
 } {
   jsonData(input);
   const bake = v.parse(PackedSpecimenSchema, input);
+  const location=typeof bake.bin==='string'?bake.bin:bake.bin.file;
   let state: PackedBakeState | undefined, pending: Promise<void> | undefined;
   const use = (bytes: Uint8Array): void => {
-    if (bytes.length !== bake.bytes) throw new Error(`Specimen byte count differs: ${bake.bin}`);
+    if (bytes.length !== bake.bytes) throw new Error(`Specimen byte count differs: ${location}`);
     let offset = 0;
     const offsets: number[] = [];
     for (const row of bake.rows) for (const part of row.parts) { offsets.push(offset); offset += bakedGeometryBytes(part.geometry); }
-    if (offset !== bytes.length) throw new Error(`Specimen rows do not cover binary: ${bake.bin}`);
+    if (offset !== bytes.length) throw new Error(`Specimen rows do not cover binary: ${location}`);
     state = { bytes, offsets }; pending = Promise.resolve();
   };
   return { use,
     load: () => {
       pending ??= (async (): Promise<void> => {
-        use(await fetchLaneBake(bake.bin));
+        if(typeof bake.bin==='string')use(await fetchLaneBake(bake.bin));
+        else use(binarySourceBytes({file:bake.bin.file},files));
       })();
       return pending;
     },
@@ -256,20 +259,36 @@ export function createPackedSpecimens(input: unknown): {
   };
 }
 
-/** Prepare every declared raw specimen file before definitions or decoded resources are published. */
-export function prepareSpecimenCatalogue(product:BinaryFileReader,input:unknown,scope?:Scope):Promise<ReadonlyMap<string,Uint8Array>> {
+/** Prepare declared raw files and compressed packed banks before publishing definitions.
+ * Each bank is decoded once per preparation; catalogue builds still own fresh geometry arrays. */
+export function prepareSpecimenCatalogue(product:BinaryFileReader,input:unknown,scope?:Scope,packedInputs:readonly unknown[]=[]):Promise<ReadonlyMap<string,Uint8Array>> {
   jsonData(input);const rows=v.parse(SpecimenCatalogueSchema,input);
-  return prepareBinarySources(product,rows.flatMap(row=>row.source.kind==='selection'?row.source.variants.map(variant=>variant.source):[row.source])
-    .flatMap(source=>source.kind==='file'?[{source:{file:source.file},bytes:bakedGeometryBytes(source.geometry)}]:[]),scope);
+  jsonData(packedInputs);const packs=packedInputs.map(value=>v.parse(PackedSpecimenSchema,value));
+  const sources=rows.flatMap(row=>row.source.kind==='selection'?row.source.variants.map(variant=>variant.source):[row.source])
+    .flatMap(source=>source.kind==='file'?[{source:{file:source.file},bytes:bakedGeometryBytes(source.geometry)}]:[]);
+  const rawNames=new Set(sources.map(source=>source.source.file));
+  for(const pack of packs)if(typeof pack.bin!=='string'&&rawNames.has(pack.bin.file))throw new Error('Conflicting specimen source encodings');
+  const read=product.file,has=product.hasFile;
+  const live=():void=>{if(scope?.disposed===true||scope?.disposing===true||product.file!==read||product.hasFile!==has)throw new Error('Specimen source owner retired or changed');};
+  return(async():Promise<ReadonlyMap<string,Uint8Array>>=>{
+    live();const files=new Map(await prepareBinarySources(product,[...sources,...packs.flatMap(pack=>typeof pack.bin==='string'?[]:[{source:{file:pack.bin.file},bytes:pack.bin.bytes}])],scope));live();
+    const decoded=new Map<string,Uint8Array>();
+    for(const pack of packs)if(typeof pack.bin!=='string'){
+      let bytes=decoded.get(pack.bin.file);
+      if(bytes===undefined){bytes=await decodeLaneBytes(binarySourceBytes({file:pack.bin.file},files));live();decoded.set(pack.bin.file,bytes);files.set(pack.bin.file,bytes);}
+      createPackedSpecimens(pack).use(bytes);
+    }
+    return files;
+  })();
 }
 
 /** Complete model declaration: parameters and specimen selection are data, with no shard callback. */
 export type SpecimenModelRow = v.InferOutput<typeof SpecimenCatalogueSchema>[number];
 /** Bind a named parameter map to an ordered catalogue. Definitions register immediately; assets remain lazy. */
-export function defineSpecimenCatalogue<Params extends { readonly [K in keyof Params]: object }>(input: unknown, packedInput?: unknown, materialRowsInput: unknown = {}, files:ReadonlyMap<string,Uint8Array>=new Map()): { readonly model: <K extends keyof Params & string>(key: K) => ModelDef<Params[K]>; readonly usePacked: (bytes: Uint8Array) => void } {
+export function defineSpecimenCatalogue<Params extends { readonly [K in keyof Params]: object }>(input: unknown, packedInput?: unknown, materialRowsInput: unknown = {}, files:ReadonlyMap<string,Uint8Array>=new Map()): { readonly model: <K extends keyof Params & string>(key: K) => ModelDef<Params[K]>; readonly usePacked: (bytes: Uint8Array) => void; readonly loadPacked:()=>Promise<void> } {
   jsonData(input);
   jsonData(materialRowsInput);
-  const packed = packedInput === undefined ? undefined : createPackedSpecimens(packedInput);
+  const packed = packedInput === undefined ? undefined : createPackedSpecimens(packedInput,files);
   const materialRows = v.parse(v.record(v.string(), SpecimenMaterialSchema), materialRowsInput);
   const rows = v.parse(SpecimenCatalogueSchema, input);
   if (rows.length > 1024 || new Set(rows.map(row => row.key)).size !== rows.length || new Set(rows.map(row => row.model.id)).size !== rows.length) throw new Error('Specimen catalogue must be bounded and unique');
@@ -343,7 +362,7 @@ export function defineSpecimenCatalogue<Params extends { readonly [K in keyof Pa
     }));
   }
   // Parameter types are supplied by the authoring definitions; only this host installs executable fields.
-  return { usePacked: bytes => { if (packed === undefined) throw new Error('Catalogue has no packed specimens'); packed.use(bytes); }, model: <K extends keyof Params & string>(key: K): ModelDef<Params[K]> => {
+  return { loadPacked:async()=>{if(packed===undefined)throw new Error('Catalogue has no packed specimens');await packed.load();},usePacked: bytes => { if (packed === undefined) throw new Error('Catalogue has no packed specimens'); packed.use(bytes); }, model: <K extends keyof Params & string>(key: K): ModelDef<Params[K]> => {
     const definition = definitions.get(key);
     if (definition === undefined) throw new Error(`Missing catalogue model: ${key}`);
     const { defaults, variants, ...base } = definition;

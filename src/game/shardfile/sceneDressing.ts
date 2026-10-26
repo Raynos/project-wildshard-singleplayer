@@ -147,7 +147,8 @@ export class SceneDressing {
       ...Object.values(rows.materials).flatMap(row=>row.kind==='lettering-file'?[{source:{file:row.file},bytes:row.width*row.height*4}]:[]),
       ...rows.statics.flatMap(row=>row.members.flatMap(member=>member.floors.flatMap(floor=>'file'in floor?[{source:{file:floor.file},bytes:floor.res*floor.res*4}]:[])))],scope);
     live();for(const [name,bytes] of raw)files.set(name,bytes);
-    const specimens=await prepareSpecimenCatalogue(product,rows.catalogues.flatMap(source=>source.rows),scope);live();for(const [name,bytes]of specimens)files.set(name,bytes);
+    const specimens=await prepareSpecimenCatalogue(product,rows.catalogues.flatMap(source=>source.rows),scope,
+      [...Object.values(rows.packs).map(source=>source.rows),...rows.catalogues.flatMap(source=>'pack'in source||source.packed===undefined?[]:[source.packed])]);live();for(const [name,bytes]of specimens)files.set(name,bytes);
     const owner=new SceneDressing(ctx,rows);
     await owner.build(rows,files);
     // Floor/picking closures can retain the build context. Decoded contacts and
@@ -186,7 +187,7 @@ export class SceneDressing {
       const catalogue=defineSpecimenCatalogue<Record<string,object>>(source.rows,pack.rows,pack.materials,files);
       for(const row of source.rows)definitions.set(row.model.id,catalogue.model(row.key));
     }
-    const packs=new Map(Object.entries(rows.packs).map(([key,source])=>[key,createPackedSpecimens(source.rows)]));
+    const packs=new Map(Object.entries(rows.packs).map(([key,source])=>[key,createPackedSpecimens(source.rows,files)]));
     await timeClientPreparation(ctx.product.slug,'dressing.packs',()=>Promise.all([...packs.values()].map(pack=>pack.load())));
     const bytes=new Map<string,Promise<Uint8Array>>(),addresses=new Map<string,Promise<Uint8Array>>(),geometry=new Map<string,THREE.BufferGeometry>(),materials=new Map<string,THREE.Material>();
     await timeClientPreparation(ctx.product.slug,'dressing.geometry',async()=>{

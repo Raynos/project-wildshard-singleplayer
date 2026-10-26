@@ -42,8 +42,8 @@ import { ProjectedTrail } from '@wildshard/engine/combat/view/projectedTrail';
 import type { ArcWeaponPower } from '../weapons/arcPower';
 import type { ShardProduct } from '../shardfile/shardProduct';
 import { SpecimenBookSchema } from '@wildshard/format/specimenCatalogue';
-import { defineSpecimenCatalogue } from '../models/specimenCatalogue';
-import { createModelLibrary, fetchLaneBake } from '../plugin/geometry';
+import { defineSpecimenCatalogue,prepareSpecimenCatalogue } from '../models/specimenCatalogue';
+import { createModelLibrary } from '../plugin/geometry';
 import type { ModelDef } from '@wildshard/engine/models/model';
 
 type EquipmentBuilder = NonNullable<NonNullable<ShardContext['game']['runtime']>['buildEquipment']>;
@@ -368,9 +368,9 @@ export class HeldClaims {
       if(!metadata.loaded){
         const book=v.parse(SpecimenBookSchema,await metadata.product.json(metadata.file));check();
         const packed=book.packed;if(packed===undefined)throw new Error('Held specimen book has no packed source');
-        const catalogue=defineSpecimenCatalogue<Record<string,object>>(book.rows,packed,book.materials);
-        const bytes=await fetchLaneBake(packed.bin);check();
-        catalogue.usePacked(bytes);check();
+        const files=await prepareSpecimenCatalogue(metadata.product,book.rows,scope,[packed]);check();
+        const catalogue=defineSpecimenCatalogue<Record<string,object>>(book.rows,packed,book.materials,files);
+        await catalogue.loadPacked();check();
         metadata.catalogue=catalogue;metadata.loaded=true;metadata.sources=sources;
       }
       check();const ready={scope};metadata.ready=ready;

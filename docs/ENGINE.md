@@ -188,8 +188,8 @@ entity fields belong to that shared host; pending mover interactions have a sepa
 `@wildshard/sdk/movers` validates source data. Trusted legacy view recipes only project published poses.
 
 `@wildshard/game/shardfile/director` validates typed shard events and observations. Its bounded
-`DirectorLane` admits immutable module bytes, executes decisions in AssemblyScript with the existing
-script allowances, and restores full author memory, mutable globals, quota history and queued input.
+`DirectorLane` runs raw bytes under unchanged AS limits; memory, globals, quotas and queued input restore.
+`readDirectorProduct` requires a named binary file; embedded admission accepts raw bytes only.
 Shard subscriptions deliver declared payloads on the next fixed tick; grid subscriptions are reserved
 data and reject delivery in v1. `@wildshard/sdk/director` validates author declarations without installing code.
 Legacy entries keep their original native clocks and event recipes; their unshipped script comparison installer is retired.
@@ -5891,7 +5891,7 @@ bands, optional specimen material and Float32 convex hulls. It never loads,
 fits or poses geometry. Pine crags and Driftwood cove prototypes use it.
 
 `@wildshard/game/models/specimenCatalogue.defineSpecimenCatalogue<Params>(rows,
-packed?, materials?)` returns a typed `.model(key)` binder and registers parameterized models from data alone. Each
+packed?, materials?, files?)` registers data models and returns `.model(key)`. Each
 `SpecimenModelRow` declares its model metadata, defaults, partial variants,
 optional own-space collider rows and one specimen source. `owned` selects a
 bounded exact parameter record and an identity-space GLB with a loading-box
@@ -5900,20 +5900,21 @@ size; `packed` selects the model id plus its ordered JSON parameters in a
 material-atlas slots from a prepared GLB, with an optional phone file and
 retained authoring attribute. An optional inert `instance` name and LOD
 marker lets existing placement owners read the same declared material look.
-Unknown owned
-parameters refuse rather than invoking procedural shard code. Registration
-does not fetch or build a specimen, and there are no shard callbacks.
-The authored catalogues produce generated boot JSON and parameter declarations,
-so pre-admission Explorer registration does not import authoring modules.
-Driftwood uses owned GLBs; Nalati uses packed parts and prepared assets.
+Unknown owned parameters refuse. Registration fetches/builds nothing and
+accepts no shard callbacks. Data/type declarations keep pre-admission
+Explorer free of authoring imports. Driftwood uses owned GLBs; Nalati
+uses packed parts and prepared assets.
 The renderer-free `@wildshard/format/specimenCatalogue` module exports
 `SpecimenCatalogueSchema`, `PackedSpecimenSchema` and
 `SpecimenMaterialSchema` for Node/schema discovery. The render binder
 imports these pure declarations; constructors also refuse non-JSON values, accessors,
 cycles, callbacks, unbounded catalogues and paths outside `/assets/`.
 
-`createPackedSpecimens(bake)` lazily inflates the declared lane-shuffled
-binary and checks its byte count and complete geometry coverage. `use(raw)`
+`createPackedSpecimens(bake, files?)` checks decoded length/coverage.
+`bin:{file,bytes}` names a compressed product bank;
+`prepareSpecimenCatalogue(product,rows,scope?,packedInputs?)` verifies and
+decodes it once, without URL fallback. `catalogue.loadPacked()` prepares it.
+URL bakes retain lazy decoding. `use(raw)`
 admits the same inflated bytes in Node (`catalogue.usePacked(raw)` for a
 complete catalogue); each build owns fresh typed arrays,
 retaining the original index, optional non-indexed expansion and bounds.
