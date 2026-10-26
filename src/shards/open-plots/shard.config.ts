@@ -2,7 +2,7 @@
 import { outputs as ideaOutputs, product } from './generators/product';
 
 /** Every output, keyed by its product slug (`wildshard build --output=<slug>`, scripts/shard-outputs.mjs). */
-export const outputs = ideaOutputs;
+export const outputs: typeof ideaOutputs = ideaOutputs;
 
 // Edit this documented project entry; the cold producer reads the same author-only declaration.
 // oxlint-disable-next-line import/no-default-export -- The SDK loads the author declaration; an output build selects from `outputs`.

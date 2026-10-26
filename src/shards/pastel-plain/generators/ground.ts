@@ -1,7 +1,7 @@
 /** The loop road centreline half-size, in metres. */
 export const LOOP = 60;
 /** Asphalt plus edge stripe half-width, in metres. */
-export const ROAD_HALF = 8 / 2 + 0.5;
+export const ROAD_HALF: number = 8 / 2 + 0.5;
 
 const smooth = (edge0: number, edge1: number, x: number): number => { const t = Math.min(1, Math.max(0, (x - edge0) / (edge1 - edge0))); return t * t * (3 - 2 * t); };
 
