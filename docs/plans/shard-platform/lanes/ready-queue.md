@@ -12,13 +12,13 @@ Every row is decided work (Jake's G-rows); the refs are the brief.
 | sp-x1 | G744 ship approved hero (round-6-nalati-terrain -> public/assets/title + L16 first paint) -> G722 done 191aee7b15 -> hero retake done 0dd7ce4722 (board for Jake) -> G717 quiet misses (Nalati whole 287 ms, Pine whole, DW spawn) -> GR3 -> GR5 Far Reach -> GR7 Driftwood |
 | sp-x6 | CS0 done e463dc80af → G719 done → G717 look misses done 60f2ba740c → RM1/RM2/RM3 done aab5aca4737 → GR4 Sunscar done (23 → 0; exact743e preview/boot pass) → GR6 Nalati in flight (54 at claim) → GR8 Pine |
 | sp-x8 | G743 grid crossings < 5 s (DW 8.1, Nine 8.7, Nalati 11.6; Pine 2.6 passes): world + afterPlay stages -> T4 tail (I6y/I6z) -> T5 |
-| sp-x2 | RM8.1 quantized tile geometry (KHR_mesh_quantization + meshopt; near-view/cost readers; all authored shards) -> core memory C4 (Template native 268/246 vs 198.5 MiB) -> tile T4 to the milestone -> T10 delete the whole-shard path (G747) -> T6/T8 Codex slices; JS payload J6-J10 after extras (G730/G741) |
-| sp-x9 | G742 debug-rows-mini-plan.md (0/19; best option ships, row + dead code deleted, smallest first) -> programShare done d247df6cf03 (final-code check; 1→0 warnings, 4→1 programs) -> ratchet at commit time -> faster CF1 walk -> oxlint R3-R5 -> no-binaries B5-B6 -> QW7 |
-| sp-x7 | releases only |
-| sp-o1 | G735: Night Market remaster models RM4 -> RM7 -> RM9 -> RM8 -> RM13 (board + walk video) |
-| sp-o2 | G735: Night Market remaster look RM5 -> RM6 -> RM10 -> RM11 -> RM12 |
+| sp-x2 | core memory C4 (Template native 268/246 vs 198.5 MiB) -> tile T4 to the milestone -> T10 delete the whole-shard path (G747) -> T6/T8 Codex slices; JS payload J6-J10 after extras (G730/G741) |
+| sp-x9 | G742 done 72a1482c68; B6 done af11c09e30; ratchet SW8a 1e3f0fe5b2 -> SW11 commit lock/CF1 tail (p90 <= 30 s) -> G745 phone-route smoke leg (from sp-x7, 893f149908 report-only) -> oxlint R3-R5 -> QW7 |
+| sp-x7 | releases + red repair only (G676/G485); no feature rows while main is red (lane audit 10-26) |
+| sp-o1 | NM models RM4.1-4.8, RM7.1-7.3, RM8.4-8.5, RM9.1-9.2 done -> RM8.1 quantized tile geometry (all authored shards) -> RM8.6 switch-on -> RM13 board + walk video |
+| sp-o2 | NM look RM5/RM6 done (cea69bc2c6) -> loading L15 complete first frame before the loader leaves (while blocked) -> RM5.2 -> RM10 -> RM11 -> RM12 (after sp-o1 kit + sp-x2 RM8.1) |
 | sp-o3 | G750 toon clouds done 1d4a4f738f; L18.3 rocks e2cac37ae6 / foliage 7d327e5a88 (protos -> sp-x1 GR0) -> G717 B cheaper lit programs Pine + DW (Debug A/B + board) |
-| sp-o4 | G749 lighter RT only-path -> G717 A spawn controls hold with 2 s cap (ship if DW spawn passes) |
+| sp-o4 | G749 shipped (perf(post): ship the lighter render targets); G717 A pinned (2 s cap fails cold until B) -> G743 render side: fewer first-time programs per shard (no look change) |
 | sp-o5 | G630 done (006d87b0fa Sunscar glow; 7e4f33be44 + d56e767bf3 Nine near view); T3 06d63e5b21; T6.2 parked low value -> G748 coarse L1 stand-ins for occupied tiles per shard (near/far boards first) |
 
 ## 10-24 open rows (Jake's picks G679-G682, a2c1e9647b; SW10: one claimable row per live lane)

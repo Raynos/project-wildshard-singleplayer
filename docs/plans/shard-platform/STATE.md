@@ -7,9 +7,11 @@ Night Market map hash red (sp-o2); CF2 title-capture stall (trace: GPU busy comp
 
 **(2) NALATI 0 done (27dd969127).** HOST-AUDIT (G679) parked until every mini plan finishes. Legacy waits (G606).
 
-**(3) Frame floor:** G717 48/48 latches; official quiet Sim 13/15 (DW spawn p95 42 -> 34 with a capped controls hold, Pine whole 44/90: sp-o4 A/B); two-world
-1.056 GB PASS. G723 edges Pine 2.6 / DW 8.1 / Nine 8.7 / Nalati 11.6 s (< 5 s: G743, sp-x8; the old 2.6 s Pine was primed: cold Pine single edge is 34.5 s, afterPlay = shader builds).
-L18: DW 107 -> 78 MB; rest is lighter assets (Opus).
+**(3) Frame floor:** G717 48/48 latches; official quiet Sim 13/15. Pine whole + DW spawn misses are first-time shader
+builds (~30 of 40 long frames are one TSL node build each) plus named CPU costs: sp-o4 cuts per-build frontend CPU (fewer
+programs row closed, ac48460a76), sp-o3 the rest (viewmodel key, animal spawn, isBuffer, ripples). G717 B dropped
+(ce114ddbd7, no GPU gain). A (spawn hold) pinned until builds are cheaper. G743 crossings: cold Pine 34.5 s, afterPlay =
+shader builds (sp-x8 scheduling seam). L18: DW 107 -> 78 MB, then rocks -4.57 / foliage -3.03 MB (sp-o3).
 
 **Memory (G682: Template <= 198.5 MiB):** native Template 268 / 246 MiB (C4.3, sp-x2); C6.2 model calibration waits-Jake.
 
