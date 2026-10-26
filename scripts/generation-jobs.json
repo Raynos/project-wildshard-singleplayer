@@ -8444,58 +8444,6 @@
       "platform": "portable"
     },
     {
-      "id": "sky-ground-scene",
-      "shard": "far-reach",
-      "entry": "src/shards/far-reach/generators/groundScene.ts",
-      "command": [
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/sdk/bake/json.mjs",
-        "src/shards/far-reach/generators/groundScene.ts",
-        "skyGroundSource",
-        "src/shards/far-reach/data/groundScene.generated.json",
-        "--bytes"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "src/format",
-        "src/format/clientChannels.ts",
-        "src/format/json.ts",
-        "src/format/package.json",
-        "src/format/portalLink.ts",
-        "src/format/socketLift.ts",
-        "src/sdk",
-        "src/sdk/bake/json.mjs",
-        "src/sdk/bake/source-loader.mjs",
-        "src/sdk/entries.ts",
-        "src/sdk/package.json",
-        "src/sdk/sceneTransform.ts",
-        "src/shards/far-reach/data/layout.generated.json",
-        "src/shards/far-reach/data/skyMapSources.json",
-        "src/shards/far-reach/data/strings.json",
-        "src/shards/far-reach/generators/groundScene.ts",
-        "src/shards/far-reach/generators/layout.ts",
-        "src/shards/far-reach/generators/risingIslets.ts",
-        "src/shards/far-reach/generators/rows/isleLook.ts",
-        "src/shards/far-reach/generators/rows/isletDesign.ts",
-        "src/shards/far-reach/generators/rows/layoutTypes.ts",
-        "src/shards/far-reach/generators/rows/skyIsles.ts",
-        "src/shards/far-reach/generators/rows/skyLook.ts",
-        "src/shards/far-reach/generators/knoll.ts",
-        "src/shards/far-reach/generators/piece.ts",
-        "src/shards/far-reach/generators/layoutMath.ts"
-      ],
-      "outputs": [
-        "src/shards/far-reach/data/groundScene.generated.json"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/far-reach/data/groundScene.generated.json"
-      ],
-      "platform": "portable"
-    },
-    {
       "id": "sky-route-scene",
       "shard": "far-reach",
       "entry": "src/shards/far-reach/generators/routeScene.ts",

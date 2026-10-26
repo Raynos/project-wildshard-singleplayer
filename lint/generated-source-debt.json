@@ -550,7 +550,6 @@
     "src/shards/far-reach/data/docks.json",
     "src/shards/far-reach/data/dressing.json",
     "src/shards/far-reach/data/geometries.json",
-    "src/shards/far-reach/data/groundScene.generated.json",
     "src/shards/far-reach/data/heldPlayback.generated.json",
     "src/shards/far-reach/data/heroLibrary.generated.json",
     "src/shards/far-reach/data/isles.json",

@@ -9,7 +9,7 @@ import { hashImmutableBytes } from '../src/sdk/immutable';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { skyGroundSource, skyGroundValues } from '../src/shards/far-reach/generators/groundScene';
 
-const output = 'src/shards/far-reach/data/groundScene.generated.json';
+const output = 'src/shards/far-reach/data/worldRows.generated.json';
 // Complete predecessor wire, including every hull scalar, before source-row extraction.
 const originalHash = 'b72fb9d2372640b84d8b00ebe7ca6ba82a2673be3f430c0ab7002c5b8dfc1660';
 
@@ -45,14 +45,17 @@ test('ground source bundles without generated metadata or file/compiler services
   }
 });
 
-test('the real cold sealed ground reader omits metadata, refuses a missing hull source and preserves its full output', async () => {
-  const root = resolve('.'), { jobs } = discoverGeneration(root), job = jobs.find(row => row.id === 'sky-ground-scene');
-  if (job === undefined) throw new Error('Missing retained ground scene writer');
+test('the real cold sealed world reader omits ground metadata, refuses a missing hull source and preserves its full output', async () => {
+  const root = resolve('.'), { jobs } = discoverGeneration(root), job = jobs.find(row => row.id === 'sky-world-rows');
+  if (job === undefined) throw new Error('Missing retained world row writer');
+  expect(jobs.some(row => row.id === 'sky-ground-scene')).toBe(false);
+  expect(jobs.flatMap(row => row.outputs)).not.toContain('src/shards/far-reach/data/groundScene.generated.json');
+  expect(job.inputRoots).not.toContain('src/shards/far-reach/data/groundScene.generated.json');
   expect(job.inputRoots).not.toContain('src/shards/far-reach/data/knolls.json');
   const source = 'src/shards/far-reach/generators/knoll.ts';
   expect(job.inputRoots).toContain(source);
   const omitted = { ...job, inputRoots: job.inputRoots.filter(path => path !== source) };
-  const expected = originalHash, cacheDir = mkdtempSync(resolve('tmp/sky-ground-inputs-'));
+  const expected = '3a05afd8da12568f27c2ecaaa33d7212ba6817d006ed4f7a3fc1fa418ceb9b9d', cacheDir = mkdtempSync(resolve('tmp/sky-ground-inputs-'));
   const catalogPath = relative(root, resolve(cacheDir, 'omitted.json'));
   try {
     writeFileSync(catalogPath, JSON.stringify({ schema: '../scripts/generation-jobs.schema.json', jobs: jobs.map(row => row.id === job.id ? omitted : row) }));
