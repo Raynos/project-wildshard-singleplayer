@@ -4,6 +4,7 @@ import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.j
 import { MeshoptSimplifier } from 'three/examples/jsm/libs/meshopt_simplifier.module.js';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { ISLAND_LOOK } from './islandRows';
+import { compactChannels } from './compactChannels';
 
 /** The Blender cove's prototypes at build (SHARD-PLATFORM C2): read from island.glb for the facts and the cover splat,
  *  and baked for the page with each palm's far copy simplified. Reads no generated table (the facts bake imports it). */
@@ -55,8 +56,10 @@ export async function islandProtoGlb(glb: Uint8Array, meta: { protos: readonly {
   const protos = await islandProtos(glb, meta), material = new THREE.MeshStandardMaterial();
   return staticGlb(meta.protos.flatMap((row, i) => {
     const p = protos[i]; if (p === undefined) return [];
-    const geometry = new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(p.pos, 3)).setAttribute('color', new THREE.BufferAttribute(p.col, 4, true)).setIndex(new THREE.BufferAttribute(p.index, 1));
+    // L18.3d: the colour stays its exact Uint8 + AO, the flat normals go Int8, a small prototype's index 16-bit
+    const index = p.pos.length / 3 < 65536 ? Uint16Array.from(p.index) : p.index;
+    const geometry = new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(p.pos, 3)).setAttribute('color', new THREE.BufferAttribute(p.col, 4, true)).setIndex(new THREE.BufferAttribute(index, 1));
     geometry.computeVertexNormals();
-    return [{ geometry, material, name: row.name }];
+    return [{ geometry: compactChannels(geometry), material, name: row.name, compactIndex: true as const, quantizedChannels: true as const }];
   }), 'island-protos');
 }

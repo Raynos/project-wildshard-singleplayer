@@ -11,10 +11,11 @@ import type { EmittedBlobs } from '../src/sdk/blobs';
 import { discoverGeneration } from '../scripts/generate.mjs';
 import { ISLAND_PROTO_INPUTS, driftwoodIslandProtoOutput, driftwoodIslandProtoSource } from '../src/shards/driftwood-isle/generators/islandProtoProgram';
 
-const hash = 'd206d254e1cdbb9198ee9f43c2f08aada35899a78e7066f65a6fce1146f6eda2';
+// L18.3d: the compact prototype storage (exact 8-bit colour + AO, Int8 normals, 16-bit indices); was d206d254 at 5,302,068 B
+const hash = '5b1d20445a2c039fb45d983720d51a0728a8918a7518d8b9f7c10460c6d61311';
 function check(output: EmittedBlobs): void {
   expect(output.files).toEqual([{ name: 'world/island/protos.glb', path: `blobs/glb/${hash}.glb`, kind: 'glb', hash,
-    compressed: 5_302_068, decoded: 5_302_040, gpu: 5_234_856, triangles: 39_658, draws: 144, critical: false, dependencies: [] }]);
+    compressed: 2_568_340, decoded: 2_568_312, gpu: 2_498_454, triangles: 39_658, draws: 144, critical: false, dependencies: [] }]);
   expect(output.assets.size).toBe(1);
   const bytes = output.assets.get(hash);
   if (bytes === undefined) throw new Error('Missing owned prototype bytes');
