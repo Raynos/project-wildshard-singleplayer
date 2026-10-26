@@ -9,6 +9,7 @@
 // Offline C6: node scripts/shard-phone-memory.mjs audit-estimate <floor> <estimated-bytes> < <native-summary.json>
 // Prints the fixed +/-15% model audit and independent G682 verdict; never re-bases either.
 import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { createServer } from 'node:http';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve as resolvePath } from 'node:path';
@@ -73,6 +74,59 @@ export const compiledFloorSave = Object.freeze({scope: 'device', key: 'debug.glo
  * @param {readonly {name: string}[]} [entries] */
 export function scriptResourceURLs(entries = performance.getEntriesByType('resource')) {
   return [...new Set(entries.filter(row => /\.m?js$/iu.test(new URL(row.name).pathname)).map(row => row.name))];
+}
+
+/** Post-acceptance provenance only: never fetch through the measured page or
+ * change a native verdict when metadata is unavailable. This records the index
+ * served alongside the reading, not a census of the page's resident content.
+ * @param {string} base
+ * @param {string} shard
+ * @param {string} version Original page version JSON.
+ * @param {typeof fetch} [read]
+ */
+export async function coreMemoryProductIdentity(base, shard, version, read = fetch) {
+  if (shard !== '_template' && shard !== 'blender-template') return null;
+  try {
+    const buildSchema = v.object({build: v.pipe(v.string(), v.minLength(1))});
+    const expected = v.parse(buildSchema, JSON.parse(version)).build;
+    // One deadline covers both version checks and the bounded index stream.
+    const signal = AbortSignal.timeout(5000);
+    /** @param {string} path @param {number} cap */
+    const wire = async (path, cap) => {
+      const response = await read(new URL(path, base), {signal, cache: 'no-store', redirect: 'error'});
+      if (!response.ok || response.body === null) throw new Error('Core product metadata unavailable');
+      const declared = response.headers.get('content-length');
+      if (declared !== null && (!/^[0-9]+$/u.test(declared) || Number(declared) > cap)) throw new Error('Core product metadata exceeds cap');
+      const reader = response.body.getReader(), chunks = []; let size = 0;
+      try {
+        for (;;) {
+          const row = await reader.read(); if (row.done) break;
+          size += row.value.length;
+          if (size > cap) throw new Error('Core product metadata exceeds cap');
+          chunks.push(row.value);
+        }
+      } catch (error) { await reader.cancel().catch(() => undefined); throw error; }
+      finally { reader.releaseLock(); }
+      const bytes = new Uint8Array(size); let at = 0;
+      for (const chunk of chunks) { bytes.set(chunk, at); at += chunk.length; }
+      return bytes;
+    };
+    const decoder = new TextDecoder('utf-8', {fatal: true});
+    const before = v.parse(buildSchema, JSON.parse(decoder.decode(await wire('/version.json', 65536))));
+    if (before.build !== expected) throw new Error('Core product metadata build changed');
+    const path = `/shardfiles/${shard}/shard.json`, bytes = await wire(path, 1048576);
+    // Identify the wire envelope only. Admission remains with the production
+    // validator; no blob or section bodies enter this diagnostic.
+    const index = v.parse(v.object({format: v.literal('wildshard.shardfile'), formatVersion: v.literal(2),
+      identity: v.object({slug: v.literal(shard)}),
+      build: v.object({sourceHash: v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u))})}), JSON.parse(decoder.decode(bytes)));
+    const after = v.parse(buildSchema, JSON.parse(decoder.decode(await wire('/version.json', 65536))));
+    if (after.build !== expected) throw new Error('Core product metadata build changed');
+    return {status: 'observed', phase: 'after-120s', build: expected, shard, path, indexBytes: bytes.length,
+      indexHash: createHash('sha256').update(bytes).digest('hex'), sourceHash: index.build.sourceHash};
+  } catch (error) {
+    return {status: 'unavailable', phase: 'after-120s', error: String(error).slice(0, 400)};
+  }
 }
 const footprintBytes = v.pipe(v.number(), v.safeInteger(), v.minValue(0));
 const floorRows = v.array(v.object({shard: v.string(), errors: v.array(v.string()),

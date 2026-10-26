@@ -12,6 +12,10 @@ export function selectedCoreMemoryTargets(selection: string): readonly (typeof c
 export const compiledFloorSave: Readonly<{scope: 'device'; key: 'debug.global.legacyShardButtons'; data: 'on'}>;
 /** Distinct loaded script URLs, without fetching or retaining response bodies. */
 export function scriptResourceURLs(entries?: readonly {name: string}[]): string[];
+/** Bounded Node-side metadata after native acceptance; no page/Inspector fetch, admission or budget verdict. */
+export function coreMemoryProductIdentity(base: string, shard: string, version: string, read?: typeof fetch): Promise<
+  {status: 'observed'; phase: 'after-120s'; build: string; shard: string; path: string; indexBytes: number; indexHash: string; sourceHash: string} |
+  {status: 'unavailable'; phase: 'after-120s'; error: string} | null>;
 /** G682 requires the cold uncollected native WebKit protocol; missing/errors fail as unknown. Select one app floor or default to all four. */
 export function coreMemorySummary(input: unknown, selection?: string): {shard: string; name: string; limitBytes: number; totalBytes: number | null; passed: boolean}[];
 /** Exact +/-15% comparison with an explicit prediction; never changes the native G682 verdict. */

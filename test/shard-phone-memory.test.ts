@@ -1,8 +1,10 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Refusals must occur before launching a memory browser.
 import { execFileSync, spawnSync } from 'node:child_process';
+// oxlint-disable-next-line import/no-nodejs-modules -- Independently hash the exact diagnostic wire, including whitespace.
+import { createHash } from 'node:crypto';
 import { expect, test } from 'vitest';
 import { coreMemorySummary, coreMemoryEstimateAudit, chromiumCoreMemorySummary, coreMemoryTargets, selectedCoreMemoryTargets, scriptResourceURLs, simulatorCoreFootprint, webKitCoreMemoryFloorBytes,
-  serveHelloWorldMemory, helloWorldMemoryHTML, helloWorldMemoryFloor } from '../scripts/shard-phone-memory.mjs';
+  serveHelloWorldMemory, helloWorldMemoryHTML, helloWorldMemoryFloor, coreMemoryProductIdentity } from '../scripts/shard-phone-memory.mjs';
 
 const MiB = 1048576;
 test('script inventory keeps distinct complete JavaScript URLs only', () => {
@@ -15,6 +17,70 @@ test('script inventory keeps distinct complete JavaScript URLs only', () => {
 const nativeProtocol = {protocol: 'webkit-core-floor/1', mode: 'cold', forcedGC: false, inspectorResponseBodyBytes: 0};
 const rows = () => coreMemoryTargets.map(target => ({...nativeProtocol, shard: target.shard, errors: [],
   samples: [10, 60, 120].map(second => ({phase: `${second}s`, rendererBytes: target.limitBytes - 10 * MiB, gpuBytes: 10 * MiB}))}));
+
+const metadataVersion = JSON.stringify({build: '1111111-original'});
+const metadataIndex = JSON.stringify({format: 'wildshard.shardfile', formatVersion: 2,
+  identity: {slug: '_template'}, build: {sourceHash: 'a'.repeat(64)}}, null, 2);
+const requestPath = (input: Parameters<typeof fetch>[0]): string => new URL(input instanceof Request ? input.url : input).pathname;
+test('post-sample product identity retains the exact wire hash between original-build checks', async () => {
+  const requests: {path: string; init: RequestInit | undefined}[] = [];
+  const read: typeof fetch = (input, init) => {
+    const path = requestPath(input); requests.push({path, init});
+    return Promise.resolve(new Response(path === '/version.json' ? metadataVersion : metadataIndex));
+  };
+  expect(await coreMemoryProductIdentity('https://metadata.test/', '_template', metadataVersion, read)).toEqual({
+    status: 'observed', phase: 'after-120s', build: '1111111-original', shard: '_template',
+    path: '/shardfiles/_template/shard.json', indexBytes: Buffer.byteLength(metadataIndex),
+    indexHash: createHash('sha256').update(metadataIndex).digest('hex'), sourceHash: 'a'.repeat(64),
+  });
+  expect(requests.map(row => row.path)).toEqual(['/version.json', '/shardfiles/_template/shard.json', '/version.json']);
+  const signal = requests[0]?.init?.signal;
+  expect(signal).toBeInstanceOf(AbortSignal);
+  for (const request of requests) expect(request.init).toEqual({signal, cache: 'no-store', redirect: 'error'});
+});
+
+test('non-product floors make no metadata request', async () => {
+  const read: typeof fetch = () => Promise.reject(new Error('Unexpected metadata request'));
+  for (const target of ['menu', 'select', 'hello']) expect(await coreMemoryProductIdentity('https://metadata.test/', target, metadataVersion, read)).toBeNull();
+});
+
+test('changed builds cannot identify a product from the native reading', async () => {
+  for (const changedAt of [1, 3]) {
+    let calls = 0;
+    const read: typeof fetch = () => {
+      calls++;
+      return Promise.resolve(new Response(calls === changedAt ? JSON.stringify({build: '2222222-rebuilt'}) : calls === 2 ? metadataIndex : metadataVersion));
+    };
+    const result = await coreMemoryProductIdentity('https://metadata.test/', '_template', metadataVersion, read);
+    expect(result?.status).toBe('unavailable');
+    if (result?.status !== 'unavailable') throw new Error('Missing metadata refusal');
+    expect(result.error).toContain('build changed');
+    expect(result).not.toHaveProperty('indexHash');
+  }
+});
+
+test('missing, foreign and corrupt product metadata remains unavailable', async () => {
+  for (const response of [new Response(null, {status: 404}), new Response('{broken'),
+    new Response(metadataIndex.replace('_template', 'different-shard')),
+    new Response(metadataIndex.replace('a'.repeat(64), 'bad-hash')),
+    new Response(metadataIndex, {headers: {'content-length': String(MiB + 1)}})]) {
+    const read: typeof fetch = input => Promise.resolve(requestPath(input) === '/version.json' ? new Response(metadataVersion) : response);
+    const result = await coreMemoryProductIdentity('https://metadata.test/', '_template', metadataVersion, read);
+    expect(result).toMatchObject({status: 'unavailable'});
+    expect(result).not.toHaveProperty('indexHash');
+  }
+});
+
+test('an oversized unknown-length index stream is cancelled at the diagnostic cap', async () => {
+  let cancelled = false;
+  const body = new ReadableStream<Uint8Array>({start(controller) { controller.enqueue(new Uint8Array(MiB + 1)); }, cancel() { cancelled = true; }});
+  const read: typeof fetch = input => Promise.resolve(requestPath(input) === '/version.json' ? new Response(metadataVersion) : new Response(body));
+  const result = await coreMemoryProductIdentity('https://metadata.test/', '_template', metadataVersion, read);
+  expect(result?.status).toBe('unavailable');
+  if (result?.status !== 'unavailable') throw new Error('Missing metadata refusal');
+  expect(result.error).toContain('exceeds cap');
+  expect(cancelled).toBe(true);
+});
 
 test('saved estimate audits keep a one-byte tolerance miss separate from the native budget', () => {
   const summary = {rev: '1'.repeat(40), coreMemory: '_template', results: [{...nativeProtocol, version: JSON.stringify({build: '1111111-fixture'}), shard: '_template', errors: [],

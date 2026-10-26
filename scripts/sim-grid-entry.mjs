@@ -8,6 +8,7 @@
 //     [--core-memory=menu|select|_template|blender-template|templates|all] reads independent Developer-on floors at 10/60/120s, no Network capture or GC.
 //     --core-memory=hello serves its own plain hello-world fixture (no --base/--rev), using the same native floor sampler.
 //     --core-attribution=1 adds passive WebKit categories only AFTER the last native sample; no heap snapshot or GC.
+// Template product index identity is read from Node only after acceptance; unavailable metadata never changes the floor.
 // --base drives a served build or live; --rev serves that commit (scripts/serve-build.sh --rev) and stops it after.
 // Each run: Safari terminated; a cold run clears the worker, every cache and the prefetch markers (a warm run keeps
 // them); the title; Developer on; six seconds on the menu (its prefetch starts 4 s in); tap INFINITE WILDSHARD; record
@@ -28,7 +29,7 @@ import { requireCompiledEntry, downloadEvidence, stepEvidence, stepBoundaryEvide
 import { cachedBodyEvidence } from './loading-benchmark/cache-bodies.mjs';
 import { saveFixtureCode } from './debug-settings.mjs';
 import { readSimulatorCoreFootprint, selectedCoreMemoryTargets, coreMemorySummary, compiledFloorSave, scriptResourceURLs,
-  serveHelloWorldMemory, helloWorldMemoryFloor } from './shard-phone-memory.mjs';
+  serveHelloWorldMemory, helloWorldMemoryFloor, coreMemoryProductIdentity } from './shard-phone-memory.mjs';
 import { pageMemoryAttributionExpression } from './memory-report-snapshot.mjs';
 import { memoryCategories } from './soak/memory-categories.mjs';
 
@@ -240,8 +241,9 @@ async function runCoreMemory(mode, index, target) {
   // Acceptance samples are already sealed. Reuse the passive diagnostic, which
   // never collects or enables Network; unsupported categories stay unknown.
   const postSampleCategories = args['core-attribution'] === '1' ? await memoryCategories(page) : null;
+  const productIdentity = await coreMemoryProductIdentity(BASE, target, version);
   const calibrationDocument = hello ? JSON.parse(await page.evaluate(`JSON.stringify({title:document.title,text:document.body.textContent.trim(),scripts:document.scripts.length,canvases:document.querySelectorAll('canvas').length})`)) : null;
-  const result = {mode, run: index, shard: target, protocol: 'webkit-core-floor/1', version, reset, samples, attribution, postSampleCategories, errors: [], compiledEntryRequired: template, calibrationDocument,
+  const result = {mode, run: index, shard: target, protocol: 'webkit-core-floor/1', version, reset, samples, attribution, postSampleCategories, productIdentity, errors: [], compiledEntryRequired: template, calibrationDocument,
     scriptURLs: JSON.parse(await page.evaluate(`JSON.stringify((${scriptResourceURLs.toString()})())`)),
     inspectorResponseBodyBytes: 0, forcedGC: false, scope: 'all WebContent and GPU processes under the owned Simulator launchd; not phone GPU evidence'};
   writeFileSync(resolvePath(out, `${target}-${mode}-${index}.json`), `${JSON.stringify(result, null, 1)}\n`);
