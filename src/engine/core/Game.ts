@@ -864,10 +864,13 @@ export class Game {
    * camera turn or caster rechunking runs here; the final zero-delta composer draw warms its real pass targets.
    * A retained view may supply its whole future root, including sibling authored lights outside the bound scene.
    * `before` (the caller's last preparation, e.g. a region's sky build) runs first, inside the same time bound:
+   * it may prepare already-built roots while other content constructs, then await that content before returning.
+   * Those early programs share this bound; the final complete inventory and composer still gate readiness.
    * nothing here can wait silently forever (`boundEntryWarmup`); a stall rejects naming its stage. */
-  async warmEnteredFrame(owner: Scope, futureRoot?: THREE.Object3D, before?: () => Promise<void> | void): Promise<void> {
+  async warmEnteredFrame(owner: Scope, futureRoot?: THREE.Object3D,
+    before?: (prepare: (roots: readonly THREE.Object3D[]) => Promise<void>) => Promise<void> | void): Promise<void> {
     const composer = this._composer;
-    if (composer === null) { await before?.(); return; }
+    if (composer === null) { await before?.(() => Promise.resolve()); return; }
     const trace: EntryPreparation = { root: (futureRoot ?? this.scene).uuid, owner: owner.name,
       completed: false, phase: before === undefined ? 'post-preparation' : 'before-warm', progress: null, stages: [] };
     this._entryPreparation = trace;
@@ -877,7 +880,13 @@ export class Game {
     const stage = (): string => { const last = trace.stages.at(-1); return last === undefined ? trace.phase : `${trace.phase} (after ${last.phase})`; };
     await boundEntryWarmup(owner, () => this.frameCount, stage, async current => {
       if (before !== undefined) {
-        await before();
+        await before(async roots => {
+          const started = diagnosticNow();
+          enter('early-scene-programs');
+          await this.warmEnteredRoots(owner, composer, roots, futureRoot, current);
+          trace.stages.push({ phase: 'early-scene-programs', elapsedMs: diagnosticNow() - started, units: roots.length, endAt: diagnosticNow() });
+          enter('before-warm');
+        });
         if (!current()) throw new Error('Shader warm-up owner left');
         enter('post-preparation');
       }
@@ -890,6 +899,17 @@ export class Game {
       enter('shaders-and-composer');
       await this.warmEnteredStages(owner, composer, trace, current, futureRoot, enter);
     });
+  }
+
+  /** Early roots use the enclosing entry's bound; they cannot renew its deadline or publish readiness. */
+  private async warmEnteredRoots(owner: Scope, composer: EffectComposer, roots: readonly THREE.Object3D[],
+    futureLighting: THREE.Object3D | undefined, current: () => boolean): Promise<void> {
+    const scene = this.scene;
+    const { prepareSceneRoots, waitForDrawnFrame, LIVE_UPLOAD_BUDGET } = await import('../render/precompile');
+    const live = (): boolean => current() && this._composer === composer;
+    const pause = this.frameCount > 0 ? () => waitForDrawnFrame(owner, () => this.frameCount, live) : undefined;
+    await prepareSceneRoots(this.renderer, this.camera, scene, composer.inputBuffer, roots, live, pause,
+      LIVE_UPLOAD_BUDGET, this.frameCount > 0, futureLighting);
   }
 
   private async warmEnteredStages(owner: Scope, composer: EffectComposer, trace: EntryPreparation,

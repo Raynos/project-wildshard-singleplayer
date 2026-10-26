@@ -471,6 +471,11 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
           } };
         },
         checkpoint: () => !resident.disposed && ports.checkpoint(host, request),
+        // The world-only inventory can link while kit/play continue, with the exact destination sky and look.
+        prepareWorldMaterials: async () => {
+          await skyReady;
+          if (!resident.disposed) regionLook?.sweep();
+        },
         // rt3-crossing2: the look's per-frame sweep never ran on what the entered hooks added (no frame draws while they
         // install), so the warm-up compiled the page-look programs and the first frame after it the region-look ones
         beforeWarm: async () => {

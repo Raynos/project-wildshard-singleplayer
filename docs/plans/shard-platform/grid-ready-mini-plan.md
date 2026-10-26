@@ -58,6 +58,17 @@ Nalati 5.284/7.959 s, Nine 7.362/5.043 s; envelopes include pacing and
 overlap. Intervening source and shared-machine work prevent isolated gains.
 T4's remaining source and qualification rows resume after these edge misses.
 
+The coordinator stopped the historical Pine bisect after calibration: the
+903 single-edge cold visit was 49.577 s and 22e was 34.490 s. The old 2.6 s
+Pine row followed a prior traversal and aborted preparation; it is not a
+first-visit baseline. New defining baseline pin is `dca731cde4`: each cold
+edge uses a fresh browser and admitted planned Template 2 recovery, before
+any target construction. Cold DW/Pine/Nalati/Nine request-to-commit is
+9.201/17.661/14.648/12.228 s, all controls ready/errors 0; frame gates still
+fail. The same-pin original warm four-edge cohort was already active at
+G440 wrap; retain its receipt and summarize next turn, without a repeat.
+These are Chromium phone-tier readings, not native acceptance or causal gains.
+
 | Slice | Work | Status |
 |---|---|---|
 | G743.1 | Select the nearest upcoming boulevard junction; meaningful lateral motion resolves its side before the mouth ray, while equal choices and contact jitter remain undecided. Preserve one constructor, pair budgets, kept-source return and all entry fences. At most one hour. | done (bounded source; 817 milestone retains all four timing misses) |
@@ -65,6 +76,7 @@ T4's remaining source and qualification rows resume after these edge misses.
 | G743.2 | Cut the measured world and after-Play critical path; move immutable preparation earlier within existing ownership and admission, retaining every readiness unit. Split further source cuts into at most one-hour rows. | open |
 | G743.2a | A real crossing demand owns its pending preparation; a later speculative heading cannot abort it. Keep explicit crossing supersession, safe-point cancellation, claim accounting and reserved-entry fences. New refusal is RED before, all 47 related cases/four files plus touched types/lint pass. At most one hour. | done (2026-10-26, sp-x8) |
 | G743.2b | Release decoded runtime-owned wires through existing explicit online cache-or-fetch authority, avoiding per-file durable-presence waits during world construction. Retain runtime-bound filtering, shared inputs, scope leases, offline durability and hash/size reread refusals. RED-before online fixture; online/offline/shared controls pass. At most one hour. | done (bounded source; latest DW/Pine/Nalati/Nine edges 11.133/13.984/17.873/11.468 s remain open) |
+| G743.2c | Start exact parked world-root programs afterWorld while kit/play constructs. Sky/look preparation and final complete inventory share the original single 30 s presented bound, owner cancellation and drawn-frame slices. Four new overlap/deadline/retirement/refusal controls plus 16 existing cases pass; touched production/engine-test types and scoped typed lint pass. Guard, admission and final readiness unchanged. At most one hour. | done (bounded source; 2026-10-26, sp-x8); timing qualification remains open for next turn under G440 |
 | G743.3 | ONE original phone-tier DW/Pine/Nalati/Nine road-entry cohort per source milestone; report each request-to-commit time and keep all misses open until each is under five seconds. | open |
 
 ## G717 frame-floor misses (2026-10-25, sp-x1; G639)
