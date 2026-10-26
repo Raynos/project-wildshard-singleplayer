@@ -124,9 +124,9 @@
       1,
       1
     ],
-    "hemiGround": 6316128,
-    "hemiIntensity": 0.7,
-    "hemiSky": 10266548,
+    "hemiGround": 9067066,
+    "hemiIntensity": 1,
+    "hemiSky": 11116744,
     "sun": {
       "azimuth": 35,
       "elevation": 45
