@@ -40,7 +40,7 @@ export class HullLookBook {
       || this.book.rows.some(row => row.base === 'definition' && this.book.definitions[row.kind] === undefined)) throw new Error('Invalid hull look references');
     const packed = this.book.body ?? (this.book.compactBody === undefined ? undefined : expandCompactBodies(this.book.compactBody));
     this.hulls = packed === undefined ? productRiggedHulls(this.book.slug) : undefined;
-    this.bodies = packed === undefined ? undefined : packedCreatureBodies(packed);
+    this.bodies = packed === undefined ? undefined : packedCreatureBodies(packed, undefined, files === null ? undefined : name => files.file(name));
   }
   /** The same packed owner supplies custom rigs and ordinary fauna without retaining another bake. */
   get packed(): ReturnType<typeof packedCreatureBodies> { if (this.bodies === undefined) throw new Error('Look book has no packed bodies'); return this.bodies; }

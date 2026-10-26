@@ -1331,7 +1331,8 @@ async function inflateStream(bytes: Uint8Array): Promise<Uint8Array> {
  * The compressed bytes are retained once; each copy inflates and copies its parts, never sharing mutable geometry.
  * Missing keys, early copies, unsafe paths, truncated blocks and incompatible metadata refuse before handing out a body.
  */
-export function packedCreatureBodies(input: unknown, decode: (bytes: Uint8Array) => Uint8Array = unzlibSync): PackedCreatureBodies {
+export function packedCreatureBodies(input: unknown, decode: (bytes: Uint8Array) => Uint8Array = unzlibSync,
+  read?: (name: string) => Promise<Uint8Array>): PackedCreatureBodies {
   const PackedBodyNumber = wholeV.pipe(wholeV.number(), wholeV.finite());
   const PackedBodyWhole = wholeV.pipe(PackedBodyNumber, wholeV.integer(), wholeV.minValue(0), wholeV.maxValue(268435456));
   const PackedBodyPart = wholeV.strictObject({ indexEncoding: wholeV.optional(wholeV.picklist(['delta', 'raw'])),
@@ -1345,8 +1346,13 @@ export function packedCreatureBodies(input: unknown, decode: (bytes: Uint8Array)
     dims: wholeV.strictObject({ bodyY: PackedBodyNumber, bodyHalfLen: PackedBodyNumber, bodyRadius: PackedBodyNumber, headRadius: PackedBodyNumber, legLen: PackedBodyNumber,
       feet: wholeV.pipe(wholeV.array(wholeV.tuple([PackedBodyNumber, PackedBodyNumber])), wholeV.maxLength(512)), halfWidth: PackedBodyNumber, capsuleAxis: wholeV.optional(wholeV.picklist(['y', 'z'])) }),
     fur: PackedBodyParts, hard: PackedBodyParts, eye: PackedBodyParts });
-  const bake = wholeV.parse(wholeV.strictObject({ file: wholeV.pipe(wholeV.string(), wholeV.regex(/^\/assets\/[a-zA-Z0-9/_-]+-[0-9a-f]{64}\.bin$/u)),
+  const publicBodyFile = wholeV.pipe(wholeV.string(), wholeV.regex(/^\/assets\/[a-zA-Z0-9/_-]+-[0-9a-f]{64}\.bin$/u));
+  const namedBodyFile = wholeV.pipe(wholeV.string(), wholeV.maxLength(256),
+    wholeV.regex(/^(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9_-][a-zA-Z0-9_.-]*\.bin$/u));
+  const bake = wholeV.parse(wholeV.strictObject({ file: wholeV.union([publicBodyFile, namedBodyFile]),
     bytes: PackedBodyWhole, bodies: wholeV.pipe(wholeV.array(PackedBody), wholeV.maxLength(1024)) }), input);
+  const load = bake.file.startsWith('/') ? fetchBuildFile : read;
+  if (load === undefined) throw new Error('Named packed creature body requires its product reader');
   const keys = new Set<string>();
   for (const body of bake.bodies) {
     const key = JSON.stringify([body.kind, body.variant]);
@@ -1373,7 +1379,7 @@ export function packedCreatureBodies(input: unknown, decode: (bytes: Uint8Array)
     // G639: the bake is inflated as it loads, by the platform's stream decoder where it can (a Nalati entry spent ~0.13 s of
     // one frame inflating 8.7 MB in script at its first spawn); it is held until the first burst's copies are done
     preload: () => {
-      loading ??= fetchBuildFile(bake.file).then(async bytes => { compressed = bytes; if (decode === unzlibSync) decoded ??= await inflateStream(bytes); return undefined; });
+      loading ??= load(bake.file).then(async bytes => { compressed = bytes; if (decode === unzlibSync) decoded ??= await inflateStream(bytes); return undefined; });
       return loading;
     },
     looks: lookInput => {

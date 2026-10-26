@@ -1,6 +1,7 @@
 import { zlibSync } from 'fflate';
 import { afterAll, expect, test, vi } from 'vitest';
 import { packedCreatureBodies } from './geometry';
+import { HullLookBook } from '../looks/speciesBook';
 import { Rng } from '@wildshard/engine/core/rng';
 
 const file = `/assets/test/bodies-${'a'.repeat(64)}.bin`;
@@ -64,4 +65,66 @@ test('accepts normalized contiguous parts with raw indices, draw groups and a le
   if (first === undefined || second === undefined) throw new Error('Missing normalized parts');
   expect(first).not.toBe(second); expect(first.index?.getX(1)).toBe(1);
   expect(first.groups.some(group => group.materialIndex === 1)).toBe(true);
+});
+
+test('named body files use one product read and preserve every original vertex and independent copy', async () => {
+  const raw = new Uint8Array(new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0]).buffer), compressed = zlibSync(raw);
+  const fetcher = vi.fn(() => Promise.reject(new Error('Named body must not fetch a public fallback')));
+  vi.stubGlobal('fetch', fetcher);
+  const read = vi.fn((name: string) => {
+    expect(name).toBe('actors/bodies.bin');
+    return Promise.resolve(compressed);
+  });
+  const bodies = packedCreatureBodies({ ...row(), file: 'actors/bodies.bin' }, undefined, read);
+  await Promise.all([bodies.preload(), bodies.preload()]);
+  const a = bodies.copy('bird', 'small'), b = bodies.copy('bird', 'small');
+  const first = a.hardParts[0], second = b.hardParts[0];
+  if (first === undefined || second === undefined) throw new Error('Missing named body geometry');
+  const positions = first.getAttribute('position');
+  expect(Array.from({ length: positions.count }, (_, i) => [positions.getX(i), positions.getY(i), positions.getZ(i)]))
+    .toEqual([[0, 0, 0], [1, 0, 0], [0, 1, 0]]);
+  expect(a.bones).toEqual(row().bodies[0]?.bones); expect(a.dims).toEqual(row().bodies[0]?.dims);
+  positions.setX(0, 42); expect(second.getAttribute('position').getX(0)).toBe(0);
+  expect(a.bones[0]).not.toBe(b.bones[0]); expect(a.dims.feet[0]).not.toBe(b.dims.feet[0]);
+  expect(read).toHaveBeenCalledOnce(); expect(fetcher).not.toHaveBeenCalled();
+});
+
+test('named body paths and missing reader refuse before any capability or public fallback', async () => {
+  const read = vi.fn(() => Promise.reject(new Error('Missing named body')));
+  const fetcher = vi.fn(() => Promise.reject(new Error('Unexpected fallback'))); vi.stubGlobal('fetch', fetcher);
+  expect(() => packedCreatureBodies({ ...row(), file: 'actors/bodies.bin' })).toThrow('requires its product reader');
+  for (const name of ['../bodies.bin', 'actors/../bodies.bin', 'actors//bodies.bin', '/outside.bin', 'https://test/bodies.bin',
+    'file:///bodies.bin', 'actors/bodies.bin?x', 'actors/bodies.bin#x', 'actors/%2e%2e/bodies.bin', String.raw`actors\bodies.bin`, `${'a'.repeat(257)}.bin`]) {
+    expect(() => packedCreatureBodies({ ...row(), file: name }, undefined, read)).toThrow();
+  }
+  expect(read).not.toHaveBeenCalled(); expect(fetcher).not.toHaveBeenCalled();
+  const bodies = packedCreatureBodies({ ...row(), file: 'actors/bodies.bin' }, undefined, read);
+  await expect(bodies.preload()).rejects.toThrow('Missing named body');
+  expect(read).toHaveBeenCalledOnce(); expect(fetcher).not.toHaveBeenCalled();
+});
+
+test('public hash bodies keep their original fetch owner when a product reader exists', async () => {
+  const bytes = zlibSync(new Uint8Array(new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0]).buffer));
+  const fetcher = vi.fn(() => Promise.resolve(new Response(bytes))); vi.stubGlobal('fetch', fetcher);
+  const read = vi.fn(() => Promise.reject(new Error('Public source must retain its fetch owner')));
+  const bodies = packedCreatureBodies(row(), undefined, read); await bodies.preload();
+  expect(bodies.copy('bird', 'small').hardParts).toHaveLength(1);
+  expect(fetcher).toHaveBeenCalledOnce(); expect(read).not.toHaveBeenCalled();
+});
+
+
+test('the hull book passes its existing product file capability to the packed owner', async () => {
+  const input = { slug: 'named-body-book', body: { ...row(), file: 'actors/bodies.bin' }, definitions: {}, rows: [] };
+  const compressed = zlibSync(new Uint8Array(new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0]).buffer));
+  const fetcher = vi.fn(() => Promise.reject(new Error('Hull book must use its product'))); vi.stubGlobal('fetch', fetcher);
+  let reads = 0;
+  const files = { file(name: string): Promise<Uint8Array> {
+    expect(this).toBe(files); expect(name).toBe('actors/bodies.bin'); reads++;
+    return Promise.resolve(compressed);
+  } };
+  expect(() => new HullLookBook(input)).toThrow('requires its product reader');
+  const book = new HullLookBook(input, files);
+  await Promise.all([book.packed.preload(), book.packed.preload()]);
+  expect(book.packed.copy('bird', 'small').hardParts).toHaveLength(1);
+  expect(reads).toBe(1); expect(fetcher).not.toHaveBeenCalled();
 });

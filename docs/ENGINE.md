@@ -8087,21 +8087,15 @@ Pine's stave is the current user. The named G441 W3 consumer is Nalati
 `weapons/recurve.ts#BowMesh.shape` and `writeLeg`, with its original centreline coefficients and tip kink declared on the shared
 curve; fixed section and grip values come from its producer; palette and repaint policies remain local.
 
-**Packed creature body copies (G441).** `game/plugin/geometry` defines
-`packedCreatureBodies(input)` and its `PackedCreatureBodies` handle. It
-admits a bounded catalogue of hash-named assets, offset-addressed typed
-geometry blocks, bones and dimensions. `preload()` retains the existing
-compressed source once; `copy(kind, variant)` returns fresh owned
-geometry, bone tuples and feet. Missing keys, early copies, unsafe paths,
-truncated blocks and mismatched inflated lengths refuse. Optional raw indices,
-multiple parts and draw groups retain contiguous body layouts; a lent
-decode port handles a caller's existing lane encoding. It installs no
-materials, animation or save owner. Rendered code may import the reader
-lazily at preload so native species modules remain renderer-free.
-Driftwood keeps its existing payload and metadata. The W3 counterpart is
-Nalati `species/bodies.ts`: normalize its contiguous channel/group rows
-at intake, then replace its private body-part, bone and dimension copying;
-its lane decoding, family keys and painterly materials stay unchanged.
+**Packed creature body copies (G441).** `game/plugin/geometry` exports
+`packedCreatureBodies(input, decode?, read?)` and `PackedCreatureBodies`.
+Hash-named public URLs retain public fetch; relative `.bin` names require
+the verified product reader, with no fallback. `HullLookBook` forwards its
+existing file port. `preload()` keeps compressed bytes once; `copy(kind,
+variant)` owns independent geometry, bones and feet. Invalid paths,
+metadata, offsets and inflated lengths, early copies and missing keys
+refuse. Raw indices, draw groups, multiple parts and injected lane decoding
+retain source layouts. Materials, animation and saves keep their owners.
 
 `BowShape.sectionSamples` optionally supplies producer-owned `widths` (two
 positive finite half extents per ring) and `ridges` (one positive finite
