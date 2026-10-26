@@ -355,6 +355,17 @@ test('Simulator missing, duplicate or corrupt native process readings refuse', (
 });
 
 
+test('a zero-byte process cannot hide inside a positive native aggregate', () => {
+  const known = {pid: 12, startAbstime: 100, physicalFootprintBytes: MiB};
+  const missing = {pid: 13, startAbstime: 101, physicalFootprintBytes: 0};
+  for (const input of [{webContent: [known, missing], gpu: []},
+    {webContent: [known], gpu: [missing]}, {webContent: [missing], gpu: []}]) {
+    expect(() => simulatorCoreFootprint(input)).toThrow();
+  }
+  expect(simulatorCoreFootprint({webContent: [known], gpu: []}))
+    .toMatchObject({rendererBytes: MiB, gpuBytes: 0});
+});
+
 test('hello-world is a calibration target and never part of the app cohort', () => {
   const target = selectedCoreMemoryTargets('hello');
   expect(target).toEqual([{shard: 'hello', name: 'Hello, world', limitBytes: null}]);

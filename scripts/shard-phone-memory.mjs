@@ -322,8 +322,9 @@ export function chromiumCoreMemorySummary(input) {
 }
 
 const processRows = v.array(v.object({pid: v.pipe(v.number(), v.safeInteger(), v.minValue(1)),
-  startAbstime: v.pipe(v.number(), v.safeInteger(), v.minValue(1)), physicalFootprintBytes: footprintBytes}));
-/** Validate native identities; an absent GPU process is distinct from an unreadable one.
+  startAbstime: v.pipe(v.number(), v.safeInteger(), v.minValue(1)), physicalFootprintBytes: v.pipe(footprintBytes, v.minValue(1))}));
+/** Validate every native identity and positive footprint, before summing.
+ * An absent GPU process is distinct from a present but unreadable one.
  * @param {unknown} input */
 export function simulatorCoreFootprint(input) {
   const row = v.parse(v.object({webContent: processRows, gpu: processRows}), input);
