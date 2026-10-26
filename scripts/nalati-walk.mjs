@@ -16,6 +16,7 @@
 //   node scripts/nalati-walk.mjs --tag=x --only=orbit,up
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { resolve as resolvePath } from 'node:path';
+import { jpegImageRoutes } from './parity/image-routes.mjs';
 
 const { chromium } = await import('playwright');
 const ROOT = resolvePath(new URL('..', import.meta.url).pathname);
@@ -82,7 +83,7 @@ try {
     await new Promise((resolve) => { setTimeout(resolve, SETTLE); });
     const perf = await page.evaluate(() => { const g = window.__wildshard.world.game; return { calls: g.lastFrame.calls, tris: g.lastFrame.triangles }; });
     const shot = await page.screenshot({ type: 'jpeg', quality: 80, scale: 'css' });
-    rows.push({ group, label, ...perf, img: `data:image/jpeg;base64,${shot.toString('base64')}` });
+    rows.push({ group, label, ...perf, img: shot });
     console.log(`${label.padEnd(12)} ${String(perf.calls).padStart(4)} calls · ${(perf.tris / 1e6).toFixed(2)} M tris`);
   }
   if (errors.length > 0) console.error(`page errors: ${[...new Set(errors)].join(' | ')}`);
@@ -90,16 +91,22 @@ try {
 
   // the strip: a labelled grid, 7 across
   const sheet = await (await browser.newContext({ viewport: { width: 7 * 196, height: 400 } })).newPage();
-  const html = `<body style="margin:0;background:#111;font:11px ui-monospace,monospace;color:#9fe">
-    <div style="display:grid;grid-template-columns:repeat(7,196px)">${rows.map((r) => `<figure style="margin:0;position:relative">
-    <img src="${r.img}" style="width:196px;display:block"><figcaption style="position:absolute;left:3px;top:3px;background:#000a;padding:1px 4px">${r.label} · ${r.calls}c</figcaption></figure>`).join('')}</div>
+  const inputs = await jpegImageRoutes(sheet, rows.map(row => row.img));
+  try {
+    const html = `<body style="margin:0;background:#111;font:11px ui-monospace,monospace;color:#9fe">
+    <div style="display:grid;grid-template-columns:repeat(7,196px)">${rows.map((r, index) => `<figure style="margin:0;position:relative">
+    <img src="${inputs.urls[index]}" style="width:196px;display:block"><figcaption style="position:absolute;left:3px;top:3px;background:#000a;padding:1px 4px">${r.label} · ${r.calls}c</figcaption></figure>`).join('')}</div>
     <div style="padding:4px">${TAG} · walk-around (orbit / path / up / down / Eagle Rock / plateau / valley)</div></body>`;
-  await sheet.setContent(html);
-  await sheet.waitForTimeout(300);
-  const buf = await sheet.screenshot({ type: 'jpeg', quality: 72, fullPage: true });
-  writeFileSync(resolvePath(OUT, `${TAG}-strip.jpg`), buf);
-  writeFileSync(resolvePath(OUT, `${TAG}-walk.json`), JSON.stringify(rows.map(({ img: _i, ...r }) => r), null, 1));
-  console.log(`wrote progress/nalati-look/walk/${TAG}-strip.jpg (${(buf.length / 1024).toFixed(0)} KB)`);
+    await sheet.setContent(html);
+    await sheet.evaluate(() => {
+      if (Array.from(document.images).some(image => !image.complete || image.naturalWidth === 0)) throw new Error('Walk strip image failed to load');
+    });
+    await sheet.waitForTimeout(300);
+    const buf = await sheet.screenshot({ type: 'jpeg', quality: 72, fullPage: true });
+    writeFileSync(resolvePath(OUT, `${TAG}-strip.jpg`), buf);
+    writeFileSync(resolvePath(OUT, `${TAG}-walk.json`), JSON.stringify(rows.map(({ img: _i, ...r }) => r), null, 1));
+    console.log(`wrote progress/nalati-look/walk/${TAG}-strip.jpg (${(buf.length / 1024).toFixed(0)} KB)`);
+  } finally { await inputs.dispose(); }
 } finally {
   await browser.close();
 }
