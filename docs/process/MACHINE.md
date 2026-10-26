@@ -226,6 +226,21 @@ Developer and prefetch stay on; samples at 10/60/120 seconds use the watchdog's 
 WebContent and GPU process identities below the owned Simulator's launchd. No
 Inspector Network capture, forced GC or phone-GPU inference is involved.
 
+For a separate intrusive Template holder census, use the same official reader
+with `--core-memory=_template` (or `blender-template`), an exact full landed
+`--rev`, and `--core-heap=1`. It permits one cold visit only and refuses the
+pair/all/calibration selectors, alternate recorders and video. Original
+10/60/120s native samples and product identity precede the heap agent. The
+reader fences the compiled page before/after `Heap.snapshot`, preserves raw
+WebKit v3 JSON plus its SHA/bytes and class estimates, and disables the agent
+in cleanup. A snapshot may collect; its distinct
+`webkit-core-heap-diagnostic/1` protocol never emits G682 floors and the native
+qualifier rejects it even when numbers are below cap. Missing/invalid heaps
+or a navigation change stay diagnostic failures, never zero-byte holders or
+an acceptance result. No Network body capture, collector-policy override or
+app resource mutation is added. This is a labelled diagnostic milestone,
+not a repeat of the original budget reading.
+
 Chromium process-memory tools (`shard-phone-memory`, `grid-ready-chromium`,
 `load-mem-probe`, `capture-main-menu-hero`, and `crossroads-rig/desktop-probe`)
 use `chromium-memory-browser.mjs`. Its public CDP transport caps response-body

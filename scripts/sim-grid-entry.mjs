@@ -10,6 +10,7 @@
 //     --core-memory=contexts visits hello then one empty WebGL2 context, each cold at 10/60/120s; diagnostic only.
 //     --core-memory=three visits only the installed Three.js modules and one empty renderer; diagnostic only.
 //     --core-attribution=1 adds passive WebKit categories only AFTER the last native sample; no heap snapshot or GC.
+//     --core-heap=1 is a nonqualifying, potentially collecting single-Template holder diagnostic after120s.
 // Template product index identity is read from Node only after acceptance; unavailable metadata never changes the floor.
 // --base drives a served build or live; --rev serves that commit (scripts/serve-build.sh --rev) and stops it after.
 // Each run: Safari terminated; a cold run clears the worker, every cache and the prefetch markers (a warm run keeps
@@ -34,6 +35,7 @@ import { readSimulatorCoreFootprint, selectedCoreMemoryTargets, coreMemorySummar
   serveHelloWorldMemory, helloWorldMemoryFloor, contextMemoryDiagnostic, coreMemoryProductIdentity } from './shard-phone-memory.mjs';
 import { pageMemoryAttributionExpression } from './memory-report-snapshot.mjs';
 import { memoryCategories } from './soak/memory-categories.mjs';
+import { coreHeapRequested, captureCoreHeap, coreHeapProtocol } from './core-heap-diagnostic.mjs';
 
 const REPO = resolvePath(import.meta.dirname, '..');
 /** @type {Partial<Record<string, string>>} */
@@ -41,6 +43,7 @@ const args = Object.fromEntries(process.argv.slice(2).map(arg => /^--([^=]+)(?:=
 const udid = process.env.SIM_UDID;
 if (udid === undefined || udid === '') throw new Error('Run under scripts/sim-lane.sh run (it sets SIM_UDID)');
 const coreMemory = args['core-memory'];
+const coreHeap = coreHeapRequested(args);
 const calibrationMode = ['hello', 'webgl', 'contexts', 'three'].includes(coreMemory ?? '');
 if (calibrationMode) {
   if (args.base !== undefined || args.rev !== undefined) throw new Error('Core calibration serves its own fixture; omit --base/--rev');
@@ -253,10 +256,12 @@ async function runCoreMemory(mode, index, target) {
   // never collects or enables Network; unsupported categories stay unknown.
   const postSampleCategories = args['core-attribution'] === '1' ? await memoryCategories(page) : null;
   const productIdentity = await coreMemoryProductIdentity(BASE, target, version);
+  const heapDiagnostic = coreHeap ? await captureCoreHeap(page, target, out, samples) : null;
   const calibrationDocument = hello ? JSON.parse(await page.evaluate(`JSON.stringify({title:document.title,text:document.body.textContent.trim(),scripts:document.scripts.length,canvases:document.querySelectorAll('canvas').length})`))
     : three ? JSON.parse(await page.evaluate(`JSON.stringify((()=>{const r=window.__ws_coreRenderer,g=r.getContext();return {title:document.title,scripts:document.scripts.length,canvases:document.querySelectorAll('canvas').length,...window.__ws_coreThree,width:g.drawingBufferWidth,height:g.drawingBufferHeight,lost:g.isContextLost(),attributes:g.getContextAttributes(),rendererInfo:{...r.info.memory,programs:r.info.programs.length,calls:r.info.render.calls}};})())`))
     : webgl ? JSON.parse(await page.evaluate(`JSON.stringify({title:document.title,scripts:document.scripts.length,canvases:document.querySelectorAll('canvas').length,...window.__ws_coreWebGL,width:window.__ws_coreContext.drawingBufferWidth,height:window.__ws_coreContext.drawingBufferHeight,currentViewportWidth:innerWidth,currentViewportHeight:innerHeight,lost:window.__ws_coreContext.isContextLost(),attributes:window.__ws_coreContext.getContextAttributes()})`)) : null;
-  const result = {mode, run: index, shard: target, protocol: 'webkit-core-floor/1', version, reset, samples, attribution, postSampleCategories, productIdentity, errors: [], compiledEntryRequired: template, calibrationDocument,
+  const result = {mode, run: index, shard: target, protocol: coreHeap ? coreHeapProtocol : 'webkit-core-floor/1', version, reset, samples, attribution, postSampleCategories, productIdentity,
+    ...(coreHeap ? {heapDiagnostic} : {}), errors: heapDiagnostic?.errors ?? [], compiledEntryRequired: template, calibrationDocument,
     scriptURLs: JSON.parse(await page.evaluate(`JSON.stringify((${scriptResourceURLs.toString()})())`)),
     ...(three ? {fixtureModules: helloFixture?.modules ?? []} : {}),
     inspectorResponseBodyBytes: 0, forcedGC: false, scope: 'all WebContent and GPU processes under the owned Simulator launchd; not phone GPU evidence'};
@@ -474,7 +479,8 @@ if (coreMemory !== undefined) {
   const diagnostics = calibrationMode && coreMemory !== 'hello'
     ? results.filter(row => row.error === undefined).map(contextMemoryDiagnostic) : [];
   const summary = {coreMemory, base: BASE, rev: args.rev ?? null, at: new Date().toISOString(), results,
-    ...(!calibrationMode ? {floors: coreMemorySummary(results.filter(row => row.error === undefined), coreMemory)} : {}),
+    ...(coreHeap ? {diagnostic: {protocol: coreHeapProtocol, qualifying: false, mayCollect: true}} : {}),
+    ...(!calibrationMode && !coreHeap ? {floors: coreMemorySummary(results.filter(row => row.error === undefined), coreMemory)} : {}),
     ...(calibrationMode && coreMemory !== 'hello' ? {contextCalibrations: diagnostics.flatMap(row => row.calibration === null ? [] : [row.calibration]),
       calibrationErrors: diagnostics.flatMap(row => row.error === null ? [] : [row.error])} : {}),
     ...(coreMemory === 'hello' && results.length === 1 && results[0].error === undefined ? {calibration: helloWorldMemoryFloor(results[0])} : {})};
@@ -510,4 +516,4 @@ if (qualification !== null) {
 }
 }
 console.info(`summary: ${resolvePath(out, 'summary.json')}`);
-if (results.some(row => row.error !== undefined)) process.exitCode = 1;
+if (results.some(row => row.error !== undefined || (row.heapDiagnostic?.errors.length ?? 0) > 0)) process.exitCode = 1;
