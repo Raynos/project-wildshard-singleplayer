@@ -8,6 +8,7 @@ vs TRELLIS.2 (G632: the better take wins), both put through the same post at the
 | `crop-r7-gate.jpg` | The gate cropped from `art/grid/round-46-night-market-nine-angles/r7-plaza.jpg` |
 | `ref-gate.jpg` | The image-to-3D reference: one gate on plain grey, three bays, no lanterns (the kit's own hang there) |
 | `board.jpg` | The pick: mockup and reference over TRELLIS.2 (14.8k triangles), Hunyuan3D 2.1 (12k, picked) and today's gate, same dusk light and cameras |
+| `ingame-D1.jpg`, `ingame-D2.jpg` | The gate in the game on c27ec452e8: the D1 and D2 domes' nine views each (scripts/capture-night-market-domes.mjs, iPhone 16 Pro, phone tier, 2x), whole-scene maxima D1 150 draws / 342k triangles, D2 156 / 356k (RM2 baseline 150 / 349k and 156 / 362k) |
 
 Hunyuan3D 2.1 wins: at the shipped budget TRELLIS.2's gold trim and plinths went dark and blotchy in the re-bake, while
 Hunyuan keeps its gold brackets, cream plaques and clean stone plinths. The post is
