@@ -56,6 +56,9 @@ const strings=await prepareModelKit({},new Map([['strings',new Uint8Array(readFi
 const hung=[0,1,2].map(variant=>{const w=writer();strings.placeModel(w,'strings',variant,0,0,{y:5});return w.lights.map(l=>l.at[1]);});
 assert.equal(hung[0].length,1);assert.equal(hung[1].length,1);assert.equal(hung[2].length,0);
 assert.ok(Math.abs(hung[0][0]-5)<1e-6&&hung[1][0]<5&&hung[1][0]>4.5);
+// RM4.6: street props (flower planter, bench, crate stack), unlit and small
+const props=await prepareModelKit({},new Map([['props',new Uint8Array(readFileSync('public/assets/open-plots/kit/props.glb'))]]));
+for(const variant of [0,1,2]){const w=writer();props.placeModel(w,'props',variant,0,0);assert.equal(w.lights.length,0);assert.ok(w.tris.length>20&&w.tris.length<250);}
 await assert.rejects(()=>prepareModelKit({},new Map()),/no model families/);
 await assert.rejects(()=>prepareModelKit({},new Map([['lanterns',new Uint8Array()]])),/missing GLB bytes/);
 console.log('ok');`;

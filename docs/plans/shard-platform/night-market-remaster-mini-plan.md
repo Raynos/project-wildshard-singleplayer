@@ -195,7 +195,7 @@ for the kit before the families switch on; `tiledPlot.mjs` `KIT_FAMILIES` lists 
 | RM4.3 string lights | done (opt-in) | Round bulbs and red paper lanterns on sagging cords; banner posts at the lane crossings |
 | RM4.4 houses | done (opt-in) | Three cottages (tiled hip roofs with upturned eaves, timber frame, plaster, lit windows) filling the H courts |
 | RM4.5 bridges | done (opt-in) | Arched stone bridge halves with balustrades at the canal borders |
-| RM4.6 street props | open | Planters with flowers, benches, crates and goods, banners |
+| RM4.6 street props | done (opt-in) | Planters with flowers, benches, crates and goods, banners |
 | RM4.7 trees | open | Round-crown trees, TRELLIS.2 vs Hunyuan3D-2 (better wins), three variants |
 | RM4.8 figures | open | Static posed figures at stalls and on bridges (image-to-3D) |
 | RM4.9 boards | open | A labelled 4-angle board per family beside its mockup crop; A2 / D2 captures for bars 2 and 5 |

@@ -15,7 +15,8 @@ SLOTS = {'iron': '#2b2b33', 'gold': '#d8a23e', 'paper': '#ff5b32', 'stone': '#8a
          'stall': '#c0222b', 'lantern': '#ffb347', 'wood': '#5b3a24', 'cloth': '#c8242c', 'stallRoof': '#b0262a',
          'fruit': '#e8892a', 'greens': '#5e9e3e', 'crate': '#8a5a34', 'board': '#14203f', 'awning': '#ff7a2e',
          'roof': '#1c2858', 'wall': '#e9d6b0', 'window': '#ffc96a', 'door': '#4a2a1a', 'bridge': '#d9d5cc',
-         'bridgeTop': '#c9c4ba'}
+         'bridgeTop': '#c9c4ba', 'soil': '#3a2a20', 'foliage': '#3f8a36', 'flowerRed': '#e0334a', 'flowerGold': '#f2b632',
+         'flowerWhite': '#f2ede4', 'sack': '#b89a6a'}
 # Each lit slot's ruled trim (data/trim.json, sp-o2's RM5.3 kit material); every other slot and all Glow faces are plain.
 TRIMS = {'stone': 'stone', 'bridge': 'stone', 'bridgeTop': 'stone', 'roof': 'roofTile', 'stallRoof': 'roofTile', 'wood': 'timber', 'timber': 'timber',
          'wall': 'plaster', 'plaster': 'plaster', 'cloth': 'awningStripe'}
@@ -341,6 +342,40 @@ def lane_post():
     return p
 
 
+def flower_planter():
+    """A2's square stone planter (1.8 m): a stepped stone box, soil, a round shrub and red, gold and white flowers."""
+    p = Piece()
+    p.box((-0.9, -0.9, 0), (0.9, 0.9, 0.55), 'Kit.stone', top='Kit.stoneTop')
+    p.box((-0.95, -0.95, 0.55), (0.95, 0.95, 0.65), 'Kit.stoneTop', bottom=True)
+    p.box((-0.78, -0.78, 0.65), (0.78, 0.78, 0.7), 'Kit.soil')
+    p.lathe(0, 0, [(0.3, 0.68), (0.62, 0.95), (0.6, 1.25), (0.34, 1.5), (0.0, 1.58)], 7, ['Kit.foliage'], spin=0.2)
+    for i, (x, y, slot) in enumerate([(-0.6, -0.6, 'Kit.flowerRed'), (0.6, -0.6, 'Kit.flowerGold'), (0.6, 0.6, 'Kit.flowerWhite'),
+                                      (-0.6, 0.6, 'Kit.flowerRed'), (0, -0.66, 'Kit.flowerWhite'), (0.66, 0, 'Kit.flowerRed'),
+                                      (0, 0.66, 'Kit.flowerGold'), (-0.66, 0, 'Kit.flowerGold')]):
+        p.prism(x, y, 0.13, 0.04, 0.7, 0.86, 5, slot, spin=0.6 * i)
+    return p
+
+
+def bench():
+    """A plaza bench (2 m): two stone feet and a timber seat and back."""
+    p = Piece()
+    for x in (-0.8, 0.8):
+        p.box((x - 0.12, -0.22, 0), (x + 0.12, 0.22, 0.42), 'Kit.stone', top='Kit.stoneTop')
+    p.box((-1.0, -0.25, 0.42), (1.0, 0.25, 0.5), 'Kit.wood', bottom=True)
+    p.box((-1.0, 0.2, 0.5), (1.0, 0.26, 0.95), 'Kit.wood')
+    return p
+
+
+def crate_stack():
+    """Goods waiting by a stall: three crates of fruit and greens and a sack."""
+    p = Piece()
+    p.box((-0.55, -0.35, 0), (0.05, 0.25, 0.45), 'Kit.crate', top='Kit.fruit')
+    p.box((0.1, -0.3, 0), (0.65, 0.3, 0.4), 'Kit.crate', top='Kit.greens')
+    p.box((-0.3, -0.25, 0.45), (0.2, 0.2, 0.8), 'Kit.crate', top='Kit.fruit')
+    p.lathe(0.45, 0.45, [(0.18, 0.0), (0.24, 0.2), (0.2, 0.42), (0.06, 0.5)], 6, ['Kit.sack'])
+    return p
+
+
 BRIDGE = {'half': 11.5, 'rise': 2.0, 'deck': 0.3, 'width': 4.0, 'water': -0.45, 'open': 10.0}
 
 
@@ -430,6 +465,8 @@ def main():
     build_family(out, 'stalls', [hero_stall, row_stall, food_cart], TRIMS, {'slots': SLOTS})
     reset_scene()
     build_family(out, 'houses', [cottage, two_storey, hall], TRIMS, {'slots': SLOTS})
+    reset_scene()
+    build_family(out, 'props', [flower_planter, bench, crate_stack], TRIMS, {'slots': SLOTS})
     reset_scene(ground=-1.0)  # the string's bulbs and lanterns hang below their hooks (origin y 0)
     build_family(out, 'strings', [string_bulb, string_lantern, lane_post], TRIMS, {'slots': SLOTS})
     reset_scene(ground=BRIDGE['water'])

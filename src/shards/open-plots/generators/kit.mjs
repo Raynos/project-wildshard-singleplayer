@@ -354,6 +354,8 @@ function modelStalls(w, p) {
     w.placeModel('stalls', pick(x, z, 2), x, z, { yaw: -side * Math.PI / 2 });
     w.solid([x - 1.5, 0, z - 2.1], [x + 1.5, 1.1, z + 2.1]);
     if (i % 2 === 0) pool(w, x - side * 3.4, z + 2.75, 5, p.pool);
+    // RM4.6 (opt-in): goods waiting behind every other stall
+    if (i % 2 === 1 && w.hasModel('props')) { w.placeModel('props', 2, side * 20.6, z, { yaw: -side * Math.PI / 2 }); w.solid([side * 20.6 - 0.7, 0, z - 0.7], [side * 20.6 + 0.7, 0.8, z + 0.7]); }
   }
   for (let i = 0; i < 4; i++) {
     const z = -16.5 + i * 11, x = i % 2 === 0 ? -4 : 4;
@@ -453,6 +455,17 @@ function plaza(w, p) {
   }
   w.box('Kit', [-27, 0, 19], [-19, 0.8, 27], p.stone, p.lawn); w.solid([-27, 0, 19], [-19, 0.8, 27]);
   tree(w, -23, 23, 6.5, p, 1);
+  // RM4.6 (opt-in): a flower planter beside each inner-ring lantern, benches between the outer ring's facing the gate
+  if (w.hasModel('props')) {
+    for (let i = 0; i < 4; i++) {
+      const a = Math.PI / 2 + (i + 0.5) / 4 * Math.PI / 2, x = HALF + 37.8 * Math.cos(a), z = -HALF + 37.8 * Math.sin(a);
+      w.placeModel('props', 0, x, z); w.solid([x - 0.9, 0, z - 0.9], [x + 0.9, 0.65, z + 0.9]);
+    }
+    for (let i = 1; i < 6; i++) {
+      const a = Math.PI / 2 + i / 6 * Math.PI / 2, x = HALF + 50 * Math.cos(a), z = -HALF + 50 * Math.sin(a);
+      w.placeModel('props', 1, x, z, { yaw: Math.atan2(HALF - x, -HALF - z) }); w.solid([x - 0.8, 0, z - 0.8], [x + 0.8, 0.5, z + 0.8]);
+    }
+  }
   // NM10: a few sky lanterns floating over the plaza
   for (const [x, y, z] of [[-14, 22, -8], [6, 31, 12], [16, 40, -18]]) skyLantern(w, x, y, z);
 }
