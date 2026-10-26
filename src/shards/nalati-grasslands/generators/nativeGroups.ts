@@ -6,6 +6,7 @@ import { WildlifePopulationSchema } from '@wildshard/format/wildlifePopulation';
 import pasture from '../behaviour/pasture.generated.json' with { type: 'json' };
 import physics from '../data/physics.generated.json' with { type: 'json' };
 import places from '../data/places.json' with { type: 'json' };
+import { nalatiNativeShelters } from './shelters';
 import riding from '../behaviour/riding.generated.json' with { type: 'json' };
 import { ForagerPopulationSchema } from '@wildshard/format/ambientLife';
 import poi from '../data/poiLayout.generated.json' with { type: 'json' };
@@ -41,12 +42,7 @@ export const nalatiNativeGroupRows = v.parse(NativeGroupRowsSchema, {
 const nativeField = v.parse(PopulationFieldSchema,fieldRows);
 const nativeKnockdown=v.parse(v.object({population:v.object({frame:v.object({knockdown:PopulationKnockdownSchema})})}),riding).population.frame.knockdown;
 // The placed camp collider rows own shelter; physics no longer carries it.
-const nativeShelters:[number,number,number][]=[];
-for(const place of places.rows)for(const row of place.colliders){
-  if(Math.abs(row.hw-row.hd)>.01||row.hw<2.2||row.hw>3.6||row.yTop-row.yBottom<2.5)continue;
-  if(nativeShelters.some(([x,z])=>Math.abs(x-row.x)<.1&&Math.abs(z-row.z)<.1))continue;
-  nativeShelters.push([row.x,row.z,row.hw/.93]);
-}
+const nativeShelters=nalatiNativeShelters(places);
 const groupAssembly = { ...assembly,constants: { ...assembly.constants,nativeShelters,nativeKnockdown,groupRows: nalatiNativeGroupRows,groupAdmission: admission,nativeField,pageGroups: v.parse(PageGroupRowsSchema,{ packGuest:{program:pasture,binding:{...packBinding,parameters:{boundsHalf:nativeField.world.size/2}}},guest:{program:pasture,binding:herdBinding},pack: { ...brains.pack,members: ['group.member'],home: [0,0] },herd: { ...brains.herd,members: ['group.member'] },contacts: { pack: contacts.wolf,herd: contacts.stallion },effects:{notices:[{signal:'howl',text:'A wolf howls — the pack has your scent',every:60},{signal:'stampede',text:'Stampede!',every:20},{signal:'pack-driven-off',text:'The stallion drives the wolves off',every:30},{signal:'stallion-beaten',text:'The stallion gives ground',every:30}],knockdown:{...nativeKnockdown,text:'Knocked down!',every:4}},world: nativeField.world,wind: { x: -.8,z: .6,strength: .5 },prey: 'sheep',damage: admission }),nativeDayClock: nalatiDayClockRow() } };
 
 const forager = v.parse(v.object({ population: v.object({ forager: v.object({ row: ForagerPopulationSchema }) }) }),riding).population.forager.row;
