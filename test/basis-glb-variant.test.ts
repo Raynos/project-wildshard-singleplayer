@@ -8,7 +8,7 @@ import { basisGlbVariant } from '../src/sdk/bake/basisGlb';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 
-const original = readFileSync('public/assets/far-reach/rigs/storm-roc.glb');
+const original = readFileSync('test/fixtures/sky-rigs/storm-roc.glb');
 const phone = readFileSync('public/assets/gpu/far-reach/rigs/storm-roc-70e5655f.glb');
 const phoneHash = '70e5655f969dfb40edba0109d16d7baddc6faef7bede8d10d91c2e2661f7d8ad';
 const sourceHash = '1c057979c81e5fafd2f97a151b7936c90ccf01555b2f307b911fc628e7c19af0';
@@ -67,7 +67,7 @@ test.each([
 test('unsupported or malformed sources refuse before requesting an encoder', async () => {
   let called = 0;
   const encode = (): Uint8Array => { called++; return image(phone); };
-  for (const source of [new Uint8Array(), phone, readFileSync('public/assets/far-reach/rigs/sky-goat.glb')]) {
+  for (const source of [new Uint8Array(), phone, readFileSync('test/fixtures/sky-rigs/sky-goat.glb')]) {
     await expect(basisGlbVariant(source, encode)).rejects.toThrow();
   }
   expect(called).toBe(0);

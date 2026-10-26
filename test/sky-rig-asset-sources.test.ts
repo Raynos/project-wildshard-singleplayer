@@ -1,7 +1,6 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- Admit the five complete original byte oracles, never a production fallback.
-import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { nameBlob } from '../src/sdk/blobs';
+import { originalSkyRigs } from './fixtures/sky-original-rigs';
 import { emptyShardfile } from '../src/sdk/author';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { sceneRigFiles } from '../src/game/shardfile/sceneRigFiles';
@@ -17,9 +16,7 @@ import { skyProductBoot, LATE_READS } from '../src/shards/far-reach/generators/b
 import { SKY_CREATURES, SKY_CREATURE_RIGS } from '../src/shards/far-reach/generators/fileInventory';
 import { GPU_FILES } from '../src/shards/far-reach/ktx2.generated';
 
-const blobs = [...SKY_CREATURES.map(creature => nameBlob(`world/rigs/${creature}.glb`, 'glb',
-  readFileSync(`public/assets/far-reach/rigs/${creature}.glb`))),
-nameBlob('world/rigs/storm-roc.phone.glb', 'glb', readFileSync('public/assets/gpu/far-reach/rigs/storm-roc-70e5655f.glb'))];
+const blobs = [...originalSkyRigs()].map(([name, bytes]) => nameBlob(`world/rigs/${name}`, 'glb', bytes));
 const files = blobs.map(blob => blob.file);
 const admitted = skyRigAssetSources(files, GPU_FILES);
 const roc = files[0], phone = files[4];

@@ -8,7 +8,7 @@ import { glbImageCost } from '../src/format/glbImages';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { nameBlob } from '../src/sdk/blobs';
 
-const original = readFileSync('public/assets/far-reach/rigs/storm-roc.glb');
+const original = readFileSync('test/fixtures/sky-rigs/storm-roc.glb');
 const record = v.record(v.string(), v.unknown());
 function row(doc: Record<string, unknown>, key: string, index = 0): Record<string, unknown> {
   const rows = doc[key];

@@ -6,7 +6,7 @@ import { expect, test } from 'vitest';
 import { bootFileList, bootSourceFiles, bootLateReads } from '../src/engine/boot/filePolicy';
 import { parseDiscoveryValues } from '../src/format/discoveryValues';
 import { BOOT_FILES, BOOT_SOURCES, LATE_READS, skyProductBoot } from '../src/shards/far-reach/generators/bootInventory';
-import { BAKED_PIECES, BAKED_URLS, FAN_URL, SKY_CREATURES } from '../src/shards/far-reach/generators/fileInventory';
+import { BAKED_PIECES, BAKED_URLS, FAN_URL } from '../src/shards/far-reach/generators/fileInventory';
 import { PREPARED_MODELS_URL } from '../src/shards/far-reach/generators/modelFrames';
 import { BRIDGE_REST_URL, MILL_REST_URL } from '../src/shards/far-reach/generators/restFiles';
 import { output } from '../src/shards/far-reach/generators/sourceOutput';
@@ -14,6 +14,7 @@ import { GPU_FILES } from '../src/shards/far-reach/ktx2.generated';
 import { MANIFEST } from '../src/shards/far-reach/discovery.generated';
 import { prepareShardAssets } from '../src/game/shard/load';
 import { nameBlob } from '../src/sdk/blobs';
+import { originalSkyRigs } from './fixtures/sky-original-rigs';
 import { skyRigAssetSources } from '../src/shards/far-reach/generators/rigAssetSources';
 
 const hash = 'bd1a0a75879e2f3e72e2ab2b8d0c18a79d7e7746478b3fedc6961199a714c580';
@@ -56,9 +57,7 @@ test('public boot omits all fourteen owned geometry files across both tiers and 
 
 
 test('receipt-owned GPU discovery registers the admitted rig table for both tiers', async () => {
-  const blobs = [...SKY_CREATURES.map(creature => nameBlob(`world/rigs/${creature}.glb`, 'glb',
-    readFileSync(`public/assets/far-reach/rigs/${creature}.glb`))),
-  nameBlob('world/rigs/storm-roc.phone.glb', 'glb', readFileSync('public/assets/gpu/far-reach/rigs/storm-roc-70e5655f.glb'))];
+  const blobs = [...originalSkyRigs()].map(([name, bytes]) => nameBlob(`world/rigs/${name}`, 'glb', bytes));
   const expected = skyRigAssetSources(blobs.map(blob => blob.file), GPU_FILES), boot = skyProductBoot(expected);
   expect(boot.ktx2).toEqual(expected.gpuFiles);
   expect(parseDiscoveryValues(boot).ktx2).toEqual(expected.gpuFiles);

@@ -4,6 +4,7 @@ import { mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs';
 import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare complete byte arrays without expanding assertion objects.
 import { Buffer } from 'node:buffer';
+import { originalSkyRigs } from './fixtures/sky-original-rigs';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
 import * as v from 'valibot';
@@ -73,10 +74,8 @@ test('owned geometry preserves all original bytes and costs, changing only its s
       .replace(JSON.stringify(FAN_URL), JSON.stringify(fanName));
     for (const creature of SKY_CREATURES) expectedSky = expectedSky.replace(JSON.stringify(SKY_CREATURE_RIGS[creature]), JSON.stringify(`world/rigs/${creature}.glb`));
     expect(text.decode(owned.assets.get(newSky.hash))).toBe(expectedSky);
-    for (const [name, path] of [...SKY_CREATURES.map(creature => [creature, `public/assets/far-reach/rigs/${creature}.glb`]),
-      ['storm-roc.phone', 'public/assets/gpu/far-reach/rigs/storm-roc-70e5655f.glb']]) {
-      if (name === undefined || path === undefined) throw new Error('Missing original rig oracle');
-      const originalRig = readFileSync(path), declared = nameBlob(`world/rigs/${name}.glb`, 'glb', originalRig);
+    for (const [name, originalRig] of originalSkyRigs()) {
+      const declared = nameBlob(`world/rigs/${name}`, 'glb', originalRig);
       expect(owned.namedFiles.find(file => file.name === declared.file.name)).toEqual(declared.file);
       const rigBytes = owned.assets.get(declared.file.hash);
       if (rigBytes === undefined) throw new Error('Missing published rig bytes');

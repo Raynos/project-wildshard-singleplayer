@@ -8,6 +8,7 @@ import { discoverGeneration } from '../scripts/generate.mjs';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { createProjectGeneration, type ProjectGenerationContext } from '../src/sdk/projectGeneration';
+import { originalSkyRigs } from './fixtures/sky-original-rigs';
 import { CREATURE_RIG_INPUTS, CREATURE_RIG_FILES, skyCreatureRigSource, skyCreatureRigProgram } from '../src/shards/far-reach/generators/creatureRigProgram';
 
 const originals: Readonly<Record<string, readonly [number, string]>> = {
@@ -27,9 +28,11 @@ function check(files: ReadonlyMap<string, Uint8Array>): void {
 
 test('all four original rigs preserve complete geometry, skins, bones, metadata and embedded Roc paint', async () => {
   const inputs = new Map(CREATURE_RIG_INPUTS.map(name => [name, readFileSync(`public${name}`)]));
-  const first = await skyCreatureRigSource(inputs); check(first);
+  const first = await skyCreatureRigSource(inputs), retained = originalSkyRigs(); check(first);
   for (const [name, expected] of Object.entries(originals)) {
-    expect(hashImmutableBytes(readFileSync(`public/assets/far-reach/rigs/${name}`))).toBe(expected[1]);
+    const original = retained.get(name);
+    if (original === undefined) throw new Error('Missing original rig oracle');
+    expect(hashImmutableBytes(original)).toBe(expected[1]);
   }
   for (const bytes of first.values()) bytes.fill(0);
   check(await skyCreatureRigSource(inputs));
@@ -122,7 +125,7 @@ test.each(CREATURE_RIG_INPUTS)('the active native cache refuses omitted source %
   } finally { rmSync(scratch, { recursive: true, force: true }); }
 });
 
-test('the rig scheduler and every handoff reader are retired while legacy files stay exact', () => {
+test('the rig scheduler and every handoff reader retire with complete original byte oracles', () => {
   for (const job of discoverGeneration(resolve('.')).jobs) {
     expect(job.id).not.toBe('sky-rigs');
     for (const name of CREATURE_RIG_FILES) {
@@ -132,5 +135,10 @@ test('the rig scheduler and every handoff reader are retired while legacy files 
     }
   }
   expect(readdirSync('src/shards/far-reach/generators')).not.toContain('bake-sky-rigs.mjs');
-  for (const [name, original] of Object.entries(originals)) expect(hashImmutableBytes(readFileSync(`public/assets/far-reach/rigs/${name}`)), name).toBe(original[1]);
+  const retained = originalSkyRigs();
+  for (const [name, original] of Object.entries(originals)) {
+    const bytes = retained.get(name);
+    if (bytes === undefined) throw new Error('Missing original rig oracle');
+    expect(hashImmutableBytes(bytes), name).toBe(original[1]);
+  }
 });
