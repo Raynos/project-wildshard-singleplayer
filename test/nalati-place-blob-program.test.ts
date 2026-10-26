@@ -5,7 +5,7 @@ import { nalatiBalbal } from './fixtures/nalati-balbal';
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Declare the exact public input root without inferring an asset path.
 import { resolve } from 'node:path';
-import { expect, test } from 'vitest';
+import { afterAll, expect, test } from 'vitest';
 import { build } from 'vite';
 import { createProjectGeneration } from '../src/sdk/projectGeneration';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
@@ -66,6 +66,34 @@ function sceneWithOwnedModels(before: NamedBlob): NamedBlob {
     before.file.jsonSchema === undefined ? {} : { jsonSchema: before.file.jsonSchema });
 }
 
+// One genuinely empty cache owns native compilation during fixture preparation.
+// The timed case still checks every complete cold/warm file and refusal below.
+const coldOutputFixture = await (async () => {
+  const cache = mkdtempSync(resolve('tmp/nalati-place-blob-'));
+  const requested: string[] = [], steps: string[] = [], constructions = new Map<string, number>();
+  let nativePlaces: Uint8Array | undefined;
+  const context = () => {
+    const ctx = createProjectGeneration(resolve('src/shards/nalati-grasslands'), 'a'.repeat(64), new Map(), cache,
+      [{ prefix: '/assets/nalati/baked/', directory: resolve('public/assets/nalati/baked') },
+        { prefix: '/assets/nalati/models/', directory: resolve('public/assets/nalati/models') },
+        { prefix: '/assets/baked/nalati-grasslands/', directory: resolve('public/assets/baked/nalati-grasslands') }]);
+    return { ...ctx, cached: (step: Parameters<typeof ctx.cached>[0], make: Parameters<typeof ctx.cached>[1]) => {
+      requested.push(...(step.inputs ?? [])); steps.push(step.id);
+      return ctx.cached(step, inputs => { constructions.set(step.id, (constructions.get(step.id) ?? 0) + 1); return make(inputs); }).then(files => {
+        if (step.id === 'places') nativePlaces = files.get('places.json');
+        return files;
+      });
+    } };
+  };
+  try {
+    const crags = await nalatiBakeBlob(context(), 'crags', cragOriginal.decoded);
+    requested.length = 0;
+    const output = await prepareOutput(context());
+    return { cache, requested, steps, constructions, context, crags, output, get nativePlaces() { return nativePlaces; } };
+  } catch (error) { rmSync(cache, { recursive: true, force: true }); throw error; }
+})();
+afterAll(() => { rmSync(coldOutputFixture.cache, { recursive: true, force: true }); });
+
 test('the full frozen assembly pin and exact current geography input retain separate ownership', () => {
   expect(assemblyForField(originalAssemblyRows.constants.nativeField).file).toEqual(assemblyOriginal);
   const current = assemblyForField(fieldInput);
@@ -82,33 +110,28 @@ test('native dressing and duplicate scene-copy jobs stay retired', () => {
 });
 
 test('the actual output hook preserves every predecessor file cost and binary byte on cold and cache hit', async () => {
-  const cache = mkdtempSync(resolve('tmp/nalati-place-blob-'));
-  const requested: string[] = [], steps: string[] = [];
-  let nativePlaces: Uint8Array | undefined;
-  const context = () => {
-    const ctx = createProjectGeneration(resolve('src/shards/nalati-grasslands'), 'a'.repeat(64), new Map(), cache,
-      [{ prefix: '/assets/nalati/baked/', directory: resolve('public/assets/nalati/baked') },
-        { prefix: '/assets/nalati/models/', directory: resolve('public/assets/nalati/models') },
-        { prefix: '/assets/baked/nalati-grasslands/', directory: resolve('public/assets/baked/nalati-grasslands') }]);
-    return { ...ctx, cached: (step: Parameters<typeof ctx.cached>[0], make: Parameters<typeof ctx.cached>[1]) => {
-      requested.push(...(step.inputs ?? [])); steps.push(step.id); return ctx.cached(step, make).then(files => {
-        if (step.id === 'places') nativePlaces = files.get('places.json');
-        return files;
-      });
-    } };
-  };
+  const { requested, steps, constructions, context, output: hit, nativePlaces } = coldOutputFixture;
   const before = nativePlaceFile('places.bin');
   const beforeBank=nativePlaceFile('specimens.bin');
   const expectedBank=nameBlob('models/specimens/camp.bin','bin',beforeBank,{decoded:nalatiSpecimens.packed.bytes});
-  try {
     for (const [name, pin] of [['crags', cragOriginal]] as const) {
-      const cold = await nalatiBakeBlob(context(), name, pin.decoded);
+      const cold = coldOutputFixture.crags;
       expect(cold.file).toEqual(pin);
       expect(Buffer.compare(cold.bytes, readFileSync(`public/assets/nalati/baked/${name}.bin`))).toBe(0);
       cold.bytes.fill(0);
     }
-    requested.length = 0;
-    const hit = await prepareOutput(context());
+    expect(constructions.get('model-parts')).toBe(1);
+    expect(constructions.get('places')).toBe(1);
+    const beforeWarm = new Map(constructions), warm = await prepareOutput(context());
+    expect(constructions).toEqual(beforeWarm);
+    expect(warm.namedFiles).toEqual(hit.namedFiles);
+    for (const file of hit.namedFiles) {
+      const first = hit.assets.get(file.hash), next = warm.assets.get(file.hash);
+      if (first === undefined || next === undefined) throw new Error('Missing complete cold/warm output file');
+      expect(next.byteLength).toBe(first.byteLength);
+      expect(hashImmutableBytes(next)).toBe(file.hash);
+      expect(Buffer.compare(next, first)).toBe(0);
+    }
     const modelFiles = hit.namedFiles.filter(file => file.name?.startsWith('models/painted/'));
     const nearModels = ['eagle', 'cauldron', 'firewood', 'kumis-churn', 'chest', 'saddle', 'balbal', 'boulder-1', 'boulder-2', 'boulder-3', 'watchtower', 'snow-lotus', 'horse-saddled', 'kokpar-rider', 'sheep'];
     const modelNames = new Set([...nearModels.flatMap(name => [`${name}.glb`, `${name}.phone.glb`]), 'horse-wild.far.glb', 'kokpar-rider.far.glb']);
@@ -260,7 +283,6 @@ test('the actual output hook preserves every predecessor file cost and binary by
     if (dressing === undefined) throw new Error('Output lost the owned dressing bytes');
     expect(dressing.length).toBe(dressingOriginal.compressed); expect(hashImmutableBytes(dressing)).toBe(dressingOriginal.hash);
     expect(Buffer.compare(dressing, readFileSync('test/fixtures/nalati-dressing.bin'))).toBe(0);
-  } finally { rmSync(cache, { recursive: true, force: true }); }
 });
 
 test('missing authored and owned bytes refuse before output publication', async () => {
