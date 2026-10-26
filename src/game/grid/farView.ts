@@ -7,6 +7,7 @@
  * palette.
  */
 import { AdditiveBlending, NormalBlending, DataTexture, LinearFilter, LinearMipmapLinearFilter, Mesh, MeshBasicMaterial, MeshLambertMaterial, MeshStandardMaterial, RedFormat, RepeatWrapping, Vector2, type BufferGeometry, type Material, type Object3D } from 'three';
+import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { patchShader } from '@wildshard/engine/render/shaderPatches';
 import { markDisplayColour } from '@wildshard/engine/render/displayColour';
 import { geometryBoundsSteps } from '@wildshard/engine/world/geometryBounds';
@@ -169,24 +170,37 @@ export interface FarPrepared { readonly geometry: BufferGeometry; readonly look:
   readonly light?: BufferGeometry;
   /** Opaque unlit linear colour, without additive glow or haze. */
   readonly colour?: BufferGeometry }
+/** Scalar diagnostics only: fetching includes both file/decode work and hidden shader preparation. */
+export interface FarPreparationWait { readonly instance: string; readonly phase: 'load' | 'prepare'; readonly ageMs: number; readonly phaseAgeMs: number }
 /**
  * The rings' ports for level `far` (compose with the tile ports through SF18b's `levelPorts`): `load` fetches and parses
  * an instance's far.glb off the frame (GLTF parse, region in uv.x) with its far.json look. Optional `prepare` borrows
  * the admitted view while hidden; `upload` exposes that same view after preparation, and `discard` retires it.
  */
 export function farRingPorts(options: { root: (instance: string) => Object3D; load: (instance: string) => Promise<FarPrepared>; prepare?: (view: FarProxyView, data: FarPrepared) => Promise<void>; decorate?: (material: Material) => void }): {
+  waiting: () => readonly FarPreparationWait[];
   fetch: (tile: { instance: string }, done: (result: FarPrepared | Error) => void) => void;
   upload: (tile: { instance: string }, data: FarPrepared) => FarProxyView;
   discard: (tile: { instance: string }, data: FarPrepared) => void;
 } {
   const staged = new WeakMap<FarPrepared, FarProxyView>();
+  const pending = new Set<{ instance: string; phase: 'load' | 'prepare'; started: number; phaseStarted: number }>();
   return {
+    waiting: () => {
+      const now = diagnosticNow();
+      return [...pending].map(row => ({ instance: row.instance, phase: row.phase, ageMs: Math.max(0, now - row.started), phaseAgeMs: Math.max(0, now - row.phaseStarted) }));
+    },
     fetch: (tile, done) => {
+      const now = diagnosticNow();
+      // Each request owns its scalar record, including overlapping requests for one cell.
+      const row: { instance: string; phase: 'load' | 'prepare'; started: number; phaseStarted: number } = { instance: tile.instance, phase: 'load', started: now, phaseStarted: now };
+      pending.add(row);
       const run = async (): Promise<void> => {
         let result: FarPrepared | Error;
         try {
           const data = await options.load(tile.instance);
           if (options.prepare !== undefined) {
+            row.phase = 'prepare'; row.phaseStarted = diagnosticNow();
             let view: FarProxyView | undefined;
             try {
               view = installFarProxy(options.root(tile.instance), data.geometry, data.look, data.positionalMask, options.decorate, false, data.impostor ?? null, data.light ?? null, data.colour ?? null);
@@ -200,6 +214,7 @@ export function farRingPorts(options: { root: (instance: string) => Object3D; lo
           }
           result = data;
         } catch (error) { result = error instanceof Error ? error : new Error(String(error)); }
+        finally { pending.delete(row); }
         done(result);
       };
       void run();

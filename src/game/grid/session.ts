@@ -1,3 +1,4 @@
+import { bootWaits, type BootWait } from '@wildshard/engine/boot/waits';
 /**
  * The grid session (SHARD-PLATFORM SF17b / SF18a / SF18b / SF21a, the grid client): what turns EXPERIMENTAL Wildshard's
  * home-cell boot into a 5 × 5 grid inside the one page. The home cell boots through the normal shard flow (its own
@@ -53,7 +54,7 @@ import type { PageResidency } from './pageResidency';
 import { PlatformRenderResidency } from './renderResidency';
 import { TileStreamer, levelPorts, type FarPlan, type LevelPrepared, type RingPorts, type RingTile, type RingWait } from '@wildshard/engine/world/tileStreamer';
 import { GhostWorlds, type GhostRegion } from './ghosts';
-import { farRingPorts, type FarPrepared, type FarProxyView } from './farView';
+import { farRingPorts, type FarPreparationWait, type FarPrepared, type FarProxyView } from './farView';
 import { decodeFarImpostor, farBandShare } from './farImpostorView';
 import { FarImpostorSchema, type FarImpostor } from '@wildshard/format/shardSections';
 import { bindCellCover, cellCoverPort } from './cellCover';
@@ -159,7 +160,7 @@ export interface GridSessionState {
   readonly cells: readonly { readonly instance: string; readonly slug: string; readonly cell: readonly [number, number]; readonly shows: GridCellShows; readonly drawn: GridCellDrawn }[];
   readonly strips: number; readonly ringsReady: boolean;
   /** what `ringsReady` still waits on: the visible cells not yet drawn, and the far ring's plan (budget, charges, left out) */
-  readonly ringsWait: { readonly cells: readonly RingWait[]; readonly far: FarPlan };
+  readonly ringsWait: { readonly cells: readonly RingWait[]; readonly far: FarPlan; readonly preparation: readonly FarPreparationWait[]; readonly waits: { readonly count: number; readonly oldest: readonly Pick<BootWait, 'label' | 'kind' | 'ageMs'>[] } };
   /** SF17b's boulevard look: segments, junctions, roundabouts, signs, lights and draws */
   readonly road: RoadLookState;
   /** the seams' materials: triangles and draws per material (phase 2, G90 / G91 / G101) */
@@ -309,6 +310,7 @@ export class GridSession {
   private readonly refusals = new Map<string, ShardRefusal>();
   private readonly issues = new Map<string, string>();
   private readonly farViews = new Set<string>();
+  private readonly farPreparation: () => readonly FarPreparationWait[];
   /** each uploaded far view, for the readout's `drawn.far` (its mesh's own visibility) */
   private readonly farMeshes = new Map<string, FarProxyView>();
   private readonly farMissing = new Set<string>();
@@ -525,6 +527,7 @@ export class GridSession {
         return prepared;
       },
     });
+    this.farPreparation = far.waiting;
     const framedPorts = frame === null ? far : { ...far, upload: (tile: { instance: string }, data: FarPrepared) => {
       const band = data.look.band, view = far.upload(tile, data), dispose = view.dispose;
       // SF19b (G94 / G95): a shard that declares a band shows its mood at its border from the road; inside its cell it owns the frame (G158)
@@ -822,6 +825,7 @@ export class GridSession {
 
   /** The readout: what each cell shows, the rings and the allocator. */
   state(): GridSessionState {
+    const pending = bootWaits();
     const stats = this.rings.stats(), residentKeys = this.rings.resident(), resident = new Set(residentKeys.map((key) => key.split(':')[0]));
     const at = this.world(), cost = this.allocator.cost(), playing = this.live === null ? this.home.instance : this.live.live.current();
     const tiles = (instance: string, level: 'l1' | 'l0'): number => residentKeys.filter((key) => key.startsWith(`${instance}:${level}/`)).length;
@@ -833,7 +837,7 @@ export class GridSession {
       pitch: this.assembly.pitch,
       home: this.home.instance, inside: gridCells.cell?.instance ?? null, feet: { x: Math.round(at.x * 100) / 100, z: Math.round(at.z * 100) / 100 },
       cells: this.assembly.cells.map((cell) => { const d = drawn(cell.instance); return { instance: cell.instance, slug: cell.slug, cell: cell.cell, shows: shows(cell.instance, d), drawn: d }; }),
-      strips: this.strips.length, road: this.road, seams: this.seams, softWalls: this.softWalls.state(), shimmer: this.shimmer.state(), cellLoading: this.cellLoading.open, ringsReady: this.rings.ready(), ringsWait: { cells: this.rings.waiting(), far: this.rings.farPlan() },
+      strips: this.strips.length, road: this.road, seams: this.seams, softWalls: this.softWalls.state(), shimmer: this.shimmer.state(), cellLoading: this.cellLoading.open, ringsReady: this.rings.ready(), ringsWait: { cells: this.rings.waiting(), far: this.rings.farPlan(), preparation: this.farPreparation(), waits: { count: pending.length, oldest: pending.map(({ label, kind, ageMs }) => ({ label, kind, ageMs })).sort((a, b) => b.ageMs - a.ageMs).slice(0, 16) } },
       residentMB: Math.round(cost.accounted / 1e4) / 100, playingMB: Math.round(cost.playing / 1e4) / 100,
       accountedBytes: cost.accounted,
       rings: { frame: stats.frame, far: stats.resident.far, l1: stats.resident.l1, l0: stats.resident.l0, refused: stats.refused, inFlight: stats.inFlight, queued: stats.queued,
