@@ -132,10 +132,11 @@ export class SceneDressing {
 
   static async install(ctx: ShardContext, input: unknown): Promise<SceneDressing> {
     const rows=v.parse(SceneDressingSchema,input);
+    const contactRows=[...rows.layers.map(row=>row.contacts),...rows.statics.flatMap(row=>row.members.map(member=>member.contacts))];
+    if(contactRows.some(row=>!Array.isArray(row)&&'data'in row))throw new Error('Scene contacts require named files');
     let products=books.get(ctx.scope);if(products===undefined){products=new WeakMap();books.set(ctx.scope,products);}
     if(products.has(ctx.product)||ctx.scope.disposed||ctx.scope.disposing)throw new Error('Scene dressing requires an unbound entered owner');
-    const files=new Map<string,Uint8Array>(),names=new Set([...rows.layers.map(row=>row.contacts),...rows.statics.flatMap(row=>row.members.map(member=>member.contacts))]
-      .flatMap(row=>!Array.isArray(row)&&'file'in row?[row.file]:[]));
+    const files=new Map<string,Uint8Array>(),names=new Set(contactRows.flatMap(row=>!Array.isArray(row)&&'file'in row?[row.file]:[]));
     const scope=ctx.scope,product=ctx.product,read=product.file,hasFile=product.hasFile,game=ctx.game,runtime=game.runtime,preparedWorld=runtime?.world;
     const live=():void=>{
       if(scope.disposed||scope.disposing||ctx.scope!==scope||ctx.product!==product||product.file!==read||product.hasFile!==hasFile
@@ -331,7 +332,8 @@ export class SceneDressing {
 function meshObject(value:THREE.Object3D):value is THREE.Mesh{return value instanceof THREE.Mesh;}
 
 function unpackHulls(row:Exclude<SceneDressingRows['layers'][number]['contacts'],readonly unknown[]>,files:ReadonlyMap<string,Uint8Array>):ReturnType<typeof contacts>{
-  const packed='data'in row?base64Bytes(row.data):files.get(row.file);
+  if('data'in row)throw new Error('Scene contacts require named files');
+  const packed=files.get(row.file);
   if(packed===undefined)throw new Error('Missing scene contact bytes');
   const bytes=unzlibSync(packed),view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);let at=0;
   // Bound temporary number lanes without rebuilding the admission schema for every hull.

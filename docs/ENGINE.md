@@ -12527,10 +12527,11 @@ name} publishes the new construction Group before the stage walk; its scoped
 object loan is preflighted and lent with the completed stages. No empty book
 or extra intake substitutes for the original scene catalogue.
 
-SceneDressing packed-hulls contacts accept admitted compressed `file` loans.
+SceneDressing packed-hulls contacts require admitted compressed `file` loans.
 Nalati publishes content-addressed files shared across both tiers; all point
-lanes and origins stay exact. Inline data remains for retained callers.
-The installer preflights names and reads each file once before construction,
+lanes and origins stay exact. Inline grammar remains for historical oracles.
+The installer refuses inline contacts before owner access, then preflights
+names and reads each file once before construction,
 pinning scope, product, world and both readers across awaits. Native contact
 registration stays unchanged; retiring ancestors refuse before reads.
 

@@ -141,19 +141,20 @@ test('uploaded dressing channels retire while picking and cloneable templates re
   }
 });
 
-test.each(['inline','file'] as const)('packed dressing hulls register exact independent float lanes in source order (%s)',async mode=>{
+test.each([false,true])('packed dressing hulls register exact independent float lanes in source order (offset=%s)',async offset=>{
   const pattern=[-1,0,-1,1,0,-1,0,1,1,0,0,0,.25,0,-.5,1,0,-1,0,1,1,0,0,0];
   const points=Float32Array.from({length:67*12},(_,i)=>pattern[i%pattern.length]??0),origins=Array.from({length:67},(_,i)=>[i,i+1,i+2,12]);
-  const packed=zlibSync(new Uint8Array(points.buffer));let encoded='';for(const byte of packed)encoded+=String.fromCodePoint(byte);
+  const packed=zlibSync(new Uint8Array(points.buffer)),backing=new Uint8Array(packed.byteLength+4);backing.set(packed,4);
+  const loan=offset?backing.subarray(4):packed;expect(unzlibSync(loan)).toEqual(new Uint8Array(points.buffer));
   const shape=new THREE.BoxGeometry(1,1,1);shape.clearGroups();const blocks:Uint8Array[]=[],layout=writeGeometry(shape,blocks,'packed-contact');shape.dispose();
   let modelEncoded='';for(const byte of zlibSync(join(blocks)))modelEncoded+=String.fromCodePoint(byte);
   const scope=new Scope('packed-dressing'),registry=new WorldRegistry(),ctx={} as ShardContext,shardfile={spawn:{x:0,y:0,z:0},entryways:[]};
-  const product={shardfile,hasFile:(name:string)=>name==='contacts.bin',file(name:string):Promise<Uint8Array>{expect(this).toBe(product);expect(name).toBe('contacts.bin');return Promise.resolve(packed);}};
-  Object.assign(ctx,{scope,root:new THREE.Group(),system:vi.fn(),app:{registry},product:mode==='file'?product:{shardfile},game:{runtime:{world:{sky:null}}}});
+  const product={shardfile,hasFile:(name:string)=>name==='contacts.bin',file(name:string):Promise<Uint8Array>{expect(this).toBe(product);expect(name).toBe('contacts.bin');return Promise.resolve(loan);}};
+  Object.assign(ctx,{scope,root:new THREE.Group(),system:vi.fn(),app:{registry},product,game:{runtime:{world:{sky:null}}}});
   const dressing=await SceneDressing.install(ctx,{name:'packed',catalogues:[],packs:{},geometry:{shape:{kind:'inline',data:btoa(modelEncoded),row:layout}},materials:{paint:{kind:'painterly',rim:.2,bands:.5}},layers:[],animations:[],
     staticModels:[{model:{id:'fixture/packed-contact',name:'Packed',file:'test/scene-dressing-rows.test.ts',category:'props',pipeline:'code',defaults:{}},geometry:'shape',material:'paint'}],
     statics:[{name:'contact',tris:12,geometry:{shape:'shape'},materials:{paint:'paint'},recipe:{version:1,root:'mesh',materials:[{kind:'port',id:'paint',source:'paint'}],nodes:[{kind:'mesh',id:'mesh',geometry:'shape',material:'paint',missing:'empty'}]},
-      members:[{model:'fixture/packed-contact',draw:'single',placements:[{x:0,y:0,z:0}],boxes:[-.5,-.5,-.5,.5,.5,.5],contacts:{kind:'packed-hulls',...(mode==='file'?{file:'contacts.bin'}:{data:btoa(encoded)}),origins,surface:'rock'}}]}]});
+      members:[{model:'fixture/packed-contact',draw:'single',placements:[{x:0,y:0,z:0}],boxes:[-.5,-.5,-.5,.5,.5,.5],contacts:{kind:'packed-hulls',file:'contacts.bin',origins,surface:'rock'}}]}]});
   // DR11: the colliders register by tile (the collider ring); the placement lists them all, in source order
   const rows=dressing.placed[0]?.colliders??[],first=rows[0],second=rows[1];
   if(first?.kind!=='hull'||second?.kind!=='hull')throw new Error('Missing packed contacts');
