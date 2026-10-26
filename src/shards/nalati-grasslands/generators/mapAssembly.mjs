@@ -19,6 +19,14 @@ const pose = p => new Matrix4().compose(new Vector3(p.x, p.y, p.z), new Quaterni
 const asset = row => mapModel(resolve(root, `public${row.url}`), row.geometrySlot ?? 0);
 const painted = row => mapGeometry(new Uint8Array(readFileSync(resolve(base,row.file))),0,row.geometry);
 
+/** Read a prepared scalar file; the modern map never consumes inline content.
+ * @param {unknown} source @param {string} [directory] */
+export function readNalatiMapScalar(source, directory = base) {
+  if (source === null || typeof source !== 'object' || !('file' in source) || typeof source.file !== 'string')
+    throw new Error('Nalati map requires named binary scalar files');
+  return readFileSync(resolve(directory, source.file));
+}
+
 /** Native construction and the defining row preparation own map geometry/metadata.
  * The raw words never cross a compressed public or prepared-runtime handoff. */
 async function nativeMapPlaces() {
@@ -80,9 +88,8 @@ export async function nalatiMapAssembly() {
   // The engine's pure forest placer reads exactly the same native samples and
   // baked geography mask as the page. No shard manifest or runtime is imported.
   const geography = read('boot/geography.generated.json'), layout = read('boot/layout.generated.json'), discovery = read('data/discovery.json');
-  const scalarBytes=data=>typeof data==='string'?Buffer.from(data,'base64'):readFileSync(resolve(base,data.file));
   const channel = key => bakedSamplers({ ...native, res: geography.res, size: geography.size,
-    heights: new Float32Array(Uint8Array.from(inflateSync(scalarBytes(key === 'pond' ? geography.ground.mask.values.data : geography.channels[key].values.data))).buffer) }).heightAt;
+    heights: new Float32Array(Uint8Array.from(inflateSync(readNalatiMapScalar(key === 'pond' ? geography.ground.mask.values.data : geography.channels[key].values.data))).buffer) }).heightAt;
   const trails = [layout.S_ROAD_PTS, layout.N_ROAD_PTS, layout.E_ROAD_PTS, layout.W_ROAD_PTS, layout.SKY_ROAD, layout.CAMP_SPUR,
     ...layout.BOWL_TRACKS, layout.EAGLE_TRAIL, layout.CAVE_TRAIL, layout.ARGYMAQ_TRAIL];
   const field = { ...buildTerrainMetadata(native.seed, { trails, cabinSites: [] }, () => geography.river.level), ...bakedSamplers(native), pondMask: channel('pond') };
