@@ -1,28 +1,50 @@
 import { resolve } from 'node:path';
-import * as v from 'valibot';
-import { inflateSync } from 'node:zlib';
 import { readFileSync } from 'node:fs';
-import { readDecisionSources } from '@wildshard/sdk/buildDecisionScripts';
 import { fileURLToPath } from 'node:url';
-import { byteWriter, jsonBytes } from '../../../../scripts/bake-output.mjs';
+import * as v from 'valibot';
+import { byteWriter } from '../../../../scripts/bake-output.mjs';
+import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { CreatureGuestSchema } from '@wildshard/format/speciesBookRows';
 import { compileReturnProjectionV2 } from '@wildshard/sdk/returnProjectionV2';
-import { prepareNalatiSpecies } from './speciesPreparation.ts';
-import bodyRows from '../data/bodies.json' with { type: 'json' };
-import admissionInput from '../behaviour/admission.generated.json' with { type: 'json' };
-import strikes from '../data/strikeProfiles.generated.json' with { type: 'json' };
-import kingPose from '../data/goldenKingPose.generated.json' with { type: 'json' };
+import { nalatiSpeciesProgram } from './speciesProgram.ts';
 
-const lanes=inflateSync(readFileSync(fileURLToPath(new URL('../../../../public/assets/nalati/baked/bodies.bin',import.meta.url))));
-if(lanes.length%4!==0)throw new Error('Creature body source is not whole words');
-const words=lanes.length/4,raw=new Uint8Array(lanes.length);
-for(let i=0;i<words;i++)for(let byte=0;byte<4;byte++)raw[i*4+byte]=lanes[byte*words+i];
-const authored=readDecisionSources(fileURLToPath(new URL('../',import.meta.url)));
-const made=await prepareNalatiSpecies(raw,authored,{body:bodyRows,admission:admissionInput,strike:strikes.balbal,kingPose},input=>v.parse(CreatureGuestSchema,input),hash=>`/assets/nalati/baked/bodies-${hash}.bin`,compileReturnProjectionV2);
-const writer=byteWriter(process.argv.includes('--check'),'nalati-species');
-writer.put(fileURLToPath(new URL('../behaviour/held-weapons.generated.wasm',import.meta.url)),made.selected);
-writer.put(fileURLToPath(new URL('../behaviour/held-witness.generated.bin',import.meta.url)),made.witness);
-writer.put(fileURLToPath(new URL(`../../../../public${made.body.file}`,import.meta.url)),made.body.bytes);
-writer.put(fileURLToPath(new URL('../data/species.generated.json',import.meta.url)),jsonBytes(made.data));
-writer.put(resolve(import.meta.dirname,'../boot/speciesRows.generated.json'),jsonBytes(made.boot));
-writer.finish();
+const inputSchema = v.object({
+  body: v.object({ bytes: v.number(), bodies: v.array(v.object({ key: v.string(), bones: v.array(v.looseObject({ name: v.string() })),
+    dims: v.unknown(), fur: v.array(v.array(v.number())), hard: v.array(v.array(v.number())), eye: v.array(v.array(v.number())) })) }),
+  admission: v.looseObject({ script: v.record(v.string(), v.unknown()), bytes: v.string(), compiled: v.optional(v.unknown()), v2: v.optional(v.unknown()) }),
+  strike: v.unknown(), kingPose: v.object({ programs: v.unknown(), group: v.string() }),
+});
+
+/** Construct from explicitly declared source loans; importing this CLI never publishes its outputs. */
+export async function nalatiSpeciesSource() {
+  const files = await nalatiSpeciesProgram({ compileReturnProjection: compileReturnProjectionV2, cached: (step, make) => {
+    const inputs = new Map(step.inputs?.map(name => [name, Uint8Array.from(readFileSync(fileURLToPath(
+      new URL(name.startsWith('/') ? `../../../../public${name}` : `../${name}`, import.meta.url))))]));
+    return Promise.resolve(make(inputs));
+  } }, input => {
+    if (!v.is(inputSchema, input)) throw new Error('Invalid species CLI source metadata');
+    return input;
+  }, input => v.parse(CreatureGuestSchema, input), hash => `/assets/nalati/baked/bodies-${hash}.bin`);
+  const metadata = files.get('species.json');
+  if (metadata === undefined) throw new Error('Missing source species metadata');
+  const species = JSON.parse(new TextDecoder().decode(metadata));
+  if (!v.is(v.looseObject({ program: v.looseObject({ script: v.unknown(), bytes: v.string() }),
+    compiled: v.object({ source: v.string(), bytes: v.number(), hash: v.string() }),
+  }), species)) throw new Error('Missing source-owned held program');
+  return { files, program: species.program, compiled: species.compiled };
+}
+
+if (resolve(process.argv[1] ?? '') === import.meta.filename) {
+  const { files } = await nalatiSpeciesSource();
+  const required = name => {
+    const bytes = files.get(name); if (bytes === undefined) throw new Error(`Missing source species file ${name}`);
+    return bytes;
+  };
+  const writer = byteWriter(process.argv.includes('--check'), 'nalati-species');
+  writer.put(fileURLToPath(new URL('../behaviour/held-weapons.generated.wasm', import.meta.url)), required('held-weapons.wasm'));
+  writer.put(fileURLToPath(new URL('../behaviour/held-witness.generated.bin', import.meta.url)), required('held-witness.bin'));
+  writer.put(fileURLToPath(new URL(`../../../../public/assets/nalati/baked/bodies-${hashImmutableBytes(required('bodies.bin'))}.bin`, import.meta.url)), required('bodies.bin'));
+  writer.put(fileURLToPath(new URL('../data/species.generated.json', import.meta.url)), required('species.json'));
+  writer.put(resolve(import.meta.dirname, '../boot/speciesRows.generated.json'), required('boot.json'));
+  writer.finish();
+}

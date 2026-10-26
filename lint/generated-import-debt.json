@@ -132,8 +132,6 @@
     "src/shards/nalati-grasslands-legacy/manifest.ts": 1,
     "src/shards/nalati-grasslands/generators/bake-boot-metadata.mjs": 1,
     "src/shards/nalati-grasslands/generators/bake-finds.mjs": 1,
-    "src/shards/nalati-grasslands/generators/bake-held-weapons.mjs": 1,
-    "src/shards/nalati-grasslands/generators/bake-species.mjs": 4,
     "src/shards/nalati-grasslands/generators/bake-terrain-scene.mjs": 1,
     "src/shards/nalati-grasslands/generators/bodies.ts": 1,
     "src/shards/nalati-grasslands/generators/bootFiles.ts": 1,
