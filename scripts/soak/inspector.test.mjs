@@ -17,7 +17,7 @@ void test('one target-aware connection carries passive events, scalar evaluation
   const driver = soakInspector('ws://fixture', Socket); await driver.opened;
   const socket = Socket.current; assert.equal(socket.options.maxPayload, 512 * 1024 * 1024);
   socket.message({ method: 'Target.targetCreated', params: { targetInfo: { type: 'page', targetId: 'page-1' } } });
-  const events = [], off = driver.on('Memory.trackingUpdate', value => events.push(value));
+  const events = [], off = driver.on('Memory.trackingUpdate', value => { events.push(value); });
   const evalPromise = driver.evaluate('1+2'), sent = socket.sent.at(-1), inner = JSON.parse(sent.params.message);
   assert.equal(sent.params.targetId, 'page-1'); socket.message({ id: sent.id, result: {} });
   socket.reply({ method: 'Memory.trackingUpdate', params: { event: { timestamp: 1 } } });
