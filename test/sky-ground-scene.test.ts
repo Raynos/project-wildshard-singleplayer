@@ -3,12 +3,28 @@ import { Group, Mesh, BoxGeometry, MeshBasicMaterial, type Object3D } from 'thre
 import { createWorldScene } from '../src/game/plugin/scene';
 import { worldPieces, type WorldPieceRow } from '../src/game/shardfile/bakedKinds';
 import type { Piece } from '../src/engine/world/registry';
-import groundScene from '../src/shards/far-reach/data/groundScene.generated.json' with { type: 'json' };
-import PLACEMENTS from '../src/shards/far-reach/data/physicsPlacements.generated.json' with { type: 'json' };
+import { skyGroundValues } from '../src/shards/far-reach/generators/groundScene';
+import { skyPhysicsPlacements } from '../src/shards/far-reach/generators/physicsPlacements';
+import { SKY_SCENE_BLOBS, SKY_WORLD_SCENES } from '../src/shards/far-reach/generators/worldScenes';
+import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 
-const { SKY_GROUND, SKY_GROUND_COLLIDERS } = groundScene;
+const { SKY_GROUND, SKY_GROUND_COLLIDERS } = skyGroundValues();
+const PLACEMENTS = skyPhysicsPlacements();
 
 const isMesh = (node: Object3D | undefined): node is Mesh => node instanceof Mesh;
+
+it('source-derived ground retains the complete published scene and world declaration', () => {
+  const ground = SKY_SCENE_BLOBS.find(row => row.file.name === 'world/scenes/ground.json');
+  if (ground === undefined) throw new Error('Missing original published ground');
+  expect(ground.file).toEqual({ name: 'world/scenes/ground.json',
+    path: 'blobs/json/4f0303edc133f9a55afe6f2499bdf782f0cd03919871f00831c393d63cbfb25b.json', kind: 'json',
+    hash: '4f0303edc133f9a55afe6f2499bdf782f0cd03919871f00831c393d63cbfb25b', compressed: 2628, decoded: 2628,
+    gpu: 0, triangles: 0, draws: 0, critical: false, dependencies: [] });
+  expect(hashImmutableBytes(ground.bytes)).toBe(ground.file.hash);
+  const world = new TextEncoder().encode(encodeCanonicalJson(SKY_WORLD_SCENES));
+  expect(world.byteLength).toBe(329_351);
+  expect(hashImmutableBytes(world)).toBe('27f1bf00f36fecbf34936dff22d2e9791498006a92aa2404236883111f417884');
+});
 
 it('registers the authored walkable ground while borrowing loaded island geometry', async () => {
   const geometry = new BoxGeometry(), material = new MeshBasicMaterial();

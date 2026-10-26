@@ -10,10 +10,12 @@ import world from '../data/worldRows.generated.json' with { type: 'json' };
 import { SKY_SOURCE_LIBRARIES, SKY_SOURCE_BLOBS } from './sceneSources';
 import STRINGS from '../data/strings.json' with { type: 'json' };
 import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
-import ground from '../data/groundScene.generated.json' with { type: 'json' };
+import { skyGroundValues } from './groundScene';
 import rest from '../data/restScenes.generated.json' with { type: 'json' };
 import { SKY_ISLAND_BLOBS, SKY_ISLAND_LIBRARY, SKY_ISLE_TILES } from './islandScenes';
 import { SKY_MEADOW_BLOBS, SKY_MEADOW_FILE } from './meadowScene';
+
+const ground = skyGroundValues();
 
 interface Reference { readonly library: string; readonly model: string }
 const json = (name: string, value: unknown) => nameBlob(name, 'json', new TextEncoder().encode(JSON.stringify(value)));
