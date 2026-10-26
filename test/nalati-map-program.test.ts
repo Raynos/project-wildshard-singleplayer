@@ -50,15 +50,18 @@ test('owned assembly and terrain preserve the full original native map image', a
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
-for (const omitGeometry of [true, false]) {
-  test(`the sealed map producer ${omitGeometry ? 'refuses an omitted geometry helper' : 'preserves the original image without assembly files'}`, async () => {
+for (const omitted of ['scripts/map-geometry.mjs', 'src/sdk/bake/annulus.ts', undefined]) {
+  test(`the sealed map producer ${omitted === undefined ? 'preserves the original image without runtime/public places handoffs' : `refuses omitted ${omitted}`}`, async () => {
     const root = resolve('.'), job = discoverGeneration(root).jobs.find(row => row.id === 'nalati-data-map');
     if (job === undefined) throw new Error('Missing Nalati map producer');
     expect(job.inputRoots).toContain('scripts/map-geometry.mjs');
+    expect(job.inputRoots).not.toContain('src/shards/nalati-grasslands/data/placeRuntime.generated.json');
+    expect(job.inputRoots).not.toContain('public/assets/nalati/baked/places.bin');
     const cacheDir = mkdtempSync(resolve('tmp', 'nalati-map-stage-'));
     try {
-      if (omitGeometry) {
-        const descriptor = { ...job, inputRoots: job.inputRoots.filter(file => file !== 'scripts/map-geometry.mjs') };
+      if (omitted !== undefined) {
+        expect(job.inputRoots).toContain(omitted);
+        const descriptor = { ...job, inputRoots: job.inputRoots.filter(file => file !== omitted) };
         const catalogPath = relative(root, resolve(cacheDir, 'omitted.json'));
         const catalog = v.parse(v.object({ schema: v.string(), notice: v.string(), jobs: v.array(v.unknown()) }),
           JSON.parse(readFileSync('scripts/generation-jobs.json', 'utf8')));

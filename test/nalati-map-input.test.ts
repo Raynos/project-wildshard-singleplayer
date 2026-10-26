@@ -4,7 +4,7 @@ import {mkdirSync,mkdtempSync,readFileSync,rmSync,writeFileSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Redirect the map reader into the owned fixture.
 import {dirname,resolve} from 'node:path';
 import * as v from 'valibot';
-import {readNalatiMapPlaces} from './mapAssembly.mjs';
+import {readMapJson} from '../scripts/map-geometry.mjs';
 
 const owned:string[]=[];
 afterEach(()=>{for(const root of owned.splice(0))rmSync(root,{recursive:true,force:true});});
@@ -14,15 +14,15 @@ function fixture(files:Record<string,unknown>):string {
  return root;
 }
 
-test('reads staged data metadata without an incidental boot copy and retains numeric decoding',()=>{
+test('the defining map JSON decoder retains numeric decoding for staged metadata',()=>{
  const prepared={places:{rows:[]},view:{sequence:[]},dressing:{rows:[]},sample:['-0','Infinity','-Infinity']};
  const root=fixture({'data/placeRuntime.generated.json':prepared});
- expect(readNalatiMapPlaces(root)).toEqual({...prepared,sample:[-0,Infinity,-Infinity]});
+ expect(readMapJson(resolve(root,'data/placeRuntime.generated.json'))).toEqual({...prepared,sample:[-0,Infinity,-Infinity]});
 });
 
 test('a missing declared data copy refuses rather than reading stale boot metadata',()=>{
  const root=fixture({'boot/placeRuntime.generated.json':{projection:'stale'}});
- expect(()=>readNalatiMapPlaces(root)).toThrow('ENOENT');
+ expect(()=>readMapJson(resolve(root,'data/placeRuntime.generated.json'))).toThrow('ENOENT');
 });
 
 test('the canonical data copy is produced with the exact same pinned bytes as the boot alias',()=>{
@@ -31,4 +31,13 @@ test('the canonical data copy is produced with the exact same pinned bytes as th
  const data='src/shards/nalati-grasslands/data/placeRuntime.generated.json',boot='src/shards/nalati-grasslands/boot/placeRuntime.generated.json';
  expect(job?.outputs).toEqual(expect.arrayContaining([data,boot]));
  expect(job?.buildOutputs?.[data]).toMatch(/^[a-f0-9]{64}$/u);expect(job?.buildOutputs?.[data]).toBe(job?.buildOutputs?.[boot]);
+});
+
+test('the map freshness recipe names native source inputs instead of retired handoffs',()=>{
+ const settings=v.parse(v.object({inputs:v.array(v.string())}),JSON.parse(readFileSync('src/shards/nalati-grasslands/look/map.json','utf8')));
+ expect(settings.inputs).not.toContain('data/placeRuntime.generated.json');
+ expect(settings.inputs).not.toContain('../../../public/assets/nalati/baked/places.bin');
+ expect(settings.inputs).toContain('../../sdk/bake/annulus.ts');
+ expect(settings.inputs).toContain('data/poiPaint.json');
+ expect(settings.inputs).toContain('../../../pnpm-lock.yaml');
 });
