@@ -114,6 +114,32 @@ test('a retired return wrapper and detached candidate cannot read or affect its 
   } finally { scope.dispose(); nextScope.dispose(); }
 });
 
+test('the census separates reusable bank bytes from scope-fenced storage without mutating either', () => {
+  const owner = new Scope('memory.census'), lease = new FixedMemory(2, true), identity = lease.value;
+  const borrowed = fixedMemoryCensus();
+  try {
+    lease.retire(new WeakRef(owner));
+    const blocked = fixedMemoryCensus();
+    expect(blocked).toMatchObject({ retained: borrowed.retained + 1, available: borrowed.available,
+      availableBytes: borrowed.availableBytes, blocked: borrowed.blocked + 1,
+      blockedBytes: borrowed.blockedBytes + 2 * 65536, bytes: borrowed.bytes + 2 * 65536 });
+    expect(fixedMemoryCensus()).toEqual(blocked);
+    owner.dispose();
+    const ready = fixedMemoryCensus();
+    expect(ready).toMatchObject({ retained: blocked.retained, available: borrowed.available + 1,
+      availableBytes: borrowed.availableBytes + 2 * 65536, blocked: borrowed.blocked,
+      blockedBytes: borrowed.blockedBytes, bytes: blocked.bytes });
+    expect(fixedMemoryCensus()).toEqual(ready);
+    const next = new FixedMemory(2, true);
+    try {
+      expect(next.value).toBe(identity);
+      expect(fixedMemoryCensus()).toMatchObject({ retained: ready.retained - 1,
+        available: ready.available - 1, availableBytes: ready.availableBytes - 2 * 65536,
+        blocked: ready.blocked, blockedBytes: ready.blockedBytes, bytes: ready.bytes - 2 * 65536 });
+    } finally { next.retire(); }
+  } finally { owner.dispose(); lease.retire(); }
+});
+
 test('the idle bank is bounded and invalid warmup does not allocate', async () => {
   const memory = vi.spyOn(WebAssembly, 'Memory');
   try {

@@ -3450,7 +3450,12 @@ ABI0/1 installs and restores take only never-instantiated stock once with
 exact page limits; growable memories are NEVER recycled. Restores still ignore
 old owner-prepared leases. Guest initialization and owner admission stay at
 their original slots. `EngineProbe.scriptMemory()` returns detached hit/miss
-and virgin/recycled counters; it exposes no memory or instance.
+and virgin/recycled counters; it exposes no memory or instance. `retained`
+and `bytes` count all bank rows and their logical capacity. `available` and
+`availableBytes` count reusable storage; `blocked` and `blockedBytes` count
+storage still waiting for its original scope teardown. These are logical
+bank capacities, not physical process residency; reading them does not
+change admission, reuse or collection policy.
 
 
 ### Baked terrain (SHARD-PLATFORM SF9a)

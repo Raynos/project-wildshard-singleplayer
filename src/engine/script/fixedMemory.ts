@@ -9,9 +9,12 @@ let hits = 0, misses = 0, returned = 0, bytes = 0, virginHits = 0, recycledHits 
 function ready(row: typeof bank[number]): boolean {
   const owner = row.fence?.deref(); return owner === undefined || (owner.disposed && !owner.disposing);
 }
-/** Scalar diagnostics, detached from every memory and live owner. */
-export function fixedMemoryCensus(): { hits: number; misses: number; returned: number; available: number; bytes: number; virginHits: number; recycledHits: number } {
-  return { hits, misses, returned, virginHits, recycledHits, available: bank.filter(ready).length, bytes };
+/** Detached logical bank capacity, not physical residency. Blocked rows still await their original scope teardown. */
+export function fixedMemoryCensus(): { hits: number; misses: number; returned: number; retained: number; available: number; availableBytes: number; blocked: number; blockedBytes: number; bytes: number; virginHits: number; recycledHits: number } {
+  let available = 0, availableBytes = 0;
+  for (const row of bank) if (ready(row)) { available++; availableBytes += row.pages * PAGE; }
+  return { hits, misses, returned, virginHits, recycledHits, retained: bank.length,
+    available, availableBytes, blocked: bank.length - available, blockedBytes: bytes - availableBytes, bytes };
 }
 function retain(memory: WebAssembly.Memory, pages: number, fence?: WeakRef<Scope>, virgin = false, maximum = pages): void {
   if (bank.length >= LIMIT || bytes + pages * PAGE > BYTE_LIMIT) return;
