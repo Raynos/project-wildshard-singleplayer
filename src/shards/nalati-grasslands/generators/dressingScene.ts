@@ -14,7 +14,7 @@ import { nameBlob } from '@wildshard/sdk/blobs';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
 import { writeGeometry, join } from './geometryWriter';
 import { nalatiPoiScenes } from './poiScenes';
-import specimensInput from '../data/specimens.generated.json' with {type:'json'};
+import { nalatiSpecimenRows } from './specimenRows';
 import paintInput from '../data/poiPaint.json' with {type:'json'};
 import coverInput from '../data/cover.generated.json' with {type:'json'};
 import atlases from '../data/signAtlases.json' with {type:'json'};
@@ -43,7 +43,11 @@ const paintSchema=v.object({glacierSnout:v.object({x:number,y:number,z:number}),
   v.object({...paintContact,file:text}),v.object({...paintContact,points:text}),
 ])))});
 const balbalSchema=v.object({catalogue:SpecimenCatalogueSchema,generated:SpecimenAssetSchema,sites:v.record(text,v.unknown())});
-const specimens=v.parse(specimensSchema,specimensInput);
+/** Admit caller-owned packed rows with the original catalogue, material and asset schemas. */
+export function nalatiDressingSpecimens(catalogue:unknown,materials:unknown,packed:unknown):v.InferOutput<typeof specimensSchema> {
+  if(!v.is(SpecimenCatalogueSchema,catalogue)||!v.is(materialsSchema,materials))throw new Error('Invalid supplied Nalati specimen declarations');
+  return v.parse(specimensSchema,nalatiSpecimenRows(catalogue,materials,v.parse(v.record(text,v.unknown()),packed)));
+}
 const paint=v.parse(paintSchema,paintInput);
 /** Exact raw contact files, read only by the SDK's normal named-file intake. */
 export const DRESSING_CONTACT_SOURCES=v.parse(v.array(v.object({name:text,kind:v.literal('bin'),source:text,
@@ -86,7 +90,7 @@ const preparedContacts=(inputs:readonly unknown[])=>{
 
 
 /** Existing baked shapes and placements become Z2 rows; no page-side scatter or model constructors. */
-function compileDressingScene(tier:'phone'|'desktop',profiles:v.InferOutput<typeof decorativeProfiles>,input:ReturnType<typeof readPreparedDressing>,balbal:v.InferOutput<typeof balbalSchema>) {
+function compileDressingScene(tier:'phone'|'desktop',profiles:v.InferOutput<typeof decorativeProfiles>,input:ReturnType<typeof readPreparedDressing>,balbal:v.InferOutput<typeof balbalSchema>,specimens:v.InferOutput<typeof specimensSchema>) {
   const {prepared,scenes,placed}=input;
   const phone=tier==='phone',profile=cover[tier];
   const geometry:Record<string,unknown>={},materials:Record<string,unknown>={},addresses:number[]=[];
@@ -134,7 +138,7 @@ function compileDressingScene(tier:'phone'|'desktop',profiles:v.InferOutput<type
   statics.push({name:'cloth',recipe:{version:1,root:'root',materials:[{kind:'port',id:'paint',source:'paint'}],nodes:[{kind:'group',id:'root',children:['cloth']},{kind:'mesh',id:'cloth',geometry:'shape',material:'paint',missing:'empty',castShadow:true,receiveShadow:true}]},geometry:{shape:'cloth'},materials:{paint:'cloth'},tris:cloth.row.indexCount/3,members:[]});
   geometry['wing']={kind:'packed',source:'cover',key:'wing'};geometry['halfBird']={kind:'packed',source:'cover',key:'halfBird'};
   materials['butterfly']={kind:'painterly',rim:.3,bands:.5,shade:.6,emissive:0x101010};materials['raptor']={kind:'painterly',rim:.6,bands:.6};
-  const bowl=bowlScene(tier,profiles[tier],geometry,materials,prepared);statics.push(...bowl.statics);
+  const bowl=bowlScene(tier,profiles[tier],geometry,materials,prepared,specimens);statics.push(...bowl.statics);
   const crags=cragRows[tier],cragGeometry:Record<string,string>={};
   for(const part of crags.meshes){geometry[part.key]=baked('world/crags.bin',part.offset,v.parse(SceneBakedGeometrySchema,part.row));cragGeometry[part.key]=part.key;}
   const rockTexture=specimens.materials['rock']?.texture,snowTexture=specimens.materials['snow']?.texture;
@@ -190,13 +194,13 @@ function clothGeometry(prepared:ReturnType<typeof readPreparedDressing>['prepare
 }
 
 /** Supplied native runtime rows and profiles become separate tier JSON loans under the existing bounded budget. */
-export function dressingSceneBlobs(input:unknown,runtime:unknown,balbal:unknown):ReturnType<typeof nameBlob>[] {const profiles=v.parse(decorativeProfiles,input),prepared=readPreparedDressing(runtime);return(['phone','desktop']as const).flatMap(tier=>{const result=compileDressingScene(tier,profiles,prepared,v.parse(balbalSchema,balbal));return[nameBlob(`world/dressing-${tier}.json`,'json',new TextEncoder().encode(encodeCanonicalJson(result.rows)),{jsonSchema:namedJsonSchema(SceneDressingSchema)}),nameBlob(`world/dressing-addresses-${tier}.bin`,'bin',result.addresses)];});}
+export function dressingSceneBlobs(input:unknown,runtime:unknown,balbal:unknown,specimens:unknown):ReturnType<typeof nameBlob>[] {const profiles=v.parse(decorativeProfiles,input),prepared=readPreparedDressing(runtime);return(['phone','desktop']as const).flatMap(tier=>{const result=compileDressingScene(tier,profiles,prepared,v.parse(balbalSchema,balbal),v.parse(specimensSchema,specimens));return[nameBlob(`world/dressing-${tier}.json`,'json',new TextEncoder().encode(encodeCanonicalJson(result.rows)),{jsonSchema:namedJsonSchema(SceneDressingSchema)}),nameBlob(`world/dressing-addresses-${tier}.bin`,'bin',result.addresses)];});}
 
 /** Admitted tier rows from caller-owned runtime metadata for catalogue and format consumers. */
-export function dressingScene(tier:'phone'|'desktop',input:unknown,runtime:unknown,balbal:unknown):SceneDressingRows{return compileDressingScene(tier,v.parse(decorativeProfiles,input),readPreparedDressing(runtime),v.parse(balbalSchema,balbal)).rows;}
+export function dressingScene(tier:'phone'|'desktop',input:unknown,runtime:unknown,balbal:unknown,specimens:unknown):SceneDressingRows{return compileDressingScene(tier,v.parse(decorativeProfiles,input),readPreparedDressing(runtime),v.parse(balbalSchema,balbal),v.parse(specimensSchema,specimens)).rows;}
 
 /** Decorative poses keep the existing visual programs and RNG continuation; none owns gameplay actors. */
-function bowlScene(tier:'phone'|'desktop',data:v.InferOutput<typeof decorativeProfile>,geometry:Record<string,unknown>,materials:Record<string,unknown>,prepared:ReturnType<typeof readPreparedDressing>['prepared']){
+function bowlScene(tier:'phone'|'desktop',data:v.InferOutput<typeof decorativeProfile>,geometry:Record<string,unknown>,materials:Record<string,unknown>,prepared:ReturnType<typeof readPreparedDressing>['prepared'],specimens:v.InferOutput<typeof specimensSchema>){
   const phone=tier==='phone',statics:unknown[]=[],instances:unknown[]=[];
   const empty=(name:string,tris:number,members:unknown[],groupName=`nalati-${name}`)=>({name,tris,members,geometry:{},materials:{},recipe:{version:1,root:'root',materials:[],nodes:[{kind:'group',id:'root',name:groupName,children:[]}]}});
   const putMember=(model:string,member:typeof data.horses.member)=>({model,draw:member.draw,placements:member.placements,boxes:member.boxes,contacts:[...member.solid,...member.descs]});

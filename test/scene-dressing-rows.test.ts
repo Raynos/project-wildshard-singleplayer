@@ -1,3 +1,4 @@
+import { nalatiSpecimens } from './fixtures/nalati-specimens';
 import { nalatiBalbal } from './fixtures/nalati-balbal';
 import { nalatiRuntime } from './fixtures/nalati-runtime';
 import { nalatiDecorative } from './fixtures/nalati-decorative';
@@ -56,7 +57,7 @@ test.each([['geometry','world'],['geometry','retire'],['geometry','length'],['le
 });
 test('both Nalati tiers retain scatter policies, static contacts and GPU cloth buffers within JSON bounds',()=>{
   for(const tier of ['phone','desktop']as const){
-    const input=wire(dressingScene(tier,nalatiDecorative,nalatiRuntime,nalatiBalbal));expect(isJsonData(input)).toBe(true);
+    const input=wire(dressingScene(tier,nalatiDecorative,nalatiRuntime,nalatiBalbal,nalatiSpecimens));expect(isJsonData(input)).toBe(true);
     const rows=v.parse(SceneDressingSchema,input);
     expect(rows.layers).toHaveLength(10);
     const crags=rows.statics.find(row=>row.name==='cragRocks'),cragMember=crags?.members[0];
@@ -163,11 +164,11 @@ test('geometry source addresses remain binary while the JSON address word stays 
   const bytes=new Uint8Array(8),view=new DataView(bytes.buffer);view.setUint32(0,17000000,true);view.setUint32(4,10000000,true);
   expect(readSceneGeometryAddress(bytes,0)).toBe(17000000);expect(readSceneGeometryAddress(bytes,1)).toBe(10000000);
   expect(()=>readSceneGeometryAddress(bytes,2)).toThrow();expect(()=>readSceneGeometryAddress(bytes,-1)).toThrow();
-  for(const tier of ['phone','desktop']as const)for(const row of Object.values(dressingScene(tier,nalatiDecorative,nalatiRuntime,nalatiBalbal).geometry))if(row.kind==='baked-file'){
+  for(const tier of ['phone','desktop']as const)for(const row of Object.values(dressingScene(tier,nalatiDecorative,nalatiRuntime,nalatiBalbal,nalatiSpecimens).geometry))if(row.kind==='baked-file'){
     expect(row.address.word).toBeLessThan(1000000);expect(row.address.file).toBe(`world/dressing-addresses-${tier}.bin`);
     expect(['world/crags.bin','world/dressing.bin','world/places.bin']).toContain(row.file);expect(row).not.toHaveProperty('url');
   }
-  for(const tier of ['phone','desktop']as const)expect(Object.values(dressingScene(tier,nalatiDecorative,nalatiRuntime,nalatiBalbal).geometry).some(row=>row.kind==='baked')).toBe(false);
+  for(const tier of ['phone','desktop']as const)expect(Object.values(dressingScene(tier,nalatiDecorative,nalatiRuntime,nalatiBalbal,nalatiSpecimens).geometry).some(row=>row.kind==='baked')).toBe(false);
 });
 
 test('Nalati logical bakes admit the exact shipping compressed bytes and decoded costs',async()=>{

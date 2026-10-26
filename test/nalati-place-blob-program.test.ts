@@ -1,3 +1,4 @@
+import { nalatiSpecimens } from './fixtures/nalati-specimens';
 import { nalatiBalbal } from './fixtures/nalati-balbal';
 // oxlint-disable-next-line import/no-nodejs-modules -- Own the real immutable cache and compare the original shipping bytes.
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
@@ -78,7 +79,7 @@ test('the actual output hook preserves every predecessor file cost and binary by
     if (nativePlaces === undefined) throw new Error('Missing observed native place metadata');
     const ownedPlaces: unknown = JSON.parse(new TextDecoder().decode(nativePlaces));
     const ownedRuntime = nalatiRuntimeRows({ places: ownedPlaces, paint: paintInput }).runtime;
-    const frozenScenes = dressingSceneBlobs(nalatiDecorative, nalatiRuntime,nalatiBalbal);
+    const frozenScenes = dressingSceneBlobs(nalatiDecorative, nalatiRuntime,nalatiBalbal,nalatiSpecimens);
     expect(frozenScenes.map(blob => ({ name: blob.file.name, bytes: blob.bytes.length, hash: blob.file.hash }))
       .sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '')))
       .toEqual([...sceneOriginal].sort((a, b) => a.name.localeCompare(b.name)));

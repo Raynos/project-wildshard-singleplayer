@@ -36,7 +36,7 @@ import { strike } from '@wildshard/sdk/species';
 import finds from '../data/finds.generated.json' with {type:'json'};
 import { coverSpecimenBlobs } from './coverSpecimens';
 import { TREE_SET } from './treeSet';
-import { DRESSING_CONTACT_SOURCES, DRESSING_ATLAS_SOURCES, DRESSING_CRAG_DECODED, dressingSceneBlobs } from './dressingScene';
+import { DRESSING_CONTACT_SOURCES, DRESSING_ATLAS_SOURCES, DRESSING_CRAG_DECODED, dressingSceneBlobs, nalatiDressingSpecimens } from './dressingScene';
 import * as v from 'valibot';
 import { makeCarriedQuestRows } from './carriedQuest';
 import { CarriedQuestSchema } from '@wildshard/format/questSteps';
@@ -135,7 +135,8 @@ import { FixedDrawRowsSchema } from '@wildshard/format/fixedDraws';
 import { postChainRows } from './postChain';
 import { PANO_RIDGE_V } from './panoramaData';
 import paintedTextures from '../data/paintedTextures.generated.json' with { type: 'json' };
-import specimenRows from '../data/specimens.generated.json' with { type: 'json' };
+import campCatalogue from '../data/campCatalogue.json' with { type: 'json' };
+import campMaterials from '../data/campMaterials.json' with { type: 'json' };
 import captureRows from '../data/staticCapture.json' with { type: 'json' };
 import grassRows from '../data/grass.generated.json' with { type: 'json' };
 import geographyRows from '../data/geographySources.json' with {type:'json'};
@@ -157,7 +158,7 @@ const { cues: nightCues, ...nightRows } = night;
 // post graph, then the painted world's fog, air, ground, grass and the panorama / key light / capture world rows
 const lookRows = postChainRows(), painted = paintedTextures;
 const postLook = { ...lookRows.postGraph, painted: { fog: { ...painted.fog, ...lookRows.paintedFog, lut: lookRows.fogLut }, air: painted.air,
-  ground: 'ground' in painted ? painted.ground : null, tiles: specimenRows.materials, capture: captureRows, grass: { rows: grassRows, cards: painted.cards },
+  ground: 'ground' in painted ? painted.ground : null, tiles: campMaterials, capture: captureRows, grass: { rows: grassRows, cards: painted.cards },
   world: { rows: 'world' in painted ? painted.world : null, panorama: 'panorama' in painted ? painted.panorama : null, key: 'key' in painted ? painted.key : null,
     ridge: PANO_RIDGE_V, ...lookRows.world } } };
 // the shape book (carvings, trophies, arena parts, ghost riders, painted places): its fixed draws, read by the world
@@ -219,13 +220,19 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<type
   const propGeometry = placeFiles.get('placeParts.json'), propBytes = placeFiles.get('actor:goat.bin');
   if (propGeometry === undefined || propBytes === undefined) throw new Error('Missing owned native quest prop');
   const geometry = v.parse(v.record(v.string(), v.unknown()), JSON.parse(new TextDecoder().decode(propGeometry)));
-  const carried = makeCarriedQuestRows(nalatiQuestProp(geometry['actor:goat'], specimenRows.materials.poi));
+  const specimenDocument = placeFiles.get('placeSpecimens.json');
+  if (specimenDocument === undefined) throw new Error('Missing owned native specimen metadata');
+  const packedSpecimens: unknown = JSON.parse(new TextDecoder().decode(specimenDocument));
+  const specimenRows = nalatiDressingSpecimens(campCatalogue, campMaterials, packedSpecimens);
+  const poiMaterial = specimenRows.materials['poi'], balbalAsset = specimenRows.assets['balbal'];
+  if (poiMaterial === undefined || balbalAsset === undefined) throw new Error('Missing admitted native specimen bindings');
+  const carried = makeCarriedQuestRows(nalatiQuestProp(geometry['actor:goat'], poiMaterial));
   const carriedBlob = nameBlob('quests/carried.json', 'json', new TextEncoder().encode(encodeCanonicalJson(carried)), { jsonSchema: namedJsonSchema(CarriedQuestSchema) });
   const propBlob = nameBlob('models/specimens/quest-prop.bin', 'bin', propBytes);
   const bare = placeFiles.get('actor:balbal:0:2977.bin'), capped = placeFiles.get('actor:balbal:1:2977.bin');
   if (bare === undefined || capped === undefined) throw new Error('Missing owned native balbal carvings');
-  const balbal = nalatiBalbalSpecimen(geometry['actor:balbal:0:2977'], geometry['actor:balbal:1:2977'], specimenRows.assets.balbal,
-    specimenRows.materials.poi, v.parse(v.number(), modelMetrics.sizes.balbal[1]));
+  const balbal = nalatiBalbalSpecimen(geometry['actor:balbal:0:2977'], geometry['actor:balbal:1:2977'], balbalAsset,
+    poiMaterial, v.parse(v.number(), modelMetrics.sizes.balbal[1]));
   const carvings = [bare, capped].map((bytes, index) => nameBlob(`models/specimens/balbal-${String(index)}.bin`, 'bin', bytes));
   const byteCount = v.pipe(v.number(), v.integer(), v.minValue(0));
   const costs = v.parse(v.object({ places: v.object({ bytes: byteCount }), dressing: v.object({ bytes: byteCount }) }), runtime.runtime);
@@ -242,7 +249,7 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<type
   const decorativeFiles = await nalatiDecorativeProgram(ctx), decorativeBytes = decorativeFiles.get('decorative.json');
   if (decorativeBytes === undefined) throw new Error('Missing owned decorative profiles');
   const profiles: unknown = JSON.parse(new TextDecoder().decode(decorativeBytes));
-  const scenes = emitNamedBlobs(dressingSceneBlobs(profiles,runtime.runtime,balbal));
+  const scenes = emitNamedBlobs(dressingSceneBlobs(profiles,runtime.runtime,balbal,specimenRows));
   const namedFiles = [...emitted.files.filter(file => file.name !== 'quests/carried.json'), carriedBlob.file, ...ownedMetadata.files, ...scenes.files].sort((a, b) => (a.name ?? '') < (b.name ?? '') ? -1 : (a.name ?? '') > (b.name ?? '') ? 1 : 0);
   const sources = await nalatiOutputInputs(ctx, outputBlobs(shapeBook.sources, runtime.floors.map(floor => nameBlob(floor.name, 'bin', floor.bytes)), [propBlob], carvings));
   return { ...output, blobs: [], namedFiles: [...sources.map(source => source.file), ...namedFiles, ...taming.files, places.file, crags.file, dressingBlob.file], assets: new Map([...output.assets, ...sources.map(source => [source.file.hash, source.bytes] as const), ...ownedMetadata.assets, ...scenes.assets, [carriedBlob.file.hash, carriedBlob.bytes], [places.file.hash, places.bytes], [crags.file.hash, crags.bytes], [dressingBlob.file.hash, dressingBlob.bytes]]) };

@@ -1,3 +1,4 @@
+import { nalatiSpecimens } from './fixtures/nalati-specimens';
 import { nalatiBalbal } from './fixtures/nalati-balbal';
 import { nalatiRuntime } from './fixtures/nalati-runtime';
 import { nalatiDecorative } from './fixtures/nalati-decorative';
@@ -37,7 +38,7 @@ test('an orchard fixture projects copied numeric rows on the declared cadence an
 
 test('declared Kokpar poses keep the original oval and gallop height',()=>{
   setTerrainHeight(()=>10);
-  const row=dressingScene('phone',nalatiDecorative,nalatiRuntime,nalatiBalbal).instances.find(candidate=>candidate.id==='nalati-kokpar-riders');if(row===undefined)throw new Error('Missing declared riders');
+  const row=dressingScene('phone',nalatiDecorative,nalatiRuntime,nalatiBalbal,nalatiSpecimens).instances.find(candidate=>candidate.id==='nalati-kokpar-riders');if(row===undefined)throw new Error('Missing declared riders');
   const rows=structuredClone([row]);delete rows[0]?.uniform;
   const root=new Group(),shape=new BoxGeometry(),paint=new MeshBasicMaterial();
   const host=new SceneInstanceFields(rows,new Map([[row.geometry,shape]]),new Map([[row.material,paint]]),new Map([[row.group,root]]));
