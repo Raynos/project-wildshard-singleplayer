@@ -1,4 +1,6 @@
 import { afterEach, expect, test } from 'vitest';
+// oxlint-disable-next-line import/no-nodejs-modules -- Observe exact immutable keys for the owned build fixture only.
+import { channel } from 'node:diagnostics_channel';
 // oxlint-disable-next-line import/no-nodejs-modules -- The fixture owns a bounded author project and its output.
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- All fixture paths are inside its scratch directory.
@@ -180,4 +182,47 @@ test('output preparation retains function, filesystem and output admission refus
   writeFileSync(sidecar, `import {readFileSync} from 'node:fs';
     export const output={}; export function prepareOutput(){return readFileSync('input.bin');}`);
   await expect(readProjectAssets(path)).rejects.toThrow('must use injected build capabilities');
+});
+
+test('source entry and sidecar share one immutable construction and invalidate both recipes', async () => {
+  const path = directory(); mkdirSync(resolve(path, 'generators'));
+  writeFileSync(resolve(path, 'input.bin'), binary);
+  writeFileSync(resolve(path, 'shard.config.ts'), `export default async ctx => {
+    const files=await ctx.cached({id:'shared-body',inputs:['input.bin']}, inputs=>new Map([['body.bin',inputs.get('input.bin')]]));
+    const row=${JSON.stringify(source())}; row.identity.name='owned-'+files.get('body.bin')[0]; return row;
+  };`);
+  const sidecar = resolve(path, 'generators/output.ts');
+  writeFileSync(sidecar, `import {nameBlob} from '@wildshard/sdk/blobs';
+    export const output={};
+    export async function prepareOutput(ctx){
+      const files=await ctx.cached({id:'shared-body',inputs:['input.bin']},()=>{throw new Error('Duplicate source construction');});
+      const blob=nameBlob('body.bin','bin',files.get('body.bin'));
+      return {namedFiles:[blob.file],assets:new Map([[blob.file.hash,blob.bytes]])};
+    }`);
+  const keys: string[] = [], observer = channel('wildshard.generation-key');
+  const observe = (value: unknown): void => {
+    if (typeof value === 'object' && value !== null && 'key' in value && typeof value.key === 'string') keys.push(value.key);
+  };
+  observer.subscribe(observe);
+  try {
+  const first = await readProjectAssets(path), file = first.output.namedFiles?.[0];
+  if (file === undefined) throw new Error('Missing shared source output');
+  expect(first.shard.identity.name).toBe('owned-1');
+  expect(first.assets.get(file.hash)).toEqual(binary);
+  first.assets.get(file.hash)?.fill(0);
+  const warm = await readProjectAssets(path);
+  expect(warm.assets.get(file.hash)).toEqual(binary);
+  writeFileSync(resolve(path, 'input.bin'), new Uint8Array([4, 5, 6]));
+  const changed = await readProjectAssets(path);
+  expect(changed.shard.identity.name).toBe('owned-4');
+  expect(changed.output.namedFiles?.[0]?.hash).not.toBe(file.hash);
+  writeFileSync(sidecar, readFileSync(sidecar, 'utf8').replace("'body.bin','bin'", "'revised.bin','bin'"));
+  const revised = await readProjectAssets(path);
+  expect(revised.output.namedFiles?.[0]?.name).toBe('revised.bin');
+  expect(revised.shard.identity.name).toBe('owned-4');
+  expect(keys).toHaveLength(8);
+  expect(keys[0]).toBe(keys[1]); expect(keys[0]).toBe(keys[2]); expect(keys[2]).toBe(keys[3]);
+  expect(keys[4]).toBe(keys[5]); expect(keys[4]).not.toBe(keys[0]);
+  expect(keys[6]).toBe(keys[7]); expect(keys[6]).not.toBe(keys[4]);
+  } finally { observer.unsubscribe(observe); }
 });

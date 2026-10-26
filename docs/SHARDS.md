@@ -242,7 +242,10 @@ Frozen legacy files keep their exact registered layout (**held for LD**). A `-le
 
 `generators/product.ts` builds the declaration from authored data and the
 `generators/output.ts` blob/section declarations. The thin `shard.config.ts`
-imports that result; it does not run gameplay code. Write layouts and source
+imports that result; it does not run gameplay code. A source-function entry and
+its output preparer share one immutable build context. Step ids name the same
+recipe across both phases; either bundled source identity invalidates its cache.
+Both callers still receive detached bytes and normal product admission. Write layouts and source
 assets in the source folders above. Historical asset folders remain data-only;
 they do not authorize executable TypeScript outside `generators/`.
 

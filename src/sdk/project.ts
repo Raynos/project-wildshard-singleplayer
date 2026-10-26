@@ -79,11 +79,16 @@ async function projectModule(project: string, decisionLegacyLines?: number, sele
   let declaration: unknown = selected === undefined ? loaded['generate'] ?? loaded['default'] : outputDeclaration(loaded, selected);
   let shard: Shardfile;
   const baked = new Map<string, Uint8Array>(), root = realpathSync(project);
+  const sidecarModule = existsSync(resolve(project, 'generators/output.ts')) ? await authorModule(project, 'generators/output.ts') : undefined;
+  // One product owns one cache namespace: config and sidecar share pending work
+  // and both source identities invalidate their complete immutable recipe.
+  const generation = createProjectGeneration(project, contentHash(new TextEncoder().encode(canonicalJson({
+    program: program.hash, output: selected ?? null, ...(sidecarModule === undefined ? {} : { sidecar: sidecarModule.hash }),
+  }))), baked, undefined, inputRoots);
   let generatedOutput: unknown, map: Awaited<ReturnType<typeof generatedProjectMap>> | undefined;
   let discovery: DiscoveryValues | undefined;
   if (isProjectGenerator(declaration)) {
-    declaration = await declaration(createProjectGeneration(project,
-      contentHash(new TextEncoder().encode(canonicalJson({ program: program.hash, output: selected ?? null }))), baked, undefined, inputRoots));
+    declaration = await declaration(generation);
     if (typeof declaration === 'object' && declaration !== null && 'shard' in declaration) {
       if (!('output' in declaration) || Object.keys(declaration).some(key => !['shard', 'output', 'map', 'discovery'].includes(key))) throw new Error('Generated project requires shard, output and optional map/discovery');
       if ('map' in declaration) map = await generatedProjectMap(declaration.map, mapSourceHash ?? program.hash);
@@ -109,7 +114,6 @@ async function projectModule(project: string, decisionLegacyLines?: number, sele
     for (const [hash, bytes] of product.assets) baked.set(hash, bytes);
   } else shard = parseShardfile(declaration);
   checkProjectRuntime(project, projectPerformancePolicy(project, shard));
-  const sidecarModule = existsSync(resolve(project, 'generators/output.ts')) ? await authorModule(project, 'generators/output.ts') : undefined;
   const sidecar = sidecarModule?.exports;
   if (sidecar !== undefined && ('output' in loaded || !('output' in sidecar))) throw new Error('Output sidecar requires one unambiguous output export');
   if (generatedOutput !== undefined && (sidecar !== undefined || 'output' in loaded)) throw new Error('Generated project requires one unambiguous output declaration');
@@ -117,8 +121,7 @@ async function projectModule(project: string, decisionLegacyLines?: number, sele
   const prepareOutput = sidecar?.['prepareOutput'];
   if (prepareOutput !== undefined) {
     if (!isProjectGenerator(prepareOutput) || sidecarModule === undefined) throw new Error('Output preparation must be a build function');
-    sidecarOutput = await prepareOutput(createProjectGeneration(project,
-      contentHash(new TextEncoder().encode(canonicalJson({ program: program.hash, sidecar: sidecarModule.hash }))), baked, undefined, inputRoots));
+    sidecarOutput = await prepareOutput(generation);
   }
   shard = mergeProjectSections(shard, sidecar?.['sections']);
   const output = await prepareProjectOutput(project, generatedOutput ?? (sidecar === undefined ? loaded['output'] : sidecarOutput), { source: shard, options: projectDecisionOptions(loaded['buildOptions'], projectDecisionBudget(project, decisionLegacyLines)) });
