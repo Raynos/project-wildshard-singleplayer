@@ -8,5 +8,3 @@ export function bakeDifference<R>(file: string, committed: CommittedPlacesBake<R
 
 /** Read the exact native terrain for the separate painted recipe. */
 export function readNalatiTerrain(): ArrayBuffer;
-/** Publish or byte-compare only the admitted native Nalati geometry envelopes. */
-export function writeNalatiParts(parts: readonly { readonly name: 'places' | 'specimens'; readonly json: 'places.json' | 'placeSpecimens.json'; readonly part: { readonly rows: readonly unknown[]; readonly bin: Uint8Array } }[], check?: boolean): void;

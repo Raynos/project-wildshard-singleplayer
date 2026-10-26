@@ -737,7 +737,7 @@
     "src/shards/nalati-grasslands/generators/bake-boot-metadata.mjs": 7,
     "src/shards/nalati-grasslands/generators/bake-kokpar.mjs": 3,
     "src/shards/nalati-grasslands/generators/bake-nalati-bodies.mjs": 4,
-    "src/shards/nalati-grasslands/generators/bake-nalati-places.mjs": 4,
+    "src/shards/nalati-grasslands/generators/bake-nalati-places.mjs": 2,
     "src/shards/nalati-grasslands/generators/bake-titan-fire-view.mjs": 1,
     "src/shards/nalati-grasslands/generators/bake-titan-whirls-view.mjs": 1,
     "src/shards/nalati-grasslands/generators/balbalBody.ts": 4,

@@ -1,14 +1,14 @@
-// Retained transitional painted places/specimens runner; the nine dressing recipes are independent.
+// Native construction for the map and independent original-bake comparisons.
 import { withPortableMath } from '@wildshard/commons/bake/portableMath';
 import { bakeNalatiPlacesOnTerrain } from './places.ts';
-import { readNalatiTerrain, writeNalatiParts } from './bake-nalati-places.mjs';
+import { readNalatiTerrain } from './bake-nalati-places.mjs';
 
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { prepareNalatiDressingInputs } from './dressingInputs.ts';
 import { bakeNalatiDressingSource } from './dressingSource.ts';
 
-/** Fresh retained native construction; publication remains the CLI's separate responsibility. */
+/** Fresh native construction without publishing source or public handoffs. */
 export async function nativeNalatiPlaces() {
   const terrain = readNalatiTerrain();
   const scalarBlocks = new Map(['pond', 'red', 'green', 'blue'].map(name => {
@@ -21,10 +21,4 @@ export async function nativeNalatiPlaces() {
   const dressing = await bakeNalatiDressingSource(source);
 
   return bakeNalatiPlacesOnTerrain(terrain, withPortableMath, dressing);
-}
-
-if (import.meta.main) {
-  const made = await nativeNalatiPlaces();
-  writeNalatiParts([{ name: 'places', json: 'places.json', part: made.places },
-    { name: 'specimens', json: 'placeSpecimens.json', part: made.specimens }], process.argv.includes('--check'));
 }

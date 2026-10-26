@@ -633,66 +633,6 @@
       }
     },
     {
-      "id": "nalati-places",
-      "shard": "nalati-grasslands",
-      "entry": "src/shards/nalati-grasslands/generators/bake-nalati-painted.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./scripts/bake-loader.mjs",
-        "src/shards/nalati-grasslands/generators/bake-nalati-painted.mjs",
-        "--force-write"
-      ],
-      "inputRoots": [
-        "test/fake/portableMath.ts",
-        "src/engine",
-        "src/game",
-        "src/sdk",
-        "src/commons",
-        "src/shards/nalati-grasslands",
-        "scripts/bake-loader.mjs",
-        "scripts/bake",
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "public/assets/baked/nalati-grasslands/terrain.bin",
-        "budgets",
-        "scripts/bake-output.mjs",
-        "scripts/authored-manifest.mjs",
-        "scripts/manifest-budget.mjs",
-        "scripts/manifest-spawns.mjs",
-        "src/format/minimap.ts",
-        "src/format/colourFunction.ts",
-        "src/format/json.ts",
-        "src/format/materialFamilies.ts",
-        "src/format/materialGraph.ts",
-        "src/format/materials.ts",
-        "src/format/paintedLook.ts",
-        "src/format/runtimeBinds.ts",
-        "src/shards/nalati-grasslands/species/horse.json",
-        "src/shards/nalati-grasslands/species/horse.d.json.ts",
-        "src/shards/nalati-grasslands/data/speciesRows.json",
-        "src/shards/nalati-grasslands/data/geography-pond.bin",
-        "src/shards/nalati-grasslands/data/geography-red.bin",
-        "src/shards/nalati-grasslands/data/geography-green.bin",
-        "src/shards/nalati-grasslands/data/geography-blue.bin",
-        "src/shards/nalati-grasslands/data/kurganLayout.generated.json",
-        "src/shards/nalati-grasslands/data/layout.generated.json",
-        "src/shards/nalati-grasslands/data/poiLayout.generated.json"
-      ],
-      "outputs": [
-        "public/assets/nalati/baked/places.bin",
-        "public/assets/nalati/baked/specimens.bin",
-        "src/shards/nalati-grasslands/data/places.json",
-        "src/shards/nalati-grasslands/data/placeSpecimens.json"
-      ],
-      "platform": "portable",
-      "seedOutputs": [
-        "src/shards/nalati-grasslands/data/places.json",
-        "src/shards/nalati-grasslands/data/placeSpecimens.json"
-      ]
-    },
-    {
       "id": "driftwood-interactables",
       "shard": "driftwood-isle",
       "entry": "src/shards/driftwood-isle/generators/bake-interactables.mjs",

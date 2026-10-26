@@ -2,6 +2,7 @@ import { nalatiSpecimens } from './fixtures/nalati-specimens';
 import { nalatiBalbal } from './fixtures/nalati-balbal';
 import { nalatiRuntime } from './fixtures/nalati-runtime';
 import { nalatiDecorative } from './fixtures/nalati-decorative';
+import { originalPlaceBinary } from './fixtures/nalati-original-place-binary';
 // oxlint-disable-next-line import/no-nodejs-modules -- validate generated dressing fixtures without inferring their complete JSON types
 import { readFileSync } from 'node:fs';
 import { PrivateSceneSchema } from '../src/format/clientChannels';
@@ -189,7 +190,7 @@ test('Nalati logical bakes admit the exact shipping compressed bytes and decoded
   for(const admitted of sources){
     const name=admitted.file.name?.slice('world/'.length);
     if(name===undefined)throw new Error('Missing named logical bake');
-    const original=readFileSync(name==='dressing.bin'?'test/fixtures/nalati-dressing.bin':`public/assets/nalati/baked/${name}`);
+    const original=name==='places.bin'?await originalPlaceBinary():readFileSync(name==='dressing.bin'?'test/fixtures/nalati-dressing.bin':`public/assets/nalati/baked/${name}`);
     expect(admitted.file.hash).toBe(hashImmutableBytes(original));expect(Buffer.compare(admitted.bytes,original)).toBe(0);
     expect((await decodeLaneBytes(admitted.bytes)).byteLength).toBe(admitted.file.decoded);
   }

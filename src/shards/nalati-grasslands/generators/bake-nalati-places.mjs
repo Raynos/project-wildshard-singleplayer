@@ -1,15 +1,10 @@
 #!/usr/bin/env node
-// DS1.5: the authored places/specimens/dressing generator runs in Node, over the real terrain grid.
-// Normal generation and --check use the same exact row/float bytes and zlib lanes on every platform.
-// Regenerate: node --experimental-transform-types --import ./scripts/bake-loader.mjs generators/bake-nalati-places.mjs
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+// Retained native terrain input and independent original-bake comparisons.
+// Publication belongs to the source product; no source/public handoff is written.
+import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { deflateSync } from 'node:zlib';
-import { encodeNalatiPart } from './placeWire.ts';
 
 const root = resolve(import.meta.dirname, '../../../..');
-const OUT = resolve(root, 'public/assets/nalati/baked');
-const DATA = resolve(root, 'src/shards/nalati-grasslands/data');
 const TERRAIN = resolve(root, 'public/assets/baked/nalati-grasslands/terrain.bin');
 
 /** The raw binary from its shipped lanes (every 4-byte word's first bytes, then its second …). */
@@ -58,23 +53,3 @@ export function bakeDifference(file, committed, made, geos) {
 
 /** Read the actual native terrain bytes; the painted recipe receives this explicit input. */
 export function readNalatiTerrain() { return terrainBuffer(); }
-
-/** Publish/check the unchanged Nalati wire envelopes, at the existing Node I/O boundary. */
-export function writeNalatiParts(parts, check = false) {
-  let changed = 0;
-  const put = (path, bytes) => {
-    const buffer = Buffer.from(bytes);
-    if (check) {
-      if (!existsSync(path) || !readFileSync(path).equals(buffer)) { changed++; console.error(`nalati bake: STALE ${path}`); }
-    } else { mkdirSync(resolve(path, '..'), { recursive: true }); writeFileSync(path, buffer); }
-  };
-  for (const { name, json, part } of parts) {
-    if (!['places', 'specimens'].includes(name) || !['places.json', 'placeSpecimens.json'].includes(json)) throw new Error('Unknown Nalati bake output');
-    const encoded = encodeNalatiPart(part, bytes => deflateSync(bytes, { level: 9 }));
-    put(resolve(OUT, `${name}.bin`), encoded.binary);
-    put(resolve(DATA, json), encoded.document);
-  }
-  if (changed !== 0) throw new Error(`Nalati bake has ${changed} stale outputs`);
-}
-
-if (import.meta.main) throw new Error('Run bake-nalati-painted.mjs for native places and specimens');

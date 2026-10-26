@@ -30,20 +30,6 @@
       "purpose": "Template 2's committed Blender world (SF55), the build input of its shardfile tiles; the G527 dev-map measure UVs add 1.7 KB to the 1.03 MB clay export"
     },
     {
-      "path": "public/assets/nalati/baked/places.bin",
-      "oid": "7d3fb3c08c279cfa1be727d84b1c3a6f3f29dcd7",
-      "bytes": 11547006,
-      "kind": "runtime",
-      "purpose": "Nalati painted places and fixed actor shapes, including exact Kurgan fabric, baked vertex lighting, encounter rest meshes and sand light"
-    },
-    {
-      "path": "public/assets/nalati/baked/specimens.bin",
-      "oid": "7d8fd541808578582735321e75792ce1dfe0819d",
-      "bytes": 2342425,
-      "kind": "runtime",
-      "purpose": "Nalati places bake Explorer specimens, fetched only when the Model Explorer builds one"
-    },
-    {
       "path": "public/assets/nalati/baked/crags.bin",
       "oid": "eb3a5c00953f2ab01853c2aae6bd028bc0cbeac9",
       "bytes": 2087994,
