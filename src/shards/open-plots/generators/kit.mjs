@@ -134,7 +134,7 @@ function writer(parts, centre, turns, kit) {
     : (at, colour) => kit.lanternEmitter(turn(at), [...colour]);
   const w = { tri, triColours, triChannels, quad, box, sides, floor, solid, lanternEmitter, placeModel: undefined, hasModel: () => false };
   // RM4: a kit model (kitGlb.mjs) at tile-local (x, z), through this writer's turn and lantern bake; a builder uses its
-  // family's models only when the kit placed has that family (tiledPlot.mjs KIT_FAMILIES)
+  // family's models only when the kit placed has that family (the layout's kit)
   if (kit?.placeModel !== undefined) {
     w.placeModel = (family, variant, x, z, options) => kit.placeModel(w, family, variant, x, z, options);
     w.hasModel = (family) => kit.has(family);
@@ -206,10 +206,9 @@ function placeMovingLight(w, kind, position) {
   const seed = nextSeed() * 0.5;
   mover(w, position[0], position[1], position[2], kind === 'firefly' ? 0.07 : 0.35, kind === 'firefly' ? seed : 0.5 + seed);
 }
-/** A lantern on a post of `height` and its pool of light. With the kit's models (RM4, opt-in: tiledPlot.mjs
- *  KIT_FAMILIES) it is the stone post, paper-lantern bracket or banner post by place, its model emitting the bake's
- *  light; without them, the low-poly post and lit box that fit the pinned tile bytes until RM8's instancing pays for
- *  the models. */
+/** A lantern on a post of `height` and its pool of light. With the kit's models (RM4, opt-in: the layout's kit) it is
+ *  the stone post, paper-lantern bracket or banner post by place, its model emitting the bake's light; without them,
+ *  the low-poly post and lit box that fit the pinned tile bytes until RM8.1 pays for the models. */
 function lantern(w, x, z, p, height = 2.8) {
   if (w.hasModel('lanterns')) {
     w.placeModel('lanterns', pick(x, z, 3), x, z, { height, yaw: pick(x, z, 4, 1) * Math.PI / 2 });
@@ -223,7 +222,7 @@ function lantern(w, x, z, p, height = 2.8) {
 }
 /** A low-poly tree: trunk and a faceted crown (two hexagonal cones back to back). */
 function tree(w, x, z, size, p, spin) {
-  // RM4.7 (opt-in, tiledPlot.mjs KIT_FAMILIES): a generated round, tall or willow tree, 8 m as built, scaled to this
+  // RM4.7 (opt-in, the layout's kit): a generated round, tall or willow tree, 8 m as built, scaled to this
   // tree's crown top
   if (w.hasModel('trees')) {
     w.placeModel('trees', pick(x, z, 3), x, z, { yaw: spin, scale: size * 1.1 / 8 });
@@ -286,7 +285,7 @@ function kerbRing(w, p, gaps) {
   };
   run(-e, e, 'n'); run(-e, e, 's'); run(-e + t, e - t, 'e'); run(-e + t, e - t, 'w');
 }
-/** RM4.4: an H court's houses from the kit's models (opt-in, tiledPlot.mjs KIT_FAMILIES): five cottages and two-storey
+/** RM4.4: an H court's houses from the kit's models (opt-in, the layout's kit): five cottages and two-storey
  *  houses along the north side facing the court, a porch hall on each wing facing in (the court's lanterns, lawn and
  *  tree are the court's own). */
 function modelHouses(w) {
@@ -371,7 +370,7 @@ function stalls(w, p) {
     w.solid([x - 1.4, 0, z - 0.9], [x + 1.4, 1.3, z + 0.9]);
   }
 }
-/** RM4.2: the S tile from the kit's stall models (opt-in, tiledPlot.mjs KIT_FAMILIES): ten stalls a side every 5.5 m
+/** RM4.2: the S tile from the kit's stall models (opt-in, the layout's kit): ten stalls a side every 5.5 m
  *  facing the aisle (the hero stall and the red-roofed row stall, by place), a pool before every other one, and food carts
  *  staggered down the aisle; each model emits its own lanterns. */
 function modelStalls(w, p) {
@@ -443,7 +442,7 @@ function canal(w, p, type) {
   for (const [i, [x, z]] of banks.entries()) { if (i % 2 === 0) tree(w, x, z, 6, p, i); else lantern(w, x, z, p); }
   for (const z of [-INNER + 3, INNER - 3]) if (type === 'C') { lantern(w, -half - 2.4, z, p, 2.2); lantern(w, half + 2.4, z, p, 2.2); }
 }
-/** RM7.1 (opt-in, tiledPlot.mjs KIT_FAMILIES): a rim run as the kit's 2 m coping blocks, their lips toward the water (the
+/** RM7.1 (opt-in, the layout's kit): a rim run as the kit's 2 m coping blocks, their lips toward the water (the
  *  side of the run a water rectangle touches), a mooring bollard every fifth and water steps every ninth. */
 function copeRun(w, rects, [x0, z0, x1, z1]) {
   const wet = (x, z) => rects.some(([a0, b0, a1, b1]) => x > a0 && x < a1 && z > b0 && z < b1);
@@ -461,7 +460,7 @@ function halfBridge(w, p, side) {
   // built for the north border (the lane runs east-west over z in [INNER, HALF]), then turned for the others
   const turnPoint = ([x, y, z]) => { let px = x, pz = z; for (let i = 0; i < side; i++) [px, pz] = [pz, -px]; return [px, y, pz]; };
   const at = (u) => { const x = -half + 2 * half * u; return [x, rise * Math.sin(Math.PI * u)]; };
-  // RM4.5 (opt-in, tiledPlot.mjs KIT_FAMILIES): the kit's arched half-bridge, its seam edge on the border, turned with it
+  // RM4.5 (opt-in, the layout's kit): the kit's arched half-bridge, its seam edge on the border, turned with it
   const model = w.hasModel('bridges');
   if (model) { const [ox, , oz] = turnPoint([0, 0, HALF]); w.placeModel('bridges', pick(ox, oz, 3), ox, oz, { yaw: side * Math.PI / 2 }); }
   // RM4.8 (opt-in): an elder on the crown of every other bridge half, looking across the span
@@ -642,7 +641,7 @@ function stringLights(w, p, side, centre) {
   }
 }
 
-/** RM4.3 (opt-in, tiledPlot.mjs KIT_FAMILIES): a seam's strings from the kit: a lane post with its banner along the lane
+/** RM4.3 (opt-in, the layout's kit): a seam's strings from the kit: a lane post with its banner along the lane
  *  at each crossing corner, a dark cord sagging between them, and round gold bulbs on it with a red paper lantern every
  *  fourth (each model emits its own light). */
 function modelStrings(w, p, along, ends, clear, top, sag, step) {
