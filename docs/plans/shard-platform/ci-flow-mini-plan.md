@@ -354,8 +354,13 @@ the new Driftwood island-prototype input boundary: audio-authoring.test.ts
 declares only the public asset root, so driftwoodIslandProtoOutput refuses
 `Generation input needs exactly one declared root`. O3 identifies defining
 4870a346fc as x1's owned-prototype intake; routing corrected to x1 with a
-transitive-caller audit, first22:04:35Z/deadline22:34:35Z, preserving the
-strict root refusal and all audio oracles. The overall verdict remains red.
+transitive-caller audit, first22:04:35Z/deadline22:34:35Z. X1 repair650014b29e
+is verified on origin, committed22:06:44Z; all three local audio cases,
+scoped fixture types and named typed lint pass. Strict root refusal and all
+audio oracles remain. Containing CI acceptance is pending; the overall
+verdict remains red. At22:13Z the older f99b run still has product shard3
+running, while the newer381bd153de run is pending. Live/exact smoke remain
+14a3d5d93; the release-ready command selects that already-live SHA.
 No capture, cap change or smoke retry is requested.
 
 ## Decisions for Jake
