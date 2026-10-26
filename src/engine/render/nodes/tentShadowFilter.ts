@@ -12,16 +12,17 @@ import type { FnNode, ProxiedObject } from 'three/src/nodes/tsl/TSLCore.js';
  * Each tent is one GLSL function (`wsTent7`, `wsTent5`, `wsTent3`) that a light's shadow calls, not its taps as nodes: as
  * nodes, a Driftwood graph build processed ~2,500 tent nodes for its five shadows (three cascades, two fade ghosts), half
  * of its CPU time (G743 / G717: one stock node build is one slow phone frame), and its program held a flip uniform for
- * every tap. The function is the node tent's own expressions in their order, so it draws the same.
+ * every tap (shadowFunction.ts). The function is the node tent's own expressions in their order, so it draws the same.
  *
  * three's shadow node hands the filter a coordinate whose y is flipped (WebGPU convention) and the shadow depth sample
  * flips it back (shadowDepthSample.ts: always, for a depth map); the texel grid is symmetric under the flip and the tent
  * is symmetric, so the result is the chunk's.
  */
 import type * as THREE from 'three';
-import { TempNode, type Node, type NodeBuilder, type TextureNode } from 'three/webgpu';
-import { Fn, glsl, nodeObject, reference } from 'three/tsl';
+import type { Node } from 'three/webgpu';
+import { Fn, glsl, reference } from 'three/tsl';
 import { shadowDepthSample } from './shadowDepthSample';
+import { shadowFunctionCall } from './shadowFunction';
 
 /** what three's shadow node hands a filter (the index signature: Fn's object-argument overload needs one) */
 interface FilterInputs {
@@ -93,36 +94,9 @@ export function tentSource(size: TentSize): string {
 /** each tent's function, declared once in a program that calls it */
 const TENTS: Record<TentSize, Node> = { 7: glsl(tentSource(7)), 5: glsl(tentSource(5)), 3: glsl(tentSource(3)) };
 
-/** a node's generated snippet (a build in the generate stage returns its code) */
-function snippet(node: Node, builder: NodeBuilder, output: string): string {
-  const code = node.build(builder, output);
-  if (typeof code !== 'string') throw new Error('tentShadowFilter: an input generated no code');
-  return code;
-}
-
-/** a call of one tent's function with the shadow map (a compare sampler), its size and the shadow coordinate */
-class TentShadowNode extends TempNode<'float'> {
-  private readonly map: TextureNode;
-  private readonly mapSize: Node<'vec2'>;
-  private readonly coord: Node<'vec3'>;
-  private readonly size: TentSize;
-
-  constructor(map: TextureNode, mapSize: Node<'vec2'>, coord: Node<'vec3'>, size: TentSize) {
-    super('float');
-    this.map = map; this.mapSize = mapSize; this.coord = coord; this.size = size;
-  }
-
-  override generate(builder: NodeBuilder): string {
-    TENTS[this.size].build(builder);
-    const map = snippet(this.map, builder, 'property'), mapSize = snippet(this.mapSize, builder, 'vec2');
-    return `wsTent${String(this.size)}( ${map}, ${mapSize}, ${snippet(this.coord, builder, 'vec3')} )`;
-  }
-}
-
 /** the tent as a node shadow filter (a light's `shadow.filterNode`); EngineNodesHandler assigns it */
 export const tentShadowFilter: FnNode<[ProxiedObject<FilterInputs>], Node<'float'>> = Fn<FilterInputs, Node<'float'>>(({ depthTexture, shadowCoord, shadow }: FilterInputs): Node<'float'> => {
   const size: TentSize = shadow.radius >= 1.5 ? 7 : shadow.radius >= 1 ? 5 : 3;
-  // a compare sample, so the program declares the map as a shadow sampler; the call generates only its uniform
   const map = shadowDepthSample(depthTexture, shadowCoord.xy).compare(shadowCoord.z);
-  return nodeObject(new TentShadowNode(map, reference('mapSize', 'vec2', shadow), shadowCoord, size));
+  return shadowFunctionCall(TENTS[size], `wsTent${String(size)}`, map, [[reference('mapSize', 'vec2', shadow), 'vec2'], [shadowCoord, 'vec3']]);
 });

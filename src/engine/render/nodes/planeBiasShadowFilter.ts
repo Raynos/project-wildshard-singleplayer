@@ -7,12 +7,19 @@ import type { FnNode, ProxiedObject } from 'three/src/nodes/tsl/TSLCore.js';
  * turns edge-on), and only toward the light. EngineNodesHandler gives it to every shadow-casting light without a filter
  * of its own wherever the chunk carries the bias.
  *
- * three's shadow node hands a filter a y-flipped coordinate; the slope and the tap offsets are both taken in that space.
+ * It is one GLSL function (`wsPlaneBiasPcf`, shadowFunction.ts) a light's shadow calls, not its taps as nodes (G743 /
+ * G717, per-build CPU): the node filter's own expressions in their order, with three's `interleavedGradientNoise` and
+ * `vogelDiskSample` (r186) as the program wrote them. The screen coordinate it hashes is the builder's (`screenCoordinate`,
+ * flipped to the WebGPU convention), handed in.
+ *
+ * three's shadow node hands a filter a y-flipped coordinate; the slope and the tap offsets are both taken in that space,
+ * and each tap's sample flips it back (shadowDepthSample.ts).
  */
 import type * as THREE from 'three';
 import type { Node } from 'three/webgpu';
-import { Fn, abs, clamp, dFdx, dFdy, dot, float, int, interleavedGradientNoise, min, reference, screenCoordinate, select, vec2, vogelDiskSample } from 'three/tsl';
+import { Fn, glsl, reference, screenCoordinate } from 'three/tsl';
 import { shadowDepthSample } from './shadowDepthSample';
+import { shadowFunctionCall } from './shadowFunction';
 
 /** what three's shadow node hands a filter (the index signature: Fn's object-argument overload needs one) */
 interface FilterInputs {
@@ -22,21 +29,47 @@ interface FilterInputs {
   shadow: THREE.LightShadow;
 }
 
+const TAPS = 5;
+/** the filter's GLSL: three's two helpers under the engine's names, then the receiver-plane slope and the five taps */
+export function planeBiasSource(): string {
+  const taps: string[] = [];
+  for (let i = 0; i < TAPS; i++) {
+    const o = `o${String(i)}`, p = `p${String(i)}`;
+    taps.push(`\tvec2 ${o} = ( wsVogelDiskSample( ${String(i)}, ${String(TAPS)}, phi ) * vec2( radiusScaled ) );`, `\tvec2 ${p} = ( c.xy + ${o} );`,
+      `\tsum = ( sum + texture( map, vec3( vec2( ${p}.x, 1.0 - ${p}.y ), ( c.z + min( 0.0, dot( ${o}, zSlope ) ) ) ) ) );`);
+  }
+  return [
+    'float wsInterleavedGradientNoise( vec2 position ) {',
+    '\treturn fract( ( 52.9829189 * fract( dot( position, vec2( 0.06711056, 0.00583715 ) ) ) ) );',
+    '}',
+    'vec2 wsVogelDiskSample( int sampleIndex, int samplesCount, float phi ) {',
+    '\tfloat angle = ( ( float( sampleIndex ) * 2.399963229728653 ) + phi );',
+    '\treturn ( vec2( cos( angle ), sin( angle ) ) * vec2( sqrt( ( ( float( sampleIndex ) + 0.5 ) / float( samplesCount ) ) ) ) );',
+    '}',
+    'float wsPlaneBiasPcf( sampler2DShadow map, vec3 c, vec2 screen, float radius, vec2 mapSize ) {',
+    '\tvec3 sdx = dFdx( c );',
+    '\tvec3 sdy = dFdy( c );',
+    '\tfloat sdet = ( ( sdx.x * sdy.y ) - ( sdx.y * sdy.x ) );',
+    '\tvec2 slope = vec2( 0.0, 0.0 );',
+    '\tif ( ( abs( sdet ) > 1e-12 ) ) {',
+    '\t\tslope = ( vec2( ( ( sdy.y * sdx.z ) - ( sdx.y * sdy.z ) ), ( ( sdx.x * sdy.z ) - ( sdy.x * sdx.z ) ) ) / vec2( sdet ) );',
+    '\t}',
+    '\tvec2 zSlope = clamp( slope, vec2( -2.0 ), vec2( 2.0 ) );',
+    '\tfloat phi = ( wsInterleavedGradientNoise( screen ) * 6.28318530718 );',
+    '\tfloat radiusScaled = ( radius / mapSize.x );',
+    '\tfloat sum = 0.0;',
+    ...taps,
+    '\treturn ( sum * 0.2 );',
+    '}',
+  ].join('\n');
+}
+
+/** the filter's functions, declared once in a program that calls it */
+const PLANE_BIAS = glsl(planeBiasSource());
+
 /** the biased PCF as a node shadow filter (a light's `shadow.filterNode`); EngineNodesHandler assigns it */
 export const planeBiasShadowFilter: FnNode<[ProxiedObject<FilterInputs>], Node<'float'>> = Fn<FilterInputs, Node<'float'>>(({ depthTexture, shadowCoord, shadow }: FilterInputs): Node<'float'> => {
-  const mapSize = reference('mapSize', 'vec2', shadow);
-  const radius = reference('radius', 'float', shadow);
-  const radiusScaled = radius.div(mapSize.x);
-  const phi = interleavedGradientNoise(screenCoordinate.xy).mul(6.28318530718);
-  const sdx = dFdx(shadowCoord), sdy = dFdy(shadowCoord);
-  const sdet = sdx.x.mul(sdy.y).sub(sdx.y.mul(sdy.x));
-  const slope = vec2(sdy.y.mul(sdx.z).sub(sdx.y.mul(sdy.z)), sdx.x.mul(sdy.z).sub(sdy.x.mul(sdx.z))).div(sdet);
-  const zSlope = clamp(select(abs(sdet).greaterThan(1e-12), slope, vec2(0)), -2, 2).toVar();
-  let sum: Node<'float'> = float(0);
-  for (let i = 0; i < 5; i++) {
-    const o = vogelDiskSample(int(i), int(5), phi).mul(radiusScaled);
-    const z = shadowCoord.z.add(min(0, dot(o, zSlope)));
-    sum = sum.add(shadowDepthSample(depthTexture, shadowCoord.xy.add(o)).compare(z).x); // a compare sample is a float
-  }
-  return sum.mul(0.2);
+  const map = shadowDepthSample(depthTexture, shadowCoord.xy).compare(shadowCoord.z);
+  return shadowFunctionCall(PLANE_BIAS, 'wsPlaneBiasPcf', map, [[shadowCoord, 'vec3'], [screenCoordinate.xy, 'vec2'],
+    [reference('radius', 'float', shadow), 'float'], [reference('mapSize', 'vec2', shadow), 'vec2']]);
 });
