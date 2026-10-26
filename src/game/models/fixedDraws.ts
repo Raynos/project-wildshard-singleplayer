@@ -1,4 +1,4 @@
-import { base64Bytes } from '@wildshard/engine/core/deflate';
+import { base64Bytes, decodeLaneBytes } from '@wildshard/engine/core/deflate';
 import { workSlice } from '@wildshard/engine/core/workSlice';
 import { FixedDrawRowsSchema } from '@wildshard/format/fixedDraws';
 import * as v from 'valibot';
@@ -71,9 +71,10 @@ function sourceOf(product: Pick<ShardProduct, 'file'>, lane: LaneBakeReader, lan
   row: FixedDrawRow, supplied?: ReadonlyMap<string, Uint8Array | BufferGeometry>): Promise<Uint8Array | BufferGeometry | undefined> {
   if ('inline' in row) return Promise.resolve(inflate(row.inline));
   if ('lane' in row) {
-    const url = row.lane.url, given = supplied?.get(url);
+    const source=row.lane,name='url'in source?source.url:source.file,given=supplied?.get(name);
     if (given !== undefined || supplied !== undefined) return Promise.resolve(given);
-    let read = lanes.get(url); if (read === undefined) { read = lane(url); lanes.set(url, read); }
+    const key=`${'url'in source?'url':'file'}:${name}`;
+    let read = lanes.get(key); if (read === undefined) { read = 'url'in source?lane(source.url):product.file(source.file).then(decodeLaneBytes); lanes.set(key, read); }
     return read;
   }
   return supplied === undefined ? product.file(row.file) : Promise.resolve(supplied.get(row.file));
@@ -132,7 +133,7 @@ export function productFixedDraws(product: { readonly json: (name: string) => Pr
   const read = product.json, readFile = product.file, made = read(file).then(input => {
     if (product.json !== read) throw new Error(`Fixed draw product reader changed: ${file}`);
     const rows = v.parse(FixedDrawRowsSchema, input);
-    if (!rows.some(row => 'file' in row)) return bakedFixedDraws(rows);
+    if (!rows.some(row => 'file' in row||('lane'in row&&'file'in row.lane))) return bakedFixedDraws(rows);
     if (readFile === undefined) throw new Error(`Fixed draw product file reader required: ${file}`);
     const sourceSlug = v.parse(v.string(), product.slug);
     const live = (): void => {
@@ -149,7 +150,7 @@ export function productFixedDraws(product: { readonly json: (name: string) => Pr
 
 export function bakedFixedDraws(input: unknown): FixedDraws {
   const rows = v.parse(FixedDrawRowsSchema, input);
-  if (rows.some(row => 'file' in row)) throw new Error('Baked fixed draws read no product file');
+  if (rows.some(row => 'file' in row||('lane'in row&&'file'in row.lane))) throw new Error('Baked fixed draws read no product file');
   return fixedDraws({ slug: 'baked', file: name => Promise.reject(new Error(`Baked fixed draws read no product file: ${name}`)) }, rows);
 }
 
