@@ -7,15 +7,20 @@ import type { FnNode, ProxiedObject } from 'three/src/nodes/tsl/TSLCore.js';
  * materials share one penumbra. A light picks its tent by `shadow.radius` as the chunk does: ≥ 1.5 is 7×7, ≥ 1 is 5×5,
  * below that 3×3. The pick is made as the program builds, from the light's radius then (the sky rig sets every cascade's
  * and ghost's radius before anything compiles, and a new rig is new lights, so new programs): each light's program
- * carries only its own tent (16, 9 or 4 taps), not all three behind a runtime branch (29 taps a light, five lights a
- * graph program: most of a 200 KB fragment shader, and the cold-boot compile time of every graph material).
+ * carries only its own tent (16, 9 or 4 taps), not all three behind a runtime branch.
  *
- * three's shadow node hands the filter a coordinate whose y is flipped (WebGPU convention) and its texture sample flips it
- * back; the texel grid is symmetric under the flip and the tent is symmetric, so the result is the chunk's.
+ * Each tent is one GLSL function (`wsTent7`, `wsTent5`, `wsTent3`) that a light's shadow calls, not its taps as nodes: as
+ * nodes, a Driftwood graph build processed ~2,500 tent nodes for its five shadows (three cascades, two fade ghosts), half
+ * of its CPU time (G743 / G717: one stock node build is one slow phone frame), and its program held a flip uniform for
+ * every tap. The function is the node tent's own expressions in their order, so it draws the same.
+ *
+ * three's shadow node hands the filter a coordinate whose y is flipped (WebGPU convention) and the shadow depth sample
+ * flips it back (shadowDepthSample.ts: always, for a depth map); the texel grid is symmetric under the flip and the tent
+ * is symmetric, so the result is the chunk's.
  */
 import type * as THREE from 'three';
-import type { Node } from 'three/webgpu';
-import { Fn, abs, clamp, dFdx, dFdy, dot, float, floor, min, reference, select, vec2 } from 'three/tsl';
+import { TempNode, type Node, type NodeBuilder, type TextureNode } from 'three/webgpu';
+import { Fn, glsl, nodeObject, reference } from 'three/tsl';
 import { shadowDepthSample } from './shadowDepthSample';
 
 /** what three's shadow node hands a filter (the index signature: Fn's object-argument overload needs one) */
@@ -26,50 +31,98 @@ interface FilterInputs {
   shadow: THREE.LightShadow;
 }
 
+type TentSize = 3 | 5 | 7;
+/** a tent's per-axis weights and offsets as GLSL of the axis fraction `t` (offset i reads weight `w<i>`), as the node
+ *  tent wrote them, and the sum's divisor */
+interface TentAxis { readonly weights: (t: string) => string[]; readonly offsets: (t: string) => string[]; readonly divisor: string }
+const AXES: Record<TentSize, TentAxis> = {
+  7: {
+    weights: (t) => [`( ( ${t} * 5.0 ) - 6.0 )`, `( ( ${t} * 11.0 ) - 28.0 )`, `( - ( ( ${t} * 11.0 ) + 17.0 ) )`, `( - ( ( ${t} * 5.0 ) + 1.0 ) )`],
+    offsets: (t) => [`( ( ( ( ${t} * 4.0 ) - 5.0 ) / w0 ) - 3.0 )`, `( ( ( ( ${t} * 4.0 ) - 16.0 ) / w1 ) - 1.0 )`,
+      `( ( ( - ( ( ${t} * 7.0 ) + 5.0 ) ) / w2 ) + 1.0 )`, `( ( ( - ${t} ) / w3 ) + 3.0 )`],
+    divisor: '2704.0',
+  },
+  5: {
+    weights: (t) => [`( 4.0 - ( ${t} * 3.0 ) )`, '7.0', `( ( ${t} * 3.0 ) + 1.0 )`],
+    offsets: (t) => [`( ( ( 3.0 - ( ${t} * 2.0 ) ) / w0 ) - 2.0 )`, `( ( ${t} + 3.0 ) / 7.0 )`, `( ( ${t} / w2 ) + 2.0 )`],
+    divisor: '144.0',
+  },
+  3: {
+    weights: (t) => [`( 3.0 - ( ${t} * 2.0 ) )`, `( ( ${t} * 2.0 ) + 1.0 )`],
+    offsets: (t) => [`( ( ( 2.0 - ${t} ) / w0 ) - 1.0 )`, `( ( ${t} / w1 ) + 1.0 )`],
+    divisor: '16.0',
+  },
+};
+
+/** one tent's GLSL function: the receiver-plane slope, then every tap (row by row) weighted into the sum */
+export function tentSource(size: TentSize): string {
+  const axis = AXES[size], body: string[] = [];
+  for (const [prefix, t] of [['u', 'ts'], ['v', 'tt']] as const) {
+    axis.weights(t).forEach((w, i) => { body.push(`\tfloat ${prefix}w${String(i)} = ${w};`); });
+    axis.offsets(t).forEach((o, i) => { body.push(`\tfloat ${prefix}${String(i)} = ${o.replaceAll(/\bw(\d)/gu, `${prefix}w$1`)};`); });
+  }
+  const n = axis.weights('').length;
+  for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) {
+    const o = `vec2( u${String(i)}, v${String(j)} )`, p = `p${String(j * n + i)}`;
+    body.push(`\tvec2 ${p} = ( tbase + ( ${o} * inv ) );`,
+      `\tsum = ( sum + ( ( uw${String(i)} * vw${String(j)} ) * texture( map, vec3( vec2( ${p}.x, 1.0 - ${p}.y ), ( c.z + min( 0.0, dot( ( ${o} - vec2( ts, tt ) ), zSlope ) ) ) ) ) ) );`);
+  }
+  return [
+    `float wsTent${String(size)}( sampler2DShadow map, vec2 mapSize, vec3 c ) {`,
+    '\tvec2 tuv = ( c.xy * mapSize );',
+    '\tvec2 tb = floor( ( tuv + vec2( 0.5 ) ) );',
+    '\tfloat ts = ( ( tuv.x + 0.5 ) - tb.x );',
+    '\tfloat tt = ( ( tuv.y + 0.5 ) - tb.y );',
+    '\tvec2 inv = ( vec2( 1.0, 1.0 ) / mapSize );',
+    '\tvec2 tbase = ( ( tb - vec2( 0.5 ) ) * inv );',
+    '\tvec3 sdx = dFdx( c );',
+    '\tvec3 sdy = dFdy( c );',
+    '\tfloat sdet = ( ( sdx.x * sdy.y ) - ( sdx.y * sdy.x ) );',
+    '\tvec2 slope = vec2( 0.0, 0.0 );',
+    '\tif ( ( abs( sdet ) > 1e-12 ) ) {',
+    '\t\tslope = ( vec2( ( ( sdy.y * sdx.z ) - ( sdx.y * sdy.z ) ), ( ( sdx.x * sdy.z ) - ( sdy.x * sdx.z ) ) ) / vec2( sdet ) );',
+    '\t}',
+    '\tvec2 zSlope = ( clamp( slope, vec2( -2.0 ), vec2( 2.0 ) ) * inv );',
+    '\tfloat sum = 0.0;',
+    ...body,
+    `\treturn ( sum / ${axis.divisor} );`,
+    '}',
+  ].join('\n');
+}
+
+/** each tent's function, declared once in a program that calls it */
+const TENTS: Record<TentSize, Node> = { 7: glsl(tentSource(7)), 5: glsl(tentSource(5)), 3: glsl(tentSource(3)) };
+
+/** a node's generated snippet (a build in the generate stage returns its code) */
+function snippet(node: Node, builder: NodeBuilder, output: string): string {
+  const code = node.build(builder, output);
+  if (typeof code !== 'string') throw new Error('tentShadowFilter: an input generated no code');
+  return code;
+}
+
+/** a call of one tent's function with the shadow map (a compare sampler), its size and the shadow coordinate */
+class TentShadowNode extends TempNode<'float'> {
+  private readonly map: TextureNode;
+  private readonly mapSize: Node<'vec2'>;
+  private readonly coord: Node<'vec3'>;
+  private readonly size: TentSize;
+
+  constructor(map: TextureNode, mapSize: Node<'vec2'>, coord: Node<'vec3'>, size: TentSize) {
+    super('float');
+    this.map = map; this.mapSize = mapSize; this.coord = coord; this.size = size;
+  }
+
+  override generate(builder: NodeBuilder): string {
+    TENTS[this.size].build(builder);
+    const map = snippet(this.map, builder, 'property'), mapSize = snippet(this.mapSize, builder, 'vec2');
+    return `wsTent${String(this.size)}( ${map}, ${mapSize}, ${snippet(this.coord, builder, 'vec3')} )`;
+  }
+}
+
 /** the tent as a node shadow filter (a light's `shadow.filterNode`); EngineNodesHandler assigns it */
 export const tentShadowFilter: FnNode<[ProxiedObject<FilterInputs>], Node<'float'>> = Fn<FilterInputs, Node<'float'>>(({ depthTexture, shadowCoord, shadow }: FilterInputs): Node<'float'> => {
-  const mapSize = reference('mapSize', 'vec2', shadow);
-  const tuv = shadowCoord.xy.mul(mapSize);
-  const tb = floor(tuv.add(0.5));
-  const ts = tuv.x.add(0.5).sub(tb.x).toVar(), tt = tuv.y.add(0.5).sub(tb.y).toVar();
-  const inv = vec2(1).div(mapSize);
-  const tbase = tb.sub(0.5).mul(inv).toVar();
-  // receiver-plane depth bias: d(depth)/d(uv) along the receiver, from the screen derivatives of the shadow coordinate
-  const sdx = dFdx(shadowCoord), sdy = dFdy(shadowCoord);
-  const sdet = sdx.x.mul(sdy.y).sub(sdx.y.mul(sdy.x));
-  const slope = vec2(sdy.y.mul(sdx.z).sub(sdx.y.mul(sdy.z)), sdx.x.mul(sdy.z).sub(sdy.x.mul(sdx.z))).div(sdet);
-  const zSlope = clamp(select(abs(sdet).greaterThan(1e-12), slope, vec2(0)), -2, 2).mul(inv).toVar();
-  const tap = (u: Node<'float'>, v: Node<'float'>): Node<'float'> => {
-    const o = vec2(u, v);
-    const z = shadowCoord.z.add(min(0, dot(o.sub(vec2(ts, tt)), zSlope)));
-    return shadowDepthSample(depthTexture, tbase.add(o.mul(inv))).compare(z).x; // a compare sample is a float
-  };
-  const radius = shadow.radius;
-  if (radius >= 1.5) {
-    const uw0 = ts.mul(5).sub(6), uw1 = ts.mul(11).sub(28), uw2 = ts.mul(11).add(17).negate(), uw3 = ts.mul(5).add(1).negate();
-    const vw0 = tt.mul(5).sub(6), vw1 = tt.mul(11).sub(28), vw2 = tt.mul(11).add(17).negate(), vw3 = tt.mul(5).add(1).negate();
-    const u0 = ts.mul(4).sub(5).div(uw0).sub(3), u1 = ts.mul(4).sub(16).div(uw1).sub(1), u2 = ts.mul(7).add(5).negate().div(uw2).add(1), u3 = ts.negate().div(uw3).add(3);
-    const v0 = tt.mul(4).sub(5).div(vw0).sub(3), v1 = tt.mul(4).sub(16).div(vw1).sub(1), v2 = tt.mul(7).add(5).negate().div(vw2).add(1), v3 = tt.negate().div(vw3).add(3);
-    const us = [[uw0, u0], [uw1, u1], [uw2, u2], [uw3, u3]] as const, vs = [[vw0, v0], [vw1, v1], [vw2, v2], [vw3, v3]] as const;
-    let sum: Node<'float'> = float(0);
-    for (const [vw, v] of vs) for (const [uw, u] of us) sum = sum.add(uw.mul(vw).mul(tap(u, v)));
-    return sum.div(2704);
-  }
-  if (radius >= 1) {
-    const uw0 = float(4).sub(ts.mul(3)), uw2 = ts.mul(3).add(1), vw0 = float(4).sub(tt.mul(3)), vw2 = tt.mul(3).add(1);
-    const u0 = float(3).sub(ts.mul(2)).div(uw0).sub(2), u1 = ts.add(3).div(7), u2 = ts.div(uw2).add(2);
-    const v0 = float(3).sub(tt.mul(2)).div(vw0).sub(2), v1 = tt.add(3).div(7), v2 = tt.div(vw2).add(2);
-    const us = [[uw0, u0], [float(7), u1], [uw2, u2]] as const, vs = [[vw0, v0], [float(7), v1], [vw2, v2]] as const;
-    let sum: Node<'float'> = float(0);
-    for (const [vw, v] of vs) for (const [uw, u] of us) sum = sum.add(uw.mul(vw).mul(tap(u, v)));
-    return sum.div(144);
-  }
-  {
-    const uw0 = float(3).sub(ts.mul(2)), uw1 = ts.mul(2).add(1), vw0 = float(3).sub(tt.mul(2)), vw1 = tt.mul(2).add(1);
-    const u0 = float(2).sub(ts).div(uw0).sub(1), u1 = ts.div(uw1).add(1), v0 = float(2).sub(tt).div(vw0).sub(1), v1 = tt.div(vw1).add(1);
-    const us = [[uw0, u0], [uw1, u1]] as const, vs = [[vw0, v0], [vw1, v1]] as const;
-    let sum: Node<'float'> = float(0);
-    for (const [vw, v] of vs) for (const [uw, u] of us) sum = sum.add(uw.mul(vw).mul(tap(u, v)));
-    return sum.div(16);
-  }
+  const size: TentSize = shadow.radius >= 1.5 ? 7 : shadow.radius >= 1 ? 5 : 3;
+  // a compare sample, so the program declares the map as a shadow sampler; the call generates only its uniform
+  const map = shadowDepthSample(depthTexture, shadowCoord.xy).compare(shadowCoord.z);
+  return nodeObject(new TentShadowNode(map, reference('mapSize', 'vec2', shadow), shadowCoord, size));
 });
