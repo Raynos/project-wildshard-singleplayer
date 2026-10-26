@@ -11,8 +11,8 @@ export interface TileDecodeRequest { id: number; bytes: ArrayBuffer }
 /** Worker → main thread; the sample arrays are transferred. */
 export type TileDecodeReply = { id: number; data: TerrainTileData; error?: undefined } | { id: number; error: string; data?: undefined };
 
-/** A small round-robin pool. Thirty seconds without queued/active work retires
- * worker contexts; the next decode recreates the same capacity. Disposal stays final. */
+/** A small round-robin pool, started by the first decode. Thirty seconds without
+ * queued/active work retires its contexts; the next decode recreates the same capacity. Disposal stays final. */
 export class TileDecoder {
   private readonly scope = new Scope('tile-decoder');
   private readonly workers: Worker[] = [];
@@ -23,7 +23,7 @@ export class TileDecoder {
   private disposed = false;
   private jobs = 0;
   private idle: ReturnType<Scope['timeout']> | undefined;
-  constructor(private readonly size = 2) { this.start(); this.watchIdle(); }
+  constructor(private readonly size = 2) {}
   private start(): void {
     if (this.disposed || this.workers.length > 0) return;
     if (typeof Worker === 'undefined') return;

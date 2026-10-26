@@ -4,13 +4,14 @@ import type { TerrainTileData } from '@wildshard/format/terrainTileBytes';
 
 const workers: ControlledWorker[] = [];
 let refuseWorker = false;
+let refuseAfter: number | undefined;
 const previousWorker = globalThis.Worker;
 class ControlledWorker {
   onmessage: ((event: MessageEvent<TileDecodeReply>) => void) | null = null;
   onerror: ((event: { message: string }) => void) | null = null;
   readonly sent: TileDecodeRequest[] = [];
   terminated = false;
-  constructor() { if (refuseWorker) throw new Error('Worker startup refused'); workers.push(this); }
+  constructor() { if (refuseWorker || workers.length === refuseAfter) throw new Error('Worker startup refused'); workers.push(this); }
   postMessage(request: TileDecodeRequest, transfer: Transferable[] = []): void { this.sent.push(structuredClone(request, { transfer })); }
   terminate(): void { this.terminated = true; }
   reply(data: TerrainTileData): void {
@@ -19,7 +20,43 @@ class ControlledWorker {
   }
 }
 const tile: TerrainTileData = { resolution: 2, size: 1, x: 0, z: 0, heights: new Float32Array(4) };
-afterEach(() => { vi.useRealTimers(); vi.stubGlobal('Worker', previousWorker); workers.length = 0; refuseWorker = false; });
+afterEach(() => { vi.useRealTimers(); vi.stubGlobal('Worker', previousWorker); workers.length = 0; refuseWorker = false; refuseAfter = undefined; });
+
+test('an unused decoder creates no workers or idle deadline until its first decode', async () => {
+  vi.useFakeTimers(); vi.stubGlobal('Worker', ControlledWorker);
+  const decoder = new TileDecoder(2), bytes = Uint8Array.of(1, 2);
+  try {
+    expect(workers).toHaveLength(0); expect(decoder.threaded).toBe(false);
+    expect(vi.getTimerCount()).toBe(0);
+    await vi.advanceTimersByTimeAsync(60_000);
+    expect(workers).toHaveLength(0);
+    const first = decoder.decode(bytes, {transfer: true});
+    expect(workers).toHaveLength(2); expect(decoder.threaded).toBe(true);
+    await Promise.resolve(); expect(bytes.byteLength).toBe(0);
+    workers[0]?.reply(tile); expect(await first).toBe(tile);
+    await vi.advanceTimersByTimeAsync(30_000);
+    expect(workers.every(worker => worker.terminated)).toBe(true);
+  } finally { decoder.dispose(); }
+});
+
+test('disposing an unused decoder cannot start workers or detach later input', async () => {
+  vi.stubGlobal('Worker', ControlledWorker);
+  const decoder = new TileDecoder(2), bytes = Uint8Array.of(1, 2);
+  decoder.dispose();
+  await expect(decoder.decode(bytes, {transfer: true})).rejects.toThrow('disposed');
+  expect(workers).toHaveLength(0); expect(bytes).toEqual(Uint8Array.of(1, 2));
+});
+
+test('a partial first startup retires its workers and leaves input attached', async () => {
+  vi.stubGlobal('Worker', ControlledWorker);
+  refuseAfter = 1;
+  const decoder = new TileDecoder(2), bytes = Uint8Array.of(1, 2);
+  await expect(decoder.decode(bytes, {transfer: true})).rejects.toThrow('Worker startup refused');
+  expect(workers).toHaveLength(1); expect(workers[0]?.terminated).toBe(true);
+  expect(workers[0]?.onmessage).toBe(null); expect(workers[0]?.onerror).toBe(null);
+  expect(bytes).toEqual(Uint8Array.of(1, 2));
+  await expect(decoder.decode(bytes)).rejects.toThrow('disposed');
+});
 
 test('parallel tile reads create at most one wire copy per busy worker', async () => {
   vi.stubGlobal('Worker', ControlledWorker);
@@ -106,7 +143,7 @@ test('new work cancels the previous idle deadline and non-whole views stay attac
   } finally { decoder.dispose(); }
 });
 
-test('a never-used pool also retires, and a refused restart rejects without detaching input', async () => {
+test('a refused first decode on an unused pool leaves input attached', async () => {
   vi.useFakeTimers(); vi.stubGlobal('Worker', ControlledWorker);
   const decoder = new TileDecoder(2), bytes = Uint8Array.of(1);
   try {
