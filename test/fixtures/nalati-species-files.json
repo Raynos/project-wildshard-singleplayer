@@ -1,0 +1,27 @@
+[
+  {
+    "path": "src/shards/nalati-grasslands/data/species.generated.json",
+    "bytes": 5696300,
+    "sha256": "d4f23028e23211324f5855c4b22804313e632c302ef8c699973a5af00124948e"
+  },
+  {
+    "path": "public/assets/nalati/baked/bodies-e726016c96012cee10c1b352bca450cccda2dc387410a11732a26edab74235b6.bin",
+    "bytes": 2584317,
+    "sha256": "e726016c96012cee10c1b352bca450cccda2dc387410a11732a26edab74235b6"
+  },
+  {
+    "path": "src/shards/nalati-grasslands/boot/speciesRows.generated.json",
+    "bytes": 180,
+    "sha256": "027b66ff8cd1841bb30592f08b975e0ac91bcb5efa88e83401054846c1b53ad8"
+  },
+  {
+    "path": "src/shards/nalati-grasslands/behaviour/held-weapons.generated.wasm",
+    "bytes": 19976,
+    "sha256": "a35c2e6a3527a6e3509d7df83b76c203878bba6b806eb92ef03de1b963d316d5"
+  },
+  {
+    "path": "src/shards/nalati-grasslands/behaviour/held-witness.generated.bin",
+    "bytes": 39814,
+    "sha256": "87e51e95e14a28cbc1d98828d8cec1864bccef8237e4cf941bb6b208b5fcb5e9"
+  }
+]
