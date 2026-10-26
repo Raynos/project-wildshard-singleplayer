@@ -126,6 +126,10 @@ export interface GlbPrimitive {
    *  tightly packed), which three's GLTFLoader reads back into the same typed attributes;
    *  positions stay float32. Other storage refuses. Absent: the old float32 byte path. */
   quantizedChannels?: true;
+  /** With `quantizedChannels`: every quantized channel gets a 4-byte stride (meshopt's attribute codec needs one;
+   *  GLTFLoader reads it back interleaved), and an unnormalized Int16 position is written on its node's grid, the
+   *  node's `transform` (a scale and translation) dequantizing it (RM8.1, tiles). */
+  meshoptReady?: true;
 }
 /** A deterministic self-contained static GLB; names and vertex colours survive the ordinary engine GLTFLoader. */
 export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): Uint8Array {
@@ -184,14 +188,25 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
   // needs only component alignment, and three's GLTFLoader reads a packed view back as a plain typed attribute (a padded
   // stride would come back interleaved)
   let quantized = false;
-  const packedAccessor = (attribute: BufferAttribute): number => {
+  const packedAccessor = (attribute: BufferAttribute, aligned = false, position = false): number => {
     const array = attribute.array;
-    const componentType = array instanceof Int8Array ? 5120 : array instanceof Uint8Array ? 5121 : array instanceof Uint16Array ? 5123 : null;
-    if (componentType === null || !attribute.normalized) throw new Error('Quantized GLB channels must be normalized Int8, Uint8 or Uint16');
-    const length = attribute.count * attribute.itemSize * array.BYTES_PER_ELEMENT, bytes = new Uint8Array(Math.ceil(length / 4) * 4);
-    bytes.set(new Uint8Array(array.buffer, array.byteOffset, length));
-    const view = views.length; views.push({ buffer: 0, byteOffset: offset, byteLength: length }); chunks.push(bytes); offset += bytes.length;
-    accessors.push({ bufferView: view, componentType, normalized: true, count: attribute.count, type: `VEC${attribute.itemSize}` });
+    const componentType = position ? (array instanceof Int16Array && !attribute.normalized ? 5122 : null)
+      : !attribute.normalized ? null : array instanceof Int8Array ? 5120 : array instanceof Uint8Array ? 5121 : array instanceof Uint16Array ? 5123 : null;
+    if (componentType === null) throw new Error('Quantized GLB channels must be normalized Int8, Uint8 or Uint16 (positions unnormalized Int16)');
+    const element = attribute.itemSize * array.BYTES_PER_ELEMENT, stride = aligned ? Math.ceil(element / 4) * 4 : element;
+    const length = attribute.count * stride, bytes = new Uint8Array(Math.ceil(length / 4) * 4), source = new Uint8Array(array.buffer, array.byteOffset, attribute.count * element);
+    if (stride === element) bytes.set(source);
+    else for (let i = 0; i < attribute.count; i++) bytes.set(source.subarray(i * element, (i + 1) * element), i * stride);
+    const view = views.length; views.push({ buffer: 0, byteOffset: offset, byteLength: length, ...(stride === element ? {} : { byteStride: stride }) }); chunks.push(bytes); offset += bytes.length;
+    const a: Record<string, Json> = { bufferView: view, componentType, ...(position ? {} : { normalized: true }), count: attribute.count, type: `VEC${attribute.itemSize}` };
+    if (position) {
+      const minima = [Infinity, Infinity, Infinity], maxima = [-Infinity, -Infinity, -Infinity];
+      for (let i = 0; i < attribute.count; i++) for (let c = 0; c < 3; c++) {
+        const n = attribute.getComponent(i, c); minima[c] = Math.min(minima[c] ?? Infinity, n); maxima[c] = Math.max(maxima[c] ?? -Infinity, n);
+      }
+      a['min'] = minima; a['max'] = maxima;
+    }
+    accessors.push(a);
     quantized = true;
     return accessors.length - 1;
   };
@@ -202,7 +217,7 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
     if (matrix.elements.some((n, i) => !Number.isFinite(n) || Math.abs(n - (composed.elements[i] ?? Infinity)) > 1e-5) || scale.x <= 0 || scale.y <= 0 || scale.z <= 0) throw new Error('Instance must be a finite positive TRS transform');
     return { position, rotation, scale };
   };
-  for (const { geometry, material, instances, exactInstances, instanceColours, castShadow = true, customAttributes = {}, name: nodeName = name, transform, compactIndex, nativeAttributes, extras, quantizedChannels } of primitives) {
+  for (const { geometry, material, instances, exactInstances, instanceColours, castShadow = true, customAttributes = {}, name: nodeName = name, transform, compactIndex, nativeAttributes, extras, quantizedChannels, meshoptReady } of primitives) {
     if (material.map !== null || material.alphaMap !== null || (!(material instanceof MeshBasicMaterial) && (material.normalMap !== null || material.roughnessMap !== null || material.metalnessMap !== null))) throw new Error('GLB textures must be external KTX2 declarations');
     if (!geometry.hasAttribute('position')) throw new Error('Missing GLB positions');
     const p = geometry.getAttribute('position'); if ( p.count > 400_000) throw new Error('Unsupported GLB geometry');
@@ -215,7 +230,11 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
       if (a.itemSize !== width || a.count !== p.count || (key === 'color' && width !== 3 && width !== 4)) throw new Error('Mismatched GLB attributes');
       if (quantizedChannels === true && (key === 'normal' || key === 'color')) {
         if (!(a instanceof BufferAttribute) || (key === 'normal' && !(a.array instanceof Int8Array))) throw new Error('Quantized GLB normals must be normalized Int8');
-        attributes[semantic] = packedAccessor(a); continue;
+        attributes[semantic] = packedAccessor(a, meshoptReady === true); continue;
+      }
+      if (quantizedChannels === true && meshoptReady === true && key === 'position' && a instanceof BufferAttribute && a.array instanceof Int16Array) {
+        if (transform === undefined) throw new Error('A quantized GLB position needs its node transform');
+        attributes[semantic] = packedAccessor(a, true, true); continue;
       }
       attributes[semantic] = accessor(a, width, `VEC${width}`, false, key === 'position');
     }

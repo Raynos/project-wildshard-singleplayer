@@ -1,5 +1,8 @@
-import { BufferAttribute, BufferGeometry, Float32BufferAttribute, Matrix4, Vector3 } from 'three';
+import { MeshoptEncoder } from 'meshoptimizer/encoder';
+import { BufferAttribute, BufferGeometry, Float32BufferAttribute, Matrix4, Quaternion, Vector3, type Box3 } from 'three';
 import type { WorldPrimitive } from './world';
+
+await MeshoptEncoder.ready;
 
 interface Channel { key: string; width: number; data: Float32Array | Float64Array }
 type Vertex = number[];
@@ -75,23 +78,46 @@ export function worldGeometry(source: WorldPrimitive, bounds?: readonly [number,
   return geometry;
 }
 
-/** RM8.1a: a tile primitive's geometry for the wire. Normals become normalized Int8 and colours normalized Uint16
+/** RM8.1: a tile's position grid. One power-of-two step for every tile (1/512 m, coarsened only where a tile is too
+ *  tall for 16 bits) and an origin on that grid, so a point two tiles share quantizes to the same place in both. */
+export interface TileGrid { origin: readonly [number, number, number]; step: number }
+export function tileGrid(box: Box3): TileGrid {
+  const centre = box.getCenter(new Vector3()).toArray(), lo = box.min.toArray(), hi = box.max.toArray();
+  for (let step = 1 / 512; step <= 1; step *= 2) {
+    const origin = centre.map(value => Math.round(value / step) * step) as [number, number, number];
+    if (origin.every((o, axis) => Math.abs((lo[axis] ?? 0) - o) / step <= 32767 && Math.abs((hi[axis] ?? 0) - o) / step <= 32767)) return { origin, step };
+  }
+  throw new Error('World tile is too large for a 16-bit position grid');
+}
+/** The node transform that dequantizes a grid's Int16 positions. */
+export function tileGridTransform(grid: TileGrid): Matrix4 {
+  return new Matrix4().compose(new Vector3(...grid.origin), new Quaternion(), new Vector3(grid.step, grid.step, grid.step));
+}
+
+/** RM8.1: a tile primitive's geometry for the wire. Normals become normalized Int8 and colours normalized Uint16
  *  (KHR_mesh_quantization, written by staticGlb's `quantizedChannels`; normals within ~0.5 degree, colours within
- *  1/65535); then every vertex whose channels are all equal is welded into one (positions, uvs and tangents stay exact
- *  float32) under a 16-bit index when the vertices fit, a 32-bit one otherwise. A clipped tile was a triangle soup of
- *  three float32 vertices a triangle. */
-export function compactTileGeometry(source: BufferGeometry): BufferGeometry {
+ *  1/65535); then every vertex whose channels are all equal is welded into one (uvs and tangents stay exact float32)
+ *  under a 16-bit index when the vertices fit, a 32-bit one otherwise. A clipped tile was a triangle soup of three
+ *  float32 vertices a triangle. With a `grid`, positions become unnormalized Int16 on it (within half its step),
+ *  colours Uint8 (within 1/510), and vertices and triangles are reordered for the vertex cache and for meshopt. */
+export function compactTileGeometry(source: BufferGeometry, grid?: TileGrid): BufferGeometry {
   const keys = Object.keys(source.attributes).sort(), index = source.getIndex(), count = index === null ? source.getAttribute('position').count : index.count;
+  const colour = grid === undefined ? 65535 : 255;
   const rows = keys.map((key) => {
     const attribute = source.getAttribute(key), width = attribute.itemSize;
-    const quantize = key === 'normal' ? (v: number) => Math.max(-127, Math.min(127, Math.round(v * 127))) : key === 'color' ? (v: number) => Math.max(0, Math.min(65535, Math.round(v * 65535))) : null;
+    const quantize = key === 'normal' ? (v: number) => Math.max(-127, Math.min(127, Math.round(v * 127)))
+      : key === 'color' ? (v: number) => Math.max(0, Math.min(colour, Math.round(v * colour)))
+      : key === 'position' && grid !== undefined ? (v: number, c: number) => {
+        const q = Math.round((v - (grid.origin[c] ?? 0)) / grid.step);
+        if (Math.abs(q) > 32767) throw new Error('World tile position outside its 16-bit grid'); return q;
+      } : null;
     return { key, width, quantize, read: (vertex: number, component: number) => attribute.getComponent(vertex, component), out: [] as number[] };
   });
   const seen = new Map<string, number>(), order: number[] = [];
   let next = 0;
   for (let corner = 0; corner < count; corner++) {
     const vertex = index === null ? corner : index.getX(corner), values: number[] = [];
-    for (const row of rows) for (let c = 0; c < row.width; c++) { const v = row.read(vertex, c); values.push(row.quantize === null ? v : row.quantize(v)); }
+    for (const row of rows) for (let c = 0; c < row.width; c++) { const v = row.read(vertex, c); values.push(row.quantize === null ? v : row.quantize(v, c)); }
     const key = values.join(',');
     let at = seen.get(key);
     if (at === undefined) {
@@ -101,13 +127,22 @@ export function compactTileGeometry(source: BufferGeometry): BufferGeometry {
     }
     order.push(at);
   }
+  // with a grid: triangles in vertex-cache order, vertices in first-use order (meshopt's codecs compress both far better)
+  const indices = Uint32Array.from(order), remap = grid === undefined ? null : MeshoptEncoder.reorderMesh(indices, true, true)[0];
   const output = new BufferGeometry();
   for (const row of rows) {
-    const values = row.out;
+    let values = row.out;
+    if (remap !== null) {
+      const moved = Array.from({ length: values.length }, () => 0), map = remap;
+      for (let old = 0; old < next; old++) for (let c = 0; c < row.width; c++) moved[(map[old] ?? 0) * row.width + c] = values[old * row.width + c] ?? 0;
+      values = moved;
+    }
     output.setAttribute(row.key, row.key === 'normal' ? new BufferAttribute(Int8Array.from(values), row.width, true)
-      : row.key === 'color' ? new BufferAttribute(Uint16Array.from(values), row.width, true) : new Float32BufferAttribute(values, row.width));
+      : row.key === 'color' ? new BufferAttribute(grid === undefined ? Uint16Array.from(values) : Uint8Array.from(values), row.width, true)
+      : row.key === 'position' && grid !== undefined ? new BufferAttribute(Int16Array.from(values), row.width)
+      : new Float32BufferAttribute(values, row.width));
   }
-  output.setIndex(new BufferAttribute(next <= 65535 ? Uint16Array.from(order) : Uint32Array.from(order), 1));
+  output.setIndex(new BufferAttribute(next <= 65535 ? Uint16Array.from(indices) : indices, 1));
   return output;
 }
 

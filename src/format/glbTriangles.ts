@@ -61,7 +61,7 @@ export function visitGlbGeometry(data: GeometryData, visit: (triangle: readonly 
     const row = meshes[id]; if (row === undefined) throw new Error('Missing GLB geometry mesh');
     for (const value of list(row['primitives'])) {
       const primitive = object(value), position = accessor(object(primitive['attributes'])['POSITION']);
-      if (position.component !== 5126) throw new Error('Static GLB positions must be floats');
+      if (!(position.component === 5126 || (position.component === 5122 && !position.normalized))) throw new Error('Static GLB positions must be floats or Int16 grid steps');
       const indices = primitive['indices'] === undefined ? undefined : accessor(primitive['indices']);
       for (let i = 0; i < (indices?.n ?? position.n); i += 3) {
         const triangle = Array.from({ length: 3 }, (_, j) => {

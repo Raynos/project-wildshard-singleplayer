@@ -8,7 +8,8 @@ import { normalizeWorldGlb, type NormalizedWorld, type WorldPrimitive } from './
 import { parseWorldSource } from '../worldSource';
 import { bakeWorldTexture } from './textureWasm';
 import { StaticMaterialCatalogue } from './staticMaterials';
-import { compactTileGeometry, worldGeometry, mergeWorldGeometry } from './worldGeometry';
+import { compactTileGeometry, tileGrid, tileGridTransform, worldGeometry, mergeWorldGeometry } from './worldGeometry';
+import { compressGlb } from './glbCompression';
 import { staticGlb, type GlbPrimitive } from './glb';
 import { simplifyWorldPrimitive } from './worldLod';
 import { bakeWorldCollision } from './worldCollision';
@@ -96,13 +97,17 @@ export async function bakeAuthoredWorld(input: unknown, bytes: Uint8Array): Prom
         const list = groups.get(name) ?? []; list.push(part); groups.set(name, list);
       }
       const primitives: GlbPrimitive[] = [];
+      // RM8.1: a tile's positions are Int16 on the shared grid, dequantized by its node, and the tile is meshopt-packed
+      const grid = bounds === undefined || box.isEmpty() ? undefined : tileGrid(box);
       for (const [name, parts] of groups) {
         const merged = mergeWorldGeometry(parts); transient.push(merged);
         // RM8.1a: welded, 16-bit indexed, Int8 normals and Uint16 colours (KHR_mesh_quantization) on the wire
-        const primitive = catalogue.primitive(name, merged, { castShadow }), compact = compactTileGeometry(primitive.geometry); transient.push(compact);
-        primitives.push({ ...primitive, geometry: compact, quantizedChannels: true, compactIndex: true });
+        const primitive = catalogue.primitive(name, merged, { castShadow }), compact = compactTileGeometry(primitive.geometry, grid); transient.push(compact);
+        primitives.push({ ...primitive, geometry: compact, quantizedChannels: true, compactIndex: true,
+          ...(grid === undefined ? {} : { meshoptReady: true, transform: tileGridTransform(grid) }) });
       }
-      return { bytes: primitives.length === 0 ? new Uint8Array() : staticGlb(primitives), dependencies: catalogue.dependencies([...groups.keys()]), box };
+      const glb = primitives.length === 0 ? new Uint8Array() : staticGlb(primitives);
+      return { bytes: grid === undefined || glb.length === 0 ? glb : compressGlb(glb), dependencies: catalogue.dependencies([...groups.keys()]), box };
       } finally { transient.forEach(part => part.dispose()); }
     };
     for (const lod of [0, 1] as const) {

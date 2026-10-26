@@ -205,12 +205,12 @@ for the kit before the families switch on; `tiledPlot.mjs` `KIT_FAMILIES` lists 
 | RM9.1 gate model | done | r7's three-bay gate, Hunyuan3D 2.1 over TRELLIS.2 at the shipped budget (`art/grid/round-68-night-market-gate/board.jpg`), 12k near / 2.5k far, 45 m tall |
 | RM9.2 gate lanterns | done (opt-in with the strings family) | 14 paper lanterns (4.5x the kit's small one, ~2 m) under the bays' lintels: layouts/night-market.json landmark.lanterns |
 | RM9.3 gate trim and uplight | sp-o2 (RM6.4, landed) | Gold trim glow and uplight are sp-o2's landmark graph | r7 reference, Hunyuan3D 2.1 vs TRELLIS.2, hanging kit lanterns and trim (light with sp-o2's RM6.4) |
-| RM8.1 quantized tiles | sp-x2 (wildshard-new's routing, 2026-10-26) | Quantized tile geometry in the authored-world bake (KHR_mesh_quantization + meshopt, near-view and cost readers taught): ~10–15 B a triangle and about half the resident. Measured and dropped first: lossless meshopt alone (0.30–0.35 of the wire, but the near view's reader refuses EXT_meshopt and resident rises) and per-model instancing (fine wire, but 2 draws a model: tiles at 13–31 of 8 draws) |
+| RM8.1 quantized tiles | done (sp-o1: 850a6efb5f, this commit; `tile-streaming-mini-plan.md` RM8.1a–d) | Quantized tile geometry in the authored-world bake: kit-on geometry tiles 17.7 B/tri (was ~121), 251 KB each, under the 0.3 MB cap |
 | RM8.2 authored L1 | open | World-source prefixes: detail rows draw at L0 only, `coarse_` rows only in L1; each kit family carries a ≤ 12-triangle LOD1 (the lit head, the roof block) |
 | RM8.3 plaza resident | open | Savings in the four plaza L0 tiles (landmark and poster textures, with RM9) so their kit fits the pinned resident rows; then `KIT_FAMILIES` switches on |
 | RM8.4 plaza beds | done | r7's raised lawn beds flanking the lanes into the gate (8, two a plaza quarter); trees, planters and lanterns on them with the kit |
 | RM8.5 kit within 15k | done | With every family on, every L0 tile ≤ 14,174 triangles (was 18,826): figures 450 triangles, a vendor behind every other hero stall, a shopper before every fourth stall, no cart vendors, round bulbs every 3 m, no bed planters |
-| RM8.6 bytes and switch-on | waits on RM8.1 (sp-x2) | ≤ 0.3 MB per L0 tile once tiles are quantized, then the layout's kit list switches the families on (raw today: up to 3.5 MB a tile) |
+| RM8.6 bytes and switch-on | open (sp-o1) | Kit-on geometry tiles now fit; still over: the four plaza-edge tiles (0/4/0, 0/0/3, 0/7/4, 0/3/7: 712 KB vs 670 KB pinned, landmark textures) and L1 tiles, then the layout's kit list switches the families on |
 | RM13.1–13.2 board and walk | open | 5 cameras × MOCKUP · BEFORE · NOW, a 30 s road-to-plaza walk |
 
 ## 4. Decisions for Jake

@@ -53,7 +53,9 @@ export function parseGlbData(bytes: Uint8Array, visit?: (triangle: readonly GlbV
   const read = (a: typeof accessors[number], row: number, component: number): number => {
     const at = a.offset + row * a.stride + component * a.width;
     switch (a.component) {
+      case 5120: return accessorBytes.getInt8(at);
       case 5121: return accessorBytes.getUint8(at);
+      case 5122: return accessorBytes.getInt16(at, true);
       case 5123: return accessorBytes.getUint16(at, true);
       case 5125: return accessorBytes.getUint32(at, true);
       case 5126: return accessorBytes.getFloat32(at, true);
@@ -70,7 +72,8 @@ export function parseGlbData(bytes: Uint8Array, visit?: (triangle: readonly GlbV
       const attributes = object(p['attributes']);
       const positionId = count(attributes['POSITION'], 10_000), position = accessors[positionId];
       const indexId = count(p['indices'] ?? attributes['POSITION'], 10_000), index = accessors[indexId];
-      if (position === undefined || position.type !== 'VEC3' || position.component !== 5126 || index === undefined || index.n % 3 !== 0) throw new Error('invalid GLB triangle accessor');
+      // RM8.1: float32, or unnormalized Int16 on its node's grid (KHR_mesh_quantization; the node dequantizes it)
+      if (position === undefined || position.type !== 'VEC3' || !(position.component === 5126 || (position.component === 5122 && !position.normalized)) || index === undefined || index.n % 3 !== 0) throw new Error('invalid GLB triangle accessor');
       if (!checkedPositions.has(positionId)) {
         for (let i = 0; i < position.n; i++) for (let c = 0; c < 3; c++) if (!Number.isFinite(read(position, i, c))) throw new Error('nonfinite GLB position');
         checkedPositions.add(positionId);
