@@ -10,7 +10,7 @@ import { emptyShardfile } from '../src/sdk/author';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { parseOutputIndex } from '../src/format/outputIndex';
 import { outputSectionPayloads } from '../src/format/outputFields';
-import { loadManifestProduct,provideManifestAdmission,loadShardProduct, runtimeProduct, shardProductFromAdmission } from '../src/game/shardfile/runtimeProduct';
+import { loadManifestProduct,provideManifestAdmission,provideRuntimeProduct,loadShardProduct, runtimeProduct, shardProductFromAdmission } from '../src/game/shardfile/runtimeProduct';
 import { admitProduct, readProductDescriptor, type ProductOptions, type ProductCache, type ProductProgress } from '../src/game/shardfile/product';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
 import { neighbourProductFiles, productResidentBytes, jsonResidentBytes, runtimeOnlyProductFiles, runtimeOnlyProductFilesPaced, tierLibrarySource, urlImageLibrarySource, scopedSpecimenLibrarySource, scopedSpecimenLibrarySourcePaced } from '../src/game/shardfile/productCost';
@@ -632,6 +632,41 @@ test('online grid wires reread and verify network bytes after cache quota failur
   expect(await reader.read(f.ref)).toEqual(f.blob);
   f.wires.set(`blobs/bin/${f.ref}.bin`, new Uint8Array([9, 9, 9]));
   await expect(reader.read(f.ref)).rejects.toThrow('hash or size');
+});
+
+test.each([
+  { offline: false, shared: false }, { offline: true, shared: false }, { offline: false, shared: true },
+])('decoded runtime wires preserve offline/shared ownership ($offline/$shared)', async ({ offline, shared }) => {
+  const f = fixture(false, source => {
+    const ref = source.files[0]?.hash;
+    if (ref === undefined) throw new Error('Missing runtime fixture wire');
+    source.runtime = { entry: 'runtime/index.ts', binds: ['props'] };
+    source.props = { version: 1, family: 'toon', tiles: [], wholeLibrary: [ref],
+      models: [], panels: [], far: null, colliders: [], textures: [] };
+    if (shared) source.sim.scripts.push(ref);
+    return new Map();
+  });
+  trust(f.receipt);
+  const verifiedPresent = vi.fn(() => Promise.resolve(false));
+  const options: ProductOptions = { ...f.options, cache: {
+    product: () => Promise.resolve(null), putProduct: () => Promise.resolve(),
+    asset: () => Promise.resolve(null), putAsset: () => Promise.resolve(false), verifiedPresent,
+  } };
+  const admitted = await admitProduct(f.index, options);
+  provideRuntimeProduct(admitted, own(), options);
+  const reader = runtimeProduct(admitted.source);
+  options.offline = offline;
+  verifiedPresent.mockClear();
+  await reader.releaseTransport([f.ref]);
+  const retained = offline || shared;
+  expect(admitted.assets.has(f.ref)).toBe(retained);
+  expect(reader.assets.retained.has(f.ref)).toBe(retained);
+  expect(verifiedPresent).toHaveBeenCalledTimes(offline && !shared ? 1 : 0);
+  expect(await reader.assets.read(f.ref)).toEqual(f.blob);
+  if (!retained) {
+    f.wires.set(`blobs/bin/${f.ref}.bin`, new Uint8Array([9, 9, 9]));
+    await expect(reader.assets.read(f.ref)).rejects.toThrow('hash or size');
+  }
 });
 
 test('shrinking residency cannot grow, underflow or revive a released claim', () => {

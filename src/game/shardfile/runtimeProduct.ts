@@ -53,7 +53,9 @@ function ownedRuntimeProduct(source: Shardfile, assets: ClientAssets, release?: 
     const files = bound ??= runtimeBoundWorldFiles(source);
     const requested = [...refs].filter(ref => files.has(ref));
     // Old/caller-owned admissions have no release authority: preserve their supplied maps and mirrors.
-    const released = release === undefined ? [] : await release(requested);
+    // Decoded grid geometry can reread verified immutable wires online, just as
+    // neighbour admission does. The authority still requires durable bytes offline.
+    const released = release === undefined ? [] : await release(requested, 'cache-or-fetch');
     assets.releaseTransport(released);
   } };
 }
