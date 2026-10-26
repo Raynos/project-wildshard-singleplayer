@@ -4,7 +4,9 @@
 //   node scripts/nalati-creature-motion.mjs [--url=http://127.0.0.1:5192] [--out=progress/…jpg] [--tier=desktop]
 //   [--scenes=herd,pack,flock,aqbars,kokbori,argymaq,qyran] [--creatures=glb] [--x=-55 --z=60] [--frames=6 --dt=0.4]
 // One headless Chromium on Metal (--mute-audio), closed at the end.
-import { writeFileSync, mkdirSync } from 'node:fs';
+import { mkdirSync } from 'node:fs';
+import { jpegImageRoutes } from './parity/image-routes.mjs';
+import { saveJpegBlob } from './parity/canvas-bytes.mjs';
 import { resolve as resolvePath, dirname } from 'node:path';
 
 const { chromium } = await import('playwright');
@@ -101,7 +103,7 @@ try {
     await page.waitForTimeout(500);
     const cells = [];
     for (let f = 0; f < FRAMES; f++) {
-      cells.push((await page.screenshot({ type: 'jpeg', quality: 80 })).toString('base64'));
+      cells.push(await page.screenshot({ type: 'jpeg', quality: 80 }));
       await page.waitForTimeout(DT * 1000);
     }
     const info = await page.evaluate(() => {
@@ -114,20 +116,36 @@ try {
     await page.close();
   }
   const comp = await (await browser.newContext()).newPage();
-  const b64 = await comp.evaluate(async ({ rs, w, h }) => {
-    const load = (src) => new Promise((resolve, reject) => { const i = new Image(); i.onload = () => resolve(i); i.onerror = reject; i.src = src; });
-    const G = 4, LAB = 20, cols = Math.max(...rs.map((r) => r.cells.length));
-    const c = document.createElement('canvas'); c.width = cols * (w + G) + G; c.height = rs.length * (h + LAB + G);
-    const x = c.getContext('2d'); x.fillStyle = '#111'; x.fillRect(0, 0, c.width, c.height);
-    for (let r = 0; r < rs.length; r++) {
-      const y = r * (h + LAB + G);
-      x.font = '600 14px ui-monospace, monospace'; x.fillStyle = '#9fe6ff'; x.fillText(rs[r].label, G, y + 15);
-      for (let i = 0; i < rs[r].cells.length; i++) x.drawImage(await load(`data:image/jpeg;base64,${rs[r].cells[i]}`), G + i * (w + G), y + LAB, w, h);
-    }
-    for (let qq = 0.8; qq >= 0.35; qq -= 0.05) { const u = c.toDataURL('image/jpeg', qq); if (u.length * 0.75 < 4.8e5) return u.split(',')[1]; }
-    return c.toDataURL('image/jpeg', 0.3).split(',')[1];
-  }, { rs: rows, w: Math.round(W * 0.34), h: Math.round(H * 0.34) });
-  writeFileSync(OUT, Buffer.from(b64, 'base64'));
+  const inputs = await jpegImageRoutes(comp, rows.flatMap(row => row.cells));
+  try {
+    let next = 0;
+    const routedRows = rows.map(row => ({ label: row.label, cells: row.cells.map(() => inputs.urls[next++]) }));
+    const image = await comp.evaluateHandle(async ({ rs, w, h }) => {
+      const load = async (src) => { const i = new Image(); i.crossOrigin = 'anonymous'; i.src = src; await i.decode(); return i; };
+      const G = 4, LAB = 20, cols = Math.max(...rs.map((r) => r.cells.length));
+      const c = document.createElement('canvas'); c.width = cols * (w + G) + G; c.height = rs.length * (h + LAB + G);
+      const x = c.getContext('2d'); x.fillStyle = '#111'; x.fillRect(0, 0, c.width, c.height);
+      for (let r = 0; r < rs.length; r++) {
+        const y = r * (h + LAB + G);
+        x.font = '600 14px ui-monospace, monospace'; x.fillStyle = '#9fe6ff'; x.fillText(rs[r].label, G, y + 15);
+        for (let i = 0; i < rs[r].cells.length; i++) x.drawImage(await load(rs[r].cells[i]), G + i * (w + G), y + LAB, w, h);
+      }
+      /** @param {number} quality @returns {Promise<Blob>} */
+      const encode = (quality) => new Promise((resolve, reject) => {
+        c.toBlob(bytes => {
+          if (bytes === null || bytes.type !== 'image/jpeg' || bytes.size === 0) reject(new Error('Motion JPEG encoding failed'));
+          else resolve(bytes);
+        }, 'image/jpeg', quality);
+      });
+      for (let qq = 0.8; qq >= 0.35; qq -= 0.05) {
+        const bytes = await encode(qq);
+        // Preserve the original data-URL size test, including its 23-byte prefix.
+        if ((23 + 4 * Math.ceil(bytes.size / 3)) * 0.75 < 4.8e5) return bytes;
+      }
+      return encode(0.3);
+    }, { rs: routedRows, w: Math.round(W * 0.34), h: Math.round(H * 0.34) });
+    await saveJpegBlob(comp, image, OUT);
+  } finally { await inputs.dispose(); }
   console.log(`wrote ${OUT}`);
 } finally {
   await browser.close();

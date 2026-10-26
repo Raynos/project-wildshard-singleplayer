@@ -26,6 +26,14 @@ export function savePngBlob(page, blob, file) {
   return saveImageBlob(page, blob, file, { mime: 'image/png', label: 'Board PNG' });
 }
 
+/** Publish an already encoded JPEG without repeating its quality ladder.
+ * @param {import('../bake-output.mjs').ByteSinkPage} page
+ * @param {import('playwright').JSHandle<Blob>} blob
+ * @param {string} file */
+export function saveJpegBlob(page, blob, file) {
+  return saveImageBlob(page, blob, file, { mime: 'image/jpeg', label: 'Board JPEG' });
+}
+
 /** @param {import('../bake-output.mjs').ByteSinkPage} page
  * @param {Pick<import('playwright').JSHandle<HTMLCanvasElement>,'evaluateHandle'|'dispose'>} canvas
  * @param {string} file
