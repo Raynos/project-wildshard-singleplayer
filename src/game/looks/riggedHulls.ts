@@ -113,6 +113,16 @@ function jointsMatch(rig: RiggedHullAsset, bones: readonly BoneDef[]): boolean {
   return rig.joints.length === bones.length && bones.every((b, i) => rig.joints[i]?.name === b.name);
 }
 
+/** Install retirement outside the decoder frame so copied hulls do not retain their source geometry. */
+function cacheHull(out: RiggedHullAsset, name: string, ready: Map<string, RiggedHullAsset>,
+  loading: Map<string, Promise<RiggedHullAsset>>, adopting: WeakMap<RiggedHullAsset, Promise<void>>): void {
+  cacheUntilDisposed(out, () => {
+    if (ready.get(name) === out) { ready.delete(name); loading.delete(name); }
+    adopting.delete(out);
+  });
+  ready.set(name, out);
+}
+
 /** A family of rigged hulls from its row. */
 export function riggedHulls(row: RiggedHullFamilyRow, urls: RiggedHullUrls): RiggedHulls {
   if (!isJsonData(row) || !isJsonData(urls)) throw new Error('Rigged hull resources require plain data');
@@ -192,11 +202,7 @@ export function riggedHulls(row: RiggedHullFamilyRow, urls: RiggedHullUrls): Rig
         const joints = sm.skeleton.bones.map((b) => ({ name: b.name, pos: new THREE.Vector3().setFromMatrixPosition(b.matrixWorld) }));
         const out: RiggedHullAsset = { geometry, map, normalMap, joints };
         retainCachedResources(out);
-        cacheUntilDisposed(out, () => {
-          if (ready.get(name) === out) { ready.delete(name); loading.delete(name); }
-          adopting.delete(out);
-        });
-        ready.set(name, out);
+        cacheHull(out, name, ready, loading, adopting);
         return out;
       });
       loading.set(name, p);
