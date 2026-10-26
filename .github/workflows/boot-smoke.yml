@@ -199,6 +199,16 @@ jobs:
           NODE
           mkdir -p public/assets/physics
           cp dist/assets/physics/rapier.wasm public/assets/physics/rapier.wasm
+      - name: Select the phone Simulator toolchain
+        if: matrix.part == 'phone-route'
+        env:
+          DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
+        run: |
+          test -d "$DEVELOPER_DIR"
+          xcodebuild -version
+          xcrun --find simctl
+          test "$(xcrun --sdk iphonesimulator --show-sdk-version)" = 26.2
+          printf 'DEVELOPER_DIR=%s\n' "$DEVELOPER_DIR" >> "$GITHUB_ENV"
       - name: Select the native iPhone runner or record WebKit fallback
         if: matrix.part == 'phone-route'
         id: phone

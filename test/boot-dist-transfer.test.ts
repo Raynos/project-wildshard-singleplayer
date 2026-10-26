@@ -22,3 +22,21 @@ test('smoke downloads each exact source-run leg directly without a full-dist rel
   expect(workflow.match(/timeout-minutes: 20/gu)).toHaveLength(2);
   expect(workflow).toContain('part: [boot-public, boot-developer, boot-grid, hover-chromium, hover-webkit, explorer, phone-route]');
 });
+
+
+test('native phone inventory and admission use the matching selected Xcode', () => {
+  const workflow = readFileSync('.github/workflows/boot-smoke.yml', 'utf8');
+  const selection = workflow.indexOf('- name: Select the phone Simulator toolchain');
+  const inventory = workflow.indexOf('- name: Select the native iPhone runner');
+  expect(selection).toBeGreaterThan(-1);
+  expect(inventory).toBeGreaterThan(selection);
+  const step = workflow.slice(selection, inventory);
+  expect(step).toContain("if: matrix.part == 'phone-route'");
+  expect(step).toContain('DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer');
+  expect(step).toContain('test -d "$DEVELOPER_DIR"');
+  expect(step).toContain('xcodebuild -version');
+  expect(step).toContain('xcrun --find simctl');
+  expect(step).toContain('test "$(xcrun --sdk iphonesimulator --show-sdk-version)" = 26.2');
+  expect(step).toContain('>> "$GITHUB_ENV"');
+  expect(workflow).toContain('PHONE_ROUTE_MODE: report-only');
+});

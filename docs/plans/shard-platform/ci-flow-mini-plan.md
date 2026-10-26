@@ -198,6 +198,19 @@ is a Simulator startup refusal, not a Night Market crossing stall or a
 route pass. **Promotion stays pending a defining startup repair and an
 executed ordinary report.** Original log/artifact remain on that exact
 job; no duplicate dispatch, retry, cap increase or fallback was requested.
+The exact runner was `macos-15-arm64/20260907.0337`, whose
+[published toolchain inventory](https://github.com/actions/runner-images/blob/macos-15-arm64/20260907.0337/images/macos/macos-15-arm64-Readme.md)
+sets Xcode 16.4 as default; its iOS 26.2 Simulator SDK belongs to Xcode
+26.2/26.3. The workflow had no explicit Xcode selection. **Prerequisite
+repair (sp-x9):** select Xcode 26.2 for only the phone job before runtime
+inventory, verify its Simulator SDK is exactly 26.2, and persist
+`DEVELOPER_DIR` through admission and the reader. Missing/wrong toolchains
+refuse; no runtime downgrade, readiness cap or fallback changes. This fixes
+a documented configuration mismatch, not yet proof that it caused the
+hang. Report-only remains until a cause-fixed ordinary run qualifies;
+no repeat has been dispatched. Local C4 success on another runtime does
+not qualify this CI device.
+
 The older `14a3d5d93` artifact remains unqualified for this trial. The final functional `8b8a5bf7fc` visit completed
 all route stages with no faults, 294 ms hero paint, resident near tiles
 and real four-second wall containment, but correctly failed G718:
