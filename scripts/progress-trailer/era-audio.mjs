@@ -25,6 +25,9 @@ import { mkdirSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { join, relative, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { browserBakeBytes } from '../bake-output.mjs';
+import { uploadRecordedClip } from '../model-spin-recording.mjs';
+import { stopEraRecordings } from './era-recording.mjs';
 
 const HERE = import.meta.dirname;
 const require = createRequire(join(HERE, '../../package.json'));
@@ -189,15 +192,7 @@ const HELPERS = `(() => {
     window.__eraT0 = performance.now();
     return { mime, contexts: window.__eraRecs.length };
   };
-  window.__eraRecStop = () => Promise.all(window.__eraRecs.map((r) => new Promise((res) => {
-    r.rec.onstop = async () => {
-      const u8 = new Uint8Array(await new Blob(r.chunks, { type: r.mime }).arrayBuffer());
-      let s = '';
-      for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000));
-      res({ b64: btoa(s), mime: r.mime, rate: r.rate, state: r.state });
-    };
-    r.rec.stop();
-  }))).then((recs) => ({ recs, files: window.__eraLog.slice(), loops: window.__eraLoops.filter((l) => !l.ended), dropped: [...new Set(window.__eraDropped)] }));
+  window.__eraRecStop = ${stopEraRecordings};
   // the build's own music to 0 (the legacy and app Music both persist a 'music' volume through Settings)
   try { if (W.music && 'volume' in W.music) W.music.volume = 0; } catch { /* no music handle */ }
   try { W.audio?.resume?.(); } catch { /* resumed on the build's own enter */ }
@@ -238,25 +233,33 @@ const sha = (await (await fetch(`${URL_BASE}/SHA`)).text()).trim();
 const dir = join(OUT, sha.slice(0, 8));
 mkdirSync(dir, { recursive: true });
 
-function save(name, res, meta) {
-  const outs = [];
-  res.recs.forEach((r, i) => {
-    const base = res.recs.length > 1 ? `${name}-c${i}` : name;
-    const raw = join(dir, `${base}.webm`);
-    writeFileSync(raw, Buffer.from(r.b64, 'base64'));
-    const wav = join(dir, `${base}.wav`);
-    const ff = spawnSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', raw, '-ar', '48000', '-c:a', 'pcm_s24le', wav], { encoding: 'utf8' });
-    if (ff.status !== 0) throw new Error(`ffmpeg ${base}: ${ff.stderr}`);
-    spawnSync('rm', [raw]);
-    const vol = spawnSync('ffmpeg', ['-hide_banner', '-i', wav, '-af', 'volumedetect', '-f', 'null', '-'], { encoding: 'utf8' }).stderr;
-    outs.push({ wav, mime: r.mime, contextRate: r.rate, contextState: r.state, maxDb: Number(/max_volume: (-?[\d.]+)/u.exec(vol)?.[1] ?? Number.NaN), meanDb: Number(/mean_volume: (-?[\d.]+)/u.exec(vol)?.[1] ?? Number.NaN) });
-  });
-  res.files = res.files.map((f) => ({ ...f, url: named(f.url) }));
-  const loops = res.loops.map((f) => ({ ...f, url: named(f.url) }));
-  const row = { sha, name, ...meta, outputs: outs, files: res.files, loopsPlaying: loops, musicDropped: res.dropped.map(named) };
-  writeFileSync(join(dir, `${name}.json`), JSON.stringify(row, null, 1));
-  console.log(`${name}: ${outs.map((o) => `${o.wav.split('/').pop()} max ${o.maxDb} dB mean ${o.meanDb} dB`).join(', ')}; files ${[...new Set(res.files.map((f) => f.url.split('/').pop()))].join(' ') || '-'}; loops ${[...new Set(loops.map((f) => f.url.split('/').pop()))].join(' ') || '-'}`);
-  return row;
+async function save(page, name, res, meta) {
+  try {
+    const outs = [];
+    for (const [i, r] of res.recs.entries()) {
+      const base = res.recs.length > 1 ? `${name}-c${i}` : name;
+      const raw = join(dir, `${base}.webm`);
+      const sink = await browserBakeBytes(page, { maxBytes: Math.max(1, r.bytes), maxFiles: 1 });
+      try {
+        await page.evaluate(uploadRecordedClip, { source: r.url, destination: `${sink.url}clip` });
+        const bytes = sink.take('clip');
+        if (bytes.byteLength !== r.bytes) throw new Error('Era recording byte count changed');
+        writeFileSync(raw, bytes);
+      } finally { await sink.dispose(); }
+      const wav = join(dir, `${base}.wav`);
+      const ff = spawnSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', raw, '-ar', '48000', '-c:a', 'pcm_s24le', wav], { encoding: 'utf8' });
+      if (ff.status !== 0) throw new Error(`ffmpeg ${base}: ${ff.stderr}`);
+      spawnSync('rm', [raw]);
+      const vol = spawnSync('ffmpeg', ['-hide_banner', '-i', wav, '-af', 'volumedetect', '-f', 'null', '-'], { encoding: 'utf8' }).stderr;
+      outs.push({ wav, mime: r.mime, contextRate: r.rate, contextState: r.state, maxDb: Number(/max_volume: (-?[\d.]+)/u.exec(vol)?.[1] ?? Number.NaN), meanDb: Number(/mean_volume: (-?[\d.]+)/u.exec(vol)?.[1] ?? Number.NaN) });
+    }
+    res.files = res.files.map((f) => ({ ...f, url: named(f.url) }));
+    const loops = res.loops.map((f) => ({ ...f, url: named(f.url) }));
+    const row = { sha, name, ...meta, outputs: outs, files: res.files, loopsPlaying: loops, musicDropped: res.dropped.map(named) };
+    writeFileSync(join(dir, `${name}.json`), JSON.stringify(row, null, 1));
+    console.log(`${name}: ${outs.map((o) => `${o.wav.split('/').pop()} max ${o.maxDb} dB mean ${o.meanDb} dB`).join(', ')}; files ${[...new Set(res.files.map((f) => f.url.split('/').pop()))].join(' ') || '-'}; loops ${[...new Set(loops.map((f) => f.url.split('/').pop()))].join(' ') || '-'}`);
+    return row;
+  } finally { await page.evaluate(urls => { for (const url of urls) URL.revokeObjectURL(url); }, res.recs.map(recording => recording.url)); }
 }
 
 const shot = MODE === 'take' ? (await import(pathToFileURL(resolve(arg('shot'))).href)).shot : null;
@@ -293,7 +296,7 @@ try {
     // the bed at this spot first, then every one-shot with the bed muted
     await page.evaluate('window.__eraRecStart()');
     await sleep(Number(arg('bedSec', '20')));
-    rows.push(save('bed', await page.evaluate('window.__eraRecStop()'), { query, kind: 'bed', sec: Number(arg('bedSec', '20')) }));
+    rows.push(await save(page, 'bed', await page.evaluate('window.__eraRecStop()'), { query, kind: 'bed', sec: Number(arg('bedSec', '20')) }));
     await page.evaluate(withScope(recipe.quiet));
     await sleep(3);
     for (const s of recipe.sounds) {
@@ -301,7 +304,7 @@ try {
       await sleep(0.25);
       await page.evaluate(withScope(s.js));
       await sleep(s.sec);
-      rows.push(save(s.name, await page.evaluate('window.__eraRecStop()'), { query, kind: 'oneshot', js: s.js, lead: 0.25, sec: s.sec }));
+      rows.push(await save(page, s.name, await page.evaluate('window.__eraRecStop()'), { query, kind: 'oneshot', js: s.js, lead: 0.25, sec: s.sec }));
     }
   } else if (MODE === 'bed') {
     const [x, z, yaw] = arg('spot').split(',').map(Number);
@@ -310,7 +313,7 @@ try {
     const sec = Number(arg('sec', '24'));
     await page.evaluate('window.__eraRecStart()');
     await sleep(sec);
-    rows.push(save(arg('name', 'bed'), await page.evaluate('window.__eraRecStop()'), { query, kind: 'bed', spot: [x, z, yaw], sec }));
+    rows.push(await save(page, arg('name', 'bed'), await page.evaluate('window.__eraRecStop()'), { query, kind: 'bed', spot: [x, z, yaw], sec }));
   } else {
     await page.evaluate(`window.__takeOpt = ${arg('opt', '{}')}; window.__takeEvents = []; window.__sim = { t: 0, frames: 0 }`);
     const setup = await page.evaluate(`window.__takeSetup = (${shot.setup})(); window.__takeSetup`);
@@ -332,7 +335,7 @@ try {
     await sleep(Number(arg('tail', '1.5')));
     const events = await page.evaluate('window.__takeEvents ?? []');
     const final = await page.evaluate('window.__takeFinal?.() ?? null');
-    rows.push(save(arg('name', shot.name), await page.evaluate('window.__eraRecStop()'), { query, kind: 'take', shot: shot.name, opt: JSON.parse(arg('opt', '{}')), lead: 0.5, frames, setup, events, final }));
+    rows.push(await save(page, arg('name', shot.name), await page.evaluate('window.__eraRecStop()'), { query, kind: 'take', shot: shot.name, opt: JSON.parse(arg('opt', '{}')), lead: 0.5, frames, setup, events, final }));
   }
   if (errors.length > 0) console.log(`page errors (${errors.length}): ${errors.slice(0, 3).join(' | ')}`);
 } finally {
