@@ -292,15 +292,14 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
               const equipment = new Promise<void>(resolve => { equipmentReady = resolve; });
               const content = new Promise<void>(resolve => { contentReady = resolve; });
               forgetContent = owner.capture('disposers', () => { equipmentReady(); contentReady(); });
-              enteredWarm = request.page.world.game.warmEnteredFrame(owner, view.root, async prepareRoots => {
+              enteredWarm = request.page.world.game.warmEnteredFrame(owner, view.root, async (prepareRoots, preparePagePrograms) => {
                 await foundation.prepareWorldMaterials?.();
                 await prepareRoots([view.root]);
                 await equipment;
                 if (owner.disposed) throw new Error('Regional runtime left before its equipment warm-up');
-                // The completed kit can link/upload while play builds quests and encounters. The final whole inventory
-                // still checks every material and object flag after play; both early roots share its original bound.
-                // Camera equipment leaves with this owner; the road never draws its exterior variants.
-                if (preparedModels !== null) await prepareRoots([preparedModels], false);
+                // With kit complete, prepare page, equipment and depth programs while play constructs. Repeat the
+                // complete inventory after play: new encounters and changed variants still gate final readiness.
+                await preparePagePrograms();
                 await content;
                 if (owner.disposed) throw new Error('Regional runtime left before its final warm-up');
                 await foundation.beforeWarm?.();

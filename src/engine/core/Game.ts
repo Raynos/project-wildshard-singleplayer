@@ -865,12 +865,12 @@ export class Game {
    * A retained view may supply its whole future root, including sibling authored lights outside the bound scene.
    * `before` (the caller's last preparation, e.g. a region's sky build) runs first, inside the same time bound:
    * it may prepare already-built roots while other content constructs, then await that content before returning.
-   * Those early programs share this bound; equipment may omit exterior variants. Final complete inventory still gates readiness.
+   * Early roots and whole-page programs share this bound. Final complete inventory still gates readiness.
    * nothing here can wait silently forever (`boundEntryWarmup`); a stall rejects naming its stage. */
   async warmEnteredFrame(owner: Scope, futureRoot?: THREE.Object3D,
-    before?: (prepare: (roots: readonly THREE.Object3D[], exteriorPrograms?: boolean) => Promise<void>) => Promise<void> | void): Promise<void> {
+    before?: (prepare: (roots: readonly THREE.Object3D[], exteriorPrograms?: boolean) => Promise<void>, prepareFrame: () => Promise<void>) => Promise<void> | void): Promise<void> {
     const composer = this._composer;
-    if (composer === null) { await before?.(() => Promise.resolve()); return; }
+    if (composer === null) { await before?.(() => Promise.resolve(), () => Promise.resolve()); return; }
     const trace: EntryPreparation = { root: (futureRoot ?? this.scene).uuid, owner: owner.name,
       completed: false, phase: before === undefined ? 'post-preparation' : 'before-warm', progress: null, stages: [] };
     this._entryPreparation = trace;
@@ -885,6 +885,14 @@ export class Game {
           enter('early-scene-programs');
           await this.warmEnteredRoots(owner, composer, roots, futureRoot, current, exteriorPrograms);
           trace.stages.push({ phase: 'early-scene-programs', elapsedMs: diagnosticNow() - started, units: roots.length, endAt: diagnosticNow() });
+          enter('before-warm');
+        }, async () => {
+          const started = diagnosticNow();
+          enter('early-frame-programs');
+          await this.prepareEnteredPrograms(owner, composer, current, futureRoot,
+            (phase, elapsedMs, units) => { trace.stages.push({ phase: `early-frame:${phase}`, elapsedMs, units, endAt: diagnosticNow() }); },
+            (done, total, detail) => { trace.progress = { done, total, detail }; });
+          trace.stages.push({ phase: 'early-frame-programs', elapsedMs: diagnosticNow() - started, units: 1, endAt: diagnosticNow() });
           enter('before-warm');
         });
         if (!current()) throw new Error('Shader warm-up owner left');
@@ -913,9 +921,28 @@ export class Game {
       LIVE_UPLOAD_BUDGET, this.frameCount > 0, futureLighting, futureEnvironment ?? undefined, exteriorPrograms);
   }
 
+  /** The same complete program inventory may run before content finishes. It never draws or publishes readiness;
+   * final preparation repeats discovery so late play content and changed variants remain mandatory. */
+  private async prepareEnteredPrograms(owner: Scope, composer: EffectComposer, current: () => boolean,
+    futureRoot: THREE.Object3D | undefined, onStage: (phase: string, elapsedMs: number, units: number) => void,
+    progress: (done: number, total: number, detail: string) => void): Promise<void> {
+    const futureLighting = futureRoot ?? this.scene, futureEnvironment = this.scene.environment;
+    const isolateImageUploads = navigator.userAgent.includes('AppleWebKit') && !/Chrome|Chromium|Edg/.test(navigator.userAgent);
+    const { precompileLevel, waitForDrawnFrame, LIVE_UPLOAD_BUDGET, LIVE_PRECOMPILE_SLICE_MS } = await import('../render/precompile');
+    const live = (): boolean => current() && this._composer === composer;
+    const pause = this.frameCount > 0 ? () => waitForDrawnFrame(owner, () => this.frameCount, live) : undefined;
+    const uploadBudget = isolateImageUploads ? LIVE_UPLOAD_BUDGET : undefined;
+    const sliceMs = this.frameCount > 0 ? LIVE_PRECOMPILE_SLICE_MS : undefined;
+    // Camera equipment leaves with its owner, so its road variants are never needed.
+    const leaving = this.viewmodel.staged(owner);
+    await precompileLevel(this, progress, { chunkCasters: false, current: live, owner, futureLighting, isolateImageUploads, onStage, drawnOnly: this.frameCount === 0,
+      ...(leaving === undefined ? {} : { leaving: [leaving] }), ...(sliceMs === undefined ? {} : { sliceMs }),
+      ...(futureEnvironment === null ? {} : { futureEnvironment }), ...(pause === undefined ? {} : { pause }), ...(uploadBudget === undefined ? {} : { uploadBudget }) });
+  }
+
   private async warmEnteredStages(owner: Scope, composer: EffectComposer, trace: EntryPreparation,
     current: () => boolean, futureRoot: THREE.Object3D | undefined, enter: (phase: string) => void): Promise<void> {
-    const futureScene = this.scene, futureLighting = futureRoot ?? futureScene;
+    const futureScene = this.scene;
     const futureEnvironment = futureScene.environment;
     const progress = (done: number, total: number, detail: string): void => { trace.progress = { done, total, detail }; };
     const onStage = (phase: string, elapsedMs: number, units: number): void => {
@@ -924,19 +951,11 @@ export class Game {
       else if (phase === 'link') enter('texture-uploads');
     };
     const isolateImageUploads = navigator.userAgent.includes('AppleWebKit') && !/Chrome|Chromium|Edg/.test(navigator.userAgent);
-    const { precompileLevel, warmComposerFrame, waitForDrawnFrame, entryFrameExclusions, LIVE_UPLOAD_BUDGET, LIVE_PRECOMPILE_SLICE_MS,
+    const { warmComposerFrame, waitForDrawnFrame, entryFrameExclusions,
       parkedMatricesFrozen, freezeParkedMatrices } = await import('../render/precompile');
     // G580 T2 (Developer): the parked destination's static matrices are not recomputed every frame while it waits hidden
     const thaw = futureRoot !== undefined && futureRoot !== this.rootScene && !futureRoot.visible && parkedMatricesFrozen() ? freezeParkedMatrices(futureRoot, { shown: 'skip' }) : undefined;
     try {
-    // A capped browser rAF may skip the game draw. Every live caller
-    // requires a completed draw before starting another shader batch.
-    const pause = this.frameCount > 0
-      ? () => waitForDrawnFrame(owner, () => this.frameCount, current) : undefined;
-    // Live image batches share the measured byte/time bound. Compressed uploads retain their independent painted fences.
-    const uploadBudget = isolateImageUploads ? LIVE_UPLOAD_BUDGET : undefined;
-    // Both browser families use the existing live slice; boot retains its larger bound.
-    const sliceMs = this.frameCount > 0 ? LIVE_PRECOMPILE_SLICE_MS : undefined;
     const shaderStart = diagnosticNow();
     // OP2: the node (TSL) builds this warm-up ran: on Safari each is one long frame of the entry
     const nodeStats = (): { builds: number; buildMs: number } | null => {
@@ -944,14 +963,9 @@ export class Game {
       return handler === null ? null : { builds: handler.builds, buildMs: handler.buildMs };
     };
     const nodesBefore = nodeStats();
-    // O14: the entering owner's camera models (a cell's weapons) go with it, so the road's exterior frame never draws them
-    const leaving = this.viewmodel.staged(owner);
-    // the boot's entry (no frame drawn yet): the Shaders step builds what the first frame draws and the rest is warmed in
-    // play, so the entered root's scene programs and whole-root draws wait for them
     const bootDrawn = this.frameCount === 0;
-    await warmComposerFrame(composer, this.renderer, () => precompileLevel(this, progress, { chunkCasters: false, current, owner, futureLighting, isolateImageUploads, onStage, drawnOnly: bootDrawn,
-      ...(leaving === undefined ? {} : { leaving: [leaving] }), ...(sliceMs === undefined ? {} : { sliceMs }),
-      ...(futureEnvironment === null ? {} : { futureEnvironment }), ...(pause === undefined ? {} : { pause }), ...(uploadBudget === undefined ? {} : { uploadBudget }) }), current);
+    await warmComposerFrame(composer, this.renderer,
+      () => this.prepareEnteredPrograms(owner, composer, current, futureRoot, onStage, progress), current);
     onStage('shaders-and-composer', diagnosticNow() - shaderStart, 1);
     const nodesAfter = nodeStats();
     if (nodesAfter !== null) onStage('node-builds', nodesAfter.buildMs - (nodesBefore?.buildMs ?? 0), nodesAfter.builds - (nodesBefore?.builds ?? 0));

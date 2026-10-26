@@ -44,9 +44,12 @@ function fixture(early: () => Promise<void> = () => Promise.resolve(), final: ()
       fence = current; calls.push('world'); await early();
     },
     async warmEnteredStages(): Promise<void> { calls.push('final'); await final(); },
+    async prepareEnteredPrograms(_owner: Scope, _composer: unknown, current: () => boolean): Promise<void> {
+      fence = current; calls.push('page-programs'); await early();
+    },
   };
   return { owner, root, game, calls, current: () => fence(),
-    run: (before?: (prepare: Prepare) => Promise<void> | void): Promise<unknown> => Promise.resolve(Reflect.apply(method, game, [owner, root, before])),
+    run: (before?: (prepare: Prepare, prepareFrame: () => Promise<void>) => Promise<void> | void): Promise<unknown> => Promise.resolve(Reflect.apply(method, game, [owner, root, before])),
     frame: (): void => { game.frameCount++; now += 100; const due = [...frames.values()]; frames.clear(); for (const draw of due) draw(now); },
   };
 }
@@ -64,10 +67,26 @@ test('world programs run while content is pending and final inventory still gate
   } finally { content.resolve(); f.owner.dispose(); await observed; }
 });
 
-test('early preparation and final preparation share the original total deadline', async () => {
+test('page programs overlap content without drawing or replacing the final inventory', async () => {
+  const content = deferred(), prepared = deferred(), f = fixture();
+  const run = f.run(async (_roots, prepareFrame) => {
+    await prepareFrame(); prepared.resolve(); await content.promise;
+  });
+  const observed = settled(run);
+  try {
+    expect(await Promise.race([prepared.promise.then(() => 'prepared'), observed])).toBe('prepared');
+    expect(f.calls).toEqual(['page-programs']);
+    content.resolve(); await run;
+    expect(f.calls).toEqual(['page-programs', 'final']);
+  } finally {content.resolve(); f.owner.dispose(); await observed;}
+});
+
+test.each(['roots', 'page'])('%s preparation and final preparation share the original total deadline', async mode => {
   const prepared = deferred(), content = deferred(), final = deferred(), enteredFinal = deferred();
   const f = fixture(() => prepared.promise, () => { enteredFinal.resolve(); return final.promise; });
-  const run = f.run(async prepare => { await prepare([f.root]); await content.promise; });
+  const run = f.run(async (prepare, prepareFrame) => {
+    await (mode === 'roots' ? prepare([f.root]) : prepareFrame()); await content.promise;
+  });
   const observed = settled(run);
   try {
     for (let i = 0; i < 120; i++) f.frame();
@@ -92,11 +111,11 @@ test('retirement during the content rendezvous fences the abandoned final warm-u
   } finally { content.resolve(); f.owner.dispose(); await observed; }
 });
 
-test('an early program refusal propagates without publishing a final frame', async () => {
+test.each(['roots', 'page'])('an early %s refusal propagates without publishing a final frame', async mode => {
   const f = fixture(() => Promise.reject(new Error('exact program refused')));
   try {
-    await expect(f.run(prepare => prepare([f.root]))).rejects.toThrow('exact program refused');
-    expect(f.calls).toEqual(['world']);
+    await expect(f.run((prepare, prepareFrame) => mode === 'roots' ? prepare([f.root]) : prepareFrame())).rejects.toThrow('exact program refused');
+    expect(f.calls).toEqual([mode === 'roots' ? 'world' : 'page-programs']);
   } finally { f.owner.dispose(); }
 });
 
@@ -123,4 +142,42 @@ test('early programs use the rendered page scene and the installing region envir
     await Reflect.apply(method, game, [owner, composer, [root], root, () => !owner.disposed, false]);
     expect(calls[1]?.[11]).toBe(false);
   } finally { owner.dispose(); environment.dispose(); }
+});
+
+test('page preparation uses final program inputs without drawing and fences a changed composer', async () => {
+  const source = readFileSync(new URL('Game.ts', import.meta.url), 'utf8');
+  const start = source.indexOf('  private async prepareEnteredPrograms('), end = source.indexOf('\n  private async ', start + 1);
+  if (start === -1 || end < start) throw new Error('Page program method missing');
+  const calls: unknown[][] = [], waits: unknown[][] = [];
+  const body = source.slice(start, end).replace("await import('../render/precompile')", 'preparation');
+  const method: unknown = runInNewContext(stripTypeScriptTypes(`class Harness { ${body} }\nHarness.prototype.prepareEnteredPrograms`), {
+    navigator: {userAgent: 'AppleWebKit'}, preparation: {
+      precompileLevel: (...args: unknown[]): Promise<number> => {calls.push(args); return Promise.resolve(0);},
+      waitForDrawnFrame: (...args: unknown[]): Promise<void> => {waits.push(args); return Promise.resolve();},
+      LIVE_UPLOAD_BUDGET: {ms: 6, bytes: 1}, LIVE_PRECOMPILE_SLICE_MS: 6,
+    },
+  });
+  if (typeof method !== 'function') throw new Error('Page program method is not callable');
+  const owner = new Scope('page-programs'), root = new Group(), models = new Group(), scene = new Scene();
+  const environment = new DataTexture(new Uint8Array(8), 1, 2); scene.environment = environment;
+  let draws = 0;
+  const composer = {render: (): void => {draws++;}}, game = {scene, frameCount: 1, _composer: composer,
+    viewmodel: {staged: (scope: Scope): Group => {expect(scope).toBe(owner); return models;}}};
+  const stage = (): void => undefined, progress = (): void => undefined;
+  try {
+    await Reflect.apply(method, game, [owner, composer, () => !owner.disposed, root, stage, progress]);
+    expect(draws).toBe(0); expect(calls).toHaveLength(1); expect(calls[0]?.slice(0, 2)).toEqual([game, progress]);
+    const options = calls[0]?.[2];
+    if (typeof options !== 'object' || options === null) throw new Error('Missing program options');
+    expect(options).toMatchObject({chunkCasters: false, owner, futureLighting: root, futureEnvironment: environment,
+      isolateImageUploads: true, sliceMs: 6, leaving: [models], drawnOnly: false, onStage: stage, uploadBudget: {ms: 6, bytes: 1}});
+    const pause: unknown = Reflect.get(options, 'pause'), current: unknown = Reflect.get(options, 'current');
+    if (typeof pause !== 'function' || typeof current !== 'function') throw new Error('Missing live program fences');
+    await Reflect.apply(pause, undefined, []);
+    expect(waits[0]?.[0]).toBe(owner); expect(Reflect.apply(current, undefined, [])).toBe(true);
+    game._composer = {render: (): void => undefined};
+    expect(Reflect.apply(current, undefined, [])).toBe(false);
+    game._composer = composer; owner.dispose();
+    expect(Reflect.apply(current, undefined, [])).toBe(false);
+  } finally {owner.dispose(); environment.dispose();}
 });

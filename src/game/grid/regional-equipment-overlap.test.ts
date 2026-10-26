@@ -37,14 +37,14 @@ function fixture(options: {models?: boolean; prepare?: (root: Object3D) => Promi
   const ports = {owner, view: {root}, preparedModels: options.models === false ? null : models, preparing: options.enabled !== false, world: {},
     foundation: {prepareWorldMaterials: (): void => {calls.push('look');}, beforeWarm: (): void => {calls.push('before-final');}},
     request: {page: {world: {game: {warmEnteredFrame: async (scope: Scope, lighting: Object3D,
-      before: (prepare: (roots: readonly Object3D[], exteriorPrograms?: boolean) => Promise<void>) => Promise<void>): Promise<void> => {
+      before: (prepare: (roots: readonly Object3D[], exteriorPrograms?: boolean) => Promise<void>, prepareFrame: () => Promise<void>) => Promise<void>): Promise<void> => {
       expect(scope).toBe(owner); expect(lighting).toBe(root);
       await before(async (roots, exteriorPrograms = true) => {
         expect(roots).toHaveLength(1); const object = roots[0]; if (object === undefined) throw new Error('Missing prepared root');
         expect(object === root || object === models).toBe(true); expect(exteriorPrograms).toBe(object === root); calls.push(object === root ? 'world' : 'equipment');
         if (object === root) worldReady.resolve();
         await options.prepare?.(object);
-      });
+      }, async () => {calls.push('frame'); await options.prepare?.(models);});
       calls.push('final');
     }}}}},
   };
@@ -64,16 +64,16 @@ function fixture(options: {models?: boolean; prepare?: (root: Object3D) => Promi
     content: () => {invoke('content');}, result: () => task('result'), rawResult: () => invoke('result')};
 }
 
-test('completed equipment prepares while play is pending and final readiness still waits', async () => {
+test('the completed kit starts page programs while play is pending and final readiness still waits', async () => {
   const f = fixture();
   await f.start(); const result = f.result(), observed = settle(result);
   try {
     await f.worldReady; await flush(); expect(f.calls).toEqual(['look', 'world']);
     f.kit(); await flush();
-    expect(f.calls).toEqual(['look', 'world', 'equipment']);
+    expect(f.calls).toEqual(['look', 'world', 'frame']);
     expect(f.root.visible).toBe(false); expect(f.models.visible).toBe(false);
     f.content(); await result;
-    expect(f.calls).toEqual(['look', 'world', 'equipment', 'before-final', 'final']);
+    expect(f.calls).toEqual(['look', 'world', 'frame', 'before-final', 'final']);
   } finally {f.content(); f.owner.dispose(); await observed;}
 });
 
@@ -83,7 +83,7 @@ test('late equipment still gates a play phase that finished first', async () => 
   await f.start(); const result = f.result(), observed = settle(result);
   try {
     await f.worldReady; f.content(); await flush(); expect(f.calls).toEqual(['look', 'world']);
-    f.kit(); await flush(); expect(f.calls).toEqual(['look', 'world', 'equipment']);
+    f.kit(); await flush(); expect(f.calls).toEqual(['look', 'world', 'frame']);
     equipment.resolve(); await result;
     expect(f.calls.at(-1)).toBe('final');
   } finally {equipment.resolve(); f.content(); f.owner.dispose(); await observed;}
@@ -105,7 +105,7 @@ test('equipment preparation refusal propagates and never publishes the final inv
   try {
     await f.worldReady; f.kit(); f.content();
     expect(String(await observed)).toContain('equipment refused');
-    expect(f.calls).toEqual(['look', 'world', 'equipment']);
+    expect(f.calls).toEqual(['look', 'world', 'frame']);
   } finally {f.content(); f.owner.dispose(); await observed;}
 });
 
@@ -114,7 +114,7 @@ test('no staged models preserves the final warm and ordinary entries start no sp
   await f.start(); const result = f.result(), observed = settle(result);
   try {
     f.kit(); f.content(); await result;
-    expect(f.calls).toEqual(['look', 'world', 'before-final', 'final']);
+    expect(f.calls).toEqual(['look', 'world', 'frame', 'before-final', 'final']);
     await ordinary.start(); expect(ordinary.rawResult()).toBeNull(); expect(ordinary.calls).toEqual([]);
   } finally {f.content(); f.owner.dispose(); ordinary.owner.dispose(); await observed;}
 });

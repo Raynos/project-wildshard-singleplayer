@@ -1224,11 +1224,11 @@ Streamed-root preparation now shares the entered-frame presented-time bound: a s
 with a named issue instead of leaving a far/near fetch pending forever. The draw barrier itself also carries this bound,
 including sky/post callers outside an entered-frame warm-up. Disposing its owner rejects immediately.
 
-`Game.warmEnteredFrame(owner, futureRoot?, before?)` captures the installing scene. Regional callers pass their whole view
-root, including authored sibling lights. Only its parked visibility is ignored; hidden descendants stay hidden.
-The bound native scene lends its PMREM independently.
-`before(prepare)` warms roots while content builds; `prepare(roots, false)` omits road variants for owner-only equipment.
-Early/final work shares page lights, regional PMREM, bound and readiness fences.
+`Game.warmEnteredFrame(owner, futureRoot?, before?)` captures the region scene. Callers pass its view root and sibling
+lights; only parked-root visibility is ignored.
+`before(prepare, prepareFrame)` warms roots during construction and page programs after kit completes, without drawing.
+`prepare(roots, false)` omits equipment road variants. Final inventory still gates readiness.
+Both share page lights, regional PMREM, draw barriers, owner fences and the original bound.
 The owner's staged camera equipment also receives sliced first draws before entry. The staging group, its direct
 equipment roots and the destination lighting root are temporarily revealed; authored detail visibility stays intact.
 Only selected equipment draws. Each 1×1-scissored draw restores visibility, layers, culling, shadows, environment
