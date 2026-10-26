@@ -36,7 +36,7 @@ test.each(['valid','missing','truncated','corrupt','address'] as const)('logical
   const fetch=vi.spyOn(globalThis,'fetch').mockRejectedValue(new Error('Private URLs forbidden'));
   const clock=vi.spyOn(performance,'now').mockReturnValue(0);
   const inputRows={name:'logical-bake',catalogues:[],packs:{},geometry:{
-    first:{kind:'baked-file',file:'shape.bin',address:{file:'addresses.bin',word:0},row},
+    first:{kind:'baked-file',file:'shape.bin',address:{file:'addresses.bin',word:0},row,sphere:[9,10,11,100]},
     second:{kind:'baked-file',file:'shape.bin',address:{file:'addresses.bin',word:1},row},
   },materials:{},layers:[],statics:[],animations:[]};
   try{
@@ -54,6 +54,7 @@ test.each(['valid','missing','truncated','corrupt','address'] as const)('logical
         expect(Array.from(geometry.index?.array??[])).toEqual(Array.from(expected.index?.array??[]));
       }
       expect(geometries[0]?.getAttribute('position').array).not.toBe(geometries[1]?.getAttribute('position').array);
+      expect(geometries[0]?.boundingSphere?.center.toArray()).toEqual([9,10,11]);expect(geometries[0]?.boundingSphere?.radius).toBe(100);
       expect(()=>v.parse(SceneDressingSchema,{...inputRows,geometry:{first:{...inputRows.geometry.first,url:'/private.bin'}}})).toThrow();
     }
     expect(compressed).toEqual(original);expect(fetch).not.toHaveBeenCalled();

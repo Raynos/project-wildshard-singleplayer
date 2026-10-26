@@ -15,7 +15,7 @@ export const SceneBakedGeometrySchema: v.GenericSchema<SceneBakedGeometryRowsInp
 const geometry = v.variant('kind',[
   v.strictObject({kind:v.literal('asset'),row:SpecimenAssetSchema}),
   v.strictObject({kind:v.literal('baked'),url:id,address:v.strictObject({file:id,word:count}),row:SceneBakedGeometrySchema}),
-  v.strictObject({kind:v.literal('baked-file'),...BinaryFileSchema.entries,address:v.strictObject({file:id,word:count}),row:SceneBakedGeometrySchema}),
+  v.strictObject({kind:v.literal('baked-file'),...BinaryFileSchema.entries,address:v.strictObject({file:id,word:count}),row:SceneBakedGeometrySchema,sphere:v.exactOptional(v.tuple([finite,finite,finite,finite]))}),
   v.strictObject({kind:v.literal('inline'),data:v.pipe(v.string(),v.maxLength(1048576)),row:SceneBakedGeometrySchema,sphere:v.exactOptional(v.tuple([finite,finite,finite,finite]))}),
   v.strictObject({kind:v.literal('file'),...BinaryFileSchema.entries,row:SceneBakedGeometrySchema,sphere:v.exactOptional(v.tuple([finite,finite,finite,finite]))}),
   v.strictObject({kind:v.literal('packed'),source:id,key:id}),
@@ -99,7 +99,7 @@ export interface SceneDressingRows { name: string; instances: v.InferOutput<type
   SpecimenMaterialSchema>>; }>; geometry: Record<string, ({ kind: 'asset'; row: v.InferOutput<typeof
   SpecimenAssetSchema>; }) | ({ kind: 'baked'; url: string; address: { file: string; word: number; }; row:
   SceneBakedGeometryRows; }) | ({ kind: 'baked-file'; address: { file: string; word: number; }; row:
-  SceneBakedGeometryRows; } & v.InferOutput<typeof BinaryFileSchema>) | ({ kind: 'inline'; data: string; row:
+  SceneBakedGeometryRows; sphere?: [number, number, number, number]; } & v.InferOutput<typeof BinaryFileSchema>) | ({ kind: 'inline'; data: string; row:
   SceneBakedGeometryRows; sphere?: [number, number, number, number]; }) | ({ kind: 'file'; row:
   SceneBakedGeometryRows; sphere?: [number, number, number, number]; } & v.InferOutput<typeof BinaryFileSchema>)
   | ({ kind: 'packed'; source: string; key: string; })>; materials: Record<string, ({ kind: 'specimen'; row:

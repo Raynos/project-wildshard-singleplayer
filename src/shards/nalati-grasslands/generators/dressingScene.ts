@@ -13,6 +13,7 @@ import { namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import { nameBlob } from '@wildshard/sdk/blobs';
 import { encodeCanonicalJson, hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { writeGeometry, join } from './geometryWriter';
+import {shuffleNalatiWords} from './placeWire';
 import { nalatiPoiScenes } from './poiScenes';
 import { nalatiSpecimenRows } from './specimenRows';
 import paintInput from '../data/poiPaint.json' with {type:'json'};
@@ -83,6 +84,8 @@ function readPreparedDressing(input:unknown) {
 const encoded=(raw:Uint8Array):string=>{let encodedText='';for(const byte of zlibSync(raw))encodedText+=String.fromCodePoint(byte);return btoa(encodedText);};
 type ContactSource=(raw:Uint8Array)=>{data:string}|{file:string};
 const inlineContact:ContactSource=raw=>({data:encoded(raw)});
+type ClothSource=(raw:Uint8Array)=>{kind:'inline';data:string}|{kind:'baked-file';file:string};
+const inlineCloth:ClothSource=raw=>({kind:'inline',data:encoded(raw)});
 const id=(name:string)=>`nalati-grasslands/${name}`;
 const preparedContacts=(inputs:readonly unknown[],source:ContactSource)=>{
   const contacts=v.parse(SceneDressingContactsSchema,inputs.map(input=>{const parsed=v.parse(v.looseObject({heading:v.exactOptional(v.tuple([number,number]))}),input),{heading,...contact}=parsed;return heading===undefined?contact:Object.assign(contact,{yaw:Math.atan2(...heading)});}));
@@ -93,7 +96,7 @@ const preparedContacts=(inputs:readonly unknown[],source:ContactSource)=>{
 
 
 /** Existing baked shapes and placements become Z2 rows; no page-side scatter or model constructors. */
-function compileDressingScene(tier:'phone'|'desktop',profiles:v.InferOutput<typeof decorativeProfiles>,input:ReturnType<typeof readPreparedDressing>,balbal:v.InferOutput<typeof balbalSchema>,specimens:v.InferOutput<typeof specimensSchema>,contactSource:ContactSource=inlineContact) {
+function compileDressingScene(tier:'phone'|'desktop',profiles:v.InferOutput<typeof decorativeProfiles>,input:ReturnType<typeof readPreparedDressing>,balbal:v.InferOutput<typeof balbalSchema>,specimens:v.InferOutput<typeof specimensSchema>,contactSource:ContactSource=inlineContact,clothSource:ClothSource=inlineCloth) {
   const {prepared,scenes,placed}=input;
   const phone=tier==='phone',profile=cover[tier];
   const geometry:Record<string,unknown>={},materials:Record<string,unknown>={},addresses:number[]=[];
@@ -137,7 +140,7 @@ function compileDressingScene(tier:'phone'|'desktop',profiles:v.InferOutput<type
     }
     return{name,recipe:copied,geometry:geo,materials:mats,anchors:placeAnchors(name,placed),tris:row.tris+(name==='kokpar'?6*(phone?metrics.farTriangles['kokpar-rider']:metrics.triangles['kokpar-rider']):0),members:row.members.map(([model,member])=>({model,draw:member.draw,placements:member.placements,boxes:member.boxes,floors:member.floors,contacts:preparedContacts([...member.solid,...member.descs],contactSource)}))};
   });
-  const cloth=clothGeometry(prepared);geometry['cloth']={kind:'inline',...cloth};materials['cloth']={kind:'look',look:'nalati-cloth'};
+  const cloth=clothGeometry(prepared),clothInput=clothSource(cloth.bytes);geometry['cloth']={...clothInput,row:cloth.row,sphere:cloth.sphere};materials['cloth']={kind:'look',look:'nalati-cloth'};
   statics.push({name:'cloth',recipe:{version:1,root:'root',materials:[{kind:'port',id:'paint',source:'paint'}],nodes:[{kind:'group',id:'root',children:['cloth']},{kind:'mesh',id:'cloth',geometry:'shape',material:'paint',missing:'empty',castShadow:true,receiveShadow:true}]},geometry:{shape:'cloth'},materials:{paint:'cloth'},tris:cloth.row.indexCount/3,members:[]});
   geometry['wing']={kind:'packed',source:'cover',key:'wing'};geometry['halfBird']={kind:'packed',source:'cover',key:'halfBird'};
   materials['butterfly']={kind:'painterly',rim:.3,bands:.5,shade:.6,emissive:0x101010};materials['raptor']={kind:'painterly',rim:.6,bands:.6};
@@ -158,6 +161,7 @@ function compileDressingScene(tier:'phone'|'desktop',profiles:v.InferOutput<type
       attributes:{aEmitter:{width:3,values:placed.view.smoke.attributes.aEmitter},aSeed:{width:4,values:placed.view.smoke.attributes.aSeed},aCfg:{width:4,values:placed.view.smoke.attributes.aCfg}},
       params:{wind:'wind',windClamp:8,shade:'shade',sun:'sunColour'}}],
     motes:{name:'nalati-dress-pollen',count:phone?380:900,seed:0x9011e,look:'nalati-motes',drift:.35,driftParam:'drift',pixelParam:'px'},animations:[{look:'nalati-cloth',timeParam:'clothTime',windParam:'clothWind',windScale:.7,windMax:1.2}]};
+  if(clothInput.kind==='baked-file')geometry['cloth']={...clothInput,row:cloth.row,sphere:cloth.sphere,address:{file:`world/dressing-addresses-${tier}.bin`,word:addresses.push(0)-1}};
   const payload:unknown=JSON.parse(encodeCanonicalJson(result)),bytes=new Uint8Array(addresses.length*4),view=new DataView(bytes.buffer);
   addresses.forEach((offset,word)=>{if(!Number.isSafeInteger(offset)||offset<0||offset>0xffffffff)throw new Error('Invalid baked source address');view.setUint32(word*4,offset,true);});
   return{rows:v.parse(SceneDressingSchema,payload),addresses:bytes};
@@ -193,19 +197,24 @@ function clothGeometry(prepared:ReturnType<typeof readPreparedDressing>['prepare
   for(const[name,data,width]of[['aClothA',A,4],['aClothS',S,4],['aClothP',P,4],['aClothF',F,2],['color',col,3]]as const)geometry.setAttribute(name,new THREE.Float32BufferAttribute(data,width));geometry.setIndex(index);
   const sphere=new THREE.Sphere();bounds.getBoundingSphere(sphere);sphere.radius+=maxLen;
   const blocks:Uint8Array[]=[],row=writeGeometry(geometry,blocks,'dressing cloth');geometry.dispose();
-  return{row,data:encoded(join(blocks)),sphere:[sphere.center.x,sphere.center.y,sphere.center.z,sphere.radius]};
+  return{row,bytes:join(blocks),sphere:[sphere.center.x,sphere.center.y,sphere.center.z,sphere.radius]};
 }
 
-/** Supplied profiles retain exact tier rows; packed hulls share content-addressed compressed binary loans. */
+/** Supplied profiles retain exact tier rows; hulls and cloth share content-addressed binary loans. */
 export function dressingSceneBlobs(input:unknown,runtime:unknown,balbal:unknown,specimens:unknown):ReturnType<typeof nameBlob>[] {
-  const profiles=v.parse(decorativeProfiles,input),prepared=readPreparedDressing(runtime),contacts=new Map<string,ReturnType<typeof nameBlob>>();
+  const profiles=v.parse(decorativeProfiles,input),prepared=readPreparedDressing(runtime),binaries=new Map<string,ReturnType<typeof nameBlob>>();
   const source:ContactSource=raw=>{
     const bytes=zlibSync(raw),file=`world/dressing-contacts/${hashImmutableBytes(bytes)}.bin`;
-    if(!contacts.has(file))contacts.set(file,nameBlob(file,'bin',bytes,{decoded:raw.byteLength}));
+    if(!binaries.has(file))binaries.set(file,nameBlob(file,'bin',bytes,{decoded:raw.byteLength}));
     return{file};
   };
-  const tiers=(['phone','desktop']as const).flatMap(tier=>{const result=compileDressingScene(tier,profiles,prepared,v.parse(balbalSchema,balbal),v.parse(specimensSchema,specimens),source);return[nameBlob(`world/dressing-${tier}.json`,'json',new TextEncoder().encode(encodeCanonicalJson(result.rows)),{jsonSchema:namedJsonSchema(SceneDressingSchema)}),nameBlob(`world/dressing-addresses-${tier}.bin`,'bin',result.addresses)];});
-  return[...tiers,...contacts.values()];
+  const cloth:ClothSource=raw=>{
+    const bytes=zlibSync(shuffleNalatiWords(raw)),file=`world/dressing-cloth/${hashImmutableBytes(bytes)}.bin`;
+    if(!binaries.has(file))binaries.set(file,nameBlob(file,'bin',bytes,{decoded:raw.byteLength}));
+    return{kind:'baked-file',file};
+  };
+  const tiers=(['phone','desktop']as const).flatMap(tier=>{const result=compileDressingScene(tier,profiles,prepared,v.parse(balbalSchema,balbal),v.parse(specimensSchema,specimens),source,cloth);return[nameBlob(`world/dressing-${tier}.json`,'json',new TextEncoder().encode(encodeCanonicalJson(result.rows)),{jsonSchema:namedJsonSchema(SceneDressingSchema)}),nameBlob(`world/dressing-addresses-${tier}.bin`,'bin',result.addresses)];});
+  return[...tiers,...binaries.values()];
 }
 
 /** Admitted tier rows from caller-owned runtime metadata for catalogue and format consumers. */

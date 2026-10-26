@@ -865,9 +865,9 @@ The fetch is page-lived, preserving an in-flight cached read when its original
 construction owner retires.
 `decodeLaneBytes(bytes)` accepts an already-admitted logical product file and uses
 the identical native inflate slices and byte-lane restoration without fetching a URL.
-The `SceneDressing` `baked-file` source declares its logical file, the existing binary
-address table and geometry row; product hash admission and offset bounds remain required.
-Lane restoration shares that page lifetime as well. `fetchLaneBytes(url)` restores
+`SceneDressing` baked-file rows use an admitted file, address table and bounded
+geometry row with an optional sphere. Both Nalati cloth tiers share one file.
+Lane restoration shares that page lifetime. `fetchLaneBytes(url)` restores
 four-byte lanes in bounded batches under the shared frame budget; the SDK's lazy
 `fetchLaneBake(url)` facade shares it with the existing geometry reader. Species,
 place and dressing bakes use the same paced reader as crags and other shards.

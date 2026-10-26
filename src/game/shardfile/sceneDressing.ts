@@ -210,7 +210,7 @@ export class SceneDressing {
         const decoded=readBakedGeometry(raw,offset,source.row);
         shape=source.row.expand?await expandBakedGeometrySliced(decoded,workSlice(undefined,ctx.scope)):decoded;
       }
-      if((source.kind==='inline'||source.kind==='file')&&source.sphere!==undefined)shape.boundingSphere=new THREE.Sphere(new THREE.Vector3(...source.sphere.slice(0,3)),source.sphere[3]);
+      if((source.kind==='inline'||source.kind==='file'||source.kind==='baked-file')&&source.sphere!==undefined)shape.boundingSphere=new THREE.Sphere(new THREE.Vector3(...source.sphere.slice(0,3)),source.sphere[3]);
       geometry.set(key,shape);ctx.scope.own(shape);await pause();
     }
     });
