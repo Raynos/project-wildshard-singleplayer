@@ -29,7 +29,7 @@ export function lionOnPost(run: 'plaza' | 'street', i: number, n: number): boole
 }
 
 /** the gate's lion pedestals (gate.ts `lionPedestal`): the two spots before the centre posts, pedestal top height */
-export const GATE_LIONS = {
+export const GATE_LIONS: { readonly spots: readonly [number, number]; readonly z: number; readonly top: number; readonly scale: 2.4; } = {
   spots: [GATE.posts[1] - 0.2 * GATE.s, GATE.posts[2] + 0.2 * GATE.s] as const,
   z: GATE.z + 2.3 * GATE.s,
   top: 0.96 * 0.95,

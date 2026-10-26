@@ -42,7 +42,7 @@ export interface WallSpec {
   tone?: number;
 }
 
-export const up = new Vector3(0, 1, 0);
+export const up: Vector3 = new Vector3(0, 1, 0);
 
 /** the (u, up, n) frame of a wall: u runs along it so that u × up = n */
 export function frame(n: Vector3): { u: Vector3; n: Vector3 } {

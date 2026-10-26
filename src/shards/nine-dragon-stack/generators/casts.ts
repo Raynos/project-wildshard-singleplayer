@@ -21,7 +21,7 @@ const LIGHT = [0x3a3630, 0x5a5448, 0x7a7262, 0x958c78, 0xafa590, 0xc6bea8];
 const STONE = [0x2f2f33, 0x45454a, 0x5b5b60, 0x6e6e73, 0x808086, 0x94949a];
 const vector = v.tuple([v.number(), v.number(), v.number()]);
 const slot = v.strictObject({ at: vector, normal: vector, size: v.number(), color: v.number(), blade: v.boolean() });
-const slots = v.strictObject({ early: v.array(slot), late: v.array(slot) });
+const slots: v.StrictObjectSchema<{ readonly early: v.ArraySchema<v.StrictObjectSchema<{ readonly at: v.TupleSchema<[v.NumberSchema<undefined>, v.NumberSchema<undefined>, v.NumberSchema<undefined>], undefined>; readonly normal: v.TupleSchema<[v.NumberSchema<undefined>, v.NumberSchema<undefined>, v.NumberSchema<undefined>], undefined>; readonly size: v.NumberSchema<undefined>; readonly color: v.NumberSchema<undefined>; readonly blade: v.BooleanSchema<undefined>; }, undefined>, undefined>; readonly late: v.ArraySchema<v.StrictObjectSchema<{ readonly at: v.TupleSchema<[v.NumberSchema<undefined>, v.NumberSchema<undefined>, v.NumberSchema<undefined>], undefined>; readonly normal: v.TupleSchema<[v.NumberSchema<undefined>, v.NumberSchema<undefined>, v.NumberSchema<undefined>], undefined>; readonly size: v.NumberSchema<undefined>; readonly color: v.NumberSchema<undefined>; readonly blade: v.BooleanSchema<undefined>; }, undefined>, undefined>; }, undefined> = v.strictObject({ early: v.array(slot), late: v.array(slot) });
 
 /** Read only the recorded slot inputs; no runtime schema or layout recomputation enters the author. */
 export function readFixedSlots(input: unknown): v.InferOutput<typeof slots> {

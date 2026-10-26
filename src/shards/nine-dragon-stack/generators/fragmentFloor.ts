@@ -7,9 +7,9 @@ const stairPlan = stairPlanData();
 const { PLAZA, STAIR, STREET, Y0 } = NINE_LAYOUT_PLAN;
 
 /** how far north the street is walkable (its far part is scenery in the fragment) */
-export const STREET_END = NINE_LAYOUT_PLAN.FRONTS.streetEnd;
+export const STREET_END: number = NINE_LAYOUT_PLAN.FRONTS.streetEnd;
 /** the stair-street's top landing: past the last tread, then its end wall */
-export const STAIR_TOP = { x1: STAIR.x1 + 8, y: Y0 + STAIR.rise } as const;
+export const STAIR_TOP: { readonly x1: number; readonly y: number; } = { x1: STAIR.x1 + 8, y: Y0 + STAIR.rise } as const;
 
 /** the floor under (x, z) where the player can stand (placement, footsteps), or undefined off the fragment */
 export function fragmentFloor(x: number, z: number): number | undefined {

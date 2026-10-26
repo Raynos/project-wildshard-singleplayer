@@ -37,7 +37,7 @@ const lowerKits = (ctx: WellPlan['ctx']): BandKits => ({ kit: (y) => ctx.kit(y >
  *  its rim, well-lower-deep.ts — at 4.6 it was a 7° speck at the frame's centre; 6.2 filled the gap between the galleries), no crossing over or under it (well-plan.ts CROSSINGS: the covered one
  *  at z −33 (+71) runs 9 m over its roof ridge, the timber one at z −20 (+32) clear of the spur, z −35…−25). Centred on the gap between the deep west galleries and the
  *  shallower east ones */
-export const TEMPLE = { x: -13.5, z: -30, top: LOW - 3, r: 5.6 } as const;
+export const TEMPLE: { readonly x: -13.5; readonly z: -30; readonly top: number; readonly r: 5.6; } = { x: -13.5, z: -30, top: LOW - 3, r: 5.6 } as const;
 
 /** the lower galleries' depths: the near band's (well-rim.ts) carried on down, so the canyon's walls run on unbroken
  *  from the rim through SPLIT into the depth (the south wall keeps the plan's) */

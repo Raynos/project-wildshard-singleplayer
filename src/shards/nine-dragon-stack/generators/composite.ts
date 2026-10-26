@@ -12,7 +12,7 @@ import { Color, Vector3 } from 'three';
 
 /** The Jiehua frame's authored rows: its bleed tuning and the uniforms its composite graph (compositeGraph.ts) reads. */
 const B = bleed;
-const uniforms = {
+const uniforms: { readonly uHasBleed: 0; readonly uRainHaze: 6; readonly uReflK: 0; readonly uTexel: { readonly v2: readonly [0, 0]; }; readonly uLineScale: 1; readonly uLines: 1; readonly uSilPx: { readonly v2: readonly [2.1, 1.2]; }; readonly uSilFade: { readonly v2: readonly [60, 170]; }; readonly uSilGain: 0.35; readonly uNF: { readonly v2: readonly [0.1, 1000]; }; readonly uSharp: 0; readonly uBleed: { readonly v4: readonly [number, number, number, number]; }; readonly uBleed2: { readonly v4: readonly [number, number, number, number]; }; readonly uRain: { readonly v4: readonly [number, number, number, 2]; }; readonly uGrade: { readonly v3: readonly [number, number, number]; }; readonly uTone: { readonly v4: readonly [number, number, number, number]; }; } = {
   uHasBleed: 0, uRainHaze: 6, uReflK: 0, uTexel: { v2: [0, 0] }, uLineScale: 1, uLines: 1,
   uSilPx: { v2: [2.1, 1.2] }, uSilFade: { v2: [60, 170] }, uSilGain: 0.35,
   uNF: { v2: [0.1, 1000] }, uSharp: 0,

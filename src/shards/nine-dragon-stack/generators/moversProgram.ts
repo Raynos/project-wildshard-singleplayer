@@ -3,7 +3,7 @@ import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import type { BlobOptions } from '@wildshard/sdk/blobs';
 
 /** Nine's existing fixed-page ABI-2 view contract; SDK admission checks both revisions. */
-export const NINE_MOVERS_CONTRACT = { abi: 2, lane: 'view', pages: 1, ioBytes: 4096, compilerRevision: 1, admissionRevision: 1 } as const satisfies NonNullable<BlobOptions['script']>;
+export const NINE_MOVERS_CONTRACT: { readonly abi: 2; readonly lane: "view"; readonly pages: 1; readonly ioBytes: 4096; readonly compilerRevision: 1; readonly admissionRevision: 1; } = { abi: 2, lane: 'view', pages: 1, ioBytes: 4096, compilerRevision: 1, admissionRevision: 1 } as const satisfies NonNullable<BlobOptions['script']>;
 
 export interface NineMoversProgram { readonly hash: string; readonly compressed: number; readonly bytes: Uint8Array }
 

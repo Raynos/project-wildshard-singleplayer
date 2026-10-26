@@ -103,7 +103,7 @@ function lookBindings(): NumericChannelOutput[] {
 
 const looks = lookBindings();
 export const NINE_FRAME_GROUP = 'nine.frame';
-export const NINE_FRAME_CHANNELS = numericChannelPrograms(NINE_FRAME_GROUP, NINE_FRAME_GROUP, [
+export const NINE_FRAME_CHANNELS: ReturnType<typeof numericChannelPrograms> = numericChannelPrograms(NINE_FRAME_GROUP, NINE_FRAME_GROUP, [
   ...Object.entries(FRAME).flatMap(([name, parts]) => parts.map((expr, at) => ({ target: 'bag', path: port(name, at, parts.length), expr }))),
   { target: 'nine-streaks', path: ['projection', 'x'], expr: (_b, read) => read('view', ['p00']) },
   { target: 'nine-streaks', path: ['projection', 'y'], expr: (_b, read) => read('view', ['p11']) },

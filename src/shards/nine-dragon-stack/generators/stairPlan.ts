@@ -8,9 +8,9 @@ const { PLAZA, STAIR, Y0 } = NINE_FLOOR_PLAN;
 
 // ── the plan: three flights of 20 steps, two 4 m landings, the top landing ──
 
-export const RISE = STAIR.rise / 60;
+export const RISE: number = STAIR.rise / 60;
 const LANDING = 4;
-export const RUN = (STAIR.x1 - STAIR.x0 - 2 * LANDING) / 60;
+export const RUN: number = (STAIR.x1 - STAIR.x0 - 2 * LANDING) / 60;
 export interface Flight { x0: number; x1: number; y0: number; steps: number }
 export const FLIGHTS: readonly Flight[] = [0, 1, 2].map((i) => {
   const x0 = STAIR.x0 + i * (20 * RUN + LANDING);
@@ -22,21 +22,21 @@ export const LANDINGS: readonly { x0: number; x1: number; y: number }[] = [0, 1]
   return { x0, x1: x0 + LANDING, y: Y0 + (i + 1) * 20 * RISE };
 });
 /** the top landing (its far end is the fragment's wall, colliders.ts STAIR_TOP) and the scenery street beyond it */
-export const TOP_Y = Y0 + STAIR.rise;
+export const TOP_Y: number = Y0 + STAIR.rise;
 /** the paifang on the second landing, spanning the stair (its front faces down the stair, west) */
 const L2 = LANDINGS[1] ?? { x0: 0, x1: 0, y: 0 };
 /** (E281: wide and a little lower, as mockup C and C2·5 draw it — a 6.2 m centre bay, the outer posts on the terraces;
  *  it was 3.5 m between 10 m posts, a slot) */
-export const STAIR_GATE = { x: (L2.x0 + L2.x1) / 2, y: L2.y, z: (STAIR.z0 + STAIR.z1) / 2, s: 1.3, posts: [-5.6, -3.1, 3.1, 5.6] } as const;
+export const STAIR_GATE: { readonly x: number; readonly y: number; readonly z: number; readonly s: 1.3; readonly posts: readonly [-5.6, -3.1, 3.1, 5.6]; } = { x: (L2.x0 + L2.x1) / 2, y: L2.y, z: (STAIR.z0 + STAIR.z1) / 2, s: 1.3, posts: [-5.6, -3.1, 3.1, 5.6] } as const;
 /** the street between the tower faces past the square's towers (the stair is the middle 8 m; terraces either side) */
-export const FACE_N = STAIR.z0 - 3, FACE_S = STAIR.z1 + 3;
+export const FACE_N: number = STAIR.z0 - 3, FACE_S: number = STAIR.z1 + 3;
 /** the square's east towers flank the stair's first 12 m (their end faces on the stair's edges, base at Y0 + 5): C1 / C2's
  *  boundary */
-export const SQ_BACK = PLAZA.x1 + 12.6;
+export const SQ_BACK: number = PLAZA.x1 + 12.6;
 /** …but the two corner towers at the stair stand only SQ_DEPTH deep (towers.ts wallRun openDepth): behind them, from
  *  SQ_CORNER to SQ_BACK, the stair's low pavilions on raised terraces with their towers set back (mockup C's foot) */
 export const SQ_DEPTH = 6;
-export const SQ_CORNER = PLAZA.x1 + 0.6 + SQ_DEPTH;
+export const SQ_CORNER: number = PLAZA.x1 + 0.6 + SQ_DEPTH;
 /** the scenery street past the top landing ends here */
 export const FAR_X = 102;
 

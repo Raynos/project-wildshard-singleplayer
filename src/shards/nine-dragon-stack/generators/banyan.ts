@@ -338,7 +338,7 @@ export function kowloonStele(ctx: Ctx, k: Kit, tx: number, y: number, tz: number
 }
 
 /** the tree's shape (its planter's radius, its seed, height and spread; the organic lab's cards dress its canopy) */
-export const BANYAN_TREE = { r: BANYAN.r, seed: 7, height: 14, spread: 8.6, leaves: false } as const;
+export const BANYAN_TREE: { readonly r: number; readonly seed: 7; readonly height: 14; readonly spread: 8.6; readonly leaves: false; } = { r: BANYAN.r, seed: 7, height: 14, spread: 8.6, leaves: false } as const;
 /** where the shrine and the stele stand off the tree's centre (x, z) */
 export const SHRINE_AT = [-3.2, 2.2] as const;
 export const STELE_AT = [-3.7, -1.1] as const;

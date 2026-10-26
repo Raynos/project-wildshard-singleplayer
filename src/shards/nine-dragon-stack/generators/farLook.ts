@@ -41,7 +41,12 @@ export function farGrid(): { res: number; size: number; heights: Float32Array; s
 const INK: Rgb = [0.018, 0.018, 0.027], ROOF: Rgb = [0.03, 0.029, 0.038], GRANITE: Rgb = [0.045, 0.043, 0.05], WINDOW: Rgb = [0.3, 0.17, 0.06];
 
 // toon (faceted Lambert): a rough PBR proxy's grazing-angle sheen washed the tower faces out to pale cliffs
-export const farLook = {
+export const farLook: { readonly family: "toon"; readonly colourAt: (x: number, z: number, h: number, slope: number) => [number, number, number]; 
+// G222: its exposed boundary is the stack's granite footing going to ink, never a pale wall
+readonly cliff: { readonly lip: Rgb; readonly foot: Rgb; }; readonly haze: { readonly colour: readonly [0.6, 0.56, 0.64]; }; 
+// SF19b / G95 (Jake: "C Dusk + border fog"): under the grid's one sky the stack keeps its dusk through a dusky violet
+// grade on its own pixels and a pale silk fog rising from the strip at its border; no second sky
+readonly grade: { readonly exposure: -0.3; readonly saturation: 1.05; readonly contrast: 1.1; readonly tint: readonly [1.02, 0.88, 1.1]; }; readonly band: { readonly colour: readonly [0.72, 0.68, 0.78]; readonly height: 38; readonly opacity: 0.8; readonly own: 0.8; }; } = {
   family: 'toon',
   colourAt: (x: number, z: number, h: number, slope: number): [number, number, number] => {
     if (h < 0) return [0.02, 0.02, 0.03];

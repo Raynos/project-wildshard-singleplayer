@@ -19,7 +19,7 @@ export const LEAF_COLS = [0x3f6a3e, 0x4f7a44, 0x355a3a, 0x5a8a4a, 0x2f5236] as c
 export const FLOWER_COLS = [0xf2eee4, 0xe98aa8, 0xd9443a, 0xf0c86a] as const;
 
 /** the plants' dark cores and the flowers (a low icosphere) */
-export const ICO0 = Array.from(new IcosahedronGeometry(1, 0).getAttribute('position').array);
+export const ICO0: number[] = Array.from(new IcosahedronGeometry(1, 0).getAttribute('position').array);
 
 export const tint = (c: number, t: number): number => new Color(c).multiplyScalar(t).getHex();
 

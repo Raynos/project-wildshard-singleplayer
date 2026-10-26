@@ -412,7 +412,9 @@ function dish(): Builder {
   return o;
 }
 
-export const PIECES = {
+export const PIECES: { readonly balcony: (far?: boolean) => Builder; readonly balconySolid: () => Builder; readonly balconyTimber: (far?: boolean) => Builder; readonly cageS: (far?: boolean) => Builder; readonly cageW: (far?: boolean) => Builder; readonly acUnit: (far?: boolean) => Builder; readonly acBox: () => Builder; readonly pipe: () => Builder; readonly laundryOut: () => Builder; readonly laundryAlong: () => Builder; readonly awning: () => Builder; readonly plant: () => Builder; readonly planter: () => Builder; readonly signBox: () => Builder; readonly signFlat: () => Builder; readonly tank: () => Builder; readonly shackG: () => Builder; readonly shackB: () => Builder; readonly bayBox: () => Builder; readonly ledge: () => Builder; readonly eave: () => Builder; readonly post: () => Builder; readonly shutter: () => Builder; readonly antenna: () => Builder; readonly dish: () => Builder; readonly lantern: (far?: boolean) => Builder; readonly couplet: () => Builder; readonly washLine: () => Builder; 
+// the shared geometries the batch draws several ids with (batch.ts DRAWN_AS)
+readonly box: () => Builder; readonly rail: (far?: boolean) => Builder; readonly cage: (far?: boolean) => Builder; readonly shack: () => Builder; } = {
   balcony, balconySolid, balconyTimber, cageS: cageOf(CAGE_W[0]), cageW: cageOf(CAGE_W[1]), acUnit, acBox, pipe, laundryOut, laundryAlong, awning, plant, planter, signBox, signFlat,
   tank, shackG: shack, shackB: shack, bayBox, ledge, eave, post, shutter, antenna, dish, lantern, couplet, washLine,
   // the shared geometries the batch draws several ids with (batch.ts DRAWN_AS)
