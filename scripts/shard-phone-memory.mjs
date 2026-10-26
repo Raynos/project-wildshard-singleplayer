@@ -265,6 +265,7 @@ export function contextMemoryDiagnostic(input) {
 }
 
 /** Read only the original 120-second floor, never the cache-clear diagnostic.
+ * Zero WebContent is unavailable evidence, even when a GPU reading exists.
  * @param {unknown} input
  * @param {string} [selection] One app floor, the Template pair, or all four by default. */
 function coreFloorTotals(input, selection = 'all') {
@@ -276,7 +277,7 @@ function coreFloorTotals(input, selection = 'all') {
   return targets.map(target => {
     const row = rows.find(value => value.shard === target.shard), samples = row?.samples.filter(sample => sample.phase === '120s') ?? [];
     if (samples.length > 1) throw new Error(`Duplicate 120s floor: ${target.shard}`);
-    const sample = samples[0], totalBytes = sample === undefined || row?.errors.length !== 0 ? null : sample.rendererBytes + sample.gpuBytes;
+    const sample = samples[0], totalBytes = sample === undefined || sample.rendererBytes === 0 || row?.errors.length !== 0 ? null : sample.rendererBytes + sample.gpuBytes;
     return {shard: target.shard, name: target.name, limitBytes: target.limitBytes, totalBytes};
   });
 }

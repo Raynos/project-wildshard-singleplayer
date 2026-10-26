@@ -270,6 +270,20 @@ test('missing, failed and invalid readings cannot pass as zero', () => {
   ])).toThrow();
 });
 
+test('GPU-only readings cannot qualify a missing WebContent floor', () => {
+  for (const gpuBytes of [0, 10 * MiB]) {
+    const input = [{...nativeProtocol, shard: '_template', errors: [],
+      samples: [10, 60, 120].map(second => ({phase: `${second}s`, rendererBytes: 0, gpuBytes}))}];
+    expect(coreMemorySummary(input, 'templates')[0]).toMatchObject({totalBytes: null, passed: false});
+    expect(coreMemoryEstimateAudit(input, '_template', MiB)).toMatchObject({measuredBytes: null,
+      errorPercent: null, within15Percent: null, budgetPassed: false});
+  }
+  // An absent GPU process is supported; a real WebContent reading still qualifies.
+  expect(coreMemorySummary([{...nativeProtocol, shard: '_template', errors: [],
+    samples: [{phase: '120s', rendererBytes: MiB, gpuBytes: 0}]}], 'templates')[0])
+    .toMatchObject({totalBytes: MiB, passed: true});
+});
+
 test('Chromium diagnostics retain original totals and errors without native verdicts', () => {
   const input = rows().map(({shard, errors, samples}) => ({shard, errors, samples, protocol: 'chromium-phone-core/1'}));
   expect(chromiumCoreMemorySummary(input)).toEqual(coreMemoryTargets.map(({shard, name, limitBytes}) => ({
