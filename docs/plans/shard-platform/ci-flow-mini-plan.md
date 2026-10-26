@@ -251,6 +251,15 @@ awaits the observer's first published image/rAF timestamp under the SAME title
 deadline, avoiding a null read while the shell hydrates. No later frame can
 replace that recorded first paint or relax the500ms gate.
 
+The exact893 functional visit after this correction reached Night Market:
+first-entry ready/current/inside agree, L0=15/L1=16, far=false, grain0.
+It still refused `No real building wall on the public approach`; wall contact
+and the complete return are UNPROVED. The local hero witness was195ms and
+ten-second draw counts were298/300/299, not CI performance acceptance.
+Browser cleanup completed and the owned4405 preview was stopped. No ordinary
+smoke retry or gating promotion follows this refusal. O1 was asked for a
+source-defined reachable wall approach before another functional visit.
+
 ### Release reading — 2026-10-26 21:35 UTC (sp-x7)
 
 Live remains `14a3d5d93-mvpm835t`, published18:54UTC with exact six-leg
