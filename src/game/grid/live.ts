@@ -106,6 +106,8 @@ const COLD_DWELL_TICKS = 5 * 60;
 // Contact corrections at a closed readiness wall are not a U-turn. Accumulate real horizontal travel
 // before selecting another approach, so sub-centimetre capsule recoil cannot evict the world just prepared.
 const APPROACH_TRAVEL_METRES = 0.1;
+// A different mouth must stay ahead for real travel before cancelling a yielded guess.
+const APPROACH_REDIRECT_METRES = 2;
 /** T7: the nearest cells whose products (only) prefetch from the road. */
 const NEARBY_PRODUCTS = 4;
 const entryAxes = [['x', 'z'], ['z', 'x']] as const;
@@ -175,6 +177,7 @@ export class LiveGridHost {
   private crossings = 0;
   private fixedTick = 0;
   private previousFeet: GridPoint | undefined;
+  private approachRedirect: { instance: string; start: GridPoint } | undefined;
   private readonly candidateDistances = new Map<GridCell,number>();
   private readonly approachWork:{candidates:GridCell[];nearby:GridCell[];boulevard:GridCell[];bounded:GridCell[]}[]=[];
   /** This host already owns the assembly and its frozen cells for its whole lifetime. */
@@ -299,8 +302,8 @@ export class LiveGridHost {
     if (controller !== undefined) this.approach = { instance, controller };
     this.requests.set(instance, request); this.sequence = this.settle(request); return request;
   }
-  /** T7: a committed crossing toward `destination` abandons a road-approach build of any other cell, so the destination's
-   *  admission (queued behind it in `sequence`) waits only for that build's next safe point, never its whole world. */
+  /** A committed crossing or sustained admitted heading abandons an obsolete road guess.
+   * Its existing request/claim keeps the queue until the constructor reaches its safe point and cleans up. */
   private abandonApproach(destination: string): boolean {
     const row = this.approach;
     if (row === null || row.instance === destination) return true;
@@ -479,12 +482,27 @@ export class LiveGridHost {
     // Spend a safe approach on the destination's admitted world rather than waiting
     // at its wall. Actual world-space movement selects the approaching cell: proximity alone would rebuild the
     // just-retired source behind the traveller. Stationary/missed first samples retain the original wall reach.
-    // One constructor owns the queue until it settles. A predicted heading must not cancel yielded world work;
-    // only an actual crossing may supersede it through the existing safe-point cancellation contract.
+    // One constructor owns the queue until its cleanup settles, including an aborted guess.
+    const moving = !travelled ? undefined : candidates.find(cell => headsToEntry(cell, feet, previous)
+      && this.distance(cell, feet) < this.distance(cell, previous) - 0.000001);
+    const pendingApproach = this.approach;
+    if (this.requests.size === 0 || pendingApproach === null || pendingApproach.controller.signal.aborted
+      || travelledDistance > this.ports.readiness.link.speed) this.approachRedirect = undefined;
+    else if (travelled) {
+      const product = moving === undefined ? undefined : this.products.get(moving.instance);
+      const isolated = product?.isolatedPreparation === true && this.ports.preparationBudget !== undefined;
+      const inReach = moving !== undefined && this.distance(moving, feet)
+        <= readinessModel(this.ports.readiness.bundle(moving), this.ports.readiness.link).distance;
+      if (moving !== undefined && moving.instance !== pendingApproach.instance && inReach
+        && (this.residents.has(moving.instance) || isolated)) {
+        if (this.approachRedirect?.instance !== moving.instance) this.approachRedirect = { instance: moving.instance, start: feet };
+        else if (Math.hypot(feet.x - this.approachRedirect.start.x, feet.z - this.approachRedirect.start.z) >= APPROACH_REDIRECT_METRES) {
+          this.abandonApproach(moving.instance); this.approachRedirect = undefined;
+        }
+      } else this.approachRedirect = undefined;
+    }
     if (this.requests.size === 0) {
       const wallReach = 6 + this.ports.player.motor.opts.radius + 0.5 + this.ports.readiness.link.speed / 60;
-      const moving = !travelled ? undefined : candidates.find(cell => headsToEntry(cell, feet, previous)
-        && this.distance(cell, feet) < this.distance(cell, previous) - 0.000001);
       const departed = this.transitions.at(-1)?.from;
       const boulevard=work.boulevard;
       if(travelled&&moving===undefined)for(let i=0,length=candidates.length;i<length;i++){
@@ -697,6 +715,7 @@ export class LiveGridHost {
       if (this.approach?.instance === to) this.approach = null;
       this.ports.player.motor = rider.motor; this.active = to;
       this.previousFeet = this.worldFeet(); // A committed spawn/frame placement is not the traveller's heading.
+      this.approachRedirect = undefined;
       const host = this.region(to)?.host; if (host !== undefined) this.unbind = host.bindExternalPlayer(this.ports.player);
       this.ports.bindFrame({ instance: to, physics: this.physics(to), motor: rider.motor, origin, ...(host === undefined ? {} : { host }) });
       this.residents.get(to ?? '')?.lease.update({ needed: true }); this.residents.get(from ?? '')?.lease.update({ needed: to === null });

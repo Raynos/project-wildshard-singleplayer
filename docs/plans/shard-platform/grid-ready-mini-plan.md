@@ -56,6 +56,7 @@ T4's remaining source and qualification rows resume after these edge misses.
 | Slice | Work | Status |
 |---|---|---|
 | G743.1 | Select the nearest upcoming boulevard junction; meaningful lateral motion resolves its side before the mouth ray, while equal choices and contact jitter remain undecided. Preserve one constructor, pair budgets, kept-source return and all entry fences. At most one hour. | in flight (2026-10-26, sp-x8; source contracts checked, milestone pending) |
+| G743.1b | After two metres of a sustained direct heading toward another admitted isolated destination or retained return, abort the obsolete speculative constructor through its existing safe point. Keep its request and full claim until cleanup settles; never start a replacement early. At most one hour. | in flight (2026-10-26, sp-x8; source contracts checked, shares the first pending four-edge milestone) |
 | G743.2 | Cut the measured world and after-Play critical path; move immutable preparation earlier within existing ownership and admission, retaining every readiness unit. Split further source cuts into at most one-hour rows. | open |
 | G743.3 | ONE original phone-tier DW/Pine/Nalati/Nine road-entry cohort per source milestone; report each request-to-commit time and keep all misses open until each is under five seconds. | open |
 

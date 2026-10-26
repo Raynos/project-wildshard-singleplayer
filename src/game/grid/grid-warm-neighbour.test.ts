@@ -466,7 +466,7 @@ test('G723: a late build that ignores its abort is disposed after a U-turn, neve
   } finally { f.control.finish?.(); f.close(); }
 });
 
-test('G723: an unsettled preparation owns the queue until its own cleanup finishes', async () => {
+test('G743: a sustained redirect cancels the old guess but cleanup still owns the queue', async () => {
   const f = await fixture({ paired: true });
   try {
     await f.enterHome(); const leave = await f.live.prepare(f.home.instance, null); leave.commit();
@@ -475,8 +475,14 @@ test('G723: an unsettled preparation owns the queue until its own cleanup finish
     f.player.position.x = 0; f.player.position.z = -(CHUNK_HALF + .5);
     travel(f.live, f.player.position, 0, -1); await f.settle();
     expect(f.control.aborted).toEqual([]);
+    f.player.position.z -= 1; f.live.beforeFixed();
+    expect(f.control.aborted).toEqual([]);
+    f.player.position.z -= 1; f.live.beforeFixed(); await f.settle();
+    expect(f.control.aborted).toEqual([f.east.instance]);
     expect(f.live.state().pending).toEqual([f.east.instance]);
     expect(f.created()).toEqual([f.home.instance, f.east.instance]);
+    expect(f.live.state().residents).toEqual([f.home.instance]);
+    expect(f.events).not.toContain(`retire:${f.home.instance}`);
     const back = await f.live.prepare(null, f.home.instance); back.commit();
     if (f.control.finish === undefined) throw new Error('Missing held preparation');
     f.control.finish(); await f.settle();
@@ -687,4 +693,31 @@ test('G743: straight travel keeps equal turn choices cold until lateral movement
     expect(f.live.state().residents).toEqual([f.north.instance, f.east.instance].sort());
     expect(f.events).not.toContain(`retire:${f.north.instance}`);
   } finally { f.close(); }
+});
+
+test('G743: redirected preparation starts only after the obsolete constructor releases its claim', async () => {
+  const f = await fixture({ paired: true });
+  try {
+    await f.enterHome(); const leave = await f.live.prepare(f.home.instance, null); leave.commit();
+    f.control.holdIncoming = true; await f.approachEast();
+    await f.live.prefetch([f.north.instance]);
+    f.player.position.x = 0; f.player.position.z = -(CHUNK_HALF + .5);
+    travel(f.live, f.player.position, 0, -1);
+    f.player.position.z -= 1; f.live.beforeFixed();
+    f.player.position.z -= 1; f.live.beforeFixed(); await f.settle();
+    expect(f.control.aborted).toEqual([f.east.instance]);
+    expect(f.created()).toEqual([f.home.instance, f.east.instance]);
+    expect(f.live.ready(f.north.instance)).toBe(false);
+    expect(f.claims().some(row => row.owner === f.east.instance)).toBe(true);
+    if (f.control.reject === undefined) throw new Error('Missing constructor safe point');
+    f.control.reject(new Error('Stopped at constructor safe point')); await f.settle();
+    expect(f.claims().some(row => row.owner === f.east.instance)).toBe(false);
+    travel(f.live, f.player.position, 0, -1); await f.settle();
+    expect(f.live.ready(f.north.instance)).toBe(true);
+    expect(f.created()).toEqual([f.home.instance, f.east.instance, f.north.instance]);
+    expect(f.live.state().residents).toEqual([f.home.instance, f.north.instance].sort());
+    expect(f.events).not.toContain(`retire:${f.home.instance}`);
+    expect(f.live.state().issues).toEqual({});
+    expect(f.allocated.at(-1)?.owners).not.toContain(f.east.instance);
+  } finally { f.control.finish?.(); f.close(); }
 });
