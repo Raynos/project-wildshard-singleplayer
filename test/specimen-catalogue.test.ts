@@ -1,3 +1,4 @@
+import { nalatiRuntime } from './fixtures/nalati-runtime';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare against shipped specimen bytes.
 import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Decode the original committed lane bake.
@@ -30,9 +31,9 @@ import { bakedSamplers } from '../src/format/bakedTerrainSampling';
 import { parseBakedTerrain } from '../src/format/bakedTerrainBytes';
 
 const memberSchema=v.object({solid:v.array(v.unknown()),descs:v.array(v.unknown()),floors:v.array(SceneFloorSchema)});
-const preparedPlaces=v.parse(v.object({floorSources:v.array(v.object({name:v.string(),source:v.string()})),places:v.object({rows:v.array(v.object({name:v.string(),colliders:v.array(v.unknown()),
+const preparedPlaces=v.parse(v.object({places:v.object({rows:v.array(v.object({name:v.string(),colliders:v.array(v.unknown()),
   members:v.array(v.tuple([v.string(),memberSchema]))}))})}),
-  JSON.parse(readFileSync('src/shards/nalati-grasslands/boot/placeRuntime.generated.json','utf8')));
+  nalatiRuntime);
 
 const trailCatalogue = defineSpecimenCatalogue<TrailParams>(trailRows);
 const trail = { fencePost: trailCatalogue.model('fencePost'), signpost: trailCatalogue.model('signpost'), plankStep: trailCatalogue.model('plankStep') };
@@ -167,7 +168,7 @@ it('retains every POI collider and path-ramp descriptor after floor baking', () 
   const original = v.parse(v.custom<readonly PlaceRow[]>(Array.isArray), sourcePlaces.rows);
   const prepared = preparedPlaces.places.rows;
   const before = original.flatMap(row => row.members.flatMap(([, member]) => member.floors.map(f => 'kind' in f ? f.kind === 'ledge' ? cragLedgeFloor(f) : f.kind === 'cave' ? leopardCaveFloor(f) : kurganEntranceFloor(f) : 'slabs' in f ? torFloor(f) : deckFloor(f))));
-  const files=new Map(preparedPlaces.floorSources.map(row=>[row.name,Uint8Array.from(readFileSync(`src/shards/nalati-grasslands/${row.source}`))]));
+  const files=new Map([0,1].map(index=>[`world/floors/${String(index)}.bin`,Uint8Array.from(readFileSync(`test/fixtures/nalati-floor-original-${String(index)}.bin`))] as const));
   const after = prepared.flatMap(row => row.members.flatMap(([, member]) => readSceneFloors(member.floors,files)));
   for (const row of original) {
     const actual = prepared.find(candidate => candidate.name === row.name);

@@ -10,7 +10,7 @@ import {readNamedBlob} from '../src/sdk/blobs';
 import {FixedDrawRowsSchema} from '../src/format/fixedDraws';
 import {SceneBakedGeometrySchema} from '../src/format/sceneDressing';
 import {productFixedDraws} from '../src/game/models/fixedDraws';
-import source from '../src/shards/nalati-grasslands/data/shapeBook.generated.json' with {type:'json'};
+import source from './fixtures/nalati-shape-book-original.json' with {type:'json'};
 import original from './fixtures/nalati-shape-blocks.json' with {type:'json'};
 
 const hash=(bytes:Uint8Array|string):string=>createHash('sha256').update(bytes).digest('hex');

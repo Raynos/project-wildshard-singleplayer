@@ -25,13 +25,12 @@ test('ordered owned floors and all declared raw inputs preserve exact normal SDK
   try {
     const declarations: NonNullable<ProjectOutput['blobs']>[number][] = [];
     for (const row of output.blobs) declarations.push({ ...row, kind: v.parse(v.picklist(['audio', 'bin', 'glb', 'image', 'json', 'ktx2', 'tile', 'wasm']), row.kind) });
-    const floors = v.parse(v.object({ floorSources: v.array(v.object({ name: v.string(), source: v.string(), kind: v.literal('bin') })) }), JSON.parse(readFileSync(resolve(project, 'data/placeRuntime.generated.json'), 'utf8')));
-    declarations.splice(1, 0, ...floors.floorSources);
+    const floors = [0, 1].map(index => nameBlob(`world/floors/${String(index)}.bin`, 'bin',
+      readFileSync(`test/fixtures/nalati-floor-original-${String(index)}.bin`)));
     const originals = await Promise.all(declarations.map(row => readNamedBlob(project, row.name, row.source, row.kind, row.options)));
-    const sources = declarations.map((row, index) => {
-      const blob = originals[index]; if (blob === undefined) throw new Error('Missing original input');
-      return row.name.startsWith('world/floors/') ? blob : row;
-    });
+    originals.splice(1, 0, ...floors);
+    const sources: Parameters<typeof nalatiOutputInputs>[1][number][] = [...declarations];
+    sources.splice(1, 0, ...floors);
     for (const run of ['cold', 'hit']) {
       const blobs = await nalatiOutputInputs(context(), sources);
       expect(blobs.map(blob => blob.file.name), run).toEqual(originals.map(blob => blob.file.name));

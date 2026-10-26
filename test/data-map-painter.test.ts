@@ -1,3 +1,4 @@
+import { nalatiRuntime } from './fixtures/nalati-runtime';
 // oxlint-disable-next-line import/no-nodejs-modules -- Validate declared render payloads on disk.
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Fixture paths stay under the repository's tmp directory.
@@ -135,7 +136,7 @@ test('Sky resting matrices include every connector and exact group pose', () => 
 test('Nalati map assembly covers every POI model copy at its admitted pose', async () => {
   const { assembly } = await nalatiMapAssembly();
   const nalatiPlaces = schema.parse(schema.object({ places: schema.object({ rows: schema.array(schema.object({ name: schema.string(), instances: schema.array(schema.tuple([schema.string(),
-    schema.object({ placements: schema.array(schema.object({ x: schema.number(), y: schema.number(), z: schema.number() })) })])) })) }) }), JSON.parse(readFileSync('src/shards/nalati-grasslands/boot/placeRuntime.generated.json','utf8')));
+    schema.object({ placements: schema.array(schema.object({ x: schema.number(), y: schema.number(), z: schema.number() })) })])) })) }) }), nalatiRuntime);
   try {
     for (const place of nalatiPlaces.places.rows.filter(row => !row.name.startsWith('actor:'))) {
       for (const [id, model] of place.instances) {
