@@ -5,7 +5,7 @@ import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
 import { nameBlob } from '@wildshard/sdk/blobs';
 import cover from '../data/cover.generated.json' with {type:'json'};
 import gear from '../data/gear.generated.json' with {type:'json'};
-import { reinsCard } from './reinsCard';
+import { reinsCardBinary } from './reinsCard';
 
 /** the flock's sheep: the painted model (generators/bake-model-paint.mjs) in the painted creatures' material */
 const SHEEP = { key: 'sheep', model: { id: 'nalati-grasslands/sheep', name: 'Fat-tailed sheep', file: 'src/shards/nalati-grasslands/generators/coverSpecimens.ts',
@@ -16,7 +16,10 @@ const SHEEP = { key: 'sheep', model: { id: 'nalati-grasslands/sheep', name: 'Fat
 /** The Explorer admits the prepared ambient cards, the baked reins card and the sheep without a shard builder module; the
  *  gear book (one for both tiers) is the held gear's catalogue, read by the Explorer and the entered arsenal alike. */
 export function coverSpecimenBlobs():ReturnType<typeof nameBlob>[] {
-  const reins=reinsCard().rows,book=(name:string,input:unknown)=>nameBlob(name,'json',new TextEncoder().encode(encodeCanonicalJson(v.parse(SpecimenBookSchema,input))),{jsonSchema:namedJsonSchema(SpecimenBookSchema)});
-  return[...(['phone','desktop']as const).map(tier=>book(`models/cover-${tier}.json`,{rows:[...cover[tier].catalogue,...reins,SHEEP],packed:cover[tier].packed,materials:cover.materials})),
+  const reins=reinsCardBinary(),row=reins.book.rows[0];
+  if(row?.source.kind!=='file')throw new Error('Missing native reins declaration');
+  const binary=nameBlob(row.source.file,'bin',reins.bytes);
+  const book=(name:string,input:unknown,dependencies:readonly string[]=[])=>nameBlob(name,'json',new TextEncoder().encode(encodeCanonicalJson(v.parse(SpecimenBookSchema,input))),{jsonSchema:namedJsonSchema(SpecimenBookSchema),dependencies});
+  return[binary,...(['phone','desktop']as const).map(tier=>book(`models/cover-${tier}.json`,{rows:[...cover[tier].catalogue,...reins.book.rows,SHEEP],packed:cover[tier].packed,materials:cover.materials},[binary.file.hash])),
     book('models/gear-book.json',{rows:gear.catalogue.map(({key,model,source})=>({key,model,source})),packed:gear.packed,materials:gear.materials})];
 }

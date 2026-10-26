@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { zlibSync } from 'fflate';
 import { parse } from 'valibot';
 import { ReinPresentationSchema } from '@wildshard/format/riding';
 import { SpecimenBookSchema } from '@wildshard/format/specimenCatalogue';
@@ -9,16 +8,6 @@ import { join, writeGeometry } from './geometryWriter';
 
 // the Explorer's straps as the rider sees them: crest, head and muzzle of the camp horse, the phone's 70° portrait view
 const CREST = new THREE.Vector3(0, -.5, -1.05), HEAD = new THREE.Vector3(0, -.55, -1.75), MUZZLE = new THREE.Vector3(0, -1, -2.1), FOV = 70, ASPECT = 9 / 19.5;
-
-/** Keep the current cover-book transport until its binary reader switches atomically. */
-export function reinsCard(): ReturnType<typeof parse<typeof SpecimenBookSchema>> {
-  const { book, bytes } = reinsCardBinary(), row = book.rows[0];
-  if (row?.source.kind !== 'file') throw new Error('Missing native reins card');
-  let text = ''; for (const byte of zlibSync(bytes)) text += String.fromCodePoint(byte);
-  return parse(SpecimenBookSchema, { ...book, rows: [{ ...row, source: {
-    kind: 'inline', data: btoa(text), geometry: row.source.geometry, material: row.source.material,
-  } }] });
-}
 
 /** The original live straps as raw geometry and a named-file specimen declaration.
  * Publication remains with the cover-book producer; callers own the returned bytes. */
