@@ -2,8 +2,8 @@ import { Euler, InstancedMesh, Matrix4, MeshStandardMaterial, Quaternion, Vector
 import { readSourceModel } from '@wildshard/sdk/bake/skinned';
 import { GeometryPackWriter, type PackedGeometryRows } from '@wildshard/sdk/kit/geometryPack';
 import { facetedGeometry, fitModel } from './modelIntake';
-import { FALLEN_BRIDGE, SPANS, type Span } from "./layout";
-import { ropeSag } from "./layoutMath";
+import { FALLEN_BRIDGE, SPANS, ROPE_SAG, type Span } from "./layout";
+import { bridgeSine } from './bridgeSine';
 import { RISING_ISLETS } from './risingIslets';
 import { SKY_AO_FLOOR } from './modelFrames';
 import { MODEL_URLS } from './fileInventory';
@@ -111,7 +111,11 @@ export async function bakeSkyBridges(read: (url: string) => Uint8Array): Promise
   const pack = new GeometryPackWriter('far-reach bridges'), segment = deckSegment(deckModel), deck = pack.add(segment.geometry);
   const spans = ropeSpans().map(({ id, length, width, hangs }): BakedBridge => {
     // a rigid deck (the crown's drawbridge swings up whole) does not sag
-    const sag = (s: number): number => hangs ? ropeSag(length, s) : 0;
+    const sag = (s: number): number => {
+      const run = length - 2 * ROPE_SAG.ends;
+      return !hangs || run <= 0 ? 0 : Math.min(ROPE_SAG.max, ROPE_SAG.depth * length)
+        * bridgeSine(Math.PI * Math.min(1, Math.max(0, (s - ROPE_SAG.ends) / run)));
+    };
     const sides = [-1, 1].map((side) => {
       // the hand ropes (E399 round 6, seat A: 'tied rails'): a thick top rope from the post heads, drawn tighter than the
       // deck, a lighter mid rope, and thin ties from the top rope down to the deck's edge every 2.5 m (round 7, seat B)
