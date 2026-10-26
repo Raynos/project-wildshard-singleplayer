@@ -45,8 +45,9 @@ export function skyHeroSource(geometry: string): NamedBlob {
   return json('world/sources/heroes.json', { ...hero, rows: { ...hero.rows, geometryPools: [{ ...heroes.pool, url: geometry }] } });
 }
 /** Preserve the complete native library while replacing only its owned bridge, mill and fan pool addresses. */
-export function skyModelSource(bridgeGeometry: string, millGeometry: string, fanGeometry: string): NamedBlob {
+export function skyModelSource(bridgeGeometry: string, millGeometry: string, fanGeometry: string, rigs?: SceneModelSource['rows']['rigs']): NamedBlob {
   return json('world/sources/sky.json', { ...sky, rows: { ...sky.rows,
+    ...(rigs === undefined ? {} : { rigs }),
     geometryPools: sky.rows.geometryPools.map(pool => pool.url === BRIDGE_REST_URL ? { ...pool, url: bridgeGeometry }
       : pool.url === MILL_REST_URL ? { ...pool, url: millGeometry }
       : pool.url === files.FAN_URL ? { ...pool, url: fanGeometry } : pool) } });

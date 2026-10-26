@@ -2,6 +2,7 @@ import {ISLET_POOL, BRIDGE_REST_URL, MILL_REST_URL } from './restFiles';
 import REST_POOLS from '../data/restPools.generated.json' with { type: 'json' };
 import { PREPARED_MODELS_URL } from './modelFrames';
 import { GPU_FILES } from '../ktx2.generated';
+import type { SkyRigAssetSources } from './rigAssetSources';
 import { SKY_CREATURES, SKY_CREATURE_RIGS, SKY_MESHES, MODEL_URLS, SKY_HD, HD_URLS, BAKED_PIECES, BAKED_URLS, FAN_URL, TEX_URL, FAN_LEAF_URL, PANO_URL } from './fileInventory';
 
 /** Ordered boot rows retain image/GPU selection until the platform resolves its chosen tier. */
@@ -20,19 +21,20 @@ export const BOOT_FILES = { sources: BOOT_SOURCES, tier: 'phone', tex: 'img' } a
 export const LATE_READS = ['/assets/lut/far-reach.bin'];
 
 /** Public boot packs omit owned geometry; native pools load it through normal product admission. */
-export function skyProductBoot(): {
+export function skyProductBoot(rigs?: SkyRigAssetSources): {
   readonly ktx2: typeof GPU_FILES;
   readonly 'boot.files': { readonly sources: ReturnType<typeof productSources>; readonly tier: 'phone'; readonly tex: 'img' };
   readonly 'boot.sources': ReturnType<typeof productSources>;
   readonly 'boot.lateReads': typeof LATE_READS;
 } {
-  const sources = productSources();
-  return { ktx2: GPU_FILES, 'boot.files': { sources, tier: 'phone', tex: 'img' }, 'boot.sources': sources, 'boot.lateReads': LATE_READS };
+  const sources = productSources(rigs);
+  return { ktx2: rigs?.gpuFiles ?? GPU_FILES, 'boot.files': { sources, tier: 'phone', tex: 'img' }, 'boot.sources': sources, 'boot.lateReads': LATE_READS };
 }
-function productSources() {
-  const owned = new Set<string>([PREPARED_MODELS_URL, ...BAKED_PIECES.map(piece => BAKED_URLS[piece]), BRIDGE_REST_URL, MILL_REST_URL, FAN_URL]);
-  const props = shared.props.filter(row => typeof row !== 'string' || !owned.has(row));
-  return { ...BOOT_SOURCES, tiers: {
+function productSources(rigs?: SkyRigAssetSources) {
+  const owned = new Set<string>([PREPARED_MODELS_URL, ...BAKED_PIECES.map(piece => BAKED_URLS[piece]), BRIDGE_REST_URL, MILL_REST_URL, FAN_URL,
+    ...(rigs === undefined ? [] : Object.values(SKY_CREATURE_RIGS))]);
+  const props = shared.props.filter(row => typeof row === 'string' ? !owned.has(row) : rigs === undefined || !owned.has(row.gpu));
+  return { ...BOOT_SOURCES, gpuFiles: rigs?.gpuFiles ?? GPU_FILES, tiers: {
     phone: { ...BOOT_SOURCES.tiers.phone, props }, desktop: { ...BOOT_SOURCES.tiers.desktop, props },
   } };
 }
