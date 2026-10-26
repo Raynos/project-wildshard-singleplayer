@@ -236,19 +236,21 @@ export async function loadManifestProduct(manifest: ShardManifest, scope: Scope)
   await prepareManifestScalarBlocks(manifest,product,scope);return product;
 }
 
-const admittedProducts = new WeakMap<object, ShardProduct>();
+// Descriptors can outlive their resident owners. A cached facade closes over
+// admitted transport, so its value must not keep a retired admission alive.
+const admittedProducts = new WeakMap<object, WeakRef<ShardProduct>>();
 /** Reuse already admitted section/asset bytes for a regional runtime; no descriptor is fetched again. */
 export function shardProductFromAdmission(admitted: AdmittedProduct, scope: Scope, options?: ProductOptions): ShardProduct {
   if (scope.disposed) throw new Error('Admitted shard product needs a live owner');
   const opts = options ?? browserShardfileOptions(productBase(admitted.source.identity.slug), true);
-  let product = admittedProducts.get(admitted.source.files);
+  let product = admittedProducts.get(admitted.source.files)?.deref();
   if (product === undefined) {
     const reader = new ClientAssets(admitted.source, new Map(), opts);
     product = shardProductData(admitted.source, opts.base, ref => {
       const present = admitted.assets.get(ref);
       return present === undefined ? reader.read(ref) : pacedResolve(present);
     }, outputDescriptor(admitted.source)?.receipt === undefined, opts.firstParty);
-    admittedProducts.set(admitted.source.files, product);
+    admittedProducts.set(admitted.source.files, new WeakRef(product));
   }
   const release = opts.cache?.pin?.(outputDescriptor(admitted.source)?.index.sections.map(section => section.hash) ?? []);
   scope.onDispose(() => { release?.(); });
