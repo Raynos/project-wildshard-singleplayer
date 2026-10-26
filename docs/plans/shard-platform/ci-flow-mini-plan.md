@@ -352,7 +352,8 @@ cases pass. Origin ancestry for8ff7e588e9 is verified; containing behaviour
 acceptance remains pending. A distinct behaviour3 failure on f99b belongs to
 the new Driftwood island-prototype input boundary: audio-authoring.test.ts
 declares only the public asset root, so driftwoodIslandProtoOutput refuses
-`Generation input needs exactly one declared root`. Routed to o3 with a
+`Generation input needs exactly one declared root`. O3 identifies defining
+4870a346fc as x1's owned-prototype intake; routing corrected to x1 with a
 transitive-caller audit, first22:04:35Z/deadline22:34:35Z, preserving the
 strict root refusal and all audio oracles. The overall verdict remains red.
 No capture, cap change or smoke retry is requested.
