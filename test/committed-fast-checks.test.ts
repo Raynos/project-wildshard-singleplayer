@@ -81,7 +81,7 @@ test('plugin executable and policy reads stay on Git even when both are dirty',(
   const f=fixture();try {
     f.put('lint/marker.json','BAD');const bad=f.commit();
     f.put('lint/marker.json','GOOD');f.put('lint/plugin.mjs','throw Error("foreign plugin");');
-    const deferred=f.run('fast-lint',bad);expect(deferred.status).toBe(0);expect(deferred.stdout).toContain('DEFERRED TO CI');expect(deferred.stdout).not.toContain('Fast lint passed');
+    const lint=f.run('fast-lint',bad);expect(lint.status).toBe(1);expect(lint.stderr).toContain('Committed marker refused');expect(lint.stderr).not.toContain('foreign plugin');
     const result=f.run('ratchet',bad);
     expect(result.status,result.stderr).toBe(1);expect(result.stderr).toContain('was 0, now 1');
     expect(result.stderr).not.toContain('foreign plugin');
@@ -98,13 +98,13 @@ test('native lint detects exact cycles and defers a changed dependency',()=>{
   }finally{f.close();}
 });
 
-test('a dirty configuration defers before reading even the source root',()=>{
+test('committed good policy ignores a loose poison and still checks the source',()=>{
   const f=fixture();try {
-    f.put('src/main.ts',"import './missing';export const value=1;");const tip=f.commit();
-    const hash=f.git('rev-parse',`${tip}:src/main.ts`);f.put('lint/marker.json','dirty policy');
+    f.put('src/main.ts','export const value=2;');const tip=f.commit();
+    const hash=f.git('rev-parse',`${tip}:src/main.ts`);f.put('lint/marker.json','BAD');
     const result=f.run('fast-lint',tip,['src/main.ts'],f.base,true);
-    expect(result.status,result.stderr).toBe(0);expect(result.stdout).toContain('unverified configuration lint/marker.json');
-    expect(result.stderr).not.toContain(`cat-file blob ${hash}`);expect(result.stdout).not.toContain('Fast lint passed');
+    expect(result.status,result.stderr).toBe(0);expect(result.stdout).toContain('Fast lint passed on 1 exact changed files');
+    expect(result.stderr).toContain(`cat-file blob ${hash}`);expect(result.stdout).not.toContain('DEFERRED TO CI');
   }finally{f.close();}
 });
 

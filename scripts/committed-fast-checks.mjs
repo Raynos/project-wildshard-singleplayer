@@ -40,7 +40,10 @@ export async function committedFastChecks(root,base,tip,phase,paths) {
           item.specifier=resolve(root,item.specifier);return item;
         });
         writeFileSync(config,JSON.stringify(settings));
-        const shared=[...view.files.keys()].filter(path=>/^\.oxlint|^(?:src\/[^/]+\/)?(?:package|tsconfig[^/]*)\.json$|^pnpm-lock\.yaml$|^lint\//u.test(path));
+        // Rust's source/import resolution needs matching native inputs. JS
+        // plugins and their lint/ policy reads already use the immutable Git
+        // view in both processes; loose policy bytes are never authoritative.
+        const shared=[...view.files.keys()].filter(path=>/^\.oxlint|^(?:src\/[^/]+\/)?(?:package|tsconfig[^/]*)\.json$|^pnpm-lock\.yaml$/u.test(path));
         const mismatchedShared=shared.filter(path=>!view.matches(path));
         if(mismatchedShared.length>0) {
           for(const file of roots)console.log(`DEFERRED TO CI fast-lint ${file}: unverified configuration ${mismatchedShared.join(', ')}`);
