@@ -435,12 +435,13 @@ retention attribution remain open.
 | C4.4 world.data model admission | source done `dfa2feca44` + `5f99d999e6`; measured FAIL retained | Exact bounded GLB parser and deferred commons validation; static source closure -39,457 raw/-10,954 gzip B. Original native pair267.398/245.507 MiB, both FAIL; no consistent native gain. Actual compressed-model geometry/owner/refusal contracts preserved. |
 | C4.5 Demand-start tile decoder workers | source done `8f0324fea6`; native0/2 FAIL | Constructor allocation started2 workers before knowing whether a decode was needed. Start the same pool at its first request: unused pools create0 workers/timers; active terrain can still require both workers. Queue/transfer/disposal/partial-start contracts remain exact.31 focus/5 suites,109 CF1/21 and1794 broad-related/328 pass; touched game/test types and typed lint pass. New native pair below remains263.789/246.132MiB FAIL; no isolated byte gain. The rings proof now records any observed worker use during the drive, instead of freezing the constructor-time false value. Explicit full-rule typed lint and scoped fixture types pass; no linked related suites were selected for that diagnostic fixture. |
 | C4.6 Demand-start native milestone | done (measurement on8f0324fea6),0/2 FAIL | Original two-Template reader complete275s/errors0/all6 samples,2WC+1GPU each.120s totals276,602,440/258,088,568B versus208,182,520B each; over65.250/47.594MiB. No GC/snapshot/Network capture; passive categories after acceptance only. Prior5f99 pair267.398/245.507MiB changes in opposite directions; no consistent or causal gain, no base/cap fit. Quiet/Sim/browser/proxy/own preview fully released; no repeat. Raw tmp/sp-x2/core-c4-demand. |
-| C4.7 Admission facade cache lifetime (≤1 h) | done (this code commit), native impact unmeasured | A descriptor's files array can outlive its resident admission. The facade cache's strong value closes over that admission's transport map. Use a weak value so live consumers retain their reader/identity while a descriptor alone cannot retain retired transport. Real-GC regression fails before the change; a 1 MiB fixture backing and facade collect afterward with the descriptor alive. Live-reader collection and existing reread/transport-release contracts remain:90 focused cases,1613 related/303 suites, touched game/scoped fixture types and typed lint pass. No measured native saving or new cohort. |
+| C4.7 Admission facade cache lifetime (≤1 h) | done `dcb92dd4ee`, native impact unmeasured | A descriptor's files array can outlive its resident admission. The facade cache's strong value closes over that admission's transport map. Use a weak value so live consumers retain their reader/identity while a descriptor alone cannot retain retired transport. Real-GC regression fails before the change; a 1 MiB fixture backing and facade collect afterward with the descriptor alive. Live-reader collection and existing reread/transport-release contracts remain:90 focused cases,1613 related/303 suites, touched game/scoped fixture types and typed lint pass. No measured native saving or new cohort. |
+| C4.8 Context-only native floor (≤1 h) | done (this code commit), diagnostic only | One hello/empty-WebGL2 pair through the existing official reader complete264s/rc0/errors0/all6 samples,2WC+1GPU each.120s54,238,144 /54,959,112B (51.726/52.413MiB); one context/one clear at804x1428,0losses. No app/external resources, forced GC, profiler or snapshot.33 focused/34 related cases, scripts/scoped fixture types and typed lint pass. Fixed G682 calibration/caps and250MiB estimator base unchanged; no app reading repeated. Raw tmp/sp-x2/core-c4-contexts; details §16. |
 | C6 Model source | done previously `d2ef0c0848`, historical calibration | 250 MiB base, explicit grid-only page claims, unchanged caps. This visit does not silently recalibrate the estimator or establish current ±15% accuracy. |
 | C6.1 Pinned product / exact model audit | done (this commit) | Same `50d155f897` product and estimator: 299.764 MiB predicted / 260.664 MiB observed, 15.000330% high. Offline native-only audit refuses the exact miss, independently of G682; no base/cap change. |
 | C6.2 Current calibration | open | Same-source8f metadata predicts314,325,416 /310,301,961B versus native276,602,440 /258,088,568B: +13.637977% /+20.230804%. Template1 is within ±15%, Template2 misses. Metadata was reopened from a separate rebuild at the same source pin; the native visit did not retain its product index hashes. Neither whole-model calibration nor a shared-base fit is established. |
 | C6.2a Template-pair offline audit | done (this code commit) | The existing audit-estimate CLI now accepts either floor from the original templates selection and validates that the evidence contains only that cohort. Real CLI regression fails before and passes after; mixed menu evidence, collected samples and mixed source pins refuse, while a missing requested floor stays unknown/fail.26 related cases, scripts project/scoped fixture types and named typed lint pass. The saved5f99 pair still fails its native budget; no base fit, current-model accuracy or memory saving is claimed. |
-| C6.3 Product identity at native milestone (≤1 h) | done (this code commit), future readings only | The existing native reader records a bounded Node-side product index SHA-256, wire length and source hash after all10/60/120s acceptance samples and optional passive categories. Exact original build checks bracket the read; one5s deadline,1MiB index/64KiB version caps, no blob/section fetches or page/Inspector bodies. Missing, changed or corrupt metadata stays unavailable without changing native errors/budgets.30 focused/31 related cases, scripts/scoped fixture types and named typed lint pass. This identifies the post-sample served product, not resident content; old8f results remain without captured index identity. No native repeat or estimator/base/cap change. |
+| C6.3 Product identity at native milestone (≤1 h) | done `8aa25dcbfa`, future readings only | The existing native reader records a bounded Node-side product index SHA-256, wire length and source hash after all10/60/120s acceptance samples and optional passive categories. Exact original build checks bracket the read; one5s deadline,1MiB index/64KiB version caps, no blob/section fetches or page/Inspector bodies. Missing, changed or corrupt metadata stays unavailable without changing native errors/budgets.30 focused/31 related cases, scripts/scoped fixture types and named typed lint pass. This identifies the post-sample served product, not resident content; old8f results remain without captured index identity. No native repeat or estimator/base/cap change. |
 | C7.1 Reader protocol separation | done `50d155f897` | Only the original cold, uncollected WebKit protocol qualifies G682. Chromium retains diagnostic totals but cannot print a WebKit PASS/FAIL. |
 | C7.2 Coherent current four-floor reading | done (measurement), 2/4 PASS | `50d155f897`: 93.538 / 107.679 / 260.664 / 249.679 MiB. Both templates remain over G682; no repeated cohort or source-isolated gain claim. |
 | C7.3 Template-only requalification selector | done `688f7e1d78`, measured FAIL in §14 | `sim-grid-entry.mjs --core-memory=templates` visits only the existing Template1/2 targets in their original order and applies the same G682 caps/protocol. Missing, collected, foreign-protocol or mixed menu evidence cannot pass. No third/fourth visit or new calibration. |
@@ -756,3 +757,51 @@ the distinct reader lease released first and the retained parent preview
 was stopped through its full-identity guard. All CPU/Sim/browser/preview
 resources released before subsequent checks. Raw original samples and
 passive categories remain at`tmp/sp-x2/core-c4-demand/`. No repeat queued.
+
+## 16. C4 context-only native floor (2026-10-25)
+
+The existing official reader now accepts `--core-memory=contexts`: one cold
+hello visit followed by one cold empty-WebGL2 visit, each at the original
+10/60/120-second clocks through `sim-lane.sh`. The loopback fixture serves no
+app, Three.js, composer, physics or shard content. Its context makes one clear,
+then stays idle. There is no rAF loop, forced GC, snapshot, profiler, Network
+capture or passive-category diagnostic. This is not an app-floor acceptance
+run and has no new budget threshold.
+
+One pair completed in264s, exit0, errors0. All six native samples sum both
+WebContent processes and the one GPU process under the owned Simulator.
+Both documents recorded zero resource entries and no grid prefetch at every
+sample. The WebGL witness has one inline script/one canvas/one context/one
+clear, zero context losses and a live WebGL2 context at120s. Its buffer is
+804x1428 for the402x714 Safari viewport, exactly2x; this is not a full-height
+PWA viewport. Alpha/antialias/stencil/preserved buffer are false, depth true.
+
+| Cold fixture | Clock | WebContent B | GPU B | Combined MiB |
+|---|---:|---:|---:|---:|
+| Hello | 10s | 39,179,016 | 15,501,496 | 52.147400 |
+| Hello | 60s | 38,753,032 | 15,501,496 | 51.741150 |
+| Hello | 120s | 38,736,648 | 15,501,496 | **51.725525** |
+| WebGL2 context | 10s | 39,736,120 | 15,812,816 | 52.975594 |
+| WebGL2 context | 60s | 39,129,912 | 15,796,432 | 52.381844 |
+| WebGL2 context | 120s | 39,162,680 | 15,796,432 | **52.413094** |
+
+The120s totals are **54,238,144 /54,959,112B**. Their720,968B difference
+(0.687569MiB) compares two independent visits, including the inline script,
+CSS and canvas. It is not an allocation census or an isolated game-memory
+gain. GPU process footprints do not enumerate host-GPU/renderbuffer storage;
+this difference must not be presented as the full cost of WebGL allocations.
+The fixture excludes the live renderer and cannot name a Template holder or
+establish the size of an irreducible full-engine base.
+
+This newer hello observation does **not** replace the fixed G682 calibration
+of103,324,920B /98.538MiB. App budgets remain155,753,720 /208,182,520B and
+the estimator base stays250MiB. No Template, menu or selection app reading
+was repeated. C4 native holders and C6 full-model calibration remain open.
+
+The diagnostic refuses extra resources/prefetch, a lost or multiple context,
+non-2x dimensions, additional scripts/canvases, collection, foreign protocols,
+app origins, repeated/warm modes and incomplete clocks.33 focused/34 related
+cases, scripts/scoped fixture types and named typed lint pass. Native raw data
+remain at`tmp/sp-x2/core-c4-contexts/`. Quiet absent, zero booted Simulators,
+closed reader/proxy/Safari and closed owned loopback server were verified
+before the final BOTH release. No repeat or further capture is queued.

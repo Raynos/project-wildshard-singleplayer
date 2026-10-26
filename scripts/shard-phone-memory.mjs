@@ -34,15 +34,30 @@ export const coreMemoryTargets = Object.freeze([
 ]);
 /** G682 calibration is a separate visit, never a fifth app floor or a budget gate. */
 export const helloWorldMemoryTarget = Object.freeze({shard: 'hello', name: 'Hello, world', limitBytes: null});
+/** Context-only diagnostic, never an app target or a replacement G682 base. */
+export const webGLMemoryTarget = Object.freeze({shard: 'webgl', name: 'WebGL context', limitBytes: null});
 /** No app, script, canvas, font, style or external asset is loaded by the calibration page. */
 export const helloWorldMemoryHTML = '<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Hello, world</title><body>Hello, world.</body></html>';
+/** One WebGL2 context and one clear at 2x viewport pixels; no app or external assets. */
+export const webGLMemoryHTML = `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>WebGL context</title><style>html,body{margin:0;height:100%;overflow:hidden}canvas{width:100%;height:100%;display:block}</style><body><canvas></canvas><script>
+(() => {
+  const canvas=document.querySelector('canvas');
+  canvas.width=Math.round(innerWidth*2);canvas.height=Math.round(innerHeight*2);
+  const state=window.__ws_coreWebGL={ready:false,contexts:0,clears:0,losses:0,viewportWidth:innerWidth,viewportHeight:innerHeight};
+  canvas.addEventListener('webglcontextlost',()=>{state.losses++;});
+  const gl=canvas.getContext('webgl2',{alpha:false,antialias:false,depth:true,stencil:false,preserveDrawingBuffer:false});
+  if(gl===null){state.error='WebGL2 unavailable';return;}
+  window.__ws_coreContext=gl;state.contexts++;
+  gl.clearColor(0.1,0.1,0.1,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);state.clears++;
+  state.ready=gl.getError()===gl.NO_ERROR;
+})();</script></body></html>`;
 /** One loopback fixture owned by the official reader; no app preview/build is needed.
  * @returns {Promise<{url: string, close: () => Promise<void>}>} */
 export async function serveHelloWorldMemory() {
   const server = createServer((request, response) => {
     const path = new URL(request.url ?? '/', 'http://localhost').pathname;
     response.setHeader('Cache-Control', 'no-store');
-    if (path === '/') { response.setHeader('Content-Type', 'text/html; charset=utf-8'); response.end(helloWorldMemoryHTML); }
+    if (path === '/' || path === '/webgl') { response.setHeader('Content-Type', 'text/html; charset=utf-8'); response.end(path === '/' ? helloWorldMemoryHTML : webGLMemoryHTML); }
     else if (path === '/version.json' || path === '/clear-cache.json') {
       response.setHeader('Content-Type', 'application/json'); response.end(JSON.stringify({build: 'webkit-hello-world-v1'}));
     } else { response.statusCode = 404; response.end(); }
@@ -63,9 +78,11 @@ export async function serveHelloWorldMemory() {
 export function selectedCoreMemoryTargets(selection) {
   if (selection === 'all') return coreMemoryTargets;
   if (selection === 'hello') return [helloWorldMemoryTarget];
+  if (selection === 'webgl') return [webGLMemoryTarget];
+  if (selection === 'contexts') return [helloWorldMemoryTarget, webGLMemoryTarget];
   if (selection === 'templates') return coreMemoryTargets.slice(2);
   const target = coreMemoryTargets.find(row => row.shard === selection);
-  if (target === undefined) throw new Error('Expected --core-memory=all, templates or an existing core floor');
+  if (target === undefined) throw new Error('Expected --core-memory=all, templates, contexts, hello, webgl or an existing core floor');
   return [target];
 }
 /** Existing Developer-tools fixture: expose the explicit compiled button, never fall back to LEGACY. */
@@ -147,6 +164,29 @@ export function helloWorldMemoryFloor(input) {
   const totalBytes = v.parse(footprintBytes, sample.rendererBytes + sample.gpuBytes);
   return {phase: '120s', rendererBytes: sample.rendererBytes, gpuBytes: sample.gpuBytes, totalBytes,
     menuLimitBytes: totalBytes + 50 * 1048576, templateLimitBytes: totalBytes + 100 * 1048576};
+}
+
+/** Context floor has no pass threshold and never changes G682. Admit only its
+ * single-context, uncollected native witness at the original three clocks.
+ * @param {unknown} input */
+export function webGLMemoryFloor(input) {
+  const dimension = v.pipe(v.number(), v.safeInteger(), v.minValue(1), v.maxValue(8192));
+  const row = v.parse(v.object({shard: v.literal('webgl'), protocol: v.literal('webkit-core-floor/1'),
+    mode: v.literal('cold'), forcedGC: v.literal(false), inspectorResponseBodyBytes: v.literal(0),
+    scriptURLs: v.pipe(v.array(v.string()), v.maxLength(0)),
+    calibrationDocument: v.object({title: v.literal('WebGL context'), scripts: v.literal(1), canvases: v.literal(1),
+      ready: v.literal(true), contexts: v.literal(1), clears: v.literal(1), losses: v.literal(0), lost: v.literal(false),
+      width: dimension, height: dimension, viewportWidth: dimension, viewportHeight: dimension,
+      attributes: v.object({alpha: v.literal(false), antialias: v.literal(false), depth: v.literal(true), stencil: v.literal(false), preserveDrawingBuffer: v.literal(false)})}),
+    errors: v.array(v.string()), samples: v.array(v.object({phase: v.string(), rendererBytes: footprintBytes, gpuBytes: footprintBytes,
+      page: v.object({prefetch: v.literal(null), resources: v.literal(0)})}))}), input);
+  const doc = row.calibrationDocument;
+  if (doc.width !== doc.viewportWidth * 2 || doc.height !== doc.viewportHeight * 2) throw new Error('WebGL calibration requires 2x viewport pixels');
+  if (row.errors.length > 0 || row.samples.map(sample => sample.phase).join(',') !== '10s,60s,120s') throw new Error('Incomplete WebGL calibration');
+  const sample = row.samples.at(2);
+  if (sample === undefined) throw new Error('Missing WebGL 120s sample');
+  return {phase: '120s', rendererBytes: sample.rendererBytes, gpuBytes: sample.gpuBytes,
+    totalBytes: v.parse(footprintBytes, sample.rendererBytes + sample.gpuBytes)};
 }
 
 /** Read only the original 120-second floor, never the cache-clear diagnostic.

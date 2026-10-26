@@ -4,7 +4,8 @@ import { execFileSync, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { expect, test } from 'vitest';
 import { coreMemorySummary, coreMemoryEstimateAudit, chromiumCoreMemorySummary, coreMemoryTargets, selectedCoreMemoryTargets, scriptResourceURLs, simulatorCoreFootprint, webKitCoreMemoryFloorBytes,
-  serveHelloWorldMemory, helloWorldMemoryHTML, helloWorldMemoryFloor, coreMemoryProductIdentity } from '../scripts/shard-phone-memory.mjs';
+  serveHelloWorldMemory, helloWorldMemoryHTML, helloWorldMemoryFloor, coreMemoryProductIdentity,
+  webGLMemoryTarget, webGLMemoryHTML, webGLMemoryFloor } from '../scripts/shard-phone-memory.mjs';
 
 const MiB = 1048576;
 test('script inventory keeps distinct complete JavaScript URLs only', () => {
@@ -334,7 +335,7 @@ test('hello-world is a calibration target and never part of the app cohort', () 
   expect(selectedCoreMemoryTargets('all').some(row => row.shard === 'hello')).toBe(false);
 });
 
-test('hello-world fixture serves only plain HTML and reset metadata', async () => {
+test('hello-world root stays plain while the context fixture has no app assets', async () => {
   const fixture = await serveHelloWorldMemory();
   try {
     const page = await fetch(fixture.url);
@@ -345,6 +346,9 @@ test('hello-world fixture serves only plain HTML and reset metadata', async () =
     expect((await fetch(`${fixture.url}/version.json`)).status).toBe(200);
     expect((await fetch(`${fixture.url}/clear-cache.json?sw=0`)).status).toBe(200);
     expect((await fetch(`${fixture.url}/assets/main.js`)).status).toBe(404);
+    expect(await (await fetch(`${fixture.url}/webgl`)).text()).toBe(webGLMemoryHTML);
+    expect(webGLMemoryHTML).toContain("canvas.getContext('webgl2'");
+    expect(webGLMemoryHTML).not.toMatch(/(?:src=|fetch\(|import\s|requestAnimationFrame)/u);
   } finally { await fixture.close(); }
 });
 
@@ -368,5 +372,45 @@ test('hello-world refuses app origins or revisions before touching a Simulator',
   for (const flag of ['--base=http://127.0.0.1:1', '--rev=abc']) {
     expect(() => execFileSync('node', ['scripts/sim-grid-entry.mjs', '--core-memory=hello', flag],
       {encoding: 'utf8', stdio: 'pipe', env: {...process.env, SIM_UDID: 'no-device-opened'}})).toThrow('serves its own fixture');
+  }
+});
+
+const webGLCalibration = () => ({...helloCalibration(), shard: 'webgl',
+  samples: helloCalibration().samples.map(sample => Object.assign(sample, {page: {prefetch: null, resources: 0}})),
+  calibrationDocument: {title: 'WebGL context', scripts: 1, canvases: 1, ready: true, contexts: 1, clears: 1, losses: 0, lost: false,
+    width: 804, height: 1748, viewportWidth: 402, viewportHeight: 874,
+    attributes: {alpha: false, antialias: false, depth: true, stencil: false, preserveDrawingBuffer: false}}});
+
+test('context diagnostic retains the original hello target and never adds an app budget', () => {
+  expect(selectedCoreMemoryTargets('contexts')).toEqual([...selectedCoreMemoryTargets('hello'), webGLMemoryTarget]);
+  expect(selectedCoreMemoryTargets('webgl')).toEqual([webGLMemoryTarget]);
+  expect(selectedCoreMemoryTargets('all')).toHaveLength(4);
+  expect(webGLMemoryFloor(webGLCalibration())).toEqual({phase: '120s', rendererBytes: 30 * MiB, gpuBytes: 7 * MiB, totalBytes: 37 * MiB});
+  expect(webKitCoreMemoryFloorBytes).toBe(103324920);
+  expect(() => coreMemorySummary([webGLCalibration()])).toThrow('unknown');
+  expect(() => helloWorldMemoryFloor(webGLCalibration())).toThrow();
+});
+
+test('context diagnostic refuses missing clocks, collection and extra content', () => {
+  for (const patch of [{mode: 'warm'}, {forcedGC: true}, {protocol: 'chromium-phone-core/1'},
+    {inspectorResponseBodyBytes: 1}, {scriptURLs: ['app.js']}, {errors: ['context failed']},
+    {samples: webGLCalibration().samples.slice(1)}, {samples: [...webGLCalibration().samples, ...webGLCalibration().samples]},
+    {samples: webGLCalibration().samples.map(sample => Object.assign(sample, {page: {prefetch: null, resources: 1}}))}]) {
+    expect(() => webGLMemoryFloor({...webGLCalibration(), ...patch})).toThrow();
+  }
+  for (const patch of [{ready: false}, {contexts: 2}, {clears: 2}, {losses: 1}, {lost: true},
+    {scripts: 2}, {canvases: 2}, {width: 402}, {height: 874},
+    {attributes: {...webGLCalibration().calibrationDocument.attributes, antialias: true}}]) {
+    expect(() => webGLMemoryFloor({...webGLCalibration(), calibrationDocument: {...webGLCalibration().calibrationDocument, ...patch}})).toThrow();
+  }
+});
+
+test('context calibration refuses app revisions, attribution and repeat modes before Simulator access', () => {
+  const run = (selection: string, flag: string): string => execFileSync('node', ['scripts/sim-grid-entry.mjs', `--core-memory=${selection}`, flag],
+    {encoding: 'utf8', stdio: 'pipe', env: {...process.env, SIM_UDID: 'no-device-opened'}});
+  for (const selection of ['webgl', 'contexts']) {
+    for (const flag of ['--base=http://127.0.0.1:1', '--rev=abc']) expect(() => run(selection, flag)).toThrow('serves its own fixture');
+    expect(() => run(selection, '--core-attribution=1')).toThrow('requires an app');
+    for (const flag of ['--runs=2', '--modes=warm']) expect(() => run(selection, flag)).toThrow('exactly one cold');
   }
 });
