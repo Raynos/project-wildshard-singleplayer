@@ -88,7 +88,7 @@ The latest five completed main push verdicts, excluding cancelled and deploy-onl
 artifacts and job tails; they are not test CPU times. Runs: `40261303981`, `40258944555`, `40257263766`,
 `40256014057`, `40253473574`. sp-x1 owns the next critical-path audit at a natural source boundary.
 
-## CF2 title capture: unresolved evidence (2026-10-26 05:20 UTC)
+## CF2 title capture: unresolved evidence (2026-10-26 16:15 UTC)
 
 The supported fast PNG path and original ten-second shared capture allowance remain. Disabling script
 execution was unsafe: it discarded pending animation callbacks. `dacdb64b62` removed that protocol
@@ -108,6 +108,25 @@ The original native-capture contention remains **open**, owned by sp-x7. Per the
 there is no third speculative capture change, retry, deadline increase, pixel change, script suspension
 or new Debug row. This records the next stage timing rather than claiming a deterministic fix or a
 green proof for the failed candidate. Older exact CI-and-six-leg-green main candidates remain releasable.
+
+Later exact failures retain the same evidence limit. Smoke `40346975383` tested
+`019bc07a92` from green CI `40344402224`: public Nine's native capture refused after
+10,011 ms, with no app faults or reports. Artifact `12661729025` contains a 7,094 ms
+renderer animation task, 413 `GetProgramiv` calls totaling 5,198 ms, and concurrent
+GPU work. Smoke `40355584392`, tested `6e84134e0c` from green CI `40351491224`, again
+refused public Nine's native capture (9,159 ms of the shared allowance; roundtrip
+11,151 ms). Artifact `12665868137` retains its bounded native trace; no app faults
+or reports occurred. Neither failed candidate was retried or admitted for release.
+
+The exact `019bc07a92` source audit identifies two outstanding title owners:
+`finish.ts` starts `warmRest()` without exposing completion, and schedules
+`primeFrame()` after 1,200 ms. The latter forces a world draw through the otherwise
+closed title frame gate. The generic animation wrapper does not establish which
+owner caused a particular recorded task. Title visibility, `ws:ready`, fonts and a
+normal animation frame are not a completion barrier for both owners;
+`warmEnteredFrame` belongs to a different entered-region path. There is no existing
+public combined warm-idle signal to use for the permitted capture wait. No new
+readiness signal, app scheduling change, capture change or deadline was introduced.
 
 ## Decisions for Jake
 
