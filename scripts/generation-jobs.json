@@ -9439,7 +9439,6 @@
         "src/sdk/package.json",
         "src/shards/far-reach/data/dressing.json",
         "src/shards/far-reach/data/layout.generated.json",
-        "src/shards/far-reach/data/placements.json",
         "src/shards/far-reach/data/skyMapSources.json",
         "src/shards/far-reach/data/strings.json",
         "src/shards/far-reach/generators/isleRim.ts",
@@ -9449,7 +9448,19 @@
         "src/shards/far-reach/generators/rows/meadowLook.ts",
         "src/shards/far-reach/generators/rows/skyIsles.ts",
         "src/shards/far-reach/generators/rows/skyLook.ts",
-        "src/shards/far-reach/generators/rows/swardAtlas.ts"
+        "src/shards/far-reach/generators/rows/swardAtlas.ts",
+        "src/shards/far-reach/data/flags.json",
+        "src/shards/far-reach/generators/placements.ts",
+        "src/shards/far-reach/generators/modelIntake.ts",
+        "src/shards/far-reach/generators/fileInventory.ts",
+        "src/shards/far-reach/generators/crownLayout.ts",
+        "src/shards/far-reach/generators/quests.ts",
+        "src/shards/far-reach/generators/keeperStand.ts",
+        "src/shards/far-reach/generators/layoutMath.ts",
+        "src/shards/far-reach/generators/risingIslets.ts",
+        "src/shards/far-reach/generators/rows/falls.ts",
+        "src/shards/far-reach/generators/rows/trees.ts",
+        "src/shards/far-reach/generators/rows/isletDesign.ts"
       ],
       "outputs": [
         "public/assets/far-reach/baked/851f80fb000e621ab1b6e22edd9a9ac7fbcb6ecfeda1047a86f3f919d779e33f.bin"

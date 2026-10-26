@@ -1,6 +1,6 @@
 import { zlibSync } from 'fflate';
 import { ISLES, KNOLLS } from "./layout";
-import PLACEMENTS from '../data/placements.json' with { type: 'json' };
+import { meadowHoles, meadowPaths } from './placements';
 import dressing from '../data/dressing.json' with { type: 'json' };
 import { MEADOW, MEADOW_BLADES, SWARD } from './rows/meadowLook';
 import { ISLE_RIM, playableIsleRims } from './isleRim';
@@ -66,8 +66,8 @@ interface Blade { x: number; z: number; y: number; h: number; r: number; tone: n
 /** The baked blades (see the module's comment), deflated. */
 export function bakeMeadowBlades(): Uint8Array {
   const { tile, blades: perTile, phone } = MEADOW;
-  const holes = [...PLACEMENTS.meadow.holes.map(([x = 0, z = 0, r = 0, w = 0]) => [x, z, r, w] as const), ...dressing.discs.map(([x = 0, z = 0, r = 0]) => [x, z, r, 1] as const)];
-  const paths = PLACEMENTS.meadow.paths.map(([ax = 0, az = 0, bx = 0, bz = 0]) => [ax, az, bx, bz] as const);
+  const holes = [...meadowHoles().map(({ x, y, z, w }) => [x, y, z, w] as const), ...dressing.discs.map(([x = 0, z = 0, r = 0]) => [x, z, r, 1] as const)];
+  const paths = meadowPaths().map(({ x, y, z, w }) => [x, y, z, w] as const);
   // the tile's seeded blades (the SDK tile field's order: x, z, r per card), the same for every tile
   let a = MEADOW.seed >>> 0;
   const rnd = (): number => { a = (a + 0x6d2b79f5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
