@@ -8,7 +8,7 @@ import * as THREE from 'three';
 import * as v from 'valibot';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { TIER } from '@wildshard/engine/core/tier';
-import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
+import { ResourceMemo } from '@wildshard/engine/app/cachedAssets';
 import { defineModel, announceModelReady, type ModelDef } from '@wildshard/engine/models/model';
 import { FigureCatalogueSchema, type FigureCatalogueRow, type FigureRow } from '@wildshard/format/figures';
 import { FigureRows } from '../systems/npc/figureRows';
@@ -22,8 +22,10 @@ const nobody = new THREE.Vector3(0, 0, 1e4);
 export class FigureCatalogue {
   private data: FigureCatalogueRow | undefined;
   private geometry: SceneHandles | undefined;
-  private sharedMat: THREE.MeshStandardMaterial | undefined;
-  private sharedGlow: THREE.MeshBasicMaterial | undefined;
+  // A borrowed material may outlive this catalogue and its scene handles.
+  // ResourceMemo's disposal listener owns only its independent memo.
+  private readonly materials = new ResourceMemo<'base', THREE.MeshStandardMaterial>();
+  private readonly glows = new ResourceMemo<'glow', THREE.MeshBasicMaterial>();
   /** Admit atomically; a failed load leaves the last complete catalogue intact. */
   async admit(input: unknown, geometry: SceneHandles, owner?: Scope): Promise<void> {
     const data = v.parse(FigureCatalogueSchema, input);
@@ -40,12 +42,11 @@ export class FigureCatalogue {
     const sky = resources.sky;
     const row = this.data?.material;
     if (row === undefined) throw new Error('Figure catalogue is not admitted');
-    if (this.sharedMat === undefined) {
+    return this.materials.acquire('base', () => {
       const mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: row.roughness, metalness: row.metalness });
       mat.name = row.name; sky.setupMaterial(mat);
-      this.sharedMat = cacheUntilDisposed(mat, () => { this.sharedMat = undefined; });
-    }
-    return this.sharedMat;
+      return mat;
+    });
   }
   private row(id: string) {
     const row = this.data?.figures[id];
@@ -57,8 +58,8 @@ export class FigureCatalogue {
     if (f === undefined) return new FigureRows(context, spec, owner);
     if (geometry === undefined || row.body === undefined) throw new Error('Figure fallback requires its packed geometry');
     resources.publish(f.geometry, geometry.geometry(String(row.body)).clone()); resources.publish(f.material, this.material(resources));
-    this.sharedGlow ??= cacheUntilDisposed(new THREE.MeshBasicMaterial({ vertexColors: true, fog: true, toneMapped: true }), () => { this.sharedGlow = undefined; });
-    resources.publish(f.glow, this.sharedGlow);
+    const glow = this.glows.acquire('glow', () => new THREE.MeshBasicMaterial({ vertexColors: true, fog: true, toneMapped: true }));
+    resources.publish(f.glow, glow);
     if (f.glass !== null) {
       if (row.glass === null || row.glass === undefined) throw new Error('Figure glass requires its packed geometry');
       resources.publish(f.glass, geometry.geometry(String(row.glass)).clone());
