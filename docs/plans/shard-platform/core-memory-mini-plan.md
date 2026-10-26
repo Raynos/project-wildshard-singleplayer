@@ -1,10 +1,10 @@
 # Core-game memory benchmax: mini plan (measured, G640)
 
 **State:** `in flight` (2026-10-25, sp-x2) — latest Template-only native pair
-on `8f0324fea6` is 0/2 PASS: Template1 **263.789 MiB**, Template2
-**246.132 MiB**, both over fixed198.538 MiB (§15). Prior full `50d155f897`
+on `bd5cb42cfc` is 0/2 PASS: Template1 **260.945 MiB**, Template2
+**242.617 MiB**, both over fixed198.538 MiB (§17). Prior full `50d155f897`
 cohort remains 2/4 PASS; menu/select were not repeated. The same-source C6
-audit is +13.638% / +20.231% high: Template2 misses ±15%. C1.1 done
+audit is +14.876% / +21.973% high: Template2 misses ±15%. C1.1 done
 `9108b14ec6`; C3 title isolation qualified. C4 holders / C6 calibration remain
 open, C5 waits-Opus. Budgets and the 250 MiB estimator base stay unchanged.
 An extra under G639 (after Nalati to zero and grid readiness).
@@ -17,7 +17,7 @@ the page components take 300, then that should show in template 1 and template 2
 
 ## Answer
 
-**Latest Template-only cohort (2026-10-25), `8f0324fea6`: 0/2 PASS**, at263.789/246.132MiB against198.538MiB each (§15). The last coherent four-floor cohort, `50d155f897`, remains2/4 PASS. Menu
+**Latest Template-only cohort (2026-10-25), `bd5cb42cfc`: 0/2 PASS**, at260.945/242.617MiB against198.538MiB each (§17). The last coherent four-floor cohort, `50d155f897`, remains2/4 PASS. Menu
 **93.538 MiB** and SHARD SELECT **107.679 MiB** pass the fixed 148.5383 MiB
 limit. Template 1 **260.664 MiB** and Template 2 **249.679 MiB** miss the fixed
 198.5383 MiB limit (§13). All values combine WebContent and GPU; all visits
@@ -431,7 +431,7 @@ retention attribution remain open.
 |---|---|---|
 | C4.1 Current native reading and cache lifetime | done `b03613aa82`, measured FAIL retained | Template 1 260.070 / 198.538 MiB; no runtime errors. New real-GC contracts prove settled downloads/write snapshots are released on success and quota refusal while the cache remains alive. No production release was justified. |
 | C4.2 Current main-page holders / idle decoders | done `6436257c8e`, bounded | One matching Chromium heap: 29,755,996 B rooted JS / 17,510,853 B unique backing, not a 55 MiB dead cache. Two idle tile-decode workers remain live; retire their pool after 30 s without queued/active jobs, recreate on the next decode. Three regressions fail before the cut; six worker contracts pass afterward. Native-byte gain is not established. |
-| C4.3 Remaining native/worker attribution | in flight (2026-10-25, sp-x2), milestone measured | Latest native Templates263.789/246.132MiB on8f0324fea6 vs198.538MiB FAIL (prior5f99 pair267.398/245.507). Earlier Chromium confirms zero live workers at 60/120 s without a heap snapshot or forced GC. No consistent native-byte gain established; native holder attribution remains open. |
+| C4.3 Remaining native/worker attribution | in flight (2026-10-25, sp-x2), milestone measured | Latest native Templates260.945/242.617MiB onbd5cb42cfc vs198.538MiB FAIL (prior8f263.789/246.132). Earlier Chromium confirms zero live tile workers at60/120s without a heap snapshot or forced GC. The two proven lifetime cuts do not establish an isolated native saving; holder attribution remains open. |
 | C4.4 world.data model admission | source done `dfa2feca44` + `5f99d999e6`; measured FAIL retained | Exact bounded GLB parser and deferred commons validation; static source closure -39,457 raw/-10,954 gzip B. Original native pair267.398/245.507 MiB, both FAIL; no consistent native gain. Actual compressed-model geometry/owner/refusal contracts preserved. |
 | C4.5 Demand-start tile decoder workers | source done `8f0324fea6`; native0/2 FAIL | Constructor allocation started2 workers before knowing whether a decode was needed. Start the same pool at its first request: unused pools create0 workers/timers; active terrain can still require both workers. Queue/transfer/disposal/partial-start contracts remain exact.31 focus/5 suites,109 CF1/21 and1794 broad-related/328 pass; touched game/test types and typed lint pass. New native pair below remains263.789/246.132MiB FAIL; no isolated byte gain. The rings proof now records any observed worker use during the drive, instead of freezing the constructor-time false value. Explicit full-rule typed lint and scoped fixture types pass; no linked related suites were selected for that diagnostic fixture. |
 | C4.6 Demand-start native milestone | done (measurement on8f0324fea6),0/2 FAIL | Original two-Template reader complete275s/errors0/all6 samples,2WC+1GPU each.120s totals276,602,440/258,088,568B versus208,182,520B each; over65.250/47.594MiB. No GC/snapshot/Network capture; passive categories after acceptance only. Prior5f99 pair267.398/245.507MiB changes in opposite directions; no consistent or causal gain, no base/cap fit. Quiet/Sim/browser/proxy/own preview fully released; no repeat. Raw tmp/sp-x2/core-c4-demand. |
@@ -439,12 +439,14 @@ retention attribution remain open.
 | C4.8 Context-only native floor (≤1 h) | done `31868f7d51`, diagnostic only | One hello/empty-WebGL2 pair through the existing official reader complete264s/rc0/errors0/all6 samples,2WC+1GPU each.120s54,238,144 /54,959,112B (51.726/52.413MiB); one context/one clear at804x1428,0losses. No app/external resources, forced GC, profiler or snapshot.33 focused/34 related cases, scripts/scoped fixture types and typed lint pass. Fixed G682 calibration/caps and250MiB estimator base unchanged; no app reading repeated. Raw tmp/sp-x2/core-c4-contexts; details §16. |
 | C4.9 Completed texture-worker reply lifetime (≤1 h) | done `3ca69120d1`, native impact unmeasured | Three retains each completed promise resolver until another job reaches that worker. A live idle pool can therefore retain the reply and transferred mip backing. Replace only an idle completed resolver with a stateless resolver; queued successors keep their own resolver, FIFO and transfer lists, and workers stay alive/reusable. A real-GC 1 MiB backing regression fails before the cut and passes afterward; original phone transcode queue coverage also passes.3 focused and2554 related cases/534 suites pass;20 missing-product suites explicitly defer to CI. Touched engine/test types and named typed lint pass. Native impact unmeasured; no new cohort or budget/base change. |
 | C4.10 Consumed upload callback lifetime (≤1 h) | done `7a16fe7883`, native impact unmeasured | A live uploaded texture source keeps its consumed Memory saver completion callback in a WeakMap value, including any decoded-image/cache/owner captures. Remove the registration before invoking it at the same upload boundary; source dimensions, sampler and GPU sharing stay unchanged. A real-GC 1 MiB callback capture fails before the cut and collects afterward with its source alive; callback count remains one.4 focused and119 bounded-related cases/21 suites plus touched engine/test types and named typed lint pass. No native measurement, GPU disposal, cap/base change or summed fixture-byte saving claimed. |
-| C4.11 Preview output lifetime (≤1 h) | done `bd5cb42cfc` + canonical path fix (this code commit) | The first7a16 preview refused132s before the reader: its whole output/build log was absent, remover unknown, zero native samples/quiet. Isolated regression proves the old reaper deletes an unregistered active build directory despite its held port lease. Gate orphan cleanup by that lease and recheck registry rows; stale PID observations use existing identity-bound teardown, preserving replacement rows/reservations.8 focused wrapper cases, including actual isolated process/port fixtures, Bash/Python syntax pass. A further real regression proves relative build roots must match absolute registry paths; canonical comparison passes13 shared-release +3 admission cases. The cause-fixed preview passes76s; native pair complete0/2 FAIL (details follow). |
+| C4.11 Preview output lifetime (≤1 h) | done `bd5cb42cfc` + `d708ed273a` | The first7a16 preview refused132s before the reader: its whole output/build log was absent, remover unknown, zero native samples/quiet. Isolated regression proves the old reaper deletes an unregistered active build directory despite its held port lease. Gate orphan cleanup by that lease and recheck registry rows; stale PID observations use existing identity-bound teardown, preserving replacement rows/reservations.8 focused wrapper cases, including actual isolated process/port fixtures, Bash/Python syntax pass. A further real regression proves relative build roots must match absolute registry paths; canonical comparison passes13 shared-release +3 admission cases. The cause-fixed preview passes76s; native pair complete0/2 FAIL (§17). |
+| C4.12 Reply/callback native milestone (≤1 h) | done (measurement onbd5cb42cfc),0/2 FAIL | One original Template-only cold pair complete274s/errors0/all6samples,2WC+1GPU each;120s273,620,600/254,402,144B versus208,182,520B. Prior8f totals276,602,440/258,088,568B; -2.844/-3.516MiB is one cohort comparison, not either cut's causal saving. No GC/snapshot/Network, passive categories after120s only. All reader/Sim/preview/quiet cleanup complete, no repeat. |
 | C6 Model source | done previously `d2ef0c0848`, historical calibration | 250 MiB base, explicit grid-only page claims, unchanged caps. This visit does not silently recalibrate the estimator or establish current ±15% accuracy. |
 | C6.1 Pinned product / exact model audit | done (this commit) | Same `50d155f897` product and estimator: 299.764 MiB predicted / 260.664 MiB observed, 15.000330% high. Offline native-only audit refuses the exact miss, independently of G682; no base/cap change. |
-| C6.2 Current calibration | open | Same-source8f metadata predicts314,325,416 /310,301,961B versus native276,602,440 /258,088,568B: +13.637977% /+20.230804%. Template1 is within ±15%, Template2 misses. Metadata was reopened from a separate rebuild at the same source pin; the native visit did not retain its product index hashes. Neither whole-model calibration nor a shared-base fit is established. |
+| C6.2 Current calibration | open | Same-sourcebd5 metadata predicts314,325,416 /310,301,961B versus native273,620,600 /254,402,144B: +14.876371% /+21.973013%. Template1 is within ±15%, Template2 misses; both native budgets fail. The exact Blender index hash was captured after120s and matches the reopened served metadata. Template1 metadata stayed unavailable in the original reading due to its directory/canonical-identity alias; its metadata was reopened from that same still-live build. No whole-model calibration, base fit or retrofitted native identity. |
 | C6.2a Template-pair offline audit | done (this code commit) | The existing audit-estimate CLI now accepts either floor from the original templates selection and validates that the evidence contains only that cohort. Real CLI regression fails before and passes after; mixed menu evidence, collected samples and mixed source pins refuse, while a missing requested floor stays unknown/fail.26 related cases, scripts project/scoped fixture types and named typed lint pass. The saved5f99 pair still fails its native budget; no base fit, current-model accuracy or memory saving is claimed. |
 | C6.3 Product identity at native milestone (≤1 h) | done `8aa25dcbfa`, future readings only | The existing native reader records a bounded Node-side product index SHA-256, wire length and source hash after all10/60/120s acceptance samples and optional passive categories. Exact original build checks bracket the read; one5s deadline,1MiB index/64KiB version caps, no blob/section fetches or page/Inspector bodies. Missing, changed or corrupt metadata stays unavailable without changing native errors/budgets.30 focused/31 related cases, scripts/scoped fixture types and named typed lint pass. This identifies the post-sample served product, not resident content; old8f results remain without captured index identity. No native repeat or estimator/base/cap change. |
+| C6.3a Canonical Template metadata identity (≤1 h) | done (this code commit), future readings only | The Template directory/floor key is _template, but its defining product identity is template. Match that canonical envelope while retaining the original path/floor key; foreign and directory-name identities still refuse. Real corrected fixture fails before and passes after;34 focused cases, scripts/scoped fixture types and named typed lint pass. Originalbd5 Template1 metadata remains unavailable, and both native budgets stay red; no native retry or evidence rewrite. |
 | C7.1 Reader protocol separation | done `50d155f897` | Only the original cold, uncollected WebKit protocol qualifies G682. Chromium retains diagnostic totals but cannot print a WebKit PASS/FAIL. |
 | C7.2 Coherent current four-floor reading | done (measurement), 2/4 PASS | `50d155f897`: 93.538 / 107.679 / 260.664 / 249.679 MiB. Both templates remain over G682; no repeated cohort or source-isolated gain claim. |
 | C7.3 Template-only requalification selector | done `688f7e1d78`, measured FAIL in §14 | `sim-grid-entry.mjs --core-memory=templates` visits only the existing Template1/2 targets in their original order and applies the same G682 caps/protocol. Missing, collected, foreign-protocol or mixed menu evidence cannot pass. No third/fourth visit or new calibration. |
@@ -808,3 +810,47 @@ cases, scripts/scoped fixture types and named typed lint pass. Native raw data
 remain at`tmp/sp-x2/core-c4-contexts/`. Quiet absent, zero booted Simulators,
 closed reader/proxy/Safari and closed owned loopback server were verified
 before the final BOTH release. No repeat or further capture is queued.
+
+## 17. Reply/callback native milestone (2026-10-25, sp-x2)
+
+Source `bd5cb42cfc` contains the completed worker-reply cut `3ca69120d1`
+and consumed upload-callback cut `7a16fe7883`. Each has an independent
+real-GC 1 MiB fixture, not a measured or additive native-byte saving.
+The first7a16 preview refused before reader launch after its output directory
+and log disappeared (remover unknown). The isolated reaper regression proves
+an active reservation could lose an unregistered output; the lease guard's
+cause-fixed preview completed76s. No native sample or quiet window came from
+the refused build.
+
+One original compiled cold Template1/2 cohort on build `bd5cb42-mvopjntz`
+completed274s, errors[], all six10/60/120s samples,2WebContent+1GPU processes
+each. No forced GC, snapshot, Network body capture or profiler. Passive
+categories followed120s. The original source, clocks and G682 limits remain.
+
+| Floor | 120s WebContent B | GPU B | Combined MiB | Fixed limit MiB | Verdict |
+|---|---:|---:|---:|---:|---|
+| Template1 | 231,003,296 | 42,617,304 | 260.945 | 198.538 | FAIL |
+| Template2 | 213,865,584 | 40,536,560 | 242.617 | 198.538 | FAIL |
+
+The prior8f pair was263.789/246.132MiB. Differences of-2.844/-3.516MiB do
+not isolate these two cuts or qualify the budgets. Menu/select were not
+repeated. Broad JS/Page categories still do not identify exclusive native
+holders; C4 remains open and C5 remains waits-Opus.
+
+The unchanged source model predicts314,325,416/310,301,961B. Exact native
+comparison is+14.876371%/+21.973013%; Template1 is within±15%, Template2
+misses. Both native budgets independently fail. The same served products were
+reopened after the visit before releasing the parent preview; the three model
+source files match the pin byte-for-byte. Blender's captured index/source
+hashes match that metadata. Template1's original metadata is unavailable:
+the reader expected the directory key`_template` as the authored identity,
+while its defining producer emits`template`. The code correction identifies
+future readings only. Original raw evidence is unchanged. No fitted base,
+new cap, whole-model PASS or resident-content census is implied.
+
+All reported finite peer gates drained before start; no overlap was reported.
+Reader Safari/Inspector/proxy and Simulator closed, quiet absent, zero booted
+devices, owned4400 preview stopped before final BOTH release. No repeat queued.
+Raw samples/categories and compact comparison remain at
+`tmp/sp-x2/core-c4-replies/`; reopened metadata/model at
+`tmp/sp-x2/core-c6-replies-{products,model}.json`.

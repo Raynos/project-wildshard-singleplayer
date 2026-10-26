@@ -21,7 +21,7 @@ const rows = () => coreMemoryTargets.map(target => ({...nativeProtocol, shard: t
 
 const metadataVersion = JSON.stringify({build: '1111111-original'});
 const metadataIndex = JSON.stringify({format: 'wildshard.shardfile', formatVersion: 2,
-  identity: {slug: '_template'}, build: {sourceHash: 'a'.repeat(64)}}, null, 2);
+  identity: {slug: 'template'}, build: {sourceHash: 'a'.repeat(64)}}, null, 2);
 const requestPath = (input: Parameters<typeof fetch>[0]): string => new URL(input instanceof Request ? input.url : input).pathname;
 test('post-sample product identity retains the exact wire hash between original-build checks', async () => {
   const requests: {path: string; init: RequestInit | undefined}[] = [];
@@ -45,6 +45,14 @@ test('non-product floors make no metadata request', async () => {
   for (const target of ['menu', 'select', 'hello']) expect(await coreMemoryProductIdentity('https://metadata.test/', target, metadataVersion, read)).toBeNull();
 });
 
+test('the second template keeps its own canonical product identity', async () => {
+  const index = metadataIndex.replace('template', 'blender-template');
+  const read: typeof fetch = input => Promise.resolve(new Response(requestPath(input) === '/version.json' ? metadataVersion : index));
+  const result = await coreMemoryProductIdentity('https://metadata.test/', 'blender-template', metadataVersion, read);
+  expect(result).toMatchObject({status: 'observed', shard: 'blender-template', path: '/shardfiles/blender-template/shard.json',
+    indexHash: createHash('sha256').update(index).digest('hex')});
+});
+
 test('changed builds cannot identify a product from the native reading', async () => {
   for (const changedAt of [1, 3]) {
     let calls = 0;
@@ -62,7 +70,8 @@ test('changed builds cannot identify a product from the native reading', async (
 
 test('missing, foreign and corrupt product metadata remains unavailable', async () => {
   for (const response of [new Response(null, {status: 404}), new Response('{broken'),
-    new Response(metadataIndex.replace('_template', 'different-shard')),
+    new Response(metadataIndex.replace('template', 'different-shard')),
+    new Response(metadataIndex.replace('template', '_template')),
     new Response(metadataIndex.replace('a'.repeat(64), 'bad-hash')),
     new Response(metadataIndex, {headers: {'content-length': String(MiB + 1)}})]) {
     const read: typeof fetch = input => Promise.resolve(requestPath(input) === '/version.json' ? new Response(metadataVersion) : response);

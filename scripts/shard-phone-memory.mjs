@@ -131,11 +131,14 @@ export async function coreMemoryProductIdentity(base, shard, version, read = fet
     const decoder = new TextDecoder('utf-8', {fatal: true});
     const before = v.parse(buildSchema, JSON.parse(decoder.decode(await wire('/version.json', 65536))));
     if (before.build !== expected) throw new Error('Core product metadata build changed');
+    // The first floor's directory is `_template`; its defining product uses
+    // the canonical authored identity `template` (generators/product.ts).
+    const productSlug = shard === '_template' ? 'template' : shard;
     const path = `/shardfiles/${shard}/shard.json`, bytes = await wire(path, 1048576);
     // Identify the wire envelope only. Admission remains with the production
     // validator; no blob or section bodies enter this diagnostic.
     const index = v.parse(v.object({format: v.literal('wildshard.shardfile'), formatVersion: v.literal(2),
-      identity: v.object({slug: v.literal(shard)}),
+      identity: v.object({slug: v.literal(productSlug)}),
       build: v.object({sourceHash: v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u))})}), JSON.parse(decoder.decode(bytes)));
     const after = v.parse(buildSchema, JSON.parse(decoder.decode(await wire('/version.json', 65536))));
     if (after.build !== expected) throw new Error('Core product metadata build changed');
