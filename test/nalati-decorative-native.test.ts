@@ -1,7 +1,8 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare the complete retained decorative wires.
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
-import { decorativeRows, decorativeRowsOnGround } from '../src/shards/nalati-grasslands/generators/decorative';
+import { decorativeRows } from '../src/shards/nalati-grasslands/generators/decorativeInput';
+import { decorativeRowsOnGround } from '../src/shards/nalati-grasslands/generators/decorative';
 import { readNativeTerrain } from '../src/sdk/bake/terrain';
 import { withPortableMath } from '../src/commons/bake/portableMath';
 import { jsonBytes } from '../scripts/bake-output.mjs';

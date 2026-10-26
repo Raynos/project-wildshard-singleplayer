@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { decorativeRows } from './decorative.ts';
+import { decorativeRows } from './decorativeInput.ts';
 import { withPortableMath } from '@wildshard/commons/bake/portableMath';
 import { byteWriter, jsonBytes } from '../../../../scripts/bake-output.mjs';
 

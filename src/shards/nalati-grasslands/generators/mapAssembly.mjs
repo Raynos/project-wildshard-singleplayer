@@ -9,6 +9,8 @@ import { parseBakedTerrain } from '@wildshard/format/bakedTerrainBytes';
 import { buildTerrainMetadata } from '@wildshard/engine/world/terrainField';
 import { mapCloth } from './mapCloth.mjs';
 import { bakeDressing } from './dressingGeometryRows.ts';
+import { decorativeRowsOnGround } from './decorative.ts';
+import { withPortableMath } from '@wildshard/commons/bake/portableMath';
 
 const base = resolve(import.meta.dirname, '..'), root = resolve(base, '../../..');
 const read = file => readMapJson(resolve(base, file));
@@ -43,7 +45,7 @@ export async function nalatiMapAssembly() {
   balbal.rotateY(Math.PI).scale(k, k, k);
   const statues = prepared.places.rows.find(row => row.name === 'kurgans').anchors.balbalSpots;
   assembly.add('balbals', balbal, statues.map(p => pose({ ...p, y: ground(p.x, p.z) - .18 * (p.scale ?? 1), roll: p.tilt ?? 0 })));
-  const decorative = read('boot/decorative.generated.json').desktop;
+  const decorative = withPortableMath(() => decorativeRowsOnGround(ground)).desktop;
   assembly.add('snow-lotus', await asset(specimens.assets.snowLotus), decorative.lotus.poses.map(pose));
   assembly.add('far-herds', await asset(specimens.assets.herdHorse), decorative.horses.member.placements.map(p => new Matrix4().fromArray(p.matrix)));
   const kokpar = read('boot/layout.generated.json').KOKPAR, riders = prepared.places.rows.find(row => row.name === 'kokpar').anchors.riders;

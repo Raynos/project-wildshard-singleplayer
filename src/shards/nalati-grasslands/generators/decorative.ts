@@ -2,11 +2,12 @@
 import * as THREE from 'three';
 import catalogue from '../data/campCatalogue.json' with { type: 'json' };
 import { Rng } from '@wildshard/sdk/random';
-import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
 import { modelPoseMatrix } from '@wildshard/engine/models/modelPose';
 import { inPoiClearing } from './clearings';
 import { HORSE_PLAINS, KURGANS, SUMMER_YURTS, SNOW_LOTUS, SNOW_LINE } from './layout';
 
+interface Horse { x: number; z: number; yaw: number; s: number; speed: number; turn: number; c: number }
+interface Herd { x: number; z: number; r: number; horses: Horse[]; mesh: null }
 interface ModelPlacement { x: number; y: number; z: number; rot?: number; scale?: number }
 const placementMatrix = (pose: ModelPlacement): THREE.Matrix4 => modelPoseMatrix({ ...pose, yaw: pose.rot ?? 0, scale: pose.scale ?? 1 });
 
@@ -30,8 +31,6 @@ function tier(phone: boolean, ground: (x: number, z: number) => number) {
     const rng = new Rng(0x4e4d);
     const blocked = (x: number, z: number): boolean =>
       inPoiClearing(x, z, 4) || KURGANS.some((k) => Math.hypot(x - k.x, z - k.z) < k.r + 3) || Math.hypot(x - SUMMER_YURTS.x, z - SUMMER_YURTS.z) < 20;
-    interface Horse { x: number; z: number; yaw: number; s: number; speed: number; turn: number; c: number }
-    interface Herd { x: number; z: number; r: number; horses: Horse[]; mesh: null }
     const herds: Herd[] = HERDS.map((h) => ({ x: h.x, z: h.z, r: h.r, horses: [], mesh: null }));
     let total = 0;
     for (const [hi, h] of HERDS.entries()) {
@@ -74,11 +73,6 @@ function tier(phone: boolean, ground: (x: number, z: number) => number) {
 }
 /** Build both original decorative profiles over a caller-owned native height query.
  * Random continuation, placement order and matrix arithmetic retain their original law. */
-export function decorativeRowsOnGround(ground: (x: number, z: number) => number): object {
+export function decorativeRowsOnGround(ground: (x: number, z: number) => number): { phone: ReturnType<typeof tier>; desktop: ReturnType<typeof tier> } {
   return { phone: tier(true, ground), desktop: tier(false, ground) };
-}
-
-/** Freeze both device profiles on the same admitted terrain used by play. */
-export function decorativeRows(bytes: Uint8Array): object {
-  return decorativeRowsOnGround(readNativeTerrain(bytes).heightAt);
 }

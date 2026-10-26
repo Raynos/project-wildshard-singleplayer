@@ -1,6 +1,6 @@
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import { withPortableMath } from '@wildshard/commons/bake/portableMath';
-import { decorativeRows } from './decorative';
+import { decorativeRows } from './decorativeInput';
 
 const terrain = '/assets/baked/nalati-grasslands/terrain.bin';
 

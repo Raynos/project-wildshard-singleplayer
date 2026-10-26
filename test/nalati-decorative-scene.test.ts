@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Supply the complete original native terrain bytes.
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
-import { decorativeRows } from '../src/shards/nalati-grasslands/generators/decorative';
+import { decorativeRows } from '../src/shards/nalati-grasslands/generators/decorativeInput';
 import { dressingSceneBlobs } from '../src/shards/nalati-grasslands/generators/dressingScene';
 import { withPortableMath } from '../src/commons/bake/portableMath';
 import original from './fixtures/nalati-dressing-scenes.json' with { type: 'json' };
