@@ -181,12 +181,16 @@ remove that one exemption so every leg blocks the exact-SHA boot status.
 No smoke retry, deadline extension or later successful frame substitutes for
 that first report. The existing six release checks continue during rollout.
 
-At the transferred boundary (22:24Z), no ordinary report can yet consume a
-qualified artifact: newest successful main push build is `14a3d5d93` /
-`40372787909` (17:53Z), before the phone producer `893f149908` (20:53Z).
-Do not dispatch that old artifact as the seventh-leg trial. The first
-containing successful push build remains the prerequisite; existing CI
-repair stays with sp-x7. The final functional `8b8a5bf7fc` visit completed
+The artifact prerequisite is now met: successful push build `0402808e41` /
+[`40411836950`](https://github.com/Raynos/wildshard-singleplayer/actions/runs/40411836950)
+contains the phone producer `893f149908`. Its downloaded manifest binds the
+full SHA/run, build `0402808-mvpu8uth` and all seven checksummed legs; the
+phone archive is 1,951,764,480 B with SHA-256
+`fb3bab314aa51fb16a4e1fa42daaad897824b8d6c441459d7a6d7d4ea64b5677`.
+Ordinary smoke workflow `40414562022` is already queued; no duplicate was
+dispatched. Its actual transfer identity and first phone report still need
+review before promotion. The older `14a3d5d93` artifact remains unqualified
+for this trial. The final functional `8b8a5bf7fc` visit completed
 all route stages with no faults, 294 ms hero paint, resident near tiles
 and real four-second wall containment, but correctly failed G718:
 Driftwood 294 completed draws / 10.005 s. Road 295 / 10.001 s and Night
