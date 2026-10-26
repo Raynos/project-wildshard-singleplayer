@@ -5,6 +5,8 @@ import { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { HuntBody } from '@wildshard/engine/ai/hunt';
 // oxlint-disable-next-line import/no-nodejs-modules -- Real native capsule continuation uses the shipped physics bytes.
 import { readFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Freeze the complete predecessor native snapshot history.
+import {createHash} from 'node:crypto';
 import { expect, test } from 'vitest';
 import { zlibSync } from 'fflate';
 import { Vector3 } from 'three';
@@ -19,10 +21,19 @@ import { installMountedPlayer } from '@wildshard/game/riding/native';
 import programs from '../src/shards/nalati-grasslands/behaviour/riding.generated.json' with { type: 'json' };
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
-const zero = btoa(String.fromCodePoint(...zlibSync(new Uint8Array(16))));
+// Full canonical predecessor histories: 90 native ticks plus dismount,
+// recorded before replacing inline fixture inputs with named blocks.
+const historyHash=(history:readonly string[]):string=>createHash('sha256').update(history.join('\n')).digest('hex');
+
+const zeroBytes=zlibSync(new Uint8Array(16));
+const zeroPond={file:'world/zero-pond.bin',bytes:zeroBytes},zeroWet={file:'world/zero-wet.bin',bytes:zeroBytes};
+const channel=(file:string):{type:'f32';count:number;data:{file:string}}=>({type:'f32',count:4,data:{file}});
+const offsetBytes=(bytes:Uint8Array):Uint8Array=>{
+  const storage=new Uint8Array(bytes.length+8);storage.set(bytes,4);return storage.subarray(4,-4);
+};
 const rows = { step: 'orchard.saddle', herds: 'orchard.herds', kinds: ['boar'], adopted: { kind: 'boar', variant: 'boar' },
   mountable: ['boar:1'], speeds: { walk: 1, trot: 3, canter: 5, gallop: 8 }, pose: {},
-  world: { res: 2, size: 32, water: -100, wet: zero, pond: zero }, thrownDamage: 7, thrownLabel: 'Thrown', program: programs.riding };
+  world: { res: 2, size: 32, water: -100, wet: channel(zeroWet.file), pond: channel(zeroPond.file) }, thrownDamage: 7, thrownLabel: 'Thrown', program: programs.riding };
 // These riding-only fixtures need a dormant, real group owner, without adding
 // host entities, random streams or a step participant to the original test.
 function herdService(host: SimHost, id: string, group = `fixture:${id}`, tokens?: ConstructorParameters<typeof FixtureNativeGroups>[9]): FixtureNativeGroups {
@@ -37,7 +48,7 @@ function herdService(host: SimHost, id: string, group = `fixture:${id}`, tokens?
   return new FixtureNativeGroups(host, [pack], [], new Map<string, AnimalSim>(), new Map<string, PackPrey>(), new WeakMap<PackPrey, string>(), [],
     new WeakMap<AnimalSim, FixturePack<AnimalSim>>(), { id: group, herds: id, firstRaid: 0 }, tokens);
 }
-function install(host: SimHost) { lendNalatiPasture(host.scope); herdService(host, rows.herds); return installMountedPlayer(host, rows); }
+function install(host: SimHost) { lendNalatiPasture(host.scope); herdService(host, rows.herds); return installMountedPlayer(host, rows,zeroPond,zeroWet); }
 
 test('G478 orchard native fixture owns and restores its actual mounted capsule', async () => {
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
@@ -86,7 +97,7 @@ test('G478 orchard fixture owns companion allocation, retirement and native tami
   const foreign = createSimHost({ ...SIM_LEVEL, entities: [], quests: [] }, { rapier });
   try { expect(() => new BondedMountRoster(foreign, companionRows, service)).toThrow('Invalid mount roster owners'); } finally { foreign.dispose(); }
   lendNalatiPasture(host.scope);
-  const mounted = installMountedPlayer(host, { ...rows, mountable: [] });
+  const mounted = installMountedPlayer(host, { ...rows, mountable: [] },zeroPond,zeroWet);
   const taming = installNativeTaming(host, { commands: () => [] }, { step: 'orchard.taming', herds: 'orchard.herds', roster: 'orchard.companions', kinds: [], programs,
     binding: { upgradeKind: 'silver', bonds: ['ordinary', 'silver'], names: ['Juniper', 'Silver'], offset: [1, 2], fields: { upgraded: 'argymaq', horseUpgraded: 'horseArgymaq', candidateUpgraded: 'argymaq' },
       labels: { mount: 'Ride', breaking: 'Tame', trust: 'Trust', start: 'Start', thrown: 'Thrown', bonded: ['Bonded', 'Upgraded'] } },
@@ -385,19 +396,23 @@ test('native shared cadence retains the original driver noise, terrain, dodge an
   } finally { actual.host.dispose(); original.host.dispose(); }
 });
 
-test('raw riding pond retains inline native capsule, effects and save continuation',async()=>{
+test('named riding pond retains the predecessor native capsule, effects and save continuation',async()=>{
   const rapier=await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm'))),hosts=[false,true].map(raw=>{
     const host=createSimHost({...SIM_LEVEL,quests:[]},{rapier});lendNalatiPasture(host.scope);herdService(host,rows.herds);
-    const block={file:'world/riding-pond.bin',bytes:zlibSync(new Uint8Array(16))};
-    const profile=raw?{...rows,world:{...rows.world,pond:{type:'f32',count:4,data:{file:block.file}}}}:rows;
-    const mounted=installMountedPlayer(host,profile,raw?block:undefined);expect(mounted.mount('boar:1')).toBe(true);return {host,mounted};
+    const block={file:'world/riding-pond.bin',bytes:raw?zeroBytes:offsetBytes(zeroBytes)};
+    if(!raw)expect(block.bytes.byteOffset).toBe(4);
+    const profile={...rows,world:{...rows.world,pond:channel(block.file)}};
+    const mounted=installMountedPlayer(host,profile,block,zeroWet);expect(mounted.mount('boar:1')).toBe(true);return {host,mounted};
   });
   const original=hosts[0],raw=hosts[1];if(original===undefined||raw===undefined)throw new Error('Missing native comparison');
   try{
+    const history:string[]=[];
     const command={moveX:0,moveZ:0,yaw:0,commandVersion:1 as const,steer:{keyX:0,keyY:1,stickX:0,stickY:0}};
-    for(let tick=0;tick<90;tick++){for(const f of hosts)f.host.step(command);expect(serializeSimSnapshot(snapshotSimHost(raw.host))).toBe(serializeSimSnapshot(snapshotSimHost(original.host)));}
+    for(let tick=0;tick<90;tick++){for(const f of hosts)f.host.step(command);const snapshot=serializeSimSnapshot(snapshotSimHost(original.host));history.push(snapshot);expect(serializeSimSnapshot(snapshotSimHost(raw.host))).toBe(snapshot);}
     expect(raw.mounted.body.speed).toBeGreaterThan(0);raw.mounted.dismount();original.mounted.dismount();
-    expect(serializeSimSnapshot(snapshotSimHost(raw.host))).toBe(serializeSimSnapshot(snapshotSimHost(original.host)));
+    const dismounted=serializeSimSnapshot(snapshotSimHost(original.host));history.push(dismounted);
+    expect(serializeSimSnapshot(snapshotSimHost(raw.host))).toBe(dismounted);
+    expect(historyHash(history)).toBe('aea4619a19ad1878b906f116113f3357ea62b1d533cb693b68932921c69fd668');
   }finally{for(const f of hosts)f.host.dispose();}
 });
 
@@ -407,26 +422,31 @@ test('malformed raw riding ponds refuse before mode, capsule or save ownership c
     herdService(host,rows.herds);const before=serializeSimSnapshot(snapshotSimHost(host)),file='world/riding-pond.bin';
     const profile={...rows,world:{...rows.world,pond:{type:'f32',count:4,data:{file}}}};
     for(const block of [undefined,{file:'other.bin',bytes:zlibSync(new Uint8Array(16))},{file,bytes:zlibSync(new Uint8Array(20))}]){
-      expect(()=>installMountedPlayer(host,profile,block)).toThrow();expect(serializeSimSnapshot(snapshotSimHost(host))).toBe(before);expect(host.modes.current()).toBe('foot');
+      expect(()=>installMountedPlayer(host,profile,block,zeroWet)).toThrow();expect(serializeSimSnapshot(snapshotSimHost(host))).toBe(before);expect(host.modes.current()).toBe('foot');
     }
   }finally{host.dispose();}
 });
 
 test('raw riding wet mask retains native capsule, effects and save continuation',async()=>{
   const rapier=await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
-  const wetBytes=zlibSync(new Uint8Array(Float32Array.from([1,1,1,1]).buffer)),wet=btoa(String.fromCodePoint(...wetBytes)),file='world/riding-wet.bin';
+  const wetBytes=zlibSync(new Uint8Array(Float32Array.from([1,1,1,1]).buffer)),file='world/riding-wet.bin';
   const hosts=[false,true].map(raw=>{
     const host=createSimHost({...SIM_LEVEL,quests:[]},{rapier});lendNalatiPasture(host.scope);herdService(host,rows.herds);
-    const profile={...rows,world:{...rows.world,wet:raw?{type:'f32',count:4,data:{file}}:wet}};
-    const mounted=installMountedPlayer(host,profile,undefined,raw?{file,bytes:wetBytes}:undefined);
+    const profile={...rows,world:{...rows.world,wet:channel(file)}};
+    const block={file,bytes:raw?wetBytes:offsetBytes(wetBytes)};
+    if(!raw)expect(block.bytes.byteOffset).toBe(4);
+    const mounted=installMountedPlayer(host,profile,zeroPond,block);
     expect(mounted.mount('boar:1')).toBe(true);return {host,mounted};
   });
   const old=hosts[0],raw=hosts[1];if(old===undefined||raw===undefined)throw new Error('Missing wet comparison');
   try{
+    const history:string[]=[];
     const command={moveX:0,moveZ:0,yaw:0,commandVersion:1 as const,steer:{keyX:0,keyY:1,stickX:0,stickY:0}};
-    for(let tick=0;tick<90;tick++){for(const f of hosts)f.host.step(command);expect(serializeSimSnapshot(snapshotSimHost(raw.host))).toBe(serializeSimSnapshot(snapshotSimHost(old.host)));}
+    for(let tick=0;tick<90;tick++){for(const f of hosts)f.host.step(command);const snapshot=serializeSimSnapshot(snapshotSimHost(old.host));history.push(snapshot);expect(serializeSimSnapshot(snapshotSimHost(raw.host))).toBe(snapshot);}
     expect(raw.mounted.body.speed).toBeGreaterThan(0);raw.mounted.dismount();old.mounted.dismount();
-    expect(serializeSimSnapshot(snapshotSimHost(raw.host))).toBe(serializeSimSnapshot(snapshotSimHost(old.host)));
+    const dismounted=serializeSimSnapshot(snapshotSimHost(old.host));history.push(dismounted);
+    expect(serializeSimSnapshot(snapshotSimHost(raw.host))).toBe(dismounted);
+    expect(historyHash(history)).toBe('a469c71da4df9bfc72ec0fc78085947e5fc12d79b317a390513841d5158a6371');
   }finally{for(const f of hosts)f.host.dispose();}
 });
 
@@ -436,7 +456,7 @@ test('malformed raw riding wet masks refuse before mode, capsule or save ownersh
     herdService(host,rows.herds);const before=serializeSimSnapshot(snapshotSimHost(host)),file='world/riding-wet.bin';
     const profile={...rows,world:{...rows.world,wet:{type:'f32',count:4,data:{file}}}};
     for(const block of [undefined,{file:'other.bin',bytes:zlibSync(new Uint8Array(16))},{file,bytes:zlibSync(new Uint8Array(20))}]){
-      expect(()=>installMountedPlayer(host,profile,undefined,block)).toThrow();expect(serializeSimSnapshot(snapshotSimHost(host))).toBe(before);expect(host.modes.current()).toBe('foot');
+      expect(()=>installMountedPlayer(host,profile,zeroPond,block)).toThrow();expect(serializeSimSnapshot(snapshotSimHost(host))).toBe(before);expect(host.modes.current()).toBe('foot');
     }
   }finally{host.dispose();}
 });
