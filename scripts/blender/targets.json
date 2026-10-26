@@ -232,7 +232,7 @@
    "about": "The open plots' kit models (Night Market remaster RM4): each family three variants, flat-shaded, ray-traced AO in COLOR_0 (no Cycles: no model lock, byte-stable), data/trim.json's ruled-trim UVs; the plot generator retints them by palette slot",
    "script": "scripts/blender/open-plots/kit.py",
    "args": ["$BUILD"],
-   "sources": ["scripts/blender/open-plots/kitlib.py", "scripts/blender/open-plots/model_source.py", "scripts/blender/lib/glb.py", "scripts/blender/open-plots/sources/tree-round.glb", "scripts/blender/open-plots/sources/tree-tall.glb", "scripts/blender/open-plots/sources/tree-willow.glb", "scripts/blender/open-plots/sources/fig-vendor.glb", "scripts/blender/open-plots/sources/fig-shopper.glb", "scripts/blender/open-plots/sources/fig-elder.glb"],
+   "sources": ["scripts/blender/open-plots/kitlib.py", "scripts/blender/open-plots/model_source.py", "scripts/blender/lib/glb.py", "scripts/blender/open-plots/sources/tree-round.glb", "scripts/blender/open-plots/sources/tree-tall.glb", "scripts/blender/open-plots/sources/fig-vendor.glb", "scripts/blender/open-plots/sources/fig-shopper.glb", "scripts/blender/open-plots/sources/fig-elder.glb"],
    "inputs": ["src/shards/open-plots/data/trim.json"],
    "lock": false,
    "build": ["lanterns.glb", "stalls.glb", "houses.glb", "bridges.glb", "strings.glb", "props.glb", "canal.glb", "trees.glb", "figures.glb"],

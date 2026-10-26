@@ -8,7 +8,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from kitlib import Piece, build_family, reset_scene  # noqa: E402
+from kitlib import Piece, build_family, realise, reset_scene  # noqa: E402
 
 # Default colours (sRGB) for slots a layout's palette may not define; the palette's own colour wins.
 SLOTS = {'iron': '#2b2b33', 'gold': '#d8a23e', 'paper': '#ff5b32', 'stone': '#8a8a94', 'stoneTop': '#a6a6b0',
@@ -415,6 +415,86 @@ FACE_RGB = {}  # each generated model's face colours (sRGB), by object name, for
 SOURCES = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'sources')
 
 
+def tube(p, path, radii, sides, slot, out, squash=1.0):
+    """A tapered tube along `path` (3D points, first to last), its rings `radii` (a last 0 closes it to a point), each
+    ring squashed by `squash` along `out` (a horizontal direction) and turned so one ridge faces it; every face winds
+    outward. The willow's hanging lobes and its limbs."""
+    def sub(a, b):
+        return [a[0] - b[0], a[1] - b[1], a[2] - b[2]]
+
+    def unit(a):
+        n = math.sqrt(sum(c * c for c in a)) or 1.0
+        return [c / n for c in a]
+
+    def cross(a, b):
+        return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]
+
+    rings = []
+    for k, (c, r) in enumerate(zip(path, radii)):
+        t = unit(sub(path[min(k + 1, len(path) - 1)], path[max(k - 1, 0)]))
+        d = sum(o * tc for o, tc in zip(out, t))
+        u = unit([o - d * tc for o, tc in zip(out, t)])
+        v = cross(t, u)
+        rings.append([tuple(c[j] + r * (math.cos(a) * squash * u[j] + math.sin(a) * v[j]) for j in range(3))
+                      for a in (2 * math.pi * i / sides for i in range(sides))] if r > 1e-6 else [tuple(c)])
+
+    def face(points, inside):
+        n = cross(sub(points[1], points[0]), sub(points[2], points[0]))
+        mid = [sum(q[j] for q in points) / len(points) for j in range(3)]
+        p.face(points if sum(a * b for a, b in zip(n, sub(mid, inside))) >= 0 else list(reversed(points)), slot)
+
+    for k in range(len(rings) - 1):
+        a, b, inside = rings[k], rings[k + 1], [(path[k][j] + path[k + 1][j]) / 2 for j in range(3)]
+        for i in range(sides):
+            j = (i + 1) % sides
+            face([a[i], a[j], b[0]] if len(b) == 1 else [a[i], a[j], b[j], b[i]], inside)
+    face(rings[0], path[1])
+
+
+def scripted_willow(height=8.0, seed=11):
+    """RM4.7 redo: the weeping willow as a script, not an image-to-3D take (a voxel-remeshed Hunyuan willow read as a
+    blob). A forked trunk under a small dome, over which rise and from which hang fourteen long leaf-blade lobes (diamond sections
+    flattened against the crown, a ridge facing out), an outer ring of nine and an inner ring of five between them,
+    hanging to about a quarter of the height with gaps that show the trunk: the reference's curtain silhouette. Each
+    face's tint lights a lobe's outward, upper facets and darkens its inner ones, with a seeded jitter for the facets."""
+    import random
+    rng = random.Random(seed)
+    k = height / 8.0
+    p = Piece()
+    p.lathe(0, 0, [(0.62 * k, 0), (0.42 * k, 0.5 * k), (0.34 * k, 2.2 * k), (0.28 * k, 3.0 * k), (0.16 * k, 4.6 * k)], 6, ['Kit.trunk'])
+    for i in range(3):
+        a = 2 * math.pi * i / 3 + 0.4
+        tube(p, [(0, 0, 2.6 * k), (0.7 * k * math.cos(a), 0.7 * k * math.sin(a), 4.2 * k), (1.4 * k * math.cos(a), 1.4 * k * math.sin(a), 5.9 * k)],
+             [0.24 * k, 0.17 * k, 0.1 * k], 4, 'Kit.trunk', (math.cos(a), math.sin(a), 0))
+    p.lathe(0, 0, [(1.8 * k, 5.8 * k), (2.6 * k, 6.8 * k), (2.0 * k, 7.7 * k), (0, 8.0 * k)], 6, ['Kit.foliage'], cap_bottom=True)
+    # (count, turn, path (radius, height) from over the crown down to the tip, ring radii: wide and narrow alternate,
+    # the reference's layered leaf edge)
+    rows = [(9, 0.0, [(0.9, 7.9), (2.2, 7.7), (3.1, 6.9), (3.5, 5.7), (3.6, 4.5), (3.5, 3.3), (3.3, 2.3), (3.1, 1.6)],
+             [0.6, 0.95, 1.05, 0.82, 0.95, 0.68, 0.45, 0]),
+            (5, 0.35, [(0.4, 8.1), (1.4, 8.0), (2.2, 7.2), (2.5, 5.8), (2.5, 4.3), (2.4, 3.0)], [0.55, 0.9, 0.95, 0.75, 0.55, 0])]
+    for count, turn, path, radii in rows:
+        for i in range(count):
+            a = 2 * math.pi * (i + turn) / count + rng.uniform(-0.12, 0.12)
+            drop, reach = rng.uniform(-0.35, 0.45), rng.uniform(0.92, 1.06)
+            c, s = math.cos(a), math.sin(a)
+            pts = [(r * reach * c * k, r * reach * s * k, (z - drop * (n / (len(path) - 1))) * k) for n, (r, z) in enumerate(path)]
+            tube(p, pts, [r * k for r in radii], 4, 'Kit.foliage', (c, s, 0), squash=0.7)
+    obj = realise(p, 'tree-willow', 0)
+    mesh = obj.data
+    fit = height / max(v.co.z for v in mesh.vertices)  # the lobes' rings rise past the path: crown top at `height`
+    for v in mesh.vertices:
+        v.co *= fit
+    tint = mesh.attributes.new('tint', 'FLOAT', 'FACE')
+    for poly in mesh.polygons:
+        leaf = mesh.materials[poly.material_index].name == 'Kit.foliage'
+        c, n = poly.center, poly.normal
+        radial = math.hypot(c.x, c.y) or 1.0
+        facing = (n.x * c.x + n.y * c.y) / radial  # outward facets light, inner ones dark
+        value = 0.8 + 0.12 * facing + 0.08 * n.z + rng.uniform(-0.06, 0.06) if leaf else 0.9 + rng.uniform(-0.08, 0.08)
+        tint.data[poly.index].value = max(0.55, min(1.0, value))
+    return obj
+
+
 def generated_tree(name, height, faces, voxel=45):
     """A tree from its image-to-3D source (sources/<name>.glb, model_source.py), `height` metres tall with the trunk's
     foot at the origin: voxel-remeshed into closed masses (a generated crown is many open, intersecting lumps that a
@@ -605,7 +685,7 @@ def main():
     build_family(out, 'props', [flower_planter, bench, crate_stack], TRIMS, {'slots': SLOTS})
     reset_scene()
     build_family(out, 'trees', [lambda: generated_tree('tree-round', 8.0, 420), lambda: generated_tree('tree-tall', 8.0, 420),
-                                lambda: generated_tree('tree-willow', 8.0, 520, voxel=24)], TRIMS, {'slots': SLOTS})
+                                scripted_willow], TRIMS, {'slots': SLOTS})
     reset_scene()
     figure_slots = dict(SLOTS)  # each figure adds its own colour clusters' defaults
     build_family(out, 'figures', [lambda n=n: generated_figure(f'fig-{n}', 1.75, 450, figure_slots) for n in ('vendor', 'shopper', 'elder')],
