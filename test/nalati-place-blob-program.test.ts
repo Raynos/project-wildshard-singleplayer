@@ -97,9 +97,57 @@ const coldOutputFixture = await (async () => {
     requested.length = 0;
     const shared = context(), header = await buildNalati(shared);
     const output = await prepareOutput(shared);
-    return { cache, requested, steps, constructions, context, crags, header, output, get nativePlaces() { return nativePlaces; } };
+    const beforeWarm = new Map(constructions), warm = await prepareOutput(context());
+    return { cache, requested, steps, constructions, context, crags, header, output, beforeWarm, warm, get nativePlaces() { return nativePlaces; } };
   } catch (error) { rmSync(cache, { recursive: true, force: true }); throw error; }
 })();
+
+// Build the independent full-scene oracle once beside the genuinely cold product.
+// Timed cases keep the original hashes, metadata, full bytes and cache controls.
+const sceneParityFixture = (() => {
+  const { output: hit, nativePlaces } = coldOutputFixture;
+  const beforeBank = nativePlaceFile('specimens.bin');
+  const expectedBank = nameBlob('models/specimens/camp.bin', 'bin', beforeBank, { decoded: nalatiSpecimens.packed.bytes });
+    if (nativePlaces === undefined) throw new Error('Missing observed native place metadata');
+    const ownedPlaces: unknown = JSON.parse(new TextDecoder().decode(nativePlaces));
+    const ownedRuntime = nalatiRuntimeRows({ places: ownedPlaces, paint: paintInput }).runtime;
+    const frozenScenes = originalDressingContactTransport(dressingSceneBlobs(nalatiDecorative, nalatiRuntime,nalatiBalbal,nalatiSpecimens),
+      new Map((['phone','desktop']as const).map(tier=>[`world/dressing-${tier}.json`,dressingScene(tier,nalatiDecorative,nalatiRuntime,nalatiBalbal,nalatiSpecimens)])));
+    const expectedScenes = new Map(sceneOriginal.map(pin=>{
+      const frozen = frozenScenes.find(blob => blob.file.name === pin.name);
+      if (frozen === undefined) throw new Error('Missing frozen complete scene pin');
+      const expected = pin.name.endsWith('.json') ? sceneWithOwnedModels(sceneWithSpecimenBank(sceneWithNativeOutcrops(frozen, ownedRuntime),expectedBank)) : frozen;
+      return[pin.name,expected]as const;
+    }));
+    const projectedScenes=originalDressingContactTransport(hit.namedFiles.map(file=>{
+      const bytes=hit.assets.get(file.hash);if(bytes===undefined)throw new Error('Missing owned output bytes');return{file,bytes};
+    }),new Map([...expectedScenes].filter(([name])=>name.endsWith('.json')).map(([name,blob])=>[name,v.parse(SceneDressingSchema,JSON.parse(new TextDecoder().decode(blob.bytes)))])));
+  return { frozenScenes, expectedScenes, projectedScenes };
+})();
+
+test('cached held source metadata refuses a changed executable or compiled byte charge', async () => {
+  for (const kind of ['executable', 'metadata']) {
+    const source = coldOutputFixture.context();
+    const corrupted: Parameters<typeof prepareSpecies>[0] = { ...source, cached: async (step, make) => {
+      const files = await source.cached(step, make);
+      if (step.id !== 'species') return files;
+      const changed = new Map(files), name = kind === 'executable' ? 'held-weapons.wasm' : 'species.json';
+      const bytes = changed.get(name);
+      if (bytes === undefined) throw new Error('Missing owned held source fixture');
+      if (kind === 'executable') {
+        const copy = bytes.slice(); copy[0] = (copy[0] ?? 0) ^ 1; changed.set(name, copy);
+      } else {
+        const rows = v.parse(v.looseObject({ compiled: v.looseObject({ bytes: v.number() }) }), JSON.parse(new TextDecoder().decode(bytes)));
+        rows.compiled.bytes++;
+        changed.set(name, new TextEncoder().encode(JSON.stringify(rows)));
+      }
+      return changed;
+    } };
+    await expect(prepareSpecies(corrupted)).rejects.toThrow('Held source metadata differs from owned executable bytes');
+  }
+  const ready = await prepareSpecies(coldOutputFixture.context());
+  expect(ready.held.held.compiled.hash).toBe(hashImmutableBytes(ready.files.get('held-weapons.wasm') ?? new Uint8Array()));
+});
 afterAll(() => { rmSync(coldOutputFixture.cache, { recursive: true, force: true }); });
 
 test('the full frozen assembly pin and exact current geography input retain separate ownership', () => {
@@ -117,8 +165,21 @@ test('native dressing and duplicate scene-copy jobs stay retired', () => {
   expect(jobs).not.toContain('nalati-dressing'); expect(jobs).not.toContain('nalati-places-blob'); expect(jobs).not.toContain('nalati-crags-blob'); expect(jobs).not.toContain('nalati-dressing-blob');
 });
 
-test('the actual output hook preserves every predecessor file cost and binary byte on cold and cache hit', async () => {
-  const { requested, steps, constructions, context, output: hit, nativePlaces } = coldOutputFixture;
+test('the actual output cache hit preserves all complete files without reconstructing a source', () => {
+  const { constructions, beforeWarm, warm, output: hit } = coldOutputFixture;
+    expect(constructions).toEqual(beforeWarm);
+    expect(warm.namedFiles).toEqual(hit.namedFiles);
+    for (const file of hit.namedFiles) {
+      const first = hit.assets.get(file.hash), next = warm.assets.get(file.hash);
+      if (first === undefined || next === undefined) throw new Error('Missing complete cold/warm output file');
+      expect(next.byteLength).toBe(first.byteLength);
+      expect(hashImmutableBytes(next)).toBe(file.hash);
+      expect(Buffer.compare(next, first)).toBe(0);
+    }
+});
+
+test('the actual cold output hook preserves every predecessor file cost and binary byte', () => {
+  const { requested, steps, constructions, output: hit } = coldOutputFixture;
   const before = nativePlaceFile('places.bin');
   const beforeBank=nativePlaceFile('specimens.bin');
   const expectedBank=nameBlob('models/specimens/camp.bin','bin',beforeBank,{decoded:nalatiSpecimens.packed.bytes});
@@ -135,16 +196,6 @@ test('the actual output hook preserves every predecessor file cost and binary by
     expect(constructions.get('model-parts')).toBe(1);
     expect(constructions.get('places')).toBe(1);
     expect(constructions.get('dressing-placement')).toBe(1);
-    const beforeWarm = new Map(constructions), warm = await prepareOutput(context());
-    expect(constructions).toEqual(beforeWarm);
-    expect(warm.namedFiles).toEqual(hit.namedFiles);
-    for (const file of hit.namedFiles) {
-      const first = hit.assets.get(file.hash), next = warm.assets.get(file.hash);
-      if (first === undefined || next === undefined) throw new Error('Missing complete cold/warm output file');
-      expect(next.byteLength).toBe(first.byteLength);
-      expect(hashImmutableBytes(next)).toBe(file.hash);
-      expect(Buffer.compare(next, first)).toBe(0);
-    }
     const modelFiles = hit.namedFiles.filter(file => file.name?.startsWith('models/painted/'));
     const nearModels = ['eagle', 'cauldron', 'firewood', 'kumis-churn', 'chest', 'saddle', 'balbal', 'boulder-1', 'boulder-2', 'boulder-3', 'watchtower', 'snow-lotus', 'horse-saddled', 'kokpar-rider', 'sheep'];
     const modelNames = new Set([...nearModels.flatMap(name => [`${name}.glb`, `${name}.phone.glb`]), 'horse-wild.far.glb', 'kokpar-rider.far.glb']);
@@ -171,11 +222,7 @@ test('the actual output hook preserves every predecessor file cost and binary by
     expect(bankBytes.byteLength).toBe(beforeBank.byteLength);
     expect(hashImmutableBytes(bankBytes)).toBe(expectedBank.file.hash);
     expect(Buffer.compare(bankBytes, beforeBank)).toBe(0);
-    if (nativePlaces === undefined) throw new Error('Missing observed native place metadata');
-    const ownedPlaces: unknown = JSON.parse(new TextDecoder().decode(nativePlaces));
-    const ownedRuntime = nalatiRuntimeRows({ places: ownedPlaces, paint: paintInput }).runtime;
-    const frozenScenes = originalDressingContactTransport(dressingSceneBlobs(nalatiDecorative, nalatiRuntime,nalatiBalbal,nalatiSpecimens),
-      new Map((['phone','desktop']as const).map(tier=>[`world/dressing-${tier}.json`,dressingScene(tier,nalatiDecorative,nalatiRuntime,nalatiBalbal,nalatiSpecimens)])));
+    const { frozenScenes, expectedScenes, projectedScenes } = sceneParityFixture;
     expect(frozenScenes.map(blob => ({ name: blob.file.name, bytes: blob.bytes.length, hash: blob.file.hash }))
       .sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '')))
       .toEqual([...sceneOriginal].sort((a, b) => a.name.localeCompare(b.name)));
@@ -225,15 +272,6 @@ test('the actual output hook preserves every predecessor file cost and binary by
     expect(hashImmutableBytes(shapeBytes)).toBe(expectedShapes.file.hash);
     expect(Buffer.compare(shapeBytes, expectedShapes.bytes)).toBe(0);
     expect(steps).toContain('decorative');
-    const expectedScenes = new Map(sceneOriginal.map(pin=>{
-      const frozen = frozenScenes.find(blob => blob.file.name === pin.name);
-      if (frozen === undefined) throw new Error('Missing frozen complete scene pin');
-      const expected = pin.name.endsWith('.json') ? sceneWithOwnedModels(sceneWithSpecimenBank(sceneWithNativeOutcrops(frozen, ownedRuntime),expectedBank)) : frozen;
-      return[pin.name,expected]as const;
-    }));
-    const projectedScenes=originalDressingContactTransport(hit.namedFiles.map(file=>{
-      const bytes=hit.assets.get(file.hash);if(bytes===undefined)throw new Error('Missing owned output bytes');return{file,bytes};
-    }),new Map([...expectedScenes].filter(([name])=>name.endsWith('.json')).map(([name,blob])=>[name,v.parse(SceneDressingSchema,JSON.parse(new TextDecoder().decode(blob.bytes)))])));
     for (const [name,expected] of expectedScenes) {
       const projected=projectedScenes.find(row=>row.file.name===name);
       if(projected===undefined)throw new Error('Missing owned dressing scene');

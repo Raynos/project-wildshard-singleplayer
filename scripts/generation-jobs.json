@@ -13287,7 +13287,10 @@
         "src/shards/nalati-grasslands/generators/modelSourceParts.ts",
         "src/shards/nalati-grasslands/generators/modelPartsProgram.ts",
         "src/shards/nalati-grasslands/generators/modelBindings.ts",
-        "src/sdk/bake/rawTexture.ts"
+        "src/sdk/bake/rawTexture.ts",
+        "src/shards/nalati-grasslands/generators/heldMetadata.ts",
+        "src/shards/nalati-grasslands/data/weaponPowers.json",
+        "src/shards/nalati-grasslands/data/stealth.json"
       ],
       "outputs": [
         "public/assets/nalati-grasslands/map/top.webp",

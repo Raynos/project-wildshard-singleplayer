@@ -1,10 +1,12 @@
 import { expect, test } from 'vitest';
+import { build } from 'vite';
 import * as v from 'valibot';
 import { ReturnProgramSchema } from '@wildshard/format/namedJsonContracts';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { nalatiHeldMetadata, nalatiHeldSource } from '../src/shards/nalati-grasslands/generators/heldMetadata';
 import { originalSpeciesJson } from './fixtures/nalati-original-species';
 import pins from './fixtures/nalati-held-files.json' with { type: 'json' };
+import { assertConfigBoundary } from '../src/sdk/configBoundary';
 
 const source = v.parse(v.object({
   program: ReturnProgramSchema,
@@ -46,4 +48,22 @@ test('native source admission retains complete metadata and refuses malformed ex
     expect(() => nalatiHeldSource({ ...source, compiled: { ...source.compiled, bytes } })).toThrow('Invalid source-owned held metadata');
   expect(() => nalatiHeldSource({ ...source, compiled: { ...source.compiled, hash: 'not a full hash' } })).toThrow('Invalid source-owned held metadata');
   expect(() => nalatiHeldSource({ ...source, program: { ...source.program, script: null } })).toThrow('Invalid source-owned held metadata');
+});
+
+test('the actual source entry bundles without either retired held metadata document', async () => {
+  const result = await build({ configFile: false, logLevel: 'silent', plugins: [{
+    name: 'original-held-metadata-omission',
+    load(id) {
+      if (/(?:heldWeapons|stealth)\.generated\.json(?:\?|$)/u.test(id)) throw new Error('Retired held metadata requested');
+      return null;
+    },
+  }], build: { write: false, minify: false,
+    lib: { entry: 'src/shards/nalati-grasslands/shard.config.ts', formats: ['es'] },
+    rolldownOptions: { external: [/^node:/u], output: { codeSplitting: false } },
+  } });
+  const built = Array.isArray(result) ? result[0] : result;
+  if (built === undefined || !('output' in built)) throw new Error('Missing source entry bundle');
+  const chunks = built.output.filter(row => row.type === 'chunk');
+  expect(chunks).toHaveLength(1);
+  for (const chunk of chunks) expect(() => assertConfigBoundary([...chunk.imports, ...chunk.dynamicImports])).not.toThrow();
 });

@@ -4,7 +4,7 @@ import {Scope} from '../src/engine/app/scope';
 import {ReturnProgram} from '../src/game/population/returnProgram';
 import {scriptAdmissionRows,decisionModuleContracts} from '../src/format/scriptContract';
 import {hashImmutableBytes} from '../src/sdk/immutable';
-import {NALATI_SCRIPT_SECTIONS} from '../src/shards/nalati-grasslands/generators/scriptInventory';
+import {NALATI_SCRIPT_SECTIONS} from './fixtures/nalati-script-inventory';
 import programs from '../src/shards/nalati-grasslands/behaviour/riding.generated.json' with {type:'json'};
 import * as v from 'valibot';
 import {readNamedBlob} from '../src/sdk/blobs';

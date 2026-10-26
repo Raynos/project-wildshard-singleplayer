@@ -1,7 +1,8 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { NALATI_SCRIPT_SECTIONS, nalatiScriptSections } from '../src/shards/nalati-grasslands/generators/scriptInventory';
+import { nalatiScriptSections } from '../src/shards/nalati-grasslands/generators/scriptInventory';
+import { NALATI_SCRIPT_SECTIONS } from './fixtures/nalati-script-inventory';
 import { originalSpeciesJson } from './fixtures/nalati-original-species';
 import pin from './fixtures/nalati-script-sections-original.json' with { type: 'json' };
 

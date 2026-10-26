@@ -1,7 +1,7 @@
 import {GrazerBrain as OriginalGrazerBrain} from './fixtures/grazer-herd-original';
 import {lendNalatiPasture} from './fixtures/nalati-return-modules';
 import {scriptAdmissionRows} from '../src/format/scriptContract';
-import {NALATI_SCRIPT_SECTIONS} from '../src/shards/nalati-grasslands/generators/scriptInventory';
+import {NALATI_SCRIPT_SECTIONS} from './fixtures/nalati-script-inventory';
 import {expect,test,vi} from 'vitest';
 import {GroupStepV2,prepareGroupNativeV2,type GroupStepOperationV2,type GroupStepReferenceV2,type GroupStepNativeResultV2} from '../src/engine/script/groupStepV2';
 import {ObservationColumnsV2,type V2ColumnOwners} from '../src/engine/script/observationColumnsV2';

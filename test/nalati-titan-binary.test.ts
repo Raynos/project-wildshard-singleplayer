@@ -1,7 +1,7 @@
 import {expect,test} from 'vitest';
 import {parse} from 'valibot';
 import {ReturnModulesSchema,scriptAdmissionRows} from '../src/format/scriptContract';
-import {NALATI_SCRIPT_SECTIONS} from '../src/shards/nalati-grasslands/generators/scriptInventory';
+import {NALATI_SCRIPT_SECTIONS} from './fixtures/nalati-script-inventory';
 import {titanRawPrograms as programs,titanPrograms as inline,titanWitnessBytes,pastureWitnessBytes} from './fixtures/titanInlineWitness';
 import {hashImmutableBytes} from '../src/sdk/immutable';
 import {prepareProjectOutput} from '../src/sdk/projectOutput';

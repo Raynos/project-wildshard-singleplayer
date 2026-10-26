@@ -1,6 +1,5 @@
 import type { PlatformDataSectionName } from '@wildshard/format/platformDataSections';
 import { SCRIPT_V2_REVISIONS } from '@wildshard/format/scriptAdmissionV2';
-import heldWeapons from '../data/heldWeapons.generated.json' with { type: 'json' };
 import weatherDecision from '../behaviour/weather.generated.json' with { type: 'json' };
 import kokpar from '../data/kokpar.generated.json' with { type: 'json' };
 import admission from '../behaviour/admission.generated.json' with { type: 'json' };
@@ -31,6 +30,3 @@ export function nalatiScriptSections(held: NalatiScriptProjection): ReadonlyMap<
 ]);
   return structuredClone(sections);
 }
-
-/** Retained default until source-owned held metadata is supplied by the product entry. */
-export const NALATI_SCRIPT_SECTIONS: ReadonlyMap<PlatformDataSectionName, unknown> = nalatiScriptSections(heldWeapons.program.v2);

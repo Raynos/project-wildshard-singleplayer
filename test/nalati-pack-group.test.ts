@@ -23,7 +23,7 @@ import {lendNalatiPasture} from './fixtures/nalati-return-modules';
 import pasture from '../src/shards/nalati-grasslands/behaviour/pasture.generated.json' with {type:'json'};
 import packBinding from '../src/shards/nalati-grasslands/data/packGuest.json' with {type:'json'};
 import {scriptAdmissionRows} from '../src/format/scriptContract';
-import {NALATI_SCRIPT_SECTIONS} from '../src/shards/nalati-grasslands/generators/scriptInventory';
+import {NALATI_SCRIPT_SECTIONS} from './fixtures/nalati-script-inventory';
 
 const {id:profileId,...profile}=PACK_PROFILE;
 const PACK_ROWS={...profile,outputs:128,pages:1,fuel:400000};

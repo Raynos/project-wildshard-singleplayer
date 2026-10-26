@@ -5,7 +5,7 @@ import {readFileSync} from 'node:fs';
 import {Scope} from '../src/engine/app/scope';
 import {readNamedBlob} from '../src/sdk/blobs';
 import {expect,test} from 'vitest';
-import {NALATI_SCRIPT_SECTIONS} from '../src/shards/nalati-grasslands/generators/scriptInventory';
+import {NALATI_SCRIPT_SECTIONS} from './fixtures/nalati-script-inventory';
 import {emitPlatformSections} from '../src/sdk/platformSections';
 import {outputScriptAdmissionRows} from '../src/sdk/outputProduct';
 import {ReturnProgram} from '../src/game/population/returnProgram';

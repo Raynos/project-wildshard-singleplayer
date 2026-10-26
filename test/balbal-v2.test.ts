@@ -21,7 +21,7 @@ import { scriptAdmissionRows, decisionModuleContracts } from '../src/format/scri
 import { ReturnProjectionV2Schema, parseReturnProjectionV2 } from '../src/format/returnProjectionV2';
 import stealth from '../src/shards/nalati-grasslands/data/stealth.generated.json' with { type: 'json' };
 import { nameBlob } from '../src/sdk/blobs';
-import { NALATI_SCRIPT_SECTIONS } from '../src/shards/nalati-grasslands/generators/scriptInventory';
+import { NALATI_SCRIPT_SECTIONS } from './fixtures/nalati-script-inventory';
 
 const generated=parse(object({presentation:object({guest:CreatureGuestSchema}),
   program:strictObject({...ReturnProgramSchema.entries,v2:ReturnProjectionV2Schema})}),

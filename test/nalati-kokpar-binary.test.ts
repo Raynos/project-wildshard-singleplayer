@@ -5,7 +5,7 @@ import {expect,test} from 'vitest';
 import {ReturnProgramSchema} from '../src/format/namedJsonContracts';
 import {parseHeldSlots} from '../src/format/heldArms';
 import {scriptAdmissionRows} from '../src/format/scriptContract';
-import {NALATI_SCRIPT_SECTIONS} from '../src/shards/nalati-grasslands/generators/scriptInventory';
+import {NALATI_SCRIPT_SECTIONS} from './fixtures/nalati-script-inventory';
 import {Scope} from '../src/engine/app/scope';
 import {ReturnProgram} from '../src/game/population/returnProgram';
 import {hashImmutableBytes} from '../src/sdk/immutable';
