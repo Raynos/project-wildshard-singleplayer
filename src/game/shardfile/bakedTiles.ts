@@ -15,6 +15,7 @@ import { prepareRigLoader } from '@wildshard/engine/anim/rig';
 import { slicer } from '@wildshard/engine/boot/plan';
 import { ktx2File, ktx2Texture } from '@wildshard/engine/core/ktx2';
 import { TIER } from '@wildshard/engine/core/tier';
+import { gpuOnlyTexture } from '@wildshard/engine/core/gpuOnly';
 import { defineGeometryModel, modelContext } from '@wildshard/engine/models/model';
 import { placeSliced } from '@wildshard/engine/models/place';
 import type { CullOptions } from '@wildshard/engine/models/cull';
@@ -80,6 +81,9 @@ export async function installBakedTiles(owner: BakedTilesOwner, input: BakedTile
   for (const [i, map] of row.lightmaps.entries()) {
     const texture = maps[i]; if (texture === undefined) throw new Error('Missing baked lightmap');
     texture.flipY = false; texture.colorSpace = THREE.NoColorSpace; texture.channel = map.channel; texture.anisotropy = map.anisotropy; texture.needsUpdate = true;
+    // Immutable shader inputs: keep decoded pixels through upload, then only
+    // the original dimensions. Context-loss recovery already reloads GPU-only content.
+    gpuOnlyTexture(texture, `baked lightmaps: ${row.id}`);
     setLentTexture(row.look, map.param, texture);
   }
   const material = lentLook(row.look), group = new THREE.Group(), tiles: THREE.Mesh[] = [];
