@@ -64,13 +64,6 @@
     "bo"
    ]
   },
-  "uvm": {
-   "op": "combine",
-   "in": [
-    "u",
-    "v"
-   ]
-  },
   "rv": {
    "op": "div",
    "in": [
@@ -193,30 +186,10 @@
     "rlipd"
    ]
   },
-  "rll0": {
+  "rll": {
    "op": "oneMinus",
    "in": [
     "rle"
-   ]
-  },
-  "rlk0": {
-   "op": "div",
-   "in": [
-    0.03,
-    "rlaa"
-   ]
-  },
-  "rlk": {
-   "op": "saturate",
-   "in": [
-    "rlk0"
-   ]
-  },
-  "rll": {
-   "op": "mul",
-   "in": [
-    "rll0",
-    "rlk"
    ]
   },
   "rdark": {
@@ -308,30 +281,10 @@
     "tgd"
    ]
   },
-  "tll0": {
+  "tll": {
    "op": "oneMinus",
    "in": [
     "tle"
-   ]
-  },
-  "tlk0": {
-   "op": "div",
-   "in": [
-    0.01,
-    "tlaa"
-   ]
-  },
-  "tlk": {
-   "op": "saturate",
-   "in": [
-    "tlk0"
-   ]
-  },
-  "tll": {
-   "op": "mul",
-   "in": [
-    "tll0",
-    "tlk"
    ]
   },
   "tgx": {
@@ -448,39 +401,6 @@
    "in": [
     "tb",
     "tdark"
-   ]
-  },
-  "pp": {
-   "op": "mul",
-   "in": [
-    "uvm",
-    0.9
-   ]
-  },
-  "pn0": {
-   "op": "noise",
-   "in": [
-    "pp"
-   ]
-  },
-  "pn": {
-   "op": "saturate",
-   "in": [
-    "pn0"
-   ]
-  },
-  "pns": {
-   "op": "mul",
-   "in": [
-    "pn",
-    0.08
-   ]
-  },
-  "plaster": {
-   "op": "add",
-   "in": [
-    "pns",
-    0.93
    ]
   },
   "sv": {
@@ -624,30 +544,10 @@
     "sd"
    ]
   },
-  "sll0": {
+  "sll": {
    "op": "oneMinus",
    "in": [
     "sle"
-   ]
-  },
-  "slk0": {
-   "op": "div",
-   "in": [
-    0.02,
-    "slaa"
-   ]
-  },
-  "slk": {
-   "op": "saturate",
-   "in": [
-    "slk0"
-   ]
-  },
-  "sll": {
-   "op": "mul",
-   "in": [
-    "sll0",
-    "slk"
    ]
   },
   "shha": {
@@ -733,13 +633,6 @@
     2
    ]
   },
-  "b3": {
-   "op": "eq",
-   "in": [
-    "band",
-    3
-   ]
-  },
   "b4": {
    "op": "eq",
    "in": [
@@ -762,20 +655,12 @@
     1
    ]
   },
-  "s3": {
-   "op": "select",
-   "in": [
-    "b3",
-    "plaster",
-    "s5"
-   ]
-  },
   "s2": {
    "op": "select",
    "in": [
     "b2",
     "timber",
-    "s3"
+    "s5"
    ]
   },
   "shade": {
@@ -864,30 +749,10 @@
     "ad"
    ]
   },
-  "all0": {
+  "all": {
    "op": "oneMinus",
    "in": [
     "ale"
-   ]
-  },
-  "alk0": {
-   "op": "div",
-   "in": [
-    0.08,
-    "alaa"
-   ]
-  },
-  "alk": {
-   "op": "saturate",
-   "in": [
-    "alk0"
-   ]
-  },
-  "all": {
-   "op": "mul",
-   "in": [
-    "all0",
-    "alk"
    ]
   },
   "cream": {
@@ -909,12 +774,301 @@
     "stripe"
    ]
   },
+  "fwp": {
+   "op": "positionWorld"
+  },
+  "fx": {
+   "op": "swizzle",
+   "in": [
+    "fwp"
+   ],
+   "mask": "x"
+  },
+  "fz": {
+   "op": "swizzle",
+   "in": [
+    "fwp"
+   ],
+   "mask": "z"
+  },
+  "fzr": {
+   "op": "div",
+   "in": [
+    "fz",
+    2.4
+   ]
+  },
+  "fri": {
+   "op": "floor",
+   "in": [
+    "fzr"
+   ]
+  },
+  "fv": {
+   "op": "fract",
+   "in": [
+    "fzr"
+   ]
+  },
+  "fodd": {
+   "op": "mod",
+   "in": [
+    "fri",
+    2
+   ]
+  },
+  "fshift": {
+   "op": "mul",
+   "in": [
+    "fodd",
+    0.5
+   ]
+  },
+  "fxr0": {
+   "op": "div",
+   "in": [
+    "fx",
+    3.2
+   ]
+  },
+  "fxr": {
+   "op": "add",
+   "in": [
+    "fxr0",
+    "fshift"
+   ]
+  },
+  "fci": {
+   "op": "floor",
+   "in": [
+    "fxr"
+   ]
+  },
+  "fu": {
+   "op": "fract",
+   "in": [
+    "fxr"
+   ]
+  },
+  "fu1": {
+   "op": "oneMinus",
+   "in": [
+    "fu"
+   ]
+  },
+  "fum": {
+   "op": "min",
+   "in": [
+    "fu",
+    "fu1"
+   ]
+  },
+  "fdu": {
+   "op": "mul",
+   "in": [
+    "fum",
+    3.2
+   ]
+  },
+  "fv1": {
+   "op": "oneMinus",
+   "in": [
+    "fv"
+   ]
+  },
+  "fvm": {
+   "op": "min",
+   "in": [
+    "fv",
+    "fv1"
+   ]
+  },
+  "fdv": {
+   "op": "mul",
+   "in": [
+    "fvm",
+    2.4
+   ]
+  },
+  "fd": {
+   "op": "min",
+   "in": [
+    "fdu",
+    "fdv"
+   ]
+  },
+  "faa0": {
+   "op": "fwidth",
+   "in": [
+    "fd"
+   ]
+  },
+  "faa": {
+   "op": "max",
+   "in": [
+    "faa0",
+    0.0001
+   ]
+  },
+  "flo": {
+   "op": "sub",
+   "in": [
+    0.045,
+    "faa"
+   ]
+  },
+  "fhi": {
+   "op": "add",
+   "in": [
+    0.045,
+    "faa"
+   ]
+  },
+  "fedge": {
+   "op": "smoothstep",
+   "in": [
+    "flo",
+    "fhi",
+    "fd"
+   ]
+  },
+  "fline0": {
+   "op": "oneMinus",
+   "in": [
+    "fedge"
+   ]
+  },
+  "fkeep0": {
+   "op": "div",
+   "in": [
+    0.045,
+    "faa"
+   ]
+  },
+  "fkeep": {
+   "op": "saturate",
+   "in": [
+    "fkeep0"
+   ]
+  },
+  "fline": {
+   "op": "mul",
+   "in": [
+    "fline0",
+    "fkeep"
+   ]
+  },
+  "fhc": {
+   "op": "mul",
+   "in": [
+    "fci",
+    12.9898
+   ]
+  },
+  "fhr": {
+   "op": "mul",
+   "in": [
+    "fri",
+    78.233
+   ]
+  },
+  "fhs": {
+   "op": "add",
+   "in": [
+    "fhc",
+    "fhr"
+   ]
+  },
+  "fhsin": {
+   "op": "sin",
+   "in": [
+    "fhs"
+   ]
+  },
+  "fhm": {
+   "op": "mul",
+   "in": [
+    "fhsin",
+    43758.5453
+   ]
+  },
+  "fh": {
+   "op": "fract",
+   "in": [
+    "fhm"
+   ]
+  },
+  "fhalf": {
+   "op": "mul",
+   "in": [
+    0.14,
+    0.5
+   ]
+  },
+  "fbase": {
+   "op": "sub",
+   "in": [
+    1,
+    "fhalf"
+   ]
+  },
+  "fhv": {
+   "op": "mul",
+   "in": [
+    "fh",
+    0.14
+   ]
+  },
+  "ftint": {
+   "op": "add",
+   "in": [
+    "fbase",
+    "fhv"
+   ]
+  },
+  "fstone": {
+   "op": "mul",
+   "in": [
+    "vc",
+    "ftint"
+   ]
+  },
+  "fdark": {
+   "op": "mul",
+   "in": [
+    "vc",
+    0.42
+   ]
+  },
+  "flagstone": {
+   "op": "mix",
+   "in": [
+    "fstone",
+    "fdark",
+    "fline"
+   ]
+  },
+  "b6": {
+   "op": "eq",
+   "in": [
+    "band",
+    6
+   ]
+  },
+  "c6": {
+   "op": "select",
+   "in": [
+    "b6",
+    "flagstone",
+    "lit"
+   ]
+  },
   "colour": {
    "op": "select",
    "in": [
     "b4",
     "awning",
-    "lit"
+    "c6"
    ]
   },
   "rough": {

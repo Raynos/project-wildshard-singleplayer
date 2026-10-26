@@ -93,13 +93,6 @@
    ],
    "mask": "z"
   },
-  "wxz": {
-   "op": "swizzle",
-   "in": [
-    "wp"
-   ],
-   "mask": "xz"
-  },
   "zr": {
    "op": "div",
    "in": [
@@ -334,6 +327,13 @@
     "base",
     "hv"
    ]
+  },
+  "wxz": {
+   "op": "swizzle",
+   "in": [
+    "wp"
+   ],
+   "mask": "xz"
   },
   "np": {
    "op": "mul",

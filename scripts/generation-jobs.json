@@ -12447,6 +12447,7 @@
         "src/shards/open-plots/generators/product.ts",
         "src/shards/open-plots/data/source.json",
         "src/shards/open-plots/data/plot.json",
+        "src/shards/open-plots/data/trim.json",
         "src/format/accent.ts",
         "src/shards/open-plots/look/map.json",
         "scripts/map-painter.mjs",
