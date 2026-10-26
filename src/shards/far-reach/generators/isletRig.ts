@@ -1,4 +1,4 @@
-import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
+import { boxDesc, type ColliderDesc } from '@wildshard/sdk/bake/placement';
 import { BoxGeometry, InstancedMesh, Matrix4, Quaternion, Vector3 } from 'three';
 import type { PieceBake } from '@wildshard/sdk/bake/kinds';
 import { bakeSkyPiece, SkyPiece } from './piece';

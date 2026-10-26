@@ -31,16 +31,15 @@ const keep = new Set(['fan.glb', 'prepared-models.glb']);
 // SF80: the pieces as one three.js scene through the SDK's bake(scene, identity), which also writes its scene.json to
 // .wildshard/cache/far-reach/ (gitignored, the inspectable middle step)
 {
-  const { SKY_PIECES, skyReachBake } = await import('./scene.ts');
+  const { skyWorldPieceFiles } = await import('./worldPieceBytes.ts');
+  const { skyReachBake } = await import('./scene.ts');
   const baked = skyReachBake(check ? undefined : root);
-  if (baked.pieces.length !== SKY_PIECES.length) throw new Error('bake-sky-world: the scene baked a different set of pieces');
-  baked.pieces.forEach(({ glb, kinds, colliders, rows: extras }, i) => {
-    const { glb: piece, rows } = SKY_PIECES[i], data = { kinds, colliders, ...extras };
-    const hash = createHash('sha256').update(glb).digest('hex');
-    emit(resolve(out, `${piece}.glb`), glb); keep.add(`${piece}.glb`);
-    emit(resolve(project, `data/${rows}.json`), `${JSON.stringify({ glb: hash, ...data }, null, 2)}\n`);
-    console.info(`far-reach ${piece}: ${String(glb.length)} bytes → baked/${piece}.glb (${hash}), ${String(kinds.length)} kinds, ${String(colliders.length)} colliders`);
-  });
+  for (const [name, bytes] of skyWorldPieceFiles(baked.pieces)) {
+    const file = name.startsWith('baked/') ? resolve(out, name.slice(6)) : resolve(project, name);
+    emit(file, bytes);
+    if (name.startsWith('baked/')) keep.add(name.slice(6));
+    console.info(`far-reach ${name}: ${String(bytes.length)} bytes`);
+  }
 }
 // the rope bridges: every rope span from the kit's two source models, as a deflated geometry pack (world/shapes.ts ropeBridge)
 {

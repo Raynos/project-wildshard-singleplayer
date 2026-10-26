@@ -3380,8 +3380,10 @@ native noise; it installs no terrain or runtime services.
 `@wildshard/sdk/bake/annulus` defines horizontal ring geometry with the native
 vertex, UV and index order. `@wildshard/sdk/bake/placement` owns the authored
 `ColliderDesc`, `BoxSpec`, `Draw` and contact tags plus the ordered-JSON
-`specimenKey`. Compile-time parity checks keep those author contracts equal
-to the native registry/model data without importing their runtime owners.
+`specimenKey`. Its `boxDesc(spec, surface?)` retains the native half-height
+clamp, signed yaw, optional contact tag and ordered JSON without importing
+the live world registry. Compile-time parity checks keep those author
+contracts equal to the native registry/model data.
 
 `src/engine/models/ownedGeometry.ts` defines `createOwnedGeometry(url, channels?)`:
 an explicit owned-template intake for a single identity-space offline GLB.

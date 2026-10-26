@@ -14,6 +14,10 @@ export type ColliderDesc =
   | { kind: 'treads'; from: Vec3; to: Vec3; width: number; count: number; surface?: ContactSurface };
 /** A world-space box rotated by negative rot about +Y. */
 export interface BoxSpec { x: number; z: number; hw: number; hd: number; rot: number; yTop: number; yBottom: number }
+/** Compile the native authored box convention without importing a live registry. */
+export function boxDesc(c: BoxSpec, surface?: ContactSurface): Extract<ColliderDesc, { kind: 'box' }> {
+  return { kind: 'box', x: c.x, y: (c.yTop + c.yBottom) / 2, z: c.z, hx: c.hw, hy: Math.max(0.005, (c.yTop - c.yBottom) / 2), hz: c.hd, yaw: -c.rot, ...(surface === undefined ? {} : { surface }) };
+}
 /** Authored placement batching grammar; no renderer is installed. */
 export type Draw = 'single' | 'merged' | 'instanced' | 'batched';
 
