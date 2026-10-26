@@ -10,6 +10,12 @@ export interface LoadingRow {
   setupAtStart?: number;
 }
 export interface LoadingGap { label: string; state: 'on' | 'ok'; ms: number; after: string | null }
+/** Optional presentation boundary; no observer or timer is installed by the timeline. */
+export interface LoadingPresentation {
+  readonly readSetup: () => number | undefined;
+  readonly beforeStart?: () => void;
+  readonly initialSetup?: {readonly at: number; readonly setup: number} | undefined;
+}
 interface Stage { key: string; base: string; detail: string; fraction?: number }
 /** Declare a later pass up front. Undeclared passes fold into the last declared row. */
 export function repeatedStep(step: Pick<LoadingStep, 'key' | 'label'>, pass: number): LoadingStep {
@@ -30,14 +36,15 @@ export class LoadingTimeline {
   private at: number;
   private last: string | null = null;
   private readonly now: () => number;
-  private readonly displayedSetup: (() => number | undefined) | undefined;
+  private readonly presentation: LoadingPresentation | undefined;
   constructor(path: LoadingPath, startedAt: number, now: () => number = () => performance.now(),
-    displayedSetup?: () => number | undefined, initialSetup?: {readonly at: number; readonly setup: number}) {
-    this.path = path; this.now = now; this.at = startedAt; this.displayedSetup = displayedSetup;
+    presentation?: LoadingPresentation) {
+    this.path = path; this.now = now; this.at = startedAt; this.presentation = presentation;
     this.configure(path);
     const initial = this.gaps.pop(), first = path.steps[0];
     if (first !== undefined) {
       const row = this.rows.get(first.key);
+      const initialSetup = presentation?.initialSetup;
       if (row !== undefined) {
         row.started = true; row.startedAt = startedAt; row.ms = initial?.ms ?? 0;
         if (initialSetup?.at === startedAt && Number.isInteger(initialSetup.setup)
@@ -104,16 +111,19 @@ export class LoadingTimeline {
       ?? this.path.steps.reduce<LoadingStep | undefined>((last, step) => step.key === base || step.key.startsWith(`${base}#`) ? step : last, undefined) : undefined;
     const key = already?.key ?? again?.key ?? base;
     if (repeated || count === 0) this.occurrences.set(base, count + 1);
-    const previous = this.gaps.at(-1); if (previous?.state === 'on') previous.state = 'ok';
     const row = this.rows.get(key);
     if (row !== undefined) {
-      row.started = true;
       if (row.startedAt === undefined) {
+        // Publish earned credit while this row is still todo: marking it
+        // started before the callback would incorrectly credit it as done.
+        this.presentation?.beforeStart?.();
         row.startedAt = this.at;
-        const shown = this.displayedSetup?.();
+        const shown = this.presentation?.readSetup();
         if (shown !== undefined && Number.isInteger(shown) && shown >= 0 && shown <= 100) row.setupAtStart = shown;
       }
+      row.started = true;
     }
+    const previous = this.gaps.at(-1); if (previous?.state === 'on') previous.state = 'ok';
     const id = ++this.sequence, stage = { key, base, detail: initialDetail };
     this.active.set(id, stage);
     return { end: () => {

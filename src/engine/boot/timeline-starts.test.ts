@@ -4,20 +4,21 @@ import { LoadingTimeline, repeatedStep } from './timeline';
 test('the initial row accepts only a real setup fact tied to its original clock', () => {
   const path = {id: 'fixture', steps: [{key: 'modules', label: 'Modules', weight: 1}]};
   let shown = 80;
-  const timeline = new LoadingTimeline(path, 100, () => 200, () => shown, {at: 100, setup: 0});
+  const timeline = new LoadingTimeline(path, 100, () => 200, {readSetup: () => shown, initialSetup: {at: 100, setup: 0}});
   timeline.begin('modules').end(); shown = 99;
   expect(timeline.snapshot().rows[0]).toMatchObject({startedAt: 100, setupAtStart: 0});
   for (const initial of [undefined, {at: 99, setup: 0}, {at: 100, setup: -1}, {at: 100, setup: 101},
     {at: 100, setup: Number.NaN}, {at: 100, setup: 2.5}]) {
-    expect(new LoadingTimeline(path, 100, () => 200, () => shown, initial).snapshot().rows[0])
+    expect(new LoadingTimeline(path, 100, () => 200, {readSetup: () => shown, initialSetup: initial}).snapshot().rows[0])
       .not.toHaveProperty('setupAtStart');
   }
 });
 
 test('timeline retains the displayed setup fact at first entry without reconstructing it later', () => {
-  let now = 100, shown: number | undefined = 4, reads = 0;
+  let now = 100, shown: number | undefined = 4, reads = 0, publications = 0;
   const timeline = new LoadingTimeline({id: 'fixture', steps: ['modules', 'world', 'nested', 'future']
-    .map(key => ({key, label: key, weight: 1}))}, now, () => now, () => { reads++; return shown; });
+    .map(key => ({key, label: key, weight: 1}))}, now, () => now,
+  {readSetup: () => { reads++; return shown; }, beforeStart: () => { publications++; }});
   const modules = timeline.begin('modules'); modules.end();
   now = 120; const world = timeline.begin('world');
   shown = 9; now = 130; const nested = timeline.begin('nested'); nested.end(); world.end();
@@ -26,11 +27,14 @@ test('timeline retains the displayed setup fact at first entry without reconstru
     ['modules', 100, undefined], ['world', 120, 4], ['nested', 130, 9], ['future', undefined, undefined],
   ]);
   expect(reads).toBe(2);
+  expect(publications).toBe(2);
   expect(timeline.snapshot().rows[1]?.setupAtStart).toBe(4);
   expect(reads).toBe(2);
+  expect(publications).toBe(2);
   shown = undefined;
   const future = timeline.begin('future'); future.end();
   expect(timeline.snapshot().rows[3]).not.toHaveProperty('setupAtStart');
+  expect(publications).toBe(3);
 });
 
 test('timeline retains first start clocks through nesting, aliases and repeated passes', () => {

@@ -19,6 +19,54 @@ beforeEach(() => {
 });
 afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); document.body.replaceChildren(); });
 
+it('publishes completed step credit before the next step records its visible setup', () => {
+  const loading = new Loading({id: 'boundaries', name: 'Boundaries'});
+  try {
+    loading.setPath({id: 'shardfile', steps: [{key: 'modules', label: 'Modules', weight: 1},
+      {key: 'admission', label: 'Product admission', weight: 1}, {key: 'world', label: 'World', weight: 1}]},
+    [{tier: '*', path: 'shardfile', identity: '*', source: 'boundary fixture', samples: 1,
+      ms: {modules: 1000, admission: 1500, world: 1000}}]);
+    loading.waiting('Preparing services');
+    now = 1100; loading.paintAdmission({phase: 'descriptor', detail: 'Read /entry.json',
+      filesDone: 0, filesTotal: 1, bytesRead: 0, bytesTotal: 0});
+    const timeline = currentLoadingTimeline();
+    if (timeline === undefined) throw new Error('Missing timeline');
+    expect(loading.root.querySelector('[data-el="suPct"]')?.textContent).toBe('28');
+    expect(timeline.snapshot().rows[1]?.setupAtStart).toBe(28);
+    expect(Number.parseFloat(loading.root.querySelector<HTMLElement>('[data-el="bar"]')?.style.width ?? ''))
+      .toBeCloseTo(1000 / 3500 * 50);
+    now = 2600; loading.endAdmission();
+    const world = timeline.begin('world');
+    expect(loading.root.querySelector('[data-el="suPct"]')?.textContent).toBe('71');
+    expect(timeline.snapshot().rows[2]?.setupAtStart).toBe(71);
+    expect(loading.root.dataset['setup']).toBe('71');
+    world.end();
+  } finally { loading.scope.dispose(); }
+});
+
+it('keeps boundary credit when the next paced paint still carries the previous view', () => {
+  const loading = new Loading({id: 'paced-boundary', name: 'Paced boundary'});
+  try {
+    loading.setPath({id: 'shardfile', steps: ['modules', 'world', 'finish']
+      .map(key => ({key, label: key, weight: 1}))},
+    [{tier: '*', path: 'shardfile', identity: '*', source: 'boundary fixture', samples: 1,
+      ms: {modules: 1000, world: 1000, finish: 1000}}]);
+    loading.waiting('Services'); now = 1100; loading.endAdmission();
+    const timeline = currentLoadingTimeline();
+    if (timeline === undefined) throw new Error('Missing timeline');
+    const world = timeline.begin('world');
+    const view: ProgressView = {download: 0, setup: 0, done: false, error: null, step: 'assembly', label: 'World', detail: '',
+      bytes: null, bytesRead: 0, bytesTotal: 0, filesDone: 0, filesTotal: 0, worldBytesReady: false, doneCount: 0, rows: [], gaps: []};
+    loading.paint(view); vi.advanceTimersByTime(32);
+    expect(loading.root.querySelector('[data-el="suPct"]')?.textContent).toBe('33');
+    now = 2100; world.end(); const finish = timeline.begin('finish');
+    expect(loading.root.querySelector('[data-el="suPct"]')?.textContent).toBe('66');
+    vi.advanceTimersByTime(32);
+    expect(loading.root.querySelector('[data-el="suPct"]')?.textContent).toBe('66');
+    finish.end();
+  } finally { loading.scope.dispose(); }
+});
+
 it('adopts the original shell setup fact without replacing it with a later percentage', () => {
   const shell = document.createElement('div'); shell.className = 'ws-load'; shell.innerHTML = loadShellTemplate();
   shell.dataset['shell'] = ''; shell.dataset['startedAt'] = '50'; shell.dataset['initialSetup'] = '7';
@@ -68,10 +116,11 @@ it('retains a completed short step start even when it finished before the first 
     if (timeline === undefined) throw new Error('Missing timeline');
     loading.waiting('Preparing application services');
     now = 110; vi.advanceTimersByTime(32);
-    const setupAtStart = Number(loading.root.dataset['setup']);
-    expect(Number.isFinite(setupAtStart)).toBe(true);
     now = 120; loading.paintAdmission({phase: 'product', detail: 'Reading entry.json',
-      filesDone: 0, filesTotal: 0, bytesRead: 0, bytesTotal: 0}); loading.endAdmission();
+      filesDone: 0, filesTotal: 0, bytesRead: 0, bytesTotal: 0});
+    const setupAtStart = Number(loading.root.querySelector('[data-el="suPct"]')?.textContent);
+    expect(Number.isFinite(setupAtStart)).toBe(true);
+    loading.endAdmission();
     now = 500; const world = timeline.begin('world'); vi.advanceTimersByTime(32);
     const row = loading.root.querySelector<HTMLElement>('[data-key="admission"]');
     expect(row?.dataset['startedAt']).toBe('120');

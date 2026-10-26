@@ -84,6 +84,7 @@ export class Loading {
   private completion: Promise<void> | undefined;
   private playPicked = false;
   private shownSetup = 0;
+  private paintedDownload = 0;
   private readonly admissionPhases = new Set<string>();
   private readonly paintedRows: (LoadingRow | LoadingGap)[] = [];
   /** G555: a mid-play load (a grid cell entry): no boot trace, no adopted shell, no page-wide timeline or download
@@ -109,10 +110,11 @@ export class Loading {
     const startedAt = Number(this.root.dataset['startedAt']);
     if (Number.isFinite(startedAt) && startedAt >= 0 && startedAt <= this.t0) this.t0 = startedAt;
     this.timeline = new LoadingTimeline({ id: 'pending', steps: [{ key: 'modules', label: engineString('s_loading_modules'), weight: 1 }] }, this.t0,
-      undefined, () => {
-        const shown = this.root.dataset['setup'];
-        return shown === undefined || shown === '' ? undefined : Number(shown);
-      }, {at: startedAt, setup: Number(this.root.dataset['initialSetup'])});
+      undefined, {readSetup: () => {
+        const shown = this.els.suPct.textContent;
+        return shown === null || shown === '' ? undefined : Number(shown);
+      }, beforeStart: () => { this.paintBoundarySetup(); },
+      initialSetup: {at: startedAt, setup: Number(this.root.dataset['initialSetup'])}});
     this.phase = this.scoped ? undefined : this.timeline.begin('modules');
     if (!this.scoped) this.scope.onDispose(installLoadingTimeline(this.timeline));
     this.downloads = new DownloadAccounting(location.href, shell === null ? this.t0 : 0);
@@ -286,6 +288,18 @@ export class Loading {
     return this.shownSetup;
   }
 
+  /** Publish completed credit before new work begins, without repainting rows or diagnostics. */
+  private paintBoundarySetup(): void {
+    const setup = this.setupProgress(), pct = String(Math.floor(setup * 100));
+    setData(this.root, 'setup', pct); set(this.els.suPct, pct);
+    const width = `${setup * 100}%`, combined = combinedLoadingFraction(this.paintedDownload, setup);
+    if (this.els.suBar.style.width !== width) this.els.suBar.style.width = width;
+    const allWidth = `${combined * 100}%`;
+    if (this.els.bar.style.width !== allWidth) this.els.bar.style.width = allWidth;
+    if (this.view !== null) set(this.els.line, this.finished ? engineString('s_5fa7aac5375c')
+      : engineString('s_bf5e849564ae', [this.view.worldBytesReady ? 'Building the world' : engineString('s_37b345555d7e'), String(Math.floor(combined * 100))]));
+  }
+
   /** Publish each cheap progress tuple together, even between throttled paints. */
   private paintDownloadCounters(transfer: DownloadSnapshot & { readonly fraction: number }): void {
     setData(this.root, 'download', String(Math.floor(transfer.fraction * 100)));
@@ -299,6 +313,7 @@ export class Loading {
 
   private paintDownloads(done: boolean): number {
     const transfer = this.downloadProgress(done);
+    this.paintedDownload = transfer.fraction;
     this.paintDownloadCounters(transfer);
     const prefetch = this.prefetchSource?.() ?? null;
     setData(this.root, 'prefetch', prefetch === null ? '' : JSON.stringify(prefetch));

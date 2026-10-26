@@ -1076,16 +1076,18 @@ shell stages remain inside their reported parent. Started rows retain optional
 origin, and aliases or undeclared repeated calls do not overwrite a row's first
 start. Completed short rows retain that boundary even if no repaint occurred
 while they ran; it is not a paint timestamp or a sampled setup percentage.
-An optional fourth `LoadingTimeline` constructor argument reads the existing
-displayed integer setup percentage once when a row first begins. Valid values
-are retained as `setupAtStart` alongside that clock and survive short steps and
-later re-entry unchanged. The loader supplies its existing DOM value; this never
-computes or repaints the bar. An optional fifth argument supplies an original
-`{at, setup}` shell fact: its clock must equal the attempt origin, and its setup
-must be an integer in 0–100. The first HTML script retains the actual setup text
-at that origin; adoption keeps it unchanged rather than substituting a later
+An optional fourth `LoadingTimeline` constructor argument is a
+`LoadingPresentation`: `readSetup` reads the displayed setup integer at first
+entry, and `initialSetup` supplies the original `{at, setup}` shell fact. Its
+clock must equal the attempt origin and setup must be an integer in 0–100.
+`beforeStart`, when supplied, publishes already-earned credit before a row is
+marked started; it never runs for snapshots or re-entry. The loader updates its
+existing setup and combined bars without repainting rows or diagnostics, then
+reads the actual percentage text. This does not change weights or ease curves.
+Retained `setupAtStart` facts survive short steps and later re-entry unchanged.
+The first HTML script records the real shell text at its origin, not a later
 percentage. Absent/invalid/mismatched values and future rows remain unknown.
-These are DOM facts, not proof of a browser paint. Row DOM metadata and the
+These are DOM facts, not proof of a browser paint; row DOM metadata and the
 accuracy reader preserve them.
 Parallel selected-audio reads
 have their own declared row, ending when the reads settle. The game supplies legacy, shardfile, grid and crossing
