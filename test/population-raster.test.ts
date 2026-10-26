@@ -15,7 +15,9 @@ import { PopulationFieldSchema } from '../src/format/populationEnvironment';
 import { sha256 } from '../src/game/plugin/moduleHash';
 
 const shipped=v.parse(PopulationFieldSchema,JSON.parse(readFileSync('src/shards/nalati-grasslands/data/populationField.generated.json','utf8')));
+const shippedWet=v.parse(v.string(),shipped.world.wet);
 const pondBlock={file:'data/geography-pond.bin',bytes:Uint8Array.from(readFileSync('src/shards/nalati-grasslands/data/geography-pond.bin'))};
+const wetBlock={file:'data/geography-wet.bin',bytes:Uint8Array.from(readFileSync('src/shards/nalati-grasslands/data/geography-wet.bin'))};
 
 const raster = (values: readonly number[]): string => btoa(String.fromCodePoint(...zlibSync(new Uint8Array(Float32Array.from(values).buffer))));
 const grid: BakedGrid = { res: 2,size: 32,seed: 9,landscapeHash: 0,heights: new Float32Array(4),splat: Uint8Array.from([255,0,0,0,255,0,0,0,255,0,0,0,255,0,0,0]),undergrowth: null };
@@ -41,9 +43,13 @@ test('population raster observations retain the predecessor edges and strict thr
   expect(field.queries.surfaceAt(16,0)).toBe(-10);
 });
 
-test('shipped population rasters retain native pond and wet decisions without terrain resampling',() => {
-  const terrain = { ...grid,size: shipped.world.size,seed: shipped.seed },field = new NativePopulationField(terrain,shipped,[],[],pondBlock);
-  const pond = original(pondBlock.bytes,terrain,shipped.world),wet = original(shipped.world.wet,terrain,shipped.world);
+test.each([false,true])('shipped population rasters retain native pond and wet decisions without terrain resampling (raw wet %s)',raw => {
+  const terrain = { ...grid,size: shipped.world.size,seed: shipped.seed };
+  const rows=raw?{...shipped,world:{...shipped.world,wet:{type:'f32',count:65536,data:{file:wetBlock.file}}}}:shipped;
+  const field = new NativePopulationField(terrain,rows,[],[],pondBlock,raw?wetBlock:undefined);
+  expect(wetBlock.bytes.byteLength).toBe(622);expect(sha256(wetBlock.bytes)).toBe('262d9218a0f70b8dc314063ac367944083d8e7f57543c19759193b321e2302d7');
+  expect(wetBlock.bytes).toEqual(Uint8Array.from(atob(shippedWet),value=>value.codePointAt(0)??0));
+  const pond = original(pondBlock.bytes,terrain,shipped.world),wet = original(shippedWet,terrain,shipped.world);
   expect(pondBlock.bytes.byteLength).toBe(5476);expect(sha256(pondBlock.bytes)).toBe('57919bb109a7fbe95afce2f9f49f576d4cc3d0c16af690937cac6f7a4d892f04');
   expect(sha256(unzlibSync(pondBlock.bytes))).toBe('ca2684a28b66fa7d6d247c51e134325c52fc2027c66aa529a0d6ed89f03198aa');
   expect(shipped.world.pond).toEqual({type:'f32',count:65536,data:{file:pondBlock.file}});
@@ -96,4 +102,28 @@ test('native preparation lends the original named pond to both existing owners',
     expect(mounted.mock.calls[0]?.[0]).toBe(host);expect(mounted.mock.calls[0]?.[1]).toBe(profile);
     expect(mounted.mock.calls[0]?.[2]).toBe(loan);
   } finally { field.mockRestore();mounted.mockRestore(); }
+});
+
+test('named wet raster retains every native threshold and detaches the compressed loan',()=>{
+  const bytes=Uint8Array.from(atob(fixture.world.wet),value=>value.codePointAt(0)??0),file='world/wet.bin';
+  const row={...fixture,world:{...fixture.world,wet:{type:'f32',count:9,data:{file}}}};
+  const field=new NativePopulationField(grid,row,[],[],undefined,{file,bytes}),old=new NativePopulationField(grid,fixture,[],[]);
+  bytes.fill(0);
+  for(const x of [-Infinity,-40,-16,-15.999,-8,-0,0,8,15.999,16,40,Infinity,Number.NaN])
+    for(const z of [-Infinity,-40,-16,-15.999,-8,-0,0,8,15.999,16,40,Infinity,Number.NaN]){
+      expect(field.hunt.wetAt(x,z)).toBe(old.hunt.wetAt(x,z));
+      expect(field.queries.surfaceAt(x,z)).toBe(old.queries.surfaceAt(x,z));
+    }
+});
+
+test('named wet rasters refuse missing, malformed, nonfinite and duplicate loans',()=>{
+  const file='world/wet.bin',wet={type:'f32',count:9,data:{file}},row={...fixture,world:{...fixture.world,wet}};
+  const valid=Uint8Array.from(atob(fixture.world.wet),value=>value.codePointAt(0)??0);
+  for(const block of [undefined,{file:'other.bin',bytes:valid},{file,bytes:new Uint8Array()},
+    {file,bytes:zlibSync(new Uint8Array(32))},{file,bytes:zlibSync(new Uint8Array(40))},
+    {file,bytes:zlibSync(new Uint8Array(Float32Array.from([0,0,0,0,Number.NaN,0,0,0,0]).buffer))}])
+    expect(()=>new NativePopulationField(grid,row,[],[],undefined,block)).toThrow();
+  expect(()=>new NativePopulationField(grid,row,[],[],{file,bytes:valid},{file,bytes:valid})).toThrow('Duplicate');
+  for(const bad of [{...wet,count:8},{...wet,data:{file:'../wet.bin'}},{...wet,data:{file},type:'f64'}])
+    expect(()=>new NativePopulationField(grid,{...row,world:{...row.world,wet:bad}},[],[],undefined,{file,bytes:valid})).toThrow();
 });

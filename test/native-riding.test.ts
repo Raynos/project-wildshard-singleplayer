@@ -411,3 +411,32 @@ test('malformed raw riding ponds refuse before mode, capsule or save ownership c
     }
   }finally{host.dispose();}
 });
+
+test('raw riding wet mask retains native capsule, effects and save continuation',async()=>{
+  const rapier=await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
+  const wetBytes=zlibSync(new Uint8Array(Float32Array.from([1,1,1,1]).buffer)),wet=btoa(String.fromCodePoint(...wetBytes)),file='world/riding-wet.bin';
+  const hosts=[false,true].map(raw=>{
+    const host=createSimHost({...SIM_LEVEL,quests:[]},{rapier});lendNalatiPasture(host.scope);herdService(host,rows.herds);
+    const profile={...rows,world:{...rows.world,wet:raw?{type:'f32',count:4,data:{file}}:wet}};
+    const mounted=installMountedPlayer(host,profile,undefined,raw?{file,bytes:wetBytes}:undefined);
+    expect(mounted.mount('boar:1')).toBe(true);return {host,mounted};
+  });
+  const old=hosts[0],raw=hosts[1];if(old===undefined||raw===undefined)throw new Error('Missing wet comparison');
+  try{
+    const command={moveX:0,moveZ:0,yaw:0,commandVersion:1 as const,steer:{keyX:0,keyY:1,stickX:0,stickY:0}};
+    for(let tick=0;tick<90;tick++){for(const f of hosts)f.host.step(command);expect(serializeSimSnapshot(snapshotSimHost(raw.host))).toBe(serializeSimSnapshot(snapshotSimHost(old.host)));}
+    expect(raw.mounted.body.speed).toBeGreaterThan(0);raw.mounted.dismount();old.mounted.dismount();
+    expect(serializeSimSnapshot(snapshotSimHost(raw.host))).toBe(serializeSimSnapshot(snapshotSimHost(old.host)));
+  }finally{for(const f of hosts)f.host.dispose();}
+});
+
+test('malformed raw riding wet masks refuse before mode, capsule or save ownership changes',async()=>{
+  const rapier=await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm'))),host=createSimHost({...SIM_LEVEL,quests:[]},{rapier});
+  try{
+    herdService(host,rows.herds);const before=serializeSimSnapshot(snapshotSimHost(host)),file='world/riding-wet.bin';
+    const profile={...rows,world:{...rows.world,wet:{type:'f32',count:4,data:{file}}}};
+    for(const block of [undefined,{file:'other.bin',bytes:zlibSync(new Uint8Array(16))},{file,bytes:zlibSync(new Uint8Array(20))}]){
+      expect(()=>installMountedPlayer(host,profile,undefined,block)).toThrow();expect(serializeSimSnapshot(snapshotSimHost(host))).toBe(before);expect(host.modes.current()).toBe('foot');
+    }
+  }finally{host.dispose();}
+});

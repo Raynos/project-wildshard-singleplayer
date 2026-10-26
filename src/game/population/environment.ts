@@ -65,10 +65,11 @@ export class NativePopulationField {
   readonly hunt: HuntGround;
   readonly trees: TreeGrid<{ x: number; z: number; r: number; top: number; }> = new TreeGrid<{ x: number; z: number; r: number; top: number }>();
   readonly queries: { normalY: (x: number,z: number) => number; surfaceAt: (x: number,z: number) => number | null; inBounds: (x: number,z: number,margin: number) => boolean };
-  constructor(grid: BakedGrid, input: unknown, treeRows: readonly (readonly [number,number,number])[], tops: readonly number[], pondBlock?: { readonly file: string; readonly bytes: Uint8Array }) {
+  constructor(grid: BakedGrid, input: unknown, treeRows: readonly (readonly [number,number,number])[], tops: readonly number[], pondBlock?: { readonly file: string; readonly bytes: Uint8Array }, wetBlock?: { readonly file: string; readonly bytes: Uint8Array }) {
     const rows = v.parse(PopulationFieldSchema,input), sample = bakedSamplers(grid), world = rows.world;
     if (grid.size !== world.size || grid.seed !== rows.seed || tops.length !== treeRows.length) throw new Error('Incompatible native population field');
     const blocks = new Map(pondBlock === undefined ? [] : [[pondBlock.file,pondBlock.bytes]]);
+    if(wetBlock!==undefined){if(blocks.has(wetBlock.file))throw new Error('Duplicate native scalar block');blocks.set(wetBlock.file,wetBlock.bytes);}
     const channel = (data: typeof world.pond): ((x: number,z: number) => number) => readScalarLattice({ res: world.res,size: world.size,values: typeof data === 'string' ? { type: 'f32',count: world.res*world.res,data } : data },blocks);
     const pond = channel(world.pond), wet = channel(world.wet), meta = buildTerrainMetadata(rows.seed,{ trails: rows.trails,cabinSites: [] },() => world.water);
     treeRows.forEach(([x,z,r],index) => { const top = tops[index]; if (top === undefined || ![x,z,r,top].every(Number.isFinite)) throw new Error('Invalid population tree'); this.trees.add({ x,z,r,top }); });

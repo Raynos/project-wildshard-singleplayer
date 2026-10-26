@@ -13,7 +13,6 @@
     "src/game/looks/paintedLook.ts": 1,
     "src/game/plugin/brain.ts": 1,
     "src/game/population/nativeBake.ts": 1,
-    "src/game/population/pageGroups.ts": 1,
     "src/game/population/returnProgram.ts": 1,
     "src/game/population/returnProjectionV2.ts": 1,
     "src/game/population/spawnScript.ts": 5,

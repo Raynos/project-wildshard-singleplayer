@@ -3,10 +3,11 @@ import { PopulationRelations } from '../src/game/population/relations';
 import { setTerrainHeight, setTerrainPlacement } from '../src/engine/world/terrainHeight';
 import { afterEach, expect, test } from 'vitest';
 import { Vector3 } from 'three';
-import { PagePopulationPlanner, PageGroups, wildEnv, renderedPackOf, renderedHerdOf } from '../src/game/population/pageGroups';
+import { PagePopulationPlanner, PageGroups, PageWildEnvironment, wildEnv, renderedPackOf, renderedHerdOf } from '../src/game/population/pageGroups';
 import { nearestPopulationActor } from '../src/game/shardfile/groupRuntime';
 import { Scope } from '../src/engine/app/scope';
 import { zlibSync } from 'fflate';
+import {bakedSamplers} from '../src/format/bakedTerrainSampling';
 import brains from '../src/shards/nalati-grasslands/data/brains.json' with { type: 'json' };
 import strikes from '../src/shards/nalati-grasslands/data/strikeProfiles.generated.json' with { type: 'json' };
 
@@ -79,4 +80,29 @@ test('marsh groups apply AS alert and range gates to their original owners', () 
   relations.scare(0, 0, 20); expect(stampedes).toEqual([]); expect(scares).toEqual([7]);
   relations.scare(100, 0, 20); expect(stampedes).toEqual([100]);
   relations.ripple(); expect(scares).toEqual([7, 7, 7]);
+});
+
+test('entered named wet raster retains bilinear thresholds, retirement and cached re-entry',()=>{
+  const heights=Float32Array.from([0,.5,1,.49999997,.50000006,.5,1,0,.5]),bytes=zlibSync(new Uint8Array(heights.buffer)),file='world/wet.bin';
+  const rows={pack:{...brains.pack,members:['unused'],home:[0,0]},herd:{...brains.herd,members:['unused']},contacts:{pack:strikes.wolf,herd:strikes.stallion},
+    world:{res:3,size:32,water:-1,wet:{type:'f32',count:9,data:{file}},pond:''},wind:{x:0,z:1,strength:.5},prey:'sheep',damage:admission};
+  const sample=bakedSamplers({res:3,size:32,heights,seed:0,landscapeHash:0,splat:new Uint8Array(),undergrowth:null}).heightAt;
+  const environment=new PageWildEnvironment(),first=new Scope('wet.first');
+  const compare=()=>{for(const x of [-Infinity,-40,-16,-15.999,-8,-0,0,8,15.999,16,40,Infinity,Number.NaN])
+    for(const z of [-Infinity,-40,-16,-15.999,-8,-0,0,8,15.999,16,40,Infinity,Number.NaN])expect(environment.wetAt(x,z)).toBe(sample(x,z)>.5);};
+  try{environment.enter(first,rows,admissionPage(first),{file,bytes});compare();bytes.fill(0);compare();}finally{first.dispose();}
+  expect(environment.wetAt(0,0)).toBe(false);
+  const second=new Scope('wet.return');try{environment.enter(second,rows,admissionPage(second));compare();}finally{second.dispose();}
+  expect(environment.wetAt(0,0)).toBe(false);
+});
+
+test('failed entered wet admission leaves the previous observation surface intact',()=>{
+  const environment=new PageWildEnvironment(),scope=new Scope('wet.invalid'),file='world/wet.bin';
+  const rows={pack:{...brains.pack,members:['unused'],home:[0,0]},herd:{...brains.herd,members:['unused']},contacts:{pack:strikes.wolf,herd:strikes.stallion},
+    world:{res:2,size:32,water:-1,wet:{type:'f32',count:4,data:{file}},pond:''},wind:{x:0,z:1,strength:.5},prey:'sheep',damage:admission};
+  try{
+    for(const block of [undefined,{file:'other.bin',bytes:zlibSync(new Uint8Array(16))},{file,bytes:zlibSync(new Uint8Array(20))}]){
+      expect(()=>environment.enter(scope,rows,admissionPage(scope),block)).toThrow();expect(environment.wetAt(0,0)).toBe(false);
+    }
+  }finally{scope.dispose();}
 });

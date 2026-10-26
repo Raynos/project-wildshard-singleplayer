@@ -12746,15 +12746,16 @@ copies each range into its original f32 vertex or u32 index storage and keeps
 the original complete-result memo, collider order and provenance. Binary
 files remain outside TypeScript imports and configuration performs no IO.
 
-ScalarChannelRows.data also accepts {file}, a bounded relative .bin name.
-readScalarChannel(row, blocks) and readScalarLattice(row, blocks) borrow that
-named compressed block, retaining the same bounded inflate and native view.
-They perform no IO. Inline strings keep their original admission and decode. Native riding
-world.pond may declare a ScalarChannel row. NativePopulationField's optional
-fifth argument and installMountedPlayer's optional third argument lend the
-same named {file,bytes} block to readScalarLattice; native preparation reads
-it through its original product before installing either owner. Original
-inline profiles and all sampler, motor, RNG and snapshot laws remain intact.
+ScalarChannelRows.data accepts {file}, a bounded relative .bin name.
+readScalarChannel(row, blocks) and readScalarLattice(row, blocks) borrow
+compressed bytes without IO, retaining bounded inflate and native views.
+Native riding world.pond and world.wet accept ScalarChannel rows.
+NativePopulationField(..., pondBlock?, wetBlock?) and
+installMountedPlayer(host, rows, pondBlock?, wetBlock?) borrow verified
+{file,bytes} blocks; duplicate paths refuse. PageWildEnvironment.enter(scope,
+rows, author, wetBlock?) and bindPageGroups(ctx, rows, wetBlock?) accept the
+same wet loan. Existing inline profiles retain their sampler, motor, RNG,
+snapshot and entered-state re-entry laws. Producers adopt these ports separately.
 
 ScalarLatticeBindings owns one definition's raw blocks. lattice(rows,
 {min,max}?) binds a stable sampler; channel(rows) binds an exact indexed

@@ -41,9 +41,10 @@ export function mountedPlayerOf(host: SimHost): NativeMountedPlayer | undefined 
 
 /** The page's native reins/body and gait phase under the host's single physics authority. The ordinary player driver
  * remains authoritative on foot. Companions, taming and the weapons are subsequent installs, never simulated here. */
-export function installMountedPlayer(host: SimHost, profile: unknown, pondBlock?: { readonly file: string; readonly bytes: Uint8Array }): NativeMountedPlayer {
+export function installMountedPlayer(host: SimHost, profile: unknown, pondBlock?: { readonly file: string; readonly bytes: Uint8Array }, wetBlock?: { readonly file: string; readonly bytes: Uint8Array }): NativeMountedPlayer {
   const rows = v.parse(NativeRidingSchema, profile), { herds } = nativeHerdCollection(host, rows.herds);
   const blocks = new Map(pondBlock === undefined ? [] : [[pondBlock.file,pondBlock.bytes]]);
+  if(wetBlock!==undefined){if(blocks.has(wetBlock.file))throw new Error('Duplicate native scalar block');blocks.set(wetBlock.file,wetBlock.bytes);}
   const mask = (data: typeof rows.world.pond): ((x: number,z: number) => number) => readScalarLattice({ res: rows.world.res,size: rows.world.size,values: typeof data === 'string' ? { type: 'f32',count: rows.world.res*rows.world.res,data } : data },blocks);
   const wet = mask(rows.world.wet), pond = mask(rows.world.pond);
   const heightAt = (x: number, z: number): number => host.groundHeightAt(x, z);

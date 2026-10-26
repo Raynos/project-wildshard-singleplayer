@@ -12,7 +12,7 @@ export const NativeRidingSchema: v.StrictObjectSchema<{ readonly step: v.Generic
   speeds: v.strictObject({ walk: positive, trot: positive, canter: positive, gallop: positive }),
   pose: v.strictObject({ gait: v.exactOptional(v.strictObject({ trot: finite, gallop: finite })),
     pose: v.exactOptional(v.strictObject({ grazeNeck: finite, gallopTail: finite })) }),
-  world: v.strictObject({ res: v.pipe(finite, v.integer(), v.minValue(2), v.maxValue(1024)), size: positive, water: finite, wet: channel, pond: v.union([channel,ScalarChannelSchema]) }),
+  world: v.strictObject({ res: v.pipe(finite, v.integer(), v.minValue(2), v.maxValue(1024)), size: positive, water: finite, wet: v.union([channel,ScalarChannelSchema]), pond: v.union([channel,ScalarChannelSchema]) }),
   roads: v.exactOptional(v.pipe(v.array(v.pipe(v.array(v.tuple([finite, finite])), v.maxLength(1024))), v.maxLength(128))),
   thrownDamage: v.pipe(finite, v.minValue(0)), thrownLabel: v.string(), program: v.unknown(),
 });
@@ -48,7 +48,7 @@ interface NativeRidingRowsInputFields {
         res: number;
         size: number;
         water: number;
-        wet: string;
+        wet: unknown;
         pond: unknown;
     };
     roads?: (([
@@ -89,7 +89,7 @@ interface NativeRidingRowsFields {
         res: number;
         size: number;
         water: number;
-        wet: string;
+        wet: string | v.InferOutput<typeof ScalarChannelSchema>;
         pond: (string) | (v.InferOutput<typeof ScalarChannelSchema>);
     };
     roads?: (([

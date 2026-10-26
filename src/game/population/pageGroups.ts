@@ -7,8 +7,7 @@ import { CrowdRoster, type CrowdTargets } from '../shardfile/crowdRuntime';
 import { app } from '@wildshard/engine/app/runtime';
 import { nativeGroupBrain, type ShardHerdGroup } from '@wildshard/format/groupBrains';
 import { PageGroupRowsSchema } from '@wildshard/format/creatures';
-import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
-import { unzlibSync } from 'fflate';
+import { readScalarLattice } from '@wildshard/engine/world/scalarChannel';
 import { grassBaseHeightAt } from '../systems/looks/grassField';
 import { grassHeightAt, trample } from '../systems/looks/trample';
 import * as v from 'valibot';
@@ -156,17 +155,15 @@ export class PageWildEnvironment extends WildSenses {
   protected senses(): ReturnProgram | null { return this.author; }
   private wet: ((x: number,z: number) => number) | null = null;
   private readonly states = new WeakMap<object,PropertyDescriptorMap>();
-  enter(scope: Scope, input: unknown, author: ReturnProgram): void {
+  enter(scope: Scope, input: unknown, author: ReturnProgram, wetBlock?: {readonly file:string;readonly bytes:Uint8Array}): void {
     if (input === null || typeof input !== 'object') throw new Error('Missing entered population rows');
     const previous = Object.getOwnPropertyDescriptors(this), state = this.states.get(input);
     // a re-entry restores the state its first entry admitted and built (G639: no second parse in the activation frame)
     if (state !== undefined) { Object.defineProperties(this,state); scope.onDispose(() => { this.states.set(input,Object.getOwnPropertyDescriptors(this)); Object.defineProperties(this,previous); }); return; }
     const rows = v.parse(PageGroupRowsSchema,input), world = rows.world;
-    const bytes = unzlibSync(Uint8Array.from(atob(world.wet),value => value.codePointAt(0) ?? 0));
-    if (bytes.byteLength !== world.res*world.res*4) throw new Error('Invalid population wet mask');
-    const heights = new Float32Array(bytes.buffer,bytes.byteOffset,bytes.byteLength/4);
-    if (heights.some(value => !Number.isFinite(value))) throw new Error('Invalid population wet sample');
-    this.wet = bakedSamplers({ res: world.res,size: world.size,seed: 0,landscapeHash: 0,heights,splat: new Uint8Array(0),undergrowth: null }).heightAt;
+    const blocks=new Map(wetBlock===undefined?[]:[[wetBlock.file,wetBlock.bytes]]);
+    this.wet = readScalarLattice({res:world.res,size:world.size,values:typeof world.wet==='string'
+      ?{type:'f32',count:world.res*world.res,data:world.wet}:world.wet},blocks);
     this.wind = { ...rows.wind }; this.author = author;
     scope.onDispose(() => { this.states.set(input,Object.getOwnPropertyDescriptors(this)); Object.defineProperties(this,previous); });
   }
@@ -183,13 +180,13 @@ const renderedPacks = new WeakMap<Animal,PackBrain<Animal>>(), renderedHerds = n
 let renderedDamage: { program: ReturnProgram; variant: string } | null = null;
 /** Client-only group admission. Entered observations and damage borrow the
  * same native rows across retained home entries; no author installer binds. */
-export function bindPageGroups(ctx: ShardContext,input: unknown): void {
+export function bindPageGroups(ctx: ShardContext,input: unknown,wetBlock?: {readonly file:string;readonly bytes:Uint8Array}): void {
   const rows = v.parse(PageGroupRowsSchema,input),herd = nativeGroupBrain(rows.herd);
   if (herd.kind !== 'herd') throw new Error('Invalid rendered damage preset');
   const program=ReturnProgram.page(rows.damage,ctx.scope),lastNotice=new Map<string,number>(),knocked={x:0,z:0};
   installEnteredRuntimeService(ctx,scope=>{
     const previous=renderedDamage;renderedDamage={program,variant:herd.stallionVariant};
-    scope.onDispose(()=>{renderedDamage=previous;});wildEnv.enter(scope,input,program);
+    scope.onDispose(()=>{renderedDamage=previous;});wildEnv.enter(scope,input,program,wetBlock);
     const effects=rows.effects;if(effects===undefined)return;
     const toast=(key:string,text:string,every:number):void=>{
       const now=ctx.app.clock.now;if(now-(lastNotice.get(key)??-1e9)<every)return;
