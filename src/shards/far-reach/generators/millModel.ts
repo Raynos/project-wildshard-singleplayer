@@ -109,3 +109,11 @@ export async function millRestGlb(read: (url:string)=>Uint8Array): Promise<Uint8
   finally { made.tower.dispose();made.foot.dispose();material.dispose(); }
 }
 export const millRestRows = (): {url:string;parts:string[]} => ({url:MILL_REST_URL,parts:['mill-tower','mill-foot']});
+
+/** Complete original rigid geometry and pool declaration from the two native models, without file handoffs. */
+export async function millRestFiles(read: (url: string) => Uint8Array): Promise<Map<string, Uint8Array>> {
+  return new Map([
+    ['mill-rest.glb', await millRestGlb(read)],
+    ['mill-rest.json', new TextEncoder().encode(`${JSON.stringify(millRestRows())}\n`)],
+  ]);
+}
