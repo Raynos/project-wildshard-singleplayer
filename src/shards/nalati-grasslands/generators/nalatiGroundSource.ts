@@ -3,7 +3,7 @@ import { sliceNativeLattice, type NativeLatticeAttribute, type NativeLatticeSour
 import { staticGlb, type GlbPrimitive } from '@wildshard/sdk/bake/glb';
 import { parseGlb, type AssetCost } from '@wildshard/sdk/assets';
 import { simplifyNativeLatticeTile, type NativeLatticeLod } from '@wildshard/sdk/bake/worldLod';
-import { parseBakedTerrain, bakedSamplers } from '@wildshard/engine/world/BakedTerrain';
+import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
 import { PAINTED_TERRAIN_ATTRIBUTES as ATTR } from '@wildshard/format/materialFamilies';
 import { buildPainterlyGeometry } from './terrainPainter';
 import { TERRAIN, SEED, groundColor, surfaceAt } from './terrainRecipe';
@@ -37,9 +37,8 @@ function combinedBounds(tile: NativeLatticeTile, props: readonly GlbPrimitive[])
  * This allocates geometry only: no textures, renderer, physics world, scene or gameplay installer.
  */
 export function nalatiGroundSource(bytes: Uint8Array): NativeLatticeSource {
-  const grid = parseBakedTerrain(Uint8Array.from(bytes).buffer);
-  if (grid?.res !== 256 || grid.size !== 500 || grid.seed !== 0x4a1a) throw new Error('Nalati ground requires the original native WSTR256');
-  const sampler = bakedSamplers(grid);
+  const sampler = readNativeTerrain(bytes), { grid } = sampler;
+  if (grid.res !== 256 || grid.size !== 500 || grid.seed !== 0x4a1a) throw new Error('Nalati ground requires the original native WSTR256');
   const step = 500 / 255;
   const heightAt = (x: number, z: number): number => {
     const ix = Math.round((x + 250) / step), iz = Math.round((z + 250) / step);
