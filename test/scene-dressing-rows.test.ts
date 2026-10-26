@@ -17,6 +17,7 @@ import * as v from 'valibot';
 import { SceneDressingSchema } from '../src/format/sceneDressing';
 import { DRESSING_PLACE_DECODED, DRESSING_CRAG_DECODED, DRESSING_DECODED, dressingScene } from '../src/shards/nalati-grasslands/generators/dressingScene';
 import { nalatiBakeBlob } from '../src/shards/nalati-grasslands/generators/placeBlobProgram';
+import { nalatiPlacesProgram } from '../src/shards/nalati-grasslands/generators/placesProgram';
 import { buildDressingWire } from '../src/shards/nalati-grasslands/generators/dressingProgram';
 import { nameBlob } from '../src/sdk/blobs';
 import { isJsonData } from '../src/format/json';
@@ -168,9 +169,11 @@ test('geometry source addresses remain binary while the JSON address word stays 
 
 test('Nalati logical bakes admit the exact shipping compressed bytes and decoded costs',async()=>{
   const sources=[nameBlob('world/dressing.bin','bin',buildDressingWire().binary,{decoded:DRESSING_DECODED})];
-  sources.push(await nalatiBakeBlob({cached:(_step,generate)=>Promise.resolve(generate(new Map([
-    ['/assets/nalati/baked/places.bin',readFileSync('public/assets/nalati/baked/places.bin')],
-  ])))},'places',DRESSING_PLACE_DECODED));
+  const placeInputs=new Map([['/assets/baked/nalati-grasslands/terrain.bin',readFileSync('public/assets/baked/nalati-grasslands/terrain.bin')],
+    ...['pond','red','green','blue'].map(name=>{const path=`data/geography-${name}.bin`;return[path,readFileSync(`src/shards/nalati-grasslands/${path}`)] as const;})]);
+  const ownedPlaces=await nalatiPlacesProgram({cached:(_step,generate)=>Promise.resolve(generate(placeInputs))});
+  const placeBytes=ownedPlaces.get('places.bin');if(placeBytes===undefined)throw new Error('Missing native places');
+  sources.push(nameBlob('world/places.bin','bin',placeBytes,{decoded:DRESSING_PLACE_DECODED}));
   sources.push(await nalatiBakeBlob({cached:(_step,generate)=>Promise.resolve(generate(new Map([
     ['/assets/nalati/baked/crags.bin',readFileSync('public/assets/nalati/baked/crags.bin')],
   ])))},'crags',DRESSING_CRAG_DECODED));

@@ -35,6 +35,7 @@ test('prepared ambient rows keep both tier populations and finite flight at 10 H
 test('Nalati admits every shipping dressing groups and camp keep-out population', async () => {
   const loaded = await readProjectAssets('src/shards/nalati-grasslands', undefined, { folder: 'nalati-grasslands', imageRoots: [
     { prefix: '/assets/nalati/baked/', directory: 'public/assets/nalati/baked' },
+    { prefix: '/assets/baked/nalati-grasslands/', directory: 'public/assets/baked/nalati-grasslands' },
   ] });
   const read = (key: string): Uint8Array => {
     const file = loaded.output.namedFiles?.find(row => row.name === key);

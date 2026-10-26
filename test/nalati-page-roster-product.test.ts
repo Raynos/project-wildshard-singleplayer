@@ -17,6 +17,7 @@ const populationField=v.parse(PopulationFieldSchema,populationInput);
 test('the shared assembly document retains the complete page elite roster and its contact lookup', async () => {
   const product = await readProjectAssets('src/shards/nalati-grasslands', undefined, { folder: 'nalati-grasslands', imageRoots: [
     { prefix: '/assets/nalati/baked/', directory: 'public/assets/nalati/baked' },
+    { prefix: '/assets/baked/nalati-grasslands/', directory: 'public/assets/baked/nalati-grasslands' },
   ] });
   const bootFile = product.output.namedFiles?.find(row => row.name === 'sim/headless-boot.json');
   const bootBytes = bootFile === undefined ? undefined : product.assets.get(bootFile.hash);

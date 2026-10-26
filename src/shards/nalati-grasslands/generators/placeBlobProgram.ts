@@ -2,12 +2,11 @@ import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration'
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 
 const sources = {
-  places: { file: 'places.bin', input: '/assets/nalati/baked/places.bin' },
   crags: { file: 'crags.bin', input: '/assets/nalati/baked/crags.bin' },
 };
 
 /** Admit the original compressed scene bake bytes directly, without a second source-tree copy. */
-export async function nalatiBakeBlob(ctx: Pick<ProjectGenerationContext, 'cached'>, name: 'places' | 'crags', decoded: number): Promise<NamedBlob> {
+export async function nalatiBakeBlob(ctx: Pick<ProjectGenerationContext, 'cached'>, name: 'crags', decoded: number): Promise<NamedBlob> {
   const { file, input } = sources[name];
   const files = await ctx.cached({ id: `${name}-blob`, inputs: [input] }, inputs => {
     const bytes = inputs.get(input);

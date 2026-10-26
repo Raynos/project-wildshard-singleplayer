@@ -21,6 +21,7 @@ test('Nalati compiles its chapters, camp dialogues, placements and discovery int
   for (const npc of Object.values(content.npcs)) expect(npc.dialogue.length).toBeGreaterThan(0);
   const loaded = await readProjectAssets('src/shards/nalati-grasslands', undefined, { folder: 'nalati-grasslands', imageRoots: [
     { prefix: '/assets/nalati/baked/', directory: 'public/assets/nalati/baked' },
+    { prefix: '/assets/baked/nalati-grasslands/', directory: 'public/assets/baked/nalati-grasslands' },
   ] });
   expect(loaded.shard.quests).toEqual(source.quests);
   const file = loaded.output.namedFiles?.find(row => row.name === 'quests/content.json');

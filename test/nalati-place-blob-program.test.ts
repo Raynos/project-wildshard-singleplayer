@@ -25,14 +25,15 @@ test('the actual output hook preserves every predecessor file cost and binary by
   const requested: string[] = [];
   const context = () => {
     const ctx = createProjectGeneration(resolve('src/shards/nalati-grasslands'), 'a'.repeat(64), new Map(), cache,
-      [{ prefix: '/assets/nalati/baked/', directory: resolve('public/assets/nalati/baked') }]);
+      [{ prefix: '/assets/nalati/baked/', directory: resolve('public/assets/nalati/baked') },
+        { prefix: '/assets/baked/nalati-grasslands/', directory: resolve('public/assets/baked/nalati-grasslands') }]);
     return { ...ctx, cached: (step: Parameters<typeof ctx.cached>[0], make: Parameters<typeof ctx.cached>[1]) => {
       requested.push(...(step.inputs ?? [])); return ctx.cached(step, make);
     } };
   };
   const before = readFileSync('public/assets/nalati/baked/places.bin');
   try {
-    for (const [name, pin] of [['places', original], ['crags', cragOriginal]] as const) {
+    for (const [name, pin] of [['crags', cragOriginal]] as const) {
       const cold = await nalatiBakeBlob(context(), name, pin.decoded);
       expect(cold.file).toEqual(pin);
       expect(Buffer.compare(cold.bytes, readFileSync(`public/assets/nalati/baked/${name}.bin`))).toBe(0);
@@ -41,6 +42,9 @@ test('the actual output hook preserves every predecessor file cost and binary by
     requested.length = 0;
     const hit = await prepareOutput(context());
     expect(requested).not.toContain('/assets/nalati/baked/dressing.bin');
+    expect(requested).not.toContain('/assets/nalati/baked/places.bin');
+    expect(requested).toContain('/assets/baked/nalati-grasslands/terrain.bin');
+    for (const field of ['pond', 'red', 'green', 'blue']) expect(requested).toContain(`data/geography-${field}.bin`);
     const files = hit.namedFiles.filter(file => file.name === 'world/places.bin');
     expect(files).toEqual([original]); expect(hit.blobs.some(file => file.name === 'world/places.bin')).toBe(false);
     const bytes = hit.assets.get(original.hash);
@@ -63,7 +67,7 @@ test('the actual output hook preserves every predecessor file cost and binary by
 });
 
 test('missing authored and owned bytes refuse before output publication', async () => {
-  for (const [name, pin] of [['places', original], ['crags', cragOriginal]] as const) {
+  for (const [name, pin] of [['crags', cragOriginal]] as const) {
     await expect(nalatiBakeBlob({ cached: (_step, generate) => Promise.resolve(generate(new Map())) }, name, pin.decoded)).rejects.toThrow(`Missing authored ${name} binary`);
     await expect(nalatiBakeBlob({ cached: () => Promise.resolve(new Map()) }, name, pin.decoded)).rejects.toThrow(`Missing owned ${name} binary`);
     await expect(nalatiBakeBlob({ cached: () => Promise.resolve(new Map([[`${name}.bin`, new Uint8Array(1)], ['extra', new Uint8Array(1)]])) }, name, pin.decoded)).rejects.toThrow(`Missing owned ${name} binary`);

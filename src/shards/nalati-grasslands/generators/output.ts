@@ -1,5 +1,6 @@
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import { nalatiBakeBlob } from './placeBlobProgram';
+import { nalatiPlacesProgram } from './placesProgram';
 import { nalatiDressingProgram } from './dressingProgram';
 import {AudioSceneSchema} from '@wildshard/format/audioScene';
 import {AUDIO_SCENE as audioSceneInput} from './product';
@@ -192,7 +193,9 @@ export const output={blobs:[{name:'held/slots.json',kind:'json' as const,source:
 
 /** Own the existing scene binaries through the injected build reader, with unchanged admission costs. */
 export async function prepareOutput(ctx: ProjectGenerationContext): Promise<typeof output> {
-  const places = await nalatiBakeBlob(ctx, 'places', DRESSING_PLACE_DECODED);
+  const placeFiles = await nalatiPlacesProgram(ctx), placeBytes = placeFiles.get('places.bin');
+  if (placeBytes === undefined) throw new Error('Missing owned native places binary');
+  const places = nameBlob('world/places.bin', 'bin', placeBytes, { decoded: DRESSING_PLACE_DECODED });
   const crags = await nalatiBakeBlob(ctx, 'crags', DRESSING_CRAG_DECODED);
   const dressingFiles = await nalatiDressingProgram(ctx), dressingBytes = dressingFiles.get('dressing.bin');
   if (dressingBytes === undefined) throw new Error('Missing owned native dressing binary');
