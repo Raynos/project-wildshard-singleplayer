@@ -1,4 +1,5 @@
 import { originalSpeciesJson } from './fixtures/nalati-original-species';
+import { originalSpeciesBlob } from './fixtures/nalati-original-species-blob';
 import { heldModuleBytes, heldWitnessBytes, lendNalatiHeld } from './fixtures/nalati-return-modules';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { array, boolean, literal, number, object, parse, strictObject, string } from 'valibot';
@@ -19,7 +20,7 @@ import held from '../src/shards/nalati-grasslands/data/heldWeapons.generated.jso
 import { scriptAdmissionRows, decisionModuleContracts } from '../src/format/scriptContract';
 import { ReturnProjectionV2Schema, parseReturnProjectionV2 } from '../src/format/returnProjectionV2';
 import stealth from '../src/shards/nalati-grasslands/data/stealth.generated.json' with { type: 'json' };
-import { nameBlob, readNamedBlob } from '../src/sdk/blobs';
+import { nameBlob } from '../src/sdk/blobs';
 import { NALATI_SCRIPT_SECTIONS } from '../src/shards/nalati-grasslands/generators/scriptInventory';
 
 const generated=parse(object({presentation:object({guest:CreatureGuestSchema}),
@@ -128,11 +129,13 @@ test('the selected creature artifact is admitted in the complete emitted invento
   const declaration=parse(object({name:string(),kind:literal('wasm'),source:string(),options:object({dependencies:array(string()),critical:boolean(),
     script:object({abi:literal(2),lane:literal('project'),pages:number(),ioBytes:number(),compilerRevision:literal(1),admissionRevision:literal(1)})})}),
     output.blobs.find(blob=>blob.name==='behaviour/nalati.held-weapons.wasm'));
-  const actual=await readNamedBlob('src/shards/nalati-grasslands',declaration.name,declaration.source,declaration.kind,declaration.options);
+  const actual=originalSpeciesBlob(declaration);
+  if(actual===undefined)throw new Error('Missing original held executable source pin');
   expect(actual.bytes).toEqual(heldModuleBytes);expect(actual.file).toEqual(module.file);
   expect(actual.script).toEqual(module.script);
   const witness=parse(object({name:string(),kind:literal('bin'),source:string()}),output.blobs.find(blob=>blob.name==='behaviour/held-witness.bin'));
-  const raw=await readNamedBlob('src/shards/nalati-grasslands',witness.name,witness.source,witness.kind);
+  const raw=originalSpeciesBlob(witness);
+  if(raw===undefined)throw new Error('Missing original held witness source pin');
   expect(raw.bytes).toEqual(heldWitnessBytes);expect(actual.file.dependencies).toEqual([raw.file.hash]);
 });
 

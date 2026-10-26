@@ -11,6 +11,13 @@ const original = v.parse(v.object({
 }), originalSpeciesJson('species.json'));
 const product = nalatiProductRows(original);
 const encode = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(value));
+const heldSource = v.parse(v.object({
+  program: v.object({ script: v.object({ module: v.string(), pages: v.number() }), bytes: v.string(),
+    v2: v.object({ artifact: v.object({ pages: v.number() }) }) }),
+  compiled: v.object({ bytes: v.number() }),
+}), originalSpeciesJson('species.json'));
+const held = { program: heldSource.program, stealthProgram: heldSource.program,
+  compiledBytes: heldSource.compiled.bytes, projectionPages: heldSource.program.v2.artifact.pages };
 
 test('explicit species costs retain the entire pre-factory product header and default contract', () => {
   const made = nalatiProductRows(original), bytes = encode(made);
@@ -56,4 +63,45 @@ test('invalid explicit species page and witness costs refuse before composition'
     expect(() => nalatiProductRows({ ...original, witnessBytes })).toThrow('Invalid species program costs');
   for (const pages of [0, -1, Number.NaN, Infinity, 0.5])
     expect(() => nalatiProductRows({ ...original, program: { ...original.program, script: { ...original.program.script, pages } } })).toThrow('Invalid species program costs');
+});
+
+test('explicit held inputs retain the complete original header and separate compiled/page charges', () => {
+  expect(hashImmutableBytes(encode(nalatiProductRows(original, held)))).toBe(pin.sha256);
+  const compiled = nalatiProductRows(original, { ...held, compiledBytes: held.compiledBytes + 7 });
+  expect(compiled.serverBudget.memory - product.serverBudget.memory).toBe(7);
+  expect(compiled.budgets.sim.resident - product.budgets.sim.resident).toBe(7);
+  expect(compiled.budgets.sim.compressed - product.budgets.sim.compressed).toBe(7);
+  const pages = nalatiProductRows(original, { ...held, projectionPages: held.projectionPages + 1 });
+  expect(pages.serverBudget.memory - product.serverBudget.memory).toBe(2 * 65536);
+  expect(pages.budgets.sim.resident - product.budgets.sim.resident).toBe(2 * 65536);
+  expect(pages.budgets.sim.compressed).toBe(product.budgets.sim.compressed);
+});
+
+test('held and stealth legacy pages remain separately charged while duplicate payloads stay deduplicated', () => {
+  for (const key of ['program', 'stealthProgram'] as const) {
+    const program = held[key];
+    const made = nalatiProductRows(original, { ...held, [key]: { ...program, script: { ...program.script, pages: program.script.pages + 1 } } });
+    expect(made.serverBudget.memory - product.serverBudget.memory).toBe(2 * 65536);
+    expect(made.budgets.sim.resident - product.budgets.sim.resident).toBe(2 * 65536);
+    expect(made.budgets.sim.compressed).toBe(product.budgets.sim.compressed);
+  }
+  const duplicate = nalatiProductRows(original, { ...held, stealthProgram: { ...held.stealthProgram, bytes: btoa('extra') } });
+  expect(duplicate).toStrictEqual(product);
+  const distinct = nalatiProductRows(original, { ...held,
+    program: { ...held.program, script: { ...held.program.script, module: 'blobs/wasm/held-distinct.wasm' }, bytes: btoa('extra') } });
+  expect(distinct.budgets.sim.compressed - product.budgets.sim.compressed).toBe(5);
+  expect(distinct.budgets.sim.resident - product.budgets.sim.resident).toBe(5);
+  expect(distinct.serverBudget.memory - product.serverBudget.memory).toBe(5);
+});
+
+test('invalid explicit held compiled and executable costs refuse before composition', () => {
+  for (const compiledBytes of [-1, Number.NaN, Infinity, 0.5, Number.MAX_SAFE_INTEGER + 1])
+    expect(() => nalatiProductRows(original, { ...held, compiledBytes })).toThrow('Invalid held program costs');
+  for (const pages of [0, -1, Number.NaN, Infinity, 0.5]) {
+    expect(() => nalatiProductRows(original, { ...held, projectionPages: pages })).toThrow('Invalid held program costs');
+    for (const key of ['program', 'stealthProgram'] as const) {
+      const program = held[key];
+      expect(() => nalatiProductRows(original, { ...held, [key]: { ...program, script: { ...program.script, pages } } })).toThrow('Invalid held program costs');
+    }
+  }
 });

@@ -12,6 +12,7 @@ import type { ProjectOutput } from '../src/sdk/projectOutput';
 import * as v from 'valibot';
 import { output } from './fixtures/nalati-output-original';
 import { nalatiOutputInputs } from '../src/shards/nalati-grasslands/generators/outputInputs';
+import { originalSpeciesBlob } from './fixtures/nalati-original-species-blob';
 
 test('ordered owned floors and all declared raw inputs preserve exact normal SDK intake on cold and hit', async () => {
   const cache = mkdtempSync(resolve('tmp/nalati-output-inputs-'));
@@ -27,9 +28,12 @@ test('ordered owned floors and all declared raw inputs preserve exact normal SDK
     for (const row of output.blobs) declarations.push({ ...row, kind: v.parse(v.picklist(['audio', 'bin', 'glb', 'image', 'json', 'ktx2', 'tile', 'wasm']), row.kind) });
     const floors = [0, 1].map(index => nameBlob(`world/floors/${String(index)}.bin`, 'bin',
       readFileSync(`test/fixtures/nalati-floor-original-${String(index)}.bin`)));
-    const originals = await Promise.all(declarations.map(row => readNamedBlob(project, row.name, row.source, row.kind, row.options)));
+    const originals = await Promise.all(declarations.map(async row => {
+      const blob = originalSpeciesBlob(row) ?? await readNamedBlob(project, row.name, row.source, row.kind, row.options);
+      return blob;
+    }));
     originals.splice(1, 0, ...floors);
-    const sources: Parameters<typeof nalatiOutputInputs>[1][number][] = [...declarations];
+    const sources: Parameters<typeof nalatiOutputInputs>[1][number][] = declarations.map(row => originalSpeciesBlob(row) ?? row);
     sources.splice(1, 0, ...floors);
     for (const run of ['cold', 'hit']) {
       const blobs = await nalatiOutputInputs(context(), sources);

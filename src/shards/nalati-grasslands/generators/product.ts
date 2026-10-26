@@ -63,22 +63,36 @@ export interface NalatiSpeciesProgramCosts {
   readonly witnessBytes: number;
 }
 
-/** Compose the complete header with caller-owned species costs; retain original module deduplication and page charges. */
-export function nalatiProductRows(species: NalatiSpeciesProgramCosts): ReturnType<typeof parseShardfile> {
+/** Explicit held executable and legacy witness charges from the same admitted source. */
+export interface NalatiHeldProgramCosts {
+  readonly program: NalatiSpeciesProgramCosts['program'];
+  readonly stealthProgram: NalatiSpeciesProgramCosts['program'];
+  readonly compiledBytes: number;
+  readonly projectionPages: number;
+}
+
+const retainedHeld: NalatiHeldProgramCosts = {
+  program: heldWeapons.program, stealthProgram: stealth.program,
+  compiledBytes: heldWeapons.compiled.bytes, projectionPages: heldWeapons.program.v2.artifact.pages,
+};
+
+/** Compose the complete header with caller-owned costs; retain original module deduplication and page charges. */
+export function nalatiProductRows(species: NalatiSpeciesProgramCosts, held: NalatiHeldProgramCosts = retainedHeld): ReturnType<typeof parseShardfile> {
   if (!Number.isSafeInteger(species.witnessBytes) || species.witnessBytes < 0
     || !Number.isSafeInteger(species.program.script.pages) || species.program.script.pages < 1) throw new Error('Invalid species program costs');
-  const programs = [heldWeapons.program,stealth.program,species.program,weatherDecision,kokpar.program,kokpar.course, admission, pasture, titanProgram.attack,titanProgram.fire,titanProgram.wind,titanProgram.rules, ridingPrograms.approach, ridingPrograms.breaking, ridingPrograms.riding, charge];
+  if (!Number.isSafeInteger(held.compiledBytes) || held.compiledBytes < 0
+    || [held.projectionPages, held.program.script.pages, held.stealthProgram.script.pages].some(pages => !Number.isSafeInteger(pages) || pages < 1)) throw new Error('Invalid held program costs');
+  const programs = [held.program,held.stealthProgram,species.program,weatherDecision,kokpar.program,kokpar.course, admission, pasture, titanProgram.attack,titanProgram.fire,titanProgram.wind,titanProgram.rules, ridingPrograms.approach, ridingPrograms.breaking, ridingPrograms.riding, charge];
   const programBytes = programs.filter((program,index,all)=>all.findIndex(entry=>entry.script.module===program.script.module)===index).reduce((sum, program) => sum + atob(program.bytes).length, weatherDecision.compiled.bytes+kokpar.compiled.bytes+admission.compiled.witnessBytes+titanProgram.compiled.witnessBytes+species.witnessBytes+ridingPrograms.compiled.witnessBytes+charge.compiled.bytes);
   // Retain the legacy witness allowance and account for the one selected v2
   // module, shared by attack/rules in the original construction scope.
   const projection = titanProgram.attack.v2;
-  const heldProjection = heldWeapons.program.v2;
   const ridingProjection=ridingPrograms.approach.v2;
   const pastureProjection=pasture.v2;
   const admissionProjection=admission.v2;
   const programMemory = programs.reduce((sum, program) => sum + program.script.pages * 65536 * 2, programBytes)
     + titanProgram.compiled.attack.bytes + projection.artifact.pages * 65536 * 2
-    + heldWeapons.compiled.bytes + heldProjection.artifact.pages * 65536 * 2
+    + held.compiledBytes + held.projectionPages * 65536 * 2
     + ridingPrograms.compiled.bytes+ridingProjection.artifact.pages*65536*2
     + titanProgram.compiled.pasture.bytes+pastureProjection.artifact.pages*65536*2
     + admission.compiled.bytes+admissionProjection.artifact.pages*65536*2;
@@ -88,7 +102,7 @@ export function nalatiProductRows(species: NalatiSpeciesProgramCosts): ReturnTyp
     navigation: navigation.navigation, terrain: queryTerrain.terrain, files: [...files, ...renderTiles.files].sort((a, b) => a.hash.localeCompare(b.hash)), critical: [...navigation.critical, ...queryTerrain.critical],
     tiles: renderTiles.tiles, props: renderTiles.props,
     serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + resident + programMemory },
-    budgets: { ...base.budgets, library: { ...base.budgets.library, resident: base.budgets.library.resident + viewMemory }, sim: { resident: files.reduce((sum, file) => sum + file.decoded + file.gpu, 0) + programMemory, compressed: files.reduce((sum, file) => sum + file.compressed, 0) + programBytes + heldWeapons.compiled.bytes + ridingPrograms.compiled.bytes+titanProgram.compiled.pasture.bytes+admission.compiled.bytes } },
+    budgets: { ...base.budgets, library: { ...base.budgets.library, resident: base.budgets.library.resident + viewMemory }, sim: { resident: files.reduce((sum, file) => sum + file.decoded + file.gpu, 0) + programMemory, compressed: files.reduce((sum, file) => sum + file.compressed, 0) + programBytes + held.compiledBytes + ridingPrograms.compiled.bytes+titanProgram.compiled.pasture.bytes+admission.compiled.bytes } },
     look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries({ ...lookGraphs, ...presentationGraphs, 'nalati-sky-dome': skyDome }).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) } },
     accent: 'ember', runtime: { kind: 'client-plan', cost: NALATI_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns', 'modes', 'clientChannels', 'terrain', 'props'], spawns: NALATI_RUNTIME_SPAWNS },
     clientChannels: compactChannels([...Object.values(SPECIES_POSES).flatMap(pose => parseClientChannels(pose.programs)),...kingPose.programs,...herdChannels.clientChannels,...weatherChannels.clientChannels,...peopleChannels.clientChannels]),
