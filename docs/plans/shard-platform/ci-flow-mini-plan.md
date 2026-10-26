@@ -340,16 +340,22 @@ it preserves DynamicDrawUsage without a cast. G745 transfers to sp-x9 under
 the lane audit; sp-x7 starts no further feature work while main is red.
 This reading is a source/provenance receipt, not a containing-CI success.
 
-CI40407883753 on f99b7837db contains G750 and its products census is still
-running. Behaviour7/11 repeat the older Sky/foliage refusals on source before
+CI40407883753 on f99b7837db contains G750; its products job passed, including
+the full closed-component census at22:05:30Z. The31-line Looks red is now
+confirmed fixed in actual CI. Behaviour7/11 repeat the older Sky/foliage refusals on source before
 095787aa7077/1992f8b8fa. A distinct behaviour8 failure is owned/routed to o3:
 test/toon-look-platform.test.ts supplies no cloud `detail` after the G750
 contract change, so its executable/day-key negatives cannot start. First
 22:01:20Z, source deadline22:31:20Z. O3 correction8ff7e588e9 declares cloud
 detail1 in that fixture; all refusal cases remain unchanged and four local
-cases pass. Publication and containing CI must be verified independently.
-The overall verdict remains red pending containing checks. No capture, cap
-change or smoke retry is requested.
+cases pass. Origin ancestry for8ff7e588e9 is verified; containing behaviour
+acceptance remains pending. A distinct behaviour3 failure on f99b belongs to
+the new Driftwood island-prototype input boundary: audio-authoring.test.ts
+declares only the public asset root, so driftwoodIslandProtoOutput refuses
+`Generation input needs exactly one declared root`. Routed to o3 with a
+transitive-caller audit, first22:04:35Z/deadline22:34:35Z, preserving the
+strict root refusal and all audio oracles. The overall verdict remains red.
+No capture, cap change or smoke retry is requested.
 
 ## Decisions for Jake
 
