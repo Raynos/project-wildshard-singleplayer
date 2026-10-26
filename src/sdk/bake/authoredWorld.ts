@@ -8,7 +8,7 @@ import { normalizeWorldGlb, type NormalizedWorld, type WorldPrimitive } from './
 import { parseWorldSource } from '../worldSource';
 import { bakeWorldTexture } from './textureWasm';
 import { StaticMaterialCatalogue } from './staticMaterials';
-import { worldGeometry, mergeWorldGeometry } from './worldGeometry';
+import { compactTileGeometry, worldGeometry, mergeWorldGeometry } from './worldGeometry';
 import { staticGlb, type GlbPrimitive } from './glb';
 import { simplifyWorldPrimitive } from './worldLod';
 import { bakeWorldCollision } from './worldCollision';
@@ -96,7 +96,12 @@ export async function bakeAuthoredWorld(input: unknown, bytes: Uint8Array): Prom
         const list = groups.get(name) ?? []; list.push(part); groups.set(name, list);
       }
       const primitives: GlbPrimitive[] = [];
-      for (const [name, parts] of groups) { const merged = mergeWorldGeometry(parts); transient.push(merged); primitives.push(catalogue.primitive(name, merged, { castShadow })); }
+      for (const [name, parts] of groups) {
+        const merged = mergeWorldGeometry(parts); transient.push(merged);
+        // RM8.1a: welded, 16-bit indexed, Int8 normals and Uint16 colours (KHR_mesh_quantization) on the wire
+        const primitive = catalogue.primitive(name, merged, { castShadow }), compact = compactTileGeometry(primitive.geometry); transient.push(compact);
+        primitives.push({ ...primitive, geometry: compact, quantizedChannels: true, compactIndex: true });
+      }
       return { bytes: primitives.length === 0 ? new Uint8Array() : staticGlb(primitives), dependencies: catalogue.dependencies([...groups.keys()]), box };
       } finally { transient.forEach(part => part.dispose()); }
     };

@@ -3,6 +3,7 @@ import { NodeIO } from '@gltf-transform/core';
 import { Float32BufferAttribute, MeshStandardMaterial, PlaneGeometry } from 'three';
 import { emptyShardfile } from '../author';
 import { staticGlb } from './glb';
+import { compressGlb } from './glbCompression';
 import { WorldBakeRows } from './worldRows';
 import { coarseNearView, shardfileWorld } from './placeholders';
 
@@ -51,4 +52,26 @@ test('raw truncated near data refuses without poisoning the next valid read', as
   if (ref === undefined) throw new Error('Missing raw fixture tile');
   await expect(shardfileWorld(raw.shard, new Map([[ref, bytes.subarray(0, -8)]]))).rejects.toThrow();
   expect(await shardfileWorld(raw.shard, raw.assets)).toHaveLength(1);
+});
+
+test('existing meshopt producer feeds identical near prototypes and baked output', async () => {
+  const bytes = await world(), raw = admitted(bytes), packed = admitted(compressGlb(bytes));
+  const a = await shardfileWorld(raw.shard, raw.assets), b = await shardfileWorld(packed.shard, packed.assets);
+  const content = (rows: typeof a) => rows.map(row => ({ ...row, name: row.name.slice(row.name.indexOf(':') + 1) }));
+  expect(content(b)).toEqual(content(a));
+  expect(a).toHaveLength(1);
+  expect(await shardfileWorld(packed.shard, packed.assets, name => name === 'Ground')).toEqual([]);
+  expect(await shardfileWorld(packed.shard, packed.assets, undefined, 0)).toEqual([]);
+  const first = await coarseNearView(raw.shard, raw.assets), second = await coarseNearView(packed.shard, packed.assets);
+  expect(second.near).toEqual(first.near);
+  if (first.near === null || first.near === undefined) throw new Error('Missing packed near bake');
+  expect(first.near.content.length).toBeGreaterThan(0);
+  for (const hash of first.near.content) expect(packed.assets.get(hash)).toEqual(raw.assets.get(hash));
+});
+
+test('corrupt meshopt payload refuses without poisoning the next near read', async () => {
+  const bytes = compressGlb(await world()), packed = admitted(bytes), ref = packed.shard.tiles[0]?.files[0];
+  if (ref === undefined) throw new Error('Missing fixture tile');
+  await expect(shardfileWorld(packed.shard, new Map([[ref, bytes.subarray(0, -8)]]))).rejects.toThrow();
+  expect(await shardfileWorld(packed.shard, packed.assets)).toHaveLength(1);
 });

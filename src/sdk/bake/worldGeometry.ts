@@ -1,4 +1,4 @@
-import { BufferGeometry, Float32BufferAttribute, Matrix4, Vector3 } from 'three';
+import { BufferAttribute, BufferGeometry, Float32BufferAttribute, Matrix4, Vector3 } from 'three';
 import type { WorldPrimitive } from './world';
 
 interface Channel { key: string; width: number; data: Float32Array | Float64Array }
@@ -73,6 +73,42 @@ export function worldGeometry(source: WorldPrimitive, bounds?: readonly [number,
   if (!geometry.hasAttribute('normal')) geometry.computeVertexNormals();
   if (matrix !== null) geometry.applyMatrix4(matrix);
   return geometry;
+}
+
+/** RM8.1a: a tile primitive's geometry for the wire. Normals become normalized Int8 and colours normalized Uint16
+ *  (KHR_mesh_quantization, written by staticGlb's `quantizedChannels`; normals within ~0.5 degree, colours within
+ *  1/65535); then every vertex whose channels are all equal is welded into one (positions, uvs and tangents stay exact
+ *  float32) under a 16-bit index when the vertices fit, a 32-bit one otherwise. A clipped tile was a triangle soup of
+ *  three float32 vertices a triangle. */
+export function compactTileGeometry(source: BufferGeometry): BufferGeometry {
+  const keys = Object.keys(source.attributes).sort(), index = source.getIndex(), count = index === null ? source.getAttribute('position').count : index.count;
+  const rows = keys.map((key) => {
+    const attribute = source.getAttribute(key), width = attribute.itemSize;
+    const quantize = key === 'normal' ? (v: number) => Math.max(-127, Math.min(127, Math.round(v * 127))) : key === 'color' ? (v: number) => Math.max(0, Math.min(65535, Math.round(v * 65535))) : null;
+    return { key, width, quantize, read: (vertex: number, component: number) => attribute.getComponent(vertex, component), out: [] as number[] };
+  });
+  const seen = new Map<string, number>(), order: number[] = [];
+  let next = 0;
+  for (let corner = 0; corner < count; corner++) {
+    const vertex = index === null ? corner : index.getX(corner), values: number[] = [];
+    for (const row of rows) for (let c = 0; c < row.width; c++) { const v = row.read(vertex, c); values.push(row.quantize === null ? v : row.quantize(v)); }
+    const key = values.join(',');
+    let at = seen.get(key);
+    if (at === undefined) {
+      at = next++; seen.set(key, at);
+      let offset = 0;
+      for (const row of rows) { row.out.push(...values.slice(offset, offset + row.width)); offset += row.width; }
+    }
+    order.push(at);
+  }
+  const output = new BufferGeometry();
+  for (const row of rows) {
+    const values = row.out;
+    output.setAttribute(row.key, row.key === 'normal' ? new BufferAttribute(Int8Array.from(values), row.width, true)
+      : row.key === 'color' ? new BufferAttribute(Uint16Array.from(values), row.width, true) : new Float32BufferAttribute(values, row.width));
+  }
+  output.setIndex(new BufferAttribute(next <= 65535 ? Uint16Array.from(order) : Uint32Array.from(order), 1));
+  return output;
 }
 
 /** Combine same-material primitives into one draw without changing their authored channels. */

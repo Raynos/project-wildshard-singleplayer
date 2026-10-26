@@ -1,5 +1,5 @@
 import { NodeIO } from '@gltf-transform/core';
-import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
+import { ALL_EXTENSIONS, EXTMeshoptCompression, KHRMeshQuantization } from '@gltf-transform/extensions';
 import { MeshoptDecoder, MeshoptSimplifier } from 'meshoptimizer';
 import sharp from 'sharp';
 import { BufferAttribute, BufferGeometry, Color, Float32BufferAttribute, Matrix4, MeshBasicMaterial, MeshStandardMaterial, Quaternion, SRGBColorSpace, Vector3 } from 'three';
@@ -435,7 +435,11 @@ function tileSurfaces(shard: Shardfile): (name: string) => (colour: readonly num
  * primitive one prototype at its node's world matrix, coloured as the shard's own catalogue draws it (`tileSurfaces`).
  */
 export async function shardfileWorld(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, skip: (material: string) => boolean = () => false, lod: 0 | 1 = 1): Promise<NearPrototype[]> {
-  const glbs = new Set(shard.files.filter(file => file.kind === 'glb').map(file => file.hash)), io = new NodeIO(), out: NearPrototype[] = [], surfaceOf = tileSurfaces(shard);
+  await MeshoptDecoder.ready;
+  const glbs = new Set(shard.files.filter(file => file.kind === 'glb').map(file => file.hash)),
+    // RM8.1: tiles carry quantized channels (KHR_mesh_quantization) and may be meshopt-compressed
+    io = new NodeIO().registerExtensions([EXTMeshoptCompression, KHRMeshQuantization]).registerDependencies({ 'meshopt.decoder': MeshoptDecoder }),
+    out: NearPrototype[] = [], surfaceOf = tileSurfaces(shard);
   for (const tile of shard.tiles) {
     if (tile.lod !== lod) continue;
     for (const ref of tile.files) {
