@@ -1,0 +1,1213 @@
+[
+  {
+    "file": "horse-saddled.glb",
+    "geometry": {
+      "name": "models/painted/geometry-35f4728bb261b24365040c30441511cfddf4dbc19d8353ac27e70f0a96a72c6f.glb",
+      "path": "blobs/glb/35f4728bb261b24365040c30441511cfddf4dbc19d8353ac27e70f0a96a72c6f.glb",
+      "kind": "glb",
+      "hash": "35f4728bb261b24365040c30441511cfddf4dbc19d8353ac27e70f0a96a72c6f",
+      "compressed": 443296,
+      "decoded": 443268,
+      "gpu": 442020,
+      "triangles": 8000,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    "atlas": {
+      "name": "models/painted/atlas-c2bd76e5fca39288c84e41e7de17862b2d64842dbe111959c5dc070aae84ef2a.ktx2",
+      "path": "blobs/ktx2/c2bd76e5fca39288c84e41e7de17862b2d64842dbe111959c5dc070aae84ef2a.ktx2",
+      "kind": "ktx2",
+      "hash": "c2bd76e5fca39288c84e41e7de17862b2d64842dbe111959c5dc070aae84ef2a",
+      "compressed": 1396794,
+      "decoded": 0,
+      "gpu": 5592404,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    }
+  },
+  {
+    "file": "horse-saddled.phone.glb",
+    "geometry": {
+      "name": "models/painted/geometry-35f4728bb261b24365040c30441511cfddf4dbc19d8353ac27e70f0a96a72c6f.glb",
+      "path": "blobs/glb/35f4728bb261b24365040c30441511cfddf4dbc19d8353ac27e70f0a96a72c6f.glb",
+      "kind": "glb",
+      "hash": "35f4728bb261b24365040c30441511cfddf4dbc19d8353ac27e70f0a96a72c6f",
+      "compressed": 443296,
+      "decoded": 443268,
+      "gpu": 442020,
+      "triangles": 8000,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    "atlas": {
+      "name": "models/painted/atlas-c912245c75c581cbcec8bc7eb10c9bc5e6aaaea5fb79a3c6a1c8547e0a5ca2bf.ktx2",
+      "path": "blobs/ktx2/c912245c75c581cbcec8bc7eb10c9bc5e6aaaea5fb79a3c6a1c8547e0a5ca2bf.ktx2",
+      "kind": "ktx2",
+      "hash": "c912245c75c581cbcec8bc7eb10c9bc5e6aaaea5fb79a3c6a1c8547e0a5ca2bf",
+      "compressed": 480190,
+      "decoded": 0,
+      "gpu": 1398100,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    }
+  },
+  {
+    "file": "horse-wild.glb",
+    "geometry": {
+      "name": "models/painted/geometry-dd2e41efd042db4471544c1d5677dfda9876da2cea3217a0416da0f408d73ade.glb",
+      "path": "blobs/glb/dd2e41efd042db4471544c1d5677dfda9876da2cea3217a0416da0f408d73ade.glb",
+      "kind": "glb",
+      "hash": "dd2e41efd042db4471544c1d5677dfda9876da2cea3217a0416da0f408d73ade",
+      "compressed": 424724,
+      "decoded": 424696,
+      "gpu": 423452,
+      "triangles": 8000,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    "atlas": {
+      "name": "models/painted/atlas-d528559342dd852fc7e70f775113990978e47c49f8350acfbfa7a6352e7d59db.ktx2",
+      "path": "blobs/ktx2/d528559342dd852fc7e70f775113990978e47c49f8350acfbfa7a6352e7d59db.ktx2",
+      "kind": "ktx2",
+      "hash": "d528559342dd852fc7e70f775113990978e47c49f8350acfbfa7a6352e7d59db",
+      "compressed": 1200837,
+      "decoded": 0,
+      "gpu": 5592404,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    }
+  },
+  {
+    "file": "horse-wild.phone.glb",
+    "geometry": {
+      "name": "models/painted/geometry-dd2e41efd042db4471544c1d5677dfda9876da2cea3217a0416da0f408d73ade.glb",
+      "path": "blobs/glb/dd2e41efd042db4471544c1d5677dfda9876da2cea3217a0416da0f408d73ade.glb",
+      "kind": "glb",
+      "hash": "dd2e41efd042db4471544c1d5677dfda9876da2cea3217a0416da0f408d73ade",
+      "compressed": 424724,
+      "decoded": 424696,
+      "gpu": 423452,
+      "triangles": 8000,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    "atlas": {
+      "name": "models/painted/atlas-d88f930d906e8e4f4a79178c27b85f712e718f683c992058ea0858e2fdc70f0e.ktx2",
+      "path": "blobs/ktx2/d88f930d906e8e4f4a79178c27b85f712e718f683c992058ea0858e2fdc70f0e.ktx2",
+      "kind": "ktx2",
+      "hash": "d88f930d906e8e4f4a79178c27b85f712e718f683c992058ea0858e2fdc70f0e",
+      "compressed": 438164,
+      "decoded": 0,
+      "gpu": 1398100,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    }
+  },
+  {
+    "file": "wolf.glb",
+    "geometry": {
+      "name": "models/painted/geometry-517b2d69bf0b49a959a067df279b8f06c41bb8341259c0f2ee1be923bfb3bbd1.glb",
+      "path": "blobs/glb/517b2d69bf0b49a959a067df279b8f06c41bb8341259c0f2ee1be923bfb3bbd1.glb",
+      "kind": "glb",
+      "hash": "517b2d69bf0b49a959a067df279b8f06c41bb8341259c0f2ee1be923bfb3bbd1",
+      "compressed": 393884,
+      "decoded": 393856,
+      "gpu": 392606,
+      "triangles": 7523,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    "atlas": {
+      "name": "models/painted/atlas-882fc59798301afa69a9c2e8da5f1e9d6717ad0f06e1a0cb3de933881d86015b.ktx2",
+      "path": "blobs/ktx2/882fc59798301afa69a9c2e8da5f1e9d6717ad0f06e1a0cb3de933881d86015b.ktx2",
+      "kind": "ktx2",
+      "hash": "882fc59798301afa69a9c2e8da5f1e9d6717ad0f06e1a0cb3de933881d86015b",
+      "compressed": 1329211,
+      "decoded": 0,
+      "gpu": 5592404,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    }
+  },
+  {
+    "file": "wolf.phone.glb",
+    "geometry": {
+      "name": "models/painted/geometry-517b2d69bf0b49a959a067df279b8f06c41bb8341259c0f2ee1be923bfb3bbd1.glb",
+      "path": "blobs/glb/517b2d69bf0b49a959a067df279b8f06c41bb8341259c0f2ee1be923bfb3bbd1.glb",
+      "kind": "glb",
+      "hash": "517b2d69bf0b49a959a067df279b8f06c41bb8341259c0f2ee1be923bfb3bbd1",
+      "compressed": 393884,
+      "decoded": 393856,
+      "gpu": 392606,
+      "triangles": 7523,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    "atlas": {
+      "name": "models/painted/atlas-c75811d6e70dbbe8eb123451fc0159ce7bc5d76fb4a3e6b30a8122063aca908f.ktx2",
+      "path": "blobs/ktx2/c75811d6e70dbbe8eb123451fc0159ce7bc5d76fb4a3e6b30a8122063aca908f.ktx2",
+      "kind": "ktx2",
+      "hash": "c75811d6e70dbbe8eb123451fc0159ce7bc5d76fb4a3e6b30a8122063aca908f",
+      "compressed": 436338,
+      "decoded": 0,
+      "gpu": 1398100,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    }
+  },
+  {
+    "file": "sheep.glb",
+    "geometry": {
+      "name": "models/painted/geometry-e8fbaf4dae86b5ecf9ccf27b96a1a49d3f5be23ec16b88ceec171551f18e5989.glb",
+      "path": "blobs/glb/e8fbaf4dae86b5ecf9ccf27b96a1a49d3f5be23ec16b88ceec171551f18e5989.glb",
+      "kind": "glb",
+      "hash": "e8fbaf4dae86b5ecf9ccf27b96a1a49d3f5be23ec16b88ceec171551f18e5989",
+      "compressed": 244056,
+      "decoded": 244028,
+      "gpu": 242784,
+      "triangles": 4802,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    "atlas": {
+      "name": "models/painted/atlas-fc12dc1f57e2a7213b832024331bdb186e033d1d5a6640d2f5bc51cbef720b98.ktx2",
+      "path": "blobs/ktx2/fc12dc1f57e2a7213b832024331bdb186e033d1d5a6640d2f5bc51cbef720b98.ktx2",
+      "kind": "ktx2",
+      "hash": "fc12dc1f57e2a7213b832024331bdb186e033d1d5a6640d2f5bc51cbef720b98",
+      "compressed": 1457702,
+      "decoded": 0,
+      "gpu": 5592404,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    }
+  },
+  {
+    "file": "sheep.phone.glb",
+    "geometry": {
+      "name": "models/painted/geometry-e8fbaf4dae86b5ecf9ccf27b96a1a49d3f5be23ec16b88ceec171551f18e5989.glb",
+      "path": "blobs/glb/e8fbaf4dae86b5ecf9ccf27b96a1a49d3f5be23ec16b88ceec171551f18e5989.glb",
+      "kind": "glb",
+      "hash": "e8fbaf4dae86b5ecf9ccf27b96a1a49d3f5be23ec16b88ceec171551f18e5989",
+      "compressed": 244056,
+      "decoded": 244028,
+      "gpu": 242784,
+      "triangles": 4802,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    "atlas": {
+      "name": "models/painted/atlas-59d322c9c98410269def4586408ddc5945555e4fc010380c059e77c0505473bc.ktx2",
+      "path": "blobs/ktx2/59d322c9c98410269def4586408ddc5945555e4fc010380c059e77c0505473bc.ktx2",
+      "kind": "ktx2",
+      "hash": "59d322c9c98410269def4586408ddc5945555e4fc010380c059e77c0505473bc",
+      "compressed": 479235,
+      "decoded": 0,
+      "gpu": 1398100,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    }
+  },
+  {
+    "file": "snow-leopard.glb",
+    "geometry": {
+      "name": "models/painted/geometry-4db017aa9e0b1b81dd64376cd1f26d7ae3196940ff021f949f5b0bd949f6b1a3.glb",
+      "path": "blobs/glb/4db017aa9e0b1b81dd64376cd1f26d7ae3196940ff021f949f5b0bd949f6b1a3.glb",
+      "kind": "glb",
+      "hash": "4db017aa9e0b1b81dd64376cd1f26d7ae3196940ff021f949f5b0bd949f6b1a3",
+      "compressed": 435800,
+      "decoded": 435772,
+      "gpu": 434522,
+      "triangles": 7997,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    "atlas": {
+      "name": "models/painted/atlas-6b57babb53f2b12310a81c9265c42bcd43d3b21f82491d92f39aebbb721d60d8.ktx2",
+      "path": "blobs/ktx2/6b57babb53f2b12310a81c9265c42bcd43d3b21f82491d92f39aebbb721d60d8.ktx2",
+      "kind": "ktx2",
+      "hash": "6b57babb53f2b12310a81c9265c42bcd43d3b21f82491d92f39aebbb721d60d8",
+      "compressed": 2185231,
+      "decoded": 0,
+      "gpu": 5592404,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    }
+  },
+  {
+    "file": "snow-leopard.phone.glb",
+    "geometry": {
+      "name": "models/painted/geometry-4db017aa9e0b1b81dd64376cd1f26d7ae3196940ff021f949f5b0bd949f6b1a3.glb",
+      "path": "blobs/glb/4db017aa9e0b1b81dd64376cd1f26d7ae3196940ff021f949f5b0bd949f6b1a3.glb",
+      "kind": "glb",
+      "hash": "4db017aa9e0b1b81dd64376cd1f26d7ae3196940ff021f949f5b0bd949f6b1a3",
+      "compressed": 435800,
+      "decoded": 435772,
+      "gpu": 434522,
+      "triangles": 7997,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    "atlas": {
+      "name": "models/painted/atlas-003bb5013dfd54e562f77af1f81e3c4d073eb064c3f22058119bdf001544a312.ktx2",
+      "path": "blobs/ktx2/003bb5013dfd54e562f77af1f81e3c4d073eb064c3f22058119bdf001544a312.ktx2",
+      "kind": "ktx2",
+      "hash": "003bb5013dfd54e562f77af1f81e3c4d073eb064c3f22058119bdf001544a312",
+      "compressed": 652574,
+      "decoded": 0,
+      "gpu": 1398100,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    }
+  },
+  {
+    "file": "eagle.glb",
+    "geometry": {
+      "name": "models/painted/geometry-ad104a6180880294b56b657b4fe169c2faca9fa84959f70edcf19d45fe3c97c7.glb",
+      "path": "blobs/glb/ad104a6180880294b56b657b4fe169c2faca9fa84959f70edcf19d45fe3c97c7.glb",
+      "kind": "glb",
+      "hash": "ad104a6180880294b56b657b4fe169c2faca9fa84959f70edcf19d45fe3c97c7",
+      "compressed": 314884,
+      "decoded": 314856,
+      "gpu": 313630,
+      "triangles": 5903,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    "atlas": {
+      "name": "models/painted/atlas-f45ce6799a9ec3c96b4dd2e4fd8394afee81de974ceaecada6c7bef5112e4130.ktx2",
+      "path": "blobs/ktx2/f45ce6799a9ec3c96b4dd2e4fd8394afee81de974ceaecada6c7bef5112e4130.ktx2",
+      "kind": "ktx2",
+      "hash": "f45ce6799a9ec3c96b4dd2e4fd8394afee81de974ceaecada6c7bef5112e4130",
+      "compressed": 1864445,
+      "decoded": 0,
+      "gpu": 5592404,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    }
+  },
+  {
+    "file": "eagle.phone.glb",
+    "geometry": {
+      "name": "models/painted/geometry-ad104a6180880294b56b657b4fe169c2faca9fa84959f70edcf19d45fe3c97c7.glb",
+      "path": "blobs/glb/ad104a6180880294b56b657b4fe169c2faca9fa84959f70edcf19d45fe3c97c7.glb",
+      "kind": "glb",
+      "hash": "ad104a6180880294b56b657b4fe169c2faca9fa84959f70edcf19d45fe3c97c7",
+      "compressed": 314884,
+      "decoded": 314856,
+      "gpu": 313630,
+      "triangles": 5903,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    "atlas": {
+      "name": "models/painted/atlas-1e73b1d58c2430f9b7fc0282fa0e75756ddcc350b54313ef44fb0bbaaa535547.ktx2",
+      "path": "blobs/ktx2/1e73b1d58c2430f9b7fc0282fa0e75756ddcc350b54313ef44fb0bbaaa535547.ktx2",
+      "kind": "ktx2",
+      "hash": "1e73b1d58c2430f9b7fc0282fa0e75756ddcc350b54313ef44fb0bbaaa535547",
+      "compressed": 594013,
+      "decoded": 0,
+      "gpu": 1398100,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    }
+  },
+  {
+    "file": "golden-king.glb",
+    "geometry": {
+      "name": "models/painted/geometry-0404b18cf4331b9c79dac115229d9345118fb13afc5b1ea01c07cb733bf0fb26.glb",
+      "path": "blobs/glb/0404b18cf4331b9c79dac115229d9345118fb13afc5b1ea01c07cb733bf0fb26.glb",
+      "kind": "glb",
+      "hash": "0404b18cf4331b9c79dac115229d9345118fb13afc5b1ea01c07cb733bf0fb26",
+      "compressed": 323348,
+      "decoded": 323320,
+      "gpu": 322076,
+      "triangles": 8000,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    "atlas": {
+      "name": "models/painted/atlas-26f2fa03942a1d5b75626bd9f0df1e1012e8acd40ac1580c3e1b978937c182bc.ktx2",
+      "path": "blobs/ktx2/26f2fa03942a1d5b75626bd9f0df1e1012e8acd40ac1580c3e1b978937c182bc.ktx2",
+      "kind": "ktx2",
+      "hash": "26f2fa03942a1d5b75626bd9f0df1e1012e8acd40ac1580c3e1b978937c182bc",
+      "compressed": 2075875,
+      "decoded": 0,
+      "gpu": 5592404,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    }
+  },
+  {
+    "file": "golden-king.phone.glb",
+    "geometry": {
+      "name": "models/painted/geometry-0404b18cf4331b9c79dac115229d9345118fb13afc5b1ea01c07cb733bf0fb26.glb",
+      "path": "blobs/glb/0404b18cf4331b9c79dac115229d9345118fb13afc5b1ea01c07cb733bf0fb26.glb",
+      "kind": "glb",
+      "hash": "0404b18cf4331b9c79dac115229d9345118fb13afc5b1ea01c07cb733bf0fb26",
+      "compressed": 323348,
+      "decoded": 323320,
+      "gpu": 322076,
+      "triangles": 8000,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    "atlas": {
+      "name": "models/painted/atlas-4b00666598acfbe06463920b466cbeef3a293cd2cfe2decd1ac7ed2332640ae6.ktx2",
+      "path": "blobs/ktx2/4b00666598acfbe06463920b466cbeef3a293cd2cfe2decd1ac7ed2332640ae6.ktx2",
+      "kind": "ktx2",
+      "hash": "4b00666598acfbe06463920b466cbeef3a293cd2cfe2decd1ac7ed2332640ae6",
+      "compressed": 650100,
+      "decoded": 0,
+      "gpu": 1398100,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    }
+  },
+  {
+    "file": "spruce.glb",
+    "geometry": {
+      "name": "models/painted/geometry-40043aff9c8fee609c399fcf48c1e590762342dd7c01a788d8e86e5e2f9472f0.glb",
+      "path": "blobs/glb/40043aff9c8fee609c399fcf48c1e590762342dd7c01a788d8e86e5e2f9472f0.glb",
+      "kind": "glb",
+      "hash": "40043aff9c8fee609c399fcf48c1e590762342dd7c01a788d8e86e5e2f9472f0",
+      "compressed": 252328,
+      "decoded": 252300,
+      "gpu": 251062,
+      "triangles": 2999,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    "atlas": {
+      "name": "models/painted/atlas-a97b4a02149803fec3b5eed70e1bded7f4c2ab5aa3998eb23996a3d1d1525c39.ktx2",
+      "path": "blobs/ktx2/a97b4a02149803fec3b5eed70e1bded7f4c2ab5aa3998eb23996a3d1d1525c39.ktx2",
+      "kind": "ktx2",
+      "hash": "a97b4a02149803fec3b5eed70e1bded7f4c2ab5aa3998eb23996a3d1d1525c39",
+      "compressed": 1781613,
+      "decoded": 0,
+      "gpu": 5592404,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    }
+  },
+  {
+    "file": "spruce.phone.glb",
+    "geometry": {
+      "name": "models/painted/geometry-40043aff9c8fee609c399fcf48c1e590762342dd7c01a788d8e86e5e2f9472f0.glb",
+      "path": "blobs/glb/40043aff9c8fee609c399fcf48c1e590762342dd7c01a788d8e86e5e2f9472f0.glb",
+      "kind": "glb",
+      "hash": "40043aff9c8fee609c399fcf48c1e590762342dd7c01a788d8e86e5e2f9472f0",
+      "compressed": 252328,
+      "decoded": 252300,
+      "gpu": 251062,
+      "triangles": 2999,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    "atlas": {
+      "name": "models/painted/atlas-b516bba81c4dc494129c3f343e202c496e08f10a5a63cf79dd75f3eb6442ab76.ktx2",
+      "path": "blobs/ktx2/b516bba81c4dc494129c3f343e202c496e08f10a5a63cf79dd75f3eb6442ab76.ktx2",
+      "kind": "ktx2",
+      "hash": "b516bba81c4dc494129c3f343e202c496e08f10a5a63cf79dd75f3eb6442ab76",
+      "compressed": 551624,
+      "decoded": 0,
+      "gpu": 1398100,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    }
+  },
+  {
+    "file": "balbal.glb",
+    "geometry": {
+      "name": "models/painted/geometry-724bdae2ee943c04d631a5890bcbaf585e221c414f78a1d73aa6c123a647bf81.glb",
+      "path": "blobs/glb/724bdae2ee943c04d631a5890bcbaf585e221c414f78a1d73aa6c123a647bf81.glb",
+      "kind": "glb",
+      "hash": "724bdae2ee943c04d631a5890bcbaf585e221c414f78a1d73aa6c123a647bf81",
+      "compressed": 81788,
+      "decoded": 81760,
+      "gpu": 80406,
+      "triangles": 1473,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    "atlas": {
+      "name": "models/painted/atlas-05a6f5f9b38f3068d42c4647c053d02cfcf7115767da5c0246f3af560e21c250.ktx2",
+      "path": "blobs/ktx2/05a6f5f9b38f3068d42c4647c053d02cfcf7115767da5c0246f3af560e21c250.ktx2",
+      "kind": "ktx2",
+      "hash": "05a6f5f9b38f3068d42c4647c053d02cfcf7115767da5c0246f3af560e21c250",
+      "compressed": 1460334,
+      "decoded": 0,
+      "gpu": 5592404,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    }
+  },
+  {
+    "file": "balbal.phone.glb",
+    "geometry": {
+      "name": "models/painted/geometry-58cceedc844d759fd91c981b5f812603bef8d68ca60985176800434dc1444804.glb",
+      "path": "blobs/glb/58cceedc844d759fd91c981b5f812603bef8d68ca60985176800434dc1444804.glb",
+      "kind": "glb",
+      "hash": "58cceedc844d759fd91c981b5f812603bef8d68ca60985176800434dc1444804",
+      "compressed": 58188,
+      "decoded": 58160,
+      "gpu": 56812,
+      "triangles": 882,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    "atlas": {
+      "name": "models/painted/atlas-1b30941242fb21e2d44cb683dfd6e2eff1d1301631ace0668246a78588b3f75e.ktx2",
+      "path": "blobs/ktx2/1b30941242fb21e2d44cb683dfd6e2eff1d1301631ace0668246a78588b3f75e.ktx2",
+      "kind": "ktx2",
+      "hash": "1b30941242fb21e2d44cb683dfd6e2eff1d1301631ace0668246a78588b3f75e",
+      "compressed": 471529,
+      "decoded": 0,
+      "gpu": 1398100,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    }
+  },
+  {
+    "file": "boulder-1.glb",
+    "geometry": {
+      "name": "models/painted/geometry-4221e4989da83bcb70992476394c7c101551d22b16611c2853183c3585beb69f.glb",
+      "path": "blobs/glb/4221e4989da83bcb70992476394c7c101551d22b16611c2853183c3585beb69f.glb",
+      "kind": "glb",
+      "hash": "4221e4989da83bcb70992476394c7c101551d22b16611c2853183c3585beb69f",
+      "compressed": 37268,
+      "decoded": 37240,
+      "gpu": 35880,
+      "triangles": 800,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    "atlas": {
+      "name": "models/painted/atlas-aa9d3620280da386dc166e838681f1c86906a934fd324c5dffb7d59e8e54eb12.ktx2",
+      "path": "blobs/ktx2/aa9d3620280da386dc166e838681f1c86906a934fd324c5dffb7d59e8e54eb12.ktx2",
+      "kind": "ktx2",
+      "hash": "aa9d3620280da386dc166e838681f1c86906a934fd324c5dffb7d59e8e54eb12",
+      "compressed": 1022036,
+      "decoded": 0,
+      "gpu": 5592404,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    }
+  },
+  {
+    "file": "boulder-1.phone.glb",
+    "geometry": {
+      "name": "models/painted/geometry-497162a658e7255e621f7657f39cff196f146002525b722ab74a05fcebdb3c03.glb",
+      "path": "blobs/glb/497162a658e7255e621f7657f39cff196f146002525b722ab74a05fcebdb3c03.glb",
+      "kind": "glb",
+      "hash": "497162a658e7255e621f7657f39cff196f146002525b722ab74a05fcebdb3c03",
+      "compressed": 18648,
+      "decoded": 18620,
+      "gpu": 17264,
+      "triangles": 320,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    "atlas": {
+      "name": "models/painted/atlas-1acb12b861ac09895eaaf93524ddc687c240caf5ada070459dad6d721670acdd.ktx2",
+      "path": "blobs/ktx2/1acb12b861ac09895eaaf93524ddc687c240caf5ada070459dad6d721670acdd.ktx2",
+      "kind": "ktx2",
+      "hash": "1acb12b861ac09895eaaf93524ddc687c240caf5ada070459dad6d721670acdd",
+      "compressed": 348031,
+      "decoded": 0,
+      "gpu": 1398100,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    }
+  },
+  {
+    "file": "boulder-2.glb",
+    "geometry": {
+      "name": "models/painted/geometry-83675f83d3fbcca49b4650e216e30d3a2a0951c221b4efa9933ebb6e536d61b7.glb",
+      "path": "blobs/glb/83675f83d3fbcca49b4650e216e30d3a2a0951c221b4efa9933ebb6e536d61b7.glb",
+      "kind": "glb",
+      "hash": "83675f83d3fbcca49b4650e216e30d3a2a0951c221b4efa9933ebb6e536d61b7",
+      "compressed": 37152,
+      "decoded": 37124,
+      "gpu": 35768,
+      "triangles": 800,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    "atlas": {
+      "name": "models/painted/atlas-a066bc0877cb9a84d71ba7a2939c2f78285af51147655b927dbc229b54c9f413.ktx2",
+      "path": "blobs/ktx2/a066bc0877cb9a84d71ba7a2939c2f78285af51147655b927dbc229b54c9f413.ktx2",
+      "kind": "ktx2",
+      "hash": "a066bc0877cb9a84d71ba7a2939c2f78285af51147655b927dbc229b54c9f413",
+      "compressed": 688571,
+      "decoded": 0,
+      "gpu": 5592404,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    }
+  },
+  {
+    "file": "boulder-2.phone.glb",
+    "geometry": {
+      "name": "models/painted/geometry-2f2e44cc3aa95b6e5150f4f8e48f75523469b3c63613d2249e83824894e88e8f.glb",
+      "path": "blobs/glb/2f2e44cc3aa95b6e5150f4f8e48f75523469b3c63613d2249e83824894e88e8f.glb",
+      "kind": "glb",
+      "hash": "2f2e44cc3aa95b6e5150f4f8e48f75523469b3c63613d2249e83824894e88e8f",
+      "compressed": 18140,
+      "decoded": 18112,
+      "gpu": 16760,
+      "triangles": 320,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    "atlas": {
+      "name": "models/painted/atlas-16413d5e2cc41d0bcf01877ac0290c53a38991b4386d7119977501602916c659.ktx2",
+      "path": "blobs/ktx2/16413d5e2cc41d0bcf01877ac0290c53a38991b4386d7119977501602916c659.ktx2",
+      "kind": "ktx2",
+      "hash": "16413d5e2cc41d0bcf01877ac0290c53a38991b4386d7119977501602916c659",
+      "compressed": 268330,
+      "decoded": 0,
+      "gpu": 1398100,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    }
+  },
+  {
+    "file": "boulder-3.glb",
+    "geometry": {
+      "name": "models/painted/geometry-c3d34cb6621c17b16dc0ac32ce62b0f3ee1a096edd4d96352f2a844a8045114a.glb",
+      "path": "blobs/glb/c3d34cb6621c17b16dc0ac32ce62b0f3ee1a096edd4d96352f2a844a8045114a.glb",
+      "kind": "glb",
+      "hash": "c3d34cb6621c17b16dc0ac32ce62b0f3ee1a096edd4d96352f2a844a8045114a",
+      "compressed": 42696,
+      "decoded": 42668,
+      "gpu": 41312,
+      "triangles": 800,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    "atlas": {
+      "name": "models/painted/atlas-d92658104561c2b06d82a76dedc445bbde9c61a89c78b0c38e5e2da569ea338e.ktx2",
+      "path": "blobs/ktx2/d92658104561c2b06d82a76dedc445bbde9c61a89c78b0c38e5e2da569ea338e.ktx2",
+      "kind": "ktx2",
+      "hash": "d92658104561c2b06d82a76dedc445bbde9c61a89c78b0c38e5e2da569ea338e",
+      "compressed": 592209,
+      "decoded": 0,
+      "gpu": 5592404,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    }
+  },
+  {
+    "file": "boulder-3.phone.glb",
+    "geometry": {
+      "name": "models/painted/geometry-641df821ffb1a1e0c1d94feb7a14a6b0d00403eb2d3a072301e6d9d93b8f2bc5.glb",
+      "path": "blobs/glb/641df821ffb1a1e0c1d94feb7a14a6b0d00403eb2d3a072301e6d9d93b8f2bc5.glb",
+      "kind": "glb",
+      "hash": "641df821ffb1a1e0c1d94feb7a14a6b0d00403eb2d3a072301e6d9d93b8f2bc5",
+      "compressed": 21168,
+      "decoded": 21140,
+      "gpu": 19784,
+      "triangles": 320,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    "atlas": {
+      "name": "models/painted/atlas-534c6ac26f8adca2da2624ffb0a06582f1dcc341caa99299306b162cd440cb88.ktx2",
+      "path": "blobs/ktx2/534c6ac26f8adca2da2624ffb0a06582f1dcc341caa99299306b162cd440cb88.ktx2",
+      "kind": "ktx2",
+      "hash": "534c6ac26f8adca2da2624ffb0a06582f1dcc341caa99299306b162cd440cb88",
+      "compressed": 235524,
+      "decoded": 0,
+      "gpu": 1398100,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    }
+  },
+  {
+    "file": "kumis-churn.glb",
+    "geometry": {
+      "name": "models/painted/geometry-1afd66b4c6e49ad25cd2fcf17c07aa6de09c5cb9a1ddedc12760d84360e13dcc.glb",
+      "path": "blobs/glb/1afd66b4c6e49ad25cd2fcf17c07aa6de09c5cb9a1ddedc12760d84360e13dcc.glb",
+      "kind": "glb",
+      "hash": "1afd66b4c6e49ad25cd2fcf17c07aa6de09c5cb9a1ddedc12760d84360e13dcc",
+      "compressed": 94388,
+      "decoded": 94360,
+      "gpu": 93144,
+      "triangles": 1334,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    "atlas": {
+      "name": "models/painted/atlas-ad5d7bb6176166e7f7e10d709fa702542a36a0b19af54639862844513cccb7dd.ktx2",
+      "path": "blobs/ktx2/ad5d7bb6176166e7f7e10d709fa702542a36a0b19af54639862844513cccb7dd.ktx2",
+      "kind": "ktx2",
+      "hash": "ad5d7bb6176166e7f7e10d709fa702542a36a0b19af54639862844513cccb7dd",
+      "compressed": 1718564,
+      "decoded": 0,
+      "gpu": 5592404,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    }
+  },
+  {
+    "file": "kumis-churn.phone.glb",
+    "geometry": {
+      "name": "models/painted/geometry-1afd66b4c6e49ad25cd2fcf17c07aa6de09c5cb9a1ddedc12760d84360e13dcc.glb",
+      "path": "blobs/glb/1afd66b4c6e49ad25cd2fcf17c07aa6de09c5cb9a1ddedc12760d84360e13dcc.glb",
+      "kind": "glb",
+      "hash": "1afd66b4c6e49ad25cd2fcf17c07aa6de09c5cb9a1ddedc12760d84360e13dcc",
+      "compressed": 94388,
+      "decoded": 94360,
+      "gpu": 93144,
+      "triangles": 1334,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    "atlas": {
+      "name": "models/painted/atlas-b3228e701382b4d4c5672d172fdea66bd4c25c4f9adacfe6856cafb36aee9c43.ktx2",
+      "path": "blobs/ktx2/b3228e701382b4d4c5672d172fdea66bd4c25c4f9adacfe6856cafb36aee9c43.ktx2",
+      "kind": "ktx2",
+      "hash": "b3228e701382b4d4c5672d172fdea66bd4c25c4f9adacfe6856cafb36aee9c43",
+      "compressed": 546232,
+      "decoded": 0,
+      "gpu": 1398100,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    }
+  },
+  {
+    "file": "cauldron.glb",
+    "geometry": {
+      "name": "models/painted/geometry-a399fedf8ef7939e3bf4e8de3d95f6d3d8f1476f7e685a2f246b7f75bb20e06c.glb",
+      "path": "blobs/glb/a399fedf8ef7939e3bf4e8de3d95f6d3d8f1476f7e685a2f246b7f75bb20e06c.glb",
+      "kind": "glb",
+      "hash": "a399fedf8ef7939e3bf4e8de3d95f6d3d8f1476f7e685a2f246b7f75bb20e06c",
+      "compressed": 83116,
+      "decoded": 83088,
+      "gpu": 81872,
+      "triangles": 1406,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    "atlas": {
+      "name": "models/painted/atlas-5c54feb25440b27e45d516a12e05d916cbba3ca47415eacbff5bbad66eb22aa0.ktx2",
+      "path": "blobs/ktx2/5c54feb25440b27e45d516a12e05d916cbba3ca47415eacbff5bbad66eb22aa0.ktx2",
+      "kind": "ktx2",
+      "hash": "5c54feb25440b27e45d516a12e05d916cbba3ca47415eacbff5bbad66eb22aa0",
+      "compressed": 1518301,
+      "decoded": 0,
+      "gpu": 5592404,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    }
+  },
+  {
+    "file": "cauldron.phone.glb",
+    "geometry": {
+      "name": "models/painted/geometry-a399fedf8ef7939e3bf4e8de3d95f6d3d8f1476f7e685a2f246b7f75bb20e06c.glb",
+      "path": "blobs/glb/a399fedf8ef7939e3bf4e8de3d95f6d3d8f1476f7e685a2f246b7f75bb20e06c.glb",
+      "kind": "glb",
+      "hash": "a399fedf8ef7939e3bf4e8de3d95f6d3d8f1476f7e685a2f246b7f75bb20e06c",
+      "compressed": 83116,
+      "decoded": 83088,
+      "gpu": 81872,
+      "triangles": 1406,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    "atlas": {
+      "name": "models/painted/atlas-fd50237807325d3b7000bb738af0ef183207bdbd387dd39ea1d30fe3ad7cd1ea.ktx2",
+      "path": "blobs/ktx2/fd50237807325d3b7000bb738af0ef183207bdbd387dd39ea1d30fe3ad7cd1ea.ktx2",
+      "kind": "ktx2",
+      "hash": "fd50237807325d3b7000bb738af0ef183207bdbd387dd39ea1d30fe3ad7cd1ea",
+      "compressed": 487697,
+      "decoded": 0,
+      "gpu": 1398100,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    }
+  },
+  {
+    "file": "saddle.glb",
+    "geometry": {
+      "name": "models/painted/geometry-19d1a792f557610aa044e0c39d4959aa1ae3fd5ba48b8c789a08e58029c95212.glb",
+      "path": "blobs/glb/19d1a792f557610aa044e0c39d4959aa1ae3fd5ba48b8c789a08e58029c95212.glb",
+      "kind": "glb",
+      "hash": "19d1a792f557610aa044e0c39d4959aa1ae3fd5ba48b8c789a08e58029c95212",
+      "compressed": 95256,
+      "decoded": 95228,
+      "gpu": 94008,
+      "triangles": 1456,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    "atlas": {
+      "name": "models/painted/atlas-ff406967717a89054be3e5b4a2e12d0a338091188cf2dca6eff368020f0efc81.ktx2",
+      "path": "blobs/ktx2/ff406967717a89054be3e5b4a2e12d0a338091188cf2dca6eff368020f0efc81.ktx2",
+      "kind": "ktx2",
+      "hash": "ff406967717a89054be3e5b4a2e12d0a338091188cf2dca6eff368020f0efc81",
+      "compressed": 1870712,
+      "decoded": 0,
+      "gpu": 5592404,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    }
+  },
+  {
+    "file": "saddle.phone.glb",
+    "geometry": {
+      "name": "models/painted/geometry-19d1a792f557610aa044e0c39d4959aa1ae3fd5ba48b8c789a08e58029c95212.glb",
+      "path": "blobs/glb/19d1a792f557610aa044e0c39d4959aa1ae3fd5ba48b8c789a08e58029c95212.glb",
+      "kind": "glb",
+      "hash": "19d1a792f557610aa044e0c39d4959aa1ae3fd5ba48b8c789a08e58029c95212",
+      "compressed": 95256,
+      "decoded": 95228,
+      "gpu": 94008,
+      "triangles": 1456,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    "atlas": {
+      "name": "models/painted/atlas-bf0d905e95f5a2a9748f1e59ad17b0d3364cfa903bf91257527eb3ecbc713fe0.ktx2",
+      "path": "blobs/ktx2/bf0d905e95f5a2a9748f1e59ad17b0d3364cfa903bf91257527eb3ecbc713fe0.ktx2",
+      "kind": "ktx2",
+      "hash": "bf0d905e95f5a2a9748f1e59ad17b0d3364cfa903bf91257527eb3ecbc713fe0",
+      "compressed": 593576,
+      "decoded": 0,
+      "gpu": 1398100,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    }
+  },
+  {
+    "file": "firewood.glb",
+    "geometry": {
+      "name": "models/painted/geometry-20c9fe6b5488598a00426b541d45b2ccb83e52296ebee07b244579f0e4aac3e9.glb",
+      "path": "blobs/glb/20c9fe6b5488598a00426b541d45b2ccb83e52296ebee07b244579f0e4aac3e9.glb",
+      "kind": "glb",
+      "hash": "20c9fe6b5488598a00426b541d45b2ccb83e52296ebee07b244579f0e4aac3e9",
+      "compressed": 92196,
+      "decoded": 92168,
+      "gpu": 90924,
+      "triangles": 1492,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    "atlas": {
+      "name": "models/painted/atlas-0aa417e0f591942215d7148cd18be06eb6c9321dad09178193565b96939b0d16.ktx2",
+      "path": "blobs/ktx2/0aa417e0f591942215d7148cd18be06eb6c9321dad09178193565b96939b0d16.ktx2",
+      "kind": "ktx2",
+      "hash": "0aa417e0f591942215d7148cd18be06eb6c9321dad09178193565b96939b0d16",
+      "compressed": 2028558,
+      "decoded": 0,
+      "gpu": 5592404,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    }
+  },
+  {
+    "file": "firewood.phone.glb",
+    "geometry": {
+      "name": "models/painted/geometry-20c9fe6b5488598a00426b541d45b2ccb83e52296ebee07b244579f0e4aac3e9.glb",
+      "path": "blobs/glb/20c9fe6b5488598a00426b541d45b2ccb83e52296ebee07b244579f0e4aac3e9.glb",
+      "kind": "glb",
+      "hash": "20c9fe6b5488598a00426b541d45b2ccb83e52296ebee07b244579f0e4aac3e9",
+      "compressed": 92196,
+      "decoded": 92168,
+      "gpu": 90924,
+      "triangles": 1492,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    "atlas": {
+      "name": "models/painted/atlas-bc55942282e96a8f6a5e25e427020111323b8f81d13b7f4f3d899b1731f810ae.ktx2",
+      "path": "blobs/ktx2/bc55942282e96a8f6a5e25e427020111323b8f81d13b7f4f3d899b1731f810ae.ktx2",
+      "kind": "ktx2",
+      "hash": "bc55942282e96a8f6a5e25e427020111323b8f81d13b7f4f3d899b1731f810ae",
+      "compressed": 626246,
+      "decoded": 0,
+      "gpu": 1398100,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    }
+  },
+  {
+    "file": "chest.glb",
+    "geometry": {
+      "name": "models/painted/geometry-f4ec12c5608ed86d88a0ab58cb945a7ea11108f9ddf4944f8ad1f6adeb70ffd3.glb",
+      "path": "blobs/glb/f4ec12c5608ed86d88a0ab58cb945a7ea11108f9ddf4944f8ad1f6adeb70ffd3.glb",
+      "kind": "glb",
+      "hash": "f4ec12c5608ed86d88a0ab58cb945a7ea11108f9ddf4944f8ad1f6adeb70ffd3",
+      "compressed": 75376,
+      "decoded": 75348,
+      "gpu": 74106,
+      "triangles": 1417,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    "atlas": {
+      "name": "models/painted/atlas-bed853d8e1711c81b370928c84a98aa6e769d08ed60f4b375fac0cf1154d9d86.ktx2",
+      "path": "blobs/ktx2/bed853d8e1711c81b370928c84a98aa6e769d08ed60f4b375fac0cf1154d9d86.ktx2",
+      "kind": "ktx2",
+      "hash": "bed853d8e1711c81b370928c84a98aa6e769d08ed60f4b375fac0cf1154d9d86",
+      "compressed": 2024560,
+      "decoded": 0,
+      "gpu": 5592404,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    }
+  },
+  {
+    "file": "chest.phone.glb",
+    "geometry": {
+      "name": "models/painted/geometry-f4ec12c5608ed86d88a0ab58cb945a7ea11108f9ddf4944f8ad1f6adeb70ffd3.glb",
+      "path": "blobs/glb/f4ec12c5608ed86d88a0ab58cb945a7ea11108f9ddf4944f8ad1f6adeb70ffd3.glb",
+      "kind": "glb",
+      "hash": "f4ec12c5608ed86d88a0ab58cb945a7ea11108f9ddf4944f8ad1f6adeb70ffd3",
+      "compressed": 75376,
+      "decoded": 75348,
+      "gpu": 74106,
+      "triangles": 1417,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    "atlas": {
+      "name": "models/painted/atlas-7d1473776fe41a839a032927cf880fa1b0720fb3f059271e3e3304a53521e4f9.ktx2",
+      "path": "blobs/ktx2/7d1473776fe41a839a032927cf880fa1b0720fb3f059271e3e3304a53521e4f9.ktx2",
+      "kind": "ktx2",
+      "hash": "7d1473776fe41a839a032927cf880fa1b0720fb3f059271e3e3304a53521e4f9",
+      "compressed": 622942,
+      "decoded": 0,
+      "gpu": 1398100,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    }
+  },
+  {
+    "file": "watchtower.glb",
+    "geometry": {
+      "name": "models/painted/geometry-165b75b0efc112c1163da022a6c5b3167b649578794c7295e132aa069db71cd5.glb",
+      "path": "blobs/glb/165b75b0efc112c1163da022a6c5b3167b649578794c7295e132aa069db71cd5.glb",
+      "kind": "glb",
+      "hash": "165b75b0efc112c1163da022a6c5b3167b649578794c7295e132aa069db71cd5",
+      "compressed": 224544,
+      "decoded": 224516,
+      "gpu": 223276,
+      "triangles": 4000,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    "atlas": {
+      "name": "models/painted/atlas-cebeb2b57c3a35f539d3fb299c5dfb99dd6a8ed4eef692f0ddd380fd325834b8.ktx2",
+      "path": "blobs/ktx2/cebeb2b57c3a35f539d3fb299c5dfb99dd6a8ed4eef692f0ddd380fd325834b8.ktx2",
+      "kind": "ktx2",
+      "hash": "cebeb2b57c3a35f539d3fb299c5dfb99dd6a8ed4eef692f0ddd380fd325834b8",
+      "compressed": 1283397,
+      "decoded": 0,
+      "gpu": 5592404,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    }
+  },
+  {
+    "file": "watchtower.phone.glb",
+    "geometry": {
+      "name": "models/painted/geometry-165b75b0efc112c1163da022a6c5b3167b649578794c7295e132aa069db71cd5.glb",
+      "path": "blobs/glb/165b75b0efc112c1163da022a6c5b3167b649578794c7295e132aa069db71cd5.glb",
+      "kind": "glb",
+      "hash": "165b75b0efc112c1163da022a6c5b3167b649578794c7295e132aa069db71cd5",
+      "compressed": 224544,
+      "decoded": 224516,
+      "gpu": 223276,
+      "triangles": 4000,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    "atlas": {
+      "name": "models/painted/atlas-9622fcdb4202ad31aef9c12406dd6bdedeaa26ddcc421efda7098b2d3320dead.ktx2",
+      "path": "blobs/ktx2/9622fcdb4202ad31aef9c12406dd6bdedeaa26ddcc421efda7098b2d3320dead.ktx2",
+      "kind": "ktx2",
+      "hash": "9622fcdb4202ad31aef9c12406dd6bdedeaa26ddcc421efda7098b2d3320dead",
+      "compressed": 438717,
+      "decoded": 0,
+      "gpu": 1398100,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    }
+  },
+  {
+    "file": "snow-lotus.glb",
+    "geometry": {
+      "name": "models/painted/geometry-faca591b0c0883c0e72ec1900d4c44eca4344fd33adb43b52c6c61d5fdd7c0b9.glb",
+      "path": "blobs/glb/faca591b0c0883c0e72ec1900d4c44eca4344fd33adb43b52c6c61d5fdd7c0b9.glb",
+      "kind": "glb",
+      "hash": "faca591b0c0883c0e72ec1900d4c44eca4344fd33adb43b52c6c61d5fdd7c0b9",
+      "compressed": 161544,
+      "decoded": 161516,
+      "gpu": 160270,
+      "triangles": 2233,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    "atlas": {
+      "name": "models/painted/atlas-c80b2f4c18549dbd5a8dd162e47cd1f34264b1b1298cb4a182ffedffe1e1e00c.ktx2",
+      "path": "blobs/ktx2/c80b2f4c18549dbd5a8dd162e47cd1f34264b1b1298cb4a182ffedffe1e1e00c.ktx2",
+      "kind": "ktx2",
+      "hash": "c80b2f4c18549dbd5a8dd162e47cd1f34264b1b1298cb4a182ffedffe1e1e00c",
+      "compressed": 2053189,
+      "decoded": 0,
+      "gpu": 5592404,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    }
+  },
+  {
+    "file": "snow-lotus.phone.glb",
+    "geometry": {
+      "name": "models/painted/geometry-232255ff67b193c6ad7582903a80d0d99760a49d6d0cacf713584df564b25705.glb",
+      "path": "blobs/glb/232255ff67b193c6ad7582903a80d0d99760a49d6d0cacf713584df564b25705.glb",
+      "kind": "glb",
+      "hash": "232255ff67b193c6ad7582903a80d0d99760a49d6d0cacf713584df564b25705",
+      "compressed": 135120,
+      "decoded": 135092,
+      "gpu": 133846,
+      "triangles": 1613,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    "atlas": {
+      "name": "models/painted/atlas-e7c02ed5752f9a2b4f51dd122c217da91193aef4786ad80c71f19bfc8edb7bfa.ktx2",
+      "path": "blobs/ktx2/e7c02ed5752f9a2b4f51dd122c217da91193aef4786ad80c71f19bfc8edb7bfa.ktx2",
+      "kind": "ktx2",
+      "hash": "e7c02ed5752f9a2b4f51dd122c217da91193aef4786ad80c71f19bfc8edb7bfa",
+      "compressed": 633203,
+      "decoded": 0,
+      "gpu": 1398100,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    }
+  },
+  {
+    "file": "kokpar-rider.glb",
+    "geometry": {
+      "name": "models/painted/geometry-2ad34843da40365a3e2c06733f22f290130dbe1a3a65c14f760a596d4f0d146c.glb",
+      "path": "blobs/glb/2ad34843da40365a3e2c06733f22f290130dbe1a3a65c14f760a596d4f0d146c.glb",
+      "kind": "glb",
+      "hash": "2ad34843da40365a3e2c06733f22f290130dbe1a3a65c14f760a596d4f0d146c",
+      "compressed": 528628,
+      "decoded": 528600,
+      "gpu": 527352,
+      "triangles": 9000,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    "atlas": {
+      "name": "models/painted/atlas-63c1dad84905fcfd659dbb30d68da4efca96447570899df745b2c45be414a857.ktx2",
+      "path": "blobs/ktx2/63c1dad84905fcfd659dbb30d68da4efca96447570899df745b2c45be414a857.ktx2",
+      "kind": "ktx2",
+      "hash": "63c1dad84905fcfd659dbb30d68da4efca96447570899df745b2c45be414a857",
+      "compressed": 1557435,
+      "decoded": 0,
+      "gpu": 5592404,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    }
+  },
+  {
+    "file": "kokpar-rider.phone.glb",
+    "geometry": {
+      "name": "models/painted/geometry-2ad34843da40365a3e2c06733f22f290130dbe1a3a65c14f760a596d4f0d146c.glb",
+      "path": "blobs/glb/2ad34843da40365a3e2c06733f22f290130dbe1a3a65c14f760a596d4f0d146c.glb",
+      "kind": "glb",
+      "hash": "2ad34843da40365a3e2c06733f22f290130dbe1a3a65c14f760a596d4f0d146c",
+      "compressed": 528628,
+      "decoded": 528600,
+      "gpu": 527352,
+      "triangles": 9000,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    "atlas": {
+      "name": "models/painted/atlas-249385a4a2119e8876afe056ffbad5930a422540e1364df4d72380ef8b2f0c79.ktx2",
+      "path": "blobs/ktx2/249385a4a2119e8876afe056ffbad5930a422540e1364df4d72380ef8b2f0c79.ktx2",
+      "kind": "ktx2",
+      "hash": "249385a4a2119e8876afe056ffbad5930a422540e1364df4d72380ef8b2f0c79",
+      "compressed": 519925,
+      "decoded": 0,
+      "gpu": 1398100,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    }
+  },
+  {
+    "file": "horse-wild.far.glb",
+    "geometry": {
+      "name": "models/painted/horse-wild.far.glb",
+      "path": "blobs/glb/853422408cce327f42492cf3bad4b4eb061427e8e0046e72af1bc906ba2e1fef.glb",
+      "kind": "glb",
+      "hash": "853422408cce327f42492cf3bad4b4eb061427e8e0046e72af1bc906ba2e1fef",
+      "compressed": 19940,
+      "decoded": 19912,
+      "gpu": 18816,
+      "triangles": 790,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    "atlas": null
+  },
+  {
+    "file": "horse-saddled.far.glb",
+    "geometry": {
+      "name": "models/painted/horse-saddled.far.glb",
+      "path": "blobs/glb/5746e4b7e09981b822f9f0f048bab7a975177b70e586155c68479a6213367594.glb",
+      "kind": "glb",
+      "hash": "5746e4b7e09981b822f9f0f048bab7a975177b70e586155c68479a6213367594",
+      "compressed": 20132,
+      "decoded": 20104,
+      "gpu": 19008,
+      "triangles": 798,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    "atlas": null
+  },
+  {
+    "file": "kokpar-rider.far.glb",
+    "geometry": {
+      "name": "models/painted/kokpar-rider.far.glb",
+      "path": "blobs/glb/292657da49836741792bc14dad16267fc1cc95bcf151938aa180199b85a6c268.glb",
+      "kind": "glb",
+      "hash": "292657da49836741792bc14dad16267fc1cc95bcf151938aa180199b85a6c268",
+      "compressed": 26384,
+      "decoded": 26356,
+      "gpu": 25260,
+      "triangles": 1066,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    "atlas": null
+  }
+]

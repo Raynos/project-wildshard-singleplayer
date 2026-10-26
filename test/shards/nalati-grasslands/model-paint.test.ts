@@ -44,14 +44,15 @@ describe('Nalati fixed model paint', () => {
       expect(() => assertConfigBoundary([...imports, 'node:fs'])).toThrow('must use injected build capabilities');
     }
   });
-  it('prefetches near models and creature rigs while far models use product files', () => {
+  it('prefetches creature rigs while painted near and far models use product files', () => {
     const prepared = '/assets/nalati/baked/painted-models/';
     const rig = '/assets/nalati/models/wolf.rigged.glb', phoneRig = '/assets/nalati/models/wolf.phone.rigged.glb';
     const inventory = { [`${prepared}boulder-1.glb`]: 1, [`${prepared}boulder-1.phone.glb`]: 1,
       [`${prepared}horse-wild.far.glb`]: 1, '/assets/nalati/models/boulder-1.glb': 1, [rig]: 1, [phoneRig]: 1 };
     for (const tier of ['phone', 'desktop'] as const) {
       const files = worldFiles(tier, inventory);
-      expect(files).toContain(`${prepared}boulder-1.glb`);
+      expect(files).not.toContain(`${prepared}boulder-1.glb`);
+      expect(files).not.toContain(`${prepared}boulder-1.phone.glb`);
       expect(files).not.toContain(`${prepared}horse-wild.far.glb`);
       expect(files).toContain(tier === 'phone' ? phoneRig : rig);
       expect(files).not.toContain('/assets/nalati/models/boulder-1.glb');

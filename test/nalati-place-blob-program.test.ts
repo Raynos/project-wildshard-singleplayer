@@ -31,8 +31,11 @@ import { nalatiRuntimeRows } from '../src/shards/nalati-grasslands/generators/ru
 import { nalatiRuntime } from './fixtures/nalati-runtime';
 import { nalatiDecorative } from './fixtures/nalati-decorative';
 import { sceneWithNativeOutcrops } from './fixtures/nalati-scene-provenance';
-import { withOwnedModelFiles } from './fixtures/nalati-owned-models';
-import modelOriginal from './fixtures/nalati-model-paint.json' with { type: 'json' };
+import { withOwnedModelFiles, withPaintedModelParts } from './fixtures/nalati-owned-models';
+
+const modelPartFile = v.looseObject({ name: v.string(), compressed: v.number(), hash: v.string() });
+const modelPartsOriginal = v.parse(v.array(v.object({ file: v.string(), geometry: modelPartFile, atlas: v.nullable(modelPartFile) })),
+  JSON.parse(readFileSync('test/fixtures/nalati-model-parts.json', 'utf8')));
 
 const paintInput: unknown = JSON.parse(readFileSync('src/shards/nalati-grasslands/data/poiPaint.json', 'utf8'));
 const productShapeRow = (row: typeof shapeBookRowsOriginal.draws[number]) => 'lane' in row ? { ...row, lane: { file: 'world/places.bin', offset: row.lane.offset } } : row;
@@ -59,7 +62,7 @@ function sceneWithOwnedModels(before: NamedBlob): NamedBlob {
   const name = before.file.name;
   if (name === undefined) throw new Error('Missing named scene');
   const rows: unknown = JSON.parse(new TextDecoder().decode(before.bytes));
-  return nameBlob(name, 'json', new TextEncoder().encode(encodeCanonicalJson(withOwnedModelFiles(rows))),
+  return nameBlob(name, 'json', new TextEncoder().encode(encodeCanonicalJson(withPaintedModelParts(withOwnedModelFiles(rows), modelPartsOriginal))),
     before.file.jsonSchema === undefined ? {} : { jsonSchema: before.file.jsonSchema });
 }
 
@@ -107,15 +110,20 @@ test('the actual output hook preserves every predecessor file cost and binary by
     requested.length = 0;
     const hit = await prepareOutput(context());
     const modelFiles = hit.namedFiles.filter(file => file.name?.startsWith('models/painted/'));
-    expect(modelFiles.map(file => file.name).sort((a, b) => (a ?? '').localeCompare(b ?? ''))).toEqual(['models/painted/horse-wild.far.glb', 'models/painted/kokpar-rider.far.glb']);
+    const nearModels = ['eagle', 'cauldron', 'firewood', 'kumis-churn', 'chest', 'saddle', 'balbal', 'boulder-1', 'boulder-2', 'boulder-3', 'watchtower', 'snow-lotus', 'horse-saddled', 'kokpar-rider', 'sheep'];
+    const modelNames = new Set([...nearModels.flatMap(name => [`${name}.glb`, `${name}.phone.glb`]), 'horse-wild.far.glb', 'kokpar-rider.far.glb']);
+    const expectedModels = new Map(modelPartsOriginal.filter(row => modelNames.has(row.file)).flatMap(row =>
+      (row.atlas === null ? [row.geometry] : [row.geometry, row.atlas]).map(file => [file.name, file] as const)));
+    const byName = (a: { readonly name?: string | undefined }, b: { readonly name?: string | undefined }): number => (a.name ?? '').localeCompare(b.name ?? '');
+    expect([...modelFiles].sort(byName)).toEqual([...expectedModels.values()].sort(byName));
     for (const file of modelFiles) {
-      const pin = modelOriginal.find(row => `models/painted/${row.file}` === file.name);
       const bytes = hit.assets.get(file.hash);
-      if (pin === undefined || bytes === undefined || file.name === undefined) throw new Error('Missing original far model');
-      expect(bytes.byteLength).toBe(pin.bytes);
-      expect(hashImmutableBytes(bytes)).toBe(pin.sha256);
-      expect(file).toEqual(nameBlob(file.name, 'glb', bytes).file);
+      if (bytes === undefined || file.name === undefined) throw new Error('Missing complete owned model part');
+      expect(bytes.byteLength).toBe(file.compressed);
+      expect(hashImmutableBytes(bytes)).toBe(file.hash);
     }
+    expect(steps).toContain('model-parts');
+    for (const file of modelNames) expect(requested).toContain(`/assets/nalati/models/${file}`);
     expect(hit.namedFiles.filter(file=>file.name===expectedBank.file.name)).toEqual([expectedBank.file]);
     const bankBytes = hit.assets.get(expectedBank.file.hash);
     if (bankBytes === undefined) throw new Error('Missing owned specimen bank bytes');
@@ -220,6 +228,8 @@ test('the actual output hook preserves every predecessor file cost and binary by
       expect(Buffer.compare(bytes, expected.bytes)).toBe(0);
     }
     const ctx = context();
+    await expect(prepareOutput({ ...ctx, cached: (step, make) => step.id === 'model-parts'
+      ? Promise.resolve(new Map()) : ctx.cached(step, make) })).rejects.toThrow('Nalati model-part inventory differs');
     await expect(prepareOutput({ ...ctx, cached: (step, make) => step.id === 'decorative'
       ? Promise.resolve(new Map()) : ctx.cached(step, make) })).rejects.toThrow('Owned Nalati decorative inventory differs');
     await expect(prepareOutput({ ...ctx, cached: async (step, make) => {

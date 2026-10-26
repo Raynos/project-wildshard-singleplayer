@@ -10,7 +10,6 @@ import { GPU_FILES } from '../ktx2.generated';
 /** URLs needed before product admission by both boot and creature readers. */
 export const assetFiles = { coats: '/assets/nalati/models/coats/', bodies: species.packedBodies.file };
 
-const models = ['eagle', 'cauldron', 'firewood', 'kumis-churn', 'chest', 'saddle', 'balbal', 'boulder-1', 'boulder-2', 'boulder-3', 'watchtower', 'snow-lotus', 'horse-saddled', 'kokpar-rider'];
 const rigs = ['horse-wild', 'horse-saddled', 'wolf', 'snow-leopard', 'sheep', 'eagle', 'collie', 'ghost-horse', 'golden-king'];
 /** the baked creature coats (species/rigs.ts nalatiCoatUrl; the rigs adopt them as they load): their desktop names, in order */
 const coatFiles = (inventory: Readonly<Record<string, number | true>>): string[] => Object.keys(inventory).filter((url) => url.startsWith(assetFiles.coats) && url.endsWith('.coat.webp')).sort();
@@ -20,7 +19,6 @@ export function worldFiles(tier: Tier, inventory: Readonly<Record<string, number
   const painted = (name: string): string => `/assets/nalati/${name}${tier === 'phone' ? '.phone' : ''}.webp`;
   return [
     ...['meadow', 'path', 'gravel', 'rock', 'snow', 'felt'].map((name) => painted(`tex/${name}`)), painted('cards'), painted('panorama'),
-    ...models.map((name) => `/assets/nalati/baked/painted-models/${name}.glb`),
     ...rigs.map((name) => `/assets/nalati/models/${name}${tier === 'phone' ? '.phone' : ''}.rigged.glb`),
     ...coatFiles(inventory),
     // the species bodies' offline bake (SHARD-PLATFORM M3, species/bodies.ts)

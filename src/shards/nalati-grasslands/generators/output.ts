@@ -2,7 +2,8 @@ import {grassChannelBytes} from './grassRows';
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import type { ProjectOutput } from '@wildshard/sdk/projectOutput';
 import { nalatiOutputInputs } from './outputInputs';
-import { nalatiModelPaintProgram } from './modelPaintProgram';
+import { nalatiModelPartsProgram } from './modelPartsProgram';
+import { nalatiPaintedAtlasFile, nalatiPaintedGeometryFile, nalatiPaintedBindings, nalatiPaintedModelNames } from './modelBindings';
 import { nalatiQuestProp } from './questProp';
 import { nalatiBalbalSpecimen } from './balbalSpecimen';
 import modelMetrics from '../data/modelMetrics.json' with { type: 'json' };
@@ -212,8 +213,6 @@ const shelterPlacesSchema = v.object({ rows: v.array(v.object({ colliders: v.arr
 
 /** Own the existing scene binaries through the injected build reader, with unchanged admission costs. */
 export async function prepareOutput(ctx: ProjectGenerationContext): Promise<typeof output> {
-  const farModels = await nalatiModelPaintProgram(ctx, ['horse-wild.far.glb', 'kokpar-rider.far.glb']);
-  const modelBlobs = [...farModels].map(([file, bytes]) => nameBlob(`models/painted/${file}`, 'glb', bytes));
   const placeFiles = await nalatiPlacesProgram(ctx), placeBytes = placeFiles.get('places.bin');
   if (placeBytes === undefined) throw new Error('Missing owned native places binary');
   const placeDocument = placeFiles.get('places.json');
@@ -259,8 +258,44 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<type
   const decorativeFiles = await nalatiDecorativeProgram(ctx), decorativeBytes = decorativeFiles.get('decorative.json');
   if (decorativeBytes === undefined) throw new Error('Missing owned decorative profiles');
   const profiles: unknown = JSON.parse(new TextDecoder().decode(decorativeBytes));
-  const scenes = emitNamedBlobs(dressingSceneBlobs(profiles,runtime.runtime,balbal,specimenRows));
-  const namedFiles = [...emitted.files.filter(file => file.name !== 'quests/carried.json'), carriedBlob.file, ...ownedMetadata.files, ...scenes.files].sort((a, b) => (a.name ?? '') < (b.name ?? '') ? -1 : (a.name ?? '') > (b.name ?? '') ? 1 : 0);
+  const sceneBlobs = dressingSceneBlobs(profiles,runtime.runtime,balbal,specimenRows);
+  const coverNames = new Set(['models/cover-phone.json', 'models/cover-desktop.json']);
+  const books = [...emitted.files.filter(file => file.name !== undefined && coverNames.has(file.name)).map(file => {
+    const bytes = emitted.assets.get(file.hash);
+    if (bytes === undefined) throw new Error('Missing original Nalati cover book');
+    return { file, bytes };
+  }), ...sceneBlobs.filter(blob => blob.file.kind === 'json')];
+  const documents = books.map(blob => ({ blob, rows: JSON.parse(new TextDecoder().decode(blob.bytes)) as unknown }));
+  const parts = await nalatiModelPartsProgram(ctx, nalatiPaintedModelNames(documents.map(row => row.rows)));
+  const modelFiles = new Map<string, NamedBlob>();
+  for (const [file, bytes] of parts) {
+    if (file.endsWith('.ktx2')) {
+      const header = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+      let width = header.getUint32(20, true), height = header.getUint32(24, true), gpu = 0;
+      for (;;) {
+        gpu += width * height * 4;
+        if (width === 1 && height === 1) break;
+        width = Math.max(1, Math.floor(width / 2)); height = Math.max(1, Math.floor(height / 2));
+      }
+      const name = nalatiPaintedAtlasFile(bytes);
+      modelFiles.set(name, nameBlob(name, 'ktx2', bytes, { gpu }));
+    } else {
+      const name = nalatiPaintedGeometryFile(file, bytes); modelFiles.set(name, nameBlob(name, 'glb', bytes));
+    }
+  }
+  const modelBlobs = [...modelFiles.values()];
+  const ownedBooks = new Map(documents.map(({ blob, rows }) => {
+    const name = blob.file.name;
+    if (name === undefined) throw new Error('Missing named Nalati model book');
+    const owned = nameBlob(name, 'json', new TextEncoder().encode(encodeCanonicalJson(nalatiPaintedBindings(rows, parts))), {
+      critical: blob.file.critical, dependencies: blob.file.dependencies,
+      ...(blob.file.jsonSchema === undefined ? {} : { jsonSchema: blob.file.jsonSchema }),
+    });
+    return [name, owned] as const;
+  }));
+  const sourceFiles = emitted.files.map(file => file.name === undefined ? file : ownedBooks.get(file.name)?.file ?? file);
+  const scenes = emitNamedBlobs(sceneBlobs.map(blob => blob.file.name === undefined ? blob : ownedBooks.get(blob.file.name) ?? blob));
+  const namedFiles = [...sourceFiles.filter(file => file.name !== 'quests/carried.json'), carriedBlob.file, ...ownedMetadata.files, ...scenes.files].sort((a, b) => (a.name ?? '') < (b.name ?? '') ? -1 : (a.name ?? '') > (b.name ?? '') ? 1 : 0);
   const sources = await nalatiOutputInputs(ctx, outputBlobs(shapeBook.sources, runtime.floors.map(floor => nameBlob(floor.name, 'bin', floor.bytes)), [propBlob], carvings));
-  return { ...output, blobs: [], namedFiles: [...sources.map(source => source.file), ...modelBlobs.map(source => source.file), ...namedFiles, ...taming.files, places.file, crags.file, dressingBlob.file, specimenBank.file], assets: new Map([...output.assets, ...sources.map(source => [source.file.hash, source.bytes] as const), ...modelBlobs.map(source => [source.file.hash, source.bytes] as const), ...ownedMetadata.assets, ...scenes.assets, [carriedBlob.file.hash, carriedBlob.bytes], [places.file.hash, places.bytes], [crags.file.hash, crags.bytes], [dressingBlob.file.hash, dressingBlob.bytes], [specimenBank.file.hash, specimenBank.bytes]]) };
+  return { ...output, blobs: [], namedFiles: [...sources.map(source => source.file), ...modelBlobs.map(source => source.file), ...namedFiles, ...taming.files, places.file, crags.file, dressingBlob.file, specimenBank.file], assets: new Map([...output.assets, ...[...ownedBooks.values()].map(blob => [blob.file.hash, blob.bytes] as const), ...sources.map(source => [source.file.hash, source.bytes] as const), ...modelBlobs.map(source => [source.file.hash, source.bytes] as const), ...ownedMetadata.assets, ...scenes.assets, [carriedBlob.file.hash, carriedBlob.bytes], [places.file.hash, places.bytes], [crags.file.hash, crags.bytes], [dressingBlob.file.hash, dressingBlob.bytes], [specimenBank.file.hash, specimenBank.bytes]]) };
 }

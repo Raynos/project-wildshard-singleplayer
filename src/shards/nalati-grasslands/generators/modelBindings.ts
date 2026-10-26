@@ -6,6 +6,11 @@ const productPrefix = 'models/painted/';
 /** Equal atlas bytes have one logical product name, so shared images never create forbidden content aliases. */
 export function nalatiPaintedAtlasFile(bytes: Uint8Array): string { return `${productPrefix}atlas-${hashImmutableBytes(bytes)}.ktx2`; }
 
+/** Near tier geometry may be identical after stripping its atlas; retain the existing untextured far names. */
+export function nalatiPaintedGeometryFile(name: string, bytes: Uint8Array): string {
+  return name.endsWith('.far.glb') ? `${productPrefix}${name}` : `${productPrefix}geometry-${hashImmutableBytes(bytes)}.glb`;
+}
+
 function modelName(path: string, prefix: string): string {
   const name = path.slice(prefix.length);
   if (!MODEL_FILES.includes(name)) throw new Error('Unknown Nalati painted model binding');
@@ -38,7 +43,7 @@ export function nalatiPaintedBindings(input: unknown, files: ReadonlyMap<string,
     if (typeof path !== 'string' || !path.startsWith(publicPrefix)) continue;
     const name = modelName(path, publicPrefix), geometry = files.get(name);
     if (geometry === undefined) throw new Error(`Missing owned Nalati model geometry: ${name}`);
-    out[sourceKey] = { file: `${productPrefix}${name}`, bytes: geometry.byteLength };
+    out[sourceKey] = { file: nalatiPaintedGeometryFile(name, geometry), bytes: geometry.byteLength };
     if (!name.endsWith('.far.glb')) {
       const texture = name.replace(/\.glb$/u, '.ktx2'), atlas = files.get(texture);
       if (atlas === undefined) throw new Error(`Missing owned Nalati model atlas: ${texture}`);

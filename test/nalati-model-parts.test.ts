@@ -12,6 +12,8 @@ import { hashImmutableBytes } from '../src/sdk/immutable';
 import { nalatiModelParts } from '../src/shards/nalati-grasslands/generators/modelParts';
 import { nalatiModelSourceParts } from '../src/shards/nalati-grasslands/generators/modelSourceParts';
 import pins from './fixtures/nalati-model-paint.json' with { type: 'json' };
+import partPins from './fixtures/nalati-model-parts.json' with { type: 'json' };
+import { textureMipBytes } from '../src/format/contentBounds';
 
 function isGeometry(value: unknown): value is BufferGeometry { return value instanceof BufferGeometry; }
 function isMaterial(value: unknown): value is Material { return value instanceof Material; }
@@ -26,6 +28,8 @@ test.each(pins)('separates $file with every original geometry byte and decoded a
   const input = new Uint8Array(readFileSync(`public/assets/nalati/baked/painted-models/${pin.file}`));
   expect(input.byteLength).toBe(pin.bytes); expect(hashImmutableBytes(input)).toBe(pin.sha256);
   const beforeHash = hashImmutableBytes(input), source = nalatiModelSourceParts(input), parts = await nalatiModelParts(input);
+  const partPin = partPins.find(row => row.file === pin.file); if (partPin === undefined) throw new Error('Missing complete model-part pin');
+  expect(parts.geometry.length).toBe(partPin.geometry.compressed); expect(hashImmutableBytes(parts.geometry)).toBe(partPin.geometry.hash);
   expect(hashImmutableBytes(input)).toBe(beforeHash);
   expect(parts.geometry.buffer).not.toBe(input.buffer);
   expect(source.geometry.buffer).not.toBe(input.buffer);
@@ -54,6 +58,7 @@ test.each(pins)('separates $file with every original geometry byte and decoded a
     if (!isMaterial(material)) throw new Error('Missing original painted material');
     const texture = original.texture(material);
     if (texture === null) {
+      expect(partPin.atlas).toBeNull();
       expect(source.webp).toBeNull();
       expect(parts.atlas).toBeNull(); expect(Buffer.compare(parts.geometry, input)).toBe(0);
     } else {
@@ -62,8 +67,11 @@ test.each(pins)('separates $file with every original geometry byte and decoded a
       expect(Buffer.compare(webp, texture.image)).toBe(0);
       expect(texture.sampler).toEqual({ magFilter: 9729, minFilter: 9987, wrapS: 10497, wrapT: 10497 });
       const atlas = parts.atlas; if (atlas === null) throw new Error('Missing separate atlas');
+      const atlasPin = partPin.atlas; if (atlasPin === null) throw new Error('Missing complete atlas pin');
+      expect(atlas.length).toBe(atlasPin.compressed); expect(hashImmutableBytes(atlas)).toBe(atlasPin.hash);
       expect(() => parseKtx2(atlas)).not.toThrow();
       const pixels = await readImagePixels(texture.image), view = new DataView(atlas.buffer, atlas.byteOffset, atlas.byteLength);
+      expect(atlasPin.gpu).toBe(textureMipBytes(pixels.width, pixels.height, 1 + Math.floor(Math.log2(Math.max(pixels.width, pixels.height))), false));
       expect(view.getUint32(12, true)).toBe(43); expect(view.getUint32(20, true)).toBe(pixels.width); expect(view.getUint32(24, true)).toBe(pixels.height);
       const start = Number(view.getBigUint64(80, true)), length = Number(view.getBigUint64(88, true));
       const decoded = zstdDecompressSync(atlas.subarray(start, start + length));

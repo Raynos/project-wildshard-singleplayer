@@ -13609,7 +13609,11 @@
         "src/shards/nalati-grasslands/generators/modelPaint.mjs",
         "src/sdk/assets.ts",
         "src/sdk/bake/glb.ts",
-        "src/sdk/bake/skinned.ts"
+        "src/sdk/bake/skinned.ts",
+        "src/shards/nalati-grasslands/generators/modelSourceParts.ts",
+        "src/shards/nalati-grasslands/generators/modelPartsProgram.ts",
+        "src/shards/nalati-grasslands/generators/modelBindings.ts",
+        "src/sdk/bake/rawTexture.ts"
       ],
       "outputs": [
         "public/assets/nalati-grasslands/map/top.webp",
