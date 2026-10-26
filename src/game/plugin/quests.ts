@@ -55,7 +55,7 @@ export interface QuestRewardEffects {
   readonly release?: () => void;
 }
 const rewardFinite = v.pipe(v.number(), v.finite());
-const RewardSaved = v.strictObject({
+const RewardSaved: v.GenericSchema<BoundedQuestRewardSavedInput, BoundedQuestRewardSaved> = v.strictObject({
   elapsed: v.union([v.literal(-2), v.literal(-1), v.pipe(rewardFinite, v.minValue(0))]),
   carried: v.boolean(), player: v.strictObject({ pitch: rewardFinite, carried: v.boolean() }),
   from: v.strictObject({ x: rewardFinite, y: rewardFinite, z: rewardFinite, yaw: rewardFinite, pitch: rewardFinite, phase: rewardFinite }),
@@ -120,15 +120,15 @@ export class QuestRewardController {
 }
 
 /** The defining format dialogue schema, shared by the page and native owners by identity. */
-export const NpcDialogueRowSchema = npcs.NpcDialogueRowSchema;
+export const NpcDialogueRowSchema: typeof npcs.NpcDialogueRowSchema = npcs.NpcDialogueRowSchema;
 /** Ordered authored dialogue independent of the runtime figure. */
 export type NpcDialogueRow = npcs.NpcDialogueRow;
 /** The defining format motion schema; runtime easing and pose laws stay unchanged. */
-export const NpcMotionSchema = npcs.NpcMotionSchema;
+export const NpcMotionSchema: typeof npcs.NpcMotionSchema = npcs.NpcMotionSchema;
 /** A validated pivot NPC motion row. */
 export type NpcMotion = npcs.NpcMotion;
 /** The defining format NPC schema, preserving identity for every existing runtime consumer. */
-export const NpcRowSchema = npcs.NpcRowSchema;
+export const NpcRowSchema: typeof npcs.NpcRowSchema = npcs.NpcRowSchema;
 /** A validated quest-giver NPC row. */
 export type NpcRow = npcs.NpcRow;
 
@@ -143,7 +143,7 @@ export function npcSpot(row: NpcRow, groundAt: (x: number, z: number) => number)
 }
 
 /** The defining pure quest graph contract, shared by author and native consumers. */
-export const QuestGraphSchema = graphContracts.QuestGraphSchema;
+export const QuestGraphSchema: typeof graphContracts.QuestGraphSchema = graphContracts.QuestGraphSchema;
 /** A validated quest graph runtime row. */
 export type QuestGraphRow = graphContracts.QuestGraphRow;
 /** Admit the identical quest graph without installing a native owner. */
@@ -410,3 +410,23 @@ export function createReadingRoster<Source, Saved>(rows: QuestReadingRows<Source
     },
   };
 }
+
+/** Complete admitted data, independent of validator implementation metadata. */
+type BoundedQuestRewardSavedInput = BoundedQuestRewardSaved;
+interface BoundedQuestRewardSavedFields {
+    elapsed: number;
+    carried: boolean;
+    player: {
+        pitch: number;
+        carried: boolean;
+    };
+    from: {
+        x: number;
+        y: number;
+        z: number;
+        yaw: number;
+        pitch: number;
+        phase: number;
+    };
+}
+type BoundedQuestRewardSaved = { [Key in keyof BoundedQuestRewardSavedFields]: BoundedQuestRewardSavedFields[Key] };

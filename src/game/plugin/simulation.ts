@@ -1271,9 +1271,9 @@ export function installDeclaredQuestHost(host: SimHost, source: Shardfile, ports
 
 
 const nativeActorMetadata = v.object({ kind: v.string(), spec: v.unknown() });
-const nativeWorldMetadata = v.object({ actors: v.array(v.object({ kind: v.exactOptional(v.string()), spec: v.unknown() })) });
+const nativeWorldMetadata: v.GenericSchema<BoundedNativeWorldMetadataInput, BoundedNativeWorldMetadata> = v.object({ actors: v.array(v.object({ kind: v.exactOptional(v.string()), spec: v.unknown() })) });
 const nativeQuestSpot = v.strictObject({ id: v.string(), x: bakedNumber, y: bakedNumber, z: bakedNumber, radius: v.pipe(bakedNumber, v.minValue(0)) });
-const nativeQuestMetadata = v.object({ actors: v.array(nativeActorMetadata), bosses: v.array(nativeActorMetadata),
+const nativeQuestMetadata: v.GenericSchema<BoundedNativeQuestMetadataInput, BoundedNativeQuestMetadata> = v.object({ actors: v.array(nativeActorMetadata), bosses: v.array(nativeActorMetadata),
   spots: v.strictObject({ interact: v.array(nativeQuestSpot), crack: v.array(nativeQuestSpot) }), promptRegistrations: v.optional(v.unknown()) });
 /** Read native actor metadata, requiring complete quest spots and boss rows when requested. Collision rows remain addBakedWorld's responsibility. */
 export function readRuntimeWorldMetadata(input: unknown, quests: true): v.InferOutput<typeof nativeQuestMetadata>;
@@ -1515,3 +1515,42 @@ export function createNativeTargetQueries<T extends NativeTargetBody>(ports: {
     closest: (body, origin, limit, out) => { read(body); return nativeVolumeContact(origin, null, limit, volumes, out); },
   };
 }
+
+/** Complete admitted data, independent of validator implementation metadata. */
+type BoundedNativeWorldMetadataInput = BoundedNativeWorldMetadata;
+interface BoundedNativeWorldMetadataFields {
+    actors: {
+        kind?: string;
+        spec: unknown;
+    }[];
+}
+type BoundedNativeWorldMetadata = { [Key in keyof BoundedNativeWorldMetadataFields]: BoundedNativeWorldMetadataFields[Key] };
+type BoundedNativeQuestMetadataInput = BoundedNativeQuestMetadata;
+interface BoundedNativeQuestMetadataFields {
+    actors: {
+        kind: string;
+        spec: unknown;
+    }[];
+    bosses: {
+        kind: string;
+        spec: unknown;
+    }[];
+    spots: {
+        interact: {
+            id: string;
+            x: number;
+            y: number;
+            z: number;
+            radius: number;
+        }[];
+        crack: {
+            id: string;
+            x: number;
+            y: number;
+            z: number;
+            radius: number;
+        }[];
+    };
+    promptRegistrations?: unknown;
+}
+type BoundedNativeQuestMetadata = { [Key in keyof BoundedNativeQuestMetadataFields]: BoundedNativeQuestMetadataFields[Key] };

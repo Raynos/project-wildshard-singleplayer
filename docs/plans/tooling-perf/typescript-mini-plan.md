@@ -190,6 +190,7 @@ normal layer emission is the declaration-size authority. Continuation starts at 
 | T4-I3i | Game rig fields and diagnostic defaults; retain mutable tuple palettes and resource owners | 60 min | done (2026-10-25, sp-x8) |
 | T4-I3j | Game expression owners; retain save schemas, readonly ring limits and live uniform identities | 60 min | done (2026-10-25, sp-x8) |
 | T4-I3k | Game look expressions and factories; retain literal blends, mutable scales and returned resources | 60 min | done (2026-10-25, sp-x8) |
+| T4-I3l | Game metadata and dialogue; retain grid identities, overloads and defining schema aliases | 60 min | done (2026-10-25, sp-x8) |
 
 T4 first format slices are on origin: schema expressions and emitted runtime JavaScript are unchanged.
 Independent named data types replace exported validator implementation types; original/candidate input and output
