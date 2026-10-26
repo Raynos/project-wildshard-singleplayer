@@ -1,6 +1,6 @@
 /**
- * Sky Reach's baked creature bodies (SHARD-PLATFORM M3, `generators/creatures.ts` → `scripts/bake-sky-rigs.mjs`): the
- * generated sources the generator reads offline and their skin metadata. Runtime asset inventory lives in `boot/files.ts`.
+ * Sky Reach's native creature sources and skin metadata. The owned source/cache program
+ * returns the complete original bodies; the admitted product supplies runtime addresses.
  */
 /** The generated sources (C6 / E392: Hunyuan3D-2 GLBs under public/), read only by the bake. */
 export const SKY_CREATURE_SOURCES = {

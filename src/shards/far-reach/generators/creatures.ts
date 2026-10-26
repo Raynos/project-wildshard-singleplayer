@@ -7,13 +7,12 @@ import { SKY_CREATURE_SOURCES, type SkyCreatureExtras } from './rows/creatures';
 import type { SkyCreature } from './fileInventory';
 
 /**
- * Build-time only (SHARD-PLATFORM M3, the offline skinned-model bake): Sky Reach's three generated creature bodies, baked by
- * `scripts/bake-sky-rigs.mjs` into `public/assets/far-reach/rigs/<creature>.glb` (the Roc's painted map inside it, the source's
+ * Build-time only: the source program owns Sky Reach's four creature bodies and their admitted rig files (the Roc's painted map inside it, the source's
  * exact WebP bytes, so the KTX2 bake makes its phone stand-in as it did for the source). Each generated source is read offline through the runtime's own intake
  * (`@wildshard/sdk/looks/modelIntake` facetedGeometry / hdGeometry), fitted, re-skinned and recoloured here exactly as the runtime did it,
- * and written as a standard skinned GLB (`@wildshard/sdk/bake/skinned`); the client only loads it (`species/bodies.ts`).
- * The gale wisp is code-built here (no source model): its primitive parts painted and rigidly skinned, one bone each. `test/shards/far-reach/creature-bake.test.ts`
- * is the byte-exact stale gate.
+ * and returned as a standard skinned GLB (`@wildshard/sdk/bake/skinned`); the native product owns its runtime address.
+ * The gale wisp is code-built here (no source model): its primitive parts painted and rigidly skinned, one bone each.
+ * `test/sky-creature-rig-program.test.ts` preserves every original byte and native-input refusal.
  */
 
 /** A processed body: what the species look's `build()` returns, plus its map. */

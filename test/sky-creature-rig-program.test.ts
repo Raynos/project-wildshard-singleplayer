@@ -1,10 +1,10 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Confine native input/cache fixtures and compare complete original GLBs.
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Keep native roots, bundles and sealed-driver scratch inside the checkout.
-import { dirname, relative, resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
-import { discoverGeneration, generateShardJob } from '../scripts/generate.mjs';
+import { discoverGeneration } from '../scripts/generate.mjs';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { createProjectGeneration, type ProjectGenerationContext } from '../src/sdk/projectGeneration';
@@ -95,47 +95,42 @@ test('the source/cache bundles without generated imports or file/compiler servic
   }
 });
 
-test('the real retained cold sealed writer preserves all four declared original outputs', async () => {
-  const root = resolve('.'), job = discoverGeneration(root).jobs.find(row => row.id === 'sky-rigs');
-  if (job === undefined) throw new Error('Missing retained creature writer');
-  const cacheDir = mkdtempSync(resolve('tmp/sky-rigs-sealed-'));
+test('the active cold native source preserves all four originals with no public rig handoffs', async () => {
+  const scratch = mkdtempSync(resolve('tmp/sky-rigs-retired-')), native = resolve(scratch, 'native'), prefix = '/assets/far-reach/';
   try {
-    const result = await generateShardJob(root, job, { cacheDir, forceCompare: true });
-    try {
-      expect(result.hit).toBe(false);
-      expect(result.hashes).toEqual(Object.fromEntries(job.outputs.map(path => {
-        const name = path.slice(path.lastIndexOf('/') + 1), original = originals[name];
-        if (original === undefined) throw new Error('Unexpected scheduled creature output');
-        return [path, original[1]];
-      })));
-    } finally { result.release(); }
-  } finally { rmSync(cacheDir, { recursive: true, force: true }); }
-});
-
-test.each(CREATURE_RIG_INPUTS)('the real sealed writer refuses omitted native source %s', async input => {
-  const root = resolve('.'), { jobs } = discoverGeneration(root), job = jobs.find(row => row.id === 'sky-rigs');
-  if (job === undefined) throw new Error('Missing retained creature writer');
-  const source = `public${input}`;
-  expect(job.inputRoots).toContain(source);
-  const scratch = mkdtempSync(resolve('tmp/sky-rigs-omitted-'));
-  try {
-    const omitted = { ...job, inputRoots: job.inputRoots.filter(path => path !== source) };
-    const catalogPath = relative(root, resolve(scratch, 'omitted.json'));
-    writeFileSync(catalogPath, JSON.stringify({ schema: '../scripts/generation-jobs.schema.json',
-      jobs: jobs.map(row => row.id === job.id ? omitted : row) }));
-    await expect(generateShardJob(root, omitted, { cacheDir: resolve(scratch, 'cache'), catalogPath, forceCompare: true }))
-      .rejects.toThrow('Generator exited 1');
+    for (const input of CREATURE_RIG_INPUTS) {
+      const file = resolve(native, input.slice(prefix.length)); mkdirSync(dirname(file), { recursive: true });
+      writeFileSync(file, readFileSync(`public${input}`));
+    }
+    const ctx = createProjectGeneration(resolve('src/shards/far-reach'), 'e'.repeat(64), new Map(), resolve(scratch, 'cache'), [{ prefix, directory: native }]);
+    check(await skyCreatureRigProgram(ctx));
+    for (const name of CREATURE_RIG_FILES) expect(existsSync(resolve(native, 'rigs', name)), name).toBe(false);
   } finally { rmSync(scratch, { recursive: true, force: true }); }
 });
 
-test('the retained writer declares all four original rigs and only explicit authored model inputs', () => {
-  const job = discoverGeneration(resolve('.')).jobs.find(row => row.id === 'sky-rigs');
-  if (job === undefined) throw new Error('Missing retained creature writer');
-  expect(job.outputs).toEqual(CREATURE_RIG_FILES.map(name => `public/assets/far-reach/rigs/${name}`));
-  expect(job.command).toContain('./src/sdk/bake/source-loader.mjs');
-  expect(job.inputRoots).toContain('src/shards/far-reach/generators/creatureRigProgram.ts');
-  for (const name of CREATURE_RIG_INPUTS) expect(job.inputRoots).toContain(`public${name}`);
-  for (const broad of ['src/engine', 'src/game', 'src/commons', 'src/shards/far-reach', 'public/assets/far-reach']) {
-    expect(job.inputRoots).not.toContain(broad);
+test.each(CREATURE_RIG_INPUTS)('the active native cache refuses omitted source %s even on a warmed hit', async input => {
+  const scratch = mkdtempSync(resolve('tmp/sky-rigs-omitted-')), native = resolve(scratch, 'native'), prefix = '/assets/far-reach/';
+  try {
+    for (const source of CREATURE_RIG_INPUTS) {
+      const file = resolve(native, source.slice(prefix.length)); mkdirSync(dirname(file), { recursive: true });
+      writeFileSync(file, readFileSync(`public${source}`));
+    }
+    const context = () => createProjectGeneration(resolve('src/shards/far-reach'), 'e'.repeat(64), new Map(), resolve(scratch, 'cache'), [{ prefix, directory: native }]);
+    check(await skyCreatureRigProgram(context()));
+    rmSync(resolve(native, input.slice(prefix.length)));
+    await expect(skyCreatureRigProgram(context())).rejects.toThrow('ENOENT');
+  } finally { rmSync(scratch, { recursive: true, force: true }); }
+});
+
+test('the rig scheduler and every handoff reader are retired while legacy files stay exact', () => {
+  for (const job of discoverGeneration(resolve('.')).jobs) {
+    expect(job.id).not.toBe('sky-rigs');
+    for (const name of CREATURE_RIG_FILES) {
+      const file = `public/assets/far-reach/rigs/${name}`;
+      expect(job.outputs, job.id).not.toContain(file);
+      expect(job.inputRoots, job.id).not.toContain(file);
+    }
   }
+  expect(existsSync('src/shards/far-reach/generators/bake-sky-rigs.mjs')).toBe(false);
+  for (const [name, original] of Object.entries(originals)) expect(hashImmutableBytes(readFileSync(`public/assets/far-reach/rigs/${name}`)), name).toBe(original[1]);
 });
