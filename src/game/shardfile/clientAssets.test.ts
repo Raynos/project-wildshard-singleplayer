@@ -4,6 +4,7 @@ import { memoryAttribution } from '@wildshard/engine/core/memoryAttribution';
 import { parseShardfile } from '@wildshard/format/shardSchema';
 import { SHARDFILE_VERSION } from '@wildshard/format/version';
 import { ClientAssets } from './clientAssets';
+import { realGc } from '@wildshard/engine/test/realGc';
 
 const observed: ArrayBufferLike[] = [];
 afterEach(() => {
@@ -78,4 +79,83 @@ test('ordinary reads add no diagnostic rows and invalid verified bytes still ref
   } });
   await expect(invalid.read(f.ref)).rejects.toThrow('hash or size mismatch');
   expect(f.rows()).toHaveLength(0);
+});
+
+test('concurrent released reads borrow one verified backing only until the wave settles', async () => {
+  const f = fixture();
+  let complete = (_bytes: Uint8Array): void => undefined;
+  const wave = new Promise<Uint8Array>(resolve => { complete = resolve; });
+  const verifiedAsset = vi.fn(() => wave);
+  const assets = new ClientAssets(f.source, new Map(), { ...f.options, cache: {
+    product: () => Promise.resolve(null), putProduct: () => Promise.resolve(),
+    asset: () => Promise.reject(new Error('Unexpected unverified read')),
+    putAsset: () => Promise.resolve(true), verifiedAsset,
+  } });
+  const first = assets.read(f.ref), second = assets.read(f.ref);
+  expect(verifiedAsset).toHaveBeenCalledTimes(1);
+  complete(f.bytes);
+  expect(await first).toBe(f.bytes); expect(await second).toBe(f.bytes);
+  expect(assets.retained.size).toBe(0);
+  expect(await assets.read(f.ref)).toBe(f.bytes);
+  expect(verifiedAsset).toHaveBeenCalledTimes(2);
+  expect(f.options.hash).not.toHaveBeenCalled();
+});
+
+test('a refused concurrent wave keeps its exact guard and a later read retries', async () => {
+  const f = fixture(), verifiedAsset = vi.fn(() => Promise.resolve(new Uint8Array([1])));
+  const assets = new ClientAssets(f.source, new Map(), { ...f.options, cache: {
+    product: () => Promise.resolve(null), putProduct: () => Promise.resolve(),
+    asset: () => Promise.resolve(null), putAsset: () => Promise.resolve(true), verifiedAsset,
+  } });
+  const refused = await Promise.allSettled([assets.read(f.ref), assets.read(f.ref)]);
+  expect(verifiedAsset).toHaveBeenCalledTimes(1);
+  for (const result of refused) {
+    expect(result.status).toBe('rejected');
+    if (result.status === 'rejected') expect(result.reason).toEqual(new Error('Resident tile hash or size mismatch'));
+  }
+  verifiedAsset.mockImplementation(() => Promise.resolve(f.bytes));
+  expect(await assets.read(f.ref)).toBe(f.bytes);
+  expect(verifiedAsset).toHaveBeenCalledTimes(2);
+  await expect(assets.read('b'.repeat(64))).rejects.toThrow('Undeclared resident asset');
+  expect(verifiedAsset).toHaveBeenCalledTimes(2);
+});
+
+test('distinct declared reads stay parallel and do not share byte owners', async () => {
+  const f = fixture(), other = 'b'.repeat(64), row = f.source.files[0];
+  if (row === undefined) throw new Error('Missing fixture file');
+  f.source.files.push({ ...row, hash: other });
+  const completed = new Map<string, (bytes: Uint8Array) => void>();
+  const verifiedAsset = vi.fn((hash: string) => new Promise<Uint8Array>(resolve => { completed.set(hash, resolve); }));
+  const assets = new ClientAssets(f.source, new Map(), { ...f.options, cache: {
+    product: () => Promise.resolve(null), putProduct: () => Promise.resolve(),
+    asset: () => Promise.resolve(null), putAsset: () => Promise.resolve(true), verifiedAsset,
+  } });
+  const first = assets.read(f.ref), second = assets.read(other), bytes = new Uint8Array([4, 5, 6]);
+  expect([...completed.keys()]).toEqual([f.ref, other]);
+  completed.get(other)?.(bytes); expect(await second).toBe(bytes);
+  completed.get(f.ref)?.(f.bytes); expect(await first).toBe(f.bytes);
+  expect(assets.retained.size).toBe(0);
+});
+
+const flightGc = 'completed read waves release their backing with the asset reader alive';
+test(flightGc, async () => {
+  await realGc('src/game/shardfile/clientAssets.test.ts', flightGc, async collect => {
+    const f = fixture(), row = f.source.files[0];
+    if (row === undefined) throw new Error('Missing fixture file');
+    row.compressed = 1024 * 1024;
+    const assets = new ClientAssets(f.source, new Map(), { ...f.options, cache: {
+      product: () => Promise.resolve(null), putProduct: () => Promise.resolve(),
+      asset: () => Promise.resolve(null), putAsset: () => Promise.resolve(true),
+      verifiedAsset: () => Promise.resolve(new Uint8Array(1024 * 1024)),
+    } });
+    const backing = await (async () => {
+      const [first, second] = await Promise.all([assets.read(f.ref), assets.read(f.ref)]);
+      if (first === undefined || second === undefined) throw new Error('Missing fixture read');
+      expect(first).toBe(second);
+      return new WeakRef(first.buffer);
+    })();
+    await collect(backing);
+    expect(assets.retained.size).toBe(0);
+    expect((await assets.read(f.ref)).byteLength).toBe(1024 * 1024);
+  });
 });

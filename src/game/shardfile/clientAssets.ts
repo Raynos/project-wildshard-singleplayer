@@ -9,6 +9,7 @@ import type { Shardfile } from '@wildshard/format/shardSchema';
 /** Release admitted transport copies after decoding; revisiting a tile rechecks immutable bytes from cache or the product. */
 export class ClientAssets {
   private readonly wire: Map<string, Uint8Array>;
+  private readonly pending = new Map<string, Promise<Uint8Array>>();
   private readonly source: Shardfile;
   private readonly options: ProductOptions;
   constructor(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>, options: ProductOptions) {
@@ -31,8 +32,17 @@ export class ClientAssets {
     // a cached read resolves at once, unless the frame's build budget is spent (pacedResolve): a hook's chain of
     // cached reads must not run in one task on the road
     const present = this.wire.get(ref); if (present !== undefined) return pacedResolve(this.observe(ref, present));
+    // Callers already borrow admitted immutable transport. Concurrent released
+    // reads borrow one verification/backing too; decoders that transfer copy it.
+    // Keep no settled result: later residency rereads still check cache/network.
+    const previous = this.pending.get(ref); if (previous !== undefined) return previous;
+    const read = this.readReleased(ref, file?.compressed ?? this.source.requires.commonsWire[ref.replace(/^commons:/u, '')] ?? 0);
+    this.pending.set(ref, read);
+    try { return await read; }
+    finally { this.pending.delete(ref); }
+  }
+  private async readReleased(ref: string, cap: number): Promise<Uint8Array> {
     const hash = ref.replace(/^commons:/u, ''), base = new URL('.', this.options.base).href;
-    const cap = file?.compressed ?? this.source.requires.commonsWire[hash] ?? 0;
     // Residency rereads may have no format-2 descriptor. Accounting observes
     // those unknown-path reads on completion and never changes cache refusals.
     if (outputDescriptor(this.source) !== undefined) declareDownloadFile(outputBlobUrl(this.source, ref, base), cap);
