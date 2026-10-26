@@ -43,10 +43,15 @@ test('all three declared files preserve original bytes, order, width and honest 
   expect(total).toBe(20664);
 });
 
-test('raw and complete legacy attributes build identical independently owned native arrays',async()=>{
+test('named attributes retain complete predecessor buffers and independently owned native arrays',async()=>{
   const inline=Object.fromEntries(Object.entries(attributes).map(([name,row])=>{
     const bytes=files.get(row.file);if(bytes===undefined)throw new Error('Missing authored bytes');
     return [name,{size:row.size,float32:Buffer.from(bytes).toString('base64')}];
+  }));
+  // Retain the predecessor's complete decoded storage as a separate test-only byte oracle.
+  const predecessor=new Map(Object.entries(attributes).map(([name,row])=>{
+    const prior=inline[name];if(prior===undefined)throw new Error('Missing predecessor attribute');
+    return [row.file,Uint8Array.from(atob(prior.float32),byte=>byte.codePointAt(0)??0)];
   }));
   const originalFactory=dataLook.paintedLookFromRow;
   let build:Parameters<typeof originalFactory>[1]['dressing'];
@@ -54,8 +59,8 @@ test('raw and complete legacy attributes build identical independently owned nat
     build=ports.dressing;const{dressing:_dressing,...rest}=ports;return originalFactory(row,rest);
   });
   const material=new MeshBasicMaterial(),graph=vi.fn(()=>Promise.resolve(material));
-  for(const input of [inline,attributes]){
-    const source=product(rows(input)),look=await productPaintedLook(source.value),draw=build;
+  for(const bank of [predecessor,files]){
+    const source=product(rows(attributes),bank),look=await productPaintedLook(source.value),draw=build;
     if(draw===undefined)throw new Error('Missing actual dressing builder');
     try{
       const first=await draw({graph}),second=await draw({graph}),a=first.group.children[0],b=second.group.children[0];
@@ -73,7 +78,7 @@ test('raw and complete legacy attributes build identical independently owned nat
         expect(other.array).not.toBe(attr.array);const before=other.getX(0);attr.setX(0,999);expect(other.getX(0)).toBe(before);
       }
       ga.dispose();gb.dispose();
-      expect(source.read).toHaveBeenCalledTimes(input===inline?0:3);
+      expect(source.read).toHaveBeenCalledTimes(3);
     }finally{look.dispose?.();}
   }
   material.dispose();
@@ -113,5 +118,17 @@ test('wrong byte counts and nonfinite float32 refuse before constructing any loo
   for(const bad of [new Uint8Array(1),(()=>{const bytes=new Uint8Array(5904);new DataView(bytes.buffer).setFloat32(0,Number.NaN,true);return bytes;})()]){
     const bank=new Map(files);bank.set(attributes.aCell.file,bad);
     await expect(productPaintedLook(product(rows(attributes),bank).value)).rejects.toThrow();expect(factory).not.toHaveBeenCalled();
+  }
+});
+
+test('modern painted products refuse inline attributes before any read or look allocation',async()=>{
+  const factory=vi.spyOn(dataLook,'paintedLookFromRow');
+  const bytes=files.get(attributes.aFar.file);if(bytes===undefined)throw new Error('Missing original attribute');
+  const inline={size:attributes.aFar.size,float32:Buffer.from(bytes).toString('base64')};
+  for(const input of [{aFar:inline},{...attributes,aFar:inline}]){
+    const source=product(rows(input));
+    const load=productPaintedLook(source.value).then(look=>{look.dispose?.();return look;});
+    await expect(load).rejects.toThrow('Painted attributes require named binary files');
+    expect(source.read).not.toHaveBeenCalled();expect(factory).not.toHaveBeenCalled();
   }
 });

@@ -10,7 +10,6 @@
     "src/engine/core/deflate.ts": 1,
     "src/engine/native/updates.ts": 1,
     "src/engine/world/scalarChannel.ts": 1,
-    "src/game/looks/paintedLook.ts": 1,
     "src/game/plugin/brain.ts": 1,
     "src/game/population/nativeBake.ts": 1,
     "src/game/population/returnProgram.ts": 1,

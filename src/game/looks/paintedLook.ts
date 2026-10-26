@@ -27,7 +27,10 @@ export function productPaintedImage(product: ShardProduct, id: string): Texture 
 export async function productPaintedLook(product: ShardProduct): Promise<LookStrategy> {
   const row = parsePaintedLook(product.section('look/painted'));
   const attributeFiles=await prepareBinarySources(product,(row.dressing?.draws??[]).flatMap(draw=>draw.geometry.kind==='plane'
-    ?Object.values(draw.geometry.instances??{}).flatMap(attribute=>'file'in attribute?[{source:{file:attribute.file},bytes:attribute.count*4}]:[]):[]));
+    ?Object.values(draw.geometry.instances??{}).map(attribute=>{
+      if(!('file'in attribute))throw new Error('Painted attributes require named binary files');
+      return {source:{file:attribute.file},bytes:attribute.count*4};
+    }):[]));
   for(const bytes of attributeFiles.values()){
     const view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);
     for(let offset=0;offset<bytes.byteLength;offset+=4)if(!Number.isFinite(view.getFloat32(offset,true)))throw new Error('Painted attribute requires finite float32 values');
@@ -88,7 +91,8 @@ export async function productPaintedLook(product: ShardProduct): Promise<LookStr
         const quad = geometry.kind === 'disc' ? new CircleGeometry(geometry.radius, geometry.segments) : new PlaneGeometry(...geometry.size);
         const mesh = new Mesh(geometry.kind === 'plane' && geometry.instances !== undefined
           ? instancedQuad(quad, Object.fromEntries(Object.entries(geometry.instances).map(([name, attribute]) => {
-            const bytes = 'file'in attribute?attributeFiles.get(attribute.file)?.slice():Uint8Array.from(atob(attribute.float32), c => c.codePointAt(0) ?? 0);
+            if(!('file'in attribute))throw new Error('Painted attributes require named binary files');
+            const bytes = attributeFiles.get(attribute.file)?.slice();
             if(bytes===undefined)throw new Error('Painted attribute source was not prepared');
             return [name, new InstancedBufferAttribute(new Float32Array(bytes.buffer), attribute.size)];
           }))) : quad, material);

@@ -1554,10 +1554,10 @@ Its optional `terrain: 'declared'` waits for the admitted terrain field;
 it preserves a product's terrain ownership through the look binding.
 `game/looks/paintedLook#productPaintedLook(product)` resolves its exact
 per-tier image samplers, graph ids from `look.materials`, optional LUT,
-scene-state field and ordered disc/card dressing. Discovery selects this
-compiled host with `bindings.render: { platform: 'painted' }`; authors do
-not supply resource callbacks. Missing images, LUTs and graph bindings
-refuse loading. `productPainterLight(product, root, scope)` applies the
+scene state and ordered dressing. Attributes require named binary files;
+inline rows refuse before reads or allocation. Discovery selects this host
+with `bindings.render: { platform: 'painted' }`. Missing images, LUTs and
+graphs refuse loading. `productPainterLight(product, root, scope)` applies the
 same row to original standard materials, respecting its explicit user-data
 opt-out and optional original rim direction; a null root installs the
 page light. `render/instancedGeometry#instancedQuad` preserves a quad's
