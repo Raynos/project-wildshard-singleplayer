@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { BufferAttribute, BufferGeometry, Matrix4, Mesh, MeshBasicMaterial } from 'three';
+import { BufferAttribute, BufferGeometry, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial } from 'three';
 import { Scope } from '@wildshard/engine/app/scope';
 import { tiledMesh } from './tiledMesh';
 import { tileKey } from './tileContent';
@@ -41,4 +41,30 @@ test('the cell transform places the triangles; a mesh in one tile stays whole', 
   const one = new BufferGeometry();
   one.setAttribute('position', new BufferAttribute(Float32Array.from([0, 0, 0, 1, 0, 0, 0, 0, 1]), 3));
   expect(tiledMesh('trolley', new Mesh(one, new MeshBasicMaterial()), new Matrix4())).toBeNull();
+});
+
+test('an instanced part draws only its resident tiles\' instances, every channel alike, one draw', () => {
+  const geometry = new BufferGeometry();
+  geometry.setAttribute('position', new BufferAttribute(Float32Array.from([0, 0, 0, 1, 0, 0, 0, 0, 1]), 3));
+  geometry.setAttribute('aSeed', new InstancedBufferAttribute(Float32Array.from([10, 20, 30]), 1));
+  const mesh = new InstancedMesh(geometry, new MeshBasicMaterial(), 3);
+  spots.forEach(([x, z], i) => { mesh.setMatrixAt(i, new Matrix4().makeTranslation(x, 0, z)); });
+  const content = tiledMesh('palms', mesh, new Matrix4()), scope = new Scope('tiles');
+  if (content === null) throw new Error('expected tiled instances');
+  const near = key(-200, -200), far = key(100, 150), seed = (): number[] => Array.from(geometry.getAttribute('aSeed').array.slice(0, mesh.count));
+  expect(mesh.count).toBe(0);
+  const farScope = scope.child('far'), nearScope = scope.child('near');
+  void content.attach(far, farScope);
+  expect(mesh.count).toBe(1); expect(seed()).toEqual([30]); expect(mesh.instanceMatrix.array[12]).toBe(100);
+  void content.attach(near, nearScope);
+  expect(mesh.count).toBe(3); expect(seed()).toEqual([10, 20, 30]);
+  farScope.dispose();
+  expect(mesh.count).toBe(2); expect(seed()).toEqual([10, 20]); expect(mesh.instanceMatrix.array[12]).toBe(-200);
+  scope.dispose();
+  expect(mesh.count).toBe(0);
+  // a part with a per-frame hook of its own (a culler owns its count) stays whole
+  const culled = new InstancedMesh(geometry, new MeshBasicMaterial(), 3);
+  spots.forEach(([x, z], i) => { culled.setMatrixAt(i, new Matrix4().makeTranslation(x, 0, z)); });
+  culled.onBeforeRender = () => undefined;
+  expect(tiledMesh('culled', culled, new Matrix4())).toBeNull();
 });
