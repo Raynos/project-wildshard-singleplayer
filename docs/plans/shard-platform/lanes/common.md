@@ -14,7 +14,7 @@ AGENTS.md and docs/process/ hold the rest.
   waits-Opus) in its plan, in the first code commit of that row (G711).
 - **Big moves (G704):** ≤ ~20 hand-touched files a commit, typed lint first, one big move at a time.
 - **Producer before reader:** a new generated input lands with (or before) its first reader, never after.
-- **Shared plumbing (SDK/build/generator):** run the affected behaviour shards locally before landing; CF1 misses them.
+- **Shared plumbing (G746):** SDK/build/generator commits run every affected behaviour test group locally first.
 - **Small commits:** land each green cut now; claims and progress go in the code commit's message, never a separate
   docs/record commit; no receipts (G506/G708).
 - **Messages (G708):** herdr only for a red that blocks you (`scripts/herdr-prompt.sh <owner>`); no 'released'
