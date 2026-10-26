@@ -173,13 +173,26 @@ readiness signal, app scheduling change, capture change or deadline was introduc
 
 ## G745: Jake's phone smoke route
 
-**In flight (2026-10-26, sp-x7).** A seventh exact-artifact leg follows
+**In flight (2026-10-26, sp-x9; transferred from sp-x7).** A seventh exact-artifact leg follows
 cold title → SHARD SELECT → grid/Driftwood → road → inner northwest
 Night Market → road → Driftwood return. One ordinary run is report-only;
 only that matrix part has `continue-on-error`. After its receipt is reviewed,
 remove that one exemption so every leg blocks the exact-SHA boot status.
 No smoke retry, deadline extension or later successful frame substitutes for
 that first report. The existing six release checks continue during rollout.
+
+At the transferred boundary (22:24Z), no ordinary report can yet consume a
+qualified artifact: newest successful main push build is `14a3d5d93` /
+`40372787909` (17:53Z), before the phone producer `893f149908` (20:53Z).
+Do not dispatch that old artifact as the seventh-leg trial. The first
+containing successful push build remains the prerequisite; existing CI
+repair stays with sp-x7. The final functional `8b8a5bf7fc` visit completed
+all route stages with no faults, 294 ms hero paint, resident near tiles
+and real four-second wall containment, but correctly failed G718:
+Driftwood 294 completed draws / 10.005 s. Road 295 / 10.001 s and Night
+Market 299 / 10.001 s are retained separately. It is `local-driver`, not
+the ordinary report-only run, and does not justify gating promotion.
+No deadline, fps, pixel or collision waiver is applied.
 
 The phone leg gets its own checksummed push artifact. It retains the declared
 grid neighbours because the real prediction path can prepare them, plus the

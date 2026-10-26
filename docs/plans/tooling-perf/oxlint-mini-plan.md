@@ -74,6 +74,15 @@ R4's 8 GB target, so one CI job is not yet justified. G675 also supersedes
 R3's local push typed-lint requirement: typed lint remains a full CI gate.
 R4's generated-input dependency must be resolved before consolidating CI.
 
+2026-10-26 read-only physical shard-config census (catalogue from committed
+HEAD): 830 JSON roots / 96,210,302 B total, of which 336 roots / 82,668,536 B
+are catalogue outputs or `*.generated.json`. The earlier census was 443
+generated roots / 122,264,132 B. Largest remaining inputs are Driftwood
+`mapAssembly` (28,680,711 B), Pine `floorLayout` (11,240,647 B), Pine
+`mapAssembly` (6,141,664 B) and Pine `cabinScenes` (4,654,213 B). GR7/GR8
+own their producer retirements; no broad JSON exclusion or authored-data
+erasure is justified. R4 stays open, with all five CI partitions retained.
+
 ## Decisions for Jake
 
 1. **The 2 heavy JS rules: DECIDED (G642)** — rewrite them to use only oxlint's AST (no TypeScript program); until then they run only in `lint:typed`. Also: all generated files excluded from lint (G642).
