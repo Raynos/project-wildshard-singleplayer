@@ -1,8 +1,8 @@
 // Deterministic presentation placement, evaluated only by the build driver.
 import * as THREE from 'three';
 import catalogue from '../data/campCatalogue.json' with { type: 'json' };
-import { Rng } from '@wildshard/engine/core/rng';
-import { bakedSamplers, parseBakedTerrain } from '@wildshard/engine/world/BakedTerrain';
+import { Rng } from '@wildshard/sdk/random';
+import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
 import { modelPoseMatrix } from '@wildshard/engine/models/placementBatch';
 import { inPoiClearing } from './clearings';
 import { HORSE_PLAINS, KURGANS, SUMMER_YURTS, SNOW_LOTUS, SNOW_LINE } from './layout';
@@ -72,10 +72,13 @@ function tier(phone: boolean, ground: (x: number, z: number) => number) {
   }
   return { horses: herdRows(), lotus: lotusRows() };
 }
+/** Build both original decorative profiles over a caller-owned native height query.
+ * Random continuation, placement order and matrix arithmetic retain their original law. */
+export function decorativeRowsOnGround(ground: (x: number, z: number) => number): object {
+  return { phone: tier(true, ground), desktop: tier(false, ground) };
+}
+
 /** Freeze both device profiles on the same admitted terrain used by play. */
 export function decorativeRows(bytes: Uint8Array): object {
-  const terrain = parseBakedTerrain(Uint8Array.from(bytes).buffer);
-  if (terrain === null) throw new Error('Missing decorative placement terrain');
-  const ground = bakedSamplers(terrain).heightAt;
-  return { phone: tier(true, ground), desktop: tier(false, ground) };
+  return decorativeRowsOnGround(readNativeTerrain(bytes).heightAt);
 }
