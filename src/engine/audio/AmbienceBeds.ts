@@ -97,7 +97,7 @@ const sampleStreams = new Map<string, Rng>();
 export class SampledAmbience {
   readonly inputs: Record<string, number>;
   readonly diag: Record<string, number> = { sampled: 0, calls: 0 };
-  readonly values = new Map<string, number>();
+  readonly values: Map<string, number> = new Map<string, number>();
   readonly zones: AmbienceZones;
   zone: string;
   private readonly rows: AudioSampleMix;

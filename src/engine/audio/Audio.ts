@@ -146,7 +146,7 @@ export class Audio extends PlayerVoices {
     for (const fn of this.levelBankFns) fn(bank);
   }
   /** the procedural one-shot bank (gen.ts rendered to AudioBuffers after the first gesture) — a level's voice table plays it */
-  override readonly voices = new Voices(this);
+  override readonly voices: Voices = new Voices(this);
   voice(): Voices { return this.voices; }
   /** the WebAudio graph, built on the first gesture (resume) — creating the first AudioContext is a ~150 ms main-thread
    *  task on the phone tier, so boot never pays it; sounds asked for before then are dropped (the context could not play them) */
@@ -397,7 +397,7 @@ export class Audio extends PlayerVoices {
   }
 
   // ─────────────── feedback ───────────────
-  animal(kind: AnimalSound | (string & Record<never, never>), position: Vector3, listenerPos: Vector3, yaw = this.listenerYaw): void {
+  animal(kind: AnimalSound | (string & Record<never, never>), position: Vector3, listenerPos: Vector3, yaw: number = this.listenerYaw): void {
     tap.sound?.(`animal:${kind}`);
     if (!this.g) return;
     const own = this.calls.get(kind);

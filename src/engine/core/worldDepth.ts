@@ -67,7 +67,7 @@ export class WorldRenderPass extends RenderPass {
   private kept = false;
   /** the merge: the viewmodel's depth over the world's, into the stable target (depth-only; the input's 1.0 = discard) */
   private readonly depthIn: THREE.IUniform<THREE.Texture | null> = { value: null };
-  readonly mergeMaterial = new THREE.ShaderMaterial({
+  readonly mergeMaterial: THREE.ShaderMaterial = new THREE.ShaderMaterial({
     name: 'ViewmodelDepthMerge',
     uniforms: { tDepth: this.depthIn },
     depthTest: true, depthWrite: true, depthFunc: THREE.LessDepth, colorWrite: false, fog: false,

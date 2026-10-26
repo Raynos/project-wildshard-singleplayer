@@ -161,7 +161,7 @@ export class Deck {
   private streams: AacSource[] = [];
   private tension = 0;
   private _phase: BossPhase = 1;
-  stopAt = Infinity;
+  stopAt: typeof Infinity = Infinity;
 
   private heldAudio: SlotAudio | undefined;
   private readonly spec: SlotSpec;

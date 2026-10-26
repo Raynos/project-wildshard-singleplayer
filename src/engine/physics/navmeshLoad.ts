@@ -56,7 +56,7 @@ export function setActiveNavmesh(levelId: string, navmesh: Navmesh | null): void
  * given by URL is first asked of the session's navigation reader (`installNavigationReader`), so bytes its owner already
  * admitted are not downloaded twice; either way they are checked against the row before any query mesh is built.
  */
-export async function loadNavmesh(levelId: string, bakedId = levelId, content?: NavigationContent): Promise<Navmesh | null> {
+export async function loadNavmesh(levelId: string, bakedId: string = levelId, content?: NavigationContent): Promise<Navmesh | null> {
   if (content !== undefined) {
     const row = parseNavigation(content.row);
     const bytes = 'bytes' in content ? content.bytes : await declaredBytes(bakedId, row.file, content.url);

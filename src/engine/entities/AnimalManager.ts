@@ -269,7 +269,7 @@ interface FarRig extends FarMember {
 
 export class AnimalManager {
   /** the animals' own world-matrix pass: a still, far animal's bones are not recomputed (animalMatrices.ts) */
-  group = new AnimalGroup();
+  group: AnimalGroup = new AnimalGroup();
   animals: Animal[] = [];
   private readonly entityIds = new EntityIds('creature');
   private readonly spawnedActors = new WeakSet<Animal>();
@@ -298,7 +298,7 @@ export class AnimalManager {
    *  Pine Hollow's rain sends the grazers in under the big trees (src/shards/pine-hollow/world/weather.ts, PH-C7) */
   wanderGoal: ((a: Animal) => { x: number; z: number; r: number } | null) | null = null;
   private rng = new Rng(SEED + 31);
-  readonly scheduler = new TickScheduler(app.scheduler);
+  readonly scheduler: TickScheduler = new TickScheduler(app.scheduler);
   private readonly visibility = new WeakMap<Animal, boolean>();
   /** Tile streaming T6: from the viewer, which animals stay awake (a resident ring); null: every animal */
   private residency: ((viewer: THREE.Vector3) => (x: number, z: number) => boolean) | null = null;

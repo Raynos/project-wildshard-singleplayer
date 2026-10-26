@@ -115,7 +115,7 @@ export class InputService {
   private readonly gestures = new Set<() => void>();
   private readonly resets = new Set<() => void>();
   private readonly axes = new Map<Action, { x: number; y: number }>();
-  readonly bindings = new Bindings(() => { this.refresh(); });
+  readonly bindings: Bindings = new Bindings(() => { this.refresh(); });
   readonly recent: { action: Action; at: number }[] = [];
   private keyCapture: ((code: string) => void) | undefined;
   private installed = false;

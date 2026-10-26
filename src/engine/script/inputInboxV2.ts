@@ -43,7 +43,7 @@ export class InputInboxV2 {
   /** Local input always uses receiptTick. A server may supply an already
    * authenticated claimed tick; an out-of-window stamp refuses, never rewinds
    * the world or changes a previous input. Values are copied at the receipt. */
-  edge(receiptTick: number,input: Omit<Edge,'atTick' | 'sequence'>,claimedTick = receiptTick): void {
+  edge(receiptTick: number,input: Omit<Edge,'atTick' | 'sequence'>,claimedTick: number = receiptTick): void {
     const sequence = this.receipt(receiptTick);tick(claimedTick);
     if (this.state.edges.length === this.edgeLimit || claimedTick > receiptTick || claimedTick < Math.max(0,receiptTick-this.rights.lagTicks)
       || !this.rights.players.has(input.player) || !this.rights.actions.has(input.action) || ![1,2,3].includes(input.phase)

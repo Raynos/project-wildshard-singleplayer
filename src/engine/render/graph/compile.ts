@@ -1289,7 +1289,7 @@ export class GraphPostPass extends Pass {
  * `normal` input reads. Swaps no buffer.
  */
 export class GraphNormalPrepass extends Pass {
-  readonly target = new THREE.WebGLRenderTarget(1, 1, { depthBuffer: true });
+  readonly target: THREE.WebGLRenderTarget = new THREE.WebGLRenderTarget(1, 1, { depthBuffer: true });
   private readonly normals = new THREE.MeshNormalMaterial();
   constructor(scene: THREE.Scene, camera: THREE.Camera) {
     super('GraphNormalPrepass', scene, camera);

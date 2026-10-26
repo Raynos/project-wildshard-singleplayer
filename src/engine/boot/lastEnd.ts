@@ -177,7 +177,7 @@ export class PageLife {
   }
 
   /** the Debug readout's line: "Last reload: <reason> · 2 min ago · resident <list>" */
-  lastEndLine(now = Date.now()): string {
+  lastEndLine(now: number = Date.now()): string {
     const e = this.lastRecordedEnd();
     if (e === null) return previousBootLine() || 'Last reload: none recorded';
     const ago = (ms: number): string => (ms < 90_000 ? `${Math.max(0, Math.round(ms / 1000))} s ago` : ms < 90 * 60_000 ? `${Math.round(ms / 60_000)} min ago` : `${Math.round(ms / 3_600_000)} h ago`);
@@ -198,4 +198,4 @@ export function markReload(message: string, reason: ReloadReason = 'reload'): bo
 export function registerBeforeReload(scope: Scope, capture: (reason: ReloadReason) => boolean): void { page.registerBeforeReload(scope, capture); }
 export function lastEnd(): LastEnd { return page.lastEnd(); }
 export function lastRecordedEnd(): LastEnd | null { return page.lastRecordedEnd(); }
-export function lastEndLine(now = Date.now()): string { return page.lastEndLine(now); }
+export function lastEndLine(now: number = Date.now()): string { return page.lastEndLine(now); }

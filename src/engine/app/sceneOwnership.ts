@@ -229,7 +229,7 @@ export class SceneOwnership {
   private readonly level: Scope;
   private readonly assets: AssetService;
   constructor(scene: Object3D, level: Scope, assets: AssetService) { this.scene = scene; this.level = level; this.assets = assets; }
-  retain(root: Object3D, scope = this.level): void {
+  retain(root: Object3D, scope: Scope = this.level): void {
     const nodes: Object3D[] = [];
     root.traverse((node) => { if (!this.engineNodes.has(node)) { this.engineNodes.add(node); this.engineRefs.add(new WeakRef(node)); } this.nodeOwners.set(node, scope); nodes.push(node); });
     // a retired owner's nodes leave the page's census with it (live P0: a retired grid region's nodes, and through their
@@ -237,7 +237,7 @@ export class SceneOwnership {
     if (scope !== this.level) scope.onDispose(() => { for (const node of nodes) if (this.nodeOwners.get(node) === scope) this.engineNodes.delete(node); });
     for (const resource of sceneResources(root)) this.acquire(resource, scope);
   }
-  retainContainer(container: unknown, scope = this.level): void {
+  retainContainer(container: unknown, scope: Scope = this.level): void {
     for (const resource of containerResources(container, this.engineNodes)) this.acquire(resource, scope);
     // Shadow targets and bone textures are allocated lazily after the engine nodes were first retained.
     for (const node of this.liveEngineNodes()) for (const key of ['geometry', 'material', 'customDepthMaterial', 'customDistanceMaterial', 'shadow', 'environment', 'background', 'skeleton']) {

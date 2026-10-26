@@ -606,7 +606,7 @@ export function backgroundJob(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | 
  * empty scene: no fog or lights, using internal pass targets where declared, otherwise the composer's
  * buffer — except the pass that renders to screen. Targets and borrowed materials keep their identities.
  */
-export function postJobs(composer: Pick<EffectComposer, 'passes'>, rt: THREE.WebGLRenderTarget | null, per = Number.POSITIVE_INFINITY): CompileJob[] {
+export function postJobs(composer: Pick<EffectComposer, 'passes'>, rt: THREE.WebGLRenderTarget | null, per: number = Number.POSITIVE_INFINITY): CompileJob[] {
   const found = new Map<THREE.Material, THREE.WebGLRenderTarget | null>();
   // A scene pass can point back to its composer. Revisit a pass reached more directly so that
   // an earlier, deeper route cannot exhaust the depth budget before its nested effects are read.
@@ -791,7 +791,7 @@ export const LINK_WAIT_MS = 10_000;
  * Simulator; O15: Driftwood's offscreen sky): false past the bound, and the caller links what is left synchronously
  * (three's `getUniforms()`: the link-status check, one long frame instead of no frame). Never waits forever.
  */
-export async function boundedLinkWait(ready: () => boolean | Promise<boolean>, wait: () => Promise<void>, capMs = LINK_WAIT_MS): Promise<boolean> {
+export async function boundedLinkWait(ready: () => boolean | Promise<boolean>, wait: () => Promise<void>, capMs: number = LINK_WAIT_MS): Promise<boolean> {
   const start = performance.now();
   for (;;) {
     const done = ready();

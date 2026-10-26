@@ -43,7 +43,7 @@ const LITTLE_ENDIAN_WORDS = new Uint8Array(new Uint32Array([1]).buffer)[0] === 1
 
 /** Restore a range of four-byte words from their four byte lanes into a distinct complete buffer.
  * Aligned little-endian outputs use one word store; other layouts retain byte stores. */
-export function unshuffleLanes(lanes: Uint8Array, out = new Uint8Array(lanes.length), wordStart = 0, wordEnd = lanes.length / 4): Uint8Array {
+export function unshuffleLanes(lanes: Uint8Array, out: Uint8Array<ArrayBuffer> = new Uint8Array(lanes.length), wordStart = 0, wordEnd: number = lanes.length / 4): Uint8Array {
   if (lanes.length % 4 !== 0) throw new Error('unshuffleLanes: not whole words');
   const n = lanes.length / 4;
   if (out.length !== lanes.length || out.buffer === lanes.buffer || !Number.isSafeInteger(wordStart) || !Number.isSafeInteger(wordEnd)
