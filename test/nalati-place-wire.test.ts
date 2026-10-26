@@ -22,7 +22,7 @@ for (const [name, document] of [['places', 'places.json'], ['specimens', 'placeS
     const encoded = encodeNalatiPart({ rows: before.rows.rows, bin: before.raw }, compress);
     const binaryPath = name === 'dressing' ? 'test/fixtures/nalati-dressing.bin' : `public/assets/nalati/baked/${name}.bin`;
     const documentPath = name === 'dressing' ? `test/fixtures/${document}` : `src/shards/nalati-grasslands/data/${document}`;
-    const binary = readFileSync(binaryPath), rows = readFileSync(documentPath);
+    const binary = readFileSync(binaryPath), rows = readFileSync(name === 'places' ? 'test/fixtures/nalati-places-original.json' : name === 'specimens' ? 'test/fixtures/nalati-packed-specimens-original.json' : documentPath);
     for (const [path, actual, committed] of [[binaryPath, encoded.binary, binary], [documentPath, encoded.document, rows]] as const) {
       const expected = beforeWires.find(row => row.path === path);
       if (expected === undefined) throw new Error('Missing predecessor wire oracle');

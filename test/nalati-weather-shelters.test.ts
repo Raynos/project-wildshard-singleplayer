@@ -11,7 +11,7 @@ const scalar=pipe(number(),finite());
 const physics=parse(object({yurts:array(tuple([scalar,scalar,scalar]))}),
  JSON.parse(readFileSync('src/shards/nalati-grasslands/data/physics.generated.json','utf8')));
 const places=parse(object({rows:array(object({colliders:array(object({x:scalar,z:scalar,hw:scalar,hd:scalar,yTop:scalar,yBottom:scalar}))}))}),
- JSON.parse(readFileSync('src/shards/nalati-grasslands/data/places.json','utf8')));
+ JSON.parse(readFileSync('test/fixtures/nalati-places-original.json','utf8')));
 
 test('native weather admits current camp shelters without a physics-bake field',()=>{
  const circles=nalatiNativeShelters(places);

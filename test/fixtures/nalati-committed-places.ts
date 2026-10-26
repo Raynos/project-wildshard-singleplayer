@@ -17,8 +17,8 @@ function read(binary: string, document: string) {
 /** Keep the original wire snapshots separate from fresh source construction. */
 export function committedPlaces() {
   return {
-    places: read('public/assets/nalati/baked/places.bin', 'src/shards/nalati-grasslands/data/places.json'),
-    specimens: read('public/assets/nalati/baked/specimens.bin', 'src/shards/nalati-grasslands/data/placeSpecimens.json'),
+    places: read('public/assets/nalati/baked/places.bin', 'test/fixtures/nalati-places-original.json'),
+    specimens: read('public/assets/nalati/baked/specimens.bin', 'test/fixtures/nalati-packed-specimens-original.json'),
     dressing: read('test/fixtures/nalati-dressing.bin', 'test/fixtures/nalati-dressing-geos.json'),
   };
 }

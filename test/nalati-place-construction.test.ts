@@ -21,7 +21,7 @@ test('fresh native POI keep-outs preserve all original rows without selecting a 
     import { alike } from './src/shards/nalati-grasslands/generators/bake-nalati-places.mjs';
     assert.equal(selectedLevel(),null);
     const ground=readNativeTerrain(readFileSync('public/assets/baked/nalati-grasslands/terrain.bin'));
-    const original=JSON.parse(readFileSync('src/shards/nalati-grasslands/data/places.json','utf8'));
+    const original=JSON.parse(readFileSync('test/fixtures/nalati-places-original.json','utf8'));
     const expected=original.rows.slice(0,10).map(({name,anchors,colliders})=>({name,anchors,colliders}));
     const prior=BufferGeometry.prototype.dispose;let disposed=0;
     BufferGeometry.prototype.dispose=function(){disposed++;return prior.call(this);};
@@ -57,7 +57,7 @@ test('fresh native places retain exact binaries and the original native metadata
       const encoded = encodeNalatiPart(made[name],bytes => deflateSync(bytes,{level:9}));
       const pin = pins.find(row => row.path === 'public/assets/nalati/baked/'+name+'.bin');
       assert.equal(encoded.binary.byteLength,pin.bytes);assert.equal(hashImmutableBytes(encoded.binary),pin.hash);
-      const original = JSON.parse(readFileSync('src/shards/nalati-grasslands/data/'+document,'utf8'));
+      const original = JSON.parse(readFileSync(document==='places.json'?'test/fixtures/nalati-places-original.json':'test/fixtures/nalati-packed-specimens-original.json','utf8'));
       const actual = JSON.parse(new TextDecoder().decode(encoded.document));
       // Retained native metadata has always compared all rows at 1e-9:
       // V8's final double bits differ between arm64 and x64. Geometry remains
@@ -69,7 +69,7 @@ test('fresh native places retain exact binaries and the original native metadata
   `;
   execFileSync(process.execPath, ['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', '--input-type=module', '--eval', source]);
   for (const expected of before.slice(0, 4)) {
-    const bytes = readFileSync(expected.path);
+    const bytes = readFileSync(expected.path.endsWith('/places.json') ? 'test/fixtures/nalati-places-original.json' : expected.path.endsWith('/placeSpecimens.json') ? 'test/fixtures/nalati-packed-specimens-original.json' : expected.path);
     expect({ path: expected.path, bytes: bytes.byteLength, hash: hashImmutableBytes(bytes) }).toEqual(expected);
   }
 });

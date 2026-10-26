@@ -30,7 +30,7 @@ test('fresh owned places retain native bytes and metadata with detached cache hi
     const check=files=>{
       assert.deepEqual([...files.keys()].sort(),['actor:balbal:0:2977.bin','actor:balbal:1:2977.bin','actor:goat.bin','placeParts.json','placeSpecimens.json','places.bin','places.json','specimens.bin']);
       const parts=JSON.parse(new TextDecoder().decode(files.get('placeParts.json')));
-      const runtime=nalatiRuntimeRows({places:JSON.parse(readFileSync('src/shards/nalati-grasslands/data/places.json','utf8')),paint:JSON.parse(readFileSync('src/shards/nalati-grasslands/data/poiPaint.json','utf8'))}).runtime;
+      const runtime=nalatiRuntimeRows({places:JSON.parse(readFileSync('test/fixtures/nalati-places-original.json','utf8')),paint:JSON.parse(readFileSync('src/shards/nalati-grasslands/data/poiPaint.json','utf8'))}).runtime;
       for(const [name,path,hash] of [
         ['actor:balbal:0:2977','nalati-balbal-original-0.bin','822694b3287b5b09781e531c2edfbc5def284a757fc097dcc23061b09e79f85c'],
         ['actor:balbal:1:2977','nalati-balbal-original-1.bin','45ac62fdf44b83dd06ed55de034577712732a535385de1718e16862279b4634f'],
@@ -43,7 +43,7 @@ test('fresh owned places retain native bytes and metadata with detached cache hi
         const binary=files.get(name+'.bin'),document=files.get(file);
         const pin=pins.find(row=>row.path==='public/assets/nalati/baked/'+name+'.bin');
         assert.equal(binary.length,pin.bytes);assert.equal(hashImmutableBytes(binary),pin.hash);
-        const original=readFileSync('src/shards/nalati-grasslands/data/'+file);
+        const original=readFileSync(file==='places.json'?'test/fixtures/nalati-places-original.json':'test/fixtures/nalati-packed-specimens-original.json');
         const jsonPin=pins.find(row=>row.path==='src/shards/nalati-grasslands/data/'+file);
         assert.equal(original.length,jsonPin.bytes);assert.equal(hashImmutableBytes(original),jsonPin.hash);
         const actual=JSON.parse(new TextDecoder().decode(document)),expected=JSON.parse(original);

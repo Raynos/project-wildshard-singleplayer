@@ -52,7 +52,7 @@ test('source dressing retains every native static and runtime plan value', () =>
         const recipe=dressingRecipe({layout:layoutSource,...terrainSource,...noise,...field,heightAt:terrainHeight,
           grassBaseHeightAt:(x,z)=>meadow.baseHeightAt(x,z),grassToneAt:(x,z)=>meadow.sample(x,z,1),flowerPatchAt:(x,z)=>meadow.sample(x,z,2)});
         const oldPlan=await recipe.planDressing(forest);
-        const oldPlaces=JSON.parse(readFileSync('src/shards/nalati-grasslands/data/places.json','utf8')).rows;
+        const oldPlaces=JSON.parse(readFileSync('test/fixtures/nalati-places-original.json','utf8')).rows;
         const sequence=JSON.parse(readFileSync('src/shards/nalati-grasslands/data/worldView.json','utf8')).sequence;
         const oldAvoid=[...dressingPoiColliders(oldPlaces,sequence,terrainHeight),...dressingRockColliders(terrainHeight,TIER_CONFIG.maxTexture<=1024,
           {normalAt:field.normalAt,trailDistance:field.trailDistance})];

@@ -14,7 +14,7 @@ import original from './fixtures/nalati-poi-scenes.json' with { type: 'json' };
 
 for (const source of ['places.json', 'native runtime']) test(`owned ${source} metadata retains every original POI scene wire byte`, () => {
   const input: unknown = source === 'places.json'
-    ? JSON.parse(readFileSync('src/shards/nalati-grasslands/data/places.json', 'utf8'))
+    ? JSON.parse(readFileSync('test/fixtures/nalati-places-original.json', 'utf8'))
     : v.parse(v.object({ places: v.unknown() }), nalatiRuntime).places;
   const places = v.parse(v.object({ rows: v.array(v.object({ name: v.string(), group: v.nullable(v.string()),
     meshes: v.array(v.object({ name: v.string(), material: v.string(), slot: v.number() })) })) }),

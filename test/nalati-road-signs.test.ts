@@ -14,7 +14,7 @@ import { assertConfigBoundary } from '../src/sdk/configBoundary';
 test('native sign anchors retain every original coordinate, label and bearing in order', () => {
   const scalar = v.pipe(v.number(), v.finite());
   const original = v.parse(v.object({ rows: v.array(v.object({ name: v.string(), anchors: v.optional(v.unknown()) })) }),
-    JSON.parse(readFileSync('src/shards/nalati-grasslands/data/places.json', 'utf8')));
+    JSON.parse(readFileSync('test/fixtures/nalati-places-original.json', 'utf8')));
   const roads = original.rows.find(row => row.name === 'roads');
   if (roads === undefined) throw new Error('Missing original road anchors');
   const before = v.parse(v.object({ signposts: v.array(v.object({ x: scalar, z: scalar,
