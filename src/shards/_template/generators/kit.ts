@@ -16,7 +16,7 @@ export type Climb = '+x' | '-x' | '+z' | '-z';
  * box is a `measureBox` (the G163 dev-map look reads its measure UVs), standing on the flattened cell ground.
  */
 export class Kit {
-  readonly root = new Group();
+  readonly root: Group = new Group();
   readonly colliders: ColliderDesc[] = [];
   /** every buffer and material the kit made, for the caller's scope */
   readonly owned: { dispose: () => void }[] = [];

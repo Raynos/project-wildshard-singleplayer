@@ -2,7 +2,7 @@ import { NATIVE_VIEW } from './nativeView';
 import { parseChapterDirector } from '@wildshard/format/chapterDirector';
 
 /** Same baked reward pose as the native keeper; stage decisions remain in its director. */
-export const CHAPTER_DIRECTOR = parseChapterDirector({
+export const CHAPTER_DIRECTOR: ReturnType<typeof parseChapterDirector> = parseChapterDirector({
   "version": 1,
   "quest": "sealed-ring",
   "caption": {

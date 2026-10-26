@@ -2,7 +2,7 @@ import type { WorldSceneModels } from '@wildshard/format/worldSceneModels';
 import wreck from '../data/wreckBake.json' with { type: 'json' };
 
 /** Every original card and live wreck copy retains its exact parameter choice. */
-export const CARGO_CARDS = [
+export const CARGO_CARDS: ({ key: string; id: string; name: string; defaults: { lying: boolean; size?: never; broken?: never; r?: never; }; variants: ({ id: string; label: string; params: { lying?: never; }; } | { id: string; label: string; params: { lying: boolean; }; })[]; params: { lying: boolean; }[]; } | { key: string; id: string; name: string; defaults: { size: number; broken: boolean; lying?: never; r?: never; }; variants: ({ id: string; label: string; params: { size?: never; broken?: never; }; } | { id: string; label: string; params: { size: number; broken?: never; }; } | { id: string; label: string; params: { size: number; broken: boolean; }; })[]; params: { size: number; broken: boolean; }[]; } | { key: string; id: string; name: string; defaults: { r: number; lying?: never; size?: never; broken?: never; }; variants: never[]; params: { r: number; }[]; })[] = [
   { key: 'barrel', id: 'barrel', name: 'Barrel', defaults: { lying: false }, variants: [
     { id: 'standing', label: 'Standing', params: {} }, { id: 'lying', label: 'Lying', params: { lying: true } }],
     params: wreck.catalogue.barrels.placements.map(row => ({ lying: row.variant === 'lying' })) },

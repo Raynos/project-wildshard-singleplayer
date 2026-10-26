@@ -1,7 +1,7 @@
 // G532 (4): the Blender spawn cove as one baked-tiles row (format/bakedTiles; the platform's `world.baked` feature draws it):
 // its terrain tiles in the island's graph toon look with the Cycles AO and bounce lightmaps, and its prototypes placed
 // instanced by family with their collider boxes. The numbers are islandRows.ts's and islandFacts.generated.json's.
-import { parse } from 'valibot';
+import { parse, type InferOutput } from 'valibot';
 import { BakedTilesSchema } from '@wildshard/format/bakedTiles';
 import PLAN_FILES from '../data/islandPlanFiles.json' with { type: 'json' };
 import ISLAND_FACTS from '../data/islandFacts.generated.json' with { type: 'json' };
@@ -26,7 +26,7 @@ const coverWear = ({ url, texture, groundRect, parts }: (typeof coverFiles)['pho
 const fade = (reach: { near: number; far: number; grow: number }) => [reach.near + reach.grow, reach.far, reach.grow];
 const plan = (tier: 'phone' | 'desktop') => ({ source: { url: PLAN_FILES[tier].url }, bytes: PLAN_FILES[tier].bytes, used: PLAN_FILES[tier].used });
 
-export const BAKED_COVE = parse(BakedTilesSchema, {
+export const BAKED_COVE: InferOutput<typeof BakedTilesSchema> = parse(BakedTilesSchema, {
   id: 'cove', glb: at('island.glb'), tiles: { phone: 'terrainlo_', desktop: 'terrain_' }, look: ISLAND_LOOKS.terrain,
   drop: WORLD_DROP, meshPrefix: ISLAND_LOOK.meshPrefix, sky: false, toonDay: true,
   lightmaps: [lightmap('ao', 'lm-ao'), lightmap('bounceMap', 'lm-bounce')],

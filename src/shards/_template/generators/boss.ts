@@ -8,7 +8,7 @@ import rows from '../data/rows.json' with { type: 'json' };
 import { BUILD_OPTIONS } from './buildOptions';
 import { TEMPLATE_BEHAVIOUR_INPUTS } from './behaviour';
 
-export const TEMPLATE_BOSS_INPUTS = [...TEMPLATE_BEHAVIOUR_INPUTS, 'behaviour/boss.as'] as const;
+export const TEMPLATE_BOSS_INPUTS: readonly ["behaviour/door.as", "behaviour/items.as", "behaviour/idle.as", "behaviour/boss.as"] = [...TEMPLATE_BEHAVIOUR_INPUTS, 'behaviour/boss.as'] as const;
 /** The boss uses the same declared-handler compiler and complete authored source budget as product admission. */
 export async function compileTemplateBoss(compiler: Pick<ProjectGenerationContext, 'compileDecisionScripts'>, inputs: ReadonlyMap<string, Uint8Array>): Promise<Uint8Array> {
   const source = { ...emptyShardfile({ slug: 'template', name: 'Template shard', author: 'Wildshard', revision: 2, seed: 357 }), creatures, rows };
