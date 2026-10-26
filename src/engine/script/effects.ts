@@ -1,5 +1,5 @@
 /** V0 numeric effect operations; all records contain [op,a,b,c,d] f64 values. */
-export const SCRIPT_OP = Object.freeze({ field: 1, spawn: 2, event: 3, position: 4 });
+export const SCRIPT_OP: Readonly<{ field: 1; spawn: 2; event: 3; position: 4; }> = Object.freeze({ field: 1, spawn: 2, event: 3, position: 4 });
 /** An effect request, decoded completely before the world changes. */
 export interface ScriptEffect { op: number; a: number; b: number; c: number; d: number }
 /** A host-owned entity; callers receive copies of its numeric state. */

@@ -1,7 +1,7 @@
 import { ScriptWorld, type EffectRules, type EffectTransaction, type ScriptEffect, type ScriptEntity } from './effects';
 
 /** Server-script state effects. Player writes always use the invoking entity's host-bound actor id. */
-export const SCRIPT_STATE_OP = Object.freeze({ shared: 5, player: 6 });
+export const SCRIPT_STATE_OP: Readonly<{ shared: 5; player: 6; }> = Object.freeze({ shared: 5, player: 6 });
 /** Numeric declared fields; bool uses 0/1. Strings are outside the numeric v0 script ABI. */
 export interface ScriptStateField { id: number; name: string; type: 'bool' | 'i32' | 'f64'; privacy: 'public' | 'owner' | 'host'; default: number; min: number; max: number }
 /** Shared fields belong to the host; player fields have one independent record per stable actor id. */

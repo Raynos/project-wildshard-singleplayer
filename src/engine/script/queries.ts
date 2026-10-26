@@ -5,7 +5,7 @@ import type { Navmesh } from '../physics/navmesh';
 import type { ScriptQuery } from './host';
 
 /** Query opcodes: ray, axis-aligned overlap, nearest walkable point, bounded path. */
-export const SCRIPT_QUERY = Object.freeze({ raycast: 1, overlap: 2, nearest: 3, path: 4 });
+export const SCRIPT_QUERY: Readonly<{ raycast: 1; overlap: 2; nearest: 3; path: 4; }> = Object.freeze({ raycast: 1, overlap: 2, nearest: 3, path: 4 });
 /** Read-only physics and navigation inputs; collider owners map to stable numeric entity handles. */
 export interface ScriptPhysics { physics: Physics; navigation: Pick<Navmesh, 'closestWalkable' | 'findPath'>; handle: (owner: unknown) => number | undefined }
 /** Deterministic ordering/truncation over the engine's collision/navigation queries, with no direct Rapier import. */

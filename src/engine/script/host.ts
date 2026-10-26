@@ -12,7 +12,7 @@ import { nextDrawnFrame, presenting } from '../core/framePacing';
 /** Existing host limit type is defined by pure format admission. */
 export type ScriptLimits = scriptLimits.ScriptLimits;
 /** Existing host defaults retain the identical defining format object. */
-export const SCRIPT_LIMITS = scriptLimits.SCRIPT_LIMITS;
+export const SCRIPT_LIMITS: typeof scriptLimits.SCRIPT_LIMITS = scriptLimits.SCRIPT_LIMITS;
 /** Deterministic, read-only query input/output; replies may be recorded for replay/conformance. */
 export type ScriptQuery = (kind: number, input: readonly number[], entity: number) => readonly number[];
 /** A complete linear-memory + mutable-global snapshot, never a live view of Wasm state. */

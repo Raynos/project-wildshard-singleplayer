@@ -4,7 +4,7 @@ import { bindAudioRandom } from '../audio/util';
 import { App } from './app';
 
 /** The page app; legacy active-service entry points delegate here during the migration. */
-export const app = new App();
+export const app: App = new App();
 bindTelemetry(app);
 bindAudioRandom(() => app.rng.stream('audio').next());
 

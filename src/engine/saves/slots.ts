@@ -4,7 +4,7 @@ import type { SaveScope, SaveSlot } from './store';
 
 export type Json = null | string | number | boolean | Json[] | { [key: string]: Json };
 export const jsonSchema: v.GenericSchema<unknown, Json> = v.lazy(() => v.union([v.null(), v.string(), v.pipe(v.number(), v.finite()), v.boolean(), v.array(jsonSchema), v.record(v.string(), jsonSchema)]));
-export const jsonRecord = v.record(v.string(), jsonSchema);
+export const jsonRecord: v.RecordSchema<v.StringSchema<undefined>, v.GenericSchema<unknown, Json>, undefined> = v.record(v.string(), jsonSchema);
 const slots = new Map<string, SaveSlot<Json>>();
 export function jsonSlot(key: string, scope: SaveScope, initial: () => Json = () => null, schema: v.GenericSchema<unknown, Json> = jsonSchema): SaveSlot<Json> {
   const id = `${scope}/${key}`;

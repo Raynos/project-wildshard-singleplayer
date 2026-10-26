@@ -1,7 +1,7 @@
 /** Internal snapshot byte bounds; compression never changes or omits native world data. */
 export const MAX_PHYSICS_BYTES = 32_000_000;
 /** Worst-case literal framing overhead, even when a match splits every 64 bytes. */
-export const MAX_REFERENCE_BYTES = MAX_PHYSICS_BYTES + Math.ceil(MAX_PHYSICS_BYTES / 64) * 3 + 16;
+export const MAX_REFERENCE_BYTES: number = MAX_PHYSICS_BYTES + Math.ceil(MAX_PHYSICS_BYTES / 64) * 3 + 16;
 const literalLimit = 65_536, matchMinimum = 64;
 
 // Long-range matches cover repeated native geometry/BVHs outside DEFLATE's 32 KiB window.
