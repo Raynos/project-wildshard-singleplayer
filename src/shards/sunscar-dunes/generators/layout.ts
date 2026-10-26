@@ -8,9 +8,9 @@ export const TOWER = { x: 8, z: -75, deck: 7, half: 1.8 };
  * glow): its ordinary dusk patrol circles the tower (duneRay.ts RAY.patrolR / patrolAlt), so a player at the spawn sees
  * it there; it comes for the player only within its notice range, as before.
  */
-export const RAY_HOME = { x: TOWER.x, z: TOWER.z };
+export const RAY_HOME: { x: number; z: number; } = { x: TOWER.x, z: TOWER.z };
 /** The half-buried caravan, west of the spawn: the logbook lies on its tailboard. `yaw` turns the wagon's long axis. */
-export const CARAVAN = { x: -78, z: 28, yaw: 0.55 + Math.PI }; // E399 (council round 2): the tailboard faces south, so mock-B looks north at it into the afterglow
+export const CARAVAN: { x: number; z: number; yaw: number; } = { x: -78, z: 28, yaw: 0.55 + Math.PI }; // E399 (council round 2): the tailboard faces south, so mock-B looks north at it into the afterglow
 /** The dry well in the east hollow: a stone ring, a windlass the whip can pull, an oil jar in its bucket. */
 export const WELL = { x: 84, z: -6 };
 /** The boss basin north of the tower: a sand bowl, flat for `floor` metres, its rim at `r`. */
@@ -52,7 +52,7 @@ export const CREST_LINES: readonly { a: [number, number]; b: [number, number]; l
  * 0.47 with its slip face toward the camera (mockup A's lit diagonal over a shaded face); the mound puts the tower's
  * foot on the horizon and fills dusk-fire's middle band (its big dome).
  */
-export const LANDFORMS = {
+export const LANDFORMS: { readonly crests: readonly [{ readonly pts: [number, number, number][]; readonly w: 70; readonly lee: 30; readonly leeSide: -1; readonly fade: 0.3; readonly trough: 3; }, { readonly pts: [number, number, number][]; readonly w: 22; readonly lee: 40; readonly leeSide: -1; readonly fade: 0.1; readonly trough: 3; }, { readonly pts: [number, number, number][]; readonly w: 14; readonly lee: 6; readonly leeSide: 1; readonly fade: 0.3; readonly trough: 1; }]; readonly mounds: readonly [{ readonly x: number; readonly z: number; readonly h: 21.5; readonly r: 62; }, { readonly x: -165; readonly z: -64; readonly h: 24; readonly r: 66; }, { readonly x: number; readonly z: number; readonly h: 25; readonly r: 80; }]; } = {
   // round 17 (the lead and seat B after round 16: the 20-27 m crest stood over the 23 m eye, one shaded wall; the camera
   // must look DOWN on receding lit crests, the tower's mound showing): round 13's low crest (the closest A by eye, its
   // 7-13.5 m line mostly under the field, so the field's own receding rows show), measured inside the dune band only:

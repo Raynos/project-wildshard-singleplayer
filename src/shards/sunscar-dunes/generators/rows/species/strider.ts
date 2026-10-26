@@ -38,6 +38,6 @@ export const STRIDER_CLIPS: SpeciesClips = [
 ];
 
 /** The strider's look on its fitted hull (data/species/hulls.ts STRIDER_HULL): its rig contract and dims (body height and leg length as shares of the hull's height). */
-export const STRIDER_LOOK = { id: 'sunscar.look.duneStrider', species: DUNE_STRIDER.id, kind: 'duneStrider',
+export const STRIDER_LOOK: { readonly id: "sunscar.look.duneStrider"; readonly species: string; readonly kind: "duneStrider"; readonly skeleton: "sunscar.duneStrider"; readonly sockets: readonly ["body", "head", "legFL", "legFR", "legBL", "legBR", "tail"]; readonly clipNames: readonly ["idle", "walk", "attack", "hit", "die"]; readonly dims: { readonly bodyY: 0.7; readonly bodyHalfLen: 1.3; readonly bodyRadius: 0.75; readonly headRadius: 0.4; readonly legLen: 0.5; readonly halfWidth: 0.7; }; } = { id: 'sunscar.look.duneStrider', species: DUNE_STRIDER.id, kind: 'duneStrider',
   skeleton: 'sunscar.duneStrider', sockets: ['body', 'head', 'legFL', 'legFR', 'legBL', 'legBR', 'tail'], clipNames: ['idle', 'walk', 'attack', 'hit', 'die'],
   dims: STRIDER_DIMS } as const;

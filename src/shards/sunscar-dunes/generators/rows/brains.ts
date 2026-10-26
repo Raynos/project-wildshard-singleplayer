@@ -28,7 +28,7 @@ export const MATRIARCH_BRAIN: NonNullable<BrainedSpecies['brain']> = { archetype
 export const SIGNAL_MODULES: Readonly<Record<string, string>> = {};
 
 /** The page's existing native motor/contact recipes; the home keeper retains attack tokens, RNG and all clocks. */
-export const SIGNAL_BODY_ROWS = {
+export const SIGNAL_BODY_ROWS: { readonly duneRay: { readonly kind: "animal"; readonly motion: "flight"; readonly attack: "keeper"; readonly stunned: "none"; readonly contact: { readonly kind: "actor"; readonly halfArc: number; readonly move: "sunscar.duneRay.contact"; }; }; readonly skitterer: { readonly kind: "animal"; readonly motion: "ground"; readonly attack: "keeper"; readonly stunned: "none"; readonly contact: { readonly kind: "actor"; readonly halfArc: number; readonly move: "sunscar.skitterer.contact"; }; }; readonly duneStrider: { readonly kind: "animal"; readonly motion: "ground"; readonly attack: "keeper"; readonly stunned: "none"; readonly contact: { readonly kind: "actor"; readonly halfArc: number; readonly move: "sunscar.duneStrider.contact"; }; }; readonly matriarch: { readonly kind: "animal"; readonly motion: "flight"; readonly attack: "keeper"; readonly stunned: "none"; readonly contact: { readonly kind: "actor"; readonly halfArc: number; readonly move: "sunscar.matriarch.contact"; }; }; } = {
   duneRay: { kind: 'animal', motion: 'flight', attack: 'keeper', stunned: 'none', contact: { kind: 'actor', halfArc: 70 * Math.PI / 180, move: 'sunscar.duneRay.contact' } },
   skitterer: { kind: 'animal', motion: 'ground', attack: 'keeper', stunned: 'none', contact: { kind: 'actor', halfArc: 70 * Math.PI / 180, move: 'sunscar.skitterer.contact' } },
   duneStrider: { kind: 'animal', motion: 'ground', attack: 'keeper', stunned: 'none', contact: { kind: 'actor', halfArc: 70 * Math.PI / 180, move: 'sunscar.duneStrider.contact' } },
@@ -44,4 +44,4 @@ export const SIGNAL_SPECIES: readonly BrainedSpecies[] = [{ ...DUNE_RAY, body: S
 export const SIGNAL_STRIKES: readonly StrikeData[] = [SWOOP_DATA, CHARGE_DATA, HORNS_DATA, BITE_DATA, MAW_DATA, TAIL_SWEEP_DATA, BUFFET_DATA];
 
 /** Original page metadata order, without adding native body or brain fields. */
-export const SIGNAL_PAGE_ROWS = [DUNE_RAY, SKITTERER_DATA, DUNE_STRIDER, MATRIARCH_DATA];
+export const SIGNAL_PAGE_ROWS: (typeof DUNE_RAY)[] = [DUNE_RAY, SKITTERER_DATA, DUNE_STRIDER, MATRIARCH_DATA];

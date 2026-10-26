@@ -25,5 +25,5 @@ export const SKITTERER_CLIPS: SpeciesClips = [
 ];
 
 /** The skitterer's look rows (species/skitterer.ts). */
-export const SKITTERER_LOOK = { id: 'sunscar.look.sandSkitterer', species: SKITTERER_DATA.id, kind: 'sandSkitterer', skeleton: 'sunscar.sandSkitterer',
+export const SKITTERER_LOOK: { readonly id: "sunscar.look.sandSkitterer"; readonly species: string; readonly kind: "sandSkitterer"; readonly skeleton: "sunscar.sandSkitterer"; readonly sockets: readonly ["body", "head", "legsL", "legsR", "tail"]; readonly clipNames: readonly ["idle", "walk", "attack", "hit", "die"]; } = { id: 'sunscar.look.sandSkitterer', species: SKITTERER_DATA.id, kind: 'sandSkitterer', skeleton: 'sunscar.sandSkitterer',
   sockets: ['body', 'head', 'legsL', 'legsR', 'tail'], clipNames: ['idle', 'walk', 'attack', 'hit', 'die'] } as const;

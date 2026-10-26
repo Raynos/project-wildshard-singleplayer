@@ -42,5 +42,5 @@ export const MATRIARCH_CLIPS: SpeciesClips = [
 ];
 
 /** Her look rows (species/matriarch.ts): the ray's rig contract on her own skeleton name; her body is the manta untinted. */
-export const MATRIARCH_LOOK = { id: 'sunscar.look.duneMatriarch', species: MATRIARCH_DATA.id, kind: 'duneMatriarch', skeleton: 'sunscar.duneMatriarch',
+export const MATRIARCH_LOOK: { readonly id: "sunscar.look.duneMatriarch"; readonly species: string; readonly kind: "duneMatriarch"; readonly skeleton: "sunscar.duneMatriarch"; readonly sockets: readonly ["body", "head", "wingL", "wingR", "tail"]; readonly clipNames: readonly ["idle", "fly", "attack", "hit", "die"]; } = { id: 'sunscar.look.duneMatriarch', species: MATRIARCH_DATA.id, kind: 'duneMatriarch', skeleton: 'sunscar.duneMatriarch',
   sockets: ['body', 'head', 'wingL', 'wingR', 'tail'], clipNames: ['idle', 'fly', 'attack', 'hit', 'die'] } as const;

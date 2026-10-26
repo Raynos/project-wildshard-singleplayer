@@ -52,7 +52,7 @@ export const FOG = { color: 0x3e3452, near: 80, far: 430 } as const;
  * faces); E399 (council round 2, R2B-1: the mockups' ground measures warm brown, R/B ~3): less blue in every tone.
  */
 /** The day clock: Signal Dunes holds at dusk (the clock is never advanced). */
-export const DUSK_CLOCK = { units: 'hour', start: 19,
+export const DUSK_CLOCK: { readonly units: "hour"; readonly start: 19; readonly schedule: readonly [{ readonly phase: "day"; readonly from: 0; readonly to: 24; readonly minutes: number; }]; readonly sun: { readonly maxElevation: 60; readonly azimuthOffset: 250; }; readonly fixed: { readonly midday: 12; readonly golden: 18; readonly sunset: 19; readonly night: 0; }; readonly presets: { readonly dawn: 6; readonly noon: 12; readonly dusk: 19; readonly night: 0; }; } = { units: 'hour', start: 19,
   schedule: [{ phase: 'day', from: 0, to: 24, minutes: 24 * 60 }],
   sun: { maxElevation: 60, azimuthOffset: 250 },
   fixed: { midday: 12, golden: 18, sunset: 19, night: 0 }, presets: { dawn: 6, noon: 12, dusk: 19, night: 0 } } as const;

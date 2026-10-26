@@ -4,7 +4,7 @@ import STRINGS from '../data/strings.json' with { type: 'json' };
 import { COMPLETE_FLAG } from './rows/signalQuest';
 
 /** Sefa's authored quest-giver, figure pivots, native column and ordered dialogue. */
-export const SCOUT_ROW = {
+export const SCOUT_ROW: { readonly id: "sunscar.scout"; readonly name: string; readonly spot: "scout"; readonly at: { readonly x: number; readonly z: number; }; readonly faceHome: { readonly x: number; readonly z: number; }; readonly metFlag: "sunscar.scout"; readonly talkHeight: 1.62; readonly talkRadius: 3.5; readonly faceRange: 12; readonly waveRange: 16; readonly collider: { readonly half: 0.3; readonly below: 0.3; readonly above: 1.7; readonly surface: "flesh"; }; readonly figure: { readonly model: "caravan-scout"; readonly height: 1.7; readonly neck: readonly [0, 1.43, 0]; readonly shoulder: readonly [-0.21, 1.36, 0]; readonly armBelowX: -0.2; readonly armAboveY: 0.78; readonly roughness: 0.9; readonly flat: true; }; readonly dialogue: readonly [{ readonly when: { readonly all: readonly ["sunscar.complete"]; }; readonly lines: readonly [string]; }, { readonly when: { readonly all: readonly ["sunscar.scout"]; }; readonly lines: readonly [string]; }, { readonly lines: readonly [string, string, string]; readonly sets: readonly ["sunscar.scout"]; }]; } = {
   id: 'sunscar.scout', name: STRINGS.scoutName, spot: 'scout', at: SCOUT_AT, faceHome: { x: SPAWN.x, z: SPAWN.z }, metFlag: SCOUT_FLAG,
   talkHeight: 1.62, talkRadius: 3.5, faceRange: 12, waveRange: 16,
   collider: { half: 0.3, below: 0.3, above: 1.7, surface: 'flesh' },
@@ -17,7 +17,7 @@ export const SCOUT_ROW = {
 } as const;
 
 /** The named places: walking into one toasts "Discovered · …" once and names it on the full map (review R4, R11). */
-export const DISCOVERY_PLACES = [
+export const DISCOVERY_PLACES: readonly [{ readonly id: "sunscar.crest"; readonly label: string; readonly x: number; readonly z: number; readonly r: 14; }, { readonly id: "sunscar.caravan"; readonly label: string; readonly x: number; readonly z: number; readonly r: 18; }, { readonly id: "sunscar.well"; readonly label: string; readonly x: number; readonly z: number; readonly r: 16; }, { readonly id: "sunscar.tower"; readonly label: string; readonly x: number; readonly z: number; readonly r: 18; }, { readonly id: "sunscar.basin"; readonly label: string; readonly x: number; readonly z: number; readonly r: number; }] = [
   { id: 'sunscar.crest', label: STRINGS.placeCrest, x: SPAWN.x, z: SPAWN.z, r: 14 },
   { id: 'sunscar.caravan', label: STRINGS.caravan, x: CARAVAN.x, z: CARAVAN.z, r: 18 },
   { id: 'sunscar.well', label: STRINGS.well, x: WELL.x, z: WELL.z, r: 16 },

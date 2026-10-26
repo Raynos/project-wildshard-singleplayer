@@ -64,4 +64,4 @@ if (farShare === undefined || nearShare === undefined) throw new Error('Signal D
 /** The host field the storm's strength rides (`shared.storm`, 0 … 1; the runtime hands it to its look). */
 export const STORM_FIELD = { id: 2, name: 'storm', type: 'f64', privacy: 'host', default: 0, min: 0, max: 1 } as const;
 /** The two shells' material graphs by look.materials id, outer (coarse) first, as the presentation row's `shells`. */
-export const STORM_GRAPHS = { 'storm-far': stormGraph(false, farShare), 'storm-near': stormGraph(true, nearShare) } as const;
+export const STORM_GRAPHS: { readonly 'storm-far': object; readonly 'storm-near': object; } = { 'storm-far': stormGraph(false, farShare), 'storm-near': stormGraph(true, nearShare) } as const;

@@ -3,7 +3,7 @@ import { parseDeclaredQuestPage } from '@wildshard/format/declaredQuestPage';
 import STRINGS from '../data/strings.json' with { type: 'json' };
 
 /** Page beats for the same admitted logbook, well and crank rules. */
-export const SIGNAL_QUEST_PAGE_INTERACTIONS=parseDeclaredQuestPage({version:1,quest:'sunscar.signal',prompts:[
+export const SIGNAL_QUEST_PAGE_INTERACTIONS: ReturnType<typeof parseDeclaredQuestPage>=parseDeclaredQuestPage({version:1,quest:'sunscar.signal',prompts:[
   {id:'logbook',action:'logbook',label:STRINGS.readLog,at:{point:'caravan.logbook-at'},radius:2.4},
   {id:'well',action:'well',label:STRINGS.wellDown,channel:'sunscar.well.prompt'},
   ...[0,1,2].map(i=>({id:`brazier.${String(i)}`,action:`pour.${String(i)}`,label:STRINGS.needOil,at:{point:`brazier.${String(i)}.bowl-at`},radius:3})),

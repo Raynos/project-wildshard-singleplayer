@@ -62,4 +62,4 @@ export function signalPhysics(): Record<string, unknown> & { readonly spots: typ
 }
 
 /** One evaluated declaration shared by the product and its target rows. */
-export const SIGNAL_PHYSICS = signalPhysics();
+export const SIGNAL_PHYSICS: Record<string, unknown> & { readonly spots: typeof rows.spots; } = signalPhysics();

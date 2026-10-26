@@ -20,5 +20,5 @@ export const RAY_CLIPS: SpeciesClips = [
 ];
 
 /** The ray's look rows (species/duneRay.ts): its rig contract. The Matriarch's body rides the same skeleton. */
-export const RAY_LOOK = { id: 'sunscar.look.duneRay', species: DUNE_RAY.id, kind: 'duneRay', skeleton: 'sunscar.duneRay',
+export const RAY_LOOK: { readonly id: "sunscar.look.duneRay"; readonly species: string; readonly kind: "duneRay"; readonly skeleton: "sunscar.duneRay"; readonly sockets: readonly ["body", "head", "wingL", "wingR", "tail"]; readonly clipNames: readonly ["idle", "fly", "attack", "hit", "die"]; } = { id: 'sunscar.look.duneRay', species: DUNE_RAY.id, kind: 'duneRay', skeleton: 'sunscar.duneRay',
   sockets: ['body', 'head', 'wingL', 'wingR', 'tail'], clipNames: ['idle', 'fly', 'attack', 'hit', 'die'] } as const;
