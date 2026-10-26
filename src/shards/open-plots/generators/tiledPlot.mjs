@@ -17,8 +17,10 @@ import { readImagePixels, writeImagePixels } from '@wildshard/sdk/bake/image';
 import { bakeLanternVertices, buildLayout, parseLayout, paving, pool, Soup } from './kit.mjs';
 import { prepareModelKit } from './kitGlb.mjs';
 
-/** the kit's model families, each `public/assets/open-plots/kit/<family>.glb` */
-const KIT_FAMILIES = ['lanterns'];
+/** the kit's model families placed, each `public/assets/open-plots/kit/<family>.glb`. RM4: none yet; the models
+ *  overran Night Market's pinned tile bytes as merged geometry (99959f0ced), so they come in once RM8's instancing
+ *  pays for them */
+const KIT_FAMILIES = [];
 
 /** sRGB hex to linear RGB */
 const linear = (hex) => [1, 3, 5].map(at => { const c = Number.parseInt(hex.slice(at, at + 2), 16) / 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; });
@@ -135,7 +137,7 @@ async function tiledPlot(root, repo, layoutName) {
   // the tiles; H and G pick their variant from the tile's place
   // RM4: the kit's Blender models (scripts/blender/open-plots/kit.py), retinted by this layout's palette
   const files = new Map(KIT_FAMILIES.map(family => [family, new Uint8Array(readFileSync(resolve(repo, 'public/assets/open-plots/kit', `${family}.glb`)))]));
-  const lanterns = [], kit = await prepareModelKit(palette, files);
+  const lanterns = [], kit = files.size === 0 ? {} : await prepareModelKit(palette, files);
   buildLayout(grid, parts, palette, (r, c) => (r * 7 + c * 3) % 2,
     { ...kit, lanternEmitter: (at, colour) => lanterns.push({ at, colour }) });
   // a pool at the plot's edge (an entry forecourt's lanterns) keeps to the cell: its rim (black, it adds nothing) stops at it

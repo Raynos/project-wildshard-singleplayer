@@ -202,11 +202,18 @@ function placeMovingLight(w, kind, position) {
   const seed = nextSeed() * 0.5;
   mover(w, position[0], position[1], position[2], kind === 'firefly' ? 0.07 : 0.35, kind === 'firefly' ? seed : 0.5 + seed);
 }
-/** A lantern on a post of `height` (RM4: the kit's stone post, paper-lantern bracket or banner post, by place; its model
- *  emits the lantern bake's light) and its pool of light. */
+/** A lantern on a post of `height` and its pool of light. With the kit's models (RM4, opt-in: tiledPlot.mjs
+ *  KIT_FAMILIES) it is the stone post, paper-lantern bracket or banner post by place, its model emitting the bake's
+ *  light; without them, the low-poly post and lit box that fit the pinned tile bytes until RM8's instancing pays for
+ *  the models. */
 function lantern(w, x, z, p, height = 2.8) {
-  if (w.placeModel === undefined) throw new Error('open-plots: lanterns need the kit models');
-  w.placeModel('lanterns', pick(x, z, 3), x, z, { height, yaw: pick(x, z, 4, 1) * Math.PI / 2 });
+  if (w.placeModel !== undefined) {
+    w.placeModel('lanterns', pick(x, z, 3), x, z, { height, yaw: pick(x, z, 4, 1) * Math.PI / 2 });
+  } else {
+    w.lanternEmitter?.([x, height + 0.375, z], [...p.lantern]);
+    w.sides('Kit', [x - 0.09, 0, z - 0.09], [x + 0.09, height, z + 0.09], p.wood);
+    w.box('Glow', [x - 0.3, height, z - 0.3], [x + 0.3, height + 0.75, z + 0.3], p.lantern, p.lantern);
+  }
   w.solid([x - 0.09, 0, z - 0.09], [x + 0.09, height, z + 0.09]);
   pool(w, x, z, 4.5, p.pool);
 }
