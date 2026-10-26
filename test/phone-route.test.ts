@@ -1,7 +1,30 @@
 // @vitest-environment node
 import { expect, test } from 'vitest';
+import { Window } from 'happy-dom';
 import { phoneEngine } from '../scripts/parity/phone-route-runner.mjs';
 import { phoneRouteFailures, phoneRoutePlans, type PhoneReceipt, type PhoneObservation } from '../scripts/parity/phone-route.mjs';
+import { phoneTouchButton } from '../scripts/parity/phone-route-page.mjs';
+
+test('native touch sends the HOVER pointerdown handler and ordinary menu click without changing game state',async()=>{
+  const dom=new Window(), button=dom.document.createElement('button'), events:string[]=[];
+  button.className='ws-touch-hover';dom.document.body.append(button);
+  Object.defineProperty(button,'getClientRects',{value:()=>[{x:0,y:0,width:50,height:50}]});
+  button.addEventListener('pointerdown',event=>{events.push('hover');event.preventDefault();});
+  button.addEventListener('pointerup',()=>{events.push('up');});
+  button.addEventListener('click',()=>{events.push('menu-click');});
+  const replacements={document:dom.document,HTMLButtonElement:dom.HTMLButtonElement,PointerEvent:dom.PointerEvent};
+  const previous=new Map(Object.keys(replacements).map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)]));
+  for(const [key,value] of Object.entries(replacements))Object.defineProperty(globalThis,key,{value,configurable:true,writable:true});
+  try{
+    expect(phoneTouchButton('.ws-touch-hover')).toBe(true);
+    expect(events).toEqual(['hover','up','menu-click']);
+    button.disabled=true;expect(()=>phoneTouchButton('.ws-touch-hover')).toThrow('Unavailable');
+    expect(events).toEqual(['hover','up','menu-click']);
+  }finally{
+    for(const [key,descriptor] of previous){if(descriptor===undefined)Reflect.deleteProperty(globalThis,key);else Object.defineProperty(globalThis,key,descriptor);}
+    await dom.happyDOM.close();
+  }
+});
 
 function observation(): PhoneObservation {
   return { at: 1000, frame: 100, frameAt: 1000, ready: true, current: 'home', inside: 'home', home: 'home', pitch:562.5,

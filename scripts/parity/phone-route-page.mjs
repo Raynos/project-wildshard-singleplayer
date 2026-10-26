@@ -1,5 +1,20 @@
 // G745: read actual page/physics/render owners; never install a replacement game service.
 
+/** RWI has no Playwright tap port: dispatch the same touch/control events,
+ * including pointerdown (HOVER binds there), under emulateUserGesture.
+ * @param {string} selector */
+export function phoneTouchButton(selector) {
+  const button = document.querySelector(selector);
+  if (!(button instanceof HTMLButtonElement) || button.disabled || button.getClientRects().length === 0) throw new Error('Unavailable actual phone control');
+  const rect = button.getBoundingClientRect();
+  const init = { bubbles: true, cancelable: true, pointerId: 1, pointerType: 'touch', isPrimary: true,
+    clientX: rect.x + rect.width / 2, clientY: rect.y + rect.height / 2 };
+  button.dispatchEvent(new PointerEvent('pointerdown', { ...init, buttons: 1 }));
+  button.dispatchEvent(new PointerEvent('pointerup', { ...init, buttons: 0 }));
+  button.click();
+  return true;
+}
+
 /** Read the rendered G718 pill and completed draws, not simulation ticks or p50. */
 export function phoneRouteObservation() {
   const api = window.__wildshard, world = api?.world;

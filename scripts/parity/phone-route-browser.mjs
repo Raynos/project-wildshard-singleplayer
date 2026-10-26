@@ -5,6 +5,7 @@ import { devices, webkit } from 'playwright';
 import { soakInspector } from '../soak/inspector.mjs';
 import { bootLifecycleDiagnostic } from './boot-smoke.mjs';
 import { saveFixtureCode } from '../debug-settings.mjs';
+import { phoneTouchButton } from './phone-route-page.mjs';
 
 /** @typedef {{opened:Promise<unknown>,send:(method:string,params?:Record<string,unknown>)=>Promise<unknown>,close:()=>void}} Inspector */
 /** @param {unknown} result */
@@ -95,7 +96,7 @@ export async function openPhoneBrowser(engine, base, _out) {
       simctl(['openurl',udid,url]); await connect();
     },
     async click(selector) {
-      await raw(`(()=>{const element=document.querySelector(${JSON.stringify(selector)});if(!(element instanceof HTMLButtonElement)||element.disabled||element.getClientRects().length===0)throw new Error('Unavailable actual phone control');element.click();return true;})()`);
+      await raw(`(${phoneTouchButton.toString()})(${JSON.stringify(selector)})`);
     },
     evaluate,
     screenshot(path) {
