@@ -302,7 +302,10 @@ export interface BuildCensus { readonly compile: number; readonly made: number; 
   /** the graph's shape signature, hashed (FNV-1a, hex; null: no graph shape): builds of one graph share it (G743) */
   readonly shape: string | null;
   /** the same with every constant's value blanked: two graphs that differ only in constants (uniform candidates) share it */
-  readonly loose: string | null }
+  readonly loose: string | null;
+  /** the shape's first line (the material's class and code-bearing fields) and its constants' values in compile order:
+   *  what tells two loose-equal graphs apart */
+  readonly top: string | null; readonly constants: readonly string[] }
 const fnv = (text: string): string => { let h = 0x811c9dc5; for (let i = 0; i < text.length; i++) h = Math.imul(h ^ (text.codePointAt(i) ?? 0), 0x01000193); return (h >>> 0).toString(16); };
 export function buildCensus(output: BuildOutput, shape: GraphShape | null, made: readonly Node[]): BuildCensus {
   const compiled = new Set(shape?.nodes), built = new Set(made), other: string[] = [];
@@ -313,5 +316,8 @@ export function buildCensus(output: BuildOutput, shape: GraphShape | null, made:
     else if (built.has(node)) fresh++;
     else other.push(node.name === '' ? node.constructor.name : `${node.constructor.name}:${node.name}`);
   }
-  return { compile, made: fresh, other, shape: shape === null ? null : fnv(shape.signature), loose: shape === null ? null : fnv(shape.signature.replaceAll(/ value=\S+/gu, ' value=*')) };
+  const signature = shape?.signature ?? null;
+  return { compile, made: fresh, other, shape: signature === null ? null : fnv(signature), loose: signature === null ? null : fnv(signature.replaceAll(/ value=\S+/gu, ' value=*')),
+    top: signature === null ? null : signature.split('\n', 1)[0] ?? '',
+    constants: signature === null ? [] : [...signature.matchAll(/ value=(\S+)/gu)].map(match => match[1] ?? '') };
 }
