@@ -18,7 +18,6 @@ import specimensInput from '../data/specimens.generated.json' with {type:'json'}
 import paintInput from '../data/poiPaint.json' with {type:'json'};
 import coverInput from '../data/cover.generated.json' with {type:'json'};
 import atlases from '../data/signAtlases.json' with {type:'json'};
-import balbalInput from '../data/balbalSpecimen.generated.json' with {type:'json'};
 import * as v from 'valibot';
 import { SpecimenCatalogueSchema, PackedSpecimenSchema, SpecimenMaterialSchema, SpecimenAssetSchema } from '@wildshard/format/specimenCatalogue';
 import { AmbientFlockSchema, AmbientPerchesSchema } from '@wildshard/format/ambientLife';
@@ -49,8 +48,6 @@ const paint=v.parse(paintSchema,paintInput);
 /** Exact raw contact files, read only by the SDK's normal named-file intake. */
 export const DRESSING_CONTACT_SOURCES=v.parse(v.array(v.object({name:text,kind:v.literal('bin'),source:text,
   options:v.object({decoded:v.pipe(number,v.integer(),v.minValue(0))})})), 'sources'in paintInput?paintInput.sources:[]);
-/** Prepared carving files share the SDK's named geometry intake. */
-export const DRESSING_SPECIMEN_SOURCES=v.parse(v.array(v.object({name:text,kind:v.literal('bin'),source:text})),balbalInput.sources);
 /** Both exact sign rasters enter through the same named binary source path; two base planes bound the rectangular mip chain. */
 export const DRESSING_ATLAS_SOURCES=v.parse(v.array(v.object({name:text,kind:v.literal('bin'),source:text,options:v.object({gpu:number})})),Object.values(atlases).map(row=>({name:row.file,kind:'bin',source:row.source,options:{gpu:row.width*row.height*8}})));
 /** Exact existing compressed byte lanes, admitted under logical product names before client decoding. */

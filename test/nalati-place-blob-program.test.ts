@@ -46,7 +46,7 @@ test('the full frozen assembly pin and exact current geography input retain sepa
 test('native dressing and duplicate scene-copy jobs stay retired', () => {
   const descriptors = discoverGeneration(resolve('.')).jobs;
   const jobs = descriptors.map(job => job.id);
-  expect(jobs).not.toContain('nalati-decorative'); expect(jobs).not.toContain('nalati-quest-prop');
+  expect(jobs).not.toContain('nalati-decorative'); expect(jobs).not.toContain('nalati-quest-prop'); expect(jobs).not.toContain('nalati-balbal-specimen');
   expect(jobs).not.toContain('nalati-dressing'); expect(jobs).not.toContain('nalati-places-blob'); expect(jobs).not.toContain('nalati-crags-blob'); expect(jobs).not.toContain('nalati-dressing-blob');
 });
 
@@ -86,7 +86,7 @@ test('the actual output hook preserves every predecessor file cost and binary by
     expect(requested).not.toContain('data/quest-prop.generated.bin');
     for (const index of [0, 1]) {
       expect(requested).not.toContain(`data/balbal-carving-${String(index)}.generated.bin`);
-      const originalPart = readFileSync(`src/shards/nalati-grasslands/data/balbal-carving-${String(index)}.generated.bin`);
+      const originalPart = readFileSync(`test/fixtures/nalati-balbal-original-${String(index)}.bin`);
       const pin = nameBlob(`models/specimens/balbal-${String(index)}.bin`, 'bin', originalPart);
       expect(hit.namedFiles.find(file => file.name === pin.file.name)).toEqual(pin.file);
       const ownedPart = hit.assets.get(pin.file.hash);

@@ -25,7 +25,7 @@ test('native carving inputs preserve the complete original balbal catalogue and 
   const make = () => nalatiBalbalSpecimen(bare, capped, specimens.assets.balbal, specimens.materials.poi, metrics.sizes.balbal[1]);
   const made = make(), catalogue = v.parse(SpecimenCatalogueSchema, made.catalogue);
   const bytes = new TextEncoder().encode(`${JSON.stringify({ ...made, catalogue }, null, 2)}\n`);
-  const original = readFileSync(`${root}balbalSpecimen.generated.json`);
+  const original = readFileSync('test/fixtures/nalati-balbal-original.json');
   expect(hashImmutableBytes(original)).toBe('2eb6117fd6b08dc2b6d8ac8c09b7c1e4e0aacbc77879154e2bfad810df48a948');
   expect(Buffer.compare(bytes, original)).toBe(0);
   made.sites.variantCycle.fill(9); made.generated.transform.scale = 9;

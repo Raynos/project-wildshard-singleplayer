@@ -14398,7 +14398,6 @@
         "src/shards/nalati-grasslands/generators/ambientGeometry.ts",
         "src/shards/nalati-grasslands/generators/bake-admission.mjs",
         "src/shards/nalati-grasslands/generators/bake-audio.mjs",
-        "src/shards/nalati-grasslands/generators/bake-balbal-specimen.mjs",
         "src/shards/nalati-grasslands/generators/bake-boot-metadata.mjs",
         "src/shards/nalati-grasslands/generators/bake-cover.mjs",
         "src/shards/nalati-grasslands/generators/bake-crag-rock.mjs",
@@ -14799,45 +14798,6 @@
       "platform": "portable",
       "catalogueDependencies": [
         "driftwood-map-assembly"
-      ]
-    },
-    {
-      "id": "nalati-balbal-specimen",
-      "shard": "nalati-grasslands",
-      "entry": "src/shards/nalati-grasslands/generators/bake-balbal-specimen.mjs",
-      "command": [
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/shards/nalati-grasslands/generators/bake-balbal-specimen.mjs"
-      ],
-      "inputRoots": [
-        "src/shards/nalati-grasslands/generators/bake-balbal-specimen.mjs",
-        "src/shards/nalati-grasslands/data/placeRuntime.generated.json",
-        "src/shards/nalati-grasslands/data/specimens.generated.json",
-        "src/shards/nalati-grasslands/data/modelMetrics.json",
-        "public/assets/nalati/baked/places.bin",
-        "src/format",
-        "src/sdk/bake/source-loader.mjs",
-        "scripts/bake-output.mjs",
-        "package.json",
-        "pnpm-lock.yaml",
-        "src/shards/nalati-grasslands/generators/placeParts.ts",
-        "src/shards/nalati-grasslands/generators/balbalSpecimen.ts"
-      ],
-      "outputs": [
-        "src/shards/nalati-grasslands/data/balbalSpecimen.generated.json",
-        "src/shards/nalati-grasslands/data/balbal-carving-0.generated.bin",
-        "src/shards/nalati-grasslands/data/balbal-carving-1.generated.bin"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/nalati-grasslands/data/balbalSpecimen.generated.json",
-        "src/shards/nalati-grasslands/data/balbal-carving-0.generated.bin",
-        "src/shards/nalati-grasslands/data/balbal-carving-1.generated.bin"
-      ],
-      "platform": "portable",
-      "catalogueDependencies": [
-        "nalati-place-runtime",
-        "camp-specimen-catalogue"
       ]
     },
     {

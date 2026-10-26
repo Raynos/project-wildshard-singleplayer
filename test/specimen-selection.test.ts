@@ -14,10 +14,10 @@ import { Rng } from '../src/engine/core/rng';
 import { modelContext, paramsOf } from '../src/engine/models/model';
 import { SkyRig } from '../src/engine/world/skyRig';
 import { defineSpecimenCatalogue, prepareSpecimenCatalogue, loadBoundSpecimen, awaitSpecimenAssets } from '../src/game/models/specimenCatalogue';
-import rows from '../src/shards/nalati-grasslands/data/balbalSpecimen.generated.json' with {type:'json'};
+import rows from './fixtures/nalati-balbal-original.json' with {type:'json'};
 
 /** Nalati's baked balbal rows: the generated model and both carved steles as one selection. */
-const files=await prepareSpecimenCatalogue({file:name=>{const row=rows.sources.find(source=>source.name===name);if(row===undefined)throw new Error('Missing carving fixture');return Promise.resolve(new Uint8Array(readFileSync(`src/shards/nalati-grasslands/${row.source}`)));}},rows.catalogue);
+const files=await prepareSpecimenCatalogue({file:name=>{const row=rows.sources.find(source=>source.name===name);if(row===undefined)throw new Error('Missing carving fixture');return Promise.resolve(new Uint8Array(readFileSync(`test/fixtures/nalati-balbal-original-${row.name.endsWith('balbal-0.bin')?'0':'1'}.bin`)));}},rows.catalogue);
 const balbal=defineSpecimenCatalogue<{balbal:{readonly carved:'bare'|'capped'|null}}>(rows.catalogue,undefined,{},files).model('balbal');
 
 function skyFixture():SkyRig{

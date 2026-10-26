@@ -30,7 +30,7 @@ test('all three detached parts preserve every shipping word, geometry row and so
   expect([...parts.keys()]).toEqual(original.map(([name]) => name));
   for (const [name, path, hash] of original) {
     const part = parts.get(name); if (part === undefined) throw new Error('Missing original part');
-    const old = readFileSync(name === 'actor:goat' ? 'test/fixtures/nalati-quest-prop-original.bin' : `${root}data/${path}`);
+    const old = readFileSync(name === 'actor:goat' ? 'test/fixtures/nalati-quest-prop-original.bin' : `test/fixtures/nalati-balbal-original-${name === 'actor:balbal:0:2977' ? '0' : '1'}.bin`);
     expect(hashImmutableBytes(part.bytes), path).toBe(hash);
     expect(hashImmutableBytes(old), path).toBe(hash);
     expect(Buffer.compare(part.bytes, old), path).toBe(0);
