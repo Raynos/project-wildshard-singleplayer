@@ -3,6 +3,7 @@ import { audioMixValue } from './audioProfiles';
 import { resourceScope } from '../app/resources';
 import { ownAudioSource } from './ownership';
 import { tap } from '../core/harnessTap';
+import { observeAudioMemory } from '../core/memoryResources';
 import { panFromYaw, audioRandom } from './util';
 import type { Scope } from '../app/scope';
 /**
@@ -80,6 +81,7 @@ export interface SamplePlay extends PlayOpts {
 export type VoiceTable = Readonly<Record<string, Family | { clips: () => readonly SampleVoice[] | undefined; policy?: SamplePolicy }>>;
 
 export class VoicePool {
+  private readonly memoryOwner = resourceScope().name;
   private readonly scope = resourceScope().child('VoicePool');
   private bufs = new Map<string, (AudioBuffer | undefined)[]>();
   private warm: [string, number][] = [];
@@ -230,7 +232,9 @@ export class VoicePool {
       const key = `${name}/${v}/${c}`;
       if ((ch >= 0 && c !== ch) || this.done.has(key)) continue;
       const data = f.gen(sr, v + 1, c);
-      const b = list[v] ?? ctx.createBuffer(f.ch, data.length, sr); list[v] = b;
+      const b = list[v] ?? observeAudioMemory(ctx.createBuffer(f.ch, data.length, sr), {
+        owner: this.memoryOwner, asset: `audio/procedural/${name}/${v}`,
+      }); list[v] = b;
       b.getChannelData(c).set(data);
       this.done.add(key);
     }

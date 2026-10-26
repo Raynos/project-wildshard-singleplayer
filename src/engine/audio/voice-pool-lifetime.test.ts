@@ -3,6 +3,7 @@ import { Scope } from '../app/scope';
 import { withOwner } from '../app/ownership';
 import { legacyDouble } from '../test/FakeGame';
 import { realGc } from '../test/realGc';
+import { memoryAttribution } from '../core/memoryAttribution';
 import { VoicePool, type Family } from './Voices';
 
 class Pcm implements AudioBuffer {
@@ -33,6 +34,25 @@ function fixture() {
   return { owner, pool };
 }
 const family = (value: number, frames = 16): Family => ({ n: 1, ch: 1, gen: () => new Float32Array(frames).fill(value) });
+
+test('procedural PCM reports its original channels once under the captured owner', () => {
+  const f = fixture(), consumer = new Scope('voice-reader');
+  const rows = () => memoryAttribution.snapshot().allocations.filter(row => row.asset === 'audio/procedural/fixture-observed/0');
+  try {
+    f.pool.register({ 'fixture-observed': { n: 1, ch: 2, half: true,
+      gen: (rate, _seed, channel) => new Float32Array(rate / 1000).fill((channel + 1) / 4) } });
+    const buffer = withOwner(consumer, () => f.pool.buffer('fixture-observed'));
+    if (buffer === undefined) throw new Error('Missing procedural buffer');
+    expect([buffer.length, buffer.numberOfChannels, buffer.sampleRate]).toEqual([24, 2, 24000]);
+    expect(buffer.getChannelData(0).every(sample => sample === 0.25)).toBe(true);
+    expect(buffer.getChannelData(1).every(sample => sample === 0.5)).toBe(true);
+    const allocations = rows();
+    expect(allocations).toHaveLength(1);
+    expect(allocations[0]).toMatchObject({ domain: 'ram', kind: 'audio-buffer', bytes: 192, precision: 'exact', owner: f.owner.name });
+    expect(f.pool.buffer('fixture-observed')).toBe(buffer);
+    expect(rows()).toEqual(allocations);
+  } finally { consumer.dispose(); f.owner.dispose(); }
+});
 
 test('a replacement family renders its own PCM and old removal cannot evict the successor', () => {
   const f = fixture();
