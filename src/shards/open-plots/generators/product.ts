@@ -7,7 +7,6 @@ import poolFlicker from '../data/poolFlicker.graph.json' with { type: 'json' };
 import poster from '../data/poster.graph.json' with { type: 'json' };
 import paving from '../data/paving.graph.json' with { type: 'json' };
 import kit from '../data/kit.graph.json' with { type: 'json' };
-import landmark from '../data/landmark.graph.json' with { type: 'json' };
 
 /** The open-plots source shard (SF88g, G538/G539/G541/G542/G545): data rows (`outputs.json`, one product per idea) and one
  *  build-time generator (`generators/bake-plots.mjs`, which writes each idea's `assets/<idea>/world.glb`); this module
@@ -23,14 +22,12 @@ const { why: _why, ...tiledMaterials } = source.tiledMaterials;
 // NM10: the lanterns, windows and their light pools flicker a little, each on its own phase (world position), unlit as the
 // emissive family drew them (glow x2.4 +-12 %, pool additive x1.2 +-8 %); the glow also moves and lights the marked
 // fireflies and sky lanterns (kit.mjs `mover`)
-const tiledLook: { materials: { glow: { family: string; graph: typeof glowFlicker; }; pool: { family: string; graph: typeof poolFlicker; }; paving: { family: string; graph: typeof paving; }; kit: { family: string; graph: typeof kit; }; landmark: { family: string; graph: typeof landmark; }; water: (typeof look)["materials"]["frame"]; hologram: (typeof look)["materials"]["hologram"]; billboard: (typeof look)["materials"]["billboard"]; floor: (typeof look)["materials"]["floor"]; kerb: (typeof look)["materials"]["frame"]; plinth: (typeof look)["materials"]["frame"]; frame: (typeof look)["materials"]["frame"]; rim: (typeof look)["materials"]["rim"]; sign: (typeof look)["materials"]["sign"]; }; grade: (typeof look)["grade"]; clock: string; familyLooks: (typeof look)["familyLooks"]; families: (typeof look)["families"]; day: (typeof look)["day"]; dayOverride: number; keys: (typeof look)["keys"]; } = { ...look, materials: { ...look.materials, ...tiledMaterials,
+const tiledLook: { materials: { glow: { family: string; graph: typeof glowFlicker; }; pool: { family: string; graph: typeof poolFlicker; }; paving: { family: string; graph: typeof paving; }; kit: { family: string; graph: typeof kit; }; landmark: (typeof look)["materials"]["frame"]; water: (typeof look)["materials"]["frame"]; hologram: (typeof look)["materials"]["hologram"]; billboard: (typeof look)["materials"]["billboard"]; floor: (typeof look)["materials"]["floor"]; kerb: (typeof look)["materials"]["frame"]; plinth: (typeof look)["materials"]["frame"]; frame: (typeof look)["materials"]["frame"]; rim: (typeof look)["materials"]["rim"]; sign: (typeof look)["materials"]["sign"]; }; grade: (typeof look)["grade"]; clock: string; familyLooks: (typeof look)["familyLooks"]; families: (typeof look)["families"]; day: (typeof look)["day"]; dayOverride: number; keys: (typeof look)["keys"]; } = { ...look, materials: { ...look.materials, ...tiledMaterials,
   glow: { family: 'graph', graph: glowFlicker }, pool: { family: 'graph', graph: poolFlicker },
   // RM5.1: the paving ruled in its material (flagstones, joints, per-stone shade and wear; no texture), over its vertex colours
   paving: { family: 'graph', graph: paving },
   // RM5.3: the kit's ruled trim by each face's band (data/trim.json): plain, roof tile, timber, plaster, awning stripe, stone
-  kit: { family: 'graph', graph: kit },
-  // RM6.4: the gate in its own texture, its gold trim glowing and its foot warmed by its light pools
-  landmark: { family: 'graph', graph: landmark } } };
+  kit: { family: 'graph', graph: kit } } };
 
 /** One idea row's output (validated whole by the build's parseShardfile; SF88g: one per idea). */
 function project(row: { readonly slug: string; readonly idea: string; readonly name: string; readonly accent: string; readonly layout?: string }): (Omit<ReturnType<typeof emptyShardfile>, "identity" | "accent" | "spawn" | "look" | "world"> & {

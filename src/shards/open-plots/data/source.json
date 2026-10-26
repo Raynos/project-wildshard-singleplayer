@@ -256,6 +256,30 @@
       "intensity": 2.4,
       "vertexColours": true
     },
+    "landmark": {
+      "family": "pbr",
+      "colour": [
+        1,
+        1,
+        1
+      ],
+      "roughness": 0.8,
+      "metalness": 0,
+      "maps": {
+        "colour": null,
+        "normal": null,
+        "orm": null
+      },
+      "normalScale": 1,
+      "occlusion": 1,
+      "envStrength": 1,
+      "vertexColours": false,
+      "faceted": false,
+      "doubleSided": false,
+      "alphaCutoff": 0,
+      "ground": null,
+      "measure": null
+    },
     "pool": {
       "family": "emissive",
       "colour": [
