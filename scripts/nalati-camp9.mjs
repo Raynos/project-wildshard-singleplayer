@@ -16,6 +16,8 @@
 // closed at the end. Needs the dev server (this worktree: http://127.0.0.1:5188).
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { resolve as resolvePath } from 'node:path';
+import { jpegImageRoutes } from './parity/image-routes.mjs';
+import { saveJpegBlob } from './parity/canvas-bytes.mjs';
 
 const { chromium } = await import('playwright');
 
@@ -111,35 +113,51 @@ try {
   rows.sort((a, b) => a.n - b.n);
   const cells = rows.map((r) => ({
     label: `${r.n} ${r.id} · ${r.p50.toFixed(1)} / ${r.p95.toFixed(1)} ms · ${r.calls} calls · ${(r.tris / 1e6).toFixed(2)} M`,
-    engine: `data:image/jpeg;base64,${readFileSync(resolvePath(ROOT, r.file)).toString('base64')}`,
-    target: existsSync(resolvePath(ROOT, r.target)) ? `data:image/jpeg;base64,${readFileSync(resolvePath(ROOT, r.target)).toString('base64')}` : null,
+    engine: readFileSync(resolvePath(ROOT, r.file)),
+    target: existsSync(resolvePath(ROOT, r.target)) ? readFileSync(resolvePath(ROOT, r.target)) : null,
   }));
   const page = await (await browser.newContext()).newPage();
-  for (const pairs of [false, true]) {
-    const b64 = await page.evaluate(async (args) => {
-      const load = (src) => new Promise((resolve, reject) => { const i = new Image(); i.onload = () => resolve(i); i.onerror = reject; i.src = src; });
-      const CW = args.pairs ? 900 : 620, CH = 690, G = 6;
-      const c = document.createElement('canvas'); c.width = CW * 3 + G * 4; c.height = CH * 3 + G * 4;
-      const g = c.getContext('2d');
-      g.fillStyle = '#111'; g.fillRect(0, 0, c.width, c.height);
-      g.imageSmoothingQuality = 'high'; g.font = '600 13px ui-monospace, monospace';
-      const fit = (img, x, y, w, h) => { const k = Math.min(w / img.width, h / img.height); const dw = img.width * k, dh = img.height * k; g.drawImage(img, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh); };
-      for (let i = 0; i < args.cells.length; i++) {
-        const cell = args.cells[i];
-        const x = G + (i % 3) * (CW + G), y = G + Math.floor(i / 3) * (CH + G);
-        const eng = await load(cell.engine);
-        if (args.pairs && cell.target) {
-          const tgt = await load(cell.target);
-          fit(eng, x, y, CW / 2 - 2, CH - 22); fit(tgt, x + CW / 2 + 2, y, CW / 2 - 2, CH - 22);
-        } else fit(eng, x, y, CW, CH - 22);
-        g.fillStyle = '#9fe6ff'; g.fillText(cell.label + (args.pairs ? '   engine | target' : ''), x + 4, y + CH - 6);
-      }
-      g.fillStyle = '#ffd98a'; g.fillText(args.title, G + 4, c.height - 1);
-      for (let q = 0.85; q >= 0.4; q -= 0.05) { const u = c.toDataURL('image/jpeg', q); if (u.length * 0.75 < 490 * 1024) return u.split(',')[1]; }
-      return c.toDataURL('image/jpeg', 0.35).split(',')[1];
-    }, { cells, pairs, title: `${TAG} · tier=${TIER}` });
-    writeFileSync(resolvePath(OUT, `${TAG}-sheet-${pairs ? 'pairs' : 'engine'}.jpg`), Buffer.from(b64, 'base64'));
-  }
+  const inputs = await jpegImageRoutes(page, cells.flatMap(cell => cell.target === null ? [cell.engine] : [cell.engine, cell.target]));
+  try {
+    let next = 0;
+    const routedCells = cells.map(cell => ({ label: cell.label, engine: inputs.urls[next++], target: cell.target === null ? null : inputs.urls[next++] }));
+    for (const pairs of [false, true]) {
+      const image = await page.evaluateHandle(async (args) => {
+        const load = async (src) => { const i = new Image(); i.crossOrigin = 'anonymous'; i.src = src; await i.decode(); return i; };
+        const CW = args.pairs ? 900 : 620, CH = 690, G = 6;
+        const c = document.createElement('canvas'); c.width = CW * 3 + G * 4; c.height = CH * 3 + G * 4;
+        const g = c.getContext('2d');
+        g.fillStyle = '#111'; g.fillRect(0, 0, c.width, c.height);
+        g.imageSmoothingQuality = 'high'; g.font = '600 13px ui-monospace, monospace';
+        const fit = (img, x, y, w, h) => { const k = Math.min(w / img.width, h / img.height); const dw = img.width * k, dh = img.height * k; g.drawImage(img, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh); };
+        for (let i = 0; i < args.cells.length; i++) {
+          const cell = args.cells[i];
+          const x = G + (i % 3) * (CW + G), y = G + Math.floor(i / 3) * (CH + G);
+          const eng = await load(cell.engine);
+          if (args.pairs && cell.target) {
+            const tgt = await load(cell.target);
+            fit(eng, x, y, CW / 2 - 2, CH - 22); fit(tgt, x + CW / 2 + 2, y, CW / 2 - 2, CH - 22);
+          } else fit(eng, x, y, CW, CH - 22);
+          g.fillStyle = '#9fe6ff'; g.fillText(cell.label + (args.pairs ? '   engine | target' : ''), x + 4, y + CH - 6);
+        }
+        g.fillStyle = '#ffd98a'; g.fillText(args.title, G + 4, c.height - 1);
+        /** @param {number} quality @returns {Promise<Blob>} */
+        const encode = (quality) => new Promise((resolve, reject) => {
+          c.toBlob(bytes => {
+            if (bytes === null || bytes.type !== 'image/jpeg' || bytes.size === 0) reject(new Error('Camp JPEG encoding failed'));
+            else resolve(bytes);
+          }, 'image/jpeg', quality);
+        });
+        for (let q = 0.85; q >= 0.4; q -= 0.05) {
+          const bytes = await encode(q);
+          // Preserve the original data-URL size test, including its 23-byte prefix.
+          if ((23 + 4 * Math.ceil(bytes.size / 3)) * 0.75 < 490 * 1024) return bytes;
+        }
+        return encode(0.35);
+      }, { cells: routedCells, pairs, title: `${TAG} · tier=${TIER}` });
+      await saveJpegBlob(page, image, resolvePath(OUT, `${TAG}-sheet-${pairs ? 'pairs' : 'engine'}.jpg`));
+    }
+  } finally { await inputs.dispose(); }
 } finally {
   await browser.close();
 }
