@@ -37,11 +37,11 @@ function fixture(options: {models?: boolean; prepare?: (root: Object3D) => Promi
   const ports = {owner, view: {root}, preparedModels: options.models === false ? null : models, preparing: options.enabled !== false, world: {},
     foundation: {prepareWorldMaterials: (): void => {calls.push('look');}, beforeWarm: (): void => {calls.push('before-final');}},
     request: {page: {world: {game: {warmEnteredFrame: async (scope: Scope, lighting: Object3D,
-      before: (prepare: (roots: readonly Object3D[]) => Promise<void>) => Promise<void>): Promise<void> => {
+      before: (prepare: (roots: readonly Object3D[], exteriorPrograms?: boolean) => Promise<void>) => Promise<void>): Promise<void> => {
       expect(scope).toBe(owner); expect(lighting).toBe(root);
-      await before(async roots => {
+      await before(async (roots, exteriorPrograms = true) => {
         expect(roots).toHaveLength(1); const object = roots[0]; if (object === undefined) throw new Error('Missing prepared root');
-        expect(object === root || object === models).toBe(true); calls.push(object === root ? 'world' : 'equipment');
+        expect(object === root || object === models).toBe(true); expect(exteriorPrograms).toBe(object === root); calls.push(object === root ? 'world' : 'equipment');
         if (object === root) worldReady.resolve();
         await options.prepare?.(object);
       });

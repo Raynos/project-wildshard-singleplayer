@@ -92,3 +92,14 @@ test('a parked group borrows its installing scene environment while retaining pa
     expect(f.scene.environment).toBe(road); expect(f.root.visible).toBe(false);
   } finally { f.dispose(); road.dispose(); regional.dispose(); }
 });
+
+
+test('owner-only equipment omits exterior programs while world roots retain them by default', async () => {
+  const f = fixture();
+  try {
+    await prepareSceneRoots(f.renderer, f.camera, f.scene, null, [f.root], () => true, () => Promise.resolve(), undefined, true, f.root, undefined, false);
+    expect(f.compiled.map(row => row.receiver)).toEqual([false, true]);
+    expect(f.root.visible).toBe(false); expect(f.root.parent).toBe(f.scene);
+    expect(f.compiled.every(row => row.fog === f.scene.fog && row.lights === 1)).toBe(true);
+  } finally { f.dispose(); }
+});

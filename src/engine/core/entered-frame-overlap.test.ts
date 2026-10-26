@@ -119,5 +119,8 @@ test('early programs use the rendered page scene and the installing region envir
     await Reflect.apply(method, game, [owner, composer, [root], root, () => !owner.disposed]);
     expect(calls).toHaveLength(1); expect(calls[0]?.[2]).toBe(rootScene);
     expect(calls[0]?.[4]).toEqual([root]); expect(calls[0]?.[9]).toBe(root); expect(calls[0]?.[10]).toBe(environment);
+    expect(calls[0]?.[11]).toBe(true);
+    await Reflect.apply(method, game, [owner, composer, [root], root, () => !owner.disposed, false]);
+    expect(calls[1]?.[11]).toBe(false);
   } finally { owner.dispose(); environment.dispose(); }
 });
