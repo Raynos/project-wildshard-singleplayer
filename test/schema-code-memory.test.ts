@@ -1,3 +1,4 @@
+import { nalatiRuntime } from './fixtures/nalati-runtime';
 import { nalatiDecorative } from './fixtures/nalati-decorative';
 import { expect, test } from 'vitest';
 import conditionalSchema from './fixtures/schema-conditionals.json' with { type: 'json' };
@@ -14,7 +15,7 @@ const accepts = (work: () => unknown): boolean => { try { work(); return true; }
 
 test('real dressing retains author/runtime acceptance and nested refusal without schema mutation', () => {
   const schema = namedJsonSchema(SceneDressingSchema), original = encodeCanonicalJson(schema), schemaBytes = encode(schema);
-  const rows = dressingScene('phone',nalatiDecorative), layer = rows.layers[0], first = rows.statics[0];
+  const rows = dressingScene('phone',nalatiDecorative,nalatiRuntime), layer = rows.layers[0], first = rows.statics[0];
   if (layer === undefined || first === undefined) throw new Error('Missing actual dressing rows');
   const candidates = [rows,
     { ...rows, layers: [{ ...layer, far: 'distant' }] },

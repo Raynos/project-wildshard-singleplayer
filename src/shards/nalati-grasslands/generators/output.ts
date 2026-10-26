@@ -223,7 +223,7 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<type
   const decorativeFiles = await nalatiDecorativeProgram(ctx), decorativeBytes = decorativeFiles.get('decorative.json');
   if (decorativeBytes === undefined) throw new Error('Missing owned decorative profiles');
   const profiles: unknown = JSON.parse(new TextDecoder().decode(decorativeBytes));
-  const scenes = emitNamedBlobs(dressingSceneBlobs(profiles));
+  const scenes = emitNamedBlobs(dressingSceneBlobs(profiles,runtime.runtime));
   const namedFiles = [...emitted.files, ...ownedMetadata.files, ...scenes.files].sort((a, b) => (a.name ?? '') < (b.name ?? '') ? -1 : (a.name ?? '') > (b.name ?? '') ? 1 : 0);
   return { ...output, blobs: outputBlobs(shapeBook.sources), namedFiles: [...namedFiles, ...taming.files, places.file, crags.file, dressingBlob.file], assets: new Map([...output.assets, ...ownedMetadata.assets, ...scenes.assets, [places.file.hash, places.bytes], [crags.file.hash, crags.bytes], [dressingBlob.file.hash, dressingBlob.bytes]]) };
 }

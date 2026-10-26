@@ -1,3 +1,4 @@
+import { nalatiRuntime } from './fixtures/nalati-runtime';
 import { nalatiDecorative } from './fixtures/nalati-decorative';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare frozen native byte witnesses.
 import {createHash} from 'node:crypto';
@@ -26,7 +27,7 @@ test('both POI tiers preserve every packed point and ordered origin through name
     const origins=new Uint8Array(contact.origins.length*32),view=new DataView(origins.buffer);
     contact.origins.flat().forEach((value,index)=>{view.setFloat64(index*8,value,true);});expect(hash(origins)).toBe(before.originsHash);
     const tier=before.tier;if(tier!=='phone'&&tier!=='desktop')throw new Error('Unknown original contact tier');
-    const layer=dressingScene(tier,nalatiDecorative).layers.find(row=>row.id===`nalati-dress-${before.key}`);
+    const layer=dressingScene(tier,nalatiDecorative,nalatiRuntime).layers.find(row=>row.id===`nalati-dress-${before.key}`);
     expect(layer?.contacts).toEqual({kind:'packed-hulls',file:contact.file,origins:contact.origins,surface:'rock'});
   }
 });

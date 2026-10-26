@@ -44,9 +44,6 @@ const paintContact={origins:v.array(v.tuple([number,number,number,number]))};
 const paintSchema=v.object({glacierSnout:v.object({x:number,y:number,z:number}),rows:v.array(v.object({key:text,name:text,geometry:SceneBakedGeometrySchema,bounds:v.exactOptional(v.tuple([number,number,number,number,number,number]))})),contacts:v.record(text,v.record(text,v.union([
   v.object({...paintContact,file:text}),v.object({...paintContact,points:text}),
 ])))});
-// Shared authoring metadata is emitted alongside the runtime boot descriptors.
-const prepared=v.parse(preparedSchema,{...preparedInput,places:{rows:preparedInput.places.rows.filter(row=>['camp','bridge','roads','summerCamp','kurgans','eagleRock','cairn','crags','watchtower','dressing-statics','dressing-clutter','kokpar','outcrops'].includes(row.name))}});
-const scenes=v.parse(v.record(text,PrivateSceneSchema),nalatiPoiScenes(preparedInput.places));
 const specimens=v.parse(specimensSchema,specimensInput);
 const paint=v.parse(paintSchema,paintInput);
 /** Exact raw contact files, read only by the SDK's normal named-file intake. */
@@ -69,11 +66,21 @@ export const DRESSING_CRAG_DECODED=cragDecoded;
 export const DRESSING_DECODED=preparedInput.dressing.bytes;
 const cover=v.parse(coverSchema,coverInput);
 // the places' anchors and the camp smoke's baked puffs (bake-place-runtime.mjs)
-const spot=v.object({x:number,y:number,z:number}),placed=v.parse(v.object({places:v.object({rows:v.array(v.object({name:text,
+const spot=v.object({x:number,y:number,z:number}),placedSchema=v.object({places:v.object({rows:v.array(v.object({name:text,
   anchors:v.optional(v.object({entrance:v.exactOptional(v.object({...spot.entries,facing:number})),ledges:v.exactOptional(v.array(v.object({...spot.entries,r:number}))),
     balbalSpots:v.exactOptional(v.array(v.object({x:number,z:number,yaw:number,scale:number})))}),{}),
   members:v.array(v.tuple([text,v.object({placements:v.array(spot)})]))}))}),
-  view:v.object({smoke:v.object({centre:xyz,radius:number,attributes:v.object({aEmitter:v.array(number),aSeed:v.array(number),aCfg:v.array(number)})})})}),preparedInput);
+  view:v.object({smoke:v.object({centre:xyz,radius:number,attributes:v.object({aEmitter:v.array(number),aSeed:v.array(number),aCfg:v.array(number)})})})});
+
+const scenePlacesSchema=v.object({rows:v.array(v.object({name:text,group:v.nullable(text),
+  meshes:v.array(v.object({name:text,material:text,slot:number}))}))});
+function readPreparedDressing(input:unknown) {
+  const source=v.parse(v.looseObject({places:v.looseObject({rows:v.array(v.looseObject({name:text}))})}),input);
+  const prepared=v.parse(preparedSchema,{...source,places:{rows:source.places.rows.filter(row=>['camp','bridge','roads','summerCamp','kurgans','eagleRock','cairn','crags','watchtower','dressing-statics','dressing-clutter','kokpar','outcrops'].includes(row.name))}});
+  const scenes=v.parse(v.record(text,PrivateSceneSchema),nalatiPoiScenes(v.parse(scenePlacesSchema,source.places)));
+  const placed=v.parse(placedSchema,source);
+  return{prepared,scenes,placed};
+}
 
 const encoded=(raw:Uint8Array):string=>{let encodedText='';for(const byte of zlibSync(raw))encodedText+=String.fromCodePoint(byte);return btoa(encodedText);};
 const id=(name:string)=>`nalati-grasslands/${name}`;
@@ -86,7 +93,8 @@ const preparedContacts=(inputs:readonly unknown[])=>{
 
 
 /** Existing baked shapes and placements become Z2 rows; no page-side scatter or model constructors. */
-function compileDressingScene(tier:'phone'|'desktop',profiles:v.InferOutput<typeof decorativeProfiles>) {
+function compileDressingScene(tier:'phone'|'desktop',profiles:v.InferOutput<typeof decorativeProfiles>,input:ReturnType<typeof readPreparedDressing>) {
+  const {prepared,scenes,placed}=input;
   const phone=tier==='phone',profile=cover[tier];
   const geometry:Record<string,unknown>={},materials:Record<string,unknown>={},addresses:number[]=[];
   const baked=(file:string,offset:number,row:v.InferOutput<typeof SceneBakedGeometrySchema>)=>({kind:'baked-file',file,address:{file:`world/dressing-addresses-${tier}.bin`,word:addresses.push(offset)-1},row});
@@ -127,13 +135,13 @@ function compileDressingScene(tier:'phone'|'desktop',profiles:v.InferOutput<type
       const key=`${name}.instance.${index}`;geometry[key]={kind:'asset',row:instance.asset};materials[key]={kind:'asset',row:instance.asset};geo[key]=key;mats[key]=key;
       copied.materials.push({kind:'port',id:key,source:key});copied.nodes.push({...mesh,id:key,geometry:key,material:key});root.children.push(key);
     }
-    return{name,recipe:copied,geometry:geo,materials:mats,anchors:placeAnchors(name),tris:row.tris+(name==='kokpar'?6*(phone?metrics.farTriangles['kokpar-rider']:metrics.triangles['kokpar-rider']):0),members:row.members.map(([model,member])=>({model,draw:member.draw,placements:member.placements,boxes:member.boxes,floors:member.floors,contacts:preparedContacts([...member.solid,...member.descs])}))};
+    return{name,recipe:copied,geometry:geo,materials:mats,anchors:placeAnchors(name,placed),tris:row.tris+(name==='kokpar'?6*(phone?metrics.farTriangles['kokpar-rider']:metrics.triangles['kokpar-rider']):0),members:row.members.map(([model,member])=>({model,draw:member.draw,placements:member.placements,boxes:member.boxes,floors:member.floors,contacts:preparedContacts([...member.solid,...member.descs])}))};
   });
-  const cloth=clothGeometry();geometry['cloth']={kind:'inline',...cloth};materials['cloth']={kind:'look',look:'nalati-cloth'};
+  const cloth=clothGeometry(prepared);geometry['cloth']={kind:'inline',...cloth};materials['cloth']={kind:'look',look:'nalati-cloth'};
   statics.push({name:'cloth',recipe:{version:1,root:'root',materials:[{kind:'port',id:'paint',source:'paint'}],nodes:[{kind:'group',id:'root',children:['cloth']},{kind:'mesh',id:'cloth',geometry:'shape',material:'paint',missing:'empty',castShadow:true,receiveShadow:true}]},geometry:{shape:'cloth'},materials:{paint:'cloth'},tris:cloth.row.indexCount/3,members:[]});
   geometry['wing']={kind:'packed',source:'cover',key:'wing'};geometry['halfBird']={kind:'packed',source:'cover',key:'halfBird'};
   materials['butterfly']={kind:'painterly',rim:.3,bands:.5,shade:.6,emissive:0x101010};materials['raptor']={kind:'painterly',rim:.6,bands:.6};
-  const bowl=bowlScene(tier,profiles[tier],geometry,materials);statics.push(...bowl.statics);
+  const bowl=bowlScene(tier,profiles[tier],geometry,materials,prepared);statics.push(...bowl.statics);
   const crags=cragRows[tier],cragGeometry:Record<string,string>={};
   for(const part of crags.meshes){geometry[part.key]=baked('world/crags.bin',part.offset,v.parse(SceneBakedGeometrySchema,part.row));cragGeometry[part.key]=part.key;}
   const rockTexture=specimens.materials['rock']?.texture,snowTexture=specimens.materials['snow']?.texture;
@@ -156,7 +164,7 @@ function compileDressingScene(tier:'phone'|'desktop',profiles:v.InferOutput<type
 }
 
 /** The places' gameplay anchors: the great kurgan's entrance, the crag ledges and the Wind Cairn's tie spot (3.6 m east, at its foot). */
-function placeAnchors(name:string):Record<string,{x:number;y:number;z:number;r?:number;facing?:number}[]>{
+function placeAnchors(name:string,placed:ReturnType<typeof readPreparedDressing>['placed']):Record<string,{x:number;y:number;z:number;r?:number;facing?:number}[]>{
   const row=placed.places.rows.find(candidate=>candidate.name===name),anchors=row?.anchors;
   if(name==='kurgans'&&anchors?.entrance!==undefined)return{entrance:[anchors.entrance]};
   if(name==='crags'&&anchors?.ledges!==undefined)return{ledges:anchors.ledges};
@@ -165,7 +173,7 @@ function placeAnchors(name:string):Record<string,{x:number;y:number;z:number;r?:
 }
 
 /** Capture static strip attributes once; the existing cloth graph owns all movement. */
-function clothGeometry(){
+function clothGeometry(prepared:ReturnType<typeof readPreparedDressing>['prepared']){
   // the places' own cloth (camp pole, yurt crowns, the cairn's strips) joins the dressing's in the one mesh
   const sources=['camp','summerCamp','eagleRock','cairn','dressing-statics','kokpar'].map(name=>{const row=prepared.places.rows.find(candidate=>candidate.name===name);if(row===undefined)throw new Error('Missing dressing cloth');return row;});
   const A:number[]=[],S:number[]=[],P:number[]=[],F:number[]=[],col:number[]=[],index:number[]=[],bounds=new THREE.Box3();let strips=0,maxLen=0;
@@ -188,14 +196,14 @@ function clothGeometry(){
   return{row,data:encoded(join(blocks)),sphere:[sphere.center.x,sphere.center.y,sphere.center.z,sphere.radius]};
 }
 
-/** Tier rows are separate JSON loans, keeping the unchanged bounded JSON budget. */
-export function dressingSceneBlobs(input:unknown):ReturnType<typeof nameBlob>[] {const profiles=v.parse(decorativeProfiles,input);return(['phone','desktop']as const).flatMap(tier=>{const result=compileDressingScene(tier,profiles);return[nameBlob(`world/dressing-${tier}.json`,'json',new TextEncoder().encode(encodeCanonicalJson(result.rows)),{jsonSchema:namedJsonSchema(SceneDressingSchema)}),nameBlob(`world/dressing-addresses-${tier}.bin`,'bin',result.addresses)];});}
+/** Supplied native runtime rows and profiles become separate tier JSON loans under the existing bounded budget. */
+export function dressingSceneBlobs(input:unknown,runtime:unknown):ReturnType<typeof nameBlob>[] {const profiles=v.parse(decorativeProfiles,input),prepared=readPreparedDressing(runtime);return(['phone','desktop']as const).flatMap(tier=>{const result=compileDressingScene(tier,profiles,prepared);return[nameBlob(`world/dressing-${tier}.json`,'json',new TextEncoder().encode(encodeCanonicalJson(result.rows)),{jsonSchema:namedJsonSchema(SceneDressingSchema)}),nameBlob(`world/dressing-addresses-${tier}.bin`,'bin',result.addresses)];});}
 
-/** Admitted tier rows for catalogue and format consumers. */
-export function dressingScene(tier:'phone'|'desktop',input:unknown):SceneDressingRows{return compileDressingScene(tier,v.parse(decorativeProfiles,input)).rows;}
+/** Admitted tier rows from caller-owned runtime metadata for catalogue and format consumers. */
+export function dressingScene(tier:'phone'|'desktop',input:unknown,runtime:unknown):SceneDressingRows{return compileDressingScene(tier,v.parse(decorativeProfiles,input),readPreparedDressing(runtime)).rows;}
 
 /** Decorative poses keep the existing visual programs and RNG continuation; none owns gameplay actors. */
-function bowlScene(tier:'phone'|'desktop',data:v.InferOutput<typeof decorativeProfile>,geometry:Record<string,unknown>,materials:Record<string,unknown>){
+function bowlScene(tier:'phone'|'desktop',data:v.InferOutput<typeof decorativeProfile>,geometry:Record<string,unknown>,materials:Record<string,unknown>,prepared:ReturnType<typeof readPreparedDressing>['prepared']){
   const phone=tier==='phone',statics:unknown[]=[],instances:unknown[]=[];
   const empty=(name:string,tris:number,members:unknown[],groupName=`nalati-${name}`)=>({name,tris,members,geometry:{},materials:{},recipe:{version:1,root:'root',materials:[],nodes:[{kind:'group',id:'root',name:groupName,children:[]}]}});
   const putMember=(model:string,member:typeof data.horses.member)=>({model,draw:member.draw,placements:member.placements,boxes:member.boxes,contacts:[...member.solid,...member.descs]});
