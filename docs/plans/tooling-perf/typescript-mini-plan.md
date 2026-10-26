@@ -227,8 +227,9 @@ normal layer emission is the declaration-size authority. Continuation starts at 
 | T4-I6w | Nalati catalogue, riding, weather and creature declarations; retain generic concrete model parameters, mutable rows and optional matrix output | 60 min | done (2026-10-26, sp-x8) |
 | T4-I6x | Nalati geometry, population and pose declarations; retain mutable native rows, readonly spruce identities and original resource contracts | 60 min | done (2026-10-26, sp-x8) |
 | T4-I6xg | Nalati ground declaration annotation: producer import repair `750ef84be5` is on origin; retain its exact lattice/painter and annotate the remaining source value separately | 60 min | done (2026-10-26, sp-x8) |
-| T4-I6y | Nalati product, terrain and painted model declarations; retain mutable output resources and original source intake contracts | 60 min | in flight (2026-10-26, blocked on peer product source; sp-x8) |
+| T4-I6y | Nalati product, terrain and painted model declarations; retain mutable output resources and original source intake contracts | 60 min | in flight (2026-10-26, paused for G743; sp-x8) |
 | T4-I6z | Titan clock and host declarations; preserve numeric landing-slot values through the existing flat-map callback and retain mutable fight contracts | 60 min | done (2026-10-26, sp-x8) |
+| T4-I6z1 | Nalati exported rig binding; replace unsupported exported destructuring with the same typed property alias, preserving object identity and all public contracts | 60 min | in flight (2026-10-26, source landed; RM4 qualification paused for G743, sp-x8) |
 | T4-I6legacy | Frozen legacy declaration annotations: read-only census finds 391/935 modules with 1,018 isolated diagnostics; exact bytes stay unchanged until G606/LD is lifted, modern slices continue | 60 min | waits-Jake (2026-10-26; G606, sp-x8) |
 
 T4 first format slices are on origin: schema expressions and emitted runtime JavaScript are unchanged.

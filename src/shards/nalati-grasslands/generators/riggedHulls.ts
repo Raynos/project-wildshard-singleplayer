@@ -3,7 +3,7 @@ import coatPages from './bake-nalati-coats.json' with { type: 'json' };
 import rows from '../data/creatureRigs.json' with { type: 'json' };
 import metadata from '../bootMetadata.generated.json' with { type: 'json' };
 
-export const { hulls: CREATURE_HULLS } = rows;
+export const CREATURE_HULLS: typeof rows.hulls = rows.hulls;
 /** The retained coat baker and resource book share one authored cache name. */
 export function nalatiCoatUrl(hull: string, kind: string, variant: string): string {
   return `${metadata.assetFiles.coats}${hull}.${kind}.${variant}.coat.webp`;
