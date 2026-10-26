@@ -8,8 +8,9 @@
  *   const standIn = farStandIn(ctx);                       // null: the shard bakes no near view
  *   if (standIn !== null) scenes.addTiled(standIn);        // the tile driver builds it with the coarse stand-ins (T11)
  *
- * A triangle is ground when its three corners all lie within `GROUND_SLACK` of the cell's terrain (the flat floor at 0
- * for a world with none): the near bake lays its ground lattice over the same height field.
+ * A triangle is ground when none of its corners rises more than `GROUND_SLACK` above the cell's terrain (the flat floor at
+ * 0 for a world with none): the near bake lays its ground lattice over the same height field, and hangs skirts below it at
+ * its region borders and leans its cell edge down (both under the ground, never above it).
  */
 import { BufferAttribute, BufferGeometry, Mesh } from 'three';
 import * as v from 'valibot';
@@ -22,21 +23,21 @@ import { bakedNearFiles } from '../grid/nearPlaceholderView';
 import type { ShardContext } from '../plugin/context';
 import type { TileContent } from './tileContent';
 
-/** metres a near-view corner may sit off the terrain and still count as ground */
+/** metres a near-view corner may rise above the terrain and still count as ground */
 export const GROUND_SLACK = 1.2;
 const TILES = 64;
 const num = v.number();
 const NearLook = v.object({ look: v.object({ family: v.picklist(['toon', 'painterly', 'pbr']), haze: v.object({ colour: v.tuple([num, num, num]) }),
   grade: v.optional(v.object({ exposure: num, saturation: num, contrast: num, tint: v.optional(v.tuple([num, num, num])) })) }) });
 
-/** The triangles of `geometry` that are not ground (some corner off the terrain by more than `GROUND_SLACK`). */
+/** The triangles of `geometry` that are not ground (some corner more than `GROUND_SLACK` above the terrain). */
 export function withoutGround(geometry: BufferGeometry, heightAt: (x: number, z: number) => number): BufferGeometry {
   const position = geometry.getAttribute('position'), index = geometry.index;
   if (position === undefined || index === null) throw new Error('Near view needs an indexed position');
   const kept: number[] = [];
   for (let t = 0; t + 2 < index.count; t += 3) {
     const corners = [index.getX(t), index.getX(t + 1), index.getX(t + 2)];
-    const ground = corners.every(c => Math.abs(position.getY(c) - heightAt(position.getX(c), position.getZ(c))) <= GROUND_SLACK);
+    const ground = corners.every(c => position.getY(c) - heightAt(position.getX(c), position.getZ(c)) <= GROUND_SLACK);
     if (!ground) kept.push(...corners);
   }
   // the same vertex attributes (not copies): only the index is new
