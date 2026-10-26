@@ -1,5 +1,7 @@
 import type { AdmissionFrames } from './accuracy-data.d.mts';
 
+/** Preserve caller configuration while isolating this reader's preview lease. */
+export function compiledPreviewEnvironment(environment: Record<string, string | undefined>, pid: number): Record<string, string | undefined> & {SERVE_OWNER: string};
 export interface DownloadSample { step?: string; declaredBytes?: string; pendingBytes?: string; downloadPercent?: string }
 export interface StepSample { clock?: string; detail?: string; setup?: string; fading?: boolean; elapsedMs?: number | null }
 export interface StepBoundarySample {

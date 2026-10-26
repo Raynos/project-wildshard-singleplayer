@@ -1,8 +1,19 @@
 import { expect, test } from 'vitest';
-import { admissionFrameEvidence, compiledTimingHistory, compiledDocumentEvidence, compiledEntryQualification, compiledFrameMetrics, compiledPollDetails, compiledVisibleFailure, downloadEvidence, recoveredGridControls, requireCompiledEntry, sampleCompiledFrame, stepEvidence, stepBoundaryEvidence, transportEvidence, waitForWaitingWorker, type CompiledFrameWindow } from '../scripts/loading-benchmark/sim-shard.mjs';
+import { admissionFrameEvidence, compiledTimingHistory, compiledDocumentEvidence, compiledEntryQualification, compiledFrameMetrics, compiledPollDetails, compiledVisibleFailure, compiledPreviewEnvironment, downloadEvidence, recoveredGridControls, requireCompiledEntry, sampleCompiledFrame, stepEvidence, stepBoundaryEvidence, transportEvidence, waitForWaitingWorker, type CompiledFrameWindow } from '../scripts/loading-benchmark/sim-shard.mjs';
 import type { AdmissionFrames } from '../scripts/loading-benchmark/accuracy-data.d.mts';
 
 const frameWindow = (): CompiledFrameWindow => ({ controlsAt: null, last: null, worst: 0, worstAt: null, frames: 0, complete: false });
+
+test('reader preview leases are distinct from their launcher and other readers', () => {
+  const environment = {SERVE_OWNER: 'parent-preview', SERVE_REG_DIR: '/owned-registry'};
+  const first = compiledPreviewEnvironment(environment, 123);
+  expect(first.SERVE_OWNER).not.toBe(environment.SERVE_OWNER);
+  expect(first.SERVE_OWNER).not.toBe(compiledPreviewEnvironment(environment, 124).SERVE_OWNER);
+  expect(first.SERVE_OWNER).toBe(compiledPreviewEnvironment(environment, 123).SERVE_OWNER);
+  expect(first['SERVE_REG_DIR']).toBe(environment.SERVE_REG_DIR);
+  expect(environment).toEqual({SERVE_OWNER: 'parent-preview', SERVE_REG_DIR: '/owned-registry'});
+  expect(compiledPreviewEnvironment({}, 123).SERVE_OWNER).not.toBe('sim-grid-entry');
+});
 
 test('a visible warm boot fault refuses without depending on accuracy injection or state capture', async () => {
   let reads = 0;

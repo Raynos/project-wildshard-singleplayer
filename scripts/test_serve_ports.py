@@ -455,6 +455,21 @@ class SharedReleaseTests(unittest.TestCase):
         self.assertEqual((self.registry / self.port).read_text(), self.row)
         self.assertTrue(self.path.exists())
 
+    def test_official_reader_release_keeps_its_parent_preview(self):
+        command = "import {compiledPreviewEnvironment} from './scripts/loading-benchmark/sim-shard.mjs'; process.stdout.write(compiledPreviewEnvironment({SERVE_OWNER:'lane-a'},123).SERVE_OWNER);"
+        borrower = subprocess.check_output(['node', '--input-type=module', '-e', command], cwd=ROOT, text=True)
+        self.assertNotEqual(borrower, 'lane-a')
+        self.shared()
+        state = self.module.read(self.path)
+        state['owners'] = sorted({'lane-a', borrower})
+        self.module.write(self.path, state)
+        with patch.object(self.module.subprocess, 'run') as child:
+            self.assertEqual(self.module.release(self.registry, self.port, borrower, False, ['unused']), 0)
+            child.assert_not_called()
+        self.assertEqual(self.module.read(self.path)['owners'], ['lane-a'])
+        self.assertTrue((self.registry / self.port).exists())
+        self.assertTrue(self.out.exists())
+
     def test_changed_shared_state_never_falls_back_to_legacy_teardown(self):
         self.shared()
         @contextlib.contextmanager

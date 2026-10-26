@@ -1,5 +1,12 @@
 import { loadingShardName } from './catalogue.mjs';
 
+/** A reader owns its own set-based shared-preview lease, not its launcher's.
+ * Use the same derived environment for acquisition and release.
+ * @param {Record<string, string | undefined>} environment @param {number} pid */
+export function compiledPreviewEnvironment(environment, pid) {
+  return {...environment, SERVE_OWNER: `${environment.SERVE_OWNER ?? 'sim-grid-entry'}:reader:${pid}`};
+}
+
 /** Keep post-controls polls independent of the frozen loading/resource bank.
  * Injected into Safari: dependencies must stay inside the function.
  * @template {{errors: readonly string[]}} T
