@@ -14,11 +14,11 @@
 import { chromium } from 'playwright';
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { saveFixture } from './debug-settings.mjs';
 import { installInit } from './parity/init.mjs';
 import { MAP_METRES, mapPixelHash, mapSettings, mapSettingsPath, mapStampPath, mapShards, mapTilesHash, writeMapStamp } from './map-hash.mjs';
+import { saveMapFrames } from './map-bake-frames.mjs';
 
 const option = (name) => process.argv.find((part) => part.startsWith(`--${name}=`))?.slice(name.length + 3);
 const root = resolve(import.meta.dirname, '..');
@@ -42,7 +42,7 @@ const todo = mapShards(root).filter(({ slug, dir }) => {
 if (todo.length === 0) { console.log('bake-maps: every map is current'); process.exit(0); }
 
 // Browser side: hide what is not the world, pose the movers at rest, render 2 × 2 orthographic tiles of the colour pass and
-// the height pass, each tile cleared before its draw and read straight after it; returns two PNG data URLs.
+// the height pass, each tile cleared before its draw and read straight after it; retains both native canvases.
 function bake(arg) {
   const g = window.__wildshard.world.game, r = g.renderer, scene = g.rootScene ?? g.scene, gl = r.getContext();
   const exposed = g.app.debug.snapshot();
@@ -113,7 +113,7 @@ function bake(arg) {
       for (let k = 3; k < img.data.length; k += 4) img.data[k] = 255;
       ctx.putImageData(img, i * side, j * side);
     }
-    return out.toDataURL('image/png');
+    return out;
   };
   const Color = scene.getObjectByProperty('isMesh', true)?.material?.color?.constructor;
   if (Color !== undefined) scene.background = new Color(arg.bg[0], arg.bg[1], arg.bg[2]);
@@ -153,7 +153,8 @@ function bake(arg) {
 }
 
 const browser = await chromium.launch({ args: ['--use-angle=metal', '--ignore-gpu-blocklist', '--mute-audio'] });
-const work = keep ?? mkdtempSync(join(tmpdir(), 'bake-maps-'));
+mkdirSync(join(root, 'tmp'), { recursive: true });
+const work = keep ?? mkdtempSync(join(root, 'tmp', 'bake-maps-'));
 mkdirSync(work, { recursive: true });
 let failed = 0;
 try {
@@ -176,15 +177,11 @@ try {
       await page.waitForTimeout(6000);
       await page.evaluate(() => window.__parity.advance(180));
       await page.waitForTimeout(3000);
-      const out = await page.evaluate(bake, { tile: TILE, height: HEIGHT, metres: MAP_METRES, bg: [0.16, 0.18, 0.2], hide: settings.hide, heightHide: settings.heightHide, keep: settings.keep, hideStanding: settings.hideStanding, clipBelow: settings.clipBelow, clipAbove: settings.clipAbove });
-      /** @type {unknown} */
-      const heightResult = Reflect.get(out, 'height');
       const colourPng = join(work, `colour-${slug}.png`), heightPng = join(work, `height-${slug}.png`), stylePath = join(work, `style-${slug}.json`);
-      writeFileSync(colourPng, Buffer.from(out.colour.slice(out.colour.indexOf(',') + 1), 'base64'));
-      if (typeof heightResult === 'string') writeFileSync(heightPng, Buffer.from(heightResult.slice(heightResult.indexOf(',') + 1), 'base64'));
+      const out = await saveMapFrames(page, await page.evaluateHandle(bake, { tile: TILE, height: HEIGHT, metres: MAP_METRES, bg: [0.16, 0.18, 0.2], hide: settings.hide, heightHide: settings.heightHide, keep: settings.keep, hideStanding: settings.hideStanding, clipBelow: settings.clipBelow, clipAbove: settings.clipAbove }), colourPng, heightPng);
       const imageDir = join(root, 'public/assets', slug, 'map'), webp = join(imageDir, 'top.webp');
       mkdirSync(imageDir, { recursive: true });
-      if (settings.style === null || typeof heightResult !== 'string') throw new Error(`${slug}: no look/map.json "style" (the colour table) or no height pass`);
+      if (settings.style === null || !out.hasHeight) throw new Error(`${slug}: no look/map.json "style" (the colour table) or no height pass`);
       writeFileSync(stylePath, JSON.stringify(settings.style));
       execFileSync('uv', ['run', '--quiet', '--with', 'numpy', '--with', 'scipy', '--with', 'pillow', 'python', join(root, 'scripts/map-stylize.py'), colourPng, heightPng, stylePath, webp, String(OUT)], { stdio: 'inherit' });
       const bytes = statSync(webp).size;
