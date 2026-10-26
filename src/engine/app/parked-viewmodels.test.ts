@@ -1,10 +1,11 @@
 import { expect, test, vi } from 'vitest';
-import { BoxGeometry, Group, Mesh, MeshBasicMaterial, PCFShadowMap, PerspectiveCamera, PointLight, Scene, Vector4, WebGLRenderer, WebGLRenderTarget, type Camera, type Object3D } from 'three';
+import { BoxGeometry, DirectionalLight, Group, Mesh, MeshBasicMaterial, PCFShadowMap, PerspectiveCamera, PointLight, Scene, Vector4, WebGLRenderer, WebGLRenderTarget, type Camera, type Object3D } from 'three';
 import { Scope } from './scope';
 import { bindConstructionEnvironment, withOwner } from './ownership';
 import { ViewmodelRoot } from '../render/viewmodel';
 import { warmParkedDraws, type ParkedDrawRenderer } from '../render/parkedDraws';
 import { prepareSceneRoots } from '../render/precompile';
+import { SHADOW_LAYER } from '../core/shadowLayer';
 
 const isMesh = (object: Object3D): object is Mesh => object instanceof Mesh;
 
@@ -153,4 +154,56 @@ test('streamed roots compile without exposing or drawing them', async () => {
     expect(root.parent).toBeNull(); expect(root.visible).toBe(true); expect(hidden.visible).toBe(false);
     expect([first.layers.mask, second.layers.mask]).toEqual([1, 1]); f.restored();
   } finally { f.dispose(); geometry.dispose(); material.dispose(); alternate.dispose(); }
+});
+
+test('first-draw census ignores a hidden retained world and its shadow targets', async () => {
+  const f = fixture(), kept = new Group(), light = new DirectionalLight(), target = new WebGLRenderTarget(8, 8);
+  kept.visible = false; light.castShadow = true; light.shadow.map = target; kept.add(light); f.scene.add(kept);
+  const mapSize = light.shadow.mapSize.toArray();
+  const first = f.parts[0]; if (first === undefined) throw new Error('Missing fixture mesh');
+  let layerReads = 0;
+  for (let index = 0; index < 64; index++) {
+    const part = new Mesh(first.geometry, first.material);
+    const layers = part.layers;
+    Object.defineProperty(part, 'layers', { get: () => { layerReads++; return layers; } });
+    kept.add(part);
+  }
+  const render = f.render.getMockImplementation();
+  if (render === undefined) throw new Error('Missing renderer fixture');
+  f.render.mockImplementation((scene, camera) => {
+    expect(light.shadow.map).toBe(target); expect(light.shadow.mapSize.toArray()).toEqual(mapSize);
+    render(scene, camera);
+  });
+  const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  try {
+    expect(await warmParkedDraws(f.renderer, f.scene, f.camera, f.target, f.stage, () => true,
+      () => Promise.resolve(), { revealChildren: true, budget: { drawables: 1, newMaterials: 1 } })).toBe(2);
+    expect(layerReads).toBe(0); expect(error).not.toHaveBeenCalled();
+    expect(f.draws.flat()).toEqual(f.parts); f.restored();
+  } finally { error.mockRestore(); target.dispose(); f.dispose(); }
+});
+
+test('first-draw census observes visibility and shadow casters changed between slices', async () => {
+  const f = fixture(), peer = new Group(), light = new DirectionalLight(), target = new WebGLRenderTarget(8, 8);
+  const first = f.parts[0]; if (first === undefined) throw new Error('Missing fixture mesh');
+  const caster = new Mesh(first.geometry, first.material); caster.layers.set(SHADOW_LAYER); caster.castShadow = true;
+  light.castShadow = true; light.shadow.map = target; peer.add(light, caster); peer.visible = false; f.scene.add(peer);
+  let calls = 0;
+  const render = f.render.getMockImplementation();
+  if (render === undefined) throw new Error('Missing renderer fixture');
+  f.render.mockImplementation((scene, camera) => {
+    if (calls === 0) expect(light.shadow.map).toBe(target);
+    else {
+      expect(light.shadow.map).not.toBe(target); expect(light.layers.test(camera.layers)).toBe(true);
+      expect(caster.layers.mask).toBe(0);
+    }
+    calls++; render(scene, camera);
+  });
+  const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  try {
+    expect(await warmParkedDraws(f.renderer, f.scene, f.camera, f.target, f.stage, () => true,
+      () => { expect(light.shadow.map).toBe(target); expect(light.layers.mask).toBe(1); expect(caster.layers.mask).toBe(1 << SHADOW_LAYER);
+        peer.visible = true; return Promise.resolve(); }, { revealChildren: true, budget: { drawables: 1, newMaterials: 1 } })).toBe(2);
+    expect(calls).toBe(2); expect(error).not.toHaveBeenCalled(); expect(f.draws.flat()).toEqual(f.parts); f.restored();
+  } finally { error.mockRestore(); target.dispose(); f.dispose(); }
 });

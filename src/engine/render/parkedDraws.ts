@@ -271,10 +271,6 @@ function drawSlice(renderer: ParkedDrawRenderer, scene: THREE.Scene, camera: THR
   const lights: { light: THREE.Light; mask: number }[] = [];
   // shadow-only casters (SHADOW_LAYER: the shadow pass sees them through the view camera) outside the slice sit it out
   const benched: { object: THREE.Object3D; mask: number }[] = [];
-  scene.traverse(object => {
-    if (object instanceof THREE.Light) { if (object.layers.test(camera.layers)) lights.push({ light: object, mask: object.layers.mask }); }
-    else if (!inSlice.has(object) && object.layers.isEnabled(SHADOW_LAYER)) benched.push({ object, mask: object.layers.mask });
-  });
   // an instanced drawable of no instances (a culled set none of whose copies shows yet) draws one for the warm: a draw of no
   // instances is refused (drawGuards `noInstances`), and its first real draw would build its pipeline in play
   const objects = slice.map(object => ({ object, mask: object.layers.mask, culled: object.frustumCulled, colour: object.layers.test(camera.layers),
@@ -289,6 +285,12 @@ function drawSlice(renderer: ParkedDrawRenderer, scene: THREE.Scene, camera: THR
   try {
     root.visible = true;
     for (const { object } of revealed) object.visible = true;
+    // Match the synchronous draw's visibility, including the explicitly revealed destination and equipment.
+    // Hidden retained worlds cannot contribute lights/casters and need no per-slice inventory or shadow stand-ins.
+    scene.traverseVisible(object => {
+      if (object instanceof THREE.Light) { if (object.layers.test(camera.layers)) lights.push({ light: object, mask: object.layers.mask }); }
+      else if (!inSlice.has(object) && object.layers.isEnabled(SHADOW_LAYER)) benched.push({ object, mask: object.layers.mask });
+    });
     if (environment !== undefined) scene.environment = environment;
     for (const { light } of lights) light.layers.enable(WARM_LAYER);
     for (const { object, colour } of objects) {
