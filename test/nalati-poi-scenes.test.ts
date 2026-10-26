@@ -9,10 +9,12 @@ import { nalatiPoiScenes, type NalatiPoiScenePlaces } from '../src/shards/nalati
 import { jsonBytes } from '../scripts/bake-output.mjs';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 
-test('owned places metadata retains every original POI scene wire byte', () => {
+for (const source of ['places.json', 'placeRuntime.generated.json']) test(`owned ${source} metadata retains every original POI scene wire byte`, () => {
+  let input: unknown = JSON.parse(readFileSync(`src/shards/nalati-grasslands/data/${source}`, 'utf8'));
+  if (source === 'placeRuntime.generated.json') input = v.parse(v.object({ places: v.unknown() }), input).places;
   const places = v.parse(v.object({ rows: v.array(v.object({ name: v.string(), group: v.nullable(v.string()),
     meshes: v.array(v.object({ name: v.string(), material: v.string(), slot: v.number() })) })) }),
-  JSON.parse(readFileSync('src/shards/nalati-grasslands/data/places.json', 'utf8')));
+  input);
   const bytes = jsonBytes(nalatiPoiScenes(places));
   for (const directory of ['data', 'boot']) {
     const original = readFileSync(`src/shards/nalati-grasslands/${directory}/poiScenes.generated.json`);

@@ -15,7 +15,7 @@ import { nameBlob } from '@wildshard/sdk/blobs';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
 import { writeGeometry, join } from './geometryWriter';
 import preparedInput from '../data/placeRuntime.generated.json' with {type:'json'};
-import scenesInput from '../data/poiScenes.generated.json' with {type:'json'};
+import { nalatiPoiScenes } from './poiScenes';
 import specimensInput from '../data/specimens.generated.json' with {type:'json'};
 import paintInput from '../data/poiPaint.json' with {type:'json'};
 import coverInput from '../data/cover.generated.json' with {type:'json'};
@@ -40,7 +40,7 @@ const paintSchema=v.object({glacierSnout:v.object({x:number,y:number,z:number}),
 ])))});
 // Shared authoring metadata is emitted alongside the runtime boot descriptors.
 const prepared=v.parse(preparedSchema,{...preparedInput,places:{rows:preparedInput.places.rows.filter(row=>['camp','bridge','roads','summerCamp','kurgans','eagleRock','cairn','crags','watchtower','dressing-statics','dressing-clutter','kokpar','outcrops'].includes(row.name))}});
-const scenes=v.parse(v.record(text,PrivateSceneSchema),scenesInput);
+const scenes=v.parse(v.record(text,PrivateSceneSchema),nalatiPoiScenes(preparedInput.places));
 const specimens=v.parse(specimensSchema,specimensInput);
 const paint=v.parse(paintSchema,paintInput);
 /** Exact raw contact files, read only by the SDK's normal named-file intake. */
