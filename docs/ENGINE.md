@@ -12500,16 +12500,17 @@ Construction creates no new library or scene intake, cache, entered update,
 phase, save owner or progress slice. The caller keeps resident caching and
 explicit lending; this API does not select a client runtime declaration.
 
-GrassPresentationSchema accepts inline or strict {file} height, mask,
-field, ground and scene blocks. grassPresentationFiles lists distinct
-product loans; postGraphLook fences JSON/binary reads across awaits.
-Missing blocks refuse before textures. GrassPresentationProfile takes the
-readonly loan; paintedWorld accepts it as its third argument. Sources
+GrassPresentationSchema retains the predecessor grammar. Runtime profiles
+require strict {file} height, mask, field, ground and scene blocks in both
+tiers before file access. grassPresentationFiles lists distinct loans;
+postGraphLook fences reads across awaits. Missing blocks refuse before
+textures. GrassPresentationProfile borrows files; paintedWorld takes the
+loan as its third argument. Sources
 declare decoded byte costs; tier, preparation and resource ownership stay
 unchanged. Optional tier `channels: {file}` names a compressed SceneBuffers
 bank. Preparation decodes only that tier. `channelFiles(tier)` takes
 prepared bytes once per build; geometry owns copies of bounded ranges.
-Afterwards the profile retains compressed sources only. Inline scenes work.
+Afterwards the profile retains compressed sources only.
 
 SDK bake/portableBytes.encodePortableBytes(bytes, level=9) provides bounded,
 config-safe portable deflate with owned input.

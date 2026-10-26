@@ -14,18 +14,19 @@ import cover from '../src/shards/nalati-grasslands/boot/cover.generated.json' wi
 import view from '../src/shards/nalati-grasslands/data/grassView.json' with { type: 'json' };
 import capture from '../src/shards/nalati-grasslands/data/staticCapture.json' with { type: 'json' };
 
-const encoded = (array: Uint8Array): string => btoa(String.fromCodePoint(...zlibSync(array)));
-const raster = encoded(new Uint8Array(2*2*4));
-const scene = encoded(new TextEncoder().encode(JSON.stringify({version:1,buffers:[],attributes:[],geometries:[],draws:[]})));
+const files=new Map<string,Uint8Array>();
+const encoded = (name:string,array:Uint8Array):{file:string}=>{files.set(name,zlibSync(array));return {file:name};};
+const raster = encoded('orchard/raster.bin',new Uint8Array(2*2*4));
+const scene = encoded('orchard/scene.bin',new TextEncoder().encode(JSON.stringify({version:1,buffers:[],attributes:[],geometries:[],draws:[]})));
 const tier = { rings:[{T:2,G:2}],flowers:{T:3,G:2},cards:{T:1,s:.4},near:[1,2],per:2,scenes:{blades:scene,flowers:scene,cards:scene} };
-function orchard() { return { height:encoded(new Uint8Array(8)),mask:raster,field:raster,ground:raster,phone:tier,desktop:tier,
+function orchard() { return { height:encoded('orchard/height.bin',new Uint8Array(8)),mask:raster,field:raster,ground:raster,phone:tier,desktop:tier,
   view:{ ...view,looks:['orchard-blades','orchard-petals','orchard-clover'],half:1,heightSize:2,heightOrigin:-1,lattice:2,gain:.7,gainFalloff:[.1,.2,.3],saturationFalloff:[0,0,0],tintNight:[0,0,0],tintStorm:[0,0,0] } }; }
 it('gives an unrelated orchard its own field, mood and texture lifetime',()=>{
-  const profile=new GrassPresentationProfile(orchard());profile.mood(1,0,0);
+  const profile=new GrassPresentationProfile(orchard(),files);profile.mood(1,0,0);
   expect(profile.uniforms.uGrassGain.value).toBeCloseTo(.56);expect(profile.uniforms.uGrassTint.value.toArray()).toEqual([1,1,1]);
   const texture=profile.heightTexture();expect(texture.image.width).toBe(2);expect(profile.heightTexture()).toBe(texture);
   texture.dispose();expect(profile.heightTexture()).not.toBe(texture);profile.heightTexture().dispose();
-  const meadow=new GrassPresentationProfile({...orchard(),view});meadow.mood(1,0,0);expect(meadow.uniforms.uGrassGain.value).toBe(.9);
+  const meadow=new GrassPresentationProfile({...orchard(),view},files);meadow.mood(1,0,0);expect(meadow.uniforms.uGrassGain.value).toBe(.9);
 });
 it('refuses unbounded field draws and invalid capture bounds before allocating',()=>{
   // the trail on the shared trample field is a row: admitted as declared, a zero speed limit refused

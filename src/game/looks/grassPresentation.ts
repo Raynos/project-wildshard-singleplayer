@@ -1,4 +1,3 @@
-import { base64Bytes } from '@wildshard/engine/core/deflate';
 import * as v from 'valibot';
 import { GrassPresentationSchema, grassPresentationFiles, type GrassPayload, type GrassPresentationRows } from '@wildshard/format/fieldPresentation';
 import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
@@ -53,11 +52,14 @@ export class GrassPresentationProfile {
   readonly input: GrassPresentationRows;
   constructor(input: unknown, private readonly files: ReadonlyMap<string,Uint8Array> = new Map()) {
     this.input = v.parse(GrassPresentationSchema,input);
+    const payloads=[this.input.height,this.input.mask,this.input.field,this.input.ground,
+      ...Object.values(this.input.phone.scenes),...Object.values(this.input.desktop.scenes)];
+    if(payloads.some(payload=>typeof payload==='string'))throw new Error('Grass requires binary files');
     for(const file of grassPresentationFiles(this.input))if(!files.has(file))throw new Error(`Missing grass file ${file}`);
     this.uniforms.uGrassGain.value = this.input.view.gain;
   }
   private decode(payload: GrassPayload): Uint8Array<ArrayBuffer> {
-    if(typeof payload==='string')return unzlibSync(base64Bytes(payload));
+    if(typeof payload==='string')throw new Error('Grass requires binary files');
     const bytes=this.files.get(payload.file);
     if(bytes===undefined)throw new Error(`Missing grass file ${payload.file}`);
     return unzlibSync(bytes);
