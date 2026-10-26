@@ -1,6 +1,6 @@
 import type { BakedColliderInput } from '@wildshard/game/shardfile/bakedKinds';
 import BRIDGE from '../data/bridgePhysics.generated.json' with { type: 'json' };
-import PLACEMENTS from '../data/physicsPlacements.generated.json' with { type: 'json' };
+import { skyPhysicsPlacements } from './physicsPlacements';
 import groundScene from '../data/groundScene.generated.json' with { type: 'json' };
 import { parseWorldScene, type WorldSceneRecipe, type PrivateScene } from '@wildshard/format/clientChannels';
 import REST from '../data/restScenes.generated.json' with { type: 'json' };
@@ -98,7 +98,7 @@ export function fixedWorld(standalone: boolean): FixedWorldRows {
     append(entry.id,{scene:{version:1,root:'root',nodes:[{kind:'group',id:'root',...('node'in piece?{name:piece.node}:{}),children:['bake']},{kind:'object',id:'bake',source:'bake',missing:'refuse'}],materials:[],textures:[]},imports:[{kind:'baked',id:'bake',piece:piece.baked}]},'at'in piece?piece.at:undefined);}
   const top=SUNREST.y+BOOK_STAND.height;
   return {recipe:parseWorldScene({scene,imports}),models:[...models],textureOnly:['mill-tower','mill-foot'],halo:{color:0xffb860,transparent:true,opacity:.18,blending:2,depthWrite:false},
-    colliders:[...BRIDGE,...PLACEMENTS,...SKY_GROUND_COLLIDERS,{id:'far.keeper.stand',colliders:[{kind:'box',x:KEEPER_STAND.x,y:(top+SUNREST.y)/2,z:KEEPER_STAND.z,hx:BOOK_STAND.footprint,hy:Math.max(.005,(top-SUNREST.y)/2),hz:BOOK_STAND.footprint,yaw:-KEEPER_STAND.yaw,surface:'wood'}]}],
+    colliders:[...BRIDGE,...skyPhysicsPlacements(),...SKY_GROUND_COLLIDERS,{id:'far.keeper.stand',colliders:[{kind:'box',x:KEEPER_STAND.x,y:(top+SUNREST.y)/2,z:KEEPER_STAND.z,hx:BOOK_STAND.footprint,hy:Math.max(.005,(top-SUNREST.y)/2),hz:BOOK_STAND.footprint,yaw:-KEEPER_STAND.yaw,surface:'wood'}]}],
     bindings:{early:standalone?[{piece:'far.docks',part:'docks.root',baked:'docks.bake'}]:[],mill:[{piece:'far.windmill',part:'mill.mill'}],
       furniture:[{piece:'far.winch',part:'winch.winch'},{piece:'far.notes',part:'notes.stand'},{piece:'far.keeper.stand',part:'keeper.stand'}],
       crown:[{piece:'far.crown.ruin',part:'crown.crown',baked:'crown.bake'},{piece:'far.step.winch-house',part:'house.root',baked:'house.bake'},{piece:'far.roost.nest',part:'roost.root',baked:'roost.bake'}]}};

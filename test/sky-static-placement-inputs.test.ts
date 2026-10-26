@@ -28,6 +28,8 @@ test('the actual cold sealed static writer omits generated placements and refuse
   if (job === undefined) throw new Error('Missing retained static writer');
   expect(job.command).toContain('skyStaticSceneBytes'); expect(job.command.at(-1)).toBe('--bytes');
   expect(job.inputRoots).not.toContain('src/shards/far-reach/data/placements.json');
+  expect(job.inputRoots).not.toContain('src/shards/far-reach/data/physicsPlacements.generated.json');
+  expect(job.inputRoots).toContain('src/shards/far-reach/generators/physicsPlacements.ts');
   for (const name of WORLD_PLACEMENT_INPUTS) expect(job.inputRoots).toContain(`public${name}`);
   const first = WORLD_PLACEMENT_INPUTS[0]; if (first === undefined) throw new Error('Missing native placement input');
   const expected = hashImmutableBytes(readFileSync(output)), cacheDir = mkdtempSync(resolve('tmp/sky-static-inputs-'));

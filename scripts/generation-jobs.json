@@ -9780,7 +9780,7 @@
         "src/shards/far-reach/data/layout.generated.json",
         "src/shards/far-reach/data/mill.json",
         "src/shards/far-reach/data/millScene.generated.json",
-        "src/shards/far-reach/data/physicsPlacements.generated.json",
+        "src/shards/far-reach/generators/physicsPlacements.ts",
         "src/shards/far-reach/generators/quests.ts",
         "src/shards/far-reach/data/restScenes.generated.json",
         "src/shards/far-reach/data/roost.json",
