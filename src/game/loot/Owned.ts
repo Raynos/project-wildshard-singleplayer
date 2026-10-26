@@ -20,7 +20,11 @@
 import { ownedSave, saveSlug } from '../saves';
 
 export type OwnedKind = 'upgrade' | 'cosmetic' | 'charm' | 'trophy' | 'gear';
-export const OWNED = {
+export const OWNED: { readonly 'whetstone-1': { readonly kind: "upgrade"; readonly label: "Whetstone I"; }; readonly 'whetstone-2': { readonly kind: "upgrade"; readonly label: "Whetstone II"; }; readonly 'heart-1': { readonly kind: "upgrade"; readonly label: "Sturdy heart I"; }; readonly 'heart-2': { readonly kind: "upgrade"; readonly label: "Sturdy heart II"; }; readonly 'sea-chart': { readonly kind: "upgrade"; readonly label: "Sea chart"; }; readonly cape: { readonly kind: "cosmetic"; readonly label: "Sailcloth cape"; }; readonly 'captain-hat': { readonly kind: "cosmetic"; readonly label: "Captain's hat"; }; // the Drowned Captain's trophy, worn from GEAR
+readonly 'charm-1': { readonly kind: "charm"; readonly label: "Sea glass charm I"; }; readonly 'charm-2': { readonly kind: "charm"; readonly label: "Sea glass charm II"; }; readonly 'charm-3': { readonly kind: "charm"; readonly label: "Sea glass charm III"; }; readonly 'bear-claw': { readonly kind: "trophy"; readonly label: "Bear claw"; }; readonly 'boar-tusk': { readonly kind: "trophy"; readonly label: "Boar tusk"; }; readonly 'iron-sword': { readonly kind: "gear"; readonly label: "Iron sword"; }; // taken from the wreck's rack: kept between sessions
+// Pine Hollow (E314 C, src/shards/pine-hollow/loadout/loadout.ts): kept here, never in a pack slot a full pack could refuse
+readonly 'warden-longbow': { readonly kind: "gear"; readonly label: "The Warden's Longbow"; }; // the Antler King's reward
+readonly 'lever-rifle': { readonly kind: "gear"; readonly label: "Lever-action"; }; } = {
   'whetstone-1': { kind: 'upgrade', label: 'Whetstone I' },
   'whetstone-2': { kind: 'upgrade', label: 'Whetstone II' },
   'heart-1': { kind: 'upgrade', label: 'Sturdy heart I' },

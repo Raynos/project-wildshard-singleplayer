@@ -34,4 +34,4 @@ export class GridCellEvents {
   onLeave(fn: (cell: GridCellRef) => void): () => void { this.left.add(fn); return () => { this.left.delete(fn); }; }
 }
 /** this page's cell events (grid mode only ever enters cells) */
-export const pageGridCells = new GridCellEvents();
+export const pageGridCells: GridCellEvents = new GridCellEvents();

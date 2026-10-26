@@ -22,7 +22,7 @@ const at = (x: number, y: number, z: number, rx = 0): THREE.Matrix4 =>
   new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(rx, 0, 0)), new THREE.Vector3(1, 1, 1));
 
 export interface ChestParams { readonly look: Look; readonly locked: boolean }
-export const seaChest = defineModel<ChestParams>({
+export const seaChest: ReturnType<typeof defineModel<ChestParams>> = defineModel<ChestParams>({
   id: 'shared/sea-chest', name: 'Sea chest', category: 'props', pipeline: 'code', file: FILE, surface: 'wood',
   defaults: { look: 'chest', locked: false },
   variants: [
@@ -37,10 +37,10 @@ export const seaChest = defineModel<ChestParams>({
   },
 });
 
-export const holdKey = pickup('shared/hold-key', 'Key', 0.9, (ctx) => [glow(ctx, Mdl.keyModel(SEED))], FILE);
+export const holdKey: ReturnType<typeof pickup> = pickup('shared/hold-key', 'Key', 0.9, (ctx) => [glow(ctx, Mdl.keyModel(SEED))], FILE);
 
 export interface DoorParams { readonly look: DoorLook; readonly w: number; readonly h: number }
-export const door = defineModel<DoorParams>({
+export const door: ReturnType<typeof defineModel<DoorParams>> = defineModel<DoorParams>({
   id: 'shared/door', name: 'Door', category: 'props', pipeline: 'code', file: FILE, surface: 'wood',
   defaults: { look: 'plank', w: 1.1, h: 2 },
   variants: [
@@ -51,35 +51,35 @@ export const door = defineModel<DoorParams>({
   build: (ctx, p) => [lit(ctx, Mdl.doorFrame(p.look, p.w, p.h, SEED)), lit(ctx, Mdl.doorPanel(p.look, p.w, p.h, SEED + 1), p.look === 'plank' ? at(-p.w / 2, 0, 0) : undefined)],
 });
 
-export const lever = defineModel<Record<string, never>>({
+export const lever: ReturnType<typeof defineModel<Record<string, never>>> = defineModel<Record<string, never>>({
   id: 'shared/lever', name: 'Lever', category: 'props', pipeline: 'code', file: FILE, surface: 'wood', defaults: {},
   build: (ctx) => [lit(ctx, Mdl.leverBase(SEED)), lit(ctx, Mdl.leverHandle(SEED + 1), at(0, 0.34, 0, 0.7))],
 });
 
 export interface PlateParams { readonly size: number }
-export const pressurePlate = defineModel<PlateParams>({
+export const pressurePlate: ReturnType<typeof defineModel<PlateParams>> = defineModel<PlateParams>({
   id: 'shared/pressure-plate', name: 'Pressure plate', category: 'props', pipeline: 'code', file: FILE, surface: 'stone', defaults: { size: 1.4 },
   build: (ctx, p) => [lit(ctx, Mdl.plateRim(p.size, SEED)), lit(ctx, Mdl.plateSlab(p.size, SEED + 1))],
 });
 
-export const puzzleBarrel = defineModel<Record<string, never>>({
+export const puzzleBarrel: ReturnType<typeof defineModel<Record<string, never>>> = defineModel<Record<string, never>>({
   id: 'shared/puzzle-barrel', name: 'Puzzle barrel', category: 'props', pipeline: 'code', file: FILE, surface: 'wood', defaults: {},
   build: (ctx) => [lit(ctx, Mdl.barrel(SEED))],
 });
 
-export const beacon = defineModel<Record<string, never>>({
+export const beacon: ReturnType<typeof defineModel<Record<string, never>>> = defineModel<Record<string, never>>({
   id: 'shared/beacon', name: 'Beacon', category: 'props', pipeline: 'code', file: FILE, surface: 'stone', defaults: {},
   // unlit: its flame shows once it is lit
   build: (ctx) => [lit(ctx, Mdl.brazier(SEED))],
 });
 
-export const bench = defineModel<Record<string, never>>({
+export const bench: ReturnType<typeof defineModel<Record<string, never>>> = defineModel<Record<string, never>>({
   id: 'shared/bench', name: 'Bench', category: 'props', pipeline: 'code', file: FILE, surface: 'wood', defaults: {},
   build: (ctx) => [lit(ctx, Mdl.bench(SEED))],
 });
 
 export interface AltarParams { readonly sockets: number }
-export const shardAltar = defineModel<AltarParams>({
+export const shardAltar: ReturnType<typeof defineModel<AltarParams>> = defineModel<AltarParams>({
   id: 'shared/shard-altar', name: 'Glyph altar', category: 'props', pipeline: 'code', file: FILE, surface: 'stone', defaults: { sockets: 3 },
   // its sockets empty: a shard sits in one once its quest is done
   build: (ctx, p) => [lit(ctx, Mdl.altar(p.sockets, SEED))],

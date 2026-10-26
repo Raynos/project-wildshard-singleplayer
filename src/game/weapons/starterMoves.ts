@@ -32,11 +32,11 @@ export const key = (t: number, px: number, py: number, pz: number, dx: number, d
 
 /** rest = the spawn mockup, held lower (E129: it covered Wendell and the middle-right of the view): hands at the lower-right
  *  edge, the blade tipped forward so its tip rests low-right of the crosshair, clear of an NPC you walk up to (was 0.27, -0.33 · dir -0.34, 0.76, -0.55) */
-export const REST = key(0, 0.31, -0.35, -0.52, -0.20, 0.58, -0.79, 0.35);
+export const REST: Key = key(0, 0.31, -0.35, -0.52, -0.20, 0.58, -0.79, 0.35);
 /** RMB / touch AIM held: the blade raised high over the right shoulder, tip up and a little back — the heavy's charge */
-export const CHARGE = key(0, 0.27, -0.09, -0.50, 0.24, 0.92, 0.30, 0.1);
+export const CHARGE: Key = key(0, 0.27, -0.09, -0.50, 0.24, 0.92, 0.30, 0.1);
 /** The original lowered hand pose while sprinting. */
-export const SPRINT = key(0, 0.34, -0.46, -0.58, -0.2, 0.55, -0.81, 0.6);
+export const SPRINT: Key = key(0, 0.34, -0.46, -0.58, -0.2, 0.55, -0.81, 0.6);
 
 const white = (r: number, g: number, b: number) => new THREE.Color(r, g, b);
 

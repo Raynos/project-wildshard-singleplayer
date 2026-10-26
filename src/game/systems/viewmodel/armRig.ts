@@ -61,7 +61,7 @@ export const LEFT_HAND: HandSpec = {
 };
 
 /** the grip centre in JIAN-local: where the moves pivot and the hand's offset is measured */
-export const GRIP = new Vector3(0, -0.16, 0);
+export const GRIP: Vector3 = new Vector3(0, -0.16, 0);
 
 /** wrist limits (degrees): pronation + / supination −, extension + / flexion −, radial + / ulnar − (a jian grip lives
  *  in ulnar deviation, whose anatomical range is ~30–35°; radial is ~20°) */

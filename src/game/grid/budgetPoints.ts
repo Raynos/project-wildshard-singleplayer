@@ -82,7 +82,7 @@ export function tone(score: number): PointsTone { return score > RED_AT ? 'red' 
 
 const TILE_CAP = { l0: CONTENT_CAPS.l0.resident, l1: CONTENT_CAPS.l1.resident, far: CONTENT_CAPS.far.resident } as const;
 /** One of four shards at a crossroads: its library, its sim, its far proxy and a quarter of the L0 disc and L1 ring. */
-export const SHARD_BUDGET = CONTENT_CAPS.library.resident + CONTENT_CAPS.sim.resident + CONTENT_CAPS.far.resident
+export const SHARD_BUDGET: number = CONTENT_CAPS.library.resident + CONTENT_CAPS.sim.resident + CONTENT_CAPS.far.resident
   + (CONTENT_CAPS.l0Count / CONTENT_CAPS.simCount) * CONTENT_CAPS.l0.resident + (CONTENT_CAPS.l1Count / CONTENT_CAPS.simCount) * CONTENT_CAPS.l1.resident;
 
 /** One shard alone against its own limits, on the page's engine base, shared renderer components and overlap. */

@@ -24,7 +24,7 @@ const PORTS: MountedSpecimenPorts = {
  *  row; the profile is the product file the row names, admitted again (`MountedSpecimenSeatSchema`) before any build,
  *  and a rig without the seat's joint refuses before the figure is made; the figure's decoded shapes and material belong
  *  to the specimen card's owner. */
-export const defineMountedSpecimen = mountedSpecimens(PORTS);
+export const defineMountedSpecimen: (input: unknown) => ModelDef<object> = mountedSpecimens(PORTS);
 /** `defineMountedSpecimen` over the given ports. */
 export function mountedSpecimens(ports: MountedSpecimenPorts): (input: unknown) => ModelDef<object> { return input => {
   const row = v.parse(MountedSpecimenSchema, input);

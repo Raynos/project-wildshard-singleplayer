@@ -52,7 +52,7 @@ export function harvestOf(kind: string, variant?: string): ItemId[] {
   return new WeightedTable({ mode: 'each', rows: HARVEST[kind] ?? [] }).roll(variant ?? '', () => 0).flatMap((drop) => Array.from({ length: drop.count }, () => drop.item));
 }
 
-export const PACK_SLOTS = DEFAULT_PACK_SLOTS;
+export const PACK_SLOTS: 12 = DEFAULT_PACK_SLOTS;
 const inventoryManifest=(slug:string)=>findShard(slug)??findTitleManifest(slug);
 /** Nalati (E314 C) and Nine Dragon (E314 A): no pack — nothing enters it, the Bag has no PACK tab */
 const isNoPackChunk = (chunkId: string): boolean => inventoryManifest(saveSlug(chunkId))?.bag?.pack.slots === 0; // a level with no pack declares 0 slots (its manifest's bag)
