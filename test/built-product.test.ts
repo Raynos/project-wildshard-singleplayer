@@ -23,6 +23,8 @@ async function fixture(named = false) {
   mkdirSync('tmp', { recursive: true }); const root = mkdtempSync(resolve('tmp/built-product-')); owned.push(root);
   const folder = 'author', name = named ? 'example' : folder, cacheRoot = resolve(root, 'cache');
   for (const file of ['package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', `src/shards/${folder}/manifest.json`]) write(root, file, '{}');
+  // These synthetic suites need no native tools, but still declare their runner input.
+  write(root, 'test/build-tools.json', '{}');
   const source = `src/shards/${folder}/shard.config.ts`; write(root, source, 'export default {};');
   const flags = ['--copy-runtime'];
   if (named) {
@@ -151,7 +153,7 @@ test.each(['local-related', 'ci-related', 'focused', 'all-blocked', 'local-commi
   });
   expect(result.error).toBeUndefined();
   if(mode==='local-related'||mode==='local-commit'){
-    expect(result.status).toBe(0);expect(result.stdout).toContain('1 passed');
+    expect(result.status,result.stdout+result.stderr).toBe(0);expect(result.stdout).toContain('1 passed');
     expect(result.stderr).toContain('skipping 1 product suites (CI still runs them): test/product.test.ts');
     expect(result.stderr).toContain('python3 scripts/heavy-lane.py build -- node scripts/build-shardfiles.mjs --reuse --shard=author');
     expect(existsSync(resolve(f.root,'worker-started'))).toBe(true);
