@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { GrassPresentationSchema, grassPresentationFiles, type GrassPayload, type GrassPresentationRows } from '@wildshard/format/fieldPresentation';
-import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
+import { ResourceMemo } from '@wildshard/engine/app/cachedAssets';
 import * as THREE from 'three';
 import { macrotask } from '@wildshard/engine/boot/plan';
 import { workSlice } from '@wildshard/engine/core/workSlice';
@@ -44,7 +44,8 @@ interface Ring { T: number; G: number; mesh: THREE.Mesh; geo: InstancedBufferGeo
 
 /** Client-only camera-ring presentation over admitted height, mask and draw buffers. No shard callbacks enter this owner. */
 export class GrassPresentationProfile {
-  private heightTex: THREE.DataTexture | null = null;
+  // A lent height map must not retain the retired profile's other input banks.
+  private readonly heightTextures = new ResourceMemo<'height', THREE.DataTexture>();
   /** O18: held weakly. A strong set, with its removal registered on the ambient owner (the page level after an await),
    *  kept every retired region's grass, its maps and buffers, for the page's life. */
   private readonly instances = new Set<WeakRef<GrassPresentation>>();
@@ -118,11 +119,12 @@ mood(night: number, dusk: number, overcast: number): void {
 
 
   heightTexture(): THREE.DataTexture {
-    if (this.heightTex !== null) return this.heightTex;
-    const bytes = this.decode(this.input.height), data = new Uint16Array(bytes.buffer,bytes.byteOffset,bytes.byteLength/2), n = this.input.view.heightSize;
-    const texture = new THREE.DataTexture(data,n,n,THREE.RedFormat,THREE.HalfFloatType);
-    texture.magFilter = texture.minFilter = THREE.LinearFilter; texture.needsUpdate = true;
-    this.heightTex = cacheUntilDisposed(texture, () => { if (this.heightTex === texture) this.heightTex = null; }); return texture;
+    return this.heightTextures.acquire('height', () => {
+      const bytes = this.decode(this.input.height), data = new Uint16Array(bytes.buffer,bytes.byteOffset,bytes.byteLength/2), n = this.input.view.heightSize;
+      const texture = new THREE.DataTexture(data,n,n,THREE.RedFormat,THREE.HalfFloatType);
+      texture.magFilter = texture.minFilter = THREE.LinearFilter; texture.needsUpdate = true;
+      return texture;
+    });
   }
   reseed(): void {
     for (const ref of this.instances) { const instance = ref.deref(); if (instance === undefined) this.instances.delete(ref); else instance.reseed(); }
