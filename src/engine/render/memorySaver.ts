@@ -209,13 +209,14 @@ export function installMemorySaver(renderer: Renderer): void {
     return get(object);
   };
   const seenGeometry = new WeakSet<THREE.BufferGeometry>();
-  const queue: (Pending & { label: string })[] = [];
+  const queue: ((Pending & { label: string }) | undefined)[] = [];
   let head = 0, lastFrame = -1;
   const settle = (frame: number): void => {
     while (head < queue.length) {
       const p = queue[head];
       if (p === undefined || frame - p.at < SETTLE_RENDERS) break;
-      head++;
+      // Compaction may wait for 256 entries; consumed owners must not.
+      queue[head++] = undefined;
       const now = versions(p.geometry);
       if (same(now, p.versions)) releaseGeometry(p.geometry, p.label);
       else queue.push({ geometry: p.geometry, at: frame, versions: now, label: p.label }); // still changing: look again later

@@ -1,9 +1,10 @@
 import { afterEach, expect, test, vi } from 'vitest';
-import { Texture } from 'three';
+import { BufferAttribute, BufferGeometry, Mesh, MeshBasicMaterial, PerspectiveCamera, Scene, SkinnedMesh, Texture } from 'three';
 import { legacyDouble } from '../test/FakeGame';
 import { realGc } from '../test/realGc';
 import type { Renderer } from './renderer';
 import { installMemorySaver, releaseOnUpload } from './memorySaver';
+import { installFrameCounter, renderCount } from './frameCounter';
 
 class DecodedImage implements ImageBitmap {
   readonly width = 16;
@@ -11,7 +12,13 @@ class DecodedImage implements ImageBitmap {
   close(): void { /* The fixture owns no native bitmap. */ }
 }
 
-afterEach(() => { vi.unstubAllGlobals(); });
+const globals = ['ImageBitmap', 'WebGL2RenderingContext'].map(key => ({ key, descriptor: Object.getOwnPropertyDescriptor(globalThis, key) }));
+afterEach(() => {
+  for (const { key, descriptor } of globals) {
+    if (descriptor === undefined) Reflect.deleteProperty(globalThis, key);
+    else Object.defineProperty(globalThis, key, descriptor);
+  }
+});
 
 function uploadRenderer(): Renderer {
   return legacyDouble<Renderer>({
@@ -43,5 +50,41 @@ test('an uploaded live source releases its one-shot completion capture', async (
       expect(completed.calls).toBe(1);
       expect(texture.source.data).toEqual({ width: 16, height: 16 });
     } finally { texture.dispose(); }
+  });
+});
+
+
+const geometryGcName = 'consumed settle entries release geometry with a live renderer and younger pending work';
+test(geometryGcName, async () => {
+  await realGc('src/engine/render/memory-saver-lifetime.test.ts', geometryGcName, async collect => {
+    vi.stubGlobal('WebGL2RenderingContext', EventTarget);
+    const make = (younger: boolean) => {
+      const renderer = uploadRenderer(), scene = new Scene(), camera = new PerspectiveCamera(), material = new MeshBasicMaterial();
+      installFrameCounter(renderer); installMemorySaver(renderer);
+      const sentinel = new SkinnedMesh(new BufferGeometry(), material);
+      const draw = (geometry: BufferGeometry, object: Mesh): void => { renderer.renderBufferDirect(camera, scene, geometry, material, object, { start: 0, count: 0, materialIndex: 0 }); };
+      const retired = (() => {
+        const bytes = new Float32Array(256 * 1024), geometry = new BufferGeometry();
+        bytes[0] = 73; geometry.setAttribute('position', new BufferAttribute(bytes.subarray(0, -1), 3));
+        draw(geometry, new Mesh(geometry, material)); geometry.dispose();
+        return { geometry: new WeakRef(geometry), backing: new WeakRef(bytes.buffer) };
+      })();
+      for (let frame = 0; frame < 200; frame++) renderer.render(scene, camera);
+      const pending = younger ? new BufferGeometry().setAttribute('position', new BufferAttribute(new Float32Array([1, 2, 3]), 3)) : undefined;
+      if (pending !== undefined) draw(pending, new Mesh(pending, material));
+      for (let frame = 200; frame < 240; frame++) renderer.render(scene, camera);
+      // A skinned draw triggers settlement without adding another tracked geometry.
+      draw(sentinel.geometry, sentinel);
+      expect(renderCount(renderer)).toBe(240);
+      return { renderer, retired, pending, close: () => { pending?.dispose(); sentinel.geometry.dispose(); material.dispose(); } };
+    };
+    const results = [make(false), make(true)];
+    try {
+      for (const result of results) {
+        await collect(result.retired.geometry); await collect(result.retired.backing);
+        expect(renderCount(result.renderer)).toBe(240);
+        if (result.pending !== undefined) expect(result.pending.getAttribute('position').getX(0)).toBe(1);
+      }
+    } finally { for (const result of results) result.close(); }
   });
 });
