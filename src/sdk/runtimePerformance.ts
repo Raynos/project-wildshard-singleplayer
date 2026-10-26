@@ -11,12 +11,12 @@ import { readBoundedFile } from './sourceReader';
  * 128. A first-party checkout shard (policy 'warn', see performancePolicy.ts) reads its shrink-only ceiling from
  * lint/runtime-files.json, seeded for the W2 client moves (G450 (5)) and lowered as W3 converts sim and data out.
  */
-export function projectRuntimeFileCeiling(project: string, policy: 'warn' | 'refuse', root = resolve(import.meta.dirname, '../..')): number {
+export function projectRuntimeFileCeiling(project: string, policy: 'warn' | 'refuse', root: string = resolve(import.meta.dirname, '../..')): number {
   return policy === 'warn' ? runtimeFileCeiling(readRuntimeFiles(root), basename(realpathSync(project))) : RUNTIME_FILE_DEFAULT;
 }
 
 /** Syntax-only author guard: outside projects have zero allowance for unsafe custom runtime. */
-export function checkProjectRuntime(project: string, policy: 'warn' | 'refuse', root = resolve(import.meta.dirname, '../..')): void {
+export function checkProjectRuntime(project: string, policy: 'warn' | 'refuse', root: string = resolve(import.meta.dirname, '../..')): void {
   const directory = resolve(project, 'runtime'); if (!existsSync(directory)) return;
   const ceiling = projectRuntimeFileCeiling(project, policy, root);
   const baseline = policy === 'warn' ? (JSON.parse(readFileSync(resolve(root, 'lint/runtime-performance.json'), 'utf8')) as { sites: Record<string, RuntimePerformanceDebt> }).sites : {};

@@ -11,12 +11,12 @@ export type ZiplineOptions = Partial<Pick<ZiplineMode, 'sag' | 'hang' | 'gravity
 /** An authored cable traversal in a normal three.js hierarchy; nothing installs a runtime service. */
 export class Zipline extends Object3D {
   /** Floor positions in this object's local frame. */
-  readonly top = new Vector3();
+  readonly top: Vector3 = new Vector3();
   /** The floor at the landing, in this object's local frame. */
-  readonly bottom = new Vector3();
+  readonly bottom: Vector3 = new Vector3();
   /** Bounded physical parameters emitted at synth time. */
   options: ZiplineOptions;
-  constructor(top = new Vector3(), bottom = new Vector3(), options: ZiplineOptions = {}) {
+  constructor(top: Vector3 = new Vector3(), bottom: Vector3 = new Vector3(), options: ZiplineOptions = {}) {
     super(); this.name = 'zipline'; this.top.copy(top); this.bottom.copy(bottom); this.options = { ...options };
   }
   /** Clone independent endpoint vectors and parameter data together with the normal graph state. */
@@ -36,12 +36,12 @@ const DEFAULT_UPDRAFT = { width: 1, lift: 0 };
 /** An authored directional wind column; from/to are local points and the ceiling is to.y + margin. */
 export class Updraft extends Object3D {
   /** Beginning of the column's horizontal run. */
-  readonly from = new Vector3();
+  readonly from: Vector3 = new Vector3();
   /** End of the run, including its upper ceiling. */
-  readonly to = new Vector3();
+  readonly to: Vector3 = new Vector3();
   /** Data-only world-metre width and force. */
   options: UpdraftOptions;
-  constructor(from = new Vector3(), to = new Vector3(), options: UpdraftOptions = DEFAULT_UPDRAFT) {
+  constructor(from: Vector3 = new Vector3(), to: Vector3 = new Vector3(), options: UpdraftOptions = DEFAULT_UPDRAFT) {
     super(); this.name = 'updraft'; this.from.copy(from); this.to.copy(to); this.options = { ...options };
   }
   /** Clone independent endpoints and bounded tuning with the normal transform. */
@@ -82,16 +82,16 @@ export interface LadderOptions { reach?: number; speed?: number }
 /** Vertical climbing declaration with ordinary scene transforms; its visible rungs, rails and colliders remain authored. */
 export class Ladder extends Object3D {
   /** Local lower floor; the capsule starts climbing here without teleporting. */
-  readonly bottom = new Vector3();
+  readonly bottom: Vector3 = new Vector3();
   /** Local top of the vertical route. */
-  readonly top = new Vector3(0, 3, 0);
+  readonly top: Vector3 = new Vector3(0, 3, 0);
   /** Local upper landing floor beyond the top; the motor sweeps the exit. */
-  readonly exit = new Vector3(0, 3, -1);
+  readonly exit: Vector3 = new Vector3(0, 3, -1);
   /** Local outward horizontal direction; its opposite climbs and its direction descends. */
-  readonly normal = new Vector3(0, 0, 1);
+  readonly normal: Vector3 = new Vector3(0, 0, 1);
   /** Bounded speed/reach, explicitly in world metres. */
   options: LadderOptions;
-  constructor(bottom = new Vector3(), top = new Vector3(0, 3, 0), exit = new Vector3(0, 3, -1), options: LadderOptions = {}) {
+  constructor(bottom: Vector3 = new Vector3(), top: Vector3 = new Vector3(0, 3, 0), exit: Vector3 = new Vector3(0, 3, -1), options: LadderOptions = {}) {
     super(); this.name = 'ladder'; this.bottom.copy(bottom); this.top.copy(top); this.exit.copy(exit); this.options = { ...options };
   }
   /** Copy independent route vectors and parameters with the normal scene graph. */

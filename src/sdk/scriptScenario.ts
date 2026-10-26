@@ -230,7 +230,7 @@ export class ScriptScenario {
   state(): Readonly<Record<string, number | boolean>> { return this.host.state(this.binding); }
   maxFuel(): number { const metrics = this.host.metrics().find(value => value.binding === this.binding); if (metrics === undefined || metrics.calls === 0) throw new Error('No scenario calls'); return metrics.maxFuel; }
   save(): ScenarioSnapshot { const saved = { host: this.host.snapshot(), world: this.world.snapshot() }; this.saved = structuredClone(saved); return saved; }
-  restore(snapshot = this.saved): void {
+  restore(snapshot: ScenarioSnapshot | undefined = this.saved): void {
     if (snapshot === undefined) throw new Error('No scenario save');
     // Validate fixture data before changing either owner, then let the host validate its complete continuation.
     const world = new ScenarioWorld(snapshot.world), before = this.world.snapshot(); this.world.restore(world.snapshot());

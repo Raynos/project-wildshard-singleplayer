@@ -13,7 +13,7 @@ export interface TickWorkerAdapter {
   authorProof?: (plan: AuthorProofPlan) => Promise<AuthorProofReport>;
   dispose: () => void;
 }
-export const WorkerEnvelopeSchema = v.object({ clock: v.instance(SharedArrayBuffer), tickMicros: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(16_666)), commandsPerTick: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(1024)), enforceTickDeadline: v.optional(v.boolean(), true), payload: v.unknown() });
+export const WorkerEnvelopeSchema: v.ObjectSchema<{ readonly clock: v.InstanceSchema<SharedArrayBufferConstructor, undefined>; readonly tickMicros: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.IntegerAction<number, undefined>, v.MinValueAction<number, 1, undefined>, v.MaxValueAction<number, 16666, undefined>]>; readonly commandsPerTick: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.IntegerAction<number, undefined>, v.MinValueAction<number, 0, undefined>, v.MaxValueAction<number, 1024, undefined>]>; readonly enforceTickDeadline: v.OptionalSchema<v.BooleanSchema<undefined>, true>; readonly payload: v.UnknownSchema; }, undefined> = v.object({ clock: v.instance(SharedArrayBuffer), tickMicros: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(16_666)), commandsPerTick: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(1024)), enforceTickDeadline: v.optional(v.boolean(), true), payload: v.unknown() });
 /** Internal trusted worker adapter. Author modules are admitted WASM, never a configurable JS module URL. */
 export async function runTickWorker(create: (payload: unknown) => Promise<TickWorkerAdapter>): Promise<void> {
   const port = parentPort; if (port === null) throw new Error('Tick worker requires a parent');

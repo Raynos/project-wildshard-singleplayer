@@ -15,7 +15,7 @@ import { parseKtx2 } from '../assets';
 import { cachedWorldTexture } from './worldTextureMemo';
 
 /** Exact packaged encoder artifacts; lockfile integrity pins the containing dependency as well. */
-export const WORLD_TEXTURE_TOOL = Object.freeze({
+export const WORLD_TEXTURE_TOOL: Readonly<{ package: "@loaders.gl/textures"; version: "4.5.3"; decoder: "sharp@0.34.5"; glue: "d204cc62dfdf910f92bce616872a6d6057b6d2b45bbaffbc0ef047375351e4a6"; wasm: "62ce0364ea8f4969e1e4277ce275213dcce5b234c8c96586da06e3879010341c"; }> = Object.freeze({
   package: '@loaders.gl/textures', version: '4.5.3', decoder: 'sharp@0.34.5',
   glue: 'd204cc62dfdf910f92bce616872a6d6057b6d2b45bbaffbc0ef047375351e4a6',
   wasm: '62ce0364ea8f4969e1e4277ce275213dcce5b234c8c96586da06e3879010341c',

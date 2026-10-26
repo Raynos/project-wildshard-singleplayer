@@ -89,7 +89,7 @@ export class MapRaster {
     return doc;
   }
   /** Project exact source vertices and indices without resampling the geometry. */
-  geometry(geometry: BufferGeometry, matrix = identity): void {
+  geometry(geometry: BufferGeometry, matrix: Matrix4 = identity): void {
     const position = geometry.getAttribute('position'), colour = geometry.getAttribute('color'), indices = geometry.getIndex();
     if (position === undefined) throw new Error('Map geometry needs positions');
     const points: number[][] = [], colours: number[][] = [];

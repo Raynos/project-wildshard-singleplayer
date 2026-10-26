@@ -73,7 +73,7 @@ export function sampleArray(texture: Node, at: GraphValue, layer: GraphValue): N
   return op('textureArray', 'vec4', [at, layer], info.paramName, info.paramDef);
 }
 /** The original mesh material's colour map at its own UV, or white RGBA when unmapped. */
-export const meshMap = op('meshMap', 'vec4');
+export const meshMap: Node<"vec4"> = op('meshMap', 'vec4');
 
 /** MaterialX noise over a position (`noise`, about 40 instructions). */
 export function noise(at: GraphValue): Node<'float'> { return op('noise', 'float', [at]); }
@@ -104,7 +104,53 @@ export function sceneDepth(at?: GraphValue): Node<'float'> { return op('sceneDep
 export function sceneNormal(at?: GraphValue): Node<'vec3'> { return op('sceneNormal', 'vec3', at === undefined ? [] : [at]); }
 
 /** The lighting stage's inputs and the other graph-only inputs, as TSL nodes (each maps to one graph input op). */
-export const graphInputs = {
+export const graphInputs: {
+/** toward the light (the `sun` sub-graph only) */
+/** true for a front-facing fragment; vertex stages refuse this input */
+readonly frontFacing: Node<"bool">;
+/** shared wind clock (seconds), current gust, and prevailing xz direction */
+readonly windTime: Node<"float">; readonly windGust: Node<"float">; readonly windDirection: Node<"vec2">;
+/** Live fog sun direction/linear colour, from the existing atmosphere owner. */
+readonly atmosphereSunDirection: Node<"vec3">; readonly atmosphereSunColour: Node<"vec3">;
+/** Scene fog colour; black without fog. */
+readonly fogColour: Node<"vec3">;
+/** Active material/page FogModel.node colour-ramp zenith; scene fog colour if no ramp, black without fog. */
+readonly fogZenithColour: Node<"vec3">; readonly sunDirection: Node<"vec3">;
+/** the light's colour × intensity, unshadowed (the `sun` sub-graph only) */
+readonly sunColour: Node<"vec3">;
+/** 1 lit … 0 in cast shadow (the `sun` sub-graph only) */
+readonly sunShadow: Node<"float">;
+/** the surface colour × (1 − metalness) (the lighting stage) */
+readonly albedo: Node<"vec3">;
+/** the indirect irradiance (the `ambient` sub-graph only) */
+readonly irradiance: Node<"vec3">;
+/** the environment's prefiltered radiance along the reflected view ray (the `ambient` sub-graph only; reading it or
+ *  `environmentIrradiance` makes `ambient` the whole indirect term) */
+readonly radiance: Node<"vec3">;
+/** the environment's irradiance (× π) for the shading normal (the `ambient` sub-graph only) */
+readonly environmentIrradiance: Node<"vec3">;
+/** the lit colour, emissive included (the `grade` sub-graph only) */
+readonly litColour: Node<"vec3">;
+/** a per-instance hash in [0, 1) */
+readonly instanceHash: Node<"float">;
+/** the world position of the object's (or instance's) origin (vertex places) */
+readonly objectOrigin: Node<"vec3">;
+/** the geometry's `color` attribute (rgb, linear; white where it has none) */
+readonly vertexColour: Node<"vec3">;
+/** Original geometry colour alpha; 1 for RGB colour attributes or no colour attribute. */
+readonly vertexColourAlpha: Node<"float">;
+/** The material's own colour (linear), read live: a per-material tint a runtime sets (a creature's per-animal coat). */
+readonly materialColour: Node<"vec3">;
+/** The material's emissive × emissiveIntensity (linear), read live: the hit-flash port a runtime drives. */
+readonly materialEmissive: Node<"vec3">;
+/** Camera-space vertex position after skinning/instancing; forward is negative Z. */
+readonly positionView: Node<"vec3">;
+/** Toward the first visible scene directional light (shadow casters first), world space; zero when absent. */
+readonly skyLightDirection: Node<"vec3">;
+/** Its linear colour multiplied by intensity; excludes shadowing and atmosphere fog colour. */
+readonly skyLightColour: Node<"vec3">;
+/** the scene colour at the pixel (a post input) */
+readonly sceneColour: Node<"vec4">; } = {
   /** toward the light (the `sun` sub-graph only) */
   /** true for a front-facing fragment; vertex stages refuse this input */
   frontFacing: op('frontFacing', 'bool'),

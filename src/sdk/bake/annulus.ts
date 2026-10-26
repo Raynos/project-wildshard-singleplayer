@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 /** Authored horizontal annulus with native vertex, UV and triangle order. */
-export function annulus(inner: number, outer: number, seg: number, arc = Math.PI * 2): THREE.BufferGeometry {
+export function annulus(inner: number, outer: number, seg: number, arc: number = Math.PI * 2): THREE.BufferGeometry {
   const pos: number[] = [], uv: number[] = [], nrm: number[] = [], idx: number[] = [];
   for (let i = 0; i <= seg; i++) {
     const a = (i / seg) * arc, c = Math.cos(a), s = Math.sin(a);

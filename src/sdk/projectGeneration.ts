@@ -75,7 +75,7 @@ function detached(files: ReadonlyMap<string, Uint8Array>): Map<string, Uint8Arra
 }
 /** The complete bundled program is a conservative import-closure key. Source edits invalidate every step in that program.
  * Explicit input bytes are read on hits too, so the normal product receipt captures their current identity. */
-export function createProjectGeneration(project: string, programHash: string, assets: Map<string, Uint8Array>, cacheRoot = resolve(homedir(), '.cache/wildshard/gen'), inputRoots: readonly ProjectGenerationInputRoot[] = []): ProjectGenerationContext {
+export function createProjectGeneration(project: string, programHash: string, assets: Map<string, Uint8Array>, cacheRoot: string = resolve(homedir(), '.cache/wildshard/gen'), inputRoots: readonly ProjectGenerationInputRoot[] = []): ProjectGenerationContext {
   v.parse(hash, programHash);
   const root = realpathSync(project), pending = new Map<string, Promise<ReadonlyMap<string, Uint8Array>>>();
   if (inputRoots.length > 32) throw new Error('Too many generation input roots');

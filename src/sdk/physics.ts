@@ -165,7 +165,7 @@ function positions(geometry: BufferGeometry, scale: Vector3): number[] {
 export class HullCollider extends Collider {
     /** The authored geometry, shared like a three.js Mesh geometry. */
     geometry: BufferGeometry;
-    constructor(geometry = new BufferGeometry(), surface?: Surface) { super(surface); this.geometry = geometry; }
+    constructor(geometry: BufferGeometry = new BufferGeometry(), surface?: Surface) { super(surface); this.geometry = geometry; }
     /** Copy references to authored geometry, exactly as Mesh.copy does. */
     override copy(source: this, recursive = true): this { super.copy(source, recursive); this.geometry = source.geometry; return this; }
     /** Preserve every authored vertex while applying world scale once. */
@@ -180,7 +180,7 @@ export class HullCollider extends Collider {
 export class MeshCollider extends Collider {
     /** The authored geometry, shared like a three.js Mesh geometry. */
     geometry: BufferGeometry;
-    constructor(geometry = new BufferGeometry(), surface?: Surface) { super(surface); this.geometry = geometry; }
+    constructor(geometry: BufferGeometry = new BufferGeometry(), surface?: Surface) { super(surface); this.geometry = geometry; }
     /** Copy references to authored geometry, exactly as Mesh.copy does. */
     override copy(source: this, recursive = true): this { super.copy(source, recursive); this.geometry = source.geometry; return this; }
     /** Indexed and nonindexed triangles retain their original order and winding. */

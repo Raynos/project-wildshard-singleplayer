@@ -75,7 +75,7 @@ export function wholePartitionRuns(list: readonly number[]): { runs: number[] } 
 }
 
 /** Partition triangles without clipping or rounding any source channel; world transforms affect ownership only. */
-export function partitionWholeGeometry(sourceGeometry: BufferGeometry, transform = new Matrix4(), overhang = 0): WholeGeometryPart[] {
+export function partitionWholeGeometry(sourceGeometry: BufferGeometry, transform: Matrix4 = new Matrix4(), overhang = 0): WholeGeometryPart[] {
   if (!Number.isFinite(overhang) || overhang < 0 || overhang > 1) throw new Error('Invalid whole overhang');
   const position = sourceGeometry.getAttribute('position'), index = sourceGeometry.getIndex(), count = index?.count ?? position.count;
   if (count % 3 !== 0) throw new Error('Whole geometry requires triangles');
