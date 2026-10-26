@@ -11935,6 +11935,8 @@ each with the existing `phone` and `desktop` GPU URL maps. Image boot bindings
 do not load or register GPU tables. Both hosts are server-safe and install no
 service, clock or save owner. Recipes resolve at build time; unknown binding
 options, executable rows and missing modes refuse admission.
+`ktx2: {program:true}` emits a receipt-checked two-tier GPU table
+through the native callback.
 
 ### Declared held claims and creatures (G571)
 

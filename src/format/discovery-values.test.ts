@@ -37,3 +37,23 @@ test('refuses accessors without running authored code', () => {
   expect(() => parseDiscoveryValues(input)).toThrow('plain bounded JSON');
   expect(reads).toBe(0);
 });
+
+test('program GPU mappings retain both tiers and detach every source row', () => {
+  const ktx2 = { phone: { '/owned/modern.glb': '/owned/phone.glb' }, desktop: {} };
+  const result = parseDiscoveryValues({ ktx2 });
+  expect(result).toEqual({ ktx2 });
+  ktx2.phone['/owned/modern.glb'] = '/changed.glb';
+  expect(result).not.toEqual({ ktx2 });
+});
+
+test.each([
+  { phone: {} }, { phone: {}, desktop: {}, watch: {} }, { phone: [], desktop: {} },
+  { phone: { '/owned/a.glb': 1 }, desktop: {} },
+  { phone: { '/owned/a.glb': 'https://foreign.invalid/a.glb' }, desktop: {} },
+  { phone: { '/owned/a.glb': '/owned/../foreign.glb' }, desktop: {} },
+  { phone: { '/owned/a.glb?variant=phone': '/owned/phone.glb' }, desktop: {} },
+  { phone: { '/owned/a.glb': () => '/owned/phone.glb' }, desktop: {} },
+  { phone: Object.fromEntries(Array.from({ length: 8193 }, (_, index) => [`/source/${String(index)}`, `/gpu/${String(index)}`])), desktop: {} },
+])('program GPU mappings refuse malformed shapes, URLs and unbounded inventories %#', ktx2 => {
+  expect(() => parseDiscoveryValues({ ktx2 })).toThrow();
+});

@@ -156,7 +156,9 @@ export function authoredManifestSource(root, slug, { generation = false, metadat
     native.push(`load: async () => { ${prepareStyles}return (await import('@wildshard/game/shard/declaredEntry')).declaredClientPlanEntry(${policy}); }`);
   }
   for (const key of ['load', 'ktx2']) if (b[key]) {
-    if (key === 'ktx2' && b[key].platform === 'page-mode') {
+    if (key === 'ktx2' && b[key].program === true) {
+      native.push(`ktx2: () => Promise.resolve({ GPU_FILES: ${value(b[key], 'ktx2')} })`);
+    } else if (key === 'ktx2' && b[key].platform === 'page-mode') {
       const ref = b[key].rows;
       if (ref.export !== 'default' || !ref.module.endsWith('.json')) throw new Error(`${file}: page KTX2 requires default JSON rows`);
       const mapper = b.boot?.platform === 'page-mode' ? 'pageModeKtx2' : "(await import('@wildshard/game/shard/pageBoot')).pageModeKtx2";

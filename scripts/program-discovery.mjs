@@ -16,7 +16,7 @@ export function usesProgramDiscovery(metadata) {
   /** @param {unknown} value */
   const program = value => plain(value) && value.program === true;
   const boot = values.boot;
-  return ['budgets', 'navigation', 'mapPalette', 'poses', 'audioCues'].some(key => program(values[key]))
+  return ['budgets', 'navigation', 'mapPalette', 'poses', 'audioCues', 'ktx2'].some(key => program(values[key]))
     || plain(boot) && ['files', 'sources', 'lateReads', 'explore'].some(key => program(boot[key]));
 }
 

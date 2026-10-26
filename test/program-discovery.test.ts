@@ -12,8 +12,10 @@ import { emptyShardfile } from '../src/sdk/author';
 import { writeOutputProduct } from '../src/sdk/outputProduct';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { parseManifestMetadata } from '../src/format/minimap';
-import { readProgramDiscovery } from '../scripts/program-discovery.mjs';
+import { readProgramDiscovery, usesProgramDiscovery } from '../scripts/program-discovery.mjs';
 import { authoredManifestSource } from '../scripts/authored-manifest.mjs';
+import { registerGpuFiles, standIn } from '../src/engine/boot/gpuFiles';
+import { TIER } from '../src/engine/core/tier';
 
 const slug = 'discovery-fixture';
 const sha = 'a'.repeat(40);
@@ -105,4 +107,43 @@ test('authored metadata permits program values only at data binding slots', () =
   const data = { ...row, bindings: { ...row.bindings, navigation: { program: true }, boot: { files: { program: true }, sources: { program: true } } } };
   expect(() => parseManifestMetadata(data)).not.toThrow();
   for (const key of ['entry', 'load', 'render']) expect(() => parseManifestMetadata({ ...data, bindings: { ...data.bindings, [key]: { program: true } } })).toThrow();
+});
+
+test('a receipt-owned GPU table emits the existing native callback and registers both original tier choices', async () => {
+  const root = fixture(), folder = resolve(root, 'src/shards', slug);
+  const ktx2 = { phone: { '/discovery-test/modern.glb': '/discovery-test/phone.glb' },
+    desktop: { '/discovery-test/modern.glb': '/discovery-test/desktop.glb' } };
+  const values = parseDiscoveryValues({ ktx2 });
+  const bindings = { accent: '#123456', budgets: { module: './data/budget.json', export: 'default' }, ktx2: { program: true } };
+  const manifest = { slug, card: {}, sky: {}, minimap: {}, explore: {}, horizonStrips: [], bindings };
+  mkdirSync(resolve(folder, 'data'), { recursive: true });
+  writeFileSync(resolve(folder, 'data/budget.json'), '{}');
+  writeFileSync(resolve(folder, 'manifest.json'), JSON.stringify(manifest));
+  try {
+    expect(usesProgramDiscovery(manifest)).toBe(true);
+    writeOutputProduct(emptyShardfile({ slug, name: 'Discovery', author: 'Test', revision: 1, seed: 1 }), new Map(), resolve(root, 'out', slug), { discovery: values });
+    const admitted = readProgramDiscovery(root, slug, options);
+    const source = authoredManifestSource(root, slug, { discovery: admitted });
+    expect(source).not.toContain('generators/'); expect(source).not.toContain('ktx2.generated');
+    const file = ts.createSourceFile('discovery.ts', source, ts.ScriptTarget.Latest, true);
+    let initializer: ts.Expression | undefined;
+    const find = (node: ts.Node): void => {
+      if (ts.isVariableDeclaration(node) && node.name.getText(file) === 'native') initializer = node.initializer;
+      ts.forEachChild(node, find);
+    };
+    find(file);
+    if (initializer === undefined) throw new Error('Missing native GPU callback');
+    const native = v.parse(v.object({ ktx2: v.function() }), runInNewContext(`(${initializer.getText(file)})`, {}, { timeout: 1000 }));
+    const loaded = v.parse(v.object({ GPU_FILES: v.unknown() }), await native.ktx2());
+    const table = parseDiscoveryValues({ ktx2: structuredClone(loaded.GPU_FILES) }).ktx2;
+    if (table === undefined) throw new Error('Missing admitted GPU table');
+    expect(table).toEqual(ktx2); registerGpuFiles(table);
+    expect(standIn('/discovery-test/modern.glb', 'ktx2')).toBe(ktx2[TIER]['/discovery-test/modern.glb']);
+    expect(standIn('/discovery-test/modern.glb', 'img')).toBeUndefined();
+    expect(() => authoredManifestSource(root, slug, { discovery: {} })).toThrow('ktx2');
+    expect(() => authoredManifestSource(root, slug)).toThrow('ktx2');
+    const metadata = parseManifestMetadata(JSON.parse(readFileSync('src/shards/far-reach/manifest.json', 'utf8')));
+    expect(() => parseManifestMetadata({ ...metadata, bindings: { ...metadata.bindings, ktx2: { program: true } } })).not.toThrow();
+    expect(() => parseManifestMetadata({ ...metadata, bindings: { ...metadata.bindings, ktx2: { program: true, module: './foreign.generated' } } })).toThrow();
+  } finally { rmSync(root, { recursive: true, force: true }); }
 });

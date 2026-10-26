@@ -30,6 +30,10 @@ const sources = v.union([modes(v.record(text, strings)), v.strictObject({
   tiers: v.strictObject({ phone: sourceRows, desktop: sourceRows }), gpuFiles: v.exactOptional(v.record(text, v.unknown())),
 })]);
 const files = v.union([strings, modes(strings), v.strictObject({ sources, tier: v.picklist(['phone', 'desktop']), tex: v.picklist(['img', 'ktx2']) })]);
+const gpuUrl = v.pipe(text, v.regex(/^\/[a-zA-Z0-9_.-]+(?:\/[a-zA-Z0-9_.-]+)*$/u),
+  v.check(url => !url.split('/').some(part => part === '.' || part === '..'), 'GPU mapping URL escapes its root'));
+const gpuTier = v.pipe(v.custom<Record<string, string>>(input => typeof input === 'object' && input !== null && !Array.isArray(input), 'GPU tier must be an object'), v.record(gpuUrl, gpuUrl), v.check(rows => Object.keys(rows).length <= 8192, 'GPU mapping inventory exceeds cap'));
+const gpuFiles = v.strictObject({ phone: gpuTier, desktop: gpuTier });
 
 // These are build results, never module paths or runtime loaders. Keep the
 // complete JSON values: the existing runtime contracts still own their values
@@ -40,6 +44,7 @@ const fields = {
   mapPalette: v.exactOptional(v.pipe(v.unknown(), v.check(input => v.is(palette, input), 'Invalid discovery palette'))),
   poses: v.exactOptional(v.pipe(v.unknown(), v.transform(parseCapturePoses))),
   audioCues: v.exactOptional(v.record(text, text)),
+  ktx2: v.exactOptional(gpuFiles),
   'boot.files': v.exactOptional(files), 'boot.sources': v.exactOptional(sources),
   'boot.lateReads': v.exactOptional(v.union([strings, modes(strings)])),
   'boot.explore': v.exactOptional(v.strictObject({ art: strings })),
@@ -58,6 +63,7 @@ export function parseDiscoveryValues(input: unknown): DiscoveryValues {
 
 /** Exact admitted data, independent of validator implementation metadata. */
 interface DiscoveryValuesInputFields {
+    ktx2?: { phone: Record<string, string>; desktop: Record<string, string> };
     budgets?: {
         phone?: {
             fps: number;
@@ -213,6 +219,7 @@ interface DiscoveryValuesInputFields {
 }
 export type DiscoveryValuesInput = { [Key in keyof DiscoveryValuesInputFields]: DiscoveryValuesInputFields[Key] };
 interface DiscoveryValuesFields {
+    ktx2?: { phone: Record<string, string>; desktop: Record<string, string> };
     budgets?: {
         phone?: {
             fps: number;
