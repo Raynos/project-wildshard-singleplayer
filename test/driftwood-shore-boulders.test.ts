@@ -5,6 +5,7 @@ import { parseWorldSceneModels } from '../src/format/worldSceneModels';
 import { parseWorldScene } from '../src/format/clientChannels';
 import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
 import { bakeRockScenes } from '../src/shards/driftwood-isle/generators/rockScenes';
+import { compactChannels } from '../src/shards/driftwood-isle/generators/compactChannels';
 import { expect, it } from 'vitest';
 import foliage from '../src/shards/driftwood-isle/data/foliagePlacements.generated.json';
 import shore from '../src/shards/driftwood-isle/data/shoreBoulders.generated.json';
@@ -66,15 +67,18 @@ it('decodes all finished rock draws without changing native channels or hulls', 
       }
       const intake = createOwnedGeometry(`/rocks/${id}.glb`);
       await intake.load(readFileSync(new URL(`../src/shards/driftwood-isle/assets/rock-scenes/${id}.glb`, import.meta.url)));
-      const decoded = intake.take();
+      // L18.3b: the bake ships the native rock in compact storage (exact positions, Int8 normals, Uint16 colours)
+      const decoded = intake.take(), compact = compactChannels(native.clone());
       try {
         expect(Object.keys(decoded.attributes)).toEqual(Object.keys(native.attributes));
         expect(decoded.index).toBeNull();
         for (const name of ['position', 'normal', 'color']) {
-          expect(decoded.getAttribute(name).array).toEqual(native.getAttribute(name).array);
-          expect(decoded.getAttribute(name).itemSize).toBe(native.getAttribute(name).itemSize);
+          expect(decoded.getAttribute(name).array).toEqual(compact.getAttribute(name).array);
+          expect(decoded.getAttribute(name).itemSize).toBe(compact.getAttribute(name).itemSize);
+          expect(decoded.getAttribute(name).normalized).toBe(compact.getAttribute(name).normalized);
         }
-      } finally { decoded.dispose(); }
+        expect(decoded.getAttribute('position').array).toEqual(native.getAttribute('position').array);
+      } finally { decoded.dispose(); compact.dispose(); }
     }
     const json = (value: unknown): string => JSON.stringify(value, (_key: string, item: unknown) => item instanceof Float32Array ? [...item] : item);
     expect(json(rockRows.world.shore.flatMap(row => row.colliders))).toBe(json(baked.shoreColliders));
