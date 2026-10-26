@@ -14821,7 +14821,8 @@
         "src/sdk/bake/source-loader.mjs",
         "scripts/bake-output.mjs",
         "package.json",
-        "pnpm-lock.yaml"
+        "pnpm-lock.yaml",
+        "src/shards/nalati-grasslands/generators/placeParts.ts"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/data/balbalSpecimen.generated.json",
@@ -14857,7 +14858,8 @@
         "src/sdk/bake/source-loader.mjs",
         "scripts/bake-output.mjs",
         "package.json",
-        "pnpm-lock.yaml"
+        "pnpm-lock.yaml",
+        "src/shards/nalati-grasslands/generators/placeParts.ts"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/data/questProp.generated.json",

@@ -4,6 +4,7 @@ import { inflateSync } from 'node:zlib';
 import * as v from 'valibot';
 import { SpecimenCatalogueSchema } from '@wildshard/format/specimenCatalogue';
 import { byteWriter, jsonBytes } from '../../../../scripts/bake-output.mjs';
+import { nalatiPlaceParts } from './placeParts.ts';
 
 const root=resolve(import.meta.dirname,'../../../..'),shard='src/shards/nalati-grasslands';
 const read=file=>JSON.parse(readFileSync(resolve(root,shard,file),'utf8'));
@@ -11,15 +12,15 @@ const places=read('data/placeRuntime.generated.json'),specimens=read('data/speci
 const lanes=inflateSync(readFileSync(resolve(root,'public/assets/nalati/baked/places.bin'))),binary=new Uint8Array(lanes.length);
 if(lanes.length%4!==0)throw new Error('Place bake requires whole words');
 for(let b=0;b<4;b++)for(let i=0;i<lanes.length/4;i++)binary[i*4+b]=lanes[b*lanes.length/4+i];
-const geometryBytes=row=>row.attrs.reduce((sum,[,type,width])=>sum+Math.ceil(row.count*width*({f32:4,f16:2,u16:2,i8:1,u8:1}[type])/4)*4,0)+(row.index===null?0:row.indexCount*4);
+const parts=nalatiPlaceParts(places,binary,['actor:balbal:0:2977','actor:balbal:1:2977']);
 const generated={...specimens.assets.balbal,transform:{yaw:Math.PI,scale:2.15/metrics.sizes.balbal[1]}};
 const writer=byteWriter(process.argv.includes('--check'),'nalati-balbal-specimen'),sources=[];
 const carving=variant=>{
-  const mesh=places.places.rows.find(row=>row.name===`actor:balbal:${variant}:2977`)?.meshes[0];
-  if(mesh===undefined)throw new Error('Missing admitted balbal carving');
+  const part=parts.get(`actor:balbal:${variant}:2977`);
+  if(part===undefined)throw new Error('Missing admitted balbal carving');
   const source=`data/balbal-carving-${variant}.generated.bin`,file=`models/specimens/balbal-${variant}.bin`;
-  writer.put(resolve(root,shard,source),binary.subarray(mesh.offset,mesh.offset+geometryBytes(mesh.geometry)));sources.push({name:file,kind:'bin',source});
-  return{kind:'file',file,representation:'parts',geometry:mesh.geometry,material:specimens.materials.poi};
+  writer.put(resolve(root,shard,source),part.bytes);sources.push({name:file,kind:'bin',source});
+  return{kind:'file',file,representation:'parts',geometry:part.geometry,material:specimens.materials.poi};
 };
 const catalogue=v.parse(SpecimenCatalogueSchema,[{key:'balbal',model:{id:'nalati-grasslands/balbal',name:'Balbal',category:'props',pipeline:['trellis','code'],file:'src/shards/nalati-grasslands/generators/places.ts',surface:'stone',defaults:{carved:null},
   variants:[{id:'generated',label:'TRELLIS.2',params:{}},{id:'bare',label:'Carved',params:{carved:'bare'}},{id:'capped',label:'Carved · cap',params:{carved:'capped'}}]},
