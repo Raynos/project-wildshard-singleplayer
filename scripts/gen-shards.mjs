@@ -87,7 +87,7 @@ export function shardSource(root) {
 import type { ShardManifest } from './game/shard/manifest';
 ${products.map((product, i) => `import m${i} from './${productManifestPath(root, product).slice('src/'.length, -'.ts'.length)}';`).join('\n')}
 const placed: (ShardManifest${metadata})[] = [${placed.join(', ')}];
-export const SHARDS = placed.sort((a, b) => a.order - b.order);
+export const SHARDS: typeof placed = placed.sort((a, b) => a.order - b.order);
 export const LEGACY_SHARDS: ShardManifest[] = [${standalone.join(', ')}];
 export const LEGACY_CONTENT_IDENTITIES: Readonly<Record<string, string>> = ${JSON.stringify(Object.fromEntries(Object.entries(frozen.shards).map(([copy, row]) => [copy, row.primary])))};
 `;

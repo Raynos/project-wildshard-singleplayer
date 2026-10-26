@@ -177,7 +177,7 @@ ${forwards ? `/** A look or roster factory called with the shard's product; a fa
 const callWithProduct = <T>(make: (product: ShardProduct) => T, product: ShardProduct): T => make(product);
 ` : ''}const rows: Parameters<typeof defineAuthoredShard>[2] = { ${rows.join(', ')} };
 const native: Parameters<typeof defineAuthoredShard>[3] = { ${native.join(', ')} };
-export const MANIFEST = defineAuthoredShard(data, ${JSON.stringify(slug)}, rows, native, {${paths.map((path, i) => `${JSON.stringify(path)}: image${i}`).join(', ')}});
+export const MANIFEST: ReturnType<typeof defineAuthoredShard> = defineAuthoredShard(data, ${JSON.stringify(slug)}, rows, native, {${paths.map((path, i) => `${JSON.stringify(path)}: image${i}`).join(', ')}});
 // oxlint-disable-next-line import/no-default-export -- Generated folder discovery composes the defining manifest.
 export default MANIFEST;
 `;
