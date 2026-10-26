@@ -64,7 +64,7 @@ function buildTurn(owner: Scope): Promise<void> {
  * the pause): an unloaded cell stops building. Live cheap pieces use message tasks within the existing shared budget;
  * the loading screen, unpaced mode and Node retain timer tasks.
  */
-export async function buildYield(owner: Scope, budgetMs = WORK_SLICE_MS): Promise<void> {
+export async function buildYield(owner: Scope, budgetMs: number = WORK_SLICE_MS): Promise<void> {
   const live = (): void => { if (owner.disposed) throw new Error('build stopped: its scope has closed'); };
   live();
   await paceYield(() => buildTurn(owner), owner, budgetMs);

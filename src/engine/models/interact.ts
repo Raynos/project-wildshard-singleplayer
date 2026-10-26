@@ -17,7 +17,7 @@ export const glow = (ctx: ModelContext, g: THREE.BufferGeometry, m?: THREE.Matri
   ({ geometry: m ? g.applyMatrix4(m) : g, material: ctx.once('shared/interact:glow', () => new THREE.MeshBasicMaterial({ vertexColors: true, fog: true, toneMapped: true })) });
 
 /** a pickup: its part floating at its bob's rest height (the kit spins and bobs it round there) */
-export function pickup(id: string, name: string, height: number, make: (ctx: ModelContext) => ModelPart[], file = FILE): ModelDef<Record<string, never>> {
+export function pickup(id: string, name: string, height: number, make: (ctx: ModelContext) => ModelPart[], file: string = FILE): ModelDef<Record<string, never>> {
   return defineModel<Record<string, never>>({ id, name, category: 'props', pipeline: 'code', file, defaults: {}, build: (ctx) => {
     const parts = make(ctx);
     for (const part of parts) part.geometry.translate(0, height, 0);

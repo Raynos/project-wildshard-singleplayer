@@ -14,7 +14,7 @@ export class GraphCodeKeys {
   private serial = 0;
   private readonly maxChars: number;
   private readonly maxEntries: number;
-  constructor(maxChars = 8 * 1024 * 1024, maxEntries = 256) {
+  constructor(maxChars: number = 8 * 1024 * 1024, maxEntries = 256) {
     this.maxChars = maxChars; this.maxEntries = maxEntries;
     if (!Number.isSafeInteger(this.scope) || !Number.isSafeInteger(maxChars) || maxChars < 1
       || !Number.isSafeInteger(maxEntries) || maxEntries < 1) throw new RangeError('Invalid graph-key capacity');

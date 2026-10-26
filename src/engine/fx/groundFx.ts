@@ -84,7 +84,7 @@ export function fxMaterial(mode: FxMode, color: THREE.ColorRepresentation, alpha
 }
 
 /** a flat annulus on the floor (y up), uv.x = around (0..1), uv.y = across the band (0 inner → 1 outer) — the ring fx reads it */
-export function annulus(inner: number, outer: number, seg: number, arc = Math.PI * 2): THREE.BufferGeometry {
+export function annulus(inner: number, outer: number, seg: number, arc: number = Math.PI * 2): THREE.BufferGeometry {
   const pos: number[] = [], uv: number[] = [], nrm: number[] = [], idx: number[] = [];
   for (let i = 0; i <= seg; i++) {
     const a = (i / seg) * arc, c = Math.cos(a), s = Math.sin(a);

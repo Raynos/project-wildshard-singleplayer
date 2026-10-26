@@ -50,7 +50,7 @@ export function viewCandidates(box: THREE.Box3): THREE.Vector3[] {
 }
 
 /** the index of the first of `eyes` `ok` accepts, trying them in order; -1 when none does (or `budgetMs` ran out) */
-export function firstView(eyes: readonly THREE.Vector3[], ok: (eye: THREE.Vector3, i: number) => boolean, budgetMs = Number.POSITIVE_INFINITY, skip = -1): number {
+export function firstView(eyes: readonly THREE.Vector3[], ok: (eye: THREE.Vector3, i: number) => boolean, budgetMs: number = Number.POSITIVE_INFINITY, skip = -1): number {
   const t0 = performance.now();
   for (let i = 0; i < eyes.length; i++) {
     const eye = eyes[i];

@@ -92,7 +92,7 @@ export class DeclaredSoundBank {
   const ok=this.playback.play('shot',{family:id},{at,gain:this.bank.barks?.gain??1});audioLog('bark',group,ok,id);return ok;
  }
  /** Full 3D range and attenuation; sample refusal alone selects the declared phrase. */
- spatial(id:string,position:{x:number;y:number;z:number},listener:{x:number;y:number;z:number},yaw=this.audio.listenerYaw):void {
+ spatial(id:string,position:{x:number;y:number;z:number},listener:{x:number;y:number;z:number},yaw: number=this.audio.listenerYaw):void {
   const row=this.bank.spatial[id];if(row===undefined)throw new Error(`Unknown positional phrase: ${id}`);
   tap.sound?.(row.startTap);if(!this.audio.ready)return;
   const spatial=spatialAudio(position,listener,yaw,row.reach,row.scale,row.power);if(spatial===null)return;

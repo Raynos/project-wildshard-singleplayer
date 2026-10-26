@@ -205,7 +205,7 @@ function installCounter(): void {
  * ImageBitmapLoader (then texture.flipY must be false); pass false for canvas work that keeps the
  * file's orientation.
  */
-export async function fetchImage(file: string, maxSize = Infinity, flip = true, exact = false): Promise<ImageBitmap | HTMLImageElement> {
+export async function fetchImage(file: string, maxSize: typeof Infinity = Infinity, flip = true, exact = false): Promise<ImageBitmap | HTMLImageElement> {
   const url = tierUrl(file);
   const res = await fetch(url);
   if (!res.ok) throw new Error(`${res.status} ${url}`);

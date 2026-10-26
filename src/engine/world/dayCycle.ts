@@ -28,7 +28,7 @@ export interface NormalizedDay { readonly minutes: number; readonly start: numbe
 export const DEFAULT_NORMALIZED_DAY: NormalizedDay = { minutes: 12, start: 0.5, maxElevation: 60, azimuth: 35 };
 
 const wrap = wrapClock;
-export function compassDir(azimuth: number, elevation: number, out = new Vector3()): Vector3 {
+export function compassDir(azimuth: number, elevation: number, out: Vector3 = new Vector3()): Vector3 {
   const az = azimuth * Math.PI / 180, el = elevation * Math.PI / 180;
   return out.set(-Math.sin(az) * Math.cos(el), Math.sin(el), Math.cos(az) * Math.cos(el)).normalize();
 }
@@ -133,7 +133,7 @@ export class DayCycle<K = never> {
     if (this.spec.pauseOnPin) this.paused = true;
     this.checkPhase();
   }
-  segment(at = this.spec.keys?.coordinate === 'elevation' ? this.sunElevation : this.phase): [readonly [number, K], readonly [number, K], number] {
+  segment(at: number = this.spec.keys?.coordinate === 'elevation' ? this.sunElevation : this.phase): [readonly [number, K], readonly [number, K], number] {
     const keys = this.spec.keys;
     if (!keys || keys.frames.length < 2) throw new Error('DayCycle: keyframes missing');
     const frames = keys.frames, n = frames.length;

@@ -12,7 +12,7 @@ interface StoredArrival extends TitleArrival { at: number; name?: string }
 /** A one-shot handoff must be fresh when this document arrives, before cold
  * modules or world admission run. Later reloads still use their own start.
  * Explicit clocks keep expiry and delayed-consumption checks deterministic. */
-export function freshPageArrival(at: number, now = Date.now(), startedAt = typeof window === 'undefined' ? now : performance.timeOrigin): boolean {
+export function freshPageArrival(at: number, now: number = Date.now(), startedAt: number = typeof window === 'undefined' ? now : performance.timeOrigin): boolean {
   if (![at, now, startedAt].every(Number.isFinite) || at > now || startedAt > now) return false;
   return now - at <= MAX_AGE_MS || (startedAt >= at && startedAt - at <= MAX_AGE_MS);
 }

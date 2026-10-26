@@ -64,7 +64,7 @@ export function prefetchAfter(paths: readonly string[], after: Promise<unknown>)
 }
 
 /** Queue `paths` now; the first plain GET of each is served the prefetched response. Returns how many were queued. */
-export function prefetch(paths: readonly string[], concurrency = CONCURRENCY): number {
+export function prefetch(paths: readonly string[], concurrency: number = CONCURRENCY): number {
   const fetchNow = window.fetch.bind(window);
   const queue = [...new Set(paths)];
   const queued = new Set(queue);

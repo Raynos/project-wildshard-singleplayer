@@ -13,7 +13,7 @@ export class SessionHealth {
   readonly install: string;
   private current: Heartbeat;
   private readonly send: (report: HealthReport) => void;
-  constructor(store: SaveStore, build: string, send: (report: HealthReport) => void, now = Date.now(), id: () => string = () => crypto.randomUUID()) {
+  constructor(store: SaveStore, build: string, send: (report: HealthReport) => void, now: number = Date.now(), id: () => string = () => crypto.randomUUID()) {
     this.send = send;
     this.local = store.define({ key: 'telemetry.heartbeat', scope: 'device', version: 1, schema: v.nullable(heartbeatSchema), initial: () => null });
     this.tab = store.define({ key: 'telemetry.heartbeat', scope: 'session', version: 1, schema: v.nullable(heartbeatSchema), initial: () => null });
@@ -31,7 +31,7 @@ export class SessionHealth {
     this.write();
   }
   private write(): void { this.local.write(this.current); this.tab.write(this.current); }
-  beat(level: string, stage: string, fps: number, at = Date.now()): void {
+  beat(level: string, stage: string, fps: number, at: number = Date.now()): void {
     this.current = { ...this.current, level, stage, fps, at, clean: false }; this.write();
   }
   fault(): void { this.current.error = true; this.write(); }

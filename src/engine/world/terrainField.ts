@@ -82,7 +82,7 @@ function entryRoadMask(x: number, z: number): number {
  * so a stale terrain.bin (an old build in the service worker, a def edited since the last vite start)
  * can never be installed over the analytic field.
  */
-export function landscapeHash(t: Pick<TerrainField, 'heightAt'>, size = CHUNK_HALF * 2): number {
+export function landscapeHash(t: Pick<TerrainField, 'heightAt'>, size: number = CHUNK_HALF * 2): number {
   let h = 0x811c9dc5;
   const n = 16, d = size / (n - 1);
   for (let iz = 0; iz < n; iz++) for (let ix = 0; ix < n; ix++) {
@@ -94,7 +94,7 @@ export function landscapeHash(t: Pick<TerrainField, 'heightAt'>, size = CHUNK_HA
 
 /** Terrain metadata over authored trails, pads and pond; height/splat sampling stays with the admitted lattice. */
 export function buildTerrainMetadata(seed: number, spec: Pick<TerrainSpec, 'trails' | 'cabinSites' | 'pond' | 'streamAt'>,
-  waterLevel: TerrainField['waterLevel'], n = new Noise2D(seed)): Omit<TerrainField, 'heightAt' | 'normalAt' | 'splatAt'> {
+  waterLevel: TerrainField['waterLevel'], n: Noise2D = new Noise2D(seed)): Omit<TerrainField, 'heightAt' | 'normalAt' | 'splatAt'> {
   const trails = spec.trails, cabinSites = spec.cabinSites, pond = spec.pond ?? null;
   function trailDistance(x: number, z: number): number {
     let d = Infinity;

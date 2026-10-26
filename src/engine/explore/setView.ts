@@ -73,12 +73,12 @@ function cornersOf(box: THREE.Box3): THREE.Vector3[] {
  * every side, as the view turns while you look; 1: this one view), at this pitch. `cam` is a scratch camera with the game
  * camera's fov and aspect (its projection up to date).
  */
-export function fitOrbit(box: THREE.Box3, cam: THREE.PerspectiveCamera, pitch: number, win: NdcWindow, yaws = 12, yaw0 = 0, lift = liftOf(win)): number {
+export function fitOrbit(box: THREE.Box3, cam: THREE.PerspectiveCamera, pitch: number, win: NdcWindow, yaws = 12, yaw0 = 0, lift: number = liftOf(win)): number {
   return fitPoints(box.getCenter(new THREE.Vector3()), cornersOf(box).map((c) => c.clone()), cam, pitch, win, yaws, yaw0, lift);
 }
 
 /** fitOrbit for any points round `centre` (a diorama's rim is a circle: its box's corners would over-fit it by √2) */
-export function fitPoints(centre: THREE.Vector3, corners: readonly THREE.Vector3[], cam: THREE.PerspectiveCamera, pitch: number, win: NdcWindow, yaws = 12, yaw0 = 0, lift = liftOf(win)): number {
+export function fitPoints(centre: THREE.Vector3, corners: readonly THREE.Vector3[], cam: THREE.PerspectiveCamera, pitch: number, win: NdcWindow, yaws = 12, yaw0 = 0, lift: number = liftOf(win)): number {
   const fits = (d: number): boolean => {
     for (let k = 0; k < yaws; k++) {
       poseOrbit(cam, centre, yaw0 + (k / yaws) * Math.PI * 2, pitch, d, lift);

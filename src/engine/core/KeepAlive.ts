@@ -6,7 +6,7 @@ export class KeepAlive {
   wakeLock: 'ok' | 'failed' | 'unsupported' | 'off' = 'off';
   private readonly scope: Scope;
   private listening = false;
-  constructor(parent = app.engineScope) { this.scope = parent.child('keep-alive'); }
+  constructor(parent: Scope = app.engineScope) { this.scope = parent.child('keep-alive'); }
 
   /** call from a user gesture (ENTER WORLD) — both APIs need one */
   async start(): Promise<void> {

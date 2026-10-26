@@ -63,7 +63,7 @@ export class AttackTokens<T> {
 export class AggressionDirector<T> {
   readonly max: number;
   private readonly tokens: AttackTokens<T> | null;
-  constructor(max = Infinity) {
+  constructor(max: typeof Infinity = Infinity) {
     if (Number.isFinite(max) && (!Number.isInteger(max) || max < 0)) throw new Error('Attack cap must be a nonnegative integer');
     if (!Number.isFinite(max) && max !== Infinity) throw new Error('Invalid attack cap');
     this.max = max; this.tokens = Number.isFinite(max) ? new AttackTokens<T>(max) : null;

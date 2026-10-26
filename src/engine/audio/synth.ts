@@ -20,7 +20,7 @@ export abstract class Synth {
   }
 
   /** Create persistent sources in declared order; the native emitter retains its fades and teardown. */
-  loopGraph(rows:AudioLoopGraph,out:GainNode,time=this.ctx.currentTime):AudioScheduledSourceNode[] {
+  loopGraph(rows:AudioLoopGraph,out:GainNode,time: number=this.ctx.currentTime):AudioScheduledSourceNode[] {
     if(rows.length>64)throw new Error('Loop graph capacity');
     const c=this.ctx,nodes=new Map<string,AudioNode>([['out',out],['sfx',this.sfx]]),sources:AudioScheduledSourceNode[]=[];
     const node=(id:string):AudioNode=>{const value=nodes.get(id);if(value===undefined)throw new Error(`Missing loop graph node: ${id}`);return value;};

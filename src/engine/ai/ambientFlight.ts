@@ -38,7 +38,7 @@ export class CirclingFlyer {
     }
     this.burstPose[0]=flap;this.burstPose[1]=fold;return this.burstPose;
   }
-  face(p:AmbientFlightPose,dx:number,dy:number,dz:number,dt:number,bank=this.tuning.bank):void {
+  face(p:AmbientFlightPose,dx:number,dy:number,dz:number,dt:number,bank: number=this.tuning.bank):void {
     const dh=Math.hypot(dx,dz);if(dh<(this.tuning.directionEpsilon??1e-5))return;
     const turn=Math.atan2(dx,dz)-p.yaw,dyaw=Math.atan2(Math.sin(turn),Math.cos(turn));p.yaw+=dyaw;
     p.pitch+=(Math.atan2(dy,dh)*this.tuning.pitch-p.pitch)*Math.min(1,dt*this.tuning.pitchRate);
