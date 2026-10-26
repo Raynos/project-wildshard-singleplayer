@@ -1,5 +1,5 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Confine native input/cache fixtures and compare complete original GLBs.
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Keep native roots, bundles and sealed-driver scratch inside the checkout.
 import { dirname, resolve } from 'node:path';
 import { expect, test } from 'vitest';
@@ -131,6 +131,6 @@ test('the rig scheduler and every handoff reader are retired while legacy files 
       expect(job.inputRoots, job.id).not.toContain(file);
     }
   }
-  expect(existsSync('src/shards/far-reach/generators/bake-sky-rigs.mjs')).toBe(false);
+  expect(readdirSync('src/shards/far-reach/generators')).not.toContain('bake-sky-rigs.mjs');
   for (const [name, original] of Object.entries(originals)) expect(hashImmutableBytes(readFileSync(`public/assets/far-reach/rigs/${name}`)), name).toBe(original[1]);
 });
