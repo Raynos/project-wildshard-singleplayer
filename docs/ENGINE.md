@@ -109,13 +109,13 @@ whose render target was never initialized, while preserving the original target
 cleanup when it already released that texture. Neither lifetime rule changes
 uniform values, passes, draw order or pixel generation.
 
-`core/gpuOnly.gpuOnlyTexture(texture, label)` releases immutable CPU pixels
-after their first native upload. CPU readers, redrawn canvases and other
-sampler clones are ineligible; context loss reloads. The typed channel
-`render/textureUploadEvents.onceTextureUploaded(texture, run)` waits for
-matching native texture/source versions after initialization or render.
-Engine renderers install its weak observer; `Texture.onUpdate` stays intact.
-Failed uploads and changed sources remain pending.
+`core/gpuOnly.gpuOnlyTexture(texture, label)` releases immutable CPU images,
+raw typed pixels and explicit mip lists after native upload. Dimensions,
+formats and samplers stay; empty copies retain no original backing.
+CPU readers, redraws and sampler clones are ineligible; context loss reloads.
+`render/textureUploadEvents.onceTextureUploaded(texture, run)` uses a weak
+observer of completed native texture/source versions after init/render.
+It preserves `Texture.onUpdate`; failed or changed uploads remain pending.
 
 `@wildshard/engine/render/memorySaver.releaseOnUpload(source, done)` opts an exclusively owned, immutable decoded image into the existing Memory saver upload retirement. The callback closes the private bitmap or releases its cache owner after upload; the texture keeps its dimensions and GPU allocation. Register only when no later CPU reader or different-sampler clone needs the pixels, and also release on owner disposal. Memory saver OFF keeps the decode until disposal; GPU-only context-loss recovery reloads the page.
 

@@ -97,7 +97,12 @@ function releaseSource(t: Texture): void {
   if (typeof ImageBitmap !== 'undefined' && im instanceof ImageBitmap) im.close();
   else if (typeof HTMLCanvasElement !== 'undefined' && im instanceof HTMLCanvasElement) { im.width = 1; im.height = 1; }
   else if (typeof HTMLImageElement !== 'undefined' && im instanceof HTMLImageElement) t.image = { width: im.width, height: im.height };
-  else if ((t instanceof DataTexture || t instanceof DataArrayTexture || t instanceof Data3DTexture) && t.image.data instanceof Uint8Array) t.image.data = new Uint8Array(0);
+  else if (t instanceof DataTexture || t instanceof DataArrayTexture || t instanceof Data3DTexture) {
+    // Preserve the element type; a subarray would retain the original backing.
+    if (ArrayBuffer.isView(t.image.data)) t.image.data = t.image.data.slice(0, 0);
+    // Raw KTX2 may alias level zero through both image.data and mipmaps.
+    t.mipmaps = [];
+  }
 }
 
 /**
