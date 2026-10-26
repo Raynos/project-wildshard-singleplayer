@@ -21,12 +21,13 @@ export const LATE_READS = ['/assets/lut/far-reach.bin'];
 
 /** Public boot packs omit owned geometry; native pools load it through normal product admission. */
 export function skyProductBoot(): {
+  readonly ktx2: typeof GPU_FILES;
   readonly 'boot.files': { readonly sources: ReturnType<typeof productSources>; readonly tier: 'phone'; readonly tex: 'img' };
   readonly 'boot.sources': ReturnType<typeof productSources>;
   readonly 'boot.lateReads': typeof LATE_READS;
 } {
   const sources = productSources();
-  return { 'boot.files': { sources, tier: 'phone', tex: 'img' }, 'boot.sources': sources, 'boot.lateReads': LATE_READS };
+  return { ktx2: GPU_FILES, 'boot.files': { sources, tier: 'phone', tex: 'img' }, 'boot.sources': sources, 'boot.lateReads': LATE_READS };
 }
 function productSources() {
   const owned = new Set<string>([PREPARED_MODELS_URL, ...BAKED_PIECES.map(piece => BAKED_URLS[piece]), BRIDGE_REST_URL, MILL_REST_URL, FAN_URL]);

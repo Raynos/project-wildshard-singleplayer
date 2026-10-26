@@ -275,7 +275,7 @@
       "platform": "painted"
     },
     "ktx2": {
-      "module": "./ktx2.generated"
+      "program": true
     }
   },
   "shardfile": "/shardfiles/far-reach/shard.json"

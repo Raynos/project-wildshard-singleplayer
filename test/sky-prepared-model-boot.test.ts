@@ -10,6 +10,9 @@ import { BAKED_PIECES, BAKED_URLS, FAN_URL } from '../src/shards/far-reach/gener
 import { PREPARED_MODELS_URL } from '../src/shards/far-reach/generators/modelFrames';
 import { BRIDGE_REST_URL, MILL_REST_URL } from '../src/shards/far-reach/generators/restFiles';
 import { output } from '../src/shards/far-reach/generators/sourceOutput';
+import { GPU_FILES } from '../src/shards/far-reach/ktx2.generated';
+import { MANIFEST } from '../src/shards/far-reach/discovery.generated';
+import { prepareShardAssets } from '../src/game/shard/load';
 
 const hash = 'bd1a0a75879e2f3e72e2ab2b8d0c18a79d7e7746478b3fedc6961199a714c580';
 const owned = `/shardfiles/far-reach/blobs/glb/${hash}.glb`;
@@ -45,6 +48,25 @@ test('public boot omits all fourteen owned geometry files across both tiers and 
       expect(after.props).not.toContain(owned);
       for (const url of ownedPublic) expect(after.props).not.toContain(url);
       expect(bootLateReads(boot['boot.lateReads'], tier, mode)).toEqual(LATE_READS);
+    }
+  }
+});
+
+
+test('receipt-owned GPU discovery keeps the original native table for both tiers', async () => {
+  const boot = skyProductBoot();
+  expect(boot.ktx2).toEqual(GPU_FILES);
+  expect(parseDiscoveryValues(boot).ktx2).toEqual(GPU_FILES);
+  if (MANIFEST.ktx2 === undefined) throw new Error('Missing native GPU callback');
+  expect((await MANIFEST.ktx2()).GPU_FILES).toEqual(GPU_FILES);
+  const registered: unknown[] = [];
+  await prepareShardAssets(MANIFEST, table => { registered.push(table); });
+  await prepareShardAssets(MANIFEST, table => { registered.push(table); });
+  expect(registered).toEqual([GPU_FILES]);
+  for (const tier of ['phone', 'desktop'] as const) {
+    for (const [source, target] of Object.entries(boot.ktx2[tier])) {
+      expect(existsSync(resolve('public', `.${source}`)), source).toBe(true);
+      expect(existsSync(resolve('public', `.${target}`)), target).toBe(true);
     }
   }
 });

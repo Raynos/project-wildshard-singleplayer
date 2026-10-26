@@ -63,7 +63,7 @@ for (const [slug, palette] of [['far-reach', skyMap], ['sunscar-dunes', signalMa
       }
     } else {
       expect(() => authoredManifestSource(cwd(), slug)).toThrow('program discovery value boot.files');
-      for (const key of ['boot.files', 'boot.sources', 'boot.lateReads'] as const) {
+      for (const key of ['ktx2', 'boot.files', 'boot.sources', 'boot.lateReads'] as const) {
         const missing = { ...discovery }; delete missing[key];
         expect(() => authoredManifestSource(cwd(), slug, { discovery: missing })).toThrow(`program discovery value ${key}`);
       }
