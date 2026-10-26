@@ -2,8 +2,7 @@ import { CatmullRomCurve3, CylinderGeometry, Group, Mesh, MeshStandardMaterial, 
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { clientSceneGlb } from '@wildshard/sdk/bake/glb';
 import { GeometryPack, packedRows } from '@wildshard/sdk/kit/geometryPack';
-import source from '../data/bridges.json' with { type: 'json' };
-import { BRIDGES_URL } from './fileInventory';
+import { bakeSkyBridges } from './bridges';
 import { BRIDGE_REST_URL } from './restFiles';
 import type { PrivateScene } from '@wildshard/format/clientChannels';
 
@@ -26,13 +25,13 @@ function bridgeScene(span: BridgeSpan): PrivateScene {
 }
 /** Compile all static decks, curved rails and ties; the native owners retain instancing and materials. */
 async function make(read: ReadAsset): Promise<{ glb: Uint8Array; rows: { pool: { url: string; parts: string[] }; spans: (BridgeSpan & { scene: PrivateScene })[] } }> {
-  const inflated = await new Response(new Blob([new Uint8Array(read(BRIDGES_URL))]).stream().pipeThrough(new DecompressionStream('deflate'))).arrayBuffer();
-  const pack = new GeometryPack(new Uint8Array(inflated), packedRows(source), 'Sky bridge author');
+  const { bin, rows: source } = await bakeSkyBridges(read);
+  const pack = new GeometryPack(bin, packedRows(source), 'Sky bridge author');
   const root = new Group(), material = new MeshStandardMaterial(); root.name = 'bridge-rest';
   const owned: BufferGeometry[] = [];
   const spans = source.spans.map((span, index) => {
     const prefix = `bridge-${String(index)}`, deckGeometry = `${prefix}-deck`, ropes: string[] = [];
-    const geometry = pack.geometry(source.deck), [sx = 1, sy = 1, sz = 1] = span.deck.scale;
+    const geometry = pack.geometry(source.deck), [sx, sy, sz] = span.deck.scale;
     geometry.scale(sx, sy, sz); geometry.computeVertexNormals(); geometry.computeBoundingBox(); owned.push(geometry);
     const deck = new Mesh(geometry, material); deck.name = deckGeometry; root.add(deck);
     for (const [sideIndex, side] of span.sides.entries()) {
