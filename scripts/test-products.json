@@ -1,4 +1,5 @@
 {
+  "test/pine-contract-offers-product.test.ts": ["pine-hollow"],
   "test/nalati-dressing-product.test.ts": [
     "nalati-grasslands"
   ],

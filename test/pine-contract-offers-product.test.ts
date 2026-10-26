@@ -1,6 +1,7 @@
 import { beforeAll, expect, test } from 'vitest';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
-import { readProjectAssets } from '../src/sdk/project';
+import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
+import { builtProduct } from './fixtures/builtProduct';
 import { claim, contractKill, draw, loadBoard, recordKill, saveBoard } from '../src/game/quest/contracts';
 import { ContractBoard, CONTRACT_ACTION } from '../src/game/quest/contractBoard';
 import { parseContractCatalogue, type ContractCatalogue } from '../src/format/contracts';
@@ -18,10 +19,8 @@ const hash = (value: unknown): string => hashImmutableBytes(new TextEncoder().en
 
 let admitted: ContractCatalogue | undefined;
 beforeAll(async () => {
-  const loaded = await readProjectAssets('src/shards/pine-hollow');
-  const row = loaded.output.namedFiles?.find(file => file.name === 'quests/contracts.json');
-  const bytes = row === undefined ? undefined : loaded.assets.get(row.hash);
-  if (bytes === undefined) throw new Error('The product must publish its contract catalogue');
+  const loaded = await loadHeadlessProduct(builtProduct('pine-hollow'));
+  const bytes = await loaded.file('quests/contracts.json');
   admitted = parseContractCatalogue(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)));
 }, 30_000);
 function catalogue(): ContractCatalogue {
