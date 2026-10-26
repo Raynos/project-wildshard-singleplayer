@@ -22,7 +22,7 @@ function travel(live: LiveGridHost, at: { x: number; z: number }, dx: number, dz
   at.x += dx; at.z += dz; live.beforeFixed();
 }
 
-async function fixture(options: { paired?: boolean; loading?: number; isolation?: boolean } = {}) {
+async function fixture(options: { paired?: boolean; loading?: number; isolation?: boolean; allNeighbours?: boolean; horizonSeconds?: number } = {}) {
   const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
   const assembly = new GridAssembly({ developer: false, devserver: false }), home = assembly.cell('driftwood-isle');
   const east = assembly.cells.find(cell => cell.origin.x === assembly.pitch && cell.origin.z === 0);
@@ -42,10 +42,10 @@ async function fixture(options: { paired?: boolean; loading?: number; isolation?
     bindFrame: frame => { events.push(`frame:${frame.instance ?? 'road'}`); }, gameplayReady: () => true,
     ...(options.paired === true ? { preparationBudget: budget } : {}),
     highway: { bytes: 1000, create: () => ({ physics: page.physics, dispose: () => undefined }) },
-    prefetchable: cell => [home.instance, east.instance, north.instance].includes(cell.instance),
+    prefetchable: cell => options.allNeighbours === true || [home.instance, east.instance, north.instance].includes(cell.instance),
     // a large world: its readiness reach starts well inside the source
     readiness: { link: { speed: 30, linkBitsPerSecond: 5_000_000, requestLatencySeconds: 0.25, maxStallSeconds: 3 },
-      bundle: () => ({ criticalWireBytes: 1000, hybridWireBytes: 1000, decodeSeconds: 0, runtimeParseSeconds: 10 }) },
+      bundle: () => ({ criticalWireBytes: 1000, hybridWireBytes: 1000, decodeSeconds: 0, runtimeParseSeconds: options.horizonSeconds ?? 10 }) },
     admit: cell => { admissions.push(cell.instance); return Promise.resolve({ bytes: 1000, exclusiveRuntime: true, reloadsCheckpoint: true,
       prepareRuntime: () => { runtimes.push(cell.instance); return Promise.resolve(); }, cancel: () => { cancelled.push(cell.instance); },
       ...(options.paired === true && options.isolation !== false ? { isolatedPreparation: true } : {}),
@@ -649,5 +649,42 @@ test('G724: a long road excursion keeps exactly the last entered source warm', a
     expect(f.live.state().residents).toEqual([f.home.instance]);
     expect(f.created()).toEqual([f.home.instance]);
     expect(f.entries().find(row => row.owner === f.home.instance)?.needed).toBe(true);
+  } finally { f.close(); }
+});
+
+
+test('G743: later boulevard junctions do not delay the nearest isolated turn', async () => {
+  const f = await fixture({ paired: true, allNeighbours: true, horizonSeconds: 30 });
+  try {
+    await f.enterHome(); const leave = await f.live.prepare(f.home.instance, null); leave.commit();
+    const assembly = new GridAssembly({ developer: false, devserver: false });
+    const later = assembly.cells.find(cell => cell.origin.x === f.east.origin.x && cell.origin.z === assembly.pitch);
+    if (later === undefined) throw new Error('Missing later junction');
+    await f.live.prefetch([f.east.instance, later.instance]);
+    f.player.position.x = f.east.origin.x / 2; f.player.position.z = -100;
+    travel(f.live, f.player.position, 0, 1); await f.settle();
+    expect(f.live.ready(f.east.instance)).toBe(true);
+    expect(f.created()).toEqual([f.home.instance, f.east.instance]);
+    expect(f.live.state().residents).toEqual([f.home.instance, f.east.instance].sort());
+  } finally { f.close(); }
+});
+
+test('G743: straight travel keeps equal turn choices cold until lateral movement names a side', async () => {
+  const f = await fixture({ paired: true, allNeighbours: true });
+  try {
+    await f.enterHome(); await f.cross(f.home.instance, f.north.instance);
+    const leave = await f.live.prepare(f.north.instance, null); leave.commit();
+    await f.live.prefetch([f.home.instance, f.east.instance]);
+    f.player.position.x = f.east.origin.x / 2; f.player.position.z = -100;
+    travel(f.live, f.player.position, 0, 1); await f.settle();
+    expect(f.live.ready(f.east.instance)).toBe(false);
+    expect(f.live.ready(f.home.instance)).toBe(false);
+    travel(f.live, f.player.position, .01, 1); await f.settle();
+    expect(f.live.ready(f.east.instance)).toBe(false);
+    travel(f.live, f.player.position, .1, 1); await f.settle();
+    expect(f.live.ready(f.east.instance)).toBe(true);
+    expect(f.live.current()).toBe(null);
+    expect(f.live.state().residents).toEqual([f.north.instance, f.east.instance].sort());
+    expect(f.events).not.toContain(`retire:${f.north.instance}`);
   } finally { f.close(); }
 });

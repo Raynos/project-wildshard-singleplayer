@@ -45,6 +45,20 @@ Each slice is bounded to one hour; report misses and their observed owners first
 | G723.18 | Foundation profile on fe26faf fully covers DW/Nalati/Nine; Pine finished before profiling and is excluded. Continuation restore is later, outside foundation. Concurrent ground merging/retirement/shader work prevents whole-window CPU ownership. Direct runtimeBoundWorldFiles samples motivate a single descriptor scan for fixed-width hashes, retaining logical-reference substring behavior. Actual canonical Nine descriptor: 803,405 bytes, 397 exact ordered classifications; 13 paired eight-call medians Node 124→33 ms / JSC 135→28 ms. Integrity, basis, registration, input ownership and read order unchanged; no crossing/GC/FPS gain claim. At most one hour. | done (bounded cause-directed cut; 2026-10-25, sp-x8) |
 | G723.19 | Remove repeated missing-region full-scene searches from the existing road visibility probe before the next G723 cohort, preserving the visible-before-ready refusal and original route/deadlines. Nalati foundation window includes 179 ms sampled getObjectByProperty self under that probe, not game construction. Contract-test roots appearing, retiring and being replaced; coordinate any actual shared helper hunk. At most one hour. | open |
 
+## G743 request-to-commit crossing cuts (2026-10-26, sp-x8)
+
+Keep the G723 two-resident admission and every durability/cancellation fence.
+The routed phone-tier baseline is DW 8.1 s, Pine 2.6 s, Nalati 11.6 s and
+Nine 8.7 s; only Pine is below five seconds. One original four-edge cohort
+qualifies each milestone, without profiler, new observers or gate changes.
+T4's remaining source and qualification rows resume after these edge misses.
+
+| Slice | Work | Status |
+|---|---|---|
+| G743.1 | Select the nearest upcoming boulevard junction; meaningful lateral motion resolves its side before the mouth ray, while equal choices and contact jitter remain undecided. Preserve one constructor, pair budgets, kept-source return and all entry fences. At most one hour. | in flight (2026-10-26, sp-x8; source contracts checked, milestone pending) |
+| G743.2 | Cut the measured world and after-Play critical path; move immutable preparation earlier within existing ownership and admission, retaining every readiness unit. Split further source cuts into at most one-hour rows. | open |
+| G743.3 | ONE original phone-tier DW/Pine/Nalati/Nine road-entry cohort per source milestone; report each request-to-commit time and keep all misses open until each is under five seconds. | open |
+
 ## G717 frame-floor misses (2026-10-25, sp-x1; G639)
 
 Chromium phone-tier profiles use the original ALL route and the defining

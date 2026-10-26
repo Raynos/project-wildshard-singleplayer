@@ -125,13 +125,14 @@ function headsToEntry(cell: GridCell, feet: GridPoint, previous: GridPoint): boo
 }
 
 // A boulevard predicts its next midpoint turn, before the player aims at the perpendicular mouth.
-// Keep ambiguity honest: two possible cells never become two overlapping opaque worlds.
+// A small lateral turn names its side before the ray reaches the narrow mouth.
+// Straight travel retains both sides, so an undecided junction remains ambiguous.
 function boulevardApproachDistance(cell: GridCell, feet: GridPoint, previous: GridPoint, pitch: number): number | undefined {
   const delta = { x: feet.x - previous.x, z: feet.z - previous.z };
   for (const [axis, other] of entryAxes) for (const side of [-1, 1]) {
     const road = cell.origin[axis] + side * pitch / 2, lateral = cell.origin[other] - feet[other];
     if (Math.abs(feet[axis] - road) > ENTRY_WIDTH / 2 || Math.abs(delta[axis]) > Math.abs(delta[other]) / 4
-      || delta[other] * lateral <= 0) continue;
+      || delta[other] * lateral <= 0 || delta[axis] * side > Math.abs(delta[other]) / 20) continue;
     return Math.abs(lateral) + pitch / 2 - CHUNK_HALF;
   }
   return undefined;
@@ -495,15 +496,21 @@ export class LiveGridHost {
       // the radial prefetch count. This admits immutable products/modules, never their foundations.
       for (const cell of boulevard) if (!this.issues.has(cell.instance)) void background(cell.instance, this.prefetch([cell.instance]), () => !this.disposed);
       // Only bounded declarative/isolated alternatives may prepare on a boulevard;
-      // unknown opaque alternatives stay module-only. Never choose among multiple eligible alternatives.
+      // unknown opaque alternatives stay module-only. Resolve the next junction before later ones.
       const bounded=boulevard.length===1?boulevard:work.bounded;
       if(boulevard.length!==1)for(let i=0,length=boulevard.length;i<length;i++){
         const cell=boulevard[i];if(cell===undefined)continue;const product=this.products.get(cell.instance);
         if(product!==undefined&&(product.exclusiveRuntime!==true||product.isolatedPreparation===true))bounded.push(cell);
       }
-      // A unique explicitly isolated factory can use the full horizon. Other opaque factories wait for the
-      // traveller to head into their entry or reach their wall, and cannot overlap a kept source.
-      const predicted = bounded.length === 1 ? bounded[0] : undefined;
+      // A unique next-junction factory can use the full horizon. Equidistant sides wait for a turn.
+      // Opaque factories wait for a heading into their entry or their wall, and cannot overlap a kept source.
+      let predicted: GridCell | undefined, nextDistance = Infinity;
+      for (const cell of bounded) {
+        const distance = boulevardApproachDistance(cell, feet, previous ?? feet, this.assembly.pitch);
+        if (distance === undefined) continue;
+        if (distance < nextDistance - 0.000001) { predicted = cell; nextDistance = distance; }
+        else if (Math.abs(distance - nextDistance) <= 0.000001) predicted = undefined;
+      }
       const product = predicted === undefined ? undefined : this.products.get(predicted.instance);
       const isolated = product?.isolatedPreparation === true;
       const early = product !== undefined && (product.exclusiveRuntime !== true || isolated) ? predicted : undefined;
