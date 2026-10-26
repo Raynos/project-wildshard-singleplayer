@@ -4,15 +4,14 @@ import {expect,it} from 'vitest';
 import * as v from 'valibot';
 import originals from './fixtures/nalati-model-paint.json' with { type: 'json' };
 import speciesOriginals from './fixtures/nalati-species-files.json' with { type: 'json' };
+import heldOriginals from './fixtures/nalati-held-files.json' with { type: 'json' };
 
-it('retires species publication while held metadata owns its explicit source constructor',()=>{
+it('retires species and held publishers while the source entry owns native construction',()=>{
  const {jobs}=v.parse(v.object({jobs:v.array(v.object({id:v.string(),inputRoots:v.array(v.string()),outputs:v.array(v.string())}))}),
   JSON.parse(readFileSync('scripts/generation-jobs.json','utf8')));
  expect(jobs.some(job=>job.id==='nalati-species')).toBe(false);
- const held=jobs.find(job=>job.id==='nalati-held-weapons');
- if(held===undefined)throw new Error('Missing held source consumer');
- expect(held.inputRoots).toContain('src/shards/nalati-grasslands/generators/bake-species.mjs');
- for(const pin of speciesOriginals){
+ expect(jobs.some(job=>job.id==='nalati-held-weapons')).toBe(false);
+ for(const pin of [...speciesOriginals,...heldOriginals]){
   expect(existsSync(pin.path),pin.path).toBe(false);
   for(const job of jobs){expect(job.inputRoots,job.id).not.toContain(pin.path);expect(job.outputs,job.id).not.toContain(pin.path);}
  }

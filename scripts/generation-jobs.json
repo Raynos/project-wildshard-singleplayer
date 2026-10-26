@@ -12672,63 +12672,6 @@
       "catalogueDependencies": []
     },
     {
-      "id": "nalati-held-weapons",
-      "shard": "nalati-grasslands",
-      "entry": "src/shards/nalati-grasslands/generators/bake-held-weapons.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/shards/nalati-grasslands/generators/bake-held-weapons.mjs"
-      ],
-      "inputRoots": [
-        "src/shards/nalati-grasslands/generators/bake-held-weapons.mjs",
-        "src/shards/nalati-grasslands/data/weaponPowers.json",
-        "src/sdk",
-        "src/format",
-        "scripts/bake-output.mjs",
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "src/shards/nalati-grasslands/behaviour/heldWeapons.as",
-        "src/shards/nalati-grasslands/data/stealth.json",
-        "src/sdk/decisionScriptBindings.ts",
-        "src/format/scriptAbiV1.ts",
-        "src/format/decisionScripts.ts",
-        "src/shards/nalati-grasslands/generators/returnProgramRows.ts",
-        "src/shards/nalati-grasslands/data/speciesRows.json",
-        "src/shards/nalati-grasslands/generators/speciesPoses.ts",
-        "src/shards/nalati-grasslands/generators/balbalCracks.ts",
-        "src/shards/nalati-grasslands/behaviour/balbal.as",
-        "src/shards/nalati-grasslands/data/bodies.json",
-        "src/shards/nalati-grasslands/data/strikeProfiles.generated.json",
-        "src/shards/nalati-grasslands/data/goldenKingPose.generated.json",
-        "public/assets/nalati/baked/bodies.bin",
-        "src/sdk/bake/source-loader.mjs",
-        "src/shards/nalati-grasslands/behaviour",
-        "src/shards/nalati-grasslands/data/speciesLooks.json",
-        "src/shards/nalati-grasslands/behaviour/admission.generated.json",
-        "src/shards/nalati-grasslands/generators/actorProjection.ts",
-        "src/shards/nalati-grasslands/generators/speciesBodyPacking.ts",
-        "src/shards/nalati-grasslands/generators/speciesLookPreparation.ts",
-        "src/shards/nalati-grasslands/generators/speciesPreparation.ts",
-        "src/shards/nalati-grasslands/generators/speciesProgram.ts",
-        "src/shards/nalati-grasslands/generators/bake-species.mjs"
-      ],
-      "outputs": [
-        "src/shards/nalati-grasslands/data/heldWeapons.generated.json",
-        "src/shards/nalati-grasslands/data/stealth.generated.json"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/nalati-grasslands/data/heldWeapons.generated.json",
-        "src/shards/nalati-grasslands/data/stealth.generated.json"
-      ],
-      "platform": "portable",
-      "catalogueDependencies": [
-        "nalati-kurgan"
-      ]
-    },
-    {
       "id": "nalati-riding",
       "shard": "nalati-grasslands",
       "entry": "src/shards/nalati-grasslands/generators/bake-riding.mjs",
@@ -13034,7 +12977,6 @@
         "src/shards/nalati-grasslands/generators/bake-gear.mjs",
         "src/shards/nalati-grasslands/generators/bake-geography.mjs",
         "src/shards/nalati-grasslands/generators/bake-grass.mjs",
-        "src/shards/nalati-grasslands/generators/bake-held-weapons.mjs",
         "src/shards/nalati-grasslands/generators/bake-kokpar.mjs",
         "src/shards/nalati-grasslands/generators/bake-kurgan.mjs",
         "src/shards/nalati-grasslands/generators/bake-layout.mjs",
@@ -13056,7 +12998,6 @@
         "src/shards/nalati-grasslands/generators/bake-sabre.mjs",
         "src/shards/nalati-grasslands/generators/bake-sign-atlases.mjs",
         "src/shards/nalati-grasslands/generators/bake-spear.mjs",
-        "src/shards/nalati-grasslands/generators/bake-species.mjs",
         "src/shards/nalati-grasslands/generators/bake-spruce.mjs",
         "src/shards/nalati-grasslands/generators/bake-storm-titan.mjs",
         "src/shards/nalati-grasslands/generators/bake-taming-poses.mjs",

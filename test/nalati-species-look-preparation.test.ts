@@ -1,14 +1,12 @@
+import { currentHeldSource, currentHeldEntryWithout } from './fixtures/nalati-current-held';
 import { originalSpeciesJson, originalSpeciesOutput } from './fixtures/nalati-original-species';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read the complete retained metadata and frozen output pins.
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { checkNalatiSpeciesSource } from './fixtures/check-nalati-species-source';
-// oxlint-disable-next-line import/no-nodejs-modules -- Keep isolated producer caches within this checkout's tmp directory.
-import { relative, resolve } from 'node:path';
 import * as v from 'valibot';
 import { expect, test } from 'vitest';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { prepareNalatiSpeciesLooks } from '../src/shards/nalati-grasslands/generators/speciesLookPreparation';
-import { discoverGeneration, generateShardJob } from '../scripts/generate.mjs';
 import originals from './fixtures/nalati-species-files.json' with { type: 'json' };
 import heldOriginals from './fixtures/nalati-held-files.json' with { type: 'json' };
 
@@ -56,39 +54,19 @@ test('the actual source constructor preserves all five complete original files',
   }
 });
 
-test('the declared held consumer seals the exact original species look source closure', async () => {
-  const root = resolve('.'), job = discoverGeneration(root).jobs.find(row => row.id === 'nalati-held-weapons');
-  if (job === undefined) throw new Error('Missing species producer');
-  expect(job.inputRoots.filter(name => name.endsWith('/speciesLookPreparation.ts'))).toHaveLength(1);
-  const cacheDir = mkdtempSync(resolve('tmp/nalati-species-looks-'));
-  try {
-    const result = await generateShardJob(root, job, { cacheDir, forceCompare: true });
-    try {
-      expect(Object.keys(result.hashes).sort()).toEqual(heldOriginals.map(pin => pin.path).sort((a, b) => a.localeCompare(b)));
-      for (const pin of heldOriginals) {
-        const bytes = readFileSync(resolve(result.directory, pin.path));
-        expect(bytes.length, pin.path).toBe(pin.bytes); expect(hashImmutableBytes(bytes), pin.path).toBe(pin.sha256);
-      }
-    } finally { result.release(); }
-  } finally { rmSync(cacheDir, { recursive: true, force: true }); }
+test('the source consumer retains both complete original held documents from its current native look constructor', () => {
+  const documents = [currentHeldSource.held.held, currentHeldSource.held.stealth];
+  expect(documents).toHaveLength(heldOriginals.length);
+  for (const [index, pin] of heldOriginals.entries()) {
+    const bytes = new TextEncoder().encode(`${JSON.stringify(documents[index], null, 2)}\n`);
+    expect(bytes.length, pin.path).toBe(pin.bytes); expect(hashImmutableBytes(bytes), pin.path).toBe(pin.sha256);
+  }
 });
 
 test('an omitted look source refuses despite all original complete outputs remaining in the checkout', async () => {
-  const root = resolve('.'), job = discoverGeneration(root).jobs.find(row => row.id === 'nalati-held-weapons');
-  if (job === undefined) throw new Error('Missing species producer');
-  const omitted = { ...job, inputRoots: job.inputRoots.filter(name => !name.endsWith('/speciesLookPreparation.ts')) };
-  expect(omitted.inputRoots.length).toBe(job.inputRoots.length - 1);
-  const cacheDir = mkdtempSync(resolve('tmp/nalati-species-looks-missing-'));
-  try {
-    const catalogPath = relative(root, resolve(cacheDir, 'omitted.json'));
-    const catalog = v.parse(v.object({ schema: v.string(), notice: v.string(), jobs: v.array(v.unknown()) }),
-      JSON.parse(readFileSync('scripts/generation-jobs.json', 'utf8')));
-    writeFileSync(resolve(root, catalogPath), JSON.stringify({ ...catalog, jobs: catalog.jobs.map(row =>
-      typeof row === 'object' && row !== null && Reflect.get(row, 'id') === job.id ? omitted : row) }));
-    await expect(generateShardJob(root, omitted, { cacheDir, catalogPath, forceCompare: true })).rejects.toThrow('Generator exited 1');
-    for (const pin of originals) {
-      const bytes = originalSpeciesOutput(pin.path); expect(bytes.length, pin.path).toBe(pin.bytes);
-      expect(hashImmutableBytes(bytes), pin.path).toBe(pin.sha256);
-    }
-  } finally { rmSync(cacheDir, { recursive: true, force: true }); }
+  await expect(currentHeldEntryWithout('/generators/speciesLookPreparation.ts')).rejects.toThrow('Defining held source helper omitted');
+  for (const pin of originals) {
+    const bytes = originalSpeciesOutput(pin.path); expect(bytes.length, pin.path).toBe(pin.bytes);
+    expect(hashImmutableBytes(bytes), pin.path).toBe(pin.sha256);
+  }
 });
