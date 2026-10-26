@@ -2,7 +2,9 @@ import { afterEach, beforeEach, expect, it } from 'vitest';
 import { Scope } from '../src/engine/app/scope';
 import { lendNalatiHeld } from './fixtures/nalati-return-modules';
 import { StealthDetection } from '../src/game/stealth/controller';
-import rows from '../src/shards/nalati-grasslands/data/stealth.generated.json' with {type:'json'};
+import { originalHeldMetadata } from './fixtures/nalati-held-original';
+
+const { stealth: rows } = originalHeldMetadata();
 
 let scope:Scope;
 beforeEach(()=>{scope=new Scope('stealth-law');lendNalatiHeld(scope);});

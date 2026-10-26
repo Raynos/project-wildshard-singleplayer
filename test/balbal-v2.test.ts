@@ -16,12 +16,13 @@ import { BALBAL_SPECIES as ORIGINAL } from './fixtures/originalBalbal';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { CreatureGuestSchema } from '../src/format/speciesBookRows';
 import { ReturnProgramSchema } from '../src/format/namedJsonContracts';
-import held from '../src/shards/nalati-grasslands/data/heldWeapons.generated.json' with { type: 'json' };
+import { originalHeldMetadata } from './fixtures/nalati-held-original';
 import { scriptAdmissionRows, decisionModuleContracts } from '../src/format/scriptContract';
 import { ReturnProjectionV2Schema, parseReturnProjectionV2 } from '../src/format/returnProjectionV2';
-import stealth from '../src/shards/nalati-grasslands/data/stealth.generated.json' with { type: 'json' };
 import { nameBlob } from '../src/sdk/blobs';
 import { NALATI_SCRIPT_SECTIONS } from './fixtures/nalati-script-inventory';
+
+const { held, stealth } = originalHeldMetadata();
 
 const generated=parse(object({presentation:object({guest:CreatureGuestSchema}),
   program:strictObject({...ReturnProgramSchema.entries,v2:ReturnProjectionV2Schema})}),

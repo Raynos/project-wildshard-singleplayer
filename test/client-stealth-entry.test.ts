@@ -1,5 +1,4 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- Read the shipped row without rebuilding the product.
-import { readFileSync } from 'node:fs';
+import { originalHeldMetadata } from './fixtures/nalati-held-original';
 import { expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
 import { Scope } from '../src/engine/app/scope';
@@ -100,7 +99,7 @@ test('a missing world refuses before construction or publication', () => {
 
 
 test('world admission reserves only stealth memory; controller guest initialization remains at prepare-play', async () => {
-  const scope = new Scope('early-stealth'), rows: unknown = JSON.parse(readFileSync('src/shards/nalati-grasslands/data/stealth.generated.json', 'utf8'));
+  const scope = new Scope('early-stealth'), rows: unknown = originalHeldMetadata().stealth;
   const product = createShardProduct({slug: 'orchard', revision: 1,
     shardfile: emptyShardfile({slug: 'orchard', name: 'Orchard', author: 'Test', revision: 1, seed: 1}),
     sections: new Map([['player/stealth', rows]]), files: new Map(), read: () => Promise.reject(new Error('Stealth needs no file read'))});

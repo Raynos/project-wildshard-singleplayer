@@ -1,7 +1,7 @@
 import { PolearmSet } from '../src/game/weapons/heldPolearm';
 import loadout from '../src/shards/nalati-grasslands/data/loadout.json' with { type: 'json' };
 import ARM_STYLE from '../src/shards/nalati-grasslands/data/armsStyle.json' with {type:'json'};
-import heldWeapons from '../src/shards/nalati-grasslands/data/heldWeapons.generated.json' with {type:'json'};
+import { originalHeldMetadata } from './fixtures/nalati-held-original';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare the production GLB with retained source geometry.
 import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The runtime URL must name its exact content-addressed bytes.
@@ -16,6 +16,8 @@ import { emptyShardfile } from '../src/sdk/author';
 import { parseItems } from '../src/format/items';
 import items from '../src/shards/nalati-grasslands/data/items.json' with { type: 'json' };
 import rows from '../src/shards/nalati-grasslands/data/spear.generated.json' with { type: 'json' };
+
+const { held: heldWeapons } = originalHeldMetadata();
 
 installPortableMath();
 const { buildSpear: authorSpear, buildJavelin: authorJavelin, SPEAR_VIEW, SPEAR_PROFILE } = await import('../src/shards/nalati-grasslands/generators/spear');

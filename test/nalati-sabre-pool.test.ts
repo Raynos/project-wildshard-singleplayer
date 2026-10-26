@@ -8,7 +8,7 @@ import type { ShardContext } from '../src/game/plugin/context';
 import type { ShardRuntime } from '../src/game/shard/runtime';
 import * as geometryTools from '../src/game/plugin/geometry';
 import loadout from '../src/shards/nalati-grasslands/data/loadout.json' with { type: 'json' };
-import heldWeapons from '../src/shards/nalati-grasslands/data/heldWeapons.generated.json' with {type:'json'};
+import { originalHeldMetadata } from './fixtures/nalati-held-original';
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify the emitted GLB against its original authoring geometry.
 import { readFileSync } from 'node:fs';
 import { expect, test, vi } from 'vitest';
@@ -21,6 +21,8 @@ import { emptyShardfile } from '../src/sdk/author';
 import { parseItems } from '../src/format/items';
 import items from '../src/shards/nalati-grasslands/data/items.json' with { type: 'json' };
 import rows from '../src/shards/nalati-grasslands/data/sabre.generated.json' with { type: 'json' };
+
+const { held: heldWeapons } = originalHeldMetadata();
 
 const {polearm:_polearm,blade:_blade,programs:_programs,compiled:_compiled,...weaponPower}=heldWeapons;
 

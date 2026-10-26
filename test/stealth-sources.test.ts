@@ -15,7 +15,9 @@ import { StealthSourcesSchema } from '../src/format/stealth';
 import { sampleStealthSources, StealthController, type StealthSourcesOwners, type StealthThreat } from '../src/game/stealth/controller';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import authored from '../src/shards/nalati-grasslands/data/stealth.json' with { type: 'json' };
-import generated from '../src/shards/nalati-grasslands/data/stealth.generated.json' with { type: 'json' };
+import { originalHeldMetadata } from './fixtures/nalati-held-original';
+
+const { stealth: generated } = originalHeldMetadata();
 
 const rows=v.parse(StealthSourcesSchema,authored.observations);
 function fixture(){

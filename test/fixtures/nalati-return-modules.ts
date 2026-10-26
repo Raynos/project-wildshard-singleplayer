@@ -1,3 +1,4 @@
+import { originalHeldMetadata } from './nalati-held-original';
 import { originalSpeciesFile } from './nalati-original-species';
 import {afterEach} from 'vitest';
 import {parseDecisionScripts} from '../../src/format/decisionScripts';
@@ -27,7 +28,7 @@ export const admissionLegacy={script:admissionScript,bytes:Buffer.from(admission
 export const admissionModuleBytes=Uint8Array.from(readFileSync('src/shards/nalati-grasslands/behaviour/admission.generated.wasm'));
 const projection=programs.wind.v2;
 const held=v.parse(v.object({program:v.strictObject({...ReturnProgramSchema.entries,v2:ReturnProjectionV2Schema})}),
-  JSON.parse(readFileSync('src/shards/nalati-grasslands/data/heldWeapons.generated.json','utf8')));
+  originalHeldMetadata().held);
 const mounts=v.parse(v.object({approach:v.strictObject({...ReturnProgramSchema.entries,v2:ReturnProjectionV2Schema})}),
   JSON.parse(readFileSync('src/shards/nalati-grasslands/behaviour/riding.generated.json','utf8')));
 export const heldWitnessBytes=originalSpeciesFile('held-witness.bin');

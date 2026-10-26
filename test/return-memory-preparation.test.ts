@@ -1,4 +1,5 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- Read the actual admitted programme rows; never rebuild in a test.
+import { originalHeldMetadata } from './fixtures/nalati-held-original';
+// oxlint-disable-next-line import/no-nodejs-modules -- Read other admitted programme rows; held metadata uses the pinned original fixture.
 import { readFileSync } from 'node:fs';
 import { expect, test, vi } from 'vitest';
 import * as v from 'valibot';
@@ -10,7 +11,7 @@ import { Rng } from '../src/engine/core/rng';
 import { admission, lendNalatiTitan } from './fixtures/nalati-return-modules';
 import { titanRawPrograms, titanPrograms, titanModuleBytes } from './fixtures/titanInlineWitness';
 
-const held = v.parse(v.object({program: ReturnProgramSchema}), JSON.parse(readFileSync('src/shards/nalati-grasslands/data/heldWeapons.generated.json', 'utf8'))).program;
+const held = v.parse(v.object({program: ReturnProgramSchema}), originalHeldMetadata().held).program;
 const riding = v.parse(v.object({approach: ReturnProgramSchema}), JSON.parse(readFileSync('src/shards/nalati-grasslands/behaviour/riding.generated.json', 'utf8'))).approach;
 
 test('the seven real return consumers reserve seven isolated memories and initialize only at their original construction', () => {
