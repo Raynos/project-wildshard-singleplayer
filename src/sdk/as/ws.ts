@@ -1,7 +1,7 @@
 /** The single ABI-v1 AssemblyScript transport source, injected as sdk/as/ws.ts by the author compiler.
  * It is a source string so guest globals never enter the host TypeScript program. No service is installed.
  * Transport helpers inline before structural metering; capability, IO and bounds checks remain intact. */
-export const WS_CORE = String.raw`
+export const WS_CORE: string = String.raw`
 @external("env", "ws_read") declare function scalar(op:i32,a:f64,b:f64):f64;
 @external("env", "ws_list") declare function query(op:i32,a:f64,b:f64,out:usize,cap:i32):i32;
 const IO:usize=memory.data(2496,8), LIST:usize=memory.data(768,8);

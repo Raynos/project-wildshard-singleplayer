@@ -3,7 +3,7 @@ import { CreatureStrikeSchema } from '@wildshard/format/creatures';
 import { readSpecies } from '@wildshard/format/speciesPrograms';
 
 /** The same strict portable strike admission used by native and page population rows. */
-export const StrikeSchema = CreatureStrikeSchema;
+export const StrikeSchema: typeof CreatureStrikeSchema = CreatureStrikeSchema;
 /** Serializable native strike accepted by the SDK, without an authored callback. */
 export type StrikeData = v.InferOutput<typeof StrikeSchema>;
 /** Validate a serializable native strike before its trusted engine adapter is constructed. */

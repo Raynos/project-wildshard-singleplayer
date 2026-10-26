@@ -12,7 +12,7 @@ export type NpcRow = Npc;
 /** Compile an authored NPC row; an unknown field or an empty dialogue refuses. */
 export function parseNpcRow(input: unknown): Npc { return parseNpc(input); }
 /** A quest graph's runtime row (SF27): its interaction actor, its marks' step id and its actions (`summon` a boss). */
-export const QuestGraphSchema = v.pipe(graphSchema);
+export const QuestGraphSchema: v.SchemaWithPipe<readonly [typeof graphSchema]> = v.pipe(graphSchema);
 /** A validated quest graph runtime row. */
 export type QuestGraphRow = Graph;
 /** Compile an authored quest graph runtime row; an unknown field refuses. */

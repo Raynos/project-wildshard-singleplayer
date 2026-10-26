@@ -195,6 +195,9 @@ normal layer emission is the declaration-size authority. Continuation starts at 
 | T4-I3n | Game session stages; retain the complete asynchronous data, world, loadout and play composition | 60 min | done (2026-10-25, sp-x8) |
 | T4-I3o | Optional presentation owner; retain constructor omission and explicit undefined laws | 60 min | done (2026-10-25, sp-x8) |
 | T4-I3p | Require isolated game output; retain browser-only production and separate Node test owners | 60 min | done (2026-10-25, sp-x8) |
+| T4-I4a | SDK schema aliases and build bindings; retain defining validator metadata and public identities | 60 min | done (2026-10-25, sp-x8) |
+| T4-I4b | SDK author resources and defaults; retain node kinds, endpoint owners and numeric arguments | 60 min | in flight (2026-10-25, sp-x8) |
+| T4-I4c | SDK worker and world wire contracts; retain variants, normalized defaults and complete proofs | 60 min | in flight (2026-10-25, sp-x8) |
 
 T4 first format slices are on origin: schema expressions and emitted runtime JavaScript are unchanged.
 Independent named data types replace exported validator implementation types; original/candidate input and output

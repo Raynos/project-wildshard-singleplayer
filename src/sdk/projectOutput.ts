@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { ScriptContractSchema, decisionModuleContracts } from '@wildshard/format/scriptContract';
+import { ScriptContractSchema, decisionModuleContracts, type ScriptContractInput, type ScriptContract } from '@wildshard/format/scriptContract';
 import { OutputIndexSchema, type OutputFile } from '@wildshard/format/outputIndex';
 import { ShardNaturalSchema } from '@wildshard/format/shardSections';
 import { parseShardfile, type Shardfile } from './shardfile';
@@ -21,7 +21,7 @@ const options = v.strictObject({
   jsonSchema: v.exactOptional(v.record(v.string(), v.unknown())),
   meshopt: v.exactOptional(v.boolean()), critical: v.exactOptional(v.boolean()), dependencies: v.exactOptional(v.array(v.string())),
 });
-const declaration = v.strictObject({
+const declaration: v.StrictObjectSchema<{ readonly name: v.StringSchema<undefined>; readonly kind: v.PicklistSchema<["glb", "ktx2", "image", "audio", "wasm", "bin", "tile", "json"], undefined>; readonly source: v.StringSchema<undefined>; readonly options: v.ExactOptionalSchema<v.StrictObjectSchema<{ readonly decoded: v.ExactOptionalSchema<v.GenericSchema<number, number>, undefined>; readonly gpu: v.ExactOptionalSchema<v.GenericSchema<number, number>, undefined>; readonly triangles: v.ExactOptionalSchema<v.GenericSchema<number, number>, undefined>; readonly draws: v.ExactOptionalSchema<v.GenericSchema<number, number>, undefined>; readonly script: v.ExactOptionalSchema<v.GenericSchema<ScriptContractInput, ScriptContract>, undefined>; readonly jsonSchema: v.ExactOptionalSchema<v.RecordSchema<v.StringSchema<undefined>, v.UnknownSchema, undefined>, undefined>; readonly meshopt: v.ExactOptionalSchema<v.BooleanSchema<undefined>, undefined>; readonly critical: v.ExactOptionalSchema<v.BooleanSchema<undefined>, undefined>; readonly dependencies: v.ExactOptionalSchema<v.ArraySchema<v.StringSchema<undefined>, undefined>, undefined>; }, undefined>, undefined>; }, undefined> = v.strictObject({
   name: v.string(), kind: v.picklist(['glb', 'ktx2', 'image', 'audio', 'wasm', 'bin', 'tile', 'json']),
   source: v.string(), options: v.exactOptional(options),
 });

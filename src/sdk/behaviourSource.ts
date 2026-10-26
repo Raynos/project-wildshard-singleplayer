@@ -5,7 +5,49 @@ import { hashImmutableBytes } from './immutable';
 
 const path = v.pipe(v.string(), v.maxLength(512), v.check(value => value.split('/').every(part => /^[A-Za-z0-9_-][A-Za-z0-9_.-]*$/u.test(part)), 'project-relative source path'));
 /** Build-only source declarations. References use `script:<id>` and become immutable admitted Wasm hashes. */
-export const BehaviourSourceSchema = v.pipe(v.array(v.strictObject({
+export const BehaviourSourceSchema: v.SchemaWithPipe<readonly [
+    v.ArraySchema<v.StrictObjectSchema<{
+        readonly id: v.SchemaWithPipe<readonly [
+            v.StringSchema<undefined>,
+            v.RegexAction<string, undefined>,
+            v.MaxLengthAction<string, 128, undefined>
+        ]>;
+        readonly source: v.SchemaWithPipe<readonly [
+            v.SchemaWithPipe<readonly [
+                v.StringSchema<undefined>,
+                v.MaxLengthAction<string, 512, undefined>,
+                v.CheckAction<string, "project-relative source path">
+            ]>,
+            v.CheckAction<string, "AssemblyScript .as source">
+        ]>;
+        readonly maximumPages: v.OptionalSchema<v.SchemaWithPipe<readonly [
+            v.NumberSchema<undefined>,
+            v.IntegerAction<number, undefined>,
+            v.MinValueAction<number, 1, undefined>,
+            v.MaxValueAction<number, 64, undefined>
+        ]>, 2>;
+        readonly sources: v.OptionalSchema<v.RecordSchema<v.SchemaWithPipe<readonly [
+            v.StringSchema<undefined>,
+            v.RegexAction<string, undefined>
+        ]>, v.SchemaWithPipe<readonly [
+            v.StringSchema<undefined>,
+            v.MaxLengthAction<string, 512, undefined>,
+            v.CheckAction<string, "project-relative source path">
+        ]>, undefined>, NonNullable<unknown>>;
+    }, undefined>, undefined>,
+    v.MaxLengthAction<{
+        id: string;
+        source: string;
+        maximumPages: number;
+        sources: Record<string, string>;
+    }[], 64, undefined>,
+    v.CheckAction<{
+        id: string;
+        source: string;
+        maximumPages: number;
+        sources: Record<string, string>;
+    }[], "unique behaviour source ids">
+]> = v.pipe(v.array(v.strictObject({
   id: v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u), v.maxLength(128)),
   source: v.pipe(path, v.check(value => value.endsWith('.as'), 'AssemblyScript .as source')),
   maximumPages: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(64)), 2),

@@ -6,7 +6,7 @@ import type { CommonsCosts } from './commonsCosts';
 
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128), v.regex(/^[a-z][a-z0-9-]*(?:\/[a-z][a-z0-9-]*)*$/u));
 const version = v.pipe(v.string(), v.maxLength(32), v.regex(/^(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)$/u));
-const kind = v.picklist(['binary', 'glb', 'ktx2', 'audio']);
+const kind: v.PicklistSchema<["binary", "glb", "ktx2", "audio"], undefined> = v.picklist(['binary', 'glb', 'ktx2', 'audio']);
 const metadata = v.strictObject({ id, kind, credit: v.pipe(v.string(), v.minLength(1), v.maxLength(4096)), licence: v.pipe(v.string(), v.minLength(1), v.maxLength(128)) });
 
 /** One build-time pack input; only its copied bytes and validated metadata enter a product. */
