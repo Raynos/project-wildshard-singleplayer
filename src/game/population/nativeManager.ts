@@ -48,7 +48,7 @@ const huntBody = (actor: AnimalSim): actor is HuntBody => 'hidden' in actor && t
  * This installs no independent clock, allocates no actor and draws no entropy.
  * Null roster slots preserve a retired body's historical array position. */
 export class NativeManager {
-  readonly noise = { seen: false, speed: 0, prev: new Vector3() };
+  readonly noise: { seen: boolean; speed: number; prev: Vector3; } = { seen: false, speed: 0, prev: new Vector3() };
   readonly sight: (boolean | null | undefined)[];
   private clock = 0;
   constructor(private readonly host: SimHost, private readonly hunt: StalkerBrain<HuntBody>, private readonly stream: Rng, private readonly rows: NativeManagerRows) {
@@ -243,7 +243,7 @@ export class NativeWildlifeFrame {
     const alarm = this.foragers.update(dt, player, state.v > this.rows.foragerRunSpeed, crouched); if (alarm !== null) this.relations.alert(alarm.x, alarm.z);
     this.relations.ripple();
   }
-  scare(x: number, z: number, radius = this.rows.scareRadius): void { this.relations.scare(x, z, radius); this.host.events.emit('creature.signal', { name: 'scare', x, z }); }
+  scare(x: number, z: number, radius: number = this.rows.scareRadius): void { this.relations.scare(x, z, radius); this.host.events.emit('creature.signal', { name: 'scare', x, z }); }
   private readonly knocked={x:0,z:0};
   knockdown(x: number, z: number, strength: number): void {
     const row=this.rows.knockdown;knockdownVelocity(row,x,z,strength,this.knocked);

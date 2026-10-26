@@ -131,7 +131,7 @@ export function lentToon(id: string): ToonLook {
   return toon;
 }
 
-const lentParams = { setParam: setLentParam };
+const lentParams: { setParam: (id: string, name: string, value: GraphLiteral) => void; } = { setParam: setLentParam };
 /** Push a channel group's graph params (`graphParamRoots(...)`) into the lent looks. */
 export function pushLentParams(params: { readonly push: (looks: typeof lentParams) => void }): void { params.push(lentParams); }
 

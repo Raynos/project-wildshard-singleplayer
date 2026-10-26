@@ -29,7 +29,7 @@ export interface FarHaze { readonly colour: FarRgb }
  * 10-13 hero (public/assets/title/main-crossroads-square.jpg), every cell still drawn to the 6 km far plane. `colour` is
  * the air in sRGB (mixed after the output conversion), one uniform every far material shares, written by the grid frame.
  */
-export const GRID_HAZE = { near: 600, far: 4500, max: 0.35, colour: { value: new Color(1, 1, 1) } } as const;
+export const GRID_HAZE: { readonly near: 600; readonly far: 4500; readonly max: 0.35; readonly colour: { readonly value: Color; }; } = { near: 600, far: 4500, max: 0.35, colour: { value: new Color(1, 1, 1) } } as const;
 /**
  * A shard's far look, authored in its folder and read only at bake time. `colourAt` gets cell-local metres, the height,
  * the slope (1 − n.y) and the normalised splat weights (the shard's own four channels).
@@ -98,7 +98,7 @@ export const FAR_SKIRT = 8;
  */
 export const FAR_EDGE_FLOOR = -20;
 /** SF88c (G526): the platform's corner-to-corner sightline across its outer road (the 5 × 5: ≈ 3.9 km). */
-export const GRID_SIGHTLINE = 2 * (GRID_RADIUS + 0.5) * CONTENT_CAPS.pitch * Math.SQRT2;
+export const GRID_SIGHTLINE: number = 2 * (GRID_RADIUS + 0.5) * CONTENT_CAPS.pitch * Math.SQRT2;
 /**
  * The far ring (SF23 owns its parameters; SF18b's `RenderRings` owns the scheduler). SF88c: the ring wants a proxy for
  * every cell within `reach` (the grid's whole sightline, so no cell of the 5 × 5 pops in or out while you drive the
@@ -108,7 +108,7 @@ export const GRID_SIGHTLINE = 2 * (GRID_RADIUS + 0.5) * CONTENT_CAPS.pitch * Mat
  * `domeRadius` the road sky's camera-kept dome: past the sightline (the far corner's rail) and inside the far plane, so
  * nothing on the platform is clipped or drawn behind the sky.
  */
-export const FAR_RING = { count: CONTENT_CAPS.farCount, viewDistance: 1.5 * CONTENT_CAPS.pitch, farPrefetch: 435, reach: GRID_SIGHTLINE,
+export const FAR_RING: { readonly count: 9; readonly viewDistance: number; readonly farPrefetch: 435; readonly reach: number; readonly drawDistance: 6000; readonly domeRadius: number; } = { count: CONTENT_CAPS.farCount, viewDistance: 1.5 * CONTENT_CAPS.pitch, farPrefetch: 435, reach: GRID_SIGHTLINE,
   drawDistance: 6000, domeRadius: Math.ceil(GRID_SIGHTLINE / 100) * 100 + 200 } as const;
 
 /**

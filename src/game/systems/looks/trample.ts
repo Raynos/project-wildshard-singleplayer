@@ -44,7 +44,7 @@ export interface TrampleState {
 }
 
 const trailPair = schema.tuple([schema.number(), schema.number()]);
-const TrailContinuation = schema.object({ trail: schema.nullable(trailPair), map: schema.object({ cells: schema.array(schema.number()),
+const TrailContinuation: schema.ObjectSchema<{ readonly trail: schema.NullableSchema<schema.TupleSchema<[schema.NumberSchema<undefined>, schema.NumberSchema<undefined>], undefined>, undefined>; readonly map: schema.ObjectSchema<{ readonly cells: schema.ArraySchema<schema.NumberSchema<undefined>, undefined>; readonly origin: schema.NullableSchema<schema.TupleSchema<[schema.NumberSchema<undefined>, schema.NumberSchema<undefined>], undefined>, undefined>; readonly centre: schema.TupleSchema<[schema.NumberSchema<undefined>, schema.NumberSchema<undefined>], undefined>; readonly anyFlat: schema.BooleanSchema<undefined>; readonly dirty: schema.BooleanSchema<undefined>; readonly tick: schema.NumberSchema<undefined>; }, undefined>; }, undefined> = schema.object({ trail: schema.nullable(trailPair), map: schema.object({ cells: schema.array(schema.number()),
   origin: schema.nullable(trailPair), centre: trailPair, anyFlat: schema.boolean(), dirty: schema.boolean(), tick: schema.number() }) });
 /** Player trail observations over a concrete map. Pushes precede the owner's
  * existing map update; teleport filtering never advances another clock. */
@@ -245,7 +245,9 @@ export class TrampleField {
 export class GrassTrample extends TrampleField {
   /** RG8: the lie vector × flatten amount, 0.5-biased (128, 128 = standing) — filters linearly, unlike an angle */
   readonly texture: THREE.DataTexture;
-  readonly uniforms = {
+  readonly uniforms: { tTrample: { value: THREE.DataTexture | null; }; 
+/** xz = window centre (m), z = window half-span (m), w = 1 / span */
+uTrampleWin: { value: THREE.Vector4; }; uMovers: { value: THREE.Vector4[]; }; uMoverCount: { value: number; }; } = {
     tTrample: { value: null as THREE.DataTexture | null },
     /** xz = window centre (m), z = window half-span (m), w = 1 / span */
     uTrampleWin: { value: new THREE.Vector4(0, 0, SPAN / 2, 1 / SPAN) },
@@ -306,7 +308,7 @@ export class GrassTrample extends TrampleField {
 }
 
 /** the world's trample map (a singleton — movers anywhere push into it) */
-export const trample = new GrassTrample();
+export const trample: GrassTrample = new GrassTrample();
 
 /**
  * Effective grass height at (x, z) in metres, including trampling (a fresh track lays it to ~15 %).
@@ -317,7 +319,8 @@ export function grassHeightAt(x: number, z: number): number {
 }
 
 /** GLSL for the grass vertex shader: uniforms + `vec2 trampleBend(vec2 p)` → bend vector (radians × dir) */
-export const TRAMPLE_GLSL = /* glsl */`
+type TrampleShaderSource = "\nuniform sampler2D tTrample;\nuniform vec4 uTrampleWin;\nuniform vec4 uMovers[16];\nuniform int uMoverCount;\nvec2 trampleBend( vec2 p ) {\n  vec2 b = vec2( 0.0 );\n  // persistent trample map (toroidal, world-addressed)\n  vec2 rel = abs( p - uTrampleWin.xy );\n  float inWin = 1.0 - smoothstep( uTrampleWin.z - 6.0, uTrampleWin.z - 1.0, max( rel.x, rel.y ) );\n  if ( inWin > 0.0 ) {\n    vec2 t = texture( tTrample, p * uTrampleWin.w ).rg * ( 255.0 / 127.0 ) - ( 127.5 / 127.0 );\n    b += t * 1.3 * inWin;\n  }\n  // live movers: push blades away from the body\n  for ( int i = 0; i < 16; i++ ) {\n    if ( i >= uMoverCount ) break;\n    vec4 m = uMovers[ i ];\n    vec2 d = p - m.xy;\n    float r = m.z * 1.6;\n    float l2 = dot( d, d );\n    if ( l2 < r * r ) {\n      float l = sqrt( l2 ) + 1e-3;\n      float f = 1.0 - l / r;\n      b += d / l * f * f * 1.6 * m.w;\n    }\n  }\n  return b;\n}\n";
+export const TRAMPLE_GLSL: TrampleShaderSource = /* glsl */`
 uniform sampler2D tTrample;
 uniform vec4 uTrampleWin;
 uniform vec4 uMovers[${MAX_MOVERS}];
