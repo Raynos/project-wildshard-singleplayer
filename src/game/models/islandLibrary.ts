@@ -19,7 +19,7 @@ import { ProductFigureCatalogue } from './figureCatalogue';
 import { CollectionCatalogue } from './collectionDisplay';
 
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
-export const IslandLibrarySchema = v.strictObject({
+export const IslandLibrarySchema: v.GenericSchema<BoundedIslandLibraryInput, BoundedIslandLibrary> = v.strictObject({
   product: id,
   /** the custom section and its field holding the fixed draw rows */
   draws: v.strictObject({ section: v.custom<CustomSectionName>(name => typeof name === 'string' && /^custom\/[A-Za-z][A-Za-z0-9_.-]{0,120}$/u.test(name), 'a custom section'), field: id }),
@@ -127,3 +127,17 @@ export class IslandLibrary<Groups> {
     await this.intake; live();
   };
 }
+
+/** Complete admitted data, independent of validator implementation metadata. */
+type BoundedIslandLibraryInput = BoundedIslandLibrary;
+interface BoundedIslandLibraryFields {
+    product: string;
+    draws: {
+        section: `custom/${string}`;
+        field: string;
+    };
+    groups: string;
+    figures: string;
+    collections: Record<string, string>;
+}
+type BoundedIslandLibrary = { [Key in keyof BoundedIslandLibraryFields]: BoundedIslandLibraryFields[Key] };

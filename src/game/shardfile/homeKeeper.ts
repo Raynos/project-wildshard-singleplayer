@@ -97,7 +97,7 @@ const Value: v.GenericSchema<SimValue> = v.lazy(() => v.union([v.null(), v.boole
 const Stream = v.strictObject({ version: v.literal(1), state: finite, initial: finite, scrambledFork: v.boolean() });
 /** A saved trusted recipe's placement; the spec is this build's bake, so a changed spec refuses at the host's restore. */
 const Placed = v.object({ id: v.string(), seed: finite, scale: finite, at: v.strictObject({ x: finite, y: finite, z: finite }), yaw: finite });
-const NativeRecipe = v.looseObject({ ...Placed.entries, spec: v.looseObject({ kind: v.string(), variant: v.string() }) });
+const NativeRecipe: v.GenericSchema<BoundedHomeNativeRecipeInput, BoundedHomeNativeRecipe> = v.looseObject({ ...Placed.entries, spec: v.looseObject({ kind: v.string(), variant: v.string() }) });
 const Saved = v.strictObject({ version: v.literal(1), rng: Stream, tokens: v.array(v.string()),
   homes: v.array(v.strictObject({ id: v.string(), wait: finite, live: v.boolean(), policy: v.nullable(v.string()) })),
   boss: v.nullable(v.strictObject({ id: v.string(), live: v.boolean(), policy: v.nullable(v.string()) })) });
@@ -532,3 +532,21 @@ export class NativeDeferredRoster {
     this.bodies.splice(at, 1); this.sight.splice(at, 1); if (mode === 'retire') this.retired.add(id);
   }
 }
+
+/** Complete admitted data, independent of validator implementation metadata. */
+type BoundedHomeNativeRecipeInput = BoundedHomeNativeRecipe;
+type BoundedHomeNativeRecipe = {
+    spec: {
+        kind: string;
+        variant: string;
+    } & Record<string, unknown>;
+    id: string;
+    seed: number;
+    scale: number;
+    at: {
+        x: number;
+        y: number;
+        z: number;
+    };
+    yaw: number;
+} & Record<string, unknown>;

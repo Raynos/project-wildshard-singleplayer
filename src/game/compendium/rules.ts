@@ -22,7 +22,7 @@ function loadShard(raw: unknown, ids: ReadonlySet<string>): ShardSave {
 const count = schema.pipe(schema.number(), schema.safeInteger(), schema.minValue(0));
 const SavedEntry = schema.strictObject({ s: schema.pipe(count, schema.maxValue(STATE_ORDER.length - 1)), n: count, t: count,
   b: schema.pipe(schema.number(), schema.finite(), schema.minValue(0)) });
-const Snapshot = schema.strictObject({ version: schema.literal(1), entries: schema.record(schema.string(), SavedEntry) });
+const Snapshot: schema.GenericSchema<BoundedCompendiumRulesSaveInput, BoundedCompendiumRulesSave> = schema.strictObject({ version: schema.literal(1), entries: schema.record(schema.string(), SavedEntry) });
 /** The exact in-memory discovery and statistics continuation, independent of a page save slot. */
 export type CompendiumSnapshot = schema.InferOutput<typeof Snapshot>;
 
@@ -115,3 +115,16 @@ export class CompendiumRules {
   /** Page persistence hook; pure/native owners leave it absent. */
   protected persist(): void { /* A page owner overrides persistence; a native owner only captures. */ }
 }
+
+/** Complete admitted data, independent of validator implementation metadata. */
+type BoundedCompendiumRulesSaveInput = BoundedCompendiumRulesSave;
+interface BoundedCompendiumRulesSaveFields {
+    version: 1;
+    entries: Record<string, {
+            s: number;
+            n: number;
+            t: number;
+            b: number;
+        }>;
+}
+type BoundedCompendiumRulesSave = { [Key in keyof BoundedCompendiumRulesSaveFields]: BoundedCompendiumRulesSaveFields[Key] };

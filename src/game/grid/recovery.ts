@@ -7,7 +7,7 @@ import { instanceSave, instanceSaveIdentity, type LocalSaveInstance } from '../i
 const finite = v.pipe(v.number(), v.finite());
 const identity = v.pipe(v.string(), v.regex(/^_?[a-z0-9]+(?:-[a-z0-9]+)*$/u));
 const roadSchema = v.strictObject({ x: finite, z: finite, yaw: finite });
-const locationSchema = v.variant('kind', [
+const locationSchema: v.GenericSchema<BoundedGridLocationInput, BoundedGridLocation> = v.variant('kind', [
   v.strictObject({ kind: v.literal('road') }),
   v.strictObject({ kind: v.literal('cell'), x: finite, y: finite, z: finite, yaw: finite }),
 ]);
@@ -23,7 +23,7 @@ const resetDefinition = { key: 'grid.reset.pending', scope: 'device' as const, v
   schema: v.nullable(v.strictObject({ instance: identity, slug: identity, catalogue: v.pipe(v.string(), v.maxLength(4096)),
     at: finite, road: roadSchema, target: v.strictObject({ id: identity, shard: identity }),
     generation: v.pipe(v.number(), v.safeInteger(), v.minValue(0)) })), initial: () => null };
-const schema = v.nullable(v.strictObject({ instance: identity, slug: identity,
+const schema: v.GenericSchema<BoundedGridRecoveryInput, BoundedGridRecovery> = v.nullable(v.strictObject({ instance: identity, slug: identity,
   catalogue: v.pipe(v.string(), v.maxLength(4096)), at: finite,
   reason: v.picklist(['gpu', 'background', 'new-game', 'reload']),
   road: roadSchema,
@@ -146,3 +146,48 @@ export function gridRecovery(store: SaveStore, now: () => number = Date.now): Gr
   };
   return service;
 }
+
+/** Complete admitted data, independent of validator implementation metadata. */
+type BoundedGridRecoveryInput = BoundedGridRecovery;
+type BoundedGridRecovery = {
+    instance: string;
+    slug: string;
+    catalogue: string;
+    at: number;
+    reason: "gpu" | "background" | "new-game" | "reload";
+    road: {
+        x: number;
+        z: number;
+        yaw: number;
+    };
+    saved?: {
+        instance: string;
+        slug: string;
+        catalogue: string;
+        at: number;
+        road: {
+            x: number;
+            z: number;
+            yaw: number;
+        };
+        location: {
+            kind: "road";
+        } | {
+            kind: "cell";
+            x: number;
+            y: number;
+            z: number;
+            yaw: number;
+        };
+    } | undefined;
+} | null;
+type BoundedGridLocationInput = BoundedGridLocation;
+type BoundedGridLocation = {
+    kind: "road";
+} | {
+    kind: "cell";
+    x: number;
+    y: number;
+    z: number;
+    yaw: number;
+};

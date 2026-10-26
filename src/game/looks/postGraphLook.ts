@@ -317,7 +317,7 @@ const real = v.pipe(v.number(), v.finite()), shapeId = v.pipe(v.string(), v.rege
  * (dusk over `dusk` [from, to] degrees of sun) and the storm, the rig's night sky shows only at night, and the rig's sun
  * disc stays only as the moon.
  */
-export const PainterlyWorldSchema = v.strictObject({ casters: v.pipe(v.array(shapeId), v.maxLength(16)), sweep: v.pipe(real, v.minValue(0.1)),
+export const PainterlyWorldSchema: v.GenericSchema<BoundedPainterlyWorldInput, BoundedPainterlyWorld> = v.strictObject({ casters: v.pipe(v.array(shapeId), v.maxLength(16)), sweep: v.pipe(real, v.minValue(0.1)),
   liveMap: v.pipe(real, v.integer(), v.minValue(64), v.maxValue(4096)), dusk: v.tuple([real, real]) });
 /** What the world reads each frame: the hour's look, the sun's elevation (degrees) and the storm's overcast. */
 export interface PainterlyFrame { readonly look: PainterSkyLook; readonly sunElevation: number; readonly overcast: number }
@@ -421,3 +421,16 @@ export function paintedWorldOf(slug: string): PaintedWorldParts {
 }
 
 function v4Of(row: readonly [number, number, number, number]): Vector4 { return new Vector4(...row); }
+
+/** Complete admitted data, independent of validator implementation metadata. */
+type BoundedPainterlyWorldInput = BoundedPainterlyWorld;
+interface BoundedPainterlyWorldFields {
+    casters: string[];
+    sweep: number;
+    liveMap: number;
+    dusk: [
+        number,
+        number
+    ];
+}
+type BoundedPainterlyWorld = { [Key in keyof BoundedPainterlyWorldFields]: BoundedPainterlyWorldFields[Key] };

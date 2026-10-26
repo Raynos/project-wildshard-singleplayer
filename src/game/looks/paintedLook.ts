@@ -142,7 +142,7 @@ const finite = v.pipe(v.number(), v.finite());
  * XZ, one tile every `tile` m): cover past `threshold` (± `softness`) takes `strength` of the light. The field drifts
  * downwind at `drift[0]` × the wind + `drift[1]` m/s, as clouds aloft do. The world paints its own sky (`ownSky`).
  */
-export const PaintedAirSchema = v.strictObject({ tile: v.pipe(finite, v.minValue(1)), threshold: finite, strength: v.pipe(finite, v.minValue(0), v.maxValue(1)),
+export const PaintedAirSchema: v.GenericSchema<BoundedPaintedAirInput, BoundedPaintedAir> = v.strictObject({ tile: v.pipe(finite, v.minValue(1)), threshold: finite, strength: v.pipe(finite, v.minValue(0), v.maxValue(1)),
   softness: v.pipe(finite, v.minValue(0)), drift: v.tuple([finite, finite]) });
 const AIR_PARS = /* glsl */`
     #ifdef USE_FOG
@@ -186,3 +186,17 @@ export function paintedAir(input: unknown): { readonly install: () => void; read
       } },
   };
 }
+
+/** Complete admitted data, independent of validator implementation metadata. */
+type BoundedPaintedAirInput = BoundedPaintedAir;
+interface BoundedPaintedAirFields {
+    tile: number;
+    threshold: number;
+    strength: number;
+    softness: number;
+    drift: [
+        number,
+        number
+    ];
+}
+type BoundedPaintedAir = { [Key in keyof BoundedPaintedAirFields]: BoundedPaintedAirFields[Key] };

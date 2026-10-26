@@ -28,7 +28,7 @@ import { residentWorldScope } from '../shardfile/hybridPresentation';
 import { lentLook, setLentParam } from '../shardfile/lentLooks';
 
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128)), n = v.pipe(v.number(), v.finite());
-export const QuestPageViewsSchema = v.looseObject({
+export const QuestPageViewsSchema: v.GenericSchema<BoundedQuestPageViewsInput, BoundedQuestPageViews> = v.looseObject({
   page: id, ranged: id, quest: id, spawns: id, content: v.custom<`custom/${string}`>((value): value is `custom/${string}` => typeof value === 'string' && /^custom\/[a-zA-Z0-9_./-]{1,249}$/u.test(value)),
   wheel: v.looseObject({ flag: id, speed: n }),
   secret: v.looseObject({ scene: id, projection: id, floorY: n, mid: v.tuple([n, n, n]) }),
@@ -110,3 +110,51 @@ export class QuestPageViews {
     if (st?.def.entries.every((e) => { const s = st.stats(e.id).state; return s === 'seen' || s === 'taken'; }) === true) facets.achievements?.event(rows.journal.event, 1);
   }
 }
+
+/** Complete admitted data, independent of validator implementation metadata. */
+type BoundedQuestPageViewsInput = BoundedQuestPageViews;
+type BoundedQuestPageViews = {
+    page: string;
+    ranged: string;
+    quest: string;
+    spawns: string;
+    content: `custom/${string}`;
+    wheel: {
+        flag: string;
+        speed: number;
+    } & Record<string, unknown>;
+    secret: {
+        scene: string;
+        projection: string;
+        floorY: number;
+        mid: [
+            number,
+            number,
+            number
+        ];
+    } & Record<string, unknown>;
+    journal: {
+        event: string;
+    };
+    pool: {
+        name: string;
+        flag: string;
+        water: string;
+        still: {
+            scene: string;
+            surface: unknown;
+        };
+        trickle: {
+            scene: string;
+            surface: unknown;
+        };
+        level: {
+            look: string;
+            param: string;
+        };
+        fade: {
+            look: string;
+            param: string;
+        };
+    };
+} & Record<string, unknown>;
