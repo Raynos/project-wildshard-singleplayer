@@ -6,7 +6,7 @@ import { SKY_SUN } from './sky';
 const [sunX, sunY, sunZ] = SKY_SUN, toSun = 1 / Math.sqrt(sunX * sunX + sunY * sunY + sunZ * sunZ);
 
 /** Immutable sand numbers, shared by author products and the runtime map binder. */
-function fieldRows(sandMeans: { readonly meanR: number; readonly meanGlint: number }) { return { family: 'pbr', vertexColours: true, roughness: 0.88, metalness: 0, ground: {
+function fieldRows(sandMeans: { readonly meanR: number; readonly meanGlint: number }): { family: string; vertexColours: boolean; roughness: number; metalness: number; ground: { wind: number[]; away: { from: number[]; amount: number; }; grain: { mean: number; glintMean: number; strength: number; }; trail: { rect: number[]; ripples: number; tint: number[]; amount: number; }; keyShadow: { rect: number[]; edge: number[]; floor: number; }; pools: { source: string; low: number[]; high: number[]; split: number; radius: number; gain: number; }; }; } { return { family: 'pbr', vertexColours: true, roughness: 0.88, metalness: 0, ground: {
     // the ripples run with the dunes' wind; the faces turned from the set sun (data/sky.ts SKY_SUN) fall dark late
     wind: [DUNES.DUNE_FIELD.wind.x, DUNES.DUNE_FIELD.wind.z], away: { from: [sunX * toSun, sunZ * toSun], amount: 0 },
     // the grain tile's own means (data/sand.json): every faded grain term is zero-mean

@@ -17,7 +17,7 @@ const skitterers = LAYOUT.PACKS.flatMap((p) => Array.from({ length: p.n }, (_, i
  * index>` in that order; and the Dune Matriarch's body in the basin. The species, brains and the boss script stay the
  * runtime's (species/, data/brains.ts, combat/matriarch.ts).
  */
-export const SIGNAL_SPAWNS = {
+export const SIGNAL_SPAWNS: { homes: Home[]; bosses: { id: string; kind: string; look: string; at: [number, number]; yaw: number; }[]; } = {
   homes: [home(0, 'duneRay', LAYOUT.RAY_HOME.x, LAYOUT.RAY_HOME.z, 0),
     ...skitterers.map((s, i) => home(1 + i, 'sandSkitterer', s.x, s.z, s.yaw)),
     ...LAYOUT.STRIDERS.map((s, i) => home(1 + skitterers.length + i, 'duneStrider', s.x, s.z, 0))],

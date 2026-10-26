@@ -30,5 +30,5 @@ for (const [index, cube] of (['standalone', 'cell'] as const).entries()) {
     registry: [], publish: {}, instanceAttributes: [], bounds: [] });
 }
 material.dispose();
-export const SIGNAL_SKIRT_LIBRARY = { id: 'skirt', kind: 'owned', models };
-export const SIGNAL_SKIRT_STEPS = steps;
+export const SIGNAL_SKIRT_LIBRARY: { id: string; kind: string; models: { readonly id: string; readonly file: string; }[]; } = { id: 'skirt', kind: 'owned', models };
+export const SIGNAL_SKIRT_STEPS: typeof steps = steps;

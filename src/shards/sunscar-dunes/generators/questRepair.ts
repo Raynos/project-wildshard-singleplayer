@@ -5,7 +5,7 @@ import { SCOUT_FLAG } from './rows/flags';
 const later = [...LATER_FLAGS, COMPLETE_FLAG];
 const scouted = `!scouted && (${later.map((_,i)=>`later${String(i)}`).join(' || ')})`;
 /** One transient startup repair: old reward first, then any post-scout save; permanent flags retain the result. */
-export const QUEST_REPAIR = {
+export const QUEST_REPAIR: { version: number; id: string; inputs: { paid: string; scouted: string; legacy: string; }; stages: ({ id: string; do: { flag: { key: string; value: boolean; }; }[]; next: { target: string; when: string; }[]; } | { id: string; do: { flag: { key: string; value: boolean; }; }[]; next?: never; } | { id: string; do: never[]; next: string; })[]; } = {
   version:2,id:'sunscar.quest-repair',
   inputs:{paid:`flag:${PAID_FLAG}`,scouted:`flag:${SCOUT_FLAG}`,legacy:'event:legacy.sunscar.signal',
     ...Object.fromEntries(later.map((flag,i)=>[`later${String(i)}`,`flag:${flag}`]))},
@@ -17,4 +17,4 @@ export const QUEST_REPAIR = {
   ],
 };
 /** Quiet unconditional initial stage; no save repair command is replayed during seeding. */
-export const QUEST_REPAIR_INITIAL = Object.fromEntries(Object.keys(QUEST_REPAIR.inputs).map(name=>[name,false]));
+export const QUEST_REPAIR_INITIAL: Record<string, boolean> = Object.fromEntries(Object.keys(QUEST_REPAIR.inputs).map(name=>[name,false]));

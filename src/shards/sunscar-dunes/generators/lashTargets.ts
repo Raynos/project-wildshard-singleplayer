@@ -4,7 +4,7 @@ import STRINGS from '../data/strings.json' with { type: 'json' };
 import { SIGNAL_PHYSICS as baked } from './physics';
 
 /** Immutable contact points share the baked places' coordinates and authored nearest-target order. */
-export const SIGNAL_LASH_TARGETS = parseWorldTargets({ targets: baked.spots.crack.map(spot => ({
+export const SIGNAL_LASH_TARGETS: ReturnType<typeof parseWorldTargets> = parseWorldTargets({ targets: baked.spots.crack.map(spot => ({
   id: spot.id, weapon: WHIP_ITEM.id, at: [spot.x, spot.y, spot.z], radius: spot.radius,
   needs: spot.id === 'well.crank' ? { none: ['raised'] } : {},
   scan: { kind: 'ray', selection: 'nearest' },

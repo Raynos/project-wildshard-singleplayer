@@ -8,12 +8,12 @@ export const MATRIARCH_ID = 'sunscar.matriarch';
 /** Coins paid once, on her first fall, through the carried paid flag. */
 export const MATRIARCH_REWARD = 20;
 /** The encounter's intro and three native health checkpoints, with their authored captions. */
-export const MATRIARCH_DEFINITION = { id: MATRIARCH_ID, name: STRINGS.matriarch, title: STRINGS.matriarchTitle, retryTitle: STRINGS.retry,
+export const MATRIARCH_DEFINITION: { id: string; name: string; title: string; retryTitle: string; intro: number; introShort: number; phases: { at: number; caption: string; name: string; }[]; reward: NonNullable<unknown>; } = { id: MATRIARCH_ID, name: STRINGS.matriarch, title: STRINGS.matriarchTitle, retryTitle: STRINGS.retry,
   intro: MATRIARCH_BOSS_PROFILE.fight.riseSeconds + 0.6, introShort: 1.2,
   phases: [{ at: 1, caption: STRINGS.phaseDives, name: STRINGS.phaseDives }, { at: 0.66, caption: STRINGS.phaseStorm, name: STRINGS.phaseStorm },
     { at: 0.33, caption: STRINGS.phaseGrounded, name: STRINGS.phaseGrounded }], reward: {} };
 /** Current-save defeated and paid flags used by both native encounter owners. */
-export const MATRIARCH_RECORD = { defeated: MATRIARCH_DEFEATED_FLAG, paid: MATRIARCH_PAID_FLAG } as const;
+export const MATRIARCH_RECORD: { readonly defeated: "sunscar.matriarch.defeated"; readonly paid: "sunscar.matriarch.paid"; } = { defeated: MATRIARCH_DEFEATED_FLAG, paid: MATRIARCH_PAID_FLAG } as const;
 
 /** The native arena floor and death return at the south rim, shared by both fight owners. */
-export const MATRIARCH_ARENA = { floor: 0.8, respawn: { x: LAYOUT.BASIN.x, z: LAYOUT.BASIN.z + LAYOUT.BASIN.r + 4, yaw: 0 } };
+export const MATRIARCH_ARENA: { floor: number; respawn: { x: number; z: number; yaw: number; }; } = { floor: 0.8, respawn: { x: LAYOUT.BASIN.x, z: LAYOUT.BASIN.z + LAYOUT.BASIN.r + 4, yaw: 0 } };

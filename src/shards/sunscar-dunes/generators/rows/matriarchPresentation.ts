@@ -10,6 +10,6 @@ import STRINGS from '../../data/strings.json' with { type: 'json' };
  * `storm-far` / `storm-near` graphs) streaking down the dunes' wind; the summons and reward toasts. Admitted by
  * `parseMarkedBossPresentation` (@wildshard/format/bossProfiles) where it is bound; the platform's boss view presents it.
  */
-export const MATRIARCH_PRESENTATION = { ...MATRIARCH_ARENA,
+export const MATRIARCH_PRESENTATION: { storm: { dist: number; color: number; shells: readonly [readonly [46, 0.85, "storm-far"], readonly [22, 0.4, "storm-near"]]; wind: { readonly x: number; readonly z: number; }; }; toasts: { summoned: string; reward: string; rewardAgain: string; }; floor: number; respawn: { x: number; z: number; yaw: number; }; } = { ...MATRIARCH_ARENA,
   storm: { dist: 0.03, color: 0x8a5238, shells: [[46, 0.85, 'storm-far'], [22, 0.4, 'storm-near']] as const, wind: DUNES.DUNE_FIELD.wind },
   toasts: { summoned: STRINGS.summoned, reward: STRINGS.bossReward, rewardAgain: STRINGS.bossRewardAgain } };

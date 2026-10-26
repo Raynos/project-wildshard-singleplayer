@@ -9,9 +9,9 @@ const sources = {
   art: [], music: [], sfx: [],
 };
 /** Both tiers intentionally share the same declared source URLs. */
-export const BOOT_SOURCES = { tiers: { phone: sources, desktop: sources } };
+export const BOOT_SOURCES: { tiers: { phone: { sky: string[]; baked: never[]; terrain: "/assets/sunscar-dunes/sand/skirt.bin"[]; trees: never[]; physics: never[]; cabins: never[]; props: string[]; art: never[]; music: never[]; sfx: never[]; }; desktop: { sky: string[]; baked: never[]; terrain: "/assets/sunscar-dunes/sand/skirt.bin"[]; trees: never[]; physics: never[]; cabins: never[]; props: string[]; art: never[]; music: never[]; sfx: never[]; }; }; } = { tiers: { phone: sources, desktop: sources } };
 /** The original flattened inventory uses the phone image source. */
-export const BOOT_FILES = { sources: BOOT_SOURCES, tier: 'phone', tex: 'img' } as const;
+export const BOOT_FILES: { readonly sources: { tiers: { phone: { sky: string[]; baked: never[]; terrain: "/assets/sunscar-dunes/sand/skirt.bin"[]; trees: never[]; physics: never[]; cabins: never[]; props: string[]; art: never[]; music: never[]; sfx: never[]; }; desktop: { sky: string[]; baked: never[]; terrain: "/assets/sunscar-dunes/sand/skirt.bin"[]; trees: never[]; physics: never[]; cabins: never[]; props: string[]; art: never[]; music: never[]; sfx: never[]; }; }; }; readonly tier: "phone"; readonly tex: "img"; } = { sources: BOOT_SOURCES, tier: 'phone', tex: 'img' } as const;
 /** Owned pools, rigs and world pieces are preloaded by their admitted scene library, not retired public URLs. */
 export function signalOwnedBoot(poolUrls: readonly string[] = []): { files: typeof BOOT_FILES; sources: typeof BOOT_SOURCES } {
   const rigs = new Set([...Object.values(DUNE_RIG_URLS), ...Object.values(BAKED_URLS), ...poolUrls]);
@@ -20,4 +20,4 @@ export function signalOwnedBoot(poolUrls: readonly string[] = []): { files: type
   return { sources: boot, files: { ...BOOT_FILES, sources: boot } };
 }
 /** The learned grade remains the only late read. */
-export const LATE_READS = ['/assets/lut/sunscar-dunes.bin'];
+export const LATE_READS: string[] = ['/assets/lut/sunscar-dunes.bin'];
