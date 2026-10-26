@@ -1,3 +1,4 @@
+import { nalatiRoadSignSites, nalatiRoadSignposts } from './roadSigns';
 import dungeonLayout from '../data/kurganLayout.generated.json' with { type: 'json' };
 import { annulus } from '@wildshard/sdk/bake/annulus';
 import { finGeometry, ribGeometry, towerGeometry, type CragKind } from './cragGeometry';
@@ -12,7 +13,7 @@ import { specimenKey, type ColliderDesc, type Draw, type BoxSpec as Collider } f
 import { graniteBlock } from './granite';
 import { painted, paintedSpecimen, isPainted, rememberPainted, type Paint, type PaintCtx, type Made, type Kit, type PaintAt } from './painted';
 import { cragLedgeFloor, leopardCaveFloor, kurganEntranceFloor, generatedBounds, instanceTris, type MemberData, type InstanceData, type GeneratedSpec } from './placement';
-import type { FieldstoneParams, FieldstoneLook, Board, CragLedgeParams, LeopardCaveParams, KurganEntranceParams, KurganKerbParams, FirewoodParams, ChurnParams } from './campParams';
+import type { FieldstoneParams, FieldstoneLook, CragLedgeParams, LeopardCaveParams, KurganEntranceParams, KurganKerbParams, FirewoodParams, ChurnParams } from './campParams';
 import { CAMP, CORRAL, HITCHING_RAIL, SUMMER_CAMP, BRIDGE, EAGLE_ROCK, WIND_CAIRN, CRAGS, WEST_CRAGS, CRAG_CAVE, KURGANS, GREAT_KURGAN, KURGAN_BALBALS, GREAT_KURGAN_DOOR } from './poiLayout';
 import { boxDescs, prism, slab, supportHull, type Box } from './solid';
 import { placementMatrix } from './modelPlacement';
@@ -25,7 +26,7 @@ import { kunesBridgePainted } from './kunesBridge';
 import { yardGeometry, wearDisc, wearPath } from './yard';
 import { bakeDressing } from './dressingGeometryRows';
 import { writeGeometry, join } from './geometryWriter';
-import { LEOPARD_CAVE, ARGYMAQ_PASTURE, SNOW_LOTUS, WATCHTOWER, KOKPAR, PASTURE, HORSE_PLAINS, SUMMER_YURTS, RIM_N as RIM_Z, MELT_STREAM as BROOK } from './layout';
+import { LEOPARD_CAVE, ARGYMAQ_PASTURE, SNOW_LOTUS, WATCHTOWER, KOKPAR, PASTURE, RIM_N as RIM_Z, MELT_STREAM as BROOK } from './layout';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Rng } from '@wildshard/engine/core/rng';
 import { inPoiClearing,zoneAt,glacierMask,brookMask,riverMask,rimZAt,RIVER,outcropAt,edgeBermAt,TERRAIN } from './terrainRecipe';
@@ -1167,24 +1168,6 @@ function kokparPlace(ctx: PaintCtx): BuiltPlace {
   return { name: 'kokpar', group: 'nalati-kokpar', surface: 'wood', meshes: [{ name: '', material: 'poi', slot: 0, geometry }], tris: geometry.getAttribute('position').count / 3 + set.tris(), set, effects: [], anchors: { riders } };
 }
 
-interface Signpost { x: number; z: number; boards: Board[] }
-
-const dirTo = (x0: number, z0: number, x1: number, z1: number) => Math.atan2(x1 - x0, z1 - z0);
-/** compass directions as `dir` yaws: +z north, +x west */
-const N = 0, S = Math.PI, W = Math.PI / 2;
-
-/** the kurgan field's middle (the mounds other than the great one) */
-const KF = KURGANS.filter((k) => k.great !== true).reduce((a, k, _, l) => ({ x: a.x + k.x / l.length, z: a.z + k.z / l.length }), { x: 0, z: 0 });
-/** signposts at the junctions of layout v2 (src/shards/nalati-grasslands/layout.ts): the camp turn on the N road, the sky road's
- *  foot at the bridge, the gateway at its top, the bowl's crossroads, the E road's turn */
-const SIGNS: Signpost[] = [
-  { x: -5.2, z: 217, boards: [{ text: 'NOMAD CAMP', dir: dirTo(0, 214, CAMP.x, CAMP.z) }, { text: 'SKY GRASSLAND', dir: S }, { text: 'SHEEP PASTURE', dir: dirTo(0, 217, PASTURE.x, PASTURE.z) }] },
-  { x: -6, z: 152, boards: [{ text: 'SKY ROAD', dir: W + 0.1 }, { text: 'KUNES BRIDGE', dir: N }] },
-  { x: 127, z: 75, boards: [{ text: 'HORSE PLAINS', dir: dirTo(127, 75, HORSE_PLAINS.x, HORSE_PLAINS.z) }, { text: 'EAGLE ROCK', dir: dirTo(127, 75, EAGLE_ROCK.x, EAGLE_ROCK.z) }, { text: 'W ROAD', dir: dirTo(127, 75, 250, 0) }, { text: 'VALLEY · CAMP', dir: dirTo(127, 75, 92, 90) }] },
-  { x: 12, z: 14, boards: [{ text: 'SNOW LOTUS VALLEY', dir: S }, { text: 'KOKPAR FIELD', dir: dirTo(12, 14, KOKPAR.x, KOKPAR.z) }, { text: 'SUMMER CAMP', dir: dirTo(12, 14, SUMMER_YURTS.x, SUMMER_YURTS.z) }, { text: 'HORSE PLAINS', dir: dirTo(12, 14, HORSE_PLAINS.x, HORSE_PLAINS.z) }] },
-  { x: -170, z: 22, boards: [{ text: 'KURGAN FIELD', dir: dirTo(-170, 22, KF.x, KF.z) }, { text: 'WATCHTOWER', dir: dirTo(-170, 22, WATCHTOWER.x, WATCHTOWER.z) }, { text: 'E ROAD', dir: dirTo(-170, 22, -250, 0) }] },
-];
-
 function roadsPlace(ctx: PaintCtx): BuiltPlace {
   const { ground } = ctx;
   const kit = new PaintKit(0x70ad);
@@ -1204,7 +1187,7 @@ function roadsPlace(ctx: PaintCtx): BuiltPlace {
   run([[PASTURE.x + PASTURE.r + 4, 242], [PASTURE.x + PASTURE.r + 3, 222], [PASTURE.x + PASTURE.r + 5, 200]], { h: 1.0, spacing: 2.8 });
 
   // ── signposts ──
-  for (const s of SIGNS) {
+  for (const s of nalatiRoadSignSites()) {
     const gy = ground(s.x, s.z);
     set.paint(signpostPainted, { x: s.x, y: gy, z: s.z, yaw: 0 }, { boards: s.boards });
   }
@@ -1212,7 +1195,7 @@ function roadsPlace(ctx: PaintCtx): BuiltPlace {
   const wood = kit.finishTextured({ ground }, 'rock');
   const meshes: BuiltPlace['meshes'] = [{ name: 'nalati-roads', material: 'poi', slot: 0, geometry }];
   if (wood) meshes.push({ name: 'nalati-roads-wood', material: 'rock', slot: 1, geometry: wood });
-  return { name: 'roads', group: '', surface: 'wood', tris: geometry.getAttribute('position').count / 3 + (wood ? wood.getAttribute('position').count / 3 : 0), meshes, set, effects: [], anchors: { signposts: SIGNS.map(s => ({ x: s.x, z: s.z, boards: s.boards, y: ground(s.x, s.z) })) } };
+  return { name: 'roads', group: '', surface: 'wood', tris: geometry.getAttribute('position').count / 3 + (wood ? wood.getAttribute('position').count / 3 : 0), meshes, set, effects: [], anchors: { signposts: nalatiRoadSignposts(ground) } };
 }
 
 /**
