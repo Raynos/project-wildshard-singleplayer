@@ -6,7 +6,7 @@
  * the optional `outline` hook (`clientMaterials().outline`): a graph that declares `stages.outline` draws its hull as each
  * mesh's second draw (terrain tiles, fine prop tiles, library panels and models; the coarse L1 proxy keeps one draw).
  */
-import { Material, Mesh, type Object3D, type Texture } from 'three';
+import { AdditiveBlending, Material, Mesh, type Object3D, type Texture } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { TerrainTileData } from '@wildshard/format/terrainTileBytes';
 import { installTerrainTile, maskTerrainTile } from '@wildshard/engine/world/terrainTileView';
@@ -109,8 +109,15 @@ export function clientTileViews(ports: ViewPorts): ClientTileViews {
         for (const mesh of meshes) if (mesh.material === ground) groundMerge(parent, ground, 'ground.fine').add(mesh, scope);
       }
       if (row.lod !== 1) outlineProps(root, ports, ports.materials.get(props.family), scope);
-      // what each mesh was baked to do (a GLB node's castShadow flag); the shadow disc only ever turns it off
-      const casters: Mesh[] = []; root.traverse((object) => { if (isMesh(object) && object.castShadow) casters.push(object); });
+      // what each mesh was baked to do (a GLB node's castShadow flag); the shadow disc only ever turns it off. An additive
+      // material is light (a pool, a hologram, a beam): it casts nothing (RM12: Night Market's pools were a shadow-map draw a
+      // tile; at runtime, so no tile byte changes)
+      const casters: Mesh[] = []; root.traverse((object) => {
+        if (!isMesh(object) || !object.castShadow) return;
+        const drawn: unknown = object.material;
+        if (isMaterial(drawn) && drawn.blending === AdditiveBlending) { object.castShadow = false; return; }
+        casters.push(object);
+      });
       const shadow = (enabled: boolean): void => { for (const mesh of casters) mesh.castShadow = enabled; };
       if (row.lod === 1) { const mask = coarseTileMask(root, row.x, row.z, scope); shadow(false); return { mask, shadow: () => undefined }; }
       return { mask: noMask, shadow };
