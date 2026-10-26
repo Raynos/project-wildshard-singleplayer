@@ -152,13 +152,22 @@ async function still(kind, clip, t, size) {
   const n = Math.round(t * 60); for (let i = 1; i <= n; i++) { old.pose(clip, i / 60, 1 / 60); c.neu.skin.update(1 / 60); }
   const err = errOf(c);
   renderer.setScissorTest(false); renderer.setSize(size, size); const cam = c.camera.clone(); cam.aspect = 1; cam.updateProjectionMatrix();
-  const shot = (scene) => { renderer.setViewport(0, 0, size, size); renderer.render(scene, cam); return renderer.domElement.toDataURL('image/png'); };
+  const shot = (scene) => {
+    renderer.setViewport(0, 0, size, size); renderer.render(scene, cam);
+    return new Promise((resolve, reject) => {
+      renderer.domElement.toBlob(blob => {
+        if (blob === null) reject(new Error('Playback PNG encoding failed'));
+        else resolve(blob);
+      }, 'image/png');
+    });
+  };
   const pixels = (scene) => { renderer.render(scene, cam); const gl = renderer.getContext(), buf = new Uint8Array(size * size * 4); gl.readPixels(0, 0, size, size, gl.RGBA, gl.UNSIGNED_BYTE, buf); return buf; };
   const a = shot(c.a), pa = pixels(c.a), b = shot(c.b), pb = pixels(c.b);
   let sum = 0, max = 0, over = 0;
   for (let i = 0; i < pa.length; i += 4) for (let ch = 0; ch < 3; ch++) { const d = Math.abs(pa[i + ch] - pb[i + ch]); sum += d; max = Math.max(max, d); if (d > 8) over++; }
   renderer.setSize(W, H); renderer.setScissorTest(true);
-  return { today: a, exported: b, err, diff: { mean: Number((sum / (size * size * 3)).toFixed(3)), max, over8: Number((100 * over / (size * size * 3)).toFixed(3)) } };
+  const [todayFrame, exportedFrame] = await Promise.all([a, b]);
+  return { today: todayFrame, exported: exportedFrame, err, diff: { mean: Number((sum / (size * size * 3)).toFixed(3)), max, over8: Number((100 * over / (size * size * 3)).toFixed(3)) } };
 }
 
 window.skinPlayback = { init, segments, frame, still };

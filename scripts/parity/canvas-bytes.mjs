@@ -17,6 +17,14 @@ export function saveCanvasJpeg(page, canvas, file) {
   return saveCanvasImage(page, canvas, file, { mime: 'image/jpeg', quality: 0.9, label: 'Playback JPEG' });
 }
 
+/** Publish an already frozen PNG snapshot, retiring its native handle.
+ * @param {import('../bake-output.mjs').ByteSinkPage} page
+ * @param {import('playwright').JSHandle<Blob>} blob
+ * @param {string} file */
+export function savePngBlob(page, blob, file) {
+  return saveImageBlob(page, blob, file, { mime: 'image/png', label: 'Board PNG' });
+}
+
 /** @param {import('../bake-output.mjs').ByteSinkPage} page
  * @param {Pick<import('playwright').JSHandle<HTMLCanvasElement>,'evaluateHandle'|'dispose'>} canvas
  * @param {string} file
@@ -35,18 +43,29 @@ async function saveCanvasImage(page, canvas, file, encoding) {
       });
       return encoded;
     }, encoding);
-    try {
-      const size = await blob.evaluate(value => value.size);
-      const sink = await browserBakeBytes(page, { maxBytes: size, maxFiles: 1 });
-      try {
-        await blob.evaluate(async (value, { url, label }) => {
-          const response = await fetch(url, { method: 'POST', body: value });
-          if (!response.ok) throw new Error(`${label} upload refused`);
-        }, { url: `${sink.url}frame`, label: encoding.label });
-        const bytes = sink.take('frame');
-        if (bytes.byteLength !== size) throw new Error(encoding.mime === 'image/png' ? 'Incomplete board PNG' : 'Incomplete playback JPEG');
-        writeFileSync(file, bytes);
-      } finally { await sink.dispose(); }
-    } finally { await blob.dispose(); }
+    await saveImageBlob(page, blob, file, encoding);
   } finally { await canvas.dispose(); }
+}
+
+/** @param {import('../bake-output.mjs').ByteSinkPage} page
+ * @param {import('playwright').JSHandle<Blob>} blob
+ * @param {string} file
+ * @param {{mime:'image/png'|'image/jpeg',label:string}} encoding */
+async function saveImageBlob(page, blob, file, encoding) {
+  try {
+    const size = await blob.evaluate((value, mime) => {
+      if (!(value instanceof Blob) || value.type !== mime || value.size === 0) throw new Error('Invalid native image');
+      return value.size;
+    }, encoding.mime);
+    const sink = await browserBakeBytes(page, { maxBytes: size, maxFiles: 1 });
+    try {
+      await blob.evaluate(async (value, { url, label }) => {
+        const response = await fetch(url, { method: 'POST', body: value });
+        if (!response.ok) throw new Error(`${label} upload refused`);
+      }, { url: `${sink.url}frame`, label: encoding.label });
+      const bytes = sink.take('frame');
+      if (bytes.byteLength !== size) throw new Error(encoding.mime === 'image/png' ? 'Incomplete board PNG' : 'Incomplete playback JPEG');
+      writeFileSync(file, bytes);
+    } finally { await sink.dispose(); }
+  } finally { await blob.dispose(); }
 }

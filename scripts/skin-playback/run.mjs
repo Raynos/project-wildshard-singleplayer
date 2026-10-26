@@ -14,7 +14,7 @@ import { createServer } from 'node:http';
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { extname, join, resolve as resolvePath } from 'node:path';
-import { saveCanvasJpeg } from '../parity/canvas-bytes.mjs';
+import { saveCanvasJpeg, savePngBlob } from '../parity/canvas-bytes.mjs';
 
 const { chromium, devices } = await import('playwright');
 const ROOT = resolvePath(new URL('../..', import.meta.url).pathname);
@@ -79,8 +79,12 @@ try {
     console.log(JSON.stringify({ video: mp4, frames: total, bytes: statSync(mp4).size }));
   }
   for (const [kind, clip, t] of [['grey-blob', 'walk', 0.5], ['boar', 'attack', 0.45], ['pine-ranger', 'idle.point', 1.5]]) {
-    const r = await page.evaluate(([k, c, tt]) => window.skinPlayback.still(k, c, tt, 720), [kind, clip, t]);
-    for (const side of ['today', 'exported']) writeFileSync(join(SCRATCH, `${kind}-${side}.png`), Buffer.from(r[side].split(',')[1], 'base64'));
+    const frames = await page.evaluateHandle(([k, c, tt]) => window.skinPlayback.still(k, c, tt, 720), [kind, clip, t]);
+    let r;
+    try {
+      r = await frames.evaluate(({ today: _today, exported: _exported, ...metadata }) => metadata);
+      for (const side of ['today', 'exported']) await savePngBlob(page, await frames.getProperty(side), join(SCRATCH, `${kind}-${side}.png`));
+    } finally { await frames.dispose(); }
     stills.push({ kind, clip, t, err: r.err, diff: r.diff });
     console.log(JSON.stringify(stills.at(-1)));
   }
