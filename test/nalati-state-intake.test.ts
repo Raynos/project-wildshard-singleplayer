@@ -32,11 +32,15 @@ import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 // Run the shipped world feature and its real King stage. Unrelated prefix
 // resources retain their separate native/product construction oracles.
-test('the shipped world assembly King intake retains its attack owner before weather is published',async()=>{
-  const emitted=await readProjectAssets('src/shards/nalati-grasslands', undefined, { folder: 'nalati-grasslands', imageRoots: [
+// Prepare the complete live source product before the unchanged timed
+// assertions; compiler/native setup failures still refuse collection.
+const nalatiEnvelope=await readProjectAssets('src/shards/nalati-grasslands', undefined, { folder: 'nalati-grasslands', imageRoots: [
     { prefix: '/assets/nalati/baked/', directory: 'public/assets/nalati/baked' },
     { prefix: '/assets/baked/nalati-grasslands/', directory: 'public/assets/baked/nalati-grasslands' },
   ] });
+
+test('the shipped world assembly King intake retains its attack owner before weather is published',async()=>{
+  const emitted=nalatiEnvelope;
   const files=new Map((emitted.output.namedFiles??[]).flatMap(file=>file.name===undefined?[]:[[file.name,{...file,url:file.path}] as const]));
   const product=createShardProduct({slug:emitted.shard.identity.slug,revision:emitted.shard.identity.revision,shardfile:emitted.shard,sections:outputPlatformPayloads(emitted.output.platform,['client/plan','actors/return-scripts']),files,
     jsonCheck:nodeNamedJsonCheck,

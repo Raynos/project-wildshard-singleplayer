@@ -11,11 +11,15 @@ import {createShardProduct} from '../src/game/shardfile/shardProduct';
 import {outputPlatformPayloads} from '../src/sdk/outputProduct';
 import {readProjectAssets} from '../src/sdk/project';
 
-test('the declared plan constructs the original elite and night owners once after assembly',async()=>{
-  const emitted=await readProjectAssets('src/shards/nalati-grasslands', undefined, { folder: 'nalati-grasslands', imageRoots: [
+// Prepare the complete live source product before the unchanged timed
+// assertions; compiler/native setup failures still refuse collection.
+const nalatiEnvelope=await readProjectAssets('src/shards/nalati-grasslands', undefined, { folder: 'nalati-grasslands', imageRoots: [
     { prefix: '/assets/nalati/baked/', directory: 'public/assets/nalati/baked' },
     { prefix: '/assets/baked/nalati-grasslands/', directory: 'public/assets/baked/nalati-grasslands' },
   ] });
+
+test('the declared plan constructs the original elite and night owners once after assembly',async()=>{
+  const emitted=nalatiEnvelope;
   const files=new Map((emitted.output.namedFiles??[]).flatMap(file=>file.name===undefined?[]:[[file.name,{...file,url:file.path}] as const]));
   const product=createShardProduct({slug:emitted.shard.identity.slug,revision:emitted.shard.identity.revision,shardfile:emitted.shard,
     sections:outputPlatformPayloads(emitted.output.platform,['client/plan']),files,

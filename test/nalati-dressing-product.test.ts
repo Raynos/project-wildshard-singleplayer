@@ -12,6 +12,13 @@ import { AmbientGroup } from '../src/game/ambient/flock';
 import { SpecimenCatalogueSchema } from '../src/format/specimenCatalogue';
 import { setTerrainHeight } from '../src/engine/world/terrainHeight';
 
+// Prepare the complete live source product before the unchanged timed
+// assertions; compiler/native setup failures still refuse collection.
+const nalatiEnvelope=await readProjectAssets('src/shards/nalati-grasslands', undefined, { folder: 'nalati-grasslands', imageRoots: [
+    { prefix: '/assets/nalati/baked/', directory: 'public/assets/nalati/baked' },
+    { prefix: '/assets/baked/nalati-grasslands/', directory: 'public/assets/baked/nalati-grasslands' },
+  ] });
+
 test('prepared ambient rows keep both tier populations and finite flight at 10 Hz', () => {
   setTerrainHeight(() => 0);
   for (const [tier, profile] of Object.entries({ phone: cover.phone, desktop: cover.desktop })) {
@@ -33,10 +40,7 @@ test('prepared ambient rows keep both tier populations and finite flight at 10 H
 });
 
 test('Nalati admits every shipping dressing groups and camp keep-out population', async () => {
-  const loaded = await readProjectAssets('src/shards/nalati-grasslands', undefined, { folder: 'nalati-grasslands', imageRoots: [
-    { prefix: '/assets/nalati/baked/', directory: 'public/assets/nalati/baked' },
-    { prefix: '/assets/baked/nalati-grasslands/', directory: 'public/assets/baked/nalati-grasslands' },
-  ] });
+  const loaded=nalatiEnvelope;
   const read = (key: string): Uint8Array => {
     const file = loaded.output.namedFiles?.find(row => row.name === key);
     const bytes = file === undefined ? undefined : loaded.assets.get(file.hash);
