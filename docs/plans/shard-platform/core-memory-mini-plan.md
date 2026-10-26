@@ -17,7 +17,7 @@ the page components take 300, then that should show in template 1 and template 2
 
 ## Answer
 
-**Current native cohort (2026-10-25), `50d155f897`: 2/4 PASS.** Menu
+**Latest Template-only cohort (2026-10-25), `8f0324fea6`: 0/2 PASS**, at263.789/246.132MiB against198.538MiB each (§15). The last coherent four-floor cohort, `50d155f897`, remains2/4 PASS. Menu
 **93.538 MiB** and SHARD SELECT **107.679 MiB** pass the fixed 148.5383 MiB
 limit. Template 1 **260.664 MiB** and Template 2 **249.679 MiB** miss the fixed
 198.5383 MiB limit (§13). All values combine WebContent and GPU; all visits
@@ -431,9 +431,10 @@ retention attribution remain open.
 |---|---|---|
 | C4.1 Current native reading and cache lifetime | done `b03613aa82`, measured FAIL retained | Template 1 260.070 / 198.538 MiB; no runtime errors. New real-GC contracts prove settled downloads/write snapshots are released on success and quota refusal while the cache remains alive. No production release was justified. |
 | C4.2 Current main-page holders / idle decoders | done `6436257c8e`, bounded | One matching Chromium heap: 29,755,996 B rooted JS / 17,510,853 B unique backing, not a 55 MiB dead cache. Two idle tile-decode workers remain live; retire their pool after 30 s without queued/active jobs, recreate on the next decode. Three regressions fail before the cut; six worker contracts pass afterward. Native-byte gain is not established. |
-| C4.3 Remaining native/worker attribution | in flight (2026-10-25, sp-x2), milestone measured | Latest native Templates 267.398/245.507 MiB vs 198.538 MiB FAIL. Earlier Chromium confirms zero live workers at 60/120 s without a heap snapshot or forced GC. No consistent native-byte gain established; native holder attribution remains open. |
+| C4.3 Remaining native/worker attribution | in flight (2026-10-25, sp-x2), milestone measured | Latest native Templates263.789/246.132MiB on8f0324fea6 vs198.538MiB FAIL (prior5f99 pair267.398/245.507). Earlier Chromium confirms zero live workers at 60/120 s without a heap snapshot or forced GC. No consistent native-byte gain established; native holder attribution remains open. |
 | C4.4 world.data model admission | source done `dfa2feca44` + `5f99d999e6`; measured FAIL retained | Exact bounded GLB parser and deferred commons validation; static source closure -39,457 raw/-10,954 gzip B. Original native pair267.398/245.507 MiB, both FAIL; no consistent native gain. Actual compressed-model geometry/owner/refusal contracts preserved. |
-| C4.5 Demand-start tile decoder workers | source done (this code commit, sp-x2; native qualification pending) | The idle cut still constructed2 workers on every pool, including never-used Template pools. Start the same pool at its existing first-decode gate instead: unused pools create0 workers/timers; first work retains capacity, round-robin queue bounds, transfer ownership and30s idle retirement. Disposal before use stays final; partial startup rejects, detaches listeners and terminates created workers without detaching input. Two new unused-pool contracts fail before;31 focused cases across5 suites, touched game/test types and named typed lint pass. Broad related is still active, no aggregate PASS claimed. This avoids context creation rather than claiming native bytes; the prior267.398/245.507MiB Template FAIL remains. |
+| C4.5 Demand-start tile decoder workers | source done `8f0324fea6`; native0/2 FAIL | Constructor allocation started2 workers before knowing whether a decode was needed. Start the same pool at its first request: unused pools create0 workers/timers; active terrain can still require both workers. Queue/transfer/disposal/partial-start contracts remain exact.31 focus/5 suites,109 CF1/21 and1794 broad-related/328 pass; touched game/test types and typed lint pass. New native pair below remains263.789/246.132MiB FAIL; no isolated byte gain. The rings proof now records any observed worker use during the drive, instead of freezing the constructor-time false value. Explicit full-rule typed lint and scoped fixture types pass; no linked related suites were selected for that diagnostic fixture. |
+| C4.6 Demand-start native milestone | done (measurement on8f0324fea6),0/2 FAIL | Original two-Template reader complete275s/errors0/all6 samples,2WC+1GPU each.120s totals276,602,440/258,088,568B versus208,182,520B each; over65.250/47.594MiB. No GC/snapshot/Network capture; passive categories after acceptance only. Prior5f99 pair267.398/245.507MiB changes in opposite directions; no consistent or causal gain, no base/cap fit. Quiet/Sim/browser/proxy/own preview fully released; no repeat. Raw tmp/sp-x2/core-c4-demand. |
 | C6 Model source | done previously `d2ef0c0848`, historical calibration | 250 MiB base, explicit grid-only page claims, unchanged caps. This visit does not silently recalibrate the estimator or establish current ±15% accuracy. |
 | C6.1 Pinned product / exact model audit | done (this commit) | Same `50d155f897` product and estimator: 299.764 MiB predicted / 260.664 MiB observed, 15.000330% high. Offline native-only audit refuses the exact miss, independently of G682; no base/cap change. |
 | C6.2 Current calibration | open | One current paired product/observation does not justify fitting the shared engine base. Current prediction marginally misses the picked ±15% band; it is not marked accurate. |
@@ -716,3 +717,40 @@ stopped afterward. Raw samples and compact rollup remain locally at
 `tmp/sp-x2/template-entry/native-pair/`. No second captured pair or forced
 collection ran. C4 native attribution and the excess remain open; active
 composer resources stay behind the existing C5 look decision.
+
+
+## 15. C4 demand-start milestone (2026-10-25, sp-x2)
+
+One original Template-pair native visit on landed`8f0324fea6`, build
+`8f0324f-mvoksrkg`, complete275s/errors0. Cold compiled title/select entry,
+phone tier/DPR2/muted, original10/60/120s samples and fixed G682 limits.
+No heap snapshot, forced collection or Inspector Network-body capture.
+Both floors contain2WC+1GPU at every sample; grid prefetch is null.
+
+| Sample | Template1 WC bytes | GPU bytes | Combined MiB | Template2 WC bytes | GPU bytes | Combined MiB |
+|---|---:|---:|---:|---:|---:|---:|
+| 10s | 252,777,584 | 42,355,160 | 281.461 | 234,460,248 | 40,503,816 | 262.226 |
+| 60s | 234,902,640 | 42,371,520 | 264.429 | 218,829,936 | 40,503,816 | 247.320 |
+| 120s | 234,230,920 | 42,371,520 | **263.789 FAIL** | 217,568,368 | 40,520,200 | **246.132 FAIL** |
+
+Exact120s totals276,602,440/258,088,568B exceed208,182,520B by
+68,419,920/49,906,048B (65.250/47.594MiB). Rc1 is a measured budget failure,
+not a boot refusal. Menu/selection are not repeated. Compared with the prior
+5f99 pair, one Template is lower and the other higher; different source pins
+and one cohort each establish no consistent or isolated gain. The unused-pool
+kernel proves2->0 created workers, not that active Template terrain avoids
+workers or that native pages were reclaimed. C4 attribution and C6 remain open.
+
+Passive categories run only after each120s acceptance sample. Last
+JavaScript/GC-owned104,996,418/91,618,566B, Page117,019,326/113,406,970B,
+JIT17,891,328/15,761,408B and Other31,571,968/35,782,656B; Images/Layers0.
+Timestamps remain0. These are neither additive footprint owners nor a worker
+census; ledger GPU capacities also must not be subtracted from native GPU.
+No removable holder, base change or current model-accuracy PASS is inferred.
+
+Reported finite peer work drained before the visit; no overlap was reported.
+Safari/Inspector/proxy closed, quiet absent, zero booted Simulators verified;
+the distinct reader lease released first and the retained parent preview
+was stopped through its full-identity guard. All CPU/Sim/browser/preview
+resources released before subsequent checks. Raw original samples and
+passive categories remain at`tmp/sp-x2/core-c4-demand/`. No repeat queued.

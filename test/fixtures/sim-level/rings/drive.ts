@@ -50,14 +50,17 @@ function tileBytes(cell: RingCell, level: 'l0' | 'l1' | 'far', x: number, z: num
 // the modelled link: one request at a time, latency + bytes at 5 Mbit/s, nothing completes during the stall
 const decoder = new TileDecoder(2);
 let clock = 0, linkFree = 0;
-const network: { at: number; run: () => void }[] = [];
+const network: { at: number; run: () => Promise<void> }[] = [];
 function fetchTile(tile: RingTile, done: (result: TerrainTileData[] | Error) => void): void {
   const start = Math.max(clock, linkFree) + LATENCY; linkFree = start + wire[tile.level] * 8 / LINK;
-  network.push({ at: linkFree, run: () => {
+  network.push({ at: linkFree, run: async () => {
     const cell = cells.find((c) => c.instance === tile.instance); if (cell === undefined) { done(new Error('unknown cell')); return; }
     const payloads = tile.level === 'far' ? Array.from({ length: 16 }, (_, r) => tileBytes(cell, 'far', -250 + (r % 4) * 125, -250 + Math.floor(r / 4) * 125, 125, 9))
       : [tile.level === 'l1' ? tileBytes(cell, 'l1', -250 + tile.x * 125, -250 + tile.z * 125, 125, 17) : tileBytes(cell, 'l0', -250 + tile.x * 62.5, -250 + tile.z * 62.5, 62.5, 33)];
-    Promise.all(payloads.map((bytes) => decoder.decode(bytes, { transfer: true }))).then(done, (error: unknown) => { done(error instanceof Error ? error : new Error(String(error))); });
+    let decoded: TerrainTileData[] | Error;
+    try { decoded = await Promise.all(payloads.map((bytes) => decoder.decode(bytes, { transfer: true }))); }
+    catch (error) { decoded = error instanceof Error ? error : new Error(String(error)); }
+    done(decoded);
   } });
 }
 
@@ -119,7 +122,7 @@ function frame(now: number): void {
   const t = booted ? clock - bootAt : 0, p = pose(t);
   while (accumulator >= 1 / 60) {
     accumulator -= 1 / 60; clock += 1 / 60;
-    if (!(clock >= STALL[0] && clock < STALL[1])) { network.sort((a, b) => a.at - b.at); while (network.length > 0 && (network[0]?.at ?? Infinity) <= clock) network.shift()?.run(); }
+    if (!(clock >= STALL[0] && clock < STALL[1])) { network.sort((a, b) => a.at - b.at); while (network.length > 0 && (network[0]?.at ?? Infinity) <= clock) void network.shift()?.run(); }
     else linkFree = Math.max(linkFree, STALL[1]);
     const q = booted ? pose(clock - bootAt) : pose(0);
     rings.step({ x: q.x, z: q.z, vx: booted ? q.vx : 0, vz: booted ? q.vz : 0 }); result.steps++;
@@ -130,6 +133,8 @@ function frame(now: number): void {
   camera.position.set(p.x - heading.x * 30, ground + 38, p.z - heading.z * 30); camera.lookAt(p.x + heading.x * 140, ground, p.z + heading.z * 140);
   renderer.render(scene, camera);
   const cost = allocator.cost(), stats = rings.stats();
+  // A demand-start pool can be empty at setup; report any actual worker use during the drive.
+  result.workers ||= decoder.threaded;
   if (booted && !finished) {
     const seen = holesNow(); result.holes += seen.holes; result.overlaps += seen.overlaps; result.frames++; result.frameMs.push(dt * 1000);
     result.peakMB = Math.max(result.peakMB, cost.playing / 1e6);
