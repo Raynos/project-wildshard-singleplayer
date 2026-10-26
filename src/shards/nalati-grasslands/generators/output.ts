@@ -217,7 +217,9 @@ const speciesInputSchema = v.object({
   strike: v.unknown(), kingPose: v.object({ programs: v.unknown(), group: v.string() }),
 });
 const speciesOutputSchema = v.object({ packedBodies: v.object({ file: v.string(), bytes: v.pipe(v.number(), v.safeInteger(), v.minValue(1)) }), crackBytes: v.array(v.number()), looks: v.unknown(), presentation: v.unknown(), hullBook: v.unknown(),
-  program: v.object({ script: v.object({ module: v.string(), pages: v.number() }), bytes: v.string() }), witnessBytes: v.number() });
+  program: v.object({ script: v.object({ module: v.string(), pages: v.number() }), bytes: v.string(),
+    v2: v.object({ artifact: v.object({ pages: v.pipe(v.number(), v.safeInteger(), v.minValue(1)) }) }) }),
+  compiled: v.object({ bytes: v.pipe(v.number(), v.safeInteger(), v.minValue(0)) }), witnessBytes: v.number() });
 function admitSpeciesInput(input: unknown): NalatiSpeciesSourceInputs {
   // Validate in place: the native packer preserves the upstream metadata assignment order.
   if (!v.is(speciesInputSchema, input)) throw new Error('Invalid species source metadata');

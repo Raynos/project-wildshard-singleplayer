@@ -1,8 +1,6 @@
 import { parseClientChannels } from '@wildshard/format/clientChannels';
 import NALATI_FEATS from '../data/feats.json' with {type:'json'};
 import ridingPrograms from '../behaviour/riding.generated.json' with { type: 'json' };
-import heldWeapons from '../data/heldWeapons.generated.json' with {type:'json'};
-import stealth from '../data/stealth.generated.json' with {type:'json'};
 import { compactChannels } from './channelRows';
 import { SPECIES_POSES } from './speciesPoses';
 import skyDome from '../data/skyDome.json' with { type: 'json' };
@@ -71,13 +69,8 @@ export interface NalatiHeldProgramCosts {
   readonly projectionPages: number;
 }
 
-const retainedHeld: NalatiHeldProgramCosts = {
-  program: heldWeapons.program, stealthProgram: stealth.program,
-  compiledBytes: heldWeapons.compiled.bytes, projectionPages: heldWeapons.program.v2.artifact.pages,
-};
-
 /** Compose the complete header with caller-owned costs; retain original module deduplication and page charges. */
-export function nalatiProductRows(species: NalatiSpeciesProgramCosts, held: NalatiHeldProgramCosts = retainedHeld): ReturnType<typeof parseShardfile> {
+export function nalatiProductRows(species: NalatiSpeciesProgramCosts, held: NalatiHeldProgramCosts): ReturnType<typeof parseShardfile> {
   if (!Number.isSafeInteger(species.witnessBytes) || species.witnessBytes < 0
     || !Number.isSafeInteger(species.program.script.pages) || species.program.script.pages < 1) throw new Error('Invalid species program costs');
   if (!Number.isSafeInteger(held.compiledBytes) || held.compiledBytes < 0
