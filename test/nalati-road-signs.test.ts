@@ -1,5 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare complete original place anchors over the native terrain.
 import { readFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Verify the real native paint producer without its retired sign input.
+import { execFileSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Bundle the defining source rather than a test projection.
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
@@ -33,6 +35,24 @@ test('sites and boards detach while ground calls retain authored order', () => {
   Object.assign(board, { text: 'changed' });
   expect(JSON.stringify(sites)).toBe(before);
   expect(JSON.stringify(nalatiRoadSignSites())).toBe(before);
+});
+
+test('the native paint producer preserves every original output without reading places metadata', () => {
+  const source = `
+    import fs from 'node:fs';
+    import { syncBuiltinESMExports } from 'node:module';
+    const prior=fs.readFileSync;
+    fs.readFileSync=(path,...options)=>{
+      if(String(path).replaceAll('\\\\','/').endsWith('/nalati-grasslands/data/places.json'))
+        throw new Error('Unexpected generated road-sign input');
+      return prior(path,...options);
+    };
+    syncBuiltinESMExports();
+    try { await import('./src/shards/nalati-grasslands/generators/bake-poi-paint.mjs'); }
+    finally { fs.readFileSync=prior;syncBuiltinESMExports(); }
+  `;
+  execFileSync(process.execPath, ['--experimental-transform-types', '--import', './scripts/bake-loader.mjs',
+    '--input-type=module', '--eval', source, '--', '--check']);
 });
 
 test('the sign source is one chunk without the place geometry or runtime graph', async () => {
