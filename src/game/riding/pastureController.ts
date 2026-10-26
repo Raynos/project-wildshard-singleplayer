@@ -16,7 +16,7 @@ const PastureState = v.object({ raidT: pastureFinite, pendingT: pastureFinite, r
   cracks: pastureCount, cracksNow: pastureCount, spawned: v.pipe(pastureCount, v.maxValue(2)), crackCd: pastureFinite, restT: pastureFinite, patrolA: pastureFinite });
 const PasturePatch = v.partial(PastureState);
 const pastureIndexSchema = v.pipe(pastureFinite, v.integer(), v.minValue(-1));
-const PastureSaved = v.strictObject({ version: v.literal(3), state: PastureState, elapsed: v.pipe(pastureFinite, v.minValue(0), v.maxValue(.1)), pack: pastureIndexSchema, raiders: pastureIndexSchema, prey: pastureIndexSchema });
+const PastureSaved: v.GenericSchema<BoundedPastureSaveInput, BoundedPastureSave> = v.strictObject({ version: v.literal(3), state: PastureState, elapsed: v.pipe(pastureFinite, v.minValue(0), v.maxValue(.1)), pack: pastureIndexSchema, raiders: pastureIndexSchema, prey: pastureIndexSchema });
 
 /** One native actor roster for the page and server. The admitted v1 guest owns
  * raid admission, timers, outcomes and shepherd decisions at ten Hz. This
@@ -47,7 +47,7 @@ export class NativePastureRaid<A extends AnimalSim, P extends NativeRaidPackPoli
     const result = this.program.project(signal, { ...this.state, ...observations }, this.random);
     Object.assign(this.state, v.parse(PasturePatch, result)); return result;
   }
-  start(force = false, player = this.player): boolean {
+  start(force = false, player: { x: number; z: number; } = this.player): boolean {
     const f = this.flock, plan = this.project('raidStart', { force: Number(force), blocked: Number(this.blocked),
       alive: f?.alive ?? 0, distance: f === null ? 10000 : Math.hypot(player.x-f.cx, player.z-f.cz),
       cx: f?.cx ?? 0, cz: f?.cz ?? 0, packAlive: this.raiders?.alive ?? 0 });
@@ -104,3 +104,28 @@ export class NativePastureRaid<A extends AnimalSim, P extends NativeRaidPackPoli
   }
 }
 
+
+/** Complete admitted data, independent of validator implementation metadata. */
+type BoundedPastureSaveInput = BoundedPastureSave;
+interface BoundedPastureSaveFields {
+    version: 3;
+    state: {
+        raidT: number;
+        pendingT: number;
+        raiding: 0 | 1;
+        raids: number;
+        taken: number;
+        drivenOff: number;
+        cracks: number;
+        cracksNow: number;
+        spawned: number;
+        crackCd: number;
+        restT: number;
+        patrolA: number;
+    };
+    elapsed: number;
+    pack: number;
+    raiders: number;
+    prey: number;
+}
+type BoundedPastureSave = { [Key in keyof BoundedPastureSaveFields]: BoundedPastureSaveFields[Key] };

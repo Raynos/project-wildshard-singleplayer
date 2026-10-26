@@ -5,8 +5,8 @@ import type { DeclaredBodyOps } from './bodyOps';
 import type { ShardDecisions } from '../shardfile/decisions';
 import { QuestFlagGates } from './flagGates';
 
-const finite = v.pipe(v.number(), v.finite()), point = v.strictObject({ x: finite, y: finite, z: finite });
-const savedBody = v.nullable(v.strictObject({ handle: v.pipe(finite, v.minValue(0)),
+const finite = v.pipe(v.number(), v.finite()), point: v.GenericSchema<BoundedNativePropPointInput, BoundedNativePropPoint> = v.strictObject({ x: finite, y: finite, z: finite });
+const savedBody: v.GenericSchema<BoundedNativePropSaveInput, BoundedNativePropSave> = v.nullable(v.strictObject({ handle: v.pipe(finite, v.minValue(0)),
   watch: v.strictObject({ lost: finite, wedge: finite, from: point }), decision: v.exactOptional(v.string()) }));
 /** The envelope keeps its shape; the watch clocks live in the body script's own continuation (G566), so they are written at rest. */
 const RESTING = { lost: 0, wedge: 0, from: { x: 0, y: 0, z: 0 } };
@@ -92,3 +92,26 @@ export class NativeQuestProps {
     this.adopt.clear(); this.continuation = null;
   }
 }
+
+/** Complete admitted data, independent of validator implementation metadata. */
+type BoundedNativePropPointInput = BoundedNativePropPoint;
+interface BoundedNativePropPointFields {
+    x: number;
+    y: number;
+    z: number;
+}
+type BoundedNativePropPoint = { [Key in keyof BoundedNativePropPointFields]: BoundedNativePropPointFields[Key] };
+type BoundedNativePropSaveInput = BoundedNativePropSave;
+type BoundedNativePropSave = {
+    handle: number;
+    watch: {
+        lost: number;
+        wedge: number;
+        from: {
+            x: number;
+            y: number;
+            z: number;
+        };
+    };
+    decision?: string;
+} | null;

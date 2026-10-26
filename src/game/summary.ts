@@ -8,14 +8,14 @@ import type { ShardSlug } from './shard/slugs.generated';
 
 const count = v.pipe(v.number(), v.finite(), v.integer(), v.minValue(0));
 const finite = v.pipe(v.number(), v.finite(), v.minValue(0));
-const schema = v.object({ v: v.literal(1), shards: v.record(v.string(), v.object({ earned: count, total: v.nullable(count), playS: finite, at: finite })) });
+const schema: v.GenericSchema<BoundedSummaryInput, BoundedSummary> = v.object({ v: v.literal(1), shards: v.record(v.string(), v.object({ earned: count, total: v.nullable(count), playS: finite, at: finite })) });
 export type WildshardSummary = v.InferOutput<typeof schema>;
 export interface SummaryProgress { earned: readonly string[]; playS: number }
 export interface SummaryLine { slug: string; name: string; earned: number; total: number | null; playS: number; visited: boolean }
 export interface SummaryView { lines: readonly SummaryLine[]; earned: number; visited: boolean }
 
 /** Rebuild from validated save documents only: no world builder or plugin is loaded. */
-export function buildSummary(shards: readonly { slug: string; status?: string }[], read: (slug: string) => SummaryProgress | null, at = Date.now()): WildshardSummary {
+export function buildSummary(shards: readonly { slug: string; status?: string }[], read: (slug: string) => SummaryProgress | null, at: number = Date.now()): WildshardSummary {
   const result: WildshardSummary = { v: 1, shards: {} };
   for (const { slug, status } of shards) {
     if (status === 'hidden') continue;
@@ -51,3 +51,16 @@ export function summaryStore(store: SaveStore, read: (slug: string) => SummaryPr
 const summaries = summaryStore(saves, (slug) => progressSave.peek(slug));
 export function readSummary(): WildshardSummary { return summaries.read(); }
 export function updateSummary(slug: ShardSlug, progress: SummaryProgress, total: number): void { summaries.update(slug, progress, total); }
+
+/** Complete admitted data, independent of validator implementation metadata. */
+type BoundedSummaryInput = BoundedSummary;
+interface BoundedSummaryFields {
+    v: 1;
+    shards: Record<string, {
+            earned: number;
+            total: number | null;
+            playS: number;
+            at: number;
+        }>;
+}
+type BoundedSummary = { [Key in keyof BoundedSummaryFields]: BoundedSummaryFields[Key] };

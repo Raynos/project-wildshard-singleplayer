@@ -78,7 +78,7 @@ export const SPUR_MAX_STREAK = 3, SPUR_BOOST_PER = 0.04;
 
 /** The score of a press against the current stride. */
 export type SpurTap = 'good' | 'early' | 'off';
-const roadSpurState = v.strictObject({ version: v.literal(1), streak: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(SPUR_MAX_STREAK)),
+const roadSpurState: v.GenericSchema<BoundedRoadSpurSaveInput, BoundedRoadSpurSave> = v.strictObject({ version: v.literal(1), streak: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(SPUR_MAX_STREAK)),
   latchT: v.pipe(v.number(), v.finite(), v.minValue(0)), good: v.pipe(v.number(), v.integer(), v.minValue(0)), lastTap: v.pipe(v.number(), v.finite()) });
 /** Restorable rhythm-spur clocks. */
 export type RhythmSpurState = v.InferOutput<typeof roadSpurState>;
@@ -147,7 +147,7 @@ const reinsClamp = (x: number, a: number, b: number): number => Math.max(a, Math
 const reinsLerp = (a: number, b: number, t: number): number => (1 - t) * a + t * b;
 const reinsAngDiff = (a: number, b: number): number => Math.atan2(Math.sin(a - b), Math.cos(a - b));
 const reinsNum = v.pipe(v.number(), v.finite());
-const reinsReinsState = v.strictObject({ version: v.literal(1), steed: v.pipe(reinsNum, v.minValue(0), v.maxValue(100)), winded: v.boolean(), breaking: v.boolean(),
+const reinsReinsState: v.GenericSchema<BoundedReinsSaveInput, BoundedReinsSave> = v.strictObject({ version: v.literal(1), steed: v.pipe(reinsNum, v.minValue(0), v.maxValue(100)), winded: v.boolean(), breaking: v.boolean(),
   heading: reinsNum, speed: reinsNum, wUp: reinsNum, grounded: v.boolean(), target: reinsNum, rateIn: reinsNum, turnIn: reinsNum, sector: v.picklist([-1, 0, 1, 2]),
   galloping: v.boolean(), drawing: v.boolean(), jumpWas: v.boolean(), jumpQueued: v.boolean(), cruise: reinsNum, gallopWas: v.boolean(), tapQueued: v.boolean(),
   clock: reinsNum, lastPhase: reinsNum, strideHz: reinsNum, sectorWas: v.picklist([-1, 0, 1, 2]), skidT: reinsNum, panicT: reinsNum, panicRear: reinsNum, panicYaw: reinsNum, jolt: reinsNum,
@@ -164,7 +164,7 @@ export class MountedReins {
   cruise = 0; gallopWas = false; tapQueued = false; clock = 0; lastPhase = 0; strideHz = 2;
   sectorWas = 2; skidT = 0; panicT = 0; panicRear = 0; panicYaw = 0; jolt = 0;
   onRoad = false; beat = false; spurFlash = 0; turnLead = 0;
-  readonly spur = new RhythmSpur();
+  readonly spur: RhythmSpur = new RhythmSpur();
   private readonly speeds: HorseSpeeds;
   constructor(speeds: HorseSpeeds) { this.speeds = speeds; }
   /** All decision clocks and queued input edges; physical motor and presentation continuation belong to their drivers. */
@@ -336,7 +336,7 @@ export class MountedBody extends MountedReins {
   gait: 'stand' | 'walk' | 'trot' | 'canter' | 'gallop' = 'stand';
   jostles = 0; thrownBy: string | null = null;
   motor: CharacterMotor | null = null;
-  readonly feet = new Vector3(); readonly prevFeet = new Vector3();
+  readonly feet: Vector3 = new Vector3(); readonly prevFeet: Vector3 = new Vector3();
   prevHeading = 0; yawRate = 0; vy = 0; onDeck = false; swimming = false;
   airT = -1; blockedT = 0; shoveX = 0; shoveZ = 0; jostleCd = 0;
   eyeY = 0; bobY = 0;
@@ -563,3 +563,57 @@ export class MountedBody extends MountedReins {
     return heading;
   }
 }
+
+/** Complete admitted data, independent of validator implementation metadata. */
+type BoundedRoadSpurSaveInput = BoundedRoadSpurSave;
+interface BoundedRoadSpurSaveFields {
+    version: 1;
+    streak: number;
+    latchT: number;
+    good: number;
+    lastTap: number;
+}
+type BoundedRoadSpurSave = { [Key in keyof BoundedRoadSpurSaveFields]: BoundedRoadSpurSaveFields[Key] };
+type BoundedReinsSaveInput = BoundedReinsSave;
+interface BoundedReinsSaveFields {
+    version: 1;
+    steed: number;
+    winded: boolean;
+    breaking: boolean;
+    heading: number;
+    speed: number;
+    wUp: number;
+    grounded: boolean;
+    target: number;
+    rateIn: number;
+    turnIn: number;
+    sector: 0 | 1 | 2 | -1;
+    galloping: boolean;
+    drawing: boolean;
+    jumpWas: boolean;
+    jumpQueued: boolean;
+    cruise: number;
+    gallopWas: boolean;
+    tapQueued: boolean;
+    clock: number;
+    lastPhase: number;
+    strideHz: number;
+    sectorWas: 0 | 1 | 2 | -1;
+    skidT: number;
+    panicT: number;
+    panicRear: number;
+    panicYaw: number;
+    jolt: number;
+    onRoad: boolean;
+    beat: boolean;
+    spurFlash: number;
+    turnLead: number;
+    spur: {
+        version: 1;
+        streak: number;
+        latchT: number;
+        good: number;
+        lastTap: number;
+    };
+}
+type BoundedReinsSave = { [Key in keyof BoundedReinsSaveFields]: BoundedReinsSaveFields[Key] };
