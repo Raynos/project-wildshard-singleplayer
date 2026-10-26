@@ -28,6 +28,7 @@ root=pathlib.Path(os.environ['SIM_FIXTURE']);args=sys.argv[1:]
 with (root/'calls').open('a') as output: output.write(json.dumps(args)+'\\n')
 booted=root/'booted'
 if args[:3]==['simctl','list','devices']:
+    time.sleep(float(os.environ.get('SIM_LIST_DELAY','0')))
     rows=[{'udid':''' + repr(UDID) + ''','name':'wildshard-iphone'}]
     print(json.dumps({'devices':{'iOS':rows if 'booted' not in args or booted.exists() else []}}))
 elif args[1]=='boot':
@@ -165,11 +166,26 @@ else: raise RuntimeError('Unexpected fixture command '+repr(args))
         self.assertEqual(lease.read_text(), original)
         self.assertFalse((self.root / 'child-ran').exists())
 
-    def test_lock_failure_names_holders_and_uses_five_minute_cap(self):
-        self.command('lockf', "import sys\nprint('lock-args '+repr(sys.argv[1:]),file=sys.stderr)\nsys.exit(75)\n")
-        result = self.lane()
+    def test_lock_failure_names_holders_and_shares_five_minute_deadline(self):
+        self.command('lockf', """import json,os,pathlib,sys
+root=pathlib.Path(os.environ['SIM_FIXTURE']); path=root/'lock-calls'
+with path.open('a') as output: output.write(json.dumps(sys.argv[1:])+'\\n')
+# Resolve admission succeeds; device admission refuses after slow resolution.
+sys.exit(75 if len(path.read_text().splitlines())==2 else 0)
+""")
+        result = self.lane(SIM_LIST_DELAY='1.05')
         self.assertEqual(result.returncode, 75, result.stderr)
-        self.assertIn("'-t', '300'", result.stderr)
+        calls = [json.loads(line) for line in (self.root / 'lock-calls').read_text().splitlines()]
+        self.assertEqual(len(calls), 2)
+        self.assertEqual([row[:2] for row in calls], [['-s', '-t'], ['-s', '-t']])
+        first, second = [int(row[2]) for row in calls]
+        # Whole-second setup can consume part of the cap before the first lock;
+        # a later lock must consume the same deadline, never reset its 300s.
+        self.assertGreater(first, 0)
+        self.assertLessEqual(first, 300)
+        self.assertGreater(second, 0)
+        self.assertLessEqual(second, first - 1)
+        self.assertIn('admission timed out after 300s', result.stderr)
         self.assertIn('lock/lease holders:', result.stderr)
         self.assert_not_handed_over()
 
