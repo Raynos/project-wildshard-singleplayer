@@ -31,7 +31,7 @@ import { strike } from '@wildshard/sdk/species';
 import finds from '../data/finds.generated.json' with {type:'json'};
 import { coverSpecimenBlobs } from './coverSpecimens';
 import { TREE_SET } from './treeSet';
-import { DRESSING_CONTACT_SOURCES, DRESSING_FLOOR_SOURCES, DRESSING_SPECIMEN_SOURCES, DRESSING_ATLAS_SOURCES, DRESSING_PLACE_DECODED, DRESSING_CRAG_DECODED, DRESSING_DECODED, dressingSceneBlobs } from './dressingScene';
+import { DRESSING_CONTACT_SOURCES, DRESSING_FLOOR_SOURCES, DRESSING_SPECIMEN_SOURCES, DRESSING_ATLAS_SOURCES, DRESSING_CRAG_DECODED, dressingSceneBlobs } from './dressingScene';
 import * as v from 'valibot';
 import { carriedQuestRows, CARRIED_QUEST_SOURCES } from './carriedQuest';
 import { CarriedQuestSchema } from '@wildshard/format/questSteps';
@@ -205,12 +205,14 @@ const shelterPlacesSchema = v.object({ rows: v.array(v.object({ colliders: v.arr
 export async function prepareOutput(ctx: ProjectGenerationContext): Promise<typeof output> {
   const placeFiles = await nalatiPlacesProgram(ctx), placeBytes = placeFiles.get('places.bin');
   if (placeBytes === undefined) throw new Error('Missing owned native places binary');
-  const places = nameBlob('world/places.bin', 'bin', placeBytes, { decoded: DRESSING_PLACE_DECODED });
   const placeDocument = placeFiles.get('places.json');
   if (placeDocument === undefined) throw new Error('Missing owned native places metadata');
   const placesMetadata: unknown = JSON.parse(new TextDecoder().decode(placeDocument));
   const nativeShelters = nalatiNativeShelters(v.parse(shelterPlacesSchema, placesMetadata));
   const runtime = nalatiRuntimeRows({ places: placesMetadata, paint: nativePaint });
+  const byteCount = v.pipe(v.number(), v.integer(), v.minValue(0));
+  const costs = v.parse(v.object({ places: v.object({ bytes: byteCount }), dressing: v.object({ bytes: byteCount }) }), runtime.runtime);
+  const places = nameBlob('world/places.bin', 'bin', placeBytes, { decoded: costs.places.bytes });
   const shapeBook = v.parse(v.object({ draws: FixedDrawRowsSchema, sources: shapeSourcesSchema }), runtime.shapeBook);
   const ownedMetadata = emitNamedBlobs([nameBlob('sim/headless-assembly.json', 'json', new TextEncoder().encode(encodeCanonicalJson({
     ...eliteAssembly, constants: { ...eliteAssembly.constants, nativeShelters },
@@ -219,7 +221,7 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<type
   const crags = await nalatiBakeBlob(ctx, 'crags', DRESSING_CRAG_DECODED);
   const dressingFiles = await nalatiDressingProgram(ctx), dressingBytes = dressingFiles.get('dressing.bin');
   if (dressingBytes === undefined) throw new Error('Missing owned native dressing binary');
-  const dressingBlob = nameBlob('world/dressing.bin', 'bin', dressingBytes, { decoded: DRESSING_DECODED });
+  const dressingBlob = nameBlob('world/dressing.bin', 'bin', dressingBytes, { decoded: costs.dressing.bytes });
   const decorativeFiles = await nalatiDecorativeProgram(ctx), decorativeBytes = decorativeFiles.get('decorative.json');
   if (decorativeBytes === undefined) throw new Error('Missing owned decorative profiles');
   const profiles: unknown = JSON.parse(new TextDecoder().decode(decorativeBytes));

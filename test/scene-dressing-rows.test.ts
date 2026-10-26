@@ -17,7 +17,7 @@ import { zlibSync, unzlibSync } from 'fflate';
 import { writeGeometry, join } from '../src/shards/nalati-grasslands/generators/geometryWriter';
 import * as v from 'valibot';
 import { SceneDressingSchema } from '../src/format/sceneDressing';
-import { DRESSING_PLACE_DECODED, DRESSING_CRAG_DECODED, DRESSING_DECODED, dressingScene } from '../src/shards/nalati-grasslands/generators/dressingScene';
+import { DRESSING_CRAG_DECODED, dressingScene } from '../src/shards/nalati-grasslands/generators/dressingScene';
 import { nalatiBakeBlob } from '../src/shards/nalati-grasslands/generators/placeBlobProgram';
 import { nalatiPlacesProgram } from '../src/shards/nalati-grasslands/generators/placesProgram';
 import { buildDressingWire } from '../src/shards/nalati-grasslands/generators/dressingProgram';
@@ -170,12 +170,16 @@ test('geometry source addresses remain binary while the JSON address word stays 
 });
 
 test('Nalati logical bakes admit the exact shipping compressed bytes and decoded costs',async()=>{
-  const sources=[nameBlob('world/dressing.bin','bin',buildDressingWire().binary,{decoded:DRESSING_DECODED})];
+  const dressing=buildDressingWire(),stamp=v.object({bytes:v.pipe(v.number(),v.integer(),v.minValue(0))});
+  const dressingCost=v.parse(stamp,JSON.parse(new TextDecoder().decode(dressing.document))).bytes;
+  const sources=[nameBlob('world/dressing.bin','bin',dressing.binary,{decoded:dressingCost})];
   const placeInputs=new Map([['/assets/baked/nalati-grasslands/terrain.bin',readFileSync('public/assets/baked/nalati-grasslands/terrain.bin')],
     ...['pond','red','green','blue'].map(name=>{const path=`data/geography-${name}.bin`;return[path,readFileSync(`src/shards/nalati-grasslands/${path}`)] as const;})]);
   const ownedPlaces=await nalatiPlacesProgram({cached:(_step,generate)=>Promise.resolve(generate(placeInputs))});
   const placeBytes=ownedPlaces.get('places.bin');if(placeBytes===undefined)throw new Error('Missing native places');
-  sources.push(nameBlob('world/places.bin','bin',placeBytes,{decoded:DRESSING_PLACE_DECODED}));
+  const placeDocument=ownedPlaces.get('places.json');if(placeDocument===undefined)throw new Error('Missing native places metadata');
+  const placeCost=v.parse(stamp,JSON.parse(new TextDecoder().decode(placeDocument))).bytes;
+  sources.push(nameBlob('world/places.bin','bin',placeBytes,{decoded:placeCost}));
   sources.push(await nalatiBakeBlob({cached:(_step,generate)=>Promise.resolve(generate(new Map([
     ['/assets/nalati/baked/crags.bin',readFileSync('public/assets/nalati/baked/crags.bin')],
   ])))},'crags',DRESSING_CRAG_DECODED));
