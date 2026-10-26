@@ -99,8 +99,37 @@ all six legs, and only the newest pending workflow survives. Explicit SHA proofs
 retain separate groups. The release-dispatch job keeps its independent lock.
 No cases, artifact identities, deadlines, fatal checks or pixel gates change.
 The workflow contract regression fails before this repair; actionlint and the
-dispatch/partition fixtures validate it. The next ordinary smoke verifies actual
-GitHub scheduling; this does not close the separate CF2 title-capture contention.
+dispatch/partition fixtures validate it. Ordinary runs `40364990561` and
+`40368094795` subsequently completed all six legs without cancellations while newer
+cohorts queued. Both exact-SHA raw receipt sets pass independent verification.
+This does not close the separate CF2 title-capture contention.
+
+## CF2 grid preparation: unresolved evidence (2026-10-26 18:47 UTC)
+
+Smoke `40371580877` tested `2b11287c5f` from green CI `40367165227`. Its grid leg
+refused at 17:56:05 UTC while gameplay was ready, unpaused and drawing: frame
+1,233, no fatal/fault/report, seven far preparations still "fetching". The later
+failure receipt retained five pending preparations, so some work continued. Other
+five legs passed. Artifact `12674215226` contains no network trace of the failing
+interval; the native title trace ends before it. "Fetching" includes index/file
+reads, decode and hidden shader preparation, so the held stage is unassigned.
+
+Sp-x2 landed passive phase/age and existing file/worker-wait observations in
+`12750adbcb`; this changes no promise, queue, cap or deadline and is not a causal
+fix. The original 18:26:05 UTC repair deadline elapsed unresolved. Sp-x7's one
+cause-directed local reproduction used exact `12750ad-mvplx4jl` and the maintained
+original grid driver: 25,369 ms, prepared at 6,590 ms, gameplay at 7,256 ms, no
+faults/reports and all original route/pixel gates passing. Passive recording of
+the driver's existing polls retained 44 observations and 18,822 network events,
+with no failed request. Proof `20261026T134620-sp-x7-grid-wait-repro-9167` and raw
+`tmp/sp-x7-live/grid-wait-repro/` retain the result. Browser and owned preview
+cleanup completed; no second reproduction or CI retry was started.
+
+Later ordinary exact CI/six-leg proofs for `9b20c6faf0` and `14a3d5d935` pass,
+but neither establishes a fix for the retained red. It remains **open**, owned by
+sp-x7 after the elapsed clock. No speculative cache/render patch, deadline change
+or source attribution is claimed; the passive phase/wait evidence must name the
+held boundary if a subsequent ordinary run fails.
 
 ## CF2 title capture: unresolved evidence (2026-10-26 16:15 UTC)
 
