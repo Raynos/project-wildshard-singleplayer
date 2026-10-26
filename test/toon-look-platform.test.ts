@@ -33,7 +33,7 @@ function fixture() {
     shadows: { rig: 'tier', normalBias: .05, radius: .3 },
     ground: { materials: { ground: 'chalk-ground', slab: 'chalk-slab' }, files: { ground: 'models/chalk.glb', slab: 'models/walls.glb' }, kit: {} },
     sky: { day: { ...day, envRefresh: 5, envSize: 32 }, cycleSeconds: 600, name: 'chalk-sky', channels: 'chalk.channels',
-      dome: { look: 'chalk-dome', radius: 1500, segments: [24, 12], order: -30 }, clouds: { look: 'chalk-clouds', order: -25, puffs: [[2, 100, 4, 12, .1, .2, 80]] },
+      dome: { look: 'chalk-dome', radius: 1500, segments: [24, 12], order: -30 }, clouds: { look: 'chalk-clouds', order: -25, puffs: [[2, 100, 4, 12, .1, .2, 80]], detail: 1 },
       midday: { zenith: [.4, .5, .6], horizon: [.2, .3, .4], cloudLit: [.7, .8, .9], sunGlow: [1, .8, .6] }, environment: { near: 2, far: 2000 }, crisp: .8 },
   });
 }
