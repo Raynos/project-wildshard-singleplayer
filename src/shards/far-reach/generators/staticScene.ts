@@ -1,10 +1,11 @@
 import type { PrivateScene, WorldSceneRecipe } from '@wildshard/format/clientChannels';
 import { fixedWorld } from './fixedWorld';
-import PLACEMENTS from '../data/placements.json' with { type: 'json' };
+import type { SkyPlacements } from './placements';
+import { WORLD_PLACEMENT_INPUTS, skyWorldPlacementValues } from './worldPlacementBytes';
 
-type Placed = typeof PLACEMENTS.standalone;
+type Placed = SkyPlacements['standalone'];
 /** Decorative model matrices and hierarchy are author data; live look materials remain owned ports. */
-function recipe(placed: Placed, standalone: boolean): { readonly recipe: WorldSceneRecipe; readonly models: readonly string[]; readonly bindings: readonly { readonly piece: string; readonly part: string; readonly baked?: string }[]; readonly fixed: ReturnType<typeof fixedWorld> } {
+function recipe(placed: Placed, keels: SkyPlacements['keels'], standalone: boolean): { readonly recipe: WorldSceneRecipe; readonly models: readonly string[]; readonly bindings: readonly { readonly piece: string; readonly part: string; readonly baked?: string }[]; readonly fixed: ReturnType<typeof fixedWorld> } {
   const nodes: PrivateScene['nodes'] = [
     { kind: 'group', id: 'decorations', children: ['sky-isles', 'trees', 'dressing', 'falls'] },
     { kind: 'group', id: 'sky-isles', name: 'far.sky-isles', children: ['isles', 'keels'] },
@@ -18,7 +19,7 @@ function recipe(placed: Placed, standalone: boolean): { readonly recipe: WorldSc
   ];
   const materials: PrivateScene['materials'] = [{ kind: 'port', id: 'falls', source: 'falls' }], models = new Set<string>();
   for (const [parent, rows, look] of [
-    ['isles', placed.isles, 'sky-isle'], ['keels', PLACEMENTS.keels, 'sky-isle-keel'], ['trees', placed.trees, 'tree-bark'],
+    ['isles', placed.isles, 'sky-isle'], ['keels', keels, 'sky-isle-keel'], ['trees', placed.trees, 'tree-bark'],
   ] as const) {
     const group = nodes.find(node => node.id === parent);
     if (group === undefined) throw new Error('Missing static model group');
@@ -40,6 +41,13 @@ function recipe(placed: Placed, standalone: boolean): { readonly recipe: WorldSc
     ] };
 }
 /** Standalone and regional scenes share the same prepared model frames and original matrix rows. */
-export function skyStaticScenes(): { readonly half: number; readonly standalone: ReturnType<typeof recipe>; readonly cell: ReturnType<typeof recipe> } {
-  return { half: PLACEMENTS.half, standalone: recipe(PLACEMENTS.standalone, true), cell: recipe(PLACEMENTS.cell, false) };
+export function skyStaticScenes(placements: SkyPlacements): { readonly half: number; readonly standalone: ReturnType<typeof recipe>; readonly cell: ReturnType<typeof recipe> } {
+  return { half: placements.half, standalone: recipe(placements.standalone, placements.keels, true), cell: recipe(placements.cell, placements.keels, false) };
+}
+
+/** Retained driver intake: declared native models replace the generated placement dependency. */
+export async function skyStaticSceneBytes(read: (url: string) => Uint8Array): Promise<Uint8Array> {
+  const inputs = new Map(WORLD_PLACEMENT_INPUTS.map(name => [name, read(name)]));
+  const { placements } = await skyWorldPlacementValues(inputs);
+  return new TextEncoder().encode(`${JSON.stringify(skyStaticScenes(placements))}\n`);
 }
