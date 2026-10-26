@@ -335,4 +335,21 @@ export function createBootTrace(transports: BootTraceTransports = PAGE_TRANSPORT
 
 /** the page's boot trace */
 const page = createBootTrace();
-export const { bootTraceActive, previousBootLevel, flushBootReports, inspectPreviousBoot, previousBootLine, bootDiagnostic, bootDiagnosticJson, recordBootProgress, recordBootCheckpoint, startBoot, markBootPlanned, markBootHandledError, markBootContextLost, beginExploreEntry, endExploreEntry, exploreEntryPending, recordExploreFrame, recordGpuRecovery } = page;
+export const bootTraceActive: BootTrace['bootTraceActive'] = page.bootTraceActive;
+export const previousBootLevel: BootTrace['previousBootLevel'] = page.previousBootLevel;
+export const flushBootReports: BootTrace['flushBootReports'] = page.flushBootReports;
+export const inspectPreviousBoot: BootTrace['inspectPreviousBoot'] = page.inspectPreviousBoot;
+export const previousBootLine: BootTrace['previousBootLine'] = page.previousBootLine;
+export const bootDiagnostic: BootTrace['bootDiagnostic'] = page.bootDiagnostic;
+export const bootDiagnosticJson: BootTrace['bootDiagnosticJson'] = page.bootDiagnosticJson;
+export const recordBootProgress: BootTrace['recordBootProgress'] = page.recordBootProgress;
+export const recordBootCheckpoint: BootTrace['recordBootCheckpoint'] = page.recordBootCheckpoint;
+export const startBoot: BootTrace['startBoot'] = page.startBoot;
+export const markBootPlanned: BootTrace['markBootPlanned'] = page.markBootPlanned;
+export const markBootHandledError: BootTrace['markBootHandledError'] = page.markBootHandledError;
+export const markBootContextLost: BootTrace['markBootContextLost'] = page.markBootContextLost;
+export const beginExploreEntry: BootTrace['beginExploreEntry'] = page.beginExploreEntry;
+export const endExploreEntry: BootTrace['endExploreEntry'] = page.endExploreEntry;
+export const exploreEntryPending: BootTrace['exploreEntryPending'] = page.exploreEntryPending;
+export const recordExploreFrame: BootTrace['recordExploreFrame'] = page.recordExploreFrame;
+export const recordGpuRecovery: BootTrace['recordGpuRecovery'] = page.recordGpuRecovery;

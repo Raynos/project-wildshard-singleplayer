@@ -177,6 +177,7 @@ normal layer emission is the declaration-size authority. Continuation starts at 
 | T4-I2n | Music method returns, swim constants and wire layouts; retain existing signatures | 60 min | done (2026-10-25, sp-x8) |
 | T4-I2o | Elite, pack and cable saves; retain original state, tuples and schema checks | 60 min | done (2026-10-25, sp-x8) |
 | T4-I2p | Cache command and reply contracts; retain pin entries and exact operation keys | 60 min | done (2026-10-25, sp-x8) |
+| T4-I2q | Boot trace exports; retain single capture order, receiver and function identity | 60 min | done (2026-10-25, sp-x8) |
 
 T4 first format slices are on origin: schema expressions and emitted runtime JavaScript are unchanged.
 Independent named data types replace exported validator implementation types; original/candidate input and output
