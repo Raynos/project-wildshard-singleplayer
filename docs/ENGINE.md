@@ -12726,11 +12726,11 @@ no sampler, cache or owner. Nalati continues to use bakedSamplers; declared
 forest queries retain exact coordinate lookup and candidate order, with f64
 density rows preserving every original double and the legacy inline form.
 
-The native bake reader also accepts an explicit raw ground file. Existing
-nativeGroundRecordSchema(resolution) callers retain their string grammar;
-nativeGroundRecordSchema(resolution, true) admits a strict relative .bin
-reference. nativeBakeGround and createNativeBakeReader accept an optional
-NativeGroundBlock {file, bytes} borrowed from the same verified product.
+The native bake reader requires named ground and collider binaries. The
+format retains its predecessor string grammar for historical fixtures;
+modern intake refuses inline channels before decoding. nativeBakeGround
+and createNativeBakeReader borrow a matching NativeGroundBlock {file,
+bytes} and named collider ranges from the same verified product.
 The file must match, and the original byte-count, lattice and world-scale
 checks run before publication. Decode makes an owned f32 copy and memoizes
 only the complete valid bake. Missing, mismatched or malformed blocks

@@ -13,9 +13,10 @@ import { SIM_LEVEL } from './fixtures/sim-level/level';
 import {nalatiPopulationMetadataBlob} from '../src/shards/nalati-grasslands/generators/populationMetadata';
 
 const rows={label:'Orchard',resolution:2,size:32,parked:false,rig:'segments',provenance:'piece',shapes:[1,2,6,9]};
+const floor={file:'data/test-floor.bin',bytes:new Uint8Array(Float32Array.from([0,1,2,3]).buffer)};
 function input(){
   const body=SIM_LEVEL.entities[0];if(body===undefined)throw new Error('Missing fixture recipe');
-  const heights=btoa(String.fromCodePoint(...new Uint8Array(new Float32Array([0,1,2,3]).buffer)));
+  const heights={file:floor.file};
   return {version:1,ground:{rows:1,cols:1,heights,friction:.9,groups:1,scale:{x:32,y:1,z:32},at:{x:0,y:0,z:0}},solids:[],
     actors:[{id:body.id,kind:body.spec.kind,variant:body.spec.variant,herd:0,spec:body.spec,seed:body.seed,scale:body.scale,scripted:false}],
     herds:[{kind:'herd',members:[body.id]}],trees:[[2,3,.5]],tops:[6],yurts:[[4,5,6]],grass:[[4,5,.2]],
@@ -34,7 +35,7 @@ function metadataProduct(value:unknown=metadata){
 }
 
 test('named metadata and stock bake intake retain values and own decoded terrain buffers',async()=>{
-  const source=input(),reader=createNativeBakeReader(source,rows),bake=reader.read(),other=createNativeBakeReader(source,rows).read();
+  const source=input(),reader=createNativeBakeReader(source,rows,floor),bake=reader.read(),other=createNativeBakeReader(source,rows,floor).read();
   expect(reader.read()).toBe(bake);
   expect(source.spawns[0]?.mem.hit).toBeNull();expect(bake.ground.heights).toEqual(new Float32Array([0,1,2,3]));
   bake.ground.heights[0]=9;expect(other.ground.heights[0]).toBe(0);
@@ -44,8 +45,8 @@ test('named metadata and stock bake intake retain values and own decoded terrain
 
 test('stock intake refuses broken native rosters and the retired metadata selector',()=>{
   const source=input();
-  expect(()=>createNativeBakeReader({...source,actors:[...source.actors,...source.actors]},rows).read()).toThrow('one id per body');
-  expect(()=>createNativeBakeReader({...source,herds:[{kind:'herd',members:['missing']}]},rows).read()).toThrow('one id per body');
+  expect(()=>createNativeBakeReader({...source,actors:[...source.actors,...source.actors]},rows,floor).read()).toThrow('one id per body');
+  expect(()=>createNativeBakeReader({...source,herds:[{kind:'herd',members:['missing']}]},rows,floor).read()).toThrow('one id per body');
   expect(()=>createNativeBakeReader(source,{...rows,check:()=>true})).toThrow();
   expect(()=>createNativeBakeReader(source,{...rows,metadata:'population'})).toThrow();
 });

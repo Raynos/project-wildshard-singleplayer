@@ -1,7 +1,8 @@
+import {nativeBakeFloats,originalNativeGround} from './fixtures/native-bake-inline';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { fixtureBytes } from '@wildshard/engine/test/nativeBytes';
-import { createNativeBakeReader, nativeBakeGround, nativeBakeFloats, installNativeCollision } from '../src/game/population/nativeBake';
+import { createNativeBakeReader, nativeBakeGround, installNativeCollision } from '../src/game/population/nativeBake';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { readNamedBlob } from '../src/sdk/blobs';
 import { driftwoodPhysics, driftwoodPhysicsFiles, driftwoodPhysicsSources } from '../src/shards/driftwood-isle/generators/physics';
@@ -90,7 +91,7 @@ test('the shipped assembly reads the raw files and retains native collision, sav
   const original = createSimHost(plan.level, { ...plan.ports, rapier }), candidate = createSimHost(plan.level, { ...plan.ports, rapier });
   const inline = (bytes: Uint8Array): string => { let result = ''; for (const byte of bytes) result += String.fromCodePoint(byte); return btoa(result); };
   // Frozen pre-cut map: merge nativeBakeFloats(vertices) in source order; no generic actor reader replaces DW's pose intake.
-  const baseline = { ground: nativeBakeGround({ ...admitted.ground, heights: inline(ground) }, 256, 500, 'Driftwood'),
+  const baseline = { ground: originalNativeGround({ ...admitted.ground, heights: inline(ground) }, 256, 500, 'Driftwood'),
     solids: admitted.solids.map(({ vertices, indices, ...row }) => {
       if (indices !== undefined) throw new Error('Unexpected Driftwood index buffer');
       if (vertices === undefined) return row;

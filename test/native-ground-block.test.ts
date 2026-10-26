@@ -1,3 +1,4 @@
+import {originalNativeGround} from './fixtures/native-bake-inline';
 // oxlint-disable-next-line import/no-nodejs-modules -- Assert the captured native authoring bytes, not a browser asset alias.
 import { readFileSync } from 'node:fs';
 import { expect,test } from 'vitest';
@@ -24,7 +25,7 @@ test('raw floor admission is explicit, strict and bounded; original callers reta
 test('the same native reader owns copied raw f32 bytes and retains memoized output',()=>{
   const transport=Uint8Array.from(bytes),block={file,bytes:transport};
   const reader=createNativeBakeReader(input,rows,block),actual=reader.read();
-  const original=createNativeBakeReader({...input,ground:{...field,heights:inline}},rows).read();
+  const original={ground:originalNativeGround({...field,heights:inline},2,4,'Orchard'),solids:[],actors:[],parked:[],herds:[]};
   expect(actual).toEqual(original);expect(Object.is(actual.ground.heights[0],-0)).toBe(true);
   expect(reader.read()).toBe(actual);expect(actual.ground.heights.buffer).not.toBe(transport.buffer);
   transport.fill(0);expect(actual).toEqual(original);

@@ -5,19 +5,6 @@ import { withOwner } from '@wildshard/engine/app/ownership';
 import { tagCollider, tagOf, type Material } from '@wildshard/engine/physics/surface';
 import type { SimHost } from '@wildshard/engine/sim';
 
-/** Decode an owned copy of one native base64 buffer; typed views never share
- * caller storage. Malformed data is refused by atob or its typed-array reader. */
-export function nativeBakeBytes(text: string): Uint8Array<ArrayBuffer> {
-  // String iteration materializes a temporary character list before the byte copy.
-  const binary = atob(text), bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) bytes[i] = binary.codePointAt(i) ?? 0;
-  return bytes;
-}
-/** The original column-major native float payload, with no resampling. */
-export function nativeBakeFloats(text: string): Float32Array<ArrayBuffer> {
-  return new Float32Array(nativeBakeBytes(text).buffer);
-}
-
 /** Raw native floor declaration. The producer's resolution stays part of admission. */
 export interface NativeGroundRecord {
   readonly rows: number; readonly cols: number; readonly heights: NativeGroundStorage;
@@ -32,7 +19,7 @@ export interface NativeGroundBlock { readonly file: string; readonly bytes: Uint
 export interface NativeColliderBlock { readonly file: string; readonly bytes: Uint8Array }
 
 function colliderBytes(storage: NativeArrayStorage, blocks: ReadonlyMap<string, Uint8Array>): Uint8Array<ArrayBuffer> {
-  if (typeof storage === 'string') return nativeBakeBytes(storage);
+  if (typeof storage === 'string') throw new Error('Native collider requires a named binary file');
   const bytes = blocks.get(storage.file);
   if (bytes === undefined) throw new Error('Missing native collider block');
   if (storage.byteOffset + storage.byteLength > bytes.byteLength) throw new Error('Native collider range exceeds block');
@@ -42,12 +29,9 @@ function colliderBytes(storage: NativeArrayStorage, blocks: ReadonlyMap<string, 
 /** Decode an owned native heightfield, refusing a different lattice or world scale. */
 export function nativeBakeGround(row: NativeGroundRecord, resolution: number, size: number, label: string, block?: NativeGroundBlock): NativeCollisionBake['ground'] {
   const storage = row.heights;
-  let heights: Float32Array<ArrayBuffer>;
-  if (typeof storage === 'string') heights = nativeBakeFloats(storage);
-  else {
-    if (block === undefined || block.file !== storage.file) throw new Error('Missing native floor block');
-    heights = new Float32Array(Uint8Array.from(block.bytes).buffer);
-  }
+  if (typeof storage === 'string') throw new Error('Native floor requires a named binary file');
+  if (block === undefined || block.file !== storage.file) throw new Error('Missing native floor block');
+  const heights = new Float32Array(Uint8Array.from(block.bytes).buffer);
   if (heights.length !== resolution ** 2 || row.scale.x !== size || row.scale.z !== size || row.scale.y !== 1)
     throw new Error(`${label} baked floor is not its ${String(resolution)}² lattice`);
   return { heights, friction: row.friction, groups: row.groups, scale: row.scale, at: row.at };

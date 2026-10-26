@@ -11,7 +11,6 @@
     "src/engine/native/updates.ts": 1,
     "src/engine/world/scalarChannel.ts": 1,
     "src/game/plugin/brain.ts": 1,
-    "src/game/population/nativeBake.ts": 1,
     "src/game/population/returnProgram.ts": 1,
     "src/game/population/returnProjectionV2.ts": 1,
     "src/game/population/spawnScript.ts": 5,

@@ -1,7 +1,8 @@
+import {nativeBakeBytes} from './fixtures/native-bake-inline';
 import { nativeColliderRecordSchema } from '../src/format/nativePhysics';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { createNativeBakeReader, nativeBakeBytes, type NativePhysicsBake, type NativeBakeReader } from '../src/game/population/nativeBake';
+import { createNativeBakeReader, type NativePhysicsBake, type NativeBakeReader } from '../src/game/population/nativeBake';
 import { trustedLevel } from '../src/game/plugin/simulation';
 import type { HeadlessRuntimePlan } from '../src/sdk/headlessRuntime';
 import { readJson } from './fixtures/headless-plan';
@@ -24,8 +25,9 @@ const baked=(()=>{
 
 const options = { label: 'Native test', resolution: 2, size: 4, parked: true,
   rig: 'segments',shapes: [1,2,6,9],provenance: 'piece' };
+const floor={file:'data/test-floor.bin',bytes:new Uint8Array(Float32Array.from([1,2,3,4]).buffer)};
 function input() {
-  const heights = btoa(String.fromCodePoint(...new Uint8Array(new Float32Array([1, 2, 3, 4]).buffer)));
+  const heights = {file:'data/test-floor.bin'};
   return { version: 1, tag: 'owned', ground: { rows: 1, cols: 1, heights, scale: { x: 4, y: 1, z: 4 }, at: { x: 0, y: 0, z: 0 }, friction: 0.9, groups: 1 },
     solids: [], actors: [], parked: [], herds: [] };
 }
@@ -94,26 +96,26 @@ test('the Pine assembly retains memoized buffers and privately owned native meta
 
 test('failed native intake publishes no memo; independent readers own their buffers', () => {
   const source = input();source.ground.scale.y=2;
-  const reader = createNativeBakeReader(source, options);
+  const reader = createNativeBakeReader(source, options,floor);
   expect(() => reader.read()).toThrow('lattice');source.ground.scale.y=1;
   const value = reader.read(); expect(reader.read()).toBe(value);
-  const other = createNativeBakeReader(source, options).read();
+  const other = createNativeBakeReader(source, options,floor).read();
   expect(other.ground.heights).toEqual(value.ground.heights); expect(other.ground.heights.buffer).not.toBe(value.ground.heights.buffer);
   value.ground.heights[0] = 9; expect(other.ground.heights[0]).toBe(1);
 });
 
 test('missing parked bodies, invalid lattices, actor identities and collider channels refuse', () => {
   const missing = input(); Reflect.deleteProperty(missing, 'parked');
-  expect(() => createNativeBakeReader(missing, options).read()).toThrow('parked roster');
+  expect(() => createNativeBakeReader(missing, options,floor).read()).toThrow('parked roster');
   const wrong = input(); wrong.ground.scale.y = 2;
-  expect(() => createNativeBakeReader(wrong, options).read()).toThrow('lattice');
+  expect(() => createNativeBakeReader(wrong, options,floor).read()).toThrow('lattice');
   const actor = baked.actors[0]; if (actor === undefined) throw new Error('Missing actual Pine actor');
-  expect(() => createNativeBakeReader({ ...input(), actors: [{ ...actor, kind: 'wrong' }] }, options).read()).toThrow('Divergent');
-  expect(() => createNativeBakeReader({ ...input(), actors: [actor, actor] }, options).read()).toThrow('one id per body');
-  expect(() => createNativeBakeReader({ ...input(), actors: [actor], herds: [{ kind: 'herd', members: ['missing'] }] }, options).read()).toThrow('one id per body');
+  expect(() => createNativeBakeReader({ ...input(), actors: [{ ...actor, kind: 'wrong' }] }, options,floor).read()).toThrow('Divergent');
+  expect(() => createNativeBakeReader({ ...input(), actors: [actor, actor] }, options,floor).read()).toThrow('one id per body');
+  expect(() => createNativeBakeReader({ ...input(), actors: [actor], herds: [{ kind: 'herd', members: ['missing'] }] }, options,floor).read()).toThrow('one id per body');
   const solid = { shape: 6, body: null, at: [0, 0, 0], rot: [0, 0, 0, 1], groups: 1, friction: 1 };
-  expect(() => createNativeBakeReader(input(), options).solid(solid)).toThrow('Unbuildable');
-  expect(() => createNativeBakeReader(input(), options).solid({ ...solid, shape: 1, extra: true })).toThrow();
+  expect(() => createNativeBakeReader(input(), options,floor).solid(solid)).toThrow('Unbuildable');
+  expect(() => createNativeBakeReader(input(), options,floor).solid({ ...solid, shape: 1, extra: true })).toThrow();
   expect(() => createNativeBakeReader(input(), { ...options, check: () => true })).toThrow();
   expect(() => createNativeBakeReader(input(), { ...options, extra: v.object({}) })).toThrow();
 });

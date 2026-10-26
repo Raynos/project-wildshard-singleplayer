@@ -3,7 +3,8 @@ import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { nativeGroundRecordSchema } from '../src/format/nativePhysics';
-import { nativeBakeFloats, nativeBakeGround } from '../src/game/population/nativeBake';
+import { nativeBakeGround } from '../src/game/population/nativeBake';
+import { nativeBakeFloats,originalNativeGround } from './fixtures/native-bake-inline';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 
 for (const slug of ['driftwood-isle','pine-hollow']) test(`${slug} retains all floor bytes and values through inline and raw intake`, () => {
@@ -12,7 +13,7 @@ for (const slug of ['driftwood-isle','pine-hollow']) test(`${slug} retains all f
   const original=typeof row.heights==='string' ? nativeBakeFloats(row.heights)
     : new Float32Array(Uint8Array.from(readFileSync(`src/shards/${slug}/${row.heights.file}`)).buffer);
   const bytes=new Uint8Array(original.buffer);
-  const inline=nativeBakeGround(row,256,500,slug,typeof row.heights==='string' ? undefined : {file:row.heights.file,bytes});
+  const inline=originalNativeGround({...row,heights:Buffer.from(bytes).toString('base64')},256,500,slug);
   const file='data/floor.bin';
   const raw=nativeBakeGround({...row,heights:{file}},256,500,slug,{file,bytes});
   expect(original).toHaveLength(65536);
