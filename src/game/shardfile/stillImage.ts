@@ -9,9 +9,19 @@ export function stillImageUrl(bytes: Uint8Array): string {
 }
 
 /** The same inert image as an object URL that its owner revokes: a large map's base64 copy cost a frame (44 ms at 4x CPU). */
-export function stillImageObjectUrl(bytes: Uint8Array, owner: { onDispose: (fn: () => void) => void }): string {
+export function stillImageObjectUrl(bytes: Uint8Array, owner: { readonly disposed: boolean; readonly disposing?: boolean; onDispose: (fn: () => void) => void }): string {
+  if (owner.disposed || owner.disposing) throw new Error('Image owner retired');
   const { mime } = parseStillImage(bytes);
   const url = URL.createObjectURL(new Blob([Uint8Array.from(bytes)], { type: mime }));
-  owner.onDispose(() => { URL.revokeObjectURL(url); });
+  let released = false;
+  const release = (): void => {
+    if (released) return;
+    released = true;
+    URL.revokeObjectURL(url);
+  };
+  try {
+    owner.onDispose(release);
+    if (released || owner.disposed || owner.disposing) throw new Error('Image owner retired');
+  } catch (error) { release(); throw error; }
   return url;
 }
