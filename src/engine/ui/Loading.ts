@@ -112,7 +112,7 @@ export class Loading {
       undefined, () => {
         const shown = this.root.dataset['setup'];
         return shown === undefined || shown === '' ? undefined : Number(shown);
-      });
+      }, {at: startedAt, setup: Number(this.root.dataset['initialSetup'])});
     this.phase = this.scoped ? undefined : this.timeline.begin('modules');
     if (!this.scoped) this.scope.onDispose(installLoadingTimeline(this.timeline));
     this.downloads = new DownloadAccounting(location.href, shell === null ? this.t0 : 0);

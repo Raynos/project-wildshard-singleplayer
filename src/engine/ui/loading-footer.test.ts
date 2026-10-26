@@ -5,6 +5,7 @@ import type { ProgressView } from '../boot/plan';
 import { declareDownloadFile, recordCachedDownload } from '../boot/download';
 import { currentLoadingTimeline } from '../boot/timeline';
 import { waitFor } from '../boot/waits';
+import { loadShellTemplate } from '../boot/shell';
 
 let now = 100;
 beforeEach(() => {
@@ -17,6 +18,21 @@ beforeEach(() => {
   });
 });
 afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); document.body.replaceChildren(); });
+
+it('adopts the original shell setup fact without replacing it with a later percentage', () => {
+  const shell = document.createElement('div'); shell.className = 'ws-load'; shell.innerHTML = loadShellTemplate();
+  shell.dataset['shell'] = ''; shell.dataset['startedAt'] = '50'; shell.dataset['initialSetup'] = '7';
+  document.body.append(shell);
+  const loading = new Loading({id: 'adopted', name: 'Adopted'});
+  try {
+    const timeline = currentLoadingTimeline();
+    if (timeline === undefined) throw new Error('Missing timeline');
+    expect(timeline.snapshot().rows[0]).toMatchObject({startedAt: 50, setupAtStart: 7});
+    shell.dataset['initialSetup'] = '99'; loading.waiting('Preparing application services');
+    now = 400; vi.advanceTimersByTime(32);
+    expect(loading.root.querySelector<HTMLElement>('[data-key="modules"]')?.dataset['setupAtStart']).toBe('7');
+  } finally { loading.scope.dispose(); }
+});
 
 it('hands the visible footer to admission before publishing its first callback', () => {
   const loading = new Loading({id: 'descriptor', name: 'Descriptor'});

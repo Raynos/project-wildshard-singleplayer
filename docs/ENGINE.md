@@ -1080,9 +1080,13 @@ An optional fourth `LoadingTimeline` constructor argument reads the existing
 displayed integer setup percentage once when a row first begins. Valid values
 are retained as `setupAtStart` alongside that clock and survive short steps and
 later re-entry unchanged. The loader supplies its existing DOM value; this never
-computes or repaints the bar. Absent/invalid values, future rows and the initial
-attempt origin before the timeline existed remain unknown. It records DOM state,
-not proof of a browser paint. Row DOM metadata and the accuracy reader preserve it.
+computes or repaints the bar. An optional fifth argument supplies an original
+`{at, setup}` shell fact: its clock must equal the attempt origin, and its setup
+must be an integer in 0–100. The first HTML script retains the actual setup text
+at that origin; adoption keeps it unchanged rather than substituting a later
+percentage. Absent/invalid/mismatched values and future rows remain unknown.
+These are DOM facts, not proof of a browser paint. Row DOM metadata and the
+accuracy reader preserve them.
 Parallel selected-audio reads
 have their own declared row, ending when the reads settle. The game supplies legacy, shardfile, grid and crossing
 tables. Crossing diagnostics partition preparation, boundary wait, checkpoint,

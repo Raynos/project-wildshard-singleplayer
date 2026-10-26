@@ -1,6 +1,19 @@
 import { expect, test } from 'vitest';
 import { LoadingTimeline, repeatedStep } from './timeline';
 
+test('the initial row accepts only a real setup fact tied to its original clock', () => {
+  const path = {id: 'fixture', steps: [{key: 'modules', label: 'Modules', weight: 1}]};
+  let shown = 80;
+  const timeline = new LoadingTimeline(path, 100, () => 200, () => shown, {at: 100, setup: 0});
+  timeline.begin('modules').end(); shown = 99;
+  expect(timeline.snapshot().rows[0]).toMatchObject({startedAt: 100, setupAtStart: 0});
+  for (const initial of [undefined, {at: 99, setup: 0}, {at: 100, setup: -1}, {at: 100, setup: 101},
+    {at: 100, setup: Number.NaN}, {at: 100, setup: 2.5}]) {
+    expect(new LoadingTimeline(path, 100, () => 200, () => shown, initial).snapshot().rows[0])
+      .not.toHaveProperty('setupAtStart');
+  }
+});
+
 test('timeline retains the displayed setup fact at first entry without reconstructing it later', () => {
   let now = 100, shown: number | undefined = 4, reads = 0;
   const timeline = new LoadingTimeline({id: 'fixture', steps: ['modules', 'world', 'nested', 'future']

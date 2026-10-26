@@ -32,13 +32,17 @@ export class LoadingTimeline {
   private readonly now: () => number;
   private readonly displayedSetup: (() => number | undefined) | undefined;
   constructor(path: LoadingPath, startedAt: number, now: () => number = () => performance.now(),
-    displayedSetup?: () => number | undefined) {
+    displayedSetup?: () => number | undefined, initialSetup?: {readonly at: number; readonly setup: number}) {
     this.path = path; this.now = now; this.at = startedAt; this.displayedSetup = displayedSetup;
     this.configure(path);
     const initial = this.gaps.pop(), first = path.steps[0];
     if (first !== undefined) {
       const row = this.rows.get(first.key);
-      if (row !== undefined) { row.started = true; row.startedAt = startedAt; row.ms = initial?.ms ?? 0; }
+      if (row !== undefined) {
+        row.started = true; row.startedAt = startedAt; row.ms = initial?.ms ?? 0;
+        if (initialSetup?.at === startedAt && Number.isInteger(initialSetup.setup)
+          && initialSetup.setup >= 0 && initialSetup.setup <= 100) row.setupAtStart = initialSetup.setup;
+      }
     }
   }
   configure(path: LoadingPath): void {

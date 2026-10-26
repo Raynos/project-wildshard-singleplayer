@@ -140,8 +140,10 @@
         if (document.documentElement.classList.contains('title-first')) return;
         const root = document.querySelector('.ws-load[data-shell]');
         if (!root) return;
+        const initialSetup = root.querySelector('[data-el="suPct"]')?.textContent;
         const started = performance.now();
         root.dataset.startedAt = String(started);
+        if (/^(?:100|\d{1,2})$/.test(initialSetup ?? '')) root.dataset.initialSetup = initialSetup;
         root.dataset.step = 'admission.modules';
         const field = (key, text) => { const el = root.querySelector('[data-el="' + key + '"]'); if (el && el.textContent !== text) el.textContent = text; };
         const slug = new URLSearchParams(location.search).get('chunk') || 'driftwood-isle';
