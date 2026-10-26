@@ -1,5 +1,3 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- Read every independently pinned original painted model.
-import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify all stored pixels after native KTX2 decompression.
 import { zstdDecompressSync } from 'node:zlib';
 import { expect, test } from 'vitest';
@@ -14,6 +12,7 @@ import { nalatiModelSourceParts } from '../src/shards/nalati-grasslands/generato
 import pins from './fixtures/nalati-model-paint.json' with { type: 'json' };
 import partPins from './fixtures/nalati-model-parts.json' with { type: 'json' };
 import { textureMipBytes } from '../src/format/contentBounds';
+import { originalPaintedModel } from './fixtures/nalati-painted-models';
 
 function isGeometry(value: unknown): value is BufferGeometry { return value instanceof BufferGeometry; }
 function isMaterial(value: unknown): value is Material { return value instanceof Material; }
@@ -25,7 +24,7 @@ function geometryOf(value: unknown): BufferGeometry {
 }
 
 test.each(pins)('separates $file with every original geometry byte and decoded atlas pixel', async pin => {
-  const input = new Uint8Array(readFileSync(`public/assets/nalati/baked/painted-models/${pin.file}`));
+  const input = await originalPaintedModel(pin.file);
   expect(input.byteLength).toBe(pin.bytes); expect(hashImmutableBytes(input)).toBe(pin.sha256);
   const beforeHash = hashImmutableBytes(input), source = nalatiModelSourceParts(input), parts = await nalatiModelParts(input);
   const partPin = partPins.find(row => row.file === pin.file); if (partPin === undefined) throw new Error('Missing complete model-part pin');
@@ -83,7 +82,7 @@ test.each(pins)('separates $file with every original geometry byte and decoded a
 
 test('refuses malformed extents, incomplete atlas declarations and a changed sampler without mutating inputs', async () => {
   const pin = pins[0]; if (pin === undefined) throw new Error('Missing original model pin');
-  const bytes = new Uint8Array(readFileSync(`public/assets/nalati/baked/painted-models/${pin.file}`));
+  const bytes = await originalPaintedModel(pin.file);
   await expect(nalatiModelParts(bytes.subarray(1))).rejects.toThrow();
   const view = new DataView(bytes.buffer), size = view.getUint32(12, true);
   const document = v.parse(v.looseObject({ samplers: v.array(v.looseObject({ magFilter: v.number() })) }), JSON.parse(new TextDecoder().decode(bytes.subarray(20, 20 + size))));
@@ -99,7 +98,7 @@ test('refuses malformed extents, incomplete atlas declarations and a changed sam
 
 test('refuses shared atlas views and dangling declarations before texture compilation', async () => {
   const pin = pins[0]; if (pin === undefined) throw new Error('Missing original model pin');
-  const bytes = new Uint8Array(readFileSync(`public/assets/nalati/baked/painted-models/${pin.file}`));
+  const bytes = await originalPaintedModel(pin.file);
   const size = new DataView(bytes.buffer).getUint32(12, true);
   const schema = v.looseObject({ bufferViews: v.array(v.looseObject({ byteOffset: v.number() })), accessors: v.array(v.looseObject({ bufferView: v.number() })) });
   type Document = v.InferOutput<typeof schema>;

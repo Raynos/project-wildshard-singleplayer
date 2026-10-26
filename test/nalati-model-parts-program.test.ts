@@ -11,6 +11,7 @@ import { readImagePixels } from '../src/sdk/bake/image';
 import { nalatiModelParts } from '../src/shards/nalati-grasslands/generators/modelParts';
 import { nalatiModelPartsProgram } from '../src/shards/nalati-grasslands/generators/modelPartsProgram';
 import originals from './fixtures/nalati-model-paint.json' with { type: 'json' };
+import { originalPaintedModel } from './fixtures/nalati-painted-models';
 
 const selected = ['boulder-1.glb', 'boulder-1.phone.glb', 'horse-wild.far.glb'];
 const hash = (text: string): string => hashImmutableBytes(new TextEncoder().encode(text));
@@ -37,7 +38,7 @@ test('cold, detached persistent hits and changed source/program keys retain the 
     const cold = await nalatiModelPartsProgram(context('original'), selected);
     expect([...cold.keys()]).toEqual(['boulder-1.glb', 'boulder-1.ktx2', 'boulder-1.phone.glb', 'boulder-1.phone.ktx2', 'horse-wild.far.glb']);
     for (const file of selected) {
-      const original = new Uint8Array(readFileSync(`public/assets/nalati/baked/painted-models/${file}`)), pin = originals.find(row => row.file === file);
+      const original = await originalPaintedModel(file), pin = originals.find(row => row.file === file);
       if (pin === undefined) throw new Error('Missing original model pin');
       expect(original.length).toBe(pin.bytes); expect(hashImmutableBytes(original)).toBe(pin.sha256);
       const expected = await nalatiModelParts(original), geometry = cold.get(file);
