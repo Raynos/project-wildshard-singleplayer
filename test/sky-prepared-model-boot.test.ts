@@ -1,11 +1,10 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- Verify the authored source entry and frozen legacy URL.
+// oxlint-disable-next-line import/no-nodejs-modules -- Verify public inputs and the original physics declaration.
 import { existsSync, readFileSync } from 'node:fs';
-// oxlint-disable-next-line import/no-nodejs-modules -- Supply the actual author project and declared native root.
+// oxlint-disable-next-line import/no-nodejs-modules -- Resolve the public pack inputs before product publication.
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { bootFileList, bootSourceFiles, bootLateReads } from '../src/engine/boot/filePolicy';
 import { parseDiscoveryValues } from '../src/format/discoveryValues';
-import { readProjectAssets } from '../src/sdk/project';
 import { BOOT_FILES, BOOT_SOURCES, LATE_READS, skyProductBoot } from '../src/shards/far-reach/generators/bootInventory';
 import { PREPARED_MODELS_URL } from '../src/shards/far-reach/generators/modelFrames';
 import { output } from '../src/shards/far-reach/generators/sourceOutput';
@@ -45,19 +44,4 @@ test('public boot omits only the product-owned geometry across both tiers and te
       expect(bootLateReads(boot['boot.lateReads'], tier, mode)).toEqual(LATE_READS);
     }
   }
-});
-
-test('actual SDK source entry binds boot discovery to the admitted complete geometry', async () => {
-  const built = await readProjectAssets(resolve('src/shards/far-reach'), undefined, {
-    folder: 'far-reach', imageRoots: [{ prefix: '/assets/', directory: resolve('public/assets') }],
-  });
-  const file = built.output.namedFiles?.find(row => row.name === 'world/geometry/prepared-models.glb');
-  if (file === undefined) throw new Error('Missing owned prepared geometry');
-  expect(file.hash).toBe(hash);
-  expect(`/shardfiles/far-reach/${file.path}`).toBe(owned);
-  expect(built.output.discovery).toEqual(skyProductBoot());
-  expect(built.assets.get(hash)).toEqual(new Uint8Array(readFileSync('public/assets/far-reach/baked/prepared-models.glb')));
-  expect(built.shard.files.find(row => row.hash === hash)).toMatchObject({
-    compressed: 10_134_100, decoded: 10_134_072, gpu: 10_096_780, triangles: 203_025, draws: 48,
-  });
 });

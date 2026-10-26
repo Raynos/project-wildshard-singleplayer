@@ -246,5 +246,8 @@
   "test/nalati-flock-view.test.ts": [],
   "test/mover-carry.test.ts": [
     "pine-hollow"
+  ],
+  "test/sky-prepared-model-product.test.ts": [
+    "far-reach"
   ]
 }
