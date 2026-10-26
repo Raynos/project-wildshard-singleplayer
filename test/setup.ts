@@ -15,7 +15,7 @@ import { prepareNativeScalarBlocks } from '../scripts/bake/nativeWorld.mjs';
 import { beforeEach, vi } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- the setup reads Nalati's committed bodies bake (species/bodies.ts)
 import { readFileSync } from 'node:fs';
-// oxlint-disable-next-line import/no-nodejs-modules -- the committed bake is a zlib stream the page inflates
+// oxlint-disable-next-line import/no-nodejs-modules -- Decode the exact pinned original lane-shuffled stream.
 import { inflateSync } from 'node:zlib';
 
 export class MemoryStorage {
@@ -106,7 +106,8 @@ try { await nalatiSpeciesCatalogue().preload(); } finally { bodyFetch.mockRestor
 const { unshuffleLanes: unshuffleBodyLanes } = await import('../src/engine/core/deflate');
 // and its camps' and bridge's places bake (world/placeBake.ts)
 const { SHAPES, SHAPE_BYTES } = await import('./fixtures/nalatiShapes');
-if (!SHAPES.ready) await SHAPES.load(new Map([...SHAPE_BYTES, ['/assets/nalati/baked/places.bin', unshuffleBodyLanes(new Uint8Array(inflateSync(readFileSync('public/assets/nalati/baked/places.bin'))))]]));
+const { originalPlaceBinary } = await import('./fixtures/nalati-original-place-binary');
+if (!SHAPES.ready) await SHAPES.load(new Map([...SHAPE_BYTES, ['/assets/nalati/baked/places.bin', unshuffleBodyLanes(new Uint8Array(inflateSync(await originalPlaceBinary())))]]));
 // Legacy fixtures include Pine's spawn-only thrall, without activating a rendered level.
 const { PINE_BOAR } = await import('../src/shards/pine-hollow/generators/speciesRows');
 const { HullLookBook } = await import('../src/game/looks/speciesBook');
