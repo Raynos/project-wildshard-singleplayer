@@ -59,6 +59,10 @@ assert.ok(Math.abs(hung[0][0]-5)<1e-6&&hung[1][0]<5&&hung[1][0]>4.5);
 // RM4.6: street props (flower planter, bench, crate stack), unlit and small
 const props=await prepareModelKit({},new Map([['props',new Uint8Array(readFileSync('public/assets/open-plots/kit/props.glb'))]]));
 for(const variant of [0,1,2]){const w=writer();props.placeModel(w,'props',variant,0,0);assert.equal(w.lights.length,0);assert.ok(w.tris.length>20&&w.tris.length<250);}
+// RM4.7: generated trees (round, tall, willow; Hunyuan3D-2), 8 m as built; scale stands one to a tree's crown top
+const trees=await prepareModelKit({},new Map([['trees',new Uint8Array(readFileSync('public/assets/open-plots/kit/trees.glb'))]]));
+for(const variant of [0,1,2]){const w=writer();trees.placeModel(w,'trees',variant,0,0,{scale:0.5});const ys=w.tris.flatMap(t=>t.points.map(q=>q[1]));
+ assert.equal(w.lights.length,0);assert.ok(w.tris.length>=300&&w.tris.length<=600);assert.ok(Math.max(...ys)>3.8&&Math.max(...ys)<4.2&&Math.min(...ys)>-0.05);}
 // RM7.1: canal coping (plain, bollard, steps), its origin on the wall line and its lip over the water in front (+z)
 const canal=await prepareModelKit({},new Map([['canal',new Uint8Array(readFileSync('public/assets/open-plots/kit/canal.glb'))]]));
 for(const variant of [0,1,2]){const w=writer();canal.placeModel(w,'canal',variant,0,0);const zs=w.tris.flatMap(t=>t.points.map(q=>q[2]));

@@ -233,11 +233,11 @@
    "script": "scripts/blender/open-plots/kit.py",
    "args": ["$BUILD"],
    "sources": ["scripts/blender/open-plots/kitlib.py", "scripts/blender/open-plots/model_source.py", "scripts/blender/lib/glb.py"],
-   "inputs": ["src/shards/open-plots/data/trim.json"],
+   "inputs": ["src/shards/open-plots/data/trim.json", "scripts/blender/open-plots/sources/tree-round.glb", "scripts/blender/open-plots/sources/tree-tall.glb", "scripts/blender/open-plots/sources/tree-willow.glb"],
    "lock": false,
-   "build": ["lanterns.glb", "stalls.glb", "houses.glb", "bridges.glb", "strings.glb", "props.glb", "canal.glb"],
-   "copy": [["lanterns.glb", "public/assets/open-plots/kit/lanterns.glb"], ["stalls.glb", "public/assets/open-plots/kit/stalls.glb"], ["houses.glb", "public/assets/open-plots/kit/houses.glb"], ["bridges.glb", "public/assets/open-plots/kit/bridges.glb"], ["strings.glb", "public/assets/open-plots/kit/strings.glb"], ["props.glb", "public/assets/open-plots/kit/props.glb"], ["canal.glb", "public/assets/open-plots/kit/canal.glb"]],
-   "outputs": ["public/assets/open-plots/kit/lanterns.glb", "public/assets/open-plots/kit/stalls.glb", "public/assets/open-plots/kit/houses.glb", "public/assets/open-plots/kit/bridges.glb", "public/assets/open-plots/kit/strings.glb", "public/assets/open-plots/kit/props.glb", "public/assets/open-plots/kit/canal.glb"],
+   "build": ["lanterns.glb", "stalls.glb", "houses.glb", "bridges.glb", "strings.glb", "props.glb", "canal.glb", "trees.glb"],
+   "copy": [["lanterns.glb", "public/assets/open-plots/kit/lanterns.glb"], ["stalls.glb", "public/assets/open-plots/kit/stalls.glb"], ["houses.glb", "public/assets/open-plots/kit/houses.glb"], ["bridges.glb", "public/assets/open-plots/kit/bridges.glb"], ["strings.glb", "public/assets/open-plots/kit/strings.glb"], ["props.glb", "public/assets/open-plots/kit/props.glb"], ["canal.glb", "public/assets/open-plots/kit/canal.glb"], ["trees.glb", "public/assets/open-plots/kit/trees.glb"]],
+   "outputs": ["public/assets/open-plots/kit/lanterns.glb", "public/assets/open-plots/kit/stalls.glb", "public/assets/open-plots/kit/houses.glb", "public/assets/open-plots/kit/bridges.glb", "public/assets/open-plots/kit/strings.glb", "public/assets/open-plots/kit/props.glb", "public/assets/open-plots/kit/canal.glb", "public/assets/open-plots/kit/trees.glb"],
    "feeds": ["src/shards/open-plots/generators/kitGlb.mjs"]
   }
  }

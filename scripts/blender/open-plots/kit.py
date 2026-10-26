@@ -16,7 +16,7 @@ SLOTS = {'iron': '#2b2b33', 'gold': '#d8a23e', 'paper': '#ff5b32', 'stone': '#8a
          'fruit': '#e8892a', 'greens': '#5e9e3e', 'crate': '#8a5a34', 'board': '#14203f', 'awning': '#ff7a2e',
          'roof': '#1c2858', 'wall': '#e9d6b0', 'window': '#ffc96a', 'door': '#4a2a1a', 'bridge': '#d9d5cc',
          'bridgeTop': '#c9c4ba', 'soil': '#3a2a20', 'foliage': '#3f8a36', 'flowerRed': '#e0334a', 'flowerGold': '#f2b632',
-         'flowerWhite': '#f2ede4', 'sack': '#b89a6a'}
+         'flowerWhite': '#f2ede4', 'sack': '#b89a6a', 'trunk': '#5a4030'}
 # Each lit slot's ruled trim (data/trim.json, sp-o2's RM5.3 kit material); every other slot and all Glow faces are plain.
 TRIMS = {'stone': 'stone', 'bridge': 'stone', 'bridgeTop': 'stone', 'roof': 'roofTile', 'stallRoof': 'roofTile', 'wood': 'timber', 'timber': 'timber',
          'wall': 'plaster', 'plaster': 'plaster', 'cloth': 'awningStripe'}
@@ -409,13 +409,15 @@ def coping_steps():
 SOURCES = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'sources')
 
 
-def generated_tree(name, height, faces):
-    """A tree from its image-to-3D source (sources/<name>.glb, model_source.py): decimated to about `faces` flat
-    triangles, each face Kit.foliage or Kit.trunk by its colour (green or not), its tint the face's brightness against its
-    class's bright facets (so the light and dark facets survive a palette retint); the trunk's foot at the origin,
-    `height` metres tall."""
+def generated_tree(name, height, faces, voxel=45):
+    """A tree from its image-to-3D source (sources/<name>.glb, model_source.py), `height` metres tall with the trunk's
+    foot at the origin: voxel-remeshed into closed masses (a generated crown is many open, intersecting lumps that a
+    decimator tears), decimated to about `faces` flat triangles, each face coloured as the nearest source face; then
+    Kit.foliage or Kit.trunk by that colour (green or not), its tint the face's brightness against its class's bright
+    facets (so light and dark facets survive a palette retint)."""
     import bmesh
     import bpy
+    from mathutils.bvhtree import BVHTree
     before = set(bpy.data.objects)
     bpy.ops.import_scene.gltf(filepath=os.path.join(SOURCES, f'{name}.glb'))
     obj = next(o for o in bpy.data.objects if o not in before and o.type == 'MESH')
@@ -424,8 +426,24 @@ def generated_tree(name, height, faces):
     bpy.context.view_layer.objects.active = obj
     obj.select_set(True)
     bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+    mesh = obj.data
+    zs = [v.co.z for v in mesh.vertices]
+    low, top = min(zs), max(zs)
+    foot = [v.co for v in mesh.vertices if v.co.z < low + 0.08 * (top - low)]
+    cx, cy, k = sum(c.x for c in foot) / len(foot), sum(c.y for c in foot) / len(foot), height / (top - low)
+    for v in mesh.vertices:
+        v.co.x, v.co.y, v.co.z = (v.co.x - cx) * k, (v.co.y - cy) * k, (v.co.z - low) * k
+    # the source's colours, face by face, behind a nearest-face lookup
+    colours = mesh.color_attributes[0]
+    source = []
+    for poly in mesh.polygons:
+        values = [colours.data[i if colours.domain == 'CORNER' else mesh.loops[i].vertex_index].color for i in poly.loop_indices]
+        source.append([sum(c[j] for c in values) / len(values) for j in range(3)])
+    tree = BVHTree.FromPolygons([v.co.copy() for v in mesh.vertices], [list(p.vertices) for p in mesh.polygons], epsilon=0.0)
+    mesh.remesh_voxel_size = height / voxel  # a coarser voxel merges a willow's fronds into masses the decimator can reach
+    bpy.ops.object.voxel_remesh()
     mod = obj.modifiers.new('decimate', 'DECIMATE')
-    mod.ratio = min(1.0, faces / max(1, len(obj.data.polygons)))
+    mod.ratio = min(1.0, faces / max(1, 2 * len(obj.data.polygons)))  # its ratio counts triangles: a quad is two
     bpy.ops.object.modifier_apply(modifier=mod.name)
     bm = bmesh.new()
     bm.from_mesh(obj.data)
@@ -433,17 +451,7 @@ def generated_tree(name, height, faces):
     bm.to_mesh(obj.data)
     bm.free()
     mesh = obj.data
-    colours = mesh.color_attributes[0]
-    zs = [v.co.z for v in mesh.vertices]
-    low, top = min(zs), max(zs)
-    foot = [v.co for v in mesh.vertices if v.co.z < low + 0.08 * (top - low)]
-    cx, cy, k = sum(c.x for c in foot) / len(foot), sum(c.y for c in foot) / len(foot), height / (top - low)
-    for v in mesh.vertices:
-        v.co.x, v.co.y, v.co.z = (v.co.x - cx) * k, (v.co.y - cy) * k, (v.co.z - low) * k
-    rgb = []
-    for poly in mesh.polygons:
-        values = [colours.data[i if colours.domain == 'CORNER' else mesh.loops[i].vertex_index].color for i in poly.loop_indices]
-        rgb.append([sum(c[j] for c in values) / len(values) for j in range(3)])
+    rgb = [source[tree.find_nearest(poly.center)[2]] for poly in mesh.polygons]
     green = [g > r * 1.08 and g > b * 1.08 for r, g, b in rgb]
     lum = [0.3 * r + 0.59 * g + 0.11 * b for r, g, b in rgb]
     reference = {}
@@ -555,6 +563,9 @@ def main():
     build_family(out, 'houses', [cottage, two_storey, hall], TRIMS, {'slots': SLOTS})
     reset_scene()
     build_family(out, 'props', [flower_planter, bench, crate_stack], TRIMS, {'slots': SLOTS})
+    reset_scene()
+    build_family(out, 'trees', [lambda: generated_tree('tree-round', 8.0, 420), lambda: generated_tree('tree-tall', 8.0, 420),
+                                lambda: generated_tree('tree-willow', 8.0, 520, voxel=24)], TRIMS, {'slots': SLOTS})
     reset_scene(ground=-1.0)  # the string's bulbs and lanterns hang below their hooks (origin y 0)
     build_family(out, 'strings', [string_bulb, string_lantern, lane_post], TRIMS, {'slots': SLOTS})
     reset_scene(ground=BRIDGE['water'])
