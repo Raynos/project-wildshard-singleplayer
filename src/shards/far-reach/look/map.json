@@ -19,7 +19,6 @@
     "manifest.json",
     "data/rocSlate.json",
     "data/lookGraphs.json",
-    "data/groundScene.generated.json",
     "data/staticScenes.generated.json",
     "data/routeScene.generated.json",
     "data/isletScenes.generated.json",
@@ -302,7 +301,7 @@
       ],
       "recipes": [
         {
-          "file": "data/groundScene.generated.json",
+          "file": "owned-ground.json",
           "path": [
             "SKY_GROUND",
             "recipe"

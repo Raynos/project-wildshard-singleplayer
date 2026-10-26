@@ -12528,7 +12528,6 @@
         "src/shards/far-reach/manifest.json",
         "src/shards/far-reach/data/rocSlate.json",
         "src/shards/far-reach/data/lookGraphs.json",
-        "src/shards/far-reach/data/groundScene.generated.json",
         "src/shards/far-reach/data/staticScenes.generated.json",
         "src/shards/far-reach/data/routeScene.generated.json",
         "src/shards/far-reach/data/isletScenes.generated.json",

@@ -1,6 +1,7 @@
 import { skyWorldPieceSource } from './worldPieceBytes';
 import { skyWorldPackFiles } from './worldPackBytes';
 import { bakeSkyIsles } from './isles';
+import { skyGroundSource } from './groundScene';
 
 /** Supply every original world input the map consumes, without public geometry or metadata reads. */
 export function skyMapWorldSources(compress: (bytes: Uint8Array) => Uint8Array): Map<string, Uint8Array> {
@@ -12,5 +13,6 @@ export function skyMapWorldSources(compress: (bytes: Uint8Array) => Uint8Array):
   for (const [name, bytes] of skyWorldPackFiles('isles', bakeSkyIsles(), compress)) {
     sources.set(name.startsWith('baked/') ? `../../../public/assets/far-reach/${name}` : name, bytes);
   }
+  sources.set('owned-ground.json', skyGroundSource());
   return sources;
 }
