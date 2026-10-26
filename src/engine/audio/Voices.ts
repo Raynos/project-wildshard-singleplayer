@@ -93,9 +93,22 @@ export class VoicePool {
   constructor(host: Host) {
     this.host = host;
   }
+  /** PCM belongs to the definition that rendered it, not a reused family name.
+   * Playing sources keep their own buffers; only the retired cache is cleared. */
+  private forgetFamily(id: string): void {
+    const variants = this.bufs.get(id)?.length ?? 0;
+    this.bufs.delete(id); this.last.delete(id);
+    for (let variant = 0; variant < variants; variant++) for (let channel = 0; channel < 2; channel++) this.done.delete(`${id}/${variant}/${channel}`);
+    this.warm = this.warm.filter(([name]) => name !== id);
+  }
   register(table: VoiceTable, scope?: Scope): () => void {
-    for (const [id, entry] of Object.entries(table)) this.tables.set(id, entry);
-    const remove = (): void => { for (const [id, entry] of Object.entries(table)) if (this.tables.get(id) === entry) this.tables.delete(id); };
+    for (const [id, entry] of Object.entries(table)) {
+      if (this.tables.get(id) !== entry) this.forgetFamily(id);
+      this.tables.set(id, entry);
+    }
+    const remove = (): void => { for (const [id, entry] of Object.entries(table)) if (this.tables.get(id) === entry) {
+      this.tables.delete(id); this.forgetFamily(id);
+    } };
     scope?.onDispose(remove);
     return remove;
   }
