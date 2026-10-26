@@ -19,4 +19,4 @@ export const DRIFTWOOD_FAUNA: SpawnTables[number] = {
   })) },
 };
 
-export const DRIFTWOOD_SPAWNS = [DRIFTWOOD_FAUNA, DRIFTWOOD_ENEMIES, DRIFTWOOD_PRACTICE];
+export const DRIFTWOOD_SPAWNS: { id: string; table: { mode: "each" | "weighted"; rows: ({ item: { kind: string; variant?: string; }; weight: number; count?: (number) | ([number, number]); when?: { kind?: string; tags?: (string)[]; }; })[]; }; respawn?: { delay: number; away: number; }; }[] = [DRIFTWOOD_FAUNA, DRIFTWOOD_ENEMIES, DRIFTWOOD_PRACTICE];

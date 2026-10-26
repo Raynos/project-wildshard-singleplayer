@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import TRAIL_FONT from '../data/trailFont.generated.json' with { type: 'json' };
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { Rng } from '@wildshard/engine/core/rng';
-import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
+import { defineModel, type ModelContext, type ModelPart, type ModelDef as ModelDefType } from '@wildshard/engine/models/model';
 
 
 /**
@@ -23,7 +23,7 @@ const C = {
   plank: new THREE.Color('#a07c53'), plankDark: new THREE.Color('#7d5f3f'), board: new THREE.Color('#b8925f'), boardEdge: new THREE.Color('#6a4e33'),
   letter: new THREE.Color('#3b2716'),
 };
-export const TRAIL_COLOURS = C;
+export const TRAIL_COLOURS: { post: THREE.Color; postTop: THREE.Color; rope: THREE.Color; plank: THREE.Color; plankDark: THREE.Color; board: THREE.Color; boardEdge: THREE.Color; letter: THREE.Color; } = C;
 
 /** the trail's one material (the dressing and the trail's own geometry share it: one draw) */
 export function trailMaterial(ctx: ModelContext): THREE.MeshStandardMaterial {
@@ -49,7 +49,7 @@ export function trailPart(parts: THREE.BufferGeometry[], rng: Rng): (g: THREE.Bu
 const one = (ctx: ModelContext, parts: THREE.BufferGeometry[]): ModelPart[] =>
   [{ geometry: parts.length === 1 && parts[0] ? parts[0] : mergeGeometries(parts, false), material: trailMaterial(ctx), castShadow: true, receiveShadow: true }];
 
-export const fencePost = defineModel<Record<string, never>>({
+export const fencePost: ModelDefType<Record<string, never>> = defineModel<Record<string, never>>({
   ...fencePostDefinition,
   build: (ctx, _p, rng) => {
     const parts: THREE.BufferGeometry[] = [], add = trailPart(parts, rng);
@@ -88,7 +88,7 @@ function lettering(text: string, cx: number, side: 1 | -1): THREE.BufferGeometry
   return out;
 }
 
-export const signpost = defineModel<SignpostParams>({
+export const signpost: ModelDefType<SignpostParams> = defineModel<SignpostParams>({
   ...signpostDefinition,
   build: (ctx, p, rng) => {
     const parts: THREE.BufferGeometry[] = [], add = trailPart(parts, rng);
@@ -118,7 +118,7 @@ export interface PlankStepParams {
   readonly dark: boolean;
 }
 
-export const plankStep = defineModel<PlankStepParams>({
+export const plankStep: ModelDefType<PlankStepParams> = defineModel<PlankStepParams>({
   ...plankStepDefinition,
   build: (ctx, p, rng) => {
     const parts: THREE.BufferGeometry[] = [], add = trailPart(parts, rng);

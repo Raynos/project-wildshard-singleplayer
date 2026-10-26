@@ -36,8 +36,7 @@ const criticalFiles = timbers.shardfile.files.filter(file => timbers.shardfile.c
 const scriptMemory = 14 * 65536 + shelterProgram.script.pages * 65536 * 2;
 const row = (heights: readonly number[]): { heights: number[]; colours: [number, number, number][]; roadHeight: 0 } =>
   ({ heights: [...heights], colours: heights.map((): [number, number, number] => [0.25, 0.25, 0.25]), roadHeight: 0 });
-// oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
-export default parseShardfile({
+const authoredProduct: ReturnType<typeof parseShardfile> = parseShardfile({
   ...base, ...world.shardfile, plumbing, props: world.props,
   files: [...world.shardfile.files, ...journal.files], library: [...world.shardfile.library, ...journal.files.map(file => file.hash)],
   budgets: { ...base.budgets, sim: { resident: scriptMemory + criticalFiles.reduce((n, file) => n + file.decoded + file.gpu, 0), compressed: criticalFiles.reduce((n, file) => n + file.compressed, 0) }, library: { resident: libraryFiles.reduce((n, file) => n + file.decoded + file.gpu, 0), compressed: libraryFiles.reduce((n, file) => n + file.compressed, 0) } },
@@ -51,3 +50,5 @@ export default parseShardfile({
   quests: parseQuestData({ ...people.quests, achievements: PINE_FEATS }),
   questHost: PINE_QUEST_HOST, questNpcs: people.rows, ledger: PINE_LEDGER, items: PINE_ITEMS, state: PINE_STATE, audio: AUDIO.audio, spawn: { x: 0, y: 0, z: -235, yaw: Math.PI },
 });
+// oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
+export default authoredProduct;

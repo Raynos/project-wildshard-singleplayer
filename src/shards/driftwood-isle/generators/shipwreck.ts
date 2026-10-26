@@ -88,7 +88,7 @@ function halfWidthAt(t: number, y: number): number {
 }
 
 /** the wreck's palette (the world's surroundings paint with it too) */
-export const WRECK_COLOURS = C;
+export const WRECK_COLOURS: { hull: string; hullB: string; hullDark: string; hullGrey: string; wale: string; rib: string; weed: string; weedDark: string; moss: string; mossLight: string; barnacle: string; deck: string; deckB: string; rail: string; mast: string; sail: string; sailB: string; sailStain: string; rope: string; ropeDark: string; barrel: string; barrelB: string; band: string; crate: string; crateB: string; driftDark: string; net: string; rock: string; rockB: string; rockDark: string; brass: string; iron: string; floor: string; floorB: string; door: string; flame: string; } = C;
 
 /** a cargo copy the wreck stowed or strewed: its kind, where (the matrix it was added at), its size (a crate's side, a coil's radius) */
 export interface CargoCopy { readonly kind: 'barrel' | 'lying' | 'crate' | 'broken' | 'coil'; readonly matrix: THREE.Matrix4; readonly size: number }

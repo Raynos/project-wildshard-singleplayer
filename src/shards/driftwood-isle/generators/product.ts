@@ -44,8 +44,7 @@ const simulationFiles = [...navigation.files, ...fixed.files.filter(file => fixe
 const coat = captainCoat.file;
 // The fixed view guest retains live and rewind memory under the existing client limits.
 const viewMemory = bridgeSwayModule.pages * 65536 * 2;
-// oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
-export default parseShardfile({
+const authoredProduct: ReturnType<typeof parseShardfile> = parseShardfile({
   ...base,state:{...base.state,shared:CAPTAIN_FIELDS}, rows: { ...base.rows, loot: [LOOT] },
   sim: { ...base.sim, scripts: [] },
   navigation: navigation.navigation, files: [...navigation.files, ...fixed.files, coat], critical: [...navigation.critical, ...fixed.critical],
@@ -75,3 +74,5 @@ export default parseShardfile({
     colliders: ENTRY_LANDINGS.map((landing) => ({ id: `landing.${landing.edge}`, panel: null, initialActive: true, shapes: [{ ...landing.box }] })) },
   spawn: { x: 0, y: 1.2, z: -194, yaw: Math.PI },
 });
+// oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
+export default authoredProduct;

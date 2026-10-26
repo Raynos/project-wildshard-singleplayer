@@ -67,8 +67,7 @@ const tiles = terrain.tiles.map((tile) => {
 // follow, changes these numbers.
 const TERRAIN_DRAW = { shadow: { cast: true, receive: true }, follow: 5 } as const;
 // This declaration is the live source; the manifest supplies only picker metadata.
-// oxlint-disable-next-line import/no-default-export -- The root config imports this author-only declaration.
-export default parseShardfile({ ...base, accent: 'ember',
+const authoredProduct: ReturnType<typeof parseShardfile> = parseShardfile({ ...base, accent: 'ember',
   budgets: { library: { resident: 100_000 + INK_SKIN_COST.resident + CLIENT_IDLE_RESIDENT + 2_633_280, compressed: 100_000 + CLIENT_IDLE_BYTES + INK_SKIN_COST.compressed }, sim: { resident: 16_000_000, compressed: 2_000_000 }, overlap: 0 },
   serverBudget: { ...base.serverBudget, tickMicros: 5_000, memory: 16_000_000 },
   look: { ...look, materials: { ...look.materials, rock: { ...look.materials.rock, graph: rock } }, post: [{ graph: edge }] }, spawn, rows: { ...INK_ROWS, looks: INK_SKIN_LOOKS }, plumbing: parsePlumbing(plumbing), ui: INK_UI,
@@ -78,3 +77,5 @@ export default parseShardfile({ ...base, accent: 'ember',
   quests: parseQuestData(quests), ledger: parseLedgerRules(ledger), audio: parseAudioData(audio), state: hooks.state, hooks: hooks.hooks,
   sim: { ...base.sim, scriptTickDivisor: 1, scripts: [door.hash, itemModule], bindings: [{ module: door.hash, entity: playerHandle, actorId: 'actor.player', kind: 'server' }] },
 });
+// oxlint-disable-next-line import/no-default-export -- The root config imports this author-only declaration.
+export default authoredProduct;

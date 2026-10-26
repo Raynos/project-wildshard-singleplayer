@@ -29,7 +29,7 @@ const { beam, length, floor } = BOAT_LAYOUT;
 const h = spec.heading, cs = Math.cos(h), sn = Math.sin(h);
 const wall = (lx: number, lz: number, hw: number, hd: number) => ({ x: spec.x + lx * cs + lz * sn, z: spec.z - lx * sn + lz * cs, hw, hd, rot: h === 0 ? 0 : -h, yTop: spec.waterY + 0.8, yBottom: spec.waterY - 1.2 });
 /** The boat keeps its live pose; its rest-space facts are compiled offline. */
-export const STATIC_BOAT = { spec,
+export const STATIC_BOAT: { spec: { heading: number; waterY: number; x: number; z: number; }; placement: { x: number; y: number; z: number; }; walls: { x: number; z: number; hw: number; hd: number; rot: number; yTop: number; yBottom: number; }[]; floors: { x: number; z: number; hw: number; hd: number; y: number; rot: number; }[]; cleats: number[]; colliders: ColliderDesc[]; } = { spec,
   placement: { x: spec.x, y: spec.waterY, z: spec.z },
   walls: [wall(-beam / 2, 0, 0.08, length / 2), wall(beam / 2, 0, 0.08, length / 2), wall(0, -length / 2, beam / 2, 0.08), wall(0, length / 2, beam / 2, 0.08)],
   floors: [{ x: spec.x, z: spec.z, hw: beam / 2 * 0.8, hd: length / 2 - 0.3, y: spec.waterY + floor, rot: spec.heading }],
@@ -39,14 +39,14 @@ export const STATIC_BOAT = { spec,
 const pier = piers.find(row => row.world !== null)?.world;
 if (pier === undefined) throw new Error('World gulls require the south pier');
 /** Preserve the exact pier, boat, shore, beach order consumed by the seeded flock. */
-export const WORLD_GULL_PERCHES = [
+export const WORLD_GULL_PERCHES: { x: number; y: number; z: number; }[] = [
   ...pier.posts.map(([x = 0, z = 0]) => ({ x, y: pier.deckY + 1.02, z })),
   ...pier.bollards.map(([x = 0, z = 0]) => ({ x, y: pier.deckY + 1.41, z })),
   { x: -4.2, y: LOWERED_SEA + 0.78, z: -CHUNK_HALF + 6 - 3.0 }, { x: -4.2, y: LOWERED_SEA + 0.7, z: -CHUNK_HALF + 6 + 3.0 },
   ...shore.perches.map(([x = 0, y = 0, z = 0]) => ({ x, y, z })),
   ...foliage.gullPerches,
 ];
-export const SHORE_BOULDERS = { placements: shore.placements, boxes: shore.boxes };
+export const SHORE_BOULDERS: { placements: { x: number; y: number; z: number; yaw: number; leanX: number; leanZ: number; params: { r: number; squash: number; }; }[]; boxes: { x: number; z: number; hw: number; hd: number; rot: number; yTop: number; yBottom: number; }[]; } = { placements: shore.placements, boxes: shore.boxes };
 
 /** Inclusive road-deck floors on the existing rectangular floor host. */
-export const ENTRY_FLOORS = ENTRY_DECKS.map(({ slab }) => ({ x: slab.x, z: slab.z, hw: slab.hw, hd: slab.hd, y: slab.yTop, rot: slab.rot }));
+export const ENTRY_FLOORS: { x: number; z: number; hw: number; hd: number; y: 0; rot: 0; }[] = ENTRY_DECKS.map(({ slab }) => ({ x: slab.x, z: slab.z, hw: slab.hw, hd: slab.hd, y: slab.yTop, rot: slab.rot }));

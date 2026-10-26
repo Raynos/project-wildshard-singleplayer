@@ -48,7 +48,7 @@ const row = (side: keyof typeof NALATI_EDGES): { heights: number[]; colours: [nu
   heights: [...NALATI_EDGES[side].heights], colours: NALATI_EDGES[side].colours.map(([r, g, b]): [number, number, number] => [r, g, b]), roadHeight: 0,
 });
 const {scene,...audioRows}=audio.audio;
-export const AUDIO_SCENE=scene;
+export const AUDIO_SCENE: typeof audio.audio.scene =scene;
 const base = emptyShardfile({ slug: 'nalati-grasslands', name: 'Nalati Grasslands', author: 'Wildshard', revision: 1, seed: 0x4a1a });
 // G384: the creatures' navigation is the platform's WSNM row over the original bytes (generators/navigation.ts), and the
 // ground's native lattice is query-only terrain (generators/terrain.ts: no render tiles; the bound runtime keeps rendering
@@ -74,8 +74,7 @@ const programMemory = programs.reduce((sum, program) => sum + program.script.pag
   + admission.compiled.bytes+admissionProjection.artifact.pages*65536*2;
 // the creature, elite and Titan view modules (behaviour/creatureViews.as, eliteViews.as, titanView.as, titanFireView.as, titanWhirlsView.as): their live and last-good pages on the client
 const viewMemory = (creatureViews.pages + eliteViews.pages + titanView.pages + titanFireView.pages + titanWhirlsView.pages) * 65536 * 2;
-// oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
-export default parseShardfile({ ...base,
+const authoredProduct: ReturnType<typeof parseShardfile> = parseShardfile({ ...base,
   navigation: navigation.navigation, terrain: queryTerrain.terrain, files: [...files, ...renderTiles.files].sort((a, b) => a.hash.localeCompare(b.hash)), critical: [...navigation.critical, ...queryTerrain.critical],
   tiles: renderTiles.tiles, props: renderTiles.props,
   serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + resident + programMemory },
@@ -85,3 +84,5 @@ export default parseShardfile({ ...base,
   clientChannels: compactChannels([...Object.values(speciesData.poses).flatMap(pose => parseClientChannels(pose.programs)),...kingPose.programs,...herdChannels.clientChannels,...weatherChannels.clientChannels,...peopleChannels.clientChannels]),
   modes: ecology.modes, quests: {...questContent.quests,achievements:NALATI_FEATS}, ledger: parseLedgerRules(NALATI_LEDGER), state: NALATI_STATE, items, audio: {...audioRows,sceneFile:'audio/scene.json'}, spawn: { x: 0, y: 0, z: 232, yaw: 0 },
   edge: { north: row('north'), east: row('east'), south: row('south'), west: row('west') } });
+// oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
+export default authoredProduct;

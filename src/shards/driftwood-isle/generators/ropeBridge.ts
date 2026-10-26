@@ -282,7 +282,7 @@ class RopeBridgeBuilder {
     return merged;
   }
 
-  facts() {
+  facts() : { origin: { x: number; y: number; z: number; }; width: number; sag: number; ya: number; yb: number; len: number; direction: { x: number; z: number; }; segments: { x: number; y: number; z: number; hz: number; rot: { x: number; y: number; z: number; w: number; }; }[]; planks: { seg: number; z: number; w: number; }[]; colours: { r: number; g: number; b: number; }[]; ropeColour: { r: number; g: number; b: number; }; ropeCapacity: number; colliders: Collider[]; descs: ColliderDesc[]; ownDescs: ColliderDesc[]; deck: ColliderDesc[]; } {
     const colour = new THREE.Color(), ownDescs = this.colliderDescs();
     for (const desc of ownDescs) if (desc.kind !== 'treads') { desc.x -= this.o.x; desc.y -= this.o.y; desc.z -= this.o.z; }
     return { origin:this.o, width:this.width, sag:this.sag, ya:this.ya, yb:this.yb, len:this.len,
