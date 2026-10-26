@@ -1,0 +1,120 @@
+import {expect, test} from 'vitest';
+// oxlint-disable-next-line import/no-nodejs-modules -- Exercise the actual regional hook without constructing a GPU world.
+import {readFileSync} from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Strip only the hook's types for controlled preparation ports.
+import {stripTypeScriptTypes} from 'node:module';
+// oxlint-disable-next-line import/no-nodejs-modules -- Execute repository source, never a copied scheduling implementation.
+import {runInNewContext} from 'node:vm';
+import {Group, type Object3D} from 'three';
+import {Scope} from '@wildshard/engine/app/scope';
+
+function deferred() {
+  let finish: () => void = () => undefined;
+  const promise = new Promise<void>(resolve => {finish = resolve;});
+  return {promise, resolve: () => {finish();}};
+}
+async function flush(): Promise<void> {for (let i = 0; i < 5; i++) await Promise.resolve();}
+async function settle(promise: Promise<void>): Promise<unknown> {try {await promise; return null;} catch (error) {return error;}}
+
+function fixture(options: {models?: boolean; prepare?: (root: Object3D) => Promise<void>; enabled?: boolean} = {}) {
+  const source = readFileSync(new URL('regionalRuntime.ts', import.meta.url), 'utf8');
+  const declarationsStart = source.indexOf('          let enteredWarm:');
+  const declarationsEnd = source.indexOf('          return { ...installation, context,', declarationsStart);
+  const hookStart = source.indexOf('            afterWorld: async entered =>', declarationsEnd);
+  const hookEnd = source.indexOf('            afterKit: async entered =>', hookStart);
+  if ([declarationsStart, declarationsEnd, hookStart, hookEnd].some(at => at < 0)) throw new Error('Regional hook ports missing');
+  const factory: unknown = runInNewContext(stripTypeScriptTypes(`(function(ports) {
+    const {owner, foundation, request, view, preparedModels, preparing, world} = ports;
+    ${source.slice(declarationsStart, declarationsEnd)}
+    const hooks = {${source.slice(hookStart, hookEnd)}};
+    return {start: () => hooks.afterWorld(null), kit: () => {if (typeof equipmentReady === 'function') equipmentReady();},
+      content: () => {contentReady(); forgetContent();}, result: () => enteredWarm};
+  })`), {Promise});
+  if (typeof factory !== 'function') throw new Error('Regional hook factory missing');
+  const owner = new Scope('equipment-overlap'), root = new Group(), models = new Group();
+  root.visible = false; models.visible = false; models.name = 'staged-equipment';
+  const calls: string[] = [], worldReady = deferred();
+  const ports = {owner, view: {root}, preparedModels: options.models === false ? null : models, preparing: options.enabled !== false, world: {},
+    foundation: {prepareWorldMaterials: (): void => {calls.push('look');}, beforeWarm: (): void => {calls.push('before-final');}},
+    request: {page: {world: {game: {warmEnteredFrame: async (scope: Scope, lighting: Object3D,
+      before: (prepare: (roots: readonly Object3D[]) => Promise<void>) => Promise<void>): Promise<void> => {
+      expect(scope).toBe(owner); expect(lighting).toBe(root);
+      await before(async roots => {
+        expect(roots).toHaveLength(1); const object = roots[0]; if (object === undefined) throw new Error('Missing prepared root');
+        expect(object === root || object === models).toBe(true); calls.push(object === root ? 'world' : 'equipment');
+        if (object === root) worldReady.resolve();
+        await options.prepare?.(object);
+      });
+      calls.push('final');
+    }}}}},
+  };
+  const instance: unknown = Reflect.apply(factory, undefined, [ports]);
+  if (typeof instance !== 'object' || instance === null) throw new Error('Regional fixture missing');
+  const invoke = (name: string): unknown => {
+    const method: unknown = Reflect.get(instance, name);
+    if (typeof method !== 'function') throw new Error('Missing fixture method');
+    const value: unknown = Reflect.apply(method, instance, []); return value;
+  };
+  const task = (name: string): Promise<void> => {
+    const value = invoke(name);
+    if (typeof value !== 'object' || value === null || typeof Reflect.get(value, 'then') !== 'function') throw new Error('Missing preparation task');
+    return Promise.resolve(value).then(() => undefined);
+  };
+  return {owner, root, models, calls, worldReady: worldReady.promise, start: () => task('start'), kit: () => {invoke('kit');},
+    content: () => {invoke('content');}, result: () => task('result'), rawResult: () => invoke('result')};
+}
+
+test('completed equipment prepares while play is pending and final readiness still waits', async () => {
+  const f = fixture();
+  await f.start(); const result = f.result(), observed = settle(result);
+  try {
+    await f.worldReady; await flush(); expect(f.calls).toEqual(['look', 'world']);
+    f.kit(); await flush();
+    expect(f.calls).toEqual(['look', 'world', 'equipment']);
+    expect(f.root.visible).toBe(false); expect(f.models.visible).toBe(false);
+    f.content(); await result;
+    expect(f.calls).toEqual(['look', 'world', 'equipment', 'before-final', 'final']);
+  } finally {f.content(); f.owner.dispose(); await observed;}
+});
+
+test('late equipment still gates a play phase that finished first', async () => {
+  const equipment = deferred();
+  const f = fixture({prepare: object => object.name === 'staged-equipment' ? equipment.promise : Promise.resolve()});
+  await f.start(); const result = f.result(), observed = settle(result);
+  try {
+    await f.worldReady; f.content(); await flush(); expect(f.calls).toEqual(['look', 'world']);
+    f.kit(); await flush(); expect(f.calls).toEqual(['look', 'world', 'equipment']);
+    equipment.resolve(); await result;
+    expect(f.calls.at(-1)).toBe('final');
+  } finally {equipment.resolve(); f.content(); f.owner.dispose(); await observed;}
+});
+
+test('retirement while waiting for the kit wakes the rendezvous without preparing retired models', async () => {
+  const f = fixture();
+  await f.start(); const result = f.result(), observed = settle(result);
+  try {
+    await f.worldReady; await flush(); f.owner.dispose();
+    expect(String(await observed)).toMatch(/left before.*warm-up/u);
+    expect(f.calls).toEqual(['look', 'world']);
+  } finally {f.content(); f.owner.dispose(); await observed;}
+});
+
+test('equipment preparation refusal propagates and never publishes the final inventory', async () => {
+  const f = fixture({prepare: object => object.name === 'staged-equipment' ? Promise.reject(new Error('equipment refused')) : Promise.resolve()});
+  await f.start(); const result = f.result(), observed = settle(result);
+  try {
+    await f.worldReady; f.kit(); f.content();
+    expect(String(await observed)).toContain('equipment refused');
+    expect(f.calls).toEqual(['look', 'world', 'equipment']);
+  } finally {f.content(); f.owner.dispose(); await observed;}
+});
+
+test('no staged models preserves the final warm and ordinary entries start no speculative work', async () => {
+  const f = fixture({models: false}), ordinary = fixture({enabled: false});
+  await f.start(); const result = f.result(), observed = settle(result);
+  try {
+    f.kit(); f.content(); await result;
+    expect(f.calls).toEqual(['look', 'world', 'before-final', 'final']);
+    await ordinary.start(); expect(ordinary.rawResult()).toBeNull(); expect(ordinary.calls).toEqual([]);
+  } finally {f.content(); f.owner.dispose(); ordinary.owner.dispose(); await observed;}
+});

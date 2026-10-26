@@ -258,6 +258,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
           const prepareFrame = foundation.prepare;
           let preparedModels: Object3D | null = null;
           let enteredWarm: Promise<void> | null = null;
+          let equipmentReady: () => void = () => undefined;
           let contentReady: () => void = () => undefined;
           let forgetContent: () => void = () => undefined;
           return { ...installation, context,
@@ -288,11 +289,17 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
             afterWorld: async entered => {
               await foundation.afterWorld?.(entered, world);
               if (!preparing || foundation.prepareWorldMaterials === undefined) return;
+              const equipment = new Promise<void>(resolve => { equipmentReady = resolve; });
               const content = new Promise<void>(resolve => { contentReady = resolve; });
-              forgetContent = owner.capture('disposers', () => { contentReady(); });
+              forgetContent = owner.capture('disposers', () => { equipmentReady(); contentReady(); });
               enteredWarm = request.page.world.game.warmEnteredFrame(owner, view.root, async prepareRoots => {
                 await foundation.prepareWorldMaterials?.();
                 await prepareRoots([view.root]);
+                await equipment;
+                if (owner.disposed) throw new Error('Regional runtime left before its equipment warm-up');
+                // The completed kit can link/upload while play builds quests and encounters. The final whole inventory
+                // still checks every material and object flag after play; both early roots share its original bound.
+                if (preparedModels !== null) await prepareRoots([preparedModels]);
                 await content;
                 if (owner.disposed) throw new Error('Regional runtime left before its final warm-up');
                 await foundation.beforeWarm?.();
@@ -366,6 +373,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
                   entry.onDispose(() => { weapons.enabled = false; weapons.visible = false; weapons.adsHeld = false; weapons.altHeld = false; });
                 });
               });
+              equipmentReady();
             },
             afterPlay: async entered => {
               if (localPlay === null) throw new Error('Regional play services are not installed');
