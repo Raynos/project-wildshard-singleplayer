@@ -210,7 +210,7 @@ export async function writeTiledWorld(root, repo, idea) {
     scene.addChild(doc.createNode(name).setMesh(doc.createMesh(name).addPrimitive(primitive)));
   };
   node('ws_terrain_floor', parts.Paving.part('Paving'), materials.Paving);
-  node('draw_kit', parts.Kit.part('Kit'), materials.Kit);
+  node('draw_kit', parts.Kit.part('Kit'), materials.Kit, { uv: true }); // RM5: its UV carries each face's trim band (data/trim.json)
   node('draw_water', parts.Water.part('Water'), materials.Water);
   node('draw_glow', parts.Glow.part('Glow'), materials.Glow);
   node('draw_pool', parts.Pool.part('Pool'), materials.Pool, { normals: false });
