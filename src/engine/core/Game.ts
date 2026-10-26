@@ -17,6 +17,7 @@ import {
   type Effect, Pass,
 } from 'postprocessing';
 import type { N8AOPostPass } from 'n8ao';
+import { halfGodRaysMask, ldrOutputBuffer, quarterBloom } from '../render/lighterTargets';
 import { installAoTransparency } from '../render/aoTransparency';
 import { protectDisplayColour, protectDisplayColourAo } from '../render/displayColour';
 import { installedGraphBackend } from '../render/graphBackend';
@@ -528,6 +529,9 @@ export class Game {
     return composer;
   }
 
+  /** G713 (core-memory C5): the render-target chain buildComposer builds, 'today' or variant B 'lighter' (lighterTargets.ts),
+   *  set before it from the game's Debug row */
+  postTargets: 'today' | 'lighter' = 'today';
   /** n8ao's pass, fetched by prepareComposer only when this tier and level draw AO (J8: a phone entry loads no AO code) */
   private aoPass: typeof N8AOPostPass | null = null;
   /** Load what buildComposer will build from: the AO module when the tier and level have AO on (null: never fetched). */
@@ -581,7 +585,9 @@ export class Game {
     // the tier knobs `aa` and `godRays` (E189, Jake's picks from the before / after boards, progress/282–283, 2026-09-26:
     // "no regression"): a level's phone frame may run one FXAA pass on the graded frame instead of SMAA's three, and leave
     // out the god rays (the warm iPhone's grass frame was 48 ms with the post chain and 17 without)
-    const aa = knobs.aa ?? (TIER_CONFIG.smaa === 'off' ? 'off' : 'smaa');
+    const lighter = this.postTargets === 'lighter';
+    // G713 B: one FXAA pass on the graded frame in place of SMAA's edge and weight targets (E189's phone option)
+    const tierAa = knobs.aa ?? (TIER_CONFIG.smaa === 'off' ? 'off' : 'smaa'), aa = lighter && tierAa === 'smaa' ? 'fxaa' : tierAa;
     const fxaa = aa === 'fxaa' ? new FXAAEffect() : null;
     const raysOn = knobs.godRays ?? true;
     const chain = (clean: boolean): BuiltChain => {
@@ -590,9 +596,10 @@ export class Game {
         exposure: 0.4, samples: TIER_CONFIG.godRaysSamples, clampMax: 1.0, resolutionScale: TIER_CONFIG.godRaysScale,
       });
       if (knobs.skipRaysOffscreen === true) skipRaysOffscreen(godRays, this.camera, this.sky.sunDisc); // the disc off screen = no rays to draw (E142, E189)
+      if (lighter) halfGodRaysMask(godRays); // G713 B
       const tuning = ENGINE_CHAIN_TUNING[clean ? 'clean' : 'cinematic'];
       const bloom = new BloomEffect({ intensity: G.bloomIntensity, luminanceThreshold: G.bloomThreshold, luminanceSmoothing: tuning.bloomSmoothing, mipmapBlur: true, radius: 0.6, levels: TIER_CONFIG.bloomLevels });
-      halfLuminance(bloom); // SF22d
+      if (lighter) quarterBloom(bloom); else halfLuminance(bloom); // SF22d; G713 B a quarter
       skipWhileTransparent(bloom); skipWhileTransparent(godRays); skipWhileTransparent(vol);
       const vignette = new VignetteEffect({ offset: 0.32, darkness: tuning.vignette });
       const tone = new ToneMappingEffect({ mode: ToneMappingMode.AGX });
@@ -644,6 +651,8 @@ export class Game {
     const sceneDepth = composer.inputBuffer.depthTexture;
     if (slices && sceneDepth !== null) for (const p of composer.passes) if (p !== this.renderPass) p.setDepthTexture(sceneDepth);
     dropOutputDepth(composer, this.renderPass); // SF22d: one composer depth buffer
+    // G713 B: with nothing between the scene and the colour pass, the output buffer only ever holds the graded frame
+    if (lighter && aoPass === null && composer.passes.indexOf(colour) === composer.passes.indexOf(this.renderPass) + 1) ldrOutputBuffer(composer);
     this._composer = composer;
   }
 

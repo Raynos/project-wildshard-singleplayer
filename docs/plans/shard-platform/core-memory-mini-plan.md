@@ -113,9 +113,9 @@ the target.
 
 | Slice | What | Status |
 |---|---|---|
-| C5.1 | n8ao loaded only when the tier and level draw AO (`Game.prepareComposer`, J8) | done: the commit that adds this table |
-| C5.2 | Per-target render-target census of the live composer on the phone tier (Template, Driftwood, Pine, Nalati) | in flight |
-| C5.3 | Variant B behind one Debug row: RGBA8 where the frame is already tone-mapped, no stable-depth copy (scene depth read directly), half-res luminance, FXAA or half-res SMAA | open |
+| C5.1 | n8ao loaded only when the tier and level draw AO (`Game.prepareComposer`, J8) | done `9ece72b359` |
+| C5.2 | Per-target render-target census of the live composer on the phone tier (Template, Driftwood, Pine, Nalati) | done: Template / DW 70.1 MiB (shadows 40 of it), Pine 61.3, Nalati 71.5 (numbers in C5.3's commit) |
+| C5.3 | Variant B behind one Debug row (Look ▸ Post render targets, default A): 8-bit output after the tone map, quarter bloom, half ray mask, FXAA for SMAA (no stable-depth copy on these pages) | done: the commit that marks this |
 | C5.4 | GPU MiB + frame time, A vs B, phone tier per shard (numbers shared with sp-x2's C4) | open |
 | C5.5 | One labelled A / B variant sheet per shard look, `art/post/round-1-lighter-rt/` | open |
 | C5.6 | Jake's pick: the winner becomes the default and the row, the option and the losing code go | waits-Jake |
