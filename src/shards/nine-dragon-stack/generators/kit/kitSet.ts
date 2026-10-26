@@ -12,15 +12,15 @@ interface KitBuilder { readonly vertexCount: number; build: () => BufferGeometry
 /** A world build's named kits: opaque, alpha-cut and swept builders by name, the reflective names and the draw distances. */
 export class KitSet<K extends KitBuilder, X extends KitBuilder> {
   /** the opaque kits by name */
-  readonly kits = new Map<string, K>();
+  readonly kits: Map<string, K> = new Map<string, K>();
   /** the alpha-cut kits by name */
-  readonly alphaKits = new Map<string, K>();
+  readonly alphaKits: Map<string, K> = new Map<string, K>();
   /** the swept kits by name, merged with the kit of the same name */
-  readonly kitxs = new Map<string, X>();
+  readonly kitxs: Map<string, X> = new Map<string, X>();
   /** kits drawn into the wet-ground reflection */
-  readonly reflective = new Set<string>();
+  readonly reflective: Set<string> = new Set<string>();
   /** kits drawn only within a distance (m) of the camera (`far`) */
-  readonly farOf = new Map<string, number>();
+  readonly farOf: Map<string, number> = new Map<string, number>();
   private readonly makeKit: () => K;
   private readonly makeSwept: () => X;
 

@@ -7,13 +7,13 @@ import { parseWorldHeader, parseWorldLayout } from './sections';
 import { bakedLayout } from './layoutProjection';
 import type { NineSpillAtlas } from './spillBake';
 
-function admitWorld(value: unknown) {
+function admitWorld(value: unknown): { shardfile: { tiles: (ReturnType<typeof parseShardfile>)["tiles"]; files: (ReturnType<typeof parseShardfile>)["files"]; critical: (ReturnType<typeof parseShardfile>)["critical"]; far: (ReturnType<typeof parseShardfile>)["far"]; library: (ReturnType<typeof parseShardfile>)["library"]; }; props: (ReturnType<typeof parseShardfile>)["props"] | null; version: 1; notice: string; libraries: { layout: string[]; boot: string[]; explorer: string[]; }; specimenBoxes: Record<string, boolean>; report: Record<string, unknown>[]; } {
   const header = parseWorldHeader(value);
   const checked = parseShardfile({ ...emptyShardfile({ slug: 'nine-dragon-stack', name: 'Nine Dragon Stack', author: 'Wildshard', revision: 1, seed: 0x9d2a }),
     ...header.shardfile, props: header.props });
   return { ...header, shardfile: { tiles: checked.tiles, files: checked.files, critical: checked.critical, far: checked.far, library: checked.library }, props: checked.props };
 }
-function admitLayout(value: unknown) {
+function admitLayout(value: unknown): { rows: (ReturnType<typeof bakedLayout>)["rows"]; records: number[]; version: 1; count: number; bounds: { sphere: number[]; box: number[]; }[]; } {
   const wire = parseWorldLayout(value);
   return { ...wire, ...bakedLayout(wire) };
 }

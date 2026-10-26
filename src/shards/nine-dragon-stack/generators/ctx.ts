@@ -46,10 +46,10 @@ export class Ctx extends KitSet<Kit, KitX> {
   /** lit shopfronts and other glowing fronts (streak cards + spill) */
   readonly emitters: Emitter[] = [];
   /** the facade lab's Kowloon dressing for every tower wall and the Well (one batch: draws count piece types) */
-  readonly fd = new Dressing();
+  readonly fd: Dressing = new Dressing();
   /** instanced dressing, keyed piece@region so the deep Well's pieces cull as one */
-  readonly inst = new Map<string, Instance[]>();
-  readonly rng = new Rng(9);
+  readonly inst: Map<string, Instance[]> = new Map<string, Instance[]>();
+  readonly rng: Rng = new Rng(9);
 
   /** where the layout's signs go (look/signs.ts) */
   readonly signs: SignSink;

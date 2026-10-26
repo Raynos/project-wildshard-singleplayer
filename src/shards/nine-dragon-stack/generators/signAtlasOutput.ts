@@ -29,7 +29,7 @@ const slice = (buffer: Uint8Array, row: { byteOffset: number; byteLength: number
 const json = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(value, (_key, entry: unknown) =>
   typeof entry === 'number' && Object.is(entry, -0) ? '-0' : entry));
 const signJson = (value: unknown): Uint8Array => json(v.parse(SignAtlasSchema, JSON.parse(JSON.stringify(value), (_key, entry: unknown) => entry === '-0' ? -0 : entry)));
-export const SIGN_CHANNELS = [{ name: 'aTint', source: '_tint', width: 3 }, { name: 'aNeon', source: '_neon', width: 4 }];
+export const SIGN_CHANNELS: { name: string; source: string; width: number; }[] = [{ name: 'aTint', source: '_tint', width: 3 }, { name: 'aNeon', source: '_neon', width: 4 }];
 
 function textureBlob(tier: string, name: 'mono' | 'colour', row: { packed: string; bytes: number }, read: ReadSignBytes): NamedBlob {
   const data = read(row.packed), header = new DataView(data.buffer, data.byteOffset, data.byteLength);

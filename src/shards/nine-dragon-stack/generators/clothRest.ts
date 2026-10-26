@@ -145,8 +145,8 @@ class Dynamic {
 export class StrandTassel {
   readonly geo: BufferGeometry;
   /** the rigid knot + cap sit on the chain: position and the chain's direction at the cap */
-  readonly cap = new Vector3();
-  readonly capDir = new Vector3(0, -1, 0);
+  readonly cap: Vector3 = new Vector3();
+  readonly capDir: Vector3 = new Vector3(0, -1, 0);
   private readonly row: StrandTasselRow;
   private readonly cord: Pt[] = [];
   private readonly strands: Pt[][] = [];

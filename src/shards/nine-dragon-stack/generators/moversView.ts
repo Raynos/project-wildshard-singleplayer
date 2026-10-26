@@ -8,10 +8,10 @@ const datum = plan.Y0;
 const cable = { x0: plan.WELL.x0, x1: plan.WELL.x1, y: datum - 16, z: -12 };
 
 /** Each mover's world-entry stage: it places the mover and lends its object to the view program (generators/worldAssembly). */
-export const MOVER_STAGES = ['nds-train', 'nds-gondola', ...MOVERS.drones.map((_, i) => `nds-drone-${String(i)}`)] as const;
+export const MOVER_STAGES: readonly ["nds-train", "nds-gondola", ...string[]] = ['nds-train', 'nds-gondola', ...MOVERS.drones.map((_, i) => `nds-drone-${String(i)}`)] as const;
 /** Where each mover stands at page time 0: its placement's one pose until the module's first frame. */
 const gondolaX = cable.x0 + MOVERS.gondola.margin + (cable.x1 - cable.x0 - MOVERS.gondola.margin * 2) * (0.5 + 0.5 * Math.sin(MOVERS.gondola.phase));
-export const MOVER_REST = [
+export const MOVER_REST: { x: number; y: number; z: number; yaw: number; }[] = [
   { x: MOVERS.train.x, y: datum + MOVERS.train.y, z: MOVERS.train.z, yaw: 0 },
   { x: gondolaX, y: cable.y + (gondolaX - cable.x0) / (cable.x1 - cable.x0) * MOVERS.gondola.rise, z: cable.z, yaw: 0 },
   ...MOVERS.drones.map(path => ({ x: path.x + path.r * Math.cos(path.phase), y: datum + path.y + Math.sin(path.phase) * path.bob, z: path.z + path.r * Math.sin(path.phase), yaw: 0 - path.phase })),

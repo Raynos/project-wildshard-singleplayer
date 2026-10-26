@@ -9,7 +9,7 @@ import glyphInputs from '../data/nativeGlyphs.json' with { type: 'json' };
 import settings from '../data/map.json' with { type: 'json' };
 
 /** Every authored model and native atlas/glyph byte consumed by the map assembly. */
-export const NINE_MAP_INPUTS = ['/assets/nine-dragon/lab/walker.glb', '/assets/nine-dragon/lab/sitter.glb',
+export const NINE_MAP_INPUTS: string[] = ['/assets/nine-dragon/lab/walker.glb', '/assets/nine-dragon/lab/sitter.glb',
   '/assets/nine-dragon/lab/organic/lion.glb', '/assets/nine-dragon/lab/guard.glb', '/assets/nine-dragon/lab/grapple/dragon-hook.glb',
   ...nativeInputs.map(row => row.input), ...glyphInputs.map(row => row.input)];
 

@@ -12,7 +12,7 @@ export class Screen extends LookGraph {
     if (old !== undefined) return old;
     const id = `${this.prefix}${Object.keys(this.nodes).length}`; this.nodes[id] = row; this.cache.set(key, id); return id;
   }
-  readonly uv = this.op('screenUV');
+  readonly uv: string = this.op('screenUV');
   scalar(name: string, value = 0): string { return this.p(name, 'float', value); }
   v2(name: string, value: readonly number[] = [0, 0]): string { return this.p(name, 'vec2', value); }
   v3(name: string, value: readonly number[] = [0, 0, 0]): string { return this.p(name, 'vec3', value); }

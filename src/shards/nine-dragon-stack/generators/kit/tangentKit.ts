@@ -26,11 +26,11 @@ export interface TangentLook {
 }
 
 /** the world axes (shared, never mutate them) */
-export const AXIS_X = new Vector3(1, 0, 0);
+export const AXIS_X: Vector3 = new Vector3(1, 0, 0);
 /** the world up axis */
-export const AXIS_Y = new Vector3(0, 1, 0);
+export const AXIS_Y: Vector3 = new Vector3(0, 1, 0);
 /** the world z axis */
-export const AXIS_Z = new Vector3(0, 0, 1);
+export const AXIS_Z: Vector3 = new Vector3(0, 0, 1);
 
 const tc = new Color();
 const vn = new Vector3(), vt = new Vector3(), vs = new Vector3();

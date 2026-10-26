@@ -8,26 +8,26 @@ import NINE_LAYOUT_PLAN from '../data/layoutPlan.json' with { type: 'json' };
 const { WELL, Y0 } = NINE_LAYOUT_PLAN;
 
 /** the canyon's run north under the Cable Deck (its ceiling is the deck's sky screen at +155 m) */
-export const EXT = { x0: WELL.x0, x1: -12, z0: -104, z1: WELL.z0 } as const;
+export const EXT: { readonly x0: number; readonly x1: -12; readonly z0: -104; readonly z1: number; } = { x0: WELL.x0, x1: -12, z0: -104, z1: WELL.z0 } as const;
 
 /** (F4, round 2) the run north goes on past the Cable Deck's edge, open to the sky: its far walls at the far LOD
  *  (well-mid.ts farRun), so from the rim the canyon recedes ~200 m into the silk to the far gate */
-export const FAR = { x0: EXT.x0, x1: EXT.x1, z0: -190, z1: EXT.z0 } as const;
+export const FAR: { readonly x0: number; readonly x1: -12; readonly z0: -190; readonly z1: -104; } = { x0: EXT.x0, x1: EXT.x1, z0: -190, z1: EXT.z0 } as const;
 
 /** the south rim: the ledge at the square's datum the mockup B / D cameras stand on, its balustrade at z0 */
-export const RIM = { z0: NINE_LAYOUT_PLAN.RIM.z0, z1: WELL.z1 } as const;
+export const RIM: { readonly z0: number; readonly z1: number; } = { z0: NINE_LAYOUT_PLAN.RIM.z0, z1: WELL.z1 } as const;
 
 /** the box the shaft's silk mist fills (look/style.ts uShaft) and the rectangles its fog sheets span */
-export const SHAFT = { x0: WELL.x0, z0: FAR.z0, x1: WELL.x1, z1: WELL.z1 } as const;
+export const SHAFT: { readonly x0: number; readonly z0: -190; readonly x1: number; readonly z1: number; } = { x0: WELL.x0, z0: FAR.z0, x1: WELL.x1, z1: WELL.z1 } as const;
 
-export const WELL_RECTS = [
+export const WELL_RECTS: readonly [{ readonly x0: number; readonly z0: number; readonly x1: number; readonly z1: number; }, { readonly x0: number; readonly z0: -104; readonly x1: -12; readonly z1: number; }, { readonly x0: number; readonly z0: -190; readonly x1: -12; readonly z1: -104; }] = [
   { x0: WELL.x0, z0: WELL.z0, x1: WELL.x1, z1: WELL.z1 },
   { x0: EXT.x0, z0: EXT.z0, x1: EXT.x1, z1: EXT.z1 },
   { x0: FAR.x0, z0: FAR.z0, x1: FAR.x1, z1: FAR.z1 },
 ] as const;
 
 /** the gondola's cable runs along x at this z, y (build.ts slides the cabin between x0 + 5 and x1 − 5) */
-export const CABLE = { z: -12, y: Y0 - 16, x0: WELL.x0, x1: WELL.x1 } as const;
+export const CABLE: { readonly z: -12; readonly y: number; readonly x0: number; readonly x1: number; } = { z: -12, y: Y0 - 16, x0: WELL.x0, x1: WELL.x1 } as const;
 
 /** the rim ledge's floor under (x, z), or undefined */
 export function wellFloor(x: number, z: number): number | undefined {

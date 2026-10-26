@@ -25,10 +25,10 @@ export class Dressing {
   get signs(): readonly SignSlot[] { return this.lateSigns.length === 0 ? this.early : [...this.early, ...this.lateSigns]; }
   addSign(slot: SignSlot): void { (this.late ? this.lateSigns : this.early).push(slot); }
   /** merged opaque geometry: shells, galleries, parapets, cables, antennas (one draw) */
-  shell = new Builder();
+  shell: Builder = new Builder();
   towers = 0;
   /** G285: each piece merged into the shell (BAKED) and its own bounds, in the order the layout merged them (batch.ts
    *  registers its copies on the shell with them; ../../generators/facadePieces.ts `mergeBakedPieces`) */
-  readonly merged = new Map<PieceId, Box3>();
+  readonly merged: Map<"pipe" | "box" | "balcony" | "cage" | "plant" | "awning" | "shack" | "tank" | "shutter" | "balconySolid" | "balconyTimber" | "cageS" | "cageW" | "acUnit" | "acBox" | "laundryOut" | "laundryAlong" | "planter" | "signBox" | "signFlat" | "shackG" | "shackB" | "bayBox" | "ledge" | "eave" | "post" | "antenna" | "dish" | "lantern" | "couplet" | "washLine" | "rail", Box3> = new Map<PieceId, Box3>();
 }
 

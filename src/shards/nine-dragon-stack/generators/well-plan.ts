@@ -18,13 +18,13 @@ import type { BridgeKind } from './well-bridges';
 const { WELL, Y0 } = NINE_LAYOUT_PLAN;
 
 /** the near galleries (well-rim.ts) run down to SPLIT + one floor; the lower levels (well-lower.ts) from SPLIT down */
-export const SPLIT = Y0 - 30;
+export const SPLIT: number = Y0 - 30;
 /** the lowest gallery floor (the fragment's cut); the walls run on below it as painted shells into the mist */
-export const LOW = Y0 - 66;
+export const LOW: number = Y0 - 66;
 /** the floor far below, lost in the mist */
-export const DEEP = Y0 - 112;
+export const DEEP: number = Y0 - 112;
 /** the top gallery floor of the walls under the Cable Deck (its screen is at +29.85) */
-export const DECK_TOP = Y0 + 24;
+export const DECK_TOP: number = Y0 + 24;
 
 /** the floor at or below y */
 export const snapFloor = (y: number): number => Y0 - Math.ceil((Y0 - y) / FLOOR_H - 1e-6) * FLOOR_H;
@@ -135,7 +135,7 @@ export class WellPlan {
    * just under the lowest floor) to the wall's top when the band holds its top floor. Crossings land, the gondola's
    * stations and the rim's corners stay clear.
    */
-  band(name: WallPlan['name'], yTop: number, yBottom: number, seed: number, kits: BandKits, wallBottom = yBottom - 0.3, stairs = 0,
+  band(name: WallPlan['name'], yTop: number, yBottom: number, seed: number, kits: BandKits, wallBottom: number = yBottom - 0.3, stairs = 0,
     opt: BandOptions = {}): GalleryProfile {
     const P = wallPlan(name);
     const dMin = opt.depths?.dMin ?? P.dMin, dMax = opt.depths?.dMax ?? P.dMax;

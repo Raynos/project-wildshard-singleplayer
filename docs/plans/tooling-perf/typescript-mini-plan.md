@@ -217,6 +217,7 @@ normal layer emission is the declaration-size authority. Continuation starts at 
 | T4-I6m | Pine section registry, product outputs and boot declarations; retain actual generated bridge production, exact asset literals and mutable wire contracts | 60 min | done (2026-10-26, sp-x8) |
 | T4-I6n | Standalone kit and project-entry declarations; retain readonly Three roots, mutable authored ceilings and defining output aliases | 60 min | done (2026-10-26, sp-x8) |
 | T4-I6o | Nine geometry, audio, light-pool and mover declarations; retain readonly identities, schema metadata and mutable authored rows | 60 min | done (2026-10-26, sp-x8) |
+| T4-I6p | Nine world and kit declarations; retain universally generic resource maps, final numeric layout rows and original mutable cast files | 60 min | done (2026-10-26, sp-x8) |
 | T4-I6legacy | Frozen legacy declaration annotations: exact inventory bytes stay unchanged until G606/LD is lifted; modern slices continue | 60 min | waits-Jake (2026-10-26; G606, sp-x8) |
 
 T4 first format slices are on origin: schema expressions and emitted runtime JavaScript are unchanged.
