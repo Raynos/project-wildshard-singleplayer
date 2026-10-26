@@ -38,6 +38,21 @@ optional clock/limits. Tests cover repeat visits, offline reload, concurrent
 downloads, leased LRU eviction, quota retries, corruption, browser eviction
 and service-worker activation.
 
+## Exclusive input ownership
+
+`put(hash, bytes, keep)` snapshots borrowed bytes before its first await.
+Callers may mutate or reuse their input immediately.
+
+`putTransferred(hash, bytes, keep)` consumes a complete, bounded
+ArrayBuffer-backed view by native transfer. Every caller alias detaches
+before SHA verification, so persistence needs no second input snapshot.
+Partial or shared backing refuses without consumption; corrupt content
+refuses after consumption. The original wire cap, SHA, quota, keep-write,
+eviction and durability rules still apply. The result `{ stored, bytes }`
+returns verified owned bytes after persistence settles, including when
+quota refusal returns `stored: false`. Mutating those returned bytes cannot
+change the durable response. This producer precedes its worker adoption.
+
 ## Paced browser storage
 
 The actual page CacheStorage uses one explicit ContentCacheWorker shared

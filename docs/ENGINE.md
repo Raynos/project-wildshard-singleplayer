@@ -3943,7 +3943,14 @@ replays cover both real fights, damage ranges and save continuation.
 
 ### Content-addressed disk cache (SF18c)
 
-`@wildshard/engine/boot/contentCache` exposes `ContentCache` with injected storage, SHA-256 and quota ports. Immutable addresses are shared across content sources; reads verify hashes and offline misses never fetch. Read, write and eviction metadata coalesce through the existing scoped two-second window; immutable blob writes remain durable before acknowledgement. `flush()` forces pending metadata on pagehide or worker close. A durable LRU index, active-content leases, bounded entry/byte counts and quota eviction/retry keep disk growth bounded. Service-worker activation preserves this independently versioned cache and visited product manifests. See [CONTENT-CACHE.md](CONTENT-CACHE.md) for limits, ownership and recovery.
+`@wildshard/engine/boot/contentCache` defines `ContentCache` with storage,
+SHA-256 and quota ports. Hash-verified shared addresses persist across
+activation; offline misses never fetch. Durable LRU, leases and byte/entry
+caps bound storage. Coalesced metadata flushes on pagehide/worker close.
+`put()` snapshots caller bytes. `putTransferred()` consumes a complete,
+bounded ArrayBuffer by native transfer and returns verified bytes after
+persistence or quota refusal. See [CONTENT-CACHE.md](CONTENT-CACHE.md) for
+metadata timing, durability, recovery, quota and ownership contracts.
 
 ### Seamless grid crossing (SF20a)
 

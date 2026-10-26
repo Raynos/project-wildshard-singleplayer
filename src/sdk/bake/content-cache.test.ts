@@ -182,3 +182,39 @@ test('a cold download is hash-checked before return even when its cache write is
   await store.flush();
   expect(ports.disk.has(ports.key(hash))).toBe(false);
 });
+
+
+test('public puts snapshot caller-owned bytes before asynchronous validation', async () => {
+  const ports = fixture(), store = ports.open(), input = Uint8Array.of(3, 4, 5);
+  const expected = Uint8Array.from(input), hash = hashImmutableBytes(input);
+  const writing = store.put(hash, input);
+  input.fill(9);
+  expect(await writing).toBe(true);
+  expect(await store.get(hash)).toEqual(expected);
+  expect(input).toEqual(Uint8Array.of(9, 9, 9));
+  await store.flush();
+});
+
+test('exclusive content transfer detaches every input view and returns durable owned bytes', async () => {
+  const ports = fixture(), store = ports.open(), input = Uint8Array.of(2, 4, 6), alias = input.subarray(1);
+  const expected = Uint8Array.from(input), hash = hashImmutableBytes(input);
+  const writing = store.putTransferred(hash, input);
+  expect(input.byteLength).toBe(0); expect(alias.byteLength).toBe(0);
+  const result = await writing;
+  expect(result.stored).toBe(true); expect(result.bytes).toEqual(expected);
+  result.bytes.fill(9);
+  expect(await store.get(hash)).toEqual(expected);
+  await store.flush();
+});
+
+test('exclusive transfer refuses partial buffers and corrupt bytes without weakening retry', async () => {
+  const ports = fixture(), store = ports.open(), input = Uint8Array.of(1, 2, 3), view = input.subarray(1);
+  await expect(store.putTransferred(hashImmutableBytes(view), view)).rejects.toThrow('complete bounded');
+  expect(input).toEqual(Uint8Array.of(1, 2, 3));
+  const good = Uint8Array.of(7, 8), hash = hashImmutableBytes(good), corrupt = Uint8Array.of(9, 9);
+  await expect(store.putTransferred(hash, corrupt)).rejects.toThrow('Invalid immutable content bytes');
+  expect(corrupt.byteLength).toBe(0); expect(ports.disk.has(ports.key(hash))).toBe(false);
+  const result = await store.putTransferred(hash, good);
+  expect(result.stored).toBe(true); expect(result.bytes).toEqual(Uint8Array.of(7, 8));
+  await store.flush();
+});

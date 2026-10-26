@@ -201,7 +201,26 @@ export class ContentCache {
    * `keep` (a prefetch, G554) never evicts anything to make room: it stores what fits and returns false otherwise. */
   async put(hash: string, input: Uint8Array, keep = false): Promise<boolean> {
     const key = this.key(hash), bytes = Uint8Array.from(input);
+    await this.verifyOwned(hash, bytes);
+    return this.storeOwned(key, hash, bytes, keep);
+  }
+  /** Consume one complete, exclusive download buffer without a persistence snapshot. Native transfer detaches
+   * every caller view before hashing; verified bytes return only after durable success or quota refusal.
+   * Ordinary borrowed inputs must use put(), which keeps its defensive snapshot. */
+  async putTransferred(hash: string, input: Uint8Array<ArrayBuffer>, keep = false): Promise<{ stored: boolean; bytes: Uint8Array<ArrayBuffer> }> {
+    const key = this.key(hash);
+    if (!(input.buffer instanceof ArrayBuffer) || input.byteOffset !== 0 || input.byteLength !== input.buffer.byteLength || input.length > MAX_FILE) throw new Error('Transfer requires one complete bounded content buffer');
+    const bytes = structuredClone(input, { transfer: [input.buffer] });
+    await this.verifyOwned(hash, bytes);
+    const stored = await this.storeOwned(key, hash, bytes, keep);
+    return { stored, bytes };
+  }
+  private async verifyOwned(hash: string, bytes: Uint8Array): Promise<void> {
     if (bytes.length > MAX_FILE || await this.ports.hash(bytes) !== hash) throw new Error('Invalid immutable content bytes');
+  }
+  /** Private download bytes never escape: readers receive copies. Reuse that owned snapshot for persistence;
+   * public writes still snapshot their caller before any await, and both paths retain full hash/quota checks. */
+  private storeOwned(key: string, hash: string, bytes: Uint8Array<ArrayBuffer>, keep: boolean): Promise<boolean> {
     return this.serial(async () => {
       const cache = await this.open().catch(() => undefined); if (cache === undefined) return false;
       const budget = await this.budget();
@@ -232,7 +251,7 @@ export class ContentCache {
     const existing = this.inflight.get(hash); if (existing !== undefined) return Uint8Array.from(await existing);
     const pending = (async () => {
       const bytes = Uint8Array.from(await download());
-      if (bytes.length > MAX_FILE || await this.ports.hash(bytes) !== hash) throw new Error('Invalid immutable content bytes');
+      await this.verifyOwned(hash, bytes);
       return bytes;
     })();
     this.inflight.set(hash, pending);

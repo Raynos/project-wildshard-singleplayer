@@ -9,7 +9,7 @@ async function digest(bytes: Uint8Array): Promise<string> {
   return Array.from(value, byte => byte.toString(16).padStart(2, '0')).join('');
 }
 
-async function lifetime(name: string, refuse: boolean): Promise<void> {
+async function lifetime(name: string, refuse: boolean, transfer = false): Promise<void> {
   await realGc(file, name, async collect => {
     const hash = await digest(new Uint8Array(size).fill(7));
     const buffers: WeakRef<object>[] = [], disk = new Map<string, Response>();
@@ -33,14 +33,23 @@ async function lifetime(name: string, refuse: boolean): Promise<void> {
         },
       }) },
     });
-    const read = cache.load(hash, () => Promise.resolve(new Uint8Array(size).fill(7)));
+    const input = transfer ? new Uint8Array(size).fill(7) : null;
+    let returned = false;
+    let read: Promise<Uint8Array> | undefined = input === null
+      ? cache.load(hash, () => Promise.resolve(new Uint8Array(size).fill(7)))
+      : cache.putTransferred(hash, input).then(result => { returned = true; expect(result.stored).toBe(!refuse); return result.bytes; });
     let caller: Uint8Array;
     try {
+      if (input !== null) {
+        expect(input.byteLength).toBe(0); await writing; expect(returned).toBe(false); release();
+      }
       caller = await read; await writing;
       expect(caller.byteLength).toBe(size);
-      expect(buffers).toHaveLength(2); // Verified download and immutable write snapshot.
+      expect(buffers).toHaveLength(transfer ? 1 : 2);
       expect(buffers.every(ref => ref.deref() !== undefined)).toBe(true);
-      caller.fill(9); // Caller-owned bytes never mutate the verified durable write.
+      expect(caller.buffer === buffers[0]?.deref()).toBe(transfer);
+      caller.fill(9); // Returned bytes cannot mutate the completed durable write.
+      if (transfer) { expect(caller.every(byte => byte === 9)).toBe(true); caller = new Uint8Array(); read = undefined; }
     } finally { release(); await cache.flush(); }
     for (const ref of buffers) await collect(ref);
     // Keep the same cache alive through collection, then use its real disk path.
@@ -52,7 +61,7 @@ async function lifetime(name: string, refuse: boolean): Promise<void> {
     } else {
       expect(again?.byteLength).toBe(size);
       expect(again?.every(byte => byte === 7)).toBe(true);
-      expect(caller.every(byte => byte === 9)).toBe(true);
+      if (!transfer) expect(caller.every(byte => byte === 9)).toBe(true);
     }
     await cache.flush();
   });
@@ -64,4 +73,13 @@ test('durable cache completion releases shared download and write backing', asyn
 
 test('refused cache completion releases shared backing without failing online bytes', async () => {
   await lifetime('refused cache completion releases shared backing without failing online bytes', true);
+});
+
+
+test('transferred durable content releases backing after its returned owner retires', async () => {
+  await lifetime('transferred durable content releases backing after its returned owner retires', false, true);
+});
+
+test('transferred quota refusal returns verified online bytes and then releases backing', async () => {
+  await lifetime('transferred quota refusal returns verified online bytes and then releases backing', true, true);
 });
