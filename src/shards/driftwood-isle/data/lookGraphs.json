@@ -2623,16 +2623,34 @@
    "kind": "material",
    "model": "toon",
    "flatShading": true,
+   "params": {
+    "surfaceRoughness": {
+     "type": "float",
+     "value": 0.95
+    },
+    "surfaceMetalness": {
+     "type": "float",
+     "value": 0
+    }
+   },
    "nodes": {
     "paint": {
      "op": "vertexColour"
+    },
+    "rough": {
+     "op": "param",
+     "param": "surfaceRoughness"
+    },
+    "metal": {
+     "op": "param",
+     "param": "surfaceMetalness"
     }
    },
    "stages": {
     "surface": {
      "colour": "paint",
-     "roughness": 0.95,
-     "metalness": 0
+     "roughness": "rough",
+     "metalness": "metal"
     }
    }
   },
@@ -17628,16 +17646,34 @@
    "model": "toon",
    "doubleSided": true,
    "flatShading": true,
+   "params": {
+    "surfaceRoughness": {
+     "type": "float",
+     "value": 0.88
+    },
+    "surfaceMetalness": {
+     "type": "float",
+     "value": 0
+    }
+   },
    "nodes": {
     "paint": {
      "op": "vertexColour"
+    },
+    "rough": {
+     "op": "param",
+     "param": "surfaceRoughness"
+    },
+    "metal": {
+     "op": "param",
+     "param": "surfaceMetalness"
     }
    },
    "stages": {
     "surface": {
      "colour": "paint",
-     "roughness": 0.88,
-     "metalness": 0
+     "roughness": "rough",
+     "metalness": "metal"
     }
    }
   },
@@ -17707,16 +17743,34 @@
    "model": "toon",
    "doubleSided": true,
    "flatShading": false,
+   "params": {
+    "surfaceRoughness": {
+     "type": "float",
+     "value": 0.82
+    },
+    "surfaceMetalness": {
+     "type": "float",
+     "value": 0
+    }
+   },
    "nodes": {
     "paint": {
      "op": "vertexColour"
+    },
+    "rough": {
+     "op": "param",
+     "param": "surfaceRoughness"
+    },
+    "metal": {
+     "op": "param",
+     "param": "surfaceMetalness"
     }
    },
    "stages": {
     "surface": {
      "colour": "paint",
-     "roughness": 0.82,
-     "metalness": 0
+     "roughness": "rough",
+     "metalness": "metal"
     }
    }
   },
@@ -18447,16 +18501,34 @@
    "model": "toon",
    "doubleSided": false,
    "flatShading": true,
+   "params": {
+    "surfaceRoughness": {
+     "type": "float",
+     "value": 0.88
+    },
+    "surfaceMetalness": {
+     "type": "float",
+     "value": 0
+    }
+   },
    "nodes": {
     "paint": {
      "op": "vertexColour"
+    },
+    "rough": {
+     "op": "param",
+     "param": "surfaceRoughness"
+    },
+    "metal": {
+     "op": "param",
+     "param": "surfaceMetalness"
     }
    },
    "stages": {
     "surface": {
      "colour": "paint",
-     "roughness": 0.88,
-     "metalness": 0
+     "roughness": "rough",
+     "metalness": "metal"
     }
    }
   },
@@ -19163,16 +19235,34 @@
    "kind": "material",
    "model": "toon",
    "flatShading": true,
+   "params": {
+    "surfaceRoughness": {
+     "type": "float",
+     "value": 0.5
+    },
+    "surfaceMetalness": {
+     "type": "float",
+     "value": 0.65
+    }
+   },
    "nodes": {
     "paint": {
      "op": "vertexColour"
+    },
+    "rough": {
+     "op": "param",
+     "param": "surfaceRoughness"
+    },
+    "metal": {
+     "op": "param",
+     "param": "surfaceMetalness"
     }
    },
    "stages": {
     "surface": {
      "colour": "paint",
-     "roughness": 0.5,
-     "metalness": 0.65
+     "roughness": "rough",
+     "metalness": "metal"
     }
    }
   },
@@ -19181,16 +19271,34 @@
    "kind": "material",
    "model": "toon",
    "flatShading": true,
+   "params": {
+    "surfaceRoughness": {
+     "type": "float",
+     "value": 0.62
+    },
+    "surfaceMetalness": {
+     "type": "float",
+     "value": 0.45
+    }
+   },
    "nodes": {
     "paint": {
      "op": "vertexColour"
+    },
+    "rough": {
+     "op": "param",
+     "param": "surfaceRoughness"
+    },
+    "metal": {
+     "op": "param",
+     "param": "surfaceMetalness"
     }
    },
    "stages": {
     "surface": {
      "colour": "paint",
-     "roughness": 0.62,
-     "metalness": 0.45
+     "roughness": "rough",
+     "metalness": "metal"
     }
    }
   },
