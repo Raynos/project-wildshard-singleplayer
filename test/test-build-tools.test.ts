@@ -28,7 +28,7 @@ test('the preparation boundary waits before cases and does not invoke tools for 
 test('unknown tools, escaped suite names and duplicate declarations refuse before installation', async () => {
   let calls = 0;
   const ports = { basis: () => { calls++; return Promise.resolve(); } };
-  for (const invalid of [null, { 'test/native-a.test.ts': ['foreign'] }, { '../native.test.ts': ['basis'] },
+  for (const invalid of [null, [], ['basis'], { 'test/native-a.test.ts': ['foreign'] }, { '../native.test.ts': ['basis'] },
     { 'test/native-a.test.ts': ['basis', 'basis'] }, { 'test/native-a.test.ts': [] }]) {
     await expect(prepareTestBuildTools(['test/native-a.test.ts'], invalid, ports)).rejects.toThrow();
   }

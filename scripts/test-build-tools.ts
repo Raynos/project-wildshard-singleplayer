@@ -1,7 +1,8 @@
 import * as v from 'valibot';
 
 const TestFile = v.pipe(v.string(), v.regex(/^(?:src|test|admin\/test|drafts\/test)\/(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9_.-]+\.test\.ts$/u));
-const Registry = v.record(TestFile, v.pipe(v.array(v.literal('basis')), v.minLength(1), v.maxLength(1)));
+const Registry = v.pipe(v.custom<Record<string, unknown>>(value => value !== null && typeof value === 'object' && !Array.isArray(value)),
+  v.record(TestFile, v.pipe(v.array(v.literal('basis')), v.minLength(1), v.maxLength(1))));
 export type TestBuildTool = 'basis';
 export type TestBuildToolPreparers = Readonly<Record<TestBuildTool, () => Promise<void>>>;
 
