@@ -38,6 +38,13 @@ original field queries; snapshot edits do not change query state. Independent
 builds share no mutable samples and never configure the page grass singleton.
 The author includes all supplied policy/samplers in its native source cache.
 
+`readNativeScalarField(rows, blocks)` in `@wildshard/sdk/bake/terrain`
+admits the existing bounded f32 scalar lattice and declared compressed blocks
+without a page world. It returns owned native values and the defining clamped
+bilinear query over that storage; separate calls share no mutable samples.
+Existing scalar count, finite-value, type, path and missing-block refusals stay
+in the defining intake. Native input blocks are read only during admission.
+
 `inputFiles(prefixes)` lists current file URL names beneath the context's
 explicit input roots without reading payloads. It accepts at most eight
 nonoverlapping directory prefixes and returns at most 4,096 sorted names;
