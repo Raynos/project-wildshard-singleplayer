@@ -32,7 +32,10 @@ const root = resolve(import.meta.dirname, '../..');
 const at = path => import(pathToFileURL(resolve(root, path)).href);
 // a shardfile project (its shard.config.ts): what `wildshard build` reads, for its tiles, its look and its terrain; read
 // before the bake environment's browser stand-ins exist (its behaviour compiler takes them for a browser)
-const project = existsSync(resolve(root, 'src/shards', slug, 'shard.config.ts')) ? await (await at('src/sdk/project.ts')).readProjectAssets(resolve(root, 'src/shards', slug)) : null;
+// (its generation input roots as the author CLI declares them, scripts/wildshard.mjs: a generator listing its own files needs them)
+const folder = resolve(root, 'src/shards', slug), manifestSource = { folder: slug, ...(existsSync(resolve(folder, 'manifest.json')) ? { file: resolve(folder, 'manifest.json') } : {}),
+  imageRoots: [{ prefix: `/src/shards/${slug}/`, directory: folder }, { prefix: '/assets/', directory: resolve(root, 'public/assets') }] };
+const project = existsSync(resolve(folder, 'shard.config.ts')) ? await (await at('src/sdk/project.ts')).readProjectAssets(folder, undefined, manifestSource) : null;
 const environment = installBakeEnvironment(root);
 // G342: a colour map's mean colour, decoded from its encoded bytes (PNG / JPEG / WebP) by Pillow, so a textured prop keeps
 // its own paint (Pine's cabins, Driftwood's huts) instead of a guessed wood tint; the bitmap is that one mean texel
@@ -166,8 +169,9 @@ const harvestModels = () => {
   }
   return boxes;
 };
-// a pure shardfile project has no authored plugin to build: its near placeholder is its terrain alone
-if (typeof manifest.load === 'function') await visitAuthoredWorld(manifest, { root, sky, element: environment.element, tier: 'phone', nativeTerrain, collectLate: true, visitPlacement,
+// a pure shardfile project has no authored plugin to build: its near placeholder is its terrain alone; a shard whose world
+// is its shardfile tiles (`near.world: 'tiles'`, a world built from its product) has no authored host to visit either
+if (typeof manifest.load === 'function' && source.near?.world !== 'tiles') await visitAuthoredWorld(manifest, { root, sky, element: environment.element, tier: 'phone', nativeTerrain, collectLate: true, visitPlacement,
   createTerrain: async () => {
     const field = await at('src/engine/world/Heightfield.ts');
     const terrain = new Terrain(); terrain.mesh = new THREE.Mesh(terrainChunkGeometry(field), new THREE.MeshBasicMaterial()); terrain.mesh.name = 'near-harvest-terrain';
@@ -233,22 +237,27 @@ const look = source.far === undefined ? sdk.shardfileLook(project.shard) : await
 // shardfile near row never does, `loadShardfileNear`)
 const fromTiles = prototypes.length === 0 && project !== null;
 if (fromTiles) {
-  prototypes.push(...await sdk.shardfileWorld(project.shard, project.assets));
-  console.log(`${slug}: ${prototypes.length} shardfile L1 tile meshes`);
+  // its coarse (L1) tiles, else its L0 tiles when it ships none (Nine Dragon's 64 L0 tiles: the bake reduces them to budget)
+  const coarse = await sdk.shardfileWorld(project.shard, project.assets), level = coarse.length > 0 ? 1 : 0;
+  prototypes.push(...(level === 1 ? coarse : await sdk.shardfileWorld(project.shard, project.assets, undefined, 0)));
+  console.log(`${slug}: ${prototypes.length} shardfile L${level} tile meshes`);
 }
 // G380: a land of models (Sky Reach's islands, its far row's `parts`) is built with the SDK's shared model tools, at
 // `NEAR_BAKE.modelScale` times the far share, and reduced to the near bake's land budget
 const land = source.far?.parts === undefined ? [] : await (await exported(source.far.parts))(await sdk.placeholderModelTools(root, sdk.NEAR_BAKE.modelScale));
 // the ground: a declared grid, else the baked terrain.bin or the shardfile's terrain collider; a world with no height
 // field (a shardfile whose terrain is null, an authored mesh world) stands on the bake's flat floor (grid null)
-const flat = source.far?.grid === undefined && project?.shard.terrain === null && !existsSync(terrainBin);
+// (a world that is its tiles, `near.world: 'tiles'`, stands on the flat floor too: its tiles carry its ground, so a far
+// grid under them would only repeat their skyline as a crude height field)
+const flat = source.near?.world === 'tiles' || source.far?.grid === undefined && project?.shard.terrain === null && !existsSync(terrainBin);
 const ground = source.far?.grid !== undefined || flat ? null : placeholderGridBytes(root, resolve(root, 'src/shards', slug), slug);
 const grid = flat ? null : ground === null ? (await exported(source.far.grid))() : ground.kind === 'baked' ? sdk.bakedTerrainGrid(ground.bytes) : sdk.colliderGrid(ground.bytes);
 // round 3: the ground at the height field's own density, reduced by geometric error (--ground-error=<m> to measure)
 const arg = (name) => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3);
 const { bytes, manifest: baked, reduced } = await sdk.bakeNearPlaceholder({ grid, look, prototypes, parts: land, trees: forestTrees, stands: source.trees, floors: source.near?.floors,
   groundError: Number(arg('ground-error') ?? sdk.NEAR_BAKE.groundError), residentBytes: Number(arg('resident') ?? sdk.NEAR_BAKE.residentBytes), log: line => console.log(`${slug}: ${line}`) });
-const row = fromTiles && prototypes.length > 0 ? { ...baked, near: { ...baked.near, tiles: true } } : baked;
+// G630: a shard that declares `near.owns` (its tiles draw lit only inside its world) keeps its near view over its tiles
+const row = fromTiles && prototypes.length > 0 && source.near?.owns !== true ? { ...baked, near: { ...baked.near, tiles: true } } : baked;
 const { file } = row, resident = file.decoded + file.gpu;
 if (report) { console.log(`  error ${reduced.error === undefined ? 'none (common ratio)' : `${reduced.error.toFixed(3)} m`}`); for (const k of reduced.kept) console.log(`  keep ${k.name}: ${k.copies} x ${k.triangles}/${k.source}`); for (const d of reduced.dropped) console.log(`  drop ${d.name}: ${d.why}`); }
 const dir = resolve(root, 'public/assets/baked', slug);

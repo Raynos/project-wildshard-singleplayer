@@ -434,10 +434,10 @@ function tileSurfaces(shard: Shardfile): (name: string) => (colour: readonly num
  * A shardfile's drawn static world as near-placeholder prototypes: every mesh of its coarse (L1) tiles' GLBs, each
  * primitive one prototype at its node's world matrix, coloured as the shard's own catalogue draws it (`tileSurfaces`).
  */
-export async function shardfileWorld(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, skip: (material: string) => boolean = () => false): Promise<NearPrototype[]> {
+export async function shardfileWorld(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, skip: (material: string) => boolean = () => false, lod: 0 | 1 = 1): Promise<NearPrototype[]> {
   const glbs = new Set(shard.files.filter(file => file.kind === 'glb').map(file => file.hash)), io = new NodeIO(), out: NearPrototype[] = [], surfaceOf = tileSurfaces(shard);
   for (const tile of shard.tiles) {
-    if (tile.lod !== 1) continue;
+    if (tile.lod !== lod) continue;
     for (const ref of tile.files) {
       const bytes = assets.get(ref);
       if (!glbs.has(ref) || bytes === undefined) continue;

@@ -8,5 +8,9 @@
       "module": "generators/farLook.ts",
       "export": "farGrid"
     }
+  },
+  "near": {
+    "world": "tiles",
+    "owns": true
   }
 }
