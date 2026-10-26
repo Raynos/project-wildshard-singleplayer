@@ -94,7 +94,7 @@ function bodyGeometry(): THREE.BufferGeometry {
 }
 
 export class BodyShadow {
-  readonly wardrobe = new Wardrobe('shadow');
+  readonly wardrobe: Wardrobe = new Wardrobe('shadow');
   /** false: out of the frame altogether (no draw), whatever the player does */
   enabled = true;
   readonly mesh: THREE.Mesh;

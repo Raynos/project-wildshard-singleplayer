@@ -24,7 +24,7 @@ function upright(yaw: number) { return { x: 0, y: Math.sin(yaw / 2), z: 0, w: Ma
  * Props retain the existing Bodies service/caps; page actors are real native
  * species bodies removed immediately from combat/aim/minimap target lists. */
 export class DeclaredBodyOps {
-  readonly registries;
+  readonly registries: { bodies: ReadonlyMap<string, number>; colliders: ReadonlyMap<string, number>; };
   private readonly slots = new Map<number, Slot>();
   private readonly rows: DeclaredBodyOpsRows;
   private readonly native: SimHost | null;

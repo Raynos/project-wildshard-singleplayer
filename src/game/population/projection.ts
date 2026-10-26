@@ -20,7 +20,7 @@ import { RowBodySlots } from '@wildshard/engine/physics/bodies';
 /** Client-only row projection of an existing population manager. Decisions stay
  * species-owned; this owns only declared placements, volley bodies and drawing. */
 export class PopulationProjection {
-  readonly group = new THREE.Group();
+  readonly group: THREE.Group = new THREE.Group();
   readonly placed: Record<string, number> = {};
   private readonly rows: PopulationProjectionRows;
   private readonly creatures: PageActorGroups;

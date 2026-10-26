@@ -16,7 +16,7 @@ const skinSave = saves.define({ key: 'skins', scope: 'shard', version: 1,
 
 /** One ownership and wear service; shard profiles supply rows, persistence and auto-wear policy. */
 export class CosmeticsLocker<Slot extends string, Row extends { id: string }> {
-  readonly owned = new Set<string>();
+  readonly owned: Set<string> = new Set<string>();
   readonly worn: Partial<Record<Slot, string>> = {};
   private readonly rows: ReadonlyMap<string, Row>;
   version = 0;

@@ -11,7 +11,7 @@ const PATHS: Readonly<Record<string, string>> = {
 
 /** A row is mounted only while a status exists, leaving the resting HUD unchanged. */
 export class StatusIcons {
-  readonly root = document.createElement('div');
+  readonly root: HTMLDivElement = document.createElement('div');
   private key = '';
   constructor() { this.root.className = 'ws-status-effects'; this.root.setAttribute('aria-label', 'Status effects'); }
   update(active: readonly ActiveEffect[]): void {

@@ -174,7 +174,7 @@ export interface ClaimedPickupPorts<I extends string> {
 }
 /** One owner for floating claimed items and their original after-take grace policy; never advances physics itself. */
 export class ClaimedPickupRoster<I extends string> {
-  readonly drops = new Map<I, ItemPickup>();
+  readonly drops: Map<I, ItemPickup> = new Map<I, ItemPickup>();
   private readonly active = new Map<ItemPickup, { id: I; row: ClaimedPickupRow }>();
   private readonly fading: { drop: ItemPickup; left: number }[] = [];
   constructor(private readonly rows: Readonly<Record<string, ClaimedPickupRow | undefined>>, private readonly ports: ClaimedPickupPorts<I>) {

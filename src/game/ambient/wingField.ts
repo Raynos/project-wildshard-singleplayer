@@ -9,7 +9,7 @@ interface Layer { readonly id: string; readonly capacity: number; readonly palet
 export interface WingFieldRows { readonly layers: readonly Layer[]; readonly groups: readonly { readonly kind: string; readonly row: unknown; readonly perches: unknown }[] }
 /** Client-only paired-wing projection of the existing renderer-free ambient host. Flight is evaluated at 10 Hz; draw poses interpolate. */
 export class AmbientWingField {
-  readonly group = new THREE.Group();
+  readonly group: THREE.Group = new THREE.Group();
   private readonly flocks;
   private readonly layers;
   private time = 0;

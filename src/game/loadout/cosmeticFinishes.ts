@@ -56,7 +56,7 @@ export function paintBoundFinishes(painter: CosmeticFinishPainter, bind: Cosmeti
 
 /** Client-only reversible material, vertex-colour and atlas projection for the loadout finish catalogue. */
 export class CosmeticFinishPainter {
-  readonly selectedFinishes = new Map<string, string>();
+  readonly selectedFinishes: Map<string, string> = new Map<string, string>();
   private readonly applied = new Map<THREE.Object3D, { choice: Choice; restore: () => void }>();
   constructor(private readonly locker: CosmeticFinishLocker) {}
   update(targets: CosmeticFinishTargets): void {

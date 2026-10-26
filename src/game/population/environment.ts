@@ -63,7 +63,7 @@ export function installPopulationEnvironment(host: SimHost, grid: Pick<BakedGrid
 export class NativePopulationField {
   readonly grass: { field: GrassField; trample: TrampleField };
   readonly hunt: HuntGround;
-  readonly trees = new TreeGrid<{ x: number; z: number; r: number; top: number }>();
+  readonly trees: TreeGrid<{ x: number; z: number; r: number; top: number; }> = new TreeGrid<{ x: number; z: number; r: number; top: number }>();
   readonly queries: { normalY: (x: number,z: number) => number; surfaceAt: (x: number,z: number) => number | null; inBounds: (x: number,z: number,margin: number) => boolean };
   constructor(grid: BakedGrid, input: unknown, treeRows: readonly (readonly [number,number,number])[], tops: readonly number[], pondBlock?: { readonly file: string; readonly bytes: Uint8Array }) {
     const rows = v.parse(PopulationFieldSchema,input), sample = bakedSamplers(grid), world = rows.world;

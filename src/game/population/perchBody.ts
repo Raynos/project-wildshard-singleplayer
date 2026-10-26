@@ -86,7 +86,7 @@ export function nativePerchProgram(host: SimHost, input: unknown): ReturnProgram
 /** Page binding reuses native perch selection, strikes and root integration.
  * Clips and all policy-channel names arrive as rows; no shard callback is retained. */
 export class PerchBodyBinding {
-  readonly row;
+  readonly row: { kind: string; strike: string; sound: string; sourceHeight: number; targetHeight: number; attackStream?: "ai" | "spawn" | "gameplay" | "cosmetic"; actions: { stateKey: string; states: (string)[]; actions: ({ state: number; phase: number; effect: string; once: { key: string; value: number; test: "falsy" | "not-value"; }; when?: { key: string; test: "truthy" | "falsy"; }; })[]; }; score: string; height: string; heightChannel: string; root: { drop: string; velocity: string; land: string; climb: string; height: string; baseX: string; baseZ: string; x: string; z: string; gravity: number; speed: number; landing: number; }; };
   readonly guest: ReturnProgram;
   readonly animate: (c: AnimalRigContext) => void;
   constructor(input: unknown, owner: Scope | SimHost) {

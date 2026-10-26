@@ -19,7 +19,7 @@ const POPS = 4;
 const COIN_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#f2c44d"/><circle cx="12" cy="12" r="6.6" fill="none" stroke="#9c6a12" stroke-width="1.8"/><circle cx="12" cy="12" r="2.2" fill="#9c6a12"/></svg>';
 
 export class CoinChip {
-  readonly scope = uiScope('CoinChip');
+  readonly scope: ReturnType<typeof uiScope> = uiScope('CoinChip');
   readonly root: HTMLElement;
   private num: HTMLElement;
   private pops: HTMLElement[] = [];

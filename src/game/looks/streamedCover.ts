@@ -79,7 +79,7 @@ function writePlant(A: InstanceArrays, n: number, v: Float32Array, i: number): v
 /** A ground cover streamed round the viewer (see the module comment). */
 class StreamedCover {
   /** the cover's meshes (the shard may add its own) */
-  readonly group = new THREE.Group();
+  readonly group: THREE.Group = new THREE.Group();
   /** measurements (also `group.userData.stats`) */
   readonly stats: StreamedCoverStats = { nearRefillMs: 0, farJobMs: 0, farJobFrames: 0, farCells: 0, farCount: 0, cellsBuilt: 0, gridMs: 0, nearRefills: 0, farSwaps: 0, uploadBytes: 0 };
   private readonly resources: SceneHandles;

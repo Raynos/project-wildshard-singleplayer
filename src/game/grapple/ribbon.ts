@@ -100,7 +100,7 @@ export class Rope {
 /** the ribbon that draws a Rope (node positions pushed every frame) */
 export class Filament {
   readonly mesh: Mesh;
-  readonly u;
+  readonly u: ReturnType<typeof uniformsFrom<GrappleFilamentUniforms>>;
   private readonly pos: Float32Array;
   private readonly prev: Float32Array;
   private readonly next: Float32Array;

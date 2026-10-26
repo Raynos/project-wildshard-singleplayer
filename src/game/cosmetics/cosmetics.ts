@@ -49,7 +49,7 @@ interface SavedMesh { readonly mesh: THREE.Mesh; readonly material: THREE.Materi
 interface Saved { readonly parent: THREE.Object3D | null; readonly position: THREE.Vector3; readonly meshes: readonly SavedMesh[] }
 
 export class Wardrobe {
-  readonly root = new THREE.Group();
+  readonly root: THREE.Group = new THREE.Group();
   private readonly mode: WearMode;
   private readonly worn: Record<WearSlot, THREE.Object3D | null> = { hat: null, cape: null };
   /** what wearing changed on each worn object, put back when it comes off (its pose, its meshes' materials and shadow flags) */

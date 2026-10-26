@@ -52,7 +52,7 @@ const PACK = `
 const PAD = 5, GLYPH = 37;
 
 export class BagButton {
-  readonly scope = uiScope('BagButton');
+  readonly scope: ReturnType<typeof uiScope> = uiScope('BagButton');
   readonly root: HTMLButtonElement;
 
   constructor(minimap: HTMLElement, onTap: () => void) {

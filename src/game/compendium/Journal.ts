@@ -32,7 +32,7 @@ type Dir = 1 | -1;
 /** Discovery state and host pause callbacks stay synchronous; the book DOM and
  * image requests are constructed only on the first actual open. */
 export class Journal {
-  readonly scope = uiScope('journal');
+  readonly scope: Scope = uiScope('journal');
   readonly root: HTMLElement;
   onOpen?: () => void;
   onClose?: () => void;

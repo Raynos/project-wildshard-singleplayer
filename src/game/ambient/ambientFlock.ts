@@ -26,7 +26,7 @@ export class AmbientFlockDraw {
   readonly flock: AmbientGroup;
   readonly mesh: THREE.InstancedMesh;
   /** the draw's parent (add this to the scene) */
-  readonly group = new THREE.Group();
+  readonly group: THREE.Group = new THREE.Group();
   private readonly point = new THREE.Vector3();
   private readonly posed: PosedDraw;
   readonly row: AmbientFlockData;

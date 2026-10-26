@@ -14,7 +14,7 @@ import type { ShardContext } from '../plugin/context';
 export interface ForestGroundDraw { readonly geometry: BufferGeometry; readonly material: CoverMaterial; readonly castShadow: boolean }
 /** Output-only native field borrowed by model placement and specimen views. */
 export class ForestGround {
-  readonly group = new Group();
+  readonly group: Group = new Group();
   readonly kinds: Readonly<Record<string, ForestGroundDraw>>;
   readonly layout: Readonly<Record<string, GroundPlacement[]>>;
   private constructor(readonly view: Forest, private readonly sky: SkyRig, private readonly appearance: CoverAppearance,
