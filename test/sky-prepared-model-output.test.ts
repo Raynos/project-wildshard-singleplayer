@@ -25,6 +25,9 @@ import { output, prepareOutput } from '../src/shards/far-reach/generators/source
 
 const geometryName = 'world/geometry/prepared-models.glb', heroName = 'world/sources/heroes.json', bakeName = 'world/sources/bakes.json', skyName = 'world/sources/sky.json', bridgeName = 'world/geometry/bridge-rest.glb';
 const hash = 'bd1a0a75879e2f3e72e2ab2b8d0c18a79d7e7746478b3fedc6961199a714c580';
+const bridgeHash = '1a31cb2c7b426d9ffb14db4e39792aeb0bde86f6f01d0b1796130a3a0c7d8bf0';
+const bridgeFile = { name: bridgeName, path: `blobs/glb/${bridgeHash}.glb`, kind: 'glb', hash: bridgeHash,
+  compressed: 2_109_968, decoded: 2_109_940, gpu: 2_031_804, triangles: 35_709, draws: 126, dependencies: [], critical: false };
 const original = readFileSync('public/assets/far-reach/baked/prepared-models.glb'), text = new TextDecoder();
 const HeroRows = v.object({ rows: v.object({ meshes: v.array(v.string()), meshUrls: v.record(v.string(), v.string()),
   hd: v.array(v.string()), hdUrls: v.record(v.string(), v.string()), hdLooks: v.record(v.string(), v.never()), aoFloor: v.number(),
@@ -58,11 +61,11 @@ test('owned geometry preserves all original bytes and costs, changing only its s
     expect(text.decode(owned.assets.get(newSky.hash))).toBe(text.decode(output.assets.get(oldSky.hash))
       .replace(JSON.stringify(BRIDGE_REST_URL), JSON.stringify(bridgeName)));
     expect(owned.assets.has(oldSky.hash)).toBe(false);
-    const bridgeOriginal = readFileSync(`public${BRIDGE_REST_URL}`), bridge = nameBlob(bridgeName, 'glb', bridgeOriginal);
+    const bridge = { file: bridgeFile };
     expect(owned.namedFiles.find(file => file.name === bridgeName)).toEqual(bridge.file);
     const bridgeBytes = owned.assets.get(bridge.file.hash);
     if (bridgeBytes === undefined) throw new Error('Missing owned bridge geometry');
-    expect(Buffer.compare(bridgeBytes, bridgeOriginal)).toBe(0); bridgeBytes.fill(0);
+    expect(hashImmutableBytes(bridgeBytes)).toBe(bridgeHash); bridgeBytes.fill(0);
 
     const before = output.namedFiles.find(file => file.name === heroName), after = owned.namedFiles.find(file => file.name === heroName);
     if (before === undefined || after === undefined) throw new Error('Missing original or owned hero library');
@@ -111,7 +114,7 @@ test('owned geometry preserves all original bytes and costs, changing only its s
     expect(text.decode(output.assets.get(before.hash))).toBe(baseline);
     const hitBridge = hit.assets.get(bridge.file.hash);
     if (hitBridge === undefined) throw new Error('Missing cache-hit bridge geometry');
-    expect(Buffer.compare(hitBridge, bridgeOriginal)).toBe(0);
+    expect(hashImmutableBytes(hitBridge)).toBe(bridgeHash);
 
   } finally { rmSync(cache, { recursive: true, force: true }); }
 });
@@ -138,11 +141,11 @@ test('normal output admission and the actual native pool resolver consume the ow
     expect(hero.rows.geometryPools[0]?.url).toBe(geometryName);
     expect(Buffer.compare(await product.file(geometryName), original)).toBe(0);
     const sky = v.parse(HeroRows, await product.json(skyName)), native = sceneRigFiles(sky.rows, product);
-    const bridgeOriginal = readFileSync(`public${BRIDGE_REST_URL}`), bridge = nameBlob(bridgeName, 'glb', bridgeOriginal);
+    const bridge = { file: bridgeFile };
     const poolIndex = sky.rows.geometryPools.findIndex(pool => pool.url === bridgeName);
     expect(poolIndex).toBeGreaterThanOrEqual(0);
     expect(native.geometryPools?.[poolIndex]?.url).toBe(`/shardfiles/far-reach/${bridge.file.path}`);
-    expect(Buffer.compare(await product.file(bridgeName), bridgeOriginal)).toBe(0);
+    expect(hashImmutableBytes(await product.file(bridgeName))).toBe(bridgeHash);
 
     const bakes = await product.json<SceneBakeSource>(bakeName), bakeFiles = sceneBakeFiles(bakes, product);
     expect(Object.keys(bakes.urls)).toEqual([...BAKED_PIECES]);

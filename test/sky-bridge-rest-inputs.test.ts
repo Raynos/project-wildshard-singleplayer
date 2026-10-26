@@ -1,49 +1,35 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- Read native inputs and isolate actual sealed-driver fixtures.
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-// oxlint-disable-next-line import/no-nodejs-modules -- Keep omitted-input catalogues in repository scratch.
-import { relative, resolve } from 'node:path';
-// oxlint-disable-next-line import/no-nodejs-modules -- Compare all original geometry and hierarchy bytes.
-import { Buffer } from 'node:buffer';
+// oxlint-disable-next-line import/no-nodejs-modules -- Preserve the frozen geometry oracle and verify source-handoff retirement.
+import { existsSync, readFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Discover the actual scheduler from the repository root.
+import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
-import { discoverGeneration, generateShardJob } from '../scripts/generate.mjs';
+import { discoverGeneration } from '../scripts/generate.mjs';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { bridgeRestGlb, bridgeRestRows } from '../src/shards/far-reach/generators/bridgeRest';
+import { bridgeRestFiles } from '../src/shards/far-reach/generators/bridgeRest';
 import { MODEL_URLS } from '../src/shards/far-reach/generators/fileInventory';
 
-const input = `public${MODEL_URLS['bridge-deck']}`;
-const cases = [
-  { id: 'sky-bridge-rest-rows', output: 'src/shards/far-reach/data/bridgeRest.generated.json', make: bridgeRestRows },
-  { id: 'sky-bridge-rest-glb', output: 'public/assets/far-reach/baked/bridge-rest.glb', make: bridgeRestGlb },
-];
+const hierarchy = 'src/shards/far-reach/data/bridgeRest.generated.json';
+const geometry = 'public/assets/far-reach/baked/bridge-rest.glb';
 
-test.each(cases)('$id derives every original byte from the native deck', async ({ output, make }) => {
+test('both bridge writers and every declared handoff reader are retired', () => {
+  const { jobs } = discoverGeneration(resolve('.'));
+  expect(jobs.some(job => job.id === 'sky-bridge-rest-rows' || job.id === 'sky-bridge-rest-glb')).toBe(false);
+  for (const job of jobs) for (const file of [hierarchy, geometry]) {
+    expect(job.outputs, job.id).not.toContain(file);
+    expect(job.inputRoots, job.id).not.toContain(file);
+  }
+  expect(existsSync(hierarchy)).toBe(false);
+});
+
+test('owned bridge bytes preserve the complete predecessor hierarchy and frozen geometry', async () => {
   const reads: string[] = [];
-  const bytes = await make(name => { reads.push(name); return new Uint8Array(readFileSync(`public${name}`)); });
+  const files = await bridgeRestFiles(url => { reads.push(url); return new Uint8Array(readFileSync(`public${url}`)); });
   expect(reads).toEqual([MODEL_URLS['bridge-deck']]);
-  expect(Buffer.compare(bytes, readFileSync(output))).toBe(0);
-});
-
-test.each(cases)('$id cold sealed reader omits both handoffs and retains its complete output', async ({ id, output }) => {
-  const root = resolve('.'), { jobs } = discoverGeneration(root), job = jobs.find(row => row.id === id);
-  if (job === undefined) throw new Error(`Missing retained bridge writer ${id}`);
-  expect(job.inputRoots).not.toContain('src/shards/far-reach/data/bridges.json');
-  expect(job.inputRoots).not.toContain('public/assets/far-reach/baked/bridges.bin');
-  expect(job.inputRoots).toContain(input);
-  const expected = hashImmutableBytes(readFileSync(output)), cacheDir = mkdtempSync(resolve('tmp/sky-bridge-rest-inputs-'));
-  try {
-    const result = await generateShardJob(root, job, { cacheDir, forceCompare: true });
-    try { expect(result.hit).toBe(false); expect(result.hashes).toEqual({ [output]: expected }); }
-    finally { result.release(); }
-  } finally { rmSync(cacheDir, { recursive: true, force: true }); }
-});
-
-test('the real sealed bridge reader refuses an omitted native deck', async () => {
-  const root = resolve('.'), { jobs } = discoverGeneration(root), job = jobs.find(row => row.id === 'sky-bridge-rest-rows');
-  if (job === undefined) throw new Error('Missing retained bridge row writer');
-  const omitted = { ...job, inputRoots: job.inputRoots.filter(path => path !== input) };
-  const cacheDir = mkdtempSync(resolve('tmp/sky-bridge-rest-omitted-')), catalogPath = relative(root, resolve(cacheDir, 'omitted.json'));
-  try {
-    writeFileSync(catalogPath, JSON.stringify({ schema: '../scripts/generation-jobs.schema.json', jobs: jobs.map(row => row.id === job.id ? omitted : row) }));
-    await expect(generateShardJob(root, omitted, { cacheDir, catalogPath, forceCompare: true })).rejects.toThrow('Generator exited 1');
-  } finally { rmSync(cacheDir, { recursive: true, force: true }); }
+  expect([...files.keys()]).toEqual(['bridge-rest.glb', 'bridge-rest.json']);
+  const glb = files.get('bridge-rest.glb'), rows = files.get('bridge-rest.json');
+  if (glb === undefined || rows === undefined) throw new Error('Missing owned bridge files');
+  expect(glb.byteLength).toBe(2_109_968);
+  expect(hashImmutableBytes(glb)).toBe('1a31cb2c7b426d9ffb14db4e39792aeb0bde86f6f01d0b1796130a3a0c7d8bf0');
+  expect(rows.byteLength).toBe(59_699);
+  expect(hashImmutableBytes(rows)).toBe('ae5faee1125143aa75aa053cfbd418f9899c1b1a9907b617280a97e00c538bb4');
 });

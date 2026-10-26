@@ -2,17 +2,25 @@
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Confine native model fixtures to repository scratch and bind source bundles.
 import { dirname, resolve } from 'node:path';
-// oxlint-disable-next-line import/no-nodejs-modules -- Compare complete original JSON transport without assertion expansion.
-import { Buffer } from 'node:buffer';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
+import { hashImmutableBytes } from '../src/sdk/immutable';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { createProjectGeneration, type ProjectGenerationContext } from '../src/sdk/projectGeneration';
 import { BRIDGE_REST_FILES, BRIDGE_REST_INPUTS, skyBridgeRestSource, skyBridgeRestProgram } from '../src/shards/far-reach/generators/bridgeRestProgram';
 
 const check = (files: ReadonlyMap<string, Uint8Array>): void => {
   expect([...files.keys()]).toEqual(BRIDGE_REST_FILES);
-  for (const [name, bytes] of files) expect(Buffer.compare(bytes, readFileSync(name === 'bridge-rest.glb' ? 'public/assets/far-reach/baked/bridge-rest.glb' : 'src/shards/far-reach/data/bridgeRest.generated.json')), name).toBe(0);
+  for (const [name, bytes] of files) {
+    if (name === 'bridge-rest.glb') {
+      expect(bytes.byteLength).toBe(2_109_968);
+      expect(hashImmutableBytes(bytes)).toBe('1a31cb2c7b426d9ffb14db4e39792aeb0bde86f6f01d0b1796130a3a0c7d8bf0');
+    }
+    else {
+      expect(bytes.byteLength).toBe(59_699);
+      expect(hashImmutableBytes(bytes)).toBe('ae5faee1125143aa75aa053cfbd418f9899c1b1a9907b617280a97e00c538bb4');
+    }
+  }
 };
 
 test('cold and persistent bridge hits preserve every original native geometry and hierarchy byte', async () => {

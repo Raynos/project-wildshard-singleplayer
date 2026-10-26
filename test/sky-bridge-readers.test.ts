@@ -19,7 +19,9 @@ const read = (url: string): Uint8Array => new Uint8Array(readFileSync(`public${u
 
 test('typed bridge hierarchy and independently derived pool retain every original field and part', async () => {
   const rows = await bridgeRestValues(read), pool = bridgeRestPool();
-  expect(`${JSON.stringify(rows)}\n`).toBe(readFileSync(handoff, 'utf8'));
+  const bytes = new TextEncoder().encode(`${JSON.stringify(rows)}\n`);
+  expect(bytes.byteLength).toBe(59_699);
+  expect(hashImmutableBytes(bytes)).toBe('ae5faee1125143aa75aa053cfbd418f9899c1b1a9907b617280a97e00c538bb4');
   expect(pool).toEqual(rows.pool);
   pool.parts.fill('foreign');
   expect(bridgeRestPool()).toEqual(rows.pool);

@@ -14,8 +14,7 @@ sources.set('prepared-models.glb', await preparedModelSource(inputs));
 const bridgeInputs = new Map(BRIDGE_REST_INPUTS.map(url => [url,
   new Uint8Array(readFileSync(new URL(`../../../../public${url}`, import.meta.url)))]));
 const bridge = await skyBridgeRestSource(bridgeInputs);
-const bridgeGeometry = bridge.get('bridge-rest.glb'), bridgeRows = bridge.get('bridge-rest.json');
-if (bridgeGeometry === undefined || bridgeRows === undefined) throw new Error('Missing owned map bridge inputs');
+const bridgeGeometry = bridge.get('bridge-rest.glb');
+if (bridgeGeometry === undefined) throw new Error('Missing owned map bridge inputs');
 sources.set('../../../public/assets/far-reach/baked/bridge-rest.glb', bridgeGeometry);
-sources.set('data/bridgeRest.generated.json', bridgeRows);
 await paintDataMap(process.cwd(), 'far-reach', { sources });

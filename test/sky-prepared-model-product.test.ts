@@ -32,10 +32,13 @@ test('the actual SDK-built product binds receipt-verified discovery to the admit
   expect(hashImmutableBytes(bytes)).toBe(hash);
   expect(Buffer.compare(bytes, readFileSync('public/assets/far-reach/baked/prepared-models.glb'))).toBe(0);
   expect(file).toMatchObject({ compressed: 10_134_100, decoded: 10_134_072, gpu: 10_096_780, triangles: 203_025, draws: 48 });
-  const bridgeName = 'world/geometry/bridge-rest.glb', bridgeOriginal = readFileSync('public/assets/far-reach/baked/bridge-rest.glb');
-  const bridge = nameBlob(bridgeName, 'glb', bridgeOriginal);
-  expect(index.files.find(row => row.name === bridgeName)).toEqual(bridge.file);
-  expect(Buffer.compare(readFileSync(resolve(folder, bridge.file.path)), bridgeOriginal)).toBe(0);
+  const bridge = index.files.find(row => row.name === 'world/geometry/bridge-rest.glb');
+  if (bridge === undefined) throw new Error('Missing owned bridge geometry');
+  expect(bridge).toEqual({ name: 'world/geometry/bridge-rest.glb', kind: 'glb',
+    hash: '1a31cb2c7b426d9ffb14db4e39792aeb0bde86f6f01d0b1796130a3a0c7d8bf0',
+    path: 'blobs/glb/1a31cb2c7b426d9ffb14db4e39792aeb0bde86f6f01d0b1796130a3a0c7d8bf0.glb',
+    compressed: 2_109_968, decoded: 2_109_940, gpu: 2_031_804, triangles: 35_709, draws: 126, dependencies: [], critical: false });
+  expect(hashImmutableBytes(readFileSync(resolve(folder, bridge.path)))).toBe(bridge.hash);
 
   for (const piece of BAKED_PIECES) {
     const name = `world/geometry/pieces/${piece}.glb`, original = readFileSync(`public/assets/far-reach/baked/${piece}.glb`);

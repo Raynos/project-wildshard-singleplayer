@@ -80,8 +80,6 @@ async function make(read: ReadAsset): Promise<{ glb: Uint8Array; rows: BridgeRes
     return { glb: made.glb, rows: { pool, spans } };
   } finally { for (const geometry of owned) geometry.dispose(); material.dispose(); }
 }
-export async function bridgeRestGlb(read: ReadAsset): Promise<Uint8Array> { return (await make(read)).glb; }
-export async function bridgeRestRows(read: ReadAsset): Promise<Uint8Array> { return new TextEncoder().encode(`${JSON.stringify((await make(read)).rows)}\n`); }
 
 /** Supply the complete typed original hierarchy directly to retained author readers. */
 export async function bridgeRestValues(read: ReadAsset): Promise<BridgeRestRows> {
