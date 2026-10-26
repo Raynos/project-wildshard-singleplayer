@@ -169,7 +169,7 @@ About 10 Opus lane-days, roughly 5 calendar days on two lanes.
 | RM6.2 round pools | in flight (2026-10-26, sp-o2) | Smoothstep falloff in the pool graph (done: no geometry or byte change, the tiles' debt rows allow none); sizes to their light with RM6.3 |
 | RM6.3 light bake | open | RM3's vertex bake tuned on the kit and the paving |
 | RM6.4 gate light | open | Gate lanterns, emissive gold trim, uplight (shared hunks agreed with sp-o1) |
-| RM6.5 dusk fill | done | Open plots' hemisphere fill: ground 0x606060 → warm lantern bounce 0x8a5a3a, sky 0x9ca7b4 → lavender 0xa9a0c8, intensity 0.7 → 1 (faces turned from the low sun no longer go near black) |
+| RM6.5 dusk fill | done | The look key's ambient (what lights a plot on the grid and alone): ground [0.32, 0.34, 0.42] → warm lantern bounce [0.55, 0.36, 0.24], sky → lavender [0.66, 0.62, 0.86], 0.8 → 1; the manifest's hemisphere fill matches |
 | RM10.1–10.5 life | open | Round paper sky lanterns, stall steam, fireflies, banner sway, static posed figures |
 | RM11.1–11.2 near / far | open | Near view from the trim-sheet colours; far stand-ins from the new kit |
 | RM12.1–12.3 perf | open | Per-dome Chromium counts, fixes, one Simulator reading |
