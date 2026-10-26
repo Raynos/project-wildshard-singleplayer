@@ -18,7 +18,7 @@ export interface DirectorSession {
 }
 export function directorPort(options: {
   readonly source: string; readonly original: string; readonly declaration: unknown;
-  readonly embedded: { readonly module: string; readonly bytes: string | Uint8Array };
+  readonly embedded: { readonly module: string; readonly bytes: Uint8Array };
   readonly header: string; readonly states: readonly StateRow[]; readonly parameters: readonly string[];
   readonly verify: (create: () => DirectorSession) => void;
 }): DualPortFixture {

@@ -1,12 +1,13 @@
 import { bindLegacyDirector } from './fixtures/legacy-director-bindings';
 import { expect, test, vi } from 'vitest';
-import { DirectorScriptStageLane, embeddedDirectorBytes, prepareEmbeddedDirector } from '../src/game/plugin/director';
+import { DirectorScriptStageLane, embeddedDirectorBytes, prepareEmbeddedDirector, prepareDirectorModule } from '../src/game/plugin/director';
 import { Scope } from '../src/engine/app/scope';
 import declaration from '../src/shards/pine-hollow/data/director.json';
 import {pineDirector as module} from './fixtures/director-modules';
 import rows from '../src/shards/pine-hollow/data/watchStages.json';
 import bindings from './fixtures/pine-director-bindings.json' with { type: 'json' };
 import { Flags } from '../src/engine/world/interact/flags';
+import {parseDirector} from '../src/format/director';
 import { pineDirectorClock } from './fixtures/director-pine/stageClock';
 
 const encode=(bytes:Uint8Array):string=>btoa(Array.from(bytes,byte=>String.fromCodePoint(byte)).join(''));
@@ -44,7 +45,7 @@ test.each([true, false])('Pine direct bindings preserve every AS/stage snapshot 
 test('embedded admission refuses stale names and changed bytes and installs independent memory', async () => {
   expect(() => embeddedDirectorBytes(declaration, { ...module, module: '0'.repeat(64) })).toThrow('stale');
   const bytes = embeddedDirectorBytes(declaration, module); bytes[bytes.length - 1] = 0;
-  const changed = { ...module, bytes: encode(bytes) };
+  const changed = { ...module, bytes };
   await expect(prepareEmbeddedDirector(declaration, changed, 357)).rejects.toThrow('hash mismatch');
   const create = await prepareEmbeddedDirector(declaration, module, 357), first = create(), second = create();
   first.step(0, { 'night-request': 0, 'dawn-request': 0, seen: 0, 'has-clock': 1, night: 0 });
@@ -91,8 +92,9 @@ test('literal bindings reject invalid row payloads before initialization and mis
 });
 
 test('raw and original inline director bytes retain exact state and event history',async()=>{
-  const bytes=embeddedDirectorBytes(declaration,module),inline={...module,bytes:encode(bytes)};
-  const raw=(await prepareEmbeddedDirector(declaration,module,357))(),old=(await prepareEmbeddedDirector(declaration,inline,357))();
+  const bytes=embeddedDirectorBytes(declaration,module),inline=encode(bytes);
+  const original=Uint8Array.from(atob(inline),value=>value.codePointAt(0)??0);
+  const raw=(await prepareEmbeddedDirector(declaration,module,357))(),old=(await prepareDirectorModule(parseDirector(declaration),original))(357);
   const input={'night-request':0,'dawn-request':0,seen:0,'has-clock':1,night:0};
   raw.enqueue('dawn.request');old.enqueue('dawn.request');
   for(let tick=0;tick<100;tick++){expect(raw.step(tick,input,.1)).toEqual(old.step(tick,input,.1));expect(raw.snapshot()).toEqual(old.snapshot());}

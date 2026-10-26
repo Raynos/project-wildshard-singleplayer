@@ -187,7 +187,7 @@ The 32-number input limit, query count/fuel and bounded memory buffers stay unch
 entity fields belong to that shared host; pending mover interactions have a separate continuation adapter.
 `@wildshard/sdk/movers` validates source data. Trusted legacy view recipes only project published poses.
 
-`@wildshard/game/shardfile/director` validates typed shard events and observations. Its bounded
+`@wildshard/game/plugin/director` validates typed shard events and observations. Its bounded
 `DirectorLane` runs raw bytes under unchanged AS limits; memory, globals, quotas and queued input restore.
 `readDirectorProduct` requires a named binary file; embedded admission accepts raw bytes only.
 Shard subscriptions deliver declared payloads on the next fixed tick; grid subscriptions are reserved

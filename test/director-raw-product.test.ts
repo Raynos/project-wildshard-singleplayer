@@ -1,6 +1,6 @@
 import {expect,test,vi} from 'vitest';
 import {Scope} from '../src/engine/app/scope';
-import {readDirectorProduct,prepareEmbeddedDirector} from '../src/game/plugin/director';
+import {readDirectorProduct,prepareEmbeddedDirector,embeddedDirectorBytes} from '../src/game/plugin/director';
 import {parseDirector} from '../src/format/director';
 import {createShardProduct} from '../src/game/shardfile/shardProduct';
 import {emptyShardfile} from '../src/sdk/author';
@@ -9,9 +9,9 @@ import {pineDirector,driftwoodDirector} from './fixtures/director-modules';
 import pine from '../src/shards/pine-hollow/data/director.json' with {type:'json'};
 import driftwood from '../src/shards/driftwood-isle/data/director.json' with {type:'json'};
 
-function fixture(declaration:unknown,module:{readonly module:string;readonly bytes:Uint8Array},options:{readonly inline?:string;readonly raw?:Uint8Array;readonly wait?:Promise<void>}={}){
+function fixture(declaration:unknown,module:{readonly module:string;readonly bytes:Uint8Array},options:{readonly inline?:string;readonly omitFile?:boolean;readonly raw?:Uint8Array;readonly wait?:Promise<void>}={}){
   const file='behaviour/director.wasm',raw=options.raw??module.bytes,hash=sha256(raw),stages={original:true};
-  const json=new TextEncoder().encode(JSON.stringify({declaration,module:{module:module.module,bytes:options.inline??'',file},stages,bindings:null,seed:357})),jsonHash=sha256(json),reads:string[]=[];
+  const json=new TextEncoder().encode(JSON.stringify({declaration,module:{module:module.module,bytes:options.inline??'',...(options.omitFile?{}:{file})},stages,bindings:null,seed:357})),jsonHash=sha256(json),reads:string[]=[];
   const product=createShardProduct({slug:'raw-director',revision:1,shardfile:emptyShardfile({slug:'raw-director',name:'Director',author:'Fixture',revision:1,seed:357}),
     sections:new Map(),files:new Map([['directors/main.json',{hash:jsonHash,url:'main'}],[file,{hash,url:file}]]),read:async ref=>{
       if(ref===jsonHash){reads.push('main');return json;}if(ref!==hash)throw new Error('Unexpected director file');reads.push(file);await options.wait;return raw;
@@ -45,3 +45,31 @@ for(const [name,declaration,module,size,hash] of [
     }finally{root.dispose();}
   });
 }
+
+for(const [name,declaration,module] of [['pine',pine,pineDirector],['driftwood',driftwood,driftwoodDirector]] as const){
+  test(`${name} refuses unconverted inline director content before decoding or reading a module`,async()=>{
+    const encoded=btoa(Array.from(module.bytes,value=>String.fromCodePoint(value)).join('')),decode=vi.spyOn(globalThis,'atob');
+    try{for(const inline of [encoded,'invalid','']){
+      const f=fixture(declaration,module,{inline,omitFile:true});
+      await expect(readDirectorProduct(f.product)).rejects.toThrow('named binary file');
+      expect(f.reads).toEqual(['main']);
+    }expect(decode).not.toHaveBeenCalled();}finally{decode.mockRestore();}
+  });
+}
+
+test('direct director admission refuses encoded or non-byte payloads without decoding',()=>{
+  const decode=vi.spyOn(globalThis,'atob');
+  try{
+    for(const bytes of ['', 'invalid', [0,97,115,109], null, undefined]){
+      expect(()=>{Reflect.apply(embeddedDirectorBytes,undefined,[pine,{...pineDirector,bytes}]);}).toThrow('raw binary bytes');
+    }
+    expect(decode).not.toHaveBeenCalled();
+  }finally{decode.mockRestore();}
+});
+
+test('raw director copies only its selected byte view and keeps the author payload detached',()=>{
+  const backing=new Uint8Array(pineDirector.bytes.length+9);backing.set(pineDirector.bytes,4);
+  const view=backing.subarray(4,4+pineDirector.bytes.length),copy=embeddedDirectorBytes(pine,{...pineDirector,bytes:view});
+  expect(copy).toEqual(pineDirector.bytes);expect(copy.buffer).not.toBe(backing.buffer);
+  copy.fill(0);expect(view).toEqual(pineDirector.bytes);
+});

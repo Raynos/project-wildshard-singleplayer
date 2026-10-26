@@ -12,7 +12,6 @@
     "src/engine/world/scalarChannel.ts": 1,
     "src/game/looks/paintedLook.ts": 1,
     "src/game/plugin/brain.ts": 1,
-    "src/game/plugin/director.ts": 1,
     "src/game/population/nativeBake.ts": 1,
     "src/game/population/pageGroups.ts": 1,
     "src/game/population/returnProgram.ts": 1,

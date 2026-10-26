@@ -126,13 +126,14 @@ export async function prepareDirectorModule(data: DirectorData, bytes: Uint8Arra
   return (seed, query) => new DirectorLane(checked, copy, seed, query);
 }
 
-/** Decode an embedded author bake only when it names the admitted declaration. */
-export function embeddedDirectorBytes(data: unknown, module: { readonly module: string; readonly bytes: string | Uint8Array }): Uint8Array {
+/** Copy raw author bytes only when they name the admitted declaration. Encoded payloads refuse before decoding. */
+export function embeddedDirectorBytes(data: unknown, module: { readonly module: string; readonly bytes: Uint8Array }): Uint8Array {
   if (module.module !== parseDirector(data).module) throw new Error('Embedded director module is stale');
-  return module.bytes instanceof Uint8Array ? Uint8Array.from(module.bytes) : Uint8Array.from(atob(module.bytes), byte => byte.codePointAt(0) ?? 0);
+  if (!(module.bytes instanceof Uint8Array)) throw new Error('Director module requires raw binary bytes');
+  return Uint8Array.from(module.bytes);
 }
 /** Admit an embedded bake once and retain a caller-owned seed for independent lane installations. */
-export async function prepareEmbeddedDirector(data: unknown, module: { readonly module: string; readonly bytes: string | Uint8Array }, seed: number, scope?: { readonly disposed: boolean; readonly disposing?: boolean }): Promise<() => DirectorLane> {
+export async function prepareEmbeddedDirector(data: unknown, module: { readonly module: string; readonly bytes: Uint8Array }, seed: number, scope?: { readonly disposed: boolean; readonly disposing?: boolean }): Promise<() => DirectorLane> {
   const create = await prepareDirectorModule(parseDirector(data), embeddedDirectorBytes(data, module));
   if (scope?.disposed === true || scope?.disposing === true) throw new Error('Director owner left during admission');
   return () => create(seed);
@@ -140,13 +141,14 @@ export async function prepareEmbeddedDirector(data: unknown, module: { readonly 
 
 const embeddedProduct = v.strictObject({ declaration: v.unknown(), module: v.strictObject({ module: v.string(), bytes: v.string(), file: v.exactOptional(v.pipe(v.string(),v.minLength(1),v.maxLength(240))) }),
   stages: v.unknown(), bindings: v.unknown(), seed: v.number() });
-/** Read embedded bytes and stage contracts from the admitted named product. */
+/** Read the verified binary file and stage contracts from the admitted product; inline modules refuse. */
 export async function readDirectorProduct(product: { file: (name: string) => Promise<Uint8Array> }, scope?: { readonly disposed: boolean; readonly disposing?: boolean }): Promise<{
   readonly create: () => DirectorLane; readonly bytes: Uint8Array; readonly stages: unknown;
 }> {
   const data = v.parse(embeddedProduct, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await product.file('directors/main.json'))));
-  if (data.module.file !== undefined && (data.module.bytes !== '' || data.module.module !== parseDirector(data.declaration).module)) throw new Error('Raw director module is stale or mixed');
-  const module = data.module.file === undefined ? data.module : { ...data.module,bytes: await product.file(data.module.file) };
+  if (data.module.file === undefined) throw new Error('Director requires a named binary file');
+  if (data.module.bytes !== '' || data.module.module !== parseDirector(data.declaration).module) throw new Error('Raw director module is stale or mixed');
+  const module = { ...data.module, bytes: await product.file(data.module.file) };
   const create = await prepareEmbeddedDirector(data.declaration, module, data.seed, scope);
   return { create, bytes: embeddedDirectorBytes(data.declaration, module), stages: data.stages };
 }
