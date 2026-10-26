@@ -9,9 +9,9 @@ import { hudSlots } from './hudSlots';
 import { listenPage } from '../input/dom';
 import { diagnosticNow } from '../core/clock';
 
-const phaseSchema = v.picklist(['found', 'download', 'install', 'reload']);
+const phaseSchema: v.GenericSchema<BoundedUpdatePhaseInput, BoundedUpdatePhase> = v.picklist(['found', 'download', 'install', 'reload']);
 const count = v.pipe(v.number(), v.safeInteger(), v.minValue(0));
-const stateSchema = v.nullable(v.object({
+const stateSchema: v.GenericSchema<BoundedUpdateStateInput, BoundedUpdateState> = v.nullable(v.object({
   started: count, source: v.string(), target: v.nullable(v.string()), phase: phaseSchema,
   packReady: v.boolean(), files: count, network: count, cached: count,
 }));
@@ -192,3 +192,18 @@ export class UpdateProgress {
     if (this.failed || elapsed >= 30000) this.showRetry();
   }
 }
+
+/** Complete admitted data, independent of validator implementation metadata. */
+type BoundedUpdatePhaseInput = BoundedUpdatePhase;
+type BoundedUpdatePhase = "found" | "download" | "install" | "reload";
+type BoundedUpdateStateInput = BoundedUpdateState;
+type BoundedUpdateState = {
+    started: number;
+    source: string;
+    target: string | null;
+    phase: "found" | "download" | "install" | "reload";
+    packReady: boolean;
+    files: number;
+    network: number;
+    cached: number;
+} | null;

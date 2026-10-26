@@ -2,7 +2,7 @@ import * as v from 'valibot';
 import {lineFor,type DialogueEntry,type NpcDef} from './core';
 
 const finite = v.pipe(v.number(), v.finite());
-const Saved = v.strictObject({ version: v.literal(1),
+const Saved: v.GenericSchema<BoundedDialogueSaveInput, BoundedDialogueSave> = v.strictObject({ version: v.literal(1),
   lines: v.pipe(v.array(v.pipe(v.string(), v.maxLength(8192))), v.maxLength(128)),
   index: v.pipe(finite, v.integer(), v.minValue(0)), shown: v.pipe(finite, v.minValue(0)), open: v.boolean(),
 });
@@ -178,3 +178,14 @@ export class NpcReading {
     return () => { commit(); this.elapsed = saved.elapsed; };
   }
 }
+
+/** Complete admitted data, independent of validator implementation metadata. */
+type BoundedDialogueSaveInput = BoundedDialogueSave;
+interface BoundedDialogueSaveFields {
+    version: 1;
+    lines: string[];
+    index: number;
+    shown: number;
+    open: boolean;
+}
+type BoundedDialogueSave = { [Key in keyof BoundedDialogueSaveFields]: BoundedDialogueSaveFields[Key] };

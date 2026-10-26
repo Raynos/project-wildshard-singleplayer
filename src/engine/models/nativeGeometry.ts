@@ -2,9 +2,9 @@ import { BufferAttribute, BufferGeometry, Float16BufferAttribute, type Mesh } fr
 import * as v from 'valibot';
 
 /** Portable accessor metadata for one original typed application channel. */
-export const NativeAttributeSchema = v.strictObject({ semantic: v.string(), storage: v.picklist(['Float32Array', 'Float16Array', 'Uint16Array', 'Uint32Array', 'Int16Array', 'Int8Array', 'Uint8Array']), normalized: v.boolean(), itemSize: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(4)) });
+export const NativeAttributeSchema: v.GenericSchema<BoundedNativeAttributeInput, BoundedNativeAttribute> = v.strictObject({ semantic: v.string(), storage: v.picklist(['Float32Array', 'Float16Array', 'Uint16Array', 'Uint32Array', 'Int16Array', 'Int8Array', 'Uint8Array']), normalized: v.boolean(), itemSize: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(4)) });
 /** Original application channel names mapped to their exact stored accessors. */
-export const NativeAttributesSchema = v.record(v.string(), NativeAttributeSchema);
+export const NativeAttributesSchema: v.GenericSchema<BoundedNativeAttributesInput, BoundedNativeAttributes> = v.record(v.string(), NativeAttributeSchema);
 const semantics: Readonly<Record<string, string>> = { POSITION: 'position', NORMAL: 'normal', COLOR_0: 'color', TEXCOORD_0: 'uv', TANGENT: 'tangent' };
 
 /** Restore original typed GLB channels, including half-float bits and vec4 shader normals.
@@ -29,3 +29,20 @@ export function nativeWholeGeometry(node: Mesh, ownership: 'borrow' | 'take' = '
   result.setIndex(ownership === 'take' ? index : index?.clone() ?? null);
   return result;
 }
+
+/** Complete admitted data, independent of validator implementation metadata. */
+type BoundedNativeAttributeInput = BoundedNativeAttribute;
+interface BoundedNativeAttributeFields {
+    semantic: string;
+    storage: "Float32Array" | "Float16Array" | "Uint16Array" | "Uint32Array" | "Int16Array" | "Int8Array" | "Uint8Array";
+    normalized: boolean;
+    itemSize: number;
+}
+type BoundedNativeAttribute = { [Key in keyof BoundedNativeAttributeFields]: BoundedNativeAttributeFields[Key] };
+type BoundedNativeAttributesInput = BoundedNativeAttributes;
+type BoundedNativeAttributes = Record<string, {
+        semantic: string;
+        storage: "Float32Array" | "Float16Array" | "Uint16Array" | "Uint32Array" | "Int16Array" | "Int8Array" | "Uint8Array";
+        normalized: boolean;
+        itemSize: number;
+    }>;

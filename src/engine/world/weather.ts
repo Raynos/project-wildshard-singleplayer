@@ -5,7 +5,7 @@ import type { DayCycleClock } from './dayCycle';
 
 const finite = v.pipe(v.number(), v.finite());
 const uint32 = v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(0xffffffff));
-const WeatherSavedSchema = v.strictObject({
+const WeatherSavedSchema: v.GenericSchema<BoundedWeatherSaveInput, BoundedWeatherSave> = v.strictObject({
   version: v.literal(1), state: v.string(), mode: v.string(), hold: v.boolean(),
   phaseT: v.pipe(finite, v.minValue(0)), phaseLen: v.pipe(finite, v.minValue(Number.MIN_VALUE)),
   n: v.pipe(v.record(v.string(), finite), v.check((values) => Object.keys(values).length <= 256)),
@@ -114,7 +114,7 @@ export class Weather<S extends string = string, N extends WeatherNumbers = Weath
       else this.force(pick.hold, at ?? pick.at ?? this.profile.forceAt ?? 0);
     }
   }
-  force(state: S, at = this.profile.forceAt ?? 0): void {
+  force(state: S, at: number = this.profile.forceAt ?? 0): void {
     this.enter(state);
     this.phaseT = this.phaseLen * Math.min(0.999, Math.max(0, at));
     if (this.profile.forceHold) this.hold = true;
@@ -144,3 +144,22 @@ export class Weather<S extends string = string, N extends WeatherNumbers = Weath
   }
   private sample(range: readonly [number, number]): number { return range[0] === range[1] && !this.profile.sampleFixed ? range[0] : this.rng.range(range[0], range[1]); }
 }
+
+/** Complete admitted data, independent of validator implementation metadata. */
+type BoundedWeatherSaveInput = BoundedWeatherSave;
+interface BoundedWeatherSaveFields {
+    version: 1;
+    state: string;
+    mode: string;
+    hold: boolean;
+    phaseT: number;
+    phaseLen: number;
+    n: Record<string, number>;
+    rng: {
+        version: 1;
+        state: number;
+        initial: number;
+        scrambledFork: boolean;
+    };
+}
+type BoundedWeatherSave = { [Key in keyof BoundedWeatherSaveFields]: BoundedWeatherSaveFields[Key] };

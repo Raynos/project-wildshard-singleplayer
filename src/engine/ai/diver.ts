@@ -61,7 +61,7 @@ const windScalar = v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(600)
 const windPositive = v.pipe(windScalar, v.minValue(Number.MIN_VALUE));
 const windSpeed = v.pipe(windPositive, v.maxValue(40)), windTurn = v.pipe(windScalar, v.maxValue(30)), windFraction = v.pipe(windScalar, v.maxValue(1));
 const windField = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9._:-]{0,127}$/u));
-const WindDiverSpecSchema = v.pipe(v.strictObject({
+const WindDiverSpecSchema: v.GenericSchema<BoundedDiverTuningInput, BoundedDiverTuning> = v.pipe(v.strictObject({
   initialCooldown: windScalar, lookTurn: windTurn,
   fields: v.strictObject({ altitude: windField, smoothed: windField, flap: windField, fold: windField, ground: windField, bank: windField }),
   cruise: v.strictObject({ home: windScalar, homePhase2: windScalar, player: windScalar, playerPhase2: windScalar, clearance: windScalar, wave: windScalar, waveFrequency: windScalar, ease: windPositive }),
@@ -78,7 +78,7 @@ export type WindDiverSpec = v.InferOutput<typeof WindDiverSpecSchema>;
 export function readWindDiverSpec(input: unknown): WindDiverSpec { return v.parse(WindDiverSpecSchema, input); }
 
 const windFinite = v.pipe(v.number(), v.finite()), windTriple = v.tuple([windFinite, windFinite, windFinite]);
-const WindDiverSaved = v.strictObject({ st: v.picklist(['soar', 'tell', 'stoop', 'ground', 'climb']), stT: windFinite, stoopT: windFinite,
+const WindDiverSaved: v.GenericSchema<BoundedDiverSaveInput, BoundedDiverSave> = v.strictObject({ st: v.picklist(['soar', 'tell', 'stoop', 'ground', 'climb']), stT: windFinite, stoopT: windFinite,
   ang: windFinite, centre: windTriple, tgt: windTriple, overYou: v.boolean() });
 /** One admitted flight pattern, immutable home and ordered attack contract. */
 export type DiverProfile<A extends AnimalSim = AnimalSim> =
@@ -438,3 +438,95 @@ export class DiverBrain<A extends AnimalSim> {
   /** Validate the complete continuation atomically before mutation. */
   private restoreWind(input: unknown): void { const s = v.parse(WindDiverSaved, input); this.mode = s.st; this.windStT = s.stT; this.windStoopT = s.stoopT; this.angle = s.ang; this.windCentre.fromArray(s.centre); this.windTarget.fromArray(s.tgt); this.windOverPlayer = s.overYou; }
 }
+
+/** Complete admitted data, independent of validator implementation metadata. */
+type BoundedDiverTuningInput = BoundedDiverTuning;
+interface BoundedDiverTuningFields {
+    initialCooldown: number;
+    lookTurn: number;
+    fields: {
+        altitude: string;
+        smoothed: string;
+        flap: string;
+        fold: string;
+        ground: string;
+        bank: string;
+    };
+    cruise: {
+        home: number;
+        homePhase2: number;
+        player: number;
+        playerPhase2: number;
+        clearance: number;
+        wave: number;
+        waveFrequency: number;
+        ease: number;
+    };
+    orbit: {
+        windScale: number;
+        ease: number;
+        radius: number;
+        speed: number;
+        climbEase: number;
+        soarEase: number;
+        climbSpeed: number;
+        arrival: number;
+    };
+    pose: {
+        initialFlap: number;
+        climbFlap: number;
+        soarFlap: number;
+        waveFlap: number;
+        flapFrequency: number;
+        bank: number;
+        tellFlap: number;
+        tellFold: number;
+    };
+    tell: {
+        seconds: number;
+        phase2Seconds: number;
+        targetHeight: number;
+        alpha: number;
+        alphaGrowth: number;
+    };
+    stoop: {
+        targetHeight: number;
+        speed: number;
+        arrival: number;
+        alpha: number;
+        range: number;
+        playerHeight: number;
+        damage: number;
+        climbHeight: number;
+        cooldown: number;
+        randomCooldown: number;
+        phaseCooldown: number;
+        phaseRandom: number;
+    };
+    ground: {
+        onScale: number;
+        idleScale: number;
+        seconds: number;
+        damage: number;
+    };
+}
+type BoundedDiverTuning = { [Key in keyof BoundedDiverTuningFields]: BoundedDiverTuningFields[Key] };
+type BoundedDiverSaveInput = BoundedDiverSave;
+interface BoundedDiverSaveFields {
+    st: "ground" | "tell" | "stoop" | "soar" | "climb";
+    stT: number;
+    stoopT: number;
+    ang: number;
+    centre: [
+        number,
+        number,
+        number
+    ];
+    tgt: [
+        number,
+        number,
+        number
+    ];
+    overYou: boolean;
+}
+type BoundedDiverSave = { [Key in keyof BoundedDiverSaveFields]: BoundedDiverSaveFields[Key] };

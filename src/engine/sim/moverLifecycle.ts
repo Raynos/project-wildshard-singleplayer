@@ -7,7 +7,7 @@ import type { MoverData } from '@wildshard/format/movers';
 export interface MoverEndEvent { readonly mover: string; readonly atEnd: boolean }
 const event = v.strictObject({ mover: v.string(), atEnd: v.boolean() });
 /** Checkpoints retain both edge latches and undelivered events. Restore emits nothing. */
-export const MoverLifecycleStateSchema = v.strictObject({ contract: v.string(),
+export const MoverLifecycleStateSchema: v.GenericSchema<BoundedMoverStateInput, BoundedMoverState> = v.strictObject({ contract: v.string(),
   ends: v.pipe(v.array(event), v.maxLength(32)), pending: v.pipe(v.array(event), v.maxLength(64)) });
 export type MoverLifecycleState = v.InferOutput<typeof MoverLifecycleStateSchema>;
 
@@ -63,3 +63,18 @@ export function moverEndState(row: MoverData[number]): { position: readonly [num
   if (fields[row.atEnd.field] !== row.atEnd.equals) throw new Error('Restored mover does not satisfy its declared endpoint');
   return { position: [position[0], position[1], position[2]], fields };
 }
+
+/** Complete admitted data, independent of validator implementation metadata. */
+type BoundedMoverStateInput = BoundedMoverState;
+interface BoundedMoverStateFields {
+    contract: string;
+    ends: {
+        mover: string;
+        atEnd: boolean;
+    }[];
+    pending: {
+        mover: string;
+        atEnd: boolean;
+    }[];
+}
+type BoundedMoverState = { [Key in keyof BoundedMoverStateFields]: BoundedMoverStateFields[Key] };

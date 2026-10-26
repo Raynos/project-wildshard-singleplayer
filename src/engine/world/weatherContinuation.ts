@@ -9,7 +9,7 @@ import { clockGust, fieldGustAt } from './windField';
 /** Required mechanical outputs plus any authored numeric channels. */
 export type WeatherValues = WeatherNumbers & Record<string,number>;
 const finite = v.pipe(v.number(),v.finite());
-const GustSaved = v.strictObject({version:v.literal(1),time:v.pipe(finite,v.minValue(0)),gust:v.pipe(finite,v.minValue(0),v.maxValue(1))});
+const GustSaved: v.GenericSchema<BoundedGustSaveInput, BoundedGustSave> = v.strictObject({version:v.literal(1),time:v.pipe(finite,v.minValue(0)),gust:v.pipe(finite,v.minValue(0),v.maxValue(1))});
 const Saved = v.strictObject({version:v.literal(1),weather:v.unknown(),wind:v.unknown(),cadence:v.pipe(v.string(),v.maxLength(16384)),boost:v.pipe(finite,v.minValue(0),v.maxValue(1))});
 const Time = v.object({time:finite});
 
@@ -110,3 +110,12 @@ export class WeatherContinuation extends Weather<string,WeatherValues> {
     return ()=>{weather();wind();this.cadence=cadence;this.registers['boost']=saved.boost;};
   }
 }
+
+/** Complete admitted data, independent of validator implementation metadata. */
+type BoundedGustSaveInput = BoundedGustSave;
+interface BoundedGustSaveFields {
+    version: 1;
+    time: number;
+    gust: number;
+}
+type BoundedGustSave = { [Key in keyof BoundedGustSaveFields]: BoundedGustSaveFields[Key] };
