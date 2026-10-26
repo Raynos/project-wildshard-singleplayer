@@ -16,6 +16,15 @@ spec.loader.exec_module(products)
 
 
 class PreparedProducts(unittest.TestCase):
+    retained_cases = {
+        'test_dirty_tracked_output_is_transferred_not_retained_even_when_staged',
+        'test_missing_or_changed_retained_output_refuses_before_writes',
+        'test_retained_inventory_cannot_overlap_an_archive_member',
+        'test_retained_symlink_parent_refuses_even_inside_checkout',
+        'test_retained_mode_is_checked_before_writes',
+        'test_unchanged_retained_catalogue_output_is_transferred',
+    }
+
     @classmethod
     def setUpClass(cls):
         # This is a tiny synthetic Git fixture, never a copy of the project.
@@ -25,6 +34,7 @@ class PreparedProducts(unittest.TestCase):
         cls.addClassCleanup(scratch.cleanup)
         cls.root = Path(scratch.name) / 'work'
         cls.pristine = Path(scratch.name) / 'pristine'
+        cls.retained_pristine = Path(scratch.name) / 'retained'
         cls.root.mkdir()
         subprocess.run(['git', 'init', '-q', str(cls.root)], check=True)
         source = Path('src')
@@ -52,14 +62,24 @@ class PreparedProducts(unittest.TestCase):
             cls.create_phase_receipt()
             products.pack(cls.root)
         shutil.copytree(cls.root, cls.pristine)
+        # The six retained-output cases share this identical real commit and
+        # initial pack, but receive separate copied Git objects and files below.
+        subprocess.run(['git', '-C', str(cls.root), 'add', cls.asset], check=True)
+        subprocess.run(['git', '-C', str(cls.root), '-c', 'user.name=Fixture',
+                        '-c', 'user.email=fixture@example.com', 'commit', '-qm', 'retained asset'], check=True)
+        cls.retained_sha = products.git(cls.root, 'rev-parse', 'HEAD').decode().strip()
+        with patch.dict(os.environ, {'GITHUB_SHA': cls.retained_sha, 'GITHUB_RUN_ID': '123'}):
+            products.pack(cls.root)
+        shutil.copytree(cls.root, cls.retained_pristine)
 
     def setUp(self):
         # Every case gets independent Git objects, mutable bytes and archives.
         # copytree copies files; no hard links or state survive a prior case.
         shutil.rmtree(self.root)
-        shutil.copytree(self.pristine, self.root)
+        retained = self._testMethodName in self.retained_cases
+        shutil.copytree(self.retained_pristine if retained else self.pristine, self.root)
         self.catalogue = json.loads((self.root / 'scripts/generation-jobs.json').read_text())
-        self.env = patch.dict(os.environ, {'GITHUB_SHA': self.sha, 'GITHUB_RUN_ID': '123'})
+        self.env = patch.dict(os.environ, {'GITHUB_SHA': self.retained_sha if retained else self.sha, 'GITHUB_RUN_ID': '123'})
         self.env.start()
         self.addCleanup(self.env.stop)
 
@@ -158,22 +178,17 @@ class PreparedProducts(unittest.TestCase):
 
     def test_unchanged_retained_catalogue_output_is_transferred(self):
         name = self.asset
-        subprocess.run(['git', '-C', str(self.root), 'add', name], check=True)
-        subprocess.run(['git', '-C', str(self.root), '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.com',
-                        'commit', '-qm', 'retained asset'], check=True)
-        os.environ['GITHUB_SHA'] = products.git(self.root, 'rev-parse', 'HEAD').decode().strip()
-        products.pack(self.root)
+        self.retain_asset()
         proof = json.loads((self.root / products.PROOF).read_text())
         self.assertIn(name, proof['retained'])
         products.unpack(self.root)
         self.assertEqual((self.root / name).read_bytes(), b'retained bytes')
 
     def retain_asset(self):
-        subprocess.run(['git', '-C', str(self.root), 'add', self.asset], check=True)
-        subprocess.run(['git', '-C', str(self.root), '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.com',
-                        'commit', '-qm', 'tracked output'], check=True)
-        os.environ['GITHUB_SHA'] = products.git(self.root, 'rev-parse', 'HEAD').decode().strip()
-        products.pack(self.root)
+        self.assertIn(self._testMethodName, self.retained_cases)
+        self.assertEqual(os.environ['GITHUB_SHA'], self.retained_sha)
+        proof = json.loads((self.root / products.PROOF).read_text())
+        self.assertIn(self.asset, proof['retained'])
 
     def test_dirty_tracked_output_is_transferred_not_retained_even_when_staged(self):
         self.retain_asset()
@@ -242,13 +257,14 @@ class PreparedProducts(unittest.TestCase):
 
 
     def test_wrong_sha_and_run_refuse(self):
+        original = (self.root / products.PROOF).read_bytes()
         for key in ['sha', 'run']:
             proof = json.loads((self.root / products.PROOF).read_text())
             proof[key] = 'wrong'
             (self.root / products.PROOF).write_text(json.dumps(proof))
             with self.assertRaisesRegex(ValueError, 'different SHA or CI run'):
                 products.unpack(self.root)
-            products.pack(self.root)
+            (self.root / products.PROOF).write_bytes(original)
 
     def duplicate_payload(self):
         source, other = 'public/duplicate.bin', 'out/fictional/duplicate.bin'
