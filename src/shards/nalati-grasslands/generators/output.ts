@@ -244,9 +244,10 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<type
   const costs = v.parse(v.object({ places: v.object({ bytes: byteCount }), dressing: v.object({ bytes: byteCount }) }), runtime.runtime);
   const places = nameBlob('world/places.bin', 'bin', placeBytes, { decoded: costs.places.bytes });
   const shapeBook = v.parse(v.object({ draws: FixedDrawRowsSchema, sources: shapeSourcesSchema }), runtime.shapeBook);
+  const shapeDraws = shapeBook.draws.map(row => 'lane' in row ? { ...row, lane: { file: 'world/places.bin', offset: row.lane.offset } } : row);
   const ownedMetadata = emitNamedBlobs([nameBlob('sim/headless-assembly.json', 'json', new TextEncoder().encode(encodeCanonicalJson({
     ...eliteAssembly, constants: { ...eliteAssembly.constants, nativeShelters },
-  }))), nameBlob('models/shape-book.json', 'json', new TextEncoder().encode(encodeCanonicalJson(shapeBook.draws)),
+  }))), nameBlob('models/shape-book.json', 'json', new TextEncoder().encode(encodeCanonicalJson(shapeDraws)),
     { jsonSchema: namedJsonSchema(FixedDrawRowsSchema) })]);
   const crags = await nalatiBakeBlob(ctx, 'crags', DRESSING_CRAG_DECODED);
   const dressingFiles = await nalatiDressingProgram(ctx), dressingBytes = dressingFiles.get('dressing.bin');

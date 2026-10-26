@@ -11,6 +11,8 @@ import { createProjectGeneration } from '../src/sdk/projectGeneration';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { nameBlob, type NamedBlob } from '../src/sdk/blobs';
 import { PackedSpecimenSchema } from '../src/format/specimenCatalogue';
+import { FixedDrawRowsSchema } from '../src/format/fixedDraws';
+import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
 import { PopulationFieldSchema } from '../src/format/populationEnvironment';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { nalatiBakeBlob } from '../src/shards/nalati-grasslands/generators/placeBlobProgram';
@@ -21,6 +23,7 @@ import dressingOriginal from './fixtures/nalati-dressing-blob.json' with { type:
 import sceneOriginal from './fixtures/nalati-dressing-scenes.json' with { type: 'json' };
 import assemblyOriginal from './fixtures/nalati-headless-assembly.json' with { type: 'json' };
 import shapeBookOriginal from './fixtures/nalati-shape-book.json' with { type: 'json' };
+import shapeBookRowsOriginal from './fixtures/nalati-shape-book-original.json' with { type: 'json' };
 import * as v from 'valibot';
 import { discoverGeneration } from '../scripts/generate.mjs';
 import { dressingSceneBlobs } from '../src/shards/nalati-grasslands/generators/dressingScene';
@@ -30,6 +33,7 @@ import { nalatiDecorative } from './fixtures/nalati-decorative';
 import { sceneWithNativeOutcrops } from './fixtures/nalati-scene-provenance';
 
 const paintInput: unknown = JSON.parse(readFileSync('src/shards/nalati-grasslands/data/poiPaint.json', 'utf8'));
+const productShapeRow = (row: typeof shapeBookRowsOriginal.draws[number]) => 'lane' in row ? { ...row, lane: { file: 'world/places.bin', offset: row.lane.offset } } : row;
 
 const originalAssembly: unknown = JSON.parse(readFileSync('test/fixtures/nalati-headless-original.json', 'utf8'));
 const fieldInput: unknown = JSON.parse(readFileSync('src/shards/nalati-grasslands/data/populationField.generated.json', 'utf8'));
@@ -139,11 +143,16 @@ test('the actual output hook preserves every predecessor file cost and binary by
     expect(hashImmutableBytes(assemblyBytes)).toBe(expectedAssembly.file.hash);
     expect(Buffer.compare(assemblyBytes, expectedAssembly.bytes)).toBe(0);
     const shapeBook = hit.namedFiles.find(row => row.name === shapeBookOriginal.name);
-    expect(shapeBook).toEqual(shapeBookOriginal);
-    const shapeBytes = hit.assets.get(shapeBookOriginal.hash);
+    const beforeShapes = new TextEncoder().encode(encodeCanonicalJson(shapeBookRowsOriginal.draws));
+    const { jsonSchema: _beforeSchema, ...beforeShapePin } = shapeBookOriginal;
+    expect(nameBlob(shapeBookOriginal.name, 'json', beforeShapes).file).toEqual(beforeShapePin);
+    const expectedShapes = nameBlob(shapeBookOriginal.name, 'json', new TextEncoder().encode(encodeCanonicalJson(shapeBookRowsOriginal.draws.map(productShapeRow))), { jsonSchema: namedJsonSchema(FixedDrawRowsSchema) });
+    expect(shapeBook).toEqual(expectedShapes.file);
+    const shapeBytes = hit.assets.get(expectedShapes.file.hash);
     if (shapeBytes === undefined) throw new Error('Missing original native shape book');
-    expect(shapeBytes.length).toBe(shapeBookOriginal.compressed);
-    expect(hashImmutableBytes(shapeBytes)).toBe(shapeBookOriginal.hash);
+    expect(shapeBytes.length).toBe(expectedShapes.file.compressed);
+    expect(hashImmutableBytes(shapeBytes)).toBe(expectedShapes.file.hash);
+    expect(Buffer.compare(shapeBytes, expectedShapes.bytes)).toBe(0);
     const readShelters = (output: Awaited<ReturnType<typeof prepareOutput>>) => {
       const file = output.namedFiles.find(row => row.name === assemblyOriginal.name);
       const bytes = file === undefined ? undefined : output.assets.get(file.hash);
