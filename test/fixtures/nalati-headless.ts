@@ -1,3 +1,5 @@
+import * as v from 'valibot';
+import {PopulationFieldSchema} from '@wildshard/format/populationEnvironment';
 import type {BakedGrid} from '../../src/format/bakedTerrainBytes';
 import type { ShardProduct } from '../../src/game/shardfile/shardProduct';
 import type { SimHost } from '../../src/engine/sim';
@@ -164,10 +166,13 @@ export function initializeNalatiElites(elites: Pick<NativeEliteRoster,'bindPopul
     elites.bindPopulation(creatures);elites.bindBond(taming);if(!context.restoring)elites.initialize();
 }
 
-/** Read the original pond once, before either direct native owner consumes it. */
+/** Read the original named masks once before either direct native owner consumes them. */
 export async function prepareNalatiPopulation(product: Pick<ShardProduct, 'file'>, grid: BakedGrid,
     constants: {readonly nativeField: unknown}, bake: {readonly trees: readonly (readonly [number,number,number])[]; readonly tops: readonly number[]}) {
     const pond = {file: 'data/geography-pond.bin', bytes: await product.file('data/geography-pond.bin')};
-    const field = new NativePopulationField(grid,constants.nativeField,bake.trees,bake.tops,pond);
-    return {field, installMounted: (host: SimHost, profile: unknown) => installMountedPlayer(host,profile,pond)};
+    const input=constants.nativeField,rows=v.parse(PopulationFieldSchema,input),wet=rows.world.wet;
+    const wetFile=typeof wet==='string'||typeof wet.data==='string'?undefined:wet.data.file;
+    const wetBlock=wetFile===undefined?undefined:{file:wetFile,bytes:await product.file(wetFile)};
+    const field = new NativePopulationField(grid,input,bake.trees,bake.tops,pond,wetBlock);
+    return {field, installMounted: (host: SimHost, profile: unknown) => installMountedPlayer(host,profile,pond,wetBlock)};
 }
