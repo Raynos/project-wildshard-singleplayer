@@ -170,9 +170,9 @@ About 10 Opus lane-days, roughly 5 calendar days on two lanes.
 | RM6.3 light bake | done | RM3's lantern bake on at gain 0.8 (radius 1.5 m, reach 3 radii) into the kit's vertex colours (D1: stall roofs and posts warm near lanterns) |
 | RM6.4 gate light | done (material) | The gate unlit in its own texture (`data/landmark.graph.json`): shaded by the fixed dusk sun and a warm fill, gold texels glowing ×1.6, its lowest 9 m uplit by its pools; D1 on `e565128c26` reads red pillars, lit gold brackets, navy roof. Its hanging lanterns are sp-o1's gate dressing (RM9) |
 | RM6.5 dusk fill | done | The look key's ambient (what lights a plot on the grid and alone): ground [0.32, 0.34, 0.42] → warm lantern bounce [0.55, 0.36, 0.24], sky → lavender [0.66, 0.62, 0.86], 0.8 → 1; the manifest's hemisphere fill matches |
-| RM10.1–10.5 life | open | Round paper sky lanterns, stall steam, fireflies, banner sway, static posed figures |
-| RM11.1–11.2 near / far | open | Near view from the trim-sheet colours; far stand-ins from the new kit |
-| RM12.1–12.3 perf | open | Per-dome Chromium counts, fixes, one Simulator reading |
+| RM10.1–10.5 life | waits-Opus (RM8 bytes, sp-o1) | Round paper sky lanterns, stall steam, fireflies, banner sway, static posed figures: each adds or marks geometry, and the plaza and stall tiles sit on exact debt rows (`lint/tile-bake-debt.json`, 77 Night Market rows: no growth); they land once RM8 frees bytes (the props bake's instancing) |
+| RM11.1–11.2 near / far | waits-Opus (sp-o1 RM4) | The near view already takes the new palette and lantern bake (it is the coarse tiles' vertex colours); far stand-ins re-authored once sp-o1's kit models land |
+| RM12.1–12.3 perf | in flight (2026-10-26, sp-o2) | Per-dome counts on `e565128c26`: D1 ≤ 150 whole-scene draws / 347k tris, A2 ≤ 148 / 339k (target ≤ 120 / 600k); a draw breakdown by owner next, then fixes (no Pool/Glow merge: opaque vs additive blend), one Simulator reading |
 
 ### RM4, RM7–RM9, RM13 slices (G711, ≤ 1 h each; sp-o1, look-dome lane: kit models, ground geometry, gate, density, board)
 
