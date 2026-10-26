@@ -1,5 +1,4 @@
-import { writeImagePixels } from '@wildshard/sdk/bake/image';
-import { bakeRawColourTexture } from '@wildshard/sdk/bake/texture';
+import { bakeRawColourPixels } from '@wildshard/sdk/bake/rawTexture';
 import { SWARD_ATLAS } from './rows/swardAtlas';
 
 /**
@@ -79,8 +78,8 @@ export function bakeSkySwardAtlas(seed = 6417): Uint8Array {
 
 /** The atlas as a lossless, linear library texture (data/swardAtlas.ts `SWARD_ATLAS_FILE`): the same texels in the same row
  *  order, one level (the sampler's GPU mips build the chain, as the DataTexture's did). */
-export async function bakeSwardAtlasTexture(): Promise<Uint8Array> {
+export function bakeSwardAtlasTexture(): Promise<Uint8Array> {
   const { variants, w, h } = SWARD_ATLAS;
-  const png = await writeImagePixels({ width: w * variants, height: h, pixels: new Uint8ClampedArray(bakeSkySwardAtlas()) });
-  return bakeRawColourTexture(png, { colourSpace: 'linear' });
+  return Promise.resolve(bakeRawColourPixels({ width: w * variants, height: h,
+    pixels: new Uint8ClampedArray(bakeSkySwardAtlas()) }, { colourSpace: 'linear' }));
 }
