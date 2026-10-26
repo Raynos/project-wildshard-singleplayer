@@ -10,7 +10,29 @@ import { discoverGeneration, generateShardJob } from '../scripts/generate.mjs';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { SKY_PIECES } from '../src/shards/far-reach/generators/scene';
-import { skyWorldPieceFiles, skyWorldPieceSource } from '../src/shards/far-reach/generators/worldPieceBytes';
+import { skyWorldPieceFiles, skyWorldPieceSource, skyWorldPieceValues } from '../src/shards/far-reach/generators/worldPieceBytes';
+
+function checkValues(values: ReturnType<typeof skyWorldPieceValues>): void {
+  expect([...values.keys()]).toEqual(SKY_PIECES.map(piece => piece.glb));
+  for (const piece of SKY_PIECES) {
+    const value = values.get(piece.glb);
+    if (value === undefined) throw new Error('Missing owned world piece metadata');
+    expect(`${JSON.stringify(value, null, 2)}\n`, piece.glb).toBe(readFileSync(`src/shards/far-reach/data/${piece.rows}.json`, 'utf8'));
+  }
+}
+
+test('typed piece values retain all ten complete original metadata files in authored order', () => {
+  checkValues(skyWorldPieceValues());
+});
+
+test('independent typed piece compiles own their mutable kind and collider banks', () => {
+  const first = skyWorldPieceValues(), second = skyWorldPieceValues();
+  for (const value of first.values()) {
+    for (const kind of value.kinds) kind.count += 1;
+    value.colliders.length = 0;
+  }
+  checkValues(second); checkValues(skyWorldPieceValues());
+});
 
 test('all ten source pieces retain complete original GLB and JSON bytes in authored order', () => {
   const files = skyWorldPieceSource();

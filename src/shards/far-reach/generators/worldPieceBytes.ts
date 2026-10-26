@@ -1,7 +1,26 @@
 import { bakeOwned, type BakedScene } from '@wildshard/sdk/bake';
+import type { BakedKind } from '@wildshard/sdk/bake/kinds';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { SKY_IDENTITY } from './piece';
 import { SKY_PIECES, skyReachScene } from './scene';
+
+/** Typed original piece metadata; additional authored fields keep their own JSON values. */
+export interface SkyWorldPieceRows extends Readonly<Record<string, unknown>> {
+  readonly glb: string;
+  readonly kinds: readonly BakedKind[];
+  readonly colliders: BakedScene['pieces'][number]['colliders'];
+}
+
+/** Derive fresh owned metadata directly from the authored pieces, before any JSON publication. */
+export function skyWorldPieceValues(): ReadonlyMap<string, SkyWorldPieceRows> {
+  const pieces = bakeOwned(skyReachScene(), SKY_IDENTITY).pieces;
+  if (pieces.length !== SKY_PIECES.length) throw new Error('Sky world piece inventory differs');
+  return new Map(pieces.map(({ glb, kinds, colliders, rows }, index) => {
+    const piece = SKY_PIECES[index];
+    if (piece === undefined) throw new Error('Missing Sky world piece declaration');
+    return [piece.glb, structuredClone({ glb: hashImmutableBytes(glb), kinds, colliders, ...rows })];
+  }));
+}
 
 /** Original logical piece files; the caller owns publication and optional scene diagnostics. */
 export function skyWorldPieceFiles(pieces: BakedScene['pieces']): Map<string, Uint8Array> {
