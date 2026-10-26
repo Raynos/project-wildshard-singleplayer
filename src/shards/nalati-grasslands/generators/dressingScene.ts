@@ -28,6 +28,13 @@ import { PrivateSceneSchema } from '@wildshard/format/clientChannels';
 
 const text=v.string(),number=v.number(),xyz=v.tuple([number,number,number]);
 const memberSchema=v.object({draw:v.picklist(['instanced','merged']),placements:v.array(v.object({x:number,y:number,z:number,yaw:v.exactOptional(number),heading:v.exactOptional(v.tuple([number,number])),matrix:v.exactOptional(v.array(number))})),boxes:v.array(number),floors:v.array(SceneFloorSchema),solid:v.array(v.unknown()),descs:v.array(v.unknown())});
+// Private author input only; the emitted scene retains its existing public admission.
+const decorativeProfile=v.object({
+  horses:v.object({total:number,random:v.object({version:number,state:number,initial:number,scrambledFork:v.boolean()}),
+    member:memberSchema,herds:v.array(v.object({x:number,z:number,r:number,horses:v.array(v.object({x:number,z:number,yaw:number,turn:number,speed:number,s:number,c:number}))}))}),
+  lotus:v.object({scene:v.unknown(),poses:v.array(v.unknown()),member:memberSchema}),
+});
+const decorativeProfiles=v.object({phone:decorativeProfile,desktop:decorativeProfile});
 const place=v.object({name:text,tris:number,anchors:v.optional(v.object({riders:v.optional(v.array(v.object({t:number,k:number,w:number,bob:number})),[])}),{riders:[]}),instances:v.array(v.tuple([text,v.object({asset:SpecimenAssetSchema,scene:PrivateSceneSchema})])),effects:v.array(v.tupleWithRest([text,xyz],v.unknown())),members:v.array(v.tuple([text,memberSchema])),meshes:v.array(v.object({material:text,offset:number,geometry:SceneBakedGeometrySchema}))});
 const preparedSchema=v.object({places:v.object({rows:v.array(place)}),dressing:v.object({rows:v.array(v.object({key:text,offset:number,geometry:SceneBakedGeometrySchema}))})});
 const materialsSchema=v.record(text,SpecimenMaterialSchema);
@@ -80,7 +87,7 @@ const preparedContacts=(inputs:readonly unknown[])=>{
 
 
 /** Existing baked shapes and placements become Z2 rows; no page-side scatter or model constructors. */
-function compileDressingScene(tier:'phone'|'desktop') {
+function compileDressingScene(tier:'phone'|'desktop',profiles:v.InferOutput<typeof decorativeProfiles>) {
   const phone=tier==='phone',profile=cover[tier];
   const geometry:Record<string,unknown>={},materials:Record<string,unknown>={},addresses:number[]=[];
   const baked=(file:string,offset:number,row:v.InferOutput<typeof SceneBakedGeometrySchema>)=>({kind:'baked-file',file,address:{file:`world/dressing-addresses-${tier}.bin`,word:addresses.push(offset)-1},row});
@@ -127,7 +134,7 @@ function compileDressingScene(tier:'phone'|'desktop') {
   statics.push({name:'cloth',recipe:{version:1,root:'root',materials:[{kind:'port',id:'paint',source:'paint'}],nodes:[{kind:'group',id:'root',children:['cloth']},{kind:'mesh',id:'cloth',geometry:'shape',material:'paint',missing:'empty',castShadow:true,receiveShadow:true}]},geometry:{shape:'cloth'},materials:{paint:'cloth'},tris:cloth.row.indexCount/3,members:[]});
   geometry['wing']={kind:'packed',source:'cover',key:'wing'};geometry['halfBird']={kind:'packed',source:'cover',key:'halfBird'};
   materials['butterfly']={kind:'painterly',rim:.3,bands:.5,shade:.6,emissive:0x101010};materials['raptor']={kind:'painterly',rim:.6,bands:.6};
-  const bowl=bowlScene(tier,geometry,materials);statics.push(...bowl.statics);
+  const bowl=bowlScene(tier,profiles[tier],geometry,materials);statics.push(...bowl.statics);
   const crags=cragRows[tier],cragGeometry:Record<string,string>={};
   for(const part of crags.meshes){geometry[part.key]=baked('world/crags.bin',part.offset,v.parse(SceneBakedGeometrySchema,part.row));cragGeometry[part.key]=part.key;}
   const rockTexture=specimens.materials['rock']?.texture,snowTexture=specimens.materials['snow']?.texture;
@@ -183,14 +190,14 @@ function clothGeometry(){
 }
 
 /** Tier rows are separate JSON loans, keeping the unchanged bounded JSON budget. */
-export function dressingSceneBlobs():ReturnType<typeof nameBlob>[] {return(['phone','desktop']as const).flatMap(tier=>{const result=compileDressingScene(tier);return[nameBlob(`world/dressing-${tier}.json`,'json',new TextEncoder().encode(encodeCanonicalJson(result.rows)),{jsonSchema:namedJsonSchema(SceneDressingSchema)}),nameBlob(`world/dressing-addresses-${tier}.bin`,'bin',result.addresses)];});}
+export function dressingSceneBlobs(input:unknown=decorative):ReturnType<typeof nameBlob>[] {const profiles=v.parse(decorativeProfiles,input);return(['phone','desktop']as const).flatMap(tier=>{const result=compileDressingScene(tier,profiles);return[nameBlob(`world/dressing-${tier}.json`,'json',new TextEncoder().encode(encodeCanonicalJson(result.rows)),{jsonSchema:namedJsonSchema(SceneDressingSchema)}),nameBlob(`world/dressing-addresses-${tier}.bin`,'bin',result.addresses)];});}
 
 /** Admitted tier rows for catalogue and format consumers. */
-export function dressingScene(tier:'phone'|'desktop'):SceneDressingRows{return compileDressingScene(tier).rows;}
+export function dressingScene(tier:'phone'|'desktop',input:unknown=decorative):SceneDressingRows{return compileDressingScene(tier,v.parse(decorativeProfiles,input)).rows;}
 
 /** Decorative poses keep the existing visual programs and RNG continuation; none owns gameplay actors. */
-function bowlScene(tier:'phone'|'desktop',geometry:Record<string,unknown>,materials:Record<string,unknown>){
-  const phone=tier==='phone',data=decorative[tier],statics:unknown[]=[],instances:unknown[]=[];
+function bowlScene(tier:'phone'|'desktop',data:v.InferOutput<typeof decorativeProfile>,geometry:Record<string,unknown>,materials:Record<string,unknown>){
+  const phone=tier==='phone',statics:unknown[]=[],instances:unknown[]=[];
   const empty=(name:string,tris:number,members:unknown[],groupName=`nalati-${name}`)=>({name,tris,members,geometry:{},materials:{},recipe:{version:1,root:'root',materials:[],nodes:[{kind:'group',id:'root',name:groupName,children:[]}]}});
   const putMember=(model:string,member:typeof data.horses.member)=>({model,draw:member.draw,placements:member.placements,boxes:member.boxes,contacts:[...member.solid,...member.descs]});
   statics.push(empty('farHerds',data.horses.total*metrics.farTriangles['horse-wild'],[putMember('nalati-grasslands/herd-horse',data.horses.member)],'nalati-far-herds'));
