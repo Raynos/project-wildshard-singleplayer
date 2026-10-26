@@ -9738,6 +9738,7 @@
         "src/shards/driftwood-isle/generators/bake-foliage-scenes.mjs",
         "src/shards/driftwood-isle/generators/foliageModels.ts",
         "src/shards/driftwood-isle/generators/foliageGeometry.ts",
+        "src/shards/driftwood-isle/generators/compactChannels.ts",
         "src/shards/driftwood-isle/data/dressingBlobs.generated.json",
         "src/shards/driftwood-isle/data/reefBlobs.generated.json",
         "src/shards/driftwood-isle/data/foliagePlacements.generated.json",

@@ -203,7 +203,6 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
     return { position, rotation, scale };
   };
   for (const { geometry, material, instances, exactInstances, instanceColours, castShadow = true, customAttributes = {}, name: nodeName = name, transform, compactIndex, nativeAttributes, extras, quantizedChannels } of primitives) {
-    if (quantizedChannels === true && nativeAttributes === true) throw new Error('A GLB primitive takes quantized or native channels, not both');
     if (material.map !== null || material.alphaMap !== null || (!(material instanceof MeshBasicMaterial) && (material.normalMap !== null || material.roughnessMap !== null || material.metalnessMap !== null))) throw new Error('GLB textures must be external KTX2 declarations');
     if (!geometry.hasAttribute('position')) throw new Error('Missing GLB positions');
     const p = geometry.getAttribute('position'); if ( p.count > 400_000) throw new Error('Unsupported GLB geometry');
@@ -236,7 +235,9 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
         const a = geometry.getAttribute(channel);
         if (!(a instanceof BufferAttribute)) throw new Error('Native GLB attributes must not be interleaved');
         let stored = semantic;
-        if (!(a.array instanceof Float32Array) || (semantic === 'NORMAL' && a.itemSize !== 3)) {
+        // a quantized normal / colour is already its own typed portable accessor: the table names it, with no raw copy
+        const portable = quantizedChannels === true && (channel === 'normal' || channel === 'color');
+        if (!portable && (!(a.array instanceof Float32Array) || (semantic === 'NORMAL' && a.itemSize !== 3))) {
           stored = `_WS_RAW_${semantic.replace(/^_/u, '')}`;
           if (Object.hasOwn(attributes, stored)) throw new Error(`Native GLB semantic collision ${stored}`);
           attributes[stored] = rawAccessor(a);

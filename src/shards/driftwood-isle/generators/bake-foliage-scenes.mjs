@@ -7,6 +7,7 @@ import { poseOf, placeCollider } from '@wildshard/engine/models/colliders';
 import { decodePalmWorld, decodeHibiscusWorld, decodeReefWorld } from './foliageGeometry.ts';
 import { DRIFT_SPECIMENS } from './driftLogs.ts';
 import { palm, hibiscusBush, palmColliders } from './foliageModels.ts';
+import { compactChannels } from './compactChannels.ts';
 import { byteWriter, jsonBytes } from '../../../../scripts/bake-output.mjs';
 import { installPortableMath } from '@wildshard/commons/bake/portableMath';
 
@@ -42,7 +43,8 @@ try {
     ]) {
       if (kind === 'reef' && tier === 'desktop') continue;
       const batch = decode(source(name), rows.specs.length), file = `models/foliage/${kind}-${tier}.glb`, output = `assets/foliage-scenes/${kind}-${tier}.glb`;
-      writer.put(fileURLToPath(new URL(output, project)), staticGlb([{ geometry: batch.geometry, material, customAttributes: { _SWAY: 'aSway' }, compactIndex: true, nativeAttributes: true }]));
+      // L18.3c: exact positions, compact normals and colours (compactChannels.ts)
+      writer.put(fileURLToPath(new URL(output, project)), staticGlb([{ geometry: compactChannels(batch.geometry.clone()), material, customAttributes: { _SWAY: 'aSway' }, compactIndex: true, nativeAttributes: true, quantizedChannels: true }]));
       blobs.push({ name: file, kind: 'glb', source: output, options: { meshopt: true } });
       const model = modelRows.get(kind) ?? { id: kind, file: {}, attributes: {} }; model.file[tier] = file; modelRows.set(kind, model);
       if (kind !== 'reef') {
