@@ -11,7 +11,7 @@ import { encodeNalatiPart } from '../src/shards/nalati-grasslands/generators/pla
 import { committedPlaces } from './fixtures/nalati-committed-places';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
-import { discoverGeneration, generateShardJob } from '../scripts/generate.mjs';
+import { discoverGeneration, generateShardJob, generationInputs } from '../scripts/generate.mjs';
 import beforeWires from './fixtures/nalati-place-wires.json' with { type: 'json' };
 
 const original = committedPlaces();
@@ -60,17 +60,20 @@ test('the authoring wire bundles without publication or runtime services', async
 });
 
 for (const omission of ['wire', 'geometry', null] as const) {
-  test(`the native runtime adapter ${omission === null ? 'keeps all original registered outputs' : `refuses the omitted ${omission} producer`}`, async () => {
-    const root = resolve('.'), job = discoverGeneration(root).jobs.find(row => row.id === 'nalati-place-runtime');
-    if (job === undefined) throw new Error('Missing native dressing producer');
+  test(`the native places publisher ${omission === null ? 'keeps all original registered outputs' : `refuses the omitted ${omission} producer`}`, async () => {
+    const root = resolve('.'), job = discoverGeneration(root).jobs.find(row => row.id === 'nalati-places');
+    if (job === undefined) throw new Error('Missing native places producer');
     const wire = 'src/shards/nalati-grasslands/generators/placeWire.ts';
     const geometry = 'src/shards/nalati-grasslands/generators/dressingGeometryRows.ts';
-    expect(job.inputRoots).toContain(wire); expect(job.inputRoots).toContain(geometry);
+    // The retained publisher owns a folder root. Expand its exact file inventory
+    // before omission so that no enclosing root can silently restore the leaf.
+    const roots = Object.keys(generationInputs(root, job.inputRoots));
+    expect(roots).toContain(wire); expect(roots).toContain(geometry);
     const cacheDir = mkdtempSync(resolve('tmp', 'nalati-wire-stage-'));
     try {
       if (omission !== null) {
         const absent = omission === 'wire' ? wire : geometry;
-        const descriptor = { ...job, inputRoots: job.inputRoots.filter(file => file !== absent) };
+        const descriptor = { ...job, inputRoots: roots.filter(file => file !== absent) };
         const catalogPath = relative(root, resolve(cacheDir, 'omitted.json'));
         const catalog = v.parse(v.object({ schema: v.string(), notice: v.string(), jobs: v.array(v.unknown()) }),
           JSON.parse(readFileSync('scripts/generation-jobs.json', 'utf8')));
