@@ -24,4 +24,4 @@ commit.output('yaw', commit.select(blocked, commit.binary('add', proposedYaw, co
 commit.output('turn', proposedTurn);
 
 /** Private decorative horse poses only; these rows never drive Nalati's authoritative herd, player or colliders. */
-export const NALATI_FAR_HERD_CHANNELS = [drift.build(), commit.build()];
+export const NALATI_FAR_HERD_CHANNELS: ReturnType<ClientChannels['build']>[] = [drift.build(), commit.build()];

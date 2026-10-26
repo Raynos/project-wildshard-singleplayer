@@ -7,7 +7,7 @@ export interface NalatiPoiScenePlaces {
   }[];
 }
 
-function scene(row: NalatiPoiScenePlaces['rows'][number]) {
+function scene(row: NalatiPoiScenePlaces['rows'][number]): { version: 1; root: string; nodes: ({ renderOrder?: number; castShadow: boolean; receiveShadow: boolean; name?: string; kind: "mesh"; id: string; geometry: string; material: string; missing: "empty"; } | { children: string[]; name?: string; kind: "group"; id: string; })[]; materials: { id: string; kind: "port"; source: string; }[]; } {
   const meshes = row.meshes.map((mesh, i) => ({ kind: 'mesh' as const, id: `mesh-${i}`, geometry: `mesh-${i}`, material: mesh.material,
     missing: 'empty' as const, ...(mesh.name === '' ? {} : { name: mesh.name }), castShadow: mesh.material !== 'yard', receiveShadow: true, ...(mesh.material === 'yard' ? { renderOrder: 1 } : {}) }));
   const children = row.meshes.map((mesh, i) => ({ slot: mesh.slot, id: `mesh-${i}` })).sort((a, b) => a.slot - b.slot).map(child => child.id);

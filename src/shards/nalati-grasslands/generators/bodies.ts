@@ -1,6 +1,5 @@
-import type { NativeCreaturePoseRecipe } from '@wildshard/game/plugin/animation';
 import rowsJson from '../data/bodies.json' with { type: 'json' };
-import type { BufferAttribute, BufferGeometry, InterleavedBufferAttribute } from 'three';
+import type { BufferAttribute, BufferGeometry, InterleavedBufferAttribute, EulerOrder } from 'three';
 import { Rng } from '@wildshard/engine/core/rng';
 import type { AnimalDims, AnimalSpecies, SpeciesDef, VariantDef } from '@wildshard/engine/entities/species/registry';
 import { buildHorse } from './horseBody';
@@ -115,11 +114,20 @@ export const NALATI_BODY_ROWS: BodyRows = {
 };
 
 
+/** Offline pose payload, checked against the defining runtime consumer in the contract suite. */
+interface TamingPoseRecipe {
+  readonly joints: readonly { readonly name: string; readonly parent: number; readonly position: readonly [number, number, number]; readonly order: EulerOrder; readonly scale: readonly [number, number, number] }[];
+  readonly custom: boolean;
+  readonly gait?: Readonly<NonNullable<SpeciesDef['gait']>> | undefined;
+  readonly pose?: Readonly<NonNullable<SpeciesDef['pose']>> | undefined;
+  readonly deathSplay?: boolean;
+}
+
 /** Native taming joints derived offline through the existing body/variant bake owner. */
-export const tamingPoses = HORSE_SPECIES.variants.flatMap(variant => {
+export const tamingPoses: { kind: string; variant: string; pose: TamingPoseRecipe; }[] = HORSE_SPECIES.variants.flatMap(variant => {
   const body = NALATI_BODY_ROWS.bodies.find(row => row.key === bodyKey('horse', variant));
   if (body === undefined || body.bones.length > 32) throw new Error('Missing taming horse hierarchy');
-  const pose: NativeCreaturePoseRecipe = { custom: false, deathSplay: false,
+  const pose: TamingPoseRecipe = { custom: false, deathSplay: false,
     ...(HORSE_SPECIES.gait === undefined ? {} : { gait: HORSE_SPECIES.gait }),
     ...(HORSE_SPECIES.pose === undefined ? {} : { pose: HORSE_SPECIES.pose }),
     joints: body.bones.map((bone, index) => {

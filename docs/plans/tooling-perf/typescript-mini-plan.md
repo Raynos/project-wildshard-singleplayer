@@ -224,7 +224,8 @@ normal layer emission is the declaration-size authority. Continuation starts at 
 | T4-I6t | Sunscar held, species and world declarations; preserve readonly resources, original catalogue mutability and numeric caravan coordinates | 60 min | done (2026-10-26, sp-x8) |
 | T4-I6u | Sunscar terrain, collider, quest and map declarations; retain arbitrary optional numeric seeds, mutable input arrays and original parsers | 60 min | done (2026-10-26, sp-x8) |
 | T4-I6v | Sunscar page, population, graph and rig declarations; preserve readonly owner fields, mutable collections and original host contracts | 60 min | done (2026-10-26, sp-x8) |
-| T4-I6legacy | Frozen legacy declaration annotations: exact inventory bytes stay unchanged until G606/LD is lifted; modern slices continue | 60 min | waits-Jake (2026-10-26; G606, sp-x8) |
+| T4-I6w | Nalati catalogue, riding, weather and creature declarations; retain generic concrete model parameters, mutable rows and optional matrix output | 60 min | done (2026-10-26, sp-x8) |
+| T4-I6legacy | Frozen legacy declaration annotations: read-only census finds 391/935 modules with 1,018 isolated diagnostics; exact bytes stay unchanged until G606/LD is lifted, modern slices continue | 60 min | waits-Jake (2026-10-26; G606, sp-x8) |
 
 T4 first format slices are on origin: schema expressions and emitted runtime JavaScript are unchanged.
 Independent named data types replace exported validator implementation types; original/candidate input and output

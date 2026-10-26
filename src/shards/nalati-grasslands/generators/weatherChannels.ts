@@ -78,7 +78,7 @@ function pack(group:string,rows:readonly Row[]):ClientChannelProgram[]{
  if(current.length>0)programs.push(lowerPack(group,current));
  return programs;
 }
-export const NALATI_WEATHER_PROGRAMS=parseClientChannels(pack('weather',recipes.map(([name,expression]):Row=>[name,expression,'look',name.split('.')])));
+export const NALATI_WEATHER_PROGRAMS: ClientChannelProgram[]=parseClientChannels(pack('weather',recipes.map(([name,expression]):Row=>[name,expression,'look',name.split('.')])));
 
 /**
  * After the look (group `nalati.tint`): the panorama's live re-grade and the unlit water's light, from the finished look and
@@ -103,4 +103,4 @@ const tint:Row[]=[
  ...XYZ.map((a,i):Row=>[`water.sun.${a}`,['/',['*',field(`keyColor.${RGB[i]??'r'}`),field('keyIntensity')],['max',.001,'dayKey']],'nalati-water',['sunColour',a]]),
  ['water.rain',['min',1,['max',0,'waterRain']],'nalati-water',['rain']],
 ];
-export const NALATI_TINT_PROGRAMS=parseClientChannels(pack('tint',tint));
+export const NALATI_TINT_PROGRAMS: ClientChannelProgram[]=parseClientChannels(pack('tint',tint));

@@ -70,5 +70,5 @@ export function peopleMotion(id: string, frame: { neck: readonly number[] }, pro
   return programs;
 }
 
-export const peoplePrograms = Object.fromEntries(Object.entries(frames).map(([id, frame]) =>
+export const peoplePrograms: Record<string, ClientChannelProgram[]> = Object.fromEntries(Object.entries(frames).map(([id, frame]) =>
   [id, peopleMotion(id, frame, motions[id as keyof typeof motions])]));

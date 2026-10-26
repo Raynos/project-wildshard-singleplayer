@@ -23,10 +23,10 @@ export const POST_OFF = 8, POST_GAP = 12;
 /** the start / finish line crosses the front straight here (x); the half-way line the back straight */
 export const LINE_X = 0;
 /** where the horse waits (on the front straight, short of the line, facing east) and where you stand by its left side */
-export const HORSE_START = { x: -12, z: OVAL.radius, yaw: Math.PI / 2 } as const;
+export const HORSE_START: { readonly x: -12; readonly z: 38; readonly yaw: number; } = { x: -12, z: OVAL.radius, yaw: Math.PI / 2 } as const;
 export const FIELD_AT = { x:40,z:60 } as const;
 export const RIDER_PITCH=-.28, SHOULDER=.6;
-export const RIDER_START = { x: -13.2, z: OVAL.radius - 1.9 } as const;
+export const RIDER_START: { readonly x: -13.2; readonly z: number; } = { x: -13.2, z: OVAL.radius - 1.9 } as const;
 /** the infield jump lane: rails across z = 0 (x, top height) — the horse jumps a rail by itself at a canter or faster */
 export const JUMPS: readonly { x: number; h: number }[] = [{ x: -30, h: 0.9 }, { x: -10, h: 1.0 }, { x: 10, h: 1.1 }, { x: 30, h: 1.2 }];
 export const JUMP_WIDTH = 7;
@@ -47,4 +47,4 @@ export function ovalLine(step = 4): [number, number][] {
 }
 
 /** the lap's length on the centre line (m) */
-export const LAP_M = 4 * OVAL.halfLen + 2 * Math.PI * OVAL.radius;
+export const LAP_M: number = 4 * OVAL.halfLen + 2 * Math.PI * OVAL.radius;

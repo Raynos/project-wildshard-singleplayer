@@ -78,4 +78,4 @@ export const GOLDEN_KING_ROW: PhasedBossRow = {
 };
 
 /** The Golden King's complete admitted arena profile; the chamber and native body remain its original owners. */
-export const GOLDEN_KING_BOSS_PROFILE = { kind: 'boss', pattern: 'arena', fight: GOLDEN_KING_ROW } as const;
+export const GOLDEN_KING_BOSS_PROFILE: { readonly kind: "boss"; readonly pattern: "arena"; readonly fight: PhasedBossRow; } = { kind: 'boss', pattern: 'arena', fight: GOLDEN_KING_ROW } as const;

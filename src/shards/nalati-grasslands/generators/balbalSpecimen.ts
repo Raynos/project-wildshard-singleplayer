@@ -1,4 +1,4 @@
-const sites = { name: 'nalati-balbal', label: 'Balbal', file: 'src/shards/nalati-grasslands/generators/places.ts',
+const sites: { name: string; label: string; file: string; surface: string; variants: string[]; variantCycle: number[]; sink: number; collider: { hw: number; hd: number; top: number; bottom: number; }; } = { name: 'nalati-balbal', label: 'Balbal', file: 'src/shards/nalati-grasslands/generators/places.ts',
   surface: 'stone', variants: ['bare', 'capped'], variantCycle: [1, 0, 0], sink: .18,
   collider: { hw: .42, hd: .33, top: 2.2, bottom: 1 } };
 

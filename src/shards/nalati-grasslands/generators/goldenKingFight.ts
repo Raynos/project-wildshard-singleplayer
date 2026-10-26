@@ -5,14 +5,14 @@ import { DROMOS_SPAWN, DROMOS_END } from './kurganLayout';
  */
 
 /** His three phases: the thresholds `Boss` checkpoints at, their captions and names. */
-export const KING_DEF_PHASES = [
+export const KING_DEF_PHASES: { at: number; caption: string; name: string; }[] = [
   { at: 1, caption: '', name: "The King's Court" },
   { at: 0.6, caption: 'PHASE II', name: 'The Kurgan Wakes' },
   { at: 0.3, caption: 'PHASE III', name: 'The Gold Burns' },
 ];
 
 /** His encounter card: id (saved), name, title, retry card, the intro's lengths and the phases (the reward is added by the fight). */
-export const KING_ENCOUNTER = {
+export const KING_ENCOUNTER: { id: string; name: string; title: string; retryTitle: string; phases: { at: number; caption: string; name: string; }[]; intro: number; introShort: number; } = {
   id: 'golden-king', name: 'THE GOLDEN KING', title: 'LORD OF THE GREAT KURGAN', retryTitle: 'THE KING ENDURES',
   phases: KING_DEF_PHASES, intro: 4.2, introShort: 1.4,
 };
@@ -49,6 +49,6 @@ export const KING_TUNING: {
 };
 
 /** The arena host owns the interior transition; the guest chooses entry/exit. */
-export const KING_PORTAL = { signal: 'kingDoor', spawn: DROMOS_SPAWN, end: DROMOS_END, exitOffset: 2.4, slow: .5,
+export const KING_PORTAL: { signal: string; spawn: { x: number; z: number; yaw: number; }; end: number; exitOffset: number; slow: number; fade: { out: number; hold: number; in: number; }; keep: string; near: number; floor: { tolerance: number; depth: number; }; } = { signal: 'kingDoor', spawn: DROMOS_SPAWN, end: DROMOS_END, exitOffset: 2.4, slow: .5,
   fade: { out: 220, hold: .24, in: 420 }, keep: 'sky|planet|cloud|kurgan|projectile|arrow|arc|pickup|streak|csm|light', near: 40,
   floor: { tolerance: .02, depth: 4 } };

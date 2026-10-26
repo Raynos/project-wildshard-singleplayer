@@ -12,32 +12,32 @@ import { CAMP as CHUNK_CAMP, EAGLE_ROCK as CHUNK_EAGLE_ROCK, KURGANS as CHUNK_KU
 const CHUNK_BRIDGE = { ...BRIDGE_XZ, span: riverHalfAt(0) * 2 + 8 };
 
 /** The great kurgan doorway faces west into the bowl. */
-export const GREAT_KURGAN_DOOR = -Math.PI / 2;
+export const GREAT_KURGAN_DOOR: number = -Math.PI / 2;
 
 export interface PoiSpot { x: number; z: number; rot: number }
 
 /** the spring camp in the valley (6 yurts, corral, hitching rail, eagle perch, ribbon pole) — the yard centre */
 export const CAMP: PoiSpot = { x: CHUNK_CAMP.x, z: CHUNK_CAMP.z, rot: 0 };
 /** the hitching rail where the tamed horse waits (TULPAR): rail centre; the rail runs north–south (along z) */
-export const HITCHING_RAIL = { x: CAMP.x - 17, z: CAMP.z + 3, length: 6.5, height: 1.1 };
+export const HITCHING_RAIL: { x: number; z: number; length: number; height: number; } = { x: CAMP.x - 17, z: CAMP.z + 3, length: 6.5, height: 1.1 };
 /** where a horse stands tied at the rail: on its east (road) side, nose to the rail — `face` is the unit xz direction it faces */
 export const HITCH_HORSE_SPOTS: { x: number; z: number; face: { x: number; z: number } }[] = [
   { x: HITCHING_RAIL.x - 1.9, z: HITCHING_RAIL.z - 1.6, face: { x: 1, z: 0 } },
   { x: HITCHING_RAIL.x - 1.9, z: HITCHING_RAIL.z + 1.9, face: { x: 1, z: 0 } },
 ];
 /** the round pole corral west of the yard — centre + radius (its gate faces the yard, east) */
-export const CORRAL = { x: CAMP.x + 27, z: CAMP.z + 9, r: 9 };
+export const CORRAL: { x: number; z: number; r: number; } = { x: CAMP.x + 27, z: CAMP.z + 9, r: 9 };
 /** timber bridge on log cribs carrying the N road over the Kunes (deck height −6, length = the corridor span) */
-export const BRIDGE = { x: CHUNK_BRIDGE.x, z: CHUNK_BRIDGE.z, rot: 0, deckY: CHUNK_BRIDGE.deckY, width: 4.4, span: CHUNK_BRIDGE.span };
+export const BRIDGE: { x: number; z: number; rot: number; deckY: number; width: number; span: number; } = { x: CHUNK_BRIDGE.x, z: CHUNK_BRIDGE.z, rot: 0, deckY: CHUNK_BRIDGE.deckY, width: 4.4, span: CHUNK_BRIDGE.span };
 /** the jailau (summer) camp on the plateau, SW — 3 yurts round a hearth */
-export const SUMMER_CAMP = { x: SUMMER_YURTS.x, z: SUMMER_YURTS.z };
+export const SUMMER_CAMP: { x: number; z: number; } = { x: SUMMER_YURTS.x, z: SUMMER_YURTS.z };
 /** the granite tor on the W rim (the Tianjie terrace view) — its top terrace is at `top` */
-export const EAGLE_ROCK = { x: CHUNK_EAGLE_ROCK.x, z: CHUNK_EAGLE_ROCK.z, top: CHUNK_EAGLE_ROCK.top };
+export const EAGLE_ROCK: { x: number; z: number; top: number; } = { x: CHUNK_EAGLE_ROCK.x, z: CHUNK_EAGLE_ROCK.z, top: CHUNK_EAGLE_ROCK.top };
 /** the Titan's Wind Cairn (Jel Ata's threshold): a stone pile with cloth-strip poles */
 export const WIND_CAIRN: PoiSpot = { x: CAIRN.x, z: CAIRN.z, rot: 0 };
 /** the snow ring's two massifs: the Crags (east) and the west massif (the leopard's cave) */
-export const CRAGS = { x: CHUNK_CRAGS.x, z: CHUNK_CRAGS.z, peak: CHUNK_CRAGS.peak, snowLine: SNOW_LINE };
-export const WEST_CRAGS = { x: CHUNK_WEST_CRAGS.x, z: CHUNK_WEST_CRAGS.z, peak: CHUNK_WEST_CRAGS.peak, snowLine: SNOW_LINE };
+export const CRAGS: { x: number; z: number; peak: number; snowLine: number; } = { x: CHUNK_CRAGS.x, z: CHUNK_CRAGS.z, peak: CHUNK_CRAGS.peak, snowLine: SNOW_LINE };
+export const WEST_CRAGS: { x: number; z: number; peak: number; snowLine: number; } = { x: CHUNK_WEST_CRAGS.x, z: CHUNK_WEST_CRAGS.z, peak: CHUNK_WEST_CRAGS.peak, snowLine: SNOW_LINE };
 /** the snow leopard's ledge cave (Aqbars' lair) on the west massif's flank; the mouth faces `rot` (NE, the valley head) */
 export const CRAG_CAVE: PoiSpot = { x: LEOPARD_CAVE.x, z: LEOPARD_CAVE.z, rot: LEOPARD_CAVE.rot };
 /** the ruined watchtower on the east rim */
@@ -61,4 +61,4 @@ export const KURGANS: Kurgan[] = CHUNK_KURGANS;
 export const GREAT_KURGAN: Kurgan = CHUNK_KURGANS.find((k) => k.great === true) ?? { x: -191, z: 75, r: 19, h: 6.5, great: true };
 /** kurgans (by index into KURGANS) with balbals on their crown — the balbal circle is cut (layout v2): these are all the
  *  shard's balbals, two to a mound (B11 wakes them) */
-export const KURGAN_BALBALS = [1, 2, 3, 4, 5, 6];
+export const KURGAN_BALBALS: number[] = [1, 2, 3, 4, 5, 6];
