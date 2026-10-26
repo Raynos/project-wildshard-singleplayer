@@ -166,9 +166,9 @@ About 10 Opus lane-days, roughly 5 calendar days on two lanes.
 | RM5.3 ruled trim | done | The trims drawn in the kit's material instead of a KTX2 sheet (Nine's ruled-kit method: no texture memory, retinted by palette for RM14): `data/kit.graph.json` draws plain / roof tile / timber / plaster / awning stripe / stone by the face's band in TEXCOORD_0 (box-projected metres + 32 m × band, `data/trim.json`); band 0 keeps today's kit. Source: `scripts/open-plots/ruled-graphs.py` |
 | RM5.4 kit models carry trim bands | waits-Opus (sp-o1 RM4) | sp-o1's models map each palette slot to a trim band (`data/trim.json`) in their UVs |
 | RM6.1 bloom | done | Open plots' manifest grade: bloom 0.5 / threshold 0.9 (was 0 / 1), carried on the grid as each cell's chain knobs |
-| RM6.2 round pools | in flight (2026-10-26, sp-o2) | Smoothstep falloff in the pool graph (done: no geometry or byte change, the tiles' debt rows allow none); sizes to their light with RM6.3 |
-| RM6.3 light bake | in flight (2026-10-26, sp-o2) | RM3's lantern bake on at gain 0.8 (radius 1.5 m, reach 3 radii) into the kit's vertex colours; tuning by capture |
-| RM6.4 gate light | in flight (2026-10-26, sp-o2) | The gate's material (done): its gold trim glows (gold texels emissive x1.6) and its foot is uplit by its pools (warm, fading over 9 m); its hanging lanterns are sp-o1's gate dressing (RM9) |
+| RM6.2 round pools | done | Smoothstep falloff in the pool graph (no geometry or byte change: the tiles' debt rows allow none); sizes kept (they read right at D1) |
+| RM6.3 light bake | done | RM3's lantern bake on at gain 0.8 (radius 1.5 m, reach 3 radii) into the kit's vertex colours (D1: stall roofs and posts warm near lanterns) |
+| RM6.4 gate light | done (material) | The gate unlit in its own texture (`data/landmark.graph.json`): shaded by the fixed dusk sun and a warm fill, gold texels glowing ×1.6, its lowest 9 m uplit by its pools; D1 on `e565128c26` reads red pillars, lit gold brackets, navy roof. Its hanging lanterns are sp-o1's gate dressing (RM9) |
 | RM6.5 dusk fill | done | The look key's ambient (what lights a plot on the grid and alone): ground [0.32, 0.34, 0.42] → warm lantern bounce [0.55, 0.36, 0.24], sky → lavender [0.66, 0.62, 0.86], 0.8 → 1; the manifest's hemisphere fill matches |
 | RM10.1–10.5 life | open | Round paper sky lanterns, stall steam, fireflies, banner sway, static posed figures |
 | RM11.1–11.2 near / far | open | Near view from the trim-sheet colours; far stand-ins from the new kit |
