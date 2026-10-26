@@ -110,11 +110,15 @@ test('a disposed named-scene owner publishes nothing and never starts field read
  await refusal;expect(read).toHaveBeenCalledTimes(1);expect(f.on).not.toHaveBeenCalled();
 });
 
-test('the actual Nalati envelope keeps its complete audio scene outside the 100000-node source budget',async()=>{
- const loaded=await readProjectAssets('src/shards/nalati-grasslands', undefined, { folder: 'nalati-grasslands', imageRoots: [
+// Actual source compilation/native construction belongs to fixture preparation,
+// before the unchanged 30 s assertions over the complete admitted envelope.
+const nalatiEnvelope=await readProjectAssets('src/shards/nalati-grasslands', undefined, { folder: 'nalati-grasslands', imageRoots: [
     { prefix: '/assets/nalati/baked/', directory: 'public/assets/nalati/baked' },
     { prefix: '/assets/baked/nalati-grasslands/', directory: 'public/assets/baked/nalati-grasslands' },
-  ] }),nodes=jsonDataNodes(loaded.shard);
+  ] });
+
+test('the actual Nalati envelope keeps its complete audio scene outside the 100000-node source budget',()=>{
+ const loaded=nalatiEnvelope,nodes=jsonDataNodes(loaded.shard);
  expect(isJsonData(loaded.shard)).toBe(true);expect(nodes).toBeDefined();expect(nodes).toBeLessThanOrEqual(100000);process.stdout.write(`Nalati source JSON nodes ${String(nodes)} (limit 100000)\n`);
  expect(loaded.shard.audio.scene).toBeUndefined();expect(loaded.shard.audio.sceneFile).toBe('audio/scene.json');
  const file=loaded.output.namedFiles?.find(row=>row.name==='audio/scene.json');expect(file).toMatchObject({kind:'json',critical:true});

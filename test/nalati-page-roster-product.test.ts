@@ -14,11 +14,15 @@ import { PopulationFieldSchema } from '../src/format/populationEnvironment';
 const populationInput:unknown=JSON.parse(readFileSync('src/shards/nalati-grasslands/data/populationField.generated.json','utf8'));
 const populationField=v.parse(PopulationFieldSchema,populationInput);
 
-test('the shared assembly document retains the complete page elite roster and its contact lookup', async () => {
-  const product = await readProjectAssets('src/shards/nalati-grasslands', undefined, { folder: 'nalati-grasslands', imageRoots: [
+// Build the complete native source product once before the original timed
+// roster/admission assertions; do not charge compiler/cache setup to that case.
+const nalatiEnvelope = await readProjectAssets('src/shards/nalati-grasslands', undefined, { folder: 'nalati-grasslands', imageRoots: [
     { prefix: '/assets/nalati/baked/', directory: 'public/assets/nalati/baked' },
     { prefix: '/assets/baked/nalati-grasslands/', directory: 'public/assets/baked/nalati-grasslands' },
   ] });
+
+test('the shared assembly document retains the complete page elite roster and its contact lookup', () => {
+  const product = nalatiEnvelope;
   const bootFile = product.output.namedFiles?.find(row => row.name === 'sim/headless-boot.json');
   const bootBytes = bootFile === undefined ? undefined : product.assets.get(bootFile.hash);
   if (bootBytes === undefined) throw new Error('Missing admitted combat target rows');
