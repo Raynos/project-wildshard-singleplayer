@@ -46,12 +46,13 @@ test('the cell transform places the triangles; a mesh in one tile stays whole', 
 test('an instanced part draws only its resident tiles\' instances, every channel alike, one draw', () => {
   const geometry = new BufferGeometry();
   geometry.setAttribute('position', new BufferAttribute(Float32Array.from([0, 0, 0, 1, 0, 0, 0, 0, 1]), 3));
-  geometry.setAttribute('aSeed', new InstancedBufferAttribute(Float32Array.from([10, 20, 30]), 1));
+  const seeds = new InstancedBufferAttribute(Float32Array.from([10, 20, 30]), 1);
+  geometry.setAttribute('aSeed', seeds);
   const mesh = new InstancedMesh(geometry, new MeshBasicMaterial(), 3);
   spots.forEach(([x, z], i) => { mesh.setMatrixAt(i, new Matrix4().makeTranslation(x, 0, z)); });
   const content = tiledMesh('palms', mesh, new Matrix4()), scope = new Scope('tiles');
   if (content === null) throw new Error('expected tiled instances');
-  const near = key(-200, -200), far = key(100, 150), seed = (): number[] => Array.from(geometry.getAttribute('aSeed').array.slice(0, mesh.count));
+  const near = key(-200, -200), far = key(100, 150), seed = (): number[] => Array.from(seeds.array.slice(0, mesh.count));
   expect(mesh.count).toBe(0);
   const farScope = scope.child('far'), nearScope = scope.child('near');
   void content.attach(far, farScope);
@@ -63,7 +64,7 @@ test('an instanced part draws only its resident tiles\' instances, every channel
   scope.dispose();
   expect(mesh.count).toBe(0);
   // its channels are dynamic: a GPU-only release (static attributes only) never drops their CPU copies
-  expect(geometry.getAttribute('aSeed').usage).toBe(DynamicDrawUsage); expect(mesh.instanceMatrix.usage).toBe(DynamicDrawUsage);
+  expect(seeds.usage).toBe(DynamicDrawUsage); expect(mesh.instanceMatrix.usage).toBe(DynamicDrawUsage);
   // a part with a per-frame hook of its own (a culler owns its count) stays whole
   const culled = new InstancedMesh(geometry, new MeshBasicMaterial(), 3);
   spots.forEach(([x, z], i) => { culled.setMatrixAt(i, new Matrix4().makeTranslation(x, 0, z)); });
