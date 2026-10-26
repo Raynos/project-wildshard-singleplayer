@@ -227,6 +227,18 @@
    "feeds": [
     "src/shards/blender-template/shard.config.ts"
    ]
+  },
+  "open-plots/kit": {
+   "about": "The open plots' kit models (Night Market remaster RM4): each family three variants, flat-shaded, Cycles AO in COLOR_0, data/trim.json's ruled-trim UVs; the plot generator retints them by palette slot",
+   "script": "scripts/blender/open-plots/kit.py",
+   "args": ["$BUILD"],
+   "sources": ["scripts/blender/open-plots/kitlib.py", "scripts/blender/lib/glb.py"],
+   "inputs": ["src/shards/open-plots/data/trim.json"],
+   "lock": true,
+   "build": ["lanterns.glb"],
+   "copy": [["lanterns.glb", "public/assets/open-plots/kit/lanterns.glb"]],
+   "outputs": ["public/assets/open-plots/kit/lanterns.glb"],
+   "feeds": ["src/shards/open-plots/generators/kitGlb.mjs"]
   }
  }
 }

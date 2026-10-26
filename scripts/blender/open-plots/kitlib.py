@@ -1,0 +1,217 @@
+"""kitlib.py: the open-plots kit's shared Blender helpers (RM4, night-market-remaster-mini-plan.md).
+
+A kit piece is built from bmesh primitives whose faces carry a material named `<Role>.<slot>`: Role is `Kit` (lit) or
+`Glow` (emissive), slot a palette key (`wood`, `stone`, `gold`...). Each piece's ambient occlusion is baked by Cycles into
+a corner colour, then the piece is exported (scripts/blender/lib/glb.py) as one node per `<variant>.<Role>.<slot>` in
+game axes (x, y up, z = -Blender y) with flat normals, the ruled-trim UVs of data/trim.json (TEXCOORD_0: metres along
+and up the face plus 32 m x the slot's trim band) and the occlusion as a grey shade (COLOR_0). The game generator (src/shards/open-plots/generators/kitGlb.mjs) colours each triangle palette[slot] x
+shade, so one kit retints per idea. Blender axes here: x east, y back (away from the piece's front), z up; a piece's front
+faces -y, which is game +z.
+"""
+import json
+import math
+import os
+import sys
+
+import bmesh
+import bpy
+import numpy as np
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'lib'))
+from glb import write_glb  # noqa: E402
+
+SPACING = 12.0  # metres between variants while baking, so one variant never occludes another
+PERIOD = 4.8
+
+
+class Piece:
+    """One variant under construction: a bmesh plus its material slots, its emitters and its stretch band."""
+
+    def __init__(self):
+        self.bm = bmesh.new()
+        self.slots = []
+        self.emitters = []
+
+    def slot(self, name):
+        if name not in self.slots:
+            self.slots.append(name)
+        return self.slots.index(name)
+
+    def face(self, points, slot):
+        verts = [self.bm.verts.new(p) for p in points]
+        f = self.bm.faces.new(verts)
+        f.material_index = self.slot(slot)
+        return f
+
+    def box(self, lo, hi, slot, top=None, bottom=False):
+        (x0, y0, z0), (x1, y1, z1) = lo, hi
+        self.face([(x0, y0, z1), (x1, y0, z1), (x1, y1, z1), (x0, y1, z1)], top or slot)
+        if bottom:
+            self.face([(x0, y1, z0), (x1, y1, z0), (x1, y0, z0), (x0, y0, z0)], slot)
+        self.face([(x0, y0, z0), (x1, y0, z0), (x1, y0, z1), (x0, y0, z1)], slot)
+        self.face([(x1, y0, z0), (x1, y1, z0), (x1, y1, z1), (x1, y0, z1)], slot)
+        self.face([(x1, y1, z0), (x0, y1, z0), (x0, y1, z1), (x1, y1, z1)], slot)
+        self.face([(x0, y1, z0), (x0, y0, z0), (x0, y0, z1), (x0, y1, z1)], slot)
+
+    def ring(self, cx, cy, r, z, sides, spin):
+        return [(cx + r * math.cos(spin + 2 * math.pi * i / sides), cy + r * math.sin(spin + 2 * math.pi * i / sides), z)
+                for i in range(sides)]
+
+    def lathe(self, cx, cy, profile, sides, slots, spin=0.0, cap_top=True, cap_bottom=False):
+        """Revolve [(radius, z), ...] bottom to top; band i takes slots[i] (the last slot repeats)."""
+        rings = [self.ring(cx, cy, r, z, sides, spin) for r, z in profile]
+        for band in range(len(rings) - 1):
+            slot = slots[min(band, len(slots) - 1)]
+            a, b = rings[band], rings[band + 1]
+            for i in range(sides):
+                j = (i + 1) % sides
+                if profile[band][0] <= 1e-6:
+                    self.face([a[i], b[j], b[i]], slot)
+                elif profile[band + 1][0] <= 1e-6:
+                    self.face([a[i], a[j], b[i]], slot)
+                else:
+                    self.face([a[i], a[j], b[j], b[i]], slot)
+        if cap_top and profile[-1][0] > 1e-6:
+            self.face(rings[-1], slots[-1])
+        if cap_bottom and profile[0][0] > 1e-6:
+            self.face(list(reversed(rings[0])), slots[0])
+
+    def prism(self, cx, cy, r0, r1, z0, z1, sides, slot, spin=0.0, cap_top=True, cap_bottom=False):
+        self.lathe(cx, cy, [(r0, z0), (r1, z1)], sides, [slot], spin, cap_top, cap_bottom)
+
+    def emitter(self, at, slot):
+        self.emitters.append((at, slot))
+
+
+def reset_scene():
+    bpy.ops.wm.read_factory_settings(use_empty=True)
+    scene = bpy.context.scene
+    scene.render.engine = 'CYCLES'
+    scene.cycles.device = 'CPU'
+    scene.cycles.samples = 48
+    scene.cycles.use_denoising = False
+    sky = bpy.data.worlds.new('World')
+    scene.world = sky
+    sky.use_nodes = True
+    sky.node_tree.nodes['Background'].inputs['Color'].default_value = (1, 1, 1, 1)
+    sky.light_settings.distance = 0.8
+    ground = bpy.data.meshes.new('ground')
+    ground.from_pydata([(-500, -500, 0), (500, -500, 0), (500, 500, 0), (-500, 500, 0)], [], [(0, 1, 2, 3)])
+    scene.collection.objects.link(bpy.data.objects.new('ground', ground))
+    return scene
+
+
+def realise(piece, name, offset):
+    """Turn a piece into a triangulated object `offset` metres along x, its faces' materials named by slot."""
+    bmesh.ops.triangulate(piece.bm, faces=piece.bm.faces[:])
+    mesh = bpy.data.meshes.new(name)
+    piece.bm.to_mesh(mesh)
+    piece.bm.free()
+    for slot in piece.slots:
+        material = bpy.data.materials.get(slot) or bpy.data.materials.new(slot)
+        mesh.materials.append(material)
+    obj = bpy.data.objects.new(name, mesh)
+    obj.location.x = offset
+    bpy.context.scene.collection.objects.link(obj)
+    return obj
+
+
+def bake_shade(objects):
+    """Cycles ambient occlusion within 0.8 m (the ground and every part occlude) into each object's corner colour."""
+    scene = bpy.context.scene
+    scene.render.bake.target = 'VERTEX_COLORS'
+    for obj in objects:
+        attr = obj.data.color_attributes.new('shade', 'FLOAT_COLOR', 'CORNER')
+        obj.data.color_attributes.active_color = attr
+    bpy.ops.object.select_all(action='DESELECT')
+    for obj in objects:
+        obj.select_set(True)
+    bpy.context.view_layer.objects.active = objects[0]
+    bpy.ops.object.bake(type='AO')
+
+
+TRIM_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..', 'src', 'shards', 'open-plots', 'data',
+                         'trim.json')
+
+
+def trim_bands():
+    """data/trim.json (sp-o2's RM5.3 contract): each trim's band number and the band's width in metres."""
+    with open(TRIM_FILE) as f:
+        trim = json.load(f)
+    return trim['band'], {name: row['band'] for name, row in trim['trims'].items()}
+
+
+def face_uvs(points, normal, band, width, roof):
+    """A face's ruled-trim UVs: metres along its horizontal tangent (u, moved into [0, width)) plus width x its band, and
+    metres up the face (v; down the slope for roof tiles). A flat face uses x and y."""
+    nx, ny, nz = normal
+    if abs(nz) > 0.95:
+        t, b = (1.0, 0.0, 0.0), (0.0, 1.0, 0.0)
+    else:
+        length = math.hypot(nx, ny)
+        t = (-ny / length, nx / length, 0.0)
+        b = (ny * t[2] - nz * t[1], nz * t[0] - nx * t[2], nx * t[1] - ny * t[0])
+    us = [p[0] * t[0] + p[1] * t[1] + p[2] * t[2] for p in points]
+    vs = [p[0] * b[0] + p[1] * b[1] + p[2] * b[2] for p in points]
+    if roof:
+        vs = [-v for v in vs]
+    # whole steps of 4.8 m, a multiple of every trim's period (0.2, 0.24, 0.3, 0.32, 0.8 m), keep patterns continuous
+    shift = math.floor(min(us) / PERIOD) * PERIOD
+    if max(us) - shift >= width:
+        raise ValueError(f'kit face wider than the {width} m trim band')
+    return [(u - shift + band * width, v) for u, v in zip(us, vs)]
+
+
+def export_family(path, family, objects, emitters, extras, trims, floor=0.42):
+    """One node per `<variant>.<Role>.<slot>`; COLOR_0 is the shade lifted to [floor, 1] (Glow faces stay 1);
+    TEXCOORD_0 is the ruled trim (`trims`: slot -> trim name in data/trim.json; plain otherwise)."""
+    width, bands = trim_bands()
+    meshes = []
+    for variant, obj in enumerate(objects):
+        mesh = obj.data
+        shade = mesh.color_attributes['shade'].data
+        groups = {}
+        for poly in mesh.polygons:
+            slot = mesh.materials[poly.material_index].name
+            groups.setdefault(slot, []).append(poly)
+        for slot, polys in groups.items():
+            role, name = slot.split('.')
+            trim = trims.get(name, 'plain') if role == 'Kit' else 'plain'
+            pos, nor, uvs, col = [], [], [], []
+            for poly in polys:
+                n = poly.normal
+                corners = [mesh.vertices[mesh.loops[loop].vertex_index].co for loop in poly.loop_indices]
+                uvs.extend(face_uvs([(c.x, c.y, c.z) for c in corners], (n.x, n.y, n.z), bands[trim], width,
+                                    trim == 'roofTile'))
+                for loop, c in zip(poly.loop_indices, corners):
+                    pos.append((c.x, c.z, -c.y))
+                    nor.append((n.x, n.z, -n.y))
+                    if role == 'Glow':
+                        col.append((1.0, 1.0, 1.0))
+                    else:
+                        s = floor + (1 - floor) * max(0.0, min(1.0, shade[loop].color[0]))
+                        col.append((s, s, s))
+            meshes.append((f'{variant}.{slot}', {
+                'POSITION': np.array(pos, dtype=np.float32), 'NORMAL': np.array(nor, dtype=np.float32),
+                'TEXCOORD_0': np.array(uvs, dtype=np.float32), 'COLOR_0': np.array(col, dtype=np.float32),
+                'indices': np.arange(len(pos), dtype=np.uint32), 'material': 0,
+            }))
+    out = {'family': family, 'variants': len(objects),
+           'emitters': [[[round(x, 4), round(z, 4), round(-y, 4), slot] for (x, y, z), slot in group] for group in emitters]}
+    out.update(extras)
+    # one material: the SDK's world reader (kitGlb.mjs decodes through it) maps every primitive by material name
+    write_glb(path, meshes, extras=out, materials=['kit'])
+
+
+def build_family(out_dir, family, builders, trims, extras=None):
+    """Build, bake and export one family: `builders` makes each variant's Piece at the origin; `trims` maps slots to
+    their ruled trim."""
+    objects, emitters = [], []
+    for variant, build in enumerate(builders):
+        piece = build()
+        objects.append(realise(piece, f'{family}-{variant}', variant * SPACING))
+        emitters.append(piece.emitters)
+    bake_shade(objects)
+    export_family(os.path.join(out_dir, f'{family}.glb'), family, objects, emitters, extras or {}, trims)
+    tris = sum(len(obj.data.polygons) for obj in objects)
+    print(f'kit {family}: {len(objects)} variants, {tris} triangles')

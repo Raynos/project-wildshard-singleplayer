@@ -1,230 +1,108 @@
-// RM3: owned, in-memory exports of today's kit builders. Publication and placement belong to the plot producer.
-import { BufferGeometry, Float32BufferAttribute, MeshStandardMaterial } from 'three';
-import { staticGlb } from '@wildshard/sdk/bake/glb';
+// RM4: the kit's Blender models (scripts/blender/open-plots/kit.py writes public/assets/open-plots/kit/<family>.glb).
+// A family holds one to three variants; each node `<variant>.<Role>.<slot>` is lit `Kit` or emissive `Glow` geometry in
+// model metres (front +z) with flat normals, metre UVs and a baked occlusion shade (COLOR_0). Placing a model colours
+// each corner palette[slot] x shade (a slot the palette lacks takes the family's default colour), so every idea retints
+// the same kit. The bytes arrive from the plot producer: nothing here reads a file, and no decoded buffer outlives the build.
 import { normalizeWorldGlb } from '@wildshard/sdk/bake/world';
-import { architecturePiece, lanternPiece, placeMovingLight } from './kit.mjs';
 
-/** Export the existing post, glow, pool and collision triangles without changing their vertex colours.
- * Palette slots are named materials with a neutral factor; the three visual parts keep their existing shader roles.
- * No filesystem access, placement, light bake or moving-light seed is performed here. */
-export function lanternGlb(palette, height = 2.8) {
-  const parts = lanternPiece(palette, height);
-  return encodeParts(parts, [
-    ['Kit', 'Kit', 'lantern_post', 'wood'], ['Glow', 'Glow', 'lantern_glow', 'lantern'],
-    ['Pool', 'Pool', 'lantern_pool', 'pool'], ['solid', 'Solid', 'collide_post', 'collision'],
-  ], 'lantern');
+const ROLES = new Set(['Kit', 'Glow']);
+/** sRGB hex to linear RGB */
+const linear = (hex) => [1, 3, 5].map(at => { const c = Number.parseInt(hex.slice(at, at + 2), 16) / 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; });
+const rgb = (value) => Array.isArray(value) && value.length === 3 && value.every(c => Number.isFinite(c) && c >= 0 && c <= 1);
+
+/** A GLB's root `extras` (the family record), read from its JSON chunk: the world reader keeps geometry, not extras. */
+function glbExtras(bytes) {
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  if (bytes.length < 20 || view.getUint32(0, true) !== 0x46546C67 || view.getUint32(16, true) !== 0x4E4F534A) throw new Error('open-plots kit: not a GLB');
+  const length = view.getUint32(12, true), json = JSON.parse(new TextDecoder().decode(bytes.subarray(20, 20 + length)));
+  const extras = typeof json === 'object' && json !== null ? json.extras : undefined;
+  if (typeof extras !== 'object' || extras === null) throw new Error('open-plots kit: GLB has no family record');
+  return extras;
 }
 
-/** Own an existing static tile GLB and the palette/ordinal bindings produced by that exact source invocation.
- * Material names carry role and palette slot; far nodes retain the existing <= 40-triangle tile stand-in. */
-export function architectureGlb(type, palette, variant = 0) {
-  const { parts, bindings, movingLights, lanterns } = architecturePiece(type, palette, variant);
-  const entries = Array.from(bindings, ([name, binding]) => [binding.role, name, name, name]);
-  entries.push(['solid', 'Solid', 'collide_body', 'collision']);
-  return { bytes: encodeParts(parts, entries, `architecture_${type}_${variant}`), bindings, movingLights, lanterns };
-}
-
-function encodeParts(parts, entries, name) {
-  const primitives = [];
-  try {
-    for (const [source, partName, nodeName, slot] of entries) {
-      const part = parts[source].part(partName);
-      const geometry = new BufferGeometry().setAttribute('position', new Float32BufferAttribute(part.positions, 3));
-      const material = new MeshStandardMaterial({ roughness: source === 'Kit' ? 0.9 : 1, metalness: 0 });
-      material.name = slot;
-      primitives.push({ name: nodeName, geometry, material, compactIndex: true });
-      if (source !== 'solid') geometry.setAttribute('color', new Float32BufferAttribute(part.colours, 3));
-      if (source === 'Kit' || source === 'Glow' || source === 'Water') geometry.setAttribute('normal', new Float32BufferAttribute(part.normals, 3));
+/** Decode one family: its variants' rows (role, slot, corner arrays), emitters, default slot colours and stretch band. */
+async function decodeFamily(family, bytes) {
+  if (!(bytes instanceof Uint8Array) || bytes.length === 0) throw new Error(`open-plots kit ${family}: missing GLB bytes`);
+  const extras = glbExtras(bytes);
+  const count = extras.variants, emitters = extras.emitters, slots = extras.slots, stretch = extras.stretch, nominal = extras.nominal;
+  if (extras.family !== family || !Number.isInteger(count) || count < 1 || count > 3 || !Array.isArray(emitters) || emitters.length !== count
+    || typeof slots !== 'object' || slots === null) throw new Error(`open-plots kit ${family}: invalid family record`);
+  const defaults = new Map(Object.entries(slots).map(([slot, hex]) => {
+    if (typeof hex !== 'string' || !/^#[0-9a-f]{6}$/iu.test(hex)) throw new Error(`open-plots kit ${family}: invalid default ${slot}`);
+    return [slot, linear(hex)];
+  }));
+  const band = stretch === undefined ? null : stretch;
+  if (band !== null && (!Array.isArray(band) || band.length !== 2 || !(band[0] < band[1]) || !Number.isFinite(nominal))) throw new Error(`open-plots kit ${family}: invalid stretch`);
+  const variants = Array.from({ length: count }, (_, i) => ({ rows: [], emitters: emitters[i].map(([x, y, z, slot]) => {
+    if (![x, y, z].every(Number.isFinite) || typeof slot !== 'string') throw new Error(`open-plots kit ${family}: invalid emitter`);
+    return { at: [x, y, z], slot };
+  }) }));
+  // the SDK's world reader applies node transforms and keeps each node's name with its corner channels (a kit model
+  // never collides: its placer adds the collision boxes)
+  const world = await normalizeWorldGlb(bytes, { glb: `${family}.glb`, colliders: 'mesh', materials: { kit: 'kit' } }, ['kit']);
+  for (const primitive of world.static) {
+    const match = /^(\d)\.(Kit|Glow)\.([a-z][A-Za-z0-9]{0,31})$/u.exec(primitive.node), variant = variants[Number(match?.[1])];
+    const { positions, normals, uv, colours, indices } = primitive;
+    if (match === null || variant === undefined || !ROLES.has(match[2] ?? '')) throw new Error(`open-plots kit ${family}: bad node ${primitive.node}`);
+    if (normals === null || uv === null || colours === null || indices.length % 3 !== 0) throw new Error(`open-plots kit ${family}: ${primitive.node} lacks a channel`);
+    const width = colours.length / (positions.length / 3), row = { role: match[2], slot: match[3], positions: [], normals: [], uvs: [], shades: [] };
+    for (const at of indices) {
+      row.positions.push(positions[at * 3] ?? 0, positions[at * 3 + 1] ?? 0, positions[at * 3 + 2] ?? 0);
+      row.normals.push(normals[at * 3] ?? 0, normals[at * 3 + 1] ?? 1, normals[at * 3 + 2] ?? 0); row.uvs.push(uv[at * 2] ?? 0, uv[at * 2 + 1] ?? 0);
+      row.shades.push(Math.min(1, Math.max(0, colours[at * width] ?? 1)));
     }
-    return staticGlb(primitives, name);
-  } finally {
-    for (const { geometry, material } of primitives) { geometry.dispose(); material.dispose(); }
+    variant.rows.push(row);
   }
+  if (variants.some(variant => variant.rows.length === 0)) throw new Error(`open-plots kit ${family}: empty variant`);
+  return { variants, defaults, band, nominal: band === null ? 0 : nominal };
 }
 
-/** Decode the four existing GLB heights once per build, then place their visual triangles through the tile writer.
- * Collision stays with the source box's double-precision arithmetic. No model or decoder survives the build. */
-export async function prepareLanternKit(palette) {
-  const pieces = new Map();
-  for (const height of [2.2, 2.4, 2.6, 2.8]) {
-    const decoded = await normalizeWorldGlb(lanternGlb(palette, height), {
-      glb: 'lantern.glb', colliders: 'nodes:collide_',
-      materials: { wood: 'wood', lantern: 'lantern', pool: 'pool', collision: 'collision' },
-    }, ['wood', 'lantern', 'pool', 'collision']);
-    const roles = { lantern_post: 'Kit', lantern_glow: 'Glow', lantern_pool: 'Pool' };
-    const geometry = decoded.static.map(row => {
-      const role = roles[row.node];
-      if (role === undefined || row.colours === null || row.colours.length !== row.positions.length) {
-        throw new Error('open-plots lantern: missing visual palette channel');
-      }
-      return { role, positions: row.positions, colours: row.colours, indices: row.indices, normals: row.normals, uv: row.uv };
-    });
-    if (geometry.length !== 3 || new Set(geometry.map(row => row.role)).size !== 3 || decoded.collision.length !== 1) {
-      throw new Error('open-plots lantern: incomplete GLB piece');
+/** Decode the kit's families once per build (`files`: family name to GLB bytes). `placeModel` writes a model's
+ * triangles through a tile writer at tile-local (x, z), turned `yaw` radians (its front from +z toward +x), its stretch
+ * band lengthened to `height` (a lantern post); its emitters feed the writer's lantern bake. */
+export async function prepareModelKit(palette, files) {
+  if (!(files instanceof Map) || files.size === 0) throw new Error('open-plots kit: no model families');
+  const families = new Map();
+  for (const [family, bytes] of files) families.set(family, await decodeFamily(family, bytes));
+  const colours = new Map();
+  const colourOf = (family, model, slot) => {
+    const key = `${family}/${slot}`;
+    let colour = colours.get(key);
+    if (colour === undefined) {
+      colour = palette[slot] ?? model.defaults.get(slot);
+      if (!rgb(colour)) throw new Error(`open-plots kit ${family}: no colour for slot ${slot}`);
+      colours.set(key, colour);
     }
-    pieces.set(height, geometry);
-  }
+    return colour;
+  };
   return Object.freeze({
-    placeLantern(w, x, z, height) {
-      const geometry = pieces.get(height);
-      if (geometry === undefined || !Number.isFinite(x) || !Number.isFinite(z)) throw new Error('open-plots lantern: invalid placement');
-      for (const { role, positions, colours, indices, normals, uv } of geometry) for (let i = 0; i < indices.length; i += 3) {
-        const points = [], rgb = [], ns = [], uvs = [];
-        for (let corner = 0; corner < 3; corner++) {
-          const at = indices[i + corner] * 3;
-          points.push([x + positions[at], positions[at + 1], z + positions[at + 2]]);
-          rgb.push([colours[at], colours[at + 1], colours[at + 2]]);
-          if (normals !== null) ns.push([normals[at], normals[at + 1], normals[at + 2]]);
-          if (uv !== null) { const u = indices[i + corner] * 2; uvs.push([uv[u], uv[u + 1]]); }
+    /** @param {{ triChannels: Function, lanternEmitter?: Function }} w @param {string} family @param {number} variant */
+    placeModel(w, family, variant, x, z, { yaw = 0, height } = {}) {
+      const model = families.get(family), source = model?.variants[variant];
+      if (model === undefined || source === undefined || !Number.isFinite(x) || !Number.isFinite(z) || !Number.isFinite(yaw)) throw new Error(`open-plots kit: invalid placement ${family}/${variant}`);
+      const lift = height === undefined ? 0 : height - model.nominal;
+      if (!Number.isFinite(lift) || (lift !== 0 && model.band === null)) throw new Error(`open-plots kit ${family}: cannot stretch`);
+      const [a, b] = model.band ?? [0, 1], k = (b - a + lift) / (b - a);
+      const lifted = (y) => (lift === 0 || y <= a ? y : y >= b ? y + lift : a + (y - a) * k);
+      const c = Math.cos(yaw), s = Math.sin(yaw);
+      const place = (px, py, pz) => [x + px * c + pz * s, lifted(py), z - px * s + pz * c];
+      for (const row of source.rows) {
+        const tint = colourOf(family, model, row.slot), { positions, normals, uvs, shades } = row;
+        for (let at = 0; at < shades.length; at += 3) {
+          const points = [], rgbs = [], ns = [], ts = [];
+          for (let corner = at; corner < at + 3; corner++) {
+            const i = corner * 3, shade = shades[corner] ?? 1;
+            points.push(place(positions[i] ?? 0, positions[i + 1] ?? 0, positions[i + 2] ?? 0));
+            rgbs.push([tint[0] * shade, tint[1] * shade, tint[2] * shade]);
+            const nx = normals[i] ?? 0, nz = normals[i + 2] ?? 0;
+            ns.push([nx * c + nz * s, normals[i + 1] ?? 0, -nx * s + nz * c]); ts.push([uvs[corner * 2] ?? 0, uvs[corner * 2 + 1] ?? 0]);
+          }
+          w.triChannels(row.role, points, rgbs, ns, ts);
         }
-        w.triChannels(role, points, rgb, normals === null ? null : ns, uv === null ? null : uvs);
       }
+      for (const { at, slot } of source.emitters) w.lanternEmitter?.(place(at[0], at[1], at[2]), [...colourOf(family, model, slot)]);
     },
+    /** how many variants a family has */
+    variants(family) { const model = families.get(family); if (model === undefined) throw new Error(`open-plots kit: no family ${family}`); return model.variants.length; },
   });
-}
-
-/** Admit one to three explicitly supplied variants per tile family, each with LOD0 and LOD1.
- * Levels own their decoded arrays; missing levels, duplicate variants and oversized far stand-ins refuse.
- * This build-only table chooses no distance, collision policy or variant on behalf of a caller. */
-export async function prepareArchitectureVariants(sources) {
-  if (!Array.isArray(sources) || sources.length === 0) throw new Error('open-plots architecture: explicit variants required');
-  const keys = new Set();
-  for (const { type, variant, lod0, lod1 } of sources) {
-    const key = `${type}/${variant}`;
-    if (!['H', 'S', 'C', 'L', 'N', 'G', 'P'].includes(type) || !Number.isInteger(variant) || variant < 0 || variant > 2
-      || keys.has(key) || lod0 === undefined || lod1 === undefined) throw new Error('open-plots architecture: invalid variant or missing LOD');
-    keys.add(key);
-  }
-  for (const { type, variant } of sources) for (let i = 0; i < variant; i++) {
-    if (!keys.has(`${type}/${i}`)) throw new Error('open-plots architecture: noncontiguous variants');
-  }
-  const pieces = new Map();
-  for (const { type, variant, lod0, lod1 } of sources) {
-    const levels = [await decodeArchitecture(lod0)];
-    levels.push(lod1 === lod0 ? levels[0] : await decodeArchitecture(lod1));
-    if (levels[1].triangles > levels[0].triangles) throw new Error('open-plots architecture: LOD1 exceeds LOD0');
-    const [a, b] = levels;
-    if (a.movingLights.length !== b.movingLights.length || a.movingLights.some((light, i) => {
-      const other = b.movingLights[i];
-      return light.kind !== other.kind || light.position.some((value, k) => value !== other.position[k]);
-    }) || a.lanterns.length !== b.lanterns.length || a.lanterns.some((light, i) => !sameWords(light.at, b.lanterns[i].at) || !sameWords(light.colour, b.lanterns[i].colour))
-      || !sameWords(a.collision.positions, b.collision.positions) || !sameWords(a.collision.indices, b.collision.indices)) {
-      throw new Error('open-plots architecture: LOD changes collision or moving lights');
-    }
-    pieces.set(`${type}/${variant}`, levels.map(level => ({ roles: level.roles, movingLights: level.movingLights, lanterns: level.lanterns })));
-  }
-  return Object.freeze({
-    placeArchitecture(w, type, variant, lod = 0) {
-      if (!['H', 'S', 'C', 'L', 'N', 'G', 'P'].includes(type) || !Number.isInteger(variant) || !Number.isInteger(lod) || lod < 0 || lod > 1) throw new Error('open-plots architecture: invalid LOD');
-      const levels = pieces.get(`${type}/${variant}`);
-      if (levels === undefined) throw new Error('open-plots architecture: invalid placement variant');
-      placeArchitecture(w, levels[lod]);
-    },
-  });
-}
-
-function sameWords(a, b) {
-  return a.length === b.length && a.every((value, i) => Object.is(value, b[i]));
-}
-
-async function decodeArchitecture(source) {
-  const { bytes, bindings, movingLights, lanterns } = source;
-  if (!(bytes instanceof Uint8Array) || bytes.length === 0 || !(bindings instanceof Map) || !Array.isArray(movingLights) || !Array.isArray(lanterns)) {
-    throw new Error('open-plots architecture: invalid owned GLB source');
-  }
-  const materials = Object.fromEntries([...bindings.keys(), 'collision'].map(name => [name, 'kit']));
-  const decoded = await normalizeWorldGlb(bytes, { glb: 'architecture.glb', materials, colliders: 'nodes:collide_', far: 'far_' }, ['kit']);
-  const roles = new Map();
-  for (const row of decoded.static) {
-    const binding = bindings.get(row.node);
-    if (binding === undefined || !['Kit', 'Glow', 'Pool', 'Water'].includes(binding.role) || row.colours === null || row.colours.length !== row.positions.length
-      || row.indices.length !== binding.ordinals.length * 3) throw new Error('open-plots architecture: incomplete palette geometry');
-    let triangles = roles.get(binding.role);
-    if (triangles === undefined) { triangles = []; roles.set(binding.role, triangles); }
-    for (let i = 0; i < binding.ordinals.length; i++) {
-      triangles.push({ ordinal: binding.ordinals[i], at: i * 3, positions: row.positions, colours: row.colours,
-        indices: row.indices, normals: row.normals, uv: row.uv });
-    }
-  }
-  for (const triangles of roles.values()) {
-    triangles.sort((a, b) => a.ordinal - b.ordinal);
-    if (triangles.some((triangle, i) => triangle.ordinal !== i)) throw new Error('open-plots architecture: invalid triangle order');
-  }
-  const farTriangles = decoded.far.reduce((count, row) => count + row.indices.length / 3, 0);
-  if (farTriangles === 0 || farTriangles > 40 || decoded.collision.length !== 1) throw new Error('open-plots architecture: invalid far or collision piece');
-  const glowCount = roles.get('Glow')?.length ?? 0;
-  const invalidLight = movingLights.some((light, i) => {
-    if (!['firefly', 'sky-lantern'].includes(light.kind)) return true;
-    if (!Array.isArray(light.position)) return true;
-    if (light.position.length !== 3) return true;
-    if (light.position.some(value => !Number.isFinite(value))) return true;
-    if (!Number.isInteger(light.ordinal)) return true;
-    if (light.ordinal < 0 || light.ordinal > glowCount) return true;
-    return i > 0 && light.ordinal < movingLights[i - 1].ordinal;
-  });
-  if (invalidLight) throw new Error('open-plots architecture: invalid moving-light order');
-  const invalidLantern = lanterns.some(light => {
-    if (!Array.isArray(light.at)) return true;
-    if (light.at.length !== 3) return true;
-    if (!Array.isArray(light.colour)) return true;
-    if (light.colour.length !== 3) return true;
-    for (let i = 0; i < 3; i++) {
-      if (!Number.isFinite(light.at[i]) || !Number.isFinite(light.colour[i]) || light.colour[i] < 0 || light.colour[i] > 1) return true;
-    }
-    return false;
-  });
-  if (invalidLantern) {
-    throw new Error('open-plots architecture: invalid lantern emitter');
-  }
-  if (movingLights.length > 0 && !roles.has('Glow')) roles.set('Glow', []);
-  return { roles, lanterns: lanterns.map(light => ({ at: [...light.at], colour: [...light.colour] })),
-    movingLights: movingLights.map(light => ({ kind: light.kind, ordinal: light.ordinal, position: [...light.position] })),
-    triangles: [...roles.values()].reduce((count, rows) => count + rows.length, 0), collision: decoded.collision[0] };
-}
-
-function placeArchitecture(w, piece) {
-  for (const light of piece.lanterns) w.lanternEmitter?.([...light.at], [...light.colour]);
-  for (const [role, triangles] of piece.roles) {
-    let moving = 0;
-    for (let triangle = 0; triangle <= triangles.length; triangle++) {
-      if (role === 'Glow') while (piece.movingLights[moving]?.ordinal === triangle) {
-        const light = piece.movingLights[moving++]; placeMovingLight(w, light.kind, light.position);
-      }
-      if (triangle === triangles.length) continue;
-      const { at, positions, colours, indices, normals, uv } = triangles[triangle];
-      const points = [], rgb = [], ns = [], uvs = [];
-      for (let corner = 0; corner < 3; corner++) {
-        const i = indices[at + corner] * 3;
-        points.push([positions[i], positions[i + 1], positions[i + 2]]);
-        rgb.push([colours[i], colours[i + 1], colours[i + 2]]);
-        if (normals !== null) ns.push([normals[i], normals[i + 1], normals[i + 2]]);
-        if (uv !== null) { const u = indices[at + corner] * 2; uvs.push([uv[u], uv[u + 1]]); }
-      }
-      w.triChannels(role, points, rgb, normals === null ? null : ns, uv === null ? null : uvs);
-    }
-  }
-}
-
-/** Keep today's one/two-variant choices and existing low-poly geometry at both levels.
- * RM4 supplies distinct authored models later; no reduced-LOD or third-art-variant claim is made here. */
-export async function prepareArchitectureKit(palette) {
-  const sources = [];
-  for (const [type, variant] of [['H', 0], ['H', 1], ['S', 0], ['C', 0], ['L', 0], ['N', 0], ['G', 0], ['G', 1], ['P', 0]]) {
-    const piece = architectureGlb(type, palette, variant);
-    sources.push({ type, variant, lod0: piece, lod1: piece });
-  }
-  const prepared = await prepareArchitectureVariants(sources);
-  return Object.freeze({
-    placeArchitecture(w, type, variant) {
-      if (!['H', 'S', 'C', 'L', 'N', 'G', 'P'].includes(type)) return false;
-      prepared.placeArchitecture(w, type, type === 'H' || type === 'G' ? variant : 0, 0);
-      return true;
-    },
-  });
-}
-
-/** Owned build-time kit; no decoded buffers, placement callbacks or decoder services enter the product. */
-export async function preparePlotKit(palette) {
-  const lanterns = await prepareLanternKit(palette), architecture = await prepareArchitectureKit(palette);
-  return Object.freeze({ ...lanterns, ...architecture });
 }

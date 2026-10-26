@@ -8,8 +8,9 @@ ARRAY, ELEMENT = 34962, 34963
 TYPES = {1: 'SCALAR', 2: 'VEC2', 3: 'VEC3', 4: 'VEC4'}
 
 
-def write_glb(path, meshes, extras=None):
-    """meshes: [(name, {'POSITION': (n,3) f32, 'NORMAL', 'TEXCOORD_0', 'TEXCOORD_1', 'COLOR_0', 'indices': (m,) u32})]"""
+def write_glb(path, meshes, extras=None, materials=None):
+    """meshes: [(name, {'POSITION': (n,3) f32, 'NORMAL', 'TEXCOORD_0', 'TEXCOORD_1', 'COLOR_0', 'indices': (m,) u32,
+    'material': index into `materials`})]; materials: plain white, rough, non-metal materials by name"""
     blob = bytearray()
     views, accessors, gmeshes, nodes = [], [], [], []
 
@@ -37,7 +38,10 @@ def write_glb(path, meshes, extras=None):
             ind = push(np.ascontiguousarray(idx, dtype=np.uint16), ELEMENT, USHORT)
         else:
             ind = push(np.ascontiguousarray(idx, dtype=np.uint32), ELEMENT, UINT)
-        gmeshes.append({'name': name, 'primitives': [{'attributes': attrs, 'indices': ind, 'mode': 4}]})
+        primitive = {'attributes': attrs, 'indices': ind, 'mode': 4}
+        if 'material' in a:
+            primitive['material'] = a['material']
+        gmeshes.append({'name': name, 'primitives': [primitive]})
         nodes.append({'name': name, 'mesh': len(gmeshes) - 1})
 
     while len(blob) % 4:
@@ -48,6 +52,9 @@ def write_glb(path, meshes, extras=None):
         'nodes': nodes, 'meshes': gmeshes, 'accessors': accessors, 'bufferViews': views,
         'buffers': [{'byteLength': len(blob)}],
     }
+    if materials:
+        doc['materials'] = [{'name': m, 'pbrMetallicRoughness': {'baseColorFactor': [1, 1, 1, 1], 'metallicFactor': 0,
+                                                                  'roughnessFactor': 1}} for m in materials]
     if extras:
         doc['extras'] = extras
     js = json.dumps(doc, separators=(',', ':')).encode()

@@ -15,16 +15,16 @@ const normalize = (a) => { const l = Math.hypot(...a) || 1; return [a[0] / l, a[
 
 /** Plain triangle soup builder: positions, normals, colours, uvs, by material. */
 export class Soup {
-  constructor(partKey) { this.parts = new Map(); this.partKey = partKey; }
+  constructor() { this.parts = new Map(); }
   part(name) { let p = this.parts.get(name); if (p === undefined) { p = { positions: [], normals: [], colours: [], uvs: [] }; this.parts.set(name, p); } return p; }
   /** @param {string} name @param {number[]} a @param {number[]} b @param {number[]} c @param {number[]} [colour] @param {number[][] | null} [uv] */
   tri(name, a, b, c, colour = [1, 1, 1], uv = null) {
-    const p = this.part(this.partKey?.(name, colour) ?? name), e1 = sub(b, a), e2 = sub(c, a), n = normalize(cross(e1, e2));
+    const p = this.part(name), e1 = sub(b, a), e2 = sub(c, a), n = normalize(cross(e1, e2));
     for (const [i, v] of [a, b, c].entries()) { p.positions.push(...v); p.normals.push(...n); p.colours.push(...colour); p.uvs.push(...(uv === null ? [0, 0] : uv[i])); }
   }
   /** a triangle with a colour per corner (a light pool's falloff) @param {string} name @param {number[][]} corners @param {number[][]} colours */
   triColours(name, [a, b, c], colours) {
-    const p = this.part(this.partKey?.(name, colours[0]) ?? name), n = normalize(cross(sub(b, a), sub(c, a)));
+    const p = this.part(name), n = normalize(cross(sub(b, a), sub(c, a)));
     for (const [i, v] of [a, b, c].entries()) { p.positions.push(...v); p.normals.push(...n); p.colours.push(...(colours[i] ?? [0, 0, 0])); p.uvs.push(0, 0); }
   }
   /** @param {string} name @param {number[]} a @param {number[]} b @param {number[]} c @param {number[]} d @param {number[]} [colour] @param {number[][] | null} [uv] */
@@ -132,8 +132,13 @@ function writer(parts, centre, turns, kit) {
   };
   const lanternEmitter = kit?.lanternEmitter === undefined ? undefined
     : (at, colour) => kit.lanternEmitter(turn(at), [...colour]);
-  return { tri, triColours, triChannels, quad, box, sides, floor, solid, lanternEmitter, placeLantern: kit?.placeLantern };
+  const w = { tri, triColours, triChannels, quad, box, sides, floor, solid, lanternEmitter, placeModel: undefined };
+  // RM4: a kit model (kitGlb.mjs) at tile-local (x, z), through this writer's turn and lantern bake
+  if (kit?.placeModel !== undefined) w.placeModel = (family, variant, x, z, options) => kit.placeModel(w, family, variant, x, z, options);
+  return w;
 }
+/** A stable variant (0 to count - 1) for a piece at tile-local (x, z), so neighbours differ and every bake repeats. */
+const pick = (x, z, count, salt = 0) => (((Math.round(x * 4) * 7 + Math.round(z * 4) * 13 + salt) % count) + count) % count;
 
 /** An n-sided frustum about (x, z) from radius r0 at y0 to r1 at y1 (r1 0: a cone), capped. */
 function frustum(w, part, x, z, sides, r0, r1, y0, y1, colour, spin = 0) {
@@ -190,43 +195,20 @@ function mover(w, x, y, z, size, seed) {
 function firefly(w, x, y, z) { placeMovingLight(w, 'firefly', [x, y, z]); }
 /** A floating sky lantern: a 0.5 m mover the glow graph bobs and drifts (+-2 m), lit orange. */
 function skyLantern(w, x, y, z) { placeMovingLight(w, 'sky-lantern', [x, y, z]); }
-/** One original moving-light recipe. Static exports capture its insertion point without consuming a seed;
- * collision-only replay skips it. Actual placement consumes the same seed and writes the original double vertices. */
-export function placeMovingLight(w, kind, position) {
+/** One moving light: consumes the next seed and writes its marked tetrahedron. */
+function placeMovingLight(w, kind, position) {
   if (!['firefly', 'sky-lantern'].includes(kind) || !Array.isArray(position) || position.length !== 3
     || position.some(value => !Number.isFinite(value))) throw new Error('open-plots: invalid moving light');
-  if (w.captureMovingLight !== undefined) { w.captureMovingLight(kind, position); return; }
-  if (w.staticOnly === true) return;
   const seed = nextSeed() * 0.5;
   mover(w, position[0], position[1], position[2], kind === 'firefly' ? 0.07 : 0.35, kind === 'firefly' ? seed : 0.5 + seed);
 }
-/** A lantern on a post (post in Kit, the lantern lit) and its pool of light. */
+/** A lantern on a post of `height` (RM4: the kit's stone post, paper-lantern bracket or banner post, by place; its model
+ *  emits the lantern bake's light) and its pool of light. */
 function lantern(w, x, z, p, height = 2.8) {
-  w.lanternEmitter?.([x, height + 0.375, z], [...p.lantern]);
-  if (w.placeLantern !== undefined) {
-    w.placeLantern(w, x, z, height);
-    // Preserve the original box arithmetic and order; GLB float storage must not alter collision.
-    w.solid([x - 0.09, 0, z - 0.09], [x + 0.09, height, z + 0.09]);
-    return;
-  }
-  w.sides('Kit', [x - 0.09, 0, z - 0.09], [x + 0.09, height, z + 0.09], p.wood);
+  if (w.placeModel === undefined) throw new Error('open-plots: lanterns need the kit models');
+  w.placeModel('lanterns', pick(x, z, 3), x, z, { height, yaw: pick(x, z, 4, 1) * Math.PI / 2 });
   w.solid([x - 0.09, 0, z - 0.09], [x + 0.09, height, z + 0.09]);
-  w.box('Glow', [x - 0.3, height, z - 0.3], [x + 0.3, height + 0.75, z + 0.3], p.lantern, p.lantern);
   pool(w, x, z, 4.5, p.pool);
-}
-/** Build one existing lantern at the origin for GLB kit export. Palette colours stay in the vertex channels;
- * named GLB materials are the palette slots. This does not consume the layout's moving-light seed stream. */
-export function lanternPiece(palette, height = 2.8) {
-  if (![2.2, 2.4, 2.6, 2.8].includes(height)) throw new Error('open-plots lantern: existing height required');
-  for (const name of ['wood', 'lantern', 'pool']) {
-    const colour = palette[name];
-    if (!Array.isArray(colour) || colour.length !== 3 || colour.some(value => !Number.isFinite(value) || value < 0 || value > 1)) {
-      throw new Error(`open-plots lantern: invalid ${name} colour`);
-    }
-  }
-  const parts = { Kit: new Soup(), Glow: new Soup(), Pool: new Soup(), solid: new Soup() };
-  lantern(writer(parts, [0, 0], 0), 0, 0, palette, height);
-  return parts;
 }
 /** A low-poly tree: trunk and a faceted crown (two hexagonal cones back to back). */
 function tree(w, x, z, size, p, spin) {
@@ -442,58 +424,18 @@ function farTile(w, p, type) {
 
 /** Every tile's border paving is the plot's (the generator's ground); a builder fills only its inner square. */
 const BUILDERS = { H: house, G: garden, S: stalls, C: canal, L: canal, N: forecourt, P: plaza };
-const discardTriangle = () => { /* Collision-only replay intentionally omits the already-placed GLB visuals. */ };
-
-/** Export existing static tile geometry at the origin, split by palette-array identity.
- * Ordinals retain original triangle order when material slots are merged again. Equal RGB values never alias slots.
- * Moving lights are separate insertion records; extraction never consumes their seed stream. */
-export function architecturePiece(type, palette, variant = 0) {
-  if (!Object.hasOwn(BUILDERS, type) || (type === 'H' || type === 'G' ? ![0, 1].includes(variant) : variant !== 0)) {
-    throw new Error('open-plots architecture: existing type and variant required');
-  }
-  const slots = new Map();
-  for (const [key, colour] of Object.entries(palette)) {
-    if (!/^[a-z][A-Za-z0-9]{0,31}$/u.test(key) || !Array.isArray(colour) || colour.length !== 3
-      || colour.some(value => !Number.isFinite(value) || value < 0 || value > 1) || slots.has(colour)) {
-      throw new Error('open-plots architecture: distinct named RGB palette slots required');
-    }
-    slots.set(colour, key);
-  }
-  const bindings = new Map(), ordinals = new Map();
-  const partKey = (role, colour) => {
-    const slot = slots.get(colour);
-    if (slot === undefined) throw new Error('open-plots architecture: undeclared palette colour');
-    const name = `${role}_${slot}`, ordinal = ordinals.get(role) ?? 0;
-    let binding = bindings.get(name);
-    if (binding === undefined) { binding = { role, slot, ordinals: [] }; bindings.set(name, binding); }
-    binding.ordinals.push(ordinal); ordinals.set(role, ordinal + 1);
-    return name;
-  };
-  const parts = { Kit: new Soup(partKey), Glow: new Soup(partKey), Pool: new Soup(partKey), Water: new Soup(partKey),
-    far: new Soup(partKey), solid: new Soup() };
-  const w = writer(parts, [0, 0], 0), movingLights = [], lanterns = [];
-  w.lanternEmitter = (at, colour) => lanterns.push({ at: [...at], colour: [...colour] });
-  w.captureMovingLight = (kind, position) => movingLights.push({ kind, position: [...position], ordinal: ordinals.get('Glow') ?? 0 });
-  BUILDERS[type](w, palette, type === 'C' || type === 'L' ? type : variant);
-  farTile(w, palette, type);
-  return { parts, bindings, movingLights, lanterns };
-}
 
 /**
  * Build the whole layout into `parts` ({ Kit, Glow, far, solid } soups): tile (column c, row r) has its centre at
- * x = -250 + 62.5 (c + 0.5), z = 250 - 62.5 (r + 0.5) (row 1 north). `seed(r, c)` picks a variant for H and G.
+ * x = -250 + 62.5 (c + 0.5), z = 250 - 62.5 (r + 0.5) (row 1 north). `seed(r, c)` picks a variant for H and G; `kit`
+ * brings the models (kitGlb.mjs `prepareModelKit`) and the lantern bake's emitter sink.
  */
 export function buildLayout(grid, parts, p, seed, kit) {
   checkLayout(grid);
   for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) {
     const { type, turns } = grid[r][c], centre = [-250 + TILE * (c + 0.5), 250 - TILE * (r + 0.5)];
-    const w = writer(parts, centre, turns, kit), build = BUILDERS[type];
-    const variant = type === 'C' || type === 'L' ? type : seed(r, c);
-    if (kit?.placeArchitecture?.(w, type, variant) === true) {
-      // Replay only the defining collision recipe; GLB float storage cannot move a box or change registration order.
-      build({ tri: discardTriangle, triColours: discardTriangle, quad: discardTriangle, box: discardTriangle,
-        sides: discardTriangle, floor: discardTriangle, solid: w.solid, staticOnly: true }, p, variant);
-    } else build(w, p, variant);
+    const w = writer(parts, centre, turns, kit);
+    BUILDERS[type](w, p, type === 'C' || type === 'L' ? type : seed(r, c));
     farTile(w, p, type);
     // NM7: string lights over the lanes between tiles (each tile strings its north and east seams when they are inside the
     // plot), on posts at the lane crossings' corners

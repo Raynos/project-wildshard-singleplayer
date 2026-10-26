@@ -174,6 +174,31 @@ About 10 Opus lane-days, roughly 5 calendar days on two lanes.
 | RM11.1–11.2 near / far | open | Near view from the trim-sheet colours; far stand-ins from the new kit |
 | RM12.1–12.3 perf | open | Per-dome Chromium counts, fixes, one Simulator reading |
 
+### RM4, RM7–RM9, RM13 slices (G711, ≤ 1 h each; sp-o1, look-dome lane: kit models, ground geometry, gate, density, board)
+
+Kit models are Blender scripts (`scripts/blender/open-plots/kit.py` + `kitlib.py`, target `open-plots/kit`), one GLB per
+family of three variants in `public/assets/open-plots/kit/`: nodes `<variant>.<Role>.<slot>`, flat normals, Cycles AO in
+`COLOR_0`, `data/trim.json`'s trim bands in `TEXCOORD_0`; `kitGlb.mjs` places them through the tile writer, coloured
+palette[slot] × shade. The product's L1 is its automatic 50 % simplification, so an authored LOD1 needs an SDK reader first
+(RM4.10). RM3's tile-GLB roundtrip goes in RM4.1: it cannot carry model-placed triangles.
+
+| Slice | Status | Deliverable |
+|---|---|---|
+| RM4.1 kit pipeline + lanterns | in flight (2026-10-26, sp-o1) | Blender target, model reader, lantern family (stone post, paper-lantern bracket, banner post) on every `lantern()` |
+| RM4.2 stalls | open | Hero stall (striped awning, valance, goods), red-roof row stall, food cart; S tiles and forecourt kiosks |
+| RM4.3 string lights | open | Round bulbs and red paper lanterns on sagging cords; banner posts at the lane crossings |
+| RM4.4 houses | open | Three cottages (tiled hip roofs with upturned eaves, timber frame, plaster, lit windows) filling the H courts |
+| RM4.5 bridges | open | Arched stone bridge halves with balustrades at the canal borders |
+| RM4.6 street props | open | Planters with flowers, benches, crates and goods, banners |
+| RM4.7 trees | open | Round-crown trees, TRELLIS.2 vs Hunyuan3D-2 (better wins), three variants |
+| RM4.8 figures | open | Static posed figures at stalls and on bridges (image-to-3D) |
+| RM4.9 boards | open | A labelled 4-angle board per family beside its mockup crop; A2 / D2 captures for bars 2 and 5 |
+| RM4.10 authored LOD1 | open | An SDK reader for authored L1 nodes, only if the automatic L1 looks wrong |
+| RM7.1–7.3 ground and canals | open | Kerbs and raised block edges; canal walls with stone coping; water streak cards |
+| RM9.1–9.3 gate | open | r7 reference, Hunyuan3D 2.1 vs TRELLIS.2, hanging kit lanterns and trim (light with sp-o2's RM6.4) |
+| RM8.1–8.4 density | open | Every tile re-packed to the mockup, ≤ 15k triangles and ≤ 0.3 MB per L0 tile |
+| RM13.1–13.2 board and walk | open | 5 cameras × MOCKUP · BEFORE · NOW, a 30 s road-to-plaza walk |
+
 ## 4. Decisions for Jake
 
 - **D1 Fidelity bar.** 1 Skip · **2 Match the mockup's look at eye height in all ten domes (rec):** stylised and
