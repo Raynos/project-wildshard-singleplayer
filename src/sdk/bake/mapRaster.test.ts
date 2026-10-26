@@ -74,3 +74,29 @@ test('indexed and direct faces retain complete transformed depth and colour buff
     geometry.dispose();
   }
 });
+
+test('shared GLB vertices retain winding, coloured edges and clipping after projection', async () => {
+  const doc = new Document(), buffer = doc.createBuffer();
+  const positions = new Float32Array([-120, 4, -120, 120, 8, 120, 120, 6, -120, -120, 10, 120]);
+  const colours = new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1]);
+  const indices = new Uint16Array([0, 1, 2, 0, 3, 1, 2, 1, 0]);
+  const accessor = (array: Float32Array<ArrayBuffer>) => doc.createAccessor().setBuffer(buffer).setType('VEC3').setArray(array);
+  const primitive = doc.createPrimitive().setAttribute('POSITION', accessor(positions)).setAttribute('COLOR_0', accessor(colours))
+    .setIndices(doc.createAccessor().setBuffer(buffer).setType('SCALAR').setArray(indices));
+  doc.createScene().addChild(doc.createNode('shared').setMesh(doc.createMesh().addPrimitive(primitive)));
+  const bytes = await new WebIO().writeBinary(doc);
+  for (const shift of [-3, 4]) {
+    const matrix = new Matrix4().makeRotationY(.37).setPosition(11, shift, -7);
+    const actual = new MapRaster(40, { clipBelow: 2, clipAbove: 11 }), expected = new MapRaster(40, { clipBelow: 2, clipAbove: 11 });
+    await actual.glb(bytes, matrix);
+    const points = Array.from({ length: 4 }, (_, i) => new Vector3().fromArray(positions, i * 3).applyMatrix4(matrix).toArray());
+    for (let i = 0; i < indices.length; i += 3) {
+      const selected = Array.from(indices.subarray(i, i + 3));
+      expected.triangle(selected.map(index => { const point = points[index]; if (point === undefined) throw new Error('Missing reference vertex'); return point; }),
+        selected.map(index => Array.from(colours.subarray(index * 3, index * 3 + 3), value => value * 255)));
+    }
+    expect(actual.triangles).toBe(3);
+    expect(actual.colour.some(value => value > 0)).toBe(true);
+    expect(actual.height).toEqual(expected.height); expect(actual.colour).toEqual(expected.colour);
+  }
+});

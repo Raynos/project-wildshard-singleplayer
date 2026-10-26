@@ -40,13 +40,22 @@ export class MapRaster {
   }
   /** Integer subpixel inclusion and post-interpolation height/colour quantization retain the original raster. */
   triangle(points: readonly (readonly number[])[], colours: readonly (readonly number[])[]): void {
+    this.projectedTriangle(points, colours, false);
+  }
+  /** Projection depends only on the transformed vertex, so indexed faces share it. */
+  private project(x: number, y: number, z: number): Triple {
+    return [Math.round(((250 - x) * this.size / 500) * 1024), y,
+      Math.round(((250 - z) * this.size / 500) * 1024)];
+  }
+  private projectedTriangle(points: readonly (readonly number[])[], colours: readonly (readonly number[])[], projected = true): void {
     this.triangles++;
     const p0 = at(points, 0), p1 = at(points, 1), p2 = at(points, 2);
-    // Preserve mapPixel's arithmetic order and integer subpixels without
-    // allocating projected tuples, bounds arrays or an edge closure per face.
-    const x0 = Math.round(((250 - at(p0, 0)) * this.size / 500) * 1024), y0 = Math.round(((250 - at(p0, 2)) * this.size / 500) * 1024);
-    const x1 = Math.round(((250 - at(p1, 0)) * this.size / 500) * 1024), y1 = Math.round(((250 - at(p1, 2)) * this.size / 500) * 1024);
-    const x2 = Math.round(((250 - at(p2, 0)) * this.size / 500) * 1024), y2 = Math.round(((250 - at(p2, 2)) * this.size / 500) * 1024);
+    const x0 = projected ? at(p0, 0) : Math.round(((250 - at(p0, 0)) * this.size / 500) * 1024);
+    const y0 = projected ? at(p0, 2) : Math.round(((250 - at(p0, 2)) * this.size / 500) * 1024);
+    const x1 = projected ? at(p1, 0) : Math.round(((250 - at(p1, 0)) * this.size / 500) * 1024);
+    const y1 = projected ? at(p1, 2) : Math.round(((250 - at(p1, 2)) * this.size / 500) * 1024);
+    const x2 = projected ? at(p2, 0) : Math.round(((250 - at(p2, 0)) * this.size / 500) * 1024);
+    const y2 = projected ? at(p2, 2) : Math.round(((250 - at(p2, 2)) * this.size / 500) * 1024);
     const area = (x1 - x0) * (y2 - y0) - (y1 - y0) * (x2 - x0);
     if (area === 0) return;
     const minX = Math.max(0, Math.floor(Math.min(x0, x1, x2) / 1024));
@@ -92,17 +101,18 @@ export class MapRaster {
   geometry(geometry: BufferGeometry, matrix: Matrix4 = identity): void {
     const position = geometry.getAttribute('position'), colour = geometry.getAttribute('color'), indices = geometry.getIndex();
     if (position === undefined) throw new Error('Map geometry needs positions');
-    const points: number[][] = [], colours: number[][] = [];
+    const points: Triple[] = [], colours: number[][] = [];
     for (let i = 0; i < position.count; i++) {
-      points.push(new Vector3().fromBufferAttribute(position, i).applyMatrix4(matrix).toArray());
+      const point = new Vector3().fromBufferAttribute(position, i).applyMatrix4(matrix);
+      points.push(this.project(point.x, point.y, point.z));
       colours.push(colour === undefined ? [180, 180, 180] : [colour.getX(i), colour.getY(i), colour.getZ(i)].map(srgb));
     }
-    const facePoints: number[][] = [[], [], []], faceColours: number[][] = [[], [], []];
+    const facePoints: (readonly number[])[] = [[], [], []], faceColours: number[][] = [[], [], []];
     for (let i = 0; i < (indices?.count ?? position.count); i += 3) {
       const a = indices?.getX(i) ?? i, b = indices?.getX(i + 1) ?? i + 1, c = indices?.getX(i + 2) ?? i + 2;
       facePoints[0] = at(points, a); facePoints[1] = at(points, b); facePoints[2] = at(points, c);
       faceColours[0] = at(colours, a); faceColours[1] = at(colours, b); faceColours[2] = at(colours, c);
-      this.triangle(facePoints, faceColours);
+      this.projectedTriangle(facePoints, faceColours);
     }
   }
   /** Keep native mesh order, selectors, local/world transforms and instanced placements. */
@@ -129,18 +139,19 @@ export class MapRaster {
           if (position === null) throw new Error(`${String(file)}: missing positions`);
           const base = primitive.getMaterial()?.getBaseColorFactor() ?? [1, 1, 1, 1];
           if (base[3] === 0) continue;
-          const points: number[][] = [], colours: number[][] = [];
+          const points: Triple[] = [], colours: number[][] = [];
           for (let i = 0; i < position.getCount(); i++) {
-            points.push(new Vector3().fromArray(position.getElement(i, [])).applyMatrix4(matrix).toArray());
+            const point = new Vector3().fromArray(position.getElement(i, [])).applyMatrix4(matrix);
+            points.push(this.project(point.x, point.y, point.z));
             const c = colour?.getElement(i, []) ?? [1, 1, 1];
             colours.push([0, 1, 2].map(k => srgb(at(base, k) * at(c, k))));
           }
-          const facePoints: number[][] = [[], [], []], faceColours: number[][] = [[], [], []];
+          const facePoints: (readonly number[])[] = [[], [], []], faceColours: number[][] = [[], [], []];
           for (let i = 0; i < (indices?.getCount() ?? position.getCount()); i += 3) {
             const a = indices?.getScalar(i) ?? i, b = indices?.getScalar(i + 1) ?? i + 1, c = indices?.getScalar(i + 2) ?? i + 2;
             facePoints[0] = at(points, a); facePoints[1] = at(points, b); facePoints[2] = at(points, c);
             faceColours[0] = at(colours, a); faceColours[1] = at(colours, b); faceColours[2] = at(colours, c);
-            this.triangle(facePoints, faceColours);
+            this.projectedTriangle(facePoints, faceColours);
           }
         }
       }
