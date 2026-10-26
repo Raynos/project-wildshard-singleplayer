@@ -58,7 +58,7 @@ async function decodeFamily(family, bytes) {
 }
 
 /** Decode the kit's families once per build (`files`: family name to GLB bytes). `placeModel` writes a model's
- * triangles through a tile writer at tile-local (x, z), turned `yaw` radians (its front from +z toward +x), its stretch
+ * triangles through a tile writer at tile-local (x, z) and `y` up, turned `yaw` radians (its front from +z toward +x), its stretch
  * band lengthened to `height` (a lantern post); its emitters feed the writer's lantern bake. */
 export async function prepareModelKit(palette, files) {
   if (!(files instanceof Map) || files.size === 0) throw new Error('open-plots kit: no model families');
@@ -77,15 +77,15 @@ export async function prepareModelKit(palette, files) {
   };
   return Object.freeze({
     /** @param {{ triChannels: Function, lanternEmitter?: Function }} w @param {string} family @param {number} variant */
-    placeModel(w, family, variant, x, z, { yaw = 0, height } = {}) {
+    placeModel(w, family, variant, x, z, { yaw = 0, height, y = 0 } = {}) {
       const model = families.get(family), source = model?.variants[variant];
-      if (model === undefined || source === undefined || !Number.isFinite(x) || !Number.isFinite(z) || !Number.isFinite(yaw)) throw new Error(`open-plots kit: invalid placement ${family}/${variant}`);
+      if (model === undefined || source === undefined || !Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(z) || !Number.isFinite(yaw)) throw new Error(`open-plots kit: invalid placement ${family}/${variant}`);
       const lift = height === undefined ? 0 : height - model.nominal;
       if (!Number.isFinite(lift) || (lift !== 0 && model.band === null)) throw new Error(`open-plots kit ${family}: cannot stretch`);
       const [a, b] = model.band ?? [0, 1], k = (b - a + lift) / (b - a);
-      const lifted = (y) => (lift === 0 || y <= a ? y : y >= b ? y + lift : a + (y - a) * k);
+      const lifted = (v) => (lift === 0 || v <= a ? v : v >= b ? v + lift : a + (v - a) * k);
       const c = Math.cos(yaw), s = Math.sin(yaw);
-      const place = (px, py, pz) => [x + px * c + pz * s, lifted(py), z - px * s + pz * c];
+      const place = (px, py, pz) => [x + px * c + pz * s, y + lifted(py), z - px * s + pz * c];
       for (const row of source.rows) {
         const tint = colourOf(family, model, row.slot), { positions, normals, uvs, shades } = row;
         for (let at = 0; at < shades.length; at += 3) {

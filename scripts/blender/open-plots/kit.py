@@ -310,6 +310,37 @@ def hall():
     return p
 
 
+def string_bulb():
+    """A round gold bulb on a lane's string (a bicone, 12 triangles), lit; its origin is its centre."""
+    p = Piece()
+    p.lathe(0, 0, [(0.0, -0.17), (0.15, 0.0), (0.0, 0.17)], 6, ['Glow.lantern'])
+    p.emitter((0, 0, 0), 'lantern')
+    return p
+
+
+def string_lantern():
+    """A small red paper lantern hung from a lane's string every fourth bulb; its origin is its hook."""
+    p = Piece()
+    p.lathe(0, 0, [(0.05, -0.44), (0.16, -0.38), (0.2, -0.24), (0.16, -0.1), (0.05, -0.04)], 6,
+            ['Kit.gold', 'Glow.paper', 'Glow.paper', 'Kit.gold'], cap_bottom=True)
+    p.emitter((0, 0, -0.24), 'paper')
+    return p
+
+
+def lane_post():
+    """A lane crossing's post (6.5 m): an iron pole on a stone foot with a gold cap, and a red banner with a gold head
+    hung across the lane, readable from both sides."""
+    p = Piece()
+    p.box((-0.22, -0.22, 0), (0.22, 0.22, 0.3), 'Kit.stone', top='Kit.stoneTop')
+    p.box((-0.1, -0.1, 0.3), (0.1, 0.1, 6.5), 'Kit.iron')
+    p.prism(0, 0, 0.16, 0.0, 6.5, 6.8, 4, 'Kit.gold', spin=0.785398, cap_bottom=True)
+    p.box((-0.5, -0.03, 5.35), (0.5, 0.03, 5.45), 'Kit.iron', bottom=True)
+    p.box((-0.46, -0.012, 2.8), (0.46, 0.012, 5.3), 'Kit.stall')
+    p.box((-0.48, -0.022, 5.3), (0.48, 0.022, 5.44), 'Kit.gold', bottom=True)
+    p.box((-0.48, -0.022, 2.72), (0.48, 0.022, 2.82), 'Kit.gold', bottom=True)
+    return p
+
+
 BRIDGE = {'half': 11.5, 'rise': 2.0, 'deck': 0.3, 'width': 4.0, 'water': -0.45, 'open': 10.0}
 
 
@@ -399,6 +430,8 @@ def main():
     build_family(out, 'stalls', [hero_stall, row_stall, food_cart], TRIMS, {'slots': SLOTS})
     reset_scene()
     build_family(out, 'houses', [cottage, two_storey, hall], TRIMS, {'slots': SLOTS})
+    reset_scene(ground=-1.0)  # the string's bulbs and lanterns hang below their hooks (origin y 0)
+    build_family(out, 'strings', [string_bulb, string_lantern, lane_post], TRIMS, {'slots': SLOTS})
     reset_scene(ground=BRIDGE['water'])
     build_family(out, 'bridges', [bridge_rails, bridge_parapet, bridge_lanterns], TRIMS, {'slots': SLOTS})
 

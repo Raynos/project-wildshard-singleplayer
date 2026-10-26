@@ -537,6 +537,7 @@ function stringLights(w, p, side, centre) {
   // an entry's footprint (8 m wide, 15 m in from the plot's edge, on the x = 0 and z = 0 seams) stays clear above the road
   const clear = (x, z) => { const wx = centre[0] + x, wz = centre[1] + z, margin = 1.5;
     return (Math.abs(wx) < 4 + margin && Math.abs(wz) > 235 - margin) || (Math.abs(wz) < 4 + margin && Math.abs(wx) > 235 - margin); };
+  if (w.hasModel('strings')) { modelStrings(w, p, along, ends, clear, top, sag, step); return; }
   for (const off of [-3, 3]) {
     for (const u of ends) {
       const [x, , z] = along(u, off, 0);
@@ -558,6 +559,36 @@ function stringLights(w, p, side, centre) {
       const colour = i % 2 === 0 ? p.lantern : p.bulbRed, apex = [x, y + bulb * 1.4, z], a = [x - bulb, y - bulb, z - bulb], b = [x + bulb, y - bulb, z - bulb], c = [x, y - bulb, z + bulb * 1.4];
       w.lanternEmitter?.([x, y, z], [...colour]);
       w.tri('Glow', apex, b, a, colour); w.tri('Glow', apex, c, b, colour); w.tri('Glow', apex, a, c, colour); w.tri('Glow', a, b, c, colour);
+    }
+  }
+}
+
+/** RM4.3 (opt-in, tiledPlot.mjs KIT_FAMILIES): a seam's strings from the kit: a lane post with its banner along the lane
+ *  at each crossing corner, a dark cord sagging between them, and round gold bulbs on it with a red paper lantern every
+ *  fourth (each model emits its own light). */
+function modelStrings(w, p, along, ends, clear, top, sag, step) {
+  const yaw = along(1, 0, 0)[0] === 1 ? 0 : Math.PI / 2;
+  for (const off of [-3, 3]) {
+    for (const u of ends) {
+      const [x, , z] = along(u, off, 0);
+      if (clear(x, z)) continue;
+      w.placeModel('strings', 2, x, z, { yaw });
+      w.solid([x - 0.15, 0, z - 0.15], [x + 0.15, top, z + 0.15]);
+    }
+    const span = ends[1] - ends[0], count = Math.floor(span / step), cord = [];
+    for (let i = 0; i <= count; i++) {
+      const t = i / count, u = ends[0] + span * t, y = top - sag * 4 * t * (1 - t), point = along(u, off, y);
+      if (i % 2 === 0 || i === count) cord.push(point);
+      if (i === 0 || i === count || clear(point[0], point[2])) continue;
+      w.placeModel('strings', i % 4 === 0 ? 1 : 0, point[0], point[2], { y: y - (i % 4 === 0 ? 0 : 0.16), yaw });
+    }
+    // the cord: a 5 cm ribbon between its points, both faces (seen from below on the lane and from above)
+    for (let k = 0; k + 1 < cord.length; k++) {
+      const a = cord[k], b = cord[k + 1];
+      if (a === undefined || b === undefined || clear(a[0], a[2]) || clear(b[0], b[2])) continue;
+      const across = yaw === 0 ? [0, 0, 0.025] : [0.025, 0, 0];
+      const l = (q) => [q[0] - across[0], q[1], q[2] - across[2]], r = (q) => [q[0] + across[0], q[1], q[2] + across[2]];
+      w.quad('Kit', l(a), r(a), r(b), l(b), p.wood); w.quad('Kit', l(b), r(b), r(a), l(a), p.wood);
     }
   }
 }

@@ -51,6 +51,11 @@ const bridges=await prepareModelKit({},new Map([['bridges',new Uint8Array(readFi
 const crowns=[0,1,2].map(variant=>{const w=writer();bridges.placeModel(w,'bridges',variant,0,0);const xs=w.tris.flatMap(t=>t.points.map(q=>q[0]));
  assert.ok(Math.min(...xs)<-11.4&&Math.max(...xs)>11.4);return w.lights.length;});
 assert.deepEqual(crowns,[0,0,2]);
+// RM4.3: a lane's strings (bulb, paper lantern, lane post); the y option hangs a bulb on its cord, lifting its light with it
+const strings=await prepareModelKit({},new Map([['strings',new Uint8Array(readFileSync('public/assets/open-plots/kit/strings.glb'))]]));
+const hung=[0,1,2].map(variant=>{const w=writer();strings.placeModel(w,'strings',variant,0,0,{y:5});return w.lights.map(l=>l.at[1]);});
+assert.equal(hung[0].length,1);assert.equal(hung[1].length,1);assert.equal(hung[2].length,0);
+assert.ok(Math.abs(hung[0][0]-5)<1e-6&&hung[1][0]<5&&hung[1][0]>4.5);
 await assert.rejects(()=>prepareModelKit({},new Map()),/no model families/);
 await assert.rejects(()=>prepareModelKit({},new Map([['lanterns',new Uint8Array()]])),/missing GLB bytes/);
 console.log('ok');`;

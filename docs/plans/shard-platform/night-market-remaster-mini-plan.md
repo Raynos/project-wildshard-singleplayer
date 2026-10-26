@@ -192,7 +192,7 @@ for the kit before the families switch on; `tiledPlot.mjs` `KIT_FAMILIES` lists 
 |---|---|---|
 | RM4.1 kit pipeline + lanterns | done (99959f0ced; opt-in since aba65405bb) | Blender target, model reader, lantern family (stone post, paper-lantern bracket, banner post) on every `lantern()` |
 | RM4.2 stalls | done (opt-in) | Hero stall (striped awning, valance, goods), red-roof row stall, food cart; S tiles and forecourt kiosks |
-| RM4.3 string lights | open | Round bulbs and red paper lanterns on sagging cords; banner posts at the lane crossings |
+| RM4.3 string lights | done (opt-in) | Round bulbs and red paper lanterns on sagging cords; banner posts at the lane crossings |
 | RM4.4 houses | done (opt-in) | Three cottages (tiled hip roofs with upturned eaves, timber frame, plaster, lit windows) filling the H courts |
 | RM4.5 bridges | done (opt-in) | Arched stone bridge halves with balustrades at the canal borders |
 | RM4.6 street props | open | Planters with flowers, benches, crates and goods, banners |
