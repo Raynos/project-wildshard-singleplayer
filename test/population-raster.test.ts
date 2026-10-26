@@ -1,3 +1,4 @@
+import {nalatiWetBlock,originalNalatiWet} from './fixtures/nalati-wet';
 import { expect,test,vi } from 'vitest';
 import { prepareNalatiPopulation } from './fixtures/nalati-headless';
 import * as population from '../src/game/population/environment';
@@ -15,9 +16,9 @@ import { PopulationFieldSchema } from '../src/format/populationEnvironment';
 import { sha256 } from '../src/game/plugin/moduleHash';
 
 const shipped=v.parse(PopulationFieldSchema,JSON.parse(readFileSync('src/shards/nalati-grasslands/data/populationField.generated.json','utf8')));
-const shippedWet=v.parse(v.string(),shipped.world.wet);
+const shippedWet=originalNalatiWet;
 const pondBlock={file:'data/geography-pond.bin',bytes:Uint8Array.from(readFileSync('src/shards/nalati-grasslands/data/geography-pond.bin'))};
-const wetBlock={file:'data/geography-wet.bin',bytes:Uint8Array.from(readFileSync('src/shards/nalati-grasslands/data/geography-wet.bin'))};
+const wetBlock=nalatiWetBlock;
 
 const raster = (values: readonly number[]): string => btoa(String.fromCodePoint(...zlibSync(new Uint8Array(Float32Array.from(values).buffer))));
 const grid: BakedGrid = { res: 2,size: 32,seed: 9,landscapeHash: 0,heights: new Float32Array(4),splat: Uint8Array.from([255,0,0,0,255,0,0,0,255,0,0,0,255,0,0,0]),undergrowth: null };
@@ -45,7 +46,7 @@ test('population raster observations retain the predecessor edges and strict thr
 
 test.each([false,true])('shipped population rasters retain native pond and wet decisions without terrain resampling (raw wet %s)',raw => {
   const terrain = { ...grid,size: shipped.world.size,seed: shipped.seed };
-  const rows=raw?{...shipped,world:{...shipped.world,wet:{type:'f32',count:65536,data:{file:wetBlock.file}}}}:shipped;
+  const rows=raw?shipped:{...shipped,world:{...shipped.world,wet:shippedWet}};
   const field = new NativePopulationField(terrain,rows,[],[],pondBlock,raw?wetBlock:undefined);
   expect(wetBlock.bytes.byteLength).toBe(622);expect(sha256(wetBlock.bytes)).toBe('262d9218a0f70b8dc314063ac367944083d8e7f57543c19759193b321e2302d7');
   expect(wetBlock.bytes).toEqual(Uint8Array.from(atob(shippedWet),value=>value.codePointAt(0)??0));
@@ -75,8 +76,8 @@ test('raw population pond admission refuses missing, malformed and wrongly shape
   for(const bytes of [new Uint8Array(),zlibSync(new Uint8Array(16)),zlibSync(new Uint8Array(Float32Array.from([Number.NaN]).buffer))])
     expect(()=>new NativePopulationField(terrain,shipped,[],[],{...pondBlock,bytes})).toThrow();
   const invalid=new Float32Array(65536);invalid[7]=Number.NaN;
-  expect(()=>new NativePopulationField(terrain,shipped,[],[],{...pondBlock,bytes:zlibSync(new Uint8Array(invalid.buffer))})).toThrow('Non-finite scalar channel');
-  expect(()=>new NativePopulationField(terrain,shipped,[],[],{...pondBlock,bytes:zlibSync(new Uint8Array(262148))})).toThrow('length mismatch');
+  expect(()=>new NativePopulationField(terrain,shipped,[],[],{...pondBlock,bytes:zlibSync(new Uint8Array(invalid.buffer))},wetBlock)).toThrow('Non-finite scalar channel');
+  expect(()=>new NativePopulationField(terrain,shipped,[],[],{...pondBlock,bytes:zlibSync(new Uint8Array(262148))},wetBlock)).toThrow('length mismatch');
   expect(()=>new NativePopulationField(terrain,{...shipped,world:{...shipped.world,pond:{type:'f64',count:65536,data:{file:pondBlock.file}}}},[],[],pondBlock)).toThrow();
 });
 
@@ -90,7 +91,7 @@ test('native preparation lends the original named pond to both existing owners',
   try {
     const binding = await prepareNalatiPopulation({file: name=>{order.push(name);return Promise.resolve(pondBlock.bytes);}},
       {...grid,size:shipped.world.size,seed:shipped.seed},
-      {get nativeField(){order.push('rows');return shipped;}},
+      {get nativeField(){order.push('rows');return {...shipped,world:{...shipped.world,wet:shippedWet}};}},
       {get trees(){order.push('trees');return [];},get tops(){order.push('tops');return [];}});
     const host = legacyDouble<SimHost>({}), profile = {world:shipped.world};
     expect(()=>binding.installMounted(host,profile)).toThrow(stop);
@@ -126,4 +127,15 @@ test('named wet rasters refuse missing, malformed, nonfinite and duplicate loans
   expect(()=>new NativePopulationField(grid,row,[],[],{file,bytes:valid},{file,bytes:valid})).toThrow('Duplicate');
   for(const bad of [{...wet,count:8},{...wet,data:{file:'../wet.bin'}},{...wet,data:{file},type:'f64'}])
     expect(()=>new NativePopulationField(grid,{...row,world:{...row.world,wet:bad}},[],[],undefined,{file,bytes:valid})).toThrow();
+});
+
+
+test('shipped wet publication is named and reconstructs the complete predecessor metadata',()=>{
+  expect(shipped.world.wet).toEqual({type:'f32',count:65536,data:{file:wetBlock.file}});
+  const input:unknown=JSON.parse(readFileSync('src/shards/nalati-grasslands/data/populationField.generated.json','utf8'));
+  const rows=v.parse(v.record(v.string(),v.unknown()),input),world=v.parse(v.record(v.string(),v.unknown()),rows['world']);
+  const originalRows={...rows,world:{...world,wet:shippedWet}};
+  const bytes=new TextEncoder().encode(`${JSON.stringify(originalRows)}\n`);
+  expect(bytes.byteLength).toBe(22395);
+  expect(sha256(bytes)).toBe('f1dfb3e8112839ba54538171edce6f113309fb0a32d6f57848b2be28287d58d3');
 });

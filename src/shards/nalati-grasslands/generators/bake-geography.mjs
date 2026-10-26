@@ -27,7 +27,6 @@ for (let j = 0; j < res; j++) for (let i = 0; i < res; i++) {
 }
 const writer=byteWriter(process.argv.includes('--check'),'nalati-geography'),sources=[];
 const compressed=Object.fromEntries(Object.entries(arrays).map(([key,array])=>[key,zlibSync(new Uint8Array(array.buffer))]));
-const encode=array=>Buffer.from(array).toString('base64');
 const rng = new Rng(SEED + 4242), marks = [];
 for (let x = -247; x < 247; x += 4.2) for (let z = -247; z < 247; z += 4.2) {
   const cx = x + rng.range(-1.6, 1.6), cz = z + rng.range(-1.6, 1.6);
@@ -50,5 +49,5 @@ const data = { sources,res, size, seed: SEED, spawn: SPAWN, river: { level: RIVE
     trails: [{ width: 6, style: 'rgba(70, 54, 36, 0.8)' }, { width: 3.5, style: '#b89c70' }], marks, pois: NALATI_MINIMAP.pois() } };
 writer.put(resolve(import.meta.dirname, '..', 'boot', 'geography.generated.json'), jsonBytes(data, 0));
 writer.put(resolve(import.meta.dirname, '..', 'boot', 'geography.generated.d.json.ts'), Buffer.from("import type { GeographyRows } from '../data/geographyTypes';\ndeclare const rows: GeographyRows;\nexport default rows;\n"));
-writer.put(resolve(import.meta.dirname, '..', 'data', 'populationField.generated.json'), jsonBytes({ seed: SEED, world: { res,size,water: RIVER.level,wet: encode(compressed.wet),pond: {type: 'f32',count: res*res,data: channels.pond} }, trails: TERRAIN.trails, river: { from: -250,step: 1,values: profile },meadow: NALATI_GRASS_LAYOUT },0));
+writer.put(resolve(import.meta.dirname, '..', 'data', 'populationField.generated.json'), jsonBytes({ seed: SEED, world: { res,size,water: RIVER.level,wet: {type: 'f32',count: res*res,data: channels.wet},pond: {type: 'f32',count: res*res,data: channels.pond} }, trails: TERRAIN.trails, river: { from: -250,step: 1,values: profile },meadow: NALATI_GRASS_LAYOUT },0));
 writer.finish();
