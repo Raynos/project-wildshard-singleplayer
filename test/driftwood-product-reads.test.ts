@@ -12,6 +12,8 @@ import { SECTIONS } from '../src/shards/driftwood-isle/generators/sections';
 import { collectionRows } from '../src/shards/driftwood-isle/generators/collections';
 import { DRIFTWOOD_FEATS, DRIFTWOOD_ITEMS } from '../src/shards/driftwood-isle/generators/questInventory';
 import { DRIFTWOOD_EFFECTS, GOODS } from '../src/shards/driftwood-isle/generators/economy';
+import { DRIFTWOOD_PLACES, GUIDE } from '../src/shards/driftwood-isle/generators/discovery';
+import { SEA_GLASS_COUNT, SHARD_FLAGS } from '../src/shards/driftwood-isle/generators/interactables';
 
 const nativePhysics=v.parse(v.object({solids:v.array(v.unknown())}),
   JSON.parse(readFileSync('src/shards/driftwood-isle/data/physics.generated.json','utf8')));
@@ -37,6 +39,10 @@ test('Driftwood client reads resolve against the emitted output', async () => {
     const decoded:unknown=JSON.parse(new TextDecoder().decode(bytes));return decoded;
   };
   const catalogue=parseWorldSceneModels(named('models/world-scenes.json'));
+  // Keep complete discovery publication covered by this existing whole-project
+  // intake; its focused policy fixture admits the same output independently.
+  expect(named('quests/discovery.json')).toEqual({ places: DRIFTWOOD_PLACES, guide: GUIDE,
+    glassCount: SEA_GLASS_COUNT, shardFlags: SHARD_FLAGS });
   const anchors=(model:string,choice:string)=>catalogue.models.find(row=>row.key===model)?.choices.find(row=>row.id===choice)?.site?.anchors??{};
   const native=v.parse(v.object({constants:v.object({physics:v.object({solids:v.array(v.unknown())})})}),named('sim/headless-assembly.json'));
   expect(native.constants.physics.solids).toEqual(nativePhysics.solids);

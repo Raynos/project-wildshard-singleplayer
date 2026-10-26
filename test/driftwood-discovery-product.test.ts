@@ -1,5 +1,5 @@
 import { beforeAll, expect, test } from 'vitest';
-import { readProjectAssets } from '../src/sdk/project';
+import { emitNamedBlobs } from '../src/sdk/blobs';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { parseAdventureContent, type AdventureContent } from '../src/format/questStory';
 import { createQuestPlacements } from '../src/engine/world/interact/types';
@@ -11,11 +11,15 @@ import frames from '../src/shards/driftwood-isle/data/questFrames.json' with { t
 
 let admitted: AdventureContent | undefined;
 beforeAll(async () => {
-  const loaded = await readProjectAssets('src/shards/driftwood-isle');
-  const file = loaded.output.namedFiles?.find(row => row.name === 'quests/discovery.json');
-  const bytes = file === undefined ? undefined : loaded.assets.get(file.hash);
-  if (bytes === undefined) throw new Error('The product must publish the discovery catalogue');
-  admitted = parseAdventureContent(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)));
+  // Keep cold output construction inside this hook's original budget. The
+  // whole-project publication check shares driftwood-product-reads' intake.
+  const { output } = await import('../src/shards/driftwood-isle/generators/output');
+  const file = output.namedFiles.find(row => row.name === 'quests/discovery.json');
+  const bytes = file === undefined ? undefined : output.assets.get(file.hash);
+  if (file === undefined || bytes === undefined) throw new Error('The product must publish the discovery catalogue');
+  const published = emitNamedBlobs([{ file, bytes }]).assets.get(file.hash);
+  if (published === undefined) throw new Error('The discovery catalogue must pass named-file admission');
+  admitted = parseAdventureContent(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(published)));
 }, 30_000);
 function content(): AdventureContent {
   if (admitted === undefined) throw new Error('The admitted discovery catalogue is required');
