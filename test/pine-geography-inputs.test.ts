@@ -10,7 +10,7 @@ test('sealed Pine density stages its SDK manifest and defining codec without che
   if (job === undefined) throw new Error('Missing registered Pine geography producer');
   const cacheDir = mkdtempSync(resolve(root, 'tmp/pine-density-inputs-'));
   try {
-    for (const missing of ['src/sdk/package.json', 'src/sdk/bake/byteCodec.ts']) {
+    for (const missing of ['src/sdk/package.json', 'src/sdk/bake/byteCodec.ts', 'src/sdk/bake/portableBytes.ts']) {
       expect(job.inputRoots).toContain(missing);
       const negative = { ...job, inputRoots: job.inputRoots.filter(file => file !== missing) };
       const catalogPath = relative(root, resolve(cacheDir, 'negative.json'));

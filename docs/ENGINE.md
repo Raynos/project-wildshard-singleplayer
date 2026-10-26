@@ -12502,6 +12502,9 @@ bank. Preparation decodes only that tier. `channelFiles(tier)` takes
 prepared bytes once per build; geometry owns copies of bounded ranges.
 Afterwards the profile retains compressed sources only. Inline scenes work.
 
+SDK bake/portableBytes.encodePortableBytes(bytes, level=9) provides bounded,
+config-safe portable deflate with owned input.
+
 The CORE WorldAssembly `painted-world` stage wires an admitted painterly world at its declared construction boundary. Its finite rows name the original weather rig, ordered named object groups, casters and optional native forest. Allocation uses the original native level scope; publication uses the construction scope. Both scopes and all concrete owners are pinned across the wire await. `worldUpdates` painted-world rows name that world and weather rig and retain explicit `before` and optional `after` system edges, without another clock or phase.
 
 WorldAssembly construction can omit IslandLibrary and cover cells when its

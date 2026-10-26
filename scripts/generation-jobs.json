@@ -890,7 +890,8 @@
         "src/format/scalarChannel.ts",
         "src/shards/pine-hollow/generators/forestRows.ts",
         "src/sdk/package.json",
-        "src/sdk/bake/byteCodec.ts"
+        "src/sdk/bake/byteCodec.ts",
+        "src/sdk/bake/portableBytes.ts"
       ],
       "outputs": [
         "src/shards/pine-hollow/data/geography.generated.json",
@@ -11698,17 +11699,17 @@
       ],
       "platform": "portable",
       "buildOutputs": {
-        "src/shards/nalati-grasslands/data/grass.generated.json": "cf44658f726937873c2936f1d44f260493f174f7254dd2aff2c581e69cf6222e",
+        "src/shards/nalati-grasslands/data/grass.generated.json": "0835e5d31f73418625bc052005c3cfcf768d12ff0e8a5db1a5da839c3c85b0b8",
         "src/shards/nalati-grasslands/data/grass-height.bin": "d6661c318086ee8b392264e8e2b0e129059d18afdf6fc3b651cdfd91fb1dfd95",
         "src/shards/nalati-grasslands/data/grass-mask.bin": "73d990f4ee4b6c5cd31d766daa0a321545403ab343b34b31058c36bd620a42f5",
         "src/shards/nalati-grasslands/data/grass-field.bin": "c22050b2179000f9f51bb21aeb9ce2f1fb08c033d48ffce235d9505da46b94fb",
         "src/shards/nalati-grasslands/data/grass-ground.bin": "b6ee5cdb66de8189c39740617eeef5d89b60afc0b9ff2bfd6010fdcd501fab5f",
-        "src/shards/nalati-grasslands/data/grass-phone-blades.bin": "11c7ba502ed080d1b1ce5439c584690f925e8a1cb6f1a67ef47234a35ec621f3",
-        "src/shards/nalati-grasslands/data/grass-phone-flowers.bin": "58dadd84b10046b2bf85e86feffbb04fc7e500ed1d99b5ebf7d4ac2fbf851b22",
-        "src/shards/nalati-grasslands/data/grass-phone-cards.bin": "70c6ed9b7a0022b7661c6e5ad3749e16d491a2ffe587b19934b2a2d1ac78a77d",
-        "src/shards/nalati-grasslands/data/grass-desktop-blades.bin": "12615c8fcb7a955afbfae307ed48c40ead6065a3fe5f21432841fc7ba3c3c225",
-        "src/shards/nalati-grasslands/data/grass-desktop-flowers.bin": "ce5d722c355ed0207afb83b00671576792cbd19c13ae980e1ba0cf81bc5467bb",
-        "src/shards/nalati-grasslands/data/grass-desktop-cards.bin": "a018f9ac4a031c9469327bfff0bc7241a9878928b0ea3b513294df1daa055053"
+        "src/shards/nalati-grasslands/data/grass-phone-blades.bin": "328fc550e6a65449ca9b3ab338687518f4798bd6d39d3ac07bf317c7c827d62b",
+        "src/shards/nalati-grasslands/data/grass-phone-flowers.bin": "0b6383ea5d6ced515700de7f11f3f8dd5192baa346c79bc60cdf09c55c5070cc",
+        "src/shards/nalati-grasslands/data/grass-phone-cards.bin": "19520c1adbe4cc39d12c33badd4c7218b701289d07c0cde968f07ad9811917bc",
+        "src/shards/nalati-grasslands/data/grass-desktop-blades.bin": "2903222b4e9072885d98d9434933aaade07be95be3f7d99dca0a0b09842195ba",
+        "src/shards/nalati-grasslands/data/grass-desktop-flowers.bin": "9f47e3acdb952a17e7a24b50f579209a34667b0be61e6159ea31fb4d17209e3d",
+        "src/shards/nalati-grasslands/data/grass-desktop-cards.bin": "4816316c024a1666da03e3d0f6d52737b361cbf9344ae14f0c4b94ca2de8ca64"
       }
     },
     {
@@ -13563,7 +13564,8 @@
         "src/shards/far-reach/data/flags.json",
         "src/shards/far-reach/data/skyMapSources.json",
         "src/sdk/bake/byteCodec.ts",
-        "public/assets/far-reach/models/bridge-deck/bridge-deck.glb"
+        "public/assets/far-reach/models/bridge-deck/bridge-deck.glb",
+        "src/sdk/bake/portableBytes.ts"
       ],
       "outputs": [
         "public/assets/far-reach/map/top.webp",
@@ -14169,7 +14171,8 @@
         "src/game/systems/looks/grassField.ts",
         "src/shards/nalati-grasslands/data/peopleFrames.json",
         "src/shards/nalati-grasslands/data/poiPaint.json",
-        "src/shards/nalati-grasslands/data/campMaterials.json"
+        "src/shards/nalati-grasslands/data/campMaterials.json",
+        "src/sdk/bake/portableBytes.ts"
       ],
       "outputs": [
         "public/assets/nalati-grasslands/map/top.webp",

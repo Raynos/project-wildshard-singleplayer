@@ -1,5 +1,3 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- Exercise current shipped grass declarations alongside the inactive native producer.
-import {readFileSync} from 'node:fs';
 import {unzlibSync,zlibSync} from 'fflate';
 import {BufferAttribute,InstancedBufferAttribute,InstancedBufferGeometry,Mesh,MeshBasicMaterial,type Group} from 'three';
 import {expect,test,vi} from 'vitest';
@@ -11,12 +9,12 @@ import {GrassPresentationProfile} from '../src/game/looks/grassPresentation';
 import {createSceneBuffers} from '../src/game/shardfile/sceneBuffers';
 import {grassRows} from '../src/shards/nalati-grasslands/generators/grassRows';
 import {hashImmutableBytes} from '../src/sdk/immutable';
-import {GRASS_FILES} from './fixtures/nalatiGrass';
+import {originalGrassProfile} from './fixtures/nalatiGrass';
 
-const before=v.parse(GrassPresentationSchema,JSON.parse(readFileSync('src/shards/nalati-grasslands/data/grass.generated.json','utf8')));
+const predecessor=originalGrassProfile(),before=predecessor.rows;
 const encode=(value:object):Uint8Array=>zlibSync(new TextEncoder().encode(JSON.stringify(value)));
 function fixture(){
-  const files=new Map<string,Uint8Array>(GRASS_FILES),rows=structuredClone(before),banks=new Map<string,Uint8Array>();
+  const files=new Map<string,Uint8Array>(predecessor.files),rows=structuredClone(before),banks=new Map<string,Uint8Array>();
   for(const tier of ['phone','desktop']as const){
     const file=`grass/${tier}-channels.bin`,chunks:{offset:number;bytes:Uint8Array}[]=[];
     let length=0;
@@ -50,7 +48,7 @@ function inventory(group:Group){
 }
 
 for(const tier of ['phone','desktop']as const)test(`${tier} compressed native bank preserves all five real grass geometries and owned words`,()=>{
-  const {rows,files,banks}=fixture(),native=new GrassPresentationProfile(rows,files),original=new GrassPresentationProfile(before,GRASS_FILES);
+  const {rows,files,banks}=fixture(),native=new GrassPresentationProfile(rows,files),original=new GrassPresentationProfile(before,predecessor.files);
   const channels=native.channelFiles(tier),bank=channels.get(rows[tier].channels?.file??'');
   if(bank===undefined)throw new Error('Missing decoded bank');
   expect(hashImmutableBytes(bank)).toBe(hashImmutableBytes(banks.get(tier)??new Uint8Array()));
@@ -106,10 +104,10 @@ test('missing, unsafe, inline, corrupt and truncated banks refuse without changi
   const profile=new GrassPresentationProfile(rows,truncated),scope=new Scope('grass-truncated'),material=new MeshBasicMaterial();
   try{expect(()=>createSceneBuffers(profile.scene(profile.input.phone.scenes.blades),material,scope,undefined,undefined,profile.channelFiles('phone'))).toThrow('binary length differs');}
   finally{scope.dispose();material.dispose();}
-  const legacy=new GrassPresentationProfile(before,GRASS_FILES);
+  const legacy=new GrassPresentationProfile(before,predecessor.files);
   expect(legacy.channelFiles('phone').size).toBe(0);expect(legacy.channelFiles('desktop').size).toBe(0);
   expect(grassPresentationFiles(legacy.input)).toHaveLength(10);
-  // Current compressed product files remain untouched by optional reader support.
+  // The reconstructed predecessor still exercises all six legacy inline scenes.
   for(const tier of ['phone','desktop']as const)for(const payload of Object.values(before[tier].scenes)){
     if(typeof payload==='string')throw new Error('Expected current product file');
     expect(new TextDecoder().decode(unzlibSync(files.get(payload.file)??new Uint8Array()))).toContain('"bytes":');

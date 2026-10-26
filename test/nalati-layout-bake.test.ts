@@ -1,5 +1,6 @@
 import {readNalatiScalarBlocks,inlineScalarBook} from './fixtures/nalati-scalar-blocks';
-import {grassBlock} from './fixtures/nalatiGrass';
+import {grassBlock,GRASS_FILES} from './fixtures/nalatiGrass';
+import {GrassPresentationProfile} from '../src/game/looks/grassPresentation';
 // oxlint-disable-next-line import/no-nodejs-modules -- Pin every retained geography field after retiring unused rasters.
 import {createHash} from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify the committed native lattice.
@@ -93,12 +94,14 @@ test('both grass tiers admit every ring, flower and card draw', () => {
   expect(decode(grass.height).length).toBe(512 * 512 * 2);
   expect(decode(grass.field).length).toBe(126 * 126 * 4);
   expect(decode(grass.ground).length).toBe(126 * 126 * 4);
-  for (const tier of [grass.phone, grass.desktop]) {
+  const profile=new GrassPresentationProfile(grass,GRASS_FILES);
+  for (const key of ['phone','desktop'] as const) {
+    const tier=grass[key],files=profile.channelFiles(key);
     const scope = new Scope('grass-fields'), material = new MeshBasicMaterial();
     try {
       for (const [kind, encoded] of Object.entries(tier.scenes)) {
         const input: unknown = JSON.parse(new TextDecoder().decode(decode(encoded)));
-        const group = createSceneBuffers(input, material, scope);
+        const group = createSceneBuffers(input, material, scope, undefined, undefined, files);
         expect(group.children.length).toBe(kind === 'blades' ? 3 : 1);
         for (const child of group.children) {
           if (!(child instanceof Mesh) || !(child.geometry instanceof InstancedBufferGeometry)) throw new Error('Missing field draw');

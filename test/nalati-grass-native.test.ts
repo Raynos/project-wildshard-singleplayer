@@ -3,7 +3,7 @@ import {expect,test,vi} from 'vitest';
 import {parseSceneBuffers} from '../src/format/sceneBuffers';
 import {grassRows} from '../src/shards/nalati-grasslands/generators/grassRows';
 import {hashImmutableBytes,encodeCanonicalJson} from '../src/sdk/immutable';
-import {GRASS_FILES} from './fixtures/nalatiGrass';
+import {GRASS_FILES,originalGrassRows} from './fixtures/nalatiGrass';
 
 const hashJson=(value:object):string=>hashImmutableBytes(new TextEncoder().encode(encodeCanonicalJson(value)));
 const originals=[
@@ -15,19 +15,21 @@ const originals=[
 
 for(const original of originals){
   const tier=original.phone?'phone':'desktop';
-  test(`${tier} default retains the complete predecessor and all three shipped scene blocks`,()=>{
-    const rows=grassRows(original.phone),json=encodeCanonicalJson(rows);
+  test(`${tier} reconstructs the complete predecessor and preserves all three native scene declarations`,()=>{
+    const rows=originalGrassRows(original.phone),json=encodeCanonicalJson(rows);
     expect(new TextEncoder().encode(json).byteLength).toBe(original.bytes);
     expect(hashJson(rows)).toBe(original.hash);
     for(const [name,scene]of Object.entries(rows.scenes)){
       const compressed=GRASS_FILES.get(`look/grass/${tier}-${name}.bin`);
       if(compressed===undefined)throw new Error('Missing original grass block');
-      expect(JSON.stringify(scene)).toBe(new TextDecoder().decode(unzlibSync(compressed)));
+      const current=JSON.parse(new TextDecoder().decode(unzlibSync(compressed))) as unknown;
+      const admitted=parseSceneBuffers(current);
+      expect(admitted.attributes).toEqual(scene.attributes);expect(admitted.geometries).toEqual(scene.geometries);expect(admitted.draws).toEqual(scene.draws);
     }
   });
 
   test(`${tier} native publication preserves every channel and metadata field without encoding`,()=>{
-    const before=grassRows(original.phone),published=new Map<string,Uint8Array>();
+    const before=originalGrassRows(original.phone),published=new Map<string,Uint8Array>();
     let offset=0,rawTotal=0;
     const encoder=vi.spyOn(globalThis,'btoa').mockImplementation(()=>{throw new Error('Native grass must not encode');});
     let rows:ReturnType<typeof grassRows>;
@@ -76,9 +78,9 @@ test('publisher mutation and failure cannot change later grass construction',()=
       expect(keys.has(id)).toBe(false);keys.add(id);bytes.fill(255);
       return {file:'grass/owned.bin',byteOffset:0};
     });
-    expect(hashJson(grassRows(phone))).toBe(hash);
+    expect(hashJson(originalGrassRows(phone))).toBe(hash);
   }
   expect(keys.size).toBe(66);
   expect(()=>grassRows(true,()=>{throw new Error('Publisher retired');})).toThrow('Publisher retired');
-  expect(hashJson(grassRows(true))).toBe(originals[0]?.hash);
+  expect(hashJson(originalGrassRows(true))).toBe(originals[0]?.hash);
 });

@@ -1,3 +1,4 @@
+import {encodePortableBytes} from '@wildshard/sdk/bake/portableBytes';
 import * as THREE from 'three';
 import type { InstancedBufferGeometry } from 'three';
 import { tileFieldGeometry, type TileCardRow } from '@wildshard/sdk/looks/tileField';
@@ -54,11 +55,9 @@ function tileGeometry(g: InstancedBufferGeometry, cells: number[], name: string,
 
 
 
-const encoded = (array: ArrayBufferView): string => btoa(Array.from(new Uint8Array(array.buffer, array.byteOffset, array.byteLength), byte => String.fromCodePoint(byte)).join(''));
 type GrassBufferPublisher = (id: string, bytes: Uint8Array) => { file: string; byteOffset: number };
-function scene(list: readonly THREE.InstancedBufferGeometry[], prefix: string, publish?: GrassBufferPublisher): SceneBuffers {
+function scene(list: readonly THREE.InstancedBufferGeometry[], prefix: string, publish: GrassBufferPublisher): SceneBuffers {
   const source = (id: string, array: ArrayBufferView): Pick<SceneBuffers['buffers'][number], 'bytes' | 'file' | 'byteOffset' | 'byteLength'> => {
-    if (publish === undefined) return { bytes: encoded(array) };
     const bytes = new Uint8Array(array.buffer, array.byteOffset, array.byteLength).slice();
     return { ...publish(`${prefix}-${id}`, bytes), byteLength: array.byteLength };
   };
@@ -80,8 +79,8 @@ function scene(list: readonly THREE.InstancedBufferGeometry[], prefix: string, p
   }
   return { version: 1, name: 'grass-field', buffers, attributes, geometries, draws };
 }
-/** Optionally publish detached raw channels; the default retains the existing inline bake contract. */
-export function grassRows(phone: boolean, publish?: GrassBufferPublisher): { rings: RingCfg[]; flowers: { T: number; G: number; s: number }; cards: { T: number; across: number; s: number }; near: readonly [number,number]; per: number; scenes: { blades: SceneBuffers; flowers: SceneBuffers; cards: SceneBuffers } } {
+/** Publish detached raw channels; the scene contains only named, bounded binary ranges. */
+export function grassRows(phone: boolean, publish: GrassBufferPublisher): { rings: RingCfg[]; flowers: { T: number; G: number; s: number }; cards: { T: number; across: number; s: number }; near: readonly [number,number]; per: number; scenes: { blades: SceneBuffers; flowers: SceneBuffers; cards: SceneBuffers } } {
 
 const RINGS: RingCfg[] = phone
   ? [{ T: 4, G: 8, s: 0.085, w: 0.047, seg: 3 }, { T: 8, G: 12, s: 0.2, w: 0.1, seg: 2 }, { T: 16, G: 14, s: 0.45, w: 0.2, seg: 1 }]
@@ -103,4 +102,15 @@ const NEAR = [2.3, 3.4] as const;
   return { rings: RINGS, flowers: FLOWERS, cards: CARDS, near: NEAR, per, scenes: {
     blades: scene(blades, `${tier}-blades`, publish), flowers: scene([flowers], `${tier}-flowers`, publish), cards: scene([cards], `${tier}-cards`, publish),
   } };
+}
+
+/** The build receives owned compressed channel bytes; no generated bank is written under source. */
+export function grassChannelBytes():readonly {name:string;bytes:Uint8Array;decoded:number}[]{
+  return [true,false].map(phone=>{
+    const tier=phone?'phone':'desktop',file=`look/grass/${tier}-channels.bin`,parts:{offset:number;bytes:Uint8Array}[]=[];
+    let length=0;
+    grassRows(phone,(_id,bytes)=>{const byteOffset=Math.ceil(length/4)*4;length=byteOffset+bytes.byteLength;parts.push({offset:byteOffset,bytes});return {file,byteOffset};});
+    const bank=new Uint8Array(length);for(const part of parts)bank.set(part.bytes,part.offset);
+    return {name:file,bytes:encodePortableBytes(bank,6),decoded:bank.byteLength};
+  });
 }

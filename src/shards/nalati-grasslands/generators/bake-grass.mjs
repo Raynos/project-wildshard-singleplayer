@@ -43,8 +43,14 @@ const encode = (array,id) => {
   sources.push({name,kind:'bin',source,options:{decoded:array.byteLength}});return {file:name};
 };
 const encodeRows = phone => {
-  const rows = grassRows(phone);
-  return { ...rows, scenes: Object.fromEntries(Object.entries(rows.scenes).map(([key, scene]) => [key, encode(new TextEncoder().encode(JSON.stringify(scene)),`${phone?'phone':'desktop'}-${key}`)])) };
+  const tier=phone?'phone':'desktop',file=`look/grass/${tier}-channels.bin`;
+  let length=0;
+  const rows = grassRows(phone,(_id,bytes)=>{
+    const byteOffset=Math.ceil(length/4)*4;length=byteOffset+bytes.byteLength;
+    return {file,byteOffset};
+  });
+  const scenes=Object.fromEntries(Object.entries(rows.scenes).map(([key, scene]) => [key, encode(new TextEncoder().encode(JSON.stringify(scene)),`${tier}-${key}`)]));
+  return { ...rows, scenes, channels:{file} };
 };
 const rows={view,height:encode(height,'height'),mask:encode(mask,'mask'),field:encode(fd,'field'),ground:encode(gd,'ground'),phone:encodeRows(true),desktop:encodeRows(false)};
 writer.put(resolve(import.meta.dirname, '..', 'data', 'grass.generated.json'), jsonBytes({...rows,sources}, 0));
