@@ -33,11 +33,19 @@ const mesh3 = (node: Object3D): node is Mesh => node instanceof Mesh;
 const points3 = (node: Object3D | undefined): node is Points => node instanceof Points;
 const drawMeshes = (root: Object3D): Mesh[] => { const result: Mesh[] = []; root.traverse(node => { if (mesh3(node)) result.push(node); }); return result; };
 
-function byteFixture(bytes: string, storage = 'u8') {
+function inlineByteFixture(bytes: string, storage = 'u8') {
   return { version: 1, buffers: [{ id: 'positions', storage: 'f32', bytes: 'AAAAAAAAAAAAAAAA' }, { id: 'samples', storage, bytes }],
     attributes: [{ id: 'position', buffer: 'positions', size: 3 }, { id: 'sample', buffer: 'samples', size: 1 }],
     geometries: [{ id: 'g', attributes: { position: 'position', sample: 'sample' } }],
     draws: [{ id: 'd', draw: { kind: 'points', geometry: 'g' } }] };
+}
+
+function byteFixture(bytes:Uint8Array,storage='u8'){
+  const positionFile='test/position.bin',sampleFile='test/samples.bin';
+  return {row:{version:1,buffers:[{id:'positions',storage:'f32',file:positionFile,byteLength:12},{id:'samples',storage,file:sampleFile,byteLength:bytes.byteLength}],
+    attributes:[{id:'position',buffer:'positions',size:3},{id:'sample',buffer:'samples',size:1}],
+    geometries:[{id:'g',attributes:{position:'position',sample:'sample'}}],draws:[{id:'d',draw:{kind:'points',geometry:'g'}}]},
+    files:new Map([[positionFile,new Uint8Array(12)],[sampleFile,bytes]])};
 }
 
 test('scene decoding retains every byte, padding length and typed storage bit', () => {
@@ -57,9 +65,11 @@ test('scene decoding retains every byte, padding length and typed storage bit', 
     for (const row of cases) {
       const scope = new Scope('scene-byte-parity');
       try {
-        const input = byteFixture(row.text, row.storage);
-        expect(() => admitSceneBuffers(input)).not.toThrow();
-        const group = createSceneBuffers(input, material, scope), points = group.children[0];
+        const predecessor=Buffer.from(row.text,'base64');
+        expect(Buffer.compare(predecessor,row.bytes)).toBe(0);
+        const {row:input,files} = byteFixture(predecessor, row.storage);
+        expect(() => admitSceneBuffers(input,files)).not.toThrow();
+        const group = createSceneBuffers(input, material, scope,undefined,undefined,files), points = group.children[0];
         if (!points3(points)) throw new Error('Missing decoded Points');
         expect(Buffer.compare(raw(points.geometry.getAttribute('sample')), row.bytes)).toBe(0);
       } finally { scope.dispose(); }
@@ -69,10 +79,10 @@ test('scene decoding retains every byte, padding length and typed storage bit', 
 
 test('scene decode keeps malformed, misaligned and nonfinite storage refused', () => {
   for (const text of ['AAA', 'AA?=', 'AAé=', 'A=AA', 'AA\n=']) {
-    expect(() => admitSceneBuffers(byteFixture(text))).toThrow('Malformed scene buffer encoding');
+    expect(() => admitSceneBuffers(inlineByteFixture(text))).toThrow('Malformed scene buffer encoding');
   }
-  for (const storage of ['u16', 'f32']) expect(() => admitSceneBuffers(byteFixture('AA==', storage))).toThrow('Misaligned scene buffer storage');
-  expect(() => admitSceneBuffers(byteFixture('AACAfw==', 'f32'))).toThrow('Nonfinite scene buffer');
+  for (const storage of ['u16', 'f32']) expect(() => admitSceneBuffers(inlineByteFixture('AA==', storage))).toThrow('Misaligned scene buffer storage');
+  expect(() => admitSceneBuffers(inlineByteFixture('AACAfw==', 'f32'))).toThrow('Nonfinite scene buffer');
 });
 
 test('Sky native meadow retains every byte, shared attribute, count, LOD and transform', () => {
@@ -202,9 +212,10 @@ test('static islands draw from their baked props tiles in their own frame; only 
 });
 
 test('buffer admission refuses crossed ids, malformed storage and executable rows', () => {
-  const base = { version: 1, buffers: [{ id: 'x', storage: 'f32', bytes: 'AAAAAAAAAAAAAAAA' }], attributes: [{ id: 'a', buffer: 'x', size: 3 }], geometries: [{ id: 'g', attributes: { position: 'a' } }], draws: [{ id: 'd', draw: { kind: 'points', geometry: 'g' } }] };
-  expect(() => admitSceneBuffers(base)).not.toThrow();
+  const file='test/base.bin',shortFile='test/short.bin',files=new Map([[file,new Uint8Array(12)],[shortFile,new Uint8Array(1)]]);
+  const base = { version: 1, buffers: [{ id: 'x', storage: 'f32', file,byteLength:12 }], attributes: [{ id: 'a', buffer: 'x', size: 3 }], geometries: [{ id: 'g', attributes: { position: 'a' } }], draws: [{ id: 'd', draw: { kind: 'points', geometry: 'g' } }] };
+  expect(() => admitSceneBuffers(base,files)).not.toThrow();
   expect(() => parseSceneBuffers({ ...base, draws: [{ id: 'd', draw: { kind: 'mesh', geometry: 'absent' } }] })).toThrow();
-  expect(() => admitSceneBuffers({ ...base, buffers: [{ id: 'x', storage: 'f32', bytes: 'AA==' }] })).toThrow('Misaligned');
+  expect(() => admitSceneBuffers({ ...base, buffers: [{ id: 'x', storage: 'f32', file:shortFile,byteLength:1 }] },files)).toThrow('Misaligned');
   expect(() => parseSceneBuffers({ ...base, update: () => new Vector3() })).toThrow();
 });
