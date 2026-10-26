@@ -29,7 +29,7 @@ export const SHOT_KEY = 'resume.shot';
 export const BRAND_KEY = 'resume.brand';
 
 class ResumeScreen {
-  readonly scope = uiScope('resume');
+  readonly scope: ReturnType<typeof uiScope> = uiScope('resume');
   private readonly root: HTMLElement;
   private readonly shot: HTMLElement | null;
   private readonly line: HTMLElement | null;

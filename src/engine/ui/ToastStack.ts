@@ -19,7 +19,7 @@ export type ToastTone = 'plain' | 'warn';
 export const toastArea = { left: 0, right: 0, top: 0, bottom: 0 };
 
 export class ToastStack {
-  readonly scope = uiScope('ToastStack');
+  readonly scope: ReturnType<typeof uiScope> = uiScope('ToastStack');
   private live: Toast[] = [];
   private lastLayout = -1e9;
   private shift = 0;

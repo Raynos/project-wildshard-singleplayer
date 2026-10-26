@@ -14,7 +14,7 @@ import { uiScope, mountUi } from './ownership';
 import { dodgeFx, dodgeEnv } from '../player/dodge';
 
 export class SpeedLines {
-  readonly scope = uiScope('SpeedLines');
+  readonly scope: ReturnType<typeof uiScope> = uiScope('SpeedLines');
   private readonly el: HTMLElement;
   private readonly smear: HTMLElement;
   private level = 0; private shown = -1;

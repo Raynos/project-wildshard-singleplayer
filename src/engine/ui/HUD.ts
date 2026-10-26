@@ -121,7 +121,7 @@ export interface TitleDeckView {
 export type TitleDeckFactory = (here: { enter: () => void; explore: () => void; settings: () => void }) => TitleDeckView;
 
 export class HUD {
-  readonly scope = uiScope('HUD');
+  readonly scope: ReturnType<typeof uiScope> = uiScope('HUD');
   root: HTMLElement;
   onResume?: () => void;
   onExitToMenu?: () => void;

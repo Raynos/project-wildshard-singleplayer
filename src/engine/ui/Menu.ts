@@ -69,7 +69,7 @@ const tabButton = (label: string, ic?: IconId): HTMLButtonElement => {
 export class GameMenu {
   private readonly settingsView: MenuSettingsState = {cats:undefined,settingsCard:undefined,gated:[],debug:null,
     developerTools:null,paintPendingReload:()=>undefined,savePanel:null,controlsPanel:undefined};
-  readonly scope = uiScope('GameMenu');
+  readonly scope: ReturnType<typeof uiScope> = uiScope('GameMenu');
   readonly root: HTMLElement;
   private sheet: HTMLElement;
   private tabBar: HTMLElement;

@@ -25,7 +25,7 @@ const EMBLEM = `<svg viewBox="0 0 64 40" aria-hidden="true"><defs><linearGradien
 <path fill="url(#bossgold)" d="M40 5c2-3 6-4 9-3-3 0-6 2-7 4zm3 1c3-2 7-2 10 0-3-1-6 0-8 1z"/></svg>`;
 
 export class BossBar {
-  readonly scope = uiScope('BossBar');
+  readonly scope: ReturnType<typeof uiScope> = uiScope('BossBar');
   readonly root: HTMLElement;
   private bar: HTMLElement; private barName: HTMLElement; private fill: HTMLElement; private lag: HTMLElement; private caption: HTMLElement;
   private notches: HTMLElement;

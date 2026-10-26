@@ -25,7 +25,7 @@ import { viewportHeight } from '../core/viewport';
 const _c = new THREE.Vector3(), _e = new THREE.Vector3(), _right = new THREE.Vector3(), _top = new THREE.Vector3();
 
 export class LockOn {
-  readonly scope = uiScope('LockOn');
+  readonly scope: ReturnType<typeof uiScope> = uiScope('LockOn');
   private readonly el: HTMLElement;
   private readonly cand: HTMLElement;
   private readonly edges: { l: HTMLElement; r: HTMLElement };

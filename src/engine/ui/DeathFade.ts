@@ -35,7 +35,7 @@ export interface DeathHooks {
 
 
 export class DeathFade {
-  readonly scope = uiScope('DeathFade');
+  readonly scope: ReturnType<typeof uiScope> = uiScope('DeathFade');
   private readonly root: HTMLElement;
   private readonly cause: HTMLElement;
   private readonly where: HTMLElement;

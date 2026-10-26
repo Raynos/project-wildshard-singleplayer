@@ -111,7 +111,7 @@ const AB: readonly { id: string; css?: string }[] = [
 interface RecFrame { t: number; frame: number; update: number; render: number; gpu: number; buckets: number[]; subs: number[]; nav: number; top: string; topMs: number }
 
 export class PerfHud {
-  readonly scope = uiScope('PerfHud');
+  readonly scope: ReturnType<typeof uiScope> = uiScope('PerfHud');
   private readonly counters: (() => Counts)[] = [];
   private readonly dom: DomWrites;
   private readonly spark: HTMLCanvasElement;

@@ -166,7 +166,7 @@ const SVG_SUN = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.4" fill="
 const SVG_MOON = '<svg viewBox="0 0 24 24"><path d="M15.5 3.2a8.8 8.8 0 1 0 5.3 13.9A7.2 7.2 0 0 1 15.5 3.2z" fill="currentColor"/></svg>';
 
 export class Minimap {
-  readonly scope = uiScope('Minimap');
+  readonly scope: ReturnType<typeof uiScope> = uiScope('Minimap');
   readonly root: HTMLDivElement;
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;

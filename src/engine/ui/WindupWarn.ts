@@ -36,7 +36,7 @@ const _p = new THREE.Vector3();
 
 /** an amber chevron on the screen edge toward an off-screen enemy that is winding up an attack */
 export class WindupWarn<T extends Warned = Warned> {
-  readonly scope = uiScope('windup');
+  readonly scope: ReturnType<typeof uiScope> = uiScope('windup');
   private readonly layer: HTMLElement;
   private readonly slots: Slot<T>[] = [];
   /** the layer's size (px): the screen less the safe areas (combat.css), kept by a ResizeObserver */

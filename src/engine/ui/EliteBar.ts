@@ -48,7 +48,7 @@ function skullPulse(t: number): string {
 const _v = new THREE.Vector3();
 
 export class EliteBar {
-  readonly scope = uiScope('EliteBar');
+  readonly scope: ReturnType<typeof uiScope> = uiScope('EliteBar');
   readonly root: HTMLElement;
   private bar: HTMLElement; private name: HTMLElement; private epithet: HTMLElement; private fill: HTMLElement; private lag: HTMLElement;
   private cap: HTMLElement; private arrow: HTMLElement;

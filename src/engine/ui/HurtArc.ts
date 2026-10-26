@@ -24,7 +24,7 @@ const HOLD = 0.35;
 interface Slot { el: HTMLElement; x: number; z: number; t: number; strength: number; active: boolean }
 
 export class HurtArc {
-  readonly scope = uiScope('HurtArc');
+  readonly scope: ReturnType<typeof uiScope> = uiScope('HurtArc');
   private layer: HTMLElement;
   private slots: Slot[] = [];
 

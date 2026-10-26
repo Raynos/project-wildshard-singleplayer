@@ -56,7 +56,7 @@ const CYAN = '#8fe3ff';
 const ctx2d = (c: HTMLCanvasElement): CanvasRenderingContext2D => { const ctx = c.getContext('2d'); if (!ctx) throw new Error('FullMap: no 2d context'); return ctx; };
 
 export class FullMap {
-  readonly scope = uiScope('FullMap');
+  readonly scope: ReturnType<typeof uiScope> = uiScope('FullMap');
   readonly root: HTMLDivElement;
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;

@@ -51,7 +51,7 @@ const k = (n: number) => (n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : n >= 1000 ? `$
 
 /** the fps / draw-call / triangle panel, with the level's budgets */
 export class Perf {
-  readonly scope = uiScope('Perf');
+  readonly scope: ReturnType<typeof uiScope> = uiScope('Perf');
   readonly root: HTMLElement;
   private lastPaint = 0;
   private lastText = '';

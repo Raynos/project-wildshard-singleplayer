@@ -50,7 +50,7 @@ const PAINT_MS = 200;
 let currentLoading: { id: string; loading: Loading } | null = null;
 /** the loading screen: the download and set-up bars, the boot steps' rows, the tier and the diagnostics */
 export class Loading {
-  readonly scope = uiScope('Loading');
+  readonly scope: ReturnType<typeof uiScope> = uiScope('Loading');
   root: HTMLElement;
   private els: Record<ElKey, HTMLElement>;
   private rowsEl: HTMLElement;

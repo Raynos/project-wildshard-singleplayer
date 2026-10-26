@@ -71,7 +71,7 @@ function tap<T extends object>(obj: T, key: keyof T, hook: (...args: unknown[]) 
 }
 
 export class Combat {
-  readonly scope = uiScope('Combat');
+  readonly scope: ReturnType<typeof uiScope> = uiScope('Combat');
   /** the animal under the crosshair this frame (within AIM_TOL of the aim ray), or null */
   aimed: Animal | null = null;
   private layer: HTMLElement;
