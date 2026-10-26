@@ -19,13 +19,14 @@ permissions:
   contents: read
   actions: read
   statuses: write
+# Coalesce queued automatic proofs as complete cohorts. Independent leg locks
+# replace different pending legs and strand both exact-SHA workflows.
+# Explicit proofs retain a separate group for their requested SHA.
+concurrency:
+  group: boot-smoke-cohort-${{ inputs.automatic && 'main' || inputs.sha || github.sha }}
+  cancel-in-progress: false
 jobs:
   build:
-    # Automatic proofs coalesce while queued; explicit SHA dispatches keep
-    # their own group and always build the requested commit.
-    concurrency:
-      group: boot-smoke-build-${{ inputs.automatic && 'main' || inputs.sha || github.sha }}
-      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 20
     outputs:
@@ -124,9 +125,6 @@ jobs:
       fail-fast: false
       matrix:
         part: [boot-public, boot-developer, boot-grid, hover-chromium, hover-webkit, explorer]
-    concurrency:
-      group: boot-smoke-${{ matrix.part }}-${{ inputs.automatic && 'main' || inputs.sha || github.sha }}
-      cancel-in-progress: false
     runs-on: macos-15
     timeout-minutes: 20
     steps:

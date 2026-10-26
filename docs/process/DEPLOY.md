@@ -36,6 +36,11 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   Products and every typecheck/lint shard also finish independently after another job fails, so their own
   admission and source errors remain visible in the same run. Each command still stops on its own error;
   typecheck/lint matrix cancellation is disabled.
+- **Automatic boot proofs coalesce as whole workflows**, with one active six-leg
+  cohort and the newest pending cohort. An active proof finishes all six legs;
+  a newer dispatch may replace a pending workflow, never individual legs from
+  different exact SHAs. Explicit SHA proofs use their own workflow group. All
+  original case, fatal, pixel and deadline checks remain within each exact run.
 - **CI's vitest is Linux x64 (under coverage in the nightly): other floats, and ~2–2.5× a Mac's time** (ci-green, 2026-10-09; main was
   red for hours on both):
   - **A recorded digest never passes through V8's native transcendentals** (`Math.sin / cos / tan / exp / log / atan2 /

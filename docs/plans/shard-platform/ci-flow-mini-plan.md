@@ -88,6 +88,20 @@ The latest five completed main push verdicts, excluding cancelled and deploy-onl
 artifacts and job tails; they are not test CPU times. Runs: `40261303981`, `40258944555`, `40257263766`,
 `40256014057`, `40253473574`. sp-x1 owns the next critical-path audit at a natural source boundary.
 
+## Exact-smoke queue repair (2026-10-26, sp-x7)
+
+Independent automatic concurrency groups for the build and each browser leg
+allowed newer dispatches to replace different queued legs. Run `40352474526`
+lost public, Explorer and Developer; `40359234545` lost grid and public. These
+were incomplete exact-SHA proofs, never accepted by combining other runs' greens.
+The workflow now coalesces complete automatic cohorts: one active workflow keeps
+all six legs, and only the newest pending workflow survives. Explicit SHA proofs
+retain separate groups. The release-dispatch job keeps its independent lock.
+No cases, artifact identities, deadlines, fatal checks or pixel gates change.
+The workflow contract regression fails before this repair; actionlint and the
+dispatch/partition fixtures validate it. The next ordinary smoke verifies actual
+GitHub scheduling; this does not close the separate CF2 title-capture contention.
+
 ## CF2 title capture: unresolved evidence (2026-10-26 16:15 UTC)
 
 The supported fast PNG path and original ten-second shared capture allowance remain. Disabling script

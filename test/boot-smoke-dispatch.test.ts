@@ -53,6 +53,19 @@ test('only a fully successful push dispatches all six exact-artifact smoke legs'
   expect(smoke).toMatch(/JOB_PROOF_RUN: \$\{\{ !inputs\.automatic && inputs\.source_run \|\| '' \}\}/u);
 });
 
+test('automatic queue replacement preserves one complete six-leg workflow', () => {
+  const header = smoke.split('\njobs:\n')[0];
+  expect(header).toMatch(/^concurrency:\n {2}group: boot-smoke-cohort-\$\{\{ inputs\.automatic && 'main' \|\| inputs\.sha \|\| github\.sha \}\}\n {2}cancel-in-progress: false$/mu);
+  // Per-leg groups let newer runs replace different pending legs, leaving
+  // neither exact-SHA workflow with every required proof. Only the release
+  // dispatch keeps its independent job lock after the full cohort finishes.
+  const proofJobs = smoke.split('\njobs:\n')[1]?.split('\n  release:\n')[0];
+  expect(proofJobs).toBeDefined();
+  expect(proofJobs).not.toMatch(/^ {4}concurrency:/mu);
+  expect(smoke).toContain('fail-fast: false');
+  expect(smoke).toContain('group: boot-smoke-release');
+});
+
 test('automatic smoke waits for its exact successful parent before accepting its artifact run', () => {
   const result = runSource(0);
   expect(result.status, result.error).toBe(0);
