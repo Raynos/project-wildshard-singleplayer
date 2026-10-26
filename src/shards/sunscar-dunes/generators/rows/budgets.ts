@@ -5,7 +5,7 @@ import BUDGET_CEILINGS from '../../data/budgetCeilings.json' with { type: 'json'
  * draws, triangles, programs and GPU MB. Data (SHARD-PLATFORM M3): lint/shard-layout.json's dataHomes lets a shard keep
  * its budgets here instead of the root budgets.ts.
  */
-export const BUDGETS = {
+export const BUDGETS: { ceilings: { phone: { current: { gpuMB: number; }; spawn: { gpuMB: number; }; whip: { gpuMB: number; }; ray: { gpuMB: number; }; quest: { gpuMB: number; }; tower: { gpuMB: number; }; }; desktop: { current: { gpuMB: number; }; }; }; phone: { fps: number; variability: number; cpuMs: number; gcMs: number; systems: { physics: number; ai: number; animation: number; player: number; world: number; hud: number; audio: number; }; vertexShare: number; lanes: { opaque: number; shadow: number; transparent: number; viewmodel: number; post: number; reserve: number; }; linkMs: number; }; desktop: { fps: number; variability: number; cpuMs: number; gcMs: number; systems: { physics: number; ai: number; animation: number; player: number; world: number; hud: number; audio: number; }; vertexShare: number; lanes: { opaque: number; shadow: number; transparent: number; viewmodel: number; post: number; reserve: number; }; linkMs: number; }; load: { coldPlay4G: null; fixedSeconds: number; cpuRatio: number; bytesPerSecond: number; }; } = {
   ceilings: BUDGET_CEILINGS,
   phone: { fps: 30, variability: 1.3, cpuMs: 9.6, gcMs: 0.3, systems: { physics: 0.3, ai: 0.3, animation: 0.3, player: 0.2, world: 0.2, hud: 0.1, audio: 0.1 },
     vertexShare: 0.5, lanes: { opaque: 0.4, shadow: 0.2, transparent: 0.1, viewmodel: 0.1, post: 0.1, reserve: 0.1 }, linkMs: 1000 },

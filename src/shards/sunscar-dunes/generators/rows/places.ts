@@ -22,7 +22,7 @@ export const CRATES = { x: 2.6, z: -2.6, half: 0.42 } as const;
 export const WELL_RIG = { r: 1.35, axleY: 1.85, drop: 2.6 } as const;
 /** The textured hero models' fitted sizes (metres): the wagon's span and turn, the brazier's height and its bowl's height as
  *  a share of it. */
-export const HD = { wagon: 6.4, wagonYaw: Math.PI, brazier: 2.5, bowlAt: 0.86 } as const;
+export const HD: { readonly wagon: 6.4; readonly wagonYaw: number; readonly brazier: 2.5; readonly bowlAt: 0.86; } = { wagon: 6.4, wagonYaw: Math.PI, brazier: 2.5, bowlAt: 0.86 } as const;
 /**
  * The textured hero models placed on the places' frames (`world/places.ts` placeHd): each a model fitted as `fit`, its
  * fitted copy at `at` in its place's frame, turned `rot` (x, y, z radians). The camp's are in the caravan's frame: the

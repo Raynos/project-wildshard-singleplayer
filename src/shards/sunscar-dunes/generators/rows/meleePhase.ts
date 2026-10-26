@@ -1,7 +1,7 @@
 import { WHIP_VIEW } from './whip';
 import { WHIP_ITEM, WHIP_TIMING } from './items';
 /** Original delayed contact/presentation order; phase data cannot mutate contacts or the script host. */
-export const WHIP_PHASE = {version:1,mode:'delayed',charge:WHIP_ITEM.charge,spring:WHIP_VIEW.spring,position:WHIP_VIEW.hold.hero,
+export const WHIP_PHASE: { readonly version: 1; readonly mode: "delayed"; readonly charge: 0.6; readonly spring: { readonly gain: number; readonly clampYaw: number; readonly clampPitch: number; readonly k: number; readonly c: number; }; readonly position: readonly [number, number, number]; readonly phases: readonly [{ readonly id: "light"; readonly move: 0; readonly seconds: 0.42; readonly channel: "active"; }, { readonly id: "heavy"; readonly move: 1; readonly seconds: 0.62; readonly channel: "active"; }]; readonly channels: { readonly root: "root"; readonly rest: "rest"; readonly active: "active"; readonly deformation: "cord"; }; readonly bindings: { readonly moving: "grip"; readonly resting: "coil"; readonly deformation: "cord"; }; readonly unroll: 0.12; readonly second: 0.32; readonly show: 0.42; readonly overlap: number; readonly caughtSeconds: number; readonly reach: readonly [7, 8]; } = {version:1,mode:'delayed',charge:WHIP_ITEM.charge,spring:WHIP_VIEW.spring,position:WHIP_VIEW.hold.hero,
  phases:[{id:'light',move:0,seconds:WHIP_ITEM.contacts[0].show,channel:'active'},{id:'heavy',move:1,seconds:WHIP_ITEM.contacts[1].show,channel:'active'}],
  channels:{root:'root',rest:'rest',active:'active',deformation:'cord'},bindings:{moving:'grip',resting:'coil',deformation:'cord'},
  unroll:WHIP_TIMING.unroll,second:WHIP_TIMING.second,show:WHIP_TIMING.show,overlap:WHIP_VIEW.flick.overlap,

@@ -11,4 +11,4 @@ export const SCOUT_FLAG = 'sunscar.scout';
  * at 5 m the tracker dropped her distance, so the first frame had no cue behind the player): 8 m, right and behind, where
  * the tracker reads "SEFA 8 M" as it did in round 14, still out of both spawn frames and inside her wave range.
  */
-export const SCOUT_AT = { x: LAYOUT.SPAWN.x + 7, z: LAYOUT.SPAWN.z + 4 } as const;
+export const SCOUT_AT: { readonly x: number; readonly z: number; } = { x: LAYOUT.SPAWN.x + 7, z: LAYOUT.SPAWN.z + 4 } as const;

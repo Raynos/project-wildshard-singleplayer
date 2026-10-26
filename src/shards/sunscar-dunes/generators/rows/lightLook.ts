@@ -15,4 +15,4 @@ export const LAST_LIGHT = {
 } as const;
 
 /** The direction the painter light's rim is shaped by (unused by an unshaped rim): the dusk key's. */
-export const LAST_LIGHT_SUN = { x: KEY_DIR[0], y: KEY_DIR[1], z: KEY_DIR[2] } as const;
+export const LAST_LIGHT_SUN: { readonly x: -0.34; readonly y: 0.2; readonly z: -0.92; } = { x: KEY_DIR[0], y: KEY_DIR[1], z: KEY_DIR[2] } as const;
