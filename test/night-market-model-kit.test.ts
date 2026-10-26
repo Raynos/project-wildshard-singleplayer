@@ -42,6 +42,10 @@ await assert.rejects(()=>prepareModelKit({},new Map([['stalls',bytes]])),/invali
 const stalls=await prepareModelKit({},new Map([['stalls',new Uint8Array(readFileSync('public/assets/open-plots/kit/stalls.glb'))]]));
 const lit=[0,1,2].map(variant=>{const w=writer();stalls.placeModel(w,'stalls',variant,0,0);assert.ok(w.tris.length>200&&w.tris.length<800);return w.lights.length;});
 assert.deepEqual(lit,[3,1,1]);
+// RM4.4: the house family (cottage, two-storey house, porch hall): every lit window and porch lantern an emitter
+const houses=await prepareModelKit({},new Map([['houses',new Uint8Array(readFileSync('public/assets/open-plots/kit/houses.glb'))]]));
+const windows=[0,1,2].map(variant=>{const w=writer();houses.placeModel(w,'houses',variant,0,0);assert.ok(w.tris.length>200&&w.tris.length<700);return w.lights.length;});
+assert.deepEqual(windows,[3,8,5]);
 await assert.rejects(()=>prepareModelKit({},new Map()),/no model families/);
 await assert.rejects(()=>prepareModelKit({},new Map([['lanterns',new Uint8Array()]])),/missing GLB bytes/);
 console.log('ok');`;

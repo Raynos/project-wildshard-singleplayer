@@ -236,7 +236,8 @@ function house(w, p, variant) {
   const blocks = variant === 0
     ? [[-24, 24, 8, 26], [-26, -12, -24, 6], [12, 26, -24, 6]]
     : [[-24, 24, 11, 26], [-25, -11, -24, 9], [11, 25, -24, 9], [-7, 7, -26, -18]];
-  for (const [x0, x1, z0, z1] of blocks) {
+  if (w.hasModel('houses')) modelHouses(w);
+  else for (const [x0, x1, z0, z1] of blocks) {
     w.sides('Kit', [x0, 0, z0], [x1, wall, z1], p.wall);
     hipRoof(w, x0 - 1.2, x1 + 1.2, z0 - 1.2, z1 + 1.2, wall, roof, p.roof, p.wood);
     w.solid([x0, 0, z0], [x1, wall + roof, z1]);
@@ -260,6 +261,19 @@ function house(w, p, variant) {
   w.sides('Kit', [5.75, 0, -11.25], [6.25, 2, -10.75], p.trunk);
   frustum(w, 'Kit', 6, -11, 6, 2, 0, 2.6, 5.2, p.foliage, 1.2);
   w.solid([5.7, 0, -11.3], [6.3, 2, -10.7]);
+}
+/** RM4.4: an H court's houses from the kit's models (opt-in, tiledPlot.mjs KIT_FAMILIES): five cottages and two-storey
+ *  houses along the north side facing the court, a porch hall on each wing facing in (the court's lanterns, lawn and
+ *  tree are the court's own). */
+function modelHouses(w) {
+  for (const x of [-20, -10, 0, 10, 20]) {
+    w.placeModel('houses', pick(x, 20, 2), x, 20, { yaw: Math.PI });
+    w.solid([x - 4, 0, 16.5], [x + 4, 6, 23.5]);
+  }
+  for (const side of [-1, 1]) {
+    w.placeModel('houses', 2, side * 20, -12, { yaw: -side * Math.PI / 2 });
+    w.solid([side * 20 - 3, 0, -18], [side * 20 + 3, 5, -6]);
+  }
 }
 /** G garden: four lawns between cross paths, trees, a pond in the south-east lawn, lanterns along the paths. */
 function garden(w, p, variant) {

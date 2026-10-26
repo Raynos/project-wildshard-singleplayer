@@ -12,7 +12,8 @@ from kitlib import Piece, build_family, reset_scene  # noqa: E402
 # Default colours (sRGB) for slots a layout's palette may not define; the palette's own colour wins.
 SLOTS = {'iron': '#2b2b33', 'gold': '#d8a23e', 'paper': '#ff5b32', 'stone': '#8a8a94', 'stoneTop': '#a6a6b0',
          'stall': '#c0222b', 'lantern': '#ffb347', 'wood': '#5b3a24', 'cloth': '#c8242c', 'stallRoof': '#b0262a',
-         'fruit': '#e8892a', 'greens': '#5e9e3e', 'crate': '#8a5a34', 'board': '#14203f', 'awning': '#ff7a2e'}
+         'fruit': '#e8892a', 'greens': '#5e9e3e', 'crate': '#8a5a34', 'board': '#14203f', 'awning': '#ff7a2e',
+         'roof': '#1c2858', 'wall': '#e9d6b0', 'window': '#ffc96a', 'door': '#4a2a1a'}
 # Each lit slot's ruled trim (data/trim.json, sp-o2's RM5.3 kit material); every other slot and all Glow faces are plain.
 TRIMS = {'stone': 'stone', 'roof': 'roofTile', 'stallRoof': 'roofTile', 'wood': 'timber', 'timber': 'timber',
          'wall': 'plaster', 'plaster': 'plaster', 'cloth': 'awningStripe'}
@@ -192,6 +193,121 @@ def food_cart():
     return p
 
 
+def hip_roof(p, x0, x1, y0, y1, eave, rise, overhang=0.7, lift=0.6, slot='Kit.roof', under='Kit.wood'):
+    """A tiled hip roof over [x0, x1] x [y0, y1] from `eave`, its ridge along the longer side and its corners swept up
+    by `lift` (the mockup's upturned eaves), closed underneath."""
+    a0, a1, b0, b1 = x0 - overhang, x1 + overhang, y0 - overhang, y1 + overhang
+    top = eave + rise
+    if a1 - a0 >= b1 - b0:
+        ym = (b0 + b1) / 2
+        r0, r1 = (a0 + (b1 - b0) / 2, ym, top), (a1 - (b1 - b0) / 2, ym, top)
+    else:
+        xm = (a0 + a1) / 2
+        r0, r1 = (xm, b0 + (a1 - a0) / 2, top), (xm, b1 - (a1 - a0) / 2, top)
+    c = {'sw': (a0, b0, eave + lift), 'se': (a1, b0, eave + lift), 'ne': (a1, b1, eave + lift), 'nw': (a0, b1, eave + lift)}
+    m = {'s': ((a0 + a1) / 2, b0, eave), 'e': (a1, (b0 + b1) / 2, eave), 'n': ((a0 + a1) / 2, b1, eave), 'w': (a0, (b0 + b1) / 2, eave)}
+    if a1 - a0 >= b1 - b0:
+        # the long slopes (front and back) each a fan to the ridge; the hip ends a fan to their ridge end
+        p.face([c['sw'], m['s'], r0], slot); p.face([m['s'], r1, r0], slot); p.face([m['s'], c['se'], r1], slot)
+        p.face([c['ne'], m['n'], r1], slot); p.face([m['n'], r0, r1], slot); p.face([m['n'], c['nw'], r0], slot)
+        p.face([c['se'], m['e'], r1], slot); p.face([m['e'], c['ne'], r1], slot)
+        p.face([c['nw'], m['w'], r0], slot); p.face([m['w'], c['sw'], r0], slot)
+    else:
+        p.face([c['sw'], m['s'], r0], slot); p.face([m['s'], c['se'], r0], slot)
+        p.face([c['ne'], m['n'], r1], slot); p.face([m['n'], c['nw'], r1], slot)
+        p.face([c['se'], m['e'], r0], slot); p.face([m['e'], r1, r0], slot); p.face([m['e'], c['ne'], r1], slot)
+        p.face([c['nw'], m['w'], r1], slot); p.face([m['w'], r0, r1], slot); p.face([m['w'], c['sw'], r0], slot)
+    ring = [c['sw'], m['w'], c['nw'], m['n'], c['ne'], m['e'], c['se'], m['s']]
+    p.face([(x, y, z - 0.08) for x, y, z in ring], under)  # the underside, facing down (clockwise from above)
+    for i in range(len(ring)):
+        a, b = ring[i], ring[(i + 1) % len(ring)]
+        p.face([(a[0], a[1], a[2] - 0.08), (b[0], b[1], b[2] - 0.08), b, a], under)  # the fascia
+    p.prism(r0[0], r0[1], 0.07, 0.0, top, top + 0.35, 4, 'Kit.gold', spin=0.785398)
+    p.prism(r1[0], r1[1], 0.07, 0.0, top, top + 0.35, 4, 'Kit.gold', spin=0.785398)
+
+
+def walls(p, x0, x1, y0, y1, z0, z1, posts=True):
+    """Plaster walls over a stone plinth, timber corner posts and a timber band under the eave."""
+    p.box((x0 - 0.08, y0 - 0.08, 0), (x1 + 0.08, y1 + 0.08, z0), 'Kit.stone', top='Kit.stoneTop')
+    p.box((x0, y0, z0), (x1, y1, z1), 'Kit.wall')
+    p.box((x0 - 0.05, y0 - 0.05, z1 - 0.25), (x1 + 0.05, y1 + 0.05, z1), 'Kit.wood')
+    if posts:
+        for x in (x0, x1):
+            for y in (y0, y1):
+                p.box((x - 0.12, y - 0.12, z0), (x + 0.12, y + 0.12, z1), 'Kit.wood')
+
+
+def window(p, x, y, z, w, h, face=-1):
+    """A lit window on the wall plane y (its face toward `face` y), with a timber frame and a mullion."""
+    d = 0.03 * face
+    p.box((x - w / 2, min(y, y + d), z), (x + w / 2, max(y, y + d), z + h), 'Glow.window')
+    f = 0.06
+    p.box((x - w / 2 - f, min(y, y + 2 * d), z - f), (x + w / 2 + f, max(y, y + 2 * d), z), 'Kit.wood')
+    p.box((x - w / 2 - f, min(y, y + 2 * d), z + h), (x + w / 2 + f, max(y, y + 2 * d), z + h + f), 'Kit.wood')
+    p.box((x - 0.03, min(y, y + 2 * d), z), (x + 0.03, max(y, y + 2 * d), z + h), 'Kit.wood')
+    p.emitter((x, y + 0.6 * face, z + h / 2), 'window')
+
+
+def door(p, x, y, w=1.0, h=2.0):
+    p.box((x - w / 2, y - 0.04, 0.3), (x + w / 2, y, 0.3 + h), 'Kit.door')
+    p.box((x - w / 2 - 0.08, y - 0.07, 0.3 + h), (x + w / 2 + 0.08, y, 0.3 + h + 0.12), 'Kit.wood')
+
+
+def cottage():
+    """A1/A2's cottage: an 8 x 6 m plaster house with a dark tiled hip roof swept up at the corners, two lit windows
+    and a door on the front, a lit window each side (about 250 triangles)."""
+    p = Piece()
+    walls(p, -4, 4, -3, 3, 0.3, 3.0)
+    hip_roof(p, -4, 4, -3, 3, 3.0, 2.0)
+    door(p, 0, -3)
+    for x in (-2.3, 2.3):
+        window(p, x, -3, 1.2, 1.1, 1.0)
+    window(p, 2.3, 3, 1.2, 1.1, 1.0, face=1)
+    p.box((-0.9, -3.6, 0), (0.9, -3.0, 0.3), 'Kit.stone', top='Kit.stoneTop')  # the step
+    return p
+
+
+def two_storey():
+    """A taller house: two floors of lit windows, a skirt roof between them and a hip roof above (8 x 7 m)."""
+    p = Piece()
+    walls(p, -4, 4, -3.5, 3.5, 0.3, 5.6)
+    hip_roof(p, -4, 4, -3.5, 3.5, 5.6, 2.2)
+    # the skirt roof over the ground floor: a sloped band all round
+    for (a, b, c, d) in (((-4.7, -4.2, 3.2), (4.7, -4.2, 3.2), (4.0, -3.5, 3.7), (-4.0, -3.5, 3.7)),
+                         ((4.7, 4.2, 3.2), (-4.7, 4.2, 3.2), (-4.0, 3.5, 3.7), (4.0, 3.5, 3.7)),
+                         ((4.7, -4.2, 3.2), (4.7, 4.2, 3.2), (4.0, 3.5, 3.7), (4.0, -3.5, 3.7)),
+                         ((-4.7, 4.2, 3.2), (-4.7, -4.2, 3.2), (-4.0, -3.5, 3.7), (-4.0, 3.5, 3.7))):
+        p.face([a, b, c, d], 'Kit.roof')
+        p.face([(a[0], a[1], a[2] - 0.06), (d[0], d[1], d[2] - 0.06), (c[0], c[1], c[2] - 0.06), (b[0], b[1], b[2] - 0.06)], 'Kit.wood')
+    door(p, -1.6, -3.5)
+    window(p, 1.6, -3.5, 1.2, 1.2, 1.0)
+    for x in (-2.2, 0, 2.2):
+        window(p, x, -3.5, 4.0, 0.9, 1.0)
+    for x in (-1.6, 1.6):
+        window(p, x, 3.5, 4.0, 0.9, 1.0, face=1)
+        window(p, x, 3.5, 1.2, 1.1, 1.0, face=1)
+    return p
+
+
+def hall():
+    """A wide hall (12 x 6 m) with a porch of timber posts under its front eave, three lit windows and a paper lantern
+    either side of the door."""
+    p = Piece()
+    walls(p, -6, 6, -2.5, 3.0, 0.3, 3.3)
+    hip_roof(p, -6, 6, -3.6, 3.0, 3.3, 2.3, overhang=0.5)
+    for x in (-5.8, -2.0, 2.0, 5.8):
+        p.box((x - 0.12, -3.85, 0.3), (x + 0.12, -3.6, 3.3), 'Kit.wood')
+    p.box((-6.3, -4.1, 0), (6.3, -2.5, 0.3), 'Kit.stone', top='Kit.stoneTop')  # the porch floor
+    door(p, 0, -2.5, w=1.4, h=2.2)
+    for x in (-4.0, 4.0):
+        window(p, x, -2.5, 1.2, 1.6, 1.1)
+    window(p, 0, 3.0, 1.2, 1.6, 1.1, face=1)
+    for x in (-1.2, 1.2):
+        p.box((x - 0.012, -3.42, 2.75), (x + 0.012, -3.4, 3.26), 'Kit.iron')
+        p.paper_lantern(x, -3.41, 2.75, radius=0.22)
+    return p
+
+
 def main():
     out = sys.argv[sys.argv.index('--') + 1]
     os.makedirs(out, exist_ok=True)
@@ -199,6 +315,8 @@ def main():
     build_family(out, 'lanterns', [stone_post, paper_post, banner_post], TRIMS, {'slots': SLOTS, **LANTERN})
     reset_scene()
     build_family(out, 'stalls', [hero_stall, row_stall, food_cart], TRIMS, {'slots': SLOTS})
+    reset_scene()
+    build_family(out, 'houses', [cottage, two_storey, hall], TRIMS, {'slots': SLOTS})
 
 
 if __name__ == '__main__':
