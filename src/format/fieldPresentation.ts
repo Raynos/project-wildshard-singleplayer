@@ -6,18 +6,21 @@ const count = v.pipe(positive,v.integer(),v.maxValue(4096));
 const text = v.pipe(v.string(),v.minLength(1),v.maxLength(8_000_000));
 /** Original compressed bytes, inline or in an admitted product file. */
 export type GrassPayload = string | {file:string};
-export const GrassPayloadSchema:v.GenericSchema<unknown,GrassPayload> = v.union([text,v.strictObject({file:v.pipe(v.string(),v.maxLength(240),
-  v.regex(/^(?:[A-Za-z0-9_-][A-Za-z0-9_.-]*\/)*[A-Za-z0-9_-][A-Za-z0-9_.-]*$/u))})]);
+const grassFile:v.GenericSchema<unknown,{file:string}> = v.strictObject({file:v.pipe(v.string(),v.maxLength(240),
+  v.regex(/^(?:[A-Za-z0-9_-][A-Za-z0-9_.-]*\/)*[A-Za-z0-9_-][A-Za-z0-9_.-]*$/u))});
+export const GrassPayloadSchema:v.GenericSchema<unknown,GrassPayload> = v.union([text,grassFile]);
 const tuple = v.tuple([number,number,number]);
 const grid = v.object({ T: positive, G: v.pipe(count,v.maxValue(32)) });
 const tier = v.object({ rings: v.pipe(v.array(grid),v.minLength(1),v.maxLength(8)), flowers: grid,
   cards: v.object({ T: positive, s: positive }), near: v.tuple([number,number]), per: count,
+  channels: v.exactOptional(grassFile),
   scenes: v.object({ blades: GrassPayloadSchema, flowers: GrassPayloadSchema, cards: GrassPayloadSchema }) });
 interface GrassGridRows {T:number;G:number}
 type GrassTierSchema = v.ObjectSchema<{
   rings:v.GenericSchema<GrassGridRows[]>;flowers:v.GenericSchema<GrassGridRows>;
   cards:v.ObjectSchema<{T:v.GenericSchema<number>;s:v.GenericSchema<number>},undefined>;
   near:v.GenericSchema<[number,number]>;per:v.GenericSchema<number>;
+  channels:v.ExactOptionalSchema<typeof grassFile,undefined>;
   scenes:v.ObjectSchema<{blades:typeof GrassPayloadSchema;flowers:typeof GrassPayloadSchema;cards:typeof GrassPayloadSchema},undefined>;
 },undefined>;
 interface GrassViewRows {
@@ -41,7 +44,8 @@ export type GrassPresentationRows = v.InferOutput<typeof GrassPresentationSchema
 /** All declared binary blocks, in row order with duplicate file loans read once. */
 export function grassPresentationFiles(rows: GrassPresentationRows): readonly string[] {
   return [...new Set([rows.height,rows.mask,rows.field,rows.ground,
-    ...Object.values(rows.phone.scenes),...Object.values(rows.desktop.scenes)]
+    ...Object.values(rows.phone.scenes),...Object.values(rows.desktop.scenes),
+    ...[rows.phone.channels,rows.desktop.channels].flatMap(row=>row===undefined?[]:[row])]
     .flatMap(row=>typeof row==='string'?[]:[row.file]))];
 }
 /** Static capture sizes and tuning; the native passes retain their original programs. */

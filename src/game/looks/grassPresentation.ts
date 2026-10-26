@@ -33,8 +33,8 @@ type InstancedBufferGeometry = THREE.InstancedBufferGeometry;
 /** A scene's draw rows, decoded and admitted. */
 const sceneRows = (bytes: Uint8Array): ReturnType<typeof parseSceneBuffers> => parseSceneBuffers(JSON.parse(new TextDecoder().decode(bytes)));
 /** Admit the declared instanced drawing buffers (`rows`: the scene's rows a preparation already decoded). */
-function geometries(look: string, rows: ReturnType<typeof parseSceneBuffers>): InstancedBufferGeometry[] {
-  return createSceneBuffers(rows, lentLook(look), resourceScope()).children.map(child => {
+function geometries(look: string, rows: ReturnType<typeof parseSceneBuffers>, files: ReadonlyMap<string,Uint8Array>): InstancedBufferGeometry[] {
+  return createSceneBuffers(rows, lentLook(look), resourceScope(), undefined, undefined, files).children.map(child => {
     if (!(child instanceof THREE.Mesh) || !(child.geometry instanceof THREE.InstancedBufferGeometry)) throw new Error('Grass draw requires instanced geometry');
     for (const name of ['aTile', 'aHole']) { const attribute = child.geometry.getAttribute(name); if (attribute instanceof THREE.BufferAttribute) attribute.setUsage(THREE.DynamicDrawUsage); }
     return child.geometry;
@@ -71,12 +71,18 @@ export class GrassPresentationProfile {
     const slice = workSlice(), rows = this.input[TIER];
     this.heightTexture(); await slice.check();
     for (const encoded of [this.input.field, this.input.ground]) { this.prepared.set(encoded, this.decode(encoded)); await slice.check(); }
+    if(rows.channels!==undefined){this.prepared.set(rows.channels,this.decode(rows.channels));await slice.check();}
     for (const encoded of [rows.scenes.blades, rows.scenes.flowers, rows.scenes.cards]) { this.prepared.set(encoded, sceneRows(this.decode(encoded))); await slice.check(); }
   }
   /** a map's bytes: prepared, else decoded now */
   bytes(encoded: GrassPayload): Uint8Array<ArrayBuffer> {
     const ready = this.prepared.get(encoded); this.prepared.delete(encoded);
     return ready instanceof Uint8Array ? ready : this.decode(encoded);
+  }
+  /** Take the selected tier's decoded channel bank once. Geometry copies its ranges; this profile retains only compressed files. */
+  channelFiles(tier: 'phone' | 'desktop'): ReadonlyMap<string,Uint8Array> {
+    const channels=this.input[tier].channels;
+    return channels===undefined?new Map():new Map([[channels.file,this.bytes(channels)]]);
   }
   /** a scene's draw rows: prepared, else decoded now */
   scene(encoded: GrassPayload): ReturnType<typeof parseSceneBuffers> {
@@ -151,7 +157,7 @@ export class GrassPresentation {
 
   build(): this {
     const grassRows = this.profile.input, { heightSize: HN, heightOrigin: H_ORG, lattice: LAT, half: CHUNK_HALF, looks: LOOKS } = grassRows.view, [BLADES,HEADS,CLUMPS] = LOOKS, rows = grassRows[TIER], RINGS = rows.rings, FLOWERS = rows.flowers, NEAR = rows.near, LN = Math.ceil(CHUNK_HALF * 2 / LAT) + 1;
-    const m = this.maps;
+    const m = this.maps, files = this.profile.channelFiles(TIER);
     for (const id of LOOKS) {
       setLentTexture(id, 'tHeight', m.tHeight); setLentTexture(id, 'tMask', m.tMask); setLentTexture(id, 'tField', m.tField);
       setLentParam(id, 'heightXf', [H_ORG, H_ORG, 1 / HN, HN]); setLentParam(id, 'fieldXf', [-CHUNK_HALF, -CHUNK_HALF, 1 / LAT, LN]);
@@ -165,7 +171,7 @@ export class GrassPresentation {
       this.group.add(mesh);
       return mesh;
     };
-    const blades = geometries(BLADES, this.profile.scene(rows.scenes.blades));
+    const blades = geometries(BLADES, this.profile.scene(rows.scenes.blades), files);
     RINGS.forEach((cfg, ri) => {
       const half = (cfg.G * cfg.T) / 2;
       const geo = blades[ri]; if (geo === undefined) throw new Error('Grass ring missing');
@@ -173,12 +179,12 @@ export class GrassPresentation {
     });
     {
       const cfg = FLOWERS, half = (cfg.G * cfg.T) / 2;
-      const geo = geometries(HEADS, this.profile.scene(rows.scenes.flowers))[0]; if (geo === undefined) throw new Error('Grass flowers missing');
+      const geo = geometries(HEADS, this.profile.scene(rows.scenes.flowers), files)[0]; if (geo === undefined) throw new Error('Grass flowers missing');
       this.flowers = { T: cfg.T, G: cfg.G, mesh: draw(HEADS, geo, 'grass-v2-flowers'), geo, half };
     }
     // the near field: the painted card atlas as clumps of 3 crossed quads (not camera-facing: they hold up walked round),
     // on the same field, mask, wind and trample as the blades, cut at the atlas's alpha; the atlas swapped in when it lands
-    const per = rows.per, geo = geometries(CLUMPS, this.profile.scene(rows.scenes.cards))[0];
+    const per = rows.per, geo = geometries(CLUMPS, this.profile.scene(rows.scenes.cards), files)[0];
     if (geo === undefined) throw new Error('Grass cards missing');
     setLentParam(CLUMPS, 'cardNear', [NEAR[0], NEAR[1], per]);
     draw(CLUMPS, geo, 'grass-v2-cards');
