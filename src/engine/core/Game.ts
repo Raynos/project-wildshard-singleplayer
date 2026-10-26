@@ -16,7 +16,7 @@ import {
   ToneMappingMode, BlendFunction, GodRaysEffect, LUT3DEffect, KernelSize, SMAAPreset, EdgeDetectionMode, ChromaticAberrationEffect, HueSaturationEffect, BrightnessContrastEffect, NoiseEffect,
   type Effect, Pass,
 } from 'postprocessing';
-import { N8AOPostPass } from 'n8ao';
+import type { N8AOPostPass } from 'n8ao';
 import { installAoTransparency } from '../render/aoTransparency';
 import { protectDisplayColour, protectDisplayColourAo } from '../render/displayColour';
 import { installedGraphBackend } from '../render/graphBackend';
@@ -528,6 +528,14 @@ export class Game {
     return composer;
   }
 
+  /** n8ao's pass, fetched by prepareComposer only when this tier and level draw AO (J8: a phone entry loads no AO code) */
+  private aoPass: typeof N8AOPostPass | null = null;
+  /** Load what buildComposer will build from: the AO module when the tier and level have AO on (null: never fetched). */
+  async prepareComposer(): Promise<void> {
+    if (this.lookStrategy?.mode === 'replace' || this.aoPass !== null || !(this.renderKnobs().ao ?? TIER_CONFIG.ao)) return;
+    this.aoPass = (await import('n8ao')).N8AOPostPass;
+  }
+
   buildComposer(): void {
     if (this.lookStrategy?.mode === 'replace') { this._composer = this.replaceComposer(this.lookStrategy); return; } // the level look's whole chain
     const { atmosphere: A } = this.level;
@@ -546,7 +554,9 @@ export class Game {
     let aoPass: N8AOPostPass | null = null;
     // A level's tier data can keep its compositor below the transient boot peak.
     if (knobs.ao ?? TIER_CONFIG.ao) {
-      const ao = new N8AOPostPass(this.rootScene, this.camera, window.innerWidth, viewportHeight());
+      const AoPass = this.aoPass;
+      if (AoPass === null) throw new Error('Game.buildComposer with AO on before prepareComposer()');
+      const ao = new AoPass(this.rootScene, this.camera, window.innerWidth, viewportHeight());
       aoPass = ao;
       ao.configuration.aoRadius = 2.5;
       ao.configuration.distanceFalloff = 1.0;

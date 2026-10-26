@@ -109,6 +109,17 @@ iPhone's GPU process reading once.
 Order: C1 and C3 first (the menu), then C4 and C6, with C5 behind Jake's pick. C2 follows C1. C7 goes last, once D1 sets
 the target.
 
+**C5 slices (G713, sp-o4; js-payload J8 rides in C5.1):**
+
+| Slice | What | Status |
+|---|---|---|
+| C5.1 | n8ao loaded only when the tier and level draw AO (`Game.prepareComposer`, J8) | done: the commit that adds this table |
+| C5.2 | Per-target render-target census of the live composer on the phone tier (Template, Driftwood, Pine, Nalati) | in flight |
+| C5.3 | Variant B behind one Debug row: RGBA8 where the frame is already tone-mapped, no stable-depth copy (scene depth read directly), half-res luminance, FXAA or half-res SMAA | open |
+| C5.4 | GPU MiB + frame time, A vs B, phone tier per shard (numbers shared with sp-x2's C4) | open |
+| C5.5 | One labelled A / B variant sheet per shard look, `art/post/round-1-lighter-rt/` | open |
+| C5.6 | Jake's pick: the winner becomes the default and the row, the option and the losing code go | waits-Jake |
+
 ## 5. Decisions (G658; M1 replaced by G682)
 
 **M1 (G682): menu / SHARD SELECT ≤ the fixed hello-world WebKit floor + 50 MiB;
