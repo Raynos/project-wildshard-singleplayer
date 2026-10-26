@@ -18,8 +18,10 @@
 //   spear   on foot with the spear in long grass (THROW / BRACE / CROUCH / LOCK)
 //   pine / drift   Pine Hollow and Driftwood Isle's HUD, to prove they did not move
 // Every page is muted (--mute-audio + &mute=1) and rendered on Metal; the browser is closed at the end.
-import { mkdirSync, writeFileSync, readFileSync, existsSync } from 'node:fs';
+import { mkdirSync, writeFileSync, readFileSync, existsSync, statSync } from 'node:fs';
 import { resolve as resolvePath } from 'node:path';
+import { jpegImageRoutes } from './parity/image-routes.mjs';
+import { saveCanvasJpeg } from './parity/canvas-bytes.mjs';
 
 const { chromium } = await import('playwright');
 const argv = process.argv.slice(2);
@@ -92,7 +94,7 @@ try {
     writeFileSync(file, buf);
     const r = await rects(page);
     writeFileSync(resolvePath(OUT, `${TAG}-${name}${DESKTOP ? '-desktop' : ''}-rects.json`), JSON.stringify(r, null, 1));
-    shots[name] = buf.toString('base64');
+    shots[name] = buf;
     console.log(`${file}  (${Math.round(buf.length / 1024)} KB)${errors.length > 0 ? `  page errors: ${errors.slice(0, 3).join(' | ')}` : ''}`);
     for (const [k, v] of Object.entries(r)) console.log(`   ${k.padEnd(12)} ${v.slice(0, 4).join(', ').padEnd(22)} ${v[4]}`);
   };
@@ -226,44 +228,50 @@ try {
   if (pairs.length > 0 && !DESKTOP) {
     const strip = await ctx.newPage();
     await strip.setViewportSize({ width: 800, height: 600 });
-    const list = pairs.map((k) => ({ name: k, eng: shots[k], mock: readFileSync(MOCKUP[k]).toString('base64') }));
-    const b64 = await strip.evaluate(async (ls) => {
-      const W = 390, H = 844, CAP = 30;
-      const cv = document.createElement('canvas'); cv.width = W * 2 + 12; cv.height = (H + CAP) * ls.length;
-      const g = cv.getContext('2d'); g.fillStyle = '#0d1b26'; g.fillRect(0, 0, cv.width, cv.height);
-      for (let i = 0; i < ls.length; i++) {
-        const y = i * (H + CAP);
-        for (const [j, src, lab] of [[0, ls[i].eng, `ENGINE · ${ls[i].name}`], [1, ls[i].mock, `MOCKUP D · ${ls[i].name}`]]) {
-          const im = new Image(); im.src = `data:image/jpeg;base64,${src}`; await im.decode();
-          g.drawImage(im, j * (W + 12), y + CAP, W, H);
-          g.fillStyle = '#8fe3ff'; g.font = 'bold 15px monospace'; g.fillText(lab, j * (W + 12) + 8, y + 21);
+    const list = pairs.map((k) => ({ name: k, eng: shots[k], mock: readFileSync(MOCKUP[k]) }));
+    const inputs = await jpegImageRoutes(strip, list.flatMap(row => [row.eng, row.mock]));
+    try {
+      const canvas = await strip.evaluateHandle(async (ls) => {
+        const W = 390, H = 844, CAP = 30;
+        const cv = document.createElement('canvas'); cv.width = W * 2 + 12; cv.height = (H + CAP) * ls.length;
+        const g = cv.getContext('2d'); g.fillStyle = '#0d1b26'; g.fillRect(0, 0, cv.width, cv.height);
+        for (let i = 0; i < ls.length; i++) {
+          const y = i * (H + CAP);
+          for (const [j, src, lab] of [[0, ls[i].eng, `ENGINE · ${ls[i].name}`], [1, ls[i].mock, `MOCKUP D · ${ls[i].name}`]]) {
+            const im = new Image(); im.crossOrigin = 'anonymous'; im.src = src; await im.decode();
+            g.drawImage(im, j * (W + 12), y + CAP, W, H);
+            g.fillStyle = '#8fe3ff'; g.font = 'bold 15px monospace'; g.fillText(lab, j * (W + 12) + 8, y + 21);
+          }
         }
-      }
-      return cv.toDataURL('image/jpeg', 0.7).slice('data:image/jpeg;base64,'.length);
-    }, list);
-    const file = resolvePath(OUT, `${TAG === 'now' ? 'sheet' : `${TAG}-sheet`}.jpg`);
-    writeFileSync(file, Buffer.from(b64, 'base64'));
-    console.log(`${file}  (${Math.round(Buffer.from(b64, 'base64').length / 1024)} KB)`);
+        return cv;
+      }, list.map((row, index) => ({ name: row.name, eng: inputs.urls[index * 2], mock: inputs.urls[index * 2 + 1] })));
+      const file = resolvePath(OUT, `${TAG === 'now' ? 'sheet' : `${TAG}-sheet`}.jpg`);
+      await saveCanvasJpeg(strip, canvas, file, 0.7);
+      console.log(`${file}  (${Math.round(statSync(file).size / 1024)} KB)`);
+    } finally { await inputs.dispose(); }
   }
   if (COMPOSE.length > 0) {
-    const list = COMPOSE.filter((k) => existsSync(resolvePath(OUT, `${TAG}-${k}.jpg`))).map((k) => ({ name: k, b64: readFileSync(resolvePath(OUT, `${TAG}-${k}.jpg`)).toString('base64') }));
+    const list = COMPOSE.filter((k) => existsSync(resolvePath(OUT, `${TAG}-${k}.jpg`))).map((k) => ({ name: k, image: readFileSync(resolvePath(OUT, `${TAG}-${k}.jpg`)) }));
     const pg = await ctx.newPage();
     await pg.setViewportSize({ width: 800, height: 600 });
-    const b64 = await pg.evaluate(async (ls) => {
-      const W = 390, H = 844, CAP = 26, PER = 3, rows = Math.ceil(ls.length / PER);
-      const cv = document.createElement('canvas'); cv.width = PER * (W + 8); cv.height = rows * (H + CAP);
-      const g = cv.getContext('2d'); g.fillStyle = '#0d1b26'; g.fillRect(0, 0, cv.width, cv.height);
-      for (let i = 0; i < ls.length; i++) {
-        const x = (i % PER) * (W + 8), y = Math.floor(i / PER) * (H + CAP);
-        const im = new Image(); im.src = `data:image/jpeg;base64,${ls[i].b64}`; await im.decode();
-        g.drawImage(im, x, y + CAP, W, H);
-        g.fillStyle = '#8fe3ff'; g.font = 'bold 15px monospace'; g.fillText(`ENGINE · ${ls[i].name}`, x + 8, y + 19);
-      }
-      return cv.toDataURL('image/jpeg', 0.66).slice('data:image/jpeg;base64,'.length);
-    }, list);
-    const file = resolvePath(OUT, `${TAG === 'now' ? 'scenes' : `${TAG}-scenes`}.jpg`);
-    writeFileSync(file, Buffer.from(b64, 'base64'));
-    console.log(`${file}  (${Math.round(Buffer.from(b64, 'base64').length / 1024)} KB)`);
+    const inputs = await jpegImageRoutes(pg, list.map(row => row.image));
+    try {
+      const canvas = await pg.evaluateHandle(async (ls) => {
+        const W = 390, H = 844, CAP = 26, PER = 3, rows = Math.ceil(ls.length / PER);
+        const cv = document.createElement('canvas'); cv.width = PER * (W + 8); cv.height = rows * (H + CAP);
+        const g = cv.getContext('2d'); g.fillStyle = '#0d1b26'; g.fillRect(0, 0, cv.width, cv.height);
+        for (let i = 0; i < ls.length; i++) {
+          const x = (i % PER) * (W + 8), y = Math.floor(i / PER) * (H + CAP);
+          const im = new Image(); im.crossOrigin = 'anonymous'; im.src = ls[i].src; await im.decode();
+          g.drawImage(im, x, y + CAP, W, H);
+          g.fillStyle = '#8fe3ff'; g.font = 'bold 15px monospace'; g.fillText(`ENGINE · ${ls[i].name}`, x + 8, y + 19);
+        }
+        return cv;
+      }, list.map((row, index) => ({ name: row.name, src: inputs.urls[index] })));
+      const file = resolvePath(OUT, `${TAG === 'now' ? 'scenes' : `${TAG}-scenes`}.jpg`);
+      await saveCanvasJpeg(pg, canvas, file, 0.66);
+      console.log(`${file}  (${Math.round(statSync(file).size / 1024)} KB)`);
+    } finally { await inputs.dispose(); }
   }
   await ctx.close();
 } finally {
