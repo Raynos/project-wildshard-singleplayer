@@ -48,6 +48,41 @@ test('the actual SDK-built product binds receipt-verified discovery to the admit
     compressed: 1_828_044, decoded: 1_828_016, gpu: 1_825_056, triangles: 20_000, draws: 4, dependencies: [], critical: false });
   expect(hashImmutableBytes(readFileSync(resolve(folder, mill.path)))).toBe(mill.hash);
 
+  const meadow = [
+  {
+    "compressed": 1736792,
+    "critical": false,
+    "decoded": 1736792,
+    "dependencies": [],
+    "draws": 0,
+    "gpu": 0,
+    "hash": "6e2ebc766fa46ca4a66743a222e6e2bc3aef4e8ea6b06e587ba7c8555ae3713e",
+    "kind": "bin",
+    "name": "world/fields/meadow.bin",
+    "path": "blobs/bin/6e2ebc766fa46ca4a66743a222e6e2bc3aef4e8ea6b06e587ba7c8555ae3713e.bin",
+    "triangles": 0
+  },
+  {
+    "compressed": 138635,
+    "critical": false,
+    "decoded": 138635,
+    "dependencies": [
+      "6e2ebc766fa46ca4a66743a222e6e2bc3aef4e8ea6b06e587ba7c8555ae3713e"
+    ],
+    "draws": 0,
+    "gpu": 1736788,
+    "hash": "9df058a87cae0f4840a4e6dd219a0e49a88c73de1bbcb41cbb7af317a4f4f0b2",
+    "kind": "json",
+    "name": "world/fields/meadow.json",
+    "path": "blobs/json/9df058a87cae0f4840a4e6dd219a0e49a88c73de1bbcb41cbb7af317a4f4f0b2.json",
+    "triangles": 0
+  }
+];
+  for (const original of meadow) {
+    expect(index.files.find(row => row.name === original.name)).toEqual(original);
+    expect(hashImmutableBytes(readFileSync(resolve(folder, original.path)))).toBe(original.hash);
+  }
+
   for (const piece of BAKED_PIECES) {
     const name = `world/geometry/pieces/${piece}.glb`, original = readFileSync(`public/assets/far-reach/baked/${piece}.glb`);
     const expected = nameBlob(name, 'glb', original), actual = index.files.find(row => row.name === name);

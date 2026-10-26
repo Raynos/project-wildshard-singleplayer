@@ -1,12 +1,12 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- Read the original admitted bytes and isolate real sealed-driver scratch.
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-// oxlint-disable-next-line import/no-nodejs-modules -- Keep all sealed-driver scratch under the repository.
-import { relative, resolve } from 'node:path';
-// oxlint-disable-next-line import/no-nodejs-modules -- Compare complete original binary output without assertion expansion.
-import { Buffer } from 'node:buffer';
+// oxlint-disable-next-line import/no-nodejs-modules -- Read the fixed original placement and clearance declarations.
+import { readFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Resolve only the defining source bundle and deliberate omission controls.
+import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { discoverGeneration, generateShardJob } from '../scripts/generate.mjs';
+import { discoverGeneration } from '../scripts/generate.mjs';
+import { build } from 'vite';
+import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { bakeMeadowBlades } from '../src/shards/far-reach/generators/meadowBlades';
 import { meadowHoles, meadowPaths } from '../src/shards/far-reach/generators/placements';
@@ -20,7 +20,9 @@ test('owned meadow placement values preserve every original row and packed blade
   const rows = (values: ReturnType<typeof meadowHoles>): number[][] => values.map(({ x, y, z, w }) => [x, y, z, w]);
   expect(rows(meadowHoles())).toEqual(original.meadow.holes);
   expect(rows(meadowPaths())).toEqual(original.meadow.paths);
-  expect(Buffer.compare(bakeMeadowBlades(), readFileSync(output))).toBe(0);
+  const bytes = bakeMeadowBlades();
+  expect(bytes.byteLength).toBe(1_431_607);
+  expect(hashImmutableBytes(bytes)).toBe('851f80fb000e621ab1b6e22edd9a9ac7fbcb6ecfeda1047a86f3f919d779e33f');
 });
 
 test('authored dressing clearances retain every original disc and own their coordinate arrays', () => {
@@ -33,22 +35,33 @@ test('authored dressing clearances retain every original disc and own their coor
   expect(second).toEqual(original.discs); expect(heroStoneDiscs()).toEqual(original.discs);
 });
 
-test('the actual cold sealed meadow writer omits both metadata handoffs, refuses missing source and retains its complete output', async () => {
-  const root = resolve('.'), { jobs } = discoverGeneration(root), job = jobs.find(row => row.id === 'sky-meadow-blades');
-  if (job === undefined) throw new Error('Missing retained meadow writer');
-  expect(job.inputRoots).not.toContain('src/shards/far-reach/data/placements.json');
-  expect(job.inputRoots).not.toContain('src/shards/far-reach/data/dressing.json');
-  expect(job.inputRoots).toContain('src/shards/far-reach/generators/placements.ts');
-  const source = 'src/shards/far-reach/generators/dressing.ts';
-  expect(job.inputRoots).toContain(source);
-  const omitted = { ...job, inputRoots: job.inputRoots.filter(path => path !== source) };
-  const expected = hashImmutableBytes(readFileSync(output)), cacheDir = mkdtempSync(resolve('tmp/sky-meadow-inputs-'));
-  const catalogPath = relative(root, resolve(cacheDir, 'omitted.json'));
-  try {
-    writeFileSync(catalogPath, JSON.stringify({ schema: '../scripts/generation-jobs.schema.json', jobs: jobs.map(row => row.id === job.id ? omitted : row) }));
-    await expect(generateShardJob(root, omitted, { cacheDir, catalogPath, forceCompare: true })).rejects.toThrow('Generator exited 1');
-    const result = await generateShardJob(root, job, { cacheDir, forceCompare: true });
-    try { expect(result.hit).toBe(false); expect(result.hashes).toEqual({ [output]: expected }); }
-    finally { result.release(); }
-  } finally { rmSync(cacheDir, { recursive: true, force: true }); }
+const bundle = (omitted?: string) => build({ configFile: false, logLevel: 'silent',
+  plugins: omitted === undefined ? [] : [{ name: 'omit-defining-meadow-source', load(id) {
+    if (id === resolve(omitted)) throw new Error(`Omitted meadow source ${omitted}`);
+    return null;
+  } }],
+  build: { write: false, minify: false,
+    lib: { entry: resolve('src/shards/far-reach/generators/meadowScene.ts'), formats: ['es'] },
+    rolldownOptions: { external: [/^node:/u, 'assemblyscript/dist/asc.js'], output: { codeSplitting: false } } } });
+
+test('owned meadow channels bundle without generated imports or file/compiler services', async () => {
+  const result = await bundle(), bundled = Array.isArray(result) ? result[0] : result;
+  if (bundled === undefined || !('output' in bundled)) throw new Error('Missing owned meadow bundle');
+  const chunks = bundled.output.filter(row => row.type === 'chunk'); expect(chunks).toHaveLength(1);
+  for (const chunk of chunks) {
+    assertConfigBoundary([...chunk.imports, ...chunk.dynamicImports]);
+    expect(Object.keys(chunk.modules).some(path => path.includes('.generated.'))).toBe(false);
+  }
+});
+
+test.each(['placements.ts', 'dressing.ts'])('owned meadow compilation refuses missing defining %s', async source => {
+  await expect(bundle(`src/shards/far-reach/generators/${source}`)).rejects.toThrow('Omitted meadow source');
+});
+
+test('the meadow scheduler writer and every declared blade handoff reader are retired', () => {
+  for (const job of discoverGeneration(resolve('.')).jobs) {
+    expect(job.id).not.toBe('sky-meadow-blades');
+    expect(job.outputs, job.id).not.toContain(output);
+    expect(job.inputRoots, job.id).not.toContain(output);
+  }
 });
