@@ -48,6 +48,15 @@ test('the actual SDK-built product binds receipt-verified discovery to the admit
     compressed: 1_828_044, decoded: 1_828_016, gpu: 1_825_056, triangles: 20_000, draws: 4, dependencies: [], critical: false });
   expect(hashImmutableBytes(readFileSync(resolve(folder, mill.path)))).toBe(mill.hash);
 
+  const fan = index.files.find(row => row.name === 'world/geometry/fan.glb');
+  if (fan === undefined) throw new Error('Missing owned fan pool');
+  expect(fan).toEqual({ name: 'world/geometry/fan.glb', kind: 'glb',
+    hash: '5f5a9a056455af528c872807359347ee60007990dc6854e36f54f2e8db5b86d1',
+    path: 'blobs/glb/5f5a9a056455af528c872807359347ee60007990dc6854e36f54f2e8db5b86d1.glb',
+    compressed: 683_792, decoded: 683_764, gpu: 666_216, triangles: 15_136, draws: 28, dependencies: [], critical: false });
+  expect(hashImmutableBytes(readFileSync(resolve(folder, fan.path)))).toBe(fan.hash);
+  expect(Buffer.compare(readFileSync(resolve(folder, fan.path)), readFileSync('public/assets/far-reach/baked/fan.glb'))).toBe(0);
+
   const meadow = [
   {
     "compressed": 1736792,
