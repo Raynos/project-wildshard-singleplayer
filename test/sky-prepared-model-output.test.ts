@@ -14,6 +14,8 @@ import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { sceneRigFiles } from '../src/game/shardfile/sceneRigFiles';
 import { skyProductRows } from '../src/shards/far-reach/generators/product';
+import { SKY_WORLD_TILE_ROWS } from '../src/shards/far-reach/generators/worldTileRows';
+import { skyWorldTileSource } from '../src/shards/far-reach/generators/worldTileBytes';
 import { output, prepareOutput } from '../src/shards/far-reach/generators/sourceOutput';
 
 const geometryName = 'world/geometry/prepared-models.glb', heroName = 'world/sources/heroes.json';
@@ -53,11 +55,23 @@ test('owned output preserves the full GLB and measured costs, with only its hero
     const baseline = text.decode(beforeBytes);
     expect(text.decode(afterBytes)).toBe(baseline.replace('"/assets/far-reach/baked/prepared-models.glb"', JSON.stringify(geometryName)));
     expect(owned.assets.has(before.hash)).toBe(false);
+    expect(SKY_WORLD_TILE_ROWS.files).toHaveLength(22);
+    for (const file of SKY_WORLD_TILE_ROWS.files) {
+      const tile = owned.assets.get(file.hash);
+      if (tile === undefined) throw new Error('Missing owned island tile');
+      expect(Buffer.compare(tile, readFileSync(`src/shards/far-reach/assets/${file.hash}`))).toBe(0);
+      tile.fill(0);
+    }
     // Returned geometry cannot poison a later source-cache hit or the baseline output.
     bytes.fill(0);
     const hit = await prepareOutput(context()), hitBytes = hit.assets.get(hash);
     if (hitBytes === undefined) throw new Error('Missing cache-hit GLB');
-    expect(Buffer.compare(hitBytes, original)).toBe(0); expect(builds).toBe(1);
+    expect(Buffer.compare(hitBytes, original)).toBe(0); expect(builds).toBe(2);
+    for (const file of SKY_WORLD_TILE_ROWS.files) {
+      const tile = hit.assets.get(file.hash);
+      if (tile === undefined) throw new Error('Missing cache-hit island tile');
+      expect(Buffer.compare(tile, readFileSync(`src/shards/far-reach/assets/${file.hash}`))).toBe(0);
+    }
     expect(text.decode(output.assets.get(before.hash))).toBe(baseline);
   } finally { rmSync(cache, { recursive: true, force: true }); }
 });
@@ -94,4 +108,25 @@ test('the active output preparation bundles without filesystem or compiler servi
   if (built === undefined || !('output' in built)) throw new Error('Missing owned output bundle');
   const chunks = built.output.filter(row => row.type === 'chunk'); expect(chunks).toHaveLength(1);
   for (const chunk of chunks) assertConfigBoundary([...chunk.imports, ...chunk.dynamicImports]);
+});
+
+
+test('output preparation refuses incomplete cached tiles despite physical writer files', async () => {
+  const cache = mkdtempSync(resolve('tmp/sky-tile-output-refusal-'));
+  try {
+    const ctx = createProjectGeneration(resolve('src/shards/far-reach'), 'e'.repeat(64), new Map(), cache,
+      [{ prefix: '/assets/', directory: resolve('public/assets') }]);
+    const files = skyWorldTileSource(), first = SKY_WORLD_TILE_ROWS.files[0];
+    if (first === undefined) throw new Error('Missing original tile declaration');
+    files.delete(`assets/${first.hash}`);
+    // A self-consistent smaller cache bank still cannot satisfy the original declaration.
+    const metadata = files.get('data/props.json');
+    if (metadata === undefined) throw new Error('Missing original tile metadata');
+    const schema = v.object({ files: v.array(v.object({ hash: v.string() })) });
+    const rows = v.parse(schema, JSON.parse(text.decode(metadata)));
+    files.set('data/props.json', new TextEncoder().encode(JSON.stringify({ files: rows.files.filter(file => file.hash !== first.hash)
+      .map(file => ({ hash: file.hash, compressed: files.get(`assets/${file.hash}`)?.byteLength })) })));
+    await expect(prepareOutput({ ...ctx, cached: (step, generate) => step.id === 'world-tiles'
+      ? Promise.resolve(files) : ctx.cached(step, generate) })).rejects.toThrow('Sky world tile publication inventory differs');
+  } finally { rmSync(cache, { recursive: true, force: true }); }
 });

@@ -15,6 +15,8 @@ import { skyPhysics } from './physics';
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import { preparedModelProgram } from './preparedModelProgram';
 import { skyHeroSource } from './sceneSources';
+import { skyWorldTileProgram } from './worldTileProgram';
+import { SKY_WORLD_TILE_ROWS } from './worldTileRows';
 
 type SectionName = Parameters<Parameters<typeof emitPlatformSections>[0]['get']>[0];
 /** Build-only declarations; the compiled client features own all presentation. */
@@ -35,7 +37,7 @@ export const output = { blobs:SKY_PAINTED_ATTRIBUTE_SOURCES,namedFiles: sources.
   ])),
 } satisfies ProjectOutput;
 
-/** Publish the original prepared geometry through normal named-file admission and native pool resolution. */
+/** Publish original prepared geometry and island tiles through normal owned-asset admission. */
 export async function prepareOutput(ctx: ProjectGenerationContext): Promise<typeof output> {
   const name = 'world/geometry/prepared-models.glb';
   const geometry = nameBlob(name, 'glb', await preparedModelProgram(ctx)), hero = skyHeroSource(name);
@@ -43,5 +45,12 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<type
   if (previous === undefined) throw new Error('Missing original hero library output');
   const assets = new Map(output.assets);
   assets.delete(previous.hash); assets.set(geometry.file.hash, geometry.bytes); assets.set(hero.file.hash, hero.bytes);
+  const tiles = await skyWorldTileProgram(ctx);
+  if (tiles.size !== SKY_WORLD_TILE_ROWS.files.length + 1) throw new Error('Sky world tile publication inventory differs');
+  for (const file of SKY_WORLD_TILE_ROWS.files) {
+    const bytes = tiles.get(`assets/${file.hash}`);
+    if (bytes === undefined) throw new Error('Sky world tile publication misses a declared asset');
+    assets.set(file.hash, bytes);
+  }
   return { ...output, namedFiles: [...output.namedFiles.map(file => file.name === hero.file.name ? hero.file : file), geometry.file], assets };
 }

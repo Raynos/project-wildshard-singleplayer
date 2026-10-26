@@ -1,5 +1,5 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Read complete admitted product and frozen original geometry bytes.
-import { readFileSync } from 'node:fs';
+import { mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the current SDK-built product and its declared file.
 import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare the complete GLB without expanding a 10 MB assertion.
@@ -9,6 +9,12 @@ import { readBuiltShardfile } from '../scripts/built-product.mjs';
 import { readProgramDiscovery } from '../scripts/program-discovery.mjs';
 import { parseOutputIndex } from '../src/format/outputIndex';
 import { hashImmutableBytes } from '../src/sdk/immutable';
+import { emptyShardfile } from '../src/sdk/author';
+import { projectAssets } from '../src/sdk/project';
+import { prepareProjectOutput } from '../src/sdk/projectOutput';
+import { createProjectGeneration } from '../src/sdk/projectGeneration';
+import { prepareOutput } from '../src/shards/far-reach/generators/sourceOutput';
+import { SKY_WORLD_TILE_ROWS } from '../src/shards/far-reach/generators/worldTileRows';
 import { skyProductBoot } from '../src/shards/far-reach/generators/bootInventory';
 
 test('the actual SDK-built product binds receipt-verified discovery to the admitted complete geometry', () => {
@@ -24,4 +30,41 @@ test('the actual SDK-built product binds receipt-verified discovery to the admit
   expect(hashImmutableBytes(bytes)).toBe(hash);
   expect(Buffer.compare(bytes, readFileSync('public/assets/far-reach/baked/prepared-models.glb'))).toBe(0);
   expect(file).toMatchObject({ compressed: 10_134_100, decoded: 10_134_072, gpu: 10_096_780, triangles: 203_025, draws: 48 });
+});
+
+
+test('all original tiles admit from owned output with no project asset files', async () => {
+  const scratch = mkdtempSync(resolve('tmp/sky-tile-publication-'));
+  try {
+    const ctx = createProjectGeneration(resolve('src/shards/far-reach'), 'f'.repeat(64), new Map(), resolve(scratch, 'cache'),
+      [{ prefix: '/assets/', directory: resolve('public/assets') }]);
+    const owned = await prepareOutput(ctx), prepared = await prepareProjectOutput(resolve('src/shards/far-reach'), owned);
+    const base = emptyShardfile({ slug: 'tile-publication', name: 'Tiles', author: 'Fixture', revision: 1, seed: 1 });
+    const rows = SKY_WORLD_TILE_ROWS, shard = { ...base, files: rows.files, tiles: rows.tiles,
+      library: rows.files.map(file => file.hash), budgets: { ...base.budgets, library: {
+        compressed: rows.files.reduce((sum, file) => sum + file.compressed, 0),
+        resident: rows.files.reduce((sum, file) => sum + file.decoded + file.gpu, 0) } } };
+    const empty = mkdtempSync(resolve(scratch, 'project-'));
+    const admitted = projectAssets(empty, shard, 'project', prepared.assets);
+    expect(readdirSync(empty)).toEqual([]);
+    expect([...admitted.keys()]).toEqual(rows.files.map(file => file.hash));
+    const folder = readBuiltShardfile(resolve('.'), 'far-reach');
+    const input: unknown = JSON.parse(readFileSync(resolve(folder, 'shard.json'), 'utf8'));
+    const index = parseOutputIndex(input);
+    expect(rows.files).toHaveLength(22);
+    for (const original of rows.files) {
+      const file = index.files.find(row => row.hash === original.hash), bytes = admitted.get(original.hash);
+      if (file === undefined || bytes === undefined) throw new Error('Missing admitted original tile');
+      expect(file).toMatchObject(original);
+      expect(hashImmutableBytes(bytes)).toBe(original.hash);
+      expect(Buffer.compare(bytes, readFileSync(`src/shards/far-reach/assets/${original.hash}`))).toBe(0);
+      expect(Buffer.compare(bytes, readFileSync(resolve(folder, file.path)))).toBe(0);
+    }
+    const first = rows.files[0];
+    if (first === undefined) throw new Error('Missing original tile declaration');
+    const missing = new Map(prepared.assets); missing.delete(first.hash);
+    expect(() => projectAssets(empty, shard, 'project', missing)).toThrow();
+    const short = new Map(prepared.assets); short.set(first.hash, new Uint8Array());
+    expect(() => projectAssets(empty, shard, 'project', short)).toThrow('Project asset differs from its declared wire size');
+  } finally { rmSync(scratch, { recursive: true, force: true }); }
 });
