@@ -345,9 +345,11 @@ running. Behaviour7/11 repeat the older Sky/foliage refusals on source before
 095787aa7077/1992f8b8fa. A distinct behaviour8 failure is owned/routed to o3:
 test/toon-look-platform.test.ts supplies no cloud `detail` after the G750
 contract change, so its executable/day-key negatives cannot start. First
-22:01:20Z, source deadline22:31:20Z; all original refusals must remain.
-This new fixture red keeps the overall verdict red regardless of the pending
-closed-Looks confirmation. No capture, cap change or smoke retry is requested.
+22:01:20Z, source deadline22:31:20Z. O3 correction8ff7e588e9 declares cloud
+detail1 in that fixture; all refusal cases remain unchanged and four local
+cases pass. Publication and containing CI must be verified independently.
+The overall verdict remains red pending containing checks. No capture, cap
+change or smoke retry is requested.
 
 ## Decisions for Jake
 
