@@ -243,6 +243,7 @@ function house(w, p, variant) {
   const blocks = variant === 0
     ? [[-24, 24, 8, 26], [-26, -12, -24, 6], [12, 26, -24, 6]]
     : [[-24, 24, 11, 26], [-25, -11, -24, 9], [11, 25, -24, 9], [-7, 7, -26, -18]];
+  kerbRing(w, p, { s: 12 });
   if (w.hasModel('houses')) modelHouses(w);
   else for (const [x0, x1, z0, z1] of blocks) {
     w.sides('Kit', [x0, 0, z0], [x1, wall, z1], p.wall);
@@ -269,6 +270,22 @@ function house(w, p, variant) {
   frustum(w, 'Kit', 6, -11, 6, 2, 0, 2.6, 5.2, p.foliage, 1.2);
   w.solid([5.7, 0, -11.3], [6.3, 2, -10.7]);
 }
+/** RM7.3 (opt-in with the ground kit, canal.glb): a raised stone kerb (0.3 m wide, 0.15 m high) round a block's inner
+ *  square, open where its paths meet the lanes (`gaps`: half-widths by side, n e s w at rotation 0). It collides (a step
+ *  the rider climbs). */
+function kerbRing(w, p, gaps) {
+  if (!w.hasModel('canal')) return;
+  const e = INNER, t = 0.3, h = 0.15;
+  const run = (a0, a1, side) => {
+    const gap = gaps[side] ?? 0, spans = gap > 0 ? [[a0, -gap], [gap, a1]] : [[a0, a1]];
+    for (const [u0, u1] of spans) {
+      const [min, max] = side === 'n' ? [[u0, 0, e - t], [u1, h, e]] : side === 's' ? [[u0, 0, -e], [u1, h, -e + t]]
+        : side === 'e' ? [[e - t, 0, u0], [e, h, u1]] : [[-e, 0, u0], [-e + t, h, u1]];
+      w.box('Kit', min, max, p.stone, p.stoneTop); w.solid(min, max);
+    }
+  };
+  run(-e, e, 'n'); run(-e, e, 's'); run(-e + t, e - t, 'e'); run(-e + t, e - t, 'w');
+}
 /** RM4.4: an H court's houses from the kit's models (opt-in, tiledPlot.mjs KIT_FAMILIES): five cottages and two-storey
  *  houses along the north side facing the court, a porch hall on each wing facing in (the court's lanterns, lawn and
  *  tree are the court's own). */
@@ -284,6 +301,7 @@ function modelHouses(w) {
 }
 /** G garden: four lawns between cross paths, trees, a pond in the south-east lawn, lanterns along the paths. */
 function garden(w, p, variant) {
+  kerbRing(w, p, { n: 3, e: 3, s: 3, w: 3 });
   const lawns = [[-26, -3, 3, 26], [3, 26, 3, 26], [-26, -3, -26, -3], [3, 26, -26, -3]];
   for (const [index, [x0, x1, z0, z1]] of lawns.entries()) {
     w.floor('Kit', x0, z0, x1, z1, 0.06, p.lawn);
@@ -315,6 +333,7 @@ function garden(w, p, variant) {
 /** S stall row (NM9: the mockup's density): two rows of five red stalls facing each other across the tile's aisle, each
  *  awning lit with lanterns along its eave, and food carts with lanterns down the aisle. */
 function stalls(w, p) {
+  kerbRing(w, p, { n: 6, s: 6 });
   if (w.hasModel('stalls')) { modelStalls(w, p); return; }
   for (const side of [-1, 1]) for (let i = 0; i < 5; i++) {
     const z = -22 + i * 11, outer = side * 27, inner = side * 15;
