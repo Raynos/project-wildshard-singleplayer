@@ -340,6 +340,15 @@ it preserves DynamicDrawUsage without a cast. G745 transfers to sp-x9 under
 the lane audit; sp-x7 starts no further feature work while main is red.
 This reading is a source/provenance receipt, not a containing-CI success.
 
+CI40407883753 on f99b7837db contains G750 and its products census is still
+running. Behaviour7/11 repeat the older Sky/foliage refusals on source before
+095787aa7077/1992f8b8fa. A distinct behaviour8 failure is owned/routed to o3:
+test/toon-look-platform.test.ts supplies no cloud `detail` after the G750
+contract change, so its executable/day-key negatives cannot start. First
+22:01:20Z, source deadline22:31:20Z; all original refusals must remain.
+This new fixture red keeps the overall verdict red regardless of the pending
+closed-Looks confirmation. No capture, cap change or smoke retry is requested.
+
 ## Decisions for Jake
 
 - **D1** Should `commit.sh` run `vitest related` (and the touched layer's types) on every commit, capped at 60 s,
