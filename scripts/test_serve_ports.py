@@ -485,6 +485,13 @@ class SharedReleaseTests(unittest.TestCase):
         self.assertTrue(output.is_symlink())
         self.assertTrue(self.out.exists())
 
+    def test_orphan_reaper_matches_relative_and_absolute_registry_paths(self):
+        output = self.registry / ('20261025-120000-' + self.port)
+        output.mkdir()
+        (self.registry / self.port).write_text(self.row.replace(str(self.out), str(output)))
+        self.assertEqual(self.module.reap_output(self.registry, os.path.relpath(self.registry), os.path.relpath(output)), 0)
+        self.assertTrue(output.exists())
+
     def test_official_reader_release_keeps_its_parent_preview(self):
         command = "import {compiledPreviewEnvironment} from './scripts/loading-benchmark/sim-shard.mjs'; process.stdout.write(compiledPreviewEnvironment({SERVE_OWNER:'lane-a'},123).SERVE_OWNER);"
         borrower = subprocess.check_output(['node', '--input-type=module', '-e', command], cwd=ROOT, text=True)

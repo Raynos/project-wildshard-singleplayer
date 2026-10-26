@@ -179,7 +179,7 @@ def reap_output(registry, base, output, dry=False):
     match = re.fullmatch(r'.*-(\d+)', path.name.split('.stopped-', 1)[0])
     if path.is_symlink() or path.parent.resolve() != Path(base).resolve() or match is None:
         return 0
-    port = match[1]
+    port = str(int(match[1]))
     if not 1 <= int(port) <= 65535 or not path.is_dir():
         return 0
     registry.mkdir(parents=True, exist_ok=True)
@@ -191,7 +191,7 @@ def reap_output(registry, base, output, dry=False):
         for entry in registry.glob('[0-9]*'):
             if entry.is_file():
                 row = entry.read_text().split(maxsplit=4)
-                if len(row) >= 3 and row[2] == str(path):
+                if len(row) >= 3 and Path(row[2]).resolve() == path.resolve():
                     return 0
         if dry:
             print('would remove %s' % path)
