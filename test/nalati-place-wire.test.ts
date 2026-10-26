@@ -13,9 +13,18 @@ import { hashImmutableBytes } from '../src/sdk/immutable';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { discoverGeneration, generateShardJob, generationInputs } from '../scripts/generate.mjs';
 import beforeWires from './fixtures/nalati-place-wires.json' with { type: 'json' };
+import { nalatiPlacesProgram } from '../src/shards/nalati-grasslands/generators/placesProgram';
 
 const original = committedPlaces();
 const compress = (bytes: Uint8Array): Uint8Array => new Uint8Array(deflateSync(bytes, { level: 9 }));
+// A sealed native publisher owns current-machine metadata. Independent frozen
+// wire tests below still require every complete original metadata/binary pin.
+const nativeInputs = new Map<string, Uint8Array>([
+  ['/assets/baked/nalati-grasslands/terrain.bin', readFileSync('public/assets/baked/nalati-grasslands/terrain.bin')],
+  ...['pond', 'red', 'green', 'blue'].map((name): [string, Uint8Array] => [
+    `data/geography-${name}.bin`, readFileSync(`src/shards/nalati-grasslands/data/geography-${name}.bin`)]),
+]);
+const nativeDocuments = await nalatiPlacesProgram({ cached: (_step, make) => Promise.resolve(make(nativeInputs)) });
 for (const [name, document] of [['places', 'places.json'], ['specimens', 'placeSpecimens.json'], ['dressing', 'nalati-dressing-geos.json']] as const) {
   test(`the pure ${name} wire preserves every committed geometry and metadata byte`, () => {
     const before = original[name], inputHash = hashImmutableBytes(before.raw);
@@ -84,7 +93,19 @@ for (const omission of ['wire', 'geometry', null] as const) {
         const result = await generateShardJob(root, job, { cacheDir, forceCompare: true });
         try {
           expect(Object.keys(result.hashes).sort()).toEqual([...job.outputs].sort());
-          for (const file of job.outputs) expect(result.hashes[file], file).toBe(hashImmutableBytes(readFileSync(file)));
+          for (const file of job.outputs) {
+            const actual = readFileSync(resolve(result.directory, file));
+            expect(result.hashes[file], file).toBe(hashImmutableBytes(actual));
+            const expected = file.endsWith('.json') ? nativeDocuments.get(file.slice(file.lastIndexOf('/') + 1)) : undefined;
+            if (expected !== undefined) {
+              expect(Buffer.compare(actual, expected), file).toBe(0);
+            } else {
+              const pin = beforeWires.find(row => row.path === file);
+              if (pin === undefined) throw new Error('Missing original native binary pin');
+              expect(actual.byteLength, file).toBe(pin.bytes);
+              expect(hashImmutableBytes(actual), file).toBe(pin.hash);
+            }
+          }
         } finally { result.release(); }
       }
     } finally { rmSync(cacheDir, { recursive: true, force: true }); }
