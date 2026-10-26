@@ -3,11 +3,11 @@
 **Order (G639):** (1) live reds → (2) NALATI 0 → (3) grid / frame floor → extras.
 
 **(1) LIVE 14a3d5d935 (18:54Z 10-26); ~20 hourly releases since 10-25 (sp-x7, G705). Smoke per-leg bundles 23-70 s. Open:
-CF2 title-capture stall (trace: GPU busy compiling on the Nine title), intermittent grid far-cell wait. Council: done (4 rounds, G59). G745 phone-route smoke leg: sp-x7. G736-G739 iPhone downloads + G741 JS payload/heap: after the extras.
+Night Market map hash red (sp-o2); CF2 title-capture stall (trace: GPU busy compiling on the Nine title), intermittent grid far-cell wait. Council: done (4 rounds, G59). G745 phone-route smoke leg: sp-x7. G736-G739 iPhone downloads + G741 JS payload/heap: after the extras.
 
 **(2) NALATI 0 done (27dd969127).** HOST-AUDIT (G679) parked until every mini plan finishes. Legacy waits (G606).
 
-**(3) Frame floor:** G717 48/48 latches; official quiet Sim 13/15 (DW spawn p95 42, Pine whole 44/90: sp-x1); two-world
+**(3) Frame floor:** G717 48/48 latches; official quiet Sim 13/15 (DW spawn p95 42, Pine whole 44/90: sp-o4); two-world
 1.056 GB PASS. G723 edges Pine 2.6 / DW 8.1 / Nine 8.7 / Nalati 11.6 s (< 5 s: G743 top Codex priority, sp-x8).
 L18: DW 107 -> 78 MB; rest is lighter assets (Opus).
 
@@ -19,8 +19,10 @@ L18: DW 107 -> 78 MB; rest is lighter assets (Opus).
 0.48 s (was 1.43 s blank); the 0.32 s black is iOS's launch zoom, outside the page.
 Hero retake board 0dd7ce4722; Nalati aerial terrain fixed 0ce626a8f5; G630 still needs Nine far proxy + Sunscar glow (Opus). G733 badges 94ef588da9 (blank thumbnails never reproduced; U1: updates apply in 720 ms); L17
 2511ddea95 + f30e0be71c. Now: sp-x8 G743 crossings; sp-x9 G742: 0/19 was stale, DR1-DR19 already landed (only 'Clear downloads' left), reconciling the plan; sp-x1 GR5 Far Reach 38 jobs (Nine GR3 0); sp-x6 GR6 Nalati 41 (Sunscar GR4 0);
-sp-x2 core memory C4; GR7 DW 41 / GR8 Pine 61 queued.
-**Blocked on Jake:** LEGACY phone QA (wave 3), road B pilot play, C6.2. Hero approved (G744): sp-x1 ships it.
+sp-x2 RM8.1 quantized tile geometry -> C4; GR7 DW 41 / GR8 Pine 61 queued.
+**Blocked on Jake:** G713 lighter RT pick (art/post/round-1-lighter-rt/, c4607318c9: Pine/Sky/Signal -27 MiB,
+Template/DW -9.9 MiB, frame time same; C5.6), road B pilot play, C6.2; boards as they land. Parked (not near-term): LEGACY QA, waves 2-3, iPhone checks. G744 hero shipped in source 1873e9ca2c
+(capture f577daebff, art/main-menu-hero/round-7-title-adoption/); reaches live with the next release.
 
 **Lanes (G735, Jake 10-26 14:46: overrides G605):** 5 Opus + 5 Codex + sp-x7. sp-o1 NM remaster models (RM4/7/9/8/13),
 sp-o2 NM look (RM5/6/10/11/12), sp-o3 G685 Driftwood toon clouds, sp-o4 G713 lighter post RT sheet (C5/J8), sp-o5 G630
