@@ -182,7 +182,7 @@ No smoke retry, deadline extension or later successful frame substitutes for
 that first report. The existing six release checks continue during rollout.
 
 The artifact prerequisite is now met: successful push build `0402808e41` /
-[`40411836950`](https://github.com/Raynos/wildshard-singleplayer/actions/runs/40411836950)
+[`40411836950`](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/40411836950)
 contains the phone producer `893f149908`. Its downloaded manifest binds the
 full SHA/run, build `0402808-mvpu8uth` and all seven checksummed legs; the
 phone archive is 1,951,764,480 B with SHA-256
