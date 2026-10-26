@@ -1,3 +1,4 @@
+import { nalatiRuntime } from './fixtures/nalati-runtime';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare every original scene-description wire byte.
 import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Inspect the complete private author bundle.
@@ -11,9 +12,10 @@ import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import original from './fixtures/nalati-poi-scenes.json' with { type: 'json' };
 
-for (const source of ['places.json', 'placeRuntime.generated.json']) test(`owned ${source} metadata retains every original POI scene wire byte`, () => {
-  let input: unknown = JSON.parse(readFileSync(`src/shards/nalati-grasslands/data/${source}`, 'utf8'));
-  if (source === 'placeRuntime.generated.json') input = v.parse(v.object({ places: v.unknown() }), input).places;
+for (const source of ['places.json', 'native runtime']) test(`owned ${source} metadata retains every original POI scene wire byte`, () => {
+  const input: unknown = source === 'places.json'
+    ? JSON.parse(readFileSync('src/shards/nalati-grasslands/data/places.json', 'utf8'))
+    : v.parse(v.object({ places: v.unknown() }), nalatiRuntime).places;
   const places = v.parse(v.object({ rows: v.array(v.object({ name: v.string(), group: v.nullable(v.string()),
     meshes: v.array(v.object({ name: v.string(), material: v.string(), slot: v.number() })) })) }),
   input);

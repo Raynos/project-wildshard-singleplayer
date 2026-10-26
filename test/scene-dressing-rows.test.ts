@@ -33,7 +33,7 @@ const cragTier=v.object({recipe:PrivateSceneSchema,placements:v.array(v.unknown(
 const cragRows=v.parse(v.object({phone:cragTier,desktop:cragTier}),
   JSON.parse(readFileSync('src/shards/nalati-grasslands/boot/cragRock.generated.json','utf8')));
 const prepared=v.parse(v.object({places:v.object({rows:v.array(v.object({name:v.string(),members:v.array(v.unknown())}))})}),
-  JSON.parse(readFileSync('src/shards/nalati-grasslands/data/placeRuntime.generated.json','utf8')));
+  nalatiRuntime);
 
 const wire = (input:unknown):unknown => JSON.parse(encodeCanonicalJson(input));
 test.each([['geometry','world'],['geometry','retire'],['geometry','length'],['lettering','world'],['lettering','retire'],['lettering','length']]as const)('raw %s refuses %s changes before any resource or system publication',async(kind,failure)=>{

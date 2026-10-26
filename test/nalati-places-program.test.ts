@@ -16,6 +16,7 @@ test('fresh owned places retain native bytes and metadata with detached cache hi
     import { hashImmutableBytes } from './src/sdk/immutable.ts';
     import { selectedLevel } from '@wildshard/engine/level/selection';
     import { nalatiPlacesProgram } from './src/shards/nalati-grasslands/generators/placesProgram.ts';
+    import { nalatiRuntimeRows } from './src/shards/nalati-grasslands/generators/runtimeRows.ts';
     import { alike } from './src/shards/nalati-grasslands/generators/bake-nalati-places.mjs';
     assert.equal(selectedLevel(),null);
     const cache=mkdtempSync(resolve('tmp/nalati-places-owned-'));
@@ -29,7 +30,7 @@ test('fresh owned places retain native bytes and metadata with detached cache hi
     const check=files=>{
       assert.deepEqual([...files.keys()].sort(),['actor:balbal:0:2977.bin','actor:balbal:1:2977.bin','actor:goat.bin','placeParts.json','placeSpecimens.json','places.bin','places.json','specimens.bin']);
       const parts=JSON.parse(new TextDecoder().decode(files.get('placeParts.json')));
-      const runtime=JSON.parse(readFileSync('src/shards/nalati-grasslands/data/placeRuntime.generated.json','utf8'));
+      const runtime=nalatiRuntimeRows({places:JSON.parse(readFileSync('src/shards/nalati-grasslands/data/places.json','utf8')),paint:JSON.parse(readFileSync('src/shards/nalati-grasslands/data/poiPaint.json','utf8'))}).runtime;
       for(const [name,path,hash] of [
         ['actor:balbal:0:2977','nalati-balbal-original-0.bin','822694b3287b5b09781e531c2edfbc5def284a757fc097dcc23061b09e79f85c'],
         ['actor:balbal:1:2977','nalati-balbal-original-1.bin','45ac62fdf44b83dd06ed55de034577712732a535385de1718e16862279b4634f'],

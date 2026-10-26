@@ -1,3 +1,4 @@
+import { nalatiRuntime } from './fixtures/nalati-runtime';
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify the complete original admitted prop bytes.
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
@@ -14,7 +15,7 @@ const read = (file: string): unknown => JSON.parse(readFileSync(`${root}${file}`
 
 test('computed carried-prop geometry and admitted material preserve the whole original declaration', () => {
   const places = v.parse(v.object({ places: v.object({ rows: v.array(v.object({ name: v.string(),
-    meshes: v.array(v.object({ geometry: SceneBakedGeometrySchema })) })) }) }), read('placeRuntime.generated.json'));
+    meshes: v.array(v.object({ geometry: SceneBakedGeometrySchema })) })) }) }), nalatiRuntime);
   const specimens = v.parse(v.object({ materials: v.object({ poi: v.unknown() }) }), read('specimens.generated.json'));
   const geometry = places.places.rows.find(row => row.name === 'actor:goat')?.meshes[0]?.geometry;
   if (geometry === undefined) throw new Error('Missing computed quest prop geometry');

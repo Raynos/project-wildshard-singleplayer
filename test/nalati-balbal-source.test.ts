@@ -1,3 +1,4 @@
+import { nalatiRuntime } from './fixtures/nalati-runtime';
 // oxlint-disable-next-line import/no-nodejs-modules -- Preserve the complete original balbal declaration oracle.
 import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the pure declaration bundle for the guard proof.
@@ -16,7 +17,7 @@ const read = (file: string): unknown => JSON.parse(readFileSync(`${root}${file}`
 
 test('native carving inputs preserve the complete original balbal catalogue and encounter sites', () => {
   const places = v.parse(v.object({ places: v.object({ rows: v.array(v.object({ name: v.string(),
-    meshes: v.array(v.object({ geometry: SceneBakedGeometrySchema })) })) }) }), read('placeRuntime.generated.json'));
+    meshes: v.array(v.object({ geometry: SceneBakedGeometrySchema })) })) }) }), nalatiRuntime);
   const specimens = v.parse(v.object({ assets: v.object({ balbal: v.record(v.string(), v.unknown()) }), materials: v.object({ poi: v.unknown() }) }), read('specimens.generated.json'));
   const metrics = v.parse(v.object({ sizes: v.object({ balbal: v.tuple([v.number(), v.number(), v.number()]) }) }), read('modelMetrics.json'));
   const bare = places.places.rows.find(row => row.name === 'actor:balbal:0:2977')?.meshes[0]?.geometry;

@@ -1,3 +1,4 @@
+import { nalatiRuntime } from './fixtures/nalati-runtime';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare every original shipping carving and prop word.
 import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the pure author entry for the bundle boundary proof.
@@ -22,7 +23,7 @@ const original = [
 ] as const;
 
 test('all three detached parts preserve every shipping word, geometry row and source byte', () => {
-  const runtime: unknown = JSON.parse(readFileSync(`${root}data/placeRuntime.generated.json`, 'utf8'));
+  const runtime = nalatiRuntime;
   const metadata = v.parse(inputSchema, runtime);
   const lanes = unzlibSync(readFileSync('public/assets/nalati/baked/places.bin')), raw = new Uint8Array(lanes.length);
   for (let byte = 0; byte < 4; byte++) for (let word = 0; word < lanes.length / 4; word++) raw[word * 4 + byte] = lanes[byte * lanes.length / 4 + word] ?? 0;
