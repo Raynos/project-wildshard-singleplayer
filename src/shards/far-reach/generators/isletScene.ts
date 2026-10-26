@@ -1,10 +1,11 @@
 import { BoxGeometry, Group, Mesh, MeshStandardMaterial, TorusGeometry } from 'three';
 import { clientSceneGlb, type ClientSceneBake } from '@wildshard/sdk/bake/glb';
 import entries from '../data/islets.generated.json' with { type: 'json' };
-import rig from '../data/isletRig.json' with { type: 'json' };
+import { skyIsletRigRows } from './isletRigRows';
 import { isletMotionRows } from './isletMotion';
 import STRINGS from '../data/strings.json' with { type: 'json' };
 
+const rig = skyIsletRigRows();
 /** Finite rest geometry for the shared private-scene host. */
 function isletPool(): ClientSceneBake {
   const root = new Group(), material = new MeshStandardMaterial(); root.name = 'islet-pool';
