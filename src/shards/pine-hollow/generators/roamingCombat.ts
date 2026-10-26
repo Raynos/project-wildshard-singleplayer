@@ -1,14 +1,16 @@
+
+
 import * as v from 'valibot';
 import { PINE_ELITE_DEFS } from './eliteRoster';
-import { RoamingCombatSchema } from '@wildshard/format/roamingCombat';
-import { nameBlob } from '@wildshard/sdk/blobs';
+import { RoamingCombatSchema , type RoamingCombatRows as RoamingCombatRowsType } from '@wildshard/format/roamingCombat';
+import { nameBlob , type NamedBlob as NamedBlobType } from '@wildshard/sdk/blobs';
 import { namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
 import { ROAMING_PROJECTION } from './roamingProjection';
 import session from '../data/combatSession.json' with { type: 'json' };
 import presentation from '../data/bossPresentation.json' with { type: 'json' };
 
-export const ROAMING_COMBAT = v.parse(RoamingCombatSchema, {
+export const ROAMING_COMBAT: RoamingCombatRowsType = v.parse(RoamingCombatSchema, {
   session: { ...session, id: 'pine.combat', god: false }, projection: ROAMING_PROJECTION, presentation,
   loadout: 'pine.loadout', elites: 'actors/elites.json', persistence: 'quests/persistence.json', score: 'score.pine',
   elitePresentation: Object.fromEntries(Object.values(PINE_ELITE_DEFS).map(def => [def.id, {
@@ -22,4 +24,4 @@ export const ROAMING_COMBAT = v.parse(RoamingCombatSchema, {
   system: { id: 'elites', before: ['main.world', 'engine.creatures.update', 'main.frame'] },
   observers: { elites: '__pineElites', boss: '__antlerKing' },
 });
-export const ROAMING_COMBAT_BLOB = nameBlob('combat/roaming.json', 'json', new TextEncoder().encode(encodeCanonicalJson(ROAMING_COMBAT)), { jsonSchema: namedJsonSchema(RoamingCombatSchema) });
+export const ROAMING_COMBAT_BLOB: NamedBlobType = nameBlob('combat/roaming.json', 'json', new TextEncoder().encode(encodeCanonicalJson(ROAMING_COMBAT)), { jsonSchema: namedJsonSchema(RoamingCombatSchema) });

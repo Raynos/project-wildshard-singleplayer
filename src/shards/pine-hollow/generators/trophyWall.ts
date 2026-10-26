@@ -17,4 +17,4 @@ export const PINE_HOLLOW_TROPHIES = [
  * 2·LOG_R, the log crests) between the hearth corner and the window at z = +0.6: z ∈ [−3.2, −0.2]. Turned +90° so the
  * wall's +z is the cabin's +X (into the room) and its +x the viewer's right (−Z). FLOOR = 0.22 (Cabin.ts).
  */
-export const RANGER_WALL = { cabin: 0, at: [-2.27, 0.22, -1.7] as [number, number, number], yaw: Math.PI / 2, width: 3.0, rows: [3, 4] as const, rowY: [1.98, 1.12] as const };
+export const RANGER_WALL: { cabin: number; at: [number, number, number]; yaw: number; width: number; rows: readonly [3, 4]; rowY: readonly [1.98, 1.12]; } = { cabin: 0, at: [-2.27, 0.22, -1.7] as [number, number, number], yaw: Math.PI / 2, width: 3.0, rows: [3, 4] as const, rowY: [1.98, 1.12] as const };

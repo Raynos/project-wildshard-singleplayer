@@ -22,7 +22,7 @@ import type { QuestData } from '@wildshard/sdk/quests';
 
 import wardens from '../data/wardensHollow.json' with { type: 'json' };
 
-export const QUEST_EXTERNAL = ['talked:ranger', ...wardens.LANTERN_FLAGS, 'used:ph-zip', 'followed:stag', 'dead:king', 'seen:dawn'];
+export const QUEST_EXTERNAL: string[] = ['talked:ranger', ...wardens.LANTERN_FLAGS, 'used:ph-zip', 'followed:stag', 'dead:king', 'seen:dawn'];
 
 const at = (x: number, z: number) => ({ poi: 'world' as const, x, z });
 
@@ -85,7 +85,7 @@ export const WARDENS_HOLLOW: QuestData['quests'][number] = {
   completeFlag: wardens.QUEST_DONE,
 };
 
-export const RANGER_DIALOGUE = {
+export const RANGER_DIALOGUE: { id: string; name: string; dialogue: ({ when: { all: string[]; }; lines: string[]; sets?: never; } | { when: { all: string[]; }; lines: string[]; sets: string[]; } | { lines: string[]; sets: string[]; when?: never; })[]; } = {
   id: 'ranger',
   name: 'Hale, ranger of the Hollow',
   dialogue: [
@@ -125,7 +125,7 @@ export const RANGER_DIALOGUE = {
   ],
 };
 
-export const MILLER_DIALOGUE = {
+export const MILLER_DIALOGUE: { id: string; name: string; dialogue: ({ when: { all: string[]; }; lines: string[]; sets?: never; } | { when: { all: string[]; }; lines: string[]; sets: string[]; } | { lines: string[]; sets: string[]; when?: never; })[]; } = {
   id: 'miller',
   name: 'Brandt, the miller',
   dialogue: [
@@ -146,7 +146,7 @@ export const MILLER_DIALOGUE = {
   ],
 };
 
-export const TRADER_DIALOGUE = {
+export const TRADER_DIALOGUE: { id: string; name: string; dialogue: ({ when: { all: string[]; }; lines: string[]; sets?: never; } | { lines: string[]; sets: string[]; when?: never; })[]; } = {
   id: 'trader',
   name: 'Mott, the trader',
   dialogue: [
@@ -159,4 +159,4 @@ export const TRADER_DIALOGUE = {
 };
 
 /** the miller's errand: its flags (the runtime raises `errand:done` when the millrace thralls are down) */
-export const ERRAND_EXTERNAL = ['errand:asked', 'errand:done', 'errand:thanked', 'talked:trader', 'wait:night'];
+export const ERRAND_EXTERNAL: string[] = ['errand:asked', 'errand:done', 'errand:thanked', 'talked:trader', 'wait:night'];

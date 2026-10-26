@@ -1,3 +1,4 @@
+
 import codeParts from '../data/codeParts.json' with { type: 'json' };
 import * as v from 'valibot';
 import { CaveRowsSchema } from './sections';
@@ -8,7 +9,7 @@ import { CRAG_LOOK, CAVE_LOOK } from './cragLook';
 import layout from '../data/layout.generated.json' with { type: 'json' };
 import { MODEL_SCENES, MODEL_BLOBS, SCENE_MODELS, SCENE_PLACEMENTS } from './sceneModelRows';
 import { CABIN_JSON_BLOBS } from './cabinSceneContribution';
-import { nameBlob } from '@wildshard/sdk/blobs';
+import { nameBlob , type NamedBlob as NamedBlobType } from '@wildshard/sdk/blobs';
 import type { WorldScenesSection } from '@wildshard/format/worldScenes';
 import spray from '../data/sprayPuffs.json' with { type: 'json' };
 import { SPRAY_LOOK } from './streamLook';
@@ -38,12 +39,12 @@ v.parse(CaveRowsSchema, CRAG_CAVE_ROWS);
 /** The bear cave (G483 world scene assembly): its baked interior, its mouth's frame, its look near the mouth and its rock. */
 const CAVE_INTERIOR = v.parse(CaveInteriorSchema, { product: 'pine-hollow', file: 'world/crag-cave.json', roof: { url: codeParts.url, rows: codeParts.rows, part: codeParts.parts['cave-roof'] }, look: CAVE_LOOK,
   frame: { x: layout.BEAR_CAVE.x, z: layout.BEAR_CAVE.z, yaw: layout.BEAR_CAVE.rot }, rock: { look: CRAG_LOOK, fill: 'caveFill', pbr: 'mossy_rock', grit: 'rock_ground' } });
-export const SCENE_BLOBS = [nameBlob('world/crag-cave.json', 'json', encode(CRAG_CAVE_ROWS)), nameBlob('world/cave-interior.json', 'json', encode(CAVE_INTERIOR)), nameBlob('scenes/streams.json', 'json', encode(recipe)), nameBlob('scenes/pool.json', 'json', encode(poolRecipe)),
+export const SCENE_BLOBS: NamedBlobType[] = [nameBlob('world/crag-cave.json', 'json', encode(CRAG_CAVE_ROWS)), nameBlob('world/cave-interior.json', 'json', encode(CAVE_INTERIOR)), nameBlob('scenes/streams.json', 'json', encode(recipe)), nameBlob('scenes/pool.json', 'json', encode(poolRecipe)),
   nameBlob(SPRAY, 'bin', new Uint8Array(Float32Array.from([...matrices, ...spray.seed, ...spray.size]).buffer)),
   ...CABIN_JSON_BLOBS, ...QUEST_RIDE_BLOBS,
   nameBlob('models/world-scenes.json', 'json', encode(SCENE_MODELS)),
   ...SCENE_PLACEMENTS.map(row => nameBlob(`scenes/placements/${row.id}.json`, 'json', encode(row)))];
-export const SCENE_MODEL_BLOBS = [
+export const SCENE_MODEL_BLOBS: { name: string; kind: string; source: string; }[] = [
   { name: 'models/stream-water.glb', kind: 'glb', source: 'assets/stream-scenes/water.glb' },
   { name: 'models/stream-quad.glb', kind: 'glb', source: 'assets/stream-scenes/quad.glb' },
   { name: 'models/pool-still.glb', kind: 'glb', source: 'assets/pool-scenes/still.glb' },

@@ -1,6 +1,7 @@
+
 import codeParts from '../data/codeParts.json' with { type: 'json' };
 /** Final timber draws, shadow proxies and native placement facts; no page-side weld. */
-import { parseWorldScenePlacement } from '@wildshard/format/worldScenePlacement';
+import { parseWorldScenePlacement , type WorldScenePlacementRow as WorldScenePlacementRowType } from '@wildshard/format/worldScenePlacement';
 import { Matrix4, Object3D } from 'three';
 import baked from '../data/timberScenes.generated.json' with { type: 'json' };
 import authored from '../data/timberWorld.generated.json' with { type: 'json' };
@@ -43,7 +44,7 @@ const sites = [
   { key: 'zipline-landing', id: 'pine-zip-landing', frame: authored.placements.landing.matrix, site: 'world' },
   { key: 'creek-footbridge', id: 'pine-footbridge', frame: authored.placements.bridge.matrix, site: 'world' },
 ] as const;
-export const TIMBER_PLACEMENTS = sites.map(row => parseWorldScenePlacement({ id: `timbers.${row.key}`, model: row.key, draw: 'single',
+export const TIMBER_PLACEMENTS: WorldScenePlacementRowType[] = sites.map(row => parseWorldScenePlacement({ id: `timbers.${row.key}`, model: row.key, draw: 'single',
   poses: [{ x: row.frame[12], y: row.frame[13], z: row.frame[14], params: { site: row.site },
     ...(row.key === 'creek-footbridge' ? { yxz: { yaw: authored.placements.bridge.yaw, yawAtan2: authored.placements.bridge.turn, scale: 1 } } : { matrix: row.frame }) }],
   piece: { id: row.id, solidFloor: true, floors: authored.landmarks.timberFloors[row.id], floorPolicy: 'highest' } }));
@@ -68,8 +69,8 @@ const model = (row: typeof baked.geometry[number]) => {
   const file = files.get(row.file); if (file === undefined) throw new Error(`Missing timber blob: ${row.file}`);
   return { ...row, file };
 };
-export const TIMBER_LIBRARY = { id: 'timbers', kind: 'owned' as const, models: baked.geometry.map(model) };
-export const TIMBER_SURFACES = [...TIMBER_MATERIALS, { id: 'tokens', kind: 'lowpoly', variant: 'default', properties: {} }];
+export const TIMBER_LIBRARY: { id: string; kind: "owned"; models: { file: string; id: string; attributes: NonNullable<unknown>; }[]; } = { id: 'timbers', kind: 'owned' as const, models: baked.geometry.map(model) };
+export const TIMBER_SURFACES: ({ id: string; kind: "surface"; scan?: string; maxTexture?: { phone: number; desktop: number; }; cellTexture?: { atMost: number; max: number; }; properties: { color?: (number) | ([number, number, number]); normalScale?: [number, number]; roughness?: number; metalness?: number; transparent?: boolean; opacity?: number; envMapIntensity?: number; emissive?: (number) | ([number, number, number]); emissiveIntensity?: number; side?: 0 | 1 | 2; depthWrite?: boolean; vertexColors?: boolean; }; map?: { appearance: string; texture: string; }; look?: string; lookTextures: Record<string, "map" | "normalMap" | "roughnessMap" | "aoMap">; } | { id: string; kind: string; variant: string; properties: NonNullable<unknown>; })[] = [...TIMBER_MATERIALS, { id: 'tokens', kind: 'lowpoly', variant: 'default', properties: {} }];
 
 const logDraws = [
   { id: 'outer', part: 'outer', material: 'bark', castShadow: true, receiveShadow: true },

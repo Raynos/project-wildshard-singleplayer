@@ -1,9 +1,12 @@
+
+
+
 /** Final model/placement rows. All shape, rest-pose and contact work belongs to the offline producers. */
 import { Matrix4, Quaternion, Vector3 } from 'three';
 import { modelPoseMatrix } from '@wildshard/engine/models/modelPose';
-import { parseWorldSceneModels } from '@wildshard/format/worldSceneModels';
-import { parseWorldScenes } from '@wildshard/format/worldScenes';
-import { parseWorldScenePlacement } from '@wildshard/format/worldScenePlacement';
+import { parseWorldSceneModels , type WorldSceneModels as WorldSceneModelsType } from '@wildshard/format/worldSceneModels';
+import { parseWorldScenes , type ParsedWorldScenes as ParsedWorldScenesType } from '@wildshard/format/worldScenes';
+import { parseWorldScenePlacement , type WorldScenePlacementRow as WorldScenePlacementRowType } from '@wildshard/format/worldScenePlacement';
 import heroes from '../data/heroScenes.generated.json' with { type: 'json' };
 import heroRows from '../data/heroRows.json' with { type: 'json' };
 import props from '../data/propScenes.generated.json' with { type: 'json' };
@@ -88,13 +91,13 @@ placements.push({ id: 'props.rocks', model: 'props.rocks', draw: 'batched', sort
 { id: 'props.stumps', model: 'props.stumps', draw: 'instanced', cull: scatterCull, poses: scatter.stumps.map(pose), piece: { id: 'props-stumps' } },
 { id: 'props.log', model: 'props.log', draw: 'instanced', cull: scatterCull, poses: scatter.logs.map(pose), piece: { id: 'props-wood' } });
 
-export const SCENE_MODELS = parseWorldSceneModels({ product: 'pine-hollow', models });
-export const SCENE_PLACEMENTS = placements.map(parseWorldScenePlacement);
+export const SCENE_MODELS: WorldSceneModelsType = parseWorldSceneModels({ product: 'pine-hollow', models });
+export const SCENE_PLACEMENTS: WorldScenePlacementRowType[] = placements.map(parseWorldScenePlacement);
 function placementReference(row: (typeof SCENE_PLACEMENTS)[number]) {
   return { id: row.id, file: `scenes/placements/${row.id}.json`, ...(row.tier === undefined ? {} : { tier: row.tier }) };
 }
-export const MODEL_SCENES = parseWorldScenes({ version: 1, catalogue: 'models/world-scenes.json', batches: CRAG_BATCH_ROWS, welds: CABIN_WELDS, libraries: [CRAG_LIBRARY, TIMBER_LIBRARY, ...CABIN_LIBRARIES,
+export const MODEL_SCENES: ParsedWorldScenesType = parseWorldScenes({ version: 1, catalogue: 'models/world-scenes.json', batches: CRAG_BATCH_ROWS, welds: CABIN_WELDS, libraries: [CRAG_LIBRARY, TIMBER_LIBRARY, ...CABIN_LIBRARIES,
   { id: 'heroes', kind: 'owned', models: heroes.blobs.map(row => ({ id: row.name.slice('models/heroes/'.length, -'.glb'.length), file: row.name })) },
   { id: 'props', kind: 'owned', models: props.geometry },
 ], materials, placements: SCENE_PLACEMENTS.map(placementReference), steps: [] });
-export const MODEL_BLOBS = [...heroes.blobs, ...props.blobs, ...CRAG_MODEL_BLOBS, ...TIMBER_BLOBS, ...CABIN_BLOBS];
+export const MODEL_BLOBS: { name: string; kind: string; source: string; }[] = [...heroes.blobs, ...props.blobs, ...CRAG_MODEL_BLOBS, ...TIMBER_BLOBS, ...CABIN_BLOBS];

@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 
 /** The unchanged tower and landing yaw, in radians. */
-export const ZIP_YAW = Math.atan2(LAYOUT.ZIPLINE.from.x - LAYOUT.ZIPLINE.to.x, LAYOUT.ZIPLINE.from.z - LAYOUT.ZIPLINE.to.z);
+export const ZIP_YAW: number = Math.atan2(LAYOUT.ZIPLINE.from.x - LAYOUT.ZIPLINE.to.x, LAYOUT.ZIPLINE.from.z - LAYOUT.ZIPLINE.to.z);
 /** Native footbridge half-length, in metres. */
 export const BRIDGE_HALF = 12;
 /** Original landing identity and stream salt. */

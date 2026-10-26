@@ -16,7 +16,7 @@ for (const [key, properties] of Object.entries(CABIN_MATERIALS)) rows.push({ id:
     ...(key === 'endGrain' ? { map: { appearance: 'look/cover-appearance.json', texture: 'endGrain' } } : {}) });
 const parsed = rows.map(row => v.parse(WorldSceneSurfaceSchema, row));
 // Native publication order also fixes the material sort at coplanar joins.
-export const TIMBER_MATERIALS = ['log', 'endGrain', 'chink', 'roof', 'beam', 'deck', 'door', 'stone', 'glass', 'bark', 'iron', 'cloth', 'char'].map(key => {
+export const TIMBER_MATERIALS: { id: string; kind: "surface"; scan?: string; maxTexture?: { phone: number; desktop: number; }; cellTexture?: { atMost: number; max: number; }; properties: { color?: (number) | ([number, number, number]); normalScale?: [number, number]; roughness?: number; metalness?: number; transparent?: boolean; opacity?: number; envMapIntensity?: number; emissive?: (number) | ([number, number, number]); emissiveIntensity?: number; side?: 0 | 1 | 2; depthWrite?: boolean; vertexColors?: boolean; }; map?: { appearance: string; texture: string; }; look?: string; lookTextures: Record<string, "map" | "normalMap" | "roughnessMap" | "aoMap">; }[] = ['log', 'endGrain', 'chink', 'roof', 'beam', 'deck', 'door', 'stone', 'glass', 'bark', 'iron', 'cloth', 'char'].map(key => {
   const row = parsed.find(surface => surface.id === `timber.${key}`);
   if (row === undefined) throw new Error(`Missing timber surface: ${key}`);
   return row;
