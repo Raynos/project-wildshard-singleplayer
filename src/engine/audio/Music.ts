@@ -1,4 +1,5 @@
 import { resourceScope } from '../app/resources';
+import { observeAudioMemory } from '../core/memoryResources';
 import { withOwner } from '../app/ownership';
 import { ownAudioSource } from './ownership';
 import { tap, ambientTick } from '../core/harnessTap';
@@ -120,7 +121,9 @@ class Engine {
     return n;
   }
 
-  constructor(ctx: BaseAudioContext, dest: AudioNode) {
+  private readonly memoryOwner: string;
+  constructor(ctx: BaseAudioContext, dest: AudioNode, memoryOwner: string) {
+    this.memoryOwner = memoryOwner;
     this.ctx = ctx;
     const c = ctx;
     this.bus = c.createGain(); this.bus.gain.value = 1;
@@ -151,7 +154,7 @@ class Engine {
     }
     // 2 s of white noise for the shaker / kick click / Karplus burst
     const len = Math.floor(c.sampleRate * 2);
-    this.noise = c.createBuffer(1, len, c.sampleRate);
+    this.noise = observeAudioMemory(c.createBuffer(1, len, c.sampleRate), { owner: this.memoryOwner, asset: 'audio/music/synth/noise' });
     const d = this.noise.getChannelData(0); let s = 1234567;
     for (let i = 0; i < len; i++) { s = (s * 1664525 + 1013904223) >>> 0; d[i] = (s / 4294967296) * 2 - 1; }
   }
@@ -241,7 +244,7 @@ class Engine {
     const key = Math.round(f * 4);
     const hit = this.ks.get(key); if (hit) return hit;
     const sr = this.ctx.sampleRate, N = Math.max(2, Math.round(sr / f)), secs = f > 500 ? 1.4 : 2.0, len = Math.floor(sr * secs);
-    const buf = this.ctx.createBuffer(1, len, sr), d = buf.getChannelData(0);
+    const buf = observeAudioMemory(this.ctx.createBuffer(1, len, sr), { owner: this.memoryOwner, asset: `audio/music/synth/pluck/${key}` }), d = buf.getChannelData(0);
     let s = 987654321 + key;
     const rnd = () => { s = (s * 1664525 + 1013904223) >>> 0; return (s / 4294967296) * 2 - 1; };
     // the burst: white noise, DC removed, a touch of pick-position comb (a copy 30 % of a period later, inverted)
@@ -495,6 +498,7 @@ const holdAt = (p: AudioParam, t: number) => {
 /** the live game wrapper: timer, state, volume, stings, the stem player, the offline render */
 export class Music {
   private readonly scope = resourceScope().child('Music');
+  private readonly memoryOwner = resourceScope().name;
   /** ctx + the music bus (`volume` × the Settings 'music' slider → duck → audio.master) + the engine + the stems' bus, built on
    *  first use (play, after the first gesture) so boot never creates the AudioContext; state set before then waits in `pending` */
   private rig: { ctx: AudioContext; out: GainNode; duckGain: GainNode; engine: Engine; stemBus: GainNode } | undefined;
@@ -537,7 +541,7 @@ export class Music {
     const ctx = this.audio.ctx, out = ctx.createGain(), duckGain = ctx.createGain();
     out.gain.value = this._volume; duckGain.gain.value = this._duck;
     out.connect(duckGain).connect(this.audio.master);
-    const engine = new Engine(ctx, out);
+    const engine = new Engine(ctx, out, this.memoryOwner);
     const stemBus = ctx.createGain(); stemBus.connect(engine.bus); // through the engine's low-pass + chorus: underwater muffles the stems too
     this.rig = { ctx, out, duckGain, engine, stemBus };
     for (const scope of this.silences) this.silenceNow(out, scope);
@@ -912,7 +916,7 @@ export class Music {
     const comp = off.createDynamicsCompressor();
     comp.threshold.value = -12; comp.knee.value = 18; comp.ratio.value = 4; comp.attack.value = 0.004; comp.release.value = 0.16;
     comp.connect(off.destination);
-    const eng = new Engine(off, comp);
+    const eng = new Engine(off, comp, resourceScope().name);
     if (opts.state) Object.assign(eng.state, opts.state);
     if (opts.solo) eng.solo = new Set(opts.solo);
     eng.begin(arrangementOf(name), 0);

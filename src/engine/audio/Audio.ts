@@ -2,6 +2,7 @@ import type { AudioLoopEmitterRecipe, AudioSurfaceRecipe, AudioLoopGraph } from 
 import { SynthBeds } from './synth';
 import { LoopEmitter, type LoopEmitterPorts, type LoopEmitterVoice, AmbienceZones } from './ambience';
 import { resourceScope } from '../app/resources';
+import { observeAudioMemory } from '../core/memoryResources';
 import { loopAt, audioRandom, spatialAudio, WindGustBed } from './util';
 import { PlayerVoices } from './playerVoices';
 import { AudioSurfaceMap, type AudioSurfacePorts } from './surface';
@@ -110,6 +111,7 @@ export class Audio extends PlayerVoices {
 
   loopEmitter(recipe:AudioLoopEmitterRecipe,graphs:Readonly<Record<string,AudioLoopGraph>>,ports:LoopEmitterPorts={}):LoopEmitter {const graph=graphs[recipe.graph];if(graph===undefined)throw new Error('Missing loop emitter graph');return new LoopEmitter(this,recipe,graph,ports);}
   private readonly scope = resourceScope().child('Audio');
+  private readonly memoryOwner = resourceScope().name;
   listenerYaw = 0;
   listenerPosition: Vector3 | null = null;
   music: Music | null = null;
@@ -205,7 +207,7 @@ export class Audio extends PlayerVoices {
     const shade = ctx.createGain(); shade.gain.value = 1;
     const shadeLp = ctx.createBiquadFilter(); shadeLp.type = 'lowpass'; shadeLp.frequency.value = 20000; shadeLp.Q.value = 0.5;
     ambient.connect(shadeLp).connect(shade).connect(world);
-    const len = ctx.sampleRate * 2, noise = ctx.createBuffer(1, len, ctx.sampleRate), d = noise.getChannelData(0);
+    const len = ctx.sampleRate * 2, noise = observeAudioMemory(ctx.createBuffer(1, len, ctx.sampleRate), { owner: this.memoryOwner, asset: 'audio/mixer/noise' }), d = noise.getChannelData(0);
     for (let i = 0; i < len; i++) d[i] = audioRandom() * 2 - 1;
     this.g = { ctx, master, world, sfx, ambient, shade, shadeLp, muffle, comp, noise };
     return this.g;
