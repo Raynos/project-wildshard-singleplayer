@@ -1,0 +1,13 @@
+{
+  "compressed": 135131,
+  "critical": false,
+  "decoded": 135131,
+  "dependencies": [],
+  "draws": 0,
+  "gpu": 0,
+  "hash": "81e81b6bfe2e9ffd1db68b9cd841aca09c3cd9368b5e978093e8e7ebb6466553",
+  "kind": "json",
+  "name": "sim/headless-assembly.json",
+  "path": "blobs/json/81e81b6bfe2e9ffd1db68b9cd841aca09c3cd9368b5e978093e8e7ebb6466553.json",
+  "triangles": 0
+}

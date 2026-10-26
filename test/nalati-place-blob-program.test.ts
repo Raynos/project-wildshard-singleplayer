@@ -13,6 +13,8 @@ import original from './fixtures/nalati-place-blob.json' with { type: 'json' };
 import cragOriginal from './fixtures/nalati-crag-blob.json' with { type: 'json' };
 import dressingOriginal from './fixtures/nalati-dressing-blob.json' with { type: 'json' };
 import sceneOriginal from './fixtures/nalati-dressing-scenes.json' with { type: 'json' };
+import assemblyOriginal from './fixtures/nalati-headless-assembly.json' with { type: 'json' };
+import * as v from 'valibot';
 import { discoverGeneration } from '../scripts/generate.mjs';
 
 test('native dressing and duplicate scene-copy jobs stay retired', () => {
@@ -43,6 +45,35 @@ test('the actual output hook preserves every predecessor file cost and binary by
     }
     requested.length = 0;
     const hit = await prepareOutput(context());
+    const assembly = hit.namedFiles.find(row => row.name === assemblyOriginal.name);
+    expect(assembly).toEqual(assemblyOriginal);
+    const assemblyBytes = hit.assets.get(assemblyOriginal.hash);
+    if (assemblyBytes === undefined) throw new Error('Missing original native assembly bytes');
+    expect(assemblyBytes.length).toBe(assemblyOriginal.compressed);
+    expect(hashImmutableBytes(assemblyBytes)).toBe(assemblyOriginal.hash);
+    const readShelters = (output: Awaited<ReturnType<typeof prepareOutput>>) => {
+      const file = output.namedFiles.find(row => row.name === assemblyOriginal.name);
+      const bytes = file === undefined ? undefined : output.assets.get(file.hash);
+      if (bytes === undefined) throw new Error('Missing owned native assembly');
+      return v.parse(v.object({ constants: v.object({ nativeShelters: v.array(v.tuple([v.number(), v.number(), v.number()])) }) }),
+        JSON.parse(new TextDecoder().decode(bytes))).constants.nativeShelters;
+    };
+    const suppliedContext = context();
+    const supplied = await prepareOutput({ ...suppliedContext, cached: async (step, make) => {
+      const files = await suppliedContext.cached(step, make);
+      if (step.id !== 'places') return files;
+      const changed = new Map(files);
+      changed.set('places.json', new TextEncoder().encode(JSON.stringify({ rows: [{ colliders: [{ x: 18, z: -25, hw: 3, hd: 3, yTop: 4, yBottom: 0 }] }] })));
+      return changed;
+    } });
+    expect(readShelters(supplied)).toEqual([[18, -25, 3 / .93]]);
+    await expect(prepareOutput({ ...suppliedContext, cached: async (step, make) => {
+      const files = await suppliedContext.cached(step, make);
+      if (step.id !== 'places') return files;
+      const changed = new Map(files);
+      changed.set('places.json', new TextEncoder().encode('{"rows":[{"colliders":[{"x":null}]}]}'));
+      return changed;
+    } })).rejects.toThrow();
     expect(steps).toContain('decorative');
     for (const pin of sceneOriginal) {
       const file = hit.namedFiles.find(row => row.name === pin.name), bytes = file === undefined ? undefined : hit.assets.get(file.hash);

@@ -2,7 +2,6 @@
 import {readFileSync} from 'node:fs';
 import {array,finite,number,object,parse,pipe,tuple} from 'valibot';
 import {expect,test} from 'vitest';
-import {headlessAssembly} from '../src/shards/nalati-grasslands/generators/nativeGroups';
 import {nativeWeatherBundle} from '../src/game/weather/reactions';
 import weather from '../src/shards/nalati-grasslands/data/weather.json' with {type:'json'};
 import {weatherWitness as reactions} from './fixtures/weatherInlineWitness';
@@ -15,7 +14,7 @@ const places=parse(object({rows:array(object({colliders:array(object({x:scalar,z
  JSON.parse(readFileSync('src/shards/nalati-grasslands/data/places.json','utf8')));
 
 test('native weather admits current camp shelters without a physics-bake field',()=>{
- const circles=headlessAssembly.constants.nativeShelters;
+ const circles=nalatiNativeShelters(places);
  expect(circles.length).toBeGreaterThan(0);expect(circles).toEqual(physics.yurts);
  const bundle=nativeWeatherBundle({weather,reactions},circles);
  expect(bundle.reactions.shelter.circles).toEqual(circles);
@@ -25,7 +24,7 @@ test('native weather admits current camp shelters without a physics-bake field',
 test('owned collider rows preserve original shelter order and detach every circle',()=>{
  const before=JSON.stringify(places),circles=nalatiNativeShelters(places),next=nalatiNativeShelters(places);
  expect(circles).toStrictEqual(physics.yurts);
- expect(JSON.stringify(circles)).toBe(JSON.stringify(headlessAssembly.constants.nativeShelters));
+ expect(JSON.stringify(circles)).toBe(JSON.stringify(physics.yurts));
  const circle=circles[0];if(circle===undefined)throw new Error('Missing original shelter');
  circle[0]=999;
  expect(next).toStrictEqual(physics.yurts);
