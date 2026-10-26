@@ -394,7 +394,8 @@
         "src/format/scriptAbiV1.ts",
         "src/format/decisionScripts.ts",
         "src/shards/nalati-grasslands/generators/actorProjection.ts",
-        "src/shards/nalati-grasslands/generators/speciesBodyPacking.ts"
+        "src/shards/nalati-grasslands/generators/speciesBodyPacking.ts",
+        "src/shards/nalati-grasslands/generators/speciesLookPreparation.ts"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/data/species.generated.json",
