@@ -3,10 +3,10 @@ import type { WorldPieceRow } from '@wildshard/game/shardfile/bakedKinds';
 import { skyWorldPieceValues, type SkyWorldPieceRows } from './worldPieceBytes';
 import { FALLEN_BRIDGE, MILL, NOTES, STEP, VANES, WINCH, WINCH_HOUSE } from "./layout";
 import STRINGS from '../data/strings.json' with { type: 'json' };
-import groundScene from '../data/groundScene.generated.json' with { type: 'json' };
+import { skyGroundValues } from './groundScene';
 import routeScene from '../data/routeScene.generated.json' with { type: 'json' };
 
-const { SKY_GROUND } = groundScene;
+const { SKY_GROUND } = skyGroundValues();
 const { SKY_ROUTES } = routeScene;
 const pieces = skyWorldPieceValues();
 function piece(name: BakedPiece): SkyWorldPieceRows {

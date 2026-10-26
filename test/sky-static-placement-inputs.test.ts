@@ -2,8 +2,6 @@
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Confine omitted-input catalogues to repository scratch.
 import { relative, resolve } from 'node:path';
-// oxlint-disable-next-line import/no-nodejs-modules -- Compare complete original scene JSON without assertion expansion.
-import { Buffer } from 'node:buffer';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
 import { discoverGeneration, generateShardJob } from '../scripts/generate.mjs';
@@ -18,7 +16,8 @@ test('the static reader derives all original scene bytes from exactly six explic
   const reads: string[] = [];
   const bytes = await skyStaticSceneBytes(name => { reads.push(name); return new Uint8Array(readFileSync(`public${name}`)); });
   expect(reads).toEqual(WORLD_PLACEMENT_INPUTS);
-  expect(Buffer.compare(bytes, readFileSync(output))).toBe(0);
+  expect(bytes.byteLength).toBe(583_343);
+  expect(hashImmutableBytes(bytes)).toBe('1be5a532bca78ccb782a80905105ca6d6fe243676539dc04d58e78f213ddef2a');
   const { placements } = await skyWorldPlacementValues(new Map(WORLD_PLACEMENT_INPUTS.map(name => [name, new Uint8Array(readFileSync(`public${name}`))])));
   expect(skyStaticScenes({ ...placements, half: 123 }).half).toBe(123);
 });
@@ -32,7 +31,7 @@ test('the actual cold sealed static writer omits generated placements and refuse
   expect(job.inputRoots).toContain('src/shards/far-reach/generators/physicsPlacements.ts');
   for (const name of WORLD_PLACEMENT_INPUTS) expect(job.inputRoots).toContain(`public${name}`);
   const first = WORLD_PLACEMENT_INPUTS[0]; if (first === undefined) throw new Error('Missing native placement input');
-  const expected = hashImmutableBytes(readFileSync(output)), cacheDir = mkdtempSync(resolve('tmp/sky-static-inputs-'));
+  const expected = '1be5a532bca78ccb782a80905105ca6d6fe243676539dc04d58e78f213ddef2a', cacheDir = mkdtempSync(resolve('tmp/sky-static-inputs-'));
   const omitted = { ...job, inputRoots: job.inputRoots.filter(path => path !== `public${first}`) };
   const catalogPath = relative(root, resolve(cacheDir, 'omitted.json'));
   try {
@@ -55,5 +54,7 @@ test('the reader bundle includes its owned producer and excludes the generated p
     assertConfigBoundary([...chunk.imports, ...chunk.dynamicImports]);
     expect(Object.keys(chunk.modules).some(path => path.endsWith('/worldPlacementBytes.ts'))).toBe(true);
     expect(Object.keys(chunk.modules).some(path => path.endsWith('/data/placements.json'))).toBe(false);
+    expect(Object.keys(chunk.modules).some(path => path.endsWith('/groundScene.ts'))).toBe(true);
+    expect(Object.keys(chunk.modules).some(path => path.endsWith('/data/groundScene.generated.json'))).toBe(false);
   }
 });

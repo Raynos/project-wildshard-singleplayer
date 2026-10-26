@@ -1,7 +1,7 @@
 import type { BakedColliderInput } from '@wildshard/game/shardfile/bakedKinds';
 import BRIDGE from '../data/bridgePhysics.generated.json' with { type: 'json' };
 import { skyPhysicsPlacements } from './physicsPlacements';
-import groundScene from '../data/groundScene.generated.json' with { type: 'json' };
+import { skyGroundValues } from './groundScene';
 import { parseWorldScene, type WorldSceneRecipe, type PrivateScene } from '@wildshard/format/clientChannels';
 import REST from '../data/restScenes.generated.json' with { type: 'json' };
 import ISLETS from '../data/isletScenes.generated.json' with { type: 'json' };
@@ -12,7 +12,7 @@ import { NOTES, WINCH, SUNREST, MILL } from "./layout";
 import { KEEPER_STAND } from './keeperStand';
 import { BOOK_STAND } from './rows/bookStand';
 
-const { SKY_GROUND_COLLIDERS } = groundScene;
+const { SKY_GROUND_COLLIDERS } = skyGroundValues();
 const { MILL_SCENE } = millScene;
 
 interface FixedWorldRows {
