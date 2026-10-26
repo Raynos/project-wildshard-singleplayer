@@ -7,36 +7,16 @@
 // rows, so they spend none of the shardfile envelope's JSON node budget. The painted ground draws both
 // (game/looks/painterlyLook).
 // Run with --experimental-transform-types --import ./scripts/bake-loader.mjs; --check verifies the outputs.
-import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { bakeNalatiWorldRows } from './nalatiWorldRows.ts';
-import { bakeNalatiGroundQuads, nalatiGroundSource } from './nalatiGroundSource.ts';
-
-/** N1b fidelity review (2026-10-23): 0.5 m 61 % / 1 m 47 % / 2 m 32 % of native L1 triangles; 1 m is ~2-3 phone pixels at 125 m. */
-const L1_POLICY = { targetRatio: 0.1, maxErrorMetres: 1 };
+import { nalatiRenderTileSources } from './renderTileSources.ts';
 
 const args = process.argv.slice(2);
 if (args.some(arg => arg !== '--check')) throw new Error('Nalati render tiles take only [--check]');
 const root = fileURLToPath(new URL('../../../../', import.meta.url)), project = resolve(root, 'src/shards/nalati-grasslands');
 const native = new Uint8Array(readFileSync(resolve(root, 'public/assets/baked/nalati-grasslands/terrain.bin')));
-const product = bakeNalatiWorldRows(native, [], 'painterly', undefined, [0]);
-const { assets, nativeGround, ...rows } = product;
-// the native WSTR stays the query terrain's own file (generators/terrain.ts); only the tile GLBs ship from here
-const tiles = new Set(rows.tiles.flatMap(tile => tile.files));
-const metadata = Buffer.from(`${JSON.stringify({ version: 1, tiles: rows.tiles, files: rows.files.filter(file => tiles.has(file.hash)), props: rows.props })}\n`);
-const files = new Map([['data/renderTiles.json', metadata]]);
-for (const quad of await bakeNalatiGroundQuads(nalatiGroundSource(native), L1_POLICY)) {
-  // the repo's blob limit (STORAGE.md): each pair stays under 1 MB
-  if (quad.bytes.byteLength >= 1_000_000) throw new Error(`Nalati L1 pair ${quad.x}.${quad.z} is ${quad.bytes.byteLength} bytes (>= 1 MB)`);
-  files.set(`assets/world-terrain/ground-l1-${quad.x}-${quad.z}.generated.glb`, Buffer.from(quad.bytes));
-}
-for (const [hash, bytes] of assets) {
-  if (!tiles.has(hash)) continue;
-  if (createHash('sha256').update(bytes).digest('hex') !== hash) throw new Error('Nalati render tile differs from its hash');
-  files.set(`assets/${hash}`, Buffer.from(bytes));
-}
+const { files, tiles, nativeGround, bytes: totalBytes } = await nalatiRenderTileSources(native);
 for (const [name, bytes] of files) {
   const path = resolve(project, name);
   if (args.includes('--check')) {
@@ -46,5 +26,5 @@ for (const [name, bytes] of files) {
     writeFileSync(path, bytes);
   }
 }
-console.info(JSON.stringify({ tiles: rows.tiles.length, files: files.size - 1, nativeGround: nativeGround.file,
-  bytes: [...files.values()].reduce((sum, bytes) => sum + bytes.byteLength, 0) }));
+console.info(JSON.stringify({ tiles, files: files.size - 1, nativeGround,
+  bytes: totalBytes }));
