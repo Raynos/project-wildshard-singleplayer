@@ -157,7 +157,18 @@ function pow(a: number, b: number): number {
   return exp(b * log(a));
 }
 
-const PORTABLE = { sin, cos, tan, exp, log, atan, atan2, asin, acos, pow } as const;
+const PORTABLE: {
+  readonly sin: typeof sin;
+  readonly cos: typeof cos;
+  readonly tan: typeof tan;
+  readonly exp: typeof exp;
+  readonly log: typeof log;
+  readonly atan: typeof atan;
+  readonly atan2: typeof atan2;
+  readonly asin: typeof asin;
+  readonly acos: typeof acos;
+  readonly pow: typeof pow;
+} = { sin, cos, tan, exp, log, atan, atan2, asin, acos, pow };
 
 /** Install the platform-stable functions on the global Math (for a whole oracle file) and return the restore. */
 export function installPortableMath(): () => void {
@@ -173,4 +184,4 @@ export function withPortableMath<T>(fn: () => T): T {
 }
 
 /** Pure portable transcendental functions for synchronous authoring and native oracles. */
-export const portableMath = PORTABLE;
+export const portableMath: typeof PORTABLE = PORTABLE;
