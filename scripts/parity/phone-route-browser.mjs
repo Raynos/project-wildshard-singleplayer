@@ -7,7 +7,7 @@ import { bootLifecycleDiagnostic } from './boot-smoke.mjs';
 import { saveFixtureCode } from '../debug-settings.mjs';
 import { phoneTouchButton } from './phone-route-page.mjs';
 
-/** @typedef {{opened:Promise<unknown>,send:(method:string,params?:Record<string,unknown>)=>Promise<unknown>,close:()=>void}} Inspector */
+/** @typedef {import('../soak/inspector.mjs').Inspector} Inspector */
 /** @param {unknown} result */
 function value(result) {
   if (typeof result !== 'object' || result === null || !('result' in result) || typeof result.result !== 'object' || result.result === null) throw new Error('Invalid Safari evaluation result');
@@ -42,8 +42,8 @@ export async function openPhoneBrowser(engine, base, _out) {
       async close() { try { await context.close(); } finally { await browser.close(); } },
     };
   }
-  if (engine !== 'simulator' || !process.env.SIM_UDID) throw new Error('Native phone route requires the existing Simulator lane');
-  const udid = process.env.SIM_UDID;
+  const { SIM_UDID: udid } = process.env;
+  if (engine !== 'simulator' || !udid) throw new Error('Native phone route requires the existing Simulator lane');
   const simctl = (/** @type {string[]} */ args) => execFileSync('xcrun', ['simctl', ...args], { encoding: 'utf8', timeout: 10000 });
   const sock = simctl(['getenv', udid, 'RWI_LISTEN_SOCKET']).trim();
   const proxy = spawn('ios_webkit_debug_proxy', ['-s', `unix:${sock}`, '-c', 'null:9221,:9232-9240'], { stdio:'ignore' });
@@ -59,7 +59,9 @@ export async function openPhoneBrowser(engine, base, _out) {
         const found = list.find((/** @type {unknown} */ row) => typeof row === 'object' && row !== null && 'url' in row && typeof row.url === 'string' && row.url.startsWith(base));
         if (typeof found !== 'object' || found === null || !('webSocketDebuggerUrl' in found) || typeof found.webSocketDebuggerUrl !== 'string') continue;
         inspector = soakInspector(found.webSocketDebuggerUrl);
-        await inspector.opened; return;
+        await inspector.opened;
+        await inspector.waitForPageTarget(Math.max(0, Math.min(30000, deadline - Date.now())));
+        return;
       }
       await sleep(100);
     }

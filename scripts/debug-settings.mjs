@@ -5,7 +5,7 @@ export function deviceSavePicks(values) {
   const picks = {};
   for (const value of values) {
     const match = /^([a-zA-Z][a-zA-Z0-9._-]*)=(.+)$/u.exec(value);
-    if (match === null) throw new Error('Invalid device save; expected key=value');
+    if (match === null || match[1] === undefined || match[2] === undefined) throw new Error('Invalid device save; expected key=value');
     const key = match[1], data = match[2];
     if (Object.hasOwn(picks, key)) throw new Error('Duplicate device save');
     Object.defineProperty(picks, key, { value: data, enumerable: true, configurable: true, writable: true });

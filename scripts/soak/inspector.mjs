@@ -3,12 +3,21 @@ import { WebSocket } from 'ws';
 
 /** Target-aware protocol transport; heap snapshots need a larger payload and deadline than scalar reads. */
 export function soakInspector(url, Socket = WebSocket) {
-  const ws = new Socket(url, { maxPayload: 512 * 1024 * 1024 }), pending = new Map(), listeners = new Map();
-  let serial = 0, target = null;
+  const ws = new Socket(url, { maxPayload: 512 * 1024 * 1024 }), pending = new Map(), listeners = new Map(), targetWaiters = new Set();
+  let serial = 0, target = null, closed = false;
   const opened = new Promise((resolve, reject) => { ws.once('open', resolve); ws.once('error', reject); });
   const retire = () => {
+    closed = true;
+    for (const waiter of targetWaiters) { clearTimeout(waiter.timer); waiter.reject(new Error('Inspector closed')); }
+    targetWaiters.clear();
     for (const waiter of pending.values()) { clearTimeout(waiter.timer); waiter.reject(new Error('Inspector closed')); }
     pending.clear();
+  };
+  const admitTarget = id => {
+    if (closed) return;
+    target = id;
+    for (const waiter of targetWaiters) { clearTimeout(waiter.timer); waiter.resolve(); }
+    targetWaiters.clear();
   };
   const receive = message => {
     const waiter = pending.get(message.id);
@@ -20,8 +29,8 @@ export function soakInspector(url, Socket = WebSocket) {
   };
   ws.on('message', data => {
     const message = JSON.parse(String(data));
-    if (message.method === 'Target.targetCreated' && message.params.targetInfo.type === 'page') target = message.params.targetInfo.targetId;
-    else if (message.method === 'Target.didCommitProvisionalTarget') target = message.params.newTargetId;
+    if (message.method === 'Target.targetCreated' && message.params.targetInfo.type === 'page') admitTarget(message.params.targetInfo.targetId);
+    else if (message.method === 'Target.didCommitProvisionalTarget') admitTarget(message.params.newTargetId);
     else if (message.method === 'Target.dispatchMessageFromTarget') receive(JSON.parse(message.params.message));
     else receive(message);
   });
@@ -36,6 +45,20 @@ export function soakInspector(url, Socket = WebSocket) {
     catch (error) { pending.delete(id); clearTimeout(timer); reject(error instanceof Error ? error : new Error(String(error))); }
   });
   return { opened, send,
+    // The socket handshake precedes Safari's page-target announcement. Only
+    // target-aware readers opt in; flat-protocol consumers retain their API.
+    /** @returns {Promise<void>} */
+    waitForPageTarget(timeout = 30000) {
+      if (closed) return Promise.reject(new Error('Inspector closed'));
+      if (target !== null) return Promise.resolve();
+      return new Promise((resolve, reject) => {
+        const waiter = { resolve, reject, timer: setTimeout(() => {
+          targetWaiters.delete(waiter);
+          reject(new Error('Safari inspector timeout: page target'));
+        }, timeout) };
+        targetWaiters.add(waiter);
+      });
+    },
     on(method, listener) {
       const set = listeners.get(method) ?? new Set(); set.add(listener); listeners.set(method, set);
       return () => { set.delete(listener); if (set.size === 0) listeners.delete(method); };

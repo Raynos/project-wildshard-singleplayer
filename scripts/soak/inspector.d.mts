@@ -8,6 +8,8 @@ export interface InspectorSocket {
 export type InspectorSocketConstructor = new(url:string,options:{maxPayload:number})=>InspectorSocket;
 export interface Inspector {
   readonly opened:Promise<unknown>;
+  /** Resolve after Safari announces its page target, within the caller budget. */
+  waitForPageTarget:(timeout?:number)=>Promise<void>;
   send:(method:string,params?:Record<string,unknown>)=>Promise<unknown>;
   on:(method:string,listener:(params:unknown)=>void)=>()=>void;
   close:()=>void;

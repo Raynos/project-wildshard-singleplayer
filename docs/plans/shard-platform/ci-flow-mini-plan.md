@@ -211,6 +211,21 @@ hang. Report-only remains until a cause-fixed ordinary run qualifies;
 no repeat has been dispatched. Local C4 success on another runtime does
 not qualify this CI device.
 
+The second ordinary report `40417037881`, tested `ff0cd62f6198` / source
+CI `40414518486`, reached Inspector admission but refused at 23:12:53Z:
+`'Runtime' domain was not found` (job `121901979076`). It predates the
+Xcode repair and supplies no route/app result. Its separate source clock
+ends 23:42:53Z; the first startup clock remains unchanged. The phone
+connection awaited only the WebSocket handshake; Safari announces the
+page target later, so its first Runtime command could go to the root.
+The defining repair waits for that page-target event before commands,
+within the existing 90 s connection / 30 s protocol budgets. Missing
+targets and socket closure refuse; no sleep, command replay or native
+retry is added. Flat-protocol readers retain their original behavior.
+Deterministic transport controls cover delayed/non-page targets, the
+same root-domain error, target timeout and close. Native qualification
+and report-only promotion remain pending an ordinary containing run.
+
 The older `14a3d5d93` artifact remains unqualified for this trial. The final functional `8b8a5bf7fc` visit completed
 all route stages with no faults, 294 ms hero paint, resident near tiles
 and real four-second wall containment, but correctly failed G718:
