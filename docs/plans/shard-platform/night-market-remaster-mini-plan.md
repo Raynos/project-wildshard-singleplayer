@@ -196,11 +196,13 @@ for the kit before the families switch on; `tiledPlot.mjs` `KIT_FAMILIES` lists 
 | RM4.4 houses | done (opt-in) | Three cottages (tiled hip roofs with upturned eaves, timber frame, plaster, lit windows) filling the H courts |
 | RM4.5 bridges | done (opt-in) | Arched stone bridge halves with balustrades at the canal borders |
 | RM4.6 street props | done (opt-in) | Planters with flowers, benches, crates and goods, banners |
-| RM4.7 trees | open | Round-crown trees, TRELLIS.2 vs Hunyuan3D-2 (better wins), three variants |
+| RM4.7 trees | in flight (2026-10-26, sp-o1) | Round-crown trees, TRELLIS.2 vs Hunyuan3D-2 (better wins), three variants |
 | RM4.8 figures | open | Static posed figures at stalls and on bridges (image-to-3D) |
 | RM4.9 boards | open | A labelled 4-angle board per family beside its mockup crop; A2 / D2 captures for bars 2 and 5 |
-| RM7.1–7.3 ground and canals | open | Kerbs and raised block edges; canal walls with stone coping; water streak cards |
-| RM9.1–9.3 gate | open | r7 reference, Hunyuan3D 2.1 vs TRELLIS.2, hanging kit lanterns and trim (light with sp-o2's RM6.4) |
+| RM7.1 canal coping | done (opt-in) | 2 m coping blocks with a lip over the water on every rim, a bollard every fifth, water steps every ninth |
+| RM7.2 water light | done (opt-in, straight canals) | Each bank lantern doubled on the water, a soft additive streak from the wall |
+| RM7.3 kerbs and block edges | open | Raised kerbs round the blocks, the lanes' edges |
+| RM9.1–9.3 gate | in flight (2026-10-26, sp-o1: r7 reference made, Hunyuan3D 2.1 vs TRELLIS.2 running) | r7 reference, Hunyuan3D 2.1 vs TRELLIS.2, hanging kit lanterns and trim (light with sp-o2's RM6.4) |
 | RM8.1 quantized tiles | sp-x2 (wildshard-new's routing, 2026-10-26) | Quantized tile geometry in the authored-world bake (KHR_mesh_quantization + meshopt, near-view and cost readers taught): ~10–15 B a triangle and about half the resident. Measured and dropped first: lossless meshopt alone (0.30–0.35 of the wire, but the near view's reader refuses EXT_meshopt and resident rises) and per-model instancing (fine wire, but 2 draws a model: tiles at 13–31 of 8 draws) |
 | RM8.2 authored L1 | open | World-source prefixes: detail rows draw at L0 only, `coarse_` rows only in L1; each kit family carries a ≤ 12-triangle LOD1 (the lit head, the roof block) |
 | RM8.3 plaza resident | open | Savings in the four plaza L0 tiles (landmark and poster textures, with RM9) so their kit fits the pinned resident rows; then `KIT_FAMILIES` switches on |

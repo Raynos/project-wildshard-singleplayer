@@ -1,7 +1,7 @@
 """kitlib.py: the open-plots kit's shared Blender helpers (RM4, night-market-remaster-mini-plan.md).
 
 A kit piece is built from bmesh primitives whose faces carry a material named `<Role>.<slot>`: Role is `Kit` (lit) or
-`Glow` (emissive), slot a palette key (`wood`, `stone`, `gold`...). Each piece's ambient occlusion is baked by Cycles into
+`Glow` (emissive), slot a palette key (`wood`, `stone`, `gold`...). Each piece's ambient occlusion is ray-traced (BVH) into
 a corner colour, then the piece is exported (scripts/blender/lib/glb.py) as one node per `<variant>.<Role>.<slot>` in
 game axes (x, y up, z = -Blender y) with flat normals, the ruled-trim UVs of data/trim.json (TEXCOORD_0: metres along
 and up the face plus 32 m x the slot's trim band) and the occlusion as a grey shade (COLOR_0). The game generator (src/shards/open-plots/generators/kitGlb.mjs) colours each triangle palette[slot] x
@@ -16,6 +16,7 @@ import sys
 import bmesh
 import bpy
 import numpy as np
+from mathutils.bvhtree import BVHTree
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'lib'))
 from glb import write_glb  # noqa: E402
@@ -122,18 +123,10 @@ class Piece:
 
 
 def reset_scene(ground=0.0):
+    """An empty scene with the occluding floor at `ground` (a bridge's is the canal's water)."""
     bpy.ops.wm.read_factory_settings(use_empty=True)
     scene = bpy.context.scene
-    scene.render.engine = 'CYCLES'
-    scene.cycles.device = 'CPU'
-    scene.cycles.samples = 48
-    scene.cycles.use_denoising = False
-    sky = bpy.data.worlds.new('World')
-    scene.world = sky
-    sky.use_nodes = True
-    sky.node_tree.nodes['Background'].inputs['Color'].default_value = (1, 1, 1, 1)
-    sky.light_settings.distance = 0.8
-    plane = bpy.data.meshes.new('ground')  # the occluding floor at `ground` (a bridge's is the canal's water)
+    plane = bpy.data.meshes.new('ground')
     plane.from_pydata([(-500, -500, ground), (500, -500, ground), (500, 500, ground), (-500, 500, ground)], [], [(0, 1, 2, 3)])
     scene.collection.objects.link(bpy.data.objects.new('ground', plane))
     return scene
@@ -154,18 +147,55 @@ def realise(piece, name, offset):
     return obj
 
 
+AO_DISTANCE = 0.8
+AO_RAYS = 48
+
+
+def hemisphere(count):
+    """Fixed cosine-weighted directions about +z (a Fibonacci spiral): the same rays every build, so the bake is exact."""
+    golden = math.pi * (3 - math.sqrt(5))
+    rows = []
+    for i in range(count):
+        r = math.sqrt((i + 0.5) / count)
+        a = i * golden
+        rows.append((r * math.cos(a), r * math.sin(a), math.sqrt(max(0.0, 1 - r * r))))
+    return rows
+
+
 def bake_shade(objects):
-    """Cycles ambient occlusion within 0.8 m (the ground and every part occlude) into each object's corner colour."""
+    """Ambient occlusion within AO_DISTANCE (the floor and every part of the scene occlude), traced from each corner a
+    hair off its face along AO_RAYS fixed directions, into each object's corner colour `shade` (no renderer, no
+    noise: a rebuild writes the same bytes)."""
     scene = bpy.context.scene
-    scene.render.bake.target = 'VERTEX_COLORS'
+    verts, polys = [], []
+    for obj in scene.objects:
+        if obj.type != 'MESH':
+            continue
+        base = len(verts)
+        verts.extend(obj.matrix_world @ v.co for v in obj.data.vertices)
+        polys.extend([base + i for i in poly.vertices] for poly in obj.data.polygons)
+    tree = BVHTree.FromPolygons(verts, polys, epsilon=0.0)
+    rays = hemisphere(AO_RAYS)
     for obj in objects:
-        attr = obj.data.color_attributes.new('shade', 'FLOAT_COLOR', 'CORNER')
-        obj.data.color_attributes.active_color = attr
-    bpy.ops.object.select_all(action='DESELECT')
-    for obj in objects:
-        obj.select_set(True)
-    bpy.context.view_layer.objects.active = objects[0]
-    bpy.ops.object.bake(type='AO')
+        mesh = obj.data
+        attr = mesh.color_attributes.new('shade', 'FLOAT_COLOR', 'CORNER')
+        rotation = obj.matrix_world.to_3x3()
+        for poly in mesh.polygons:
+            n = (rotation @ poly.normal).normalized()
+            t = n.orthogonal().normalized()
+            b = n.cross(t)
+            for loop in poly.loop_indices:
+                corner = obj.matrix_world @ mesh.vertices[mesh.loops[loop].vertex_index].co
+                # start a little toward the face's middle and off it, so the corner's own edges don't occlude it
+                centre = obj.matrix_world @ poly.center
+                origin = corner + (centre - corner) * 0.02 + n * 1e-3
+                open_rays = 0
+                for x, y, z in rays:
+                    hit = tree.ray_cast(origin, t * x + b * y + n * z, AO_DISTANCE)
+                    if hit[0] is None:
+                        open_rays += 1
+                ao = open_rays / len(rays)
+                attr.data[loop].color = (ao, ao, ao, 1.0)
 
 
 TRIM_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..', 'src', 'shards', 'open-plots', 'data',
@@ -208,6 +238,7 @@ def export_family(path, family, objects, emitters, extras, trims, floor=0.42):
     for variant, obj in enumerate(objects):
         mesh = obj.data
         shade = mesh.color_attributes['shade'].data
+        tints = mesh.attributes['tint'].data if 'tint' in mesh.attributes else None
         groups = {}
         for poly in mesh.polygons:
             slot = mesh.materials[poly.material_index].name
@@ -224,10 +255,12 @@ def export_family(path, family, objects, emitters, extras, trims, floor=0.42):
                 # a corner buried in another part bakes black; no corner falls below 0.6 x its face's brightest
                 ao = [max(0.0, min(1.0, shade[loop].color[0])) for loop in poly.loop_indices]
                 ao = [max(a, 0.6 * max(ao)) for a in ao]
+                # an optional per-face tint (a generated tree's lighter and darker facets) multiplies the shade
+                tint = tints[poly.index].value if tints is not None else 1.0
                 for a, c in zip(ao, corners):
                     pos.append((c.x, c.z, -c.y))
                     nor.append((n.x, n.z, -n.y))
-                    s = 1.0 if role == 'Glow' else floor + (1 - floor) * a
+                    s = 1.0 if role == 'Glow' else (floor + (1 - floor) * a) * tint
                     col.append((s, s, s))
             meshes.append((f'{variant}.{slot}', {
                 'POSITION': np.array(pos, dtype=np.float32), 'NORMAL': np.array(nor, dtype=np.float32),
@@ -247,8 +280,13 @@ def build_family(out_dir, family, builders, trims, extras=None):
     objects, emitters = [], []
     for variant, build in enumerate(builders):
         piece = build()
-        objects.append(realise(piece, f'{family}-{variant}', variant * SPACING))
-        emitters.append(piece.emitters)
+        if isinstance(piece, bpy.types.Object):  # an imported model, its faces' materials already named by slot
+            piece.location.x = variant * SPACING
+            objects.append(piece)
+            emitters.append([])
+        else:
+            objects.append(realise(piece, f'{family}-{variant}', variant * SPACING))
+            emitters.append(piece.emitters)
     bake_shade(objects)
     export_family(os.path.join(out_dir, f'{family}.glb'), family, objects, emitters, extras or {}, trims)
     tris = sum(len(obj.data.polygons) for obj in objects)

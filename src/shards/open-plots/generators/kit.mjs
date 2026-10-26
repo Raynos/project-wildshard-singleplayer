@@ -223,6 +223,13 @@ function lantern(w, x, z, p, height = 2.8) {
 }
 /** A low-poly tree: trunk and a faceted crown (two hexagonal cones back to back). */
 function tree(w, x, z, size, p, spin) {
+  // RM4.7 (opt-in, tiledPlot.mjs KIT_FAMILIES): a generated round, tall or willow tree, 8 m as built, scaled to this
+  // tree's crown top
+  if (w.hasModel('trees')) {
+    w.placeModel('trees', pick(x, z, 3), x, z, { yaw: spin, scale: size * 1.1 / 8 });
+    w.solid([x - 0.3, 0, z - 0.3], [x + 0.3, 3, z + 0.3]);
+    return;
+  }
   w.sides('Kit', [x - 0.25, 0, z - 0.25], [x + 0.25, size * 0.45, z + 0.25], p.trunk);
   frustum(w, 'Kit', x, z, 6, size * 0.42, 0, size * 0.62, size * 1.1, p.foliage, spin);
   frustum(w, 'Kit', x, z, 6, size * 0.42, 0, size * 0.62, size * 0.32, p.foliageDark, spin);
@@ -391,7 +398,17 @@ function canal(w, p, type) {
   const rimRuns = type === 'C'
     ? [[-half - rim, -INNER, -half, INNER], [half, -INNER, half + rim, INNER]]
     : [[-half - rim, -INNER, -half, half + rim], [-half - rim, half, INNER, half + rim], [half, -INNER, half + rim, -half], [half, -half - rim, INNER, -half]];
-  for (const [x0, z0, x1, z1] of rimRuns) { w.box('Kit', [x0, 0, z0], [x1, rimHeight, z1], p.stone, p.stoneTop); w.solid([x0, 0, z0], [x1, rimHeight, z1]); }
+  const coped = w.hasModel('canal');
+  for (const [x0, z0, x1, z1] of rimRuns) {
+    if (coped) copeRun(w, rects, [x0, z0, x1, z1]); else w.box('Kit', [x0, 0, z0], [x1, rimHeight, z1], p.stone, p.stoneTop);
+    w.solid([x0, 0, z0], [x1, rimHeight, z1]);
+  }
+  // RM7.2 (opt-in with the coping): each straight canal's lanterns double on its water, a soft streak from the wall
+  if (coped && type === 'C') for (const [x, z] of [[-17, 0], [17, -18], [17, 18], [-half - 2.4, -INNER + 3], [-half - 2.4, INNER - 3], [half + 2.4, -INNER + 3], [half + 2.4, INNER - 3]]) {
+    const wall = Math.sign(x) * half, y = -depth + 0.07, c = p.pool, o = [0, 0, 0], reach = -Math.sign(x) * 5.5;
+    upward(w, [wall, y, z - 0.35], [wall, y, z + 0.35], [wall + reach, y, z + 0.15], [c, c, o]);
+    upward(w, [wall, y, z - 0.35], [wall + reach, y, z + 0.15], [wall + reach, y, z - 0.15], [c, o, o]);
+  }
   // half of an 8 m arched bridge in every wet border: the lane runs across the canal on it
   const borders = type === 'C' ? [0, 2] : [1, 2];
   for (const side of borders) halfBridge(w, p, side);
@@ -399,6 +416,18 @@ function canal(w, p, type) {
   const banks = type === 'C' ? [[-17, -18], [-17, 0], [-17, 18], [17, -18], [17, 0], [17, 18]] : [[-17, -18], [-17, 18], [0, 20], [18, 20], [18, -18]];
   for (const [i, [x, z]] of banks.entries()) { if (i % 2 === 0) tree(w, x, z, 6, p, i); else lantern(w, x, z, p); }
   for (const z of [-INNER + 3, INNER - 3]) if (type === 'C') { lantern(w, -half - 2.4, z, p, 2.2); lantern(w, half + 2.4, z, p, 2.2); }
+}
+/** RM7.1 (opt-in, tiledPlot.mjs KIT_FAMILIES): a rim run as the kit's 2 m coping blocks, their lips toward the water (the
+ *  side of the run a water rectangle touches), a mooring bollard every fifth and water steps every ninth. */
+function copeRun(w, rects, [x0, z0, x1, z1]) {
+  const wet = (x, z) => rects.some(([a0, b0, a1, b1]) => x > a0 && x < a1 && z > b0 && z < b1);
+  const alongZ = z1 - z0 > x1 - x0, length = alongZ ? z1 - z0 : x1 - x0, count = Math.max(1, Math.round(length / 2)), step = length / count;
+  const mid = alongZ ? (z0 + z1) / 2 : (x0 + x1) / 2, low = alongZ ? wet(x0 - 0.5, mid) : wet(mid, z0 - 0.5);
+  for (let i = 0; i < count; i++) {
+    const t = (alongZ ? z0 : x0) + (i + 0.5) * step, variant = i % 9 === 4 ? 2 : i % 5 === 2 ? 1 : 0;
+    const [x, z] = alongZ ? [low ? x0 : x1, t] : [t, low ? z0 : z1];
+    w.placeModel('canal', variant, x, z, { yaw: alongZ ? (low ? -Math.PI / 2 : Math.PI / 2) : (low ? Math.PI : 0) });
+  }
 }
 /** Half of an arched bridge in the border on `side` (0 N, 1 E, 2 S at rotation 0; the canal crosses that border). */
 function halfBridge(w, p, side) {

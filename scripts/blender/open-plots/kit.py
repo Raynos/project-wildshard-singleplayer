@@ -376,6 +376,94 @@ def crate_stack():
     return p
 
 
+def coping(p):
+    """A 2 m canal coping block on the rim (0.8 m deep from the wall line at its origin, 0.64 m high) with a stone lip
+    14 cm over the water (its front)."""
+    p.box((-0.99, 0, 0), (0.99, 0.8, 0.5), 'Kit.stone')
+    p.box((-1.0, -0.14, 0.5), (1.0, 0.84, 0.64), 'Kit.stoneTop', bottom=True)
+
+
+def coping_plain():
+    p = Piece()
+    coping(p)
+    return p
+
+
+def coping_bollard():
+    """Coping with an iron mooring bollard and its ring."""
+    p = Piece()
+    coping(p)
+    p.lathe(0, 0.4, [(0.11, 0.64), (0.09, 0.85), (0.13, 0.92), (0.0, 0.98)], 6, ['Kit.iron'])
+    return p
+
+
+def coping_steps():
+    """Coping with three stone steps down into the water at its front."""
+    p = Piece()
+    coping(p)
+    for y, z in ((-0.3, 0.42), (-0.6, 0.2), (-0.9, -0.02)):
+        p.box((-0.7, y, -0.45), (0.7, y + 0.3, z), 'Kit.stone', top='Kit.stoneTop')
+    return p
+
+
+SOURCES = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'sources')
+
+
+def generated_tree(name, height, faces):
+    """A tree from its image-to-3D source (sources/<name>.glb, model_source.py): decimated to about `faces` flat
+    triangles, each face Kit.foliage or Kit.trunk by its colour (green or not), its tint the face's brightness against its
+    class's bright facets (so the light and dark facets survive a palette retint); the trunk's foot at the origin,
+    `height` metres tall."""
+    import bmesh
+    import bpy
+    before = set(bpy.data.objects)
+    bpy.ops.import_scene.gltf(filepath=os.path.join(SOURCES, f'{name}.glb'))
+    obj = next(o for o in bpy.data.objects if o not in before and o.type == 'MESH')
+    for o in [o for o in bpy.data.objects if o not in before and o is not obj]:
+        bpy.data.objects.remove(o)
+    bpy.context.view_layer.objects.active = obj
+    obj.select_set(True)
+    bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+    mod = obj.modifiers.new('decimate', 'DECIMATE')
+    mod.ratio = min(1.0, faces / max(1, len(obj.data.polygons)))
+    bpy.ops.object.modifier_apply(modifier=mod.name)
+    bm = bmesh.new()
+    bm.from_mesh(obj.data)
+    bmesh.ops.triangulate(bm, faces=bm.faces[:])
+    bm.to_mesh(obj.data)
+    bm.free()
+    mesh = obj.data
+    colours = mesh.color_attributes[0]
+    zs = [v.co.z for v in mesh.vertices]
+    low, top = min(zs), max(zs)
+    foot = [v.co for v in mesh.vertices if v.co.z < low + 0.08 * (top - low)]
+    cx, cy, k = sum(c.x for c in foot) / len(foot), sum(c.y for c in foot) / len(foot), height / (top - low)
+    for v in mesh.vertices:
+        v.co.x, v.co.y, v.co.z = (v.co.x - cx) * k, (v.co.y - cy) * k, (v.co.z - low) * k
+    rgb = []
+    for poly in mesh.polygons:
+        values = [colours.data[i if colours.domain == 'CORNER' else mesh.loops[i].vertex_index].color for i in poly.loop_indices]
+        rgb.append([sum(c[j] for c in values) / len(values) for j in range(3)])
+    green = [g > r * 1.08 and g > b * 1.08 for r, g, b in rgb]
+    lum = [0.3 * r + 0.59 * g + 0.11 * b for r, g, b in rgb]
+    reference = {}
+    for cls in (True, False):
+        values = sorted(l for l, gr in zip(lum, green) if gr == cls)
+        reference[cls] = values[int(0.9 * (len(values) - 1))] if values else 1.0
+    mesh.materials.clear()
+    mesh.materials.append(bpy.data.materials.get('Kit.trunk') or bpy.data.materials.new('Kit.trunk'))
+    mesh.materials.append(bpy.data.materials.get('Kit.foliage') or bpy.data.materials.new('Kit.foliage'))
+    tint = mesh.attributes.new('tint', 'FLOAT', 'FACE')
+    for poly, gr, l in zip(mesh.polygons, green, lum):
+        poly.material_index = 1 if gr else 0
+        poly.use_smooth = False
+        tint.data[poly.index].value = max(0.55, min(1.0, l / max(1e-6, reference[gr])))
+    for attr in list(mesh.color_attributes):
+        mesh.color_attributes.remove(attr)
+    obj.name = f'tree-{name}'
+    return obj
+
+
 BRIDGE = {'half': 11.5, 'rise': 2.0, 'deck': 0.3, 'width': 4.0, 'water': -0.45, 'open': 10.0}
 
 
@@ -469,6 +557,8 @@ def main():
     build_family(out, 'props', [flower_planter, bench, crate_stack], TRIMS, {'slots': SLOTS})
     reset_scene(ground=-1.0)  # the string's bulbs and lanterns hang below their hooks (origin y 0)
     build_family(out, 'strings', [string_bulb, string_lantern, lane_post], TRIMS, {'slots': SLOTS})
+    reset_scene(ground=BRIDGE['water'])
+    build_family(out, 'canal', [coping_plain, coping_bollard, coping_steps], TRIMS, {'slots': SLOTS})
     reset_scene(ground=BRIDGE['water'])
     build_family(out, 'bridges', [bridge_rails, bridge_parapet, bridge_lanterns], TRIMS, {'slots': SLOTS})
 
