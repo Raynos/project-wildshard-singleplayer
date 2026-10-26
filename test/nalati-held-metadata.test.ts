@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { ReturnProgramSchema } from '@wildshard/format/namedJsonContracts';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { nalatiHeldMetadata } from '../src/shards/nalati-grasslands/generators/heldMetadata';
+import { nalatiHeldMetadata, nalatiHeldSource } from '../src/shards/nalati-grasslands/generators/heldMetadata';
 import { originalSpeciesJson } from './fixtures/nalati-original-species';
 import pins from './fixtures/nalati-held-files.json' with { type: 'json' };
 
@@ -36,4 +36,14 @@ test('each composition and program signal owns detached source rows', () => {
   const rebuilt = nalatiHeldMetadata(source.program, source.compiled);
   expect(rebuilt.held.powers.crescentRange).toBeGreaterThan(0);
   expect(rebuilt.held.program.bytes).toBe(source.program.bytes);
+});
+
+test('native source admission retains complete metadata and refuses malformed executable charges', () => {
+  const rows = nalatiHeldSource(originalSpeciesJson('species.json'));
+  const before = nalatiHeldMetadata(source.program, source.compiled);
+  expect(rows).toStrictEqual(before);
+  for (const bytes of [0, -1, Number.NaN, Infinity, 0.5])
+    expect(() => nalatiHeldSource({ ...source, compiled: { ...source.compiled, bytes } })).toThrow('Invalid source-owned held metadata');
+  expect(() => nalatiHeldSource({ ...source, compiled: { ...source.compiled, hash: 'not a full hash' } })).toThrow('Invalid source-owned held metadata');
+  expect(() => nalatiHeldSource({ ...source, program: { ...source.program, script: null } })).toThrow('Invalid source-owned held metadata');
 });
