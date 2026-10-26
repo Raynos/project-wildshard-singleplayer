@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { BufferAttribute, BufferGeometry, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial } from 'three';
+import { BufferAttribute, BufferGeometry, DynamicDrawUsage, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial } from 'three';
 import { Scope } from '@wildshard/engine/app/scope';
 import { tiledMesh } from './tiledMesh';
 import { tileKey } from './tileContent';
@@ -62,6 +62,8 @@ test('an instanced part draws only its resident tiles\' instances, every channel
   expect(mesh.count).toBe(2); expect(seed()).toEqual([10, 20]); expect(mesh.instanceMatrix.array[12]).toBe(-200);
   scope.dispose();
   expect(mesh.count).toBe(0);
+  // its channels are dynamic: a GPU-only release (static attributes only) never drops their CPU copies
+  expect(geometry.getAttribute('aSeed').usage).toBe(DynamicDrawUsage); expect(mesh.instanceMatrix.usage).toBe(DynamicDrawUsage);
   // a part with a per-frame hook of its own (a culler owns its count) stays whole
   const culled = new InstancedMesh(geometry, new MeshBasicMaterial(), 3);
   spots.forEach(([x, z], i) => { culled.setMatrixAt(i, new Matrix4().makeTranslation(x, 0, z)); });

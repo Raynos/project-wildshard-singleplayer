@@ -13,7 +13,7 @@
  * single tile (a moving part, say: its install pose says nothing about where it goes) and an instanced part with a
  * per-frame hook of its own (a culler that owns its count).
  */
-import { BufferAttribute, InstancedBufferAttribute, InstancedMesh, type Matrix4, type Mesh, Object3D, SkinnedMesh } from 'three';
+import { BufferAttribute, DynamicDrawUsage, InstancedBufferAttribute, InstancedMesh, type Matrix4, type Mesh, Object3D, SkinnedMesh } from 'three';
 import { compactResident, tileRanges, type TileContent } from './tileContent';
 
 /** The tiles content of `mesh` (its geometry in `toCell` cell-local space), drawing nothing until a tile attaches. */
@@ -37,6 +37,8 @@ export function tiledMesh(id: string, mesh: Mesh, toCell: Matrix4): TileContent 
   // the source order stays on the CPU (the index is small next to the vertices); the drawn index is rewritten in place
   const source = index.array.slice(), resident = new Set<number>();
   if (geometry.index === null) geometry.setIndex(index);
+  // rewritten on every tile change: never a static buffer whose CPU copy a GPU-only release may drop (E264)
+  index.setUsage(DynamicDrawUsage);
   const draw = (): void => {
     const count = compactResident(ranges, resident, source, index.array, 3);
     geometry.setDrawRange(0, count * 3); index.needsUpdate = true;
@@ -75,6 +77,9 @@ function tiledInstances(id: string, mesh: InstancedMesh, toCell: Matrix4): TileC
   const shared = channels.length > 1 + (mesh.instanceColor === null ? 0 : 1);
   if (channels.some(channel => channel.array.length < n * channel.itemSize) || (shared && claimed.has(mesh.geometry))) return null;
   if (shared) claimed.add(mesh.geometry);
+  // rewritten on every tile change: never static channels whose CPU copies a GPU-only release drops after upload (E264;
+  // a released per-instance channel overran here entering Nine)
+  for (const channel of channels) channel.setUsage(DynamicDrawUsage);
   const copies = channels.map(channel => ({ channel, source: channel.array.slice(0, n * channel.itemSize) })), resident = new Set<number>();
   const draw = (): void => {
     let count = 0;
