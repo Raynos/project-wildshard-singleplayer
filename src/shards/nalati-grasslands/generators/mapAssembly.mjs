@@ -16,8 +16,30 @@ const base = resolve(import.meta.dirname, '..'), root = resolve(base, '../../..'
 const read = file => readMapJson(resolve(base, file));
 const pose = p => new Matrix4().compose(new Vector3(p.x, p.y, p.z), new Quaternion().setFromEuler(new Euler(p.pitch ?? p.tiltX ?? 0, p.rot ?? p.yaw ?? 0, p.roll ?? p.tiltZ ?? 0, 'YXZ')),
   new Vector3(p.sx ?? p.scale ?? p.s ?? 1, p.sy ?? p.scale ?? p.s ?? 1, p.sz ?? p.scale ?? p.s ?? 1));
-const asset = row => mapModel(resolve(root, `public${row.url}`), row.geometrySlot ?? 0);
 const painted = row => mapGeometry(new Uint8Array(readFileSync(resolve(base,row.file))),0,row.geometry);
+
+/** Paint only requested authored models once per assembly; no public painted-model input. */
+function ownedModelReader() {
+  const models = new Map();
+  return async row => {
+    const prefix = '/assets/nalati/baked/painted-models/';
+    if (!row.url.startsWith(prefix)) return mapModel(resolve(root, `public${row.url}`), row.geometrySlot ?? 0);
+    const name = row.url.slice(prefix.length);
+    let bytes = models.get(name);
+    if (bytes === undefined) {
+      const { nalatiModelPaintProgram } = await import('./modelPaintProgram.ts');
+      const files = await nalatiModelPaintProgram({ cached: (step, make) => {
+        const inputs = new Map();
+        for (const input of step.inputs ?? []) inputs.set(input, readFileSync(resolve(root, `public${input}`)));
+        return Promise.resolve(make(inputs));
+      } }, [name]);
+      bytes = files.get(name);
+      if (bytes === undefined) throw new Error(`Missing owned map model ${name}`);
+      models.set(name, bytes);
+    }
+    return mapModel(bytes, row.geometrySlot ?? 0);
+  };
+}
 
 /** Read a prepared scalar file; the modern map never consumes inline content.
  * @param {unknown} source @param {string} [directory] */
@@ -43,6 +65,7 @@ async function nativeMapPlaces() {
 
 export async function nalatiMapAssembly() {
   const assembly = new MapAssembly(), { prepared, bytes, specimens } = await nativeMapPlaces();
+  const asset = ownedModelReader();
   const fixed = read('boot/poiPaint.json');
   const native = parseBakedTerrain(Uint8Array.from(readFileSync(resolve(root, 'public/assets/baked/nalati-grasslands/terrain.bin'))).buffer);
   if (native === null) throw new Error('Map requires native Nalati terrain');
