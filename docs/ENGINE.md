@@ -7810,6 +7810,11 @@ as the W3 adopter, rechecked at the end of W3.
 
 ### Ordered model placement batches
 
+`src/engine/models/modelPose.ts` defines the pure `modelPoseMatrix` and
+`ModelPose` YXZ composition used by both authoring and runtime placement.
+It returns a fresh matrix in the original operation order and imports only
+Three, without registry, renderer or placement-service dependencies.
+
 `src/engine/models/placementBatch.ts` provides `ModelPlacementBatch` over
 existing `place` / `placeSliced`. It borrows a model context and registry,
 optionally collecting collider descriptors and attaching unregistered

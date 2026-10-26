@@ -14,7 +14,7 @@ import { FX, fxMaterial, type FxMaterial } from '@wildshard/engine/fx/groundFx';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import type { ModelContext, ModelDef } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
-import { modelPoseMatrix } from '@wildshard/engine/models/placementBatch';
+import { modelPoseMatrix } from '@wildshard/engine/models/modelPose';
 import { boxDesc, type WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import { replaceSpecimenInstances } from '../models/specimenCatalogue';

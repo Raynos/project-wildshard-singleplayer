@@ -1,6 +1,6 @@
 import { Matrix4, type Material, Color, type Group, InstancedMesh, Vector3 } from 'three';
 import { floorAtRects } from '@wildshard/engine/physics/box';
-import { modelPoseMatrix } from '@wildshard/engine/models/placementBatch';
+import { modelPoseMatrix } from '@wildshard/engine/models/modelPose';
 import { withOwner } from '@wildshard/engine/app/ownership';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { TIER } from '@wildshard/engine/core/tier';

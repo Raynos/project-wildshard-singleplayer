@@ -48,6 +48,7 @@
     "./render/programRetention": "./render/programRetention.ts",
     "./render/drawnEnvironment": "./render/drawnEnvironment.ts",
     "./models/placementBatch": "./models/placementBatch.ts",
+    "./models/modelPose": "./models/modelPose.ts",
     "./models/ownedGeometry": "./models/ownedGeometry.ts",
     "./entities/bodyClear": "./entities/bodyClear.ts",
     "./entities/animalPose": "./entities/animalPose.ts",

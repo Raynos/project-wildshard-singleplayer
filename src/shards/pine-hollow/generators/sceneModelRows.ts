@@ -1,6 +1,6 @@
 /** Final model/placement rows. All shape, rest-pose and contact work belongs to the offline producers. */
 import { Matrix4, Quaternion, Vector3 } from 'three';
-import { modelPoseMatrix } from '@wildshard/engine/models/placementBatch';
+import { modelPoseMatrix } from '@wildshard/engine/models/modelPose';
 import { parseWorldSceneModels } from '@wildshard/format/worldSceneModels';
 import { parseWorldScenes } from '@wildshard/format/worldScenes';
 import { parseWorldScenePlacement } from '@wildshard/format/worldScenePlacement';

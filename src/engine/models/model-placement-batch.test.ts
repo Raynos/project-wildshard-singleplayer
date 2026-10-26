@@ -2,7 +2,8 @@
 import { expect, test } from 'vitest';
 import { BoxGeometry, Group, Matrix4, MeshStandardMaterial } from 'three';
 import { defineModel, modelContext } from './model';
-import { ModelPlacementBatch, modelPoseMatrix } from './placementBatch';
+import { ModelPlacementBatch } from './placementBatch';
+import { modelPoseMatrix } from './modelPose';
 import { WorldRegistry, type ColliderDesc } from '../world/registry';
 
 test('heterogeneous ordered placements retain params, frames, colliders, floors and unregistered parents', async () => {

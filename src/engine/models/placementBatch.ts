@@ -1,16 +1,8 @@
-import { Euler, Matrix4, Quaternion, Vector3, type Object3D } from 'three';
+import type { Matrix4, Object3D } from 'three';
+import { modelPoseMatrix, type ModelPose } from './modelPose';
 import type { ColliderDesc } from '../world/registry';
 import type { ModelDef, Placement } from './model';
 import { place, placeSliced, type Placed, type PlaceOptions } from './place';
-
-/** Authored YXZ pose; a front correction is applied before composing its matrix. */
-export interface ModelPose { readonly x: number; readonly y: number; readonly z: number; readonly yaw: number; readonly scale: number; readonly pitch?: number; readonly roll?: number }
-/** Compose an authored pose without changing its float operation order. */
-export function modelPoseMatrix(pose: ModelPose): Matrix4 {
-  return new Matrix4().compose(new Vector3(pose.x, pose.y, pose.z),
-    new Quaternion().setFromEuler(new Euler(pose.pitch ?? 0, pose.yaw, pose.roll ?? 0, 'YXZ')),
-    new Vector3(pose.scale, pose.scale, pose.scale));
-}
 
 /** Ordered heterogeneous model placement using the ordinary model registry and optional existing slicer.
  * The fallback parent is used only for registry:null; regular registration retains its normal scene ownership.
