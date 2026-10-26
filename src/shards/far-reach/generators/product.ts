@@ -17,7 +17,7 @@ import isletRows from '../data/islets.generated.json' with { type: 'json' };
 import { RISING_ISLETS, ENTRYWAYS } from './rows/islets.generated';
 import lookGraphs from '../data/lookGraphs.json' with { type: 'json' };
 import { ISLE_MAPS } from './rows/isleLook';
-import isleProps from '../data/props.json' with { type: 'json' };
+import { SKY_WORLD_TILE_ROWS as isleProps } from './worldTileRows';
 
 // Legacy trusted runtime retains today's geometry/spawn; SF29 binds only its audio.
 // SF49-g (G99 / G183) and SF8c's socketLift: every entry meets the road over the cloud sea's void (no ground below y = 0

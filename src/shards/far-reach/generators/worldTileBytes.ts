@@ -26,13 +26,19 @@ export function assertSkyWorldTileFiles(files: ReadonlyMap<string, Uint8Array>):
   if (files.size !== names.size) throw new Error('Sky world tile asset inventory differs');
 }
 
-/** Original asset insertion order and canonical metadata; publication stays with the caller. */
-export function skyWorldTileFiles(baked: BakedProps): Map<string, Uint8Array> {
+/** The original complete lattice and sorted file catalogue, shared by authored readers and transport. */
+export function skyWorldTileRows(baked: BakedProps): Pick<BakedProps, 'props' | 'tiles' | 'files' | 'report'> {
   if (baked.far !== null) throw new Error('Sky world tiles cannot include a far proxy');
   const files = [...baked.files].sort((a, b) => a.hash.localeCompare(b.hash));
   const tiles = completeEmptyL1Tiles(completeL0Tiles([...baked.tiles].sort((a, b) => a.lod - b.lod || a.x - b.x || a.z - b.z)));
+  return { props: baked.props, tiles, files, report: baked.report };
+}
+
+/** Original asset insertion order and canonical metadata; publication stays with the caller. */
+export function skyWorldTileFiles(baked: BakedProps): Map<string, Uint8Array> {
+  const rows = skyWorldTileRows(baked);
   const output = new Map([...baked.assets].map(([hash, bytes]) => [`assets/${hash}`, bytes.slice()]));
-  output.set('data/props.json', new TextEncoder().encode(encodeCanonicalJson({ props: baked.props, tiles, files, report: baked.report })));
+  output.set('data/props.json', new TextEncoder().encode(encodeCanonicalJson(rows)));
   assertSkyWorldTileFiles(output);
   return output;
 }

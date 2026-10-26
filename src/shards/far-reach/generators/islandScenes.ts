@@ -6,7 +6,7 @@ import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import { bakeSkyIsles } from './isles';
 import { ISLES } from './layout';
 import { RISING_ISLETS } from './risingIslets';
-import isleProps from '../data/props.json' with { type: 'json' };
+import { SKY_WORLD_TILE_ROWS } from './worldTileRows';
 import { fallGeometry } from './fallGeometry';
 
 // The same original shapes and normal calculation as isleProps/islandMesh. The twelve static islands are read from
@@ -41,4 +41,4 @@ export function skyIsleTileLibrary(tiles: readonly { lod: number; file: string }
   return { id: 'isle-tiles', kind: 'whole', models: tiled.map(isle => ({ id: isle.id, part: `isle_${isle.id.replace('.', '-')}`,
     files: tiles.filter(tile => tile.lod === 0).map(tile => tile.file), matrix: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0 - isle.x, 0 - isle.y, 0 - isle.z, 1] })) } as const;
 }
-export const SKY_ISLE_TILES = skyIsleTileLibrary(isleProps.props.tiles);
+export const SKY_ISLE_TILES = skyIsleTileLibrary(SKY_WORLD_TILE_ROWS.props.tiles);
