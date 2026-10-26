@@ -364,13 +364,15 @@ export function createModelLibrary<M extends string, H extends string>(rows: Mod
 
   async function loadHd(name: H): Promise<void> {
     try {
-      const gltf = await readModel(rows.hdUrls[name]), look = rows.hdLooks[name];
-      gltf.scene.traverse((o) => {
+      const { scene } = await readModel(rows.hdUrls[name]), look = rows.hdLooks[name];
+      scene.traverse((o) => {
         if (!isMesh(o)) return;
         for (const m of Array.isArray(o.material) ? o.material : [o.material]) if (m instanceof MeshStandardMaterial) dressHd(m, look, surfaceInputs);
       });
-      retainCachedResources(gltf.scene); hd.set(name, gltf.scene);
-      cacheUntilDisposed(gltf.scene, () => { if (hd.get(name) === gltf.scene) { hd.delete(name); loading = null; } });
+      // Only the reusable scene belongs to the memo. Its disposal observer
+      // must not retain the consumed GLTF parser and transport dependencies.
+      retainCachedResources(scene); hd.set(name, scene);
+      cacheUntilDisposed(scene, () => { if (hd.get(name) === scene) { hd.delete(name); loading = null; } });
     } catch (e: unknown) { console.error(`${fault} the generated model ${name} did not load:`, e); }
   }
 
