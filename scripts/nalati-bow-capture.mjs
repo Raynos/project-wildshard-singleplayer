@@ -14,6 +14,8 @@
 // → <out>/sheet.jpg (JPEG, kept < 500 KB). Headless, muted (--mute-audio + &mute=1), on Metal.
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve as resolvePath } from 'node:path';
+import { jpegImageRoutes } from './parity/image-routes.mjs';
+import { saveJpegBlob } from './parity/canvas-bytes.mjs';
 
 const { chromium } = await import('playwright');
 const argv = process.argv.slice(2);
@@ -27,7 +29,7 @@ const sleep = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });
 const NAL = 'chunk=nalati-grasslands&time=day&mute=1&nolock=1&skipintro=1';
 
 const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
-const shots = []; // { name, b64, kind: 'phone' | 'desk', note }
+const shots = []; // { name, image, kind: 'phone' | 'desk', note }
 try {
   const phone = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
   const desk = await browser.newContext({ viewport: { width: 1280, height: 720 } });
@@ -54,7 +56,7 @@ try {
     const s = await bowState(page);
     const line = `draw ${s.draw} · quiver ${s.quiver} · aim ${s.aim ? 'on' : 'off'} · fov ${s.fov}${s.stuck === null ? '' : ` · stuck ${s.stuck}`}${s.fire ? ` · FIRE .${s.fire.split(/\s+/).join('.')}` : ''}`;
     console.log(`${name.padEnd(15)} ${line}${note ? `  — ${note}` : ''}${errors.length > 0 ? `  page errors: ${errors.slice(0, 2).join(' | ')}` : ''}`);
-    shots.push({ name, kind, b64: buf.toString('base64'), note: note || line });
+    shots.push({ name, kind, image: buf, note: note || line });
     return s;
   };
   const freeze = (page, s) => page.evaluate((sec) => { window.__wildshard.world.game.hitStop(sec); }, s);
@@ -137,38 +139,52 @@ try {
 
   // ── the sheet: phone frames 4 to a row (0.75×), desktop frames 2 to a row, a caption over each ──
   const pg = await desk.newPage();
-  const make = (q) => pg.evaluate(async ({ list, q: quality }) => {
-    const PS = 0.75, PW = 390 * PS, PH = 844 * PS, DW = 584, DH = 328, CAP = 34, GAP = 8, PER = 4;
-    const ph = list.filter((s) => s.kind === 'phone'), dk = list.filter((s) => s.kind === 'desk');
-    const W = PER * (PW + GAP);
-    const H = Math.ceil(ph.length / PER) * (PH + CAP) + Math.ceil(dk.length / 2) * (DH + CAP);
-    const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
-    const g = cv.getContext('2d'); g.fillStyle = '#0d1b26'; g.fillRect(0, 0, W, H);
-    const cap = (text, sub, x, y, w) => {
-      g.fillStyle = '#8fe3ff'; g.font = 'bold 13px monospace'; g.fillText(text.toUpperCase(), x + 6, y + 14);
-      g.fillStyle = '#c8d6de'; g.font = '10px monospace';
-      let s = sub; while (g.measureText(s).width > w - 12 && s.length > 4) s = s.slice(0, -2);
-      g.fillText(s === sub ? s : `${s}…`, x + 6, y + 28);
-    };
-    let y = 0;
-    for (let i = 0; i < ph.length; i++) {
-      const x = (i % PER) * (PW + GAP); if (i > 0 && i % PER === 0) y += PH + CAP;
-      const im = new Image(); im.src = `data:image/jpeg;base64,${ph[i].b64}`; await im.decode();
-      g.drawImage(im, x, y + CAP, PW, PH); cap(ph[i].name, ph[i].note, x, y, PW);
-    }
-    if (ph.length > 0) y += PH + CAP;
-    for (let i = 0; i < dk.length; i++) {
-      const x = (i % 2) * (DW + GAP); if (i > 0 && i % 2 === 0) y += DH + CAP;
-      const im = new Image(); im.src = `data:image/jpeg;base64,${dk[i].b64}`; await im.decode();
-      g.drawImage(im, x, y + CAP, DW, DH); cap(dk[i].name, dk[i].note, x, y, DW);
-    }
-    return cv.toDataURL('image/jpeg', quality).slice('data:image/jpeg;base64,'.length);
-  }, { list: shots, q });
-  let quality = 0.72, buf = Buffer.from(await make(quality), 'base64');
-  while (buf.length > 490 * 1024 && quality > 0.3) { quality -= 0.08; buf = Buffer.from(await make(quality), 'base64'); }
-  const file = resolvePath(OUT, 'sheet.jpg');
-  writeFileSync(file, buf);
-  console.log(`${file}  (${Math.round(buf.length / 1024)} KB, q ${quality.toFixed(2)})`);
+  const inputs = await jpegImageRoutes(pg, shots.map(shot => shot.image));
+  try {
+    const routedShots = shots.map((shot, index) => ({ name: shot.name, kind: shot.kind, note: shot.note, src: inputs.urls[index] }));
+    const board = await pg.evaluateHandle(async ({ list }) => {
+      const PS = 0.75, PW = 390 * PS, PH = 844 * PS, DW = 584, DH = 328, CAP = 34, GAP = 8, PER = 4;
+      const ph = list.filter((s) => s.kind === 'phone'), dk = list.filter((s) => s.kind === 'desk');
+      const W = PER * (PW + GAP);
+      const H = Math.ceil(ph.length / PER) * (PH + CAP) + Math.ceil(dk.length / 2) * (DH + CAP);
+      const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+      const g = cv.getContext('2d'); g.fillStyle = '#0d1b26'; g.fillRect(0, 0, W, H);
+      const cap = (text, sub, x, y, w) => {
+        g.fillStyle = '#8fe3ff'; g.font = 'bold 13px monospace'; g.fillText(text.toUpperCase(), x + 6, y + 14);
+        g.fillStyle = '#c8d6de'; g.font = '10px monospace';
+        let s = sub; while (g.measureText(s).width > w - 12 && s.length > 4) s = s.slice(0, -2);
+        g.fillText(s === sub ? s : `${s}…`, x + 6, y + 28);
+      };
+      let y = 0;
+      for (let i = 0; i < ph.length; i++) {
+        const x = (i % PER) * (PW + GAP); if (i > 0 && i % PER === 0) y += PH + CAP;
+        const im = new Image(); im.crossOrigin = 'anonymous'; im.src = ph[i].src; await im.decode();
+        g.drawImage(im, x, y + CAP, PW, PH); cap(ph[i].name, ph[i].note, x, y, PW);
+      }
+      if (ph.length > 0) y += PH + CAP;
+      for (let i = 0; i < dk.length; i++) {
+        const x = (i % 2) * (DW + GAP); if (i > 0 && i % 2 === 0) y += DH + CAP;
+        const im = new Image(); im.crossOrigin = 'anonymous'; im.src = dk[i].src; await im.decode();
+        g.drawImage(im, x, y + CAP, DW, DH); cap(dk[i].name, dk[i].note, x, y, DW);
+      }
+      /** @param {number} quality @returns {Promise<Blob>} */
+      const encode = (quality) => new Promise((resolve, reject) => {
+        cv.toBlob(bytes => {
+          if (bytes === null || bytes.type !== 'image/jpeg' || bytes.size === 0) reject(new Error('Bow JPEG encoding failed'));
+          else resolve(bytes);
+        }, 'image/jpeg', quality);
+      });
+      let quality = 0.72, image = await encode(quality);
+      while (image.size > 490 * 1024 && quality > 0.3) { quality -= 0.08; image = await encode(quality); }
+      return { image, size: image.size, quality };
+    }, { list: routedShots });
+    try {
+      const { size, quality } = await board.evaluate(value => ({ size: value.size, quality: value.quality }));
+      const file = resolvePath(OUT, 'sheet.jpg');
+      await saveJpegBlob(pg, await board.getProperty('image'), file);
+      console.log(`${file}  (${Math.round(size / 1024)} KB, q ${quality.toFixed(2)})`);
+    } finally { await board.dispose(); }
+  } finally { await inputs.dispose(); }
   await pg.close();
 } finally {
   await browser.close();
