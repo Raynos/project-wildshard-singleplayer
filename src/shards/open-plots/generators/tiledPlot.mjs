@@ -106,6 +106,9 @@ function poster(parts, palette, { centre, n, width, bottom, posts, offset = 0 },
   box('far', -width / 2, bottom, -depth / 2, width / 2, top, depth / 2, palette.board);
 }
 
+/** RM6.3: the lanterns' light baked into the kit's vertex colours (gain, falloff radius m, reach in radii) */
+const LANTERN_BAKE = { gain: 0.8, radius: 1.5, cut: 3 };
+
 /** Build a tiled idea's world: { parts, image textures } ready for the writer. */
 async function tiledPlot(root, repo, layoutName) {
   const layout = JSON.parse(readFileSync(resolve(root, 'data/layouts', `${layoutName}.json`), 'utf8'));
@@ -167,11 +170,12 @@ async function tiledPlot(root, repo, layoutName) {
   }
   // the floor everyone walks on (the canals' water sits below it, behind their rims)
   parts.solid.quad('Solid', [-250, 0, -250], [-250, 0, 250], [250, 0, 250], [250, 0, -250]);
-  // RM3 prepares the actual post-lantern bake at neutral strength, preserving today's look.
+  // RM6.3: each lantern warms the kit within a few metres (Nine's compact falloff into the vertex colours: the posts,
+  // eaves, stall fronts and walls round it), so a lantern visibly lights what it hangs on
   // RM6 owns visible light tuning; radius/cut give the existing 4.5 m post-pool reach.
   const surface = parts.Kit.part('Kit');
-  surface.colours = bakeLanternVertices(surface, lanterns, { gain: 0, radius: 1.5, cut: 3 });
-  console.info(`open-plots: ${layoutName} lantern bake: ${lanterns.length} emitters, neutral gain 0 (RM6 tuning pending)`);
+  surface.colours = bakeLanternVertices(surface, lanterns, { gain: LANTERN_BAKE.gain, radius: LANTERN_BAKE.radius, cut: LANTERN_BAKE.cut });
+  console.info(`open-plots: ${layoutName} lantern bake: ${lanterns.length} emitters, gain ${LANTERN_BAKE.gain}`);
   return { parts, landmark, farLandmark, nearImage, poster: resolve(repo, layout.posters.image) };
 }
 
