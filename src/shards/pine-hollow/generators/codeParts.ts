@@ -14,10 +14,9 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { GeometryPackWriter, type PackedGeometryRows } from '@wildshard/sdk/kit/geometryPack';
 import { plank } from '@wildshard/engine/world/geometryKit';
 import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
-import { unzlibSync } from 'fflate';
 import * as v from 'valibot';
 import { readBakedGeometry } from '@wildshard/game/plugin/geometry';
-import { PickupCatalogueSchema } from '@wildshard/format/specimenCatalogue';
+import { PickupCatalogueSchema, type PickupCatalogueRows } from '@wildshard/format/specimenCatalogue';
 import pickupRows from '@wildshard/game/data/pickupCatalogue' with { type: 'json' };
 import HOLLOW_LOG_SHAPE from '../data/hollowLog.json' with { type: 'json' }; // length, outer and bore radius (m), the rotted bed's depth
 import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
@@ -26,11 +25,10 @@ import { buildPrimitiveParts, PartKit } from './primitiveParts';
 import { NPC_MILLER_BODY, NPC_RANGER_BODY, NPC_RANGER_GLASS, NPC_TRADER_BODY } from './peopleParts';
 
 const tokens = v.parse(PickupCatalogueSchema, pickupRows).geometries.filter(row => row.key === 'token');
-/** The shelf's eight authored seed variants use the same prepared bytes as the legacy live shelf. */
-function carvedToken(seed: number,files:ReadonlyMap<string,Uint8Array>): THREE.BufferGeometry {
-  const row = tokens.find(candidate => candidate.seed === seed);
-  if (row === undefined) throw new Error(`Missing prepared shelf token ${seed}`);
-  const bytes='file'in row?files.get(row.file):unzlibSync(Uint8Array.from(atob(row.data), character => character.codePointAt(0) ?? 0));
+/** The shelf consumes only prepared raw token geometry; legacy inline rows belong to the legacy pickup reader. */
+export function readShelfToken(row: PickupCatalogueRows['geometries'][number],files:ReadonlyMap<string,Uint8Array>): THREE.BufferGeometry {
+  if (!('file' in row)) throw new Error('Pine shelf requires prepared token bytes');
+  const bytes=files.get(row.file);
   if(bytes===undefined)throw new Error('Missing prepared shelf bytes');
   return readBakedGeometry(bytes, 0, row.geometry);
 }
@@ -95,7 +93,9 @@ function tokenShelf(files:ReadonlyMap<string,Uint8Array>): THREE.BufferGeometry 
     const x = (i - (TOKENS - 1) / 2) * PITCH;
     e.set(LEAN + ((i * 37) % 5) * 0.012, ((i * 53) % 7 - 3) * 0.03, ((i * 29) % 5 - 2) * 0.02);
     m.compose(p.set(x, 0.03 + r, -0.005), q.setFromEuler(e), sc);
-    parts.push(carvedToken(1000 + i,files).applyMatrix4(m));
+    const row = tokens.find(candidate => candidate.seed === 1000 + i);
+    if (row === undefined) throw new Error(`Missing prepared shelf token ${1000 + i}`);
+    parts.push(readShelfToken(row,files).applyMatrix4(m));
   }
   return mergeGeometries(parts, false);
 }
