@@ -50,7 +50,13 @@ const PEEP = { color: [0.05, 0.05, 0.055], roughness: 0.9, metalness: 0.75, emis
 const BOLT = { set: 'bolt', roughness: 1, metalness: 1, alphaTest: 0.5, vertexColors: false, forceSinglePass: true, side: THREE.DoubleSide };
 
 /** The crossbow's rows (custom/crossbowPool `rows`). */
-export const CROSSBOW_ROWS = {
+export const CROSSBOW_ROWS: { view: { hip: { px: number; py: number; pz: number; rx: number; ry: number; rz: number; scale: number; }; ads: { eyeAboveRail: number; nearMargin: number; pitch: number; }; peep: { z: number; radius: number; worldRadius: number; }; }; hands: { left: { elbow?: Triple; part: string; at: Triple; axis: Triple; palm: Triple; coat: boolean; }; right: { elbow?: Triple; part: string; at: Triple; axis: Triple; palm: Triple; coat: boolean; }; }; launcher: { materials: { bolt: { name: string; look: { set: string; roughness: number; metalness: number; alphaTest: number; vertexColors: boolean; forceSinglePass: boolean; side: 2; }; }; 'peep-iron': { name: string; look: { color: number[]; roughness: number; metalness: number; emissive: number; emissiveIntensity: number; }; }; 'peep-glow': { name: string; basic: { color: number; opacity: number; }; }; }; 
+/** the walnut along the stock, the steel twice each way */
+textures: { walnut: { set: string; repeat: number[]; }; steel: { set: string; repeat: number[]; }; leather: { set: string; }; cord: { set: string; }; bolt: { set: string; }; }; objects: { sight: string; sightRing: string; }; fade: string[]; nodes: { stringLeft: string; stringRight: string; serving: string; round: string; sightPost: string; }; anchors: { tipL: number[]; tipR: number[]; nockRest: number[]; nockDrawn: number[]; }; string: { spring: number[]; reloadSpring: number[]; release: number; reload: number[]; }; glance: { lift: number; keep: number; bounce: number; maxSpeed: number; }; 
+/** the held camera's timing; reload, contact and flight stay the weapon's phases */
+frame: { clock: string; fovWhen: string; recoil: { decay: number; attack: number; recovery: number; }; lag: { gain: number; clampYaw: number; clampPitch: number; k: number; c: number; }; clampAfter: boolean; readout: { range: number; mask: number; held: boolean; posed: boolean; }; }; 
+/** the flight trail's allocation and source-clock expiry, the bolt's spin and its glow sizes */
+tracer: { row: { mode: string; follow: { kind: string; every: null; movementSq: number; }; roster: number; points: number; width: number; color: number[]; order: number; lifetime: number; fade: number; markerScale: number; }; spin: number; glow: { flight: number; stuck: number; impact: number; ring: number[]; }; }; displayRest: { part: string; child: number; material: string; position: number[]; quaternion: number[]; scale: number[]; }[]; }; } = {
   view: {
     hip: { px: 0.12, py: -0.165, pz: -0.27, rx: 0.035, ry: 0.13, rz: 0.04, scale: 1.35 },
     ads: { eyeAboveRail: 0.056, nearMargin: 0.03, pitch: 0 },

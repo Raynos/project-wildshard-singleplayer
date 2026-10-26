@@ -1,4 +1,5 @@
-import { parseNativeQuestComposition } from '@wildshard/format/nativeQuestComposition';
+
+import { parseNativeQuestComposition , type NativeQuestCompositionRows as NativeQuestCompositionRowsType } from '@wildshard/format/nativeQuestComposition';
 import authored from '../data/nativeStory.json' with { type: 'json' };
 import { NATIVE_CHAPTER_DIRECTOR } from './chapterDirector';
 import { PINE_QUEST_RUNTIME, PINE_QUEST_PAYLOAD } from './questRuntime';
@@ -9,7 +10,7 @@ for (const id of touchIds) {
   if (row?.kind !== 'pickup' || row.touch !== true || row.item !== authored.touch.item) throw new Error('Story needs its declared touch pickup law');
 }
 /** Existing native owners, their exact phases and original saved envelope. */
-export const PINE_NATIVE_QUEST = parseNativeQuestComposition({
+export const PINE_NATIVE_QUEST: NativeQuestCompositionRowsType = parseNativeQuestComposition({
   step: authored.step, cable: authored.cable, eye: authored.eye, counts: 'all',
   phases: ['commands', 'reading', 'cable', 'transitions', 'chapter', 'lead'],
   saved: { names: authored.savedNames,

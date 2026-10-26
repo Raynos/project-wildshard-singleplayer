@@ -2,7 +2,7 @@ import type * as v from 'valibot';
 import type { FirearmWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
 
 /** Pine's chamber, tube, timed per-round gate and native hitscan; sight poses and effects remain their own view owner. */
-export const LEVER_WEAPON_PROFILE = {
+export const LEVER_WEAPON_PROFILE: { family: "firearm"; action: "lever"; magazine: number; reserve: number; interval: number; reload: number; reloadMode: "perRound"; autoReload: number; damageScale: number; range: number; spreadAds: number; spreadHip: number; spreadRadius: "sqrt"; bloomShot: number; bloomMax: number; movingSpread: number; movingAimReduction: number; lever: { cycleDelay: number; cycleTime: number; reloadIn: number; reloadOut: number; ejectAt: number; cockAt: number; autoReloadClose: number; }; projectile: { kind: "bullet"; delivery: "hitscan"; speed: number; radius: number; flight: { gravity: number; drag: number; windCoupling: number; }; pool: number; substeps: number; lifetime: number; }; } = {
   family: 'firearm', action: 'lever', magazine: 7, reserve: 21, interval: 0.68, reload: 0.4, reloadMode: 'perRound', autoReload: 0.35,
   damageScale: 1.5, range: 320, spreadAds: 0.06, spreadHip: 0.9, spreadRadius: 'sqrt', bloomShot: 0, bloomMax: 0,
   movingSpread: 0.5, movingAimReduction: 0.6,

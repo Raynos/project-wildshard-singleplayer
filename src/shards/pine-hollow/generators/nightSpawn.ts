@@ -1,5 +1,6 @@
+
 import { Rng } from '@wildshard/sdk/random';
-import { parseSpawnScript } from '@wildshard/format/spawnScripts';
+import { parseSpawnScript , type SpawnScriptRows as SpawnScriptRowsType } from '@wildshard/format/spawnScripts';
 import population from '../data/nightPopulation.generated.json' with { type: 'json' };
 import tuning from '../data/populationWaves.json' with { type: 'json' };
 import rule from '../data/populationNight.json' with { type: 'json' };
@@ -27,7 +28,7 @@ const script = {
  millX:spec.mill.x,millZ:spec.mill.z,water:spec.water+tuning.placement.waterClear,bound:tuning.placement.bound,radius:tuning.placement.radius,regionScale:tuning.regionScale,raceRange:tuning.raceRange},
 };
 /** The compiler and runner share one real slot/recipe catalogue. Placement and lifecycle rules are authored in night.as. */
-export const NIGHT_SPAWN = parseSpawnScript({step:rule.step,roster:'pine.roster',seed:1337,maximum:spec.max,controlState:rule.state,script,bytes:'',slots,species,sites,spawns,fields,moves,
+export const NIGHT_SPAWN: SpawnScriptRowsType = parseSpawnScript({step:rule.step,roster:'pine.roster',seed:1337,maximum:spec.max,controlState:rule.state,script,bytes:'',slots,species,sites,spawns,fields,moves,
  flags:[rule.asked,rule.done],cues:['call','wake','flee','burst'],channels:['count'],
  legacy:{spec:JSON.stringify(spec),acc:'acc',rng:'rng',countChannel:'count',groups:[
  {key:'roam',active:'roam',slots:slots.slice(0,4).map(row=>row.id),values:['flee0','flee1','flee2','flee3'],value:'flee',type:'f64'},

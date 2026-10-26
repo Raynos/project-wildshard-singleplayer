@@ -25,7 +25,7 @@ export type XZ = [number, number];
 // ── the Hollow (centre) ─────────────────────────────────────────────────────────────────────────────────────────────
 
 /** the south-gate spawn: unchanged from v1 (the S entry road's inner end, facing north) */
-export const SPAWN = { x: 0, z: -235, yaw: Math.PI };
+export const SPAWN: { x: number; z: number; yaw: number; } = { x: 0, z: -235, yaw: Math.PI };
 /** where every path meets */
 export const CROSSROADS = { x: 0, z: -10 };
 /** the three log cabins (src/engine/world/Cabin.ts builds one per site) — none moved in v2, two renamed (see CABIN_NAMES) */
@@ -56,7 +56,7 @@ export const LOOKOUT = { x: 36, z: 214, r: 7 };
  */
 export const LOOKOUT_TRAIL: XZ[] = [[150, 142], [146, 158], [110, 178], [76, 196], [LOOKOUT.x, LOOKOUT.z]];
 /** the zipline: from the lookout's deck (`top` above the pad) south to a landing platform in the Hollow, N of the crossroads */
-export const ZIPLINE = { from: { x: LOOKOUT.x, z: LOOKOUT.z, deck: 11 }, to: { x: 4, z: 20, deck: 3 }, corridor: 5 };
+export const ZIPLINE: { from: { x: number; z: number; deck: number; }; to: { x: number; z: number; deck: number; }; corridor: number; } = { from: { x: LOOKOUT.x, z: LOOKOUT.z, deck: 11 }, to: { x: 4, z: 20, deck: 3 }, corridor: 5 };
 
 // ── the Still pond, the waterfall, the creek ────────────────────────────────────────────────────────────────────────
 
@@ -88,17 +88,17 @@ export const BEAVER_DAM = { x: -138, z: 64, at: 2 };
  * at the riffle's crest `crest`, `bed` where the riffle's back slope ends (`riffle` + `slope`), the sluice's floor =
  * CREEK_BED.sill; the water `full` → `drained` (the thin film left in the channel before the sluice).
  */
-export const BEAVER_POOL = {
+export const BEAVER_POOL: { riffle: number; slope: number; centre: number; half: number; width: number; flat: number; bank: number; crest: number; bed: number; full: number; drained: number; } = {
   riffle: 16, slope: 7, centre: 24.5, half: 8.5, width: 5.5, flat: 0.08, bank: 0.4,
   crest: POND.level - 0.05, bed: POND.level - 0.62, full: POND.level, drained: POND.level - 0.68,
 };
 /** the pool's water level now: `full` until the sluice opens, then falling to `drained` (src/shards/pine-hollow/world/beaverPool.ts sets it
  *  from the quest flag, so a reload with the sluice open starts drained). The generated intake keeps this one shared cell. */
-export const beaverPoolLevel = { y: BEAVER_POOL.full };
+export const beaverPoolLevel: { y: number; } = { y: BEAVER_POOL.full };
 
 /** creek bed: half-width of the flat bed, bank slope (rise / run, ~31°), bed height at the outlet, the sluice's floor under
  *  the dam (the pool drains to it), the toe below the dam and the south edge */
-export const CREEK_BED = { half: 2.6, bank: 0.6, outlet: POND.level - 0.45, sill: POND.level - 0.8, afterDam: POND.level - 1.3, edge: -9 };
+export const CREEK_BED: { half: number; bank: number; outlet: number; sill: number; afterDam: number; edge: number; } = { half: 2.6, bank: 0.6, outlet: POND.level - 0.45, sill: POND.level - 0.8, afterDam: POND.level - 1.3, edge: -9 };
 /** the E road's footbridge over the creek */
 export const CREEK_BRIDGE = { x: -151, z: -3 };
 
@@ -107,7 +107,7 @@ export const CREEK_BRIDGE = { x: -151, z: -3 };
 /** the Den: a rock-walled bowl in the NW corner; floor at `floor`, walls rise to `wall` behind (north and west) */
 export const DEN = { x: 190, z: 186, r: 26, floor: 9, wall: 36 };
 /** the bear cave's mouth, at the foot of the den's north-west wall, facing south-east toward the path (`rot`: yaw the mouth faces) */
-export const BEAR_CAVE = { x: 200, z: 200, rot: Math.atan2(1, 1) }; // faces (−sin, −cos) = SE on the compass (−x, −z)
+export const BEAR_CAVE: { x: number; z: number; rot: number; } = { x: 200, z: 200, rot: Math.atan2(1, 1) }; // faces (−sin, −cos) = SE on the compass (−x, −z)
 
 // ── the Old-growth (west) and the King's clearing ───────────────────────────────────────────────────────────────────
 
@@ -161,7 +161,7 @@ export const SPURS: Record<string, XZ[]> = {
   lookout: LOOKOUT_TRAIL,
 };
 /** the paths graded to a walkable profile (TerrainSpec.graded) and their max rise / run */
-export const GRADED = { paths: [LOOKOUT_TRAIL], maxGrade: 0.55 };
+export const GRADED: { paths: XZ[][]; maxGrade: number; } = { paths: [LOOKOUT_TRAIL], maxGrade: 0.55 };
 
 // ── named places (the Explore pins, the compass-true names) ─────────────────────────────────────────────────────────
 

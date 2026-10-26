@@ -90,11 +90,11 @@ const worldFile = (tier: 'phone' | 'desktop', shadow: boolean): string => {
   const row = metadata.worlds.find(entry => entry.tier === tier && entry.shadow === shadow);
   if (row === undefined) throw new Error('Missing cabin world topology'); return row.file;
 };
-export const CABIN_WELDS = [{ id: 'cabins.shells', file: { knob: 'pine.cabinDetailShadows',
+export const CABIN_WELDS: { id: string; file: { knob: string; false: { phone: string; desktop: string; }; true: { phone: string; desktop: string; }; }; }[] = [{ id: 'cabins.shells', file: { knob: 'pine.cabinDetailShadows',
   false: { phone: worldFile('phone', false), desktop: worldFile('desktop', false) }, true: { phone: worldFile('phone', true), desktop: worldFile('desktop', true) } } }];
-export const CABIN_LIBRARIES = [...CABIN_LIVING_LIBRARIES, ...[...new Set(metadata.geometry.map(row => row.library))].map(id => ({ id, kind: 'owned' as const,
+export const CABIN_LIBRARIES: { id: string; kind: "owned"; models: { id: string; file: string; attributes: Record<string, string>; }[]; }[] = [...CABIN_LIVING_LIBRARIES, ...[...new Set(metadata.geometry.map(row => row.library))].map(id => ({ id, kind: 'owned' as const,
   models: metadata.geometry.filter(row => row.library === id).map(({ library: _library, ...row }) => row) }))];
-export const CABIN_BLOBS = metadata.blobs.filter(row => row.kind === 'glb');
+export const CABIN_BLOBS: { name: string; kind: "json" | "glb"; source: string; }[] = metadata.blobs.filter(row => row.kind === 'glb');
 export const CABIN_MATERIALS: unknown[] = metadata.sourceMaterials.map(row => ({ id: slot(row.id), kind: 'source', load: 'placement', url: row.url,
   aliases: authored.propMaterials, part: row.part, ...(row.id.includes('.pit.') ? { publishObject: 'cabins.source.pit' } : row.id.includes('.lantern.') ? { publishObject: 'cabins.source.lantern' } : {}), ...(row.id.includes('.prop.') ? { anisotropy: 8, anisotropyMaps: ['map', 'normalMap', 'roughnessMap', 'aoMap'] } : {}) }));
 for (const id of ['flame', 'ember', 'smoke'] as const) CABIN_MATERIALS.push({ id: `cabin.${id}`, kind: 'look', look: HEARTH_LOOKS[id] });
