@@ -117,13 +117,23 @@ def kit():
     return g
 
 def landmark():
-    """RM6.4: the landmark (the gate) in its own texture, its gold trim glowing and its foot warmed by its light pools"""
+    """RM6.4: the landmark (the gate) in its own texture, shaded by the sun and a warm dusk fill, its gold trim glowing and its
+    foot warmed by its light pools. Unlit, so the static world transport binds its colour map (meshMap colourOrVertex)."""
     N, n = graph()
     P = {"trim": {"type": "float", "value": 1.6, "min": 0, "max": 16},
+         "ambient": {"type": "colour", "value": [0.5, 0.36, 0.34]},
+         "sunGain": {"type": "float", "value": 0.8, "min": 0, "max": 8},
+         # the plot's fixed dusk sun (look.day azimuth 71, low; its key's sun colour x intensity 1.5)
+         "sunDirection": {"type": "vec3", "value": [-0.913, 0.259, 0.314]},
+         "sunColour": {"type": "colour", "value": [1.5, 1.23, 1.02]},
          "uplight": {"type": "colour", "value": [0.55, 0.22, 0.08]},
          "uplightHeight": {"type": "float", "value": 9, "min": 0.1, "max": 100}}
     for k in P: n(k, "param", param=k)
     n("map", "meshMap", name="colourOrVertex"); n("rgb", "swizzle", "map", mask="xyz")
+    # the sun on the face and a warm dusk fill (the plot's fixed dusk: its key's ambient)
+    n("nw", "normalWorld");  n("ndl0", "dot", "nw", "sunDirection"); n("ndl", "saturate", "ndl0")
+    n("sun0", "mul", "sunColour", "ndl"); n("sun", "mul", "sun0", "sunGain"); n("light", "add", "ambient", "sun")
+    n("lit", "mul", "rgb", "light")
     # gold: red and green high, blue low (the red pillars have no green, the navy roof is blue)
     n("r", "swizzle", "rgb", mask="x"); n("g", "swizzle", "rgb", mask="y"); n("b", "swizzle", "rgb", mask="z")
     n("rg", "min", "r", "g"); n("gold0", "sub", "rg", "b"); n("gold1", "sub", "gold0", 0.12); n("gold2", "mul", "gold1", 5); n("gold", "saturate", "gold2")
@@ -131,9 +141,9 @@ def landmark():
     # the pools' light on the gate's foot, fading up its pillars
     n("wp", "positionWorld"); n("wy", "swizzle", "wp", mask="y"); n("up0", "smoothstep", 0, "uplightHeight", "wy"); n("up1", "oneMinus", "up0")
     n("upc", "mul", "uplight", "up1"); n("upl", "mul", "upc", "rgb")
-    n("emissive", "add", "glow", "upl")
-    return {"version": 1, "kind": "material", "model": "standard", "doubleSided": False, "params": P, "nodes": N,
-            "stages": {"surface": {"colour": "rgb", "roughness": 0.8, "metalness": 0, "emissive": "emissive"}}}
+    n("e", "add", "glow", "upl"); n("colour", "add", "lit", "e")
+    return {"version": 1, "kind": "material", "model": "unlit", "doubleSided": False, "params": P, "nodes": N,
+            "stages": {"surface": {"colour": "colour"}}}
 
 write('paving.graph.json', paving())
 write('kit.graph.json', kit())

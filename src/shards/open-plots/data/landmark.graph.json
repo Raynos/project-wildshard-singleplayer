@@ -1,7 +1,7 @@
 {
  "version": 1,
  "kind": "material",
- "model": "standard",
+ "model": "unlit",
  "doubleSided": false,
  "params": {
   "trim": {
@@ -9,6 +9,36 @@
    "value": 1.6,
    "min": 0,
    "max": 16
+  },
+  "ambient": {
+   "type": "colour",
+   "value": [
+    0.5,
+    0.36,
+    0.34
+   ]
+  },
+  "sunGain": {
+   "type": "float",
+   "value": 0.8,
+   "min": 0,
+   "max": 8
+  },
+  "sunDirection": {
+   "type": "vec3",
+   "value": [
+    -0.913,
+    0.259,
+    0.314
+   ]
+  },
+  "sunColour": {
+   "type": "colour",
+   "value": [
+    1.5,
+    1.23,
+    1.02
+   ]
   },
   "uplight": {
    "type": "colour",
@@ -30,6 +60,22 @@
    "op": "param",
    "param": "trim"
   },
+  "ambient": {
+   "op": "param",
+   "param": "ambient"
+  },
+  "sunGain": {
+   "op": "param",
+   "param": "sunGain"
+  },
+  "sunDirection": {
+   "op": "param",
+   "param": "sunDirection"
+  },
+  "sunColour": {
+   "op": "param",
+   "param": "sunColour"
+  },
   "uplight": {
    "op": "param",
    "param": "uplight"
@@ -48,6 +94,50 @@
     "map"
    ],
    "mask": "xyz"
+  },
+  "nw": {
+   "op": "normalWorld"
+  },
+  "ndl0": {
+   "op": "dot",
+   "in": [
+    "nw",
+    "sunDirection"
+   ]
+  },
+  "ndl": {
+   "op": "saturate",
+   "in": [
+    "ndl0"
+   ]
+  },
+  "sun0": {
+   "op": "mul",
+   "in": [
+    "sunColour",
+    "ndl"
+   ]
+  },
+  "sun": {
+   "op": "mul",
+   "in": [
+    "sun0",
+    "sunGain"
+   ]
+  },
+  "light": {
+   "op": "add",
+   "in": [
+    "ambient",
+    "sun"
+   ]
+  },
+  "lit": {
+   "op": "mul",
+   "in": [
+    "rgb",
+    "light"
+   ]
   },
   "r": {
    "op": "swizzle",
@@ -156,20 +246,24 @@
     "rgb"
    ]
   },
-  "emissive": {
+  "e": {
    "op": "add",
    "in": [
     "glow",
     "upl"
    ]
+  },
+  "colour": {
+   "op": "add",
+   "in": [
+    "lit",
+    "e"
+   ]
   }
  },
  "stages": {
   "surface": {
-   "colour": "rgb",
-   "roughness": 0.8,
-   "metalness": 0,
-   "emissive": "emissive"
+   "colour": "colour"
   }
  }
 }
