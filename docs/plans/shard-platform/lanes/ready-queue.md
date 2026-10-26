@@ -12,14 +12,14 @@ Every row is decided work (Jake's G-rows); the refs are the brief.
 | sp-x1 | G744 ship approved hero (round-6-nalati-terrain -> public/assets/title + L16 first paint) -> G722 done 191aee7b15 -> hero retake done 0dd7ce4722 (board for Jake) -> G717 quiet misses (Nalati whole 287 ms, Pine whole, DW spawn) -> GR3 -> GR5 Far Reach -> GR7 Driftwood |
 | sp-x6 | CS0 done e463dc80af → G719 done → G717 look misses done 60f2ba740c → RM1/RM2/RM3 done aab5aca4737 → GR4 Sunscar done (23 → 0; exact743e preview/boot pass) → GR6 Nalati in flight (54 at claim) → GR8 Pine |
 | sp-x8 | G743 grid crossings < 5 s (DW 8.1, Nine 8.7, Nalati 11.6; Pine 2.6 passes): world + afterPlay stages -> T4 tail (I6y/I6z) -> T5 |
-| sp-x2 | U1/U2/U4 done d9d068ce7f -> JS J1-J5 done e033628a5d (J6-J10 queued after extras, G730) -> tile T4 grid30f/compiled730f qualifications pass; T6 presentation/occupied L1 waits-Opus, T8.2 skipped/indexed transport dropped -> loading source done through 5b7f2466dd, L10 waits-Jake / L11 native all-frame and L12 all-start acceptance remain open -> core C1.1 done9108b14ec6 / C3 title qualified; C7 native50d coherent2/4 PASS: menu93.538/select107.679, Template1260.664/Template2249.679MiB FAIL; C4.2 idle6436257 verified0workers60/120s, no native gain; C6.1 pinned model299.764MiB/15.000330% high, exact offline audit done, base unchanged; entry dfa2/5f99 done; Template-only5f99 native267.398/245.507MiB FAIL (0/2), reader688f; native C4 holders/C6 calibration remain open, C5 waits-Opus |
+| sp-x2 | core memory C4 (Template native 268/246 vs 198.5 MiB) -> tile T4 to the milestone -> T10 delete the whole-shard path (G747) -> T6/T8 Codex slices; JS payload J6-J10 after extras (G730/G741) |
 | sp-x9 | G742 debug-rows-mini-plan.md (0/19; best option ships, row + dead code deleted, smallest first) -> programShare finding -> ratchet at commit time -> faster CF1 walk -> oxlint R3-R5 -> no-binaries B5-B6 -> QW7 |
 | sp-x7 | releases only |
 | sp-o1 | G735: Night Market remaster models RM4 -> RM7 -> RM9 -> RM8 -> RM13 (board + walk video) |
-| sp-o2 | G735: Night Market remaster look RM5 -> RM6 -> RM10 -> RM11 -> RM12 |
+| sp-o2 | G735: Night Market remaster look RM5 -> RM6 -> RM10 -> RM11 -> RM12 -> G748 coarse L1 stand-ins for occupied tiles per shard (U2/T8.3; near/far board first) |
 | sp-o3 | G735: G685 Driftwood toon cel cumulus clouds (Debug A/B + board for Jake) |
 | sp-o4 | G735: G713 lighter post RT chain variant sheet (C5 + J8) |
-| sp-o5 | G735: G630 Nine far proxy + Sunscar glow -> L18.3 lighter DW assets -> U2 occupied parents -> T3/T6 visual tile rows (hero retake approved G744; later retake optional) |
+| sp-o5 | G735: G630 Nine far proxy + Sunscar glow -> L18.3 lighter DW assets -> T3/T6 visual tile rows |
 
 ## 10-24 open rows (Jake's picks G679-G682, a2c1e9647b; SW10: one claimable row per live lane)
 
