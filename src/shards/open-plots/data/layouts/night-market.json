@@ -45,7 +45,7 @@
   "landmark": {
     "near": "public/assets/open-plots/night-market/landmark.glb",
     "far": "public/assets/open-plots/night-market/landmark-far.glb",
-    "height": 52,
+    "height": 45,
     "turn": 0
   },
   "posters": {
