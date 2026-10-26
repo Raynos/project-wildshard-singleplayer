@@ -2,6 +2,7 @@
 """RM5 (night-market-remaster): the open plots' ruled materials, written as graph JSON (Nine's ruled-kit method: patterns
 drawn analytically from metres, no texture). python3 scripts/open-plots/ruled-graphs.py
   src/shards/open-plots/data/paving.graph.json  the paving: flagstones, joints, per-stone shade, wear (world metres)
+  src/shards/open-plots/data/landmark.graph.json the landmark: its texture, gold trim glowing, its foot uplit
   src/shards/open-plots/data/kit.graph.json     the kit: plain / roof tile / timber / plaster / awning stripe / stone by
                                                 the face's trim band (data/trim.json)"""
 import json, os
@@ -10,10 +11,10 @@ TRIM = json.load(open(os.path.join(ROOT, 'trim.json')))
 
 def graph():
     nodes = {}
-    def n(name, op, *ins, **kw):
+    def n(node_id, op, *ins, **kw):
         node = {"op": op}
         if ins: node["in"] = list(ins)
-        node.update(kw); nodes[name] = node; return name
+        node.update(kw); nodes[node_id] = node; return node_id
     return nodes, n
 
 def write(name, g):
@@ -115,5 +116,25 @@ def kit():
          "stages": {"surface": {"colour": "colour", "roughness": "rough", "metalness": 0}}}
     return g
 
+def landmark():
+    """RM6.4: the landmark (the gate) in its own texture, its gold trim glowing and its foot warmed by its light pools"""
+    N, n = graph()
+    P = {"trim": {"type": "float", "value": 1.6, "min": 0, "max": 16},
+         "uplight": {"type": "colour", "value": [0.55, 0.22, 0.08]},
+         "uplightHeight": {"type": "float", "value": 9, "min": 0.1, "max": 100}}
+    for k in P: n(k, "param", param=k)
+    n("map", "meshMap", name="colourOrVertex"); n("rgb", "swizzle", "map", mask="xyz")
+    # gold: red and green high, blue low (the red pillars have no green, the navy roof is blue)
+    n("r", "swizzle", "rgb", mask="x"); n("g", "swizzle", "rgb", mask="y"); n("b", "swizzle", "rgb", mask="z")
+    n("rg", "min", "r", "g"); n("gold0", "sub", "rg", "b"); n("gold1", "sub", "gold0", 0.12); n("gold2", "mul", "gold1", 5); n("gold", "saturate", "gold2")
+    n("gt", "mul", "rgb", "gold"); n("glow", "mul", "gt", "trim")
+    # the pools' light on the gate's foot, fading up its pillars
+    n("wp", "positionWorld"); n("wy", "swizzle", "wp", mask="y"); n("up0", "smoothstep", 0, "uplightHeight", "wy"); n("up1", "oneMinus", "up0")
+    n("upc", "mul", "uplight", "up1"); n("upl", "mul", "upc", "rgb")
+    n("emissive", "add", "glow", "upl")
+    return {"version": 1, "kind": "material", "model": "standard", "doubleSided": False, "params": P, "nodes": N,
+            "stages": {"surface": {"colour": "rgb", "roughness": 0.8, "metalness": 0, "emissive": "emissive"}}}
+
 write('paving.graph.json', paving())
 write('kit.graph.json', kit())
+write('landmark.graph.json', landmark())

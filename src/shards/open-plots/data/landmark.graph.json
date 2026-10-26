@@ -1,0 +1,175 @@
+{
+ "version": 1,
+ "kind": "material",
+ "model": "standard",
+ "doubleSided": false,
+ "params": {
+  "trim": {
+   "type": "float",
+   "value": 1.6,
+   "min": 0,
+   "max": 16
+  },
+  "uplight": {
+   "type": "colour",
+   "value": [
+    0.55,
+    0.22,
+    0.08
+   ]
+  },
+  "uplightHeight": {
+   "type": "float",
+   "value": 9,
+   "min": 0.1,
+   "max": 100
+  }
+ },
+ "nodes": {
+  "trim": {
+   "op": "param",
+   "param": "trim"
+  },
+  "uplight": {
+   "op": "param",
+   "param": "uplight"
+  },
+  "uplightHeight": {
+   "op": "param",
+   "param": "uplightHeight"
+  },
+  "map": {
+   "op": "meshMap",
+   "name": "colourOrVertex"
+  },
+  "rgb": {
+   "op": "swizzle",
+   "in": [
+    "map"
+   ],
+   "mask": "xyz"
+  },
+  "r": {
+   "op": "swizzle",
+   "in": [
+    "rgb"
+   ],
+   "mask": "x"
+  },
+  "g": {
+   "op": "swizzle",
+   "in": [
+    "rgb"
+   ],
+   "mask": "y"
+  },
+  "b": {
+   "op": "swizzle",
+   "in": [
+    "rgb"
+   ],
+   "mask": "z"
+  },
+  "rg": {
+   "op": "min",
+   "in": [
+    "r",
+    "g"
+   ]
+  },
+  "gold0": {
+   "op": "sub",
+   "in": [
+    "rg",
+    "b"
+   ]
+  },
+  "gold1": {
+   "op": "sub",
+   "in": [
+    "gold0",
+    0.12
+   ]
+  },
+  "gold2": {
+   "op": "mul",
+   "in": [
+    "gold1",
+    5
+   ]
+  },
+  "gold": {
+   "op": "saturate",
+   "in": [
+    "gold2"
+   ]
+  },
+  "gt": {
+   "op": "mul",
+   "in": [
+    "rgb",
+    "gold"
+   ]
+  },
+  "glow": {
+   "op": "mul",
+   "in": [
+    "gt",
+    "trim"
+   ]
+  },
+  "wp": {
+   "op": "positionWorld"
+  },
+  "wy": {
+   "op": "swizzle",
+   "in": [
+    "wp"
+   ],
+   "mask": "y"
+  },
+  "up0": {
+   "op": "smoothstep",
+   "in": [
+    0,
+    "uplightHeight",
+    "wy"
+   ]
+  },
+  "up1": {
+   "op": "oneMinus",
+   "in": [
+    "up0"
+   ]
+  },
+  "upc": {
+   "op": "mul",
+   "in": [
+    "uplight",
+    "up1"
+   ]
+  },
+  "upl": {
+   "op": "mul",
+   "in": [
+    "upc",
+    "rgb"
+   ]
+  },
+  "emissive": {
+   "op": "add",
+   "in": [
+    "glow",
+    "upl"
+   ]
+  }
+ },
+ "stages": {
+  "surface": {
+   "colour": "rgb",
+   "roughness": 0.8,
+   "metalness": 0,
+   "emissive": "emissive"
+  }
+ }
+}
