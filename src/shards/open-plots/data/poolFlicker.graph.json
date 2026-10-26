@@ -15,6 +15,12 @@
    "value": 0.08,
    "min": 0,
    "max": 1
+  },
+  "peak": {
+   "type": "float",
+   "value": 0.23,
+   "min": 0.01,
+   "max": 4
   }
  },
  "nodes": {
@@ -141,7 +147,7 @@
   "lit": {
    "op": "mul",
    "in": [
-    "vc",
+    "soft",
     "intensity"
    ]
   },
@@ -150,6 +156,63 @@
    "in": [
     "lit",
     "flick"
+   ]
+  },
+  "peak": {
+   "op": "param",
+   "param": "peak"
+  },
+  "lum": {
+   "op": "dot",
+   "in": [
+    "vc",
+    [
+     0.2126,
+     0.7152,
+     0.0722
+    ]
+   ]
+  },
+  "tq": {
+   "op": "div",
+   "in": [
+    "lum",
+    "peak"
+   ]
+  },
+  "tp": {
+   "op": "saturate",
+   "in": [
+    "tq"
+   ]
+  },
+  "ts": {
+   "op": "smoothstep",
+   "in": [
+    0,
+    1,
+    "tp"
+   ]
+  },
+  "tdiv": {
+   "op": "max",
+   "in": [
+    "tp",
+    0.001
+   ]
+  },
+  "shape": {
+   "op": "div",
+   "in": [
+    "ts",
+    "tdiv"
+   ]
+  },
+  "soft": {
+   "op": "mul",
+   "in": [
+    "vc",
+    "shape"
    ]
   }
  },

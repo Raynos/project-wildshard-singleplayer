@@ -166,7 +166,7 @@ About 10 Opus lane-days, roughly 5 calendar days on two lanes.
 | RM5.3 ruled trim | done | The trims drawn in the kit's material instead of a KTX2 sheet (Nine's ruled-kit method: no texture memory, retinted by palette for RM14): `data/kit.graph.json` draws plain / roof tile / timber / plaster / awning stripe / stone by the face's band in TEXCOORD_0 (box-projected metres + 32 m × band, `data/trim.json`); band 0 keeps today's kit. Source: `scripts/open-plots/ruled-graphs.py` |
 | RM5.4 kit models carry trim bands | waits-Opus (sp-o1 RM4) | sp-o1's models map each palette slot to a trim band (`data/trim.json`) in their UVs |
 | RM6.1 bloom | done | Open plots' manifest grade: bloom 0.5 / threshold 0.9 (was 0 / 1), carried on the grid as each cell's chain knobs |
-| RM6.2 round pools | open | Smooth round pools sized to their light (smoothstep fan or a pool graph) |
+| RM6.2 round pools | in flight (2026-10-26, sp-o2) | Smoothstep falloff in the pool graph (done: no geometry or byte change, the tiles' debt rows allow none); sizes to their light with RM6.3 |
 | RM6.3 light bake | open | RM3's vertex bake tuned on the kit and the paving |
 | RM6.4 gate light | open | Gate lanterns, emissive gold trim, uplight (shared hunks agreed with sp-o1) |
 | RM6.5 dusk fill | open | Warmer hemisphere ground colour |
