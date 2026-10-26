@@ -108,7 +108,7 @@ export function kurganEntranceFloor(row: KurganEntranceFloor): Platform & { read
 }
 
 /** Native model bounds used by both authored collision recipes and live placement boxes. */
-export function generatedBounds(name: NalatiModelName, box = new THREE.Box3()): THREE.Box3 {
+export function generatedBounds(name: NalatiModelName, box: THREE.Box3 = new THREE.Box3()): THREE.Box3 {
   const [w, h, d] = modelMetrics.sizes[name];
   if (w === undefined || h === undefined || d === undefined) throw new Error('Missing model bounds');
   box.min.set(-w / 2, 0, -d / 2); box.max.set(w / 2, h, d / 2);

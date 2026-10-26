@@ -35,7 +35,7 @@ export const PLACE_SETS: readonly PlaceRow[] = [
 
 
 /** Fixed named sets and spatial selectors; the page borrows the existing placement views. */
-export const NALATI_PLACE_SETS = PLACE_SETS.map(row => {
+export const NALATI_PLACE_SETS: { place: string; id: string; name: string; file: string; pois: readonly string[]; x: number; z: number; r: number; }[] = PLACE_SETS.map(row => {
   const where = content.places.find(point => `nalati-grasslands/${point.id}` === row.place);
   if (where === undefined) throw new Error(`Missing named place ${row.place}`);
   return { place: row.place, id: row.id, name: row.name, file: row.file, pois: row.pois ?? [], x: where.x, z: where.z, r: where.r };

@@ -7,7 +7,7 @@ import type { ObservationColumnV2 } from '@wildshard/format/scriptObservationCol
 const num = (name: string, integer = false, min?: number, max?: number) =>
   ({ name, kind: 'number' as const, ...(integer ? { integer } : {}), ...(min === undefined ? {} : { min }), ...(max === undefined ? {} : { max }) });
 const bool = (name: string) => ({ name, kind: 'boolean' as const });
-export const PACK_BANK = [
+export const PACK_BANK: ({ name: string; kind: "boolean"; } | { max?: number; min?: number; integer?: true; name: string; kind: "number"; } | { name: string; kind: "nullable-number"; values?: never; } | { name: string; kind: "enum"; values: string[]; } | { name: string; kind: "reference"; values?: never; })[] = [
   bool('initialized'), { name: 'time', kind: 'nullable-number' as const },
   { name: 'phase', kind: 'enum' as const, values: ['roam', 'shadow', 'encircle', 'regroup', 'break'] },
   num('awareness'), num('homeX'), num('homeZ'), num('phaseT'), num('roamX'), num('roamZ'), num('roamT'), num('nextTokenT'),
@@ -46,8 +46,8 @@ const sources: [string, ObservationColumnV2['source']][] = [
   ['preyX', reference('prey', 'x')], ['preyY', reference('prey', 'y')], ['preyZ', reference('prey', 'z')], ['preyYaw', reference('prey', 'yaw')],
   ['preyAlive', reference('prey', 'alive')], ['pendingAlive', reference('pending', 'alive')],
 ];
-export const PACK_COLUMNS = sources.map(([name, source], index) => ({ name: `c${String(index).padStart(2, '0')}.${name}`, id: index + 1, source }));
-export const PACK_RESULT_CHANNELS = ['vis', 'hear', 'downwind', 'normal', 'grass0', 'grass1', 'grass2', 'grass3', 'grass4', 'pathYaw', 'claimed', 'found'];
+export const PACK_COLUMNS: { name: string; id: number; source: ObservationColumnV2['source'] }[] = sources.map(([name, source], index) => ({ name: `c${String(index).padStart(2, '0')}.${name}`, id: index + 1, source }));
+export const PACK_RESULT_CHANNELS: string[] = ['vis', 'hear', 'downwind', 'normal', 'grass0', 'grass1', 'grass2', 'grass3', 'grass4', 'pathYaw', 'claimed', 'found'];
 const signals = ['init', 'tick', ...Array.from({ length: 16 }, (_, slot) => `drive.${slot}`), ...Array.from({ length: 16 }, (_, slot) => `body.${slot}`)];
 export const PACK_KEYS = ['role', 'ox', 'oz', 'ring', 'hitT', 'lunge', 'lt', 'bit', 'lhit', 'st', 'sx', 'sz', 'low', 'snarl', 'howl', 'hidden'] as const;
 export const PACK_STATES = ['wander', 'graze', 'stalk', 'attack', 'charge', 'flee', 'alert'] as const;

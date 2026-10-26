@@ -49,7 +49,7 @@ export function slab(x: number, z: number, top: number, thick: number, hx: numbe
 }
 
 /** a regular `sides`-gon prism from y0 up to y1, circumradius r (a yurt's wall, a cairn, one layer of a tor) */
-export function prism(x: number, z: number, y0: number, y1: number, r: number, sides: number, yaw: number, surface: Material, rTop = r): ColliderDesc {
+export function prism(x: number, z: number, y0: number, y1: number, r: number, sides: number, yaw: number, surface: Material, rTop: number = r): ColliderDesc {
   const pts = new Float32Array(sides * 6), yc = (y0 + y1) / 2;
   for (let i = 0; i < sides; i++) {
     const a = yaw + (i / sides) * Math.PI * 2, c = Math.cos(a), s = Math.sin(a);

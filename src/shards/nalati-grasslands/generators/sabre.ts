@@ -58,7 +58,7 @@ const CURVE = 0.12;              // m the tip sits back from the grip's line (to
 // ───────────────────────────── geometry (sword model space: +Y up the blade, +X the edge, +Z the flat toward the eye) ─────────────────────────────
 
 /** rest: hand low right, the curved blade rising up-left toward the frame centre (the mockup's hold) */
-export const SABRE_REST = key(0, 0.3, -0.27, -0.52, -0.3, 0.72, -0.62, 0.2);
+export const SABRE_REST: ReturnType<typeof key> = key(0, 0.3, -0.27, -0.52, -0.3, 0.72, -0.62, 0.2);
 const SABRE_CHARGE = key(0, 0.27, -0.08, -0.5, 0.2, 0.93, 0.3, 0.25);
 const SABRE_SPRINT = key(0, 0.35, -0.47, -0.58, -0.18, 0.5, -0.85, 0.7);
 
@@ -80,7 +80,7 @@ const SECTION: [number, number, 'edge' | 'bevel' | 'flat' | 'fuller' | 'spine'][
  * gold wire, a gold cap pommel. Metal (blade + gold) → `extras` on the PBR steel; leather + the hand → painterly.
  */
 const SABRE_BLADE = { length: BLADE_L, curve: CURVE };
-export function buildSabre(material: THREE.Material, steel: THREE.Material, blade = SABRE_BLADE): SwordRig & { tipX: number } {
+export function buildSabre(material: THREE.Material, steel: THREE.Material, blade: { length: number; curve: number; } = SABRE_BLADE): SwordRig & { tipX: number } {
   const paint: THREE.BufferGeometry[] = [], metal: THREE.BufferGeometry[] = [];
   const guardY = 0.064, y0 = guardY + 0.02, tipY = y0 + blade.length;
   // ── blade ──

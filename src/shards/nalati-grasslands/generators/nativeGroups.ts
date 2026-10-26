@@ -26,7 +26,7 @@ const herd = (index: number): string[] => {
 const den = ecology.wildlife.packs[0], lair = herd(3), adopt = lair.pop();
 if (den === undefined || adopt === undefined) throw new Error('Missing authored native group');
 /** Preserve setup order, including the two guest-owned draws before adoption. */
-export const nalatiNativeGroupRows = v.parse(NativeGroupRowsSchema, {
+export const nalatiNativeGroupRows: v.InferOutput<typeof NativeGroupRowsSchema> = v.parse(NativeGroupRowsSchema, {
   id: 'nalati.groups', herds: 'nalati.herds', tokens: 'nalati.tokens', bounds: [-250,250,-250,250],
   owned: boot.roster.bodies.filter(body => body.kind === 'horse' && body.herd === -1).map(body => body.id),
   contacts: { pack: contacts.wolf, herd: contacts.stallion },
@@ -49,4 +49,4 @@ const pageWildlife = v.parse(WildlifePopulationSchema,{ combat:{kind:'sheep',dam
   foragers: ecology.wildlife.marmots === undefined ? null : { row: forager,seed: nativeField.seed ^ 0x6a2b,initial: physics.marmots,cue: 'marmot_whistle',runSpeed: 5,view:{name:'marmots',books:{phone:'models/cover-phone.json',desktop:'models/cover-desktop.json'},model:'marmot',rim:.8,bands:.85,tilt:-1.25,sink:-.45} },
   relations: { alert: 'whistle',range: 'scare',packRadius: 20,disturbRadius: 25,disturbSeconds: 4,scareSeconds: 6 },
   trample: { kinds: { wolf: .5,horse: .8,sheepdog: .4 },minSpeed: .6,range: 80,fullSpeed: 6 },soundHeight: .6 });
-export const headlessAssembly = { ...groupAssembly,constants: { ...groupAssembly.constants,pageWildlife } };
+export const headlessAssembly: Omit<typeof assembly, 'constants'> & { constants: Omit<typeof assembly.constants, 'nativeKnockdown' | 'groupRows' | 'groupAdmission' | 'nativeField' | 'pageGroups' | 'nativeDayClock' | 'pageWildlife'> & { nativeKnockdown: v.InferOutput<typeof PopulationKnockdownSchema>; groupRows: v.InferOutput<typeof NativeGroupRowsSchema>; groupAdmission: Omit<typeof admissionInput, 'compiled'>; nativeField: v.InferOutput<typeof PopulationFieldSchema>; pageGroups: v.InferOutput<typeof PageGroupRowsSchema>; nativeDayClock: ReturnType<typeof nalatiDayClockRow>; pageWildlife: v.InferOutput<typeof WildlifePopulationSchema> } } = { ...groupAssembly,constants: { ...groupAssembly.constants,pageWildlife } };

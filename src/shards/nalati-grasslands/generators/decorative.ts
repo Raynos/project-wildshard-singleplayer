@@ -16,7 +16,7 @@ function member(name: 'horse-wild' | 'snow-lotus', poses: readonly ModelPlacemen
   return { draw: 'instanced', inKit: false, placements: poses.map(pose => ({ x: pose.x, y: pose.y, z: pose.z, matrix: placementMatrix(pose).toArray() })),
     boxes: poses.flatMap(pose => { const [w, h, d] = name === 'horse-wild' ? [0.78, 1.75, 2.16] : [0.55, 0.5, 0.56]; bounds.min.set(-w / 2, 0, -d / 2); bounds.max.set(w / 2, h, d / 2); bounds.applyMatrix4(placementMatrix(pose)); return [...bounds.min, ...bounds.max]; }), solid: [], descs: [], floors: [] };
 }
-function tier(phone: boolean, ground: (x: number, z: number) => number) {
+function tier(phone: boolean, ground: (x: number, z: number) => number): { horses: { herds: Herd[]; total: number; random: ReturnType<Rng['snapshot']>; member: { draw: string; inKit: boolean; placements: { x: number; y: number; z: number; matrix: THREE.Matrix4Tuple; }[]; boxes: number[]; solid: never[]; descs: never[]; floors: never[]; }; }; lotus: { scene: { version: number; root: string; materials: { kind: string; id: string; source: string; }[]; nodes: { kind: string; id: string; name: string; geometry: string; material: string; missing: string; instances: number; matrices: number[]; castShadow: boolean; receiveShadow: boolean; }[]; }; poses: ModelPlacement[]; look: { rim: number | undefined; bands: number | undefined; }; member: { draw: string; inKit: boolean; placements: { x: number; y: number; z: number; matrix: THREE.Matrix4Tuple; }[]; boxes: number[]; solid: never[]; descs: never[]; floors: never[]; }; }; } {
   const HERDS: { x: number; z: number; r: number; n: number }[] = [
     { x: HORSE_PLAINS.x + 8, z: HORSE_PLAINS.z - 6, r: 42, n: phone ? 50 : 80 },
     { x: -16, z: 62, r: 30, n: phone ? 34 : 56 },

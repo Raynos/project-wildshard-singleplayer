@@ -44,7 +44,7 @@ const JAVELIN_WEAPON_PROFILE = schema.parse(ThrownWeaponProfileSchema, items.row
 export const REACH = 3.2;
 const THRUST_DAMAGE = 30, THRUST_STAGGER = 0.5;
 const T_WIND = 0.12, T_ACTIVE_END = 0.22, T_TOTAL = 0.35;
-const THRUST_FAN = { yaws: [0, -0.05, 0.05, -0.1, 0.1], pitches: [0, -0.15, -0.3, -0.5, -0.7] };
+const THRUST_FAN: { yaws: number[]; pitches: number[]; } = { yaws: [0, -0.05, 0.05, -0.1, 0.1], pitches: [0, -0.15, -0.3, -0.5, -0.7] };
 const RMB_TAP_MAX = 0.25; // quick desktop tap throws; a held RMB has no action
 const LANCE_REHIT = 1.2;
 const LANCE_REACH = 2.5, LANCE_CONE = 15 * Math.PI / 180, LANCE_MIN_SPEED = 8;
@@ -159,14 +159,14 @@ const JAV_COCK = pose(0.33, -0.02, -0.55, -0.08, 0.1, -0.99, 0.2);    // the jav
 const JAV_OUT = pose(0.12, -0.12, -0.72, -0.02, 0.02, -1, 0.2);      // the throwing hand, arm out after the release
 
 /** the spear's view row: the poses above, the rider's fists and sleeves (nalatiArms), the RMB tap */
-export const SPEAR_VIEW = {
+export const SPEAR_VIEW: { poses: { rest: { pos: THREE.Vector3; q: THREE.Quaternion; }; cock: { pos: THREE.Vector3; q: THREE.Quaternion; }; jab: { pos: THREE.Vector3; q: THREE.Quaternion; }; leftLow: { pos: THREE.Vector3; q: THREE.Quaternion; }; sprint: { pos: THREE.Vector3; q: THREE.Quaternion; }; lance: { pos: THREE.Vector3; q: THREE.Quaternion; }; javCock: { pos: THREE.Vector3; q: THREE.Quaternion; }; javOut: { pos: THREE.Vector3; q: THREE.Quaternion; }; }; leftHandY: number; hands: { left: readonly [-0.42, -0.62, 0.66]; right: readonly [0.62, -0.5, 0.6]; radius: number; splay: number; sleeve: number; javelinGrip: number; }; elbows: { left: THREE.Vector3; right: THREE.Vector3; }; tapMax: number; } = {
   poses: { rest: REST, cock: COCK, jab: JAB, leftLow: LEFT_LOW, sprint: SPRINT, lance: LANCE, javCock: JAV_COCK, javOut: JAV_OUT },
   leftHandY: LEFT_HAND_Y,
   hands: { left: [-0.42, -0.62, 0.66] as const, right: [0.62, -0.5, 0.6] as const, radius: 0.0165, splay: 0.12, sleeve: 0.75, javelinGrip: 0.1 },
   elbows: { left: new THREE.Vector3(-0.3, -0.62, 0.05), right: new THREE.Vector3(0.36, -0.6, 0.08) },
   tapMax: RMB_TAP_MAX,
 };
-export const JAVELIN = {
+export const JAVELIN: { id: string; speed: number; gravity: number; damage: number; headMultiplier: number; radius: number; headOffset: number; windup: number; release: number; recovery: number; carried: number; pool: number; pickupRadius: number; pickupHeight: number; survive: number; arcPoints: number; arcAfter: number; stagger: number; } = {
   id: 'weapon.javelin', speed: JAV_SPEED, gravity: JAV_GRAVITY, damage: JAV_DAMAGE, headMultiplier: JAV_HEAD,
   radius: JAV_RADIUS, headOffset: JAVELIN_WEAPON_PROFILE.headOffset, windup: WINDUP, release: THROW_T, recovery: THROW_RECOVER,
   carried: JAVELIN_WEAPON_PROFILE.carried, pool: JAV_POOL, pickupRadius: PICKUP_R, pickupHeight: JAVELIN_WEAPON_PROFILE.pickupHeight, survive: JAV_SURVIVE,

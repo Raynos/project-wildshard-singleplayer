@@ -28,7 +28,7 @@ export function riverHalfAt(x: number): number {
   return (15 + 3 * Math.sin(x * 0.009 + 2.1) + 2 * Math.sin(x * 0.031)) * (0.62 + 0.38 * s * s * (3 - 2 * s));
 }
 /** the timber bridge on the N road */
-export const BRIDGE_XZ = { x: 0, z: riverZAt(0), deckY: -6 };
+export const BRIDGE_XZ: { x: number; z: number; deckY: number; } = { x: 0, z: riverZAt(0), deckY: -6 };
 /** the spring camp (the hub: yurts, corral, hitching rail, TULPAR) and the fenced sheep pasture */
 export const CAMP = { x: 88, z: 212, y: -8 };
 export const PASTURE = { x: -120, z: 212, y: -8, r: 32 };
@@ -79,7 +79,7 @@ export const GLACIER = { x0: -150, z0: -55, y0: 80, x1: -48, z1: -92, y1: 36, ha
 /** the meltwater stream: from the glacier's snout across the valley head and down the valley floor to the S edge */
 export const MELT_STREAM: XZ[] = [[-46, -94], [-34, -101], [-24, -113], [-18, -132], [-22, -156], [-16, -180], [-22, -205], [-27, -228], [-29, -250]];
 /** Aqbars' cave on the west massif's north flank, the mouth facing north over the bowl (a `rot`: 0 faces −z; the spec's (+175, −98) was deep inside the massif) */
-export const LEOPARD_CAVE = { x: 138, z: -68, y: 54, rot: Math.PI * 0.85 };
+export const LEOPARD_CAVE: { x: number; z: number; y: number; rot: number; } = { x: 138, z: -68, y: 54, rot: Math.PI * 0.85 };
 /** snow lotus clusters in the rocks: the biggest on the west massif's foot (the spec's (+143, −136) sits at +82 on the
  *  massif, out of reach — brought down to +60), the rest on Snow Lotus Valley's walls */
 export const SNOW_LOTUS: { x: number; z: number; r: number; n: number }[] = [
@@ -131,7 +131,7 @@ export const BOWL_TRACKS: XZ[][] = [
 export const LONE_SPRUCE: XZ[] = [[152, 126], [-62, 132], [206, 108], [-222, 44], [64, -66], [-44, -176], [34, -206], [196, -40], [-150, 128], [120, 132]];
 
 /** the full map / minimap labels (read at runtime by name: src/engine/ui/Map.ts, Minimap.ts) */
-export const NALATI_MAP = {
+export const NALATI_MAP: { zones: { label: string; x: number; z: number; }[]; pois: { label: string; x: number; z: number; }[]; } = {
   zones: [
     { label: 'NALATI GRASSLANDS', x: 30, z: 214 },
     { label: 'SKY GRASSLAND', x: 0, z: 58 },

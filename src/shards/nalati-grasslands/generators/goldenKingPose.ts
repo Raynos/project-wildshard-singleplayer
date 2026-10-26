@@ -224,5 +224,5 @@ const surfaceOutputs:NumericChannelOutput[]=[...surfaceValues.entries(),[floor.d
 }}));
 surfaceOutputs.push({target:'visual',path:['yOffset'],expr:(b,read)=>{let cache=surfaceCache.get(b);if(cache===undefined){cache=new Map();surfaceCache.set(b,cache);}return compile(b,read,yOffset,cache);}});
 const surfacePrograms=numericChannelPrograms('king.surface','king.surface',surfaceOutputs);
-export const GOLDEN_KING_POSE = { group: 'creature.pose', programs: [...creaturePoseRows({ group: 'creature.pose', programs }).programs,...observationPrograms,...surfacePrograms] };
+export const GOLDEN_KING_POSE: { group: string; programs: ReturnType<typeof numericChannelPrograms> } = { group: 'creature.pose', programs: [...creaturePoseRows({ group: 'creature.pose', programs }).programs,...observationPrograms,...surfacePrograms] };
 

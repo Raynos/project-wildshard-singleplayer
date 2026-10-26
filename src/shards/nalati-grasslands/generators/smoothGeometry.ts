@@ -9,7 +9,7 @@ const UP = new THREE.Vector3(0, 1, 0), _q = new THREE.Quaternion();
 
 const _m = new THREE.Matrix4();
 /** a smooth round pole / log from a to b, radius r0 at a → r1 at b; `segs` rings along it (for a painter that varies along the length) */
-export function pole(a: THREE.Vector3, b: THREE.Vector3, r0: number, r1 = r0, sides = 7, segs = 1): THREE.BufferGeometry {
+export function pole(a: THREE.Vector3, b: THREE.Vector3, r0: number, r1: number = r0, sides = 7, segs = 1): THREE.BufferGeometry {
   const d = new THREE.Vector3().subVectors(b, a);
   const len = d.length();
   const g = new THREE.CylinderGeometry(r1, r0, len, sides, segs, false, 0.3);

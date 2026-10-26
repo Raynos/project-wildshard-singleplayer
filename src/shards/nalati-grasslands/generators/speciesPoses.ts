@@ -31,7 +31,7 @@ function compile(b: ClientChannels, read: Parameters<NumericChannelOutput['expr'
   cache.set(key, n); return n;
 }
 function pose(id: string, build: (set: (bone: string, channel: string, e: E, additive?: boolean) => void,
-  mem: (key: string, fallback?: number) => E) => void, options: { alive?: boolean; look?: readonly [number, number, number] } = {}) {
+  mem: (key: string, fallback?: number) => E) => void, options: { alive?: boolean; look?: readonly [number, number, number] } = {}): ReturnType<typeof creaturePoseRows> {
   const scalars: { name: string; path: readonly ['mem', string]; fallback: number }[] = [], outputs: { bone: string; channel: string; value: E }[] = [];
   const mem = (key: string, fallback = 0): E => {
     if (!scalars.some(row => row.name === key)) scalars.push({ name: key, path: ['mem', key], fallback });
@@ -47,7 +47,7 @@ function pose(id: string, build: (set: (bone: string, channel: string, e: E, add
   }]));
   return creaturePoseRows({ group: 'creature.pose', programs, scalars, ...options });
 }
-export const SPECIES_POSES = {
+export const SPECIES_POSES: { horse: ReturnType<typeof pose>; balbal: ReturnType<typeof pose>; canid: ReturnType<typeof pose>; canidDead: ReturnType<typeof pose>; leopard: ReturnType<typeof pose>; eagle: ReturnType<typeof pose> } = {
   horse: pose('horse', (set, m) => {
     const rear=step(m('horserear')),buck=m('horsebuck'),headUp=m('horseheadUp'),pin=m('horsepin'),lead=m('horseturnLead'),graze=m('horsegraze');
     const impulse=(key:string) => choose(mul(m('horsealive'),gt(m(key),0)),bump(sub(1,cap(m(`pose${key}`))),0,1),0);

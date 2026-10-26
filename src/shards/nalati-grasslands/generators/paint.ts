@@ -211,7 +211,7 @@ export class PaintKit {
 
 const _q = new THREE.Quaternion(), _e = new THREE.Euler(), _s = new THREE.Vector3(), _p = new THREE.Vector3();
 /** a placement matrix: translate (x, y, z), yaw about +y (then optional pitch / roll), scale */
-export function M(x: number, y: number, z: number, yaw = 0, sx = 1, sy = sx, sz = sx, pitch = 0, roll = 0): THREE.Matrix4 {
+export function M(x: number, y: number, z: number, yaw = 0, sx = 1, sy: number = sx, sz: number = sx, pitch = 0, roll = 0): THREE.Matrix4 {
   _e.set(pitch, yaw, roll, 'YXZ');
   return new THREE.Matrix4().compose(_p.set(x, y, z), _q.setFromEuler(_e), _s.set(sx, sy, sz));
 }

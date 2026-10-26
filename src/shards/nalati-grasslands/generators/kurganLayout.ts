@@ -25,7 +25,7 @@ export const COFFIN = { x: 0, z: -0.6, plinthH: 0.45, len: 3.2, wid: 1.3, h: 0.8
 export const PEDESTAL = { x: 0, z: -8.3, h: 0.95 };
 
 /** Shipping chamber niches declaration, shared by the native chamber and arena row. */
-export const NICHES = [
+export const NICHES: { x: number; z: number; yaw: number; }[] = [
   { x: -CH + 0.2, z: 4.6, yaw: Math.PI / 2 }, { x: CH - 0.2, z: 4.6, yaw: -Math.PI / 2 },
   { x: -CH + 0.2, z: -4.2, yaw: Math.PI / 2 }, { x: CH - 0.2, z: -4.2, yaw: -Math.PI / 2 },
 ];
@@ -37,7 +37,7 @@ export const STREAMS: { x: number; z: number }[] = [
 ];
 
 /** Fixed chamber dimensions shared by the offline fabric and live encounter attachments. */
-export const FABRIC = {
+export const FABRIC: { STATIC_TRIANGLES: number; SAND_N: number; WALL_H: number; BEAM_Y: number; PLANK_Y: number; DW: number; DH: number; DOOR_W: number; DOOR_H: number; BRAZIERS: { x: number; z: number; }[]; FALLEN: { a: { x: number; z: number; }; b: { x: number; z: number; }; r: number; }[]; } = {
   STATIC_TRIANGLES: 111316, SAND_N: 40, WALL_H: 5.3, BEAM_Y: 5.45, PLANK_Y: 5.95,
   DW: 1.5, DH: 3.0, DOOR_W: 1.35, DOOR_H: 2.9,
   BRAZIERS: [{ x: -6.6, z: 6.6 }, { x: 6.6, z: 6.6 }, { x: -6.6, z: -6.4 }, { x: 6.6, z: -6.4 }],
@@ -104,4 +104,4 @@ function chamberCollision(): { boxes: Collider[]; descs: ColliderDesc[] } {
 }
 
 /** Fixed collision alongside the authored frame; the seal and sand remain live. */
-export const COLLISION = chamberCollision();
+export const COLLISION: { boxes: Collider[]; descs: ColliderDesc[]; } = chamberCollision();

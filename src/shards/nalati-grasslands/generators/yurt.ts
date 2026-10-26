@@ -43,7 +43,7 @@ export interface YurtTop {
   height: number;
 }
 
-export const YURT_C = {
+export const YURT_C: { felt: THREE.Color; feltWarm: THREE.Color; feltDirty: THREE.Color; feltOld: THREE.Color; feltRoof: THREE.Color; red: THREE.Color; redDark: THREE.Color; orange: THREE.Color; gold: THREE.Color; cream: THREE.Color; wood: THREE.Color; woodLight: THREE.Color; woodDark: THREE.Color; interior: THREE.Color; door: THREE.Color; doorGold: THREE.Color; rope: THREE.Color; ropeRed: THREE.Color; reed: THREE.Color; iron: THREE.Color; } = {
   felt: new THREE.Color('#f2e9d6'),
   feltWarm: new THREE.Color('#ede0c6'),
   feltDirty: new THREE.Color('#c9b99c'),
