@@ -15,7 +15,7 @@ test('selected source retains exact imports, predecessor, assets, deleted reader
   const output = execFileSync('python3', [fixturePath ?? 'test/fixtures/precommit-source-selection.py',
     sourcePath ?? resolve('scripts/precommit-source.py')],
   { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 });
-  expect(output).toContain('12 exact staged-source selection regressions passed');
+  expect(output).toContain('13 exact staged-source selection regressions passed');
   expect(output).toContain('13 staged import guard regressions passed');
 });
 

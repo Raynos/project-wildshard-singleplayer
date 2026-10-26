@@ -223,6 +223,16 @@ def required_sources(blobs, specification, tree=None, executable=None, staged_pa
             # the checker refuses rather than reading another lane's working tree.
             for value in re.findall(r'''["']([^"'\n]+)["']''', text):
                 value = value.split('?', 1)[0]
+                # Root-cwd child processes can spell Node's --import loader as
+                # ./scripts/..., even when their launcher lives in scripts/docs.
+                # Retain that executable closure as well as ordinary relative
+                # imports; both must come from the immutable candidate inputs.
+                if value.startswith('./scripts/') and PurePosixPath(value).suffix in {'.mjs', '.js', '.ts', '.py'}:
+                    child = resolve_specifier(name, value[2:])
+                    if child is not None:
+                        selected.add(child)
+                        if child not in visited:
+                            pending.append(child)
                 dependency = resolve_specifier(name, value)
                 if dependency is None and value.startswith(('game/', 'engine/', 'format/', 'sdk/')):
                     dependency = resolve_specifier(name, 'src/' + value)

@@ -36,6 +36,20 @@ with tempfile.TemporaryDirectory(dir=base/'tmp',prefix='staged-inputs-test-') as
  tree=root/'head';staged_source(root,tree,time.time()+5,'HEAD',spec)
  assert (tree/'src/unit.ts').read_text()=='export const value = 1;\n'
  assert not (tree/'src/unrelated.ts').exists()
+ # Child --import paths resolve from the repository cwd, not the launcher folder.
+ put('scripts/docs/reference.mjs', '''import {spawnSync} from 'node:child_process';
+const result=spawnSync(process.execPath,['--import','./scripts/sim-node-loader.mjs','scripts/docs/read.mjs'],{cwd:process.cwd(),encoding:'utf8'});
+if(result.status!==0)throw Error(result.stderr);process.stdout.write(result.stdout);
+''')
+ put('scripts/sim-node-loader.mjs', 'import "./loader-helper.mjs";\n')
+ put('scripts/loader-helper.mjs', 'process.env.STAGED_CHILD_LOADER="candidate loader";\n')
+ put('scripts/docs/read.mjs', 'console.log(process.env.STAGED_CHILD_LOADER);\n')
+ put('scripts/docs/scripts/sim-node-loader.mjs', 'throw Error("wrong relative loader");\n')
+ git('add','scripts')
+ put('scripts/sim-node-loader.mjs', 'throw Error("foreign loose loader");\n')
+ tree=root/'child-loader';staged_source(root,tree,time.time()+5,specification={**spec,'files':['scripts/docs/reference.mjs']})
+ assert (tree/'scripts/sim-node-loader.mjs').read_text()=='import "./loader-helper.mjs";\n'
+ assert subprocess.check_output(['node','scripts/docs/reference.mjs'],cwd=tree,env=env,text=True)=='candidate loader\n'
  # Deletions require all active reader inputs, including unchanged readers.
  git('rm','--cached','src/gone.ts');tree=root/'deleted';staged_source(root,tree,time.time()+5,specification={**spec,'deleted':True})
  assert (tree/'src/reader.ts').read_text()=='import "./gone";\n';assert not (tree/'src/gone.ts').exists()
@@ -90,4 +104,4 @@ with tempfile.TemporaryDirectory(dir=base/'tmp',prefix='staged-inputs-test-') as
  put('src/unit.ts','import url from "../public/assets/fixture/runtime.wasm?url"; export {url};\n');git('add','src/unit.ts')
  staged_source(root,root/'declared-runtime-copy',time.time()+5,specification=spec);checks+=1
  print(f'{checks} staged import guard regressions passed')
- print('12 exact staged-source selection regressions passed')
+ print('13 exact staged-source selection regressions passed')
