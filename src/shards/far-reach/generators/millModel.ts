@@ -102,7 +102,7 @@ export async function bakeSkyMillModel(read: (url: string) => Uint8Array): Promi
 }
 
 /** The fitted mill's rigid geometry, with both original UV channels, in the shared admitted pool. */
-export async function millRestGlb(read: (url:string)=>Uint8Array): Promise<Uint8Array> {
+async function millRestGlb(read: (url:string)=>Uint8Array): Promise<Uint8Array> {
   const made = await readMillGeometry(read), root = new Group(), material = new MeshStandardMaterial(); root.name='mill-model';
   const tower = new Mesh(made.tower,material), foot = new Mesh(made.foot,material); tower.name='mill-tower';foot.name='mill-foot';root.add(tower,foot);
   try { return clientSceneGlb(root,new Map([[material,'mill-material']])).glb; }

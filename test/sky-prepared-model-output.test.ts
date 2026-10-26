@@ -29,7 +29,8 @@ const bridgeHash = '1a31cb2c7b426d9ffb14db4e39792aeb0bde86f6f01d0b1796130a3a0c7d
 const bridgeFile = { name: bridgeName, path: `blobs/glb/${bridgeHash}.glb`, kind: 'glb', hash: bridgeHash,
   compressed: 2_109_968, decoded: 2_109_940, gpu: 2_031_804, triangles: 35_709, draws: 126, dependencies: [], critical: false };
 const millName = 'world/geometry/mill-rest.glb', millHash = '3b12beff5b5ae8fbb51433b27890591e85bdc9049dd999e19cc4700400603b37';
-const millOriginal = readFileSync(`public${MILL_REST_URL}`), mill = nameBlob(millName, 'glb', millOriginal);
+const mill = { file: { name: millName, path: `blobs/glb/${millHash}.glb`, kind: 'glb', hash: millHash,
+  compressed: 1_828_044, decoded: 1_828_016, gpu: 1_825_056, triangles: 20_000, draws: 4, dependencies: [], critical: false } };
 const original = readFileSync('public/assets/far-reach/baked/prepared-models.glb'), text = new TextDecoder();
 const HeroRows = v.object({ rows: v.object({ meshes: v.array(v.string()), meshUrls: v.record(v.string(), v.string()),
   hd: v.array(v.string()), hdUrls: v.record(v.string(), v.string()), hdLooks: v.record(v.string(), v.never()), aoFloor: v.number(),
@@ -74,7 +75,7 @@ test('owned geometry preserves all original bytes and costs, changing only its s
     expect(owned.namedFiles.find(file => file.name === millName)).toEqual(mill.file);
     const millBytes = owned.assets.get(millHash);
     if (millBytes === undefined) throw new Error('Missing owned mill geometry');
-    expect(Buffer.compare(millBytes, millOriginal)).toBe(0); millBytes.fill(0);
+    expect(hashImmutableBytes(millBytes)).toBe(millHash); millBytes.fill(0);
 
     const before = output.namedFiles.find(file => file.name === heroName), after = owned.namedFiles.find(file => file.name === heroName);
     if (before === undefined || after === undefined) throw new Error('Missing original or owned hero library');
@@ -126,7 +127,7 @@ test('owned geometry preserves all original bytes and costs, changing only its s
     expect(hashImmutableBytes(hitBridge)).toBe(bridgeHash);
     const hitMill = hit.assets.get(millHash);
     if (hitMill === undefined) throw new Error('Missing cache-hit mill geometry');
-    expect(Buffer.compare(hitMill, millOriginal)).toBe(0);
+    expect(hashImmutableBytes(hitMill)).toBe(millHash);
 
   } finally { rmSync(cache, { recursive: true, force: true }); }
 });
@@ -162,7 +163,7 @@ test('normal output admission and the actual native pool resolver consume the ow
     const millPool = sky.rows.geometryPools.findIndex(pool => pool.url === millName);
     expect(millPool).toBeGreaterThanOrEqual(0);
     expect(native.geometryPools?.[millPool]?.url).toBe(`/shardfiles/far-reach/${mill.file.path}`);
-    expect(Buffer.compare(await product.file(millName), millOriginal)).toBe(0);
+    expect(hashImmutableBytes(await product.file(millName))).toBe(millHash);
 
     const bakes = await product.json<SceneBakeSource>(bakeName), bakeFiles = sceneBakeFiles(bakes, product);
     expect(Object.keys(bakes.urls)).toEqual([...BAKED_PIECES]);

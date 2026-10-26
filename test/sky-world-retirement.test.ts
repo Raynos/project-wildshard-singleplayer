@@ -1,9 +1,11 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Keep frozen predecessor identities and isolate actual sealed consumers.
-import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Confine expanded omission descriptors to repository scratch.
-import { relative, resolve } from 'node:path';
+import { dirname, relative, resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { discoverGeneration, generateShardJob } from '../scripts/generate.mjs';
+import { createProjectGeneration } from '../src/sdk/projectGeneration';
+import { MILL_REST_INPUTS, skyMillRestProgram } from '../src/shards/far-reach/generators/millRestProgram';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 
 // Frozen predecessor outputs remain available to legacy; retiring the scheduler never repins them.
@@ -70,12 +72,6 @@ const readers = {
     "src/shards/far-reach/boot/rigs.generated.json": "663b8ebba9e6f970243825bde7ef24f6c82bd9abaf261008692cbed59ba968bc",
     "src/shards/far-reach/boot/worldTextures.generated.json": "1e7894081c884d9e5e175a55f6eb955fb82658f9f9b3b9f852b595ae76ef45a1"
   },
-  "sky-mill-rest-glb": {
-    "public/assets/far-reach/baked/mill-rest.glb": "3b12beff5b5ae8fbb51433b27890591e85bdc9049dd999e19cc4700400603b37"
-  },
-  "sky-mill-rest-rows": {
-    "src/shards/far-reach/data/millRest.generated.json": "7dabe8b463afae68e7070cbb94d9e2fd77a0744c8fc47889437d0c24a9f24913"
-  },
   "sky-world-rows": {
     "src/shards/far-reach/data/worldRows.generated.json": "3a05afd8da12568f27c2ecaaa33d7212ba6817d006ed4f7a3fc1fa418ceb9b9d"
   }
@@ -115,4 +111,25 @@ test.each(Object.entries(readers))('%s preserves its complete original outputs w
       expect(result.hashes).toEqual(expected);
     } finally { result.release(); }
   } finally { rmSync(cacheDir, { recursive: true, force: true }); }
+});
+
+test('the retired mill owners preserve both complete outputs in a cold native cache with all former world files absent', async () => {
+  const scratch = mkdtempSync(resolve('tmp/sky-mill-world-retired-')), native = resolve(scratch, 'public/assets/far-reach');
+  const prefix = '/assets/far-reach/';
+  try {
+    for (const url of MILL_REST_INPUTS) {
+      const file = resolve(native, url.slice(prefix.length)); mkdirSync(dirname(file), { recursive: true });
+      writeFileSync(file, readFileSync(`public${url}`));
+    }
+    for (const file of Object.keys(held)) expect(existsSync(resolve(scratch, file)), file).toBe(false);
+    const ctx = createProjectGeneration(resolve('src/shards/far-reach'), 'd'.repeat(64), new Map(), resolve(scratch, 'cache'),
+      [{ prefix, directory: native }]);
+    const files = await skyMillRestProgram(ctx);
+    expect([...files.keys()]).toEqual(['mill-rest.glb', 'mill-rest.json']);
+    expect(Object.fromEntries([...files].map(([name, bytes]) => [name, hashImmutableBytes(bytes)]))).toEqual({
+      'mill-rest.glb': '3b12beff5b5ae8fbb51433b27890591e85bdc9049dd999e19cc4700400603b37',
+      'mill-rest.json': '7dabe8b463afae68e7070cbb94d9e2fd77a0744c8fc47889437d0c24a9f24913',
+    });
+    for (const file of Object.keys(held)) expect(existsSync(resolve(scratch, file)), file).toBe(false);
+  } finally { rmSync(scratch, { recursive: true, force: true }); }
 });

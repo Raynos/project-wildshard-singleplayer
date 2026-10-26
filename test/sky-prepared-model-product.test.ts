@@ -17,7 +17,6 @@ import { prepareOutput } from '../src/shards/far-reach/generators/sourceOutput';
 import { SKY_WORLD_TILE_ROWS } from '../src/shards/far-reach/generators/worldTileRows';
 import { BAKED_PIECES } from '../src/shards/far-reach/generators/fileInventory';
 import { nameBlob } from '../src/sdk/blobs';
-import { MILL_REST_URL } from '../src/shards/far-reach/generators/restFiles';
 import { skyProductBoot } from '../src/shards/far-reach/generators/bootInventory';
 
 test('the actual SDK-built product binds receipt-verified discovery to the admitted complete geometry', () => {
@@ -41,10 +40,13 @@ test('the actual SDK-built product binds receipt-verified discovery to the admit
     compressed: 2_109_968, decoded: 2_109_940, gpu: 2_031_804, triangles: 35_709, draws: 126, dependencies: [], critical: false });
   expect(hashImmutableBytes(readFileSync(resolve(folder, bridge.path)))).toBe(bridge.hash);
 
-  const millOriginal = readFileSync(`public${MILL_REST_URL}`), mill = nameBlob('world/geometry/mill-rest.glb', 'glb', millOriginal);
-  expect(mill.file.hash).toBe('3b12beff5b5ae8fbb51433b27890591e85bdc9049dd999e19cc4700400603b37');
-  expect(index.files.find(row => row.name === mill.file.name)).toEqual(mill.file);
-  expect(Buffer.compare(readFileSync(resolve(folder, mill.file.path)), millOriginal)).toBe(0);
+  const mill = index.files.find(row => row.name === 'world/geometry/mill-rest.glb');
+  if (mill === undefined) throw new Error('Missing owned mill geometry');
+  expect(mill).toEqual({ name: 'world/geometry/mill-rest.glb', kind: 'glb',
+    hash: '3b12beff5b5ae8fbb51433b27890591e85bdc9049dd999e19cc4700400603b37',
+    path: 'blobs/glb/3b12beff5b5ae8fbb51433b27890591e85bdc9049dd999e19cc4700400603b37.glb',
+    compressed: 1_828_044, decoded: 1_828_016, gpu: 1_825_056, triangles: 20_000, draws: 4, dependencies: [], critical: false });
+  expect(hashImmutableBytes(readFileSync(resolve(folder, mill.path)))).toBe(mill.hash);
 
   for (const piece of BAKED_PIECES) {
     const name = `world/geometry/pieces/${piece}.glb`, original = readFileSync(`public/assets/far-reach/baked/${piece}.glb`);
