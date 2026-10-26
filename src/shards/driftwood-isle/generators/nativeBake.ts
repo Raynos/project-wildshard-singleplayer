@@ -24,7 +24,8 @@ const Bake = v.object({ version: v.literal(1),
 export function driftwoodNativeRows(input: unknown): { physics: v.InferOutput<typeof Bake>; nativeSpecs: [string, v.InferOutput<typeof BakedSpec>][] } {
   const physics = v.parse(Bake, input);
   const ground = physics.ground;
-  if ((typeof ground.heights === 'string' && atob(ground.heights).length !== DRIFTWOOD_TERRAIN.res ** 2 * 4) || ground.scale.x !== DRIFTWOOD_TERRAIN.size || ground.scale.z !== DRIFTWOOD_TERRAIN.size || ground.scale.y !== 1) throw new Error('Divergent native ground lattice');
+  if (typeof ground.heights === 'string') throw new Error('Driftwood native authoring requires a named floor file');
+  if (ground.scale.x !== DRIFTWOOD_TERRAIN.size || ground.scale.z !== DRIFTWOOD_TERRAIN.size || ground.scale.y !== 1) throw new Error('Divergent native ground lattice');
   for (const actor of physics.actors) if (actor.spec.kind !== actor.kind || actor.spec.variant !== actor.variant) throw new Error(`Divergent native actor ${actor.id}`);
   if (physics.captain.spec.kind !== 'captain' || physics.captain.spec.variant !== 'captain') throw new Error('Divergent baked Driftwood captain spec');
   const hold = physics.habitat.hold, side = Math.round(2 * hold.guardR / hold.step) + 1;

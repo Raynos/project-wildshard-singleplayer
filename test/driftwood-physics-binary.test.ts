@@ -48,6 +48,14 @@ test('Driftwood retains every ordered hull, floor byte and non-buffer authoring 
   expect(metadata(source)).toBe('88962d0811b5da68ccef5e4c395680ffd14d0a05fa919cd4fb587d547b3dc77a');
 });
 
+test('modern authoring refuses complete and malformed inline floors before decoding', () => {
+  const complete = btoa(Array.from(ground, byte => String.fromCodePoint(byte)).join(''));
+  expect(atob(complete).length).toBe(262144);
+  for (const heights of [complete, 'not-base64!', ''])
+    expect(() => driftwoodNativeRows({ ...source, ground: { ...admitted.ground, heights } })).toThrow('Driftwood native authoring requires a named floor file');
+  expect(driftwoodNativeRows(source).physics.ground.heights).toEqual({ file: floorFile });
+});
+
 test('one pure producer emits the original native floor and standard named binary declarations', async () => {
   const files = driftwoodPhysicsFiles();
   expect(files.get(floorFile)).toEqual(ground);
