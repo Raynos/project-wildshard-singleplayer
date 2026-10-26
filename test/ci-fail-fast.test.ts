@@ -9,7 +9,7 @@ import { resolve } from 'node:path';
 import { runChecks } from '../scripts/ci-checks.mjs';
 
 
-test('CI fail-fast preserves red diagnostics and stops only owned commands', () => {
+test('CI commands retain independent verdicts and clean up owned interruptions', () => {
   const result = spawnSync('python3', ['test/test_ci_fail_fast.py'], { encoding: 'utf8', timeout: 10000 });
   expect(result.status, result.stderr).toBe(0);
 });

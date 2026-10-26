@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
-"""C4: stop owned CI work on a same-run failure without cancelling its red verdict."""
+"""C4: report each CI command's own verdict and clean up only its process group."""
 from collections import deque
-from concurrent.futures import ThreadPoolExecutor
 import json
 import os
 from pathlib import Path
@@ -49,27 +48,6 @@ def failure_files(output):
     return sorted({file for file in paths if file is not None})[:16]
 
 
-def failed_job(jobs):
-    # Pending and matrix-cancelled jobs never invent a cause. The original
-    # failing job stays red and remains the source of its file diagnostics.
-    failures = [job for job in jobs if job.get('conclusion') in ('failure', 'timed_out')]
-    return min(failures, key=lambda job: job.get('completed_at') or '') if failures else None
-
-
-def peer_failure():
-    repo, run, attempt = (os.environ.get(key, '') for key in ('GITHUB_REPOSITORY','GITHUB_RUN_ID','GITHUB_RUN_ATTEMPT'))
-    if not re.fullmatch(r'[\w.-]+/[\w.-]+', repo) or not run.isdigit() or not attempt.isdigit():
-        raise RuntimeError('missing exact CI run identity')
-    result = subprocess.run(['gh','api',f'repos/{repo}/actions/runs/{run}/attempts/{attempt}/jobs?per_page=100'],
-                            text=True,capture_output=True,timeout=10)
-    if result.returncode:
-        raise RuntimeError('GitHub job observation exited %d' % result.returncode)
-    payload = json.loads(result.stdout)
-    if payload.get('total_count', 0) > len(payload.get('jobs', [])):
-        raise RuntimeError('incomplete GitHub job inventory')
-    return failed_job(payload['jobs'])
-
-
 def escape(value):
     return str(value).replace('%','%25').replace('\r','%0D').replace('\n','%0A').replace(',','%2C').replace(':','%3A')
 
@@ -100,20 +78,20 @@ def print_culprits(files):
             '; original check remains red; no retry',flush=True)
 
 
-def diagnose(output, code, peer=None, record=True):
-    files = [] if peer is not None else failure_files(output)
-    label = ('Peer job '+peer['name']+' failed; stopped this owned command') if peer else 'Check exited '+str(code)
+def diagnose(output, code, record=True):
+    files = failure_files(output)
+    label = 'Check exited '+str(code)
     for file in files:
         print('::error file=%s::%s: %s' % (escape(file), escape(label), escape(file)), flush=True)
     if not files:
-        print('::error::'+escape(label)+(('; '+peer.get('html_url','')) if peer else '; see command output for the failing input'), flush=True)
+        print('::error::'+escape(label)+'; see command output for the failing input', flush=True)
     if record:
         directory=Path('tmp/ci-failures');directory.mkdir(parents=True,exist_ok=True)
         job=os.environ.get('GITHUB_JOB','check')
         # One runner owns this file. Failure metadata has no credentials/log text.
         (directory/'failure.json').write_text(json.dumps({'at':time.time(),'sha':os.environ.get('GITHUB_SHA'),
-            'run':os.environ.get('GITHUB_RUN_ID'),'job':job,'files':files,'peer':peer.get('html_url') if peer else None})+'\n')
-        if peer is None and files and os.environ.get('GITHUB_EVENT_NAME')=='push' and os.environ.get('GITHUB_RUN_ID'):
+            'run':os.environ.get('GITHUB_RUN_ID'),'job':job,'files':files,'peer':None})+'\n')
+        if files and os.environ.get('GITHUB_EVENT_NAME')=='push' and os.environ.get('GITHUB_RUN_ID'):
             print_culprits(files)
     return files
 
@@ -131,33 +109,16 @@ def stop(child):
         child.wait()
 
 
-def run(command, reader=None, interval=15, record=True):
-    """Drain output live; background observation never blocks the child's pipe."""
+def run(command, record=True):
+    """Drain output live and retain the command's original failure."""
     output=deque(maxlen=2000)
-    peer=None
-    observer=None
-    next_read=0
-    with ThreadPoolExecutor(max_workers=1) as pool, subprocess.Popen(command,stdout=subprocess.PIPE,
+    with subprocess.Popen(command,stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,start_new_session=True,bufsize=0) as child:
         selector=selectors.DefaultSelector()
         selector.register(child.stdout,selectors.EVENT_READ)
         pending=''
         try:
             while selector.get_map():
-                if reader is not None and observer is None and time.monotonic() >= next_read:
-                    observer=pool.submit(reader)
-                if observer is not None and observer.done():
-                    try:
-                        peer=observer.result()
-                    except (OSError,ValueError,RuntimeError,subprocess.SubprocessError) as error:
-                        # One failed observation is named, never retried. The
-                        # original checks still decide this runner's outcome.
-                        print('::warning::CI peer observation unavailable: '+escape(type(error).__name__)+'; no retry',flush=True)
-                        reader=None
-                    observer=None
-                    next_read=time.monotonic()+interval
-                    if peer is not None:
-                        stop(child)
                 for key, _ in selector.select(timeout=.1):
                     chunk=os.read(key.fd,65536)
                     if not chunk:
@@ -175,10 +136,9 @@ def run(command, reader=None, interval=15, record=True):
             raise
         finally:
             selector.close()
-        # An in-flight read is bounded to 10s; no polling thread or child leaks.
-    if peer is not None or code:
-        diagnose('\n'.join(output),code,peer,record)
-        return 1 if peer is not None else code if code > 0 else 1
+    if code:
+        diagnose('\n'.join(output),code,record)
+        return code if code > 0 else 1
     return 0
 
 
@@ -188,16 +148,11 @@ def main():
         args=args[1:]
     if not args:
         raise SystemExit('usage: ci-fail-fast.py -- <command...>')
-    # G678/SW9: tests, products and types/lint report independent failures.
-    # Keep each command's own stop and diagnostics without peer observation.
-    # Release jobs and local uses also retain their commands without peer IO.
-    reader=peer_failure if os.environ.get('GITHUB_EVENT_NAME') in ('push','pull_request') \
-        and os.environ.get('GITHUB_JOB') not in ('behaviour', 'behaviour-products', 'products', 'typecheck-lint') else None
     def interrupted(number, frame):
         raise SystemExit(128+number)
     for number in (signal.SIGTERM, signal.SIGINT):
         signal.signal(number,interrupted)
-    raise SystemExit(run(args,reader))
+    raise SystemExit(run(args))
 
 
 if __name__=='__main__':

@@ -204,12 +204,10 @@ rewrite still needs Jake's approval.
   full-gate stamps are retired; current push verdicts and gate seconds live in `.git/push.log`. Required exact-SHA
   boot smoke retains WebKit rendering, every public shard, and the road into Signal. Production
   selects only a CI-green and smoke-green commit.
-- **CI fail-fast (G671 C4, G678 SW9):** generation and product failures block their dependents. Products,
-  type/lint and behaviour shards finish independently, each stopping at its own first failure and printing
-  its cause; neither matrix cancellation nor the command wrapper stops these jobs for a peer failure.
-  Other long commands observe only their exact run/attempt and stop
-  their own process groups when a peer fails, retaining a red
-  workflow verdict. An unavailable peer observation is named and not retried; the original checks still run.
+- **CI command verdicts (G671 C4, G678 SW9):** generation and product failures block their dependents.
+  Every job finishes independently, retaining its own first failure and cause. Matrix cancellation and the
+  command wrapper never stop a job for a peer failure; the wrapper does not query peer jobs. An interruption
+  still cleans up only the owned command's process group. Per-command bail and dependency gates remain.
   Failure annotations name the source/test file, and short-lived `ci-failures-*` artifacts contain only paths,
   revision and job identity for the push gate's recently-red selection. No raw logs or secrets are published.
 - **Recently red first (G671 P1):** the existing push loop observes one newest unseen failed push CI run per tick,
