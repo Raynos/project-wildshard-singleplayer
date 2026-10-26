@@ -18,9 +18,12 @@ class BrowserAdmissionTests(unittest.TestCase):
         self.root = Path(self.temp.name)
         self.bin = self.root / 'bin'
         self.bin.mkdir()
+        (self.root / 'builds').mkdir()
         self.env = {**os.environ, 'HOME': str(self.root),
                     'PATH': f'{self.bin}:{os.environ["PATH"]}',
                     'SIM_LANE_DIR': str(self.root / 'sim'),
+                    'SERVE_BUILD_DIR': str(self.root / 'builds'),
+                    'SERVE_REG_DIR': str(self.root / 'servers'),
                     'BROWSER_LANES': '1', 'BROWSER_LANE_WAIT_SECONDS': '1'}
         self.command('ps', "print('100 00:01 bash scripts/browser-lane.sh _slot 0 marker 60 fixture')\nprint('101 00:01 bash scripts/browser-lane.sh _slot 1 marker 60 fixture')\n")
         self.command('pgrep', 'import sys\nsys.exit(1)\n')
@@ -53,9 +56,17 @@ class BrowserAdmissionTests(unittest.TestCase):
         self.assertEqual(self.lane('wait').returncode, 0)
         self.assertEqual(self.lane('wait', BROWSER_LANE_WAIT_SECONDS='301').returncode, 64)
 
+    def test_admission_fixture_never_scans_shared_preview_outputs(self):
+        self.command('ps', 'pass\n')
+        # Record the reaper's scan root without listing or deleting anything.
+        observed = self.root / 'scan-root'
+        self.command('find', f"import pathlib, sys\npathlib.Path({str(observed)!r}).write_text(sys.argv[1])\n")
+        result = self.lane('reap')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(Path(observed.read_text()).resolve(), (self.root / 'builds').resolve())
+
     def test_reaper_preserves_build_output_during_registry_handoff(self):
-        builds = ROOT / 'tmp/serve'
-        builds.mkdir(exist_ok=True)
+        builds = self.root / 'builds'
         with tempfile.TemporaryDirectory(dir=builds, prefix='reaper-fixture-') as fixture:
             output = Path(fixture) / '20261025-120000-45001'
             output.mkdir()
