@@ -348,11 +348,16 @@ def flower_planter():
     p.box((-0.9, -0.9, 0), (0.9, 0.9, 0.55), 'Kit.stone', top='Kit.stoneTop')
     p.box((-0.95, -0.95, 0.55), (0.95, 0.95, 0.65), 'Kit.stoneTop', bottom=True)
     p.box((-0.78, -0.78, 0.65), (0.78, 0.78, 0.7), 'Kit.soil')
-    p.lathe(0, 0, [(0.3, 0.68), (0.62, 0.95), (0.6, 1.25), (0.34, 1.5), (0.0, 1.58)], 7, ['Kit.foliage'], spin=0.2)
-    for i, (x, y, slot) in enumerate([(-0.6, -0.6, 'Kit.flowerRed'), (0.6, -0.6, 'Kit.flowerGold'), (0.6, 0.6, 'Kit.flowerWhite'),
-                                      (-0.6, 0.6, 'Kit.flowerRed'), (0, -0.66, 'Kit.flowerWhite'), (0.66, 0, 'Kit.flowerRed'),
-                                      (0, 0.66, 'Kit.flowerGold'), (-0.66, 0, 'Kit.flowerGold')]):
-        p.prism(x, y, 0.13, 0.04, 0.7, 0.86, 5, slot, spin=0.6 * i)
+    p.lathe(0, 0, [(0.3, 0.68), (0.55, 0.95), (0.52, 1.25), (0.3, 1.45), (0.0, 1.52)], 7, ['Kit.foliage'], spin=0.2)
+    # A2's planters spill over: a ring of leafy mounds round the shrub, flowers set into them
+    colours = ['Kit.flowerRed', 'Kit.flowerGold', 'Kit.flowerWhite', 'Kit.flowerRed']
+    for i in range(8):
+        a = 2 * math.pi * i / 8 + 0.3
+        x, y = 0.56 * math.cos(a), 0.56 * math.sin(a)
+        p.lathe(x, y, [(0.26, 0.68), (0.32, 0.82), (0.22, 0.98), (0.0, 1.03)], 6, ['Kit.foliage'], spin=a)
+        for k, (dr, da, dz) in enumerate(((0.1, 0.5, 0.95), (0.18, -0.6, 0.88))):
+            fx, fy = (0.56 + dr) * math.cos(a + da * 0.4), (0.56 + dr) * math.sin(a + da * 0.4)
+            p.prism(fx, fy, 0.09, 0.02, dz, dz + 0.1, 5, colours[(i + k) % 4], spin=0.7 * i)
     return p
 
 
@@ -406,6 +411,7 @@ def coping_steps():
     return p
 
 
+FACE_RGB = {}  # each generated model's face colours (sRGB), by object name, for generated_figure
 SOURCES = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'sources')
 
 
@@ -469,6 +475,40 @@ def generated_tree(name, height, faces, voxel=45):
     for attr in list(mesh.color_attributes):
         mesh.color_attributes.remove(attr)
     obj.name = f'tree-{name}'
+    FACE_RGB[obj.name] = rgb
+    return obj
+
+
+def generated_figure(name, height, faces, slots, clusters=5):
+    """A static posed figure from its image-to-3D source (sources/<name>.glb), `height` metres tall with its feet at the
+    origin: voxel-remeshed and decimated to about `faces` flat triangles like generated_tree, each face coloured from the
+    nearest source face, then the colours clustered (k-means) into `clusters` slots `<name><i>` whose default colours
+    (their centroids) are added to `slots`; each face keeps its brightness against its cluster as a tint."""
+    import bpy
+    obj = generated_tree(name, height, faces, voxel=70)
+    mesh = obj.data
+    tints = mesh.attributes['tint']
+    # generated_tree sorted green / not green; re-sort by colour clusters from the face colours it recorded
+    rgb = FACE_RGB[obj.name]
+    centres = [rgb[int(i * (len(rgb) - 1) / max(1, clusters - 1))] for i in range(clusters)]
+    for _ in range(12):
+        groups = [[] for _ in centres]
+        for c in rgb:
+            k = min(range(len(centres)), key=lambda j: sum((c[t] - centres[j][t]) ** 2 for t in range(3)))
+            groups[k].append(c)
+        centres = [[sum(c[t] for c in g) / len(g) for t in range(3)] if g else centres[i] for i, g in enumerate(groups)]
+    label = ''.join(ch for ch in name.replace('fig-', '') if ch.isalnum())  # a slot name is letters and digits
+    mesh.materials.clear()
+    for i, centre in enumerate(centres):
+        slot = f'{label}{i}'
+        slots[slot] = '#' + ''.join(f'{round(max(0.0, min(1.0, v)) * 255):02x}' for v in centre)  # pixels are sRGB
+        mesh.materials.append(bpy.data.materials.get(f'Kit.{slot}') or bpy.data.materials.new(f'Kit.{slot}'))
+    for poly, c in zip(mesh.polygons, rgb):
+        k = min(range(len(centres)), key=lambda j: sum((c[t] - centres[j][t]) ** 2 for t in range(3)))
+        poly.material_index = k
+        lum, ref = 0.3 * c[0] + 0.59 * c[1] + 0.11 * c[2], 0.3 * centres[k][0] + 0.59 * centres[k][1] + 0.11 * centres[k][2]
+        tints.data[poly.index].value = max(0.6, min(1.0, 0.85 * lum / max(1e-6, ref)))
+    obj.name = name
     return obj
 
 
@@ -566,6 +606,10 @@ def main():
     reset_scene()
     build_family(out, 'trees', [lambda: generated_tree('tree-round', 8.0, 420), lambda: generated_tree('tree-tall', 8.0, 420),
                                 lambda: generated_tree('tree-willow', 8.0, 520, voxel=24)], TRIMS, {'slots': SLOTS})
+    reset_scene()
+    figure_slots = dict(SLOTS)  # each figure adds its own colour clusters' defaults
+    build_family(out, 'figures', [lambda n=n: generated_figure(f'fig-{n}', 1.75, 700, figure_slots) for n in ('vendor', 'shopper', 'elder')],
+                 TRIMS, {'slots': figure_slots})
     reset_scene(ground=-1.0)  # the string's bulbs and lanterns hang below their hooks (origin y 0)
     build_family(out, 'strings', [string_bulb, string_lantern, lane_post], TRIMS, {'slots': SLOTS})
     reset_scene(ground=BRIDGE['water'])

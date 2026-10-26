@@ -377,8 +377,14 @@ function stalls(w, p) {
 function modelStalls(w, p) {
   for (const side of [-1, 1]) for (let i = 0; i < 10; i++) {
     const z = -24.75 + i * 5.5, x = side * 17.5;
-    w.placeModel('stalls', pick(x, z, 2), x, z, { yaw: -side * Math.PI / 2 });
+    const kind = pick(x, z, 2), yaw = -side * Math.PI / 2;
+    w.placeModel('stalls', kind, x, z, { yaw });
     w.solid([x - 1.5, 0, z - 2.1], [x + 1.5, 1.1, z + 2.1]);
+    // RM4.8 (opt-in): a vendor behind every hero stall's counter, facing out with it; a shopper before every third stall
+    if (w.hasModel('figures')) {
+      if (kind === 0) w.placeModel('figures', 0, x - side * 0.2, z, { yaw });
+      if (i % 3 === 1) w.placeModel('figures', pick(x, z, 2, 3) + 1, x - side * 2.6, z + 0.6, { yaw: yaw + Math.PI });
+    }
     if (i % 2 === 0) pool(w, x - side * 3.4, z + 2.75, 5, p.pool);
     // RM4.6 (opt-in): goods waiting behind every other stall
     if (i % 2 === 1 && w.hasModel('props')) { w.placeModel('props', 2, side * 20.6, z, { yaw: -side * Math.PI / 2 }); w.solid([side * 20.6 - 0.7, 0, z - 0.7], [side * 20.6 + 0.7, 0.8, z + 0.7]); }
@@ -386,6 +392,7 @@ function modelStalls(w, p) {
   for (let i = 0; i < 4; i++) {
     const z = -16.5 + i * 11, x = i % 2 === 0 ? -4 : 4;
     w.placeModel('stalls', 2, x, z, { yaw: i % 2 === 0 ? Math.PI / 2 : -Math.PI / 2 });
+    if (w.hasModel('figures')) w.placeModel('figures', 0, x + (i % 2 === 0 ? -1.4 : 1.4), z, { yaw: i % 2 === 0 ? Math.PI / 2 : -Math.PI / 2 });
     w.solid([x - 0.8, 0, z - 1.3], [x + 0.8, 1.1, z + 1.3]);
     pool(w, x, z, 4, p.pool);
   }
@@ -457,6 +464,10 @@ function halfBridge(w, p, side) {
   // RM4.5 (opt-in, tiledPlot.mjs KIT_FAMILIES): the kit's arched half-bridge, its seam edge on the border, turned with it
   const model = w.hasModel('bridges');
   if (model) { const [ox, , oz] = turnPoint([0, 0, HALF]); w.placeModel('bridges', pick(ox, oz, 3), ox, oz, { yaw: side * Math.PI / 2 }); }
+  // RM4.8 (opt-in): an elder on the crown of every other bridge half, looking across the span
+  if (model && w.hasModel('figures') && side % 2 === 0) {
+    const [fx, , fz] = turnPoint([1.5, 0, HALF - 2]); w.placeModel('figures', 2, fx, fz, { y: rise + deck, yaw: side * Math.PI / 2 + Math.PI / 2 });
+  }
   for (let i = 0; i < steps; i++) {
     const [xa, ya] = at(i / steps), [xb, yb] = at((i + 1) / steps);
     const q = (a, b, c, d, colour) => { if (!model) w.quad('Kit', turnPoint(a), turnPoint(b), turnPoint(c), turnPoint(d), colour); };
