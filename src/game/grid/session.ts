@@ -505,16 +505,29 @@ export class GridSession {
     // G223: an entered regional runtime draws its own cell; its coarse root (far proxy, tiles) hides until it leaves
     host.scope.onDispose(bindCellCover(host.scene, cellCoverPort((id) => roots.get(id))));
     const preparedBands = new WeakMap<FarProxyView, Object3D>();
+    // G630: a shard's haze band stands in the strip outside its cell (BAND_OUTSET), so it hangs on a holder of its own beside
+    // the cell root: under the root, the G550 containment fence discarded every fragment past the cell edge, the whole band
+    // (Sunscar's orange dusk wall drew nothing). The holder follows the root's visibility (hidden while the cell is entered,
+    // G223) in the late step below.
+    const bandHolders = new Map<Object3D, Group>();
+    const bandHolder = (root: Object3D): Group => {
+      const held = bandHolders.get(root); if (held !== undefined) return held;
+      const holder = new Group(); holder.name = `grid-band:${root.name}`; holder.position.copy(root.position); holder.updateMatrixWorld();
+      host.scene.add(holder); bandHolders.set(root, holder);
+      host.scope.onDispose(() => { holder.removeFromParent(); });
+      return holder;
+    };
     const far = farRingPorts({
       ...(host.prepareView === undefined ? {} : { prepare: async (view: FarProxyView, data: FarPrepared) => {
         const root = view.mesh.parent;
         if (root === null) throw new Error('Far view left before preparation');
         if (frame !== null && data.look.band !== undefined) {
-          const unband = installHazeBand(root, data.look.band, CHUNK_HALF), dispose = view.dispose;
+          const holder = bandHolder(root), unband = installHazeBand(holder, data.look.band, CHUNK_HALF), dispose = view.dispose;
           view.dispose = () => { unband(); dispose(); };
-          const haze = root.getObjectByName('haze-band');
+          const haze = holder.getObjectByName('haze-band');
           if (haze === undefined) throw new Error('Far haze band was not installed');
           haze.visible = false; preparedBands.set(view, haze);
+          await host.prepareView?.(holder, () => !host.scope.disposed && haze.parent === holder);
         }
         await host.prepareView?.(root, () => !host.scope.disposed && view.mesh.parent === root);
       } }),
@@ -532,7 +545,7 @@ export class GridSession {
       const band = data.look.band, view = far.upload(tile, data), dispose = view.dispose;
       // SF19b (G94 / G95): a shard that declares a band shows its mood at its border from the road; inside its cell it owns the frame (G158)
       const prepared = preparedBands.get(view);
-      const root = roots.get(tile.instance), unband = prepared !== undefined || band === undefined || root === undefined ? () => undefined : installHazeBand(root, band, CHUNK_HALF);
+      const root = roots.get(tile.instance), unband = prepared !== undefined || band === undefined || root === undefined ? () => undefined : installHazeBand(bandHolder(root), band, CHUNK_HALF);
       if (prepared !== undefined) prepared.visible = true;
       view.dispose = () => { unband(); dispose(); };
       return view;
@@ -580,6 +593,7 @@ export class GridSession {
         const root = roots.get(id); if (root === undefined || view.band === undefined) continue;
         view.band(farBandShare(Math.hypot(Math.max(0, Math.abs(eye.x - root.position.x) - CHUNK_HALF), Math.max(0, Math.abs(eye.z - root.position.z) - CHUNK_HALF))));
       }
+      for (const [root, holder] of bandHolders) holder.visible = root.visible;
     };
     host.frame?.onLate((dt) => { this.viewStep(); this.life.late(dt); this.panels.late(); bands(); frame?.frame(); });
     const tiles = neighbourTiles(host.scope, async (tile) => { await host.prepareTile?.(tile); },
