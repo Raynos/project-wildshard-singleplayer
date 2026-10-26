@@ -12,11 +12,11 @@ afterEach(() => { installScopeEnvironment(original); vi.useRealTimers(); });
 
 function caller(game: { frameCount: number }, owner: Scope, isolateImageUploads: boolean): unknown {
   const source = readFileSync(new URL('Game.ts', import.meta.url), 'utf8');
-  const method = source.indexOf('private async warmEnteredStages(');
-  const start = source.indexOf('const pause = ', method), end = source.indexOf('// Live image batches', start);
+  const method = source.indexOf('private async prepareEnteredPrograms(');
+  const start = source.indexOf('const pause = ', method), end = source.indexOf('const uploadBudget', start);
   if (method === -1 || start === -1 || end <= start) throw new Error('Entered shader pause wiring missing');
   return runInNewContext(`(function () { ${source.slice(start, end)} return pause; }).call(game)`,
-    { game, owner, isolateImageUploads, waitForDrawnFrame, current: () => !owner.disposed });
+    { game, owner, isolateImageUploads, waitForDrawnFrame, live: () => !owner.disposed });
 }
 
 function frames(): () => void {
