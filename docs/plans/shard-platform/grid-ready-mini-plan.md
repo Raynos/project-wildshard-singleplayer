@@ -98,6 +98,22 @@ new observers, native acceptance or isolated source-gain claims. The world
 stage still dominates alongside final program preparation. Retain the original
 095 slower milestone and its receipts; these readings do not replace it.
 
+| Shard | 8ce22a23bc cold | 8ce warm |
+|---|---:|---:|
+| Driftwood | 7.882 s | 7.212 s |
+| Pine | 11.482 s | 5.752 s |
+| Nalati | 12.249 s | 12.665 s |
+| Nine | 13.501 s | 15.180 s |
+
+The 8ce equipment milestone prepares completed camera models during play,
+using entered layouts only. All eight entries complete with controls
+ready/errors 0; all eight five-second targets and 8 frame gates miss.
+The original cold/warm protocols, deadlines and final whole inventory stay
+unchanged. These are combined-source Chromium phone readings; no retry,
+native acceptance or isolated scheduling-gain claim. Retain prior milestones.
+Raw qualification: `tmp/sp-x8-g717/g743-equipment-qualification.json`;
+cleanup proof: `20261026T174829-sp-x8-g743-equipment-milestone-27494`.
+
 | Slice | Work | Status |
 |---|---|---|
 | G743.1 | Select the nearest upcoming boulevard junction; meaningful lateral motion resolves its side before the mouth ray, while equal choices and contact jitter remain undecided. Preserve one constructor, pair budgets, kept-source return and all entry fences. At most one hour. | done (bounded source; 817 milestone retains all four timing misses) |
@@ -108,8 +124,8 @@ stage still dominates alongside final program preparation. Retain the original
 | G743.2c | Start exact parked world-root programs afterWorld while kit/play constructs. Sky/look preparation and final complete inventory share the original single 30 s presented bound, owner cancellation and drawn-frame slices. Four new overlap/deadline/retirement/refusal controls plus 16 existing cases pass; touched production/engine-test types and scoped typed lint pass. Guard, admission and final readiness unchanged. At most one hour. | done (bounded source; 2026-10-26, sp-x8); corrected 5c4 timing is recorded above; all four under-five-second targets remain open |
 | G743.2c1 | Fix forward the 691 early-program target mismatch: compile against the rendered page scene and borrow the installing scene PMREM, matching final preparation. Two new caller/real-root preparation controls are RED before; all 22 focused cases, touched engine/test declarations and typed lint pass. Keep one original deadline, owner fences and final full readiness. At most one hour. | done (bounded source; 2026-10-26, sp-x8); 5c4 timing recorded above; all four targets remain open |
 | G743.2d | Census parked-draw lights and shadow casters only through the visible page hierarchy after revealing the exact destination/equipment. Refresh every slice, retaining newly visible peers and all shadow/flag restoration. Hidden-world and between-slice controls are RED before; focus, touched engine/test types and typed lint pass. At most one hour. | done (bounded source; 2026-10-26, sp-x8); 5c4 cold/warm timing recorded above; no isolated census-gain claim |
-| G743.2e | Prepare completed staged equipment while play builds quests/encounters, after the world-root warm. Use the same entered-frame bound, owner disposal and final complete inventory; never gate kit/play on the early work. At most one hour. | done (bounded source; 2026-10-26, sp-x8); 5 new scheduling controls plus 14 retained cases, touched game/test types and typed lint pass; timing qualification open |
-| G743.2e1 | Keep early equipment preparation owner-only: omit its unused exterior road variants through the existing root helper. Default world/streamed roots retain every exterior layout; final whole inventory remains mandatory. Actual caller forwarding is RED before; 15 focus cases, touched engine/game tests and typed lint pass. At most one hour. | done (bounded source; 2026-10-26, sp-x8); first corrected equipment milestone pending |
+| G743.2e | Prepare completed staged equipment while play builds quests/encounters, after the world-root warm. Use the same entered-frame bound, owner disposal and final complete inventory; never gate kit/play on the early work. At most one hour. | done (bounded source; 2026-10-26, sp-x8); 5 new scheduling controls plus 14 retained cases, touched game/test types and typed lint pass; 8ce cold/warm timing recorded above; all four targets remain open |
+| G743.2e1 | Keep early equipment preparation owner-only: omit its unused exterior road variants through the existing root helper. Default world/streamed roots retain every exterior layout; final whole inventory remains mandatory. Actual caller forwarding is RED before; 15 focus cases, touched engine/game tests and typed lint pass. At most one hour. | done (bounded source; 2026-10-26, sp-x8); 8ce cold/warm timing recorded above; all four targets remain open |
 | G743.3 | ONE original phone-tier DW/Pine/Nalati/Nine road-entry cohort per source milestone; report each request-to-commit time and keep all misses open until each is under five seconds. | open |
 
 ## G717 frame-floor misses (2026-10-25, sp-x1; G639)
