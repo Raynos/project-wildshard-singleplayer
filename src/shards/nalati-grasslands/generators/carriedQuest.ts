@@ -5,8 +5,9 @@ import { parseCarriedQuest } from '@wildshard/format/questSteps';
 /** Original prop geometry enters through the existing named binary source path. */
 export const CARRIED_QUEST_SOURCES=[{name:prop.source.file,kind:'bin' as const,source:'data/quest-prop.generated.bin'}];
 /** The existing round program chooses poses and existing quest service effects. */
-export const carriedQuestRows=parseCarriedQuest({
-  quest:'tulpar',objectName:'nalati-kokpar-goat',model:[prop],program:kokpar.program,floorWindow:2,step:.1,home:kokpar.home,goals:kokpar.goals,
+export function makeCarriedQuestRows(input: unknown): ReturnType<typeof parseCarriedQuest> {
+  return parseCarriedQuest({
+  quest:'tulpar',objectName:'nalati-kokpar-goat',model:[input],program:kokpar.program,floorWindow:2,step:.1,home:kokpar.home,goals:kokpar.goals,
   state:{carrying:0,left:0,slow:0,cheer:0,warned:0},
   signals:{step:'step',win:'win'},fields:{dt:'dt',playerX:'playerX',playerZ:'playerZ',objectX:'goatX',objectZ:'goatZ',mounted:'mounted',carrier:'horse',fast:'fast',practice:'practice',carrierX:'horseX',carrierZ:'horseZ'},
   outputs:{carrying:'carrying',warning:'warning',pose:'pose',goal:'goal',event:'event'},
@@ -14,3 +15,7 @@ export const carriedQuestRows=parseCarriedQuest({
   warning:[{kind:'toast',text:kokpar.messages['6']}],
   events:Object.entries(kokpar.messages).filter(([key])=>key!=='6').map(([key,text])=>({value:Number(key),effects:[{kind:'toast',text},{kind:'sting',name:key==='1'?'pickup':key==='7'?'chunk':'death'},...(key==='7'?[{kind:'flag',flag:'won:kokpar'}]:[])]})),
 });
+}
+
+/** Retained prepared reader until the source-owned product cut. */
+export const carriedQuestRows = makeCarriedQuestRows(prop);

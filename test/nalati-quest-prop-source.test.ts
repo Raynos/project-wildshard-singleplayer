@@ -4,7 +4,8 @@ import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { SpecimenCatalogueSchema } from '../src/format/specimenCatalogue';
 import { SceneBakedGeometrySchema } from '../src/format/sceneDressing';
-import { hashImmutableBytes } from '../src/sdk/immutable';
+import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
+import { makeCarriedQuestRows, carriedQuestRows } from '../src/shards/nalati-grasslands/generators/carriedQuest';
 import { nalatiQuestProp } from '../src/shards/nalati-grasslands/generators/questProp';
 
 const root = 'src/shards/nalati-grasslands/data/';
@@ -26,4 +27,13 @@ test('computed carried-prop geometry and admitted material preserve the whole or
   expect(() => v.parse(SpecimenCatalogueSchema, [nalatiQuestProp(geometry, {})])).toThrow();
   expect(row.source.geometry).toEqual(geometry);
   expect(() => v.parse(SpecimenCatalogueSchema, [nalatiQuestProp({ ...geometry, count: -1 }, specimens.materials.poi)])).toThrow();
+});
+
+test('supplied prop declarations retain the complete carried quest with strict refusal', () => {
+  const supplied = read('questProp.generated.json');
+  const rows = makeCarriedQuestRows(supplied);
+  expect(encodeCanonicalJson(rows)).toBe(encodeCanonicalJson(carriedQuestRows));
+  expect(rows.model).not.toBe(carriedQuestRows.model);
+  expect(() => makeCarriedQuestRows({})).toThrow();
+  expect(() => makeCarriedQuestRows(undefined)).toThrow();
 });
