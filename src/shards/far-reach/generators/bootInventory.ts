@@ -29,7 +29,7 @@ export function skyProductBoot(): {
   return { 'boot.files': { sources, tier: 'phone', tex: 'img' }, 'boot.sources': sources, 'boot.lateReads': LATE_READS };
 }
 function productSources() {
-  const owned = new Set<string>([PREPARED_MODELS_URL, ...BAKED_PIECES.map(piece => BAKED_URLS[piece])]);
+  const owned = new Set<string>([PREPARED_MODELS_URL, ...BAKED_PIECES.map(piece => BAKED_URLS[piece]), BRIDGE_REST_URL]);
   const props = shared.props.filter(row => typeof row !== 'string' || !owned.has(row));
   return { ...BOOT_SOURCES, tiers: {
     phone: { ...BOOT_SOURCES.tiers.phone, props }, desktop: { ...BOOT_SOURCES.tiers.desktop, props },

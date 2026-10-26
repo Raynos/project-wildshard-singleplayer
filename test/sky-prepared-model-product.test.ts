@@ -32,6 +32,11 @@ test('the actual SDK-built product binds receipt-verified discovery to the admit
   expect(hashImmutableBytes(bytes)).toBe(hash);
   expect(Buffer.compare(bytes, readFileSync('public/assets/far-reach/baked/prepared-models.glb'))).toBe(0);
   expect(file).toMatchObject({ compressed: 10_134_100, decoded: 10_134_072, gpu: 10_096_780, triangles: 203_025, draws: 48 });
+  const bridgeName = 'world/geometry/bridge-rest.glb', bridgeOriginal = readFileSync('public/assets/far-reach/baked/bridge-rest.glb');
+  const bridge = nameBlob(bridgeName, 'glb', bridgeOriginal);
+  expect(index.files.find(row => row.name === bridgeName)).toEqual(bridge.file);
+  expect(Buffer.compare(readFileSync(resolve(folder, bridge.file.path)), bridgeOriginal)).toBe(0);
+
   for (const piece of BAKED_PIECES) {
     const name = `world/geometry/pieces/${piece}.glb`, original = readFileSync(`public/assets/far-reach/baked/${piece}.glb`);
     const expected = nameBlob(name, 'glb', original), actual = index.files.find(row => row.name === name);
