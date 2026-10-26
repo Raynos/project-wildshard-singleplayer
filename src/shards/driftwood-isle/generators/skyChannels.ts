@@ -6,7 +6,7 @@ import { numericChannelPrograms, type NumericChannelOutput } from '@wildshard/sd
 import DRIFTWOOD_SKY_DAY from '../data/skyDay.json' with { type: 'json' };
 
 export const DRIFTWOOD_SKY_CHANNELS = 'driftwood.sky';
-const DOME = 'driftwood-sky-dome', CLOUDS = 'driftwood-sky-cumulus', TOON_CLOUDS = 'driftwood-sky-cumulus-toon';
+const DOME = 'driftwood-sky-dome', CLOUDS = 'driftwood-sky-cumulus';
 const RGB = ['r', 'g', 'b'] as const, XYZ = ['x', 'y', 'z'] as const;
 const style = DRIFTWOOD_SKY_DAY;
 
@@ -26,9 +26,6 @@ const outputs: NumericChannelOutput[] = [
   { target: DOME, path: ['night'], expr: (_b, read) => read('preset', ['sky', 'night']) },
   ...colour(CLOUDS, 'cloudLit', ['sky', 'cloudLit']), ...colour(CLOUDS, 'cloudShade', ['sky', 'cloudShade']), ...colour(CLOUDS, 'horizon', ['sky', 'horizon']),
   ...colour(CLOUDS, 'sunGlow', ['sky', 'sunGlow']), ...bodyVec(CLOUDS, 'sunDir'),
-  // G685's toon cumulus (the A / B against the faceted ring): the same palette
-  ...colour(TOON_CLOUDS, 'cloudLit', ['sky', 'cloudLit']), ...colour(TOON_CLOUDS, 'cloudShade', ['sky', 'cloudShade']), ...colour(TOON_CLOUDS, 'horizon', ['sky', 'horizon']),
-  ...colour(TOON_CLOUDS, 'sunGlow', ['sky', 'sunGlow']), ...bodyVec(TOON_CLOUDS, 'sunDir'),
   // the horizon matte's palette (read by reference)
   ...colour('palette.horizon', 'value', ['sky', 'horizon'], RGB), ...colour('palette.cloudLit', 'value', ['sky', 'cloudLit'], RGB),
   ...colour('palette.sunGlow', 'value', ['sky', 'sunGlow'], RGB), ...bodyVec('palette.sunDir', 'value'),
