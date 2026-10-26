@@ -246,6 +246,23 @@ browsers and the owned preview are closed; no Sim was used.
 | T10 | Milestone: M1 Simulator recording + soak; delete the whole-shard path the day tiles pass (G747, no extra pick); Jake's iPhone check (G558) | — | sp-x2 | — | Sim < 5 s warm / < 15 s cold, soak green | all |
 | T11 | Far landmarks survive the ring: authored landmarks beyond the N×N ring (Pine crag spires, waterfall) draw a coarse stand-in from their LOD / impostor in the coarse ring, evicted only at its edge (found by sp-o1 at 5 × 5, 10-23) | tile residency, landmark LODs | Opus sp-o1 | 0.5–1 d | Pine spawn view at 5 × 5 shows the spires and waterfall | T2 |
 
+### RM8.1 quantized authored tiles (2026-10-26, sp-x2)
+
+Coordinator priority: finish the active C4 slice, then RM8.1 before further C4;
+afterward C4 → T4 milestone → T10. Use KHR_mesh_quantization plus meshopt for
+every authored shard. Target 10–15 B/triangle wire and about half the resident
+geometry, within existing look oracles and unchanged tile caps. Producer before
+reader; shared SDK/build changes run all affected behaviour groups (G746).
+
+| Slice (≤1 h) | Status | Contract / exit |
+|---|---|---|
+| RM8.1a0 Raw near-view contract | done (this test commit) | Pin the existing raw GLB intake before changing its codec: original vertex/index counts and first position, nonidentity transform, colours, material skip/LOD selection, deterministic final near bytes, malformed refusal and successful next read. Both focused/related cases, SDK/test types and named typed lint pass. Test-only: per-shard wire/resident delta0B, no emitted bytes or production reader changed. This serves RM8.1. |
+| RM8.1a1 Existing meshopt near intake | open, next fresh turn (G440) | Landed lossless compressGlb already produces EXT_meshopt; shardfileWorld's plain NodeIO refuses it. A candidate decoder registration reproduced that refusal and raw/packed near-byte parity, but G746 remains incomplete; its production hunk and unfinished packed fixture were removed at the wrap. Historical candidate checks retain206 related cases/54files and2341 unique product-free passing case IDs; completed groups1/2 and recovered original group3/4 tails stay in tmp/sp-x2/rm81-near-reader. Routed transfer timeout eee46861ce, temporary Night Market gate mismatch, Nalati predecessor read and static smoke-matrix67f94601b2 have failed-only green recoveries. Remaining original group5 tail,6–12/14–16 and all4 product groups are unexecuted, not green. Resume only missing case IDs against the defining candidate; normal producer prerequisite is restored by x1's strict67s run. No codec adoption or quantization saving yet. |
+| RM8.1b Quantized tile producer | open | Bounded static tile codec: weld only identical complete vertices; preserve material slots, transforms and attributes; choose quantization from measured error/oracles. Existing outputs stay until reader/cost support is ready. |
+| RM8.1c Geometry and budget readers | open | Admit normalized integer channels and declared dequantization transforms; count actual decoded/GPU backings, including codec overhead, without double counting or lowering caps. Corrupt ranges, expansion, nonfinite geometry and unsupported extensions still refuse. |
+| RM8.1d Authored activation and per-shard sizing | open | Emit through bakeAuthoredWorld only after prerequisites land. Record every authored shard's raw/gzip wire, triangle count and resident geometry before/after; unchanged collisions/materials and original look oracles; affected behaviour groups before landing. |
+| RM8.1e Milestone and RM8 handoff | open | Normal products and tile caps green for every authored shard; exact/accepted pixel parity, then hand the defining SHA and Night Market numbers to sp-o1. No kit density activation or cap waiver in this codec row. |
+
 ### T4 / T6 / T8 bounded slices (G711)
 
 Each engineering slice below is at most one hour; milestone measurements stay separate.
