@@ -1,6 +1,25 @@
 import { expect, test } from 'vitest';
 import { LoadingTimeline, repeatedStep } from './timeline';
 
+test('timeline retains the displayed setup fact at first entry without reconstructing it later', () => {
+  let now = 100, shown: number | undefined = 4, reads = 0;
+  const timeline = new LoadingTimeline({id: 'fixture', steps: ['modules', 'world', 'nested', 'future']
+    .map(key => ({key, label: key, weight: 1}))}, now, () => now, () => { reads++; return shown; });
+  const modules = timeline.begin('modules'); modules.end();
+  now = 120; const world = timeline.begin('world');
+  shown = 9; now = 130; const nested = timeline.begin('nested'); nested.end(); world.end();
+  shown = 99; now = 150; const again = timeline.begin('world'); again.end();
+  expect(timeline.snapshot().rows.map(row => [row.key, row.startedAt, row.setupAtStart])).toEqual([
+    ['modules', 100, undefined], ['world', 120, 4], ['nested', 130, 9], ['future', undefined, undefined],
+  ]);
+  expect(reads).toBe(2);
+  expect(timeline.snapshot().rows[1]?.setupAtStart).toBe(4);
+  expect(reads).toBe(2);
+  shown = undefined;
+  const future = timeline.begin('future'); future.end();
+  expect(timeline.snapshot().rows[3]).not.toHaveProperty('setupAtStart');
+});
+
 test('timeline retains first start clocks through nesting, aliases and repeated passes', () => {
   let now = 150;
   const world = {key: 'world', label: 'World', weight: 1, aliases: ['render']};

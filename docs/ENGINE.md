@@ -1076,6 +1076,13 @@ shell stages remain inside their reported parent. Started rows retain optional
 origin, and aliases or undeclared repeated calls do not overwrite a row's first
 start. Completed short rows retain that boundary even if no repaint occurred
 while they ran; it is not a paint timestamp or a sampled setup percentage.
+An optional fourth `LoadingTimeline` constructor argument reads the existing
+displayed integer setup percentage once when a row first begins. Valid values
+are retained as `setupAtStart` alongside that clock and survive short steps and
+later re-entry unchanged. The loader supplies its existing DOM value; this never
+computes or repaints the bar. Absent/invalid values, future rows and the initial
+attempt origin before the timeline existed remain unknown. It records DOM state,
+not proof of a browser paint. Row DOM metadata and the accuracy reader preserve it.
 Parallel selected-audio reads
 have their own declared row, ending when the reads settle. The game supplies legacy, shardfile, grid and crossing
 tables. Crossing diagnostics partition preparation, boundary wait, checkpoint,

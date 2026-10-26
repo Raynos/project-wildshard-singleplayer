@@ -50,11 +50,16 @@ it('retains a completed short step start even when it finished before the first 
       {key: 'admission', label: 'Product admission', weight: 1}, {key: 'world', label: 'World', weight: 1}]});
     const timeline = currentLoadingTimeline();
     if (timeline === undefined) throw new Error('Missing timeline');
+    loading.waiting('Preparing application services');
+    now = 110; vi.advanceTimersByTime(32);
+    const setupAtStart = Number(loading.root.dataset['setup']);
+    expect(Number.isFinite(setupAtStart)).toBe(true);
     now = 120; loading.paintAdmission({phase: 'product', detail: 'Reading entry.json',
       filesDone: 0, filesTotal: 0, bytesRead: 0, bytesTotal: 0}); loading.endAdmission();
     now = 500; const world = timeline.begin('world'); vi.advanceTimersByTime(32);
     const row = loading.root.querySelector<HTMLElement>('[data-key="admission"]');
     expect(row?.dataset['startedAt']).toBe('120');
+    expect(row?.dataset['setupAtStart']).toBe(String(setupAtStart));
     expect(row?.dataset['ms']).toBe('0');
     expect(row?.className).toBe('ok');
     world.end();

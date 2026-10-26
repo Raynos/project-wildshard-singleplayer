@@ -52,7 +52,7 @@ export function accuracyRecorder() {
         const rows = [...root.querySelectorAll('[data-el="rows"] > div')].map(row => ({
           label: row.children.item(0)?.textContent ?? '', detail: row.children.item(1)?.textContent ?? '',
           duration: row.children.item(2)?.textContent ?? '', state: row.className,
-          key: row.dataset.key, ms: row.dataset.ms, startedAt: row.dataset.startedAt,
+          key: row.dataset.key, ms: row.dataset.ms, startedAt: row.dataset.startedAt, setupAtStart: row.dataset.setupAtStart,
         }));
         const startedAt = root.dataset.startedAt, started = Number(startedAt);
         const elapsedMs = startedAt !== undefined && startedAt !== '' && Number.isFinite(started) && started >= 0 && started <= now ? now - started : null;

@@ -6,6 +6,8 @@ export interface LoadingRow {
   key: string; label: string; number: number; state: 'todo' | 'on' | 'ok'; ms: number; detail: string; fraction?: number;
   /** First accounted start on the monotonic timeline clock, not a paint timestamp. */
   startedAt?: number;
+  /** DOM setup percentage already displayed at first entry, when supplied. */
+  setupAtStart?: number;
 }
 export interface LoadingGap { label: string; state: 'on' | 'ok'; ms: number; after: string | null }
 interface Stage { key: string; base: string; detail: string; fraction?: number }
@@ -18,7 +20,7 @@ export class LoadingTimeline {
   /** Attempt identity for wait attribution; it carries no work or serialized state. */
   readonly waitOwner = Symbol('loading-waits');
   private path: LoadingPath;
-  private readonly rows = new Map<string, { ms: number; started: boolean; detail: string; fraction?: number; startedAt?: number }>();
+  private readonly rows = new Map<string, { ms: number; started: boolean; detail: string; fraction?: number; startedAt?: number; setupAtStart?: number }>();
   private readonly active = new Map<number, Stage>();
   private readonly aliases = new Map<string, string>();
   private readonly ignored = new Set<string>();
@@ -28,8 +30,10 @@ export class LoadingTimeline {
   private at: number;
   private last: string | null = null;
   private readonly now: () => number;
-  constructor(path: LoadingPath, startedAt: number, now: () => number = () => performance.now()) {
-    this.path = path; this.now = now; this.at = startedAt;
+  private readonly displayedSetup: (() => number | undefined) | undefined;
+  constructor(path: LoadingPath, startedAt: number, now: () => number = () => performance.now(),
+    displayedSetup?: () => number | undefined) {
+    this.path = path; this.now = now; this.at = startedAt; this.displayedSetup = displayedSetup;
     this.configure(path);
     const initial = this.gaps.pop(), first = path.steps[0];
     if (first !== undefined) {
@@ -98,7 +102,14 @@ export class LoadingTimeline {
     if (repeated || count === 0) this.occurrences.set(base, count + 1);
     const previous = this.gaps.at(-1); if (previous?.state === 'on') previous.state = 'ok';
     const row = this.rows.get(key);
-    if (row !== undefined) { row.started = true; row.startedAt ??= this.at; }
+    if (row !== undefined) {
+      row.started = true;
+      if (row.startedAt === undefined) {
+        row.startedAt = this.at;
+        const shown = this.displayedSetup?.();
+        if (shown !== undefined && Number.isInteger(shown) && shown >= 0 && shown <= 100) row.setupAtStart = shown;
+      }
+    }
     const id = ++this.sequence, stage = { key, base, detail: initialDetail };
     this.active.set(id, stage);
     return { end: () => {
@@ -116,6 +127,7 @@ export class LoadingTimeline {
         state: running.has(key) ? 'on' : row?.started ? 'ok' : 'todo', ms: row?.ms ?? 0, detail: row?.detail ?? '' };
       if (row?.fraction !== undefined) result.fraction = row.fraction;
       if (row?.startedAt !== undefined) result.startedAt = row.startedAt;
+      if (row?.setupAtStart !== undefined) result.setupAtStart = row.setupAtStart;
       return result;
     });
     return { path: this.path.id, rows, gaps: this.gaps.map(gap => ({ label: gap.label, state: gap.state,

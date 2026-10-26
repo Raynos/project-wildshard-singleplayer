@@ -108,7 +108,11 @@ export class Loading {
     }
     const startedAt = Number(this.root.dataset['startedAt']);
     if (Number.isFinite(startedAt) && startedAt >= 0 && startedAt <= this.t0) this.t0 = startedAt;
-    this.timeline = new LoadingTimeline({ id: 'pending', steps: [{ key: 'modules', label: engineString('s_loading_modules'), weight: 1 }] }, this.t0);
+    this.timeline = new LoadingTimeline({ id: 'pending', steps: [{ key: 'modules', label: engineString('s_loading_modules'), weight: 1 }] }, this.t0,
+      undefined, () => {
+        const shown = this.root.dataset['setup'];
+        return shown === undefined || shown === '' ? undefined : Number(shown);
+      });
     this.phase = this.scoped ? undefined : this.timeline.begin('modules');
     if (!this.scoped) this.scope.onDispose(installLoadingTimeline(this.timeline));
     this.downloads = new DownloadAccounting(location.href, shell === null ? this.t0 : 0);
@@ -338,6 +342,7 @@ export class Loading {
       setData(el, 'key', 'key' in r ? r.key : 'gap');
       setData(el, 'ms', String(r.ms));
       setData(el, 'startedAt', 'key' in r && r.startedAt !== undefined ? String(r.startedAt) : '');
+      setData(el, 'setupAtStart', 'key' in r && r.setupAtStart !== undefined ? String(r.setupAtStart) : '');
       const ms = r.ms;
       set(el.children[2] as HTMLElement, ms >= 1000 ? engineString('s_51b784eb9dd6', [(ms / 1000).toFixed(1)]) : engineString('s_f3813306296c', [Math.round(ms)]));
     });

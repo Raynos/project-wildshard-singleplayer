@@ -74,8 +74,8 @@ test('a visit without admission never fabricates admission coverage', () => {
 
 test('serialized final rows preserve the declared start clock of a short completed step', () => {
   const f = fixture();
-  f.root.rows.push({dataset: {key: 'admission', ms: '0', startedAt: '12'}, className: 'ok',
+  f.root.rows.push({dataset: {key: 'admission', ms: '0', startedAt: '12', setupAtStart: '7'}, className: 'ok',
     children: {item: () => ({textContent: ''})}});
   f.frame(100); f.finish();
-  expect(f.state()).toMatchObject({final: {rows: [{key: 'admission', ms: '0', startedAt: '12'}]}});
+  expect(f.state()).toMatchObject({final: {rows: [{key: 'admission', ms: '0', startedAt: '12', setupAtStart: '7'}]}});
 });
