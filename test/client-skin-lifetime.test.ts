@@ -2,8 +2,9 @@ import { afterEach, expect, test, vi } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the released skin bytes in a bounded Node collection fixture.
 import { readFileSync } from 'node:fs';
 import * as v from 'valibot';
-import { Bone, MeshLambertMaterial } from 'three';
+import { AnimationAction, Bone, MeshLambertMaterial } from 'three';
 import { Scope } from '@wildshard/engine/app/scope';
+import { AnimMachine } from '@wildshard/engine/anim/machine';
 import { realGc } from '@wildshard/engine/test/realGc';
 import { FilesSchema } from '@wildshard/format/shardSections';
 import { parseRows } from '@wildshard/format/rows';
@@ -137,4 +138,49 @@ test.each(['player', 'scope'] as const)('a directly retained player keeps playba
     expect(action.isRunning()).toBe(false);
   } finally { player.dispose(); scope.dispose(); material.dispose(); }
   expect(disposed).toBe(1);
+});
+
+const mixerName = 'an extracted skin releases unused mixer actions and property buffers while its scope lives';
+test(mixerName, async () => {
+  await realGc('test/client-skin-lifetime.test.ts', mixerName, async collect => {
+    const scope = new Scope('skin.mixer'), refs: WeakRef<object>[] = [], seen = new WeakSet();
+    let bufferBytes = 0;
+    const action: unknown = Reflect.get(AnimMachine.prototype, 'action');
+    if (typeof action !== 'function') throw new Error('Missing original animation action method');
+    const capture = vi.spyOn(AnimMachine.prototype, 'action').mockImplementation(function captureAction(this: AnimMachine, ...args) {
+      const result: unknown = Reflect.apply(action, this, args);
+      if (!(result instanceof AnimationAction)) throw new Error('Missing original animation action');
+      if (!seen.has(result)) { seen.add(result); refs.push(new WeakRef(result)); }
+      const bindings: unknown = Reflect.get(result, '_propertyBindings');
+      if (!Array.isArray(bindings)) throw new Error('Missing native animation property bindings');
+      for (const binding of bindings) {
+        if (typeof binding !== 'object' || binding === null) throw new Error('Invalid animation property binding');
+        const buffer: unknown = Reflect.get(binding, 'buffer');
+        if (!ArrayBuffer.isView(buffer)) throw new Error('Missing native animation property buffer');
+        if (!seen.has(buffer)) { seen.add(buffer); refs.push(new WeakRef(buffer)); bufferBytes += buffer.byteLength; }
+      }
+      return result;
+    });
+    const rows = parseRows(JSON.parse(readFileSync('src/shards/_template/data/rows.json', 'utf8')));
+    const metadata = v.parse(v.array(v.object({ files: FilesSchema })), JSON.parse(readFileSync('src/shards/_template/data/skins.json', 'utf8')));
+    const files = metadata.flatMap(row => row.files), assets = new Map(files.map(file => [file.hash,
+      Uint8Array.from(readFileSync(`src/shards/_template/assets/${file.hash}`))]));
+    const skins = await loadClientSkins({ rows: { ...rows, looks: [{ id: 'template.look.boar', species: 'boar', recipe: SKIN_LOOK_RECIPE,
+      material: null, parameters: { skin: 'bfa4dfc9c18979f904557ee8deab0058b8a399be10266f5fb1578b403f482fd4' },
+      animation: { recipe: SKIN_CLIPS_RECIPE, parameters: { attackSpan: 1 } } }] }, files }, assets,
+      () => new MeshLambertMaterial(), scope);
+    capture.mockClear();
+    const skin = [...skins.values()][0];
+    if (skin === undefined) throw new Error('Missing extracted mixer skin');
+    expect(refs.length).toBe(69); expect(bufferBytes).toBe(9072);
+    const before = poses(skin), positions = Array.from(skin.geometry.getAttribute('position').array);
+    let disposed = 0; skin.geometry.addEventListener('dispose', () => { disposed++; });
+    try {
+      for (const ref of refs) await collect(ref);
+      expect(poses(skin)).toEqual(before);
+      expect(Array.from(skin.geometry.getAttribute('position').array)).toEqual(positions);
+      expect(disposed).toBe(0);
+    } finally { scope.dispose(); }
+    expect(disposed).toBe(1);
+  });
 });

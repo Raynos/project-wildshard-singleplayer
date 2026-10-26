@@ -95,6 +95,9 @@ export async function loadClientSkins(source: Pick<Shardfile, 'rows' | 'files'>,
       const layers = binding.poseLayers?.[name];
       clips.set(name, { duration: clip.duration, tracks: sampled(clip), layers: layers === undefined ? null : compileSkinPoseLayers(layers, joints.map((bone) => bone.name)) });
     }
+    // Instances use sampled tracks; the temporary player's mixer never plays.
+    // Keep its mesh/skeleton scope-owned, but release unused actions/bindings.
+    player.machine.dispose();
     skins.set(look.id, { id: row.id, geometry, bones: restBones(joints, player.mesh.skeleton.boneInverses, row.id), material, clips, skeleton: row.rig.skeleton, sockets: row.rig.sockets, attackSpan: parameters.attackSpan });
   }
   return skins;
