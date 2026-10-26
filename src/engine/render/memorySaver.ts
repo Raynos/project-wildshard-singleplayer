@@ -109,7 +109,7 @@ const KEEP = new Set(['position', 'skinIndex', 'skinWeight']);
 /** render calls a geometry must draw unchanged before its arrays go (a geometry still being filled keeps them) */
 const SETTLE_RENDERS = 240;
 
-interface Pending { geometry: THREE.BufferGeometry; at: number; versions: number[] }
+interface Pending { geometry: WeakRef<THREE.BufferGeometry>; at: number; versions: number[] }
 function versions(g: THREE.BufferGeometry): number[] { return Object.values(g.attributes).map((a) => (a instanceof THREE.BufferAttribute ? a.version : -1)); }
 const same = (a: readonly number[], b: readonly number[]): boolean => a.length === b.length && a.every((v, i) => v === b[i]);
 
@@ -217,8 +217,10 @@ export function installMemorySaver(renderer: Renderer): void {
       if (p === undefined || frame - p.at < SETTLE_RENDERS) break;
       // Compaction may wait for 256 entries; consumed owners must not.
       queue[head++] = undefined;
-      const now = versions(p.geometry);
-      if (same(now, p.versions)) releaseGeometry(p.geometry, p.label);
+      const geometry = p.geometry.deref();
+      if (geometry === undefined) continue;
+      const now = versions(geometry);
+      if (same(now, p.versions)) releaseGeometry(geometry, p.label);
       else queue.push({ geometry: p.geometry, at: frame, versions: now, label: p.label }); // still changing: look again later
     }
     if (head > 256 && head * 2 > queue.length) { queue.splice(0, head); head = 0; }
@@ -233,7 +235,8 @@ export function installMemorySaver(renderer: Renderer): void {
     // waiting on the GPU, then getBufferSubData)
     if (seenGeometry.has(geometry) || object instanceof THREE.BatchedMesh || object instanceof THREE.SkinnedMesh) return;
     seenGeometry.add(geometry);
-    queue.push({ geometry, at: frame, versions: versions(geometry), label: object.name || geometry.name || object.type });
+    // The scene/cache owns live geometry; this delayed optimization only borrows it.
+    queue.push({ geometry: new WeakRef(geometry), at: frame, versions: versions(geometry), label: object.name || geometry.name || object.type });
   };
 }
 

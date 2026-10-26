@@ -88,3 +88,33 @@ test(geometryGcName, async () => {
     } finally { for (const result of results) result.close(); }
   });
 });
+
+
+const pendingGcName = 'pending settle work borrows scene geometry without keeping retired meshes alive';
+test(pendingGcName, async () => {
+  await realGc('src/engine/render/memory-saver-lifetime.test.ts', pendingGcName, async collect => {
+    vi.stubGlobal('WebGL2RenderingContext', EventTarget);
+    const renderer = uploadRenderer(), scene = new Scene(), camera = new PerspectiveCamera(), material = new MeshBasicMaterial();
+    installFrameCounter(renderer); installMemorySaver(renderer);
+    const active = new BufferGeometry().setAttribute('position', new BufferAttribute(new Float32Array([1, 2, 3]), 3));
+    const survivor = new Mesh(active, material); scene.add(survivor);
+    const draw = (geometry: BufferGeometry, object: Mesh): void => { renderer.renderBufferDirect(camera, scene, geometry, material, object, { start: 0, count: 0, materialIndex: 0 }); };
+    const retired = (() => {
+      const bytes = new Float32Array(256 * 1024), geometry = new BufferGeometry();
+      bytes[0] = 73; geometry.setAttribute('position', new BufferAttribute(bytes.subarray(0, -1), 3));
+      draw(geometry, new Mesh(geometry, material)); geometry.dispose();
+      return { geometry: new WeakRef(geometry), backing: new WeakRef(bytes.buffer) };
+    })();
+    draw(active, survivor);
+    try {
+      // No render has aged either queue entry yet. The live scene is its own owner.
+      await collect(retired.geometry); await collect(retired.backing);
+      expect(renderCount(renderer)).toBe(0); expect(scene.children).toContain(survivor);
+      const attribute = active.getAttribute('position');
+      for (let frame = 0; frame < 240; frame++) renderer.render(scene, camera);
+      draw(active, survivor);
+      expect(renderCount(renderer)).toBe(240); expect(survivor.geometry).toBe(active);
+      expect(active.getAttribute('position')).toBe(attribute); expect(attribute.getX(0)).toBe(1);
+    } finally { scene.remove(survivor); active.dispose(); material.dispose(); }
+  });
+});
