@@ -82,6 +82,13 @@ test('the actual output hook preserves every predecessor file cost and binary by
       .sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '')))
       .toEqual([...sceneOriginal].sort((a, b) => a.name.localeCompare(b.name)));
     expect(requested).not.toContain('data/placeRuntime.generated.json');
+    expect(requested).not.toContain('data/quest-prop.generated.bin');
+    const propBefore = readFileSync('src/shards/nalati-grasslands/data/quest-prop.generated.bin');
+    const propPin = nameBlob('models/specimens/quest-prop.bin', 'bin', propBefore);
+    expect(hit.namedFiles.find(file => file.name === propPin.file.name)).toEqual(propPin.file);
+    const propBytes = hit.assets.get(propPin.file.hash);
+    if (propBytes === undefined) throw new Error('Missing owned quest prop bytes');
+    expect(Buffer.compare(propBytes, propBefore)).toBe(0);
     for (const index of [0, 1]) {
       expect(requested).not.toContain(`data/place-floor-${String(index)}.generated.bin`);
       const beforeFloor = readFileSync(`src/shards/nalati-grasslands/data/place-floor-${String(index)}.generated.bin`);
