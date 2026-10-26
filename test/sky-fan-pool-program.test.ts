@@ -1,10 +1,10 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Own confined native model/cache fixtures and verify original complete bytes.
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Keep all native and sealed-driver scratch inside the repository.
-import { dirname, relative, resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
-import { discoverGeneration, generateShardJob } from '../scripts/generate.mjs';
+import { discoverGeneration } from '../scripts/generate.mjs';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { createProjectGeneration, type ProjectGenerationContext } from '../src/sdk/projectGeneration';
@@ -67,26 +67,23 @@ test('fan source and cache bundle without generated imports or file/compiler ser
   }
 });
 
-test('the retained cold sealed fan writer preserves its complete original output before reader migration', async () => {
-  const root = resolve('.'), job = discoverGeneration(root).jobs.find(row => row.id === 'sky-held-fan-pool');
-  if (job === undefined) throw new Error('Missing retained fan writer');
-  const cacheDir = mkdtempSync(resolve('tmp/sky-fan-writer-'));
+test('the native fan cache refuses an omitted hand even with the complete old pool at its logical public URL', async () => {
+  const scratch = mkdtempSync(resolve('tmp/sky-fan-native-omitted-')), native = resolve(scratch, 'native');
   try {
-    const result = await generateShardJob(root, job, { cacheDir, forceCompare: true });
-    try { expect(result.hit).toBe(false); expect(result.hashes).toEqual({ 'public/assets/far-reach/baked/fan.glb': originalHash }); }
-    finally { result.release(); }
-  } finally { rmSync(cacheDir, { recursive: true, force: true }); }
+    const original = await skyFanPoolSource(new Map(FAN_POOL_INPUTS.map(name => [name, readFileSync(`public${name}`)])));
+    check(original);
+    const pool = resolve(native, 'baked/fan.glb'); mkdirSync(dirname(pool), { recursive: true }); writeFileSync(pool, original);
+    const ctx = createProjectGeneration(resolve('src/shards/far-reach'), 'd'.repeat(64), new Map(), resolve(scratch, 'cache'),
+      [{ prefix: '/assets/far-reach/', directory: native }]);
+    await expect(skyFanPoolProgram(ctx)).rejects.toThrow('ENOENT');
+  } finally { rmSync(scratch, { recursive: true, force: true }); }
 });
 
-test('the actual sealed fan writer refuses its omitted native hand model', async () => {
-  const root = resolve('.'), { jobs } = discoverGeneration(root), job = jobs.find(row => row.id === 'sky-held-fan-pool');
-  if (job === undefined) throw new Error('Missing retained fan writer');
-  const model = FAN_POOL_INPUTS[0]; if (model === undefined) throw new Error('Missing fan hand input');
-  const input = `public${model}`; expect(job.inputRoots).toContain(input);
-  const omitted = { ...job, inputRoots: job.inputRoots.filter(path => path !== input) }, cacheDir = mkdtempSync(resolve('tmp/sky-fan-omitted-'));
-  try {
-    const catalogPath = relative(root, resolve(cacheDir, 'omitted.json'));
-    writeFileSync(catalogPath, JSON.stringify({ schema: 'generation-jobs/1', notice: 'Native fan hand omission', jobs: jobs.map(row => row.id === job.id ? omitted : row) }));
-    await expect(generateShardJob(root, omitted, { cacheDir, catalogPath, forceCompare: true })).rejects.toThrow('Generator exited 1');
-  } finally { rmSync(cacheDir, { recursive: true, force: true }); }
+test('the fan scheduler writer and every declared pool handoff reader are retired', () => {
+  const output = 'public/assets/far-reach/baked/fan.glb';
+  for (const job of discoverGeneration(resolve('.')).jobs) {
+    expect(job.id).not.toBe('sky-held-fan-pool');
+    expect(job.outputs, job.id).not.toContain(output);
+    expect(job.inputRoots, job.id).not.toContain(output);
+  }
 });

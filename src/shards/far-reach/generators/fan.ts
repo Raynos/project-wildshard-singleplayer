@@ -216,6 +216,3 @@ export async function bakeSkyFan(read: (url: string) => Uint8Array): Promise<{ g
   finally { material.dispose(); for (const geometry of geometries) geometry.dispose(); }
 
 }
-
-/** Build-time pool product; the shared JSON driver supplies the confined asset reader. */
-export async function fanPoolGlb(read:(url:string)=>Uint8Array):Promise<Uint8Array> { return (await bakeSkyFan(read)).glb; }

@@ -34,7 +34,6 @@ const mill = { file: { name: millName, path: `blobs/glb/${millHash}.glb`, kind: 
 const fanName = 'world/geometry/fan.glb', fanHash = '5f5a9a056455af528c872807359347ee60007990dc6854e36f54f2e8db5b86d1';
 const fanFile = { name: fanName, path: `blobs/glb/${fanHash}.glb`, kind: 'glb', hash: fanHash,
   compressed: 683_792, decoded: 683_764, gpu: 666_216, triangles: 15_136, draws: 28, dependencies: [], critical: false };
-const originalFan = readFileSync(`public${FAN_URL}`);
 const original = readFileSync('public/assets/far-reach/baked/prepared-models.glb'), text = new TextDecoder();
 const HeroRows = v.object({ rows: v.object({ meshes: v.array(v.string()), meshUrls: v.record(v.string(), v.string()),
   hd: v.array(v.string()), hdUrls: v.record(v.string(), v.string()), hdLooks: v.record(v.string(), v.never()), aoFloor: v.number(),
@@ -86,7 +85,7 @@ test('owned geometry preserves all original bytes and costs, changing only its s
     const fanBytes = owned.assets.get(fanHash);
     if (fanBytes === undefined) throw new Error('Missing owned fan pool');
     expect(hashImmutableBytes(fanBytes)).toBe(fanHash);
-    expect(Buffer.compare(fanBytes, originalFan)).toBe(0); fanBytes.fill(0);
+    fanBytes.fill(0);
 
     const before = output.namedFiles.find(file => file.name === heroName), after = owned.namedFiles.find(file => file.name === heroName);
     if (before === undefined || after === undefined) throw new Error('Missing original or owned hero library');
@@ -142,7 +141,6 @@ test('owned geometry preserves all original bytes and costs, changing only its s
     const hitFan = hit.assets.get(fanHash);
     if (hitFan === undefined) throw new Error('Missing cache-hit fan pool');
     expect(hashImmutableBytes(hitFan)).toBe(fanHash);
-    expect(Buffer.compare(hitFan, originalFan)).toBe(0);
 
   } finally { rmSync(cache, { recursive: true, force: true }); }
 });
@@ -185,7 +183,7 @@ test('normal output admission and the actual native pool resolver consume the ow
     expect(sky.rows.geometryPools[fanPool]?.parts).toEqual(FAN_POOL.parts);
     expect(native.geometryPools?.[fanPool]?.url).toBe(`/shardfiles/far-reach/${fanFile.path}`);
     expect(native.geometryPools?.[fanPool]?.parts).toEqual(FAN_POOL.parts);
-    expect(Buffer.compare(await product.file(fanName), originalFan)).toBe(0);
+    expect(hashImmutableBytes(await product.file(fanName))).toBe(fanHash);
 
     const bakes = await product.json<SceneBakeSource>(bakeName), bakeFiles = sceneBakeFiles(bakes, product);
     expect(Object.keys(bakes.urls)).toEqual([...BAKED_PIECES]);
