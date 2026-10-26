@@ -209,7 +209,8 @@ for the kit before the families switch on; `tiledPlot.mjs` `KIT_FAMILIES` lists 
 | RM8.2 authored L1 | open | World-source prefixes: detail rows draw at L0 only, `coarse_` rows only in L1; each kit family carries a ≤ 12-triangle LOD1 (the lit head, the roof block) |
 | RM8.3 plaza resident | open | Savings in the four plaza L0 tiles (landmark and poster textures, with RM9) so their kit fits the pinned resident rows; then `KIT_FAMILIES` switches on |
 | RM8.4 plaza beds | done | r7's raised lawn beds flanking the lanes into the gate (8, two a plaza quarter); trees, planters and lanterns on them with the kit |
-| RM8.5–8.6 density | open | Every other tile re-packed to the mockup, ≤ 15k triangles and ≤ 0.3 MB per L0 tile (with every family on today: mean 10,057, max 18,826 triangles) |
+| RM8.5 kit within 15k | done | With every family on, every L0 tile ≤ 14,174 triangles (was 18,826): figures 450 triangles, a vendor behind every other hero stall, a shopper before every fourth stall, no cart vendors, round bulbs every 3 m, no bed planters |
+| RM8.6 bytes and switch-on | waits on RM8.1 (sp-x2) | ≤ 0.3 MB per L0 tile once tiles are quantized, then the layout's kit list switches the families on (raw today: up to 3.5 MB a tile) |
 | RM13.1–13.2 board and walk | open | 5 cameras × MOCKUP · BEFORE · NOW, a 30 s road-to-plaza walk |
 
 ## 4. Decisions for Jake

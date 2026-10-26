@@ -379,10 +379,11 @@ function modelStalls(w, p) {
     const kind = pick(x, z, 2), yaw = -side * Math.PI / 2;
     w.placeModel('stalls', kind, x, z, { yaw });
     w.solid([x - 1.5, 0, z - 2.1], [x + 1.5, 1.1, z + 2.1]);
-    // RM4.8 (opt-in): a vendor behind every hero stall's counter, facing out with it; a shopper before every third stall
+    // RM4.8 (opt-in): a vendor behind every other hero stall's counter, facing out with it; a shopper before every fourth
+    // stall (RM8.5: an S tile with every family on stays under 15k triangles)
     if (w.hasModel('figures')) {
-      if (kind === 0) w.placeModel('figures', 0, x - side * 0.2, z, { yaw });
-      if (i % 3 === 1) w.placeModel('figures', pick(x, z, 2, 3) + 1, x - side * 2.6, z + 0.6, { yaw: yaw + Math.PI });
+      if (kind === 0 && i % 2 === 0) w.placeModel('figures', 0, x - side * 0.2, z, { yaw });
+      if (i % 4 === 1) w.placeModel('figures', pick(x, z, 2, 3) + 1, x - side * 2.6, z + 0.6, { yaw: yaw + Math.PI });
     }
     if (i % 2 === 0) pool(w, x - side * 3.4, z + 2.75, 5, p.pool);
     // RM4.6 (opt-in): goods waiting behind every other stall
@@ -391,7 +392,6 @@ function modelStalls(w, p) {
   for (let i = 0; i < 4; i++) {
     const z = -16.5 + i * 11, x = i % 2 === 0 ? -4 : 4;
     w.placeModel('stalls', 2, x, z, { yaw: i % 2 === 0 ? Math.PI / 2 : -Math.PI / 2 });
-    if (w.hasModel('figures')) w.placeModel('figures', 0, x + (i % 2 === 0 ? -1.4 : 1.4), z, { yaw: i % 2 === 0 ? Math.PI / 2 : -Math.PI / 2 });
     w.solid([x - 0.8, 0, z - 1.3], [x + 0.8, 1.1, z + 1.3]);
     pool(w, x, z, 4, p.pool);
   }
@@ -525,17 +525,14 @@ function plaza(w, p) {
     }
   }
   // RM8.4: r7's plaza beds, a raised lawn either side of each lane into the gate (the gate's corner is (HALF, -HALF)):
-  // one along the tile's east lane, one along its south; with the kit, round trees on them, planters at their ends and
-  // lanterns at their outer corners
+  // one along the tile's east lane, one along its south; with the kit, round trees on them and lanterns at their outer
+  // corners (RM8.5: planters at their ends put a plaza tile over 15k triangles with every family on)
   for (const [x0, z0, x1, z1] of [[HALF - 16, -HALF + 16, HALF - 9, -HALF + 34], [HALF - 34, -HALF + 9, HALF - 16, -HALF + 16]]) {
     w.box('Kit', [x0, 0, z0], [x1, 0.45, z1], p.stone, p.lawn); w.solid([x0, 0, z0], [x1, 0.45, z1]);
     const along = z1 - z0 > x1 - x0, mx = (x0 + x1) / 2, mz = (z0 + z1) / 2;
     if (w.hasModel('trees')) for (const t of [-0.25, 0.25]) {
       const [x, z] = along ? [mx, mz + t * (z1 - z0)] : [mx + t * (x1 - x0), mz];
       w.placeModel('trees', 0, x, z, { y: 0.45, yaw: x + z, scale: 6.5 * 1.1 / 8 }); w.solid([x - 0.3, 0.45, z - 0.3], [x + 0.3, 3, z + 0.3]);
-    }
-    if (w.hasModel('props')) for (const [x, z] of along ? [[mx, z0 - 1.2], [mx, z1 + 1.2]] : [[x0 - 1.2, mz], [x1 + 1.2, mz]]) {
-      w.placeModel('props', 0, x, z); w.solid([x - 0.9, 0, z - 0.9], [x + 0.9, 0.65, z + 0.9]);
     }
     if (w.hasModel('lanterns')) for (const [x, z] of along ? [[x0 - 0.8, z0], [x0 - 0.8, z1]] : [[x0, z1 + 0.8], [x1, z1 + 0.8]]) lantern(w, x, z, p, 2.6);
   }
@@ -630,7 +627,8 @@ function stringLights(w, p, side, centre) {
   // an entry's footprint (8 m wide, 15 m in from the plot's edge, on the x = 0 and z = 0 seams) stays clear above the road
   const clear = (x, z) => { const wx = centre[0] + x, wz = centre[1] + z, margin = 1.5;
     return (Math.abs(wx) < 4 + margin && Math.abs(wz) > 235 - margin) || (Math.abs(wz) < 4 + margin && Math.abs(wx) > 235 - margin); };
-  if (w.hasModel('strings')) { modelStrings(w, p, along, ends, clear, top, sag, step); return; }
+  // RM8.5: the kit's round bulbs hang every 3 m (the tetrahedra's 2.5 m with every family on put an S tile over 15k)
+  if (w.hasModel('strings')) { modelStrings(w, p, along, ends, clear, top, sag, 3); return; }
   for (const off of [-3, 3]) {
     for (const u of ends) {
       const [x, , z] = along(u, off, 0);

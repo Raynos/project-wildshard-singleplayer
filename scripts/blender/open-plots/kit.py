@@ -608,7 +608,7 @@ def main():
                                 lambda: generated_tree('tree-willow', 8.0, 520, voxel=24)], TRIMS, {'slots': SLOTS})
     reset_scene()
     figure_slots = dict(SLOTS)  # each figure adds its own colour clusters' defaults
-    build_family(out, 'figures', [lambda n=n: generated_figure(f'fig-{n}', 1.75, 700, figure_slots) for n in ('vendor', 'shopper', 'elder')],
+    build_family(out, 'figures', [lambda n=n: generated_figure(f'fig-{n}', 1.75, 450, figure_slots) for n in ('vendor', 'shopper', 'elder')],
                  TRIMS, {'slots': figure_slots})
     reset_scene(ground=-1.0)  # the string's bulbs and lanterns hang below their hooks (origin y 0)
     build_family(out, 'strings', [string_bulb, string_lantern, lane_post], TRIMS, {'slots': SLOTS})
