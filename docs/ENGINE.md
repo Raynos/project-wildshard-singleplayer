@@ -12591,9 +12591,9 @@ admitted product/library book. No source module, field path, second library
 intake or native roster fallback is accepted.
 
 FixedDrawRowsSchema requires bounded plain JSON before reading row members;
-channel renames are exact [source, destination] pairs. Inline and baked
-library entry points reject getters, cycles, callbacks and surplus operands
-before template allocation or geometry decode. Existing native file/lane
+channel renames are exact [source, destination] pairs. Libraries
+require file or binary-lane rows, rejecting inline sources, getters, cycles,
+callbacks and surplus operands before templates or reads. Native file/lane
 readers and cold-card lifetimes retain their ownership.
 
 FixedDrawRowsSchema lives in format/fixedDraws; ResolvedIslandLibrarySchema

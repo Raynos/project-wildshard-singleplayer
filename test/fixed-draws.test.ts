@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs';
 import { expect, test, vi } from 'vitest';
 import { BufferAttribute, BufferGeometry } from 'three';
 import { zlibSync } from 'fflate';
-import { bakedFixedDraws, coldFixedDraws, fixedDraws, inlineFixedDraw, productFixedDraws } from '../src/game/models/fixedDraws';
+import { coldFixedDraws, fixedDraws, productFixedDraws } from '../src/game/models/fixedDraws';
 import { Scope } from '../src/engine/app/scope';
 import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
 
@@ -132,22 +132,22 @@ test('a baked row refuses a wrong byte count, a missing channel or geometry inst
   await expect(fixedDraws(product, [stoneRow]).load(new Map([['shapes/stone.bin', tri(1)]]))).rejects.toThrow('needs its file bytes: stone');
 });
 
-// G602: a baked block may sit in a lane bake (one read per url) or inline in its row (Nalati's prepared shapes)
+// G602: binary blocks keep lane offsets and independent named-file geometry.
 const joined = (a: Uint8Array, b: Uint8Array): Uint8Array => { const out = new Uint8Array(a.length + b.length); out.set(a); out.set(b, a.length); return out; };
 const base64 = (data: Uint8Array): string => btoa(String.fromCodePoint(...data));
-test('lane rows read their blocks at their offsets from one read of the bake; inline rows decode at once', async () => {
+test('lane rows read their blocks once while independent named rows retain expansion', async () => {
   const bake = joined(block(1), block(2)), reads: string[] = [];
   const reader = (url: string): Promise<Uint8Array> => { reads.push(url); return Promise.resolve(bake); };
   const laneRows = [{ slot: 'first', lane: { url: '/assets/fixture.bin', offset: 0 }, channels: [], baked },
     { slot: 'second', lane: { url: '/assets/fixture.bin', offset: 52 }, channels: [], baked },
-    { slot: 'inline', inline: base64(zlibSync(block(3))), channels: [], baked: { ...baked, expand: true } }];
-  const draws = fixedDraws(product, laneRows, undefined, reader);
+    { slot: 'flat', file:'models/flat.bin', channels: [], baked: { ...baked, expand: true } }];
+  const draws = fixedDraws({...product,file:()=>Promise.resolve(block(3))}, laneRows, undefined, reader);
   await draws.load();
   expect(reads).toEqual(['/assets/fixture.bin']);
   expect(draws.handle('first').copy().getAttribute('position').getX(0)).toBe(1);
   expect(draws.handle('second').copy().getAttribute('position').getX(0)).toBe(2);
-  expect(draws.handle('inline').copy().getIndex()).toBeNull();
-  const now = inlineFixedDraw(laneRows[2]); expect(now.getAttribute('position').getX(0)).toBe(3);
+  expect(draws.handle('flat').copy().getIndex()).toBeNull();
+  const now = draws.handle('flat').copy(); expect(now.getAttribute('position').getX(0)).toBe(3);now.dispose();
   // supplied bytes stand in for the bake under its url
   const given = fixedDraws(product, laneRows.slice(0, 2), undefined, () => Promise.reject(new Error('fetched')));
   await given.load(new Map([['/assets/fixture.bin', bake]]));
@@ -159,15 +159,16 @@ test('a lane block past its bake, two sources or a lane without its baked layout
   await expect(fixedDraws(product, [{ slot: 'past', lane: { url: '/b.bin', offset: 8 }, channels: [], baked }], undefined, reader).load()).rejects.toThrow('exceeds its lane bake: past');
   expect(() => fixedDraws(product, [{ slot: 'two', file: 'a.glb', lane: { url: '/b.bin', offset: 0 }, channels: [], baked }])).toThrow();
   expect(() => fixedDraws(product, [{ slot: 'raw', lane: { url: '/b.bin', offset: 0 }, channels: [] }])).toThrow();
-  expect(() => inlineFixedDraw({ slot: 'file', file: 'a.bin', channels: [], baked })).toThrow('inline baked row');
+  expect(() => fixedDraws(product,[{slot:'inline',inline:base64(zlibSync(block(1))),channels:[],baked}])).toThrow('require binary sources');
 });
 
-test('a baked library reads lane and inline rows only', async () => {
-  const library = bakedFixedDraws([{ slot: 'inline', inline: base64(zlibSync(block(5))), channels: [], baked }]);
-  await library.load(); expect(library.handle('inline').copy().getAttribute('position').getX(0)).toBe(5);
-  expect(() => bakedFixedDraws([{ slot: 'glb', file: 'models/a.glb', channels: [] }])).toThrow('read no product file');
+test('metadata-only libraries retain binary URL lanes and refuse undeclared product readers',async()=>{
+  const row={slot:'lane',lane:{url:'/assets/fixture.bin',offset:0},channels:[],baked};
+  const library=await productFixedDraws({json:()=>Promise.resolve([row])},'draws');
+  await library.load(new Map([['/assets/fixture.bin',block(5)]]));
+  expect(library.handle('lane').copy().getAttribute('position').getX(0)).toBe(5);
+  await expect(productFixedDraws({json:()=>Promise.resolve([{slot:'glb',file:'models/a.glb',channels:[]}])},'draws')).rejects.toThrow('file reader required');
 });
-
 
 test('fixed-draw data refuses accessors, cycles and extra channel operands before decoding', () => {
   let reads = 0;
@@ -177,8 +178,8 @@ test('fixed-draw data refuses accessors, cycles and extra channel operands befor
   const allocate = vi.spyOn(BufferGeometry.prototype, 'setAttribute');
   try {
     for (const malformed of [getter, cycle, { ...row, channels: [['aTone', 'tone', 'extra']] }, { ...row, run: () => undefined }]) {
-      expect(() => inlineFixedDraw(malformed)).toThrow();
-      expect(() => bakedFixedDraws([row, malformed])).toThrow();
+      expect(() => fixedDraws(product,[malformed])).toThrow();
+      expect(() => fixedDraws(product,[row,malformed])).toThrow();
     }
     expect(reads).toBe(0); expect(allocate).not.toHaveBeenCalled();
   } finally { allocate.mockRestore(); }
@@ -193,13 +194,13 @@ test('fixed-draw named admission keeps exact channel-pair arity', () => {
 });
 
 test('a product file of baked rows is one library per product and file; a failure stays; a changed reader refuses', async () => {
-  const row = { slot: 'inline', inline: base64(zlibSync(block(5))), channels: [], baked };
+  const row = { slot: 'inline',file:'models/block.bin',channels:[],baked };
   let reads = 0;
-  const book = { json: (name: string) => { reads++; return name === 'models/book.json' ? Promise.resolve([row]) : Promise.reject(new Error(`unread ${name}`)); } };
+  const book = { slug:'memo-fixture',file:()=>Promise.resolve(block(5)),json: (name: string) => { reads++; return name === 'models/book.json' ? Promise.resolve([row]) : Promise.reject(new Error(`unread ${name}`)); } };
   const first = await productFixedDraws(book, 'models/book.json');
   expect(await productFixedDraws(book, 'models/book.json')).toBe(first); expect(reads).toBe(1);
   await first.load(); expect(first.handle('inline').copy().getAttribute('position').getX(0)).toBe(5);
-  const other = { json: book.json };
+  const other = { slug:'memo-fixture',file:book.file,json: book.json };
   expect(await productFixedDraws(other, 'models/book.json')).not.toBe(first);
   await expect(productFixedDraws(book, 'models/absent.json')).rejects.toThrow('unread');
   await expect(productFixedDraws(book, 'models/absent.json')).rejects.toThrow('unread'); expect(reads).toBe(3);
