@@ -61,3 +61,12 @@ async function make(read: ReadAsset): Promise<{ glb: Uint8Array; rows: { pool: {
 }
 export async function bridgeRestGlb(read: ReadAsset): Promise<Uint8Array> { return (await make(read)).glb; }
 export async function bridgeRestRows(read: ReadAsset): Promise<Uint8Array> { return new TextEncoder().encode(`${JSON.stringify((await make(read)).rows)}\n`); }
+
+/** Return both original outputs from one native bake, without publishing an intermediate file. */
+export async function bridgeRestFiles(read: ReadAsset): Promise<Map<string, Uint8Array>> {
+  const made = await make(read);
+  return new Map([
+    ['bridge-rest.glb', made.glb],
+    ['bridge-rest.json', new TextEncoder().encode(`${JSON.stringify(made.rows)}\n`)],
+  ]);
+}
