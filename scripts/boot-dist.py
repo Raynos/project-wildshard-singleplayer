@@ -8,7 +8,7 @@ from pathlib import Path, PurePosixPath
 import tarfile
 import time
 
-PARTS = ('boot-public', 'boot-developer', 'boot-grid', 'hover-chromium', 'hover-webkit', 'explorer')
+PARTS = ('boot-public', 'boot-developer', 'boot-grid', 'hover-chromium', 'hover-webkit', 'explorer', 'phone-route')
 ALIASES = {'nalati': 'nalati-grasslands', 'nine-dragon': 'nine-dragon-stack'}
 
 
@@ -53,7 +53,7 @@ def pack(dist, output, plan, sha, run):
     if re.fullmatch('[a-f0-9]{40}', sha) is None or re.fullmatch('[0-9]+', run) is None:
         raise ValueError('Invalid source SHA/run')
     if set(plan) != {*PARTS, 'shared'} or not all(isinstance(plan[p], list) and plan[p] for p in PARTS):
-        raise ValueError('Incomplete six-leg plan')
+        raise ValueError('Incomplete smoke-leg plan')
     slugs = set().union(*[set(plan[p]) for p in PARTS])
     files = []
     # Historical content-addressed packs accumulate in public/. Only literal pack
@@ -80,7 +80,8 @@ def pack(dist, output, plan, sha, run):
     output.mkdir(parents=True, exist_ok=True)
     inventory = {'sha': sha, 'run': run, 'version': version, 'legs': {}}
     groups = [('boot-public', ['boot-public']), ('boot-developer', ['boot-developer']),
-              ('worlds', ['boot-grid', 'hover-chromium', 'hover-webkit', 'explorer'])]
+              ('worlds', ['boot-grid', 'hover-chromium', 'hover-webkit', 'explorer']),
+              ('phone-route', ['phone-route'])]
     for artifact, parts in groups:
         part = parts[0]
         if any(set(plan[p]) != set(plan[part]) for p in parts):

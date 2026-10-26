@@ -36,6 +36,15 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   Products and every typecheck/lint shard also finish independently after another job fails, so their own
   admission and source errors remain visible in the same run. Each command still stops on its own error;
   typecheck/lint matrix cancellation is disabled.
+- **G745 phone route rollout:** the exact push build also publishes a separate
+  `boot-dist-phone-route` bundle. The seventh matrix leg selects Simulator Safari
+  when an iOS runtime is installed, otherwise records its inventory and uses
+  phone-tier WebKit. It follows title → SHARD SELECT → grid/Driftwood → road →
+  Night Market → road → Driftwood, retaining first-paint, resident tiles, board
+  collision, wall-clock draw/pill, grain, fatal and pixel evidence. Its first
+  ordinary smoke is report-only through that leg's exact `continue-on-error`
+  expression; the existing six checks still decide release. After that report,
+  remove the exemption to make all seven checks required. No retry or cap rise.
 - **Automatic boot proofs coalesce as whole workflows**, with one active six-leg
   cohort and the newest pending cohort. An active proof finishes all six legs;
   a newer dispatch may replace a pending workflow, never individual legs from

@@ -107,14 +107,18 @@ jobs:
           node --input-type=module <<'NODE'
           import { readFileSync } from 'node:fs';
           const proof = JSON.parse(readFileSync('boot-dist-manifest.json', 'utf8'));
-          const parts = ['boot-public','boot-developer','boot-grid','hover-chromium','hover-webkit','explorer'];
+          const core = ['boot-public','boot-developer','boot-grid','hover-chromium','hover-webkit','explorer'];
+          // An older successful push can dispatch while this dry-run lands.
+          // Its original six exact artifacts remain usable; its phone leg
+          // reports missing support and cannot count as the G745 trial.
+          const parts = Object.hasOwn(proof.legs, 'phone-route') ? [...core, 'phone-route'] : core;
           const prefix = proof.version.build.split('-')[0];
           if (proof.sha !== process.env.TESTED_SHA || proof.run !== process.env.SOURCE_RUN
             || !/^[a-f0-9]{7,40}$/u.test(prefix) || !proof.sha.startsWith(prefix)
             || Object.keys(proof.legs).sort().join() !== [...parts].sort().join()
             || parts.some(part => !/^[a-f0-9]{64}$/u.test(proof.legs[part].archiveHash)
               || !Number.isSafeInteger(proof.legs[part].archiveBytes) || proof.legs[part].archiveBytes <= 0))
-            throw new Error('Push manifest does not match tested SHA/run and all six legs');
+            throw new Error('Push manifest does not match tested SHA/run and all seven artifact legs');
           NODE
 
   boot-smoke:
@@ -124,7 +128,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        part: [boot-public, boot-developer, boot-grid, hover-chromium, hover-webkit, explorer]
+        part: [boot-public, boot-developer, boot-grid, hover-chromium, hover-webkit, explorer, phone-route]
+    # G745: exactly the phone route reports without gating for its first ordinary run.
+    continue-on-error: ${{ matrix.part == 'phone-route' }}
     runs-on: macos-15
     timeout-minutes: 20
     steps:
@@ -169,7 +175,7 @@ jobs:
           run-id: ${{ needs.build.outputs.source_run }}
       - uses: actions/download-artifact@v4
         with:
-          name: boot-dist-${{ (matrix.part == 'boot-public' || matrix.part == 'boot-developer') && matrix.part || 'worlds' }}
+          name: boot-dist-${{ (matrix.part == 'boot-public' || matrix.part == 'boot-developer' || matrix.part == 'phone-route') && matrix.part || 'worlds' }}
           github-token: ${{ github.token }}
           run-id: ${{ needs.build.outputs.source_run }}
           path: boot-dist-parts
@@ -193,6 +199,19 @@ jobs:
           NODE
           mkdir -p public/assets/physics
           cp dist/assets/physics/rapier.wasm public/assets/physics/rapier.wasm
+      - name: Select the native iPhone runner or record WebKit fallback
+        if: matrix.part == 'phone-route'
+        id: phone
+        run: node scripts/parity/phone-route-runner.mjs --select-engine >> "$GITHUB_OUTPUT"
+      - name: Install Simulator Web Inspector transport
+        if: matrix.part == 'phone-route' && steps.phone.outputs.engine == 'simulator'
+        run: brew install ios-webkit-debug-proxy
+      - name: Jake's cold phone route (first ordinary run reports only)
+        if: matrix.part == 'phone-route'
+        env:
+          TESTED_SHA: ${{ needs.build.outputs.sha }}
+          PHONE_ROUTE_MODE: report-only
+        run: node scripts/parity/phone-route-runner.mjs
       - name: Every public shard reaches real page-ready
         if: matrix.part == 'boot-public'
         run: node scripts/parity/boot-smoke.mjs --case-group=public
@@ -231,7 +250,9 @@ jobs:
           if-no-files-found: warn
 
   verdict:
-    # The exact-SHA proof requires all six legs. A replaced leg leaves this SHA unproven:
+    # G745 dry run: six required legs plus one report-only phone route.
+    # Remove only its continue-on-error after the first ordinary report.
+    # A replaced required leg leaves this SHA unproven:
     # it gets `error` so a pending status never lingers; the newer SHA carries the proof.
     needs: [build, boot-smoke]
     if: always() && needs.build.result != 'skipped'

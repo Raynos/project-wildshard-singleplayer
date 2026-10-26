@@ -171,6 +171,50 @@ normal animation frame are not a completion barrier for both owners;
 public combined warm-idle signal to use for the permitted capture wait. No new
 readiness signal, app scheduling change, capture change or deadline was introduced.
 
+## G745: Jake's phone smoke route
+
+**In flight (2026-10-26, sp-x7).** A seventh exact-artifact leg follows
+cold title → SHARD SELECT → grid/Driftwood → road → inner northwest
+Night Market → road → Driftwood return. One ordinary run is report-only;
+only that matrix part has `continue-on-error`. After its receipt is reviewed,
+remove that one exemption so every leg blocks the exact-SHA boot status.
+No smoke retry, deadline extension or later successful frame substitutes for
+that first report. The existing six release checks continue during rollout.
+
+The phone leg gets its own checksummed push artifact. It retains the declared
+grid neighbours because the real prediction path can prepare them, plus the
+same shared shell/JS/JSON pack closure. It never rebuilds app bytes in smoke.
+An available iOS runtime selects the existing one-device Simulator lane;
+only a runner without one uses the iPhone-tier WebKit equivalent. Runtime
+inventory and the selected engine are uploaded, so fallback is visible.
+
+Checks retain the 500 ms presented hero target, first geometric Night Market
+entry with actual L0/L1 tiles and no far proxy, real touch HOVER/held-input
+wall containment, completed draws over ten wall-clock seconds from G718's
+pill/draw path (integer-rounded 30 fps, the existing floor policy), and zero cinematic grain on the route. Every crossing
+uses the maintained held-input driver with no pose seed or forced admission.
+Original fatal/pixel failures remain red; route receipts, captures and exact
+SHA/source-run transfer identities are artifacts. This is smoke, not a physical
+phone memory or frame-floor acceptance claim.
+
+Local driver development retained two nonqualifying refusals: a missing
+statement separator in the injected save/harness source (parser RED/GREEN
+regression), then duplicate Night Market slug instances (the route now picks
+the declared inner northwest address). The second visit reached Driftwood:
+806 ms presented hero over production HTTP, 292 draws/10.002 s, no faults.
+Neither number is a pass or a reason to relax the gates. A third prototype
+refused a duplicate `harness.walk` observer: entry observation now uses passive
+browser rAF, retaining a value copy of the first-entry tile state. The exact
+child-process regression proves it never takes the maintained driver's slot or
+rewrites late tiles as on-time. Ordinary dry-run and activation remain pending.
+The straight north drive from the cold south-beach spawn hit a real town wall;
+the shipping navigation query also refused that north-socket path. Neither is
+an app-regression claim. The driver instead exits through the nearby south
+socket and follows the west perimeter road. That actual departure completed
+on live `14a3d5d93`; the complete return/wall proof remains pending. Thirteen
+focused JS cases (including eleven archive Python cases), scripts/root types,
+named typed lint and actionlint pass for the report-only source boundary.
+
 ## Decisions for Jake
 
 - **D1** Should `commit.sh` run `vitest related` (and the touched layer's types) on every commit, capped at 60 s,

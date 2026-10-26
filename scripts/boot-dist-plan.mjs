@@ -41,6 +41,9 @@ const plan = {
   // Grid prediction may prepare any declared neighbour, even before a crossing.
   'boot-grid': all, 'hover-chromium': all, 'hover-webkit': all,
   explorer: explorerCases(rows),
+  // Its real road crossings can trigger declared neighbour prediction. Preserve
+  // the same complete grid set in a separately checksummed phone artifact.
+  'phone-route': all,
   shared: [...shared].sort((left, right) => left.localeCompare(right)),
 };
 process.stdout.write(`${JSON.stringify(plan)}\n`);

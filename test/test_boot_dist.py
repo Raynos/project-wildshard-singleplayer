@@ -50,7 +50,7 @@ class Transfer(unittest.TestCase):
 
     def restore(self, part='boot-public', sha=None, run='123'):
         target = self.root / 'restored'
-        boot.restore(self.output / (part if part in ('boot-public', 'boot-developer') else 'worlds'), target, self.manifest, sha or self.sha, run, part)
+        boot.restore(self.output / (part if part in ('boot-public', 'boot-developer', 'phone-route') else 'worlds'), target, self.manifest, sha or self.sha, run, part)
         return target
 
     def test_every_selected_byte_and_shared_shell_survive(self):
@@ -77,9 +77,19 @@ class Transfer(unittest.TestCase):
         self.assertFalse((target / 'assets/packs/first.phone-obsolete.bin').exists())
 
     def test_grid_and_explorer_keep_all_worlds(self):
-        for part in ('boot-grid', 'hover-chromium', 'hover-webkit', 'explorer'):
-            proof = json.loads((self.output / 'worlds' / 'boot-dist-proof.json').read_text())
+        for part in ('boot-grid', 'hover-chromium', 'hover-webkit', 'explorer', 'phone-route'):
+            proof = json.loads((self.output / ('phone-route' if part == 'phone-route' else 'worlds') / 'boot-dist-proof.json').read_text())
             self.assertTrue({'shardfiles/first/shard.json', 'shardfiles/second/shard.json'}.issubset({r['path'] for r in proof['files']}))
+
+    def test_phone_has_its_own_exact_archive_and_cannot_restore_worlds_as_phone(self):
+        target = self.restore('phone-route')
+        self.assertTrue((target / 'shardfiles/first/shard.json').exists())
+        self.assertTrue((target / 'shardfiles/second/shard.json').exists())
+        self.assertEqual(self.manifest['legs']['phone-route']['artifact'], 'phone-route')
+        proof = json.loads((self.output / 'phone-route/boot-dist-proof.json').read_text())
+        self.assertEqual(proof['parts'], ['phone-route'])
+        with self.assertRaisesRegex(ValueError, 'SHA/run/leg'):
+            boot.restore(self.output / 'worlds', self.root / 'wrong', self.manifest, self.sha, '123', 'phone-route')
 
     def test_truncated_transfer_refuses_without_retry_or_write(self):
         archive = self.output / 'boot-public/boot-dist.tar'

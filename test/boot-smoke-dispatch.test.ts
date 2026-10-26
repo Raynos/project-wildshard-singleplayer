@@ -7,6 +7,8 @@ import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- The workflow shell needs the ordinary Node executable on PATH.
 import { env } from 'node:process';
 import { expect, test } from 'vitest';
+import { watchPhoneEntry } from '../scripts/parity/phone-route-page.mjs';
+import { phoneBootstrap } from '../scripts/parity/phone-route-browser.mjs';
 
 const smoke = readFileSync('.github/workflows/boot-smoke.yml', 'utf8');
 const deploy = readFileSync('.github/workflows/deploy.yml', 'utf8');
@@ -41,19 +43,19 @@ function runSource(watchStatus: number, sourceSha = sha) {
   } finally { rmSync(root, { recursive: true, force: true }); }
 }
 
-test('only a fully successful push dispatches all six exact-artifact smoke legs', () => {
+test('only a fully successful push dispatches all seven exact-artifact smoke legs', () => {
   const dispatch = deploy.split('\n  dispatch-boot-smoke:\n')[1];
   expect(dispatch).toContain('needs: [build-and-deploy, typecheck-lint, derived-docs, generated-inputs, products, behaviour, behaviour-products]');
   expect(dispatch).toContain("if: github.event_name == 'push'");
   expect(dispatch).toContain('-f sha="$GITHUB_SHA" -f source_run="$GITHUB_RUN_ID" -f automatic=true');
   expect(deploy).toContain('run: python3 scripts/ci-fail-fast.py -- pnpm run docs');
   expect(smoke).not.toMatch(/^ {2}workflow_run:/mu);
-  expect(smoke).toContain('part: [boot-public, boot-developer, boot-grid, hover-chromium, hover-webkit, explorer]');
+  expect(smoke).toContain('part: [boot-public, boot-developer, boot-grid, hover-chromium, hover-webkit, explorer, phone-route]');
   expect(smoke).toContain('needs: [build, boot-smoke]');
   expect(smoke).toMatch(/JOB_PROOF_RUN: \$\{\{ !inputs\.automatic && inputs\.source_run \|\| '' \}\}/u);
 });
 
-test('automatic queue replacement preserves one complete six-leg workflow', () => {
+test('automatic queue replacement preserves one complete smoke workflow', () => {
   const header = smoke.split('\njobs:\n')[0];
   expect(header).toMatch(/^concurrency:\n {2}group: boot-smoke-cohort-\$\{\{ inputs\.automatic && 'main' \|\| inputs\.sha \|\| github\.sha \}\}\n {2}cancel-in-progress: false$/mu);
   // Per-leg groups let newer runs replace different pending legs, leaving
@@ -82,4 +84,22 @@ test('a failed parent or mismatched artifact SHA cannot enter the browser proof'
   expect(mismatch.status).not.toBe(0);
   expect(mismatch.error).toContain('Artifact source is not the exact successful main push CI');
   expect(mismatch.output).toBe('');
+});
+
+
+test('the exact native save/harness/paint bootstrap parses as separate source statements',()=>{
+  const source=phoneBootstrap('window.__paint=true');
+  const parse=(input:string)=>spawnSync(process.execPath,['--check','--input-type=module'],{input,encoding:'utf8',timeout:5000});
+  expect(parse(source).status).toBe(0);
+  const oldMissingSeparator=source.replace(';\nwindow.__wildshardHarness','window.__wildshardHarness');
+  expect(parse(oldMissingSeparator).status).toBe(1);
+  expect(parse(oldMissingSeparator).stderr).toContain('Unexpected identifier');
+});
+
+
+test('first-entry observation never takes the maintained driver slot or rewrites late tiles as on-time',()=>{
+  const script=`const callbacks=[];globalThis.requestAnimationFrame=fn=>callbacks.push(fn);let inside=null,reads=0;const cell={instance:'market',slug:'open-plot-night-market',cell:[-1,1],shows:'loading',drawn:{far:true,near:false,l0:0,l1:0}};const game={frameCount:0,watchFrames(){throw new Error('occupied maintained driver slot')}};globalThis.window={__wildshard:{world:{game},requireWorld(){return this.world},shard:{grid:{travelState:()=>({inside}),state:()=>{reads++;return{inside,live:{live:{current:inside,gameplayReady:true}},cells:[cell],frame:{chain:{fx:{grain:0}}}}}}}}};(${watchPhoneEntry.toString()})('market');game.frameCount=1;callbacks.shift()();callbacks.shift()();if(reads!==0)throw new Error('Full census before entry');inside='market';game.frameCount=2;callbacks.shift()();cell.drawn.far=false;cell.drawn.l0=15;if(window.__phoneRouteEntry.entry.cell.drawn.far!==true||window.__phoneRouteEntry.entry.cell.drawn.l0!==0)throw new Error('Late tiles rewrote first-entry evidence');callbacks.shift()();if(reads!==1||callbacks.length!==0)throw new Error('Observer not retired');console.log('first-entry retained');`;
+  const result=spawnSync(process.execPath,['--input-type=module','-e',script],{encoding:'utf8',timeout:5000});
+  expect(result.status,result.stderr).toBe(0);
+  expect(result.stdout).toContain('first-entry retained');
 });

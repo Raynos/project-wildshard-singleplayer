@@ -7,7 +7,7 @@ import { expect, test } from 'vitest';
 test('exact per-leg archives preserve bytes and refuse corrupt, missing, mixed or unsafe transfers without retry', () => {
   const result = spawnSync('python3', ['test/test_boot_dist.py'], { encoding: 'utf8', timeout: 10_000 });
   expect(result.status, result.stderr + result.stdout).toBe(0);
-  expect(result.stderr).toContain('Ran 10 tests');
+  expect(result.stderr).toContain('Ran 11 tests');
 });
 
 test('smoke downloads each exact source-run leg directly without a full-dist relay or retry', () => {
@@ -18,7 +18,7 @@ test('smoke downloads each exact source-run leg directly without a full-dist rel
   expect(central).not.toContain('actions/upload-artifact');
   expect(workflow).toMatch(/run-id: \$\{\{ needs\.build\.outputs\.source_run \}\}/u);
   expect(workflow).toContain('python3 scripts/boot-dist.py restore');
-  expect(workflow).not.toContain('continue-on-error');
+  expect(workflow).toMatch(/continue-on-error: \$\{\{ matrix\.part == 'phone-route' \}\}/u);
   expect(workflow.match(/timeout-minutes: 20/gu)).toHaveLength(2);
-  expect(workflow).toContain('part: [boot-public, boot-developer, boot-grid, hover-chromium, hover-webkit, explorer]');
+  expect(workflow).toContain('part: [boot-public, boot-developer, boot-grid, hover-chromium, hover-webkit, explorer, phone-route]');
 });
