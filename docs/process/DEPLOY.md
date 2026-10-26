@@ -140,14 +140,18 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   shows a 7,440.530 ms renderer animation task, including 6,191.577 ms across shader-program status waits;
   the longest query took 1,826.850 ms. Fonts took 11.557 ms and layout 58.148 ms, while the native PNG hit
   the shared 10,027.200 ms deadline. This establishes competing renderer/GPU work, rather than an idle GPU.
-  Only the initial title PNG temporarily suspends script execution through CDP after fonts, rAF and layout;
-  it captures that same surface and restores scripts before pixel analysis or entry, including on refusal.
-  Suspension consumes the original allowance. A PNG whose script resumption fails is also a refusal.
-  No game scheduler, draw, clock, readiness row, viewport or pixel gate is replaced. Gameplay captures retain
-  the ordinary path. One real Chromium fixture through the maintained browser lane measured suspension at
-  1.297 ms, native PNG RPC at 19.706 ms and capture round trip at 49.696 ms; the original pixel analysis passed
-  and script execution resumed. This proves the protocol path, not Nine's post-change performance. The next
-  ordinary CI smoke supplies that actual result; no retry is dispatched.
+  Script execution stays enabled throughout capture. Smoke `40254948826` on exact `2158fa6713` proved
+  that the attempted script suspension let title PNGs finish but stopped Driftwood and Nine at 0–1 live
+  gameplay frames. A native Chromium differential with the same pending animation loop and a 150 ms
+  transport hold reproduces the cause: disabling scripts discards the pending callback, so the counter
+  remains at 2 after re-enabling and another 250 ms. Leaving scripts live advances it from 12 to 27.
+  Re-enabling JavaScript alone did not restore that loop; the earlier fixture only checked a nonzero
+  counter and missed this. A debugger-pause control also exceeded the unchanged capture allowance and
+  was rejected. Neither mechanism is used. No game scheduler, callback replay, clock, readiness row,
+  viewport or pixel gate is replaced. Native PNG timing and bounded Chromium traces remain available
+  for the original capture contention; no further capture tuning or retry is justified by this repair.
+  The corrected default helper passes the original 19,968 title pixel samples (dark share zero), and its
+  real animation counter advances from 6 to 24 after capture without replaying or requesting a game draw.
   A stalled stage refuses without accepting a late PNG or requesting a replacement. The failure JPEG remains diagnostic.
   The composited image, pixel checks and 10-second screenshot timeout remain unchanged; a missing diagnostic
   trace is reported without substituting a successful frame or retrying the capture.
