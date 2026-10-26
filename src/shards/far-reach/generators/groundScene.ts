@@ -6,8 +6,23 @@ import STRINGS from '../data/strings.json' with { type: 'json' };
 import { knollHull } from './knoll';
 import { RISING_ISLETS } from './risingIslets';
 
+/** Source-owned ground rows; callers receive fresh scene, registry and hull arrays. */
+export interface SkyGroundValues {
+  readonly SKY_GROUND: {
+    readonly recipe: WorldSceneRecipe;
+    readonly isles: readonly { readonly id: string; readonly node: string; readonly at: readonly [number, number, number]; readonly look: string }[];
+    readonly looks: readonly string[];
+    readonly registry: readonly { readonly id: string; readonly name: string; readonly category: 'ground'; readonly file: string; readonly surface: 'grass' }[];
+    readonly bindings: readonly { readonly piece: string; readonly part: string }[];
+    readonly cosmeticDraws: number;
+  };
+  readonly SKY_GROUND_COLLIDERS: readonly { readonly id: string; readonly colliders: readonly {
+    readonly kind: 'hull'; readonly x: number; readonly y: number; readonly z: number; readonly points: number[]; readonly surface: 'grass';
+  }[] }[];
+}
+
 /** Ground identities, borrowed island geometry and walkable knoll hulls are authored together. */
-export function skyGroundSource(): Uint8Array {
+export function skyGroundValues(): SkyGroundValues {
   const names: Readonly<Record<string, string>> = { sunrest: STRINGS.sunrest, windmill: STRINGS.windmill,
     roost: STRINGS.roost, grove: STRINGS.grove, keeper: STRINGS.keeper, ruin: STRINGS.ruin,
     step: STRINGS.step, crown: STRINGS.crown };
@@ -25,7 +40,7 @@ export function skyGroundSource(): Uint8Array {
     registry.push({ id: piece, name: names[id] ?? STRINGS.gateIsle, category: 'ground', file, surface: 'grass' });
     bindings.push({ piece, part });
   }
-  const colliders = [];
+  const colliders: SkyGroundValues['SKY_GROUND_COLLIDERS'][number][] = [];
   for (const knoll of KNOLLS) {
     const isle = ISLES.find(row => row.id === knoll.isle);
     if (isle === undefined) throw new Error('Walkable knoll requires its island and hull');
@@ -41,5 +56,10 @@ export function skyGroundSource(): Uint8Array {
   root.children = bindings.map(row => row.part);
   const recipe: WorldSceneRecipe = { scene: { version: 1, root: 'ground', nodes, materials: looks.map(id => ({ kind: 'port', id, source: id })), textures: [] }, imports };
   const data = { recipe, isles, looks, registry, bindings, cosmeticDraws: ISLES.length * ISLE_DRAWS };
-  return new TextEncoder().encode(`${JSON.stringify({ SKY_GROUND: data, SKY_GROUND_COLLIDERS: colliders })}\n`);
+  return { SKY_GROUND: data, SKY_GROUND_COLLIDERS: colliders };
+}
+
+/** Retained publication adapter preserves the complete predecessor JSON wire. */
+export function skyGroundSource(): Uint8Array {
+  return new TextEncoder().encode(`${JSON.stringify(skyGroundValues())}\n`);
 }
