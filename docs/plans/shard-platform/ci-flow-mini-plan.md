@@ -58,7 +58,7 @@ window; Codex sleeping on CI / origin / acks ~1.5 lane-h a day. Idle lanes (SW10
 |---|---|---|---|---|---|
 | → SW10 | **Idle lanes take the next row** (already a shared-waits row, not repeated): one claimable row per live lane, no "on origin / CPU release" acks. Fold in: a lane never sleeps on a CI verdict or on origin (Done = pushed, E428), so its ~1 h of CI sleeps and ~0.2 h of origin sleeps go too | 10–16 (SW10) + ~1.5 | coordinator | XS | SW10's bar; 0 Codex sleeps whose reason is CI or origin in a reading |
 | **CF1** | **`commit.sh` refuses a commit whose related tests fail.** It runs `vitest related --run` on the staged `src/`, `test/` and `scripts/` files (and the touched layer's `tsc -p` if warm), capped at 60 s; over the cap it lands and says so (CI decides). Delete the doc lines that ask lanes to remember it (D3: guardrails, not reminders). Plus a static guard: a file under a layer imports nothing outside that layer's `tsconfig` include list (the `TS6307` class). Not a mirror check (G612): it runs on the files being committed | ~3 (40 % of red minutes: 145 + 64 of 527) | done (sp-x2; b96c1accac, f4465ac4ab, 7d684da322) | S | a reading where no red window's failing test is `related` to its culprit and no `TS6307` reaches CI |
-| **CF2** | **Flaky tests are made deterministic, never deleted, never retried (G690; Jake overrode delete-by-default).** A red the next run passes without a fix is a flake: sp-x7 (G676) deletes the test or pins its clock / tolerance in the same hour, never adds a retry. Now: `heavy-lane.test` "two checks waiting on a mirror" (3.7 s wall-clock), `nalati-creature-views` balbal (5e-10 tolerance on timed arithmetic), `scene-dressing-rows` Nalati bake (69 s against a 30 s timeout: delete or move to products). A V8 `SIGILL` gets one manual "re-run failed jobs", no code | ~2 (26 % of red minutes) | sp-x7 | XS | no red window in a reading that the next run clears without a fix |
+| **CF2** | **Flaky tests are made deterministic, never deleted, never retried (G690; Jake overrode delete-by-default).** A red the next run passes without a fix is a flake: sp-x7 (G676) fixes the defining clock, arithmetic, fixture ownership or setup in the same hour; all original assertions and deadlines remain. A runner failure remains explicit rather than receiving a retry. The unresolved title-capture contention and current evidence are recorded below. | ~2 (26 % of red minutes) | sp-x7 | XS | no red window in a reading that the next run clears without a fix |
 | **CF3** | **CI verdict in ≤ 13 min: product-free tests stop waiting for products.** The 16 behaviour shards wait for products (5.7 min) though most test files never read a product. Split them: files that read `WS_TEST_PRODUCTS_SHA` products stay after products; the rest run right after generated-inputs (or after checkout). Delete what the split makes dead. Two cycles per red window → ~12 min off each window and more verdicts per hour (fewer cancelled tips). Costs CI minutes only | ~1.5, and every lane gets verdicts ~6 min sooner | in flight (2026-10-24, coordinator reading; source 1f76530a1d done) | M | median green run ≤ 13 min from push to last job over a reading |
 | **CF4** | **The red run names its likely culprit.** `ci-fail-fast.py`'s cause printing (C4) adds the last green SHA and the commits in that range that touch the failing file or its imports (`git log <green>..<sha> -- <files>`), with their `Assisted-by` lane. No bot, no message: the owner reads it in the run, sp-x7 forwards it as today | ~0.5 (fix phase median 9 → ~4 min) | sp-x7 | XS | every red run in a reading lists ≤ 3 candidate commits with lanes |
 | **CF5** | **Boot smoke stops failing on a runner deadline.** The `explorer` leg's "catalogue/thumbnail deadline" failed 10 SHAs in a row on CI runners while the game was fine (G415: no glitches + same look, not timing exactness): loosen it to a hang guard or delete that check. A red smoke blocks the release, not the lanes | ~0; hours of live (11 of 19.5 h held) | sp-x7 | XS | 0 smoke reds in a reading that the next SHA clears without a fix |
@@ -79,6 +79,35 @@ both cohorts with and without duration data; missing-product refusal stays stric
 root types, named typed lint and actionlint passed. This is topology/coverage evidence: the median green verdict
 of at most 13 minutes remains OPEN for the next ordinary CI reading (sp-x7/coordinator); no timing claim yet.
 G692 returns the red-window cap to 30 minutes once this source lands.
+
+### CF3 ordinary verdict reading (2026-10-26 03:15 UTC)
+
+The latest five completed main push verdicts, excluding cancelled and deploy-only runs, took 15.43, 16.30,
+20.65, 17.87 and 18.22 minutes. Median: **17.87 minutes**; green-only median: **18.05 minutes**. The
+13-minute target remains **open**. These are push-to-final-verdict wall times, including queue, setup,
+artifacts and job tails; they are not test CPU times. Runs: `40261303981`, `40258944555`, `40257263766`,
+`40256014057`, `40253473574`. sp-x1 owns the next critical-path audit at a natural source boundary.
+
+## CF2 title capture: unresolved evidence (2026-10-26 05:20 UTC)
+
+The supported fast PNG path and original ten-second shared capture allowance remain. Disabling script
+execution was unsafe: it discarded pending animation callbacks. `dacdb64b62` removed that protocol
+mutation; subsequent public/Developer gameplay and exact six-leg smoke passed without callback replay.
+
+The next failure is smoke `40273171598`, tested `a3eedbaba0` from CI `40271513060`, Developer Nine's first
+title capture. Artifact `12629855004` retains the native Chromium trace. There are no app faults or error
+reports. Stage timings: fonts-ready **8,414.645 ms**, rAF **123.015 ms**, layout **26.970 ms**, native PNG
+RPC **1,547.255 ms**; the native wait had only about 1.4 seconds left. Total refusal: **10,542.037 ms**,
+including cleanup. The late PNG is refused; the diagnostic JPEG is not substituted.
+
+The retained trace has an **8,348.303 ms** renderer animation task and **6,616.257 ms** across 464
+`GetProgramiv` events (longest **1,484.820 ms**), with concurrent GPU work. Its generic callback is in
+`assets/unlock-Cgd1TyGh.js`; without the exact source map this does not identify a specific warm owner.
+This proves renderer/GPU contention during the readiness wait, not font-network latency or an idle GPU.
+The original native-capture contention remains **open**, owned by sp-x7. Per the coordinator's stop rule,
+there is no third speculative capture change, retry, deadline increase, pixel change, script suspension
+or new Debug row. This records the next stage timing rather than claiming a deterministic fix or a
+green proof for the failed candidate. Older exact CI-and-six-leg-green main candidates remain releasable.
 
 ## Decisions for Jake
 
