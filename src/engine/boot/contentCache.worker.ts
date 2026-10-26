@@ -57,7 +57,16 @@ async function perform(command: CacheCommand): Promise<CacheValue> {
     case 'get': return cache.get(command.hash);
     case 'has': { const bytes = await cache.get(command.hash); return bytes !== null && bytes.length === command.bytes; }
     case 'holds': return cache.holds(command.hash, command.bytes);
-    case 'put': return cache.put(command.hash, command.bytes, command.keep === true);
+    case 'put': {
+      // The worker received its own native clone; the page retains its separate
+      // fallback snapshot. Consume a complete private body, but copy partial or
+      // shared views through the ordinary borrowed-input contract.
+      const bytes = command.bytes;
+      if (bytes.buffer instanceof ArrayBuffer && bytes.byteOffset === 0 && bytes.byteLength === bytes.buffer.byteLength) {
+        return (await cache.putTransferred(command.hash, bytes, command.keep === true)).stored;
+      }
+      return cache.put(command.hash, bytes, command.keep === true);
+    }
     case 'stats': return cache.stats();
     case 'flush': await cache.flush(); return null;
     case 'pin':

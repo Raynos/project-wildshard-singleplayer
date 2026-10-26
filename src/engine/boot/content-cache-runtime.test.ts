@@ -2,7 +2,7 @@ import { expect, test, vi } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Use Node's real resource-timing constructor for this worker-only native adapter.
 import { PerformanceResourceTiming } from 'node:perf_hooks';
 import * as v from 'valibot';
-import { CacheReplySchema, type CacheCommand } from './contentCacheProtocol';
+import { CacheReplySchema, type CacheOperation } from './contentCacheProtocol';
 
 type CacheReply = v.InferOutput<typeof CacheReplySchema>;
 
@@ -12,9 +12,10 @@ interface FixtureWorker {
   postMessage: (value: unknown, options: StructuredSerializeOptions) => void;
 }
 
-test('fetch worker hands off the hashed backing without a persistence snapshot', async () => {
+test('worker consumes private fetch and posted-write backing without another snapshot', async () => {
   const origin = 'https://cache.test', disk = new Map<string, Response>(), hints = new Map<string, Response>();
   const network = new Map<string, Uint8Array<ArrayBuffer>>(), fetched: string[] = [];
+  const posted: ArrayBuffer[] = [];
   const hashed = new Set<object>(), transfers: { verified: boolean; bytes: number; detached: boolean }[] = [];
   const nativeDigest = crypto.subtle.digest.bind(crypto.subtle);
   const digest = async (bytes: Uint8Array<ArrayBuffer>): Promise<string> => {
@@ -60,10 +61,14 @@ test('fetch worker hands off the hashed backing without a persistence snapshot',
   const observer = vi.spyOn(crypto.subtle, 'digest').mockImplementation((algorithm, input) => {
     hashed.add(input); return nativeDigest(algorithm, input);
   });
-  const send = (command: Omit<Extract<CacheCommand, { op: 'fetch' }>, 'id'> | { op: 'flush' }): Promise<CacheReply> => new Promise(resolve => {
+  const send = (command: CacheOperation): Promise<CacheReply> => new Promise(resolve => {
     reply = resolve;
     if (port.onmessage === null) throw new Error('Worker entry did not install its handler');
-    port.onmessage(new MessageEvent('message', { data: { ...command, id: ++sequence } }));
+    // The page's private snapshot crosses the real worker boundary by clone,
+    // never by transferring its fallback copy. The worker may consume only its clone.
+    const data = structuredClone({ ...command, id: ++sequence });
+    if (data.op === 'put') posted.push(data.bytes.buffer);
+    port.onmessage(new MessageEvent('message', { data }));
   });
   try {
     await import('./contentCache.worker');
@@ -92,6 +97,41 @@ test('fetch worker hands off the hashed backing without a persistence snapshot',
     const persisted = disk.get(`${origin}/__ws_content__/v0/${first}`);
     if (persisted === undefined) throw new Error('Missing durable fetched body');
     expect(new Uint8Array(await persisted.arrayBuffer())).toEqual(one);
+    const put = Uint8Array.of(11, 13, 17), putHash = await digest(put);
+    const writing = send({ op: 'put', hash: putHash, bytes: put });
+    put.fill(19); // The page/fallback copy stays usable and cannot change the worker's private bytes.
+    expect(await writing).toEqual({ id: sequence, ok: true, value: true });
+    expect(put).toEqual(Uint8Array.of(19, 19, 19));
+    expect(posted.map(buffer => buffer.byteLength)).toEqual([0]);
+    const written = disk.get(`${origin}/__ws_content__/v0/${putHash}`);
+    if (written === undefined) throw new Error('Missing durable posted body');
+    expect(new Uint8Array(await written.arrayBuffer())).toEqual(Uint8Array.of(11, 13, 17));
+    const partial = Uint8Array.of(0, 21, 23, 25, 0), part = partial.subarray(1, 4), partHash = await digest(Uint8Array.from(part));
+    const partialWrite = await send({ op: 'put', hash: partHash, bytes: part });
+    expect(partialWrite).toEqual({ id: sequence, ok: true, value: true });
+    expect(posted.map(buffer => buffer.byteLength)).toEqual([0, 5]);
+    expect(partial).toEqual(Uint8Array.of(0, 21, 23, 25, 0));
+    const partialBody = disk.get(`${origin}/__ws_content__/v0/${partHash}`);
+    if (partialBody === undefined) throw new Error('Missing durable partial posted body');
+    expect(new Uint8Array(await partialBody.arrayBuffer())).toEqual(part);
+    const rejected = Uint8Array.of(27, 29, 31), rejectedHash = await digest(rejected);
+    refuse = true;
+    expect(await send({ op: 'put', hash: rejectedHash, bytes: rejected, keep: true })).toEqual({ id: sequence, ok: true, value: false });
+    expect(posted.map(buffer => buffer.byteLength)).toEqual([0, 5, 0]);
+    expect(rejected).toEqual(Uint8Array.of(27, 29, 31));
+    expect(disk.has(`${origin}/__ws_content__/v0/${rejectedHash}`)).toBe(false);
+    refuse = false;
+    const bad = await send({ op: 'put', hash: rejectedHash, bytes: Uint8Array.of(0, 0, 0) });
+    expect(bad.ok).toBe(false);
+    if (bad.ok) throw new Error('Corrupt posted content was admitted');
+    expect(bad.error).toBe('Invalid immutable content bytes');
+    expect(posted.map(buffer => buffer.byteLength)).toEqual([0, 5, 0, 0]);
+    expect(await send({ op: 'put', hash: rejectedHash, bytes: rejected })).toEqual({ id: sequence, ok: true, value: true });
+    expect(posted.map(buffer => buffer.byteLength)).toEqual([0, 5, 0, 0, 0]);
+    const retried = disk.get(`${origin}/__ws_content__/v0/${rejectedHash}`);
+    if (retried === undefined) throw new Error('Missing retried posted body');
+    expect(new Uint8Array(await retried.arrayBuffer())).toEqual(rejected);
+
   } finally {
     if (port.onmessage !== null) { refuse = false; await send({ op: 'flush' }); }
     observer.mockRestore();
