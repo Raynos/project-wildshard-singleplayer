@@ -60,10 +60,11 @@ const canvas=document.querySelector('canvas');
 const state=window.__ws_coreThree={ready:false,contexts:0,clears:0,losses:0,viewportWidth:innerWidth,viewportHeight:innerHeight,revision:REVISION};
 canvas.addEventListener('webglcontextlost',()=>{state.losses++;});
 try {
- const renderer=window.__ws_coreRenderer=new WebGLRenderer({canvas,alpha:false,antialias:false,depth:true,stencil:false,preserveDrawingBuffer:false});
+ const gl=canvas.getContext('webgl2',{alpha:false,antialias:false,depth:true,stencil:false,preserveDrawingBuffer:false});
+ if(gl===null)throw Error('WebGL2 unavailable');
+ const renderer=window.__ws_coreRenderer=new WebGLRenderer({canvas,context:gl,alpha:false,antialias:false,depth:true,stencil:false,preserveDrawingBuffer:false});
  state.contexts++;
  renderer.setPixelRatio(2);renderer.setSize(innerWidth,innerHeight,false);
- const gl=renderer.getContext();
  gl.clearColor(0.1,0.1,0.1,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);state.clears++;
  state.ready=gl.getError()===gl.NO_ERROR;
 }catch(error){state.error=String(error);}

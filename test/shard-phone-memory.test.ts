@@ -2,7 +2,9 @@
 import { execFileSync, spawnSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Independently hash the exact diagnostic wire, including whitespace.
 import { createHash } from 'node:crypto';
-import { expect, test } from 'vitest';
+// oxlint-disable-next-line import/no-nodejs-modules -- Execute the fixture's context-creation contract without a GPU or app.
+import { runInNewContext } from 'node:vm';
+import { expect, test, vi } from 'vitest';
 import { coreMemorySummary, coreMemoryEstimateAudit, chromiumCoreMemorySummary, coreMemoryTargets, selectedCoreMemoryTargets, scriptResourceURLs, simulatorCoreFootprint, webKitCoreMemoryFloorBytes,
   serveHelloWorldMemory, helloWorldMemoryHTML, helloWorldMemoryFloor, coreMemoryProductIdentity,
   webGLMemoryTarget, webGLMemoryHTML, webGLMemoryFloor,
@@ -431,6 +433,31 @@ const threeCalibration = () => ({...webGLCalibration(), shard: 'three',
   samples: webGLCalibration().samples.map(sample => Object.assign(sample, {page: {prefetch: null, resources: 2, href: 'http://127.0.0.1:4400/three'}})),
   calibrationDocument: {...webGLCalibration().calibrationDocument, title: 'Three.js renderer', revision: '186',
     rendererInfo: {geometries: 0, textures: 0, programs: 0, calls: 0}}});
+
+test('Three.js fixture passes the original opaque context into its renderer', () => {
+  const contexts: WebGLContextAttributes[] = [];
+  const gl = {clearColor: vi.fn(), clear: vi.fn(), getError: () => 0, NO_ERROR: 0, COLOR_BUFFER_BIT: 1, DEPTH_BUFFER_BIT: 2};
+  const canvas = {addEventListener: vi.fn(), getContext: (_kind: string, attributes: WebGLContextAttributes) => { contexts.push(attributes);return gl; }};
+  class WebGLRenderer {
+    readonly context: typeof gl;
+    constructor(parameters: {canvas: typeof canvas; context?: typeof gl}) {
+      // r186 requests alpha:true when creating its own context, even when its
+      // renderer options contain alpha:false. Injected contexts are preserved.
+      this.context = parameters.context ?? parameters.canvas.getContext('webgl2', {alpha: true});
+    }
+    setPixelRatio = vi.fn();
+    setSize = vi.fn();
+    getContext(): typeof gl { return this.context; }
+  }
+  const script = /<script type="module">([\s\S]*?)<\/script>/u.exec(threeMemoryHTML)?.[1];
+  if (script === undefined) throw new Error('Missing Three.js fixture module');
+  const window = {};
+  runInNewContext(script.replace(/^import[^\n]+;$/mu, ''), {WebGLRenderer, REVISION: '186', window,
+    document: {querySelector: () => canvas}, innerWidth: 402, innerHeight: 714});
+  expect(contexts).toEqual([{alpha: false, antialias: false, depth: true, stencil: false, preserveDrawingBuffer: false}]);
+  expect(window).toMatchObject({__ws_coreThree: {ready: true, contexts: 1, clears: 1, losses: 0}});
+  expect(gl.clear).toHaveBeenCalledExactlyOnceWith(3);
+});
 
 test('Three.js fixture serves only installed module bytes with independent wire hashes', async () => {
   const plain = await serveHelloWorldMemory();
