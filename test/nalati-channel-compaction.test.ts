@@ -6,6 +6,7 @@ import { parseClientChannels } from '@wildshard/format/clientChannels';
 import { isJsonData } from '@wildshard/format/json';
 import { fixtureBytes } from '@wildshard/engine/test/nativeBytes';
 import { compactChannels } from '../src/shards/nalati-grasslands/generators/channelRows';
+import { originalSpeciesJson } from './fixtures/nalati-original-species';
 
 function numeric(dag: ClientChannels) {
   return { ...dag.build(), numeric: { group: 'test', outputs: [{ property: 'value', target: 'root', path: ['value'] }] } };
@@ -44,7 +45,7 @@ test('eager invalid arithmetic still refuses without publishing the next local',
 
 test('shipping pose and weather DAGs preserve every evaluated output', () => {
   const read = (name: string): unknown => JSON.parse(new TextDecoder().decode(fixtureBytes(new URL(`../src/shards/nalati-grasslands/data/${name}.generated.json`, import.meta.url))));
-  const species = v.parse(v.object({ poses: v.record(v.string(), v.object({ programs: v.unknown() })) }), read('species'));
+  const species = v.parse(v.object({ poses: v.record(v.string(), v.object({ programs: v.unknown() })) }), originalSpeciesJson('species.json'));
   const rows = Object.values(species.poses).flatMap(pose => parseClientChannels(pose.programs));
   for (const name of ['goldenKingPose', 'herdChannels', 'weatherChannels', 'peopleChannels']) {
     const source = v.parse(v.object({ programs: v.optional(v.unknown()), clientChannels: v.optional(v.unknown()) }), read(name));
