@@ -14,6 +14,8 @@
 // Prints a table per leg, writes <tag>-legs.json and one JPEG contact sheet <tag>-sheet.jpg (a frame per leg).
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve as resolvePath } from 'node:path';
+import { jpegImageRoutes } from './parity/image-routes.mjs';
+import { saveCanvasJpeg } from './parity/canvas-bytes.mjs';
 
 const { chromium } = await import('playwright');
 const argv = process.argv.slice(2);
@@ -96,7 +98,7 @@ try {
   };
   const input = (sx, sy, gallop) => page.evaluate(({ x, y, g }) => { window.__rt.input(x, y, g); }, { x: sx, y: sy, g: gallop });
   const frames = [];
-  const shot = async (label) => { frames.push({ label, b64: (await page.screenshot({ type: 'jpeg', quality: 78 })).toString('base64') }); };
+  const shot = async (label) => { frames.push({ label, image: await page.screenshot({ type: 'jpeg', quality: 78 }) }); };
   /** wait `ms` of game time (fixed steps at 60 Hz), a wall-clock cap of 20× */
   const simWait = async (ms) => {
     const until = (await page.evaluate(() => window.__rt.steps)) + Math.round(ms * 0.06), wall = Date.now() + ms * 20;
@@ -342,20 +344,23 @@ try {
 
   // ── the sheet: 3 columns of the frames, a caption under each ──
   const strip = await ctx.newPage();
-  const sheet = await strip.evaluate(async ({ fs }) => {
-    const w = 480, h = 270, cols = 3, rows = Math.ceil(fs.length / cols);
-    const cv = document.createElement('canvas'); cv.width = w * cols; cv.height = (h + 26) * rows;
-    const g = cv.getContext('2d'); g.fillStyle = '#0d1b26'; g.fillRect(0, 0, cv.width, cv.height);
-    for (let i = 0; i < fs.length; i++) {
-      const im = new Image(); im.src = `data:image/jpeg;base64,${fs[i].b64}`; await im.decode();
-      const x = (i % cols) * w, y = Math.floor(i / cols) * (h + 26);
-      g.drawImage(im, x, y, w - 4, h);
-      g.fillStyle = '#8fe3ff'; g.font = '12px monospace'; g.fillText(fs[i].label.slice(0, 70), x + 6, y + h + 17);
-    }
-    return cv.toDataURL('image/jpeg', 0.75).slice('data:image/jpeg;base64,'.length);
-  }, { fs: frames });
   const file = resolvePath(OUT, `${TAG}-sheet.jpg`);
-  writeFileSync(file, Buffer.from(sheet, 'base64'));
+  const inputs = await jpegImageRoutes(strip, frames.map(frame => frame.image));
+  try {
+    const canvas = await strip.evaluateHandle(async ({ fs }) => {
+      const w = 480, h = 270, cols = 3, rows = Math.ceil(fs.length / cols);
+      const cv = document.createElement('canvas'); cv.width = w * cols; cv.height = (h + 26) * rows;
+      const g = cv.getContext('2d'); g.fillStyle = '#0d1b26'; g.fillRect(0, 0, cv.width, cv.height);
+      for (let i = 0; i < fs.length; i++) {
+        const im = new Image(); im.crossOrigin = 'anonymous'; im.src = fs[i].src; await im.decode();
+        const x = (i % cols) * w, y = Math.floor(i / cols) * (h + 26);
+        g.drawImage(im, x, y, w - 4, h);
+        g.fillStyle = '#8fe3ff'; g.font = '12px monospace'; g.fillText(fs[i].label.slice(0, 70), x + 6, y + h + 17);
+      }
+      return cv;
+    }, { fs: frames.map((frame, index) => ({ label: frame.label, src: inputs.urls[index] })) });
+    await saveCanvasJpeg(strip, canvas, file, 0.75);
+  } finally { await inputs.dispose(); }
   writeFileSync(resolvePath(OUT, `${TAG}-legs.json`), `${JSON.stringify({ tag: TAG, results, errors }, null, 2)}\n`);
   console.log(file);
   console.log(JSON.stringify(results, null, 2));
