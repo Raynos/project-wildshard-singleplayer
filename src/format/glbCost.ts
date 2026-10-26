@@ -2,6 +2,7 @@
  * No product/schema graph is initialized to admit an equipment or skin model. */
 import type { AssetCost } from './product';
 import { glbBuffers, prepareGlbBuffers } from './glbBuffers';
+import { glbImageCost } from './glbImages';
 import { visitGlbGeometry, type GlbVertex } from './glbTriangles';
 import { projectedLayerCoverage, type OverdrawEstimate } from './overdraw';
 
@@ -61,7 +62,7 @@ export function parseGlbData(bytes: Uint8Array, visit?: (triangle: readonly GlbV
   };
   const checkedPositions = new Set<number>(), maximumIndices = new Map<number, number>();
   const materials = list(doc['materials'] ?? []).map(object);
-  if (list(doc['images'] ?? []).length > 0) throw new Error('GLB textures must be separate declared KTX2 assets');
+  const imageCost = glbImageCost(doc, views, data.bytes); gpu += imageCost.gpu;
   const meshCosts = list(doc['meshes'] ?? []).map((mesh) => {
     let triangles = 0, draws = 0, layers = 0, blendedLayers = 0, maskedLayers = 0;
     for (const primitive of list(object(mesh)['primitives'])) {
@@ -202,8 +203,8 @@ export function parseGlbData(bytes: Uint8Array, visit?: (triangle: readonly GlbV
     triangles += cost.triangles; draws += cost.draws * 2;
     if (estimate !== undefined) { estimate.layers += cost.layers; estimate.blendedLayers += cost.blendedLayers; estimate.maskedLayers += cost.maskedLayers; }
   }
-  if (length + binaryBytes + data.decoded + instanceCpu + rigCpu > MAX_BYTES || gpu > MAX_BYTES || triangles > 400_000 || draws > 512) throw new Error('GLB resource cap');
+  if (length + binaryBytes + data.decoded + instanceCpu + rigCpu + imageCost.decoded > MAX_BYTES || gpu > MAX_BYTES || triangles > 400_000 || draws > 512) throw new Error('GLB resource cap');
   if (visit !== undefined) visitGlbGeometry({ nodes, meshes, accessors, parents, read }, visit);
-  return { decoded: length + binaryBytes + data.decoded + instanceCpu + rigCpu, gpu, triangles, draws };
+  return { decoded: length + binaryBytes + data.decoded + instanceCpu + rigCpu + imageCost.decoded, gpu, triangles, draws };
 }
 

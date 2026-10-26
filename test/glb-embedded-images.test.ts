@@ -6,6 +6,7 @@ import { parseGlbData, prepareGlbCost } from '../src/format/glbCost';
 import { glbBuffers } from '../src/format/glbBuffers';
 import { glbImageCost } from '../src/format/glbImages';
 import { hashImmutableBytes } from '../src/sdk/immutable';
+import { nameBlob } from '../src/sdk/blobs';
 
 const original = readFileSync('public/assets/far-reach/rigs/storm-roc.glb');
 const record = v.record(v.string(), v.unknown());
@@ -37,15 +38,20 @@ function imageCost(bytes: Uint8Array): ReturnType<typeof glbImageCost> {
   return glbImageCost(doc, data.views, data.bytes);
 }
 
-test('the staged bounded reader charges original WebP bytes and every RGBA8 mip without changing the rig', async () => {
+test('normal admission charges original WebP paint and every RGBA8 mip without changing the rig', async () => {
   await prepareGlbCost();
   const hash = '1c057979c81e5fafd2f97a151b7936c90ccf01555b2f307b911fc628e7c19af0';
   expect(hashImmutableBytes(original)).toBe(hash);
   expect(imageCost(original)).toEqual({ decoded: 4_817_080, gpu: 5_592_404 });
   expect(original.byteLength).toBe(492_772);
   expect(hashImmutableBytes(original)).toBe(hash);
-  // This producer lands before its normal-admission reader; the old refusal remains active.
-  expect(() => parseGlbData(original)).toThrow('GLB textures must be separate declared KTX2 assets');
+  const cost = { decoded: 6_253_578, gpu: 6_380_144, triangles: 11_760, draws: 2 };
+  expect(parseGlbData(original)).toEqual(cost);
+  const admitted = nameBlob('models/painted-rig.glb', 'glb', original);
+  expect(admitted.file).toEqual({ name: 'models/painted-rig.glb', kind: 'glb', hash,
+    path: `blobs/glb/${hash}.glb`, compressed: 492_772, ...cost, critical: false, dependencies: [] });
+  expect(hashImmutableBytes(admitted.bytes)).toBe(hash);
+  expect(admitted.bytes).not.toBe(original);
 });
 
 test.each([
@@ -73,7 +79,10 @@ test.each([
   }],
 ] as const)('embedded admission refuses %s before loader allocation', async (_label, edit) => {
   await prepareGlbCost();
-  expect(() => imageCost(changed(edit))).toThrow();
+  const invalid = changed(edit);
+  expect(() => imageCost(invalid)).toThrow();
+  expect(() => parseGlbData(invalid)).toThrow();
+  expect(() => nameBlob('models/refused.glb', 'glb', invalid)).toThrow();
 });
 
 
@@ -83,11 +92,13 @@ test('texture uses retain independent mip costs and refuse aggregate allocation 
   expect(imageCost(two)).toEqual({ decoded: 4_817_080, gpu: 11_184_808 });
   const tooMany = changed(doc => { doc['textures'] = Array.from({ length: 5 }, () => row(doc, 'textures')); });
   expect(() => imageCost(tooMany)).toThrow('GLB image resource cap');
+  expect(() => parseGlbData(tooMany)).toThrow('GLB image resource cap');
   const tooManyPixels = changed(doc => { doc['images'] = Array.from({ length: 6 }, () => row(doc, 'images')); });
   expect(() => imageCost(tooManyPixels)).toThrow('GLB image resource cap');
+  expect(() => parseGlbData(tooManyPixels)).toThrow('GLB image resource cap');
 });
 
-test('an untextured document has zero staged image cost', () => {
+test('an untextured document has zero embedded image cost', () => {
   expect(glbImageCost({}, [], new Uint8Array())).toEqual({ decoded: 0, gpu: 0 });
 });
 
@@ -95,4 +106,16 @@ test('an untextured document has zero staged image cost', () => {
 test('omitted sampler fields retain the original full-mip allocation floor', async () => {
   await prepareGlbCost();
   expect(imageCost(changed(doc => { doc['samplers'] = [{}]; }))).toEqual({ decoded: 4_817_080, gpu: 5_592_404 });
+});
+
+
+test('combined geometry and image allocations retain the existing GLB cap and blob cost floor', async () => {
+  await prepareGlbCost();
+  const combined = changed(doc => { doc['images'] = Array.from({ length: 5 }, () => row(doc, 'images')); });
+  expect(imageCost(combined).decoded).toBe(24_085_400);
+  expect(() => parseGlbData(combined)).toThrow('GLB resource cap');
+  expect(() => nameBlob('models/understated.glb', 'glb', original, { gpu: 6_380_143 }))
+    .toThrow('Blob costs cannot understate actual bytes or geometry');
+  expect(() => nameBlob('models/understated.glb', 'glb', original, { decoded: 6_253_577 }))
+    .toThrow('Blob costs cannot understate actual bytes or geometry');
 });
