@@ -114,6 +114,7 @@ test('a disposed named-scene owner publishes nothing and never starts field read
 // before the unchanged 30 s assertions over the complete admitted envelope.
 const nalatiEnvelope=await readProjectAssets('src/shards/nalati-grasslands', undefined, { folder: 'nalati-grasslands', imageRoots: [
     { prefix: '/assets/nalati/baked/', directory: 'public/assets/nalati/baked' },
+    { prefix: '/assets/nalati/models/', directory: 'public/assets/nalati/models' },
     { prefix: '/assets/baked/nalati-grasslands/', directory: 'public/assets/baked/nalati-grasslands' },
   ] });
 

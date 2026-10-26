@@ -75,6 +75,7 @@ test('the actual output hook preserves every predecessor file cost and binary by
   const context = () => {
     const ctx = createProjectGeneration(resolve('src/shards/nalati-grasslands'), 'a'.repeat(64), new Map(), cache,
       [{ prefix: '/assets/nalati/baked/', directory: resolve('public/assets/nalati/baked') },
+        { prefix: '/assets/nalati/models/', directory: resolve('public/assets/nalati/models') },
         { prefix: '/assets/baked/nalati-grasslands/', directory: resolve('public/assets/baked/nalati-grasslands') }]);
     return { ...ctx, cached: (step: Parameters<typeof ctx.cached>[0], make: Parameters<typeof ctx.cached>[1]) => {
       requested.push(...(step.inputs ?? [])); steps.push(step.id); return ctx.cached(step, make).then(files => {
