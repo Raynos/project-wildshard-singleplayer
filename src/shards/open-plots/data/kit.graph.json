@@ -1,0 +1,932 @@
+{
+ "version": 1,
+ "kind": "material",
+ "model": "standard",
+ "doubleSided": false,
+ "params": {
+  "cream": {
+   "type": "colour",
+   "value": [
+    0.93,
+    0.86,
+    0.72
+   ]
+  },
+  "roughness": {
+   "type": "float",
+   "value": 0.9,
+   "min": 0,
+   "max": 1
+  }
+ },
+ "nodes": {
+  "uv": {
+   "op": "uv"
+  },
+  "ur": {
+   "op": "swizzle",
+   "in": [
+    "uv"
+   ],
+   "mask": "x"
+  },
+  "v": {
+   "op": "swizzle",
+   "in": [
+    "uv"
+   ],
+   "mask": "y"
+  },
+  "bf": {
+   "op": "div",
+   "in": [
+    "ur",
+    32
+   ]
+  },
+  "band": {
+   "op": "floor",
+   "in": [
+    "bf"
+   ]
+  },
+  "bo": {
+   "op": "mul",
+   "in": [
+    "band",
+    32
+   ]
+  },
+  "u": {
+   "op": "sub",
+   "in": [
+    "ur",
+    "bo"
+   ]
+  },
+  "uvm": {
+   "op": "combine",
+   "in": [
+    "u",
+    "v"
+   ]
+  },
+  "rv": {
+   "op": "div",
+   "in": [
+    "v",
+    0.3
+   ]
+  },
+  "rri": {
+   "op": "floor",
+   "in": [
+    "rv"
+   ]
+  },
+  "rfv": {
+   "op": "fract",
+   "in": [
+    "rv"
+   ]
+  },
+  "rodd": {
+   "op": "mod",
+   "in": [
+    "rri",
+    2
+   ]
+  },
+  "roff": {
+   "op": "mul",
+   "in": [
+    "rodd",
+    0.5
+   ]
+  },
+  "ru0": {
+   "op": "div",
+   "in": [
+    "u",
+    0.24
+   ]
+  },
+  "ru": {
+   "op": "add",
+   "in": [
+    "ru0",
+    "roff"
+   ]
+  },
+  "rfu": {
+   "op": "fract",
+   "in": [
+    "ru"
+   ]
+  },
+  "rpi": {
+   "op": "mul",
+   "in": [
+    "rfu",
+    3.14159265
+   ]
+  },
+  "rb": {
+   "op": "sin",
+   "in": [
+    "rpi"
+   ]
+  },
+  "rbs": {
+   "op": "mul",
+   "in": [
+    "rb",
+    0.34
+   ]
+  },
+  "rsh": {
+   "op": "add",
+   "in": [
+    "rbs",
+    0.7
+   ]
+  },
+  "rlipd": {
+   "op": "mul",
+   "in": [
+    "rfv",
+    0.3
+   ]
+  },
+  "rlaa0": {
+   "op": "fwidth",
+   "in": [
+    "rlipd"
+   ]
+  },
+  "rlaa": {
+   "op": "max",
+   "in": [
+    "rlaa0",
+    0.0001
+   ]
+  },
+  "rllo": {
+   "op": "sub",
+   "in": [
+    0.03,
+    "rlaa"
+   ]
+  },
+  "rlhi": {
+   "op": "add",
+   "in": [
+    0.03,
+    "rlaa"
+   ]
+  },
+  "rle": {
+   "op": "smoothstep",
+   "in": [
+    "rllo",
+    "rlhi",
+    "rlipd"
+   ]
+  },
+  "rll0": {
+   "op": "oneMinus",
+   "in": [
+    "rle"
+   ]
+  },
+  "rlk0": {
+   "op": "div",
+   "in": [
+    0.03,
+    "rlaa"
+   ]
+  },
+  "rlk": {
+   "op": "saturate",
+   "in": [
+    "rlk0"
+   ]
+  },
+  "rll": {
+   "op": "mul",
+   "in": [
+    "rll0",
+    "rlk"
+   ]
+  },
+  "rdark": {
+   "op": "mix",
+   "in": [
+    1,
+    0.55,
+    "rll"
+   ]
+  },
+  "roof": {
+   "op": "mul",
+   "in": [
+    "rsh",
+    "rdark"
+   ]
+  },
+  "tv": {
+   "op": "div",
+   "in": [
+    "v",
+    0.2
+   ]
+  },
+  "tpi": {
+   "op": "floor",
+   "in": [
+    "tv"
+   ]
+  },
+  "tfv": {
+   "op": "fract",
+   "in": [
+    "tv"
+   ]
+  },
+  "tgf1": {
+   "op": "oneMinus",
+   "in": [
+    "tfv"
+   ]
+  },
+  "tgfm": {
+   "op": "min",
+   "in": [
+    "tfv",
+    "tgf1"
+   ]
+  },
+  "tgd": {
+   "op": "mul",
+   "in": [
+    "tgfm",
+    0.2
+   ]
+  },
+  "tlaa0": {
+   "op": "fwidth",
+   "in": [
+    "tgd"
+   ]
+  },
+  "tlaa": {
+   "op": "max",
+   "in": [
+    "tlaa0",
+    0.0001
+   ]
+  },
+  "tllo": {
+   "op": "sub",
+   "in": [
+    0.01,
+    "tlaa"
+   ]
+  },
+  "tlhi": {
+   "op": "add",
+   "in": [
+    0.01,
+    "tlaa"
+   ]
+  },
+  "tle": {
+   "op": "smoothstep",
+   "in": [
+    "tllo",
+    "tlhi",
+    "tgd"
+   ]
+  },
+  "tll0": {
+   "op": "oneMinus",
+   "in": [
+    "tle"
+   ]
+  },
+  "tlk0": {
+   "op": "div",
+   "in": [
+    0.01,
+    "tlaa"
+   ]
+  },
+  "tlk": {
+   "op": "saturate",
+   "in": [
+    "tlk0"
+   ]
+  },
+  "tll": {
+   "op": "mul",
+   "in": [
+    "tll0",
+    "tlk"
+   ]
+  },
+  "tgx": {
+   "op": "mul",
+   "in": [
+    "u",
+    0.7
+   ]
+  },
+  "tgy": {
+   "op": "mul",
+   "in": [
+    "v",
+    14
+   ]
+  },
+  "tgp": {
+   "op": "combine",
+   "in": [
+    "tgx",
+    "tgy"
+   ]
+  },
+  "tn0": {
+   "op": "noise",
+   "in": [
+    "tgp"
+   ]
+  },
+  "tn": {
+   "op": "saturate",
+   "in": [
+    "tn0"
+   ]
+  },
+  "thha": {
+   "op": "mul",
+   "in": [
+    "tpi",
+    12.9898
+   ]
+  },
+  "thhb": {
+   "op": "mul",
+   "in": [
+    3.7,
+    78.233
+   ]
+  },
+  "thhs": {
+   "op": "add",
+   "in": [
+    "thha",
+    "thhb"
+   ]
+  },
+  "thhn": {
+   "op": "sin",
+   "in": [
+    "thhs"
+   ]
+  },
+  "thhm": {
+   "op": "mul",
+   "in": [
+    "thhn",
+    43758.5453
+   ]
+  },
+  "thh": {
+   "op": "fract",
+   "in": [
+    "thhm"
+   ]
+  },
+  "tns": {
+   "op": "mul",
+   "in": [
+    "tn",
+    0.16
+   ]
+  },
+  "ths": {
+   "op": "mul",
+   "in": [
+    "thh",
+    0.1
+   ]
+  },
+  "tb0": {
+   "op": "add",
+   "in": [
+    "tns",
+    "ths"
+   ]
+  },
+  "tb": {
+   "op": "add",
+   "in": [
+    "tb0",
+    0.78
+   ]
+  },
+  "tdark": {
+   "op": "mix",
+   "in": [
+    1,
+    0.5,
+    "tll"
+   ]
+  },
+  "timber": {
+   "op": "mul",
+   "in": [
+    "tb",
+    "tdark"
+   ]
+  },
+  "pp": {
+   "op": "mul",
+   "in": [
+    "uvm",
+    0.9
+   ]
+  },
+  "pn0": {
+   "op": "noise",
+   "in": [
+    "pp"
+   ]
+  },
+  "pn": {
+   "op": "saturate",
+   "in": [
+    "pn0"
+   ]
+  },
+  "pns": {
+   "op": "mul",
+   "in": [
+    "pn",
+    0.08
+   ]
+  },
+  "plaster": {
+   "op": "add",
+   "in": [
+    "pns",
+    0.93
+   ]
+  },
+  "sv": {
+   "op": "div",
+   "in": [
+    "v",
+    0.45
+   ]
+  },
+  "sri": {
+   "op": "floor",
+   "in": [
+    "sv"
+   ]
+  },
+  "sfv": {
+   "op": "fract",
+   "in": [
+    "sv"
+   ]
+  },
+  "sodd": {
+   "op": "mod",
+   "in": [
+    "sri",
+    2
+   ]
+  },
+  "soff": {
+   "op": "mul",
+   "in": [
+    "sodd",
+    0.5
+   ]
+  },
+  "su0": {
+   "op": "div",
+   "in": [
+    "u",
+    0.8
+   ]
+  },
+  "su": {
+   "op": "add",
+   "in": [
+    "su0",
+    "soff"
+   ]
+  },
+  "sci": {
+   "op": "floor",
+   "in": [
+    "su"
+   ]
+  },
+  "sfu": {
+   "op": "fract",
+   "in": [
+    "su"
+   ]
+  },
+  "sduf1": {
+   "op": "oneMinus",
+   "in": [
+    "sfu"
+   ]
+  },
+  "sdufm": {
+   "op": "min",
+   "in": [
+    "sfu",
+    "sduf1"
+   ]
+  },
+  "sdud": {
+   "op": "mul",
+   "in": [
+    "sdufm",
+    0.8
+   ]
+  },
+  "sdvf1": {
+   "op": "oneMinus",
+   "in": [
+    "sfv"
+   ]
+  },
+  "sdvfm": {
+   "op": "min",
+   "in": [
+    "sfv",
+    "sdvf1"
+   ]
+  },
+  "sdvd": {
+   "op": "mul",
+   "in": [
+    "sdvfm",
+    0.45
+   ]
+  },
+  "sd": {
+   "op": "min",
+   "in": [
+    "sdud",
+    "sdvd"
+   ]
+  },
+  "slaa0": {
+   "op": "fwidth",
+   "in": [
+    "sd"
+   ]
+  },
+  "slaa": {
+   "op": "max",
+   "in": [
+    "slaa0",
+    0.0001
+   ]
+  },
+  "sllo": {
+   "op": "sub",
+   "in": [
+    0.02,
+    "slaa"
+   ]
+  },
+  "slhi": {
+   "op": "add",
+   "in": [
+    0.02,
+    "slaa"
+   ]
+  },
+  "sle": {
+   "op": "smoothstep",
+   "in": [
+    "sllo",
+    "slhi",
+    "sd"
+   ]
+  },
+  "sll0": {
+   "op": "oneMinus",
+   "in": [
+    "sle"
+   ]
+  },
+  "slk0": {
+   "op": "div",
+   "in": [
+    0.02,
+    "slaa"
+   ]
+  },
+  "slk": {
+   "op": "saturate",
+   "in": [
+    "slk0"
+   ]
+  },
+  "sll": {
+   "op": "mul",
+   "in": [
+    "sll0",
+    "slk"
+   ]
+  },
+  "shha": {
+   "op": "mul",
+   "in": [
+    "sci",
+    12.9898
+   ]
+  },
+  "shhb": {
+   "op": "mul",
+   "in": [
+    "sri",
+    78.233
+   ]
+  },
+  "shhs": {
+   "op": "add",
+   "in": [
+    "shha",
+    "shhb"
+   ]
+  },
+  "shhn": {
+   "op": "sin",
+   "in": [
+    "shhs"
+   ]
+  },
+  "shhm": {
+   "op": "mul",
+   "in": [
+    "shhn",
+    43758.5453
+   ]
+  },
+  "shh": {
+   "op": "fract",
+   "in": [
+    "shhm"
+   ]
+  },
+  "shs": {
+   "op": "mul",
+   "in": [
+    "shh",
+    0.14
+   ]
+  },
+  "sb": {
+   "op": "add",
+   "in": [
+    "shs",
+    0.86
+   ]
+  },
+  "sdark": {
+   "op": "mix",
+   "in": [
+    1,
+    0.55,
+    "sll"
+   ]
+  },
+  "stone": {
+   "op": "mul",
+   "in": [
+    "sb",
+    "sdark"
+   ]
+  },
+  "b1": {
+   "op": "eq",
+   "in": [
+    "band",
+    1
+   ]
+  },
+  "b2": {
+   "op": "eq",
+   "in": [
+    "band",
+    2
+   ]
+  },
+  "b3": {
+   "op": "eq",
+   "in": [
+    "band",
+    3
+   ]
+  },
+  "b4": {
+   "op": "eq",
+   "in": [
+    "band",
+    4
+   ]
+  },
+  "b5": {
+   "op": "eq",
+   "in": [
+    "band",
+    5
+   ]
+  },
+  "s5": {
+   "op": "select",
+   "in": [
+    "b5",
+    "stone",
+    1
+   ]
+  },
+  "s3": {
+   "op": "select",
+   "in": [
+    "b3",
+    "plaster",
+    "s5"
+   ]
+  },
+  "s2": {
+   "op": "select",
+   "in": [
+    "b2",
+    "timber",
+    "s3"
+   ]
+  },
+  "shade": {
+   "op": "select",
+   "in": [
+    "b1",
+    "roof",
+    "s2"
+   ]
+  },
+  "vc": {
+   "op": "vertexColour"
+  },
+  "lit": {
+   "op": "mul",
+   "in": [
+    "vc",
+    "shade"
+   ]
+  },
+  "au": {
+   "op": "div",
+   "in": [
+    "u",
+    0.32
+   ]
+  },
+  "afu": {
+   "op": "fract",
+   "in": [
+    "au"
+   ]
+  },
+  "ad0": {
+   "op": "sub",
+   "in": [
+    "afu",
+    0.5
+   ]
+  },
+  "ad1": {
+   "op": "abs",
+   "in": [
+    "ad0"
+   ]
+  },
+  "ad": {
+   "op": "mul",
+   "in": [
+    "ad1",
+    0.32
+   ]
+  },
+  "alaa0": {
+   "op": "fwidth",
+   "in": [
+    "ad"
+   ]
+  },
+  "alaa": {
+   "op": "max",
+   "in": [
+    "alaa0",
+    0.0001
+   ]
+  },
+  "allo": {
+   "op": "sub",
+   "in": [
+    0.08,
+    "alaa"
+   ]
+  },
+  "alhi": {
+   "op": "add",
+   "in": [
+    0.08,
+    "alaa"
+   ]
+  },
+  "ale": {
+   "op": "smoothstep",
+   "in": [
+    "allo",
+    "alhi",
+    "ad"
+   ]
+  },
+  "all0": {
+   "op": "oneMinus",
+   "in": [
+    "ale"
+   ]
+  },
+  "alk0": {
+   "op": "div",
+   "in": [
+    0.08,
+    "alaa"
+   ]
+  },
+  "alk": {
+   "op": "saturate",
+   "in": [
+    "alk0"
+   ]
+  },
+  "all": {
+   "op": "mul",
+   "in": [
+    "all0",
+    "alk"
+   ]
+  },
+  "cream": {
+   "op": "param",
+   "param": "cream"
+  },
+  "stripe": {
+   "op": "mul",
+   "in": [
+    "all",
+    0.8
+   ]
+  },
+  "awning": {
+   "op": "mix",
+   "in": [
+    "vc",
+    "cream",
+    "stripe"
+   ]
+  },
+  "colour": {
+   "op": "select",
+   "in": [
+    "b4",
+    "awning",
+    "lit"
+   ]
+  },
+  "rough": {
+   "op": "param",
+   "param": "roughness"
+  }
+ },
+ "stages": {
+  "surface": {
+   "colour": "colour",
+   "roughness": "rough",
+   "metalness": 0
+  }
+ }
+}

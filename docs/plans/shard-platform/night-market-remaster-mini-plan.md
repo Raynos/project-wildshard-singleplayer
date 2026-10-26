@@ -163,8 +163,8 @@ About 10 Opus lane-days, roughly 5 calendar days on two lanes.
 |---|---|---|
 | RM5.1 ruled paving | done | `data/paving.graph.json`: flagstones in a 3.2 × 2.4 m running bond, antialiased dark joints that fade under a pixel, a hashed shade per flag and noise wear, over each region's vertex colour (no texture); the tiles' paving in its own `draw_paving` node (the 10 m checker and its `pavingAlt` / `laneAlt` go) |
 | RM5.2 palette to round 46 | open | Each palette region within ΔE00 ≤ 8 of round 46's mockups (red-and-gold lantern dusk, G714), measured per region |
-| RM5.3 trim sheet | open | One generated trim sheet per style (roof tile, timber, plaster, awning stripe, stone), KTX2 with phone mips, and its UV-rect table for sp-o1's RM4 models (producer before reader) |
-| RM5.4 kit reads the trim sheet | waits-Opus (sp-o1 RM4 UVs) | The kit material takes the sheet once the new models carry its UVs |
+| RM5.3 ruled trim | done | The trims drawn in the kit's material instead of a KTX2 sheet (Nine's ruled-kit method: no texture memory, retinted by palette for RM14): `data/kit.graph.json` draws plain / roof tile / timber / plaster / awning stripe / stone by the face's band in TEXCOORD_0 (box-projected metres + 32 m × band, `data/trim.json`); band 0 keeps today's kit. Source: `scripts/open-plots/ruled-graphs.py` |
+| RM5.4 kit models carry trim bands | waits-Opus (sp-o1 RM4) | sp-o1's models map each palette slot to a trim band (`data/trim.json`) in their UVs |
 | RM6.1 bloom | open | Open plots' grade: bloom ~0.5 / 0.9 (data) |
 | RM6.2 round pools | open | Smooth round pools sized to their light (smoothstep fan or a pool graph) |
 | RM6.3 light bake | open | RM3's vertex bake tuned on the kit and the paving |
