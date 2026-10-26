@@ -72,6 +72,8 @@ export function phoneWallTarget() {
   const feet = state.live?.live.worldFeet;
   if (feet === undefined) throw new Error('Missing actual wall approach feet');
   const origin = { x: player.position.x, y: player.position.y + .8, z: player.position.z };
+  const climbAngle=player.motor.opts.maxClimbDeg*Math.PI/180;
+  if(!Number.isFinite(climbAngle)||climbAngle<=0||climbAngle>=Math.PI/2)throw new Error('Invalid actual player climb law');
   /** @param {{x:number,z:number}} direction @param {number} vertical @param {number} side */
   const ray = (direction,vertical=0,side=0) => physics.world.castRayAndGetNormal(
     new physics.R.Ray({x:origin.x-direction.z*side,y:origin.y+vertical,z:origin.z+direction.x*side},{...direction,y:0}),120,true,
@@ -84,7 +86,11 @@ export function phoneWallTarget() {
       // no assumption that the collider is a box or has retained JS tags.
       return [[1.2,0],[0,-1],[0,1]].every(([up,side])=>{
         const sample=ray(row.direction,up,side);
-        return sample!==null&&sample.collider.handle===hit.collider.handle&&Math.abs(sample.normal.y)<=.2&&Math.abs(sample.timeOfImpact-hit.timeOfImpact)<=.15;
+        if(sample===null||sample.collider.handle!==hit.collider.handle)return false;
+        // The authored plinth's upper face is beveled. It must still be
+        // steeper than this player's real climb limit, not perfectly vertical.
+        const normalLimit=up===0?.2:Math.cos(climbAngle),runLimit=up===0?.15:up/Math.tan(climbAngle);
+        return Math.abs(sample.normal.y)<normalLimit&&Math.abs(sample.timeOfImpact-hit.timeOfImpact)<=runLimit;
       });
     }).sort((a,b)=>(a.hit?.timeOfImpact??Infinity)-(b.hit?.timeOfImpact??Infinity));
   const wall=walls[0];

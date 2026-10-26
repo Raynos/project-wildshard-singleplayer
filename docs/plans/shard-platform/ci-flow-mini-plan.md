@@ -268,6 +268,17 @@ avenue. The earlier avenue stop at local z=-218.75 was outside that wall's
 ray range. A containing exact preview is required; the old893 visit cannot
 qualify this changed geometry. No posed start, synthetic wall or gate waiver.
 
+The containing8b8 functional visit reached plot-local (0.002,-1.25) but
+the locator still refused before board input. Native inspection of the actual
+far-model triangles isolates its beveled upper face: west base hit5.358m,
+normalY=.02044; upper hit5.598m, normalY=.47351. The old perfectly-vertical
+upper probe rejected that24cm bevel. It now requires the upper surface to
+exceed the player's actual max-climb slope, on the same collider and within
+the corresponding bounded horizontal run. Base verticality/width and all
+held-board collision/settling assertions remain unchanged. Seven controlled
+cases include steep-bevel admission plus walkable/disconnected upper refusal;
+named lint and scripts types pass. Full return remains unproved.
+
 ### Release reading — 2026-10-26 21:35 UTC (sp-x7)
 
 Live remains `14a3d5d93-mvpm835t`, published18:54UTC with exact six-leg

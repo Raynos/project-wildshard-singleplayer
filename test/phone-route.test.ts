@@ -3,7 +3,26 @@ import { expect, test } from 'vitest';
 import { Window } from 'happy-dom';
 import { phoneEngine } from '../scripts/parity/phone-route-runner.mjs';
 import { phoneRouteFailures, phoneRoutePlans, type PhoneReceipt, type PhoneObservation } from '../scripts/parity/phone-route.mjs';
-import { phoneTouchButton } from '../scripts/parity/phone-route-page.mjs';
+import { phoneTouchButton, phoneWallTarget } from '../scripts/parity/phone-route-page.mjs';
+
+test('wall locator admits the real steep plinth bevel but refuses walkable or disconnected upper surfaces',()=>{
+  let upperNormal=.4735059772376924,upperDistance=5.598276735510306;
+  const collider={handle:1,collisionGroups:()=>123};
+  const physics={R:{Ray:class{constructor(public origin:{x:number,y:number,z:number},public dir:{x:number,y:number,z:number}){}},QueryFilterFlags:{EXCLUDE_SENSORS:8}},
+    colliderTag:()=>({material:'ground'}),world:{castRayAndGetNormal:(ray:{origin:{y:number},dir:{x:number}},length:number,solid:boolean,flags:number,groups:number,excluded:object)=>{
+      expect([length,solid,flags,groups,excluded]).toEqual([120,true,8,123,collider]);
+      if(ray.dir.x!==-1)return null;
+      return {collider,timeOfImpact:ray.origin.y>1.5?upperDistance:5.35779004651275,normal:{x:1,y:ray.origin.y>1.5?upperNormal:.020440399304344017,z:0}};
+    }}};
+  const world={player:{position:{x:.0016,y:.0201,z:-1.2503},motor:{collider,opts:{maxClimbDeg:40}}},physics};
+  const previous=Object.getOwnPropertyDescriptor(globalThis,'window');
+  Object.defineProperty(globalThis,'window',{configurable:true,value:{__wildshard:{requireWorld:()=>world,shard:{grid:{state:()=>({live:{live:{worldFeet:{x:-562.4984,z:561.2497}}}})}}}}});
+  try{
+    expect(phoneWallTarget()).toMatchObject({direction:{x:-1,z:0},collider:1,material:'ground',surface:{width:2,height:1.2}});
+    upperNormal=.9;expect(()=>phoneWallTarget()).toThrow('No real building wall');
+    upperNormal=.4735059772376924;upperDistance=50;expect(()=>phoneWallTarget()).toThrow('No real building wall');
+  }finally{if(previous===undefined)Reflect.deleteProperty(globalThis,'window');else Object.defineProperty(globalThis,'window',previous);}
+});
 
 test('native touch sends the HOVER pointerdown handler and ordinary menu click without changing game state',async()=>{
   const dom=new Window(), button=dom.document.createElement('button'), events:string[]=[];
