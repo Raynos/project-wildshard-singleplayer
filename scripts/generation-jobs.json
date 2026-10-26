@@ -923,7 +923,8 @@
         "src/shards/nalati-grasslands/generators/campParams.ts",
         "src/shards/nalati-grasslands/data/campMaterials.json",
         "src/shards/nalati-grasslands/data/placeSpecimens.json",
-        "src/shards/nalati-grasslands/data/specimenBindings.d.ts"
+        "src/shards/nalati-grasslands/data/specimenBindings.d.ts",
+        "src/shards/nalati-grasslands/generators/specimenRows.ts"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/boot/specimenParams.generated.d.ts",
