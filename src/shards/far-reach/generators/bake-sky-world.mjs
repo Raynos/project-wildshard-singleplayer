@@ -9,10 +9,9 @@ import { mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'nod
 import { dirname, join, resolve } from 'node:path';
 import { constants, deflateSync, zstdCompressSync, zstdDecompressSync } from 'node:zlib';
 import * as v from 'valibot';
-import { hashImmutableBytes, encodeCanonicalJson as canonicalJson } from '@wildshard/sdk/immutable';
+import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { parseKtx2 } from '@wildshard/sdk/assets';
 import { readImagePixels, writeImagePixels } from '@wildshard/sdk/bake/image';
-import { completeL0Tiles, completeEmptyL1Tiles } from '@wildshard/sdk/bake/tileGrid';
 
 const invokedFile = process.argv.at(1);
 if (invokedFile !== undefined && resolve(invokedFile) === import.meta.filename) {
@@ -53,15 +52,11 @@ const keep = new Set(['fan.glb', 'prepared-models.glb']);
 // the twelve static islands as compiled props tiles, each island whole (generators/isleProps.ts): data/props.json and the
 // tile GLBs under assets/<hash>, the shardfile's declared files (shard.config.ts); the runtime draws them (world/isle.ts)
 {
-  const { skyIsleProps } = await import('./isleProps.ts');
-  const baked = skyIsleProps();
-  if (baked.far !== null) throw new Error('bake-sky-world: the islands baked a far proxy');
+  const { skyWorldTileSource } = await import('./worldTileBytes.ts');
+  const files = skyWorldTileSource();
   if (!check) mkdirSync(resolve(project, 'assets'), { recursive: true });
-  for (const [hash, bytes] of baked.assets) emit(resolve(project, 'assets', hash), bytes);
-  // in the product's order (files by hash, tiles by level, x, z), so the declaration is the emitted shard.json
-  const files = [...baked.files].sort((a, b) => a.hash.localeCompare(b.hash)), tiles = completeEmptyL1Tiles(completeL0Tiles([...baked.tiles].sort((a, b) => a.lod - b.lod || a.x - b.x || a.z - b.z)));
-  emit(resolve(project, 'data/props.json'), canonicalJson({ props: baked.props, tiles, files, report: baked.report }));
-  console.info(`far-reach isle props: ${String(baked.props.tiles.length)} tiles, ${String(baked.report.reduce((n, r) => n + r.draws, 0))} draws`);
+  for (const [name, bytes] of files) emit(resolve(project, name), bytes);
+  console.info(`far-reach isle props: ${String(files.size - 1)} assets`);
 }
 // the sky-isle models' unit frames (world/skyIsleHd.ts skyIsleUnit), found from each model's GLB
 {
