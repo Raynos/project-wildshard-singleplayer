@@ -188,6 +188,17 @@ function hasNonfiniteFloat32(values: Float32Array): boolean {
   return false;
 }
 
+interface ModelLoadState { loading: Promise<void> | null }
+
+// Resource listeners outlive the library that loaded them. Build them outside
+// its lexical scope so a live mesh cannot retain the reader's product context.
+function cacheModelEntry<K, V extends object>(memo: Map<K, V>, key: K, value: V, state: ModelLoadState): void {
+  retainCachedResources(value); memo.set(key, value);
+  cacheUntilDisposed(value, () => {
+    if (memo.get(key) === value) { memo.delete(key); state.loading = null; }
+  });
+}
+
 /** Load named resources once; each owner takes independent geometry over shared painted textures. */
 export function createModelLibrary<M extends string, H extends string>(rows: ModelLibraryRows<M, H>, fault: string, surfaceInputs: SurfaceInputs = {}, readModel: (url: string) => Promise<{ readonly scene: Object3D }> = loadRigFile): ModelLibrary<M, H> {
   let lookPorts: Parameters<ModelLibrary<M, H>['bindLooks']>[1] | null = null;
@@ -197,7 +208,7 @@ export function createModelLibrary<M extends string, H extends string>(rows: Mod
   const painted = new Map<string, PaintedModel>(), paintedRows = rows.paintedModels ?? [];
   const rest = new Map<string, BufferGeometry>(), atlases = new Map<string, ModelPbrAtlas>();
   const rigs = rows.rigs === undefined ? null : rigLibrary(rows.rigs);
-  let loading: Promise<void> | null = null;
+  const state: ModelLoadState = { loading: null };
   const pools = rows.geometryPools ?? [], parts = pools.flatMap(pool => pool.parts), atlasRows = pools.flatMap(pool => pool.atlases ?? []);
   if (pools.length > 16 || parts.length > 128 || new Set(parts).size !== parts.length) throw new Error('Model library requires unique bounded rest geometry parts');
   if (atlasRows.length > 128 || new Set(atlasRows.map(row => row.id)).size !== atlasRows.length
@@ -235,8 +246,7 @@ export function createModelLibrary<M extends string, H extends string>(rows: Mod
       const made: PaintedModel = { geometry, map, ...(row.pivots === undefined ? {} : { pivots: { body: part(0), head: part(1), arm: part(2), fore: part(3) } }) };
       const image: unknown = map.image;
       if (row.releaseImage === true && typeof ImageBitmap !== 'undefined' && image instanceof ImageBitmap) releaseOnUpload(map.source, () => { image.close(); });
-      retainCachedResources(made); painted.set(row.name, made);
-      cacheUntilDisposed(made, () => { if (painted.get(row.name) === made) { painted.delete(row.name); loading = null; } });
+      cacheModelEntry(painted, row.name, made, state);
     } catch (error: unknown) { console.error(`${fault} the painted model ${row.name} did not load:`, error); }
   }
 
@@ -328,12 +338,10 @@ export function createModelLibrary<M extends string, H extends string>(rows: Mod
       }
       }
       for (const [id, atlas] of borrowed) {
-        retainCachedResources(atlas); atlases.set(id, atlas);
-        cacheUntilDisposed(atlas, () => { if (atlases.get(id) === atlas) { atlases.delete(id); loading = null; } });
+        cacheModelEntry(atlases, id, atlas, state);
       }
       for (const [name, geometry] of prepared) {
-        retainCachedResources(geometry); rest.set(name, geometry);
-        cacheUntilDisposed(geometry, () => { if (rest.get(name) === geometry) { rest.delete(name); loading = null; } });
+        cacheModelEntry(rest, name, geometry, state);
       }
     } catch (error: unknown) { console.error(`${fault} the rest geometry pool did not load:`, error); }
   }
@@ -357,8 +365,7 @@ export function createModelLibrary<M extends string, H extends string>(rows: Mod
       g.setAttribute('position', new Float32BufferAttribute(pos, 3)); g.setAttribute('color', new Float32BufferAttribute(col, 3));
       g.computeVertexNormals();
       }
-      g.computeBoundingBox(); retainCachedResources(g); ready.set(name, g);
-      cacheUntilDisposed(g, () => { if (ready.get(name) === g) { ready.delete(name); loading = null; } });
+      g.computeBoundingBox(); cacheModelEntry(ready, name, g, state);
     } catch (e: unknown) { console.error(`${fault} the generated model ${name} did not load:`, e); }
   }
 
@@ -371,8 +378,7 @@ export function createModelLibrary<M extends string, H extends string>(rows: Mod
       });
       // Only the reusable scene belongs to the memo. Its disposal observer
       // must not retain the consumed GLTF parser and transport dependencies.
-      retainCachedResources(scene); hd.set(name, scene);
-      cacheUntilDisposed(scene, () => { if (hd.get(name) === scene) { hd.delete(name); loading = null; } });
+      cacheModelEntry(hd, name, scene, state);
     } catch (e: unknown) { console.error(`${fault} the generated model ${name} did not load:`, e); }
   }
 
@@ -401,16 +407,16 @@ export function createModelLibrary<M extends string, H extends string>(rows: Mod
       return new MeshStandardMaterial({ map, ...fallback });
     },
     preload: (pause) => {
-      loading ??= (async () => {
+      state.loading ??= (async () => {
         try {
         await Promise.all([...rows.meshes.filter(name => !ready.has(name)).map(load), ...rows.hd.filter(name => !hd.has(name)).map(loadHd),
           ...pools.filter(pool => pool.parts.some(name => !rest.has(name)) || (pool.atlases ?? []).some(row => !atlases.has(row.id))).map(loadPool)]);
         const missing = paintedRows.filter(row => !painted.has(row.name));
         if (pause === undefined) await Promise.all(missing.map(loadPainted));
         else for (const row of missing) { await loadPainted(row); await pause(); }
-        } catch (error: unknown) { loading = null; throw error; }
+        } catch (error: unknown) { state.loading = null; throw error; }
       })();
-      return rigs === null || rows.rigLoad === 'manual' ? loading : Promise.all([loading, rigs.bodies.preload()]).then(() => undefined);
+      return rigs === null || rows.rigLoad === 'manual' ? state.loading : Promise.all([state.loading, rigs.bodies.preload()]).then(() => undefined);
     },
     rig: name => { if (rigs === null) throw new Error('Model library has no declared rigs'); return rigs.bodies.bodyOrStandIn(name); },
     bakedRig: name => rigs?.bodies.body(name) ?? null,
