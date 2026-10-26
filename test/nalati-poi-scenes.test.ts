@@ -8,6 +8,8 @@ import * as v from 'valibot';
 import { nalatiPoiScenes, type NalatiPoiScenePlaces } from '../src/shards/nalati-grasslands/generators/poiScenes';
 import { jsonBytes } from '../scripts/bake-output.mjs';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
+import { hashImmutableBytes } from '../src/sdk/immutable';
+import original from './fixtures/nalati-poi-scenes.json' with { type: 'json' };
 
 for (const source of ['places.json', 'placeRuntime.generated.json']) test(`owned ${source} metadata retains every original POI scene wire byte`, () => {
   let input: unknown = JSON.parse(readFileSync(`src/shards/nalati-grasslands/data/${source}`, 'utf8'));
@@ -16,10 +18,8 @@ for (const source of ['places.json', 'placeRuntime.generated.json']) test(`owned
     meshes: v.array(v.object({ name: v.string(), material: v.string(), slot: v.number() })) })) }),
   input);
   const bytes = jsonBytes(nalatiPoiScenes(places));
-  for (const directory of ['data', 'boot']) {
-    const original = readFileSync(`src/shards/nalati-grasslands/${directory}/poiScenes.generated.json`);
-    expect(Buffer.compare(bytes, original)).toBe(0);
-  }
+  expect(bytes.byteLength).toBe(original.bytes);
+  expect(hashImmutableBytes(bytes)).toBe(original.hash);
 });
 
 test('scene nodes preserve actor omissions, slot order and detached material/child arrays', () => {
