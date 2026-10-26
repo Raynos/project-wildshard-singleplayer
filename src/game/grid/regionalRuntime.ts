@@ -292,13 +292,12 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
               const equipment = new Promise<void>(resolve => { equipmentReady = resolve; });
               const content = new Promise<void>(resolve => { contentReady = resolve; });
               forgetContent = owner.capture('disposers', () => { equipmentReady(); contentReady(); });
-              enteredWarm = request.page.world.game.warmEnteredFrame(owner, view.root, async (prepareRoots, preparePagePrograms) => {
-                await foundation.prepareWorldMaterials?.();
-                await prepareRoots([view.root]);
+              enteredWarm = request.page.world.game.warmEnteredFrame(owner, view.root, async (_prepareRoots, preparePagePrograms) => {
                 await equipment;
                 if (owner.disposed) throw new Error('Regional runtime left before its equipment warm-up');
+                await foundation.prepareWorldMaterials?.();
                 // With kit complete, prepare page, equipment and depth programs while play constructs. Repeat the
-                // complete inventory after play: new encounters and changed variants still gate final readiness.
+                // complete inventory after play; a separate root pass must not consume this overlap window first.
                 await preparePagePrograms();
                 await content;
                 if (owner.disposed) throw new Error('Regional runtime left before its final warm-up');
