@@ -9,7 +9,8 @@ import { parseGlb, parseKtx2 } from '../src/sdk/assets';
 import { readSourceModel } from '../src/sdk/bake/skinned';
 import { readImagePixels } from '../src/sdk/bake/image';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { nalatiModelParts, nalatiModelSourceParts } from '../src/shards/nalati-grasslands/generators/modelParts';
+import { nalatiModelParts } from '../src/shards/nalati-grasslands/generators/modelParts';
+import { nalatiModelSourceParts } from '../src/shards/nalati-grasslands/generators/modelSourceParts';
 import pins from './fixtures/nalati-model-paint.json' with { type: 'json' };
 
 function isGeometry(value: unknown): value is BufferGeometry { return value instanceof BufferGeometry; }
