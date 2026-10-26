@@ -721,3 +721,23 @@ test('G743: redirected preparation starts only after the obsolete constructor re
     expect(f.allocated.at(-1)?.owners).not.toContain(f.east.instance);
   } finally { f.control.finish?.(); f.close(); }
 });
+
+
+test('G743: an actual crossing demand cannot be cancelled by a later speculative heading', async () => {
+  const f = await fixture({ paired: true });
+  try {
+    await f.enterHome(); const leave = await f.live.prepare(f.home.instance, null); leave.commit();
+    f.control.holdIncoming = true; await f.approachEast();
+    await f.live.prefetch([f.north.instance]);
+    const demanded = f.live.prepare(null, f.east.instance); void demanded.catch(() => undefined);
+    f.player.position.x = 0; f.player.position.z = -(CHUNK_HALF + .5);
+    travel(f.live, f.player.position, 0, -1);
+    for (let step = 0; step < 4; step++) { f.player.position.z -= 1; f.live.beforeFixed(); }
+    expect(f.control.aborted).toEqual([]);
+    expect(f.created()).toEqual([f.home.instance, f.east.instance]);
+    if (f.control.finish === undefined) throw new Error('Missing demanded constructor');
+    f.control.finish(); const prepared = await demanded; prepared.cancel();
+    expect(f.live.ready(f.east.instance)).toBe(true);
+    expect(f.live.state().issues).toEqual({});
+  } finally { f.control.finish?.(); f.close(); }
+});

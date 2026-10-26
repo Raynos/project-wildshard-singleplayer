@@ -51,13 +51,19 @@ Keep the G723 two-resident admission and every durability/cancellation fence.
 The routed phone-tier baseline is DW 8.1 s, Pine 2.6 s, Nalati 11.6 s and
 Nine 8.7 s; only Pine is below five seconds. One original four-edge cohort
 qualifies each milestone, without profiler, new observers or gate changes.
+The first 817 milestone completes all entries/errors 0: Nalati 17.873 s,
+Pine 13.984 s, Nine 11.468 s, DW 11.133 s; all four timing rows remain open.
+World/after-Play envelopes are DW 2.981/6.191 s, Pine 19.568/8.984 s,
+Nalati 5.284/7.959 s, Nine 7.362/5.043 s; envelopes include pacing and
+overlap. Intervening source and shared-machine work prevent isolated gains.
 T4's remaining source and qualification rows resume after these edge misses.
 
 | Slice | Work | Status |
 |---|---|---|
-| G743.1 | Select the nearest upcoming boulevard junction; meaningful lateral motion resolves its side before the mouth ray, while equal choices and contact jitter remain undecided. Preserve one constructor, pair budgets, kept-source return and all entry fences. At most one hour. | in flight (2026-10-26, sp-x8; source contracts checked, milestone pending) |
-| G743.1b | After two metres of a sustained direct heading toward another admitted isolated destination or retained return, abort the obsolete speculative constructor through its existing safe point. Keep its request and full claim until cleanup settles; never start a replacement early. At most one hour. | in flight (2026-10-26, sp-x8; source contracts checked, shares the first pending four-edge milestone) |
+| G743.1 | Select the nearest upcoming boulevard junction; meaningful lateral motion resolves its side before the mouth ray, while equal choices and contact jitter remain undecided. Preserve one constructor, pair budgets, kept-source return and all entry fences. At most one hour. | done (bounded source; 817 milestone retains all four timing misses) |
+| G743.1b | After two metres of a sustained direct heading toward another admitted isolated destination or retained return, abort the obsolete speculative constructor through its existing safe point. Keep its request and full claim until cleanup settles; never start a replacement early. At most one hour. | done (bounded source; 817 milestone retains all four timing misses) |
 | G743.2 | Cut the measured world and after-Play critical path; move immutable preparation earlier within existing ownership and admission, retaining every readiness unit. Split further source cuts into at most one-hour rows. | open |
+| G743.2a | A real crossing demand owns its pending preparation; a later speculative heading cannot abort it. Keep explicit crossing supersession, safe-point cancellation, claim accounting and reserved-entry fences. New refusal is RED before, all 47 related cases/four files plus touched types/lint pass. At most one hour. | done (2026-10-26, sp-x8) |
 | G743.3 | ONE original phone-tier DW/Pine/Nalati/Nine road-entry cohort per source milestone; report each request-to-commit time and keep all misses open until each is under five seconds. | open |
 
 ## G717 frame-floor misses (2026-10-25, sp-x1; G639)

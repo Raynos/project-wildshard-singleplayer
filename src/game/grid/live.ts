@@ -282,7 +282,7 @@ export class LiveGridHost {
     this.productRequests.set(instance, request); return request;
   }
   /** A road-approach guess remains speculative after construction, until entry or abandonment. */
-  private approach: { instance: string; controller: AbortController } | null = null;
+  private approach: { instance: string; controller: AbortController; demanded: boolean } | null = null;
   private ensure(instance: string, guess = false): Promise<void> {
     if (this.disposed) return Promise.reject(new Error('Live grid is disposed'));
     const cell = this.assembly.cell(instance);
@@ -299,7 +299,7 @@ export class LiveGridHost {
       // A completed guess is still speculative until entry: a U-turn must retire it, not the kept source.
       if (this.approach?.controller === controller && (!this.residents.has(instance) || controller?.signal.aborted === true)) this.approach = null;
     });
-    if (controller !== undefined) this.approach = { instance, controller };
+    if (controller !== undefined) this.approach = { instance, controller, demanded: false };
     this.requests.set(instance, request); this.sequence = this.settle(request); return request;
   }
   /** A committed crossing or sustained admitted heading abandons an obsolete road guess.
@@ -486,7 +486,7 @@ export class LiveGridHost {
     const moving = !travelled ? undefined : candidates.find(cell => headsToEntry(cell, feet, previous)
       && this.distance(cell, feet) < this.distance(cell, previous) - 0.000001);
     const pendingApproach = this.approach;
-    if (this.requests.size === 0 || pendingApproach === null || pendingApproach.controller.signal.aborted
+    if (this.requests.size === 0 || pendingApproach === null || pendingApproach.demanded || pendingApproach.controller.signal.aborted
       || travelledDistance > this.ports.readiness.link.speed) this.approachRedirect = undefined;
     else if (travelled) {
       const product = moving === undefined ? undefined : this.products.get(moving.instance);
@@ -685,6 +685,7 @@ export class LiveGridHost {
     if (this.disposed || this.active !== from || from === to) throw new Error('Stale live frame preparation');
     if (from !== null && to !== null) throw new Error('Owned runtime crossing must commit onto the neutral road first');
     if (from === null && to !== null) {
+      if (this.approach?.instance === to) { this.approach.demanded = true; this.approachRedirect = undefined; }
       // Paired construction may finish early, but never enters while the kept source still owns its world.
       // A U-turn instead reuses that source immediately and abandons only the incoming guess.
       const source = this.lastSource();
