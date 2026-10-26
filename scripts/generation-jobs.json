@@ -14821,7 +14821,8 @@
         "scripts/bake-output.mjs",
         "package.json",
         "pnpm-lock.yaml",
-        "src/shards/nalati-grasslands/generators/placeParts.ts"
+        "src/shards/nalati-grasslands/generators/placeParts.ts",
+        "src/shards/nalati-grasslands/generators/balbalSpecimen.ts"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/data/balbalSpecimen.generated.json",

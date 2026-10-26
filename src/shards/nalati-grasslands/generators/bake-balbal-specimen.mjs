@@ -5,6 +5,7 @@ import * as v from 'valibot';
 import { SpecimenCatalogueSchema } from '@wildshard/format/specimenCatalogue';
 import { byteWriter, jsonBytes } from '../../../../scripts/bake-output.mjs';
 import { nalatiPlaceParts } from './placeParts.ts';
+import { nalatiBalbalSpecimen } from './balbalSpecimen.ts';
 
 const root=resolve(import.meta.dirname,'../../../..'),shard='src/shards/nalati-grasslands';
 const read=file=>JSON.parse(readFileSync(resolve(root,shard,file),'utf8'));
@@ -13,18 +14,10 @@ const lanes=inflateSync(readFileSync(resolve(root,'public/assets/nalati/baked/pl
 if(lanes.length%4!==0)throw new Error('Place bake requires whole words');
 for(let b=0;b<4;b++)for(let i=0;i<lanes.length/4;i++)binary[i*4+b]=lanes[b*lanes.length/4+i];
 const parts=nalatiPlaceParts(places,binary,['actor:balbal:0:2977','actor:balbal:1:2977']);
-const generated={...specimens.assets.balbal,transform:{yaw:Math.PI,scale:2.15/metrics.sizes.balbal[1]}};
-const writer=byteWriter(process.argv.includes('--check'),'nalati-balbal-specimen'),sources=[];
-const carving=variant=>{
-  const part=parts.get(`actor:balbal:${variant}:2977`);
-  if(part===undefined)throw new Error('Missing admitted balbal carving');
-  const source=`data/balbal-carving-${variant}.generated.bin`,file=`models/specimens/balbal-${variant}.bin`;
-  writer.put(resolve(root,shard,source),part.bytes);sources.push({name:file,kind:'bin',source});
-  return{kind:'file',file,representation:'parts',geometry:part.geometry,material:specimens.materials.poi};
-};
-const catalogue=v.parse(SpecimenCatalogueSchema,[{key:'balbal',model:{id:'nalati-grasslands/balbal',name:'Balbal',category:'props',pipeline:['trellis','code'],file:'src/shards/nalati-grasslands/generators/places.ts',surface:'stone',defaults:{carved:null},
-  variants:[{id:'generated',label:'TRELLIS.2',params:{}},{id:'bare',label:'Carved',params:{carved:'bare'}},{id:'capped',label:'Carved · cap',params:{carved:'capped'}}]},
-  source:{kind:'selection',variants:[{params:{carved:null},source:{kind:'asset',asset:generated}},{params:{carved:'bare'},source:carving(0)},{params:{carved:'capped'},source:carving(1)}]}}]);
-// the crown sites (game/boss/encounterView EncounterSites): every third stele capped, each a box that stops colliding while its warrior is awake
-const sites={name:'nalati-balbal',label:'Balbal',file:'src/shards/nalati-grasslands/generators/places.ts',surface:'stone',variants:['bare','capped'],variantCycle:[1,0,0],sink:.18,collider:{hw:.42,hd:.33,top:2.2,bottom:1}};
-writer.put(resolve(root,shard,'data/balbalSpecimen.generated.json'),jsonBytes({catalogue,generated,sites,sources}));writer.finish();
+const bare=parts.get('actor:balbal:0:2977'),capped=parts.get('actor:balbal:1:2977');
+if(bare===undefined||capped===undefined)throw new Error('Missing admitted balbal carving');
+const made=nalatiBalbalSpecimen(bare.geometry,capped.geometry,specimens.assets.balbal,specimens.materials.poi,metrics.sizes.balbal[1]);
+const catalogue=v.parse(SpecimenCatalogueSchema,made.catalogue);
+const writer=byteWriter(process.argv.includes('--check'),'nalati-balbal-specimen');
+for(const [variant,part] of [bare,capped].entries())writer.put(resolve(root,shard,`data/balbal-carving-${variant}.generated.bin`),part.bytes);
+writer.put(resolve(root,shard,'data/balbalSpecimen.generated.json'),jsonBytes({...made,catalogue}));writer.finish();

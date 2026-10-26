@@ -20,7 +20,7 @@ const pins = [
 ] as const;
 
 for (const [id, files] of pins) {
-  for (const omitted of [leaf, undefined]) {
+  for (const omitted of [leaf, 'src/shards/nalati-grasslands/generators/balbalSpecimen.ts', undefined]) {
     test(`${id} ${omitted === undefined ? 'preserves every original wire byte in isolation' : `refuses omitted ${omitted}`}`, async () => {
       const job = discoverGeneration(root).jobs.find(row => row.id === id);
       if (job === undefined) throw new Error('Missing retained place part producer');
