@@ -7,7 +7,7 @@ import type { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
 import type { Physics } from '@wildshard/engine/physics/Physics';
 
 /** Default platform grapple parameters; courses may supply an admitted authored profile. */
-export const DEFAULT_GRAPPLE_MODE = v.parse(GrappleModeSchema, { id: 'grapple' });
+export const DEFAULT_GRAPPLE_MODE: GrappleMode = v.parse(GrappleModeSchema, { id: 'grapple' });
 /** Real hook roster and native visibility/guard ports; a mode profile grants no anchor or floor. */
 export interface GrappleCourse {
   readonly mode?: GrappleMode;
@@ -182,7 +182,7 @@ export class GrappleSim {
   target: GrappleTarget | null = null;
   armedMiss = false;
   clock = 0;
-  readonly missEnd = new Vector3();
+  readonly missEnd: Vector3 = new Vector3();
   course: GrappleCourse;
   private blocked = 0;
   private liftY = 0;

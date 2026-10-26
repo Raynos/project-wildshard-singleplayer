@@ -336,7 +336,7 @@ export function speciesMath(request: readonly number[]): number {
   throw new Error('Unknown species math operation');
 }
 /** The phase selector in input slot 2. */
-export const SPECIES_SCRIPT_PHASE = Object.freeze({ think: 1, act: 2 });
+export const SPECIES_SCRIPT_PHASE: Readonly<{ think: 1; act: 2; }> = Object.freeze({ think: 1, act: 2 });
 const speciesScriptsENTITY = 1, speciesScriptsSLOT = 1, MEMORY = 21, STEER = 31, INPUT_SLOTS = 17;
 const PHASES = ['idle', 'windup', 'active', 'recover', 'cooldown'] as const;
 
@@ -507,7 +507,31 @@ export class ScriptSpeciesPolicy<A extends AnimalSim> {
  */
 
 /** The verbs an elite script's events name (event id → verb). */
-export const ELITE_VERB = Object.freeze({
+export const ELITE_VERB: Readonly<{ 
+/** value: the new mode's index (its clock restarts) */
+mode: 1; 
+/** value: yaw; registers: speed, turn rate (inside the declared bounds) */
+steer: 2; 
+/** value: look weight; registers: the target's height over the player, 1 to aim at the player (0 keeps the target) */
+look: 3; 
+/** value: the voice's index */
+voice: 4; 
+/** the elite's signature flash */
+signature: 5; 
+/** value: the lane; registers: tell seconds, speed multiplier (aimed through the player) */
+lane: 6; 
+/** value: the contact's index */
+contact: 7; 
+/** value: the shake */
+trauma: 8; 
+/** value: the body's attack seconds */
+attack: 9; 
+/** value: the ring tell's radius round the body; register: its opacity */
+ring: 10; 
+/** the ring tell off */
+ringHide: 11; 
+/** value: the shard action's index */
+action: 12; }> = Object.freeze({
   /** value: the new mode's index (its clock restarts) */
   mode: 1,
   /** value: yaw; registers: speed, turn rate (inside the declared bounds) */
@@ -1251,7 +1275,7 @@ export function createNativeHunt(host: SimHost, row: NativeHuntRow, ports: {
 export function createNativeSpeciesContext<W, A extends HuntBody = HuntBody>(shared: {
   readonly host: SimHost; readonly hunt: StalkerBrain<A>; readonly rng: Rng;
   readonly world: W; readonly heightAt: (x: number, z: number) => number; readonly waterLevel: number;
-}, actor: A, herd: readonly A[] | null, label = actor.label): {
+}, actor: A, herd: readonly A[] | null, label: string = actor.label): {
   observation: {
     dt: number; t: number; player: Vector3; playerSpeed: number; calm: boolean; rng: Rng;
     herd: readonly A[] | null; world: W; heightAt: (x: number, z: number) => number; waterLevel: () => number;

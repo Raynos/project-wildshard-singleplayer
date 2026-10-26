@@ -15,7 +15,7 @@ const finite = v.pipe(v.number(), v.finite());
 const natural = v.pipe(finite, v.minValue(0));
 const counts = v.record(v.string(), v.pipe(natural, v.integer()));
 const names = v.record(v.string(), v.string());
-const cosmetics = v.object({ owned: v.array(v.string()), worn: names });
+const cosmetics: v.ObjectSchema<{ readonly owned: v.ArraySchema<v.StringSchema<undefined>, undefined>; readonly worn: v.RecordSchema<v.StringSchema<undefined>, v.StringSchema<undefined>, undefined>; }, undefined> = v.object({ owned: v.array(v.string()), worn: names });
 /** A durable typed record; failure to persist refuses progression explicitly. */
 export interface SavedRecord<T> { read: (namespace?: string) => T; write: (value: T, namespace?: string) => boolean }
 /** Native records and projected progress share one placement identity. */
@@ -35,7 +35,7 @@ export interface AdventurePersistence {
  * state fields. Pine and Nalati share this owner; rows retain their validation,
  * stable fact identities, flag projections and checkpoint boundaries. */
 export function bindAdventurePersistence(ctx: Pick<ShardContext, 'app' | 'scope'>, source: Shardfile,
-  input: unknown, instance = source.identity.slug): AdventurePersistence {
+  input: unknown, instance: string = source.identity.slug): AdventurePersistence {
   const rows = v.parse(AdventurePersistenceSchema, input), flags = new Flags(instance);
   const legacyInstance = rows.legacyNamespace === 'instance' ? instance : source.identity.slug;
   const facts = projectRuntimeFacts(bindRuntimeLedger(ctx, source, instance), undefined);

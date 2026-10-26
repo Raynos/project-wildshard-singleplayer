@@ -7,7 +7,7 @@ import { pickPrompt, setPromptSight, type PromptTarget } from '@wildshard/engine
 
 
 /** The defining pure interaction contract, shared by author admission and native rules. */
-export const InteractionRowsSchema = interactionContracts.InteractionRowsSchema;
+export const InteractionRowsSchema: v.GenericSchema<interactionContracts.InteractionRowsData, interactionContracts.InteractionRowsData> = interactionContracts.InteractionRowsSchema;
 /** Validated interaction rows. */
 export type InteractionRowsData = interactionContracts.InteractionRowsData;
 /** One declared prompt or crack row. */
@@ -147,7 +147,7 @@ export function installInteractionRows(host: SimHost, rules: InteractionRules, p
 const headlessPromptsFinite = v.pipe(v.number(), v.finite());
 const headlessPromptsPoint = v.strictObject({ x: headlessPromptsFinite, y: headlessPromptsFinite, z: headlessPromptsFinite });
 const nonnegative = v.pipe(headlessPromptsFinite, v.minValue(0));
-const registration = v.strictObject({ id: v.nullable(v.pipe(v.string(), v.minLength(1), v.maxLength(128))), position: headlessPromptsPoint,
+const registration: v.StrictObjectSchema<{ readonly id: v.NullableSchema<v.SchemaWithPipe<readonly [v.StringSchema<undefined>, v.MinLengthAction<string, 1, undefined>, v.MaxLengthAction<string, 128, undefined>]>, undefined>; readonly position: v.StrictObjectSchema<{ readonly x: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>]>; readonly y: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>]>; readonly z: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>]>; }, undefined>; readonly radius: v.SchemaWithPipe<readonly [v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>]>, v.MinValueAction<number, 0, undefined>]>; readonly weak: v.ExactOptionalSchema<v.BooleanSchema<undefined>, undefined>; readonly sight: v.StrictObjectSchema<{ readonly slack: v.SchemaWithPipe<readonly [v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>]>, v.MinValueAction<number, 0, undefined>]>; readonly body: v.ExactOptionalSchema<v.SchemaWithPipe<readonly [v.StringSchema<undefined>, v.MinLengthAction<string, 1, undefined>, v.MaxLengthAction<string, 256, undefined>]>, undefined>; }, undefined>; }, undefined> = v.strictObject({ id: v.nullable(v.pipe(v.string(), v.minLength(1), v.maxLength(128))), position: headlessPromptsPoint,
   radius: nonnegative, weak: v.exactOptional(v.boolean()), sight: v.strictObject({ slack: nonnegative, body: v.exactOptional(v.pipe(v.string(), v.minLength(1), v.maxLength(256))) }) });
 /** Ordered native page captures; owner strings come from actual registered sight identities. */
 export type PromptRegistration = v.InferOutput<typeof registration>;

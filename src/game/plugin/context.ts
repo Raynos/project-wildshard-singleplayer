@@ -26,7 +26,7 @@ import { absentShardProduct, type ShardProduct } from '../shardfile/shardProduct
 export type PageMode = 'grid' | 'shard';
 /** A stable catalogue cell identity, independent of its current placement. */
 export interface GridCellRef { readonly instance: string; readonly slug: string }
-export const gridCells = pageGridCells;
+export const gridCells: typeof pageGridCells = pageGridCells;
 
 /** The home cell's restored simulation as its client hands it over (sp-x5's `onSimulation`, SF15a): the existing driver's gate and its durable save. */
 export interface GridHomeSimulation { readonly setActive: (active: boolean) => void; readonly checkpoint: () => boolean; readonly disposed: () => boolean; readonly residency?: HomeResidencyClaim; readonly suppressCheckpoint?: () => void }
@@ -52,7 +52,7 @@ export class GridHomeHandoff {
   }
 }
 /** this page's home handoff (only a grid page's home client offers one) */
-export const gridHomeSim = new GridHomeHandoff();
+export const gridHomeSim: GridHomeHandoff = new GridHomeHandoff();
 
 /** this page's mode, decided once at boot (held in the leaf grid/pageMode.ts) */
 export function pageMode(): PageMode { return currentPageMode(); }

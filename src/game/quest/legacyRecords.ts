@@ -2,7 +2,7 @@ import * as v from 'valibot';
 import { saves } from '@wildshard/engine/saves/runtime';
 import type { SaveSlot } from '@wildshard/engine/saves/store';
 
-const names=v.record(v.string(),v.string()),cosmetics=v.object({owned:v.array(v.string()),worn:names});
+const names: v.RecordSchema<v.StringSchema<undefined>, v.StringSchema<undefined>, undefined>=v.record(v.string(),v.string()),cosmetics: v.ObjectSchema<{ readonly owned: v.ArraySchema<v.StringSchema<undefined>, undefined>; readonly worn: v.RecordSchema<v.StringSchema<undefined>, v.StringSchema<undefined>, undefined>; }, undefined>=v.object({owned:v.array(v.string()),worn:names});
 const nameSlots=new Map<string,SaveSlot<v.InferOutput<typeof names>>>(),cosmeticSlots=new Map<string,SaveSlot<v.InferOutput<typeof cosmetics>>>(),bondSlots=new Map<string,SaveSlot<string|null>>();
 /** Native migration authorities are selected by declared save ids. Definitions
  * are lazy and shared; content never supplies a schema, initializer or reader. */

@@ -8,14 +8,14 @@ const finite = v.pipe(v.number(), v.finite());
 const numbers = v.record(v.string(), finite);
 const strings = v.array(v.string());
 const define = <S extends v.GenericSchema>(key: string, schema: S, initial: () => v.InferOutput<S>): SaveSlot<v.InferOutput<S>> => saves.define({ key, scope: 'shard', version: 1, schema, initial });
-export const progressSave = define('progress', v.object({ counts: numbers, earned: strings, title: v.nullable(v.string()), playS: v.optional(finite, 0) }), () => ({ counts: {}, earned: [], title: null, playS: 0 }));
-export const inventorySave = saves.define(inventoryKey);
-export const purseSave = saves.define(purseKey);
-export const ownedSave = define('owned', v.object({ owned: strings, worn: strings }), () => ({ owned: [], worn: [] }));
-export const bountySave = define('bounty', numbers, () => ({}));
-export const compendiumSave = define('compendium', v.record(v.string(), v.object({ s: finite, n: finite, t: finite, b: finite })), () => ({}));
-export const bossesSave = define('bosses', v.record(v.string(), v.object({ defeated: v.boolean(), rewardTaken: v.boolean(), kills: finite })), () => ({}));
-export const elitesSave = define('elites', v.record(v.string(), v.object({ timer: finite, discovered: v.boolean(), skinTaken: v.boolean(), kills: finite, retired: v.boolean() })), () => ({}));
+export const progressSave: SaveSlot<{ counts: Record<string, number>; earned: string[]; title: string | null; playS: number; }> = define('progress', v.object({ counts: numbers, earned: strings, title: v.nullable(v.string()), playS: v.optional(finite, 0) }), () => ({ counts: {}, earned: [], title: null, playS: 0 }));
+export const inventorySave: SaveSlot<{ counts: Record<string, number>; order: string[]; }> = saves.define(inventoryKey);
+export const purseSave: SaveSlot<number> = saves.define(purseKey);
+export const ownedSave: SaveSlot<{ owned: string[]; worn: string[]; }> = define('owned', v.object({ owned: strings, worn: strings }), () => ({ owned: [], worn: [] }));
+export const bountySave: SaveSlot<Record<string, number>> = define('bounty', numbers, () => ({}));
+export const compendiumSave: SaveSlot<Record<string, { s: number; n: number; t: number; b: number; }>> = define('compendium', v.record(v.string(), v.object({ s: finite, n: finite, t: finite, b: finite })), () => ({}));
+export const bossesSave: SaveSlot<Record<string, { defeated: boolean; rewardTaken: boolean; kills: number; }>> = define('bosses', v.record(v.string(), v.object({ defeated: v.boolean(), rewardTaken: v.boolean(), kills: finite })), () => ({}));
+export const elitesSave: SaveSlot<Record<string, { timer: number; discovered: boolean; skinTaken: boolean; kills: number; retired: boolean; }>> = define('elites', v.record(v.string(), v.object({ timer: finite, discovered: v.boolean(), skinTaken: v.boolean(), kills: finite, retired: v.boolean() })), () => ({}));
 /** The public game wrapper constrains saves to the generated registry's slug union. */
 export function shardSave<T>(slot: SaveSlot<T>, slug: ShardSlug): { read: () => T; write: (data: T) => void; reset: () => void } {
   return { read: () => slot.read(slug), write: (data) => { slot.write(data, slug); }, reset: () => { slot.reset(slug); } };

@@ -2,15 +2,15 @@ import { GRID_CELL_COUNT } from '@wildshard/format/contentBounds';
 import { serializeSimSnapshot, decodeSimSnapshot, type SimSnapshot } from '@wildshard/engine/sim/snapshot';
 
 /** In-memory exact continuations are separate from the512K durable region limit and its logical fallback. */
-export const GRID_CONTINUATION_CACHE_CHARS = 8 * 1024 * 1024;
+export const GRID_CONTINUATION_CACHE_CHARS: number = 8 * 1024 * 1024;
 /** UTF16 pool plus an equally large atomic replacement buffer and bounded map metadata (at most one key per grid cell). */
-export const GRID_CONTINUATION_CACHE_BYTES = GRID_CONTINUATION_CACHE_CHARS * 4 + 16 * 1024;
+export const GRID_CONTINUATION_CACHE_BYTES: number = GRID_CONTINUATION_CACHE_CHARS * 4 + 16 * 1024;
 /** Bounded packed strings only; decoding/capture returns transient arrays to the host's continuation owner. */
 export class GridContinuationCache {
   private readonly values = new Map<string, string>();
   private used = 0;
   private readonly limit: number;
-  constructor(limit = GRID_CONTINUATION_CACHE_CHARS) {
+  constructor(limit: number = GRID_CONTINUATION_CACHE_CHARS) {
     if (!Number.isSafeInteger(limit) || limit < 1 || limit > GRID_CONTINUATION_CACHE_CHARS) throw new RangeError('Invalid continuation cache capacity');
     this.limit = limit;
   }

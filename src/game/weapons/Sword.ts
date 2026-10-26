@@ -8,10 +8,10 @@ import { REST, CHARGE, SPRINT, COMBO, SLASH, FINISHER, HEAVY } from './starterMo
 /** The starter recipes share their original sound/reaction hooks, supplied to the platform family. */
 export const swordEvents: MeleeEvents = {};
 /** Starter reach remains content data. */
-export const REACH = SWORD_WOOD.reach;
+export const REACH: number = SWORD_WOOD.reach;
 /** Starter heavy charge duration remains content data. */
 /** The original charged-heavy move and trail parameters. */
-export const HEAVY_CHARGE = SWORD_WOOD.heavyCharge;
+export const HEAVY_CHARGE: number = SWORD_WOOD.heavyCharge;
 /** Compatibility options keep the starter profile and input-context defaults out of the engine. */
 export type SwordOptions = Omit<PlatformOptions, 'profile' | 'inputContext'> & { profile?: MeleeProfile };
 

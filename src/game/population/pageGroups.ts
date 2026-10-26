@@ -5,7 +5,7 @@ import { PackBrain, type PackPorts } from '@wildshard/engine/ai/pack';
 import { HerdBrain } from '@wildshard/engine/ai/herd';
 import { CrowdRoster, type CrowdTargets } from '../shardfile/crowdRuntime';
 import { app } from '@wildshard/engine/app/runtime';
-import { nativeGroupBrain } from '@wildshard/format/groupBrains';
+import { nativeGroupBrain, type ShardHerdGroup } from '@wildshard/format/groupBrains';
 import { PageGroupRowsSchema } from '@wildshard/format/creatures';
 import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
 import { unzlibSync } from 'fflate';
@@ -178,7 +178,7 @@ export class PageWildEnvironment extends WildSenses {
   onKnockdown(x: number,z: number,strength: number): void { app.events.emit('creature.knockdown',{ x,z,strength }); }
 }
 /** The entered page's observation surface; construction installs no service. */
-export const wildEnv = new PageWildEnvironment();
+export const wildEnv: PageWildEnvironment = new PageWildEnvironment();
 const renderedPacks = new WeakMap<Animal,PackBrain<Animal>>(), renderedHerds = new WeakMap<Animal,HerdBrain<Animal>>();
 let renderedDamage: { program: ReturnProgram; variant: string } | null = null;
 /** Client-only group admission. Entered observations and damage borrow the
@@ -215,7 +215,7 @@ export function observeHerdDamage(actor: Animal): void {
  * choose brains, strikes, water and prey ids; no shard port object is accepted. */
 export class PageGroups {
   readonly packs: PackBrain<Animal>[] = []; readonly herds: HerdBrain<Animal>[] = [];
-  private readonly packRow; readonly herdRow;
+  private readonly packRow; readonly herdRow: ShardHerdGroup;
   private readonly targets: CrowdRoster<CrowdTargets>;
   private readonly rows: v.InferOutput<typeof PageGroupRowsSchema>;
   private readonly contact: ReturnType<typeof groupContact>;
