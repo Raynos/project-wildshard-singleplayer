@@ -18,6 +18,7 @@ import { discoverGeneration } from '../scripts/generate.mjs';
 test('native dressing and duplicate scene-copy jobs stay retired', () => {
   const descriptors = discoverGeneration(resolve('.')).jobs;
   const jobs = descriptors.map(job => job.id);
+  expect(jobs).not.toContain('nalati-decorative');
   expect(jobs).not.toContain('nalati-dressing'); expect(jobs).not.toContain('nalati-places-blob'); expect(jobs).not.toContain('nalati-crags-blob'); expect(jobs).not.toContain('nalati-dressing-blob');
 });
 

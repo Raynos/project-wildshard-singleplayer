@@ -755,43 +755,6 @@
       ]
     },
     {
-      "id": "nalati-decorative",
-      "shard": "nalati-grasslands",
-      "entry": "src/shards/nalati-grasslands/generators/bake-decorative.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./scripts/bake-loader.mjs",
-        "src/shards/nalati-grasslands/generators/bake-decorative.mjs"
-      ],
-      "inputRoots": [
-        "src/shards/nalati-grasslands/data/armsStyle.json",
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "scripts/bake-loader.mjs",
-        "scripts/bake-output.mjs",
-        "src/engine",
-        "src/game",
-        "src/sdk",
-        "src/format",
-        "src/shards/nalati-grasslands/generators",
-        "public/assets/baked/nalati-grasslands/terrain.bin",
-        "src/shards/nalati-grasslands/data/campCatalogue.json",
-        "src/commons"
-      ],
-      "outputs": [
-        "src/shards/nalati-grasslands/boot/decorative.generated.json",
-        "src/shards/nalati-grasslands/data/decorative.generated.json"
-      ],
-      "platform": "portable",
-      "buildOutputs": {
-        "src/shards/nalati-grasslands/boot/decorative.generated.json": "2c8dce79666ef913d66907c403e9141699d392a2c9868fa22c83b749bad93701",
-        "src/shards/nalati-grasslands/data/decorative.generated.json": "2c8dce79666ef913d66907c403e9141699d392a2c9868fa22c83b749bad93701"
-      },
-      "seedOutputs": []
-    },
-    {
       "id": "driftwood-interactables",
       "shard": "driftwood-isle",
       "entry": "src/shards/driftwood-isle/generators/bake-interactables.mjs",
@@ -14165,7 +14128,6 @@
         "src/shards/nalati-grasslands/assets/world-terrain/slab.generated.glb",
         "src/shards/nalati-grasslands/assets/world-terrain/water.generated.glb",
         "src/shards/nalati-grasslands/boot/cragRock.generated.json",
-        "src/shards/nalati-grasslands/boot/decorative.generated.json",
         "src/shards/nalati-grasslands/boot/geography.generated.json",
         "src/shards/nalati-grasslands/boot/layout.generated.json",
         "src/shards/nalati-grasslands/data/modelMetrics.json",
@@ -14220,7 +14182,6 @@
         "src/shards/nalati-grasslands/generators/bake-cover.mjs",
         "src/shards/nalati-grasslands/generators/bake-crag-rock.mjs",
         "src/shards/nalati-grasslands/generators/bake-creature-views.mjs",
-        "src/shards/nalati-grasslands/generators/bake-decorative.mjs",
         "src/shards/nalati-grasslands/generators/bake-elite-charge.mjs",
         "src/shards/nalati-grasslands/generators/bake-elite-views.mjs",
         "src/shards/nalati-grasslands/generators/bake-finds.mjs",
@@ -14419,7 +14380,6 @@
       "platform": "portable",
       "catalogueDependencies": [
         "nalati-place-runtime",
-        "nalati-decorative",
         "nalati-poi-paint",
         "nalati-crags",
         "nalati-spruce",

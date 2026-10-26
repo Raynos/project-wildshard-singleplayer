@@ -1,5 +1,5 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Own a disposable cache and compare both complete predecessor wires.
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Keep the source cache and bundle entry confined to repository paths.
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
@@ -7,6 +7,8 @@ import { build } from 'vite';
 import { createProjectGeneration } from '../src/sdk/projectGeneration';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { nalatiDecorativeProgram } from '../src/shards/nalati-grasslands/generators/decorativeProgram';
+import { hashImmutableBytes } from '../src/sdk/immutable';
+import original from './fixtures/nalati-decorative.json' with { type: 'json' };
 
 test('owned decorative cold bytes and detached cache hits equal both original profile wires', async () => {
   const cache = mkdtempSync(resolve('tmp/nalati-decorative-owned-'));
@@ -24,10 +26,8 @@ test('owned decorative cold bytes and detached cache hits equal both original pr
     expect([...files.keys()]).toEqual(['decorative.json']);
     const bytes = files.get('decorative.json');
     if (bytes === undefined) throw new Error('Missing owned decorative wire');
-    for (const directory of ['boot', 'data']) {
-      const original = readFileSync(`src/shards/nalati-grasslands/${directory}/decorative.generated.json`);
-      expect(Buffer.compare(bytes, original)).toBe(0);
-    }
+    expect(bytes.byteLength).toBe(original.bytes);
+    expect(hashImmutableBytes(bytes)).toBe(original.hash);
   };
   try {
     const cold = await nalatiDecorativeProgram(context()); check(cold);

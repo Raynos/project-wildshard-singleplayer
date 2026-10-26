@@ -6,6 +6,8 @@ import { decorativeRowsOnGround } from '../src/shards/nalati-grasslands/generato
 import { readNativeTerrain } from '../src/sdk/bake/terrain';
 import { withPortableMath } from '../src/commons/bake/portableMath';
 import { jsonBytes } from '../scripts/bake-output.mjs';
+import { hashImmutableBytes } from '../src/sdk/immutable';
+import original from './fixtures/nalati-decorative.json' with { type: 'json' };
 
 const terrain = readFileSync('public/assets/baked/nalati-grasslands/terrain.bin');
 
@@ -16,10 +18,8 @@ test('native ground and byte adapters retain both complete original decorative w
   const adapted = withPortableMath(() => decorativeRows(terrain));
   const bytes = jsonBytes(direct);
   expect(Buffer.compare(bytes, jsonBytes(adapted))).toBe(0);
-  for (const directory of ['boot', 'data']) {
-    const original = readFileSync(`src/shards/nalati-grasslands/${directory}/decorative.generated.json`);
-    expect(Buffer.compare(bytes, original)).toBe(0);
-  }
+  expect(bytes.byteLength).toBe(original.bytes);
+  expect(hashImmutableBytes(bytes)).toBe(original.hash);
   expect(Buffer.compare(terrain, before)).toBe(0);
 });
 

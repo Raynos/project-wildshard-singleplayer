@@ -1,7 +1,6 @@
 import cragRows from '../data/cragRock.generated.json' with {type:'json'};
 import paintedTextures from '../data/paintedTextures.json' with {type:'json'};
 import layout from '../data/layout.generated.json' with {type:'json'};
-import decorative from '../data/decorative.generated.json' with {type:'json'};
 import metrics from '../data/modelMetrics.json' with {type:'json'};
 import { ClientChannels } from '@wildshard/sdk/clientChannels';
 import { NALATI_FAR_HERD_CHANNELS } from './clientMotion';
@@ -190,10 +189,10 @@ function clothGeometry(){
 }
 
 /** Tier rows are separate JSON loans, keeping the unchanged bounded JSON budget. */
-export function dressingSceneBlobs(input:unknown=decorative):ReturnType<typeof nameBlob>[] {const profiles=v.parse(decorativeProfiles,input);return(['phone','desktop']as const).flatMap(tier=>{const result=compileDressingScene(tier,profiles);return[nameBlob(`world/dressing-${tier}.json`,'json',new TextEncoder().encode(encodeCanonicalJson(result.rows)),{jsonSchema:namedJsonSchema(SceneDressingSchema)}),nameBlob(`world/dressing-addresses-${tier}.bin`,'bin',result.addresses)];});}
+export function dressingSceneBlobs(input:unknown):ReturnType<typeof nameBlob>[] {const profiles=v.parse(decorativeProfiles,input);return(['phone','desktop']as const).flatMap(tier=>{const result=compileDressingScene(tier,profiles);return[nameBlob(`world/dressing-${tier}.json`,'json',new TextEncoder().encode(encodeCanonicalJson(result.rows)),{jsonSchema:namedJsonSchema(SceneDressingSchema)}),nameBlob(`world/dressing-addresses-${tier}.bin`,'bin',result.addresses)];});}
 
 /** Admitted tier rows for catalogue and format consumers. */
-export function dressingScene(tier:'phone'|'desktop',input:unknown=decorative):SceneDressingRows{return compileDressingScene(tier,v.parse(decorativeProfiles,input)).rows;}
+export function dressingScene(tier:'phone'|'desktop',input:unknown):SceneDressingRows{return compileDressingScene(tier,v.parse(decorativeProfiles,input)).rows;}
 
 /** Decorative poses keep the existing visual programs and RNG continuation; none owns gameplay actors. */
 function bowlScene(tier:'phone'|'desktop',data:v.InferOutput<typeof decorativeProfile>,geometry:Record<string,unknown>,materials:Record<string,unknown>){
