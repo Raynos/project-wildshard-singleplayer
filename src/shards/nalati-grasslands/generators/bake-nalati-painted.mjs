@@ -3,22 +3,22 @@ import { withPortableMath } from '@wildshard/commons/bake/portableMath';
 import { bakeNalatiPlacesOnTerrain } from './places.ts';
 import { readNalatiTerrain, writeNalatiParts } from './bake-nalati-places.mjs';
 
-import { prepareNativeTerrain } from '../../../../scripts/bake/nativeWorld.mjs';
-import { game } from '@wildshard/game/shard/registry';
+import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { prepareNalatiDressing } from '../../../../scripts/bake/nalatiDressing.mjs';
-import { inSpruceClearing, loneSpruceMask, edgeBermAt } from './terrainRecipe.ts';
-import { edgeSpruceMask } from './edgeRecipe.ts';
+import { prepareNalatiDressingInputs } from './dressingInputs.ts';
+import { bakeNalatiDressingSource } from './dressingSource.ts';
 
 /** Fresh retained native construction; publication remains the CLI's separate responsibility. */
 export async function nativeNalatiPlaces() {
-  // The shipped static geometry predates the bilinear runtime geography masks.
-  // Reconstruct its original forest decisions, without changing the runtime scatter
-  // plan or using rounded baked fields to decide which stump exists.
-  const dressing = await prepareNalatiDressing((x, z) => inSpruceClearing(x, z) ? 0
-    : Math.max(loneSpruceMask(x, z), edgeSpruceMask(x, z, edgeBermAt(x, z))));
   const terrain = readNalatiTerrain();
-  await prepareNativeTerrain(game.shard, { root: resolve(import.meta.dirname, '../../../..'), bytes: new Uint8Array(terrain) });
+  const scalarBlocks = new Map(['pond', 'red', 'green', 'blue'].map(name => {
+    const file = `data/geography-${name}.bin`;
+    return [file, readFileSync(resolve(import.meta.dirname, '..', file))];
+  }));
+  // Preserve the original continuous forest decisions and non-drawing desktop policy.
+  const source = prepareNalatiDressingInputs({ terrain: new Uint8Array(terrain), scalarBlocks,
+    forest: 'continuous', phone: false });
+  const dressing = await bakeNalatiDressingSource(source);
 
   return bakeNalatiPlacesOnTerrain(terrain, withPortableMath, dressing);
 }

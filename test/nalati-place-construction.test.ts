@@ -48,7 +48,10 @@ test('fresh native places retain exact binaries and the original native metadata
     import { encodeNalatiPart } from './src/shards/nalati-grasslands/generators/placeWire.ts';
     import { alike } from './src/shards/nalati-grasslands/generators/bake-nalati-places.mjs';
     import { hashImmutableBytes } from './src/sdk/immutable.ts';
+    const { selectedLevel } = await import('@wildshard/engine/level/selection');
+    assert.equal(selectedLevel(), null);
     const made = await nativeNalatiPlaces();
+    assert.equal(selectedLevel(), null);
     const pins = JSON.parse(readFileSync('test/fixtures/nalati-place-wires.json','utf8'));
     for (const [name,document] of [['places','places.json'],['specimens','placeSpecimens.json']]) {
       const encoded = encodeNalatiPart(made[name],bytes => deflateSync(bytes,{level:9}));
@@ -64,7 +67,7 @@ test('fresh native places retain exact binaries and the original native metadata
       console.info(JSON.stringify({name,nativeDoubleDifference:alike(original,actual,name,()=>false,0)}));
     }
   `;
-  execFileSync(process.execPath, [...native, '--input-type=module', '--eval', source, '--', shard]);
+  execFileSync(process.execPath, ['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', '--input-type=module', '--eval', source]);
   for (const expected of before.slice(0, 4)) {
     const bytes = readFileSync(expected.path);
     expect({ path: expected.path, bytes: bytes.byteLength, hash: hashImmutableBytes(bytes) }).toEqual(expected);
