@@ -12,9 +12,11 @@ import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { discoverGeneration, generateShardJob, generationInputs } from '../scripts/generate.mjs';
 
 const project = 'src/shards/nalati-grasslands/';
-const catalogue: unknown = JSON.parse(readFileSync(`${project}data/campCatalogue.json`, 'utf8'));
-const materials: unknown = JSON.parse(readFileSync(`${project}data/campMaterials.json`, 'utf8'));
-if (!v.is(SpecimenCatalogueSchema, catalogue) || !v.is(v.record(v.string(), SpecimenMaterialSchema), materials)) throw new Error('Invalid original Nalati declarations');
+// This schema only validates values. Keep original key order for the complete historical wire pin.
+function originalCatalogue(input:unknown):input is v.InferOutput<typeof SpecimenCatalogueSchema>{return v.is(SpecimenCatalogueSchema,input);}
+const catalogue:unknown = JSON.parse(readFileSync(`${project}data/campCatalogue.json`, 'utf8'));
+const materials:unknown = JSON.parse(readFileSync(`${project}data/campMaterials.json`, 'utf8'));
+if(!originalCatalogue(catalogue)||!v.is(v.record(v.string(),SpecimenMaterialSchema),materials))throw new Error('Invalid original Nalati declarations');
 const original: unknown = JSON.parse(readFileSync('test/fixtures/nalati-specimens-original.json', 'utf8'));
 const packed = v.parse(v.record(v.string(), v.unknown()), JSON.parse(readFileSync('test/fixtures/nalati-packed-specimens-original.json', 'utf8')));
 const make = () => nalatiSpecimenRows(catalogue, materials, packed);

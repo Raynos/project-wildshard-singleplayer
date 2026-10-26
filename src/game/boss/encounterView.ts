@@ -67,7 +67,7 @@ export class EncounterSites {
   /** The sites' colliders as data (each is also its own registry piece once registered). */
   get colliders(): readonly EncounterSite['collider'][] { return this.sites.map(site => site.collider); }
   /** Place the model instanced at every site, wearing the generated asset when it lands. */
-  place<P extends object>(model: ModelDef<P>, ctx: ModelContext, registry: WorldRegistry, sky: SkyRig): Placed {
+  place<P extends object>(model: ModelDef<P>, ctx: ModelContext, registry: WorldRegistry, sky: SkyRig,files?:ReadonlyMap<string,Uint8Array>): Placed {
     const placed = place(model, this.sites.map(s => ({ x: s.x, y: s.y, z: s.z, matrix: modelPoseMatrix({ x: s.x, y: s.y, z: s.z, yaw: s.yaw, scale: s.scale, roll: s.tilt }),
       variant: this.rows.variants[s.variant] ?? '' })), { ctx, draw: 'instanced', registry });
     this.object.add(placed.object);
@@ -75,7 +75,7 @@ export class EncounterSites {
       const key = `${model.id}:${variant}:0`, found: unknown = placed.object.name === key ? placed.object : placed.object.getObjectByName(key);
       return isInstances(found) ? found : new THREE.InstancedMesh(new THREE.BufferGeometry(), new THREE.MeshBasicMaterial(), 0);
     });
-    replaceSpecimenInstances(sky, this.rows.generated, this.meshes);
+    replaceSpecimenInstances(sky, this.rows.generated, this.meshes,files);
     return placed;
   }
   /** Each site its own piece, following the sites' group, solid only while it stands. */

@@ -45,8 +45,9 @@ const paintSchema=v.object({glacierSnout:v.object({x:number,y:number,z:number}),
 const balbalSchema=v.object({catalogue:SpecimenCatalogueSchema,generated:SpecimenAssetSchema,sites:v.record(text,v.unknown())});
 /** Admit caller-owned packed rows with the original catalogue, material and asset schemas. */
 export function nalatiDressingSpecimens(catalogue:unknown,materials:unknown,packed:unknown):v.InferOutput<typeof specimensSchema> {
-  if(!v.is(SpecimenCatalogueSchema,catalogue)||!v.is(materialsSchema,materials))throw new Error('Invalid supplied Nalati specimen declarations');
-  return v.parse(specimensSchema,nalatiSpecimenRows(catalogue,materials,v.parse(v.record(text,v.unknown()),packed)));
+  const admitted=v.safeParse(SpecimenCatalogueSchema,catalogue),surfaces=v.safeParse(materialsSchema,materials);
+  if(!admitted.success||!surfaces.success)throw new Error('Invalid supplied Nalati specimen declarations');
+  return v.parse(specimensSchema,nalatiSpecimenRows(admitted.output,surfaces.output,v.parse(v.record(text,v.unknown()),packed)));
 }
 const paint=v.parse(paintSchema,paintInput);
 /** Exact raw contact files, read only by the SDK's normal named-file intake. */

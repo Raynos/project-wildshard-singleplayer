@@ -1,7 +1,7 @@
 import { prepareBinarySources,binarySourceBytes,type BinaryFileReader } from './binarySource';
 import { decodeLaneBytes } from '@wildshard/engine/core/deflate';
 import type { Scope } from '@wildshard/engine/app/scope';
-import { SpecimenCatalogueSchema, PackedSpecimenSchema, SpecimenMaterialSchema, PickupCatalogueSchema, assertSpecimenJson as jsonData } from '@wildshard/format/specimenCatalogue';
+import { SpecimenCatalogueSchema, SpecimenAssetSchema, PackedSpecimenSchema, SpecimenMaterialSchema, PickupCatalogueSchema, assertSpecimenJson as jsonData, type SpecimenLocationRows } from '@wildshard/format/specimenCatalogue';
 import * as THREE from 'three';
 import * as v from 'valibot';
 import type { RigLoader } from '@wildshard/engine/anim/rigParser';
@@ -117,8 +117,8 @@ export function specimenMaterial(sky: SkyRig, input: unknown, map?: THREE.Textur
 
 /** Prepared GLB policy: the authored direct-child geometry slot and mapped material slot (both default to zero). */
 export interface SpecimenAssetRow {
-  readonly url: string;
-  readonly phoneUrl?: string | undefined;
+  readonly url: SpecimenLocationRows;
+  readonly phoneUrl?: SpecimenLocationRows | undefined;
   readonly geometrySlot?: number | undefined;
   readonly materialSlot?: number | undefined;
   readonly material: SpecimenMaterialRow;
@@ -139,7 +139,13 @@ const ownedRaw = new WeakMap<Uint8Array, Map<string, Promise<SpecimenAsset>>>();
 const ownedBound = new WeakMap<Uint8Array, WeakMap<SkyRig, Map<string, Promise<SpecimenAsset & { readonly material: THREE.Material }>>>>();
 const ownedLoading = new Set<Promise<unknown>>();
 let loader: RigLoader | undefined;
-const assetUrl = (row: Pick<SpecimenAssetRow, 'url' | 'phoneUrl'>): string => TIER === 'phone' ? row.phoneUrl ?? row.url : row.url;
+const assetLocation = (row: Pick<SpecimenAssetRow, 'url' | 'phoneUrl'>): SpecimenLocationRows => TIER === 'phone' ? row.phoneUrl ?? row.url : row.url;
+const assetUrl = (row: Pick<SpecimenAssetRow, 'url' | 'phoneUrl'>): string => {const location=assetLocation(row);return typeof location==='string'?location:location.file;};
+function assetBytes(row:Pick<SpecimenAssetRow,'url'|'phoneUrl'>,input?:Uint8Array|ReadonlyMap<string,Uint8Array>):Uint8Array|undefined{
+  const location=assetLocation(row),bytes=input instanceof Uint8Array?input:typeof location==='string'?undefined:input?.get(location.file);
+  if(typeof location!=='string'&&(bytes===undefined||bytes.byteLength!==location.bytes))throw new Error('Specimen GLB source was not prepared');
+  return bytes;
+}
 
 function selfContainedSpecimen(bytes: Uint8Array): void {
   if(bytes.byteLength<28||bytes.byteLength>25_000_000)throw new Error('Owned specimen GLB outside byte cap');
@@ -157,8 +163,8 @@ function trackOwned<T>(pending:Promise<T>):Promise<T>{
 
 /** Borrow a prepared primitive once. Explicit owned bytes use the same parser, with no URL read.
  * Owned caches are keyed by byte identity; all sources retain slot and disposal policy. */
-export function loadSpecimenAsset(row: Pick<SpecimenAssetRow, 'url' | 'phoneUrl' | 'geometrySlot' | 'materialSlot' | 'retainedAttribute'>, bytes?:Uint8Array): Promise<SpecimenAsset> {
-  const url = assetUrl(row), key = `${url}|${row.geometrySlot ?? 0}|${row.materialSlot ?? 0}|${row.retainedAttribute ?? ''}`;
+export function loadSpecimenAsset(row: Pick<SpecimenAssetRow, 'url' | 'phoneUrl' | 'geometrySlot' | 'materialSlot' | 'retainedAttribute'>, input?:Uint8Array|ReadonlyMap<string,Uint8Array>): Promise<SpecimenAsset> {
+  const bytes=assetBytes(row,input),url = assetUrl(row), key = `${url}|${row.geometrySlot ?? 0}|${row.materialSlot ?? 0}|${row.retainedAttribute ?? ''}`;
   let memo=raw;
   if(bytes!==undefined){const known=ownedRaw.get(bytes);if(known===undefined){memo=new Map();ownedRaw.set(bytes,memo);}else memo=known;}
   let pending = memo.get(key);
@@ -189,7 +195,8 @@ export function loadSpecimenAsset(row: Pick<SpecimenAssetRow, 'url' | 'phoneUrl'
 }
 
 /** A prepared asset and its per-world material have one lifetime and one shared promise. */
-export function loadBoundSpecimen(sky: SkyRig, row: SpecimenAssetRow, bytes?:Uint8Array): Promise<SpecimenAsset & { readonly material: THREE.Material }> {
+export function loadBoundSpecimen(sky: SkyRig, row: SpecimenAssetRow, input?:Uint8Array|ReadonlyMap<string,Uint8Array>): Promise<SpecimenAsset & { readonly material: THREE.Material }> {
+  const bytes=assetBytes(row,input);
   let owners=bound;
   if(bytes!==undefined){const known=ownedBound.get(bytes);if(known===undefined){owners=new WeakMap();ownedBound.set(bytes,owners);}else owners=known;}
   let bySky = owners.get(sky);
@@ -210,10 +217,10 @@ export function loadBoundSpecimen(sky: SkyRig, row: SpecimenAssetRow, bytes?:Uin
 }
 
 /** Client-only replacement of native instance drawings by a declared prepared asset. */
-export function replaceSpecimenInstances(sky:SkyRig,row:SpecimenAssetRow,meshes:readonly THREE.InstancedMesh[]):void{
+export function replaceSpecimenInstances(sky:SkyRig,row:SpecimenAssetRow,meshes:readonly THREE.InstancedMesh[],files?:ReadonlyMap<string,Uint8Array>):void{
   const replace=async():Promise<void>=>{
     try{
-      const asset=await loadBoundSpecimen(sky,row);
+      const asset=await loadBoundSpecimen(sky,row,files);
       for(const mesh of meshes){if(mesh.count===0)continue;mesh.geometry=asset.geometry;mesh.material=asset.material;mesh.computeBoundingSphere();}
     }catch(error:unknown){console.warn('Prepared instance asset failed',error);}
   };void replace();
@@ -288,17 +295,22 @@ export function createPackedSpecimens(input: unknown,files:ReadonlyMap<string,Ui
 
 /** Prepare declared raw files and compressed packed banks before publishing definitions.
  * Each bank is decoded once per preparation; catalogue builds still own fresh geometry arrays. */
-export function prepareSpecimenCatalogue(product:BinaryFileReader,input:unknown,scope?:Scope,packedInputs:readonly unknown[]=[]):Promise<ReadonlyMap<string,Uint8Array>> {
+export function prepareSpecimenCatalogue(product:BinaryFileReader,input:unknown,scope?:Scope,packedInputs:readonly unknown[]=[],assetInputs:readonly unknown[]=[]):Promise<ReadonlyMap<string,Uint8Array>> {
   jsonData(input);const rows=v.parse(SpecimenCatalogueSchema,input);
   jsonData(packedInputs);const packs=packedInputs.map(value=>v.parse(PackedSpecimenSchema,value));
-  const sources=rows.flatMap(row=>row.source.kind==='selection'?row.source.variants.map(variant=>variant.source):[row.source])
-    .flatMap(source=>source.kind==='file'?[{source:{file:source.file},bytes:bakedGeometryBytes(source.geometry)}]:[]);
+  jsonData(assetInputs);const declaredAssets=assetInputs.map(value=>v.parse(SpecimenAssetSchema,value));
+  const declarations=rows.flatMap(row=>row.source.kind==='selection'?row.source.variants.map(variant=>variant.source):[row.source]);
+  const assets=[...declaredAssets,...declarations.flatMap(source=>source.kind==='asset'?[source.asset]:[])];
+  const sources=[...declarations.flatMap(source=>source.kind==='file'?[{source:{file:source.file},bytes:bakedGeometryBytes(source.geometry)}]:[]),
+    ...assets.flatMap(row=>{const location=assetLocation(row);return typeof location==='string'?[]:[{source:{file:location.file},bytes:location.bytes}];})];
   const rawNames=new Set(sources.map(source=>source.source.file));
   for(const pack of packs)if(typeof pack.bin!=='string'&&rawNames.has(pack.bin.file))throw new Error('Conflicting specimen source encodings');
   const read=product.file,has=product.hasFile;
   const live=():void=>{if(scope?.disposed===true||scope?.disposing===true||product.file!==read||product.hasFile!==has)throw new Error('Specimen source owner retired or changed');};
   return(async():Promise<ReadonlyMap<string,Uint8Array>>=>{
     live();const files=new Map(await prepareBinarySources(product,[...sources,...packs.flatMap(pack=>typeof pack.bin==='string'?[]:[{source:{file:pack.bin.file},bytes:pack.bin.bytes}])],scope));live();
+    const checked=new Set<Uint8Array>();
+    for(const asset of assets){const bytes=assetBytes(asset,files);if(bytes!==undefined&&!checked.has(bytes)){selfContainedSpecimen(bytes);checked.add(bytes);}}
     const decoded=new Map<string,Uint8Array>();
     for(const pack of packs)if(typeof pack.bin!=='string'){
       let bytes=decoded.get(pack.bin.file);
@@ -321,6 +333,7 @@ export function defineSpecimenCatalogue<Params extends { readonly [K in keyof Pa
   if (rows.length > 1024 || new Set(rows.map(row => row.key)).size !== rows.length || new Set(rows.map(row => row.model.id)).size !== rows.length) throw new Error('Specimen catalogue must be bounded and unique');
   const parameterKey=(value:object):string=>JSON.stringify(Object.entries(value).sort(([a],[b])=>a<b?-1:a>b?1:0));
   for(const row of rows)if(row.source.kind==='selection'&&new Set(row.source.variants.map(variant=>parameterKey(variant.params))).size!==row.source.variants.length)throw new Error('Duplicate specimen selection');
+  for(const row of rows)for(const source of row.source.kind==='selection'?row.source.variants.map(variant=>variant.source):[row.source])if(source.kind==='asset')assetBytes(source.asset,files);
   const definitions = new Map<string, ModelDef<object>>();
   for (const row of rows) {
     const build = (ctx: ModelContext, params: object): ModelBuild => {
@@ -354,7 +367,7 @@ export function defineSpecimenCatalogue<Params extends { readonly [K in keyof Pa
       if (source.kind === 'asset') {
         void (async (): Promise<void> => {
           try {
-            const asset = await loadBoundSpecimen(ctx.sky, source.asset);
+            const asset = await loadBoundSpecimen(ctx.sky, source.asset,files);
             const mesh = new THREE.Mesh(asset.geometry, asset.material); mesh.castShadow = true; mesh.receiveShadow = true;
             group.add(mesh); announceModelReady(row.model.id);
           } catch (error: unknown) { console.warn(`[models] ${row.model.id}: specimen asset failed`, error); }

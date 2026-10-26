@@ -148,7 +148,8 @@ export class SceneDressing {
       ...rows.statics.flatMap(row=>row.members.flatMap(member=>member.floors.flatMap(floor=>'file'in floor?[{source:{file:floor.file},bytes:floor.res*floor.res*4}]:[])))],scope);
     live();for(const [name,bytes] of raw)files.set(name,bytes);
     const specimens=await prepareSpecimenCatalogue(product,rows.catalogues.flatMap(source=>source.rows),scope,
-      [...Object.values(rows.packs).map(source=>source.rows),...rows.catalogues.flatMap(source=>'pack'in source||source.packed===undefined?[]:[source.packed])]);live();for(const [name,bytes]of specimens)files.set(name,bytes);
+      [...Object.values(rows.packs).map(source=>source.rows),...rows.catalogues.flatMap(source=>'pack'in source||source.packed===undefined?[]:[source.packed])],
+      [...Object.values(rows.geometry).flatMap(source=>source.kind==='asset'?[source.row]:[]),...Object.values(rows.materials).flatMap(source=>source.kind==='asset'?[source.row]:[]),...rows.sites.map(source=>source.rows.generated)]);live();for(const [name,bytes]of specimens)files.set(name,bytes);
     const owner=new SceneDressing(ctx,rows);
     await owner.build(rows,files);
     // Floor/picking closures can retain the build context. Decoded contacts and
@@ -193,7 +194,7 @@ export class SceneDressing {
     await timeClientPreparation(ctx.product.slug,'dressing.geometry',async()=>{
     for(const [key,source]of Object.entries(rows.geometry)){
       let shape:THREE.BufferGeometry;
-      if(source.kind==='asset'){shape=(await loadBoundSpecimen(sky,source.row)).geometry.clone();}
+      if(source.kind==='asset'){shape=(await loadBoundSpecimen(sky,source.row,files)).geometry.clone();}
       else if(source.kind==='packed'){
         const sourceRows=rows.packs[source.source],part=sourceRows===undefined?undefined:packs.get(source.source)?.parts(source.key,models,sourceRows.materials)?.[0];
         if(part===undefined)throw new Error('Missing scene packed shape');shape=part.geometry;
@@ -216,7 +217,7 @@ export class SceneDressing {
     bytes.clear();addresses.clear();packs.clear();
     await timeClientPreparation(ctx.product.slug,'dressing.materials',async()=>{
     for(const [key,source]of Object.entries(rows.materials).sort((a,b)=>Number(a[1].kind==='mapped')-Number(b[1].kind==='mapped'))){
-      const material=source.kind==='specimen'?specimenMaterial(sky,source.row):source.kind==='asset'?(await loadBoundSpecimen(sky,source.row)).material
+      const material=source.kind==='specimen'?specimenMaterial(sky,source.row):source.kind==='asset'?(await loadBoundSpecimen(sky,source.row,files)).material
         :source.kind==='look'?lentLook(source.look):source.kind==='mapped'?lentMappedLook(source.look,requiredMaterial(materials,source.over)):source.kind==='lettering'||source.kind==='lettering-file'?letteringMaterial(sky,source,files):painterlyMaterial(sky,source);
       if(source.kind==='look'){
         for(const [name,value]of Object.entries(source.params??{}))setLentParam(source.look,name,value);
@@ -262,7 +263,7 @@ export class SceneDressing {
     }
     });
     for(const row of rows.sites){
-      const sites=new EncounterSites(row.rows),placed=withOwner(ctx.scope,()=>sites.place(needModel(row.model),models,ctx.app.registry,sky));
+      const sites=new EncounterSites(row.rows),placed=withOwner(ctx.scope,()=>sites.place(needModel(row.model),models,ctx.app.registry,sky,files));
       this.group.add(sites.object);withOwner(ctx.scope,()=>{sites.register(ctx.app.registry);});this.sites.set(row.name,{sites,placed});await pause();
     }
     for(const row of rows.emitters){
