@@ -81,7 +81,22 @@ this is a slower milestone, not an isolated source gain or native verdict.
 Its early-world stage ran in every case (cold 2.822/5.210/2.415/2.872 s).
 The 691 source audit found early compilation targeted the bound region,
 whereas final compilation targets the page scene with borrowed regional
-PMREM. G743.2c1 corrects those inputs; post-fix timing remains unmeasured.
+PMREM. G743.2c1 corrects those inputs.
+
+| Shard | 5c4d49147e cold | 5c4 warm |
+|---|---:|---:|
+| Driftwood | 14.194 s | 10.743 s |
+| Pine | 16.116 s | 11.465 s |
+| Nalati | 16.505 s | 16.682 s |
+| Nine | 15.888 s | 16.553 s |
+
+The corrected 5c4 milestone contains that fix, the visible parked-draw census
+and intervening graph/shadow preparation changes. All eight entries complete
+with controls ready/errors 0; all frame gates and under-five-second targets
+remain open. It uses the same cold/warm protocols above, without retries,
+new observers, native acceptance or isolated source-gain claims. The world
+stage still dominates alongside final program preparation. Retain the original
+095 slower milestone and its receipts; these readings do not replace it.
 
 | Slice | Work | Status |
 |---|---|---|
@@ -90,9 +105,9 @@ PMREM. G743.2c1 corrects those inputs; post-fix timing remains unmeasured.
 | G743.2 | Cut the measured world and after-Play critical path; move immutable preparation earlier within existing ownership and admission, retaining every readiness unit. Split further source cuts into at most one-hour rows. | open |
 | G743.2a | A real crossing demand owns its pending preparation; a later speculative heading cannot abort it. Keep explicit crossing supersession, safe-point cancellation, claim accounting and reserved-entry fences. New refusal is RED before, all 47 related cases/four files plus touched types/lint pass. At most one hour. | done (2026-10-26, sp-x8) |
 | G743.2b | Release decoded runtime-owned wires through existing explicit online cache-or-fetch authority, avoiding per-file durable-presence waits during world construction. Retain runtime-bound filtering, shared inputs, scope leases, offline durability and hash/size reread refusals. RED-before online fixture; online/offline/shared controls pass. At most one hour. | done (bounded source; latest DW/Pine/Nalati/Nine edges 11.133/13.984/17.873/11.468 s remain open) |
-| G743.2c | Start exact parked world-root programs afterWorld while kit/play constructs. Sky/look preparation and final complete inventory share the original single 30 s presented bound, owner cancellation and drawn-frame slices. Four new overlap/deadline/retirement/refusal controls plus 16 existing cases pass; touched production/engine-test types and scoped typed lint pass. Guard, admission and final readiness unchanged. At most one hour. | done (bounded source; 2026-10-26, sp-x8); timing qualification remains open for next turn under G440 |
-| G743.2c1 | Fix forward the 691 early-program target mismatch: compile against the rendered page scene and borrow the installing scene PMREM, matching final preparation. Two new caller/real-root preparation controls are RED before; all 22 focused cases, touched engine/test declarations and typed lint pass. Keep one original deadline, owner fences and final full readiness. At most one hour. | done (bounded source; 2026-10-26, sp-x8); corrected timing remains open |
-| G743.2d | Census parked-draw lights and shadow casters only through the visible page hierarchy after revealing the exact destination/equipment. Refresh every slice, retaining newly visible peers and all shadow/flag restoration. Hidden-world and between-slice controls are RED before; focus, touched engine/test types and typed lint pass. At most one hour. | done (bounded source; 2026-10-26, sp-x8); cold/warm gain unmeasured pending combined milestone |
+| G743.2c | Start exact parked world-root programs afterWorld while kit/play constructs. Sky/look preparation and final complete inventory share the original single 30 s presented bound, owner cancellation and drawn-frame slices. Four new overlap/deadline/retirement/refusal controls plus 16 existing cases pass; touched production/engine-test types and scoped typed lint pass. Guard, admission and final readiness unchanged. At most one hour. | done (bounded source; 2026-10-26, sp-x8); corrected 5c4 timing is recorded above; all four under-five-second targets remain open |
+| G743.2c1 | Fix forward the 691 early-program target mismatch: compile against the rendered page scene and borrow the installing scene PMREM, matching final preparation. Two new caller/real-root preparation controls are RED before; all 22 focused cases, touched engine/test declarations and typed lint pass. Keep one original deadline, owner fences and final full readiness. At most one hour. | done (bounded source; 2026-10-26, sp-x8); 5c4 timing recorded above; all four targets remain open |
+| G743.2d | Census parked-draw lights and shadow casters only through the visible page hierarchy after revealing the exact destination/equipment. Refresh every slice, retaining newly visible peers and all shadow/flag restoration. Hidden-world and between-slice controls are RED before; focus, touched engine/test types and typed lint pass. At most one hour. | done (bounded source; 2026-10-26, sp-x8); 5c4 cold/warm timing recorded above; no isolated census-gain claim |
 | G743.3 | ONE original phone-tier DW/Pine/Nalati/Nine road-entry cohort per source milestone; report each request-to-commit time and keep all misses open until each is under five seconds. | open |
 
 ## G717 frame-floor misses (2026-10-25, sp-x1; G639)
