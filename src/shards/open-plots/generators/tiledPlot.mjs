@@ -104,10 +104,6 @@ function poster(parts, palette, { centre, n, width, bottom, posts, offset = 0 },
   box('far', -width / 2, bottom, -depth / 2, width / 2, top, depth / 2, palette.board);
 }
 
-/** RM5: a kit face's trim band rides in its UV's u (data/trim.json: 32 m a band); the tiles' paving is the flagstone */
-const TRIM = JSON.parse(readFileSync(resolve(import.meta.dirname, '../data/trim.json'), 'utf8'));
-const FLAGSTONE_U = TRIM.band * TRIM.trims.flagstone.band;
-
 /** Build a tiled idea's world: { parts, image textures } ready for the writer. */
 async function tiledPlot(root, repo, layoutName) {
   const layout = JSON.parse(readFileSync(resolve(root, 'data/layouts', `${layoutName}.json`), 'utf8'));
@@ -120,12 +116,12 @@ async function tiledPlot(root, repo, layoutName) {
     parts.Paving.quad('Paving', [x0, 0, z0], [x0, 0, z1], [x1, 0, z1], [x1, 0, z0], palette.paving);
   }
   // NM8 / RM5.1: the paving in 10 m slabs on the plot's grid, each its region's colour (the lanes their own), in the kit's
-  // draw (a tile holds 8): its trim band is the flagstone, which the kit material rules in world metres (data/trim.json)
+  // draw (a tile holds 8); the kit material rules every up-facing ground-level face as flagstones (data/trim.json)
   const SLAB = 10, cut = (a0, a1) => { const out = [a0]; for (let v = Math.ceil(a0 / SLAB) * SLAB; v < a1; v += SLAB) if (v > a0) out.push(v); out.push(a1); return out; };
   for (const [x0, z0, x1, z1, lane] of paving(grid, RING)) {
-    const xs = cut(x0, x1), zs = cut(z0, z1), colour = lane ? palette.lane : palette.paving, flagstone = [FLAGSTONE_U, 0];
+    const xs = cut(x0, x1), zs = cut(z0, z1), colour = lane ? palette.lane : palette.paving;
     for (let i = 0; i + 1 < xs.length; i++) for (let k = 0; k + 1 < zs.length; k++) {
-      parts.Kit.quad('Kit', [xs[i], 0, zs[k]], [xs[i], 0, zs[k + 1]], [xs[i + 1], 0, zs[k + 1]], [xs[i + 1], 0, zs[k]], colour, [flagstone, flagstone, flagstone, flagstone]);
+      parts.Kit.quad('Kit', [xs[i], 0, zs[k]], [xs[i], 0, zs[k + 1]], [xs[i + 1], 0, zs[k + 1]], [xs[i + 1], 0, zs[k]], colour);
     }
   }
   // the kerb in the ring, open at the four entries (the lanes on the x = 0 and z = 0 seams)

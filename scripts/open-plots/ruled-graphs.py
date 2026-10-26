@@ -39,7 +39,7 @@ def flagstones(n, p, flag, row, joint, spread, wear=None):
     n(p+"wxz", "swizzle", p+"wp", mask="xz"); n(p+"np", "mul", p+"wxz", 0.27); n(p+"nz0", "noise", p+"np"); n(p+"nz", "saturate", p+"nz0"); n(p+"worn", "mul", p+"nz", wear)
     return n(p+"shade", "sub", p+"tint", p+"worn"), p+"line"
 
-FLAG = TRIM['trims']['flagstone']
+FLAG = TRIM['flagstone']
 
 def paving():
     """the ring floor (the terrain node): the flagstones as params over its vertex colour"""
@@ -83,9 +83,9 @@ def kit():
     n("rpi", "mul", "rfu", 3.14159265); n("rb", "sin", "rpi"); n("rbs", "mul", "rb", 0.34); n("rsh", "add", "rbs", 0.7)
     n("rlipd", "mul", "rfv", 0.3); rl = line("rl", "rlipd", 0.03); n("rdark", "mix", 1, 0.55, rl); n("roof", "mul", "rsh", "rdark")
     # 2 timber: 0.2 m planks across v, a grain along u, each plank its own shade, dark gaps
-    n("tv", "div", "v", 0.2); n("tpi", "floor", "tv"); n("tfv", "fract", "tv"); td = edge("tg", "tfv", 0.2); tl = line("tl", td, 0.01)
+    n("tv", "div", "v", 0.2); n("tfv", "fract", "tv"); td = edge("tg", "tfv", 0.2); tl = line("tl", td, 0.01)
     n("tgx", "mul", "u", 0.7); n("tgy", "mul", "v", 14); n("tgp", "combine", "tgx", "tgy"); n("tn0", "noise", "tgp"); n("tn", "saturate", "tn0")
-    th = hash2("th", "tpi", 3.7); n("tns", "mul", "tn", 0.16); n("ths", "mul", th, 0.1); n("tb0", "add", "tns", "ths"); n("tb", "add", "tb0", 0.78)
+    n("tns", "mul", "tn", 0.2); n("tb", "add", "tns", 0.8)
     n("tdark", "mix", 1, 0.5, tl); n("timber", "mul", "tb", "tdark")
     # 3 plaster draws plain (its band is kept for the models; a mottle did not read and cost the budget)
     # 5 stone: 0.45 m courses of 0.8 m blocks in a running bond, dark joints, each block its own shade
@@ -94,17 +94,20 @@ def kit():
     sdu = edge("sdu", "sfu", 0.8); sdv = edge("sdv", "sfv", 0.45); n("sd", "min", sdu, sdv); sl = line("sl", "sd", 0.02)
     sh = hash2("sh", "sci", "sri"); n("shs", "mul", sh, 0.14); n("sb", "add", "shs", 0.86); n("sdark", "mix", 1, 0.55, sl); n("stone", "mul", "sb", "sdark")
     # the shade for the face's band (0 plain, 4 the awning's stripes below)
-    B = {k: v["band"] for k, v in TRIM["trims"].items()}
+    B = {k: v["band"] for k, v in TRIM["trims"].items() if "band" in v}
     n("b1", "eq", "band", B["roofTile"]); n("b2", "eq", "band", B["timber"]); n("b4", "eq", "band", B["awningStripe"]); n("b5", "eq", "band", B["stone"])
     n("s5", "select", "b5", "stone", 1); n("s2", "select", "b2", "timber", "s5"); n("shade", "select", "b1", "roof", "s2")
     n("vc", "vertexColour"); n("lit", "mul", "vc", "shade")
     # 4 awning: 0.32 m stripes along u, alternately the face colour and a warm cream
     n("au", "div", "u", 0.32); n("afu", "fract", "au"); n("ad0", "sub", "afu", 0.5); n("ad1", "abs", "ad0"); n("ad", "mul", "ad1", 0.32)
     al = line("al", "ad", 0.08); n("cream", "param", param="cream"); n("stripe", "mul", al, 0.8); n("awning", "mix", "vc", "cream", "stripe")
-    # 6 flagstone: the tiles' paving, in world metres (one draw with the kit: a tile holds 8)
+    # the paving: every up-facing kit face at ground level (below `FLAG['under']` m: the lanes, plaza, forecourt and court
+    # floors; the lawns stand higher), ruled in world metres. No UV: a tile's bytes are raw, and its byte caps hold
     fshade, fline = flagstones(n, "f", FLAG['flag'], FLAG['row'], FLAG['joint'], FLAG['spread'])
     n("fstone", "mul", "vc", fshade); n("fdark", "mul", "vc", FLAG['jointShade']); n("flagstone", "mix", "fstone", "fdark", fline)
-    n("b6", "eq", "band", B["flagstone"]); n("c6", "select", "b6", "flagstone", "lit")
+    n("fnw", "normalWorld"); n("fny", "swizzle", "fnw", mask="y"); n("fup", "gt", "fny", 0.99)
+    n("fwy", "swizzle", "fwp", mask="y"); n("flow", "lt", "fwy", FLAG['under']); n("fis", "and", "fup", "flow")
+    n("c6", "select", "fis", "flagstone", "lit")
     n("colour", "select", "b4", "awning", "c6")
     n("rough", "param", param="roughness")
     P = {"cream": {"type": "colour", "value": [0.93, 0.86, 0.72]}, "roughness": {"type": "float", "value": 0.9, "min": 0, "max": 1}}

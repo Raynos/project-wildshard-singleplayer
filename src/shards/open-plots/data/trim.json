@@ -1,5 +1,5 @@
 {
-  "why": "RM5.3 (night-market-remaster): the kit's ruled trim. A kit face's TEXCOORD_0 is its box-projected metres (u along the face, v up a wall or down a roof's slope) plus `band` m x its trim's number, so the kit material (data/kit.graph.json, written by scripts/open-plots/ruled-graphs.py) draws that trim's pattern over the face's palette colour; 0 is plain. Kit models map each palette slot to a trim (sp-o1, RM4). Sizes are the pattern's metres; flagstone (the tiles' paving) is ruled in world metres, so its UV is its band alone.",
+  "why": "RM5 (night-market-remaster): the kit's ruled trim. A kit face's TEXCOORD_0 is its box-projected metres (u along the face, v up a wall or down a roof's slope) plus `band` m x its trim's number, so the kit material (data/kit.graph.json, written by scripts/open-plots/ruled-graphs.py) draws that trim's pattern over the face's palette colour; 0 or no UV is plain. Kit models map each palette slot to a trim (sp-o1, RM4). Sizes are the pattern's metres. `flagstone` needs no UV: every up-facing kit face below `under` m (the ground's paving: lanes, plaza, forecourt and court floors; lawns stand higher) is ruled in world metres, and the ring floor's own paving graph uses the same sizes.",
   "band": 32,
   "trims": {
     "plain": {
@@ -25,15 +25,15 @@
       "band": 5,
       "course": 0.45,
       "block": 0.8
-    },
-    "flagstone": {
-      "band": 6,
-      "flag": 3.2,
-      "row": 2.4,
-      "joint": 0.045,
-      "jointShade": 0.42,
-      "spread": 0.14,
-      "wear": 0.1
     }
+  },
+  "flagstone": {
+    "flag": 3.2,
+    "row": 2.4,
+    "joint": 0.045,
+    "jointShade": 0.42,
+    "spread": 0.14,
+    "wear": 0.1,
+    "under": 0.045
   }
 }

@@ -214,12 +214,6 @@
     0.2
    ]
   },
-  "tpi": {
-   "op": "floor",
-   "in": [
-    "tv"
-   ]
-  },
   "tfv": {
    "op": "fract",
    "in": [
@@ -320,72 +314,18 @@
     "tn0"
    ]
   },
-  "thha": {
-   "op": "mul",
-   "in": [
-    "tpi",
-    12.9898
-   ]
-  },
-  "thhb": {
-   "op": "mul",
-   "in": [
-    3.7,
-    78.233
-   ]
-  },
-  "thhs": {
-   "op": "add",
-   "in": [
-    "thha",
-    "thhb"
-   ]
-  },
-  "thhn": {
-   "op": "sin",
-   "in": [
-    "thhs"
-   ]
-  },
-  "thhm": {
-   "op": "mul",
-   "in": [
-    "thhn",
-    43758.5453
-   ]
-  },
-  "thh": {
-   "op": "fract",
-   "in": [
-    "thhm"
-   ]
-  },
   "tns": {
    "op": "mul",
    "in": [
     "tn",
-    0.16
-   ]
-  },
-  "ths": {
-   "op": "mul",
-   "in": [
-    "thh",
-    0.1
-   ]
-  },
-  "tb0": {
-   "op": "add",
-   "in": [
-    "tns",
-    "ths"
+    0.2
    ]
   },
   "tb": {
    "op": "add",
    "in": [
-    "tb0",
-    0.78
+    "tns",
+    0.8
    ]
   },
   "tdark": {
@@ -1048,17 +988,48 @@
     "fline"
    ]
   },
-  "b6": {
-   "op": "eq",
+  "fnw": {
+   "op": "normalWorld"
+  },
+  "fny": {
+   "op": "swizzle",
    "in": [
-    "band",
-    6
+    "fnw"
+   ],
+   "mask": "y"
+  },
+  "fup": {
+   "op": "gt",
+   "in": [
+    "fny",
+    0.99
+   ]
+  },
+  "fwy": {
+   "op": "swizzle",
+   "in": [
+    "fwp"
+   ],
+   "mask": "y"
+  },
+  "flow": {
+   "op": "lt",
+   "in": [
+    "fwy",
+    0.045
+   ]
+  },
+  "fis": {
+   "op": "and",
+   "in": [
+    "fup",
+    "flow"
    ]
   },
   "c6": {
    "op": "select",
    "in": [
-    "b6",
+    "fis",
     "flagstone",
     "lit"
    ]
