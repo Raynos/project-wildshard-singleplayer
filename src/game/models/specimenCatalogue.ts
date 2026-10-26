@@ -1,7 +1,10 @@
 import { prepareBinarySources,binarySourceBytes,type BinaryFileReader } from './binarySource';
 import { decodeLaneBytes } from '@wildshard/engine/core/deflate';
 import type { Scope } from '@wildshard/engine/app/scope';
-import { SpecimenCatalogueSchema, SpecimenAssetSchema, PackedSpecimenSchema, SpecimenMaterialSchema, PickupCatalogueSchema, assertSpecimenJson as jsonData, type SpecimenLocationRows } from '@wildshard/format/specimenCatalogue';
+import { SpecimenCatalogueSchema, SpecimenAssetSchema, PackedSpecimenSchema, SpecimenMaterialSchema, PickupCatalogueSchema, assertSpecimenJson as jsonData, type SpecimenLocationRows, type SpecimenAtlasRows } from '@wildshard/format/specimenCatalogue';
+import { parseKtx2 } from '@wildshard/format/ktx2Cost';
+import { parseKtx2Bytes } from '@wildshard/engine/core/ktx2';
+import { gpuOnlyTexture } from '@wildshard/engine/core/gpuOnly';
 import * as THREE from 'three';
 import * as v from 'valibot';
 import type { RigLoader } from '@wildshard/engine/anim/rigParser';
@@ -77,6 +80,8 @@ export interface SpecimenMaterialRow {
 
 const materials = new WeakMap<SkyRig, Map<string, THREE.Material>>();
 const textures = new Map<string, Promise<THREE.Texture>>();
+const atlasTextures = new WeakSet<THREE.Texture>();
+const atlasMaterials = new WeakMap<THREE.Texture, WeakMap<SkyRig, Map<string, THREE.Material>>>();
 
 /** A declared tile and its phone counterpart share their original cached texture with every surface. */
 export function loadSpecimenTexture(row: NonNullable<SpecimenMaterialRow['texture']>): Promise<THREE.Texture> {
@@ -95,8 +100,13 @@ export function specimenMaterial(sky: SkyRig, input: unknown, map?: THREE.Textur
   jsonData(input);
   const row = v.parse(SpecimenMaterialSchema, input);
   if (row.family === 'lowpoly') return lowPolyLookMaterial(sky, row.variant ?? 'default');
-  let bySky = materials.get(sky);
-  if (bySky === undefined) { bySky = new Map(); materials.set(sky, bySky); }
+  let owners = materials;
+  if (map !== undefined && map !== null && atlasTextures.has(map)) {
+    const known = atlasMaterials.get(map);
+    if (known === undefined) { owners = new WeakMap(); atlasMaterials.set(map, owners); } else owners = known;
+  }
+  let bySky = owners.get(sky);
+  if (bySky === undefined) { bySky = new Map(); owners.set(sky, bySky); }
   const cached = bySky.get(row.id);
   if (cached !== undefined) return cached;
   const color = typeof row.color === 'object' ? new THREE.Color().setRGB(...row.color) : row.color ?? 0xffffff;
@@ -119,6 +129,8 @@ export function specimenMaterial(sky: SkyRig, input: unknown, map?: THREE.Textur
 export interface SpecimenAssetRow {
   readonly url: SpecimenLocationRows;
   readonly phoneUrl?: SpecimenLocationRows | undefined;
+  readonly atlas?: SpecimenAtlasRows | undefined;
+  readonly phoneAtlas?: SpecimenAtlasRows | undefined;
   readonly geometrySlot?: number | undefined;
   readonly materialSlot?: number | undefined;
   readonly material: SpecimenMaterialRow;
@@ -147,6 +159,50 @@ function assetBytes(row:Pick<SpecimenAssetRow,'url'|'phoneUrl'>,input?:Uint8Arra
   return bytes;
 }
 
+const selectedAtlas = (row: Pick<SpecimenAssetRow, 'atlas' | 'phoneAtlas'>): SpecimenAtlasRows | undefined => TIER === 'phone' ? row.phoneAtlas ?? row.atlas : row.atlas;
+function boundAtlas(row: SpecimenAssetRow): SpecimenAtlasRows | undefined {
+  const atlas = selectedAtlas(row);
+  if (atlas !== undefined && (row.material.texture !== undefined || row.material.family !== 'painterly')) throw new Error('Conflicting specimen atlas material');
+  if (atlas !== undefined && typeof assetLocation(row) === 'string') throw new Error('Specimen atlas requires an owned GLB');
+  return atlas;
+}
+function atlasBytes(row: SpecimenAtlasRows, input?: Uint8Array | ReadonlyMap<string, Uint8Array>): Uint8Array {
+  const bytes = input instanceof Uint8Array ? undefined : input?.get(row.file);
+  if (bytes === undefined || bytes.byteLength !== row.bytes) throw new Error('Specimen atlas source was not prepared');
+  return bytes;
+}
+const ownedAtlases = new WeakMap<Uint8Array, Map<string, Promise<THREE.Texture>>>();
+const atlasIdentities = new WeakMap<Uint8Array, number>();
+let atlasSequence = 0;
+function atlasKey(row: SpecimenAtlasRows, bytes: Uint8Array): string {
+  let identity = atlasIdentities.get(bytes);
+  if (identity === undefined) { identity = ++atlasSequence; atlasIdentities.set(bytes, identity); }
+  return `${String(identity)}|${JSON.stringify(row)}`;
+}
+const atlasWraps = { 33071: THREE.ClampToEdgeWrapping, 33648: THREE.MirroredRepeatWrapping, 10497: THREE.RepeatWrapping } as const;
+const atlasFilters = { 9728: THREE.NearestFilter, 9729: THREE.LinearFilter, 9984: THREE.NearestMipmapNearestFilter, 9985: THREE.LinearMipmapNearestFilter, 9986: THREE.NearestMipmapLinearFilter, 9987: THREE.LinearMipmapLinearFilter } as const;
+function loadAtlas(row: SpecimenAtlasRows, bytes: Uint8Array): Promise<THREE.Texture> {
+  let memo = ownedAtlases.get(bytes);
+  if (memo === undefined) { memo = new Map(); ownedAtlases.set(bytes, memo); }
+  const key = JSON.stringify(row), known = memo.get(key);
+  if (known !== undefined) return known;
+  const pending = parseKtx2Bytes(bytes).then(texture => {
+    try {
+      const gpuMips = row.minFilter >= 9984 && texture.mipmaps.length <= 1;
+      if (gpuMips && texture instanceof THREE.CompressedTexture) throw new Error('Specimen atlas requires its declared mip chain');
+      texture.wrapS = atlasWraps[row.wrapS]; texture.wrapT = atlasWraps[row.wrapT];
+      texture.magFilter = atlasFilters[row.magFilter]; texture.minFilter = atlasFilters[row.minFilter];
+      texture.anisotropy = row.anisotropy; texture.colorSpace = row.colourSpace === 'srgb' ? THREE.SRGBColorSpace : THREE.LinearSRGBColorSpace;
+      texture.flipY = false; texture.generateMipmaps = gpuMips;
+      if (gpuMips) texture.mipmaps = [];
+      texture.needsUpdate = true; gpuOnlyTexture(texture, 'models/specimen-atlas'); atlasTextures.add(texture);
+      return texture;
+    } catch (error) { texture.dispose(); throw error; }
+  });
+  memo.set(key, pending); void trackOwned(pending); forgetWhenDisposed(pending, memo, key, pending);
+  return pending;
+}
+
 function selfContainedSpecimen(bytes: Uint8Array): void {
   if(bytes.byteLength<28||bytes.byteLength>25_000_000)throw new Error('Owned specimen GLB outside byte cap');
   const header=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength),length=header.getUint32(12,true);
@@ -163,7 +219,7 @@ function trackOwned<T>(pending:Promise<T>):Promise<T>{
 
 /** Borrow a prepared primitive once. Explicit owned bytes use the same parser, with no URL read.
  * Owned caches are keyed by byte identity; all sources retain slot and disposal policy. */
-export function loadSpecimenAsset(row: Pick<SpecimenAssetRow, 'url' | 'phoneUrl' | 'geometrySlot' | 'materialSlot' | 'retainedAttribute'>, input?:Uint8Array|ReadonlyMap<string,Uint8Array>): Promise<SpecimenAsset> {
+function loadPrimitive(row: Pick<SpecimenAssetRow, 'url' | 'phoneUrl' | 'geometrySlot' | 'materialSlot' | 'retainedAttribute'>, input?:Uint8Array|ReadonlyMap<string,Uint8Array>): Promise<SpecimenAsset> {
   const bytes=assetBytes(row,input),url = assetUrl(row), key = `${url}|${row.geometrySlot ?? 0}|${row.materialSlot ?? 0}|${row.retainedAttribute ?? ''}`;
   let memo=raw;
   if(bytes!==undefined){const known=ownedRaw.get(bytes);if(known===undefined){memo=new Map();ownedRaw.set(bytes,memo);}else memo=known;}
@@ -194,17 +250,27 @@ export function loadSpecimenAsset(row: Pick<SpecimenAssetRow, 'url' | 'phoneUrl'
   return pending;
 }
 
+/** Load the original primitive plus its optional separately admitted tier atlas. */
+export function loadSpecimenAsset(row: Pick<SpecimenAssetRow, 'url' | 'phoneUrl' | 'geometrySlot' | 'materialSlot' | 'retainedAttribute' | 'atlas' | 'phoneAtlas'>, input?: Uint8Array | ReadonlyMap<string, Uint8Array>): Promise<SpecimenAsset> {
+  const atlas = selectedAtlas(row);
+  if (atlas === undefined) return loadPrimitive(row, input);
+  const bytes = atlasBytes(atlas, input);
+  if (assetBytes(row, input) === undefined) throw new Error('Specimen atlas requires an owned GLB');
+  return Promise.all([loadPrimitive(row, input), loadAtlas(atlas, bytes)]).then(([asset, map]) => ({ ...asset, map }));
+}
+
 /** A prepared asset and its per-world material have one lifetime and one shared promise. */
 export function loadBoundSpecimen(sky: SkyRig, row: SpecimenAssetRow, input?:Uint8Array|ReadonlyMap<string,Uint8Array>): Promise<SpecimenAsset & { readonly material: THREE.Material }> {
   const bytes=assetBytes(row,input);
+  const atlas = boundAtlas(row), atlasSource = atlas === undefined ? undefined : atlasBytes(atlas, input);
   let owners=bound;
   if(bytes!==undefined){const known=ownedBound.get(bytes);if(known===undefined){owners=new WeakMap();ownedBound.set(bytes,owners);}else owners=known;}
   let bySky = owners.get(sky);
   if (bySky === undefined) { bySky = new Map(); owners.set(sky, bySky); }
-  const key = `${assetUrl(row)}|${row.geometrySlot ?? 0}|${row.materialSlot ?? 0}|${row.material.id}|${JSON.stringify(row.transform??null)}`;
+  const key = `${assetUrl(row)}|${row.geometrySlot ?? 0}|${row.materialSlot ?? 0}|${row.material.id}|${JSON.stringify(row.transform??null)}${atlas === undefined || atlasSource === undefined ? '' : `|atlas:${atlasKey(atlas, atlasSource)}`}`;
   let pending = bySky.get(key);
   if (pending === undefined) {
-    pending = loadSpecimenAsset(row,bytes).then(asset => {
+    pending = loadSpecimenAsset(row,atlas === undefined ? bytes : input).then(asset => {
       const transform=row.transform,geometry=transform===undefined?asset.geometry:asset.geometry.clone().rotateY(transform.yaw).scale(transform.scale,transform.scale,transform.scale);
       const out = { ...asset,geometry, material: specimenMaterial(sky, row.material, asset.map) };
       return out;
@@ -304,6 +370,13 @@ export function prepareSpecimenCatalogue(product:BinaryFileReader,input:unknown,
   const sources=[...declarations.flatMap(source=>source.kind==='file'?[{source:{file:source.file},bytes:bakedGeometryBytes(source.geometry)}]:[]),
     ...assets.flatMap(row=>{const location=assetLocation(row);return typeof location==='string'?[]:[{source:{file:location.file},bytes:location.bytes}];})];
   const rawNames=new Set(sources.map(source=>source.source.file));
+  const atlases = assets.flatMap(asset => {
+    const atlas = boundAtlas(asset);
+    if (atlas === undefined) return [];
+    if (rawNames.has(atlas.file)) throw new Error('Conflicting specimen source encodings');
+    return [atlas];
+  });
+  for (const atlas of atlases) { sources.push({ source: { file: atlas.file }, bytes: atlas.bytes }); rawNames.add(atlas.file); }
   for(const pack of packs)if(typeof pack.bin!=='string'&&rawNames.has(pack.bin.file))throw new Error('Conflicting specimen source encodings');
   const read=product.file,has=product.hasFile;
   const live=():void=>{if(scope?.disposed===true||scope?.disposing===true||product.file!==read||product.hasFile!==has)throw new Error('Specimen source owner retired or changed');};
@@ -311,6 +384,8 @@ export function prepareSpecimenCatalogue(product:BinaryFileReader,input:unknown,
     live();const files=new Map(await prepareBinarySources(product,[...sources,...packs.flatMap(pack=>typeof pack.bin==='string'?[]:[{source:{file:pack.bin.file},bytes:pack.bin.bytes}])],scope));live();
     const checked=new Set<Uint8Array>();
     for(const asset of assets){const bytes=assetBytes(asset,files);if(bytes!==undefined&&!checked.has(bytes)){selfContainedSpecimen(bytes);checked.add(bytes);}}
+    const checkedAtlases = new Set<Uint8Array>();
+    for (const atlas of atlases) { const bytes = atlasBytes(atlas, files); if (!checkedAtlases.has(bytes)) { parseKtx2(bytes); checkedAtlases.add(bytes); } }
     const decoded=new Map<string,Uint8Array>();
     for(const pack of packs)if(typeof pack.bin!=='string'){
       let bytes=decoded.get(pack.bin.file);
@@ -333,7 +408,9 @@ export function defineSpecimenCatalogue<Params extends { readonly [K in keyof Pa
   if (rows.length > 1024 || new Set(rows.map(row => row.key)).size !== rows.length || new Set(rows.map(row => row.model.id)).size !== rows.length) throw new Error('Specimen catalogue must be bounded and unique');
   const parameterKey=(value:object):string=>JSON.stringify(Object.entries(value).sort(([a],[b])=>a<b?-1:a>b?1:0));
   for(const row of rows)if(row.source.kind==='selection'&&new Set(row.source.variants.map(variant=>parameterKey(variant.params))).size!==row.source.variants.length)throw new Error('Duplicate specimen selection');
-  for(const row of rows)for(const source of row.source.kind==='selection'?row.source.variants.map(variant=>variant.source):[row.source])if(source.kind==='asset')assetBytes(source.asset,files);
+  for(const row of rows)for(const source of row.source.kind==='selection'?row.source.variants.map(variant=>variant.source):[row.source])if(source.kind==='asset'){
+    assetBytes(source.asset,files); const atlas = boundAtlas(source.asset); if (atlas !== undefined) atlasBytes(atlas,files);
+  }
   const definitions = new Map<string, ModelDef<object>>();
   for (const row of rows) {
     const build = (ctx: ModelContext, params: object): ModelBuild => {

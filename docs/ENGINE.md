@@ -5892,33 +5892,33 @@ fits or poses geometry. Pine crags and Driftwood cove prototypes use it.
 
 `@wildshard/game/models/specimenCatalogue.defineSpecimenCatalogue<Params>(rows,
 packed?, materials?, files?)` registers data models and returns `.model(key)`. Each
-`SpecimenModelRow` supplies metadata, parameters, colliders and an `owned`
-identity-space GLB, `packed` bake parts, or `asset` direct-child geometry/material
-slots with optional phone source and retained attribute. Unknown parameters
-refuse; registration does no I/O or callbacks.
-`loadSpecimenAsset(row,input?)` and `loadBoundSpecimen(sky,row,input?)` accept
-owned GLB bytes or prepared files. `url`/`phoneUrl` are legacy paths or
-`{file,bytes}`. Selected-tier length/header/resource checks precede publication; owned
-files require prepared bytes without URL reads. Byte identity isolates caches; disposal/failure invalidates them,
-and geometry releases inputs.
-`@wildshard/format/specimenCatalogue` exports renderer-free
-`SpecimenCatalogueSchema`, `PackedSpecimenSchema` and `SpecimenMaterialSchema`. Constructors refuse non-JSON values, accessors, cycles,
+`SpecimenModelRow` declares metadata, parameters, colliders and `owned`
+(identity-space GLB), `packed` parts, or `asset` slots with optional phone
+source/retained attribute. Registration rejects unknown parameters without I/O.
+`loadSpecimenAsset(row,input?)` / `loadBoundSpecimen(sky,row,input?)` accept
+owned GLB bytes or prepared files; `url`/`phoneUrl` are legacy paths or
+`{file,bytes}`. Selected-tier lengths/headers/resources are checked before
+publication. Owned files require prepared bytes without URL fallback.
+Byte caches invalidate on disposal/failure and release inputs. Pure `@wildshard/format/specimenCatalogue`
+exports `SpecimenCatalogueSchema`, `PackedSpecimenSchema`, and
+`SpecimenMaterialSchema`; constructors reject non-JSON, accessors, cycles,
 callbacks, unbounded catalogues and paths outside `/assets/`.
 
 `@wildshard/engine/core/ktx2.parseKtx2Bytes(bytes)` validates bounded KTX2,
 copies its view and uses the configured loader/Zstd worker without asset URL
-reads. Callers own the texture (flipY false), set colour/samplers, and apply
-their existing upload/release policy.
+reads. Callers set colour/samplers and upload/release policy (flipY false).
 
-`createPackedSpecimens(bake, files?)` checks decoded length/coverage.
-`bin:{file,bytes}` names a compressed product bank;
-`prepareSpecimenCatalogue(product,rows,scope?,packedInputs?,assets?)`
-verifies GLBs and decodes banks once without URL fallback.
-`catalogue.loadPacked()` prepares the latter.
-URL bakes retain lazy decoding. `use(raw)`
-admits the same inflated bytes in Node (`catalogue.usePacked(raw)` for a
-complete catalogue); each build owns fresh typed arrays,
-retaining the original index, optional non-indexed expansion and bounds.
+Assets optionally declare `atlas`/`phoneAtlas`: KTX2 file/count, wrapS/T,
+min/magFilter, anisotropy and colourSpace. Preparation validates selected-tier
+files. Byte identity shares live atlases; separate identities keep materials
+distinct. Disposal/rejection invalidates caches without URL fallback.
+
+`createPackedSpecimens(bake, files?)` validates decoded length/coverage.
+`bin:{file,bytes}` names a compressed product bank, prepared once by
+`prepareSpecimenCatalogue(product,rows,scope?,packedInputs?,assets?)`.
+`loadPacked()` retains lazy URL bakes. `use(raw)` (`catalogue.usePacked(raw)`)
+admits inflated bytes; each build owns fresh arrays with original indices,
+optional expansion and bounds.
 
 `installPickupCatalogue(rows)` explicitly installs prepared pickup looks
 for interaction tables and the loot coin model. `PickupCatalogueSchema`
