@@ -22,22 +22,31 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
 - **Never mutate what you didn't author.** No `git stash`, `checkout`, `restore` or `git rm` on others' files; leave
   everyone's uncommitted WIP alone. Verify before you claim: `git status`, `git log origin/main..main` (empty =
   shipped), and `version.json`.
-- **Commit only with `scripts/commit.sh "message" -- <files...>` (D9/G584).** It marks new files intent-to-add
-  and serializes Git's shared files with one short lock. Git commits only the named files and preserves unrelated
+- **Commit only with `scripts/commit.sh "message" -- <files...>` (D9/G584).** It stages named files in a private
+  candidate and serializes Git's shared files with one short lock. Git commits only the named files and preserves unrelated
   shared stages. Name literal files, never a directory. A named file's entire working copy is committed: agree
   with its owner if it also contains another lane's hunk. Direct commits and private-index landings are retired.
   For shared files use `scripts/commit.sh --patch <file.patch> "message" -- <files...>`: an exact patch applies
-  to HEAD under the same lock and rejects undeclared paths. Its private index
+  to a pinned HEAD snapshot and rejects undeclared paths. Its private index
   reuses shared stat metadata, resets all entries to HEAD, then clears hidden
   working-tree flags before applying the patch; peer stages never enter the
   candidate and the shared index is unchanged. A declared working file whose bytes still
   equal the parent advances to the committed bytes under that lock; local edits stay untouched and are
   reported. Foreign shared stages stay untouched; a stage still equal to the parent advances under the
   index lock, avoiding a staged revert of the patch. Stale patches refuse.
-  The wrapper first applies the existing message-convention validator under
-  the commit lock, before touching the candidate index or running checks.
+  The wrapper first applies the existing message-convention validator before
+  touching the candidate index or running checks.
   Invalid messages refuse immediately; valid messages still run every normal
   pre-commit and commit-message hook. This shares the entry-time budget.
+  Pre-commit guards and CF1 execute outside the shared commit lock against the
+  candidate index and a pinned HEAD view. Their input receipts are freshness
+  metadata, never cached results. Under the lock, a peer's disjoint commits
+  are retained by applying only the checked delta to current HEAD. Changes to
+  named paths or recorded check inputs refuse and require fresh checks; unknown
+  hooks conservatively depend on the entire predecessor tree. Named stage,
+  working-byte, hook-source/configuration and candidate-tree changes refuse too.
+  Git's pre-commit boundary verifies the completed invocation proof again;
+  ordinary commit-message policies, signing and post-commit hooks still run.
   Pre-commit runs storage policy, fast lint and staged guards in parallel under a soft five-second budget.
   The optional type-aware lint attempt stays within that cap (G636), without oxlint's `--type-check` (G657);
   `tsc` owns TypeScript diagnostics. Timeout warns and hands those exact staged blobs' typed lint to pre-push;
@@ -59,7 +68,8 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   a fresh allowance afterward. Mandatory serialized Git completion remains
   safe and any total overrun is printed separately. Each invocation prints its
   total wall time including the lock wait, plus separate lock-wait and
-  serialized-work durations. A requested-lock marker distinguishes a queued
+  work durations and the time actually holding the lock. Work includes checks
+  outside the lock; older ledger rows' work was entirely serialized. A requested-lock marker distinguishes a queued
   invocation from one already executing checks; these timings never renew
   its deadline. Finished invocations append timing/outcome metadata to
   `.git/commit-times.jsonl` for `scripts/agent-time.py`; refusals stay in the

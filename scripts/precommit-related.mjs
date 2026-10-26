@@ -1,7 +1,7 @@
 // CF1: working-tree related tests and warm types, one bounded, fail-open attempt.
 import { execFileSync } from 'node:child_process';
 import { createHash, randomUUID } from 'node:crypto';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { appendFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { basename, dirname, relative, resolve } from 'node:path';
 import ts from '@typescript/typescript6';
 import { runCommitJobs } from './precommit-jobs.mjs';
@@ -10,7 +10,7 @@ import { selectRelatedSuites } from './precommit-selection.mjs';
 import { candidateImportSources } from './precommit-imports.mjs';
 
 const SOURCE = /^(?:src|test|scripts)\//u;
-const TEXT = /\.(?:[cm]?[jt]sx?|json|glsl|wgsl|css)$/u;
+const TEXT = /\.(?:[cm]?[jt]sx?|json|glsl|wgsl|css|sh)$/u;
 
 /** Consume one invocation budget, including time already spent waiting for the
  * commit lock and running mandatory guards. Direct callers get the same cap.
@@ -40,6 +40,13 @@ export function relatedTestFailed(result, token) {
  * @param {string} repository @param {ReturnType<typeof stagedFiles>} staged */
 export function stagedInputOverride(repository, staged) {
   const root = resolve(repository);
+  const readSet = process.env.WS_COMMIT_READ_SET, observed = new Set();
+  const record = (/** @type {string} */ id) => {
+    const file = relative(root, id.split('?', 1)[0] ?? '');
+    if (readSet !== undefined && staged.paths.includes(file) && !observed.has(file)) {
+      observed.add(file); appendFileSync(readSet, `${JSON.stringify({root, paths:[file]})}\n`);
+    }
+  };
   const dirty = execFileSync('git', ['diff', '--name-only', '-z', '--no-renames'], { cwd: root, encoding: 'utf8' }).split('\0').filter(file => TEXT.test(file));
   const overrides = new Map(dirty.map(file => [resolve(root, file), staged.read(file)]));
   // A cached transform also holds resolved imports. Inventory and export-map
@@ -61,6 +68,7 @@ export function stagedInputOverride(repository, staged) {
     name: 'wildshard:commit-inputs',
     configureVitest(/** @type {import('vitest/node').VitestPluginContext} */ { defineCacheKeyGenerator }) {
       defineCacheKeyGenerator(({ id, sourceCode }) => {
+        record(id);
         const path = id.split('?', 1)[0];
         // Vitest hashes loose file bytes before plugin.load. Never reuse those
         // transforms for an index override or a directory-sensitive glob.
@@ -79,6 +87,7 @@ export function stagedInputOverride(repository, staged) {
     },
     enforce: /** @type {const} */ ('pre'),
     load(/** @type {string} */ id) {
+      record(id);
       const path = id.split('?', 1)[0];
       if (path === undefined || !overrides.has(path)) return null;
       const source = overrides.get(path);
@@ -99,6 +108,13 @@ export async function relatedWorker(root, files) {
   const staged = stagedFiles(root);
   const selecting = performance.now();
   const candidate = candidateImportSources(root, staged);
+  // Selection reads import syntax, not every unrelated module's body. Loaded
+  // modules are recorded separately above, including transform-cache hits.
+  const readSet = process.env.WS_COMMIT_READ_SET;
+  if (readSet !== undefined) appendFileSync(readSet, `${JSON.stringify({root, inventory:true, imports:Object.fromEntries(candidate.imports), paths: [
+    'scripts/precommit-related.mjs', 'scripts/precommit-imports.mjs', 'scripts/precommit-selection.mjs', 'scripts/precommit-projects.mjs',
+    ...[...candidate.sources.keys()].filter(path => path.endsWith('package.json')),
+    ...staged.paths.filter(path => /(?:^|\/)package\.json$|(?:^|\/)tsconfig[^/]*\.json$|vitest|^test\/fixtures\//u.test(path))]})}\n`);
   const selection = selectRelatedSuites(candidate.sources, files, staged.paths, 20, candidate.imports);
   console.info(`CF1: import syntax cache ${candidate.hits} hits / ${candidate.misses} parses`);
   process.argv.splice(2, process.argv.length - 2, 'run', ...selection.files);
@@ -162,6 +178,8 @@ export function warmTypeJobs(root, files) {
       console.warn(`CF1 DEFERRED TO CI: cold type project ${config}`); continue;
     }
     mkdirSync(resolve(root, 'node_modules/.cache'), { recursive: true });
+    const readSet = process.env.WS_COMMIT_READ_SET;
+    if (readSet !== undefined) appendFileSync(readSet, `${JSON.stringify({root, paths:parsed.fileNames.map(name)})}\n`);
     jobs.push({ name: `types ${config}`, command: [resolve(root, 'node_modules/.bin/tsc'), '-p', config, '--noEmit',
       '--incremental', '--tsBuildInfoFile', config === 'tsconfig.json' ? cache : `node_modules/.cache/commit-${config.replaceAll('/', '-')}.tsbuildinfo`] });
   }

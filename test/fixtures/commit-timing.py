@@ -13,6 +13,7 @@ import time
 
 source = Path(sys.argv[1]).resolve()
 wrapper = Path(sys.argv[2]).resolve() if len(sys.argv) > 2 else source / 'scripts/commit.sh'
+wrapper_text = sys.stdin.read() if len(sys.argv) > 2 and sys.argv[2] == '-' else None
 env = {key: value for key, value in os.environ.items() if not key.startswith('GIT_')}
 with tempfile.TemporaryDirectory(dir=source / 'tmp', prefix='commit-timing-') as temporary:
     root = Path(temporary)
@@ -26,7 +27,11 @@ with tempfile.TemporaryDirectory(dir=source / 'tmp', prefix='commit-timing-') as
     git('add', '--', 'owned.txt')
     git('commit', '-qm', 'base')
     (root / 'scripts').mkdir()
-    shutil.copy2(wrapper, root / 'scripts/commit.sh')
+    if wrapper_text is None:
+        shutil.copy2(wrapper, root / 'scripts/commit.sh')
+    else:
+        (root / 'scripts/commit.sh').write_text(wrapper_text)
+        (root / 'scripts/commit.sh').chmod(0o755)
     (root / '.githooks').mkdir()
     hook = root / '.githooks/pre-commit'
     hook.write_text('''#!/usr/bin/env python3
@@ -37,14 +42,15 @@ sys.exit(23 if os.environ.get('FIXTURE_REFUSE') else 0)
     hook.chmod(0o755)
     git('config', 'core.hooksPath', '.githooks')
     def metrics(output):
-        split = re.search(r'commit.sh: (\d+) ms lock wait; (\d+) ms serialized work', output)
+        split = re.search(r'commit.sh: (\d+) ms lock wait; (\d+) ms lock held; (\d+) ms outside lock', output)
         total = re.search(r'commit.sh: (\d+) ms total wall', output)
         age = re.search(r'HOOK_AGE_MS=([\d.]+)', output)
         assert split and total and age, output
-        wait, work, wall = int(split[1]), int(split[2]), int(total[1])
-        assert abs(wait + work - wall) <= 1, output
-        assert wait <= float(age[1]) + 2 <= wall + 50, output
-        return {'waitMs': wait, 'workMs': work, 'totalMs': wall}
+        wait, hold, outside, wall = int(split[1]), int(split[2]), int(split[3]), int(total[1])
+        work = hold + outside
+        assert abs(wait + work - wall) <= 2, output
+        assert 0 <= float(age[1]) <= outside + 50, output
+        return {'waitMs': wait, 'workMs': work, 'lockMs': hold, 'totalMs': wall}
     (root / 'owned.txt').write_text('queued\n')
     with (root / '.git/commit.lock').open('a') as lease:
         fcntl.flock(lease, fcntl.LOCK_EX)
@@ -54,7 +60,11 @@ sys.exit(23 if os.environ.get('FIXTURE_REFUSE') else 0)
             ready, _, _ = select.select([child.stdout], [], [], 3)
             assert ready, 'commit wrapper did not announce its lock wait'
             first = child.stdout.readline()
-            assert first.strip() == 'commit.sh: waiting for commit lock', first
+            prior = ''
+            while first.strip() != 'commit.sh: waiting for commit lock':
+                prior += first
+                first = child.stdout.readline()
+                assert first, prior
             # The requested-lock marker fences startup before the controlled wait.
             time.sleep(.15)
             assert child.poll() is None and git('show', 'HEAD:owned.txt') == 'base'
@@ -62,7 +72,7 @@ sys.exit(23 if os.environ.get('FIXTURE_REFUSE') else 0)
             fcntl.flock(lease, fcntl.LOCK_UN)
             output, error = child.communicate(timeout=5)
         assert child.returncode == 0, output + error
-        queued = metrics(first + output + error)
+        queued = metrics(prior + first + output + error)
         assert queued['waitMs'] >= 140, queued
     assert git('show', 'HEAD:owned.txt') == 'queued'
     head = git('rev-parse', 'HEAD')
@@ -76,7 +86,8 @@ sys.exit(23 if os.environ.get('FIXTURE_REFUSE') else 0)
     assert len(records) == 2 and [row['exitCode'] for row in records] == [0, refused.returncode], records
     for row, output in zip(records, [queued, red]):
         assert row['version'] == 1 and row['id']
-        assert row['elapsedMs'] == output['totalMs'] and row['waitMs'] == output['waitMs'] and row['workMs'] == output['workMs']
+        assert row['elapsedMs'] == output['totalMs'] and row['waitMs'] == output['waitMs'] and abs(row['workMs'] - output['workMs']) <= 1
+        assert row['lockMs'] == output['lockMs']
     # A broken diagnostic destination never changes an actual commit verdict.
     ledger.unlink()
     ledger.mkdir()

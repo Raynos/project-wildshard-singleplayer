@@ -9,6 +9,8 @@ import tempfile
 import time
 
 source = Path(sys.argv[1]).resolve()
+wrapper = Path(sys.argv[2]).resolve() if len(sys.argv) > 2 else source / 'scripts/commit.sh'
+wrapper_text = sys.stdin.read() if len(sys.argv) > 2 and sys.argv[2] == '-' else None
 env = {key: value for key, value in os.environ.items() if not key.startswith('GIT_')}
 with tempfile.TemporaryDirectory(dir=source / 'tmp', prefix='commit-test-') as temp:
     root = Path(temp)
@@ -31,7 +33,11 @@ with tempfile.TemporaryDirectory(dir=source / 'tmp', prefix='commit-test-') as t
     git('add', '--', 'own.txt', 'peer.txt', 'gone.txt')
     git('commit', '-qm', 'base')
     (root / 'scripts').mkdir()
-    shutil.copy2(source / 'scripts/commit.sh', root / 'scripts/commit.sh')
+    if wrapper_text is None:
+        shutil.copy2(wrapper, root / 'scripts/commit.sh')
+    else:
+        (root / 'scripts/commit.sh').write_text(wrapper_text)
+        (root / 'scripts/commit.sh').chmod(0o755)
     put('peer.txt', 'staged peer\n')
     git('add', '--', 'peer.txt')
     peer = git('rev-parse', ':peer.txt')
@@ -50,7 +56,12 @@ with tempfile.TemporaryDirectory(dir=source / 'tmp', prefix='commit-test-') as t
     put('a.txt', 'a\n'); put('b.txt', 'b\n')
     a = subprocess.Popen(['scripts/commit.sh', 'fixture A', '--', 'a.txt'], cwd=root, env=env)
     b = subprocess.Popen(['scripts/commit.sh', 'fixture B', '--', 'b.txt'], cwd=root, env=env)
-    assert a.wait(timeout=10) == 0 and b.wait(timeout=10) == 0
+    results = [a.wait(timeout=10), b.wait(timeout=10)]
+    # A concurrent parent change invalidates the exact snapshot. An explicit
+    # fresh attempt runs every check again, never silently rebases a proof.
+    for status, name in zip(results, ['A', 'B']):
+        if status != 0:
+            subprocess.run(['scripts/commit.sh', 'fixture ' + name, '--', name.lower() + '.txt'], cwd=root, env=env, check=True)
     assert set(git('log', '-2', '--format=%s').splitlines()) == {'fixture A', 'fixture B'}
     # A patch commits only our lines from HEAD; both peer stages and the
     # same file's other working hunks remain byte-identical.

@@ -192,6 +192,8 @@ def commit_timing_rows(path, since):
                 or any(type(value) not in (int, float) or not math.isfinite(value) or value < 0 for value in values)
                 or abs(values[0] - values[1] - values[2]) > 1
                 or row.get('exitCode') is not None and type(row['exitCode']) is not int
+                or 'lockMs' in row and (type(row['lockMs']) not in (int, float) or not math.isfinite(row['lockMs'])
+                                       or row['lockMs'] < 0 or row['lockMs'] > values[2] + 1)
                 or row['id'] in accepted):
             ignored += 1
             continue
@@ -207,6 +209,8 @@ def commit_timing_reading(path, since):
              for name, field in [('total', 'elapsedMs'), ('wait', 'waitMs'), ('work', 'workMs')]]
     parts.append('successful total seconds ' + quantiles(
         [row['elapsedMs'] / 1000 for row in samples if row['exitCode'] == 0], 2))
+    parts.append('lock held seconds ' + quantiles([row.get('lockMs', row['workMs']) / 1000 for row in samples], 2)
+                 + ' (legacy work was entirely serialized)')
     parts.append('refused %d; unknown outcome %d; ignored invalid/duplicate %d; actual wrapper completions only' % (
         sum(row['exitCode'] is not None and row['exitCode'] != 0 for row in samples),
         sum(row['exitCode'] is None for row in samples), ignored))

@@ -9,6 +9,7 @@ import tempfile
 import time
 
 source, wrapper = Path(sys.argv[1]).resolve(), Path(sys.argv[2]).resolve()
+wrapper_text = sys.stdin.read() if sys.argv[2] == '-' else None
 env = {key: value for key, value in os.environ.items() if not key.startswith('GIT_')}
 with tempfile.TemporaryDirectory(dir=source / 'tmp', prefix='commit-refresh-') as temporary:
     root = Path(temporary)
@@ -42,7 +43,11 @@ with tempfile.TemporaryDirectory(dir=source / 'tmp', prefix='commit-refresh-') a
     (root / 'new-peer.txt').write_text('new peer working\n')
     git('rm', '--cached', '--', 'gone.txt')
     (root / 'scripts').mkdir()
-    shutil.copy2(wrapper, root / 'scripts/commit.sh')
+    if wrapper_text is None:
+        shutil.copy2(wrapper, root / 'scripts/commit.sh')
+    else:
+        (root / 'scripts/commit.sh').write_text(wrapper_text)
+        (root / 'scripts/commit.sh').chmod(0o755)
     (root / '.githooks').mkdir()
     hook = root / '.githooks/pre-commit'
     hook.write_text('''#!/usr/bin/env python3
@@ -79,7 +84,7 @@ open('candidate-flags.json','w').write(json.dumps(hidden))
     assert git('ls-files', '-v', '--', 'hidden.txt').startswith('h ')
     assert git('ls-files', '-v', '--', 'skip.txt').startswith('S ')
     rows = [json.loads(line) for line in trace.read_text().splitlines()]
-    commit = next(row['sid'] for row in rows if row.get('event') == 'start' and len(row.get('argv', [])) > 1 and row['argv'][1] == 'commit')
+    commit = next(row['sid'] for row in rows if row.get('event') == 'start' and 'commit' in row.get('argv', []))
     scans = [int(row['value']) for row in rows if row.get('sid') == commit and row.get('key') == 'refresh/sum_scan']
     hidden = json.loads((root / 'candidate-flags.json').read_text())
     if len(sys.argv) > 3 and sys.argv[3] == 'strict':

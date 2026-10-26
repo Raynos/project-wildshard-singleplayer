@@ -8,9 +8,10 @@ import { resolve } from 'node:path';
 import { env as processEnv } from 'node:process';
 import { expect, test } from 'vitest';
 import { precommitInputs } from '../scripts/precommit-inputs.mjs';
+import wrapper from '../scripts/commit.sh?raw';
 
 test('the wrapper preserves foreign stages, serializes messages and refuses a large blob', () => {
-  expect(execFileSync('python3', ['test/fixtures/commit-index.py', resolve('.')], { encoding: 'utf8' }))
+  expect(execFileSync('python3', ['test/fixtures/commit-index.py', resolve('.'), '-'], { encoding: 'utf8', input: wrapper }))
     .toContain('"storageRefusal": "passed"');
 });
 

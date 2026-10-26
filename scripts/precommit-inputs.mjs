@@ -1,6 +1,6 @@
 // G636: parallel exact-source checks within one five-second wall budget.
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import { appendFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { posix, resolve } from 'node:path';
 import * as v from 'valibot';
 import { parseSync } from 'vite';
@@ -32,6 +32,14 @@ export function missingInventoryGeneration(root, guard) {
  * @param {string} [root] @param {string} [executable] */
 export async function precommitInputs(root = resolve(import.meta.dirname, '..'), executable = resolve(root, 'node_modules/.bin/oxlint')) {
   const started = performance.now(), deadline = started + 5_000;
+  const readSet = process.env.WS_COMMIT_READ_SET;
+  const record = (/** @type {string[]} */ paths) => {
+    if (readSet !== undefined) appendFileSync(readSet, `${JSON.stringify({ root, paths })}\n`);
+  };
+  record(['scripts/precommit-inputs.mjs', 'scripts/precommit-jobs.mjs', 'scripts/repo-size.mjs',
+    'scripts/storage-policy.json', 'scripts/ratchet-approval.mjs', 'scripts/link-node-modules.mjs',
+    'scripts/guard-index-tree.mjs', '.oxlintrc.json']);
+  if (readSet !== undefined) appendFileSync(readSet, `${JSON.stringify({root, paths:[], budget:true})}\n`);
   const git = (/** @type {string[]} */ args) => execFileSync('git', args, { cwd: root, encoding: 'utf8', maxBuffer: 1 << 30 });
   const initial = git(['ls-files', '--stage', '-z']);
   const changed = git(['diff', '--cached', '--name-only', '-z', '--no-renames', '--diff-filter=ACMRD']).split('\0').filter(Boolean);

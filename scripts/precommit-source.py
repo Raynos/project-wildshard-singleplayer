@@ -397,6 +397,11 @@ def staged_source(repo, tree, deadline, revision=None, specification=None):
         staged_paths = {os.fsdecode(row.split(b'\t', 1)[1]) for row in records} if revision is None else None
         selected = set(contents) if specification is None else required_sources(contents, specification,
             executable=executable, staged_paths=staged_paths)
+        # Freshness input receipt only; it never suppresses a check.
+        read_set = os.environ.get('WS_COMMIT_READ_SET')
+        if read_set is not None:
+            with open(read_set, 'a') as receipt:
+                receipt.write(json.dumps({'root': str(repo), 'paths': sorted(selected)}) + '\n')
         for path, _, mode in entries:
             if str(path) not in selected:
                 continue
