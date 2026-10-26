@@ -4,6 +4,7 @@ import { runPrecompile, sceneJobs, shadowJobs } from './precompile';
 import type { ProgramLike } from '../boot/perflog';
 import { loadGraphBackend } from './graphBackend';
 import { noteFrameDrawn, setBuildHeld } from '../core/framePacing';
+import { SHADOW_LAYER } from '../core/shadowLayer';
 
 test('preparation retains both shadow-receiver variants of a shared material', () => {
   const scene = new Scene(), geometry = new BoxGeometry(), material = new MeshStandardMaterial();
@@ -88,6 +89,18 @@ test.each([{cancel: false, held: false}, {cancel: true, held: false}, {cancel: f
     expect(issued).toEqual(expected.map((material, index) => ({material, frame: index})));
     expect(original.material).toBe(materials); expect(original.parent).toBe(scene);
   } finally {setBuildHeld(false); clock.mockRestore(); noteFrameDrawn(Number.NEGATIVE_INFINITY); geometry.dispose(); for (const material of materials) material.dispose();}
+});
+
+test('a shadow-only piece gets its shadow depth job but no view program (G743)', () => {
+  const scene = new Scene(), geometry = new BoxGeometry(), material = new MeshStandardMaterial();
+  const view = new Mesh(geometry, material), piece = new Mesh(geometry, material);
+  piece.receiveShadow = true; piece.castShadow = true; piece.layers.set(SHADOW_LAYER);
+  scene.add(view, piece);
+  const copies = sceneJobs(scene, null).jobs.flatMap(job => job.root.children);
+  expect(copies).toHaveLength(1);
+  expect(copies[0]?.receiveShadow).toBe(false);
+  expect(shadowJobs(scene, null).flatMap(job => job.root.children).length).toBeGreaterThan(0);
+  geometry.dispose(); material.dispose();
 });
 
 test('preparation compiles a hidden level and its shadow depth: compile walks visible objects only', () => {

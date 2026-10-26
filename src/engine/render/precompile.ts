@@ -24,6 +24,7 @@ import { shadowDepthResolver, type ShadowDepthResolver } from './shadowDepthVari
 import { installedGraphBackend } from './graphBackend';
 import { boundEntryWarmup } from './entryWarmupBound';
 import { workSlice } from '../core/workSlice';
+import { SHADOW_LAYER } from '../core/shadowLayer';
 import { frameBudgetSpent, heldBudget, presenting } from '../core/framePacing';
 import { waitFor } from '../boot/waits';
 
@@ -278,6 +279,8 @@ function programCount(renderer: Renderer): number {
   return Array.isArray(programs) ? programs.length : 0;
 }
 
+/** the object lives on the shadow pass's layer alone (no view camera ever draws it) */
+const shadowOnly = (o: THREE.Object3D): boolean => o.layers.mask === 1 << SHADOW_LAYER;
 function materialsOf(o: THREE.Object3D): THREE.Material[] { const m = (o as MeshLike).material; return Array.isArray(m) ? m : m ? [m] : []; }
 
 type BatchedLike = MeshLike & { isBatchedMesh?: boolean; _colorsTexture?: THREE.DataTexture | null };
@@ -333,7 +336,9 @@ function* sceneJobSteps(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, 
     if (o === undefined || excludedRoots?.has(o) === true) continue;
     for (let i = o.children.length - 1; i >= 0; i--) { const child = o.children[i]; if (child !== undefined) pending.push(child); }
     const mesh = o as MeshLike;
-    const materials = materialsOf(mesh), list = materials.length > 0 && include !== undefined && !include(o) ? [] : materials;
+    // G743: a shadow-only object (its layers are the shadow pass's alone: shadowChunks.ts' pieces) is never drawn by a
+    // view, so its view program is never used; the shadow jobs warm the depth program it does draw with
+    const materials = shadowOnly(o) ? [] : materialsOf(mesh), list = materials.length > 0 && include !== undefined && !include(o) ? [] : materials;
     if (list.length === 0) { yield; continue; }
     const ok = programObjectKey(mesh);
     const wanted = list.filter((m) => { mats.add(m); const k = m.uuid + ok; if (seen.has(k)) return false; seen.add(k); return true; });
