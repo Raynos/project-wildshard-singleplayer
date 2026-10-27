@@ -9,13 +9,15 @@ import {expect,test} from 'vitest';
 import * as v from 'valibot';
 // oxlint-disable-next-line import/no-nodejs-modules -- Inspect the official emitted author output, not a runtime filesystem path.
 import {readFileSync} from 'node:fs';
-import {readProjectAssets} from '../src/sdk/project';
+import {readPineProject} from './fixtures/pine-project';
 import {validateDefinedSection} from '../src/sdk/sections';
 import {SECTIONS} from '../src/shards/pine-hollow/generators/sections';
 import {ClaimedPickupSchema} from '../src/format/lootEconomy';
 
-test('Pine emits every client section with checked schemas and named immutable assets',async()=>{
- const loaded=await readProjectAssets('src/shards/pine-hollow'),custom=loaded.output.custom;
+const pine=await readPineProject();
+
+test('Pine emits every client section with checked schemas and named immutable assets',()=>{
+ const loaded=pine,custom=loaded.output.custom;
  expect(custom).toBeDefined();
  if(custom===undefined)throw new Error('Pine custom sections absent');
  console.info('Pine custom section bytes',custom.sections.reduce((sum,row)=>sum+row.bytes,0));
@@ -49,11 +51,12 @@ test('Pine emits every client section with checked schemas and named immutable a
  }
  expect(createHash('sha256').update(JSON.stringify(original)).digest('hex')).toBe('ee905315c2bf2084e2ae07e41f1c1c616927c0e09ff4b2f8474c535a190c125d');
  expect(programs).toHaveLength(fights.length+1);
+ // the night's spawn row is the one that is no elite's (its generated night.generated.json left with 1b5c94aff7's jobs)
+ const night=programs.find(row=>!fights.some(fight=>fight.program.step===row.step));if(night===undefined)throw new Error('Missing night spawn row');
  for(const stem of ['night','director']){
-  const originalRows:unknown=JSON.parse(readFileSync(`src/shards/pine-hollow/behaviour/${stem==='night'?'night.generated':stem}.json`,'utf8'));
   const module=stem==='night'
-   ?parseSpawnScript(originalRows).script.module.slice('blobs/wasm/'.length,-'.wasm'.length)
-   :v.parse(v.object({module:v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))}),originalRows).module;
+   ?parseSpawnScript(night).script.module.slice('blobs/wasm/'.length,-'.wasm'.length)
+   :v.parse(v.object({module:v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))}),JSON.parse(readFileSync('src/shards/pine-hollow/behaviour/director.json','utf8'))).module;
   const file=loaded.output.namedFiles?.find(row=>row.name===`behaviour/${stem}.wasm`);
   expect(file?.hash).toBe(module);
  }

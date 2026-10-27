@@ -2,15 +2,18 @@ import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { paintedPrimitives } from '@wildshard/game/plugin/geometry';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
-import { readProjectAssets } from '../src/sdk/project';
+import { readPineProject } from './fixtures/pine-project';
 import { KNIFE_LOOK } from '../src/shards/pine-hollow/generators/knifeLook';
 import playback from '../src/shards/pine-hollow/data/heldToolPlayback.json' with { type: 'json' };
 import { HeldEquipmentSchema } from '../src/format/heldEquipment';
 import { outputPlatformPayloads } from '../src/sdk/outputProduct';
 import { heldToolRows } from '../src/game/plugin/heldTool';
 
-test('the admitted knife preserves the original recipe, playback and stand-in buffers', async () => {
-  const loaded = await readProjectAssets('src/shards/pine-hollow');
+// Generation is fixture preparation (readPineProject: the CLI's declared roots, b8a8db5fd4); the case reads the output.
+const pine = await readPineProject();
+
+test('the admitted knife preserves the original recipe, playback and stand-in buffers', () => {
+  const loaded = pine;
   const catalogue = v.parse(HeldEquipmentSchema,outputPlatformPayloads(loaded.output.platform,['held/equipment']).get('held/equipment'));
   const value = catalogue.tool, row = heldToolRows(value);
   const { url, loadedLevel, loadSystemId, ...recipe } = row;

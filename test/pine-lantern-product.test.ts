@@ -1,6 +1,6 @@
 import { expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
-import { readProjectAssets } from '../src/sdk/project';
+import { readPineProject } from './fixtures/pine-project';
 import { parseQuestPageInteractions, parseInteractionRows } from '../src/format/questInteractions';
 import { bindQuestPageInteractions } from '../src/game/plugin/ui';
 import { Flags } from '../src/engine/world/interact/flags';
@@ -9,8 +9,11 @@ import { QuestState } from '../src/engine/quest/core';
 import type { Interactable } from '../src/engine/world/interact/types';
 import { PINE_LANTERN_ROWS } from '../src/shards/pine-hollow/generators/interactions';
 
+// Generation is fixture preparation (readPineProject: the CLI's declared roots, b8a8db5fd4); the case reads the output.
+const pine = await readPineProject();
+
 test('the admitted lantern bytes keep prompt order and complete the pending quest without replaying effects', async () => {
-  const loaded = await readProjectAssets('src/shards/pine-hollow');
+  const loaded = pine;
   const file = loaded.output.namedFiles?.find(row => row.name === 'quests/lanterns.json');
   if (file?.kind !== 'json') throw new Error('Missing admitted lantern JSON');
   const bytes = loaded.assets.get(file.hash);

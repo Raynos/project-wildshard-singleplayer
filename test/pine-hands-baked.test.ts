@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { readProjectAssets } from '../src/sdk/project';
+import { readPineProject } from './fixtures/pine-project';
 import { HeldEquipmentSchema } from '../src/format/heldEquipment';
 import { outputPlatformPayloads } from '../src/sdk/outputProduct';
 import { HUNTER_HANDS, HANDS_MATERIAL, COAT_MATERIAL } from '../src/shards/pine-hollow/generators/handsLook';
@@ -12,8 +12,11 @@ import { CROSSBOW_HAND_HOLDS } from '../src/shards/pine-hollow/generators/crossb
 // The hands are baked (src/shards/pine-hollow/generators/handsPool.ts) and reach the client as custom/handsPool: a weapon
 // hold the bake does not carry refuses at kit build. Editing a hold means re-running bake-hands-pool.mjs with the
 // generator's HAND_SPECS row edited to match.
-test('every Pine weapon hold and the Longbow look are in the emitted hands pool', async () => {
-  const loaded = await readProjectAssets('src/shards/pine-hollow');
+// Generation is fixture preparation (readPineProject: the CLI's declared roots, b8a8db5fd4); the case reads the output.
+const pine = await readPineProject();
+
+test('every Pine weapon hold and the Longbow look are in the emitted hands pool', () => {
+  const loaded = pine;
   const held = v.parse(HeldEquipmentSchema, outputPlatformPayloads(loaded.output.platform,['held/equipment']).get('held/equipment'));
   const pool = held.hands;
   const hands: Readonly<Record<string, unknown>> = pool.hands;

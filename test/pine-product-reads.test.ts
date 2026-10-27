@@ -4,20 +4,13 @@ import { HeldEquipmentSchema } from '../src/format/heldEquipment';
 import { outputPlatformPayloads } from '../src/sdk/outputProduct';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { readProjectAssets } from '../src/sdk/project';
-// oxlint-disable-next-line import/no-nodejs-modules -- Bind the CLI's declared author and public roots.
-import { resolve } from 'node:path';
-import { decisionLegacyLines } from '../scripts/decision-legacy-lines.mjs';
+import { readPineProject } from './fixtures/pine-project';
 import { SECTIONS } from '../src/shards/pine-hollow/generators/sections';
 
 // The Pine client's product reads (sp-o270): every custom section and named blob runtime/ asks the built output for is
 // emitted, with the shapes the readers convert (skin pickups, wildlife voices, mount packs).
-// Generation is fixture preparation, with the roots the CLI declares (scripts/wildshard.mjs: the manifest, the author folder
-// and public/assets, the folder's decision line allowance); the unchanged 30 s case only reads the emitted output.
-const lines = decisionLegacyLines(resolve('.'), 'pine-hollow');
-const pine = await readProjectAssets('src/shards/pine-hollow', undefined, { folder: 'pine-hollow', file: resolve('src/shards/pine-hollow/manifest.json'),
-  imageRoots: [{ prefix: '/src/shards/pine-hollow/', directory: resolve('src/shards/pine-hollow') }, { prefix: '/assets/', directory: resolve('public/assets') }] },
-  lines === undefined ? {} : { decisionLegacyLines: lines });
+// Generation is fixture preparation (readPineProject: the CLI's declared roots); the 30 s case only reads the output.
+const pine = await readPineProject();
 
 test('Pine client reads resolve against the emitted output', () => {
   const loaded = pine, custom = loaded.output.custom;
