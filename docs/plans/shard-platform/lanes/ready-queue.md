@@ -17,7 +17,7 @@ other lane works counted plan rows; a lane with none takes the top unclaimed row
 |---|---|
 | sp-x1 | G744 ship approved hero (round-6-nalati-terrain -> public/assets/title + L16 first paint) -> G722 done 191aee7b15 -> hero retake done 0dd7ce4722 (board for Jake) -> G717 quiet misses (Nalati whole 287 ms, Pine whole, DW spawn) -> GR3 -> GR5 Far Reach -> GR7 Driftwood |
 | sp-x6 | CS0 done e463dc80af → G719 done → G717 look misses done 60f2ba740c → RM1/RM2/RM3 done aab5aca4737 → GR4 Sunscar done (23 → 0; exact743e preview/boot pass) → GR6 Nalati in flight (54 at claim) → GR8 Pine |
-| sp-x8 | G743 grid crossings < 5 s (DW 8.1, Nine 8.7, Nalati 11.6; Pine 2.6 passes): world + afterPlay stages -> T4 tail (I6y/I6z) -> T5 |
+| sp-x8 | G743 crossings <5 s warm / <8 s cold (G782); parked batches `1a9e7dc761`, final sweep `65f396768e`. H3 order done `469841245c`; P2 source recorded. A1 non-render done `3c35e29ff7`, render side with sp-o4 after H4. TS format/engine source plan closed `08b6e8455d` (T1→GR12, T5 closed). One requested Chromium capture blocked before launch by sealed Pine SDK import closure, routed x7; no Sim. |
 | sp-x2 | core memory C4 (Template native 268/246 vs 198.5 MiB) -> tile T4 to the milestone -> T10 delete the whole-shard path (G747) -> T6/T8 Codex slices; JS payload J6-J10 after extras (G730/G741) |
 | sp-x9 | G742 done 72a1482c68; B6 done af11c09e30; ratchet SW8a 1e3f0fe5b2 -> SW11 commit lock/CF1 tail (p90 <= 30 s) -> G745 phone-route smoke leg (from sp-x7, 893f149908 report-only) -> oxlint R3-R5 -> QW7 |
 | sp-x7 | releases + red repair only (G676/G485); no feature rows while main is red (lane audit 10-26) |
