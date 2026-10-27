@@ -5,8 +5,8 @@ import { deflateSync } from 'node:zlib';
 // oxlint-disable-next-line import/no-nodejs-modules -- Bundle the defining geometry producer in isolation.
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
-import * as v from 'valibot';
 import { COVER_INPUTS, coverBinName, nalatiCoverBake } from '../src/shards/nalati-grasslands/generators/coverBake.mjs';
+import { nalatiPredecessorCoverRows } from './fixtures/nalati-cover';
 import { build } from 'vite';
 import { bakeDressing } from '../src/shards/nalati-grasslands/generators/dressingGeometryRows';
 import { encodeNalatiPart } from '../src/shards/nalati-grasslands/generators/placeWire';
@@ -66,19 +66,8 @@ test('the build-time cover keeps every original cover file byte', async () => {
     for (let b = 0; b < 4; b++) for (let i = 0; i < words; i++) lanes[b * words + i] = raw[i * 4 + b] ?? 0;
     files.set(`public/assets/nalati/baked/cover-${tier}.bin`, new Uint8Array(deflateSync(lanes, { level: 9 })));
   }
-  // the retired job named its own script as each model's file and the public shape banks as the packed URLs
-  const tierRows = (tier: 'phone' | 'desktop'): unknown => {
-    const catalogue: unknown[] = [];
-    for (const row of made.rows[tier].catalogue) {
-      const parsed = v.parse(v.looseObject({ model: v.looseObject({ file: v.string() }) }), row);
-      // the pinned bytes name the retired job's own script, beside the new producer
-      catalogue.push({ ...parsed, model: { ...parsed.model, file: parsed.model.file.replace('/coverBake.mjs', '/bake-cover.mjs') } });
-    }
-    return { ...made.rows[tier], catalogue, packed: { ...made.rows[tier].packed, bin: `/assets/nalati/baked/cover-${tier}.bin` } };
-  };
-  const legacy = { phone: tierRows('phone'), desktop: tierRows('desktop'), materials: made.rows.materials, butterflies: made.rows.butterflies,
-    hue: made.rows.hue, flyScale: made.rows.flyScale, raptors: made.rows.raptors };
-  const json = new TextEncoder().encode(`${JSON.stringify(legacy, null, 2)}\n`);
+  // the rows as the retired job wrote them (its URL shape banks and its own script as each model's file)
+  const json = new TextEncoder().encode(`${JSON.stringify(nalatiPredecessorCoverRows, null, 2)}\n`);
   files.set('src/shards/nalati-grasslands/boot/cover.generated.json', json); files.set('src/shards/nalati-grasslands/data/cover.generated.json', json);
   for (const name of ['boulder-1', 'boulder-2', 'boulder-3']) { const url = `/assets/nalati/baked/cover-${name}.webp`; files.set(`public${url}`, coverRead(coverInputs)(url)); }
   expect([...files.keys()].sort()).toEqual(Object.keys(coverPins).sort());
