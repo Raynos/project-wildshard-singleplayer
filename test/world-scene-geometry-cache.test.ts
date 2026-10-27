@@ -8,7 +8,7 @@ import { AssetResidencyBridge } from '../src/game/grid/assetResidency';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { MemoryAdmission } from '../src/format/memoryAdmission';
 import { staticGlb } from '../src/sdk/bake/glb';
-import { readWorldSceneGeometry } from '../src/game/shardfile/worldSceneGeometry';
+import { cachedWorldSceneGeometry, readWorldSceneGeometry } from '../src/game/shardfile/worldSceneGeometry';
 import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
 
 const originalTier = TIER;
@@ -136,14 +136,14 @@ test('content, tier, segment order and sorted channel mappings identify complete
   scope.dispose(); f.close();
 });
 
-test('pressure refuses a live lease, then evicts idle storage and invalidates the decoder memo', async () => {
+test.each([false, true])('pressure protects live leases and evicts idle templates (revisit=%s)', async revisit => {
   const f = fixture(80), scope = new Scope('live');
-  const a = await readWorldSceneGeometry(scope, f.product, row, f.assets);
+  const a = await readWorldSceneGeometry(scope, f.product, row, f.assets, { revisit });
   expect(f.allocator.reserve({ id: 'pressure', owner: 'platform', category: 'commons', bytes: 72, needed: true, distance: 0 })).toBeNull();
   a.done(); scope.dispose();
   const pressure = f.allocator.reserve({ id: 'pressure', owner: 'platform', category: 'commons', bytes: 72, needed: true, distance: 0 });
   expect(pressure).not.toBeNull(); expect(f.assets.retained()).toEqual([]); pressure?.release();
-  const next = new Scope('next'); (await readWorldSceneGeometry(next, f.product, row, f.assets)).done();
+  const next = new Scope('next'); (await readWorldSceneGeometry(next, f.product, row, f.assets, { revisit })).done();
   expect(f.product.file).toHaveBeenCalledTimes(2);
   next.dispose(); f.close();
 });
@@ -202,4 +202,55 @@ test('retiring ancestors refuse reads and acquisitions; malformed decode and ref
   await expect(readWorldSceneGeometry(failed, f.product, row, f.assets)).rejects.toThrow('Refused fixture allocation');
   expect(f.assets.retained()).toEqual([]); expect(f.allocator.entries()).toEqual([]);
   register.mockRestore(); failed.dispose(); f.close();
+});
+
+
+test('resident revisit templates stay charged after retirement and reuse only independent copies under a recycled sim id', async () => {
+  const f = fixture(300), first = new Scope('revisit-first'), second = new Scope('revisit-next');
+  const initial = f.allocator.reserve({ id: 'sim:reused', owner: 'first', category: 'sim', bytes: 100, needed: true, distance: 0 });
+  if (initial === null) throw new Error('Missing initial runtime');
+  f.bridge.cover(first, initial);
+  const held = await readWorldSceneGeometry(first, f.product, row, f.assets, { revisit: true }), original = held.copy();
+  expect(f.allocator.cost().input.commons).toBe(72);
+  held.done(); first.dispose(); initial.release();
+  expect(f.assets.retained().map(entry => entry.refs)).toEqual([0]);
+  expect(f.allocator.cost().input.commons).toBe(72);
+  const next = f.allocator.reserve({ id: 'sim:reused', owner: 'next', category: 'sim', bytes: 100, needed: true, distance: 0 });
+  if (next === null) throw new Error('Missing returning runtime');
+  f.bridge.cover(second, next);
+  const returning = await readWorldSceneGeometry(second, f.product, row, f.assets, { revisit: true }), replacement = returning.copy();
+  try {
+    expect(f.product.file).toHaveBeenCalledTimes(1);
+    expect(f.allocator.cost().input.commons).toBe(72);
+    expect(f.allocator.entries().filter(entry => entry.category === 'commons').every(entry => entry.coveredBy === undefined)).toBe(true);
+    expect(replacement.getAttribute('position').array).toEqual(original.getAttribute('position').array);
+    expect(replacement.getAttribute('position').array.buffer).not.toBe(original.getAttribute('position').array.buffer);
+    original.getAttribute('position').setX(0, 99);
+    expect(replacement.getAttribute('position').getX(0)).toBe(0);
+    expect(() => held.copy()).toThrow('disposed');
+    expect(f.assets.evictCached(f.assets.retained()[0]?.key ?? '')).toBe(false);
+  } finally {
+    returning.done(); second.dispose(); next.release(); original.dispose(); replacement.dispose(); f.close();
+  }
+  expect(f.allocator.cost().input.commons).toBe(0);
+});
+
+test('resident revisit keys remain separate from ordinary templates and policy is captured before awaited input', async () => {
+  const f = fixture(), ordinary = new Scope('ordinary-policy'), resident = new Scope('resident-policy');
+  const first = await readWorldSceneGeometry(ordinary, f.product, row, f.assets); first.done();
+  expect(cachedWorldSceneGeometry(f.product, row, f.assets)).toBe(true);
+  expect(cachedWorldSceneGeometry(f.product, row, f.assets, { revisit: true })).toBe(false);
+  let release = (): void => undefined;
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  const product = { ...f.product, file: async (name: string) => { await gate; return f.product.file(name); } }, policy = { revisit: true };
+  const pending = readWorldSceneGeometry(resident, product, row, f.assets, policy);
+  policy.revisit = false; release();
+  const held = await pending;
+  try {
+    expect(f.product.file).toHaveBeenCalledTimes(2);
+    expect(f.assets.retained()).toHaveLength(2);
+    expect(cachedWorldSceneGeometry(f.product, row, f.assets, { revisit: true })).toBe(true);
+    const warm = await readWorldSceneGeometry(resident, f.product, row, f.assets, { revisit: true });
+    warm.done(); expect(f.product.file).toHaveBeenCalledTimes(2);
+  } finally { held.done(); ordinary.dispose(); resident.dispose(); f.close(); }
 });

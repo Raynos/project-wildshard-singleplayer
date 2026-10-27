@@ -315,7 +315,7 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
     requireSceneOwner(owner);
     while (ahead.size < MODEL_READ_AHEAD && nextModel < ownedModels.length) {
       const model = ownedModels[nextModel++];
-      if (model === undefined || ahead.has(model.file) || cachedWorldSceneGeometry(product, { file: model.file, attributes: model.model.attributes, ...(model.model.segments === undefined ? {} : { segments: model.model.segments }) }, ctx.app.assets)) continue;
+      if (model === undefined || ahead.has(model.file) || cachedWorldSceneGeometry(product, { file: model.file, attributes: model.model.attributes, ...(model.model.segments === undefined ? {} : { segments: model.model.segments }) }, ctx.app.assets, { revisit: true })) continue;
       const pending = product.file(model.file); void pending.catch(() => undefined); ahead.set(model.file, pending);
     }
   };
@@ -347,7 +347,7 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
             for (const [modelIndex, model] of neededModels.entries()) {
               readAhead();
               const file = typeof model.file === 'string' ? model.file : model.file[TIER];
-              const geometry = await readWorldSceneGeometry(owner, reader, { file, attributes: model.attributes, ...(model.segments === undefined ? {} : { segments: model.segments }) }, ctx.app.assets);
+              const geometry = await readWorldSceneGeometry(owner, reader, { file, attributes: model.attributes, ...(model.segments === undefined ? {} : { segments: model.segments }) }, ctx.app.assets, { revisit: true });
               finish.push(geometry.done); models.set(model.id, geometry);
               modelProgress(modelIndex + 1, model.id);
               // Cached templates retain the same budget without a forced task hop per lease.
