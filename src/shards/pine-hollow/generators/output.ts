@@ -54,6 +54,7 @@ import { KNIFE_LOOK } from './knifeLook';
 import toolPlayback from '../data/heldToolPlayback.json' with { type: 'json' };
 import { PINE_MODES } from './zipline';
 import { contractCatalogue } from './contractRows';
+import { CONTRACT_PROGRAM_SCRIPT, contractProgramRegistries } from './contractProgram';
 import { ContractCatalogueSchema } from '@wildshard/format/contracts';
 import { PanelDefinitionSchema } from '@wildshard/format/panelTemplate';
 import movers from '../data/movers.generated.json' with { type: 'json' };
@@ -132,7 +133,6 @@ nameBlob('look/cover-appearance.json','json',new TextEncoder().encode(encodeCano
   nameBlob('quests/services.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseQuestServiceActions(PINE_QUEST_SERVICES))), { jsonSchema: namedJsonSchema(QuestServiceActionsSchema) }),
   nameBlob('quests/story.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PAGE_STORY))),
   nameBlob('quests/achievements.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseAchievementCounterData(counterRows))), { jsonSchema: namedJsonSchema(AchievementCounterDataSchema) }),
-  nameBlob('quests/contracts.json', 'json', new TextEncoder().encode(encodeCanonicalJson(contractCatalogue())), { jsonSchema: namedJsonSchema(ContractCatalogueSchema) }),
   nameBlob('quests/mill-door.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseQuestPageInteractions(PINE_MILL_DOOR)))),
 nameBlob('quests/lanterns.json','json',new TextEncoder().encode(encodeCanonicalJson(parseQuestPageInteractions(PINE_LANTERN_PAGE)))),nameBlob('people/catalogue.json', 'json', new TextEncoder().encode(encodeCanonicalJson(FIGURE_CATALOGUE))), nameBlob('world/floor.json','json',new TextEncoder().encode(JSON.stringify(parseFloorRows(floorRows), (_key: string, value: unknown) => typeof value === 'number' ? Math.round(value * 1e5) / 1e5 : value))), nameBlob('world/prop-shapes.json','json',new TextEncoder().encode(JSON.stringify(timbers.propShapes))), nameBlob('world/props.json','json',new TextEncoder().encode(JSON.stringify(props))), nameBlob('loadout/finishes.json','json',new TextEncoder().encode(JSON.stringify(WEAPON_FINISHES)))]);
 
@@ -153,8 +153,11 @@ const heldEquipment = { ...heldTuning,
  coatTextures: { map:coatRow('coatMap'), normalMap:coatRow('coatNormal'), armMap:coatRow('coatArm') },
 };
 
+/** The platform sections' rows; `prepareOutput` adds the compiled contract programme to the return scripts. */
+const PLATFORM_ROWS = new Map<PlatformDataSectionName, unknown>([['explore/catalogue', EXPLORER_CATALOGUE],['world/trees', TREE_SET],['look/rigged-hulls', PINE_HULL_BOOK], ['look/hull-book', SPECIES_LOOKS], ['look/keyed-sky', keyedSky], ['client/plan', { ...clientPlan, features: [...clientPlan.features, { kind: 'audio.cues', id: 'roaming', stage: 'world', clock: 'owner', rows: NATIVE_VIEW.KING_CUES }, { kind: 'world.sets', rows: PLACE_SETS.map(({ id, place, name, x, z, r }) => ({ id, place, name, x, z, r, file: 'declared forest page', pois: [] })) }] }], ['ui/strings', strings], ['world/scenes', WORLD_SCENES], ['held/finishes', HELD_FINISHES], ['held/gear', HELD_GEAR], ['held/loadout', heldLoadout], ['held/equipment', heldEquipment], ['actors/species-programs', PINE_SPECIES_PROGRAMS], ['actors/spawn-scripts', [{ ...nightModule, bytes: '' }, ...elitePrograms]], ['actors/return-scripts', [PAGE_LIFE.program?.script, shelterProgram.script]], ['sim/scripts', KING_DECISION], ['actors/moves', KING_MOVES]]);
+
 /** CLI-only: runtime config imports cannot reach section emission or Node services. */
-export const output: { platform: ReturnType<typeof emitPlatformSections>; custom: ReturnType<typeof emitDefinedSections>; namedFiles: ReturnType<typeof emitNamedBlobs>["files"]; assets: ReturnType<typeof emitNamedBlobs>["assets"]; blobs: ((typeof PINE_OUTPUT.blobs)[number] | ReturnType<typeof pinePhysicsSources>[number] | { name: string; kind: "json"; source: string; options: { jsonSchema: ReturnType<typeof namedJsonSchema>; }; } | (typeof SCENE_MODEL_BLOBS)[number] | (typeof skyKeyBlobs.blobs)[number])[]; } = { ...PINE_OUTPUT, platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['explore/catalogue', EXPLORER_CATALOGUE],['world/trees', TREE_SET],['look/rigged-hulls', PINE_HULL_BOOK], ['look/hull-book', SPECIES_LOOKS], ['look/keyed-sky', keyedSky], ['client/plan', { ...clientPlan, features: [...clientPlan.features, { kind: 'audio.cues', id: 'roaming', stage: 'world', clock: 'owner', rows: NATIVE_VIEW.KING_CUES }, { kind: 'world.sets', rows: PLACE_SETS.map(({ id, place, name, x, z, r }) => ({ id, place, name, x, z, r, file: 'declared forest page', pois: [] })) }] }], ['ui/strings', strings], ['world/scenes', WORLD_SCENES], ['held/finishes', HELD_FINISHES], ['held/gear', HELD_GEAR], ['held/loadout', heldLoadout], ['held/equipment', heldEquipment], ['actors/species-programs', PINE_SPECIES_PROGRAMS], ['actors/spawn-scripts', [{ ...nightModule, bytes: '' }, ...elitePrograms]], ['actors/return-scripts', [PAGE_LIFE.program?.script, shelterProgram.script]], ['sim/scripts', KING_DECISION], ['actors/moves', KING_MOVES]])), custom, namedFiles: clientJson.files, assets: clientJson.assets, blobs: [...PINE_OUTPUT.blobs, ...pinePhysicsSources(), ...SCENE_MODEL_BLOBS, ...skyKeyBlobs.blobs].map(meshoptSource) };
+export const output: { platform: ReturnType<typeof emitPlatformSections>; custom: ReturnType<typeof emitDefinedSections>; namedFiles: ReturnType<typeof emitNamedBlobs>["files"]; assets: ReturnType<typeof emitNamedBlobs>["assets"]; blobs: ((typeof PINE_OUTPUT.blobs)[number] | ReturnType<typeof pinePhysicsSources>[number] | { name: string; kind: "json"; source: string; options: { jsonSchema: ReturnType<typeof namedJsonSchema>; }; } | (typeof SCENE_MODEL_BLOBS)[number] | (typeof skyKeyBlobs.blobs)[number])[]; } = { ...PINE_OUTPUT, platform: emitPlatformSections(PLATFORM_ROWS), custom, namedFiles: clientJson.files, assets: clientJson.assets, blobs: [...PINE_OUTPUT.blobs, ...pinePhysicsSources(), ...SCENE_MODEL_BLOBS, ...skyKeyBlobs.blobs].map(meshoptSource) };
 
 /** Build-only mode rows; page and native owners consume the admitted section. */
 export const sections: { 'state/modes': { modes: typeof PINE_MODES; }; 'world/movers': { movers: typeof movers; }; } = { 'state/modes': { modes: PINE_MODES }, 'world/movers': { movers } };
@@ -181,13 +184,36 @@ async function returnModule(ctx: ProjectGenerationContext, name: 'shelter' | 'li
   return blob;
 }
 
+/** GR8 (B5): compile the contract guest from its authored sources, as the retired bake-contracts.mjs did, and name its
+ *  Wasm as a return module: quests/contracts.json carries the row with no bytes, and the board borrows the loan. */
+async function contractModule(ctx: ProjectGenerationContext) {
+  const compiler = ctx.compileDecisionRows;
+  if (compiler === undefined) throw new Error('Pine contracts need decision-row compilation');
+  const sources = ['behaviour/contracts.as', 'behaviour/contractsRandom.as', 'behaviour/contractsRules.as'];
+  const files = await ctx.cached({ id: 'contract-program', inputs: sources }, async inputs => {
+    const authored = new Map([...inputs].map(([file, bytes]) => [file, new TextDecoder('utf-8', { fatal: true }).decode(bytes)]));
+    const built = await compiler([CONTRACT_PROGRAM_SCRIPT], contractProgramRegistries(), authored, { asLineCeiling: 256, singleSignal: true });
+    const row = built.rows[0], blob = built.blobs[0];
+    if (row === undefined || blob === undefined || built.rows.length !== 1 || built.blobs.length !== 1 || blob.file.path !== row.module) throw new Error('Missing compiled contract programme');
+    return new Map([['contracts.wasm', blob.bytes], ['contracts.json', new TextEncoder().encode(encodeCanonicalJson(row))]]);
+  });
+  const bytes = files.get('contracts.wasm'), row = files.get('contracts.json');
+  if (bytes === undefined || row === undefined || files.size !== 2) throw new Error('Missing contract programme bytes');
+  const script: unknown = JSON.parse(new TextDecoder().decode(row));
+  const blob = nameBlob('behaviour/pine.contracts.wasm', 'wasm', bytes, { critical: true, script: { abi: 1, pages: 1 } });
+  if (typeof script !== 'object' || script === null || !('module' in script) || script.module !== blob.file.path) throw new Error('Pine contract module differs from its row');
+  const catalogue = nameBlob('quests/contracts.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ ...contractCatalogue(), program: { script, bytes: '' } })), { jsonSchema: namedJsonSchema(ContractCatalogueSchema) });
+  return { script, files: emitNamedBlobs([blob, catalogue]) };
+}
+
 /** Preserve the original named inventory and its ordering while compiling both existing slots. */
 export async function prepareOutput(ctx: ProjectGenerationContext): Promise<typeof output> {
   const shelter = await returnModule(ctx, 'shelter', shelterProgram);
-  const life = await returnModule(ctx, 'life', LIFE_PROGRAM), birds = await phoneBirdsAtlasOutput(ctx), client = await pineClientBlobs(ctx), creatures = await pineCreatureBlobs(ctx), rigs = await pineRigBlobs(ctx);
-  const namedFiles = [...output.namedFiles, life.file, ...birds.files, ...client.files, ...creatures.files, ...rigs.files].sort((a, b) => (a.name ?? '') < (b.name ?? '') ? -1 : (a.name ?? '') > (b.name ?? '') ? 1 : 0);
-  const assets = new Map([...output.assets, ...birds.assets, ...client.assets, ...creatures.assets, ...rigs.assets]);
+  const life = await returnModule(ctx, 'life', LIFE_PROGRAM), birds = await phoneBirdsAtlasOutput(ctx), client = await pineClientBlobs(ctx), creatures = await pineCreatureBlobs(ctx), rigs = await pineRigBlobs(ctx), contracts = await contractModule(ctx);
+  const namedFiles = [...output.namedFiles, life.file, ...birds.files, ...client.files, ...creatures.files, ...rigs.files, ...contracts.files.files].sort((a, b) => (a.name ?? '') < (b.name ?? '') ? -1 : (a.name ?? '') > (b.name ?? '') ? 1 : 0);
+  const assets = new Map([...output.assets, ...birds.assets, ...client.assets, ...creatures.assets, ...rigs.assets, ...contracts.files.assets]);
   assets.set(life.file.hash, life.bytes);
   const sortedAssets = [...assets].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0);
-  return { ...output, namedFiles: [...namedFiles, shelter.file], assets: new Map([...sortedAssets, [shelter.file.hash, shelter.bytes]]) };
+  const platform = emitPlatformSections(new Map<PlatformDataSectionName, unknown>([...PLATFORM_ROWS, ['actors/return-scripts', [PAGE_LIFE.program?.script, shelterProgram.script, contracts.script]]]));
+  return { ...output, platform, namedFiles: [...namedFiles, shelter.file], assets: new Map([...sortedAssets, [shelter.file.hash, shelter.bytes]]) };
 }
