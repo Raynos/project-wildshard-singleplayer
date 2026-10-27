@@ -26,7 +26,7 @@ it('uses a root-matched mirror inventory without Git and refuses crossed, partia
 function fixture() {
   mkdirSync('tmp',{recursive:true});const root=mkdtempSync(resolve('tmp/generation-snapshot-'));owned.push(root);
   mkdirSync(resolve(root,'source'));writeFileSync(resolve(root,'source/input.txt'),'input');writeFileSync(resolve(root,'source/output.txt'),'output');
-  const memo=new InputHashMemo(root);memo.enableSnapshot(file=>file==='source/output.txt');bakeInputHashes(root,['source'],memo);
+  const memo=new InputHashMemo(root);memo.enableSnapshot(file=>file==='source/output.txt');bakeInputHashes(root,memo.paths('source'),memo);
   const receipt=resolve(root,'.cache/phase.json'),identity=sourceSnapshotIdentity({runtime:'fixture',recipe:['producer']});
   publishSourceSnapshot(receipt,identity,memo,{'source/output.txt':memo.hash('source/output.txt',true)});
   const valid=()=>{const current=new InputHashMemo(root);current.enableSnapshot(file=>file==='source/output.txt');return verifiedSourceSnapshot(receipt,identity,current,['source/output.txt']);};
@@ -53,7 +53,7 @@ it('refuses crossed roots, recipe changes, incomplete receipts and modified seal
 });
 
 it('refuses to publish changed source bytes or an unverified local output',()=>{
-  const {root,receipt,identity}=fixture(),memo=new InputHashMemo(root);memo.enableSnapshot(file=>file==='source/output.txt');bakeInputHashes(root,['source'],memo);
+  const {root,receipt,identity}=fixture(),memo=new InputHashMemo(root);memo.enableSnapshot(file=>file==='source/output.txt');bakeInputHashes(root,memo.paths('source'),memo);
   const output=memo.hash('source/output.txt',true);writeFileSync(resolve(root,'source/input.txt'),'other');
   expect(()=>publishSourceSnapshot(receipt,identity,memo,{'source/output.txt':output})).toThrow('Generation input changed');
   const fresh=new InputHashMemo(root);fresh.enableSnapshot(()=>false);
