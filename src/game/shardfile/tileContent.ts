@@ -401,11 +401,14 @@ export function clientTileRegistration(instances: Map<string, ClientRingInstance
       if (entered.has(instance)) throw new Error('Tile instance already entered');
       const renderRows = [...entry.source.terrain?.tiles ?? [], ...entry.source.props?.tiles ?? []];
       const keys = new Set(renderRows.map(tile => `${tile.lod}/${tile.x}/${tile.z}`));
+      const occupied = new Set(entry.source.tiles.filter(tile => tile.draws > 0 || tile.triangles > 0)
+        .map(tile => `${tile.lod}/${tile.x}/${tile.z}`));
       // T8 owns complete occupied L1 coverage. Never replace a missing parent
       // with permanently resident shard-wide fine tiles after T10.
       for (const tile of entry.source.tiles) {
         if (tile.lod !== 0 || !keys.has(`0/${tile.x}/${tile.z}`) || tile.draws === 0 && tile.triangles === 0) continue;
-        if (!keys.has(`1/${Math.floor(tile.x / 2)}/${Math.floor(tile.z / 2)}`)) throw new Error('Entered tile lacks its T8 coarse parent');
+        const parent = `1/${Math.floor(tile.x / 2)}/${Math.floor(tile.z / 2)}`;
+        if (!keys.has(parent) || !occupied.has(parent)) throw new Error('Entered tile lacks its T8 coarse parent');
       }
       const requirements: TileRequirement[] = [];
       let closed = false, registered = false;

@@ -142,6 +142,7 @@ since is red; the latest (`60e9b7bfe6`) fails `generated-inputs`, which fails fa
 | D85 | Existing `grid-warm-neighbour`, `grid-build-ahead` and related retained-world controls expect whole-world speculative constructors removed by tile T7.7. New render-only controls are typed; old behavioural expectations need migration, no tests executed/deleted under G769 | `d27bab4e35` (T7.7) | sp-x8 | open fixture migration alongside the remaining T7 runtime/eviction source; no executed test result claimed |
 
 | D86 | WT generation preflight refused Incomplete generation job nalati-admission after its writer was deleted while the catalogue still named it | sp-o2 inherited admission WIP (no bad main SHA; not current Weather packet) | sp-o2 (restoration); sp-x10 owns proper retirement | fixed WT restoration by sp-o2 per coordinator: original writer and three outputs restored, actual discoverGeneration passes again. Future source retirement stays atomic with its catalogue. |
+| D87 | Exact landed tile plan-end preview refuses Driftwood coarse wire: tile/1/1/2/compressed254408 and tile/1/3/2/compressed245916 exceed unlisted zero allowances; generation passed, no browser opened, original cap/refusal retained | observed `291c84c140` (not causal attribution; first failing local build) | Driftwood coarse/budget owner sp-o4 (routed via sp-x10) | open; log tmp/sp-x2/s3-plan-end/preview-current.log. S3/T10 acceptance remains unmeasured; no further preview queued. |
 
 ## Rows
 

@@ -96,6 +96,19 @@ test('a missing occupied coarse parent refuses before resident registration afte
   expect(f.pins()).toBe(0); expect(f.allocator.entries()).toHaveLength(0);
 });
 
+test('an empty coarse row cannot cover an occupied fine tile after T10', async () => {
+  const f = fixture();
+  for (const row of f.entered.source.tiles) if (row.lod === 1) { row.draws = 0; row.triangles = 0; }
+  try {
+    await expect(f.registration.enter('home', f.entered, f.resident, camera)).rejects.toThrow('T8 coarse parent');
+    expect(f.registration.owns('home')).toBe(false);
+    expect(f.instances.get('home')).toBe(f.neighbour);
+    expect(f.entered.root.children).toHaveLength(0);
+    expect(f.pins()).toBe(0); expect(f.allocator.entries()).toHaveLength(0);
+  } finally { f.scope.dispose(); }
+  expect(f.pins()).toBe(0); expect(f.allocator.entries()).toHaveLength(0);
+});
+
 test('data entry waits for offered near coverage and retires with its regional owner', async () => {
   const f = fixture();
   try {
