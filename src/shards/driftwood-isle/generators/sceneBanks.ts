@@ -59,7 +59,14 @@ export async function driftwoodSceneBanks(inputs: DriftwoodSceneBankInputs): Pro
 }
 /** The product build's banks: the fixed files and the public inputs come through the owned-byte cache. */
 export async function driftwoodSceneBanksCached(ctx: Pick<ProjectGenerationContext, 'cached'>): Promise<DriftwoodSceneBanks> {
-  const files = await ctx.cached({ id: 'driftwood-scene-bank-inputs', inputs: DRIFTWOOD_SCENE_BANK_INPUTS }, inputs => new Map(inputs));
+  // a cached file name is project-relative, so each public input is kept under its URL without the leading slash
+  const cached = await ctx.cached({ id: 'driftwood-scene-bank-inputs', inputs: DRIFTWOOD_SCENE_BANK_INPUTS }, inputs =>
+    new Map([...inputs].map(([url, bytes]) => [url.slice(1), bytes])));
+  const files = new Map(DRIFTWOOD_SCENE_BANK_INPUTS.map(url => {
+    const bytes = cached.get(url.slice(1));
+    if (bytes === undefined) throw new Error(`Missing cached Driftwood scene bank input: ${url}`);
+    return [url, bytes] as const;
+  }));
   return driftwoodSceneBanks({ fixed: await driftwoodFixedFiles(ctx), files, facts: await driftwoodIslandFacts(ctx) });
 }
 /** A retained build driver's banks (the map bake, the specimen catalogue): the fixed program runs on its declared public
