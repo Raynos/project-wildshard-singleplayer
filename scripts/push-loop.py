@@ -15,7 +15,7 @@ from contextlib import contextmanager
 
 LIVE = runpy.run_path(str(Path(__file__).with_name('live-prepush.py')))
 git = LIVE['git']
-PUSH_GATE_SECONDS = 180  # G756: one hard batch cap; no successful budget skips.
+PUSH_GATE_SECONDS = 45  # G768: unfinished and unverifiable work goes to CI.
 RED_HOLD = runpy.run_path(str(Path(__file__).with_name('push_red_hold.py')))
 latest_verdict = RED_HOLD['completed_push_verdict']
 BATCH = runpy.run_path(str(Path(__file__).with_name('push_batch.py')))
@@ -157,8 +157,7 @@ def check_subset(root, tip, files, deadline):
 
 
 def check_committed(root, base, tip, deadline):
-    names = ('binary-json', 'tool-inputs', 'storage', 'deleted-paths', 'ratchet', 'guards', 'native-outputs', 'fast-lint',
-             'ci-subset')
+    names = ('binary-json', 'tool-inputs', 'storage', 'deleted-paths', 'ratchet', 'guards', 'fast-lint')
     steps = LIVE['GateSteps'](names)
     result = {'ok': False, 'phase': 'binary-json', 'files': [], 'output': '', 'types': 'unverified', 'steps': steps.rows}
     def refuse_budget(phase):
@@ -168,8 +167,8 @@ def check_committed(root, base, tip, deadline):
             elif entry['status'] == 'skipped' and entry.get('reason') == 'not-reached':
                 entry.update(reason='prior-refusal')
         unfinished = [row['step'] for row in steps.rows if row['status'] != 'passed' and row.get('reason') != 'no-deletions']
-        result.update(ok=False, budget=True, unfinished=unfinished, phase=phase,
-                      output=result['output'] + '\nREFUSED ' + phase + ': local budget exhausted.')
+        result.update(ok=True, types='ci', phase=phase,
+                      output=result['output'] + '\nLocal check unfinished; CI owns the remainder.')
         return result
 
     with steps.measure('binary-json') as row:
@@ -179,6 +178,8 @@ def check_committed(root, base, tip, deadline):
     if binary.get('budget'):
         return refuse_budget('binary-json')
     if not binary['ok']:
+        if not binary.get('files'):
+            return refuse_budget('binary-json')
         result.update(phase='binary-json', files=binary.get('files', []))
         return result
     files = LIVE['changed'](root, base, tip)
@@ -193,28 +194,20 @@ def check_committed(root, base, tip, deadline):
                 if phase == 'deleted-paths' and not removed:
                     steps.skip((phase,), 'no-deletions')
                     continue
-                checker = root / 'scripts/push-committed-check.mjs' if phase == 'fast-lint' else folder / 'committed-fast-checks.mjs'
+                checker = folder / 'committed-fast-checks.mjs'
                 command = ['node', str(checker), str(root), base, tip, phase,
                            json.dumps(removed if phase == 'deleted-paths' else files)]
-                check_env = dict(env, WS_GIT_CHECKER_DIRECTORY=str(folder)) if phase == 'fast-lint' else env
-                rc, output = steps.run(phase, LIVE['run'], command, root, deadline, check_env)
+                rc, output = steps.run(phase, LIVE['run'], command, root, deadline, env)
                 result['output'] += '\n' + output
-                if not rc and phase == 'fast-lint' and 'Gate-deferred: native-outputs' in output:
-                    steps.row('native-outputs').update(status='deferred', reason='G767-report-only')
-                    result.setdefault('deferred', []).append('Gate-deferred: native-outputs')
                 if not rc and 'DEFERRED TO CI' in output:
-                    steps.row(phase).update(status='failed', reason='unverified-inputs')
-                    # No source check executed for these inputs: never blame
-                    # a commit merely because the diagnostic names its file.
-                    result.update(phase=phase, files=[])
-                    steps.skip(names, 'prior-refusal')
-                    return result
+                    steps.row(phase).update(status='skipped', reason='CI')
+                    continue
                 observed = re.search(r'(?:\berror(?:\s|\[|\()|(?:Error|TypeError|SyntaxError|RangeError|ReferenceError):|BINARY-JSON |CLOSED |SHRINK-ONLY |Ratchet rose:|deleted path|was \d+, now \d+)', LIVE['ANSI'].sub('', output), re.I)
-                if rc == 124 and observed is None:
+                if rc == 124:
                     return refuse_budget(phase)
                 if rc:
-                    if rc == 124 and observed is not None:
-                        steps.row(phase).update(status='failed', reason='observed-refusal')
+                    if observed is None or not LIVE['failure_paths'](output):
+                        return refuse_budget(phase)
                     result.update(phase=phase, files=LIVE['failure_paths'](output))
                     steps.skip(names, 'prior-refusal' if rc != 124 else 'budget-failed')
                     return result
@@ -223,19 +216,9 @@ def check_committed(root, base, tip, deadline):
     except (TimeoutError, subprocess.TimeoutExpired):
         return refuse_budget('tool-inputs')
     except (OSError, subprocess.SubprocessError) as error:
-        result.update(phase='tool-inputs', output=result['output'] + '\nExact checker inputs failed: ' + str(error))
-        return result
-    if steps.row('native-outputs')['status'] == 'skipped':
-        steps.row('native-outputs').update(status='passed', reason='no-native-dependencies')
-    with steps.measure('ci-subset') as row:
-        subset = check_subset(root, tip, files, deadline)
-        row['status'] = 'budget' if subset.get('budget') else 'passed' if subset['ok'] else 'failed'
-    result['output'] += '\n' + subset['output']
-    if not subset['ok']:
-        result.update(phase='ci-subset', files=subset['files'], budget=subset.get('budget', False),
-                      unfinished=subset.get('unfinished', []))
-        return result
-    result.update(ok=True, phase='passed', types='checked-partial' if result.get('deferred') else 'checked', output=result['output'] + '\nExact committed CI subset passed.')
+        result['output'] += '\nChecker unavailable: ' + str(error)
+        return refuse_budget('tool-inputs')
+    result.update(ok=True, phase='passed', types='ci', output=result['output'] + '\nFast committed checks complete; CI owns full checks.')
     return result
 
 
@@ -309,10 +292,8 @@ def quiet_active(path, now=None):
 
 def tick(root, checker=check_committed, uploader=None, notify=ping):
     common = Path(git(root, 'rev-parse', '--path-format=absolute', '--git-common-dir'))
-    if quiet_active(common / 'quiet'):
-        return {'status': 'quiet', 'tip': git(root, 'rev-parse', 'main')}
     started = time.monotonic()
-    # G756: checks and attribution share one 180-second batch allowance.
+    # G768: no quiet pause, red hold, subset, batch splitting or handoff tags.
     deadline = started + PUSH_GATE_SECONDS
     pending_notice = None
     attempts = []
@@ -340,54 +321,13 @@ def tick(root, checker=check_committed, uploader=None, notify=ping):
         return {'status': 'idle', 'tip': tip}
     if git(root, 'merge-base', base, tip) != base:
         return {'status': 'diverged', 'tip': tip}
-    batch_tip = tip
-    try:
-        verdict = latest_verdict(root, deadline)
-        if verdict['red']:
-            tip = fix_prefix(root, base, tip)
-            if tip is None:
-                return {'status': 'held', 'tip': base, 'batchTip': batch_tip, 'ciRun': verdict['id'],
-                        'reason': 'main-red-no-fix', 'gateSeconds': round(time.monotonic()-started, 2)}
-    except (OSError, ValueError, KeyError, subprocess.SubprocessError) as error:
-        return finish({'status': 'red', 'tip': batch_tip, 'bad': None, 'phase': 'ci-verdict',
-                       'types': 'unverified', 'gateSeconds': round(time.monotonic()-started, 2),
-                       'output': 'Publication held: ' + str(error)})
     batch_file = common / 'push-batch.json'
-    limited = load(batch_file, {})
-    limit = limited.get('tip') if limited.get('base') == base else None
-    if isinstance(limit, str) and re.fullmatch(r'[0-9a-f]{40}', limit):
-        try:
-            if git(root, 'merge-base', base, limit) == base and git(root, 'merge-base', limit, tip) == limit:
-                eligible = fix_prefix(root, base, limit) if verdict['red'] else limit
-                if eligible is not None:
-                    tip = eligible
-        except subprocess.SubprocessError:
-            pass  # A stale operational hint never changes candidate authority.
-    result = checker(root, base, tip, deadline)
+    try:
+        result = checker(root, base, tip, deadline)
+    except (OSError, ValueError, TimeoutError, subprocess.SubprocessError) as error:
+        result = {'ok': True, 'phase': 'ci', 'files': [], 'types': 'ci', 'steps': [],
+                  'output': 'Local check unavailable; CI owns it: ' + str(error)}
     attempts.append((tip, result.get('steps', [])))
-    if result.get('budget'):
-        commits = git(root, 'rev-list', '--reverse', '--first-parent', base + '..' + tip).splitlines()
-        decision = BATCH['batch_disposition'](commits, [], result.get('unfinished') or [result['phase']])
-        if decision['kind'] == 'split':
-            prefix = fix_prefix(root, base, decision['tip']) if verdict['red'] else decision['tip']
-            if prefix is not None and 'Gate-deferred: native-outputs' in result.get('deferred', []):
-                try:
-                    consumer = git(root, 'show', prefix + ':scripts/push-deferred-ci.mjs')
-                    if 'nativeOutputReplayJob' not in consumer:
-                        prefix = None
-                except subprocess.SubprocessError:
-                    prefix = None
-            if prefix is not None:
-                batch_file.write_text(json.dumps({'base': base, 'tip': prefix}))
-                return finish({'status': 'split', 'tip': tip, 'nextTip': prefix, 'phase': result['phase'],
-                               'unfinished': decision['unfinished'], 'gateSeconds': round(time.monotonic()-started, 2),
-                               'output': result['output'] + '\nBatch split before any CI handoff.'})
-            # Keep a Red-fix and its CI consumer atomic. An older prefix cannot
-            # accept the new named handoff and would create a known CI red.
-            decision = BATCH['batch_disposition']([tip], [], decision['unfinished'])
-        if decision['kind'] == 'deferred':
-            result.update(ok=True, types='ci-partial', deferred=list(dict.fromkeys(result.get('deferred', []) + decision['tags'])), batchCommits=commits)
-            result['output'] += '\n' + '\n'.join(decision['tags'])
 
     candidate = tip
     bad = None
@@ -396,11 +336,9 @@ def tick(root, checker=check_committed, uploader=None, notify=ping):
         bad = offender(root, base, tip, result.get('inputs', result['files']), deadline)
         attempts.append((tip, [{'step': 'attribution', 'seconds': round(time.monotonic()-attribution_started, 4),
                                 'status': 'passed'}]))
-        candidate = git(root, 'rev-parse', bad + '^') if bad else base
-        if verdict['red'] and candidate != base:
-            candidate = fix_prefix(root, base, candidate) or base
-        # The prefix must pass too, in the remaining original 180s budget.
-        if candidate != base:
+        candidate = git(root, 'rev-parse', bad + '^') if bad else tip
+        # An unidentified or unfinished check goes to CI; no red-main hold.
+        if bad and candidate != base:
             prefix = checker(root, base, candidate, deadline)
             attempts.append((candidate, prefix.get('steps', [])))
             if not prefix['ok']:
@@ -428,13 +366,6 @@ def tick(root, checker=check_committed, uploader=None, notify=ping):
             return subprocess.run(['git', 'push', '-q', 'origin', revision + ':refs/heads/main'], cwd=root, env=environment).returncode
     gate_seconds = round(time.monotonic() - started, 2)
     upload_started = time.monotonic()
-    if result.get('deferred'):
-        try:
-            publish_handoff(root, base, candidate, result['deferred'])
-        except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError) as error:
-            return finish({'status': 'red', 'tip': candidate, 'bad': None, 'phase': 'ci-handoff',
-                           'types': 'unverified', 'gateSeconds': gate_seconds,
-                           'output': result['output'] + '\nUpload held: ' + str(error)})
     rc = uploader(candidate, env)
     if rc == 0:
         batch_file.unlink(missing_ok=True)

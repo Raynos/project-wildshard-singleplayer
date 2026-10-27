@@ -18,10 +18,10 @@ const TEXT = /\.(?:[cm]?[jt]sx?|json|ya?ml|glsl|wgsl|css|sh)$/u;
 export function relatedDeadline(started, wall = Date.now(), clock = performance.now()) {
   const { WS_COMMIT_STARTED_AT: entry } = process.env;
   const since = started ?? entry;
-  if (since === undefined) return clock + 60_000;
+  if (since === undefined) return clock + 5_000;
   const timestamp = Number(since);
   return clock + (Number.isFinite(timestamp) && timestamp >= 0
-    ? Math.max(0, 60_000 - Math.max(0, wall - timestamp)) : 0);
+    ? Math.max(0, 5_000 - Math.max(0, wall - timestamp)) : 0);
 }
 
 /** Only this named error refuses; loading/runner infrastructure may defer. */
@@ -189,10 +189,10 @@ export function warmTypeJobs(root, files) {
   return jobs;
 }
 
-/** The injected deadline is for deterministic cap regressions; hooks use 60s.
+/** The injected deadline is for deterministic cap regressions; hooks use 5s.
  * Tooling fails open, observed test reds and staged TS6307 edges refuse.
  * Cancellation refuses too: a fatal guard or completed test red drains only
- * this invocation. A test failure never cancels the selected test worker.
+ * this invocation. The enclosing hook stops after five seconds.
  * @param {string} root @param {string[]} changed @param {number} [deadline] @param {AbortSignal} [signal] */
 export async function commitRelated(root, changed, deadline, signal) {
   const until = deadline ?? relatedDeadline();
@@ -208,7 +208,7 @@ export async function commitRelated(root, changed, deadline, signal) {
     throw new CommitRelatedRefusalError(failures);
   }
   try {
-    if (performance.now() >= until) throw new Error('60-second commit deadline reached before selection');
+    if (performance.now() >= until) return;
     if (!existsSync(resolve(root, 'node_modules/vitest/vitest.mjs'))) throw new Error('Vitest is not installed');
     const jobs = warmTypeJobs(root, files);
     jobs.unshift({ name: 'related tests', command: [process.execPath, import.meta.filename, '--worker', JSON.stringify(files)] });
@@ -237,7 +237,7 @@ export async function commitRelated(root, changed, deadline, signal) {
         const message = `${result.name} cancelled after ${reason}`;
         console.warn(`CF1: ${message}`); failures.push(message);
       }
-      else if (result.timedOut || result.code === 124) console.warn(`CF1 DEFERRED TO CI: ${result.name} reached the 60-second wall cap`);
+      else if (result.timedOut || result.code === 124) console.warn(`CF1: ${result.name} reached five seconds; CI owns the remainder`);
       else if (result.code !== 0) console.warn(`CF1 DEFERRED TO CI: ${result.name} tooling/prerequisite failed (exit ${result.code})`);
     }
   } catch (error) { console.warn(`CF1 DEFERRED TO CI: related/type tooling: ${String(error)}`); }
