@@ -53,8 +53,12 @@ export function materialVariantOf(url){
  *  both tiers. */
 export function materialTier(sources,url){
  const {gpu,astc}=gpuTables(sources);
- if(Object.values(gpu.desktop).includes(url)||/\.desktop-[0-9a-f]+\.gltf$/u.test(url))return 'desktop';
- if(Object.values(gpu.phone).includes(url)||Object.values(astc).includes(url)||/\.phone[.-]/u.test(url))return 'phone';
+ const desktop=Object.values(gpu.desktop).includes(url)||/\.desktop-[0-9a-f]+\.gltf$/u.test(url);
+ const phone=Object.values(gpu.phone).includes(url)||Object.values(astc).includes(url)||/\.phone[.-]/u.test(url);
+ // I2: a twin both tables name (each `-lod1`'s one GPU twin) is fetched by both tiers: the phone read it as a desktop file
+ if(desktop&&phone)return undefined;
+ if(desktop)return 'desktop';
+ if(phone)return 'phone';
  // a GPU twin that is not a phone twin is the desktop's
  if(url.startsWith('/assets/gpu/'))return 'desktop';
  if(url.endsWith('.glb')&&sources.has(`${url.slice(0,-'.glb'.length)}.phone.glb`))return 'desktop';
