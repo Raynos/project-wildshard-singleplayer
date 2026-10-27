@@ -123,3 +123,15 @@ it('packs the generated Template map with all declared level images through the 
   const map = loaded.shard.map; if (map === undefined) throw new Error('Missing generated Template map');
   expect(loaded.assets.get(map.image)).toBeInstanceOf(Uint8Array);
 });
+
+it('the normal project adapter declares Explorer-only art late with full image costs', async () => {
+  const {project, manifest, bytes} = fixture(), image = Uint8Array.from(readFileSync('test/fixtures/world-source/image.webp'));
+  const authored = parseManifestMetadata(JSON.parse(readFileSync(manifest.file, 'utf8')));
+  authored.explore.art.world = '/src/shards/level-test/explorer.webp';
+  writeFileSync(resolve(project, 'explorer.webp'), image); writeFileSync(manifest.file, JSON.stringify(authored));
+  const loaded = await readProjectAssets(project, undefined, manifest), hash = hashImmutableBytes(image);
+  expect(loaded.shard.late).toEqual([{hash}]);
+  expect(loaded.shard.library).toEqual(expect.arrayContaining([hash,hashImmutableBytes(bytes)]));
+  expect(loaded.assets.get(hash)).toEqual(image);
+  expect(loaded.shard.files.find(row => row.hash === hash)).toMatchObject({compressed:image.length,...assetCost('image',image)});
+});

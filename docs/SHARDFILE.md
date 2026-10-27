@@ -679,6 +679,11 @@ adapter validates and owns this metadata, admits the blobs first, then merges
 the hints into `source.late` after their library roots exist. `nameBlob` and its
 file metadata stay unchanged. Low-level writers may set `source.late` directly
 once those roots are declared. Both routes emit the same `admission.late`.
+The ordinary manifest packer also declares Explorer-only gallery/comparison
+images late. A byte-identical card, map, sky or horizon image stays early even
+when authored under another URL. Explicit positioned hints win; automatic hints
+never change existing commons or non-library file ownership. Full image bytes
+and costs remain declared; opening Explorer may demand its art immediately.
 
 Small-file transport packs separate descriptor sections, required control bodies,
 and deferred bodies. The SDK writer and phone admission use the same dependency

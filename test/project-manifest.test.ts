@@ -29,3 +29,16 @@ it('keeps inert inline images and refuses missing bytes or folder escapes', () =
   expect(() => packManifestImages('_template',input,new Map())).toThrow('missing');
   expect(() => packManifestImages('../escape',input,images)).toThrow('output folder');
 });
+
+it('defers only Explorer image hashes with no card, map, sky or horizon alias', () => {
+  const input = parseManifestMetadata(metadata), early = Uint8Array.from(readFileSync('test/fixtures/world-source/image.png')),
+    late = Uint8Array.from(readFileSync('test/fixtures/world-source/image.webp'));
+  input.explore.art.world = '/assets/fixture-explorer.webp';
+  const images = new Map(manifestImages(input).map(row => [row.url, row.url === input.explore.art.world ? late : early]));
+  const result = packManifestImages('far-reach', input, images), blob = result.blobs.find(row => row.bytes.length === late.length);
+  if (blob === undefined) throw new Error('Missing Explorer fixture image');
+  expect(result.late).toEqual([{hash:blob.file.hash}]);
+  const shared = new Map(manifestImages(input).map(row => [row.url, early]));
+  expect(packManifestImages('far-reach', input, shared).late).toEqual([]);
+  expect(result.blobs.find(row => row.file.hash === blob.file.hash)?.bytes).toEqual(late);
+});

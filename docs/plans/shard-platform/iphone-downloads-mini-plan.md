@@ -657,6 +657,8 @@ closed; shared preview4406 released/stopped after the read.
 
 ### I2.7 Keep deferred bodies out of control packs (2026-10-27, sp-x2)
 
+Source: `6a9ab1609a` (pushed).
+
 In flight (reading at plan end): the producer adapter9e4f6f359e and
 clock correction09e5221805 follow late contractd181227f53. This slice
 separates small required and deferred body packs, using the same pure
@@ -682,3 +684,25 @@ both original12MB/250-total limits. Those measurements predate this pack
 change and do not establish a saving for it. The original all24 baseline
 is retained; the eventual joint heavy-three read must include producer
 hints and this pack grouping before I2 can qualify.
+
+### I2.8 Explorer-only manifest art (2026-10-27, sp-x2)
+
+In flight (reading at plan end): the generic manifest packer emits late
+hints for gallery and comparison image hashes only. Image bytes shared
+with any card, map, sky or horizon remain early regardless of authored
+URL. Normal readProjectAssets forwards those hints after the image blobs
+are admitted. Explicit authored positions win; commons and existing
+non-library roots are untouched. All bytes, names, library membership
+and conservative image costs remain; Explorer can request art earlier
+through its existing verified reader. No shard-name branch or new host.
+
+SDK and scoped fixture types, typed lint and source-path ratchet pass.
+Source controls cover distinct Explorer art, a same-byte/different-URL
+early alias, and normal project intake with exact full image costs.
+Not executed before landing under G769; no product/preview/browser read.
+The prior21c blob/image traffic was Pine32requests/6972179B,
+Nalati1/724014B and Nine2/369316B, but includes images that are not solely
+Explorer art: it is not an expected or measured saving. I2 remains0/3
+on the last heavy-three read, original12MB/250-total bars unchanged.
+Joint read awaits the actual heavy content hints and x9 JS-pack source;
+no duplicate baseline and no physical-phone acceptance claim.
