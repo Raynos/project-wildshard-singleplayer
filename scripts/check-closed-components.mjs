@@ -4,7 +4,6 @@ import { pathToFileURL } from 'node:url';
 import * as v from 'valibot';
 import { COMPONENTS, COMPONENT_SHARDS, componentInventory } from './shard-components.mjs';
 import { codeLines, declarationOnlyConfig, declarationOnlyManifest, jsonTypeContract, shaderCodeLines, sourceProgressInventory } from './shard-platform.mjs';
-import { discoverGeneration } from './generate.mjs';
 
 /** Closed component policy contains identities only: no adjustable line budgets.
  * @param {unknown} [input] */
@@ -44,8 +43,8 @@ export function closedComponentSources(root, input) {
   const shards = new Set(Object.keys(locks));
   if (existsSync(directory)) for (const entry of readdirSync(directory, { withFileTypes: true }))
     if (entry.isDirectory() && !entry.name.endsWith('-legacy')) shards.add(entry.name);
-  const generated = new Set(existsSync(resolve(root, 'scripts/generation-jobs.json'))
-    ? discoverGeneration(root).jobs.flatMap(job => job.outputs) : []);
+  /** @type {Set<string>} */
+  const generated = new Set();
   const retained = resolve(root, 'scripts/source-generation-outputs.json');
   if (existsSync(retained)) {
     const catalogue = v.parse(v.strictObject({ schema: v.literal('source-generation-outputs/1'),

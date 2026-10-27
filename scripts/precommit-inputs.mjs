@@ -11,10 +11,9 @@ import { readLintConfig } from './guard-counts.mjs';
  * snapshot. Ordinary missing modules remain failures of the selected guard.
  * @param {string} root @param {string} guard @returns {string[]} */
 export function missingInventoryGeneration(root, guard) {
-  if(!existsSync(resolve(root,'scripts/generation-jobs.json'))||!existsSync(resolve(root,'scripts/source-generation-outputs.json')))return [];
-  const catalogue=v.parse(v.object({jobs:v.array(v.object({outputs:v.array(v.string())}))}),JSON.parse(readFileSync(resolve(root,'scripts/generation-jobs.json'),'utf8')));
+  if(!existsSync(resolve(root,'scripts/source-generation-outputs.json')))return [];
   const source=v.parse(v.object({producers:v.record(v.string(),v.array(v.string()))}),JSON.parse(readFileSync(resolve(root,'scripts/source-generation-outputs.json'),'utf8')));
-  const generated=new Set([...catalogue.jobs.flatMap(job=>job.outputs),...Object.values(source.producers).flat()]);
+  const generated=new Set(Object.values(source.producers).flat());
   const parsed=parseSync(guard,readFileSync(resolve(root,guard),'utf8'));
   if(parsed.errors.length>0)throw new Error(`Invalid inventory guard: ${guard}`);
   const missing=[];

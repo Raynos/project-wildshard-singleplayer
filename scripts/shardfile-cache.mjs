@@ -29,9 +29,8 @@ const SKIP_TOP = new Set(['.git', '.github', '.githooks', '.claude', '.cache', '
   'node_modules', 'tmp', 'out', 'dist', 'dist-native', 'dist-drafts', 'dist-site', 'dist-admin', 'coverage',
   'art', 'progress', 'sources', 'docs', 'admin', 'site', 'drafts', 'ios', 'android', 'api', 'deploy', 'project', 'calibration']);
 const SKIP_ANYWHERE = new Set(['node_modules', '.git', '.wildshard', '.DS_Store']);
-// Outputs and derived docs inside included folders: products, legacy boot packs, the catalogue (its effect is the
-// generated files), the API surface and the scripts index (full `pnpm gen` only, so they differ by slot history).
-const SKIP_PATHS = new Set(['public/shardfiles', 'public/assets/packs', 'scripts/generation-jobs.json', 'lint/api-surface.json', 'scripts/README.md']);
+// Outputs and derived docs inside included folders: products, legacy boot packs, the API surface and the scripts index (full `pnpm gen` only, so they differ by slot history).
+const SKIP_PATHS = new Set(['public/shardfiles', 'public/assets/packs', 'lint/api-surface.json', 'scripts/README.md']);
 
 export function shardfileCacheRoot(env = process.env) {
   return resolve(env.WILDSHARD_SHARDFILE_CACHE ?? join(homedir(), '.cache/wildshard/shardfiles'));

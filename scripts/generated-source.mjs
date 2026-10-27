@@ -5,7 +5,7 @@ import { posix, resolve } from 'node:path';
 
 export const GENERATED_SOURCE_POLICY = 'lint/generated-source-debt.json';
 const SOURCE_EXEMPTIONS = 'lint/generated-import-debt.json';
-const CATALOGUES = ['scripts/generation-jobs.json', 'scripts/source-generation-outputs.json'];
+const CATALOGUES = ['scripts/source-generation-outputs.json'];
 /** @typedef {{schema:'generated-source/1',source:string,files:string[]}} SourcePolicy */
 /** @typedef {Map<string,{mode:string,oid:string}>} GitTree */
 
@@ -54,7 +54,7 @@ function declaredOutputs(read) {
   for (const file of CATALOGUES) {
     const text = read(file); if (text === undefined) continue;
     const value = JSON.parse(text);
-    const rows = file.endsWith('generation-jobs.json') ? value.jobs.map((/** @type {{outputs:unknown}} */ row) => row.outputs) : Object.values(value.producers);
+    const rows = Object.values(value.producers);
     for (const row of rows) for (const output of strings(row, file)) {
       if (!output.startsWith('src/')) continue;
       if (!sourcePath(output)) throw new Error(`GENERATED-SOURCE ${file}: invalid output ${output}`);

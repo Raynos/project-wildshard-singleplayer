@@ -7,8 +7,7 @@ import { stagedProjects } from './precommit-projects.mjs';
 
 const TEST = /\.(?:test|spec)\.[cm]?[jt]sx?$/u;
 const WIDE = /^(?:src\/(?:sdk|engine|format)\/|scripts\/(?:gen|build|bake|shardfile|product|compiler-code)[^/]*\.[cm]?[jt]s$)/u;
-const RECIPE = new Set(['package.json','pnpm-lock.yaml','scripts/generation-jobs.json','scripts/test-products.json','scripts/source-generation-outputs.json']);
-const Job = v.object({ id:v.string(), shard:v.nullable(v.string()), inputRoots:v.array(v.string()), outputs:v.array(v.string()) });
+const RECIPE = new Set(['package.json','pnpm-lock.yaml','scripts/test-products.json','scripts/source-generation-outputs.json']);
 const Registry = v.record(v.string(),v.array(v.string()));
 const sorted = (/** @type {Iterable<string>} */ names) => [...new Set(names)].sort();
 
@@ -21,8 +20,6 @@ export function selectGateChecks(root, candidate, changed) {
     if (text === undefined) throw new Error(`Gate selection requires candidate ${file}`);
     return /** @type {unknown} */ (JSON.parse(text));
   };
-  const jobs = v.parse(v.object({jobs:v.array(Job)}),read('scripts/generation-jobs.json')).jobs;
-  if (new Set(jobs.map(job => job.id)).size !== jobs.length) throw new Error('Duplicate candidate generator id');
   const registry = v.parse(Registry,read('scripts/test-products.json'));
   const frozen = candidate.paths.includes('lint/legacy-shards.json')
     ? v.parse(v.object({shards:v.record(v.string(),v.unknown())}),read('lint/legacy-shards.json')).shards : {};
@@ -43,10 +40,9 @@ export function selectGateChecks(root, candidate, changed) {
   }
   const allProducts = [...outputs.values()].flat();
   if (new Set(allProducts).size !== allProducts.length) throw new Error('Duplicate candidate product slug');
-  const catalogueChanged = changed.includes('scripts/generation-jobs.json');
   const wide = changed.some(file => !TEST.test(file) && (WIDE.test(file) || RECIPE.has(file)));
   const inputs = new Set(changed);
-  /** @type {Set<string>} */ const generators = new Set();
+  /** @type {string[]} */ const generators = [];
   /** @type {Set<string>} */ const touched = new Set();
   const addFolder = (/** @type {string} */ folder) => {
     const products = outputs.get(folder);
@@ -58,18 +54,8 @@ export function selectGateChecks(root, candidate, changed) {
     const folder = /^src\/shards\/([^/]+)\//u.exec(file)?.[1];
     if (folder !== undefined && !TEST.test(file) && outputs.has(folder)) addFolder(folder);
   }
-  let advanced;
-  do {
-    advanced = false;
-    for (const job of jobs) {
-      if (generators.has(job.id) || !catalogueChanged && !job.inputRoots.some(input => [...inputs].some(file => file === input || file.startsWith(`${input}/`)))) continue;
-      generators.add(job.id); advanced = true;
-      for (const output of job.outputs) inputs.add(output);
-      if (job.shard !== null) addFolder(job.shard);
-    }
-  } while (advanced);
   const syntax = candidateImportSources(root,candidate);
-  const paths = sorted([...candidate.paths,...jobs.flatMap(job => job.outputs)]);
+  const paths = sorted(candidate.paths);
   const related = selectRelatedSuites(syntax.sources,[...inputs],paths,20,syntax.imports);
   const tests = sorted([...related.files,...Object.entries(registry).flatMap(([file,products]) =>
     products.some(product => touched.has(product)) && candidate.paths.includes(file) ? [file] : [])]);
@@ -79,5 +65,5 @@ export function selectGateChecks(root, candidate, changed) {
   const fullTypes = wide && candidate.paths.includes('tsconfig.json');
   if (fullTypes || candidate.paths.includes('tsconfig.json') && changed.some(file => file.startsWith('test/'))) project('tsconfig.json');
   const configs = fullTypes ? ['tsconfig.json'] : [...projects].filter(([,parsed]) => parsed.fileNames.some(file => changed.includes(name(file)))).map(([config]) => config);
-  return {tests,projects:sorted(configs),products,touchedProducts:sorted(touched),generators:sorted(generators),related,wide};
+  return {tests,projects:sorted(configs),products,touchedProducts:sorted(touched),generators,related,wide};
 }

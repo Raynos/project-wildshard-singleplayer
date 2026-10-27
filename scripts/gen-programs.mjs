@@ -21,9 +21,9 @@ export function hasProjectGenerator(source) {
   });
 }
 
-/** @typedef {{products:string[],folders:string[],legacy:string[],scoped:boolean}} GenerationPlan */
+/** @typedef {{products:string[],folders:string[],scoped:boolean}} GenerationPlan */
 /** Resolve product slugs to source folders once; frozen legacy is never built.
- * Partial conversions retain the scheduler until their last catalogue row goes.
+ * Every current shard constructs its own source inputs; no scheduler catalogue is read.
  * @param {string} root @param {string} [requested] @returns {GenerationPlan} */
 export function generationPlan(root, requested) {
   const frozen = legacyInventory(root), directory = resolve(root, 'src/shards');
@@ -34,25 +34,7 @@ export function generationPlan(root, requested) {
   if (selected.length === 0 || new Set(selected).size !== selected.length
     || selected.some(slug => !/^[a-z0-9_-]+$/u.test(slug) || !products.some(row => row.slug === slug))) throw new Error(`Generation unknown or duplicate shard: ${requested}`);
   const selectedFolders = [...new Set(products.filter(row => selected.includes(row.slug)).map(row => row.folder))];
-  const programs = selectedFolders.filter(folder => hasProjectGenerator(readFileSync(resolve(directory, folder, 'shard.config.ts'), 'utf8')));
-  const catalogue = resolve(root, 'scripts/generation-jobs.json');
-  const remaining = new Set();
-  if (existsSync(catalogue)) {
-    const data = JSON.parse(readFileSync(catalogue, 'utf8'));
-    if (!Array.isArray(data.jobs)) throw new Error('Generation catalogue needs jobs');
-    for (const job of data.jobs) remaining.add(job.shard);
-  }
-  const converted = new Set(programs.filter(folder => !remaining.has(folder)));
-  return { products: selected, folders: selectedFolders, legacy: selectedFolders.filter(folder => !converted.has(folder)), scoped: requested !== undefined };
-}
-
-/** Only the legacy branch imports generate.mjs. The ordinary builder retains
- * its pool, byte validation, maps, cache receipts and failure propagation.
- * @param {string} root @param {GenerationPlan} plan @param {number} concurrency */
-export async function prepareProgramInputs(root, plan, concurrency) {
-  if (plan.legacy.length === 0) return;
-  const { prepareGeneration } = await import('./generate.mjs');
-  await prepareGeneration(root, { concurrency, ...(plan.scoped ? { shards: plan.legacy } : {}) });
+  return { products: selected, folders: selectedFolders, scoped: requested !== undefined };
 }
 
 /** @param {string} root @param {GenerationPlan} plan @param {boolean} [reuse] */

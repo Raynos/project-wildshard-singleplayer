@@ -165,13 +165,7 @@ function buildTree(repo, sha, full) {
 // Treat each producer's outputs as a unit across syncs, including interrupted
 // generation and tracked-to-generated migrations. Never remove authored files.
 function generatedGroups(dir) {
-  const catalog = join(dir, 'scripts/generation-jobs.json');
   const groups = [];
-  if (existsSync(catalog)) {
-    /** @type {{jobs: {buildTimeOutputs?: string[], buildOutputs?: Record<string, string>}[]}} */
-    const { jobs } = JSON.parse(readFileSync(catalog, 'utf8'));
-    for (const job of jobs) groups.push((job.buildTimeOutputs ?? []).concat(Object.keys(job.buildOutputs ?? {})));
-  }
   const sourceCatalog = join(dir, 'scripts/source-generation-outputs.json');
   if (existsSync(sourceCatalog)) {
     /** @type {{producers: Record<string, string[]>}} */

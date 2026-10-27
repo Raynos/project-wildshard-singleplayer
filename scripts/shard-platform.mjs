@@ -14,7 +14,6 @@ import { g571HostApprovals, approvedG571Host } from './g571-hosts.mjs';
 import { legacyInventory } from './legacy-shards.mjs';
 import { declarationConfigProgram } from '../lint/declaration-config.mjs';
 import { shardLineBaselines } from './decision-legacy-lines.mjs';
-import { discoverGeneration } from './generate.mjs';
 import { componentInventory, COMPONENT_SHARDS, SHARD_WAVES } from './shard-components.mjs';
 import { loadListedViews, listedViewInventory } from './listed-view-code.mjs';
 import { createOutputReader } from './shard-platform-output.mjs';
@@ -656,7 +655,8 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
   const exists = (path) => { let hit = probes.get(path); if (hit === undefined) { hit = existsSync(resolve(root, path)); probes.set(path, hit); } return hit; };
   const counts = new Map();
   const frozen = legacyInventory(root), baselines = shardLineBaselines(root);
-  const generated = new Set(exists('scripts/generation-jobs.json') ? discoverGeneration(root).jobs.flatMap(job => job.outputs) : []);
+  /** @type {Set<string>} */
+  const generated = new Set();
   // Retained source tables also have exact producer/output identities; older tooling predates generation jobs.
   const sourceOutputs = 'scripts/source-generation-outputs.json';
   if (exists(sourceOutputs)) {

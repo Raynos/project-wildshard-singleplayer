@@ -166,10 +166,8 @@ def required_sources(blobs, specification, tree=None, executable=None, staged_pa
             if len(path.parts) > 3 and path.parts[:2] == ('src', 'shards') and not path.parts[2].endswith('-legacy'):
                 if path.suffix in {'.ts', '.tsx', '.glsl'} and '/generators/' not in name and not re.search(r'\.d\.ts$|\.(?:test|spec)\.tsx?$|/test/', name):
                     selected.add(name)
-        catalogue = json.loads(blobs.get('scripts/generation-jobs.json', b'{"jobs":[]}'))
-        selected.update(job['entry'] for job in catalogue['jobs'])
         selected.update(name for name in blobs if re.search(r'/(?:generators/)?bake-[^/]+\.(?:mjs|ts)$', name))
-        selected.update(['scripts/generation-jobs.json', 'scripts/source-generation-outputs.json'])
+        selected.add('scripts/source-generation-outputs.json')
     if 'test/schema-reference.test.ts' in specification.get('guards', []):
         for layer in ['sdk', 'format']:
             manifest = json.loads(blobs.get(f'src/{layer}/package.json', b'{}'))
@@ -270,10 +268,8 @@ def check_staged_imports(blobs, files, staged_paths, imports):
     def declared_output(file):
         nonlocal generated
         if generated is None:
-            catalogue = json.loads(blobs.get('scripts/generation-jobs.json', b'{"jobs":[]}'))
             sources = json.loads(blobs.get('scripts/source-generation-outputs.json', b'{"producers":{}}'))
-            generated = {output for job in catalogue['jobs'] for output in job.get('outputs', [])}
-            generated.update(output for outputs in sources['producers'].values() for output in outputs)
+            generated = {output for outputs in sources['producers'].values() for output in outputs}
             copies = json.loads(blobs.get('scripts/copied-runtime-inputs.json', b'{"copies":[]}'))
             generated.update(row['target'] for row in copies['copies'])
             generated.update(['src/shards.generated.ts', 'src/game/shard/slugs.generated.ts',
