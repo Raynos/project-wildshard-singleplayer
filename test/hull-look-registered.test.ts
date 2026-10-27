@@ -1,3 +1,5 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- The test reads the bodies' committed head and captain.
+import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { speciesDef } from '../src/engine/entities/species/registry';
 import { speciesWithLook, type SpeciesLook } from '../src/engine/entities/species/look';
@@ -8,7 +10,7 @@ import { BOAR } from '../src/game/systems/species/boar';
 import { BEAR } from '../src/game/systems/species/bear';
 import { PINE_BOAR } from '../src/shards/pine-hollow/generators/speciesRows';
 import { SPECIES_LOOKS } from '../src/shards/pine-hollow/generators/nativeView';
-import fauna from '../src/shards/driftwood-isle/data/creatureBodies.generated.json' with { type: 'json' };
+import { driftwoodCreatureBodyBank } from '../src/shards/driftwood-isle/generators/creatureBodyBank';
 
 // G602: Pine's boar and bear resolve through the hull book's 'registered' base (the kit looks the page registers), which
 // lends look fields only. Before, the book read the kit looks directly; the species each page registers must not change.
@@ -31,8 +33,10 @@ test('Pine boar and bear keep their looks and their rows decide think, act and d
   expect(BOAR.kind).toBe('boar');
 });
 
-test('Driftwood fauna boar and bear keep their kit look fields on packed bodies and lend no gameplay', () => {
-  const book = new HullLookBook({ ...fauna.fauna, body: { file: fauna.file, bytes: fauna.bytes, bodies: fauna.bodies } });
+test('Driftwood fauna boar and bear keep their kit look fields on packed bodies and lend no gameplay', async () => {
+  const bank = await driftwoodCreatureBodyBank(url => new Uint8Array(readFileSync(`public${url}`))), fauna = bank.rows;
+  const book = new HullLookBook({ ...fauna.fauna, body: { file: fauna.file, bytes: fauna.bytes, bodies: fauna.bodies } },
+    { file: name => name === fauna.file ? Promise.resolve(bank.bin) : Promise.reject(new Error(`Unknown product file ${name}`)) });
   for (const [kind, kit] of [['boar', BOAR_LOOK], ['bear', BEAR_LOOK]] as const) {
     const look = book.look(kind);
     expect(look).not.toHaveProperty('think'); expect(look).not.toHaveProperty('damageMul');

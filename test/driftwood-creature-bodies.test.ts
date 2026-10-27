@@ -1,6 +1,6 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Reads the committed head and the bake's own output.
 import { readFileSync } from 'node:fs';
-import { afterAll, beforeAll, beforeEach, expect, it, vi } from 'vitest';
+import { beforeAll, expect, it } from 'vitest';
 import * as THREE from 'three';
 import { readSourceModel } from '@wildshard/sdk/bake/skinned';
 import { mergeAnimalGeometry } from '../src/engine/models/animalGeometry';
@@ -13,11 +13,13 @@ import { BOAR_LOOK } from '../src/game/systems/species/view/boar';
 import { ISLAND_BEAR, ISLAND_BOAR } from '../src/shards/driftwood-isle/generators/faunaSpecies';
 import { asIsland, buildCreatureParts, faceHeadOf, type FaceHead } from '../src/shards/driftwood-isle/generators/creatureBodies';
 import { HullLookBook } from '../src/game/looks/speciesBook';
-import bake from '../src/shards/driftwood-isle/data/creatureBodies.generated.json' with { type: 'json' };
+import { driftwoodCreatureBodyBank } from '../src/shards/driftwood-isle/generators/creatureBodyBank';
 
 // The island's packed body owner, as its `look/hull-book` section declares it (a fresh one: nothing preloaded yet).
-const { fauna, ...packed } = bake;
-const { copy: creatureBody, preload: preloadCreatureBodies } = new HullLookBook({ ...fauna, body: packed }).packed;
+const bank = await driftwoodCreatureBodyBank(url => new Uint8Array(readFileSync(`public${url}`)));
+const { fauna, ...packed } = bank.rows;
+const { copy: creatureBody, preload: preloadCreatureBodies } = new HullLookBook({ ...fauna, body: packed },
+  { file: name => name === packed.file ? Promise.resolve(bank.bin) : Promise.reject(new Error(`Unknown product file ${name}`)) }).packed;
 
 const isMesh = (o: THREE.Object3D): o is THREE.Mesh => o instanceof THREE.Mesh;
 let head: FaceHead | null = null;
@@ -30,11 +32,6 @@ beforeAll(async () => {
   if (geometry === undefined) throw new Error('the sailor head has no mesh');
   head = faceHeadOf(geometry);
 });
-beforeEach(() => {
-  const bytes = readFileSync(`public${bake.file}`);
-  vi.stubGlobal('fetch', (url: string) => Promise.resolve(new Response(url === bake.file ? bytes : null, { status: url === bake.file ? 200 : 404 })));
-});
-afterAll(() => { vi.unstubAllGlobals(); });
 
 /** AnimalFactory's low-poly model: merge the groups, then facet (flat normals, per-face jitter). */
 const faceted = (fur: THREE.BufferGeometry[], hard: THREE.BufferGeometry[], eye: THREE.BufferGeometry[]): THREE.BufferGeometry => facetGeometry(mergeAnimalGeometry(fur, hard, eye));

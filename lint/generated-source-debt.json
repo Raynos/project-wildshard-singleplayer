@@ -179,7 +179,6 @@
     "src/shards/driftwood-isle/data/boot-sources.generated.json",
     "src/shards/driftwood-isle/data/bridgeRows.d.json.ts",
     "src/shards/driftwood-isle/data/collectionCards.generated.json",
-    "src/shards/driftwood-isle/data/creatureBodies.generated.json",
     "src/shards/driftwood-isle/data/foliageScenes.generated.json",
     "src/shards/driftwood-isle/data/interactables.generated.d.json.ts",
     "src/shards/driftwood-isle/data/interactables.generated.json",

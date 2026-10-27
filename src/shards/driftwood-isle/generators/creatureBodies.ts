@@ -4,7 +4,7 @@
  * monkey and sailor ones moved here unchanged, the boar and bear the game's own, called with the island's paints registered
  * as `toonPaint(kind)`), run once per (kind, variant) with the factory's own
  * seed (`Rng(hashSeed('kind:variant'))`) and the island's low-poly loft resolution, each material group (fur, hard, eyes)
- * merged and written by ./bake-driftwood-creatures.mjs to one hash-named file the page reads back
+ * merged and packed by the creature-body bank (./creatureBodyBank.ts) into one product file the page reads back
  * (species/bodies.ts). The page still facets, tints and skins them exactly as before.
  */
 import * as THREE from 'three';

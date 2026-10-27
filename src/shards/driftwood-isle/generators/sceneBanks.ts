@@ -5,6 +5,7 @@ import { driftwoodCargoBank, type DriftwoodCargoBank } from './cargoBank';
 import { driftwoodFixedLayouts, type DriftwoodFixedLayouts } from './fixedLayouts';
 import { driftwoodRockBank, type DriftwoodRockBank } from './rockBank';
 import { driftwoodNativeSpecimenBank, type DriftwoodNativeSpecimenBank } from './nativeSpecimenBank';
+import { CREATURE_BODY_FILE, CREATURE_BODY_INPUTS, driftwoodCreatureBodyBank, type DriftwoodCreatureBodyBank } from './creatureBodyBank';
 import { driftwoodIslandPlan } from './productPageFiles';
 import { BLENDER_MODELS } from './blenderArea';
 import { DRIFTWOOD_BANK_BLOBS } from './assets';
@@ -25,12 +26,14 @@ export interface DriftwoodSceneBanks {
   readonly layouts: DriftwoodFixedLayouts;
   readonly rocks: DriftwoodRockBank;
   readonly native: DriftwoodNativeSpecimenBank;
+  readonly creatures: DriftwoodCreatureBodyBank;
   /** the streamed cover's transports and per-cell plants by product name (islandCoverBank) */
   readonly cover: ReadonlyMap<string, Uint8Array>;
 }
 /** The committed public files the banks read beside the fixed program's: the Blender island's placement table and
  *  metadata (the island plan's small rocks). */
-export const DRIFTWOOD_SCENE_BANK_INPUTS: readonly string[] = [`${BLENDER_MODELS}placements.bin`, `${BLENDER_MODELS}island.json`, `${BLENDER_MODELS}island.glb`];
+export const DRIFTWOOD_SCENE_BANK_INPUTS: readonly string[] = [`${BLENDER_MODELS}placements.bin`, `${BLENDER_MODELS}island.json`, `${BLENDER_MODELS}island.glb`,
+  CREATURE_BODY_INPUTS.head, CREATURE_BODY_INPUTS.captain];
 /** The owned inputs every bank is built from, explicit so a bank never reads a copied file: the fixed program's files
  *  (`driftwoodFixedBytes`) and `DRIFTWOOD_SCENE_BANK_INPUTS` by URL. */
 export interface DriftwoodSceneBankInputs {
@@ -52,7 +55,7 @@ export async function driftwoodSceneBanks(inputs: DriftwoodSceneBankInputs): Pro
   const smallRocks = plan('phone').smallRocks;
   if (JSON.stringify(smallRocks) !== JSON.stringify(plan('desktop').smallRocks)) throw new Error('Small-rock tier placements differ');
   const layouts = inputs.layouts ?? driftwoodFixedLayouts(inputs.fixed);
-  return { layouts, facts, cargo: await driftwoodCargoBank(inputs.fixed, layouts.wreck), rocks: driftwoodRockBank(smallRocks), native: await driftwoodNativeSpecimenBank(inputs.fixed), cover: await islandCoverBank(file, facts) };
+  return { layouts, facts, cargo: await driftwoodCargoBank(inputs.fixed, layouts.wreck), rocks: driftwoodRockBank(smallRocks), native: await driftwoodNativeSpecimenBank(inputs.fixed), creatures: await driftwoodCreatureBodyBank(file), cover: await islandCoverBank(file, facts) };
 }
 /** The product build's banks: the fixed files and the public inputs come through the owned-byte cache. */
 export async function driftwoodSceneBanksCached(ctx: Pick<ProjectGenerationContext, 'cached'>): Promise<DriftwoodSceneBanks> {
@@ -74,6 +77,8 @@ export async function driftwoodSceneBankOutput(banks: DriftwoodSceneBanks): Prom
     ...[...trailSpecimenBank().glbs].map(([name, bytes]) => nameBlob(name, 'glb', bytes)),
     // the cover's transports and cells, plain as their sources were
     ...[...banks.cover].map(([name, bytes]) => nameBlob(name, 'bin', bytes)),
+    // the packed creature bodies the hull book names (look/hull-book's body.file)
+    nameBlob(CREATURE_BODY_FILE, 'bin', banks.creatures.bin),
     // the entry road decks' raw specimen geometry (the specimen catalogue job wrote it under data/)
     ...entryDeckFiles().map(file => nameBlob(file.name, 'bin', file.bytes, { decoded: file.bytes.length, gpu: file.bytes.length })),
     // the synchronous banks' shipped blobs (the reef's), named as assets.ts names its sources: GLBs meshopt, the rest plain

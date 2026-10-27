@@ -1,4 +1,8 @@
 {
-  "notice": "GR7: public URL roots the Driftwood scene banks name their blobs' aliases under (reefBank.ts, ziplineBank.ts, facetedGroundBank.ts); data, so the banks hold no asset path literal.",
-  "baked": "/assets/driftwood-isle/baked/"
+  "notice": "GR7: committed public inputs and URL roots of the Driftwood banks (reefBank.ts, ziplineBank.ts, facetedGroundBank.ts, creatureBodyBank.ts); data, so the banks hold no asset path literal.",
+  "baked": "/assets/driftwood-isle/baked/",
+  "creatureBodies": {
+    "head": "/assets/models/driftwood-hero/faces/sailor-head.glb",
+    "captain": "/assets/models/driftwood-hero/captain/captain.glb"
+  }
 }
