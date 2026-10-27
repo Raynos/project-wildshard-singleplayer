@@ -27,6 +27,7 @@ import { checkedProductCosts, parseCheckedProduct, prepareCheckedProduct, valida
 
 const HASH = /^[a-f0-9]{64}$/u;
 const MAX_FILE_BYTES = 25_000_000;
+const descriptorDecoder = new TextDecoder('utf-8', { fatal: true });
 /** A visited product is published after every immutable asset selected for entry passes admission. */
 export interface CachedProduct { source: unknown; firstParty: boolean; validation?: ValidationReceipt }
 /** Storage is injected so offline admission uses the same path in browsers and tests. */
@@ -98,7 +99,7 @@ export class StaleClientError extends Error {
 export async function readIndexBytes(bytes: Uint8Array, options: ProductOptions): Promise<unknown> {
   const built = options.firstParty ? options.built : undefined;
   if (built !== undefined) await checkBuiltIndex(await options.hash(bytes), options);
-  return JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
+  return JSON.parse(descriptorDecoder.decode(bytes));
 }
 /** A first-party index whose bytes' `hash` this build does not list takes stale-client recovery (a no-op otherwise). */
 export async function checkBuiltIndex(hash: string, options: ProductOptions): Promise<void> {
@@ -482,7 +483,7 @@ export function browserProductCache(storage: Pick<CacheStorage, 'open'> & Partia
   return {
     product: async (base) => {
       const response = await (await open()).match(productUrl(base)); if (response === undefined) return null;
-      const value: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await boundedResponse(response, limits.sourceBytes)));
+      const value: unknown = JSON.parse(descriptorDecoder.decode(await boundedResponse(response, limits.sourceBytes)));
       preflightShardfile(value);
       if (typeof value !== 'object' || value === null || !('source' in value) || !('firstParty' in value) || typeof value.firstParty !== 'boolean') throw new Error('Invalid visited shardfile cache');
       const rawValidation = 'validation' in value ? value.validation : undefined;

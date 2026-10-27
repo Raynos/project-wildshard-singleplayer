@@ -1,6 +1,19 @@
 import { expect, test, vi } from 'vitest';
 import { readColliderRows } from './colliders';
 
+test('reused collider grammar follows changed policy values and still returns owned rows', () => {
+  const surfaces: ('rock' | 'wood')[] = ['rock'];
+  const policy = { kinds: ['box'] as const, surfaces, requireSurface: true };
+  const box = { kind: 'box', x: 0, y: 0, z: 0, hx: 1, hy: 2, hz: 3, surface: 'rock' };
+  const first = readColliderRows([box], policy), second = readColliderRows([box], policy);
+  expect(second).toEqual(first); expect(second[0]).not.toBe(first[0]);
+  surfaces[0] = 'wood';
+  expect(() => readColliderRows([box], policy)).toThrow('Unexpected collider surface');
+  expect(readColliderRows([{ ...box, surface: 'wood' }], policy)).toHaveLength(1);
+  expect(() => readColliderRows([{ ...box, surface: 'wood', hx: Number.NaN }], policy)).toThrow();
+  expect(() => readColliderRows([{ ...box, kind: 'ball', radius: 1 }], policy)).toThrow('Unexpected collider shape');
+});
+
 test('collider rows retain primitive values, own nested lanes and enforce caller admission', () => {
   const box = { kind: 'box', x: 1, y: 2, z: 3, hx: 4, hy: 5, hz: 6, rot: { x: 0, y: 0.1, z: 0, w: 0.9 }, surface: 'rock' };
   const stairs = { kind: 'treads', from: { x: 1, y: 2, z: 3 }, to: { x: 4, y: 5, z: 6 }, width: 2, count: 4, surface: 'rock' };

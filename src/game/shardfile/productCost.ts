@@ -2,6 +2,7 @@ import { stringsSteps, tierLibrarySteps, entryFileSteps } from '@wildshard/forma
 import { parseImageAsset } from '@wildshard/format/stillImage';
 import { journalImageRefs } from '@wildshard/format/compendiumRows';
 import type { Shardfile } from '@wildshard/format/shardSchema';
+import { diagnosticNow } from '@wildshard/engine/core/clock';
 import type { TextureTranscodeSupport } from '@wildshard/format/contentBounds';
 import type { worstContentCost } from '@wildshard/format/budget';
 import { deviceLibraryCostSteps } from '@wildshard/format/deviceMemoryCost';
@@ -34,9 +35,9 @@ export function scopedSpecimenLibrarySource(source: Shardfile, assets: ReadonlyM
 const drive = <T>(steps: Generator<void, T>): T => { for (;;) { const step = steps.next(); if (step.done === true) return step.value; } };
 
 async function paced<T>(steps: Generator<void, T>, pause: () => Promise<void>): Promise<T> {
-  let started = performance.now(), result = steps.next();
+  let started = diagnosticNow(), result = steps.next();
   while (result.done !== true) {
-    if (performance.now() - started >= 8 || frameBudgetSpent(8)) { await pause(); started = performance.now(); }
+    if (diagnosticNow() - started >= 8 || frameBudgetSpent(8)) { await pause(); started = diagnosticNow(); }
     result = steps.next();
   }
   return result.value;
@@ -62,10 +63,21 @@ function* specimenCosts(source: Shardfile, assets: ReadonlyMap<string, Uint8Arra
   if (scenes.catalogue === undefined) return source;
   const names = new Map<string, string>();
   for (const file of descriptor.index.files) for (const name of [file.hash, file.path, `/shardfiles/${source.identity.slug}/${file.path}`, ...file.name === undefined ? [] : [file.name]]) names.set(name, file.hash);
+  // H4: multiple names and quality leaves may refer to the same verified wire.
+  // Keep only the most recent graph within this projection, never a growing
+  // parsed copy of the whole wire bank or a cache across admissions.
+  const decoder = new TextDecoder('utf-8', { fatal: true });
+  let recentWeld: { hash: string; value: ReturnType<typeof parseWorldSceneWeld> } | undefined;
   const read = (name: string): unknown => {
     const hash = names.get(name), bytes = hash === undefined ? undefined : assets.get(hash);
-    if (bytes === undefined) throw new Error(`Missing specimen cost bytes: ${name}`);
-    return JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
+    if (hash === undefined || bytes === undefined) throw new Error(`Missing specimen cost bytes: ${name}`);
+    return JSON.parse(decoder.decode(bytes));
+  };
+  const checkedWeld = (name: string): ReturnType<typeof parseWorldSceneWeld> => {
+    const hash = names.get(name);
+    if (hash === undefined) throw new Error(`Missing specimen cost bytes: ${name}`);
+    if (recentWeld?.hash === hash) return recentWeld.value;
+    const value = parseWorldSceneWeld(read(name)); recentWeld = { hash, value }; return value;
   };
   const catalogue = parseWorldSceneModels(read(scenes.catalogue));
   yield;
@@ -83,7 +95,7 @@ function* specimenCosts(source: Shardfile, assets: ReadonlyMap<string, Uint8Arra
   for (const model of catalogue.models) {
     for (const choice of model.choices) {
       const leaves = worldSceneModelGraphs(choice);
-      const graphs = leaves.map(leaf => 'file' in leaf ? parseWorldSceneWeld(read(leaf.file)) : leaf);
+      const graphs = leaves.map(leaf => 'file' in leaf ? checkedWeld(leaf.file) : leaf);
       const resources = worldSceneModelResources({ ...catalogue, models: [{ ...model, choices: [choice] }] }, graphs);
       const hashes = new Set(resources.geometry.flatMap(ref => refs(ref.library, ref.model)));
       if (model.assembly !== 'scene') { for (const hash of hashes) retained.add(hash); yield; continue; }
@@ -132,10 +144,10 @@ function* specimenCosts(source: Shardfile, assets: ReadonlyMap<string, Uint8Arra
     if (quality !== undefined) {
       const file = typeof weld.file === 'object' && 'knob' in weld.file ? weld.file[plumbingKnob(source.plumbing, quality.tier, weld.file.knob, 'boolean', quality.overrides) ? 'true' : 'false'] : weld.file;
       const selected = typeof file === 'string' ? file : file[quality.tier];
-      selectedFiles.push(selected); visit(parseWorldSceneWeld(read(selected))); yield; continue;
+      selectedFiles.push(selected); visit(checkedWeld(selected)); yield; continue;
     }
     const variants = typeof weld.file === 'object' && 'knob' in weld.file ? [weld.file.false, weld.file.true] : [weld.file];
-    for (const variant of variants) for (const name of typeof variant === 'string' ? [variant] : Object.values(variant)) { visit(parseWorldSceneWeld(read(name))); yield; }
+    for (const variant of variants) for (const name of typeof variant === 'string' ? [variant] : Object.values(variant)) { visit(checkedWeld(name)); yield; }
   }
   if (quality !== undefined) recordSceneProfile(source, selectedFiles);
   for (const file of source.files) for (const dependency of file.dependencies) retained.add(dependency);

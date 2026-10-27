@@ -197,3 +197,40 @@ no tests, browser, build or per-row reading. The World assembly budget and
 no-pop-in acceptance remain for the one plan-end reading. Shared assembly
 hunks were agreed with sp-x8; its separate liveSession metadata-import
 barrier change is untouched. H3 source is `52e5052165`.
+
+
+### H4 home CPU source (2026-10-27, sp-x9)
+
+**In flight (reading at plan end, G780).** Address the three named cost
+families without removing physical content or weakening admission:
+
+- Colliders: reuse one temporary repeated-box descriptor per Physics owner;
+  every native collider is still created. Reset translation/groups/rotation
+  on each use. Rapier retains each shape object, so give every collider a
+  distinct Cuboid shape even when the descriptor is reused. Remove the
+  temporary singleton array per non-stair row. Kinematic bodies, stair
+  expansion, collider ownership/materials, active updates and disposal stay.
+- Validators: retain only the most recent collider grammar, comparing an
+  owned snapshot of all surface-policy values. Changed policies rebuild it;
+  kinds, required surfaces, strict shape fields, finite values, bounds and
+  geometry ownership are still checked for every call. Never cache rows.
+- Parses: the cost projection reuses only its most recent hash-identified
+  weld parse/validation for repeated aliases/leaves. It does not retain a
+  growing parsed wire bank or cache across admissions. Descriptor and cost
+  reads reuse stateless UTF-8 decoders. Source hashes, receipts, visited-state
+  compatibility, asset verification, every quality branch and complete cost
+  accounting still run. The existing 8 ms pacing uses diagnosticNow rather
+  than forbidden raw timing; its clock and budget are unchanged.
+
+Source controls cover rotated-to-unrotated boxes, distinct mutable native
+shapes, native count/pose/material ownership, fresh parsed collider rows,
+changed surface policies and malformed values. Native fixture bytes come
+from the lockfile-pinned Rapier package, not an untracked public payload.
+Touched source/fixture types, typed lint and exact candidate-path ratchet
+pass. Full `pnpm lint:ratchet` still refuses the existing missing Pine
+discovery allowance. No tests, physics walk, product, preview, browser or
+Simulator reading was run under G769. No CPU gain or collision acceptance
+is claimed until the plan-end reading. The home entry uses these same
+existing owners; liveSession's shared T4 import-overlap hunk is untouched.
+
+H3 order source: `52e5052165`. A1 ring-first release: `0dc3a7d61c`.

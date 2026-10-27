@@ -23,10 +23,22 @@ export function treadBoxes(d: Extract<ColliderDesc, { kind: 'treads' }>): Extrac
   return out;
 }
 
+// Rapier copies a descriptor into each native collider. Retain one repeated box
+// template per world; never retain native handles or skip a collider creation.
+const lastBox = new WeakMap<Physics, { hx: number; hy: number; hz: number; desc: RapierDesc }>();
+const IDENTITY_ROTATION = { x: 0, y: 0, z: 0, w: 1 } as const;
 function rapierDesc(physics: Physics, d: Exclude<ColliderDesc, { kind: 'treads' }>): RapierDesc | null {
   const { R } = physics;
   switch (d.kind) {
-    case 'box': return R.ColliderDesc.cuboid(Math.max(0.005, d.hx), Math.max(0.005, d.hy), Math.max(0.005, d.hz));
+    case 'box': {
+      const hx = Math.max(0.005, d.hx), hy = Math.max(0.005, d.hy), hz = Math.max(0.005, d.hz), prior = lastBox.get(physics);
+      if (prior !== undefined && prior.hx === hx && prior.hy === hy && prior.hz === hz) {
+        // Rapier's JS Collider retains shape by reference. Each native handle
+        // must keep its own shape even though the temporary descriptor is reused.
+        prior.desc.shape = new R.Cuboid(hx, hy, hz); return prior.desc;
+      }
+      const desc = R.ColliderDesc.cuboid(hx, hy, hz); lastBox.set(physics, { hx, hy, hz, desc }); return desc;
+    }
     case 'capsule': return R.ColliderDesc.capsule(Math.max(0.005, d.halfHeight), d.radius);
     case 'ball': return R.ColliderDesc.ball(d.radius);
     case 'hull': return R.ColliderDesc.convexHull(d.points);
@@ -72,18 +84,22 @@ export function addPiece(physics: Physics, piece: Piece, frame?: THREE.Object3D)
   }
   let colliderData = piece.colliders;
   const create = (): void => withOwner(owner, () => {
+    const collisionGroups = groups('WORLD');
+    const one = (d: Exclude<ColliderDesc, { kind: 'treads' }>, raw: ColliderDesc): void => {
+      const desc = rapierDesc(physics, d);
+      if (desc === null) return; // a degenerate hull: nothing to collide with
+      desc.setTranslation(d.x, d.y, d.z).setCollisionGroups(collisionGroups);
+      if (d.rot) desc.setRotation(d.rot);
+      else if (d.yaw !== undefined && d.yaw !== 0) desc.setRotation({ x: 0, y: Math.sin(d.yaw / 2), z: 0, w: Math.cos(d.yaw / 2) });
+      else desc.setRotation(IDENTITY_ROTATION); // a reused box must not carry the preceding piece's rotation
+      const c = world.createCollider(desc, body ?? undefined);
+      const material: Material = d.surface ?? raw.surface ?? piece.surface ?? 'wood';
+      tagCollider(c, material, piece.colliderOwner ?? piece);
+      out.push(c);
+    };
     for (const raw of piece.colliders ?? []) {
-      for (const d of raw.kind === 'treads' ? treadBoxes(raw) : [raw]) {
-        const desc = rapierDesc(physics, d);
-        if (desc === null) continue; // a degenerate hull: nothing to collide with
-        desc.setTranslation(d.x, d.y, d.z).setCollisionGroups(groups('WORLD'));
-        if (d.rot) desc.setRotation(d.rot);
-        else if (d.yaw !== undefined && d.yaw !== 0) desc.setRotation({ x: 0, y: Math.sin(d.yaw / 2), z: 0, w: Math.cos(d.yaw / 2) });
-        const c = world.createCollider(desc, body ?? undefined);
-        const material: Material = d.surface ?? raw.surface ?? piece.surface ?? 'wood';
-        tagCollider(c, material, piece.colliderOwner ?? piece);
-        out.push(c);
-      }
+      if (raw.kind === 'treads') for (const tread of treadBoxes(raw)) one(tread, raw);
+      else one(raw, raw);
     }
   });
   create();

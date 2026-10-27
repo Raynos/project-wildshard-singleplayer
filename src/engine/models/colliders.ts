@@ -26,6 +26,35 @@ function indexLaneValue(value: unknown): number {
   return value;
 }
 
+// H4: cache only the grammar, never admitted rows or caller-owned geometry.
+// Compare surface values so mutation or a different policy cannot reuse a stale picklist.
+function colliderSchema(surfaces: readonly SurfaceMaterial[]) {
+  const finite = val.pipe(val.number('Collider values must be finite'), val.finite('Collider values must be finite'));
+  const point = val.strictObject({ x: finite, y: finite, z: finite }, 'Collider lacks an endpoint');
+  const surface = val.exactOptional(val.picklist(surfaces));
+  const at = { x: finite, y: finite, z: finite, yaw: val.exactOptional(finite), rot: val.exactOptional(val.strictObject({ x: finite, y: finite, z: finite, w: finite })), surface };
+  // Borrow bounded storage, then validate each value while copying it once.
+  // A lane accessor cannot change a checked value before its owned conversion.
+  const lane = val.custom<unknown[]>(input => Array.isArray(input) && input.length <= 6_000_000, 'Collider geometry must be a bounded array');
+  return val.variant('kind', [
+    val.strictObject({ kind: val.literal('box'), ...at, hx: finite, hy: finite, hz: finite }),
+    val.strictObject({ kind: val.literal('capsule'), ...at, halfHeight: finite, radius: finite }),
+    val.strictObject({ kind: val.literal('ball'), ...at, radius: finite }),
+    val.strictObject({ kind: val.literal('hull'), ...at, points: lane }),
+    val.strictObject({ kind: val.literal('trimesh'), ...at, vertices: lane, indices: lane }),
+    val.strictObject({ kind: val.literal('treads'), from: point, to: point, width: finite, count: val.pipe(finite, val.integer(), val.minValue(1)), surface }),
+  ]);
+}
+let recentGrammar: { surfaces: readonly SurfaceMaterial[]; schema: ReturnType<typeof colliderSchema> } | undefined;
+function colliderGrammar(surfaces: readonly SurfaceMaterial[]): ReturnType<typeof colliderSchema> {
+  const previous = recentGrammar;
+  if (previous !== undefined && surfaces.length === previous.surfaces.length
+    && surfaces.every((surface, index) => surface === previous.surfaces[index])) return previous.schema;
+  const owned = [...surfaces], schema = colliderSchema(owned);
+  recentGrammar = { surfaces: owned, schema };
+  return schema;
+}
+
 /** Decode fresh registry descriptors from serialized facts. Callers explicitly admit shape kinds and surfaces;
  * absent surfaces stay absent, unless requireSurface is true. No physics objects are created here.
  * At most 65,536 rows and 6,000,000 values per geometry lane are admitted; indices must fit Uint32. */
@@ -37,21 +66,7 @@ export function readColliderRows(rows: readonly unknown[], policy: {
   if (rows.length > 65_536) throw new Error('Collider row bound exceeded');
   // Collision-free model copies need no shape grammar or policy traversal.
   if (rows.length === 0) return [];
-  const finite = val.pipe(val.number('Collider values must be finite'), val.finite('Collider values must be finite'));
-  const point = val.strictObject({ x: finite, y: finite, z: finite }, 'Collider lacks an endpoint');
-  const surface = val.exactOptional(val.picklist(policy.surfaces));
-  const at = { x: finite, y: finite, z: finite, yaw: val.exactOptional(finite), rot: val.exactOptional(val.strictObject({ x: finite, y: finite, z: finite, w: finite })), surface };
-  // Borrow bounded storage, then validate each value while copying it once.
-  // A lane accessor cannot change a checked value before its owned conversion.
-  const lane = val.custom<unknown[]>(input => Array.isArray(input) && input.length <= 6_000_000, 'Collider geometry must be a bounded array');
-  const schema = val.variant('kind', [
-    val.strictObject({ kind: val.literal('box'), ...at, hx: finite, hy: finite, hz: finite }),
-    val.strictObject({ kind: val.literal('capsule'), ...at, halfHeight: finite, radius: finite }),
-    val.strictObject({ kind: val.literal('ball'), ...at, radius: finite }),
-    val.strictObject({ kind: val.literal('hull'), ...at, points: lane }),
-    val.strictObject({ kind: val.literal('trimesh'), ...at, vertices: lane, indices: lane }),
-    val.strictObject({ kind: val.literal('treads'), from: point, to: point, width: finite, count: val.pipe(finite, val.integer(), val.minValue(1)), surface }),
-  ]);
+  const schema = colliderGrammar(policy.surfaces);
   return rows.map(raw => {
     if (typeof raw !== 'object' || raw === null || !('kind' in raw) || !policy.kinds.some(kind => kind === raw.kind)) throw new Error('Unexpected collider shape');
     const actual = 'surface' in raw ? raw.surface : undefined;
