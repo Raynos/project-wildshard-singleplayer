@@ -66,11 +66,11 @@ import { PINE_LANTERN_PAGE } from './questPageInteractions';
 import { PINE_QUEST_SERVICES, PINE_MILL_DOOR } from './questConsequences';
 import {emitDefinedSections} from '@wildshard/sdk/sections';
 import {isJsonData} from '@wildshard/format/json';
-import {SECTIONS,WIRE_SCHEMAS,CabinAmbienceSchema,CabinSeedsSchema,parseFloorRows,PoolGroundSchema,PinePhysicsSchema} from './sectionSchemas.generated';
+import {SECTIONS,CabinAmbienceSchema,CabinSeedsSchema,parseFloorRows,PoolGroundSchema,PinePhysicsSchema} from './sections';
 import { nameBlob, emitNamedBlobs, type BlobSourceOptions, type NamedBlobKind } from '@wildshard/sdk/blobs';
 import type { ProjectOutput } from '@wildshard/sdk/projectOutput';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
-import { namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
+import { formatJsonSchema, namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import { parseAchievementCounterData, AchievementCounterDataSchema } from '@wildshard/format/achievementCounters';
 import { PINE_FEAT_COUNTERS } from './questInventory';
 import { CABIN_LIFE } from './cabinLook';
@@ -80,7 +80,7 @@ import { FIGURE_CATALOGUE } from './figureCatalogue';
 import { WEAPON_FINISHES } from './weaponFinishes';
 import { pineLookMaterials } from './lookMaterials';
 import { pineProps } from './bake-pine-props.mjs';
-import timbers from '../data/timberWorld.generated.json' with { type: 'json' };
+import { TIMBER_ROWS as timbers } from './product';
 import { pineFloorLayout } from './bake-pine-floor.mjs';
 import { PINE_OUTPUT, CROSSBOW_BLOB } from './outputInputs';
 import { phoneBirdsAtlasOutput } from './birdAtlas';
@@ -115,7 +115,7 @@ function sourceBlob<T extends { kind: string }>(row: T): Omit<T, 'kind'> & { kin
   return { ...row, kind };
 }
 
-v.parse(CabinSeedsSchema, timbers.cabins.seeds);
+v.parse(CabinSeedsSchema, timbers.cabinSeeds);
 v.parse(PoolGroundSchema, timbers.poolGround);
 const cabinAppearance = { CABIN_LIFE,CABIN_LIGHT,HEARTH_LOOKS };
 const counterRows = { ...PINE_FEAT_COUNTERS, feats: PINE_FEAT_COUNTERS.feats.map(row => Object.fromEntries(Object.entries(row).filter(([key]) => ['id', 'count', 'kind', 'event', 'variant'].includes(key)))) };
@@ -142,6 +142,18 @@ nameBlob('look/cover-appearance.json','json',new TextEncoder().encode(encodeCano
 nameBlob('quests/lanterns.json','json',new TextEncoder().encode(encodeCanonicalJson(parseQuestPageInteractions(PINE_LANTERN_PAGE)))),nameBlob('people/catalogue.json', 'json', new TextEncoder().encode(encodeCanonicalJson(FIGURE_CATALOGUE))), nameBlob('world/floor.json','json',new TextEncoder().encode(JSON.stringify(parseFloorRows(pineFloorLayout()), (_key: string, value: unknown) => typeof value === 'number' ? Math.round(value * 1e5) / 1e5 : value))), nameBlob('world/prop-shapes.json','json',new TextEncoder().encode(JSON.stringify(timbers.propShapes))), nameBlob('world/props.json','json',new TextEncoder().encode(JSON.stringify(props))), nameBlob('loadout/finishes.json','json',new TextEncoder().encode(JSON.stringify(WEAPON_FINISHES)))]);
 
 const schemas:Readonly<Record<string,v.GenericSchema>>=SECTIONS;
+/** A draft-07 schema with the format's named-check annotations dropped (scripts/bake-section-schemas.mjs `structural`). */
+function structural(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(structural);
+  if (typeof value !== 'object' || value === null) return value;
+  return Object.fromEntries(Object.entries(value).filter(([key]) => key !== 'x-wildshard-checks' && key !== 'x-wildshard-string-length').map(([key, child]) => [key, structural(child)]));
+}
+/** Each custom section's wire schema, as the section-schema bake publishes it (GR8: computed in the program). */
+const WIRE_SCHEMAS: Readonly<Record<string, Readonly<Record<string, unknown>>>> = Object.fromEntries(Object.entries(schemas).map(([name, schema]) => {
+  const wire = structural(formatJsonSchema(schema, 'draft-07'));
+  if (typeof wire !== 'object' || wire === null || Array.isArray(wire)) throw new Error(`Invalid Pine wire schema ${name}`);
+  return [name, Object.fromEntries(Object.entries(wire))];
+}));
 /** Sections whose rows only the program's producers make (GR8): `prepareOutput` passes them; the static output omits them. */
 const PREPARED_SECTIONS = new Set(['custom/kingKit']);
 /** The custom sections; `prepareOutput` passes the rows that name compiled modules (the quest runtime's lead). */

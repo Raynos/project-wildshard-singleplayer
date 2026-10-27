@@ -150,7 +150,6 @@
     "src/shards/pine-hollow/generators/rangedPage.ts": 1,
     "src/shards/pine-hollow/generators/riggedHulls.ts": 1,
     "src/shards/pine-hollow/generators/sceneModelRows.ts": 2,
-    "src/shards/pine-hollow/generators/sourceOutput.ts": 4,
     "src/shards/pine-hollow/generators/timberSceneContribution.ts": 2,
     "src/shards/pine-hollow/generators/treeSet.ts": 1,
     "test/adventure-persistence.test.ts": 1,

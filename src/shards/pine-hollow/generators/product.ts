@@ -20,6 +20,10 @@ import type { PineJournal } from './journal';
 import { PINE_QUEST_HOST } from './questHost';
 import { returnGuest } from './returnPrograms';
 
+/** The timber world rows the output reads too (its prop shapes, cabin seeds and pool ground). */
+export const TIMBER_ROWS: { propShapes: typeof timbers.propShapes; cabinSeeds: typeof timbers.cabins.seeds; poolGround: typeof timbers.poolGround } =
+  { propShapes: timbers.propShapes, cabinSeeds: timbers.cabins.seeds, poolGround: timbers.poolGround };
+
 // GR8: called, not read from a scheduler job's output
 const people = pineQuestNpcs();
 
