@@ -21,6 +21,8 @@ const isMaterial = (value: unknown): value is Material => value instanceof Mater
 /** A tile mesh no taller than this (m) is flat; within FLOOR of the tile's lowest mesh it lies on the floor and casts no
  *  shadow. */
 const FLAT = 0.01, FLOOR = 0.1;
+/** An unlit graph (raw colour out) that samples no texture: light, not a surface (graph/compile.ts's userData marks). */
+const isGlow = (material: Material): boolean => material.userData['graphRawOutput'] === true && material.userData['graphMeshMap'] !== true;
 
 function isMesh(object: Object3D): object is Mesh { return object instanceof Mesh; }
 /** a fine tile has nothing under it to hide */
@@ -113,15 +115,16 @@ export function clientTileViews(ports: ViewPorts): ClientTileViews {
       }
       if (row.lod !== 1) outlineProps(root, ports, ports.materials.get(props.family), scope);
       // what each mesh was baked to do (a GLB node's castShadow flag); the shadow disc only ever turns it off. An additive
-      // material is light (a pool, a hologram, a beam): it casts nothing (RM12: Night Market's pools were a shadow-map draw a
-      // tile; at runtime, so no tile byte changes). A flat mesh at the tile's floor (water, a ground sheet) has nothing in
+      // material is light (a pool, a hologram, a beam), and so is an unlit graph that samples no texture (a lantern's glow,
+      // a string light; a textured unlit surface, a poster or a gate, still casts): neither casts (RM12: Night Market's
+      // pools and glow were two shadow-map draws a tile; at runtime, so no tile byte changes). A flat mesh at the tile's floor (water, a ground sheet) has nothing in
       // its tile under it to shade, so it casts nothing either; a raised flat one (an awning, a deck) still does (RM12: the
       // canals' water was another depth draw a tile)
       const lit: { mesh: Mesh; box: Box3 }[] = []; let floor = Infinity;
       root.traverse((object) => {
         if (!isMesh(object) || !object.castShadow) return;
         const drawn: unknown = object.material;
-        if (isMaterial(drawn) && drawn.blending === AdditiveBlending) { object.castShadow = false; return; }
+        if (isMaterial(drawn) && (drawn.blending === AdditiveBlending || isGlow(drawn))) { object.castShadow = false; return; }
         const box = new Box3().setFromObject(object); lit.push({ mesh: object, box }); floor = Math.min(floor, box.min.y);
       });
       const casters: Mesh[] = [];
