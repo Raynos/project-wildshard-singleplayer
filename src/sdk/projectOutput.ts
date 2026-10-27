@@ -104,7 +104,7 @@ export async function prepareProjectOutput(project: string, input: unknown, deci
     }
   }
   const explicit = new Set(parsed.late?.map(row => row.hash));
-  const critical = new Set([...(decisions?.source.critical ?? []), ...(decisions?.source.files.filter(file => file.critical).map(file => file.hash) ?? [])]);
+  const critical = new Set([...inventory.filter(file => file.critical).map(file => file.hash), ...(decisions?.source.critical ?? []), ...(decisions?.source.files.filter(file => file.critical).map(file => file.hash) ?? [])]);
   const late = [...parsed.late ?? [], ...fallbackCoatLate(parsed.platform, inventory, critical).filter(row => !explicit.has(row.hash))];
   return { blobs, assets: ownedAssets(parsed.assets), ...(parsed.late === undefined && late.length === 0 ? {} : { late }), options: {
     namedFiles: overlays,

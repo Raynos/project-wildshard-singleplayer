@@ -358,6 +358,8 @@ test('named coat fallback images follow control without changing files, costs or
   expect((await prepareProjectOutput(directory(),{...input,late:explicit})).late).toEqual(explicit);
   const critical = nameBlob('creatures/coat.png','image',image.bytes,{critical:true});
   expect((await prepareProjectOutput(directory(),{...input,namedFiles:[critical.file,rig.file]})).late).toBeUndefined();
+  const criticalAlias = nameBlob('world/critical.png','image',image.bytes,{critical:true});
+  expect((await prepareProjectOutput(directory(),{...input,namedFiles:[image.file,criticalAlias.file,rig.file]})).late).toBeUndefined();
   const publicBook = {...book,productFiles:false};
   expect((await prepareProjectOutput(directory(),{...input,platform:emitPlatformSections(new Map([['look/rigged-hulls',publicBook]]))})).late).toBeUndefined();
 });
