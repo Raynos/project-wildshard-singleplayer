@@ -384,15 +384,9 @@ export function clientTileRegistration(instances: Map<string, ClientRingInstance
       approachReleases.add(release);
       scope.onDispose(release);
       try {
-        const spawn = await pinSpawn(instance, start, requirements, left, 'Approached tile owner left');
-        // The same entryway set is mandatory on actual entry. Start its missing
-        // tiles during the approach, after the spawn ring has priority.
-        const pinned = spawn.keys, critical = tileOrder(start, entry.source.entryways);
-        const missing = critical.tiles.filter(tile => critical.rank(tile) === 0 && !pinned.has(tile.j * 8 + tile.i)).map(tile => tile.j * 8 + tile.i);
-        if (missing.length > 0) {
-          const mouths = streamer.require(instance, missing); requirements.push(mouths);
-          await mouths.ready; if (left()) throw new Error('Approached tile owner left');
-        }
+        // Neighbours retain only the approached ring. Distant entryways are
+        // required by actual entry below, not pinned by a road prediction.
+        await pinSpawn(instance, start, requirements, left, 'Approached tile owner left');
       }
       catch (error) { release(); throw error; }
     },

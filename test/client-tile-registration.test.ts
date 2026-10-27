@@ -271,7 +271,7 @@ test('approach pins entry render tiles without entering or replacing the neighbo
   expect(f.pins()).toBe(0); expect(f.allocator.entries()).toHaveLength(0);
 });
 
-test('approach gives its spawn tile then ring priority before the unchanged entryway set', async () => {
+test('approach pins only its local ring while actual entry retains the full critical set', async () => {
   const f = fixture(), approach = f.scope.child('approach-entryways'), required = vi.spyOn(f.streamer, 'require');
   try {
     const prepare = f.registration.prepareOffered;
@@ -283,15 +283,20 @@ test('approach gives its spawn tile then ring priority before the unchanged entr
     const origin = tileOf(camera.x, camera.z), centre = origin.j * 8 + origin.i;
     expect(required.mock.calls[0]?.[1]).toEqual([centre]);
     await f.drive(); await pending;
-    const [first, ring, entryways] = required.mock.calls;
-    if (first === undefined || ring === undefined || entryways === undefined) throw new Error('Missing critical approach phases');
-    expect(required).toHaveBeenCalledTimes(3);
+    const [first, ring] = required.mock.calls;
+    if (first === undefined || ring === undefined) throw new Error('Missing approach phases');
+    expect(required).toHaveBeenCalledTimes(2);
     expect([...ring[1]]).toEqual(spawnKeys.filter(key => key !== centre));
-    expect([...entryways[1]].every(key => !spawnKeys.includes(key))).toBe(true);
-    const actual = [...new Set([...first[1], ...ring[1], ...entryways[1]])].sort((a, b) => a - b);
-    expect(actual).toEqual(critical.tiles.filter(tile => critical.rank(tile) === 0).map(tile => tile.j * 8 + tile.i).sort((a, b) => a - b));
+    const actual = [...new Set([...first[1], ...ring[1]])].sort((a, b) => a - b);
+    expect(actual).toEqual([...spawnKeys].sort((a, b) => a - b));
+    const criticalKeys = critical.tiles.filter(tile => critical.rank(tile) === 0).map(tile => tile.j * 8 + tile.i);
+    expect(criticalKeys.some(key => !actual.includes(key))).toBe(true);
     expect(f.registration.owns('home')).toBe(false); expect(f.instances.get('home')?.root).toBe(f.neighbour.root);
     approach.dispose(); expect(f.registration.preparing?.('home')).toBe(false);
+    const entering = f.registration.enter('home', f.entered, f.resident, camera);
+    await f.drive(); await entering;
+    expect(required.mock.calls.some(call => call[2] !== 'l1' && criticalKeys.every(key => [...call[1]].includes(key)))).toBe(true);
+    expect(f.registration.owns('home')).toBe(true);
   } finally { required.mockRestore(); f.scope.dispose(); }
   expect(f.pins()).toBe(0); expect(f.allocator.entries()).toHaveLength(0);
 });

@@ -27,7 +27,7 @@ import { createProgramKeeper, retainRendererPrograms, RETAINED_PROGRAM_BYTES, RE
 import { installBootProgramChoice } from './bootPrograms';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { WORK_SLICE_MS, workSlice } from '@wildshard/engine/core/workSlice';
-import { CHUNK_HALF, ENTRY_ASPHALT, CONTENT_CAPS } from '@wildshard/engine/core/config';
+import { CHUNK_HALF, ENTRY_ASPHALT } from '@wildshard/engine/core/config';
 import type { DisposeStep, Scope } from '@wildshard/engine/app/scope';
 import type { Events } from '@wildshard/engine/events/events';
 import type { Physics } from '@wildshard/engine/physics/Physics';
@@ -265,7 +265,6 @@ export class LiveGridSession {
       keepPrograms: instance => { this.keepPrograms(instance); },
       home: { mode: 'owned', instance: home.instance, bytes: ports.residency.bytes, residency: ports.residency },
       player, allocator: ports.allocator,
-      preparationBudget: { playing: CONTENT_CAPS.playing, loading: CONTENT_CAPS.loading },
       highway: { bytes: highwayBytes, create: () => {
         const highwayScope = scope.child('grid.highway.platform');
         this.transferWalls.set(null, new TransferWalls(() => ports.physics, assembly.cells.map(cell => cell.origin), traveller.motor.opts.radius, 'entry', highwayScope));

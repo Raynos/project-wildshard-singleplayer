@@ -61,8 +61,6 @@ export interface LiveGridPorts {
   prioritize?: (cell: GridCell) => () => void;
   /** Render-only approach: the signal owns the pin, including after preparation completes. */
   prepareNeighbour?: (cell: GridCell, start: { readonly x: number; readonly z: number }, signal: AbortSignal) => Promise<void>;
-  /** Strict speculative pair limits, independent of report-only ordinary admission. No port: no paired preparation. */
-  preparationBudget?: { readonly playing: number; readonly loading: number };
   /** Browser presentation boundary between admission batches; absent leaves the standalone Node scheduler unchanged. */
   pause?: () => Promise<void>;
   /** Metadata-only prefetch eligibility. Unsupported far proxies do not consume cold request slots; explicit transfers

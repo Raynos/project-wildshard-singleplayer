@@ -116,7 +116,6 @@ async function fixture(options: { paired?: boolean; loading?: number; isolation?
     ...(options.priorities === undefined ? {} : { prioritize: (cell: { instance: string }) => {
       options.priorities?.push(`hold:${cell.instance}`); return () => { options.priorities?.push(`release:${cell.instance}`); };
     } }),
-    ...(options.paired === true ? { preparationBudget: budget } : {}),
     ...(options.tileApproaches === undefined && options.tilePins === undefined ? {} : { prepareNeighbour: (cell: { instance: string }, start: { readonly x: number; readonly z: number }, signal: AbortSignal) => {
       options.tileApproaches?.push(cell.instance); options.tilePins?.push({ instance: cell.instance, start, signal }); return options.tileReady?.() ?? Promise.resolve();
     } }),
