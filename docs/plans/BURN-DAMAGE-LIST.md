@@ -39,7 +39,7 @@ since is red; the latest (`60e9b7bfe6`) fails `generated-inputs`, which fails fa
 |---|---|---|---|---|
 | D1 | `src/engine/core/entered-shader-pause.test.ts`: "Entered shader pause wiring missing" | `ac3e62895d` | sp-ci-deploy | fix landed 23dc524329; focused verification awaits generation |
 | D2 | `test/boot-dist-transfer.test.ts`: smoke legs download without a relay | `0acf223e06` | sp-ci-deploy | fix landed 508d4143fe; focused verification awaits generation |
-| D3 | `test/title-shell-graph.test.ts`: cold title stays off the world graph | `a49bb564ce` | sp-x7 (G771) | fixing now |
+| D3 | `test/title-shell-graph.test.ts`: cold title stays off the world graph | `a49bb564ce` | sp-ci-deploy | fix landed e43824c7ae; focused verification awaits generation |
 | D4 | `test/nalati-render-source.test.ts`: 30 s timeout | `0acf223e06` | sp-ci-deploy | fix landed 9c30863d2d; focused verification awaits generation |
 | D5 | `test/world-targets.test.ts`: move/contain error not thrown | `06d14d8288` | sp-ci-deploy | fix landed cbe29231a5; focused verification awaits generation |
 | D6 | `test/tile-bakes.test.ts`: exact coordinate debt | `06d14d8288` | tiles lane (sp-x8) | open |
@@ -75,9 +75,9 @@ since is red; the latest (`60e9b7bfe6`) fails `generated-inputs`, which fails fa
 | D36 | Generation catalogue: 'Missing or duplicate catalogue dependency: pine-layout' stops every HEAD preview (log tmp/serve/failed-20261027-014157-4401.log) | 4645a57294 | sp-o1 | fixed 117a93c517 |
 | D37 | Local `node lint/ratchet.mjs` (full or `--files-from`) aborts on the stale allowance `wildshard/no-build-time-import src/shards/far-reach/discovery.generated.ts` before counting, so lanes cannot self-check the ratchet (three GR8 ejects passed the local run) | — (tree) | sp-x7 (tooling) | open |
 
-| D38 | Sealed `nalati-geography` cannot resolve `@wildshard/sdk/random` from `geographySource.ts`; generation still masks tests | `c954d624a0` | sp-x6 | routed by sp-ci-deploy; full source closure requested |
-| D39 | Generation stage: `@wildshard/sdk/random` (and `sdk/quests`, D32) is not linked into the stage's node_modules, so clean builds of HEAD fail (`serve-build --head` at `4778e51ce1`: ERR_MODULE_NOT_FOUND, log tmp/serve/failed-20261027-014444-4401.log:35) | `4778e51ce1` or earlier | breaker (sp-ci-deploy finds) | open |
-| D40 | Nalati generation stage: `geographySource.ts` imports `@wildshard/sdk/random`, undeclared in its job's inputs; HEAD previews fail (ERR_MODULE_NOT_FOUND, log tmp/serve/failed-20261027-014514-4401.log) | c954d624a0 | breaker (sp-x7 finds) | open |
+| D38 | Sealed `nalati-geography` cannot resolve `@wildshard/sdk/random` from `geographySource.ts`; generation still masks tests | `c954d624a0` | sp-x6 | geography fixed 0c8f7e357f; boot-metadata consumer still misses SDK package exports; routed to sp-x6 |
+| D39 | Generation stage: `@wildshard/sdk/random` (and `sdk/quests`, D32) is not linked into the stage's node_modules, so clean builds of HEAD fail (`serve-build --head` at `4778e51ce1`: ERR_MODULE_NOT_FOUND, log tmp/serve/failed-20261027-014444-4401.log:35) | `4778e51ce1` or earlier | sp-x6 | same active closure break as D38; routed to sp-x6 |
+| D40 | Nalati generation stage: `geographySource.ts` imports `@wildshard/sdk/random`, undeclared in its job's inputs; HEAD previews fail (ERR_MODULE_NOT_FOUND, log tmp/serve/failed-20261027-014514-4401.log) | c954d624a0 | sp-x6 | same active closure break as D38; routed to sp-x6 |
 
 ## Rows
 
