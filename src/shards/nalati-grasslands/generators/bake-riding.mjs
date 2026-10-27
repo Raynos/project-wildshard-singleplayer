@@ -1,4 +1,4 @@
-import { SEED } from './terrainRecipe.ts';
+import { SEED } from './terrainSeed.ts';
 import { compileReturnProjectionV2 } from '@wildshard/sdk/returnProjectionV2';
 import { fileURLToPath } from 'node:url';
 import { readFileSync } from 'node:fs';

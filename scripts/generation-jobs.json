@@ -113,6 +113,7 @@
       "inputRoots": [
         "src/shards/nalati-grasslands/generators/bake-geography.mjs",
         "src/shards/nalati-grasslands/generators/terrainRecipe.ts",
+        "src/shards/nalati-grasslands/generators/terrainSeed.ts",
         "src/shards/nalati-grasslands/generators/edgeRecipe.ts",
         "src/shards/nalati-grasslands/generators/wetRecipe.ts",
         "src/shards/nalati-grasslands/generators/minimapRecipe.ts",
@@ -445,6 +446,7 @@
         "src/shards/nalati-grasslands/generators/minimapRecipe.ts",
         "src/shards/nalati-grasslands/generators/poiLayout.ts",
         "src/shards/nalati-grasslands/generators/terrainRecipe.ts",
+        "src/shards/nalati-grasslands/generators/terrainSeed.ts",
         "src/shards/nalati-grasslands/generators/wetRecipe.ts",
         "src/sdk/package.json",
         "src/format/package.json"
@@ -8950,6 +8952,7 @@
       "inputRoots": [
         "src/shards/nalati-grasslands/generators/bake-geography.mjs",
         "src/shards/nalati-grasslands/generators/terrainRecipe.ts",
+        "src/shards/nalati-grasslands/generators/terrainSeed.ts",
         "src/shards/nalati-grasslands/generators/edgeRecipe.ts",
         "src/shards/nalati-grasslands/generators/wetRecipe.ts",
         "src/shards/nalati-grasslands/generators/minimapRecipe.ts",
@@ -10084,6 +10087,7 @@
         "src/shards/nalati-grasslands/generators/zones.ts",
         "src/shards/nalati-grasslands/generators/nalatiGroundSource.ts",
         "src/shards/nalati-grasslands/generators/terrainRecipe.ts",
+        "src/shards/nalati-grasslands/generators/terrainSeed.ts",
         "src/shards/nalati-grasslands/generators/edgeRecipe.ts",
         "src/shards/nalati-grasslands/boot/layout.generated.json",
         "src/shards/nalati-grasslands/boot/clearings.generated.json",
@@ -10722,7 +10726,8 @@
         "src/shards/nalati-grasslands/generators/edgeRecipe.ts",
         "src/shards/nalati-grasslands/generators/layout.ts",
         "src/shards/nalati-grasslands/generators/poiLayout.ts",
-        "src/shards/nalati-grasslands/generators/terrainRecipe.ts"
+        "src/shards/nalati-grasslands/generators/terrainRecipe.ts",
+        "src/shards/nalati-grasslands/generators/terrainSeed.ts"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/behaviour/riding.generated.json",
@@ -11136,6 +11141,7 @@
         "src/shards/nalati-grasslands/generators/terrain.ts",
         "src/shards/nalati-grasslands/generators/terrainPainter.ts",
         "src/shards/nalati-grasslands/generators/terrainRecipe.ts",
+        "src/shards/nalati-grasslands/generators/terrainSeed.ts",
         "src/shards/nalati-grasslands/generators/terrainScene.ts",
         "src/shards/nalati-grasslands/generators/titanFireView.ts",
         "src/shards/nalati-grasslands/generators/titanView.ts",

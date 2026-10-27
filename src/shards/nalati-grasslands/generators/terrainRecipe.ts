@@ -1,4 +1,5 @@
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
+import { SEED as TERRAIN_SEED } from './terrainSeed';
 import { Noise2D, smoothstep, clamp, lerp } from '@wildshard/engine/core/noise';
 import { buildTerrain } from '@wildshard/engine/world/terrainField';
 import layoutRows from '../data/layout.generated.json' with { type: 'json' };
@@ -30,7 +31,7 @@ export function inSpruceClearing(x: number, z: number): boolean {
   return dx * dx + dz * dz < PASTURE_CLEARING.r * PASTURE_CLEARING.r || inPoiClearing(x, z, 8);
 }
 
-export const SEED = 0x4a1a;
+export const SEED = TERRAIN_SEED;
 
 // ── the geography (engine metres) ─────────────────────────────────────────────────────────────────────────────────
 
