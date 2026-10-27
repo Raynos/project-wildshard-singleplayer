@@ -17,6 +17,7 @@ import { textureBytes } from '@wildshard/engine/render/textureBytes';
 import { setPoseProvider } from '@wildshard/engine/ui/ReloadPrompt';
 import { registerBeforeReload } from '@wildshard/engine/boot/lastEnd';
 import { gridPrefetchOrder, startGridPrefetch } from '../grid/prefetch';
+import { admittedRuntimeProduct } from '../shardfile/runtimeProduct';
 import { enterSkyClock } from './clockSettings';
 import { settleEntryPrograms } from './settlePrograms';
 import { harnessPins } from '@wildshard/engine/app/identity';
@@ -141,6 +142,8 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   try { await loading.done(); }
   finally { if (game.frameGate === loadingFrameGate) game.frameGate = readyFrameGate; }
   if (level === undefined) app.events.emit('level.loaded', { id: slug });
+  // js-heap H6: the boot has built everything its admitted product's transport fed (clientAssets.ts `releaseAll`)
+  admittedRuntimeProduct(slug)?.assets.releaseAll();
   // G554: the grid's whole known set into the disk cache, this cell and its neighbours first, in the background once play
   // starts (round 39: during the loading screen its ~4,000 cache checks queued ahead of the home region's own reads)
   if (ctx.grid !== null) startGridPrefetch(gridPrefetchOrder(ctx.grid.assembly, player.position), gridPrefetchOrder(ctx.grid.assembly, player.position, 'phone'));

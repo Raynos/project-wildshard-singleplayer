@@ -105,6 +105,10 @@ export class ClientAssets {
   }
   /** Forget only decoded or runtime-owned transport copies; future reads still check immutable cache/network bytes. */
   releaseTransport(refs: Iterable<string>): void { for (const ref of refs) this.wire.delete(ref); }
+  /** js-heap H6: once the boot has played, keep no transport at all: a probe saw no read of a retained root in 20 s of
+   *  play on the Template or Driftwood (each root is read only while the boot builds), and a later read rechecks the
+   *  immutable cache, or the network, as a released tile does. */
+  releaseAll(): void { this.wire.clear(); }
   /** Keep only authoritative and library roots while render tiles stream through temporary admitted maps. */
   releaseTiles(): void {
     const keep = this.closure(this.roots());
