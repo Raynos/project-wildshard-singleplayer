@@ -300,7 +300,7 @@ Each engineering slice below is at most one hour; milestone measurements stay se
 | T6.2 Presentation lease / rebind | in flight (reading at plan end; `0bec059f9f`, sp-o3) | Entry 5x5 census: Pine dormant-only ~14.4 MB GPU (antler-king and two bear rigs, 5 bear coats), above its T0 band; DW ~0 (one shared creature bank); Nalati marginal (bitmap coats, not leasable). Last-reader lease of file-backed KTX2 textures: a model asleep 10 s gives them back unless an awake model of any factory reads them; a waking model stays dormant until they are refilled into the same textures (no rebind, no pop-in); generic, Debug Tile residency only. DW boar-fight Chromium capture at plan end. |
 | T3.I Instanced recipe parts by tile | done (sp-o5, `06d63e5b21`) | A step's instanced part sorts its instances once by tile; one draw whose first `count` instances are the resident tiles', every per-instance channel compacted alike. Parts with their own per-frame hook (a culler) or in one tile stay whole. Measured at Driftwood's spawn: 253/334 draws and triangles unchanged before/after (its foliage already streams as cove dressing); generic for recipe parts. |
 | T8.1 Complete-L0 bake fences | done (`7093891d97`) | All 24 products declare 64 L0 slots; strict caps and the exact 6/4 exception remain. |
-| T8.2 Driftwood lossless route | in flight (reading at plan end; source this commit, sp-x9) | G790 supersedes low-value wait: generic named-tile encoder runs before hash/cost derivation; Driftwood opts only 0/2/4 into strict gzip-9 lossless meshopt. Exact retained words/scene and byte/cost record below. Remove only its old wire debt; all other caps/rows and Jake B remain. Product/GC reading stays at plan end. |
+| T8.2 Driftwood lossless route | in flight (reading at plan end; source `39441c439c`, sp-x9) | G790 supersedes low-value wait: generic named-tile encoder runs before hash/cost derivation; Driftwood opts only 0/2/4 into strict gzip-9 lossless meshopt. Exact retained words/scene and byte/cost record below. Remove only its old wire debt; all other caps/rows and Jake B remain. Product/GC reading stays at plan end. |
 | T8.3 Occupied L1 appearance | in flight (reading at plan end, G780) (sp-o5; G748.5 Sky `60535f5995`, G748.6 Driftwood `806ea146aa`, Nine `82ac81812d`, Nalati `4177cc91fc`, G748.7 Pine `f18c504569`) | Real coarse stand-ins for occupied tiles beyond the render ring, per shard in its own style. |
 | G748.1 Entered far stand-in | done (sp-o5, this code commit; Developer) | The entered cell draws its own near view beyond the render ring: ground triangles (all corners within 1.2 m of its terrain) left to the real ground, the ring's tiles masked per fragment (8 x 8 positional far mask). No new bake or file. |
 | G748.2 Per-shard check | done (sp-o5, `dc2e445ae6`) | Opt-in per shard (`world.assembly` row `farStandIn`): Driftwood gains its far palms; Pine and Nalati draw their far content whole today (no change); Nine draws its city whole and the stand-in only darkened it (left out). Sky, Sunscar, template and plots run no world assembly. |
@@ -356,7 +356,7 @@ geometry reader's release already retire transport through verified rereads.
 
 | B tile | Raw GLB B | Meshopt GLB B | Raw gzip-9 B | Meshopt gzip-9 B | Decision |
 |---|---:|---:|---:|---:|---|
-| 2/4 | 421,392 | 204,840 | 112,760 | 105,982 | In flight T8.2 / G790: source this commit, -6,778 B gzip; decoded charge recorded below |
+| 2/4 | 421,392 | 204,840 | 112,760 | 105,982 | In flight T8.2 / G790: source `39441c439c`, -6,778 B gzip; decoded charge recorded below |
 | 3/1 | 375,648 | 188,156 | 96,999 | 101,823 | Hold tested lossless route; +4,824 B delivered |
 | 3/3 | 308,860 | 156,748 | 83,325 | 97,667 | Hold tested lossless route; +14,342 B delivered |
 
@@ -936,7 +936,7 @@ migrations; no new preview, reading, product build or render gain is claimed.
 
 ### T8.2 named-tile lossless encoder (2026-10-27, sp-x9)
 
-**In flight (reading at plan end G780; source this commit).** G790
+**In flight (reading at plan end G780; source `39441c439c`).** G790
 supersedes the old low-value wait. Split agreed with sp-x2: x9 owns
 this compiler/Driftwood slice; x2 keeps T8/T10 and its Pine work.
 Consume the defining 88fd3ebe2b tileCompression/save producer and its
