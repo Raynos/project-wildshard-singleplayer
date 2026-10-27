@@ -11,7 +11,7 @@ import weather from '../data/weatherLook.json' with { type: 'json' };
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { deflateSync } from 'node:zlib';
+import { encodeBuildBytes } from '@wildshard/sdk/bake/byteCodec';
 import { GeometryPackWriter } from '@wildshard/sdk/kit/geometryPack';
 import { wildlifeWordLanes as shuffleLanes } from './wildlifeWords.ts';
 import { crownCover, puddleGeometry } from './rainBake.ts';
@@ -48,7 +48,7 @@ for (const tier of /** @type {const} */ (['phone', 'desktop'])) {
   puddles.deleteAttribute('normal'); puddles.deleteAttribute('uv');
   pack.add(puddles); pack.addFloats(cover, 1);
   rows[tier] = pack.rows();
-  const bin = deflateSync(shuffleLanes(pack.bytes()), { level: 9 });
+  const bin = encodeBuildBytes(shuffleLanes(pack.bytes()), 'deflate', 9, 'native');
   const path = resolve(root, `public/assets/pine-hollow/baked/rain${tier === 'phone' ? '.phone' : ''}.bin`);
   if (check) {
     if (!existsSync(path) || Buffer.compare(readFileSync(path), bin) !== 0) { console.error(`Pine rain stale: ${path}`); stale = true; }
