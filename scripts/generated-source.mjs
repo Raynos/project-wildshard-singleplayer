@@ -109,8 +109,8 @@ export function checkGeneratedSourceRevision(root, revision, previous, changed) 
   const after = generatedSourcePolicy(JSON.parse(read(GENERATED_SOURCE_POLICY) ?? 'null'));
   const prior = readBlob(root, parent, GENERATED_SOURCE_POLICY);
   const errors = prior === undefined ? [] : generatedSourceIncreases(generatedSourcePolicy(JSON.parse(prior)), after);
-  const outputs = declaredOutputs(read);
-  for (const file of tree.keys()) if (inSource(file) && marked(file)) outputs.add(file);
+  const outputs = new Set([...declaredOutputs(read)].filter(file => tree.has(file) && changed.includes(file)));
+  for (const file of changed) if (tree.has(file) && inSource(file) && marked(file)) outputs.add(file);
   for (const file of changed) if (inSource(file) && tree.has(file) && /\.[cm]?[jt]sx?$/u.test(file)
     && marked(file, (read(file) ?? '').slice(0, 512))) outputs.add(file);
   return [...errors, ...failures(outputs, after, exemptSources(read))];

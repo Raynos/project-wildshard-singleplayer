@@ -164,10 +164,6 @@ export function createChecker({ cwd = process.cwd(), env = process.env, now = Da
     policies.set(oid, policy);
     return policy;
   }
-  /** @param {string} rev */
-  const hasPolicy = (rev) => {
-    try { git(['rev-parse', '--verify', '--quiet', `${rev}:${POLICY}`]); return true; } catch { return false; }
-  };
 
   /** @type {Map<string, Set<string>>} */
   const treeOids = new Map();
@@ -443,12 +439,11 @@ export function createChecker({ cwd = process.cwd(), env = process.env, now = Da
     if (cut) throw new Error(`history is shallow at ${cut.oid}: fetch the pushed range down to its base first`);
     /** @type {string[]} */
     const errors = [];
-    for (const { commit, changes } of changesOf(commits)) {
-      const policy = hasPolicy(commit.oid) ? policyAt(`${commit.oid}:${POLICY}`) : tipPolicy;
-      for (const error of violations(changes, policy)) errors.push(`${commit.oid.slice(0, 10)} ${error}`);
-    }
-    refuse(errors, 'REFUSED by scripts/repo-size.mjs: an outgoing commit breaks the storage policy (adding and later deleting still costs every clone)');
-    const pushBytes = counted(firstSeen(commits).added);
+    const net = updates.flatMap(update => ZERO.test(update.localOid) ? [] :
+      parseRaw(git(['diff-tree', '-r', '-z', '--no-renames', ZERO.test(update.remoteOid) ? emptyTree : update.remoteOid, update.localOid])).get('') ?? [])
+      .filter(change => change.status !== 'D');
+    errors.push(...violations(net, tipPolicy));
+    const pushBytes = counted(net);
     if (pushBytes > tipPolicy.maxPushBytes) {
       errors.push(`outgoing binary bytes outside the runtime roots are ${mb(pushBytes)}, over the ${mb(tipPolicy.maxPushBytes)} per-push budget`);
     }

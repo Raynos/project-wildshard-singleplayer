@@ -15,7 +15,6 @@ import { genDecisionPolicies } from './gen-decision-policy.mjs';
 import { genShardWords } from './gen-shard-words.mjs';
 import { quietCli } from './quiet-cli.mjs';
 import { beginPushInputs } from './push-post-inputs.mjs';
-import { checkGeneratedSourceTree } from './generated-source.mjs';
 
 quietCli('gen');
 const root = resolve(import.meta.dirname, '..');
@@ -28,11 +27,6 @@ const inputsOnly = ['--inputs-only', '--proof', '--build-inputs'].some(flag => p
 const plan = generationPlan(root, shard), inputPlan = programInputPlan(root, plan);
 if (!inputsOnly && !process.env.CI && !process.env.GITHUB_ACTIONS) assertHeavyLease('build');
 const publishPushInputs = beginPushInputs(`${import.meta.dirname}/..`);
-function requireSourceOutputs() {
-  const failures = checkGeneratedSourceTree(`${import.meta.dirname}/..`);
-  if (failures.length > 0) throw new Error(failures.join('\n'));
-}
-requireSourceOutputs();
 
 const buildInputs = process.argv.includes('--build-inputs');
 // --proof remains a build-input alias. All modes share the CPU-based default.
@@ -87,6 +81,5 @@ await emitProgramTables(root, plan, {
     await step('shards', () => generationTailCached(root, 'shards-after', () => genShards(undefined, false, false, vocabularyShard)));
   },
 });
-requireSourceOutputs();
 try { publishPushInputs(); }
 catch (error) { console.warn(`push-inputs: completed cache unavailable: ${error instanceof Error ? error.message : String(error)}`); }

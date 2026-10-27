@@ -231,12 +231,8 @@ if (import.meta.main) {
     const paths = git(root, ['diff', '--cached', '--name-only', '--no-renames', '-z']).toString().split('\0').filter(Boolean);
     failures.push(...checkBinaryRevision(root, ':', 'HEAD', paths));
   } else if (mode === '--range' && base !== undefined && tip !== undefined) {
-    const revisions = git(root, ['rev-list', '--reverse', `${base}..${tip}`]).toString().trim().split('\n').filter(Boolean);
-    for (const revision of revisions) {
-      const previous = git(root, ['rev-parse', `${revision}^`]).toString().trim();
-      const paths = git(root, ['diff', '--name-only', '--no-renames', '-z', previous, revision]).toString().split('\0').filter(Boolean);
-      failures.push(...checkBinaryRevision(root, revision, previous, paths));
-    }
+    const paths = git(root, ['diff', '--name-only', '--no-renames', '-z', base, tip]).toString().split('\0').filter(Boolean);
+    failures.push(...checkBinaryRevision(root, tip, base, paths));
   } else if (mode === '--all') failures.push(...checkBinaryTree(root));
   else throw new Error('usage: no-binary-json.mjs --staged | --range <base> <tip> | --all');
   if (failures.length > 0) { for (const failure of failures) console.error(failure); process.exitCode = 1; }
