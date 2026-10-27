@@ -15,6 +15,7 @@ import { prepareProjectOutput } from '../src/sdk/projectOutput';
 import { createProjectGeneration } from '../src/sdk/projectGeneration';
 import { prepareOutput } from '../src/shards/far-reach/generators/sourceOutput';
 import { SKY_WORLD_TILE_ROWS } from '../src/shards/far-reach/generators/worldTileRows';
+import predecessorTiles from '../src/shards/far-reach/data/props.json' with { type: 'json' };
 import { BAKED_PIECES } from '../src/shards/far-reach/generators/fileInventory';
 import { nameBlob } from '../src/sdk/blobs';
 import { originalSkyRigs } from './fixtures/sky-original-rigs';
@@ -141,14 +142,34 @@ test('all original tiles admit from owned output with no project asset files', a
     const folder = readBuiltShardfile(resolve('.'), 'far-reach');
     const input: unknown = JSON.parse(readFileSync(resolve(folder, 'shard.json'), 'utf8'));
     const index = parseOutputIndex(input);
-    expect(rows.files).toHaveLength(22);
-    for (const original of rows.files) {
+    const lod = (level: number): Set<string> => new Set(rows.tiles.filter(tile => tile.lod === level).flatMap(tile => tile.files));
+    const fineFiles = lod(0), coarseFiles = lod(1), fine = rows.files.filter(file => fineFiles.has(file.hash)), coarse = rows.files.filter(file => coarseFiles.has(file.hash));
+    expect(fine).toHaveLength(22);
+    // G748.5 (60535f5995): the 11 occupied L1 parents each draw their own coarse copy, a file no fine tile shares
+    expect(coarse).toHaveLength(11); expect(fine.length + coarse.length).toBe(rows.files.length);
+    for (const original of [...fine, ...coarse]) {
       const file = index.files.find(row => row.hash === original.hash), bytes = admitted.get(original.hash);
       if (file === undefined || bytes === undefined) throw new Error('Missing admitted original tile');
       expect(file).toMatchObject(original);
       expect(hashImmutableBytes(bytes)).toBe(original.hash);
-      expect(Buffer.compare(bytes, readFileSync(`src/shards/far-reach/assets/${original.hash}`))).toBe(0);
       expect(Buffer.compare(bytes, readFileSync(resolve(folder, file.path)))).toBe(0);
+    }
+    // Each fine tile keeps its predecessor's complete binary chunk, file for file. The committed predecessor rows
+    // (data/props.json) name the loose originals; 8bf41b2b33/3f011d28a7 changed only each GLB's JSON chunk (named
+    // materials, receiver extras). The coarse copies are owned output only (61ea0216c8), never a loose file.
+    const binary = (glb: Uint8Array): Uint8Array => {
+      const view = new DataView(glb.buffer, glb.byteOffset, glb.byteLength), json = view.getUint32(12, true);
+      return glb.subarray(28 + json, 28 + json + view.getUint32(20 + json, true));
+    };
+    const before = predecessorTiles.tiles.filter(tile => tile.lod === 0 && tile.files.length > 0);
+    expect(before.flatMap(tile => tile.files)).toHaveLength(22);
+    for (const tile of before) {
+      const now = rows.tiles.find(row => row.lod === 0 && row.x === tile.x && row.z === tile.z);
+      expect(now?.files).toHaveLength(tile.files.length);
+      for (const [i, hash] of tile.files.entries()) {
+        const bytes = admitted.get(now?.files[i] ?? ''); if (bytes === undefined) throw new Error('Missing admitted fine tile');
+        expect(Buffer.compare(binary(bytes), binary(readFileSync(`src/shards/far-reach/assets/${hash}`)))).toBe(0);
+      }
     }
     const first = rows.files[0];
     if (first === undefined) throw new Error('Missing original tile declaration');
