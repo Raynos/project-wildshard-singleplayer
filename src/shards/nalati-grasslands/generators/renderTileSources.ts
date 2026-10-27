@@ -4,6 +4,9 @@ import { bakeNalatiGroundQuads, nalatiGroundSource } from './nalatiGroundSource'
 
 /** Existing N1b policy: preserve the original 1 m appearance error and paired L1 layout. */
 const L1_POLICY = { targetRatio: 0.1, maxErrorMetres: 1 };
+/** The 16 L1 tile rows' own policy: they are runtime-bound (the painted ground draws the pair files above, never these),
+ *  and the tile bake holds each L1 tile to 200 KB. 3 % / 3 m: largest 183 KB (the pair policy made 340 KB). */
+const L1_TILE_POLICY = { targetRatio: 0.03, maxErrorMetres: 3 };
 export interface NalatiRenderTileSources {
   readonly files: ReadonlyMap<string, Uint8Array>;
   readonly tiles: number;
@@ -16,7 +19,7 @@ export interface NalatiRenderTileSources {
 export async function nalatiRenderTileSources(native: Uint8Array): Promise<NalatiRenderTileSources> {
   // T8 (G786) / G748.6: the 16 L1 squares are tile rows too (the same 1 m policy as the pair files the painted ground draws;
   // runtime-bound like the L0 rows, so the client never draws them twice), so every occupied parent has its coarse tile
-  const { assets, nativeGround, ...rows } = await bakeNalatiWorldRowsLod(native, [], 'painterly', L1_POLICY);
+  const { assets, nativeGround, ...rows } = await bakeNalatiWorldRowsLod(native, [], 'painterly', L1_TILE_POLICY);
   const tiles = new Set(rows.tiles.flatMap(tile => tile.files));
   const metadata = new TextEncoder().encode(`${JSON.stringify({ version: 1, tiles: rows.tiles,
     files: rows.files.filter(file => tiles.has(file.hash)), props: rows.props })}\n`);
