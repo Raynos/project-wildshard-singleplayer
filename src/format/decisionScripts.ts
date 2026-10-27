@@ -1,6 +1,7 @@
 import * as v from 'valibot';
 import { isJsonData } from './json';
 import { SCRIPT_V1_COMMANDS, SCRIPT_V1_EVENTS, SCRIPT_V1_LISTS, SCRIPT_V1_READS } from './scriptAbiV1';
+import { SCRIPT_LIMITS } from '@wildshard/format/scriptLimits';
 
 function keys<T extends Readonly<Record<string, number>>>(table: T): (keyof T & string)[] { return Object.keys(table); }
 const id = v.pipe(v.string(), v.regex(/^[A-Za-z][A-Za-z0-9.:-]*$/u), v.maxLength(128));
@@ -89,8 +90,8 @@ function safeInput(value: unknown): boolean {
 export const DecisionScriptsSchema: v.GenericSchema<unknown, DecisionScripts> & { readonly pipe: readonly [unknown, unknown, v.ArraySchema<typeof row, undefined>, unknown, unknown, unknown, unknown, unknown] } = v.pipe(v.unknown(), v.check(safeInput, 'plain JSON without unsafe property names'), v.array(v.pipe(row, v.check(value => decisionScriptRowRules(value).length === 0, 'script row semantic rules'))),
   v.maxLength(64), v.check(rows => unique(rows.map(value => value.id)), 'unique script ids'),
   v.check(rows => rows.reduce((count, value) => count + ('spawnGroup' in value.binding ? Object.keys(value.actors).length : 1), 0) <= 64, 'at most 64 logical decision bindings'),
-  // G20a / G769: nine, so Pine's contract guest ships as a named module (no inline bytes) beside its eight others.
-  v.check(rows => new Set(rows.map(value => value.module)).size <= 9, 'at most nine decision modules'),
+  // G20a / G769: the host's instance cap (nine), so Pine's contract guest ships as a named module beside its eight others.
+  v.check(rows => new Set(rows.map(value => value.module)).size <= SCRIPT_LIMITS.instances, 'at most nine decision modules'),
   v.transform(rows => rows.map(omitEmptyBodyMaps)));
 
 /** Parse unknown direct input only after rejecting accessors, prototypes and non-JSON values. */

@@ -18,6 +18,7 @@ import { pineQuestNpcs } from './questNpcs';
 import type { PineJournal } from './journal';
 import { PINE_QUEST_HOST } from './questHost';
 import { returnGuest } from './returnPrograms';
+import { CONTRACT_PROGRAM_SCRIPT } from './contractProgram';
 
 /** The timber world rows the output reads too (its prop shapes, cabin seeds and pool ground). */
 export const TIMBER_ROWS: { propShapes: typeof timbers.propShapes; cabinSeeds: typeof timbers.cabins.seeds; poolGround: typeof timbers.poolGround } =
@@ -48,8 +49,8 @@ const looks = pineLookMaterials();
 // tile streaming P1: the ground's 80 splat tiles, the timber on its 12 L0 tiles after it
 const base = emptyShardfile({ slug: 'pine-hollow', name: 'Pine Hollow', author: 'Wildshard', revision: 1, seed: identity.seed });
 const criticalFiles = timbers.shardfile.files.filter(file => timbers.shardfile.critical.includes(file.hash));
-// The original seven one-page guests plus the admitted shelter guest, with live and rewind copies.
-const scriptMemory = 14 * 65536 + returnGuest('shelter').row.pages * 65536 * 2;
+// The original seven one-page guests plus the admitted shelter and contract guests (G20a), with live and rewind copies.
+const scriptMemory = 14 * 65536 + (returnGuest('shelter').row.pages + CONTRACT_PROGRAM_SCRIPT.pages) * 65536 * 2;
 const row = (heights: readonly number[]): { heights: number[]; colours: [number, number, number][]; roadHeight: 0 } =>
   ({ heights: [...heights], colours: heights.map((): [number, number, number] => [0.25, 0.25, 0.25]), roadHeight: 0 });
 /** Pine's declaration, admitted with the journal its program reads (GR8: `generate.ts`; no scheduler job writes it). */
