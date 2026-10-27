@@ -69,7 +69,8 @@ plan? … what is in scope … and what do we all have to complete to be done?"*
 | [iphone-downloads](shard-platform/iphone-downloads-mini-plan.md) (draft, for Jake) | E504 | **draft** 10-24: cold DW shardfile entry 1,021 req / 52.6 MB wire, all before control; I1–I12 (tier filter = L18, spawn-first, quantised geometry, UASTC RDO, packs, immutable blob headers, budgets guard); D1–D4 for Jake |
 
 **Out of scope here (their own plans, after this one):** [TOOLING-PERF](TOOLING-PERF.md) (parked draft, G659), [HOST-AUDIT](HOST-AUDIT.md) (starts after every shard is at
-zero, G596), SHARD-PLATFORM-NEXT, WASM-HOST beyond its zero blockers.
+zero, G596), [BURN-DAMAGE-LIST](BURN-DAMAGE-LIST.md) (parked draft: the mega build's damage list, G769),
+SHARD-PLATFORM-NEXT, WASM-HOST beyond its zero blockers.
 
 **Order (G639):** live reds that stop Jake playing → **Nalati to zero** (component by component) → **grid readiness 10/10**; every other mini plan above is an extra taken only by a lane with no zero / grid row free (CI and gate rows first, then the Night Market pilot, loading, memory strip, tile streaming, hero).
 
