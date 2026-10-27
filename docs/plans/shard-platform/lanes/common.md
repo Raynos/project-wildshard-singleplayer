@@ -5,7 +5,7 @@ AGENTS.md and docs/process/ hold the rest.
 **The 5-rule card (G670):**
 1. Previews only of HEAD or a landed main SHA; never of unlanded commits.
 2. `.git/quiet` only through the official Simulator reading script.
-3. Land each slice on `tsc -b` of touched layers + scoped typed lint + ONE `vitest related` walk (G708).
+3. G769 mega build: land on types + lint of touched files ONLY (no product builds, previews, related walks, soaks).
 4. No new Debug rows (G669); unfinished work goes behind Developer.
 5. A red you caused: fix it forward within 30 minutes; no reverts (G674).
 
@@ -13,9 +13,8 @@ AGENTS.md and docs/process/ hold the rest.
   acks, take the next ready-queue row in the same turn; keep working while a proof runs (no sleeps).
 - **Big moves (G704):** ≤ ~20 hand-touched files a commit, one big move at a time.
 - **Producer before reader:** a generated input lands with (or before) its first reader.
-- **Shared plumbing (G746):** a commit touching src/sdk/** or a shared bake/build file runs `tsc -b` and builds
-  every shard locally first. Every test input is tracked (`git ls-files`), never an untracked file.
-- **Previews (Opus):** reuse a running shared preview that contains your commit; one per 2-3 commits.
+- **G769:** only counted mini-plan rows; a row waiting on a Jake pick is built on the recommended option; red main
+  and broken tests are damage-listed and fixed after the plan unless they stop lanes building; mark rows done same hour.
 - **Generators:** serialise on the heavy-lane build lock, not over herdr.
 - **Gate (G768):** push gate 45 s, fails open to CI, no red hold; pre-commit 5 s; nobody cancels push CI (GM1).
 - **Messages (G708):** herdr only for a red that blocks you; no LANDED / verified / ACTIVE / FINAL / cohort pings
