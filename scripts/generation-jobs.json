@@ -3,40 +3,6 @@
   "notice": "DO NOT EDIT generated outputs by hand. This sidecar declares their retained source commands and SHA256-pinned build outputs. Regenerate and compare with node scripts/generate.mjs --job=<id> --compare. Only explicitly admitted buildOutputs are restored on a build-time cache miss; other outputs remain committed.",
   "jobs": [
     {
-      "id": "nalati-admission",
-      "shard": "nalati-grasslands",
-      "entry": "src/shards/nalati-grasslands/generators/bake-admission.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/shards/nalati-grasslands/generators/bake-admission.mjs"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "src/format",
-        "src/sdk",
-        "src/shards/nalati-grasslands/behaviour",
-        "src/shards/nalati-grasslands/generators/bake-admission.mjs",
-        "src/sdk/decisionScriptBindings.ts",
-        "src/format/scriptAbiV1.ts",
-        "src/format/decisionScripts.ts",
-        "scripts/bake-output.mjs"
-      ],
-      "outputs": [
-        "src/shards/nalati-grasslands/behaviour/admission.generated.json",
-        "src/shards/nalati-grasslands/behaviour/admission.generated.wasm",
-        "src/shards/nalati-grasslands/behaviour/admission-witness.generated.bin"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/nalati-grasslands/behaviour/admission.generated.json",
-        "src/shards/nalati-grasslands/behaviour/admission.generated.wasm",
-        "src/shards/nalati-grasslands/behaviour/admission-witness.generated.bin"
-      ],
-      "platform": "portable"
-    },
-    {
       "id": "nalati-elite-charge",
       "shard": "nalati-grasslands",
       "entry": "src/shards/nalati-grasslands/generators/bake-elite-charge.mjs",
