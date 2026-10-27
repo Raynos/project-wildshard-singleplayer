@@ -36,8 +36,11 @@ test('a held frame keeps issuing cheap new jobs to the held build budget where c
   expect(await issue({ held: true, cost: 3 })).toEqual([0, 0, 0, 0, 0, 0, 0, 0, 1]);
 });
 
-test('a slow job still ends the held slice, so two slow native units never share a frame', async () => {
-  expect(await issue({ held: true, cost: 12 })).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8]);
+test('slow jobs share the held budget too: a held slice ends once it is spent, at most one job past it (G808)', async () => {
+  // 12 ms jobs (a node material's build at 4x): two fill the 24 ms held budget, where each used to end its own slice
+  expect(await issue({ held: true, cost: 12 })).toEqual([0, 0, 1, 1, 2, 2, 3, 3, 4]);
+  // a job longer than the whole budget still gets a frame of its own
+  expect(await issue({ held: true, cost: 30 })).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8]);
 });
 
 test('moving frames and WebKit\'s queued compile keep the explicit slice', async () => {
