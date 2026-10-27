@@ -9,7 +9,7 @@ function fixture(): RoadTileGeometry {
   geometry.setAttribute('position', new BufferAttribute(Float32Array.from([0, 0, 0, 1, 0, 0, 0, 0, 1]), 3));
   geometry.setAttribute('color', new BufferAttribute(Uint8Array.from([255, 0, 0, 0, 255, 0, 0, 0, 255]), 3, true));
   const index = Uint32Array.from([0, 1, 2, 2, 1, 0]); geometry.setIndex(new BufferAttribute(index, 1));
-  return { geometry, plan: { source: index, lod: [150], bins: [{ sphere: new Sphere(), start: 0, count: 3,
+  return { geometry, plan: { source: index, lod: [150], bins: [{ sphere: new Sphere(undefined, 1), start: 0, count: 3,
     levels: [{ start: 3, count: 3 }], tile: { x: -1, z: 2 } }] }, bytes: { jsBytes: 93, gpuBytes: 69 } };
 }
 

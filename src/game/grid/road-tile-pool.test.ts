@@ -10,7 +10,7 @@ function fixture(x: number): RoadTileGeometry {
   const geometry = new BufferGeometry();
   geometry.setAttribute('position', new BufferAttribute(Float32Array.from([x, 0, 0, x + 1, 0, 0, x, 0, 1]), 3));
   const source = Uint32Array.from([0, 1, 2]); geometry.setIndex(new BufferAttribute(source, 1));
-  return { geometry, plan: { source, lod: [], bins: [{ sphere: new Sphere(), start: 0, count: 3, levels: [], tile: { x, z: 0 } }] },
+  return { geometry, plan: { source, lod: [], bins: [{ sphere: new Sphere(undefined, 1), start: 0, count: 3, levels: [], tile: { x, z: 0 } }] },
     bytes: { jsBytes: 60, gpuBytes: 48 } };
 }
 const descriptor = (instance: string): RingTile => ({ key: `${instance}:l0:0,0`, instance, level: 'l0', x: 0, z: 0, type: 'road' });

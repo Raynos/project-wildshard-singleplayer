@@ -31,15 +31,14 @@ function storage(template: TypedArray, length: number): TypedArray {
 }
 /** Merge resident data only. Preserve each bin/LOD run and native scalar type;
  * the pool's culler can still choose LOD independently for every visible tile. */
-export function* mergeRoadTileSteps(tiles: readonly RoadTileGeometry[]): Generator<void, { geometry: BufferGeometry; plan: CullPlan }> {
+export function* mergeRoadTileSteps(tiles: readonly RoadTileGeometry[], visibility?: ReadonlyMap<CullPlan['bins'][number], { visible: boolean }>): Generator<void, { geometry: BufferGeometry; plan: CullPlan }> {
   const geometry = new BufferGeometry(); let completed = false;
   try {
     const first = tiles[0], names = first === undefined ? [] : Object.keys(first.geometry.attributes);
-    const lod = first?.plan.lod ?? [], offsets: number[] = []; let vertices = 0;
+    const offsets: number[] = []; let vertices = 0;
     for (const tile of tiles) {
       const position = tile.geometry.getAttribute('position');
-      if (position === undefined || tile.plan.lod.length !== lod.length || tile.plan.lod.some((distance, i) => distance !== lod[i])
-        || Object.keys(tile.geometry.attributes).length !== names.length) throw new Error('Incompatible resident road tile');
+      if (position === undefined || Object.keys(tile.geometry.attributes).length !== names.length) throw new Error('Incompatible resident road tile');
       offsets.push(vertices); vertices += position.count;
     }
     for (const name of names) {
@@ -67,12 +66,16 @@ export function* mergeRoadTileSteps(tiles: readonly RoadTileGeometry[]): Generat
         const vertex = tile.plan.source[n]; if (vertex === undefined || vertex >= tile.geometry.getAttribute('position').count) throw new Error('Invalid road tile vertex');
         indices.push(vertex + offset);
       }
-      for (const bin of tile.plan.bins) bins.push({ ...bin, sphere: bin.sphere.clone(), start: base + bin.start,
-        levels: bin.levels.map(run => ({ start: base + run.start, count: run.count })) });
+      for (const bin of tile.plan.bins) {
+        const flag = visibility?.get(bin);
+        bins.push({ ...bin, ...(flag === undefined ? {} : { visibility: flag }), lod: [...(bin.lod ?? tile.plan.lod)],
+          sphere: bin.sphere.clone(), start: base + bin.start,
+          levels: bin.levels.map(run => ({ start: base + run.start, count: run.count })) });
+      }
     }
     const index = Uint32Array.from(indices);
     geometry.setIndex(new BufferAttribute(index, 1));
-    completed = true; return { geometry, plan: { source: index, bins, lod: [...lod] } };
+    completed = true; return { geometry, plan: { source: index, bins, lod: [] } };
   } finally { if (!completed) geometry.dispose(); }
 }
 /** A publication sink for scopedTilePorts. It never reserves or invents a lease:
@@ -81,11 +84,11 @@ export function* mergeRoadTileSteps(tiles: readonly RoadTileGeometry[]): Generat
 export class RoadTilePool {
   readonly root: Group = new Group();
   private current: Mesh<BufferGeometry, Material>;
-  private readonly resident = new Map<string, { data: RoadTileGeometry; scope: Scope }>();
+  private readonly resident = new Map<string, { data: RoadTileGeometry; scope: Scope; flags: Map<CullPlan['bins'][number], { visible: boolean }> }>();
   constructor(private readonly owner: Scope, private readonly material: Material, private readonly culler: RoadCuller, private readonly name: string, private readonly receiveShadow = true, private readonly renderOrder = 0) {
     if (!Number.isFinite(renderOrder)) throw new Error('Invalid road render order');
     if (owner.disposed || owner.disposing) throw new Error('Road tile pool owner retired');
-    this.current = this.makeMesh(new BufferGeometry()); this.root.name = name; this.root.add(this.current);
+    this.current = this.makeMesh(new BufferGeometry()); this.root.name = name; this.root.matrixAutoUpdate = false; this.root.updateMatrix(); this.root.add(this.current);
     owner.onDispose(() => {
       this.resident.clear(); this.culler.plans.delete(this.current);
       this.current.onBeforeRender = () => { /* Drop the retired plan closure. */ };
@@ -98,8 +101,15 @@ export class RoadTilePool {
    * a replacement with the same key. A failed merge leaves the old draw intact. */
   publish(tile: RingTile, data: RoadTileGeometry, scope: Scope): RingView {
     if (this.owner.disposed || this.owner.disposing || scope.disposed || scope.disposing) throw new Error('Road tile pool owner retired');
-    if (tile.level !== 'l0' || this.resident.has(tile.key)) throw new Error('Invalid road tile publication');
-    const entry = { data, scope }; this.resident.set(tile.key, entry);
+    if (tile.level === 'far' || this.resident.has(tile.key) || tile.level === 'l1' && data.identity === undefined) throw new Error('Invalid road tile publication');
+    if (tile.level === 'l0' && data.plan.bins.length !== 1) throw new Error('Fine road tile has multiple patches');
+    if (tile.level === 'l1') {
+      const parent = data.identity;
+      if (parent === undefined || data.plan.bins.some(bin => bin.tile === undefined || bin.tile.x < parent.x * 2
+        || bin.tile.x > parent.x * 2 + 1 || bin.tile.z < parent.z * 2 || bin.tile.z > parent.z * 2 + 1)) throw new Error('Road patch outside its parent');
+    }
+    const flags = new Map(data.plan.bins.map(bin => [bin, { visible: true }]));
+    const entry = { data, scope, flags }; this.resident.set(tile.key, entry);
     try { this.rebuild(); }
     catch (error) { this.resident.delete(tile.key); throw error; }
     if (scope.disposed || scope.disposing) { this.owner.dispose(); throw new Error('Road tile retired during publication'); }
@@ -110,15 +120,28 @@ export class RoadTilePool {
       try { this.rebuild(); }
       catch (error) { this.owner.dispose(); throw error; }
     });
-    return { mask: excluded => { if (excluded.size > 0) throw new Error('Fine road tiles cannot mask children'); },
+    return { mask: excluded => {
+      if (tile.level === 'l0' && excluded.size > 0) throw new Error('Fine road tiles cannot mask children');
+      for (const value of excluded) if (!Number.isInteger(value) || value < 0 || value > 3) throw new Error('Invalid road quadrant mask');
+      const parent = data.identity;
+      for (const [bin, flag] of flags) {
+        if (parent === undefined || bin.tile === undefined) { flag.visible = true; continue; }
+        const x = bin.tile.x - parent.x * 2, z = bin.tile.z - parent.z * 2;
+        if (tile.level === 'l1' && (x < 0 || x > 1 || z < 0 || z > 1)) throw new Error('Road patch outside its parent');
+        flag.visible = tile.level === 'l0' || !excluded.has(x + 2 * z);
+      }
+    },
       shadow: () => { /* Road geometry retains its original no-caster contract. */ }, dispose: () => { scope.dispose(); } };
   }
   private makeMesh(geometry: BufferGeometry): Mesh<BufferGeometry, Material> {
     const mesh = new Mesh(geometry, this.material); mesh.name = this.name;
-    mesh.receiveShadow = this.receiveShadow; mesh.renderOrder = this.renderOrder; mesh.castShadow = false; return mesh;
+    mesh.receiveShadow = this.receiveShadow; mesh.renderOrder = this.renderOrder; mesh.castShadow = false;
+    mesh.matrixAutoUpdate = false; mesh.updateMatrix(); return mesh;
   }
   private rebuild(): void {
-    const next = finishRoadSteps(mergeRoadTileSteps([...this.resident.values()].map(entry => entry.data)));
+    const entries = [...this.resident.values()];
+    const flags = new Map(entries.flatMap(entry => [...entry.flags]));
+    const next = finishRoadSteps(mergeRoadTileSteps(entries.map(entry => entry.data), flags));
     const mesh = this.makeMesh(next.geometry);
     try { publishRoadPlan(this.culler, mesh, next.plan); gpuOnlyRoad(mesh, []); }
     catch (error) { this.culler.plans.delete(mesh); next.geometry.dispose(); throw error; }

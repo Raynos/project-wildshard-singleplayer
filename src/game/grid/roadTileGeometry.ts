@@ -7,6 +7,8 @@ import type { CullPlan, RenderBytes } from './roadCull';
 
 /** One independent tile, with rebased indices and no references to the source geometry's arrays. */
 export interface RoadTileGeometry {
+  /** Coarse tile identity; its bins keep their individual fine-quadrant identities. */
+  readonly identity?: { readonly x: number; readonly z: number };
   readonly geometry: BufferGeometry;
   readonly plan: CullPlan;
   readonly bytes: RenderBytes;

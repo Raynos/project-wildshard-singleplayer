@@ -13,15 +13,17 @@ type Scalar = v.InferOutput<typeof scalar>;
 const natural = v.pipe(v.number(), v.safeInteger(), v.minValue(0), v.maxValue(MAX_BYTES));
 const finite = v.pipe(v.number(), v.finite());
 interface Header {
-  version: 1; tile: [number, number]; vertices: number; runs: number[]; lod: number[];
-  sphere: [number, number, number, number];
+  version: 2; tile: [number, number]; vertices: number; lod: number[];
+  bins: { tile: [number, number]; sphere: [number, number, number, number]; runs: number[] }[];
   attributes: { name: string; scalar: Scalar; size: number; normalized: boolean }[];
 }
-const headerSchema: v.GenericSchema<unknown, Header> = v.strictObject({ version: v.literal(1),
-  tile: v.tuple([v.pipe(v.number(), v.safeInteger()), v.pipe(v.number(), v.safeInteger())]), vertices: natural,
-  runs: v.pipe(v.array(natural), v.minLength(1), v.maxLength(8)),
-  lod: v.pipe(v.array(v.pipe(finite, v.minValue(0))), v.maxLength(7)),
-  sphere: v.tuple([finite, finite, finite, v.pipe(finite, v.minValue(0))]),
+const coordinate = v.pipe(v.number(), v.safeInteger());
+const headerSchema: v.GenericSchema<unknown, Header> = v.strictObject({ version: v.literal(2),
+  tile: v.tuple([coordinate, coordinate]), vertices: natural,
+  lod: v.pipe(v.array(v.pipe(finite, v.minValue(0))), v.maxLength(2)),
+  bins: v.pipe(v.array(v.strictObject({ tile: v.tuple([coordinate, coordinate]),
+    sphere: v.tuple([finite, finite, finite, v.pipe(finite, v.minValue(0))]),
+    runs: v.pipe(v.array(natural), v.minLength(1), v.maxLength(3)) })), v.minLength(1), v.maxLength(4)),
   attributes: v.pipe(v.array(v.strictObject({ name: v.pipe(v.string(), v.regex(/^[A-Za-z][A-Za-z0-9_]{0,63}$/u)), scalar,
     size: v.pipe(natural, v.minValue(1), v.maxValue(16)), normalized: v.boolean() })), v.minLength(1), v.maxLength(32)),
 });
@@ -73,24 +75,30 @@ function live(scope: Scope): void {
 /** Pack original scalar bytes, including normalized integer attributes. The header
  * and each run are length checked before any decoded geometry is allocated. */
 export function encodeRoadTile(tile: RoadTileGeometry): Uint8Array<ArrayBuffer> {
-  const bin = tile.plan.bins[0], position = tile.geometry.getAttribute('position');
-  if (tile.plan.bins.length !== 1 || bin?.tile === undefined || position === undefined) throw new Error('Expected one owned road tile');
-  const attributes: Header['attributes'] = [], blocks: Uint8Array[] = [];
+  const identity = tile.identity ?? tile.plan.bins[0]?.tile, position = tile.geometry.getAttribute('position');
+  if (identity === undefined || tile.plan.bins.length === 0 || tile.plan.bins.length > 4 || position === undefined) throw new Error('Expected one owned road tile');
+  if (tile.plan.bins.length > 1 && tile.plan.lod.length > 0) throw new Error('Multiple road patches must be coarse');
+  const attributes: Header['attributes'] = [], blocks: Uint8Array[] = [], bins: Header['bins'] = [];
   let at = 0;
-  for (const run of [bin, ...bin.levels]) {
-    if (run.start !== at || run.count % 3 !== 0) throw new Error('Road tile runs are not contiguous triangles');
-    at += run.count;
+  for (const bin of tile.plan.bins) {
+    if (bin.tile === undefined || bin.levels.length !== tile.plan.lod.length
+      || bin.lod !== undefined && (bin.lod.length !== tile.plan.lod.length || bin.lod.some((distance, i) => distance !== tile.plan.lod[i]))) throw new Error('Road tile run mismatch');
+    for (const run of [bin, ...bin.levels]) {
+      if (run.start !== at || run.count % 3 !== 0) throw new Error('Road tile runs are not contiguous triangles');
+      at += run.count;
+    }
+    bins.push({ tile: [bin.tile.x, bin.tile.z], runs: [bin.count, ...bin.levels.map(run => run.count)],
+      sphere: [bin.sphere.center.x, bin.sphere.center.y, bin.sphere.center.z, bin.sphere.radius] });
   }
-  if (at !== tile.plan.source.length || tile.plan.lod.length !== bin.levels.length) throw new Error('Road tile run mismatch');
+  if (at !== tile.plan.source.length) throw new Error('Road tile run mismatch');
   for (const name of Object.keys(tile.geometry.attributes)) {
     const attribute = tile.geometry.getAttribute(name);
     if (!(attribute instanceof BufferAttribute) || attribute.count !== position.count) throw new Error('Invalid road tile attribute');
     attributes.push({ name, scalar: scalarKind(attribute.array), size: attribute.itemSize, normalized: attribute.normalized });
     blocks.push(new Uint8Array(attribute.array.buffer, attribute.array.byteOffset, attribute.array.byteLength));
   }
-  const header = v.parse(headerSchema, { version: 1, tile: [bin.tile.x, bin.tile.z], vertices: position.count,
-    runs: [bin.count, ...bin.levels.map(run => run.count)], lod: [...tile.plan.lod],
-    sphere: [bin.sphere.center.x, bin.sphere.center.y, bin.sphere.center.z, bin.sphere.radius], attributes });
+  const header = v.parse(headerSchema, { version: 2, tile: [identity.x, identity.z], vertices: position.count,
+    lod: [...tile.plan.lod], bins, attributes });
   const metadata = new TextEncoder().encode(JSON.stringify(header));
   const index = new Uint8Array(tile.plan.source.buffer, tile.plan.source.byteOffset, tile.plan.source.byteLength);
   const vertexBytes = blocks.reduce((sum, block) => sum + block.length, 0);
@@ -103,17 +111,19 @@ export function encodeRoadTile(tile: RoadTileGeometry): Uint8Array<ArrayBuffer> 
   for (const block of [...blocks, index]) { packed.set(block, offset); offset += block.length; }
   return packed;
 }
-/** Decode from an owned snapshot; no attribute or index aliases archive bytes. */
+/** Decode from an owned snapshot; each parent patch keeps its own mask and sphere. */
 export function decodeRoadTile(input: Uint8Array): RoadTileGeometry {
   if (input.length < 4 || input.length > MAX_BYTES) throw new Error('Invalid road tile archive length');
   const bytes = Uint8Array.from(input), metadataLength = new DataView(bytes.buffer).getUint32(0, true);
   if (metadataLength === 0 || metadataLength > MAX_HEADER || metadataLength + 4 > bytes.length) throw new Error('Invalid road tile header length');
   const json: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes.subarray(4, 4 + metadataLength)));
   const header = v.parse(headerSchema, json), names = new Set(header.attributes.map(attribute => attribute.name));
-  if (!names.has('position') || names.size !== header.attributes.length || header.runs.length !== header.lod.length + 1
-    || header.runs.some(count => count % 3 !== 0)) throw new Error('Invalid road tile header');
+  if (!names.has('position') || names.size !== header.attributes.length
+    || new Set(header.bins.map(bin => bin.tile.join(','))).size !== header.bins.length
+    || header.bins.length > 1 && header.lod.length > 0
+    || header.bins.some(bin => bin.runs.length !== header.lod.length + 1 || bin.runs.some(count => count % 3 !== 0))) throw new Error('Invalid road tile header');
   const vertexBytes = header.attributes.reduce((sum, attribute) => sum + header.vertices * attribute.size * scalarBytes(attribute.scalar), 0);
-  const indexCount = header.runs.reduce((sum, count) => sum + count, 0), offset = metadataLength + 4;
+  const indexCount = header.bins.reduce((sum, bin) => sum + bin.runs.reduce((total, count) => total + count, 0), 0), offset = metadataLength + 4;
   if (offset + vertexBytes + indexCount * 4 !== bytes.length) throw new Error('Road tile archive size mismatch');
   const geometry = new BufferGeometry();
   try {
@@ -128,13 +138,17 @@ export function decodeRoadTile(input: Uint8Array): RoadTileGeometry {
     const position = geometry.getAttribute('position');
     if (position.itemSize !== 3) throw new Error('Invalid road tile positions');
     for (const value of position.array) if (!Number.isFinite(value)) throw new Error('Invalid road tile positions');
-    const runs: { start: number; count: number }[] = []; let start = 0;
-    for (const count of header.runs) { runs.push({ start, count }); start += count; }
-    const fine = runs[0]; if (fine === undefined) throw new Error('Missing road tile fine run');
-    const sphere = new Sphere(new Vector3(header.sphere[0], header.sphere[1], header.sphere[2]), header.sphere[3]);
-    geometry.setIndex(new BufferAttribute(index, 1)); geometry.setDrawRange(0, fine.count); geometry.boundingSphere = sphere;
-    return { geometry, plan: { source: index, lod: header.lod, bins: [{ sphere: sphere.clone(), start: 0, count: fine.count,
-      levels: runs.slice(1), tile: { x: header.tile[0], z: header.tile[1] } }] },
+    const bounds = new Sphere().makeEmpty(), bins: RoadTileGeometry['plan']['bins'][number][] = []; let start = 0, fineCount = 0;
+    for (const row of header.bins) {
+      const runs: { start: number; count: number }[] = [];
+      for (const count of row.runs) { runs.push({ start, count }); start += count; }
+      const fine = runs[0]; if (fine === undefined) throw new Error('Missing road tile fine run');
+      const sphere = new Sphere(new Vector3(row.sphere[0], row.sphere[1], row.sphere[2]), row.sphere[3]);
+      bins.push({ sphere, start: fine.start, count: fine.count, levels: runs.slice(1), tile: { x: row.tile[0], z: row.tile[1] } });
+      bounds.union(sphere); fineCount += fine.count;
+    }
+    geometry.setIndex(new BufferAttribute(index, 1)); geometry.setDrawRange(0, fineCount); geometry.boundingSphere = bounds;
+    return { identity: { x: header.tile[0], z: header.tile[1] }, geometry, plan: { source: index, lod: header.lod, bins },
       bytes: { jsBytes: vertexBytes + index.byteLength * 2, gpuBytes: vertexBytes + index.byteLength } };
   } catch (error) { geometry.dispose(); throw error; }
 }
@@ -142,7 +156,7 @@ export function decodeRoadTile(input: Uint8Array): RoadTileGeometry {
  * owned and usable; only the caller may retire it after this reference returns. */
 export async function persistRoadTile(scope: Scope, store: RoadTileStore, tile: RoadTileGeometry): Promise<RoadTileReference> {
   live(scope);
-  const identity = tile.plan.bins[0]?.tile;
+  const identity = tile.identity ?? tile.plan.bins[0]?.tile;
   if (identity === undefined) throw new Error('Missing road tile identity');
   const reference = { x: identity.x, z: identity.z, jsBytes: tile.bytes.jsBytes, gpuBytes: tile.bytes.gpuBytes };
   const bytes = encodeRoadTile(tile), hash = await contentHash(bytes); live(scope);
@@ -159,7 +173,7 @@ export async function persistRoadTile(scope: Scope, store: RoadTileStore, tile: 
 export async function loadRoadTile(scope: Scope, store: RoadTileStore, reference: RoadTileReference): Promise<RoadTileGeometry> {
   live(scope); const bytes = await store.get(reference.hash); live(scope);
   if (bytes === null || bytes.length !== reference.wireBytes || await contentHash(bytes) !== reference.hash) throw new Error('Road tile archive unavailable');
-  live(scope); const tile = decodeRoadTile(bytes), identity = tile.plan.bins[0]?.tile;
+  live(scope); const tile = decodeRoadTile(bytes), identity = tile.identity ?? tile.plan.bins[0]?.tile;
   if (identity?.x !== reference.x || identity.z !== reference.z || tile.bytes.jsBytes !== reference.jsBytes || tile.bytes.gpuBytes !== reference.gpuBytes) {
     tile.geometry.dispose(); throw new Error('Road tile reference mismatch');
   }

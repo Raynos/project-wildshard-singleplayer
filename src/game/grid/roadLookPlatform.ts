@@ -123,8 +123,8 @@ function* platformRoadSteps(input: PlatformRoadInput): Generator<void, PlatformR
   const retireGeometry = (mesh: Mesh, id: string, bytes: number): void => { backing?.retirement(mesh, () => { admission.shrink?.(id, bytes); }); };
   const strips = within === undefined ? input.strips : input.strips.filter(strip => within(strip.mesh.origin.x, strip.mesh.origin.z));
   const layout = within === undefined ? input.layout : layoutWithin(input.layout, within);
-  const tileSize = CONTENT_CAPS.l0.size;
-  const culler: RoadCuller = { pitch, tileSize, plans: input.plans, ...(backing === undefined ? {} : { prepare: (mesh: Mesh, plan: CullPlan): Generator<void, void> => backing.capture(mesh, plan) }), ...(input.camera === undefined ? {} : { camera: input.camera }) };
+  const tileSize = backing === undefined ? undefined : CONTENT_CAPS.l0.size;
+  const culler: RoadCuller = { pitch, ...(tileSize === undefined ? {} : { tileSize }), plans: input.plans, ...(backing === undefined ? {} : { prepare: (mesh: Mesh, plan: CullPlan): Generator<void, void> => backing.capture(mesh, plan) }), ...(input.camera === undefined ? {} : { camera: input.camera }) };
   // the seams' materials keyed by the generator's feature ranges: the same triangles the world collides with
   const seams = seamSolidSource(strips, home, undefined, pitch);
   const parts: SolidPart[] = [...seams.parts], solid = (part: SolidPart): void => { parts.push(part); };
@@ -136,7 +136,7 @@ function* platformRoadSteps(input: PlatformRoadInput): Generator<void, PlatformR
   for (const child of scene.children) if (child.name === 'grid-boulevard') boulevard = child;
   const meshes: Mesh[] = [];
   yield;
-  const deckBytes = yield* meshBytesSteps(parts.map(solidSource), SOLID_FLOATS, { pitch, tileSize, lod: ROAD_LOD }, true);
+  const deckBytes = yield* meshBytesSteps(parts.map(solidSource), SOLID_FLOATS, { pitch, ...(tileSize === undefined ? {} : { tileSize }), lod: ROAD_LOD }, true);
   const grainBytes = gpuOnlyTextureBytes(GRAIN_SIZE, GRAIN_SIZE, GRAIN_LAYERS.length, 'data');
   const deckAdmission = bytePlan('road.deck', deckBytes, grainBytes);
   const builtDeck = yield* allocateRenderSteps(admission, deckAdmission, function* buildDeck(owner) {
@@ -151,7 +151,7 @@ function* platformRoadSteps(input: PlatformRoadInput): Generator<void, PlatformR
   });
   if (builtDeck === undefined) throw new Error('Road construction cancelled');
   retireGeometry(builtDeck, deckAdmission.id, grainBytes.jsBytes + grainBytes.gpuBytes);
-  const curtainBytes = yield* meshBytesSteps([curtainSource(seams.curtain)], CURTAIN_FLOATS, { pitch, tileSize }, true);
+  const curtainBytes = yield* meshBytesSteps([curtainSource(seams.curtain)], CURTAIN_FLOATS, { pitch, ...(tileSize === undefined ? {} : { tileSize }) }, true);
   const builtCurtain = yield* allocateRenderSteps(admission, bytePlan('road.curtain', curtainBytes), function* buildCurtain(owner) {
     yield;
     const material = curtainMaterial(home), curtain = new Mesh(curtainGeometry(seams.curtain), material);

@@ -23,7 +23,7 @@ export function finishRoadSteps<T>(steps: Generator<void, T>): T {
 }
 
 /** One bin: its sphere (in the mesh's local frame) and its run of the sorted source index. */
-interface CullBin { readonly sphere: Sphere; readonly start: number; readonly count: number; readonly levels: readonly { readonly start: number; readonly count: number }[]; readonly tile?: { readonly x: number; readonly z: number } }
+interface CullBin { readonly visibility?: { visible: boolean }; readonly lod?: readonly number[]; readonly sphere: Sphere; readonly start: number; readonly count: number; readonly levels: readonly { readonly start: number; readonly count: number }[]; readonly tile?: { readonly x: number; readonly z: number } }
 /** A culled mesh's bins and its full, bin-sorted index (kept on the CPU to rebuild the drawn range from); past each LOD
  *  tier's distance a bin draws that tier's coarse run. */
 export interface CullPlan { readonly source: Uint32Array; readonly bins: readonly CullBin[]; readonly lod: readonly number[] }
@@ -320,9 +320,11 @@ function frustumOf(camera: Camera, out: Frustum, scratch: Matrix4, fresh = false
 function visibleRuns(plan: CullPlan, matrixWorld: Matrix4, frustum: Frustum, sphere: Sphere, eye: Vector3): { start: number; count: number; id: number }[] {
   const out: { start: number; count: number; id: number }[] = [];
   plan.bins.forEach((bin, k) => {
+    if (bin.visibility?.visible === false) return;
     if (!frustum.intersectsSphere(sphere.copy(bin.sphere).applyMatrix4(matrixWorld))) return;
     const d = sphere.distanceToPoint(eye);
-    let level = 0; while (level < plan.lod.length && d > (plan.lod[level] ?? Infinity)) level++;
+    const lod = bin.lod ?? plan.lod;
+    let level = 0; while (level < lod.length && d > (lod[level] ?? Infinity)) level++;
     const run = level === 0 ? bin : bin.levels[level - 1] ?? bin;
     out.push({ start: run.start, count: run.count, id: k * 4 + level });
   });
@@ -354,9 +356,10 @@ function attachRoadCull(mesh: Mesh, plan: CullPlan, main?: () => Camera | undefi
     let count = 0, changed = false;
     for (let k = 0; k < plan.bins.length; k++) {
       const bin = plan.bins[k];
-      if (bin === undefined || !frustum.intersectsSphere(sphere.copy(bin.sphere).applyMatrix4(mesh.matrixWorld))) continue;
+      if (bin === undefined || bin.visibility?.visible === false || !frustum.intersectsSphere(sphere.copy(bin.sphere).applyMatrix4(mesh.matrixWorld))) continue;
       const d = sphere.distanceToPoint(eye);
-      let level = 0; while (level < plan.lod.length && d > (plan.lod[level] ?? Infinity)) level++;
+      const lod = bin.lod ?? plan.lod;
+    let level = 0; while (level < lod.length && d > (lod[level] ?? Infinity)) level++;
       const run = choices[k]?.[level] ?? choices[k]?.[0];
       if (run === undefined) throw new Error('Missing road cull run');
       const id = k * 4 + level;
