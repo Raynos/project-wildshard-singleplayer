@@ -149,7 +149,8 @@ function drawBuffers(object: THREE.Object3D): ArrayBufferView[] {
  * scissor texel. */
 export function parkedDrawSlices<T extends THREE.Object3D>(drawables: readonly T[], budget: ParkedDrawBudget,
   /** G782: a material whose native pipeline for this drawable is already built (or planned by an earlier drawable of this
-   *  warm) is not new: its first draw builds no program or pipeline, only its bounded buffer uploads. */
+   *  warm) is not new, and a binding all of whose materials are so is not a first use (`newBindings`): its first draw
+   *  builds no program or pipeline, only its buffer uploads, which `bufferBytes` still bounds. */
   known: (object: T, material: THREE.Material) => boolean = () => false): T[][] {
   const slices: T[][] = [];
   const seen = new Set<THREE.Material>(), uploaded = new Set<ArrayBufferView>();
@@ -157,9 +158,12 @@ export function parkedDrawSlices<T extends THREE.Object3D>(drawables: readonly T
   const byteCap = budget.bufferBytes ?? Number.POSITIVE_INFINITY;
   let slice: T[] = [], fresh = 0, bytes = 0, freshBindings = 0;
   for (const object of drawables) {
-    const unseen = drawableMaterials(object).filter(material => !seen.has(material) && !known(object, material));
+    // each material asked once: `known` may note a first pipeline as planned for the drawables after it
+    const materials = drawableMaterials(object), built = materials.map(material => known(object, material));
+    const unseen = materials.filter((material, i) => !seen.has(material) && built[i] !== true);
     const binding = budget.newBindings === undefined ? undefined : drawBindingKey(object);
-    const firstUse = binding !== undefined && !bindings.has(binding) ? 1 : 0;
+    // a fresh binding over pipelines already built paces as a copy: its first draw adds only bounded buffer uploads
+    const firstUse = binding !== undefined && !bindings.has(binding) && !(materials.length > 0 && built.every(Boolean)) ? 1 : 0;
     const buffers = Number.isFinite(byteCap) ? drawBuffers(object).filter(buffer => !uploaded.has(buffer)) : [];
     const size = buffers.reduce((sum, buffer) => sum + buffer.byteLength, 0);
     if (slice.length > 0 && (slice.length >= budget.drawables || fresh + unseen.length > budget.newMaterials || bytes + size > byteCap

@@ -109,3 +109,21 @@ test('fresh materials over an already built pipeline do not count as new; distin
     for (const material of distinct) material.dispose();
   } finally { f.dispose(); for (const geometry of geometries) geometry.dispose(); for (const material of shared) material.dispose(); }
 });
+
+test('under the live WebKit budget, fresh geometry over a built pipeline is not a first use; a new program still is', async () => {
+  const shared = Array.from({ length: 8 }, () => new MeshBasicMaterial()), f = fixture(shared);
+  const geometries = Array.from({ length: 8 }, () => new BoxGeometry());
+  try {
+    for (const material of shared) f.compile(material, 7);
+    f.root.add(...shared.slice(0, 4).map((material, i) => new Mesh(geometries[i], material)));
+    expect(await f.warm(LIVE_PARKED_BUDGET)).toEqual({ drawn: 4, pauses: 1 });
+    f.root.clear(); f.root.add(...shared.slice(4).map((material, i) => new Mesh(geometries[i + 4], material)));
+    expect(await f.warm(LIVE_PARKED_BUDGET)).toEqual({ drawn: 4, pauses: 1 });
+    f.root.clear();
+    const distinct = Array.from({ length: 3 }, () => new MeshBasicMaterial());
+    distinct.forEach((material, i) => { f.compile(material, 30 + i); });
+    f.root.add(...distinct.map(material => new Mesh(new BoxGeometry(), material)));
+    expect(await f.warm(LIVE_PARKED_BUDGET)).toEqual({ drawn: 3, pauses: 3 });
+    for (const material of distinct) material.dispose();
+  } finally { f.dispose(); for (const geometry of geometries) geometry.dispose(); for (const material of shared) material.dispose(); }
+});
