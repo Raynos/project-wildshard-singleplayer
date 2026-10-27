@@ -92,7 +92,8 @@ test.each([256, 257])('baked seam channels retain every rendered word and bound 
   expect(metadata.origin).toEqual({ x: frame.origin.x, z: frame.origin.z });
   // The first channel-only version remains a valid named bank.
   const oldHeader = { ...parseCompiledGridHeader(header), look: { origin: metadata.origin, pitch: metadata.pitch, vertices: metadata.vertices, offset: metadata.offset, sphere: metadata.sphere } };
-  const oldBody = page.body.bytes.slice(0, metadata.offset + metadata.vertices * 20);
+  const oldBody = new Uint8Array(metadata.offset + metadata.vertices * 20); oldBody.set(page.body.bytes.subarray(0, metadata.offset));
+  oldBody.set(wire(decoded.look.normals), metadata.offset); oldBody.set(wire(decoded.look.uvs), metadata.offset + metadata.vertices * 12);
   const old = decodeCompiledGridLook(oldHeader, oldBody, source, 'probe');
   expect(old.look?.colours).toBeUndefined(); expect(old.look?.normals).toEqual(decoded.look.normals); expect(old.look?.uvs).toEqual(decoded.look.uvs);
   const bad = page.body.bytes.slice(); new DataView(bad.buffer).setFloat32(metadata.offset, Number.NaN, true);
@@ -129,9 +130,9 @@ test('the shipped initial ring is exactly the native subset, with all outer work
   expect(() => decodeCompiledGridStrips(outerHeader, outerPage.body.bytes, source, 'cell_0_0')).toThrow('source');
 });
 
-async function fixture(phase: GridStripPhase = 'initial', withOuter = false) {
+async function fixture(phase: GridStripPhase = 'initial', withOuter = false, withLook = false) {
   const original = native(), source = await platformGeometrySource(original.cells, original.empty);
-  const page = encodeGridStripPage(source, 'probe', 'fixture', original.strips, phase);
+  const page = encodeGridStripPage(source, 'probe', 'fixture', original.strips, phase, withLook ? { origin: { x: 0, z: -0 }, pitch: CONTENT_CAPS.pitch } : undefined);
   const pages = [page, ...(withOuter ? [encodeGridStripPage(source, 'probe', 'fixture', original.strips, 'outer')] : [])];
   const directory = new TextEncoder().encode(JSON.stringify({ version: 1, pages: pages.map(row => row.page) }));
   const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', directory)), sha256 = Array.from(digest, byte => byte.toString(16).padStart(2, '0')).join('');
@@ -141,8 +142,8 @@ async function fixture(phase: GridStripPhase = 'initial', withOuter = false) {
   return { original, source, page, pages, selector: { directory: address, homes: pages.map(row => row.page.home) }, files };
 }
 
-test('only a completed exact page publishes arrays and a scoped source charge', async () => {
-  const f = await fixture(), scope = new Scope('compiled page'), allocator = new ResidencyAllocator(), urls: string[] = [], signals: AbortSignal[] = [];
+test.each([false, true])('only a completed exact page publishes arrays and a scoped source charge (look %s)', async withLook => {
+  const f = await fixture('initial', false, withLook), scope = new Scope('compiled page'), allocator = new ResidencyAllocator(), urls: string[] = [], signals: AbortSignal[] = [];
   const actual = await readCompiledGridStrips(f.selector, f.original, 'probe', { scope, allocator }, (url, signal) => {
     urls.push(url); signals.push(signal); const bytes = f.files.get(url); if (bytes === undefined) throw new Error('Unexpected request');
     return Promise.resolve(new Response(Uint8Array.from(bytes).buffer));
@@ -150,7 +151,12 @@ test('only a completed exact page publishes arrays and a scoped source charge', 
   if (actual === null) throw new Error('Missing compiled page'); sameStrips(actual.strips, f.original.strips);
   expect(urls).toEqual([f.selector.directory.url, f.page.header.address.url, f.page.body.address.url]);
   expect(signals.every(signal => signal.aborted)).toBe(true);
-  expect(allocator.entries().map(row => row.id)).toEqual(['product:grid:seams:probe:source']);
+  expect(allocator.entries().map(row => row.id)).toEqual(withLook ? ['product:grid:seams:probe:look-source', 'product:grid:seams:probe:source'] : ['product:grid:seams:probe:source']);
+  if (withLook) {
+    if (actual.look === undefined) throw new Error('Missing charged channels');
+    expect(allocator.entries().find(row => row.id.endsWith(':look-source'))?.bytes)
+      .toBe(actual.look.normals.byteLength + actual.look.uvs.byteLength + (actual.look.colours?.byteLength ?? 0) + 1);
+  }
   scope.dispose(); expect(allocator.entries()).toEqual([]);
 });
 

@@ -5,6 +5,7 @@ import { basename, join } from 'node:path';
 import { isDeepStrictEqual } from 'node:util';
 import { BufferAttribute, BufferGeometry } from 'three';
 import { GeometryPackWriter } from '../../src/sdk/kit/geometryPack';
+import { encodePortableBytes } from '../../src/sdk/bake/portableBytes';
 import type { GeneratedStrip } from '../../src/engine/sim/strips';
 import { GRID_STRIP_FEATURE_KINDS, decodeCompiledGridLook, gridStripPageKey, parseCompiledGridHeader, type CompiledGridAddress, type CompiledGridHeader, type CompiledGridPage, type CompiledGridSelector, type GridStripPhase } from '../../src/game/grid/compiledStrips';
 import { seamLookGeometrySteps, type SeamGeometryChannels } from '../../src/game/grid/seamLook';
@@ -40,6 +41,14 @@ function bakeLookChannels(strips: readonly GeneratedStrip[], frame: Pick<SeamGeo
         sphere: { centre: [sphere.center.x, sphere.center.y, sphere.center.z], radius: sphere.radius } };
     } finally { geometry.dispose(); }
   }
+}
+
+function encodeLookChannels(look: SeamGeometryChannels): Uint8Array {
+  const bytes = new Uint8Array(look.normals.byteLength + look.uvs.byteLength + (look.colours?.byteLength ?? 0));
+  bytes.set(new Uint8Array(look.normals.buffer, look.normals.byteOffset, look.normals.byteLength));
+  bytes.set(new Uint8Array(look.uvs.buffer, look.uvs.byteOffset, look.uvs.byteLength), look.normals.byteLength);
+  if (look.colours !== undefined) bytes.set(new Uint8Array(look.colours.buffer, look.colours.byteOffset, look.colours.byteLength), look.normals.byteLength + look.uvs.byteLength);
+  return encodePortableBytes(bytes);
 }
 
 /** Store the original indexed words, never deduplicate vertices or quantize them. */
@@ -84,21 +93,19 @@ export function encodeGridStripPage(source: string, home: string, slug: string, 
   const geometry = writer.bytes(), featureStart = Math.ceil(geometry.length / 8) * 8;
   const featureEnd = featureStart + featureWords.length * 8;
   let look = frame === undefined ? undefined : bakeLookChannels(strips, frame);
-  if (look !== undefined && featureEnd + look.normals.byteLength + look.uvs.byteLength + (look.colours?.byteLength ?? 0) > 16 * 1024 * 1024) {
+  if (look !== undefined && look.normals.byteLength + look.uvs.byteLength + (look.colours?.byteLength ?? 0) > 16 * 1024 * 1024) {
     look = { origin: look.origin, pitch: look.pitch, normals: look.normals, uvs: look.uvs, sphere: look.sphere };
   }
   // Optional render channels cannot remove a native triangle bank that fits.
-  if (look !== undefined && featureEnd + look.normals.byteLength + look.uvs.byteLength > 16 * 1024 * 1024) look = undefined;
-  const packed = new Uint8Array(featureEnd + (look === undefined ? 0 : look.normals.byteLength + look.uvs.byteLength + (look.colours?.byteLength ?? 0))); packed.set(geometry);
+  if (look !== undefined && look.normals.byteLength + look.uvs.byteLength > 16 * 1024 * 1024) look = undefined;
+  let lookBytes = look === undefined ? new Uint8Array() : encodeLookChannels(look);
+  if (featureEnd + lookBytes.length > 16 * 1024 * 1024) { look = undefined; lookBytes = new Uint8Array(); }
+  const packed = new Uint8Array(featureEnd + lookBytes.length); packed.set(geometry);
   const view = new DataView(packed.buffer);
   for (const [index, value] of featureWords.entries()) view.setFloat64(featureStart + index * 8, value, true);
-  if (look !== undefined) {
-    packed.set(new Uint8Array(look.normals.buffer, look.normals.byteOffset, look.normals.byteLength), featureEnd);
-    packed.set(new Uint8Array(look.uvs.buffer, look.uvs.byteOffset, look.uvs.byteLength), featureEnd + look.normals.byteLength);
-    if (look.colours !== undefined) packed.set(new Uint8Array(look.colours.buffer, look.colours.byteOffset, look.colours.byteLength), featureEnd + look.normals.byteLength + look.uvs.byteLength);
-  }
+  packed.set(lookBytes, featureEnd);
   const header = artifact(json({ version: 1, source, home: keyHome, rows: writer.rows(), surfaces, shapes, strips: rows,
-    ...(look === undefined ? {} : { look: { origin: look.origin, pitch: look.pitch, vertices: look.normals.length / 3, offset: featureEnd, sphere: look.sphere,
+    ...(look === undefined ? {} : { look: { origin: look.origin, pitch: look.pitch, vertices: look.normals.length / 3, offset: featureEnd, sphere: look.sphere, codec: 'deflate' as const,
       ...(look.colours === undefined ? {} : { colours: true as const }) } }) } satisfies CompiledGridHeader), 'json', 'page');
   // Exercise the same valibot grammar the runtime admits, including signed zero.
   parseCompiledGridHeader(JSON.parse(new TextDecoder().decode(header.bytes)));

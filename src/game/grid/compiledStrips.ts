@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import { unzlibSync } from 'fflate';
 import { GeometryPackData, PackedGeometryRowsSchema, type PackedGeometryRows } from '@wildshard/format/geometryPack';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { declareDownloadFile } from '@wildshard/engine/boot/download';
@@ -25,7 +26,7 @@ export interface CompiledGridHeader {
   readonly strips: readonly { readonly id: string; readonly shape: number; readonly origin: { readonly x: number; readonly z: number };
     readonly duplicates: readonly { readonly instance: string; readonly origin: { readonly x: number; readonly z: number } }[] }[];
   readonly look?: { readonly origin: SeamGeometryChannels['origin']; readonly pitch: number; readonly vertices: number; readonly offset: number;
-    readonly sphere: SeamGeometryChannels['sphere']; readonly colours?: true };
+    readonly sphere: SeamGeometryChannels['sphere']; readonly colours?: true; readonly codec?: 'deflate' };
 }
 const hash = v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u));
 const text = v.pipe(v.string(), v.minLength(1), v.maxLength(512));
@@ -43,7 +44,7 @@ const headerSchema = v.strictObject({ version: v.literal(1), source: hash, home:
   shapes: v.pipe(v.array(v.strictObject({ features: v.strictObject({ offset: natural, count: v.pipe(natural, v.maxValue(100_000)) }), turnIn: v.exactOptional(v.strictObject({ at: v.literal(0), widths: v.tuple([finite, finite]) })) })), v.minLength(1), v.maxLength(128)),
   strips: v.pipe(v.array(v.strictObject({ id: text, shape: natural, origin: point, duplicates: v.pipe(v.array(v.strictObject({ instance: text, origin: point })), v.maxLength(4)) })), v.minLength(1), v.maxLength(256)),
   look: v.exactOptional(v.strictObject({ origin: point, pitch: v.pipe(v.number(), v.finite(), v.minValue(1)), vertices: natural, offset: natural,
-    sphere: v.strictObject({ centre: v.tuple([finite, finite, finite]), radius: v.pipe(v.number(), v.finite(), v.minValue(0)) }), colours: v.exactOptional(v.literal(true)) })) });
+    sphere: v.strictObject({ centre: v.tuple([finite, finite, finite]), radius: v.pipe(v.number(), v.finite(), v.minValue(0)) }), colours: v.exactOptional(v.literal(true)), codec: v.exactOptional(v.literal('deflate')) })) });
 
 /** Exact source identity, independent of object property order and preserving -0. */
 export async function platformGeometrySource(cells: readonly PlatformCell[], empty: StripProfile): Promise<string> {
@@ -124,16 +125,23 @@ function* stripSteps(input: unknown, bytes: Uint8Array, source: string, home: st
   const look = header.look;
   if (look === undefined) return { strips: result };
   const vertices = result.reduce((sum, strip) => sum + strip.mesh.positions.length / 3, 0);
-  if (look.offset % 4 !== 0 || look.vertices !== vertices || look.offset + vertices * (look.colours === true ? 32 : 20) !== bytes.length) throw new Error('Grid strip look layout differs');
+  const decodedBytes = vertices * (look.colours === true ? 32 : 20);
+  if (look.offset % 4 !== 0 || look.vertices !== vertices || decodedBytes > 16 * 1024 * 1024) throw new Error('Grid strip look layout differs');
+  let channels = bytes.subarray(look.offset);
+  if (look.codec === 'deflate') {
+    try { channels = unzlibSync(channels, { out: new Uint8Array(decodedBytes + 1) }); }
+    catch (error) { throw new Error('Invalid grid strip look channels', { cause: error }); }
+  }
+  if (channels.length !== decodedBytes) throw new Error('Grid strip look layout differs');
   const floats = (offset: number, count: number): Float32Array => {
-    const data = bytes.subarray(offset, offset + count * 4), aligned = data.byteOffset % 4 === 0 ? data : data.slice();
+    const data = channels.subarray(offset, offset + count * 4), aligned = data.byteOffset % 4 === 0 ? data : data.slice();
     const values = new Float32Array(aligned.buffer, aligned.byteOffset, count);
     if (!finiteWords(values)) throw new Error('Invalid grid strip look channels');
     return values;
   };
-  const normals = floats(look.offset, vertices * 3), uvs = floats(look.offset + vertices * 12, vertices * 2);
+  const normals = floats(0, vertices * 3), uvs = floats(vertices * 12, vertices * 2);
   return { strips: result, look: { origin: look.origin, pitch: look.pitch, sphere: look.sphere, normals, uvs,
-    ...(look.colours === true ? { colours: floats(look.offset + vertices * 20, vertices * 3) } : {}) } };
+    ...(look.colours === true ? { colours: floats(vertices * 20, vertices * 3) } : {}) } };
 }
 
 /** Renderer-free exact decoder for authoring and byte-parity qualification. */
@@ -164,6 +172,7 @@ async function readDeclaredGridPage(page: CompiledGridPage, home: string, owner:
   liveGridOwner(owner.scope);
   const abort = new AbortController(), forget = owner.scope.capture('disposers', () => { abort.abort(); });
   const reservations: { readonly release: () => void }[] = [];
+  const sourceLeases: { readonly release: () => void }[] = [];
   let releaseSource: (() => void) | undefined, forgetSource: (() => void) | undefined, published = false;
   const reserve = (id: string, bytes: number): { readonly release: () => void } => reserveGridSource(owner, page.home, home, id, bytes);
   const fetchAsset = async (asset: CompiledGridAddress): Promise<Uint8Array<ArrayBuffer>> => {
@@ -173,11 +182,19 @@ async function readDeclaredGridPage(page: CompiledGridPage, home: string, owner:
   try {
     reservations.push(reserve('decode', page.header.bytes * 2 + page.body.bytes * 2));
     const sourceLease = reserve('source', page.body.bytes * 2 + page.header.bytes * 4);
+    sourceLeases.push(sourceLease);
     let released = false;
-    releaseSource = (): void => { if (!released) { released = true; sourceLease.release(); } };
+    releaseSource = (): void => { if (!released) { released = true; for (const lease of sourceLeases) lease.release(); } };
     forgetSource = owner.scope.capture('disposers', releaseSource);
     const [header, body] = await Promise.all([fetchAsset(page.header), fetchAsset(page.body)]); liveGridOwner(owner.scope);
-    const steps = stripSteps(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(header)), body, page.source, page.home);
+    const metadata = parseCompiledGridHeader(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(header)));
+    if (metadata.look?.codec === 'deflate') {
+      const decodedBytes = metadata.look.vertices * (metadata.look.colours === true ? 32 : 20) + 1;
+      if (decodedBytes > 16 * 1024 * 1024 + 1) throw new Error('Grid strip look layout differs');
+      sourceLeases.push(reserve('look-source', decodedBytes));
+      reservations.push(reserve('look-decode', decodedBytes));
+    }
+    const steps = stripSteps(metadata, body, page.source, page.home);
     try {
       for (;;) {
         liveGridOwner(owner.scope); const step = steps.next();
