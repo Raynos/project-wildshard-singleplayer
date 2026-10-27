@@ -368,7 +368,7 @@ export type OffscreenWarmRenderer = Pick<Renderer, 'render' | 'getRenderTarget' 
  * caster's count cut to one, into a stand-in with the target's formats (`standInTarget`). The real target is never
  * written; every flag is restored before it returns. Returns how many casters it drew.
  */
-export function warmOffscreenPass(renderer: OffscreenWarmRenderer, scene: THREE.Scene, pass: OffscreenPreparation): number {
+function offscreenDrawables(pass: OffscreenPreparation): { drawn: Drawable[]; benched: THREE.Object3D[] } {
   const layers = pass.camera.layers, seen = new Set<string>();
   const drawn: Drawable[] = [], benched: THREE.Object3D[] = [];
   for (const root of pass.roots()) root.traverseVisible(object => {
@@ -377,13 +377,17 @@ export function warmOffscreenPass(renderer: OffscreenWarmRenderer, scene: THREE.
     if (seen.has(key) || !drawableMaterials(object).some(material => material.visible && material.allowOverride)) { benched.push(object); return; }
     seen.add(key); drawn.push(object);
   });
-  if (drawn.length === 0) return 0;
+  return { drawn, benched };
+}
+
+function drawOffscreenSlice(renderer: OffscreenWarmRenderer, scene: THREE.Scene, pass: OffscreenPreparation,
+  target: THREE.WebGLRenderTarget, drawn: readonly Drawable[], benched: readonly THREE.Object3D[]): void {
+  const layers = pass.camera.layers;
   const benchedMasks = benched.map(object => object.layers.mask);
   const drawnState = drawn.map(object => ({ culled: object.frustumCulled, count: object instanceof THREE.InstancedMesh ? object.count : -1 }));
   const priorOverride = scene.overrideMaterial, priorBackground = scene.background;
   const priorTarget = renderer.getRenderTarget(), priorFace = renderer.getActiveCubeFace(), priorMip = renderer.getActiveMipmapLevel();
   const shadowAuto = renderer.shadowMap.autoUpdate, shadowNeeds = renderer.shadowMap.needsUpdate;
-  const target = standInTarget(pass.target, 1, 1);
   try {
     for (const object of benched) object.layers.mask &= ~layers.mask;
     for (const object of drawn) {
@@ -405,18 +409,26 @@ export function warmOffscreenPass(renderer: OffscreenWarmRenderer, scene: THREE.
     scene.overrideMaterial = priorOverride; scene.background = priorBackground;
     renderer.shadowMap.autoUpdate = shadowAuto; renderer.shadowMap.needsUpdate = shadowNeeds;
     renderer.setRenderTarget(priorTarget, priorFace, priorMip);
-    target.depthTexture?.dispose(); target.dispose();
   }
-  return drawn.length;
+}
+
+/** Synchronous compatibility path for one complete pass, with the same target and restoration contract. */
+export function warmOffscreenPass(renderer: OffscreenWarmRenderer, scene: THREE.Scene, pass: OffscreenPreparation): number {
+  const { drawn, benched } = offscreenDrawables(pass);
+  if (drawn.length === 0) return 0;
+  const target = standInTarget(pass.target, 1, 1);
+  try { drawOffscreenSlice(renderer, scene, pass, target, drawn, benched); return drawn.length; }
+  finally { target.depthTexture?.dispose(); target.dispose(); }
 }
 
 /**
- * Warm every offscreen override pass registered on a scene under `root` (`warmOffscreenPass`), one pass per `pause()`.
- * `current` fences every pass; a pass that throws ends the warm-up (logged), never the entry, like `warmParkedDraws`.
+ * Warm every registered offscreen override pass under `root`, with caster batches bounded like parked draws.
+ * `current` fences every slice; a draw that throws ends the warm-up (logged), never the entry, like `warmParkedDraws`.
  * Optional excluded roots defer their registered passes without changing scene state.
  */
 export async function warmOffscreenPasses(renderer: OffscreenWarmRenderer, root: THREE.Object3D, current: () => boolean,
-  pause: () => Promise<void>, excludedRoots?: ReadonlySet<THREE.Object3D>, onProgress?: (done: number, total: number) => void): Promise<number> {
+  pause: () => Promise<void>, excludedRoots?: ReadonlySet<THREE.Object3D>, onProgress?: (done: number, total: number) => void,
+  budget: ParkedDrawBudget = DEFAULT_BUDGET): Promise<number> {
   const passes: { scene: THREE.Scene; pass: OffscreenPreparation }[] = [];
   const isScene = (object: THREE.Object3D): object is THREE.Scene => object instanceof THREE.Scene;
   const collect = (object: THREE.Object3D): void => { if (isScene(object)) for (const pass of offscreenPreparations(object)) passes.push({ scene: object, pass }); };
@@ -429,10 +441,26 @@ export async function warmOffscreenPasses(renderer: OffscreenWarmRenderer, root:
   onProgress?.(0, passes.length);
   for (const { scene, pass } of passes) {
     if (!current()) throw new Error('Offscreen warm owner left');
-    try { drawn += warmOffscreenPass(renderer, scene, pass); }
+    let inventory: ReturnType<typeof offscreenDrawables>;
+    let target: THREE.WebGLRenderTarget;
+    try { inventory = offscreenDrawables(pass); target = standInTarget(pass.target, 1, 1); }
     catch (error) { console.error(`[parked draws] the ${pass.label} pass warm stopped; its first update draws the rest`, error); return drawn; }
+    try {
+      const slices = parkedDrawSlices(inventory.drawn, budget);
+      for (const slice of slices) {
+        if (!current()) throw new Error('Offscreen warm owner left');
+        // A streamed pass can retire during the intervening painted frame.
+        if (!offscreenPreparations(scene).includes(pass)) break;
+        const selected = new Set(slice);
+        const benched = inventory.benched.concat(inventory.drawn.filter(object => !selected.has(object)));
+        try { drawOffscreenSlice(renderer, scene, pass, target, slice, benched); }
+        catch (error) { console.error(`[parked draws] the ${pass.label} pass warm stopped; its first update draws the rest`, error); return drawn; }
+        drawn += slice.length;
+        await pause(); // All authored state is restored before the next game frame.
+      }
+      if (slices.length === 0) await pause();
+    } finally { target.depthTexture?.dispose(); target.dispose(); }
     completed++; onProgress?.(completed, passes.length);
-    await pause();
   }
   return drawn;
 }

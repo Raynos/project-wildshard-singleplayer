@@ -676,7 +676,7 @@ export class Game {
   /** a system threw (one try/catch per call, below): count it, report it; a core system that keeps failing stops the loop */
   private fault(s: GameSystem<unknown>, e: unknown): void {
     if (s.label !== 'engine.events') this.app.events.emit('fault', { source: s.label, message: e instanceof Error ? e.message : String(e), error: e });
-    if (systemFault(s, e, this.frameNo, performance.now()) === 'fatal' && !this.dead) { this.dead = true; this.app.setState('error'); setLoopState('dead'); }
+    if (systemFault(s, e, this.frameNo, diagnosticNow()) === 'fatal' && !this.dead) { this.dead = true; this.app.setState('error'); setLoopState('dead'); }
   }
   /** (a method, not the field: the loop's early-out narrows `this.dead` to false for the rest of the frame) */
   private isDead(): boolean { return this.dead; }
@@ -691,9 +691,9 @@ export class Game {
       if (!s.on) continue;
       const scheduledDt = this.app.scheduler.systemDt(spec, dt);
       if (scheduledDt === 0 && spec.tick && spec.tick !== 'always') continue;
-      const t0 = on ? performance.now() : 0;
+      const t0 = on ? diagnosticNow() : 0;
       try { spec.run(scheduledDt, t); } catch (e) { this.fault(s, e); }
-      if (on) frameCost.system(s.label, performance.now() - t0);
+      if (on) frameCost.system(s.label, diagnosticNow() - t0);
     }
     this.flushEvents(phase);
   }
@@ -1000,7 +1000,7 @@ export class Game {
     enter('offscreen-draws');
     const offscreenStart = diagnosticNow();
     const passes = await warmOffscreenPasses(this.renderer, this.rootScene, current, drawnPause, entryFrameExclusions(this.rootScene, futureRoot),
-      (done, total) => { progress(done, total, `${done} / ${total} render passes warmed`); });
+      (done, total) => { progress(done, total, `${done} / ${total} render passes warmed`); }, drawBudget.budget);
     onStage('offscreen-draws', diagnosticNow() - offscreenStart, passes);
     trace.completed = true;
     } finally { thaw?.(); }
@@ -1096,13 +1096,13 @@ export class Game {
     // and accepted (overlay / mirror / hidden canvas / wake lock / keep-alive audio made no difference).
     let forceFrame = false;
     this.engineScope.listen(document, 'visibilitychange', () => { if (document.visibilityState === 'visible') forceFrame = true; });
-    this.engineScope.listen(this.canvas, 'webglcontextlost', () => { this.gl.lostAt = performance.now(); this.gl.events++; console.warn('[gl] context lost'); });
-    this.engineScope.listen(this.canvas, 'webglcontextrestored', () => { this.gl.restoredAt = performance.now(); console.warn('[gl] context restored after', Math.round(this.gl.restoredAt - this.gl.lostAt), 'ms'); });
+    this.engineScope.listen(this.canvas, 'webglcontextlost', () => { this.gl.lostAt = diagnosticNow(); this.gl.events++; console.warn('[gl] context lost'); });
+    this.engineScope.listen(this.canvas, 'webglcontextrestored', () => { this.gl.restoredAt = diagnosticNow(); console.warn('[gl] context restored after', Math.round(this.gl.restoredAt - this.gl.lostAt), 'ms'); });
     // (A timer-driven loop was tried for iOS Low Power Mode: timers are throttled to ~30 ms there too. rAF it is.)
     const schedule = (fn: () => void) => { this.engineScope.raf(fn); };
     // One chain only: every animation-frame callback of a frame gets the same timestamp, so a second chain (kickLoop
     // restarting a loop that was merely paused) finds its frame taken and ends there.
-    let lastNow = -1, lastRun = performance.now();
+    let lastNow = -1, lastRun = diagnosticNow();
     // The frame cap (tier.ts frameCapFps; E193: every shard at a locked 30 on mobile). The animation frame
     // still comes every vsync; a frame is drawn only once 1/cap has passed since the last one drawn, less a slack under
     // one vsync of the fastest display (4 ms < 8.3 ms at 120 Hz) to absorb timestamp jitter. So it draws every 2nd vsync
@@ -1114,7 +1114,7 @@ export class Game {
       if (now !== undefined) { if (now === lastNow) return; lastNow = now; }
       if (this.dead) return; // a core system died (faults.ts): the fatal modal is up, nothing more to draw
       schedule(loop);
-      lastRun = performance.now();
+      lastRun = diagnosticNow();
       const cap = frameCapFps();
       if (cap > 0 && !forceFrame) {
         const anchor = frameCapAnchor(lastDrawn, now ?? lastRun, cap);
@@ -1149,7 +1149,7 @@ export class Game {
       this.runPhase('update', dt, t);
       this.runPhase('late', dt, t);
       if (this.isDead()) return; // a core system died in this frame's steps
-      const renderAt = performance.now();
+      const renderAt = diagnosticNow();
       try {
         sky.update(realDt);
         // planet + sun disc travel with the camera so they stay "infinitely" far
@@ -1169,7 +1169,7 @@ export class Game {
       } catch (e) { this.fault(this.renderSystem, e); return; }
       this.flushEvents('render');
       if (this.captures.length > 0) this.flushCaptures();
-      const done = performance.now(), work = done - lastRun;
+      const done = diagnosticNow(), work = done - lastRun;
       noteFrameDrawn(done, now, cap, cap > 0 && Number.isFinite(lastDrawn) ? lastDrawn : undefined); // Builds share the cap recovery deadline; actual rAF still measures display cadence.
       this.app.cpu.end();
       this.workMs[this.frameI] = work;
@@ -1182,7 +1182,7 @@ export class Game {
       this.stats.frames++; this.stats.acc += realDt;
       if (this.stats.acc >= 0.5) { this.stats.fps = Math.round(this.stats.frames / this.stats.acc); this.stats.frames = 0; this.stats.acc = 0; }
     };
-    this.kickLoop = () => { if (!this.dead && performance.now() - lastRun > 1000) this.engineScope.raf(loop); };
+    this.kickLoop = () => { if (!this.dead && diagnosticNow() - lastRun > 1000) this.engineScope.raf(loop); };
     this.primeFrame = () => { if (!this.dead) forceFrame = true; };
     setLoopState('running');
     loop();

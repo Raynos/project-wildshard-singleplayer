@@ -1284,8 +1284,8 @@ Boot/desktop keep prior budgets; one native draw can still stall.
 phase, optional progress `{ done, total, detail }`, and compile/link/upload, composer
 and parked/offscreen draw times and units, including painted waits. Match the root
 to the destination; this trace retains no resources. `warmParkedDraws` takes
-`options.onProgress(done, total)`; `warmOffscreenPasses` takes a trailing callback
-after `excludedRoots`. `PrecompileStage` is `precompileLevel`'s `options.onStage`
+`options.onProgress(done, total)`; `warmOffscreenPasses` takes progress and an optional
+`ParkedDrawBudget` after `excludedRoots`. `PrecompileStage` is `precompileLevel`'s `options.onStage`
 and `runPrecompile`'s argument after `uploadBudget`. Callbacks run after draw flags
 are restored and change no work order, pacing or readiness. Older pins omit this trace.
 
@@ -1674,11 +1674,12 @@ binding fences remain exact.
 with its resource owner; the ordinary sliced precompile gathers the current,
 visible caster variants in the pass camera's layers and borrows the exact material,
 camera and render target. It does not advance a clock, rewrite shader sources, or change
-caster visibility/parents. An entered frame's warm-up (`Game.warmEnteredFrame`) then draws
-each pass once, one caster per program-and-layout key, into a 1×1 stand-in with its
-target's formats (`warmOffscreenPasses` in `render/parkedDraws`), so the pass's first real
-update builds no driver pipeline; the real target is never written. Disposal unregisters before resources
-retire. `offscreenPreparations(scene)` reads registrations; `offscreenJobs(scene)`
+caster parents. Entered warm-up draws one caster per program/layout key into a 1×1
+stand-in of the real target's formats (`warmOffscreenPasses`). Its batches use the
+parked draw budget, restoring all flags before each painted pause; WebKit submits
+one caster per frame. Cancellation/retired passes stop before another submission.
+The real target is never written; disposal unregisters the pass.
+`offscreenPreparations(scene)` reads registrations; `offscreenJobs(scene)`
 collects detached compile jobs across the page's nested scenes. During entered-frame preparation,
 `entryFrameExclusions(scene, futureRoot)` excludes only other registered, hidden
 content roots. The future hierarchy, visible roots, shared materials and page
