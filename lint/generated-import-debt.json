@@ -93,7 +93,6 @@
     "src/shards/nalati-grasslands-legacy/boot/files.ts": 1,
     "src/shards/nalati-grasslands-legacy/manifest.ts": 1,
     "src/shards/nalati-grasslands/generators/bake-boot-metadata.mjs": 1,
-    "src/shards/nalati-grasslands/generators/bake-finds.mjs": 1,
     "src/shards/nalati-grasslands/generators/bodies.ts": 1,
     "src/shards/nalati-grasslands/generators/carriedQuest.ts": 1,
     "src/shards/nalati-grasslands/generators/clientRiding.ts": 2,
