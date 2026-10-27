@@ -44,10 +44,8 @@ class PreparedProducts(unittest.TestCase):
         cls.policy = (cls.shard / '.wildshard' / 'build-policy.json').as_posix()
         (cls.root / '.gitignore').write_text(f'{source}/*.generated.ts\npublic/generated.bin\nout/\nnode_modules/\nlint/*.generated.json\n')
         (cls.root / 'scripts').mkdir()
-        cls.catalogue = {'jobs': [{'outputs': [cls.asset],
-                                   'buildOutputs': {'public/generated.bin': 'hash'},
-                                   'buildTimeOutputs': [cls.table]}]}
-        (cls.root / 'scripts/generation-jobs.json').write_text(json.dumps(cls.catalogue))
+        cls.catalogue = {'producers': {'fixture': [cls.asset, 'public/generated.bin', cls.table]}}
+        (cls.root / 'scripts/source-generation-outputs.json').write_text(json.dumps(cls.catalogue))
         subprocess.run(['git', '-C', str(cls.root), 'add', '.gitignore'], check=True)
         subprocess.run(['git', '-C', str(cls.root), '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.com', 'commit', '-qm', 'fixture'], check=True)
         cls.sha = products.git(cls.root, 'rev-parse', 'HEAD').decode().strip()
@@ -78,7 +76,7 @@ class PreparedProducts(unittest.TestCase):
         shutil.rmtree(self.root)
         retained = self._testMethodName in self.retained_cases
         shutil.copytree(self.retained_pristine if retained else self.pristine, self.root)
-        self.catalogue = json.loads((self.root / 'scripts/generation-jobs.json').read_text())
+        self.catalogue = json.loads((self.root / 'scripts/source-generation-outputs.json').read_text())
         self.env = patch.dict(os.environ, {'GITHUB_SHA': self.retained_sha if retained else self.sha, 'GITHUB_RUN_ID': '123'})
         self.env.start()
         self.addCleanup(self.env.stop)
@@ -88,12 +86,12 @@ class PreparedProducts(unittest.TestCase):
         repo = Path(__file__).resolve().parents[1]
         probe = f"""
           import {{InputHashMemo}} from '{(repo/'scripts/bake-input-hashes.mjs').as_uri()}';
-          import {{generationSnapshotIdentity,publishGenerationSnapshot,verifiedGenerationSnapshot}} from '{(repo/'scripts/generation-snapshot.mjs').as_uri()}';
+          import {{sourceSnapshotIdentity,publishSourceSnapshot,verifiedSourceSnapshot}} from '{(repo/'scripts/source-input-proof.mjs').as_uri()}';
           const root=process.argv[1], action=process.argv[2], memo=new InputHashMemo(root);
           memo.enableSnapshot(file=>file==='public/generated.bin');
-          const path=root+'/.cache/generation-phase.json', identity=generationSnapshotIdentity('CI fixture');
-          if(action==='create'){{memo.hash('src/table.generated.ts');publishGenerationSnapshot(path,identity,memo,{{'public/generated.bin':memo.hash('public/generated.bin',true)}});}}
-          else console.log(verifiedGenerationSnapshot(path,identity,memo,['public/generated.bin']));
+          const path=root+'/.cache/generation-phase.json', identity=sourceSnapshotIdentity('CI fixture');
+          if(action==='create'){{memo.hash('src/table.generated.ts');publishSourceSnapshot(path,identity,memo,{{'public/generated.bin':memo.hash('public/generated.bin',true)}});}}
+          else console.log(verifiedSourceSnapshot(path,identity,memo,['public/generated.bin']));
         """
         return subprocess.run(['node','--input-type=module','-e',probe,str(cls.root),action],
                               text=True,capture_output=True,check=True).stdout.strip()
@@ -153,7 +151,7 @@ class PreparedProducts(unittest.TestCase):
 
 
     def test_round_trip_restores_inputs_and_products(self):
-        declared, required = products.catalogue_outputs(self.root)
+        declared, required = products.source_outputs(self.root)
         policy = self.policy
         words = 'lint/shard-words.generated.json'
         for name in declared | required | {policy, words, 'out/fictional/shard.json'}:

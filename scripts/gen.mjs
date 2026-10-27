@@ -13,6 +13,7 @@ import { genDecisionPolicies } from './gen-decision-policy.mjs';
 import { genShardWords } from './gen-shard-words.mjs';
 import { quietCli } from './quiet-cli.mjs';
 import { beginPushInputs } from './push-post-inputs.mjs';
+import { beginProgramInputProof } from './source-input-proof.mjs';
 
 quietCli('gen');
 const root = resolve(import.meta.dirname, '..');
@@ -25,6 +26,7 @@ const inputsOnly = ['--inputs-only', '--proof', '--build-inputs'].some(flag => p
 const plan = generationPlan(root, shard), inputPlan = programInputPlan(root, plan);
 if (!inputsOnly && !process.env.CI && !process.env.GITHUB_ACTIONS) assertHeavyLease('build');
 const publishPushInputs = beginPushInputs(`${import.meta.dirname}/..`);
+const publishProgramProof = beginProgramInputProof(root, plan.products);
 
 const buildInputs = process.argv.includes('--build-inputs');
 /** @param {string} name @param {()=>unknown} run */
@@ -74,5 +76,6 @@ await emitProgramTables(root, plan, {
     await step('shards', () => generationTailCached(root, 'shards-after', () => genShards(undefined, false, false, vocabularyShard)));
   },
 });
+publishProgramProof();
 try { publishPushInputs(); }
 catch (error) { console.warn(`push-inputs: completed cache unavailable: ${error instanceof Error ? error.message : String(error)}`); }

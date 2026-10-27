@@ -83,15 +83,10 @@ def file_identity(path, object_format):
     return size, sha256.hexdigest(), blob.hexdigest()
 
 
-def catalogue_outputs(root):
-    jobs = json.loads((root / 'scripts/generation-jobs.json').read_text())['jobs']
-    declared, required = set(), set()
-    for job in jobs:
-        build = set(job.get('buildOutputs', {})) | set(job.get('buildTimeOutputs', []))
-        declared.update(job['outputs'])
-        declared.update(build)
-        required.update(build)
-    return declared, required
+def source_outputs(root):
+    registry = json.loads((root / 'scripts/source-generation-outputs.json').read_text())['producers']
+    declared = {path for outputs in registry.values() for path in outputs}
+    return declared, declared
 
 
 def archive_names(generated):
@@ -101,10 +96,10 @@ def archive_names(generated):
 def pack(root, generated=False):
     archive_name, proof_name = archive_names(generated)
     sha, run = identity(root)
-    declared, required = catalogue_outputs(root)
+    declared, required = source_outputs(root)
     missing = sorted(name for name in required if not (root / admitted_path(name)).is_file())
     if missing:
-        raise ValueError('Missing prepared catalogue outputs: ' + ', '.join(missing))
+        raise ValueError('Missing prepared source outputs: ' + ', '.join(missing))
     ignored = git(root, 'ls-files', '--others', '--ignored', '--exclude-standard', '-z', '--', *GENERATED_ROOTS)
     untracked = git(root, 'ls-files', '--others', '--exclude-standard', '-z', '--', *GENERATED_ROOTS)
     modified = git(root, 'diff', '--name-only', '-z', '--diff-filter=AM')
@@ -185,7 +180,7 @@ def unpack(root, generated=False):
         if any(str(parent) in paths for name in inventory
                for parent in PurePosixPath(name).parents):
             raise ValueError('Unsafe prepared output hierarchy')
-        _, required = catalogue_outputs(root)
+        _, required = source_outputs(root)
         if not required.issubset(inventory):
             raise ValueError('Prepared catalogue outputs are missing from the archive')
         if generated and PHASE not in names:
