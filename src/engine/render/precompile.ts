@@ -98,7 +98,9 @@ export interface CompileJob {
 export interface PrecompileReport { materials: number; jobs: number; programs: number; parallel: boolean }
 
 /** Scalar preparation stage observation. Elapsed time includes painted waits; units count completed jobs/resources. */
-export type PrecompileStage = (phase: 'compile' | 'cached-compile' | 'link' | 'upload' | 'upload-kib' | `programs:${string}`, elapsedMs: number, units: number) => void;
+/** Link preparation during compile counts queue completions (including group
+ * refreshes); its time is already contained in compile, not an extra phase. */
+export type PrecompileStage = (phase: 'compile' | 'cached-compile' | 'link-preparation-during-compile' | 'link' | 'upload' | 'upload-kib' | `programs:${string}`, elapsedMs: number, units: number) => void;
 
 const exteriorLighting = new WeakMap<THREE.Scene, { environment: THREE.Texture | null; roots: Set<THREE.Object3D> }>();
 
