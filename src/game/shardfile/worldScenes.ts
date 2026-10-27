@@ -32,7 +32,7 @@ import { withOwner } from '@wildshard/engine/app/ownership';
 import { buildYield, workSlice } from '@wildshard/engine/core/workSlice';
 import { presenting } from '@wildshard/engine/core/framePacing';
 import type { Scope } from '@wildshard/engine/app/scope';
-import { whenControl } from '@wildshard/engine/boot/prefetch';
+import { ControlRefinement } from './controlRefinement';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { parseWorldSceneModels, worldSceneModelResources, worldSceneModelGraphs } from '@wildshard/format/worldSceneModels';
 import { parseWorldScenes, worldScenesForTier, type WorldScenesSection } from '@wildshard/format/worldScenes';
@@ -488,8 +488,9 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
       const from = residentTileEntry(resident) ?? product.shardfile.spawn, owned = new Map(section.libraries.flatMap(row => row.kind === 'owned' ? [[row.id, row] as const] : []));
       const away = (row: WorldSceneWeld): number => { const at = lateWelds.get(row.id) ?? [0, 0]; return Math.hypot(at[0] - from.x, at[1] - from.z); };
       const late = welds.filter(row => lateWelds.has(row.id)).sort((a, b) => away(a) - away(b));
-      const buildLate = async (): Promise<void> => {
-        for (const row of late) {
+      const level = ctx.game.runtime?.world?.game.levelScope;
+      const refinement = new ControlRefinement(owner, level, () => ctx.game.runtime?.world?.player.position ?? from, () => buildYield(owner));
+      const pending = late.map(row => refinement.add(`weld:${row.id}`, { x: lateWelds.get(row.id)?.[0] ?? 0, z: lateWelds.get(row.id)?.[1] ?? 0 }, async () => {
           const shapes = new Map<string, WorldSceneGeometry>();
           try {
           for (const id of new Set(weldSlots(row))) {
@@ -514,11 +515,8 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
           }
           await publishAssembly(row, (library, model) => shapes.get(JSON.stringify([library, model]))?.copy() ?? null);
           } finally { for (const shape of shapes.values()) shape.done(); }
-        }
-      };
-      // the level whose host signals control (session/finish.ts); with no world host there is no spawn view to protect
-      const level = ctx.game.runtime?.world?.game.levelScope;
-      if (level === undefined) void buildLate(); else whenControl(level, owner, () => { void buildLate(); });
+      }));
+      void Promise.all(pending);
     }
     if (batches.size > 0 && sky === undefined) throw new Error('Scene batches need a world sky');
     for (const row of batches.values()) {
