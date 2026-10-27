@@ -342,24 +342,25 @@ test('the writer computes KTX2 device costs from exact bytes and rejects forged 
 });
 
 
-test('named coat fallback images follow control without changing files, costs or explicit priorities', async () => {
+test('owned hull resources follow control without changing files, costs or explicit priorities', async () => {
   const image = nameBlob('creatures/coat.png','image',Uint8Array.from(readFileSync('public/icon-192.png')));
-  const rig = nameBlob('creatures/body.bin','bin',binary);
-  const tier = {files:{body:'creatures/body.bin'},coats:{'body:bird:adult':{key:'/original/coat.png',image:'creatures/coat.png'}}};
+  const rig = nameBlob('creatures/body.glb','glb',Uint8Array.from(readFileSync('test/fixtures/shard-assets/triangle.glb')));
+  const maps = nameBlob('creatures/maps.ktx2','ktx2',Uint8Array.from(readFileSync('test/fixtures/shard-assets/pixel.ktx2')));
+  const tier = {files:{body:{rig:'creatures/body.glb',base:'creatures/maps.ktx2',normal:'creatures/maps.ktx2'}},coats:{'body:bird:adult':{key:'/original/coat.png',image:'creatures/coat.png'}}};
   const book = {productFiles:true,family:{label:'fixture',rigs:['body'],hulls:{'bird:adult':'body'}},tiers:{phone:tier,desktop:tier}};
   const platform = emitPlatformSections(new Map([['look/rigged-hulls',book]]));
-  const input = {platform,namedFiles:[image.file,rig.file],assets:new Map([[image.file.hash,image.bytes],[rig.file.hash,rig.bytes]])};
+  const input = {platform,namedFiles:[image.file,rig.file,maps.file],assets:new Map([[image.file.hash,image.bytes],[rig.file.hash,rig.bytes],[maps.file.hash,maps.bytes]])};
   const prepared = await prepareProjectOutput(directory(),input);
-  expect(prepared.late).toEqual([{hash:image.file.hash}]);
+  expect(prepared.late).toEqual([{hash:image.file.hash},{hash:rig.file.hash},{hash:maps.file.hash}]);
   const merged = mergeProjectBlobs(source(),prepared.assets,prepared.blobs,prepared.options.namedFiles,prepared.late);
-  expect(merged.shard.library).toEqual(expect.arrayContaining([image.file.hash,rig.file.hash]));
+  expect(merged.shard.library).toEqual(expect.arrayContaining([image.file.hash,rig.file.hash,maps.file.hash]));
   expect(merged.shard.files.find(file=>file.hash===image.file.hash)?.compressed).toBe(image.bytes.length);
   const explicit = [{hash:image.file.hash,at:[20,30] as [number,number]}];
-  expect((await prepareProjectOutput(directory(),{...input,late:explicit})).late).toEqual(explicit);
+  expect((await prepareProjectOutput(directory(),{...input,late:explicit})).late).toEqual([...explicit,{hash:rig.file.hash},{hash:maps.file.hash}]);
   const critical = nameBlob('creatures/coat.png','image',image.bytes,{critical:true});
-  expect((await prepareProjectOutput(directory(),{...input,namedFiles:[critical.file,rig.file]})).late).toBeUndefined();
+  expect((await prepareProjectOutput(directory(),{...input,namedFiles:[critical.file,rig.file,maps.file]})).late).toEqual([{hash:rig.file.hash},{hash:maps.file.hash}]);
   const criticalAlias = nameBlob('world/critical.png','image',image.bytes,{critical:true});
-  expect((await prepareProjectOutput(directory(),{...input,namedFiles:[image.file,criticalAlias.file,rig.file]})).late).toBeUndefined();
+  expect((await prepareProjectOutput(directory(),{...input,namedFiles:[image.file,criticalAlias.file,rig.file,maps.file]})).late).toEqual([{hash:rig.file.hash},{hash:maps.file.hash}]);
   const publicBook = {...book,productFiles:false};
   expect((await prepareProjectOutput(directory(),{...input,platform:emitPlatformSections(new Map([['look/rigged-hulls',publicBook]]))})).late).toBeUndefined();
 });

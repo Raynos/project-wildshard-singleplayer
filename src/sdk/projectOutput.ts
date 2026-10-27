@@ -61,9 +61,9 @@ function ownedSections(input: EmittedSections): EmittedSections {
   return { sections: input.sections.map(row => ({ ...row })), files: new Map([...input.files].map(([path, value]) => [path, Uint8Array.from(value)])) };
 }
 
-/** Coat fallback images are asynchronous URL consumers, not synchronous admitted-map inputs.
+/** Product hull bodies, maps and coat fallbacks have asynchronous readers, not synchronous admitted-map inputs.
  * Keep their complete files/costs; early demand and critical/dependency roots still win. */
-function fallbackCoatLate(platform: EmittedSections | undefined, files: readonly OutputFile[], critical: ReadonlySet<string>): LateFile[] {
+function riggedHullLate(platform: EmittedSections | undefined, files: readonly OutputFile[], critical: ReadonlySet<string>): LateFile[] {
   const section = platform?.sections.find(row => row.name === 'look/rigged-hulls');
   if (section === undefined) return [];
   const wire = platform?.files.get(section.path);
@@ -71,8 +71,10 @@ function fallbackCoatLate(platform: EmittedSections | undefined, files: readonly
     throw new Error('Rigged hull coat section differs from its declared bytes');
   const book = parseRiggedHullBook(JSON.parse(new TextDecoder().decode(wire)));
   if (!book.productFiles) return [];
-  const names = new Set(Object.values(book.tiers).flatMap(tier => Object.values(tier.coats).map(coat => coat.image)));
-  return [...new Set(files.filter(file => file.kind === 'image' && !file.critical && !critical.has(file.hash) && file.name !== undefined && names.has(file.name)).map(file => file.hash))]
+  const names = new Set(Object.values(book.tiers).flatMap(tier =>
+    Object.values(tier.files).flatMap(file => typeof file === 'string' ? [file] : [file.rig, file.base, file.normal])
+      .concat(Object.values(tier.coats).map(coat => coat.image), tier.parts === undefined ? [] : [tier.parts.file])));
+  return [...new Set(files.filter(file => (file.kind === 'image' || file.kind === 'glb' || file.kind === 'ktx2') && !file.critical && !critical.has(file.hash) && file.name !== undefined && names.has(file.name)).map(file => file.hash))]
     .map(hash => ({ hash }));
 }
 
@@ -105,7 +107,7 @@ export async function prepareProjectOutput(project: string, input: unknown, deci
   }
   const explicit = new Set(parsed.late?.map(row => row.hash));
   const critical = new Set([...inventory.filter(file => file.critical).map(file => file.hash), ...(decisions?.source.critical ?? []), ...(decisions?.source.files.filter(file => file.critical).map(file => file.hash) ?? [])]);
-  const late = [...parsed.late ?? [], ...fallbackCoatLate(parsed.platform, inventory, critical).filter(row => !explicit.has(row.hash))];
+  const late = [...parsed.late ?? [], ...riggedHullLate(parsed.platform, inventory, critical).filter(row => !explicit.has(row.hash))];
   return { blobs, assets: ownedAssets(parsed.assets), ...(parsed.late === undefined && late.length === 0 ? {} : { late }), options: {
     namedFiles: overlays,
     ...(parsed.custom === undefined ? {} : { custom: ownedSections(parsed.custom) }),
