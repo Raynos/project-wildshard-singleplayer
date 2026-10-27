@@ -9436,6 +9436,7 @@
         "src/shards/pine-hollow/generators/bake-world-scene-models.mjs"
       ],
       "inputRoots": [
+        "scripts/named-blob-output.mjs",
         "package.json",
         "pnpm-lock.yaml",
         "pnpm-workspace.yaml",
@@ -11277,6 +11278,7 @@
         "src/shards/pine-hollow/generators/mapAssembly.mjs"
       ],
       "inputRoots": [
+        "scripts/named-blob-output.mjs",
         "src/engine",
         "src/game",
         "src/sdk",
