@@ -95,6 +95,10 @@ test('the product phase borrows this preparation cache before strict current adm
   if (provider === undefined) throw new Error('Missing provider cache loan');
   expect(paths(provider)).toEqual(paths(generated));
   expect(paths(provider)).toContain('~/.cache/wildshard/shardfiles');
+  expect(paths(provider)).toContain('~/.cache/wildshard/gen');
+  expect(readFileSync('src/sdk/projectGeneration.ts', 'utf8')).toContain("'.cache/wildshard/gen'");
+  expect(generated.indexOf('node scripts/ci-product-cache.mjs')).toBeGreaterThan(generated.indexOf('node scripts/gen.mjs --inputs-only'));
+  expect(generated.indexOf('node scripts/ci-product-cache.mjs')).toBeLessThan(generated.indexOf('python3 scripts/ci-products.py pack-generated'));
   expect(paths(provider)).toContain('~/.cache/wildshard/basis');
   const key = (source: string): string | undefined => /^ {10}key: (.+)$/mu.exec(source)?.[1];
   expect(key(provider)).toBe(key(generated));

@@ -425,15 +425,17 @@ jobs:
         with:
           path: |
             ~/.cache/wildshard/generate
+            ~/.cache/wildshard/gen
             ~/.cache/wildshard/compiler-code/1
             ~/.cache/wildshard/shardfiles
             ~/.cache/wildshard/basis
-          key: preparation-v2-${{ runner.os }}-${{ runner.arch }}-node24-${{ steps.inputs.outputs.tree }}
-          restore-keys: preparation-v2-${{ runner.os }}-${{ runner.arch }}-node24-
+          key: preparation-v3-${{ runner.os }}-${{ runner.arch }}-node24-${{ steps.inputs.outputs.tree }}
+          restore-keys: preparation-v3-${{ runner.os }}-${{ runner.arch }}-node24-
       - run: python3 scripts/ci-fail-fast.py -- node scripts/gen.mjs --inputs-only
       - run: node scripts/no-binary-json.mjs --all
       - name: Pack exact-run generated inputs
         run: |
+          node scripts/ci-product-cache.mjs
           python3 scripts/ci-products.py pack-generated
           zstd --long=27 -3 -T2 --rm generated-inputs.tar
       - uses: actions/upload-artifact@v4
@@ -500,10 +502,11 @@ jobs:
         with:
           path: |
             ~/.cache/wildshard/generate
+            ~/.cache/wildshard/gen
             ~/.cache/wildshard/compiler-code/1
             ~/.cache/wildshard/shardfiles
             ~/.cache/wildshard/basis
-          key: preparation-v2-${{ runner.os }}-${{ runner.arch }}-node24-${{ steps.inputs.outputs.tree }}
+          key: preparation-v3-${{ runner.os }}-${{ runner.arch }}-node24-${{ steps.inputs.outputs.tree }}
       - uses: actions/download-artifact@v4
         with:
           name: generated-inputs
@@ -715,7 +718,7 @@ jobs:
           python3 scripts/ci-products.py unpack
       - name: Name every owner and the 24-hour fix deadline
         run: |
-          node -e 'for (const row of require("./scripts/test-quarantine.json").entries) console.log(`${row.file}: ${row.owner}; fix by ${row.expiresAt}; ${row.reason}`)' >> "$GITHUB_STEP_SUMMARY"
+          node -e 'for (const row of require("./scripts/test-quarantine.json").entries) console.log(row.file + ": " + row.owner + "; fix by " + row.expiresAt + "; " + row.reason)' >> "$GITHUB_STEP_SUMMARY"
       - name: Execute every quarantined test without a peer stop or retry
         run: |
           mkdir -p tmp/ci-quarantine
