@@ -4,7 +4,7 @@ import { namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import { nameBlob } from '@wildshard/sdk/blobs';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
-import source from '../src/shards/nalati-grasslands/data/rifle.generated.json' with { type: 'json' };
+import source from './fixtures/nalati-rifle-original.json' with { type: 'json' };
 
 const encode = (input: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(input));
 test('baked firearm admission preserves every feel and playback row and refuses invalid products', async () => {

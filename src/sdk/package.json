@@ -151,7 +151,8 @@
     "./bake/mapRest": "./bake/mapRest.ts",
     "./worldScenes": "./worldScenes.ts",
     "./finds": "./finds.ts",
-    "./nativePopulationRows": "./nativePopulationRows.ts"
+    "./nativePopulationRows": "./nativePopulationRows.ts",
+    "./weapons/firearmRows": "./weapons/firearmRows.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -703,6 +704,10 @@
       "./nativePopulationRows": {
         "types": "./dist/types/sdk/nativePopulationRows.d.ts",
         "default": "./dist/nativePopulationRows.js"
+      },
+      "./weapons/firearmRows": {
+        "types": "./dist/types/sdk/weapons/firearmRows.d.ts",
+        "default": "./dist/weapons/firearmRows.js"
       }
     }
   }

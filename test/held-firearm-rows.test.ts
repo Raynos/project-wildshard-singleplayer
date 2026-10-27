@@ -3,7 +3,7 @@ import tuning from '../src/shards/pine-hollow/data/heldTuning.json' with {type:'
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { FirearmWeaponProfileSchema, parseHeldFirearmRows, parseHeldFirearmView, parseHeldModelRows, parseHeldPresentation } from '../src/format/weaponProfiles';
-import rifle from '../src/shards/nalati-grasslands/data/rifle.generated.json' with { type: 'json' };
+import rifle from './fixtures/nalati-rifle-original.json' with { type: 'json' };
 import items from '../src/shards/nalati-grasslands/data/items.json' with { type: 'json' };
 import model from '../src/shards/nalati-grasslands/data/heldRifle.json' with { type: 'json' };
 import { AR15 } from './fixtures/weapon-oracle/nalatiRifleProfile';

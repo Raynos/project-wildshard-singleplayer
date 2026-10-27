@@ -267,35 +267,6 @@
       "platform": "portable"
     },
     {
-      "id": "nalati-rifle-rows",
-      "shard": "nalati-grasslands",
-      "entry": "src/shards/nalati-grasslands/generators/bake-rifle.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/shards/nalati-grasslands/generators/bake-rifle.mjs"
-      ],
-      "inputRoots": [
-        "src/format",
-        "src/shards/nalati-grasslands/generators/bake-rifle.mjs",
-        "src/shards/nalati-grasslands/data/items.json",
-        "src/shards/nalati-grasslands/data/heldRifle.json",
-        "src/sdk",
-        "scripts/bake-output.mjs",
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml"
-      ],
-      "outputs": [
-        "src/shards/nalati-grasslands/data/rifle.generated.json"
-      ],
-      "platform": "portable",
-      "buildTimeOutputs": [
-        "src/shards/nalati-grasslands/data/rifle.generated.json"
-      ]
-    },
-    {
       "id": "nalati-storm-titan",
       "shard": "nalati-grasslands",
       "entry": "src/shards/nalati-grasslands/generators/bake-storm-titan.mjs",
@@ -3620,7 +3591,6 @@
         "src/shards/nalati-grasslands/generators/peopleBake.ts",
         "src/shards/nalati-grasslands/generators/bake-recurve-pool.mjs",
         "src/shards/nalati-grasslands/generators/bake-riding.mjs",
-        "src/shards/nalati-grasslands/generators/bake-rifle.mjs",
         "src/shards/nalati-grasslands/generators/sabrePool.ts",
         "src/shards/nalati-grasslands/generators/bake-sign-atlases.mjs",
         "src/shards/nalati-grasslands/generators/bake-storm-titan.mjs",

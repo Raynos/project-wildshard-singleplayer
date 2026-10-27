@@ -78,7 +78,7 @@ import { NALATI_PLACE_SETS } from './placeSets';
 import terrainScene from '../data/terrainScene.json' with { type: 'json' };
 import oliveColour from '../data/oliveColour.json' with { type: 'json' };
 import { EXPLORER_CATALOGUE } from './explorerCatalogue';
-import rifle from '../data/rifle.generated.json' with { type: 'json' };
+import { nalatiRifleRows } from './rifleRows';
 import { NALATI_HULL_BOOK } from './riggedHulls';
 import { emitPlatformSections } from '@wildshard/sdk/platformSections';
 import type { PlatformDataSectionName } from '@wildshard/format/platformDataSections';
@@ -152,6 +152,7 @@ const postLook = (grassRows: NalatiGrass['rows']) => ({ ...lookRows.postGraph, p
   world: { rows: 'world' in painted ? painted.world : null, panorama: 'panorama' in painted ? painted.panorama : null, key: 'key' in painted ? painted.key : null,
     ridge: PANO_RIDGE_V, ...lookRows.world } } });
 // the shape book (carvings, trophies, arena parts, ghost riders, painted places): its fixed draws, read by the world
+const rifle = nalatiRifleRows();
 const chapterContent = { figures: peopleFrames, npcs: questContent.npcs, places: questContent.places, program: kokpar.program, view: chapterView };
 v.parse(ChapterViewSchema, chapterContent);
 const {compiled:admissionCompiled,...admission}=admissionInput;

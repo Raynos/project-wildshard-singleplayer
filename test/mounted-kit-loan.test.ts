@@ -17,7 +17,7 @@ import { parseHeldFirearmRows } from '../src/format/weaponProfiles';
 import { parseItems } from '../src/format/items';
 import items from '../src/shards/nalati-grasslands/data/items.json' with { type: 'json' };
 import loadout from '../src/shards/nalati-grasslands/data/loadout.json' with { type: 'json' };
-import rifle from '../src/shards/nalati-grasslands/data/rifle.generated.json' with { type: 'json' };
+import rifle from './fixtures/nalati-rifle-original.json' with { type: 'json' };
 import { FakeGame, legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 beforeEach(() => { mockCanvas(); });
