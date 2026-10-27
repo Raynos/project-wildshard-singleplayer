@@ -28,7 +28,9 @@ test('one complete charged plane is handed to the matching layout and released',
   support(); const scope = new Scope('sign-test'), allocator = new ResidencyAllocator(), layout = roadSignPaintLayout(signs);
   const job = startRoadSigns(scope, allocator, 'home', signs); if (job === undefined) throw new Error('Missing preparation');
   try {
-    expect(job.get(layout)).toBeUndefined(); expect(allocator.entries()).toHaveLength(1); expect(worker().sent).toHaveLength(1);
+    expect(job.get(layout)).toBeUndefined(); expect(allocator.entries().map(row => row.bytes)).toEqual([
+      layout.width * layout.height * 10 + 131072 + JSON.stringify([...layout.lines.values()]).length * 4 + 1024,
+    ]); expect(worker().sent).toHaveLength(1);
     const pixels = new Uint8Array(layout.width * layout.height * 2); pixels[0] = 41;
     worker().reply({ width: layout.width, height: layout.height, pixels }); await job.ready;
     expect(job.get(layout)?.[0]).toBe(41); expect(worker().terminated).toBe(1);
