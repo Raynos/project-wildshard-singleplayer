@@ -1,7 +1,7 @@
 import { ResolvedIslandLibrarySchema } from '../src/format/islandLibrary';
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
-import { BufferAttribute, BufferGeometry } from 'three';
+import { BufferAttribute, BufferGeometry, Matrix4 } from 'three';
 import { zlibSync } from 'fflate';
 import { GeometryPackWriter } from '../src/sdk/kit/geometryPack';
 import { FigureRows } from '../src/game/systems/npc/figureRows';
@@ -15,6 +15,7 @@ import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 import { collectionRows } from '../src/shards/driftwood-isle/generators/collections';
 import * as v from 'valibot';
+import * as wholeGeometry from '../src/game/plugin/geometry';
 
 function glb(): Uint8Array {
   const json = new TextEncoder().encode(JSON.stringify({asset:{version:'2.0'},scene:0,scenes:[{nodes:[0]}],nodes:[{mesh:0}],meshes:[{primitives:[{attributes:{POSITION:0}}]}],
@@ -181,4 +182,79 @@ test('figure refusal drains started groups transport without publishing inventor
     expect(library.ready).toBe(false); expect(() => library.groups()).toThrow('not loaded');
     expect(f.reads.mock.calls.map(([name]) => name)).not.toContain('mesh.glb');
   } finally { release(new TextEncoder().encode('{"native":true}')); await pending.catch(() => undefined); owner.dispose(); }
+});
+
+test('prepared whole intake overlaps earlier work but publishes only after figure admission', async () => {
+  const f = fixture(), owner = new Scope('prepared-island'), source = owner.child('source'), library = new IslandLibrary(root, f.product);
+  const geometry = new BufferGeometry(), disposed = vi.spyOn(geometry, 'dispose');
+  const whole = vi.spyOn(wholeGeometry, 'readWholeGeometry').mockImplementation(scope => {
+    const release = scope.capture('geometries', () => { geometry.dispose(); });
+    return Promise.resolve(new Map([['mesh', { geometry, matrix: new Matrix4(), release }]]));
+  });
+  let release: (bytes: Uint8Array) => void = () => { throw new Error('Missing figure gate'); };
+  const gate = new Promise<Uint8Array>(resolve => { release = resolve; }), read = f.product.file;
+  const files = vi.spyOn(f.product, 'file').mockImplementation(name => name === 'figures.json' ? gate : read(name));
+  const drain = library.prepareGeometry(owner, source);
+  if (drain === undefined) throw new Error('Missing whole preparation');
+  try {
+    await vi.waitFor(() => { expect(whole).toHaveBeenCalledTimes(1); });
+    expect(library.ready).toBe(false); expect(() => library.loaded()).toThrow('not loaded');
+    const pending = library.load(undefined, owner, source);
+    expect(library.ready).toBe(false);
+    release(new TextEncoder().encode('{"figures":{}}')); await pending; await drain();
+    expect(library.ready).toBe(true); expect(whole).toHaveBeenCalledTimes(1);
+    expect(f.reads.mock.calls.filter(([name]) => name === 'mesh.glb')).toHaveLength(0);
+    expect(disposed).not.toHaveBeenCalled();
+    const copy = library.loaded().handle('chime').copy();
+    expect(copy.attributes).toEqual(geometry.attributes); copy.dispose();
+  } finally { release(new TextEncoder().encode('{"figures":{}}')); await drain(); owner.dispose(); whole.mockRestore(); files.mockRestore(); geometry.dispose(); }
+});
+
+test('abandoned preparation drains its read and releases geometry without publishing templates', async () => {
+  const f = fixture(), owner = new Scope('abandoned-island'), source = owner.child('source'), library = new IslandLibrary(root, f.product);
+  const geometry = new BufferGeometry(), disposed = vi.spyOn(geometry, 'dispose');
+  let release: () => void = () => { throw new Error('Missing whole gate'); };
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  const whole = vi.spyOn(wholeGeometry, 'readWholeGeometry').mockImplementation(async scope => {
+    await gate;
+    const unregister = scope.capture('geometries', () => { geometry.dispose(); });
+    return new Map([['mesh', { geometry, matrix: new Matrix4(), release: unregister }]]);
+  });
+  const drain = library.prepareGeometry(owner, source);
+  if (drain === undefined) throw new Error('Missing whole preparation');
+  try {
+    await vi.waitFor(() => { expect(whole).toHaveBeenCalledTimes(1); });
+    let settled = false; const discarded = drain().then(() => { settled = true; return settled; });
+    await Promise.resolve(); expect(settled).toBe(false);
+    release(); await discarded;
+    expect(disposed).toHaveBeenCalledTimes(1); expect(library.ready).toBe(false);
+    expect(f.reads).not.toHaveBeenCalled();
+  } finally { release(); await drain(); owner.dispose(); whole.mockRestore(); }
+});
+
+test('a figure refusal keeps precedence over an earlier failed geometry preparation', async () => {
+  const f = fixture(), owner = new Scope('refused-preparation'), library = new IslandLibrary(root, f.product);
+  const original = new Error('Original figure admission'), read = f.product.file;
+  const files = vi.spyOn(f.product, 'file').mockImplementation(name => name === 'figures.json' ? Promise.reject(original) : read(name));
+  const whole = vi.spyOn(wholeGeometry, 'readWholeGeometry').mockRejectedValue(new Error('Independent geometry refusal'));
+  const drain = library.prepareGeometry(owner, owner);
+  if (drain === undefined) throw new Error('Missing whole preparation');
+  try {
+    await vi.waitFor(() => { expect(whole).toHaveBeenCalledTimes(1); });
+    await expect(library.load(undefined, owner, owner)).rejects.toBe(original);
+    await drain(); expect(library.ready).toBe(false);
+  } finally { await drain(); owner.dispose(); whole.mockRestore(); files.mockRestore(); }
+});
+
+test('source retirement cancels a preparation before it starts geometry intake', async () => {
+  const f = fixture(), owner = new Scope('retired-preparation'), source = owner.child('source'), library = new IslandLibrary(root, f.product);
+  const whole = vi.spyOn(wholeGeometry, 'readWholeGeometry');
+  const drain = library.prepareGeometry(owner, source);
+  if (drain === undefined) throw new Error('Missing whole preparation');
+  try {
+    source.dispose(); await drain();
+    expect(whole).not.toHaveBeenCalled(); expect(library.ready).toBe(false);
+    await expect(library.load(undefined, owner, source)).rejects.toThrow('owner left');
+    expect(f.reads).not.toHaveBeenCalled();
+  } finally { await drain(); owner.dispose(); whole.mockRestore(); }
 });

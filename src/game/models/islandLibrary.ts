@@ -17,6 +17,7 @@ import type { readWholeGeometry } from '../plugin/geometry';
 import { fixedDraws, type FixedDraws } from './fixedDraws';
 import { ProductFigureCatalogue } from './figureCatalogue';
 import { CollectionCatalogue } from './collectionDisplay';
+import { timeClientPreparation } from '../shardfile/preparationTiming';
 
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
 export const IslandLibrarySchema: v.GenericSchema<BoundedIslandLibraryInput, BoundedIslandLibrary> = v.strictObject({
@@ -36,6 +37,7 @@ export class IslandLibrary<Groups> {
   private admitted: ShardProduct | null = null;
   private intake: Promise<void> | undefined;
   private inventoryRead: Promise<Groups> | undefined;
+  private geometryRead: { readonly owner: Parameters<typeof readWholeGeometry>[0]; readonly sourceOwner: Scope; readonly pending: ReturnType<typeof readWholeGeometry> } | undefined;
   private figureAdmission: { readonly owner: Scope; readonly construction: boolean; readonly pending: Promise<void> } | undefined;
   private library: FixedDraws | null = null;
   private inventory: Groups | null = null;
@@ -91,6 +93,27 @@ export class IslandLibrary<Groups> {
     if (this.library === null || !this.library.ready) throw new Error(`${this.rows.product} fixed draws are not loaded`);
     return this.library;
   };
+  /** Start a construction's bounded whole intake beside its looks/scenes. The
+   * returned drain must run even if those earlier stages fail. Templates and
+   * figures still publish only at load's original admission cursor. */
+  prepareGeometry(owner: Parameters<typeof readWholeGeometry>[0], sourceOwner: Scope): (() => Promise<void>) | undefined {
+    if (this.resolved === undefined || this.intake !== undefined || this.geometryRead !== undefined) return undefined;
+    if (owner.disposed || owner.disposing || sourceOwner.disposed || sourceOwner.disposing) throw new Error('Island library owner left');
+    const temporary = owner.child('island-whole-intake');
+    const forget = sourceOwner.capture('disposers', () => { temporary.dispose(); });
+    const pending = timeClientPreparation(this.product.slug, 'fixed-draws:whole', async () => {
+      const { readWholeGeometry } = await import('../plugin/geometry');
+      if (temporary.disposed || sourceOwner.disposed || sourceOwner.disposing) throw new Error('Island library owner left');
+      return readWholeGeometry(temporary, this.product.slug);
+    });
+    void pending.catch(() => undefined);
+    const preparation = { owner, sourceOwner, pending };
+    this.geometryRead = preparation;
+    return async () => {
+      try { await Promise.allSettled([pending]); }
+      finally { if (this.geometryRead === preparation) this.geometryRead = undefined; forget(); temporary.dispose(); }
+    };
+  }
   /** Load every slot: from `owner`'s whole-geometry assembly (the world build), a caller's named blobs (`bytes`), or,
    *  with neither, the opened product's files (a cold Explorer card). */
   readonly load = async (bytes?: ReadonlyMap<string, Uint8Array | BufferGeometry>, owner?: Parameters<typeof readWholeGeometry>[0], sourceOwner: Scope = resourceScope()): Promise<void> => {
@@ -129,7 +152,10 @@ export class IslandLibrary<Groups> {
     const inventory = await inventoryRead; live(); this.inventory = inventory;
     // Deduplicate templates only. Figure admission above never shares a retired
     // source owner and never parks packed resources on the page scope.
-    this.intake ??= (async () => { try { await this.draws().load(bytes, owner); } catch (error: unknown) { this.intake = undefined; throw error; } })();
+    const candidate = this.geometryRead;
+    const prepared = bytes === undefined && candidate !== undefined && candidate.owner === owner && candidate.sourceOwner === sourceOwner ? candidate : undefined;
+    if (prepared !== undefined) this.geometryRead = undefined;
+    this.intake ??= (async () => { try { await this.draws().load(bytes, owner, prepared?.pending); } catch (error: unknown) { this.intake = undefined; throw error; } })();
     await this.intake; live();
   };
 }

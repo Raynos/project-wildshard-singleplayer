@@ -63,20 +63,23 @@ export async function installClientWorldAssembly(ctx: ShardContext, row: Extract
     check();
     // Developer pages time each part of the build ('wildshard.prepare:<slug>:assembly:<part>', G626 H3)
     const timed = <T,>(part: string, work: () => Promise<T>): Promise<T> => timeClientPreparation(product.slug, `assembly:${part}`, work);
-    const materials = await timed('looks', () => runtimeLookMaterials({ scope: owner, game: ctx.game }, product.shardfile, true, bound ? looks.bound : looks.unbound)); check();
-    lendLooks(owner, materials);
-    const scenes = await timed('scenes', () => installWorldScenes(ctx, sceneRows, owner)); check();
-    const baked: ReadonlyMap<string, BakedTiles> = book === undefined ? new Map<string, BakedTiles>() : await timed('baked', () => residentBakedTiles(ctx, owner)); check();
-    // T3: the baked sets by tile (their meshes' triangles, their unclaimed colliders on the collider ring)
-    for (const set of baked.values()) for (const content of bakedTileContents(set)) scenes.addTiled(content);
-    const variant = construction.variant?.[cube === null ? 'standalone' : 'cell'];
-    await timed('construct', () => WorldAssembly.construct(row.rows, { runtime, product, scope: owner, scenes, baked, progress,
-      ...(book === undefined ? {} : { library: book.library, sites: book.sites }), ...(variant === undefined ? {} : { variant }) })); check();
-    if (book !== undefined && publish !== undefined) {
-      publishEntryOwner(owner, 'collection', publish.collection, book.library.collections);
-      publishEntryOwner(owner, 'fixed-draws', publish.draws, book.library.loaded());
-    }
-    return scenes;
+    const drainGeometry = book?.library.prepareGeometry(game.registrationScope, owner);
+    try {
+      const materials = await timed('looks', () => runtimeLookMaterials({ scope: owner, game: ctx.game }, product.shardfile, true, bound ? looks.bound : looks.unbound)); check();
+      lendLooks(owner, materials);
+      const scenes = await timed('scenes', () => installWorldScenes(ctx, sceneRows, owner)); check();
+      const baked: ReadonlyMap<string, BakedTiles> = book === undefined ? new Map<string, BakedTiles>() : await timed('baked', () => residentBakedTiles(ctx, owner)); check();
+      // T3: the baked sets by tile (their meshes' triangles, their unclaimed colliders on the collider ring)
+      for (const set of baked.values()) for (const content of bakedTileContents(set)) scenes.addTiled(content);
+      const variant = construction.variant?.[cube === null ? 'standalone' : 'cell'];
+      await timed('construct', () => WorldAssembly.construct(row.rows, { runtime, product, scope: owner, scenes, baked, progress,
+        ...(book === undefined ? {} : { library: book.library, sites: book.sites }), ...(variant === undefined ? {} : { variant }) })); check();
+      if (book !== undefined && publish !== undefined) {
+        publishEntryOwner(owner, 'collection', publish.collection, book.library.collections);
+        publishEntryOwner(owner, 'fixed-draws', publish.draws, book.library.loaded());
+      }
+      return scenes;
+    } finally { await drainGeometry?.(); }
   };
   let scenes: SceneHandles;
   if (resident === undefined) scenes = await build(scope, false);

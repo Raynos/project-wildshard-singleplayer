@@ -14,8 +14,9 @@ export interface FixedDraws {
   /** every slot's template has completed its intake */
   readonly ready: boolean;
   /** Load every slot together: through the product's verified reader, from `bytes` (a caller's named blobs: Explorer
-   *  cards; a lane bake under its url), or from `owner`'s whole-geometry assembly of the product (the world build). */
-  load: (bytes?: ReadonlyMap<string, Uint8Array | BufferGeometry>, owner?: Parameters<typeof readWholeGeometry>[0]) => Promise<void>;
+   *  cards; a lane bake under its url), or from `owner`'s whole-geometry assembly of the product (the world build).
+   *  `whole` is a construction's already-started, owner-bound intake; consumes it without reading/decoding again. */
+  load: (bytes?: ReadonlyMap<string, Uint8Array | BufferGeometry>, owner?: Parameters<typeof readWholeGeometry>[0], whole?: ReturnType<typeof readWholeGeometry>) => Promise<void>;
   /** the slot's owned template: its intake, a deep copy, or the template itself transferred */
   handle: (slot: string) => OwnedGeometry;
 }
@@ -87,9 +88,9 @@ export function fixedDraws(product: Pick<ShardProduct, 'file' | 'slug'>, input: 
   return {
     get ready() { return ready; },
     handle: slot => { const handle = templates.get(slot); if (handle === undefined) throw new Error(`Undeclared fixed draw: ${slot}`); return handle; },
-    load: async (bytes, owner) => {
+    load: async (bytes, owner, whole) => {
       // Developer pages time the whole-geometry assembly ('wildshard.prepare:<slug>:fixed-draws:whole', G626 H3)
-      const assembled = owner === undefined ? undefined : await timeClientPreparation(product.slug, 'fixed-draws:whole', async () => (await import('../plugin/geometry')).readWholeGeometry(owner, product.slug));
+      const assembled = whole !== undefined ? await whole : owner === undefined ? undefined : await timeClientPreparation(product.slug, 'fixed-draws:whole', async () => (await import('../plugin/geometry')).readWholeGeometry(owner, product.slug));
       const lanes = new Map<string, Promise<Uint8Array>>();
       try {
         const admitted = new Map(await Promise.all(rows.map(async row => {

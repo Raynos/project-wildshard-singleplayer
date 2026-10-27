@@ -12623,12 +12623,13 @@ require file or binary-lane rows, rejecting inline sources, getters, cycles,
 callbacks and surplus operands before templates or reads. Native file/lane
 readers and cold-card lifetimes retain their ownership.
 
-FixedDrawRowsSchema lives in format/fixedDraws; ResolvedIslandLibrarySchema
-lives in format/islandLibrary. Resolved books pin their admitted product and
-deduplicate geometry-template intake only. Each construction admits figure
-rows on its own concrete scope; cold readers borrow a live construction
-admission. Resolved figures must be unpacked rows. Legacy catalogue admission
-keeps packed geometry support and its original source lifetime.
+FixedDrawRowsSchema (format/fixedDraws) and ResolvedIslandLibrarySchema
+(format/islandLibrary) pin products. Geometry intake deduplicates; figures
+admit on construction scopes; cards borrow live admission. Resolved
+figures are unpacked; legacy lifetimes remain. IslandLibrary's
+prepareGeometry overlaps owner-bound intake with looks/scenes: always drain
+it in finally. load consumes it once at the figure/group/template
+cursor; retirement frees views.
 
 Authored manifest bindings select the built-in compiled client-plan entry,
 with finite home/stage ownership and own-folder CSS. `entry.native`,
