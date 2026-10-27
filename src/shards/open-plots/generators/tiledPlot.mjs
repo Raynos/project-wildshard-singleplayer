@@ -183,7 +183,8 @@ async function tiledPlot(root, repo, layoutName) {
 }
 
 /** Write a tiled idea's `assets/<idea>/world.glb`. */
-export async function writeTiledWorld(root, repo, idea) {
+/** GR9: a tiled idea's world GLB bytes (no file written; `writeTiledWorld` writes them). */
+export async function tiledWorldBytes(root, repo, idea) {
   const { parts, landmark, farLandmark, nearImage, poster: posterFile } = await tiledPlot(root, repo, idea.layout);
   const doc = new Document(), buffer = doc.createBuffer(), scene = doc.createScene('plot');
   const texture = async (name, pixels) => doc.createTexture(name).setImage(await writeImagePixels(pixels)).setMimeType('image/png');
@@ -229,9 +230,14 @@ export async function writeTiledWorld(root, repo, idea) {
   node('far_tiles', parts.far.part('far'), materials.Kit, { normals: false });
   node('far_landmark', { ...farLandmark, normals: [], uvs: [] }, materials.Kit, { normals: false });
   node('collide_plot', { ...parts.solid.part('Solid'), colours: parts.solid.part('Solid').positions.map(() => 1) }, materials.Kit, { normals: false });
-  const bytes = await new NodeIO().writeBinary(doc), out = resolve(root, 'assets', idea.idea);
-  mkdirSync(out, { recursive: true });
-  writeFileSync(resolve(out, 'world.glb'), bytes);
+  const bytes = await new NodeIO().writeBinary(doc);
   const count = (soup, name) => soup.part(name).positions.length / 9;
   console.info(`open-plots: ${idea.slug} world.glb ${bytes.length} bytes, tiled ${idea.layout}: kit ${count(parts.Kit, 'Kit')} glow ${count(parts.Glow, 'Glow')} pool ${count(parts.Pool, 'Pool')} landmark ${landmark.positions.length / 9} far ${count(parts.far, 'far') + farLandmark.positions.length / 9} triangles`);
+  return bytes;
+}
+/** Write a tiled idea's world GLB to its `assets/<idea>/world.glb` (the catalogue job's output). */
+export async function writeTiledWorld(root, repo, idea) {
+  const bytes = await tiledWorldBytes(root, repo, idea), out = resolve(root, 'assets', idea.idea);
+  mkdirSync(out, { recursive: true });
+  writeFileSync(resolve(out, 'world.glb'), bytes);
 }

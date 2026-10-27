@@ -163,7 +163,8 @@
     "../../../scripts/map-painter.mjs",
     "../../sdk/bake/mapRaster.ts",
     "../../../scripts/bake-data-maps.mjs",
-    "generators/bake-plots.mjs"
+    "generators/bake-plots.mjs",
+    "generators/plotWorld.mjs"
   ],
   "painter": {
     "version": 1,

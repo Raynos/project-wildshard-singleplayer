@@ -10244,6 +10244,7 @@
         "src/shards/open-plots/generators/tiledPlot.mjs",
         "src/shards/open-plots/data/layouts",
         "src/shards/open-plots/generators/bake-plots.mjs",
+        "src/shards/open-plots/generators/plotWorld.mjs",
         "src/shards/open-plots/outputs.json",
         "public/assets/open-plots",
         "src/sdk/bake/image.ts",
