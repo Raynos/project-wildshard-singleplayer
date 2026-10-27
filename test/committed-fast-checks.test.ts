@@ -56,8 +56,11 @@ export function sectionSchemaTables(root,slug){return {tables:{
     f.put('scripts/bake-section-schemas.mjs', producer);
     f.put('src/format/schema.txt', 'export const schema="original";\n');
     const output = 'src/shards/pine-hollow/generators/sectionSchemas.ts';
+    const sibling = 'src/shards/driftwood-isle/generators/sectionSchemas.ts';
     f.put(output, 'export const schema="original";\n');
+    f.put(sibling, 'export const schema="original";\n');
     f.put('src/shards/pine-hollow/runtime/productSections.d.ts', 'export interface CustomSections {}\n');
+    f.put('src/shards/driftwood-isle/runtime/productSections.d.ts', 'export interface CustomSections {}\n');
     const base = f.commit();
     f.put('src/format/schema.txt', 'export const schema="new";\n');
     const stale = f.commit();
@@ -67,12 +70,13 @@ export function sectionSchemaTables(root,slug){return {tables:{
     const index = readFileSync(resolve(f.root, '.git/index'));
     const refused = f.run('guards', stale, ['src/format/schema.txt'], base);
     expect(refused.status, refused.stdout + refused.stderr).toBe(1);
-    expect(refused.stderr).toContain(`gen:source: stale ${output}`);
+    expect(refused.stderr).toContain(`gen:source: stale ${sibling}, ${output} (run pnpm gen:source)`);
     expect(readFileSync(resolve(f.root, '.git/index'))).toEqual(index);
     expect(readFileSync(resolve(f.root, 'src/format/schema.txt'), 'utf8')).toContain('original');
     f.put('scripts/bake-section-schemas.mjs', producer);
     f.put('src/format/schema.txt', 'export const schema="new";\n');
     f.put(output, 'export const schema="new";\n');
+    f.put(sibling, 'export const schema="new";\n');
     const current = f.commit();
     f.put(output, 'loose output poison');
     f.put('scripts/bake-section-schemas.mjs', 'throw new Error("loose producer poison");');
