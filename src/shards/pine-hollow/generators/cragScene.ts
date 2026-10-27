@@ -1,6 +1,6 @@
 /** The real crag-face skin shapes, in their native world coordinates and view profiles, through one author Scene. */
 import * as THREE from 'three';
-import { bake, BakedPiece, WholeShape, type BakedScene } from '@wildshard/sdk/bake';
+import { BakedPiece, WholeShape } from '@wildshard/sdk/bake';
 import type { SkinBake } from './crags';
 import type { CragTier } from './cragRows';
 import { skinGeometry } from './cragCodec';
@@ -41,18 +41,4 @@ export function pineCragWorldScene(skin: Record<CragTier, SkinBake>): THREE.Scen
     scene.add(new WholeShape(node.name, new THREE.Mesh(geometry, material), { nativeAttributes: true, partition: true }));
   }
   return scene;
-}
-
-/** Compile retained native shapes, not a fake world placement or a different renderer/material. */
-export function pineCragBake(skin: Record<CragTier, SkinBake>, project?: string): BakedScene {
-  const scene = pineCragScene(skin);
-  try { return bake(scene, { slug: 'pine-hollow', name: 'Pine Hollow' }, project === undefined ? {} : { project }); }
-  finally {
-    scene.traverse(node => {
-      if (!(node instanceof THREE.Mesh)) return;
-      const geometry: unknown = node.geometry, material: unknown = node.material;
-      if (geometry instanceof THREE.BufferGeometry) geometry.dispose();
-      if (material instanceof THREE.Material) material.dispose();
-    });
-  }
 }

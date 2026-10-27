@@ -1,12 +1,11 @@
 import { readFileSync } from 'node:fs';
-import { inflateSync } from 'node:zlib';
 import { Matrix4, MeshStandardMaterial, Vector3 } from 'three';
 import { readSourceModel } from '@wildshard/sdk/bake/skinned';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { cragNodeGeometry, cragFixedRows } from './cragWorldScenes.ts';
 import { CragSkin } from './cragCodec.ts';
 import authored from '../data/timberWorld.generated.json' with { type: 'json' };
-import sourceRows from '../data/crags.json' with { type: 'json' };
+import { pineCrags } from './bake-pine-crags.mjs';
 import * as layout from './layout.ts';
 
 const root = new URL('../../../../', import.meta.url);
@@ -20,10 +19,10 @@ export async function bakeCragSceneSources() {
     const source = await readSourceModel(read(directory + file));
     for (const [id, geometry] of cragNodeGeometry(source.gltf.scene)) shapes.set(id, geometry);
   }
+  // GR8 G33: the crag rows and raw skins are the producer's (bake-pine-crags.mjs), not the retired job's stored files
+  const { rows: sourceRows, bins } = await pineCrags();
   for (const tier of ['phone', 'desktop']) {
-    const packed = inflateSync(read(`public/assets/pine-hollow/baked/crags.${tier}.bin`));
-    const raw = new Uint8Array(packed.length), words = packed.length / 4;
-    for (let i = 0; i < words; i++) for (let j = 0; j < 4; j++) raw[i * 4 + j] = packed[j * words + i];
+    const raw = bins[tier];
     const pairs = await new CragSkin(raw, sourceRows.skin[tier]).tiles(() => Promise.resolve());
     for (const [i, pair] of pairs.entries()) for (const [level, geometry] of pair.entries()) {
       geometry.setAttribute('aCdata', geometry.getAttribute('cdata')); geometry.deleteAttribute('cdata');

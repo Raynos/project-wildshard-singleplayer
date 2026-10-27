@@ -3,9 +3,12 @@ import * as THREE from 'three';
 import { Rng } from '../src/engine/core/rng';
 import { defineGeometryModel, modelContext, paramsOf } from '../src/engine/models/model';
 import authored from '../src/shards/pine-hollow/data/timberWorld.generated.json' with { type: 'json' };
-import crags from '../src/shards/pine-hollow/data/crags.json' with { type: 'json' };
+import { pineCrags } from '../src/shards/pine-hollow/generators/bake-pine-crags.mjs';
 import { BAKED_COVE } from '../src/shards/driftwood-isle/generators/bakedCove';
 import { ISLAND_LOOK } from '../src/shards/driftwood-isle/generators/islandRows';
+
+// GR8 G33: the crag rows are the producer's, not a stored data/crags.json
+const crags = (await pineCrags()).rows;
 
 test('all cove families retain clone, shadow, specimen and far-copy policy', () => {
   const families = BAKED_COVE.instances?.families ?? [];

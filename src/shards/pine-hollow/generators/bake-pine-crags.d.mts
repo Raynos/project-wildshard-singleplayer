@@ -9,3 +9,5 @@ export function pineCragKit(files?: readonly string[]): Promise<Map<string, THRE
 export function pineTrunks(): { x: number; z: number }[];
 /** The crag bake: its rows and each tier's raw (uninflated) binary. */
 export function bakeCragRows(): Promise<{ rows: CragRows; bins: Record<'phone' | 'desktop', Uint8Array> }>;
+/** The crag bake's rows and each tier's raw binary, built once per process. */
+export function pineCrags(): Promise<{ rows: CragRows; bins: Record<'phone' | 'desktop', Uint8Array> }>;

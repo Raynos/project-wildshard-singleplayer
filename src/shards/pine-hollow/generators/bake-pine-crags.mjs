@@ -3,23 +3,18 @@
 // (src/shards/pine-hollow/generators/crags.ts) reads the original renderer lattice through explicit authoring queries
 // (public/assets/baked/pine-hollow/terrain.bin: the page's heights and normals), over the kit's module footprints
 // (public/assets/models/pine-hollow-crags/crags.glb + crags-b.glb, loaded as the page loads them) and the forest's trunks
-// (src/shards/pine-hollow/data/physicsRows.json `shelterTrees`, the authored forest trunks). It writes each tier's face skin,
-// its 4-byte words' bytes in four lanes and zlib-compressed, to public/assets/pine-hollow/baked/crags.<tier>.bin and the rows (the placements, each tier's binary hash,
-// size and tile table) to src/shards/pine-hollow/data/crags.json, which the page reads (src/shards/pine-hollow/world/cragBake.ts).
-// test/shards/pine-hollow/crag-bake.test.ts is the stale gate (it re-runs the generator).
-// Usage: node --experimental-transform-types --import ./src/sdk/bake/source-loader.mjs src/shards/pine-hollow/generators/bake-pine-crags.mjs
+// (src/shards/pine-hollow/data/physicsRows.json `shelterTrees`, the authored forest trunks). GR8 G33: `pineCrags` gives
+// the rows (the placements, each tier's binary hash, size and tile table) and each tier's raw face-skin binary to the
+// crag scenes and the timber world, instead of the retired pine-crags job's data/crags.json and baked crags.<tier>.bin.
 import { createHash } from 'node:crypto';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { deflateSync } from 'node:zlib';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
 import { pineCragQueries } from './cragGround.ts';
-import { bakePineCrags, canonicalCragTiltX, shuffleLanes } from './crags.ts';
-import { pineCragBake } from './cragScene.ts';
-import { namedBlobOutput } from '../../../../scripts/named-blob-output.mjs';
+import { bakePineCrags, canonicalCragTiltX } from './crags.ts';
 
 const root = resolve(import.meta.dirname, '../../../..');
 const read = (path) => { const bytes = readFileSync(resolve(root, path)); return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength); };
@@ -67,28 +62,9 @@ export async function bakeCragRows() {
   return { rows: { places, skin: { phone: tier('phone'), desktop: tier('desktop') } }, bins: { phone: skin.phone.bin, desktop: skin.desktop.bin } };
 }
 
-if (import.meta.main) {
-  const { rows, bins } = await bakeCragRows();
-  const authored = pineCragBake({ phone: { bin: bins.phone, tiles: rows.skin.phone.tiles }, desktop: { bin: bins.desktop, tiles: rows.skin.desktop.tiles } }, root);
-  const out = resolve(root, 'public/assets/pine-hollow/baked');
-  const blobs = namedBlobOutput(new URL('../', import.meta.url), 'pine-crag-blobs', 'assets/crags');
-  mkdirSync(out, { recursive: true });
-  const sizes = [];
-  for (const t of ['phone', 'desktop']) {
-    const packed = deflateSync(shuffleLanes(bins[t]), { level: 9 });
-    writeFileSync(resolve(out, `crags.${t}.bin`), packed);
-    blobs.add(`world/crags/${t}.bin`, 'bin', packed, `/assets/pine-hollow/baked/crags.${t}.bin`);
-    sizes.push(`${t} ${String(rows.skin[t].tiles.length)} tiles ${String(bins[t].length)} → ${String(packed.length)} zlib`);
-  }
-  writeFileSync(resolve(root, 'src/shards/pine-hollow/data/crags.json'), `${JSON.stringify(rows)}\n`);
-  const shapes = resolve(out, 'crag-skins'); mkdirSync(shapes, { recursive: true });
-  const pieces = authored.pieces.map(piece => {
-    const hash = createHash('sha256').update(piece.glb).digest('hex');
-    writeFileSync(resolve(shapes, `${hash}.glb`), piece.glb);
-    blobs.add(`world/crags/${piece.name}.glb`, 'glb', piece.glb, `/assets/pine-hollow/baked/crag-skins/${hash}.glb`);
-    return { id: piece.name, glb: hash, kinds: piece.kinds };
-  });
-  writeFileSync(resolve(root, 'src/shards/pine-hollow/data/cragScene.generated.json'), `${JSON.stringify({ scene: authored.sceneHash, pieces })}\n`);
-  blobs.finish(new URL('../data/cragBlobs.generated.json', import.meta.url));
-  console.info(`pine-hollow crags: ${String(rows.places.length)} placements; ${sizes.join('; ')} (baked/crags.<tier>.bin)`);
+let crags;
+/** The crag bake's rows and each tier's raw binary, built once per process. */
+export function pineCrags() {
+  crags ??= bakeCragRows();
+  return crags;
 }
