@@ -2,8 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { MeshoptSimplifier } from 'meshoptimizer';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
-import { lin } from '@wildshard/engine/math/color';
-import { armPalette, gloveFist, riderArm, type ArmStyle } from '@wildshard/engine/player/firstPersonArms';
+import { bakeArmColour as lin, bakeArmPalette as armPalette, bakeGloveFist as gloveFist, bakeRiderArm as riderArm } from '@wildshard/sdk/bake/riderArms';
 import BASE_ARM_STYLE from '../data/armsStyle.json' with {type:'json'};
 import { LONGBOW_LOOK, type ArrowLook, type StaveBowLook } from './longbowLook';
 import { BUCKSKIN, HUNTER_HANDS, HANDS_MATERIAL, COAT_MATERIAL, type ArmPaletteRow, type GloveHandsLook, type HandSpec } from './handsLook';
@@ -20,6 +19,7 @@ import { CROSSBOW_HAND_HOLDS } from './crossbowRows';
 
 type V3 = [number, number, number];
 type Geo = THREE.BufferGeometry;
+type ArmStyle = Parameters<typeof gloveFist>[0];
 
 const armStyle=(palette:ArmPaletteRow):ArmStyle=>({...BASE_ARM_STYLE,...palette});
 

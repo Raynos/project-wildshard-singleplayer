@@ -4799,14 +4799,13 @@ hunter's hands) and Nalati's
 AR-15 (primitive rows, `mount: 'shared'`, `scaleRoot`, the ghost-ring `glow`). A texture row may name any engine
 viewmodel set (`walnut`, `brushed-steel`, `leather`, `cord`, `bolt` beside the modern three); its `repeat` is optional.
 
-`engine/player/firstPersonArms` builds first-person glove and sleeve geometry
-from `ArmStyle` colour rows. `gloveFist(style, options)`, `riderArm(style,
-length, seed)` and `forearm(style, direction, ...)` own independent colours;
-`riderArmSteps` retains its style across yields. `armPalette(style)` returns
-fresh colours for a bake's additional pieces. Numeric hex values retain the
-authored conversion; RGB triples are linear. Pine and Nalati provide their own
-JSON styles. Client-only `placeArm` poses the finished geometry. The old
-`nalatiArms` module adapts only frozen legacy callers until NEXT N5.
+`engine/player/firstPersonArms`: `gloveFist`, `riderArm`, `forearm`
+consume `ArmStyle`; `armPalette` returns fresh colours and `riderArmSteps`
+keeps style across yields. Hex conversion and linear RGB triples stay exact.
+Author `@wildshard/sdk/bake/riderArms` supplies `bakeGloveFist`,
+`bakeRiderArm`, `bakeForearm`, `bakeArmColour` and `bakeArmPalette`.
+Pine/Nalati own JSON styles; client `placeArm` poses geometry. `nalatiArms`
+serves only frozen legacy callers until NEXT N5.
 
 H3's bolt-flight action: `@wildshard/game/weapons/heldLauncher`. `new HeldLauncher(world, targets, { row, profile, view,
 rows, model, hands? })` is a held crossbow on data only: `rows.scene` is the model's private hierarchy
