@@ -20,6 +20,18 @@ files? Why can't they import the source code?"*
 G650 (Jake): *"Writing generated JSON files into the data directory of the shard … we need a complete redesign of how
 generators work and the source code of shard files work and the data and the generators."* Binaries stay out of JSON (G649).
 
+## G805 exclusive execution (2026-10-27, sp-x1)
+
+G804/G805 assigns this plan to sp-x1 alone; sp-x2 handed off without any GS
+source edits. Active-parent progress counts GR0–GR9, GR12 and GS1–GS5
+(16 rows; GR10 is folded, GR11 dropped): 10/16 complete = 63% by the current
+verified marks. GR9, GR12 final acceptance and GS2–GS5 remain open until their
+actual done-when checks close, rather than counting unmarked source as proof.
+
+| Row | State | Work and qualification |
+|---|---|---|
+| GS2.1 Atomic discovery availability | in flight (sp-x1; source in this commit) | Fix the actual live-test prerequisite blocker: refreshDiscovery keeps its published provider when a current-product receipt/binding refuses. Both refresh and strict genShards write a complete unique temporary file before rename; unchanged outputs retain their inode. Missing providers initialize only from a valid current product, never a placeholder. Add three real filesystem/receipt controls, including an already-open reader retaining the old complete module. Typed lint, scoped fixture types and Node syntax checks pass; required ratchet attempted (foreign shard rises). One normal inputs restore and focused tests follow this source boundary. |
+
 ## Findings
 
 **1. The real graph.** `pnpm gen` (`scripts/gen.mjs`) runs, in a fixed sequence: four starter tables and decision policies,

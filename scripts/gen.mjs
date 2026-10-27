@@ -35,7 +35,8 @@ async function step(name, run) {
   finally { if (buildInputs) console.info(`gen-step ${name}: ${((performance.now() - started) / 1000).toFixed(3)}s`); }
 }
 
-// No step imports a discovery module older than its manifest (a mirror slot keeps ignored files).
+// Refresh available providers before dependent imports. A stale product keeps its
+// last module until strict post-program discovery can publish a full replacement.
 await step('discovery', () => refreshDiscovery());
 // Rig-generating producers read the shared aliases too, so emit their pure table before the cache walk.
 await step('arm-clips', () => genStarterArmClips());

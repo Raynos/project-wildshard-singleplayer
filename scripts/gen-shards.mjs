@@ -1,6 +1,7 @@
 // E357 F9: folder discovery is the sole authored shard list.
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, readdirSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { randomUUID } from 'node:crypto';
+import { existsSync, mkdirSync, readFileSync, readdirSync, realpathSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, resolve, relative } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import ts from '@typescript/typescript6';
@@ -187,20 +188,26 @@ function discoverySource(root, product) {
     ...(program ? { discovery: readProgramDiscovery(root, product.slug) } : {}) });
 }
 
-/**
- * pnpm gen's first step: no later step may import a discovery module older than its manifest (Node caches a failed
- * import for the whole process, so the rewrite in genShards comes too late for it). A tree that keeps ignored files (a
- * build-mirror slot) can hold one from before a binding moved. A source that can be built now is written when it differs;
- * one whose binding modules are not generated yet is removed, and genShards writes it after the generation step.
- */
+/** Publish a complete replacement without truncating the module concurrent readers hold.
+ * @param {string} path @param {string} source */
+function writeDiscovery(path, source) {
+  if (existsSync(path) && readFileSync(path, 'utf8') === source) return;
+  const temporary = `${path}.${randomUUID()}.tmp`;
+  try { writeFileSync(temporary, source, { flag: 'wx' }); renameSync(temporary, path); }
+  finally { rmSync(temporary, { force: true }); }
+}
+
+/** Refresh every provider whose receipt/bindings are available. A missing or stale
+ * product never deletes its last published module: a later generation failure must
+ * not break concurrent source readers. genShards still requires current products and
+ * strictly replaces these modules after program construction; no placeholder is emitted. */
 export function refreshDiscovery(root = resolve(import.meta.dirname, '..')) {
   for (const product of shardProducts(root, shardFolders(root))) {
     if (!existsSync(resolve(root, `src/shards/${product.folder}/manifest.json`))) continue;
     const path = resolve(root, productManifestPath(root, product));
-    if (!existsSync(path)) continue;
     let source;
-    try { source = discoverySource(root, product); } catch { rmSync(path); continue; }
-    if (readFileSync(path, 'utf8') !== source) writeFileSync(path, source);
+    try { source = discoverySource(root, product); } catch { continue; }
+    writeDiscovery(path, source);
   }
 }
 
@@ -221,7 +228,7 @@ export function genShards(root = resolve(import.meta.dirname, '..'), check = fal
     if (!existsSync(resolve(root, `src/shards/${product.folder}/manifest.json`))) continue;
     const path = resolve(root, productManifestPath(root, product)), source = discoverySource(root, product);
     if (check && existsSync(path) && readFileSync(path, 'utf8') !== source) throw new Error(`gen-shards: stale ${path}`);
-    if (!check || !existsSync(path)) writeFileSync(path, source);
+    if (!check || !existsSync(path)) writeDiscovery(path, source);
   }
   // SF88g: a discovery module no product owns any more (a folder that now declares outputs, a dropped output) is removed,
   // so no tree, mirror or loader keeps importing a retired product's manifest

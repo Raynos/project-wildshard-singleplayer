@@ -1,11 +1,11 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Build fixtures own and remove only their temporary directories.
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { closeSync, existsSync, mkdirSync, mkdtempSync, openSync, readFileSync, readdirSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve owned fixture paths.
 import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Evaluate the emitted literal, without executing imports or loaders.
 import { runInNewContext } from 'node:vm';
 import * as ts from '@typescript/typescript6';
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import * as v from 'valibot';
 import { parseDiscoveryValues } from '../src/format/discoveryValues';
 import { emptyShardfile } from '../src/sdk/author';
@@ -14,6 +14,7 @@ import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { parseManifestMetadata } from '../src/format/minimap';
 import { readProgramDiscovery, usesProgramDiscovery } from '../scripts/program-discovery.mjs';
 import { authoredManifestSource } from '../scripts/authored-manifest.mjs';
+import { refreshDiscovery } from '../scripts/gen-shards.mjs';
 import { registerGpuFiles, standIn } from '../src/engine/boot/gpuFiles';
 import { TIER } from '../src/engine/core/tier';
 
@@ -42,6 +43,55 @@ function putReceipt(root: string, input: unknown): void {
 function build(root: string): void {
   writeOutputProduct(emptyShardfile({ slug, name: 'Discovery', author: 'Test', revision: 1, seed: 1 }), new Map(), resolve(root, 'out', slug), { discovery });
 }
+
+function providerFixture(): { readonly root: string; readonly directory: string; readonly file: string } {
+  const root = fixture(), directory = resolve(root, 'src/shards', slug);
+  mkdirSync(directory, { recursive: true });
+  writeFileSync(resolve(directory, 'manifest.json'), JSON.stringify({ slug, card: {}, sky: {}, minimap: {}, explore: {}, horizonStrips: [],
+    bindings: { accent: '#123456', budgets: { program: true } } }));
+  return { root, directory, file: resolve(directory, 'discovery.generated.ts') };
+}
+
+test('discovery refresh retains the complete old module when its current receipt refuses', () => {
+  const f = providerFixture(), old = 'export const retained = "original provider";\n';
+  try {
+    vi.stubEnv('WS_TEST_PRODUCTS_SHA', sha); vi.stubEnv('VERCEL_GIT_COMMIT_SHA', sha);
+    build(f.root); writeFileSync(f.file, old);
+    const original = receipt(f.root), inode = statSync(f.file).ino;
+    putReceipt(f.root, { ...original, indexHash: '0'.repeat(64) });
+    refreshDiscovery(f.root);
+    expect(readFileSync(f.file, 'utf8')).toBe(old); expect(statSync(f.file).ino).toBe(inode);
+    expect(() => readProgramDiscovery(f.root, slug, options)).toThrow('index receipt differs');
+    putReceipt(f.root, original); refreshDiscovery(f.root);
+    expect(readFileSync(f.file, 'utf8')).toBe(authoredManifestSource(f.root, slug, { discovery }));
+    expect(readdirSync(f.directory).filter(file => file.endsWith('.tmp'))).toEqual([]);
+  } finally { vi.unstubAllEnvs(); rmSync(f.root, { recursive: true, force: true }); }
+});
+
+test('missing discovery stays absent on refusal and is initialized only from a valid complete product', () => {
+  const f = providerFixture();
+  try {
+    vi.stubEnv('WS_TEST_PRODUCTS_SHA', sha); vi.stubEnv('VERCEL_GIT_COMMIT_SHA', sha);
+    refreshDiscovery(f.root); expect(existsSync(f.file)).toBe(false);
+    build(f.root); refreshDiscovery(f.root);
+    expect(readFileSync(f.file, 'utf8')).toBe(authoredManifestSource(f.root, slug, { discovery }));
+    const inode = statSync(f.file).ino; refreshDiscovery(f.root);
+    expect(statSync(f.file).ino).toBe(inode);
+  } finally { vi.unstubAllEnvs(); rmSync(f.root, { recursive: true, force: true }); }
+});
+
+test('discovery replacement is atomic for an already-open reader and leaves no staging file', () => {
+  const f = providerFixture(), old = 'export const retained = "open reader";\n';
+  let reader: number | undefined;
+  try {
+    vi.stubEnv('WS_TEST_PRODUCTS_SHA', sha); vi.stubEnv('VERCEL_GIT_COMMIT_SHA', sha);
+    build(f.root); writeFileSync(f.file, old); reader = openSync(f.file, 'r');
+    refreshDiscovery(f.root);
+    expect(readFileSync(reader, 'utf8')).toBe(old);
+    expect(readFileSync(f.file, 'utf8')).toBe(authoredManifestSource(f.root, slug, { discovery }));
+    expect(readdirSync(f.directory).filter(file => file.endsWith('.tmp'))).toEqual([]);
+  } finally { if (reader !== undefined) closeSync(reader); vi.unstubAllEnvs(); rmSync(f.root, { recursive: true, force: true }); }
+});
 
 test('program discovery admits only a current product with matching index and values', () => {
   const root = fixture();
