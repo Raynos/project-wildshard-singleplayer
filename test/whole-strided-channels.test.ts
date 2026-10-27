@@ -133,3 +133,43 @@ test.each(['borrow', 'take'] as const)('signed grid extremes retain the original
     expect(new Uint8Array(actual.array.buffer, actual.array.byteOffset, actual.array.byteLength)).toEqual(new Uint8Array(expected.buffer));
   } finally { for (const view of result.values()) view.geometry.dispose(); for (const node of nodes) node.geometry.dispose(); }
 });
+
+
+function completePartition(gridded: boolean, encoded: boolean): Mesh {
+  const node = partition([0, 1, 2, 3], 0, gridded);
+  node.geometry.setIndex([0, 1, 2, 1, 3, 2]);
+  node.userData['wholePartition'] = { id: 'source', vertices: encoded ? { runs: [0, 4] } : [0, 1, 2, 3],
+    triangles: { runs: [0, 2] }, vertexCount: 4, indexCount: 6, index: 'u16',
+    ...(gridded ? { grid: { origin: [0.125, -1.75, 4.25], step: 0.0625 } } : {}) };
+  return node;
+}
+
+test.each([false, true].flatMap(grid => [false, true].map(take => ({ grid, take }))))(
+  'complete source runs retain explicit-list channel/index/bounds bytes (grid $grid, take $take)', ({ grid, take }) => {
+    const explicit = completePartition(grid, false), encoded = completePartition(grid, true);
+    const originals = [facts(explicit.geometry), facts(encoded.geometry)];
+    const before = assembleWholeGeometryViews([explicit]), after = assembleWholeGeometryViews([encoded], take ? 'take' : 'borrow');
+    try {
+      const a = before.get('source'), b = after.get('source');
+      if (a === undefined || b === undefined) throw new Error('Missing complete source');
+      expect(facts(b.geometry)).toEqual(facts(a.geometry)); expect(b.matrix.elements).toEqual(a.matrix.elements);
+      expect(facts(explicit.geometry)).toEqual(originals[0]); expect(facts(encoded.geometry)).toEqual(originals[1]);
+    } finally {
+      for (const view of [...before.values(), ...after.values()]) view.geometry.dispose();
+      explicit.geometry.dispose(); encoded.geometry.dispose();
+    }
+  });
+
+test.each(['partial', 'offset', 'shared', 'duplicate-triangle', 'spoofed-proof'])('encoded complete-source shortcut preserves %s refusal', kind => {
+  const node = completePartition(true, true), other = completePartition(true, true);
+  if (kind === 'partial') node.userData['wholePartition'] = { id: 'source', vertices: { runs: [0, 3] }, triangles: [0], vertexCount: 4, indexCount: 6, index: 'u16' };
+  if (kind === 'offset') node.userData['wholePartition'] = { id: 'source', vertices: { runs: [1, 4] }, triangles: [0, 1], vertexCount: 4, indexCount: 6, index: 'u16' };
+  if (kind === 'shared') other.geometry.getAttribute('position').setX(0, 99);
+  if (kind === 'spoofed-proof') node.userData['wholePartition'] = { id: 'source', vertices: [0, 1, 2, 3], triangles: [0, 1], vertexCount: 4, indexCount: 6, index: 'u16', denseVertices: true };
+  const error = kind === 'partial' ? 'Whole missing triangle vertex' : kind === 'offset' ? 'Whole vertex ordinal outside source'
+    : kind === 'shared' ? 'Whole shared vertex differs' : kind === 'duplicate-triangle' ? 'Whole duplicate or invalid triangle' : undefined;
+  try {
+    const read = () => assembleWholeGeometryViews(kind === 'shared' || kind === 'duplicate-triangle' ? [node, other] : [node], 'take');
+    if (error === undefined) expect(read).toThrow(); else expect(read).toThrow(error);
+  } finally { node.geometry.dispose(); other.geometry.dispose(); }
+});

@@ -1723,13 +1723,17 @@ const WholeOrdinal = wholeV.pipe(wholeV.number(), wholeV.integer(), wholeV.minVa
 /** A plain ordinal list, checked in one loop with WholeOrdinal's rules (valibot's per-element pipe over whole tiles' lists
  *  was ~150 ms of a phone-tier home region) */
 const isOrdinals = (list: unknown): list is number[] => Array.isArray(list) && list.every((ordinal: unknown) => typeof ordinal === 'number' && Number.isInteger(ordinal) && ordinal >= 0);
-const WholeOrdinals = wholeV.union([wholeV.custom<number[]>(isOrdinals, 'whole ordinals are non-negative integers'), wholeV.pipe(wholeV.strictObject({ runs: wholeV.array(WholeOrdinal) }),
+const WholeOrdinals = wholeV.union([wholeV.pipe(wholeV.custom<number[]>(isOrdinals, 'whole ordinals are non-negative integers'),
+  wholeV.transform(values => ({ values, dense: false }))), wholeV.pipe(wholeV.strictObject({ runs: wholeV.array(WholeOrdinal) }),
   wholeV.check(row => row.runs.length % 2 === 0 && row.runs.every((ordinal, i) => i % 2 === 0 || ordinal > 0)
     && row.runs.reduce((sum, ordinal, i) => sum + (i % 2 === 1 ? ordinal : 0), 0) <= WHOLE_ORDINALS_MAX, 'whole ordinal runs are bounded start/length pairs'),
-  wholeV.transform(row => { const list: number[] = []; for (let i = 0; i < row.runs.length; i += 2) { const start = row.runs[i] ?? 0, length = row.runs[i + 1] ?? 0; for (let k = 0; k < length; k++) list.push(start + k); } return list; }))]);
-const WholePartition = wholeV.strictObject({ id: wholeV.string(), vertices: WholeOrdinals, triangles: WholeOrdinals, vertexCount: wholeV.pipe(wholeV.number(), wholeV.integer(), wholeV.minValue(1)), indexCount: wholeV.pipe(wholeV.number(), wholeV.integer(), wholeV.minValue(0)), index: wholeV.picklist(['none', 'u16', 'u32']),
+  wholeV.transform(row => { const list: number[] = []; for (let i = 0; i < row.runs.length; i += 2) { const start = row.runs[i] ?? 0, length = row.runs[i + 1] ?? 0; for (let k = 0; k < length; k++) list.push(start + k); } return { values: list, dense: row.runs.length === 2 && row.runs[0] === 0 }; }))]);
+const WholePartition = wholeV.pipe(wholeV.strictObject({ id: wholeV.string(), vertices: WholeOrdinals, triangles: WholeOrdinals, vertexCount: wholeV.pipe(wholeV.number(), wholeV.integer(), wholeV.minValue(1)), indexCount: wholeV.pipe(wholeV.number(), wholeV.integer(), wholeV.minValue(0)), index: wholeV.picklist(['none', 'u16', 'u32']),
   // I3: the partition's positions are unnormalized Int16 on this grid of its whole shape (sdk/bake/props `wholeGrid`)
-  grid: wholeV.exactOptional(wholeV.strictObject({ origin: wholeV.tuple([wholeV.number(), wholeV.number(), wholeV.number()]), step: wholeV.pipe(wholeV.number(), wholeV.minValue(1 / 4096), wholeV.maxValue(1)) })) });
+  grid: wholeV.exactOptional(wholeV.strictObject({ origin: wholeV.tuple([wholeV.number(), wholeV.number(), wholeV.number()]), step: wholeV.pipe(wholeV.number(), wholeV.minValue(1 / 4096), wholeV.maxValue(1)) })) }),
+  // The proof lives only in this parsed row: caller-owned explicit arrays
+  // never qualify, even when they currently look like a complete run.
+  wholeV.transform(row => ({ ...row, vertices: row.vertices.values, triangles: row.triangles.values, denseVertices: row.vertices.dense })));
 function isWholeMesh(node: Object3D): node is Mesh { return node instanceof Mesh; }
 function wholeStorage(row: wholeV.InferOutput<typeof WholeAttribute>, count: number): BufferAttribute {
   const n = row.itemSize * count;
@@ -1815,6 +1819,7 @@ class WholeGeometryAssembler {
         if (!(source instanceof Int16Array) || position.normalized || position.itemSize !== 3) throw new Error('Whole grid needs Int16 positions');
       }
       let group = this.groups.get(row.id);
+      const completeFreshVertices = group === undefined && row.denseVertices && row.vertices.length === row.vertexCount;
       if (group === undefined) {
         const output = new BufferGeometry();
         for (const [name, channel] of Object.entries(channels)) output.setAttribute(name, wholeStorage(row.grid !== undefined && name === 'position' ? { ...channel, storage: 'Float32Array', normalized: false } : channel, row.vertexCount));
@@ -1836,8 +1841,9 @@ class WholeGeometryAssembler {
       const seen = group.seen, vertices = row.vertices;
       // Which listed vertices an earlier node (or an earlier entry of this list) already wrote, then one channel at a
       // time: the per-vertex channel walk was ~0.4 s of a phone-4x Nine preparation. Writes and refusals are unchanged.
-      const shared = new Uint8Array(vertices.length);
-      for (let local = 0; local < vertices.length; local++) {
+      const shared = new Uint8Array(completeFreshVertices ? 0 : vertices.length);
+      if (completeFreshVertices) seen.fill(1);
+      else for (let local = 0; local < vertices.length; local++) {
         const vertex = vertices[local] ?? Number.NaN;
         if (!(vertex < seen.length)) throw new Error('Whole vertex ordinal outside source');
         shared[local] = seen[vertex] ?? 0; seen[vertex] = 1;
@@ -1849,6 +1855,14 @@ class WholeGeometryAssembler {
           // temporary Float32 attribute rounded before shared-byte comparison;
           // keep that exact boundary without allocating/copying it first.
           const [originX, originY, originZ] = grid.origin, step = grid.step;
+          if (completeFreshVertices) {
+            for (let read = offset, write = 0; write < to.length; read += stride, write += 3) {
+              to[write] = Math.fround((from[read] ?? 0) * step + originX);
+              to[write + 1] = Math.fround((from[read + 1] ?? 0) * step + originY);
+              to[write + 2] = Math.fround((from[read + 2] ?? 0) * step + originZ);
+            }
+            continue;
+          }
           for (let local = 0; local < vertices.length; local++) {
             const read = offset + local * stride, write = (vertices[local] ?? 0) * toSize;
             if (write + fromSize > to.length) throw new RangeError('Whole channel write outside source');
@@ -1862,6 +1876,16 @@ class WholeGeometryAssembler {
         }
         // Ordinals arrive as start/length runs: a run of new vertices in the same element type is one block copy.
         const block = fromSize === toSize && stride === fromSize && offset === 0 && from.constructor === to.constructor;
+        if (completeFreshVertices && fromSize === toSize) {
+          if (block && vertices.length * fromSize <= from.length) to.set(from.subarray(0, vertices.length * fromSize));
+          else for (let read = offset, write = 0; write < to.length; read += stride, write += toSize) {
+            to[write] = from[read] ?? 0;
+            if (fromSize > 1) to[write + 1] = from[read + 1] ?? 0;
+            if (fromSize > 2) to[write + 2] = from[read + 2] ?? 0;
+            if (fromSize > 3) to[write + 3] = from[read + 3] ?? 0;
+          }
+          continue;
+        }
         for (let local = 0; local < vertices.length; local++) {
           const start = vertices[local] ?? 0;
           if (block && shared[local] === 0) {
