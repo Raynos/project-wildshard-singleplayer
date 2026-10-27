@@ -200,8 +200,8 @@ All answered 2026-10-26 ~22:40: Q1 split then tagged CI handoff (G757), Q2 quara
 
 ## GM4: render-source identity assertions (sp-x6)
 
-Checked source repair: `9c30863d2d`; its publication is blocked by the
-shared GM0 native-output intake. The broader GM4 reading stays open.
+Source identity repair done (`9c30863d2d`), on origin/main.
+The broader GM4/CF2 reading is damage-listed under G769.
 
 CI `40445771616` times out independent render-source construction from
 `68cab0ecb3`. Moving construction out of the test still leaves 24,477 ms
@@ -216,14 +216,13 @@ wider GM4 reading and CF2 grid cause remain open.
 
 ## GM4: shared cold map publication (sp-x6)
 
-Checked source `62f0de2322` prepares one genuine cold world before the
+Source fixture repair done (`62f0de2322`), on origin/main: it prepares one genuine cold world before the
 unchanged 30 s assertions and shares that publication. All 20 source cases
 and CF1 pass; the slowest final case is 2,907 ms versus the original shared
 world case's 28,003 ms. Source-digest hits retain every stat identity check;
-all original image pins and matchers remain unchanged. Keep publication
-explicit while the GM0 native-input blocker holds the prefix. CF2's old
-held stage remains unknown; neither this speed fix nor parser attribution
-closes that causal flake.
+all original image pins and matchers remain unchanged. CF2's old held stage remains unknown; neither this speed fix nor parser
+attribution closes that causal flake. G769 damage-lists further CF2/GM4
+work; the lane continues GR6, then iPhone downloads I6/I10.
 
 G768 stops GM3/G752. The candidate reader was never activated. The
 unfinished tooling graph, compiler and reporter hunks were removed from
