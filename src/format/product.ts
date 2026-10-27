@@ -1,4 +1,3 @@
-import { hasDeclaredClientPage } from './runtimeBinds';
 import { admitScriptContract, type ScriptContract } from './scriptContract';
 import { prepareGlbBuffers } from './glbBuffers';
 import { parseGlbData } from './glbCost';
@@ -14,7 +13,7 @@ import type { Shardfile } from "@wildshard/format/shardSchema";
 import type { ShardTerrain } from "@wildshard/format/terrain";
 import { worstContentCost, memoryTargetWarnings, nearbyContentCost } from "@wildshard/format/budget";
 import { CONTENT_CAPS as C, MEMORY_GATES } from '@wildshard/format/contentBounds';
-import { DEFAULT_GRAPH_BUDGET, validateGraph } from "@wildshard/format/materialGraph";
+import { DEFAULT_GRAPH_BUDGET } from "@wildshard/format/materialGraph";
 import { SCRIPT_LIMITS } from '@wildshard/format/scriptLimits';
 import { runtimeAccountedBytes } from "@wildshard/format/runtimeCost";
 import { MemoryAdmission } from './memoryAdmission';
@@ -290,14 +289,9 @@ export function performanceReport(source: Shardfile, observations: PerformanceOb
     return { name, x, z, draws: libraryView.draws + (source.far?.draws ?? 0) + tiles.reduce((sum, tile) => sum + tile.draws, 0),
       triangles: libraryView.triangles + (source.far?.triangles ?? 0) + tiles.reduce((sum, tile) => sum + tile.triangles, 0) };
   });
+  // D74: every material graph is a graph file, costed and held to its budget with its bytes at product admission
+  // (graphFileRules); a preset is engine-owned, under its own budget. The report carries no inline graph rows.
   const graphs: PerformanceReport['graphs'] = [];
-  // inline graphs (a graph file is checked with its bytes at product admission; a preset is engine-owned, under its own budget)
-  for (const [id, material] of Object.entries(source.look.materials)) if (material.family === 'graph' && 'graph' in material) {
-    const result = validateGraph(material.graph, { trustedBudget: source.runtime !== null || hasDeclaredClientPage(source) });
-    if (!result.ok) throw new Error(`Report requires an admitted material graph: ${id}`);
-    graphs.push({ id, ...result.cost });
-    for (const metric of ['nodes', 'samplers', 'instructions'] as const) check(`graph ${id} ${metric}`, result.cost[metric], (result.graph.budget ?? DEFAULT_GRAPH_BUDGET)[metric]);
-  }
   const scriptLimit = Math.min(source.serverBudget.tickMicros, 1_000_000 / 60 / 4);
   for (const [group, data] of ([['scripts', observations.scripts], ['fuel', observations.fuel]] as const)) for (const [metric, value] of Object.entries(data)) {
     if (!Number.isFinite(value) || value < 0) check(`invalid measured ${group}.${metric}`, value, 0);

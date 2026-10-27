@@ -52,11 +52,17 @@ export function graphFileJson(hash: string, file: (hash: string) => Uint8Array |
  * preset reference or a missing or invalid file.
  */
 export function materialGraphIr(entry: MaterialEntry, file: (hash: string) => Uint8Array | undefined): GraphIr {
-  if (entry.family !== 'graph' || 'preset' in entry) throw new Error('material graph IR needs a graph file or inline graph');
-  if (!('file' in entry)) return entry.graph;
+  if (entry.family !== 'graph' || !('file' in entry)) throw new Error('material graph IR needs a graph file (a built product carries no inline graph)');
   const checked = validateGraph(graphFileJson(entry.file, file), { trustedBudget: true });
   if (!checked.ok) throw new Error(`material graph file ${entry.file}: ${checked.errors.join('; ')}`);
   return checked.graph;
+}
+/** D74: why a built product's catalogue may not hold an inline graph (the SDK lowers an authored one into its file) */
+export const INLINE_GRAPH_REFUSAL = 'material catalogue holds no inline graph: the SDK lowers an authored graph into a graph file { family: "graph", file }';
+/** The wire boundary (product admission): every graph of a built product's catalogue is a graph file or a preset. An
+ *  authored declaration may still hold inline graphs; the SDK lowers them before admission. */
+export function inlineGraphRules(materials: Readonly<v.InferOutput<typeof MaterialsSchema>>): string[] {
+  return Object.entries(materials).flatMap(([materialId, material]) => material.family === 'graph' && 'graph' in material ? [`material ${materialId}: ${INLINE_GRAPH_REFUSAL}`] : []);
 }
 /** The texture params of the catalogue's graph files (their bytes from `bytes`; a missing or unreadable file names none). */
 export function graphFileTextureRefs(materials: Readonly<v.InferOutput<typeof MaterialsSchema>>, bytes: (hash: string) => Uint8Array | undefined): string[] {

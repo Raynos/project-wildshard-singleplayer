@@ -17,6 +17,7 @@ import * as movers from '../src/game/plugin/mover';
 import { installClientMoverOwners } from '../src/game/shardfile/clientMoverOwners';
 import { publishEntryOwner } from '../src/game/shardfile/entryOwners';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { hashImmutableBytes } from '../src/sdk/immutable';
 import { emptyShardfile } from '../src/sdk/author';
 import { parseMovers } from '../src/format/movers';
 import { validateGraph } from '../src/format/materialGraph';
@@ -32,11 +33,13 @@ async function fixtureRuntime(scope:Scope):Promise<movers.MoverRuntime>{
   const host=await movers.createMoverHost([platform],new Map(),()=>[]);
   return new movers.MoverRuntime([platform],{scope,host,physics:legacyDouble<Physics>({}),adopt:()=>({pose:()=>undefined})});
 }
+// D74: the fixture product's graph files by hash (a catalogue graph is its file)
+const graphFiles=new Map<string,Uint8Array>();
 function fixture(rows=admitted,bound=true){
   const scope=new Scope('mover-owners'),source=emptyShardfile({slug:'mover-owners',name:'Mover owners',author:'Fixture',revision:1,seed:9});
   if(bound){const construction=new Scope('mover-construction');bindResidentWorldScope(scope,construction);scope.onDispose(()=>{construction.dispose();});}
   // Root movers differ deliberately: this host reads only the admitted section.
-  const product=createShardProduct({slug:source.identity.slug,revision:1,shardfile:source,sections:new Map<string,unknown>([['world/movers',{movers:rows}],['client/plan',{version:1,features:[]}]]),files:new Map(),read:()=>Promise.reject(new Error('No guest bytes expected'))});
+  const product=createShardProduct({slug:source.identity.slug,revision:1,shardfile:source,sections:new Map<string,unknown>([['world/movers',{movers:rows}],['client/plan',{version:1,features:[]}]]),files:new Map(),read:hash=>{const bytes=graphFiles.get(hash);return bytes===undefined?Promise.reject(new Error('No guest bytes expected')):Promise.resolve(bytes);}});
   const world=legacyDouble<FixtureWorld>({game:legacyDouble<FixtureWorld['game']>({})});
   const ctx=legacyDouble<ShardContext>({scope,product,system:vi.fn<ShardContext['system']>(),game:legacyDouble<ShardContext['game']>({runtime:legacyDouble<NonNullable<ShardContext['game']['runtime']>>({world})})});
   return {ctx,scope,source};
@@ -112,7 +115,9 @@ function moorLook(type:'vec2'|'float'='vec2'){
   const checked=validateGraph({version:1,kind:'material',model:'toon',params:{moor:{type,value:type==='vec2'?[0,0]:0}},
     nodes:{paint:{op:'const',type:'vec3',value:[1,1,1]}},stages:{surface:{colour:'paint'}}});
   if(!checked.ok)throw new Error(checked.errors.join('; '));
-  return {family:'graph' as const,graph:checked.graph};
+  // D74: a catalogue graph is its graph file, read back through the product
+  const bytes=new TextEncoder().encode(JSON.stringify(checked.graph)),file=hashImmutableBytes(bytes);graphFiles.set(file,bytes);
+  return {family:'graph' as const,file};
 }
 
 test('mooring follows original fixed-pose order, one reusable lift buffer, rest and unchanged restore',async()=>{
