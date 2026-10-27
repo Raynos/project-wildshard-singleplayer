@@ -45,7 +45,7 @@ function fixture(options: {models?: boolean; prepare?: (root: Object3D) => Promi
         if (object === root) worldReady.resolve();
         await options.prepare?.(object);
       }, async () => {calls.push('frame'); await options.prepare?.(models);});
-      calls.push('final');
+      calls.push('final'); await options.prepare?.(models);
     }}}}},
   };
   const instance: unknown = Reflect.apply(factory, undefined, [ports]);
@@ -64,26 +64,26 @@ function fixture(options: {models?: boolean; prepare?: (root: Object3D) => Promi
     content: () => {invoke('content');}, result: () => task('result'), rawResult: () => invoke('result')};
 }
 
-test('the completed kit starts page programs while play is pending and final readiness still waits', async () => {
+test('page preparation waits for play and performs only the final complete inventory', async () => {
   const f = fixture();
   await f.start(); const result = f.result(), observed = settle(result);
   try {
     await flush(); expect(f.calls).toEqual([]);
-    f.kit(); await f.worldReady; await flush();
-    expect(f.calls).toEqual(['look', 'frame']);
+    f.kit(); await flush();
+    expect(f.calls).toEqual([]);
     expect(f.root.visible).toBe(false); expect(f.models.visible).toBe(false);
     f.content(); await result;
-    expect(f.calls).toEqual(['look', 'frame', 'before-final', 'final']);
+    expect(f.calls).toEqual(['look', 'before-final', 'final']);
   } finally {f.kit(); f.content(); f.owner.dispose(); await observed;}
 });
 
-test('late equipment still gates a play phase that finished first', async () => {
+test('the final inventory still waits for equipment when play finishes first', async () => {
   const equipment = deferred();
   const f = fixture({prepare: object => object.name === 'staged-equipment' ? equipment.promise : Promise.resolve()});
   await f.start(); const result = f.result(), observed = settle(result);
   try {
     f.content(); await flush(); expect(f.calls).toEqual([]);
-    f.kit(); await f.worldReady; await flush(); expect(f.calls).toEqual(['look', 'frame']);
+    f.kit(); await f.worldReady; await flush(); expect(f.calls).toEqual(['look', 'before-final', 'final']);
     equipment.resolve(); await result;
     expect(f.calls.at(-1)).toBe('final');
   } finally {equipment.resolve(); f.kit(); f.content(); f.owner.dispose(); await observed;}
@@ -99,13 +99,25 @@ test('retirement while waiting for the kit wakes the rendezvous without preparin
   } finally {f.kit(); f.content(); f.owner.dispose(); await observed;}
 });
 
-test('equipment preparation refusal propagates and never publishes the final inventory', async () => {
+
+test('retirement during play releases the content wait without preparing a retired page', async () => {
+  const f = fixture();
+  await f.start(); const result = f.result(), observed = settle(result);
+  try {
+    f.kit(); await flush(); expect(f.calls).toEqual([]);
+    f.owner.dispose();
+    expect(String(await observed)).toMatch(/left before.*warm-up/u);
+    expect(f.calls).toEqual([]);
+  } finally {f.kit(); f.content(); f.owner.dispose(); await observed;}
+});
+
+test('final preparation refusal propagates after content without early compilation', async () => {
   const f = fixture({prepare: object => object.name === 'staged-equipment' ? Promise.reject(new Error('equipment refused')) : Promise.resolve()});
   await f.start(); const result = f.result(), observed = settle(result);
   try {
-    f.kit(); await f.worldReady; f.content();
+    f.kit(); f.content();
     expect(String(await observed)).toContain('equipment refused');
-    expect(f.calls).toEqual(['look', 'frame']);
+    expect(f.calls).toEqual(['look', 'before-final', 'final']);
   } finally {f.kit(); f.content(); f.owner.dispose(); await observed;}
 });
 
@@ -114,7 +126,7 @@ test('no staged models preserves the final warm and ordinary entries start no sp
   await f.start(); const result = f.result(), observed = settle(result);
   try {
     f.kit(); f.content(); await result;
-    expect(f.calls).toEqual(['look', 'frame', 'before-final', 'final']);
+    expect(f.calls).toEqual(['look', 'before-final', 'final']);
     await ordinary.start(); expect(ordinary.rawResult()).toBeNull(); expect(ordinary.calls).toEqual([]);
   } finally {f.kit(); f.content(); f.owner.dispose(); ordinary.owner.dispose(); await observed;}
 });
