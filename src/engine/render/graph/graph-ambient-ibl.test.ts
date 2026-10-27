@@ -37,9 +37,15 @@ test('toon ambient excludes IBL diffuse but keeps environment specular and resto
   const target = new THREE.WebGLRenderTarget(768, 1024);
   target.texture.mapping = THREE.CubeUVReflectionMapping;
   const seen: { context: object; irradiance: unknown }[] = [];
-  const original: unknown = Reflect.get(PhysicalLightingModel.prototype, 'indirectSpecular');
+  // the lit graphs' lighting model owns indirectSpecular (compile.ts FunctionLightingModel): spy where it is defined
+  const probe = compileGraph({ version: 1, kind: 'material', model: 'standard', nodes: {}, stages: { surface: { colour: [1, 1, 1] } } });
+  let owner: unknown = probe.material.setupLightingModel();
+  probe.material.dispose();
+  while (owner instanceof PhysicalLightingModel && !Object.hasOwn(owner, 'indirectSpecular')) owner = Object.getPrototypeOf(owner);
+  if (!(owner instanceof PhysicalLightingModel)) throw new Error('Missing lighting model');
+  const original: unknown = Reflect.get(owner, 'indirectSpecular');
   if (typeof original !== 'function') throw new Error('Missing physical specular calculation');
-  const spy = vi.spyOn(PhysicalLightingModel.prototype, 'indirectSpecular').mockImplementation(function captureSpecular(this: PhysicalLightingModel, builder) {
+  const spy = vi.spyOn(owner, 'indirectSpecular').mockImplementation(function captureSpecular(this: PhysicalLightingModel, builder) {
     const context: unknown = builder.context;
     if (typeof context !== 'object' || context === null) throw new Error('Missing lighting context');
     seen.push({ context, irradiance: Reflect.get(context, 'iblIrradiance') });

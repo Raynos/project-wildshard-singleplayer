@@ -41,7 +41,7 @@ import {
   instanceIndex, isolate, max, materialEnvIntensity, materialNormal, materialReference, modelPosition, modelWorldMatrix, modelWorldMatrixInverse,
   mx_noise_float, normalLocal, normalView, normalWorldGeometry, not, or, perspectiveDepthToViewZ, pointUV, pmremTexture, property, reference, positionGeometry, positionLocal,
   positionView, positionViewDirection, positionWorld, screenCoordinate, texture, time, uniform, uniformArray, uv, varying, vec2, vec3, vec4, vertexColor,
-  BRDF_GGX, BRDF_Lambert, F_Schlick, mat3, roughness as roughnessProperty, specularColor, specularColorBlended, specularF90,
+  BRDF_GGX, BRDF_Lambert, F_Schlick, diffuseColor, mat3, metalness as metalnessProperty, mix, roughness as roughnessProperty, specularColor, specularColorBlended, specularF90,
 } from 'three/tsl';
 import { FRONT_LEN, FRONT_SPEED, FRONT2_LEN, WIND_DIR, windUniforms } from '../../world/wind';
 import { sampleWindField, type WindFieldMath } from '../../world/windField';
@@ -259,9 +259,83 @@ const physicalDirect = Fn<DirectInputs, Node>((inputs: DirectInputs): Node => {
   { name: 'diffuse', type: 'vec3' }, { name: 'compensation', type: 'vec3' },
 ] });
 
+/** three's multi-scattering split (PhysicalLightingModel.computeMultiscattering, r186, no iridescence) into two vars */
+function multiscattering(single: Node<'vec3'>, multi: Node<'vec3'>, f90: Node<'float'>, f0: Node<'vec3'>, dfg: Node<'vec2'>): void {
+  const fssEss = f0.mul(dfg.x).add(f90.mul(dfg.y));
+  const ess = dfg.x.add(dfg.y);
+  const ems = ess.oneMinus();
+  const favg = f0.add(f0.oneMinus().mul(0.047619)); // 1/21
+  const fms = fssEss.mul(favg).div(ems.mul(favg).oneMinus());
+  single.addAssign(fssEss);
+  multi.addAssign(fms.mul(ems));
+}
+const directFloat = (inputs: DirectInputs, name: string): Node<'float'> => new ConvertNode<'float'>(directInput(inputs, name), 'float');
+/**
+ * three's indirect diffuse and indirect specular terms (PhysicalLightingModel.indirectDiffuse / indirectSpecular, r186, a
+ * standard material) as layout functions, their expressions in order (G717.O4.4): built inline, every lit graph build
+ * re-made them (~110 nodes); a build now pays two calls. The DFG lookup (`dfg`, the model's start) is an argument.
+ */
+const indirectDiffuseTerm = Fn<DirectInputs, Node>((inputs: DirectInputs): Node => {
+  const single = vec3().toVar(), multi = vec3().toVar();
+  multiscattering(single, multi, directFloat(inputs, 'specularF90'), directVec3(inputs, 'specularColour'), new ConvertNode<'vec2'>(directInput(inputs, 'dfg'), 'vec2'));
+  return directVec3(inputs, 'irradiance').mul(new ConvertNode<'vec3'>(BRDF_Lambert({ diffuseColor: directInput(inputs, 'diffuse') }), 'vec3')).mul(single.add(multi).oneMinus()).toVar();
+}).setLayout({ name: 'wsIndirectDiffuse', type: 'vec3', inputs: [
+  { name: 'irradiance', type: 'vec3' }, { name: 'dfg', type: 'vec2' }, { name: 'specularF90', type: 'float' }, { name: 'specularColour', type: 'vec3' }, { name: 'diffuse', type: 'vec3' },
+] });
+const indirectSpecularTerm = Fn<DirectInputs, Node>((inputs: DirectInputs): Node => {
+  const dfg = new ConvertNode<'vec2'>(directInput(inputs, 'dfg'), 'vec2'), f90 = directFloat(inputs, 'specularF90');
+  const singleDielectric = vec3().toVar(), multiDielectric = vec3().toVar(), singleMetallic = vec3().toVar(), multiMetallic = vec3().toVar();
+  multiscattering(singleDielectric, multiDielectric, f90, directVec3(inputs, 'specularColour'), dfg);
+  multiscattering(singleMetallic, multiMetallic, f90, directVec3(inputs, 'albedo'), dfg);
+  const metal = directFloat(inputs, 'metalness');
+  const single = mix(singleDielectric, singleMetallic, metal), multi = mix(multiDielectric, multiMetallic, metal);
+  const totalDielectric = singleDielectric.add(multiDielectric);
+  const diffuse = directVec3(inputs, 'diffuse').mul(totalDielectric.oneMinus());
+  const cosineWeighted = directVec3(inputs, 'iblIrradiance').mul(1 / Math.PI);
+  const specular = directVec3(inputs, 'radiance').mul(single).add(multi.mul(cosineWeighted)).toVar();
+  const indirectDiffuse = diffuse.mul(cosineWeighted).toVar();
+  return mat3(specular, indirectDiffuse, vec3(0));
+}).setLayout({ name: 'wsIndirectSpecular', type: 'mat3', inputs: [
+  { name: 'radiance', type: 'vec3' }, { name: 'iblIrradiance', type: 'vec3' }, { name: 'dfg', type: 'vec2' }, { name: 'specularF90', type: 'float' },
+  { name: 'specularColour', type: 'vec3' }, { name: 'albedo', type: 'vec3' }, { name: 'metalness', type: 'float' }, { name: 'diffuse', type: 'vec3' },
+] });
+/** a lighting-context entry three's model reads (radiance, irradiance, the reflected light's accumulators) */
+function contextNode(builder: NodeBuilder, key: string): Node {
+  const context: unknown = builder.context;
+  const value: unknown = typeof context === 'object' && context !== null ? Reflect.get(context, key) : undefined;
+  if (!isNodeValue(value)) throw new Error(`material graph: the lighting context lacks ${key}`);
+  return value;
+}
+function reflectedLight(builder: NodeBuilder): { readonly indirectDiffuse: Node; readonly indirectSpecular: Node } {
+  const context: unknown = builder.context;
+  const value: unknown = typeof context === 'object' && context !== null ? Reflect.get(context, 'reflectedLight') : undefined;
+  const diffuse: unknown = typeof value === 'object' && value !== null ? Reflect.get(value, 'indirectDiffuse') : undefined;
+  const specular: unknown = typeof value === 'object' && value !== null ? Reflect.get(value, 'indirectSpecular') : undefined;
+  if (!isNodeValue(diffuse) || !isNodeValue(specular)) throw new Error('material graph: the lighting context lacks its reflected light');
+  return { indirectDiffuse: diffuse, indirectSpecular: specular };
+}
+
 /** three's physical model with each light's direct term as `physicalDirect`: every lit graph material's model */
 class FunctionLightingModel extends PhysicalLightingModel {
   override direct(input: DirectInput, builder: NodeBuilder): void { this.physical(input, builder, true, true); }
+
+  private dfgTerm(): Node {
+    if (this.dfg === null) throw new Error('material graph: the physical model has no DFG term');
+    return this.dfg;
+  }
+
+  override indirectDiffuse(builder: NodeBuilder): void {
+    const diffuse = indirectDiffuseTerm({ irradiance: contextNode(builder, 'irradiance'), dfg: this.dfgTerm(), specularF90, specularColour: specularColor, diffuse: diffuseContribution });
+    accumulate(reflectedLight(builder).indirectDiffuse, vec3Of(diffuse, 'the indirect diffuse'));
+  }
+
+  override indirectSpecular(builder: NodeBuilder): void {
+    const terms = indirectSpecularTerm({ radiance: contextNode(builder, 'radiance'), iblIrradiance: contextNode(builder, 'iblIrradiance'), dfg: this.dfgTerm(),
+      specularF90, specularColour: specularColor, albedo: diffuseColor.rgb, metalness: metalnessProperty, diffuse: diffuseContribution });
+    const light = reflectedLight(builder);
+    accumulate(light.indirectSpecular, new MatrixColumnNode(terms, 0));
+    accumulate(light.indirectDiffuse, new MatrixColumnNode(terms, 1));
+  }
 
   /** three's physical direct term for this light (`physicalDirect`), keeping its diffuse and / or its specular */
   protected physical(input: DirectInput, _builder: NodeBuilder, diffuse: boolean, specular: boolean): void {
