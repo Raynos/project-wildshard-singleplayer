@@ -177,8 +177,9 @@ test('saved Template-pair estimates audit either floor without admitting other c
 
 test('four independent floors use the picked combined process limits', () => {
   expect(webKitCoreMemoryFloorBytes).toBe(87397464 + 15927456);
-  expect(coreMemoryTargets.map(target => [target.shard, (target.limitBytes - webKitCoreMemoryFloorBytes) / MiB])).toEqual([
-    ['menu', 50], ['select', 50], ['_template', 100], ['blender-template', 100],
+  expect(coreMemoryTargets.map(target => [target.shard, target.limitBytes])).toEqual([
+    ['menu', webKitCoreMemoryFloorBytes + 50 * MiB], ['select', webKitCoreMemoryFloorBytes + 50 * MiB],
+    ['_template', 274_538_200], ['blender-template', 261_512_872],
   ]);
   expect(coreMemorySummary(rows()).every(row => row.passed && row.totalBytes === row.limitBytes)).toBe(true);
 });

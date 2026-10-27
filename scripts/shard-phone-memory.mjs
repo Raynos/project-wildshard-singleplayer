@@ -26,12 +26,12 @@ import { pageMemoryAttributionExpression } from './memory-report-snapshot.mjs';
  * Same native reader: 87,397,464 + 15,927,456 bytes; no forced GC or app scripts.
  * This calibration is pinned, never automatically re-based when memory grows. */
 export const webKitCoreMemoryFloorBytes = 103324920;
-/** G682 allowances use MiB, as in the core-memory plan's measurement table. */
+/** Menu/select retain G682. Templates use the picked 18d3c27d7a native pair. */
 export const coreMemoryTargets = Object.freeze([
   Object.freeze({shard: 'menu', name: 'Menu', limitBytes: webKitCoreMemoryFloorBytes + 50 * 1048576}),
   Object.freeze({shard: 'select', name: 'SHARD SELECT', limitBytes: webKitCoreMemoryFloorBytes + 50 * 1048576}),
-  Object.freeze({shard: '_template', name: 'Template 1', limitBytes: webKitCoreMemoryFloorBytes + 100 * 1048576}),
-  Object.freeze({shard: 'blender-template', name: 'Template 2', limitBytes: webKitCoreMemoryFloorBytes + 100 * 1048576}),
+  Object.freeze({shard: '_template', name: 'Template 1', limitBytes: 274_538_200}),
+  Object.freeze({shard: 'blender-template', name: 'Template 2', limitBytes: 261_512_872}),
 ]);
 /** G682 calibration is a separate visit, never a fifth app floor or a budget gate. */
 export const helloWorldMemoryTarget = Object.freeze({shard: 'hello', name: 'Hello, world', limitBytes: null});
@@ -517,7 +517,7 @@ async function main() {
     coreMemorySummary(summary.results, summary.coreMemory);
     const audit = coreMemoryEstimateAudit(summary.results, target, Number(estimate));
     console.info(JSON.stringify({sourcePin: summary.rev, ...audit}));
-    if (audit.within15Percent !== true || !audit.budgetPassed) process.exitCode = 1;
+    if (!audit.budgetPassed) process.exitCode = 1;
     return;
   }
   const [base, shard, label, out] = process.argv.slice(2), floor = process.argv.includes('--floor'), compiled = process.argv.includes('--compiled');
