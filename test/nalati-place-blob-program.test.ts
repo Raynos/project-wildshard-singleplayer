@@ -34,6 +34,7 @@ import shapeBookRowsOriginal from './fixtures/nalati-shape-book-original.json' w
 import * as v from 'valibot';
 import { dressingScene, dressingSceneBlobs } from './fixtures/nalati-dressing-scene';
 import {originalDressingContactTransport} from './fixtures/nalati-contact-transport';
+import { originalDressingCoverTransport } from './fixtures/nalati-cover-transport';
 import { nalatiRuntimeRows } from '../src/shards/nalati-grasslands/generators/runtimeRows';
 import { nalatiRuntime } from './fixtures/nalati-runtime';
 import { nalatiDecorative } from './fixtures/nalati-decorative';
@@ -119,10 +120,12 @@ const sceneParityFixture = (() => {
       const expected = pin.name.endsWith('.json') ? sceneWithOwnedModels(sceneWithSpecimenBank(sceneWithNativeOutcrops(frozen, ownedRuntime),expectedBank)) : frozen;
       return[pin.name,expected]as const;
     }));
-    const projectedScenes=originalDressingContactTransport(hit.namedFiles.map(file=>{
+    const sceneOriginals = new Map([...expectedScenes].filter(([name])=>name.endsWith('.json')).map(([name,blob])=>[name,v.parse(SceneDressingSchema,JSON.parse(new TextDecoder().decode(blob.bytes)))]));
+    const contactScenes=originalDressingContactTransport(hit.namedFiles.map(file=>{
       const bytes=hit.assets.get(file.hash);if(bytes===undefined)throw new Error('Missing owned output bytes');return{file,bytes};
-    }),new Map([...expectedScenes].filter(([name])=>name.endsWith('.json')).map(([name,blob])=>[name,v.parse(SceneDressingSchema,JSON.parse(new TextDecoder().decode(blob.bytes)))])));
-  return { frozenScenes, expectedScenes, projectedScenes };
+    }),sceneOriginals);
+    const projectedScenes = originalDressingCoverTransport(contactScenes, sceneOriginals);
+  return { frozenScenes, expectedScenes, projectedScenes, contactScenes, sceneOriginals };
 })();
 
 test('cached held source metadata refuses a changed executable or compiled byte charge', async () => {
@@ -182,6 +185,25 @@ test('the complete header oracle rejects changed L1 rows and retains unrelated f
   const moved = { ...coldOutputFixture.header, spawn: { ...coldOutputFixture.header.spawn, x: coldOutputFixture.header.spawn.x + 1 } };
   const projected = new TextEncoder().encode(JSON.stringify(predecessorRenderHeader(moved, render)));
   expect(hashImmutableBytes(projected)).not.toBe(headerPin.sha256);
+});
+
+test('the predecessor scene projection refuses changed cover bytes and provenance', () => {
+  const { contactScenes, sceneOriginals } = sceneParityFixture;
+  const corrupt = contactScenes.map(blob => {
+    if (blob.file.name !== 'models/cover-phone.bin') return blob;
+    const bytes = blob.bytes.slice(); bytes[0] = (bytes[0] ?? 0) ^ 1;
+    return { file: blob.file, bytes };
+  });
+  expect(() => originalDressingCoverTransport(corrupt, sceneOriginals)).toThrow('complete cover bank');
+  const renamed = contactScenes.map(blob => {
+    if (blob.file.name !== 'world/dressing-phone.json') return blob;
+    const scene = v.parse(SceneDressingSchema, JSON.parse(new TextDecoder().decode(blob.bytes)));
+    const row = scene.catalogues.find(source => 'pack' in source && source.pack === 'cover')?.rows[0];
+    if (row === undefined) throw new Error('Missing complete cover catalogue');
+    row.model.name += ' changed';
+    return { file: blob.file, bytes: new TextEncoder().encode(encodeCanonicalJson(scene)) };
+  });
+  expect(() => originalDressingCoverTransport(renamed, sceneOriginals)).toThrow('catalogue row');
 });
 
 test('the actual cold output hook preserves every predecessor file cost and binary byte', () => {
