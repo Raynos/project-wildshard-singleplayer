@@ -26,7 +26,6 @@ export interface SceneModelRows {
   readonly SCENE_MODELS: WorldSceneModelsType;
   readonly SCENE_PLACEMENTS: WorldScenePlacementRowType[];
   readonly MODEL_SCENES: ParsedWorldScenesType;
-  readonly MODEL_BLOBS: { name: string; kind: string; source: string; }[];
   readonly PROP_RAW_MODELS: NamedBlobType[];
   readonly PROP_PACKED_MODELS: NamedBlobType[];
 }
@@ -34,7 +33,7 @@ export interface SceneModelRows {
 export const sceneModelRows: (sources: PineSources) => Promise<SceneModelRows> = perSources(async (sources: PineSources): Promise<SceneModelRows> => {
   const { CRAG_MODEL_ROWS, CRAG_PLACEMENT_ROWS, CRAG_BATCH_ROWS, CRAG_LIBRARY, CRAG_MATERIAL, CRAG_RAW_MODELS, CRAG_PACKED_MODELS } = await cragScene(sources);
   const { TIMBER_MODEL_ROWS, TIMBER_PLACEMENTS, TIMBER_LIBRARY, TIMBER_RAW_MODELS, TIMBER_PACKED_MODELS, TIMBER_SURFACES } = await timberScene(sources);
-  const { CABIN_MODEL_ROWS, CABIN_PLACEMENTS, CABIN_LIBRARIES, CABIN_BLOBS, CABIN_MATERIALS, CABIN_WELDS } = cabinScene(sources);
+  const { CABIN_MODEL_ROWS, CABIN_PLACEMENTS, CABIN_LIBRARIES, CABIN_RAW_MODELS, CABIN_PACKED_MODELS, CABIN_MATERIALS, CABIN_WELDS } = await cabinScene(sources);
   const scatter = await pineProps(sources), props = await pinePropScenes(sources);
   // GR8: the hero shapes are the program's (bake-hero-scenes.mjs), their material payloads product files (heroMaterialFiles.mjs)
   const heroes = await pineHeroScenes(sources), materialAliases = heroMaterialAliases(sources);
@@ -120,12 +119,11 @@ export const sceneModelRows: (sources: PineSources) => Promise<SceneModelRows> =
     { id: 'heroes', kind: 'owned', models: heroes.glbs.map(([name]) => ({ id: name.slice('models/heroes/'.length, -'.glb'.length), file: name })) },
     { id: 'props', kind: 'owned', models: props.geometry },
   ], materials, placements: SCENE_PLACEMENTS.map(placementReference), steps: [] });
-  const MODEL_BLOBS: { name: string; kind: string; source: string; }[] = [...CABIN_BLOBS];
-  // GR8 G28 / G30 / G31: the hero, prop, crag and timber shapes' GLBs, built in memory: raw for the map assembly, meshopt-named for the output.
+  // GR8 G28 / G30 / G31 / cabins: the hero, prop, crag, timber and cabin shapes' GLBs, built in memory: raw for the map assembly, meshopt-named for the output.
   const shapes = [...heroes.glbs, ...props.models];
   /** The hero, prop, crag and timber shapes' raw GLBs. */
-  const PROP_RAW_MODELS: NamedBlobType[] = [...shapes.map(([name, bytes]) => nameBlob(name, 'glb', bytes)), ...CRAG_RAW_MODELS, ...TIMBER_RAW_MODELS];
+  const PROP_RAW_MODELS: NamedBlobType[] = [...shapes.map(([name, bytes]) => nameBlob(name, 'glb', bytes)), ...CRAG_RAW_MODELS, ...TIMBER_RAW_MODELS, ...CABIN_RAW_MODELS];
   /** The hero, prop, crag and timber shapes' GLBs, meshopt-named as their `meshopt: true` sources were. */
-  const PROP_PACKED_MODELS: NamedBlobType[] = [...await Promise.all(shapes.map(([name, bytes]) => nameMeshoptBlob(name, bytes))), ...CRAG_PACKED_MODELS, ...TIMBER_PACKED_MODELS];
-  return { SCENE_MODELS, SCENE_PLACEMENTS, MODEL_SCENES, MODEL_BLOBS, PROP_RAW_MODELS, PROP_PACKED_MODELS };
+  const PROP_PACKED_MODELS: NamedBlobType[] = [...await Promise.all(shapes.map(([name, bytes]) => nameMeshoptBlob(name, bytes))), ...CRAG_PACKED_MODELS, ...TIMBER_PACKED_MODELS, ...CABIN_PACKED_MODELS];
+  return { SCENE_MODELS, SCENE_PLACEMENTS, MODEL_SCENES, PROP_RAW_MODELS, PROP_PACKED_MODELS };
 });

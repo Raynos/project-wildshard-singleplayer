@@ -4,7 +4,7 @@ import { ForestPageSchema, ForestGroundLayoutSchema, forestGroundLayoutSteps } f
 import { RangedPageSchema, ForestWeatherObservationSchema } from '../src/format/rangedPage';
 import { ForestRoofMask } from '../src/game/looks/forestRoofMask';
 import { forestStory } from '../src/shards/pine-hollow/generators/forestStory';
-import { CABIN_LIVING_BLOBS } from '../src/shards/pine-hollow/generators/cabinLivingContribution';
+import { cabinLiving } from '../src/shards/pine-hollow/generators/cabinLivingContribution';
 import { BuildingLifeRowsSchema } from '../src/format/buildings';
 import { forestPage } from '../src/shards/pine-hollow/generators/forestPage';
 import { rangedPage, WEATHER_OBSERVATIONS } from '../src/shards/pine-hollow/generators/rangedPage';
@@ -65,8 +65,9 @@ test('an orchard page declares its own lanterns, bounded and numeric', () => {
 });
 
 
-test('the admitted quest mill door resolves in all eight living topologies', () => {
+test('the admitted quest mill door resolves in all eight living topologies', async () => {
   expect(FOREST_STORY.door.id).toBe('cabin-7-door');
+  const { CABIN_LIVING_BLOBS } = await cabinLiving(PINE_SOURCES);
   expect(CABIN_LIVING_BLOBS).toHaveLength(8);
   for (const blob of CABIN_LIVING_BLOBS) {
     const topology = v.parse(v.object({ life: BuildingLifeRowsSchema }), JSON.parse(new TextDecoder().decode(blob.bytes)));

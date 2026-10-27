@@ -2,15 +2,15 @@
  * bundled declarations free of file I/O; the product still emits individual graphs. */
 import { Matrix4 } from 'three';
 import * as v from 'valibot';
-import { nameBlob } from '@wildshard/sdk/blobs';
+import { nameBlob, nameMeshoptBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import { parseWorldSceneWeld, type WorldSceneWeld } from '@wildshard/format/worldSceneWeld';
 import { parseWorldScenePlacement } from '@wildshard/format/worldScenePlacement';
-import baked from '../data/cabinScenes.generated.json' with { type: 'json' };
+import { cabinSceneBake } from './bake-cabin-scenes.mjs';
 import { pineCabins } from './bake-pine-cabins.mjs';
 import logKit from '../data/logKit.json' with { type: 'json' };
 import authored from '../data/timberWorld.generated.json' with { type: 'json' };
 import { HEARTH_LOOKS } from './hearthLook';
-import { CABIN_LIVING_LIBRARIES, CABIN_LIVING_BLOBS, cabinSites, cabinLivingResources } from './cabinLivingContribution';
+import { cabinLiving, cabinSites } from './cabinLivingContribution';
 import { perSources, type PineSources } from './pineSources';
 
 const text = v.string(), words = v.array(v.number()), contacts = v.array(v.unknown());
@@ -19,20 +19,22 @@ const registration = v.variant('kind', [
   v.object({ kind: v.literal('prop'), prop: v.picklist(['crate', 'barrel', 'bucket', 'hatchet']), hamlet: v.boolean(), part: text, matrices: v.array(words), boxWords: words }),
   v.object({ kind: v.literal('drawn'), id: text, which: v.picklist(['firePitObj', 'lanternObj']), part: text, matrixBits: words, boxWords: words }),
 ]);
-const metadata = v.parse(v.object({
+/** The cabin scene rows the program bakes (bake-cabin-scenes.mjs; the retired pine-cabin-scenes job's rows). */
+const CabinSceneRowsSchema = v.object({
   blobs: v.array(v.object({ name: text, kind: v.picklist(['glb', 'json']), source: text })),
   geometry: v.array(v.object({ id: text, library: text, file: text, segments: v.exactOptional(v.array(text)), attributes: v.record(text, text) })),
   worlds: v.array(v.object({ tier: v.picklist(['phone', 'desktop']), shadow: v.boolean(), file: text, registrations: v.array(registration) })),
   specimens: v.array(v.object({ tier: v.picklist(['phone', 'desktop']), shadow: v.boolean(), key: text, choice: text, file: text })),
   graphs: v.array(v.object({ file: text, graph: v.unknown() })),
   sourceMaterials: v.array(v.object({ id: text, url: text, part: v.number() })),
-}), baked);
+});
+type CabinSceneRows = v.InferOutput<typeof CabinSceneRowsSchema>;
 const slot = (id: string): string => id.startsWith('materials.') ? id.slice('materials.'.length) : id;
 const floatValues = (values: readonly number[]): number[] => Array.from(new Float32Array(Uint32Array.from(values).buffer));
 const doubleValues = (values: readonly number[]): number[] => Array.from(new Float64Array(Uint32Array.from(values).buffer));
 const pose = (matrix: readonly number[]) => ({ x: matrix[12], y: matrix[13], z: matrix[14], matrix });
 const propIds = { crate: 'wooden-crate', barrel: 'wine-barrel', bucket: 'wooden-bucket', hatchet: 'hatchet' };
-function sourceGraph(file: string): WorldSceneWeld {
+function sourceGraph(metadata: CabinSceneRows, file: string): WorldSceneWeld {
   const source = metadata.blobs.find(row => row.name === file && row.kind === 'json');
   if (source === undefined || !source.source.startsWith('assets/cabin-scenes/') || source.source.split('/').includes('..')) throw new Error(`Missing cabin graph: ${file}`);
   const graph = metadata.graphs.find(entry => entry.file === file);
@@ -56,15 +58,18 @@ export interface CabinScene {
   readonly CABIN_JSON_BLOBS: ReturnType<typeof nameBlob>[];
   readonly CABIN_WELDS: { id: string; file: { knob: string; false: { phone: string; desktop: string; }; true: { phone: string; desktop: string; }; }; }[];
   readonly CABIN_LIBRARIES: { id: string; kind: "owned"; models: { id: string; file: string; attributes: Record<string, string>; }[]; }[];
-  readonly CABIN_BLOBS: { name: string; kind: "json" | "glb"; source: string; }[];
+  readonly CABIN_RAW_MODELS: NamedBlob[];
+  readonly CABIN_PACKED_MODELS: NamedBlob[];
   readonly CABIN_MATERIALS: unknown[];
   readonly CABIN_MODEL_ROWS: unknown[];
 }
-/** D65: the cabin scene rows over the cabin bake (its grid comes from the program's sources), made once per sources. */
-export const cabinScene: (sources: PineSources) => CabinScene = perSources((sources: PineSources): CabinScene => {
+/** D65: the cabin scene rows over the cabin bake (its grid comes from the program's sources), made once per sources;
+ *  GR8: the scene and living rows and shapes are the program's bake (bake-cabin-scenes.mjs, bake-cabin-living.mjs). */
+export const cabinScene: (sources: PineSources) => Promise<CabinScene> = perSources(async (sources: PineSources): Promise<CabinScene> => {
+  const bake = await cabinSceneBake(sources), metadata = v.parse(CabinSceneRowsSchema, bake.rows), living = await cabinLiving(sources);
   const cabins = pineCabins(sources).rows;
   const CABIN_PLACEMENTS: ReturnType<typeof parseWorldScenePlacement>[] = [];
-  const CABIN_JSON_BLOBS: ReturnType<typeof nameBlob>[] = [...CABIN_LIVING_BLOBS, nameBlob('world/building-sites.json', 'json', new TextEncoder().encode(JSON.stringify(cabinSites(sources))))];
+  const CABIN_JSON_BLOBS: ReturnType<typeof nameBlob>[] = [...living.CABIN_LIVING_BLOBS, nameBlob('world/building-sites.json', 'json', new TextEncoder().encode(JSON.stringify(cabinSites(sources))))];
   const encode = (file: string, row: unknown) => nameBlob(file, 'json', new TextEncoder().encode(JSON.stringify(row)));
   for (const world of metadata.worlds) {
     const prefix = `cabins.${world.tier}.${String(world.shadow)}`, placements: string[] = [], hamlet: string[] = [];
@@ -95,20 +100,28 @@ export const cabinScene: (sources: PineSources) => CabinScene = perSources((sour
       }
       CABIN_PLACEMENTS.push(parseWorldScenePlacement(input));
     }
-    const row = sourceGraph(world.file);
-    CABIN_JSON_BLOBS.push(encode(world.file, parseWorldSceneWeld({ ...row, id: 'cabins.shells', resources: cabinLivingResources(world.tier, world.shadow), placements,
+    const row = sourceGraph(metadata, world.file);
+    CABIN_JSON_BLOBS.push(encode(world.file, parseWorldSceneWeld({ ...row, id: 'cabins.shells', resources: living.cabinLivingResources(world.tier, world.shadow), placements,
       sets: [{ id: 'pine-hollow/mill-hamlet', name: 'Mill hamlet', file: 'data/cabinScenes.generated.json', place: 'pine-hollow/hamlet', members: hamlet }] })));
   }
-  for (const specimen of metadata.specimens) CABIN_JSON_BLOBS.push(encode(specimen.file, sourceGraph(specimen.file)));
+  for (const specimen of metadata.specimens) CABIN_JSON_BLOBS.push(encode(specimen.file, sourceGraph(metadata, specimen.file)));
   const worldFile = (tier: 'phone' | 'desktop', shadow: boolean): string => {
     const row = metadata.worlds.find(entry => entry.tier === tier && entry.shadow === shadow);
     if (row === undefined) throw new Error('Missing cabin world topology'); return row.file;
   };
   const CABIN_WELDS: { id: string; file: { knob: string; false: { phone: string; desktop: string; }; true: { phone: string; desktop: string; }; }; }[] = [{ id: 'cabins.shells', file: { knob: 'pine.cabinDetailShadows',
     false: { phone: worldFile('phone', false), desktop: worldFile('desktop', false) }, true: { phone: worldFile('phone', true), desktop: worldFile('desktop', true) } } }];
-  const CABIN_LIBRARIES: { id: string; kind: "owned"; models: { id: string; file: string; attributes: Record<string, string>; }[]; }[] = [...CABIN_LIVING_LIBRARIES, ...[...new Set(metadata.geometry.map(row => row.library))].map(id => ({ id, kind: 'owned' as const,
+  const CABIN_LIBRARIES: { id: string; kind: "owned"; models: { id: string; file: string; attributes: Record<string, string>; }[]; }[] = [...living.CABIN_LIVING_LIBRARIES, ...[...new Set(metadata.geometry.map(row => row.library))].map(id => ({ id, kind: 'owned' as const,
     models: metadata.geometry.filter(row => row.library === id).map(({ library: _library, ...row }) => row) }))];
-  const CABIN_BLOBS: { name: string; kind: "json" | "glb"; source: string; }[] = metadata.blobs.filter(row => row.kind === 'glb');
+  // GR8: the stored shapes' GLBs, built in memory: raw for the map assembly, meshopt-named for the output (as their
+  // `meshopt: true` sources were)
+  const shapes: [string, Uint8Array][] = [...metadata.blobs.filter(row => row.kind === 'glb').map((row): [string, Uint8Array] => {
+    const bytes = bake.glbs.get(row.source);
+    if (bytes === undefined) throw new Error(`Missing baked cabin shape: ${row.source}`);
+    return [row.name, bytes];
+  }), ...living.CABIN_LIVING_SHAPES];
+  const CABIN_RAW_MODELS: NamedBlob[] = shapes.map(([name, bytes]) => nameBlob(name, 'glb', bytes));
+  const CABIN_PACKED_MODELS: NamedBlob[] = await Promise.all(shapes.map(([name, bytes]) => nameMeshoptBlob(name, bytes)));
   const CABIN_MATERIALS: unknown[] = metadata.sourceMaterials.map(row => ({ id: slot(row.id), kind: 'source', load: 'placement', url: row.url,
     aliases: authored.propMaterials, part: row.part, ...(row.id.includes('.pit.') ? { publishObject: 'cabins.source.pit' } : row.id.includes('.lantern.') ? { publishObject: 'cabins.source.lantern' } : {}), ...(row.id.includes('.prop.') ? { anisotropy: 8, anisotropyMaps: ['map', 'normalMap', 'roughnessMap', 'aoMap'] } : {}) }));
   for (const id of ['flame', 'ember', 'smoke'] as const) CABIN_MATERIALS.push({ id: `cabin.${id}`, kind: 'look', look: HEARTH_LOOKS[id] });
@@ -140,5 +153,5 @@ export const cabinScene: (sources: PineSources) => CabinScene = perSources((sour
           false: { phone: specimenFile(family.key, choice.id, 'phone', false), desktop: specimenFile(family.key, choice.id, 'desktop', false) },
           true: { phone: specimenFile(family.key, choice.id, 'phone', true), desktop: specimenFile(family.key, choice.id, 'desktop', true) } } })) });
   }
-  return { CABIN_PLACEMENTS, CABIN_JSON_BLOBS, CABIN_WELDS, CABIN_LIBRARIES, CABIN_BLOBS, CABIN_MATERIALS, CABIN_MODEL_ROWS };
+  return { CABIN_PLACEMENTS, CABIN_JSON_BLOBS, CABIN_WELDS, CABIN_LIBRARIES, CABIN_RAW_MODELS, CABIN_PACKED_MODELS, CABIN_MATERIALS, CABIN_MODEL_ROWS };
 });

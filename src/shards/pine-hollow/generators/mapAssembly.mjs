@@ -8,6 +8,8 @@ import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
 import { buildTerrainMetadata } from '@wildshard/engine/world/terrainField';
 import { worldScenes } from './worldScenes.ts';
 import { sceneModelRows } from './sceneModelRows.ts';
+import { cabinSceneBake } from './bake-cabin-scenes.mjs';
+import { cabinLivingBake } from './bake-cabin-living.mjs';
 import { pineSourcesFrom } from './pineSources.ts';
 import { mapLilies } from './mapLilies.mjs';
 import { bakeBeaverPool } from './beaverPool.ts';
@@ -27,8 +29,8 @@ const read = file => readMapJson(resolve(base, file));
 const sources = pineSourcesFrom(path => readFileSync(resolve(root, path)));
 const palette = ['#847553', '#46603a', '#948a7c', '#504640'].map(value => new Color(value).toArray());
 export async function pineMapAssembly() {
-  const { WORLD_SCENES, SCENE_BLOBS, SCENE_MODEL_BLOBS, SCENE_RAW_MODELS } = await worldScenes(sources), { SCENE_MODELS, SCENE_PLACEMENTS } = await sceneModelRows(sources);
-  const assembly = new MapAssembly(), world = new MapWorld(assembly, base, WORLD_SCENES, SCENE_MODELS, [...SCENE_MODEL_BLOBS, ...SCENE_RAW_MODELS, ...SCENE_BLOBS]);
+  const { WORLD_SCENES, SCENE_BLOBS, SCENE_RAW_MODELS } = await worldScenes(sources), { SCENE_MODELS, SCENE_PLACEMENTS } = await sceneModelRows(sources);
+  const assembly = new MapAssembly(), world = new MapWorld(assembly, base, WORLD_SCENES, SCENE_MODELS, [...SCENE_RAW_MODELS, ...SCENE_BLOBS]);
   const layout = PINE_LAYOUT, native = readNativeTerrain(readFileSync(resolve(root, 'public/assets/baked/pine-hollow/terrain.bin')));
   const crags = (await pineCragScenes(sources)).rows, cave = layout.BEAR_CAVE, c = Math.cos(cave.rot), s = Math.sin(cave.rot);
   const hole = points => {
@@ -44,7 +46,7 @@ export async function pineMapAssembly() {
     await world.placement(row);
   }
   for (const row of WORLD_SCENES.batches.filter(batch => batch.tier !== 'phone')) await world.batch(row);
-  const cabins = read('data/cabinScenes.generated.json'), live = read('data/cabinLivingScenes.generated.json');
+  const cabins = (await cabinSceneBake(sources)).rows, live = (await cabinLivingBake(sources)).rows;
   const shadows = read('data/plumbing.json').knobs.find(row => row.id === 'pine.cabinDetailShadows').desktop;
   const shared = read('data/plumbing.json').knobs.find(row => row.id === 'pine.sharedCabinLights')?.desktop ?? false;
   const living = live.profiles.find(row => row.tier === 'desktop' && row.shadow === shadows && row.shared === shared);

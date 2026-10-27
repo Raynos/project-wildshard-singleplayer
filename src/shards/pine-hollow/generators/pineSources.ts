@@ -44,7 +44,7 @@ export const skyKeySource = (template: string, id: string): string => template.r
 
 const FIXED: readonly string[] = [
   TERRAIN_SOURCE, PHYSICS_SOURCE, TIMBER_SOURCE, ...HERO_TABLES, declared.trees.glb, declared.trees.sidecar, codeParts.url,
-  ...Object.values(inputs.crags), ...Object.values(inputs.propScans),
+  ...Object.values(inputs.crags), ...Object.values(inputs.propScans), ...inputs.cabinModels,
   ...Object.values(sky.keys).flatMap(key => [skyKeySource(sky.keyFiles.color, key.id), skyKeySource(sky.keyFiles.gain, key.id)]),
 ];
 /** The timber world's GLB inputs, named by the hashes its rows list. */

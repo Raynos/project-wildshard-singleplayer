@@ -40,15 +40,14 @@ const poolRecipe = { scene: { version: 1, root: 'root', nodes: [
 /** The rows `worldScenes` makes. */
 export interface WorldScenes {
   readonly SCENE_BLOBS: NamedBlobType[];
-  readonly SCENE_MODEL_BLOBS: { name: string; kind: string; source: string; }[];
   readonly SCENE_RAW_MODELS: NamedBlobType[];
   readonly SCENE_PACKED_MODELS: NamedBlobType[];
   readonly WORLD_SCENES: WorldScenesSection;
 }
 /** D65: the world scene rows and blobs over the program's sources, made once per sources. */
 export const worldScenes: (sources: PineSources) => Promise<WorldScenes> = perSources(async (sources: PineSources): Promise<WorldScenes> => {
-  const { CRAG_CAVE_ROWS } = await cragScene(sources), { CABIN_JSON_BLOBS } = cabinScene(sources);
-  const { MODEL_SCENES, MODEL_BLOBS, SCENE_MODELS, SCENE_PLACEMENTS, PROP_RAW_MODELS, PROP_PACKED_MODELS } = await sceneModelRows(sources);
+  const { CRAG_CAVE_ROWS } = await cragScene(sources), { CABIN_JSON_BLOBS } = await cabinScene(sources);
+  const { MODEL_SCENES, SCENE_MODELS, SCENE_PLACEMENTS, PROP_RAW_MODELS, PROP_PACKED_MODELS } = await sceneModelRows(sources);
   const { raw: QUEST_RIDE_RAW_MODELS, packed: QUEST_RIDE_PACKED_MODELS } = await questRideModels(sources);
   v.parse(CaveRowsSchema, CRAG_CAVE_ROWS);
   /** The bear cave (G483 world scene assembly): its baked interior, its mouth's frame, its look near the mouth and its rock. */
@@ -59,7 +58,6 @@ export const worldScenes: (sources: PineSources) => Promise<WorldScenes> = perSo
     ...CABIN_JSON_BLOBS, ...QUEST_RIDE_BLOBS,
     nameBlob('models/world-scenes.json', 'json', encode(SCENE_MODELS)),
     ...SCENE_PLACEMENTS.map(row => nameBlob(`scenes/placements/${row.id}.json`, 'json', encode(row)))];
-  const SCENE_MODEL_BLOBS: { name: string; kind: string; source: string; }[] = [...MODEL_BLOBS];
   // GR8 G27: the stream water and quad and the pool's still and trickle, built here (no scheduler job, no stored files):
   // raw for the map assembly, meshopt-named for the output as their `meshopt: true` sources were.
   const rawModels = [...pineWorldSceneModels(sources)];
@@ -89,5 +87,5 @@ export const worldScenes: (sources: PineSources) => Promise<WorldScenes> = perSo
       publish: { still: { kind: 'object', part: 'still' }, trickle: { kind: 'object', part: 'trickle' } },
     }],
   };
-  return { SCENE_BLOBS, SCENE_MODEL_BLOBS, SCENE_RAW_MODELS, SCENE_PACKED_MODELS, WORLD_SCENES };
+  return { SCENE_BLOBS, SCENE_RAW_MODELS, SCENE_PACKED_MODELS, WORLD_SCENES };
 });
