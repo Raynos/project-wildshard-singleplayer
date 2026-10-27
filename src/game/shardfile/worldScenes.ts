@@ -30,6 +30,7 @@ import { readWorldSceneGeometries, readWorldSceneGeometry, type WorldSceneGeomet
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import { withOwner } from '@wildshard/engine/app/ownership';
 import { buildYield, workSlice } from '@wildshard/engine/core/workSlice';
+import { presenting } from '@wildshard/engine/core/framePacing';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { whenControl } from '@wildshard/engine/boot/prefetch';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
@@ -350,7 +351,11 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
               finish.push(geometry.done); models.set(model.id, geometry);
               modelProgress(modelIndex + 1, model.id);
               requireSceneOwner(owner);
-              if (modelSlice.due()) await modelSlice.yield();
+              // A completed read/decode can span drawn frames. Its old local
+              // clock does not measure this adoption's remaining live budget.
+              if (presenting()) {
+                const pause = constructionCheckpoint(owner); if (pause !== undefined) await pause;
+              } else if (modelSlice.due()) await modelSlice.yield();
             }
             libraries.set(row.id, { geometry: id => models.get(id)?.copy() ?? null });
           } else {
