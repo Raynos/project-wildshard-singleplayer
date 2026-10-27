@@ -10515,52 +10515,6 @@
       "platform": "portable"
     },
     {
-      "id": "blender-template-data-map",
-      "shard": "blender-template",
-      "entry": "src/shards/blender-template/generators/bake-map.mjs",
-      "command": [
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/shards/blender-template/generators/bake-map.mjs"
-      ],
-      "inputRoots": [
-        "src/shards/blender-template/shard.config.ts",
-        "src/shards/blender-template/data/source.json",
-        "src/shards/blender-template/assets/world.glb",
-        "scripts/map-painter.mjs",
-        "src/sdk/bake/mapRaster.ts",
-        "src/sdk/bake/mapScenes.ts",
-        "scripts/bake-data-maps.mjs",
-        "src/shards/blender-template/generators/bake-map.mjs",
-        "src/shards/blender-template/look/map.json",
-        "scripts/map-hash.mjs",
-        "scripts/legacy-shards.mjs",
-        "lint/legacy-shards.json",
-        "src/sdk/package.json",
-        "src/sdk/bake/source-loader.mjs",
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "src/commons/package.json",
-        "src/engine/package.json",
-        "src/game/package.json",
-        "src/format/terrainTileBytes.ts",
-        "src/format/contentBounds.ts",
-        "src/format/bakedTerrainSampling.ts",
-        "src/sdk/kit/geometryPack.ts"
-      ],
-      "outputs": [
-        "public/assets/blender-template/map/top.webp",
-        "src/shards/blender-template/look/map.baked.json"
-      ],
-      "platform": "portable",
-      "buildTimeOutputs": [
-        "public/assets/blender-template/map/top.webp",
-        "src/shards/blender-template/look/map.baked.json"
-      ],
-      "catalogueDependencies": []
-    },
-    {
       "id": "open-plots-world",
       "shard": "open-plots",
       "entry": "src/shards/open-plots/generators/bake-plots.mjs",

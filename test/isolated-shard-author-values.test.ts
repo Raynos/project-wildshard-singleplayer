@@ -6,7 +6,7 @@ import ts from '@typescript/typescript6';
 import {expect,test} from 'vitest';
 
 for(const name of ['_template/shard.config','_template/generators/boss','_template/generators/ground',
- '_template/generators/kit','blender-template/shard.config','blender-template/generators/output',
+ '_template/generators/kit','blender-template/shard.config','blender-template/generators/ground',
  'driftwood-isle/generators/bakedCove','driftwood-isle/generators/captainFields',
  'driftwood-isle/generators/cargoCatalogue','driftwood-isle/generators/chapterDirector',
  'driftwood-isle/generators/coveModels']){
@@ -28,7 +28,7 @@ import {TEMPLATE_BOSS_INPUTS} from './_template/generators/boss';
 import {ROAD_HALF} from './_template/generators/ground';
 import {Kit} from './_template/generators/kit';
 import project from './blender-template/shard.config';
-import {GROUND_TILES,output} from './blender-template/generators/output';
+import {GROUND_TILES,output} from './blender-template/generators/ground';
 export const generation:typeof defineGeneration=generate;
 export const ceiling:number=buildOptions.asLineCeiling;
 export const road:number=ROAD_HALF;

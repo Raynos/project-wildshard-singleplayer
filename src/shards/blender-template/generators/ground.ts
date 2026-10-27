@@ -1,6 +1,7 @@
 // G532 (4): Template 2's ground drawn by the platform's baked tiles: world.py's ground tiles (ground.glb) with its Cycles
 // AO and sun-bounce lightmaps, in the `ground` look. world.glb keeps the same ground as collision, edge and far-proxy
-// ground only (`undrawn` in shard.config.ts). The CLI reads the declared blobs; this sidecar opens no file.
+// ground only (`undrawn` in shard.config.ts). The build program returns this output (`generate`, shard.config.ts); the CLI
+// reads the declared blobs and this module opens no file.
 import { parse, type InferOutput } from 'valibot';
 import { BakedTilesSchema } from '@wildshard/format/bakedTiles';
 import { parseClientPlan } from '@wildshard/format/clientPlan';
