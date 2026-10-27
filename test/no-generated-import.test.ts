@@ -9,7 +9,40 @@ import {execPath} from 'node:process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the defining rule beside this test.
 import {fileURLToPath} from 'node:url';
 import {expect,test} from 'vitest';
-import {generatedImportContext} from '../lint/no-generated-import.mjs';
+import {parseSync} from 'vite';
+import {generatedImportContext,generatedJsonImportContext,noGeneratedJsonImportRule} from '../lint/no-generated-import.mjs';
+
+test('G8 resolves JSON literals, query suffixes and public exports from committed snapshot bytes',()=>fixture((root,put)=>{
+  put('src/game/package.json',JSON.stringify({exports:{'./rows':'./loose.generated.ts'}}));
+  const files=new Map([
+    ['src/game/package.json',JSON.stringify({exports:{'./rows':{types:'./owned.generated.json',default:'./owned.generated.json'},'./tables/*':'./data/*.generated.json'}})],
+    ['src/game/only.generated.json','{}'],['src/game/both.generated.json','{}'],['src/game/both.generated.ts','export {};'],
+  ]);
+  const snapshot={files:new Set(files.keys()),read:(file:string):string=>{const value=files.get(file);if(value===undefined)throw new Error('Missing committed fixture input');return value;}};
+  const generated=generatedJsonImportContext(root,snapshot);
+  for(const source of ['./only.generated.json?raw#data','./only.generated','@wildshard/game/rows','@wildshard/game/tables/instances'])
+    expect(generated('src/game/reader.ts',source)).toBe(true);
+  for(const source of ['./authored.json','./owned.generated.ts','./both.generated'])expect(generated('src/game/reader.ts',source)).toBe(false);
+}));
+
+test('G8 preserves the exact old file count and refuses the next import or any new reader',()=>fixture(root=>{
+  const limits={'src/game/reader.ts':2};
+  const rule=noGeneratedJsonImportRule(root,limits);
+  const check=(file:string,sites:number,count=false):number=>{
+    const reports:unknown[]=[];
+    const visitor=rule.create({filename:resolve(root,file),options:[{count}],report:issue=>{reports.push(issue);}});
+    for(let i=0;i<sites;i++){
+      const parsed=parseSync('reader.ts',`import rows${i} from './rows.generated.json';`);
+      const node=parsed.program.body[0];if(node?.type!=='ImportDeclaration')throw new Error('Missing real import AST');
+      visitor.ImportDeclaration?.(node);
+    }
+    return reports.length;
+  };
+  expect(check('src/game/reader.ts',2)).toBe(0);
+  expect(check('src/game/reader.ts',3)).toBe(1);
+  expect(check('src/game/new.ts',1)).toBe(1);
+  expect(check('src/game/reader.ts',2,true)).toBe(2);
+}));
 
 function fixture(run:(root:string,put:(path:string,text:string)=>void)=>void):void{
   mkdirSync('tmp',{recursive:true});const root=mkdtempSync(resolve('tmp/generated-import-'));

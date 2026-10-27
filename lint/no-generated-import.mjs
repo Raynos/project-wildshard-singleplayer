@@ -7,8 +7,9 @@ const text=node=>node?.type==='Literal'&&typeof node.value==='string'?node.value
 const clean=value=>value.split(/[?#]/u)[0];
 /** Keep catalogue lookup separate from the parser so immutable Git audits and
  * tiny fixtures use the same declared-output boundary. */
-export function generatedImportContext(root,files,sources=[]){
-  const outputs=new Set(files),authored=new Set(sources),packages=new Map();
+function importTargets(root,snapshot){
+  const packages=new Map();
+  const has=path=>snapshot===undefined?existsSync(path):snapshot.files.has(relative(root,path).split(sep).join('/'));
   function target(file,specifier){
     const path=clean(specifier);
     if(path.startsWith('.'))return [relative(root,resolve(dirname(resolve(root,file)),path)).split(sep).join('/')];
@@ -19,7 +20,7 @@ export function generatedImportContext(root,files,sources=[]){
     let exports=packages.get(packageName);
     if(exports===undefined){
       const source=resolve(root,'src',packageName,'package.json');
-      exports=existsSync(source)?JSON.parse(readFileSync(source,'utf8')).exports??{}:{};packages.set(packageName,exports);
+      exports=has(source)?JSON.parse(snapshot===undefined?readFileSync(source,'utf8'):snapshot.read(relative(root,source).split(sep).join('/'))).exports??{}:{};packages.set(packageName,exports);
     }
     const subpath=match?.at(2),key=subpath===undefined?'.':`./${subpath}`;
     let entry=exports[key],capture='';
@@ -37,6 +38,10 @@ export function generatedImportContext(root,files,sources=[]){
     return values.length>0?values:[path];
   }
 
+  return target;
+}
+export function generatedImportContext(root,files,sources=[]){
+  const outputs=new Set(files),authored=new Set(sources),target=importTargets(root);
   return (file,specifier)=>{
     const resolved=target(file,specifier);
     return resolved.some(path=>{const candidates=[path,...['.ts','.tsx','.mts','.cts','.js','.mjs','.cjs','.json'].map(extension=>path+extension)];
@@ -77,6 +82,35 @@ export function noGeneratedImportRule(root,policyFile){
       let found=0;
       return generatedImportVisitors((node,specifier)=>{
         if(generated(file,specifier)&&++found>limit)context.report({node,message:'NO-GENERATED-IMPORT: call the authoring function or read the admitted product (GR0)'});
+      });
+    }};
+}
+
+/** G8 is independent of the retiring scheduler and its authored-TS exemptions. */
+export function generatedJsonImportContext(root,snapshot){
+  const target=importTargets(root,snapshot);
+  const has=path=>snapshot===undefined?existsSync(resolve(root,path)):snapshot.files.has(path);
+  return (file,specifier)=>target(file,specifier).some(path=>{
+    if(path.endsWith('.generated.json'))return true;
+    return path.endsWith('.generated')&&has(`${path}.json`)
+      && !['.ts','.tsx','.mts','.cts','.js','.mjs','.cjs'].some(extension=>has(path+extension));
+  });
+}
+/** Generated-JSON imports start at today's exact per-file count, including tools/tests. */
+export function noGeneratedJsonImportRule(root,limits,snapshot){
+  const generated=generatedJsonImportContext(root,snapshot);
+  const allowed=limits??{};
+  return {meta:{type:'problem',docs:{description:'Read and validate generated JSON headers as data, never import payloads into TypeScript (G8)'},
+    schema:[{type:'object',properties:{count:{type:'boolean'}},additionalProperties:false}]},
+    create(context){
+      const file=relative(root,context.filename).split(sep).join('/');
+      if(file.startsWith('../')||file.includes('/node_modules/'))return {};
+      const count=context.options[0]?.count===true;
+      const limit=count?0:Object.hasOwn(allowed,file)?allowed[file]:0;
+      if(!Number.isSafeInteger(limit)||limit<0)throw new Error(`Invalid generated-JSON import count: ${file}`);
+      let found=0;
+      return generatedImportVisitors((node,specifier)=>{
+        if(generated(file,specifier)&&++found>limit)context.report({node,message:'NO-GENERATED-JSON-IMPORT: read the small header and validate it at run time (G8)'});
       });
     }};
 }

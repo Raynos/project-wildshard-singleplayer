@@ -8,6 +8,7 @@
   },
   "rules": {
     "wildshard/explicit-schema-types": ["error", { "count": true }],
+    "wildshard/no-generated-json-import": ["error", { "count": true }],
     "wildshard/layer": "error",
     "wildshard/no-production-test-import": "error",
     "wildshard/no-shard-runtime": "error",

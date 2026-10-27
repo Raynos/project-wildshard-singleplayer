@@ -66,7 +66,11 @@ function counts(root, baselineFile, files = null, /** @type {{guardRequirement?:
     measuredConfig=resolve(root,'.commit-debt-lint.json');
     save(measuredConfig,config);
   }
-  const result = spawnSync(process.execPath, [resolve(REPO, 'node_modules/oxlint/bin/oxlint'), '-c', measuredConfig, '-f', 'json', ...(measuredFiles ?? ['src'])], {
+  // G8 counts generated-JSON imports in tools/tests too. Other debt retains
+  // its existing src-only scope; the same lint invocation supplies both.
+  const roots = measuredFiles === null ? ['src','scripts','test','vite','api','admin','drafts','lint','site',
+    ...globSync('*', {cwd:root}).filter(file => /\.[cm]?[jt]sx?$/u.test(file) && statSync(resolve(root,file),{throwIfNoEntry:false})?.isFile())] : [];
+  const result = spawnSync(process.execPath, [resolve(REPO, 'node_modules/oxlint/bin/oxlint'), '-c', measuredConfig, '-f', 'json', ...(measuredFiles ?? roots.filter(path=>existsSync(resolve(root,path))))], {
     cwd: root, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024,
     env: { ...process.env, WILDSHARD_RATCHET_FILE: baselineFile, WS_HTML_LINT_FILES: measuredFiles === null ? undefined : JSON.stringify(measuredFiles) },
   });
@@ -80,7 +84,8 @@ function counts(root, baselineFile, files = null, /** @type {{guardRequirement?:
     const key = match ? `wildshard/${match[1]}` : null;
     if (!key || !ruleNames.has(key) || typeof diagnostic.filename !== 'string') throw new Error(`Unexpected lint diagnostic: ${JSON.stringify(diagnostic)}`);
     const file = relative(root, resolve(root, diagnostic.filename)).replaceAll('\\', '/');
-    if (!hard.has(key) && registeredLegacyFile(frozen, file)) continue;
+    if (files === null && !file.startsWith('src/') && key !== 'wildshard/no-generated-json-import') continue;
+    if (key !== 'wildshard/no-generated-json-import' && !hard.has(key) && registeredLegacyFile(frozen, file)) continue;
     current[key] ??= {};
     current[key][file] = (current[key][file] ?? 0) + 1;
   }

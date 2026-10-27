@@ -1,4 +1,4 @@
-import { noGeneratedImportRule } from './no-generated-import.mjs';
+import { noGeneratedImportRule, noGeneratedJsonImportRule } from './no-generated-import.mjs';
 import { BASE64_POLICY, noBase64Rule } from './no-base64.mjs';
 import { clientPlanSchemaViolations } from './client-plan-boundary.mjs';
 import { explicitSchemaTypes } from './schema-types.mjs';
@@ -1152,6 +1152,7 @@ const plugin = {
     'explicit-schema-types': explicitSchemaTypes(shardfileDebt,pathOf),
     'no-base64': noBase64Rule(process.env.WILDSHARD_BASE64_FILE ?? BASE64_POLICY),
     'no-generated-import': noGeneratedImportRule(REPO, resolve(import.meta.dirname,'generated-import-debt.json')),
+    'no-generated-json-import': noGeneratedJsonImportRule(REPO, shardfileDebt['wildshard/no-generated-json-import'] ?? {}),
     'no-reexport': noReexport,
     'shard-game-imports': shardGameImports,
     'shard-game-plugins': shardGamePlugins,
