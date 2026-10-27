@@ -174,7 +174,7 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
   for (const row of section.libraries) if (row.kind === 'pool' && row.publish !== undefined) for (const part of row.files.flatMap(file => file.parts)) {
     const id = `${row.publish}.${part}`; if (published.has(id)) throw new Error(`Duplicate world scene publication: ${id}`); published.add(id);
   }
-  const welds: WorldSceneWeld[] = [], deferredPlacements = new Set<string>(), lateWelds = new Map<string, readonly [number, number]>();
+  const welds: WorldSceneWeld[] = [], deferredPlacements = new Set<string>(), latePlacements = new Set<string>(), lateWelds = new Map<string, readonly [number, number]>();
   assertSceneProfile(product.shardfile, (section.welds ?? []).map(row => worldSceneWeldFile(row, product.shardfile.plumbing)));
   for (const declared of section.welds ?? []) {
     const selected = worldSceneWeldFile(declared, product.shardfile.plumbing);
@@ -183,7 +183,10 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
       requireFile(file);
       const candidate = parseWorldSceneWeld(JSON.parse(decoder.decode(await reads.file(file))));
       if (candidate.id !== declared.id) throw new Error('Frozen scene blob identity differs');
-      for (const id of candidate.placements) deferredPlacements.add(id);
+      for (const id of candidate.placements) {
+        deferredPlacements.add(id);
+        if (declared.late !== undefined) latePlacements.add(id);
+      }
       if (file === selected) row = candidate;
     }
     if (row === undefined) throw new Error('Missing selected frozen scene');
@@ -382,8 +385,9 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
     for (const weld of welds) if (!lateWelds.has(weld.id)) for (const slot of weldSlots(weld)) earlySlots.add(slot);
     // A placed model can share a surface with late scenery. Keep its original
     // material intake unless that placement belongs to a declared late weld.
-    const latePlaces = new Set(welds.filter(row => lateWelds.has(row.id)).flatMap(row => row.placements));
-    const placedKeys = new Set(placements.filter(row => !latePlaces.has(row.id)).map(row => row.model));
+    // All declared alternatives are validated above. An unselected late
+    // alternative is not an independent before-control material consumer.
+    const placedKeys = new Set(placements.filter(row => !latePlacements.has(row.id)).map(row => row.model));
     const placedModels = catalogue === undefined ? undefined : { ...catalogue, models: catalogue.models.filter(model => placedKeys.has(model.key)) };
     const placedGraphs = new Set(placedModels?.models.flatMap(model => model.choices.flatMap(worldSceneModelGraphs)).flatMap(row => 'file' in row ? [row.file] : []));
     const placedSlots = new Set(placedModels === undefined ? [] : worldSceneModelResources(placedModels,
