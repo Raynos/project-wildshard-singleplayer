@@ -1,4 +1,4 @@
-import { Box3, BufferAttribute, BufferGeometry, Float16BufferAttribute, InterleavedBufferAttribute, type TypedArray, Material, Mesh, Vector3, type Object3D } from 'three';
+import { Box3, BufferAttribute, BufferGeometry, Float16BufferAttribute, InterleavedBufferAttribute, type TypedArray, Material, Mesh, Matrix3, type Matrix4, Vector3, type Object3D } from 'three';
 import { nativeWholeGeometry } from './nativeGeometry';
 
 function isGeometryMesh(node: Object3D): node is Mesh {
@@ -23,6 +23,62 @@ function gridQuantized(mesh: Mesh): boolean {
 function getters(prototype: object): readonly unknown[] { return ['getX', 'getY', 'getZ'].map((name): unknown => Reflect.get(prototype, name)); }
 const positionGetters = getters(BufferAttribute.prototype), interleavedGetters = getters(InterleavedBufferAttribute.prototype);
 const computeBox: unknown = Reflect.get(BufferGeometry.prototype, 'computeBoundingBox'), computeSphere: unknown = Reflect.get(BufferGeometry.prototype, 'computeBoundingSphere');
+const geometryTransform: unknown = Reflect.get(BufferGeometry.prototype, 'applyMatrix4'), plainTransform: unknown = Reflect.get(BufferAttribute.prototype, 'applyMatrix4');
+const geometryRead: unknown = Reflect.get(BufferGeometry.prototype, 'getAttribute'), geometryWrite: unknown = Reflect.get(BufferGeometry.prototype, 'setAttribute');
+const normalTransforms: readonly unknown[] = [Reflect.get(BufferAttribute.prototype, 'applyNormalMatrix'), Reflect.get(InterleavedBufferAttribute.prototype, 'applyNormalMatrix')];
+const normalWrites: readonly unknown[] = [Reflect.get(BufferAttribute.prototype, 'setXYZ'), Reflect.get(InterleavedBufferAttribute.prototype, 'setXYZ')];
+const plainVersionSetter: unknown = Reflect.get(Object.getOwnPropertyDescriptor(BufferAttribute.prototype, 'needsUpdate') ?? {}, 'set');
+const vectorMethods = ['fromBufferAttribute', 'applyNormalMatrix', 'applyMatrix3', 'normalize', 'divideScalar', 'multiplyScalar', 'length'] as const;
+const vectorFunctions = vectorMethods.map((name): unknown => Reflect.get(Vector3.prototype, name));
+const matrixMethods = ['getNormalMatrix', 'setFromMatrix4', 'invert', 'transpose'] as const;
+const matrixFunctions = matrixMethods.map((name): unknown => Reflect.get(Matrix3.prototype, name));
+const normalMath = [Math.max, Math.round, Math.sqrt];
+interface CompactNormal {
+  readonly attribute: BufferAttribute | InterleavedBufferAttribute;
+  readonly array: Int8Array; readonly count: number; readonly stride: number; readonly offset: number;
+}
+/** Only native compact storage takes raw reads/writes; custom transforms,
+ * accessors, tangents and other channel formats keep Three's original pass. */
+function compactNormal(geometry: BufferGeometry): CompactNormal | undefined {
+  if (geometry.getAttribute !== geometryRead || geometry.setAttribute !== geometryWrite) return undefined;
+  const attribute = geometry.getAttribute('normal');
+  if (!(attribute instanceof BufferAttribute || attribute instanceof InterleavedBufferAttribute)
+    || geometry.getAttribute('tangent') !== undefined || geometry.applyMatrix4 !== geometryTransform
+    || BufferAttribute.prototype.applyMatrix4 !== plainTransform || BufferAttribute.prototype.applyNormalMatrix !== normalTransforms[0]
+    || Object.getOwnPropertyDescriptor(BufferAttribute.prototype, 'needsUpdate')?.set !== plainVersionSetter
+    || vectorMethods.some((name, index) => Vector3.prototype[name] !== vectorFunctions[index])
+    || matrixMethods.some((name, index) => Matrix3.prototype[name] !== matrixFunctions[index])
+    || Math.max !== normalMath[0] || Math.round !== normalMath[1] || Math.sqrt !== normalMath[2]) return undefined;
+  const interleaved = attribute instanceof InterleavedBufferAttribute, storage = interleaved ? attribute.data : attribute;
+  const array = storage.array, count = attribute.count, stride = interleaved ? attribute.data.stride : attribute.itemSize, offset = interleaved ? attribute.offset : 0;
+  const readers = interleaved ? interleavedGetters : positionGetters, kind = interleaved ? 1 : 0;
+  if (Object.getPrototypeOf(attribute) !== (interleaved ? InterleavedBufferAttribute.prototype : BufferAttribute.prototype)
+    || !ArrayBuffer.isView(array) || !(array instanceof Int8Array) || Object.getPrototypeOf(array) !== Int8Array.prototype
+    || Object.hasOwn(array, 'constructor') || Object.getOwnPropertyDescriptor(Int8Array.prototype, 'constructor')?.value !== Int8Array
+    || !Number.isInteger(count) || count < 0 || !Number.isInteger(stride) || stride < attribute.itemSize
+    || (attribute.itemSize !== 3 && attribute.itemSize !== 4) || !Number.isInteger(offset) || offset < 0 || offset + attribute.itemSize > stride
+    || attribute.applyNormalMatrix !== normalTransforms[kind] || attribute.setXYZ !== normalWrites[kind]
+    || attribute.getX !== readers[0] || attribute.getY !== readers[1] || attribute.getZ !== readers[2]
+    || Object.getOwnPropertyDescriptor(attribute, 'normalized')?.value !== true
+    || Object.getOwnPropertyDescriptor(attribute, 'itemSize')?.value !== attribute.itemSize
+    || Object.getOwnPropertyDescriptor(storage, 'array')?.value !== array
+    || Object.getOwnPropertyDescriptor(storage, 'count')?.value !== count
+    || (interleaved && (Object.hasOwn(attribute, 'count') || Object.getOwnPropertyDescriptor(attribute, 'data')?.value !== storage
+      || Object.getOwnPropertyDescriptor(storage, 'stride')?.value !== stride || Object.getOwnPropertyDescriptor(attribute, 'offset')?.value !== offset))) return undefined;
+  return { attribute, array, count, stride, offset };
+}
+function restoreCompactNormal(normal: CompactNormal, matrix: Matrix4): void {
+  const transform = new Matrix3().getNormalMatrix(matrix), point = new Vector3();
+  const { array, count, stride, offset } = normal;
+  for (let i = 0, at = offset; i < count; i++, at += stride) {
+    point.x = Math.max((array[at] ?? Number.NaN) / 127, -1);
+    point.y = Math.max((array[at + 1] ?? Number.NaN) / 127, -1);
+    point.z = Math.max((array[at + 2] ?? Number.NaN) / 127, -1);
+    // Keep Three's exact matrix/normalization arithmetic and Int8 stores.
+    point.applyNormalMatrix(transform);
+    array[at] = Math.round(point.x * 127); array[at + 1] = Math.round(point.y * 127); array[at + 2] = Math.round(point.z * 127);
+  }
+}
 function dequantizeIntoSpace(geometry: BufferGeometry, mesh: Mesh): void {
   const position = geometry.getAttribute('position'), out = new Float32Array(position.count * 3), point = new Vector3();
   const box = geometry.boundingBox, sphere = geometry.boundingSphere;
@@ -63,8 +119,20 @@ function dequantizeIntoSpace(geometry: BufferGeometry, mesh: Mesh): void {
   // Three still owns all other channel transforms. Bounds must see the final
   // positions, once, after that pass; their original objects remain borrowed.
   geometry.setAttribute('position', new BufferAttribute(new Float32Array(0), 3)); geometry.boundingBox = null; geometry.boundingSphere = null;
-  try { geometry.applyMatrix4(mesh.matrixWorld); }
-  finally { geometry.setAttribute('position', restored); geometry.boundingBox = box; geometry.boundingSphere = sphere; }
+  const normal = compactNormal(geometry);
+  // Overwrite rather than delete: application-channel insertion order is part
+  // of the retained geometry contract. No tangent/custom path is moved here.
+  if (normal !== undefined) geometry.setAttribute('normal', new BufferAttribute(new Float32Array(0), 3));
+  try {
+    geometry.applyMatrix4(mesh.matrixWorld);
+    if (normal !== undefined) {
+      restoreCompactNormal(normal, mesh.matrixWorld);
+      geometry.setAttribute('normal', normal.attribute); normal.attribute.needsUpdate = true;
+    }
+  } finally {
+    geometry.setAttribute('position', restored); geometry.boundingBox = box; geometry.boundingSphere = sphere;
+    if (normal !== undefined) geometry.setAttribute('normal', normal.attribute);
+  }
   restored.needsUpdate = true;
   if (scanBounds && [minX, minY, minZ, maxX, maxY, maxZ].every(Number.isFinite)) {
     const bounds = box ?? new Box3();
