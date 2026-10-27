@@ -32,7 +32,7 @@ test('map keys ignore installed launchers while retaining source and lockfile by
 /** Follow declared module inputs without running producers or reading their retired handoffs. */
 function programInputs(entry: string): Set<string> {
   const files = new Set<string>();
-  const options: ts.CompilerOptions = { moduleResolution: ts.ModuleResolutionKind.Bundler, allowJs: true };
+  const options: ts.CompilerOptions = { moduleResolution: ts.ModuleResolutionKind.Bundler, allowJs: true, resolveJsonModule: true };
   for (const dependency of ts.preProcessFile(readFileSync(entry, 'utf8')).importedFiles) {
     const found = ts.resolveModuleName(dependency.fileName, entry, options, ts.sys).resolvedModule;
     if (found === undefined) throw new Error(`Unresolved map program input ${dependency.fileName} from ${entry}`);
