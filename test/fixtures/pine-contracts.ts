@@ -11,7 +11,9 @@ import { parseContractCatalogue } from '../../src/format/contracts';
 const sources = new Map(['contracts', 'contractsRandom', 'contractsRules'].map(name =>
   [`behaviour/${name}.as`, readFileSync(resolve(`src/shards/pine-hollow/behaviour/${name}.as`), 'utf8')]));
 // a DOM suite's Response is not the compiler's: the same compiler runs in Node's realm (nativeCompilers)
-const built = await nativeCompilers.compileDecisionRows([CONTRACT_PROGRAM_SCRIPT], contractProgramRegistries(), sources, { asLineCeiling: 256, singleSignal: true });
+const compileRows = nativeCompilers.compileDecisionRows;
+if (compileRows === undefined) throw new Error('Missing native decision compiler');
+const built = await compileRows([CONTRACT_PROGRAM_SCRIPT], contractProgramRegistries(), sources, { asLineCeiling: 256, singleSignal: true });
 const script = built.rows[0], blob = built.blobs[0];
 if (script === undefined || blob === undefined) throw new Error('Missing compiled contract programme');
 /** The compiled guest's row and Wasm bytes. */
