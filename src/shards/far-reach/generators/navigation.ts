@@ -1,23 +1,22 @@
 import { Scene } from 'three';
 import { bake, type BakedScene } from '@wildshard/sdk/bake';
-import { declareNavigation } from '@wildshard/sdk/bake/navigationAsset';
+import { navigationSourceRows } from '@wildshard/sdk/bake/navigationAsset';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 
 export const SKY_NAVIGATION_HASH = '97a29a22f3827e4103059929276b2e6a6831f50bd5fc3b121abc11252f774f26';
 export const SKY_NAVIGATION_INPUT = `assets/navigation-${SKY_NAVIGATION_HASH}`;
 export interface SkyNavigationRows {
-  readonly navigation: ReturnType<typeof declareNavigation>['navigation'];
+  readonly navigation: ReturnType<typeof navigationSourceRows>['navigation'];
   readonly url: string;
-  readonly files: ReturnType<typeof declareNavigation>['files'];
-  readonly critical: ReturnType<typeof declareNavigation>['critical'];
+  readonly files: ReturnType<typeof navigationSourceRows>['files'];
+  readonly critical: ReturnType<typeof navigationSourceRows>['critical'];
 }
 
 /** Decode and charge the exact original immutable stream, with no file or runtime authority. */
 export function skyNavigationRows(bytes: Uint8Array): SkyNavigationRows {
   if (hashImmutableBytes(bytes) !== SKY_NAVIGATION_HASH) throw new Error('Sky navigation original hash differs');
-  const rows = declareNavigation(bytes);
-  return { navigation: rows.navigation, url: '/assets/baked/far-reach/navmesh.bin', files: rows.files, critical: rows.critical };
+  return navigationSourceRows(bytes, 'far-reach');
 }
 
 /** Exact original source bank; cache results are detached and re-admitted before publication. */

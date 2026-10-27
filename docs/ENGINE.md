@@ -5003,21 +5003,20 @@ Sky and Signal use it for native cue aliases and silent-score selection.
 
 ### CPU navigation authoring (G320)
 
-`@wildshard/sdk/bake/navigation` defines
-`bakeNavigation({positions, indices}, layers, settings)`. It runs the
-retained navcat tiled compiler and emits WSNM v1 bytes plus ordered layer
-counts. Positions are world-space authored triangles; walkable faces
-point up. Settings are explicit, including metre-based edge length and
-voxel sizes. Layer clearance, erosion rounding, tile insertion order,
-centimetre detail quantisation and neighbour packing match the original
-native baker. The runtime uses its existing WSNM reader and path queries.
+`@wildshard/sdk/bake/navigation.bakeNavigation({positions, indices}, layers, settings)`
+runs navcat and emits WSNM v1 bytes and layer counts. Positions face up in world
+space; settings give metre-based edge and voxel sizes. Clearance, erosion,
+tile order, centimetre detail and neighbour packing retain native semantics.
+Runtime reading and path queries stay unchanged.
 
-The caller must supply retained authored collider/floor triangles, dry
-ground selection and any datum conversion. This CPU compiler imports no
-game or engine code and installs no renderer. The transitional shared
-navmesh CLI still collects trusted world colliders; extracting its CPU
-compiler does not qualify that CLI as a complete author-only product or
-permit any output deletion.
+`@wildshard/sdk/bake/navigationAsset.navigationSourceRows(bytes, slug)` admits
+original bytes and returns navigation, costs, critical hashes and the platform's
+conventional public URL. The owner must be a bounded shard slug.
+
+Callers supply authored collider/floor triangles, dry-ground selection and
+datum conversion. The CPU compiler has no renderer or game/engine imports.
+The transitional CLI still collects trusted colliders; compiler extraction
+does not qualify it as a complete author product or permit output deletion.
 
 SF81 native boss ownership: `@wildshard/game/shardfile/bossRow.installBossOwnerRow`
 consumes `@wildshard/format/bossProfiles.BossOwnerRowSchema` data and a real
