@@ -52,6 +52,7 @@
     "./bake/tileGrid": "./bake/tileGrid.ts",
     "./bake/simplifier": "./bake/simplifier.ts",
     "./bake/glb": "./bake/glb.ts",
+    "./bake/specimenCatalogue": "./bake/specimenCatalogue.ts",
     "./bake/coarseCopy": "./bake/coarseCopy.ts",
     "./bake/glbCompression": "./bake/glbCompression.ts",
     "./bake/compactGlb": "./bake/compactGlb.ts",
@@ -324,6 +325,10 @@
       "./bake/glb": {
         "types": "./dist/types/sdk/bake/glb.d.ts",
         "default": "./dist/bake/glb.js"
+      },
+      "./bake/specimenCatalogue": {
+        "types": "./dist/types/sdk/bake/specimenCatalogue.d.ts",
+        "default": "./dist/bake/specimenCatalogue.js"
       },
       "./bake/nearPlaceholder": {
         "types": "./dist/types/sdk/bake/nearPlaceholder.d.ts",

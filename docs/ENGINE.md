@@ -2041,13 +2041,14 @@ installer on its own. With no selected bed or installer, the engine starts no am
 `preload` for weapon / creature SFX and music as needed; those are independent of ambience. An asset-free shard
 can omit `preload` as well. Do not invent a shard-specific silence id or inherit the template’s forest bed.
 
-Boot composes `bootFiles(level, tex, profile, menuArt)` from the profile's
-selected `bootFiles(style)` subset, preserving music/SFX order and counted
-sizes. Grid entry passes `false` for unused menu cards; explicit precache
-art stays required. Audio preload retains compressed bytes until decoding;
-missing recordings keep synth fallback. An absent preload uses `NO_AUDIO`,
-with no global download. Omitting the profile retains the full background
-inventory, so other styles stay cacheable without delaying control.
+Boot composes `bootFiles(level, tex, profile)` from the profile's selected
+`bootFiles(style)` subset, preserving its music/SFX order and exact counted
+sizes. The audio preload reads only that subset and retains compressed
+bytes until the existing decode boundary. Missing recordings keep their
+synth fallback. An absent preload uses `NO_AUDIO`, with no global catalogue
+download. Calling `bootFiles` without a profile retains the full inventory
+for background shard prefetch; other styles stay cacheable without
+delaying this level's controls.
 
 ```ts
 export const CUES = { fire: 'cue.sword.swing', impact: 'cue.sword.hit', heavy: 'cue.sword.heavy', reload: 'cue.reload' } as const;
@@ -5913,18 +5914,19 @@ bands, optional specimen material and Float32 convex hulls. It never loads,
 fits or poses geometry. Pine crags and Driftwood cove prototypes use it.
 
 `@wildshard/game/models/specimenCatalogue.defineSpecimenCatalogue<Params>(rows,
-packed?, materials?, files?)` registers data models and returns `.model(key)`. Each
-`SpecimenModelRow` declares metadata, parameters, colliders and `owned`
-(identity-space GLB), `packed` parts, or `asset` slots with optional phone
-source/retained attribute. Registration rejects unknown parameters without I/O.
-`loadSpecimenAsset(row,input?)` / `loadBoundSpecimen(sky,row,input?)` accept
-owned GLB bytes or prepared files; `url`/`phoneUrl` are legacy paths or
-`{file,bytes}`. Selected-tier lengths/headers/resources are checked before
-publication. Owned files require prepared bytes without URL fallback.
-Byte caches invalidate on disposal/failure and release inputs. Pure `@wildshard/format/specimenCatalogue`
-exports `SpecimenCatalogueSchema`, `PackedSpecimenSchema`, and
-`SpecimenMaterialSchema`; constructors reject non-JSON, accessors, cycles,
-callbacks, unbounded catalogues and paths outside `/assets/`.
+packed?, materials?, files?)` registers; `.model(key)` selects.
+Rows: metadata/parameters/colliders; owned identity GLBs, packed parts, asset
+slots (optional phone source/retained attrs). Unknown params refuse
+without I/O. `loadSpecimenAsset(row,input?)` and
+`loadBoundSpecimen(sky,row,input?)` accept owned bytes/prepared files;
+`url`/`phoneUrl`: legacy paths or `{file,bytes}`. Publication checks tier
+lengths/headers/resources. Owned bytes need preparation, no URL fallback.
+Disposal/failure frees caches/inputs. Format `SpecimenCatalogueSchema`, `PackedSpecimenSchema` and
+`SpecimenMaterialSchema` reject non-JSON, accessors, cycles, callbacks,
+unbounded catalogues and paths outside `/assets/`.
+SDK `@wildshard/sdk/bake/specimenCatalogue.defineSpecimenCatalogue(book)`
+admits `.book`/`.model(key)` data; duplicate/missing keys refuse.
+`nameSpecimenBook` emits canonical, schema-tagged JSON; no runtime.
 
 `@wildshard/engine/core/ktx2.parseKtx2Bytes(bytes)` validates bounded KTX2,
 copies its view and uses the configured loader/Zstd worker without asset URL
