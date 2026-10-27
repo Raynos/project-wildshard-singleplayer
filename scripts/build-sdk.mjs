@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // Build author tools against the same public contract as the game; pnpm pack uses these portable JS modules.
 import { build } from 'vite';
-import { relative, resolve } from 'node:path';
-import { cpSync, existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { join, relative, resolve } from 'node:path';
+import { cpSync, existsSync, readFileSync, readdirSync, rmSync, writeFileSync, mkdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { rapierAlias } from '../vite/rapier.ts';
 import { assertHeavyLease } from './heavy-lane-lease.mjs';
@@ -69,11 +69,17 @@ function declaration(layer, module) {
 }
 for (const module of modules) declaration('sdk', module.declaration);
 
-// Both clients use the normal Game bundle. Author dev is a separate compiled mode, never enabled by requests.
+// Both clients use the normal Game bundle. Author dev is a separate compiled mode, never enabled by requests. They build
+// through the app build script, as every app build does (its generators, tables, boot bank and worker, D24), with the
+// repo's config minus the public/ copy; the hidden source maps its checks read do not ship.
 for (const [mode, folder] of [['production', 'client'], ['devserver', 'client-devserver']]) {
-  await build({ root, mode, configFile: resolve(root, 'vite.config.ts'), logLevel: 'warn', build: {
-    outDir: resolve(root, `src/sdk/dist/${folder}`), emptyOutDir: true, copyPublicDir: false, sourcemap: false,
-  } });
+  const outDir = resolve(root, `src/sdk/dist/${folder}`), config = resolve(root, 'tmp', `sdk-${folder}.vite.mjs`);
+  mkdirSync(resolve(root, 'tmp'), { recursive: true });
+  writeFileSync(config, `import { mergeConfig } from 'vite';\nimport base from ${JSON.stringify(resolve(root, 'vite.config.ts'))};\n`
+    + `export default async env => mergeConfig(typeof base === 'function' ? await base(env) : base, { build: { copyPublicDir: false } });\n`);
+  execFileSync(process.execPath, ['scripts/build-app.mjs', '--mode', mode, '--config', config, '--outDir', outDir, '--emptyOutDir'], { cwd: root, stdio: 'inherit' });
+  rmSync(config, { force: true });
+  for (const entry of readdirSync(outDir, { recursive: true, withFileTypes: true })) if (entry.isFile() && entry.name.endsWith('.map')) rmSync(join(entry.parentPath, entry.name));
   for (const entry of ['fonts', 'favicon.png', 'apple-touch-icon.png', 'manifest.webmanifest', 'basis/r186', 'assets/physics', 'assets/sfx/best', 'assets/music/piano', 'assets/music/orchestral', 'assets/music/folk']) cpSync(resolve(root, 'public', entry), resolve(root, `src/sdk/dist/${folder}`, entry), { recursive: true });
 }
 
