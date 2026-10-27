@@ -56,6 +56,7 @@ const token = authoredPickups.find(row => row.id === 'token').parts[0];
 for (let i = 0; i < 8; i++) add(token, 1000 + i);
 
 const writer = byteWriter(process.argv.includes('--check'), 'pickup-bake');
+const memberBytes = new Map();
 let rawBytes = 0, compressedBytes = 0, legacyEncodedBytes = 0;
 const geometries = [...variants.values()].map(({ part, seed: value }) => {
   const geometry = part.geometry(value), chunks = [];
@@ -78,11 +79,24 @@ const geometries = [...variants.values()].map(({ part, seed: value }) => {
   geometry.dispose(); restored.dispose();
   const file = `/assets/baked/common/pickups/${createHash('sha256').update(bytes).digest('hex')}.bin`;
   writer.put(fileURLToPath(new URL(`../public${file}`, import.meta.url)),bytes);
+  memberBytes.set(file, bytes);
   return { key: part.key, seed: value, geometry: row, file };
 });
+// Keep each original source file/identity for native and frozen readers. The
+// browser's generic bank reader restores those same members from one body.
+const bankBytes = Buffer.concat([...memberBytes.values()]);
+const bankFile = `/assets/baked/common/pickups/${createHash('sha256').update(bankBytes).digest('hex')}.bin`;
+let bankOffset = 0;
+const members = [...memberBytes].map(([file, bytes]) => {
+  const member = { file, offset: bankOffset, bytes: bytes.length, sha256: createHash('sha256').update(bytes).digest('hex') };
+  bankOffset += bytes.length;
+  return member;
+});
+writer.put(fileURLToPath(new URL(`../public${bankFile}`, import.meta.url)), bankBytes);
 const looks = authoredPickups.map(row => ({ id: row.id, model: row.model, name: row.name, batch: row.batch, lift: row.lift,
   parts: row.parts.map(({ geometry: _geometry, ...part }) => part) }));
-const rows = { file: 'src/game/generators/pickups.ts', seed, coin: coin.key, geometries, looks };
+const rows = { file: 'src/game/generators/pickups.ts', seed, coin: coin.key, geometries, looks,
+  banks: [{ file: bankFile, bytes: bankBytes.length, members }] };
 writer.put(fileURLToPath(new URL('../src/game/data/pickupCatalogue.json', import.meta.url)), jsonBytes(rows));
 writer.finish();
 console.log(JSON.stringify({ variants: geometries.length, rawBytes, compressedBytes, encodedBytes: 0, legacyEncodedBytes, traces }, null, 2));

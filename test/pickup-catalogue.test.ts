@@ -145,7 +145,8 @@ it('retiring an ancestor drains the raw-read window without later reads or insta
   const read=vi.fn((name:string)=>{
     let finish:(bytes:Uint8Array)=>void=()=>undefined;const wire=new Promise<Uint8Array>(resolve=>{finish=resolve;});started.set(name,{wire,finish});return wire;
   });
-  const pending=preparePickupCatalogue({file:read},data,scope);expect(read.mock.calls).toEqual(expected.map(name=>[name]));
+  const original={file:data.file,seed:data.seed,coin:data.coin,geometries:data.geometries,looks:data.looks};
+  const pending=preparePickupCatalogue({file:read},original,scope);expect(read.mock.calls).toEqual(expected.map(name=>[name]));
   let settled=false;void pending.then(()=>{settled=true;return undefined;},()=>{settled=true;return undefined;});
   const first=expected[0],held=first===undefined?undefined:started.get(first);if(first===undefined||held===undefined)throw new Error('Missing pickup read');
   const steps=parent.disposeSteps();steps.next();held.finish(pickupFiles.get(first)??new Uint8Array());

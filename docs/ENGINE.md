@@ -5941,11 +5941,11 @@ distinct. Disposal/rejection invalidates caches without URL fallback.
 admits inflated bytes; each build owns fresh arrays with original indices,
 optional expansion and bounds.
 
-`prepareBinarySources(product,requests,scope?)` rejects inline requests
-before reading product capabilities, then lends each named raw file once.
-Lengths, reader identity and scope remain checked across reads.
-`binarySourceBytes(row,files)` borrows prepared storage without IO/decode;
-format grammar stays available to predecessor fixtures.
+`prepareBinarySources(product,requests,scope?,banks?)` preflights named
+files. Fully demanded banks restore detached SHA-256-checked members;
+partial demand stays direct. Length, scope, reader and ordered publication
+checks remain. Inline data refuses before capabilities.
+`binarySourceBytes(row,files)` borrows prepared storage without IO/decode.
 
 `preparePickupCatalogue` prepares named raw geometry for
 `installPickupCatalogue(rows,files?)`. Model identity, height, ordered

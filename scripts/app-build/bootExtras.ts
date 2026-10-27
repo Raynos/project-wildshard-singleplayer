@@ -82,7 +82,9 @@ export function homeExtraFiles(root: string, directory: string, bundle: Bundle, 
   const pickups = resolve(root, 'src/game/data/pickupCatalogue.json');
   if (existsSync(pickups)) {
     const rows = v.parse(PickupCatalogueSchema, JSON.parse(readFileSync(pickups, 'utf8')));
-    for (const row of rows.geometries) if ('file' in row) urls.push(row.file);
+    const banked = new Set(rows.banks?.flatMap(bank => bank.members.map(member => member.file)));
+    for (const bank of rows.banks ?? []) urls.push(bank.file);
+    for (const row of rows.geometries) if ('file' in row && !banked.has(row.file)) urls.push(row.file);
   }
   for (const url of Object.values(object(field(manifest, 'card')))) urls.push(text(url));
   // The live boot omits Explorer previews. Reserving their bytes here would

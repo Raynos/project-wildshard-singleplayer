@@ -35,7 +35,8 @@ function readPickupCatalogue(input:unknown):v.InferOutput<typeof PickupCatalogue
 }
 /** Prepare the shared pickup catalogue's raw files before registering any look or coin factory. */
 export function preparePickupCatalogue(product:BinaryFileReader,input:unknown,scope?:Scope):Promise<ReadonlyMap<string,Uint8Array>> {
-  return prepareBinarySources(product,readPickupCatalogue(input).geometries.flatMap(row=>'file'in row?[{source:{file:row.file},bytes:bakedGeometryBytes(row.geometry)}]:[]),scope);
+  const rows=readPickupCatalogue(input);
+  return prepareBinarySources(product,rows.geometries.flatMap(row=>'file'in row?[{source:{file:row.file},bytes:bakedGeometryBytes(row.geometry)}]:[]),scope,rows.banks);
 }
 /** Each request owns fresh geometry; preparation retains only the original raw storage, never decoded templates. */
 export function installPickupCatalogue(input: unknown,files:ReadonlyMap<string,Uint8Array>=new Map()): void {
