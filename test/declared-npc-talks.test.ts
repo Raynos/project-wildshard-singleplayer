@@ -10,11 +10,13 @@ import { Flags } from '../src/engine/world/interact/flags';
 import { pineQuestNpcs } from '../src/shards/pine-hollow/generators/questNpcs';
 import { QUEST_NPCS } from '../src/shards/driftwood-isle/generators/questNpcs';
 import { parseQuestData } from '../src/sdk/quests';
-import pinePeople from '../src/shards/pine-hollow/data/questNpcs.generated.json' with { type: 'json' };
 import { DRIFTWOOD_QUESTS } from '../src/shards/driftwood-isle/generators/quests';
 
+// GR8: called, not read from a scheduler job's output
+const pinePeople = pineQuestNpcs();
+
 test('the two native talk rosters admit only declared flags and bounded reading policies', () => {
-  const rows = v.parse(QuestNpcBindingsSchema, pineQuestNpcs()['rows']);
+  const rows = v.parse(QuestNpcBindingsSchema, pineQuestNpcs().rows);
   expect(rows.map(row => row.npc.id)).toEqual(['ranger', 'miller', 'trader']);
   expect(questNpcBindingRules(rows, parseQuestData(pinePeople.quests).flags, true)).toEqual([]);
   expect(questNpcBindingRules(v.parse(QuestNpcBindingsSchema, QUEST_NPCS), DRIFTWOOD_QUESTS.flags, true)).toEqual([]);
@@ -51,7 +53,7 @@ test('root talk completion preserves paid saves, native ownership and update ord
   const ports: QuestNpcTalkPorts<Figure> = { figures, dialogue: () => dialogue, flags, scene, prompts: [],
     registry: { add: piece => { events.push(`register:${piece.id}`); return piece; } }, groundAt: () => 3,
     calls: new Map([['pay-miller', () => { events.push('paid'); flags.set('errand:paid'); }], ['trade', () => { events.push('trade'); }]]) };
-  const source = { questNpcs: v.parse(QuestNpcBindingsSchema, pineQuestNpcs()['rows']) };
+  const source = { questNpcs: v.parse(QuestNpcBindingsSchema, pineQuestNpcs().rows) };
   try {
     expect(() => installDeclaredNpcTalks(source, { ...ports, calls: new Map() })).toThrow('Unbound');
     expect(() => installDeclaredNpcTalks(source, { ...ports, figures: new Map() })).toThrow('Unbound');

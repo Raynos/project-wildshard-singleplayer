@@ -1,5 +1,8 @@
 import { parseNpcDialogueRow } from '@wildshard/sdk/questGraph';
-import people from '../data/questNpcs.generated.json' with { type: 'json' };
+import { pineQuestNpcs } from './questNpcs';
+
+// GR8: called, not read from a scheduler job's output
+const people = pineQuestNpcs();
 
 /** The authored dialogue rows admitted by the existing native quest host. */
 export const RANGER: ReturnType<typeof parseNpcDialogueRow> = parseNpcDialogueRow(people.rows.find(row => row.npc.id === 'ranger')?.npc);

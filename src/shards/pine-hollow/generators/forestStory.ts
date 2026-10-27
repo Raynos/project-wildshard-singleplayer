@@ -10,7 +10,7 @@ import loadout from '../data/loadout.json' with { type: 'json' };
 import policy from '../data/forestStory.json' with { type: 'json' };
 import timbers from '../data/timberWorld.generated.json' with { type: 'json' };
 import scenes from '../data/timberScenes.generated.json' with { type: 'json' };
-import roster from '../data/questNpcs.generated.json' with { type: 'json' };
+import { pineQuestNpcs } from './questNpcs';
 import layout from '../data/layout.generated.json' with { type: 'json' };
 import sky from '../data/sky.json' with { type: 'json' };
 import { BEATS, beatFlags, type Beat } from './questBeats';
@@ -18,6 +18,9 @@ import { QuestPageTalksSchema , type QuestPageTalksRows as QuestPageTalksRowsTyp
 import { ContractBoardPageSchema, parseContractBoardPage } from '@wildshard/format/contracts';
 import { PINE_PANELS } from './panels';
 import { namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
+
+// GR8: called, not read from a scheduler job's output
+const roster = pineQuestNpcs();
 
 const triple = (input: unknown): [number, number, number] => v.parse(v.tuple([v.number(), v.number(), v.number()]), input);
 const landmarks = timbers.landmarks, board = landmarks.contractBoardSite;

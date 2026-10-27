@@ -8,11 +8,14 @@ import { expect, test } from 'vitest';
 import { readProjectAssets } from '../src/sdk/project';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { parseQuestData } from '../src/sdk/quests';
-import pinePeople from '../src/shards/pine-hollow/data/questNpcs.generated.json' with { type: 'json' };
+import { pineQuestNpcs } from '../src/shards/pine-hollow/generators/questNpcs';
 import { parsePineSpots, parsePineQuestRows } from '../src/shards/pine-hollow/generators/sections';
 import { PINE_QUEST_RUNTIME } from '../src/shards/pine-hollow/generators/questRuntime';
 import { parseNativeQuestComposition } from '../src/format/nativeQuestComposition';
 import { NATIVE_CHAPTER_DIRECTOR } from '../src/shards/pine-hollow/generators/chapterDirector';
+
+// GR8: called, not read from a scheduler job's output
+const pinePeople = pineQuestNpcs();
 
 // Frozen canonical hashes of the original play-read authored declarations.
 const originals = {

@@ -15,10 +15,13 @@ import { pineLookMaterials } from './lookMaterials';
 import timbers from '../data/timberWorld.generated.json' with { type: 'json' };
 import ground from '../data/groundTiles.json' with { type: 'json' };
 import { withPineGround } from './groundTiles';
-import people from '../data/questNpcs.generated.json' with { type: 'json' };
+import { pineQuestNpcs } from './questNpcs';
 import journal from '../data/journal.generated.json' with { type: 'json' };
 import { PINE_QUEST_HOST } from './questHost';
 import shelterProgram from '../behaviour/shelter.generated.json' with { type: 'json' };
+
+// GR8: called, not read from a scheduler job's output
+const people = pineQuestNpcs();
 
 // GR8: called, not read from a scheduler job's output
 const weatherChannels = pineWeatherChannelSection();

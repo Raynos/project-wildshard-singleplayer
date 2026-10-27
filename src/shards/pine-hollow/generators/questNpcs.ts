@@ -6,8 +6,7 @@ import { RANGER_DIALOGUE, MILLER_DIALOGUE, TRADER_DIALOGUE } from './wardensHoll
 interface Point { x: number; z: number }
 const front = (site: Point & { rot: number }, distance: number): Point => ({ x: site.x - Math.sin(site.rot) * distance, z: site.z - Math.cos(site.rot) * distance });
 
-/** Static people placement and talk rows from the same cabin frames; ground stays a live native query. */
-export function pineQuestNpcs(): Record<string, unknown> {
+function questNpcRows() {
   const cabin = LAYOUT.CABIN_SITES[0] ?? { x: -14, z: -34, rot: 0.35 };
   const cos = Math.cos(cabin.rot), sin = Math.sin(cabin.rot), local = { x: 6.0, z: 0.2 };
   const ranger = { x: cabin.x + local.x * cos + local.z * sin, z: cabin.z - local.x * sin + local.z * cos };
@@ -21,3 +20,6 @@ export function pineQuestNpcs(): Record<string, unknown> {
       prompt: { at: front(LAYOUT.HAMLET_SITES.trader, 2.6), height: 1.4 }, done: { call: 'trade' } },
   ] };
 }
+/** Static people placement and talk rows from the same cabin frames; ground stays a live native query. GR8: the product
+ *  calls this directly (no scheduler job, no generated file). */
+export const pineQuestNpcs: () => ReturnType<typeof questNpcRows> = questNpcRows;

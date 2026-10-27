@@ -9,7 +9,10 @@ import PINE_TERRAIN from '../data/terrainBindings.json' with { type: 'json' };
 import { pineBootInventory, pineKtx2Tables } from './bootInventory.ts';
 import { FINISH_CARDS } from './finishCards.ts';
 import { WILDLIFE_LOOK } from './wildlifeLook.ts';
-import people from '../data/questNpcs.generated.json' with { type: 'json' };
+import { pineQuestNpcs } from './questNpcs.ts';
+
+// GR8: called, not read from a scheduler job's output
+const people = pineQuestNpcs();
 
 /** Only these public trees affect recipe presence, phone fallbacks and GPU aliases. */
 const roots = ['assets/hdri', 'assets/baked/pine-hollow', 'assets/tex', 'assets/models',

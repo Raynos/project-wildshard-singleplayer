@@ -11,7 +11,7 @@ import * as v from 'valibot';
 import { parseQuestHost, questHostBindingRules } from '../src/format/questHost';
 import pine from '../src/shards/pine-hollow/generators/product';
 import driftwood from '../src/shards/driftwood-isle/generators/product';
-import people from '../src/shards/pine-hollow/data/questNpcs.generated.json' with { type: 'json' };
+import { pineQuestNpcs } from '../src/shards/pine-hollow/generators/questNpcs';
 import { PINE_QUEST_RUNTIME, PINE_QUEST_PAYLOAD } from '../src/shards/pine-hollow/generators/questRuntime';
 import { parsePineQuestRows } from '../src/shards/pine-hollow/generators/sections';
 import type { QuestHostPorts } from '../src/game/plugin/simulation';
@@ -19,6 +19,9 @@ import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { PINE_FEAT_COUNTERS } from '../src/shards/pine-hollow/generators/questInventory';
 import { DRIFTWOOD_FEAT_COUNTERS } from '../src/shards/driftwood-isle/generators/questInventory';
 import { DRIFTWOOD_INTERACT } from '../src/shards/driftwood-isle/generators/interactables';
+
+// GR8: called, not read from a scheduler job's output
+const people = pineQuestNpcs();
 
 /** Isolate command admission with concrete mutable service observations. Full
  * living entry/save replay still runs through each actual native composition. */
