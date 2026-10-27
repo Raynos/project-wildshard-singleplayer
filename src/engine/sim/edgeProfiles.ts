@@ -40,14 +40,18 @@ export function immutableEdgeProfile(profile: StripProfile): StripProfile {
 export function nativeEdgeProfiles(grid: { resolution: number; heights: ArrayLike<number>; colourAt: (index: number) => EdgeColour }): EdgeProfiles {
   const count = resolution(grid.resolution);
   if (grid.heights.length !== count ** 2) throw new RangeError('Invalid native edge lattice');
+  return copyEdges(count, index => grid.heights[index], index => grid.colourAt(index));
+}
+/** Only boundary samples are observed; the caller admits the complete lattice layout. */
+function copyEdges(count: EdgeResolution, heightAt: (index: number) => number | undefined, colourAt: (index: number) => EdgeColour): EdgeProfiles {
   const edge = (side: typeof sides[number]): StripProfile => {
     const heights: number[] = [], colours: EdgeColour[] = [];
     for (let i = 0; i < count; i++) {
       const x = side === 'east' ? count - 1 : side === 'west' ? 0 : i;
       const z = side === 'north' ? count - 1 : side === 'south' ? 0 : i;
-      const at = z * count + x, h = grid.heights[at];
+      const at = z * count + x, h = heightAt(at);
       if (h === undefined || !Number.isFinite(h) || Math.abs(h) > 250) throw new RangeError(`Invalid ${side} edge height`);
-      heights.push(h); colours.push(colour(grid.colourAt(at)));
+      heights.push(h); colours.push(colour(colourAt(at)));
     }
     return { heights, colours, roadHeight: 0 };
   };
@@ -67,14 +71,13 @@ export function bakedEdgeProfiles(bytes: Uint8Array, palette: readonly [EdgeColo
   }
   palette.forEach((rgb) => { colour(rgb); });
   // DataView supports subarrays with unaligned byte offsets, without host-endian assumptions.
-  const heights = Float32Array.from({ length: n }, (_, i) => view.getFloat32(24 + i * 4, true));
-  return nativeEdgeProfiles({ resolution: count, heights, colourAt: (index) => {
+  return copyEdges(count, index => view.getFloat32(24 + index * 4, true), (index) => {
     const weights = Array.from({ length: 4 }, (_, i) => view.getUint8(24 + n * 4 + index * 4 + i));
     const sum = weights.reduce((a, b) => a + b, 0);
     if (sum === 0) throw new RangeError('Empty terrain boundary splat');
     const channel = (c: number): number => palette.reduce((total, rgb, i) => total + (rgb[c] ?? 0) * (weights[i] ?? 0) / sum, 0);
     return [channel(0), channel(1), channel(2)];
-  } });
+  });
 }
 /** Sorted union preserves both neighbours' exact native vertices when 256 and 257 rows meet. */
 export function edgeSampleLocations(profiles: readonly StripProfile[]): readonly number[] {
