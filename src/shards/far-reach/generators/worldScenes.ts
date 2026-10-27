@@ -2,7 +2,7 @@ import { parseWorldScene, parseWorldSceneBindings, type WorldSceneRecipe } from 
 import { parseWorldScenes } from '@wildshard/format/worldScenes';
 import { nameBlob } from '@wildshard/sdk/blobs';
 import routes from '../data/routeScene.generated.json' with { type: 'json' };
-import fixed from '../data/staticScenes.generated.json' with { type: 'json' };
+import originalStatic from '../data/staticScenes.generated.json' with { type: 'json' };
 import islets from '../data/isletScenes.generated.json' with { type: 'json' };
 import heroes from '../data/heroLibrary.generated.json' with { type: 'json' };
 import originalMill from '../data/millScene.generated.json' with { type: 'json' };
@@ -17,6 +17,7 @@ import { SKY_MEADOW_BLOBS, SKY_MEADOW_FILE } from './meadowScene';
 
 import type { SkyMillSceneValues } from './millScene';
 import { readMillSceneEnvelope } from './millSceneIntake';
+import type { SkyStaticSceneEnvelope } from './staticSceneIntake';
 
 /** Parse admitted mill rows through this module's defining scene format boundary. */
 export function readMillSceneValues(bytes: Uint8Array): SkyMillSceneValues['MILL_SCENE'] {
@@ -41,7 +42,8 @@ export interface SkyWorldSceneValues {
 }
 
 /** Build the original scene world with an optional owned mill hierarchy. */
-export function skyWorldSceneValues(millScene: SkyMillSceneValues['MILL_SCENE'] = readMillSceneValues(new TextEncoder().encode(JSON.stringify(originalMill)))): SkyWorldSceneValues {
+export function skyWorldSceneValues(millScene: SkyMillSceneValues['MILL_SCENE'] = readMillSceneValues(new TextEncoder().encode(JSON.stringify(originalMill))), staticScenes: SkyStaticSceneEnvelope = originalStatic): SkyWorldSceneValues {
+  const fixed = staticScenes;
   const mill = { MILL_SCENE: millScene };
   const blobs = structuredClone([...SKY_SOURCE_BLOBS, ...SKY_ISLAND_BLOBS, ...SKY_MEADOW_BLOBS]);
   const steps: unknown[] = [], materials = new Map<string, unknown>();
@@ -85,16 +87,21 @@ export function skyWorldSceneValues(millScene: SkyMillSceneValues['MILL_SCENE'] 
     if (row === undefined) throw new Error(`Missing original scene piece ${piece}`);
     return { id: row.id, name: row.name, file: row.file, category: row.category, ...(row.surface === undefined ? {} : { surface: row.surface }), part, colliders, ...('mode' in row ? { mode: row.mode } : {}) };
   };
+  const bakedPiece = (recipe: WorldSceneRecipe, id: string | undefined): string | undefined => {
+    const entry = recipe.imports.find(value => value.id === id && value.kind === 'baked');
+    return entry?.kind === 'baked' ? entry.piece : undefined;
+  };
   scene('ground', ground.SKY_GROUND.recipe, {
     registry: ground.SKY_GROUND.bindings.map(row => registration(row.piece, row.part, contact(row.piece))),
   });
   for (const cube of ['standalone', 'cell'] as const) {
     const row = fixed[cube];
+    const staticRecipe = parseWorldScene(row.recipe);
     // Native scene bindings omit colliders for visual-only groups; baked imports
     // and explicitly declared contact rows retain the original arrays.
     scene(`static-${cube}`, row.recipe, { cube,
       registry: row.bindings.map(binding => registration(binding.piece, binding.part,
-        'baked' in binding ? contact(binding.piece, row.recipe.imports.find(entry => entry.id === binding.baked && entry.kind === 'baked')?.piece, cube) : fixed[cube].fixed.colliders.find(piece => piece.id === binding.piece)?.colliders ?? [])),
+        'baked' in binding ? contact(binding.piece, bakedPiece(staticRecipe, binding.baked), cube) : fixed[cube].fixed.colliders.find(piece => piece.id === binding.piece)?.colliders ?? [])),
     });
   }
   scene('routes', { scene: routes.SKY_ROUTE_SCENE, imports: [] }, {
@@ -118,11 +125,12 @@ export function skyWorldSceneValues(millScene: SkyMillSceneValues['MILL_SCENE'] 
   });
   for (const cube of ['standalone', 'cell'] as const) {
     const row = fixed[cube].fixed;
+    const fixedRecipe = parseWorldScene(row.recipe);
     const registry = [
       ...islets.pieces.map(piece => ({ id: piece.id, name: piece.name, file: piece.file, category: piece.category, surface: piece.surface,
         part: `islets.${piece.id}`, colliders: piece.colliders })),
       ...Object.values(row.bindings).flatMap(bindings => bindings.map(binding => registration(binding.piece, binding.part,
-        'baked' in binding ? contact(binding.piece, row.recipe.imports.find(entry => entry.id === binding.baked && entry.kind === 'baked')?.piece, cube) : contact(binding.piece, undefined, cube)))),
+        'baked' in binding ? contact(binding.piece, bakedPiece(fixedRecipe, binding.baked), cube) : contact(binding.piece, undefined, cube)))),
     ];
     const recipe = parseWorldScene(row.recipe), parent = recipe.scene.nodes.find(node => node.id === 'islets.islet-static');
     if (parent?.kind !== 'group') throw new Error('Missing original static islet group');

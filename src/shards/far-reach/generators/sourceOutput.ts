@@ -1,7 +1,7 @@
 import { SKY_CLIENT_PLAN } from './clientPlan';
 import { skyPaintedPresentation, SKY_PAINTED_ATTRIBUTE_SOURCES } from './paintedLook';
 import { FAN_ID } from './rows/items';
-import { SKY_SCENE_BLOBS, SKY_WORLD_SCENES } from './worldScenes';
+import { SKY_SCENE_BLOBS, SKY_WORLD_SCENES, skyWorldSceneValues, readMillSceneValues } from './worldScenes';
 import { emitNamedBlobs, nameBlob } from '@wildshard/sdk/blobs';
 import STRINGS from '../data/strings.json' with { type: 'json' };
 import { SKY_PAGE_PROGRAM } from './rows/population';
@@ -28,6 +28,9 @@ import { skyCreatureRigOutput } from './creatureRigOutput';
 import { skyRigAssetSources } from './rigAssetSources';
 import { skyRigLibrary } from './rigLibrary';
 import { GPU_FILES } from '../ktx2.generated';
+import { skyMillSceneProgram } from './millSceneProgram';
+import { skyStaticSceneProgram } from './staticSceneProgram';
+import { readSkyStaticSceneEnvelope } from './staticSceneIntake';
 
 type SectionName = Parameters<Parameters<typeof emitPlatformSections>[0]['get']>[0];
 /** Build-only declarations; the compiled client features own all presentation. */
@@ -50,6 +53,16 @@ export const output = { blobs:SKY_PAINTED_ATTRIBUTE_SOURCES,namedFiles: sources.
 
 /** Publish original prepared geometry, world pieces and island tiles through normal owned-asset admission. */
 export async function prepareOutput(ctx: ProjectGenerationContext): Promise<typeof output> {
+  const millScenes = await skyMillSceneProgram(ctx), staticScenes = await skyStaticSceneProgram(ctx);
+  const millWire = millScenes.get('mill-scene.json'), staticWire = staticScenes.get('static-scenes.json');
+  if (millWire === undefined || staticWire === undefined) throw new Error('Missing owned scene hierarchy');
+  const sceneValues = skyWorldSceneValues(readMillSceneValues(millWire), readSkyStaticSceneEnvelope(staticWire));
+  const sceneSources = emitNamedBlobs(sceneValues.blobs);
+  const sceneSection = emitPlatformSections(new Map<SectionName, unknown>([['world/scenes', sceneValues.scenes]]));
+  const prepared = { ...output, namedFiles: sceneSources.files, assets: sceneSources.assets, platform: {
+    sections: output.platform.sections.map(row => sceneSection.sections.find(replacement => replacement.name === row.name) ?? row),
+    files: new Map([...output.platform.files, ...sceneSection.files]),
+  } };
   const rigs = await skyCreatureRigOutput(ctx);
   const rigSources = skyRigAssetSources(rigs.files, GPU_FILES);
   const name = 'world/geometry/prepared-models.glb';
@@ -68,10 +81,10 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<type
   if (millBytes === undefined) throw new Error('Missing owned mill geometry');
   const millName = 'world/geometry/mill-rest.glb', mill = nameBlob(millName, 'glb', millBytes);
   const fanName = 'world/geometry/fan.glb', fan = nameBlob(fanName, 'glb', await skyFanPoolProgram(ctx));
-  const assets = new Map([...output.assets, ...rigs.assets]), replacements = [hero, bakes,
+  const assets = new Map([...prepared.assets, ...rigs.assets]), replacements = [hero, bakes,
     skyModelSource(bridgeName, millName, fanName, skyRigLibrary(rigSources.urls))];
   for (const replacement of replacements) {
-    const previous = output.namedFiles.find(file => file.name === replacement.file.name);
+    const previous = prepared.namedFiles.find(file => file.name === replacement.file.name);
     if (previous === undefined) throw new Error('Missing original scene source output');
     assets.delete(previous.hash); assets.set(replacement.file.hash, replacement.bytes);
   }
@@ -84,6 +97,6 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<type
     if (bytes === undefined) throw new Error('Sky world tile publication misses a declared asset');
     assets.set(file.hash, bytes);
   }
-  return { ...output, namedFiles: [...output.namedFiles.map(file => replacements.find(row => row.file.name === file.name)?.file ?? file),
+  return { ...prepared, namedFiles: [...prepared.namedFiles.map(file => replacements.find(row => row.file.name === file.name)?.file ?? file),
     geometry.file, ...world.map(blob => blob.file), bridge.file, mill.file, fan.file, ...rigs.files], assets };
 }
