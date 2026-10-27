@@ -1,6 +1,9 @@
-import { parseWorldScene, type PrivateScene, type WorldSceneRecipe } from '@wildshard/format/clientChannels';
-import STONES from '../data/crownInstances.generated.json' with { type: 'json' };
+import { worldSceneRecipe as parseWorldScene } from '@wildshard/sdk/worldScenes';
+import { crownInstances } from './crownInstances';
 import { CROWN, DAIS } from "./layout";
+
+type WorldSceneRecipe = ReturnType<typeof parseWorldScene>;
+type PrivateScene = WorldSceneRecipe['scene'];
 
 /** The crown's assembly: its recipe, the painted model rows and the borrowed collider binding. */
 export interface CrownScene {
@@ -21,7 +24,7 @@ export function crownScene(): CrownScene {
     { kind: 'group', id: 'crown', name: 'far.crown.arena', children: ['bake', 'stone0', 'stone1', 'dais'] },
     { kind: 'object', id: 'bake', source: 'bake', missing: 'refuse', children: [] },
   ];
-  for (const [index, matrices] of STONES.entries()) nodes.push({
+  for (const [index, matrices] of crownInstances().entries()) nodes.push({
     kind: 'mesh', id: `stone${index}`, name: `far.crown.stone-${index}`, geometry: `stone${index}`, material: `stone${index}`,
     instances: matrices.length / 16, matrices, missing: 'omit', children: [],
   });

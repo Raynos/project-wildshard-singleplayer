@@ -80,7 +80,6 @@
     "src/shards/far-reach-legacy/boot/files.ts": 1,
     "src/shards/far-reach-legacy/manifest.ts": 1,
     "src/shards/far-reach/generators/clientPlan.ts": 2,
-    "src/shards/far-reach/generators/crownScene.ts": 1,
     "src/shards/far-reach/generators/isletMotion.ts": 1,
     "src/shards/far-reach/generators/isletScene.ts": 1,
     "src/shards/far-reach/generators/product.ts": 4,

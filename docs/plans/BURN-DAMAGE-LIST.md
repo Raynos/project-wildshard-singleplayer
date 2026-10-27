@@ -106,6 +106,8 @@ since is red; the latest (`60e9b7bfe6`) fails `generated-inputs`, which fails fa
 | D58 | Pine `manifest.json` binds `./generators/fauna` (not a JSON / generated module), so `parseManifestMetadata` refuses it and `test/page-boot-discovery.test.ts` cannot load (its module-level manifest parse throws); found while landing page-mode program discovery | `d97f0e46a6` | sp-o1 | fixed (sp-o1, this commit: the format admits a `./generators/<name>` spawns binding, the form scripts/manifest-spawns.mjs runs) |
 | D59 | For Jake's review (G20a, G769): `src/format/decisionScripts.ts` raises the decision-module cap from eight to nine, product-wide, so Pine's contract guest ships as a named module instead of 15,704 base64 characters in `quests/contracts.json`; `test/decision-module-cap.test.ts` pins nine and refuses ten. Nalati's practice course (GR6 B5) asks for the same ninth slot | this commit | sp-o1 (GR8) | open: Jake confirms the cap or names a module-budget design |
 
+| D60 | Required ratchet aborts before counts on stale generator-imports allowance for deleted src/shards/driftwood-isle/generators/bake-driftwood-fixed-models.mjs; exact tmp/sp-x1-crown-retire/ratchet.log | 8a0cba55cd | sp-x10 | open, routed; Far Reach touched rules measure0 |
+
 ## Rows
 
 Parked: none of these is built until SHARD-PLATFORM completes and Jake says go.

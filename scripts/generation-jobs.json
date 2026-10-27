@@ -3671,42 +3671,6 @@
       "seedOutputs": []
     },
     {
-      "id": "sky-crown-instances",
-      "shard": "far-reach",
-      "entry": "src/shards/far-reach/generators/crownInstances.ts",
-      "command": [
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/sdk/bake/json.mjs",
-        "src/shards/far-reach/generators/crownInstances.ts",
-        "crownInstances",
-        "src/shards/far-reach/data/crownInstances.generated.json"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "src/sdk/bake/json.mjs",
-        "src/sdk/bake/source-loader.mjs",
-        "src/sdk/package.json",
-        "src/shards/far-reach/generators/rows/bookStand.ts",
-        "src/shards/far-reach/generators/crownLayout.ts",
-        "src/shards/far-reach/generators/layout.ts",
-        "src/shards/far-reach/generators/modelFrames.ts",
-        "src/shards/far-reach/data/strings.json",
-        "src/shards/far-reach/generators/rows/trees.ts",
-        "src/shards/far-reach/generators/crownInstances.ts",
-        "src/shards/far-reach/generators/palette.ts",
-        "src/shards/far-reach/generators/rows/layoutTypes.ts"
-      ],
-      "outputs": [
-        "src/shards/far-reach/data/crownInstances.generated.json"
-      ],
-      "platform": "portable",
-      "buildOutputs": {
-        "src/shards/far-reach/data/crownInstances.generated.json": "3af611946d9a3c684fe659eeb7b1388c7d06c3a8dc0c6f0cc2577174e24191cb"
-      }
-    },
-    {
       "id": "sky-islet-motion",
       "shard": "far-reach",
       "entry": "src/shards/far-reach/generators/isletMotion.ts",
@@ -5506,7 +5470,6 @@
         "src/shards/far-reach/shard.config.ts",
         "src/shards/far-reach/generators",
         "src/shards/far-reach/data/islets.generated.json",
-        "src/shards/far-reach/data/crownInstances.generated.json",
         "src/shards/far-reach/data/plumbing.json",
         "src/shards/far-reach/manifest.json",
         "src/shards/far-reach/data/rocSlate.json",
