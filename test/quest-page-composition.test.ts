@@ -11,7 +11,9 @@ import { FigureRows } from '../src/game/systems/npc/figureRows';
 import { registerQuestPageWorld, questPageWorld } from '../src/game/quest/pageResources';
 import { installQuestTrader } from '../src/game/quest/trader';
 import { QuestPageCompositionSchema } from '../src/format/questPageComposition';
-import { output } from '../src/shards/driftwood-isle/generators/output';
+import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
+import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
+import { builtProduct } from './fixtures/builtProduct';
 import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
 import rows from '../src/shards/driftwood-isle/data/questPageComposition.json' with { type: 'json' };
 
@@ -71,9 +73,11 @@ test('page composition admits an authored place frame rather than a fixed island
   expect(() => v.parse(QuestPageCompositionSchema, { ...orchard, frames: { orchard: { x: 5, z: 8, rot: Number.NaN } } })).toThrow();
 });
 
-test('the emitted Driftwood page admits placement and ordered resources before installation', () => {
-  const file = output.namedFiles.find(row => row.name === 'quests/page-composition.json');
-  const bytes = file === undefined ? undefined : output.assets.get(file.hash);
+test('the emitted Driftwood page admits placement and ordered resources before installation', async () => {
+  const product = await loadHeadlessProduct(builtProduct('driftwood-isle')), output = outputDescriptor(product.shardfile);
+  if (output === undefined) throw new Error('Missing emitted product descriptor');
+  const file = output.index.files.find(row => row.name === 'quests/page-composition.json');
+  const bytes = file === undefined ? undefined : await product.file('quests/page-composition.json');
   if (file === undefined || bytes === undefined || file.jsonSchema === undefined) throw new Error('Missing page composition admission');
   const admitted = v.parse(QuestPageCompositionSchema, validateNamedJsonSchema(file.jsonSchema, bytes));
   const jsonSchema = file.jsonSchema;

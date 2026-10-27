@@ -6,6 +6,9 @@ import { build } from 'vite';
 import { expect, test } from 'vitest';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { nalatiSpeciesProgram } from '../src/shards/nalati-grasslands/generators/speciesProgram';
+import { compileDecisionScripts } from '../src/sdk/buildDecisionScripts';
+import { compileReturnProjectionV2 } from '../src/sdk/returnProjectionV2';
+import { NALATI_ADMISSION_PROGRAM } from './fixtures/nalati-admission';
 
 test('cold, persistent and rebuilt species preserve all five original files and detached loans', () => {
   const source = `
@@ -22,13 +25,13 @@ test('cold, persistent and rebuilt species preserve all five original files and 
     const pins=JSON.parse(readFileSync('test/fixtures/nalati-species-files.json','utf8'));
     const names=['species.json','bodies.bin','boot.json','held-weapons.wasm','held-witness.bin'];
     const cache=mkdtempSync(resolve('tmp/nalati-species-program-'));
-    const inputs=[],steps=[];let constructions=0;
+    const inputs=[],steps=[],admissionSteps=[];let constructions=0,admissions=0;
     const context=hash=>{
       const real=createProjectGeneration(resolve('src/shards/nalati-grasslands'),hash.repeat(64),new Map(),cache,
         [{prefix:'/assets/nalati/baked/',directory:resolve('public/assets/nalati/baked')}]);
-      return {compileReturnProjection:real.compileReturnProjection,cached:(step,make)=>{
-        inputs.push(...step.inputs);steps.push(step);
-        return real.cached(step,bytes=>{constructions++;return make(bytes);});
+      return {compileDecisionRows:real.compileDecisionRows,compileReturnProjection:real.compileReturnProjection,cached:(step,make)=>{
+        inputs.push(...step.inputs);(step.id==='species'?steps:admissionSteps).push(step);
+        return real.cached(step,bytes=>{if(step.id==='species')constructions++;else admissions++;return make(bytes);});
       }};
     };
     const build=ctx=>nalatiSpeciesProgram(ctx,value=>value,value=>v.parse(CreatureGuestSchema,value),hash=>'/assets/nalati/baked/bodies-'+hash+'.bin');
@@ -41,21 +44,26 @@ test('cold, persistent and rebuilt species preserve all five original files and 
       }
     };
     try{
-      const cold=await build(context('a'));check(cold);assert.equal(constructions,1);
+      const cold=await build(context('a'));check(cold);assert.equal(constructions,1);assert.equal(admissions,1);
       const before=new Map([...cold].map(([name,bytes])=>[name,bytes.slice()]));
       for(const bytes of cold.values())bytes.fill(0);
-      const warm=await build(context('a'));check(warm);assert.equal(constructions,1);
+      const warm=await build(context('a'));check(warm);assert.equal(constructions,1);assert.equal(admissions,1);
       for(const [name,bytes]of warm)assert.notEqual(bytes.buffer,cold.get(name).buffer);
-      check(await build(context('b')));assert.equal(constructions,2);check(before);
+      check(await build(context('b')));assert.equal(constructions,2);assert.equal(admissions,2);check(before);
       assert.deepEqual(steps.map(step=>[step.id,step.native]),[['species',true],['species',true],['species',true]]);
+      assert.deepEqual(admissionSteps.map(step=>[step.id,step.native]),[['admission-program',true],['admission-program',true],['admission-program',true]]);
       const authored=[...readDecisionSources('src/shards/nalati-grasslands').keys()].sort();
       assert.deepEqual(steps[0].inputs.filter(name=>name.endsWith('.as')).sort(),authored);
       for(const name of ['data/species.generated.json','boot/speciesRows.generated.json','behaviour/held-weapons.generated.wasm','behaviour/held-witness.generated.bin'])assert.ok(!inputs.includes(name),name);
       const noCompiler=context('c');delete noCompiler.compileReturnProjection;
-      await assert.rejects(build(noCompiler),/requires injected projection compilation/);
+      await assert.rejects(build(noCompiler),/Admission requires injected decision and projection compilers/);
+      const noDecision=context('d');delete noDecision.compileDecisionRows;
+      await assert.rejects(build(noDecision),/Admission requires injected decision and projection compilers/);
       // All complete pinned originals remain available: an omitted raw or authored input must still refuse.
       for(const omitted of ['/assets/nalati/baked/bodies.bin','behaviour/heldWeapons.as','data/bodies.json']){
-        await assert.rejects(build({cached:async(step,make)=>{
+        const supplied=context('a');
+        await assert.rejects(build({...supplied,cached:async(step,make)=>{
+          if(step.id!=='species')return supplied.cached(step,make);
           const bytes=new Map(step.inputs.filter(name=>name!==omitted).map(name=>[name,readFileSync(name.startsWith('/')?'public'+name:'src/shards/nalati-grasslands/'+name)]));
           return make(bytes);
         }}),/Missing original species input/);
@@ -70,7 +78,12 @@ test('empty, partial, extra and empty-byte persistent species inventories refuse
   const admit = (): never => { throw new Error('Unexpected source admission on cache hit'); };
   for (const files of [new Map<string, Uint8Array>(), new Map(names.slice(1).map(name => [name, new Uint8Array([1])])),
     new Map([...names, 'extra'].map(name => [name, new Uint8Array([1])])), new Map(names.map(name => [name, new Uint8Array()]))]) {
-    await expect(nalatiSpeciesProgram({ cached: () => Promise.resolve(files) }, admit, admit, admit)).rejects.toThrow('Owned species inventory differs');
+    const admission = new Map([['admission.json', new TextEncoder().encode(JSON.stringify(NALATI_ADMISSION_PROGRAM.program))],
+      ['admission.wasm', NALATI_ADMISSION_PROGRAM.wasm], ['admission-witness.bin', NALATI_ADMISSION_PROGRAM.witness]]);
+    await expect(nalatiSpeciesProgram({ compileDecisionRows: compileDecisionScripts,
+      compileReturnProjection: compileReturnProjectionV2,
+      cached: step => Promise.resolve(step.id === 'admission-program' ? admission : files),
+    }, admit, admit, admit)).rejects.toThrow('Owned species inventory differs');
   }
 });
 
