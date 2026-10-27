@@ -117,7 +117,10 @@ export function paintedGroundPainter(slug: string, input: unknown, tiles: unknow
         for (const [key, tileScope] of loaded) if (!keys.has(key)) { loaded.delete(key); tileScope.dispose(); }
         for (const row of groundTiles) if (keys.has(tileKey({ i: row.x, j: row.z }))) void loadLater(row);
       };
-      for (const row of groundTiles) await load(row);
+      // N1: only the spawn's ring loads before play (never all 64 tiles at once); the follower takes over from that centre
+      const spawn = product.shardfile.spawn, first = followTile(null, spawn.x, spawn.z), start = ring(first, radius);
+      centre = first;
+      for (const row of groundTiles) if (start.has(tileKey({ i: row.x, j: row.z }))) await load(row);
       for (let z = 0; z < 4; z++) for (let x = 0; x < 2; x++) {
         const name = `world/terrain/ground-l1-${String(x)}-${String(z)}.glb`; if (!product.hasFile(name) || scope.disposed) continue;
         const owned = createOwnedGeometry(`${slug} ${name}`);
