@@ -1,4 +1,4 @@
-import { InstancedMesh, MeshDepthMaterial, MeshDistanceMaterial, SkinnedMesh, type Material, type Object3D } from 'three';
+import { InstancedMesh, Material, MeshDepthMaterial, MeshDistanceMaterial, SkinnedMesh, type Object3D } from 'three';
 import type { Renderer } from './renderer';
 import type { AssetService } from '../app/assets';
 import type { Scope } from '../app/scope';
@@ -13,17 +13,29 @@ type ShadowRenderer = Pick<Renderer, 'renderBufferDirect'> & { shadowMap: Pick<R
  * three times a frame on the idle Template, the page's biggest idle allocation. A classic caster that is instanced or
  * skinned now draws its shadow with a depth material shared by its kind (its first shadow draw assigns it as the
  * caster's `customDepthMaterial`), so each depth material always sees one kind. Program keys do not name the material,
- * so the kinds link the programs the stock material already had. Casters whose depth draw needs a per-material variant
- * (a map, alpha map, displacement or clipping planes) and node materials (their own depth variants) stay as they were.
+ * so the kinds link the programs the stock material already had. three copies each caster's own depth facts (map, alpha
+ * map and test, side, clipping, displacement, wireframe) onto whatever depth material it draws, a custom one too, so a
+ * kind is also keyed by those facts of the caster's material: the plan-end probe found every Template `family:pbr`
+ * caster skipped, as its white filler map reached the stock material first. A caster whose depth three would give a
+ * per-material variant (`WebGLShadowMap.getDepthMaterial`: a map or alpha map with an alpha test, displacement, shadow
+ * clipping, alpha to coverage), a multi-material caster and a vertex-moving graph (the graph back-end's own depth
+ * variant, `graphShadowDepth`) stay as they were.
  */
-function depthKind(object: Object3D, depth: MeshDepthMaterial): string | null {
+function depthKind(object: Object3D): string | null {
   const own: unknown = Reflect.get(object, 'material');
-  const materials: readonly unknown[] = Array.isArray(own) ? own : [own];
-  if (materials.some(m => typeof m === 'object' && m !== null && Reflect.get(m, 'isNodeMaterial') === true)) return null;
-  if (depth.map !== null || depth.alphaMap !== null || depth.displacementMap !== null || (depth.clippingPlanes?.length ?? 0) > 0) return null;
-  if (object instanceof InstancedMesh) return `instanced${object.instanceColor === null ? '' : '+colour'}${object.morphTexture === null ? '' : '+morph'}`;
-  if (object instanceof SkinnedMesh) return 'skinned';
-  return null;
+  if (!(own instanceof Material)) return null;
+  if (Reflect.get(own, 'isNodeMaterial') === true && own.userData['graphShadowDepth'] === true) return null;
+  const field = (name: string): unknown => Reflect.get(own, name);
+  const has = (name: string): boolean => { const value = field(name); return value !== null && value !== undefined; };
+  const displacement = field('displacementScale');
+  if ((has('displacementMap') && displacement !== 0) || ((has('map') || has('alphaMap')) && own.alphaTest > 0) || own.alphaToCoverage
+    || (own.clipShadows && (own.clippingPlanes?.length ?? 0) > 0)) return null;
+  const base = object instanceof InstancedMesh ? `instanced${object.instanceColor === null ? '' : '+colour'}${object.morphTexture === null ? '' : '+morph'}`
+    : object instanceof SkinnedMesh ? 'skinned' : null;
+  if (base === null) return null;
+  const facts = [has('map') ? 'map' : '', has('alphaMap') ? 'alpha' : '', own.alphaTest > 0 ? 'test' : '', has('displacementMap') ? 'displace' : '',
+    field('wireframe') === true ? 'wire' : '', `side${String(own.shadowSide ?? own.side)}`];
+  return `${base}|${facts.filter(fact => fact !== '').join('+')}`;
 }
 
 /** Install after upload observation: native shadow cache materials must be registered before their first upload.
@@ -54,7 +66,7 @@ export function installShadowMaterialOwnership(renderer: ShadowRenderer, assets:
       scope.listenOnceEmitter(material, 'dispose', () => { assets.forgetDisposed(key); });
     }
     if (drawing && material instanceof MeshDepthMaterial && object.customDepthMaterial === undefined) {
-      const kind = depthKind(object, material);
+      const kind = depthKind(object);
       if (kind !== null) object.customDepthMaterial = kindOf(kind);
     }
     draw(camera, scene, geometry, material, object, group);

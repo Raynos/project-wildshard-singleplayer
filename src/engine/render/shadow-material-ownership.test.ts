@@ -1,5 +1,5 @@
 import { expect, test, vi } from 'vitest';
-import { BufferGeometry, Group, Mesh, MeshBasicMaterial, MeshDepthMaterial, PerspectiveCamera, Scene } from 'three';
+import { BufferGeometry, DataTexture, Group, InstancedMesh, Mesh, MeshBasicMaterial, MeshDepthMaterial, MeshStandardMaterial, PerspectiveCamera, Scene } from 'three';
 import { Scope } from '../app/scope';
 import { AssetService } from '../app/assets';
 import { ownSceneTree, sceneResourceOwner } from '../app/sceneOwnership';
@@ -80,4 +80,33 @@ test('a native depth variant three disposes with its source while a resident lea
   assets.register('plain', plain); assets.acquire('plain');
   expect(() => { assets.forgetDisposed('plain'); }).toThrow('Disposed asset still acquired: plain');
   page.dispose();
+});
+
+test('instanced casters get a depth material per kind and depth facts; plain and variant casters keep three\'s', () => {
+  const page = new Scope('renderer'), assets = new AssetService(), camera = new PerspectiveCamera(), scene = new Scene();
+  const stock = new MeshDepthMaterial(), geometry = new BufferGeometry(), filler = new DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1);
+  let pass: () => void = () => undefined;
+  const renderer = { renderBufferDirect: vi.fn<Renderer['renderBufferDirect']>(), shadowMap: { render: vi.fn<Renderer['shadowMap']['render']>(() => { pass(); }) } };
+  installShadowMaterialOwnership(renderer, assets, page);
+  // one shadow draw of `object` with the stock depth material, its map copied on first as three's getDepthMaterial does
+  const shadowDraw = (object: Mesh): void => {
+    pass = () => {
+      stock.map = object.material instanceof MeshStandardMaterial ? object.material.map : null;
+      renderer.renderBufferDirect(camera, scene, geometry, stock, object, { start: 0, count: 0, materialIndex: 0 });
+    };
+    renderer.shadowMap.render([], scene, camera);
+  };
+  const pbr = new MeshStandardMaterial({ map: filler }), plain = new Mesh(geometry, pbr), instanced = new InstancedMesh(geometry, pbr, 2);
+  const cutout = new InstancedMesh(geometry, new MeshStandardMaterial({ map: filler, alphaTest: 0.5 }), 2);
+  const bare = new InstancedMesh(geometry, new MeshStandardMaterial(), 2);
+  for (const object of [plain, instanced, cutout, bare]) shadowDraw(object);
+  expect(plain.customDepthMaterial).toBeUndefined(); // a plain caster keeps the stock material
+  expect(cutout.customDepthMaterial).toBeUndefined(); // three gives it a variant of its own
+  expect(instanced.customDepthMaterial).toBeInstanceOf(MeshDepthMaterial); // the white filler map no longer skips it
+  expect(bare.customDepthMaterial).toBeInstanceOf(MeshDepthMaterial);
+  expect(bare.customDepthMaterial).not.toBe(instanced.customDepthMaterial); // map presence keys a kind of its own
+  const twin = new InstancedMesh(geometry, new MeshStandardMaterial({ map: filler }), 3); shadowDraw(twin);
+  expect(twin.customDepthMaterial).toBe(instanced.customDepthMaterial);
+  expect(assets.has('renderer:shadow-kind:instanced|map+side0')).toBe(true);
+  page.dispose(); filler.dispose();
 });
