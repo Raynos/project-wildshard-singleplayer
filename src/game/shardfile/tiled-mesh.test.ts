@@ -177,6 +177,7 @@ test.each([false, true])('fused partition matches every original triangle ordina
       const owner = scope.child('tile'); held.set(tile, owner); resident.add(tile); void content.attach(tile, owner); check();
     }
     for (const tile of expectedTiles.filter((_, i) => i % 2 === 0)) { held.get(tile)?.dispose(); resident.delete(tile); check(); }
-    scope.dispose(); resident.clear(); check();
+    for (const tile of resident) { held.get(tile)?.dispose(); resident.delete(tile); check(); }
+    scope.dispose(); check();
   } finally { scope.dispose(); geometry.dispose(); mesh.material.dispose(); }
 });
