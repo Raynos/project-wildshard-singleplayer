@@ -17,7 +17,7 @@ inspected, browser/borrower closed. Prior e580 cold24.2/warm17.2s and
 
 | Row | G807 status from the existing own-lane reading |
 |---|---|
-| **G784 — Nalati crossing acceptance** | **open: 14.7169 s cold against 8 s (G807 reading/source 324fed1517)**; retained warm0.0334s against5s PASS. Own original muted phone4x/DPR2 Chromium pair completes with runtime/page/console/transport errors0, skipped0/context intact; matching textured ground in both portraits. Pose intake108ms/10calls versus earlier profiled214.6ms, without an isolated overall gain claim. World4137.4/shaders4097.8/parked2499.1ms remain; see grid-crossing G782.N4. Warm is retained, not rebuilt; arrival-firste03f is later than this reading. |
+| **G784 — Nalati crossing acceptance** | **open: 14.7169 s cold against 8 s (G807 reading/source 324fed1517)**; retained warm0.0334s against5s PASS. Own original muted phone4x/DPR2 Chromium pair completes with runtime/page/console/transport errors0, skipped0/context intact; matching textured ground in both portraits. Pose intake108ms/10calls versus earlier profiled214.6ms, without an isolated overall gain claim. World4137.4/shaders4097.8/parked2499.1ms remain; see grid-crossing G782.N4. Warm is retained, not rebuilt; arrival-firste03f is later than this reading. No further unowned non-shader CPU piece>=100ms identified in the retained profile/source audit; cold now waits on sp-o4's picked arrival-first entrye03fba56d3 behind Developer. No new reading taken for this mark. |
 
 Jake, 2026-10-21 ~08:20 Cancun: *"FFS grid readiness will never complete right? Make me a mini plan to complete grid
 readiness for one shard."* And: *"grid readiness should not be blocked on my iPhone; we should have a final iPhone
