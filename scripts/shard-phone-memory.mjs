@@ -2,6 +2,7 @@
 // Chromium as iPhone 16 Pro, phone tier, 2x render, muted. Samples three times 10 s apart after a 20 s settle: fps
 // over 4 s, JS heap, renderer + GPU process footprint (libproc phys_footprint), three.js memory counts.
 //   scripts/browser-lane.sh --max 10 node scripts/shard-phone-memory.mjs <preview url> <shard> <label> <out.json>
+// Heap: <preview URL> --heap templates <label> <out.json> [--rebase] (clean diagnostic only).
 // --floor samples at 10/60/120 s without forced GC, then diagnoses HTTP-cache retention.
 // It also accepts menu or select as the target, with the real Developer prefetch on.
 // Use core --floor --pin=<sha> for all four independent milestone floors.
@@ -471,6 +472,38 @@ return result;
 }
 
 async function main() {
+  if (process.argv[2] === 'heap-check') {
+    const [report,limits]=process.argv.slice(3);
+    if(!report||!limits||process.argv.length!==5)throw new Error('Expected heap-check <report.json> <ratchet.json>');
+    const {checkHeapRatchet}=await import('./memory/jsHeap.mjs');
+    const input=v.parse(v.object({readings:v.array(v.unknown())}),JSON.parse(readFileSync(report,'utf8')));
+    const verdict=checkHeapRatchet(input.readings,JSON.parse(readFileSync(limits,'utf8')));
+    console.info(JSON.stringify(verdict));if(!verdict.passed)process.exitCode=1;return;
+  }
+  if (process.argv[3] === '--heap') {
+    const [base, , target, label, out, flag] = process.argv.slice(2);
+    if (!base || !target || !label || !out?.endsWith('.json') || !['_template','blender-template','templates'].includes(target)
+      || (flag !== undefined && flag !== '--rebase') || process.argv.length > 8)
+      throw new Error('Expected <preview URL> --heap <_template|blender-template|templates> <label> <out.json> [--rebase]');
+    const {measureCleanHeap} = await import('./memory/heapReader.mjs');
+    const {checkHeapRatchet} = await import('./memory/jsHeap.mjs');
+    const ratchetFile=new URL('memory/js-heap-ratchet.json',import.meta.url);
+    const baseline=JSON.parse(readFileSync(ratchetFile,'utf8'));
+    const targets=target==='templates'?['_template','blender-template']:[target];
+    const readings=[];
+    for(const shard of targets) {
+      if(shard!=='_template'&&shard!=='blender-template')throw new Error('Unsupported heap target');
+      const row=await measureCleanHeap(base,shard);readings.push(row);
+      const m=row.metrics;
+      console.info(`${shard}: boot ${(m.bootAllocatedBytes/1048576).toFixed(2)} MiB; settled post-GC ${(m.settledUsedBytes/1048576).toFixed(2)} MiB; idle ${(m.idleBytesPerSecond/1048576).toFixed(3)} MiB/s; major GC ${m.majorGCsPer30Seconds.toFixed(2)}/30s`);
+    }
+    const verdict=checkHeapRatchet(readings,baseline,flag==='--rebase');
+    writeFileSync(out,`${JSON.stringify({label,base,readings,verdict},null,2)}\n`);
+    for(const failure of verdict.failures)console.error(failure);
+    if(!verdict.passed)process.exitCode=1;
+    else if(flag==='--rebase')writeFileSync(ratchetFile,`${JSON.stringify(verdict.ratchet,null,2)}\n`);
+    return;
+  }
   if (process.argv[2] === 'audit-estimate') {
     const [target, estimate] = process.argv.slice(3);
     if (process.argv.length !== 5 || target === undefined || estimate === undefined || !/^[0-9]+$/u.test(estimate)) throw new Error('Expected audit-estimate <floor> <estimated-bytes> with the native summary on stdin');

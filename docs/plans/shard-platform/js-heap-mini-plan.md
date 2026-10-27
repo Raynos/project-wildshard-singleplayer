@@ -1,6 +1,6 @@
 # JS heap mini plan: what the Template allocates, and the clean path to measure it (E501)
 
-**State:** `planned` 2026-10-24 — Jake ruled the decisions (G731); built after the current extras (G683 order). Was: draft 2026-10-24, for Jake to read; not sent to the builder (Jake, ~22:05). Ask
+**State:** `in flight` 2026-10-27 (sp-x9, G769; types/lint landings, baselines pending) — was `planned` 2026-10-24 — Jake ruled the decisions (G731); built after the current extras (G683 order). Was: draft 2026-10-24, for Jake to read; not sent to the builder (Jake, ~22:05). Ask
 [E501](../../tasks/asks/E501.md). Mini plan of [SHARD-PLATFORM](../SHARD-PLATFORM.md).
 
 Jake (2026-10-24): *"Separate mini plan / mini audit to benchmaxx the JavaScript heap allocator in the browser,
@@ -229,7 +229,7 @@ numbers; a row's lane re-measures before/after with G1.
 
 | Row | What | Saves (heap / alloc per s / GC) | Owner | Effort | Done when |
 |---|---|---|---|---|---|
-| G1 | **Guard first:** `scripts/shard-phone-memory.mjs --heap <shard>` on the clean path (Developer off, no pins, direct `/?chunk=`): boot allocated MiB, settled used after GC, idle MiB/s over 60 s, major GCs per 30 s; checked against `scripts/memory/js-heap-ratchet.json`, **exit 1 on > 10 % regression**, ratchet only lowers (`--rebase` refuses an increase) | n/a: makes every row below measurable and refuses regressions | Codex | S | one command prints the four readings for `_template` and `blender-template` and fails on a seeded regression in its test; run at milestones and by each row's lane |
+| G1 | **Guard first:** `scripts/shard-phone-memory.mjs --heap <shard>` on the clean path (Developer off, no pins, direct `/?chunk=`): boot allocated MiB, settled used after GC, idle MiB/s over 60 s, major GCs per 30 s; checked against `scripts/memory/js-heap-ratchet.json`, **exit 1 on > 10 % regression**, ratchet only lowers (`--rebase` refuses an increase) | n/a: makes every row below measurable and refuses regressions | done source (2026-10-27, sp-x9; this commit), baseline pending G769 | S | one command prints the four readings for `_template` and `blender-template` and fails on a seeded regression in its test; run at milestones and by each row's lane |
 | H1 | Stop per-draw program re-evaluation: find the materials that flip `needsProgramChange` (instanced/plain or skinned/plain sharing a material, shared shadow depth material, per-frame light-state version) and give each variant its own material/depth material, or keep the light count stable | ~1.4 MiB/s idle, fewer major GCs, CPU per draw | Opus (render) | M | idle `getParameters` + `getProgramCacheKey` < 0.05 MiB/s; `renderer.info.programs` and the look unchanged |
 | H2 | Tile streamer stationary early-out: skip `planDesired` when the camera's ring tile and the budget are unchanged; reuse work rows; key catalogue lookups numerically | ~0.8 MiB/s | Codex | S | `tileStreamer.ts` < 0.05 MiB/s at idle; walk test unchanged |
 | H3 | Checkpoint only when state changed: dirty flag or compare with the last written string; `SaveStore` keeps its parsed doc instead of re-reading `savedDoc` per write; script memory checkpoint as bytes (base64 once), not `number[]` | ~0.65 MiB/s, plus the save I/O | Codex | M | an idle checkpoint with unchanged state allocates < 50 KiB; saves round-trip tests green |
@@ -255,3 +255,25 @@ Target after H1–H5 (D2): Template idle churn ≤ 0.5 MiB/s and ≤ 2 major GCs
 | D4 | Where do these rows run? | **As extras under G639's order**, G1 first, then H1–H5 (they are idle frame-time work as well as memory). |
 
 Template 2 (`blender-template`) was not captured in this pass; G1 covers it.
+
+
+## G1 implementation (G769)
+
+The existing reader accepts:
+
+    scripts/browser-lane.sh --max 10 node scripts/shard-phone-memory.mjs <preview> --heap templates <label> <out.json> [--rebase]
+
+Each Template has a fresh muted Chromium instance, phone tier, 2× render,
+Developer off, blocked service workers and no harness pins. Sampling begins
+before the direct chunk navigation. The reader prints sampled boot allocation,
+post-GC settled used bytes, sampled idle allocation per second over 60 seconds,
+and outer MajorGC events per 30 seconds. Collected allocations are included.
+This is a distinct diagnostic; native WebKit floor acceptance is unchanged.
+
+The versioned ratchet starts empty: a missing baseline is pending and exits
+one. An explicit qualified `--rebase` seeds it, then can only lower every
+existing metric. Normal readings refuse any metric above 110% of baseline.
+The offline `heap-check <report.json> <ratchet.json>` command and seeded
+regression controls are included. Per G769 only touched types and lint run
+before landing; both Template baselines and executed regression qualification
+remain pending until readings resume after the build plan.
