@@ -8,7 +8,7 @@ import { runPrecompile, setWarmUpHeld, type CompileJob } from './precompile';
 
 interface Event { readonly kind: 'compile' | 'ready' | 'uniforms'; readonly id: number; readonly frame: number; readonly cost: number }
 async function issue(options: { compileMs: number; queryMs: number; readyMs?: number; misses?: number; cancel?: boolean;
-  shared?: boolean; initialMs?: number; failure?: Error; groups?: 'cached' | 'cold' | 'slow' }) {
+  shared?: boolean; initialMs?: number; failure?: Error; groups?: 'cached' | 'cold' | 'slow'; held?: boolean }) {
   const renderer: unknown = Object.create(WebGLRenderer.prototype);
   if (!(renderer instanceof WebGLRenderer)) throw new Error('Renderer missing');
   const geometry = new BoxGeometry(), materials = Array.from({ length: 8 }, () => new MeshBasicMaterial());
@@ -56,7 +56,7 @@ async function issue(options: { compileMs: number; queryMs: number; readyMs?: nu
     return Promise.resolve();
   };
   try {
-    noteFrameDrawn(now, now, 30); setBuildHeld(true); setWarmUpHeld(true);
+    noteFrameDrawn(now, now, 30); setBuildHeld(options.held !== false); setWarmUpHeld(options.held !== false);
     const warming = runPrecompile(renderer, new PerspectiveCamera(), jobs, materials.length, undefined, [], () => current,
       true, pause, undefined, (phase, _ms, units) => { if (phase === 'link') pendingAfterIssue = units;
         if (phase === 'cached-compile') cachedDuringIssue = units; }, 6);
@@ -136,4 +136,12 @@ test('slow cached group work keeps its explicit slice rather than rebasing', asy
   const result = await issue({ compileMs: 3, initialMs: 12, queryMs: 1, shared: true, groups: 'slow' });
   expect(result.cachedDuringIssue).toBe(0);
   expect(result.events.filter(event => event.kind === 'compile').map(event => event.frame)).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
+});
+
+test('moving frames retain ordinary paced preparation for new groups', async () => {
+  const result = await issue({ compileMs: 3, initialMs: 12, queryMs: 1, shared: true, groups: 'cached', held: false });
+  expect(result.cachedDuringIssue).toBe(0);
+  const frames = result.events.filter(event => event.kind === 'compile').map(event => event.frame);
+  expect(new Set(frames).size).toBe(8);
+  expect(result.events.filter(event => event.kind === 'uniforms')).toHaveLength(1);
 });

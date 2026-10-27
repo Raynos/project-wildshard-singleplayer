@@ -1149,7 +1149,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
       // A later material can reuse this resolved program with new CPU-only
       // group bindings. The handler must prove its native catalogue exists;
       // missing catalogues retain the ordinary first-use/link queue.
-      if (cachedOnly && resolvedPrograms.has(program) && needsBlocks(program)) prepareBlocks(program, true);
+      if (cachedOnly && buildHeld() && presenting() && resolvedPrograms.has(program) && needsBlocks(program)) prepareBlocks(program, true);
       knownPrograms++; if (needsPreparation(program)) cachedOnly = false;
     }
     cachedOnly &&= knownPrograms > 0 && knownPrograms === issuedPrograms.size;
