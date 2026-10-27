@@ -50,3 +50,13 @@ test('a real source refusal is preserved and blocks later publication', async ()
   for (const result of results) { if (result.status !== 'rejected') throw new Error('A refused refinement published'); const reason: unknown = result.reason; expect(reason).toBe(refusal); }
   expect(later).not.toHaveBeenCalled();
 });
+
+
+test('settled tile identities can return without retaining a permanent job history', async () => {
+  const f = fixture(), run = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
+  const first = f.queue.add('tile', { x: 0, z: 0 }, run);
+  await expect(f.queue.add('tile', { x: 1, z: 0 }, run)).rejects.toThrow('duplicate');
+  reachControl(f.level); f.paint(); f.paint(); expect(await first).toBe(true);
+  expect(await f.queue.add('tile', { x: 1, z: 0 }, run)).toBe(true);
+  expect(run).toHaveBeenCalledTimes(2);
+});

@@ -112,7 +112,9 @@ export class TileDriver {
   }
   private complete(key: number): boolean {
     const tile = this.attached.render.get(key);
-    return tile !== undefined && this.contents.every(content => !content.tiles().has(key) || tile.done.has(content));
+    // prepare records irrelevant stages too; a hot coarse mask needs only
+    // the publication count, never every content's allocated tile set.
+    return tile !== undefined && tile.done.size >= this.contents.length;
   }
 
   private live(): void {

@@ -19,10 +19,11 @@ export class ControlRefinement {
   private active = false;
   private scheduled = false;
   private busy = false;
+  private sequence = 0;
   private failure: Error | undefined;
   constructor(owner: Scope, level: Scope | undefined, position: () => Point, pause: () => Promise<void>) {
     this.owner = owner; this.position = position; this.pause = pause;
-    owner.onDispose(() => { for (const job of this.waiting.values()) job.resolve(false); this.waiting.clear(); });
+    owner.onDispose(() => { for (const job of this.waiting.values()) job.resolve(false); this.waiting.clear(); this.known.clear(); });
     if (level === undefined) this.active = true;
     else whenControl(level, owner, () => { owner.raf(() => { owner.raf(() => { this.active = true; this.kick(); }); }); });
   }
@@ -32,7 +33,7 @@ export class ControlRefinement {
     if (this.owner.disposed || this.owner.disposing) return Promise.resolve(false);
     if (this.failure !== undefined) return Promise.reject(this.failure);
     if (id.length === 0 || this.known.has(id) || !Number.isFinite(at.x) || !Number.isFinite(at.z)) return Promise.reject(new Error('Invalid or duplicate refinement job'));
-    const order = this.known.size; this.known.add(id);
+    const order = this.sequence++; this.known.add(id);
     const result = new Promise<boolean>((resolve, reject) => { this.waiting.set(id, { id, at: { ...at }, order, run, resolve, reject }); });
     this.kick(); return result;
   }
@@ -54,6 +55,7 @@ export class ControlRefinement {
         this.waiting.delete(job.id);
         try {
           await job.run();
+          this.known.delete(job.id);
           job.resolve(!this.owner.disposed && !this.owner.disposing);
           if (this.waiting.size > 0 && !this.owner.disposed && !this.owner.disposing) await this.pause();
         } catch (error) {
@@ -61,14 +63,14 @@ export class ControlRefinement {
           const refusal = error instanceof Error ? error : new Error('Refinement failed', { cause: error });
           this.failure = refusal; job.reject(refusal);
           for (const queued of this.waiting.values()) queued.reject(refusal);
-          this.waiting.clear(); break;
+          this.waiting.clear(); this.known.clear(); break;
         }
       }
     } catch (error) {
       const refusal = error instanceof Error ? error : new Error('Refinement failed', { cause: error });
       this.failure = refusal;
       for (const queued of this.waiting.values()) queued.reject(refusal);
-      this.waiting.clear();
+      this.waiting.clear(); this.known.clear();
     } finally { this.busy = false; }
   }
 }
