@@ -1,6 +1,6 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify the original generated wire and raw sidecar bytes.
 import {readFileSync} from 'node:fs';
-import { NALATI_KOKPAR, NALATI_KOKPAR_WASM } from './fixtures/nalati-kokpar';
+import { NALATI_KOKPAR, NALATI_KOKPAR_WASM, NALATI_CURRENT_KOKPAR, predecessorKokparScript } from './fixtures/nalati-kokpar';
 import * as v from 'valibot';
 import {expect,test} from 'vitest';
 import {ReturnProgramSchema} from '../src/format/namedJsonContracts';
@@ -20,6 +20,19 @@ const stored=v.parse(v.looseObject({program:ReturnProgramSchema,course:ReturnPro
   compiled:v.strictObject({source:v.string(),bytes:v.number()})}),
   input);
 const inline={...kokparProgram,bytes:Buffer.from(kokparModuleBytes).toString('base64')};
+
+test('predecessor script order retains every raw compiler field and refuses metadata changes', () => {
+  const before = NALATI_KOKPAR.program.script, current = NALATI_CURRENT_KOKPAR.program.script;
+  expect(Object.keys(before).at(-1)).toBe('sourceHash');
+  expect(JSON.stringify(predecessorKokparScript(before, current))).toBe(JSON.stringify(before));
+  expect(before).toEqual(current);
+  for (const changed of [{ ...before, pages: before.pages + 1 }, { ...before, sourceHash: '0'.repeat(64) },
+    { ...before, fields: {} }, { ...before, unexpected: true }]) {
+    expect(() => predecessorKokparScript(changed, current)).toThrow('Original compiler metadata or order differs');
+  }
+  const { sourceHash: _sourceHash, ...missing } = before;
+  expect(() => predecessorKokparScript(missing, current)).toThrow('Original compiler metadata or order differs');
+});
 
 test('the original quest and bow guest retains every metadata and module byte',()=>{
   expect(kokparProgram.bytes).toBe('');expect(kokparModuleBytes.byteLength).toBe(10468);
