@@ -70,8 +70,9 @@ test('the build-time cover keeps every original cover file byte', async () => {
   const tierRows = (tier: 'phone' | 'desktop'): unknown => {
     const catalogue: unknown[] = [];
     for (const row of made.rows[tier].catalogue) {
-      const parsed = v.parse(v.looseObject({ model: v.looseObject({}) }), row);
-      catalogue.push({ ...parsed, model: { ...parsed.model, file: 'src/shards/nalati-grasslands/generators/bake-cover.mjs' } });
+      const parsed = v.parse(v.looseObject({ model: v.looseObject({ file: v.string() }) }), row);
+      // the pinned bytes name the retired job's own script, beside the new producer
+      catalogue.push({ ...parsed, model: { ...parsed.model, file: parsed.model.file.replace('/coverBake.mjs', '/bake-cover.mjs') } });
     }
     return { ...made.rows[tier], catalogue, packed: { ...made.rows[tier].packed, bin: `/assets/nalati/baked/cover-${tier}.bin` } };
   };
