@@ -5,7 +5,7 @@ import { COUNTER_TOP } from './counterLayout';
 import { CREATURE_LOOKS } from './creatureLook';
 import { FIREFLY_LOOK } from './fireflyLook';
 import { GULL_GRAPH_LOOK } from './gullGraphLook';
-import spots from '../data/spots.generated.json' with { type: 'json' };
+import { DRIFTWOOD_SPOTS as spots } from './spots';
 import { driftwoodZiplineBank, type ZiplineRows } from './ziplineBank';
 import { ISLAND_LOOKS } from './islandLook';
 import { ISLAND_LOOK, ISLAND_TIERS } from './islandRows';

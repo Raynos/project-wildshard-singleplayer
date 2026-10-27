@@ -10,7 +10,7 @@ import { driftwoodWorldUpdates } from './worldUpdates';
 import { DRIFTWOOD_NATIVE_QUEST } from './nativeQuest';
 import { GULL_DRAW } from './gullDraw';
 import { FISH_DRAW } from './fishDraw';
-import nativeQuestSpots from '../data/spots.generated.json' with { type: 'json' };
+import { DRIFTWOOD_SPOTS as nativeQuestSpots } from './spots';
 import { QuestPageCompositionSchema } from '@wildshard/format/questPageComposition';
 import pageComposition from '../data/questPageComposition.json' with { type: 'json' };
 import { driftwoodQuestContinuation } from './lootBag';

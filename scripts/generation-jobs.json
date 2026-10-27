@@ -1844,37 +1844,6 @@
       "seedOutputs": []
     },
     {
-      "id": "driftwood-spots",
-      "shard": "driftwood-isle",
-      "entry": "src/shards/driftwood-isle/generators/spots.ts",
-      "command": [
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/sdk/bake/json.mjs",
-        "src/shards/driftwood-isle/generators/spots.ts",
-        "driftwoodSpots",
-        "src/shards/driftwood-isle/data/spots.generated.json"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "src/format/package.json",
-        "src/sdk/bake/json.mjs",
-        "src/sdk/bake/source-loader.mjs",
-        "src/sdk/package.json",
-        "src/shards/driftwood-isle/data/spotsRows.json",
-        "src/shards/driftwood-isle/generators/spots.ts"
-      ],
-      "outputs": [
-        "src/shards/driftwood-isle/data/spots.generated.json"
-      ],
-      "platform": "portable",
-      "buildOutputs": {
-        "src/shards/driftwood-isle/data/spots.generated.json": "0d0e0d4cb2fe749ae8511e399171998849c22cbb4141cf2dd549e882c775e6db"
-      },
-      "seedOutputs": []
-    },
-    {
       "id": "pine-timber-world",
       "shard": "pine-hollow",
       "entry": "src/shards/pine-hollow/generators/bake-pine-lookout.mjs",

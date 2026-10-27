@@ -16,7 +16,7 @@ import source from '../../fixtures/driftwood-product-source';
 import { driftwoodFixedAssets } from '../../fixtures/driftwood-fixed-bank';
 import bossRows from '../../../src/shards/driftwood-isle/data/bossEncounter.json' with { type: 'json' };
 import { readNativeQuestSpots } from '../../fixtures/native-hosts/quest/nativeComposition';
-import nativeQuestSpots from '../../../src/shards/driftwood-isle/data/spots.generated.json' with { type: 'json' };
+import { DRIFTWOOD_SPOTS as nativeQuestSpots } from '../../../src/shards/driftwood-isle/generators/spots';
 import policy from '../../../src/shards/driftwood-isle/data/nativeQuest.json' with { type: 'json' };
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import { serializeSimSnapshot, snapshotSimHost } from '../../../src/engine/sim/snapshot';

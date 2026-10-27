@@ -5,7 +5,7 @@ import { NativeQuestPropsSchema , type NativeQuestPropsRows as NativeQuestPropsR
 import { autoFlag , type Cond as CondType } from '@wildshard/engine/world/interact/types';
 import { DRIFTWOOD_INTERACT } from './interactables';
 import { DECLARED_SEA } from './sea';
-import spots from '../data/spots.generated.json' with { type: 'json' };
+import { DRIFTWOOD_SPOTS as spots } from './spots';
 import physics from '../data/physics.generated.json' with { type: 'json' };
 import policy from '../data/nativeQuest.json' with { type: 'json' };
 

@@ -3,7 +3,7 @@ import { autoFlag, createQuestPlacements, bindInteractPlacements, readInteractPl
 import { bindInteractionState, Flags } from '../src/engine/world/interact/flags';
 import { pineTableFromPlacements } from '../src/shards/pine-hollow/generators/questTable';
 import { pineSpots } from '../src/shards/pine-hollow/generators/spots';
-import driftwood from '../src/shards/driftwood-isle/data/spots.generated.json' with { type: 'json' };
+import { DRIFTWOOD_SPOTS as driftwood } from '../src/shards/driftwood-isle/generators/spots';
 import { DRIFTWOOD_INTERACT } from '../src/shards/driftwood-isle/generators/interactables';
 
 // GR8: called, not read from a scheduler job's output

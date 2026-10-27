@@ -1,6 +1,6 @@
 import { parseNativeQuestComposition } from '@wildshard/format/nativeQuestComposition';
 import authored from '../data/nativeQuest.json' with { type: 'json' };
-import spots from '../data/spots.generated.json' with { type: 'json' };
+import { DRIFTWOOD_SPOTS as spots } from './spots';
 
 /** Existing native mechanics retain the world frame and exact legacy save order. */
 export const DRIFTWOOD_NATIVE_QUEST: ReturnType<typeof parseNativeQuestComposition> = parseNativeQuestComposition({
