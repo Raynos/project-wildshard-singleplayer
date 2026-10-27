@@ -52,8 +52,6 @@ export function generatedImportContext(root,files,sources=[]){
 /** Existing registered producers are data, not an executable discovery/build. */
 export function generatedOutputPaths(root){
   const files=new Set();
-  const jobs=resolve(root,'scripts/generation-jobs.json');
-  if(existsSync(jobs))for(const row of JSON.parse(readFileSync(jobs,'utf8')).jobs)for(const file of row.outputs)files.add(file);
   const sources=resolve(root,'scripts/source-generation-outputs.json');
   if(existsSync(sources))for(const rows of Object.values(JSON.parse(readFileSync(sources,'utf8')).producers))for(const file of rows)files.add(file);
   return files;

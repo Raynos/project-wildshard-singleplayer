@@ -7,7 +7,6 @@ import {outputCensus,portHeadline,codeLines,shaderCodeLines} from './shard-platf
 import {outputContent} from './shard-output-content.mjs';
 import {customSectionFailures} from './shard-platform-sections.mjs';
 import {createOutputReader} from './shard-platform-output.mjs';
-import {writeGeneratorInventory} from './generator-inventory.mjs';
 import {gridReady,m3Progress,planProgress,unknownGridReady,M2_GRID_PLOT_CELLS} from './shard-milestones.mjs';
 import {decisionLegacyLines} from './decision-legacy-lines.mjs';
 import {runtimeReceiptPaths} from './grid-runtime-evidence.mjs';
@@ -85,8 +84,3 @@ export async function outputReport(root,{build=true,sourceProgress=false,product
   return {rows,measures,inventory,dailyLines,netLines:netLineReport(current,baselines,platform),progress:planProgress(rows,plots),sectionFailures:customSectionFailures(root,sections),productFailures,measurementError};
 }
 
-/** Cycle-free post-output publication. gen calls neither the builder nor ruler.
- * @param {string} root @param {Record<string,import('./shard-platform.mjs').ShardLines>} measures */
-export function refreshOutputReports(root,measures) {
-  writeGeneratorInventory(root,measures);
-}

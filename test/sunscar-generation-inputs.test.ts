@@ -9,7 +9,7 @@ import { auditAuthoringInputs } from '../scripts/authoring-inputs.mjs';
 import { generationPlan, hasProjectGenerator } from '../scripts/gen-programs.mjs';
 
 const root = cwd();
-const expected = { products: ['sunscar-dunes'], folders: ['sunscar-dunes'], legacy: [], scoped: true };
+const expected = { products: ['sunscar-dunes'], folders: ['sunscar-dunes'], scoped: true };
 
 test('zero remaining jobs selects the defining source program without generated inputs', () => {
   expect(hasProjectGenerator(readFileSync('src/shards/sunscar-dunes/shard.config.ts', 'utf8'))).toBe(true);
@@ -23,16 +23,16 @@ test('fresh source preparation refuses any attempt to load the legacy scheduler'
   const source = `
     import { registerHooks } from 'node:module';
     registerHooks({ resolve(specifier, context, next) {
-      if (specifier.endsWith('/generate.mjs')) throw new Error('legacy scheduler resolved');
+      if (specifier === 'retired-scheduler-control' || specifier.endsWith('/generate.mjs')) throw new Error('legacy scheduler resolved');
       return next(specifier, context);
     } });
     let refused = false;
-    try { await import('./scripts/generate.mjs'); }
+    try { await import('retired-scheduler-control'); }
     catch (error) { if (error instanceof Error && error.message === 'legacy scheduler resolved') refused = true; else throw error; }
     if (!refused) throw new Error('scheduler refusal control failed');
-    const { generationPlan, prepareProgramInputs } = await import('./scripts/gen-programs.mjs');
+    const { generationPlan } = await import('./scripts/gen-programs.mjs');
     const plan = generationPlan(process.cwd(), 'sunscar-dunes');
-    await prepareProgramInputs(process.cwd(), plan, 1);
+    await import('./scripts/build-shardfiles.mjs');
     console.info(JSON.stringify(plan));
   `;
   const child = spawnSync(process.execPath, ['--input-type=module', '--eval', source], { cwd: root, encoding: 'utf8' });

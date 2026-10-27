@@ -24,8 +24,7 @@ def phase_outputs(repo, revision, generated, records, deadline=None):
     if hashlib.sha256(text.encode()).hexdigest() != seal or saved['root'] != str(generated):
         raise ValueError('Invalid generation phase cache')
     tracked = {row.split(b'\t', 1)[1].decode(): row.split(b'\t', 1)[0].split()[2] for row in records}
-    registered = json.loads(subprocess.check_output(['git', 'show', revision + ':scripts/generation-jobs.json'], cwd=repo)) if 'scripts/generation-jobs.json' in tracked else {'jobs': []}
-    declared = {name for job in registered['jobs'] for name in job['outputs']}
+    declared = set()
     if 'scripts/source-generation-outputs.json' in tracked:
         source = json.loads(subprocess.check_output(['git', 'show', revision + ':scripts/source-generation-outputs.json'], cwd=repo))
         declared.update(name for rows in source['producers'].values() for name in rows)
@@ -116,7 +115,7 @@ def phase_roots(generated):
         post = json.loads(post_file.read_text())
         files.update(name for name in post['inputs'] if '/' not in name)
         folders.update({'.', 'src', 'scripts', 'lint', 'vite', 'budgets'})
-    return sorted(files | folders | {'scripts/generation-jobs.json'})
+    return sorted(files | folders | {'scripts/source-generation-outputs.json'})
 
 
 def publish(repo, revision, generated, deadline=None):

@@ -31,28 +31,16 @@ export function gitSourceView(root, revision) {
   }
   /** @type {Map<string,Buffer>} */
   const cache = new Map();
-  /** @type {Map<string,string>|undefined} */ let generatedPins;
+  // Only the maintained literal discovery-table writer owns these outputs.
+  const sourceRegistry='scripts/source-generation-outputs.json';
+  if(files.has(sourceRegistry)){
+    const registry=v.parse(v.object({producers:v.record(v.string(),v.array(v.string()))}),JSON.parse(command(['show',`${revision}:${sourceRegistry}`]).toString('utf8')));
+    const outputs=registry.producers['scripts/gen-shards.mjs'];
+    if(outputs!==undefined)for(const file of outputs)sourceProviders.set(file,{id:'source-discovery',outputs,nativeOutputs:outputs});
+  }
   /** @returns {boolean} */
   const admitGenerated=(/** @type {string} */ path)=>{
-    if(generatedPins===undefined){
-      generatedPins=new Map();
-      if(files.has('scripts/generation-jobs.json')){
-        const catalogue=v.parse(v.object({jobs:v.array(v.object({id:v.optional(v.string(),''),outputs:v.array(v.string()),buildTimeOutputs:v.optional(v.array(v.string()),[]),buildOutputs:v.optional(v.record(v.string(),v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))),{})}))}),JSON.parse(command(['show',`${revision}:scripts/generation-jobs.json`]).toString('utf8')));
-        for(const job of catalogue.jobs){
-          for(const [file,hash] of Object.entries(job.buildOutputs)){
-            if(!job.outputs.includes(file))throw new Error(`Undeclared generated pin: ${file}`);
-            generatedPins.set(file,hash);
-          }
-          if(job.buildTimeOutputs.length>0&&job.id==='')throw new Error('Source provider requires its declared identity');
-          const nativeOutputs=[...new Set([...job.buildTimeOutputs,...Object.keys(job.buildOutputs)])];
-          if(job.id!=='')for(const file of nativeOutputs)if(!sourceProviders.has(file))sourceProviders.set(file,{id:job.id,outputs:job.outputs,nativeOutputs});
-        }
-      }
-    }
-    // A registered provider owns untracked output bytes. Historical catalogue
-    // hints cannot override its current result or admit a stale loose file.
-    // Retained tracked files are checked against Git by the caller.
-    const pin=generatedProofs.get(path)??(sourceProviders.has(path)?undefined:generatedPins.get(path));if(pin===undefined)return false;
+    const pin=generatedProofs.get(path);if(pin===undefined)return false;
     try{
       const bytes=actualRead(resolve(root,path));
       if(createHash('sha256').update(bytes).digest('hex')!==pin)return false;
@@ -193,32 +181,22 @@ export async function deriveGitStarterTables(view) {
  * @param {ReturnType<typeof gitSourceView>} view @param {string} path */
 export function deriveGitDiscovery(view,path) {
   const {WS_GIT_NATIVE_ROOT:nativeRoot}=process.env;
-  if(nativeRoot!==view.root||!view.files.has('scripts/generation-jobs.json'))return false;
+  if(nativeRoot!==view.root)return false;
   if(view.admitGenerated(path))return true;
   const job=view.sourceProviders.get(path);
   if(job===undefined)return false;
   for(const file of job.nativeOutputs)if(!job.outputs.includes(file)||!file.startsWith('src/')&&!file.startsWith('public/')||file.split('/').includes('..'))throw new Error(`Invalid native source output: ${file}`);
-  const tracked=job.nativeOutputs.filter(file=>view.files.has(file));
+  if(job.id!=='source-discovery')throw new Error('Unknown source table provider');
   const source=`
-    import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
-    import {resolve,dirname} from 'node:path';
-    import {generateShardJob,discoverGeneration} from './scripts/generate.mjs';
-    const job=discoverGeneration(process.cwd()).jobs.find(row=>row.id===process.argv[1]);
-    if(job===undefined)throw new Error('Missing declared source provider');
-    const tracked=new Set(JSON.parse(process.argv[2]));
-    const outputs=JSON.parse(process.argv[3]);
-    const result=await generateShardJob(process.cwd(),job);
-    try {
-      for(const file of outputs){
-        if(!job.outputs.includes(file))throw new Error('Undeclared native source output');
-        if(tracked.has(file))continue;
-        const output=resolve(file);mkdirSync(dirname(output),{recursive:true});
-        writeFileSync(output,readFileSync(resolve(result.directory,file)));
-      }
-      console.log(JSON.stringify(result.hashes));
-    } finally {result.release();}
+    import {readFileSync} from 'node:fs';
+    import {createHash} from 'node:crypto';
+    import {genShards} from './scripts/gen-shards.mjs';
+    const outputs=JSON.parse(process.argv[1]);
+    genShards(process.cwd());
+    console.log(JSON.stringify(Object.fromEntries(outputs.map(file=>[file,createHash('sha256').update(readFileSync(file)).digest('hex')]))));
   `;
-  const output=execFileSync('python3',['scripts/heavy-lane.py','build','--',process.execPath,'--input-type=module','--eval',source,'--',job.id,JSON.stringify(tracked),JSON.stringify(job.nativeOutputs)],{cwd:view.root,encoding:'utf8',maxBuffer:8*1024*1024});
+  const output=execFileSync(process.execPath,['--experimental-transform-types','--import','./scripts/shard-platform-format.mjs','--input-type=module','--eval',source,'--',JSON.stringify(job.nativeOutputs)],{cwd:view.root,encoding:'utf8',maxBuffer:8*1024*1024,
+    env:{...process.env,WS_GIT_CHECK_ROOT:view.root,WS_GIT_CHECK_REV:view.revision}});
   const line=output.trim().split('\n').at(-1);
   if(line===undefined)throw new Error('Missing generated-output proof');
   const hashes=v.parse(v.record(v.string(),v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))),JSON.parse(line));

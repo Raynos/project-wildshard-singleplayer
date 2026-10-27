@@ -29,10 +29,11 @@ with tempfile.TemporaryDirectory(dir=repo/'tmp', prefix='gen-docs-test-') as fol
     for file, function in [('gen-budget-derivations','genBudgetDerivations'),('generate','prepareGeneration'),('gen-starter-arm-clips','genStarterArmClips'),('gen-starter-weapons','genStarterWeapons'),('gen-starter-bag','genStarterBag'),('gen-starter-effects','genStarterEffects'),('gen-decision-policy','genDecisionPolicies'),('gen-format-schema','writeFormatJsonSchemas'),('gen-shard-words','genShardWords')]:
         module(file, 'export function '+function+'(){'+record(function)+'}')
     module('push-post-inputs', 'export function beginPushInputs(){return ()=>{'+record('seal')+'}}')
+    module('source-input-proof', 'export function beginProgramInputProof(){return ()=>{'+record('program-proof')+'}}')
     put('scripts/app-build/gen.ts', "import {appendFileSync} from 'node:fs';export function generateBootTables(){"+record('boot')+'}')
     put('scripts/gen.mjs', game_source)
     put('scripts/docs.mjs', docs_source)
-    for file, function in [('gen-api','writeApiDocs'),('gen-host-catalogue','writeHostCatalogue'),('generator-inventory','writeGeneratorInventory')]:
+    for file, function in [('gen-api','writeApiDocs'),('gen-host-catalogue','writeHostCatalogue')]:
         module(file, 'export function '+function+'(root){if(root!==new URL("../",import.meta.url).pathname.replace(/\\/$/,""))throw Error("wrong docs root");'+record(function)+'}')
     for file in ['webgpu-inventory','normalize/liveness']:
         module(file, record(file))
@@ -41,7 +42,7 @@ with tempfile.TemporaryDirectory(dir=repo/'tmp', prefix='gen-docs-test-') as fol
         (root/'calls.txt').write_text('')
         result = subprocess.run(['node',script,*args], cwd=root, env=env, text=True, capture_output=True)
         return result, (root/'calls.txt').read_text().splitlines()
-    docs_steps = ['writeApiDocs','writeHostCatalogue','webgpu-inventory','normalize/liveness','writeGeneratorInventory']
+    docs_steps = ['writeApiDocs','writeHostCatalogue','webgpu-inventory','normalize/liveness']
     for mode in [[],['--parallel'],['--proof'],['--build-inputs'],['--inputs-only']]:
         result,calls = run('scripts/gen.mjs',*mode)
         assert result.returncode == 0,result.stderr
@@ -52,7 +53,7 @@ with tempfile.TemporaryDirectory(dir=repo/'tmp', prefix='gen-docs-test-') as fol
         assert calls.count('programs') == expected_programs,calls
         if expected_programs:
             assert calls.index('programs') > calls.index('boot') and calls.index('programs') > calls.index('genBudgetDerivations'),calls
-    module('gen-programs', 'export function generationPlan(){return {products:[],folders:[],legacy:[],scoped:false}}export function prepareProgramInputs(){}export function buildPrograms(){throw Error("actual program refusal")}'+program_tables)
+    module('gen-programs', 'export function generationPlan(){return {products:[],folders:[],scoped:false}}export function buildPrograms(){throw Error("actual program refusal")}'+program_tables)
     result,calls = run('scripts/gen.mjs')
     assert result.returncode!=0 and 'actual program refusal' in result.stderr,result
     assert 'seal' not in calls,calls

@@ -1,4 +1,4 @@
-// G292: native checkpoint hash metadata. The shared generate.mjs runner owns caching and publication.
+// Native checkpoint hash metadata; the explicit native recorder owns caching and publication.
 import { createHash } from 'node:crypto';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';

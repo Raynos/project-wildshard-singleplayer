@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {checkShares} from './shard-platform.mjs';
-import {outputReport,refreshOutputReports} from './shard-output-report.mjs';
+import {outputReport} from './shard-output-report.mjs';
 import {componentStates,componentWave,SHARD_WAVES} from './shard-components.mjs';
 import {closedComponentFailures} from './check-closed-components.mjs';
 import {componentSpanReports} from './shard-component-spans.mjs';
@@ -44,7 +44,6 @@ export async function runShardPlatformCli() {
     // G514: custom-section budgets never stop the ruler; --check keeps them hard.
     const failures=process.argv.includes('--check')?[...sectionFailures]:[];
     if (failures.length===0) for (const failure of sectionFailures) console.error(`shard-platform: FAIL (report-only) ${failure}`);
-    if (process.argv.includes('--write')&&report.measurementError===null) refreshOutputReports(ROOT,measures);
     if (process.argv.includes('--json')) console.log(JSON.stringify({...rows,_summary:{metric:sourceProgress?'source-progress':'built-output',revision:process.env.VERCEL_GIT_COMMIT_SHA??null,closed:Object.keys(measures).length,total:Object.keys(rows).length,progress,netLines,dailyLines,customSectionFailures:sectionFailures,productFailures:report.productFailures,measurementError:report.measurementError,componentBasis:sourceProgress?'source':'built-output',sourceSpans:componentSpanReports(ROOT,report.inventory,Object.keys(rows),report.measurementError),components:componentStates(componentMeasures,lockedShards),waves:SHARD_WAVES.map(wave=>componentWave(componentMeasures,wave.id))}},null,2));
     else {
       console.log('shard                  closure    custom / frozen   escapes  M3 / basis       grid-ready  private JSON / bytes  AS / 10% legacy  private bin bytes  one-user build lines');

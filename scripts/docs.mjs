@@ -16,4 +16,3 @@ await step('api', async () => (await import('./gen-api.mjs')).writeApiDocs(root)
 await step('host-catalogue', async () => (await import('./gen-host-catalogue.mjs')).writeHostCatalogue(root));
 await step('webgpu', () => execFileSync(process.execPath, ['scripts/webgpu-inventory.mjs'], { cwd: root, stdio: 'inherit' }));
 await step('liveness', () => execFileSync(process.execPath, ['scripts/normalize/liveness.mjs', '--readme'], { cwd: root, stdio: 'inherit' }));
-await step('generator-inventory', async () => (await import('./generator-inventory.mjs')).writeGeneratorInventory(root));
