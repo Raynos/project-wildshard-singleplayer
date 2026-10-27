@@ -1,5 +1,6 @@
 import { parseWorldScene, parseWorldSceneBindings, type WorldSceneRecipe } from '@wildshard/format/clientChannels';
 import { parseWorldScenes } from '@wildshard/format/worldScenes';
+import { parseWorldSceneModels } from '@wildshard/format/worldSceneModels';
 import { WorldSceneSurfaceSchema, type WorldSceneSurface } from '@wildshard/format/worldSceneSurface';
 import { parseWorldScenePlacement } from '@wildshard/format/worldScenePlacement';
 import { parse } from 'valibot';
@@ -22,6 +23,9 @@ export function worldSceneBindings(input: unknown): ReturnType<typeof parseWorld
 
 /** Admit the complete data-only scene section with its original identity and reference checks. */
 export function worldSceneRows(input: unknown): ReturnType<typeof parseWorldScenes> { return parseWorldScenes(input); }
+
+/** Admit a static model catalogue with the original identity, choice, LOD and plain-data checks. */
+export function worldSceneModels(input: unknown): ReturnType<typeof parseWorldSceneModels> { return parseWorldSceneModels(input); }
 
 /** Admit an original PBR/graph surface, including its explicit resident/placement intake hint. */
 export function worldSceneSurface(input: unknown): WorldSceneSurface { return parse(WorldSceneSurfaceSchema, input); }

@@ -4,9 +4,7 @@
 /** Final model/placement rows. All shape, rest-pose and contact work belongs to the offline producers. */
 import { Matrix4, Quaternion, Vector3 } from 'three';
 import { modelPoseMatrix } from '@wildshard/engine/models/modelPose';
-import { parseWorldSceneModels , type WorldSceneModels as WorldSceneModelsType } from '@wildshard/format/worldSceneModels';
-import { parseWorldScenes , type ParsedWorldScenes as ParsedWorldScenesType } from '@wildshard/format/worldScenes';
-import { parseWorldScenePlacement , type WorldScenePlacementRow as WorldScenePlacementRowType } from '@wildshard/format/worldScenePlacement';
+import { worldSceneModels as parseWorldSceneModels, worldSceneRows as parseWorldScenes, worldScenePlacement as parseWorldScenePlacement } from '@wildshard/sdk/worldScenes';
 import heroRows from '../data/heroRows.json' with { type: 'json' };
 import { timberWorld } from './timberWorldRows';
 
@@ -20,6 +18,10 @@ import { pineHeroScenes } from './bake-hero-scenes.mjs';
 import { heroMaterialAliases } from './heroMaterialFiles.mjs';
 import { perSources, type PineSources } from './pineSources';
 import { nameBlob, nameMeshoptBlob, type NamedBlob as NamedBlobType } from '@wildshard/sdk/blobs';
+
+type WorldSceneModelsType = ReturnType<typeof parseWorldSceneModels>;
+type ParsedWorldScenesType = ReturnType<typeof parseWorldScenes>;
+type WorldScenePlacementRowType = ReturnType<typeof parseWorldScenePlacement>;
 
 /** The rows `sceneModelRows` makes. */
 export interface SceneModelRows {
