@@ -3,7 +3,7 @@ import landings from '../data/entryFloors.generated.json' with { type: 'json' };
 import wreck from '../data/wreckBake.json' with { type: 'json' };
 import cove from '../data/coveBake.json' with { type: 'json' };
 import { originalBridgeFacts } from './driftwoodBridge.mjs';
-import trailside from '../data/trailsideBake.json' with { type: 'json' };
+import { driftwoodTrailRows } from './fixedFacts';
 import hut from '../data/hutBake.json' with { type: 'json' };
 import lookout from '../data/lookoutBake.json' with { type: 'json' };
 import shrine from '../data/shrineBake.json' with { type: 'json' };
@@ -12,6 +12,8 @@ import { STATIC_BOAT, SHORE_BOULDERS } from './staticWorld';
 import { BRIDGE } from './worldSites';
 import { OCEAN_FILES } from './oceanFiles';
 import { OCEAN_SURFACE } from './oceanLook';
+
+const trailside = driftwoodTrailRows();
 
 export interface Box { readonly x: number; readonly z: number; readonly hw: number; readonly hd: number; readonly rot: number; readonly yTop: number; readonly yBottom: number }
 interface Site { readonly origin: { readonly x: number; readonly y: number; readonly z: number }; readonly colliders: readonly Box[] }

@@ -1,4 +1,4 @@
-import { encodeCanonicalJson } from '../src/sdk/immutable';
+import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import type { ColliderDesc } from '../src/engine/world/registry';
 import { expect, it } from 'vitest';
 import { floorAtRects } from '../src/engine/physics/box';
@@ -7,8 +7,10 @@ import { readColliderRows, placeCollider, poseOf } from '../src/engine/models/co
 import { pierDeckAt, pierHalfWidthAt } from '../src/shards/driftwood-isle/generators/pierLayout';
 import { pierColliders } from '../src/shards/driftwood-isle/generators/pierColliders';
 import type { PierParams } from '../src/shards/driftwood-isle/generators/pierContract';
-import rows from '../src/shards/driftwood-isle/data/piers.generated.json' with { type: 'json' };
+import { driftwoodPierRows } from '../src/shards/driftwood-isle/generators/fixedFacts';
 import scenes from '../src/shards/driftwood-isle/data/pierScenes.generated.json' with { type: 'json' };
+
+const rows = driftwoodPierRows();
 
 const plainShape = (shape: ColliderDesc): object => shape.kind === 'hull' ? { ...shape, points: [...shape.points] } : shape;
 const plain = (shapes: readonly ColliderDesc[]): object[] => shapes.map(plainShape);
@@ -23,6 +25,7 @@ function params(p: typeof rows[number]['params']): PierParams {
 }
 
 it('bakes all seven pier choices and every original local/native contact', () => {
+  expect(hashImmutableBytes(new TextEncoder().encode(`${JSON.stringify(rows, null, 2)}\n`))).toBe('eaa61f73bb4d4f6d4e0a5f1006e3d6aa73aacbef09efae936aa8e61b4bee0848');
   expect(scenes.model.choices).toHaveLength(7);
   for (const row of rows) {
     const choice = scenes.model.choices.find(candidate => candidate.id === row.id);
@@ -30,8 +33,9 @@ it('bakes all seven pier choices and every original local/native contact', () =>
     expect(choice.params).toEqual(row.params);
     expect(encodeCanonicalJson(choice.colliders)).toBe(encodeCanonicalJson(plain(pierColliders(params(row.params)))));
     if (row.world === null) continue;
+    const world = row.world;
     const placement = parseWorldScenePlacement(scenes.placements.find(value => value.id === `piers.${row.id}`));
-    const expected = pierColliders(params(row.params)).map(shape => placeCollider(shape, poseOf({ x: row.world.x, y: row.world.deckY, z: row.world.z, ...(row.world.rot === 0 ? {} : { yaw: row.world.rot }) })));
+    const expected = pierColliders(params(row.params)).map(shape => placeCollider(shape, poseOf({ x: world.x, y: world.deckY, z: world.z, ...(world.rot === 0 ? {} : { yaw: world.rot }) })));
     const actual = readColliderRows(placement.colliders ?? [], { kinds: ['box', 'hull'], surfaces: [] });
     expect(encodeCanonicalJson(plain(actual))).toBe(encodeCanonicalJson(plain(expected)));
   }

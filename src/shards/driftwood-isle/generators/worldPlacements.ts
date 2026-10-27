@@ -2,13 +2,15 @@ import wreck from '../data/wreckBake.json' with { type: 'json' };
 import cove from '../data/coveBake.json' with { type: 'json' };
 import composition from '../data/coveComposition.json' with { type: 'json' };
 import rocks from '../data/rockScenes.generated.json' with { type: 'json' };
-import trail from '../data/trailsideBake.json' with { type: 'json' };
+import { driftwoodTrailRows } from './fixedFacts';
 import landings from '../data/entryFloors.generated.json' with { type: 'json' };
 import { ENTRY_DECKS } from './entryDecks';
 import { ENTRY_FLOORS } from './staticWorld';
 import { parseWorldScenePlacement, type WorldScenePlacementRow } from '@wildshard/format/worldScenePlacement';
 
-interface Spot { readonly x: number; readonly y: number; readonly z: number; readonly variant?: string; readonly params?: Readonly<Record<string, unknown>> }
+const trail = driftwoodTrailRows();
+
+interface Spot { readonly x: number; readonly y: number; readonly z: number; readonly variant?: string; readonly params?: unknown }
 interface Copies { readonly placements: readonly Spot[]; readonly boxes: readonly number[] }
 interface Baked { readonly params: Readonly<Record<string, number>>; readonly matrix: readonly number[]; readonly box: readonly number[]; readonly colliders: readonly unknown[] }
 

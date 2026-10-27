@@ -318,9 +318,10 @@ test.each([false, true])('cold Explorer cards fill verified geometry while borro
 });
 
 test('trail scene collider rows retain the native decoder output exactly', async () => {
-  const [{ readColliderRows }, { default: trail }] = await Promise.all([
-    import('../src/engine/models/colliders'), import('../src/shards/driftwood-isle/data/trailsideBake.json'),
+  const [{ readColliderRows }, { driftwoodTrailRows }] = await Promise.all([
+    import('../src/engine/models/colliders'), import('../src/shards/driftwood-isle/generators/fixedFacts'),
   ]);
+  const trail = driftwoodTrailRows();
   const context = fixture(), rows = section(), first = rows.steps[0];
   if (first === undefined) throw new Error('Missing first step');
   await installWorldScenes(context, parseWorldScenes({ ...rows, steps: [{ ...first, registry: [{ id: 'trail', name: 'Trail', file: 'trail.json', category: 'props', part: 'root', colliders: trail.worldColliders }], publish: {} }] }));

@@ -6,8 +6,10 @@ import { SHORE_LEVEL, WORLD_DROP } from './landscapeRows';
 import { BOAT_LAYOUT } from './boatLayout';
 import { ENTRY_DECKS } from './entryDecks';
 import shore from '../data/shoreBoulders.generated.json' with { type: 'json' };
-import piers from '../data/piers.generated.json' with { type: 'json' };
+import { driftwoodPierRows } from './fixedFacts';
 import foliage from '../data/foliagePlacements.generated.json' with { type: 'json' };
+
+const piers = driftwoodPierRows();
 
 const { BOAT_MOOR } = authoredLayout;
 
@@ -37,11 +39,11 @@ export const STATIC_BOAT: { spec: { heading: number; waterY: number; x: number; 
   colliders: boatColliders(),
 };
 const pier = piers.find(row => row.world !== null)?.world;
-if (pier === undefined) throw new Error('World gulls require the south pier');
+if (pier === undefined || pier === null) throw new Error('World gulls require the south pier');
 /** Preserve the exact pier, boat, shore, beach order consumed by the seeded flock. */
 export const WORLD_GULL_PERCHES: { x: number; y: number; z: number; }[] = [
-  ...pier.posts.map(([x = 0, z = 0]) => ({ x, y: pier.deckY + 1.02, z })),
-  ...pier.bollards.map(([x = 0, z = 0]) => ({ x, y: pier.deckY + 1.41, z })),
+  ...pier.posts.map(([x, z]) => ({ x, y: pier.deckY + 1.02, z })),
+  ...pier.bollards.map(([x, z]) => ({ x, y: pier.deckY + 1.41, z })),
   { x: -4.2, y: LOWERED_SEA + 0.78, z: -CHUNK_HALF + 6 - 3.0 }, { x: -4.2, y: LOWERED_SEA + 0.7, z: -CHUNK_HALF + 6 + 3.0 },
   ...shore.perches.map(([x = 0, y = 0, z = 0]) => ({ x, y, z })),
   ...foliage.gullPerches,

@@ -5,7 +5,7 @@ import { REEF_SCENE_LIBRARY } from './reefCatalogue';
 import foliage from '../data/foliageScenes.generated.json' with { type: 'json' };
 import { REEF_LOOK } from './reefLook';
 import rocks from '../data/rockScenes.generated.json' with { type: 'json' };
-import trail from '../data/trailsideBake.json' with { type: 'json' };
+import { driftwoodTrailRows } from './fixedFacts';
 import { parseWorldScenes, type WorldScenesSection } from '@wildshard/format/worldScenes';
 import inventory from '../data/fixedGeometry.json' with { type: 'json' };
 import zipBlobs from '../data/ziplineBlobs.generated.json' with { type: 'json' };
@@ -17,6 +17,8 @@ import trailSpecimens from '../data/trailCatalogue.json' with { type: 'json' };
 import { SpecimenCatalogueSchema } from '@wildshard/format/specimenCatalogue';
 import { entryDeckSpecimen,entryDeckFiles } from './entryDeckSpecimen';
 import * as v from 'valibot';
+
+const trail = driftwoodTrailRows();
 
 const { POOL_LOOK, SHRINE_POOL_LOOK } = authoredPoolLook;
 const rockRows = parseWorldScenes({ version: 1, libraries: [rocks.section.library], materials: [], steps: [rocks.section.step] });

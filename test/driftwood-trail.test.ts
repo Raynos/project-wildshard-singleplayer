@@ -1,7 +1,9 @@
 import { expect, it } from 'vitest';
 import { trailColliders } from '../src/shards/driftwood-isle/generators/trailColliders';
 import { readColliderRows } from '../src/engine/models/colliders';
-import facts from '../src/shards/driftwood-isle/data/trailsideBake.json';
+import { driftwoodTrailRows } from '../src/shards/driftwood-isle/generators/fixedFacts';
+
+const facts = driftwoodTrailRows();
 
 const policy = { kinds: ['box', 'treads'], surfaces: [] } as const;
 

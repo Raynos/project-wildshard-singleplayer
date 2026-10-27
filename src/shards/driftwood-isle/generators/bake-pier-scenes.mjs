@@ -1,3 +1,4 @@
+import { driftwoodPierRows } from './fixedFacts.ts';
 import { CableLayout } from '@wildshard/engine/sim/cableTraversal';
 import { Box3, Group, Mesh, MeshStandardMaterial, Vector3 } from 'three';
 import { buildZiplineGeometry } from './lookout.ts';
@@ -12,7 +13,7 @@ import { pierColliders } from './pierColliders.ts';
 import { byteWriter, jsonBytes } from '../../../../scripts/bake-output.mjs';
 
 const project = new URL('../', import.meta.url), read = name => JSON.parse(readFileSync(new URL(`data/${name}.json`, project), 'utf8'));
-const rows = read('piers.generated'), authored = JSON.parse(readFileSync(new URL('pierRows.json', import.meta.url), 'utf8')), fixed = read('fixedGeometry');
+const rows = driftwoodPierRows(), authored = JSON.parse(readFileSync(new URL('pierRows.json', import.meta.url), 'utf8')), fixed = read('fixedGeometry');
 const plain = descriptors => descriptors.map(shape => ({ ...shape, ...('points' in shape ? { points: [...shape.points] } : {}) }));
 const placements = [], facts = [], slots = new Set();
 const model = { key: 'pier', id: 'driftwood-isle/pier', name: 'Pier', category: 'buildings', pipeline: 'code', surface: 'planks',

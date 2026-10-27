@@ -3,9 +3,13 @@ import { WORLD_SCENES } from '../src/shards/driftwood-isle/generators/worldScene
 import catalogue from '../src/shards/driftwood-isle/data/trailCatalogue.json' with { type: 'json' };
 import { originalTrailside } from '../src/shards/driftwood-isle/generators/driftwoodTrailside.mjs';
 import { islandTrailsideSpec, trailsideSpecKey } from '../src/shards/driftwood-isle/generators/trailsideLayout';
-import bake from '../src/shards/driftwood-isle/data/trailsideBake.json' with { type: 'json' };
+import { driftwoodTrailRows } from '../src/shards/driftwood-isle/generators/fixedFacts';
+import { hashImmutableBytes } from '../src/sdk/immutable';
+
+const bake = driftwoodTrailRows();
 
 test('the offline trail retains its authored placements, native colliders and floor ownership', () => {
+  expect(hashImmutableBytes(new TextEncoder().encode(`${JSON.stringify(bake, null, 2)}\n`))).toBe('bf515ce72cf444ada4be2e7f257b8be7ed699deb42fe7bc76b1ffc95543385b5');
   const original = originalTrailside();
   try {
     expect(original.metadata).toEqual(bake);

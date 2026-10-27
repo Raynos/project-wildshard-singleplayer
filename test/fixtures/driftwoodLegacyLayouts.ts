@@ -18,11 +18,13 @@ import coveBake from '../../src/shards/driftwood-isle/data/coveBake.json' with {
 import shrineBake from '../../src/shards/driftwood-isle/data/shrineBake.json' with { type: 'json' };
 import hut from '../../src/shards/driftwood-isle/data/hutBake.json' with { type: 'json' };
 import lookout from '../../src/shards/driftwood-isle/data/lookoutBake.json' with { type: 'json' };
-import piers from '../../src/shards/driftwood-isle/data/piers.generated.json' with { type: 'json' };
+import { driftwoodPierRows } from '../../src/shards/driftwood-isle/generators/fixedFacts';
 import { GULL_FLOCK } from '../../src/shards/driftwood-isle/generators/gullsLook';
 import { OCEAN_SURFACE } from '../../src/shards/driftwood-isle/generators/oceanLook';
 import { OCEAN_FILES } from '../../src/shards/driftwood-isle/generators/oceanFiles';
 import { OCEAN_FOAM } from '../../src/shards/driftwood-isle/generators/oceanFoam';
+
+const piers = driftwoodPierRows();
 
 
 const {audioBounds: _audioBounds, audioFall: _audioFall, audioCave: _audioCave, ...runtimeCoveComposition} = coveComposition;
