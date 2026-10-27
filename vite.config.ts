@@ -8,7 +8,7 @@ import { join } from 'node:path';
 import { rapierAlias } from './vite/rapier';
 import { assertHeavyLease } from './scripts/heavy-lane-lease.mjs';
 import { BUILD_ID_EXPRESSION } from './scripts/app-build/buildIdentity.mjs';
-import { controlChunkGroups } from './scripts/app-build/controlChunks';
+import { controlChunkGroups, controlChunkFileName } from './scripts/app-build/controlChunks';
 
 /** The world map atlas's define, as scripts/app-build/worldMapAtlas.ts baked it before the bundle. */
 function worldMapDefine(): unknown {
@@ -53,7 +53,7 @@ export default defineConfig(({ mode, command }) => {
         rolldownOptions: {
           input: { main: join(process.cwd(), 'index.html'), calibration: join(process.cwd(), 'calibration/index.html') },
           preserveEntrySignatures: false,
-          output: { strictExecutionOrder: true, codeSplitting: { groups: controlChunkGroups(process.cwd()) } },
+          output: { strictExecutionOrder: true, chunkFileNames: controlChunkFileName, codeSplitting: { groups: controlChunkGroups(process.cwd()) } },
         },
       },
     assetsInclude: ['**/*.hdr', '**/*.gltf', '**/*.bin'],

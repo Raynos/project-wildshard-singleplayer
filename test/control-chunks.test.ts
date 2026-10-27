@@ -1,5 +1,6 @@
 import { expect, test } from 'vitest';
-import { controlChunkSelector } from '../scripts/app-build/controlChunks';
+import { controlChunkSelector, controlChunkFileName } from '../scripts/app-build/controlChunks';
+import { readModuleFiles } from '../src/engine/boot/download';
 
 test('control batches retain title, session, lazy and shard boundaries through cycles', () => {
   const root = '/fixture';
@@ -32,4 +33,12 @@ test('a subsequent build uses its own graph, including changed optional requirem
   expect(first('/fixture/src/second.ts', graph)).toBeNull();
   expect(second('/fixture/src/first.ts', graph)).toBeNull();
   expect(second('/fixture/src/second.ts', graph)).toBe('control-startup');
+});
+
+test('entry-aware chunk labels preserve the strict named module bank contract', () => {
+  const pattern = controlChunkFileName({ name: 'title-boundary~main~session' });
+  expect(pattern).toBe('assets/title-boundary-main-session-[hash].js');
+  const file = `/${pattern.replace('[hash]', '012345ab')}`;
+  expect(readModuleFiles([[file, 42]])).toEqual([[file, 42]]);
+  expect(() => readModuleFiles([['/assets/title~session.js', 42]])).toThrow('Invalid boot module file');
 });

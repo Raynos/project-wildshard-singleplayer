@@ -18,7 +18,7 @@ function staticClosure(graph: ModuleGraph, roots: readonly string[]): Set<string
   return found;
 }
 
-/** Batch only code already required by startSelected. Title code stays automatic;
+/** Batch only code already required by startSelected. Title code stays entry-aware;
  * session membership stays separate so neither guarded closure gains bytes.
  * The returned selector belongs to one build, never a process-global graph cache. */
 export function controlChunkSelector(root: string, startup = startupModuleRoots(root), boundary: 'control' | 'title' = 'control'): (id: string, graph: ModuleGraph) => string | null {
@@ -49,4 +49,10 @@ export function controlChunkGroups(root: string): Rolldown.CodeSplittingGroup[] 
     { name: controlChunkSelector(root, undefined, 'title'), entriesAware: true, includeDependenciesRecursively: false, maxSize: 192_000 },
     { name: controlChunkSelector(root), includeDependenciesRecursively: false, maxSize: 192_000 },
   ];
+}
+
+/** Entry-aware subgroup labels contain '~'; named module banks accept only
+ * URL-safe tokens. Keep the content hash, not a permissive bank parser. */
+export function controlChunkFileName(chunk: Pick<Rolldown.PreRenderedChunk, 'name'>): string {
+  return `assets/${chunk.name.replaceAll(/[^a-zA-Z0-9_.-]/gu, '-')}-[hash].js`;
 }
