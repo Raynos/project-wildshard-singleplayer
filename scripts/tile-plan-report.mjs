@@ -35,7 +35,7 @@ export function tilePlanMarkdown(input){
   const ms=n=>n===undefined||n===null?'unavailable':n.toFixed(1);
   const lines=[`Source: ${data.pin}. Cohort complete: ${data.complete}. Chromium iPhone16Pro / phone / 4xCPU / 2x render.`,
     'Capacities, declared costs, claims and private process footprints are separate; no forced GC, causal gain or Safari RAM claim.',
-    '', '| Shard | Ring | Owned render/collider tiles | Declared resident closure MiB / whole-fine MiB | Observed GPU MiB | Scene CPU backing MiB | Renderer+GPU footprint MiB | Worst / p95 frame ms | T5 paint rects / labels | First-observed controls ms | Raw failures |',
+    '', '| Shard | Ring | Owned render/collider tiles | Declared resident closure MiB / whole-fine MiB | Observed GPU MiB | Scene CPU backing MiB | Renderer+GPU footprint MiB | Worst / p95 frame ms | T5 rect records / unique MB strings | First-observed controls ms | Raw failures |',
     '|---|---|---|---|---|---|---|---|---|---|---|'];
   for(const r of data.rows)lines.push(`| ${r.shard} | ${r.ring} | ${r.state===undefined?'unavailable':`${r.state.render.length}/${r.state.colliders.length}`} | ${mib(r.declared?.resident.resident)} / ${mib(r.declared?.wholeFine.resident)} | ${mib(r.share?.total)} | ${mib(r.share?.sceneCpu?.totalBytes)} | ${mib(r.process===undefined?undefined:r.process.renderer+r.process.gpu)} | ${ms(r.frames?.maxMs)} / ${ms(r.frames?.p95Ms)} | ${r.overlay===undefined?'unavailable':`${r.overlay.rects.length}/${r.overlay.labels.length}`} | ${ms(r.observedTapToControlsMs)} | ${r.failures.length} |`);
   lines.push('', 'T0 observed GPU classification, MiB. These are current spawn shares, not removable bytes or historical savings.',
@@ -59,6 +59,6 @@ export function tilePlanMarkdown(input){
   for(const r of data.rows)for(const failure of r.failures)lines.push(`- ${r.shard}/${r.ring}: ${failure.replaceAll('\n',' ')}`);
   for(const g of data.grid){if(g.error!==undefined)lines.push(`- road/${g.road}: phase=${g.failurePhase??'unavailable'}, phaseMs=${ms(g.phaseMs)}, elapsedMs=${ms(g.elapsedMs)}: ${g.error.replaceAll('\n',' ')}`);for(const c of g.crossings??[])for(const failure of c.failures)lines.push(`- crossing round${c.round}: ${failure}`);for(const r of g.returns??[])for(const failure of r.failures)lines.push(`- return round${r.round}: ${failure}`);}
   for(const error of data.errors)lines.push(`- ${error.replaceAll('\n',' ')}`);
-  lines.push('', 'The original run used levelDebugRows to check a global choice: an absent tileResidency row is a reader diagnostic, not proof of a wrong effective setting. Original failures remain above. Corrected reusable code labels it unavailable; no row was re-read.', '');
+  lines.push('', 'The original run used levelDebugRows to check a global choice: an absent tileResidency row is a reader diagnostic, not proof of a wrong effective setting. Original failures remain retained. Corrected code labels it unavailable; authorized repair visits keep their own source pin. T5 counts are deduplicated rectangle records and unique MB strings, not a count of all labelled or visible tiles.', '');
   return lines.join('\n');
 }
