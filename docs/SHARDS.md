@@ -95,6 +95,16 @@ header and bank in the source/cache inputs. Do not statically import a
 `*.generated.json` header: that import is a per-file shrink-only lint ratchet.
 This Node reader is for author programs, not a runtime or config declaration.
 
+**Late material receipts.** `lateSceneMaterialFiles` from
+`@wildshard/sdk/worldScenes`
+projects explicit `{ variantOf, at: [x, z] }` groups from named output files
+into the existing `output.late` hints. Declare only detail or off-view
+materials whose native readers already support later demand. A critical
+or otherwise selected alias keeps the shared hash early; missing groups,
+conflicting positions and malformed late-file metadata refuse. Coarse
+material variants remain outside the hinted groups. Inventory, hashes,
+costs, tier choice and required dependency closure stay intact.
+
 **Named tile encoding.** `bakeOwned` / `bakeProps` accept the build-only
 `props.encodeTileBlob(name, bytes)` / `encodeTileBlob` callback. It sees a
 stable name such as `props.0.2.4`, after any existing tile compression but

@@ -5,7 +5,8 @@ import { HAMLET } from './layout';
 
 /** Fine landmark maps already wait behind the coarse placement, and cabin
  * props behind the late shell weld. Their product receipts share that fence. */
-export function pineLateMaterialFiles(files: NonNullable<ProjectOutput['namedFiles']>, landmarks: TimberWorld['landmarks']): ReturnType<typeof lateSceneMaterialFiles> {
+export function pineLateMaterialFiles(files: NonNullable<ProjectOutput['namedFiles']>,
+  landmarks: Pick<TimberWorld['landmarks'], 'stones' | 'waystones' | 'dam' | 'canoe' | 'board' | 'arch'>): ReturnType<typeof lateSceneMaterialFiles> {
   const nearest = (poses: readonly { readonly x: number; readonly z: number }[]): [number, number] => {
     const point = [...poses].sort((a, b) => a.x ** 2 + (a.z + 235) ** 2 - b.x ** 2 - (b.z + 235) ** 2)[0];
     if (point === undefined) throw new Error('Late landmark material needs its original placement');
