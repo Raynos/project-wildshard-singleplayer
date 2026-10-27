@@ -14,7 +14,8 @@ import { buildArenaRoomEncounter } from '../src/game/boss/arenaRoom';
 import type { ShardContext } from '../src/game/plugin/context';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { SHAPES } from './fixtures/nalatiShapes';
-import { titanPrograms } from './fixtures/titanInlineWitness';
+import { arenaRoomProgram } from './fixtures/arena-room-program';
+import { hashImmutableBytes } from '../src/sdk/immutable';
 import room from '../src/shards/nalati-grasslands/data/bossArenaRoom.json' with { type: 'json' };
 import view from '../src/shards/nalati-grasslands/data/kurganView.json' with { type: 'json' };
 
@@ -26,7 +27,7 @@ const encounterRows = {
     cuts: [{ id: 'cut', shape: { kind: 'sphere', radius: 1 }, windup: 0, active: 0, recover: 0, cooldown: 0, range: null, damage: 1, tags: [], weight: { kind: 'constant', value: 1 } }], hazards: {} },
   portal: { signal: 'door', spawn: { x: 0, z: 0, yaw: 0 }, end: 10, exitOffset: 1, slow: 1, fade: { out: 0, hold: 0, in: 0 }, keep: 'sky', near: 10, floor: { tolerance: .1, depth: 1 } },
   client: { light: { colour: 0xffffff, drop: 1 }, prewarm: { kind: 'guard', variant: 'base' }, system: 'room.power', debugZ: 1 },
-  program: titanPrograms.rules,
+  program: arenaRoomProgram,
 };
 
 async function installed() {
@@ -134,9 +135,13 @@ test('uploaded fixed backing collects while its room remains live', async () => 
     mkdirSync('tmp', { recursive: true });const directory = mkdtempSync(resolvePath('tmp/arena-upload-gc-'));
     try {
       const config = resolvePath(directory, 'vitest.config.mjs');
+      const programFile = resolvePath(directory, 'program.json');
+      const programBytes = new TextEncoder().encode(JSON.stringify(arenaRoomProgram));
+      writeFileSync(programFile, programBytes);
       writeFileSync(config, `import config from '../../vitest.config.ts';export default {...config,test:{...config.test,include:['test/arena-room-gpu-lifetime.test.ts'],setupFiles:['test/fixtures/arena-room-setup.ts'],maxWorkers:1,execArgv:['--expose-gc']}};`);
       const output = execFileSync(process.execPath, ['--expose-gc', resolvePath('node_modules/vitest/vitest.mjs'), 'run', 'test/arena-room-gpu-lifetime.test.ts', '--config', config, '-t', 'uploaded fixed backing collects'], {
-        env: { ...process.env, WS_ARENA_GC: '1', NO_COLOR: '1' }, encoding: 'utf8', stdio: 'pipe', timeout: 30_000,
+        env: { ...process.env, WS_ARENA_GC: '1', NO_COLOR: '1', WS_ARENA_PROGRAM_FILE: programFile,
+          WS_ARENA_PROGRAM_HASH: hashImmutableBytes(programBytes) }, encoding: 'utf8', stdio: 'pipe', timeout: 30_000,
       });expect(output).toContain('1 passed');
     } finally { rmSync(directory, { recursive: true, force: true }); }
     return;
