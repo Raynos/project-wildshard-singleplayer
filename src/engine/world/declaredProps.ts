@@ -1,5 +1,6 @@
 import { Group, InstancedMesh, Mesh, MeshBasicMaterial, MeshLambertMaterial, MeshStandardMaterial, type BufferGeometry, type Color, type Material, type Object3D, Texture } from 'three';
 import { prepareRigLoader } from '../anim/rig';
+import { restoreDrawnChannels } from '../models/nativeGeometry';
 import { Scope } from '../app/scope';
 import { bindGraphMeshMap } from '../render/graphBackend';
 import { familyVariant } from '../render/families/registry';
@@ -149,6 +150,8 @@ export async function installDeclaredProps(props: DeclaredProps, ports: {
     if (textureRef !== undefined && texture === undefined) throw new Error('Missing admitted props texture');
     gltf.scene.traverse((o) => {
       if (!isMesh(o)) return;
+      // D154: a native node's drawn channels under the names three reads (a vec4 normal is only a typed copy)
+      restoreDrawnChannels(o);
       geometries.add(o.geometry);
       if (isInstanced(o)) instanced.add(o);
       const original = Array.isArray(o.material) ? o.material : [o.material];

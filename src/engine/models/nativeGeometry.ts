@@ -39,6 +39,35 @@ export function nativeWholeGeometry(node: Mesh, ownership: 'borrow' | 'take' = '
   return result;
 }
 
+/** The channels three's materials read by name. */
+const drawn = new Set(['position', 'normal', 'uv', 'uv1', 'color', 'tangent']);
+
+/**
+ * D154: a native node drawn as parsed keeps every portable channel, but one it stores only as its typed copy has no
+ * attribute under the name three reads: a vec4 shader normal is never a glTF NORMAL (`sdk/bake/glb.ts`), so a lit
+ * material normalized a zero normal to NaN, which bloom spread into black blocks (Nine Dragon's L0 ring tiles seen from
+ * Nalati). Each drawn channel the geometry lacks is restored under its own name from its stored accessor (the stored
+ * copy goes, so nothing uploads twice); every other channel stays as the loader parsed it. A node without native
+ * metadata is unchanged.
+ */
+export function restoreDrawnChannels(node: Mesh): void {
+  const metadata: unknown = node.userData['nativeAttributes'], geometry: unknown = node.geometry;
+  if (metadata === undefined || !(geometry instanceof BufferGeometry)) return;
+  for (const [name, row] of Object.entries(v.parse(NativeAttributesSchema, metadata))) {
+    if (!drawn.has(name) || geometry.hasAttribute(name)) continue;
+    const channel = semantics[row.semantic] ?? row.semantic.toLowerCase(), attribute: unknown = plain(geometry.getAttribute(channel));
+    if (!(attribute instanceof BufferAttribute) || attribute.itemSize !== row.itemSize || attribute.normalized !== row.normalized) throw new Error(`Native node missing typed channel ${channel}`);
+    if (row.storage === 'Float16Array') {
+      if (!(attribute.array instanceof Uint16Array)) throw new Error('Native half-float channel needs uint16 bits');
+      geometry.setAttribute(name, new Float16BufferAttribute(attribute.array, row.itemSize, row.normalized));
+    } else {
+      if (attribute.array.constructor.name !== row.storage) throw new Error('Native channel storage mismatch');
+      geometry.setAttribute(name, attribute);
+    }
+    if (channel !== name) geometry.deleteAttribute(channel);
+  }
+}
+
 /** Complete admitted data, independent of validator implementation metadata. */
 type BoundedNativeAttributeInput = BoundedNativeAttribute;
 interface BoundedNativeAttributeFields {

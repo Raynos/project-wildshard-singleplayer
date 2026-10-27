@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { BoxGeometry, BufferAttribute, Float16BufferAttribute, Mesh, MeshStandardMaterial } from 'three';
 import { createRigLoader } from '@wildshard/engine/anim/rigParser';
-import { nativeWholeGeometry } from '@wildshard/engine/models/nativeGeometry';
+import { nativeWholeGeometry, restoreDrawnChannels } from '@wildshard/engine/models/nativeGeometry';
 import * as v from 'valibot';
 import { staticGlb } from './glb';
 
@@ -30,4 +30,29 @@ it('a nativeOnce GLB writes an integer channel once in its type and a half chann
   const halves = restored.getAttribute('half');
   expect(halves).toBeInstanceOf(Float16BufferAttribute);
   expect(Array.from(halves.array)).toEqual(Array.from(half));
+});
+
+it('a native node with a vec4 shader normal draws with that normal once its drawn channels are restored (D154)', async () => {
+  const geometry = new BoxGeometry(2, 3, 4), count = geometry.getAttribute('position').count, source = geometry.getAttribute('normal');
+  const packed = new Int8Array(count * 4);
+  for (let i = 0; i < count; i++) { for (let c = 0; c < 3; c++) packed[i * 4 + c] = Math.round(source.getComponent(i, c) * 127); packed[i * 4 + 3] = 64; }
+  geometry.setAttribute('normal', new BufferAttribute(packed, 4, true));
+  const glb = staticGlb([{ geometry, material: new MeshStandardMaterial(), nativeAttributes: true, nativeOnce: true }]);
+  const gltf = await createRigLoader().parseBytesAsync(glb, '');
+  let node: Mesh | undefined;
+  gltf.scene.traverse(child => { if (child instanceof Mesh) node = child; });
+  if (node === undefined) throw new Error('Missing native mesh');
+  // a vec4 normal is never a glTF NORMAL: as parsed, the node has no normal for a lit material to read
+  expect(node.geometry.hasAttribute('normal')).toBe(false);
+  const position = node.geometry.getAttribute('position');
+  restoreDrawnChannels(node);
+  const normal = node.geometry.getAttribute('normal');
+  expect(normal.itemSize).toBe(4);
+  expect(normal.normalized).toBe(true);
+  expect(Array.from(normal.array)).toEqual(Array.from(packed));
+  expect(node.geometry.hasAttribute('_ws_raw_normal')).toBe(false);
+  expect(node.geometry.getAttribute('position')).toBe(position);
+  // already drawable: a second call changes nothing
+  restoreDrawnChannels(node);
+  expect(node.geometry.getAttribute('normal')).toBe(normal);
 });
