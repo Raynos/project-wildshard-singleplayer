@@ -164,7 +164,7 @@ const chapterContentOf = (kokpar: NalatiKokpar): { figures: typeof peopleFrames;
   const content = { figures: peopleFrames, npcs: questContent.npcs, places: questContent.places, program: kokpar.program, view: chapterView };
   v.parse(ChapterViewSchema, content); return content;
 };
-const weatherModule = (weather: NalatiWeather, admissionInput: NalatiAdmission): NamedBlob => nameBlob('behaviour/nalati.weather.wasm', 'wasm', weather.binary, { critical: true, script: { abi: 1, pages: weather.rows.script.pages } });
+const weatherModule = (weather: NalatiWeather): NamedBlob => nameBlob('behaviour/nalati.weather.wasm', 'wasm', weather.binary, { critical: true, script: { abi: 1, pages: weather.rows.script.pages } });
 interface SpeciesEmissionRows { crackBytes: readonly number[]; looks: unknown; presentation: unknown; hullBook: unknown }
 const emitSpeciesOutput = (speciesRows: SpeciesEmissionRows, { held: heldWeapons }: NalatiHeldRows, mounted: ReturnType<typeof nalatiMountedFigure>, cover: NalatiCover, grass: NalatiGrass, spear: SpearPoolRows, kokpar: NalatiKokpar, ridingPrograms: NalatiRidingPrograms, titanProgram: NalatiTitanPrograms, weatherSource: NalatiWeather, admissionInput: NalatiAdmission) => {
   const { compiled: _weatherCompiled, ...weatherDecision } = weatherSource.rows, weatherPresentation = weatherSource.channels.weather;
