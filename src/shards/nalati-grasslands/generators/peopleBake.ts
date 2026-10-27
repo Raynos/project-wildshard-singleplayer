@@ -4,12 +4,17 @@ import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import frames from '../data/peopleFrames.json' with { type: 'json' };
 import { fitNpcFigure, mergeNpcFigures, rawFromGltf } from './peopleRig';
+import { peopleRows } from './peopleRows.mjs';
 
 type FigureKey = keyof typeof frames;
 const isFigure = (key: string): key is FigureKey => Object.hasOwn(frames, key);
 const KEYS: readonly FigureKey[] = Object.keys(frames).filter(isFigure);
-/** a figure's authored source GLB (committed under public/) */
-const sourceUrl = (key: FigureKey, phone: boolean): string => `/assets/nalati/models/people/${frames[key].file}.gen${phone ? '.phone' : ''}.glb`;
+/** a figure's authored source GLB (committed under public/), as the camp's atlas row lists them in figure order */
+const sourceUrl = (key: FigureKey, phone: boolean): string => {
+  const url = peopleRows.atlas[phone ? 'phone' : 'desktop'].sources[KEYS.indexOf(key)];
+  if (url === undefined) throw new Error(`Missing camp figure source for ${key}`);
+  return url;
+};
 /** A selection's prepared skin's product name (GR6; peopleRows.mjs names the same file as its atlas `url`): the camp's
  *  merged figures, or one figure alone for its Explorer card. */
 export const peopleSkinName = (keys: readonly string[], phone: boolean): string =>
