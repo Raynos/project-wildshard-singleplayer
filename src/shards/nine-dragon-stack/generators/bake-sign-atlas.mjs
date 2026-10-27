@@ -7,7 +7,7 @@ import { constants, zstdCompressSync } from 'node:zlib';
 import { build } from 'vite';
 import { webkit, devices } from 'playwright';
 import { byteWriter, outputHash, browserBakeBytes } from '../../../../scripts/bake-output.mjs';
-import { readImagePixels } from '../../../../src/sdk/bake/image.ts';
+import { readImagePixels } from '@wildshard/sdk/bake/image';
 import { parseSignView } from './sections.ts';
 
 const root = resolve(import.meta.dirname, '../../../..');
