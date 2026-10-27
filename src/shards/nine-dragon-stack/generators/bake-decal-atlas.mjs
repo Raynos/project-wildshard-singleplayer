@@ -4,7 +4,7 @@ import { build } from 'vite';
 import { webkit, devices } from 'playwright';
 import { byteWriter, outputHash, browserBakeBytes } from '../../../../scripts/bake-output.mjs';
 import nativeDecals from '../data/nativeDecals.json' with { type: 'json' };
-import { readImagePixels } from '../../../../src/sdk/bake/image.ts';
+import { readImagePixels } from '@wildshard/sdk/bake/image';
 
 const root = resolve(import.meta.dirname, '../../../..');
 const result = await build({ configFile: false, logLevel: 'silent', publicDir: false, root,
