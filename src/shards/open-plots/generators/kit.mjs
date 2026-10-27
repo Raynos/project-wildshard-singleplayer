@@ -216,14 +216,33 @@ function mover(w, x, y, z, size, seed) {
 }
 /** A firefly: a 7 cm mover the glow graph wanders (+-0.8 m) and blinks green. */
 function firefly(w, x, y, z) { placeMovingLight(w, 'firefly', [x, y, z]); }
-/** A floating sky lantern: a 0.5 m mover the glow graph bobs and drifts (+-2 m), lit orange. */
+/** RM10.1: a round paper sky lantern of the Glow part about (x, y, z), `r` its belly radius: an 8-sided body narrow at
+ *  the foot, swelling just under the middle and drawn in at the top, closed both ends (48 triangles), every vertex the
+ *  same marked colour so the glow graph moves and lights it as one */
+function paperLantern(w, x, y, z, r, seed) {
+  const c = [seed, 0, 0], rings = [[-1.0, 0.62], [0.1, 1], [1.2, 0.7]].map(([dy, k]) => Array.from({ length: 8 }, (_, i) =>
+    [x + k * r * Math.cos(i / 8 * Math.PI * 2), y + dy * r, z + k * r * Math.sin(i / 8 * Math.PI * 2)]));
+  const foot = [x, y - r, z], crown = [x, y + 1.2 * r, z];
+  for (let i = 0; i < 8; i++) {
+    const j = (i + 1) % 8;
+    for (let k = 0; k < 2; k++) {
+      const [lo, hi] = [rings[k], rings[k + 1]];
+      w.tri('Glow', lo[i], hi[i], lo[j], c); w.tri('Glow', lo[j], hi[i], hi[j], c);
+    }
+    w.tri('Glow', crown, rings[2][j], rings[2][i], c); w.tri('Glow', foot, rings[0][i], rings[0][j], c);
+  }
+}
+/** A floating sky lantern: a round paper lantern (0.4 m belly, 0.9 m tall) the glow graph bobs and drifts (+-2 m), lit
+ *  orange. */
 function skyLantern(w, x, y, z) { placeMovingLight(w, 'sky-lantern', [x, y, z]); }
-/** One moving light: consumes the next seed and writes its marked tetrahedron. */
+/** One moving light: consumes the next seed and writes its marked shape (a firefly's tetrahedron, a sky lantern's paper
+ *  body). */
 function placeMovingLight(w, kind, position) {
   if (!['firefly', 'sky-lantern'].includes(kind) || !Array.isArray(position) || position.length !== 3
     || position.some(value => !Number.isFinite(value))) throw new Error('open-plots: invalid moving light');
   const seed = nextSeed() * 0.5;
-  mover(w, position[0], position[1], position[2], kind === 'firefly' ? 0.07 : 0.35, kind === 'firefly' ? seed : 0.5 + seed);
+  if (kind === 'firefly') mover(w, position[0], position[1], position[2], 0.07, seed);
+  else paperLantern(w, position[0], position[1], position[2], 0.4, 0.5 + seed);
 }
 /** A lantern on a post of `height` and its pool of light. With the kit's models (RM4, opt-in: the layout's kit) it is
  *  the stone post, paper-lantern bracket or banner post by place, its model emitting the bake's light; without them,
@@ -557,8 +576,8 @@ function plaza(w, p) {
     }
     if (w.hasModel('lanterns')) for (const [x, z] of along ? [[x0 - 0.8, z0], [x0 - 0.8, z1]] : [[x0, z1 + 0.8], [x1, z1 + 0.8]]) lantern(w, x, z, p, 2.6);
   }
-  // NM10: a few sky lanterns floating over the plaza
-  for (const [x, y, z] of [[-14, 22, -8], [6, 31, 12], [16, 40, -18]]) skyLantern(w, x, y, z);
+  // NM10, RM10.1: round paper sky lanterns floating over the plaza, five a quarter at 18 to 40 m
+  for (const [x, y, z] of [[-14, 22, -8], [6, 31, 12], [16, 40, -18], [-6, 27, 20], [22, 18, 4]]) skyLantern(w, x, y, z);
 }
 
 /** The far stand-in per tile (<= 40 triangles): its ground and the blocks that read from far away. */
