@@ -152,7 +152,8 @@
     "./worldScenes": "./worldScenes.ts",
     "./finds": "./finds.ts",
     "./nativePopulationRows": "./nativePopulationRows.ts",
-    "./weapons/firearmRows": "./weapons/firearmRows.ts"
+    "./weapons/firearmRows": "./weapons/firearmRows.ts",
+    "./bossProfiles": "./bossProfiles.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -708,6 +709,10 @@
       "./weapons/firearmRows": {
         "types": "./dist/types/sdk/weapons/firearmRows.d.ts",
         "default": "./dist/weapons/firearmRows.js"
+      },
+      "./bossProfiles": {
+        "types": "./dist/types/sdk/bossProfiles.d.ts",
+        "default": "./dist/bossProfiles.js"
       }
     }
   }
