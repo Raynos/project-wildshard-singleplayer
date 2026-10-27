@@ -31,7 +31,10 @@ test('compiled ownership retains the exact authority and measured charge with no
 
 test('built-in manifest policy emits only the platform constructor and keeps CSS and ownership', () => {
   const rest=structuredClone(metadata);Reflect.deleteProperty(rest,'runtimeEntry');
-  const input={...rest,bindings:{...metadata.bindings,entry:{platform:'client-plan',retainHomeRuntime:true,stagesOwner:'runtime',styles:['./quest/pinehollow.css']}}};
+  // Pine's program-bound rows (boot, poses, ground, ...) read the product's discovery values (f2f25523af); this case
+  // composes only the bindings it checks, as page-boot-discovery does
+  const plain=Object.fromEntries(Object.entries(metadata.bindings).filter(([,value])=>!JSON.stringify(value).includes('"program":true')));
+  const input={...rest,bindings:{...plain,entry:{platform:'client-plan',retainHomeRuntime:true,stagesOwner:'runtime',styles:['./quest/pinehollow.css']}}};
   const parsed=parseManifestMetadata(input), source=authoredManifestSource(process.cwd(),'pine-hollow',{composed:input});
   expect(parsed.bindings.entry).toEqual(input.bindings.entry);
   expect(source).toContain('declaredClientPlanEntry({"retainHomeRuntime":true,"stagesOwner":"runtime"})');
