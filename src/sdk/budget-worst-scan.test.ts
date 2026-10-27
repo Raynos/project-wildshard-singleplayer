@@ -2,6 +2,7 @@ import { expect, test } from 'vitest';
 import { nearbyContentCost, worstContentCost, worstContentCostSteps } from '@wildshard/format/budget';
 import { emptyShardfile } from './author';
 import { textureLibrarySource } from '@wildshard/format/deviceMemoryCost';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 
 const MB = 1_000_000;
 
@@ -57,8 +58,8 @@ test.each([-1e-10, 0, 1e-10])('worst-disc intervals preserve tangent draw bounds
 });
 
 test('a tile whose files the library holds is charged once, in the library', () => {
-  const file = (hash: string, decoded: number, gpu: number) => ({ hash, kind: 'glb', compressed: 1, decoded, gpu, triangles: 0, draws: 0, dependencies: [], critical: false });
-  const tile = (files: string[], decoded: number, gpu: number) => ({ lod: 0, x: 4, z: 4, bounds: { min: [0, 0, 0], max: [62.5, 10, 62.5] }, geometricError: 0,
+  const file = (hash: string, decoded: number, gpu: number): Shardfile['files'][number] => ({ hash, kind: 'glb', compressed: 1, decoded, gpu, triangles: 0, draws: 0, dependencies: [], critical: false });
+  const tile = (files: string[], decoded: number, gpu: number): Shardfile['tiles'][number] => ({ lod: 0, x: 4, z: 4, bounds: { min: [0, 0, 0], max: [62.5, 10, 62.5] }, geometricError: 0,
     files, compressed: 1, decoded, gpu, triangles: 0, draws: 0 });
   const make = (library: string[], declared = 1) => {
     const source = emptyShardfile({ slug: 'library-tiles', name: 'Library tiles', author: 'Test', revision: 1, seed: 9 });
