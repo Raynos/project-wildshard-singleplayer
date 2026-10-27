@@ -136,7 +136,7 @@ test('Sky resting matrices include every connector and exact group pose', () => 
 });
 
 test('Nalati map assembly covers every POI model copy at its admitted pose', async () => {
-  const { assembly } = await nalatiMapAssembly();
+  const { assembly } = await nalatiMapAssembly(path => new Uint8Array(readFileSync(resolve(path))));
   const nalatiPlaces = schema.parse(schema.object({ places: schema.object({ rows: schema.array(schema.object({ name: schema.string(), instances: schema.array(schema.tuple([schema.string(),
     schema.object({ placements: schema.array(schema.object({ x: schema.number(), y: schema.number(), z: schema.number() })) })])) })) }) }), nalatiRuntime);
   try {

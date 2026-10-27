@@ -77,6 +77,8 @@ export async function rasterDataMap(settings, data, { output, glbs, label = 'map
  * public/assets/<output>/map/top.webp with its stamp at look/map.<output>.baked.json. An output's own row in the map
  * settings' `outputs` (G633: a tiled open plot) gives its `style` (else the folder's) and `exclude`, node-name prefixes
  * its glbs leave out (its collision boxes stand over its roofs; its additive light pools are no ground). */
+/** Every repository file by its path, as a shard's pure map producer reads its inputs. @param {string} root */
+export const repoSource = root => path => new Uint8Array(readFileSync(resolve(root, path)));
 export async function paintDataMap(root, slug, { output, glbs, sources } = {}) {
   const dir = resolve(root, 'src/shards', slug), settings = json(mapSettingsPath(dir));
   const tilesHash = mapTilesHash(dir);

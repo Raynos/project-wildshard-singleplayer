@@ -19,7 +19,7 @@ test('native map models preserve both full geometry pins without public painted 
     syncBuiltinESMExports();
     try{
       const {nalatiMapFiles}=await import('./src/shards/nalati-grasslands/generators/mapAssembly.mjs');
-      const files=await nalatiMapFiles();
+      const files=await nalatiMapFiles(path=>new Uint8Array(fs.readFileSync(process.cwd()+'/'+path)));
       const pins=JSON.parse(prior('test/fixtures/nalati-map-files.json','utf8'));
       assert.deepEqual([...files.keys()],['map/assembly.json','map/geometry.bin']);
       for(const [index,name]of ['map/assembly.json','map/geometry.bin'].entries()){

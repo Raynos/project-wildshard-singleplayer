@@ -19,7 +19,7 @@ if (originalPlaces === undefined) throw new Error('Missing original Places prede
 
 // Cold native construction precedes the timed assertions; every resulting byte
 // is checked against the predecessor, rather than a copied authored projection.
-const files = await nalatiMapFiles();
+const files = await nalatiMapFiles(path => new Uint8Array(readFileSync(resolve(path))));
 // Both isolated producers share only the defining stat/content memo; each still
 // stages its own sealed tree, executes fresh and verifies every input afterward.
 const inputHashes = new InputHashMemo(resolve('.'));

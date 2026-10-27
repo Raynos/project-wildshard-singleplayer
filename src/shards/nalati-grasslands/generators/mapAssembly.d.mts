@@ -1,10 +1,13 @@
-import type { MapAssembly } from '../../../../scripts/map-geometry.mjs';
-import type { BakedGrid } from '@wildshard/format/bakedTerrainBytes';
+import type { MapAssembly } from '@wildshard/sdk/bake/mapAssembly';
+import type { NativeTerrainSource } from '@wildshard/sdk/bake/terrain';
 
-/** Read from an explicit owned bank or explicit fixture directory; no implicit source handoff. */
-export function readNalatiMapScalar(source: unknown, directory: string | ReadonlyMap<string, Uint8Array>): Uint8Array;
+/** Every input by its repository path (the caller owns all reads: GR6, a pure producer). */
+export type NalatiMapSource = (path: string) => Uint8Array;
 
-export function nalatiMapAssembly(): Promise<{ assembly: MapAssembly; native: BakedGrid }>;
+/** Read from an explicit owned bank; no implicit source handoff. */
+export function readNalatiMapScalar(source: unknown, directory: ReadonlyMap<string, Uint8Array>): Uint8Array;
+
+export function nalatiMapAssembly(source: NalatiMapSource): Promise<{ assembly: MapAssembly; native: NativeTerrainSource['grid'] }>;
 
 /** Owned canonical scene and compressed geometry bytes for the native painter. */
-export function nalatiMapFiles(): Promise<ReadonlyMap<string, Uint8Array>>;
+export function nalatiMapFiles(source: NalatiMapSource): Promise<ReadonlyMap<string, Uint8Array>>;

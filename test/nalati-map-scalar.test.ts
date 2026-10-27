@@ -1,10 +1,8 @@
 import {nalatiGeographySources} from '../src/shards/nalati-grasslands/generators/geographySource';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare every original compressed scalar input.
-import { readFileSync, mkdirSync, mkdtempSync, writeFileSync, rmSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify the complete original scalar input inventory.
 import { createHash } from 'node:crypto';
-// oxlint-disable-next-line import/no-nodejs-modules -- Keep explicit source fixtures inside the owned repository scratch directory.
-import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { readNalatiMapScalar } from '../src/shards/nalati-grasslands/generators/mapAssembly.mjs';
@@ -29,17 +27,12 @@ test('all six current scalar files retain their complete predecessor inventory',
 
 test('inline and malformed sources refuse before file access', () => {
   for (const source of ['AA==', null, 0, {}, [], { file: 3 }])
-    expect(() => readNalatiMapScalar(source, 'missing-fixture-root')).toThrow('Nalati map requires named binary scalar files');
+    expect(() => readNalatiMapScalar(source, new Map())).toThrow('Nalati map requires named binary scalar files');
 });
 
-test('file-only intake uses the supplied root and refuses a missing file', () => {
-  mkdirSync('tmp', { recursive: true });
-  const root = mkdtempSync(resolve('tmp', 'nalati-scalar-'));
-  try {
-    mkdirSync(resolve(root, 'data'));
-    const bytes = new Uint8Array([0, 128, 255, 120, 156]);
-    writeFileSync(resolve(root, 'data/field.bin'), bytes);
-    expect([...readNalatiMapScalar({ file: 'data/field.bin' }, root)]).toEqual([...bytes]);
-    expect(() => readNalatiMapScalar({ file: 'data/missing.bin' }, root)).toThrow('ENOENT');
-  } finally { rmSync(root, { recursive: true, force: true }); }
+// GR6: the map is a pure producer, so its scalar intake reads only the bank its caller supplies
+test('file-only intake uses the supplied bank and refuses a missing file', () => {
+  const bytes = new Uint8Array([0, 128, 255, 120, 156]), bank = new Map([['data/field.bin', bytes]]);
+  expect([...readNalatiMapScalar({ file: 'data/field.bin' }, bank)]).toEqual([...bytes]);
+  expect(() => readNalatiMapScalar({ file: 'data/missing.bin' }, bank)).toThrow('Missing owned geography channel data/missing.bin');
 });

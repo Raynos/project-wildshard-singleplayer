@@ -17,6 +17,7 @@
     "./noise": "./noise.ts",
     "./bake/groundMap": "./bake/groundMap.ts",
     "./bake/mapAssembly": "./bake/mapAssembly.ts",
+    "./bake/mapRaster": "./bake/mapRaster.ts",
     "./bake/species": "./bake/species.ts",
     "./decisionBindingMap": "./decisionBindingMap.ts",
     "./scriptScenario": "./scriptScenario.ts",

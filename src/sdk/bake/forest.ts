@@ -1,4 +1,5 @@
 import { placeForest, type ForestPlacementSource, type PlantSpec } from '@wildshard/engine/world/forest/placement';
+import { buildTerrainMetadata } from '@wildshard/engine/world/terrainField';
 
 /** Owned native tree data; no live color, scene or geometry object enters an author result. */
 export interface NativeForestTree {
@@ -30,4 +31,11 @@ export function bakeForestPlacements(source: ForestPlacementSource, variants: re
     if (row === undefined) throw new Error('Native forest query lost its owned tree');
     return row;
   }) };
+}
+
+/** A native terrain's trail, cabin, pond and water queries from explicit trails, cabin sites and water level: the page's
+ *  terrain law over those inputs, for a forest bake's source (`bakeForestPlacements`). No level is selected or installed. */
+export function nativeTerrainQueries(seed: number, spec: Parameters<typeof buildTerrainMetadata>[1],
+  waterLevel: Parameters<typeof buildTerrainMetadata>[2]): ReturnType<typeof buildTerrainMetadata> {
+  return buildTerrainMetadata(seed, spec, waterLevel);
 }
