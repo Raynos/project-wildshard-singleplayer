@@ -11,6 +11,7 @@ import { timberWorld } from './timberWorldRows';
 import { pineGeographyRows } from './geographyRows';
 import { pineBootProgram } from './bootProgram';
 import { pineMapPixels } from './mapProgram';
+import { pineLateMaterialFiles } from './lateMaterials';
 
 /** GR8 (G19, G30): Pine's source program. It computes the rows the declaration reads from committed inputs through
  *  `ctx` (the journal from its art, the canoe mover from the retained terrain), admits the declaration with them and
@@ -31,7 +32,9 @@ export async function generate(ctx: ProjectGenerationContext): Promise<Generated
   // page-mode boot rows, GPU tables and capture poses
   const geography = pineGeographyRows();
   // GR8: the map lattice, painted from the map assembly over the same sources (the SDK publishes it as the product map)
-  return { shard, output, map: { pixels: await pineMapPixels(sources), name: 'ui/images/map' },
+  const scheduled = new Set(output.late?.map(row => row.hash));
+  const late = [...output.late ?? [], ...pineLateMaterialFiles(output.namedFiles, timberWorld(sources).landmarks).filter(row => !scheduled.has(row.hash))];
+  return { shard, output: { ...output, late }, map: { pixels: await pineMapPixels(sources), name: 'ui/images/map' },
     discovery: { 'ground.rows': geography.ground, 'forestQueries.rows': geography.forestQueries, 'pondClip.rows': geography.pondClip,
       ...await pineBootProgram(ctx) } };
 }

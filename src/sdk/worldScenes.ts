@@ -5,6 +5,8 @@ import { WorldSceneSurfaceSchema, type WorldSceneSurface } from '@wildshard/form
 import { parseWorldScenePlacement } from '@wildshard/format/worldScenePlacement';
 import { parse } from 'valibot';
 import { ForestPageSchema, type ForestPageRows } from '@wildshard/format/forestPage';
+import { AdmissionLateSchema, type LateFile } from '@wildshard/format/admissionLate';
+import type { OutputFile } from '@wildshard/format/outputIndex';
 
 /** Source-owned effect declarations retain the platform field contract. */
 export interface SceneEffectField {
@@ -35,3 +37,22 @@ export function worldScenePlacement(input: unknown): ReturnType<typeof parseWorl
 
 /** Admit a forest page through its existing finite plant, building and landmark grammar. */
 export function forestPageRows(input: unknown): ForestPageRows { return parse(ForestPageSchema, input); }
+
+/** Schedule explicitly off-view material variants without changing inventory,
+ * costs or tier choice. Any critical or otherwise selected alias stays early. */
+export function lateSceneMaterialFiles(files: readonly Pick<OutputFile, 'hash' | 'variantOf' | 'critical'>[],
+  hints: readonly { readonly variantOf: string; readonly at: readonly [number, number] }[]): readonly LateFile[] {
+  const sites = new Map(hints.map(row => [row.variantOf, row.at]));
+  if (sites.size !== hints.length || hints.some(row => row.variantOf.length === 0 || !files.some(file => file.variantOf === row.variantOf)))
+    throw new Error('Late material variants require unique declared groups');
+  const early = new Set(files.filter(file => file.critical || file.variantOf === undefined || !sites.has(file.variantOf)).map(file => file.hash));
+  const selected = new Map<string, LateFile>();
+  for (const file of files) {
+    const at = file.variantOf === undefined ? undefined : sites.get(file.variantOf);
+    if (at === undefined || early.has(file.hash)) continue;
+    const prior = selected.get(file.hash);
+    if (prior !== undefined && (prior.at?.[0] !== at[0] || prior.at[1] !== at[1])) throw new Error('Late material aliases require one position');
+    selected.set(file.hash, { hash: file.hash, at: [at[0], at[1]] });
+  }
+  return parse(AdmissionLateSchema, [...selected.values()]);
+}
