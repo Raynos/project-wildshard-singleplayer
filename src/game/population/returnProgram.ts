@@ -95,6 +95,13 @@ function returnIdentity(row: ReturnType<typeof readProgram>) {
  *  entry lent the same modules to its entry scope and then its level, hashing and admitting each twice in one 183 ms
  *  frame); a replaced array is verified again, and every program hashes and admits its bytes again when it is built */
 const lentBytes = new WeakMap<Uint8Array, string>();
+/** Hash and contract-admit one raw module's bytes for its declaration, once per bytes and declaration. */
+function admitRawModule(bytes:Uint8Array,hash:string,row:ReturnModuleRow):void {
+  const declared=JSON.stringify(row);
+  if(lentBytes.get(bytes)===declared)return;
+  if(sha256(bytes)!==hash)throw new Error('Raw return module hash mismatch');
+  admitScriptContract(bytes,row.abi===2?{abi:2,lane:row.lane,pages:row.pages,ioBytes:row.ioBytes,compilerRevision:row.compilerRevision,admissionRevision:row.admissionRevision}:{abi:1,pages:row.pages});lentBytes.set(bytes,declared);
+}
 export class ReturnProgram {
   /** The same frozen admitted rows, for a native binding over this owner. */
   readonly declaration:ReturnType<typeof readProgram>;
@@ -202,6 +209,15 @@ export class ReturnProgram {
       }
     }
   }
+  /** Admit each declared module's bytes (hash and script contract) a `pause` apart, so a later `lendModules` finds them
+   *  admitted: in one task they were ~106 ms of a cold Nine Dragon crossing's world step at phone 4x. */
+  static async admitModules(assets:ReadonlyMap<string,Uint8Array>,input:readonly ReturnModuleRow[],pause:()=>Promise<void>):Promise<void> {
+    for(const row of v.parse(ReturnModulesSchema,input)){
+      const hash=row.module.slice('blobs/wasm/'.length,-'.wasm'.length),bytes:unknown=Map.prototype.get.call(assets,hash);
+      if(!(bytes instanceof Uint8Array))continue;
+      admitRawModule(bytes,hash,row);await pause();
+    }
+  }
   /** Lend the original admitted asset map to its actual runtime scope. Child
    * scopes borrow it; unrelated scopes cannot. No byte or state copy is kept. */
   static lendModules(owner:Scope,assets:ReadonlyMap<string,Uint8Array>,input:readonly ReturnModuleRow[]):void {
@@ -213,11 +229,7 @@ export class ReturnProgram {
       if(previous!==undefined&&JSON.stringify(previous)!==JSON.stringify(row))throw new Error('Conflicting raw return module declarations');
       const bytes:unknown=Map.prototype.get.call(assets,hash);
       if(!(bytes instanceof Uint8Array))throw new Error('Raw return module hash mismatch');
-      const declared=JSON.stringify(row);
-      if(lentBytes.get(bytes)!==declared){
-        if(sha256(bytes)!==hash)throw new Error('Raw return module hash mismatch');
-        admitScriptContract(bytes,row.abi===2?{abi:2,lane:row.lane,pages:row.pages,ioBytes:row.ioBytes,compilerRevision:row.compilerRevision,admissionRevision:row.admissionRevision}:{abi:1,pages:row.pages});lentBytes.set(bytes,declared);
-      }
+      admitRawModule(bytes,hash,row);
       selected.set(hash,row);
     }
     const book=ownerBook(owner),previous=book.loan;
