@@ -1,3 +1,5 @@
+import { tileBufferedDraws } from './tileBufferedDraws';
+import type { SceneBuffers } from '@wildshard/format/sceneBuffers';
 import { WorldSceneReads } from './worldSceneReads';
 import { prepareSceneSources, sceneModelSource, sceneBakeSource, sceneSourceDeclares } from './sceneSources';
 import { drawSceneRows, prepareSceneDrawRows } from './sceneDraws';
@@ -5,7 +7,7 @@ import { admitWorldSceneStepSources, worldSceneStepSources } from './worldSceneS
 import { TIER } from '@wildshard/engine/core/tier';
 import { SceneHandles } from './sceneHandles';
 import { assertSceneProfile } from './sceneProfile';
-import { BufferAttribute, BufferGeometry, InstancedBufferAttribute, InstancedMesh, type Material, Mesh, MeshBasicMaterial, MeshStandardMaterial, type Object3D, Sphere, Vector3 } from 'three';
+import { BufferAttribute, BufferGeometry, InstancedBufferAttribute, InstancedMesh, type Material, type Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, type Object3D, Sphere, Vector3 } from 'three';
 import { sharedModelContext } from '@wildshard/engine/models/model';
 import { bindWorldSceneModelSources, defineWorldSceneCatalogue } from '../models/worldSceneCatalogue';
 import { defineSpecimenCatalogue,prepareSpecimenCatalogue } from '../models/specimenCatalogue';
@@ -466,7 +468,8 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
       const sources = worldSceneStepSources(product, step, geometry, new Map(Object.entries(step.materials).map(([port, slot]) => [port, materials.get(slot)])));
       const made = createWorldScene(recipe, sources.ports);
       owner.onDispose(() => { made.dispose(); });
-      drawSceneRows(product, step.draws ?? [], made.root, owner, materials);
+      const buffered: { root: Group; rows: SceneBuffers }[] = [];
+      drawSceneRows(product, step.draws ?? [], made.root, owner, materials, (root, rows) => { buffered.push({ root, rows }); });
       if (instance.position !== undefined) made.root.position.set(...instance.position);
       if (instance.rotation !== undefined) made.root.rotation.set(...instance.rotation);
       for (const row of step.bounds) {
@@ -487,6 +490,10 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
       handles.publish(`${prefix}.root`, made.root);
       // T3: by tile, a merged part spanning tiles draws only the resident tiles' triangles (still one draw)
       made.root.updateMatrixWorld(true);
+      for (const [index, draw] of buffered.entries()) {
+        const content = tileBufferedDraws(`${prefix}.buffered.${String(index)}`, draw.root, draw.rows);
+        if (content !== null) handles.addTiled(content);
+      }
       for (const [name, part] of made.parts) if (mesh3(part)) { const content = tiledMesh(`${prefix}.${name}`, part, part.matrixWorld); if (content !== null) handles.addTiled(content); await copies.check(); }
       for (const [id, values] of sources.collections) handles.publishMaterials(`${prefix}.${id}`, values);
       const registered = new Map<string, { root: Object3D; colliders: ColliderDesc[] }>();

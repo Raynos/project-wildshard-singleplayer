@@ -47,7 +47,7 @@ export async function prepareSceneDrawRows(product: ShardProduct, input: unknown
 /** Client-only draw construction shared by specimen and resident emitters.
  * The lifetime and already-compiled material book belong to the caller. Fixed buffer builds are shared only
  * within that scope and admitted product. Draw objects and material bindings remain private. */
-export function drawSceneRows(product: ShardProduct, input: unknown, parent: Object3D, scope: Scope, materials: ReadonlyMap<string, Material>): void {
+export function drawSceneRows(product: ShardProduct, input: unknown, parent: Object3D, scope: Scope, materials: ReadonlyMap<string, Material>, onBuffered?: (root: Group, rows: SceneBuffers) => void): void {
   const rows = v.parse(SceneDrawsSchema, input);
   let products = books.get(scope); if (products === undefined) { products = new WeakMap(); books.set(scope, products); }
   let geometries = products.get(product); if (geometries === undefined) { geometries = new Map(); products.set(product, geometries); }
@@ -67,6 +67,7 @@ export function drawSceneRows(product: ShardProduct, input: unknown, parent: Obj
       const group = draw(material);
       group.scale.setScalar(row.scale); group.position.y = row.y; parent.add(group);
       if (row.order !== undefined) for (const mesh of group.children) mesh.renderOrder = row.order;
+      onBuffered?.(group, source.row);
     } else {
       const key = JSON.stringify([row.geometry.library, row.geometry.model]); let geometry = geometries.get(key);
       if (geometry === undefined) { const source = sceneModelSource(product, row.geometry.library).geometry(row.geometry.model);
