@@ -431,7 +431,16 @@ export function cellClip(root: Object3D, half: number, scope: Scope, options: Ce
     const undo: (() => void)[] = [];
     watched.set(node, () => { for (const restore of undo.reverse()) restore(); });
     const moved = (): void => { node.matrixWorldNeedsUpdate = true; mark(node, true); };
-    if (!(node instanceof Bone)) {
+    if (node instanceof Bone) {
+      // A rig is hooked once, at its skin: the skin's skeleton.update hook compares the uploaded bone matrices and every draw
+      // under a bone is gated at its draw, so a bone keeps only its child listeners (T10: Pine's herd spawns hooked ~30
+      // setters on every bone of every rig, ~100 ms across a Simulator drive, and its animated bones fired them every frame)
+      undo.push(scope.listenEmitter(node, 'childadded', (event: { child: Object3D }): void => { watch(event.child); }));
+      undo.push(scope.listenEmitter(node, 'childremoved', (event: { child: Object3D }): void => { unwatch(event.child); }));
+      for (const child of node.children) watch(child);
+      return;
+    }
+    {
       const p = node.position, size = node.scale;
       let px = p.x, py = p.y, pz = p.z, sx = size.x, sy = size.y, sz = size.z, auto = node.matrixAutoUpdate;
       const q = node.quaternion;

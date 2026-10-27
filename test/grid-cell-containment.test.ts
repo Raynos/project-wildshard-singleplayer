@@ -214,6 +214,8 @@ test('a bone pose can cross the edge without changing its mesh transform or geom
   root.position.set(555, 0, 555);
   const guard = cellClip(root, 250, scope); guard.sweep();
   try {
+    // T10: the rig is hooked once, at its skin: its bones carry no pose or matrix setters
+    expect(Object.hasOwn(bone.matrix, 'set')).toBe(false); expect(Object.getOwnPropertyDescriptor(bone, 'matrixAutoUpdate')).toMatchObject({ writable: true });
     expect(mesh.material).toBe(material);
     guard.update(); const before = guard.state().checked;
     guard.update(); expect(guard.state().checked).toBe(before);
