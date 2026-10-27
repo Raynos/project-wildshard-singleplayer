@@ -867,7 +867,8 @@ export class SimHost {
     const bands = this.bands;
     if (bands !== undefined) { bands.clocks.beginTick(FIXED_STEP); if (bands.physics) this.syncBodies(); }
     this.day?.update(FIXED_STEP);
-    for (const key of Object.keys(this.state.timers)) this.state.timers[key] = Math.max(0, (this.state.timers[key] ?? 0) - FIXED_STEP);
+    const timers = this.state.timers; // for-in: a tick makes no key array
+    for (const key in timers) if (Object.hasOwn(timers, key)) timers[key] = Math.max(0, (timers[key] ?? 0) - FIXED_STEP);
     for (const run of this.callbacks.values()) run(FIXED_STEP, this);
     for (const [id, runner] of this.strikes) this.updateStrike(id, runner);
     const hooks = this.bodyStep;

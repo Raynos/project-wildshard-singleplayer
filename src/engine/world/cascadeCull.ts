@@ -23,7 +23,11 @@ const _c = new THREE.Vector3();
 
 class CascadeFrustum extends THREE.Frustum {
   /** the footprint in the shadow camera's view xy: a convex polygon, counter-clockwise, [x0, y0, x1, y1, …] */
-  private poly: number[] = [];
+  private readonly poly: number[] = [];
+  /** refresh's scratch (the corners in view xy, the hull's two chains), kept so a frame allocates nothing */
+  private readonly pts: [number, number][] = [];
+  private readonly lower: [number, number][] = [];
+  private readonly upper: [number, number][] = [];
   /** world → the shadow camera's view */
   private readonly view = new THREE.Matrix4();
   private pad = 0;
@@ -35,9 +39,11 @@ class CascadeFrustum extends THREE.Frustum {
     this.copy(box);
     this.view.copy(shadowCam.matrixWorldInverse);
     this.pad = pad;
-    const pts: [number, number][] = [];
-    for (const v of corners) { _p.copy(v).applyMatrix4(this.view); pts.push([_p.x, _p.y]); }
-    this.poly = hull(pts);
+    const pts = this.pts;
+    while (pts.length < corners.length) pts.push([0, 0]);
+    pts.length = corners.length;
+    for (let i = 0; i < corners.length; i++) { const v = corners[i], pt = pts[i]; if (v === undefined || pt === undefined) continue; _p.copy(v).applyMatrix4(this.view); pt[0] = _p.x; pt[1] = _p.y; }
+    hull(pts, this.lower, this.upper, this.poly);
   }
 
   override intersectsSphere(sphere: THREE.Sphere): boolean {
@@ -62,11 +68,13 @@ class CascadeFrustum extends THREE.Frustum {
   }
 }
 
-/** Andrew's monotone chain: the convex hull, counter-clockwise, flat */
-function hull(pts: [number, number][]): number[] {
-  pts.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
-  const cross = (o: [number, number], a: [number, number], b: [number, number]) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
-  const lower: [number, number][] = [], upper: [number, number][] = [];
+const byXY = (a: [number, number], b: [number, number]): number => a[0] - b[0] || a[1] - b[1];
+const cross = (o: [number, number], a: [number, number], b: [number, number]): number => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+/** Andrew's monotone chain: the convex hull of `pts` (sorted in place), counter-clockwise, flat into `out`; `lower` and
+ *  `upper` are the caller's scratch chains */
+function hull(pts: [number, number][], lower: [number, number][], upper: [number, number][], out: number[]): void {
+  pts.sort(byXY);
+  lower.length = 0; upper.length = 0;
   for (const p of pts) {
     while (lower.length >= 2) { const a = lower[lower.length - 2], b = lower[lower.length - 1]; if (a === undefined || b === undefined || cross(a, b, p) > 0) break; lower.pop(); }
     lower.push(p);
@@ -78,7 +86,9 @@ function hull(pts: [number, number][]): number[] {
     upper.push(p);
   }
   lower.pop(); upper.pop();
-  return [...lower, ...upper].flat();
+  out.length = 0;
+  for (const p of lower) out.push(p[0], p[1]);
+  for (const p of upper) out.push(p[0], p[1]);
 }
 
 /**

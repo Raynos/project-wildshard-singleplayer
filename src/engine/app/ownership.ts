@@ -42,7 +42,9 @@ export function constructionOwner(): Scope | null {
   return construction !== null && construction.leave !== null && !construction.changing && !construction.scope.disposed ? construction.scope : null;
 }
 export function enterOwner(next: Scope | null): void { owner = next; }
-export function withOwner<T>(scope: Scope | null, fn: () => T): T {
+export function withOwner<T>(scope: Scope | null, fn: () => T): T { return withOwnerCall(scope, fn, undefined, undefined); }
+/** `withOwner` for a per-frame caller: `fn(a, b)` runs in the section without a closure made for each call */
+export function withOwnerCall<A, B, T>(scope: Scope | null, fn: (a: A, b: B) => T, a: A, b: B): T {
   // A background construction's ambient frame is for its unwrapped await continuations. Road/UI callbacks carry
   // explicit owners, so they temporarily restore the page frame instead of observing the construction's globals.
   const environment = construction;
@@ -51,7 +53,7 @@ export function withOwner<T>(scope: Scope | null, fn: () => T): T {
   if (suspend) leaveEnvironment(environment);
   if (resume) enterEnvironment(environment);
   const previous = owner; owner = scope; entered++;
-  try { return fn(); } finally {
+  try { return fn(a, b); } finally {
     owner = previous; entered--;
     if (resume && construction === environment) leaveEnvironment(environment);
     if (suspend && construction === environment && !environment.scope.disposed) enterEnvironment(environment);
@@ -100,12 +102,13 @@ export function ownedFacade<T extends object>(scope: Scope, service: T): T {
   if (byScope === undefined) { byScope = new WeakMap(); facades.set(service, byScope); }
   const known = byScope.get(scope); if (known !== undefined) return known as T;
   const wrapped = new WeakMap<object, unknown>();
+  const apply = (method: (...args: unknown[]) => unknown, args: unknown[]): unknown => Reflect.apply(method, service, args);
   const facade = new Proxy(service, { get(target, key) {
     const value: unknown = Reflect.get(target, key, target);
     if (typeof value !== 'function' || Object.hasOwn(value, 'prototype')) return value;
     const method = value as (...args: unknown[]) => unknown;
     const cached = wrapped.get(method); if (cached !== undefined) return cached;
-    const call = (...args: unknown[]): unknown => withOwner(scope, () => Reflect.apply(method, target, args));
+    const call = (...args: unknown[]): unknown => withOwnerCall(scope, apply, method, args);
     wrapped.set(method, call);
     return call;
   }, set(target, key, value: unknown) { return Reflect.set(target, key, value, target); } });

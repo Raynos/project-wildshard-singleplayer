@@ -21,10 +21,11 @@ export function bindSkinPoseLayers(compiled: CompiledSkinPoseLayers, bones: read
     return { ...t, bone };
   }) }));
   return {
-    restore: () => { bones.forEach((bone, i) => { const pose = base[i]; if (pose !== undefined) { bone.position.copy(pose.p); bone.quaternion.copy(pose.q); bone.scale.copy(pose.s); } }); },
+    restore: () => { for (let i = 0; i < bones.length; i++) { const bone = bones[i], pose = base[i]; if (bone !== undefined && pose !== undefined) { bone.position.copy(pose.p); bone.quaternion.copy(pose.q); bone.scale.copy(pose.s); } } },
     apply: (time) => {
       if (!Number.isFinite(time) || time < 0) throw new Error('Invalid skin layer clock');
-      bones.forEach((bone, i) => { const pose = base[i]; if (pose !== undefined) { pose.p.copy(bone.position); pose.q.copy(bone.quaternion); pose.s.copy(bone.scale); } });
+      // index loops, not forEach: a frame's apply makes no closure (D2 idle heap churn)
+      for (let i = 0; i < bones.length; i++) { const bone = bones[i], pose = base[i]; if (bone !== undefined && pose !== undefined) { pose.p.copy(bone.position); pose.q.copy(bone.quaternion); pose.s.copy(bone.scale); } }
       for (const layer of layers) {
         const t = time % layer.period, times = layer.times; let lo = 0, hi = times.length - 1;
         while (hi - lo > 1) { const mid = (lo + hi) >> 1; if ((times[mid] ?? 0) > t) hi = mid; else lo = mid; }

@@ -23,7 +23,7 @@ import { GameClock, diagnosticNow } from '../core/clock';
 import { ScopedCpuMeter } from '../core/scopedCpu';
 import { AssetService } from './assets';
 import { Scope } from './scope';
-import { withOwner } from './ownership';
+import { withOwner, withOwnerCall } from './ownership';
 import { PHASES, sortSystems, type AppState, type Phase, type SystemSpec } from './systems';
 import { LevelLoader, type LevelDriver } from '../level/load';
 import { LevelRegistrations } from '../level/registrations';
@@ -238,7 +238,9 @@ export class App {
     if (scope.disposed) return;
     if (this.systems.has(spec.id)) throw new Error(`Duplicate system id: ${spec.id}`);
     // Copy the declarative ordering so a caller cannot change the validated graph later.
-    const system = { ...spec, run: (dt: number, t: number) => { withOwner(scope, () => spec.run(dt, t)); }, ...(spec.before ? { before: [...spec.before] } : {}),
+    // the owner section takes the call's arguments, so a frame's run makes no closure (D2 idle heap churn)
+    const call = (dt: number, t: number): void => { spec.run(dt, t); };
+    const system = { ...spec, run: (dt: number, t: number) => { withOwnerCall(scope, call, dt, t); }, ...(spec.before ? { before: [...spec.before] } : {}),
       ...(spec.after ? { after: [...spec.after] } : {}) };
     this.systems.set(system.id, system);
     this.systemScopes.set(system.id, scope);

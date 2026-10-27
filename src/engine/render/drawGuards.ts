@@ -19,8 +19,10 @@ export function guardObjectDraw(object: Object3D, guard: DrawGuard, scope: Scope
   const publish = (): void => {
     if (held.size === 0) { Reflect.deleteProperty(target, GUARDS); subscribers.delete(object); return; }
     const first = held.values().next().value;
+    // several guards: a snapshot array, so a draw walks an index and makes no Set iterator
+    const checks = [...held];
     const admit: DrawGuard | undefined = held.size === 1 ? first : (camera, scene, geometry, material, node, group) => {
-      for (const check of held) if (!check(camera, scene, geometry, material, node, group)) return false;
+      for (let i = 0; i < checks.length; i++) { const check = checks[i]; if (check !== undefined && !check(camera, scene, geometry, material, node, group)) return false; }
       return true;
     };
     Object.defineProperty(target, GUARDS, { configurable: true, value: admit });
