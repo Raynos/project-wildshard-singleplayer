@@ -27,6 +27,6 @@ const geography=v.object({res:finite,size:finite,seed:finite,map:palette,
 
 /** Independent admitted fixture for map/sampler comparisons, without static JSON inference. */
 export function readNalatiGeography():v.InferOutput<typeof geography>{
-  const input:unknown=JSON.parse(readFileSync('src/shards/nalati-grasslands/boot/geography.generated.json','utf8'));
+  const input:unknown=JSON.parse(readFileSync('test/fixtures/nalati-geography-original.json','utf8'));
   return v.parse(geography,input);
 }

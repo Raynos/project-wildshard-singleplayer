@@ -16,7 +16,7 @@ const scalarBlocks=readNalatiScalarBlocks();
 const finite=v.pipe(v.number(),v.finite());
 const channelsSchema=v.object({wet:ScalarLatticeSchema,forest:ScalarLatticeSchema,mapRed:ScalarLatticeSchema,mapGreen:ScalarLatticeSchema,mapBlue:ScalarLatticeSchema});
 const geography=v.parse(v.object({res:finite,size:finite,seed:finite,pigment:ScalarTripletSchema,surface:ScalarTripletSchema,channels:channelsSchema}),
-  JSON.parse(readFileSync('src/shards/nalati-grasslands/boot/geography.generated.json','utf8')));
+  JSON.parse(readFileSync('test/fixtures/nalati-geography-original.json','utf8')));
 
 const TERRAIN = GROUND.terrain,wetMask = readScalarLattice(geography.channels.wet,scalarBlocks);
 

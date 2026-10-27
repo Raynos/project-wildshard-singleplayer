@@ -48,7 +48,7 @@ const paintInput: unknown = JSON.parse(readFileSync('test/fixtures/nalati-poi-pa
 const productShapeRow = (row: typeof shapeBookRowsOriginal.draws[number]) => 'lane' in row ? { ...row, lane: { file: 'world/places.bin', offset: row.lane.offset } } : row;
 
 const originalAssembly: unknown = JSON.parse(readFileSync('test/fixtures/nalati-headless-original.json', 'utf8'));
-const fieldInput: unknown = JSON.parse(readFileSync('src/shards/nalati-grasslands/data/populationField.generated.json', 'utf8'));
+const fieldInput: unknown = JSON.parse(readFileSync('test/fixtures/nalati-population-field-original.json', 'utf8'));
 const originalAssemblyRows = v.parse(v.looseObject({ constants: v.looseObject({ nativeField: PopulationFieldSchema }) }), originalAssembly);
 const assemblyForField = (field: unknown) => nameBlob(assemblyOriginal.name, 'json', new TextEncoder().encode(encodeCanonicalJson({
   ...originalAssemblyRows, constants: { ...originalAssemblyRows.constants, nativeField: v.parse(PopulationFieldSchema, field) },

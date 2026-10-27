@@ -146,7 +146,7 @@
     "src/shards/nalati-grasslands/generators/explorerCatalogue.ts": 3,
     "src/shards/nalati-grasslands/generators/minimapRecipe.ts": 1,
     "src/shards/nalati-grasslands/generators/nalati-world-inventory.mjs": 1,
-    "src/shards/nalati-grasslands/generators/nativeGroups.ts": 9,
+    "src/shards/nalati-grasslands/generators/nativeGroups.ts": 8,
     "src/shards/nalati-grasslands/generators/nightProgram.mjs": 1,
     "src/shards/nalati-grasslands/generators/output.ts": 51,
     "src/shards/nalati-grasslands/generators/places.ts": 1,

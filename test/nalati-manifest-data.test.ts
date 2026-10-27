@@ -45,7 +45,7 @@ test('cold boot metadata publishes canonical discovery for terrain and commit sn
   expect(job.outputs).toContain(file);expect(job.buildTimeOutputs).toContain(file);
   expect(job.inputRoots).toEqual(expect.arrayContaining([
     'scripts/authored-manifest.mjs','src/shards/nalati-grasslands/manifest.json',
-    'src/shards/nalati-grasslands/boot/geography.generated.json',
+    'src/shards/nalati-grasslands/generators/geographySource.ts',
   ]));
   expect(job.inputRoots).not.toContain('src/shards/nalati-grasslands/data/navigation.generated.json');
   mkdirSync('tmp',{recursive:true});const cache=mkdtempSync(resolve('tmp/nalati-discovery-proof-'));

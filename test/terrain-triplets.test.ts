@@ -13,7 +13,7 @@ import { groundColor,surfaceAt,GROUND } from './fixtures/nalati-terrain';
 
 const finite=v.pipe(v.number(),v.finite());
 const geography=v.parse(v.object({res:finite,size:finite,seed:finite,pigment:ScalarTripletSchema,surface:ScalarTripletSchema}),
-  JSON.parse(readFileSync('src/shards/nalati-grasslands/boot/geography.generated.json','utf8')));
+  JSON.parse(readFileSync('test/fixtures/nalati-geography-original.json','utf8')));
 
 const TERRAIN = GROUND.terrain;
 

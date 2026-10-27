@@ -1,3 +1,4 @@
+import { nalatiGeographyRows } from './geographySource.ts';
 import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
 import { postChainRows } from './postChain.ts';
 import { PANO_RIDGE_V } from './panoramaData.ts';
@@ -53,6 +54,7 @@ writer.put(resolve(root, 'src/shards/nalati-grasslands/boot/explore.generated.js
 writer.put(resolve(root, 'src/shards/nalati-grasslands/bootMetadata.generated.json'), jsonBytes({ assetFiles: inventory.assetFiles, postChain: postChainRows(), panoramaRidge: PANO_RIDGE_V }));
 const { captureProbes, extraArt, ...fixed } = discovery;
 const terrain = readNativeTerrain(readFileSync(resolve(root, 'public/assets/baked/nalati-grasslands/terrain.bin')));
+const geography = nalatiGeographyRows();
 const poses = Object.fromEntries(captureProbes.map(probe => [probe.name, {
   probe, eye: [probe.x, terrain.heightAt(probe.x, probe.z) + 1.68, probe.z],
   yaw: -probe.yaw * 180 / Math.PI, pitch: probe.pitch * 180 / Math.PI, mockup: '', frame: probe.name,
@@ -64,7 +66,7 @@ writer.put(resolve(root, 'src/shards/nalati-grasslands/boot/declaration.generate
   minimap: { image: '/assets/nalati-grasslands/map/top.webp' },
   boot: { ...fixed.boot, files: inventory.files, sources: inventory.sources, steps: inventory.steps, lateReads: inventory.lateReads, explore: { art: [...Object.values(fixed.explore.art), ...extraArt, ...fixed.explore.compare.flatMap(({ live, image }) => [live, image])] } },
 }, ['load', 'ground', 'seed', 'spawn', 'slug'])}
-import geography from './geography.generated.json' with { type: 'json' };
+const geography = ${JSON.stringify(geography)};
 export const TERRAIN_ROWS = {
   seed: geography.seed,spawn: geography.spawn,
   groundRows: geography.ground,groundColourSamples: geography.pigment,surfaceSamples: geography.surface,

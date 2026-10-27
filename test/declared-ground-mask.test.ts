@@ -18,7 +18,7 @@ import nalati from '../src/shards/nalati-grasslands/discovery.generated';
 const scalarBlocks=readNalatiScalarBlocks();
 const finite=v.pipe(v.number(),v.finite());
 const geography=v.parse(v.object({ground:GroundRowsSchema,seed:finite,res:finite,size:finite,river:v.object({level:finite})}),
-  JSON.parse(readFileSync('src/shards/nalati-grasslands/boot/geography.generated.json','utf8')));
+  JSON.parse(readFileSync('test/fixtures/nalati-geography-original.json','utf8')));
 
 const files=new Map<string,Uint8Array>();
 const encode = (values: Float32Array | Float64Array): {file:string} => {

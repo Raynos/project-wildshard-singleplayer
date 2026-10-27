@@ -9,7 +9,7 @@ import riding from '../behaviour/riding.generated.json' with { type: 'json' };
 import { ForagerPopulationSchema } from '@wildshard/format/ambientLife';
 import poi from '../data/poiLayout.generated.json' with { type: 'json' };
 import { PopulationFieldSchema } from '@wildshard/format/populationEnvironment';
-import fieldRows from '../data/populationField.generated.json' with { type: 'json' };
+import { nalatiPopulationFieldSource } from './geographySource';
 import { nalatiDayClockRow } from './dayClock';
 import assembly from '../data/headlessAssembly.json' with { type: 'json' };
 import boot from '../data/headlessBoot.json' with { type: 'json' };
@@ -37,7 +37,7 @@ export const nalatiNativeGroupRows: v.InferOutput<typeof NativeGroupRowsSchema> 
     { kind: 'group', row: { ...brains.herd, members: lair }, adopt,guest:{program:pasture,binding:herdBinding} },
   ],
 });
-const nativeField = v.parse(PopulationFieldSchema,fieldRows);
+const nativeField = v.parse(PopulationFieldSchema,nalatiPopulationFieldSource());
 const nativeKnockdown=v.parse(v.object({population:v.object({frame:v.object({knockdown:PopulationKnockdownSchema})})}),riding).population.frame.knockdown;
 const groupAssembly = { ...assembly,constants: { ...assembly.constants,nativeKnockdown,groupRows: nalatiNativeGroupRows,groupAdmission: admission,nativeField,pageGroups: v.parse(PageGroupRowsSchema,{ packGuest:{program:pasture,binding:{...packBinding,parameters:{boundsHalf:nativeField.world.size/2}}},guest:{program:pasture,binding:herdBinding},pack: { ...brains.pack,members: ['group.member'],home: [0,0] },herd: { ...brains.herd,members: ['group.member'] },contacts: { pack: contacts.wolf,herd: contacts.stallion },effects:{notices:[{signal:'howl',text:'A wolf howls — the pack has your scent',every:60},{signal:'stampede',text:'Stampede!',every:20},{signal:'pack-driven-off',text:'The stallion drives the wolves off',every:30},{signal:'stallion-beaten',text:'The stallion gives ground',every:30}],knockdown:{...nativeKnockdown,text:'Knocked down!',every:4}},world: nativeField.world,wind: { x: -.8,z: .6,strength: .5 },prey: 'sheep',damage: admission }),nativeDayClock: nalatiDayClockRow() } };
 

@@ -1,3 +1,4 @@
+import { SEED } from './terrainRecipe.ts';
 import { compileReturnProjectionV2 } from '@wildshard/sdk/returnProjectionV2';
 import { fileURLToPath } from 'node:url';
 import { readFileSync } from 'node:fs';
@@ -5,7 +6,7 @@ import { byteWriter, jsonBytes } from '../../../../scripts/bake-output.mjs';
 
 const data=JSON.parse(readFileSync(new URL('../data/ridingRules.json',import.meta.url),'utf8'));
 const read=name=>JSON.parse(readFileSync(new URL(name,import.meta.url),'utf8'));
-const ecology=read('../data/ecology.generated.json'),forager=read('../creatures/marmotForager.json'),seed=read('../boot/geography.generated.json').seed;
+const ecology=read('../data/ecology.generated.json'),forager=read('../creatures/marmotForager.json'),seed=SEED;
 const population={...data.population,variants:[{kind:ecology.species.kokbori.kind,rows:ecology.species.kokbori.variants.map(({id,scale})=>({id,scale}))}],flocks:ecology.flocks.world.map((row,index)=>({row:{...row,seed:seed+row.seed},dog:ecology.wildlife.flocks[index]?.dog===true})),forager:{row:forager,seed:seed^0x6a2b}};
 const canonical=name=>name;
 const aliases=names=>Object.fromEntries(names.map(name=>[name,canonical(name)]));

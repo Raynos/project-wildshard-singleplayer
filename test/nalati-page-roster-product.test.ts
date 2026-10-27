@@ -11,7 +11,7 @@ import { contentHash, readProjectAssets } from '../src/sdk/project';
 import { buildEliteEntryPageRows } from '../src/shards/nalati-grasslands/generators/eliteEntryRows';
 import { PopulationFieldSchema } from '../src/format/populationEnvironment';
 
-const populationInput:unknown=JSON.parse(readFileSync('src/shards/nalati-grasslands/data/populationField.generated.json','utf8'));
+const populationInput:unknown=JSON.parse(readFileSync('test/fixtures/nalati-population-field-original.json','utf8'));
 const populationField=v.parse(PopulationFieldSchema,populationInput);
 
 // Build the complete native source product once before the original timed

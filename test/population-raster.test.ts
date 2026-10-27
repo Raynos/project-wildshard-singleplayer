@@ -15,7 +15,7 @@ import * as v from 'valibot';
 import { PopulationFieldSchema } from '../src/format/populationEnvironment';
 import { sha256 } from '../src/game/plugin/moduleHash';
 
-const shipped=v.parse(PopulationFieldSchema,JSON.parse(readFileSync('src/shards/nalati-grasslands/data/populationField.generated.json','utf8')));
+const shipped=v.parse(PopulationFieldSchema,JSON.parse(readFileSync('test/fixtures/nalati-population-field-original.json','utf8')));
 const shippedWet=originalNalatiWet;
 const pondBlock={file:'data/geography-pond.bin',bytes:Uint8Array.from(readFileSync('src/shards/nalati-grasslands/data/geography-pond.bin'))};
 const wetBlock=nalatiWetBlock;
@@ -164,12 +164,12 @@ function assertPredecessorMetadata(input:unknown):void {
 
 test('shipped wet publication is named and reconstructs the complete predecessor metadata',()=>{
   expect(shipped.world.wet).toEqual({type:'f32',count:65536,data:{file:wetBlock.file}});
-  const input:unknown=JSON.parse(readFileSync('src/shards/nalati-grasslands/data/populationField.generated.json','utf8'));
+  const input:unknown=JSON.parse(readFileSync('test/fixtures/nalati-population-field-original.json','utf8'));
   assertPredecessorMetadata(input);
 });
 
 test('metadata provenance refuses a changed river sample or any other field',()=>{
-  const input:unknown=JSON.parse(readFileSync('src/shards/nalati-grasslands/data/populationField.generated.json','utf8'));
+  const input:unknown=JSON.parse(readFileSync('test/fixtures/nalati-population-field-original.json','utf8'));
   const rows=v.parse(v.record(v.string(),v.unknown()),input),river=predecessorRiver();
   const first=river.values[0];
   if(!first)throw new Error('Missing predecessor river sample');
