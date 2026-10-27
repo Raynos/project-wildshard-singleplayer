@@ -4,9 +4,11 @@ import { Rng } from '../src/engine/core/rng';
 import { modelContext } from '../src/engine/models/model';
 import { Scope } from '../src/engine/app/scope';
 import { defineWorldSceneCatalogue, bindWorldSceneModelSources } from '../src/game/models/worldSceneCatalogue';
-import authored from '../src/shards/pine-hollow/data/timberWorld.generated.json' with { type: 'json' };
 import { sceneModelRows } from '../src/shards/pine-hollow/generators/sceneModelRows';
 import { PINE_SOURCES } from './fixtures/pine-sources';
+import { timberWorld } from '../src/shards/pine-hollow/generators/timberWorldRows';
+
+const authored = timberWorld(PINE_SOURCES);
 
 const { SCENE_MODELS } = await sceneModelRows(PINE_SOURCES);
 

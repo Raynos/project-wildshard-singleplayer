@@ -4,7 +4,10 @@ import { expect, test } from 'vitest';
 import { checkTileMaterialNames, splatTerrainOf, splatTextureRefs } from '@wildshard/format/splatTerrain';
 import { preflightDeclaredCosts } from '@wildshard/format/assetAdmission';
 import { PINE as product } from './fixtures/pine-program';
-import timbers from '../src/shards/pine-hollow/data/timberWorld.generated.json' with { type: 'json' };
+import { PINE_SOURCES } from './fixtures/pine-sources';
+import { timberWorld } from '../src/shards/pine-hollow/generators/timberWorldRows';
+
+const timbers = timberWorld(PINE_SOURCES);
 
 // Tile streaming P1: Pine's product carries its splat ground on all 64 L0 props tiles and its coarse ground on the 16 L1, the timber after it on its 12 L0 tiles,
 // and admits (parseShardfile ran at import): the ground GLBs draw only the splat material beside the family timber.

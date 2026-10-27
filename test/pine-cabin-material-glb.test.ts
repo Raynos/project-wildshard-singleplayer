@@ -1,7 +1,5 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Pin the complete predecessor alias/cost/byte inventory.
 import { createHash } from 'node:crypto';
-// oxlint-disable-next-line import/no-nodejs-modules -- Compare every unchanged shipping recipe with its committed bytes.
-import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Observe the existing codec without replacing its behavior.
 import { Buffer } from 'node:buffer';
 import { expect, test, vi } from 'vitest';
@@ -9,6 +7,7 @@ import { Mesh, Texture, type Object3D } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { pineCabinMaterialFiles } from '../src/shards/pine-hollow/generators/cabinPropMaterials.mjs';
 import { PINE_SOURCES } from './fixtures/pine-sources';
+import { timberWorld } from '../src/shards/pine-hollow/generators/timberWorldRows';
 
 function materialMesh(node: Object3D): node is Mesh {
   return node instanceof Mesh;
@@ -20,20 +19,18 @@ function bytes(files: ReturnType<typeof pineCabinMaterialFiles>, path: string): 
   return value;
 }
 
-test('the registered writer publishes all sixteen exact native recipes', () => {
+test('the program bakes all sixteen exact native recipes', () => {
   const files = pineCabinMaterialFiles(PINE_SOURCES);
   expect(Object.keys(files.aliases)).toHaveLength(16);
   expect(Object.values(files.outputs).reduce((size, row) => size + row.length, 0)).toBe(27048);
   for (const target of Object.values(files.aliases)) {
     const wire = bytes(files, target);
-    expect(Buffer.from(wire).equals(readFileSync(`public${target}`))).toBe(true);
     expect(target).toBe(`/assets/pine-hollow/baked/cabin-materials/${createHash('sha256').update(wire).digest('hex')}.glb`);
   }
-  const metadata: unknown = JSON.parse(readFileSync('src/shards/pine-hollow/data/timberWorld.generated.json', 'utf8'));
-  if (metadata === null || typeof metadata !== 'object' || !('propMaterials' in metadata) || !('propMaterialCosts' in metadata))
-    throw new Error('Missing registered material metadata');
-  expect(metadata.propMaterials).toMatchObject(files.aliases);
-  expect(metadata.propMaterialCosts).toEqual(expect.arrayContaining([...files.costs]));
+  // GR8 G37: the timber world names each recipe as a product file and keeps its cost row
+  const world = timberWorld(PINE_SOURCES);
+  expect(Object.keys(world.propMaterials)).toEqual(expect.arrayContaining(Object.keys(files.aliases)));
+  expect(world.propMaterialCosts).toEqual(expect.arrayContaining([...files.costs]));
 });
 
 test('every original material/image/sampler/accessor field and geometry byte stays exact', () => {

@@ -9,6 +9,8 @@ import * as v from 'valibot';
 import { PickupCatalogueSchema } from '@wildshard/format/specimenCatalogue';
 import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
 import { bakePineCodeParts, readShelfToken } from '../src/shards/pine-hollow/generators/codeParts';
+import { PINE_SOURCES } from './fixtures/pine-sources';
+import { timberWorld } from '../src/shards/pine-hollow/generators/timberWorldRows';
 
 const catalogue: unknown = JSON.parse(readFileSync('src/game/data/pickupCatalogue.json', 'utf8'));
 const packed = v.parse(v.object({ url: v.string(), rows: v.unknown(), parts: v.record(v.string(), v.number()) }),
@@ -24,7 +26,7 @@ test('all eight shelf variants and the complete original geometry pack stay exac
   }
   const before = [...files.values()].map(bytes => createHash('sha256').update(bytes).digest('hex'));
   const ground = readNativeTerrain(readFileSync('public/assets/baked/pine-hollow/terrain.bin'));
-  const result = bakePineCodeParts(ground.heightAt, files);
+  const result = bakePineCodeParts(ground.heightAt, timberWorld(PINE_SOURCES), files);
   expect(result.bin.byteLength).toBe(794564);
   expect(createHash('sha256').update(result.bin).digest('hex'))
     .toBe('bd582243b159de1077edf2198989cb9d602e6e5a98aebfadf821820979effa38');

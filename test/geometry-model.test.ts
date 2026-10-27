@@ -2,11 +2,13 @@ import { expect, test } from 'vitest';
 import * as THREE from 'three';
 import { Rng } from '../src/engine/core/rng';
 import { defineGeometryModel, modelContext, paramsOf } from '../src/engine/models/model';
-import authored from '../src/shards/pine-hollow/data/timberWorld.generated.json' with { type: 'json' };
 import { pineCrags } from '../src/shards/pine-hollow/generators/bake-pine-crags.mjs';
 import { BAKED_COVE } from './fixtures/driftwood-baked-cove';
 import { ISLAND_LOOK } from '../src/shards/driftwood-isle/generators/islandRows';
 import { PINE_SOURCES } from './fixtures/pine-sources';
+import { timberWorld } from '../src/shards/pine-hollow/generators/timberWorldRows';
+
+const authored = timberWorld(PINE_SOURCES);
 
 // GR8 G33: the crag rows are the producer's, not a stored data/crags.json
 const crags = (await pineCrags(PINE_SOURCES)).rows;

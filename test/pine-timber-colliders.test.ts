@@ -2,8 +2,9 @@ import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { TimberRowSchema } from '../src/shards/pine-hollow/generators/timberSchema';
 import { bakeSiteTimberRows } from '../src/shards/pine-hollow/generators/bake-pine-site-timbers.mjs';
+import { PINE_SOURCES } from './fixtures/pine-sources';
 
-const sites = bakeSiteTimberRows().rows;
+const sites = bakeSiteTimberRows(PINE_SOURCES).rows;
 
 test('timber rows admit the authored box/tread families and own their native descriptors', () => {
   for (const site of [sites.landing.world, sites.landing.turntable, sites.bridge.world, sites.bridge.turntable]) {

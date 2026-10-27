@@ -14,8 +14,10 @@ import { pineHeadlessAssets, prepareHeadlessRuntime } from './fixtures/pine-head
 import { emptyShardfile } from '../src/sdk/author';
 import { canoeMover } from '../src/shards/pine-hollow/generators/canoe';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
+import { PINE_SOURCES } from './fixtures/pine-sources';
+import { timberWorld } from '../src/shards/pine-hollow/generators/timberWorldRows';
 
-const row = canoeMover(() => 2), level = { ...SIM_LEVEL, entities: [] };
+const row = canoeMover(() => 2, timberWorld(PINE_SOURCES).landmarks), level = { ...SIM_LEVEL, entities: [] };
 function install(host: SimHost): MoverRuntime {
   const source = emptyShardfile({ slug: 'carry-test', name: 'Carry', author: 'Test', revision: 1, seed: 3 });
   return new MoverScriptDriver([row], host).install(host, { content: source, assets: new Map(),

@@ -16,7 +16,6 @@ import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 import { resolveBootSources } from '../src/engine/boot/filePolicy';
 import { PINE_BOOT_FILES, PINE_BOOT_SOURCES } from '../src/shards/pine-hollow/generators/bootFiles';
-import authored from '../src/shards/pine-hollow/data/timberWorld.generated.json' with { type: 'json' };
 import { GPU_FILES } from '../src/shards/pine-hollow/ktx2.generated';
 import ASTC6_PHONE from '../src/shards/pine-hollow/data/astc6.generated.json' with {type:'json'};
 import { pageModeBoot, pageModeKtx2 } from '../src/game/shard/pageBoot';
@@ -30,6 +29,9 @@ import { homedir } from 'node:os';
 import { resolve } from 'node:path';
 import { currentPageMode, setPageMode } from '../src/game/grid/pageMode';
 import { PINE_SOURCES } from './fixtures/pine-sources';
+import { timberWorld } from '../src/shards/pine-hollow/generators/timberWorldRows';
+
+const authored = timberWorld(PINE_SOURCES);
 
 const { CRAG_CAVE_ROWS } = await cragScene(PINE_SOURCES);
 

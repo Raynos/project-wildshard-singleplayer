@@ -5,6 +5,8 @@ import { bindQuestPageInteractions } from '../src/game/plugin/ui';
 import { parseQuestPageInteractions } from '../src/format/questInteractions';
 import { PINE_MILL_DOOR } from '../src/shards/pine-hollow/generators/questConsequences';
 import { canoeMover } from '../src/shards/pine-hollow/generators/canoe';
+import { PINE_SOURCES } from './fixtures/pine-sources';
+import { timberWorld } from '../src/shards/pine-hollow/generators/timberWorldRows';
 
 // The gate may refuse a use, but never sets quest flags or advances the door itself.
 test('the mill door uses admitted ordered conditions and preserves both refusals and old-save access', () => {
@@ -25,7 +27,7 @@ test('the mill door uses admitted ordered conditions and preserves both refusals
 });
 
 test('canoe uses the existing ride driver with offline bank/landing samples', () => {
-  const row = canoeMover(() => 2);
+  const row = canoeMover(() => 2, timberWorld(PINE_SOURCES).landmarks);
   expect(row.driver).toEqual({ kind: 'winch', mode: 'ride', dwell: 1, gate: false, return: 'command', ease: 'smoothstep', snap: 0 });
   expect(row.track?.position).toEqual([[-69, 2, 119], [-87.6, 2, 118.4]]);
   expect(row.carry?.landings).toEqual([[-67.8 + 2.6, 2, 119 + 1.4], [-89.8, 2, 118.6]]);
