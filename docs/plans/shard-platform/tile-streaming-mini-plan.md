@@ -899,7 +899,7 @@ read-only prior products, not a new current-source build.
 | Sky | sp-x10 fresh build11.8s:64L0/16L1,16 full5x5,zero bake debt | ISLE_LIBRARY/whole island scene still retains all fine files. sp-x10 owns exclusion plus scoped reader migration; not done. |
 | Sunscar | Retained64L0/16L1,all occupied,zero tile-cap debt | sp-x10 source confirmation; final reading only at plan end. |
 | Open plots | Retained64L0/16L1; Night Market and the other plots retain wire/resident/draw overages | sp-x2 owns the generic SDK tile producer cut; no shard-name branch or cap waiver. |
-| Template | Retained64L0/16L1,all occupied,zero tile-cap debt | No new missing producer identified; final source/read qualification remains explicit. |
+| Template | Own current-source G773 product PASS4.86s:64L0/16L1,16 full5x5 windows,zero cap debt | T8 producer qualified once; final runtime/read qualification remains at plan end. No source or cap changes needed. |
 
 | Slice | State | Change and checks |
 |---|---|---|
@@ -928,3 +928,7 @@ library/global cost or fabricate empty occupied parents. Existing exact debt,
 wire/resident/draw caps, source geometry and texture pixels stay unchanged.
 Remaining T10 source deletion waits for the actual all-seven T8 ownership
 migrations; no new preview, reading, product build or render gain is claimed.
+
+| Slice | State | Current source qualification |
+|---|---|---|
+| T8.Template | in flight (reading at plan end), source already tiled | One own G773 product build PASS4.86s,64L0/16L1,16 full5x5 windows and no debt under the maintained hash/receipt/cap checker. Critical272KB, tile closure4120KB, library909KB,far571KB,total unique5862KB (rounded decimal KB). No geometry/cap/fixture change or repeated product build; no preview/reading. |
