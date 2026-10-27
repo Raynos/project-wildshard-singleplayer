@@ -1,14 +1,16 @@
 
-import { parseAmbientLife } from '@wildshard/format/ambientLife';
-import { parsePageLife , type PageLifeRows as PageLifeRowsType } from '@wildshard/format/pageLife';
+import { parseAmbientLife, parsePageLife, type PageLifeRows as PageLifeRowsType } from '@wildshard/sdk/rows';
 import { returnGuest, type ReturnScriptRow } from './returnPrograms';
 import { PINE_LIFE } from './ambientLife';
+import type { BarkPerch, PointPerch } from './perchRows';
 
-const life = parseAmbientLife(PINE_LIFE);
 /** The life guest's declared row (its module unset): output preparation compiles it and replaces this programme in
  *  actors/page-life.json and the quest runtime with the compiled row, whose module it names (GR8). */
 export const LIFE_PROGRAM: { script: ReturnScriptRow; bytes: string } = { script: returnGuest('life').row, bytes: '' };
-export const PAGE_LIFE: PageLifeRowsType = parsePageLife({
+/** The page's life rows with the perches the program plants (GR8 G32: perchInputs.ts `pineAmbientPerches`). */
+export function pageLife(perches: { snags: PointPerch[]; bark: BarkPerch[] }): PageLifeRowsType {
+  const life = parseAmbientLife({ ...PINE_LIFE, sentinel: { ...PINE_LIFE.sentinel, perches: perches.snags }, trunkForager: { ...PINE_LIFE.trunkForager, perches: perches.bark } });
+  return parsePageLife({
   version: 1, seed: life.seed, system: { id: life.system.id, after: life.system.after, before: life.system.before },
   draw: { library: 'look/wildlife-draw.json', capacity: life.scavenger.flock.count + life.forager.count + 2, glow: [0.45, 0.75] },
   flocks: [
@@ -30,3 +32,6 @@ export const PAGE_LIFE: PageLifeRowsType = parsePageLife({
   debug: { ...life.debug, flocks: { ravens: 'scavengers', guides: 'guide' }, visitors: { owl: 'sentinel', wood: 'trunk-forager' }, populations: { hares: 'hare' },
     commands: { owlNow: { operation: 'visit', group: 'sentinel' }, woodNow: { operation: 'visit', group: 'trunk-forager' }, ravensTo: { operation: 'scavenge', group: 'scavengers' } } },
 });
+}
+/** The life rows' policy with no perches (tests that read flocks, foragers and carcasses; the product plants them). */
+export const PAGE_LIFE: PageLifeRowsType = pageLife({ snags: [], bark: [] });

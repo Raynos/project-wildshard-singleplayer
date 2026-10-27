@@ -12,7 +12,8 @@ import { roamingCombatBlob } from './roamingCombat';
 import { EXPLORER_CATALOGUE } from './explorerCatalogue';
 import { CHAPTER_DIRECTOR } from './chapterDirector';
 import { PINE_HULL_BOOK } from './riggedHulls';
-import { PAGE_LIFE } from './pageLife';
+import { pageLife } from './pageLife';
+import { pineAmbientPerches } from './perchInputs';
 import { returnGuest, returnRegistries } from './returnPrograms';
 import logKit from '../data/logKit.json' with { type: 'json' };
 import { PLACE_SETS } from './placeSets';
@@ -306,7 +307,7 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<type
   const trees = emitNamedBlobs([nameBlob(TREE_REST_FILE, 'glb', await pineTreeRest(), { critical: true })]);
   const drawFile = emitNamedBlobs([nameBlob('look/wildlife-draw.json', 'json', new TextEncoder().encode(encodeCanonicalJson(wildlifeDraw(flock.ranges))))]);
   const lifeProgram = { script: life.script, bytes: '' };
-  const programs = emitNamedBlobs([nameBlob('actors/page-life.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ ...PAGE_LIFE, program: lifeProgram }))),
+  const programs = emitNamedBlobs([nameBlob('actors/page-life.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ ...pageLife(await pineAmbientPerches(ctx)), program: lifeProgram }))),
     nameBlob('actors/shelter.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ step: 'pine.rain-shelter', environment: 'pine.habitat', roster: 'pine.roster', weather: 'pine.air', herdLimit: 512, look: shelterLook, program: { script: shelter.script, bytes: '' } })))]);
   const namedFiles = [...output.namedFiles, ...trees.files, life.file, ...birds.files, ...client.files, ...creatures.files, ...rigs.files, ...programs.files, ...contracts.files.files, ...elites.files.files, ...journal.files, ...kingFiles.files, ...flock.files.files, ...drawFile.files, night.blob.file, clock.file].sort((a, b) => (a.name ?? '') < (b.name ?? '') ? -1 : (a.name ?? '') > (b.name ?? '') ? 1 : 0);
   const assets = new Map([...output.assets, ...trees.assets, ...birds.assets, ...client.assets, ...creatures.assets, ...rigs.assets, ...programs.assets, ...contracts.files.assets, ...elites.files.assets, ...journal.assets, ...kingFiles.assets, ...flock.files.assets, ...drawFile.assets, [night.blob.file.hash, night.blob.bytes], [clock.file.hash, clock.bytes]]);

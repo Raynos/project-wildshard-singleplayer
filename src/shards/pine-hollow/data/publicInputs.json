@@ -24,5 +24,9 @@
   "weapons": {
     "rifle": "/assets/pine-hollow/weapons/lever-rifle.glb",
     "knife": "/assets/pine-hollow/weapons/skinning-knife.glb"
+  },
+  "trees": {
+    "glb": "/assets/models/pine-hollow-trees/trees.glb",
+    "sidecar": "/assets/models/pine-hollow-trees/trees.json"
   }
 }

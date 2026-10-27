@@ -1878,8 +1878,6 @@
     "src/shards/pine-hollow/data/mapAssembly.generated.bin",
     "src/shards/pine-hollow/data/mapAssembly.generated.json",
     "src/shards/pine-hollow/data/npcSkins.generated.json",
-    "src/shards/pine-hollow/data/perchRows.generated.json",
-    "src/shards/pine-hollow/data/perches.generated.json",
     "src/shards/pine-hollow/data/pondClip.generated.json",
     "src/shards/pine-hollow/data/timberWorld.generated.json",
     "src/shards/pine-hollow/generators/sectionSchemas.generated.ts",

@@ -7,6 +7,8 @@ import { spawnScriptRegistries as gameSpawnScriptRegistries } from '@wildshard/f
 import type { DecisionRegistries as GameDecisionRegistries } from '@wildshard/format/decisionBindings';
 import { JournalRowSchema as GameJournalRowSchema, journalRowRules as gameJournalRowRules, type JournalRow as GameJournalRow } from '@wildshard/format/compendiumRows';
 import { parseContractCatalogue as gameParseContractCatalogue, type ContractCatalogue as GameContractCatalogue } from '@wildshard/format/contracts';
+import { parseAmbientLife as gameParseAmbientLife, type AmbientLifeData as GameAmbientLife } from '@wildshard/format/ambientLife';
+import { parsePageLife as gameParsePageLife, type PageLifeRows as GamePageLifeRows } from '@wildshard/format/pageLife';
 import * as v from 'valibot';
 
 /** Numeric row declarations and registered view/presentation recipes. */
@@ -45,3 +47,11 @@ export function parseJournalRow(input: unknown): JournalRow {
 export type ContractCatalogue = GameContractCatalogue;
 /** Validate a contract catalogue before it is serialized (GR8: a shard program calls this instead of a bake script). */
 export function parseContractCatalogue(input: unknown): ContractCatalogue { return gameParseContractCatalogue(input); }
+/** One admitted forest community (a shard's ambient life policy). */
+export type AmbientLife = GameAmbientLife;
+/** Validate an ambient life policy before its page rows are built. */
+export function parseAmbientLife(input: unknown): AmbientLife { return gameParseAmbientLife(input); }
+/** One page's admitted life rows (flocks, foragers, carcasses, guide, harvest). */
+export type PageLifeRows = GamePageLifeRows;
+/** Validate a page's life rows before they are serialized (GR8: a shard program calls this). */
+export function parsePageLife(input: unknown): PageLifeRows { return gameParsePageLife(input); }

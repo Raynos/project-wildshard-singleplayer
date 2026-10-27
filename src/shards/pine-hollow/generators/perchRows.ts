@@ -1,5 +1,8 @@
-import type { TreeInstance } from '@wildshard/engine/world/forest/placement';
-import type { Rng } from '@wildshard/engine/core/rng';
+import type { NativeForestTree } from '@wildshard/sdk/bake/forest';
+import type { Rng } from '@wildshard/sdk/random';
+
+/** A planted tree as the perches read it (GR8 G32: `bakePlantedForest`'s records). */
+type TreeInstance = Pick<NativeForestTree, 'x' | 'y' | 'z' | 'rot' | 'scale' | 'variant' | 'species'>;
 
 interface Knot { y: number; cx: number; cz: number; r: number }
 interface Spines { step: number; spines: Knot[][] }
