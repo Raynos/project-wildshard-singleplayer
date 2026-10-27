@@ -233,7 +233,7 @@ numbers; a row's lane re-measures before/after with G1.
 |---|---|---|---|---|---|
 | G1 | **Guard first:** `scripts/shard-phone-memory.mjs --heap <shard>` on the clean path (Developer off, no pins, direct `/?chunk=`): boot allocated MiB, settled used after GC, idle MiB/s over 60 s, major GCs per 30 s; checked against `scripts/memory/js-heap-ratchet.json`, **exit 1 on > 10 % regression**, ratchet only lowers (`--rebase` refuses an increase) | n/a: makes every row below measurable and refuses regressions | done `77e46ccbbc` + `af53601ece` measured ratchet (G778) | S | one command prints the four readings for `_template` and `blender-template` and fails on a seeded regression in its test; run at milestones and by each row's lane |
 | H1 — open (2026-10-27 plan-end reading below) (code `0b99138866` landed 2026-10-27, sp-o4; the plan's end reading closes it, G780): the idle Template's only per-draw flip was three's ONE stock shadow depth material, drawn by plain, instanced and skinned casters in turn (3 program re-evaluations a frame: instancing / skinning params); instanced and skinned classic casters now get a depth material shared per kind (`shadowMaterialOwnership.ts`), same programs | Stop per-draw program re-evaluation: find the materials that flip `needsProgramChange` (instanced/plain or skinned/plain sharing a material, shared shadow depth material, per-frame light-state version) and give each variant its own material/depth material, or keep the light count stable | ~1.4 MiB/s idle, fewer major GCs, CPU per draw | open: plan-end numbers below | M | idle `getParameters` + `getProgramCacheKey` < 0.05 MiB/s; `renderer.info.programs` and the look unchanged |
-| H2 — open (2026-10-27 plan-end reading below) | Tile streamer stationary early-out: skip `planDesired` when the camera's ring tile and the budget are unchanged; reuse work rows; key catalogue lookups numerically | ~0.8 MiB/s | open (source `4b18cede14`; plan-end numbers below) | S | `tileStreamer.ts` < 0.05 MiB/s at idle; walk test unchanged |
+| H2 — done (`5a20acd845`; shared `0375ca3c78`, 2026-10-27) | Tile streamer stationary early-out: skip `planDesired` when the camera's ring tile and the budget are unchanged; reuse work rows; key catalogue lookups numerically | ~0.8 MiB/s | done: 0.010/0.007MiB/s; 24 focused controls pass | S | `tileStreamer.ts` < 0.05 MiB/s at idle; walk test unchanged |
 | H3 — open (2026-10-27 plan-end reading below) | Checkpoint only when state changed: dirty flag or compare with the last written string; `SaveStore` keeps its parsed doc instead of re-reading `savedDoc` per write; script checkpoint JSON directly from bytes, avoiding boxed `number[]` | ~0.65 MiB/s, plus the save I/O | open (source `7fa1873d21`; plan-end numbers below) | M | an idle checkpoint with unchanged state allocates < 50 KiB; saves round-trip tests green |
 | H4 — open (2026-10-27 plan-end reading below) | Script host per-tick copies: copy `shared`/`players`/frames only on an effect commit; no `Object.fromEntries` view per call | ~0.45 MiB/s | open (source `d1248ed4f2`; plan-end numbers below) | M | `script/*` < 0.1 MiB/s at idle; script determinism tests green |
 | H5 — open (2026-10-27 plan-end reading below) | Input layout only on change: rebuild `touchLayout`/`refresh` sets when the context stack or an `enabled()` answer changes | ~0.24 MiB/s | open (source `0a7d63da0d`; plan-end numbers below) | S | `InputService.ts` < 0.02 MiB/s at idle; no HUD change (E332 not triggered) |
@@ -468,3 +468,32 @@ any tile can become unneeded. Catalogue, pins, demand, completion and retry
 fences remain. Touched types/typed lint pass; H2 stays open for a containing
 shared-preview allocation reading. Original failed reading/probes remain
 in `tmp/sp-x9-miss-fixes`; no H1/S1 rendering hunk is included.
+
+### H2 containing-build qualification — done (2026-10-27)
+
+Sources `05a8ac95ee` + `5a20acd845`, shared `0375ca3c78` /
+`0375ca3-mvqo2iq5`. Two independent clean G1-protocol pages, stock iPhone16Pro
+402x681 viewport/402x874 screen, Developer off/no pins, requested render2x,
+CPU1x, blocked worker, muted Chromium. Each idle interval is60s; build identity
+is checked against the exact served pin before/after. Only H2 is regraded.
+
+| H2 idle allocation | Before `5f1eadb19e` | Retry/fetch fix `cfef1c4658` | Motion certificate `0375ca3c78` | Bar |
+|---|---:|---:|---:|---:|
+| Template | 0.802MiB/s | 0.788MiB/s | 0.010158MiB/s (639432 sampled B/60.030s) | <0.05 |
+| Blender Template | 0.777MiB/s | 0.747MiB/s | 0.007034MiB/s (442760 sampled B/60.026s) | <0.05 |
+
+All24 focused streamer controls pass after landing (7.19s), including the
+unchanged original1km residency/mask oracle, unrevisioned dynamic polling,
+retry/completion wake, exact movement/pin/eviction invalidation and the
+explicit-ring certificate's motion/hysteresis case. Source types/typed lint
+passed before landing. No membership, masks, geometric thresholds or caps
+were changed. Original failed reads and nonqualifying decision probes remain.
+
+Whole-page idle allocation is still3.756/2.259MiB/s, with5.497/4.998 major
+GCs per30s. These are not passes for the0.5MiB/s /2GC-per-minute whole-plan
+bar or other H rows. Shared pins contain peer changes, so no isolated
+whole-page gain is attributed. H1/S1 remain with sp-o4; H10 is separately
+qualified by sp-o2 in `cfef1c4658`. Raw profiles/maps/row attribution and
+controls: `tmp/sp-x9-miss-fixes/h2-motion-after-*.json`,
+`h2-motion-attribution.log`, `h2-row-controls.log`. Browsers closed and
+shared-preview borrower released; no Simulator/native-floor claim.
