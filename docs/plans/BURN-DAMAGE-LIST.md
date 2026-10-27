@@ -47,7 +47,7 @@ since is red; the latest (`60e9b7bfe6`) fails `generated-inputs`, which fails fa
 | D8 | `test/open-plot-collision.test.ts`: quarter-turns | `06d14d8288` | breaker (sp-x7 finds) | fixed (sp-o1, `8907eeef3e`: per-part evidence, intended RM10/RM11 art) |
 | D9 | Obsolete CI `gate-deferred` job red | `06d14d8288` | sp-ci-deploy | fixed `defb0f9fd2`; dormant job removed with MB3 switch-off |
 | D10 | CI generation misses Far Reach knoll / Nalati geography source; later retired-job scheduling references refuse the catalogue | `998fcef0ba` | sp-ci-deploy / defining generator lanes | original closures fixed `ad2d65c91d`, `b4fb652955`; retired edges fixed `a8d30eb7bd`, `408ac04886`, `cb9dd7fbc0`; full frozen CI generation pending |
-| D11 | Deploy stuck: live stays `59a595ab10` (newest-ci-green pin, no green push since) | `ac3e62895d` | sp-x7 (G771) | open |
+| D11 | Live remains `59a595ab10` (`version.json`: 2026-10-27 00:56 UTC); no newer fully green push | `ac3e62895d` | sp-ci-deploy (G771/G802) | open; current generation failure prevents six-leg smoke and a new eligible release |
 | D12 | Official quiet Simulator frame floor 11/15 | `3694a487bc` | sp-x8, sp-o4 | open |
 | D13 | CF2 grid far-cell preparation barrier at 17:56:05Z in smoke `40371580877`; ready/unpaused/drawing, seven far cells fetching; not a Nine title PNG | observed `2b11287c5fb143b960b15cf3e37fe17be1ead3c3` (not first-bad attribution) | sp-ci-deploy (quarantine/fix); sp-x8 (crossing source) | quarantined under G788 until 2026-10-28 08:20 UTC; original 150 s, pixels, routes and elapsed clock retained in reporting leg; expiry restores blocking case |
 | D14 | Flaky (SW13, GM4): `nalati-place-blob-program`, `nalati-map-program`, `nalati-state-intake`, `population-raster`, `map-generation-inputs` | — (G788) | sp-x6 (Nalati / GM4) | quarantined `9872fc12a0`, fix deadline 2026-10-28 07:12 UTC |
@@ -116,6 +116,8 @@ since is red; the latest (`60e9b7bfe6`) fails `generated-inputs`, which fails fa
 
 | D66 | Existing separate Nine public/Developer title PNG flakes (`40346975383`, `40355584392`), previously mislabeled D13 | `531c009fdd` | sp-x1 | existing title-only quarantine until 2026-10-28 03:30 UTC; gameplay remains blocking |
 | D67 | `scripts/family-props-board/board.js` imports `src/shards/driftwood-isle/boot/modelCatalogue.generated.json`, which the retired specimen-catalogue job wrote; the board needs the site catalogue from `siteCatalogue(banks)` (sceneBanks.ts) when its harness is repaired (its browser runner is already removed) | the specimen-catalogue retirement (sp-o4, GR7) | the family-props board row (generators GR7 ← B3) | open |
+
+| D68 | CI `40473058629` / `40473133905` generation: `pine-timber-world` emits 64 tiles / 16 files, then cannot verify declared stream GLB `assets/0c1f2a18...`; native whole-shape storage changed while registered output pins still name old bytes | suspected `210f87d040` (exact first-bad boundary pending verification) | sp-o2 (coordinator routed 2026-10-27 08:28 UTC) | open; sp-ci-deploy tracks frozen CI, no output/hash waiver |
 
 ## Rows
 
