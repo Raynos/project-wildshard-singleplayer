@@ -12,6 +12,7 @@ import water from '../data/waterLook.json' with { type: 'json' };
 import { pineLookMaterials } from './lookMaterials';
 import { wholePartitionFiles } from '@wildshard/sdk/bake/wholePartition';
 import { perSources, type PineSources } from './pineSources';
+import { HAMLET } from './layout';
 
 type ForestPageRowsType = ReturnType<typeof forestPageRows>;
 
@@ -41,6 +42,7 @@ export const forestPage: (sources: PineSources) => ForestPage = perSources((sour
       kinds: kinds.map(([id, model, name]) => ({ id, geometry: `pine-undergrowth-${id}`, model: `pine-hollow/${model}`, name })),
       far: 'pine.undergrowthFar', shadow: 'pine.undergrowthShadows', cells: { size: 32, pad: 2.5, extraFar: 2 } },
     buildings: { id: 'pine.cabins', root: 'cabins.root', shells: 'cabins.shells', life: CABIN_LIFE,
+      late: { at: [HAMLET.x, HAMLET.z], materials: ['cabin.pit.0', 'cabin.lantern.0', 'cabin.lantern.1', 'timber.door'] },
       shared: 'pine.sharedCabinLights', shadow: 'pine.cabinDetailShadows', sites: 'world/building-sites.json',
       variants: ['phone', 'desktop'].flatMap(tier => [false, true].flatMap(shadow => [false, true].map(shared => ({ tier, shadow, shared,
         file: `scenes/cabins/living/${tier}-${String(shadow)}-${String(shared)}.json` })))),

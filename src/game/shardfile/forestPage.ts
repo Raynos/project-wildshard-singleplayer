@@ -66,7 +66,10 @@ export async function prepareForestPage(ctx: ShardContext, input: unknown): Prom
   if (pages.get(ctx.scope)?.has(rows.id) === true) throw new Error('Duplicate forest page');
   const { game, sky, forest, player, registry } = world;
   ctx.app.registerTrample(trample, ctx.scope);
-  const resources = await timeClientPreparation(ctx.product.slug, 'forest.scenes', () => installWorldScenes(ctx, ctx.product.section('world/scenes'), residentWorldScope(ctx)));
+  const scenes = ctx.product.section('world/scenes'), livingHint = rows.buildings.late;
+  const sceneRows = livingHint === undefined ? scenes : { ...scenes, lateMaterials: [...scenes.lateMaterials ?? [],
+    ...livingHint.materials.filter(id => !scenes.lateMaterials?.some(hint => hint.id === id)).map(id => ({ id, at: livingHint.at }))] };
+  const resources = await timeClientPreparation(ctx.product.slug, 'forest.scenes', () => installWorldScenes(ctx, sceneRows, residentWorldScope(ctx)));
   const streams = { group: resources.group(rows.streams.group), water: resources.mesh(rows.streams.water), spray: resources.mesh(rows.streams.spray) }; game.scene.add(streams.group);
   const carpet = await step('grass', async () => {
     const grass = ctx.scope.run(() => new Grass(sky, forest, { trample: { field: trample, glsl: TRAMPLE_GLSL } }).build()); await macrotask();
@@ -80,22 +83,49 @@ export async function prepareForestPage(ctx: ShardContext, input: unknown): Prom
     if (variant === undefined) throw new Error('Missing declared living topology');
     const topology = v.parse(LivingPageInputSchema, await ctx.product.json(variant.file)), group = new Group(); resources.publish(row.root, group);
     const geometry = new Map(topology.geometry.map(entry => [entry.key, resources.geometry(entry.id)]));
-    const materials = new Map(ctx.product.section('world/scenes').materials.filter(entry => resources.has(row.material + entry.id)).map(entry => [entry.id, resources.material(row.material + entry.id)]));
     const life = ctx.scope.run(() => new LivingBuildings(resources, row.life)), owner = residentWorldScope(ctx);
-    if (shared) for (let i = 0; i < row.light.count; i++) { const light = row.light; topology.life.shared.push(resources.lend(LightPool.for(game.scene).acquire(light.color, light.intensity, light.distance, light.decay))); }
-    hydrateWorldSceneWeld(topology.graph, resources, { geometry, materials, plumbing: ctx.product.shardfile.plumbing }, owner); life.add(topology.life);
     const sites = v.parse(LivingPageSitesSchema, await ctx.product.json(row.sites));
-    const roots = sites.buildings.filter(entry => entry.standalone).map(entry => resources.object(entry.root));
-    game.scene.add(group); runtime.interactables.push(...life.interactables);
+    const roots: Object3D[] = [];
+    game.scene.add(group);
+    const requireOwner = (): void => {
+      if (owner.disposed || owner.disposing || ctx.scope.disposed || ctx.scope.disposing) throw new Error('Living page owner is retired');
+    };
+    const hydrate = (): void => {
+      requireOwner();
+      const materials = new Map(ctx.product.section('world/scenes').materials.filter(entry => resources.has(row.material + entry.id)).map(entry => [entry.id, resources.material(row.material + entry.id)]));
+      withOwner(owner, () => {
+        if (shared) for (let i = 0; i < row.light.count; i++) { const light = row.light; topology.life.shared.push(resources.lend(LightPool.for(game.scene).acquire(light.color, light.intensity, light.distance, light.decay))); }
+        hydrateWorldSceneWeld(topology.graph, resources, { geometry, materials, plumbing: ctx.product.shardfile.plumbing }, owner); life.add(topology.life);
+      });
+      roots.push(...sites.buildings.filter(entry => entry.standalone).map(entry => resources.object(entry.root)));
+      runtime.interactables.push(...life.interactables);
+    };
     // I2: the shells may be a late weld (built after control, out of the spawn view): their assembly, the buildings' saves
     // and doors follow it then
     const shells = async (): Promise<void> => {
+      requireOwner();
       await resources.assemble(row.shells);
-      life.persist(ctx.app.saves, owner, { id: ctx.manifest.slug, shard: ctx.manifest.slug, group: row.save }); life.registerDoors(registry, player.position);
+      requireOwner();
+      withOwner(owner, () => {
+        life.persist(ctx.app.saves, owner, { id: ctx.manifest.slug, shard: ctx.manifest.slug, group: row.save }); life.registerDoors(registry, player.position);
+      });
       for (const prompt of life.interactables) setSight(prompt, { slack: row.sightSlack });
     };
-    const lateDoors = resources.has(row.shells) ? null : resources.published(row.shells).then(shells);
-    if (lateDoors === null) await shells();
+    // The assembly publishes without borrowing its living roots. Queue those
+    // roots only after publication, so no refinement job waits on a later job
+    // on the same cursor. Stable life, floors and save ownership stay native.
+    let lateDoors: Promise<void> | null;
+    if (row.late === undefined) {
+      hydrate();
+      lateDoors = resources.has(row.shells) ? null : resources.published(row.shells).then(shells);
+      if (lateDoors === null) await shells();
+    } else {
+      const late = row.late;
+      lateDoors = resources.published(row.shells).then(async () => {
+        await resources.afterControl(`living:${row.id}`, { x: late.at[0], z: late.at[1] }, late.materials, async () => { hydrate(); await shells(); });
+        return undefined;
+      });
+    }
     const page: LivingPage = { resources, life, group, ...sites, roots, lateDoors };
     return page;
   });

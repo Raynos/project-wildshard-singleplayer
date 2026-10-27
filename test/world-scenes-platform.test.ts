@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import {nineCastBlobs} from './fixtures/nine-cast-blobs';
 // @vitest-environment happy-dom
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
@@ -814,7 +815,7 @@ test('file-backed scene specimens prepare exact bytes before publishing resident
   }
 });
 
-test.each(['late','played','published','retired'] as const)('source maps shared with a cold specimen respect %s draw ownership',async mode=>{
+test.each(['late','played','published','retired','hinted','hinted-played','hinted-retired','hinted-living'] as const)('source maps shared with a cold specimen respect %s draw ownership',async mode=>{
   const [sources,{SkyRig},{reachControl}]=await Promise.all([import('../src/game/shardfile/worldSceneMaterials'),import('../src/engine/world/skyRig'),import('../src/engine/boot/prefetch')]);
   const sky:unknown=Object.create(SkyRig.prototype);if(!(sky instanceof SkyRig))throw new Error('Missing late material sky');
   const ctx=fixture(),level=ctx.scope.child('control'),material=new MeshStandardMaterial();
@@ -830,12 +831,15 @@ test.each(['late','played','published','retired'] as const)('source maps shared 
   vi.spyOn(ctx.product,'hasFile').mockImplementation(name=>extra.has(name)||has(name));
   const load=vi.spyOn(sources,'worldSceneSourceMaterial').mockResolvedValue(material);
   try{
-    const rows=parseWorldScenes({...section(),catalogue:'models/catalogue.json',materials:[{id:'paint',kind:'source',load:'placement',url:'/original.glb',...(mode==='published'?{publishObject:'source.shape'}:{})}],steps:[],
-      welds:[{id:'late.draw',file:'scenes/late.json',...(mode==='played'?{}:{late:{at:[100,100]}})}]});
+    const rows=parseWorldScenes({...section(),catalogue:'models/catalogue.json',materials:[{id:'paint',kind:'source',load:'placement',url:'/original.glb',...(mode==='published'||mode.startsWith('hinted')?{publishObject:'source.shape'}:{})}],steps:[],
+      ...(mode.startsWith('hinted')?{lateMaterials:[{id:'paint',at:[100,100]}]}:{}),
+      welds:[{id:'late.draw',file:'scenes/late.json',...(mode==='played'||mode==='hinted-played'?{}:{late:{at:[100,100]}})}]});
     const handles=await installWorldScenes(ctx,rows);
-    expect(load).toHaveBeenCalledTimes(mode==='played'||mode==='published'?1:0);
-    if(mode==='retired'){ctx.scope.dispose();reachControl(level);expect(load).not.toHaveBeenCalled();return;}
-    const published=handles.published('late.draw');reachControl(level);await published;
+    expect(load).toHaveBeenCalledTimes(mode==='played'||mode==='published'||mode==='hinted-played'?1:0);
+    if(mode==='retired'||mode==='hinted-retired'){ctx.scope.dispose();reachControl(level);expect(load).not.toHaveBeenCalled();return;}
+    const published=handles.published('late.draw');
+    const living=mode==='hinted-living'?published.then(()=>handles.afterControl('living:fixture',{x:100,z:100},['paint'],async()=>{await handles.published('materials.paint');expect(handles.material('materials.paint')).toBe(material);})):undefined;
+    reachControl(level);await published;await living;
     expect(load).toHaveBeenCalledOnce();expect(handles.has('late.draw')).toBe(true);
   }finally{ctx.scope.dispose();material.dispose();vi.restoreAllMocks();}
 });

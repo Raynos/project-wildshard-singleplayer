@@ -308,7 +308,6 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
   await reads.close();
   reads.validate();
   const owner = resident.child('world-scenes'), libraries = new Map<string, Library>(), materials = new Map<string, Material>(), finish: (() => void)[] = [];
-  const handles = new SceneHandles(ctx.game.runtime?.world?.sky);
   const refinementOrigin = residentTileEntry(resident) ?? product.shardfile.spawn;
   let refinement: ControlRefinement | undefined;
   // Ordinary/headless declarations need no control clock. Acquire it only at
@@ -317,6 +316,26 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
     refinement ??= new ControlRefinement(owner, ctx.game.runtime?.world?.game.levelScope, () => ctx.game.runtime?.world?.player.position ?? refinementOrigin, () => buildYield(owner));
     return refinement;
   };
+  const handles = new SceneHandles(ctx.game.runtime?.world?.sky, (id, at, needed, run) => refinementQueue().add(id, at, async () => {
+    for (const slot of needed) await prepareMaterial(slot);
+    requireSceneOwner(owner); await run();
+  }));
+  const materialReads = new Map<string, Promise<void>>();
+  function prepareMaterial(id: string): Promise<void> {
+    if (materials.has(id)) return Promise.resolve();
+    const prior = materialReads.get(id); if (prior !== undefined) return prior;
+    const row = section.materials.find(material => material.id === id), sky = ctx.game.runtime?.world?.sky;
+    if (row === undefined || (row.kind !== 'source' && row.kind !== 'surface') || sky === undefined) return Promise.reject(new Error('Missing late scene material'));
+    const pending = (async () => {
+      requireSceneOwner(owner);
+      const material = row.kind === 'source' ? await worldSceneSourceMaterial(row, sky, product, owner, handles) : await worldSceneSurfaceMaterial(row, sky, product, owner);
+      requireSceneOwner(owner);
+      const current = materials.get(id);
+      if (current !== undefined && current !== material) throw new Error('Late scene material identity changed');
+      if (current === undefined) { materials.set(id, material); handles.publish(`materials.${id}`, material); }
+    })();
+    materialReads.set(id, pending); return pending;
+  }
   const refining = new Map<string, RefiningWholeLibrary>();
   const coarse = section.libraries.some(row => row.kind === 'whole' && row.load === 'refine') ? wholeRefinementCover(ctx, owner, refinementQueue(), refinementOrigin) : undefined;
   if (coarse !== undefined) handles.addTiled(coarse.content);
@@ -418,8 +437,10 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
     const placedGraphs = new Set(placedModels?.models.flatMap(model => model.choices.flatMap(worldSceneModelGraphs)).flatMap(row => 'file' in row ? [row.file] : []));
     const placedSlots = new Set(placedModels === undefined ? [] : worldSceneModelResources(placedModels,
       [...modelScenes].flatMap(([file, graph]) => placedGraphs.has(file) ? [graph] : [])).materials);
+    const hinted = new Set(section.lateMaterials?.map(row => row.id));
     const deferred = (row: (typeof section.materials)[number]): boolean => !earlySlots.has(row.id)
-      && (row.kind === 'source' && row.load === 'placement' && row.publishObject === undefined
+      && (hinted.has(row.id) && !placedSlots.has(row.id)
+        || row.kind === 'source' && row.load === 'placement' && row.publishObject === undefined
         || row.kind === 'surface' && row.load === 'placement' && lateSlots.has(row.id) && !placedSlots.has(row.id));
     const surfaces = section.materials.filter((row): row is Extract<typeof row, { kind: 'surface' }> => row.kind === 'surface' && !deferred(row));
     if (surfaces.length > 0) {
@@ -477,6 +498,9 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
         }
       } finally { await Promise.allSettled(started.values()); }
     });
+    for (const hint of section.lateMaterials ?? []) if (!materials.has(hint.id)) {
+      void refinementQueue().add(`material:${hint.id}`, { x: hint.at[0], z: hint.at[1] }, () => prepareMaterial(hint.id));
+    }
     const sky = ctx.game.runtime?.world?.sky, game = ctx.game.runtime?.world?.game;
     // each library copy (a whole library clones and places its model per call) and each tiled part is a slice's worth:
     // in one task they were ~117 ms of a 133 ms Nine Dragon world-step frame at phone 4x (~55 ms of clones)
@@ -524,13 +548,7 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
             if (materials.has(id)) continue;
             const declared = section.materials.find(material => material.id === id);
             if (declared === undefined || !deferred(declared) || sky === undefined) throw new Error('Missing late scene material');
-            const material = declared.kind === 'surface' ? await worldSceneSurfaceMaterial(declared, sky, product, owner)
-              : declared.kind === 'source' ? await worldSceneSourceMaterial(declared, sky, product, owner, handles) : undefined;
-            if (material === undefined) throw new Error('Missing late scene material');
-            requireSceneOwner(owner);
-            const current = materials.get(id);
-            if (current !== undefined && current !== material) throw new Error('Late scene material identity changed');
-            if (current === undefined) { materials.set(id, material); handles.publish(`materials.${id}`, material); }
+            await prepareMaterial(id);
           }
           for (const ref of row.nodes.flatMap(node => 'geometry' in node ? [node.geometry] : [])) {
             const key = JSON.stringify([ref.library, ref.model]); if (shapes.has(key)) continue;

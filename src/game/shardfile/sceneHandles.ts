@@ -20,7 +20,14 @@ export class SceneHandles {
   private readonly materialLists = new Map<string, readonly MeshStandardMaterial[]>();
   private readonly tileContents: TileContent[] = [];
   private readonly waiting = new Map<string, (() => void)[]>();
-  constructor(private readonly lighting?: Pick<SkyRig, 'setupMaterial'>) {}
+  constructor(private readonly lighting?: Pick<SkyRig, 'setupMaterial'>,
+    private readonly refine?: (id: string, at: { x: number; z: number }, materials: readonly string[], run: () => Promise<void>) => Promise<boolean>) {}
+  /** Schedule a living consumer on the control cursor shared with its source
+   * maps and frozen scenery. Demand prepares the exact material identities. */
+  afterControl(id: string, at: { x: number; z: number }, materials: readonly string[], run: () => Promise<void>): Promise<boolean> {
+    if (this.refine === undefined) throw new Error('Scene handles need a control refinement owner');
+    return this.refine(id, at, materials, run);
+  }
   get sky(): Pick<SkyRig, 'setupMaterial'> {
     if (this.lighting === undefined) throw new Error('Scene handles need world sky');
     return this.lighting;

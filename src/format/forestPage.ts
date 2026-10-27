@@ -21,6 +21,7 @@ export const ForestPageSchema: v.GenericSchema<ForestPageRowsInput, ForestPageRo
     far: id, shadow: id, cells: v.strictObject({ size: n, pad: n, extraFar: n }) }),
   buildings: v.strictObject({ id, root: id, shells: id, life: BuildingLifeLookSchema,
     shared: id, shadow: id, sites: id,
+    late: v.exactOptional(v.strictObject({ at: v.tuple([n, n]), materials: v.pipe(v.array(id), v.maxLength(128), v.check(rows => new Set(rows).size === rows.length)) })),
     variants: v.pipe(v.array(v.strictObject({ tier: v.picklist(['phone', 'desktop']), shadow: v.boolean(), shared: v.boolean(), file: id })), v.maxLength(8)),
     light: v.strictObject({ count: v.pipe(count, v.maxValue(4)), color: n, intensity: n, distance: n, decay: n }),
     hearth: id, sunParam: id, lampsParam: id, shadeParam: id, nightShade: n, sightSlack: n,
@@ -98,6 +99,7 @@ interface ForestPageRowsFields {
         };
     };
     buildings: {
+        late?: { at: [number, number]; materials: string[] };
         id: string;
         root: string;
         shells: string;
