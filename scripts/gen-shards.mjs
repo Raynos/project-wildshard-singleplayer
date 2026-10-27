@@ -10,6 +10,7 @@ import { outputManifest, shardProducts } from './shard-outputs.mjs';
 import { genShardWords } from './gen-shard-words.mjs';
 import { legacyInventory, legacyPrimary } from './legacy-shards.mjs';
 import { readProgramDiscovery, usesProgramDiscovery } from './program-discovery.mjs';
+import { authoredManifestImports } from './manifest-static-imports.mjs';
 
 /** Static runtime imports only: lazy plugin/look thunks and erased types stay out of the startup closure. */
 export function manifestClosure(root) {
@@ -19,12 +20,18 @@ export function manifestClosure(root) {
   const result = {};
   for (const product of shardProducts(root, shardFolders(root))) {
     const slug = product.slug, seen = new Set();
+    const entry = resolve(root, productManifestPath(root, product));
+    const authored = resolve(root, `src/shards/${product.folder}/manifest.json`);
     const visit = (file) => {
       const id = relative(root, file).replaceAll('\\', '/');
       if (seen.has(id)) return;
       seen.add(id);
       if (!/\.[cm]?[jt]sx?$/.test(file)) return;
-      const source = ts.createSourceFile(file, readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true);
+      const text = file === entry && existsSync(authored)
+        ? authoredManifestImports(root, product.folder, product.output === null ? JSON.parse(readFileSync(authored, 'utf8')) : outputManifest(root, product.folder, product.output), product.output !== null)
+          .map(specifier => `import ${JSON.stringify(specifier)};`).join('\n')
+        : readFileSync(file, 'utf8');
+      const source = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true);
       for (const node of source.statements) {
         if (!ts.isImportDeclaration(node) && !ts.isExportDeclaration(node)) continue;
         if (!node.moduleSpecifier || !ts.isStringLiteral(node.moduleSpecifier)) continue;
@@ -40,7 +47,7 @@ export function manifestClosure(root) {
         else if (specifier.startsWith('.') && existsSync(resolve(dirname(file), specifier))) visit(resolve(dirname(file), specifier));
       }
     };
-    visit(resolve(root, productManifestPath(root, product)));
+    visit(entry);
     result[slug] = [...seen].sort((a, b) => a.localeCompare(b));
   }
   return result;

@@ -5,7 +5,7 @@ import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSy
 // oxlint-disable-next-line import/no-nodejs-modules -- Run the actual plain runner against an invalid isolated registry.
 import { spawnSync } from 'node:child_process';
 import { expect, test } from 'vitest';
-import { shardSource } from '../scripts/gen-shards.mjs';
+import { manifestClosure, shardSource } from '../scripts/gen-shards.mjs';
 import { genSource } from '../scripts/gen-source.mjs';
 import { SOURCE_GENERATORS, selectSourceGenerators } from '../scripts/source-generators.mjs';
 
@@ -16,10 +16,10 @@ test('a staged path selects only the gen:source rows it feeds', () => {
   expect(ids('src/game/weapons/starterBow.json')).toEqual(['starter-weapons']);
   expect(ids('src/shards/pine-hollow/manifest.json')).toEqual(['shard-slugs', 'shard-list', 'manifest-closure', 'boot-tables']);
   expect(ids('public/assets/music/calm/music.json')).toEqual(['boot-audio', 'boot-tables', 'packs']);
-  expect(ids('src/engine/core/Game.ts')).toEqual([]);
-  expect(ids('src/game/bag/starter.generated.ts')).toEqual(['starter-bag']);
-  expect(ids('src/shards/pine-hollow/generators/sections.ts')).toEqual(['pine-hollow-section-schemas']);
-  expect(ids('src/shards/driftwood-isle/generators/sections.ts')).toEqual(['driftwood-isle-section-schemas']);
+  expect(ids('src/engine/core/Game.ts')).toEqual(['manifest-closure']);
+  expect(ids('src/game/bag/starter.generated.ts')).toEqual(['starter-bag', 'manifest-closure']);
+  expect(ids('src/shards/pine-hollow/generators/sections.ts')).toEqual(['pine-hollow-section-schemas', 'manifest-closure']);
+  expect(ids('src/shards/driftwood-isle/generators/sections.ts')).toEqual(['driftwood-isle-section-schemas', 'manifest-closure']);
 });
 
 test('every registry output is listed once and committed rows own tracked inputs only', () => {
@@ -79,7 +79,7 @@ test('a registry row with no producer refuses before checking or writing its out
 test('--stage regenerates only the committed tables a commit feeds, and they are current', async () => {
   const root = resolve(import.meta.dirname, '..');
   await expect(genSource(root, { check: true, committed: true, changed: ['src/game/weapons/starterBow.json', 'src/shards/pine-hollow/manifest.json'] }))
-    .resolves.toEqual({ touched: [], owned: ['src/game/weapons/starter.generated.ts', 'src/game/shard/slugs.generated.ts', 'src/game/shard/slugs.generated.json', 'src/shards.generated.ts'] });
+    .resolves.toEqual({ touched: [], owned: ['src/game/weapons/starter.generated.ts', 'src/game/shard/slugs.generated.ts', 'src/game/shard/slugs.generated.json', 'src/shards.generated.ts', 'src/game/shard/manifest-closure.generated.json'] });
 });
 
 
@@ -118,6 +118,42 @@ test('the committed composition table needs only declarations and preserves outp
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
+test('the committed closure follows authored static edges with no product or discovery module', () => {
+  mkdirSync('tmp', { recursive: true });
+  const root = mkdtempSync(resolve('tmp', 'gen-source-closure-'));
+  try {
+    const write = (path: string, source: string): void => {
+      mkdirSync(resolve(root, path, '..'), { recursive: true });
+      writeFileSync(resolve(root, path), source);
+    };
+    write('src/shards/island/manifest.json', JSON.stringify({ slug: 'island', card: '/src/shards/island/card.webp', bindings: {
+      accent: 'sand', budgets: { program: true }, runtimeCost: { module: './data/runtimeCost.json', export: 'default' },
+      boot: { explore: { program: true } },
+    } }));
+    write('src/game/shard/manifest.ts', "import './visible';import type {Erased} from './erased';export const lazy=()=>import('./lazy');");
+    write('src/game/shard/visible.ts', 'export const visible=true;');
+    write('src/game/shard/erased.ts', 'export interface Erased {}');
+    write('src/game/shard/lazy.ts', 'export const lazy=true;');
+    write('src/shards/island/data/runtimeCost.json', '{}');
+    write('src/shards/island/card.webp', 'image');
+    write('src/shards/island/extra.webp', 'extra image');
+    write('scripts/manifest-art-inputs.json', JSON.stringify({ island: [{ file: 'data/art.json', field: ['extra'] }] }));
+    write('src/shards/island/data/art.json', JSON.stringify({ extra: ['/src/shards/island/extra.webp'] }));
+    expect(manifestClosure(root)).toEqual({ island: [
+      'src/game/shard/manifest.ts', 'src/game/shard/visible.ts', 'src/shards/island/card.webp',
+      'src/shards/island/data/runtimeCost.json', 'src/shards/island/discovery.generated.ts',
+      'src/shards/island/extra.webp', 'src/shards/island/manifest.json',
+    ] });
+    write('src/game/shard/visible.ts', "import './added';export const visible=true;");
+    write('src/game/shard/added.ts', 'export const added=true;');
+    expect(manifestClosure(root)['island']).toContain('src/game/shard/added.ts');
+    write('scripts/manifest-art-inputs.json', JSON.stringify({ island: [{ file: '../foreign.json', field: ['extra'] }] }));
+    expect(() => manifestClosure(root)).toThrow();
+    write('scripts/manifest-art-inputs.json', '{}');
+    expect(() => manifestClosure(root)).toThrow('Program Explorer art requires declared source inputs');
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
 
 test('the stage CLI returns the selected tracked output and never runs build-written rows', () => {
   mkdirSync('tmp', { recursive: true });
@@ -134,12 +170,12 @@ test('the stage CLI returns the selected tracked output and never runs build-wri
     expect(staged.stdout.trim()).toBe(`gen:source stage ${JSON.stringify([output])}`);
     expect(readFileSync(resolve(root, output), 'utf8')).toContain('STARTER_BOW = {"damage":17}');
     const before = readFileSync(resolve(root, output), 'utf8');
-    expect(run('--stage', '--changed=src/engine/core/Game.ts').stdout.trim()).toBe('gen:source stage []');
+    expect(run('--stage', '--changed=docs/unrelated.md').stdout.trim()).toBe('gen:source stage []');
     expect(readFileSync(resolve(root, output), 'utf8')).toBe(before);
     // A manifest change selects the build-written closure too, but stage may
     // publish only committed rows. A direct selection proves the filter without
     // any product, discovery or native binary in this isolated fixture.
-    expect(run('--stage', '--changed=src/game/boot/bytes.generated.ts').stdout.trim()).toBe('gen:source stage []');
+    expect(run('--stage', '--changed=public/assets/unrelated.bin').stdout.trim()).toBe('gen:source stage []');
     const refused = run('--stage', '--check', '--changed=src/game/weapons/starterBow.json');
     expect(refused.status).toBe(1); expect(refused.stderr).toContain('--stage takes');
     expect(readFileSync(resolve(root, output), 'utf8')).toBe(before);

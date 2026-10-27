@@ -64,9 +64,9 @@ export const SOURCE_GENERATORS = [
   {
     id: 'manifest-closure',
     outputs: ['src/game/shard/manifest-closure.generated.json'],
-    inputs: ['src/shards/*/manifest.ts', 'src/shards/*/manifest.json', 'src/shards/*/outputs.json', 'src/shards/*/shard.config.ts', 'src/game/grid/singleplayer.json', 'src/game/shard/slug.ts', 'scripts/gen-shards.mjs', 'scripts/shard-outputs.mjs', 'scripts/authored-manifest.mjs'],
-    committed: false,
-    note: 'walks every product discovery module, which the shard builds write',
+    inputs: ['src/**/*.ts', 'src/**/*.tsx', 'src/**/*.mjs', 'src/**/*.js', 'src/**/package.json', 'src/shards/*/manifest.json', 'src/shards/*/outputs.json', 'src/shards/*/{data,boot}/*.json', 'tsconfig*.json', 'scripts/gen-shards.mjs', 'scripts/shard-outputs.mjs', 'scripts/authored-manifest.mjs', 'scripts/manifest-static-imports.mjs', 'scripts/manifest-art-inputs.json'],
+    committed: true,
+    note: 'walks authored runtime edges and declared program-art inputs without any discovery output or product',
     generate: async root => ({ 'src/game/shard/manifest-closure.generated.json': `${JSON.stringify((await import(pathToFileURL(`${root}/scripts/gen-shards.mjs`).href)).manifestClosure(root), null, 2)}\n` }),
   },
   {
