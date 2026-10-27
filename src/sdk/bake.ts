@@ -77,8 +77,8 @@ export class Scatter extends Group {
  * Its ordinary scene transforms become the existing PropWhole transform; its child is never also merged. */
 export class WholeShape extends Group {
   readonly mesh: Mesh;
-  readonly options: Pick<PropWhole, 'customAttributes' | 'nativeAttributes' | 'partition' | 'overhang' | 'compact'>;
-  constructor(name: string, mesh: Mesh, options: Pick<PropWhole, 'customAttributes' | 'nativeAttributes' | 'partition' | 'overhang' | 'compact'> = {}) {
+  readonly options: Pick<PropWhole, 'customAttributes' | 'nativeAttributes' | 'partition' | 'overhang' | 'compact' | 'compactGlow'>;
+  constructor(name: string, mesh: Mesh, options: Pick<PropWhole, 'customAttributes' | 'nativeAttributes' | 'partition' | 'overhang' | 'compact' | 'compactGlow'> = {}) {
     super();
     this.name = name; this.mesh = mesh; this.options = options; this.add(mesh);
   }

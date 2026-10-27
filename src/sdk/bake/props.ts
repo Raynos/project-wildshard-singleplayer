@@ -56,6 +56,9 @@ export interface PropWhole {
    *  Int16 grid (`compactWholeChannels`, `wholeGrid`); its readers restore them within their storage step. Opt-in, so a
    *  producer whose retained tile hashes are pinned keeps its exact bytes. */
   compact?: true;
+  /** With `compact`: a shape whose colours leave [0, 1] (a glow) still ships on its grid with Int8 normals, its colours
+   *  float32 (`compactWholeNormals`). Opt-in apart, so a producer already on `compact` keeps its bytes. */
+  compactGlow?: true;
 }
 
 /** One exact subset of a whole geometry. Ordinals address the original vertices and triangles, not clipped fragments. */
@@ -295,7 +298,7 @@ export function bakeProps(source: PropsBakeSource, terrain: readonly Shardfile['
     const channels = retain ? Object.keys(mesh.geometry.attributes) : ['position', 'normal', 'color', ...Object.values(entry.customAttributes ?? {})];
     for (const key of channels) if (mesh.geometry.hasAttribute(key)) g.setAttribute(key, mesh.geometry.getAttribute(key));
     g.setIndex(mesh.geometry.getIndex());
-    const quantized = retain && entry.compact === true && compactWholeChannels(g);
+    const quantized = retain && entry.compact === true && (compactWholeChannels(g) || (entry.compactGlow === true && compactWholeNormals(g)));
     const automatic = Object.fromEntries(Object.keys(g.attributes)
       .filter(key => !['position', 'normal', 'color', 'uv', 'tangent'].includes(key) && !Object.values(entry.customAttributes ?? {}).includes(key)).map((key, i) => [`_WS_CHANNEL_${i}`, key]));
     const customAttributes = retain ? { ...automatic, ...entry.customAttributes } : entry.customAttributes;
