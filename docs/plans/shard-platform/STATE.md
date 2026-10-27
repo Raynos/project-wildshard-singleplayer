@@ -16,15 +16,17 @@ once per plan at the end (G780); official Simulator readings last (G777).
 
 **For wildshard-v (G711):** generation catalogue **empty** (dd873bc775, ~10:30Z; was 41 / 41 / 61 / 38 jobs);
 `generation-jobs.json` deleted, GR12 tail sp-x1 + sp-x9. Every product builds under its phone ceiling (Nalati 93.5 /
-96.3, Pine 110.5 / 112.2, Nine 160.3 / 210.2 after I3). D74 / D82 / D92 / D93 / D96 fixed. Built, readings at plan
-end: tile T3 (sp-o1 + sp-o5), T6.2 lease (sp-o3), T7 (sp-x8), crossings T2 (sp-o4, d10303ddee), open-plot T8 L1 (2
-draws, 40 debt rows out), Pine / Sky / Nine T8. Now: plan-end readings on the first HEAD preview after D96 (sp-x2
-tile script); D12 frame floor sp-o4; D13 sp-x8; D24 vite/ files sp-o5; I3 sp-o2. Counter 139 / 209 = 67 %.
+96.3, Pine 110.5 / 112.2, Nine 160.3 / 210.2 after I3). D96 / D97 / D103 / D106 fixed. **Plan-end readings
+are running (G780):** tile 12 spawn rows (sp-x2), heap / loading (sp-x9: G1 pass, D107-D109 misses), Night Market
+(sp-o4: RM14 done, RM5 palette D111 and RM10 life D112 open), T3 draws within 10 % and walk 0 stuck (sp-o1), Pine T8
+(sp-o5), Nine T8 via T3 (sp-o3), I3 Nine -6.44 MB br (sp-o2). **Long pole: G782 crossings** miss badly (DW 13-17 s,
+Sky 20-27 s, Pine 35 s cold, warm refused, against 5 / 8 s): sp-x8 Pine + DW, sp-x10 Sky, sp-o4 shaders. Also D24 vite/
+files sp-o5, Nine memory banner sp-o3, iphone reading sp-x6. Counter 146 / 209 = 70 %.
 **Blocked on Jake:** road B pilot play; boards as they land; LD5-LD8 / A1 / A2 / M2 / RM13 (counted, G779).
 
-**Lanes (G735 overrides the G605 step-down; Claude active 54 %, Codex 64 %):** 5 Opus (sp-o1..o5) + 6 Codex (sp-x1,
-x2, x6, x8, x9, x10) + sp-ci-deploy (CI / deploy / reds, no cancels). origin/main 1361eb295e; its CI red in
-generated-inputs (build-shardfiles), sp-ci-deploy.
+**Lanes (G735 overrides the G605 step-down; Claude active 58 %, Codex 68 %):** 5 Opus (sp-o1..o5) + 6 Codex (sp-x1,
+x2, x6, x8, x9, x10) + sp-ci-deploy (CI / deploy / reds, no cancels). origin/main d6738df69a; CI generation passes
+now, the --all source guard is the next red (D114-D117, routed).
 
 **Rules:** G704 (<= ~20 files/move commit). G605. Fix forward, no reverts (G674). No new Debug rows (G669). G670.
 Never herdr wildshard-v.
