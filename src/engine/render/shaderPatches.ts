@@ -21,6 +21,7 @@
  */
 import * as THREE from 'three';
 import type { Scope } from '../app/scope';
+import { finishShaderText } from './shaderText';
 
 export type ShaderSource = THREE.WebGLProgramParametersWithUniforms;
 export type ShaderPatchFn = (shader: ShaderSource, renderer: THREE.WebGLRenderer) => void;
@@ -99,6 +100,17 @@ const defaultKey = (entries: readonly Entry[]): string => {
   return own.length < 2 ? lastText(entries) : own.map((e) => e.fn.toString()).join('\n|\n');
 };
 
+/** runners on the stack: a runner called from inside another (a view copy's) leaves the text to the outer one */
+let running = 0;
+/** A material's patches in order, then (H10) the outermost runner, after every patch, hands three text with nothing left
+ *  to rewrite (`shaderText.ts`): the patches find their place by the unresolved `#include` lines, so this runs last. */
+function runEntries(state: State, shader: ShaderSource, renderer: THREE.WebGLRenderer): void {
+  running++;
+  try { for (const e of state.entries) e.fn(shader, renderer); } finally { running--; }
+  observeUniformTextures(shader, state.observedTextures);
+  if (running === 0) finishShaderText(shader);
+}
+
 function stateOf(mat: THREE.Material, mode: 'chain' | 'replace'): State {
   const known = states.get(mat);
   // a known material whose runner is still in place; else (first patch, or a foreign hook replaced the runner)
@@ -114,10 +126,7 @@ function stateOf(mat: THREE.Material, mode: 'chain' | 'replace'): State {
   const before = { hook: Object.getOwnPropertyDescriptor(mat, 'onBeforeCompile'), key: Object.getOwnPropertyDescriptor(mat, 'customProgramCacheKey') };
   const state: State = {
     entries, observedTextures: new Set(), key: prevKey, explicitKey: prevKey !== null, before,
-    runner: (shader, renderer) => {
-      for (const e of state.entries) e.fn(shader, renderer);
-      observeUniformTextures(shader, state.observedTextures);
-    },
+    runner: (shader, renderer) => { runEntries(state, shader, renderer); },
     keyFn: () => (state.key === null ? defaultKey(state.entries) : state.key()),
   };
   states.set(mat, state);
@@ -246,10 +255,7 @@ export function copyShaderPatches(from: THREE.Material, to: THREE.Material): voi
   const key = from.customProgramCacheKey === source.keyFn ? source.key : ownKey(from);
   const state: State = {
     entries: [...source.entries], observedTextures: new Set(source.observedTextures), key, explicitKey: source.explicitKey, before,
-    runner: (shader, renderer) => {
-      for (const e of state.entries) e.fn(shader, renderer);
-      observeUniformTextures(shader, state.observedTextures);
-    },
+    runner: (shader, renderer) => { runEntries(state, shader, renderer); },
     keyFn: () => (state.key === null ? defaultKey(state.entries) : state.key()),
   };
   states.set(to, state);
