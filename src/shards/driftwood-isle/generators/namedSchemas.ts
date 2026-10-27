@@ -3,25 +3,15 @@ import { CreatureInstallSchema, PackedCreatureLooksSchema } from '@wildshard/for
 import { MixedPopulationSchema } from '@wildshard/format/mixedPopulation';
 import { QuestPageCompositionSchema } from '@wildshard/format/questPageComposition';
 import { NativeQuestCompositionSchema } from '@wildshard/format/nativeQuestComposition';
-import { PopulationProjectionSchema } from '@wildshard/format/populationProjection';
 import { HEADLESS_ASSEMBLY_JSON_SCHEMA, ReturnProgramSchema, PageReturnRowsSchema, QuestTraderSchema, PosedLibrarySchema } from '@wildshard/format/namedJsonContracts';
 import * as v from 'valibot';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
-import { namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
-import { WorldSceneSchema, NumericPoseSchema } from '@wildshard/format/clientChannels';
-import { WorldScenePlacementSchema } from '@wildshard/format/worldScenePlacement';
-import { WorldSceneModelsSchema } from '@wildshard/format/worldSceneModels';
-import { PageLifeSchema } from '@wildshard/format/pageLife';
+import { namedFormatJsonSchema, namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
+import { NumericPoseSchema } from '@wildshard/format/clientChannels';
 import { BuildingLifeRowsSchema, BuildingLifeLookSchema } from '@wildshard/format/buildings';
-import { FigureCatalogueSchema } from '@wildshard/format/figures';
-import { KitFigureCardsSchema } from '@wildshard/format/questFigures';
-import { ChapterDirectorSchema, ChapterWakeSchema } from '@wildshard/format/chapterDirector';
+import { ChapterWakeSchema } from '@wildshard/format/chapterDirector';
 import { DirectorSchema } from '@wildshard/format/director';
 import { DirectorStagesSchema } from '@wildshard/format/directorStages';
-import { QuestStepRowsSchema, QuestHintRowsSchema, QuestServiceActionsSchema } from '@wildshard/format/questSteps';
-import { QuestPageInteractionsSchema } from '@wildshard/format/questInteractions';
-import { QuestStorySchema } from '@wildshard/format/questStory';
-import { AchievementCounterDataSchema } from '@wildshard/format/achievementCounters';
 import { EnemyPlacementsSchema, FixedGeometryGroupsSchema } from './sections';
 import { PopulationKeeperRowsSchema as KeeperRowsSchema } from '@wildshard/format/populationKeeper';
 import type { DriftwoodFixedLayouts } from './fixedLayouts';
@@ -56,18 +46,27 @@ const FixedLayoutsSchema: v.GenericSchema<unknown, DriftwoodFixedLayouts> = v.st
 /** Typed source-bank metadata intake; original fields survive before each complete consumer's normal admission. */
 export function parseDriftwoodFixedLayouts(input: unknown): DriftwoodFixedLayouts { return v.parse(FixedLayoutsSchema, input); }
 
+const sharedContracts: Readonly<Record<string, string>> = {
+  'actors/projection.json': 'populationProjection.PopulationProjection',
+  'actors/page-life.json': 'pageLife.PageLife',
+  'people/catalogue.json': 'figures.FigureCatalogue',
+  'people/cards.json': 'questFigures.KitFigureCards',
+  'models/world-scenes.json': 'worldSceneModels.WorldSceneModels',
+  'quests/chapter-director.json': 'chapterDirector.ChapterDirector',
+  'quests/trader.json': 'questInteractions.QuestPageInteractions',
+  'quests/steps.json': 'questSteps.QuestStepRows',
+  'quests/hints.json': 'questSteps.QuestHintRows',
+  'quests/services.json': 'questSteps.QuestServiceActions',
+  'quests/story.json': 'questStory.QuestStory',
+  'quests/achievements.json': 'achievementCounters.AchievementCounterData',
+};
+
 const schemas: Readonly<Record<string, v.GenericSchema>> = {
   'quests/page-composition.json': QuestPageCompositionSchema,
-  'actors/projection.json': PopulationProjectionSchema,
-  'actors/page-life.json': PageLifeSchema,
   'world/cover-composition.json': CoverCompositionSchema,
-  'people/catalogue.json': FigureCatalogueSchema,
-  'people/cards.json': KitFigureCardsSchema,
   'sim/returns.json': PageReturnRowsSchema,
-  'models/world-scenes.json': WorldSceneModelsSchema,
   'world/building-life.json': v.strictObject({ look: BuildingLifeLookSchema, life: BuildingLifeRowsSchema, initialDusk: number }),
   'models/fixed-geometry.json': FixedGeometryGroupsSchema,
-  'quests/chapter-director.json': ChapterDirectorSchema,
   'quests/wake-boss.json': ChapterWakeSchema,
   'directors/main.json': v.strictObject({ declaration: DirectorSchema, module: v.strictObject({ module: text, bytes: text, file: v.exactOptional(v.pipe(v.string(), v.minLength(1), v.maxLength(240))) }), stages: DirectorStagesSchema, bindings: v.null(), seed: number }),
   'look/creature-looks.json': PackedCreatureLooksSchema,
@@ -76,12 +75,6 @@ const schemas: Readonly<Record<string, v.GenericSchema>> = {
   'look/fish-draw.json': PosedLibrarySchema,
   'poses/monkey.json': v.strictObject({ clips: v.tuple([NumericPoseSchema, NumericPoseSchema]), program: ReturnProgramSchema, perch: MixedPopulationSchema.entries.perch }),
   'quests/stall.json': QuestTraderSchema,
-  'quests/trader.json': QuestPageInteractionsSchema,
-  'quests/steps.json': QuestStepRowsSchema,
-  'quests/hints.json': QuestHintRowsSchema,
-  'quests/services.json': QuestServiceActionsSchema,
-  'quests/story.json': QuestStorySchema,
-  'quests/achievements.json': AchievementCounterDataSchema,
   'quests/discovery.json': v.strictObject({ places: v.array(v.strictObject({ id: text, label: text, completeLabel: text,
     at: v.strictObject({ poi: v.picklist(['world', 'hut', 'lookout', 'wreck', 'shrine', 'cave', 'pier']), x: number, z: number, anchor: v.exactOptional(text) }), r: number })),
     guide: v.strictObject({ wander: number, idle: number, idleSpeed: number, cooldown: number, retry: number }), glassCount: number, shardFlags: v.array(text) }),
@@ -96,9 +89,11 @@ const nativeAssemblySchema = { ...HEADLESS_ASSEMBLY_JSON_SCHEMA,
 /** Every scene, placement and document names its actual defining consumer. */
 export function driftwoodJsonBlob(name: string, kind: 'json', bytes: Uint8Array): NamedBlob {
   try {
-  const schema = name.startsWith('scenes/') ? WorldSceneSchema
-    : name.startsWith('world/piers/') || name.startsWith('world/foliage/') ? WorldScenePlacementSchema : schemas[name];
-  const jsonSchema = name === 'sim/headless-assembly.json' ? nativeAssemblySchema : schema === undefined ? undefined : namedJsonSchema(schema);
+  const contract = name.startsWith('scenes/') ? 'clientChannels.WorldScene'
+    : name.startsWith('world/piers/') || name.startsWith('world/foliage/') ? 'worldScenePlacement.WorldScenePlacement' : sharedContracts[name];
+  const schema = schemas[name];
+  const jsonSchema = name === 'sim/headless-assembly.json' ? nativeAssemblySchema
+    : contract !== undefined ? namedFormatJsonSchema(contract) : schema === undefined ? undefined : namedJsonSchema(schema);
   if (jsonSchema === undefined) throw new Error(`Missing Driftwood named JSON schema: ${name}`);
   return nameBlob(name, kind, bytes, { jsonSchema });
   } catch (error) { throw new Error(`Driftwood named JSON ${name}: ${String(error)}`, { cause: error }); }

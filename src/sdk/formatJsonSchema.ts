@@ -497,6 +497,15 @@ export function namedJsonSchema(schema: GenericSchema, options: { provenance?: b
   return result;
 }
 
+/** Project one registered consumer contract to its exact named draft-07 document.
+ * Author tools name the contract without borrowing the format's Valibot object. */
+export function namedFormatJsonSchema(name: string): Readonly<Record<string, unknown>> {
+  if (!Object.hasOwn(wireRoots, name)) throw new Error(`Unknown named format contract: ${name}`);
+  const schema = wireRoots[name];
+  if (schema === undefined) throw new Error(`Missing named format contract: ${name}`);
+  return namedJsonSchema(schema);
+}
+
 /** Build-only provenance catalogue from the defining format objects, independently checked by the product freeze. */
 export function namedFormatJsonSchemas(): Readonly<Record<string, Readonly<Record<string, unknown>>>> {
   return Object.fromEntries(Object.values(wireRoots).map(schema => {

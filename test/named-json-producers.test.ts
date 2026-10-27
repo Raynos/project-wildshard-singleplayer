@@ -1,12 +1,31 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
+import { namedFormatJsonSchema, namedJsonSchema } from '../src/sdk/formatJsonSchema';
+import { WorldSceneSchema } from '../src/format/clientChannels';
+import { FigureCatalogueSchema } from '../src/format/figures';
+import { QuestStepRowsSchema } from '../src/format/questSteps';
 import { QuestPageCompositionSchema } from '../src/format/questPageComposition';
 import { driftwoodJsonBlob } from '../src/shards/driftwood-isle/generators/namedSchemas';
 import page from '../src/shards/driftwood-isle/data/questPageComposition.json';
 import director from '../src/shards/driftwood-isle/data/director.json';
 import stages from '../src/shards/driftwood-isle/data/finaleStages.json';
 import { driftwoodDirector } from './fixtures/director-modules';
+
+test('registered author contracts preserve the defining named documents', () => {
+  for (const [key, schema] of [
+    ['clientChannels.WorldScene', WorldSceneSchema],
+    ['figures.FigureCatalogue', FigureCatalogueSchema],
+    ['questSteps.QuestStepRows', QuestStepRowsSchema],
+  ] as const) expect(namedFormatJsonSchema(key)).toEqual(namedJsonSchema(schema));
+  const bytes = new TextEncoder().encode(JSON.stringify({ version: 1, steps: [], guards: [] }));
+  expect(driftwoodJsonBlob('quests/steps.json', 'json', bytes).file.jsonSchema)
+    .toEqual(namedJsonSchema(QuestStepRowsSchema));
+});
+
+test('registered author contracts refuse missing and inherited names', () => {
+  for (const name of ['missing.Contract', 'toString', '__proto__'])
+    expect(() => namedFormatJsonSchema(name)).toThrow('Unknown named format contract');
+});
 
 test('named schema conversion refuses unrecognised author predicates', () => {
   expect(() => namedJsonSchema(v.pipe(v.number(), v.check(n => n === 7)))).toThrow('cannot be converted');
