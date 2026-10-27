@@ -14,6 +14,7 @@ import { DRIFTWOOD_FIXED_INPUTS, driftwoodFixedBytes } from './fixedProgram.ts';
 import { FIXED_MODEL_NAMES } from './modelFiles.ts';
 import { driftwoodSceneModelBytes } from './sceneModelProgram.ts';
 import { driftwoodSceneBanksFrom, driftwoodSceneBankOutput } from './sceneBanks.ts';
+import { driftwoodFacetedGroundBank } from './facetedGroundBank.ts';
 
 const base = resolve(import.meta.dirname, '..'), root = resolve(base, '../../..');
 const read = file => readMapJson(resolve(base, file));
@@ -93,7 +94,7 @@ export async function driftwoodMapAssembly() {
     ...['cascade', 'cove', 'wreck', 'trail'].map(kind => named(`scenes/${kind}.json`, read(`data/${kind === 'trail' ? 'trail' : kind}Scene.json`)))];
   const world = new MapWorld(assembly, base, WORLD_SCENES, catalogue, [...blobs, ...recipes]), files = new Map(blobs.map(row => row.file === undefined ? [row.name, resolve(base, row.source)] : [row.file.name, row.bytes]));
   const fixed = slot => { const file = files.get(DRIFTWOOD_FIXED_SOURCES[slot]); if (file === undefined) throw new Error(`Missing map fixed shape ${slot}`); return file; };
-  for (const blob of read('data/groundBlobs.generated.json').blobs) for (const [name, geometry] of await mapPool(resolve(base, blob.source), true)) assembly.add(`ground:${name}`, geometry);
+  for (const bytes of driftwoodFacetedGroundBank().blobs.values()) for (const [name, geometry] of await mapPool(bytes, true)) assembly.add(`ground:${name}`, geometry);
   for (const step of WORLD_SCENES.steps) await world.recipe(step, new Matrix4(), step.id === 'cascade' ? ['puffs'] : []);
   for (const row of piers.placements) if (row.id !== 'harbour.zipline') await world.placement(row);
   for (const row of [foliage.logPlacement, foliage.wreckLogPlacement, ...Object.values(foliage.placements.desktop)]) await world.placement(row);

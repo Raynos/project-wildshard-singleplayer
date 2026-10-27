@@ -1,9 +1,9 @@
 /**
  * Driftwood's sea grid and sea floor, baked (SHARD-PLATFORM W2 C1/C2; they were runtime/looks/facetedOcean.ts's build,
  * moved verbatim): the one surface mesh over the chunk that coarsens out to the horizon, with its still depth (`aDepth`)
- * and per-vertex wobble seed (`aSeed`), and the sea-floor heights the graph's `tSea` reads (R). The bake
- * (bake-driftwood-ocean.mjs) runs them on the bound native ground at the lowered sea's level and writes hash-named files
- * (data/oceanFiles.ts); the runtime only loads them.
+ * and per-vertex wobble seed (`aSeed`), and the sea-floor heights the graph's `tSea` reads (R). The ocean
+ * bank (oceanBank.ts) runs them on the native ground at the lowered sea's level at build time (their URLs:
+ * oceanFiles.ts); the runtime only loads them.
  *
  * - **grid**: `cell` metres fine over the chunk (plus 30 m), then each ring ×1.16 wider (×1.25 when the cell is over 3 m)
  *   out to 4.2 km; alternate diagonals so the facets don't all lean one way.
@@ -16,6 +16,8 @@ import { SEA_RES } from './oceanLook';
 
 /** the ground the bake samples */
 export interface OceanGround { readonly heightAt: (x: number, z: number) => number; readonly inChunk: (x: number, z: number) => boolean }
+/** inside the island's chunk (the engine Heightfield's `inChunk` with no margin) */
+export const inIslandChunk = (x: number, z: number): boolean => Math.abs(x) <= CHUNK_HALF && Math.abs(z) <= CHUNK_HALF;
 
 function hash2(x: number, z: number): number { const s = Math.sin(x * 12.9898 + z * 78.233) * 43758.5453; return s - Math.floor(s); }
 

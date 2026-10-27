@@ -1,4 +1,4 @@
-/** The sea's hash-named build outputs (the driftwood-ocean job, generators/bake-driftwood-ocean.mjs): the level they were
+/** The sea's hash-named URLs (oceanBank.ts builds the bytes, productPageFiles.ts names them): the level they were
  *  baked at, each tier's grid and the sea floor's heights. */
 export const OCEAN_FILES = {
   "level": 0,

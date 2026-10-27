@@ -2,6 +2,7 @@ import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration'
 import { emitNamedBlobs, nameBlob, type EmittedBlobs } from '@wildshard/sdk/blobs';
 import { BLENDER_MODELS } from './blenderArea';
 import { OCEAN_FILES } from './oceanFiles';
+import { driftwoodOceanBank, type DriftwoodOceanBank } from './oceanBank';
 import { bakeIslandPlan, islandPlacements } from './islandCover';
 
 type Kind = 'glb' | 'bin' | 'image';
@@ -40,7 +41,10 @@ function islandPlanMeta(input: unknown): IslandPlanMeta {
       yTop: finite(row['yTop']), yBottom: finite(row['yBottom']) })),
   };
 }
-const NAMES = Object.keys(DRIFTWOOD_PAGE_FILES), INPUTS = [...NAMES.map(name => DRIFTWOOD_PAGE_FILES[name]?.url ?? ''), ISLAND_META];
+/** GR7: the sea's page files come from the ocean bank (built in memory), not from the retired job's public copies */
+const OCEAN_PAGE: Readonly<Record<string, keyof DriftwoodOceanBank['files']>> = { 'world/ocean/phone.glb': 'phone', 'world/ocean/desktop.glb': 'desktop', 'world/ocean/floor.bin': 'floor' };
+const NAMES = Object.keys(DRIFTWOOD_PAGE_FILES), PUBLIC = NAMES.filter(name => OCEAN_PAGE[name] === undefined);
+const INPUTS = [...PUBLIC.map(name => DRIFTWOOD_PAGE_FILES[name]?.url ?? ''), ISLAND_META];
 
 /** A declared page file's product name; refuses a name this table does not own. */
 export function pageFile(name: string): { readonly file: string } {
@@ -67,11 +71,12 @@ export async function driftwoodPageFileOutput(ctx: Pick<ProjectGenerationContext
       return bytes;
     };
     const table = read(TABLE, 'placements'), metadata = read(ISLAND_META, 'island metadata');
-    return new Map([...NAMES.map(name => [name, read(DRIFTWOOD_PAGE_FILES[name]?.url ?? '', name)] as const),
+    return new Map([...PUBLIC.map(name => [name, read(DRIFTWOOD_PAGE_FILES[name]?.url ?? '', name)] as const),
       ...(['phone', 'desktop'] as const).map(tier => [DRIFTWOOD_PLAN_FILES[tier], driftwoodPlanBytes(table, metadata, tier)] as const)]);
   });
+  const ocean = driftwoodOceanBank().files;
   return emitNamedBlobs([...NAMES, ...Object.values(DRIFTWOOD_PLAN_FILES)].map(name => {
-    const bytes = files.get(name);
+    const banked = OCEAN_PAGE[name], bytes = banked === undefined ? files.get(name) : ocean[banked];
     if (bytes === undefined) throw new Error('Driftwood page file cache inventory differs');
     return nameBlob(name, DRIFTWOOD_PAGE_FILES[name]?.kind ?? 'json', bytes);
   }));

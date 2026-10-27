@@ -2,8 +2,8 @@
  * Driftwood's faceted ground, baked (SHARD-PLATFORM W2 C2; it was runtime/looks/facetedGround.ts's grid and slab and
  * look/terrainPainter.ts's paint, moved verbatim): the level's heightfield as ONE indexed 256² grid, each vertex painted
  * from its height above the sea, its slope and whether it is a cliff's top lip (look/groundColor.ts), the sand paths over
- * the grass; and the chunk's four slab walls in rock darkening with depth. The bake (bake-faceted-ground.mjs) runs it on
- * the bound native ground and writes two hash-named static GLBs (`facetedGroundGlbs`); the runtime only loads them
+ * the grass; and the chunk's four slab walls in rock darkening with depth. The faceted-ground bank (facetedGroundBank.ts) runs it
+ * on the native ground at build time and names two static GLBs (`facetedGroundGlbs`); the runtime only loads them
  * (game/looks/toonLook.ts).
  */
 import * as THREE from 'three';

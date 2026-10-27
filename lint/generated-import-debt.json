@@ -51,7 +51,7 @@
     "src/shards/driftwood-isle-legacy/boot/sources.ts": 1,
     "src/shards/driftwood-isle-legacy/manifest.ts": 1,
     "src/shards/driftwood-isle/blender/export.mjs": 1,
-    "src/shards/driftwood-isle/generators/assets.ts": 2,
+    "src/shards/driftwood-isle/generators/assets.ts": 1,
     "src/shards/driftwood-isle/generators/bakedCove.ts": 2,
     "src/shards/driftwood-isle/generators/bootRecipes.ts": 1,
     "src/shards/driftwood-isle/generators/captainDecision.ts": 1,

@@ -6,10 +6,10 @@ import { FIXED_MODEL_FILES, FIXED_MODEL_NAMES } from './modelFiles';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { driftwoodReefBank } from './reefBank';
 import { driftwoodZiplineBank } from './ziplineBank';
-import ground from '../data/groundBlobs.generated.json' with { type: 'json' };
+import { driftwoodFacetedGroundBank } from './facetedGroundBank';
 import dressing from '../data/dressingBlobs.generated.json' with { type: 'json' };
 
-// GR7: the reef's and the zipline's rows come from their banks, keyed by content as the job's `assets/<hash>` sources were, so equal payloads
+// GR7: the reef's, the zipline's and the faceted ground's rows come from their banks, keyed by content as the job's `assets/<hash>` sources were, so equal payloads
 // across manifests still share one name; the bank's canonical blobs are emitted by prepareOutput (DRIFTWOOD_BANK_BLOBS).
 const reefBank = driftwoodReefBank(), bankBytes = new Map<string, { readonly kind: 'glb' | 'bin'; readonly bytes: Uint8Array }>();
 const byKey = ([a]: readonly [string, unknown], [b]: readonly [string, unknown]): number => a < b ? -1 : a > b ? 1 : 0;
@@ -20,6 +20,8 @@ const bankManifest = (blobs: Iterable<readonly [string, { readonly kind: 'glb' |
   }), byUrl: Object.fromEntries(Object.entries(byUrl).sort(byKey)) });
 const reef = bankManifest(reefBank.blobs, reefBank.byUrl), ziplineBank = driftwoodZiplineBank(), ziplineRows = ziplineBank.rows;
 const zipline = bankManifest([...ziplineBank.blobs].map(([name, bytes]) => [name, { kind: 'glb', bytes }] as const), ziplineBank.byUrl);
+const groundBank = driftwoodFacetedGroundBank();
+const ground = bankManifest([...groundBank.blobs].map(([name, bytes]) => [name, { kind: 'glb', bytes }] as const), groundBank.byUrl);
 const manifests = [reef, ground, dressing, zipline];
 const blobs = manifests.flatMap(row => row.blobs);
 const canonical = new Map<string, (typeof blobs)[number]>();
