@@ -3,7 +3,9 @@ import type { Renderer } from './renderer';
 import { dropShadowColour, shadowColourDropped } from '../world/shadowVariants';
 import { SHADOW_LAYER } from '../core/shadowLayer';
 import { offscreenPreparations, type OffscreenPreparation } from './offscreenPreparation';
-import { programObjectKey } from './precompile';
+import { programObjectKey, LIVE_PRECOMPILE_SLICE_MS } from './precompile';
+import { diagnosticNow } from '../core/clock';
+import { geometryBoundsSteps } from '../world/geometryBounds';
 
 /**
  * Draw a parked (hidden) subtree once, a few objects per painted slice, before it is first shown (op-hitch31, E435).
@@ -245,6 +247,40 @@ export const LIVE_PARKED_BUDGET: ParkedDrawBudget = { drawables: 1, newMaterials
  *  buffer, and one 0.6-0.85 MB `bufferData` waited 125-145 ms for the GPU process (200 / 250 ms afterPlay frames). */
 export const HELD_PARKED_BUDGET: ParkedDrawBudget = { drawables: 32, newMaterials: 8, bufferBytes: 6 * 1024 * 1024 };
 
+/** Do the renderer's first static sphere scan in exact CPU chunks, before a native draw can hide it in its frame. */
+async function prepareParkedBounds(drawables: readonly Drawable[], current: () => boolean, pause: () => Promise<void>): Promise<void> {
+  const seen = new Set<THREE.BufferGeometry>();
+  let started = diagnosticNow();
+  for (const object of drawables) {
+    if (!current()) throw new Error('Parked bounds owner left');
+    if (!(object instanceof THREE.Mesh) || object instanceof THREE.SkinnedMesh) continue;
+    const geometry: unknown = object.geometry;
+    if (!isBufferGeometry(geometry) || seen.has(geometry) || geometry.boundingSphere !== null
+      || geometry.getAttribute !== THREE.BufferGeometry.prototype.getAttribute
+      || geometry.computeBoundingSphere !== THREE.BufferGeometry.prototype.computeBoundingSphere
+      || geometry.morphAttributes.position !== undefined) continue;
+    seen.add(geometry);
+    const position: unknown = geometry.getAttribute('position');
+    if (!(position instanceof THREE.BufferAttribute) || !(position.array instanceof Float32Array)
+      || Object.getPrototypeOf(position.array) !== Float32Array.prototype || Object.hasOwn(position.array, 'length')
+      || position.usage !== THREE.StaticDrawUsage || position.normalized || position.itemSize !== 3
+      || position.array.length === 0 || position.count * 3 !== position.array.length
+      || position.getX !== THREE.BufferAttribute.prototype.getX || position.getY !== THREE.BufferAttribute.prototype.getY
+      || position.getZ !== THREE.BufferAttribute.prototype.getZ) continue;
+    const array = position.array, version = position.version, steps = geometryBoundsSteps(geometry, 'sphere');
+    try {
+      for (;;) {
+        if (!current()) throw new Error('Parked bounds owner left');
+        // A late streamed edit must use the renderer's fresh scan, not this partial one.
+        if (geometry.boundingSphere !== null || geometry.getAttribute('position') !== position || position.array !== array || position.version !== version) break;
+        if (steps.next().done === true) break;
+        if (diagnosticNow() - started >= LIVE_PRECOMPILE_SLICE_MS) { await pause(); started = diagnosticNow(); }
+      }
+    } finally { steps.return(); }
+  }
+  if (!current()) throw new Error('Parked bounds owner left');
+}
+
 /**
  * Draw every visible drawable under the hidden `root` into a 1×1 scissor of `target`, and its casters into the shadow
  * stand-ins, a slice per `pause()`. `environment` is the environment the entry frame will draw with (a parked sky can
@@ -265,7 +301,8 @@ export async function warmParkedDraws(renderer: ParkedDrawRenderer, scene: THREE
     onProgress?: (done: number, total: number) => void } = {}): Promise<number> {
   const reveal = new Set(options.revealChildren === true ? root.children : []);
   if (options.lightingRoot !== undefined) reveal.add(options.lightingRoot);
-  const slices = parkedDrawSlices(parkedDrawables(root, camera, reveal), options.budget ?? DEFAULT_BUDGET);
+  const drawables = parkedDrawables(root, camera, reveal);
+  const slices = parkedDrawSlices(drawables, options.budget ?? DEFAULT_BUDGET);
   // The scene holds the real camera equipment. Copy only the view: recursive
   // camera copies clone that unused hierarchy and can prepare fresh materials.
   const view = THREE.Object3D.prototype.clone.call(camera, false);
@@ -276,6 +313,7 @@ export async function warmParkedDraws(renderer: ParkedDrawRenderer, scene: THREE
   const total = slices.reduce((count, slice) => count + slice.length, 0);
   try {
     options.onProgress?.(0, total);
+    await prepareParkedBounds(drawables, current, pause);
     for (const slice of slices) {
       if (!current()) throw new Error('Parked draw owner left');
       try { drawSlice(renderer, scene, camera, view, target, root, slice, options.environment, standIns, reveal, benched); }

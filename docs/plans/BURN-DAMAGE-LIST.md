@@ -111,6 +111,8 @@ since is red; the latest (`60e9b7bfe6`) fails `generated-inputs`, which fails fa
 | D61 | HEAD previews fail: a Nalati generation stage opens `src/shards/nalati-grasslands/data/geography-forest.bin`, which the retired `nalati-geography` job no longer writes (`ENOENT`, log `tmp/serve/failed-20261027-030932-4400.log`); blocks every HEAD preview, so the G32 Pine tree check waits | `30a9e429c9` | sp-x6 (GR6) | open |
 | D63 | Pine product build refuses 'config must bundle as one module': `generators/kingKit.ts` imports `@wildshard/game/plugin/geometry`, whose dynamic `import('../shardfile/runtimeProduct')` becomes a second config chunk (`runtimeProduct-*.js`, 199 modules) even with code splitting off; `node scripts/build-shardfiles.mjs --shard=pine-hollow` exits 1 | `98e0b24f9b` | sp-o1 | open |
 
+| D64 | Plan-end preview `f7783051c9` passes Far Reach ownership then Pine map generation cannot read tracked `public/assets/models/pine-hollow-crags/crags.glb` from sealed `cragSceneContribution.ts` (`tmp/serve/failed-20261027-025756-4407.log:684`, 20.82 s, zero samples) | `bc78671a96` | sp-o3 (crag producer; sp-o1 routed) | open; no guard change or duplicate generation |
+
 ## Rows
 
 Parked: none of these is built until SHARD-PLATFORM completes and Jake says go.

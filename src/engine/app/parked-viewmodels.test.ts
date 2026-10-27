@@ -1,5 +1,5 @@
 import { expect, test, vi } from 'vitest';
-import { BoxGeometry, DirectionalLight, Group, Mesh, MeshBasicMaterial, PCFShadowMap, PerspectiveCamera, PointLight, Scene, Vector4, WebGLRenderer, WebGLRenderTarget, type Camera, type Material, type Object3D } from 'three';
+import { BoxGeometry, BufferAttribute, BufferGeometry, DirectionalLight, Group, Mesh, MeshBasicMaterial, PCFShadowMap, PerspectiveCamera, PointLight, Scene, Vector4, WebGLRenderer, WebGLRenderTarget, type Camera, type Material, type Object3D } from 'three';
 import { Scope } from './scope';
 import { bindConstructionEnvironment, withOwner } from './ownership';
 import { ViewmodelRoot } from '../render/viewmodel';
@@ -132,6 +132,36 @@ test('the warming view never clones camera equipment or prepares unused material
       () => Promise.resolve(), { revealChildren: true })).toBe(2);
     expect(clone).not.toHaveBeenCalled(); f.restored();
   } finally { clone.mockRestore(); f.dispose(); }
+});
+
+test.each([false, true])('static bounds prepare in painted CPU slices before any native draw (cancel=%s)', async cancel => {
+  const f = fixture(), first = f.parts[0];
+  if (first === undefined) throw new Error('Missing parked fixture part');
+  const source = new BufferGeometry(), positions = new Float32Array(65538 * 3);
+  for (let i = 0; i < positions.length; i++) positions[i] = Math.sin(i) * 10;
+  source.setAttribute('position', new BufferAttribute(positions, 3));
+  const geometry = first.geometry.copy(source), expected = geometry.clone();
+  source.dispose(); expected.computeBoundingSphere();
+  let clock = 0, current = true, boundsPauses = 0;
+  const time = vi.spyOn(performance, 'now').mockImplementation(() => { clock += 7; return clock; });
+  try {
+    const pending = warmParkedDraws(f.renderer, f.scene, f.camera, f.target, f.stage, () => current, () => {
+      f.restored();
+      if (f.draws.length === 0) { boundsPauses++; if (cancel) current = false; }
+      return Promise.resolve();
+    }, { revealChildren: true });
+    if (cancel) {
+      await expect(pending).rejects.toThrow('bounds owner left');
+      expect(geometry.boundingSphere).toBeNull(); expect(f.draws).toEqual([]);
+    } else {
+      expect(await pending).toBe(2); expect(boundsPauses).toBeGreaterThan(1);
+      expect(geometry.boundingSphere).toEqual(expected.boundingSphere);
+      expect(geometry.boundingBox).toBeNull();
+      const position: unknown = geometry.getAttribute('position');
+      if (!(position instanceof BufferAttribute)) throw new Error('Missing parked position');
+      expect(position.array).toEqual(positions);
+    }
+  } finally { time.mockRestore(); expected.dispose(); f.dispose(); }
 });
 
 test('streamed roots compile without exposing or drawing them', async () => {
