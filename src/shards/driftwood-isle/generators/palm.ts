@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { Rng } from '@wildshard/engine/core/rng';
+import type { Rng } from '@wildshard/sdk/random';
 import type { PalmParams } from './foliageModels';
 import { islandKnobs } from './tiers';
 
