@@ -25,6 +25,7 @@ import speciesPins from './fixtures/nalati-species-files.json' with { type: 'jso
 import headerPin from './fixtures/nalati-species-product-header.json' with { type: 'json' };
 import { predecessorRenderHeader } from './fixtures/nalati-render-header';
 import original from './fixtures/nalati-place-blob.json' with { type: 'json' };
+import { placeOffsetsI3, qualifyPlacesI3, sceneI3 } from './fixtures/nalati-places-i3';
 import cragOriginal from './fixtures/nalati-crag-blob.json' with { type: 'json' };
 import dressingOriginal from './fixtures/nalati-dressing-blob.json' with { type: 'json' };
 import sceneOriginal from './fixtures/nalati-dressing-scenes.json' with { type: 'json' };
@@ -121,6 +122,19 @@ const sceneParityFixture = (() => {
       const expected = pin.name.endsWith('.json') ? sceneWithOwnedModels(sceneWithSpecimenBank(sceneWithNativeOutcrops(frozen, ownedRuntime),expectedBank)) : frozen;
       return[pin.name,expected]as const;
     }));
+    // iPhone downloads I3: the scenes address the shipped places bake (its starts and its byte normals, nalati-places-i3.ts)
+    for (const tier of ['phone', 'desktop'] as const) {
+      const json = expectedScenes.get(`world/dressing-${tier}.json`), table = expectedScenes.get(`world/dressing-addresses-${tier}.bin`);
+      if (json === undefined || table === undefined) throw new Error('Missing complete scene pin pair');
+      const moved = sceneI3(JSON.parse(new TextDecoder().decode(json.bytes)), table.bytes, nativePlaces);
+      const rename = (blob: NamedBlob, bytes: Uint8Array): NamedBlob => {
+        const { name, kind, hash: _hash, path: _path, compressed, decoded, ...rest } = blob.file;
+        if (name === undefined) throw new Error('Unnamed scene pin');
+        return nameBlob(name, kind, bytes, { ...rest, decoded: decoded === compressed ? bytes.length : decoded });
+      };
+      expectedScenes.set(`world/dressing-${tier}.json`, rename(json, new TextEncoder().encode(encodeCanonicalJson(moved.scene))));
+      expectedScenes.set(`world/dressing-addresses-${tier}.bin`, rename(table, moved.addresses));
+    }
     const sceneOriginals = new Map([...expectedScenes].filter(([name])=>name.endsWith('.json')).map(([name,blob])=>[name,v.parse(SceneDressingSchema,JSON.parse(new TextDecoder().decode(blob.bytes)))]));
     const contactScenes=originalDressingContactTransport(hit.namedFiles.map(file=>{
       const bytes=hit.assets.get(file.hash);if(bytes===undefined)throw new Error('Missing owned output bytes');return{file,bytes};
@@ -295,7 +309,15 @@ test('the actual cold output hook preserves every predecessor file cost and bina
     const beforeShapes = new TextEncoder().encode(encodeCanonicalJson(shapeBookRowsOriginal.draws));
     const { jsonSchema: _beforeSchema, ...beforeShapePin } = shapeBookOriginal;
     expect(nameBlob(shapeBookOriginal.name, 'json', beforeShapes).file).toEqual(beforeShapePin);
-    const expectedShapes = nameBlob(shapeBookOriginal.name, 'json', new TextEncoder().encode(encodeCanonicalJson(shapeBookRowsOriginal.draws.map(productShapeRow))), { jsonSchema: namedJsonSchema(FixedDrawRowsSchema) });
+    // iPhone downloads I3: the shape book's lanes start where the shipped places bake puts each pinned mesh (nalati-places-i3.ts)
+    const shippedPlaces = coldOutputFixture.nativePlaces;
+    if (shippedPlaces === undefined) throw new Error('Missing observed native place metadata');
+    const offsets = placeOffsetsI3(shippedPlaces), laneI3 = (row: ReturnType<typeof productShapeRow>): ReturnType<typeof productShapeRow> => {
+      if (!('lane' in row)) return row;
+      const offset = offsets.get(row.lane.offset); if (offset === undefined) throw new Error('Shape lane is not a place mesh');
+      return { ...row, lane: { ...row.lane, offset } };
+    };
+    const expectedShapes = nameBlob(shapeBookOriginal.name, 'json', new TextEncoder().encode(encodeCanonicalJson(shapeBookRowsOriginal.draws.map(productShapeRow).map(laneI3))), { jsonSchema: namedJsonSchema(FixedDrawRowsSchema) });
     expect(shapeBook).toEqual(expectedShapes.file);
     const shapeBytes = hit.assets.get(expectedShapes.file.hash);
     if (shapeBytes === undefined) throw new Error('Missing original native shape book');
@@ -319,11 +341,14 @@ test('the actual cold output hook preserves every predecessor file cost and bina
     expect(requested).toContain('/assets/baked/nalati-grasslands/terrain.bin');
     for (const field of ['pond', 'red', 'green', 'blue']) expect(requested).not.toContain(`data/geography-${field}.bin`);
     const files = hit.namedFiles.filter(file => file.name === 'world/places.bin');
-    expect(files).toEqual([original]); expect(hit.blobs.some(file => file.name === 'world/places.bin')).toBe(false);
-    const bytes = hit.assets.get(original.hash);
+    // I3: the pin still names the exact bake; the shipped bake is it with byte normals and colours (qualifyPlacesI3)
+    expect(hashImmutableBytes(before)).toBe(original.hash); expect(before.length).toBe(original.compressed);
+    expect(files).toHaveLength(1); expect(hit.blobs.some(file => file.name === 'world/places.bin')).toBe(false);
+    const bytes = hit.assets.get(files[0]?.hash ?? '');
     if (bytes === undefined) throw new Error('Output lost the owned places bytes');
-    expect(bytes.length).toBe(original.compressed); expect(hashImmutableBytes(bytes)).toBe(original.hash);
-    expect(Buffer.compare(bytes, before)).toBe(0);
+    const shippedStamp = v.parse(v.object({ bytes: v.number() }), JSON.parse(new TextDecoder().decode(shippedPlaces)));
+    expect(files[0]).toEqual(nameBlob('world/places.bin', 'bin', bytes, { decoded: shippedStamp.bytes }).file);
+    qualifyPlacesI3(bytes, shippedPlaces);
     expect(hit.namedFiles.filter(file => file.name === 'world/crags.bin')).toEqual([cragOriginal]);
     expect(hit.blobs.some(file => file.name === 'world/crags.bin')).toBe(false);
     const crags = hit.assets.get(cragOriginal.hash);

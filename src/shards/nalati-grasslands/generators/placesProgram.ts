@@ -16,8 +16,8 @@ const names = ['places.bin', 'places.json', 'specimens.bin', 'placeSpecimens.jso
  * The native cache key includes the bundled dressing recipe, original specimen arithmetic and codec. */
 export async function nalatiPlacesProgram(ctx: Pick<ProjectGenerationContext, 'cached'>, phase: 'i3' | 'exact' = 'exact'): Promise<ReadonlyMap<string, Uint8Array>> {
   const scalarBlocks = await nalatiGeographyProgram(ctx);
-  // iPhone downloads I3 (in flight): 'i3' bakes under its own cache step; 'exact' is the original bake
-  const files = await ctx.cached({ id: phase === 'exact' ? 'places' : 'places-i3', native: true, inputs: [terrain] }, async inputs => {
+  // iPhone downloads I3: the shipped ('i3') bake is the 'places' step; the original ('exact') bake has its own
+  const files = await ctx.cached({ id: phase === 'i3' ? 'places' : 'places-exact', native: true, inputs: [terrain] }, async inputs => {
     const bytes = inputs.get(terrain);
     if (bytes === undefined) throw new Error('Missing original Nalati placement terrain');
     // The retained native author used the non-drawing desktop tier, not a page's quality setting.

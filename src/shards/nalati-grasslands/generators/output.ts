@@ -326,7 +326,8 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Nala
   const held = [nameBlob(heldWitness.name, 'bin', speciesFile('held-witness.bin'), heldWitness.options),
     nameBlob(executable.name, 'wasm', speciesFile('held-weapons.wasm'), executable.options)];
   const placements = emitNamedBlobs(nalatiDressingPlacementBlobs(await nalatiDressingPlacementProgram(ctx)));
-  const placeFiles = await nalatiPlacesProgram(ctx), placeBytes = placeFiles.get('places.bin');
+  // iPhone downloads I3: the shipped places bake carries byte normals and colours (nalati-places-i3.ts is its oracle)
+  const placeFiles = await nalatiPlacesProgram(ctx, 'i3'), placeBytes = placeFiles.get('places.bin');
   if (placeBytes === undefined) throw new Error('Missing owned native places binary');
   const placeDocument = placeFiles.get('places.json');
   if (placeDocument === undefined) throw new Error('Missing owned native places metadata');
