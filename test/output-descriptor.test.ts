@@ -402,13 +402,14 @@ test('packed sections and files come from one read of each pack (iPhone download
 });
 
 async function demandPackFixture(corruptMember = false) {
-  const {wires,index}=fixture(true),first=index.files[0];
+  const {wires,index,source:original}=fixture(true),first=index.files[0];
   if(first===undefined)throw new Error('Missing first demand member');
   const secondBytes=new Uint8Array([4,5,6]),secondHash=hashImmutableBytes(secondBytes);
   const second={...first,hash:secondHash,path:`blobs/bin/${secondHash}.bin`};
   index.files.push(second);wires.set(second.path,secondBytes);
   const wire=new Uint8Array([corruptMember?9:1,2,3,4,5,6]),packHash=hashImmutableBytes(wire),path=`blobs/pack/${packHash}.pack`;
-  const packed=parseOutputIndex({...index,packs:[{path,hash:packHash,bytes:6,entries:[
+  const packed=parseOutputIndex({...index,admission:{...index.admission,library:[...original.library,secondHash],
+    budgets:{...original.budgets,library:{resident:6,compressed:6}}},packs:[{path,hash:packHash,bytes:6,entries:[
     {hash:first.hash,offset:0,bytes:3},{hash:secondHash,offset:3,bytes:3}]}]});
   wires.set(path,wire);wires.set('shard.json',encodeCanonicalJson(packed));
   const source=await readProductDescriptor(options(wires));
