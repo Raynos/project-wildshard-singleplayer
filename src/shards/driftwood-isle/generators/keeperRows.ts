@@ -1,9 +1,7 @@
 import { DECLARED_SEA } from './sea';
-import { Rng } from '@wildshard/engine/core/rng';
-import { WeightedTable } from '@wildshard/engine/ai/weighted';
+import { Rng } from '@wildshard/sdk/random';
 import { ENEMY_SPECIES_METADATA } from './enemySpecies';
-import { BOAR } from '@wildshard/game/systems/species/boar';
-import { BEAR } from '@wildshard/game/systems/species/bear';
+import { ISLAND_BOAR as BOAR, ISLAND_BEAR as BEAR } from './faunaSpecies';
 import { driftwoodPhysics } from './physics';
 import { DRIFTWOOD_NATIVE_FAUNA } from './nativeFauna';
 import type { enemyPlacements } from './enemyPlacement';
@@ -15,6 +13,17 @@ import type { DriftwoodGuestRows } from './guestPrograms';
 const physics = driftwoodPhysics();
 
 type NativeKeeperRows = v.InferOutput<typeof PopulationKeeperRowsSchema>;
+
+/** Authored rows have no context predicates; retain the native clamping, order and last-row fallback. */
+function rolledVariant(rows: readonly { readonly id: string; readonly weight: number }[], draw: number): string | undefined {
+  const total = rows.reduce((sum, row) => sum + Math.max(0, row.weight), 0);
+  let remaining = draw * total;
+  for (const row of rows) {
+    remaining -= Math.max(0, row.weight);
+    if (remaining <= 0) return row.id;
+  }
+  return rows.at(-1)?.id;
+}
 
 /** Compile immutable roster joins and initial rolls; live floors and later spawns remain keeper-owned.
  * Each enemy checkpoint is the creature stream immediately before its original materialization. */
@@ -34,7 +43,7 @@ export function keeperRows(placement: ReturnType<typeof enemyPlacements>, progra
   const rng = new Rng(fauna.seed + 31); rng.restore(fauna.stream);
   for (const [i, row] of placement.native.enemies.entries()) {
     const table = tables.get(row.kind); if (table === undefined) throw new Error('Missing enemy variants');
-    const variant = row.variant ?? new WeightedTable({ mode: 'weighted', rows: table.map(item => ({ item, weight: item.weight })) }).pick(undefined, rng.next())?.item.id;
+    const variant = row.variant ?? rolledVariant(table, rng.next());
     const range = table.find(item => item.id === variant)?.scale;
     if (variant === undefined || range === undefined) throw new Error('Enemy rolled no variant');
     const scale = rng.range(range[0], range[1]); rng.next(); const seed = rng.next(); rng.next(); rng.next(); rng.next();
