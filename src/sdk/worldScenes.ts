@@ -3,6 +3,7 @@ import { parseWorldScenes } from '@wildshard/format/worldScenes';
 import { WorldSceneSurfaceSchema, type WorldSceneSurface } from '@wildshard/format/worldSceneSurface';
 import { parseWorldScenePlacement } from '@wildshard/format/worldScenePlacement';
 import { parse } from 'valibot';
+import { ForestPageSchema, type ForestPageRows } from '@wildshard/format/forestPage';
 
 /** Source-owned effect declarations retain the platform field contract. */
 export interface SceneEffectField {
@@ -27,3 +28,6 @@ export function worldSceneSurface(input: unknown): WorldSceneSurface { return pa
 
 /** Admit an authored placement through the same finite layout and collider grammar as the client. */
 export function worldScenePlacement(input: unknown): ReturnType<typeof parseWorldScenePlacement> { return parseWorldScenePlacement(input); }
+
+/** Admit a forest page through its existing finite plant, building and landmark grammar. */
+export function forestPageRows(input: unknown): ForestPageRows { return parse(ForestPageSchema, input); }

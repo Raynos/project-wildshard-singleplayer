@@ -1,7 +1,6 @@
 
 
-import * as v from 'valibot';
-import { ForestPageSchema , type ForestPageRows as ForestPageRowsType } from '@wildshard/format/forestPage';
+import { forestPageRows } from '@wildshard/sdk/worldScenes';
 import { nameBlob , type NamedBlob as NamedBlobType } from '@wildshard/sdk/blobs';
 import { CABIN_LIFE } from './cabinLook';
 import { CABIN_LIGHT } from './cabinAssembly';
@@ -11,7 +10,10 @@ import { timberWorld } from './timberWorldRows';
 import FOREST_LOOKS from '../data/forestLook.json' with { type: 'json' };
 import water from '../data/waterLook.json' with { type: 'json' };
 import { pineLookMaterials } from './lookMaterials';
+import { wholePartitionFiles } from '@wildshard/sdk/bake/wholePartition';
 import { perSources, type PineSources } from './pineSources';
+
+type ForestPageRowsType = ReturnType<typeof forestPageRows>;
 
 // GR8: called, not read from a scheduler job's output
 const looks = pineLookMaterials();
@@ -25,15 +27,18 @@ export interface ForestPage {
 /** D65: the forest page rows (their cabin floors and fire pits over the program's sources), made once per sources. */
 export const forestPage: (sources: PineSources) => ForestPage = perSources((sources: PineSources): ForestPage => {
   const timbers = timberWorld(sources);
+  const kinds = [['ferns', 'fern', 'Fern'], ['shrubs', 'bilberry-shrub', 'Bilberry shrub'], ['litter', 'needle-litter', 'Needle litter'], ['stones', 'pebbles', 'Pebbles'],
+    ['moss', 'moss-patch', 'Moss patch'], ['reeds', 'reeds', 'Reeds']] as const;
+  const groundSources = wholePartitionFiles(timbers.shardfile.files.filter(file => file.kind === 'glb').map(file => file.hash),
+    hash => sources.bytes(`assets/${hash}`), kinds.map(([id]) => `pine-undergrowth-${id}`));
   const LANDMARK_VIEW_BLOB: NamedBlobType = nameBlob('world/landmark-view.json', 'json', new TextEncoder().encode(JSON.stringify(timbers.landmarks)));
-  const FOREST_PAGE: ForestPageRowsType = v.parse(ForestPageSchema, {
+  const FOREST_PAGE: ForestPageRowsType = forestPageRows({
     treeLooks: [{ look: FOREST_LOOKS.bark, band: 'trunk' }, { look: FOREST_LOOKS.needles, band: 'cards' }, { look: FOREST_LOOKS.twigs, band: 'twigs' }, { look: FOREST_LOOKS.far, band: 'far' }].map(row => ({ look: row.look, band: row.band, fade: 'fade', viewer: 'viewer' })),
     water: { object: 'pond', look: water.looks.pond, looks: Object.values(water.looks), ripples: 'ripples', skyline: 'skyline', centre: 'skyC', probe: 'waterSkyline' },
     id: 'pine.forest', sliceMs: 30, farStandIn: true, graphs: looks.runtime, wildlife: 'look/wildlife-draw.json',
     streams: { group: 'streams.root', water: 'streams.water', spray: 'streams.spray' },
-    ground: { appearance: 'look/cover-appearance.json', layout: 'world/floor.json', sources: timbers.shardfile.files.filter(file => file.kind === 'glb').map(file => file.hash),
-      kinds: ([['ferns', 'fern', 'Fern'], ['shrubs', 'bilberry-shrub', 'Bilberry shrub'], ['litter', 'needle-litter', 'Needle litter'], ['stones', 'pebbles', 'Pebbles'],
-        ['moss', 'moss-patch', 'Moss patch'], ['reeds', 'reeds', 'Reeds']] as const).map(([id, model, name]) => ({ id, geometry: `pine-undergrowth-${id}`, model: `pine-hollow/${model}`, name })),
+    ground: { appearance: 'look/cover-appearance.json', layout: 'world/floor.json', sources: groundSources,
+      kinds: kinds.map(([id, model, name]) => ({ id, geometry: `pine-undergrowth-${id}`, model: `pine-hollow/${model}`, name })),
       far: 'pine.undergrowthFar', shadow: 'pine.undergrowthShadows', cells: { size: 32, pad: 2.5, extraFar: 2 } },
     buildings: { id: 'pine.cabins', root: 'cabins.root', shells: 'cabins.shells', life: CABIN_LIFE,
       shared: 'pine.sharedCabinLights', shadow: 'pine.cabinDetailShadows', sites: 'world/building-sites.json',
