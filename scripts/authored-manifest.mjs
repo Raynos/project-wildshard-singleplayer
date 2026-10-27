@@ -101,10 +101,10 @@ export function authoredManifestSource(root, slug, { generation = false, metadat
   // G4: declared rows are built by the game from the shard's generated file, with no shard module
   const DECLARED = { ground: 'declaredGround', forestQueries: 'declaredForestQueries', pondClip: 'declaredPondClip' };
   const declared = Object.keys(DECLARED).filter(key => key !== 'forestQueries' && b[key]?.platform === 'declared' || key === 'forestQueries' && b[key]?.platform === 'fixed');
-  const built = (key) => `${DECLARED[key]}(${value(b[key].rows)})`;
+  const built = (key) => `${DECLARED[key]}(${value(b[key].rows, `${key}.rows`)})`;
   for (const key of ['runtimeCost', 'mapPalette', 'poses', 'forestQueries', 'pondClip', 'groundRows', 'groundColourSamples', 'surfaceSamples', 'forestMaskSamples', 'mapGroundSamples', 'navmesh']) if (b[key]) {
     if (key === 'forestQueries' && b[key].platform === 'fixed') { rows.push(`forestQueries: declaredForestQueries(${JSON.stringify(b[key])})`); continue; }
-    if (key === 'forestQueries' && b[key].platform === 'declared') { rows.push(`forestRows: ${value(b[key].rows)}`); continue; }
+    if (key === 'forestQueries' && b[key].platform === 'declared') { rows.push(`forestRows: ${value(b[key].rows, 'forestQueries.rows')}`); continue; }
     if (declared.includes(key)) { rows.push(`${key}: ${built(key)}`); continue; }
     // Fixed palette JSON becomes a contextually checked literal, preserving tuple
     // arity without importing an executable coordinate recipe into discovery.

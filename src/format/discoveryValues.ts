@@ -26,6 +26,8 @@ const sourceRows = v.record(text, v.array(v.union([text, v.strictObject({ gpu: t
 const modes = <S extends v.GenericSchema>(schema: S) => v.strictObject({ modes: v.strictObject({
   phone: v.strictObject({ img: schema, ktx2: schema }), desktop: v.strictObject({ img: schema, ktx2: schema }),
 }) });
+/** Declared rows as plain bounded JSON objects; their game builders own the row grammar. */
+const declaredRows = v.pipe(v.unknown(), v.check(input => typeof input === 'object' && input !== null && !Array.isArray(input) && isJsonData(input), 'declared rows are a JSON object'));
 const sources = v.union([modes(v.record(text, strings)), v.strictObject({
   tiers: v.strictObject({ phone: sourceRows, desktop: sourceRows }), gpuFiles: v.exactOptional(v.record(text, v.unknown())),
 })]);
@@ -52,6 +54,8 @@ const fields = {
   'boot.pageModes': v.exactOptional(v.strictObject({ shard: modes(v.record(text, strings)), grid: modes(v.record(text, strings)),
     bakedUnreadPrefixes: v.pipe(strings, v.minLength(1)) })),
   'ktx2.pageModes': v.exactOptional(v.strictObject({ shard: gpuFiles, grid: gpuFiles })),
+  // G33: declared ground, forest-query and pond-clip rows a program computes; the game's declared builders validate them.
+  'ground.rows': v.exactOptional(declaredRows), 'forestQueries.rows': v.exactOptional(declaredRows), 'pondClip.rows': v.exactOptional(declaredRows),
 };
 const schema: v.GenericSchema<DiscoveryValuesInput, DiscoveryValues> = v.strictObject(fields);
 
@@ -226,6 +230,7 @@ interface DiscoveryValuesInputFields {
     };
     'boot.pageModes'?: { shard: PageModeSources; grid: PageModeSources; bakedUnreadPrefixes: string[] };
     'ktx2.pageModes'?: { shard: PageModeGpu; grid: PageModeGpu };
+    'ground.rows'?: unknown; 'forestQueries.rows'?: unknown; 'pondClip.rows'?: unknown;
 }
 export type DiscoveryValuesInput = { [Key in keyof DiscoveryValuesInputFields]: DiscoveryValuesInputFields[Key] };
 interface DiscoveryValuesFields {
@@ -384,5 +389,6 @@ interface DiscoveryValuesFields {
     };
     'boot.pageModes'?: { shard: PageModeSources; grid: PageModeSources; bakedUnreadPrefixes: string[] };
     'ktx2.pageModes'?: { shard: PageModeGpu; grid: PageModeGpu };
+    'ground.rows'?: unknown; 'forestQueries.rows'?: unknown; 'pondClip.rows'?: unknown;
 }
 export type DiscoveryValues = { [Key in keyof DiscoveryValuesFields]: DiscoveryValuesFields[Key] };

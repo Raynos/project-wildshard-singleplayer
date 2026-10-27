@@ -206,7 +206,8 @@ const generatorBinding = v.strictObject({ module: v.pipe(localModule, v.regex(/^
 const dataBinding = v.union([binding, programBinding]);
 const moduleBinding = v.strictObject({module: bindingModule});
 /** G4: rows a shard generates for the game to build from (`declaredGround`, `declaredForestQueries`, `declaredStreamClip`) */
-const declared = v.strictObject({ platform: v.literal('declared'), rows: binding });
+// G33: a source program may supply declared rows as the `<binding>.rows` discovery value (the game still validates them).
+const declared = v.strictObject({ platform: v.literal('declared'), rows: v.union([binding, programBinding]) });
 const pageBoot = v.strictObject({ platform: v.literal('page-mode'), rows: v.union([v.strictObject({
   module: v.pipe(binding.entries.module, v.regex(/\.json$/u)), export: v.literal('default'),
 }), programBinding]) });
@@ -390,11 +391,11 @@ export interface ManifestMetadataFields {
         });
         forestQueries?: (ManifestBindingRows) | ({
             platform: 'declared';
-            rows: ManifestBindingRows;
+            rows: ManifestBindingRows | { program: true };
         }) | (FixedForestQueriesRows);
         pondClip?: (ManifestBindingRows) | ({
             platform: 'declared';
-            rows: ManifestBindingRows;
+            rows: ManifestBindingRows | { program: true };
         });
         sword?: (ManifestBindingRows) | ({
             rows: string;
@@ -413,7 +414,7 @@ export interface ManifestMetadataFields {
         };
         ground?: (ManifestBindingRows) | ({
             platform: 'declared';
-            rows: ManifestBindingRows;
+            rows: ManifestBindingRows | { program: true };
         });
         render?: (ManifestBindingRows) | ({
             platform: 'painted' | 'toon';

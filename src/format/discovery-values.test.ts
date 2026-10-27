@@ -65,3 +65,11 @@ test.each([
 ])('program GPU mappings refuse malformed shapes, URLs and unbounded inventories %#', ktx2 => {
   expect(() => parseDiscoveryValues({ ktx2 })).toThrow();
 });
+
+// G33: a program supplies declared ground, forest-query and pond-clip rows; the game's declared builders own their grammar.
+test('program declared rows are bounded JSON objects', () => {
+  const rows = { 'ground.rows': { terrain: { key: 'a' } }, 'forestQueries.rows': { forest: { density: [] } }, 'pondClip.rows': { x: 1 } };
+  expect(parseDiscoveryValues(rows)).toEqual(rows);
+  for (const key of ['ground.rows', 'forestQueries.rows', 'pondClip.rows'])
+    for (const value of [[], 'rows', 1, null]) expect(() => parseDiscoveryValues({ [key]: value })).toThrow();
+});
