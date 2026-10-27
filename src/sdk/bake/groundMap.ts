@@ -84,10 +84,15 @@ export interface SceneMapBytes {
   bytes: (file: string) => Uint8Array;
 }
 /** Paint declared L0 terrain, GLBs and private scenes with the existing ground palette.
- * Returns the original 1000-square RGBA lattice from caller-owned inputs, without image/stamp publication. */
-export async function rasterSceneMap(settings: unknown, data: SceneMapBytes): Promise<{ pixels: Uint8Array; triangles: number }> {
-  const admitted = v.parse(v.object({ style: styleSchema, clipBelow: v.exactOptional(v.nullable(v.number())), clipAbove: v.exactOptional(v.nullable(v.number())) }), settings);
+ * Returns the original 1000-square RGBA lattice from caller-owned inputs, without image/stamp publication.
+ * GR9: `output` paints one declared output of a multi-output folder from its own `glbs`, in its own row's `style` (else the
+ * folder's) leaving out its `exclude` node prefixes, as the script painter (`scripts/bake-data-maps.mjs`) did. */
+export async function rasterSceneMap(settings: unknown, data: SceneMapBytes, options: { readonly output?: string; readonly glbs?: readonly string[] } = {}): Promise<{ pixels: Uint8Array; triangles: number }> {
+  const admitted = v.parse(v.object({ style: styleSchema, clipBelow: v.exactOptional(v.nullable(v.number())), clipAbove: v.exactOptional(v.nullable(v.number())),
+    outputs: v.exactOptional(v.record(v.string(), v.unknown())) }), settings);
+  const own = options.output === undefined ? undefined : admitted.outputs?.[options.output];
+  const style = typeof own === 'object' && own !== null && 'style' in own ? v.parse(styleSchema, own.style) : admitted.style;
   const raster = new MapRaster(1000, { clipBelow: admitted.clipBelow ?? -Infinity, clipAbove: admitted.clipAbove ?? Infinity });
-  await paintMapGeometry(raster, settings, data);
-  return { pixels: stylize(raster, admitted.style), triangles: raster.triangles };
+  await paintMapGeometry(raster, settings, data, { ...(options.output === undefined ? {} : { output: options.output }), ...(options.glbs === undefined ? {} : { glbs: options.glbs }) });
+  return { pixels: stylize(raster, style), triangles: raster.triangles };
 }
