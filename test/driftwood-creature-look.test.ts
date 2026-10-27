@@ -3,7 +3,7 @@ import { validateGraph } from '../src/format/materialGraph';
 import { CREATURE_INSTALL, CREATURE_LOOKS } from '../src/shards/driftwood-isle/generators/creatureLook';
 import lookGraphs from '../src/shards/driftwood-isle/data/lookGraphs.json' with { type: 'json' };
 import { authoredGraphs } from './fixtures/authoredGraphs';
-import source from '../src/shards/driftwood-isle/shard.config';
+import { DRIFTWOOD as source } from './fixtures/driftwood-program';
 import { lentGraphLook } from '../src/game/population/productCreatures';
 import * as THREE from 'three';
 import type { Animal } from '../src/engine/entities/AnimalView';

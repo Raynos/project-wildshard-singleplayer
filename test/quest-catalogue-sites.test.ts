@@ -14,19 +14,23 @@ import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { GeometryPack, packedRows } from '../src/sdk/kit/geometryPack';
 import { readSourceModel } from '../src/sdk/bake/skinned';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import pine from '../src/shards/pine-hollow/shard.config';
-import driftwood from '../src/shards/driftwood-isle/shard.config';
+import { PINE as pine } from './fixtures/pine-program';
+import { DRIFTWOOD as driftwood } from './fixtures/driftwood-program';
 import { PINE_FEATS, PINE_BAG_ITEMS } from '../src/shards/pine-hollow/generators/questInventory';
 import { DRIFTWOOD_FEATS, DRIFTWOOD_ITEMS } from '../src/shards/driftwood-isle/generators/questInventory';
 import { TIMBER_MODEL_ROWS, TIMBER_PLACEMENTS } from '../src/shards/pine-hollow/generators/timberSceneContribution';
-import scenes from '../src/shards/pine-hollow/data/timberScenes.generated.json' with { type: 'json' };
+import { pineQuestSites, pineTimberScenes } from '../src/shards/pine-hollow/generators/bake-timber-scenes.mjs';
 import parts from '../src/shards/pine-hollow/data/codeParts.json' with { type: 'json' };
 import old from './fixtures/legacy-oracles/pine-hollow-log.json' with { type: 'json' };
+
+// GR8 G31: the timber GLBs and quest sites are the producer's (bake-timber-scenes.mjs), not a stored timberScenes.generated.json
+const timberGlbs = new Map((await pineTimberScenes()).glbs), sites = pineQuestSites();
+const geometryHashes = Object.fromEntries([...timberGlbs].map(([name, bytes]) => [`assets/timber-scenes/${name.slice('models/timbers/'.length)}`, hashImmutableBytes(bytes)]));
 
 const isGeometry = (value: unknown): value is BufferGeometry => value instanceof BufferGeometry;
 
 test('the existing 26 timber GLBs keep the exact pre-quest hashes', () => {
-  const original = Object.fromEntries(Object.entries(scenes.geometryHashes).filter(([path]) => !path.includes('/hollow-log-')));
+  const original = Object.fromEntries(Object.entries(geometryHashes).filter(([path]) => !path.includes('/hollow-log-')));
   expect(Object.keys(original)).toHaveLength(26);
   expect(hashImmutableBytes(new TextEncoder().encode(JSON.stringify(original)))).toBe('02d3a54716563d0691ba9cd50a76ca441821d8157d4faf8ef795eca121ca66c3');
 });
@@ -49,14 +53,14 @@ test.each([[pine, PINE_BAG_ITEMS, PINE_FEATS], [driftwood, DRIFTWOOD_ITEMS, DRIF
 
 test('baked hollow floor and mouths preserve the frozen live site and the rifle floor', () => {
   // The retired live site (hollowLogSite / insideHollowLog on the baked terrain.bin), frozen in fixtures/legacy-oracles/pine-hollow-log.json.
-  const row = scenes.sites.hollow;
+  const row = sites.hollow;
   expect(row.floorY).toBe(old.floorY); expect(row.mid).toEqual(old.mid);
   expect(row.mouths).toEqual(old.mouths);
   expect(old.inside).toHaveLength(15);
   for (const [dx = 0, dz = 0, inside] of old.inside) {
     expect(floorAtRects([row.floor], row.x + Number(dx), row.z + Number(dz), 'first')).toBe(inside === true ? old.floorY : undefined);
   }
-  expect(scenes.sites.rifle).toEqual({ x: -13.139577422657654, y: 3.813097448348999, z: -36.01734305173898 });
+  expect(sites.rifle).toEqual({ x: -13.139577422657654, y: 3.813097448348999, z: -36.01734305173898 });
   expect(TIMBER_PLACEMENTS.find(placement => placement.id === 'quests.hollow-log')?.piece?.floors).toEqual([row.floor]);
   const shelf = TIMBER_MODEL_ROWS.find(model => typeof model === 'object' && model !== null && 'key' in model && model.key === 'token-shelf');
   expect(shelf).toMatchObject({ assembly: 'objects', choices: [{ draws: [{ until: 28 }] }] });
@@ -66,7 +70,9 @@ test('all five hollow-log GLBs preserve the original packed geometry and native 
   const bytes = inflateSync(readFileSync(resolve(import.meta.dirname, `../public${parts.url}`)));
   const pack = new GeometryPack(bytes, packedRows(parts.rows), 'frozen quest geometry');
   for (const id of ['hollow-log-outer', 'hollow-log-inner', 'hollow-log-rim-0', 'hollow-log-rim-1', 'hollow-log-bed'] as const) {
-    const original = pack.geometry(parts.parts[id]), source = await readSourceModel(readFileSync(resolve(import.meta.dirname, `../src/shards/pine-hollow/assets/timber-scenes/${id}.glb`)));
+    const original = pack.geometry(parts.parts[id]), glb = timberGlbs.get(`models/timbers/${id}.glb`);
+    if (glb === undefined) throw new Error(`Missing timber GLB ${id}`);
+    const source = await readSourceModel(glb);
     const meshes: { geometry: BufferGeometry; materials: Material[] }[] = [];
     source.gltf.scene.traverse(node => {
       if (!(node instanceof Mesh)) return;

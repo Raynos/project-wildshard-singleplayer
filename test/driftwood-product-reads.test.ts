@@ -7,7 +7,7 @@ import { readProjectAssets } from '../src/sdk/project';
 import { parseRows } from '../src/format/rows';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
 import { LootEconomySchema } from '../src/format/lootEconomy';
-import source from '../src/shards/driftwood-isle/shard.config';
+import { DRIFTWOOD as source } from './fixtures/driftwood-program';
 import { SECTIONS } from '../src/shards/driftwood-isle/generators/sections';
 import { collectionRows } from '../src/shards/driftwood-isle/generators/collections';
 import { DRIFTWOOD_FEATS, DRIFTWOOD_ITEMS } from '../src/shards/driftwood-isle/generators/questInventory';

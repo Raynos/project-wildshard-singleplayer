@@ -5,7 +5,7 @@ import { Scope } from '../src/engine/app/scope';
 import { Weapon } from '../src/engine/combat/Weapon';
 import { runtimeEquipment, bindRuntimeEquipment } from '../src/game/plugin/headless';
 import { INPUT_CONTEXTS } from '../src/game/inputContexts';
-import source from '../src/shards/pine-hollow/shard.config';
+import { PINE as source } from './fixtures/pine-program';
 import manifest from '../src/shards/pine-hollow/discovery.generated';
 import { CROSSBOW, LEVER, LONGBOW } from '../src/shards/pine-hollow/generators/equipment';
 import { CROSSBOW_WEAPON_PROFILE } from '../src/shards/pine-hollow/generators/crossbowProfile';
@@ -19,7 +19,7 @@ import { bindNativeLoadout, createNativeLoadout, HOST_PROBE } from '../src/game/
 import { PINE_NATIVE_LOADOUT } from './fixtures/weapon-oracle/nativeLoadout';
 import { NativeHeldAmmunition } from './fixtures/native-hosts/loadout/nativeAmmunition';
 import loadoutRows from '../src/shards/pine-hollow/data/loadout.json' with { type: 'json' };
-import driftwood from '../src/shards/driftwood-isle/shard.config';
+import { DRIFTWOOD as driftwood } from './fixtures/driftwood-program';
 import { createNativeCombatFrame, installNativeItems } from '../src/game/plugin/nativeItems';
 import { ItemCatalogue } from '../src/game/loadout/itemCatalogue';
 import { parseItems } from '../src/format/items';

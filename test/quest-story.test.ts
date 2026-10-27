@@ -21,8 +21,8 @@ import { PAGE_STORY as driftStory } from '../src/shards/driftwood-isle/generator
 import { PAGE_STORY as pineStory } from '../src/shards/pine-hollow/generators/pageStory';
 import { DRIFTWOOD_FEAT_COUNTERS } from '../src/shards/driftwood-isle/generators/questInventory';
 import { PINE_FEAT_COUNTERS } from '../src/shards/pine-hollow/generators/questInventory';
-import drift from '../src/shards/driftwood-isle/shard.config';
-import pine from '../src/shards/pine-hollow/shard.config';
+import { DRIFTWOOD as drift } from './fixtures/driftwood-program';
+import { PINE as pine } from './fixtures/pine-program';
 import * as v from 'valibot';
 import { FigureRows } from '../src/game/systems/npc/figureRows';
 import { SceneHandles } from '../src/game/shardfile/sceneHandles';
