@@ -8,11 +8,12 @@ import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { deflateSync } from 'node:zlib';
+import { readImagePixels, writeImagePixels } from '@wildshard/sdk/bake/image';
 import { bakePineTrophies } from './trophyMounts.ts';
 
 const root = resolve(import.meta.dirname, '../../../..'), check = process.argv.includes('--check');
-const readAsset = url => Promise.resolve(new Uint8Array(readFileSync(resolve(root, `src/shards/pine-hollow/assets/creatures/${url.slice(url.lastIndexOf('/') + 1)}`))));
-const { bin, rows, slots } = await bakePineTrophies(readAsset);
+const readAsset = url => Promise.resolve(new Uint8Array(readFileSync(resolve(root, 'public/assets/pine-hollow/creatures', url.slice(url.lastIndexOf('/') + 1)))));
+const { bin, rows, slots } = await bakePineTrophies(readAsset, { read: readImagePixels, write: writeImagePixels });
 const sha256 = createHash('sha256').update(bin).digest('hex');
 const url = `/assets/pine-hollow/baked/trophies-${sha256.slice(0, 12)}.bin`;
 const packed = deflateSync(bin, { level: 9 });

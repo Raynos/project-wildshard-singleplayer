@@ -17,7 +17,7 @@ const run = (args, command = process.execPath) => {
 };
 // SF74 W24 (speed audit #10): the push gate caches each node baker on its own inputs (`--list-node`, then
 // `--node-only --only=<baker>` per cached step), so one touched src file re-runs only the bakers that read it.
-const NODE_BAKERS = ['directors', 'chunk', 'sky', 'navmesh', 'island-cover', 'voxel-ao', 'geometry', 'cloud-field', 'water-ripples', 'nalati-bodies', 'nalati-places', 'pine-coat-pages', 'pine-thrall-extras', 'pine-rain'];
+const NODE_BAKERS = ['directors', 'chunk', 'sky', 'navmesh', 'island-cover', 'voxel-ao', 'geometry', 'cloud-field', 'water-ripples', 'nalati-bodies', 'nalati-places', 'pine-thrall-extras', 'pine-rain'];
 if (process.argv.includes('--list-node')) { console.log(NODE_BAKERS.join('\n')); process.exit(0); }
 const only = process.argv.find((arg) => arg.startsWith('--only='))?.slice('--only='.length);
 if (only !== undefined && !NODE_BAKERS.includes(only)) { console.error(`bake-check: no node baker ${only} (${NODE_BAKERS.join(', ')})`); process.exit(64); }
@@ -26,8 +26,6 @@ for (const baker of NODE_BAKERS) if (only === undefined || only === baker) {
   if (baker === 'directors') {
     run(['scripts/check-cheap-bakes.mjs']);
     run(['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', '--input-type=module', '-e', `import { runCli } from './src/sdk/cli.ts'; await runCli(['build', 'src/shards/nalati-grasslands', '--behaviour-only', '--check']);`]);
-  } else if (baker === 'pine-coat-pages') {
-    run(['src/shards/pine-hollow/generators/bake-pine-coat-pages.mjs', '--check']);
   } else {
     const entry = baker.startsWith('pine-') ? `src/shards/pine-hollow/generators/bake-${baker}.mjs` : baker.startsWith('nalati-') ? `src/shards/nalati-grasslands/generators/bake-${baker === 'nalati-places' ? 'nalati-painted' : baker}.mjs` : `scripts/bake-${baker}.mjs`;
     run(['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', entry, '--check']);

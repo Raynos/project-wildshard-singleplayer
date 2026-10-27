@@ -43,6 +43,8 @@ export function productRiggedHulls(slug: string): RiggedHulls {
       const source = book.tiers[TIER], resources = book.productFiles ? { ...source,
         files: Object.fromEntries(Object.entries(source.files).map(([name, entry]) => [name, typeof entry === 'string' ? product.url(entry)
           : { rig: product.url(entry.rig), base: product.url(entry.base), normal: product.url(entry.normal) }])),
+        // GR8: a coat page the product names (a file name, not a /-rooted public URL) loads through the product's URL
+        coats: Object.fromEntries(Object.entries(source.coats).map(([name, coat]) => [name, coat.image.startsWith('/') ? coat : { ...coat, image: product.url(coat.image) }])),
         ...(source.parts === undefined ? {} : { parts: { ...source.parts, file: product.url(source.parts.file) } }) } : source;
       family = riggedHulls(book.family, resources); return family;
     })();

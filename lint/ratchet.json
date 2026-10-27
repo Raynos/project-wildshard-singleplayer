@@ -792,7 +792,6 @@
     "src/shards/pastel-plain/generators/world.ts": 1,
     "src/shards/pine-hollow/generators/bake-hdri-keys.mjs": 4,
     "src/shards/pine-hollow/generators/bake-pine-cabins.mjs": 3,
-    "src/shards/pine-hollow/generators/bake-pine-coat-pages.mjs": 5,
     "src/shards/pine-hollow/generators/bake-pine-crags.mjs": 3,
     "src/shards/pine-hollow/generators/bake-pine-lookout.mjs": 3,
     "src/shards/pine-hollow/generators/bake-pine-props.mjs": 2,

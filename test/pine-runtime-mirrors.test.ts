@@ -18,7 +18,6 @@ import { resolveBootSources } from '../src/engine/boot/filePolicy';
 import { PINE_BOOT_FILES, PINE_BOOT_SOURCES } from '../src/shards/pine-hollow/generators/bootFiles';
 import metadata from '../src/shards/pine-hollow/data/bootMetadata.generated.json' with { type: 'json' };
 import { FINISH_CARDS } from '../src/shards/pine-hollow/generators/finishCards';
-import coatPages from '../src/shards/pine-hollow/data/coatPages.generated.json' with { type: 'json' };
 import authored from '../src/shards/pine-hollow/data/timberWorld.generated.json' with { type: 'json' };
 import { GPU_FILES } from '../src/shards/pine-hollow/ktx2.generated';
 import ASTC6_PHONE from '../src/shards/pine-hollow/data/astc6.generated.json' with {type:'json'};
@@ -47,7 +46,7 @@ test('world view rows come from the admitted section', () => {
 test('pre-admission metadata preserves Explorer identities and ordered boot recipes', () => {
   const explorer: unknown = JSON.parse(readFileSync(new URL('../src/shards/pine-hollow/data/explorerMetadata.generated.json', import.meta.url), 'utf8'));
   expect(explorer).toMatchObject({ cards: FINISH_CARDS });
-  const inputs = { pages:{ coats:coatPages.tiers }, aliases:{ props:authored.propMaterials } };
+  const inputs = { aliases:{ props:authored.propMaterials } };
   const before = currentPageMode();
   const boot = pageModeBoot(metadata);
   if (typeof boot.sources !== 'function' || typeof boot.files !== 'function') throw new Error('Missing boot selectors');

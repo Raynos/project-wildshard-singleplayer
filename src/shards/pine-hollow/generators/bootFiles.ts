@@ -293,7 +293,7 @@ export const PINE_BOOT_FILES: {
     };
     readonly coats: {
         readonly source: {
-            readonly pages: "coats";
+            readonly tablePrefix: "procedural:/assets/pine-hollow/creatures/";
         };
     };
     readonly viewmodels: {
@@ -610,7 +610,7 @@ export const PINE_BOOT_FILES: {
   },
   "coats": {
     "source": {
-      "pages": "coats"
+      "tablePrefix": "procedural:/assets/pine-hollow/creatures/"
     }
   },
   "viewmodels": {

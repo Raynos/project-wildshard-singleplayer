@@ -4,9 +4,9 @@
 // entry hundreds of milliseconds to seconds (and which a KTX2 hull cannot do at all: its atlas has no pixels). So the game
 // paints them here, offline, and the runtime loads the result.
 //
-// Pine Hollow: generators/coatProducer.ts reads authored recipes and retained GLB assets through SDK Node readers.
-// It installs no runtime registry and opens no page. The build cache separately emits its lossless image fallback.
-// Run Pine in plain Node; its authoring entry resolves source extensions without game startup.
+// Pine Hollow: generators/coatProducer.ts (through scripts/bake/pineCoats.mjs) reads authored recipes and the committed
+// rigged hulls through SDK Node readers. It installs no runtime registry and opens no page. The Pine program paints the
+// same lossless pages as product files (generators/coatPages.ts).
 // Nalati: generators/coats.ts (through scripts/bake/nalatiCoats.mjs) reads the committed rigged hulls and the
 // species palettes in plain Node, painting with the page's former canvas painter and its canvas rounding, exactly.
 // Either way every hull variant whose coat repaints the atlas is handed back as a lossless PNG keyed by its table name. Each is encoded with bake-ktx2.mjs's colour class
@@ -58,18 +58,11 @@ try {
   if (IMAGES !== null) mkdirSync(IMAGES, { recursive: true });
   let encoded = 0, reused = 0;
 
-  if (slug === 'pine-hollow') execFileSync(process.execPath, ['src/shards/pine-hollow/generators/bake-pine-coat-pages.mjs'], { cwd: ROOT, stdio: 'inherit' });
   for (const tier of tiers) {
-    let sources;
     const tex = 'img';
-    if (slug === 'pine-hollow') {
-      const pages = JSON.parse(readFileSync(resolve(ROOT, 'src/shards/pine-hollow/data/coatPages.generated.json'), 'utf8')).tiers[tier];
-      sources = Object.entries(pages).map(([key, page]) => ({ url: key, png: readFileSync(resolve(PUB, page.image.slice(1))) }));
-    } else {
-      const list = join(TMP, `${tier}.json`);
-      execFileSync(process.execPath, ['--import', './scripts/bake-loader.mjs', 'scripts/bake/nalatiCoats.mjs', tier, list], { cwd: ROOT, stdio: 'inherit' });
-      sources = readCoatFiles(list);
-    }
+    const list = join(TMP, `${tier}.json`);
+    execFileSync(process.execPath, ['--import', './scripts/bake-loader.mjs', `scripts/bake/${slug === 'pine-hollow' ? 'pineCoats' : 'nalatiCoats'}.mjs`, tier, list], { cwd: ROOT, stdio: 'inherit' });
+    const sources = readCoatFiles(list);
     if (sources.length === 0) throw new Error(`${tier}: no coats (texture mode ${tex})`);
     const next = {};
     for (const s of sources) {

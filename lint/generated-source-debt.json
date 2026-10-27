@@ -1688,7 +1688,6 @@
     "src/shards/pine-hollow/data/bootMetadata.generated.json",
     "src/shards/pine-hollow/data/cabinLivingScenes.generated.json",
     "src/shards/pine-hollow/data/cabinScenes.generated.json",
-    "src/shards/pine-hollow/data/coatPages.generated.json",
     "src/shards/pine-hollow/data/explorerMetadata.generated.json",
     "src/shards/pine-hollow/data/gpuTables.generated.d.json.ts",
     "src/shards/pine-hollow/data/gpuTables.generated.json",

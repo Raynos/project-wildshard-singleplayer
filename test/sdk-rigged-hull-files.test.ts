@@ -6,7 +6,7 @@ import { afterEach, expect, it, vi } from 'vitest';
 import { riggedHullMap, riggedHulls } from '@wildshard/game/looks/riggedHulls';
 import { parseRiggedHullBook, type RiggedHullFamilyRow } from '@wildshard/format/riggedHulls';
 import { parsePlatformDataSection } from '@wildshard/format/platformDataSections';
-import coatPages from '../src/shards/pine-hollow/data/coatPages.generated.json' with { type: 'json' };
+import { GPU_FILES } from '../src/shards/pine-hollow/ktx2.generated';
 import { PINE_WILDLIFE_DRAW as WILDLIFE_DRAW } from './fixtures/pine-program';
 import { PINE_HULLS } from '../src/shards/pine-hollow/generators/creatureHulls';
 import { PINE_HULL_BOOK, pineHullResources } from '../src/shards/pine-hollow/generators/riggedHulls';
@@ -95,12 +95,13 @@ it('names Pine\'s rigs and maps as the producer\'s blobs (generators/rigBlobs.mj
   }
 });
 
-it('keeps every baked coat\'s cache key on the rig\'s original public path', () => {
+it('keeps every baked coat\'s cache key on the rig\'s original public path and names its page as a product file', () => {
   for (const tier of ['phone', 'desktop'] as const) {
-    const keys = new Set(Object.values(pineHullResources(tier).coats).map(row => row.key));
-    const baked = Object.keys(coatPages.tiers[tier]);
+    const coats = Object.values(pineHullResources(tier).coats);
+    const baked = Object.keys(GPU_FILES[tier]).filter(key => key.startsWith('procedural:/assets/pine-hollow/creatures/'));
     expect(baked.length).toBeGreaterThan(0);
-    for (const key of baked) expect(keys.has(key)).toBe(true);
+    expect(coats.map(row => row.key).sort()).toEqual(baked.sort());
+    for (const row of coats) expect(row.image).toBe(`models/creatures/${row.key.slice(row.key.lastIndexOf('/') + 1)}`);
   }
   expect(pineHullResources('desktop').coats['boar:boar:thrall']?.key).toBe('procedural:/assets/pine-hollow/creatures/boar.boar.thrall.coat.png');
 });

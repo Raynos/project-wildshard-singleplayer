@@ -12,7 +12,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { GeometryPackWriter, type PackedGeometryRows } from '@wildshard/sdk/kit/geometryPack';
 import { PINE_HOLLOW_TROPHIES, RANGER_WALL } from './trophyWall';
 import { PINE_HULLS } from './creatureHulls';
-import { producePineCoats, readCoatRig } from './coatProducer';
+import { producePineCoats, readCoatRig, type CoatImages } from './coatProducer';
 
 const WOOD = new THREE.Color(0x6e4a2c), WOOD_DARK = new THREE.Color(0x3a2616);
 
@@ -88,9 +88,9 @@ function mountGeometry(geometry: THREE.BufferGeometry, bones: readonly { name: s
 export interface TrophyBake { readonly bin: Uint8Array; readonly rows: PackedGeometryRows; readonly slots: Readonly<Record<string, number>> }
 
 /** Bake every mount slot of the wall; `readAsset` reads a committed creature rig by its file name (the last path part). */
-export async function bakePineTrophies(readAsset: (url: string) => Promise<Uint8Array>): Promise<TrophyBake> {
+export async function bakePineTrophies(readAsset: (url: string) => Promise<Uint8Array>, images: CoatImages): Promise<TrophyBake> {
   const wall = RANGER_WALL, slots: readonly { readonly entry: string; readonly mount?: { readonly kind: string; readonly variant: string } }[] = PINE_HOLLOW_TROPHIES;
-  const coats = new Map((await producePineCoats(readAsset, 'phone')).map((p) => [p.key, p]));
+  const coats = new Map((await producePineCoats(readAsset, 'phone', images)).map((p) => [p.key, p]));
   const writer = new GeometryPackWriter('pine trophies'), out: Record<string, number> = {};
   const m = new THREE.Matrix4(), q = new THREE.Quaternion(), s = new THREE.Vector3(), t = new THREE.Vector3();
   let k = 0;
@@ -104,7 +104,7 @@ export async function bakePineTrophies(readAsset: (url: string) => Promise<Uint8
       shield.translate(x, y - 0.06, 0.005);
       const { kind, variant } = slot.mount, name = PINE_HULLS.hulls[`${kind}:${variant}`];
       if (name === undefined) throw new Error(`trophy bake: no hull for ${kind}:${variant}`);
-      const rig = await readCoatRig(await readAsset(`${name}.phone.rigged.glb`), name);
+      const rig = await readCoatRig(await readAsset(`${name}.phone.rigged.glb`), name, images);
       const coat = coats.get(`procedural:/assets/pine-hollow/creatures/${name}.phone.${kind}.${variant}.coat.png`);
       const head = mountGeometry(rig.geometry, rig.bones, downscale(coat?.pixels ?? rig.pixels, coat?.width ?? rig.width, coat?.height ?? rig.height));
       head.computeBoundingBox();
