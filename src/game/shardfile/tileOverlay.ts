@@ -12,10 +12,20 @@ const RENDER = 'rgba(80, 200, 120, 0.22)', COLLIDER = 'rgba(255, 190, 70, 0.22)'
  */
 export function tileOverlay(): MapExtras | null {
   const tiles = isDev() ? enteredTiles() : null;
-  if (tiles === null) return null;
+  return tiles === null ? null : tileOverlayExtras(tiles, { x: 0, z: 0 });
+}
+/** T5.3: a grid page's entered cell (its resident L0 tiles, its origin from the home cell; no declared bytes there yet). */
+export function gridTileOverlay(state: () => { readonly origin: { readonly x: number; readonly z: number }; readonly render: ReadonlySet<number> }): MapExtras | null {
+  if (!isDev()) return null;
+  const { origin, render } = state();
+  return tileOverlayExtras({ render, colliders: new Set(), bytes: new Map() }, origin);
+}
+
+function tileOverlayExtras(tiles: { readonly render: ReadonlySet<number>; readonly colliders: ReadonlySet<number>; readonly bytes: ReadonlyMap<number, number> },
+  origin: { readonly x: number; readonly z: number }): MapExtras {
   const rects: MapExtraRect[] = [], labels: MapExtraLabel[] = [];
   for (let key = 0; key < 64; key++) {
-    const x = -HALF + (key % 8 + 0.5) * SIZE, z = -HALF + (Math.floor(key / 8) + 0.5) * SIZE;
+    const x = origin.x - HALF + (key % 8 + 0.5) * SIZE, z = origin.z - HALF + (Math.floor(key / 8) + 0.5) * SIZE;
     if (tiles.render.has(key)) rects.push({ x, z, hx: SIZE / 2, hz: SIZE / 2, color: RENDER });
     if (tiles.colliders.has(key)) rects.push({ x, z, hx: SIZE / 2, hz: SIZE / 2, color: COLLIDER });
     const bytes = tiles.bytes.get(key) ?? 0;
@@ -23,7 +33,7 @@ export function tileOverlay(): MapExtras | null {
   }
   for (let i = 0; i <= 8; i++) {
     const at = -HALF + i * SIZE;
-    rects.push({ x: at, z: 0, hx: LINE / 2, hz: HALF, color: BORDER }, { x: 0, z: at, hx: HALF, hz: LINE / 2, color: BORDER });
+    rects.push({ x: origin.x + at, z: origin.z, hx: LINE / 2, hz: HALF, color: BORDER }, { x: origin.x, z: origin.z + at, hx: HALF, hz: LINE / 2, color: BORDER });
   }
   return { rects, images: [], labels };
 }

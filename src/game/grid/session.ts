@@ -830,6 +830,16 @@ export class GridSession {
     else gridCells.enter({ instance: inside.instance, slug: inside.slug });
   }
 
+  /** Tile streaming T5.3 (G775): the entered cell's resident L0 tiles (key j * 8 + i) and its origin from the home cell,
+   *  for the Developer minimap overlay. */
+  tileOverlayState(): { readonly origin: { readonly x: number; readonly z: number }; readonly render: ReadonlySet<number> } {
+    const entered = (this.live === null ? null : this.live.live.current()) ?? this.home.instance, cell = this.assembly.cell(entered), prefix = `${entered}:l0/`;
+    const render = new Set(this.rings.resident().filter(key => key.startsWith(prefix)).map(key => {
+      const [x, z] = key.slice(prefix.length).split('/').map(Number); return (z ?? 0) * 8 + (x ?? 0);
+    }));
+    return { origin: { x: cell.origin.x - this.home.origin.x, z: cell.origin.z - this.home.origin.z }, render };
+  }
+
   private placeholderBlocksTiles(instance:string):boolean {
     const entered=this.live===null?this.home.instance:this.live.live.current();
     return placeholderBlocksTiles(instance,entered,this.clientTiles.owns(instance),this.near.owns(instance),this.near.absent(instance));
