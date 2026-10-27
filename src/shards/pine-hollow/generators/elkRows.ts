@@ -1,9 +1,8 @@
 // The elk's rows (moved from the engine's species folder, E405 LAYER-PURITY; out of the kit, SF54). Only Pine Hollow
 // spawns it, on its rigged hulls, with its own spawn-only thrall (src/shards/pine-hollow/species/rows.ts); its procedural
 // lofts are Pine's offline rig input (src/shards/pine-hollow/generators/creatureLofts.ts, sp-o194).
-import type { HuntTuning } from '@wildshard/engine/ai/hunt';
 import type { SpeciesDef } from '@wildshard/engine/entities/species/registry';
-import type { RGB } from '@wildshard/engine/level/data';
+import type { bakeSpecies, RGB } from '@wildshard/sdk/bake/species';
 
 /**
  * Elk (wapiti) — a much bigger beast than the deer: 1.5 m at the shoulder, ~2.4 m of body, a heavy neck
@@ -40,7 +39,7 @@ const IMPERIAL_TINT: Record<string, RGB> = {
  * Head-on it sees a walker at 45 m in a wide cone, hears one at 22 m (sprint 40 m); the meter fills twice as fast as
  * a deer's, the stare is under a second, then 11 m/s to 90–140 m away, wary for a minute; herd radius 40 m.
  */
-export const ELK_TUNING: HuntTuning = {
+export const ELK_TUNING: NonNullable<ReturnType<typeof bakeSpecies>['tuning']> = {
   hp: 160,
   sightRange: 45, sightRangeGraze: 24, sightCone: 70 * (Math.PI / 180),
   hearStill: 4, hearCrouch: 10, hearWalk: 22, hearSprint: 40,
