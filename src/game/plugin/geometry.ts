@@ -7,6 +7,8 @@ import { fetchDeflatedBytes, fetchLaneBytes, unshuffleLanes as restoreLanes } fr
 import { geometryBoundsSteps } from '@wildshard/engine/world/geometryBounds';
 import { BAKED_BYTES as codecBakedBytes, appendGeometry as codecAppendGeometry, bakedGeometryBytes as codecBakedGeometryBytes, pad4 as codecPad4, readBakedGeometry as codecReadBakedGeometry, type BakedGeometryRow as CodecBakedGeometryRow, type BakedType as CodecBakedType } from './bakedGeometry';
 import { workSlice, type WorkSlice } from '@wildshard/engine/core/workSlice';
+import { presenting } from '@wildshard/engine/core/framePacing';
+import { constructionCheckpoint } from '../shardfile/constructionCheckpoint';
 import { defineSceneModels, type BakedModelMetadata } from '@wildshard/engine/models/model';
 import { identitySpaceGeometry } from '@wildshard/engine/models/ownedGeometry';
 import * as wholeV from 'valibot';
@@ -1910,7 +1912,15 @@ export async function readWholeGeometry(scope: ResourceScope, source: Shardfile 
   const assertLive = (): void => { if (scope.disposed) throw new Error('Whole geometry unloaded while reading'); };
   const check = async (): Promise<void> => {
     assertLive();
-    const wait = pause ?? (slice.due() ? slice.yield : undefined);
+    let wait = pause;
+    if (wait === undefined) {
+      if (presenting()) {
+        // Transport, parsing and drawn frames can outlive this local slice's
+        // clock. A completion uses the current shared budget, not that wait.
+        const checkpoint = constructionCheckpoint(scope);
+        if (checkpoint !== undefined) wait = () => checkpoint;
+      } else if (slice.due()) wait = slice.yield;
+    }
     if (wait !== undefined) {
       let release = (): void => undefined;
       const stopped = new Promise<void>(resolve => { release = scope.capture('disposers', resolve); });

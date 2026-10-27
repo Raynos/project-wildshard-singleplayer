@@ -6,6 +6,7 @@ import { pageScope } from '@wildshard/engine/app/resources';
 import { isDev, setDev } from '@wildshard/engine/core/devMode';
 import { enterOwner } from '@wildshard/engine/app/ownership';
 import { fetchDeflatedBytes } from '@wildshard/engine/core/deflate';
+import * as pacing from '@wildshard/engine/core/framePacing';
 import { assembleWholeGeometryViews, fetchLaneBake, readWholeGeometry, unshuffleLanes } from '@wildshard/game/plugin/geometry';
 import { provideRuntimeProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import { emptyShardfile } from '../author';
@@ -153,6 +154,21 @@ test('the default reader uses the owned work slice when no pause is supplied', a
     const result = await readWholeGeometry(owner, 'whole-pace', [fixture.ref]);
     expect(result.size).toBe(1); expect(timeout.mock.calls.length).toBeGreaterThan(1);
   } finally { owner.dispose(); }
+});
+
+test.each([false, true])('live whole completions keep their shared budget and explicit pause (%s)', async explicit => {
+  const owner = new Scope('whole-live-budget'), fixture = source(owner), timeout = vi.spyOn(owner, 'timeout');
+  vi.spyOn(pacing, 'presenting').mockReturnValue(true);
+  vi.spyOn(pacing, 'buildHeld').mockReturnValue(true);
+  vi.spyOn(pacing, 'frameBudgetSpent').mockReturnValue(false);
+  let at = 0; vi.spyOn(performance, 'now').mockImplementation(() => { at += 10; return at; });
+  const pause = vi.fn(() => Promise.resolve());
+  const result = await readWholeGeometry(owner, 'whole-pace', [fixture.ref], explicit ? pause : undefined);
+  expect(result.get('draw')?.geometry.getAttribute('position').array).toEqual(fixture.geometry.getAttribute('position').array);
+  expect(result.get('draw')?.matrix.elements).toEqual(fixture.matrix.elements);
+  expect(timeout).not.toHaveBeenCalled();
+  if (explicit) expect(pause.mock.calls.length).toBeGreaterThan(4);
+  else expect(pause).not.toHaveBeenCalled();
 });
 
 test('closing the default yield owner cannot strand a reconstruction', async () => {
