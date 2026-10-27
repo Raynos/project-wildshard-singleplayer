@@ -20,8 +20,9 @@ const SHEEP = { key: 'sheep', model: { id: 'nalati-grasslands/sheep', name: 'Fat
  *  build cache. */
 export async function nalatiCoverProgram(ctx:Pick<ProjectGenerationContext,'cached'>):Promise<NalatiCover> {
   const files=await ctx.cached({id:'cover-sources',inputs:COVER_INPUTS},read=>new Map(COVER_INPUTS.map(url=>{
-    const bytes=read.get(url);if(bytes===undefined||bytes.length===0)throw new Error(`Missing cover input ${url}`);return[url,bytes];})));
-  return nalatiCoverBake(url=>{const bytes=files.get(url);if(bytes===undefined)throw new Error(`Missing cover input ${url}`);return bytes;});
+    const bytes=read.get(url);if(bytes===undefined||bytes.length===0)throw new Error(`Missing cover input ${url}`);return[url.slice(1),bytes];})));
+  // a cached file name is relative (the input URL without its leading slash)
+  return nalatiCoverBake(url=>{const bytes=files.get(url.slice(1));if(bytes===undefined)throw new Error(`Missing cover input ${url}`);return bytes;});
 }
 export function coverSpecimenBlobs(cover:NalatiCover):ReturnType<typeof nameBlob>[] {
   const reins=reinsCardBinary(),row=reins.book.rows[0];

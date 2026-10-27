@@ -61,9 +61,10 @@ export async function nalatiPeopleBlobs(ctx: Pick<ProjectGenerationContext, 'cac
   const files = await ctx.cached({ id: 'people-sources', inputs }, read => new Map(inputs.map(url => {
     const bytes = read.get(url);
     if (bytes === undefined || bytes.length === 0) throw new Error(`Missing camp figure source ${url}`);
-    return [url, bytes];
+    return [url.slice(1), bytes];
   })));
-  const read = (url: string): Uint8Array => { const bytes = files.get(url); if (bytes === undefined) throw new Error(`Missing camp figure source ${url}`); return bytes; };
+  // a cached file name is relative (the source URL without its leading slash)
+  const read = (url: string): Uint8Array => { const bytes = files.get(url.slice(1)); if (bytes === undefined) throw new Error(`Missing camp figure source ${url}`); return bytes; };
   const blobs: NamedBlob[] = [];
   for (const phone of [false, true]) for (const keys of [KEYS, ...KEYS.map(key => [key])]) blobs.push(nameBlob(peopleSkinName(keys, phone), 'glb', await bakePeople(keys, phone, read)));
   return blobs;

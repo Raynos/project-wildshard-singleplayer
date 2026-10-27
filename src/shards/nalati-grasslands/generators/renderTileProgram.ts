@@ -15,7 +15,7 @@ export async function nalatiRenderTileProgram(ctx: Pick<ProjectGenerationContext
     if (native === undefined || native.length === 0) throw new Error('Missing native render terrain');
     return (await nalatiRenderTileSources(native)).files;
   });
-  if (files.size !== 73 || [header, ...pairs].some(name => (files.get(name)?.length ?? 0) === 0)
+  if (files.size !== 89 || [header, ...pairs].some(name => (files.get(name)?.length ?? 0) === 0)
     || [...files].some(([name, bytes]) => bytes.length === 0 || (name !== header && !pairs.includes(name)
       && (!/^assets\/[a-f0-9]{64}$/u.test(name) || hashImmutableBytes(bytes) !== name.slice(7))))) {
     throw new Error('Owned render tile inventory differs');
