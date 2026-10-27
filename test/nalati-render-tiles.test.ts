@@ -117,16 +117,24 @@ test('moves the water draw out of private JSON without changing its GPU channels
   } finally { original.dispose(); }
 });
 
-test('the product ships the ground as its 64 L0 tiles and the far ground as 8 L1 pair files, each present', async () => {
+test('the product ships the ground as its 64 L0 tiles plus 16 L1 tile rows and the far ground as 8 L1 pair files, each present', async () => {
   const cache = mkdtempSync(resolve('tmp/nalati-render-inventory-'));
   try {
     const ctx = createProjectGeneration(resolve('src/shards/nalati-grasslands'), 'c'.repeat(64), new Map(), cache,
       [{ prefix: '/assets/baked/nalati-grasslands/', directory: resolve('public/assets/baked/nalati-grasslands') }]);
     const files = await nalatiRenderTileProgram(ctx), metadata = files.get('data/renderTiles.json');
     if (metadata === undefined) throw new Error('Missing owned render metadata');
-    const rows = v.parse(v.object({ tiles: v.array(v.object({ lod: v.number(), files: v.array(v.string()) })), files: v.array(v.object({ hash: v.string() })),
+    const rows = v.parse(v.object({ tiles: v.array(v.object({ lod: v.number(), x: v.number(), z: v.number(), files: v.array(v.string()) })), files: v.array(v.object({ hash: v.string() })),
       props: v.object({ family: v.string(), tiles: v.array(v.object({ lod: v.number(), file: v.string() })) }) }), JSON.parse(new TextDecoder().decode(metadata)));
-    expect(rows.tiles).toHaveLength(64); expect(rows.tiles.every(tile => tile.lod === 0)).toBe(true);
+    const l0 = rows.tiles.filter(tile => tile.lod === 0), l1 = rows.tiles.filter(tile => tile.lod === 1);
+    expect(l0).toHaveLength(64); expect(rows.tiles).toHaveLength(l0.length + l1.length);
+    // T8 (G786): the 16 L1 squares are tile rows too, one per square, every file below the same 1 MB guard as the pairs.
+    expect(l1).toHaveLength(16); expect(new Set(l1.map(tile => `${String(tile.x)}/${String(tile.z)}`)).size).toBe(16);
+    for (const file of l1.flatMap(tile => tile.files)) {
+      const bytes = files.get(`assets/${file}`);
+      if (bytes === undefined) throw new Error('Missing owned L1 render tile');
+      expect(bytes.byteLength).toBeLessThan(1_000_000);
+    }
     // N1b: all 16 L1 squares ship two to a named GLB, each below the original 1 MB guard.
     for (let z = 0; z < 4; z++) for (let x = 0; x < 2; x++) {
       const bytes = files.get(`assets/world-terrain/ground-l1-${String(x)}-${String(z)}.generated.glb`);
