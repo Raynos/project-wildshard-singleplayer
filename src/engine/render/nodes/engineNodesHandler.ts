@@ -80,7 +80,7 @@ import { GraphCodeKeys } from './graphCodeKeys';
 import { NodeProgramVariants } from './nodeProgramVariants';
 import { classicModelUniform } from './nodeObjectUniforms';
 import { registerShadowDepthResolver } from '../shadowDepthVariants';
-import { bindLazy, buildCensus, buildReads, captureBuild, holdsAny, type KeptRoles, graphShape, keepBuild, lazyReads, pairShapes, rebindBuild, recordBuild, restoreBuild, reuseKey, unboundReads, type BuildCensus, type BuildOutput, type GraphShape, type KeptBuild, type LazyUniform } from './nodeBuildReuse';
+import { bindLazy, buildCensus, buildReads, captureBuild, holdsAny, newestNodeId, type KeptRoles, graphShape, keepBuild, lazyReads, pairShapes, rebindBuild, recordBuild, restoreBuild, reuseKey, unboundReads, type BuildCensus, type BuildOutput, type GraphShape, type KeptBuild, type LazyUniform } from './nodeBuildReuse';
 import { graphNodeOwner } from './graphOwners';
 import { harnessPins } from '../../app/identity';
 
@@ -490,7 +490,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   private readonly reusable = new Map<string, WeakRef<THREE.Material>>();
   /** each such material's full build, held by the material itself: a key never keeps a retired region's material or its
    *  nodes alive (live P0: Driftwood -> Sky Reach -> Driftwood), and a disposed material's build goes with it */
-  private readonly reusableBuilds = new WeakMap<THREE.Material, { readonly binding: SceneBinding | null; readonly output: BuildOutput; readonly shape: GraphShape; readonly lazy: readonly LazyUniform[] }>();
+  private readonly reusableBuilds = new WeakMap<THREE.Material, { readonly binding: SceneBinding | null; readonly output: BuildOutput; readonly shape: GraphShape; readonly lazy: readonly LazyUniform[]; readonly builtSince: number }>();
   /** each such material's reuse key */
   private readonly reusableKeys = new WeakMap<THREE.Material, string>();
   /** per reuse key, a disposed source's build kept as code and positions (`keepBuild`: no nodes, textures or values of
@@ -927,6 +927,8 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     let frontendMs: number | null = null, made: ReturnType<typeof recordBuild> | null = null;
     if (typeof reused === 'object' && reused !== null) { this.applyReused(material, object, parameters, reused); this.reuses++; how = 'reused'; }
     else {
+      // the build's own scene-side nodes are the ones made after this (`keepBuild`'s held uniforms)
+      const builtSince = key === null ? 0 : newestNodeId();
       const buildFrontend = (): void => {
         const frontendAt = diagnosticNow();
         // G717.O3.1: the harness's census pin records the nodes the build makes (measurement only; off when shipped)
@@ -939,7 +941,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
       const real = key === null ? null : captureBuild(Reflect.get(material, '_latestBuilder'));
       if (key !== null && real !== null && shape !== null && owner !== undefined) {
         const { lazy, rest: unbound } = lazyReads(unboundReads(real, material, owner), owner);
-        if (unbound.length === 0) { this.reusable.set(key, new WeakRef(material)); this.reusableKeys.set(material, key); this.reusableBuilds.set(material, { output: real, shape, lazy, binding: this.sceneBinding(parameters, Reflect.get(material, '_latestBuilder')) }); how += ' + kept'; }
+        if (unbound.length === 0) { this.reusable.set(key, new WeakRef(material)); this.reusableKeys.set(material, key); this.reusableBuilds.set(material, { output: real, shape, lazy, builtSince, binding: this.sceneBinding(parameters, Reflect.get(material, '_latestBuilder')) }); how += ' + kept'; }
       }
     }
     this.disposeFirst(material);
@@ -1438,7 +1440,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     if (entry === undefined || key === undefined || this.reusable.get(key)?.deref() !== material) return;
     // its environment's PMREM read by role: the next visit's sky makes a new one of the same size (G782)
     const environment = entry.binding?.inputs?.environment?.deref(), pmrem = isTexture(environment) ? this.environments.get(environment) : undefined;
-    const build = keepBuild(entry.output, entry.shape, entry.lazy, pmrem === undefined || !isTexture(environment) ? undefined : environmentRoles(pmrem, environment));
+    const build = keepBuild(entry.output, entry.shape, entry.lazy, pmrem === undefined || !isTexture(environment) ? undefined : environmentRoles(pmrem, environment), entry.builtSince);
     if (build === null) return;
     const binding = entry.binding === null ? null : { scene: entry.binding.scene, rawKey: entry.binding.rawKey, lights: entry.binding.lights, inputs: entry.binding.inputs };
     this.dropKept(key);

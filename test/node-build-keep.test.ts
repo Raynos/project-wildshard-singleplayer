@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import * as THREE from 'three';
 import { NodeUniform, UniformNode } from 'three/webgpu';
-import { keepBuild, restoreBuild, type BuildOutput, type GraphShape } from '../src/engine/render/nodes/nodeBuildReuse';
+import { keepBuild, newestNodeId, restoreBuild, type BuildOutput, type GraphShape } from '../src/engine/render/nodes/nodeBuildReuse';
 
 const uniform = (value: number): UniformNode<unknown, unknown> => new UniformNode(value);
 const shape = (nodes: UniformNode<unknown, unknown>[]): GraphShape => ({ nodes, signature: 'same' });
@@ -46,4 +46,24 @@ test('a kept build reads a scene input by role: a restore binds the current one,
   const fixed = keepBuild({ ...output, uniforms: { vertex: [], fragment: [own, sized, sampled] } }, shape(first), [], roles);
   expect(fixed?.roles).toBe('fixed');
   expect(keepBuild(output, shape(first), [])?.roles).toBe('none');
+});
+
+test('a kept build holds the self-contained uniforms its own scene setup made, and only those', () => {
+  const first = [uniform(1)], older = uniform(7), since = newestNodeId();
+  const made = new UniformNode<unknown, unknown>(new THREE.Vector2(1, 2)).onRenderUpdate(() => undefined);
+  const record = new UniformNode<unknown, unknown>({ value: 3 }); // a region's input record: not self-contained
+  const entries = [made, record, older].map((node, i) => new NodeUniform(`scene${String(i)}`, 'float', node));
+  const own = new NodeUniform('tint', 'float', first[0] ?? older);
+  const output: BuildOutput = { vertexShader: 'v', fragmentShader: 'f', uniforms: { vertex: [], fragment: [own, ...entries] }, uniformGroups: {}, updateNodes: [] };
+  const kept = keepBuild(output, shape(first), [], undefined, since);
+  if (kept === null) throw new Error('Missing kept build');
+  const refs = kept.uniforms.map(row => row.ref);
+  expect(refs[1]).toEqual({ held: made });
+  expect(refs[2] !== undefined && 'shared' in refs[2]).toBe(true);
+  expect(refs[3] !== undefined && 'shared' in refs[3]).toBe(true); // older than the build: the scene's, weak
+  const restored = restoreBuild(kept, shape([uniform(2)]), new THREE.Mesh(), new THREE.MeshBasicMaterial());
+  if (typeof restored === 'string') throw new Error(restored);
+  expect(restored.uniforms.fragment[1]?.node).toBe(made);
+  // without a start, nothing is held
+  expect(keepBuild(output, shape(first), [])?.uniforms.some(row => 'held' in row.ref)).toBe(false);
 });

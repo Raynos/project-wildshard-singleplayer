@@ -340,11 +340,38 @@ export function rebindBuild(output: BuildOutput, twins: ReadonlyMap<Node, Node>)
  * region's nodes alive; the live P0 Driftwood -> Sky Reach -> Driftwood). A pairing needs the first compile's nodes only
  * as positions, so a kept build names each compile-made node by its index in the graph shape and each lazily made
  * reference uniform by its holder's index; a node the build shared from the scene (lights, shadows, the camera) is held
- * weakly, so a retired region's lights go and a build that read them dies with them. It keeps code and positions only:
- * no texture, value, buffer or material of the region it came from.
+ * weakly, so a retired region's lights go and a build that read them dies with them, except the self-contained uniforms
+ * the build's own scene setup made (`selfContained`), which nothing else holds. It keeps code and positions only: no
+ * texture, buffer or material of the region it came from.
  */
 type KeptRef = { readonly compile: number } | { readonly lazy: number } | { readonly shared: WeakRef<Node>; readonly kind: string }
-  | { readonly role: string };
+  | { readonly role: string } | { readonly held: Node };
+
+/** The newest node id now: a node made later has a larger one (three numbers nodes in the order they are made). A build's
+ *  own scene-side nodes (a cascade's range and depth-span uniforms, made in its light node's setup) are newer than its
+ *  start. */
+export function newestNodeId(): number { return new Node().id; }
+
+/** three math values a self-contained uniform may hold */
+const MATH = ['isVector2', 'isVector3', 'isVector4', 'isColor', 'isMatrix3', 'isMatrix4', 'isQuaternion'];
+/**
+ * A uniform a kept build may hold itself (G782): a uniform node whose fields are primitives, functions (its own updater),
+ * three math values and its uniform group. A scene node's setup makes these afresh for each build (a cascade's range,
+ * updated from the page's shadow rig), so only that build holds them and a weak reference dies with its material; one
+ * that holds anything else (a texture, a scene object, a region's input record) is kept weakly as before.
+ */
+function selfContained(node: Node): boolean {
+  if (!(node instanceof UniformNode)) return false;
+  for (const name of Object.getOwnPropertyNames(node)) {
+    if (name === 'stackTrace') continue; // a development build's construction trace
+    const value: unknown = Reflect.get(node, name);
+    if (value === null || value === undefined || typeof value !== 'object') continue;
+    if (MATH.some(flag => Reflect.get(value, flag) === true)) continue;
+    if (name === 'groupNode' && Reflect.get(value, 'isUniformGroup') === true) continue;
+    return false;
+  }
+  return true;
+}
 /**
  * The scene inputs a kept build may read by role instead of by node (`keepBuild`'s `roles`): `role` names a node of an
  * input that is made new for each visit (a region's sky PMREM), `inputs` are that input's own objects, which no other
@@ -380,9 +407,10 @@ function sharedKind(node: Node): string {
   return `${typeof type === 'string' ? type : 'Node'}${typeof name === 'string' && name !== '' ? `(${name})` : ''}${node instanceof UniformNode ? `<${valueKind}>` : ''}`;
 }
 
-/** `output` (built from `shape`'s compile, with `lazy` uniforms) as positions and weak scene references; null when a
- *  lazy uniform's holder is not one of the compile's nodes */
-export function keepBuild(output: BuildOutput, shape: GraphShape, lazy: readonly LazyUniform[], roles?: KeptRoles): KeptBuild | null {
+/** `output` (built from `shape`'s compile, with `lazy` uniforms) as positions and weak scene references, a scene input
+ *  read by role (`roles`), and the self-contained uniforms the build's own scene setup made (ids past `builtSince`) held;
+ *  null when a lazy uniform's holder is not one of the compile's nodes */
+export function keepBuild(output: BuildOutput, shape: GraphShape, lazy: readonly LazyUniform[], roles?: KeptRoles, builtSince?: number): KeptBuild | null {
   const index = new Map<Node, number>();
   shape.nodes.forEach((node, i) => { index.set(node, i); });
   const lazyIndex = new Map<Node, number>(), lazyRows: { holder: number; kind: unknown }[] = [];
@@ -400,6 +428,8 @@ export function keepBuild(output: BuildOutput, shape: GraphShape, lazy: readonly
     if (c !== undefined) return { compile: c };
     const role = roles?.role(node) ?? null;
     if (role !== null) { byRole++; return { role }; }
+    // a uniform the build's own scene setup made (newer than its start): held, as only this build held it
+    if (builtSince !== undefined && node.id > builtSince && selfContained(node)) return { held: node };
     shared.push(node);
     return { shared: new WeakRef(node), kind: sharedKind(node) };
   };
@@ -445,6 +475,7 @@ export function restoreBuild(kept: KeptBuild, shape: GraphShape, object: THREE.O
   const resolve = (ref: KeptRef): Node | undefined => {
     if ('compile' in ref) return shape.nodes[ref.compile];
     if ('lazy' in ref) return lazyNodes[ref.lazy];
+    if ('held' in ref) return ref.held;
     if ('role' in ref) { const bound = bind?.(ref.role) ?? null; if (bound === null) unbound ??= `unbound:${ref.role}`; return bound ?? undefined; }
     const node = ref.shared.deref();
     if (node === undefined) released ??= `released:${ref.kind}`;
