@@ -1,12 +1,14 @@
-import type { Plugin } from 'vite';
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import sharp from 'sharp';
 import * as v from 'valibot';
-import { readOutputDownloadIndex } from '../src/format/outputDownload';
+import { readOutputDownloadIndex } from '../../src/format/outputDownload';
 
 const TILE = 256;
+/** The baked atlas as the app build writes it (gitignored, beside the title tables): the image, and the define the
+ *  bundle reads (`__GRID_MAP_ATLAS__`, vite.config.ts) with the image's hashed asset name. */
+export const WORLD_MAP_ATLAS = 'out/.app/world-map.webp', WORLD_MAP_ROWS = 'out/.app/world-map.json';
 const hash = (bytes: Uint8Array): string => createHash('sha256').update(bytes).digest('hex');
 const plot = new TextEncoder().encode('<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256"><path fill="#69704f" d="M0 0h256v256H0z"/><path fill="none" stroke="#a6ad90" stroke-width="3" d="M10 10h236v236H10z"/><path stroke="#a6ad90" stroke-width="9" d="M128 0v256M0 128h256"/><path fill="none" stroke="#818a67" stroke-width="2" d="M28 28h78v78H28zM150 28h78v78h-78zM28 150h78v78H28zM150 150h78v78h-78z"/></svg>');
 
@@ -42,16 +44,15 @@ export async function bakeWorldMapAtlas(products: readonly string[], read: (slug
   return { bytes, width, height, tileSize: TILE, slugs };
 }
 
-/** Build one up-front map asset from all grid placements, including Developer overrides. No generated source handoff. */
-export function worldMapAtlasPlugin(): Plugin {
-  let atlas: Awaited<ReturnType<typeof bakeWorldMapAtlas>> | undefined, fileName = '';
-  return { name: 'wildshard-world-map-atlas', apply: 'build', async config(config) {
-    const root = resolve(config.root ?? '.');
-    const row = v.object({ slug: v.string() }), catalogue = v.parse(v.object({ grid: v.object({ cells: v.array(row), developer: v.array(row), devserver: v.array(row) }) }),
-      JSON.parse(readFileSync(resolve(root, 'src/game/grid/singleplayer.json'), 'utf8'))).grid;
-    atlas = await bakeWorldMapAtlas([...catalogue.cells, ...catalogue.developer, ...catalogue.devserver].map(cell => cell.slug), slug => productMapBytes(root, slug));
-    fileName = `assets/world-map-${hash(atlas.bytes).slice(0, 16)}.webp`;
-    return { define: { __GRID_MAP_ATLAS__: JSON.stringify({ url: `/${fileName}`, compressed: atlas.bytes.length,
-      width: atlas.width, height: atlas.height, tileSize: atlas.tileSize, slugs: atlas.slugs }) } };
-  }, generateBundle() { if (atlas === undefined) throw new Error('World map atlas was not built'); this.emitFile({ type: 'asset', fileName, source: atlas.bytes }); } };
+/** One up-front map asset from all grid placements, including Developer overrides, over the built products (was
+ *  vite/worldMapAtlas.ts's config hook): scripts/build-app.mjs runs it after the generators. */
+export async function writeWorldMapAtlas(root: string): Promise<void> {
+  const row = v.object({ slug: v.string() }), catalogue = v.parse(v.object({ grid: v.object({ cells: v.array(row), developer: v.array(row), devserver: v.array(row) }) }),
+    JSON.parse(readFileSync(resolve(root, 'src/game/grid/singleplayer.json'), 'utf8'))).grid;
+  const atlas = await bakeWorldMapAtlas([...catalogue.cells, ...catalogue.developer, ...catalogue.devserver].map(cell => cell.slug), slug => productMapBytes(root, slug));
+  const fileName = `assets/world-map-${hash(atlas.bytes).slice(0, 16)}.webp`;
+  mkdirSync(dirname(join(root, WORLD_MAP_ATLAS)), { recursive: true });
+  writeFileSync(join(root, WORLD_MAP_ATLAS), atlas.bytes);
+  writeFileSync(join(root, WORLD_MAP_ROWS), JSON.stringify({ fileName, define: { url: `/${fileName}`, compressed: atlas.bytes.length,
+    width: atlas.width, height: atlas.height, tileSize: atlas.tileSize, slugs: atlas.slugs } }));
 }

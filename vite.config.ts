@@ -1,7 +1,6 @@
 import { defineConfig, type Plugin } from 'vite';
-import { assetTablesPlugin } from './vite/assetTables';
+import { assetTableAddresses, readAssetTables } from './scripts/app-build/assetTables.mjs';
 import { readGridSeams } from './scripts/app-build/gridSeams.mjs';
-import { worldMapAtlasPlugin } from './vite/worldMapAtlas';
 import { execSync } from 'node:child_process';
 import { rmSync, readdirSync, existsSync, readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
@@ -23,6 +22,13 @@ function buildId(): string {
   let sha = (commitSha ?? '').slice(0, 7);
   try { sha ||= execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(); } catch { /* not a git checkout */ }
   return `${sha || 'b'}-${Date.now().toString(36)}`;
+}
+/** The world map atlas's define, as scripts/app-build/worldMapAtlas.ts baked it before the bundle. */
+function worldMapDefine(): unknown {
+  let rows: string;
+  try { rows = readFileSync('out/.app/world-map.json', 'utf8'); }
+  catch { throw new Error('Missing out/.app/world-map.json: build the app through scripts/build-app.mjs, which bakes the world map first'); }
+  return (JSON.parse(rows) as { define: unknown }).define;
 }
 const BUILD_ID = buildId();
 const versionJson = () => JSON.stringify({ build: BUILD_ID, time: new Date().toISOString() });
@@ -114,7 +120,7 @@ export default defineConfig(({ mode, command }) => {
       },
     assetsInclude: ['**/*.hdr', '**/*.gltf', '**/*.bin'],
     resolve: { alias: rapierAlias }, // Rapier's wasm-importing module → plain bindings (vite/rapier.ts)
-    define: { __GRID_SEAM_ASSET__: JSON.stringify(readGridSeams(process.cwd()).address), __SHARDFILE_VALIDATOR__: JSON.stringify(validationRevision), __SHARDFILE_VERDICTS__: JSON.stringify(buildValidationReceipts(validationRevision)), __DEVSERVER__: mode === 'devserver', __BUILD_ID__: BUILD_ID_EXPRESSION, __SAVE_NAMESPACES__: JSON.stringify(readdirSync('src/shards').filter((slug) => existsSync(join('src/shards', slug, 'manifest.ts')))) },
-    plugins: native ? [assetTablesPlugin(), worldMapAtlasPlugin(), versionPlugin(), nativePlugin()] : [assetTablesPlugin(), worldMapAtlasPlugin(), versionPlugin(), bootModulesPlugin()],
+    define: { __GRID_SEAM_ASSET__: JSON.stringify(readGridSeams(process.cwd()).address), __BOOT_TABLE_ASSETS__: JSON.stringify(assetTableAddresses(readAssetTables(process.cwd()))), __GRID_MAP_ATLAS__: JSON.stringify(worldMapDefine()), __SHARDFILE_VALIDATOR__: JSON.stringify(validationRevision), __SHARDFILE_VERDICTS__: JSON.stringify(buildValidationReceipts(validationRevision)), __DEVSERVER__: mode === 'devserver', __BUILD_ID__: BUILD_ID_EXPRESSION, __SAVE_NAMESPACES__: JSON.stringify(readdirSync('src/shards').filter((slug) => existsSync(join('src/shards', slug, 'manifest.ts')))) },
+    plugins: native ? [versionPlugin(), nativePlugin()] : [versionPlugin(), bootModulesPlugin()],
   };
 });

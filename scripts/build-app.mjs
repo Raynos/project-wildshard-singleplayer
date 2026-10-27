@@ -4,8 +4,9 @@
 //
 //   node scripts/build-app.mjs [vite build arguments…]       e.g. --mode native, --config <file>, --outDir <dir>
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, writeFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { bakeAssetTables, writeAssetTables } from './app-build/assetTables.mjs';
 import { writeChunkReport } from './app-build/chunkReport.mjs';
 import { bakeGridSeams, writeGridSeams } from './app-build/gridSeams.mjs';
 import { checkNoTopLevelAwait } from './app-build/noTopLevelAwait.mjs';
@@ -43,14 +44,23 @@ step(['scripts/gen-shards.mjs']);
 // the certified grid seams over the generated catalogue (was vite/gridSeamPlans.ts): the config defines their address
 try { bakeGridSeams(process.cwd()); }
 catch (error) { console.error(error instanceof Error ? error.message : String(error)); process.exit(1); }
+// the boot table banks (was vite/assetTables.ts) and the world map atlas over the built products (was
+// vite/worldMapAtlas.ts): the config defines their addresses
+try { bakeAssetTables(process.cwd()); }
+catch (error) { console.error(error instanceof Error ? error.message : String(error)); process.exit(1); }
+step(['--import', './scripts/bake-loader.mjs', '--input-type=module', '-e', "await (await import('./scripts/app-build/worldMapAtlas.ts')).writeWorldMapAtlas(process.cwd());"]);
 
 const vite = resolve(import.meta.dirname, '../node_modules/vite/bin/vite.js');
 const build = spawnSync(process.execPath, [vite, 'build', ...args], { stdio: 'inherit' });
 if (build.error !== undefined) throw build.error;
 if (build.status !== 0) { process.exitCode = build.status ?? 1; process.exit(); }
 
-// the seams' exact bytes as their hashed asset, beside the bundle that names it
+// the seams', boot tables' and world map's exact bytes as their hashed assets, beside the bundle that names them
 writeGridSeams(outDir, process.cwd());
+writeAssetTables(outDir, process.cwd());
+const atlas = JSON.parse(readFileSync('out/.app/world-map.json', 'utf8')).fileName;
+mkdirSync(dirname(resolve(outDir, atlas)), { recursive: true });
+copyFileSync('out/.app/world-map.webp', resolve(outDir, atlas));
 
 // no emitted app JavaScript may suspend its module's evaluation (was vite/noTopLevelAwait.ts); inline workers are iife,
 // where the bundler refuses top-level await itself

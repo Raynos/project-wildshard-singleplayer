@@ -1,5 +1,5 @@
 import { expect, test, vi } from 'vitest';
-import { assetTableAsset, assetTableBanks } from '../vite/assetTables';
+import { assetTableAsset, assetTableBanks } from '../scripts/app-build/assetTables.mjs';
 import { prepareAssetTables, prepareAssetPacks, readAssetTables } from '../src/assetTables';
 
 function fixture() {
