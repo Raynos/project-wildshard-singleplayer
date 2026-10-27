@@ -49,9 +49,10 @@ async function bridgeRest(assembly, fixed) {
   return facts;
 }
 
-async function coverRest(assembly, file, fixed) {
+// GR7: the cells are the cover bank's product bytes (islandCoverBank), no longer a source path
+async function coverRest(assembly, bytes, fixed) {
   const row = read('data/groundCover.json').GROUND_COVER, groups = read('data/fixedGeometry.json').groups.cover;
-  const bytes = readFileSync(file), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength), word = i => view.getUint32(i * 4, true);
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength), word = i => view.getUint32(i * 4, true);
   if (word(0) !== 0x43435357 || word(1) !== 1 || word(2) !== row.cell || word(7) !== row.kinds.length) throw new Error('Map cover cell header differs');
   const width = word(5), height = word(6), nk = word(7), matrices = row.kinds.map(() => []);
   let offset = (36 + width * height * nk * 2 + 3) & ~3;

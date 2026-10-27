@@ -2168,7 +2168,10 @@
         "--experimental-transform-types",
         "--import",
         "./scripts/bake-loader.mjs",
-        "src/shards/driftwood-isle/generators/bake-pier-scenes.mjs"
+        "--import",
+        "./scripts/generation-level.mjs",
+        "src/shards/driftwood-isle/generators/bake-pier-scenes.mjs",
+        "--generation-shard=driftwood-isle"
       ],
       "inputRoots": [
         "src/shards/driftwood-isle/generators/bake-pier-scenes.mjs",
@@ -2249,7 +2252,12 @@
         "src/shards/driftwood-isle/generators/trophyPlaques.ts",
         "src/shards/driftwood-isle/generators/worldSites.ts",
         "src/format",
-        "src/commons"
+        "src/commons",
+        "public/assets/models/driftwood-blender/voxel-ao.bin",
+        "public/assets/models/driftwood-hero/faces/wendell-head.glb",
+        "scripts/generated-source.mjs",
+        "scripts/json-output-guard.mjs",
+        "scripts/no-binary-json.mjs"
       ],
       "outputs": [
         "src/shards/driftwood-isle/data/pierScenes.generated.json"
@@ -4330,7 +4338,10 @@
         "--experimental-transform-types",
         "--import",
         "./scripts/bake-loader.mjs",
-        "src/shards/driftwood-isle/generators/mapAssembly.mjs"
+        "--import",
+        "./scripts/generation-level.mjs",
+        "src/shards/driftwood-isle/generators/mapAssembly.mjs",
+        "--generation-shard=driftwood-isle"
       ],
       "inputRoots": [
         "src/engine",
@@ -4351,7 +4362,22 @@
         "pnpm-lock.yaml",
         "pnpm-workspace.yaml",
         "scripts/map-geometry.mjs",
-        "public/assets/models/driftwood-hero/faces/wendell-head.glb"
+        "public/assets/models/driftwood-hero/faces/wendell-head.glb",
+        "scripts/bake-output.mjs",
+        "scripts/generated-source.mjs",
+        "scripts/json-output-guard.mjs",
+        "scripts/no-binary-json.mjs",
+        "scripts/bake",
+        "scripts/generation-level.mjs",
+        "scripts/authored-manifest.mjs",
+        "public/assets/horizon/driftwood-isle-day.webp",
+        "public/assets/horizon/driftwood-isle-night.webp",
+        "scripts/named-blob-output.mjs",
+        "scripts/manifest-budget.mjs",
+        "scripts/manifest-spawns.mjs",
+        "scripts/bake/nativeWorld.mjs",
+        "public/assets/models/driftwood-hero/faces/sailor-head.glb",
+        "public/assets/models/driftwood-hero/captain/captain.glb"
       ],
       "outputs": [
         "src/shards/driftwood-isle/data/mapAssembly.generated.json",
