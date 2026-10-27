@@ -66,15 +66,21 @@ copyFileSync('out/.app/world-map.webp', resolve(outDir, atlas));
 // where the bundler refuses top-level await itself
 checkNoTopLevelAwait(outDir, resolve('public'));
 
+// which modules land in which chunk, and the title and grid session budgets over the bytes as written (was
+// vite/chunkReport.ts); then the boot module bank into index.html and each home's extra file table (was
+// vite/bootModules.ts). The web build only, which writes the manifest and hidden source maps they read.
+if (mode !== 'native') {
+  try { writeChunkReport(outDir, process.cwd()); }
+  catch (error) { console.error(error instanceof Error ? error.message : String(error)); process.exit(1); }
+  step(['--import', './scripts/bake-loader.mjs', '--input-type=module', '-e',
+    "(await import('./scripts/app-build/bootModules.ts')).writeBootModules(process.argv[1], process.cwd());", outDir]);
+}
+
 // HTML owns the deploy identity; hashed runtime code stays reusable across builds.
 // Native and calibration documents need it too. The worker must see these final bytes.
 stampBuildDocuments(outDir);
 
-// which modules land in which chunk, and the title and grid session budgets over the bytes as written (was
-// vite/chunkReport.ts); the web build only, which writes the manifest and hidden source maps it reads
 if (mode !== 'native') {
-  try { writeChunkReport(outDir, process.cwd()); }
-  catch (error) { console.error(error instanceof Error ? error.message : String(error)); process.exit(1); }
   // the crossroads phone rig beside the bundle (was vite/crossroadsRig.ts); before the worker, which counts its files
   step(['--import', './scripts/bake-loader.mjs', '--input-type=module', '-e',
     "(await import('./scripts/app-build/crossroadsRig.ts')).writeCrossroadsRig(process.argv[1], process.cwd());", outDir]);

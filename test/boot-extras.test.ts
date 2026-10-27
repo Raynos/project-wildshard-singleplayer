@@ -1,9 +1,9 @@
 import { expect, test } from 'vitest';
-import { build } from 'vite';
-import { bootModulesPlugin } from '../vite/bootModules';
+import { writtenBundle } from '../scripts/app-build/writtenBundle';
+import { buildWithBootModules } from './fixtures/written-build';
 import { emptyShardfile } from '@wildshard/sdk/author';
 // oxlint-disable-next-line import/no-nodejs-modules -- Own and remove the tiny compiler fixture.
-import { mkdirSync, mkdtempSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve fixture files without changing cwd.
 import { resolve, dirname } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Give the fixture its actual admitted hashes.
@@ -81,24 +81,22 @@ test('a real emitted image and admitted source produce only the selected home ba
         { name: 'geometry/rigs/body.glb', kind: 'glb', path: rigPath, hash: rigHash, compressed: rig.length, decoded: rig.length, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: false }], runtime: null };
     writeFileSync(resolve(root, 'out/home/shard.json'), JSON.stringify(index));
     expect(homeClientModuleGroups(root, 'home')).toContain('models.gltf');
-    const result = await build({ root, configFile: false, logLevel: 'silent', plugins: [bootModulesPlugin()], build: { write: false, assetsInlineLimit: 0, cssCodeSplit: false } });
-    if (Array.isArray(result) || !('output' in result)) throw new Error('Missing fixture bundle');
-    const bundle = Object.fromEntries(result.output.map(file => [file.fileName, file]));
-    const rows = homeExtraFiles(root, 'home', bundle, 0);
-    const image = result.output.find(file => file.type === 'asset' && file.originalFileNames.includes('src/card.svg'));
-    if (image?.type !== 'asset') throw new Error('Missing emitted image');
-    const preview = result.output.find(file => file.type === 'asset' && file.originalFileNames.includes('src/preview.svg'));
-    if (preview?.type !== 'asset') throw new Error('Missing demand image');
-    expect(rows).not.toContainEqual([`/${preview.fileName}`, typeof preview.source === 'string' ? Buffer.byteLength(preview.source) : preview.source.byteLength]);
-    expect(rows).toEqual([[`/${image.fileName}`, typeof image.source === 'string' ? Buffer.byteLength(image.source) : image.source.byteLength], ['/assets/required.webp', 3], ['/assets/model.glb', 11], ['/assets/pickup.bin', 17], ['/assets/physics/rapier.wasm', 13], ['/assets/early.webp', 5], ['/assets/late.webp', 7]].sort(([left], [right]) => String(left).localeCompare(String(right))));
-    const metadata = result.output.find(file => file.type === 'asset' && /^assets\/boot-home-[a-f0-9]{8}\.json$/u.test(file.fileName));
-    if (metadata?.type !== 'asset' || typeof metadata.source !== 'string') throw new Error('Missing per-home metadata');
-    expect(JSON.parse(metadata.source)).toEqual(rows);
-    const html = result.output.find(file => file.fileName === 'index.html');
-    if (html?.type !== 'asset' || typeof html.source !== 'string') throw new Error('Missing emitted document');
-    expect(html.source).toContain(`/${metadata.fileName}`);
-    expect(html.source).not.toContain('/assets/model.glb');
-    expect(html.source).toContain(createHash('sha256').update(metadata.source).digest('hex'));
+    const outDir = await buildWithBootModules(root, { assetsInlineLimit: 0 }), bundle = writtenBundle(outDir, root);
+    const rows = homeExtraFiles(root, 'home', bundle, 0), assets = Object.entries(bundle).filter(([, file]) => file.type === 'asset');
+    const image = assets.find(([, file]) => file.originalFileNames?.includes('src/card.svg'));
+    if (image?.[1].source === undefined) throw new Error('Missing emitted image');
+    const preview = assets.find(([, file]) => file.originalFileNames?.includes('src/preview.svg'));
+    if (preview?.[1].source === undefined) throw new Error('Missing demand image');
+    expect(rows).not.toContainEqual([`/${preview[0]}`, preview[1].source.byteLength]);
+    expect(rows).toEqual([[`/${image[0]}`, image[1].source.byteLength], ['/assets/required.webp', 3], ['/assets/model.glb', 11], ['/assets/pickup.bin', 17], ['/assets/physics/rapier.wasm', 13], ['/assets/early.webp', 5], ['/assets/late.webp', 7]].sort(([left], [right]) => String(left).localeCompare(String(right))));
+    const metadataName = Object.keys(writtenBundle(outDir, root)).find(name => /^assets\/boot-home-[a-f0-9]{8}\.json$/u.test(name));
+    if (metadataName === undefined) throw new Error('Missing per-home metadata');
+    const metadata = readFileSync(resolve(outDir, metadataName), 'utf8');
+    expect(JSON.parse(metadata)).toEqual(rows);
+    const html = readFileSync(resolve(outDir, 'index.html'), 'utf8');
+    expect(html).toContain(`/${metadataName}`);
+    expect(html).not.toContain('/assets/model.glb');
+    expect(html).toContain(createHash('sha256').update(metadata).digest('hex'));
     const withoutRig = { ...index, files: index.files.filter(file => file.hash !== rigHash) };
     expect(productDownloadTotal(index, 100)[1] - productDownloadTotal(withoutRig, 100)[1]).toBe(rig.length);
     writeFileSync(resolve(root, 'out/home/shard.json'), JSON.stringify(withoutRig));

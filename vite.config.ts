@@ -10,7 +10,6 @@ import type { ServerResponse } from 'node:http';
 import { hashTree } from './scripts/app-build/assetHashes';
 import { rapierAlias } from './vite/rapier';
 import { assetIndex } from './scripts/app-build/gen';
-import { bootModulesPlugin } from './vite/bootModules';
 import { assertHeavyLease } from './scripts/heavy-lane-lease.mjs';
 import { BUILD_ID_EXPRESSION } from './scripts/app-build/buildIdentity.mjs';
 
@@ -121,6 +120,6 @@ export default defineConfig(({ mode, command }) => {
     assetsInclude: ['**/*.hdr', '**/*.gltf', '**/*.bin'],
     resolve: { alias: rapierAlias }, // Rapier's wasm-importing module → plain bindings (vite/rapier.ts)
     define: { __GRID_SEAM_ASSET__: JSON.stringify(readGridSeams(process.cwd()).address), __BOOT_TABLE_ASSETS__: JSON.stringify(assetTableAddresses(readAssetTables(process.cwd()))), __GRID_MAP_ATLAS__: JSON.stringify(worldMapDefine()), __SHARDFILE_VALIDATOR__: JSON.stringify(validationRevision), __SHARDFILE_VERDICTS__: JSON.stringify(buildValidationReceipts(validationRevision)), __DEVSERVER__: mode === 'devserver', __BUILD_ID__: BUILD_ID_EXPRESSION, __SAVE_NAMESPACES__: JSON.stringify(readdirSync('src/shards').filter((slug) => existsSync(join('src/shards', slug, 'manifest.ts')))) },
-    plugins: native ? [versionPlugin(), nativePlugin()] : [versionPlugin(), bootModulesPlugin()],
+    plugins: native ? [versionPlugin(), nativePlugin()] : [versionPlugin()],
   };
 });

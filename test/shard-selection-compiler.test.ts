@@ -1,11 +1,12 @@
 import {expect,test} from 'vitest';
-import {build} from 'vite';
 // oxlint-disable-next-line import/no-nodejs-modules -- Own the tiny real compiler fixture and remove it after use.
-import {mkdirSync,mkdtempSync,writeFileSync,rmSync} from 'node:fs';
+import {mkdirSync,mkdtempSync,readFileSync,writeFileSync,rmSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve only the owned compiler fixture.
 import {resolve} from 'node:path';
 import {selectionCatalogueSource,selectionModules} from '../scripts/title-catalogue.mjs';
-import {bootModulesPlugin,bootModuleFiles} from '../vite/bootModules';
+import {bootModuleFiles} from '../scripts/app-build/bootModules';
+import {writtenBundle} from '../scripts/app-build/writtenBundle';
+import {buildWithBootModules} from './fixtures/written-build';
 import {readModuleFiles} from '../src/engine/boot/download';
 import {catalogueManifests,titleManifests,titleMetadata,installTitleManifests} from '../src/game/shard/titleList';
 import {shards,installShards,legacyContentIdentity} from '../src/game/shard/list';
@@ -30,12 +31,8 @@ test('one selected discovery graph excludes other worlds and full catalogue byte
   writeFileSync(resolve(root,'src/first.ts'),'export const ready=true;');
   writeFileSync(resolve(root,'src/game/shardfile/client.ts'),'export const ready=true;');
   writeFileSync(resolve(root,'src/game/grid/session.ts'),'export const ready=true;');
-  const built=await build({root,configFile:false,logLevel:'silent',plugins:[bootModulesPlugin()],build:{write:false,minify:false,cssCodeSplit:false}});
-  if(Array.isArray(built)||!('output' in built))throw new Error('Expected one compiler output');
-  const bundle=Object.fromEntries(built.output.map(file=>[file.fileName,file]));
-  const html=built.output.find(file=>file.fileName==='index.html');
-  if(html?.type!=='asset'||typeof html.source!=='string')throw new Error('Missing shell');
-  const match=/<script type="application\/json" id="boot-module-files">([^<]+)<\/script>/u.exec(html.source);
+  const outDir=await buildWithBootModules(root),bundle=writtenBundle(outDir,root);
+  const match=/<script type="application\/json" id="boot-module-files">([^<]+)<\/script>/u.exec(readFileSync(resolve(outDir,'index.html'),'utf8'));
   if(match?.[1]===undefined)throw new Error('Missing module facts');
   const facts:unknown=JSON.parse(match[1]);
   if(typeof facts!=='object'||facts===null)throw new Error('Missing module banks');
@@ -46,7 +43,7 @@ test('one selected discovery graph excludes other worlds and full catalogue byte
   expect(first.some(([url])=>second.some(([other])=>url===other))).toBe(false);
   const catalogue=readModuleFiles(Reflect.get(facts,'catalogue')),common=readModuleFiles(Reflect.get(facts,'common'));
   for(const row of [...first,...second]){expect(catalogue).toContainEqual(row);expect(common).not.toContainEqual(row);}
-  expect(built.output.filter(file=>file.type==='chunk').some(file=>file.code.includes('first-solo')&&file.code.includes('placement'))).toBe(true);
+  expect(Object.values(bundle).filter(file=>file.type==='chunk').some(file=>(file.code??'').includes('first-solo')&&(file.code??'').includes('placement'))).toBe(true);
  }finally{rmSync(root,{recursive:true,force:true});}
 });
 

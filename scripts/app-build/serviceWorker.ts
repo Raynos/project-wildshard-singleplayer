@@ -17,10 +17,11 @@
  */
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
-import { dirname, join, relative } from 'node:path';
+import { dirname, join } from 'node:path';
 import { hashTree } from './assetHashes';
 import { PRODUCT_CACHE_NAME } from '../../src/engine/pwa/cacheNames';
-import { bootModuleFiles } from '../../vite/bootModules';
+import { bootModuleFiles } from './bootModules';
+import { writtenBundle, type EmittedFile } from './writtenBundle';
 import { readModuleFiles } from '../../src/engine/boot/download';
 import { manifestFolders, shardProducts, outputManifest } from '../shard-outputs.mjs';
 
@@ -114,37 +115,6 @@ export function workerInstallFiles(bundle: Readonly<Record<string, {
   for (const [name] of entries) visit(name);
   for (const name of Object.keys(bundle)) if (name.endsWith('.css')) visit(name);
   return [...files].sort().map(name => `/${name}`);
-}
-
-/** Files build-app writes into the bundle folder after the bundler: never part of the emitted bundle. */
-const LATER = new Set(['build-flags.json', '.vite/chunk-modules.json']);
-interface EmittedFile {
-  readonly type: 'chunk' | 'asset'; readonly code?: string; readonly source?: Uint8Array; readonly imports?: readonly string[];
-  readonly isEntry?: boolean; readonly facadeModuleId?: string | null; readonly modules?: Readonly<Record<string, unknown>>;
-}
-interface ManifestRow { readonly file: string; readonly isEntry?: boolean; readonly imports?: readonly string[] }
-interface ChunkRow { readonly moduleIds: readonly string[] }
-
-/** The bundle as the bundler wrote it into `outDir`: every file it emitted (not a copy of `publicDir`, not one build-app
- *  writes later), each manifest chunk with its code, static imports, entry facade and modules (from the chunk report). */
-export function writtenBundle(outDir: string, root: string, publicDir = join(root, 'public')): Record<string, EmittedFile> {
-  const manifest = JSON.parse(readFileSync(join(outDir, '.vite/manifest.json'), 'utf8')) as Record<string, ManifestRow>;
-  const report = JSON.parse(readFileSync(join(outDir, '.vite/chunk-modules.json'), 'utf8')) as Record<string, ChunkRow>;
-  const chunks = new Map<string, { key: string; row: ManifestRow }>();
-  for (const [key, row] of Object.entries(manifest)) if (row.file.endsWith('.js') && !chunks.has(row.file)) chunks.set(row.file, { key, row });
-  const bundle: Record<string, EmittedFile> = {};
-  for (const entry of readdirSync(outDir, { recursive: true, withFileTypes: true })) {
-    if (!entry.isFile()) continue;
-    const path = join(entry.parentPath, entry.name), name = relative(outDir, path).replaceAll('\\', '/');
-    if (LATER.has(name) || name.startsWith('shardfiles/') || existsSync(join(publicDir, name))) continue;
-    const bytes = readFileSync(path), chunk = chunks.get(name);
-    bundle[name] = chunk === undefined ? { type: 'asset', source: new Uint8Array(bytes) } : {
-      type: 'chunk', code: bytes.toString('utf8'), imports: (chunk.row.imports ?? []).map(key => manifest[key]?.file ?? key),
-      isEntry: chunk.row.isEntry === true, facadeModuleId: chunk.row.isEntry === true ? join(root, chunk.key) : null,
-      modules: Object.fromEntries((report[name]?.moduleIds ?? []).map(id => [join(root, id), true])),
-    };
-  }
-  return bundle;
 }
 
 /** The worker core for a written bundle: its stamps over the emitted files, the public static assets and the boot

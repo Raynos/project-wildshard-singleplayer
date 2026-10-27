@@ -1,5 +1,4 @@
 import { expect, test } from 'vitest';
-import { build } from 'vite';
 // oxlint-disable-next-line import/no-nodejs-modules -- Own and remove the tiny real compiler fixture.
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve that compiler fixture without changing process cwd.
@@ -7,7 +6,8 @@ import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Pin the miniature product's actual metadata bytes.
 import { createHash } from 'node:crypto';
 import { readModuleFiles } from '../src/engine/boot/download';
-import { bootModuleFiles, bootModuleGroups, clientFeatureImports, bootModulesPlugin, startupImports } from '../vite/bootModules';
+import { bootModuleFiles, bootModuleGroups, clientFeatureImports, startupImports } from '../scripts/app-build/bootModules';
+import { buildWithBootModules, writtenFiles } from './fixtures/written-build';
 
 test('startup roots follow the executed entry function, excluding title, recovery and error entry branches', () => {
   expect(startupImports(`
@@ -94,19 +94,13 @@ test('the actual Vite plugin emits exact module body sizes into the existing doc
       return {name,path,bytes:Buffer.byteLength(text),hash:createHash('sha256').update(text).digest('hex')};
     });
     writeFileSync(resolve(product,'shard.json'),JSON.stringify({format:'wildshard.shardfile',formatVersion:2,version:{},identity:{slug:'example'},requires:{},admission:{library:[],critical:[]},sections,schemas:[],files:[],runtime:null}));
-    const result = await build({ root, configFile: false, logLevel: 'silent', plugins: [bootModulesPlugin()],
-      build: { write: false, minify: false, cssCodeSplit: false } });
-    if (Array.isArray(result) || !('output' in result)) throw new Error('Expected one generated bundle');
-    const html = result.output.find(file => file.fileName === 'index.html');
-    if (html?.type !== 'asset' || typeof html.source !== 'string') throw new Error('Missing emitted HTML');
-    const match = /<script type="application\/json" id="boot-module-files">([^<]+)<\/script>/u.exec(html.source);
+    const outDir = await buildWithBootModules(root), output = writtenFiles(outDir);
+    const match = /<script type="application\/json" id="boot-module-files">([^<]+)<\/script>/u.exec(readFileSync(resolve(outDir, 'index.html'), 'utf8'));
     if (match?.[1] === undefined) throw new Error('Missing emitted module facts');
     const rows: unknown = JSON.parse(match[1]);
     if (typeof rows !== 'object' || rows === null || !('common' in rows) || !('client' in rows) || !('grid' in rows) || !('products' in rows)) throw new Error('Missing banks');
-    const expected = (stems: readonly string[]): [string, number][] => result.output.filter(file => stems.some(stem => file.fileName.includes(stem)) || file.fileName.endsWith('.css')).map((file): [string, number] => {
-      const bytes = file.type === 'chunk' ? file.code : file.source;
-      return [`/${file.fileName}`, typeof bytes === 'string' ? new TextEncoder().encode(bytes).byteLength : bytes.byteLength];
-    }).sort(([left], [right]) => left.localeCompare(right));
+    const expected = (stems: readonly string[]): [string, number][] => output.filter(file => stems.some(stem => file.fileName.includes(stem)) || file.fileName.endsWith('.css'))
+      .map((file): [string, number] => [`/${file.fileName}`, file.bytes]).sort(([left], [right]) => left.localeCompare(right));
     const productText=readFileSync(resolve(product,'shard.json'),'utf8');
     const total=Buffer.byteLength(productText)+sections.reduce((sum,row)=>sum+row.bytes,0);
     expect(rows.products).toEqual({'/shardfiles/example/':[Buffer.byteLength(productText),total,total,total]});
