@@ -32,6 +32,47 @@ export function clientCheckpoint(ports: Parameters<typeof checkpointClientState>
   return { checkpoint: () => !suppressed && checkpointClientState(ports), suppress: () => { suppressed = true; } };
 }
 
+/** The periodic checkpoint's period: 30 s of 60 Hz fixed steps (G816; it was 5 s). */
+export const CHECKPOINT_TICKS = 1800;
+/** a player at rest moves less than this (metres, summed over the axes) between two periodic checkpoints */
+const STILL = 0.05;
+interface CadencePorts {
+  /** the periodic write is due only when the shard may checkpoint now (no portal transition) */
+  readonly blocked: () => boolean;
+  /** progress identity: equal marks mean nothing but the clock changed; undefined always writes */
+  readonly mark: () => string | undefined;
+  /** coins or a ledger fact not yet saved: written even while the player is idle */
+  readonly unsaved: () => boolean;
+  /** the input service's command count and the player's position */
+  readonly activity: () => number;
+  readonly position: () => { readonly x: number; readonly y: number; readonly z: number };
+  readonly write: () => boolean;
+}
+/**
+ * G816 (Jake): the periodic checkpoint runs every 30 s and is skipped while the player is idle (no input command and
+ * the same spot since the last checkpoint); a write whose progress mark matches the last periodic one is skipped too.
+ * `now` is every other checkpoint (pagehide, hidden, dispose, a crossing): it always writes and resets both marks, so
+ * at most 30 s of play is lost on a crash and an idle page writes nothing.
+ */
+export function clientCheckpointCadence(ports: CadencePorts): { step: (tick: number) => void; now: () => boolean } {
+  let quiet: string | undefined, acted = ports.activity(), at = { ...ports.position() };
+  const rest = (): void => { const p = ports.position(); acted = ports.activity(); at = { x: p.x, y: p.y, z: p.z }; };
+  const idle = (): boolean => {
+    const p = ports.position();
+    return ports.activity() === acted && Math.abs(p.x - at.x) + Math.abs(p.y - at.y) + Math.abs(p.z - at.z) < STILL;
+  };
+  return {
+    step: (tick) => {
+      if (tick % CHECKPOINT_TICKS !== 0 || ports.blocked()) return;
+      if (!ports.unsaved() && idle()) return;
+      const mark = ports.mark();
+      if (mark !== undefined && mark === quiet) { rest(); return; }
+      quiet = ports.write() ? mark : undefined; rest();
+    },
+    now: () => { quiet = undefined; rest(); return ports.write(); },
+  };
+}
+
 function itemStates(items: Runtimes): v.InferOutput<typeof itemsSchema> {
   return v.parse(itemsSchema, Object.fromEntries([...items].map(([id, runtime]) => [id, runtime.snapshot()])));
 }

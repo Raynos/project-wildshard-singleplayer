@@ -52,6 +52,10 @@ export class InputService {
     return this.contextRevision;
   }
   private activeAim: AimCommand | undefined;
+  private acted = 0;
+  /** Every command the player gave so far (a press, a key or held action, a look, a non-zero axis; a clear is not one): a
+   *  reader compares two counts to tell whether the player acted between them, as the idle-skipped checkpoint does (G816). */
+  get activity(): number { return this.acted; }
   captureAim: (() => AimCommand) | null = null;
   get commandAim(): AimCommand | undefined { return this.activeAim; }
   /** Replay invokes precisely the same semantic action path as a device or UI gesture. */
@@ -61,6 +65,7 @@ export class InputService {
     const previousAim = this.activeAim, aim = command.aim ?? previousAim ?? (command.kind === 'axis' && this.recordCommand === null ? undefined : this.captureAim?.());
     this.activeAim = aim;
     if (this.commandDepth === 0) this.recordCommand?.({ ...command, ...(aim === undefined ? {} : { aim: { origin: { ...aim.origin }, direction: { ...aim.direction } } }) });
+    if (command.kind !== 'clear' && (command.kind !== 'axis' || command.x !== 0 || command.y !== 0)) this.acted++;
     this.commandDepth++;
     try {
       switch (command.kind) {

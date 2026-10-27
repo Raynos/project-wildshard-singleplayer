@@ -65,7 +65,7 @@ import { tileRing } from './tileDriver';
 import { buildYield } from '@wildshard/engine/core/workSlice';
 import { clientSimStep } from './clientStep';
 import { clientScene, projectItemFields, handledItemInputs } from './clientItems';
-import { captureClientState, clientStateMark, restoreClientState, installClientItemState, clientStateSave, clientCheckpoint } from './clientState';
+import { captureClientState, clientStateMark, restoreClientState, installClientItemState, clientStateSave, clientCheckpoint, clientCheckpointCadence } from './clientState';
 import { portalTransitioning } from './portalTraversal';
 import { syncTargetColliders } from './targets';
 import type { ClientAssets } from './clientAssets';
@@ -535,22 +535,20 @@ export class ShardfileClient {
       canCheckpoint: () => !portalTransitioning(sim.host.physics),
       encounters: () => saved.write(encounters), continuation: () => continuation.write(captureClientState(source, sim, items.runtimes)),
     });
-    // A periodic checkpoint whose progress matches the last one it wrote, with only the clock advanced, touches no save
-    // document (each write rereads and rewrites the whole shard document). Any other checkpoint (pagehide, hidden,
-    // dispose, a grid crossing) always writes the current clock and clears the mark; a lane without a state revision,
-    // a ledger fact, an encounter write or unsaved coins always write.
-    let quiet: string | undefined;
-    const mark = (): string | undefined => {
-      const lane = sim.lane, revision = lane === undefined ? 0 : lane.stateRevision?.();
-      if (revision === undefined || ledger.unsaved || loot?.purse?.unsaved === true) return undefined;
-      return `${String(revision)}|${String(ledger.recordCount)}|${String(encounterWrites)}|${clientStateMark(source, sim, items.runtimes)}`;
-    };
-    const checkpoint = (): boolean => { quiet = undefined; return saver.checkpoint(); };
-    sim.host.onStep('client.save', () => {
-      if (sim.host.state.tick % 300 !== 0 || portalTransitioning(sim.host.physics)) return;
-      const now = mark(); if (now !== undefined && now === quiet) return;
-      quiet = saver.checkpoint() ? now : undefined;
-    });
+    // G816: every 30 s, skipped while the player is idle or when its progress matches the last periodic write, with only
+    // the clock advanced (each write rereads and rewrites the whole shard document). Any other checkpoint (pagehide,
+    // hidden, dispose, a grid crossing) always writes the current clock; a lane without a state revision, a ledger fact,
+    // an encounter write or unsaved coins always write (clientCheckpointCadence).
+    const unsaved = (): boolean => ledger.unsaved || loot?.purse?.unsaved === true;
+    const cadence = clientCheckpointCadence({ blocked: () => portalTransitioning(sim.host.physics), unsaved, write: saver.checkpoint,
+      activity: () => ctx.app.input.activity, position: () => world.player.position,
+      mark: () => {
+        const lane = sim.lane, revision = lane === undefined ? 0 : lane.stateRevision?.();
+        if (revision === undefined || unsaved()) return undefined;
+        return `${String(revision)}|${String(ledger.recordCount)}|${String(encounterWrites)}|${clientStateMark(source, sim, items.runtimes)}`;
+      } });
+    const checkpoint = cadence.now;
+    sim.host.onStep('client.save', () => { cadence.step(sim.host.state.tick); });
     ctx.scope.onDispose(() => { checkpoint(); });
     ctx.scope.listen(window, 'pagehide', () => { checkpoint(); });
     ctx.scope.listen(document, 'visibilitychange', () => { if (document.visibilityState === 'hidden') checkpoint(); });
