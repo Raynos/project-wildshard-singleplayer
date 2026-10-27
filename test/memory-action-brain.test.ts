@@ -7,7 +7,7 @@ import { bindPerchBody, PerchBodyBinding, type PerchBodyPorts } from '../src/gam
 import { speciesBrains } from '../src/sdk/speciesBrains';
 import { Scope } from '../src/engine/app/scope';
 import { DRIFTWOOD_ENEMY_PROGRAM } from '../src/shards/driftwood-isle/generators/speciesPrograms';
-import { RETURN_PROGRAM } from '../src/shards/driftwood-isle/generators/returnProgram';
+import { RETURN_PROGRAM } from './fixtures/driftwood-guest-programs';
 import perchRows from '../src/shards/driftwood-isle/data/mixedPopulation.json' with { type: 'json' };
 import { stepCreatureLift } from '@wildshard/game/plugin/animation';
 import { Rng } from '../src/engine/core/rng';

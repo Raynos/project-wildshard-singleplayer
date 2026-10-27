@@ -6,7 +6,7 @@ import { ReturnGate } from '../src/game/population/respawn';
 import { manager as realManager } from '@wildshard/engine/test/manager';
 import { speciesDef } from '../src/engine/entities/species/registry';
 import { Scope } from '../src/engine/app/scope';
-import {RETURN_PROGRAM as program} from '../src/shards/driftwood-isle/generators/returnProgram';
+import {RETURN_PROGRAM as program} from './fixtures/driftwood-guest-programs';
 import {lendDriftwoodReturns} from './fixtures/driftwood-return-modules';
 import { overrideTerrain } from '@wildshard/engine/test/terrain';
 

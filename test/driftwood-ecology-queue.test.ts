@@ -3,7 +3,7 @@ import {lendDriftwoodReturns} from './fixtures/driftwood-return-modules';
 import { afterEach, expect, test } from 'vitest';
 import { RespawnQueue } from '../src/game/population/respawn';
 import { ReturnProgram } from '../src/game/population/returnProgram';
-import { RETURN_PROGRAM } from '../src/shards/driftwood-isle/generators/returnProgram';
+import { RETURN_PROGRAM } from './fixtures/driftwood-guest-programs';
 import { Rng } from '../src/engine/core/rng';
 import { setTerrainHeight } from '../src/engine/world/terrainHeight';
 import { compileDecisionScripts } from '../src/sdk/buildDecisionScripts';

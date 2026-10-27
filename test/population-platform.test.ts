@@ -148,7 +148,7 @@ test('native shelter resolves its actual roster and weather without ports, prese
 
 test('projected sites preserve source ties, range admission, exact perch choices and shared RNG rollback', async () => {
   const { projectedSite } = await import('../src/game/population/projectedSites');
-  const { RETURN_PROGRAM: returns } = await import('../src/shards/driftwood-isle/generators/returnProgram');
+  const { RETURN_PROGRAM: returns } = await import('./fixtures/driftwood-guest-programs');
   const {lendDriftwoodReturns}=await import('./fixtures/driftwood-return-modules');
   const owner=lendDriftwoodReturns(new Scope('perch sites'));
   const { selectCreatureSites } = await import('../src/game/plugin/brain');

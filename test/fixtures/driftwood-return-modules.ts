@@ -3,7 +3,7 @@ import {Scope} from '../../src/engine/app/scope';
 import {ReturnProgram} from '../../src/game/population/returnProgram';
 import {parseDecisionScripts} from '../../src/format/decisionScripts';
 import {hashImmutableBytes} from '../../src/sdk/immutable';
-import {RETURN_PROGRAM} from '../../src/shards/driftwood-isle/generators/returnProgram';
+import {RETURN_PROGRAM} from './driftwood-guest-programs';
 
 export const driftwoodReturnBytes=driftwoodGuestFile('behaviour/returns.generated.wasm');
 const hash=hashImmutableBytes(driftwoodReturnBytes),rows=parseDecisionScripts([RETURN_PROGRAM.script]);

@@ -6,7 +6,7 @@ import { loadRapier } from '../src/engine/physics/rapier';
 import { createSimHost } from '../src/engine/sim';
 import { createNativeCreatureRoster } from '../src/game/shardfile/homeKeeper';
 import { compileDecisionScripts } from '../src/sdk/buildDecisionScripts';
-import { RETURN_PROGRAM } from '../src/shards/driftwood-isle/generators/returnProgram';
+import { RETURN_PROGRAM } from './fixtures/driftwood-guest-programs';
 import { fixtureNativeRoster } from './fixtures/native-roster';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 

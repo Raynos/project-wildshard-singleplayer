@@ -1,9 +1,8 @@
-import {DRIFTWOOD_GUEST_ROWS,driftwoodGuestFile} from './fixtures/driftwood-guest-programs';
+import {DRIFTWOOD_GUEST_ROWS,driftwoodGuestFile,RETURN_PROGRAM} from './fixtures/driftwood-guest-programs';
 import * as v from 'valibot';
 import {expect,test} from 'vitest';
 import {Scope} from '../src/engine/app/scope';
 import {ReturnProgram} from '../src/game/population/returnProgram';
-import {RETURN_PROGRAM} from '../src/shards/driftwood-isle/generators/returnProgram';
 import {encodeCanonicalJson,hashImmutableBytes} from '../src/sdk/immutable';
 import {admitScriptContract} from '../src/format/scriptContract';
 import {SCRIPT_V2_REVISIONS} from '../src/format/scriptAdmissionV2';

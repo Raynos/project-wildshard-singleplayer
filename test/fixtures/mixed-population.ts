@@ -3,7 +3,7 @@ import type { MixedPopulationInput } from './native-hosts/population/mixedRoster
 import { readSpeciesPrograms } from '../../src/format/speciesPrograms';
 import { SIM_LEVEL } from './sim-level/level';
 import { DRIFTWOOD_SPECIES_PROGRAMS } from '../../src/shards/driftwood-isle/generators/speciesPrograms';
-import { RETURN_PROGRAM } from '../../src/shards/driftwood-isle/generators/returnProgram';
+import { RETURN_PROGRAM } from './driftwood-guest-programs';
 import { enemyPlacements } from '../../src/shards/driftwood-isle/generators/enemyPlacement';
 import { keeperRows } from '../../src/shards/driftwood-isle/generators/keeperRows';
 import source from '../../src/shards/driftwood-isle/data/mixedPopulation.json' with { type: 'json' };

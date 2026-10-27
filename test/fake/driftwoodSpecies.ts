@@ -2,7 +2,7 @@ import {lendDriftwoodReturns} from '../fixtures/driftwood-return-modules';
 import perchRows from '../../src/shards/driftwood-isle/data/mixedPopulation.json' with { type: 'json' };
 import { Scope } from '../../src/engine/app/scope';
 import { PerchBodyBinding } from '@wildshard/game/population/perchBody';
-import { RETURN_PROGRAM } from '../../src/shards/driftwood-isle/generators/returnProgram';
+import { RETURN_PROGRAM } from '../fixtures/driftwood-guest-programs';
 import { MONKEY_CLIPS } from '../../src/shards/driftwood-isle/generators/monkeyClips';
 import type { SpeciesRow } from '../../src/engine/ai/species';
 import { app } from '../../src/engine/app/runtime';

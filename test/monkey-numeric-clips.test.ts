@@ -6,7 +6,7 @@ import { expect, test } from 'vitest';
 import type { AnimalRigContext } from '../src/engine/entities/animalRig';
 import { MONKEY_CLIPS } from '../src/shards/driftwood-isle/generators/monkeyClips';
 import { PerchBodyBinding } from '@wildshard/game/population/perchBody';
-import { RETURN_PROGRAM } from '../src/shards/driftwood-isle/generators/returnProgram';
+import { RETURN_PROGRAM } from './fixtures/driftwood-guest-programs';
 import { animateMonkey as shipping } from './fixtures/animal-pose/monkeyPoseShipping';
 
 const animate = new PerchBodyBinding({ clips: MONKEY_CLIPS, program: RETURN_PROGRAM, perch: perchRows.perch }, lendDriftwoodReturns(new Scope('fixture.monkey'))).animate;
