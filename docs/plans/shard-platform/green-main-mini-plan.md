@@ -201,7 +201,7 @@ All answered 2026-10-26 ~22:40: Q1 split then tagged CI handoff (G757), Q2 quara
 ## GM4: render-source identity assertions (sp-x6)
 
 Checked source repair: `9c30863d2d`; its publication is blocked by the
-shared GM0 generated-discovery intake. The broader GM4 reading stays open.
+shared GM0 native-output intake. The broader GM4 reading stays open.
 
 CI `40445771616` times out independent render-source construction from
 `68cab0ecb3`. Moving construction out of the test still leaves 24,477 ms
@@ -213,3 +213,14 @@ passes in 3,100 ms, with all 73 complete byte/hash pins, buffer independence,
 input invariance and malformed-input refusals unchanged. No fixture-clock
 move, production change, timeout increase or quarantine is needed. The
 wider GM4 reading and CF2 grid cause remain open.
+
+## GM4: shared cold map publication (sp-x6)
+
+Checked source `62f0de2322` prepares one genuine cold world before the
+unchanged 30 s assertions and shares that publication. All 20 source cases
+and CF1 pass; the slowest final case is 2,907 ms versus the original shared
+world case's 28,003 ms. Source-digest hits retain every stat identity check;
+all original image pins and matchers remain unchanged. Keep publication
+explicit while the GM0 native-input blocker holds the prefix. CF2's old
+held stage remains unknown; neither this speed fix nor parser attribution
+closes that causal flake.

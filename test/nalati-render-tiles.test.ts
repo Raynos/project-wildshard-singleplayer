@@ -1,10 +1,14 @@
+import { nalatiRenderTileProgram } from '../src/shards/nalati-grasslands/generators/renderTileProgram';
+import { createProjectGeneration } from '../src/sdk/projectGeneration';
+// oxlint-disable-next-line import/no-nodejs-modules -- The actual source publication owns its isolated cache.
+import { resolve } from 'node:path';
 import { BufferGeometry, Float32BufferAttribute } from 'three';
 import waterRows from '../src/shards/nalati-grasslands/data/water.generated.json' with { type: 'json' };
 import { waterSceneBlob, terrainSceneBlobs } from '../src/shards/nalati-grasslands/generators/terrainScene';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the retained native terrain input of the offline baker.
-import { readFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { bakeNalatiWorldRows } from '../src/shards/nalati-grasslands/generators/nalatiWorldRows';
 import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
 import { readNativeTerrain } from '../src/sdk/bake/terrain';
@@ -108,12 +112,27 @@ test('moves the water draw out of private JSON without changing its GPU channels
   } finally { original.dispose(); }
 });
 
-test('the product ships the ground as its 64 L0 tiles and the far ground as 8 L1 pair files, each present', () => {
-  const rows = v.parse(v.object({ tiles: v.array(v.object({ lod: v.number(), files: v.array(v.string()) })), files: v.array(v.object({ hash: v.string() })),
-    props: v.object({ family: v.string(), tiles: v.array(v.object({ lod: v.number(), file: v.string() })) }) }), JSON.parse(readFileSync('src/shards/nalati-grasslands/data/renderTiles.json', 'utf8')));
-  expect(rows.tiles).toHaveLength(64); expect(rows.tiles.every(tile => tile.lod === 0)).toBe(true);
-  // N1b: the 16 L1 squares beyond the 5 x 5 ship two to a named GLB (generators/output.ts), each under the 1 MB blob limit
-  for (let z = 0; z < 4; z++) for (let x = 0; x < 2; x++) expect(readFileSync(`src/shards/nalati-grasslands/assets/world-terrain/ground-l1-${String(x)}-${String(z)}.generated.glb`).byteLength).toBeLessThan(1_000_000);
-  expect(rows.props.family).toBe('painterly'); expect(rows.props.tiles.map(tile => tile.file).sort()).toEqual(rows.files.map(file => file.hash).sort());
-  for (const file of rows.files) expect(hashImmutableBytes(new Uint8Array(readFileSync(`src/shards/nalati-grasslands/assets/${file.hash}`)))).toBe(file.hash);
+test('the product ships the ground as its 64 L0 tiles and the far ground as 8 L1 pair files, each present', async () => {
+  const cache = mkdtempSync(resolve('tmp/nalati-render-inventory-'));
+  try {
+    const ctx = createProjectGeneration(resolve('src/shards/nalati-grasslands'), 'c'.repeat(64), new Map(), cache,
+      [{ prefix: '/assets/baked/nalati-grasslands/', directory: resolve('public/assets/baked/nalati-grasslands') }]);
+    const files = await nalatiRenderTileProgram(ctx), metadata = files.get('data/renderTiles.json');
+    if (metadata === undefined) throw new Error('Missing owned render metadata');
+    const rows = v.parse(v.object({ tiles: v.array(v.object({ lod: v.number(), files: v.array(v.string()) })), files: v.array(v.object({ hash: v.string() })),
+      props: v.object({ family: v.string(), tiles: v.array(v.object({ lod: v.number(), file: v.string() })) }) }), JSON.parse(new TextDecoder().decode(metadata)));
+    expect(rows.tiles).toHaveLength(64); expect(rows.tiles.every(tile => tile.lod === 0)).toBe(true);
+    // N1b: all 16 L1 squares ship two to a named GLB, each below the original 1 MB guard.
+    for (let z = 0; z < 4; z++) for (let x = 0; x < 2; x++) {
+      const bytes = files.get(`assets/world-terrain/ground-l1-${String(x)}-${String(z)}.generated.glb`);
+      if (bytes === undefined) throw new Error('Missing owned L1 render pair');
+      expect(bytes.byteLength).toBeLessThan(1_000_000);
+    }
+    expect(rows.props.family).toBe('painterly'); expect(rows.props.tiles.map(tile => tile.file).sort()).toEqual(rows.files.map(file => file.hash).sort());
+    for (const file of rows.files) {
+      const bytes = files.get(`assets/${file.hash}`);
+      if (bytes === undefined) throw new Error('Missing owned L0 render tile');
+      expect(hashImmutableBytes(bytes)).toBe(file.hash);
+    }
+  } finally { rmSync(cache, { recursive: true, force: true }); }
 });

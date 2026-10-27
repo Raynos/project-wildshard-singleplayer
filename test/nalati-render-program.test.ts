@@ -1,5 +1,5 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Own and remove the real persistent author cache.
-import { mkdtempSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Explicit roots bind only the committed original terrain input.
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
@@ -53,4 +53,14 @@ test('missing native input and incomplete cached render publications refuse', as
     await expect(nalatiRenderTileProgram({ cached: () => Promise.resolve(files) }))
       .rejects.toThrow('Owned render tile inventory differs');
   }
+});
+
+test('the scheduler and every original render handoff remain retired', () => {
+  const registry: unknown = JSON.parse(readFileSync('scripts/generation-jobs.json', 'utf8'));
+  if (typeof registry !== 'object' || registry === null || !('jobs' in registry) || !Array.isArray(registry.jobs)) {
+    throw new Error('Missing generation registry');
+  }
+  expect(registry.jobs.some((job: unknown) => typeof job === 'object' && job !== null
+    && 'id' in job && job.id === 'nalati-render-tiles')).toBe(false);
+  for (const file of originals) expect(existsSync(resolve('src/shards/nalati-grasslands', file.path)), file.path).toBe(false);
 });

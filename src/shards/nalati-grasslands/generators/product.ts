@@ -51,7 +51,7 @@ const base = emptyShardfile({ slug: 'nalati-grasslands', name: 'Nalati Grassland
 // ground's native lattice is query-only terrain (generators/terrain.ts: no render tiles; the bound runtime keeps rendering
 // and collision), both charged to the server's memory and the sim budget at their actual decoded cost.
 const files = [...navigation.files, ...queryTerrain.files].sort((a, b) => a.hash.localeCompare(b.hash));
-// M2 (G518): the ground's baked L0 render tiles (generators/bake-render-tiles.mjs), bound by the runtime: the painted
+// M2 (G518): the ground's source-owned L0 render tiles, bound by the runtime: the painted
 // ground draws them in its own material behind the Debug row groundTiles; the files stay out of the sim budgets below
 const resident = files.reduce((sum, file) => sum + file.decoded, 0);
 /** Explicit species costs supplied by an admitted source construction. */
