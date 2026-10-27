@@ -756,7 +756,6 @@
     "src/shards/nalati-grasslands/data/ecology.generated.d.json.ts",
     "src/shards/nalati-grasslands/data/ecology.generated.json",
     "src/shards/nalati-grasslands/data/eliteCharge.generated.json",
-    "src/shards/nalati-grasslands/data/finds.generated.json",
     "src/shards/nalati-grasslands/data/gear.generated.json",
     "src/shards/nalati-grasslands/data/goldenKing.generated.json",
     "src/shards/nalati-grasslands/data/goldenKingPose.generated.json",

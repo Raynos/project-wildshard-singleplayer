@@ -1,5 +1,6 @@
+import originalFinds from './fixtures/nalati-finds-original.json' with {type:'json'};
 import { parseFindsCatalogue } from '../src/format/findsCatalogue';
-import finds from '../src/shards/nalati-grasslands/data/finds.generated.json' with {type:'json'};
+import { nalatiFindsCatalogue } from '../src/shards/nalati-grasslands/generators/finds';
 import ecology from '../src/shards/nalati-grasslands/data/ecology.generated.json' with { type: 'json' };
 import { expect, test } from 'vitest';
 import { createFindsCatalogue } from '../src/game/bag/findsCatalogue';
@@ -9,6 +10,7 @@ import { DRIFTWOOD_PLACES } from '../src/shards/driftwood-isle/generators/discov
 import { SHARD_FLAGS } from '../src/shards/driftwood-isle/generators/interactables';
 import content from '../src/shards/nalati-grasslands/data/questContent.json' with { type: 'json' };
 
+const finds = nalatiFindsCatalogue();
 const islandCatalogue = createFindsCatalogue(DRIFTWOOD_FINDS);
 const driftwoodFinds = (flags: { has: (id: string) => boolean }, owned: { has: (id: OwnedId) => boolean }) => islandCatalogue({ flags, owned });
 
@@ -36,6 +38,7 @@ test('Driftwood reads live flags and owned trophies while preserving milestones 
 });
 
 test('Nalati sticker rows preserve prizes and read the live encounter/place flags',()=>{
+  expect(finds).toEqual(originalFinds);
   const catalogue=createFindsCatalogue(parseFindsCatalogue(finds)),set=new Set<string>(),flags={has:(flag:string)=>set.has(flag)};
   const empty=catalogue({flags});expect(empty.counters).toEqual([{label:'Elites',n:0,of:5},{label:'Places',n:0,of:17}]);
   const aqbars=ecology.elites['aqbars'];if(aqbars===undefined)throw new Error('Missing Aqbars row');

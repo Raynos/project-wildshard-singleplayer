@@ -148,7 +148,8 @@
     "./as/groupStepV2": "./as/groupStepV2.ts",
     "./bake/portableBytes": "./bake/portableBytes.ts",
     "./bake/mapRest": "./bake/mapRest.ts",
-    "./worldScenes": "./worldScenes.ts"
+    "./worldScenes": "./worldScenes.ts",
+    "./finds": "./finds.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -692,6 +693,10 @@
       "./worldScenes": {
         "types": "./dist/types/sdk/worldScenes.d.ts",
         "default": "./dist/worldScenes.js"
+      },
+      "./finds": {
+        "types": "./dist/types/sdk/finds.d.ts",
+        "default": "./dist/finds.js"
       }
     }
   }

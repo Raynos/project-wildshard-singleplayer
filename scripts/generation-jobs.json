@@ -65,42 +65,6 @@
       }
     },
     {
-      "id": "nalati-finds",
-      "shard": "nalati-grasslands",
-      "entry": "src/shards/nalati-grasslands/generators/bake-finds.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/shards/nalati-grasslands/generators/bake-finds.mjs"
-      ],
-      "inputRoots": [
-        "src/shards/nalati-grasslands/generators/bake-finds.mjs",
-        "src/shards/nalati-grasslands/data/finds.json",
-        "src/shards/nalati-grasslands/data/ecology.generated.json",
-        "src/shards/nalati-grasslands/data/feats.json",
-        "src/shards/nalati-grasslands/data/weaponEffects.json",
-        "src/shards/nalati-grasslands/data/questContent.json",
-        "src/format",
-        "src/sdk/bake/source-loader.mjs",
-        "scripts/bake-output.mjs",
-        "package.json",
-        "pnpm-lock.yaml",
-        "src/sdk/package.json",
-        "pnpm-workspace.yaml"
-      ],
-      "outputs": [
-        "src/shards/nalati-grasslands/data/finds.generated.json"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/nalati-grasslands/data/finds.generated.json"
-      ],
-      "platform": "portable",
-      "catalogueDependencies": [
-        "nalati-layout"
-      ]
-    },
-    {
       "id": "nalati-kurgan",
       "shard": "nalati-grasslands",
       "entry": "src/shards/nalati-grasslands/generators/bake-kurgan.mjs",
@@ -141,8 +105,7 @@
         "src/shards/nalati-grasslands/data/goldenKingPose.generated.json",
         "src/shards/nalati-grasslands/data/strikeProfiles.generated.json"
       ],
-      "platform": "portable",
-      "catalogueDependencies": []
+      "platform": "portable"
     },
     {
       "id": "nalati-bodies",
@@ -181,7 +144,17 @@
         "src/shards/nalati-grasslands/species/horse.json",
         "src/shards/nalati-grasslands/species/horse.d.json.ts",
         "src/shards/nalati-grasslands/data/speciesRows.json",
-        "src/shards/nalati-grasslands/data/strikeProfiles.generated.json"
+        "src/shards/nalati-grasslands/data/strikeProfiles.generated.json",
+        "src/format/catalogueEconomy.ts",
+        "src/format/exchange.ts",
+        "src/format/findsCatalogue.ts",
+        "src/format/inputDeclarations.ts",
+        "src/format/items.ts",
+        "src/format/lootBag.ts",
+        "src/format/lootEconomy.ts",
+        "src/format/nativeItems.ts",
+        "src/format/weaponProfiles.ts",
+        "src/format/package.json"
       ],
       "outputs": [
         "public/assets/nalati/baked/bodies.bin",
@@ -631,8 +604,7 @@
         "src/shards/pine-hollow/data/ground.generated.json",
         "src/shards/pine-hollow/data/pondClip.generated.json"
       ],
-      "platform": "portable",
-      "catalogueDependencies": []
+      "platform": "portable"
     },
     {
       "id": "nalati-rifle-rows",
@@ -716,8 +688,7 @@
         "src/shards/nalati-grasslands/behaviour/titan-witness.generated.bin",
         "src/shards/nalati-grasslands/behaviour/pasture-witness.generated.bin"
       ],
-      "platform": "portable",
-      "catalogueDependencies": []
+      "platform": "portable"
     },
     {
       "id": "nalati-persistence",
@@ -750,8 +721,7 @@
       "buildTimeOutputs": [
         "src/shards/nalati-grasslands/data/persistence.generated.json"
       ],
-      "platform": "portable",
-      "catalogueDependencies": []
+      "platform": "portable"
     },
     {
       "id": "driftwood-isle-monkey-clips",
@@ -5631,7 +5601,17 @@
         "src/shards/nalati-grasslands/data/speciesRows.json",
         "src/shards/nalati-grasslands/boot/declaration.generated.ts",
         "src/shards/nalati-grasslands/data/navigation.generated.json",
-        "scripts/bake/nativeWorld.mjs"
+        "scripts/bake/nativeWorld.mjs",
+        "src/format/catalogueEconomy.ts",
+        "src/format/exchange.ts",
+        "src/format/findsCatalogue.ts",
+        "src/format/inputDeclarations.ts",
+        "src/format/items.ts",
+        "src/format/lootBag.ts",
+        "src/format/lootEconomy.ts",
+        "src/format/nativeItems.ts",
+        "src/format/weaponProfiles.ts",
+        "src/format/package.json"
       ],
       "outputs": [
         "public/assets/nalati/baked/crags.bin",
@@ -6516,8 +6496,7 @@
       "buildTimeOutputs": [
         "public/assets/far-reach/map/top.webp",
         "src/shards/far-reach/look/map.baked.json"
-      ],
-      "catalogueDependencies": []
+      ]
     },
     {
       "id": "nalati-riding",
@@ -6807,7 +6786,6 @@
         "src/shards/nalati-grasslands/generators/bake-creature-views.mjs",
         "src/shards/nalati-grasslands/generators/bake-elite-charge.mjs",
         "src/shards/nalati-grasslands/generators/bake-elite-views.mjs",
-        "src/shards/nalati-grasslands/generators/bake-finds.mjs",
         "src/shards/nalati-grasslands/generators/bake-gear.mjs",
         "src/shards/nalati-grasslands/generators/bake-grass.mjs",
         "src/shards/nalati-grasslands/generators/bake-kokpar.mjs",
@@ -7459,7 +7437,14 @@
         "src/shards/nalati-grasslands/generators/poiPaintSources.ts",
         "src/shards/nalati-grasslands/generators/roadSigns.ts",
         "src/shards/nalati-grasslands/generators/runtimeRows.ts",
-        "src/shards/nalati-grasslands/generators/specimenRows.ts"
+        "src/shards/nalati-grasslands/generators/specimenRows.ts",
+        "src/format/findsCatalogue.ts",
+        "src/sdk/finds.ts",
+        "src/shards/nalati-grasslands/data/ecology.json",
+        "src/shards/nalati-grasslands/data/feats.json",
+        "src/shards/nalati-grasslands/data/finds.json",
+        "src/shards/nalati-grasslands/data/questContent.json",
+        "src/shards/nalati-grasslands/data/weaponEffects.json"
       ],
       "outputs": [
         "public/assets/nalati-grasslands/map/top.webp",

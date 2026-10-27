@@ -1,10 +1,9 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- The fixture explicitly prepares the same declared binary samples as boot.
-import {readFileSync} from 'node:fs';
+import {originalGeographyFiles} from './nalati-geography-original';
 import nalati from '../../src/shards/nalati-grasslands/discovery.generated';
 import type { ShardManifest,ChunkTerrain } from '../../src/game/shard/manifest';
 import type { MinimapPalette } from '../../src/engine/ui/Minimap';
 
-const intake=nalati.scalarBlocks;if(intake!==undefined)intake.prepare(new Map(intake.files.map(file=>[file,readFileSync(`src/shards/nalati-grasslands/${file}`)])));
+const intake=nalati.scalarBlocks;if(intake!==undefined)intake.prepare(originalGeographyFiles());
 const ground = nalati.ground,terrain = ground.terrain,colour = nalati.groundColor,surface = nalati.surfaceAt,forest = nalati.forest?.mask,map = nalati.minimap?.palette;
 function terrainOwner(value: ShardManifest['ground']): value is ShardManifest['ground'] & { terrain: ChunkTerrain } { return value.terrain !== undefined; }
 function mapOwner(value: MinimapPalette | undefined): value is MinimapPalette & { pois: NonNullable<MinimapPalette['pois']> } { return value?.pois !== undefined; }
