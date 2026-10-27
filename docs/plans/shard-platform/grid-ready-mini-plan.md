@@ -1,7 +1,7 @@
 # Grid-ready for one shard: mini plan for the builder (G557)
 
 **2026-10-27 (G784):** 9 of 10 shards are grid-ready. Nalati's row stays open until Nalati crosses under the G782 bar
-(every crossing under 5 s warm and under 8 s cold), measured in [grid-crossing](grid-crossing-mini-plan.md). Latest `5f1eadb19e` G780 reading: cold refused×3 (no commit); warm refused×3 (no commit); qualification stays open.
+(every crossing under 5 s warm and under 8 s cold), measured in [grid-crossing](grid-crossing-mini-plan.md). Latest `bc0c7cf54f` Nalati G780 reading: cold refused×3 (no commit); warm refused×3 (no commit); qualification stays open.
 
 Jake, 2026-10-21 ~08:20 Cancun: *"FFS grid readiness will never complete right? Make me a mini plan to complete grid
 readiness for one shard."* And: *"grid readiness should not be blocked on my iPhone; we should have a final iPhone
