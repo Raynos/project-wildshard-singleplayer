@@ -10,8 +10,8 @@ import { GridAssembly } from './assembly';
 import { LiveGridHost } from './live';
 import { PageResidency } from './pageResidency';
 
-// G663 remains the opaque/over-budget fallback. G723 opts in isolated factories only: a kept source plus one incoming
-// world may fit, but the source retires before destination entry; a U-turn reuses it and abandons the incoming guess.
+// T7 neighbours admit inert metadata and render tiles only. Actual entry retires
+// the departed whole source before allocating its destination and publishing it.
 const level: SimLevel = { version: 1, id: 'platform', seed: 1, ground: { size: 500, height: 0 },
   player: { at: { x: 0, y: 0, z: 0 }, yaw: 0, speed: 30 }, entities: [], quests: [],
   weapon: { id: 'none', shape: { kind: 'point', radius: 0 }, windup: 0, active: 0, recover: 0, cooldown: 0, range: 0, damage: 0, tags: [] } };
@@ -177,20 +177,21 @@ test('G723: prefetch reuses a consumed admission while its constructor is pendin
   const f = await fixture({ paired: true });
   try {
     await f.enterHome(); const leave = await f.live.prepare(f.home.instance, null); leave.commit();
-    f.control.holdIncoming = true; await f.approachEast();
+    f.control.holdIncoming = true;
+    const entering = f.live.prepare(null, f.east.instance); await f.settle();
     await f.live.prefetch([f.east.instance, f.east.instance, f.north.instance]);
     expect(f.admissions.filter(id => id === f.east.instance)).toHaveLength(1);
     expect(f.runtimes.filter(id => id === f.east.instance)).toHaveLength(1);
     expect(f.admissions.filter(id => id === f.north.instance)).toHaveLength(1);
     expect(f.live.ready(f.east.instance)).toBe(false);
-    expect(f.live.state().residents).toEqual([f.home.instance]);
+    expect(f.live.state().residents).toEqual([]);
     expect(f.live.state().pending).toContain(f.east.instance);
     if (f.control.finish === undefined) throw new Error('Missing held constructor');
-    f.control.finish(); await f.settle();
+    f.control.finish(); const enter = await entering;
     await f.live.prefetch([f.east.instance]);
     expect(f.admissions.filter(id => id === f.east.instance)).toHaveLength(1);
     expect(f.live.ready(f.east.instance)).toBe(true);
-    const enter = await f.live.prepare(null, f.east.instance); enter.commit();
+    enter.commit();
     expect(f.live.current()).toBe(f.east.instance);
     expect(f.events.indexOf(`disposed:${f.home.instance}`)).toBeLessThan(f.events.indexOf(`frame:${f.east.instance}`));
     expect(f.live.state().issues).toEqual({});
@@ -201,11 +202,13 @@ test('G723: failed construction keeps its original refusal and admits afresh onl
   const f = await fixture({ paired: true }), failure = new Error('incoming constructor refused');
   try {
     await f.enterHome(); const leave = await f.live.prepare(f.home.instance, null); leave.commit();
-    f.control.holdIncoming = true; await f.approachEast();
+    f.control.holdIncoming = true;
+    const entering = f.live.prepare(null, f.east.instance), refused = expect(entering).rejects.toBe(failure);
+    await f.settle();
     await f.live.prefetch([f.east.instance]);
     expect(f.admissions.filter(id => id === f.east.instance)).toHaveLength(1);
     if (f.control.reject === undefined) throw new Error('Missing held constructor');
-    f.control.reject(failure); await f.settle();
+    f.control.reject(failure); await refused;
     expect(f.live.refusal(f.east.instance)).toBe(failure);
     expect(f.live.ready(f.east.instance)).toBe(false);
     expect(f.cancelled.filter(id => id === f.east.instance)).toHaveLength(1);
@@ -225,7 +228,9 @@ test('G723: a queued destination still prefetches metadata before the previous c
   const f = await fixture({ paired: true });
   try {
     await f.enterHome(); const leave = await f.live.prepare(f.home.instance, null); leave.commit();
-    f.control.holdIncoming = true; await f.approachEast();
+    f.control.holdIncoming = true;
+    const first = f.live.prepare(null, f.east.instance), obsolete = expect(first).rejects.toThrow('Stale live frame preparation');
+    await f.settle();
     const entering = f.live.prepare(null, f.north.instance);
     await f.live.prefetch([f.north.instance]);
     expect(f.admissions.filter(id => id === f.north.instance)).toHaveLength(1);
@@ -233,10 +238,11 @@ test('G723: a queued destination still prefetches metadata before the previous c
     expect(f.created()).not.toContain(f.north.instance);
     expect(f.live.ready(f.north.instance)).toBe(false);
     if (f.control.finish === undefined) throw new Error('Missing held constructor');
-    f.control.finish(); const enter = await entering; enter.commit();
+    f.control.finish(); await obsolete;
+    const enter = await entering; enter.commit();
     expect(f.live.current()).toBe(f.north.instance);
     expect(f.admissions.filter(id => id === f.north.instance)).toHaveLength(1);
-    expect(f.cancelled.filter(id => id === f.east.instance)).toHaveLength(1);
+    expect(f.events).toContain(`disposed:${f.east.instance}`);
     expect(f.claims().some(row => row.owner === f.east.instance)).toBe(false);
     expect(f.live.state().issues).toEqual({});
   } finally { f.control.finish?.(); await f.settle(); f.close(); }
@@ -246,10 +252,12 @@ test('G723: disposal still refuses prefetch while a consumed constructor settles
   const f = await fixture({ paired: true });
   try {
     await f.enterHome(); const leave = await f.live.prepare(f.home.instance, null); leave.commit();
-    f.control.holdIncoming = true; await f.approachEast(); f.live.dispose();
+    f.control.holdIncoming = true;
+    const entering = f.live.prepare(null, f.east.instance), refused = expect(entering).rejects.toThrow('Live grid is disposed');
+    await f.settle(); f.live.dispose();
     expect(() => f.live.prefetch([f.east.instance])).toThrow('Live grid is disposed');
     if (f.control.finish === undefined) throw new Error('Missing held constructor');
-    f.control.finish(); await f.settle();
+    f.control.finish(); await refused; await f.settle();
     expect(f.live.ready(f.east.instance)).toBe(false);
     expect(f.claims().some(row => row.owner === f.east.instance)).toBe(false);
   } finally { f.control.finish?.(); await f.settle(); f.close(); }

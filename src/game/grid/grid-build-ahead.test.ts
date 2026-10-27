@@ -13,7 +13,7 @@ const level: SimLevel = { version: 1, id: 'platform', seed: 1, ground: { size: 5
   weapon: { id: 'none', shape: { kind: 'point', radius: 0 }, windup: 0, active: 0, recover: 0, cooldown: 0, range: 0, damage: 0, tags: [] } };
 
 for (const [axis, side] of [['x', 1], ['x', -1], ['z', 1], ['z', -1]] as const) {
-  test(`build ${axis} ${side} destination just after the source edge`, async () => {
+  test(`build ${axis} ${side} destination only on actual entry demand`, async () => {
     const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
     const assembly = new GridAssembly({ developer: false, devserver: false });
     const home = assembly.cell('driftwood-isle');
@@ -48,8 +48,10 @@ for (const [axis, side] of [['x', 1], ['x', -1], ['z', 1], ['z', -1]] as const) 
       expect(live.unload(home.instance)).toBe(true);
       player.position[axis] = side * (CHUNK_HALF + 0.5);
       live.beforeFixed();
-      // Still 21 metres before the old midpoint trigger: the build is already queued.
-      expect(live.state().pending).toContain(target.instance);
+      // Proximity admits immutable metadata; only real entry constructs a world.
+      expect(created).toEqual([home.instance]);
+      expect(live.state().pending).toEqual([]);
+      expect(live.ready(target.instance)).toBe(false);
       const enter = await live.prepare(null, target.instance); enter.commit();
       expect(created).toEqual([home.instance, target.instance]);
       expect(live.state().issues).toEqual({});
