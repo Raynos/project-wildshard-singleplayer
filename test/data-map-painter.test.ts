@@ -200,7 +200,7 @@ test('Driftwood rest assembly retains every native island copy and bridge plank'
   const { assembly, bridge, plan, byProto, cover, entryDecks } = await driftwoodMapAssembly(path => new Uint8Array(readFileSync(path)));
   const metadata = schema.parse(schema.object({ protos: schema.array(schema.object({ name: schema.string() })) }), JSON.parse(readFileSync('public/assets/models/driftwood-blender/island.json', 'utf8')));
   const placements = new Float32Array(Uint8Array.from(readFileSync('public/assets/models/driftwood-blender/placements.bin')).buffer);
-  const sea = schema.parse(schema.object({ WORLD_DROP: schema.number() }), JSON.parse(readFileSync('src/shards/driftwood-isle/boot/sea.generated.json', 'utf8')));
+  const sea = await import('../src/shards/driftwood-isle/generators/sea');
   const expected = new Map<string, number[]>();
   for (const family of plan.families) for (const index of family.indices) {
     const at = index * 10, proto = placements[at], scale = placements[at + 8];

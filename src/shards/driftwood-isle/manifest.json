@@ -326,8 +326,7 @@
     "ground": {
       "platform": "declared",
       "rows": {
-        "module": "./boot/ground.generated.json",
-        "export": "default"
+        "program": true
       }
     },
     "render": {

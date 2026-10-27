@@ -6,10 +6,12 @@ import { readNativeTerrain } from '../src/sdk/bake/terrain';
 import { driftwoodGroundBytes } from '../src/shards/driftwood-isle/generators/groundRows';
 import { driftwoodCapturePoses } from '../src/shards/driftwood-isle/generators/capturePoses';
 import { declaredGround } from '../src/game/shard/manifest';
-import groundRows from '../src/shards/driftwood-isle/boot/ground.generated.json' with { type: 'json' };
+import { driftwoodGroundDeclaration } from '../src/shards/driftwood-isle/generators/groundDeclaration';
 import source from '../src/shards/driftwood-isle/manifest.json' with { type: 'json' };
 import poses from '../src/shards/driftwood-isle/data/boot-poses.generated.json' with { type: 'json' };
 import manifest from '../src/shards/driftwood-isle/discovery.generated';
+
+const groundRows = driftwoodGroundDeclaration();
 
 test('offline capture poses preserve all original terrain-bound eyes and angles exactly', () => {
   const terrain = readNativeTerrain(driftwoodGroundBytes()), ground = terrainFieldFor(declaredGround(groundRows), 'driftwood-isle');
