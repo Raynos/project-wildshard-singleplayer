@@ -343,7 +343,14 @@ export function rebindBuild(output: BuildOutput, twins: ReadonlyMap<Node, Node>)
  * weakly, so a retired region's lights go and a build that read them dies with them. It keeps code and positions only:
  * no texture, value, buffer or material of the region it came from.
  */
-type KeptRef = { readonly compile: number } | { readonly lazy: number } | { readonly shared: WeakRef<Node>; readonly kind: string };
+type KeptRef = { readonly compile: number } | { readonly lazy: number } | { readonly shared: WeakRef<Node>; readonly kind: string }
+  | { readonly role: string };
+/**
+ * The scene inputs a kept build may read by role instead of by node (`keepBuild`'s `roles`): `role` names a node of an
+ * input that is made new for each visit (a region's sky PMREM), `inputs` are that input's own objects, which no other
+ * node the build keeps may hold. A restore asks the current scene for each role (`restoreBuild`'s `bind`).
+ */
+export interface KeptRoles { readonly role: (node: Node) => string | null; readonly inputs: readonly object[] }
 export interface KeptBuild {
   readonly vertexShader: string;
   readonly fragmentShader: string;
@@ -357,6 +364,9 @@ export interface KeptBuild {
   readonly lazy: readonly { readonly holder: number; readonly kind: unknown }[];
   /** an estimate of what the kept build holds (its code as UTF-16, plus its tables) */
   readonly bytes: number;
+  /** whether it reads a scene input by role (`KeptRoles`): 'none'; 'rebindable' when no other node it keeps holds that
+   *  input, so a restore may bind the current scene's in its place; 'fixed' when one does (only the same input binds) */
+  readonly roles: 'none' | 'rebindable' | 'fixed';
 }
 
 /** what kind of shared node a kept build read (a diagnostic): its class, its name, and a uniform's value class */
@@ -368,7 +378,7 @@ function sharedKind(node: Node): string {
 
 /** `output` (built from `shape`'s compile, with `lazy` uniforms) as positions and weak scene references; null when a
  *  lazy uniform's holder is not one of the compile's nodes */
-export function keepBuild(output: BuildOutput, shape: GraphShape, lazy: readonly LazyUniform[]): KeptBuild | null {
+export function keepBuild(output: BuildOutput, shape: GraphShape, lazy: readonly LazyUniform[], roles?: KeptRoles): KeptBuild | null {
   const index = new Map<Node, number>();
   shape.nodes.forEach((node, i) => { index.set(node, i); });
   const lazyIndex = new Map<Node, number>(), lazyRows: { holder: number; kind: unknown }[] = [];
@@ -377,11 +387,17 @@ export function keepBuild(output: BuildOutput, shape: GraphShape, lazy: readonly
     if (at === undefined) return null;
     lazyIndex.set(node, lazyRows.length); lazyRows.push({ holder: at, kind: node.constructor });
   }
+  let byRole = 0;
+  const shared: Node[] = [];
   const ref = (node: Node): KeptRef => {
     const l = lazyIndex.get(node);
     if (l !== undefined) return { lazy: l };
     const c = index.get(node);
-    return c !== undefined ? { compile: c } : { shared: new WeakRef(node), kind: sharedKind(node) };
+    if (c !== undefined) return { compile: c };
+    const role = roles?.role(node) ?? null;
+    if (role !== null) { byRole++; return { role }; }
+    shared.push(node);
+    return { shared: new WeakRef(node), kind: sharedKind(node) };
   };
   const ids = new Map<Uniform, number>(), uniforms: { name: string; type: string; ref: KeptRef }[] = [];
   const id = (entry: Uniform): number => {
@@ -394,7 +410,9 @@ export function keepBuild(output: BuildOutput, shape: GraphShape, lazy: readonly
   const vertex = output.uniforms.vertex.map(id), fragment = output.uniforms.fragment.map(id);
   return { vertexShader: output.vertexShader, fragmentShader: output.fragmentShader, uniforms, vertex, fragment, groups,
     updateNodes: output.updateNodes.map(ref), lazy: lazyRows,
-    bytes: 2 * (output.vertexShader.length + output.fragmentShader.length) + 64 * (uniforms.length + output.updateNodes.length) };
+    bytes: 2 * (output.vertexShader.length + output.fragmentShader.length) + 64 * (uniforms.length + output.updateNodes.length),
+    // one walk over every node it shares (scene lights and shadows reach deep graphs)
+    roles: byRole === 0 || roles === undefined ? 'none' : holdsAny(shared, roles.inputs) ? 'fixed' : 'rebindable' };
 }
 
 /**
@@ -403,7 +421,8 @@ export function keepBuild(output: BuildOutput, shape: GraphShape, lazy: readonly
  * 'released:<kind>' when a scene node it read has been collected (the kept build is dead; `sharedKind` names the node);
  * a reason when it cannot be bound.
  */
-export function restoreBuild(kept: KeptBuild, shape: GraphShape, object: THREE.Object3D, material: THREE.Material): BuildOutput | string {
+export function restoreBuild(kept: KeptBuild, shape: GraphShape, object: THREE.Object3D, material: THREE.Material,
+  bind?: (role: string) => Node | null): BuildOutput | string {
   const frame = new NodeFrame(); frame.object = object; frame.material = material;
   const lazyNodes: Node[] = [];
   for (const { holder, kind } of kept.lazy) {
@@ -418,10 +437,11 @@ export function restoreBuild(kept: KeptBuild, shape: GraphShape, object: THREE.O
     if (twin.node === null || twin.node.constructor !== kind) return 'a reference uniform cannot be made alike';
     lazyNodes.push(twin.node);
   }
-  let released: string | null = null;
+  let released: string | null = null, unbound: string | null = null;
   const resolve = (ref: KeptRef): Node | undefined => {
     if ('compile' in ref) return shape.nodes[ref.compile];
     if ('lazy' in ref) return lazyNodes[ref.lazy];
+    if ('role' in ref) { const bound = bind?.(ref.role) ?? null; if (bound === null) unbound ??= `unbound:${ref.role}`; return bound ?? undefined; }
     const node = ref.shared.deref();
     if (node === undefined) released ??= `released:${ref.kind}`;
     return node;
@@ -430,6 +450,7 @@ export function restoreBuild(kept: KeptBuild, shape: GraphShape, object: THREE.O
   for (const row of kept.uniforms) {
     const node = resolve(row.ref);
     if (released !== null) return released;
+    if (unbound !== null) return unbound;
     if (!(node instanceof UniformNode)) return 'a paired uniform is not a uniform node';
     uniforms.push(new NodeUniform(row.name, row.type, node));
   }
@@ -437,6 +458,7 @@ export function restoreBuild(kept: KeptBuild, shape: GraphShape, object: THREE.O
   for (const ref of kept.updateNodes) {
     const node = resolve(ref);
     if (released !== null) return released;
+    if (unbound !== null) return unbound;
     if (node === undefined) return 'a paired update node is missing';
     updateNodes.push(node);
   }

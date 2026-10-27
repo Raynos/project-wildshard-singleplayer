@@ -26,3 +26,24 @@ test('a kept build holds positions, not the first compile\'s nodes, and binds th
   expect(restored.updateNodes).toEqual([second[0]]);
   expect([restored.vertexShader, restored.fragmentShader]).toEqual(['v', 'f']);
 });
+
+test('a kept build reads a scene input by role: a restore binds the current one, and another node holding it fixes it', () => {
+  const first = [uniform(1)], width = uniform(512), texture = new THREE.Texture();
+  const sized = new NodeUniform('envWidth', 'float', width), own = new NodeUniform('tint', 'float', first[0] ?? width);
+  const output: BuildOutput = { vertexShader: 'v', fragmentShader: 'f', uniforms: { vertex: [], fragment: [own, sized] }, uniformGroups: {}, updateNodes: [] };
+  const roles = { role: (node: unknown): string | null => node === width ? 'environment:_width' : null, inputs: [texture] };
+  const kept = keepBuild(output, shape(first), [], roles);
+  if (kept === null) throw new Error('Missing kept build');
+  expect(kept.roles).toBe('rebindable');
+  expect(kept.uniforms.map(row => row.ref)).toEqual([{ compile: 0 }, { role: 'environment:_width' }]);
+  const next = uniform(1024), second = [uniform(2)];
+  const restored = restoreBuild(kept, shape(second), new THREE.Mesh(), new THREE.MeshBasicMaterial(), role => role === 'environment:_width' ? next : null);
+  if (typeof restored === 'string') throw new Error(restored);
+  expect(restored.uniforms.fragment.map(entry => entry.node)).toEqual([second[0], next]);
+  expect(restoreBuild(kept, shape(second), new THREE.Mesh(), new THREE.MeshBasicMaterial())).toBe('unbound:environment:_width');
+  // a shared node that holds the input itself (not by role) keeps the build to that input
+  const holder = new UniformNode<unknown, unknown>(texture), sampled = new NodeUniform('envMap', 'texture', holder);
+  const fixed = keepBuild({ ...output, uniforms: { vertex: [], fragment: [own, sized, sampled] } }, shape(first), [], roles);
+  expect(fixed?.roles).toBe('fixed');
+  expect(keepBuild(output, shape(first), [])?.roles).toBe('none');
+});

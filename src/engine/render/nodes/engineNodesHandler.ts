@@ -80,7 +80,7 @@ import { GraphCodeKeys } from './graphCodeKeys';
 import { NodeProgramVariants } from './nodeProgramVariants';
 import { classicModelUniform } from './nodeObjectUniforms';
 import { registerShadowDepthResolver } from '../shadowDepthVariants';
-import { bindLazy, buildCensus, buildReads, captureBuild, holdsAny, graphShape, keepBuild, lazyReads, pairShapes, rebindBuild, recordBuild, restoreBuild, reuseKey, unboundReads, type BuildCensus, type BuildOutput, type GraphShape, type KeptBuild, type LazyUniform } from './nodeBuildReuse';
+import { bindLazy, buildCensus, buildReads, captureBuild, holdsAny, type KeptRoles, graphShape, keepBuild, lazyReads, pairShapes, rebindBuild, recordBuild, restoreBuild, reuseKey, unboundReads, type BuildCensus, type BuildOutput, type GraphShape, type KeptBuild, type LazyUniform } from './nodeBuildReuse';
 import { graphNodeOwner } from './graphOwners';
 import { harnessPins } from '../../app/identity';
 
@@ -201,19 +201,42 @@ function fogOf(builder: NodeBuilder): THREE.Fog | THREE.FogExp2 | null {
 }
 function isDrawObject(value: unknown): value is THREE.Object3D { return value instanceof THREE.Object3D; }
 function isNode(value: object): value is Node<'vec4'> { return Reflect.get(value, 'isNode') === true; }
-/** `value`, a sample the build took of a PMREM node's atlas `sampler` (its class, reading `before`), copied to sample
- *  `next` (the new PMREM node's atlas, reading `after`) as `TextureNode.sample` makes one; null for any other value */
+/** the PMREM node fields a build reads: the atlas sampler, its texel width and height, its top mip */
+const PMREM_FIELDS = ['_texture', '_width', '_height', '_maxMip'] as const;
+/** a cube-UV atlas' height (its program layout), or null */
+function atlasHeight(texture: THREE.Texture): number | null {
+  const image: unknown = texture.image, height: unknown = typeof image === 'object' && image !== null ? Reflect.get(image, 'height') : undefined;
+  return typeof height === 'number' ? height : null;
+}
+/** a sample of the PMREM atlas `sampler` reading `texture`, as `TextureNode.sample` makes one: only its value reaches the
+ *  program (its code is the build's), so none of a lookup graph comes along */
+function freshSample(sampler: TextureNode, texture: THREE.Texture): TextureNode {
+  const copy = sampler.getBase().clone();
+  copy.uvNode = null; copy.levelNode = null; copy.biasNode = null; copy.compareNode = null; copy.depthNode = null;
+  copy.gradNode = null; Reflect.set(copy, 'offsetNode', null);
+  copy.value = texture; // its own texture before it follows the atlas, so it holds nothing else
+  copy.referenceNode = sampler.getBase();
+  return copy;
+}
+/** `value`, a sample the build took of a PMREM node's atlas `sampler` (its class), as a fresh sample of `next` (the new
+ *  PMREM node's atlas, reading `after`); null for any other value */
 function atlasSample(value: unknown, sampler: unknown, next: unknown, after: THREE.Texture): object | null {
   if (!(value instanceof TextureNode) || !(sampler instanceof TextureNode) || !(next instanceof TextureNode)
     || value.constructor !== sampler.constructor || value.getBase() !== sampler.getBase()) return null;
-  // only its value reaches the program (its code is the build's): none of the old sample's lookup graph, which holds the
-  // old PMREM node, comes along
-  const copy = value.clone();
-  copy.uvNode = null; copy.levelNode = null; copy.biasNode = null; copy.compareNode = null; copy.depthNode = null;
-  copy.gradNode = null; Reflect.set(copy, 'offsetNode', null);
-  copy.value = after; // its own texture before it follows the new atlas, so it holds nothing of the old
-  copy.referenceNode = next.getBase();
+  const copy = freshSample(next, after);
   return copy.value === after ? copy : null;
+}
+/** A kept build's roles for its environment's PMREM node `pmrem` (of `texture`): its fields by name, and any sample of its
+ *  atlas; the texture and the node are what no other kept node may hold for the build to bind another environment. */
+function environmentRoles(pmrem: object, texture: THREE.Texture): KeptRoles {
+  const fields = new Map<unknown, string>();
+  for (const field of PMREM_FIELDS) { const node: unknown = Reflect.get(pmrem, field); if (isNodeLike(node)) fields.set(Reflect.get(node, 'id'), field); }
+  const sampler: unknown = Reflect.get(pmrem, '_texture');
+  return { inputs: [texture, pmrem], role: node => {
+    const field = fields.get(node.id);
+    if (field !== undefined) return `environment:${field}`;
+    return sampler instanceof TextureNode && node instanceof TextureNode && node.getBase() === sampler.getBase() ? 'environment:sample' : null;
+  } };
 }
 /** any value that is a node */
 function isNodeLike(value: unknown): value is object { return typeof value === 'object' && value !== null && Reflect.get(value, 'isNode') === true; }
@@ -472,7 +495,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   private readonly reusableKeys = new WeakMap<THREE.Material, string>();
   /** per reuse key, a disposed source's build kept as code and positions (`keepBuild`: no nodes, textures or values of
    *  its region), oldest first; bounded by KEPT_BUILDS entries and KEPT_BYTES */
-  private readonly keptBuilds = new Map<string, { readonly build: KeptBuild; readonly binding: Omit<SceneBinding, 'parameters'> | null }>();
+  private readonly keptBuilds = new Map<string, { readonly build: KeptBuild; readonly binding: Omit<SceneBinding, 'parameters'> | null; readonly height: number | null }>();
   private keptBytes = 0;
   /** reuses served from a kept build (a re-entered region's programs) */
   keptReuses = 0;
@@ -995,9 +1018,14 @@ export class EngineNodesHandler extends WebGLNodesHandler {
       this.reusable.delete(key);
       const kept = this.keptBuilds.get(key);
       if (kept === undefined) return null;
-      const mismatch = this.sceneBindingMismatch(kept.binding);
-      if (mismatch !== null) { this.keptMisses[mismatch] = (this.keptMisses[mismatch] ?? 0) + 1; return null; }
-      const restored = restoreBuild(kept.build, shape, object, material);
+      const mismatch = this.sceneBindingMismatch(kept.binding), roles = kept.build.roles;
+      // a build that reads its environment by role binds the current one's (one atlas size), even a new one when nothing
+      // else it keeps holds the old
+      const bind = roles === 'none' || kept.height === null ? null : this.environmentBinder(kept.height);
+      const refused = mismatch !== null && !(mismatch === 'environment' && roles === 'rebindable') ? mismatch
+        : roles !== 'none' && bind === null ? 'environment' : null;
+      if (refused !== null) { this.keptMisses[refused] = (this.keptMisses[refused] ?? 0) + 1; return null; }
+      const restored = restoreBuild(kept.build, shape, object, material, bind ?? undefined);
       if (typeof restored === 'string' && restored.startsWith('released')) { this.keptMisses[restored] = (this.keptMisses[restored] ?? 0) + 1; this.dropKept(key); return null; }
       if (typeof restored === 'string') this.keptMisses[restored] = (this.keptMisses[restored] ?? 0) + 1;
       else this.keptReuses++;
@@ -1125,6 +1153,24 @@ export class EngineNodesHandler extends WebGLNodesHandler {
    * new environment's node in place of a build. Anything else that holds the old environment (a uniform group, an update
    * node, another uniform) keeps the full refresh. False when it could not rebind.
    */
+  /** The current scene's classic PMREM node for each environment role a kept build reads (`environmentRoles`), when that
+   *  environment is a cube-UV atlas of `height`; null otherwise. Each sample role gets its own fresh sample. */
+  private environmentBinder(height: number): ((role: string) => Node | null) | null {
+    const texture = this.currentBindingFacts()?.inputs?.environment;
+    if (!isTexture(texture) || texture.mapping !== THREE.CubeUVReflectionMapping || atlasHeight(texture) !== height) return null;
+    let node = this.environments.get(texture);
+    if (node === undefined) { node = nodeObject(new ClassicPMREMNode(texture)); this.environments.set(texture, node); }
+    const update: unknown = Reflect.get(node, 'updateBefore');
+    if (typeof update !== 'function') return null;
+    Reflect.apply(update, node, [this.frame]);
+    const pmrem = node, sampler: unknown = Reflect.get(pmrem, '_texture');
+    return role => {
+      if (role === 'environment:sample') return sampler instanceof TextureNode ? freshSample(sampler, texture) : null;
+      const value: unknown = role.startsWith('environment:') ? Reflect.get(pmrem, role.slice('environment:'.length)) : undefined;
+      return isNodeLike(value) && isNode(value) ? value : null;
+    };
+  }
+
   private rebindEnvironment(material: THREE.Material, program: unknown, binding: SceneBinding): boolean {
     const before = binding.inputs?.environment?.deref(), after = this.currentBindingFacts()?.inputs?.environment;
     if (!isTexture(before) || !isTexture(after) || before.mapping !== THREE.CubeUVReflectionMapping || after.mapping !== THREE.CubeUVReflectionMapping) return false;
@@ -1140,7 +1186,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     Reflect.apply(update, next, [this.frame]);
     // the old node's uniforms by id (a proxied node and its target share it), each to the new node's own
     const twins = new Map<unknown, unknown>();
-    for (const field of ['_texture', '_width', '_height', '_maxMip']) {
+    for (const field of PMREM_FIELDS) {
       const from: unknown = Reflect.get(old, field), to: unknown = Reflect.get(next, field);
       if (!isNodeLike(from) || !isNodeLike(to) || from.constructor !== to.constructor) return false;
       twins.set(Reflect.get(from, 'id'), to);
@@ -1390,11 +1436,13 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   private keepDisposed(material: THREE.Material): void {
     const entry = this.reusableBuilds.get(material), key = this.reusableKeys.get(material);
     if (entry === undefined || key === undefined || this.reusable.get(key)?.deref() !== material) return;
-    const build = keepBuild(entry.output, entry.shape, entry.lazy);
+    // its environment's PMREM read by role: the next visit's sky makes a new one of the same size (G782)
+    const environment = entry.binding?.inputs?.environment?.deref(), pmrem = isTexture(environment) ? this.environments.get(environment) : undefined;
+    const build = keepBuild(entry.output, entry.shape, entry.lazy, pmrem === undefined || !isTexture(environment) ? undefined : environmentRoles(pmrem, environment));
     if (build === null) return;
     const binding = entry.binding === null ? null : { scene: entry.binding.scene, rawKey: entry.binding.rawKey, lights: entry.binding.lights, inputs: entry.binding.inputs };
     this.dropKept(key);
-    this.keptBuilds.set(key, { build, binding }); this.keptBytes += build.bytes;
+    this.keptBuilds.set(key, { build, binding, height: isTexture(environment) ? atlasHeight(environment) : null }); this.keptBytes += build.bytes;
     for (const [oldest] of this.keptBuilds) {
       if (this.keptBuilds.size <= KEPT_BUILDS && this.keptBytes <= KEPT_BYTES) break;
       this.dropKept(oldest);
