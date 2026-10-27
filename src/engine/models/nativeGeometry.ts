@@ -12,7 +12,20 @@ const semantics: Readonly<Record<string, string>> = { POSITION: 'position', NORM
 function plain(attribute: unknown): unknown {
   if (!(attribute instanceof InterleavedBufferAttribute)) return attribute;
   const data = attribute.data, source: TypedArray = data.array, out = new (source.constructor as new (length: number) => TypedArray)(attribute.count * attribute.itemSize);
-  for (let i = 0; i < attribute.count; i++) for (let c = 0; c < attribute.itemSize; c++) out[i * attribute.itemSize + c] = source[i * data.stride + attribute.offset + c] ?? 0;
+  const size = attribute.itemSize, stride = data.stride;
+  // Integer storage has no floating NaN conversion to preserve.
+  if (stride === size && attribute.offset === 0 && !(source instanceof Float32Array) && !(source instanceof Float64Array)) out.set(source);
+  else if (size >= 1 && size <= 4 && Number.isInteger(size)) {
+    // Native channels have one to four words. Advance both cursors once per
+    // vertex, rather than multiplying them again for every padded word.
+    let target = 0, at = attribute.offset;
+    for (let i = 0; i < attribute.count; i++, at += stride) {
+      out[target++] = source[at] ?? 0;
+      if (size > 1) out[target++] = source[at + 1] ?? 0;
+      if (size > 2) out[target++] = source[at + 2] ?? 0;
+      if (size > 3) out[target++] = source[at + 3] ?? 0;
+    }
+  } else for (let i = 0; i < attribute.count; i++) for (let c = 0; c < size; c++) out[i * size + c] = source[i * stride + attribute.offset + c] ?? 0;
   return new BufferAttribute(out, attribute.itemSize, attribute.normalized);
 }
 
