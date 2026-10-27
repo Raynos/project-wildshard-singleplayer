@@ -300,7 +300,7 @@ Each engineering slice below is at most one hour; milestone measurements stay se
 | T6.2 Presentation lease / rebind | in flight (reading at plan end; `0bec059f9f`, sp-o3) | Entry 5x5 census: Pine dormant-only ~14.4 MB GPU (antler-king and two bear rigs, 5 bear coats), above its T0 band; DW ~0 (one shared creature bank); Nalati marginal (bitmap coats, not leasable). Last-reader lease of file-backed KTX2 textures: a model asleep 10 s gives them back unless an awake model of any factory reads them; a waking model stays dormant until they are refilled into the same textures (no rebind, no pop-in); generic, Debug Tile residency only. DW boar-fight Chromium capture at plan end. |
 | T3.I Instanced recipe parts by tile | done (sp-o5, `06d63e5b21`) | A step's instanced part sorts its instances once by tile; one draw whose first `count` instances are the resident tiles', every per-instance channel compacted alike. Parts with their own per-frame hook (a culler) or in one tile stay whole. Measured at Driftwood's spawn: 253/334 draws and triangles unchanged before/after (its foliage already streams as cove dressing); generic for recipe parts. |
 | T8.1 Complete-L0 bake fences | done (`7093891d97`) | All 24 products declare 64 L0 slots; strict caps and the exact 6/4 exception remain. |
-| T8.2 Driftwood lossless route | in flight (sp-x9; reading at plan end) | Coordinator reassigns the bounded tile2/4 route to sp-x9. Generic optional named encoder follows compression selection and precedes byte-derived hash/cost publication, on the defining Pine SDK boundary `88fd3ebe2b`. Existing public bytes/defaults, cap accounting and 6/4 exception remain unchanged. Earlier sizing remains evidence, not acceptance: tile2/4 saves6778B delivered;3/1 and3/3 gzip grows. |
+| T8.2 Driftwood lossless route | in flight (reading at plan end; source this commit, sp-x9) | G790 supersedes low-value wait: generic named-tile encoder runs before hash/cost derivation; Driftwood opts only 0/2/4 into strict gzip-9 lossless meshopt. Exact retained words/scene and byte/cost record below. Remove only its old wire debt; all other caps/rows and Jake B remain. Product/GC reading stays at plan end. |
 | T8.3 Occupied L1 appearance | in flight (reading at plan end, G780) (sp-o5; G748.5 Sky `60535f5995`, G748.6 Driftwood `806ea146aa`, Nine `82ac81812d`, Nalati `4177cc91fc`, G748.7 Pine `f18c504569`) | Real coarse stand-ins for occupied tiles beyond the render ring, per shard in its own style. |
 | G748.1 Entered far stand-in | done (sp-o5, this code commit; Developer) | The entered cell draws its own near view beyond the render ring: ground triangles (all corners within 1.2 m of its terrain) left to the real ground, the ring's tiles masked per fragment (8 x 8 positional far mask). No new bake or file. |
 | G748.2 Per-shard check | done (sp-o5, `dc2e445ae6`) | Opt-in per shard (`world.assembly` row `farStandIn`): Driftwood gains its far palms; Pine and Nalati draw their far content whole today (no change); Nine draws its city whole and the stand-in only darkened it (left out). Sky, Sunscar, template and plots run no world assembly. |
@@ -356,7 +356,7 @@ geometry reader's release already retire transport through verified rereads.
 
 | B tile | Raw GLB B | Meshopt GLB B | Raw gzip-9 B | Meshopt gzip-9 B | Decision |
 |---|---:|---:|---:|---:|---|
-| 2/4 | 421,392 | 204,840 | 112,760 | 105,982 | Skip: 50–80 build-only lines for -6,778 B delivered is low value |
+| 2/4 | 421,392 | 204,840 | 112,760 | 105,982 | In flight T8.2 / G790: source this commit, -6,778 B gzip; decoded charge recorded below |
 | 3/1 | 375,648 | 188,156 | 96,999 | 101,823 | Hold tested lossless route; +4,824 B delivered |
 | 3/3 | 308,860 | 156,748 | 83,325 | 97,667 | Hold tested lossless route; +14,342 B delivered |
 
@@ -932,3 +932,55 @@ migrations; no new preview, reading, product build or render gain is claimed.
 | Slice | State | Current source qualification |
 |---|---|---|
 | T8.Template | in flight (reading at plan end), source already tiled | One own G773 product build PASS4.86s,64L0/16L1,16 full5x5 windows and no debt under the maintained hash/receipt/cap checker. Critical272KB, tile closure4120KB, library909KB,far571KB,total unique5862KB (rounded decimal KB). No geometry/cap/fixture change or repeated product build; no preview/reading. |
+
+
+### T8.2 named-tile lossless encoder (2026-10-27, sp-x9)
+
+**In flight (reading at plan end G780; source this commit).** G790
+supersedes the old low-value wait. Split agreed with sp-x2: x9 owns
+this compiler/Driftwood slice; x2 keeps T8/T10 and its Pine work.
+Consume the defining 88fd3ebe2b tileCompression/save producer and its
+encodeTileBlob option without carrying any peer WIP.
+
+`bakeProps` invokes the optional named byte encoder after existing
+compression selection and before store derives the hash and GLB cost.
+Copy input/output to prevent retained callback storage mutating emitted
+assets. Only tile blobs invoke it; default bytes, libraries, panels and
+far proxies keep their existing paths. Driftwood opts only
+`props.0.2.4` into `meshoptTileBytes`; every other name returns unchanged
+bytes. The shared build-only codec preserves views/scene data and keeps
+raw bytes unless gzip-9 strictly improves. No quantization, reordering,
+shard branch in SDK, runtime codec, Vite plugin or generated-src payload.
+
+Exact read-only retained 0/2/4 asset measurement (not a rebuilt current
+product/native-memory result), sourceHash
+`1b64ab19d42410d4f85b0531e8e25b7e571d0c3f21dd29b5adb3ef1bc5d5ed57`:
+
+| Parsed metric (bytes except geometry counts) | Raw | Encoded | Delta |
+|---|---:|---:|---:|
+| Wire | 421,392 | 204,840 | -216,552 |
+| gzip-9 | 112,760 | 105,982 | -6,778 |
+| Decoded charge | 421,364 | 624,716 | +203,352 |
+| GPU charge | 419,904 | 419,904 | 0 |
+| Decoded + GPU | 841,268 | 1,044,620 | +203,352 |
+| Triangles / draws | 5,832 / 1 | 5,832 / 1 | 0 / 0 |
+
+Raw SHA256 `ef3ade4b13725e381932f3297c8af756a40ab5d20455e5b960eb6d02334188bb`;
+encoded SHA256 `1e22b047aef8e82678d6b1de691913245b451c0c6d458b18a1e84d9182aaad7d`.
+Both decoded buffer-view hashes and all nontransport scene metadata are
+exact. Original section/asset hashes and index immutability are checked
+before/after reading. Full facts: tmp/sp-x9-t82/bytes-costs.json.
+The compiler uses current admission costs, not a manual decoded discount;
+the historical abandoned proposal's reserve above is not a new native
+measurement. Remove only the 421,392 B tile/0/2/4 wire debt, now below
+the unchanged 300,000 B L0 cap. Keep all other debts, Jake's B/6/4,
+3/1 and 3/3 unchanged. No cap or resident accounting is relaxed.
+
+Source controls cover exact decoded views, hash/cost-before-emission,
+unselected rows, library isolation and callback backing ownership.
+Scoped types and touched typed lint/ratchet pass. SDK declaration build
+passes within the affected-layer check, which still reports existing
+Nine signAtlasOutput node:zlib type admission (D95). Full ratchet retains
+the independent global audit (D94). No test suite, product build,
+browser, GC or Simulator reading under G769; retained-byte encoding is
+the requested exact cost record, not plan-end product/GC qualification.

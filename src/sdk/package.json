@@ -9,6 +9,7 @@
     "./dist/*/**/*"
   ],
   "exports": {
+    "./bake/tileEncoder": "./bake/tileEncoder.ts",
     "./bake/wholePartition": "./bake/wholePartition.ts",
     "./bake/typedDataBank": "./bake/typedDataBank.ts",
     "./bake/basisGlb": "./bake/basisGlb.ts",

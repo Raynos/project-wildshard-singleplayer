@@ -150,19 +150,20 @@ export function partitionWholeGeometry(sourceGeometry: BufferGeometry, transform
  *  channel cannot be stored that way. A vec4 normal is a shader channel and stays as it is. */
 /** I3: the shape's position grid in its own space (RM8.1's power-of-two grid: the finest step its extent fits in 16 bits),
  *  or none when a position is not plain float32. */
-function wholeGrid(g: BufferGeometry): TileGrid | undefined {
+export function wholeGrid(g: BufferGeometry): TileGrid | undefined {
   const position = g.getAttribute('position');
   if (!(position instanceof BufferAttribute) || !(position.array instanceof Float32Array) || position.itemSize !== 3) return undefined;
   const box = new Box3().setFromBufferAttribute(position);
   try { return tileGrid(box); } catch { return undefined; }
 }
 /** A partition's float positions as unnormalized Int16 on `grid` (within half its step). */
-function gridPositions(g: BufferGeometry, grid: TileGrid): void {
+export function gridPositions(g: BufferGeometry, grid: TileGrid): void {
   const position = g.getAttribute('position'), out = new Int16Array(position.count * 3);
   for (let i = 0; i < position.count; i++) for (let c = 0; c < 3; c++) out[i * 3 + c] = Math.round((position.getComponent(i, c) - (grid.origin[c] ?? 0)) / grid.step);
   g.setAttribute('position', new BufferAttribute(out, 3));
 }
-function compactWholeChannels(g: BufferGeometry): boolean {
+/** I3: Int8 normals and Uint8 colours in place when every float value fits (false, unchanged, when neither does). */
+export function compactWholeChannels(g: BufferGeometry): boolean {
   const normal = g.hasAttribute('normal') ? g.getAttribute('normal') : undefined, colour = g.hasAttribute('color') ? g.getAttribute('color') : undefined;
   const floatNormal = normal instanceof BufferAttribute && normal.itemSize === 3 && normal.array instanceof Float32Array;
   const okNormal = normal === undefined || floatNormal || (normal instanceof BufferAttribute && normal.itemSize === 4)
@@ -173,6 +174,15 @@ function compactWholeChannels(g: BufferGeometry): boolean {
   if (floatNormal) g.setAttribute('normal', new BufferAttribute(Int8Array.from(normal.array, value => Math.max(-127, Math.min(127, Math.round(value * 127)))), 3, true));
   if (floatColour) g.setAttribute('color', new BufferAttribute(Uint8Array.from(colour.array, value => Math.round(value * 255)), colour.itemSize, true));
   return true;
+}
+/** The look graphs (id -> `{ nodes: { [id]: { op } } }`) that read a vertex's object-space position (`positionLocal` /
+ *  `positionGeometry`): a shape drawn through one keeps its exact float positions, never a grid. */
+export function objectSpaceLooks(graphs: Readonly<Record<string, unknown>>): Set<string> {
+  const reads = (graph: unknown): boolean => {
+    if (typeof graph !== 'object' || graph === null || !('nodes' in graph) || typeof graph.nodes !== 'object' || graph.nodes === null) return false;
+    return Object.values(graph.nodes).some((node: unknown) => typeof node === 'object' && node !== null && 'op' in node && (node.op === 'positionLocal' || node.op === 'positionGeometry'));
+  };
+  return new Set(Object.entries(graphs).filter(([, graph]) => reads(graph)).map(([id]) => id));
 }
 /** Content-addressed GLBs and tile rows, including actual budget numbers and an independent far proxy (none for whole shapes alone). */
 export interface BakedProps {
@@ -242,7 +252,10 @@ export function bakeProps(source: PropsBakeSource, terrain: readonly Shardfile['
   const save = (primitives: readonly GlbPrimitive[], name: string, tile = false) => {
     const original = staticGlb(primitives, name);
     const packed = tile && source.tileCompression === 'meshopt' ? compressGlb(original) : original;
-    const row = store(packed.length < original.length ? packed : original, 'glb');
+    const selected = packed.length < original.length ? packed : original;
+    const encoded = tile && source.encodeTileBlob !== undefined ? source.encodeTileBlob(name, Uint8Array.from(selected)) : selected;
+    if (!(encoded instanceof Uint8Array) || !(encoded.buffer instanceof ArrayBuffer)) throw new Error('Tile encoder must return owned numeric bytes');
+    const row = store(tile && source.encodeTileBlob !== undefined ? Uint8Array.from(encoded) : encoded, 'glb');
     if (texture !== null) { row.dependencies = [texture.hash]; const prior = files.find((f) => f.hash === row.hash); if (prior !== undefined) prior.dependencies = row.dependencies; section.textures.push({ model: row.hash, colour: texture.hash }); }
     return row;
   };

@@ -95,6 +95,18 @@ header and bank in the source/cache inputs. Do not statically import a
 `*.generated.json` header: that import is a per-file shrink-only lint ratchet.
 This Node reader is for author programs, not a runtime or config declaration.
 
+**Named tile encoding.** `bakeOwned` / `bakeProps` accept the build-only
+`props.encodeTileBlob(name, bytes)` / `encodeTileBlob` callback. It sees a
+stable name such as `props.0.2.4`, after any existing tile compression but
+before the compiler hashes and parses the final GLB costs. Both sides of
+the callback are copied, so retained encoder buffers cannot mutate emitted
+assets. Libraries, panels and far proxies never invoke it; omitting the
+callback preserves the existing path. `@wildshard/sdk/bake/tileEncoder`
+defines `meshoptTileBytes`: lossless meshopt buffer views, selected only
+when gzip-9 is strictly smaller. It never quantizes or reorders geometry.
+Decoded/GPU/draw costs still come from admission of the returned bytes;
+wire savings do not discount the decoder's memory charge.
+
 To start a shard, run `pnpm gen` in this repository before copying
 `src/shards/_template` to a fresh project folder. This restores its pinned CPU
 outputs from retained authoring sources; then install

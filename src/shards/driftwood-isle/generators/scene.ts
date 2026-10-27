@@ -1,6 +1,7 @@
 import { InstancedMesh, Mesh, MeshStandardMaterial, Scene, type BufferGeometry } from 'three';
 import { bakeOwned, publishScene, BakedPiece, WholeShape, type BakedScene } from '@wildshard/sdk/bake';
 import { completeEmptyL1Tiles } from '@wildshard/sdk/bake/tileGrid';
+import { meshoptTileBytes } from '@wildshard/sdk/bake/tileEncoder';
 import { driftwoodFixedSource } from './fixedSource';
 import { bridgeUnitGeometries } from './ropeBridge';
 import { originalBridgeDecks } from './driftwoodBridge.mjs';
@@ -36,7 +37,10 @@ export function driftwoodOwnedScene(head: BufferGeometry, aoBytes: Uint8Array): 
       scene.add(new BakedPiece(key, [[key, mesh]], [], { nativeAttributes: true, compactIndex: true, nodeExtras: () => ({ wholePartition: metadata }) }));
     }
   }
-  const baked = bakeOwned(scene, { slug: 'driftwood-isle', name: 'Driftwood Isle' });
+  const baked = bakeOwned(scene, { slug: 'driftwood-isle', name: 'Driftwood Isle' }, { props: {
+    // T8.2: only this named tile saves delivered gzip bytes; keep every other wire identity.
+    encodeTileBlob: (name, bytes) => name === 'props.0.2.4' ? meshoptTileBytes(bytes) : bytes,
+  } });
   baked.shardfile.tiles = completeEmptyL1Tiles(baked.shardfile.tiles);
   material.dispose();
   return { baked, fixed };
