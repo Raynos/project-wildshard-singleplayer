@@ -1,4 +1,4 @@
-// Frozen pre-C11 controller/entry oracle. Only import paths and exported class name differ.
+// Frozen pre-C11 controller/entry oracle. Only imports, exported class name and explicit retained clock capability differ.
 import * as THREE from 'three';
 import { app } from '@wildshard/engine/app/runtime';
 import { practiceFps } from '@wildshard/engine/core/tier';
@@ -46,7 +46,7 @@ class MountedCourseController implements CourseController {
 
   constructor(private readonly host:PlaygroundHost,rows:RidingPracticeLayout,
     mount:ReturnType<typeof pageRidingMount>,program:ReturnProgram,private readonly room:OriginalPracticeCourse,map:RoomMap) {
-    this.rows=rows;this.mount=mount;this.run=new NumericCourse(host,room.origin,rows,program);
+    this.rows=rows;this.mount=mount;this.run=new NumericCourse(host,room.origin,rows,program,()=>performance.now()/1000);
     const o=room.origin,lap=rows.road.map(([x,z])=>[o.x+x,o.z+z]as const);this.road=[...lap,...lap.slice(1)];
     const mark:RoomMarker={x:0,z:0},marks=[mark],none:RoomMarker[]=[];
     this.map={...map,markers:()=>{const h=this.horse;if(h===null||h.hidden)return none;mark.x=h.position.x;mark.z=h.position.z;return marks;}};
@@ -129,7 +129,7 @@ class HookCourseController implements CourseController {
 
   constructor(host:PlaygroundHost,layout:HookPracticeLayout,program:ReturnProgram,private readonly room:OriginalPracticeCourse,map:RoomMap) {
     this.host=host;this.row=layout.course;this.map=map;
-    this.run=new NumericCourse(host,room.origin,layout,program);
+    this.run=new NumericCourse(host,room.origin,layout,program,()=>performance.now()/1000);
     const o=room.origin,hooks=layout.hooks.map(h=>new THREE.Vector3(o.x+h.x,o.y+h.y,o.z+h.z));
     this.course={name:room.title,hooks};
   }

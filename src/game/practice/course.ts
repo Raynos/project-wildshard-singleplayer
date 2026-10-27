@@ -31,7 +31,7 @@ class CourseController {
   constructor(private readonly host:PlaygroundHost,layout:PracticeCourseRows['layout'],program:ReturnProgram,mount:ReturnType<typeof pageRidingMount>|null,
     private readonly rows:PracticeControllerRows,private readonly room:PracticeCourse,map:RoomMap) {
     const row=rows.entry;
-    this.run=new NumericCourse(host,room.origin,layout,program);
+    this.run=new NumericCourse(host,room.origin,layout,program,()=>app.clock.now);
     const o=room.origin;
     if(row.kind==='mount'){
       if(mount===null)throw new Error('Practice needs its entered mount');
@@ -92,7 +92,7 @@ class CourseController {
   update(dt:number):void {
     if(!this.available)return;
     const player=this.host.player;if(player.hover)player.setHover(false);
-    const mounted=this.observe(),now=performance.now()/1000,lap=this.run.state.lap;
+    const mounted=this.observe(),now=app.clock.now,lap=this.run.state.lap;
     const out=this.run.step(dt,{now,mounted:Number(mounted)}),view=this.rows.view,state=this.run.state;
     if(view.kind==='laps'){
       const labels=view.words;
@@ -112,7 +112,7 @@ class CourseController {
         else if(state.phase===1)this.room.chip.status(pad!==null?fill(labels.running,{pad}):fill(labels.between,{reached:out['reached']??0,goals:view.goals}),'go');
         if(out['fell']===1){const checkpoint=this.pad(state.checkpoint);this.run.place(out);this.host.toast(fill(labels.fell,{pad:checkpoint}));}
       }
-      this.room.chip.time(this.run.time(state.phase===1?performance.now()/1000:0),this.run.best);
+      this.room.chip.time(this.run.time(state.phase===1?app.clock.now:0),this.run.best);
     }
   }
 }

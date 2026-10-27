@@ -76,13 +76,13 @@ test('numeric presenter keeps original native reset coordinates, velocity policy
   const player=legacyDouble<PlaygroundHost['player']>({position,velocity,onGround:true,pitch:0,spawn});
   const host=legacyDouble<PlaygroundHost>({player}),scope=new Scope('real course native presenter');
   try {
-    const origin={...horse.fieldAt,y:3000},run=new NumericCourse(host,origin,horse,ReturnProgram.page(horse.program,scope));
+    const origin={...horse.fieldAt,y:3000},run=new NumericCourse(host,origin,horse,ReturnProgram.page(horse.program,scope),()=>0);
     run.reset();const px=origin.x+horse.riderStart.x,pz=origin.z+horse.riderStart.z;
     const yaw=Math.atan2(-((origin.x+horse.horseStart.x)+horse.shoulder-px),-((origin.z+horse.horseStart.z)-pz));
     const args=spawn.mock.calls[0];if(args===undefined)throw new Error('No native reset');
     [px,pz,yaw,3000].forEach((value,index)=>{expect(Object.is(args[index],value)).toBe(true);});
     expect(Object.is(player.pitch,horse.riderPitch)).toBe(true);expect(velocity.toArray()).toEqual([1,2,3]);
-    const hook=new NumericCourse(host,{x:11,y:3000,z:-9},{frame:practiceFrame(hookRows),sampleEpsilon:1e-9},checkpoints(scope.child('checkpoint room')));
+    const hook=new NumericCourse(host,{x:11,y:3000,z:-9},{frame:practiceFrame(hookRows),sampleEpsilon:1e-9},checkpoints(scope.child('checkpoint room')),()=>0);
     hook.reset();expect(velocity.toArray()).toEqual([0,0,0]);
     const project=vi.spyOn(ReturnProgram.prototype,'project');try {
       for(let index=0;index<60;index++)run.step(1/60,{now:index/60,mounted:0});expect(project).toHaveBeenCalledTimes(8);
@@ -97,9 +97,31 @@ test('both real courses use identical compiled code with separately admitted par
   const scope=new Scope('two admitted rooms'),position=new Vector3(0,3000,0),player=legacyDouble<PlaygroundHost['player']>({position,velocity:new Vector3(),onGround:true,pitch:0,spawn:()=>undefined});
   const host=legacyDouble<PlaygroundHost>({player});
   try{
-    const a=new NumericCourse(host,{...horse.fieldAt,y:3000},horse,ReturnProgram.page(horse.program,scope.child('oval')));
-    const b=new NumericCourse(host,{x:0,y:3000,z:0},{frame:practiceFrame(hookRows),sampleEpsilon:1e-9},checkpoints(scope.child('checkpoints')));
+    const a=new NumericCourse(host,{...horse.fieldAt,y:3000},horse,ReturnProgram.page(horse.program,scope.child('oval')),()=>0);
+    const b=new NumericCourse(host,{x:0,y:3000,z:0},{frame:practiceFrame(hookRows),sampleEpsilon:1e-9},checkpoints(scope.child('checkpoints')),()=>0);
     a.reset();b.reset();expect(a.state.running).toBe(0);expect(b.state.phase).toBe(0);
     expect(a.step(.1,{now:1,mounted:0})).toHaveProperty('courseFell');expect(b.step(.1,{now:1})).toHaveProperty('pad');
   }finally{scope.dispose();}
+});
+
+test('numeric course samples its explicit clock before cadence and keeps explicit frame overrides', () => {
+  const player = legacyDouble<PlaygroundHost['player']>({ position: new Vector3(), velocity: new Vector3(), onGround: true, pitch: 0, spawn: () => undefined });
+  const host = legacyDouble<PlaygroundHost>({ player }), scope = new Scope('owned course clock');
+  let seconds = 10;
+  const now = vi.fn(() => seconds);
+  const project = vi.spyOn(ReturnProgram.prototype, 'project');
+  try {
+    const run = new NumericCourse(host, { ...horse.fieldAt, y: 3000 }, horse, ReturnProgram.page(horse.program, scope), now);
+    run.reset();
+    expect(now).toHaveBeenCalledTimes(1);
+    run.step(0.04);
+    expect(now).toHaveBeenCalledTimes(2);
+    seconds = 10.06;
+    run.step(0.06);
+    expect(now).toHaveBeenCalledTimes(3);
+    expect(project.mock.calls.at(-1)?.[1]['now']).toBe(10.06);
+    run.step(0.1, { now: 42 });
+    expect(now).toHaveBeenCalledTimes(3);
+    expect(project.mock.calls.at(-1)?.[1]['now']).toBe(42);
+  } finally { project.mockRestore(); scope.dispose(); }
 });

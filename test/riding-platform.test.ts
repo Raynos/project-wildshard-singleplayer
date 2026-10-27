@@ -285,7 +285,9 @@ test('shared controller retains the original mounted HUD, fall/reset and clock c
     const f=fixture('horse',{walk:1.8,trot:4.5,canter:8.5,gallop:13}),rows=horseCourseRows(NALATI_KOKPAR.course),trace:unknown[]=[];
     const previousScope=pageApp.levelScope,previousState=pageApp.state;pageApp.levelScope=f.scope;
     let update:Parameters<PlaygroundHost['game']['onUpdate']>[0]=()=>undefined,t=0;
-    const timer=vi.spyOn(performance,'now').mockImplementation(()=>{trace.push('clock');return ++t*1000;});
+    const now=():number=>{trace.push('clock');return ++t;};
+    const timer=Course===OriginalPracticeCourse?vi.spyOn(performance,'now').mockImplementation(()=>now()*1000)
+      :vi.spyOn(pageApp.clock,'now','get').mockImplementation(now);
     f.player.mountedOn=null;f.animals.spawn=()=>f.actor;
     f.actor.place=(x,z,yaw)=>{trace.push(['actor.place',x,z,yaw]);f.actor.position.set(x,0,z);f.actor.yaw=yaw;};
     f.player.spawn=(x,z,yaw,y)=>{trace.push(['player.spawn',x,z,yaw,y]);f.player.position.set(x,y??0,z);f.player.yaw=yaw;};
