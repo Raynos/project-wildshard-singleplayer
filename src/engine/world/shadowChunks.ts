@@ -79,20 +79,12 @@ function triangles(g: THREE.BufferGeometry): number {
 }
 
 const isMesh = (o: THREE.Object3D): o is THREE.Mesh => (o as Partial<THREE.Mesh>).isMesh === true;
-const IDENTITY = new THREE.Matrix4().elements;
-/** an InstancedMesh of one instance at the identity, with no instance colour or morph: its draw is its plain mesh's */
-function singleIdentity(o: THREE.Object3D): boolean {
-  if (!(o instanceof THREE.InstancedMesh) || o.count !== 1 || o.instanceColor !== null || o.morphTexture !== null) return false;
-  const m = o.instanceMatrix.array;
-  return IDENTITY.every((value, i) => m[i] === value);
-}
 
 function eligible(o: THREE.Object3D): o is THREE.Mesh {
   if (!isMesh(o) || !o.castShadow || whole.has(o)) return false;
   // a split mesh and the pieces it made are marked: the walk passes them before the prototype tests
   if ((o.userData as ChunkUserData).shadowChunked === true) return false;
-  // one identity instance (a merged cell drawn through its material's instanced program) splits as the plain mesh it is
-  if (('isInstancedMesh' in o && !singleIdentity(o)) || 'isSkinnedMesh' in o || 'isBatchedMesh' in o) return false;
+  if ('isInstancedMesh' in o || 'isSkinnedMesh' in o || 'isBatchedMesh' in o) return false;
   const mesh = o;
   if (Array.isArray(mesh.material)) return false;
   const g = mesh.geometry;

@@ -356,8 +356,8 @@ function meshOf(part: ModelPart, geometry: THREE.BufferGeometry = part.geometry)
 }
 
 /** a part as a one-copy InstancedMesh at its own origin (the instanced program variant the world draws it with) */
-function instanceOf(part: ModelPart, geometry: THREE.BufferGeometry = part.geometry): THREE.InstancedMesh {
-  const im = new THREE.InstancedMesh(geometry, part.material, 1);
+function instanceOf(part: ModelPart): THREE.InstancedMesh {
+  const im = new THREE.InstancedMesh(part.geometry, part.material, 1);
   im.castShadow = part.castShadow ?? false;
   im.receiveShadow = part.receiveShadow ?? false;
   if (part.customDepthMaterial) im.customDepthMaterial = part.customDepthMaterial;
@@ -556,10 +556,7 @@ function* drawMergedSteps<P extends object>(def: ModelDef<P>, pls: readonly Plac
       for (const { part, geos } of byMat.values()) {
         const geo = mergeGeometries(geos, false);
         yield* geometryBoundsSteps(geo, 'sphere');
-        // js-heap H1: one identity instance, so a part material the world also draws instanced (a look library's shared
-        // material) keeps one program: three re-selects a program (getParameters and its key) whenever a material's
-        // draws switch between instanced and plain objects. The same transform; shadow chunking splits it as a plain mesh.
-        const mesh = instanceOf(part, geo);
+        const mesh = meshOf(part, geo);
         mesh.name = def.id;
         meshes.push(mesh);
         yield;
