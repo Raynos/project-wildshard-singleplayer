@@ -170,11 +170,13 @@ export async function committedFastChecks(root,base,tip,phase,paths) {
         catch(error) {failures.push(error instanceof Error?error.message:String(error));}
       }
       const commits=execFileSync('git',['rev-list','--reverse',`${base}..${tip}`],{cwd:root,encoding:'utf8'}).trim().split('\n').filter(Boolean);
+      const approvals=[];
       for(const commit of commits) {
         const before=gitSourceView(root,`${commit}^`),after=gitSourceView(root,commit);
         const message=execFileSync('git',['show','-s','--format=%B',commit],{cwd:root,encoding:'utf8'});
-        const oldPolicy=json(before,'lint/ratchet.json'),newPolicy=json(after,'lint/ratchet.json');
-        failures.push(...ratchetApprovalFailures(oldPolicy,newPolicy,message));
+        const content=message.trimEnd().replace(/\n\nAssisted-by:[^\n]+$/u,'').replaceAll(/\n[ \t]+/gu,' ');
+        const footer=content.split(/\n\s*\n/u).at(-1)??'';
+        approvals.push(...footer.split('\n').filter(line=>line.startsWith('Ratchet-Approved:')));
         for(const path of PLATFORM_LISTS)if(before.files.get(path)!==after.files.get(path)) {
           const a=resolve(temporary,'before.json'),b=resolve(temporary,'after.json');
           if(before.files.has(path))writeFileSync(a,before.read(path));
@@ -186,6 +188,11 @@ export async function committedFastChecks(root,base,tip,phase,paths) {
           rmSync(a,{force:true});rmSync(b,{force:true});
         }
       }
+      // G768 checks the net published candidate. A later exact approval can
+      // repair a local receipt without rewriting any commit or reusing a
+      // partial increment to approve a larger final allowance.
+      failures.push(...ratchetApprovalFailures(json(gitSourceView(root,base),'lint/ratchet.json'),policy,
+        `Exact outgoing policy approvals\n\n${approvals.join('\n')}`));
     } else throw new Error('Unknown committed fast-check phase');
     if(failures.length>0)throw new Error(failures.join('\n'));
     if(phase!=='fast-lint')console.log(`${phase}: exact committed inputs passed`);

@@ -21,11 +21,21 @@ export function ratchetApprovalFailures(before, after, message, scope = 'lint') 
   const increases = new Map();
   for (const [rule, rows] of Object.entries(after)) {
     if (!rule.startsWith('wildshard/')) continue;
+    const priorRows = before[rule] ?? {};
+    // A removed file key pays for one new key under the same rule. Tile
+    // coordinates retain their separate exact-identity approval contract.
+    const removed = scope === 'tiles' ? [] : Object.entries(priorRows)
+      .filter(([file, count]) => !Object.hasOwn(rows, file) && typeof count === 'number' && count > 0)
+      .map(([, count]) => Number(count)).sort((a, b) => a - b);
     for (const [file, count] of Object.entries(rows)) {
       /** @type {unknown} */
       const previous=Object.hasOwn(before,rule) ? Reflect.get(before[rule],file) : 0;
       const delta = count - (typeof previous==='number' ? previous : 0);
-      if (delta > 0) increases.set(`${rule} ${file}`,delta);
+      if (delta > 0) {
+        const move = !Object.hasOwn(priorRows, file) ? removed.findIndex(limit => count <= limit) : -1;
+        if (move >= 0) removed.splice(move, 1);
+        else increases.set(`${rule} ${file}`,delta);
+      }
     }
   }
   // A name swap at an unchanged file count is still newly admitted debt.
@@ -51,7 +61,8 @@ export function ratchetApprovalFailures(before, after, message, scope = 'lint') 
   const failures = [];
   const seen = new Set();
   for (const line of approvals) {
-    if (!footer.split('\n').includes(line) || !expected.has(line) || seen.has(line)) failures.push(`Invalid or unmatched ratchet approval: ${line}`);
+    if (!expected.has(line)) continue;
+    if (!footer.split('\n').includes(line) || seen.has(line)) failures.push(`Invalid or unmatched ratchet approval: ${line}`);
     seen.add(line);
   }
   for (const line of expected) if (!seen.has(line)) failures.push(`Missing ratchet approval: ${line}`);

@@ -25,3 +25,14 @@ test('approval trailers match every exact increase once in the footer', () => {
   }
   expect(ratchetApprovalFailures(after, before, 'fix(test): lower debt')).toEqual([]);
 });
+
+test('one removed row can move to one new key at the same or lower count', () => {
+  const rule = 'wildshard/generator-imports', before = {[rule]:{'src/old.ts':11}};
+  const prose = 'fix(policy): move the source\n\nRatchet-Approved: wildshard-new (row renamed, net zero)';
+  expect(ratchetApprovalFailures(before,{[rule]:{'src/new.ts':11}},prose)).toEqual([]);
+  expect(ratchetApprovalFailures(before,{[rule]:{'src/new.ts':10}},prose)).toEqual([]);
+  for (const rows of [{'src/old.ts':11,'src/new.ts':11},{'src/new.ts':12},{'src/a.ts':6,'src/b.ts':5}])
+    expect(ratchetApprovalFailures(before,{[rule]:rows},prose).join('\n')).toContain('Missing ratchet approval');
+  expect(ratchetApprovalFailures(before,{'wildshard/no-runtime-in-build':{'src/new.ts':11}},prose).join('\n')).toContain('Missing ratchet approval');
+  expect(ratchetApprovalFailures({'wildshard/tile-bake':{'old':11}},{'wildshard/tile-bake':{'new':11}},prose,'tiles').join('\n')).toContain('Missing ratchet approval');
+});

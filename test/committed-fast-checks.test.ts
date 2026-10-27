@@ -311,3 +311,19 @@ export const PLATFORM_LISTS=['lint/ratchet.json','lint/custom-sections.json'];`)
     expect(refused.status).toBe(1);expect(refused.stderr).toContain('custom-section policy is malformed');
   }finally{f.close();}
 });
+
+test('a later exact approval repairs a net candidate but cannot approve a larger final row',()=>{
+  const f=fixture();try {
+    f.put('scripts/check-closed-components.mjs','export function closedComponentSources(){return [];}');
+    f.put('scripts/check-platform-ratchets.mjs','export const PLATFORM_LISTS=[];export function comparePlatformList(){return [];}');
+    f.put('scripts/ratchet-approval.mjs',readFileSync(resolve('scripts/ratchet-approval.mjs'),'utf8'));
+    const base=f.commit(),rule='wildshard/generator-imports',file='src/main.ts';
+    f.put('lint/ratchet.json',JSON.stringify({[rule]:{[file]:11}}));const unapproved=f.commit();
+    expect(f.run('guards',unapproved,[],base).status).toBe(1);
+    f.git('commit','--allow-empty','-qm',`docs(policy): correct approval\n\nRatchet-Approved: wildshard-new ${rule} ${file} +11`);
+    const approved=f.git('rev-parse','HEAD'),result=f.run('guards',approved,[],base);
+    expect(result.status,result.stderr).toBe(0);
+    f.put('lint/ratchet.json',JSON.stringify({[rule]:{[file]:22}}));const larger=f.commit();
+    const refused=f.run('guards',larger,[],base);expect(refused.status).toBe(1);expect(refused.stderr).toContain('+22');
+  }finally{f.close();}
+});
