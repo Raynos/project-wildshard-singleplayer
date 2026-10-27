@@ -33,7 +33,8 @@ export function driftwoodOwnedScene(head: BufferGeometry, aoBytes: Uint8Array): 
     if (pose !== undefined) {
       const mesh = new Mesh(geometry, material); mesh.name = id; mesh.matrixAutoUpdate = false; mesh.matrix.copy(pose);
       // I3: world shapes ship compact too (normals / colours Int8 / Uint8, positions on one Int16 grid per shape)
-      scene.add(new WholeShape(id, mesh, { nativeAttributes: true, partition: 'runs' }));
+      // I3: a world shape ships compact too: Int8 / Uint8 normals and colours, positions on one Int16 grid per shape
+      scene.add(new WholeShape(id, mesh, { nativeAttributes: true, partition: 'runs', ...EXACT_SHAPES.test(id) ? {} : { compact: true as const } }));
     } else {
       // I3: a template ships Int16 positions on one grid in its own space with Int8 normals and Uint8 colours (a copy: the
       // fixed models read the float source); readWholeGeometry dequantizes them, within half a grid step
