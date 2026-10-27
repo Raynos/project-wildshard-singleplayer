@@ -1,6 +1,6 @@
 import type { NalatiWeather } from './weatherProgram';
-import type { PlatformDataSectionName } from '@wildshard/format/platformDataSections';
-import { SCRIPT_V2_REVISIONS } from '@wildshard/format/scriptAdmissionV2';
+import type { PlatformSectionName as PlatformDataSectionName } from '@wildshard/sdk/platformSections';
+import { scriptV2Revisions } from '@wildshard/sdk/decisionScripts';
 import type { NalatiKokpar } from './kokparRows';
 import admission from '../behaviour/admission.generated.json' with { type: 'json' };
 import type { NalatiRidingPrograms } from './ridingRows.mjs';
@@ -13,9 +13,10 @@ export interface NalatiScriptProjection {
   readonly artifact: { readonly hash: string; readonly pages: number; readonly ioBytes: number };
 }
 function projection(id: string, program: NalatiScriptProjection): Record<string, string | number> {
+  const revisions = scriptV2Revisions();
   return { id, module: `blobs/wasm/${program.artifact.hash}.wasm`, side: 'sim', abi: 2, lane: 'project',
     pages: program.artifact.pages, ioBytes: program.artifact.ioBytes,
-    compilerRevision: SCRIPT_V2_REVISIONS.compiler, admissionRevision: SCRIPT_V2_REVISIONS.admission };
+    compilerRevision: revisions.compiler, admissionRevision: revisions.admission };
 }
 /** Complete sim admission, shared by emitted sections and the module-cap proof.
  * Inline ABI1 witnesses are data; only selected executable rows appear here. */

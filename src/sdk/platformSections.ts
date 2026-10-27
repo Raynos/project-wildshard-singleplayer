@@ -5,6 +5,9 @@ import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
 import type { DefinedSectionEntry, EmittedSections } from './sections';
 import { parseClientPlan, type ClientPlan } from '@wildshard/format/clientPlan';
 
+/** The platform section names accepted by source-owned composition. */
+export type PlatformSectionName = PlatformDataSectionName;
+
 /** Admit source-owned client feature rows with the defining detached/frozen platform contract. */
 export function clientPlanSection(input: unknown): ClientPlan { return parseClientPlan(input); }
 
