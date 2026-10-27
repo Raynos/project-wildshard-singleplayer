@@ -163,7 +163,7 @@ async function prepareRegionalPresentation(admitted: AdmittedProduct, renderer: 
 async function regionalPresentation(admitted: AdmittedProduct, start: { readonly x: number; readonly z: number }, root: Object3D, renderer: Parameters<typeof clientMaterials>[2], scope: Scope, hour: () => number | null, allocator: ResidencyAllocator, instance: string, sky: ShardWorld['sky'], input: RegionalPresentationInputs, registration?: ClientTileRegistration): Promise<{ tick: (dt: number) => void; follow: (x: number, z: number) => void } | null> {
   if (input === null) return null;
   const full = admitted.source, data = full, terrain = data.terrain, assets = runtimeProduct(full).assets;
-  const { collider, presentation } = input;
+  const { collider, presentation } = input, slug = full.identity.slug;
   if (terrain !== null) {
     const material = presentation.materials.get(terrain.family);
     if (material === undefined) throw new Error('Regional terrain requires its admitted family material');
@@ -172,22 +172,22 @@ async function regionalPresentation(admitted: AdmittedProduct, start: { readonly
   }
   {
     const product = shardProductFromAdmission(admitted, scope);
-    await leaseClientLibrary(full, assets.retained, { validatedSource: admitted.source, scope, allocator, owner: instance, textures: ktx2TranscodeSupport(renderer), read: ref => assets.read(ref) });
+    await timeClientPreparation(slug, 'native.presentation.lease', () => leaseClientLibrary(full, assets.retained, { validatedSource: admitted.source, scope, allocator, owner: instance, textures: ktx2TranscodeSupport(renderer), read: ref => assets.read(ref) }));
     lendLooks(scope, presentation);
     bindPaintedMaterialMaps(product, scope, presentation);
-    await bindSceneSourceLooks(product, scope, presentation);
+    await timeClientPreparation(slug, 'native.presentation.scene-looks', () => bindSceneSourceLooks(product, scope, presentation));
     presentation.graphs.bind({ hour });
   }
   const views = clientViews({ root, terrain: terrain?.family ?? null, terrainShadow: terrain?.shadow, terrainOrder: terrain?.order, ...presentation,
     ...(collider === undefined ? {} : { lattice: decodeTerrainTile(collider) }) });
   let frame: (() => void) | undefined, position = start;
-  if (registration !== undefined && data.props !== null) await views.library(data.props, assets.retained, scope);
+  if (registration !== undefined && data.props !== null) { const props = data.props; await timeClientPreparation(slug, 'native.presentation.props-library', () => views.library(props, assets.retained, scope)); }
   const entry = { source: data, assets, root, views: views.tiles };
-  const tiles = registration === undefined ? await standaloneClientTiles(entry, scope, {
+  const tiles = await timeClientPreparation(slug, 'native.presentation.tiles', (): Promise<Awaited<ReturnType<typeof standaloneClientTiles>> | Awaited<ReturnType<ClientTileRegistration['enter']>>> => registration === undefined ? standaloneClientTiles(entry, scope, {
     instance, budget: allocator, radius: tileRing, start, viewer: () => position,
     library: owner => data.props === null ? Promise.resolve(null) : views.library(data.props, assets.retained, owner),
     pause: () => buildYield(scope), frame: run => { frame = run; },
-  }) : await registration.enter(instance, entry, scope, start);
+  }) : registration.enter(instance, entry, scope, start));
   const distance = terrain?.follow ?? 5;
   let priorX = start.x, priorZ = start.z;
   return { tick: dt => { presentation.tick(dt); frame?.(); }, follow: (x, z) => {
