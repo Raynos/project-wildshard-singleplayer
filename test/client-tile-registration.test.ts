@@ -257,12 +257,14 @@ test('approach pins entry render tiles without entering or replacing the neighbo
     const prepare = f.registration.prepareOffered;
     if (prepare === undefined) throw new Error('Missing tile-only approach port');
     const pending = prepare('home', approach, camera);
+    expect(f.registration.preparing?.('home')).toBe(true);
     await f.drive(); await pending;
     expect(f.registration.owns('home')).toBe(false);
     expect(f.instances.get('home')?.root).toBe(f.neighbour.root);
     expect(f.entered.root.children).toHaveLength(0);
     expect(f.neighbour.root.children.length).toBeGreaterThan(0);
     approach.dispose();
+    expect(f.registration.preparing?.('home')).toBe(false);
     await expect(prepare('home', approach, camera)).rejects.toThrow('owner left');
   } finally { f.scope.dispose(); }
   expect(f.pins()).toBe(0); expect(f.allocator.entries()).toHaveLength(0);

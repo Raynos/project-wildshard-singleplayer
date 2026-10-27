@@ -43,4 +43,4 @@ once (small), T2 and T3 in parallel, T1 as the main row from now. **Done when** 
 cell is under 5 s warm and under 8 s cold in Chromium at phone tier (G782; was: warm only, under 5 s), measured with the
 audit's harness (handed to the builder).
 
-T7 source boundary (2026-10-27, sp-x8; this commit): declared tiled destinations prepare only the approached entry render ring on the road. Their regional constructor waits for actual crossing demand; opaque/non-tiled callers keep the previous constructor path. Entry admission, two-resident accounting and every readiness fence remain. Cold/warm G782 timings are still unqualified; one reading remains at the plan end.
+T7 source boundary (2026-10-27, sp-x8; `379647e12b` plus approach-refinement follow-up): declared tiled destinations prepare only the approached entry render ring on the road. Their regional constructor waits for actual crossing demand; opaque/non-tiled callers keep the previous constructor path. Entry admission, two-resident accounting and every readiness fence remain. Cold/warm G782 timings are still unqualified; one reading remains at the plan end.

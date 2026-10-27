@@ -934,6 +934,7 @@ export class GridSession {
   }
 
   private placeholderBlocksTiles(instance:string):boolean {
+    if (this.clientTiles.preparing?.(instance) === true) return false;
     const entered=this.live===null?this.home.instance:this.live.live.current();
     return placeholderBlocksTiles(instance,entered,this.clientTiles.owns(instance),this.near.owns(instance),this.near.absent(instance));
   }

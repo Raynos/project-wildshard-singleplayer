@@ -313,6 +313,8 @@ export interface ClientTileRegistration {
   owns: (instance: string) => boolean;
   /** True only after the entered root has replaced its whole coarse cover. */
   coverageReady?: (instance: string) => boolean;
+  /** A render-only entry pin temporarily lets the scheduler refine a whole-near fallback. */
+  preparing?: (instance: string) => boolean;
   dispose: () => void;
   offer: (instance: string, entry: ClientRingInstance) => void;
   /** Pin only the approached entry's render tiles; never install an entered root or simulation. */
@@ -327,22 +329,36 @@ export function clientTileRegistration(instances: Map<string, ClientRingInstance
   streamer: Pick<TileStreamer<unknown>, 'require' | 'resident' | 'setFullRing' | 'retireRefinement'>, radius: () => number,
   retainFar: (instance: string) => boolean = () => false): ClientTileRegistration {
   const entered = new Map<string, () => void>(), fallback = new Map(instances), covered = new Set<string>();
+  const approaches = new Map<string, number>();
+  const approachReleases = new Set<() => void>();
   let disposed = false;
   const registration: ClientTileRegistration = {
     owns: instance => entered.has(instance),
     coverageReady: instance => covered.has(instance),
-    dispose: () => { if (disposed) return; disposed = true; for (const release of entered.values()) release(); },
+    preparing: instance => approaches.has(instance),
+    dispose: () => { if (disposed) return; disposed = true; for (const release of approachReleases) release(); for (const release of entered.values()) release(); },
     offer: (instance, entry) => { if (disposed) throw new Error('Tile registration disposed'); fallback.set(instance, entry); if (!entered.has(instance)) instances.set(instance, entry); },
     prepareOffered: async (instance, scope, start) => {
       const left = (): boolean => disposed || scope.disposed || scope.disposing;
       if (left()) throw new Error('Approached tile owner left');
       if (!fallback.has(instance)) throw new Error('Approached tile views have not been admitted');
       const order = tileOrder(start);
-      const required = streamer.require(instance, order.tiles.filter(tile => order.rank(tile) === 0).map(tile => tile.j * 8 + tile.i));
+      approaches.set(instance, (approaches.get(instance) ?? 0) + 1);
+      let required: TileRequirement | undefined;
       let held = true;
-      const release = (): void => { if (held) { held = false; required.release(); } };
+      const release = (): void => {
+        if (!held) return; held = false;
+        approachReleases.delete(release);
+        const count = approaches.get(instance) ?? 0;
+        if (count <= 1) approaches.delete(instance); else approaches.set(instance, count - 1);
+        required?.release();
+      };
+      approachReleases.add(release);
       scope.onDispose(release);
-      try { await required.ready; if (left()) throw new Error('Approached tile owner left'); }
+      try {
+        required = streamer.require(instance, order.tiles.filter(tile => order.rank(tile) === 0).map(tile => tile.j * 8 + tile.i));
+        await required.ready; if (left()) throw new Error('Approached tile owner left');
+      }
       catch (error) { release(); throw error; }
     },
     enterOffered: async (instance, scope, start) => {
