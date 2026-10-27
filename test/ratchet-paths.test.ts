@@ -6,6 +6,36 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { resolve } from 'node:path';
 import * as v from 'valibot';
 import { expect, test } from 'vitest';
+import { fullRatchetFiles } from '../lint/ratchet-files.mjs';
+
+test('full census crosses an ignored parent with explicit source coverage', () => {
+  const root = mkdtempSync(resolve('tmp/ratchet-coverage-'));
+  try {
+    const file = 'src/shards/ratchet-test/generators/positive.ts';
+    mkdirSync(resolve(root, file, '..'), { recursive: true });
+    writeFileSync(resolve(root, file), "import type { SlotRange } from '@wildshard/engine/models/slots';\nexport type Range = SlotRange;\n");
+    writeFileSync(resolve(root, 'src/ignored.generated.ts'), 'export const ignored = 1;');
+    const baseline = resolve(root, 'ratchet.json');
+    const policy = { 'wildshard/generator-imports': { [file]: 1 }, 'wildshard/shard-engine-imports': { [file]: 1 } };
+    writeFileSync(baseline, JSON.stringify(policy));
+    expect(fullRatchetFiles(root, ['**/*.generated.ts'], {})).toEqual([file]);
+    const result = spawnSync(process.execPath, [resolve('lint/ratchet.mjs'), '--root', root, '--baseline', baseline], {
+      encoding: 'utf8', env: Object.fromEntries(Object.entries(process.env).filter(([key]) =>
+        key !== 'WS_GENERATION_TREE_FILES' && key !== 'WS_GENERATION_TREE_ROOT')),
+    });
+    expect(result.status, result.stdout + result.stderr).toBe(0);
+    expect(result.stdout).toContain('Ratchet census: 1 explicit files linted');
+    expect(JSON.parse(readFileSync(baseline, 'utf8'))).toEqual(policy);
+    writeFileSync(resolve(root, file), `${readFileSync(resolve(root, file), 'utf8')}import '@wildshard/engine/app/runtime';\n`);
+    const increased = spawnSync(process.execPath, [resolve('lint/ratchet.mjs'), '--root', root, '--baseline', baseline], {
+      encoding: 'utf8', env: Object.fromEntries(Object.entries(process.env).filter(([key]) =>
+        key !== 'WS_GENERATION_TREE_FILES' && key !== 'WS_GENERATION_TREE_ROOT')),
+    });
+    expect(increased.status).toBe(1);
+    expect(increased.stderr).toContain('was 1, now 2');
+    expect(JSON.parse(readFileSync(baseline, 'utf8'))).toEqual(policy);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
 
 test('the ratchet refuses stale paths even with zero counts or an empty measurement scope', () => {
   mkdirSync('tmp', { recursive: true });

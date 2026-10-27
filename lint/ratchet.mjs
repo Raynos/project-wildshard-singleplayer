@@ -13,6 +13,7 @@ import { closedComponents } from '../scripts/check-closed-components.mjs';
 import { parseSync } from 'vite';
 import { pruneSchemaTypeAllowances } from './schema-types.mjs';
 import { SCHEMA_TYPE_RULE } from '../scripts/ratchet-approval.mjs';
+import { fullRatchetFiles } from './ratchet-files.mjs';
 
 const REPO = fileURLToPath(new URL('../', import.meta.url));
 const NON_FILE = new Set(['allow', 'budgets', 'debugRows', 'closedComponents']);
@@ -68,28 +69,34 @@ function counts(root, baselineFile, files = null, /** @type {{guardRequirement?:
   }
   // G8 counts generated-JSON imports in tools/tests too. Other debt retains
   // its existing src-only scope; the same lint invocation supplies both.
-  const roots = measuredFiles === null ? ['src','scripts','test','vite','api','admin','drafts','lint','site',
-    ...globSync('*', {cwd:root}).filter(file => /\.[cm]?[jt]sx?$/u.test(file) && statSync(resolve(root,file),{throwIfNoEntry:false})?.isFile())] : [];
-  const result = spawnSync(process.execPath, [resolve(REPO, 'node_modules/oxlint/bin/oxlint'), '-c', measuredConfig, '-f', 'json', ...(measuredFiles ?? roots.filter(path=>existsSync(resolve(root,path))))], {
-    cwd: root, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024,
-    env: { ...process.env, WILDSHARD_RATCHET_FILE: baselineFile, WS_HTML_LINT_FILES: measuredFiles === null ? undefined : JSON.stringify(measuredFiles) },
-  });
-  if (result.error) throw result.error;
-  if (result.status !== 0 && result.status !== 1) throw new Error(`oxlint failed (${result.status}): ${result.stderr}`);
-  const output = JSON.parse(result.stdout);
-  if (!Array.isArray(output.diagnostics)) throw new Error('oxlint returned no diagnostics array');
+  const selected = measuredFiles ?? fullRatchetFiles(root, readJSON(measuredConfig).ignorePatterns ?? []);
   const current = {};
-  for (const diagnostic of output.diagnostics) {
-    const match = /^wildshard\(([^)]+)\)$/u.exec(diagnostic.code ?? '');
-    const key = match ? `wildshard/${match[1]}` : null;
-    if (!key || !ruleNames.has(key) || typeof diagnostic.filename !== 'string') throw new Error(`Unexpected lint diagnostic: ${JSON.stringify(diagnostic)}`);
-    const file = relative(root, resolve(root, diagnostic.filename)).replaceAll('\\', '/');
-    if (files === null && !file.startsWith('src/') && key !== 'wildshard/no-generated-json-import') continue;
-    if (key !== 'wildshard/no-generated-json-import' && !hard.has(key) && registeredLegacyFile(frozen, file)) continue;
-    current[key] ??= {};
-    current[key][file] = (current[key][file] ?? 0) + 1;
+  // Explicit paths avoid ignored mirror parents; bounded argv also fits macOS.
+  for (let start = 0; start < selected.length; start += 256) {
+    const batch = selected.slice(start, start + 256);
+    const result = spawnSync(process.execPath, [resolve(REPO, 'node_modules/oxlint/bin/oxlint'), '-c', measuredConfig, '-f', 'json', ...batch], {
+      cwd: root, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024,
+      env: { ...process.env, WILDSHARD_RATCHET_FILE: baselineFile, WS_HTML_LINT_FILES: measuredFiles === null ? undefined : JSON.stringify(measuredFiles) },
+    });
+    if (result.error) throw result.error;
+    if (result.status !== 0 && result.status !== 1) throw new Error(`oxlint failed (${result.status}): ${result.stderr}`);
+    const output = JSON.parse(result.stdout);
+    if (!Array.isArray(output.diagnostics)) throw new Error('oxlint returned no diagnostics array');
+    if (measuredFiles === null && output.number_of_files !== batch.length)
+      throw new Error(`Incomplete ratchet census: selected ${batch.length}, linted ${output.number_of_files}`);
+    for (const diagnostic of output.diagnostics) {
+      const match = /^wildshard\(([^)]+)\)$/u.exec(diagnostic.code ?? '');
+      const key = match ? `wildshard/${match[1]}` : null;
+      if (!key || !ruleNames.has(key) || typeof diagnostic.filename !== 'string') throw new Error(`Unexpected lint diagnostic: ${JSON.stringify(diagnostic)}`);
+      const file = relative(root, resolve(root, diagnostic.filename)).replaceAll('\\', '/');
+      if (files === null && !file.startsWith('src/') && key !== 'wildshard/no-generated-json-import') continue;
+      if (key !== 'wildshard/no-generated-json-import' && !hard.has(key) && registeredLegacyFile(frozen, file)) continue;
+      current[key] ??= {};
+      current[key][file] = (current[key][file] ?? 0) + 1;
+    }
+    if (result.status === 1 && output.diagnostics.length === 0) throw new Error(`oxlint failed without diagnostics: ${result.stderr}`);
   }
-  if (result.status === 1 && output.diagnostics.length === 0) throw new Error(`oxlint failed without diagnostics: ${result.stderr}`);
+  if (measuredFiles === null) console.log(`Ratchet census: ${selected.length} explicit files linted`);
   return current;
 }
 
