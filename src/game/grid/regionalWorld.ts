@@ -294,7 +294,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
       const terrain = ports.terrain === undefined ? await regionalTerrain(level, resident, frame.terrain, levelLook) : await ports.terrain(level, resident, frame.terrain);
       await ports.pause();
       if (left()) throw new Error('Regional world left while building its terrain');
-      const presented = await regionalPresentation(request.admitted, request.manifest.spawn, scene, game.renderer, resident, () => game.sky.dayNight?.hour ?? null, request.allocator, cell.instance, sky, ports.tiles);
+      const presented = await regionalPresentation(request.admitted, request.entryPoint ?? request.manifest.spawn, scene, game.renderer, resident, () => game.sky.dayNight?.hour ?? null, request.allocator, cell.instance, sky, ports.tiles);
       if (left()) throw new Error('Regional world left while drawing its presentation ground');
       // a painter that bound its own ground (its compiled collider) moves the collision built above onto it
       if (terrain.groundBound) frame.run(app, () => { resampleTerrain(host.physics); });

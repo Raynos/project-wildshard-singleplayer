@@ -1,5 +1,7 @@
-import { followResidentTiles, residentTiles } from './tileDriver';
-import type { TileContent } from './tileContent';
+import { TileDriver, tileRing } from './tileDriver';
+import { ring, type TileContent } from './tileContent';
+import { tileOf } from './tileOrder';
+import { residentTileEntry } from './tileEntry';
 import { tileBufferedDraws } from './tileBufferedDraws';
 import type { SceneBuffers } from '@wildshard/format/sceneBuffers';
 import { WorldSceneReads } from './worldSceneReads';
@@ -530,9 +532,13 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
       // Buffered fields do not require a world.assembly or forest.page feature.
       // Their separate child driver keeps those hosts from attaching them twice.
       const tiles = owner.child('buffered-tiles');
-      await residentTiles(tiles, bufferedContents, product.shardfile.spawn, product.shardfile.entryways);
-      const follow = followResidentTiles(tiles, () => world.player.position);
-      if (follow !== null) ctx.system({ id: 'client.world.buffered-tiles', phase: 'update', run: follow });
+      const at = residentTileEntry(resident) ?? product.shardfile.spawn;
+      const driver = new TileDriver(tiles, bufferedContents, tileRing, () => buildYield(tiles));
+      // Warm only the requested render ring, including every edge-overlap chunk.
+      // Spawn and unrelated entryways do not belong to this crossing's intake.
+      await driver.require(ring(tileOf(at.x, at.z), tileRing()));
+      await driver.coarse(at.x, at.z);
+      ctx.system({ id: 'client.world.buffered-tiles', phase: 'update', run: () => { driver.step(world.player.position.x, world.player.position.z); } });
     }
     // Every live/deferred consumer now owns a copy; retire decoder templates.
     libraries.clear(); packets.clear(); for (const done of finish) done();

@@ -1,3 +1,4 @@
+import { bindResidentTileEntry } from '../shardfile/tileEntry';
 import {bindEquipmentActors} from '../loadout/actors';
 import { freezeParkedMatrices } from '@wildshard/engine/render/precompile';
 import { timeClientPreparation } from '../shardfile/preparationTiming';
@@ -84,6 +85,8 @@ export interface RegionalRuntimeTextures {
 /** Fully admitted immutable content and the one page owner, supplied before any trusted gameplay hook executes. */
 export interface RegionalRuntimeRequest {
   readonly cell: GridCell;
+  /** Actual requested approach in destination cell metres; absent for non-crossing callers. */
+  readonly entryPoint?: Readonly<{ x: number; z: number }>;
   readonly admitted: AdmittedProduct;
   readonly manifest: ShardManifest;
   readonly page: RegionalRuntimePage;
@@ -176,6 +179,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
     if (prepare === undefined) throw new Error('Regional terrain/forest/animals binding is not prepared');
     const scope = request.scope.child(`grid.runtime:${request.cell.instance}`);
     try {
+      if (request.entryPoint !== undefined) bindResidentTileEntry(scope, request.entryPoint);
       const measured = request.textures?.mode === 'img' ? declaration?.cost?.imagesFirst ?? declaration?.cost : declaration?.cost;
       if (measured?.residentBaseMB !== undefined) {
         if (claim.id !== `sim:${request.cell.instance}`) throw new Error('Measured runtime coverage requires its own instance lease');

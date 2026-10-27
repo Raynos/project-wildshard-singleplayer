@@ -790,7 +790,11 @@ export class LiveGridSession {
         }),
       });
       let prepared: PreparedRegionalRuntime;
-      try { prepared = await factory({ cell, admitted: retained.admitted, manifest, page, textures, allocator: this.ports.allocator, claim, scope: this.runtimeScope }); }
+      try {
+        const feet = this.live.worldFeet();
+        const entryPoint = { x: feet.x - cell.origin.x, z: feet.z - cell.origin.z };
+        prepared = await factory({ cell, admitted: retained.admitted, manifest, page, textures, allocator: this.ports.allocator, claim, scope: this.runtimeScope, entryPoint });
+      }
       catch (error) { this.transferWalls.delete(cell.instance); saved.unbind(); throw error; }
       this.runtimeRegions.set(cell.instance, prepared); this.runtimeResidents.set(cell.instance, prepared.resident);
       this.respawnCells.set(cell.instance, { instance: cell.instance, origin: cell.origin, entryways: retained.admitted.source.entryways });
