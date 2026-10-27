@@ -13,7 +13,7 @@
  * the tiles), and leaves with its block's last member. Each tile keeps its transformed attributes and its kept triangles
  * (refreshed when its transform, an attribute's version or its hidden quadrants change), so a rebuild is copies.
  */
-import { BufferAttribute, BufferGeometry, InterleavedBufferAttribute, Matrix4, Mesh, Vector3, type Material, type Object3D } from 'three';
+import { Box3, BufferAttribute, BufferGeometry, InterleavedBufferAttribute, Matrix4, Mesh, Sphere, Vector3, type Material, type Object3D } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 
 const HALF = 250, COARSE = 125, BLOCK = 250;
@@ -24,6 +24,8 @@ interface Member {
   readonly mesh: Mesh; readonly corner: { readonly x: number; readonly z: number } | null; hidden: ReadonlySet<number>;
   /** this tile's attributes in the parent's space (position under its transform `key`), and its kept triangles */
   readonly attributes: Map<string, Cached<Float32Array>>; triangles: Cached<Uint32Array> | null;
+  /** G782: the bounds of its parent-space positions, kept with the position array they were read from */
+  bounds: { readonly positions: Float32Array; readonly box: Box3 } | null;
 }
 interface Block { readonly members: Map<Mesh, Member>; merged: Mesh | null; queued: boolean }
 
@@ -36,7 +38,7 @@ export class GroundMerge {
    * attached meshes keep their scene transform. `coarse` returns the quadrant setter. */
   add(mesh: Mesh, scope: Scope, coarse?: { readonly x: number; readonly z: number }): (hidden: ReadonlySet<number>) => void {
     const corner = coarse === undefined ? null : { x: -HALF + coarse.x * COARSE, z: -HALF + coarse.z * COARSE };
-    const member: Member = { mesh, corner, hidden: new Set(), attributes: new Map(), triangles: null };
+    const member: Member = { mesh, corner, hidden: new Set(), attributes: new Map(), triangles: null, bounds: null };
     const key = this.blockOf(member);
     let block = this.blocks.get(key);
     if (block === undefined) { block = { members: new Map(), merged: null, queued: false }; this.blocks.set(key, block); }
@@ -128,7 +130,20 @@ export class GroundMerge {
     const geometry = new BufferGeometry();
     names.forEach((name, n) => { const out = values[n]; if (out !== undefined) geometry.setAttribute(name, new BufferAttribute(out, first.mesh.geometry.getAttribute(name).itemSize)); });
     geometry.setIndex(new BufferAttribute(index, 1));
-    geometry.computeBoundingSphere();
+    // G782: the block's bounds are the union of its members' kept bounds (each read once, when its positions change), not
+    // two more passes over the whole merged array per rebuild; the sphere is the box's, which a flat ground tile fills
+    const at = names.indexOf('position');
+    if (at === -1) geometry.computeBoundingSphere();
+    else {
+      const box = new Box3();
+      for (const part of parts) {
+        const positions = part.attributes[at];
+        if (positions === undefined) throw new Error('Ground merge member lacks its positions');
+        if (part.member.bounds?.positions !== positions) part.member.bounds = { positions, box: new Box3().setFromArray(positions) };
+        box.union(part.member.bounds.box);
+      }
+      geometry.boundingBox = box; geometry.boundingSphere = box.getBoundingSphere(new Sphere());
+    }
     const mesh = new Mesh(geometry, this.material);
     mesh.name = this.name; mesh.castShadow = false; mesh.receiveShadow = true;
     this.onRebuild?.(mesh);

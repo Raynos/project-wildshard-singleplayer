@@ -100,3 +100,22 @@ test('attached ground retains its nested transform across grid rebasing', async 
     expect(Array.from(merge.mesh?.geometry.getAttribute('position').array ?? [])).toEqual(before);
   } finally { scope.dispose(); await settle(); }
 });
+
+// G782: a block's bounds come from its members' kept bounds: the same box as three computes over the merged positions, and
+// a sphere that holds every vertex; a member that leaves takes its bounds with it.
+test('merged bounds are the union of the drawn members bounds', async () => {
+  const parent = new THREE.Group(), merge = new GroundMerge(parent, new THREE.MeshBasicMaterial(), 'ground.bounds');
+  const a = new Scope('a'), b = new Scope('b');
+  merge.add(tile(-250, -250), a); merge.add(tile(-125, -200), b); await settle();
+  const check = (): void => {
+    const geometry = merge.mesh?.geometry; if (geometry === undefined) throw new Error('no merged mesh');
+    const box = geometry.boundingBox, sphere = geometry.boundingSphere, position = geometry.getAttribute('position');
+    if (box === null || sphere === null) throw new Error('merged bounds missing');
+    expect(box.equals(new THREE.Box3().setFromBufferAttribute(position))).toBe(true);
+    for (let i = 0; i < position.count; i++) expect(sphere.containsPoint(new THREE.Vector3().fromBufferAttribute(position, i))).toBe(true);
+  };
+  check();
+  a.dispose(); await settle();
+  check();
+  b.dispose();
+});
