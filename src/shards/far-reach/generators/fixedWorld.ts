@@ -4,7 +4,7 @@ import { skyPhysicsPlacements } from './physicsPlacements';
 import { skyGroundValues, type SkyGroundValues } from './groundScene';
 import { parseWorldScene, type WorldSceneRecipe, type PrivateScene } from '@wildshard/format/clientChannels';
 import { restScenes } from './restScene';
-import ISLETS from '../data/isletScenes.generated.json' with { type: 'json' };
+import { isletScenes } from './isletScene';
 import { crownScene } from './crownScene';
 import { SKY_PIECES } from './worldRows';
 import { NOTES, WINCH, SUNREST, MILL } from "./layout";
@@ -89,7 +89,7 @@ export function fixedWorld(standalone: boolean, values: SkyFixedWorldValues): Fi
     }
     return row;
   }
-  append('islets',{scene:ISLETS.staticScene,imports:[]});
+  append('islets',{scene:isletScenes().staticScene,imports:[]});
   const REST=restScenes();
   append('winch',{scene:REST.winch,imports:[]},[WINCH.x,WINCH.y,WINCH.z]);
   for (const keeper of [false,true]) {

@@ -2,14 +2,14 @@ import { parseSceneMotion } from '@wildshard/format/sceneMotion';
 import { SKY_MOVER_VIEWS } from './rows/moverViews';
 import { SKY_LIFT_PROMPTS } from './rows/liftPrompts';
 import { SKY_NATIVE_WORLD } from './rows/nativeWorld';
-import islets from '../data/isletScenes.generated.json' with { type: 'json' };
+import { isletScenes } from './isletScene';
 import { SKY_DRESSING_FRAMES } from './sceneDressing';
 
 const copied = SKY_MOVER_VIEWS.filter(row => row.connectors !== undefined);
 const targets = [...new Set(copied.flatMap(row => [
   ...row.bindings?.map(binding => binding.target) ?? [], ...row.connectors?.map(binding => binding.target) ?? [],
 ]))];
-const motion = SKY_NATIVE_WORLD.motion;
+const motion = SKY_NATIVE_WORLD.motion, islets = isletScenes();
 /** The same copied islet poses, native bridge owners and ordered lift prompts. */
 export const SKY_SCENE_MOTION = parseSceneMotion({ version: 1, owner: 'native',
   installation: { systemId: motion.systemId, viewSystemId: motion.viewSystemId,

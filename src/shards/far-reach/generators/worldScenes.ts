@@ -2,7 +2,7 @@ import { parseWorldScene, parseWorldSceneBindings, type WorldSceneRecipe } from 
 import { parseWorldScenes } from '@wildshard/format/worldScenes';
 import { nameBlob } from '@wildshard/sdk/blobs';
 import type { SkyRouteValues } from './routeScene';
-import islets from '../data/isletScenes.generated.json' with { type: 'json' };
+import { isletScenes } from './isletScene';
 import heroes from '../data/heroLibrary.generated.json' with { type: 'json' };
 import { skyWorldRows } from './worldRows';
 import { SKY_SOURCE_LIBRARIES, SKY_SOURCE_BLOBS } from './sceneSources';
@@ -126,7 +126,7 @@ export function skyWorldSceneValues(millScene: SkyMillSceneValues['MILL_SCENE'],
     const row = fixed[cube].fixed;
     const fixedRecipe = parseWorldScene(row.recipe);
     const registry = [
-      ...islets.pieces.map(piece => ({ id: piece.id, name: piece.name, file: piece.file, category: piece.category, surface: piece.surface,
+      ...isletScenes().pieces.map(piece => ({ id: piece.id, name: piece.name, file: piece.file, category: piece.category, surface: piece.surface,
         part: `islets.${piece.id}`, colliders: piece.colliders })),
       ...Object.values(row.bindings).flatMap(bindings => bindings.map(binding => registration(binding.piece, binding.part,
         'baked' in binding ? contact(binding.piece, bakedPiece(fixedRecipe, binding.baked), cube) : contact(binding.piece, undefined, cube)))),
@@ -140,7 +140,7 @@ export function skyWorldSceneValues(millScene: SkyMillSceneValues['MILL_SCENE'],
     scene(`fixed-${cube}`, recipe, { cube, registry, publish: { millHub: { kind: 'object', part: 'mill.hub' } } });
   }
   scene('storm', { scene: restScenes().storm, imports: [] });
-  const moving = parseWorldScene({ scene: islets.scene, imports: [] });
+  const moving = parseWorldScene({ scene: isletScenes().scene, imports: [] });
   moving.scene.nodes = moving.scene.nodes.map(node => {
     if (node.kind !== 'object' || !node.source.startsWith('islet.')) return node;
     const { source, ...frame } = node;
