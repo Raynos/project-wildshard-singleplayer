@@ -934,13 +934,15 @@ function newUploadBatch(budget: UploadBudget): UploadBatch {
 /** Wait for a new completed game draw, then a paint opportunity. A capped/skipped rAF cannot release preparation;
  * cancellation or the presented-time warm-up bound rejects before another batch. Does not advance simulation,
  * force a draw or change frame pacing. */
-export function waitForDrawnFrame(scope: Scope, drawn: () => number, current: () => boolean): Promise<void> {
-  if (scope.disposed || scope.disposing || !current()) return Promise.reject(new Error('Shader warm-up owner left'));
-  return boundEntryWarmup(scope, drawn, () => 'drawn-frame', async withinBound => {
-    const wait = scope.child('drawn-frame');
-    try { await drawnFrame(wait, drawn, () => !scope.disposing && withinBound() && current()); }
-    finally { wait.dispose(); }
-  });
+export async function waitForDrawnFrame(scope: Scope, drawn: () => number, current: () => boolean): Promise<void> {
+  if (scope.disposed || scope.disposing || !current()) throw new Error('Shader warm-up owner left');
+  // The deadline may win without the task ever being delivered. Own its
+  // cleanup outside that race, so a timeout closes the pending ports too.
+  const wait = scope.child('drawn-frame');
+  try {
+    await boundEntryWarmup(scope, drawn, () => 'drawn-frame', withinBound =>
+      drawnFrame(wait, drawn, () => !scope.disposing && withinBound() && current()));
+  } finally { wait.dispose(); }
 }
 
 function drawnFrame(scope: Scope, drawn: () => number, current: () => boolean): Promise<void> {
