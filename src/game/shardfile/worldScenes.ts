@@ -347,17 +347,32 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
             const neededModels = row.models.filter(model => residentReferences.has(JSON.stringify([row.id, model.id])));
             const modelProgress = loadingUnits('Home models', neededModels.length);
             modelProgress(0, row.id);
-            for (const [modelIndex, model] of neededModels.entries()) {
-              readAhead();
+            // G782: each model's read and decode start up to MODEL_READ_AHEAD models ahead and are taken in order, so
+            // their waits overlap (Pine's crags paid a decode wait per model in turn); every take, registration and slice
+            // yield stays in order. Started reads are drained before a failure leaves.
+            const started = new Map<number, Promise<WorldSceneGeometry>>();
+            const start = (index: number): void => {
+              const model = neededModels[index];
+              if (model === undefined || started.has(index)) return;
               const file = typeof model.file === 'string' ? model.file : model.file[TIER];
-              const geometry = await readWorldSceneGeometry(owner, reader, { file, attributes: model.attributes, ...(model.segments === undefined ? {} : { segments: model.segments }) }, ctx.app.assets, { revisit: true });
-              finish.push(geometry.done); models.set(model.id, geometry);
-              modelProgress(modelIndex + 1, model.id);
-              // Cached templates retain the same budget without a forced task hop per lease.
-              // Consumers keep private mutable copies; finish releases the construction lease.
-              requireSceneOwner(owner);
-              if (modelSlice.due()) await modelSlice.yield();
-            }
+              const pending = readWorldSceneGeometry(owner, reader, { file, attributes: model.attributes, ...(model.segments === undefined ? {} : { segments: model.segments }) }, ctx.app.assets, { revisit: true });
+              void pending.catch(() => undefined); started.set(index, pending);
+            };
+            try {
+              for (const [modelIndex, model] of neededModels.entries()) {
+                readAhead();
+                for (let next = modelIndex; next < Math.min(neededModels.length, modelIndex + MODEL_READ_AHEAD); next++) start(next);
+                const pending = started.get(modelIndex);
+                if (pending === undefined) throw new Error(`Missing scene model read: ${model.id}`);
+                const geometry = await pending; started.delete(modelIndex);
+                finish.push(geometry.done); models.set(model.id, geometry);
+                modelProgress(modelIndex + 1, model.id);
+                // Cached templates retain the same budget without a forced task hop per lease.
+                // Consumers keep private mutable copies; finish releases the construction lease.
+                requireSceneOwner(owner);
+                if (modelSlice.due()) await modelSlice.yield();
+              }
+            } finally { await Promise.allSettled(started.values()); }
             libraries.set(row.id, { geometry: id => models.get(id)?.copy() ?? null });
           } else {
             requireSceneOwner(owner);
