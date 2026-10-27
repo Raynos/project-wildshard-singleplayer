@@ -71,6 +71,7 @@ since is red; the latest (`60e9b7bfe6`) fails `generated-inputs`, which fails fa
 | D34 | Developer Tile residency Whole cell selects radius8 but the entered-content helper caps2; static source mismatch, no capture run; prepared G790 T10 removes this choice after T8 | `ef46afdc19` (T5 choice after89f7d3598a cap) | sp-x2 (T10 after T8) | open |
 | D32 | Pine generation stage: `src/shards/pine-hollow/generators/quests.ts` imports `@wildshard/sdk/quests`, which the generation stage's linked node_modules does not export, so `serve-build --rev 8a832edf7b` fails (ERR_MODULE_NOT_FOUND; log tmp/serve/failed-20261027-012212-4400.log:643) | `8a832edf7b` or earlier (sent to sp-x7 01:22) | breaker (sp-x7 finds) | open |
 | D33 | Pre-G769 legacy GR5 related walk returned rc1/zero suites without a reported cause; no executed assertion result, and no repeat under G769 | — (local, before `83d1cd4c39`) | sp-x1 | open; classify after the plan |
+| D35 | docs/ENGINE.md exceeds the 1 MB blob cap (1,000,366 B); additional API prose cannot land there. H11 notes stay in source/the counted heap plan. | `4b18cede14` | sp-x9 | open |
 
 ## Rows
 

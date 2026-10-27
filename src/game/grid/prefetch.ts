@@ -17,15 +17,14 @@
  * everything (G727).
  */
 import { PrefetchQuota, PrefetchBytes } from '@wildshard/engine/boot/prefetchQuota';
-import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
-import { readOutputDownloadIndex, type OutputDownloadIndex } from '@wildshard/format/outputDownload';
+import type { OutputDownloadIndex } from '@wildshard/format/outputDownload';
 import { findTitleManifest } from '../shard/titleList';
 import type { ProductCache, ProductOptions } from '../shardfile/product';
 import { browserContentStore, contentHash } from '../shardfile/contentStore';
 import { hashOwnedBytes, prepareContentHash } from '@wildshard/engine/boot/contentHash';
 import { ContentCacheWorker } from '@wildshard/engine/boot/contentCacheWorker';
 import { builtIndexHashes } from '@wildshard/format/builtIndexes';
-import { readCheckedOutputIndex } from '../shardfile/outputIndexChecks';
+import { readPrefetchIndex } from './prefetchIndex';
 import type { GridAssembly } from './assembly';
 import type { Tier } from '@wildshard/engine/core/tier';
 import { prefetchRing } from './titleOrder';
@@ -90,22 +89,6 @@ export function gridPrefetchOrder(assembly: Pick<GridAssembly, 'cells'>, at: Rea
   return [...new Set((home === undefined ? near : prefetchRing(near, home.cell, tier)).map(cell => cell.slug))];
 }
 
-/** I9: of a build-proved product, only the files the phone tier admits (I1's filter); its sections come from (and go to)
- * the content cache, so the file rows below find them held. Unproved (development) input keeps every file. */
-async function phoneTierFiles<T extends { readonly hash: string }>(input: unknown, files: readonly T[], base: string,
-  content: { get: (hash: string) => Promise<Uint8Array | null>; put: (hash: string, bytes: Uint8Array, keep: boolean) => Promise<boolean> }): Promise<readonly T[]> {
-  // loaded on the phone's first prefetch, never in the title's closure
-  const [{ isBuildValidatedOutput, resolveOutputDescriptor }, { tierProductFilesPaced }, { yieldTask }] = await Promise.all([import('../shardfile/outputDescriptor'), import('../shardfile/productCost'), import('@wildshard/engine/core/workSlice')]);
-  // paced: the index's receipt bytes were sorted and encoded in one task, 63-87 ms of a frame on every cold crossing at
-  // phone 4x (Driftwood, Pine, Nalati, Nine)
-  const source = await resolveOutputDescriptor(input, { offline: false, firstParty: true, hash: contentHash, pause: () => yieldTask(),
-    read: (path, maximum) => readGridPrefetch(new URL(path, base).href, maximum),
-    cached: hash => content.get(hash), store: (hash, bytes) => content.put(hash, bytes, true) });
-  if (!isBuildValidatedOutput(source)) return files;
-  const kept = new Set((await tierProductFilesPaced(source, 'phone')).map(file => file.hash));
-  return files.filter(file => kept.has(file.hash));
-}
-
 class GridPrefetch {
   private readonly memory = new PrefetchBytes(IN_FLIGHT_BYTES);
   private readonly queue: string[] = [];
@@ -161,14 +144,9 @@ class GridPrefetch {
     // The page never sees a prefetched body: the worker reads, verifies and keeps it (G639).
     const fetchKeep = content instanceof ContentCacheWorker ? async (file: string, hash: string, size: number): Promise<boolean | null> =>
       (await content.fetchVerified(file, hash, size, { reply: 'stored', keep: true }))?.stored ?? null : undefined;
-    const bytes = await readGridPrefetch(url.href, limits.sourceBytes);
-    if (indexes !== null && !indexes.has(await contentHash(bytes))) { this.stop('a newer deployment'); return; }
-    const input: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
-    // A known build's complete index was checked above; this only schedules
-    // verified disk copies. Unverified input needs checked Node ingestion.
-    const index = indexes === null ? await readCheckedOutputIndex(input) : readOutputDownloadIndex(input);
-    const files = this.tier === 'phone' && indexes !== null ? await phoneTierFiles(input, index.files, base, content) : index.files;
-    const listed: Row[] = [...index.sections, ...index.schemas, ...files.map(file => ({ path: file.path, hash: file.hash, bytes: file.compressed }))];
+    const index = await readPrefetchIndex({url:url.href,indexHashes:indexes===null?null:[...indexes],phone:this.tier==='phone'},content);
+    if(index===null){this.stop('a newer deployment');return;}
+    const listed: Row[] = [...index.sections, ...index.schemas, ...index.files.map(file => ({ path: file.path, hash: file.hash, bytes: file.compressed }))];
     // a commons blob or a shared section is listed by several products: count and store it once
     const rows = listed.filter(row => { if (this.hashes.has(row.hash)) return false; this.hashes.add(row.hash); return true; });
     this.status.knownFiles += rows.length; this.status.knownBytes += rows.reduce((sum, row) => sum + row.bytes, 0);
