@@ -1,6 +1,5 @@
+import { driftwoodPhysics } from '../src/shards/driftwood-isle/generators/physics';
 import { RETURN_PROGRAM } from './fixtures/driftwood-guest-programs';
-// oxlint-disable-next-line import/no-nodejs-modules -- admit generated keeper metadata without inferring the complete bake
-import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { Rng } from '../src/engine/core/rng';
 import { enemyPlacements } from '../src/shards/driftwood-isle/generators/enemyPlacement';
@@ -11,7 +10,7 @@ import { PopulationKeeperRowsSchema } from '../src/format/populationKeeper';
 const finite=v.pipe(v.number(),v.finite());
 const physics=v.parse(v.object({actors:v.array(v.object({id:v.string(),kind:v.string(),variant:v.string(),seed:finite,scale:finite})),
   habitat:v.object({practice:v.string()}),herds:v.array(v.object({kind:v.string()}))}),
-  JSON.parse(readFileSync('src/shards/driftwood-isle/data/physics.generated.json','utf8')));
+  driftwoodPhysics());
 
 test('keeper compilation retains the captured native recipes, placement order and stream checkpoints', () => {
   const placement = enemyPlacements(), rows = v.parse(PopulationKeeperRowsSchema, keeperRows(placement, RETURN_PROGRAM));

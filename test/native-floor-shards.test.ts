@@ -1,3 +1,5 @@
+import { driftwoodPhysics, driftwoodPhysicsGroundBytes } from '../src/shards/driftwood-isle/generators/physics';
+import { pinePhysics } from '../src/shards/pine-hollow/generators/physics';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read the actual native floor payloads without importing megabyte JSON types.
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
@@ -8,10 +10,10 @@ import { nativeBakeFloats,originalNativeGround } from './fixtures/native-bake-in
 import { hashImmutableBytes } from '../src/sdk/immutable';
 
 for (const slug of ['driftwood-isle','pine-hollow']) test(`${slug} retains all floor bytes and values through inline and raw intake`, () => {
-  const source:unknown=JSON.parse(readFileSync(`src/shards/${slug}/data/physics.generated.json`,'utf8'));
+  const source:unknown=slug === 'driftwood-isle' ? driftwoodPhysics() : pinePhysics();
   const row=v.parse(v.object({ground:nativeGroundRecordSchema(256,true)}),source).ground;
   const original=typeof row.heights==='string' ? nativeBakeFloats(row.heights)
-    : new Float32Array(Uint8Array.from(readFileSync(`src/shards/${slug}/${row.heights.file}`)).buffer);
+    : new Float32Array((slug === 'driftwood-isle' ? driftwoodPhysicsGroundBytes() : Uint8Array.from(readFileSync(`src/shards/${slug}/${row.heights.file}`))).buffer);
   const bytes=new Uint8Array(original.buffer);
   const inline=originalNativeGround({...row,heights:Buffer.from(bytes).toString('base64')},256,500,slug);
   const file='data/floor.bin';

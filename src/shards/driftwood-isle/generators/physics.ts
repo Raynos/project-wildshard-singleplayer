@@ -1,3 +1,4 @@
+import { nameBlob } from '@wildshard/sdk/blobs';
 import { nativeColliderRecordSchema } from '@wildshard/format/nativePhysics';
 import * as v from 'valibot';
 import rows from '../data/physicsRows.json' with { type: 'json' };
@@ -29,12 +30,12 @@ export function driftwoodPhysics(): DriftwoodPhysics {
     pieces: rows.pieces, captain: rows.captain };
 }
 
-/** One registered producer emits the exact native floor bytes beside its metadata. */
-export function driftwoodPhysicsFiles(): Map<string, Uint8Array> {
-  return new Map([['data/physics.generated.json', new TextEncoder().encode(`${JSON.stringify(driftwoodPhysics())}\n`)], [floorFile, driftwoodPhysicsGroundBytes()]]);
+/** The original carved floor enters the product as owned bytes, without a source-file handoff. */
+export function driftwoodPhysicsFloor(): ReturnType<typeof nameBlob> {
+  return nameBlob(floorFile, 'bin', driftwoodPhysicsGroundBytes(), { decoded: (rows.ground.rows + 1) * (rows.ground.cols + 1) * 4 });
 }
 
-/** Original floor and hull buffers through the existing named binary intake. */
+/** Authored immutable hull buffers through the existing named binary intake. */
 export function driftwoodPhysicsSources(): { name: string; kind: 'bin'; source: string; options: { decoded: number } }[] {
   const colliders = new Map<string, number>();
   for (const solid of v.parse(v.array(nativeColliderRecordSchema([1, 2, 9], 'tagged', true)), rows.solids)) {
@@ -44,6 +45,5 @@ export function driftwoodPhysicsSources(): { name: string; kind: 'bin'; source: 
       colliders.set(range.file, Math.max(colliders.get(range.file) ?? 0, range.byteOffset + range.byteLength));
     }
   }
-  return [{ name: floorFile, kind: 'bin', source: floorFile, options: { decoded: (rows.ground.rows + 1) * (rows.ground.cols + 1) * 4 } },
-    ...Array.from(colliders, ([name, decoded]) => ({ name, kind: 'bin' as const, source: name, options: { decoded } }))];
+  return Array.from(colliders, ([name, decoded]) => ({ name, kind: 'bin' as const, source: name, options: { decoded } }));
 }

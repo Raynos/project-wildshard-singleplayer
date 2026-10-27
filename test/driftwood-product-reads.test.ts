@@ -1,6 +1,5 @@
+import { driftwoodPhysics } from '../src/shards/driftwood-isle/generators/physics';
 import { parseWorldSceneModels } from '../src/format/worldSceneModels';
-// oxlint-disable-next-line import/no-nodejs-modules -- Keep raw collider tuples while avoiding the full generated bake type.
-import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { readProjectAssets } from '../src/sdk/project';
@@ -16,7 +15,7 @@ import { DRIFTWOOD_PLACES, GUIDE } from '../src/shards/driftwood-isle/generators
 import { SEA_GLASS_COUNT, SHARD_FLAGS } from '../src/shards/driftwood-isle/generators/interactables';
 
 const nativePhysics=v.parse(v.object({solids:v.array(v.unknown())}),
-  JSON.parse(readFileSync('src/shards/driftwood-isle/data/physics.generated.json','utf8')));
+  driftwoodPhysics());
 
 const CHIME_PIECES = collectionRows().keepsakes.flags.count;
 

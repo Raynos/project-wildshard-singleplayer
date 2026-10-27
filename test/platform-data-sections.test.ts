@@ -1,5 +1,4 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- Retain raw provenance/body fields without a generated JSON type program.
-import { readFileSync } from 'node:fs';
+import { driftwoodPhysics } from '../src/shards/driftwood-isle/generators/physics';
 import { PinePhysicsSchema } from '../src/shards/pine-hollow/generators/sections';
 import { expect, test } from 'vitest';
 import { parseUiStrings } from '../src/format/uiStrings';
@@ -16,7 +15,7 @@ const pine=(()=>{
   v.assert(PinePhysicsSchema,value);return value;
 })();
 const driftwood=(()=>{
-  const value:unknown=JSON.parse(readFileSync('src/shards/driftwood-isle/data/physics.generated.json','utf8'));
+  const value:unknown=driftwoodPhysics();
   v.assert(v.object({ground:v.unknown(),solids:v.array(v.unknown()),actors:v.array(v.unknown()),
     herds:v.array(v.unknown()),habitat:v.unknown()}),value);return value;
 })();

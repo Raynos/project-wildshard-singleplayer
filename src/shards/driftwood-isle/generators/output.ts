@@ -27,7 +27,7 @@ import { CREATURE_INSTALL } from './creatureLook';
 import { ATTACK_TURN } from '@wildshard/engine/ai/hunt';
 import { driftwoodJsonBlob as nameBlob } from './namedSchemas';
 import { driftwoodNativeRows } from './nativeBake';
-import { driftwoodPhysics, driftwoodPhysicsSources } from './physics';
+import { driftwoodPhysics, driftwoodPhysicsFloor, driftwoodPhysicsSources } from './physics';
 import { WAKE_ENCOUNTER } from './wakeEncounter';
 import { NATIVE_QUEST_PROPS } from './nativeQuestProps';
 import { EXPLORER_CATALOGUE } from './explorerCatalogue';
@@ -216,13 +216,14 @@ export const sections: { 'world/movers': { movers: ({ id: string; execution: str
 export async function prepareOutput(ctx: Pick<ProjectGenerationContext, 'cached' | 'inputFiles' | 'compileScript' | 'compileScriptV2' | 'compileDecisionRows'>): Promise<typeof output> {
   const banks = await driftwoodSceneBanksCached(ctx), bankFiles = await driftwoodSceneBankOutput(banks), foliageFiles = await driftwoodFoliageSceneOutput(ctx);
   const guestFiles = await driftwoodGuestFiles(ctx), guests = driftwoodGuestRows(guestFiles), guestModules = guestModuleFiles(guestFiles, guests);
+  const floor = emitNamedBlobs([driftwoodPhysicsFloor()]);
   const rows = driftwoodOutputRows(banks.layouts, banks.facts, guests);
   const catalogue = emitNamedBlobs([nameBlob('scenes/rocks.json', 'json', new TextEncoder().encode(encodeCanonicalJson(banks.rocks.scene))),
     nameBlob('models/world-scenes.json', 'json', new TextEncoder().encode(encodeCanonicalJson(siteCatalogue(banks))))]);
   const fixed = await driftwoodFixedModelOutput(ctx), protos = await driftwoodIslandProtoOutput(ctx), pages = await driftwoodPageFileOutput(ctx), phoneRocks = await driftwoodPhoneRockOutput(banks.rocks.glbs), scenes = await driftwoodSceneModelOutput(ctx);
   return { ...rows, platform: emitPlatformSections(platformRows(worldScenes(banks), banks.layouts, banks.facts, banks.creatures, guests)),
-    namedFiles: [...rows.namedFiles, ...guestModules.files, ...catalogue.files, ...protos.files, ...pages.files, ...phoneRocks.files, ...fixed.files, ...scenes.files, ...bankFiles.files, ...foliageFiles.files],
-    assets: new Map([...rows.assets, ...guestModules.assets, ...catalogue.assets, ...protos.assets, ...pages.assets, ...phoneRocks.assets, ...fixed.assets, ...scenes.assets, ...bankFiles.assets, ...foliageFiles.assets]) };
+    namedFiles: [...rows.namedFiles, ...floor.files, ...guestModules.files, ...catalogue.files, ...protos.files, ...pages.files, ...phoneRocks.files, ...fixed.files, ...scenes.files, ...bankFiles.files, ...foliageFiles.files],
+    assets: new Map([...rows.assets, ...floor.assets, ...guestModules.assets, ...catalogue.assets, ...protos.assets, ...pages.assets, ...phoneRocks.assets, ...fixed.assets, ...scenes.assets, ...bankFiles.assets, ...foliageFiles.assets]) };
 }
 
 /** GR7: the map lattice (the source-owned map: the SDK publishes it as `ui/images/map` and the public alias). */

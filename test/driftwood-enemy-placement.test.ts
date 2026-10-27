@@ -1,9 +1,8 @@
+import { driftwoodPhysics } from '../src/shards/driftwood-isle/generators/physics';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { enemyPlacements } from '../src/shards/driftwood-isle/generators/enemyPlacement';
 import { EnemyPlacementsSchema } from '../src/shards/driftwood-isle/generators/sections';
-// oxlint-disable-next-line import/no-nodejs-modules -- Preserve the raw native bake and its provenance while avoiding JSON type inference.
-import { readFileSync } from 'node:fs';
 import { driftwoodNativeRows } from '../src/shards/driftwood-isle/generators/nativeBake';
 import { Rng } from '../src/engine/core/rng';
 // The original placeEnemies output for the same seed, crab sites, palms and floors (phone / desktop page tiers, native bake).
@@ -11,7 +10,7 @@ import frozen from './fixtures/legacy-oracles/driftwood-enemy-placement.json' wi
 
 const finite=v.pipe(v.number(),v.finite());
 const physics=(()=>{
-  const value:unknown=JSON.parse(readFileSync('src/shards/driftwood-isle/data/physics.generated.json','utf8'));
+  const value:unknown=driftwoodPhysics();
   v.assert(v.object({actors:v.array(v.object({kind:v.string(),spec:v.object({hp:finite})})),
     ground:v.object({scale:v.object({y:finite})}),habitat:v.object({hold:v.object({floor:v.array(v.nullable(finite))})}),
     captain:v.object({spec:v.object({variant:v.string()})})}),value);return value;
