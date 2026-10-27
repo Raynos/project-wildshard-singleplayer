@@ -155,7 +155,8 @@
     "./weapons/firearmRows": "./weapons/firearmRows.ts",
     "./bossProfiles": "./bossProfiles.ts",
     "./arenaView": "./arenaView.ts",
-    "./eliteEntryRows": "./eliteEntryRows.ts"
+    "./eliteEntryRows": "./eliteEntryRows.ts",
+    "./decisionScripts": "./decisionScripts.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -723,6 +724,10 @@
       "./eliteEntryRows": {
         "types": "./dist/types/sdk/eliteEntryRows.d.ts",
         "default": "./dist/eliteEntryRows.js"
+      },
+      "./decisionScripts": {
+        "types": "./dist/types/sdk/decisionScripts.d.ts",
+        "default": "./dist/decisionScripts.js"
       }
     }
   }
