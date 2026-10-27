@@ -30,7 +30,7 @@ export function skyProductBoot(rigs?: SkyRigAssetSources): {
   return { ktx2: rigs?.gpuFiles ?? GPU_FILES, 'boot.files': { sources, tier: 'phone', tex: 'img' }, 'boot.sources': sources, 'boot.lateReads': LATE_READS };
 }
 function productSources(rigs?: SkyRigAssetSources) {
-  const owned = new Set<string>([PREPARED_MODELS_URL, ...BAKED_PIECES.map(piece => BAKED_URLS[piece]), BRIDGE_REST_URL, MILL_REST_URL, FAN_URL,
+  const owned = new Set<string>([PREPARED_MODELS_URL, ...SKY_MESHES.map(name => MODEL_URLS[name]), ...BAKED_PIECES.map(piece => BAKED_URLS[piece]), BRIDGE_REST_URL, MILL_REST_URL, FAN_URL,
     ...(rigs === undefined ? [] : Object.values(SKY_CREATURE_RIGS))]);
   const props = shared.props.filter(row => typeof row === 'string' ? !owned.has(row) : rigs === undefined || !owned.has(row.gpu));
   return { ...BOOT_SOURCES, gpuFiles: rigs?.gpuFiles ?? GPU_FILES, tiers: {
