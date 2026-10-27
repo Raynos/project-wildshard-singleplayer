@@ -414,6 +414,14 @@ for (const [key, schema] of Object.entries(wireRoots)) {
 }
 // A composed quest host shares this exact check object; its nested path must not rename the defining public check.
 wireChecks.set(DirectorStagesSchema.pipe[1], '@wildshard/format/directorStages#DirectorStagesSchema.pipe.1');
+// ChapterWake borrows this check; composition cannot rename its defining public identity.
+const wakePipe: unknown = Reflect.get(WakeEncounterSchema, 'pipe');
+const wakeCheck: unknown = Array.isArray(wakePipe) ? wakePipe[1] : undefined;
+if (typeof wakeCheck !== 'object' || wakeCheck === null
+  || Reflect.get(wakeCheck, 'kind') !== 'validation' || Reflect.get(wakeCheck, 'type') !== 'check') {
+  throw new Error('Missing defining wake encounter validation');
+}
+wireChecks.set(wakeCheck, '@wildshard/format/bossEncounter#WakeEncounterSchema.pipe.1');
 
 /**
  * Convert an author schema with the official converter, refusing every unrecognised custom check or transform.
