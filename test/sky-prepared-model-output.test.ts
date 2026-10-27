@@ -150,11 +150,19 @@ test('owned geometry preserves all original bytes and costs, changing only its s
     const baseline = text.decode(beforeBytes);
     expect(text.decode(afterBytes)).toBe(baseline.replace('"/assets/far-reach/baked/prepared-models.glb"', JSON.stringify(geometryName)));
     expect(owned.assets.has(before.hash)).toBe(false);
-    expect(SKY_WORLD_TILE_ROWS.files).toHaveLength(22);
+    const fineFiles = new Set(SKY_WORLD_TILE_ROWS.props.tiles.filter(tile => tile.lod === 0).map(tile => tile.file));
+    const coarseFiles = new Set(SKY_WORLD_TILE_ROWS.props.tiles.filter(tile => tile.lod === 1).map(tile => tile.file));
+    expect(fineFiles.size).toBe(22); expect(coarseFiles.size).toBe(11);
+    expect([...fineFiles].filter(file => coarseFiles.has(file))).toEqual([]);
+    expect(SKY_WORLD_TILE_ROWS.files.map(file => file.hash).sort()).toEqual([...fineFiles, ...coarseFiles].sort());
     for (const file of SKY_WORLD_TILE_ROWS.files) {
       const tile = owned.assets.get(file.hash);
       if (tile === undefined) throw new Error('Missing owned island tile');
-      expect(Buffer.compare(tile, readFileSync(`src/shards/far-reach/assets/${file.hash}`))).toBe(0);
+      const nativeTile = readFileSync(`src/shards/far-reach/assets/${file.hash}`);
+      expect(Buffer.compare(tile, nativeTile)).toBe(0);
+      expect(hashImmutableBytes(nativeTile)).toBe(file.hash);
+      const { name: _name, path: _path, ...cost } = nameBlob('original-tile.glb', 'glb', nativeTile).file;
+      expect(file).toEqual(cost);
       tile.fill(0);
     }
     const oldBakes = output.namedFiles.find(file => file.name === bakeName), newBakes = owned.namedFiles.find(file => file.name === bakeName);
