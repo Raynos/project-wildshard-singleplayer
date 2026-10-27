@@ -89,7 +89,7 @@ since is red; the latest (`60e9b7bfe6`) fails `generated-inputs`, which fails fa
 
 | D46 | Shared-tree generation cannot discover `open-plots-world`: its declared `generators/bake-plots.mjs` was removed in an in-flight migration; real discovery restore is masked | — (working tree after `d6ca33cfc8`) | sp-o2 | working catalogue synced by sp-o2; committed GR9 retirement pending |
 
-| D47 | CI `generated-inputs`: Driftwood map assembly cannot resolve owned geometry `cascade/mooringLines` (`scripts/map-world.mjs:44`, `mapAssembly.mjs:76`) | `c7a57488e4` (run 40464950813) | sp-x10 | routed by sp-ci-deploy; defining model/source correspondence requested |
+| D47 | CI `generated-inputs`: Driftwood map assembly cannot resolve owned geometry `cascade/mooringLines` (`scripts/map-world.mjs:44`, `mapAssembly.mjs:76`) | `c7a57488e4` (run 40464950813) | sp-x10 | routed by sp-ci-deploy; defining model/source correspondence requested; also blocks sp-x8 plan-end preview `46cbe1f407` after 25.67 s (`tmp/serve/failed-20261027-021509-4407.log:391`), zero browser samples, exact failure sent to sp-x10 |
 
 | D48 | Real strict discovery-provider build fails Far Reach with `Sky static contact envelope differs` (`staticSceneIntake.ts:36`); discovery modules cannot be restored | `452dadcbf1` (defining intake; observed in local provider restore) | sp-x1 | routed by sp-ci-deploy; source/intake correspondence fix requested |
 
