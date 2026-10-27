@@ -11,7 +11,8 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import type { GraphIr } from '@wildshard/format/materialGraph';
 import { parsePaintedLook } from '@wildshard/format/paintedLook';
 import { loadPaintedTexture } from '../plugin/geometry';
-import type { ShardProduct } from '../shardfile/shardProduct';
+import { productClosureFile, type ShardProduct } from '../shardfile/shardProduct';
+import { materialGraphIr } from '@wildshard/format/materials';
 import { sceneScalar } from '../shardfile/sceneInputs';
 import type { LentLooks } from '../shardfile/lentLooks';
 import { prepareBinarySources } from '../models/binarySource';
@@ -54,10 +55,15 @@ export async function productPaintedLook(product: ShardProduct): Promise<LookStr
     if (texture === undefined) throw new Error(`Missing painted image binding: ${id}`);
     return texture;
   };
+  // D74: the catalogue's graph files, read once (their IR is resolved per graph below)
+  const graphFiles = new Map<string, Uint8Array>();
+  await Promise.all(Object.values(product.shardfile.look.materials).flatMap(entry => entry.family === 'graph' && 'file' in entry ? [entry.file] : [])
+    .map(async hash => { graphFiles.set(hash, await productClosureFile(product, hash)); }));
   const graph = (id: string): GraphIr => {
     const entry = product.shardfile.look.materials[id];
-    if (entry?.family !== 'graph' || !('graph' in entry)) throw new Error(`Missing painted graph: ${id}`);
-    return { ...entry.graph, params: Object.fromEntries(Object.entries(entry.graph.params ?? {}).map(([name, param]) => {
+    if (entry?.family !== 'graph' || 'preset' in entry) throw new Error(`Missing painted graph: ${id}`);
+    const ir = materialGraphIr(entry, hash => graphFiles.get(hash));
+    return { ...ir, params: Object.fromEntries(Object.entries(ir.params ?? {}).map(([name, param]) => {
       if (param.type !== 'texture' || param.role !== 'lent') return [name, param];
       const { role: _role, ...resolved } = param; return [name, resolved];
     })) };

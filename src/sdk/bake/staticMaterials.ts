@@ -4,6 +4,7 @@ import { parseKtx2 } from '../assets';
 import { hashImmutableBytes } from '../immutable';
 import type { WorldMaterial, WorldTexture } from './world';
 import type { GlbPrimitive } from './glb';
+import type { GraphIr } from '@wildshard/format/materialGraph';
 
 const slots = ['colour', 'normal', 'metallicRoughness', 'occlusion', 'emissive'] as const;
 type Bindings = NonNullable<Shardfile['props']>['materials'];
@@ -41,7 +42,7 @@ export class StaticMaterialCatalogue {
   private readonly geometry = new Set<BufferGeometry>();
   private disposed = false;
 
-  constructor(sources: readonly (WorldMaterial & { vertexColours?: boolean; faceted?: boolean })[], look: Shardfile['look']['materials'], resolve: StaticTextureResolver) {
+  constructor(sources: readonly (WorldMaterial & { vertexColours?: boolean; faceted?: boolean })[], look: Shardfile['look']['materials'], graphs: ReadonlyMap<string, GraphIr>, resolve: StaticTextureResolver) {
     if (sources.length === 0 || sources.length > 256) throw new Error('Static material catalogue requires 1–256 source slots');
     try { for (const source of sources) {
       checkSource(source);
@@ -49,8 +50,9 @@ export class StaticMaterialCatalogue {
       if (!nameOk(source.name) || this.rows.has(source.name) || entry === undefined) throw new Error(`Static material ${source.name || '(unnamed)'} is duplicated or has no explicit look entry`);
       // colourOrVertex explicitly binds this colour slot at runtime. Its opaque picture replaces vertex colour;
       // non-unit factors, other texture roles and an authored emissive term still need their own adapters.
-      const colourGraph = entry.family === 'graph' && 'graph' in entry && entry.graph.model === 'unlit'
-        && Object.values(entry.graph.nodes).some(node => node.op === 'meshMap' && node.name === 'colourOrVertex')
+      const graph = graphs.get(source.id);
+      const colourGraph = graph?.model === 'unlit'
+        && Object.values(graph.nodes).some(node => node.op === 'meshMap' && node.name === 'colourOrVertex')
         && source.alpha === 'OPAQUE' && source.colour.every(value => value === 1) && source.emissive.every(value => value === 0)
         && slots.every(slot => slot === 'colour' || source.maps[slot] === null);
       if (entry.family === 'graph' && Object.values(source.maps).some(map => map !== null) && !colourGraph) throw new Error('Static graph transport needs an explicit factor-binding adapter');
@@ -79,7 +81,7 @@ export class StaticMaterialCatalogue {
       material.color.fromArray(source.colour); material.opacity = source.colour[3] ?? 1;
       material.roughness = source.roughness; material.metalness = source.metalness; material.emissive.fromArray(source.emissive);
       material.side = source.doubleSided ? 2 : 0; material.transparent = source.alpha === 'BLEND'; material.alphaTest = cutoff;
-      const additive = entry.family === 'graph' && 'graph' in entry && entry.graph.effectState?.blend === 'additive';
+      const additive = graph?.effectState?.blend === 'additive';
       this.rows.set(source.name, { source: structuredClone(source), binding, material, dependencies: [...new Set(dependencies)].sort(), additive });
     } } catch (error) { this.dispose(); throw error; }
   }

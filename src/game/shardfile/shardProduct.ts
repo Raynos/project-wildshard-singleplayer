@@ -104,6 +104,18 @@ function deepFreeze<T>(value: T): T {
   return value;
 }
 
+/** each loaded product's content-addressed reader (its closure's unnamed files) */
+const closureReaders = new WeakMap<ShardProduct, (hash: string) => Promise<Uint8Array>>();
+/**
+ * D74: a closure file's verified bytes by content hash, for the files a catalogue names by hash rather than by logical
+ * name (a material's graph file, `{ family: 'graph', file }`). Refuses a product with no loaded output.
+ */
+export function productClosureFile(product: ShardProduct, hash: string): Promise<Uint8Array> {
+  const read = closureReaders.get(product);
+  if (read === undefined) return Promise.reject(new ProductError(product.slug, hash, 'absent', 'this product has no content-addressed reader'));
+  return read(hash);
+}
+
 /** Build the product the loader passes to a runtime. Pure: it fetches nothing and decodes nothing itself. */
 export function createShardProduct(input: ShardProductInput): ShardProduct {
   const { slug, sections, files, check = false } = input, streamed = input.streamed ?? new Set<string>();
@@ -148,7 +160,7 @@ export function createShardProduct(input: ShardProductInput): ShardProduct {
       : input.builtJson === true ? parseNamedJson(bytes) : await (input.jsonCheck ?? readCheckedNamedJson)(file.jsonSchema, bytes, () => pacedResolve(undefined));
     return input.check === true ? deepFreeze(decoded) : decoded;
   }
-  return {
+  const product: ShardProduct = {
     slug, revision: input.revision, shardfile: input.shardfile, section, json,
     has: name => sections.has(name) || streamed.has(name),
     strings: <const K extends string>(keys: readonly K[]): ProductStrings<K> => {
@@ -164,6 +176,8 @@ export function createShardProduct(input: ShardProductInput): ShardProduct {
     },
     url: name => named(name).url,
   };
+  closureReaders.set(product, hash => { try { return input.read(hash); } catch (error) { return Promise.reject(error instanceof Error ? error : new Error(String(error))); } });
+  return product;
 }
 
 /**

@@ -19,6 +19,7 @@ import {
 } from 'three';
 import type { PropSurfaceBinding } from '@wildshard/engine/world/declaredProps';
 import { graphUsesMeshMap } from '@wildshard/format/materialGraph';
+import { materialGraphIr } from '@wildshard/format/materials';
 import { FAMILY_IDS } from '@wildshard/format/materialFamilies';
 import { propMaterialSlots, propSlotUse, type PropMaterials, type PropTextureSlot } from '@wildshard/format/propMaterials';
 import type { Shardfile } from '@wildshard/format/shardSchema';
@@ -52,6 +53,8 @@ export function familyDefaultEntry(family: string): Readonly<Record<string, unkn
 export function propSurfaces(materials: PropMaterials, ports: {
   look: Shardfile['look']['materials']; catalogue: ReadonlyMap<string, Material>;
   compile: (entry: unknown) => Material; texture: (ref: string, use: 'colour' | 'data') => Texture;
+  /** a graph file's admitted bytes by hash (D74: a graph entry is its file) */
+  file: (hash: string) => Uint8Array | undefined;
 }): (name: string) => PropSurfaceBinding {
   const defaults = new Map<string, Material>(), resolved = new Map<string, PropSurfaceBinding>();
   const base = (id: string): Material => {
@@ -71,11 +74,11 @@ export function propSurfaces(materials: PropMaterials, ports: {
       if (slot === 'occlusion') maps.occlusionStrength = value.strength ?? 1;
     }
     let material: Material;
-    if (entry?.family === 'graph' && 'graph' in entry && slots.length > 0) {
+    if (entry?.family === 'graph' && !('preset' in entry) && slots.length > 0) {
       // the slot files fill the graph's own texture params of the same names (admitted: validatePropMaterials)
-      const params = { ...entry.graph.params };
-      for (const [slot, value] of slots) { const param = params[slot]; if (param?.type !== 'texture' && slot === 'colour' && graphUsesMeshMap(entry.graph)) continue; if (param?.type !== 'texture') throw new Error(`props material "${name}": graph ${row.id} has no texture param ${slot}`); params[slot] = { ...param, value: value.file }; }
-      material = ports.compile({ family: 'graph', graph: { ...entry.graph, params } });
+      const graph = materialGraphIr(entry, ports.file), params = { ...graph.params };
+      for (const [slot, value] of slots) { const param = params[slot]; if (param?.type !== 'texture' && slot === 'colour' && graphUsesMeshMap(graph)) continue; if (param?.type !== 'texture') throw new Error(`props material "${name}": graph ${row.id} has no texture param ${slot}`); params[slot] = { ...param, value: value.file }; }
+      material = ports.compile({ family: 'graph', graph: { ...graph, params } });
     } else material = base(row.id);
     resolved.set(name, { material, maps });
   }

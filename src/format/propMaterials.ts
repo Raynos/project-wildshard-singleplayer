@@ -21,7 +21,7 @@ import { graphUsesMeshMap } from './materialGraph';
  */
 import * as v from 'valibot';
 import { FAMILY_IDS } from '@wildshard/format/materialFamilies';
-import { materialTextureRefs, type MaterialsSchema } from '@wildshard/format/materials';
+import { materialGraphIr, materialTextureRefs, type MaterialsSchema } from '@wildshard/format/materials';
 
 const ref = v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u));
 const id = v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u), v.maxLength(128));
@@ -92,6 +92,8 @@ const samplerKey = (s: PropTextureSlot): string => `${s.wrapS}/${s.wrapT}/${s.mi
 export function validatePropMaterials(materials: PropMaterials, context: {
   look: v.InferOutput<typeof MaterialsSchema>; models: readonly string[]; textures: readonly { model: string }[];
   files: readonly { hash: string; kind: string; dependencies: readonly string[] }[];
+  /** a graph file's bytes (product admission); without it a graph file's slots are checked there (D74) */
+  graphFile?: (hash: string) => Uint8Array | undefined;
 }): void {
   // the per-model colour texture is the one-family path's; with named materials every texture is a slot
   if (context.textures.length > 0) throw new Error('props.materials replaces props.textures: bind each texture as a named material slot');
@@ -104,9 +106,10 @@ export function validatePropMaterials(materials: PropMaterials, context: {
     if (family === undefined) throw new Error(`props material "${name}": ${row.id} is not an admitted material ID`);
     for (const [slotName, value] of propMaterialSlots(row)) {
       if (family === 'graph') {
-        if (entry?.family === 'graph' && !('graph' in entry)) throw new Error(`props material "${name}": its texture slots bind an inline graph, not a graph file or a preset reference`);
-        const param = entry?.family === 'graph' ? entry.graph.params?.[slotName] : undefined;
-        if (param?.type !== 'texture' && !(slotName === 'colour' && entry?.family === 'graph' && graphUsesMeshMap(entry.graph))) throw new Error(`props material "${name}": graph ${row.id} has no texture param "${slotName}" for its ${slotName} slot`);
+        if (entry?.family === 'graph' && 'preset' in entry) throw new Error(`props material "${name}": its texture slots bind a graph, not a preset reference`);
+        const graphFile = context.graphFile, graph = entry?.family !== 'graph' ? undefined : !('file' in entry) ? entry.graph : graphFile === undefined ? null : materialGraphIr(entry, graphFile);
+        const param = graph === null ? undefined : graph?.params?.[slotName];
+        if (graph !== null && param?.type !== 'texture' && !(slotName === 'colour' && graph !== undefined && graphUsesMeshMap(graph))) throw new Error(`props material "${name}": graph ${row.id} has no texture param "${slotName}" for its ${slotName} slot`);
       } else if (!(FAMILY_SLOTS[family] ?? []).includes(slotName)) throw new Error(`props material "${name}": the ${family} family draws no ${slotName} slot`);
       const file = files.get(value.file);
       if (file?.kind !== 'ktx2' || !declared.has(value.file)) throw new Error(`props material "${name}": its ${slotName} texture must be a KTX2 dependency of a declared props GLB`);

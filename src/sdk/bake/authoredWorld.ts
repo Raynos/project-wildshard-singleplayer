@@ -2,7 +2,7 @@ import { Box3, DoubleSide, Float32BufferAttribute, Mesh, MeshStandardMaterial, R
 import * as v from 'valibot';
 import { isJsonData } from '@wildshard/format/json';
 import { FAMILY_IDS, PbrMaterialSchema } from '@wildshard/format/materialFamilies';
-import { MaterialsSchema } from '@wildshard/format/materials';
+import { MaterialsSchema, materialGraphIr } from '@wildshard/format/materials';
 import { parseShardfile, type Shardfile } from '../shardfile';
 import { normalizeWorldGlb, type NormalizedWorld, type WorldPrimitive } from './world';
 import { parseWorldSource } from '../worldSource';
@@ -59,11 +59,13 @@ export function farSources(world: Pick<NormalizedWorld, 'static' | 'undrawn' | '
  * Existing compiled world sections refuse rather than being silently replaced.
  * Vacant L0 squares have zero-cost metadata without fabricated GLBs or model rows.
  * No repository bake script is needed. */
-export async function bakeAuthoredWorld(input: unknown, bytes: Uint8Array): Promise<AuthoredWorldProduct> {
+export async function bakeAuthoredWorld(input: unknown, bytes: Uint8Array, graphFiles: (hash: string) => Uint8Array | undefined = () => undefined): Promise<AuthoredWorldProduct> {
   const source = record(input), { world: declaration, ...data } = source, authored = parseWorldSource(declaration);
   for (const key of ['terrain', 'meshCollision', 'props', 'far', 'runtime']) if (data[key] !== undefined && data[key] !== null) throw new Error(`Authored world cannot replace compiled ${key}`);
   if (Array.isArray(data['tiles']) && data['tiles'].length > 0) throw new Error('Authored world cannot replace compiled tiles');
   const look = record(data['look']), materials = { ...v.parse(MaterialsSchema, look['materials'] ?? {}) };
+  // D74: a graph entry's IR from its graph file (`graphFiles`: the build's lowered graph bytes)
+  const graphs = new Map(Object.entries(materials).flatMap(([id, entry]) => entry.family === 'graph' && !('preset' in entry) ? [[id, materialGraphIr(entry, graphFiles)] as const] : []));
   const world = await normalizeWorldGlb(bytes, authored, [...Object.keys(materials), ...FAMILY_IDS]);
   // Platform defaults are made explicit for the named transport catalogue.
   for (const row of world.materials) if (materials[row.id] === undefined) {
@@ -78,7 +80,7 @@ export async function bakeAuthoredWorld(input: unknown, bytes: Uint8Array): Prom
     const image = world.images.find(row => row.hash === map.image); if (image === undefined) throw new Error('World GLB missing embedded texture');
     encoded.set(key, await bakeWorldTexture(image.bytes, role));
   }
-  const catalogue = new StaticMaterialCatalogue(world.materials, materials, (map, role) => {
+  const catalogue = new StaticMaterialCatalogue(world.materials, materials, graphs, (map, role) => {
     const texture = encoded.get(`${map.image}/${role}`); if (texture === undefined) throw new Error('World GLB missing encoded texture'); return texture;
   });
   const pack = new WorldBakeRows(), geometry: BufferGeometry[] = [], library: string[] = [];
@@ -128,7 +130,7 @@ export async function bakeAuthoredWorld(input: unknown, bytes: Uint8Array): Prom
     // additive graph surfaces (a hologram) are light without a far silhouette; the world's far-only nodes (its source's
     // `far` prefix) stand in for them here (G608)
     const light = new Set(world.materials.flatMap((row, index) => { const entry = materials[row.id];
-      return (entry?.family === 'graph' && 'graph' in entry && entry.graph.effectState?.blend === 'additive') || (entry?.family === 'emissive' && entry.blend === 'additive') ? [index] : []; }));
+      return graphs.get(row.id)?.effectState?.blend === 'additive' || (entry?.family === 'emissive' && entry.blend === 'additive') ? [index] : []; }));
     const farRows = await Promise.all(farSources(world, light, authored.farMode).map(row => simplifyWorldPrimitive(row, 0.1, 2)));
     const farParts = farRows.map(row => {
       const part = worldGeometry(row.primitive), colour = world.materials[row.primitive.material]?.colour ?? [1, 1, 1];
@@ -171,10 +173,12 @@ export async function bakeAuthoredWorld(input: unknown, bytes: Uint8Array): Prom
     // its light (additive pools, unlit or emissive glows) has no lit vertex-colour form: the near view draws it in its own
     // additive light layer (NM13, `coarseNearView`)
     const lightNames = new Set(world.materials.flatMap((row, index) => { const entry = materials[row.id];
-      return light.has(index) || entry?.family === 'emissive' || (entry?.family === 'graph' && 'graph' in entry && entry.graph.model === 'unlit') ? [row.name, row.id] : []; }));
-    const colourNames = new Set(world.materials.flatMap(row => { const entry = materials[row.id];
-      return entry?.family === 'graph' && 'graph' in entry && entry.graph.model === 'unlit'
-        && Object.values(entry.graph.nodes).some(node => node.op === 'meshMap' && node.name === 'colourOrVertex') ? [row.name, row.id] : []; }));
+      return light.has(index) || entry?.family === 'emissive' || graphs.get(row.id)?.model === 'unlit' ? [row.name, row.id] : []; }));
+    const colourNames = new Set(world.materials.flatMap(row => { const graph = graphs.get(row.id);
+      return graph?.model === 'unlit'
+        && Object.values(graph.nodes).some(node => node.op === 'meshMap' && node.name === 'colourOrVertex') ? [row.name, row.id] : []; }));
+    // the near view reads its graph surfaces from their files
+    for (const entry of Object.values(materials)) if (entry.family === 'graph' && 'file' in entry) { const file = graphFiles(entry.file); if (file !== undefined) baked.assets.set(entry.file, file); }
     if (authored.near === 'coarse') return { shard: await coarseNearView(shard, baked.assets, name => lightNames.has(name), name => colourNames.has(name)), assets: baked.assets };
     return { shard, assets: baked.assets };
   } finally { catalogue.dispose(); geometry.forEach(part => part.dispose()); }

@@ -46,6 +46,18 @@ export function graphFileJson(hash: string, file: (hash: string) => Uint8Array |
   if (bytes.length > GRAPH_FILE_BYTES) throw new Error(`material graph file ${hash}: ${bytes.length} bytes (at most ${GRAPH_FILE_BYTES})`);
   try { return JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)); } catch { throw new Error(`material graph file ${hash} is not UTF-8 JSON`); }
 }
+/**
+ * A graph material's IR (D74: graph files): a graph file's JSON, its bytes from `file`, validated under the trusted budget
+ * (product admission already held it to its caps and bindings, `graphFileRules`), or an inline entry's IR. Throws for a
+ * preset reference or a missing or invalid file.
+ */
+export function materialGraphIr(entry: MaterialEntry, file: (hash: string) => Uint8Array | undefined): GraphIr {
+  if (entry.family !== 'graph' || 'preset' in entry) throw new Error('material graph IR needs a graph file or inline graph');
+  if (!('file' in entry)) return entry.graph;
+  const checked = validateGraph(graphFileJson(entry.file, file), { trustedBudget: true });
+  if (!checked.ok) throw new Error(`material graph file ${entry.file}: ${checked.errors.join('; ')}`);
+  return checked.graph;
+}
 /** The texture params of the catalogue's graph files (their bytes from `bytes`; a missing or unreadable file names none). */
 export function graphFileTextureRefs(materials: Readonly<v.InferOutput<typeof MaterialsSchema>>, bytes: (hash: string) => Uint8Array | undefined): string[] {
   const refs: string[] = [];
@@ -78,9 +90,10 @@ export const TextureSamplersSchema: v.GenericSchema<TextureSamplersInput, Textur
   wrap: v.exactOptional(v.picklist(['repeat', 'clamp', 'mirror'])), anisotropy: v.exactOptional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(16))),
   filter: v.exactOptional(v.picklist(['linear', 'nearest'])), mips: v.exactOptional(v.picklist(['file', 'gpu'])),
 })), v.check((rows) => Object.keys(rows).length <= 256, 'bounded texture samplers'));
-/** Each sampler row names a texture of the look's material catalogue. */
-export function textureSamplerRules(look: Pick<Shardfile['look'], 'materials' | 'samplers'>): string[] {
-  const refs = new Set(materialTextureRefs(look.materials));
+/** Each sampler row names a texture of the look's material catalogue (a graph file's are its row's dependencies). */
+export function textureSamplerRules(look: Pick<Shardfile['look'], 'materials' | 'samplers'>, files: readonly { readonly hash: string; readonly dependencies: readonly string[] }[] = []): string[] {
+  const rows = new Map(files.map((file) => [file.hash, file])), refs = new Set(materialTextureRefs(look.materials));
+  for (const material of Object.values(look.materials)) if (material.family === 'graph' && 'file' in material) for (const ref of rows.get(material.file)?.dependencies ?? []) refs.add(ref);
   return Object.keys(look.samplers ?? {}).flatMap((ref) => (refs.has(ref) ? [] : [`samplers ${ref}: not a texture of the look's material catalogue`]));
 }
 /** Resolve authored surface IDs or the four platform default material IDs. */
@@ -154,7 +167,8 @@ export function materialGraphRules(source: Pick<Shardfile, 'look' | 'state'> & P
     const fog = checked.graph.effectState?.fog;
     if (typeof fog === 'string') {
       const target = source.look.materials[fog];
-      if (target?.family !== 'graph' || !('graph' in target) || target.graph.kind !== 'fog') errors.push(`material ${materialId}: effectState.fog ${fog} names no inline fog graph of this catalogue`);
+      // a graph file target is held to its fog kind with its bytes (graphFileRules)
+      if (target?.family !== 'graph' || 'preset' in target || ('graph' in target && target.graph.kind !== 'fog')) errors.push(`material ${materialId}: effectState.fog ${fog} names no fog graph of this catalogue`);
     }
   }
   return errors;
@@ -174,14 +188,21 @@ export function graphFileRules(source: Pick<Shardfile, 'look' | 'state' | 'files
     try { ir = graphFileJson(material.file, bytes); } catch (error) { errors.push(`material ${materialId}: ${error instanceof Error ? error.message : 'graph file'}`); continue; }
     const checked = validateGraph(ir, { dayKeys: [...dayChannels.keys()], stateFields, trustedBudget: source.runtime !== null && source.runtime !== undefined || hasDeclaredClientPage(source) });
     if (!checked.ok) { errors.push(...checked.errors.map((error) => `material ${materialId}: ${error}`)); continue; }
-    if (checked.graph.kind !== 'material') { errors.push(`material ${materialId}: a graph file in a material slot holds a material graph, not a post pass`); continue; }
+    if (checked.graph.kind === 'post') { errors.push(`material ${materialId}: a graph file in a material slot holds a material or fog graph, not a post pass`); continue; }
+    const fog = checked.graph.effectState?.fog, target = typeof fog === 'string' ? source.look.materials[fog] : undefined;
+    if (typeof fog === 'string' && (target?.family !== 'graph' || 'preset' in target || fogKind(target, bytes) !== 'fog')) errors.push(`material ${materialId}: effectState.fog ${fog} names no fog graph of this catalogue`);
     const deps = new Set(files.get(material.file)?.dependencies);
     for (const param of Object.values(checked.graph.params ?? {})) {
-      if (param.type === 'texture' && (typeof param.value !== 'string' || !deps.has(param.value) || files.get(param.value)?.kind !== 'ktx2')) errors.push(`material ${materialId}: a graph file's texture is a KTX2 dependency of its file row`);
+      // a lent texture names no file: its runtime lends it (as an inline graph's)
+      if (param.type === 'texture' && param.role !== 'lent' && (typeof param.value !== 'string' || !deps.has(param.value) || files.get(param.value)?.kind !== 'ktx2')) errors.push(`material ${materialId}: a graph file's texture is a KTX2 dependency of its file row`);
     }
     errors.push(...bindingTypeErrors(materialId, checked.graph, dayChannels));
   }
   return errors;
+}
+/** a graph entry's kind, read from its file's bytes when it is a file (undefined: unreadable) */
+function fogKind(entry: MaterialEntry, bytes: (hash: string) => Uint8Array | undefined): string | undefined {
+  try { return materialGraphIr(entry, bytes).kind; } catch { return undefined; }
 }
 function bindingTypeErrors(materialId: string, ir: GraphIr, dayChannels: ReadonlyMap<string, 'float' | 'vec3'>): string[] {
   const errors: string[] = [];

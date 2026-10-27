@@ -126,7 +126,7 @@ export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<stri
         const binding = propMaterials[name]; if (binding === undefined) throw new Error(`Missing admitted prop material ${name}`);
         used[name] = binding;
       }
-      validatePropMaterials(used, { look: s.look.materials, models: [f.hash], textures: s.props?.textures ?? [], files: s.files });
+      validatePropMaterials(used, { look: s.look.materials, models: [f.hash], textures: s.props?.textures ?? [], files: s.files, graphFile: (hash) => assets.get(hash) });
     }
   }
   for (const ref of new Set(Object.values(s.audio.recordings ?? {}))) {

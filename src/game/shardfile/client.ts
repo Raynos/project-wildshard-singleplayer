@@ -154,10 +154,17 @@ function emptyHybridData(source: Shardfile, audioOwner: ShardfileClientBindings[
  * family materials (their entries, family looks and curves, and the textures only they name). When this is empty the data
  * is presentation-only: its runtime keeps the simulation and the data client only draws.
  */
+/** D74: the catalogue's graph files and the textures their rows name (presentation, as an inline graph's were) */
+function graphFileRefs(source: Shardfile): string[] {
+  const rows = new Map(source.files.map((file) => [file.hash, file]));
+  const refs: string[] = [];
+  for (const entry of Object.values(source.look.materials)) if (entry.family === 'graph' && 'file' in entry) refs.push(entry.file, ...rows.get(entry.file)?.dependencies ?? []);
+  return refs;
+}
 function withoutPresentation(source: Shardfile): Shardfile {
   // a splat ground's tiles and layers are presentation too (P1: the ground a trusted runtime's data client draws)
   const files = new Set([...(source.terrain === null ? [] : [source.terrain.collider,
-    ...(source.terrain.sampling === undefined ? [] : [source.terrain.sampling.file]), ...source.terrain.tiles.map((tile) => tile.file)]), ...materialTextureRefs(source.look.materials), ...splatGroundFiles(source)]);
+    ...(source.terrain.sampling === undefined ? [] : [source.terrain.sampling.file]), ...source.terrain.tiles.map((tile) => tile.file)]), ...materialTextureRefs(source.look.materials), ...graphFileRefs(source), ...splatGroundFiles(source)]);
   const keep = (ref: string): boolean => !files.has(ref);
   return { ...source, terrain: null, props: source.props === null ? null : { ...source.props, tiles: source.props.tiles.filter(tile => keep(tile.file)) }, files: source.files.filter((file) => keep(file.hash)), critical: source.critical.filter(keep), library: source.library.filter(keep),
     tiles: source.tiles.flatMap((tile) => { const kept = tile.files.filter(keep); return kept.length === 0 ? [] : [kept.length === tile.files.length ? tile : { ...tile, files: kept }]; }),

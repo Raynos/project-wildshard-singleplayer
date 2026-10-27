@@ -16,7 +16,7 @@ function poster(): WorldMaterial {
 test('opaque graph pictures preserve the complete sRGB colour slot and sampler', () => {
   const bytes = bakeRawColourPixels({ width: 1, height: 1, pixels: new Uint8ClampedArray([18, 24, 43, 255]) });
   const resolve = vi.fn(() => bytes), source = poster();
-  const catalogue = new StaticMaterialCatalogue([source], { poster: { family: 'graph', graph } }, resolve);
+  const catalogue = new StaticMaterialCatalogue([source], { poster: { family: 'graph', graph } }, new Map([['poster', graph]]), resolve);
   try {
     const snapshot = catalogue.snapshot(), binding = snapshot.materials['Poster'];
     expect(resolve).toHaveBeenCalledExactlyOnceWith(source.maps.colour, 'srgb');
@@ -32,6 +32,6 @@ test.each(['factor', 'normal', 'emissive', 'alpha', 'implicit-map'] as const)('g
   if (kind === 'emissive') source.emissive[0] = 0.5;
   if (kind === 'alpha') source.alpha = 'BLEND';
   const selected: GraphIr = kind === 'implicit-map' ? { ...graph, nodes: { picture: { op: 'meshMap' }, rgb: graph.nodes['rgb'] ?? { op: 'const', value: 1 } } } : graph;
-  expect(() => new StaticMaterialCatalogue([source], { poster: { family: 'graph', graph: selected } }, () => { throw new Error('Must refuse before texture intake'); }))
+  expect(() => new StaticMaterialCatalogue([source], { poster: { family: 'graph', graph: selected } }, new Map([['poster', selected]]), () => { throw new Error('Must refuse before texture intake'); }))
     .toThrow('explicit factor-binding adapter');
 });

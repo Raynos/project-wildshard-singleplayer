@@ -235,7 +235,7 @@ export async function clientMaterials(shard: Shardfile, input: ReadonlyMap<strin
       if (moved) moveFamilyMaterial(row.material, curvedParams(row.base, row.rows, (key) => row.seen.get(key) ?? 0));
     }
   };
-  const propNamed = named === undefined ? null : propSurfaces(named, { look: shard.look.materials, catalogue: materials, compile, texture: resolveTexture });
+  const propNamed = named === undefined ? null : propSurfaces(named, { look: shard.look.materials, catalogue: materials, compile, texture: resolveTexture, file: (hash) => assets.get(hash) });
   // G227: the splat terrain's tile primitives draw with the live terrain's splat material, every other name as before
   const splatDrawn = splat === undefined ? null : splatSurface(splat, { scope, anisotropy: Math.min(16, renderer.capabilities.getMaxAnisotropy()), texture: (ref) => { const texture = textures.get(ref); if (texture === undefined) throw new Error('Unresolved admitted splat layer'); return texture; } });
   const surfaces = splat === undefined || splatDrawn === null ? propNamed : withSplatSurface({ name: splat.material, binding: splatDrawn.binding }, propNamed);

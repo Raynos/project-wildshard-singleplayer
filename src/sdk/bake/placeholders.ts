@@ -9,6 +9,7 @@ import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import type { PlaceholderTree } from '@wildshard/format/placeholderSource';
 import { NEAR_COLOUR, NEAR_LIGHT, NEAR_PLACEHOLDER_LIMITS } from '@wildshard/format/nearPlaceholder';
 import { MEASURE_SLOT, parseFamilyMaterial, type FamilyMaterialParams } from '@wildshard/format/materialFamilies';
+import { materialGraphIr } from '@wildshard/format/materials';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { placeholderGeometry, placeholderLeanDrop, type PlaceholderGrid, type PlaceholderLook, type PlaceholderLookRuntime, type PlaceholderPart } from '@wildshard/game/plugin/animation';
 import { assetCost } from '@wildshard/format/product';
@@ -402,13 +403,13 @@ const srgbLinear = (c: number): number => c <= 0.04045 ? c / 12.92 : ((c + 0.055
  * measure UVs instead (structure orange, trim grey, floor light grey), as its shader does under the grid lines. Colour
  * maps are not sampled.
  */
-function tileSurfaces(shard: Shardfile): (name: string) => (colour: readonly number[], uv: readonly number[] | null) => [number, number, number] {
+function tileSurfaces(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>): (name: string) => (colour: readonly number[], uv: readonly number[] | null) => [number, number, number] {
   const entryOf = (id: string): FamilyMaterialParams => {
     const entry = shard.look.materials[id];
     if (entry === undefined) return parseFamilyMaterial(familyDefault(id));
     if (entry.family !== 'graph') return entry;
     if ('preset' in entry) return entry.preset;
-    return parseFamilyMaterial('graph' in entry && entry.graph.model === 'unlit' ? { family: 'emissive', vertexColours: true } : familyDefault('pbr'));
+    return parseFamilyMaterial(materialGraphIr(entry, hash => assets.get(hash)).model === 'unlit' ? { family: 'emissive', vertexColours: true } : familyDefault('pbr'));
   };
   const surfaces = new Map<string, (colour: readonly number[], uv: readonly number[] | null) => [number, number, number]>();
   return (name) => {
@@ -439,7 +440,7 @@ export async function shardfileWorld(shard: Shardfile, assets: ReadonlyMap<strin
   const glbs = new Set(shard.files.filter(file => file.kind === 'glb').map(file => file.hash)),
     // RM8.1: tiles carry quantized channels (KHR_mesh_quantization) and may be meshopt-compressed
     io = new NodeIO().registerExtensions([EXTMeshoptCompression, KHRMeshQuantization]).registerDependencies({ 'meshopt.decoder': MeshoptDecoder }),
-    out: NearPrototype[] = [], surfaceOf = tileSurfaces(shard);
+    out: NearPrototype[] = [], surfaceOf = tileSurfaces(shard, assets);
   for (const tile of shard.tiles) {
     if (tile.lod !== lod) continue;
     for (const ref of tile.files) {

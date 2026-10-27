@@ -36,6 +36,7 @@ import { readManifestSource, type ProjectManifestSource } from './projectManifes
 import { projectDecisionOptions } from './projectDecisions';
 import { projectDecisionBudget } from './projectPolicy';
 import { nameBlob } from './blobs';
+import { lowerMaterialGraphs } from './materialGraphFiles';
 import { parseDiscoveryValues, type DiscoveryValues } from '@wildshard/format/discoveryValues';
 
 /** Stable JSON encoding: sorted object keys, no timestamps or host paths. */
@@ -129,9 +130,13 @@ async function projectModule(project: string, decisionLegacyLines?: number, sele
     declaration = compiled.declaration;
     for (const [hash, bytes] of compiled.assets) baked.set(hash, bytes);
   }
+  // D74: inline material graphs become content-addressed graph files of the closure before any admission reads them
+  const lowered = lowerMaterialGraphs(declaration);
+  declaration = lowered.declaration;
+  for (const [hash, bytes] of lowered.assets) baked.set(hash, bytes);
   if (typeof declaration === 'object' && declaration !== null && 'world' in declaration) {
     const world = parseWorldSource(declaration.world);
-    const product = await bakeAuthoredWorld(declaration, programWorld ?? readBoundedFile(sourcePath(world.glb), 256_000_000));
+    const product = await bakeAuthoredWorld(declaration, programWorld ?? readBoundedFile(sourcePath(world.glb), 256_000_000), hash => baked.get(hash));
     shard = product.shard;
     for (const [hash, bytes] of product.assets) baked.set(hash, bytes);
   } else shard = parseShardfile(declaration);
