@@ -19,7 +19,7 @@
     "manifest.json",
     "data/rocSlate.json",
     "data/lookGraphs.json",
-    "data/staticScenes.generated.json",
+    "owned-static-scenes.json",
     "data/routeScene.generated.json",
     "data/isletScenes.generated.json",
     "data/worldRows.generated.json",
@@ -308,14 +308,14 @@
           ]
         },
         {
-          "file": "data/staticScenes.generated.json",
+          "file": "owned-static-scenes.json",
           "path": [
             "standalone",
             "recipe"
           ]
         },
         {
-          "file": "data/staticScenes.generated.json",
+          "file": "owned-static-scenes.json",
           "path": [
             "standalone",
             "fixed",
