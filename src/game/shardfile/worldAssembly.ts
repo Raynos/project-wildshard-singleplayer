@@ -33,7 +33,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import { sharedModelContext, type ModelContext } from '@wildshard/engine/models/model';
 import type { ModelSite } from '@wildshard/engine/models/place';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
-import { WorldAssemblySchema, type WorldAssemblyStage, type WorldConstructionRows } from '@wildshard/format/worldAssembly';
+import { WorldAssemblySchema, type WorldAssemblyStage, type WorldConstructionRows, type WorldAssemblyRows } from '@wildshard/format/worldAssembly';
 import { publishEntryOwner, entryOwner, lendEntryOwner, presentEntryOwner } from './entryOwners';
 import { WorldEntry, type WorldEntryPorts } from './worldEntry';
 import { timeClientPreparation } from './preparationTiming';
@@ -125,7 +125,7 @@ export class WorldAssembly {
    * boundaries. A stage-only row has no progress, prelude or release actions.
    * The caller keeps its original resident cache and lending. */
   static async construct(input: unknown, ports: WorldConstructionPorts): Promise<Record<string, Object3D>> {
-    const parsed = v.parse(WorldAssemblySchema, input), rows = parsed.construction, stages = admitted(input);
+    const parsed = v.parse(WorldAssemblySchema, input), rows = parsed.construction, stages = admittedRows(parsed);
     const native = ports.native;
     if (stages.some(stage => ['water-surface','dressing-piece','dressing-anchor','dressing','arena-room','painted-reseed','painted-world'].includes(stage.kind)) && native === undefined) throw new Error('World construction needs its original native context');
     const { runtime, scope, product, library, scenes, baked } = ports, world = runtime.world;
@@ -262,9 +262,9 @@ export class WorldAssembly {
    * construction owner. Stage kinds determine the finite loan kinds; no
    * callback, property path or second builder crosses this boundary. */
   static lend(input: unknown, construction: Scope, entered: Scope): void {
-    const stages = admitted(input);
+    const parsed = v.parse(WorldAssemblySchema, input), stages = admittedRows(parsed);
     if (entered !== construction && !entered.belongsTo(construction)) throw new Error('World assembly needs its construction ancestor');
-    const root = v.parse(WorldAssemblySchema, input).construction?.root;
+    const root = parsed.construction?.root;
     const loans = stages.flatMap(stage => loanKinds(stage).map(kind => ({ kind, id: stage.kind === 'streamed-cover' && kind === 'object' ? stage.object : stage.id })));
     if (root !== undefined) loans.unshift({ kind: 'object', id: root.id });
     // Refuse an incomplete build before publishing even its first entered loan.
@@ -463,7 +463,11 @@ export class WorldAssembly {
 /** Admit an assembly: unique stage ids, every placement placed once across it (place stages and entry place rows), and
  *  an entry's floor one of its own unconditional place rows. */
 function admitted(input: unknown): readonly WorldAssemblyStage[] {
-  const { stages, construction } = v.parse(WorldAssemblySchema, input);
+  return admittedRows(v.parse(WorldAssemblySchema, input));
+}
+
+/** Validate one invocation's private parsed snapshot; never memoize mutable caller input. */
+function admittedRows({ stages, construction }: WorldAssemblyRows): readonly WorldAssemblyStage[] {
   const owners = stages.flatMap(stage => loanKinds(stage).length === 0 ? [] : [stage.kind === 'streamed-cover' ? stage.object : stage.id]);
   if (construction?.root !== undefined) owners.push(construction.root.id);
   if (owners.some(id => !/^[A-Za-z][A-Za-z0-9_.:-]{0,255}$/u.test(id))) throw new Error('Invalid world assembly owner id');
