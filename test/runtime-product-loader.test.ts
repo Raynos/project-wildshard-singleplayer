@@ -1,6 +1,6 @@
 import {zlibSync} from 'fflate';
 import {ScalarLatticeBindings} from '../src/engine/world/scalarChannel';
-import scalarManifest from '../src/shards/nalati-grasslands/discovery.generated';
+import { sourceManifest } from '../src/game/plugin/context';
 // oxlint-disable-next-line import/no-nodejs-modules -- Actual inert image fixture exercises the admitted cost envelope.
 import { readFileSync } from 'node:fs';
 import { afterEach, expect, test, vi } from 'vitest';
@@ -1204,14 +1204,13 @@ test('a full visited-product cache cannot refuse verified online admission or cl
 test('the original manifest product loader prepares named scalar blocks before returning',async()=>{
   const block=zlibSync(new Uint8Array(Float32Array.from([0,.25,.75,1]).buffer)),hash=hashImmutableBytes(block);
   const f=fixture(false,source=>{
-    source.identity.slug=scalarManifest.slug;
     source.files.push({hash,kind:'binary',compressed:block.length,decoded:16,gpu:0,triangles:0,draws:0,dependencies:[],critical:false});
     source.library.push(hash);source.budgets.library={compressed:3+block.length,resident:19};return new Map();
   },new Map([[hash,'data/manifest-samples.bin']]));
   f.wires.set(`blobs/bin/${hash}.bin`,block);
   const source=await readProductDescriptor(f.options),scope=own(),intake=new ScalarLatticeBindings();
   const sample=intake.lattice({res:2,size:500,values:{type:'f32',count:4,data:{file:'data/manifest-samples.bin'}}});
-  intake.seal();const manifest={...scalarManifest,scalarBlocks:intake};
+  intake.seal();const manifest={...sourceManifest(source,new Map(),scope),scalarBlocks:intake};
   provideManifestAdmission(manifest,{source,assets:new Map([[hash,block]]),cached:false},f.options);
   expect(()=>sample(0,0)).toThrow('not prepared');
   const product=await loadManifestProduct(manifest,scope);
