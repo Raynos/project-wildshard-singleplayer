@@ -46,7 +46,7 @@ Rows LD1–LD4 delete nothing and need no QA; LD5–LD8 wait for Jake's word (G6
 | **LD1 — done (`a3922936a5`)** | Each shard declares its own AS budget (`shard.config.ts` or `legacy-line-basis.json`; Driftwood 1716, Pine 2130, Nalati 2837 already hard-code theirs in their bake scripts) | S | all six build in a mirror with the legacy list emptied; budgets unchanged |
 | **LD2 — done (`c5165d06f9`, `5f6e4fcf55`)** | Pickups generator without the legacy tables | XS | pickup test green; the job has no `-legacy` input |
 | **LD3 — done (`007cfe778e`)** | Ruler baselines read by shard name, not through the legacy list | S | an empty legacy list gives the same numbers and zero verdicts |
-| **LD4** (G795: Node list compare, now) | Explorer parity in Node, built now, no browser lane (G795; was once per shard at a milestone in a browser): the LEGACY and SHARDFILE model / set / world / arena lists compared; deletes nothing | S | each diff empty, or every gap is a row in that shard's zero plan |
+| **LD4 — done audit with explicit gaps (`cfa1930bb0`, current inventory commit)** (G795) | Explorer parity in Node, built now, no browser lane (G795; was once per shard at a milestone in a browser): the LEGACY and SHARDFILE model / set / world / arena lists compared; deletes nothing | S | each diff empty, or every gap is a row in that shard's zero plan |
 | **LD5** | Remove the LEGACY button: Debug row, dual buttons, legacy entry mode and loading path, `shard/legacy.ts`, `entries.legacy` | S | SHARD SELECT shows one ENTER WORLD everywhere |
 | **LD6** | Delete the folders, one commit per shard: Sky + Signal (already unreachable), then Driftwood + Pine, then Nalati + Nine; each drops its list entry, regenerates `slugs.generated.json`, prunes lint entries | M | gates green per commit |
 | **LD7** | Delete legacy-only engine/game code with each LD6 commit (~16 modules, exports, frozen exceptions) | M | nothing left whose only importer was legacy |
@@ -177,3 +177,44 @@ list. All six original category comparisons, full input hashes,
 null/refusal states and qualified=false boundaries remain unchanged.
 Source types, typed lint and scoped ratchet pass; no runtime/build/
 browser/Simulator path changed. LD5-LD8 remain unapproved and untouched.
+
+## LD1-LD4 preparation reading (G805, 2026-10-27)
+
+**Prep4/4; whole plan4/8 (50%).** LD5-LD8 require Jake and are not
+started. LD4's original bar allows a nonempty diff when each gap has a
+row; the six owned LD4 follow-up rows above retain that work. Audit
+completion does not mean native runtime/visual/physics parity passes.
+No legacy source, list, button, loading path or policy was deleted.
+
+Current Node comparison is pinned to collector sourcecfa1930bb0 and
+six exact hash-verified existing products, with all consumed section,
+file and public-input hashes in legacy-explorer-lists.json. Product
+freshness is explicitly unqualified. The collector refuses a missing
+gap owner. Every nonempty diff and every native-runtime coverage gap
+links its exact owned LD4 row; none becomes an empty passing list.
+
+| Shard / follow-up | Declared Models LEGACY / shardfile | Declared Sets | Manifest POIs | Arenas | Exact nonempty difference |
+|---|---:|---:|---:|---:|---|
+| Driftwood / LD4-DW |14 /14 |9 /9 |6 /6 |1 /1 | none in captured declarations |
+| Pine / LD4-PH |19 /19 |19 /18 |18 /18 |1 /1 | conditional pine-hollow/mill-hamlet Set not in declared rows |
+| Nalati / LD4-NG |27 /27 |17 /17 |17 /17 |2 /2 | none in captured declarations |
+| Nine / LD4-ND |1 /0 |6 /0 |0 /8 |2 /2 | fp-arms and six Sets absent from declaration adapter; eight POIs added |
+| Far Reach / LD4-FR |8 /8 |0 /0 |0 /4 |1 /1 | four cardinal islet POIs added |
+| Sunscar / LD4-SD |10 /10 |0 /0 |0 /0 |1 /1 | none in captured declarations |
+
+The inventory retains every exact identifier. Five declared Model
+lists match78 identities; all six Arena lists match. Models/Sets/World
+keep qualified=false: world-placed/native models, conditional Set
+membership and late map registration have not been captured by this
+Node declaration adapter. These are coverage rows, not evidence of
+lost runtime content. LD4-ND names crossings, lantern-square,
+night-market, stair-street, well-galleries and well-rim explicitly.
+No original input pin or oracle is changed.
+
+LD2's unchanged plain producer --check also passes:23 variants,
+370224 raw bytes,78685 compressed,0 encoded JSON bytes (104948
+historical encoded characters). The empty-list baseline direct check
+passes98854 original lines and all six AS ceilings. Keep the earlier
+three-file Vitest setup refusal separate; no tests executed in it.
+The owned Node captures have exited; no browser, preview, geometry
+rendering, Simulator, build or generation run was started for LD4.

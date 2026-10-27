@@ -1,9 +1,9 @@
 {
   "version": 1,
-  "source": "1d75911183113268f387872745587810717b4380",
-  "collectorHash": "e486a00ae7c10657cfd49f37c8f5e197fe510fe9c09f1107a4ef14488a3a8c96",
+  "source": "cfa1930bb0cb47ced20e42299ce4a4dd15337ee4",
+  "collectorHash": "b815e4b99ff9bfe7b3cecce2a837d6fc219bbb945d7ecb98b603f5bedbdd6320",
   "tier": "phone",
-  "productSelection": "exact recorded index hashes from the existing cache",
+  "productSelection": "active out products",
   "coverage": {
     "models": "declared roster/catalogue only",
     "sets": "literal legacy declarations / world.sets rows only",
@@ -13,6 +13,21 @@
   "shards": [
     {
       "shard": "driftwood-isle",
+      "followup": {
+        "plan": "docs/plans/shard-platform/legacy-deletion-mini-plan.md",
+        "row": "LD4-DW",
+        "owner": "sp-x2",
+        "status": "open",
+        "covers": [
+          "every missing/added identifier below",
+          "models: roster captured; world-placement registrations require a separate native world-list adapter",
+          "sets: literal id/place declaration union; conditional membership and computed identifiers are not qualified",
+          "world: manifest POIs captured; late runtime map registrations are not qualified",
+          "models/sets: late native and world.assembly registrations are not qualified by the declared catalogue",
+          "world: ui/level manifest POIs captured; late runtime map registrations are not qualified",
+          "product: hash-verified existing output; no claim that it matches current source or visual/physics parity"
+        ]
+      },
       "legacy": {
         "lists": {
           "models": [
@@ -108,12 +123,12 @@
           ]
         },
         "inputs": {
-          "out/driftwood-isle/shard.json": "d61ed124b878355530fe3cdc50604eb0231d143c2893b46656c6e69c0cf5d900",
+          "out/driftwood-isle/shard.json": "92f35c6d16025634804f5c941a44fe68368dc4b94e2181fa5c1de04a71cd887b",
           "product:driftwood-isle:blobs/json/66bca554720d7c6bddee1d2f5cb3290605aa104edce8aaca509f0c6e0e6f95b3.json": "66bca554720d7c6bddee1d2f5cb3290605aa104edce8aaca509f0c6e0e6f95b3",
           "product:driftwood-isle:blobs/json/fb2d16131f453693ad70c32d9b12365703865a9e43afe3f17128698993d21990.json": "fb2d16131f453693ad70c32d9b12365703865a9e43afe3f17128698993d21990",
-          "product:driftwood-isle:blobs/json/f405f587711946cb90e4c8b86e9341ea48fbed90a3908660ac2a6b134dc23a6d.json": "f405f587711946cb90e4c8b86e9341ea48fbed90a3908660ac2a6b134dc23a6d",
-          "product:driftwood-isle:blobs/json/204cfad0993e6604ec21a44e1c0d18aaac91271ce48b4577f96a46b45cc67f79.json": "204cfad0993e6604ec21a44e1c0d18aaac91271ce48b4577f96a46b45cc67f79",
+          "product:driftwood-isle:blobs/json/6eb4e59fbe52500b302e13480a5b3bc4879faf7ae2cd55a7f777779ea173d758.json": "6eb4e59fbe52500b302e13480a5b3bc4879faf7ae2cd55a7f777779ea173d758",
           "product:driftwood-isle:blobs/json/fc11d2ec60bad9ae45772504a98b97ddea0359f033603eea6a9f12649874b095.json": "fc11d2ec60bad9ae45772504a98b97ddea0359f033603eea6a9f12649874b095",
+          "product:driftwood-isle:blobs/json/204cfad0993e6604ec21a44e1c0d18aaac91271ce48b4577f96a46b45cc67f79.json": "204cfad0993e6604ec21a44e1c0d18aaac91271ce48b4577f96a46b45cc67f79",
           "product:driftwood-isle:blobs/glb/dc2d6286f1536166606096a2288e78246baa943f958a73632af27012eacd8a86.glb": "dc2d6286f1536166606096a2288e78246baa943f958a73632af27012eacd8a86",
           "product:driftwood-isle:blobs/glb/a36bb3faee3834bea613d00083fafb998d8f23a48524727f67e0ea9059ed0600.glb": "a36bb3faee3834bea613d00083fafb998d8f23a48524727f67e0ea9059ed0600",
           "product:driftwood-isle:blobs/glb/f48f283e84ac42bf8c92829dec1af4902ff4abcccd1336a1356080954e0987cc.glb": "f48f283e84ac42bf8c92829dec1af4902ff4abcccd1336a1356080954e0987cc",
@@ -211,7 +226,7 @@
           "product: hash-verified existing output; no claim that it matches current source or visual/physics parity"
         ],
         "infrastructureWarnings": [
-          "(node:76525) ExperimentalWarning: Transform Types is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+          "(node:99861) ExperimentalWarning: Transform Types is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
         ]
       },
       "differences": {
@@ -239,6 +254,21 @@
     },
     {
       "shard": "pine-hollow",
+      "followup": {
+        "plan": "docs/plans/shard-platform/legacy-deletion-mini-plan.md",
+        "row": "LD4-PH",
+        "owner": "sp-x2",
+        "status": "open",
+        "covers": [
+          "every missing/added identifier below",
+          "models: roster captured; world-placement registrations require a separate native world-list adapter",
+          "sets: literal id/place declaration union; conditional membership and computed identifiers are not qualified",
+          "world: manifest POIs captured; late runtime map registrations are not qualified",
+          "models/sets: late native and world.assembly registrations are not qualified by the declared catalogue",
+          "world: ui/level manifest POIs captured; late runtime map registrations are not qualified",
+          "product: hash-verified existing output; no claim that it matches current source or visual/physics parity"
+        ]
+      },
       "legacy": {
         "lists": {
           "models": [
@@ -388,20 +418,19 @@
           ]
         },
         "inputs": {
-          "out/pine-hollow/shard.json": "cce4362eb470171e3c1c163fce26026e89891e1e66be5a4ff6c3f14b4946808a",
+          "out/pine-hollow/shard.json": "0dc41baadb23b94bd192f020138c3dbde1d26cb8973e81a27afb930860f569c6",
           "product:pine-hollow:blobs/json/5dba151331e1a20255c269ad80bfdc3b7dc6b1466172b20f161b43287cc5569c.json": "5dba151331e1a20255c269ad80bfdc3b7dc6b1466172b20f161b43287cc5569c",
-          "product:pine-hollow:blobs/json/d74d555607727952b386f7832d92555d871a25378280bc2481927b43afd8cfc1.json": "d74d555607727952b386f7832d92555d871a25378280bc2481927b43afd8cfc1",
-          "1d75911183113268f387872745587810717b4380:public/assets/pine-hollow/baked/code-parts-bd582243b159.bin": "38816de84a7e775775a28de5d35fbce9c7c4fd03156bc943cf21998d4129044e",
-          "1d75911183113268f387872745587810717b4380:scripts/generation-jobs.json": "8876b63208534cbaa3ea5b60422954c7295a111fa594824219d1df1bbcfbe9e6",
-          "generation:pine-npc-skins:23676668d6f491838989f6549aa22712a11e180a745d0ceb13e055ca4f324a51:public/assets/pine-hollow/npcs/miller-skin-e331296bcff9471b87a3ba06571cc269058a897649d20e21c54c82d059080b81.phone.glb": "e331296bcff9471b87a3ba06571cc269058a897649d20e21c54c82d059080b81",
-          "1d75911183113268f387872745587810717b4380:public/assets/pine-hollow/npcs/miller.phone.glb": "c6f0608d5b7dcfa9fb29d0ace162e5f3b54eae8325cb0c4fb32de93d638f4cc0",
-          "generation:pine-npc-skins:23676668d6f491838989f6549aa22712a11e180a745d0ceb13e055ca4f324a51:public/assets/pine-hollow/npcs/ranger-skin-67fc5df5b526df0351828deae1b86f6fb0c2ca31f098032abc14d04af8bcf7e1.phone.glb": "67fc5df5b526df0351828deae1b86f6fb0c2ca31f098032abc14d04af8bcf7e1",
-          "1d75911183113268f387872745587810717b4380:public/assets/pine-hollow/npcs/ranger.phone.glb": "c8ec12a652332bd22a0b76368d8166b1f35e46b4814e01bccf2452c4d6a69fbf",
-          "generation:pine-npc-skins:23676668d6f491838989f6549aa22712a11e180a745d0ceb13e055ca4f324a51:public/assets/pine-hollow/npcs/trader-skin-d7836ef63983f692e124cc61055410a561accdaf49d7700f0109eec60ac3d432.phone.glb": "d7836ef63983f692e124cc61055410a561accdaf49d7700f0109eec60ac3d432",
-          "1d75911183113268f387872745587810717b4380:public/assets/pine-hollow/npcs/trader.phone.glb": "087c9b42d01dc0cdbcf2a4b13b2766f0579306559ef4cef9f229dfa3d271ee79",
+          "product:pine-hollow:blobs/json/a650238163d6b6b7b2610f6e03800a9b229275a9cc92855350ff80508ed4e4ca.json": "a650238163d6b6b7b2610f6e03800a9b229275a9cc92855350ff80508ed4e4ca",
+          "cfa1930bb0cb47ced20e42299ce4a4dd15337ee4:public/assets/pine-hollow/baked/code-parts-bd582243b159.bin": "38816de84a7e775775a28de5d35fbce9c7c4fd03156bc943cf21998d4129044e",
+          "product:pine-hollow:blobs/glb/e331296bcff9471b87a3ba06571cc269058a897649d20e21c54c82d059080b81.glb": "e331296bcff9471b87a3ba06571cc269058a897649d20e21c54c82d059080b81",
+          "cfa1930bb0cb47ced20e42299ce4a4dd15337ee4:public/assets/pine-hollow/npcs/miller.phone.glb": "c6f0608d5b7dcfa9fb29d0ace162e5f3b54eae8325cb0c4fb32de93d638f4cc0",
+          "product:pine-hollow:blobs/glb/67fc5df5b526df0351828deae1b86f6fb0c2ca31f098032abc14d04af8bcf7e1.glb": "67fc5df5b526df0351828deae1b86f6fb0c2ca31f098032abc14d04af8bcf7e1",
+          "cfa1930bb0cb47ced20e42299ce4a4dd15337ee4:public/assets/pine-hollow/npcs/ranger.phone.glb": "c8ec12a652332bd22a0b76368d8166b1f35e46b4814e01bccf2452c4d6a69fbf",
+          "product:pine-hollow:blobs/glb/d7836ef63983f692e124cc61055410a561accdaf49d7700f0109eec60ac3d432.glb": "d7836ef63983f692e124cc61055410a561accdaf49d7700f0109eec60ac3d432",
+          "cfa1930bb0cb47ced20e42299ce4a4dd15337ee4:public/assets/pine-hollow/npcs/trader.phone.glb": "087c9b42d01dc0cdbcf2a4b13b2766f0579306559ef4cef9f229dfa3d271ee79",
           "product:pine-hollow:blobs/glb/f2082acfcfb9c9bdce0a6af1745f44de33d38c89ed6fd261f5d6dc346ec46159.glb": "f2082acfcfb9c9bdce0a6af1745f44de33d38c89ed6fd261f5d6dc346ec46159",
           "product:pine-hollow:blobs/glb/7d4869c51562b6e42559e05bdb0e2a111e8b6f27e3677dce36d4e27ebb9090c1.glb": "7d4869c51562b6e42559e05bdb0e2a111e8b6f27e3677dce36d4e27ebb9090c1",
-          "1d75911183113268f387872745587810717b4380:public/assets/pine-hollow/weapons/lever-rifle.phone.glb": "0b0b4c4f89b9c337918aea3328aa4f771d5c499fe27324893d6b9fa089a543d6",
+          "cfa1930bb0cb47ced20e42299ce4a4dd15337ee4:public/assets/pine-hollow/weapons/lever-rifle.phone.glb": "0b0b4c4f89b9c337918aea3328aa4f771d5c499fe27324893d6b9fa089a543d6",
           "product:pine-hollow:blobs/glb/621ad7aae8c997f8249f86d55d90a4faa95c9d1aba612d7c51837d34908beb52.glb": "621ad7aae8c997f8249f86d55d90a4faa95c9d1aba612d7c51837d34908beb52"
         },
         "gaps": [
@@ -410,7 +439,7 @@
           "product: hash-verified existing output; no claim that it matches current source or visual/physics parity"
         ],
         "infrastructureWarnings": [
-          "(node:76569) ExperimentalWarning: Transform Types is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+          "(node:269) ExperimentalWarning: Transform Types is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
         ]
       },
       "differences": {
@@ -440,6 +469,21 @@
     },
     {
       "shard": "nalati-grasslands",
+      "followup": {
+        "plan": "docs/plans/shard-platform/legacy-deletion-mini-plan.md",
+        "row": "LD4-NG",
+        "owner": "sp-x2",
+        "status": "open",
+        "covers": [
+          "every missing/added identifier below",
+          "models: roster captured; world-placement registrations require a separate native world-list adapter",
+          "sets: literal id/place declaration union; conditional membership and computed identifiers are not qualified",
+          "world: manifest POIs captured; late runtime map registrations are not qualified",
+          "models/sets: late native and world.assembly registrations are not qualified by the declared catalogue",
+          "world: ui/level manifest POIs captured; late runtime map registrations are not qualified",
+          "product: hash-verified existing output; no claim that it matches current source or visual/physics parity"
+        ]
+      },
       "legacy": {
         "lists": {
           "models": [
@@ -601,13 +645,14 @@
           ]
         },
         "inputs": {
-          "out/nalati-grasslands/shard.json": "0d0673b12f6908e59b8362ed28ffe018906e19195c83387e6bfecb0d7f48101d",
+          "out/nalati-grasslands/shard.json": "bf0dd7ce1dd3eb0bc3143caa72a41cd486ce3b73b4de59fbeee7fe6cfb8dd013",
           "product:nalati-grasslands:blobs/json/d86a90e95f80713ff119785b5aa854a0c2123aa047efd55a399def7757b5f8e1.json": "d86a90e95f80713ff119785b5aa854a0c2123aa047efd55a399def7757b5f8e1",
           "product:nalati-grasslands:blobs/json/531ef49a7f12abd86daee61b2307c29f352ea864ce0ea24b3a1bc346e18eea86.json": "531ef49a7f12abd86daee61b2307c29f352ea864ce0ea24b3a1bc346e18eea86",
-          "product:nalati-grasslands:blobs/json/1ab056b9222b12fb1cc12b98acf074c7490866ed8edc30faaa17fb9255d34e54.json": "1ab056b9222b12fb1cc12b98acf074c7490866ed8edc30faaa17fb9255d34e54",
+          "product:nalati-grasslands:blobs/json/e3cb6487ddbfca5d732ad0424221bfa55718bbc475c132c3fa3c32a336d6298b.json": "e3cb6487ddbfca5d732ad0424221bfa55718bbc475c132c3fa3c32a336d6298b",
           "product:nalati-grasslands:blobs/bin/bf5749fc2dd6f8160197c903a85a8ac293f5eaf709126c2eded4ad0f9ce57714.bin": "bf5749fc2dd6f8160197c903a85a8ac293f5eaf709126c2eded4ad0f9ce57714",
           "product:nalati-grasslands:blobs/glb/e8fbaf4dae86b5ecf9ccf27b96a1a49d3f5be23ec16b88ceec171551f18e5989.glb": "e8fbaf4dae86b5ecf9ccf27b96a1a49d3f5be23ec16b88ceec171551f18e5989",
           "product:nalati-grasslands:blobs/ktx2/59d322c9c98410269def4586408ddc5945555e4fc010380c059e77c0505473bc.ktx2": "59d322c9c98410269def4586408ddc5945555e4fc010380c059e77c0505473bc",
+          "product:nalati-grasslands:blobs/bin/73fec4bfd0575d4e80a93d74742eb7941ac7aad353ffe7b5bf03c5c972ebf863.bin": "73fec4bfd0575d4e80a93d74742eb7941ac7aad353ffe7b5bf03c5c972ebf863",
           "product:nalati-grasslands:blobs/json/d4b0727222dff41bab3d2079cb3574ecee3ad1ce65996dadda7b3be5625bcc33.json": "d4b0727222dff41bab3d2079cb3574ecee3ad1ce65996dadda7b3be5625bcc33",
           "product:nalati-grasslands:blobs/json/6e209b5a809ab3f3bef9c7f2884f454471212c8a449a6bc9587e472804bc07b8.json": "6e209b5a809ab3f3bef9c7f2884f454471212c8a449a6bc9587e472804bc07b8"
         },
@@ -616,7 +661,9 @@
           "world: ui/level manifest POIs captured; late runtime map registrations are not qualified",
           "product: hash-verified existing output; no claim that it matches current source or visual/physics parity"
         ],
-        "infrastructureWarnings": []
+        "infrastructureWarnings": [
+          "(node:1337) ExperimentalWarning: Transform Types is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+        ]
       },
       "differences": {
         "models": {
@@ -643,6 +690,21 @@
     },
     {
       "shard": "nine-dragon-stack",
+      "followup": {
+        "plan": "docs/plans/shard-platform/legacy-deletion-mini-plan.md",
+        "row": "LD4-ND",
+        "owner": "sp-x2",
+        "status": "open",
+        "covers": [
+          "every missing/added identifier below",
+          "models: roster captured; world-placement registrations require a separate native world-list adapter",
+          "sets: literal id/place declaration union; conditional membership and computed identifiers are not qualified",
+          "world: manifest POIs captured; late runtime map registrations are not qualified",
+          "models/sets: late native and world.assembly registrations are not qualified by the declared catalogue",
+          "world: ui/level manifest POIs captured; late runtime map registrations are not qualified",
+          "product: hash-verified existing output; no claim that it matches current source or visual/physics parity"
+        ]
+      },
       "legacy": {
         "lists": {
           "models": [
@@ -698,7 +760,7 @@
           ]
         },
         "inputs": {
-          "out/nine-dragon-stack/shard.json": "30ed2f2e92c59de63fab55acf6b1b5f93abdc26ef29f583aad8cc1f737088a11"
+          "out/nine-dragon-stack/shard.json": "8eaca70edd9fe98f285ea60f66cfb7bb1bd4209298aa28ebcf7518bc582d0238"
         },
         "gaps": [
           "models/sets: late native and world.assembly registrations are not qualified by the declared catalogue",
@@ -750,6 +812,21 @@
     },
     {
       "shard": "far-reach",
+      "followup": {
+        "plan": "docs/plans/shard-platform/legacy-deletion-mini-plan.md",
+        "row": "LD4-FR",
+        "owner": "sp-x2",
+        "status": "open",
+        "covers": [
+          "every missing/added identifier below",
+          "models: roster captured; world-placement registrations require a separate native world-list adapter",
+          "sets: literal id/place declaration union; conditional membership and computed identifiers are not qualified",
+          "world: manifest POIs captured; late runtime map registrations are not qualified",
+          "models/sets: late native and world.assembly registrations are not qualified by the declared catalogue",
+          "world: ui/level manifest POIs captured; late runtime map registrations are not qualified",
+          "product: hash-verified existing output; no claim that it matches current source or visual/physics parity"
+        ]
+      },
       "legacy": {
         "lists": {
           "models": [
@@ -803,8 +880,8 @@
           ]
         },
         "inputs": {
-          "out/far-reach/shard.json": "359f627d8900f1edfbbb64c206cafedccb7f4eb873298092ccec42f1afcd287e",
-          "product:far-reach:blobs/json/4f394f907e6b7ce19521a591cfc122dd923de7420d8494d8cdf250d2c387c514.json": "4f394f907e6b7ce19521a591cfc122dd923de7420d8494d8cdf250d2c387c514",
+          "out/far-reach/shard.json": "b2d1efb7aba69c090e9d6ff1ff72429d4e0d30e63d0c46ead21d75b7daf64afd",
+          "product:far-reach:blobs/json/35eb1ec00ce3994527ade83990521acb65409e22ff4d12b8ea424f912a62c7bf.json": "35eb1ec00ce3994527ade83990521acb65409e22ff4d12b8ea424f912a62c7bf",
           "product:far-reach:blobs/json/5f853562a9cfb1fc0e8d0d75db4c8d158f186daf8f81bb645fc2501a4d96c47a.json": "5f853562a9cfb1fc0e8d0d75db4c8d158f186daf8f81bb645fc2501a4d96c47a",
           "product:far-reach:blobs/json/4f3d02ca0aec936ada24d48d13faa0a8aa3727f324374c526d8aa7504e23c689.json": "4f3d02ca0aec936ada24d48d13faa0a8aa3727f324374c526d8aa7504e23c689"
         },
@@ -845,6 +922,21 @@
     },
     {
       "shard": "sunscar-dunes",
+      "followup": {
+        "plan": "docs/plans/shard-platform/legacy-deletion-mini-plan.md",
+        "row": "LD4-SD",
+        "owner": "sp-x2",
+        "status": "open",
+        "covers": [
+          "every missing/added identifier below",
+          "models: roster captured; world-placement registrations require a separate native world-list adapter",
+          "sets: literal id/place declaration union; conditional membership and computed identifiers are not qualified",
+          "world: manifest POIs captured; late runtime map registrations are not qualified",
+          "models/sets: late native and world.assembly registrations are not qualified by the declared catalogue",
+          "world: ui/level manifest POIs captured; late runtime map registrations are not qualified",
+          "product: hash-verified existing output; no claim that it matches current source or visual/physics parity"
+        ]
+      },
       "legacy": {
         "lists": {
           "models": [
@@ -897,7 +989,7 @@
           ]
         },
         "inputs": {
-          "out/sunscar-dunes/shard.json": "b4151883857808365157fb3f2aef662c109b673287ce37e8a62b50f912c1464d",
+          "out/sunscar-dunes/shard.json": "7b9cbffb2c008d3c487f9e0aaefbce19b248f30297a1f813f51cf21682bf8dcb",
           "product:sunscar-dunes:blobs/json/1d30ed74e72425b8f76bf390502648efb8f40e6dbde3571f4fb1cc03f4f5761d.json": "1d30ed74e72425b8f76bf390502648efb8f40e6dbde3571f4fb1cc03f4f5761d",
           "product:sunscar-dunes:blobs/json/3870fd6374a3396a009e40c777b802a3f6a0ff3b898baf5d7c564f374871bcf0.json": "3870fd6374a3396a009e40c777b802a3f6a0ff3b898baf5d7c564f374871bcf0"
         },
