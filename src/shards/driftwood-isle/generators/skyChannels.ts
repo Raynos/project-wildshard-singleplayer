@@ -46,5 +46,5 @@ const outputs: NumericChannelOutput[] = [
   } })),
 ];
 
-/** the group's programs (build output: data/skyChannels.generated.json) */
+/** the group's programs (generators/product.ts parses them into the product's `clientChannels`) */
 export const driftwoodSkyChannels = (): ReturnType<typeof numericChannelPrograms> => numericChannelPrograms(DRIFTWOOD_SKY_CHANNELS, DRIFTWOOD_SKY_CHANNELS, outputs);

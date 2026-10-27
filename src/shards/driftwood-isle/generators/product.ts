@@ -16,7 +16,8 @@ import { ENTRY_LANDINGS } from './entryLandings';
 import navigation from '../data/navigation.generated.json' with { type: 'json' };
 import type { DriftwoodFixedProduct } from './fixedProduct';
 import { driftwoodLookMaterials } from './lookMaterials';
-import skyChannels from '../data/skyChannels.generated.json' with { type: 'json' };
+import { driftwoodSkyChannels } from './skyChannels';
+import { parseClientChannels } from '@wildshard/sdk/rows';
 import captainCoat from '../data/captainCoat.json' with { type: 'json' };
 import bridgeSwayModule from '../behaviour/bridgeSway.generated.json' with { type: 'json' };
 
@@ -63,7 +64,7 @@ return parseShardfile({
   look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries(driftwoodLookMaterials()).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) },
     samplers: { [coat.hash]: { wrap: 'repeat' } } },
   runtime: { kind: 'client-plan', cost: DRIFTWOOD_RUNTIME_COST, binds: ['state', 'quests', 'ledger', 'items', 'spawns', 'modes', 'props', 'terrain', 'movers', 'loot', 'clientChannels'], spawns: DRIFTWOOD_SPAWNS },
-  clientChannels: [...skyChannels.clientChannels, ...NPC_FOCUS_PROGRAMS],
+  clientChannels: [...parseClientChannels(driftwoodSkyChannels()), ...NPC_FOCUS_PROGRAMS],
   quests: { ...questRows.quests, achievements: DRIFTWOOD_FEATS }, questHost: questRows.host, questNpcs: questRows.npcs, ledger: DRIFTWOOD_LEDGER, items: DRIFTWOOD_SWORDS,
   edge: { north: row(DRIFTWOOD_EDGE_HEIGHTS.north), east: row(DRIFTWOOD_EDGE_HEIGHTS.east), south: row(DRIFTWOOD_EDGE_HEIGHTS.south), west: row(DRIFTWOOD_EDGE_HEIGHTS.west) },
   audio: AUDIO.audio,
