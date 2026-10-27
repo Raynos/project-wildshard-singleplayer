@@ -49,7 +49,10 @@ export function gitSourceView(root, revision) {
         }
       }
     }
-    const pin=generatedPins.get(path)??generatedProofs.get(path);if(pin===undefined)return false;
+    // A registered provider owns untracked output bytes. Historical catalogue
+    // hints cannot override its current result or admit a stale loose file.
+    // Retained tracked files are checked against Git by the caller.
+    const pin=generatedProofs.get(path)??(sourceProviders.has(path)?undefined:generatedPins.get(path));if(pin===undefined)return false;
     try{
       const bytes=actualRead(resolve(root,path));
       if(createHash('sha256').update(bytes).digest('hex')!==pin)return false;

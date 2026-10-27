@@ -155,7 +155,7 @@ test('native generated inputs match canonical committed producer bytes',()=>{
   }finally{f.close();}
 });
 
-test('native generated data requires its exact committed catalogue hash',()=>{
+test('pin-only data without a current provider requires its exact catalogue hash',()=>{
   const f=fixture();try {
     const bytes='{"layout":1}',file='src/layout.generated.json';
     const hash='7ab5c3764baa1cbd91989e42e3fdb3f2927c7282cc3263e9372d3a144aa869ff';
@@ -207,9 +207,15 @@ export async function generateShardJob(root,job){const directory=resolve('tmp/pr
     const bad=f.run('fast-lint',f.commit(),['src/main.ts'],f.base,false,true);
     expect(bad.status).toBe(1);expect(bad.stderr).toContain('Native source output differs');
     f.put('scripts/generate.mjs',provider.replace("const pinBytes='{\"layout\":1}'","const pinBytes='{\"layout\":2}'"));
-    f.put(pinned,'{"layout":0}');
+    // Even a loose file matching the old catalogue hint cannot replace the
+    // result of the newly committed provider recipe.
+    f.put(pinned,'{"layout":1}');
     const badPin=f.run('fast-lint',f.commit(),['src/main.ts'],f.base,false,true);
-    expect(badPin.status).toBe(1);expect(badPin.stderr).toContain('Native source output differs');
+    expect(badPin.status,badPin.stdout+badPin.stderr).toBe(0);
+    expect(readFileSync(resolve(f.root,pinned),'utf8')).toBe('{"layout":2}');
+    f.put('scripts/generate.mjs',provider.replace("createHash('sha256').update(pinBytes).digest('hex')",`'${'0'.repeat(64)}'`));
+    const badPinnedProof=f.run('fast-lint',f.commit(),['src/main.ts'],f.base,false,true);
+    expect(badPinnedProof.status).toBe(1);expect(badPinnedProof.stderr).toContain('Native source output differs');
     f.put('scripts/generate.mjs',provider);
     f.put('scripts/generation-jobs.json',JSON.stringify({jobs:[{...catalogue.jobs[0],outputs:[file]}]}));
     const undeclared=f.run('fast-lint',f.commit(),['src/main.ts'],f.base,false,true);
