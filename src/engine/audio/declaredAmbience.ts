@@ -91,7 +91,7 @@ export class DeclaredAmbience {
     const floors=Object.fromEntries(Object.entries(ports.floorRows??{}).map(([id,rects])=>[id,{floorHeightAt:(x:number,z:number)=>floorAtRects(rects,x,z,'first')}]));
     this.surfaces=policy.surfaces?new AudioSurfaceMap(requireAudioProfile(rows.surfaces,'ambience surfaces'),SURFACES,{heightAt,sea:ports.sea,floors:Object.fromEntries(Object.entries(floors).map(([id,floor])=>[id,[floor]])),values:Object.fromEntries(Object.keys(this.inputs).map(id=>[id,()=>this.inputs[id]??0])),circles}):undefined;
     this.routing=new Mix(ports.audio,profile,{
-      ...ports,points,heightAt,floors,circles,pointLists,spots:{spots:()=>spots},random:policy.random==='audio'?audioRandom:Math.random,scope:this.scope,...(policy.ownedZones&&ports.scope!==undefined?{zoneScope:this.scope}:{}),inputs:reads,
+      ...ports,points,heightAt,floors,circles,pointLists,spots:{spots:()=>spots},random:audioRandom,scope:this.scope,...(policy.ownedZones&&ports.scope!==undefined?{zoneScope:this.scope}:{}),inputs:reads,
       ...(bank===undefined?{}:{sample:{available:()=>bank.catalogue.available,load:id=>bank.catalogue.bed(id),drop:id=>{bank.catalogue.dropBed(id);}},
         sampleLive:ids=>{this.diag['beds']=ids;},listener:(x,y,z,yaw)=>{bank.playback.listener(x,y,z,yaw);},shot:(family,options)=>bank.shot(family,options)}),
       diagnostic:(id,value)=>{this.diag[id]=value;},roomWeight:(id,value)=>{sends[id]=value;},
