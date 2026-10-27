@@ -313,3 +313,21 @@ test('approach pins only its local ring while actual entry retains the full crit
   } finally { required.mockRestore(); f.scope.dispose(); }
   expect(f.pins()).toBe(0); expect(f.allocator.entries()).toHaveLength(0);
 });
+
+test('entry requests its complete critical set immediately after the arrival tile', async () => {
+  const f = fixture(), required = vi.spyOn(f.streamer, 'require');
+  try {
+    const origin = tileOf(camera.x, camera.z), order = tileOrder(camera, f.entered.source.entryways);
+    const critical = order.tiles.filter(tile => order.rank(tile) === 0).map(tile => tile.j * 8 + tile.i);
+    const preparing = f.registration.enter('home', f.entered, f.resident, camera);
+    expect(required.mock.calls[0]?.[1]).toEqual([origin.j * 8 + origin.i]);
+    expect(required).toHaveBeenCalledTimes(1);
+    await f.drive(); await preparing;
+    // A separate local-ring phase would defer the distant entryways again.
+    expect(required.mock.calls[1]?.[1]).toEqual(critical);
+    expect(required.mock.calls[2]?.[2]).toBe('l1');
+    expect(required).toHaveBeenCalledTimes(3);
+    expect(f.coverage(f.entered.root)).toEqual(Array.from({ length: 64 }, () => 1));
+  } finally { required.mockRestore(); f.scope.dispose(); }
+  expect(f.pins()).toBe(0); expect(f.allocator.entries()).toHaveLength(0);
+});

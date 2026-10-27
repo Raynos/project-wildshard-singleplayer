@@ -19,17 +19,19 @@ function deferred() {
   return { promise, resolve: () => { finish(); }, reject: (error: Error) => { fail(error); } };
 }
 
-function fixture(failWorld = false) {
+function fixture(failWorld = false, failImport = false) {
   const manifest = { ...TEMPLATE, slug: parseShardSlug('render-fixture') }, scope = new Scope('render-overlap');
-  const app = new App(), events: string[] = [], render = deferred(), world = deferred();
+  const app = new App(), events: string[] = [], render = deferred(), world = deferred(), imported = deferred();
+  let contexts = 0;
   const runtime: ShardRuntime = { world: null, step: null, play: null, interactables: [], overhead: [], objects: {}, hooks: {},
     viewer: () => new Vector3(), horizonVeil: null };
   const source = emptyShardfile({ slug: manifest.slug, name: 'Render fixture', author: 'Fixture', revision: 1, seed: 7 });
   const product = createShardProduct({ slug: manifest.slug, revision: 1, shardfile: source, sections: new Map([['client/plan', { version: 1, features: [] }]]),
     files: new Map(), read: () => Promise.reject(new Error('No fixture file')) });
-  const failure = new Error('Original world refusal');
+  const failure = new Error(failImport ? 'Original module refusal' : 'Original world refusal');
   const resident: HybridResident = { instance: 'fixture', slug: manifest.slug, declaration: null, product, firstParty: true,
     retainRuntime: true, scope, runtime, renderReady: render.promise, context: (owner, local) => {
+      contexts++;
       const level = createLevelInstallation(app, owner, {}, () => ({ set: () => undefined, detail: () => undefined }));
       const context = shardContext(level.context, manifest, { shard: manifest, runtime: local, rows: new Map(),
         bag: { tab: () => () => undefined, fragment: () => () => undefined } }, product);
@@ -46,8 +48,11 @@ function fixture(failWorld = false) {
   class FixturePlugin extends ShardPlugin {
     override world(): void { events.push('world'); world.resolve(); if (failWorld) throw failure; }
   }
-  vi.spyOn(session, 'prepare').mockResolvedValue(FixturePlugin);
-  return { scope, events, render, world, failure, session, manifest };
+  vi.spyOn(session, 'prepare').mockImplementation(() => {
+    imported.resolve();
+    return failImport ? Promise.reject(failure) : Promise.resolve(FixturePlugin);
+  });
+  return { scope, events, render, world, imported, failure, session, manifest, contexts: () => contexts };
 }
 
 test('private world preparation overlaps render readiness but kit and visibility remain gated', async () => {
@@ -72,6 +77,7 @@ test('ordinary activation waits for the same render fence before world bindings'
     // The render promise settles from this independent turn; no world hook can resolve it.
     await Promise.resolve(); await Promise.resolve(); await Promise.resolve();
     expect(f.events).toEqual([]);
+    expect(f.contexts()).toBe(0);
     f.render.resolve();
     expect(await entering).toBe(true);
     expect(f.events).toEqual(['visible', 'world', 'afterWorld', 'afterKit']);
@@ -109,8 +115,29 @@ test('cancellation during the render wait drains it without advancing later hook
     const settled = (async () => { try { return { value: await preparing }; } catch (error) { return { error }; } })();
     await f.world.promise;
     controller.abort(); f.render.resolve();
-    await settled;
+    expect(await settled).not.toEqual({ value: true });
     expect(f.events).toEqual(['construct', 'world', 'dispose', 'restore']);
+    expect(f.session.state().ready).toBe(false);
+  } finally { f.render.resolve(); f.scope.dispose(); }
+});
+
+test('module refusal drains started rendering before an installation exists', async () => {
+  const f = fixture(false, true);
+  let finished = false;
+  try {
+    const preparing = f.session.prepareEntry('fixture');
+    const settled = (async () => {
+      try { return { value: await preparing }; }
+      catch (error) { return { error }; }
+      finally { finished = true; }
+    })();
+    await f.imported.promise;
+    await Promise.resolve(); await Promise.resolve();
+    expect(finished).toBe(false);
+    expect(f.contexts()).toBe(0);
+    f.render.reject(new Error('Later render refusal'));
+    expect(await settled).toEqual({ error: f.failure });
+    expect(f.events).toEqual([]);
     expect(f.session.state().ready).toBe(false);
   } finally { f.render.resolve(); f.scope.dispose(); }
 });
