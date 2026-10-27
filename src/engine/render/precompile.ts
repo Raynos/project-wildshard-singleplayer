@@ -1113,7 +1113,14 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     if (cachedOnly && !nativeInSlice && isolateImageUploads && buildHeld() && presenting() && jobMs < sliceMs) {
       tFrame = performance.now(); cachedCpuJobs++; cachedCpuMs += jobMs;
     } else if (!cachedOnly || jobMs >= sliceMs) nativeInSlice = true;
-    if (spent(tFrame) || capped || i === jobs.length - 1) {
+    // D176: where the driver compiles off the main thread (not WebKit's queued GPU process: its new units keep the explicit
+    // slice and the programs-per-frame cap), a held frame's slice keeps issuing cheap jobs to the held build budget
+    // (HELD_BUILD_MS past the drawn frame, as builds have since 18736fc479): a 6 ms slice in a 33 ms held frame left a
+    // Nalati crossing's shader warm-up 40 % idle. A slow job (a whole slice by itself) still ends it.
+    const sliceDone = !isolateImageUploads && buildHeld() && presenting()
+      ? jobMs >= sliceMs || performance.now() - tFrame >= heldBudget(sliceMs) || nativeBudgetSpent(sliceMs)
+      : spent(tFrame);
+    if (sliceDone || capped || i === jobs.length - 1) {
       if (isolateImageUploads && !spent(tFrame)) await settleOne(tFrame);
       await pause(); tFrame = performance.now(); programsAtFrame = programCount(renderer); nativeInSlice = false;
     }
