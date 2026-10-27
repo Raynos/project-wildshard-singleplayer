@@ -2,7 +2,6 @@ import { expect, test } from 'vitest';
 import { skyViewData, skyViewValues, skyViewDiscovery } from '../src/shards/far-reach/generators/viewData';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { parseDiscoveryValues } from '../src/format/discoveryValues';
-import { discoverGeneration } from '../scripts/generate.mjs';
 
 const originals = [
   ['budgets', 768, '009e1a313a04bd727fd690ad4660922bd340f3d118e2fc0a2c0ee9a8d1a04ebf'],
@@ -29,5 +28,4 @@ test('source view values retain every original byte and detach caller-owned arra
   Reflect.set(changed.devPoses.spawn.eye, 0, 999); Reflect.set(changed.wind.WIND_FIELDS.gustStreaks, 'count', 1);
   check();
   expect(parseDiscoveryValues(skyViewDiscovery())).toEqual(skyViewDiscovery());
-  expect(discoverGeneration('.').jobs.some(job => job.id === 'sky-view-data')).toBe(false);
 });

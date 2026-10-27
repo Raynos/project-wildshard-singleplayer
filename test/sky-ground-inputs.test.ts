@@ -2,7 +2,6 @@
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
-import { discoverGeneration } from '../scripts/generate.mjs';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { skyGroundSource, skyGroundValues } from '../src/shards/far-reach/generators/groundScene';
@@ -44,10 +43,5 @@ test('ground source bundles without generated metadata or file/compiler services
 });
 
 test('source ground and hull rows need no scheduled writer or metadata reader', () => {
-  const { jobs } = discoverGeneration('.');
-  for (const id of ['sky-data-map', 'sky-ground-scene']) expect(jobs.some(row => row.id === id)).toBe(false);
-  for (const job of jobs) for (const handoff of ['src/shards/far-reach/data/groundScene.generated.json', 'src/shards/far-reach/data/knolls.json']) {
-    expect(job.outputs).not.toContain(handoff); expect(job.inputRoots).not.toContain(handoff);
-  }
   expect(hashImmutableBytes(new TextEncoder().encode(`${JSON.stringify(skyWorldRows())}\n`))).toBe('3a05afd8da12568f27c2ecaaa33d7212ba6817d006ed4f7a3fc1fa418ceb9b9d');
 });

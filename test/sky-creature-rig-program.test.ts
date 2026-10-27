@@ -4,7 +4,6 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, 
 import { dirname, resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
-import { discoverGeneration } from '../scripts/generate.mjs';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { createProjectGeneration, type ProjectGenerationContext } from '../src/sdk/projectGeneration';
@@ -126,14 +125,6 @@ test.each(CREATURE_RIG_INPUTS)('the active native cache refuses omitted source %
 });
 
 test('the rig scheduler and every handoff reader retire with complete original byte oracles', () => {
-  for (const job of discoverGeneration(resolve('.')).jobs) {
-    expect(job.id).not.toBe('sky-rigs');
-    for (const name of CREATURE_RIG_FILES) {
-      const file = `public/assets/far-reach/rigs/${name}`;
-      expect(job.outputs, job.id).not.toContain(file);
-      expect(job.inputRoots, job.id).not.toContain(file);
-    }
-  }
   expect(readdirSync('src/shards/far-reach/generators')).not.toContain('bake-sky-rigs.mjs');
   const retained = originalSkyRigs();
   for (const [name, original] of Object.entries(originals)) {

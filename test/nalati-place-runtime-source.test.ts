@@ -9,7 +9,6 @@ import { placeRuntimeRows, type PlaceRuntimeInput } from '../src/shards/nalati-g
 import { jsonBytes } from '../scripts/bake-output.mjs';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
-import { discoverGeneration } from '../scripts/generate.mjs';
 import { nalatiRuntimeWire } from './fixtures/nalati-runtime-wire';
 import shapeBook from './fixtures/nalati-shape-book-original.json' with { type: 'json' };
 import pins from './fixtures/nalati-place-runtime-files.json' with { type: 'json' };
@@ -79,15 +78,5 @@ test('the preparation source bundles as one config-safe chunk', async () => {
   for (const chunk of chunks) {
     expect(() => assertConfigBoundary([...chunk.imports, ...chunk.dynamicImports])).not.toThrow();
     expect([...chunk.imports, ...chunk.dynamicImports]).toEqual([]);
-  }
-});
-
-test('the runtime publisher and every handoff stay retired from the catalogue', () => {
-  const jobs = discoverGeneration(resolve('.')).jobs;
-  expect(jobs.map(job => job.id)).not.toContain('nalati-place-runtime');
-  const retired = new Set(Object.keys(pins));
-  for (const job of jobs) {
-    expect(job.inputRoots.filter(path => retired.has(path)), job.id).toEqual([]);
-    expect(job.outputs.filter(path => retired.has(path)), job.id).toEqual([]);
   }
 });

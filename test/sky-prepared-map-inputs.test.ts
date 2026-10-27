@@ -14,7 +14,6 @@ import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { skyMapWorldSources } from '../src/shards/far-reach/generators/mapWorldSources';
 import { BAKED_PIECES } from '../src/shards/far-reach/generators/fileInventory';
 import { expect, test } from 'vitest';
-import { discoverGeneration } from '../scripts/generate.mjs';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { MILL_REST_INPUTS } from '../src/shards/far-reach/generators/millRestProgram';
 import { PREPARED_MODEL_INPUTS } from '../src/shards/far-reach/generators/preparedModelProgram';
@@ -86,7 +85,6 @@ const originalWorldInputs: Readonly<Record<string, { readonly bytes: number; rea
 const rootPath = (file: string): string => file.startsWith('../../../public/') ? file.slice(9) : `src/shards/far-reach/${file}`;
 
 test('the source map owns every native input and retains the complete original image and RGBA identity', async () => {
-  expect(discoverGeneration('.').jobs.some(job => job.id === 'sky-data-map')).toBe(false);
   for (const url of [...PREPARED_MODEL_INPUTS, ...MILL_REST_INPUTS]) expect(SKY_MAP_INPUTS).toContain(url);
   for (const file of [handoff, ...bridgeHandoffs, ...millHandoffs, ...worldHandoffs.map(rootPath)]) expect(SKY_MAP_INPUTS).not.toContain(file);
   const cache = mkdtempSync(resolve('tmp/sky-map-native-'));

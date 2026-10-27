@@ -2,7 +2,6 @@
 import { readFileSync } from 'node:fs';
 import * as v from 'valibot';
 import { expect, test } from 'vitest';
-import { discoverGeneration } from '../scripts/generate.mjs';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { skyIsletRigRows } from '../src/shards/far-reach/generators/isletRigRows';
 import { isletMotionRows } from '../src/shards/far-reach/generators/isletMotion';
@@ -39,11 +38,4 @@ test.each(pinned)('the $id keep their complete original bytes from authored rig 
 test('motion source rows detach every caller and retire their publication job', () => {
   const first = isletMotionRows(), second = isletMotionRows(); first.channels.splice(0);
   expect(jsonBytes(second)).toEqual(jsonBytes(isletMotionRows()));
-  expect(discoverGeneration('.').jobs.some(job => job.id === 'sky-islet-motion')).toBe(false);
-});
-
-test('the map has no scheduler or stored rig handoff reader', () => {
-  const { jobs } = discoverGeneration('.');
-  expect(jobs.some(job => job.id === 'sky-data-map')).toBe(false);
-  for (const job of jobs) expect(job.inputRoots).not.toContain('src/shards/far-reach/data/isletRig.json');
 });

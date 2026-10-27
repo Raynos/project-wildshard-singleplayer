@@ -1,12 +1,7 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- Resolve the source catalogue without a generated handoff.
-import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
-import { discoverGeneration } from '../scripts/generate.mjs';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { skyWorldRows } from '../src/shards/far-reach/generators/worldRows';
-import { SKY_PIECES } from '../src/shards/far-reach/generators/scene';
 
-const removed = SKY_PIECES.map(piece => `src/shards/far-reach/data/${piece.rows}.json`);
 
 test('the owned world reader preserves every original baked paint, piece and collider row', () => {
   const bytes = new TextEncoder().encode(`${JSON.stringify(skyWorldRows())}\n`);
@@ -15,10 +10,6 @@ test('the owned world reader preserves every original baked paint, piece and col
 });
 
 test('world publication is retired and its retained map reader declares source-owned rows', () => {
-  const { jobs } = discoverGeneration(resolve('.'));
-  expect(jobs.some(row => row.id === 'sky-data-map')).toBe(false);
-  expect(jobs.some(row => row.id === 'sky-world-rows')).toBe(false);
-  for (const job of jobs) for (const path of [...removed, 'src/shards/far-reach/data/groundScene.generated.json']) expect(job.inputRoots, path).not.toContain(path);
   const rows = skyWorldRows(), first = Object.values(rows.bakes)[0];
   if (first === undefined) throw new Error('Missing original baked rows');
   Reflect.set(first.kinds, 'length', 0); Reflect.set(rows.pieces, 'length', 0);

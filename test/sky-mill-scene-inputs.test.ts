@@ -1,9 +1,6 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Read original native inputs and isolate real sealed-driver fixtures.
 import { readFileSync } from 'node:fs';
-// oxlint-disable-next-line import/no-nodejs-modules -- Keep omitted-input catalogues under repository scratch.
-import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
-import { discoverGeneration } from '../scripts/generate.mjs';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { millSceneSource, millSceneValues } from '../src/shards/far-reach/generators/millScene';
 import { skyMillSceneSource } from '../src/shards/far-reach/generators/millSceneProgram';
@@ -35,7 +32,6 @@ test('mill scene row loans cannot mutate the next caller or retained publication
 });
 
 test('the mill scheduler handoff is retired while original native-source refusals remain strict', async () => {
-  expect(discoverGeneration(resolve('.')).jobs.some(row => row.id === 'sky-mill-scene')).toBe(false);
   const native = new Map(inputs.map(url => [url, read(url)]));
   for (const name of inputs) {
     const omitted = new Map(native); omitted.delete(name);

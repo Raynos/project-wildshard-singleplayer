@@ -4,7 +4,6 @@ import { expect, test } from 'vitest';
 import { skyNavigationProgram, skyNavigationRows, SKY_NAVIGATION_INPUT, SKY_NAVIGATION_HASH } from '../src/shards/far-reach/generators/navigation';
 import type { ProjectGenerationContext } from '../src/sdk/projectGeneration';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { discoverGeneration } from '../scripts/generate.mjs';
 
 const original = (): Uint8Array => new Uint8Array(readFileSync(`src/shards/far-reach/${SKY_NAVIGATION_INPUT}`));
 
@@ -21,7 +20,6 @@ test('navigation source retains every original wire byte, cost and critical iden
   const published = await skyNavigationProgram(ctx);
   expect(published.rows).toEqual(rows); expect(published.assets.get(SKY_NAVIGATION_HASH)).toEqual(bytes);
   published.assets.get(SKY_NAVIGATION_HASH)?.fill(0); expect(hashImmutableBytes(bytes)).toBe(SKY_NAVIGATION_HASH);
-  expect(discoverGeneration('.').jobs.some(job => job.id === 'sky-navigation')).toBe(false);
 });
 
 test('navigation refuses changed native bytes and malformed cache inventories', async () => {

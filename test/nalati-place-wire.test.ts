@@ -10,7 +10,6 @@ import { encodeNalatiPart } from '../src/shards/nalati-grasslands/generators/pla
 import { committedPlaces } from './fixtures/nalati-committed-places';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
-import { discoverGeneration } from '../scripts/generate.mjs';
 import beforeWires from './fixtures/nalati-place-wires.json' with { type: 'json' };
 import { nativePlaceFile } from './fixtures/nalati-native-place-files';
 
@@ -86,13 +85,6 @@ for (const omitted of ['placeWire', 'dressingGeometryRows', null] as const) {
 }
 
 test('the places publisher and all four handoffs remain retired', () => {
-  const jobs = discoverGeneration(resolve('.')).jobs;
-  expect(jobs.map(job => job.id)).not.toContain('nalati-places');
   const retired = beforeWires.slice(0, 4).map(row => row.path);
   for (const file of retired) expect(existsSync(file), file).toBe(false);
-  for (const job of jobs) {
-    expect(job.outputs.filter(file => retired.includes(file)), job.id).toEqual([]);
-    expect(job.inputRoots.filter(file => retired.includes(file)), job.id).toEqual([]);
-    expect(job.seedOutputs?.filter(file => retired.includes(file)) ?? [], job.id).toEqual([]);
-  }
 });

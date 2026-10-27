@@ -3,7 +3,6 @@ import { existsSync, mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Bind each actual native root explicitly.
 import { resolve } from 'node:path';
 import { afterAll, expect, test } from 'vitest';
-import { discoverGeneration } from '../scripts/generate.mjs';
 import { createProjectGeneration } from '../src/sdk/projectGeneration';
 import { generatedProjectMap } from '../src/sdk/projectMap';
 import { hashImmutableBytes } from '../src/sdk/immutable';
@@ -36,7 +35,6 @@ test('the source map retains the original complete image bytes and owned output 
 });
 
 test('Nine has no scheduler jobs and all retired map and practice source handoffs stay absent', () => {
-  expect(discoverGeneration(resolve('.')).jobs.filter(job => job.shard === 'nine-dragon-stack').map(job => job.id)).toEqual([]);
   for (const name of ['generators/bake-map.mjs', 'generators/mapAssembly.mjs', 'generators/mapAssembly.d.mts',
     'look/map.baked.json', 'look/map.json', 'data/mapPalette.json', 'generators/practiceDecision.mjs',
     'generators/practiceDecision.d.mts', 'behaviour/practice.generated.json', 'behaviour/practice.generated.wasm']) {

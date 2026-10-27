@@ -5,7 +5,6 @@ import { resolve } from 'node:path';
 import { afterEach, expect, it } from 'vitest';
 import { bakeInputHashes, InputHashMemo } from '../scripts/bake-input-hashes.mjs';
 import { generationKey, runGenerationJob } from '../scripts/generation-cache.mjs';
-import { generationInputs } from '../scripts/generate.mjs';
 
 const owned: string[] = [];
 afterEach(() => { for (const root of owned.splice(0)) rmSync(root, { recursive: true, force: true }); });
@@ -58,9 +57,9 @@ it('verifies frozen authored bytes and inventories while allowing generated rest
   const root=fixture(), memo=new InputHashMemo(root);
   mkdirSync(resolve(root,'source')); writeFileSync(resolve(root,'source/authored.txt'),'source');
   memo.enableSnapshot(file=>file==='source/generated.json');
-  const inputs=generationInputs(root,['source'],memo), reads=memo.reads;
+  const inputs=bakeInputHashes(root,['source'],memo), reads=memo.reads;
   writeFileSync(resolve(root,'source/generated.json'),'generated');
-  expect(generationInputs(root,['source'],memo)).toEqual(inputs); expect(memo.reads).toBe(reads); memo.verifySnapshot();
+  expect(bakeInputHashes(root,['source'],memo)).toEqual(inputs); expect(memo.reads).toBe(reads); memo.verifySnapshot();
   writeFileSync(resolve(root,'source/new.txt'),'new');
   expect(()=>memo.verifySnapshot()).toThrow('source inventory changed');
   rmSync(resolve(root,'source/new.txt')); writeFileSync(resolve(root,'source/authored.txt'),'edited');

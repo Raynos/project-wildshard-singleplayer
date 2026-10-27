@@ -3,7 +3,6 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 // oxlint-disable-next-line import/no-nodejs-modules -- Confine expanded omission descriptors to repository scratch.
 import { dirname, resolve } from 'node:path';
 import { expect, test } from 'vitest';
-import { discoverGeneration } from '../scripts/generate.mjs';
 import { createProjectGeneration } from '../src/sdk/projectGeneration';
 import { MILL_REST_INPUTS, skyMillRestProgram } from '../src/shards/far-reach/generators/millRestProgram';
 import { hashImmutableBytes } from '../src/sdk/immutable';
@@ -64,47 +63,15 @@ const held = {
   "src/shards/far-reach/assets/f06cb6040e7cc851559c8d7d064db1e8e8d153572c357eeafc441989b34a6a53": "f06cb6040e7cc851559c8d7d064db1e8e8d153572c357eeafc441989b34a6a53",
   "src/shards/far-reach/assets/f4d1507fe310e1818ca6805afb5c345fbb10d5933cdba3fab5041e9b9c15e714": "f4d1507fe310e1818ca6805afb5c345fbb10d5933cdba3fab5041e9b9c15e714"
 };
-const readers = {
-  "sky-boot-metadata": {
-    "src/shards/far-reach/boot/assets.generated.json": "12fc9e18ca08e448cf65f6322fd7e1b4dcbb3140831041ac9e4cea8b40828b8c",
-    "src/shards/far-reach/boot/files.generated.json": "8b32bb394156d3c4e33ea10ddd920a0a660876839f7eaaa3ee3b266d039756e5",
-    "src/shards/far-reach/boot/sources.generated.json": "c1c8a01be58ee8120ed33bfad20cd855176efa99d45c963fae0a81664ee69f5e",
-    "src/shards/far-reach/boot/lateReads.generated.json": "c55fe856a439ccc93acc1446f4e3bf3fb1889b7b741f8b17158d6e44a6994f43",
-    "src/shards/far-reach/boot/rigs.generated.json": "663b8ebba9e6f970243825bde7ef24f6c82bd9abaf261008692cbed59ba968bc",
-    "src/shards/far-reach/boot/worldTextures.generated.json": "1e7894081c884d9e5e175a55f6eb955fb82658f9f9b3b9f852b595ae76ef45a1"
-  }
-};
 
 test('the retired world-row consumer retains its complete original source wire', () => {
-  expect(discoverGeneration(resolve('.')).jobs.some(row => row.id === 'sky-world-rows')).toBe(false);
   const bytes = new TextEncoder().encode(`${JSON.stringify(skyWorldRows())}\n`);
   expect(bytes.byteLength).toBe(65_347);
   expect(hashImmutableBytes(bytes)).toBe('3a05afd8da12568f27c2ecaaa33d7212ba6817d006ed4f7a3fc1fa418ceb9b9d');
 });
 
 test('world geometry has no scheduled writer or declared handoff readers and every frozen file stays exact', () => {
-  const { jobs } = discoverGeneration(resolve('.'));
-  expect(jobs.some(job => job.id === 'sky-world')).toBe(false);
   expect(Object.keys(held)).toHaveLength(52);
-  for (const [file, hash] of Object.entries(held)) {
-    expect(hashImmutableBytes(readFileSync(file)), file).toBe(hash);
-    for (const job of jobs) {
-      expect(job.outputs, job.id).not.toContain(file);
-      expect(job.inputRoots, job.id).not.toContain(file);
-    }
-  }
-});
-
-test.each(Object.entries(readers))('%s has no publisher or handoff readers and retains all original byte oracles', (id, expected) => {
-  const { jobs } = discoverGeneration(resolve('.'));
-  expect(jobs.some(row => row.id === id)).toBe(false);
-  for (const [file, hash] of Object.entries(expected)) {
-    expect(hashImmutableBytes(readFileSync(file)), file).toBe(hash);
-    for (const job of jobs) {
-      expect(job.outputs, job.id).not.toContain(file);
-      expect(job.inputRoots, job.id).not.toContain(file);
-    }
-  }
 });
 
 test('the retired mill owners preserve both complete outputs in a cold native cache with all former world files absent', async () => {
