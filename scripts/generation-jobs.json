@@ -2838,45 +2838,6 @@
       "platform": "native"
     },
     {
-      "id": "driftwood-native-specimens",
-      "shard": "driftwood-isle",
-      "entry": "src/shards/driftwood-isle/generators/bake-native-specimens.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./scripts/bake-loader.mjs",
-        "src/shards/driftwood-isle/generators/bake-native-specimens.mjs"
-      ],
-      "inputRoots": [
-        "src/engine",
-        "src/game",
-        "src/sdk",
-        "src/commons",
-        "src/format",
-        "src/shards/driftwood-isle",
-        "scripts/bake",
-        "scripts/bake-loader.mjs",
-        "scripts/bake-output.mjs",
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "public/assets/models/driftwood-blender/voxel-ao.bin",
-        "public/assets/models/driftwood-hero/faces/wendell-head.glb",
-        "scripts/generated-source.mjs",
-        "scripts/json-output-guard.mjs",
-        "scripts/no-binary-json.mjs"
-      ],
-      "catalogueDependencies": [
-      ],
-      "outputs": [
-        "src/shards/driftwood-isle/data/nativeSpecimens.generated.json"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/driftwood-isle/data/nativeSpecimens.generated.json"
-      ],
-      "platform": "native"
-    },
-    {
       "id": "driftwood-look-materials",
       "shard": "driftwood-isle",
       "entry": "src/shards/driftwood-isle/generators/lookMaterials.ts",

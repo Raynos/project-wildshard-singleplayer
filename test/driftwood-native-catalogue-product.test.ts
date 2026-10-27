@@ -3,7 +3,7 @@ import { expect, test } from 'vitest';
 import { readProjectAssets } from '../src/sdk/project';
 import { parseWorldSceneModels, WorldSceneModelsSchema, worldSceneModelResources } from '../src/format/worldSceneModels';
 import { parseWorldScenes } from '../src/format/worldScenes';
-import native from '../src/shards/driftwood-isle/data/nativeSpecimens.generated.json' with { type: 'json' };
+import { driftwoodSceneBanks } from './fixtures/driftwoodSceneBanks';
 import { driftwoodModelCatalogue } from './fixtures/driftwoodModelCatalogue';
 
 test('native cards bind the same catalogue and owned sources at boot and product admission', async () => {
@@ -18,7 +18,7 @@ test('native cards bind the same catalogue and owned sources at boot and product
   const catalogue = parseWorldSceneModels(JSON.parse(new TextDecoder().decode(catalogueBytes)));
   const world = parseWorldScenes(JSON.parse(new TextDecoder().decode(sceneBytes)));
   expect(parseWorldSceneModels(boot.siteCatalogue)).toEqual(catalogue);
-  const cards = parseWorldSceneModels(native.catalogue);
+  const { native } = await driftwoodSceneBanks(), cards = parseWorldSceneModels(native.catalogue);
   expect(cards.models.map(row => row.key)).toEqual(['captainHat', 'sailclothCape', 'tradeCounter', 'trader']);
   for (const card of cards.models) expect(catalogue.models.filter(row => row.id === card.id)).toEqual([card]);
   const library = world.libraries.find(row => row.id === 'native-specimens');

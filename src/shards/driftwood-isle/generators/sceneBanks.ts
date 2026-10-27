@@ -4,6 +4,7 @@ import { DRIFTWOOD_FIXED_INPUTS, driftwoodFixedBytes, driftwoodFixedFiles } from
 import { driftwoodCargoBank, type DriftwoodCargoBank } from './cargoBank';
 import { driftwoodFixedLayouts, type DriftwoodFixedLayouts } from './fixedLayouts';
 import { driftwoodRockBank, type DriftwoodRockBank } from './rockBank';
+import { driftwoodNativeSpecimenBank, type DriftwoodNativeSpecimenBank } from './nativeSpecimenBank';
 import { driftwoodIslandPlan } from './productPageFiles';
 import { BLENDER_MODELS } from './blenderArea';
 import { DRIFTWOOD_BANK_BLOBS } from './assets';
@@ -23,6 +24,7 @@ export interface DriftwoodSceneBanks {
   readonly facts: DriftwoodIslandFacts;
   readonly layouts: DriftwoodFixedLayouts;
   readonly rocks: DriftwoodRockBank;
+  readonly native: DriftwoodNativeSpecimenBank;
   /** the streamed cover's transports and per-cell plants by product name (islandCoverBank) */
   readonly cover: ReadonlyMap<string, Uint8Array>;
 }
@@ -50,7 +52,7 @@ export async function driftwoodSceneBanks(inputs: DriftwoodSceneBankInputs): Pro
   const smallRocks = plan('phone').smallRocks;
   if (JSON.stringify(smallRocks) !== JSON.stringify(plan('desktop').smallRocks)) throw new Error('Small-rock tier placements differ');
   const layouts = inputs.layouts ?? driftwoodFixedLayouts(inputs.fixed);
-  return { layouts, facts, cargo: await driftwoodCargoBank(inputs.fixed, layouts.wreck), rocks: driftwoodRockBank(smallRocks), cover: await islandCoverBank(file, facts) };
+  return { layouts, facts, cargo: await driftwoodCargoBank(inputs.fixed, layouts.wreck), rocks: driftwoodRockBank(smallRocks), native: await driftwoodNativeSpecimenBank(inputs.fixed), cover: await islandCoverBank(file, facts) };
 }
 /** The product build's banks: the fixed files and the public inputs come through the owned-byte cache. */
 export async function driftwoodSceneBanksCached(ctx: Pick<ProjectGenerationContext, 'cached'>): Promise<DriftwoodSceneBanks> {

@@ -4,7 +4,6 @@ import { reefCatalogue } from './reefCatalogue';
 import foliage from '../data/foliageScenes.generated.json' with { type: 'json' };
 import authored from '../data/siteCatalogue.json' with { type: 'json' };
 import wreck from '../data/wreckSites.json' with { type: 'json' };
-import native from '../data/nativeSpecimens.generated.json' with { type: 'json' };
 
 interface Layout {
   readonly origin: unknown;
@@ -34,5 +33,5 @@ export function siteCatalogue(banks: DriftwoodSceneBanks): unknown {
       else throw new Error(`Missing scene model layout: ${model.key}/${choice.id}`);
     }
   }
-  return { ...rows, models: [...rows.models, ...banks.rocks.catalogue, ...foliage.models, piers.model, piers.boat, piers.zipline, ...reefCatalogue(), ...banks.cargo.models, ...native.catalogue.models] };
+  return { ...rows, models: [...rows.models, ...banks.rocks.catalogue, ...foliage.models, piers.model, piers.boat, piers.zipline, ...reefCatalogue(), ...banks.cargo.models, ...banks.native.catalogue.models] };
 }

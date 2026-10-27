@@ -1,5 +1,4 @@
 import piers from '../data/pierScenes.generated.json' with { type: 'json' };
-import native from '../data/nativeSpecimens.generated.json' with { type: 'json' };
 import type { DriftwoodSceneBanks } from './sceneBanks';
 import { REEF_SCENE_LIBRARY } from './reefCatalogue';
 import foliage from '../data/foliageScenes.generated.json' with { type: 'json' };
@@ -21,7 +20,6 @@ import * as v from 'valibot';
 const trail = driftwoodTrailRows();
 
 const { POOL_LOOK, SHRINE_POOL_LOOK } = authoredPoolLook;
-const nativeRows = parseWorldScenes({ version: 1, libraries: [native.library], materials: [], steps: [] });
 
 /** The trail's code-built specimens with each owned variant naming its product file (the trail-specimen bank, GR7)
  *  instead of the retired job's public URL. */
@@ -43,6 +41,7 @@ function trailProductSpecimens(): SpecimenCatalogueRows {
 /** Static cascade assembly; the geometry and its application channels remain the existing fixed bake. */
 export function worldScenes(banks: DriftwoodSceneBanks): WorldScenesSection {
   const cargoRows = parseWorldScenes({ version: 1, libraries: [banks.cargo.library], materials: [], steps: [] });
+  const nativeRows = parseWorldScenes({ version: 1, libraries: [banks.native.library], materials: [], steps: [] });
   const rockRows = parseWorldScenes({ version: 1, libraries: [banks.rocks.section.library], materials: [], steps: [banks.rocks.section.step] });
   return {
     version: 1, catalogue: 'models/world-scenes.json',
