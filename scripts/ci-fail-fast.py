@@ -59,7 +59,15 @@ def print_culprits(files):
             '--sha='+os.environ.get('GITHUB_SHA',''),'--files='+json.dumps(files[:16])],
             text=True,capture_output=True,timeout=35)
         if result.returncode:
-            raise RuntimeError('helper exited '+str(result.returncode))
+            prefix='CI culprit report unavailable: '
+            reason=next((line[len(prefix):] for line in result.stderr.splitlines()
+                         if line.startswith(prefix)), '')[:240]
+            # Only our helper's first diagnostic line, never arbitrary child
+            # output or another workflow annotation, belongs in this warning.
+            print('::warning::CI culprit report unavailable: helper exited '+str(result.returncode)+
+                  ('; '+escape(reason) if reason else '')+
+                  '; original check remains red; no retry',flush=True)
+            return
         row=json.loads(result.stdout)
         if not re.fullmatch(r'[0-9a-f]{40}',row['base']) or len(row['candidates'])>3:
             raise ValueError('invalid culprit report')

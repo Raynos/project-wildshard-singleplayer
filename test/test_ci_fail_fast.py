@@ -153,6 +153,26 @@ class FailFastTests(unittest.TestCase):
             report(['test/actual.test.ts'])
         self.assertIn('original check remains red; no retry',out.getvalue())
 
+    def test_helper_refusal_keeps_one_bounded_escaped_reason_not_arbitrary_stderr(self):
+        report=API['print_culprits']
+        detail='missing base, literal: '+('x'*300)
+        failure='untrusted child output\nCI culprit report unavailable: '+detail+'\n::error::injected\n'
+        with patch.object(subprocess,'run',return_value=subprocess.CompletedProcess([],1,'',failure)), \
+                contextlib.redirect_stdout(io.StringIO()) as out:
+            report(['test/actual.test.ts'])
+        message=out.getvalue()
+        self.assertIn('helper exited 1; missing base%2C literal%3A ',message)
+        self.assertIn('original check remains red; no retry',message)
+        self.assertNotIn('untrusted child output',message)
+        self.assertNotIn('injected',message)
+        self.assertNotIn('Candidate ',message)
+        self.assertEqual(len(message.splitlines()),1)
+        self.assertLess(len(message),400)
+        with patch.object(subprocess,'run',return_value=subprocess.CompletedProcess([],2,'','other failure')), \
+                contextlib.redirect_stdout(io.StringIO()) as out:
+            report(['test/actual.test.ts'])
+        self.assertIn('helper exited 2; original check remains red; no retry',out.getvalue())
+
     def test_only_own_push_failure_reports_its_culprits(self):
         function=API['diagnose'];calls=[]
         with tempfile.TemporaryDirectory(dir='tmp') as directory:
