@@ -967,7 +967,8 @@
         "scripts/named-blob-output.mjs",
         "scripts/bake-output.mjs",
         "src/shards/pine-hollow/generators/materialGlb.mjs",
-        "src/shards/pine-hollow/data/logKit.json"
+        "src/shards/pine-hollow/data/logKit.json",
+        "src/shards/pine-hollow/generators/heroMaterialFiles.mjs"
       ],
       "outputs": [
         "public/assets/pine-hollow/baked/cabin-materials/0293014c3c8062cd2ee048e8d0770a6edbb5429db7641ebb8c8db383c4a1a9bd.glb",
@@ -1124,7 +1125,10 @@
         "public/assets/models/stone_fire_pit/stone_fire_pit.bin",
         "public/assets/models/Lantern_01/Lantern_01_lod.glb",
         "public/assets/models/Lantern_01/Lantern_01_lod.phone.glb",
-        "src/shards/pine-hollow/generators/cabinAssembly.ts"
+        "src/shards/pine-hollow/generators/cabinAssembly.ts",
+        "src/shards/pine-hollow/generators/heroMaterialFiles.mjs",
+        "src/shards/pine-hollow/generators/materialGlb.mjs",
+        "src/shards/pine-hollow/data/heroRows.json"
       ],
       "outputs": [
         "src/shards/pine-hollow/assets/cabin-scenes/shape-0.glb",
@@ -2332,7 +2336,10 @@
         "public/assets/models/Lantern_01/Lantern_01_lod.glb",
         "public/assets/models/Lantern_01/Lantern_01_lod.phone.glb",
         "src/shards/pine-hollow/generators/cabinAssembly.ts",
-        "src/shards/pine-hollow/data/cabinScenes.generated.json"
+        "src/shards/pine-hollow/data/cabinScenes.generated.json",
+        "src/shards/pine-hollow/generators/heroMaterialFiles.mjs",
+        "src/shards/pine-hollow/generators/materialGlb.mjs",
+        "src/shards/pine-hollow/data/heroRows.json"
       ],
       "outputs": [
         "src/shards/pine-hollow/assets/cabin-living/desktop-false-false.json",
