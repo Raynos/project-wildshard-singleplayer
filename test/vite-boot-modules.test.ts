@@ -116,7 +116,8 @@ test('the actual Vite plugin emits exact module body sizes into the existing doc
     expect(indices.map(index => { if (typeof index !== 'number') throw new Error('Invalid group index'); return files[index]; })).toEqual(expected(['/optional-first-']));
     const home: unknown = Reflect.get(groups,'home:/shardfiles/example/');
     if(!Array.isArray(home))throw new Error('Missing selected home graph');
-    expect(home.map(index => {if(typeof index!=='number')throw new Error('Invalid home index');return files[index];})).toEqual(expected(['/optional-first-','/rigParser-','/explorerCatalogue-']));
+    expect(home.map(index => {if(typeof index!=='number')throw new Error('Invalid home index');return files[index];})).toEqual(expected(['/optional-first-','/rigParser-']));
+    expect(home.map(index => {if(typeof index!=='number')throw new Error('Invalid home index');return files[index];})).not.toEqual(expect.arrayContaining(expected(['/explorerCatalogue-'])));
     expect(rows.common).not.toEqual(expect.arrayContaining(expected(['/optional-first-'])));
     const practice: unknown = Reflect.get(groups, 'practice.models');
     if (!Array.isArray(practice)) throw new Error('Missing practice group');

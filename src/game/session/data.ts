@@ -66,10 +66,16 @@ async function buildData(ctx: SessionContext) : Promise<{ loading: Loading; audi
   await window.__ws_sw?.ready;
   // this shard's files in flight now, in step order; each step builds as its files land — as one pack when the build has
   // one (src/engine/boot/pack.ts), else file by file (src/engine/boot/prefetch.ts); anything the pack lacks still goes file by file
-  const pack = packFor(manifest);
+  // I2: a phone tile page reads its actual spawn/ring through scoped loaders.
+  // Its predecessor's pack can contain an entire unused world; keep declared
+  // direct URLs available, but never start that speculative whole inventory.
+  // Frozen legacy and untiled/desktop boots retain their original pack path.
+  const demandWorld = TIER === 'phone' && manifest.legacy !== true && ctx.product.has('client/plan') && ctx.product.shardfile.tiles.length > 0;
+  const eagerWorld = !demandWorld;
+  const pack = eagerWorld ? packFor(manifest) : null;
   const packed = new Set(pack ? pack.files.map(([p]) => p) : []);
   const packStreamed = pack ? streamPack(pack, plan, files) : Promise.resolve();
-  const worldFetches = bootFetches(manifest, files).filter((p) => !packed.has(p));
+  const worldFetches = eagerWorld ? bootFetches(manifest, files).filter((p) => !packed.has(p)) : [];
   prefetch(worldFetches);
   // Then title art and selected profile audio, after the pack so they do not split the pipe with world files.
   // Other styles remain with the worker's background prefetch inventory.

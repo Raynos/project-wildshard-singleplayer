@@ -285,3 +285,97 @@ foreign live cubeUVSample Node/null diagnostics; routed to sp-ci-deploy,
 no rendering edit or type waiver. Selected source ratchet passes. New
 fixture cases are typed, not run under G769. I2 remains in flight pending
 the Pine/Nalati/Nine reread; no transfer saving is inferred from source.
+
+### I2.3 Actual phone reread and boot-pack cause (2026-10-27, sp-x2)
+
+Source a8465f58ca defers title/grid/worker speculative queues past control;
+573a3bebd7 adds receipted phone partial admission and complete-offline
+publication only after durable verification. 4ca953e24f adds encoded chunk
+observation for in-flight responses. Original baseline8263b66600 stays.
+One exact pinned build4ca953e24fe026db539996548b05b1d36bb1af8e,
+4ca953e-mvqqg5la (actual version retained in reading.json), served all24
+products. Three fresh named agent-browser sessions, fresh proxy origins,
+muted iPhone16Pro402x874/DPR3, phone/render2, unthrottled CPU/network,
+Developer on and volume/music0. The real picker SHARDFILE button and
+maintained hud.enterNow enter each requested identity. Init rAF records
+Date.now at entered/unpaused + HUD not intro + no loader + frameGate +
+clock unpaused. Count every page/worker request started by that fence and
+every encoded forwarded body chunk written by it, including unfinished
+responses; no body/header replacement or HTML injection. Browser contexts
+and proxies closed; parent4407 released. No Simulator or isolated-load
+claim; concurrent peer browsers were active. Raw: tmp/sp-x2/i2-reading.
+
+| Worst row | Original encoded MB / requests | Reread encoded MB / requests | Tap to control | Page errors | I2 verdict |
+|---|---:|---:|---:|---:|---|
+| Pine | 332.246 / 1423 | 198.089209 / 935 | 11.413 s | 0 | misses both |
+| Nalati | >=101.731 / >=804; incomplete180s | 103.163123 / 786 | 13.163 s | 0 | misses both |
+| Nine | >=161.122 / >=728; incomplete180s | 166.460980 / 731 | 17.899 s | 0 | misses both |
+
+All3 actually reach control now; 0/3 meet both transfer limits. This is a
+cross-revision observation, not attribution of the whole change to I2.
+No other shard product was fetched in these3 before-control cohorts.
+The observer retained HTTP405 telemetry separately; no asset HTTP error
+or page error. Original24 qualification remains0/24, not overwritten by3.
+
+| Requested bytes before control | Pine MB / requests | Nalati MB / requests | Nine MB / requests |
+|---|---:|---:|---:|
+| Declared global/critical/manifest blobs | 87.475 / 261 | 77.411 / 138 | 145.590 / 174 |
+| Selected product packs | 10.094 / 4 | 3.038 / 2 | 6.781 / 3 |
+| Tile-demand blobs | 4.405 / 51 | 3.616 / 30 | 0 / 0 |
+| Public predecessor packs | 81.140 / 26 | 7.895 / 3 | 6.270 / 3 |
+| Near/far public baked | 5.006 / 27 | 0.370 / 23 | 0.370 / 23 |
+| JS, page and worker | 2.605 / 507 | 2.551 / 527 | 2.320 / 473 |
+| Other static, including metadata | 7.364 / 59 | 8.158 / 62 | 5.130 / 55 |
+
+I2.3 removes the exposed eager predecessor-pack/world prefetch for a
+non-legacy phone page with a real tiled client-plan product. Each original
+loader can still request its required public URL, with original bytes,
+hashes and rendering. Desktop, untiled pages and frozen LEGACY retain
+their pack behavior. The compiled tiles already load through their scoped
+readers; unused predecessor whole-world copies are not background-warmed.
+No cap, ring, physics or coarse/far content changes. Remaining global
+libraries and hundreds of actual JS requests still need reductions; D131
+stays open. The source-fixed pack cut needs the next affected-row read;
+no saving is claimed from deleting a speculative call alone.
+
+The Explorer preload producer is573a3bebd7; its missed Vite home-group
+expectation is corrected here while preserving the independent Explorer
+group/byte assertions. Touched game and fixture types, typed lint and
+selected source ratchet pass. No prelanding tests under G769.
+
+All24 source inventories below verify every section size/SHA from this
+same served product. These are declared file bytes, not encoded HTTP;
+explicit desktop files excluded conservatively (runtime I1 can exclude
+more variants). All globals/critical/dependency/manifest files remain.
+The deferred column names tiles and optional nontile files retained in the
+full product, verified when demanded, then warmed nearest-first only past
+control. Commons declared bytes are0 for every row. No browser reading
+is claimed for the other21. Repeated global library intake remains the
+large-shard blocker, not licence to drop required content or raise limits.
+
+| Shard | Initial declared MB / files | Deferred declared MB / files |
+|---|---:|---:|
+| _template | 1.181 / 13 | 4.682 / 156 |
+| blender-template | 1.278 / 73 | 1.171 / 57 |
+| driftwood-isle | 86.958 / 369 | 9.977 / 26 |
+| far-reach | 33.028 / 118 | 1.635 / 33 |
+| ink-cel-valley | 1.186 / 13 | 4.682 / 156 |
+| nalati-grasslands | 87.784 / 267 | 7.589 / 64 |
+| nine-dragon-stack | 162.113 / 665 | 0.711 / 12 |
+| open-plot-alien-plain | 0.033 / 67 | 1.776 / 83 |
+| open-plot-clockwork-canyon | 0.030 / 67 | 1.849 / 83 |
+| open-plot-coral-drift | 0.033 / 67 | 1.833 / 83 |
+| open-plot-desert-ruin | 0.035 / 67 | 1.782 / 83 |
+| open-plot-ember-forge | 0.029 / 67 | 1.828 / 83 |
+| open-plot-frostline-peaks | 0.032 / 67 | 1.829 / 83 |
+| open-plot-lantern-bayou | 0.034 / 67 | 1.849 / 83 |
+| open-plot-mosslight-ruins | 0.033 / 67 | 1.842 / 83 |
+| open-plot-night-market | 0.707 / 72 | 14.877 / 85 |
+| open-plot-showcase-template | 0.028 / 67 | 1.858 / 83 |
+| open-plot-sky-harbor | 0.028 / 67 | 1.833 / 83 |
+| open-plot-sky-race | 0.030 / 67 | 1.798 / 83 |
+| open-plot-starfall-observatory | 0.032 / 67 | 1.863 / 83 |
+| open-plot-thin-ice | 0.029 / 67 | 1.764 / 83 |
+| pastel-plain | 1.178 / 13 | 4.682 / 156 |
+| pine-hollow | 130.290 / 836 | 7.822 / 92 |
+| sunscar-dunes | 6.751 / 62 | 1.192 / 80 |
