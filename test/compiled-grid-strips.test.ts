@@ -90,6 +90,11 @@ test.each([256, 257])('baked seam channels retain every rendered word and bound 
   const metadata = parseCompiledGridHeader(header).look;
   if (metadata === undefined) throw new Error('Missing baked metadata');
   expect(metadata.origin).toEqual({ x: frame.origin.x, z: frame.origin.z });
+  // The first channel-only version remains a valid named bank.
+  const oldHeader = { ...parseCompiledGridHeader(header), look: { origin: metadata.origin, pitch: metadata.pitch, vertices: metadata.vertices, offset: metadata.offset, sphere: metadata.sphere } };
+  const oldBody = page.body.bytes.slice(0, metadata.offset + metadata.vertices * 20);
+  const old = decodeCompiledGridLook(oldHeader, oldBody, source, 'probe');
+  expect(old.look?.colours).toBeUndefined(); expect(old.look?.normals).toEqual(decoded.look.normals); expect(old.look?.uvs).toEqual(decoded.look.uvs);
   const bad = page.body.bytes.slice(); new DataView(bad.buffer).setFloat32(metadata.offset, Number.NaN, true);
   expect(() => decodeCompiledGridLook(header, bad, source, 'probe')).toThrow('look channels');
   const wrongCount = structuredClone(header);

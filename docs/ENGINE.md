@@ -139,7 +139,7 @@ part of the collider), and a shard clips its sea at `SHORE_REVETMENT_INNER_FACE`
 `sim/seamGeometry` and `sim/seamLattice` expose the ordered steps/tolerances.
 `sim/edgeProfiles.immutableEdgeProfile` copies/validates/freezes rows; only its
 snapshots reuse proof. Other rows revalidate.
-`grid/compiledStrips`: source-hashed rings, exact normals/UVs, I12-bounded.
+`grid/compiledStrips`: source-hashed rings, exact look channels, I12-bound.
 Missing entries generate; corrupt declared files refuse.
 `@wildshard/engine/physics/frame` prepares rider/mount
 motor transfers. See [GRID-SIMULATION.md](GRID-SIMULATION.md) for readiness, snapshot and client integration ports.
@@ -4917,7 +4917,7 @@ The adapter supplies the existing pattern ports: the ram's live home and shared 
 
 ## Author schema discovery (OS-F3)
 
-`bake/species`: offline body geometry. `namedFormatJsonSchema(key)`: named contracts.
+Offline APIs: `bake/species`, `bootInventory`, `namedFormatJsonSchema`.
 
 The author CLI `wildshard schema list` lists every format JSON Schema and the complete shardfile declaration. `wildshard schema shardfile /properties` discovers all sections without Valibot internals. `schemaDeclaration` and `schemaAt` are defined in `@wildshard/sdk/formatJsonSchema`; discovery preserves native semantic checks and grants no admission. See [schema discovery](authoring/schema-discovery.md) for pointers, tuple arity, identifier grammars and installed declaration locations.
 

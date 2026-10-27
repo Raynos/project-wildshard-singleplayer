@@ -25,7 +25,7 @@ export interface CompiledGridHeader {
   readonly strips: readonly { readonly id: string; readonly shape: number; readonly origin: { readonly x: number; readonly z: number };
     readonly duplicates: readonly { readonly instance: string; readonly origin: { readonly x: number; readonly z: number } }[] }[];
   readonly look?: { readonly origin: SeamGeometryChannels['origin']; readonly pitch: number; readonly vertices: number; readonly offset: number;
-    readonly sphere: SeamGeometryChannels['sphere'] };
+    readonly sphere: SeamGeometryChannels['sphere']; readonly colours?: true };
 }
 const hash = v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u));
 const text = v.pipe(v.string(), v.minLength(1), v.maxLength(512));
@@ -43,7 +43,7 @@ const headerSchema = v.strictObject({ version: v.literal(1), source: hash, home:
   shapes: v.pipe(v.array(v.strictObject({ features: v.strictObject({ offset: natural, count: v.pipe(natural, v.maxValue(100_000)) }), turnIn: v.exactOptional(v.strictObject({ at: v.literal(0), widths: v.tuple([finite, finite]) })) })), v.minLength(1), v.maxLength(128)),
   strips: v.pipe(v.array(v.strictObject({ id: text, shape: natural, origin: point, duplicates: v.pipe(v.array(v.strictObject({ instance: text, origin: point })), v.maxLength(4)) })), v.minLength(1), v.maxLength(256)),
   look: v.exactOptional(v.strictObject({ origin: point, pitch: v.pipe(v.number(), v.finite(), v.minValue(1)), vertices: natural, offset: natural,
-    sphere: v.strictObject({ centre: v.tuple([finite, finite, finite]), radius: v.pipe(v.number(), v.finite(), v.minValue(0)) }) })) });
+    sphere: v.strictObject({ centre: v.tuple([finite, finite, finite]), radius: v.pipe(v.number(), v.finite(), v.minValue(0)) }), colours: v.exactOptional(v.literal(true)) })) });
 
 /** Exact source identity, independent of object property order and preserving -0. */
 export async function platformGeometrySource(cells: readonly PlatformCell[], empty: StripProfile): Promise<string> {
@@ -124,7 +124,7 @@ function* stripSteps(input: unknown, bytes: Uint8Array, source: string, home: st
   const look = header.look;
   if (look === undefined) return { strips: result };
   const vertices = result.reduce((sum, strip) => sum + strip.mesh.positions.length / 3, 0);
-  if (look.offset % 4 !== 0 || look.vertices !== vertices || look.offset + vertices * 20 !== bytes.length) throw new Error('Grid strip look layout differs');
+  if (look.offset % 4 !== 0 || look.vertices !== vertices || look.offset + vertices * (look.colours === true ? 32 : 20) !== bytes.length) throw new Error('Grid strip look layout differs');
   const floats = (offset: number, count: number): Float32Array => {
     const data = bytes.subarray(offset, offset + count * 4), aligned = data.byteOffset % 4 === 0 ? data : data.slice();
     const values = new Float32Array(aligned.buffer, aligned.byteOffset, count);
@@ -132,7 +132,8 @@ function* stripSteps(input: unknown, bytes: Uint8Array, source: string, home: st
     return values;
   };
   const normals = floats(look.offset, vertices * 3), uvs = floats(look.offset + vertices * 12, vertices * 2);
-  return { strips: result, look: { origin: look.origin, pitch: look.pitch, sphere: look.sphere, normals, uvs } };
+  return { strips: result, look: { origin: look.origin, pitch: look.pitch, sphere: look.sphere, normals, uvs,
+    ...(look.colours === true ? { colours: floats(look.offset + vertices * 20, vertices * 3) } : {}) } };
 }
 
 /** Renderer-free exact decoder for authoring and byte-parity qualification. */

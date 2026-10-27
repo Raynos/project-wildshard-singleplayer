@@ -34,9 +34,10 @@ function bakeLookChannels(strips: readonly GeneratedStrip[], frame: Pick<SeamGeo
     const next = steps.next(); if (!next.done) continue;
     const { geometry } = next.value;
     try {
-      const normals = geometry.getAttribute('normal').array, uvs = geometry.getAttribute('uv').array, sphere = geometry.boundingSphere;
-      if (!(normals instanceof Float32Array) || !(uvs instanceof Float32Array) || sphere === null) throw new Error('Missing native seam look channels');
-      return { origin: { x: frame.origin.x, z: frame.origin.z }, pitch: frame.pitch, normals, uvs, sphere: { centre: [sphere.center.x, sphere.center.y, sphere.center.z], radius: sphere.radius } };
+      const normals = geometry.getAttribute('normal').array, uvs = geometry.getAttribute('uv').array, colours = geometry.getAttribute('color').array, sphere = geometry.boundingSphere;
+      if (!(normals instanceof Float32Array) || !(uvs instanceof Float32Array) || !(colours instanceof Float32Array) || sphere === null) throw new Error('Missing native seam look channels');
+      return { origin: { x: frame.origin.x, z: frame.origin.z }, pitch: frame.pitch, normals, uvs, colours,
+        sphere: { centre: [sphere.center.x, sphere.center.y, sphere.center.z], radius: sphere.radius } };
     } finally { geometry.dispose(); }
   }
 }
@@ -83,17 +84,22 @@ export function encodeGridStripPage(source: string, home: string, slug: string, 
   const geometry = writer.bytes(), featureStart = Math.ceil(geometry.length / 8) * 8;
   const featureEnd = featureStart + featureWords.length * 8;
   let look = frame === undefined ? undefined : bakeLookChannels(strips, frame);
+  if (look !== undefined && featureEnd + look.normals.byteLength + look.uvs.byteLength + (look.colours?.byteLength ?? 0) > 16 * 1024 * 1024) {
+    look = { origin: look.origin, pitch: look.pitch, normals: look.normals, uvs: look.uvs, sphere: look.sphere };
+  }
   // Optional render channels cannot remove a native triangle bank that fits.
   if (look !== undefined && featureEnd + look.normals.byteLength + look.uvs.byteLength > 16 * 1024 * 1024) look = undefined;
-  const packed = new Uint8Array(featureEnd + (look === undefined ? 0 : look.normals.byteLength + look.uvs.byteLength)); packed.set(geometry);
+  const packed = new Uint8Array(featureEnd + (look === undefined ? 0 : look.normals.byteLength + look.uvs.byteLength + (look.colours?.byteLength ?? 0))); packed.set(geometry);
   const view = new DataView(packed.buffer);
   for (const [index, value] of featureWords.entries()) view.setFloat64(featureStart + index * 8, value, true);
   if (look !== undefined) {
     packed.set(new Uint8Array(look.normals.buffer, look.normals.byteOffset, look.normals.byteLength), featureEnd);
     packed.set(new Uint8Array(look.uvs.buffer, look.uvs.byteOffset, look.uvs.byteLength), featureEnd + look.normals.byteLength);
+    if (look.colours !== undefined) packed.set(new Uint8Array(look.colours.buffer, look.colours.byteOffset, look.colours.byteLength), featureEnd + look.normals.byteLength + look.uvs.byteLength);
   }
   const header = artifact(json({ version: 1, source, home: keyHome, rows: writer.rows(), surfaces, shapes, strips: rows,
-    ...(look === undefined ? {} : { look: { origin: look.origin, pitch: look.pitch, vertices: look.normals.length / 3, offset: featureEnd, sphere: look.sphere } }) } satisfies CompiledGridHeader), 'json', 'page');
+    ...(look === undefined ? {} : { look: { origin: look.origin, pitch: look.pitch, vertices: look.normals.length / 3, offset: featureEnd, sphere: look.sphere,
+      ...(look.colours === undefined ? {} : { colours: true as const }) } }) } satisfies CompiledGridHeader), 'json', 'page');
   // Exercise the same valibot grammar the runtime admits, including signed zero.
   parseCompiledGridHeader(JSON.parse(new TextDecoder().decode(header.bytes)));
   const body = artifact(packed, 'bin', 'mesh');
@@ -101,8 +107,10 @@ export function encodeGridStripPage(source: string, home: string, slug: string, 
   const decoded = decodeCompiledGridLook(JSON.parse(new TextDecoder().decode(header.bytes)), body.bytes, source, keyHome);
   if (look !== undefined) {
     const copy = decoded.look; if (copy === undefined || !isDeepStrictEqual(copy.sphere, look.sphere)) throw new Error('Grid strip bake changed look bounds');
-    for (const channel of ['normals', 'uvs'] as const) {
+    for (const channel of ['normals', 'uvs', 'colours'] as const) {
       const a = look[channel], b = copy[channel];
+      if (a === undefined && b === undefined) continue;
+      if (a === undefined || b === undefined) throw new Error('Grid strip bake changed look channels');
       if (!Buffer.from(a.buffer, a.byteOffset, a.byteLength).equals(Buffer.from(b.buffer, b.byteOffset, b.byteLength))) throw new Error('Grid strip bake changed look words');
     }
   }

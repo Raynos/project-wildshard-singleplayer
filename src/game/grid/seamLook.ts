@@ -44,6 +44,8 @@ export interface SeamLookState { readonly triangles: number; readonly draws: num
 export interface SeamGeometryChannels {
   readonly origin: { readonly x: number; readonly z: number }; readonly pitch: number;
   readonly normals: Float32Array; readonly uvs: Float32Array;
+  /** Default palette only; an explicit runtime surface resolver still builds its own colours. */
+  readonly colours?: Float32Array;
   readonly sphere: { readonly centre: readonly [number, number, number]; readonly radius: number };
 }
 
@@ -69,8 +71,10 @@ export function* seamLookGeometrySteps(pieces: readonly SeamPiece[], home: { rea
   let vertices = 0;
   for (const { mesh } of pieces) vertices += mesh.positions.length / 3;
   if (channels !== undefined && (!Object.is(channels.origin.x, home.origin.x) || !Object.is(channels.origin.z, home.origin.z)
-    || channels.pitch !== pitch || channels.normals.length !== vertices * 3 || channels.uvs.length !== vertices * 2)) throw new Error('Baked seam channels differ from the home frame');
-  const position = new Float32Array(vertices * 3), colour = new Float32Array(vertices * 3), bucketOf = new Int8Array(vertices).fill(-1);
+    || channels.pitch !== pitch || channels.normals.length !== vertices * 3 || channels.uvs.length !== vertices * 2
+    || channels.colours !== undefined && channels.colours.length !== vertices * 3)) throw new Error('Baked seam channels differ from the home frame');
+  const bakedColours = surfaces === undefined ? channels?.colours : undefined;
+  const position = new Float32Array(vertices * 3), colour = bakedColours ?? new Float32Array(vertices * 3), bucketOf = new Int8Array(vertices).fill(-1);
   const lists = new Map<SeamBucket, number[]>(SEAM_BUCKETS.map((b) => [b, []]));
   let base = 0;
   for (const { mesh, features } of pieces) {
@@ -78,6 +82,7 @@ export function* seamLookGeometrySteps(pieces: readonly SeamPiece[], home: { rea
     let previousX = Number.NaN, previousZ = Number.NaN, roadX = Number.NaN, roadZ = Number.NaN;
     for (let k = 0; k < count; k++) {
       position[(base + k) * 3] = (mesh.positions[k * 3] ?? 0) + dx; position[(base + k) * 3 + 1] = mesh.positions[k * 3 + 1] ?? 0; position[(base + k) * 3 + 2] = (mesh.positions[k * 3 + 2] ?? 0) + dz;
+      if (bakedColours !== undefined) continue;
       // the platform's neutral grey reads as a dark gravel verge; the shard's own colour at the gradient's far edge is kept
       const r = mesh.colours[k * 3] ?? 0, g = mesh.colours[k * 3 + 1] ?? 0, b = mesh.colours[k * 3 + 2] ?? 0;
       // only near the road: the darkening fades out across the gradient, so the cell edge keeps the shard's exact colour
@@ -99,12 +104,12 @@ export function* seamLookGeometrySteps(pieces: readonly SeamPiece[], home: { rea
       for (let i = feature.firstIndex; i < feature.firstIndex + feature.indexCount; i++) {
         const n = mesh.indices[i]; if (n === undefined || named[i] === 1) continue;
         named[i] = 1; list.push(n + base); bucketOf[n + base] = bi;
-        if (bucket === 'rock') rockSurface.set(n, surface);
+        if (bucket === 'rock' && bakedColours === undefined) rockSurface.set(n, surface);
       }
     }
     const ground = lists.get('ground') ?? [];
     for (let i = 0; i < mesh.indices.length; i++) if (named[i] !== 1) { const n = mesh.indices[i] ?? 0; ground.push(n + base); if (bucketOf[n + base] === -1) bucketOf[n + base] = 0; }
-    rockColours(mesh.positions, mesh.colours, bucketOf.subarray(base, base + count), rockSurface, colour.subarray(base * 3, (base + count) * 3));
+    if (bakedColours === undefined) rockColours(mesh.positions, mesh.colours, bucketOf.subarray(base, base + count), rockSurface, colour.subarray(base * 3, (base + count) * 3));
     base += count;
     yield;
   }
