@@ -88,6 +88,26 @@ test('expiry releases the world and claim without waiting for another fixed tick
   } finally { f.close(); }
 });
 
+test('optional pressure defers without releasing the retained world or its full charge', async () => {
+  const f = await fixture();
+  try {
+    await f.enter(f.home.instance); const object = f.objects.get(f.home.instance);
+    expect(await f.leave()).toBe(true);
+    const before = f.residency.allocator.entries().find(row => row.id === `sim:${f.home.instance}`);
+    const baseline = f.residency.allocator.ownerCost('optional').playing;
+    const bytes = Math.floor((CONTENT_CAPS.playing - baseline) / CONTENT_CAPS.residentFactor) - 1000;
+    const optional = f.residency.allocator.reserveIfFits({ id: 'optional', owner: 'optional', category: 'library', bytes, needed: true, distance: 0 });
+    try {
+      expect(optional).toBeNull(); expect(f.disposed).toEqual([]);
+      expect(f.live.state().retainedCell?.instance).toBe(f.home.instance);
+      expect(f.residency.allocator.entries().find(row => row.id === `sim:${f.home.instance}`)).toEqual(before);
+      expect(f.residency.allocator.has('optional')).toBe(false);
+      await f.enter(f.home.instance);
+      expect(f.created).toEqual([f.home.instance]); expect(f.objects.get(f.home.instance)).toBe(object);
+    } finally { optional?.release(); }
+  } finally { f.close(); }
+});
+
 test('allocator pressure durably evicts an unneeded kept world before admitting replacement bytes', async () => {
   const f = await fixture();
   try {
