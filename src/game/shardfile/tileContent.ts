@@ -345,6 +345,21 @@ export function clientTileRegistration(instances: Map<string, ClientRingInstance
   const approaches = new Map<string, number>();
   const approachReleases = new Set<() => void>();
   let disposed = false;
+  // H3/G794 changes order only: finish the arrival tile before the rest of
+  // its clipped ring, using the same terrain/prop bytes and collision owners.
+  const pinSpawn = async (instance: string, start: { readonly x: number; readonly z: number },
+    requirements: TileRequirement[], left: () => boolean, message: string): Promise<{ keys: ReadonlySet<number>; release: () => void }> => {
+    const order = tileOrder(start), origin = tileOf(start.x, start.z), first = origin.j * TILES_PER_SIDE + origin.i;
+    const keys = order.tiles.filter(tile => order.rank(tile) === 0).map(tile => tile.j * TILES_PER_SIDE + tile.i);
+    const held: TileRequirement[] = [];
+    for (const batch of [[first], keys.filter(key => key !== first)]) {
+      if (batch.length === 0) continue;
+      const required = streamer.require(instance, batch); requirements.push(required); held.push(required);
+      await required.ready;
+      if (left()) throw new Error(message);
+    }
+    return { keys: new Set(keys), release: () => { for (const required of held) required.release(); } };
+  };
   const registration: ClientTileRegistration = {
     owns: instance => entered.has(instance),
     coverageReady: instance => covered.has(instance),
@@ -356,7 +371,6 @@ export function clientTileRegistration(instances: Map<string, ClientRingInstance
       if (left()) throw new Error('Approached tile owner left');
       const entry = fallback.get(instance);
       if (entry === undefined) throw new Error('Approached tile views have not been admitted');
-      const order = tileOrder(start);
       approaches.set(instance, (approaches.get(instance) ?? 0) + 1);
       const requirements: TileRequirement[] = [];
       let held = true;
@@ -370,12 +384,10 @@ export function clientTileRegistration(instances: Map<string, ClientRingInstance
       approachReleases.add(release);
       scope.onDispose(release);
       try {
-        const spawnKeys = order.tiles.filter(tile => order.rank(tile) === 0).map(tile => tile.j * 8 + tile.i);
-        const spawn = streamer.require(instance, spawnKeys); requirements.push(spawn);
-        await spawn.ready; if (left()) throw new Error('Approached tile owner left');
+        const spawn = await pinSpawn(instance, start, requirements, left, 'Approached tile owner left');
         // The same entryway set is mandatory on actual entry. Start its missing
         // tiles during the approach, after the spawn ring has priority.
-        const pinned = new Set(spawnKeys), critical = tileOrder(start, entry.source.entryways);
+        const pinned = spawn.keys, critical = tileOrder(start, entry.source.entryways);
         const missing = critical.tiles.filter(tile => critical.rank(tile) === 0 && !pinned.has(tile.j * 8 + tile.i)).map(tile => tile.j * 8 + tile.i);
         if (missing.length > 0) {
           const mouths = streamer.require(instance, missing); requirements.push(mouths);
@@ -412,7 +424,7 @@ export function clientTileRegistration(instances: Map<string, ClientRingInstance
         const prior = fallback.get(instance); if (prior === undefined) instances.delete(instance); else instances.set(instance, prior);
       };
       try {
-        streamer.setFullRing(instance, radius()); registered = true;
+        registered = true;
         const prior = instances.get(instance);
         if (prior?.root !== entry.root || prior.views !== entry.views) streamer.retireRefinement(instance);
         instances.set(instance, { ...entry, source: { ...entry.source, tiles: entry.source.tiles.filter(tile => keys.has(`${tile.lod}/${tile.x}/${tile.z}`)) } });
@@ -420,17 +432,16 @@ export function clientTileRegistration(instances: Map<string, ClientRingInstance
         // H3: pin the spawn view before broad coverage. Otherwise every L1
         // quadrant and uncovered distant L0 competes ahead of these first reads.
         // Parent-first streaming supplies this ring's coarse parents as needed.
-        const spawnOrder = tileOrder(start);
-        const spawn = streamer.require(instance, spawnOrder.tiles.filter(tile => spawnOrder.rank(tile) === 0).map(tile => tile.j * 8 + tile.i));
-        requirements.push(spawn);
-        await spawn.ready;
-        if (ownerLeft()) throw new Error('Entered tile owner left');
+        const spawn = await pinSpawn(instance, start, requirements, ownerLeft, 'Entered tile owner left');
         // Entryways remain critical: the same declared rank-zero set must be
         // ready before entry, independently of a distant coarse fallback.
         const order = tileOrder(start, entry.source.entryways);
         const initial = streamer.require(instance, order.tiles.filter(tile => order.rank(tile) === 0).map(tile => tile.j * 8 + tile.i)); requirements.push(initial);
         await initial.ready;
         if (ownerLeft()) throw new Error('Entered tile owner left');
+        // Broad render demand must not compete ahead of the spawn ring and
+        // mandatory entryways during initial preparation. In play it is exact.
+        streamer.setFullRing(instance, radius());
         // Pin complete coverage for this owner, but let an admitted far proxy
         // cover the unfinished quadrants while the page scheduler fills them.
         const coarse = streamer.require(instance, Array.from({ length: 16 }, (_, key) => key), 'l1');

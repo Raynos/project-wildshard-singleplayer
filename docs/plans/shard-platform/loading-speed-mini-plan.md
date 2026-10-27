@@ -148,3 +148,25 @@ Prior U1/U2/U4 results above remain valid historical measurements. Recheck the l
 | U4.3 | Review current loading-style progress against actual phase/receipt evidence; preserve prior native handoff proof, fix a demonstrated gap only. | done (2026-10-25, sp-x2): Update/UpdateProgress/styles/sw boot code unchanged since the earlier 2,873 ms /15 changes /253 ms native proof except public enablement `5716145112`. Current direct reload, real receipt counts, handoff/retry/unknown-byte and worker install regressions pass; no new modal code or duplicate native recording. |
 
 **Template wait named:** current post-update Template is 3,547 ms tap → ready, with admission 981 ms. The `Parsing shard descriptor` label persists while `readProductInput` resolves the descriptor sections: `resolveOutputDescriptor` launches 39 section reads together. Its verified-read and worker waits are nested, giving the observed **39 files /78 waits**, not 78 transports or one 7.3 s JSON parse. The creatures label appeared at document +1,158 ms and the next snapshot was `Checking visited product` at +1,258 ms; the reported 7.3 s stall did not reproduce. Immutable assets then use the separate 16-read admission pool. No concurrency/deadline change.
+
+
+### H3 order-only source (2026-10-27, sp-x9)
+
+**In flight (reading at plan end, G780).** G794 adds no measurement phase,
+asset, mesh, collider or product byte. Existing home terrain/native collision
+foundation still precedes tile publication. The arrival tile (terrain then
+its ordinary props, including the pier where declared) now finishes before
+the rest of its clipped eight-tile ring. The identical mandatory entryway
+set follows. Broad render-ring demand begins only after those critical
+reads, so it cannot compete ahead of the spawn view during admission.
+Parent-first coarse coverage, far fallback, native collision readiness,
+scope cancellation and all existing ownership/disposal remain intact.
+
+The approach-order fixture retains exact equality of the complete original
+critical tile set, adding the centre/ring order distinction. Touched types,
+typed lint and candidate-path ratchet pass; full `pnpm lint:ratchet` refuses
+an existing stale Pine discovery allowance. No baseline mutation, test,
+build, preview or per-row reading was run under G769. No no-pop-in or
+loading-time acceptance is claimed before the plan-end reading.
+sp-x8 confirmed no active hunk in these assembly paths; its newer T4/T7
+and entryway-prepin changes remain in HEAD and are preserved.
