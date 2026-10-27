@@ -8,7 +8,10 @@ import { readSpecies , type SpeciesVariantData as SpeciesVariantDataType, type S
 import { DEER } from './deerRows';
 import { ELK } from './elkRows';
 import { PINE_BOAR, PINE_BEAR, PINE_ELK_THRALL, PINE_SPECIES, pineDeer, pineElk } from './speciesRows';
-import physics from '../data/physics.generated.json' with { type: 'json' };
+import { pinePhysics } from './physics';
+
+// GR8: called, not read from a scheduler job's output
+const physics = pinePhysics();
 
 const king = physics.parked[0];
 if (king?.kind !== 'antler-king') throw new Error('Pine bake has no Antler King prewarm');

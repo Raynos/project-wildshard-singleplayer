@@ -5969,42 +5969,6 @@
       }
     },
     {
-      "id": "pine-physics",
-      "shard": "pine-hollow",
-      "entry": "src/shards/pine-hollow/generators/physics.ts",
-      "command": [
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/sdk/bake/json.mjs",
-        "src/shards/pine-hollow/generators/physics.ts",
-        "pinePhysics",
-        "src/shards/pine-hollow/data/physics.generated.json"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "src/format/package.json",
-        "src/sdk/bake/json.mjs",
-        "src/sdk/bake/source-loader.mjs",
-        "src/sdk/package.json",
-        "src/shards/pine-hollow/data/physicsRows.json",
-        "src/shards/pine-hollow/generators/physics.ts",
-        "src/format",
-        "src/shards/pine-hollow/generators/sections.ts",
-        "src/shards/pine-hollow/data/terrainBindings.json",
-        "src/shards/pine-hollow/data/physics-ground.bin",
-        "src/shards/pine-hollow/data/physics-colliders.bin"
-      ],
-      "outputs": [
-        "src/shards/pine-hollow/data/physics.generated.json"
-      ],
-      "platform": "portable",
-      "buildOutputs": {
-        "src/shards/pine-hollow/data/physics.generated.json": "8f44d50182fa1cf7584c5311d7f3269add61f74d5ed12cb82dd1c734cd31520a"
-      },
-      "seedOutputs": []
-    },
-    {
       "id": "pine-canoe-mover",
       "shard": "pine-hollow",
       "entry": "src/shards/pine-hollow/generators/canoe.ts",
@@ -9534,21 +9498,18 @@
         "src/sdk/formatJsonSchema.ts",
         "src/shards/pine-hollow/generators/sections.ts",
         "scripts/section-types.mjs",
-        "src/shards/pine-hollow/data/cabins.json",
-        "src/shards/pine-hollow/data/physics.generated.json"
+        "src/shards/pine-hollow/data/cabins.json"
       ],
       "outputs": [
         "src/shards/pine-hollow/generators/sectionSchemas.generated.ts",
         "src/shards/pine-hollow/runtime/productSections.generated.d.ts",
-        "src/shards/pine-hollow/data/cabins.d.json.ts",
-        "src/shards/pine-hollow/data/physics.generated.d.json.ts"
+        "src/shards/pine-hollow/data/cabins.d.json.ts"
       ],
       "platform": "portable",
       "buildTimeOutputs": [
         "src/shards/pine-hollow/generators/sectionSchemas.generated.ts",
         "src/shards/pine-hollow/runtime/productSections.generated.d.ts",
-        "src/shards/pine-hollow/data/cabins.d.json.ts",
-        "src/shards/pine-hollow/data/physics.generated.d.json.ts"
+        "src/shards/pine-hollow/data/cabins.d.json.ts"
       ]
     },
     {

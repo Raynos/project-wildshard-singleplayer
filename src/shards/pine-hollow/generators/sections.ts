@@ -258,6 +258,6 @@ export function parsePineSpots(input: unknown): v.InferOutput<typeof PineSpotsSc
 }
 export const PoolGroundSchema: v.ArraySchema<typeof floorNumber, undefined> = v.array(finite);
 
-export const FILE_SCHEMAS: { 'data/cabins.json': typeof CabinRowsSchema; 'data/physics.generated.json': typeof PinePhysicsSchema; } = { 'data/cabins.json': CabinRowsSchema, 'data/physics.generated.json': PinePhysicsSchema };
+export const FILE_SCHEMAS: { 'data/cabins.json': typeof CabinRowsSchema; } = { 'data/cabins.json': CabinRowsSchema };
 
 export function parseQuestLeadRows(input: unknown): v.InferOutput<typeof QuestLeadRowsSchema> { return v.parse(QuestLeadRowsSchema, input); }

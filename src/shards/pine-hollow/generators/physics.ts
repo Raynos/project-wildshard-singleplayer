@@ -8,7 +8,7 @@ import rows from '../data/physicsRows.json' with { type: 'json' };
  * actors, the King's prewarm and rest hit volumes, herds, forest trunks with their shelter cover, pieces and fixed solids),
  * with the hunting brain's trunk circles (x, z, r) taken from the trunk rows. No world, model, registry, engine or runtime
  * code runs. */
-export function pinePhysics(): Record<string, unknown> {
+function physicsRows() {
   const trees = rows.shelterTrees.map(([x, z, r]) => {
     if (x === undefined || z === undefined || r === undefined) throw new Error('Pine physics: a trunk row is not x, z, r, height, cover');
     return [x, z, r];
@@ -23,6 +23,12 @@ export function pinePhysics(): Record<string, unknown> {
   if (rows.ground.rows !== PINE_TERRAIN.res - 1 || rows.ground.cols !== PINE_TERRAIN.res - 1) throw new Error('Pine physics: divergent native lattice');
   return payload;
 }
+
+/** Pine's native physics rows from authoring inputs only. GR8: called by the product (no scheduler job, no generated
+ *  file); `pinePhysicsBytes()` is the published JSON file's exact bytes. */
+export const pinePhysics: () => ReturnType<typeof physicsRows> = physicsRows;
+/** The `data/physics.generated.json` product file's bytes, as the retired job wrote them. */
+export function pinePhysicsBytes(): Uint8Array { return new TextEncoder().encode(`${JSON.stringify(pinePhysics())}\n`); }
 
 /** Original floor and hull buffers through the existing named binary intake. */
 export function pinePhysicsSources(): { name: string; kind: 'bin'; source: string; options: { decoded: number } }[] {

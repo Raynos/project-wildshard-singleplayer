@@ -3,7 +3,10 @@ import { PopulationEnvironmentSchema , type PopulationEnvironmentRows as Populat
 import { parse } from 'valibot';
 import layout from '../data/layout.generated.json' with { type: 'json' };
 import ground from '../data/ground.generated.json' with { type: 'json' };
-import physics from '../data/physics.generated.json' with { type: 'json' };
+import { pinePhysics } from './physics';
+
+// GR8: called, not read from a scheduler job's output
+const physics = pinePhysics();
 
 /** Exact native metadata; only the renderer keeps the authored terrain implementation. */
 export const POPULATION_ENVIRONMENT: PopulationEnvironmentRowsType = parse(PopulationEnvironmentSchema, {

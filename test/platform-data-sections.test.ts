@@ -9,9 +9,10 @@ import { nativeBodySchema, nativeColliderRecordSchema, nativeGroundRecordSchema 
 import * as v from 'valibot';
 import PINE_STRINGS from '../src/shards/pine-hollow/data/strings.json' with { type: 'json' };
 import DRIFTWOOD_STRINGS from '../src/shards/driftwood-isle/data/strings.json' with { type: 'json' };
+import { pinePhysics } from '../src/shards/pine-hollow/generators/physics';
 
 const pine=(()=>{
-  const value:unknown=JSON.parse(readFileSync('src/shards/pine-hollow/data/physics.generated.json','utf8'));
+  const value:unknown=pinePhysics();
   v.assert(PinePhysicsSchema,value);return value;
 })();
 const driftwood=(()=>{

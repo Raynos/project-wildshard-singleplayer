@@ -2535,8 +2535,6 @@
     "src/shards/pine-hollow/data/paintedTextures.generated.json",
     "src/shards/pine-hollow/data/perchRows.generated.json",
     "src/shards/pine-hollow/data/perches.generated.json",
-    "src/shards/pine-hollow/data/physics.generated.d.json.ts",
-    "src/shards/pine-hollow/data/physics.generated.json",
     "src/shards/pine-hollow/data/pondClip.generated.json",
     "src/shards/pine-hollow/data/propScenes.generated.json",
     "src/shards/pine-hollow/data/props.json",

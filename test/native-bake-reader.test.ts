@@ -14,12 +14,13 @@ import { loadRapier } from '../src/engine/physics/rapier';
 import { readFileSync } from 'node:fs';
 import terrain from '../src/shards/pine-hollow/data/terrainBindings.json' with { type: 'json' };
 import { PinePhysicsSchema } from '../src/shards/pine-hollow/generators/sections';
-import { readNamedBlob } from '../src/sdk/blobs';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
 import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
+import { pinePhysics, pinePhysicsBytes } from '../src/shards/pine-hollow/generators/physics';
+import { nameBlob } from '../src/sdk/blobs';
 
 const baked=(()=>{
-  const rows:unknown=JSON.parse(readFileSync('src/shards/pine-hollow/data/physics.generated.json','utf8'));
+  const rows:unknown=pinePhysics();
   v.assert(PinePhysicsSchema,rows);return rows;
 })();
 
@@ -130,10 +131,11 @@ test('generation refuses missing native rosters and malformed private King and s
 });
 
 
-test('named physics admission keeps the original bytes and every body field', async () => {
+test('named physics admission keeps the original bytes and every body field', () => {
   const schema = namedJsonSchema(PinePhysicsSchema);
-  const published = await readNamedBlob('src/shards/pine-hollow', 'data/physics.generated.json', 'data/physics.generated.json', 'json', { jsonSchema: schema });
-  expect(published.bytes).toEqual(Uint8Array.from(readFileSync(new URL('../src/shards/pine-hollow/data/physics.generated.json', import.meta.url))));
+  // GR8: the product names the producer's bytes in memory (no generated file)
+  const published = nameBlob('data/physics.generated.json', 'json', pinePhysicsBytes(), { jsonSchema: schema });
+  expect(published.bytes).toEqual(pinePhysicsBytes());
   expect(published.file.jsonSchema).toEqual(schema);
   expect(validateNamedJsonSchema(schema, published.bytes)).toEqual(baked);
   const invalid = new TextEncoder().encode(JSON.stringify({ ...baked, kingHit: { ...baked.kingHit, radius: 0 } }));
