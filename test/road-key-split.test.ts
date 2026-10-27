@@ -68,3 +68,11 @@ test('custom index readers and count accessors retain their original calls and s
     same(splitByKey(geometry, key, 6), expected); expect(read).toHaveBeenCalledTimes(calls);
   } finally { geometry.dispose(); }
 });
+
+test.each([4000, 20000])('unused position capacity keeps original sparse/dense storage (%s vertices)', count => {
+  const geometry = fixture(false, true), originalPositions = geometry.getAttribute('position'), padded = new Float32Array(count * 3);
+  padded.set(originalPositions.array); geometry.setAttribute('position', new BufferAttribute(padded, 3));
+  const key = (triangle: number): number => triangle % 3;
+  try { same(splitByKey(geometry, key, 6), original(geometry, key, 6)); }
+  finally { geometry.dispose(); }
+});

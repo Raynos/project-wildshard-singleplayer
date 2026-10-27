@@ -80,13 +80,13 @@ export function splitByKey(geometry: BufferGeometry, keyOf: (triangle: number) =
   const capacity = typeof vertices === 'number' && Number.isSafeInteger(vertices) && vertices > 0 ? vertices : 0;
   // Switch only after enough actual vertices were used. Sparse channels keep
   // their small map; all dense tables together stay inside a 16 MB transient.
-  const dense = capacity > 0 && typeof elements === 'number' && capacity <= elements && capacity * out.length * 4 <= 16_000_000
+  const dense = capacity > 0 && typeof elements === 'number' && capacity <= elements * 4 && capacity * out.length * 4 <= 16_000_000
     && Object.getPrototypeOf(index) === BufferAttribute.prototype && !Object.hasOwn(index, 'getX')
     && Object.getOwnPropertyDescriptor(BufferAttribute.prototype, 'getX')?.value === splitIndexGet
     && Map === splitMap && Object.getOwnPropertyDescriptor(Map.prototype, 'get')?.value === splitMapGet
     && Object.getOwnPropertyDescriptor(Map.prototype, 'set')?.value === splitMapSet
     && Object.getOwnPropertyDescriptor(Map.prototype, Symbol.iterator)?.value === splitMapIterator;
-  const threshold = Math.max(64, Math.ceil(capacity / 8));
+  const threshold = 64;
   for (let t = 0; t < index.count / 3; t++) {
     const part = out[keyOf(t)]; if (part === undefined) continue;
     for (let c = 0; c < 3; c++) {
