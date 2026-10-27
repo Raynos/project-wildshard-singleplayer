@@ -374,14 +374,22 @@ export class GridSession {
     road.catch(() => { roadScope.dispose(); });
     try {
       await construction.yield();
-      const session = new GridSession(host, edges, allocator, strips, { road, plans });
+      // H4: Rapier's strip constructors must not accumulate into one loading task.
+      // Complete the exact same collision set before publishing the session.
+      for (const { mesh } of strips) {
+        if (host.scope.disposed || host.scope.disposing) throw new Error('Grid session left during collider preparation');
+        installStripCollider(host.physics, mesh, host.scope);
+        await construction.check();
+      }
+      if (host.scope.disposed || host.scope.disposing) throw new Error('Grid session left during collider preparation');
+      const session = new GridSession(host, edges, allocator, strips, { road, plans, collidersInstalled: true });
       progress?.set(3, 3, `${assembly.cells.length} cells · ${strips.length} seams`);
       await construction.yield();
       return session;
     } catch (error) { roadScope.dispose(); throw error; }
   }
 
-  constructor(host: GridSessionHost, edges?: readonly PlatformCell[], allocator?: ResidencyAllocator, prebuilt?: readonly GeneratedStrip[], preparedRoad?: { readonly road: PlatformRoad | Promise<PlatformRoad>; readonly plans: Map<Mesh, CullPlan> }) {
+  constructor(host: GridSessionHost, edges?: readonly PlatformCell[], allocator?: ResidencyAllocator, prebuilt?: readonly GeneratedStrip[], preparedRoad?: { readonly road: PlatformRoad | Promise<PlatformRoad>; readonly plans: Map<Mesh, CullPlan>; readonly collidersInstalled?: true }) {
     this.host = host;
     // before the page's first render: the lights a region's own pool shows through (regionalWorld `mirrorInto`)
     if (isScene(host.scene)) LightPool.for(host.scene).reserve(GRID_REGION_POINT_LIGHTS);
@@ -478,7 +486,7 @@ export class GridSession {
         status: () => { if (++polled % 4 === 0) status = crossingSaveStatus(this.live?.state().crossing); return status; },
         text: (shown) => (shown === 'saving' ? GAME_STRINGS.grid.saving : GAME_STRINGS.grid.saveFailed) } });
     const nativeOrigin = { origin: { x: 0, z: 0 } };
-    for (const { mesh } of this.strips) installStripCollider(host.physics, mesh, host.scope);
+    if (preparedRoad?.collidersInstalled !== true) for (const { mesh } of this.strips) installStripCollider(host.physics, mesh, host.scope);
     // The normal world stage owns the home's sockets; this scope adds only rebased neighbours.
     installEntrySockets(host.physics, host.scope, this.neighbours.map((cell) => ({ x: cell.origin.x - nativeOrigin.origin.x, z: cell.origin.z - nativeOrigin.origin.z })));
     this.walls = new ReadinessWalls(host.physics, [...this.neighbours.flatMap((cell) => neighbourEdges(cell, nativeOrigin)), ...rimEdges(this.assembly, nativeOrigin)], host.scope);
