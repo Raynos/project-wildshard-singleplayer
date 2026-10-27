@@ -33,22 +33,21 @@
   },
   "painter": {
     "version": 1,
-    "job": "ink-cel-valley-data-map",
     "terrain": [
       "data/terrain.json"
     ],
     "props": [
       "data/props.json"
     ],
-    "authored": false
+    "program": true
   },
   "inputs": [
     "shard.config.ts",
     "layout.ts",
     "generators",
-    "../../../scripts/map-painter.mjs",
     "../../sdk/bake/mapRaster.ts",
-    "../../../scripts/bake-data-maps.mjs",
+    "../../sdk/bake/mapScenes.ts",
+    "../../sdk/bake/groundMap.ts",
     "data/terrain.json",
     "assets/48dea0598884687a6ce6a23b788761d098d18a5923911c2a8bdd6be0617da103",
     "assets/b6e13e535df7b30ebc3cb4caedf2c5e00f0c01ce2bf9c2390cae748daa8fb1b0",

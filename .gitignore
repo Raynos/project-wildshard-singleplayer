@@ -923,8 +923,6 @@ src/shards/driftwood-isle/data/bridgeRows.d.json.ts
 # G508: pastel-plain data map outputs.
 
 # G508: ink-cel-valley data map outputs.
-/public/assets/ink-cel-valley/map/top.webp
-/src/shards/ink-cel-valley/look/map.baked.json
 
 # SF88g: open-plots generated worlds, one data map per output, and per-output discovery modules.
 /src/shards/open-plots/assets/
