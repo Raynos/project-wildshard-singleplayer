@@ -16,9 +16,10 @@ const sourceUrl = (key: FigureKey, phone: boolean): string => {
   return url;
 };
 /** A selection's prepared skin's product name (GR6; peopleRows.mjs names the same file as its atlas `url`): the camp's
- *  merged figures, or one figure alone for its Explorer card. */
-export const peopleSkinName = (keys: readonly string[], phone: boolean): string =>
-  `models/people/${keys.length === 1 ? keys[0] ?? '' : 'camp'}${phone ? '.phone' : ''}.glb`;
+ *  merged figures, or one figure alone for its Explorer card. One name for both tiers: they bake the same bytes, and a
+ *  product holds one file per payload (a second name for the same bytes would not exist in it). */
+export const peopleSkinName = (keys: readonly string[]): string =>
+  `models/people/${keys.length === 1 ? keys[0] ?? '' : 'camp'}.glb`;
 
 /** Same intake, cuts, conditioning, registration order and float32 channel writes as the former page path. */
 async function preparePeople(keys: readonly FigureKey[], phone: boolean, read: (url: string) => Uint8Array): Promise<ReturnType<typeof mergeNpcFigures<FigureKey>>> {
@@ -66,6 +67,10 @@ export async function nalatiPeopleBlobs(ctx: Pick<ProjectGenerationContext, 'cac
   // a cached file name is relative (the source URL without its leading slash)
   const read = (url: string): Uint8Array => { const bytes = files.get(url.slice(1)); if (bytes === undefined) throw new Error(`Missing camp figure source ${url}`); return bytes; };
   const blobs: NamedBlob[] = [];
-  for (const phone of [false, true]) for (const keys of [KEYS, ...KEYS.map(key => [key])]) blobs.push(nameBlob(peopleSkinName(keys, phone), 'glb', await bakePeople(keys, phone, read)));
+  for (const keys of [KEYS, ...KEYS.map(key => [key])]) {
+    const desktop = await bakePeople(keys, false, read), phone = await bakePeople(keys, true, read);
+    if (desktop.length !== phone.length || desktop.some((byte, i) => byte !== phone[i])) throw new Error(`Camp skins differ by tier: ${peopleSkinName(keys)} needs a phone file`);
+    blobs.push(nameBlob(peopleSkinName(keys), 'glb', desktop));
+  }
   return blobs;
 }

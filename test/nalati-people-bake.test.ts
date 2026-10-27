@@ -24,7 +24,7 @@ for (const phone of [false, true]) for (const selection of [keys, ...keys.map(ke
   it(`${name} ${phone ? 'phone' : 'desktop'} preserves the original conditioned skin and posed vertices`, async () => {
     const before = cases[`${String(name)}/${phone ? 'phone' : 'desktop'}`];
     if (before === undefined) throw new Error('Missing frozen camp skin');
-    const skin = skins.get(`models/people/${String(name)}${phone ? '.phone' : ''}.glb`);
+    const skin = skins.get(`models/people/${String(name)}.glb`);
     if (skin === undefined) throw new Error('Missing prepared camp skin');
     const loaded = await readSourceModel(skin);
     const after = loaded.gltf.scene.getObjectByProperty('isSkinnedMesh', true);
