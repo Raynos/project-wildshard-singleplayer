@@ -24,8 +24,22 @@ test('whole surface names override merged names without changing any binary chan
       expect(glbMaterialNames(bytes)).toEqual(['paint']);
       expect(bin(bytes)).toEqual(bin(oldBytes));
     }
-    const merged = bakeProps({ static: mesh, materialName: 'merged' });
-    expect([...merged.assets.values()].map(glbMaterialNames)).toEqual([['merged'], ['merged']]);
+    const unnamedMerged = bakeProps({ static: mesh }), merged = bakeProps({ static: mesh, materialName: 'merged' });
+    // The triangle lies on z=0: clipping retains one draw on each touching
+    // square at both LODs. Each tile has its own GLB name, plus the far proxy.
+    expect(merged.tiles.map(row => [row.lod, row.x, row.z])).toEqual([[0, 4, 3], [0, 4, 4], [1, 2, 1], [1, 2, 2]]);
+    expect(merged.tiles.map(row => [row.lod, row.x, row.z, row.triangles, row.draws]))
+      .toEqual(unnamedMerged.tiles.map(row => [row.lod, row.x, row.z, row.triangles, row.draws]));
+    expect(merged.files.map(row => row.hash)).toEqual([...merged.tiles.flatMap(row => row.files), merged.props.far]);
+    expect(merged.assets.size).toBe(5);
+    for (const [index, row] of merged.files.entries()) {
+      const before = unnamedMerged.files[index], bytes = merged.assets.get(row.hash);
+      const oldBytes = before === undefined ? undefined : unnamedMerged.assets.get(before.hash);
+      if (bytes === undefined || oldBytes === undefined) throw new Error('Expected merged tile or far bytes');
+      expect(glbMaterialNames(oldBytes)).toEqual(['']);
+      expect(glbMaterialNames(bytes)).toEqual(['merged']);
+      expect(bin(bytes)).toEqual(bin(oldBytes));
+    }
     expect(material.name).toBe('source');
   } finally { geometry.dispose(); material.dispose(); }
 });
