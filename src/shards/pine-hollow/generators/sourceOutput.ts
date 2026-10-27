@@ -321,7 +321,7 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Pine
   const trees = emitNamedBlobs([nameBlob(TREE_REST_FILE, 'glb', await pineTreeRest(sources), { critical: true })]);
   // GR8: the hero material payloads, compacted (heroMaterialFiles.mjs), named as product files the material aliases name;
   // opaque bytes (some carry ASTC KTX2 the product's GLB intake refuses), as uncharged as their retired public files were
-  const heroMaterials = emitNamedBlobs(heroMaterialFiles(sources).map(([name, bytes, tier]) => nameBlob(name, 'bin', bytes, tier === undefined ? {} : { tier })));
+  const heroMaterials = emitNamedBlobs(heroMaterialFiles(sources).map(([name, bytes, tier, variantOf]) => nameBlob(name, 'bin', bytes, { variantOf, ...(tier === undefined ? {} : { tier }) })));
   const peopleFile = emitNamedBlobs([nameBlob('people/catalogue.json', 'json', new TextEncoder().encode(encodeCanonicalJson(pineFigureCatalogue(people.rows))))]);
   const drawFile = emitNamedBlobs([nameBlob('look/wildlife-draw.json', 'json', new TextEncoder().encode(encodeCanonicalJson(wildlifeDraw(flock.ranges))))]);
   const lifeProgram = { script: life.script, bytes: '' };

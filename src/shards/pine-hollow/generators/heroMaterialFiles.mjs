@@ -35,9 +35,17 @@ const productName=url=>`models/hero-materials/${url.slice('/assets/'.length)}`;
 export function heroMaterialAliases(sources){
  return Object.fromEntries(heroMaterialCandidates(sources).filter(url=>sources.has(url)).map(url=>[url,productName(url)]));
 }
-/** The compacted payloads by product name, each with the device tier that fetches it. */
+/** The compacted payloads by product name, each with the device tier that fetches it and the model it is a variant of. */
 export function heroMaterialFiles(sources){
- return Object.keys(heroMaterialAliases(sources)).map(url=>[productName(url),new Uint8Array(compactMaterialGlb(Buffer.from(sources.bytes(url)))),materialTier(sources,url)]);
+ return Object.keys(heroMaterialAliases(sources)).map(url=>[productName(url),new Uint8Array(compactMaterialGlb(Buffer.from(sources.bytes(url)))),materialTier(sources,url),materialVariantOf(url)]);
+}
+
+/** The model a material payload is one texture-mode variant of: its folder below `models/` (the original, its phone copy,
+ *  its KTX2 and ASTC twins share it), so a device's selection keeps one variant of each. */
+export function materialVariantOf(url){
+ const folder=/\/models\/(.+)\/[^/]+$/u.exec(url)?.[1];
+ if(folder===undefined)throw new Error(`Material payload outside a model folder: ${url}`);
+ return folder;
 }
 
 /** The device tier a material payload serves: a desktop or phone GPU twin (the KTX2 tables, the phone ASTC6 table, their

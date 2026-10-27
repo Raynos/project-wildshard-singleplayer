@@ -13,7 +13,9 @@ export function heroMaterialCandidates(sources: PineSources): string[];
 export function heroMaterialFolders(sources: PineSources): string[];
 /** Each existing payload's original URL mapped to its compacted file's product name. */
 export function heroMaterialAliases(sources: PineSources): Record<string, string>;
-/** The compacted payloads by product name, each with the device tier that fetches it. */
-export function heroMaterialFiles(sources: PineSources): [string, Uint8Array, 'phone' | 'desktop' | undefined][];
+/** The compacted payloads by product name, each with the device tier that fetches it and the model it is a variant of. */
+export function heroMaterialFiles(sources: PineSources): [string, Uint8Array, 'phone' | 'desktop' | undefined, string][];
+/** The model a material payload is one texture-mode variant of. */
+export function materialVariantOf(url: string): string;
 /** The device tier a material payload serves (absent: both). */
 export function materialTier(sources: PineSources, url: string): 'phone' | 'desktop' | undefined;
