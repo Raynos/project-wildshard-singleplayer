@@ -308,6 +308,11 @@ export class SkyRig {
    * the subtree draws); `frame` runs the look's per-frame parts (its dressing's `update`, its `frame`: call it only while
    * the player is in the cell); the patches leave with `scope`.
    */
+  /** Fetch the common cloud bake before a `scopeLevelLook` whose sky dressing reads the cloud field: a grid page's sky has
+   *  no cloud layer of its own, so nothing else loads it and the region's look marched the fbm in its world step (~215 ms of
+   *  Nalati's and Nine Dragon's at phone 4× CPU). */
+  loadCloudField(): Promise<void> { return this.visual.loadCloudField(); }
+
   scopeLevelLook(root: THREE.Object3D, level: { readonly id: string }, look: RegionLookParts, scope: Scope, options: LookScopeOptions = {}): ScopedLook | null {
     const chunks = captureLookChunks(level.id, look, { sky: this, cloudField: () => this.visual.cloudField() });
     // G321: a look whose installs change nothing here still patches its world's materials with its own `worldPatch`

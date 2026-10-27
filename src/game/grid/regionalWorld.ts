@@ -310,6 +310,11 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
       terrain.applyCanopy(forest.canopyMap);
       await ports.pause();
       if (left()) throw new Error('Regional world left while building its forest');
+      // its look's sky dressing reads the cloud field at composition: the common bake arrives first, never a marched fbm
+      if (levelLook?.sky?.build !== undefined && sky instanceof SkyRig) {
+        await sky.loadCloudField();
+        if (left()) throw new Error('Regional world left while loading its cloud field');
+      }
       const ground = { heightAt: (x: number, z: number): number => field().heightAt(x, z), waterSurfaceAt: (x: number, z: number): number | null => water.restAt(x, z) };
       let world: ShardWorld | null = null;
       // SF63 part 2: the region's scoped look, whose per-frame parts run only while its cell is entered
