@@ -87,6 +87,8 @@ since is red; the latest (`60e9b7bfe6`) fails `generated-inputs`, which fails fa
 
 | D45 | Nalati grass native scatter constructor omitted geography program/source, seed and source metadata inputs from its sealed job | `6e84134e0c` (source migration; observed in shared tree) | sp-ci-deploy | source fix b4fb652955; real generation in flight |
 
+| D46 | Shared-tree generation cannot discover `open-plots-world`: its declared `generators/bake-plots.mjs` was removed in an in-flight migration; real discovery restore is masked | — (working tree after `d6ca33cfc8`) | sp-o2 | routed by sp-ci-deploy; sync retirement requested |
+
 ## Rows
 
 Parked: none of these is built until SHARD-PLATFORM completes and Jake says go.
