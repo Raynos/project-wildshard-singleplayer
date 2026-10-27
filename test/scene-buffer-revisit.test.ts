@@ -1,6 +1,7 @@
 import { expect, test, vi } from 'vitest';
 import { BufferAttribute, BufferGeometry, Mesh, MeshBasicMaterial } from 'three';
 import { Scope } from '@wildshard/engine/app/scope';
+import { withOwner } from '@wildshard/engine/app/ownership';
 import { AssetService } from '../src/engine/app/assets';
 import { CONTENT_CAPS } from '@wildshard/engine/core/config';
 import { MemoryAdmission } from '@wildshard/format/memoryAdmission';
@@ -33,17 +34,19 @@ function fixture(bytes = 1000) {
     if (!(geometry instanceof BufferGeometry)) throw new Error('Missing fixed geometry');
     return { scope, claim, root, mesh, geometry, draw, leave: () => { scope.dispose(); claim.release(); } };
   };
-  return { allocator, assets, material, enter, close: () => { for (const retained of assets.retained()) assets.evictCached(retained.key); detach(); bridge.dispose(); material.dispose(); } };
+  return { allocator, assets, bridge, material, enter, close: () => { for (const retained of assets.retained()) assets.evictCached(retained.key); detach(); bridge.dispose(); material.dispose(); } };
 }
 
 test('a real warm visit borrows exact fixed storage with fresh draw ownership', () => {
-  const f = fixture(), first = f.enter('cold'), disposed = vi.spyOn(first.geometry, 'dispose');
+  const f = fixture(), first = f.enter('same-instance'), disposed = vi.spyOn(first.geometry, 'dispose');
   expect(first.draw.cache).toBe('miss');
+  expect(f.allocator.entries().filter(row => row.category === 'commons').every(row => row.coveredBy === undefined)).toBe(true);
   const shape = first.geometry;
   first.leave(); expect(disposed).not.toHaveBeenCalled();
   expect(f.allocator.entries().filter(row => row.category === 'commons').reduce((sum, row) => sum + row.accountedBytes, 0)).toBe(24);
-  const warm = f.enter('warm');
+  const warm = f.enter('same-instance');
   try {
+    expect(f.allocator.entries().filter(row => row.category === 'commons').every(row => row.coveredBy === undefined)).toBe(true);
     expect(warm.draw.cache).toBe('hit'); expect(warm.geometry).toBe(shape);
     expect(warm.root).not.toBe(first.root); expect(warm.mesh).not.toBe(first.mesh);
     const position: unknown = shape.getAttribute('position');
@@ -72,4 +75,18 @@ test('resolved counts and exact content isolate warm buffers', () => {
     expect(count.draw.cache).toBe('miss'); expect(content.draw.cache).toBe('miss');
     expect(count.geometry).not.toBe(first.geometry); expect(content.geometry).not.toBe(first.geometry);
   } finally { count.leave(); content.leave(); f.close(); }
+});
+
+
+test('revisit registration cannot borrow an existing runtime-covered backing', () => {
+  const f = fixture(), scope = new Scope('ordinary');
+  const claim = f.allocator.reserve({ id: 'sim:ordinary', owner: 'ordinary', category: 'sim', bytes: 100, needed: true, distance: 0 });
+  if (claim === null) throw new Error('Missing ordinary admission');
+  f.bridge.cover(scope, claim);
+  const geometry = new BufferGeometry().setAttribute('position', new BufferAttribute(new Float32Array([0, 0, 1]), 3));
+  try {
+    withOwner(scope, () => f.assets.register('ordinary', geometry, { retain: true, cache: true, reusable: true }));
+    expect(() => f.assets.register('revisit', geometry, { retain: true, cache: true, reusable: true, revisit: true })).toThrow('independently charged');
+    expect(f.assets.has('ordinary')).toBe(true); expect(f.assets.has('revisit')).toBe(false);
+  } finally { scope.dispose(); claim.release(); f.close(); }
 });

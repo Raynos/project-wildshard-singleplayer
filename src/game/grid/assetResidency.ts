@@ -6,7 +6,7 @@ type AssetPort = Parameters<App['assets']['bindResidency']>[0];
 /** Renderer composition supplies concrete allocation identities; Node residency imports no rendering module. */
 export type AssetAllocationReader = (resource: Disposable3) => readonly { identity: object; bytes: number; kind: 'cpu' | 'gpu' }[];
 interface CacheConsumer { readonly users: Set<Scope>; readonly evict: (() => boolean) | undefined; readonly reusable: boolean; readonly revisit: boolean; active: boolean; lastUse: number; retired: boolean }
-interface Allocation { readonly identity: object; lease: ResidencyLease; readonly bytes: number; readonly kind: 'cpu' | 'gpu'; readonly consumers: Set<CacheConsumer>; refs: number; covering: string | undefined }
+interface Allocation { readonly identity: object; lease: ResidencyLease; readonly bytes: number; readonly kind: 'cpu' | 'gpu'; readonly consumers: Set<CacheConsumer>; refs: number; covering: string | undefined; independent: boolean }
 const bridges = new WeakMap<ResidencyAllocator, AssetResidencyBridge>();
 
 /** One page's retained allocation bridge: CPU backing stores, GPU attributes and texture source/sampler pairs are
@@ -99,15 +99,17 @@ export class AssetResidencyBridge implements AssetPort {
   /** AssetService calls this before adopting a cache; refusal releases every partially prepared allocation. */
   register(_key: string, resource: Disposable3, owner: Scope | null, evict?: () => boolean, reusable = false, revisit = false): ReturnType<AssetPort['register']> {
     if (revisit && !reusable) throw new Error('Revisit cache requires reusable ownership');
-    const held: Allocation[] = [], covering = this.covering(owner ?? this.readOwner());
+    const held: Allocation[] = [], covering = revisit ? undefined : this.covering(owner ?? this.readOwner());
     const unhold: (() => void)[] = [];
     try {
       for (const row of this.readAllocations(resource)) {
         let entry = this.allocations.get(row.identity);
+        if (revisit && entry?.covering !== undefined) throw new Error('Revisit backing must be independently charged');
         if (entry === undefined) {
           const actualCoverage = this.coverage(row.bytes, covering), lease = this.reserve(row.bytes, row.kind, actualCoverage, row.identity);
-          entry = { identity: row.identity, lease, bytes: row.bytes, kind: row.kind, consumers: new Set(), refs: 0, covering: actualCoverage }; this.allocations.set(row.identity, entry);
+          entry = { identity: row.identity, lease, bytes: row.bytes, kind: row.kind, consumers: new Set(), refs: 0, covering: actualCoverage, independent: revisit }; this.allocations.set(row.identity, entry);
         }
+        if (revisit) entry.independent = true;
         entry.refs++; held.push(entry); unhold.push(entry.lease.hold());
       }
     } catch (error) { this.release(held); for (const release of unhold) release(); throw error; }
@@ -124,6 +126,8 @@ export class AssetResidencyBridge implements AssetPort {
       const next = this.covering(scope);
       // Parent retirement itself exposes the bytes; a page draw cannot hide them.
       if (next !== undefined) for (const entry of held) {
+        // Revisit storage outlives a runtime; a recycled sim id grants no coverage.
+        if (entry.independent) continue;
         if (entry.covering === next) continue;
         const actualCoverage = this.coverage(entry.bytes, next, entry.lease.id);
         if (entry.covering === actualCoverage) continue;

@@ -471,7 +471,7 @@ through those after an `await` ends with the resident. Anything else that reads 
 `retainCachedResources` marks engine caches that survive a level.
 Fixed builds use `{ retain: true, cache: true, reusable: true }`; live leases prevent eviction.
 By default retirement evicts after the last live scope user and lease. Fixed buffered
-worlds add `revisit: true`: idle CPU/GPU stays charged across retirement and pressure-evictable
+worlds add `revisit: true`: CPU/GPU stays independently charged across visits and pressure-evictable
 in LRU order. Disposal invalidates reusable memos through `cacheUntilDisposed` or
 `memoUntilDisposed`; never reuse disposed storage or add a page pin.
 World-scene buffered draws reuse geometry by admitted content URL, tier and every
