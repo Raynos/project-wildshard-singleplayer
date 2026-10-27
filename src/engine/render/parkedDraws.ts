@@ -108,6 +108,12 @@ function parkedDrawables(root: THREE.Object3D, camera: THREE.Camera, reveal: Set
 export interface ParkedDrawBudget { readonly drawables: number; readonly newMaterials: number; readonly bufferBytes?: number;
   /** First-use geometry/material layouts per slice; already seen copies still obey the draw and byte limits. */
   readonly newBindings?: number }
+/** A held entry off WebKit (where pipeline builds leave the main thread): up to `max` consecutive planned slices share the
+ *  one draw a completed frame gets, while those frames keep their cadence. The merge doubles after a frame no longer than
+ *  `frameMs` and halves after a longer one (the GPU process's native work shows only as a late frame), and a merged draw's
+ *  new buffers stay under `bytes`. Still one submission per completed frame: 490e215711's two submissions a frame
+ *  stalled Pine's GPU process (0cea9b55cc). */
+export interface ParkedDrawWiden { readonly max: number; readonly frameMs: number; readonly bytes: number }
 
 /** Share a first-use allowance only for ordinary meshes with the exact same geometry, material and program shape.
  * Per-object callbacks, morphs and skinning retain an independent first use. No draw or buffer upload is skipped. */
@@ -178,6 +184,14 @@ export function parkedDrawSlices<T extends THREE.Object3D>(drawables: readonly T
   }
   if (slice.length > 0) slices.push(slice);
   return slices;
+}
+
+/** A planned slice's vertex/index/instance buffer bytes (each buffer once), for a widened draw's byte cap. */
+function sliceBytes(slice: readonly THREE.Object3D[]): number {
+  const buffers = new Set<ArrayBufferView>();
+  for (const object of slice) for (const buffer of drawBuffers(object)) buffers.add(buffer);
+  let bytes = 0; for (const buffer of buffers) bytes += buffer.byteLength;
+  return bytes;
 }
 
 /** Only ordinary opaque draws may move within the warm inventory. Hooks and
@@ -591,7 +605,9 @@ export async function warmParkedDraws(renderer: ParkedDrawRenderer, scene: THREE
     /** Completed drawables and their fixed total, without changing draw/pause cadence. */
     onProgress?: (done: number, total: number) => void;
     /** Original and selected slice counts, before any submission; no timing or readiness gate. */
-    onPlan?: (original: number, selected: number) => void } = {}): Promise<number> {
+    onPlan?: (original: number, selected: number) => void;
+    /** Adaptive slices per completed frame (held, off WebKit); absent, every planned slice gets its own frame. */
+    widen?: ParkedDrawWiden } = {}): Promise<number> {
   const reveal = new Set(options.revealChildren === true ? root.children : []);
   if (options.lightingRoot !== undefined) reveal.add(options.lightingRoot);
   const drawables = parkedDrawables(root, camera, reveal);
@@ -628,8 +644,23 @@ export async function warmParkedDraws(renderer: ParkedDrawRenderer, scene: THREE
     // One slice per completed frame: a slice's native first draws (pipelines, buffer uploads) are bounded per frame, and
     // a CPU clock cannot see them (two slices a frame under 6 ms of JavaScript stalled Pine's GPU process past 30 s).
     // A drawable an earlier warm already drew exactly (G782) is left out; a slice left empty costs no frame.
-    for (const whole of slices) {
+    const widen = options.widen;
+    let width = 1, frameAt = Number.NaN;
+    for (let next = 0; next < slices.length;) {
       if (!current()) throw new Error('Parked draw owner left');
+      // the planned slices this frame draws: one, or (widened) up to `merge` whose new buffers fit `widen.bytes`
+      const first = slices[next++] ?? [];
+      let whole: readonly Drawable[] = first;
+      if (widen !== undefined && width > 1) {
+        const merged = [...first];
+        let bytes = sliceBytes(first), taken = 1;
+        for (let more = slices[next]; more !== undefined && taken < width; more = slices[next]) {
+          const size = sliceBytes(more);
+          if (bytes + size > widen.bytes) break;
+          merged.push(...more); bytes += size; next++; taken++;
+        }
+        whole = merged;
+      }
       const slice = whole.filter(object => !alreadyWarmed(warmed, renderer, object, camera, context));
       done += whole.length - slice.length;
       if (slice.length === 0) { options.onProgress?.(done, total); continue; }
@@ -639,6 +670,11 @@ export async function warmParkedDraws(renderer: ParkedDrawRenderer, scene: THREE
       drawn += slice.length; done += slice.length;
       options.onProgress?.(done, total);
       await pause();
+      if (widen !== undefined) {
+        // each pause is one completed frame: a late one is the GPU process still building, so the next draw narrows
+        const now = performance.now(), took = now - frameAt; frameAt = now;
+        if (!Number.isNaN(took)) width = took <= widen.frameMs ? Math.min(widen.max, width * 2) : Math.max(1, Math.floor(width / 2));
+      }
     }
   } finally { standIns.dispose(); }
   return drawn;

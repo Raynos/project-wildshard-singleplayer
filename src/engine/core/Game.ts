@@ -1011,6 +1011,9 @@ export class Game {
     // bindings one per completed frame; bounded copies share that already-warmed layout.
     const drawBudget = isolateImageUploads && this.frameCount > 0 ? { budget: LIVE_PARKED_BUDGET }
       : buildHeld() ? { budget: HELD_PARKED_BUDGET } : {};
+    // Held, off WebKit (pipelines build outside the main thread): several planned slices may share a completed frame's
+    // draw while held frames keep the 30 fps floor (Pine's afterPlay idled 3.2 s at one slice a frame); WebKit keeps its fences.
+    const widen = !isolateImageUploads && buildHeld() ? { widen: { max: 8, frameMs: 1000 / 30 + 2, bytes: HELD_PARKED_BUDGET.bufferBytes ?? 6 * 1024 * 1024 } } : {};
     const drawnPause = this.frameCount > 0 ? () => waitForDrawnFrame(owner, () => this.frameCount, current) : (): Promise<void> => new Promise(resolve => { this.engineScope.raf(() => { this.engineScope.timeout(0, resolve); }); });
     // Camera models live outside the parked world. Compilation linked them, but
     // their staged group and equipment roots still hide their first buffer draws.
@@ -1030,7 +1033,7 @@ export class Game {
       // Every submission waits for a completed game frame; a CPU construction
       // budget cannot measure pending native pipeline work.
       const drawn = await warmParkedDraws(this.renderer, this.rootScene, this.camera, composer.inputBuffer, futureRoot, current,
-        drawnPause, { ...drawBudget, onProgress: (done, total) => { progress(done, total, `${done} / ${total} scene draws warmed`); },
+        drawnPause, { ...drawBudget, ...widen, onProgress: (done, total) => { progress(done, total, `${done} / ${total} scene draws warmed`); },
           onPlan: (original, selected) => { onStage('parked-slices-original', 0, original); onStage('parked-slices-selected', 0, selected); }, environment: futureEnvironment });
       onStage('parked-draws', diagnosticNow() - start, drawn);
     }
