@@ -1,3 +1,5 @@
+import { followResidentTiles, residentTiles } from './tileDriver';
+import type { TileContent } from './tileContent';
 import { tileBufferedDraws } from './tileBufferedDraws';
 import type { SceneBuffers } from '@wildshard/format/sceneBuffers';
 import { WorldSceneReads } from './worldSceneReads';
@@ -291,6 +293,7 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
   reads.validate();
   const owner = resident.child('world-scenes'), libraries = new Map<string, Library>(), materials = new Map<string, Material>(), finish: (() => void)[] = [];
   const handles = new SceneHandles(ctx.game.runtime?.world?.sky);
+  const bufferedContents: TileContent[] = [];
   if (section.cosmeticDraws !== undefined) {
     const random = ctx.app.rng.stream('cosmetic');
     for (let draw = 0; draw < section.cosmeticDraws; draw++) random.next();
@@ -492,7 +495,7 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
       made.root.updateMatrixWorld(true);
       for (const [index, draw] of buffered.entries()) {
         const content = tileBufferedDraws(`${prefix}.buffered.${String(index)}`, draw.root, draw.rows);
-        if (content !== null) handles.addTiled(content);
+        if (content !== null) bufferedContents.push(content);
       }
       for (const [name, part] of made.parts) if (mesh3(part)) { const content = tiledMesh(`${prefix}.${name}`, part, part.matrixWorld); if (content !== null) handles.addTiled(content); await copies.check(); }
       for (const [id, values] of sources.collections) handles.publishMaterials(`${prefix}.${id}`, values);
@@ -520,6 +523,16 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
       if (section.libraries.some(row => row.kind === 'models' || row.kind === 'baked')) ctx.root.add(made.root);
       sceneProgress(++scenesDone, prefix);
       await buildYield(owner);
+    }
+    if (bufferedContents.length > 0) {
+      const world = ctx.game.runtime?.world;
+      if (world === undefined || world === null) throw new Error('Buffered scene tiles require a world');
+      // Buffered fields do not require a world.assembly or forest.page feature.
+      // Their separate child driver keeps those hosts from attaching them twice.
+      const tiles = owner.child('buffered-tiles');
+      await residentTiles(tiles, bufferedContents, product.shardfile.spawn, product.shardfile.entryways);
+      const follow = followResidentTiles(tiles, () => world.player.position);
+      if (follow !== null) ctx.system({ id: 'client.world.buffered-tiles', phase: 'update', run: follow });
     }
     // Every live/deferred consumer now owns a copy; retire decoder templates.
     libraries.clear(); packets.clear(); for (const done of finish) done();
