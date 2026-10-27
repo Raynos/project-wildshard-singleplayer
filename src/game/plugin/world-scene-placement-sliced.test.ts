@@ -10,6 +10,8 @@ import { SkyRig } from '@wildshard/engine/world/skyRig';
 import type { ShardContext } from './context';
 import { WorldScenePlacement } from '../shardfile/worldScenePlacement';
 import { parseWorldScenePlacement } from '@wildshard/format/worldScenePlacement';
+import { parseWorldScenes } from '@wildshard/format/worldScenes';
+import * as sourceMaterials from '../shardfile/worldSceneMaterials';
 import { WorldRegistry } from '@wildshard/engine/world/registry';
 
 test('existing sliced placer matches native output and RNG while preserving owner across every yield', async () => {
@@ -117,4 +119,43 @@ test.each(['render', 'colliders'] as const)('a cached placement does not publish
     if (steps === null) ancestor.dispose(); else Array.from(steps);
     keeper.dispose(); owner.dispose(); registry.retire(); geometry.dispose(); material.dispose();
   }
+});
+
+
+test.each(['late', 'fine-first', 'retired'] as const)('coarse placement keeps fine source maps behind its %s fence', async mode => {
+  const owner = new Scope('coarse-source-maps'), registry = new WorldRegistry(), sky: unknown = Object.create(SkyRig.prototype);
+  if (!(sky instanceof SkyRig)) throw new Error('Missing real sky prototype');
+  const game = {}, context = { scope: owner, app: { registry }, game } as ShardContext;
+  Object.assign(game, { runtime: { world: { sky, game, registry } } });
+  const geometry = new BoxGeometry(), near = new MeshStandardMaterial(), far = new MeshStandardMaterial(), materials = new Map<string, MeshStandardMaterial>();
+  const build = (id: string) => () => {
+    const material = materials.get(id); if (material === undefined) throw new Error(`Unprepared original ${id} material`);
+    return [{ geometry, material }];
+  };
+  const model = defineModel<Record<string, unknown>>({ id: 'fixture/landmark', name: 'Landmark', category: 'nature', pipeline: 'code', file: 'fixture.json', defaults: {},
+    build: build('near'), lods: [{ from: 40, build: build('far') }], colliders: () => [] });
+  const sources = parseWorldScenes({ version: 1, libraries: [], steps: [], materials: [
+    { id: 'near', kind: 'source', load: 'placement', url: '/near.glb' }, { id: 'far', kind: 'source', load: 'placement', url: '/far.glb' },
+  ] }).materials.filter(row => row.kind === 'source');
+  const row = parseWorldScenePlacement({ id: 'landmark', model: 'fixture', draw: 'instanced', poses: [{ x: 3, y: 0, z: 4, yxz: { yaw: 0, scale: 1 } }] });
+  let warm: (() => Promise<void>) | undefined;
+  const load = vi.spyOn(sourceMaterials, 'worldSceneSourceMaterial').mockImplementation(source => Promise.resolve(source.id === 'near' ? near : far));
+  const later = vi.fn((at: { readonly x: number; readonly z: number }, run: () => Promise<void>) => { expect(at).toMatchObject({ x: 3, z: 4 }); warm = run; });
+  const handle = new WorldScenePlacement(context, row, { model: () => model }, owner, materials, sources, undefined, { slots: new Set(['far']), origin: { x: 0, z: 0 }, later });
+  try {
+    if (mode === 'fine-first') await handle.attach(36, owner.child('fine'), new Group());
+    await handle.coarse(owner.child('coarse'), () => false);
+    expect(materials.get('far')).toBe(far);
+    if (mode === 'fine-first') { expect(materials.get('near')).toBe(near); expect(later).not.toHaveBeenCalled(); return; }
+    expect(load.mock.calls.map(args => args[0].id)).toEqual(['far']);
+    expect(materials.has('near')).toBe(false); expect(later).toHaveBeenCalledOnce();
+    if (warm === undefined) throw new Error('Missing after-control material job');
+    if (mode === 'retired') {
+      owner.dispose(); await expect(warm()).rejects.toThrow('Scene placement owner is disposed');
+      expect(load).toHaveBeenCalledOnce(); expect(materials.has('near')).toBe(false);
+    } else {
+      await warm(); expect(materials.get('near')).toBe(near); expect(load.mock.calls.map(args => args[0].id)).toEqual(['far', 'near']);
+      await handle.attach(36, owner.child('fine'), new Group()); expect(load).toHaveBeenCalledTimes(2);
+    }
+  } finally { load.mockRestore(); owner.dispose(); registry.retire(); geometry.dispose(); near.dispose(); far.dispose(); }
 });

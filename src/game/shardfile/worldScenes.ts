@@ -575,7 +575,14 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
         const model = catalogue.models.find(entry => entry.key === row.model);
         const needed = new Set(model?.choices.flatMap(choice => choice.draws.concat(choice.lods.flatMap(level => level.draws)).map(draw => draw.material)));
         const sources = section.materials.filter((source): source is Extract<typeof source, { kind: 'source' }> => source.kind === 'source' && source.load === 'placement' && needed.has(source.id));
-        handles.publish(row.id, new WorldScenePlacement(ctx, row, definitions, owner, materials, sources, handles));
+        // Coarse landmarks keep their exact last-LOD appearance. High-detail
+        // source maps wait for the control cursor unless a real fine tile
+        // asks first; that tile keeps the original awaited material fence.
+        const coarseSlots = new Set(model?.choices.flatMap(choice => (choice.lods.at(-1)?.draws ?? choice.draws).map(draw => draw.material)));
+        handles.publish(row.id, new WorldScenePlacement(ctx, row, definitions, owner, materials, sources, handles, {
+          slots: coarseSlots, origin: refinementOrigin,
+          later: (at, run) => { void refinementQueue().add(`placement-materials:${row.id}`, at, run); },
+        }));
       }
     }
     const sceneProgress = loadingUnits('Home scenes', activeSteps.reduce((sum, step) => sum + (step.repeat?.length ?? 1), 0));

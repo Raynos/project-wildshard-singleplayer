@@ -67,10 +67,13 @@ export class WorldScenePlacement {
   private buckets: Map<number, number[]> | undefined;
   private shared: SharedTileBuilds<Placed> | undefined;
   private authored: Map<number, ColliderDesc[]> | undefined;
+  private warming = false;
   private ranges: Promise<{ readonly placed: Placed; readonly contents: readonly TileContent[] }> | undefined;
   constructor(private readonly ctx: ShardContext, private readonly row: WorldScenePlacementRow,
     private readonly catalogue: Pick<ReturnType<typeof defineWorldSceneCatalogue>, 'model'>, private readonly owner: Scope,
-    private readonly materials: Map<string, Material>, private readonly sources: readonly Extract<WorldScenesSection['materials'][number], { kind: 'source' }>[], private readonly handles?: Pick<SceneHandles, 'object'>) {}
+    private readonly materials: Map<string, Material>, private readonly sources: readonly Extract<WorldScenesSection['materials'][number], { kind: 'source' }>[], private readonly handles?: Pick<SceneHandles, 'object'>,
+    private readonly coarseMaterials?: { readonly slots: ReadonlySet<string>; readonly origin: { readonly x: number; readonly z: number };
+      readonly later: (at: { readonly x: number; readonly z: number }, run: () => Promise<void>) => void }) {}
 
   load(): Promise<Placed> {
     if (this.owner.disposed) return Promise.reject(new Error('Scene placement owner is disposed'));
@@ -246,8 +249,21 @@ export class WorldScenePlacement {
     const world = this.ctx.game.runtime?.world, row = this.row;
     if (world === undefined || world === null || scope.disposed) throw new Error('Scene placement needs its resident world');
     if (row.drawnInto !== undefined) return;
-    await this.prepareMaterials(world.sky);
+    // The stand-in draws only the last LOD. Fine source maps are neither
+    // visible here nor required to construct it; a real fine tile still awaits
+    // prepareMaterials in build before it can publish any draw.
+    await this.prepareMaterials(world.sky, this.coarseMaterials?.slots);
     requireLive(scope);
+    if (!this.warming && this.coarseMaterials !== undefined && this.sources.some(source => !this.materials.has(source.id))) {
+      this.warming = true;
+      const policy = this.coarseMaterials;
+      let at: { readonly x: number; readonly z: number } = policy.origin, distance = Infinity;
+      for (const pose of row.poses) {
+        const next = Math.hypot(pose.x - policy.origin.x, pose.z - policy.origin.z);
+        if (next < distance) { at = pose; distance = next; }
+      }
+      policy.later(at, () => this.prepareMaterials(world.sky));
+    }
     const definition = this.catalogue.model(row.model), last = definition.lods?.at(-1);
     const { lods: _levels, ...base } = definition, model = last === undefined ? base : { ...base, build: last.build };
     const tiles = row.poses.map(pose => tileKey(tileOf(pose.x, pose.z))), id = `${row.piece?.id ?? definition.id}.coarse`;
@@ -268,11 +284,12 @@ export class WorldScenePlacement {
       copies.forEach((copy, i) => { copy.visible = !rendered(tiles[i] ?? -1); });
     } });
   }
-  private async prepareMaterials(sky: Parameters<typeof worldSceneSourceMaterial>[1]): Promise<void> {
+  private async prepareMaterials(sky: Parameters<typeof worldSceneSourceMaterial>[1], slots?: ReadonlySet<string>): Promise<void> {
+    requireLive(this.owner);
     await Promise.all(this.sources.map(async source => {
-      if (this.materials.has(source.id)) return;
+      if (this.materials.has(source.id) || slots !== undefined && !slots.has(source.id)) return;
       const material = await worldSceneSourceMaterial(source, sky, this.ctx.product, this.owner);
-      this.materials.set(source.id, material);
+      requireLive(this.owner); this.materials.set(source.id, material);
     }));
   }
   private cullOptions(forest: CullOptions['view']): CullOptions {
