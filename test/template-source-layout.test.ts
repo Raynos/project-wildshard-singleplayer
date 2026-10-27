@@ -1,5 +1,5 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Own bounded author fixtures under the repository scratch root.
-import { readdirSync, readFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve source and owned fixture paths.
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
@@ -32,5 +32,25 @@ test('Template author modules and temporary discovery have zero P0 and sim viola
   expect(mapSettingsPath(template)).toBe(resolve(template, 'data/map.json'));
   expect(mapStampPath(template)).toBe(resolve(template, 'data/productMap.json'));
   expect(mapSettings(template).style?.kind).toBe('ground');
-  expect(mapStampPath(resolve(root, 'src/shards/far-reach'))).toBe(resolve(root, 'src/shards/far-reach/look/map.baked.json'));
+  const farReach = resolve(root, 'src/shards/far-reach');
+  expect(mapSettingsPath(farReach)).toBe(resolve(farReach, 'data/map.json'));
+  expect(mapStampPath(farReach)).toBe(resolve(farReach, 'data/productMap.json'));
+});
+
+test('legacy map layout remains the fallback until a source map exists', () => {
+  const fixture = mkdtempSync(resolve(root, 'tmp/map-layout-'));
+  try {
+    mkdirSync(resolve(fixture, 'look'));
+    writeFileSync(resolve(fixture, 'look/map.json'), JSON.stringify({ why: 'Legacy fixture', inputs: ['world'] }));
+    expect(mapSettingsPath(fixture)).toBe(resolve(fixture, 'look/map.json'));
+    expect(mapStampPath(fixture)).toBe(resolve(fixture, 'look/map.baked.json'));
+    expect(mapSettings(fixture).inputs).toEqual(['world']);
+    mkdirSync(resolve(fixture, 'data'));
+    writeFileSync(resolve(fixture, 'data/map.json'), JSON.stringify({ why: 'Source fixture', inputs: ['source'] }));
+    expect(mapSettingsPath(fixture)).toBe(resolve(fixture, 'data/map.json'));
+    expect(mapStampPath(fixture)).toBe(resolve(fixture, 'data/productMap.json'));
+    expect(mapSettings(fixture).inputs).toEqual(['source']);
+  } finally {
+    rmSync(fixture, { recursive: true, force: true });
+  }
 });
