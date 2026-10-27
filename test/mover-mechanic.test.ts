@@ -12,9 +12,11 @@ import { createMoverHost, MoverScriptDriver } from '@wildshard/game/plugin/mover
 import { parseMovers } from '@wildshard/format/movers';
 import { MOVER_FIELD_RANGES, moverScriptEntities } from '@wildshard/game/shardfile/movers';
 import { originalSkyMovers } from './fixtures/sky-movers';
-import island from '../src/shards/driftwood-isle/data/movers.generated.json' with { type: 'json' };
+import { originalDriftwoodMovers } from './fixtures/driftwood-movers';
 import { PINE_SOURCES } from './fixtures/pine-sources';
 import { timberWorld } from '../src/shards/pine-hollow/generators/timberWorldRows';
+
+const island = originalDriftwoodMovers();
 
 const sky = originalSkyMovers(), rows = parseMovers([...sky, ...island]);
 function motion(row: typeof rows[number]): ConstructorParameters<typeof MoverMechanic>[0] {

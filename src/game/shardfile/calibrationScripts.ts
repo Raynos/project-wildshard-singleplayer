@@ -5,13 +5,13 @@
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { CalibrationScript } from '@wildshard/engine/calibrate/wasm';
 import { parseDecisionScripts } from '@wildshard/format/decisionScripts';
-import slugs from '../shard/slugs.generated.json' with { type: 'json' };
+import { BUILTIN_SHARD_SLUGS } from '../shard/slugs.generated';
 import { loadFirstPartyProduct } from './runtimeProduct';
 import { outputDescriptor } from './outputDescriptor';
 
 export async function calibrationScripts(owner: Scope): Promise<CalibrationScript[]> {
   const rows: CalibrationScript[] = [];
-  for (const slug of Object.keys(slugs)) {
+  for (const slug of BUILTIN_SHARD_SLUGS) {
     const product = await loadFirstPartyProduct(slug, owner).catch((error: unknown) => error instanceof Error ? error : new Error(String(error)));
     const failed = (error: string): void => { rows.push({ product: slug, script: '', module: '', bytes: new Uint8Array(0), states: 0, params: 0, error }); };
     if (product instanceof Error) { failed(product.message); continue; }

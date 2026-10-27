@@ -7,7 +7,9 @@ import { emptyShardfile } from '../src/sdk/author';
 import { mergeProjectSections } from '../src/sdk/projectSections';
 import { readProjectAssets, buildProject } from '../src/sdk/project';
 import { validateOutputProduct } from '../src/sdk/outputProduct';
-import movers from '../src/shards/driftwood-isle/data/movers.generated.json' with { type: 'json' };
+import { originalDriftwoodMovers } from './fixtures/driftwood-movers';
+
+const movers = originalDriftwoodMovers();
 
 const directories: string[] = [];
 const source = () => {

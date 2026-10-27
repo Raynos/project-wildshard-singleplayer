@@ -10,8 +10,10 @@ import {useOwnedGridHome} from '../src/game/grid/pageShell';
 import {MANIFEST} from '../src/shards/pine-hollow/discovery.generated';
 import { PINE as source } from './fixtures/pine-program';
 import cost from '../src/shards/pine-hollow/data/runtimeCost.json' with {type:'json'};
-import aliases from '../src/shards/pine-hollow/data/astc6.generated.json' with {type:'json'};
+import { originalPineAstcAliases } from './fixtures/pine-astc';
 import {runtimeAccountedBytes} from '../src/format/runtimeCost';
+
+const aliases = originalPineAstcAliases();
 
 test('the Pine compiled entry keeps original source authority, spawns, host payloads and charges',()=>{
   const runtime=source.runtime;if(runtime===null||'entry' in runtime)throw new Error('Pine still names a TS runtime');

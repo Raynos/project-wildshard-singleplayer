@@ -6,7 +6,9 @@ import { MOVER_BAKE as driftwood } from '../src/shards/driftwood-isle/generators
 import { MOVER_BAKE as sky } from '../src/shards/far-reach/generators/moverBake';
 import { originalSkyMovers, originalSkyMoverTransport } from './fixtures/sky-movers';
 import { captureSkyMovers } from '../src/shards/far-reach/generators/movers';
-import rows from '../src/shards/driftwood-isle/data/movers.generated.json' with { type: 'json' };
+import { originalDriftwoodMovers, originalDriftwoodMoverTransport } from './fixtures/driftwood-movers';
+
+const rows = originalDriftwoodMovers();
 
 const skyRows = originalSkyMovers();
 
@@ -22,7 +24,7 @@ function originalPayload(data: unknown): string {
   }));
 }
 test('keeps every original mover value while explicitly selecting native execution', () => {
-  expect(hashImmutableBytes(new TextEncoder().encode(originalPayload(rows)))).toBe(original);
+  expect(hashImmutableBytes(new TextEncoder().encode(originalPayload(originalDriftwoodMoverTransport())))).toBe(original);
   const [boat, bridge] = rows;
   if (boat === undefined || bridge === undefined) throw new Error('Missing mover output');
   const captured = captureDriftwoodMovers(boat.module, bridge.module);
