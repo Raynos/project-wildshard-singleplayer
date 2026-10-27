@@ -2,6 +2,7 @@ import { expect, test, vi } from 'vitest';
 import { BackSide, BoxGeometry, DoubleSide, FrontSide, Mesh, MeshBasicMaterial, PerspectiveCamera, Scene, WebGLRenderer, type Side } from 'three';
 import { runPrecompile, sceneJobs } from './precompile';
 import { noteFrameDrawn, setBuildHeld } from '../core/framePacing';
+import { linkedGl } from '../test/linkedGl';
 
 test.each([{ cost: 12, cancel: false, singleAfter: false }, { cost: 12, cancel: true, singleAfter: false },
   { cost: 0, cancel: false, singleAfter: false }, { cost: 12, cancel: false, singleAfter: true }])(
@@ -16,7 +17,7 @@ test.each([{ cost: 12, cancel: false, singleAfter: false }, { cost: 12, cancel: 
   const clock = vi.spyOn(performance, 'now').mockImplementation(() => now);
   const fields: Record<string, unknown> = {
     info: { programs: [], render: { frame: 0 } }, extensions: { has: () => false },
-    properties: { get: () => ({}), has: () => false }, getRenderTarget: () => null, setRenderTarget: () => undefined,
+    properties: { get: () => ({}), has: () => false }, getContext: linkedGl, getRenderTarget: () => null, setRenderTarget: () => undefined,
     compile: (root: Scene): void => {
       const start = now;
       root.traverse(object => {
@@ -72,7 +73,7 @@ test.each([BackSide, FrontSide])('failed side %i restores the borrowed material 
   const failure = new Error('native compile refused');
   const fields: Record<string, unknown> = {
     info: { programs: [] }, extensions: { has: () => false }, properties: { get: () => ({}), has: () => false },
-    getRenderTarget: () => null, setRenderTarget: () => undefined,
+    getContext: linkedGl, getRenderTarget: () => null, setRenderTarget: () => undefined,
     compile: (): void => { if (material.side === side) throw failure; },
   };
   for (const [key, value] of Object.entries(fields)) Reflect.set(renderer, key, value);

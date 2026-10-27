@@ -33,6 +33,10 @@ export function createRenderer(canvas: HTMLCanvasElement, context: WebGL2Renderi
   installSkinnedSortSpheres();
   const stopJournal = installDiagnosticJournal(context);
   const renderer = labelledCreation('engine/renderer', 'builtin/renderer-initialization', () => new THREE.WebGLRenderer({ canvas, context, antialias: false, stencil: false, depth: true }));
+  // D176: three's link check read three driver info logs on every program's first use (~1.4 ms of sync round-trips a
+  // program: 175 ms of a Nalati crossing's shader warm-up); the warm-up reads one link status instead and reports a
+  // failure as three would (precompile.ts reportLinkFailure)
+  renderer.debug.checkShaderErrors = false;
   ownership.uploads.attach(renderer);
   installShadowMaterialOwnership(renderer, ownership.assets, ownership.scope);
   installCompileShadowSkip(renderer);

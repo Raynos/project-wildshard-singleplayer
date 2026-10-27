@@ -4,6 +4,7 @@ import {Scope} from '../app/scope';
 import {prepareSceneRoots, registerExteriorLighting} from './precompile';
 import {noteEnvironment} from './drawnEnvironment';
 import {compileSceneSource} from './compileLights';
+import { linkedGl } from '../test/linkedGl';
 
 function fixture() {
   const scope = new Scope('root-preparation'), scene = new Scene(), camera = new PerspectiveCamera();
@@ -24,7 +25,7 @@ function fixture() {
       receiver: object.receiveShadow, fog: target.fog, lights, environment: target.environment});});
   };
   for (const [key, value] of Object.entries({info: {programs: []}, extensions: {has: () => false},
-    properties: {get: () => ({}), has: () => false}, getRenderTarget: () => null, setRenderTarget: () => undefined,
+    properties: {get: () => ({}), has: () => false}, getContext: linkedGl, getRenderTarget: () => null, setRenderTarget: () => undefined,
     compile, initTexture: () => undefined})) Reflect.set(renderer, key, value);
   const dispose = (): void => {scope.dispose(); geometry.dispose(); material.dispose();};
   return {scope, scene, camera, geometry, material, root, excluded, light, renderer, compiled, dispose};

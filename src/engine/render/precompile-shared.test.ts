@@ -2,6 +2,7 @@ import { expect, test, vi } from 'vitest';
 import { BoxGeometry, Mesh, MeshBasicMaterial, PerspectiveCamera, Scene, WebGLRenderer } from 'three';
 import { noteFrameDrawn, setBuildHeld } from '../core/framePacing';
 import { runPrecompile, sceneJobs } from './precompile';
+import { linkedGl } from '../test/linkedGl';
 
 test.each([{cost: 12, held: false, cancel: false}, {cost: 30, held: true, cancel: false},
   {cost: 0, held: true, cancel: false}, {cost: 30, held: true, cancel: true}])(
@@ -14,7 +15,7 @@ test.each([{cost: 12, held: false, cancel: false}, {cost: 30, held: true, cancel
   const calls: {material: string; frame: number}[] = [], waiting: (() => void)[] = [];
   const clock = vi.spyOn(performance, 'now').mockImplementation(() => now);
   const fields: Record<string, unknown> = {info: {programs: [], render: {frame: 0}}, extensions: {has: () => false},
-    properties: {get: () => ({}), has: () => false}, getRenderTarget: () => null, setRenderTarget: () => undefined,
+    properties: {get: () => ({}), has: () => false}, getContext: linkedGl, getRenderTarget: () => null, setRenderTarget: () => undefined,
     compile: (root: Scene): void => {
       root.traverse(object => {
         if (!(object instanceof Mesh)) return;

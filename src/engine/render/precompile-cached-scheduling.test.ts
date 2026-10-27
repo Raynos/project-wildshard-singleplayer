@@ -3,6 +3,7 @@ import { BoxGeometry, Mesh, MeshBasicMaterial, PerspectiveCamera, Scene, WebGLRe
 import type { ProgramLike } from '../boot/perflog';
 import { noteFrameDrawn, setBuildHeld } from '../core/framePacing';
 import { runPrecompile, type CompileJob, type PrecompileStage } from './precompile';
+import { linkedGl } from '../test/linkedGl';
 
 async function schedule(options: { held?: boolean; cost?: number; prepare?: boolean; cancel?: boolean; retireTarget?: boolean }) {
   const renderer: unknown = Object.create(WebGLRenderer.prototype);
@@ -18,7 +19,7 @@ async function schedule(options: { held?: boolean; cost?: number; prepare?: bool
   const fields: Record<string, unknown> = {
     info: { programs: [program], render: { frame: 0 } }, extensions: { has: () => false },
     properties: { get: () => ({ programs: new Map([['cached', program]]) }), has: () => true },
-    getRenderTarget: () => activeTarget,
+    getContext: linkedGl, getRenderTarget: () => activeTarget,
     setRenderTarget: (value: WebGLRenderTarget | null) => { activeTarget = value; },
     compile: () => { issued.push(frame); now += cost; },
   };

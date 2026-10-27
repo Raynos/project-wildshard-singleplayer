@@ -416,6 +416,22 @@ async function pacedPreparation<T>(steps: Generator<void, T>, current: () => boo
  */
 export const LIVE_PRECOMPILE_SLICE_MS = 6;
 
+/**
+ * A warmed program's link check (D176), once it has linked: one LINK_STATUS read. three's own check
+ * (`renderer.debug.checkShaderErrors`, off since D176) read the program's and both shaders' info logs on every program's
+ * first use. A failure is reported as three reports it (`THREE.WebGLProgram: Shader Error`, its material, the program and
+ * shader logs), so the boot smoke and the console still see a broken shader. Returns whether the link failed.
+ */
+export function reportLinkFailure(gl: Pick<WebGL2RenderingContext, 'LINK_STATUS' | 'VALIDATE_STATUS' | 'SHADER_TYPE' | 'VERTEX_SHADER' | 'getProgramParameter'
+  | 'getAttachedShaders' | 'getShaderParameter' | 'getShaderInfoLog' | 'getProgramInfoLog' | 'getError'>, program: Pick<ProgramLike, 'program' | 'name' | 'type'>): boolean {
+  if (gl.getProgramParameter(program.program, gl.LINK_STATUS) !== false) return false;
+  const shaders = (gl.getAttachedShaders(program.program) ?? []).map(shader =>
+    `${gl.getShaderParameter(shader, gl.SHADER_TYPE) === gl.VERTEX_SHADER ? 'vertex' : 'fragment'} shader log: ${gl.getShaderInfoLog(shader) ?? ''}`);
+  console.error(`THREE.WebGLProgram: Shader Error ${String(gl.getError())} - VALIDATE_STATUS ${String(gl.getProgramParameter(program.program, gl.VALIDATE_STATUS))}\n\n`
+    + `Material Name: ${program.name}\nMaterial Type: ${program.type}\n\nProgram Info Log: ${gl.getProgramInfoLog(program.program) ?? ''}\n${shaders.join('\n')}`);
+  return true;
+}
+
 /** Prepare newly resident roots against current page lighting and its declared exterior state before exposure.
  * Borrow original materials and object flags in the ordinary painted compile/link/upload slices. Live parents,
  * visibility, uniforms, lighting and render targets stay unchanged; the resident owner fences every slice.
@@ -991,7 +1007,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     // expensive query, or its node-block preparation, into the same continuation. Cheap queries still batch.
     let sliceStart = start;
     if (spent(sliceStart)) { await pause(); checkCurrent(); sliceStart = performance.now(); }
-    if (!resolvedPrograms.has(program)) program.getUniforms();
+    if (!resolvedPrograms.has(program)) { program.getUniforms(); reportLinkFailure(renderer.getContext(), program); }
     if (spent(sliceStart) && needsBlocks(program)) { await pause(); checkCurrent(); }
     prepareBlocks(program); resolvedPrograms.add(program);
   };

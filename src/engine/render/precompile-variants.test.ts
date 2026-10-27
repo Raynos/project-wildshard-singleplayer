@@ -5,6 +5,7 @@ import type { ProgramLike } from '../boot/perflog';
 import { loadGraphBackend } from './graphBackend';
 import { noteFrameDrawn, setBuildHeld } from '../core/framePacing';
 import { SHADOW_LAYER } from '../core/shadowLayer';
+import { linkedGl } from '../test/linkedGl';
 
 test('preparation retains both shadow-receiver variants of a shared material', () => {
   const scene = new Scene(), geometry = new BoxGeometry(), material = new MeshStandardMaterial();
@@ -60,7 +61,7 @@ test.each([{cancel: false, held: false}, {cancel: true, held: false}, {cancel: f
   const costs: number[] = [], clock = vi.spyOn(performance, 'now').mockImplementation(() => now);
   const fields: Record<string, unknown> = {
     info: {programs: [], render: {frame: 0}}, extensions: {has: () => false},
-    properties: {get: () => ({}), has: () => false}, getRenderTarget: () => null, setRenderTarget: () => undefined,
+    properties: {get: () => ({}), has: () => false}, getContext: linkedGl, getRenderTarget: () => null, setRenderTarget: () => undefined,
     compile: (root: Scene): void => {
       const start = now;
       root.traverse(object => {
@@ -183,7 +184,7 @@ test('every acquired node layout prepares blocks across paced frames', async () 
   const fields: Record<string, unknown> = {
     info: { programs: [first, last], render: { frame: 0 } }, extensions: { has: () => true },
     properties: { get: () => properties, has: () => true }, getRenderTarget: () => null, setRenderTarget: () => undefined,
-    getContext: () => ({}), setNodesHandler: (handler: { setRenderer: (value: WebGLRenderer) => void }) => { handler.setRenderer(renderer); },
+    getContext: linkedGl, setNodesHandler: (handler: { setRenderer: (value: WebGLRenderer) => void }) => { handler.setRenderer(renderer); },
     compile: () => { programs.set('plain', first); programs.set('receiver', last); properties.currentProgram = last; },
   };
   for (const [key, value] of Object.entries(fields)) Reflect.set(renderer, key, value);
@@ -229,7 +230,7 @@ test.each([[false, true], [true, true], [true, false]] as const)(
     const diagnostics = { checkShaderErrors: true };
     const fields: Record<string, unknown> = {
       info: { programs: acquired, render: { frame: 0 } }, extensions: { has: () => parallel }, debug: diagnostics,
-      properties: { get: () => ({ programs }), has: () => true }, getRenderTarget: () => null, setRenderTarget: () => undefined,
+      properties: { get: () => ({ programs }), has: () => true }, getContext: linkedGl, getRenderTarget: () => null, setRenderTarget: () => undefined,
       compile: () => { events.push({ operation: 'issue', frame }); acquired.push(program); programs.set('fixture', program); },
     };
     for (const [key, value] of Object.entries(fields)) Reflect.set(renderer, key, value);
@@ -259,7 +260,7 @@ test.each([
   const fields: Record<string, unknown> = {
     info: { programs: acquired, render: { frame: 0 } }, extensions: { has: () => true },
     properties: { get: (material: Material) => ({ programs: programs.get(material) }), has: () => true },
-    getRenderTarget: () => null, setRenderTarget: () => undefined,
+    getContext: linkedGl, getRenderTarget: () => null, setRenderTarget: () => undefined,
     compile: (root: Scene) => {
       events.push(frame); now += compile;
       root.traverse(object => {
@@ -302,7 +303,7 @@ test.each([
   const fields: Record<string, unknown> = {
     info: { programs: [program], render: { frame: 0 } }, extensions: { has: () => true },
     properties: { get: () => ({ programs }), has: () => true }, getRenderTarget: () => null, setRenderTarget: () => undefined,
-    getContext: () => ({}), setNodesHandler: (handler: { setRenderer: (value: WebGLRenderer) => void }) => { handler.setRenderer(renderer); },
+    getContext: linkedGl, setNodesHandler: (handler: { setRenderer: (value: WebGLRenderer) => void }) => { handler.setRenderer(renderer); },
     compile: () => { programs.set('slow-driver', program); },
   };
   for (const [key, value] of Object.entries(fields)) Reflect.set(renderer, key, value);
