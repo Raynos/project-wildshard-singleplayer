@@ -74,6 +74,10 @@ export interface BakedKindsDraw<K extends BakedKindRow> {
   decorate?: (material: MeshStandardMaterial, kind: K) => void;
   /** Custom vertex channels to restore, loaded attribute name → geometry channel (`{ _shk: 'shk' }`). */
   attributes?: Readonly<Record<string, string>>;
+  /** An ordinary kind drawn as one instance of itself (its exact pose kept as the object's transform, an identity
+   *  instance): for a kind whose material an instanced kind also wears, so that material never switches its program
+   *  between instanced and plain draws (js-heap H1: three re-selects a program, getParameters and its key, each time). */
+  asInstance?: (kind: K) => boolean;
 }
 
 /** A piece's group from its loaded nodes: each kind one `InstancedMesh` in its own material; a kind not loaded is skipped. */
@@ -141,8 +145,11 @@ export function bakedMeshKindsGroup<K extends BakedMeshKindRow>(nodes: ReadonlyM
       standard.color.setRGB(colorR, colorG, colorB); standard.emissive.setRGB(emissiveR, emissiveG, emissiveB);
       draw.decorate?.(standard, kind); material = standard;
     }
-    const mesh = new Mesh(node.geometry, material);
+    const one = draw.asInstance?.(kind) === true;
+    const mesh = one ? new InstancedMesh(node.geometry, material, 1) : new Mesh(node.geometry, material);
     mesh.matrix.fromArray(pose); mesh.matrix.decompose(mesh.position, mesh.quaternion, mesh.scale); mesh.matrixAutoUpdate = false;
+    // one identity instance (InstancedMesh starts with identity matrices): the same transform, the instanced program
+    if (mesh instanceof InstancedMesh) mesh.computeBoundingSphere();
     mesh.castShadow = false; mesh.receiveShadow = false; root.add(mesh);
   }
   return root;
