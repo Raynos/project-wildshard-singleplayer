@@ -80,10 +80,16 @@ function* sceneNumericRows(bytes: Uint8Array): IterableIterator<Record<string, n
 
 // Only the final draw poses survive a decode slice; raw records and validation
 // scratch never accumulate into a second full numeric table.
-async function sceneScatterPoses(ctx:ShardContext,row:SceneDressingRows['layers'][number],pause:()=>Promise<void>):Promise<ScatterPose[]>{
-  let source:Iterable<unknown>;
-  if(row.binary)source=sceneNumericRows(await ctx.product.file(row.file));
-  else{const data=await ctx.product.json<unknown>(row.file);if(!Array.isArray(data))throw new Error('Scene scatter rows must be an array');source=data;}
+type PoseRead=Promise<{readonly binary:Uint8Array}|{readonly json:unknown}>;
+/** G782: a layer's pose rows, read one layer ahead of its turn (its rejection is the consumer's to see). */
+function readScatterPoses(ctx:ShardContext,row:SceneDressingRows['layers'][number]):PoseRead{
+  const read:PoseRead=row.binary?ctx.product.file(row.file).then(binary=>({binary})):ctx.product.json<unknown>(row.file).then(json=>({json}));
+  read.catch(()=>undefined);return read;
+}
+async function sceneScatterPoses(row:SceneDressingRows['layers'][number],read:PoseRead,pause:()=>Promise<void>):Promise<ScatterPose[]>{
+  let source:Iterable<unknown>;const rows=await read;
+  if('binary'in rows)source=sceneNumericRows(rows.binary);
+  else{const data=rows.json;if(!Array.isArray(data))throw new Error('Scene scatter rows must be an array');source=data;}
   const poses:ScatterPose[]=[],selection=row.select;let at=0;
   for(const input of source){
     const {solid,...pose}=v.parse(SceneScatterPoseSchema,input);
@@ -193,6 +199,12 @@ export class SceneDressing {
     const packs=new Map(Object.entries(rows.packs).map(([key,source])=>[key,createPackedSpecimens(source.rows,files)]));
     await timeClientPreparation(ctx.product.slug,'dressing.packs',()=>Promise.all([...packs.values()].map(pack=>pack.load())));
     const bytes=new Map<string,Promise<Uint8Array>>(),addresses=new Map<string,Promise<Uint8Array>>(),geometry=new Map<string,THREE.BufferGeometry>(),materials=new Map<string,THREE.Material>();
+    // G782: every named bake and address file is read up front (a resident read still costs a drawn frame once the frame's
+    // budget is spent, and the shapes awaited them one at a time); each bake still inflates in shape order, when first used
+    const reads=new Map<string,Promise<Uint8Array>>(),readAhead=(file:string):Promise<Uint8Array>=>{
+      let read=reads.get(file);if(read===undefined){read=ctx.product.file(file);read.catch(()=>undefined);reads.set(file,read);}return read;
+    };
+    for(const source of Object.values(rows.geometry))if(source.kind==='baked-file'){void readAhead(source.file);void readAhead(source.address.file);}
     await timeClientPreparation(ctx.product.slug,'dressing.geometry',async()=>{
     for(const [key,source]of Object.entries(rows.geometry)){
       let shape:THREE.BufferGeometry;
@@ -204,9 +216,9 @@ export class SceneDressing {
         let raw:Uint8Array;
         if(source.kind==='file')raw=binarySourceBytes({file:source.file},files);
         else if(source.kind==='inline')throw new Error('Scene geometry requires named files');
-        else if(source.kind==='baked-file'){let pending=bytes.get(source.file);if(pending===undefined){pending=ctx.product.file(source.file).then(decodeLaneBytes);bytes.set(source.file,pending);}raw=await pending;}
+        else if(source.kind==='baked-file'){let pending=bytes.get(source.file);if(pending===undefined){pending=readAhead(source.file).then(decodeLaneBytes);bytes.set(source.file,pending);}raw=await pending;}
         else{let pending=bytes.get(source.url);if(pending===undefined){pending=fetchLaneBake(source.url);bytes.set(source.url,pending);}raw=await pending;}
-        let offset=0;if(source.kind==='baked'||source.kind==='baked-file'){let pending=addresses.get(source.address.file);if(pending===undefined){pending=ctx.product.file(source.address.file);addresses.set(source.address.file,pending);}offset=readSceneGeometryAddress(await pending,source.address.word);}
+        let offset=0;if(source.kind==='baked'||source.kind==='baked-file'){let pending=addresses.get(source.address.file);if(pending===undefined){pending=readAhead(source.address.file);addresses.set(source.address.file,pending);}offset=readSceneGeometryAddress(await pending,source.address.word);}
         if(offset+bakedGeometryBytes(source.row)>raw.byteLength)throw new Error('Scene geometry address exceeds its source');
         const decoded=readBakedGeometry(raw,offset,source.row);
         shape=source.row.expand?await expandBakedGeometrySliced(decoded,workSlice(undefined,ctx.scope)):decoded;
@@ -216,7 +228,7 @@ export class SceneDressing {
     }
     });
     // Shapes now own their arrays; retire inflated bake and pack scratch before material/contact preparation.
-    bytes.clear();addresses.clear();packs.clear();
+    bytes.clear();addresses.clear();reads.clear();packs.clear();
     await timeClientPreparation(ctx.product.slug,'dressing.materials',async()=>{
     for(const [key,source]of Object.entries(rows.materials).sort((a,b)=>Number(a[1].kind==='mapped')-Number(b[1].kind==='mapped'))){
       const material=source.kind==='specimen'?specimenMaterial(sky,source.row):source.kind==='asset'?(await loadBoundSpecimen(sky,source.row,files)).material
@@ -235,9 +247,12 @@ export class SceneDressing {
       const {surface,seed,variants,specimenYaw,...metadata}=row.model;
       definitions.set(row.model.id,defineModel<object>({...metadata,...(surface===undefined?{}:{surface}),...(seed===undefined?{}:{seed}),...(variants===undefined?{}:{variants}),...(specimenYaw===undefined?{}:{specimenYaw}),build:()=>[{geometry:shape.clone(),material,castShadow:false,receiveShadow:true}]}));}
     await timeClientPreparation(ctx.product.slug,'dressing.layers',async()=>{
-    for(const row of rows.layers){
+    // G782: the next layer's pose rows are read while this one decodes and places (one ahead: at most two layers' raw rows)
+    let next=rows.layers[0]===undefined?undefined:readScatterPoses(ctx,rows.layers[0]);
+    for(const [index,row]of rows.layers.entries()){
+      const read=next??readScatterPoses(ctx,row),after=rows.layers[index+1];next=after===undefined?undefined:readScatterPoses(ctx,after);
       await timeClientPreparation(ctx.product.slug,`dressing.layer.${row.id}`,async()=>{
-      const poses=await timeClientPreparation(ctx.product.slug,`dressing.poses.${row.id}`,()=>sceneScatterPoses(ctx,row,pause));
+      const poses=await timeClientPreparation(ctx.product.slug,`dressing.poses.${row.id}`,()=>sceneScatterPoses(row,read,pause));
       if(poses.length===0)return;
       const layer=scatterLayer(row.id,needGeometry(row.geometry),needMaterial(row.material),poses,row.far,row.castShadow,row.keepNear);this.layers.push(layer);this.group.add(layer.mesh);
       const colliderRows=Array.isArray(row.contacts)?contacts(row.contacts):unpackHulls(row.contacts,files);
