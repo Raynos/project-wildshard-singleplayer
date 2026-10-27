@@ -206,6 +206,20 @@ test('generated import debt and app table exemptions cannot grow or be deleted',
   expect(checkBinaryRevision(root,':','HEAD',[file]).join(' ')).toContain('source debt policy deleted');
 }));
 
+test('generated import debt grows only with its own exact approval in the final footer',()=>fixture((root,git,put)=>{
+  const file='lint/generated-import-debt.json', entry='src/entry.ts';
+  const debt=(count:number)=>JSON.stringify({schema:'no-generated-import/1',source,files:{[entry]:count},sources:[]});
+  put(file,debt(1));git('add',file);git('commit','-qm','seed import debt');
+  const parent=git('rev-parse','HEAD'), line=`Generated-Import-Approved: wildshard-new ${entry} 2`;
+  put(file,debt(2));git('add',file);
+  git('commit','-qm',`refactor: visible title import\n\n${line}\n\nAssisted-by: fixture:model`);
+  expect(checkBinaryRevision(root,'HEAD',parent,[file])).toEqual([]);
+  for(const message of [line.replace('Generated-Import-Approved','Base64-Approved'),line.replace(' 2',' 3'),`${line}\n${line}`,`${line}\n\nbody after approval`]) {
+    git('commit','--allow-empty','-qm',`refactor: not approved\n\n${message}`);
+    expect(checkBinaryRevision(root,'HEAD',parent,[file]).join(' ')).toMatch(/approval|allowance grew/u);
+  }
+}));
+
 
 test('the binary CLI refuses missing range operands before any Git traversal', () => {
   for (const args of [['--range'], ['--range', 'HEAD']]) {

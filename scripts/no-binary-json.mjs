@@ -166,14 +166,16 @@ function sourceDebtChanges(root, tree, parent, file, schema, roots, message, pre
   for(const path of after.sources)if(!before.sources.includes(path)&&!discoveryMigration(path))failures.push(`BINARY-JSON ${file}: app source exemption grew for ${path}`);
   const increases = Object.entries(after.files).filter(([path,count]) => (!Object.hasOwn(before.files,path) || count > (before.files[path] ?? 0))
     && !publishedPolicyRestoration(root, previous, file, schema, path, count));
-  const expected = new Map(file === 'lint/base64-debt.json' ? increases.map(([path,count]) => [`Base64-Approved: wildshard-new ${path} ${count}`,path]) : []);
+  // Each debt file takes exact coordinator approval lines for its own increases, one per path at its new count.
+  const prefix = file === 'lint/base64-debt.json' ? 'Base64-Approved:' : 'Generated-Import-Approved:';
+  const expected = new Map(increases.map(([path,count]) => [`${prefix} wildshard-new ${path} ${count}`,path]));
   const content = message.trimEnd().replace(/\n\nAssisted-by:[^\n]+$/u,'').replaceAll(/\n[ \t]+/gu,' ');
   const footer = content.split(/\n\s*\n/u).at(-1) ?? '', approved = new Set();
-  if (file === 'lint/base64-debt.json') for (const line of content.split('\n').filter(row => row.startsWith('Base64-Approved:'))) {
+  for (const line of content.split('\n').filter(row => row.startsWith(prefix))) {
     if (!footer.split('\n').includes(line) || !expected.has(line) || approved.has(line)) failures.push(`BINARY-JSON ${file}: invalid or unmatched approval ${line}`);
     else approved.add(line);
   }
-  for (const [path,count] of increases) if (!approved.has(`Base64-Approved: wildshard-new ${path} ${count}`)) failures.push(`BINARY-JSON ${file}: source debt allowance grew for ${path}`);
+  for (const [path,count] of increases) if (!approved.has(`${prefix} wildshard-new ${path} ${count}`)) failures.push(`BINARY-JSON ${file}: source debt allowance grew for ${path}`);
   return failures;
 }
 
