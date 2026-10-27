@@ -75,9 +75,9 @@ test('retirement rejects a pending parked batch instead of admitting more native
 });
 
 
-test.each([true, false])('live WebKit limits parked submissions even with held travel %s', async held => {
+test.each([true, false])('live WebKit limits cold bindings and fresh buffers even with held travel %s', async held => {
   const f = await fixture(true, held);
-  try { expect(f.options).toMatchObject({ budget: { drawables: 1, newMaterials: 1, bufferBytes: 4 * 1024 * 1024 } }); }
+  try { expect(f.options).toMatchObject({ budget: { drawables: 8, newMaterials: 1, newBindings: 1, bufferBytes: 256 * 1024 } }); }
   finally { f.owner.dispose(); }
 });
 

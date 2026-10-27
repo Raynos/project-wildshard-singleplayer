@@ -98,7 +98,26 @@ function parkedDrawables(root: THREE.Object3D, camera: THREE.Camera, reveal: Set
 
 /** Slice size: at most this many drawables, at most this many materials not drawn by an earlier slice, and (optional)
  * at most this many bytes of vertex/index/instance buffers no earlier slice uploaded; a larger single drawable goes alone. */
-export interface ParkedDrawBudget { readonly drawables: number; readonly newMaterials: number; readonly bufferBytes?: number }
+export interface ParkedDrawBudget { readonly drawables: number; readonly newMaterials: number; readonly bufferBytes?: number;
+  /** First-use geometry/material layouts per slice; already seen copies still obey the draw and byte limits. */
+  readonly newBindings?: number }
+
+/** Share a first-use allowance only for ordinary meshes with the exact same geometry, material and program shape.
+ * Per-object callbacks, morphs and skinning retain an independent first use. No draw or buffer upload is skipped. */
+function drawBindingKey(object: THREE.Object3D): string {
+  if (!(object instanceof THREE.Mesh) || object instanceof THREE.SkinnedMesh || object.morphTargetInfluences !== undefined
+    || (Object.getPrototypeOf(object) !== THREE.Mesh.prototype && Object.getPrototypeOf(object) !== THREE.InstancedMesh.prototype)
+    || object.onBeforeRender !== THREE.Object3D.prototype.onBeforeRender || object.onAfterRender !== THREE.Object3D.prototype.onAfterRender
+    || object.onBeforeShadow !== THREE.Object3D.prototype.onBeforeShadow || object.onAfterShadow !== THREE.Object3D.prototype.onAfterShadow
+    || object instanceof THREE.InstancedMesh && object.morphTexture !== null) return object.uuid;
+  const geometry: unknown = object.geometry;
+  if (!isBufferGeometry(geometry)) return object.uuid;
+  const instance = object instanceof THREE.InstancedMesh ? [object.instanceMatrix, object.instanceColor].map(attribute => attribute === null ? ''
+    : `${attribute.array.constructor.name}:${attribute.itemSize}:${attribute.normalized}:${attribute.gpuType}:${attribute.meshPerAttribute}`).join('|') : '';
+  return `${geometry.uuid}|${drawableMaterials(object).map(material => `${material.uuid}:${material.version}`).join(',')}` +
+    `|${programObjectKey(object)}|${instance}|${object.castShadow}|${object.layers.mask}|${object.matrixWorld.determinant() < 0}` +
+    `|${object.customDepthMaterial?.uuid ?? ''}|${object.customDistanceMaterial?.uuid ?? ''}`;
+}
 
 
 /** The typed arrays a drawable's first draw uploads with `bufferData`: its geometry's attributes (an interleaved buffer
@@ -125,16 +144,21 @@ function drawBuffers(object: THREE.Object3D): ArrayBufferView[] {
 export function parkedDrawSlices<T extends THREE.Object3D>(drawables: readonly T[], budget: ParkedDrawBudget): T[][] {
   const slices: T[][] = [];
   const seen = new Set<THREE.Material>(), uploaded = new Set<ArrayBufferView>();
+  const bindings = new Set<string>();
   const byteCap = budget.bufferBytes ?? Number.POSITIVE_INFINITY;
-  let slice: T[] = [], fresh = 0, bytes = 0;
+  let slice: T[] = [], fresh = 0, bytes = 0, freshBindings = 0;
   for (const object of drawables) {
     const unseen = drawableMaterials(object).filter(material => !seen.has(material));
+    const binding = budget.newBindings === undefined ? undefined : drawBindingKey(object);
+    const firstUse = binding !== undefined && !bindings.has(binding) ? 1 : 0;
     const buffers = Number.isFinite(byteCap) ? drawBuffers(object).filter(buffer => !uploaded.has(buffer)) : [];
     const size = buffers.reduce((sum, buffer) => sum + buffer.byteLength, 0);
-    if (slice.length > 0 && (slice.length >= budget.drawables || fresh + unseen.length > budget.newMaterials || bytes + size > byteCap)) {
-      slices.push(slice); slice = []; fresh = 0; bytes = 0;
+    if (slice.length > 0 && (slice.length >= budget.drawables || fresh + unseen.length > budget.newMaterials || bytes + size > byteCap
+      || freshBindings + firstUse > (budget.newBindings ?? Number.POSITIVE_INFINITY))) {
+      slices.push(slice); slice = []; fresh = 0; bytes = 0; freshBindings = 0;
     }
-    slice.push(object); fresh += unseen.length; bytes += size;
+    slice.push(object); fresh += unseen.length; bytes += size; freshBindings += firstUse;
+    if (binding !== undefined) bindings.add(binding);
     for (const material of unseen) seen.add(material);
     for (const buffer of buffers) uploaded.add(buffer);
   }
@@ -239,8 +263,9 @@ export type ParkedDrawRenderer = Pick<Renderer, 'render' | 'getRenderTarget' | '
 
 /** 4 MiB of new buffers a slice: a few milliseconds of `bufferData` at most. */
 const DEFAULT_BUDGET: ParkedDrawBudget = { drawables: 8, newMaterials: 2, bufferBytes: 4 * 1024 * 1024 };
-/** Live WebKit first-use work: one drawable per completed game frame, even while held. */
-export const LIVE_PARKED_BUDGET: ParkedDrawBudget = { drawables: 1, newMaterials: 1, bufferBytes: 4 * 1024 * 1024 };
+/** One cold binding per live frame. Bounded copies reuse it; new buffer data stays below 256 KiB per slice.
+ * A single oversized drawable still goes alone, as before. Every submitted slice waits for a completed game frame. */
+export const LIVE_PARKED_BUDGET: ParkedDrawBudget = { drawables: 8, newMaterials: 1, newBindings: 1, bufferBytes: 256 * 1024 };
 /** G580 T5: while the traveller waits at the wall (engine/core/framePacing buildHeld), a slice may draw four times as
  *  many drawables: each slice costs a drawn frame, and the held view's longer frames cost no movement. Its new buffers
  *  stay under 6 MiB (G743): a cold Driftwood crossing's held slices of 12.8 and 15.6 MB filled Chromium's transfer

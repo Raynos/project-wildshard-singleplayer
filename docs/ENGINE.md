@@ -1277,7 +1277,10 @@ A two-sided material can still issue two variants; one native query can still ov
 preparation uses the existing 6 ms slice on both browser families. Initial boot retains its
 ordinary grouping and 12 ms bound; readiness still awaits the complete inventory before exposure.
 
-Live WebKit uses `LIVE_PARKED_BUDGET` (1 drawable / 1 material / 4 MiB).
+Live WebKit uses `LIVE_PARKED_BUDGET`: up to8 draws,1 fresh material/binding,
+256KiB fresh buffers/frame. Copies share exact geometry/material/version/program
+shape; callbacks, skinning and morphs isolate. All draws remain; one oversized
+drawable goes alone. Optional `ParkedDrawBudget.newBindings` leaves other budgets unchanged.
 Native slices wait for completed draws, even held; skipped rAFs cannot release them.
 Static bounds use 6 ms painted scans: 32K vertices / 512 instances per step.
 Other geometry keeps native bounds. Boot/desktop keep budgets; native draws can stall.
@@ -1301,8 +1304,6 @@ under `ms`, the next one's cost predicted before it starts from its decoded size
 byte-weighted rate measured so far, so a large image still uploads alone and one native upload can overshoot by itself
 only. Without isolation (desktop) the same budget replaces the 12 ms check made after each upload, so a slice never
 starts an upload it cannot fit. Compressed textures keep their fenced path. `Game` passes `LIVE_UPLOAD_BUDGET` (8 ms, 8 MiB) during paced live WebKit preparation. Desktop retains its ordinary upload path.
-
-Live WebKit parked draws can share the same bounded construction slice through `buildYield`. Each existing drawable/material-count slice restores every flag before its task yield. A final `waitForDrawnFrame` remains before offscreen warm-up and readiness; compressed-upload fences and desktop parked-draw cadence are unchanged.
 
 `pacedResolve(value)` (`@wildshard/engine/core/workSlice`) hands back a value an async API already holds: on its
 microtask, or after the next drawn frame once a presenting frame's shared build budget is spent. Cached product reads

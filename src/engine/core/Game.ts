@@ -975,8 +975,8 @@ export class Game {
     const nodesAfter = nodeStats();
     if (nodesAfter !== null) onStage('node-builds', nodesAfter.buildMs - (nodesBefore?.buildMs ?? 0), nodesAfter.builds - (nodesBefore?.builds ?? 0));
     const { warmParkedDraws, warmOffscreenPasses, HELD_PARKED_BUDGET, LIVE_PARKED_BUDGET } = await import('../render/parkedDraws');
-    // WebKit first draws can block in the driver despite cheap JavaScript submissions.
-    // Keep one drawable per completed frame, including while the traveller is held.
+    // WebKit first draws can block despite cheap JavaScript submissions. Pace cold
+    // bindings one per completed frame; bounded copies share that already-warmed layout.
     const drawBudget = isolateImageUploads && this.frameCount > 0 ? { budget: LIVE_PARKED_BUDGET }
       : buildHeld() ? { budget: HELD_PARKED_BUDGET } : {};
     const drawnPause = this.frameCount > 0 ? () => waitForDrawnFrame(owner, () => this.frameCount, current) : (): Promise<void> => new Promise(resolve => { this.engineScope.raf(() => { this.engineScope.timeout(0, resolve); }); });
