@@ -406,35 +406,53 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
     await timeClientPreparation(product.slug, 'scene.material-intake', async () => {
       const materialProgress = loadingUnits('Materials and textures', section.materials.length);
       materialProgress(0);
-      for (const [materialIndex, row] of section.materials.entries()) {
-        if (row.kind === 'source' && row.load === 'placement' && row.publishObject === undefined && !welds.some(weld => weld.nodes.some(node => 'material' in node && node.material === row.id))
-          && !frozenSlots.has(row.id)) { materialProgress(materialIndex + 1, `${row.id} · deferred`); continue; }
-        const model = row.kind === 'look' && row.over !== undefined ? libraries.get(row.over.library)?.models?.painted(row.over.model) : undefined;
-        if (row.kind === 'look' && row.over !== undefined && (model === undefined || model === null)) throw new Error('Scene material overlay requires a mapped library model');
-        let material: Material;
-        if (row.kind === 'surface') {
-          const sky = ctx.game.runtime?.world?.sky; if (sky === undefined) throw new Error('Scene surface needs world sky');
-          material = await worldSceneSurfaceMaterial(row, sky, product, owner);
-        } else if (row.kind === 'source') {
-          const sky = ctx.game.runtime?.world?.sky; if (sky === undefined) throw new Error('Source scene materials need a world sky');
-          material = await worldSceneSourceMaterial(row, sky, product, owner, handles);
-        } else if (row.kind === 'standard') material = new MeshStandardMaterial(row.properties);
-        else if (row.kind === 'basic') material = new MeshBasicMaterial(row.properties);
-        else if (row.kind === 'mapped') material = weldSceneMaterial(row.material, id => { const source = materials.get(id); if (source === undefined) throw new Error('Missing mapped scene material source'); return source; }, () => {
-          const sky = ctx.game.runtime?.world?.sky; if (sky === undefined) throw new Error('Sky-aware scene materials need a world sky'); return sky; });
-        else if (row.kind === 'lowpoly') {
-          const sky = ctx.game.runtime?.world?.sky; if (sky === undefined) throw new Error('Scene family material needs a world sky');
-          material = lowPolyLookMaterial(sky, row.variant, value => { Object.assign(value, row.properties); });
-        } else material = model === undefined || model === null ? sceneMaterial(resident, product.slug, row.look) ?? lentLook(row.look) : lentMappedLook(row.look, model.map);
-        if (row.kind === 'standard' && row.sky === true) {
-          const sky = ctx.game.runtime?.world?.sky; if (sky === undefined) throw new Error('Sky-aware scene materials need a world sky');
-          sky.setupMaterial(material);
+      const deferred = (row: (typeof section.materials)[number]): boolean => row.kind === 'source' && row.load === 'placement' && row.publishObject === undefined
+        && !welds.some(weld => weld.nodes.some(node => 'material' in node && node.material === row.id)) && !frozenSlots.has(row.id);
+      // G782: a surface or source material's textures load up to MODEL_READ_AHEAD rows ahead and are taken in order, so their
+      // waits overlap (Pine's material intake idled on one row's textures at a time); every other kind, each take, publish
+      // and checkpoint stays in order. Started loads are drained before a failure leaves.
+      const started = new Map<number, Promise<Material>>();
+      const startAhead = (from: number): void => {
+        const sky = ctx.game.runtime?.world?.sky;
+        for (let next = from; next < Math.min(section.materials.length, from + MODEL_READ_AHEAD); next++) {
+          const row = section.materials[next];
+          if (sky === undefined || row === undefined || started.has(next) || deferred(row) || (row.kind !== 'surface' && row.kind !== 'source')) continue;
+          const pending = row.kind === 'surface' ? worldSceneSurfaceMaterial(row, sky, product, owner) : worldSceneSourceMaterial(row, sky, product, owner, handles);
+          void pending.catch(() => undefined); started.set(next, pending);
         }
-        materials.set(row.id, material); handles.publish(`materials.${row.id}`, material);
-        if (row.kind === 'standard' || row.kind === 'basic' || row.kind === 'mapped') owner.onDispose(() => { material.dispose(); });
-        materialProgress(materialIndex + 1, row.id);
-        const pause = constructionCheckpoint(owner); if (pause !== undefined) await pause;
-      }
+      };
+      try {
+        for (const [materialIndex, row] of section.materials.entries()) {
+          if (deferred(row)) { materialProgress(materialIndex + 1, `${row.id} · deferred`); continue; }
+          startAhead(materialIndex);
+          const model = row.kind === 'look' && row.over !== undefined ? libraries.get(row.over.library)?.models?.painted(row.over.model) : undefined;
+          if (row.kind === 'look' && row.over !== undefined && (model === undefined || model === null)) throw new Error('Scene material overlay requires a mapped library model');
+          let material: Material;
+          const early = started.get(materialIndex);
+          if (row.kind === 'surface') {
+            const sky = ctx.game.runtime?.world?.sky; if (sky === undefined) throw new Error('Scene surface needs world sky');
+            material = await (early ?? worldSceneSurfaceMaterial(row, sky, product, owner)); started.delete(materialIndex);
+          } else if (row.kind === 'source') {
+            const sky = ctx.game.runtime?.world?.sky; if (sky === undefined) throw new Error('Source scene materials need a world sky');
+            material = await (early ?? worldSceneSourceMaterial(row, sky, product, owner, handles)); started.delete(materialIndex);
+          } else if (row.kind === 'standard') material = new MeshStandardMaterial(row.properties);
+          else if (row.kind === 'basic') material = new MeshBasicMaterial(row.properties);
+          else if (row.kind === 'mapped') material = weldSceneMaterial(row.material, id => { const source = materials.get(id); if (source === undefined) throw new Error('Missing mapped scene material source'); return source; }, () => {
+            const sky = ctx.game.runtime?.world?.sky; if (sky === undefined) throw new Error('Sky-aware scene materials need a world sky'); return sky; });
+          else if (row.kind === 'lowpoly') {
+            const sky = ctx.game.runtime?.world?.sky; if (sky === undefined) throw new Error('Scene family material needs a world sky');
+            material = lowPolyLookMaterial(sky, row.variant, value => { Object.assign(value, row.properties); });
+          } else material = model === undefined || model === null ? sceneMaterial(resident, product.slug, row.look) ?? lentLook(row.look) : lentMappedLook(row.look, model.map);
+          if (row.kind === 'standard' && row.sky === true) {
+            const sky = ctx.game.runtime?.world?.sky; if (sky === undefined) throw new Error('Sky-aware scene materials need a world sky');
+            sky.setupMaterial(material);
+          }
+          materials.set(row.id, material); handles.publish(`materials.${row.id}`, material);
+          if (row.kind === 'standard' || row.kind === 'basic' || row.kind === 'mapped') owner.onDispose(() => { material.dispose(); });
+          materialProgress(materialIndex + 1, row.id);
+          const pause = constructionCheckpoint(owner); if (pause !== undefined) await pause;
+        }
+      } finally { await Promise.allSettled(started.values()); }
     });
     const sky = ctx.game.runtime?.world?.sky, game = ctx.game.runtime?.world?.game;
     // each library copy (a whole library clones and places its model per call) and each tiled part is a slice's worth:
