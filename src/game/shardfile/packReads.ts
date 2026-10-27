@@ -13,8 +13,14 @@ export interface PackReads {
 export function packReads(packs: OutputIndex['packs'], members: ReadonlySet<string>,
   read: (path: string, maximum: number) => Promise<Uint8Array>, hash: (bytes: Uint8Array) => Promise<string>): PackReads {
   const where = new Map<string, { readonly pack: NonNullable<OutputIndex['packs']>[number]; readonly offset: number; readonly bytes: number }>();
-  for (const pack of packs ?? []) for (const entry of pack.entries) {
-    if (members.has(entry.hash) && !where.has(entry.hash)) where.set(entry.hash, { pack, offset: entry.offset, bytes: entry.bytes });
+  for (const pack of packs ?? []) {
+    // Admission may request only the control subset of a compiler pack. Do not
+    // download its deferred bodies here, discard them, then fetch them again
+    // when their real owner asks. Complete phases still share one verified read.
+    if (!pack.entries.every(entry => members.has(entry.hash))) continue;
+    for (const entry of pack.entries) {
+      if (!where.has(entry.hash)) where.set(entry.hash, { pack, offset: entry.offset, bytes: entry.bytes });
+    }
   }
   const whole = new Map<string, Promise<Uint8Array>>();
   return {
