@@ -178,8 +178,14 @@ jobs:
       - name: Native web build
         if: steps.live.outputs.skip != 'true' && (env.DEPLOY == 'true' || steps.native-inputs.outputs.needed == 'true')
         run: |
-          if [ "$DEPLOY" = 'true' ]; then pnpm gen --inputs-only; fi
-          python3 scripts/ci-fail-fast.py -- pnpm run build:native
+          if [ "$DEPLOY" = 'true' ]; then
+            pnpm gen --inputs-only
+            python3 scripts/ci-fail-fast.py -- pnpm run build:native
+          else
+            python3 scripts/ci-fail-fast.py -- python3 scripts/ci-products.py unpack
+            WS_TEST_PRODUCTS_SHA="$GITHUB_SHA" VERCEL_GIT_COMMIT_SHA="$GITHUB_SHA" \
+              python3 scripts/ci-fail-fast.py -- python3 scripts/heavy-lane.py build -- node scripts/build-app.mjs --mode native
+          fi
 
       - name: Pack the exact web build for boot smoke
         if: github.event_name == 'push'
