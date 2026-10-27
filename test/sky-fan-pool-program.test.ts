@@ -4,7 +4,6 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { dirname, resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
-import { discoverGeneration } from '../scripts/generate.mjs';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { createProjectGeneration, type ProjectGenerationContext } from '../src/sdk/projectGeneration';
@@ -77,13 +76,4 @@ test('the native fan cache refuses an omitted hand even with the complete old po
       [{ prefix: '/assets/far-reach/', directory: native }]);
     await expect(skyFanPoolProgram(ctx)).rejects.toThrow('ENOENT');
   } finally { rmSync(scratch, { recursive: true, force: true }); }
-});
-
-test('the fan scheduler writer and every declared pool handoff reader are retired', () => {
-  const output = 'public/assets/far-reach/baked/fan.glb';
-  for (const job of discoverGeneration(resolve('.')).jobs) {
-    expect(job.id).not.toBe('sky-held-fan-pool');
-    expect(job.outputs, job.id).not.toContain(output);
-    expect(job.inputRoots, job.id).not.toContain(output);
-  }
 });

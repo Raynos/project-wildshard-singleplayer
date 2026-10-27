@@ -3,7 +3,6 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 // oxlint-disable-next-line import/no-nodejs-modules -- Confine native model fixtures to repository scratch and bind source bundles.
 import { dirname, resolve } from 'node:path';
 import { expect, test } from 'vitest';
-import { discoverGeneration } from '../scripts/generate.mjs';
 import { build } from 'vite';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
@@ -87,12 +86,5 @@ test('mill source and cache bundle without generated imports or file/compiler se
 
 const handoffs = ['src/shards/far-reach/data/millRest.generated.json', 'public/assets/far-reach/baked/mill-rest.glb'];
 test('mill scheduler jobs and every declared handoff reader are retired', () => {
-  for (const job of discoverGeneration(resolve('.')).jobs) {
-    expect(['sky-mill-rest-glb', 'sky-mill-rest-rows']).not.toContain(job.id);
-    for (const file of handoffs) {
-      expect(job.outputs, job.id).not.toContain(file);
-      expect(job.inputRoots, job.id).not.toContain(file);
-    }
-  }
   expect(existsSync(handoffs[0] ?? '')).toBe(false);
 });

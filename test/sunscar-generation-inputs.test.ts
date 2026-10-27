@@ -6,14 +6,12 @@ import { readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { expect, test } from 'vitest';
 import { auditAuthoringInputs } from '../scripts/authoring-inputs.mjs';
-import { discoverGeneration } from '../scripts/generate.mjs';
 import { generationPlan, hasProjectGenerator } from '../scripts/gen-programs.mjs';
 
 const root = cwd();
 const expected = { products: ['sunscar-dunes'], folders: ['sunscar-dunes'], legacy: [], scoped: true };
 
 test('zero remaining jobs selects the defining source program without generated inputs', () => {
-  expect(discoverGeneration(root).jobs.filter(row => row.shard === 'sunscar-dunes')).toHaveLength(0);
   expect(hasProjectGenerator(readFileSync('src/shards/sunscar-dunes/shard.config.ts', 'utf8'))).toBe(true);
   expect(generationPlan(root, 'sunscar-dunes')).toEqual(expected);
   const closure = auditAuthoringInputs(root, 'sunscar-dunes', 'src/shards/sunscar-dunes/shard.config.ts');
@@ -41,14 +39,3 @@ test('fresh source preparation refuses any attempt to load the legacy scheduler'
   expect(child.status, child.stderr).toBe(0);
   expect(JSON.parse(child.stdout.trim())).toEqual(expected);
 });
-for (const job of discoverGeneration(root).jobs.filter(row => row.shard === 'sunscar-dunes')) {
-  test(`${job.id} stages every shard-owned static input`, () => {
-    const closure = auditAuthoringInputs(root, 'sunscar-dunes', job.entry);
-    const missing = closure.files.filter(file => (file.startsWith('src/shards/sunscar-dunes/') || file === 'src/commons/bake/portableMath.ts')
-      && /\.(?:ts|mjs|json)$/u.test(file) && !job.outputs.includes(file)
-      && !job.inputRoots.some(input => file === input || file.startsWith(`${input}/`)));
-    if (closure.files.includes('src/commons/bake/portableMath.ts')
-      && !job.inputRoots.some(input => input === 'src/commons/package.json' || input === 'src/commons')) missing.push('src/commons/package.json');
-    expect(missing).toEqual([]);
-  });
-}

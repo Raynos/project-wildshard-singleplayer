@@ -4,7 +4,6 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { discoverGeneration } from '../scripts/generate.mjs';
 import { build } from 'vite';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { hashImmutableBytes } from '../src/sdk/immutable';
@@ -12,7 +11,6 @@ import { bakeMeadowBlades } from '../src/shards/far-reach/generators/meadowBlade
 import { meadowHoles, meadowPaths } from '../src/shards/far-reach/generators/placements';
 import { heroStoneDiscs } from '../src/shards/far-reach/generators/dressing';
 
-const output = 'public/assets/far-reach/baked/851f80fb000e621ab1b6e22edd9a9ac7fbcb6ecfeda1047a86f3f919d779e33f.bin';
 
 test('owned meadow placement values preserve every original row and packed blade byte', () => {
   const original = v.parse(v.object({ meadow: v.object({ holes: v.array(v.array(v.number())), paths: v.array(v.array(v.number())) }) }),
@@ -56,12 +54,4 @@ test('owned meadow channels bundle without generated imports or file/compiler se
 
 test.each(['placements.ts', 'dressing.ts'])('owned meadow compilation refuses missing defining %s', async source => {
   await expect(bundle(`src/shards/far-reach/generators/${source}`)).rejects.toThrow('Omitted meadow source');
-});
-
-test('the meadow scheduler writer and every declared blade handoff reader are retired', () => {
-  for (const job of discoverGeneration(resolve('.')).jobs) {
-    expect(job.id).not.toBe('sky-meadow-blades');
-    expect(job.outputs, job.id).not.toContain(output);
-    expect(job.inputRoots, job.id).not.toContain(output);
-  }
 });

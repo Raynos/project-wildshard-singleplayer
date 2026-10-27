@@ -6,7 +6,6 @@ import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Confine real producer fixtures to repository scratch.
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
-import { discoverGeneration } from '../scripts/generate.mjs';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { skyVaneSource, skyVaneProgram, VANE_INPUTS } from '../src/shards/far-reach/generators/vaneProgram';
 
@@ -33,12 +32,7 @@ test('the owned vane source retains both complete original parts and strict sour
 });
 
 test('prepared geometry has no scheduled writer or public handoff reader while frozen legacy bytes stay exact', () => {
-  const { jobs } = discoverGeneration(resolve('.')), handoff = 'public/assets/far-reach/baked/prepared-models.glb';
-  expect(jobs.some(row => row.id === 'sky-prepared-models')).toBe(false);
-  for (const job of jobs) {
-    expect(job.outputs, job.id).not.toContain(handoff);
-    expect(job.inputRoots, job.id).not.toContain(handoff);
-  }
+  const handoff = 'public/assets/far-reach/baked/prepared-models.glb';
   expect(hashImmutableBytes(readFileSync(handoff))).toBe('bd1a0a75879e2f3e72e2ab2b8d0c18a79d7e7746478b3fedc6961199a714c580');
 });
 
@@ -61,27 +55,8 @@ test('hero library derives its complete original wire from native geometry with 
     const missing = createProjectGeneration(resolve('src/shards/far-reach'), 'e'.repeat(64), new Map(), resolve(scratch, 'missing'));
     await expect(skyHeroLibraryProgram(missing)).rejects.toThrow('exactly one declared root');
   } finally { rmSync(scratch, { recursive: true, force: true }); }
-  expect(discoverGeneration('.').jobs.some(job => job.id === 'sky-hero-library')).toBe(false);
 });
 
 test('both vane writers retire after map adoption of the exact native source', () => {
-  const { jobs } = discoverGeneration(resolve('.'));
-  for (const id of ['sky-vane-post', 'sky-vane-rotor']) expect(jobs.some(job => job.id === id)).toBe(false);
-  for (const path of ['public/assets/far-reach/models/wind-vane/post.glb', 'public/assets/far-reach/models/wind-vane/rotor.glb']) {
-    for (const job of jobs) {
-      expect(job.outputs, job.id).not.toContain(path);
-      expect(job.inputRoots, job.id).not.toContain(path);
-    }
-  }
-  expect(jobs.some(job => job.id === 'sky-data-map')).toBe(false);
   expect(SKY_MAP_INPUTS).toContain('/assets/far-reach/models/wind-vane/wind-vane.glb');
-});
-
-test('boot metadata has no publisher or handoff readers after direct source discovery', () => {
-  const { jobs } = discoverGeneration('.');
-  expect(jobs.some(job => job.id === 'sky-boot-metadata')).toBe(false);
-  for (const name of ['assets', 'files', 'sources', 'lateReads', 'rigs', 'worldTextures']) {
-    const handoff = `src/shards/far-reach/boot/${name}.generated.json`;
-    for (const job of jobs) { expect(job.outputs).not.toContain(handoff); expect(job.inputRoots).not.toContain(handoff); }
-  }
 });

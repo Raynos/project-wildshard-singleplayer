@@ -4,7 +4,6 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
-import { discoverGeneration } from '../scripts/generate.mjs';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { skyStaticSceneBytes, skyStaticScenes } from '../src/shards/far-reach/generators/staticScene';
@@ -90,7 +89,6 @@ test('the static reader derives all original scene bytes from exactly eight expl
 });
 
 test('the static scheduler handoff is retired while original native-source inventory refusals remain strict', async () => {
-  expect(discoverGeneration(resolve('.')).jobs.some(row => row.id === 'sky-static-scenes')).toBe(false);
   const inputs = new Map(STATIC_SCENE_INPUTS.map(url => [url, new Uint8Array(readFileSync(`public${url}`))]));
   for (const name of STATIC_SCENE_INPUTS) {
     const omitted = new Map(inputs); omitted.delete(name);

@@ -8,7 +8,6 @@ import { readFileSync } from 'node:fs';
 import { bridgeRestValues } from '../src/shards/far-reach/generators/bridgeRest';
 import { skyBridgePhysicsPlacements } from '../src/shards/far-reach/generators/bridgeColliders';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { discoverGeneration } from '../scripts/generate.mjs';
 import { originalSkySceneInputs } from './fixtures/sky-scene-source';
 
 const { routes: { SKY_ROUTE_SCENE, SKY_ROUTES } } = await originalSkySceneInputs();
@@ -18,7 +17,6 @@ it('retires bridge contact publication while retaining the complete original wir
   const bytes = new TextEncoder().encode(`${JSON.stringify(skyBridgePhysicsPlacements())}\n`);
   expect(bytes.byteLength).toBe(227_953);
   expect(hashImmutableBytes(bytes)).toBe('d5545bc47278abcf37fbefea7a2fdbad75a8998b684e309a1585da081ce425f7');
-  expect(discoverGeneration('.').jobs.some(row => row.id === 'sky-bridge-colliders')).toBe(false);
 });
 
 it('assembles an authored bridge with borrowed materials and optional painted posts', async () => {

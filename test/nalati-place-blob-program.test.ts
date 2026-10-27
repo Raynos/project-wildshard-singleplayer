@@ -31,7 +31,6 @@ import assemblyOriginal from './fixtures/nalati-headless-assembly.json' with { t
 import shapeBookOriginal from './fixtures/nalati-shape-book.json' with { type: 'json' };
 import shapeBookRowsOriginal from './fixtures/nalati-shape-book-original.json' with { type: 'json' };
 import * as v from 'valibot';
-import { discoverGeneration } from '../scripts/generate.mjs';
 import { dressingScene, dressingSceneBlobs } from './fixtures/nalati-dressing-scene';
 import {originalDressingContactTransport} from './fixtures/nalati-contact-transport';
 import { nalatiRuntimeRows } from '../src/shards/nalati-grasslands/generators/runtimeRows';
@@ -156,13 +155,6 @@ test('the full frozen assembly pin and exact current geography input retain sepa
   const rows = v.parse(v.object({ constants: v.object({ nativeField: PopulationFieldSchema }) }), JSON.parse(new TextDecoder().decode(current.bytes)));
   expect(rows.constants.nativeField).toStrictEqual(v.parse(PopulationFieldSchema, fieldInput));
   expect(() => assemblyForField({})).toThrow();
-});
-
-test('native dressing and duplicate scene-copy jobs stay retired', () => {
-  const descriptors = discoverGeneration(resolve('.')).jobs;
-  const jobs = descriptors.map(job => job.id);
-  expect(jobs).not.toContain('nalati-decorative'); expect(jobs).not.toContain('nalati-quest-prop'); expect(jobs).not.toContain('nalati-balbal-specimen');
-  expect(jobs).not.toContain('nalati-dressing'); expect(jobs).not.toContain('nalati-places-blob'); expect(jobs).not.toContain('nalati-crags-blob'); expect(jobs).not.toContain('nalati-dressing-blob');
 });
 
 test('the actual output cache hit preserves all complete files without reconstructing a source', () => {

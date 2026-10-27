@@ -12,7 +12,6 @@ import { parseKtx2 } from '../src/format/ktx2Cost';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { createProjectGeneration, type ProjectGenerationContext } from '../src/sdk/projectGeneration';
-import { discoverGeneration } from '../scripts/generate.mjs';
 import { bakeSkySwardAtlas, bakeSwardAtlasTexture } from '../src/shards/far-reach/generators/swardAtlas';
 import { skySwardAtlasProgram } from '../src/shards/far-reach/generators/swardAtlasProgram';
 
@@ -77,10 +76,5 @@ test('unexpected source inputs and missing, empty or extra cached atlas files re
 
 test('the atlas scheduler and all declared handoff readers are retired', () => {
   const handoff = `src/shards/far-reach/assets/${originalHash}`;
-  for (const job of discoverGeneration(resolve('.')).jobs) {
-    expect(job.id).not.toBe('sky-sward-atlas');
-    expect(job.outputs, job.id).not.toContain(handoff);
-    expect(job.inputRoots, job.id).not.toContain(handoff);
-  }
   expect(existsSync(handoff)).toBe(false);
 });

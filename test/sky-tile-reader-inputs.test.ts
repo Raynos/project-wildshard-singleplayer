@@ -2,15 +2,12 @@ import { originalSkyMovers } from './fixtures/sky-movers';
 import { originalSkyNavigation } from './fixtures/sky-navigation';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare complete original metadata and isolate real sealed production.
 import { readFileSync } from 'node:fs';
-// oxlint-disable-next-line import/no-nodejs-modules -- Confine the actual cold sealed writer cache to repository scratch.
-import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare complete original declaration bytes without expanding assertions.
 import { Buffer } from 'node:buffer';
 import * as v from 'valibot';
 import { expect, test } from 'vitest';
 import { PropsSchema } from '../src/format/props';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
-import { discoverGeneration } from '../scripts/generate.mjs';
 import { SKY_WORLD_TILE_ROWS } from '../src/shards/far-reach/generators/worldTileRows';
 import { SKY_ISLE_TILES, skyIsleTileLibrary } from '../src/shards/far-reach/generators/islandScenes';
 import { skyProductRows } from '../src/shards/far-reach/generators/product';
@@ -33,7 +30,6 @@ test('the declaration retains every original field, tile payload identity and ad
 });
 
 test('declaration publication is retired and callers retain isolated complete original values', () => {
-  expect(discoverGeneration(resolve('.')).jobs.some(row => row.id === 'sky-declaration')).toBe(false);
   const rows = skyProductRows(originalSkyNavigation(), originalSkyMovers()); rows.entryways.length = 0; rows.files.length = 0;
   expect(hashImmutableBytes(new TextEncoder().encode(`${JSON.stringify(skyProductRows(originalSkyNavigation(), originalSkyMovers()))}\n`))).toBe(declarationHash);
 });

@@ -13,7 +13,6 @@ import * as skySource from '../src/shards/far-reach/generators/layout';
 import * as signalSource from '../src/shards/sunscar-dunes/generators/layout';
 import * as crownSource from '../src/shards/far-reach/generators/crownLayout';
 import { readProjectAssets } from '../src/sdk/project';
-import { discoverGeneration } from '../scripts/generate.mjs';
 
 // The old transport sorts top-level export names; Vite namespaces retain
 // declaration order, so keep the original wire ordering in these byte oracles.
@@ -28,7 +27,6 @@ test('the source palette retains its complete original wire after fixed-layout r
   expect(hashImmutableBytes(wire())).toBe('0645f591824cccc7e8060b87b84b7b5159a6c7edb0f10da7158a15241904ba0b');
   const changed = skyMapPalette(); Reflect.set(changed.ground.base, 0, 0);
   expect(hashImmutableBytes(wire())).toBe('0645f591824cccc7e8060b87b84b7b5159a6c7edb0f10da7158a15241904ba0b');
-  expect(discoverGeneration('.').jobs.some(job => job.id === 'sky-fixed-layouts')).toBe(false);
 });
 
 // Captured from 68807c271 before moving the coordinate recipes: every derived
