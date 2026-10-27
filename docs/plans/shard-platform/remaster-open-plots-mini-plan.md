@@ -18,6 +18,25 @@ picture, its name and "BUILD THIS SHARD" (G623, G633 D3), no hologram, plinth, b
 look on the world map. Every mockup is one codex generation of the same plot from four in-game cameras (above the
 neighbour at 100 m, the road entry, top-down from 630 m, the plaza) in the round-49 Night Market style.
 
+### How to add an idea as a style row (RM14)
+
+A second idea needs data, not generator code (`test/open-plots-style-row.test.ts` builds Night Market's layout through
+the unchanged `kit.mjs` / `kitGlb.mjs` with a second palette and checks the shared kit retints by slot and nothing else):
+
+1. **Row:** add the idea to `src/shards/open-plots/outputs.json` with `"layout": "<idea>"` (its product slug, name,
+   accent and manifest overrides beside the others).
+2. **Layout:** copy `data/layouts/night-market.json` to `data/layouts/<idea>.json`; edit its 8 × 8 `rows` (tile letter +
+   quarter turns), its `palette` (every kit slot: `roof`, `wall`, `stall`, `awning`, `stone`, `lawn`, `water` ... in the
+   round-62 colours of the idea; a slot left out keeps the kit family's default), its `kit` families (all of
+   `public/assets/open-plots/kit/`, shared by every idea), its `landmark` (near / far GLB, height, turn, lanterns) and
+   its `posters` image.
+3. **Look:** its grade and look key in `data/source.json` `look.keys` and the idea's own row in `look/map.json`
+   `outputs` (map style), as Night Market's.
+4. **Hero pieces:** only the landmark and anything not in the shared kit are new models (`mockup-to-model`); a new kit
+   family is a shared one for every idea (`scripts/blender/open-plots/kit.py`, its slots mapped to `data/trim.json` bands).
+5. **Check:** the 5-camera / 10-dome template (`scripts/capture-night-market-domes.mjs`, `test/fixtures/night-market-domes/`)
+   against the idea's targets, then the plan's readings.
+
 ## The 19 ideas and their mockups
 
 | # | Idea | Landmark | Mockup |
