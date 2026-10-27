@@ -663,7 +663,6 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 
 # Canonical runtime section validators copied by the official schema producer.
 
-/src/shards/driftwood-isle/generators/sectionSchemas.generated.ts
 
 /src/shards/driftwood-isle/data/boot-sources.generated.json
 /src/shards/driftwood-isle/data/boot-files.generated.json
@@ -766,7 +765,6 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 /src/shards/driftwood-isle/assets/a561d51a1e45fce2cb5ee66cf7651adba665d86e424901d0025fdabd67837092
 /src/shards/driftwood-isle/assets/e6b656e7f5e9099e33f394c4216c4840026a62e05abaabfd016f189ed5f657ac
 # Immutable JSON declarations emitted by the schema compiler.
-src/shards/driftwood-isle/data/bridgeRows.d.json.ts
 
 /src/shards/pine-hollow/behaviour/life.generated.json
 
@@ -872,3 +870,5 @@ src/shards/pine-hollow/data/physics.generated.d.json.ts
 /public/assets/ink-cel-valley/map/top.webp
 /public/assets/blender-template/map/top.webp
 
+# G798: ordinary committed typed JSON header.
+!/src/shards/driftwood-isle/data/bridgeRows.d.json.ts

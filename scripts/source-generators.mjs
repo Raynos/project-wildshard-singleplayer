@@ -45,6 +45,7 @@ function sectionSchemas(slug,outputs,jsonInputs=[]) {
 
 /** @type {readonly SourceGenerator[]} */
 export const SOURCE_GENERATORS = [
+  sectionSchemas('driftwood-isle',['src/shards/driftwood-isle/generators/sectionSchemas.ts','src/shards/driftwood-isle/runtime/productSections.d.ts','src/shards/driftwood-isle/data/bridgeRows.d.json.ts'],['src/shards/driftwood-isle/data/bridgeRows.json']),
   sectionSchemas('pine-hollow',['src/shards/pine-hollow/generators/sectionSchemas.ts','src/shards/pine-hollow/runtime/productSections.d.ts']),
   starter('starter-arm-clips', 'scripts/gen-starter-arm-clips.mjs', 'src/game/systems/viewmodel/armAliases.json', 'src/game/systems/viewmodel/clips.generated.ts', 'starterArmClipsTableSource'),
   starter('starter-weapons', 'scripts/gen-starter-weapons.mjs', 'src/game/weapons/starterBow.json', 'src/game/weapons/starter.generated.ts', 'starterWeaponsTableSource'),
