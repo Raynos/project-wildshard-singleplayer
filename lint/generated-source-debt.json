@@ -822,8 +822,6 @@
     "src/shards/nalati-grasslands/data/navigation.generated.json",
     "src/shards/nalati-grasslands/data/night.generated.json",
     "src/shards/nalati-grasslands/data/paintedTextures.generated.json",
-    "src/shards/nalati-grasslands/data/peopleChannels.generated.json",
-    "src/shards/nalati-grasslands/data/peopleFrames.generated.json",
     "src/shards/nalati-grasslands/data/persistence.generated.json",
     "src/shards/nalati-grasslands/data/physics.generated.json",
     "src/shards/nalati-grasslands/data/poiLayout.generated.d.json.ts",

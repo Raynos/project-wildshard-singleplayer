@@ -12,15 +12,16 @@ import type { ShardRuntime } from '../src/game/shard/runtime';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { ClientChannelsSchema } from '../src/format/clientChannels';
 import * as rigLoader from '../src/engine/anim/rig';
-import channels from '../src/shards/nalati-grasslands/data/peopleChannels.generated.json' with { type: 'json' };
-import population from '../src/shards/nalati-grasslands/data/peopleFrames.generated.json' with { type: 'json' };
+import { peoplePrograms } from '../src/shards/nalati-grasslands/generators/peopleMotion';
+import { peopleRows as population } from '../src/shards/nalati-grasslands/generators/peopleRows.mjs';
 
 afterEach(() => { vi.restoreAllMocks(); });
 /** A chapter's entered owners as the quest-figures host reads them: scope, world sky and registry, client channels. */
 function ownerOf(scope: Scope, sky: SkyRig, registry: WorldRegistry): ShardContext {
   const world = legacyDouble<NonNullable<ShardRuntime['world']>>({ sky, registry });
   return legacyDouble<ShardContext>({ scope, game: legacyDouble<ShardContext['game']>({ runtime: legacyDouble<ShardRuntime>({ world }) }),
-    product: legacyDouble<ShardContext['product']>({ shardfile: legacyDouble<ShardContext['product']['shardfile']>({ clientChannels: v.parse(ClientChannelsSchema, channels.clientChannels) }) }) });
+    product: legacyDouble<ShardContext['product']>({ hasFile: () => false, url: (name: string) => name,
+      shardfile: legacyDouble<ShardContext['product']['shardfile']>({ clientChannels: v.parse(ClientChannelsSchema, Object.values(peoplePrograms).flat()) }) }) });
 }
 
 

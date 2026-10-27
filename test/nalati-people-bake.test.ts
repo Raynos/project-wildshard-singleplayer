@@ -8,6 +8,7 @@ import { readSourceModel } from '../src/sdk/bake/skinned';
 import frames from '../src/shards/nalati-grasslands/data/peopleFrames.json' with { type: 'json' };
 // The original conditioned skins (game figureRig fitNpcFigure + mergeNpcFigures over the source GLBs), frozen
 import FROZEN from './fixtures/legacy-oracles/nalati-people.json' with { type: 'json' };
+import { nalatiPeopleBlobs } from '../src/shards/nalati-grasslands/generators/peopleBake';
 
 type Key = keyof typeof frames;
 const keys = Object.keys(frames) as Key[];
@@ -15,13 +16,17 @@ const hash = (array: ArrayBufferView): string => createHash('sha256').update(new
 function isGeometry(value: unknown): value is THREE.BufferGeometry { return value instanceof THREE.BufferGeometry; }
 interface FrozenFigure { readonly attributes: Readonly<Record<string, string>>; readonly index: string; readonly bones: readonly string[]; readonly inverses: readonly (readonly number[])[]; readonly poses: Readonly<Record<string, readonly (readonly number[])[]>> }
 const cases: Readonly<Record<string, FrozenFigure>> = FROZEN.cases;
+const skins = new Map((await nalatiPeopleBlobs({ cached: (step, generate) => Promise.resolve(generate(new Map((step.inputs ?? [])
+  .map(url => [url, new Uint8Array(readFileSync(`public${url}`))])))) })).map(blob => [blob.file.name ?? '', blob.bytes]));
 
 for (const phone of [false, true]) for (const selection of [keys, ...keys.map(key => [key])]) {
   const name = selection.length === 1 ? selection[0] : 'camp';
   it(`${name} ${phone ? 'phone' : 'desktop'} preserves the original conditioned skin and posed vertices`, async () => {
     const before = cases[`${String(name)}/${phone ? 'phone' : 'desktop'}`];
     if (before === undefined) throw new Error('Missing frozen camp skin');
-    const loaded = await readSourceModel(readFileSync(`public/assets/nalati/baked/people/${name}${phone ? '.phone' : ''}.glb`));
+    const skin = skins.get(`models/people/${String(name)}${phone ? '.phone' : ''}.glb`);
+    if (skin === undefined) throw new Error('Missing prepared camp skin');
+    const loaded = await readSourceModel(skin);
     const after = loaded.gltf.scene.getObjectByProperty('isSkinnedMesh', true);
     if (!(after instanceof THREE.SkinnedMesh) || !(after.geometry instanceof THREE.BufferGeometry)) throw new Error('Prepared camp skin missing');
     const geometry: unknown = after.geometry;

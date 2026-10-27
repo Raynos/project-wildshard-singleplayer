@@ -43,7 +43,7 @@ import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
 import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
 import { installEntryChapterView } from '../src/game/shardfile/clientQuestComposition';
 import { publishEntryOwner } from '../src/game/shardfile/entryOwners';
-import peopleRows from '../src/shards/nalati-grasslands/data/peopleFrames.generated.json' with { type: 'json' };
+import { peopleRows } from '../src/shards/nalati-grasslands/generators/peopleRows.mjs';
 import content from '../src/shards/nalati-grasslands/data/questContent.json' with { type: 'json' };
 import guest from '../src/shards/nalati-grasslands/data/kokpar.generated.json' with { type: 'json' };
 import view from '../src/shards/nalati-grasslands/data/chapterView.json' with { type: 'json' };

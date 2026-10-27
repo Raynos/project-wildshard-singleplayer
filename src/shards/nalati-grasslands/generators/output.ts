@@ -94,7 +94,8 @@ import { bakeSheepBody } from './sheepBody';
 import questContent from '../data/questContent.json' with {type:'json'};
 import kokpar from '../data/kokpar.generated.json' with {type:'json'};
 import chapterView from '../data/chapterView.json' with { type: 'json' };
-import peopleFrames from '../data/peopleFrames.generated.json' with { type: 'json' };
+import { peopleRows as peopleFrames } from './peopleRows.mjs';
+import { nalatiPeopleBlobs } from './peopleBake';
 import { ChapterViewSchema } from '@wildshard/format/questPageComposition';
 import namePanel from '../data/namePanel.json' with {type:'json'};
 import { parsePanelDefinition } from '@wildshard/format/panelTemplate';
@@ -314,7 +315,7 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Nala
     ...eliteAssembly, constants: { ...eliteAssembly.constants, nativeShelters },
   }))), nameBlob('models/shape-book.json', 'json', new TextEncoder().encode(encodeCanonicalJson(shapeDraws)),
     { jsonSchema: namedJsonSchema(FixedDrawRowsSchema) })]);
-  const crags = await nalatiBakeBlob(ctx, 'crags', DRESSING_CRAG_DECODED);
+  const crags = await nalatiBakeBlob(ctx, 'crags', DRESSING_CRAG_DECODED), people = await nalatiPeopleBlobs(ctx);
   const dressingFiles = await nalatiDressingProgram(ctx), dressingBytes = dressingFiles.get('dressing.bin');
   if (dressingBytes === undefined) throw new Error('Missing owned native dressing binary');
   const dressingBlob = nameBlob('world/dressing.bin', 'bin', dressingBytes, { decoded: costs.dressing.bytes });
@@ -364,5 +365,5 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Nala
     if (bytes === undefined) throw new Error(`Missing owned paint shape ${row.source}`);
     return nameBlob(row.name, row.kind, bytes);
   }), runtime.floors.map(floor => nameBlob(floor.name, 'bin', floor.bytes)), [propBlob], carvings, held, renderPairs));
-  return { ...template, platform, blobs: [], namedFiles: [...sources.map(source => source.file), ...modelBlobs.map(source => source.file), ...namedFiles, ...taming.files, places.file, crags.file, dressingBlob.file, specimenBank.file, speciesBank.file], assets: new Map([...template.assets, ...freshEmission.assets, ...[...ownedBooks.values()].map(blob => [blob.file.hash, blob.bytes] as const), ...sources.map(source => [source.file.hash, source.bytes] as const), ...modelBlobs.map(source => [source.file.hash, source.bytes] as const), ...ownedMetadata.assets, ...placements.assets, ...scenes.assets, [carriedBlob.file.hash, carriedBlob.bytes], [places.file.hash, places.bytes], [crags.file.hash, crags.bytes], [dressingBlob.file.hash, dressingBlob.bytes], [specimenBank.file.hash, specimenBank.bytes], [speciesBank.file.hash, speciesBank.bytes]]) };
+  return { ...template, platform, blobs: [], namedFiles: [...sources.map(source => source.file), ...modelBlobs.map(source => source.file), ...namedFiles, ...taming.files, places.file, crags.file, dressingBlob.file, specimenBank.file, speciesBank.file, ...people.map(blob => blob.file)], assets: new Map([...template.assets, ...freshEmission.assets, ...[...ownedBooks.values()].map(blob => [blob.file.hash, blob.bytes] as const), ...sources.map(source => [source.file.hash, source.bytes] as const), ...modelBlobs.map(source => [source.file.hash, source.bytes] as const), ...ownedMetadata.assets, ...placements.assets, ...scenes.assets, [carriedBlob.file.hash, carriedBlob.bytes], [places.file.hash, places.bytes], [crags.file.hash, crags.bytes], [dressingBlob.file.hash, dressingBlob.bytes], [specimenBank.file.hash, specimenBank.bytes], [speciesBank.file.hash, speciesBank.bytes], ...people.map(blob => [blob.file.hash, blob.bytes] as const)]) };
 }

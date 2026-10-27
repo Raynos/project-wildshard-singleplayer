@@ -7,9 +7,12 @@ import { SkyRig } from '../src/engine/world/skyRig';
 import { readSourceModel } from '../src/sdk/bake/skinned';
 import { atlasFigureSkin } from '../src/game/systems/npc/figureSkins';
 import { Scope } from '../src/engine/app/scope';
-import population from '../src/shards/nalati-grasslands/data/peopleFrames.generated.json' with { type: 'json' };
+import { peopleRows as population } from '../src/shards/nalati-grasslands/generators/peopleRows.mjs';
+import { nalatiPeopleBlobs } from '../src/shards/nalati-grasslands/generators/peopleBake';
 import frames from '../src/shards/nalati-grasslands/data/peopleFrames.json' with { type: 'json' };
 
+const skins = new Map((await nalatiPeopleBlobs({ cached: (step, generate) => Promise.resolve(generate(new Map((step.inputs ?? [])
+  .map(url => [url, new Uint8Array(readFileSync(`public${url}`))])))) })).map(blob => [blob.file.name ?? '', blob.bytes]));
 const documentBefore = Object.getOwnPropertyDescriptor(globalThis, 'document');
 afterEach(() => {
   if (documentBefore === undefined) Reflect.deleteProperty(globalThis, 'document');
@@ -21,7 +24,7 @@ for (const selection of [Object.keys(frames), ['elder']]) it(`adopts ${selection
   const draw = vi.fn();
   vi.stubGlobal('document', { createElement: () => ({ width: 0, height: 0, getContext: () => ({ drawImage: draw }) }) });
   vi.spyOn(rigLoader, 'loadRigFile').mockImplementation(async path => {
-    const source = await readSourceModel(readFileSync(`public${path}`));
+    const source = await readSourceModel(skins.get(path) ?? new Uint8Array(readFileSync(`public${path}`)));
     if (path.includes('/models/people/')) source.gltf.scene.traverse(object => {
       if (object instanceof THREE.Mesh && object.material instanceof THREE.MeshStandardMaterial) object.material.map = new THREE.DataTexture(new Uint8Array(4), 1, 1);
     });

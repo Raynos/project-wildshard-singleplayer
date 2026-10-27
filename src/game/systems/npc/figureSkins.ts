@@ -97,10 +97,14 @@ export class FigureSkins {
 /** A merged figure atlas's skin (format/figures.ts FigureAtlasSchema): the prepared skin, its joints in their declared
  *  order, painted on one painterly material from the original images packed onto the atlas's canvas cells. The owner
  *  owns the draw; joints are left for the caller to publish and drive. */
-export async function atlasFigureSkin(input: unknown, sky: SkyRig, owner: Scope): Promise<THREE.SkinnedMesh> {
+/** A product's content URL for a skin it names (GR6: built skins ship as product files); any other URL as written. */
+export function productSkinUrl(product: { readonly hasFile: (name: string) => boolean; readonly url: (name: string) => string }): (url: string) => string {
+  return url => product.hasFile(url) ? product.url(url) : url;
+}
+export async function atlasFigureSkin(input: unknown, sky: SkyRig, owner: Scope, skinUrl: (url: string) => string = url => url): Promise<THREE.SkinnedMesh> {
   const row = v.parse(FigureAtlasSchema, input);
   if (row.sources.length > row.columns * row.rows || new Set(row.joints).size !== row.joints.length) throw new Error('Invalid figure atlas layout');
-  const [mesh, sources] = await Promise.all([FigureSkins.prepared(row.url), Promise.all(row.sources.map(url => loadRigFile(url)))]);
+  const [mesh, sources] = await Promise.all([FigureSkins.prepared(skinUrl(row.url)), Promise.all(row.sources.map(url => loadRigFile(url)))]);
   owner.own(mesh.geometry); owner.own(mesh.skeleton);
   for (const material of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) material.dispose();
   if (owner.disposed) throw new Error('Figure left during skin admission');

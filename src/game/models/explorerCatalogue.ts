@@ -21,6 +21,7 @@ import { scenePartSpecimen } from './scenePartSpecimen';
 import { ProductFigureCatalogue } from './figureCatalogue';
 import { KitFigureCardsSchema } from '@wildshard/format/questFigures';
 import { atlasFigureCard, kitFigureCard } from './kitFigureCard';
+import { productSkinUrl } from '../systems/npc/figureSkins';
 import { declaredSocketRigCreatures } from './socketRigCreature';
 import { PosedDraw } from '../looks/posedInstances';
 import { heldGear } from './heldGear';
@@ -110,7 +111,7 @@ async function resolveExplorerRoster(product: ShardProduct, native: readonly Ros
       const { file, ...card } = row;
       entries.push(present((await ProductFigureCatalogue.fromProduct(product, file)).model(row.figure), card));
     } else if (row.kind === 'kit-figure' && 'atlases' in row) {
-      entries.push(present(atlasFigureCard(row), row));
+      entries.push(present(atlasFigureCard(row, productSkinUrl(product)), row));
     } else if (row.kind === 'kit-figure') {
       const book = parse(KitFigureCardsSchema, await product.json<unknown>(row.file));
       entries.push(present(kitFigureCard(product, book, row.figure), row));

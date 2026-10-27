@@ -54,7 +54,7 @@ export function kitFigureCard(product: ShardProduct, input: KitFigureCardsRows, 
 type AtlasCardRow = Extract<ExplorerEntryRow, { readonly atlases: unknown }>;
 /** A kit card drawn from merged figure atlases (G601 C5): one card whose variants are its atlases, each a single figure
  *  at rest, its first joint the root and the rest hung from it, as the atlas declares its joints. */
-export function atlasFigureCard(row: AtlasCardRow): ModelDef<{ readonly figure: string }> {
+export function atlasFigureCard(row: AtlasCardRow, skinUrl: (url: string) => string = url => url): ModelDef<{ readonly figure: string }> {
   const keys = Object.keys(row.atlases), first = keys[0];
   if (row.id === undefined || row.name === undefined || row.file === undefined || first === undefined) throw new Error('Atlas figure card requires its id, name, file and an atlas');
   const id = row.id;
@@ -66,7 +66,7 @@ export function atlasFigureCard(row: AtlasCardRow): ModelDef<{ readonly figure: 
       if (owner === undefined) throw new Error('Atlas figure card requires its view owner');
       if (atlas === undefined) throw new Error(`No figure atlas ${p.figure}`);
       return loadingSpecimen(id, [1, 1, 1], async () => {
-        const mesh = await atlasFigureSkin(atlas[TIER], ctx.sky, owner), [root, ...rest] = mesh.skeleton.bones, group = new Group();
+        const mesh = await atlasFigureSkin(atlas[TIER], ctx.sky, owner, skinUrl), [root, ...rest] = mesh.skeleton.bones, group = new Group();
         if (root === undefined) throw new Error('Figure atlas has no root joint');
         for (const bone of mesh.skeleton.bones) { bone.matrixAutoUpdate = true; bone.matrixWorldAutoUpdate = true; }
         if (rest.length > 0) root.add(...rest);

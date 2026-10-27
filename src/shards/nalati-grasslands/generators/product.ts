@@ -8,7 +8,7 @@ import weatherDecision from '../behaviour/weather.generated.json' with { type: '
 import pasture from '../behaviour/pasture.generated.json' with { type: 'json' };
 import charge from '../data/eliteCharge.generated.json' with { type: 'json' };
 import ecology from '../data/ecology.generated.json' with { type: 'json' };
-import peopleChannels from '../data/peopleChannels.generated.json' with { type: 'json' };
+import { peoplePrograms } from './peopleMotion';
 import weatherChannels from '../data/weatherChannels.generated.json' with {type:'json'};
 import herdChannels from '../data/herdChannels.generated.json' with { type: 'json' };
 import { emptyShardfile } from '@wildshard/sdk/author';
@@ -111,7 +111,7 @@ export function nalatiProductRows(species: NalatiSpeciesProgramCosts, held: Nala
     budgets: { ...base.budgets, library: { ...base.budgets.library, resident: base.budgets.library.resident + viewMemory }, sim: { resident: files.reduce((sum, file) => sum + file.decoded + file.gpu, 0) + programMemory, compressed: files.reduce((sum, file) => sum + file.compressed, 0) + programBytes + held.compiledBytes + ridingPrograms.compiled.bytes+titanProgram.compiled.pasture.bytes+admission.compiled.bytes } },
     look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries({ ...lookGraphs, ...presentationGraphs, 'nalati-sky-dome': skyDome }).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) } },
     accent: 'ember', runtime: { kind: 'client-plan', cost: NALATI_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns', 'modes', 'clientChannels', 'terrain', 'props'], spawns: NALATI_RUNTIME_SPAWNS },
-    clientChannels: compactChannels([...Object.values(SPECIES_POSES).flatMap(pose => parseClientChannels(pose.programs)),...kingPose.programs,...herdChannels.clientChannels,...weatherChannels.clientChannels,...peopleChannels.clientChannels]),
+    clientChannels: compactChannels([...Object.values(SPECIES_POSES).flatMap(pose => parseClientChannels(pose.programs)),...kingPose.programs,...herdChannels.clientChannels,...weatherChannels.clientChannels,...Object.values(peoplePrograms).flat()]),
     modes: ecology.modes, quests: {...questContent.quests,achievements:NALATI_FEATS}, ledger: parseLedgerRules(NALATI_LEDGER), state: NALATI_STATE, items, audio: {...audioRows,sceneFile:'audio/scene.json'}, spawn: { x: 0, y: 0, z: 232, yaw: 0 },
     edge: { north: row('north'), east: row('east'), south: row('south'), west: row('west') } });
 }

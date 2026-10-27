@@ -4,7 +4,8 @@ import motions from '../data/peopleMotion.json' with { type: 'json' };
 
 const keys = Object.keys(frames);
 const atlas = (selection, phone) => ({
-  url: `/assets/nalati/baked/people/${selection.length === 1 ? selection[0] : 'camp'}${phone ? '.phone' : ''}.glb`,
+  // the prepared skin's product name (peopleBake.ts `peopleSkinName`: the build makes it, GR6)
+  url: `models/people/${selection.length === 1 ? selection[0] : 'camp'}${phone ? '.phone' : ''}.glb`,
   name: 'nalati-camp-people-gen', skeleton: 'npc.figures.v1', columns: 3, rows: 2,
   cell: phone ? 256 : 512, rim: 0.35, bands: 0.8,
   sources: selection.map(id => `/assets/nalati/models/people/${frames[id].file}.gen${phone ? '.phone' : ''}.glb`),

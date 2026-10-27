@@ -40,9 +40,9 @@ export function bootSources(tier: Tier, assets: NalatiBootAssets, tex: TexMode =
     props: worldFiles(tier, assets, inventory).map(gpu), art: [], music: [], sfx: [],
   };
 }
-/** Camp people keep their original late-read timing and ordered identities. */
+/** Camp people's authored sources keep their original late-read timing and order; their prepared skins are product
+ *  files the camp reads when it builds (GR6). */
 export function lateReads(tier: Tier, tex: TexMode = 'img', inventory: Readonly<Record<string, number | true>> = publicBytes()): string[] {
   const { gpu } = filePolicy(tier, tex, GPU_FILES, inventory);
-  return [gpu(`/assets/nalati/baked/people/camp${tier === 'phone' ? '.phone' : ''}.glb`),
-    ...['elder', 'herder-dauren', 'herder-erlan', 'child', 'cook'].map((name) => gpu(`/assets/nalati/models/people/${name}.gen${tier === 'phone' ? '.phone' : ''}.glb`))].filter((url) => url in inventory);
+  return ['elder', 'herder-dauren', 'herder-erlan', 'child', 'cook'].map((name) => gpu(`/assets/nalati/models/people/${name}.gen${tier === 'phone' ? '.phone' : ''}.glb`)).filter((url) => url in inventory);
 }

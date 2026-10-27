@@ -15,7 +15,7 @@ import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { TIER } from '@wildshard/engine/core/tier';
 import { FigureRowSchema } from '@wildshard/format/figures';
 import { installChannelPrograms } from '../plugin/channelPrograms';
-import { atlasFigureSkin } from '../systems/npc/figureSkins';
+import { atlasFigureSkin, productSkinUrl } from '../systems/npc/figureSkins';
 import { QuestFiguresSchema, type QuestFigureRows, type QuestFiguresRows } from '@wildshard/format/questFigures';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { ownSceneResource } from '@wildshard/engine/app/sceneOwnership';
@@ -105,7 +105,7 @@ export function installQuestFigures(ctx: ShardContext, input: unknown, ports?: Q
   // A merged group stands alone and needs none of the kit figures' ports; both checks precede any allocation.
   if (ports === undefined) {
     if (parsed.group === undefined) throw new Error('Quest kit figures require their placement, draws and catalogue ports');
-    return figureGroup({ scope: ctx.scope, sky: world.sky, registry: world.registry, channels: ctx.product.shardfile.clientChannels }, parsed.group);
+    return figureGroup({ scope: ctx.scope, sky: world.sky, registry: world.registry, channels: ctx.product.shardfile.clientChannels, skinUrl: productSkinUrl(ctx.product) }, parsed.group);
   }
   if (parsed.group !== undefined) throw new Error('A merged quest figure group installs without kit figure ports');
   // Check all placed-model descriptors before the first figure is constructed.
@@ -191,7 +191,7 @@ function memberPose(): (p: FigureGroupMember, neck: THREE.Vector3, write: (body:
  * piece, each moving figure's as its own; the floor is the terrain or a registered deck just above it. The group sleeps
  * beyond `sleep.distance` of `sleep.figure`.
  */
-function figureGroup(w: { scope: Scope; sky: SkyRig; registry: WorldRegistry; channels: unknown }, rows: FigureGroupRows): QuestFigureGroup {
+function figureGroup(w: { scope: Scope; sky: SkyRig; registry: WorldRegistry; channels: unknown; skinUrl: (url: string) => string }, rows: FigureGroupRows): QuestFigureGroup {
   const atlas = rows.atlas[TIER], scope = w.scope;
   const group = new THREE.Group(), resources = new SceneHandles(w.sky);
   group.name = rows.name;
@@ -249,7 +249,7 @@ function figureGroup(w: { scope: Scope; sky: SkyRig; registry: WorldRegistry; ch
   const sleeper = figures.get(rows.sleep.figure);
   if (sleeper === undefined) throw new Error(`Missing sleeping figure: ${rows.sleep.figure}`);
   w.registry.add({ ...rows.pieces.still, object: group, colliders: still });
-  const ready = atlasFigureSkin(atlas, w.sky, scope).then(mesh => {
+  const ready = atlasFigureSkin(atlas, w.sky, scope, w.skinUrl).then(mesh => {
     for (const [i, bone] of bones.entries()) {
       const prepared = mesh.skeleton.bones[i]; if (prepared === undefined) throw new Error('Missing prepared pivot');
       bone.position.copy(prepared.position);

@@ -43,7 +43,8 @@ test('offline presence preserves coat order, phone fallback and late-read timing
   expect(bootLateReads(rows.lateReads, 'desktop', 'img')).toEqual([]);
 });
 
-test('prepared camp skins stay in the late-read phase before their original ordered atlas sources', () => {
+// GR6: the prepared camp skins are product files, read when the camp builds, never boot late reads
+test('camp atlas sources stay in the late-read phase in their original order; prepared skins never boot', () => {
   const inventory = {
     '/assets/nalati/baked/people/camp.phone.glb': true,
     '/assets/nalati/baked/people/camp.glb': true,
@@ -52,11 +53,10 @@ test('prepared camp skins stay in the late-read phase before their original orde
   } satisfies Readonly<Record<string, number | true>>;
   const rows = nalatiBootInventory(metadata.assetFiles, inventory);
   expect(bootLateReads(rows.lateReads, 'phone', 'img')).toEqual([
-    '/assets/nalati/baked/people/camp.phone.glb',
     '/assets/nalati/models/people/elder.gen.phone.glb',
     '/assets/nalati/models/people/cook.gen.phone.glb',
   ]);
-  expect(bootLateReads(rows.lateReads, 'desktop', 'img')).toEqual(['/assets/nalati/baked/people/camp.glb']);
+  expect(bootLateReads(rows.lateReads, 'desktop', 'img')).toEqual([]);
   expect(bootSourceFiles(rows.sources, 'phone', 'img').props).not.toContain('/assets/nalati/baked/people/camp.phone.glb');
 });
 

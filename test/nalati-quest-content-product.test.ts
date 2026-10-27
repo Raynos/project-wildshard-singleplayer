@@ -9,7 +9,7 @@ import kokpar from '../src/shards/nalati-grasslands/data/kokpar.generated.json' 
 import source from './fixtures/nalati-product-source';
 import chapters from '../src/shards/nalati-grasslands/data/chapterStory.json' with { type: 'json' };
 import view from '../src/shards/nalati-grasslands/data/chapterView.json' with { type: 'json' };
-import figures from '../src/shards/nalati-grasslands/data/peopleFrames.generated.json' with { type: 'json' };
+import { peopleRows as figures } from '../src/shards/nalati-grasslands/generators/peopleRows.mjs';
 
 // Prepare the complete live source product before the unchanged timed
 // assertions; compiler/native setup failures still refuse collection.
