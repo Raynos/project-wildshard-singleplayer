@@ -26,7 +26,7 @@ test('the reporting leg reuses the exact Developer artifact while gameplay legs 
   const reporting = job.split('\n').find(line => line.includes('continue-on-error:'));
   expect(reporting).toContain("matrix.part == 'title-quarantine'");
   for (const part of ['boot-public', 'boot-developer', 'boot-grid', 'hover-chromium', 'hover-webkit', 'explorer']) expect(reporting).not.toContain(`'${part}'`);
-  expect(job.split('\n').find(line => line.includes('SMOKE_PART:'))).toContain("matrix.part == 'title-quarantine' && 'boot-developer' || matrix.part");
+  expect(job.split('\n').find(line => line.includes('SMOKE_PART:'))).toContain("matrix.part == 'title-quarantine' && 'boot-developer' || matrix.part == 'grid-quarantine' && 'boot-grid' || matrix.part");
   expect(job.split('\n').find(line => line.includes('name: boot-dist-') && line.includes('matrix.part'))).toContain("matrix.part == 'title-quarantine' && 'boot-developer'");
   for (const group of ['public', 'developer', 'grid']) expect(job).toContain(`run: node scripts/parity/boot-smoke.mjs --case-group=${group}`);
   expect(job).toContain('run: node scripts/parity/boot-smoke.mjs --case-group=title-quarantine');

@@ -128,10 +128,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        part: [boot-public, boot-developer, boot-grid, hover-chromium, hover-webkit, explorer, phone-route, title-quarantine]
+        part: [boot-public, boot-developer, boot-grid, hover-chromium, hover-webkit, explorer, phone-route, title-quarantine, grid-quarantine]
     # G745: exactly the phone route reports without gating for its first ordinary run.
-    # G758: only the two Nine title PNG assertions report for 24 hours (owner sp-x1).
-    continue-on-error: ${{ matrix.part == 'phone-route' || matrix.part == 'title-quarantine' }}
+    # G758: the two Nine title PNG assertions report for 24 hours (owner sp-x1).
+    # G788: the original grid preparation case reports until 2026-10-28 08:20 UTC (sp-ci-deploy).
+    continue-on-error: ${{ matrix.part == 'phone-route' || matrix.part == 'title-quarantine' || matrix.part == 'grid-quarantine' }}
     runs-on: macos-15
     timeout-minutes: 20
     steps:
@@ -184,7 +185,7 @@ jobs:
         env:
           TESTED_SHA: ${{ needs.build.outputs.sha }}
           SOURCE_RUN: ${{ needs.build.outputs.source_run }}
-          SMOKE_PART: ${{ matrix.part == 'title-quarantine' && 'boot-developer' || matrix.part }}
+          SMOKE_PART: ${{ matrix.part == 'title-quarantine' && 'boot-developer' || matrix.part == 'grid-quarantine' && 'boot-grid' || matrix.part }}
         run: |
           test "$(git rev-parse HEAD)" = "$TESTED_SHA"
           python3 scripts/boot-dist.py restore --sha "$TESTED_SHA" --run "$SOURCE_RUN" --part "$SMOKE_PART"
@@ -235,6 +236,9 @@ jobs:
       - name: Quarantined Nine title PNGs (sp-x1, expires 2026-10-28 03:30 UTC)
         if: matrix.part == 'title-quarantine'
         run: node scripts/parity/boot-smoke.mjs --case-group=title-quarantine
+      - name: Quarantined grid preparation and original routes (expires 2026-10-28 08:20 UTC)
+        if: matrix.part == 'grid-quarantine'
+        run: node scripts/parity/boot-smoke.mjs --case-group=grid-quarantine
       - name: Chromium touch HOVER mounts in the template and on the grid road
         if: matrix.part == 'hover-chromium'
         run: node scripts/parity/hover-touch.mjs --out=boot-smoke-results/hover-chromium
