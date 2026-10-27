@@ -1,6 +1,6 @@
 import { CHUNK_HALF, ENTRY_ASPHALT, ENTRY_WIDTH } from '@wildshard/format/contentBounds';
 import { driftwoodGroundSampler } from './groundSampling';
-import authoredEntryRows from '../data/entryRows.json' with { type: 'json' };
+import { ENTRY_ROWS as authoredEntryRows } from './entryRows';
 
 type DryEntryEdge = (typeof authoredEntryRows.DRY_ENTRIES)[number];
 

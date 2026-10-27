@@ -3,7 +3,7 @@ import {SEED} from './landscapeRows';
 import type {BufferGeometry} from 'three';
 import type {ColliderDesc} from '@wildshard/engine/world/registry';
 import {pierParamsKey,type PierParams} from './pierContract';
-import authoredPierRows from './pierRows.json' with { type: 'json' };
+import { PIER_ROWS as authoredPierRows } from './pierRows';
 import { DECLARED_SEA } from './sea';
 import {driftwoodGroundSampler} from './groundSampling';
 import {deckGeometry,pierWorldLayout} from './pier';

@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { driftwoodEntryDeckRows } from './entryDeck';
-import authoredEntryRows from '../data/entryRows.json' with { type: 'json' };
+import { ENTRY_ROWS as authoredEntryRows } from './entryRows';
 
 const { DRY_ENTRIES } = authoredEntryRows;
 

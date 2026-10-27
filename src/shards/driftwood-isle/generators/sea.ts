@@ -1,5 +1,5 @@
 import { ENTRY_ASPHALT } from '@wildshard/format/contentBounds';
-import authoredEntryRows from '../data/entryRows.json' with { type: 'json' };
+import { ENTRY_ROWS as authoredEntryRows } from './entryRows';
 
 const { DRY_ENTRIES } = authoredEntryRows;
 
