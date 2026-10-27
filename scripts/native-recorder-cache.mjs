@@ -1,4 +1,4 @@
-// G292: one verified, content-addressed cache for generated assets and native checkpoints.
+// Verified content-addressed native recorder cache; receipt bytes retain LEGACY compatibility.
 import { createHash, randomBytes } from 'node:crypto';
 import { existsSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, renameSync, rmdirSync, rmSync, statSync, utimesSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
@@ -29,14 +29,14 @@ function canonical(value) {
 }
 
 /** Persistent shared root outside git; CI and fixtures can select an isolated cache. */
-export function generationCacheRoot(env = process.env) {
+export function recorderCacheRoot(env = process.env) {
   return resolve(env.WILDSHARD_GENERATE_CACHE ?? resolve(homedir(), '.cache/wildshard/generate'));
 }
 
 /** Validate exact producer inputs and include command, toolchain and native host identity in the key.
- * @param {string} root @param {import('./generation-cache.mjs').GenerationJob} descriptor
+ * @param {string} root @param {import('./native-recorder-cache.mjs').RecorderTask} descriptor
  * @param {{platform?:string,arch?:string,inputHashes?:import('./bake-input-hashes.mjs').InputHashMemo}} [host] */
-export function generationKey(root, descriptor, host = {}) {
+export function recorderKey(root, descriptor, host = {}) {
   const job = v.parse(Job, descriptor), platform = host.platform ?? process.platform, arch = host.arch ?? process.arch;
   if (job.outputs.length === 0 || new Set(job.outputs).size !== job.outputs.length || Object.keys(job.inputs).length === 0) throw new Error('Incomplete generation job');
   const actual = bakeInputHashes(root,Object.keys(job.inputs),host.inputHashes);
@@ -51,7 +51,7 @@ export function generationKey(root, descriptor, host = {}) {
  * inputs. Every hit still checks file identity, size, nanosecond mtime/ctime
  * and root containment; missing or edited outputs never inherit an old hash.
  * @param {string} directory @param {string[]} outputs */
-export function generationOutputHashes(directory, outputs) {
+export function recorderOutputHashes(directory, outputs) {
   const root = realpathSync(directory);
   for(const path of outputs)v.parse(file,path);
   const memo=new InputHashMemo(root,resolve(root,'.output-hashes.json'));
@@ -65,7 +65,7 @@ function verifiedOutputHashes(directory, key, outputs) {
   try {
     const receipt = v.parse(Receipt, JSON.parse(readFileSync(resolve(directory, NOTICE), 'utf8')));
     if(receipt.key!==key)return undefined;
-    const hashes=generationOutputHashes(directory,outputs);
+    const hashes=recorderOutputHashes(directory,outputs);
     return canonical(receipt.files)===canonical(hashes)?hashes:undefined;
   } catch { return undefined; }
 }
@@ -88,13 +88,13 @@ function reclaim(lock) {
 
 /** Coalesce a complete job across callers/processes; generate only in a fresh output directory.
  * A forced comparison never replaces a differing cache. No failed or incomplete output is published.
- * @param {string} root @param {import('./generation-cache.mjs').GenerationJob} descriptor
- * @param {import('./generation-cache.mjs').GenerationOptions} options
- * @returns {Promise<import('./generation-cache.mjs').GenerationResult>} */
-export async function runGenerationJob(root, descriptor, options) {
-  const job = v.parse(Job, descriptor), key = generationKey(root, job, options), platform = options.platform ?? process.platform;
+ * @param {string} root @param {import('./native-recorder-cache.mjs').RecorderTask} descriptor
+ * @param {import('./native-recorder-cache.mjs').RecorderOptions} options
+ * @returns {Promise<import('./native-recorder-cache.mjs').RecorderResult>} */
+export async function runNativeRecorder(root, descriptor, options) {
+  const job = v.parse(Job, descriptor), key = recorderKey(root, job, options), platform = options.platform ?? process.platform;
   if (job.platform === 'darwin' && platform !== 'darwin') throw new Error(`Darwin-only generator: ${job.id}`);
-  const directory = resolve(options.cacheDir ?? generationCacheRoot(), job.id, key);
+  const directory = resolve(options.cacheDir ?? recorderCacheRoot(), job.id, key);
   // Pin before validation: an eviction already holding key.lock must finish
   // before execute inspects the entry; a later eviction sees this reader.
   const release = readLease(directory);
@@ -102,7 +102,7 @@ export async function runGenerationJob(root, descriptor, options) {
   const token = `${directory}:${options.forceCompare === true ? 'compare' : options.probe === true ? 'probe' : 'ensure'}`;
   const prior = active.get(token);
   const task = prior ?? execute(root, directory, key, job, options).then(result => {
-    if (!result.hit) maybePruneGenerationCache(options.cacheDir ?? generationCacheRoot(), { protect: [directory] });
+    if (!result.hit) maybePruneRecorderCache(options.cacheDir ?? recorderCacheRoot(), { protect: [directory] });
     return result;
   }).finally(() => { active.delete(token); });
   active.set(token, task);
@@ -110,9 +110,9 @@ export async function runGenerationJob(root, descriptor, options) {
   catch(error) {release();throw error;}
 }
 /** @param {string} root @param {string} directory @param {string} key
- * @param {import('./generation-cache.mjs').GenerationJob} job
- * @param {import('./generation-cache.mjs').GenerationOptions} options
- * @returns {Promise<Omit<import('./generation-cache.mjs').GenerationResult,'release'>>} */
+ * @param {import('./native-recorder-cache.mjs').RecorderTask} job
+ * @param {import('./native-recorder-cache.mjs').RecorderOptions} options
+ * @returns {Promise<Omit<import('./native-recorder-cache.mjs').RecorderResult,'release'>>} */
 async function execute(root, directory, key, job, options) {
   const started = performance.now(), lock = `${directory}.lock`, until = Date.now() + 600_000;
   mkdirSync(dirname(directory), { recursive: true });
@@ -134,9 +134,9 @@ async function execute(root, directory, key, job, options) {
     await options.generate(stage);
     // A producer that changed its inputs cannot publish under the old key.
     options.inputHashes?.verifyInputs(job.inputs);
-    if (generationKey(root, job, options) !== key) throw new Error(`Generation inputs changed during job: ${job.id}`);
-    const hashes = generationOutputHashes(stage, job.outputs);
-    if (hadCache && canonical(hashes) !== canonical(generationOutputHashes(directory, job.outputs))) throw new Error(`Regenerate-and-compare failed: ${job.id}`);
+    if (recorderKey(root, job, options) !== key) throw new Error(`Generation inputs changed during job: ${job.id}`);
+    const hashes = recorderOutputHashes(stage, job.outputs);
+    if (hadCache && canonical(hashes) !== canonical(recorderOutputHashes(directory, job.outputs))) throw new Error(`Regenerate-and-compare failed: ${job.id}`);
     writeFileSync(resolve(stage, NOTICE), `${canonical({ schema: 'generation-cache/1', key, files: hashes })}\n`);
     if (!valid(stage, key, job.outputs)) throw new Error(`Incomplete generation cache: ${job.id}`);
     if (hadCache) return { directory, key, hit: false, hashes, elapsedMs: performance.now() - started };
@@ -218,12 +218,12 @@ function evict(jobDir, key) {
 /** Evict entries idle for 24 hours, then least-recently-used entries until the
  * cache fits 4 GiB. Only explicit current inputs, live readers, locks and stages
  * survive pressure; per-job history never overrides the whole-cache budget.
- * @param {string} cacheDir @param {import('./generation-cache.mjs').PruneOptions} [options]
- * @returns {import('./generation-cache.mjs').PruneReport} */
-export function pruneGenerationCache(cacheDir, options = {}) {
+ * @param {string} cacheDir @param {import('./native-recorder-cache.mjs').PruneOptions} [options]
+ * @returns {import('./native-recorder-cache.mjs').PruneReport} */
+export function pruneRecorderCache(cacheDir, options = {}) {
   const capBytes = options.capBytes ?? 4 * GIB, maxAgeMs = options.maxAgeMs ?? 86_400_000, dryRun = options.dryRun === true;
   const protect = new Set((options.protect ?? []).map(path => resolve(path)));
-  /** @type {import('./generation-cache.mjs').PruneReport} */
+  /** @type {import('./native-recorder-cache.mjs').PruneReport} */
   const report = { deleted: [], keptBytes: 0, keptEntries: 0, locked: 0, freedBytes: 0 };
   if (!existsSync(cacheDir) || !lstatSync(cacheDir).isDirectory()) return report;
   const allocated = diskBytes(cacheDir);
@@ -271,15 +271,15 @@ export function pruneGenerationCache(cacheDir, options = {}) {
 }
 
 /** Prune after a generation, at most once per 10 minutes per cache (a stamp file); never fails the job.
- * @param {string} cacheDir @param {import('./generation-cache.mjs').PruneOptions} [options] */
-export function maybePruneGenerationCache(cacheDir, options = {}) {
+ * @param {string} cacheDir @param {import('./native-recorder-cache.mjs').PruneOptions} [options] */
+export function maybePruneRecorderCache(cacheDir, options = {}) {
   const stamp = resolve(cacheDir, '.prune-stamp');
   try {
     if (Date.now() - statSync(stamp).mtimeMs < PRUNE_EVERY_MS) return undefined;
   } catch { /* Never pruned. */ }
   try {
     writeFileSync(stamp, `${new Date().toISOString()}\n`);
-    return pruneGenerationCache(cacheDir, options);
+    return pruneRecorderCache(cacheDir, options);
   } catch (error) {
     console.warn(`generation-cache: prune failed: ${error instanceof Error ? error.message : String(error)}`);
     return undefined;

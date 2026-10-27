@@ -3,7 +3,7 @@ import { existsSync, mkdirSync, mkdtempSync, rmSync, utimesSync, writeFileSync }
 // oxlint-disable-next-line import/no-nodejs-modules -- The fixture cache lives in the temp dir.
 import { join, resolve } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import { pruneGenerationCache } from '../scripts/generation-cache.mjs';
+import { pruneRecorderCache } from '../scripts/native-recorder-cache.mjs';
 
 const roots: string[] = [];
 afterEach(() => { for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true }); });
@@ -27,10 +27,10 @@ describe('generation cache prune (G430)', () => {
     mkdirSync(join(root, 'job-a', 'generating-abc123'));
     const protectedDir = dirs[5];
     if (protectedDir === undefined) throw new Error('fixture');
-    const dry = pruneGenerationCache(root, { protect: [protectedDir], dryRun: true });
+    const dry = pruneRecorderCache(root, { protect: [protectedDir], dryRun: true });
     expect(dry.deleted.map(row => row.reason)).toEqual(['age']);
     expect(dirs.every(dir => existsSync(dir))).toBe(true);
-    const report = pruneGenerationCache(root, { protect: [protectedDir] });
+    const report = pruneRecorderCache(root, { protect: [protectedDir] });
     expect(report.deleted).toHaveLength(1);
     expect(dirs.map(dir => existsSync(dir))).toEqual([true, true, true, false, true, true]);
     expect(existsSync(join(root, 'job-a', 'generating-abc123'))).toBe(true);
@@ -40,11 +40,11 @@ describe('generation cache prune (G430)', () => {
     const root = freshCache();
     const a = [entry(root, 'job-a', 1, 1, 64), entry(root, 'job-a', 2, 5, 64)];
     const b = [entry(root, 'job-b', 3, 2, 64), entry(root, 'job-b', 4, 9, 64)];
-    const report = pruneGenerationCache(root, { capBytes: 150 * 1024 });
+    const report = pruneRecorderCache(root, { capBytes: 150 * 1024 });
     expect(report.deleted.every(row => row.reason === 'cap')).toBe(true);
     expect([...a, ...b].map(dir => existsSync(dir))).toEqual([true, false, true, false]);
     expect(report.keptEntries).toBe(2);
-    const empty = pruneGenerationCache(root, { capBytes: 0 });
+    const empty = pruneRecorderCache(root, { capBytes: 0 });
     expect(empty.keptEntries).toBe(0);
     expect(empty.deleted).toHaveLength(2);
   });
@@ -53,9 +53,9 @@ describe('generation cache prune (G430)', () => {
     const root = freshCache(), old = entry(root, 'old-job', 1, 30);
     mkdirSync(`${old}.lock`);
     writeFileSync(join(`${old}.lock`, 'owner.json'), JSON.stringify({ pid: 1073741823 }));
-    expect(pruneGenerationCache(root, { dryRun: true }).locked).toBe(1);
+    expect(pruneRecorderCache(root, { dryRun: true }).locked).toBe(1);
     expect(existsSync(old)).toBe(true);
-    expect(pruneGenerationCache(root).deleted).toHaveLength(1);
+    expect(pruneRecorderCache(root).deleted).toHaveLength(1);
     expect(existsSync(old)).toBe(false);
     expect(existsSync(`${old}.lock`)).toBe(false);
   });

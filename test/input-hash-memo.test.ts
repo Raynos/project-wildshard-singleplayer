@@ -4,7 +4,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, symlinkSync, ut
 import { resolve } from 'node:path';
 import { afterEach, expect, it } from 'vitest';
 import { bakeInputHashes, InputHashMemo } from '../scripts/bake-input-hashes.mjs';
-import { generationKey, runGenerationJob } from '../scripts/generation-cache.mjs';
+import { recorderKey, runNativeRecorder } from '../scripts/native-recorder-cache.mjs';
 
 const owned: string[] = [];
 afterEach(() => { for (const root of owned.splice(0)) rmSync(root, { recursive: true, force: true }); });
@@ -19,20 +19,20 @@ function job(root: string, inputHashes: InputHashMemo) {
 
 it('shares a content read across collection, key validation and later jobs, including a new process memo', () => {
   const root = fixture(), file = resolve(root, '.cache/hashes.json'), memo = new InputHashMemo(root, file), descriptor = job(root, memo);
-  const key = generationKey(root, descriptor, { inputHashes: memo });
-  expect(generationKey(root, job(root, memo), { inputHashes: memo })).toBe(key);
+  const key = recorderKey(root, descriptor, { inputHashes: memo });
+  expect(recorderKey(root, job(root, memo), { inputHashes: memo })).toBe(key);
   expect(memo.reads).toBe(1); memo.flush();
   const warm = new InputHashMemo(root, file);
-  expect(generationKey(root, descriptor, { inputHashes: warm })).toBe(key); expect(warm.reads).toBe(0);
+  expect(recorderKey(root, descriptor, { inputHashes: warm })).toBe(key); expect(warm.reads).toBe(0);
   writeFileSync(file, '{broken');
   const corrupt = new InputHashMemo(root, file);
-  expect(generationKey(root, descriptor, { inputHashes: corrupt })).toBe(key); expect(corrupt.reads).toBe(1);
+  expect(recorderKey(root, descriptor, { inputHashes: corrupt })).toBe(key); expect(corrupt.reads).toBe(1);
 });
 
 it('rejects same-size edits even after restoring mtime, and rejects links, missing files and crossed roots', () => {
   const root = fixture(), memo = new InputHashMemo(root), descriptor = job(root, memo), old = statSync(resolve(root, 'input.txt'));
   writeFileSync(resolve(root, 'input.txt'), 'other'); utimesSync(resolve(root, 'input.txt'), old.atime, old.mtime);
-  expect(() => generationKey(root, descriptor, { inputHashes: memo })).toThrow('Generation input changed');
+  expect(() => recorderKey(root, descriptor, { inputHashes: memo })).toThrow('Generation input changed');
   expect(() => bakeInputHashes(root, ['missing'], memo)).toThrow();
   symlinkSync('input.txt', resolve(root, 'link'));
   expect(() => bakeInputHashes(root, ['link'], memo)).toThrow('Invalid bake input');
@@ -46,7 +46,7 @@ it('still refuses a producer that changes its source after the initial memo hit'
   const root = fixture(), memo = new InputHashMemo(root), descriptor = job(root, memo);
   memo.enableSnapshot(()=>false);
   job(root,memo);
-  await expect(runGenerationJob(root, descriptor, { inputHashes: memo, cacheDir: resolve(root, 'cache'), generate: stage => {
+  await expect(runNativeRecorder(root, descriptor, { inputHashes: memo, cacheDir: resolve(root, 'cache'), generate: stage => {
     writeFileSync(resolve(stage, 'output.txt'), readFileSync(resolve(root, 'input.txt')));
     writeFileSync(resolve(root, 'input.txt'), 'other');
     return Promise.resolve();

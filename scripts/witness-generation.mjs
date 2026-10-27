@@ -4,7 +4,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import * as v from 'valibot';
-import { runGenerationJob } from './generation-cache.mjs';
+import { runNativeRecorder } from './native-recorder-cache.mjs';
 import { cachedWitnessManifest, compareWitnessManifests } from './witness-checkpoints.mjs';
 
 const Payloads = v.record(v.string(), v.pipe(v.string(), v.regex(/^[0-9a-f]{64}$/u)));
@@ -26,7 +26,7 @@ export async function generateWitness(spec) {
     if (!url.startsWith(spec.root.href)) throw new Error('Witness input is outside its repository');
     return [decodeURIComponent(url.slice(spec.root.href.length)), createHash('sha256').update(readFileSync(new URL(url))).digest('hex')];
   }));
-  const result = await runGenerationJob(root, {
+  const result = await runNativeRecorder(root, {
     id: `witness-${spec.slug}`, inputs, outputs, platform: 'native',
     command: ['node', '--experimental-transform-types', '--import', './scripts/sim-node-loader.mjs', `test/proof/${spec.slug}/run.mjs`, 'checkpoints'],
   }, {
