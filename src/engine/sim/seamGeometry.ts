@@ -111,9 +111,19 @@ export function* seamGeometrySteps(input: { readonly id: string; readonly axis: 
   const along = [...new Set([...native, 0, ...input.edges.flatMap((edge) => [-edge.entryWidth / 2, edge.entryWidth / 2]), ...input.edges.flatMap((edge) => edge.outflows?.flatMap((row) => [row.from, row.to]) ?? [])])].sort((a, b) => a - b);
   const writer = new MeshWriter(input.axis), count = SEAM_OFFSETS.length;
   const floorGroups = new Map<string, { kind: SeamFeatureKind; side: -1 | 0 | 1; indices: number[] }>();
-  for (const v of along) for (const u of SEAM_OFFSETS) {
-    const edge = input.edges[u < 0 ? 0 : 1], sample = edgeSample(edge.profile, v), weight = blend(u);
-    writer.vertex(u, weight === 0 ? 0 : edgeFloor(edge, sample.height) * weight, v, neutral.map((c, channel) => c + ((sample.colour[channel] ?? c) - c) * weight));
+  const columnsInput = SEAM_OFFSETS.map(u => ({ u, weight: blend(u), left: u < 0 }));
+  const colour = [0, 0, 0];
+  for (const v of along) {
+    const left = edgeSample(input.edges[0].profile, v), right = edgeSample(input.edges[1].profile, v);
+    const leftFloor = edgeFloor(input.edges[0], left.height), rightFloor = edgeFloor(input.edges[1], right.height);
+    for (const column of columnsInput) {
+      const sample = column.left ? left : right, weight = column.weight;
+      for (let channel = 0; channel < neutral.length; channel++) {
+        const c = neutral[channel] ?? 0;
+        colour[channel] = c + ((sample.colour[channel] ?? c) - c) * weight;
+      }
+      writer.vertex(column.u, weight === 0 ? 0 : (column.left ? leftFloor : rightFloor) * weight, v, colour);
+    }
   }
   const retained = yield* seamLatticeSteps({ positions: writer.positions, colours: writer.colours, columns: count, along }, plans);
   const columns = Array.from({ length: count }, (_, col) => col);
