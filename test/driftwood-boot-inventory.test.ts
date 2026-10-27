@@ -15,7 +15,7 @@ test('offline boot rows preserve ordered sources and filtered late reads for all
   expect({ sources, files, lateReads }).toEqual(driftwoodBootInventory());
   for (const tier of ['phone', 'desktop'] as const) for (const mode of ['img', 'ktx2'] as const) {
     const expected = resolveBootSources(DRIFTWOOD_BOOT_FILES, DRIFTWOOD_BOOT_SOURCES, tier, mode, GPU_FILES);
-    const named = new Set(['reef', 'ground', 'palms', 'hibiscus', 'cover', 'island', 'lights'].flatMap(group => resolveBootFiles(DRIFTWOOD_BOOT_FILES, group, tier, mode, GPU_FILES)));
+    const named = new Set(['reef', 'ground', 'palms', 'hibiscus', 'cover', 'island', 'records', 'lights'].flatMap(group => resolveBootFiles(DRIFTWOOD_BOOT_FILES, group, tier, mode, GPU_FILES)));
     const expectedLate = resolveBootFiles(DRIFTWOOD_BOOT_FILES, 'late', tier, mode, GPU_FILES).filter(url => !named.has(url));
     expect(bootSourceFiles(sources, tier, mode)).toEqual(expected);
     expect(bootLateReads(lateReads, tier, mode)).toEqual(expectedLate);
@@ -47,10 +47,10 @@ test('offline recipes use supplied file facts without installing application ser
   expect(resolveBootFiles(recipes, 'image', 'phone', 'img', table, { inventory: {} })).toEqual([]);
 });
 
-test('declared published plans are selected before their geometry job materializes them', () => {
+test('published island plans are product files, never page late reads (iPhone downloads I8)', () => {
   const compiled = driftwoodBootInventory({ [ISLAND_PLAN_FILES.phone.url]: true, [ISLAND_PLAN_FILES.desktop.url]: true });
   for (const tier of ['phone', 'desktop'] as const) for (const mode of ['img', 'ktx2'] as const) {
-    expect(bootLateReads(compiled.lateReads, tier, mode)).toEqual([ISLAND_PLAN_FILES[tier].url]);
+    expect(bootLateReads(compiled.lateReads, tier, mode)).toEqual([]);
   }
 });
 

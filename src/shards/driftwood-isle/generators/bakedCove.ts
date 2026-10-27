@@ -8,13 +8,12 @@ import ISLAND_FACTS from '../data/islandFacts.generated.json' with { type: 'json
 import { COVE_MODELS } from './coveModels';
 import { ISLAND_LOOKS } from './islandLook';
 import { ISLAND_LOOK, ISLAND_TIERS } from './islandRows';
-import { BLENDER_MODELS } from './blenderArea';
-import { pageFile } from './productPageFiles';
+import { DRIFTWOOD_PLAN_FILES, pageFile } from './productPageFiles';
 import { WORLD_DROP } from './sea';
 import { DRIFTWOOD_ASSET_NAMES } from './assets';
 import coverFiles from '../data/islandCoverFiles.json' with { type: 'json' };
 
-// iPhone downloads I8: the cove's tiles and lightmaps are product files (productPageFiles.ts)
+// iPhone downloads I8: the cove's tiles, lightmaps, placement table and plans are product files (productPageFiles.ts)
 const at = (name: string) => pageFile(`world/island/${name}`);
 const lightmap = (param: string, name: string) => ({ param, source: { phone: at(`${name}.phone.webp`), desktop: at(`${name}.webp`) }, channel: 0, anisotropy: 4 });
 const cells = { size: 16, pad: 4 };
@@ -26,7 +25,7 @@ const coverWear = ({ url, texture, groundRect, parts }: (typeof coverFiles)['pho
 };
 /** a cover look's fade (start, end, grow): it grows in from `near` to `near + grow`, out by `far` */
 const fade = (reach: { near: number; far: number; grow: number }) => [reach.near + reach.grow, reach.far, reach.grow];
-const plan = (tier: 'phone' | 'desktop') => ({ source: { url: PLAN_FILES[tier].url }, bytes: PLAN_FILES[tier].bytes, used: PLAN_FILES[tier].used });
+const plan = (tier: 'phone' | 'desktop') => ({ source: pageFile(DRIFTWOOD_PLAN_FILES[tier]), bytes: PLAN_FILES[tier].bytes, used: PLAN_FILES[tier].used });
 
 export const BAKED_COVE: InferOutput<typeof BakedTilesSchema> = parse(BakedTilesSchema, {
   id: 'cove', glb: at('island.glb'), tiles: { phone: 'terrainlo_', desktop: 'terrain_' }, look: ISLAND_LOOKS.terrain,
@@ -34,7 +33,7 @@ export const BAKED_COVE: InferOutput<typeof BakedTilesSchema> = parse(BakedTiles
   lightmaps: [lightmap('ao', 'lm-ao'), lightmap('bounceMap', 'lm-bounce')],
   sun: { param: 'bounce', referenceY: ISLAND_FACTS.bake.sunY, gain: ISLAND_FACTS.bake.bounceGain },
   instances: {
-    table: { url: `${BLENDER_MODELS}placements.bin` }, protos: { file: 'world/island/protos.glb' }, plan: { phone: plan('phone'), desktop: plan('desktop') },
+    table: at('placements.bin'), protos: { file: 'world/island/protos.glb' }, plan: { phone: plan('phone'), desktop: plan('desktop') },
     names: ISLAND_FACTS.protos.map(proto => proto.name),
     looks: {
       cast: { look: ISLAND_LOOKS.props, cull: { phone: { flat: true, casters: 4 }, desktop: { flat: true, casters: 4 } } },
