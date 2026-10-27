@@ -1,4 +1,4 @@
-import authoredCoverLook from '../data/groundCover.json' with { type: 'json' };
+import * as authoredCoverLook from './coverRows';
 import { BOAT_LAYOUT } from './boatLayout';
 import captain from '../data/bossEncounter.json' with { type: 'json' };
 import { COUNTER_TOP } from './counterLayout';

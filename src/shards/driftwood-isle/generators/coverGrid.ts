@@ -4,7 +4,7 @@ import { HUT, LOOKOUT, SHRINE, WRECK } from './worldSites';
 import authoredLayout from '../data/layout.json' with { type: 'json' };
 import { islandCoveSpec } from './coveLayout';
 import { driftwoodCoverLook } from './fixedFacts';
-import authoredCoverLook from '../data/groundCover.json' with { type: 'json' };
+import * as authoredCoverLook from './coverRows';
 import { DENSITY, type Site } from './coverSites';
 
 const { ISLAND } = authoredLayout;

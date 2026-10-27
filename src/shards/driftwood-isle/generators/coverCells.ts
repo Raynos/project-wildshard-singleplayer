@@ -1,7 +1,7 @@
 import { Color } from 'three';
 import { Rng } from '@wildshard/engine/core/rng';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
-import authoredCoverLook from '../data/groundCover.json' with { type: 'json' };
+import * as authoredCoverLook from './coverRows';
 import { facetColour } from './facetedGround';
 import { DENSITY, beach, type Site } from './coverSites';
 import { coverAvoid, type AuthorCoverGrid } from './coverGrid';
