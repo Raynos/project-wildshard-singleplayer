@@ -9,8 +9,7 @@ import { hashImmutableBytes } from '../src/sdk/immutable';
 
 const bake = driftwoodTrailRows();
 
-test('the offline trail retains its authored placements, native colliders and floor ownership', async () => {
-  const WORLD_SCENES = (await driftwoodEmittedProduct()).section('world/scenes');
+test('the offline trail retains its authored placements, native colliders and floor ownership', () => {
   expect(hashImmutableBytes(new TextEncoder().encode(`${JSON.stringify(bake, null, 2)}\n`))).toBe('bf515ce72cf444ada4be2e7f257b8be7ed699deb42fe7bc76b1ffc95543385b5');
   const original = originalTrailside();
   try {
@@ -26,9 +25,15 @@ test('the offline trail retains its authored placements, native colliders and fl
       expect(attribute.count).toBe(116040);
       expect(hashImmutableBytes(new Uint8Array(attribute.array.buffer, attribute.array.byteOffset, attribute.array.byteLength))).toBe(hash);
     }
-    const trail = WORLD_SCENES.steps.find(step => step.id === 'trail');
-    const material = WORLD_SCENES.materials.find(slot => slot.id === trail?.materials['kit']);
-    expect(material?.kind === 'lowpoly' ? material.variant : undefined).toBe(catalogue[0]?.source.material.variant);
     expect(bake.specKey).toBe(trailsideSpecKey(islandTrailsideSpec()));
   } finally { original.geometry.dispose(); }
 });
+
+
+test('the emitted trail keeps its original geometry owner and material', async () => {
+  const scenes = (await driftwoodEmittedProduct()).section('world/scenes');
+  const trail = scenes.steps.find(step => step.id === 'trail');
+  const material = scenes.materials.find(slot => slot.id === trail?.materials['kit']);
+  expect(trail?.geometry['trail']).toEqual({ library: 'cascade', model: 'trailside' });
+  expect(material?.kind === 'lowpoly' ? material.variant : undefined).toBe(catalogue[0]?.source.material.variant);
+}, 30000);
