@@ -31,7 +31,7 @@ function kindOf(attr: BufferAttribute, what: string): Kind {
   if (a instanceof Uint16Array) return 'u16';
   if (a instanceof Int8Array) return 'i8';
   if (a instanceof Uint8Array) return 'u8';
-  throw new Error(`${what}: an attribute type the bake does not store`);
+  throw new Error(`${what}: unsupported buffer element storage`);
 }
 
 /** Loft every body around the committed head and captain and pack them as the job did: every material group's attributes
