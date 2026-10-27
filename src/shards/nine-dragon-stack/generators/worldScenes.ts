@@ -67,13 +67,15 @@ const sets = new Map(layout.rows.sets.map(row => [`set:${row.name}`, `layout_${r
 const SET_TILES = new Set([...sets.values()].flatMap(part => tiles.get(part) ?? []));
 
 // One alias per source: its partition, its tiles, its pose; resident or Explorer-only by where the bake put it.
-const aliases = { native: new Map<string, unknown>(), 'native-explorer': new Map<string, unknown>() };
+// D179 B (Jake): the layout kits and shell, the city fabric the spawn ring's L0 tiles hold, refine after control from the
+// coarse L1 tiles ('native-refine', load 'refine'); every other resident source stays ordinary
+const aliases = { native: new Map<string, unknown>(), 'native-refine': new Map<string, unknown>(), 'native-explorer': new Map<string, unknown>() };
 const libraryOf = new Map<string, keyof typeof aliases>();
 function alias(id: string, key: string, matrix?: readonly number[]): void {
   if (libraryOf.has(id)) return;
   const part = sets.get(key) ?? key, files = tiles.get(part);
   if (files === undefined) throw new Error(`Nine world scenes: no baked tiles for ${part}`);
-  const library = resident.has(part) ? 'native' : 'native-explorer';
+  const library = !resident.has(part) ? 'native-explorer' : id.startsWith('layout-') ? 'native-refine' : 'native';
   aliases[library].set(id, { id, part, files, ...(matrix === undefined ? {} : { matrix }) }); libraryOf.set(id, library);
 }
 // The original layout partitions are native resources; the scene owner reads each tile once.
@@ -187,7 +189,7 @@ const recipe = addWindowNodes(parseWorldScene({ imports: [], scene: { version: 1
   materials: [...new Set(dressing.map(row => row.material))].map(material => ({ kind: 'port', id: material, source: material })) } }), [0, 1], layout);
 
 const look = (id: string, name: string) => ({ id, kind: 'look', look: name });
-const library = (id: keyof typeof aliases) => ({ id, kind: 'whole', ...(id === 'native' ? {} : { load: 'explorer' }), models: [...aliases[id].values()] });
+const library = (id: keyof typeof aliases) => ({ id, kind: 'whole', ...(id === 'native' ? {} : { load: id === 'native-refine' ? 'refine' : 'explorer' }), models: [...aliases[id].values()] });
 // the wet floor's reflection cards and the lanterns' halos (phone only), per deck ending: open in a grid cell, capped alone
 const cardBuffers = new Map<string, NamedBlob>();
 const publishCardBuffer = (bytes: Uint8Array): string => {
@@ -394,7 +396,7 @@ const FIXED_RECIPE = parseWorldScene({ imports: [], scene: { version: 1, root: '
   materials: [{ kind: 'port', id: 'kit', source: 'kit' }] } });
 const FIXED_STEPS = (['open', 'capped'] as const).map(caps => ({ id: `fixed-${caps}`, cube: caps === 'open' ? 'cell' : 'standalone', scene: 'world/scenes/fixed.json',
   geometry: { entries: { library: castLibrary(`entries-${caps}`), model: `entries-${caps}` }, signs: { library: castLibrary('facade-signs'), model: 'facade-signs' } }, materials: { kit: 'kit' } }));
-const NINE_WORLD_SCENES = parseWorldScenes({ version: 1, catalogue: 'models/world-scenes.json', lent, uniforms: [NINE_SHARED], welds: [CAST_WELD, { id: 'fabric', file: 'world/fabric.json' }], placements: [...SET_PLACEMENTS, ...MOVER_PLACEMENTS, ...LAYOUT_PLACEMENTS.map(row => ({ id: row.id, file: layoutPlacementFile(row.id) }))], libraries: [...SIGN_POOL_LIBRARIES, ...CAST_LIBRARIES, ...portalLook.scenes.libraries, library('native'), library('native-explorer'), { id: 'shapes', kind: 'owned', models: shapes.map(([id]) => ({ id, file: `world/geometry/${id}.glb` })) }],
+const NINE_WORLD_SCENES = parseWorldScenes({ version: 1, catalogue: 'models/world-scenes.json', lent, uniforms: [NINE_SHARED], welds: [CAST_WELD, { id: 'fabric', file: 'world/fabric.json' }], placements: [...SET_PLACEMENTS, ...MOVER_PLACEMENTS, ...LAYOUT_PLACEMENTS.map(row => ({ id: row.id, file: layoutPlacementFile(row.id) }))], libraries: [...SIGN_POOL_LIBRARIES, ...CAST_LIBRARIES, ...portalLook.scenes.libraries, library('native'), library('native-refine'), library('native-explorer'), { id: 'shapes', kind: 'owned', models: shapes.map(([id]) => ({ id, file: `world/geometry/${id}.glb` })) }],
   materials: [...castMaterials(hookMaterial), ...portalLook.scenes.materials, ...NINE_MATERIAL_LOOKS.map(([id, name]) => look(id, name))],
   steps: [{ id: 'dressing', scene: 'world/scenes/dressing.json', geometry: { ...Object.fromEntries(dressing.map(({ model }) => [model, { library: libraryOf.get(model) ?? signLibrary.get(model) ?? 'shapes', model }])), ...windowStep([0, 1], layout).geometry },
     instanceAttributes: windowStep([0, 1], layout).instanceAttributes,

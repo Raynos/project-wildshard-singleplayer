@@ -18,8 +18,15 @@ test('every Nine catalogue draw names a declared whole-library model on its own 
   for (const model of catalogue.models) expect(models.model(model.key).id).toBe(model.id);
   const libraries = new Map(NINE_WORLD_SCENES.libraries.flatMap(row => row.kind === 'whole' ? [[row.id, row] as const] : []));
   const explorer = new Set(world.libraries.explorer);
-  expect([...libraries.keys()]).toEqual(['native', 'native-explorer']);
-  for (const tile of libraries.get('native')?.models.flatMap(model => model.files) ?? []) expect(explorer.has(tile)).toBe(false);
+  expect([...libraries.keys()]).toEqual(['native', 'native-refine', 'native-explorer']);
+  for (const id of ['native', 'native-refine']) for (const tile of libraries.get(id)?.models.flatMap(model => model.files) ?? []) expect(explorer.has(tile)).toBe(false);
+  // D179 B: the refine library is the city fabric alone (the layout kits and shell), read only by the fabric weld's plain
+  // mesh nodes; no catalogue draw reads it (a catalogue model keeps its full exact intake)
+  const refine = libraries.get('native-refine');
+  expect(refine?.load).toBe('refine');
+  expect(refine?.models.length).toBeGreaterThan(0);
+  expect(refine?.models.every(row => row.id.startsWith('layout-'))).toBe(true);
+  for (const model of catalogue.models) for (const choice of model.choices) for (const draw of [...choice.draws, ...choice.lods.flatMap(level => level.draws)]) expect(draw.library).not.toBe('native-refine');
   // a draw reads a whole-library model on its baked tiles, a cast in its pool file (the lion's, the crowd's, the hook's
   // levels) or an owned file (the hook's full cast)
   const pools = new Map(NINE_WORLD_SCENES.libraries.flatMap(row => row.kind === 'pool' ? [[row.id, row] as const] : []));

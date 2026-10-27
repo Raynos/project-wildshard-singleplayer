@@ -10,6 +10,7 @@ import product, { nineProduct, inputs } from './fixtures/nine-product-inputs';
 import { output } from './fixtures/nine-source-program';
 import nativeDecals from '../src/shards/nine-dragon-stack/data/nativeDecals.json' with { type: 'json' };
 import before from './fixtures/nine-admitted-output.json' with { type: 'json' };
+import { nineOutputRefinePredecessor } from './fixtures/nine-refine-predecessor';
 import { expectNineDeclaration } from './fixtures/nine-declaration-pins';
 import { SCRIPT_V2_REVISIONS } from '../src/format/scriptAdmissionV2';
 import { nineOutput as emitNineOutput } from '../src/shards/nine-dragon-stack/generators/productOutput';
@@ -26,7 +27,8 @@ test('source-owned files preserve the original complete output and executable by
   const hash = hashImmutableBytes(bytes);
   expect(hash).toBe('3548c07ed2ac758a530cb973e7fe45962f084a76135701152486ffdb013bb276');
   expect(bytes.byteLength).toBe(4859);
-  const actual = output;
+  // D179 B: the fabric reads back through the refine predecessor layer (the scenes section is projected below as before)
+  const actual = nineOutputRefinePredecessor(output);
   const signature = (value: unknown): { bytes: number; hash: string } => {
     const source = new TextEncoder().encode(encodeCanonicalJson(value));
     return { bytes: source.byteLength, hash: hashImmutableBytes(source) };
