@@ -111,3 +111,21 @@ test('custom position accessors retain their normalized read and bounds semantic
     expect(actual.boundingBox).toEqual(expected.boundingBox); expect(actual.boundingSphere).toEqual(expected.boundingSphere);
   } finally { read.mockRestore(); expected?.dispose(); actual?.dispose(); closeMesh(mesh); }
 });
+
+test.each(['empty', 'overflow'])('keeps native bounds and diagnostics for %s positions', mode => {
+  const mesh = boundedMesh();
+  if (mode === 'empty') mesh.geometry.setAttribute('position', new BufferAttribute(new Int16Array(0), 3, true));
+  mesh.geometry.computeBoundingBox(); mesh.geometry.computeBoundingSphere();
+  if (mode === 'overflow') { mesh.scale.setScalar(1e308); mesh.updateMatrixWorld(true); }
+  const errors = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  let expected: BufferGeometry | undefined, actual: BufferGeometry | null = null;
+  try {
+    expected = original(mesh);
+    const messages = errors.mock.calls.map(call => String(call[0])); errors.mockClear();
+    actual = identitySpaceGeometry(mesh);
+    if (actual === null) throw new Error('Missing quantized result');
+    expect(actual.getAttribute('position').array).toEqual(expected.getAttribute('position').array);
+    expect(actual.boundingBox).toEqual(expected.boundingBox); expect(actual.boundingSphere).toEqual(expected.boundingSphere);
+    expect(errors.mock.calls.map(call => String(call[0]))).toEqual(messages);
+  } finally { errors.mockRestore(); expected?.dispose(); actual?.dispose(); closeMesh(mesh); }
+});
