@@ -34,6 +34,7 @@ import type { ShardProduct } from './shardProduct';
 import { wearBakedTiles } from '../looks/vertexWear';
 import { colliderTileKeys, type TileContent } from './tileContent';
 import { tiledMesh } from './tiledMesh';
+import { bakedPlacementPoses } from './bakedPlacementPoses';
 
 /** What a row is drawn into: the product its files resolve against, the live world, and the scope its pieces leave with
  *  (absent: the ambient owner, as a resident world's build). */
@@ -138,11 +139,7 @@ async function placeFamilies(owner: BakedTilesOwner, row: BakedTilesRow, instanc
   for (const family of plan.families) {
     const declared = instances.families.find(entry => entry.key === family.key); if (declared === undefined) throw new Error('Missing baked family');
     const model = defineGeometryModel(declared.model, 'proto', { category: declared.model.category, pipeline: declared.model.pipeline }, { geometry, materials });
-    const placements = family.indices.map(i => {
-      const o = i * 10, x = f[o + 1] ?? 0, y = (f[o + 2] ?? 0) - row.drop, z = f[o + 3] ?? 0, scale = f[o + 8] ?? 1, tint = f[o + 9] ?? 1;
-      const matrix = new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion(f[o + 4] ?? 0, f[o + 5] ?? 0, f[o + 6] ?? 0, f[o + 7] ?? 1), new THREE.Vector3(scale, scale, scale));
-      return { x, y, z, matrix, color: new THREE.Color(tint, tint, tint), variant: instances.names[f[o] ?? 0] ?? '' };
-    });
+    const placements = bakedPlacementPoses(f, family.indices, instances.names, row.drop);
     const slot = instances.looks[declared.look]; if (slot === undefined) throw new Error('Missing baked family look');
     const cull: CullOptions = slot.cull[TIER];
     await owned(owner, () => placeSliced(model, placements, { ctx, draw: 'instanced', registry: owner.registry, parent: group, cull,
