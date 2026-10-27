@@ -1887,7 +1887,7 @@ export async function readWholeGeometry(scope: ResourceScope, source: Shardfile 
   const assembler = new WholeGeometryAssembler();
   const slice = workSlice(undefined, scope);
   const assertLive = (): void => { if (scope.disposed) throw new Error('Whole geometry unloaded while reading'); };
-  const check = async (): Promise<void> => {
+  const check = (): Promise<void> | undefined => {
     assertLive();
     let wait = pause;
     if (wait === undefined) {
@@ -1898,12 +1898,16 @@ export async function readWholeGeometry(scope: ResourceScope, source: Shardfile 
         if (checkpoint !== undefined) wait = () => checkpoint;
       } else if (slice.due()) wait = slice.yield;
     }
-    if (wait !== undefined) {
+    if (wait === undefined) return undefined;
+    // Keep real pauses and their retirement race; cheap default completions
+    // need neither a pending promise nor a microtask handoff.
+    const suspend = async (): Promise<void> => {
       let release = (): void => undefined;
       const stopped = new Promise<void>(resolve => { release = scope.capture('disposers', resolve); });
       try { await Promise.race([wait(), stopped]); } finally { release(); }
-    }
-    assertLive();
+      assertLive();
+    };
+    return suspend();
   };
   // read ahead: up to WHOLE_READ_AHEAD files' bytes in flight while the current one parses and assembles (the home's
   // fixed draws read their tiles one after another: ~0.57 s at 4x CPU, much of it waiting on each read)
@@ -1937,7 +1941,8 @@ export async function readWholeGeometry(scope: ResourceScope, source: Shardfile 
           // until cleanup; the assembler still writes independent final arrays.
           if (timing === undefined) assembler.add(mesh, 'take');
           else timing.sync('assemble', () => { assembler.add(mesh, 'take'); });
-          await (timing === undefined ? check() : timing.run('yield', check));
+          const checkpoint = timing === undefined ? check() : timing.checkpoint('yield', check);
+          if (checkpoint !== undefined) await checkpoint;
         }
         if (scope.disposed) throw new Error('Whole geometry unloaded while reading');
       } finally { for (const dispose of cleanup) dispose(); }
@@ -1946,7 +1951,8 @@ export async function readWholeGeometry(scope: ResourceScope, source: Shardfile 
     const steps = assembler.finishSteps();
     let finished = timing === undefined ? steps.next() : timing.sync('finalize', () => steps.next());
     while (!finished.done) {
-      await (timing === undefined ? check() : timing.run('yield', check));
+      const checkpoint = timing === undefined ? check() : timing.checkpoint('yield', check);
+      if (checkpoint !== undefined) await checkpoint;
       finished = timing === undefined ? steps.next() : timing.sync('finalize', () => steps.next());
     }
     const result = finished.value;

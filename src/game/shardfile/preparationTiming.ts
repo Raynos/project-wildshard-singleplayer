@@ -16,6 +16,8 @@ interface PreparationPhase { start: number | undefined; end: number; calls: numb
 interface PreparationBatch<Phase extends string> {
   readonly run: <T>(phase: Phase, work: () => Promise<T>) => Promise<T>;
   readonly sync: <T>(phase: Phase, work: () => T) => T;
+  /** Count a completion check without creating an async hop when it needs no pause. */
+  readonly checkpoint: (phase: Phase, work: () => Promise<void> | undefined) => Promise<void> | undefined;
   readonly finish: () => void;
 }
 /** Developer-only, bounded phase totals for a multi-file preparation. Await all work before finish().
@@ -46,6 +48,19 @@ export function clientPreparationBatch<Phase extends string>(slug: string, step:
       const row = begin(phase), start = diagnosticNow(); let failed = true;
       try { const result = work(); failed = false; return result; }
       finally { record(row, start, failed); }
+    },
+    checkpoint: (phase, work) => {
+      const row = begin(phase), start = diagnosticNow();
+      let pending: Promise<void> | undefined;
+      try { pending = work(); }
+      catch (error) { record(row, start, true); throw error; }
+      if (pending === undefined) { record(row, start, false); return undefined; }
+      const complete = async (): Promise<void> => {
+        let failed = true;
+        try { await pending; failed = false; }
+        finally { record(row, start, failed); }
+      };
+      return complete();
     },
     finish: () => {
       if (finished) return; finished = true;
