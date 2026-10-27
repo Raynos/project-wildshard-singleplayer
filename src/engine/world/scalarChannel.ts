@@ -16,6 +16,20 @@ export function readScalarChannel(input: unknown,blocks?:ReadonlyMap<string,Uint
   return decodeScalarStorage(row, source, (bytes, out) => unzlibSync(bytes, { out }));
 }
 
+/**
+ * Each zlib block inflated by the platform's stream decoder, off the script's own work (in script where there is none),
+ * for `ScalarLatticeBindings.prepare`: a cold Nalati / Nine Dragon crossing inflated its scalar blocks with fflate in one
+ * task (~70 ms at phone 4× CPU). The bytes are exactly unzlibSync's.
+ */
+export async function inflateScalarBlocks(blocks: ReadonlyMap<string, Uint8Array>): Promise<Map<string, Uint8Array>> {
+  const inflate = async (bytes: Uint8Array): Promise<Uint8Array> => {
+    if (typeof DecompressionStream === 'undefined') return unzlibSync(bytes);
+    const stream = new Blob([bytes.slice()]).stream().pipeThrough(new DecompressionStream('deflate'));
+    return new Uint8Array(await new Response(stream).arrayBuffer());
+  };
+  return new Map(await Promise.all([...blocks].map(async ([file, bytes]) => [file, await inflate(bytes)] as const)));
+}
+
 /** Decode once and borrow that same native typed storage for the defining bilinear sampler. */
 export function readScalarLattice(input: unknown,blocks?:ReadonlyMap<string,Uint8Array>): (x: number,z: number) => number {
   const row = v.parse(ScalarLatticeSchema,input),values = readScalarChannel(row.values,blocks);
@@ -99,7 +113,8 @@ export class ScalarLatticeBindings {
     return entry.read;
   }
 
-  prepare(blocks: ReadonlyMap<string, Uint8Array>): void {
+  /** `inflated`: the blocks already inflated (`inflateScalarBlocks`); a block it lacks is inflated here. */
+  prepare(blocks: ReadonlyMap<string, Uint8Array>, inflated?: ReadonlyMap<string, Uint8Array>): void {
     if (this.ready) return;
     this.seal();
     const decoded = new Map<string, Float32Array | Float64Array>();
@@ -107,7 +122,9 @@ export class ScalarLatticeBindings {
       if (typeof row.data === 'string') throw new Error('Scalar channels require binary files');
       const prior = decoded.get(row.data.file);
       if (prior !== undefined) return prior;
-      const values = readScalarChannel(row, blocks); decoded.set(row.data.file, values); return values;
+      const raw = inflated?.get(row.data.file);
+      const values = raw === undefined ? readScalarChannel(row, blocks) : decodeScalarStorage(row, raw, source => source);
+      decoded.set(row.data.file, values); return values;
     };
     const candidates = [...this.bindings.values()].map(entry => ({
       entry, sample: this.sample(entry.row, storage(entry.row.values), entry.bounds),

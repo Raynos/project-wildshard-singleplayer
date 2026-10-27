@@ -1,5 +1,5 @@
 import type { Scope } from '@wildshard/engine/app/scope';
-import { readScalarChannel,readScalarLattice,ScalarLatticeBindings } from '@wildshard/engine/world/scalarChannel';
+import { inflateScalarBlocks,readScalarChannel,readScalarLattice,ScalarLatticeBindings } from '@wildshard/engine/world/scalarChannel';
 import { ScalarLatticeSchema,ScalarTripletSchema,type ScalarLatticeRows,type ScalarTripletRows } from '@wildshard/format/scalarChannel';
 import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
 import { basinBody,type WaterBody } from '@wildshard/engine/world/water/body';
@@ -913,5 +913,7 @@ export async function prepareManifestScalarBlocks(manifest: ShardManifest, produ
     blocks.set(name, Uint8Array.from(bytes));
   }
   live();
-  intake.prepare(blocks);
+  const inflated = await inflateScalarBlocks(blocks);
+  live();
+  intake.prepare(blocks, inflated);
 }
