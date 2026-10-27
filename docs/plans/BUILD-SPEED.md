@@ -144,6 +144,8 @@ the pusher lane a round.
 - **Done (10-21, sp-x8):** both were already fixed (quest cable: c8cf164dd6 restored the cables fixture; DW digest:
   fb781f41c1); deploy push runs 39617646471 (a67c54d210) and 39619243789 (579bb34b59) ran all three files green on
   all 10 shards. No quarantine.
+  Reconciled 2026-10-27 (sp-x9): this counted CI row retains its two
+  measured green runs and is done; current unrelated CI reds do not reopen it.
 
 **Wave 1 Verify, before Wave 2 is asked:** host idle during lane tests above 20 % median; Codex poll share under 10 %;
 MCP processes ≤ one set per session that uses them; two green deploys in a row; receipt counts flat.

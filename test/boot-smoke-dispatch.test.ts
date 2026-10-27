@@ -44,6 +44,23 @@ function runSource(watchStatus: number, sourceSha = sha) {
   } finally { rmSync(root, { recursive: true, force: true }); }
 }
 
+test('product-free verdicts never wait for products and both complete cohorts remain required', () => {
+  const free = deploy.split('\n  behaviour:\n')[1]?.split('\n  behaviour-products:\n')[0];
+  const products = deploy.split('\n  behaviour-products:\n')[1]?.split('\n  behaviour-quarantine:\n')[0];
+  expect(free).toBeDefined();
+  expect(free).toContain('needs: generated-inputs');
+  expect(free).toContain('name: generated-inputs');
+  expect(free).toContain('WS_TEST_COHORT: product-free');
+  expect(free).not.toContain('needs: products');
+  expect(free).not.toContain('name: test-products');
+  expect(free).not.toContain('WS_TEST_PRODUCTS_SHA');
+  expect(products).toContain('needs: products');
+  expect(products).toContain('name: test-products');
+  expect(products).toContain('WS_TEST_COHORT: products');
+  const dispatch = deploy.split('\n  dispatch-boot-smoke:\n')[1];
+  expect(dispatch).toContain('products, behaviour, behaviour-products]');
+});
+
 test('only a fully successful push dispatches all seven exact-artifact smoke legs', () => {
   const dispatch = deploy.split('\n  dispatch-boot-smoke:\n')[1];
   expect(dispatch).toContain('needs: [build-and-deploy, typecheck-lint, derived-docs, generated-inputs, products, behaviour, behaviour-products]');

@@ -169,3 +169,16 @@ qualify SW3's maximum-red-window bar. Exact window starts and human
 cancellation attribution require the plan-end reading; they are not
 inferred from missing successes. SW3 remains **in flight (reading at plan
 end, G780)**. Existing damage owners retain the source fixes.
+
+
+### SW3 counted implementation reconciliation (2026-10-27, sp-x9)
+
+SW3's fix-forward implementation is already built: C4 `81559b512a`, P1
+`0181f41dd4`, reproduction/owner policy `97f3db9d72`, complete independent
+job verdicts `07597bf0c1`, and CF4 `eafc904ce9`. GM1's common/deploy
+no-cancel line is now explicit in `b958e653be`; CF5 protocol hangs are
+bounded by the original progress budget in `28f36f3987`. No new manager,
+gate step, peer stop or cancellation is added to implement this row.
+The no-window-over-45-min acceptance remains **in flight (reading at plan
+end, G780)**; it is not closed by these policy/source SHAs. Current broken
+source has named owners in BURN-DAMAGE-LIST, not invented timing passes.

@@ -572,3 +572,35 @@ Touched script/fixture types and typed lint pass. G769: no tests, browser,
 preview or smoke run before landing. Ordinary CI/end acceptance is pending;
 this is no claim that every runner stall or Explorer source fault is fixed.
 GM1's exact common/deploy wording landed in `b958e653be`.
+
+
+## CF3 topology ownership and remaining wall time (2026-10-27, sp-x9)
+
+**In flight (reading at plan end, G780).** The committed split
+`1f76530a1d` is present: all sixteen product-free parts need only
+`generated-inputs` and consume its exact-run artifact; four product parts
+need `products` and verify that artifact's SHA/run. Both complete blocking
+cohorts remain required by smoke dispatch. Add a contract regression for
+that boundary without running tests under G769. Touched types/lint pass.
+
+sp-ci-deploy confirmed no active deploy-workflow edit. sp-x1 explicitly
+transferred its inactive D26 GM5 `related-first` job, dispatch dependency
+and three untracked companion files. Remove that abandoned extra check
+from the shared tree rather than introduce a gate forbidden by G768.
+The resulting workflow equals committed HEAD; no required check or
+existing test cohort is removed. Other D26 gate-source hunks stay owned
+and untouched. No CI run is dispatched or cancelled.
+
+The last green run `40416522491` gives a concrete remaining critical path:
+runner start t+4.37 min; generated inputs end t+11.30 (producer command
+355 s); products end t+22.42 (builder command 485 s); product-free parts
+end between t+17.08 and t+24.03; product parts end t+27.47; web build ends
+t+27.83; final dispatch t+27.92. Product-free suites already overlap the
+products job. Removing their dependency again cannot account for the
+remaining time. Do not claim a 13-minute green verdict, drop preparation,
+weaken artifact admission, or add a duplicate early-check job. The actual
+source/generator reductions and ordinary end reading must qualify the bar.
+
+GM1 exact policy wording: `b958e653be`. CF5's unchanged progress guard
+now also bounds stuck protocol reads: `28f36f3987`. Both source rows are
+built and remain in flight for their applicable G780 acceptance readings.
