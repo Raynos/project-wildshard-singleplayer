@@ -764,7 +764,10 @@ export class LiveGridSession {
       // before entered features; importing it constructs no world or plugin.
       await manifest.load();
     };
-    await prepareEntry();
+    // Metadata may expose render-only approach capability while its importer
+    // runs. LiveGridHost still awaits prepareRuntime before publishing product
+    // readiness; fresh construction always imports before creating its owner.
+    if (!metadata) await prepareEntry();
     // Only admitted declarative/client-plan worlds supply reversible construction bindings. The live host
     // also requires the strict page/owner projection and serializes every constructor through its cleanup.
     const isolatedPreparation = dataPage || manifest.clientPlanRuntime === true;
