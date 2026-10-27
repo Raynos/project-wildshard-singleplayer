@@ -63,7 +63,7 @@ export class RefiningWholeLibrary {
       if (files.length > 0) this.files.set(tile.z * 8 + tile.x, files);
     }
     const fine = new Set([...this.files.values()].flat());
-    for (const hash of wanted) if (!fine.has(hash) || declared.get(hash)?.kind !== 'glb') throw new Error('Refinement requires declared fine geometry');
+    for (const hash of wanted) if (!fine.has(hash) || declared.get(hash)?.kind !== 'glb') throw new Error(`Refinement requires declared fine geometry: ${row.id} ${hash}`);
     this.builds = new SharedTileBuilds(owner, async (tile, scope) => {
       const hashes = this.files.get(tile); if (hashes === undefined) throw new Error('Missing refinement tile');
       const pieces: WholeGeometryPiece[] = [];

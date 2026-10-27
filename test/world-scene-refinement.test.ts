@@ -36,7 +36,7 @@ function fixture() {
   const queue = new ControlRefinement(owner, undefined, () => ({ x: -230, z: -230 }), () => Promise.resolve()), cover = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
   const library = new RefiningWholeLibrary(owner, product, row, queue, cover), material = new MeshBasicMaterial(), initial = new BufferGeometry(), mesh = new Mesh(initial, material);
   const content = library.bind('fabric', mesh, owner), read = vi.spyOn(runtimeProduct(source).assets, 'read');
-  return { owner, original, partitions, assets, source, mesh, content, read, cover, close: () => { owner.dispose(); original.dispose(); for (const part of partitions) part.geometry.dispose(); initial.dispose(); material.dispose(); bakeMaterial.dispose(); vi.restoreAllMocks(); } };
+  return { owner, original, partitions, assets, source, product, row, queue, mesh, content, read, cover, close: () => { owner.dispose(); original.dispose(); for (const part of partitions) part.geometry.dispose(); initial.dispose(); material.dispose(); bakeMaterial.dispose(); vi.restoreAllMocks(); } };
 }
 
 test('original tile pieces append to one stable draw and leave with their actual ring holds', async () => {
@@ -69,5 +69,16 @@ test('a retiring tile drains its already-started read without appending a late p
     const hash = f.source.tiles.find(tile => tile.z * 8 + tile.x === key)?.files[0], bytes = hash === undefined ? undefined : f.assets.get(hash);
     if (bytes === undefined) throw new Error('Missing held source bytes'); release(bytes);
     await pending; expect(f.mesh.geometry.attributes).toEqual({}); expect(f.read).toHaveBeenCalledTimes(1);
+  } finally { f.close(); }
+});
+
+
+test('a declared GLB outside the fine tile inventory refuses before any read or publication', () => {
+  const f = fixture(), removed = f.source.tiles.shift(), hash = removed?.files[0];
+  if (hash === undefined) throw new Error('Missing original fine tile');
+  try {
+    expect(f.source.files.some(file => file.hash === hash && file.kind === 'glb')).toBe(true);
+    expect(() => new RefiningWholeLibrary(f.owner, f.product, f.row, f.queue, f.cover)).toThrow(`Refinement requires declared fine geometry: fine ${hash}`);
+    expect(f.read).not.toHaveBeenCalled(); expect(f.mesh.geometry.attributes).toEqual({});
   } finally { f.close(); }
 });
