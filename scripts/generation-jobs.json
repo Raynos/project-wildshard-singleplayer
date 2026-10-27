@@ -4478,7 +4478,6 @@
         "src/shards/pine-hollow/generators/finishCards.ts",
         "src/shards/pine-hollow/generators/wildlifeLook.ts",
         "src/shards/pine-hollow/generators/weaponFinishes.ts",
-        "src/shards/pine-hollow/data/treeRest.generated.json",
         "src/shards/pine-hollow/data/paintedTextures.json",
         "src/shards/pine-hollow/data/npcSkins.generated.json",
         "src/shards/pine-hollow/generators",
