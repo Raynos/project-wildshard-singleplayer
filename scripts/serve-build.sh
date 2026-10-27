@@ -290,8 +290,8 @@ GEN_ARGS="--proof"; SHARDFILE_ARGS="--reuse"
 ( cd "$SRC" && python3 "$REPO/scripts/heavy-lane.py" build -- bash -c \
   'step() { local s=$SECONDS; "$@" || return; echo "serve-build step $1 $2: $((SECONDS - s))s"; }
    app="pnpm exec vite build"; [ -f scripts/build-app.mjs ] && app="node scripts/build-app.mjs"   # a --rev tree may predate it
-   step node scripts/gen.mjs $3 && step node scripts/build-shardfiles.mjs $4 && step $app --mode "$1" --config "$2"' \
-  bash "$MODE" "$CFG" "$GEN_ARGS" "$SHARDFILE_ARGS" ) > "$BASE/$stamp/build.log" 2>&1 \
+   step node scripts/gen.mjs $3 && step node scripts/build-shardfiles.mjs $4 && step $app --mode "$1" --config "$2" --outDir "$5"' \
+  bash "$MODE" "$CFG" "$GEN_ARGS" "$SHARDFILE_ARGS" "$OUT" ) > "$BASE/$stamp/build.log" 2>&1 \
   || { echo "serve-build: build failed; stderr/stdout tail from $BASE/$stamp/build.log:" >&2; tail -60 "$BASE/$stamp/build.log" >&2
          # the build directory goes with the failed preview: keep its whole log (a shard's first error sits above the tail)
          cp "$BASE/$stamp/build.log" "$BASE/failed-$stamp.log" 2>/dev/null && echo "serve-build: full log kept at $BASE/failed-$stamp.log" >&2
