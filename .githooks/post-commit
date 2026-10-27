@@ -4,14 +4,7 @@ set -uo pipefail
 common="$(git rev-parse --path-format=absolute --git-common-dir)"
 
 # Release owner attribution, independent of author identity.
-python3 - "$common/commit-lanes.jsonl" <<'LEDGER'
-import json, os, subprocess, sys, time
-sha = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
-row = {'sha': sha, 'pane': os.environ.get('HERDR_PANE_ID'),
-       'lane': os.environ.get('WS_COMMIT_LANE'), 'at': int(time.time())}
-with open(sys.argv[1], 'a') as stream:
-    stream.write(json.dumps(row, separators=(',', ':')) + '\n')
-LEDGER
+python3 scripts/commit_lane.py "$common/commit-lanes.jsonl"
 
 # The temporary push loop owns uploads.
 exit 0
