@@ -59,3 +59,17 @@ test('a public image coat keeps the original image decoder beside verified rig m
   expect(imageRead).toHaveBeenCalledExactlyOnceWith('/original/coat.png');
   (await family.load('body')).geometry.dispose(); for (const value of [...textures, image]) value.dispose();
 });
+
+
+test('preparing one species leaves unrelated hulls cold until their own preparation', async () => {
+  const rig = vi.fn((_name: string) => sourceRig());
+  const family = riggedHulls({ label: 'species', rigs: ['body', 'other'], hulls: { 'bird:adult': 'body', 'boar:adult': 'other' } },
+    { files: { body: 'bird.glb', other: 'boar.glb' }, coats: {} }, { rig, texture: () => Promise.reject(new Error('No separate maps')) });
+  await family.preload('bird');
+  expect(rig.mock.calls).toEqual([['bird.glb']]);
+  expect(() => family.skin('boar', 'adult', [])).toThrow('not prepared');
+  await family.preload('bird'); expect(rig).toHaveBeenCalledTimes(1);
+  await family.preload('boar'); expect(rig.mock.calls).toEqual([['bird.glb'], ['boar.glb']]);
+  await family.preload(); expect(rig).toHaveBeenCalledTimes(2);
+  (await family.load('body')).geometry.dispose(); (await family.load('other')).geometry.dispose();
+});

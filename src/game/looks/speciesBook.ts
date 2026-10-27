@@ -77,7 +77,7 @@ export class HullLookBook {
     const bodies = this.bodies;
     if (bodies !== undefined) return { ...look, preload: bodies.preload, build: variant => bodies.copy(kind, variant.id) };
     const hulls = this.hulls; if (hulls === undefined) throw new Error('Look book has no body source');
-    return { ...look, preload: hulls.preload, skin: (variant, bones) => {
+    return { ...look, preload: () => hulls.preload(kind), skin: (variant, bones) => {
         const hull = hulls.skin(kind, variant.id, bones);
         if (hull === null && row.required) throw new Error(`Required hull is not loaded: ${kind}:${variant.id}`);
         return hull;
@@ -122,7 +122,7 @@ export class HullLookBook {
           return made;
         } }),
         ...(row.hulls !== true ? {} : {
-          preload: async () => { await Promise.all([packed.preload(), skins().preload()]); },
+          preload: async () => { await Promise.all([packed.preload(), skins().preload(row.kind)]); },
           hasSkin: (variant: VariantDef) => skins().hullOf(kind, variant.id) !== null,
           loadSkin: async (variant: VariantDef) => { const name = skins().hullOf(kind, variant.id); if (name !== null) await skins().load(name); },
           skin: (variant: VariantDef, bones: readonly BoneDef[]) => { const hull = skins().skin(kind, variant.id, bones); return hull === null ? null : { ...hull, normalMap: null, overgrown: false }; },

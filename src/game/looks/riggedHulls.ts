@@ -54,7 +54,7 @@ export function productRiggedHulls(slug: string): RiggedHulls {
     return loading;
   };
   const ready = (): RiggedHulls => { if (family === undefined) throw new Error('Rigged hull book is not prepared'); return family; };
-  const result: RiggedHulls = { load: async name => (await prepare()).load(name), preload: async () => (await prepare()).preload(),
+  const result: RiggedHulls = { load: async name => (await prepare()).load(name), preload: async kind => (await prepare()).preload(kind),
     hullOf: (kind, variant) => ready().hullOf(kind, variant), skin: (kind, variant, bones) => ready().skin(kind, variant, bones) };
   productFamilies.set(key, result); return result;
 }
@@ -65,8 +65,8 @@ export interface RiggedHulls {
   load: (name: string) => Promise<RiggedHullAsset>;
   /** the hull for (kind, variant), or null */
   hullOf: (kind: string, variant: string) => string | null;
-  /** Every declared rig and coat loaded; missing assets refuse. */
-  preload: () => Promise<void>;
+  /** One requested kind's hulls/coats, or every declared rig when omitted; missing assets refuse. */
+  preload: (kind?: string) => Promise<void>;
   /** The declared hull bound to `bones`; null only for a variant with no hull. */
   skin: (kind: string, variant: string, bones: readonly BoneDef[]) => CreatureHull | null;
 }
@@ -263,7 +263,12 @@ export function riggedHulls(row: RiggedHullFamilyRow, urls: RiggedHullUrls, tran
   const load = async (name: string): Promise<RiggedHullAsset> => {
     const rig = await loadRig(name); await adoptOnce(name, rig); return rig;
   };
-  const preload = async (): Promise<void> => { await prepareParts(); await Promise.all(row.rigs.map(load)); };
+  const preload = async (kind?: string): Promise<void> => {
+    const names = kind === undefined ? row.rigs : [...new Set(Object.entries(row.hulls)
+      .filter(([key]) => key.startsWith(`${kind}:`)).map(([, hull]) => hull))];
+    if (names.length === 0) return;
+    await prepareParts(); await Promise.all(names.map(load));
+  };
 
   const skin = (kind: string, variant: string, bones: readonly BoneDef[]): CreatureHull | null => {
     const name = hullOf(kind, variant);
