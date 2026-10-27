@@ -2,7 +2,7 @@ import { declareModuleGroups } from '../boot/download';
 import { retried } from '../boot/retry';
 import { type AnimationClip, type Object3D, type Texture, BufferGeometry, DefaultLoadingManager, InstancedBufferAttribute, InstancedMesh, LoadingManager, SkinnedMesh } from 'three';
 import type * as RigParser from './rigParser';
-import type { GLTFLoader, GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { rigAtlasReader } from './rigAtlas';
 import { labelObjectTree } from '../render/gpuLabels';
 
@@ -41,7 +41,7 @@ export function prepareRigLoader(): Promise<typeof RigParser> {
   return preparing;
 }
 
-let loader: GLTFLoader | undefined;
+let loader: RigParser.RigLoader | undefined;
 /** Cache/clone policy stays with the owning asset scope. All rig GLBs use this parser.
  * Optional resource aliases match the resolved URL pathname; both aliases and
  * ordinary dependencies retain the default manager's tier/pack resolution. */
@@ -68,6 +68,17 @@ export async function loadRigFile(url: string, aliases: Readonly<Record<string, 
   applyExactInstanceMatrices(gltf.scene);
   labelObjectTree(gltf.scene, 'engine/loadRigFile', url);
   return gltf;
+}
+
+/** Decode verified product bytes through the same bounded parser, exact matrices and memory labels as a URL rig.
+ * The caller owns byte admission; this performs no fetch and retains no settled wire buffer. */
+export async function parseRigFile(bytes: Uint8Array, url: string): Promise<GLTF> {
+  const { createRigLoader } = await prepareRigLoader();
+  loader ??= createRigLoader();
+  const file = await loader.parseBytesAsync(bytes, url.slice(0, url.lastIndexOf('/') + 1));
+  applyExactInstanceMatrices(file.scene);
+  labelObjectTree(file.scene, 'engine/loadRigFile', url);
+  return file;
 }
 
 /** Read the original first indexed/UV standard-material atlas for separately prepared geometry.

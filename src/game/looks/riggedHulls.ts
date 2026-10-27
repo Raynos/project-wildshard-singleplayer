@@ -1,14 +1,15 @@
 import * as THREE from 'three';
-import { loadRigFile, rigRoot } from '@wildshard/engine/anim/rig';
+import { loadRigFile, rigRoot, parseRigFile } from '@wildshard/engine/anim/rig';
 import { fetchImage } from '@wildshard/engine/boot/bytes';
 import { isJsonData } from '@wildshard/format/json';
 import type { RiggedHullFamilyRow, RiggedHullFiles, RiggedHullFlap, RiggedHullUrls } from '@wildshard/format/riggedHulls';
 import { cacheUntilDisposed, retainCachedResources } from '@wildshard/engine/app/cachedAssets';
-import { ktx2File, ktx2Texture, prepareCompressedTexture } from '@wildshard/engine/core/ktx2';
+import { ktx2File, ktx2Texture, prepareCompressedTexture, parseKtx2Bytes } from '@wildshard/engine/core/ktx2';
 import type { RGB } from '@wildshard/engine/entities/species/loft';
 import type { CreatureHull } from '@wildshard/engine/entities/species/look';
 import type { BoneDef } from '@wildshard/engine/entities/species/registry';
 import { TIER } from '@wildshard/engine/core/tier';
+import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 /**
  * Rigged creature hulls (SHARD-PLATFORM W2 C2, one generic family): generated hulls pre-skinned offline to the procedural
@@ -40,13 +41,12 @@ export function productRiggedHulls(slug: string): RiggedHulls {
     loading ??= (async () => {
       const { loadFirstPartyProduct } = await import('@wildshard/game/shardfile/runtimeProduct');
       const product = await loadFirstPartyProduct(slug), book = product.section('look/rigged-hulls');
-      const source = book.tiers[TIER], resources = book.productFiles ? { ...source,
-        files: Object.fromEntries(Object.entries(source.files).map(([name, entry]) => [name, typeof entry === 'string' ? product.url(entry)
-          : { rig: product.url(entry.rig), base: product.url(entry.base), normal: product.url(entry.normal) }])),
-        // GR8: a coat page the product names (a file name, not a /-rooted public URL) loads through the product's URL
-        coats: Object.fromEntries(Object.entries(source.coats).map(([name, coat]) => [name, coat.image.startsWith('/') ? coat : { ...coat, image: product.url(coat.image) }])),
-        ...(source.parts === undefined ? {} : { parts: { ...source.parts, file: product.url(source.parts.file) } }) } : source;
-      family = riggedHulls(book.family, resources); return family;
+      const source = book.tiers[TIER];
+      if (book.productFiles) {
+        family = riggedHulls(book.family, source, productHullTransport(slug));
+        return family;
+      }
+      family = riggedHulls(book.family, source); return family;
     })();
     return loading;
   };
@@ -98,8 +98,8 @@ export function riggedHullMap<T extends THREE.Texture>(texture: T, slot: 'base' 
 }
 
 /** a hull's separate maps, sampled and fenced before the rig publishes them (a failed one frees the other) */
-async function loadHullMaps(hull: string, files: RiggedHullFiles): Promise<{ map: THREE.Texture; normalMap: THREE.Texture }> {
-  const [base, normal] = await Promise.allSettled([ktx2File(files.base), ktx2File(files.normal)]);
+async function loadHullMaps(hull: string, files: RiggedHullFiles, texture: (name: string) => Promise<THREE.Texture>): Promise<{ map: THREE.Texture; normalMap: THREE.Texture }> {
+  const [base, normal] = await Promise.allSettled([texture(files.base), texture(files.normal)]);
   if (base.status === 'rejected' || normal.status === 'rejected') {
     if (base.status === 'fulfilled') base.value.dispose();
     if (normal.status === 'fulfilled') normal.value.dispose();
@@ -125,9 +125,25 @@ function cacheHull(out: RiggedHullAsset, name: string, ready: Map<string, Rigged
   ready.set(name, out);
 }
 
-/** A family of rigged hulls from its row. */
-export function riggedHulls(row: RiggedHullFamilyRow, urls: RiggedHullUrls): RiggedHulls {
+/** Named product bodies use the verified reader; the original URL authority remains the default. */
+export interface RiggedHullTransport {
+  readonly rig: (name: string) => Promise<GLTF>;
+  readonly texture: (name: string) => Promise<THREE.Texture>;
+}
+
+/** The cached family must not retain an admission or its transport bodies after its resident owner retires. */
+function productHullTransport(slug: string): RiggedHullTransport {
+  const read = async () => (await import('@wildshard/game/shardfile/runtimeProduct')).loadFirstPartyProduct(slug);
+  return {
+    rig: async name => { const product = await read(); return parseRigFile(await product.file(name), product.url(name)); },
+    texture: async name => parseKtx2Bytes(await (await read()).file(name)),
+  };
+}
+
+/** A family of rigged hulls from its row, optionally borrowing verified named product bytes. */
+export function riggedHulls(row: RiggedHullFamilyRow, urls: RiggedHullUrls, transport?: RiggedHullTransport): RiggedHulls {
   if (!isJsonData(row) || !isJsonData(urls)) throw new Error('Rigged hull resources require plain data');
+  const readRig = transport?.rig ?? loadRigFile, readTexture = transport?.texture ?? ktx2File;
   const adopting = new WeakMap<RiggedHullAsset, Promise<void>>();
   const loading = new Map<string, Promise<RiggedHullAsset>>();
   const ready = new Map<string, RiggedHullAsset>();
@@ -138,7 +154,7 @@ export function riggedHulls(row: RiggedHullFamilyRow, urls: RiggedHullUrls): Rig
   const prepareParts = (): Promise<void> => {
     const source = urls.parts;
     if (source === undefined) return Promise.resolve();
-    partsLoading ??= loadRigFile(source.file).then(gltf => {
+    partsLoading ??= readRig(source.file).then(gltf => {
       rigRoot(gltf).traverse(object => { if (isMesh(object)) parts.set(object.name, object.geometry); });
       for (const name of Object.values(source.nodes)) if (!parts.has(name)) throw new Error(`Missing hull part: ${name}`);
       return undefined;
@@ -155,8 +171,8 @@ export function riggedHulls(row: RiggedHullFamilyRow, urls: RiggedHullUrls): Rig
       const entry = urls.files[name], files = typeof entry === 'string' ? undefined : entry;
       const url = typeof entry === 'string' ? entry : files?.rig;
       if (url === undefined) return Promise.reject(new Error(`creature rig ${name}: no rig file`));
-      const maps = files === undefined ? Promise.resolve(null) : loadHullMaps(name, files);
-      p = Promise.allSettled([loadRigFile(url), maps]).then(([file, separateMaps]) => {
+      const maps = files === undefined ? Promise.resolve(null) : loadHullMaps(name, files, readTexture);
+      p = Promise.allSettled([readRig(url), maps]).then(([file, separateMaps]) => {
         if (file.status === 'rejected' || separateMaps.status === 'rejected') {
           if (separateMaps.status === 'fulfilled') { separateMaps.value?.map.dispose(); separateMaps.value?.normalMap.dispose(); }
           const reason: unknown = file.status === 'rejected' ? file.reason : separateMaps.status === 'rejected' ? separateMaps.reason : null;
@@ -220,7 +236,9 @@ export function riggedHulls(row: RiggedHullFamilyRow, urls: RiggedHullUrls): Rig
       const [kind = '', variant = ''] = kv.split(':');
       const coat = urls.coats[`${name}:${kind}:${variant}`];
       if (coat === undefined) return;
-      const tex = await ktx2Texture(coat.key) ?? (urls.coatDecode === 'bitmap'
+      // Logical names consume the same verified product body as admission; public coats keep their original URL/cache key.
+      const owned = transport !== undefined && !coat.image.startsWith('/');
+      const tex = owned ? await readTexture(coat.image) : await ktx2Texture(coat.key) ?? (urls.coatDecode === 'bitmap'
         ? new THREE.Texture(await fetchImage(coat.image, Infinity, false)) : await new THREE.TextureLoader().loadAsync(coat.image));
       tex.flipY = map.flipY; tex.anisotropy = map.anisotropy; tex.wrapS = map.wrapS; tex.wrapT = map.wrapT;
       tex.colorSpace = THREE.SRGBColorSpace;
