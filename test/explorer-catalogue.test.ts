@@ -11,7 +11,7 @@ import { nameBlob, emitNamedBlobs } from '../src/sdk/blobs';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { ProductFigureCatalogue } from '../src/game/models/figureCatalogue';
 import { defineModel } from '../src/engine/models/model';
-import { WILDLIFE_DRAW } from '../src/shards/pine-hollow/generators/wildlifeDraw';
+import { PINE_WILDLIFE_DRAW as WILDLIFE_DRAW } from './fixtures/pine-program';
 import { explorerRoster } from '../src/game/models/explorerCatalogue';
 import { installWorldScenes } from '../src/game/shardfile/worldScenes';
 import { drawSceneRows, prepareSceneDrawRows } from '../src/game/shardfile/sceneDraws';
@@ -20,9 +20,11 @@ import { admitWorldSceneStepSources, worldSceneStepSources } from '../src/game/s
 import { createModelLibrary, rigLibrary } from '../src/game/plugin/geometry';
 import { sceneScalar, sceneScalarValue, sceneVectors } from '../src/game/shardfile/sceneInputs';
 import type { ShardContext } from '../src/game/plugin/context';
-import { output as sky } from '../src/shards/far-reach/generators/sourceOutput';
+import { originalSkyOutput } from './fixtures/sky-scene-source';
 import { originalOutput as signal } from './fixtures/sunscar-source-program';
 import { signalEmberBuffer, SIGNAL_EMBER_BLOBS } from '../src/shards/sunscar-dunes/generators/emberBuffers';
+
+const sky = await originalSkyOutput();
 
 const encode = (value: unknown) => new TextEncoder().encode(JSON.stringify(value));
 const emptyLibrary = { rows: { meshes: [], hd: [], meshUrls: {}, hdUrls: {}, hdLooks: {}, aoFloor: 1 } };
