@@ -230,7 +230,7 @@ export class TileStreamer<D> {
   private readonly ports: RingPorts<D>;
   private readonly options: Required<RingOptions>;
   private demandRevision = 0;
-  private idlePlan: { x: number; z: number; vx: number; vz: number; cx: number; cz: number; catalogue: number; demand: number } | null = null;
+  private idlePlan: { x: number; z: number; vx: number; vz: number; cx: number; cz: number; catalogue: number; demand: number; wakeFrame: number } | null = null;
   private frame = 0;
   private refused = 0;
   private evictions = 0;
@@ -370,10 +370,10 @@ export class TileStreamer<D> {
       || !Number.isFinite(camera.vz) || !Number.isFinite(fullCentre.x) || !Number.isFinite(fullCentre.z)) throw new RangeError('Invalid ring camera');
     const frame = ++this.frame, revision = this.catalogue.revision?.(), prior = this.idlePlan;
     if (revision !== undefined && !Number.isSafeInteger(revision)) throw new RangeError('Invalid ring catalogue revision');
-    // Only a fully published stationary plan can stop. Dynamic catalogues
-    // without a revision, movement, new pins, eviction and changed costs walk
-    // the original scheduler, including retries and pending upload budgets.
-    if (prior !== null && revision === prior.catalogue && this.demandRevision === prior.demand
+    // A stationary plan can also wait for fetch completion or its exact retry
+    // frame. Completion, pins, eviction and catalogue changes invalidate it;
+    // queued uploads still consume their original per-frame budget.
+    if (prior !== null && frame < prior.wakeFrame && revision === prior.catalogue && this.demandRevision === prior.demand
       && camera.x === prior.x && camera.z === prior.z && camera.vx === prior.vx && camera.vz === prior.vz
       && fullCentre.x === prior.cx && fullCentre.z === prior.cz) return;
     this.idlePlan = null;
@@ -392,11 +392,24 @@ export class TileStreamer<D> {
       this.remaskAll(camera);
       this.resolveRequirements();
       if (revision !== undefined && this.frame === frame && demand === this.demandRevision && this.completed.length === 0) {
-        let settled = true;
-        for (const id of want.keys()) if (this.slots.get(id)?.state !== 'uploaded') { settled = false; break; }
-        if (settled) for (const slot of this.slots.values()) if (slot.state !== 'uploaded') { settled = false; break; }
+        let settled = true, inFlight = 0, wakeFrame = Infinity;
+        for (const slot of this.slots.values()) {
+          if (slot.state === 'queued') { settled = false; break; }
+          if (slot.state === 'fetching') inFlight++;
+        }
+        if (settled) for (const { tile } of want.values()) {
+          if (this.slots.has(tile.key)) continue;
+          const retry = this.retryAt.get(tile.key);
+          if (retry !== undefined && retry > frame) { wakeFrame = Math.min(wakeFrame, retry); continue; }
+          const parent = parentOf(tile);
+          // A blocked child wakes with its parent; an exhausted fetch queue
+          // wakes with any completion. A newly uploaded parent with spare
+          // capacity must request its child on the very next step.
+          if (parent !== null && this.exists(tile) && this.slots.get(parent)?.state !== 'uploaded') continue;
+          if (inFlight < this.options.maxInFlight) { settled = false; break; }
+        }
         if (settled) this.idlePlan = { x: camera.x, z: camera.z, vx: camera.vx, vz: camera.vz,
-          cx: fullCentre.x, cz: fullCentre.z, catalogue: revision, demand };
+          cx: fullCentre.x, cz: fullCentre.z, catalogue: revision, demand, wakeFrame };
       }
     } finally {
       work.l0.length = 0; work.l1.length = 0; work.ranked.length = 0; work.fine.length = 0; work.want.clear();

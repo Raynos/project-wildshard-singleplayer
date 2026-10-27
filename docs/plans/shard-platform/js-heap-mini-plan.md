@@ -436,3 +436,14 @@ Raw profiles, event traces, mapped attribution, screenshots and guard verdicts:
 `tmp/sp-x9-plan-end/heap-*.json`, `heap-attribution.json`, `guard-summary.json`.
 All browsers closed and the shared-preview borrower released. Misses are in
 [BURN-DAMAGE-LIST](../BURN-DAMAGE-LIST.md), plan-end heap item.
+
+### H2 stationary wait repair (2026-10-27)
+
+D107's profile attributed0.802/0.777MiB/s to tileStreamer. A revisioned
+stationary plan now sleeps while all unfinished work is awaiting fetch
+completion, a blocked parent or the existing retry frame. It wakes on the
+original frame, completion, catalogue/pin/demand changes or any exact camera
+change. Queued uploads retain their existing per-frame drain budget.
+No tile selection, distance threshold, residency cap or mask rule changes.
+Touched engine/test types and typed lint pass; row-only shared-preview
+allocation qualification follows this landed source. H2 stays open.

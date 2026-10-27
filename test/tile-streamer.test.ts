@@ -301,3 +301,38 @@ test('a stationary dynamic catalogue keeps its original polling unless it advert
     streamer.step({ x: 0, z: 0, vx: 0, vz: 0 }); expect(reads).toBeGreaterThan(before);
   } finally { streamer.dispose(); }
 });
+
+
+test('a revisioned stationary refusal waits only until its original retry frame', () => {
+  const allocator = new ResidencyAllocator(); let reads = 0, reserves = 0, refuse = true;
+  const catalogue = Object.assign((_instance: string, level: RingLevel): number | null => { reads++; return level === 'far' ? 1 : null; }, { revision: () => 0 });
+  const streamer = new TileStreamer([{ instance: 'home', origin: { x: 0, z: 0 } }], {
+    now: () => 0, reserve: claim => { reserves++; return refuse ? null : allocator.reserve(claim); },
+  }, catalogue, { fetch: (tile, done) => { done(tile.key); },
+    upload: () => ({ mask: () => undefined, shadow: () => undefined, dispose: () => undefined }) });
+  const still = { x: 0, z: 0, vx: 0, vz: 0 };
+  try {
+    streamer.step(still); const first = reads;
+    for (let i = 0; i < 14; i++) streamer.step(still);
+    expect(reads).toBe(first); expect(reserves).toBe(1);
+    refuse = false; streamer.step(still);
+    expect(reserves).toBe(2); expect(streamer.resident()).toEqual(['home:far']);
+  } finally { streamer.dispose(); }
+});
+
+test('a stationary fetch waits without replanning and its completion wakes publication', () => {
+  const allocator = new ResidencyAllocator(); let reads = 0;
+  const pending: ((value: string) => void)[] = [];
+  const catalogue = Object.assign((_instance: string, level: RingLevel): number | null => { reads++; return level === 'far' ? 1 : null; }, { revision: () => 0 });
+  const streamer = new TileStreamer([{ instance: 'home', origin: { x: 0, z: 0 } }], { now: () => 0, reserve: claim => allocator.reserve(claim) }, catalogue,
+    { fetch: (_tile, done) => { pending.push(done); }, upload: () => ({ mask: () => undefined, shadow: () => undefined, dispose: () => undefined }) });
+  const still = { x: 0, z: 0, vx: 0, vz: 0 };
+  try {
+    streamer.step(still); const waiting = reads;
+    for (let i = 0; i < 30; i++) streamer.step(still);
+    expect(reads).toBe(waiting); expect(streamer.resident()).toEqual([]);
+    const finish = pending[0]; if (finish === undefined) throw new Error('Missing fetch');
+    finish('home:far'); streamer.step(still);
+    expect(reads).toBeGreaterThan(waiting); expect(streamer.resident()).toEqual(['home:far']);
+  } finally { streamer.dispose(); }
+});
