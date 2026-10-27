@@ -27,7 +27,7 @@ test.each(['none', 'guard', 'related'] as const)('related execution overlaps gua
     put('test/value.test.ts', `import {test,expect} from 'vitest';
 import {constants,openSync,writeSync,closeSync} from 'node:fs';
 test('guard and test rendezvous',async()=>{
- const fd=openSync(${JSON.stringify(fifo)},constants.O_WRONLY|constants.O_NONBLOCK);
+ const fd=openSync(${JSON.stringify(fifo)},constants.O_WRONLY);
  try{expect(writeSync(fd,'exact candidate')).toBe(15);}finally{closeSync(fd);}
  expect(1).toBe(${refusal === 'related' ? 2 : 1});
  ${refusal === 'guard' ? 'await new Promise(resolve=>setTimeout(resolve,60000));' : ''}

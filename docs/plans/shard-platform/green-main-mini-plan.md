@@ -141,6 +141,18 @@ and typed lint pass. Reader activation and G757 commit tags remain open.
 Publication is held by GM2's observed main-red policy, with no feature push
 or manual CI cancellation to bypass it.
 
+Executor producer `19e5fd4b7a` is landed locally; its canonical 95 cases
+pass in 33.169 s wall with 1.196 s held and zero lock wait.
+
+A GM2 hook-fixture refusal exposed lost racy-index metadata in the
+candidate copy. A deterministic same-length/coarse-stat control reproduces
+zero staged paths before the fix and the actual changed blob afterward.
+Preserving the index timestamp keeps Git's racy-entry revalidation active.
+The separate FIFO fixture now blocks for its reader instead of racing a
+nonblocking open; all original bytes, acknowledgements, index checks and
+clock limits remain. Pending cap-tag wrapper work stays outside the live
+entry until that packet is qualified.
+
 Remaining: activate exact candidate checks in the live entry, record G757
 split/tag handoffs, and close the original SW11 long-cohort cost refusal.
 

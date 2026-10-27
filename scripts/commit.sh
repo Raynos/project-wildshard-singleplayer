@@ -177,7 +177,7 @@ try:
         scratch = Path(temporary)
         parent = git("rev-parse", "HEAD").decode().strip()
         index = scratch / "index"
-        shutil.copyfile(Path(common) / "index", index)
+        shutil.copy2(Path(common) / "index", index)
         candidate_env = {**base_env, "GIT_INDEX_FILE": str(index)}
         git("read-tree", "--reset", parent, env=candidate_env)
         entries = git("ls-files", "-z", env=candidate_env)

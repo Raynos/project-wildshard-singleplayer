@@ -109,5 +109,23 @@ class CheckerSnapshotTest(unittest.TestCase):
         self.assertEqual(self.git('rev-parse', 'HEAD').stdout.strip(), parent)
 
 
+    def test_racy_index_metadata_cannot_hide_a_same_length_candidate_change(self):
+        self.git('config', 'core.trustctime', 'false')
+        self.git('config', 'core.checkstat', 'minimal')
+        name = 'src/racy.mjs'
+        self.put(name, 'export const value=1;')
+        stamp = 1_700_000_000_000_000_000
+        os.utime(self.root / name, ns=(stamp, stamp))
+        self.git('add', name)
+        self.git('commit', '-qm', 'racy baseline')
+        os.utime(self.root / '.git/index', ns=(stamp, stamp))
+        self.put(name, 'export const value=2;')
+        os.utime(self.root / name, ns=(stamp, stamp))
+        result = subprocess.run(['bash', str(ROOT / 'scripts/commit.sh'),
+            'test(commit): stage racy source', '--', name], cwd=self.root,
+            env=self.env, text=True, capture_output=True, check=False, timeout=15)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(self.git('show', 'HEAD:' + name).stdout, 'export const value=2;')
+
 if __name__ == '__main__':
     unittest.main()
