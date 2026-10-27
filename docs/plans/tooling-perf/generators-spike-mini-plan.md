@@ -34,6 +34,7 @@ actual done-when checks close, rather than counting unmarked source as proof.
 
 | GS3.1 Authored shard list | done (`99dece0b17`; 2026-10-27, sp-x1) | The committed ordered product imports, frozen identities and grid placements derive only from authored declarations. Six source-runner cases pass8.97s, including a cold multi-output root with no discovery or products. No source exemption grows. |
 | GS3.2 Authored manifest closure | done (`b1db677a8a`, JSON-import correction `0cad825297`; 2026-10-27, sp-x1) | The complete39284B closure is byte-identical (SHA256 d19b7da2bcd465f81adcc0c0d22db600deae8b16837ba76f1cafd2e5841440cb). Authored bindings and declared original extraArt inputs replace discovery reads; the real emitter checks complete static-edge equality including JSON attributes. Five closure/pinned-source controls pass10.07s and the attributed-import/undeclared-art case passes7.43s. Erased/lazy exclusions, exact outputs and path/input refusals remain. |
+| GS3.3 Authored source art | done (`40ec7a338f`; 2026-10-27, sp-x1) | The committed art table uses the authored static closure and exact source image sizes, with no discovery/product input. Entire15275B body remains SHA256 9d3b5cca3ea9538bc770326960ae5a2ae51d645d575f6186b209b0a2fdfaafc2. All8 current source-runner cases pass8.68s, including the cold art, emitted-import, missing/crossed metadata and erased/lazy controls. Committed check passes. |
 
 ## Findings
 

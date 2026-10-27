@@ -90,11 +90,13 @@ export const SOURCE_GENERATORS = [
   {
     id: 'boot-tables',
     outputs: ['src/game/boot/bytes.generated.ts', 'src/game/boot/versions.generated.ts'],
-    inputs: ['public/assets/**', 'scripts/app-build/gen.ts', 'scripts/app-build/assetHashes.ts'],
-    committed: false,
-    note: 'size and hash every public/assets file, including the shard builds\' baked outputs',
-    // the boot writers read public/assets and the manifests from the working directory (the repo root)
-    generate: async root => (await import(pathToFileURL(`${root}/scripts/app-build/gen.ts`).href)).bootTransportTableSources(),
+    inputs: ['scripts/boot-publication.generated.json', 'scripts/boot-publication.mjs'],
+    committed: true,
+    note: 'plain tables of the successful artifact publisher\'s committed byte and content-version facts',
+    generate: async root => {
+      const sources = (await import(pathToFileURL(`${root}/scripts/boot-publication.mjs`).href)).bootPublicationTableSources(root);
+      return { 'src/game/boot/bytes.generated.ts': sources['src/game/boot/bytes.generated.ts'], 'src/game/boot/versions.generated.ts': sources['src/game/boot/versions.generated.ts'] };
+    },
   },
   {
     id: 'packs',

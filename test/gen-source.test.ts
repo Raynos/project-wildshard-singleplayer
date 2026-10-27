@@ -17,7 +17,7 @@ test('a staged path selects only the gen:source rows it feeds', () => {
   expect(ids('scripts/gen-source.mjs')).toEqual(SOURCE_GENERATORS.map(row => row.id));
   expect(ids('src/game/weapons/starterBow.json')).toEqual(['starter-weapons']);
   expect(ids('src/shards/pine-hollow/manifest.json')).toEqual(['shard-slugs', 'shard-list', 'manifest-closure', 'manifest-art']);
-  expect(ids('public/assets/music/calm/music.json')).toEqual(['boot-audio', 'boot-tables', 'packs']);
+  expect(ids('public/assets/music/calm/music.json')).toEqual(['boot-audio', 'packs']);
   expect(ids('src/engine/core/Game.ts')).toEqual(['manifest-closure', 'manifest-art']);
   expect(ids('src/game/bag/starter.generated.ts')).toEqual(['starter-bag', 'manifest-closure', 'manifest-art']);
   expect(ids('src/shards/pine-hollow/generators/sections.ts')).toEqual(['pine-hollow-section-schemas', 'manifest-closure', 'manifest-art']);

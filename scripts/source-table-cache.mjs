@@ -13,7 +13,7 @@ const shardFiles = new Set(['src/shards.generated.ts', 'src/game/shard/slugs.gen
   'src/game/shard/slugs.generated.json', 'src/game/shard/manifest-closure.generated.json', 'lint/shard-words.generated.json']);
 const bootFiles = new Set(['src/game/boot/bytes.generated.ts', 'src/game/boot/versions.generated.ts',
   'src/game/boot/audio.generated.ts', 'src/game/boot/packs.generated.ts', 'src/game/shard/art.generated.ts',
-  'public/assets/physics/rapier.wasm']);
+  'public/assets/physics/rapier.wasm', 'scripts/boot-publication.generated.json']);
 /** @param {TailStep} step @param {string} file */
 function owns(step, file) {
   return step === 'boot'
