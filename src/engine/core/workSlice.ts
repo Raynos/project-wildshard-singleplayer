@@ -18,9 +18,9 @@ import { frameBudgetSpent, heldBudget, nextDrawnFrame, paceYield, presenting } f
 /** The longest synchronous stretch a sliced builder runs before it lets a frame through (ms). */
 export const WORK_SLICE_MS = 8;
 
-/** One builder's slice clock: `due()` once its stretch has run `budgetMs`, `yield()` to end the stretch. */
+/** Local elapsed slices during loading; live CPU work shares the drawn frame's budget. */
 export interface WorkSlice {
-  /** whether this stretch has used its budget (cheap: one clock read) */
+  /** Whether the local loading slice or shared live frame has spent its budget. */
   readonly due: () => boolean;
   /** end the stretch: resolves on a fresh macrotask (the browser may paint first) and restarts the clock */
   readonly yield: () => Promise<void>;
@@ -65,7 +65,7 @@ function buildTurn(owner: Scope): Promise<void> {
  * the loading screen, unpaced mode and Node retain timer tasks.
  */
 export async function buildYield(owner: Scope, budgetMs: number = WORK_SLICE_MS): Promise<void> {
-  const live = (): void => { if (owner.disposed) throw new Error('build stopped: its scope has closed'); };
+  const live = (): void => { if (owner.disposed || owner.disposing) throw new Error('build stopped: its scope has closed'); };
   live();
   await paceYield(() => buildTurn(owner), owner, budgetMs);
   live();
@@ -87,8 +87,9 @@ export function workSlice(budgetMs: number = WORK_SLICE_MS, owner?: Scope): Work
     // in play with a frame due, the stretch ends only once the loop has drawn it (op-hitch26: timer tasks ran back to back)
     yield: async () => {
       const scope = owner ?? resourceScope();
+      if (scope.disposed || scope.disposing) throw new Error('build stopped: its scope has closed');
       await paceYield(() => buildTurn(scope), scope, budgetMs);
-      if (scope.disposed) throw new Error('build stopped: its scope has closed');
+      if (scope.disposed || scope.disposing) throw new Error('build stopped: its scope has closed');
       start = diagnosticNow();
     },
     check: () => (slice.due() ? slice.yield() : undefined),

@@ -2,7 +2,7 @@ import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { Scope } from '../app/scope';
 import { installScopeEnvironment, scopeEnvironment } from '../app/scopeEnvironment';
 import { noteFrameDrawn, setBuildHeld } from './framePacing';
-import { workSlice } from './workSlice';
+import { buildYield, workSlice } from './workSlice';
 
 const environment = scopeEnvironment(), channel = globalThis.MessageChannel, raf = globalThis.requestAnimationFrame;
 let now = 1000;
@@ -93,4 +93,19 @@ test('retirement before message delivery closes both ports and refuses continuat
   const pending = workSlice(8, owner).yield(), refused = expect(pending).rejects.toThrow('scope has closed');
   owner.dispose(); turns.queue.shift()?.(); await refused;
   expect(turns.closed.every(read => read())).toBe(true);
+});
+
+test.each(['slice', 'build'])("%s cannot resume during its ancestor's sliced retirement", async mode => {
+  const turns = messages(), parent = new Scope('retiring-parent'), owner = parent.child('pending-builder');
+  now = 1100; noteFrameDrawn(now, now, 30); now++;
+  const pending = mode === 'slice' ? workSlice(8, owner).yield() : buildYield(owner);
+  const refused = expect(pending).rejects.toThrow('scope has closed');
+  parent.onDispose(() => undefined); const retirement = parent.disposeSteps(); retirement.next();
+  try {
+    expect(owner.disposed).toBe(false); expect(owner.disposing).toBe(true);
+    turns.queue.shift()?.(); await refused;
+    const next = mode === 'slice' ? workSlice(8, owner).yield() : buildYield(owner);
+    await expect(next).rejects.toThrow('scope has closed');
+    expect(turns.closed.every(read => read())).toBe(true); expect(turns.queue).toHaveLength(0);
+  } finally { for (const _step of retirement) { /* Complete the original retirement. */ } }
 });
