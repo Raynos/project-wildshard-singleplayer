@@ -89,6 +89,32 @@ function timedUploads(cost: number, options: RingOptions = {}) {
 }
 const camera = { x: 0, z: 0, vx: 0, vz: 0 };
 
+test.each([false, true])('entry uploads prioritize required parents and restore distance order after release=%s', async released => {
+  const allocator = new ResidencyAllocator(), uploads: string[] = [];
+  const cells = [{ instance: 'near', origin: { x: 0, z: 0 } }, { instance: 'entry', origin: { x: 555, z: 0 } }];
+  const streamer = new TileStreamer(cells, { reserve: claim => allocator.reserve(claim), now: () => 0 },
+    (instance, level, x, z) => level === 'far' || instance === 'entry' && level === 'l1' && x === 0 && z === 0 ? 1 : null,
+    { fetch: (tile, done) => { done(tile.key); }, upload: tile => {
+      uploads.push(tile.key); return { mask: () => undefined, shadow: () => undefined, dispose: () => undefined };
+    } }, { viewDistance: 3000, farRadius: 3000, uploadsPerFrame: 1, uploadBytesPerFrame: 1 });
+  const required = streamer.require('entry', [0], 'l1');
+  try {
+    if (released) {
+      const refused = expect(required.ready).rejects.toThrow('Tile requirement released');
+      required.release(); await refused;
+      streamer.step(camera); expect(uploads).toEqual(['near:far']);
+    } else {
+      streamer.step(camera); expect(uploads).toEqual(['entry:far']);
+      // A queued unrelated far tile must not consume the entry child's frame.
+      streamer.step(camera); await required.ready;
+      expect(uploads).toEqual(['entry:far', 'entry:l1/0/0']);
+      required.release(); streamer.step(camera);
+      expect(uploads).toEqual(['entry:far', 'entry:l1/0/0', 'near:far']);
+    }
+  } finally { required.release(); streamer.dispose(); }
+  expect(allocator.entries()).toHaveLength(0);
+});
+
 test('unchanged parent masks stay quiet and old exclusion sets survive child retirement', async () => {
   const allocator = new ResidencyAllocator(), masks: ReadonlySet<number>[] = [], evictions = new Map<string, () => void>();
   const budget: TileStreamBudget = { reserve: claim => { evictions.set(claim.id, claim.evictSync); return allocator.reserve(claim); } };

@@ -674,14 +674,20 @@ export class TileStreamer<D> {
     return false;
   }
 
-  /** Request wanted tiles parent-first, nearest first, within the in-flight cap; each is charged before it is fetched. */
-  private request(want: ReadonlyMap<string, { tile: RingTile; distance: number }>): void {
+  /** Required entry tiles and their parents retain priority through publication. */
+  private requiredKeys(): ReadonlySet<string> {
     const required = new Set<string>();
     for (const { tile } of this.pins.values()) {
       required.add(tile.key);
       if (tile.level !== 'far') required.add(key(tile.instance, 'far', 0, 0));
       if (tile.level === 'l0') required.add(key(tile.instance, 'l1', Math.floor(tile.x / 2), Math.floor(tile.z / 2)));
     }
+    return required;
+  }
+
+  /** Request wanted tiles parent-first, nearest first, within the in-flight cap; each is charged before it is fetched. */
+  private request(want: ReadonlyMap<string, { tile: RingTile; distance: number }>): void {
+    const required = this.requiredKeys();
     const pending = [...want.values()].filter(({ tile }) => !this.slots.has(tile.key) && (this.retryAt.get(tile.key) ?? 0) <= this.frame)
       .sort((a, b) => Number(required.has(b.tile.key)) - Number(required.has(a.tile.key))
         || LEVEL_RANK[a.tile.level] - LEVEL_RANK[b.tile.level] || a.distance - b.distance || a.tile.key.localeCompare(b.tile.key));
@@ -723,7 +729,10 @@ export class TileStreamer<D> {
       if (done.result instanceof Error) { this.failRequirements(done.tile, done.result); this.drop(slot); this.retryAt.set(done.tile.key, this.frame + 30); continue; }
       slot.data = done.result; slot.state = 'queued';
     }
-    const queue = [...this.slots.values()].filter((s) => s.state === 'queued').sort((a, b) => LEVEL_RANK[a.tile.level] - LEVEL_RANK[b.tile.level] || a.distance - b.distance || a.tile.key.localeCompare(b.tile.key));
+    const required = this.requiredKeys();
+    const queue = [...this.slots.values()].filter((s) => s.state === 'queued').sort((a, b) =>
+      Number(required.has(b.tile.key)) - Number(required.has(a.tile.key))
+      || LEVEL_RANK[a.tile.level] - LEVEL_RANK[b.tile.level] || a.distance - b.distance || a.tile.key.localeCompare(b.tile.key));
     let count = 0, bytes = 0;
     const started = this.now();
     for (const slot of queue) {
