@@ -13,12 +13,11 @@ import type { FnNode, ProxiedObject } from 'three/src/nodes/tsl/TSLCore.js';
  * flipped to the WebGPU convention), handed in.
  *
  * three's shadow node hands a filter a y-flipped coordinate; the slope and the tap offsets are both taken in that space,
- * and each tap's sample flips it back (shadowDepthSample.ts).
+ * and each tap's sample flips it back (a shadow depth map's fixed orientation, as shadowDepthSample.ts samples it).
  */
 import type * as THREE from 'three';
 import type { Node } from 'three/webgpu';
 import { Fn, glsl, reference, screenCoordinate } from 'three/tsl';
-import { shadowDepthSample } from './shadowDepthSample';
 import { shadowFunctionCall } from './shadowFunction';
 
 /** what three's shadow node hands a filter (the index signature: Fn's object-argument overload needs one) */
@@ -68,8 +67,6 @@ export function planeBiasSource(): string {
 const PLANE_BIAS = glsl(planeBiasSource());
 
 /** the biased PCF as a node shadow filter (a light's `shadow.filterNode`); EngineNodesHandler assigns it */
-export const planeBiasShadowFilter: FnNode<[ProxiedObject<FilterInputs>], Node<'float'>> = Fn<FilterInputs, Node<'float'>>(({ depthTexture, shadowCoord, shadow }: FilterInputs): Node<'float'> => {
-  const map = shadowDepthSample(depthTexture, shadowCoord.xy).compare(shadowCoord.z);
-  return shadowFunctionCall(PLANE_BIAS, 'wsPlaneBiasPcf', map, [[shadowCoord, 'vec3'], [screenCoordinate.xy, 'vec2'],
-    [reference('radius', 'float', shadow), 'float'], [reference('mapSize', 'vec2', shadow), 'vec2']]);
-});
+export const planeBiasShadowFilter: FnNode<[ProxiedObject<FilterInputs>], Node<'float'>> = Fn<FilterInputs, Node<'float'>>(({ depthTexture, shadowCoord, shadow }: FilterInputs): Node<'float'> =>
+  shadowFunctionCall(PLANE_BIAS, 'wsPlaneBiasPcf', depthTexture, shadowCoord, [[shadowCoord, 'vec3'], [screenCoordinate.xy, 'vec2'],
+    [reference('radius', 'float', shadow), 'float'], [reference('mapSize', 'vec2', shadow), 'vec2']]));
