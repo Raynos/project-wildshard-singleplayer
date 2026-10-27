@@ -25,6 +25,9 @@ D181 / D183. Plans: generators 94 %, loading 94 %, tile-streaming 83 %, shared-w
 iphone-downloads 58 % (I2 left; DW phone 14.9 MB, Nalati 71.8 -> 67.5 MB), legacy 50 % (Jake), ci-flow 40 % (CF3 13
 min). js-heap 100 % archived. Counter 177 / 209 = 85 %. CI: every known source red has a qualified fix; the last
 blocker is the GS5 post-publication check (sp-x1); live still 59a595ab10.
+**15:25 reply:** (1) end readings ordered now: loading H3 / H4 / A1 (sp-x9), grid-crossing T2-T4 (sp-x8), GR10
+(sp-x1), tile T6 / T7 (sp-o5); T10's official reading is in (10 / 15, sp-o4 + sp-o5 cutting). A miss keeps its row open
+with the number. (2) sp-x2 is already on I2 with sp-o3; I7, I10, I11 are done (iphone 58 % -> only I2 + I3 parts left).
 **Blocked on Jake:** road B pilot play; boards as they land; LD5-LD8 / A1 / A2 / M2 / RM13 (counted, G779).
 
 **Lanes (G804 / G805; G803 3 Opus; Claude 80 %, Codex 96 % on credits):** sp-o3 iphone-downloads (+ sp-x2), sp-o5
