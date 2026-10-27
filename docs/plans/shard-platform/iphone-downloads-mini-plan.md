@@ -492,3 +492,27 @@ Fresh game compilation now passes the repaired framePacing annotation
 7972590759 and stops at foreign untracked rigAtlas.ts TS4111; routed
 sp-ci-deploy. Own scoped fixture types and touched typed lint remain0;
 no tests, source allowance change or false whole-tree types claim.
+
+### I2 full bundle qualification (2026-10-27, sp-x9)
+
+Source83dff53bdf initially fails original title isolation; cf053a2cde pins
+that boundary.2f6ec005df normalizes emitted entry-aware names without
+relaxing the bank grammar.02a4f512ea follows each manifest facade and its
+full implementation closure, retaining coalesced source aliases and
+strict duplicate-target refusal. Finally b3b7b0bcd3 isolates actual HTML
+initial entry sets, keeping calibration's Three graph behind public retry.
+All original failures are retained under tmp/serve/failed-20261027-* and
+tmp/sp-x9-control-chunks; none is converted into a green timing sample.
+
+Actual shared b3 production build completes every boot bank. Unchanged
+full checkChunks has0 errors (pre-entry, shard ownership, title/session/
+grid ceilings and full inventory): title285355raw/102422gzip B versus
+350000/110000; session3980164raw/1240186gzip versus4400000/1360000.
+Common bank349->179 files; full emitted JS census680->552 versus the
+older shared67c0cc build (different pins, no isolated timing claim).
+Nine focused cases pass across retained boot-bank and recovered real
+Vite two-entry controls. Touched types/typed lint/scoped ratchet pass.
+
+I2 remains in flight: original Pine/Nalati/Nine page+worker transport
+reader is queued through browser-lane on shared b3, muted iPhone16Pro,
+2x scale; original250-total-request and12MB bars remain unchanged.
