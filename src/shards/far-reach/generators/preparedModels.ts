@@ -1,10 +1,8 @@
-import { MeshStandardMaterial } from 'three';
 import { readSourceModel } from '@wildshard/sdk/bake/skinned';
-import { staticGlb } from '@wildshard/sdk/bake/glb';
-import { HD_URLS, MODEL_URLS, SKY_HD } from './fileInventory';
-import { facetedGeometry, hdGeometry } from './modelIntake';
+import { HD_URLS, SKY_HD } from './fileInventory';
+import { hdGeometry } from './modelIntake';
 import { bakeKeeperFigure } from './keeperFigure';
-import { bakeVaneParts } from './vane';
+import { skyVanePartSource, VANE_INPUTS } from './vaneProgram';
 import { PREPARED_MODEL_INPUTS, preparedModelSource } from './preparedModelProgram';
 
 /** The retained writer consumes the same owned source program as future product readers. */
@@ -12,15 +10,10 @@ export function bakePreparedModels(read: (url: string) => Uint8Array): Promise<U
   return preparedModelSource(new Map(PREPARED_MODEL_INPUTS.map(url => [url, read(url)])));
 }
 
-async function bakeVanePart(read: (url: string) => Uint8Array, part: 0 | 1): Promise<Uint8Array> {
-  const source = facetedGeometry((await readSourceModel(read(MODEL_URLS['wind-vane']))).gltf.scene, 0.6);
-  if (source === null) throw new Error('Missing vane source');
-  return staticGlb([{ name: 'vane', geometry: bakeVaneParts(source)[part], compactIndex: true, nativeAttributes: true, material: new MeshStandardMaterial() }], 'vane');
-}
 /** The authored vane post; flat channels stay exact through the standard facet library. */
-export const bakeVanePost = (read: (url: string) => Uint8Array): Promise<Uint8Array> => bakeVanePart(read, 0);
+export const bakeVanePost = (read: (url: string) => Uint8Array): Promise<Uint8Array> => skyVanePartSource(new Map(VANE_INPUTS.map(url => [url, read(url)])), 0);
 /** The authored vane rotor in its local 2.2 metre pivot frame. */
-export const bakeVaneRotor = (read: (url: string) => Uint8Array): Promise<Uint8Array> => bakeVanePart(read, 1);
+export const bakeVaneRotor = (read: (url: string) => Uint8Array): Promise<Uint8Array> => skyVanePartSource(new Map(VANE_INPUTS.map(url => [url, read(url)])), 1);
 
 /** Prepared geometry and original atlas rows; the author explicitly names nonempty NPC parts. */
 export async function bakePreparedLibrary(read: (url: string) => Uint8Array): Promise<Uint8Array> {

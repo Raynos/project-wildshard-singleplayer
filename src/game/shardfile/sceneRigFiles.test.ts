@@ -26,6 +26,15 @@ test('a refused owned URL remains a preparation refusal', () => {
   expect(() => sceneRigFiles(rows, { hasFile: () => true, url: () => { throw new Error('Not admitted'); } })).toThrow('Not admitted');
 });
 
+test('owned facet meshes bind without rigs and preserve public URLs and source rows', () => {
+  const source = { ...empty, meshes: ['owned', 'public'], meshUrls: { owned: 'geometry/owned.glb', public: '/assets/public.glb' } };
+  const resolved = sceneRigFiles(source, { hasFile: name => name === 'geometry/owned.glb', url: () => '/shardfiles/owned.glb' });
+  expect(resolved.meshUrls).toEqual({ owned: '/shardfiles/owned.glb', public: '/assets/public.glb' });
+  expect(resolved.meshes).toBe(source.meshes);
+  expect(source.meshUrls.owned).toBe('geometry/owned.glb');
+  expect(() => sceneRigFiles(source, { hasFile: name => name === 'geometry/owned.glb', url: () => { throw new Error('Not admitted'); } })).toThrow('Not admitted');
+});
+
 test('owned pools bind without rigs and retain every public row and geometry option', () => {
   const parts = ['flame'], channels = [{ name: 'life', source: '_life', width: 1 as const }];
   const publicPool = { url: '/assets/public.glb', parts: ['public'] };

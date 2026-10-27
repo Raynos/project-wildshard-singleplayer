@@ -6612,7 +6612,8 @@
         "src/shards/far-reach/generators/rows/skyIsles.ts",
         "src/shards/far-reach/generators/rows/layoutTypes.ts",
         "src/shards/far-reach/generators/vane.ts",
-        "src/shards/far-reach/generators/palette.ts"
+        "src/shards/far-reach/generators/palette.ts",
+        "src/shards/far-reach/generators/vaneProgram.ts"
       ],
       "outputs": [
         "public/assets/far-reach/models/wind-vane/post.glb"
@@ -6681,7 +6682,8 @@
         "src/shards/far-reach/generators/rows/skyIsles.ts",
         "src/shards/far-reach/generators/rows/layoutTypes.ts",
         "src/shards/far-reach/generators/vane.ts",
-        "src/shards/far-reach/generators/palette.ts"
+        "src/shards/far-reach/generators/palette.ts",
+        "src/shards/far-reach/generators/vaneProgram.ts"
       ],
       "outputs": [
         "public/assets/far-reach/models/wind-vane/rotor.glb"
@@ -7237,7 +7239,8 @@
         "src/shards/far-reach/generators/rows/skyIsles.ts",
         "src/shards/far-reach/generators/rows/layoutTypes.ts",
         "src/shards/far-reach/generators/vane.ts",
-        "src/shards/far-reach/generators/palette.ts"
+        "src/shards/far-reach/generators/palette.ts",
+        "src/shards/far-reach/generators/vaneProgram.ts"
       ],
       "outputs": [
         "src/shards/far-reach/data/heroLibrary.generated.json"
