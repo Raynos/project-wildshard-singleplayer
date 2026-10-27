@@ -5,6 +5,9 @@ import { ALL_EXTENSIONS, KHRMeshQuantization, type InstancedMesh } from '@gltf-t
 import { MeshoptDecoder } from 'meshoptimizer';
 import { compressGlb } from './glbCompression';
 import { nameBlob, nameMeshoptBlob, type NamedBlob } from '../blobs';
+import { entryFootprints, obstructsEntry } from '@wildshard/format/entryGeometry';
+import type { ShardEntryways } from '@wildshard/format/entryways';
+import { visitGlbTriangles } from '@wildshard/format/product';
 
 /** The brotli size a phone pays for a file over the wire: the deploy's own encoding, quality 3 (Vercel's responses match it
  *  byte for byte; scripts/phone-wire.mjs measures the same). */
@@ -103,6 +106,21 @@ export async function compactPhoneGlb(input: Uint8Array): Promise<Uint8Array> {
 export async function nameCompactBlob(name: string, bytes: Uint8Array): Promise<NamedBlob> {
   const compact = await compactPhoneGlb(bytes);
   return compact === bytes ? nameMeshoptBlob(name, bytes) : nameBlob(name, 'glb', compact);
+}
+
+/** `compactPhoneGlb` for a placed tile beside the cell's entryways: rounding onto the grid may lift a road-height vertex by
+ *  under half a step, which the entryway clearance check (format/entryClearance) rightly refuses, so a tile whose compact
+ *  triangles obstruct an entry footprint its exact ones did not keeps its exact bytes. */
+export async function compactClearGlb(input: Uint8Array, entryways: readonly Pick<ShardEntryways[number], 'edge' | 'width'>[]): Promise<Uint8Array> {
+  const compact = await compactPhoneGlb(input);
+  if (compact === input) return input;
+  const rectangles = entryFootprints(entryways);
+  const obstructs = (bytes: Uint8Array): boolean => {
+    let hit = false;
+    visitGlbTriangles(bytes, triangle => { if (!hit && rectangles.some(rect => obstructsEntry(triangle, rect))) hit = true; });
+    return hit;
+  };
+  return obstructs(compact) && !obstructs(input) ? input : compact;
 }
 
 /** `nameCompactBlob` over a set of shapes: one hash has one logical name (emitNamedBlobs), so a shape whose compacted bytes

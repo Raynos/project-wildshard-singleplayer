@@ -1,7 +1,7 @@
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import { bakePlantedForest } from '@wildshard/sdk/bake/forest';
 import { bakeSplatGround, splatGroundSource, splatLayerFiles } from '@wildshard/sdk/bake/splatGround';
-import { parseKtx2 } from '@wildshard/sdk/assets';
+import { assetCost, parseKtx2 } from '@wildshard/sdk/assets';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import declared from '../data/publicInputs.json' with { type: 'json' };
 import bindings from '../data/terrainBindings.json' with { type: 'json' };
@@ -11,6 +11,8 @@ import { pineForestRows } from './forestRows';
 import { pineGeographyRows } from './geographyRows';
 import { PINE_GROUND, type PineGroundRows } from './groundTiles';
 import * as LAYOUT from './layout';
+import { compactClearGlb } from '@wildshard/sdk/bake/compactGlb';
+import { emptyShardfile } from '@wildshard/sdk/author';
 
 /** The retained terrain's URL (its public path under `/assets/`). */
 const TERRAIN_URL = `/${bindings.terrain.replace(/^public\//u, '')}`;
@@ -88,10 +90,16 @@ export async function pineGroundTiles(ctx: Pick<ProjectGenerationContext, 'cache
     tints: manifest.assets.groundTints, boreal: { normalK: boreal.normalK, trailDust: boreal.trailDust } };
   // the L0 splat tiles draw with the layers; the coarse L1 tiles carry their own colours and depend on nothing
   const dependencies = [...textures.keys()];
-  const rows = tiles.map(({ tile, bytes, cost, geometricError }) => {
+  // iPhone downloads I3: each tile ships in phone geometry when that serves fewer bytes (compactPhoneGlb: 16-bit grid
+  // positions under its node's scale and translation, which the props loader's GLTFLoader scene keeps); a tile by an
+  // entryway keeps its exact bytes if rounding would lift it into the entry's clearance (compactClearGlb). The coarse L1
+  // tiles stay exact: the ground merge hides their quadrants under fine tiles by their stored (tile-space) positions
+  const rows: PineGroundRows['tiles'][number][] = [], entryways = emptyShardfile({ slug: 'pine-hollow', name: 'Pine Hollow', author: 'Wildshard', revision: 1, seed: 1 }).entryways;
+  for (const { tile, bytes: built, cost, geometricError } of tiles) {
+    const bytes = tile.lod === 0 ? await compactClearGlb(built, entryways) : built;
     assets.push(bytes);
-    return { lod: tile.lod, x: tile.x, z: tile.z, bounds: tile.bounds, geometricError,
-      file: { hash: hashImmutableBytes(bytes), kind: 'glb', compressed: bytes.length, ...cost, dependencies: tile.lod === 0 ? dependencies : [], critical: false } };
-  });
+    rows.push({ lod: tile.lod, x: tile.x, z: tile.z, bounds: tile.bounds, geometricError,
+      file: { hash: hashImmutableBytes(bytes), kind: 'glb', compressed: bytes.length, ...bytes === built ? cost : assetCost('glb', bytes), dependencies: tile.lod === 0 ? dependencies : [], critical: false } });
+  }
   return { rows: { splat, tiles: rows, textures: [...textures.values()] }, assets };
 }
