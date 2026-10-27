@@ -79,7 +79,9 @@ test('writer, disk validator and untrusted browser use the exact verified sim/sc
   if (decisionSection === undefined) throw new Error('Missing decision section');
   const wrong = new TextEncoder().encode(encodeCanonicalJson(rows(blob.file.hash, 1)));
   writeFileSync(resolve(root, decisionSection.path), wrong); decisionSection.hash = hashImmutableBytes(wrong); decisionSection.bytes = wrong.length;
-  writeFileSync(resolve(root, 'shard.json'), encodeCanonicalJson(index));
+  // the rewritten section no longer matches its pack (I5), which refuses first; this case checks the section contract
+  const { packs: _packs, ...unpacked } = index;
+  writeFileSync(resolve(root, 'shard.json'), encodeCanonicalJson(unpacked));
   expect(() => validateOutputProduct(root)).toThrow('fixed pages');
   await expect(admitBrowser(await readProductDescriptor(options), options)).rejects.toThrow('fixed pages');
 });

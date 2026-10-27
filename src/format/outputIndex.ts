@@ -31,6 +31,10 @@ export const OutputIndexSchema: v.GenericSchema<OutputIndexRowsInput, OutputInde
   admission: v.strictObject({ budgets: ShardfileFieldSchemas.budgets, serverBudget: ShardfileFieldSchemas.serverBudget, authorCaps: ShardfileFieldSchemas.authorCaps, critical: ShardfileFieldSchemas.critical, library: ShardfileFieldSchemas.library }),
   sections: v.pipe(v.array(section), v.maxLength(256)), schemas: v.pipe(v.array(v.strictObject(measuredFile)), v.maxLength(128)),
   files: v.pipe(v.array(fileSchema), v.maxLength(8192)), runtime: v.nullable(runtime),
+  /** iPhone downloads I5: content-hashed concatenations of the small sections, schemas and files, so a reader can fetch
+   *  one pack instead of hundreds of files; every member keeps its own listed path, hash and size */
+  packs: v.exactOptional(v.pipe(v.array(v.strictObject({ ...measuredFile, entries: v.pipe(v.array(v.strictObject({
+    hash: ShardHashSchema, offset: ShardNaturalSchema, bytes: ShardNaturalSchema })), v.minLength(1), v.maxLength(8192)) })), v.maxLength(64))),
 });
 export type OutputIndex = v.InferOutput<typeof OutputIndexSchema>;
 export type OutputFile = OutputIndex['files'][number];
@@ -70,6 +74,19 @@ function parseOutputIndexRows(input: unknown): OutputIndex {
     const ref = `${entry.commons === true ? 'commons:' : ''}${entry.hash}`;
     if (refs.has(ref)) throw new Error('Duplicate output blob reference'); refs.add(ref);
     if (entry.name !== undefined) { if (logical.has(entry.name)) throw new Error('Duplicate logical blob name'); logical.add(entry.name); }
+  }
+  // I5: a pack lives beside the blobs, is listed once, and holds only listed members at their exact sizes, in order
+  const members = new Map([...index.sections, ...index.schemas].map(entry => [entry.hash, entry.bytes] as const));
+  for (const entry of index.files) members.set(entry.hash, entry.compressed);
+  for (const pack of index.packs ?? []) {
+    if (pack.path !== `blobs/pack/${pack.hash}.pack` || paths.has(pack.path)) throw new Error('Duplicate or mismatched pack path');
+    paths.add(pack.path);
+    let end = 0;
+    for (const entry of pack.entries) {
+      if (entry.offset !== end || members.get(entry.hash) !== entry.bytes) throw new Error('Pack member outside its listed inventory');
+      end = entry.offset + entry.bytes;
+    }
+    if (end !== pack.bytes) throw new Error('Pack size differs from its members');
   }
   for (const entry of index.runtime?.files ?? []) if (!/^runtime\/(?:[a-zA-Z0-9_-][a-zA-Z0-9_.-]*\/)*[a-zA-Z0-9_-][a-zA-Z0-9_.-]*\.ts$/u.test(entry.path)) throw new Error('Runtime output must be TypeScript inside runtime/');
   return index;
@@ -153,6 +170,16 @@ interface OutputIndexRowsInputFields {
         triangles: number;
         draws: number;
         dependencies: ShardReferencesInput;
+    }[];
+    packs?: {
+        path: string;
+        hash: string;
+        bytes: number;
+        entries: {
+            hash: string;
+            offset: number;
+            bytes: number;
+        }[];
     }[];
     runtime: {
         trust: "first-party";
@@ -259,6 +286,16 @@ interface OutputIndexRowsFields {
         triangles: number;
         draws: number;
         dependencies: ShardReferences;
+    }[];
+    packs?: {
+        path: string;
+        hash: string;
+        bytes: number;
+        entries: {
+            hash: string;
+            offset: number;
+            bytes: number;
+        }[];
     }[];
     runtime: {
         trust: "first-party";

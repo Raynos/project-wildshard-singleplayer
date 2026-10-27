@@ -26,6 +26,8 @@ import { validateDefinedSection, validateDefinedJson, type EmittedSections } fro
 import { parseDiscoveryValues, type DiscoveryValues } from '@wildshard/format/discoveryValues';
 
 const encoder = new TextEncoder();
+/** I5: files below this size are packed; a pack holds at most this many bytes. */
+const PACK_MEMBER_BYTES = 65_536, PACK_BYTES = 4_194_304;
 function jsonBytes(value: unknown): Uint8Array { return encoder.encode(encodeCanonicalJson(value)); }
 function readJson(bytes: Uint8Array): unknown {
   const text = new TextDecoder('utf-8', {fatal:true}).decode(bytes), value: unknown = JSON.parse(text);
@@ -138,10 +140,31 @@ export function writeOutputProduct(input: unknown, assets: ReadonlyMap<string,Ui
   }
   for(const file of files){const named=names.get(file.hash);if(named!==undefined){const {name,jsonSchema,...metadata}=named;if(encodeCanonicalJson(metadata)!==encodeCanonicalJson(file))throw new Error('Named blob differs from its admitted declaration');if(name!==undefined)file.name=name;if(jsonSchema!==undefined)file.jsonSchema=jsonSchema;names.delete(file.hash);}}
   if(names.size>0)throw new Error('Unadmitted named blob');
+  // iPhone downloads I5: the sections, schemas and small files again as a few content-hashed packs, so a reader fetches
+  // one pack instead of hundreds of files; every member keeps its own path, which stays on disk for any other reader
+  const packs:{path:string;hash:string;bytes:number;entries:{hash:string;offset:number;bytes:number}[]}[]=[],packed=new Set<string>();
+  // descriptor reads and blob admission are separate phases: their packs never mix, so each phase fetches only its own
+  const groups=[[...[...sections].sort((a,b)=>a.name.localeCompare(b.name)),...[...schemas].sort((a,b)=>a.path.localeCompare(b.path))],
+    files.filter(file=>file.compressed<PACK_MEMBER_BYTES).sort((a,b)=>a.hash.localeCompare(b.hash)).map(file=>({path:file.path,hash:file.hash,bytes:file.compressed}))];
+  let pending:{path:string;hash:string;bytes:number}[]=[],pendingBytes=0;
+  const flush=():void=>{
+    if(pending.length===0)return;
+    const bytes=new Uint8Array(pendingBytes),entries:{hash:string;offset:number;bytes:number}[]=[];let offset=0;
+    for(const member of pending){const part=emitted.get(member.path);if(part===undefined||part.length!==member.bytes)throw new Error('Pack member bytes missing');bytes.set(part,offset);entries.push({hash:member.hash,offset,bytes:member.bytes});offset+=member.bytes;}
+    const hash=hashImmutableBytes(bytes),path=`blobs/pack/${hash}.pack`;emitted.set(path,bytes);packs.push({path,hash,bytes:bytes.length,entries});pending=[];pendingBytes=0;
+  };
+  for(const members of groups){
+    for(const member of members){
+      if(packed.has(member.hash))continue;packed.add(member.hash);
+      if(pendingBytes+member.bytes>PACK_BYTES)flush();
+      pending.push(member);pendingBytes+=member.bytes;
+    }
+    flush();
+  }
   const {spawns:_spawns,...runtime} = source.runtime ?? {};
   const index = parseOutputIndex({format:'wildshard.shardfile',formatVersion:2,sdk:'0.2',version:source.version,identity:source.identity,requires:source.requires,
     build:{sourceHash:hashImmutableBytes(jsonBytes(source)),validator:validationRevision() ?? 'source'},admission:{budgets:source.budgets,serverBudget:source.serverBudget,authorCaps:source.authorCaps,critical:source.critical,library:source.library},
-    sections:sections.sort((a,b)=>a.name.localeCompare(b.name)),schemas:schemas.sort((a,b)=>a.path.localeCompare(b.path)),files:files.sort((a,b)=>a.hash.localeCompare(b.hash)||a.path.localeCompare(b.path)),runtime:source.runtime === null ? null : {...runtime,trust:'first-party',files:options.runtime?.files ?? [],lines:options.runtime?.lines ?? 0}});
+    sections:sections.sort((a,b)=>a.name.localeCompare(b.name)),schemas:schemas.sort((a,b)=>a.path.localeCompare(b.path)),files:files.sort((a,b)=>a.hash.localeCompare(b.hash)||a.path.localeCompare(b.path)),...(packs.length===0?{}:{packs}),runtime:source.runtime === null ? null : {...runtime,trust:'first-party',files:options.runtime?.files ?? [],lines:options.runtime?.lines ?? 0}});
   // A writer owns this product directory, never a source folder. Preserve only the
   // already-copied runtime files; refuse unrelated leftovers in validation below.
   mkdirSync(destination,{recursive:true});
@@ -170,6 +193,7 @@ export function validateOutputProduct(destination: string): {index:OutputIndex; 
   for(const entry of index.sections){const bytes=read(entry),value=readJson(bytes);if(entry.name.startsWith('custom/')){const schema=schemaBytes.get(entry.schema);if(schema===undefined)throw new Error('Missing custom schema');validateDefinedSection(schema,value);}else validateOutputSection(entry.name,value);payloads.set(entry.name,value);}
   const scripts = scriptAdmissionRows(payloads), contracts = decisionModuleContracts(scripts, index.files);
   for(const entry of index.files){const bytes=read({path:entry.path,hash:entry.hash,bytes:entry.compressed});inspectBlob(entry,bytes,entry.kind === 'wasm' ? contracts.get(entry.hash) ?? {abi:0} : undefined);assets.set(`${entry.commons===true?'commons:':''}${entry.hash}`,bytes);if(index.requires.commons.includes(entry.hash))assets.set(`commons:${entry.hash}`,bytes);}
+  for(const pack of index.packs??[]){const bytes=read(pack);for(const entry of pack.entries)if(hashImmutableBytes(bytes.subarray(entry.offset,entry.offset+entry.bytes))!==entry.hash)throw new Error(`Pack member differs: ${pack.path}`);}
   for(const entry of index.runtime?.files??[])validateRuntimeImports(destination,entry.path,new TextDecoder('utf-8',{fatal:true}).decode(read(entry)));
   const walk=(folder:string):void=>{for(const name of readdirSync(resolve(destination,folder))){const path=folder===''?name:`${folder}/${name}`,stat=lstatSync(resolve(destination,path));if(stat.isDirectory())walk(path);else if(!stat.isFile()||!listed.has(path))throw new Error(`Unlisted output file: ${path}`);}};
   walk('');

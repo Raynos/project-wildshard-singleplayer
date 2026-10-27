@@ -43,6 +43,19 @@ it('splits terrain from opaque binary while retaining byte and field identity',(
  const path=resolve(directory,file.path);rmSync(path);symlinkSync(resolve(directory,'shard.json'),path);
  expect(()=>validateOutputProduct(directory)).toThrow(/symlink/u);
 });
+it('packs the sections and the small files apart, each member once at its exact bytes (iPhone downloads I5)',()=>{
+ const shard=source(),directory=output(),bin=new Uint8Array([1,2,3]),hash=hashImmutableBytes(bin);
+ shard.files=[{hash,kind:'binary',compressed:3,decoded:3,gpu:0,triangles:0,draws:0,dependencies:[],critical:false}];shard.library=[hash];shard.budgets.library={resident:3,compressed:3};
+ const index=writeOutputProduct(shard,new Map([[hash,bin]]),directory),[sectionPack,pack]=index.packs??[];
+ if(sectionPack===undefined||pack===undefined||index.packs?.length!==2)throw new Error('Expected a section pack and a file pack');
+ expect(new Set(sectionPack.entries.map(entry=>entry.hash))).toEqual(new Set(index.sections.map(entry=>entry.hash)));
+ expect(pack.entries.map(entry=>entry.hash)).toEqual([hash]);
+ const bytes=readFileSync(resolve(directory,sectionPack.path));
+ for(const entry of sectionPack.entries)expect(hashImmutableBytes(bytes.subarray(entry.offset,entry.offset+entry.bytes))).toBe(entry.hash);
+ expect(validateOutputProduct(directory).shard).toEqual(shard);
+ const tampered=Uint8Array.from(bytes);tampered[0]=(tampered[0]??0)^1;writeFileSync(resolve(directory,sectionPack.path),tampered);
+ expect(()=>validateOutputProduct(directory)).toThrow(/hash|size/u);
+});
 it('refuses canonical but schema-invalid section bytes with updated hash and size',()=>{
  const directory=output(),index=writeOutputProduct(source(),new Map(),directory);
  const entry=index.sections.find(row=>row.name==='world/spawn');if(entry===undefined)throw new Error('Missing spawn');
