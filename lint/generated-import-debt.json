@@ -71,7 +71,7 @@
     "src/shards/driftwood-isle/generators/worldScenes.ts": 2,
     "src/shards/far-reach-legacy/boot/files.ts": 1,
     "src/shards/far-reach-legacy/manifest.ts": 1,
-    "src/shards/far-reach/generators/product.ts": 2,
+    "src/shards/far-reach/generators/product.ts": 1,
     "src/shards/far-reach/generators/rows/skyPaintedLook.ts": 1,
     "src/shards/far-reach/generators/sceneSources.ts": 1,
     "src/shards/far-reach/generators/worldScenes.ts": 1,

@@ -6,7 +6,7 @@ import { SKY_SECTIONS } from './sections';
 import { STORM_NOISE } from './rows/stormNoise';
 import { SWARD_ATLAS_FILE, SWARD_ATLAS_SAMPLER } from './rows/swardAtlas';
 import skyMaps from '../data/skyMaps.json' with { type: 'json' };
-import navigation from '../data/navigation.generated.json' with { type: 'json' };
+import type { SkyNavigationRows } from './navigation';
 import { SKY_REACH_RUNTIME_COST } from './rows/budgets';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
@@ -34,7 +34,9 @@ const base = emptyShardfile({ slug: 'far-reach', name: 'Sky Reach', author: 'Wil
 const COARSE_FILES = new Set(isleProps.tiles.filter(tile => tile.lod === 1).flatMap(tile => tile.files));
 const ISLE_LIBRARY = isleProps.files.filter(file => !COARSE_FILES.has(file.hash));
 const ISLE_TILE_COST = { compressed: ISLE_LIBRARY.reduce((sum, file) => sum + file.compressed, 0), resident: ISLE_LIBRARY.reduce((sum, file) => sum + file.decoded + file.gpu, 0) };
-const product = parseShardfile({ ...base, ...SKY_SECTIONS, plumbing, state: { ...SKY_SECTIONS.state, version: 2 }, migrations: slotMigrations, navigation: navigation.navigation, serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + navigation.files.reduce((sum, file) => sum + file.decoded, 0) }, accent: 'pink', runtime: null,
+/** Build-time declaration rows from admitted original navigation; no source handoff is read. */
+export function skyProductRows(navigation: SkyNavigationRows): ReturnType<typeof parseShardfile> {
+  return structuredClone(parseShardfile({ ...base, ...SKY_SECTIONS, plumbing, state: { ...SKY_SECTIONS.state, version: 2 }, migrations: slotMigrations, navigation: navigation.navigation, serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + navigation.files.reduce((sum, file) => sum + file.decoded, 0) }, accent: 'pink', runtime: null,
   // the material graphs the runtime draws its own meshes in (authored SF59 graph JSON, data/lookGraphs.json), and the
   // samplers: the islands' and boulders' library maps tile, the sward atlas keeps its own
   look: { ...base.look, materials: { ...base.look.materials, ...lookGraphs, ...SKY_PAINTED_GRAPHS }, samplers: { ...base.look.samplers, [ISLE_MAPS.rock]: { wrap: 'repeat', anisotropy: 4 }, [ISLE_MAPS.meadow]: { wrap: 'repeat', anisotropy: 4 }, [SWARD_ATLAS_FILE.hash]: SWARD_ATLAS_SAMPLER } },
@@ -49,11 +51,5 @@ const product = parseShardfile({ ...base, ...SKY_SECTIONS, plumbing, state: { ..
   sim: { ...base.sim, scripts: [] },
   props: { version: 1, family: 'toon', tiles: [], panels: [], models: [], far: null, textures: [],
     colliders: [...RISING_ISLETS.map((entry) => ({ id: `landing.${entry.edge}`, panel: null, initialActive: true, shapes: [{ ...entry.landing }] })),
-      ...RISING_ISLETS.map((entry) => ({ id: `gate-isle.${entry.edge}`, panel: null, initialActive: true, shapes: isletRows.entries.flatMap(row => row.edge === entry.edge ? row.strips.map(strip => ({ ...strip, kind: 'box' as const, surface: 'grass' as const })) : []) }))] } });
-
-
-/** Build-time declaration rows; runtime reads the generated admitted product. */
-export function skyProductRows(): typeof product { return structuredClone(product); }
-
-// oxlint-disable-next-line import/no-default-export -- Documented entry for SDK author projects.
-export default product;
+      ...RISING_ISLETS.map((entry) => ({ id: `gate-isle.${entry.edge}`, panel: null, initialActive: true, shapes: isletRows.entries.flatMap(row => row.edge === entry.edge ? row.strips.map(strip => ({ ...strip, kind: 'box' as const, surface: 'grass' as const })) : []) }))] } }));
+}

@@ -1,3 +1,4 @@
+import { originalSkyNavigation } from './fixtures/sky-navigation';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare complete original metadata and isolate real sealed production.
 import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Confine the actual cold sealed writer cache to repository scratch.
@@ -25,13 +26,13 @@ test('the authored tile bank preserves complete metadata, costs and the original
 });
 
 test('the declaration retains every original field, tile payload identity and admission cost', () => {
-  const bytes = new TextEncoder().encode(`${JSON.stringify(skyProductRows())}\n`);
+  const bytes = new TextEncoder().encode(`${JSON.stringify(skyProductRows(originalSkyNavigation()))}\n`);
   expect(bytes.byteLength).toBe(325_153);
   expect(hashImmutableBytes(bytes)).toBe(declarationHash);
 });
 
 test('declaration publication is retired and callers retain isolated complete original values', () => {
   expect(discoverGeneration(resolve('.')).jobs.some(row => row.id === 'sky-declaration')).toBe(false);
-  const rows = skyProductRows(); rows.entryways.length = 0; rows.files.length = 0;
-  expect(hashImmutableBytes(new TextEncoder().encode(`${JSON.stringify(skyProductRows())}\n`))).toBe(declarationHash);
+  const rows = skyProductRows(originalSkyNavigation()); rows.entryways.length = 0; rows.files.length = 0;
+  expect(hashImmutableBytes(new TextEncoder().encode(`${JSON.stringify(skyProductRows(originalSkyNavigation()))}\n`))).toBe(declarationHash);
 });

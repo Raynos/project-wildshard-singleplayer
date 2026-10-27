@@ -35,6 +35,7 @@ import { readSkyStaticSceneEnvelope } from './staticSceneIntake';
 import { skyRouteSceneProgram } from './routeSceneProgram';
 import { readSkyRouteValues } from './routeScene';
 import { skyVaneProgram, VANE_FILES } from './vaneProgram';
+import { skyNavigationProgram } from './navigation';
 
 type SectionName = Parameters<Parameters<typeof emitPlatformSections>[0]['get']>[0];
 /** Build-only declarations; the compiled client features own all presentation. */
@@ -66,6 +67,7 @@ export function skyOutputValues(scenes: SkyWorldSceneValues): SkySourceOutput {
 
 /** Publish original prepared geometry, world pieces and island tiles through normal owned-asset admission. */
 export async function prepareOutput(ctx: ProjectGenerationContext): Promise<SkySourceOutput> {
+  const navigation = await skyNavigationProgram(ctx);
   const millScenes = await skyMillSceneProgram(ctx), staticScenes = await skyStaticSceneProgram(ctx);
   const routeScenes = await skyRouteSceneProgram(ctx), routeWire = routeScenes.get('route-scenes.json');
   const millWire = millScenes.get('mill-scene.json'), staticWire = staticScenes.get('static-scenes.json');
@@ -97,7 +99,7 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<SkyS
     if (bytes === undefined) throw new Error('Missing owned vane geometry');
     return nameBlob(`world/geometry/${file}`, 'glb', bytes);
   });
-  const assets = new Map([...prepared.assets, ...rigs.assets]), replacements = [hero, bakes,
+  const assets = new Map([...prepared.assets, ...rigs.assets, ...navigation.assets]), replacements = [hero, bakes,
     skyModelSource(bridgeName, millName, fanName, skyRigLibrary(rigSources.urls), {
       'vane-post': 'world/geometry/vane-post.glb', 'vane-rotor': 'world/geometry/vane-rotor.glb',
     }, restPools)];

@@ -1,3 +1,4 @@
+import { originalSkyNavigation } from './fixtures/sky-navigation';
 // oxlint-disable-next-line import/no-nodejs-modules -- Own the isolated cache and retain the original complete GLB oracle.
 import { mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Bind the real author folder and declared native input root.
@@ -154,7 +155,7 @@ test('owned geometry preserves all original bytes and costs, changing only its s
     bytes.fill(0);
     const hit = await prepareOutput(context()), hitBytes = hit.assets.get(hash);
     if (hitBytes === undefined) throw new Error('Missing cache-hit GLB');
-    expect(Buffer.compare(hitBytes, original)).toBe(0); expect(builds).toBe(10);
+    expect(Buffer.compare(hitBytes, original)).toBe(0); expect(builds).toBe(11);
     for (const file of SKY_WORLD_TILE_ROWS.files) {
       const tile = hit.assets.get(file.hash);
       if (tile === undefined) throw new Error('Missing cache-hit island tile');
@@ -192,7 +193,7 @@ test('normal output admission and the actual native pool resolver consume the ow
     const geometry = prepared.blobs.find(row => row.file.name === geometryName);
     if (geometry === undefined) throw new Error('Normal admission lost prepared geometry');
     expect(hashImmutableBytes(geometry.bytes)).toBe(hash);
-    const product = createShardProduct({ slug: 'far-reach', revision: 1, shardfile: skyProductRows(), sections: new Map(),
+    const product = createShardProduct({ slug: 'far-reach', revision: 1, shardfile: skyProductRows(originalSkyNavigation()), sections: new Map(),
       files: new Map(prepared.blobs.flatMap(row => row.file.name === undefined ? []
         : [[row.file.name, { hash: row.file.hash, url: `/shardfiles/far-reach/${row.file.path}` }]])),
       read: key => {
@@ -262,7 +263,7 @@ test('the original atlas admits from owned output in an empty project with uncha
     expect(readdirSync(empty)).toEqual([]);
     expect([...admitted.keys()]).toEqual([SWARD_ATLAS_FILE.hash]);
     expect(hashImmutableBytes(admitted.get(SWARD_ATLAS_FILE.hash) ?? new Uint8Array())).toBe(SWARD_ATLAS_FILE.hash);
-    const declaration = skyProductRows();
+    const declaration = skyProductRows(originalSkyNavigation());
     expect(declaration.files.find(file => file.hash === SWARD_ATLAS_FILE.hash)).toEqual(SWARD_ATLAS_FILE);
     const samplers = declaration.look.samplers;
     if (samplers === undefined) throw new Error('Missing original sampler declarations');

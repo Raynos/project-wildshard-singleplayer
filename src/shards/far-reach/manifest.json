@@ -240,8 +240,7 @@
       "program": true
     },
     "navigation": {
-      "module": "./data/navigation.generated.json",
-      "export": "default"
+      "program": true
     },
     "runtimeCost": {
       "module": "./runtimeCost.json",
