@@ -1,5 +1,5 @@
 import { BufferAttribute, BufferGeometry, InterleavedBuffer, InterleavedBufferAttribute, Matrix4, Mesh } from 'three';
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { assembleWholeGeometryViews } from '../src/game/plugin/geometry';
 
 const positions = [[0, 0, 0], [8, 0, 0], [0, 4, 0], [8, 4, 0]];
@@ -58,4 +58,53 @@ test.each(['borrow', 'take'] as const)('strided shared vertices still refuse con
   second.geometry.getAttribute('color').setX(0, 0);
   expect(() => assembleWholeGeometryViews([first, second], ownership)).toThrow('shared vertex differs');
   first.geometry.dispose(); second.geometry.dispose();
+});
+
+
+test.each(['borrow', 'take'] as const)('grid restoration writes final Float32 ordinals once and keeps rounded sharing (%s)', ownership => {
+  const nodes = [partition([0, 1, 2], 0, true), partition([1, 3, 2], 1, true)];
+  // Different double-precision grid results that round to the same original
+  // Float32 vertex remain legal, exactly as the former temporary attribute.
+  const second = nodes[1]; if (second === undefined) throw new Error('Missing shared grid node');
+  second.userData['wholePartition'] = { id: 'source', vertices: [1, 3, 2], triangles: [1], vertexCount: 4, indexCount: 6, index: 'u16',
+    grid: { origin: [0.125, -1.75, 4.25], step: 0.0625000001 } };
+  const expected = Float32Array.from(positions.flatMap(point => [(point[0] ?? 0) * 0.0625 + 0.125, (point[1] ?? 0) * 0.0625 - 1.75, (point[2] ?? 0) * 0.0625 + 4.25]));
+  const originals = nodes.map(node => facts(node.geometry)), assigned = vi.spyOn(BufferGeometry.prototype, 'setAttribute');
+  const result = assembleWholeGeometryViews(nodes, ownership);
+  try {
+    const view = result.get('source'), position: unknown = view?.geometry.getAttribute('position');
+    if (!(position instanceof BufferAttribute)) throw new Error('Missing restored positions');
+    expect(result.size).toBe(1);
+    expect(new Uint8Array(position.array.buffer, position.array.byteOffset, position.array.byteLength)).toEqual(new Uint8Array(expected.buffer));
+    expect(position.normalized).toBe(false); expect(position.itemSize).toBe(3);
+    expect(view?.geometry.index?.array).toEqual(Uint16Array.from([0, 1, 2, 1, 3, 2]));
+    expect(view?.matrix).toEqual(new Matrix4().makeTranslation(3, 7, -8));
+    const floats = assigned.mock.calls.filter(([name, attribute]) => name === 'position' && attribute instanceof BufferAttribute && attribute.array instanceof Float32Array);
+    expect(floats).toHaveLength(1); // The final output, with no per-partition temporary.
+    expect(nodes.map(node => facts(node.geometry))).toEqual(originals);
+  } finally {
+    assigned.mockRestore(); for (const view of result.values()) view.geometry.dispose(); for (const node of nodes) node.geometry.dispose();
+  }
+});
+
+test.each(['borrow', 'take'] as const)('different restored shared grid words still refuse (%s)', ownership => {
+  const first = partition([0, 1, 2], 0, true), second = partition([1, 3, 2], 1, true);
+  second.userData['wholePartition'] = { id: 'source', vertices: [1, 3, 2], triangles: [1], vertexCount: 4, indexCount: 6, index: 'u16',
+    grid: { origin: [0.125, -1.75, 4.25], step: 0.125 } };
+  try { expect(() => assembleWholeGeometryViews([first, second], ownership)).toThrow('Whole shared vertex differs'); }
+  finally { first.geometry.dispose(); second.geometry.dispose(); }
+});
+
+test.each(['storage', 'normalized', 'width'] as const)('invalid grid %s still refuses and disposes only temporary input', mode => {
+  const node = partition([0, 1, 2], 0, true), storage = mode === 'storage' ? 'Float32Array' : 'Int16Array';
+  const width = mode === 'width' ? 4 : 3, normalized = mode === 'normalized';
+  node.geometry.setAttribute('position', new BufferAttribute(mode === 'storage' ? new Float32Array(12) : new Int16Array(12), width, normalized));
+  node.userData['nativeAttributes'] = { position: { semantic: 'POSITION', storage, normalized, itemSize: width } };
+  const before = facts(node.geometry), disposed = vi.spyOn(BufferGeometry.prototype, 'dispose');
+  try {
+    expect(() => assembleWholeGeometryViews([node], 'take')).toThrow('Whole grid needs Int16 positions');
+    expect(disposed.mock.contexts).toHaveLength(1);
+    expect(disposed.mock.contexts[0]).not.toBe(node.geometry);
+    expect(facts(node.geometry)).toEqual(before);
+  } finally { disposed.mockRestore(); node.geometry.dispose(); }
 });
