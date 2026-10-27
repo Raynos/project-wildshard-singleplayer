@@ -821,3 +821,5 @@ The far views looked bad because today's stand-ins are crude (decimated ~1.6 MB 
 | F1 | Variant sheet (iPhone portrait, labelled): render-everything vs today's stand-ins vs improved baked stand-ins, from inside Driftwood looking out (3 views) and the hero angle, each with WebContent + GPU MB | Opus | 0.5 d | Jake picks by eye |
 | F2 | The picked stand-in for every shard (bake step per shard, far budget per G658 crash-line count) | Opus + Codex | 1.5 d | far views match the pick; memory recorded |
 | F3 | Menu hero rendered offline at full detail and shipped as an image (no run-time streaming) | Opus | 0.5 d | hero matches the original framing; costs no run-time memory |
+
+T7.2 (2026-10-27, sp-x8; source this commit), in flight (reading at plan end): render-only approach pins start after the admitted neighbour tile offer rather than awaiting life-script and panel construction. Actual entered data still waits for complete admission and original input cleanup. No residency, readiness, transfer or memory-cap widening; G782 warm/cold numbers remain unqualified. Game/test types, typed lint and scoped ratchet pass.

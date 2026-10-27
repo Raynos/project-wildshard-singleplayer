@@ -315,6 +315,7 @@ export class GridSession {
   private readonly roadBudget: { readonly view: () => RoadViewCost | null; readonly resident: () => RoadResident };
   private readonly life: NeighbourLife;
   private readonly admitNeighbour: ((cell: GridCell) => Promise<void>) | undefined;
+  private readonly admitNeighbourRender: ((cell: GridCell) => Promise<void>) | undefined;
   /** G222 playtest #7: each neighbour's declared doors and gates, shown exactly when its region has them standing */
   private readonly panels: NeighbourPanels;
   private readonly softWalls: { readonly step: () => void; readonly state: () => SoftWallState };
@@ -690,7 +691,9 @@ export class GridSession {
     this.rings = new TileStreamer(this.neighbours, this.allocator, catalogue,
       levelPorts<FarPrepared, PreparedRingTile>(farPorts, tiles.ports), { farRadius: FAR_RING.reach, uploadsPerFrame: 1, uploadBytesPerFrame: 4_000_000 });
     this.clientTiles = clientTileRegistration(tiles.instances, this.rings, tileRing, id => this.farMeshes.has(id));
-    this.admitNeighbour = host.renderer === undefined ? undefined : this.tileAdmission(host.renderer, roots);
+    const neighbourAdmission = host.renderer === undefined ? undefined : this.tileAdmission(host.renderer, roots);
+    this.admitNeighbour = neighbourAdmission?.complete;
+    this.admitNeighbourRender = neighbourAdmission?.render;
     host.scope.onDispose(() => {
       this.clientTiles.dispose(); this.rings.dispose();
       for (const root of roots.values()) root.removeFromParent();
@@ -721,11 +724,13 @@ export class GridSession {
    * reader, material set and view set per slug (the template copies share them), each cell its own root. A neighbour that
    * fails to admit keeps its far proxy.
    */
-  private tileAdmission(renderer: Renderer, roots: ReadonlyMap<string, Group>): (cell: GridCell) => Promise<void> {
+  private tileAdmission(renderer: Renderer, roots: ReadonlyMap<string, Group>): {
+    complete: (cell: GridCell) => Promise<void>; render: (cell: GridCell) => Promise<void>;
+  } {
     const scope = this.host.scope, skins = new Map<string, Promise<ReadonlyMap<string, ClientSkin>>>();
     const shared = new Map<string, Promise<{ source: ClientRingInstance['source']; assets: ClientAssets; views: ClientTileViews; compile: (entry: unknown) => Material }>>();
-    const requested = new Map<string, Promise<void>>();
-    const admit = async (cell: GridCell): Promise<void> => {
+    const requested = new Map<string, { complete: Promise<void>; offered: Promise<void> }>();
+    const admit = async (cell: GridCell, offered: () => void): Promise<void> => {
       const root = roots.get(cell.instance); if (root === undefined) return;
       try {
         const product = gridShardfileProduct(cell.slug, { allocator: this.allocator, scope });
@@ -748,6 +753,7 @@ export class GridSession {
           const { source, assets, views, compile } = await loading;
           if (scope.disposed) return;
           this.clientTiles.offer(cell.instance, { source, assets, root, views });
+          offered(); // Render-only pins need no life-script or panel construction.
           const bytes = retained.admitted.assets;
           try { await this.life.admit(cell, root, source, bytes, compile, skins); } catch (error) { console.warn(`[grid] ${cell.instance} stays still (client scripts):`, error); }
           try { await this.panels.admit(cell, root, source, bytes, views); } catch (error) { console.warn(`[grid] ${cell.instance} draws no doors (declared panels):`, error); }
@@ -756,10 +762,21 @@ export class GridSession {
         }
       } catch (error) { this.refuse(cell, error); throw error; } // Required entry retains the original refusal.
     };
-    return cell => {
-      if (scope.disposed || scope.disposing) return Promise.reject(new Error('Grid tile owner left'));
+    const request = (cell: GridCell): { complete: Promise<void>; offered: Promise<void> } => {
       const prior = requested.get(cell.instance); if (prior !== undefined) return prior;
-      const pending = admit(cell); requested.set(cell.instance, pending); return pending;
+      let offer = (): void => undefined;
+      const offered = new Promise<void>(resolve => { offer = resolve; });
+      const pending = { complete: admit(cell, offer), offered }; requested.set(cell.instance, pending); return pending;
+    };
+    return {
+      complete: cell => scope.disposed || scope.disposing ? Promise.reject(new Error('Grid tile owner left')) : request(cell).complete,
+      render: async cell => {
+        if (scope.disposed || scope.disposing) throw new Error('Grid tile owner left');
+        const pending = request(cell);
+        // The complete promise also fences early refusals and disposal. It stays
+        // observed if offering wins; its existing finally retains input cleanup.
+        await Promise.race([pending.offered, pending.complete]);
+      },
     };
   }
 
@@ -869,7 +886,7 @@ export class GridSession {
         owner.listen(signal, 'abort', release, { once: true });
         try {
           if (signal.aborted) throw new Error('Tile approach abandoned');
-          await this.admitNeighbour?.(cell);
+          await this.admitNeighbourRender?.(cell);
           if (owner.disposed || owner.disposing || signal.aborted) throw new Error('Tile approach abandoned');
           const prepare = this.clientTiles.prepareOffered;
           if (prepare === undefined) throw new Error('Tile approach preparation is unavailable');
