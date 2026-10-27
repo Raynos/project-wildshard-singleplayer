@@ -244,6 +244,10 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
       if (!/^_[A-Z][A-Z0-9_]{0,63}$/.test(semantic) || !geometry.hasAttribute(channel)) throw new Error(`Invalid GLB custom attribute ${semantic}`);
       const a = geometry.getAttribute(channel), width = a.itemSize;
       if (!Number.isInteger(width) || width < 1 || width > 4 || a.count !== p.count) throw new Error(`Mismatched GLB custom attribute ${semantic}`);
+      // iPhone downloads I3: a native channel that is not float32 is read back only from its exact stored copy below (an
+      // integer channel is that copy, under its own semantic; a half-float one is its raw bits), so it is not also
+      // written as float32 (a half channel's float32 copy held its raw bits, never read; Nine's tiles carried ~50 MB of them)
+      if (nativeAttributes === true && a instanceof BufferAttribute && !(a.array instanceof Float32Array)) continue;
       attributes[semantic] = accessor(a, width, width === 1 ? 'SCALAR' : `VEC${width}`);
     }
     const native: Record<string, Json> = {};
@@ -254,8 +258,11 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
         const a = geometry.getAttribute(channel);
         if (!(a instanceof BufferAttribute)) throw new Error('Native GLB attributes must not be interleaved');
         let stored = semantic;
-        // a quantized normal / colour is already its own typed portable accessor: the table names it, with no raw copy
+        // a quantized normal / colour is already its own typed portable accessor: the table names it, with no raw copy;
+        // so is an integer custom channel (glTF admits any component type for an application semantic), written once here
         const portable = quantizedChannels === true && (channel === 'normal' || channel === 'color');
+        const integerCustom = semantic.startsWith('_') && !(a instanceof Float16BufferAttribute) && !(a.array instanceof Float32Array);
+        if (integerCustom) { attributes[semantic] = rawAccessor(a); native[channel] = { semantic, storage: a.array.constructor.name, normalized: a.normalized, itemSize: a.itemSize }; continue; }
         if (!portable && (!(a.array instanceof Float32Array) || (semantic === 'NORMAL' && a.itemSize !== 3))) {
           stored = `_WS_RAW_${semantic.replace(/^_/u, '')}`;
           if (Object.hasOwn(attributes, stored)) throw new Error(`Native GLB semantic collision ${stored}`);
