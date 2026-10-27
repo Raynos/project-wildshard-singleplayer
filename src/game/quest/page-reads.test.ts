@@ -73,7 +73,8 @@ test('early failure keeps its diagnostic while every later rejection is observed
   f.assembly.reject(last); f.stall.reject(second);
   // Flush later refusals before discovery can be consumed; Vitest must see no
   // unhandled rejection even if the original caller stops at its first failure.
-  await Promise.resolve(); await Promise.resolve();
+  // A full task turn lets an actually unobserved later rejection surface.
+  await new Promise<void>(resolve => { setTimeout(resolve, 0); });
   f.discovery.reject(first);
   await expect(reads.discovery()).rejects.toBe(first);
   await expect(reads.stall()).rejects.toBe(second);
