@@ -28,10 +28,14 @@ export function bootPackParts(paths, sizeOf) {
     const texture = /^(.*\/)([^/]+)-[a-f0-9]{8}\.ktx2$/u.exec(path);
     const directory = texture?.[1] ?? '';
     const slot = texture?.[2] ?? '';
+    // Dotted model.kind.variant names load per model, not per directory.
+    // Tier suffixes and ordinary material slots do not create namespaces.
+    const namespace = /^([^.]+)\.[^.]+\./u.exec(slot.replace(/\.(?:phone|desktop)$/u, ''))?.[1];
+    const cohort = directory === '' ? '' : `${directory}${namespace ?? ''}`;
     // Different revisions of a slot (e.g. two diffuse hashes) belong to
     // independent sets, even when their public directory is the same.
-    if (directory !== family || directory !== '' && (slots.has(slot) || bytes + size > PART_MAX)) flush();
-    current.push(path); bytes += size; family = directory;
+    if (cohort !== family || directory !== '' && (slots.has(slot) || bytes + size > PART_MAX)) flush();
+    current.push(path); bytes += size; family = cohort;
     if (directory !== '') {
       slots.add(slot);
       if (bytes >= PART_MAX) flush();

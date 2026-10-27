@@ -29,6 +29,12 @@ test('texture parts split before the original demand-reader cap, never through a
   expect(bootPackParts(paths, sizeOf)).toEqual([paths.slice(0, 2), paths.slice(2, 3), paths.slice(3)]);
 });
 
+test('dotted model variants share only their own model demand, retaining material cohorts', () => {
+  const paths = ['bear.brown.old.phone', 'bear.brown.young.phone', 'deer.hind.white.phone', 'deer.hind.brown.phone',
+    'bolt.arm', 'bolt.col', 'bolt.nrm'].map(slot => `/assets/gpu/shared/${slot}-00000000.ktx2`);
+  expect(bootPackParts(paths, () => 100)).toEqual([paths.slice(0, 2), paths.slice(2, 4), paths.slice(4)]);
+});
+
 test('non-texture parts retain boot order and image-before-glTF adjacency', () => {
   const paths = ['/assets/models/prop/textures/color.png', '/assets/models/prop/textures/normal.png',
     '/assets/models/prop/prop.gltf', '/assets/world.bin'];

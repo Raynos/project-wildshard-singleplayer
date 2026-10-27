@@ -12,7 +12,7 @@
  *   __BUNDLE__    every emitted content URL: the cache identity/prune list; cached on first use.
  *   __WARM__      only public entry closures, warmed after the page is usable.
  *   __INSTALL__   the complete static entry graph and CSS, strictly cached at install. Lazy code stays off that path.
- *   __FONTS__     the self-hosted `/fonts/*.woff2`: precached at install, so an offline launch has its type even though
+ *   __FONTS__     the self-hosted `/fonts/*.woff2`: warmed after control, so an offline launch has its type even though
  *                 the first visit's CSS asked for them before the worker controlled the page (project/archive/2026-09-23-preload-offline.md).
  */
 import { createHash } from 'node:crypto';

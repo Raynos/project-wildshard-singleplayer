@@ -30,7 +30,7 @@ class StoredCache {
   delete(input: Request | string): Promise<boolean> { return Promise.resolve(this.bodies.delete(this.key(input))); }
 }
 function fixture(read?: (url: string, init?: RequestInit) => Promise<Response>, warm: readonly string[] = [entry, dependency, css, lazy, later], packs?: unknown,
-  bundle: readonly string[] = [entry, dependency, css, lazy, later]) {
+  bundle: readonly string[] = [entry, dependency, css, lazy, later], fonts: readonly string[] = []) {
   const listeners = new Map<string, ((event: WorkerEvent) => void)[]>(), books = new Map<string, StoredCache>();
   const installErrors: unknown[] = [];
   const replies: unknown[] = [];
@@ -60,7 +60,7 @@ function fixture(read?: (url: string, init?: RequestInit) => Promise<Response>, 
     .replace("'__WARM__'", JSON.stringify(JSON.stringify(warm)))
     .replace("'__INSTALL__'", JSON.stringify(JSON.stringify([entry, dependency, css])))
     .replace("'__CODE_PACKS__'", JSON.stringify(JSON.stringify(packs ?? { files: [], entries: {} })))
-    .replace("'__FONTS__'", JSON.stringify('[]'));
+    .replace("'__FONTS__'", JSON.stringify(JSON.stringify(fonts)));
   runInNewContext(`${owner}\n${packSource}\n${worker}`, { self, caches, fetch, URL, Request, Response, Headers, Blob, DecompressionStream, TextDecoder, AbortController, setTimeout, clearTimeout, Date, console, crypto });
   const dispatch = async (kind: string, payload: Pick<WorkerEvent, 'data' | 'request' | 'ports'> = {}): Promise<void> => {
     const pending: Promise<unknown>[] = [];
@@ -70,6 +70,43 @@ function fixture(read?: (url: string, init?: RequestInit) => Promise<Response>, 
   return { fetch, open, dispatch, navigator, installErrors, replies };
 }
 afterEach(() => { vi.useRealTimers(); });
+
+test('optional fonts and icons wait for control warming, then retain offline coverage', async () => {
+  const fonts = ['/fonts/needed.woff2', '/fonts/later.woff2'] as const;
+  const optional = [...fonts, '/asset-index.json', '/apple-touch-icon.png', '/favicon.png', '/icon-192.png', '/icon-512.png'];
+  const f = fixture(undefined, [], undefined, undefined, fonts);
+  const paths = (): string[] => f.fetch.mock.calls.map(([input]) => new URL(typeof input === 'string' ? input : input.url).pathname);
+  await f.dispatch('install');
+  expect(paths()).toEqual(['/index.html', '/manifest.webmanifest', entry, dependency, css]);
+  // A font actually used before control still reads on demand and joins the
+  // same static cache. Later warming must not read it a second time.
+  await f.dispatch('fetch', { request: new Request(new URL(fonts[0], base)) });
+  expect(paths().filter(path => path === fonts[0])).toHaveLength(1);
+  await f.dispatch('message', { data: { type: 'WARM_CODE' } });
+  for (const path of optional) expect(paths().filter(value => value === path)).toHaveLength(1);
+  const count = f.fetch.mock.calls.length;
+  await f.dispatch('message', { data: { type: 'WARM_ALL_CODE' } });
+  expect(paths().slice(count)).toEqual([lazy, later]);
+  for (const path of optional) expect(paths().filter(value => value === path)).toHaveLength(1);
+  f.navigator.onLine = false; f.fetch.mockRejectedValue(new Error('offline'));
+  for (const path of optional) await f.dispatch('fetch', { request: new Request(new URL(path, base)) });
+  expect(f.fetch).toHaveBeenCalledTimes(count + 2);
+  expect(f.installErrors).toEqual([]);
+});
+
+test('unavailable optional assets retain tolerant warming and cannot hide strict install failures', async () => {
+  const font = '/fonts/unavailable.woff2';
+  const f = fixture(url => Promise.resolve(new Response(url.endsWith('/index.html') ? `<script src="${entry}"></script>` : 'exact bytes',
+    { status: url.endsWith(font) || url.endsWith('.png') || url.endsWith('/asset-index.json') ? 503 : 200 })), [], undefined, undefined, [font]);
+  await f.dispatch('install');
+  await f.dispatch('message', { data: { type: 'WARM_CODE' } });
+  expect(f.installErrors).toEqual([]);
+  expect(await (await f.open('ws-static-unit-assets')).match(new URL(font, base).href)).toBeUndefined();
+  const refused = fixture(url => Promise.resolve(new Response(url.endsWith('/index.html') ? `<script src="${entry}"></script>` : 'exact bytes',
+    { status: url.endsWith(css) ? 503 : 200 })), [], undefined, undefined, [font]);
+  await expect(refused.dispatch('install')).rejects.toThrow('precache:');
+  expect(refused.installErrors).toHaveLength(1);
+});
 
 test('emitted grid data stays cold at install and survives activation for offline first use', async () => {
   const assets = ['/assets/grid-strip-book-12345678.json', '/assets/grid-strip-page-23456789.json', '/assets/grid-strip-mesh-34567890.bin'];

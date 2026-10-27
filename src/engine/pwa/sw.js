@@ -12,7 +12,7 @@ import { codePackEntries, readCodePackTransport } from './codePack.js';
  *   __BUNDLE__    the emitted /assets/<name>-<hash>.* paths of this build — the worker's only name for the
  *                 content-addressed set (gauntlet had load-manifest.json for this); `activate` PRUNES the immutable
  *                 cache to it. __INSTALL__ is its static entry graph plus CSS; only that subset blocks installation.
- *   __FONTS__     the self-hosted /fonts/*.woff2 — precached at install (the first visit's CSS fetched them before
+ *   __FONTS__     the self-hosted /fonts/*.woff2 — warmed after control (the first visit's CSS fetched them before
  *                 this worker controlled the page, so without this an offline launch had no type).
  *
  * OFFLINE (project/archive/2026-09-23-preload-offline.md): after one complete load the same shard boots and plays with the network off.
@@ -37,8 +37,8 @@ import { codePackEntries, readCodePackTransport } from './codePack.js';
  *
  *   install   precache the critical shell, then its static entry code and CSS, both strict: a failed shell, an index.html that
  *             names another build's code, or a code file the host no longer serves fails the install, so the old
- *             worker keeps serving (E144). Icons and fonts are tolerant; everything only what is missing; hashed
- *             images on use. After page-ready, warm lazy code serially at low priority, yielding to real reads.
+ *             worker keeps serving (E144). Optional icons/fonts/index wait for control; everything only what is missing;
+ *             hashed images on use. After control, warm lazy code serially at low priority, yielding to real reads.
  *   activate  carry the previous ws-static-* entries that are still current BY CONTENT into the new static cache and
  *             drop everything /asset-manifest.json no longer names (E160 / E161, gcStatic below), drop stale
  *             ws-shell/ws-static caches, prune (never wipe) the immutable cache, claim.
@@ -91,7 +91,7 @@ const gc = { entries: 0, bytes: 0, caches: 0, kept: 0, migrated: 0, hashed: 0 };
 
 /** Install fails without these: an incomplete shell must not pretend to be installed. */
 const SHELL_CRITICAL = ['/index.html', '/manifest.webmanifest'];
-/** Nice to have at install; never fatal. */
+/** Optional offline copies after control; never part of strict installation. */
 const SHELL_OPTIONAL = ['/asset-index.json'];
 const STATIC_OPTIONAL = ['/apple-touch-icon.png', '/favicon.png', '/icon-192.png', '/icon-512.png'];
 
@@ -209,7 +209,6 @@ workerScope.listen(self, 'install', (event) => {
         if (foreign.length > 0) throw new Error(`install: /index.html is another build's (${foreign.join(', ')})`);
         await shell.put(abs('/index.html'), doc);
         await Promise.all(SHELL_CRITICAL.filter((p) => p !== '/index.html').map((p) => backgroundCache(shell, p))); // throws → install fails → the old worker keeps serving
-        await fillMissing(shell, SHELL_OPTIONAL);
         // The entry chunk was requested by the HTML before this worker controlled anything (a first visit), so
         // it never passed through `fetch` below; name it here or the second boot is not all-cache. Immutable on
         // the host, so this is served by the HTTP cache, not the network, when the page just fetched it.
@@ -221,7 +220,6 @@ workerScope.listen(self, 'install', (event) => {
         const shellPack = CODE_PACKS.entries.$shell;
         if (shellPack) await prepareWorkerCodePack(shellPack);
         await fillMissing(await caches.open(IMMUTABLE_CACHE), INSTALL, true);
-        await fillMissing(await caches.open(STATIC), [...STATIC_OPTIONAL, ...FONTS]);
       } catch (error) {
         // A rejected installer becomes redundant before a page can query it.
         // Report the original failure, then preserve that exact rejection.
@@ -372,6 +370,13 @@ let warming = null, warmAbort = null, foregroundAt = 0;
 async function warmBundle(all = false) {
   if (warming !== null) { await warming; if (!all) return; }
   const run = async () => {
+    // The host sends WARM_CODE only after a real controllable frame. Fonts
+    // needed earlier still use the ordinary cache-first fetch handler; copy
+    // the complete optional offline set now, without rereading cache hits.
+    await Promise.all([
+      fillMissing(await caches.open(SHELL), SHELL_OPTIONAL),
+      fillMissing(await caches.open(STATIC), [...STATIC_OPTIONAL, ...FONTS]),
+    ]);
     const cache = await caches.open(IMMUTABLE_CACHE);
     for (const path of all ? BUNDLE : WARM.filter(p => !IMAGE_RE.test(p))) {
       if (await cache.match(abs(path), MATCH_OPTS)) continue;
