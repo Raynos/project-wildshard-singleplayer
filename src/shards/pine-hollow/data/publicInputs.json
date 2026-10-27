@@ -1,0 +1,15 @@
+{
+  "notice": "GR8: committed public inputs the Pine program publishes as product blobs, read through ctx.cached (generators/publicInputs.ts).",
+  "creatures": [
+    {
+      "name": "models/creatures/thrall-extras.glb",
+      "kind": "glb",
+      "url": "/assets/pine-hollow/creatures/thrall-extras.glb"
+    },
+    {
+      "name": "models/creatures/thrall-extras.phone.glb",
+      "kind": "glb",
+      "url": "/assets/pine-hollow/creatures/thrall-extras.phone.glb"
+    }
+  ]
+}
