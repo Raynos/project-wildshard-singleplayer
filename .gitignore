@@ -163,7 +163,6 @@ public/assets/driftwood-isle/map/top.webp
 /src/game/boot/versions.generated.ts
 /src/game/shard/art.generated.ts
 /src/game/shard/manifest-closure.generated.json
-/src/shards.generated.ts
 /src/shards/_template/discovery.generated.ts
 /src/shards/blender-template/discovery.generated.ts
 /src/shards/driftwood-isle/discovery.generated.ts

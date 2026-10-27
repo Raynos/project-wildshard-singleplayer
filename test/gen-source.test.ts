@@ -5,13 +5,14 @@ import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSy
 // oxlint-disable-next-line import/no-nodejs-modules -- Run the actual plain runner against an invalid isolated registry.
 import { spawnSync } from 'node:child_process';
 import { expect, test } from 'vitest';
+import { shardSource } from '../scripts/gen-shards.mjs';
 import { genSource } from '../scripts/gen-source.mjs';
 import { SOURCE_GENERATORS, selectSourceGenerators } from '../scripts/source-generators.mjs';
 
 test('a staged path selects only the gen:source rows it feeds', () => {
   const ids = (path: string): string[] => selectSourceGenerators([path]).map(row => row.id);
   expect(ids('src/game/weapons/starterBow.json')).toEqual(['starter-weapons']);
-  expect(ids('src/shards/pine-hollow/manifest.json')).toEqual(['shard-slugs', 'shards', 'boot-tables']);
+  expect(ids('src/shards/pine-hollow/manifest.json')).toEqual(['shard-slugs', 'shard-list', 'manifest-closure', 'boot-tables']);
   expect(ids('public/assets/music/calm/music.json')).toEqual(['boot-audio', 'boot-tables', 'packs']);
   expect(ids('src/engine/core/Game.ts')).toEqual([]);
   expect(ids('src/game/bag/starter.generated.ts')).toEqual(['starter-bag']);
@@ -76,5 +77,41 @@ test('a registry row with no producer refuses before checking or writing its out
 test('--stage regenerates only the committed tables a commit feeds, and they are current', async () => {
   const root = resolve(import.meta.dirname, '..');
   await expect(genSource(root, { check: true, committed: true, changed: ['src/game/weapons/starterBow.json', 'src/shards/pine-hollow/manifest.json'] }))
-    .resolves.toEqual({ touched: [], owned: ['src/game/weapons/starter.generated.ts', 'src/game/shard/slugs.generated.ts', 'src/game/shard/slugs.generated.json'] });
+    .resolves.toEqual({ touched: [], owned: ['src/game/weapons/starter.generated.ts', 'src/game/shard/slugs.generated.ts', 'src/game/shard/slugs.generated.json', 'src/shards.generated.ts'] });
+});
+
+
+test('the committed composition table needs only declarations and preserves output and placement identity', () => {
+  mkdirSync('tmp', { recursive: true });
+  const root = mkdtempSync(resolve('tmp', 'gen-source-shards-'));
+  try {
+    const write = (path: string, value: object): void => {
+      mkdirSync(resolve(root, path, '..'), { recursive: true });
+      writeFileSync(resolve(root, path), JSON.stringify(value));
+    };
+    write('src/shards/island/manifest.json', { slug: 'island' });
+    write('src/shards/island/outputs.json', { outputs: [{ slug: 'island-west' }, { slug: 'island-east' }] });
+    const placements = [
+      { slug: 'island-west', cell: [0, 0], size: [500, 500, 500], instance: 'west' },
+      { slug: 'island-east', cell: [1, 0], size: [500, 500, 500], instance: 'east' },
+    ];
+    write('src/game/grid/singleplayer.json', { placements });
+    const source = shardSource(root);
+    expect(source).toContain("import m0 from './shards/island/discovery.island-east.generated'");
+    expect(source).toContain("import m1 from './shards/island/discovery.island-west.generated'");
+    expect(source).toContain('grid: [1,0], size: [500,500,500], instance: "east"');
+    expect(source).toContain('export const LEGACY_SHARDS: ShardManifest[] = []');
+    expect(source).toContain('placed.sort((a, b) => a.order - b.order)');
+    const row = SOURCE_GENERATORS.find(entry => entry.id === 'shard-list');
+    if (row?.generate === undefined) throw new Error('Missing composition table producer');
+    expect(row.committed).toBe(true);
+    // The real producer is module-loaded from the checkout; the isolated input root
+    // deliberately contains no discovery modules, assets, configs or products.
+    write('src/game/grid/singleplayer.json', { placements: placements.slice(0, 1) });
+    expect(() => shardSource(root)).toThrow('missing grid placement');
+    write('src/game/grid/singleplayer.json', { placements });
+    write('src/shards/island/outputs.json', { outputs: [{ slug: 'island-west' }, { slug: 'island-west' }] });
+    expect(() => shardSource(root)).toThrow('invalid or duplicate output slug');
+    expect(selectSourceGenerators(['src/shards/island/outputs.json']).map(entry => entry.id)).toEqual(['shard-slugs', 'shard-list', 'manifest-closure']);
+  } finally { rmSync(root, { recursive: true, force: true }); }
 });
