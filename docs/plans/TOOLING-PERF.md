@@ -11,9 +11,9 @@ should be running in pre-push if they were fast."*
 ## Separate plans it links to (G647, never copied here)
 
 [TypeScript speed](../../project/archive/2026-10-27-typescript-speed.md) + [quick wins](../../project/archive/2026-10-26-typescript-quick-wins.md) and
-[oxlint speed](tooling-perf/oxlint-mini-plan.md) (open, the builder builds them); [no binaries in JSON](tooling-perf/no-binaries-in-json-mini-plan.md)
-(open, G649); [generators spike / redesign](tooling-perf/generators-spike-mini-plan.md) (draft, G648/G650); `pnpm gen` speed
-(benchmark running → `tooling-perf/gen-mini-plan.md`); [fail fast](../../project/archive/2026-10-27-fail-fast.md) and G627/G628/G636
+[oxlint speed](../../project/archive/2026-10-27-oxlint.md) (done 10-27; R4 folded into generators GR12, G796); [no binaries in JSON](../../project/archive/2026-10-27-no-binaries-in-json.md)
+(done 10-27, G649; B5 folded into GR6–GR8, G796); [generators spike / redesign](tooling-perf/generators-spike-mini-plan.md) (draft, G648/G650); [`pnpm gen` speed](../../project/archive/2026-10-27-gen-speed.md)
+(done 10-27; G1 / G6 / G8 folded into GR12, G796); [fail fast](../../project/archive/2026-10-27-fail-fast.md) and G627/G628/G636
 (building under SHARD-PLATFORM).
 
 ## What we know (2026-10-23)
@@ -72,7 +72,7 @@ should be running in pre-push if they were fast."*
 ### C. Lint and policies
 
 - **oxlint 1.83:** all seven categories at `error`, **nursery** included → **~420 built-in rules**, 54 type-aware (91 off,
-  10 configured). Speed is the [oxlint plan](tooling-perf/oxlint-mini-plan.md)'s; nursery at `error` lets an upgrade turn
+  10 configured). Speed is the [oxlint plan](../../project/archive/2026-10-27-oxlint.md)'s (archived; R4 lives in generators GR12); nursery at `error` lets an upgrade turn
   main red with no code change (L4).
 - **`wildshard/*`, 40 custom rules** (1,121 + 1,368 lines): 30 `error` in `src/**`, 1 in tests, 4 `off` but counted, and
   **5 only in `.oxlintrc.ratchet.json`** (`public-index`, `no-raw-random-time`, `shard-sandbox`, `shard-services`,

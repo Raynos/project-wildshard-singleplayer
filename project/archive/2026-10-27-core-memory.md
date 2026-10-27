@@ -1,6 +1,8 @@
 # Core-game memory benchmax: mini plan (measured, G640)
 
-**State:** `in flight` (2026-10-27, sp-x2) — counted C4 closes on G769's
+**State:** `archived 2026-10-27 (finished 2026-10-27)` — every row is closed: C1, C3, C5, C7 done; C4 closed on the
+G781 ratchet; C6 closed by G762; C2 dropped (G781); C5.6's pick made by G749 (B shipped). Was: `in flight`
+(2026-10-27, sp-x2) — counted C4 closes on G769's
 G781 ratchet (recommended finish-line Q7): Template1 **274,538,200 B / 261.820 MiB**,
 Template2 **261,512,872 B / 249.398 MiB**, pinned to the completed native pair
 `18d3c27d7a` (reader `0757e3b72a`). Future growth must fit those fixed ratchets;
@@ -100,13 +102,13 @@ iPhone's GPU process reading once.
 
 | Row | What | Files | Size | Done when |
 |---|---|---|---|---|
-| C1 | Prefetch holds no memory: drop each body after it is stored, cap the bytes in flight, and find the holder of the 218 MB (worker Cache.put or the response) | grid/prefetch.ts, shardfile content-cache worker | S–M | Chromium menu at 2 min ≤ 130 MB renderer with Blink buffer < 20 MB, and ≤ 200 MB at 10 s, with the prefetch running |
+| C1 — done (C1.1 `9108b14ec6`; C1.2 WebKit menu reading PASS) | Prefetch holds no memory: drop each body after it is stored, cap the bytes in flight, and find the holder of the 218 MB (worker Cache.put or the response) | grid/prefetch.ts, shardfile content-cache worker | S–M | Chromium menu at 2 min ≤ 130 MB renderer with Blink buffer < 20 MB, and ≤ 200 MB at 10 s, with the prefetch running |
 | C2 — dropped (Jake G781) | Extra Developer-on WebKit menu reading dropped; retain the historical C1.2 receipt below | none | — | No new reading, code or memory claim |
 | C3 — done `f295f74bec` (title-closure ratchet refuses Three, Rapier, shard code) | Title diet: the title graph imports no three.js, loaders, looks, terrain or shard modules (the prefetch's order arrives as data) | mainMenu.ts, grid/menu.ts, prefetch.ts imports, shardList | M | The menu's script list holds no `three.module`, GLTFLoader, ktx2 or shard folder; a module-graph test over the title entry stays green |
 | C4 — done `38a51a1511` + `0757e3b72a` (Jake G781) | Retire the identified cache/worker/image/audio/animation holders; close at the latest measured native pair rather than keep chasing the old target | content cache / product loader / animation machine; reader owned by sp-x7 | S | Fixed ratchets274,538,200B Template1 /261,512,872B Template2 from18d3c27d7a; no auto-rebase, no1.2GB limit change. Historical198.538MiB misses remain failures, not savings. |
 | C5 — done `5d9aea7ecd` (G749 B shipped) | Phone composer diet, as a Debug A/B: half-float to RGBA8 where the look allows, half-res luminance / SMAA, drop the stable-depth copy | engine composer / look | M | Labelled render targets ≤ 30 MB at 804×1362 (now 53), and Jake's pick on a variant sheet (default-off until then) |
 | C6 — closed (C6.1, C6.3 done; C6.2 closed by G762) | Estimator honesty (G762): component costs plus an independently measured engine base; prediction is advisory and missing base stays unknown | format/contentBounds.ts, contentCost.ts | S | done (this code commit): native G682 memory is the acceptance gate; no ±15% prediction-accuracy gate |
-| C7 | Core floor ruler at each milestone: four floors (menu, SHARD SELECT, Template 1, Template 2) by extending scripts/shard-phone-memory.mjs with the menu-entry flow, not a new tool (G585) | scripts/shard-phone-memory.mjs | S | One command prints the four floors and checks them against D1's target |
+| C7 — done (C7.1 `50d155f897`, C7.2 reading, C7.3 `688f7e1d78`) | Core floor ruler at each milestone: four floors (menu, SHARD SELECT, Template 1, Template 2) by extending scripts/shard-phone-memory.mjs with the menu-entry flow, not a new tool (G585) | scripts/shard-phone-memory.mjs | S | One command prints the four floors and checks them against D1's target |
 
 Order: C1 and C3 first (the menu), then C4 and C6, with C5 behind Jake's pick. C2 follows C1. C7 goes last, once D1 sets
 the target.
@@ -120,7 +122,7 @@ the target.
 | C5.3 | Variant B behind one Debug row (Look ▸ Post render targets, default A): 8-bit output after the tone map, quarter bloom, half ray mask, FXAA for SMAA (no stable-depth copy on these pages) | done `11ba2489f8` |
 | C5.4 | GPU MiB + frame time, A vs B, phone tier per shard (numbers shared with sp-x2's C4) | done: Template / DW 70.1 → 60.3, Pine 61.3 → 33.7, Sky 63.8 → 36.2, Signal 49.2 → 22.6 MiB; GPU and frame ms unchanged within noise (art/post/round-1-lighter-rt/README.md) |
 | C5.5 | One labelled A / B variant sheet per shard look, `art/post/round-1-lighter-rt/` | done: five boards, the commit that marks this |
-| C5.6 | Jake's pick: the winner becomes the default and the row, the option and the losing code go | waits-Jake |
+| C5.6 | Jake's pick: the winner becomes the default and the row, the option and the losing code go | done (G749: B shipped, `5d9aea7ecd`) |
 
 ## 5. Decisions (G658; M1 replaced by G682)
 

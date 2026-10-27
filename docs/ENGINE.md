@@ -4040,7 +4040,7 @@ in admission history. This adds no page cap or admission run.
 
 `format/contentCost` uses the C6 Simulator calibration: a 250 MiB
 (262,144,000 byte) engine base, from the 965b2bd1d6 WebKit template census
-in [core-memory section 1](plans/shard-platform/core-memory-mini-plan.md#1-measurements).
+in [core-memory section 1](../project/archive/2026-10-27-core-memory.md#1-measurements).
 Template 2 recorded 250 MiB WebContent plus 39 MiB GPU; Template 1 recorded
 261 plus 43. These are Simulator readings, not Chromium inspector data.
 Standalone inputs omit page claims and supply zero overlap when none exists;
