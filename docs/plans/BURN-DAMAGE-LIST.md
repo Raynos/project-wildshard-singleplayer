@@ -138,6 +138,8 @@ since is red; the latest (`60e9b7bfe6`) fails `generated-inputs`, which fails fa
 
 | D83 | Driftwood native catalogue product admission refuses shardfile semantic rules: material graph file lowering hides the coat texture from the sampler reference census | uncommitted D74 lowerMaterialGraphs in src/sdk/project.ts (no bad main SHA; not pier 5bea9d89b2) | sp-o5 (routed) | Current WIP materials.ts + shardSchema.ts follow graph-file dependencies: original and lowered semantic rules both empty; old sampler call reproduces exact a3fca362 texture refusal. Fresh readProjectAssets admission passes61.57s; defining fix still awaiting landing. |
 
+| D84 | Push binary-json refuses new app-source exemptions for Pine sectionSchemas.generated.ts and runtime/productSections.generated.d.ts, holding latest Pine wire repairs local | `4e346d015a` (committed source table registration) | sp-x1 (routed; coordinator informed) | open; exact tmp/push-loop/current.log, no gate waiver |
+
 ## Rows
 
 Parked: none of these is built until SHARD-PLATFORM completes and Jake says go.
