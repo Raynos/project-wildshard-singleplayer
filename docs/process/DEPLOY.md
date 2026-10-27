@@ -10,7 +10,7 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   `VERCEL_BUILD_TOKEN` is the team-scoped Actions secret used for `vercel pull`,
   `vercel build` and `vercel deploy`; the old project-scoped token cannot run the
   CLI account lookup; `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` name the project. No credentials belong in Git.
-- **Push / PR CI runs the whole vitest suite once**, in 32 product-free `behaviour` shards and eight
+- **Push / PR CI runs the whole vitest suite once**, in 16 product-free `behaviour` shards and eight
   `behaviour-products` shards (**without coverage**, Jake G287/G691); `typecheck-lint` runs typecheck and lint;
   `build-and-deploy` runs the node checks and the
   vite build + chunk check in parallel (`scripts/ci-checks.mjs`), then the CSS check and the native build. **Coverage runs nightly and at
@@ -24,7 +24,7 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   production. A historical pin without that CI proof still runs `pnpm test`. The reader reports `ci_green` separately
   from smoke and pin mode; a nearby commit or successful manual release cannot supply the test proof.
   **CI is the full backstop of the push gate** (Jake, 2026-10-15): the gate runs only the tests that import the changed
-  files (GIT.md). The `generated-inputs` job publishes exact-run source/public inputs first. The 32 product-free
+  files (GIT.md). The `generated-inputs` job publishes exact-run source/public inputs first. The 16 product-free
   behaviour shards restore and verify those inputs immediately, alongside types/lint/docs and the product build.
   The `products` job restores the same-source preparation cache over its prior product cache, revalidates every
   provider hit, and builds any missing or changed products. Eight product-consuming behaviour shards and the web
