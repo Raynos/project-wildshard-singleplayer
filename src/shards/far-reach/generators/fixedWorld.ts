@@ -31,6 +31,12 @@ export function skyFixedWorldValues(): SkyFixedWorldValues {
     mill: parseWorldScene(millScene.MILL_SCENE.recipe) };
 }
 
+/** Fresh original contact rows for source libraries that do not need visual scene construction. */
+export function skyFixedWorldColliders(ground: SkyGroundValues['SKY_GROUND_COLLIDERS'] = skyGroundValues().SKY_GROUND_COLLIDERS): FixedWorldRows['colliders'] {
+  const top=SUNREST.y+BOOK_STAND.height;
+  return [...structuredClone(BRIDGE),...skyPhysicsPlacements(),...structuredClone(ground),{id:'far.keeper.stand',colliders:[{kind:'box',x:KEEPER_STAND.x,y:(top+SUNREST.y)/2,z:KEEPER_STAND.z,hx:BOOK_STAND.footprint,hy:Math.max(.005,(top-SUNREST.y)/2),hz:BOOK_STAND.footprint,yaw:-KEEPER_STAND.yaw,surface:'wood'}]}];
+}
+
 /** Compose fixed visual hierarchies offline; the client keeps the existing scene/registry owners. */
 export function fixedWorld(standalone: boolean, values: SkyFixedWorldValues = skyFixedWorldValues()): FixedWorldRows {
   const children: string[] = [];
@@ -105,9 +111,8 @@ export function fixedWorld(standalone: boolean, values: SkyFixedWorldValues = sk
   const baked = [{id:'house',piece:'far.step.winch-house'},{id:'roost',piece:'far.roost.nest'},...(standalone?[{id:'docks',piece:'far.docks'}]:[])];
   for(const entry of baked){const piece=SKY_PIECES.find(row=>row.id===entry.piece);if(piece===undefined||!('baked'in piece))throw new Error('Missing fixed bake');
     append(entry.id,{scene:{version:1,root:'root',nodes:[{kind:'group',id:'root',...('node'in piece?{name:piece.node}:{}),children:['bake']},{kind:'object',id:'bake',source:'bake',missing:'refuse'}],materials:[],textures:[]},imports:[{kind:'baked',id:'bake',piece:piece.baked}]},'at'in piece?piece.at:undefined);}
-  const top=SUNREST.y+BOOK_STAND.height;
   return {recipe:parseWorldScene({scene,imports}),models:[...models],textureOnly:['mill-tower','mill-foot'],halo:{color:0xffb860,transparent:true,opacity:.18,blending:2,depthWrite:false},
-    colliders:[...structuredClone(BRIDGE),...skyPhysicsPlacements(),...structuredClone(values.groundColliders),{id:'far.keeper.stand',colliders:[{kind:'box',x:KEEPER_STAND.x,y:(top+SUNREST.y)/2,z:KEEPER_STAND.z,hx:BOOK_STAND.footprint,hy:Math.max(.005,(top-SUNREST.y)/2),hz:BOOK_STAND.footprint,yaw:-KEEPER_STAND.yaw,surface:'wood'}]}],
+    colliders:skyFixedWorldColliders(values.groundColliders),
     bindings:{early:standalone?[{piece:'far.docks',part:'docks.root',baked:'docks.bake'}]:[],mill:[{piece:'far.windmill',part:'mill.mill'}],
       furniture:[{piece:'far.winch',part:'winch.winch'},{piece:'far.notes',part:'notes.stand'},{piece:'far.keeper.stand',part:'keeper.stand'}],
       crown:[{piece:'far.crown.ruin',part:'crown.crown',baked:'crown.bake'},{piece:'far.step.winch-house',part:'house.root',baked:'house.bake'},{piece:'far.roost.nest',part:'roost.root',baked:'roost.bake'}]}};
